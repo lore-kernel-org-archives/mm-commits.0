@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48E3210EF
-	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 00:08:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DAF010EF
+	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 00:08:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708387722; cv=none; b=P3yYLDcyIheJq28wl3mL+KS4E1ezUH3AL3Utoug8rYI5JOH7FR4i3aCldBGwmPuyw1lKJu2nPB63qZzn+Mcf5nM4J52PupzDJT+IsmOTDRmIRAHN/nPxMVlfKdiJWNCfgsM8E65doNGtRVKzvbGH+HYIFVhrysgX9PF3zBnDlqM=
+	t=1708387724; cv=none; b=aKL+3E4FUYlDpI1/6KcKfudPHzM8OsCQQyNP/GkJ23Q9ogbPkl5RSD23PsYv5kD6FsWeKBTOilcXAy5VIT5iHhHc9gMiP7pSGJpdQoDBua0easQDkYI41sDink2P0lwOtdHhEghQOk1uQKjSnHKNTdfeGg8i7xcbPZdySvwKX3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708387722; c=relaxed/simple;
-	bh=mxKsJC/wd4wkdE3q5O70gAOY2UIfsrei8rOaqQ92tW4=;
-	h=Date:To:From:Subject:Message-Id; b=VcqfCYlndmVrEeKem1RrsVSNqFb6DL9ONqg7OoLVvyoe3cw8gQp814QwOpMLKxvriEEj9jj+FLuyJjReHCYMqOFhu/giW8d2AHAM1OjNatqmsZbYsA9aPoXKAtqewfm1Q3ruIsK2n3kpS2/6Ng1IqwZutU9rDCnaJnC1buHwgs8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2gtpL9Ac; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708387724; c=relaxed/simple;
+	bh=zonR69wk3dbmlx+oaygQW/+A0/dHLHCHbtOa0/LxGC8=;
+	h=Date:To:From:Subject:Message-Id; b=C/1QBGHkrpzytW0XRjy917d4asjDLd3zpY9+rl+ncGC42AnL6vcHHrtgvyVttbPF7hMg2hoqcKmI58uWPc6iWcljHSZ599CqJvP5D0Jk9AaLP5OVpf8m9C/dXpxWdyZz+r6hl+gJ69DJSULWgkBZ4g1ksdY4y3FA/HIEF3VHOzQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1HPOiZS8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2gtpL9Ac"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5C84C433F1;
-	Tue, 20 Feb 2024 00:08:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1HPOiZS8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31583C433C7;
+	Tue, 20 Feb 2024 00:08:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708387721;
-	bh=mxKsJC/wd4wkdE3q5O70gAOY2UIfsrei8rOaqQ92tW4=;
+	s=korg; t=1708387724;
+	bh=zonR69wk3dbmlx+oaygQW/+A0/dHLHCHbtOa0/LxGC8=;
 	h=Date:To:From:Subject:From;
-	b=2gtpL9Ac0RR8AwXmuLQvy1phEiysMxQdXvC4gGuhowFjh4d0gWkEOplUm1yVfLDR/
-	 CgqwMy+bzTQcP/j44NJp3XX0AeV+Wgqu/WOPmRQzxjcFCvZSoc8OrkzuUIqKmBhWOe
-	 z3Ov/hM9xIi1nsFklPgYlDZL4re94fedT3+9eLWM=
-Date: Mon, 19 Feb 2024 16:08:41 -0800
+	b=1HPOiZS8uTBPgxNgXlXDkxL+sfHf3OOQhAshbxK63HluluY6+oUrv/rWKSJrfkLIM
+	 Y3ipKoJpYpvHdmCAPzkaDPVlaNTEDHiwql6awtKpNZP6tkWb1llsZlGd4iWmgl+nGw
+	 Q+4BeAdJ1MzwB+thvanrwapM4A5SI9oyxv/xFULo=
+Date: Mon, 19 Feb 2024 16:08:43 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-let-goal-specified-with-only-target-and-current-values.patch added to mm-unstable branch
-Message-Id: <20240220000841.B5C84C433F1@smtp.kernel.org>
+Subject: + mm-damon-core-support-multiple-metrics-for-quota-goal.patch added to mm-unstable branch
+Message-Id: <20240220000844.31583C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: let goal specified with only target and current values
+     Subject: mm/damon/core: support multiple metrics for quota goal
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-let-goal-specified-with-only-target-and-current-values.patch
+     mm-damon-core-support-multiple-metrics-for-quota-goal.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-let-goal-specified-with-only-target-and-current-values.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-support-multiple-metrics-for-quota-goal.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,123 +59,152 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: let goal specified with only target and current values
-Date: Mon, 19 Feb 2024 11:44:22 -0800
+Subject: mm/damon/core: support multiple metrics for quota goal
+Date: Mon, 19 Feb 2024 11:44:23 -0800
 
-DAMOS quota auto-tuning feature let users to set the goal by providing a
-function for getting the current score of the tuned quota.  It allows
-flexible goal setup, but only simple user-set quota is currently being
-used.  As a result, the only user of the DAMOS quota auto-tuning is using
-a silly void pointer casting based score value passing function.  Simplify
-the interface and the user code by letting user directly set the target
-and the current value.
+DAMOS quota auto-tuning asks users to assess the current tuned quota and
+provide the feedback in a manual and repeated way.  It allows users
+generate the feedback from a source that the kernel cannot access, and
+writing a script or a function for doing the manual and repeated feeding
+is not a big deal.  However, additional works are additional works, and it
+could be more efficient if DAMOS could do the fetch itself, especially in
+case of DAMON sysfs interface use case, since it can avoid the context
+switches between the user-space and the kernel-space, though the overhead
+would be only trivial in most cases.  Also in many cases, feedbacks could
+be made from kernel-accessible sources, such as PSI, CPU usage, etc.  Make
+the quota goal to support multiple types of metrics including such ones.
 
-Link: https://lkml.kernel.org/r/20240219194431.159606-12-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240219194431.159606-13-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h    |   19 +++++++++----------
- mm/damon/core.c          |    9 +++++----
- mm/damon/sysfs-schemes.c |   10 ++--------
- 3 files changed, 16 insertions(+), 22 deletions(-)
+ include/linux/damon.h    |   26 +++++++++++++++++++++++---
+ mm/damon/core.c          |   22 +++++++++++++++++++---
+ mm/damon/sysfs-schemes.c |    5 +++--
+ 3 files changed, 45 insertions(+), 8 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-let-goal-specified-with-only-target-and-current-values
+--- a/include/linux/damon.h~mm-damon-core-support-multiple-metrics-for-quota-goal
 +++ a/include/linux/damon.h
-@@ -128,19 +128,18 @@ enum damos_action {
- 
- /**
-  * struct damos_quota_goal - DAMOS scheme quota auto-tuning goal.
-- * @get_score:		Function for getting current score of the goal.
-- * @get_score_arg:	Parameter for @get_score
-+ * @target_value:	Target value to achieve with the tuning.
-+ * @current_value:	Current value that achieving with the tuning.
-  * @list:		List head for siblings.
-  *
-- * Data structure for getting the current score of the quota tuning goal.
-- * Calling @get_score with @get_score_arg as the parameter should return the
-- * current score.  Then the score is entered to DAMON's internal feedback loop
-- * mechanism to get the auto-tuned quota.  The goal of the tuning is getting
-- * the feedback score value of 10,000.
-+ * Data structure for getting the current score of the quota tuning goal.  The
-+ * score is calculated by how close @current_value and @target_value are.  Then
-+ * the score is entered to DAMON's internal feedback loop mechanism to get the
-+ * auto-tuned quota.
-  */
- struct damos_quota_goal {
--	unsigned long (*get_score)(void *arg);
--	void *get_score_arg;
-+	unsigned long target_value;
-+	unsigned long current_value;
- 	struct list_head list;
+@@ -127,17 +127,36 @@ enum damos_action {
  };
  
-@@ -690,7 +689,7 @@ void damos_add_filter(struct damos *s, s
+ /**
++ * enum damos_quota_goal_metric - Represents the metric to be used as the goal
++ *
++ * @DAMOS_QUOTA_USER_INPUT:	User-input value.
++ * @NR_DAMOS_QUOTA_GOAL_METRICS:	Number of DAMOS quota goal metrics.
++ *
++ * Metrics equal to larger than @NR_DAMOS_QUOTA_GOAL_METRICS are unsupported.
++ */
++enum damos_quota_goal_metric {
++	DAMOS_QUOTA_USER_INPUT,
++	NR_DAMOS_QUOTA_GOAL_METRICS,
++};
++
++/**
+  * struct damos_quota_goal - DAMOS scheme quota auto-tuning goal.
+- * @target_value:	Target value to achieve with the tuning.
+- * @current_value:	Current value that achieving with the tuning.
++ * @metric:		Metric to be used for representing the goal.
++ * @target_value:	Target value of @metric to achieve with the tuning.
++ * @current_value:	Current value of @metric.
+  * @list:		List head for siblings.
+  *
+  * Data structure for getting the current score of the quota tuning goal.  The
+  * score is calculated by how close @current_value and @target_value are.  Then
+  * the score is entered to DAMON's internal feedback loop mechanism to get the
+  * auto-tuned quota.
++ *
++ * If @metric is DAMOS_QUOTA_USER_INPUT, @current_value should be manually
++ * entered by the user, probably inside the kdamond callbacks.  Otherwise,
++ * DAMON sets @current_value with self-measured value of @metric.
+  */
+ struct damos_quota_goal {
++	enum damos_quota_goal_metric metric;
+ 	unsigned long target_value;
+ 	unsigned long current_value;
+ 	struct list_head list;
+@@ -689,7 +708,8 @@ void damos_add_filter(struct damos *s, s
  void damos_destroy_filter(struct damos_filter *f);
  
  struct damos_quota_goal *damos_new_quota_goal(
--		unsigned long (*get_score)(void *), void *get_score_arg);
-+		unsigned long target_value, unsigned long current_value);
+-		unsigned long target_value, unsigned long current_value);
++		enum damos_quota_goal_metric metric,
++		unsigned long target_value);
  void damos_add_quota_goal(struct damos_quota *q, struct damos_quota_goal *g);
  void damos_destroy_quota_goal(struct damos_quota_goal *goal);
  
---- a/mm/damon/core.c~mm-damon-core-let-goal-specified-with-only-target-and-current-values
+--- a/mm/damon/core.c~mm-damon-core-support-multiple-metrics-for-quota-goal
 +++ a/mm/damon/core.c
-@@ -300,15 +300,15 @@ void damos_destroy_filter(struct damos_f
+@@ -300,15 +300,16 @@ void damos_destroy_filter(struct damos_f
  }
  
  struct damos_quota_goal *damos_new_quota_goal(
--		unsigned long (*get_score)(void *), void *get_score_arg)
-+		unsigned long target_value, unsigned long current_value)
+-		unsigned long target_value, unsigned long current_value)
++		enum damos_quota_goal_metric metric,
++		unsigned long target_value)
  {
  	struct damos_quota_goal *goal;
  
  	goal = kmalloc(sizeof(*goal), GFP_KERNEL);
  	if (!goal)
  		return NULL;
--	goal->get_score = get_score;
--	goal->get_score_arg = get_score_arg;
-+	goal->target_value = target_value;
-+	goal->current_value = current_value;
++	goal->metric = metric;
+ 	goal->target_value = target_value;
+-	goal->current_value = current_value;
  	INIT_LIST_HEAD(&goal->list);
  	return goal;
  }
-@@ -1132,7 +1132,8 @@ static unsigned long damos_quota_score(s
+@@ -1124,16 +1125,31 @@ static unsigned long damon_feed_loop_nex
+ 	return min_input;
+ }
  
- 	damos_for_each_quota_goal(goal, quota)
++static void damos_set_quota_goal_current_value(struct damos_quota_goal *goal)
++{
++	u64 now_psi_total;
++
++	switch (goal->metric) {
++	case DAMOS_QUOTA_USER_INPUT:
++		/* User should already set goal->current_value */
++		break;
++	default:
++		break;
++	}
++}
++
+ /* Return the highest score since it makes schemes least aggressive */
+ static unsigned long damos_quota_score(struct damos_quota *quota)
+ {
+ 	struct damos_quota_goal *goal;
+ 	unsigned long highest_score = 0;
+ 
+-	damos_for_each_quota_goal(goal, quota)
++	damos_for_each_quota_goal(goal, quota) {
++		damos_set_quota_goal_current_value(goal);
  		highest_score = max(highest_score,
--				goal->get_score(goal->get_score_arg));
-+				goal->current_value * 10000 /
-+				goal->target_value);
+ 				goal->current_value * 10000 /
+ 				goal->target_value);
++	}
  
  	return highest_score;
  }
---- a/mm/damon/sysfs-schemes.c~mm-damon-core-let-goal-specified-with-only-target-and-current-values
+--- a/mm/damon/sysfs-schemes.c~mm-damon-core-support-multiple-metrics-for-quota-goal
 +++ a/mm/damon/sysfs-schemes.c
-@@ -1882,11 +1882,6 @@ static int damon_sysfs_set_scheme_filter
- 	return 0;
- }
- 
--static unsigned long damos_sysfs_get_quota_score(void *arg)
--{
--	return (unsigned long)arg;
--}
--
- static int damos_sysfs_set_quota_score(
- 		struct damos_sysfs_quota_goals *sysfs_goals,
- 		struct damos_quota *quota)
-@@ -1904,9 +1899,8 @@ static int damos_sysfs_set_quota_score(
+@@ -1899,10 +1899,11 @@ static int damos_sysfs_set_quota_score(
  		if (!sysfs_goal->target_value)
  			continue;
  
--		goal = damos_new_quota_goal(damos_sysfs_get_quota_score,
--				(void *)(sysfs_goal->current_value * 10000 /
--				sysfs_goal->target_value));
-+		goal = damos_new_quota_goal(sysfs_goal->target_value,
-+				sysfs_goal->current_value);
+-		goal = damos_new_quota_goal(sysfs_goal->target_value,
+-				sysfs_goal->current_value);
++		goal = damos_new_quota_goal(DAMOS_QUOTA_USER_INPUT,
++				sysfs_goal->target_value);
  		if (!goal)
  			return -ENOMEM;
++		goal->current_value = sysfs_goal->current_value;
  		damos_add_quota_goal(quota, goal);
+ 	}
+ 	return 0;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
