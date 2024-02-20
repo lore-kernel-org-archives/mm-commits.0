@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DCFF56B78;
-	Mon, 19 Feb 2024 23:58:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E72A2367
+	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 00:08:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708387122; cv=none; b=mENajYcs9ua49v6PIc3vVJUCQM16Dy8oBLruZsAucYJmG0wGm63qpMyMO+o/L5HbSi3AgtuQRx7PJLw8HCxTVk2MFwYSGHjYwjSfS4EXjv/41hstHHjqzhXOi+VsECN5JWdwNrHPuuCpucK+yMtAvr4Upk32JU1hFCtSiQawkA8=
+	t=1708387701; cv=none; b=k9jppcjiCo8Uks5jE8cWmzyPTGu+WJhI0KFHLGWTB1Ue6IKRoJs8KtzBFbwB+RuTWM/LMig2FjkKKCvgpZPWxoPYFcVR8cNihbGhU2QlMpCiM6zrzPauasXRmN2u/gaKCHqiA3jefHLeoOqbvQjQd8DLL0SlmN3Nk3A18tbM1Vw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708387122; c=relaxed/simple;
-	bh=pcnn6Ai8zD3F4L6k3eEsYZcHoyL58N5lEFnQpFiwYQ8=;
-	h=Date:To:From:Subject:Message-Id; b=B6hhyp56slkUXEjQrqBAUAsyGmEH0g5MR3342xzTaf/5KVkvbCIjVike2cPd7cLPS0J+jmI2Elmw6B855HKCerhJFeyescz2ZR14lqicEuiGnITPLUuwE7qy5JCM5EGmBvNW8DIP/TSJG01W+mqZOQVfX1pTJlqqowBzXCiluVc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2QGZq/V0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708387701; c=relaxed/simple;
+	bh=STb8isbBMFVtNuXELaHKq370CVi8BLJ5ShXwC2bV35E=;
+	h=Date:To:From:Subject:Message-Id; b=g/rAj20Iodcos31JM4S7k0UPNv19NImLY4uBPvLVhq6fDcMo++eydJBzYPp3jLpXDg85m/HhFWR34ZOqj3jTDLiIcw2091eV/g7yQHx9k3oeHBoKtTSeMcS1q2uq/OAkmZiCp55zDZh8r+7p2tk3Mi5VvIEvk8HuZi7y5M/aVic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JM+49w9P; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2QGZq/V0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3F78C433F1;
-	Mon, 19 Feb 2024 23:58:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JM+49w9P"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A6BBC433F1;
+	Tue, 20 Feb 2024 00:08:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708387121;
-	bh=pcnn6Ai8zD3F4L6k3eEsYZcHoyL58N5lEFnQpFiwYQ8=;
+	s=korg; t=1708387700;
+	bh=STb8isbBMFVtNuXELaHKq370CVi8BLJ5ShXwC2bV35E=;
 	h=Date:To:From:Subject:From;
-	b=2QGZq/V06i7TjT6bujbR8mgZhUHsgyOQ3viWWx1NjZcfbRLXkPFQbWpsm8RHUaY7c
-	 MmUhaD5JRb3CTJWGMxSGWaZD/f3D7i0Iqd5SYgon+yJQ4ZvvQAMctQhOVeET+sLiOY
-	 20ZhJV52pMfczI8nOW3fFhCqrdX+M1B25tT+60Ew=
-Date: Mon, 19 Feb 2024 15:58:41 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=JM+49w9PMfqskshJ2Q+zaG/YXZGeDLhyzz2/xKKehY7Ce+Fulp2yFInZGXNADz26w
+	 qB1lwBy9Llp/PBzNENDvzN6owxc+kZMJI5fiOE1iGaWs9OlqQBL8ktd4lZlRMNDhX2
+	 63VQQ5yQna6nwbWTKL5Skm12rj7OqI4H0w18ixZo=
+Date: Mon, 19 Feb 2024 16:08:19 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-lru_sort-fix-quota-status-loss-due-to-online-tunings.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240219235841.C3F78C433F1@smtp.kernel.org>
+Subject: + mm-damon-core-set-damos_quota-esz-as-public-field-and-document.patch added to mm-unstable branch
+Message-Id: <20240220000820.6A6BBC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/lru_sort: fix quota status loss due to online tunings
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-lru_sort-fix-quota-status-loss-due-to-online-tunings.patch
+     Subject: mm/damon/core: set damos_quota->esz as public field and document
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-core-set-damos_quota-esz-as-public-field-and-document.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-fix-quota-status-loss-due-to-online-tunings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-set-damos_quota-esz-as-public-field-and-document.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,101 +59,148 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/lru_sort: fix quota status loss due to online tunings
-Date: Fri, 16 Feb 2024 11:40:25 -0800
+Subject: mm/damon/core: set damos_quota->esz as public field and document
+Date: Mon, 19 Feb 2024 11:44:12 -0800
 
-For online parameters change, DAMON_LRU_SORT creates new schemes based on
-latest values of the parameters and replaces the old schemes with the new
-one.  When creating it, the internal status of the quotas of the old
-schemes is not preserved.  As a result, charging of the quota starts from
-zero after the online tuning.  The data that collected to estimate the
-throughput of the scheme's action is also reset, and therefore the
-estimation should start from the scratch again.  Because the throughput
-estimation is being used to convert the time quota to the effective size
-quota, this could result in temporal time quota inaccuracy.  It would be
-recovered over time, though.  In short, the quota accuracy could be
-temporarily degraded after online parameters update.
+Patch series "mm/damon: let DAMOS feeds and tame/auto-tune itself".
 
-Fix the problem by checking the case and copying the internal fields for
-the status.
+The Aim-oriented Feedback-driven DAMOS Aggressiveness Auto-tuning
+patchset[1] which has merged since commit 9294a037c015 ("mm/damon/core:
+implement goal-oriented feedback-driven quota auto-tuning") made the
+mechanism and the policy separated.  That is, users can set a part of
+DAMOS control policies without a deep understanding of the mechanism but
+just their demands such as SLA.
 
-Link: https://lkml.kernel.org/r/20240216194025.9207-3-sj@kernel.org
-Fixes: 40e983cca927 ("mm/damon: introduce DAMON-based LRU-lists Sorting")
+However, users are still required to do some additional work of manually
+collecting their target metric and feeding it to DAMOS.  In the case of
+end-users who use DAMON sysfs interface, the context switches between
+user-space and kernel-space could also make it inefficient.  The overhead
+is supposed to be only trivial in common cases, though.  Meanwhile, in
+simple use cases, the target metric could be common system metrics that
+the kernel can efficiently self-retrieve, such as memory pressure stall
+time (PSI).
+
+Extend DAMOS quota auto-tuning to support multiple types of metrics
+including the DAMOS self-retrievable ones, and add support for memory
+pressure stall time metric.  Different types of metrics can be supported
+in future.  The auto-tuning capability is currently supported for only
+users of DAMOS kernel API and DAMON sysfs interface.  Extend the support
+to DAMON_RECLAIM.
+
+Patches Sequence
+================
+
+First five patches are for helping debugging and fine-tuning existing
+quota control features.  The first one (patch 1) exposes the effective
+quota that is made with given user inputs to DAMOS kernel API users and
+kernel-doc documents.  Following four patches implement (patches 1, 2 and
+3) and document (patches 4 and 5) a new DAMON sysfs file that exposes the
+value.
+
+Following six patches cleanup and simplify the existing DAMOS quota
+auto-tuning code by improving layout of comments and data structures
+(patches 6 and 7), supporting common use cases, namely multiple goals
+(patches 8, 9 and 10), and simplifying the interface (patch 11).
+
+Then six patches for the main purpose of this patchset follow.  The first
+three changes extend the core logic for various target metrics (patch 12),
+implement memory pressure stall time-based target metric support (patch
+13), and update DAMON sysfs interface to support the new target metric
+(patch 14).  Then, documentation updates for the features on design (patch
+15), ABI (patch 16), and usage (patch 17) follow.
+
+Last three patches add auto-tuning support on DAMON_RECLAIM.  The patches
+implement DAMON_RECLAIM parameters for user-feedback driven quota
+auto-tuning (patch 18), memory pressure stall time-driven quota
+self-tuning (patch 19), and finally update the DAMON_RECLAIM usage
+document for the new parameters (patch 20).
+
+[1] https://lore.kernel.org/all/20231130023652.50284-1-sj@kernel.org/
+
+
+This patch (of 20):
+
+DAMOS allow users to specify the quota as they want in multiple ways
+including time quota, size quota, and feedback-based auto-tuning.  DAMOS
+makes one effective quota out of the inputs and use it at the end. 
+Knowing the current effective quota helps understanding DAMOS' internal
+mechanism and fine-tuning quotas.  DAMON kernel API users can get the
+information from ->esz field of damos_quota struct, but the field is
+marked as private purpose, and not kernel-doc documented.  Make it public
+and document.
+
+Link: https://lkml.kernel.org/r/20240219194431.159606-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240219194431.159606-2-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>	[6.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |   43 +++++++++++++++++++++++++++++++++++-------
- 1 file changed, 36 insertions(+), 7 deletions(-)
+ include/linux/damon.h |    6 ++++--
+ mm/damon/core.c       |    8 ++++----
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-lru_sort-fix-quota-status-loss-due-to-online-tunings
-+++ a/mm/damon/lru_sort.c
-@@ -185,9 +185,21 @@ static struct damos *damon_lru_sort_new_
- 	return damon_lru_sort_new_scheme(&pattern, DAMOS_LRU_DEPRIO);
+--- a/include/linux/damon.h~mm-damon-core-set-damos_quota-esz-as-public-field-and-document
++++ a/include/linux/damon.h
+@@ -138,6 +138,7 @@ enum damos_action {
+  *
+  * @get_score:		Feedback function for self-tuning quota.
+  * @get_score_arg:	Parameter for @get_score
++ * @esz:		Effective size quota in bytes.
+  *
+  * To avoid consuming too much CPU time or IO resources for applying the
+  * &struct damos->action to large memory, DAMON allows users to set time and/or
+@@ -167,6 +168,8 @@ enum damos_action {
+  * tuning is getting the feedback screo value of 10,000.  If @ms and/or @sz are
+  * set together, those work as a hard limit quota.  If neither @ms nor @sz are
+  * set, the mechanism starts from the quota of one byte.
++ *
++ * The resulting effective size quota in bytes is set to @esz.
+  */
+ struct damos_quota {
+ 	unsigned long ms;
+@@ -179,14 +182,13 @@ struct damos_quota {
+ 
+ 	unsigned long (*get_score)(void *arg);
+ 	void *get_score_arg;
++	unsigned long esz;
+ 
+ /* private: */
+ 	/* For throughput estimation */
+ 	unsigned long total_charged_sz;
+ 	unsigned long total_charged_ns;
+ 
+-	unsigned long esz;	/* Effective size quota in bytes */
+-
+ 	/* For charging the quota */
+ 	unsigned long charged_sz;
+ 	unsigned long charged_from;
+--- a/mm/damon/core.c~mm-damon-core-set-damos_quota-esz-as-public-field-and-document
++++ a/mm/damon/core.c
+@@ -299,12 +299,12 @@ void damos_destroy_filter(struct damos_f
+ 	damos_free_filter(f);
  }
  
-+static void damon_lru_sort_copy_quota_status(struct damos_quota *dst,
-+		struct damos_quota *src)
-+{
-+	dst->total_charged_sz = src->total_charged_sz;
-+	dst->total_charged_ns = src->total_charged_ns;
-+	dst->charged_sz = src->charged_sz;
-+	dst->charged_from = src->charged_from;
-+	dst->charge_target_from = src->charge_target_from;
-+	dst->charge_addr_from = src->charge_addr_from;
-+}
-+
- static int damon_lru_sort_apply_parameters(void)
+-/* initialize private fields of damos_quota and return the pointer */
+-static struct damos_quota *damos_quota_init_priv(struct damos_quota *quota)
++/* initialize fields of @quota that normally API users wouldn't set */
++static struct damos_quota *damos_quota_init(struct damos_quota *quota)
  {
--	struct damos *scheme;
-+	struct damos *scheme, *hot_scheme, *cold_scheme;
-+	struct damos *old_hot_scheme = NULL, *old_cold_scheme = NULL;
- 	unsigned int hot_thres, cold_thres;
- 	int err = 0;
++	quota->esz = 0;
+ 	quota->total_charged_sz = 0;
+ 	quota->total_charged_ns = 0;
+-	quota->esz = 0;
+ 	quota->charged_sz = 0;
+ 	quota->charged_from = 0;
+ 	quota->charge_target_from = NULL;
+@@ -336,7 +336,7 @@ struct damos *damon_new_scheme(struct da
+ 	scheme->stat = (struct damos_stat){};
+ 	INIT_LIST_HEAD(&scheme->list);
  
-@@ -195,18 +207,35 @@ static int damon_lru_sort_apply_paramete
- 	if (err)
- 		return err;
+-	scheme->quota = *(damos_quota_init_priv(quota));
++	scheme->quota = *(damos_quota_init(quota));
  
-+	damon_for_each_scheme(scheme, ctx) {
-+		if (!old_hot_scheme) {
-+			old_hot_scheme = scheme;
-+			continue;
-+		}
-+		old_cold_scheme = scheme;
-+	}
-+
- 	hot_thres = damon_max_nr_accesses(&damon_lru_sort_mon_attrs) *
- 		hot_thres_access_freq / 1000;
--	scheme = damon_lru_sort_new_hot_scheme(hot_thres);
--	if (!scheme)
-+	hot_scheme = damon_lru_sort_new_hot_scheme(hot_thres);
-+	if (!hot_scheme)
- 		return -ENOMEM;
--	damon_set_schemes(ctx, &scheme, 1);
-+	if (old_hot_scheme)
-+		damon_lru_sort_copy_quota_status(&hot_scheme->quota,
-+				&old_hot_scheme->quota);
- 
- 	cold_thres = cold_min_age / damon_lru_sort_mon_attrs.aggr_interval;
--	scheme = damon_lru_sort_new_cold_scheme(cold_thres);
--	if (!scheme)
-+	cold_scheme = damon_lru_sort_new_cold_scheme(cold_thres);
-+	if (!cold_scheme) {
-+		damon_destroy_scheme(hot_scheme);
- 		return -ENOMEM;
--	damon_add_scheme(ctx, scheme);
-+	}
-+	if (old_cold_scheme)
-+		damon_lru_sort_copy_quota_status(&cold_scheme->quota,
-+				&old_cold_scheme->quota);
-+
-+	damon_set_schemes(ctx, &hot_scheme, 1);
-+	damon_add_scheme(ctx, cold_scheme);
- 
- 	return damon_set_region_biggest_system_ram_default(target,
- 					&monitor_region_start,
+ 	scheme->wmarks = *wmarks;
+ 	scheme->wmarks.activated = true;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
