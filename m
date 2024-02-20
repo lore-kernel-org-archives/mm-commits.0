@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A92215B1
-	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 00:08:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34F1015B1
+	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 00:08:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708387732; cv=none; b=mDTwrYJ+FIgHZblU4bz66ZdsCHCDuqOz5FbEyAbnpbg2j5hcFDH5t23/ef98Ein6H5S9MgNQ5iGTzruOwDfEh0H2OUGsV/IuOJzPGERVpMiDAUB3UEWSMr7wWUWkcQ1C9qUFWyZGb54ZzpZS5K8vmDqiL9k8qRVLgdnUFwp/A4A=
+	t=1708387734; cv=none; b=blrlHoFB6TWhOCbo3D5VbGv8Q9i9vuxsH6wqbtd5AHiw51J9w/xpNeMmfeMUrLqZWqj9h1Mr6d1HuBEKawtUK62TTG+J/GUwrP7arV84udDbEj4C+AfGURXnECNw3fwaIV5AMah+gSceAKNrbRRTMqnBqzyp0nAGhM9puGf3zq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708387732; c=relaxed/simple;
-	bh=xxNYcjGlFe8d9OxPfhTkc0PlxhbNDJ+QrItohTdEtbg=;
-	h=Date:To:From:Subject:Message-Id; b=e1ijEYsCXwPUUqeMLtXVwcX5VjG4hAPy2+jbSZLh+ZoOU9T4WKo+0znVK6uPA5nFPRcdvWLSpyE7BWW3Q3ET597mWJh6eUABDHcuUwsX5Aw9S26tassIsCemgph1p5s6Sxi8AhA/e9xgRecJ+H2oeUPcGQWsTEAO7FTsNDVFR/Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qaiuhuHA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708387734; c=relaxed/simple;
+	bh=dryt3qYfI+Us9l01qnpv2v6nnzlZiZtsZe+76WUEVAY=;
+	h=Date:To:From:Subject:Message-Id; b=LaqkZv9RiLwvYAJNziT6aNY928dycM7kBsbAQSIKM4w+jvyzRNrxmo50lXJaIXTE5bv8mdvJaXBST7mGY+4MHj8YUprXURcUgzpZWfBUHGOt39hofFktjuQZAC1ufad8ZBiBdPV7AHdZLfYJPVueFcHCq5bkR3upXlf1omnxd2Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G2FvClVM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qaiuhuHA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1015DC433F1;
-	Tue, 20 Feb 2024 00:08:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G2FvClVM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4B7AC433F1;
+	Tue, 20 Feb 2024 00:08:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708387732;
-	bh=xxNYcjGlFe8d9OxPfhTkc0PlxhbNDJ+QrItohTdEtbg=;
+	s=korg; t=1708387733;
+	bh=dryt3qYfI+Us9l01qnpv2v6nnzlZiZtsZe+76WUEVAY=;
 	h=Date:To:From:Subject:From;
-	b=qaiuhuHA1qyy+YSTdwJkYH9eb8sDDUSLkbY/NnXlmxflFMlIqh6CGsXkNK8mvUHku
-	 38shKBIInbrGxZ23RlZT5GTU22Q0SlCGzIHpS+xgyITyX9zvp+VSP6IO4TcZy3MLqp
-	 S0N+ZVDFTfCA9Ed7/OJXrAf1IPOQlXMhDGemfa1M=
-Date: Mon, 19 Feb 2024 16:08:51 -0800
+	b=G2FvClVMqV0ZnZFzq5SvxOL0hP6u7RjhVRggAH2jTC/7nWW3lHNM7YbIBqSPYC084
+	 usC6wU5iC4qIdGPdiSGD6ubTrDYdB/k9ph9mZrnHG1gtmms5ytd4tJHhqeNqHv9rc7
+	 avJl1DVil7MUhRcPfpCz9vcPDlMUFWWKdNVP5usE=
+Date: Mon, 19 Feb 2024 16:08:53 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-abi-damon-document-quota-goal-metric-file.patch added to mm-unstable branch
-Message-Id: <20240220000852.1015DC433F1@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file.patch added to mm-unstable branch
+Message-Id: <20240220000853.B4B7AC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/ABI/damon: document quota goal metric file
+     Subject: Docs/admin-guide/mm/damon/usage: document quota goal metric file
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-abi-damon-document-quota-goal-metric-file.patch
+     docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-quota-goal-metric-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,34 +59,47 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/ABI/damon: document quota goal metric file
-Date: Mon, 19 Feb 2024 11:44:27 -0800
+Subject: Docs/admin-guide/mm/damon/usage: document quota goal metric file
+Date: Mon, 19 Feb 2024 11:44:28 -0800
 
-Update DAMON ABI document for the quota goal target_metric file.
+Update DAMON usage document for the quota goal target_metric file.
 
-Link: https://lkml.kernel.org/r/20240219194431.159606-17-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240219194431.159606-18-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |    6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-quota-goal-metric-file
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -229,6 +229,12 @@ Description:	Writing a number 'N' to thi
- 		directories for setting automatic tuning of the scheme's
- 		aggressiveness named '0' to 'N-1' under the goals/ directory.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -86,7 +86,7 @@ comma (",").
+     │ │ │ │ │ │ │ :ref:`quotas <sysfs_quotas>`/ms,bytes,reset_interval_ms,effective_bytes
+     │ │ │ │ │ │ │ │ weights/sz_permil,nr_accesses_permil,age_permil
+     │ │ │ │ │ │ │ │ :ref:`goals <sysfs_schemes_quota_goals>`/nr_goals
+-    │ │ │ │ │ │ │ │ │ 0/target_value,current_value
++    │ │ │ │ │ │ │ │ │ 0/target_metric,target_value,current_value
+     │ │ │ │ │ │ │ :ref:`watermarks <sysfs_watermarks>`/metric,interval_us,high,mid,low
+     │ │ │ │ │ │ │ :ref:`filters <sysfs_filters>`/nr_filters
+     │ │ │ │ │ │ │ │ 0/type,matching,memcg_id
+@@ -366,11 +366,11 @@ number (``N``) to the file creates the n
+ to ``N-1``.  Each directory represents each goal and current achievement.
+ Among the multiple feedback, the best one is used.
  
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/goals/<G>/target_metric
-+Date:		Feb 2024
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the quota
-+		auto-tuning goal metric.
-+
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/goals/<G>/target_value
- Date:		Nov 2023
- Contact:	SeongJae Park <sj@kernel.org>
+-Each goal directory contains two files, namely ``target_value`` and
+-``current_value``.  Users can set and get any number to those files to set the
+-feedback.  User space main workload's latency or throughput, system metrics
+-like free memory ratio or memory pressure stall time (PSI) could be example
+-metrics for the values.  Note that users should write
++Each goal directory contains three files, namely ``target_metric``,
++``target_value`` and ``current_value``.  Users can set and get the three
++parameters for the quota auto-tuning goals that specified on the :ref:`design
++doc <damon_design_damos_quota_auto_tuning>` by writing to and reading from each
++of the files.  Note that users should further write
+ ``commit_schemes_quota_goals`` to the ``state`` file of the :ref:`kdamond
+ directory <sysfs_kdamond>` to pass the feedback to DAMON.
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
