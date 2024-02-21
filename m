@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9A6B128386
-	for <mm-commits@vger.kernel.org>; Wed, 21 Feb 2024 23:46:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8341E128386
+	for <mm-commits@vger.kernel.org>; Wed, 21 Feb 2024 23:48:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708559204; cv=none; b=taVGXW75Kr797neXiduBGUOGiM1tzBKCgbNAELMsluwGM235ID2IqM2tctalNa/og3VuBdAV/2hCMfrCrvvQHRU4lsITGu08yXsyBPD3pkVhLuXYZNPe6T+l6Dcet0C5nDKBh67LUtGusCyntZB6QxjEipG2g0isGez1QNSA+IE=
+	t=1708559306; cv=none; b=FysX/Z7XVeLF2Z9mA8S5w91/uitEX0Qji4IHZUdVCQCueIv59gZpbMeDT3oEKvLUwjou93U+jwfuUuRmFVlyWDE3j4yHGDx09oy6cd56dyXj8WybivbVHC8hoXRpN/Eq+oWbBi9TYfXMhxUo06jIO5wN59/M1aPTRjMWp1WZLpw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708559204; c=relaxed/simple;
-	bh=EQbUFoI7a+K8e1rZZSkWI4wd4JHeyGrhF53utkHzGSU=;
-	h=Date:To:From:Subject:Message-Id; b=XZEIZur2TI/BC7UFpwyVK8S2L5Ej/VI3wYn2h3uXmzivfHjnYzx4w2d5ymuRYNTl0V0c2OCsfnSwmdZ9xH+Jo7voGQX0swfybQzbyXTN/PQcjiFJ2fwCNWBQe8N46RoFjnTkJUOd/4wd+aNd95bqS4uYpuS4xzEpdjNxpACUkRI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=alCoPd2d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708559306; c=relaxed/simple;
+	bh=/IR2AQIcpKg0FouTkm0eaT1FPV/vqeBPY1ivFJTJYWU=;
+	h=Date:To:From:Subject:Message-Id; b=ordfXUkLNoDX62qbRbOlxwVB9qbNgUX0agGhkMcOakEt3vlp+fLho6lv9EGy7GouYfl4fTea8ef7gvFxsQ0r3ChlalGlYVajww05KmzkgPyeIynmpDdnZxHNyvpQ9t5jIRj7L1X4k5Z5lJeM2fgjzkZTPjp5GEyEUDEoLGjD+rU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UuXxK6US; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="alCoPd2d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C3E2C433F1;
-	Wed, 21 Feb 2024 23:46:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UuXxK6US"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03C81C43399;
+	Wed, 21 Feb 2024 23:48:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708559204;
-	bh=EQbUFoI7a+K8e1rZZSkWI4wd4JHeyGrhF53utkHzGSU=;
+	s=korg; t=1708559306;
+	bh=/IR2AQIcpKg0FouTkm0eaT1FPV/vqeBPY1ivFJTJYWU=;
 	h=Date:To:From:Subject:From;
-	b=alCoPd2daNOYSeQkZsI7rtoPEuhGBbr5Wi2U5Bo7eF48ifNkdp16M1OqF3+azdgdm
-	 k6tOQ2QwGqOebKq2y7iCMOky1sJVhZtz9TPmDbN646cAG74hVPdRxUpHbRWiB1sXCC
-	 I3aExhCg5fr9oKpAwk65FE+AefV0jm63JjXvRHFE=
-Date: Wed, 21 Feb 2024 15:46:43 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,svens@linux.ibm.com,ryan.roberts@arm.com,rppt@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,linux@armlinux.org.uk,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,dinguyen@kernel.org,davem@davemloft.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,aneesh.kumar@kernel.org,alexghiti@rivosinc.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
+	b=UuXxK6USloUgOVXFZqMQuUpdrVkHAc8hruw1zzEcRaZsaXEECVQ5/H5QvZUIJrbKE
+	 A4mdFfYQw3PWHFPBcSrUiB5R/icScmtrN4jsZRRKPe4RoHaZjrg3jS3KKI20/nUg4l
+	 YNiS8Ms48W7VcsvS3bQcqVFHe25oBTsC+IsjpfXo=
+Date: Wed, 21 Feb 2024 15:48:25 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,yangyifei03@kuaishou.com,songmuchun@bytedance.com,shakeelb@google.com,roman.gushchin@linux.dev,mkoutny@suse.com,mhocko@suse.com,hannes@cmpxchg.org,tjmercier@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-memory-pass-pte-to-copy_present_pte-fix.patch removed from -mm tree
-Message-Id: <20240221234644.1C3E2C433F1@smtp.kernel.org>
+Subject: [folded-merged] mm-memcg-use-larger-batches-for-proactive-reclaim-v4.patch removed from -mm tree
+Message-Id: <20240221234826.03C81C43399@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,99 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fixup: mm/memory: pass PTE to copy_present_pte()
+     Subject: mm-memcg-use-larger-batches-for-proactive-reclaim-v4
 has been removed from the -mm tree.  Its filename was
-     mm-memory-pass-pte-to-copy_present_pte-fix.patch
+     mm-memcg-use-larger-batches-for-proactive-reclaim-v4.patch
 
-This patch was dropped because it was folded into mm-memory-pass-pte-to-copy_present_pte.patch
+This patch was dropped because it was folded into mm-memcg-use-larger-batches-for-proactive-reclaim.patch
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: fixup: mm/memory: pass PTE to copy_present_pte()
-Date: Wed, 14 Feb 2024 23:40:22 +0100
+From: "T.J. Mercier" <tjmercier@google.com>
+Subject: mm-memcg-use-larger-batches-for-proactive-reclaim-v4
+Date: Tue, 6 Feb 2024 17:52:50 +0000
 
-For device-exclusive nonswp entries (is_device_exclusive_entry()),
-copy_nonpresent_pte() can turn the PTEs into actual present PTEs while
-holding the page table lock.
+Add additional info to commit message and move definition of batch_size
+per Michal Hocko.  No functional changes.
 
-We hae to re-read the PTE after that operation, such that we won't be
-working on the stale non-present PTE, assuming it would be present.
-
-This fixes the hmm "exclusive_cow" selftest.
-
-  ./run_vmtests.sh -t hmm
-  # #  RUN           hmm.hmm_device_private.exclusive_cow ...
-  # #            OK  hmm.hmm_device_private.exclusive_cow
-  # ok 23 hmm.hmm_device_private.exclusive_cow
-
-Link: https://lkml.kernel.org/r/13f296b8-e882-47fd-b939-c2141dc28717@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Naveen N. Rao <naveen.n.rao@linux.ibm.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Russell King (Oracle) <linux@armlinux.org.uk>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20240206175251.3364296-1-tjmercier@google.com
+Fixes: 0388536ac291 ("mm:vmscan: fix inaccurate reclaim during proactive reclaim")
+Signed-off-by: T.J. Mercier <tjmercier@google.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Michal Koutny <mkoutny@suse.com>
+Cc: Efly Young <yangyifei03@kuaishou.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memcontrol.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-memory-pass-pte-to-copy_present_pte-fix
-+++ a/mm/memory.c
-@@ -1093,6 +1093,8 @@ again:
- 				progress += 8;
- 				continue;
- 			}
-+			ptent = ptep_get(src_pte);
-+			VM_WARN_ON_ONCE(!pte_present(ptent));
+--- a/mm/memcontrol.c~mm-memcg-use-larger-batches-for-proactive-reclaim-v4
++++ a/mm/memcontrol.c
+@@ -6981,6 +6981,8 @@ static ssize_t memory_reclaim(struct ker
  
- 			/*
- 			 * Device exclusive entry restored, continue by copying
+ 	reclaim_options	= MEMCG_RECLAIM_MAY_SWAP | MEMCG_RECLAIM_PROACTIVE;
+ 	while (nr_reclaimed < nr_to_reclaim) {
++		/* Will converge on zero, but reclaim enforces a minimum */
++		unsigned long batch_size = (nr_to_reclaim - nr_reclaimed) / 4;
+ 		unsigned long reclaimed;
+ 
+ 		if (signal_pending(current))
+@@ -6994,9 +6996,6 @@ static ssize_t memory_reclaim(struct ker
+ 		if (!nr_retries)
+ 			lru_add_drain_all();
+ 
+-		/* Will converge on zero, but reclaim enforces a minimum */
+-		unsigned long batch_size = (nr_to_reclaim - nr_reclaimed) / 4;
+-
+ 		reclaimed = try_to_free_mem_cgroup_pages(memcg,
+ 					batch_size, GFP_KERNEL, reclaim_options);
+ 
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from tjmercier@google.com are
 
-arm-pgtable-define-pfn_pte_shift.patch
-nios2-pgtable-define-pfn_pte_shift.patch
-powerpc-pgtable-define-pfn_pte_shift.patch
-riscv-pgtable-define-pfn_pte_shift.patch
-s390-pgtable-define-pfn_pte_shift.patch
-sparc-pgtable-define-pfn_pte_shift.patch
-mm-pgtable-make-pte_next_pfn-independent-of-set_ptes.patch
-arm-mm-use-pte_next_pfn-in-set_ptes.patch
-powerpc-mm-use-pte_next_pfn-in-set_ptes.patch
-mm-memory-factor-out-copying-the-actual-pte-in-copy_present_pte.patch
-mm-memory-pass-pte-to-copy_present_pte.patch
-mm-memory-optimize-fork-with-pte-mapped-thp.patch
-mm-memory-ignore-dirty-accessed-soft-dirty-bits-in-folio_pte_batch.patch
-mm-memory-ignore-writable-bit-in-folio_pte_batch.patch
-mm-memory-factor-out-zapping-of-present-pte-into-zap_present_pte.patch
-mm-memory-handle-page-case-in-zap_present_pte-separately.patch
-mm-memory-further-separate-anon-and-pagecache-folio-handling-in-zap_present_pte.patch
-mm-memory-factor-out-zapping-folio-pte-into-zap_present_folio_pte.patch
-mm-mmu_gather-pass-delay_rmap-instead-of-encoded-page-to-__tlb_remove_page_size.patch
-mm-mmu_gather-define-encoded_page_flag_delay_rmap.patch
-mm-mmu_gather-add-tlb_remove_tlb_entries.patch
-mm-mmu_gather-add-__tlb_remove_folio_pages.patch
-mm-mmu_gather-improve-cond_resched-handling-with-large-folios-and-expensive-page-freeing.patch
-mm-memory-optimize-unmap-zap-with-pte-mapped-thp.patch
+mm-memcg-dont-periodically-flush-stats-when-memcg-is-disabled.patch
+mm-memcg-use-larger-batches-for-proactive-reclaim.patch
 
