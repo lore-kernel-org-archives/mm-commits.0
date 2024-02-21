@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F35E583CB2
-	for <mm-commits@vger.kernel.org>; Wed, 21 Feb 2024 20:14:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2F7486632
+	for <mm-commits@vger.kernel.org>; Wed, 21 Feb 2024 20:14:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708546441; cv=none; b=LU4qkhACkSLRzpThhsZqXxT9eBNMmLPbrQWiiFDLBnkbVl3aF+1ZmzBYXUhUdSlNdUiSoBaPkFlJC8+zEFgD6Slmeb8SjdUNP1EJNCvVrZmlKqRqFPyxPnjbhR9e66A5DZdA/gghWgce+Eqxu0J5OYM7r9dz/Z/NWU5+vCFSBs0=
+	t=1708546489; cv=none; b=pLnO6N26oSztyLpTJAH3XEhzRDcstNgSPd1Cz+vNHcCqSPnl+mqT22V9hF1w6qBA3F3oeBVZsLHfApDSfti9OHSVWm8nnFC4/kNtOxeIloQ8BbpgkpVGt1AxVlfehQxkOf+0//0VUIs7MjgVkvOwvGQ7TeemoBcMRC9/jJg0/6g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708546441; c=relaxed/simple;
-	bh=Gpcgl+Z+ij15RghRZnVV0xJ6P+fxnwdzbj2EXsh1boM=;
-	h=Date:To:From:Subject:Message-Id; b=Vvkteo0X+suBxAB2L5eqRrofUEFEdBBAm5uK55CHE4WXeBL4HHf3bMEpMr1qsmt8ui221lywTfvMzPr6WgMEroQTK/jJfCo7deH+I0LZ5vYEsFxXJ1F5jqSJJLqG+QEVY6FfIuXFsUgxGjcPvyZ/JLMqRA+XzlFN3km2aJCTf+g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b2Tm6UGa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708546489; c=relaxed/simple;
+	bh=sLnf7yidkeL2zr2hxMYlXUgTkHWpAjQTzOJzdqjDzIY=;
+	h=Date:To:From:Subject:Message-Id; b=JlnFHYtdiUBz3jvcre7Q1qVC1sY55TjVci+qP787CPFmcnPnONJGf4CReK6qay4x2sF9VXe0oQn+DI/DKR4T2+BCAhnUjS1Ky5AUZdQjdMvU9FMvOIe/C3D2K9tFF41qydExKSTVDpUGSk3sDmZSepFseE35t+tTorlgUck2ECQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cCeEBxi/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b2Tm6UGa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6320BC433F1;
-	Wed, 21 Feb 2024 20:14:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cCeEBxi/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30ACAC433C7;
+	Wed, 21 Feb 2024 20:14:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708546440;
-	bh=Gpcgl+Z+ij15RghRZnVV0xJ6P+fxnwdzbj2EXsh1boM=;
+	s=korg; t=1708546489;
+	bh=sLnf7yidkeL2zr2hxMYlXUgTkHWpAjQTzOJzdqjDzIY=;
 	h=Date:To:From:Subject:From;
-	b=b2Tm6UGa5zY9b2DWwK5WuYxlmDEdLnwr3PKClXoe/WL+IdxdVrJEVVAaIIdiFu2tW
-	 CCwfnjxVAaJWSUf6LlhjK9uALunHOGJYuSJP69j1erYVenIHEtGdBTYA+rbKcqDaju
-	 pD7xdmhDCFpgj6juPbBw/aFZqOzQaCeVPch1qnCc=
-Date: Wed, 21 Feb 2024 12:13:59 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=cCeEBxi/cQTmekNhzQ4bWQY5DE4kNYL3rWynWV0VCFeS01VQlaKMw6khIMXJDCwIL
+	 mleyKE1te4HlUme5m2I9/aum7fJM+i1xnz6rUJBRSYsDKVhiBE8Qy1gAP1v9BugR61
+	 1l7eIbtOIrzotjMgkL+7hV6NTVROW69+ViB8/vRs=
+Date: Wed, 21 Feb 2024 12:14:48 -0800
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document-fix.patch added to mm-unstable branch
-Message-Id: <20240221201400.6320BC433F1@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file-fix.patch added to mm-unstable branch
+Message-Id: <20240221201449.30ACAC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: fix a typo on a reference link
+     Subject: Docs/admin-guide/mm/damon/usage: fix a typo on the auto-tuning design reference link
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document-fix.patch
+     docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: fix a typo on a reference link
-Date: Wed, 21 Feb 2024 09:08:51 -0800
+Subject: Docs/admin-guide/mm/damon/usage: fix a typo on the auto-tuning design reference link
+Date: Wed, 21 Feb 2024 09:08:52 -0800
 
-There was a typo cuasing a document build warning below.  Fix it.
+There was a typo on the quota auto-tuning design reference link that
+caused below document build warning.  Fix it.
 
-    WARNING: undefined label: 'damon_design_confiurable_operations_set'
+    WARNING: undefined label: 'damon_design_damos_quota_auto_tuning'
 
-Link: https://lkml.kernel.org/r/20240221170852.55529-2-sj@kernel.org
-Fixes: afc858f0e6db ("Docs/mm/damon: move DAMON operation sets list from the usage to the design document")
+Link: https://lkml.kernel.org/r/20240221170852.55529-3-sj@kernel.org
+Fixes: d50e871bd78b ("Docs/admin-guide/mm/damon/usage: document quota goal metric file")
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Closes: https://lkml.kernel.org/r/20240221162745.4332955c@canb.auug.org.au
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -75,17 +78,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  Documentation/admin-guide/mm/damon/usage.rst |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document-fix
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file-fix
 +++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -181,7 +181,7 @@ and three directories (``monitoring_attr
- exist.
- 
- DAMON supports multiple types of :ref:`monitoring operations
--<damon_design_confiurable_operations_set>`, including those for virtual address
-+<damon_design_configurable_operations_set>`, including those for virtual address
- space and the physical address space.  You can get the list of available
- monitoring operations set on the currently running kernel by reading
- ``avail_operations`` file.  Based on the kernel configuration, the file will
+@@ -369,7 +369,7 @@ Among the multiple feedback, the best on
+ Each goal directory contains three files, namely ``target_metric``,
+ ``target_value`` and ``current_value``.  Users can set and get the three
+ parameters for the quota auto-tuning goals that specified on the :ref:`design
+-doc <damon_design_damos_quota_auto_tuning>` by writing to and reading from each
++doc <damon_design_damos_quotas_auto_tuning>` by writing to and reading from each
+ of the files.  Note that users should further write
+ ``commit_schemes_quota_goals`` to the ``state`` file of the :ref:`kdamond
+ directory <sysfs_kdamond>` to pass the feedback to DAMON.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
@@ -131,6 +134,7 @@ mm-damon-sysfs-schemes-support-psi-based-quota-auto-tune.patch
 docs-mm-damon-design-document-quota-goal-self-tuning.patch
 docs-abi-damon-document-quota-goal-metric-file.patch
 docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file.patch
+docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file-fix.patch
 mm-damon-reclaim-implement-user-feedback-driven-quota-auto-tuning.patch
 mm-damon-reclaim-implement-memory-psi-driven-quota-self-tuning.patch
 docs-admin-guide-mm-damon-reclaim-document-auto-tuning-parameters.patch
