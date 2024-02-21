@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2F7486632
-	for <mm-commits@vger.kernel.org>; Wed, 21 Feb 2024 20:14:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A3EE83CB2
+	for <mm-commits@vger.kernel.org>; Wed, 21 Feb 2024 20:18:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708546489; cv=none; b=pLnO6N26oSztyLpTJAH3XEhzRDcstNgSPd1Cz+vNHcCqSPnl+mqT22V9hF1w6qBA3F3oeBVZsLHfApDSfti9OHSVWm8nnFC4/kNtOxeIloQ8BbpgkpVGt1AxVlfehQxkOf+0//0VUIs7MjgVkvOwvGQ7TeemoBcMRC9/jJg0/6g=
+	t=1708546682; cv=none; b=uTL/9YGZQQzvdXfnzGH3OThueMJ7xT9OcQdmK4noqZb8nDtOaq8PfWncXnfcIYn52rOMcL6t9tvRaPqTTliBH5PXXmDEhJawhmPSlu1zN2KumEglTcEiVyvlCwovkRuycW6Bt45YFL52t8umgaVGeTkNjpMO6ll/1T+m81UFzR8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708546489; c=relaxed/simple;
-	bh=sLnf7yidkeL2zr2hxMYlXUgTkHWpAjQTzOJzdqjDzIY=;
-	h=Date:To:From:Subject:Message-Id; b=JlnFHYtdiUBz3jvcre7Q1qVC1sY55TjVci+qP787CPFmcnPnONJGf4CReK6qay4x2sF9VXe0oQn+DI/DKR4T2+BCAhnUjS1Ky5AUZdQjdMvU9FMvOIe/C3D2K9tFF41qydExKSTVDpUGSk3sDmZSepFseE35t+tTorlgUck2ECQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cCeEBxi/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708546682; c=relaxed/simple;
+	bh=6v8VB4PEpNYAG6C0bME40SvBvceikOUBCwqW+RmtL/0=;
+	h=Date:To:From:Subject:Message-Id; b=TGSaDMBfLqOs0HJ17Em28oTPeMvjM3jZVpXlh5yUbTYoIoLtjymGX3b03Ed49VCjsWcZLisd2jxxjGziR7RIpx60kBc9itzzirhmV7rgAHtD1CcNpfM99Cr7CjsBrM2OhKmG1WuPwS7ZvpbKRSN1mjPVDESlNiiAzX2Puq/dZLM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XiOF2Hxr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cCeEBxi/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30ACAC433C7;
-	Wed, 21 Feb 2024 20:14:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XiOF2Hxr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A4ACC433F1;
+	Wed, 21 Feb 2024 20:18:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708546489;
-	bh=sLnf7yidkeL2zr2hxMYlXUgTkHWpAjQTzOJzdqjDzIY=;
+	s=korg; t=1708546682;
+	bh=6v8VB4PEpNYAG6C0bME40SvBvceikOUBCwqW+RmtL/0=;
 	h=Date:To:From:Subject:From;
-	b=cCeEBxi/cQTmekNhzQ4bWQY5DE4kNYL3rWynWV0VCFeS01VQlaKMw6khIMXJDCwIL
-	 mleyKE1te4HlUme5m2I9/aum7fJM+i1xnz6rUJBRSYsDKVhiBE8Qy1gAP1v9BugR61
-	 1l7eIbtOIrzotjMgkL+7hV6NTVROW69+ViB8/vRs=
-Date: Wed, 21 Feb 2024 12:14:48 -0800
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,sj@kernel.org,akpm@linux-foundation.org
+	b=XiOF2HxrBczFSbAbgezXvybFlE7o6SBkJCQkrsQhoqGk5oSFb1wihoVnH0enEDD8+
+	 dsRKHmDlXkpNxd44c4+Qcs9iqjYhwdiPwxorWuEOwJ4gof6TEODv0/2MsLNPfiXopJ
+	 t+R73mKl/j7pPmz7xLAXUsd73wR4ZZtP07NMiaPA=
+Date: Wed, 21 Feb 2024 12:18:01 -0800
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,liuyongqiang13@huawei.com,david@redhat.com,mcassell411@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file-fix.patch added to mm-unstable branch
-Message-Id: <20240221201449.30ACAC433C7@smtp.kernel.org>
+Subject: + mm-utilc-added-page-count-to-__vm_enough_memory-failure-warning.patch added to mm-unstable branch
+Message-Id: <20240221201802.0A4ACC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: fix a typo on the auto-tuning design reference link
+     Subject: mm/util.c: add page count to __vm_enough_memory failure warning
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file-fix.patch
+     mm-utilc-added-page-count-to-__vm_enough_memory-failure-warning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-utilc-added-page-count-to-__vm_enough_memory-failure-warning.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,84 +58,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: fix a typo on the auto-tuning design reference link
-Date: Wed, 21 Feb 2024 09:08:52 -0800
+From: Matthew Cassell <mcassell411@gmail.com>
+Subject: mm/util.c: add page count to __vm_enough_memory failure warning
+Date: Wed, 21 Feb 2024 16:02:35 +0000
 
-There was a typo on the quota auto-tuning design reference link that
-caused below document build warning.  Fix it.
+Commit 44b414c8715c5dcf53288 ("mm/util.c: add warning if
+__vm_enough_memory fails") adds debug information which gives the process
+id and executable name should __vm_enough_memory() fail.  Adding the
+number of pages to the failure message would benefit application
+developers and system administrators in debugging overambitious memory
+requests by providing a point of reference to the amount of memory causing
+__vm_enough_memory() to fail.
 
-    WARNING: undefined label: 'damon_design_damos_quota_auto_tuning'
+1. Set appropriate kernel tunable to reach code path for failure
+   message:
 
-Link: https://lkml.kernel.org/r/20240221170852.55529-3-sj@kernel.org
-Fixes: d50e871bd78b ("Docs/admin-guide/mm/damon/usage: document quota goal metric file")
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Closes: https://lkml.kernel.org/r/20240221162745.4332955c@canb.auug.org.au
-Signed-off-by: SeongJae Park <sj@kernel.org>
+	# echo 2 > /proc/sys/vm/overcommit_memory
+
+2. Test program to generate failure - requests 1 gibibyte per iteration:
+
+	#include <stdlib.h>
+	#include <stdio.h>
+
+	int main(int argc, char **argv) {
+		for(;;) {
+			if(malloc(1<<30) == NULL)
+				break;
+
+			printf("allocated 1 GiB\n");
+		}
+
+		return 0;
+	}
+
+3. Output:
+
+	Before:
+
+	__vm_enough_memory: pid: 1218, comm: a.out, not enough
+memory for the allocation
+
+	After:
+
+	__vm_enough_memory: pid: 1141, comm: a.out, pages: 262145, not
+enough memory for the allocation
+
+Link: https://lkml.kernel.org/r/20240221160235.1771-1-mcassell411@gmail.com
+Signed-off-by: Matthew Cassell <mcassell411@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Yongqiang Liu <liuyongqiang13@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/util.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file-fix
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -369,7 +369,7 @@ Among the multiple feedback, the best on
- Each goal directory contains three files, namely ``target_metric``,
- ``target_value`` and ``current_value``.  Users can set and get the three
- parameters for the quota auto-tuning goals that specified on the :ref:`design
--doc <damon_design_damos_quota_auto_tuning>` by writing to and reading from each
-+doc <damon_design_damos_quotas_auto_tuning>` by writing to and reading from each
- of the files.  Note that users should further write
- ``commit_schemes_quota_goals`` to the ``state`` file of the :ref:`kdamond
- directory <sysfs_kdamond>` to pass the feedback to DAMON.
+--- a/mm/util.c~mm-utilc-added-page-count-to-__vm_enough_memory-failure-warning
++++ a/mm/util.c
+@@ -976,8 +976,8 @@ int __vm_enough_memory(struct mm_struct
+ 	if (percpu_counter_read_positive(&vm_committed_as) < allowed)
+ 		return 0;
+ error:
+-	pr_warn_ratelimited("%s: pid: %d, comm: %s, not enough memory for the allocation\n",
+-			    __func__, current->pid, current->comm);
++	pr_warn_ratelimited("%s: pid: %d, comm: %s, pages: %ld, not enough memory for the allocation\n",
++			    __func__, current->pid, current->comm, pages);
+ 	vm_unacct_memory(pages);
+ 
+ 	return -ENOMEM;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from mcassell411@gmail.com are
 
-docs-admin-guide-mm-damon-usage-use-sysfs-interface-for-tracepoints-example.patch
-mm-damon-rename-config_damon_dbgfs-to-damon_dbgfs_deprecated.patch
-mm-damon-dbgfs-implement-deprecation-notice-file.patch
-mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro.patch
-docs-admin-guide-mm-damon-usage-document-deprecated-file-of-damon-debugfs-interface.patch
-selftets-damon-prepare-for-monitor_on-file-renaming.patch
-mm-damon-dbgfs-rename-monitor_on-file-to-monitor_on_deprecated.patch
-docs-admin-guide-mm-damon-usage-update-for-monitor_on-renaming.patch
-docs-translations-damon-usage-update-for-monitor_on-renaming.patch
-mm-damon-sysfs-handle-state-file-inputs-for-every-sampling-interval-if-possible.patch
-selftests-damon-_damon_sysfs-support-damos-quota.patch
-selftests-damon-_damon_sysfs-support-damos-stats.patch
-selftests-damon-_damon_sysfs-support-damos-apply-interval.patch
-selftests-damon-add-a-test-for-damos-quota.patch
-selftests-damon-add-a-test-for-damos-apply-intervals.patch
-selftests-damon-add-a-test-for-a-race-between-target_ids_read-and-dbgfs_before_terminate.patch
-selftests-damon-add-a-test-for-the-pid-leak-of-dbgfs_target_ids_write.patch
-selftests-damon-_chk_dependency-get-debugfs-mount-point-from-proc-mounts.patch
-docs-mm-damon-maintainer-profile-fix-reference-links-for-mm-stable-tree.patch
-docs-mm-damon-move-the-list-of-damos-actions-to-design-doc.patch
-docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document.patch
-docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document-fix.patch
-docs-mm-damon-move-monitoring-target-regions-setup-detail-from-the-usage-to-the-design-document.patch
-docs-admin-guide-mm-damon-usage-fix-wrong-quotas-diabling-condition.patch
-mm-damon-core-set-damos_quota-esz-as-public-field-and-document.patch
-mm-damon-sysfs-schemes-implement-quota-effective_bytes-file.patch
-mm-damon-sysfs-implement-a-kdamond-command-for-updating-schemes-effective-quotas.patch
-docs-abi-damon-document-effective_bytes-sysfs-file.patch
-docs-admin-guide-mm-damon-usage-document-effective_bytes-file.patch
-mm-damon-move-comments-and-fields-for-damos-quota-prioritization-to-the-end.patch
-mm-damon-core-split-out-quota-goal-related-fields-to-a-struct.patch
-mm-damon-core-add-multiple-goals-per-damos_quota-and-helpers-for-those.patch
-mm-damon-sysfs-use-only-quota-goals.patch
-mm-damon-core-remove-goal-field-of-damos_quota.patch
-mm-damon-core-let-goal-specified-with-only-target-and-current-values.patch
-mm-damon-core-support-multiple-metrics-for-quota-goal.patch
-mm-damon-core-implement-psi-metric-damos-quota-goal.patch
-mm-damon-sysfs-schemes-support-psi-based-quota-auto-tune.patch
-docs-mm-damon-design-document-quota-goal-self-tuning.patch
-docs-abi-damon-document-quota-goal-metric-file.patch
-docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file.patch
-docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file-fix.patch
-mm-damon-reclaim-implement-user-feedback-driven-quota-auto-tuning.patch
-mm-damon-reclaim-implement-memory-psi-driven-quota-self-tuning.patch
-docs-admin-guide-mm-damon-reclaim-document-auto-tuning-parameters.patch
+mm-utilc-added-page-count-to-__vm_enough_memory-failure-warning.patch
 
