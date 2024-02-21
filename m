@@ -1,102 +1,224 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EB65152DE9
-	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 22:22:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87C9777655;
+	Wed, 21 Feb 2024 13:33:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708467758; cv=none; b=POjcpVngugNsGjKszAB7yIEdethBGahqbD8yGdBawmKsmRDsH7Tfk35sChWCs8PYvioJlkECOoZDMxq3E34Rk8TAcH2C35YZb5HtL9RsUWs/N3Pe9ThUkvw+LfCtjknhXpNTe/nTD2gvwpvznQ8iJGF4CEmkCVv8QdT7EkteqpE=
+	t=1708522395; cv=none; b=gsU750kI1IFG2kBOkU2xSONTr+HmUk5BpZ0O5yH6NzFGothdR7Nn1CV29pCA6Tidfk0y/VgSm6B0m95g9VbI3tCQyiOkCDIt//MEdrjr3h98+wrKUuT0Au1pc1964/1R+xQQhT8cs2qJwxRCQ4VlYzc1tBw/ntcp4akq5tWY+Es=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708467758; c=relaxed/simple;
-	bh=FANPq+gMtQk+X9L794Vtikqop/0EOL49zIewsjFzXNc=;
-	h=Date:To:From:Subject:Message-Id; b=GiiUaEoUNWpRXDDggK4BvQ+/2FN1eZAhg4QwRwDroZXKCdnn7RGTrMTfAlVyezLHE0N3QfxqqywYjymA7maKoSHPF2qSbxoXrTP28DoNi/+8vM6AkdKE9/7Tmszak5oX+gotoWhWSYViPGV23AWeSGZh+RgiBcof6dnzdSEKS3k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RxytWIPn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708522395; c=relaxed/simple;
+	bh=0zrk4fdplPJ2n7pqwehQ2mMRsYQmSHU9ZrkHmQMyXB4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=PD4wYKSlzVaa/uCljW+lYUcOdOWWs8XA5cu+M/mEUcAX6BjvvSHJ09uHExG/qKYTxKhWcbksJrLAR1ELU6uox/0pQDxY0NmPN5pFGYsQSAZ+jbb/sc56sb0JHUt0eGhSk9H7PwmySQyDA16ZjX40MsjNjiFQUiiQdwsDSf4Mrkw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RH92JAc4; arc=none smtp.client-ip=209.85.221.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RxytWIPn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9504C43390;
-	Tue, 20 Feb 2024 22:22:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708467757;
-	bh=FANPq+gMtQk+X9L794Vtikqop/0EOL49zIewsjFzXNc=;
-	h=Date:To:From:Subject:From;
-	b=RxytWIPnkkTuJwxMd90Gb6vL5BiuViDj0+Hh/jgI8o/uO1Zl5q8wiqJ+8HMJN5KF+
-	 msY8IIFPU76SSbYhIcCYIblfFaLpEUiWiRWRI3oHiY1FsJdDLj0Q50K5s+HnN6MhjA
-	 6JpUm5/JMpDpzQnZZp6tX/0gJxLLep7VG7KDNAWU=
-Date: Tue, 20 Feb 2024 14:22:37 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,mpe@ellerman.id.au,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,bgray@linux.ibm.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kasan-guard-release_free_meta-shadow-access-with-kasan_arch_is_ready.patch removed from -mm tree
-Message-Id: <20240220222237.B9504C43390@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RH92JAc4"
+Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-3394bec856fso4388016f8f.0;
+        Wed, 21 Feb 2024 05:33:13 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1708522391; x=1709127191; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=OXwFlpGNxUJXMBoZb/7WFuYFIsMhJGhTGFkLifb6BE4=;
+        b=RH92JAc4WT4A5AxgXWmBDYxKfByWXrL7tcd/2Dq9Hl5fRJ4qyrOonmoawf2ktjeMNG
+         pdubTWMAM7t2qn8KZc3vyhkeuBAruH3wqS+JFUfryHBdVnhw4Kw3xVZwpMmM5KmIXj1u
+         HEM1MfIoqijPU6qP0s/zm9Gv7I7z74LFCVKL2kxs6NavRApe5Okf6Cd5eoS3USck8/Fk
+         WMLZ4N90O+tyOzB5dQo0Nmh20YYlODr+CW8ItEABJ3VhpUdof05JbtbKnjE0JD2Obt9l
+         BKy9EWibXCr1RZzlOHkV0GvyDu5nPmpwH/1YeZeWSAZ4QssXgmy5iDErr9/vO10NKl/M
+         b6lQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1708522391; x=1709127191;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=OXwFlpGNxUJXMBoZb/7WFuYFIsMhJGhTGFkLifb6BE4=;
+        b=u2JQ0xHe0fWT5nK12+BmYDNQhdl6pzPx1hsS+nHh/0FaL8/FkE7x6fwtp6gR3bqD+L
+         XCAgh6ylHf6DhX0G5qD0KfnR0eeoSHzEJJG5kKewguho5w+AXwOudPD9It0QjWZbwV3U
+         tMNsZQlPtqp67MpWF2hoXgvW/gqalIzqcKldzCASu56Rat628BPSQ2R5dpN2XAJd9eqo
+         RHjIJ0Nuiy7e7riGpZtR6Eh3f8ccKyztQqCJHGbLGn5UoAbxFYPlHDp+B7ujpHphsdLm
+         PxNI5a0o2AIgrNbSNzDpCqAsgSozxCZ4uhEFY9JQjo0qNcu0T+UELjOlmiwdiJI99RNu
+         75QQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXxey2ZwYrIxv4Cnxi5d/SDOd5xlSXS9baVkNtNJGhImV8fAwwc0cTMBzZahA/xXCiURc0G/LwALmJnuaX/UwEmRGEcACFat9v8VQ==
+X-Gm-Message-State: AOJu0YwaEK/1yG5+2ACOwCROp6kgabpzFJ7MhRhtMpBsJ0GUTa4yWhLV
+	Igf/W96VYok0Ve/xMtT/vT/gl6RC6009Lb1vWIR6l+3E27PAlGFcb3ct/oeNCVL4/3avvcVaLhv
+	+2Wvdb+/IjrC+dRtXJKuSGH/+otMajvOcJ+4=
+X-Google-Smtp-Source: AGHT+IEWgOrxUHBwwCSEKxqjNbDTwtCIh69VOlo3S3A0SXkMVbeFwVqiYfF8XIhAQ4Z0Kn4eF6rOv+w6ZNGLYKafgPI=
+X-Received: by 2002:adf:ec89:0:b0:33d:27c3:9f47 with SMTP id
+ z9-20020adfec89000000b0033d27c39f47mr11486295wrn.35.1708522391339; Wed, 21
+ Feb 2024 05:33:11 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <CAKEwX=NLe-N6dLvOVErPSL3Vfw6wqHgcUBQoNRLeWkN6chdvLQ@mail.gmail.com>
+ <20240116133145.12454-1-debug.penguin32@gmail.com> <CAKEwX=PjraCg_NjP4Tnkbv8uqnVw8yJGh-mbuZC02Gp6HMcDBw@mail.gmail.com>
+ <CAJD7tkb_uC_K7+C3GjVqg1rDRCmUkbHcEw950CkUHG66yokbcg@mail.gmail.com>
+ <20240118161601.GJ939255@cmpxchg.org> <CAJD7tkb+NCocjpjvM08Nv2fPMDqm4t-YH05TJckz8m1AYFNWUg@mail.gmail.com>
+ <20240118173927.GL939255@cmpxchg.org> <CAKEwX=PKBaqcpFwXpf1-M2nZ+ytFv2oCwxRVCe+CC5++rhgY=A@mail.gmail.com>
+In-Reply-To: <CAKEwX=PKBaqcpFwXpf1-M2nZ+ytFv2oCwxRVCe+CC5++rhgY=A@mail.gmail.com>
+From: Ronald Monthero <debug.penguin32@gmail.com>
+Date: Wed, 21 Feb 2024 23:32:34 +1000
+Message-ID: <CALk6UxqoBhvotfm83zQWGGfPpfARrMEUVWmT7tn6Tj1k189Q+A@mail.gmail.com>
+Subject: Re: [PATCH] mm/zswap: Improve with alloc_workqueue() call
+To: linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
+Cc: Johannes Weiner <hannes@cmpxchg.org>, Yosry Ahmed <yosryahmed@google.com>, sjenning@redhat.com, 
+	ddstreet@ieee.org, vitaly.wool@konsulko.com, akpm@linux-foundation.org, 
+	Nhat Pham <nphamcs@gmail.com>, chrisl@kernel.org, linux-mm@kvack.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+Thanks for the reviews.
+This patch is available at
+https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patche=
+s/mm-zswap-improve-with-alloc_workqueue-call.patch
 
-The quilt patch titled
-     Subject: kasan: guard release_free_meta() shadow access with kasan_arch_is_ready()
-has been removed from the -mm tree.  Its filename was
-     kasan-guard-release_free_meta-shadow-access-with-kasan_arch_is_ready.patch
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Benjamin Gray <bgray@linux.ibm.com>
-Subject: kasan: guard release_free_meta() shadow access with kasan_arch_is_ready()
-Date: Tue, 13 Feb 2024 14:39:58 +1100
+From: Ronald Monthero <debug.penguin32@gmail.com>
+Subject: mm/zswap: improve with alloc_workqueue() call
+Date: Tue, 16 Jan 2024 23:31:45 +1000
 
-release_free_meta() accesses the shadow directly through the path
+The core-api create_workqueue is deprecated, this patch replaces the
+create_workqueue with alloc_workqueue.  The previous implementation
+workqueue of zswap was a bounded workqueue, this patch uses
+alloc_workqueue() to create an unbounded workqueue.  The WQ_UNBOUND
+attribute is desirable making the workqueue not localized to a specific
+cpu so that the scheduler is free to exercise improvisations in any
+demanding scenarios for offloading cpu time slices for workqueues.  For
+example if any other workqueues of the same primary cpu had to be served
+which are WQ_HIGHPRI and WQ_CPU_INTENSIVE.  Also Unbound workqueue happens
+to be more efficient in a system during memory pressure scenarios in
+comparison to a bounded workqueue.
 
-  kasan_slab_free
-    __kasan_slab_free
-      kasan_release_object_meta
-        release_free_meta
-          kasan_mem_to_shadow
+shrink_wq =3D alloc_workqueue("zswap-shrink",
+                     WQ_UNBOUND|WQ_MEM_RECLAIM, 1);
 
-There are no kasan_arch_is_ready() guards here, allowing an oops when the
-shadow is not initialized.  The oops can be seen on a Power8 KVM guest.
+Overall the change suggested in this patch should be seamless and does not
+alter the existing behavior, other than the improvisation to be an
+unbounded workqueue.
 
-This patch adds the guard to release_free_meta(), as it's the first level
-that specifically requires the shadow.
-
-It is safe to put the guard at the start of this function, before the
-stack put: only kasan_save_free_info() can initialize the saved stack,
-which itself is guarded with kasan_arch_is_ready() by its caller
-poison_slab_object().  If the arch becomes ready before
-release_free_meta() then we will not observe KASAN_SLAB_FREE_META in the
-object's shadow, so we will not put an uninitialized stack either.
-
-Link: https://lkml.kernel.org/r/20240213033958.139383-1-bgray@linux.ibm.com
-Fixes: 63b85ac56a64 ("kasan: stop leaking stack trace handles")
-Signed-off-by: Benjamin Gray <bgray@linux.ibm.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Link: https://lkml.kernel.org/r/20240116133145.12454-1-debug.penguin32@gmai=
+l.com
+Signed-off-by: Ronald Monthero <debug.penguin32@gmail.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/generic.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/zswap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/kasan/generic.c~kasan-guard-release_free_meta-shadow-access-with-kasan_arch_is_ready
-+++ a/mm/kasan/generic.c
-@@ -522,6 +522,9 @@ static void release_alloc_meta(struct ka
- 
- static void release_free_meta(const void *object, struct kasan_free_meta *meta)
- {
-+	if (!kasan_arch_is_ready())
-+		return;
-+
- 	/* Check if free meta is valid. */
- 	if (*(u8 *)kasan_mem_to_shadow(object) != KASAN_SLAB_FREE_META)
- 		return;
+--- a/mm/zswap.c~mm-zswap-improve-with-alloc_workqueue-call
++++ a/mm/zswap.c
+@@ -1884,7 +1884,8 @@ static int zswap_setup(void)
+                zswap_enabled =3D false;
+        }
+
+-       shrink_wq =3D create_workqueue("zswap-shrink");
++       shrink_wq =3D alloc_workqueue("zswap-shrink",
++                       WQ_UNBOUND|WQ_MEM_RECLAIM, 1);
+        if (!shrink_wq)
+                goto fallback_fail;
+
 _
 
-Patches currently in -mm which might be from bgray@linux.ibm.com are
-
-
+On Fri, Jan 19, 2024 at 4:33=E2=80=AFAM Nhat Pham <nphamcs@gmail.com> wrote=
+:
+>
+> On Thu, Jan 18, 2024 at 9:39=E2=80=AFAM Johannes Weiner <hannes@cmpxchg.o=
+rg> wrote:
+> >
+> > On Thu, Jan 18, 2024 at 09:06:43AM -0800, Yosry Ahmed wrote:
+> > > > > > On a different note, I wonder if it would help to perform synch=
+ronous
+> > > > > > reclaim here instead. With our current design, the zswap store =
+failure
+> > > > > > (due to global limit hit) would leave the incoming page going t=
+o swap
+> > > > > > instead, creating an LRU inversion. Not sure if that's ideal.
+> > > > >
+> > > > > The global shrink path keeps reclaiming until zswap can accept ag=
+ain
+> > > > > (by default, that means reclaiming 10% of the total limit). I thi=
+nk
+> > > > > this is too expensive to be done synchronously.
+> > > >
+> > > > That thresholding code is a bit weird right now.
+> > > >
+> > > > It wakes the shrinker and rejects at the same time. We're guarantee=
+d
+> > > > to see rejections, even if the shrinker has no trouble flushing som=
+e
+> > > > entries a split second later.
+> > > >
+> > > > It would make more sense to wake the shrinker at e.g. 95% full and
+> > > > have it run until 90%.
+>
+> Yep, we should be reclaiming zswap objects way ahead of the pool
+> limit. Hence the new shrinker, which is memory pressure-driven (i.e
+> independent of zswap internal limits), and will typically be triggered
+> even if the pool is not full. During experiments, I never observe the
+> pool becoming full, with the default settings. I'd be happy to extend
+> it (or build in extra shrinking logic) to cover these pool limits too,
+> if it turns out to be necessary.
+>
+> > > >
+> > > > But with that in place we also *should* do synchronous reclaim once=
+ we
+> > > > hit 100%. Just enough to make room for the store. This is important=
+ to
+> > > > catch the case where reclaim rate exceeds swapout rate. Rejecting a=
+nd
+> > > > going to swap means the reclaimer will be throttled down to IO rate
+> > > > anyway, and the app latency isn't any worse. But this way we keep t=
+he
+> > > > pipeline alive, and keep swapping out the oldest zswap entries,
+> > > > instead of rejecting and swapping what would be the hottest ones.
+> > >
+> > > I fully agree with the thresholding code being weird, and with waking
+> > > up the shrinker before the pool is full. What I don't understand is
+> > > how we can do synchronous reclaim when we hit 100% and still respect
+> > > the acceptance threshold :/
+> > >
+> > > Are you proposing we change the semantics of the acceptance threshold
+> > > to begin with?
+> >
+> > I kind of am. It's worth looking at the history of this knob.
+> >
+> > It was added in 2020 by 45190f01dd402112d3d22c0ddc4152994f9e1e55, and
+> > from the changelogs and the code in this patch I do not understand how
+> > this was supposed to work.
+> >
+> > It also *didn't* work for very basic real world applications. See
+> > Domenico's follow-up (e0228d590beb0d0af345c58a282f01afac5c57f3), which
+> > effectively reverted it to get halfway reasonable behavior.
+> >
+> > If there are no good usecases for this knob, then I think it makes
+> > sense to phase it out again.
+>
+> Yeah this was my original proposal - remove this knob altogether :)
+> Based on a cursory read, it just seems like zswap was originally
+> trying to shrink (synchronously) one "object", then try to check if
+> the pool size is now under the limit. This is indeed insufficient.
+> However, I'm not quite convinced by the solution (hysteresis) either.
+>
+> Maybe we can synchronously shrink a la Domenico, i.e until the pool
+> can accept new pages, but this time capacity-based (maybe under the
+> limit + some headroom, 1 page for example)? This is just so that the
+> immediate incoming zswap store succeeds - we can still have the
+> shrinker freeing up space later on (or maybe keep an asynchronous
+> pool-limit based shrinker around).
