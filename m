@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E12E12AAE2
-	for <mm-commits@vger.kernel.org>; Wed, 21 Feb 2024 23:45:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8510912AAE2
+	for <mm-commits@vger.kernel.org>; Wed, 21 Feb 2024 23:45:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708559128; cv=none; b=KcEGTLQu3GFUTUvbICnDmqzVf1Qb1zDp82Vrv+1UqTzzs4yf2CpmzHtUUUVqlA3oMFHuUebu0zXljELJMls3gPWb+KYcHqaY6INOdiHXTinDHgeLQ0DwuKy3LSIC2GfcEcKeK+ZlRac0j3qXG0+AyDZ9g3RJx5OOZF1AtRxlP+U=
+	t=1708559129; cv=none; b=R0dNGLiPmRelqjuuMwlUpwgNPvMr5nEyx3GDAtD1kmi9dVIX//ZXaFeMVmyWbvNurdKHV8ZB7ZCzdYQJ/yfJZ1tUdaJfrpzXvDtz9luKRLLTO7IB7VXha50mWyQ7MvVUlG43GQqVp8AFSJtFO7wy8ktImszOMWQu29tcigZK/yg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708559128; c=relaxed/simple;
-	bh=O/gLjSb5S9P9MWv0yf9ikXs1Db5KaErK2jiIKbE75iI=;
-	h=Date:To:From:Subject:Message-Id; b=qfg0EQYRO0QcYqJ9xV52ZzkeYFWle3eMSFPbSF6lTxDMDZk+diLWs85iDBO1OK3Su9oo+nGefOX9Pag6uCiXxBlspNaGMu82XhAfwWanzxn0h/Ku8aD39Lmndah3IXnZYRCRs+aJweFklTvnbSt0jigXDIyYO7Pl9s2Tdvavy9c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KwCIwAnN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708559129; c=relaxed/simple;
+	bh=KfJ7fkpIY1l5TBSPRE+bldwIhpv1kn76z2HbWruZL68=;
+	h=Date:To:From:Subject:Message-Id; b=H4HXIfd1MKm9xGRsw9igZJJtmm+nNljxvgClC6FbG1jb/Vd8L+dfF63prGQzCZN2gR+BcyaEvLjpJ8HlLw8dOucZTX1GBx6y5D4vGowj2VMzua0B6UKG4jCwtV9PoAwy/3Hbvi4WfwmgWOpp0GBDEIklfTf/teN3PKav6W/cQPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uvGxYJ1L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KwCIwAnN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0220CC433C7;
-	Wed, 21 Feb 2024 23:45:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uvGxYJ1L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF187C43390;
+	Wed, 21 Feb 2024 23:45:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708559128;
-	bh=O/gLjSb5S9P9MWv0yf9ikXs1Db5KaErK2jiIKbE75iI=;
+	s=korg; t=1708559129;
+	bh=KfJ7fkpIY1l5TBSPRE+bldwIhpv1kn76z2HbWruZL68=;
 	h=Date:To:From:Subject:From;
-	b=KwCIwAnNG2MRK0J9CHisKPtuaHy71Qr0QgUcrZVVkdyZxUdtSIb7uURPY3Mlf96ul
-	 54L+dDqh2EW66zXyj5M7AA/EkHdsJzru1FaWBRUR1fV51vtNkdiJRvlrm4dtfz8Dce
-	 HNSXJRy2Yvh3KrGNmLuskVM8ytSTRc53lLuTQzCw=
-Date: Wed, 21 Feb 2024 15:45:27 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,p.raghav@samsung.com,oliver.sang@intel.com,da.gomez@samsung.com,mcgrof@kernel.org,akpm@linux-foundation.org
+	b=uvGxYJ1LU+9gBypCiOmzHq5ZtwyxVP9lrZKqmVOj+8DcBcUvZurBblZCLcvXzwD03
+	 R6JKxKkHzmXpNuUoalFXii+UnGgR3r9+W/T50M1Rn0EiAJlocdzV3tqVHdn4ZILHov
+	 fKdiJxV5E/kHcUFfKC7ACVlPriTXP1Jd3eT5xG0w=
+Date: Wed, 21 Feb 2024 15:45:28 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,p.raghav@samsung.com,mcgrof@kernel.org,da.gomez@samsung.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] test_xarray-add-tests-for-advanced-multi-index-use-fix.patch removed from -mm tree
-Message-Id: <20240221234528.0220CC433C7@smtp.kernel.org>
+Subject: [folded-merged] test_xarray-add-tests-for-advanced-multi-index-use-fix-fix.patch removed from -mm tree
+Message-Id: <20240221234528.EF187C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,38 +35,20 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: test_xarray: fix soft lockup for advanced-api tests
+     Subject: test_xarray-fix-soft-lockup-for-advanced-api-tests-fix
 has been removed from the -mm tree.  Its filename was
-     test_xarray-add-tests-for-advanced-multi-index-use-fix.patch
+     test_xarray-add-tests-for-advanced-multi-index-use-fix-fix.patch
 
 This patch was dropped because it was folded into test_xarray-add-tests-for-advanced-multi-index-use.patch
 
 ------------------------------------------------------
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: test_xarray: fix soft lockup for advanced-api tests
-Date: Fri, 16 Feb 2024 11:43:29 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: test_xarray-fix-soft-lockup-for-advanced-api-tests-fix
+Date: Mon Feb 19 06:23:18 PM PST 2024
 
-The new adanced API tests want to vet the xarray API is doing what it
-promises by manually iterating over a set of possible indexes on its
-own, and using a query operation which holds the RCU lock and then
-releases it. So it is not using the helper loop options which xarray
-provides on purpose. Any loop which iterates over 1 million entries
-(which is possible with order 20, so emulating say a 4 GiB block size)
-to just to rcu lock and unlock will eventually end up triggering a soft
-lockup on systems which don't preempt, and have lock provin and RCU
-prooving enabled.
+s/i/loops/, make non-static
 
-xarray users already use XA_CHECK_SCHED for loops which may take a long
-time, in our case we don't want to RCU unlock and lock as the caller
-does that already, but rather just force a schedule every XA_CHECK_SCHED
-iterations since the test is trying to not trust and rather test that
-xarray is doing the right thing.
-
-
-Link: https://lkml.kernel.org/r/20240216194329.840555-1-mcgrof@kernel.org
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lkml.kernel.org/r/202402071613.70f28243-lkp@intel.com
-Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Daniel Gomez <da.gomez@samsung.com>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -74,40 +56,38 @@ Cc: Pankaj Raghav <p.raghav@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_xarray.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ lib/test_xarray.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/test_xarray.c~test_xarray-add-tests-for-advanced-multi-index-use-fix
+--- a/lib/test_xarray.c~test_xarray-add-tests-for-advanced-multi-index-use-fix-fix
 +++ a/lib/test_xarray.c
-@@ -728,6 +728,7 @@ static noinline void *test_get_entry(str
+@@ -728,7 +728,7 @@ static noinline void *test_get_entry(str
  {
  	XA_STATE(xas, xa, index);
  	void *p;
-+	static unsigned int i = 0;
+-	static unsigned int i = 0;
++	unsigned int loops = 0;
  
  	rcu_read_lock();
  repeat:
-@@ -737,6 +738,17 @@ repeat:
- 		goto repeat;
- 	rcu_read_unlock();
+@@ -746,7 +746,7 @@ repeat:
+ 	 * APIs won't be stupid, proper page cache APIs loop over the proper
+ 	 * order so when using a larger order we skip shared entries.
+ 	 */
+-	if (++i % XA_CHECK_SCHED == 0)
++	if (++loops % XA_CHECK_SCHED == 0)
+ 		schedule();
  
-+	/*
-+	 * This is not part of the page cache, this selftest is pretty
-+	 * aggressive and does not want to trust the xarray API but rather
-+	 * test it, and for order 20 (4 GiB block size) we can loop over
-+	 * over a million entries which can cause a soft lockup. Page cache
-+	 * APIs won't be stupid, proper page cache APIs loop over the proper
-+	 * order so when using a larger order we skip shared entries.
-+	 */
-+	if (++i % XA_CHECK_SCHED == 0)
-+		schedule();
-+
  	return p;
- }
- 
 _
 
-Patches currently in -mm which might be from mcgrof@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 test_xarray-add-tests-for-advanced-multi-index-use.patch
+test_xarray-add-tests-for-advanced-multi-index-use-fix-fix-fix.patch
+kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch
+arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix.patch
+mm-swapfile-__swap_duplicate-drop-redundant-write_once-on-swap_map-for-err-cases-fix.patch
+kprobes-use-synchronize_rcu_tasks_rude-in-kprobe_optimizer-fix.patch
+panic-add-option-to-dump-blocked-tasks-in-panic_print-fix.patch
 
