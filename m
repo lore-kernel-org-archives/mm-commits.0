@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70FF33A1BC
-	for <mm-commits@vger.kernel.org>; Wed, 21 Feb 2024 23:43:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE31012AAE0
+	for <mm-commits@vger.kernel.org>; Wed, 21 Feb 2024 23:44:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708559012; cv=none; b=HXHybkJfeVd1WbAk/ZIz/ugesxLS3Xdv4nslvJn8NV2PFjx7HqO/tbYi9xvzNW/9trXfNC0hFLsAfbdsiA1qbfbVJEbgBhx/TgMfOzRQTTikgxltAuM025zcIUmB0/N2b1zKcFL1k6ZbVlijic+rVCG20ezqDKtixakcfOkTKZ0=
+	t=1708559047; cv=none; b=afAoTrlB/gvLuxEccSVU1c+9CyyeBRKg6XUy6SYOwx6adMC0v0XrhJHVWH818vSBSsNHEL3CvLCpMycn5Zy+BrhHh44CB1gfOrEDq6QkfxyhLKZF2/L+tw6ytujo9xoyXP5/6wmqALAMUKTPrQvwaQElsGznnAREkNeR/UwlHKM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708559012; c=relaxed/simple;
-	bh=swSoiX5EPgT/Z5wAOHI+J0qVy1HYqC1iFWz5OCc5tDI=;
-	h=Date:To:From:Subject:Message-Id; b=mxf/c4dvovmAzo8YuwlagqMqziqilHwxa6rBezwkC/NAmgSVtdhOxiDTJiM++lbnSOOHuREGU9lQdUyOcPPmfZqjxSVmmuR6TBUiAVbFx7z61X5zUOdYJJ0iK/7RPFLyC+s+0R4fh7HaOgKll/+jhS8CM5iCP0rFVzCNrjvnazs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rpcVwPrh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708559047; c=relaxed/simple;
+	bh=5X30SsxtyKt7AxhgH+IZNv5MtD3juItXDy0iddZd03c=;
+	h=Date:To:From:Subject:Message-Id; b=bgJkjRMYsycXGH2akc1hCxLTSYzHNmsX7eNJjwdJoZaQYi/+Rnh5wwX/Nogh5lHHZnvSvTl0C3fnknvBoZyEEwyEyd5fHvs3l7aNgVmKpgL0dFAp4XC6b1vOuSDSvoGxLadtP41wYDT5gnA39YkVFKVnmAHMHbHTZVmeSb3sgRg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h6vSHrDg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rpcVwPrh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE547C433F1;
-	Wed, 21 Feb 2024 23:43:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h6vSHrDg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49C55C433C7;
+	Wed, 21 Feb 2024 23:44:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708559012;
-	bh=swSoiX5EPgT/Z5wAOHI+J0qVy1HYqC1iFWz5OCc5tDI=;
+	s=korg; t=1708559046;
+	bh=5X30SsxtyKt7AxhgH+IZNv5MtD3juItXDy0iddZd03c=;
 	h=Date:To:From:Subject:From;
-	b=rpcVwPrhppDt6epqqn/w1dCbFhDwa4ZlVyZGsFl1aoLEM/Ou4SuOlEUxGlGw5iLkk
-	 ZvUlEaqbNc4KTn5xyD+80MHby68v1os8wSbuW5QFu/5nn2fFo4ZlJB7Vw251H+3BQk
-	 8JlRI3sDaTL38JGdhFwRT3nyruoFf64nIBKPgHZQ=
-Date: Wed, 21 Feb 2024 15:43:31 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,siyanteng@loongson.cn,shuah@kernel.org,corbet@lwn.net,alexs@kernel.org,2023002089@link.tyut.edu.cn,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=h6vSHrDgrLlhZARu/rpk7knFQSSeXiOptUE22OAxAZuUi2bczYnoBQQBs/owD9oES
+	 VNf9fCqnlH9cxQLG/aAmxp6Jn2JT5K2wEOmx9VqfWAEveFNxtat+oVZRtrq275Wzc8
+	 gmInotXFmnoJHoEAVhqpUdiD0Kemi7BRZ0jskvlg=
+Date: Wed, 21 Feb 2024 15:44:05 -0800
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,sthanneeru.opensrc@micron.com,ravis.opensrc@micron.com,rakie.kim@sk.com,mhocko@kernel.org,hyeongtak.ji@sk.com,honggyu.kim@sk.com,Hasan.Maruf@amd.com,hannes@cmpxchg.org,gregory.price@memverge.com,dan.j.williams@intel.com,corbet@lwn.net,gourry.memverge@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro-fix.patch removed from -mm tree
-Message-Id: <20240221234331.EE547C433F1@smtp.kernel.org>
+Subject: [folded-merged] mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq-fix.patch removed from -mm tree
+Message-Id: <20240221234406.49C55C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro-fix
+     Subject: mm/mempolicy: weighted interleave checks wrong parameter
 has been removed from the -mm tree.  Its filename was
-     mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro-fix.patch
+     mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq-fix.patch
 
-This patch was dropped because it was folded into mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro.patch
+This patch was dropped because it was folded into mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro-fix
-Date: Sat Feb  3 06:10:51 AM PST 2024
+From: Gregory Price <gourry.memverge@gmail.com>
+Subject: mm/mempolicy: weighted interleave checks wrong parameter
+Date: Tue, 6 Feb 2024 14:28:53 -0500
 
-s/comnst/const/
+weighted interleave presently checks (!node) when it should check
+(!il_weight).  This causes a wrong distribution of memory.
 
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Hu Haowen <2023002089@link.tyut.edu.cn>
+Link: https://lkml.kernel.org/r/20240206192853.3589-1-gregory.price@memverge.com
+Signed-off-by: Gregory Price <gregory.price@memverge.com>
+Reported-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Hasan Al Maruf <Hasan.Maruf@amd.com>
+Cc: Honggyu Kim <honggyu.kim@sk.com>
+Cc: Hyeongtak Ji <hyeongtak.ji@sk.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Yanteng Si <siyanteng@loongson.cn>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ravi Jonnalagadda <ravis.opensrc@micron.com>
+Cc: Srinivasulu Thanneeru <sthanneeru.opensrc@micron.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/dbgfs.c |    2 +-
+ mm/mempolicy.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/dbgfs.c~mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro-fix
-+++ a/mm/damon/dbgfs.c
-@@ -810,7 +810,7 @@ static void dbgfs_destroy_ctx(struct dam
- static ssize_t damon_dbgfs_deprecated_read(struct file *file,
- 		char __user *buf, size_t count, loff_t *ppos)
- {
--	static comnst char kbuf[512] = DAMON_DBGFS_DEPRECATION_NOTICE;
-+	static const char kbuf[512] = DAMON_DBGFS_DEPRECATION_NOTICE;
- 
- 	return simple_read_from_buffer(buf, count, ppos, kbuf, strlen(kbuf));
- }
+--- a/mm/mempolicy.c~mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq-fix
++++ a/mm/mempolicy.c
+@@ -1881,7 +1881,7 @@ retry:
+ 	/* to prevent miscount use tsk->mems_allowed_seq to detect rebind */
+ 	cpuset_mems_cookie = read_mems_allowed_begin();
+ 	node = current->il_prev;
+-	if (!node || !node_isset(node, policy->nodes)) {
++	if (!current->il_weight || !node_isset(node, policy->nodes)) {
+ 		node = next_node_in(node, policy->nodes);
+ 		if (read_mems_allowed_retry(cpuset_mems_cookie))
+ 			goto retry;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gourry.memverge@gmail.com are
 
-mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro.patch
-mm-ptdump-have-ptdump_check_wx-return-bool-fix.patch
-test_xarray-add-tests-for-advanced-multi-index-use-fix-fix.patch
-test_xarray-add-tests-for-advanced-multi-index-use-fix-fix-fix.patch
-kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch
-arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix.patch
-mm-swapfile-__swap_duplicate-drop-redundant-write_once-on-swap_map-for-err-cases-fix.patch
-kprobes-use-synchronize_rcu_tasks_rude-in-kprobe_optimizer-fix.patch
-panic-add-option-to-dump-blocked-tasks-in-panic_print-fix.patch
+mm-mempolicy-refactor-a-read-once-mechanism-into-a-function-for-re-use.patch
+mm-mempolicy-introduce-mpol_weighted_interleave-for-weighted-interleaving.patch
+mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq.patch
 
