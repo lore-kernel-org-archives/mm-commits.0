@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D21EC28E3
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C277A2FB6
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560094; cv=none; b=RDBHioagluVPHUBZjsuHjpGTFo2LRoizXS1dql0kv9d36CBoZ3oCgzmioz6MO7rygoFeTB4iMdWEeb80DmIAO4ASkyNLA5/k+r1JIcdhCcooj9IyzY2HRfhW8aF1hzGbP+tvzfIgaActNGmrwPjgDc3iIfDuLIDYsia2mLkqDLY=
+	t=1708560095; cv=none; b=dFEGJO8Wn5woj93r8EAQ/BBSWx3zvgtXDJy41WdUlrd2A2kMiwYQxdS3gI0B7OGWlkV50Q9+nToSMvz0Z+Rvkc+P+4565dicDmMzcKALwC+97oxymeTZuK6MmQvw4eU402od2zl8UkLvxSMo3CrhVgDBLiOvox4pZ+WO8UpowOw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560094; c=relaxed/simple;
-	bh=sqEPikkS7LBGFkBI5bj4Szhlp1w1jgQ/AxymzRZWJKg=;
-	h=Date:To:From:Subject:Message-Id; b=o3Am+YEhdbPEtXcYG803wKV+JW3pwSqyIki9KeBjJMsjcg5Cf1BgB+4EY35KfdFZlBJhDxnN+BGC/iLHpfW4ZIpLVfmhID+F6YvdYxGSr3MILQqOulf+/vJDUR8oOaVJos/MKONGO5ABxf5lqZpIyRgMkuXwiUObGXKpqQ8+pG0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JhLmVRXF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560095; c=relaxed/simple;
+	bh=qJmbeFaZJ3As1ax8bWqFW/yCl4G53lLpZZpSHtJULZ4=;
+	h=Date:To:From:Subject:Message-Id; b=kG2ibgm7Q1GMuATQ0Hos7coukLe+m9HpCFPrBZQadSMMsN82MQC2lhZJRSvDdKbEH13HzQr9FNo5aetA/Sb0upaCBG5EjE5zPQM06DBjy6P9ELsgrylMmJlMZ9CDQ4c8wnD3f5ho2w0lTRBlK/HEW9Rqt3erhhS8bX9g/+WRHiw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=da0wPTjw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JhLmVRXF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5843C43399;
-	Thu, 22 Feb 2024 00:01:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="da0wPTjw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 988A1C433C7;
+	Thu, 22 Feb 2024 00:01:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560094;
-	bh=sqEPikkS7LBGFkBI5bj4Szhlp1w1jgQ/AxymzRZWJKg=;
+	s=korg; t=1708560095;
+	bh=qJmbeFaZJ3As1ax8bWqFW/yCl4G53lLpZZpSHtJULZ4=;
 	h=Date:To:From:Subject:From;
-	b=JhLmVRXFKT3bkOY5j0RYYFwoR6xuGLoJC9TSIy225F7nVm0Wuy9/TVlianKJazKUb
-	 R94mzLxmPAE88TnBm9fLN+JhmzDIAMBXaDTN2CLeuN8nZuERlDQ4aMqMB7z+hRNVkX
-	 J2swNIjUQJGn5sglEsEfORqDuIHtMOF2Q026rdbw=
-Date: Wed, 21 Feb 2024 16:01:34 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,chriscli@google.com,zhouchengming@bytedance.com,akpm@linux-foundation.org
+	b=da0wPTjwgu20C7j86p2Aw6q9gG23qHKLI1PJ1TQdRMpQ2XoLrCu7ZanBfWYrlrafX
+	 LB8mlyM14UYz608F1ewioydZjLpdiEnQTYA3xR3d2oJxvcXsCEvIUBZqwBwPN5L/Kx
+	 xCqGccAHlDyL6XZpFdwK8O0URM/+8HTCYJZIR/+A=
+Date: Wed, 21 Feb 2024 16:01:35 -0800
+To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,ying.huang@intel.com,nphamcs@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-split-zswap-rb-tree.patch removed from -mm tree
-Message-Id: <20240222000134.A5843C43399@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free.patch removed from -mm tree
+Message-Id: <20240222000135.988A1C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,247 +35,107 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zswap: split zswap rb-tree
+     Subject: mm: swap: enforce updating inuse_pages at the end of swap_range_free()
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-split-zswap-rb-tree.patch
+     mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chengming Zhou <zhouchengming@bytedance.com>
-Subject: mm/zswap: split zswap rb-tree
-Date: Fri, 19 Jan 2024 11:22:23 +0000
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: swap: enforce updating inuse_pages at the end of swap_range_free()
+Date: Wed, 24 Jan 2024 04:51:11 +0000
 
-Each swapfile has one rb-tree to search the mapping of swp_entry_t to
-zswap_entry, that use a spinlock to protect, which can cause heavy lock
-contention if multiple tasks zswap_store/load concurrently.
+Patch series "mm: zswap: simplify zswap_swapoff()", v2.
 
-Optimize the scalability problem by splitting the zswap rb-tree into
-multiple rb-trees, each corresponds to SWAP_ADDRESS_SPACE_PAGES (64M),
-just like we did in the swap cache address_space splitting.
+These patches aim to simplify zswap_swapoff() by removing the unnecessary
+trees cleanup code.  Patch 1 makes sure that the order of operations
+during swapoff is enforced correctly, making sure the simplification in
+patch 2 is correct in a future-proof manner.
 
-Although this method can't solve the spinlock contention completely, it
-can mitigate much of that contention.  Below is the results of kernel
-build in tmpfs with zswap shrinker enabled:
 
-     linux-next  zswap-lock-optimize
-real 1m9.181s    1m3.820s
-user 17m44.036s  17m40.100s
-sys  7m37.297s   4m54.622s
+This patch (of 2):
 
-So there are clearly improvements.
+In swap_range_free(), we update inuse_pages then do some cleanups (arch
+invalidation, zswap invalidation, swap cache cleanups, etc).  During
+swapoff, try_to_unuse() checks that inuse_pages is 0 to make sure all swap
+entries are freed.  Make sure we only update inuse_pages after we are done
+with the cleanups in swap_range_free(), and use the proper memory barriers
+to enforce it.  This makes sure that code following try_to_unuse() can
+safely assume that swap_range_free() ran for all entries in thr swapfile
+(e.g.  swap cache cleanup, zswap_swapoff()).
 
-Link: https://lkml.kernel.org/r/20240117-b4-zswap-lock-optimize-v2-2-b5cc55479090@bytedance.com
-Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Chris Li <chriscli@google.com>
+In practice, this currently isn't a problem because swap_range_free() is
+called with the swap info lock held, and the swapoff code happens to spin
+for that after try_to_unuse().  However, this seems fragile and
+unintentional, so make it more relable and future-proof.  This also
+facilitates a following simplification of zswap_swapoff().
+
+Link: https://lkml.kernel.org/r/20240124045113.415378-1-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/20240124045113.415378-2-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zswap.h |    4 +-
- mm/swapfile.c         |    2 -
- mm/zswap.c            |   71 +++++++++++++++++++++++++---------------
- 3 files changed, 49 insertions(+), 28 deletions(-)
+ mm/swapfile.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
---- a/include/linux/zswap.h~mm-zswap-split-zswap-rb-tree
-+++ a/include/linux/zswap.h
-@@ -30,7 +30,7 @@ struct zswap_lruvec_state {
- bool zswap_store(struct folio *folio);
- bool zswap_load(struct folio *folio);
- void zswap_invalidate(int type, pgoff_t offset);
--int zswap_swapon(int type);
-+int zswap_swapon(int type, unsigned long nr_pages);
- void zswap_swapoff(int type);
- void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg);
- void zswap_lruvec_state_init(struct lruvec *lruvec);
-@@ -51,7 +51,7 @@ static inline bool zswap_load(struct fol
- }
- 
- static inline void zswap_invalidate(int type, pgoff_t offset) {}
--static inline int zswap_swapon(int type)
-+static inline int zswap_swapon(int type, unsigned long nr_pages)
- {
- 	return 0;
- }
---- a/mm/swapfile.c~mm-zswap-split-zswap-rb-tree
+--- a/mm/swapfile.c~mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free
 +++ a/mm/swapfile.c
-@@ -3165,7 +3165,7 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	if (error)
- 		goto bad_swap_unlock_inode;
- 
--	error = zswap_swapon(p->type);
-+	error = zswap_swapon(p->type, maxpages);
- 	if (error)
- 		goto free_swap_address_space;
- 
---- a/mm/zswap.c~mm-zswap-split-zswap-rb-tree
-+++ a/mm/zswap.c
-@@ -239,6 +239,7 @@ struct zswap_tree {
- };
- 
- static struct zswap_tree *zswap_trees[MAX_SWAPFILES];
-+static unsigned int nr_zswap_trees[MAX_SWAPFILES];
- 
- /* RCU-protected iteration */
- static LIST_HEAD(zswap_pools);
-@@ -265,6 +266,12 @@ static bool zswap_has_pool;
- * helpers and fwd declarations
- **********************************/
- 
-+static inline struct zswap_tree *swap_zswap_tree(swp_entry_t swp)
-+{
-+	return &zswap_trees[swp_type(swp)][swp_offset(swp)
-+		>> SWAP_ADDRESS_SPACE_SHIFT];
-+}
+@@ -737,8 +737,6 @@ static void swap_range_free(struct swap_
+ 		if (was_full && (si->flags & SWP_WRITEOK))
+ 			add_to_avail_list(si);
+ 	}
+-	atomic_long_add(nr_entries, &nr_swap_pages);
+-	WRITE_ONCE(si->inuse_pages, si->inuse_pages - nr_entries);
+ 	if (si->flags & SWP_BLKDEV)
+ 		swap_slot_free_notify =
+ 			si->bdev->bd_disk->fops->swap_slot_free_notify;
+@@ -752,6 +750,14 @@ static void swap_range_free(struct swap_
+ 		offset++;
+ 	}
+ 	clear_shadow_from_swap_cache(si->type, begin, end);
 +
- #define zswap_pool_debug(msg, p)				\
- 	pr_debug("%s pool %s/%s\n", msg, (p)->tfm_name,		\
- 		 zpool_get_type((p)->zpools[0]))
-@@ -864,7 +871,7 @@ static enum lru_status shrink_memcg_cb(s
- 	 * until the entry is verified to still be alive in the tree.
- 	 */
- 	swpoffset = swp_offset(entry->swpentry);
--	tree = zswap_trees[swp_type(entry->swpentry)];
-+	tree = swap_zswap_tree(entry->swpentry);
- 	list_lru_isolate(l, item);
- 	/*
- 	 * It's safe to drop the lock here because we return either
-@@ -1493,10 +1500,9 @@ static void zswap_fill_page(void *ptr, u
- bool zswap_store(struct folio *folio)
- {
- 	swp_entry_t swp = folio->swap;
--	int type = swp_type(swp);
- 	pgoff_t offset = swp_offset(swp);
- 	struct page *page = &folio->page;
--	struct zswap_tree *tree = zswap_trees[type];
-+	struct zswap_tree *tree = swap_zswap_tree(swp);
- 	struct zswap_entry *entry, *dupentry;
- 	struct scatterlist input, output;
- 	struct crypto_acomp_ctx *acomp_ctx;
-@@ -1569,7 +1575,7 @@ bool zswap_store(struct folio *folio)
- 		src = kmap_local_page(page);
- 		if (zswap_is_page_same_filled(src, &value)) {
- 			kunmap_local(src);
--			entry->swpentry = swp_entry(type, offset);
-+			entry->swpentry = swp;
- 			entry->length = 0;
- 			entry->value = value;
- 			atomic_inc(&zswap_same_filled_pages);
-@@ -1651,7 +1657,7 @@ bool zswap_store(struct folio *folio)
- 	mutex_unlock(&acomp_ctx->mutex);
- 
- 	/* populate entry */
--	entry->swpentry = swp_entry(type, offset);
-+	entry->swpentry = swp;
- 	entry->handle = handle;
- 	entry->length = dlen;
- 
-@@ -1711,10 +1717,9 @@ shrink:
- bool zswap_load(struct folio *folio)
- {
- 	swp_entry_t swp = folio->swap;
--	int type = swp_type(swp);
- 	pgoff_t offset = swp_offset(swp);
- 	struct page *page = &folio->page;
--	struct zswap_tree *tree = zswap_trees[type];
-+	struct zswap_tree *tree = swap_zswap_tree(swp);
- 	struct zswap_entry *entry;
- 	u8 *dst;
- 
-@@ -1757,7 +1762,7 @@ bool zswap_load(struct folio *folio)
- 
- void zswap_invalidate(int type, pgoff_t offset)
- {
--	struct zswap_tree *tree = zswap_trees[type];
-+	struct zswap_tree *tree = swap_zswap_tree(swp_entry(type, offset));
- 	struct zswap_entry *entry;
- 
- 	/* find */
-@@ -1772,37 +1777,53 @@ void zswap_invalidate(int type, pgoff_t
- 	spin_unlock(&tree->lock);
++	/*
++	 * Make sure that try_to_unuse() observes si->inuse_pages reaching 0
++	 * only after the above cleanups are done.
++	 */
++	smp_wmb();
++	atomic_long_add(nr_entries, &nr_swap_pages);
++	WRITE_ONCE(si->inuse_pages, si->inuse_pages - nr_entries);
  }
  
--int zswap_swapon(int type)
-+int zswap_swapon(int type, unsigned long nr_pages)
- {
--	struct zswap_tree *tree;
-+	struct zswap_tree *trees, *tree;
-+	unsigned int nr, i;
+ static void set_cluster_next(struct swap_info_struct *si, unsigned long next)
+@@ -2049,7 +2055,7 @@ static int try_to_unuse(unsigned int typ
+ 	unsigned int i;
  
--	tree = kzalloc(sizeof(*tree), GFP_KERNEL);
--	if (!tree) {
-+	nr = DIV_ROUND_UP(nr_pages, SWAP_ADDRESS_SPACE_PAGES);
-+	trees = kvcalloc(nr, sizeof(*tree), GFP_KERNEL);
-+	if (!trees) {
- 		pr_err("alloc failed, zswap disabled for swap type %d\n", type);
- 		return -ENOMEM;
+ 	if (!READ_ONCE(si->inuse_pages))
+-		return 0;
++		goto success;
+ 
+ retry:
+ 	retval = shmem_unuse(type);
+@@ -2130,6 +2136,12 @@ retry:
+ 		return -EINTR;
  	}
  
--	tree->rbroot = RB_ROOT;
--	spin_lock_init(&tree->lock);
--	zswap_trees[type] = tree;
-+	for (i = 0; i < nr; i++) {
-+		tree = trees + i;
-+		tree->rbroot = RB_ROOT;
-+		spin_lock_init(&tree->lock);
-+	}
-+
-+	nr_zswap_trees[type] = nr;
-+	zswap_trees[type] = trees;
++success:
++	/*
++	 * Make sure that further cleanups after try_to_unuse() returns happen
++	 * after swap_range_free() reduces si->inuse_pages to 0.
++	 */
++	smp_mb();
  	return 0;
- }
- 
- void zswap_swapoff(int type)
- {
--	struct zswap_tree *tree = zswap_trees[type];
--	struct zswap_entry *entry, *n;
-+	struct zswap_tree *trees = zswap_trees[type];
-+	unsigned int i;
- 
--	if (!tree)
-+	if (!trees)
- 		return;
- 
--	/* walk the tree and free everything */
--	spin_lock(&tree->lock);
--	rbtree_postorder_for_each_entry_safe(entry, n, &tree->rbroot, rbnode)
--		zswap_free_entry(entry);
--	tree->rbroot = RB_ROOT;
--	spin_unlock(&tree->lock);
--	kfree(tree);
-+	for (i = 0; i < nr_zswap_trees[type]; i++) {
-+		struct zswap_tree *tree = trees + i;
-+		struct zswap_entry *entry, *n;
-+
-+		/* walk the tree and free everything */
-+		spin_lock(&tree->lock);
-+		rbtree_postorder_for_each_entry_safe(entry, n,
-+						     &tree->rbroot,
-+						     rbnode)
-+			zswap_free_entry(entry);
-+		tree->rbroot = RB_ROOT;
-+		spin_unlock(&tree->lock);
-+	}
-+
-+	kvfree(trees);
-+	nr_zswap_trees[type] = 0;
- 	zswap_trees[type] = NULL;
  }
  
 _
 
-Patches currently in -mm which might be from zhouchengming@bytedance.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-mm-zsmalloc-fix-migrate_write_lock-when-config_compaction.patch
-mm-zsmalloc-remove-migrate_write_lock_nested.patch
-mm-zsmalloc-remove-unused-zspage-isolated.patch
-mm-zswap-global-lru-and-shrinker-shared-by-all-zswap_pools.patch
-mm-zswap-change-zswap_pool-kref-to-percpu_ref.patch
-mm-zsmalloc-remove-set_zspage_mapping.patch
-mm-zsmalloc-remove_zspage-dont-need-fullness-parameter.patch
-mm-zsmalloc-remove-get_zspage_mapping.patch
-maintainers-add-chengming-zhou-as-a-zswap-reviewer.patch
 
