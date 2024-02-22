@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09A794C73
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6A731FAB
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560062; cv=none; b=RiEjhUdVD8pmXeRy/bP+W+h/rr5AeEEvSz2ui7vHKE/dFsYCU9GwtVN1YqBMz479Ptxq9mE8IRO4O7H3ETNIm4gLG1ZdaHhZdOamHnj5PqKf9eR41KEGvSSO2kmqIhcoTO2JltlnVa3QEHgQNNKoc0hTnXuhKWG4eT1LSk1UjsM=
+	t=1708560063; cv=none; b=WcBUn2JLCjItVUPnGUiANHgK1uEtZf9vbI3o7lV+Qw6R5vVJbkM9rMU52KwHVzDu0jFRTD1jjcKIJPSZD2BH5GM6NUf/5zdQJcpbh4ZslLs1xBCLmTLxhgBIIj5IrYnom9jcm7HzOtJC0IcZHqJXQcItJv+j4c3DnfvdBOcX3zM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560062; c=relaxed/simple;
-	bh=CqxlI4aWgiXw9upGcRrHq4pf8e+r9o1VXT3TZs0d56E=;
-	h=Date:To:From:Subject:Message-Id; b=IKlFKWVoMAfLoylm2RjLJnUyJywuuqVIt+eYbasXb1HxUrVoZsQGoYSeRwFAWGe/xqLICInSBtQgVosOGt2vnh7pi9ciKF6W35mWqMNiQXlnz6z+Uk8g1tzgIohaq4RmzgzcZaBcKQzCPylJxxrKqIH7/sYq+TRokIyW/Ax4qvU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=soHgbCpL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560063; c=relaxed/simple;
+	bh=Nq793bgzxICR6M9RaSU4KShxeOtZjXX/3+VJhyyQkuw=;
+	h=Date:To:From:Subject:Message-Id; b=pSVZoQGenDc4xht3PnRQjSm3nfg97Kn5/XbJmIlamsXm32o2qYRnbexD4GYyhrKg3JbSxYuKoFyLV/vHmnWPI5MSwsX5sga4fHjRiFWM29A5JiMkfGwtG7rOAFaAQ9MCE1PK4OTvljXeUeRVJMnVF5QLSZifglhD8f12ho534o0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sDezwvwS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="soHgbCpL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C323EC433B1;
-	Thu, 22 Feb 2024 00:01:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sDezwvwS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3FD4C43390;
+	Thu, 22 Feb 2024 00:01:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560061;
-	bh=CqxlI4aWgiXw9upGcRrHq4pf8e+r9o1VXT3TZs0d56E=;
+	s=korg; t=1708560062;
+	bh=Nq793bgzxICR6M9RaSU4KShxeOtZjXX/3+VJhyyQkuw=;
 	h=Date:To:From:Subject:From;
-	b=soHgbCpLsD+AXdl+lIAOB0eq5ERqbO+ghgCQyu7vMrb2Zz0iJDPh8e6UiqzitVRtZ
-	 GwTVgp4BJCBVowgtvLMzjLubAJxD3upBk1Um+Z4UdCnA3JvqUPngQITNGPIy+fzNWy
-	 7+it6t9rcDUt0IrbLjgjiPkIjwKhiHbHNPFDOzZI=
-Date: Wed, 21 Feb 2024 16:01:01 -0800
-To: mm-commits@vger.kernel.org,osalvador@suse.de,mhocko@suse.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,anshuman.khandual@arm.com,aneesh.kumar@linux.ibm.com,agordeev@linux.ibm.com,sumanthk@linux.ibm.com,akpm@linux-foundation.org
+	b=sDezwvwSD1YfkQduzg21vRrChZey4Nx2pu4NMnkKaC59MZnYfcDi+8sFhr1QMaTds
+	 YR4ClTTDO8RzgTXd03u22v44aKusATXJsi/5g1tDxVV0wfSEvj2EL/OTwXYS+NMRLt
+	 drvJu/LzjsmLRqVC7F0UXo5LWuMD3bNtY84eqo+A=
+Date: Wed, 21 Feb 2024 16:01:02 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,lihongbo22@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] s390-enable-mhp_memmap_on_memory.patch removed from -mm tree
-Message-Id: <20240222000101.C323EC433B1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-filemap-avoid-type-conversion.patch removed from -mm tree
+Message-Id: <20240222000102.B3FD4C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: s390: enable MHP_MEMMAP_ON_MEMORY
+     Subject: mm/filemap: avoid type conversion
 has been removed from the -mm tree.  Its filename was
-     s390-enable-mhp_memmap_on_memory.patch
+     mm-filemap-avoid-type-conversion.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sumanth Korikkar <sumanthk@linux.ibm.com>
-Subject: s390: enable MHP_MEMMAP_ON_MEMORY
-Date: Mon, 8 Jan 2024 14:27:47 +0100
+From: Hongbo Li <lihongbo22@huawei.com>
+Subject: mm/filemap: avoid type conversion
+Date: Mon, 8 Jan 2024 12:48:15 +0800
 
-Enable MHP_MEMMAP_ON_MEMORY to support "memmap on memory".
-memory_hotplug.memmap_on_memory=true kernel parameter should be set in
-kernel boot option to enable the feature.
+The return type of function folio_test_hugetlb is bool type, there is no
+need to assign it to an integer type.
 
-Link: https://lkml.kernel.org/r/20240108132747.3238763-6-sumanthk@linux.ibm.com
-Reviewed-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Signed-off-by: Sumanth Korikkar <sumanthk@linux.ibm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20240108044815.3291487-1-lihongbo22@huawei.com
+Signed-off-by: Hongbo Li <lihongbo22@huawei.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/s390/Kconfig~s390-enable-mhp_memmap_on_memory
-+++ a/arch/s390/Kconfig
-@@ -113,6 +113,7 @@ config S390
- 	select ARCH_INLINE_WRITE_UNLOCK_BH
- 	select ARCH_INLINE_WRITE_UNLOCK_IRQ
- 	select ARCH_INLINE_WRITE_UNLOCK_IRQRESTORE
-+	select ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
- 	select ARCH_STACKWALK
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+--- a/mm/filemap.c~mm-filemap-avoid-type-conversion
++++ a/mm/filemap.c
+@@ -843,7 +843,7 @@ noinline int __filemap_add_folio(struct
+ 		struct folio *folio, pgoff_t index, gfp_t gfp, void **shadowp)
+ {
+ 	XA_STATE(xas, &mapping->i_pages, index);
+-	int huge = folio_test_hugetlb(folio);
++	bool huge = folio_test_hugetlb(folio);
+ 	bool charged = false;
+ 	long nr = 1;
+ 
 _
 
-Patches currently in -mm which might be from sumanthk@linux.ibm.com are
+Patches currently in -mm which might be from lihongbo22@huawei.com are
 
 
