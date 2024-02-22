@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CFCB8C01
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:02:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53A66320B
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:02:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560160; cv=none; b=oAJlnnhgZLuSsZZRP6qOIRSotB8B8Xx+YNUp6MvDXhET2IMrAk3T7czfVB7DSLToA0/ZjrgOx9YWCvRi65JdYT2kS0sxMIvNLGYAsFLWiXZbLO8gDuCXDMEwQsQltUys+minRvnCZYwde/Fg3h61tIN3rY87B1UXv745wM9FumE=
+	t=1708560161; cv=none; b=CQwam0ZZ2xGebQN/guvmQn4HsdfrXcB31SXesZNsymggdnH0fJhdDsWflzsJHl3tFSHIskbSytRxgW38IgYQutLZuQSWTsyGegEzu084Rp/7ce4NoY47tJzN8bFKt6WUt3vLLNr0PFViZe65u5diJaEF/Vz1avYLcvXXVdWZ6yQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560160; c=relaxed/simple;
-	bh=wrIaV/zueKIZcG3PDUM3zr6A7/KVKRabE7NOWldC3KM=;
-	h=Date:To:From:Subject:Message-Id; b=FZLOnd0a/9/4ZoF1OaGtiVdYJIlGRV2axfsPne71/i+XpOahKsEzcAbzhUmtlzhY3Uo3LDe+upRz+d+BJnumINIvJggtp3/Oyljs3KG2tUypulif6DIO9IeltsxekWcXbdDsHyZKEJGbNjC5LSUcbGFsZq4J3LIWnPJt4ntwHJQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wvkHCWn8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560161; c=relaxed/simple;
+	bh=jzWkR7NyGI7hoG8hhloMgJK6KCgNHlt4leZuUH9ZBYw=;
+	h=Date:To:From:Subject:Message-Id; b=ER8baO6R4clTp/ll3qJoJdjqc0t5VVAICIjQM+yX8BDjz/16+kSy+diDwlwgh1h/0GRwp/KLlUU9OO7DKrHaciu19BG32/Jpn/Gf7e4blB1U5JQgTgugdgQuF7fKNYKZER3sRPilEK9CEB1YPS3lPRaoJtpLgMH2CFEOF9c0r0g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B0ShdT3N; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wvkHCWn8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41780C433F1;
-	Thu, 22 Feb 2024 00:02:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B0ShdT3N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A3EFC433F1;
+	Thu, 22 Feb 2024 00:02:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560160;
-	bh=wrIaV/zueKIZcG3PDUM3zr6A7/KVKRabE7NOWldC3KM=;
+	s=korg; t=1708560161;
+	bh=jzWkR7NyGI7hoG8hhloMgJK6KCgNHlt4leZuUH9ZBYw=;
 	h=Date:To:From:Subject:From;
-	b=wvkHCWn8cv9uysdOzmVbKXDx3+ricdOt1H1+0wy+wLstbbNd+r4bdHrIn5n2sVbyy
-	 qkGUt20RVq9eZptZeHbtrfx5ah6AwnLS9qV7Z0zMhSqSI53cOMyC8ZTkoNJFbELfJj
-	 6/WTeKvcJRmjzUgDDJp5a3FlY7KS7+Bmq15xrqko=
-Date: Wed, 21 Feb 2024 16:02:39 -0800
+	b=B0ShdT3NMhnT9gKKfJLYUmC5sq0TgsM3Ky9NTtndwovb/q8vA2xxJnyf48cejmuMv
+	 rNHjwIxtXWTko6BkfGzot7/wvOeankUGTyRa2VvjPsYG0SgG/jTJY4QBWn6IxrQo1f
+	 2atVU9w7F2SZTRn8gL78jwdey5FkXc+bzh3839+4=
+Date: Wed, 21 Feb 2024 16:02:40 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-thuge-gen-conform-to-tap-format-output.patch removed from -mm tree
-Message-Id: <20240222000240.41780C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-transhuge-stress-conform-to-tap-format-output.patch removed from -mm tree
+Message-Id: <20240222000241.2A3EFC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,302 +35,160 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: thuge-gen: conform to TAP format output
+     Subject: selftests/mm: transhuge-stress: conform to TAP format output
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-thuge-gen-conform-to-tap-format-output.patch
+     selftests-mm-transhuge-stress-conform-to-tap-format-output.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: thuge-gen: conform to TAP format output
-Date: Fri, 2 Feb 2024 16:31:17 +0500
+Subject: selftests/mm: transhuge-stress: conform to TAP format output
+Date: Fri, 2 Feb 2024 16:31:18 +0500
 
 Conform the layout, informational and status messages to TAP.  No
 functional change is intended other than the layout of output messages.
 
-Also remove unneeded logging which isn't enabled.  Skip a hugepage size if
-it has less free pages to avoid unnecessary failures.  For examples, some
-systems may not have 1GB hugepage free.  So skip 1GB for testing in this
-test instead of failing the entire test.
-
-Link: https://lkml.kernel.org/r/20240202113119.2047740-11-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20240202113119.2047740-12-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/thuge-gen.c |  147 +++++++++++------------
- 1 file changed, 75 insertions(+), 72 deletions(-)
+ tools/testing/selftests/mm/transhuge-stress.c |   38 +++++++++-------
+ tools/testing/selftests/mm/vm_util.c          |    6 +-
+ 2 files changed, 26 insertions(+), 18 deletions(-)
 
---- a/tools/testing/selftests/mm/thuge-gen.c~selftests-mm-thuge-gen-conform-to-tap-format-output
-+++ a/tools/testing/selftests/mm/thuge-gen.c
-@@ -4,7 +4,7 @@
-    Before running this huge pages for each huge page size must have been
-    reserved.
-    For large pages beyond MAX_PAGE_ORDER (like 1GB on x86) boot options must
--   be used.
-+   be used. 1GB wouldn't be tested if it isn't available.
-    Also shmmax must be increased.
-    And you need to run as root to work around some weird permissions in shm.
-    And nothing using huge pages should run in parallel.
-@@ -26,8 +26,7 @@
- #include <stdarg.h>
+--- a/tools/testing/selftests/mm/transhuge-stress.c~selftests-mm-transhuge-stress-conform-to-tap-format-output
++++ a/tools/testing/selftests/mm/transhuge-stress.c
+@@ -16,6 +16,7 @@
  #include <string.h>
+ #include <sys/mman.h>
  #include "vm_util.h"
--
--#define err(x) perror(x), exit(1)
 +#include "../kselftest.h"
  
- #define MAP_HUGE_2MB    (21 << MAP_HUGE_SHIFT)
- #define MAP_HUGE_1GB    (30 << MAP_HUGE_SHIFT)
-@@ -44,11 +43,8 @@
- #define SHM_HUGE_1GB    (30 << SHM_HUGE_SHIFT)
+ int backing_fd = -1;
+ int mmap_flags = MAP_ANONYMOUS | MAP_NORESERVE | MAP_PRIVATE;
+@@ -34,6 +35,8 @@ int main(int argc, char **argv)
+ 	int pagemap_fd;
+ 	int duration = 0;
  
- #define NUM_PAGESIZES   5
--
- #define NUM_PAGES 4
- 
--#define Dprintf(fmt...) // printf(fmt)
--
- unsigned long page_sizes[NUM_PAGESIZES];
- int num_page_sizes;
- 
-@@ -60,28 +56,15 @@ int ilog2(unsigned long v)
- 	return l;
- }
- 
--void find_pagesizes(void)
--{
--	glob_t g;
--	int i;
--	glob("/sys/kernel/mm/hugepages/hugepages-*kB", 0, NULL, &g);
--	assert(g.gl_pathc <= NUM_PAGESIZES);
--	for (i = 0; i < g.gl_pathc; i++) {
--		sscanf(g.gl_pathv[i], "/sys/kernel/mm/hugepages/hugepages-%lukB",
--				&page_sizes[i]);
--		page_sizes[i] <<= 10;
--		printf("Found %luMB\n", page_sizes[i] >> 20);
--	}
--	num_page_sizes = g.gl_pathc;
--	globfree(&g);
--}
--
- void show(unsigned long ps)
- {
- 	char buf[100];
-+
- 	if (ps == getpagesize())
- 		return;
--	printf("%luMB: ", ps >> 20);
-+
-+	ksft_print_msg("%luMB: ", ps >> 20);
-+
- 	fflush(stdout);
- 	snprintf(buf, sizeof buf,
- 		"cat /sys/kernel/mm/hugepages/hugepages-%lukB/free_hugepages",
-@@ -105,7 +88,7 @@ unsigned long read_sysfs(int warn, char
- 	f = fopen(buf, "r");
- 	if (!f) {
- 		if (warn)
--			printf("missing %s\n", buf);
-+			ksft_print_msg("missing %s\n", buf);
- 		return 0;
- 	}
- 	if (getline(&line, &linelen, f) > 0) {
-@@ -119,123 +102,143 @@ unsigned long read_sysfs(int warn, char
- unsigned long read_free(unsigned long ps)
- {
- 	return read_sysfs(ps != getpagesize(),
--			"/sys/kernel/mm/hugepages/hugepages-%lukB/free_hugepages",
--			ps >> 10);
-+			  "/sys/kernel/mm/hugepages/hugepages-%lukB/free_hugepages",
-+			  ps >> 10);
- }
- 
- void test_mmap(unsigned long size, unsigned flags)
- {
- 	char *map;
- 	unsigned long before, after;
--	int err;
- 
- 	before = read_free(size);
- 	map = mmap(NULL, size*NUM_PAGES, PROT_READ|PROT_WRITE,
- 			MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|flags, -1, 0);
-+	if (map == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap: %s\n", strerror(errno));
- 
--	if (map == (char *)-1) err("mmap");
- 	memset(map, 0xff, size*NUM_PAGES);
- 	after = read_free(size);
--	Dprintf("before %lu after %lu diff %ld size %lu\n",
--		before, after, before - after, size);
--	assert(size == getpagesize() || (before - after) == NUM_PAGES);
-+
- 	show(size);
--	err = munmap(map, size * NUM_PAGES);
--	assert(!err);
-+	ksft_test_result(size == getpagesize() || (before - after) == NUM_PAGES,
-+			 "%s mmap\n", __func__);
-+
-+	if (munmap(map, size * NUM_PAGES))
-+		ksft_exit_fail_msg("%s: unmap %s\n", __func__, strerror(errno));
- }
- 
- void test_shmget(unsigned long size, unsigned flags)
- {
- 	int id;
- 	unsigned long before, after;
--	int err;
-+	struct shm_info i;
-+	char *map;
- 
- 	before = read_free(size);
- 	id = shmget(IPC_PRIVATE, size * NUM_PAGES, IPC_CREAT|0600|flags);
--	if (id < 0) err("shmget");
--
--	struct shm_info i;
--	if (shmctl(id, SHM_INFO, (void *)&i) < 0) err("shmctl");
--	Dprintf("alloc %lu res %lu\n", i.shm_tot, i.shm_rss);
-+	if (id < 0) {
-+		if (errno == EPERM) {
-+			ksft_test_result_skip("shmget requires root privileges: %s\n",
-+					      strerror(errno));
-+			return;
-+		}
-+		ksft_exit_fail_msg("shmget: %s\n", strerror(errno));
-+	}
- 
-+	if (shmctl(id, SHM_INFO, (void *)&i) < 0)
-+		ksft_exit_fail_msg("shmctl: %s\n", strerror(errno));
- 
--	Dprintf("id %d\n", id);
--	char *map = shmat(id, NULL, 0600);
--	if (map == (char*)-1) err("shmat");
-+	map = shmat(id, NULL, 0600);
-+	if (map == MAP_FAILED)
-+		ksft_exit_fail_msg("shmat: %s\n", strerror(errno));
- 
- 	shmctl(id, IPC_RMID, NULL);
- 
- 	memset(map, 0xff, size*NUM_PAGES);
- 	after = read_free(size);
- 
--	Dprintf("before %lu after %lu diff %ld size %lu\n",
--		before, after, before - after, size);
--	assert(size == getpagesize() || (before - after) == NUM_PAGES);
- 	show(size);
--	err = shmdt(map);
--	assert(!err);
-+	ksft_test_result(size == getpagesize() || (before - after) == NUM_PAGES,
-+			 "%s: mmap\n", __func__);
-+	if (shmdt(map))
-+		ksft_exit_fail_msg("%s: shmdt: %s\n", __func__, strerror(errno));
- }
- 
--void sanity_checks(void)
-+void find_pagesizes(void)
- {
--	int i;
- 	unsigned long largest = getpagesize();
-+	int i;
-+	glob_t g;
- 
--	for (i = 0; i < num_page_sizes; i++) {
--		if (page_sizes[i] > largest)
-+	glob("/sys/kernel/mm/hugepages/hugepages-*kB", 0, NULL, &g);
-+	assert(g.gl_pathc <= NUM_PAGESIZES);
-+	for (i = 0; (i < g.gl_pathc) && (num_page_sizes < NUM_PAGESIZES); i++) {
-+		sscanf(g.gl_pathv[i], "/sys/kernel/mm/hugepages/hugepages-%lukB",
-+				&page_sizes[num_page_sizes]);
-+		page_sizes[num_page_sizes] <<= 10;
-+		ksft_print_msg("Found %luMB\n", page_sizes[i] >> 20);
-+
-+		if (page_sizes[num_page_sizes] > largest)
- 			largest = page_sizes[i];
- 
--		if (read_free(page_sizes[i]) < NUM_PAGES) {
--			printf("Not enough huge pages for page size %lu MB, need %u\n",
--				page_sizes[i] >> 20,
--				NUM_PAGES);
--			exit(0);
--		}
-+		if (read_free(page_sizes[num_page_sizes]) >= NUM_PAGES)
-+			num_page_sizes++;
-+		else
-+			ksft_print_msg("SKIP for size %lu MB as not enough huge pages, need %u\n",
-+				       page_sizes[num_page_sizes] >> 20, NUM_PAGES);
- 	}
-+	globfree(&g);
- 
--	if (read_sysfs(0, "/proc/sys/kernel/shmmax") < NUM_PAGES * largest) {
--		printf("Please do echo %lu > /proc/sys/kernel/shmmax", largest * NUM_PAGES);
--		exit(0);
--	}
-+	if (read_sysfs(0, "/proc/sys/kernel/shmmax") < NUM_PAGES * largest)
-+		ksft_exit_fail_msg("Please do echo %lu > /proc/sys/kernel/shmmax",
-+				   largest * NUM_PAGES);
- 
- #if defined(__x86_64__)
- 	if (largest != 1U<<30) {
--		printf("No GB pages available on x86-64\n"
--		       "Please boot with hugepagesz=1G hugepages=%d\n", NUM_PAGES);
--		exit(0);
-+		ksft_exit_fail_msg("No GB pages available on x86-64\n"
-+				   "Please boot with hugepagesz=1G hugepages=%d\n", NUM_PAGES);
- 	}
- #endif
- }
- 
- int main(void)
- {
--	int i;
- 	unsigned default_hps = default_huge_page_size();
-+	int i;
-+
 +	ksft_print_header();
- 
- 	find_pagesizes();
- 
--	sanity_checks();
-+	if (!num_page_sizes)
-+		ksft_finished();
 +
-+	ksft_set_plan(2 * num_page_sizes + 3);
+ 	ram = sysconf(_SC_PHYS_PAGES);
+ 	if (ram > SIZE_MAX / psize() / 4)
+ 		ram = SIZE_MAX / 4;
+@@ -43,7 +46,8 @@ int main(int argc, char **argv)
  
- 	for (i = 0; i < num_page_sizes; i++) {
- 		unsigned long ps = page_sizes[i];
- 		int arg = ilog2(ps) << MAP_HUGE_SHIFT;
--		printf("Testing %luMB mmap with shift %x\n", ps >> 20, arg);
-+
-+		ksft_print_msg("Testing %luMB mmap with shift %x\n", ps >> 20, arg);
- 		test_mmap(ps, MAP_HUGETLB | arg);
+ 	while (++i < argc) {
+ 		if (!strcmp(argv[i], "-h"))
+-			errx(1, "usage: %s [-f <filename>] [-d <duration>] [size in MiB]", argv[0]);
++			ksft_exit_fail_msg("usage: %s [-f <filename>] [-d <duration>] [size in MiB]\n",
++					   argv[0]);
+ 		else if (!strcmp(argv[i], "-f"))
+ 			name = argv[++i];
+ 		else if (!strcmp(argv[i], "-d"))
+@@ -52,10 +56,12 @@ int main(int argc, char **argv)
+ 			len = atoll(argv[i]) << 20;
  	}
--	printf("Testing default huge mmap\n");
+ 
++	ksft_set_plan(1);
 +
-+	ksft_print_msg("Testing default huge mmap\n");
- 	test_mmap(default_hps, MAP_HUGETLB);
- 
--	puts("Testing non-huge shmget");
-+	ksft_print_msg("Testing non-huge shmget\n");
- 	test_shmget(getpagesize(), 0);
- 
- 	for (i = 0; i < num_page_sizes; i++) {
- 		unsigned long ps = page_sizes[i];
- 		int arg = ilog2(ps) << SHM_HUGE_SHIFT;
--		printf("Testing %luMB shmget with shift %x\n", ps >> 20, arg);
-+		ksft_print_msg("Testing %luMB shmget with shift %x\n", ps >> 20, arg);
- 		test_shmget(ps, SHM_HUGETLB | arg);
+ 	if (name) {
+ 		backing_fd = open(name, O_RDWR);
+ 		if (backing_fd == -1)
+-			errx(2, "open %s", name);
++			ksft_exit_fail_msg("open %s\n", name);
+ 		mmap_flags = MAP_SHARED;
  	}
--	puts("default huge shmget");
-+
-+	ksft_print_msg("default huge shmget\n");
- 	test_shmget(default_hps, SHM_HUGETLB);
  
--	return 0;
-+	ksft_finished();
+@@ -65,21 +71,21 @@ int main(int argc, char **argv)
+ 
+ 	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
+ 	if (pagemap_fd < 0)
+-		err(2, "open pagemap");
++		ksft_exit_fail_msg("open pagemap\n");
+ 
+ 	len -= len % HPAGE_SIZE;
+ 	ptr = mmap(NULL, len + HPAGE_SIZE, PROT_RW, mmap_flags, backing_fd, 0);
+ 	if (ptr == MAP_FAILED)
+-		err(2, "initial mmap");
++		ksft_exit_fail_msg("initial mmap");
+ 	ptr += HPAGE_SIZE - (uintptr_t)ptr % HPAGE_SIZE;
+ 
+ 	if (madvise(ptr, len, MADV_HUGEPAGE))
+-		err(2, "MADV_HUGEPAGE");
++		ksft_exit_fail_msg("MADV_HUGEPAGE");
+ 
+ 	map_len = ram >> (HPAGE_SHIFT - 1);
+ 	map = malloc(map_len);
+ 	if (!map)
+-		errx(2, "map malloc");
++		ksft_exit_fail_msg("map malloc\n");
+ 
+ 	clock_gettime(CLOCK_MONOTONIC, &start);
+ 
+@@ -103,7 +109,7 @@ int main(int argc, char **argv)
+ 				if (idx >= map_len) {
+ 					map = realloc(map, idx + 1);
+ 					if (!map)
+-						errx(2, "map realloc");
++						ksft_exit_fail_msg("map realloc\n");
+ 					memset(map + map_len, 0, idx + 1 - map_len);
+ 					map_len = idx + 1;
+ 				}
+@@ -114,17 +120,19 @@ int main(int argc, char **argv)
+ 
+ 			/* split transhuge page, keep last page */
+ 			if (madvise(p, HPAGE_SIZE - psize(), MADV_DONTNEED))
+-				err(2, "MADV_DONTNEED");
++				ksft_exit_fail_msg("MADV_DONTNEED");
+ 		}
+ 		clock_gettime(CLOCK_MONOTONIC, &b);
+ 		s = b.tv_sec - a.tv_sec + (b.tv_nsec - a.tv_nsec) / 1000000000.;
+ 
+-		warnx("%.3f s/loop, %.3f ms/page, %10.3f MiB/s\t"
+-		      "%4d succeed, %4d failed, %4d different pages",
+-		      s, s * 1000 / (len >> HPAGE_SHIFT), len / s / (1 << 20),
+-		      nr_succeed, nr_failed, nr_pages);
+-
+-		if (duration > 0 && b.tv_sec - start.tv_sec >= duration)
+-			return 0;
++		ksft_print_msg("%.3f s/loop, %.3f ms/page, %10.3f MiB/s\t"
++			       "%4d succeed, %4d failed, %4d different pages\n",
++			       s, s * 1000 / (len >> HPAGE_SHIFT), len / s / (1 << 20),
++			       nr_succeed, nr_failed, nr_pages);
++
++		if (duration > 0 && b.tv_sec - start.tv_sec >= duration) {
++			ksft_test_result_pass("Completed\n");
++			ksft_finished();
++		}
+ 	}
  }
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-transhuge-stress-conform-to-tap-format-output
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -232,17 +232,17 @@ int64_t allocate_transhuge(void *ptr, in
+ 	if (mmap(ptr, HPAGE_SIZE, PROT_READ | PROT_WRITE,
+ 		 MAP_FIXED | MAP_ANONYMOUS |
+ 		 MAP_NORESERVE | MAP_PRIVATE, -1, 0) != ptr)
+-		errx(2, "mmap transhuge");
++		ksft_exit_fail_msg("mmap transhuge\n");
+ 
+ 	if (madvise(ptr, HPAGE_SIZE, MADV_HUGEPAGE))
+-		err(2, "MADV_HUGEPAGE");
++		ksft_exit_fail_msg("MADV_HUGEPAGE\n");
+ 
+ 	/* allocate transparent huge page */
+ 	*(volatile void **)ptr = ptr;
+ 
+ 	if (pread(pagemap_fd, ent, sizeof(ent),
+ 		  (uintptr_t)ptr >> (pshift() - 3)) != sizeof(ent))
+-		err(2, "read pagemap");
++		ksft_exit_fail_msg("read pagemap\n");
+ 
+ 	if (PAGEMAP_PRESENT(ent[0]) && PAGEMAP_PRESENT(ent[1]) &&
+ 	    PAGEMAP_PFN(ent[0]) + 1 == PAGEMAP_PFN(ent[1]) &&
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
