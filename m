@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A33C320B
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8678CEC3
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560200; cv=none; b=YBA6pYoeimVYDGQ1zS2B+LBzO1giIIrftSBWs22spU9xLgplJdrTXtxJoxjL5+9aK5wnavN5b3dns8zRUnUYohiROWrIp1Vz4cu8Pway6kw9BcJ7/3Zi49df0xUGNREum+VMqRAblI+4loEGx07Du2oO1CqjvTDESbVaX9mR+YM=
+	t=1708560201; cv=none; b=vEnPmXAtEUYlDGqgdAXTIeo34PSOWPQXmGJ1a4U0PD5Wy9zoa0Zlgq3PmGUUEG0WGh1V65DWw9kgA1J50NLhNo/uOjqMENJz6uPb8B6Lt7yafbZsh4NSolcUgNuybEHV2pRf9Sk1L52mPhTMvbR62U4bvzUhsOCPH4YuRmqWFKQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560200; c=relaxed/simple;
-	bh=scEATOZ9H/eAwk4i5x8b2bpuAUHSaLTkYok8HKN9pD4=;
-	h=Date:To:From:Subject:Message-Id; b=V2ssPZDw1RSrREhg61NnkVJ058u85nSWK21n62GEiSfxrp6NYQL6Q6M2WXjOPROKk1zeZT/jdfZNpnqAHc13v2yCgSXnoan/W9Gx6dpi50w+mLlyqFur+l/CcbzJDKMUZT4WSzI9zaDBupy9/qu77OkLQx0P52QqW7ujq3SvaCg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BeIB+ZW9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560201; c=relaxed/simple;
+	bh=jXU9pPZLleErz0uO4a22Sn8TiPqkxwsAMQ9XTw/OLLk=;
+	h=Date:To:From:Subject:Message-Id; b=nLbrLwFWrlFi7u/IMInahmBM9PgoKBsJsdF7oVQYFjPgXLVkYFFSWp1cd6aQRyBzB3DSX5iyKq9AXdWw4ZOqxtoqkBpFHu2+Nnxa4w9BHT7ivLVTA+bK2Wn+yRj9CtQ63i+Vwt/Ogqaptbi58jcxH5t97hCHE5+MyRYwQ39Bk6w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mqdqf3uL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BeIB+ZW9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40468C43390;
-	Thu, 22 Feb 2024 00:03:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mqdqf3uL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E313C433F1;
+	Thu, 22 Feb 2024 00:03:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560200;
-	bh=scEATOZ9H/eAwk4i5x8b2bpuAUHSaLTkYok8HKN9pD4=;
+	s=korg; t=1708560201;
+	bh=jXU9pPZLleErz0uO4a22Sn8TiPqkxwsAMQ9XTw/OLLk=;
 	h=Date:To:From:Subject:From;
-	b=BeIB+ZW9lpM5gqv6icqirYB0DFhP+RU5+md8/lXiZ8WYO5B872gZ/PKCL9EFB/QH5
-	 91b0gy2CM9/ZEGOnF2cg48l+LL4ZPmC0o+k549iWDdk0m68M1+HkZkI1QY11pU7awW
-	 Het9hMp6IjZVTRZcs/48uXcD2+CcpF+z+LBjrSj8=
-Date: Wed, 21 Feb 2024 16:03:19 -0800
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=Mqdqf3uLQJj786khnBIg3+y72uRdTHPMnZIZqMtlOky4+D30Q3SEmhMkAVC8RSvSL
+	 hom/2cVuhSwxLreeUJi/wPXIswm88zJd3pUQ0mVx9zISKlgjsVSDNp0kPZUb4mRn1c
+	 HKrCRV9Q7sRgqbWaPWHV4ZnHP6e14xM1ZdQAmm+s=
+Date: Wed, 21 Feb 2024 16:03:20 -0800
+To: mm-commits@vger.kernel.org,xiongping1@xiaomi.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-improve-the-handling-of-hugetlb-allocation-failure-for-freed-or-in-use-hugetlb.patch removed from -mm tree
-Message-Id: <20240222000320.40468C43390@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-handle-state-file-inputs-for-every-sampling-interval-if-possible.patch removed from -mm tree
+Message-Id: <20240222000321.4E313C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,102 +35,223 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: hugetlb: improve the handling of hugetlb allocation failure for freed or in-use hugetlb
+     Subject: mm/damon/sysfs: handle 'state' file inputs for every sampling interval if possible
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-improve-the-handling-of-hugetlb-allocation-failure-for-freed-or-in-use-hugetlb.patch
+     mm-damon-sysfs-handle-state-file-inputs-for-every-sampling-interval-if-possible.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: hugetlb: improve the handling of hugetlb allocation failure for freed or in-use hugetlb
-Date: Tue, 6 Feb 2024 11:08:11 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs: handle 'state' file inputs for every sampling interval if possible
+Date: Mon, 5 Feb 2024 18:51:58 -0800
 
-alloc_and_dissolve_hugetlb_folio() preallocates a new hugetlb page before
-it takes hugetlb_lock.  In 3 out of 4 cases the page is not really used
-and therefore the newly allocated page is just freed right away.  This is
-wasteful and it might cause pre-mature failures in those cases.
+DAMON sysfs interface need to access kdamond-touching data for some of
+kdamond user commands.  It uses ->after_aggregation() kdamond callback to
+safely access the data in the case.  It had to use the aggregation
+interval callback because that was the only callback that users can access
+complete monitoring results.
 
-Address that by moving the allocation down to the only case (hugetlb page
-is really in the free pages pool).  We need to drop hugetlb_lock to do so
-and therefore need to recheck the page state after regaining it.
+Since patch series "mm/damon: provide pseudo-moving sum based access
+rate", which starts from commit 78fbfb155d20 ("mm/damon/core: define and
+use a dedicated function for region access rate update"), DAMON provides
+good-to-use quality moitoring results for every sampling interval.  It
+aims to help users who need to quickly retrieve the monitoring results. 
+When the aggregation interval is set too long and therefore waiting for
+the aggregation interval can degrade user experience, or when the access
+pattern is expected to be significantly changed[1] could be such cases.
 
-The patch is more of a cleanup than an actual fix to an existing problem. 
-There are no known reports about pre-mature failures.
+However, because DAMON sysfs interface is still handling the commands per
+aggregation interval, the end user cannot get the benefit.  Update DAMON
+sysfs interface to handle kdamond commands for every sampling interval if
+applicable.  Specifically, all kdamond data accessing commands except
+'commit' command are applicable.
 
-Link: https://lkml.kernel.org/r/62890fd60b1ecd5bf1cdc476c973f60fe37aa0cb.1707181934.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+[1] https://lore.kernel.org/r/20240129121316.GA9706@cuiyangpei
+
+Link: https://lkml.kernel.org/r/20240206025158.203097-1-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: xiongping1 <xiongping1@xiaomi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ mm/damon/sysfs-common.h  |    2 ++
+ mm/damon/sysfs-schemes.c |   22 +++++++++-------------
+ mm/damon/sysfs.c         |   21 ++++++++++++++++++---
+ 3 files changed, 29 insertions(+), 16 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-improve-the-handling-of-hugetlb-allocation-failure-for-freed-or-in-use-hugetlb
-+++ a/mm/hugetlb.c
-@@ -3029,21 +3029,9 @@ static int alloc_and_dissolve_hugetlb_fo
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-handle-state-file-inputs-for-every-sampling-interval-if-possible
++++ a/mm/damon/sysfs.c
+@@ -1379,11 +1379,13 @@ static int damon_sysfs_commit_schemes_qu
+  * damon_sysfs_cmd_request_callback() - DAMON callback for handling requests.
+  * @c:		The DAMON context of the callback.
+  * @active:	Whether @c is not deactivated due to watermarks.
++ * @after_aggr:	Whether this is called from after_aggregation() callback.
+  *
+  * This function is periodically called back from the kdamond thread for @c.
+  * Then, it checks if there is a waiting DAMON sysfs request and handles it.
+  */
+-static int damon_sysfs_cmd_request_callback(struct damon_ctx *c, bool active)
++static int damon_sysfs_cmd_request_callback(struct damon_ctx *c, bool active,
++		bool after_aggregation)
  {
- 	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
- 	int nid = folio_nid(old_folio);
--	struct folio *new_folio;
-+	struct folio *new_folio = NULL;
- 	int ret = 0;
- 
--	/*
--	 * Before dissolving the folio, we need to allocate a new one for the
--	 * pool to remain stable.  Here, we allocate the folio and 'prep' it
--	 * by doing everything but actually updating counters and adding to
--	 * the pool.  This simplifies and let us do most of the processing
--	 * under the lock.
--	 */
--	new_folio = alloc_buddy_hugetlb_folio(h, gfp_mask, nid, NULL, NULL);
--	if (!new_folio)
--		return -ENOMEM;
--	__prep_new_hugetlb_folio(h, new_folio);
--
- retry:
- 	spin_lock_irq(&hugetlb_lock);
- 	if (!folio_test_hugetlb(old_folio)) {
-@@ -3073,6 +3061,16 @@ retry:
- 		cond_resched();
- 		goto retry;
- 	} else {
-+		if (!new_folio) {
-+			spin_unlock_irq(&hugetlb_lock);
-+			new_folio = alloc_buddy_hugetlb_folio(h, gfp_mask, nid,
-+							      NULL, NULL);
-+			if (!new_folio)
-+				return -ENOMEM;
-+			__prep_new_hugetlb_folio(h, new_folio);
-+			goto retry;
-+		}
+ 	struct damon_sysfs_kdamond *kdamond;
+ 	bool total_bytes_only = false;
+@@ -1401,6 +1403,8 @@ static int damon_sysfs_cmd_request_callb
+ 		err = damon_sysfs_upd_schemes_stats(kdamond);
+ 		break;
+ 	case DAMON_SYSFS_CMD_COMMIT:
++		if (!after_aggregation)
++			goto out;
+ 		err = damon_sysfs_commit_input(kdamond);
+ 		break;
+ 	case DAMON_SYSFS_CMD_COMMIT_SCHEMES_QUOTA_GOALS:
+@@ -1418,6 +1422,7 @@ static int damon_sysfs_cmd_request_callb
+ 				goto keep_lock_out;
+ 			}
+ 		} else {
++			damos_sysfs_mark_finished_regions_updates(c);
+ 			/*
+ 			 * Continue regions updating if DAMON is till
+ 			 * active and the update for all schemes is not
+@@ -1450,7 +1455,16 @@ static int damon_sysfs_after_wmarks_chec
+ 	 * after_wmarks_check() is called back while the context is deactivated
+ 	 * by watermarks.
+ 	 */
+-	return damon_sysfs_cmd_request_callback(c, false);
++	return damon_sysfs_cmd_request_callback(c, false, false);
++}
 +
- 		/*
- 		 * Ok, old_folio is still a genuine free hugepage. Remove it from
- 		 * the freelist and decrease the counters. These will be
-@@ -3100,9 +3098,11 @@ retry:
++static int damon_sysfs_after_sampling(struct damon_ctx *c)
++{
++	/*
++	 * after_sampling() is called back only while the context is not
++	 * deactivated by watermarks.
++	 */
++	return damon_sysfs_cmd_request_callback(c, true, false);
+ }
  
- free_new:
- 	spin_unlock_irq(&hugetlb_lock);
--	/* Folio has a zero ref count, but needs a ref to be freed */
--	folio_ref_unfreeze(new_folio, 1);
--	update_and_free_hugetlb_folio(h, new_folio, false);
-+	if (new_folio) {
-+		/* Folio has a zero ref count, but needs a ref to be freed */
-+		folio_ref_unfreeze(new_folio, 1);
-+		update_and_free_hugetlb_folio(h, new_folio, false);
-+	}
+ static int damon_sysfs_after_aggregation(struct damon_ctx *c)
+@@ -1459,7 +1473,7 @@ static int damon_sysfs_after_aggregation
+ 	 * after_aggregation() is called back only while the context is not
+ 	 * deactivated by watermarks.
+ 	 */
+-	return damon_sysfs_cmd_request_callback(c, true);
++	return damon_sysfs_cmd_request_callback(c, true, true);
+ }
  
- 	return ret;
+ static struct damon_ctx *damon_sysfs_build_ctx(
+@@ -1478,6 +1492,7 @@ static struct damon_ctx *damon_sysfs_bui
+ 	}
+ 
+ 	ctx->callback.after_wmarks_check = damon_sysfs_after_wmarks_check;
++	ctx->callback.after_sampling = damon_sysfs_after_sampling;
+ 	ctx->callback.after_aggregation = damon_sysfs_after_aggregation;
+ 	ctx->callback.before_terminate = damon_sysfs_before_terminate;
+ 	return ctx;
+--- a/mm/damon/sysfs-common.h~mm-damon-sysfs-handle-state-file-inputs-for-every-sampling-interval-if-possible
++++ a/mm/damon/sysfs-common.h
+@@ -49,6 +49,8 @@ int damon_sysfs_schemes_update_regions_s
+ 		struct damon_sysfs_schemes *sysfs_schemes,
+ 		struct damon_ctx *ctx, bool total_bytes_only);
+ 
++void damos_sysfs_mark_finished_regions_updates(struct damon_ctx *ctx);
++
+ bool damos_sysfs_regions_upd_done(void);
+ 
+ int damon_sysfs_schemes_update_regions_stop(struct damon_ctx *ctx);
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-handle-state-file-inputs-for-every-sampling-interval-if-possible
++++ a/mm/damon/sysfs-schemes.c
+@@ -127,17 +127,17 @@ static const struct kobj_type damon_sysf
+  *
+  * Once the tried regions update request is received, the request handling
+  * start function (damon_sysfs_scheme_update_regions_start()) sets the status
+- * of all schemes as 'idle' again, and register ->before_damos_apply() and
+- * ->after_sampling() callbacks.
++ * of all schemes as 'idle' again, and register ->before_damos_apply()
++ * callback.
+  *
+  * Then, the first followup ->before_damos_apply() callback
+  * (damon_sysfs_before_damos_apply()) sets the status 'started'.  The first
+- * ->after_sampling() callback (damon_sysfs_after_sampling()) after the call
+- * is called only after the scheme is completely applied
+- * to the given snapshot.  Hence the callback knows the situation by showing
+- * 'started' status, and sets the status as 'finished'.  Then,
+- * damon_sysfs_before_damos_apply() understands the situation by showing the
+- * 'finished' status and do nothing.
++ * ->after_sampling() or ->after_aggregation() callback
++ *  (damon_sysfs_cmd_request_callback()) after the call is called only after
++ *  the scheme is completely applied to the given snapshot.  Hence the callback
++ *  knows the situation by showing 'started' status, and sets the status as
++ *  'finished'.  Then, damon_sysfs_before_damos_apply() understands the
++ *  situation by showing the 'finished' status and do nothing.
+  *
+  * If DAMOS is not applied to any region due to any reasons including the
+  * access pattern, the watermarks, the quotas, and the filters,
+@@ -2122,7 +2122,7 @@ static int damon_sysfs_before_damos_appl
+  * callback is registered, damon_sysfs_lock should be held to ensure the
+  * regions directories exist.
+  */
+-static int damon_sysfs_after_sampling(struct damon_ctx *ctx)
++void damos_sysfs_mark_finished_regions_updates(struct damon_ctx *ctx)
+ {
+ 	struct damon_sysfs_schemes *sysfs_schemes =
+ 		damon_sysfs_schemes_for_damos_callback;
+@@ -2138,8 +2138,6 @@ static int damon_sysfs_after_sampling(st
+ 			sysfs_regions->upd_status =
+ 				DAMOS_TRIED_REGIONS_UPD_FINISHED;
+ 	}
+-
+-	return 0;
+ }
+ 
+ /* Called from damon_sysfs_cmd_request_callback under damon_sysfs_lock */
+@@ -2212,7 +2210,6 @@ int damon_sysfs_schemes_update_regions_s
+ 	damos_tried_regions_init_upd_status(sysfs_schemes, ctx);
+ 	damos_regions_upd_total_bytes_only = total_bytes_only;
+ 	ctx->callback.before_damos_apply = damon_sysfs_before_damos_apply;
+-	ctx->callback.after_sampling = damon_sysfs_after_sampling;
+ 	return 0;
+ }
+ 
+@@ -2241,7 +2238,6 @@ int damon_sysfs_schemes_update_regions_s
+ {
+ 	damon_sysfs_schemes_for_damos_callback = NULL;
+ 	ctx->callback.before_damos_apply = NULL;
+-	ctx->callback.after_sampling = NULL;
+ 	damon_sysfs_schemes_region_idx = 0;
+ 	return 0;
  }
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-compaction-limit-the-suitable-target-page-order-to-be-less-than-cc-order.patch
+docs-mm-damon-maintainer-profile-fix-reference-links-for-mm-stable-tree.patch
+docs-mm-damon-move-the-list-of-damos-actions-to-design-doc.patch
+docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document.patch
+docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document-fix.patch
+docs-mm-damon-move-monitoring-target-regions-setup-detail-from-the-usage-to-the-design-document.patch
+docs-admin-guide-mm-damon-usage-fix-wrong-quotas-diabling-condition.patch
+mm-damon-core-set-damos_quota-esz-as-public-field-and-document.patch
+mm-damon-sysfs-schemes-implement-quota-effective_bytes-file.patch
+mm-damon-sysfs-implement-a-kdamond-command-for-updating-schemes-effective-quotas.patch
+docs-abi-damon-document-effective_bytes-sysfs-file.patch
+docs-admin-guide-mm-damon-usage-document-effective_bytes-file.patch
+mm-damon-move-comments-and-fields-for-damos-quota-prioritization-to-the-end.patch
+mm-damon-core-split-out-quota-goal-related-fields-to-a-struct.patch
+mm-damon-core-add-multiple-goals-per-damos_quota-and-helpers-for-those.patch
+mm-damon-sysfs-use-only-quota-goals.patch
+mm-damon-core-remove-goal-field-of-damos_quota.patch
+mm-damon-core-let-goal-specified-with-only-target-and-current-values.patch
+mm-damon-core-support-multiple-metrics-for-quota-goal.patch
+mm-damon-core-implement-psi-metric-damos-quota-goal.patch
+mm-damon-sysfs-schemes-support-psi-based-quota-auto-tune.patch
+docs-mm-damon-design-document-quota-goal-self-tuning.patch
+docs-abi-damon-document-quota-goal-metric-file.patch
+docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file.patch
+docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file-fix.patch
+mm-damon-reclaim-implement-user-feedback-driven-quota-auto-tuning.patch
+mm-damon-reclaim-implement-memory-psi-driven-quota-self-tuning.patch
+docs-admin-guide-mm-damon-reclaim-document-auto-tuning-parameters.patch
 
