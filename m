@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C407B7491
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEBE72919
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560184; cv=none; b=uHkgIvPU7uiAaG5aL/t0RBisLsS+wtBEosZqtJ7GXECUouI3vleGL9ukBBZ/zbsxUVX2rREVRtg+kJEuHhJxpfKwOhJkDean5AsaMsuizQWkgiRt5d9RXy9J2wLUoJLKlT2jlmHlGZgquXmThjG6/WqXVZbrwseeSHa9MKSs+2c=
+	t=1708560186; cv=none; b=ff4rS9lKsBU6Q4cpQ1PeEsouV2m00LQuDtlx93pB0PY4I6Gi6i5B3LeIashF1GsfMPEqDILG1XJkf8yrPbsqrhL24Loxevdgdhi7j/Bc5IbIQfwL0v3TXgOD60hGQQw5E2gr5rDaiErBY3SiHVHHOpH37znsM4M1FKuoNQtiVak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560184; c=relaxed/simple;
-	bh=wXfM+PC3WSyITN7gRM+mJd/dyjmabjGOkqTk+u2xliI=;
-	h=Date:To:From:Subject:Message-Id; b=kvxXV8O9Hg3jVjTGTsCvfND4vax3qBuyeOOTD2sTimhuaElEb413jI/26T5LLT9irfakeN8nvutkKWYUpeQrCprCTL8NRUlkXgmYDFSEYa/riEAMz5zmUn1+cWNQ9rjc2k91df648P4T5Ca0ocaQXD90PoP9LiYZnJlaGetXLvM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UhjTO3ad; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560186; c=relaxed/simple;
+	bh=N0JJCxpGwfye13TeXQtbeiLN/6CxPHkn107dOhE0sYc=;
+	h=Date:To:From:Subject:Message-Id; b=u886NoOMSc8TPLcRGL4nmPlgLFgYDoxF1TRuJT9hq5vTpwyc0q19B2PGIrEGqP14S5fW/FKZ5+cZIWReFadRkylTekUN0WX5VO+knS4IEcB2u3jrj2moYuLiO3ortYkfL6S0yJ9JvbmgyHjjEl6BVoveanf8q1QxplXN34CNTWw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iXaa4WOv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UhjTO3ad"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FA56C43390;
-	Thu, 22 Feb 2024 00:03:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iXaa4WOv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 832CDC43399;
+	Thu, 22 Feb 2024 00:03:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560184;
-	bh=wXfM+PC3WSyITN7gRM+mJd/dyjmabjGOkqTk+u2xliI=;
+	s=korg; t=1708560185;
+	bh=N0JJCxpGwfye13TeXQtbeiLN/6CxPHkn107dOhE0sYc=;
 	h=Date:To:From:Subject:From;
-	b=UhjTO3adwLlnhgl7GhEI7yvD5wZ2ZgLX2SrUk2PpmEdbnzr78iIkyFivbtv7eC1tx
-	 3gMV+cf1yOrhChcXvaf5DI9BHnkRISBRjPTWt87V5EWlRG8G03SJ5ZFmGQQ5cL743k
-	 hMVcQi2S+NKSpTaeKEfsdnw7PdGlXpgm/Jd3P7lI=
+	b=iXaa4WOvw7WMmLHFBtTLyZeX6s9ynUZUjbbyFkBHKU8ESs5mD8xD+/2PyA86jMEJj
+	 7LbguP0oupOBEHVOH9s4t2sbQYLUQDqu7CNzNRMjZlrrFtn/9aa32s2ITjiF9YvBl1
+	 oakLhPfmuHEH35tpkBVZvjQ/KEHekI2NTwKd+CNc=
 Date: Wed, 21 Feb 2024 16:03:04 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,mark.rutland@arm.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,paul.heidekrueger@tum.de,akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org,willy@infradead.org,shuah@kernel.org,roman.gushchin@linux.dev,riel@surriel.com,muchun.song@linux.dev,mhocko@kernel.org,lstoakes@gmail.com,hannes@cmpxchg.org,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-add-atomic-tests.patch removed from -mm tree
-Message-Id: <20240222000304.8FA56C43390@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-restore-the-reservation-if-needed.patch removed from -mm tree
+Message-Id: <20240222000305.832CDC43399@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,137 +35,139 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: add atomic tests
+     Subject: mm/hugetlb: restore the reservation if needed
 has been removed from the -mm tree.  Its filename was
-     kasan-add-atomic-tests.patch
+     mm-hugetlb-restore-the-reservation-if-needed.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Paul Heidekrüger <paul.heidekrueger@tum.de>
-Subject: kasan: add atomic tests
-Date: Fri, 2 Feb 2024 11:32:59 +0000
+From: Breno Leitao <leitao@debian.org>
+Subject: mm/hugetlb: restore the reservation if needed
+Date: Mon, 5 Feb 2024 11:18:41 -0800
 
-Test that KASan can detect some unsafe atomic accesses.
+Patch series "mm/hugetlb: Restore the reservation", v2.
 
-As discussed in the linked thread below, these tests attempt to cover
-the most common uses of atomics and, therefore, aren't exhaustive.
+This is a fix for a case where a backing huge page could stolen after
+madvise(MADV_DONTNEED).
 
-Link: https://lkml.kernel.org/r/20240202113259.3045705-1-paul.heidekrueger@tum.de
-Link: https://lore.kernel.org/all/20240131210041.686657-1-paul.heidekrueger@tum.de/T/#u
-Signed-off-by: Paul Heidekrüger <paul.heidekrueger@tum.de>
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=214055
-Acked-by: Mark Rutland <mark.rutland@arm.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+A full reproducer is in selftest. See
+https://lore.kernel.org/all/20240105155419.1939484-1-leitao@debian.org/
+
+In order to test this patch, I instrumented the kernel with LOCKDEP and
+KASAN, and run the following tests, without any regression:
+  * The self test that reproduces the problem
+  * All mm hugetlb selftests
+	SUMMARY: PASS=9 SKIP=0 FAIL=0
+  * All libhugetlbfs tests
+	PASS:     0     86
+	FAIL:     0      0
+
+
+This patch (of 2):
+
+Currently there is a bug that a huge page could be stolen, and when the
+original owner tries to fault in it, it causes a page fault.
+
+You can achieve that by:
+  1) Creating a single page
+	echo 1 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+
+  2) mmap() the page above with MAP_HUGETLB into (void *ptr1).
+	* This will mark the page as reserved
+  3) touch the page, which causes a page fault and allocates the page
+	* This will move the page out of the free list.
+	* It will also unreserved the page, since there is no more free
+	  page
+  4) madvise(MADV_DONTNEED) the page
+	* This will free the page, but not mark it as reserved.
+  5) Allocate a secondary page with mmap(MAP_HUGETLB) into (void *ptr2).
+	* it should fail, but, since there is no more available page.
+	* But, since the page above is not reserved, this mmap() succeed.
+  6) Faulting at ptr1 will cause a SIGBUS
+	* it will try to allocate a huge page, but there is none
+	  available
+
+A full reproducer is in selftest. See
+https://lore.kernel.org/all/20240105155419.1939484-1-leitao@debian.org/
+
+Fix this by restoring the reserved page if necessary.
+
+These are the condition for the page restore:
+
+ * The system is not using surplus pages. The goal is to reduce the
+   surplus usage for this case.
+ * If the VMA has the HPAGE_RESV_OWNER flag set, and is PRIVATE. This is
+   safely checked using __vma_private_lock()
+ * The page is anonymous
+
+Once this is scenario is found, set the `hugetlb_restore_reserve` bit in
+the folio. Then check if the resv reservations need to be adjusted
+later, done later, after the spinlock, since the vma_xxxx_reservation()
+might touch the file system lock.
+
+Link: https://lkml.kernel.org/r/20240205191843.4009640-1-leitao@debian.org
+Link: https://lkml.kernel.org/r/20240205191843.4009640-2-leitao@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Suggested-by: Rik van Riel <riel@surriel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test.c |   79 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 79 insertions(+)
+ mm/hugetlb.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
---- a/mm/kasan/kasan_test.c~kasan-add-atomic-tests
-+++ a/mm/kasan/kasan_test.c
-@@ -697,6 +697,84 @@ static void kmalloc_uaf3(struct kunit *t
- 	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr1)[8]);
- }
+--- a/mm/hugetlb.c~mm-hugetlb-restore-the-reservation-if-needed
++++ a/mm/hugetlb.c
+@@ -5585,6 +5585,7 @@ void __unmap_hugepage_range(struct mmu_g
+ 	struct page *page;
+ 	struct hstate *h = hstate_vma(vma);
+ 	unsigned long sz = huge_page_size(h);
++	bool adjust_reservation = false;
+ 	unsigned long last_addr_mask;
+ 	bool force_flush = false;
  
-+static void kasan_atomics_helper(struct kunit *test, void *unsafe, void *safe)
-+{
-+	int *i_unsafe = (int *)unsafe;
+@@ -5677,7 +5678,31 @@ void __unmap_hugepage_range(struct mmu_g
+ 		hugetlb_count_sub(pages_per_huge_page(h), mm);
+ 		hugetlb_remove_rmap(page_folio(page));
+ 
++		/*
++		 * Restore the reservation for anonymous page, otherwise the
++		 * backing page could be stolen by someone.
++		 * If there we are freeing a surplus, do not set the restore
++		 * reservation bit.
++		 */
++		if (!h->surplus_huge_pages && __vma_private_lock(vma) &&
++		    folio_test_anon(page_folio(page))) {
++			folio_set_hugetlb_restore_reserve(page_folio(page));
++			/* Reservation to be adjusted after the spin lock */
++			adjust_reservation = true;
++		}
 +
-+	KUNIT_EXPECT_KASAN_FAIL(test, READ_ONCE(*i_unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, WRITE_ONCE(*i_unsafe, 42));
-+	KUNIT_EXPECT_KASAN_FAIL(test, smp_load_acquire(i_unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, smp_store_release(i_unsafe, 42));
+ 		spin_unlock(ptl);
 +
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_read(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_set(unsafe, 42));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_add(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_sub(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_inc(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_dec(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_and(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_andnot(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_or(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_xor(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_xchg(unsafe, 42));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_cmpxchg(unsafe, 21, 42));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_try_cmpxchg(unsafe, safe, 42));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_try_cmpxchg(safe, unsafe, 42));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_sub_and_test(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_dec_and_test(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_inc_and_test(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_add_negative(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_add_unless(unsafe, 21, 42));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_inc_not_zero(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_inc_unless_negative(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_dec_unless_positive(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_dec_if_positive(unsafe));
++		/*
++		 * Adjust the reservation for the region that will have the
++		 * reserve restored. Keep in mind that vma_needs_reservation() changes
++		 * resv->adds_in_progress if it succeeds. If this is not done,
++		 * do_exit() will not see it, and will keep the reservation
++		 * forever.
++		 */
++		if (adjust_reservation && vma_needs_reservation(h, vma, address))
++			vma_add_reservation(h, vma, address);
 +
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_read(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_set(unsafe, 42));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_add(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_sub(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_inc(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_dec(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_and(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_andnot(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_or(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_xor(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_xchg(unsafe, 42));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_cmpxchg(unsafe, 21, 42));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_try_cmpxchg(unsafe, safe, 42));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_try_cmpxchg(safe, unsafe, 42));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_sub_and_test(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_dec_and_test(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_inc_and_test(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_add_negative(42, unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_add_unless(unsafe, 21, 42));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_inc_not_zero(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_inc_unless_negative(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_dec_unless_positive(unsafe));
-+	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_dec_if_positive(unsafe));
-+}
-+
-+static void kasan_atomics(struct kunit *test)
-+{
-+	void *a1, *a2;
-+
-+	/*
-+	 * Just as with kasan_bitops_tags(), we allocate 48 bytes of memory such
-+	 * that the following 16 bytes will make up the redzone.
-+	 */
-+	a1 = kzalloc(48, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, a1);
-+	a2 = kzalloc(sizeof(int), GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, a1);
-+
-+	/* Use atomics to access the redzone. */
-+	kasan_atomics_helper(test, a1 + 48, a2);
-+
-+	kfree(a1);
-+	kfree(a2);
-+}
-+
- static void kmalloc_double_kzfree(struct kunit *test)
- {
- 	char *ptr;
-@@ -1883,6 +1961,7 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(kasan_strings),
- 	KUNIT_CASE(kasan_bitops_generic),
- 	KUNIT_CASE(kasan_bitops_tags),
-+	KUNIT_CASE(kasan_atomics),
- 	KUNIT_CASE(vmalloc_helpers_tags),
- 	KUNIT_CASE(vmalloc_oob),
- 	KUNIT_CASE(vmap_tags),
+ 		tlb_remove_page_size(tlb, page, huge_page_size(h));
+ 		/*
+ 		 * Bail out after unmapping reference page if supplied
 _
 
-Patches currently in -mm which might be from paul.heidekrueger@tum.de are
+Patches currently in -mm which might be from leitao@debian.org are
 
 
