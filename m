@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9CD57E6
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:00:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E80D1079A
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:00:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560057; cv=none; b=Pg9ymenDo9D1u5UYuS0ON2vMCKPt9a6j5Nu42+NUlOJBkQBIkptdohkwpJ07mUivAMB591td16m3KCncDS5FwWBqVlv8/RDRxsB1i+oljcdpS3clWxxJMGKIirEtHAQh31NqpLgRjVELPKL9Dd4sUlhagunEcDJwW+Dbds7Qnzw=
+	t=1708560059; cv=none; b=XPvxcl2ZR5zllH8acEkG31pAh+y6S6tiDvWqhu7xT9vfrsDSH6W9+2WKLT7Vx3kHcB+o6OLGv5QaOchvwpWdsIxRHl7W/o00CHo8gPPks3l7XY6xUdScuco7BS6x+mxA9HPgZUj1DpSmElf4rgVy/h9CQqUL0pC5F3WaCvWPV0E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560057; c=relaxed/simple;
-	bh=iAG6CScEfKxj2TnGNLFC7bMnQeZshJ/3NCUomNUu59o=;
-	h=Date:To:From:Subject:Message-Id; b=kLvSJZBjFV8R2LejagyTMWKnOHAwQj/H3ZeEshqgwd8xnHgoWlx5iQTr6y91QbsC0RcHoFG3UTF6GEaqaCnESZJ++w3q5QmOujR5uGXHt1ZKLMTPxaWCSlsFtYACyjdNS3dPeotenxeyFDxEdo0Uw9C8F61Y0epcGw1GAkZ10E4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SR7BlIhB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560059; c=relaxed/simple;
+	bh=dByNSSanHU2/GFKWsiDBLSU96vROcG7tg+XV8fNj8OY=;
+	h=Date:To:From:Subject:Message-Id; b=SllxgPS1yr5kEtBtswf3DUaJFWmGKGwAhvMEK/zR/TTpBf3j5dHE7bioyFxWbVQPQsD0sJoa/BG76BsCX/tJ6elBVjQEJq1pzCUe3n5WS4d8Ji7S7LtjkhjdTYxxYJFopQnvjLwYh0WngzeqXoe6ofAhWqAo3/yG5ovS2EfXySc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fYsHCr47; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SR7BlIhB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A57B6C43390;
-	Thu, 22 Feb 2024 00:00:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fYsHCr47"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0A83C43394;
+	Thu, 22 Feb 2024 00:00:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560057;
-	bh=iAG6CScEfKxj2TnGNLFC7bMnQeZshJ/3NCUomNUu59o=;
+	s=korg; t=1708560058;
+	bh=dByNSSanHU2/GFKWsiDBLSU96vROcG7tg+XV8fNj8OY=;
 	h=Date:To:From:Subject:From;
-	b=SR7BlIhBTlFamPM7i7aGXf89YjUXqXQhoTpUcOnjioWTWxIev1lp6KhWB321utSpl
-	 i90ZEBmzpviSPGjLa6sSkqvt2cjfwdwNm9EiEj27Oe6Kxh0K4QBHqqEgsB+cfnarcT
-	 CQAkO6i42WHPqVr7QdVU/6o3EgaWSG/a7j2p02fY=
-Date: Wed, 21 Feb 2024 16:00:57 -0800
+	b=fYsHCr478xaYRKOpMJpKXbjVbgErotGAgY2OYz832lLVSFZw3Sa+zdyC0/L+f9Ki7
+	 a48HhYhfmIiVes/6MnOJOs+1HbOTZ7ahT4MGy1EdCsfbyLV2aEpFJtsClJJSzcjFkp
+	 yQ2Vq0FGfLlEwrYyW8tRdWkoAk+JU4Bpnww90+dY=
+Date: Wed, 21 Feb 2024 16:00:58 -0800
 To: mm-commits@vger.kernel.org,osalvador@suse.de,mhocko@suse.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,anshuman.khandual@arm.com,aneesh.kumar@linux.ibm.com,agordeev@linux.ibm.com,sumanthk@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers.patch removed from -mm tree
-Message-Id: <20240222000057.A57B6C43390@smtp.kernel.org>
+Subject: [merged mm-stable] s390-mm-allocate-vmemmap-pages-from-self-contained-memory-range.patch removed from -mm tree
+Message-Id: <20240222000058.B0A83C43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,127 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory_hotplug: introduce MEM_PREPARE_ONLINE/MEM_FINISH_OFFLINE notifiers
+     Subject: s390/mm: allocate vmemmap pages from self-contained memory range
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers.patch
+     s390-mm-allocate-vmemmap-pages-from-self-contained-memory-range.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sumanth Korikkar <sumanthk@linux.ibm.com>
-Subject: mm/memory_hotplug: introduce MEM_PREPARE_ONLINE/MEM_FINISH_OFFLINE notifiers
-Date: Mon, 8 Jan 2024 14:27:43 +0100
+Subject: s390/mm: allocate vmemmap pages from self-contained memory range
+Date: Mon, 8 Jan 2024 14:27:44 +0100
 
-Patch series "implement "memmap on memory" feature on s390".
+Allocate memory map (struct pages array) from the hotplugged memory
+range, rather than using system memory. The change addresses the issue
+where standby memory, when configured to be much larger than online
+memory, could potentially lead to ipl failure due to memory map
+allocation from online memory. For example, 16MB of memory map
+allocation is needed for a memory block size of 1GB and when standby
+memory is configured much larger than online memory, this could lead to
+ipl failure.
 
-This series provides "memmap on memory" support on s390 platform.  "memmap
-on memory" allows struct pages array to be allocated from the hotplugged
-memory range instead of allocating it from main system memory.
+To address this issue, the solution involves introducing "memmap on
+memory" using the vmem_altmap structure on s390.  Architectures that
+want to implement it should pass the altmap to the vmemmap_populate()
+function and its associated callchain. This enhancement is discussed in
+commit 4b94ffdc4163 ("x86, mm: introduce vmem_altmap to augment
+vmemmap_populate()")
 
-s390 currently preallocates struct pages array for all potentially
-possible memory, which ensures memory onlining always succeeds, but with
-the cost of significant memory consumption from the available system
-memory during boottime.  In certain extreme configuration, this could lead
-to ipl failure.
+Provide "memmap on memory" support for s390 by passing the altmap in
+vmemmap_populate() and its callchain. The allocation path is described
+as follows:
+* When altmap is NULL in vmemmap_populate(), memory map allocation
+  occurs using the existing vmemmap_alloc_block_buf().
+* When altmap is not NULL in vmemmap_populate(), memory map allocation
+  still uses vmemmap_alloc_block_buf(), but this function internally
+  calls altmap_alloc_block_buf().
 
-"memmap on memory" ensures struct pages array are populated from self
-contained hotplugged memory range instead of depleting the available
-system memory and this could eliminate ipl failure on s390 platform.
+For deallocation, the process is outlined as follows:
+* When altmap is NULL in vmemmap_free(), memory map deallocation happens
+  through free_pages().
+* When altmap is not NULL in vmemmap_free(), memory map deallocation
+  occurs via vmem_altmap_free().
 
-On other platforms, system might go OOM when the physically hotplugged
-memory depletes the available memory before it is onlined.  Hence, "memmap
-on memory" feature was introduced as described in commit a08a2ae34613
-("mm,memory_hotplug: allocate memmap from the added memory range").
+While memory map allocation is primarily handled through the
+self-contained memory map range, there might still be a small amount of
+system memory allocation required for vmemmap pagetables. To mitigate
+this impact, this feature will be limited to machines with EDAT1
+support.
 
-Unlike other architectures, s390 memory blocks are not physically
-accessible until it is online.  To make it physically accessible two new
-memory notifiers MEM_PREPARE_ONLINE / MEM_FINISH_OFFLINE are added and
-this notifier lets the hypervisor inform that the memory should be made
-physically accessible.  This allows for "memmap on memory" initialization
-during memory hotplug onlining phase, which is performed before calling
-MEM_GOING_ONLINE notifier.
-
-Patch 1 introduces MEM_PREPARE_ONLINE/MEM_FINISH_OFFLINE memory notifiers
-to prepare the transition of memory to and from a physically accessible
-state.  New mhp_flag MHP_OFFLINE_INACCESSIBLE is introduced to ensure
-altmap cannot be written when adding memory - before it is set online. 
-This enhancement is crucial for implementing the "memmap on memory"
-feature for s390 in a subsequent patch.
-
-Patches 2 allocates vmemmap pages from self-contained memory range for
-s390.  It allocates memory map (struct pages array) from the hotplugged
-memory range, rather than using system memory by passing altmap to vmemmap
-functions.
-
-Patch 3 removes unhandled memory notifier types on s390.
-
-Patch 4 implements MEM_PREPARE_ONLINE/MEM_FINISH_OFFLINE memory notifiers
-on s390.  MEM_PREPARE_ONLINE memory notifier makes memory block physical
-accessible via sclp assign command.  The notifier ensures self-contained
-memory maps are accessible and hence enabling the "memmap on memory" on
-s390.  MEM_FINISH_OFFLINE memory notifier shifts the memory block to an
-inaccessible state via sclp unassign command.
-
-Patch 5 finally enables MHP_MEMMAP_ON_MEMORY on s390.
-
-
-This patch (of 5):
-
-Introduce MEM_PREPARE_ONLINE/MEM_FINISH_OFFLINE memory notifiers to
-prepare the transition of memory to and from a physically accessible
-state.  This enhancement is crucial for implementing the "memmap on
-memory" feature for s390 in a subsequent patch.
-
-Platforms such as x86 can support physical memory hotplug via ACPI.  When
-there is physical memory hotplug, ACPI event leads to the memory addition
-with the following callchain:
-
-acpi_memory_device_add()
-  -> acpi_memory_enable_device()
-     -> __add_memory()
-
-After this, the hotplugged memory is physically accessible, and altmap
-support prepared, before the "memmap on memory" initialization in
-memory_block_online() is called.
-
-On s390, memory hotplug works in a different way.  The available hotplug
-memory has to be defined upfront in the hypervisor, but it is made
-physically accessible only when the user sets it online via sysfs,
-currently in the MEM_GOING_ONLINE notifier.  This is too late and "memmap
-on memory" initialization is performed before calling MEM_GOING_ONLINE
-notifier.
-
-During the memory hotplug addition phase, altmap support is prepared and
-during the memory onlining phase s390 requires memory to be physically
-accessible and then subsequently initiate the "memmap on memory"
-initialization process.
-
-The memory provider will handle new MEM_PREPARE_ONLINE /
-MEM_FINISH_OFFLINE notifications and make the memory accessible.
-
-The mhp_flag MHP_OFFLINE_INACCESSIBLE is introduced and is relevant when
-used along with MHP_MEMMAP_ON_MEMORY, because the altmap cannot be written
-(e.g., poisoned) when adding memory -- before it is set online.  This
-allows for adding memory with an altmap that is not currently made
-available by a hypervisor.  When onlining that memory, the hypervisor can
-be instructed to make that memory accessible via the new notifiers and the
-onlining phase will not require any memory allocations, which is helpful
-in low-memory situations.
-
-All architectures ignore unknown memory notifiers.  Therefore, the
-introduction of these new notifiers does not result in any functional
-modifications across architectures.
-
-Link: https://lkml.kernel.org/r/20240108132747.3238763-1-sumanthk@linux.ibm.com
-Link: https://lkml.kernel.org/r/20240108132747.3238763-2-sumanthk@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240108132747.3238763-3-sumanthk@linux.ibm.com
+Reviewed-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Signed-off-by: Sumanth Korikkar <sumanthk@linux.ibm.com>
-Suggested-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Oscar Salvador <osalvador@suse.de>
@@ -163,207 +98,236 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c          |   23 ++++++++++++++++++++++-
- include/linux/memory.h         |    9 +++++++++
- include/linux/memory_hotplug.h |   18 +++++++++++++++++-
- include/linux/memremap.h       |    1 +
- mm/memory_hotplug.c            |   17 ++++++++++++++---
- mm/sparse.c                    |    3 ++-
- 6 files changed, 65 insertions(+), 6 deletions(-)
+ arch/s390/mm/init.c |    3 --
+ arch/s390/mm/vmem.c |   62 +++++++++++++++++++++++-------------------
+ 2 files changed, 35 insertions(+), 30 deletions(-)
 
---- a/drivers/base/memory.c~mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers
-+++ a/drivers/base/memory.c
-@@ -188,6 +188,7 @@ static int memory_block_online(struct me
- 	unsigned long start_pfn = section_nr_to_pfn(mem->start_section_nr);
- 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
- 	unsigned long nr_vmemmap_pages = 0;
-+	struct memory_notify arg;
- 	struct zone *zone;
- 	int ret;
+--- a/arch/s390/mm/init.c~s390-mm-allocate-vmemmap-pages-from-self-contained-memory-range
++++ a/arch/s390/mm/init.c
+@@ -281,9 +281,6 @@ int arch_add_memory(int nid, u64 start,
+ 	unsigned long size_pages = PFN_DOWN(size);
+ 	int rc;
  
-@@ -207,9 +208,19 @@ static int memory_block_online(struct me
- 	if (mem->altmap)
- 		nr_vmemmap_pages = mem->altmap->free;
+-	if (WARN_ON_ONCE(params->altmap))
+-		return -EINVAL;
+-
+ 	if (WARN_ON_ONCE(params->pgprot.pgprot != PAGE_KERNEL.pgprot))
+ 		return -EINVAL;
  
-+	arg.altmap_start_pfn = start_pfn;
-+	arg.altmap_nr_pages = nr_vmemmap_pages;
-+	arg.start_pfn = start_pfn + nr_vmemmap_pages;
-+	arg.nr_pages = nr_pages - nr_vmemmap_pages;
- 	mem_hotplug_begin();
-+	ret = memory_notify(MEM_PREPARE_ONLINE, &arg);
-+	ret = notifier_to_errno(ret);
-+	if (ret)
-+		goto out_notifier;
-+
- 	if (nr_vmemmap_pages) {
--		ret = mhp_init_memmap_on_memory(start_pfn, nr_vmemmap_pages, zone);
-+		ret = mhp_init_memmap_on_memory(start_pfn, nr_vmemmap_pages,
-+						zone, mem->altmap->inaccessible);
+--- a/arch/s390/mm/vmem.c~s390-mm-allocate-vmemmap-pages-from-self-contained-memory-range
++++ a/arch/s390/mm/vmem.c
+@@ -33,8 +33,12 @@ static void __ref *vmem_alloc_pages(unsi
+ 	return memblock_alloc(size, size);
+ }
+ 
+-static void vmem_free_pages(unsigned long addr, int order)
++static void vmem_free_pages(unsigned long addr, int order, struct vmem_altmap *altmap)
+ {
++	if (altmap) {
++		vmem_altmap_free(altmap, 1 << order);
++		return;
++	}
+ 	/* We don't expect boot memory to be removed ever. */
+ 	if (!slab_is_available() ||
+ 	    WARN_ON_ONCE(PageReserved(virt_to_page((void *)addr))))
+@@ -156,7 +160,8 @@ static bool vmemmap_unuse_sub_pmd(unsign
+ 
+ /* __ref: we'll only call vmemmap_alloc_block() via vmemmap_populate() */
+ static int __ref modify_pte_table(pmd_t *pmd, unsigned long addr,
+-				  unsigned long end, bool add, bool direct)
++				  unsigned long end, bool add, bool direct,
++				  struct vmem_altmap *altmap)
+ {
+ 	unsigned long prot, pages = 0;
+ 	int ret = -ENOMEM;
+@@ -172,11 +177,11 @@ static int __ref modify_pte_table(pmd_t
+ 			if (pte_none(*pte))
+ 				continue;
+ 			if (!direct)
+-				vmem_free_pages((unsigned long) pfn_to_virt(pte_pfn(*pte)), 0);
++				vmem_free_pages((unsigned long)pfn_to_virt(pte_pfn(*pte)), get_order(PAGE_SIZE), altmap);
+ 			pte_clear(&init_mm, addr, pte);
+ 		} else if (pte_none(*pte)) {
+ 			if (!direct) {
+-				void *new_page = vmemmap_alloc_block(PAGE_SIZE, NUMA_NO_NODE);
++				void *new_page = vmemmap_alloc_block_buf(PAGE_SIZE, NUMA_NO_NODE, altmap);
+ 
+ 				if (!new_page)
+ 					goto out;
+@@ -213,7 +218,8 @@ static void try_free_pte_table(pmd_t *pm
+ 
+ /* __ref: we'll only call vmemmap_alloc_block() via vmemmap_populate() */
+ static int __ref modify_pmd_table(pud_t *pud, unsigned long addr,
+-				  unsigned long end, bool add, bool direct)
++				  unsigned long end, bool add, bool direct,
++				  struct vmem_altmap *altmap)
+ {
+ 	unsigned long next, prot, pages = 0;
+ 	int ret = -ENOMEM;
+@@ -234,11 +240,11 @@ static int __ref modify_pmd_table(pud_t
+ 				if (IS_ALIGNED(addr, PMD_SIZE) &&
+ 				    IS_ALIGNED(next, PMD_SIZE)) {
+ 					if (!direct)
+-						vmem_free_pages(pmd_deref(*pmd), get_order(PMD_SIZE));
++						vmem_free_pages(pmd_deref(*pmd), get_order(PMD_SIZE), altmap);
+ 					pmd_clear(pmd);
+ 					pages++;
+ 				} else if (!direct && vmemmap_unuse_sub_pmd(addr, next)) {
+-					vmem_free_pages(pmd_deref(*pmd), get_order(PMD_SIZE));
++					vmem_free_pages(pmd_deref(*pmd), get_order(PMD_SIZE), altmap);
+ 					pmd_clear(pmd);
+ 				}
+ 				continue;
+@@ -261,7 +267,7 @@ static int __ref modify_pmd_table(pud_t
+ 				 * page tables since vmemmap_populate gets
+ 				 * called for each section separately.
+ 				 */
+-				new_page = vmemmap_alloc_block(PMD_SIZE, NUMA_NO_NODE);
++				new_page = vmemmap_alloc_block_buf(PMD_SIZE, NUMA_NO_NODE, altmap);
+ 				if (new_page) {
+ 					set_pmd(pmd, __pmd(__pa(new_page) | prot));
+ 					if (!IS_ALIGNED(addr, PMD_SIZE) ||
+@@ -280,7 +286,7 @@ static int __ref modify_pmd_table(pud_t
+ 				vmemmap_use_sub_pmd(addr, next);
+ 			continue;
+ 		}
+-		ret = modify_pte_table(pmd, addr, next, add, direct);
++		ret = modify_pte_table(pmd, addr, next, add, direct, altmap);
  		if (ret)
  			goto out;
- 	}
-@@ -231,7 +242,11 @@ static int memory_block_online(struct me
- 					  nr_vmemmap_pages);
- 
- 	mem->zone = zone;
-+	mem_hotplug_done();
-+	return ret;
- out:
-+	memory_notify(MEM_FINISH_OFFLINE, &arg);
-+out_notifier:
- 	mem_hotplug_done();
- 	return ret;
- }
-@@ -244,6 +259,7 @@ static int memory_block_offline(struct m
- 	unsigned long start_pfn = section_nr_to_pfn(mem->start_section_nr);
- 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
- 	unsigned long nr_vmemmap_pages = 0;
-+	struct memory_notify arg;
- 	int ret;
- 
- 	if (!mem->zone)
-@@ -275,6 +291,11 @@ static int memory_block_offline(struct m
- 		mhp_deinit_memmap_on_memory(start_pfn, nr_vmemmap_pages);
- 
- 	mem->zone = NULL;
-+	arg.altmap_start_pfn = start_pfn;
-+	arg.altmap_nr_pages = nr_vmemmap_pages;
-+	arg.start_pfn = start_pfn + nr_vmemmap_pages;
-+	arg.nr_pages = nr_pages - nr_vmemmap_pages;
-+	memory_notify(MEM_FINISH_OFFLINE, &arg);
- out:
- 	mem_hotplug_done();
- 	return ret;
---- a/include/linux/memory.h~mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers
-+++ a/include/linux/memory.h
-@@ -96,8 +96,17 @@ int set_memory_block_size_order(unsigned
- #define	MEM_GOING_ONLINE	(1<<3)
- #define	MEM_CANCEL_ONLINE	(1<<4)
- #define	MEM_CANCEL_OFFLINE	(1<<5)
-+#define	MEM_PREPARE_ONLINE	(1<<6)
-+#define	MEM_FINISH_OFFLINE	(1<<7)
- 
- struct memory_notify {
-+	/*
-+	 * The altmap_start_pfn and altmap_nr_pages fields are designated for
-+	 * specifying the altmap range and are exclusively intended for use in
-+	 * MEM_PREPARE_ONLINE/MEM_FINISH_OFFLINE notifiers.
-+	 */
-+	unsigned long altmap_start_pfn;
-+	unsigned long altmap_nr_pages;
- 	unsigned long start_pfn;
- 	unsigned long nr_pages;
- 	int status_change_nid_normal;
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers
-+++ a/include/linux/memory_hotplug.h
-@@ -106,6 +106,22 @@ typedef int __bitwise mhp_t;
-  * implies the node id (nid).
-  */
- #define MHP_NID_IS_MGID		((__force mhp_t)BIT(2))
-+/*
-+ * The hotplugged memory is completely inaccessible while the memory is
-+ * offline. The memory provider will handle MEM_PREPARE_ONLINE /
-+ * MEM_FINISH_OFFLINE notifications and make the memory accessible.
-+ *
-+ * This flag is only relevant when used along with MHP_MEMMAP_ON_MEMORY,
-+ * because the altmap cannot be written (e.g., poisoned) when adding
-+ * memory -- before it is set online.
-+ *
-+ * This allows for adding memory with an altmap that is not currently
-+ * made available by a hypervisor. When onlining that memory, the
-+ * hypervisor can be instructed to make that memory available, and
-+ * the onlining phase will not require any memory allocations, which is
-+ * helpful in low-memory situations.
-+ */
-+#define MHP_OFFLINE_INACCESSIBLE	((__force mhp_t)BIT(3))
- 
- /*
-  * Extended parameters for memory hotplug:
-@@ -154,7 +170,7 @@ extern void adjust_present_page_count(st
- 				      long nr_pages);
- /* VM interface that may be used by firmware interface */
- extern int mhp_init_memmap_on_memory(unsigned long pfn, unsigned long nr_pages,
--				     struct zone *zone);
-+				     struct zone *zone, bool mhp_off_inaccessible);
- extern void mhp_deinit_memmap_on_memory(unsigned long pfn, unsigned long nr_pages);
- extern int online_pages(unsigned long pfn, unsigned long nr_pages,
- 			struct zone *zone, struct memory_group *group);
---- a/include/linux/memremap.h~mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers
-+++ a/include/linux/memremap.h
-@@ -25,6 +25,7 @@ struct vmem_altmap {
- 	unsigned long free;
- 	unsigned long align;
- 	unsigned long alloc;
-+	bool inaccessible;
- };
- 
- /*
---- a/mm/memory_hotplug.c~mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers
-+++ a/mm/memory_hotplug.c
-@@ -1087,7 +1087,7 @@ void adjust_present_page_count(struct pa
+ 		if (!add)
+@@ -302,12 +308,12 @@ static void try_free_pmd_table(pud_t *pu
+ 	for (i = 0; i < PTRS_PER_PMD; i++, pmd++)
+ 		if (!pmd_none(*pmd))
+ 			return;
+-	vmem_free_pages(pud_deref(*pud), CRST_ALLOC_ORDER);
++	vmem_free_pages(pud_deref(*pud), CRST_ALLOC_ORDER, NULL);
+ 	pud_clear(pud);
  }
  
- int mhp_init_memmap_on_memory(unsigned long pfn, unsigned long nr_pages,
--			      struct zone *zone)
-+			      struct zone *zone, bool mhp_off_inaccessible)
+ static int modify_pud_table(p4d_t *p4d, unsigned long addr, unsigned long end,
+-			    bool add, bool direct)
++			    bool add, bool direct, struct vmem_altmap *altmap)
  {
- 	unsigned long end_pfn = pfn + nr_pages;
- 	int ret, i;
-@@ -1096,6 +1096,15 @@ int mhp_init_memmap_on_memory(unsigned l
- 	if (ret)
- 		return ret;
- 
-+	/*
-+	 * Memory block is accessible at this stage and hence poison the struct
-+	 * pages now.  If the memory block is accessible during memory hotplug
-+	 * addition phase, then page poisining is already performed in
-+	 * sparse_add_section().
-+	 */
-+	if (mhp_off_inaccessible)
-+		page_init_poison(pfn_to_page(pfn), sizeof(struct page) * nr_pages);
-+
- 	move_pfn_range_to_zone(zone, pfn, nr_pages, NULL, MIGRATE_UNMOVABLE);
- 
- 	for (i = 0; i < nr_pages; i++)
-@@ -1415,7 +1424,7 @@ static void __ref remove_memory_blocks_a
- }
- 
- static int create_altmaps_and_memory_blocks(int nid, struct memory_group *group,
--					    u64 start, u64 size)
-+					    u64 start, u64 size, mhp_t mhp_flags)
- {
- 	unsigned long memblock_size = memory_block_size_bytes();
- 	u64 cur_start;
-@@ -1431,6 +1440,8 @@ static int create_altmaps_and_memory_blo
- 		};
- 
- 		mhp_altmap.free = memory_block_memmap_on_memory_pages();
-+		if (mhp_flags & MHP_OFFLINE_INACCESSIBLE)
-+			mhp_altmap.inaccessible = true;
- 		params.altmap = kmemdup(&mhp_altmap, sizeof(struct vmem_altmap),
- 					GFP_KERNEL);
- 		if (!params.altmap) {
-@@ -1516,7 +1527,7 @@ int __ref add_memory_resource(int nid, s
- 	 */
- 	if ((mhp_flags & MHP_MEMMAP_ON_MEMORY) &&
- 	    mhp_supports_memmap_on_memory(memory_block_size_bytes())) {
--		ret = create_altmaps_and_memory_blocks(nid, group, start, size);
-+		ret = create_altmaps_and_memory_blocks(nid, group, start, size, mhp_flags);
+ 	unsigned long next, prot, pages = 0;
+ 	int ret = -ENOMEM;
+@@ -347,7 +353,7 @@ static int modify_pud_table(p4d_t *p4d,
+ 		} else if (pud_large(*pud)) {
+ 			continue;
+ 		}
+-		ret = modify_pmd_table(pud, addr, next, add, direct);
++		ret = modify_pmd_table(pud, addr, next, add, direct, altmap);
  		if (ret)
- 			goto error;
- 	} else {
---- a/mm/sparse.c~mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers
-+++ a/mm/sparse.c
-@@ -908,7 +908,8 @@ int __meminit sparse_add_section(int nid
- 	 * Poison uninitialized struct pages in order to catch invalid flags
- 	 * combinations.
- 	 */
--	page_init_poison(memmap, sizeof(struct page) * nr_pages);
-+	if (!altmap || !altmap->inaccessible)
-+		page_init_poison(memmap, sizeof(struct page) * nr_pages);
+ 			goto out;
+ 		if (!add)
+@@ -370,12 +376,12 @@ static void try_free_pud_table(p4d_t *p4
+ 		if (!pud_none(*pud))
+ 			return;
+ 	}
+-	vmem_free_pages(p4d_deref(*p4d), CRST_ALLOC_ORDER);
++	vmem_free_pages(p4d_deref(*p4d), CRST_ALLOC_ORDER, NULL);
+ 	p4d_clear(p4d);
+ }
  
- 	ms = __nr_to_section(section_nr);
- 	set_section_nid(section_nr, nid);
+ static int modify_p4d_table(pgd_t *pgd, unsigned long addr, unsigned long end,
+-			    bool add, bool direct)
++			    bool add, bool direct, struct vmem_altmap *altmap)
+ {
+ 	unsigned long next;
+ 	int ret = -ENOMEM;
+@@ -394,7 +400,7 @@ static int modify_p4d_table(pgd_t *pgd,
+ 				goto out;
+ 			p4d_populate(&init_mm, p4d, pud);
+ 		}
+-		ret = modify_pud_table(p4d, addr, next, add, direct);
++		ret = modify_pud_table(p4d, addr, next, add, direct, altmap);
+ 		if (ret)
+ 			goto out;
+ 		if (!add)
+@@ -415,12 +421,12 @@ static void try_free_p4d_table(pgd_t *pg
+ 		if (!p4d_none(*p4d))
+ 			return;
+ 	}
+-	vmem_free_pages(pgd_deref(*pgd), CRST_ALLOC_ORDER);
++	vmem_free_pages(pgd_deref(*pgd), CRST_ALLOC_ORDER, NULL);
+ 	pgd_clear(pgd);
+ }
+ 
+ static int modify_pagetable(unsigned long start, unsigned long end, bool add,
+-			    bool direct)
++			    bool direct, struct vmem_altmap *altmap)
+ {
+ 	unsigned long addr, next;
+ 	int ret = -ENOMEM;
+@@ -445,7 +451,7 @@ static int modify_pagetable(unsigned lon
+ 				goto out;
+ 			pgd_populate(&init_mm, pgd, p4d);
+ 		}
+-		ret = modify_p4d_table(pgd, addr, next, add, direct);
++		ret = modify_p4d_table(pgd, addr, next, add, direct, altmap);
+ 		if (ret)
+ 			goto out;
+ 		if (!add)
+@@ -458,14 +464,16 @@ out:
+ 	return ret;
+ }
+ 
+-static int add_pagetable(unsigned long start, unsigned long end, bool direct)
++static int add_pagetable(unsigned long start, unsigned long end, bool direct,
++			 struct vmem_altmap *altmap)
+ {
+-	return modify_pagetable(start, end, true, direct);
++	return modify_pagetable(start, end, true, direct, altmap);
+ }
+ 
+-static int remove_pagetable(unsigned long start, unsigned long end, bool direct)
++static int remove_pagetable(unsigned long start, unsigned long end, bool direct,
++			    struct vmem_altmap *altmap)
+ {
+-	return modify_pagetable(start, end, false, direct);
++	return modify_pagetable(start, end, false, direct, altmap);
+ }
+ 
+ /*
+@@ -474,7 +482,7 @@ static int remove_pagetable(unsigned lon
+ static int vmem_add_range(unsigned long start, unsigned long size)
+ {
+ 	start = (unsigned long)__va(start);
+-	return add_pagetable(start, start + size, true);
++	return add_pagetable(start, start + size, true, NULL);
+ }
+ 
+ /*
+@@ -483,7 +491,7 @@ static int vmem_add_range(unsigned long
+ static void vmem_remove_range(unsigned long start, unsigned long size)
+ {
+ 	start = (unsigned long)__va(start);
+-	remove_pagetable(start, start + size, true);
++	remove_pagetable(start, start + size, true, NULL);
+ }
+ 
+ /*
+@@ -496,9 +504,9 @@ int __meminit vmemmap_populate(unsigned
+ 
+ 	mutex_lock(&vmem_mutex);
+ 	/* We don't care about the node, just use NUMA_NO_NODE on allocations */
+-	ret = add_pagetable(start, end, false);
++	ret = add_pagetable(start, end, false, altmap);
+ 	if (ret)
+-		remove_pagetable(start, end, false);
++		remove_pagetable(start, end, false, altmap);
+ 	mutex_unlock(&vmem_mutex);
+ 	return ret;
+ }
+@@ -509,7 +517,7 @@ void vmemmap_free(unsigned long start, u
+ 		  struct vmem_altmap *altmap)
+ {
+ 	mutex_lock(&vmem_mutex);
+-	remove_pagetable(start, end, false);
++	remove_pagetable(start, end, false, altmap);
+ 	mutex_unlock(&vmem_mutex);
+ }
+ 
 _
 
 Patches currently in -mm which might be from sumanthk@linux.ibm.com are
