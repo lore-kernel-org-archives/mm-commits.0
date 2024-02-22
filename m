@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41C9912B97
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A6D01757D
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560218; cv=none; b=BjP41pAvRSLUDeeammBLOa5JBifAl5WSt8y6VYiu8wjdWeFIMxyvQF7GSa9cTtnzI2cgHC+h8o14qAXwW/Qc3BXu5a1lhzUG2f7JEUwyk6xtx+xjhnXFd1nCI0iaXkcVWA/1v6MJuOTR894SnI8pbf+DquZqwBH6HCsXHFFQkz0=
+	t=1708560219; cv=none; b=DfkxMgTB4J+yFJtMW/lCN2SMX3B1G6OuI57sEn/UVhfJjhShSMVu65upOWWzpWp0xxoblM4ZfHvQd1KGMtyQlDSV4dxPvmupR6fCZpmKpPjCwe2U8biP4SAyawVIdu0vLEJjkWPxlW7C4Fx4O0nbJYNp/JM0E3Stcua/22xNLTE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560218; c=relaxed/simple;
-	bh=nYR8W6efj3wMr6JD8dwTuV444CsaJXr1OROv1xrE7Gc=;
-	h=Date:To:From:Subject:Message-Id; b=UaU7nAw4eeXmxJE6FYUFxhR8D290QhMiLkb10us5jIO4Qqbq0jnO5TvbYmnU3F/iAtYbEm92pUq0nPMQU+sM0rZiRPD0/cF4gaP9XCBxhDr8dVkzi04ZnRJzTRBk4vEU5SL1Vb5O7Ema5zkRw34NAalgXG3s1odYez70lwnzTQo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d0rM15Do; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560219; c=relaxed/simple;
+	bh=MPYtLuVIo9yUdD2mX8f5SaWfVT6+/hV5xOcdf3dECKM=;
+	h=Date:To:From:Subject:Message-Id; b=uPEf3k57p5Q/EX3fByCmfa5Bt94Ku/tdRKpH38gfDsYek3yNCowb9nhmkoSLe9lwWTqFDuKd2JCIkc9hBBPQzF4JlxxNrZd6z6+zW80E1WuIiaTaaPKpPK0pF+rGYaA6mAmhqzIx/TTuTkJ4eklmJFxzQCKFogxOw0zzI2iaC5k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RMSnLtkd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d0rM15Do"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BE50C433C7;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RMSnLtkd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 062B7C433C7;
 	Thu, 22 Feb 2024 00:03:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560218;
-	bh=nYR8W6efj3wMr6JD8dwTuV444CsaJXr1OROv1xrE7Gc=;
+	s=korg; t=1708560219;
+	bh=MPYtLuVIo9yUdD2mX8f5SaWfVT6+/hV5xOcdf3dECKM=;
 	h=Date:To:From:Subject:From;
-	b=d0rM15Do723LyCy9oo/jQJzI6TQSfCpWLQBMHlBunrZQFYXPlVEbHz8kEOKDv4ZOm
-	 mhMOcM5tu33kHgFiWmibFdowk03NG2YBb1/Tf06QFN8jG1peSt1sp9pIYOC8hzJLqr
-	 ZCT39pOgaVz/raCDd47vFmEjfYMagq67SUx6LzSo=
-Date: Wed, 21 Feb 2024 16:03:37 -0800
+	b=RMSnLtkdI3DGLQZYyKvFdiL9Z9S/eR8kFQZn/FsBB2beFyD5n5zangEEslwwwY1fa
+	 NMBYQKleGl5G9H10wRP9II+TOGqmLXXmXEqZV2mf5/OoUgW1n9+8rxu2rmfdU31eKl
+	 EMXYd5CWBezmSbbmWykmblC7Us2iSi4sTZ4cK0Kw=
+Date: Wed, 21 Feb 2024 16:03:38 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,donettom@linux.vnet.ibm.com,aneesh.kumar@linux.ibm.com,kinseyho@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mglru-drop-unused-parameter.patch removed from -mm tree
-Message-Id: <20240222000338.0BE50C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mglru-improve-should_run_aging.patch removed from -mm tree
+Message-Id: <20240222000339.062B7C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,32 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mglru: drop unused parameter
+     Subject: mm/mglru: improve should_run_aging()
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-drop-unused-parameter.patch
+     mm-mglru-improve-should_run_aging.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kinsey Ho <kinseyho@google.com>
-Subject: mm/mglru: drop unused parameter
-Date: Wed, 14 Feb 2024 06:05:34 +0000
+Subject: mm/mglru: improve should_run_aging()
+Date: Wed, 14 Feb 2024 06:05:35 +0000
 
-Patch series "mm/mglru: code cleanup and refactoring"
+scan_control *sc does not need to be passed into should_run_aging(), as it
+provides only the reclaim priority.  This can be moved to
+get_nr_to_scan().
 
-This provides MGLRU code cleanup and refactoring for better readability.
+Refactor should_run_aging() and get_nr_to_scan() to improve code
+readability.  No functional changes.
 
-
-This patch (of 5):
-
-struct scan_control *sc is currently passed into try_to_inc_max_seq() and
-run_aging().  This parameter is not used.
-
-Drop the unused parameter struct scan_control *sc. No functional change.
-
-Link: https://lkml.kernel.org/r/20240214060538.3524462-1-kinseyho@google.com
-Link: https://lkml.kernel.org/r/20240214060538.3524462-2-kinseyho@google.com
+Link: https://lkml.kernel.org/r/20240214060538.3524462-3-kinseyho@google.com
 Signed-off-by: Kinsey Ho <kinseyho@google.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Donet Tom <donettom@linux.vnet.ibm.com>
@@ -68,56 +62,73 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/vmscan.c |   25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-drop-unused-parameter
+--- a/mm/vmscan.c~mm-mglru-improve-should_run_aging
 +++ a/mm/vmscan.c
-@@ -3816,7 +3816,7 @@ unlock:
+@@ -4584,14 +4584,13 @@ retry:
  }
  
- static bool try_to_inc_max_seq(struct lruvec *lruvec, unsigned long max_seq,
--			       struct scan_control *sc, bool can_swap, bool force_scan)
-+			       bool can_swap, bool force_scan)
+ static bool should_run_aging(struct lruvec *lruvec, unsigned long max_seq,
+-			     struct scan_control *sc, bool can_swap, unsigned long *nr_to_scan)
++			     bool can_swap, unsigned long *nr_to_scan)
  {
- 	bool success;
- 	struct lru_gen_mm_walk *walk;
-@@ -4672,7 +4672,7 @@ static long get_nr_to_scan(struct lruvec
+ 	int gen, type, zone;
+ 	unsigned long old = 0;
+ 	unsigned long young = 0;
+ 	unsigned long total = 0;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+-	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	DEFINE_MIN_SEQ(lruvec);
+ 
+ 	/* whether this lruvec is completely out of cold folios */
+@@ -4619,13 +4618,7 @@ static bool should_run_aging(struct lruv
+ 		}
+ 	}
+ 
+-	/* try to scrape all its memory if this memcg was deleted */
+-	if (!mem_cgroup_online(memcg)) {
+-		*nr_to_scan = total;
+-		return false;
+-	}
+-
+-	*nr_to_scan = total >> sc->priority;
++	*nr_to_scan = total;
+ 
+ 	/*
+ 	 * The aging tries to be lazy to reduce the overhead, while the eviction
+@@ -4657,6 +4650,7 @@ static bool should_run_aging(struct lruv
+  */
+ static long get_nr_to_scan(struct lruvec *lruvec, struct scan_control *sc, bool can_swap)
+ {
++	bool success;
+ 	unsigned long nr_to_scan;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	DEFINE_MAX_SEQ(lruvec);
+@@ -4664,14 +4658,17 @@ static long get_nr_to_scan(struct lruvec
+ 	if (mem_cgroup_below_min(sc->target_mem_cgroup, memcg))
+ 		return -1;
+ 
+-	if (!should_run_aging(lruvec, max_seq, sc, can_swap, &nr_to_scan))
+-		return nr_to_scan;
++	success = should_run_aging(lruvec, max_seq, can_swap, &nr_to_scan);
+ 
+-	/* skip the aging path at the default priority */
+-	if (sc->priority == DEF_PRIORITY)
++	/* try to scrape all its memory if this memcg was deleted */
++	if (nr_to_scan && !mem_cgroup_online(memcg))
  		return nr_to_scan;
  
- 	/* skip this lruvec as it's low on cold folios */
--	return try_to_inc_max_seq(lruvec, max_seq, sc, can_swap, false) ? -1 : 0;
-+	return try_to_inc_max_seq(lruvec, max_seq, can_swap, false) ? -1 : 0;
+-	/* skip this lruvec as it's low on cold folios */
++	/* try to get away with not aging at the default priority */
++	if (!success || sc->priority == DEF_PRIORITY)
++		return nr_to_scan >> sc->priority;
++
++	/* stop scanning this lruvec as it's low on cold folios */
+ 	return try_to_inc_max_seq(lruvec, max_seq, can_swap, false) ? -1 : 0;
  }
  
- static bool should_abort_scan(struct lruvec *lruvec, struct scan_control *sc)
-@@ -5332,7 +5332,7 @@ static const struct seq_operations lru_g
- 	.show = lru_gen_seq_show,
- };
- 
--static int run_aging(struct lruvec *lruvec, unsigned long seq, struct scan_control *sc,
-+static int run_aging(struct lruvec *lruvec, unsigned long seq,
- 		     bool can_swap, bool force_scan)
- {
- 	DEFINE_MAX_SEQ(lruvec);
-@@ -5347,7 +5347,7 @@ static int run_aging(struct lruvec *lruv
- 	if (!force_scan && min_seq[!can_swap] + MAX_NR_GENS - 1 <= max_seq)
- 		return -ERANGE;
- 
--	try_to_inc_max_seq(lruvec, max_seq, sc, can_swap, force_scan);
-+	try_to_inc_max_seq(lruvec, max_seq, can_swap, force_scan);
- 
- 	return 0;
- }
-@@ -5415,7 +5415,7 @@ static int run_cmd(char cmd, int memcg_i
- 
- 	switch (cmd) {
- 	case '+':
--		err = run_aging(lruvec, seq, sc, swappiness, opt);
-+		err = run_aging(lruvec, seq, swappiness, opt);
- 		break;
- 	case '-':
- 		err = run_eviction(lruvec, seq, sc, swappiness, opt);
 _
 
 Patches currently in -mm which might be from kinseyho@google.com are
