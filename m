@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E549D13BAFD;
-	Thu, 22 Feb 2024 23:40:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9AB413BAF8
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:40:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708645220; cv=none; b=KRbpMXmetp6ITmaK6JOCgPKlyd6TR/2cIdBpY/kCyrjgF0UU4ymlKrfIDcCHfNuapw9p2ioAqcPVU/dV9dqLKN+AL6Vf6o3t/CgxDO9CnVaAMU1j4lJ07jZFwRuONMGhbDzhmVUT5YzmM6mkl1SDDPxyWg744xhulkq+ZnGv45o=
+	t=1708645220; cv=none; b=TuukNTPdUkqOTwZKxoYIS2nOoUvFand0BA3N45JhP97kze4Ua1wvVd/syCKyPiYgsuNuzkG+uDfmbx9HRYDdD7L18AMAgaxT7KpS4ZKWDYhjaICqL+uolGDPFlpj0XOlBR3w54emo8IqZQ8rG950Zes9KK3w/plQ/3lbBzmWlOA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708645220; c=relaxed/simple;
-	bh=npZGDo35/7mN8tFn53WkdHOnHt8Tyf/3fzVC4oTjv3Q=;
-	h=Date:To:From:Subject:Message-Id; b=nNBpVwTymrtw7/Vqh+6PRijvW5QMum+uCTJag6Y/i05MlaFebVVcuwi8AiEwGFzmC0sYJEo92xBFNxqTMGYYdrLu9MCYJg+IqOUfD+EXvNMXW+B7Y1zFK1TwmHpTtQot5FE7kB8N0OBKAiP7LCtgkQmsyLPFUCn611msXBdwcg0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sc1CtNuT; arc=none smtp.client-ip=10.30.226.201
+	bh=NtXfVjeQzCQM1xWHO7SjLTcjjNK2U7lDZRsv3Tf6OW4=;
+	h=Date:To:From:Subject:Message-Id; b=s1Y7eWc2NPYISinZn85AMODtlovEPV6eFNQod8zzizC/o6qp/F5mWDnHez6l/F0rWBwM76hXhD9Rg8NSGPA2s8if+3OGNgt/qCIPRW04CqoH6asUBOr0I81Zveq2LDAsfAeiU4+nCDVkt0267Sn+YJEfii6ZegPmo2waiojmKzA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DpvbQxpd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sc1CtNuT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79533C433C7;
-	Thu, 22 Feb 2024 23:40:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DpvbQxpd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C9E1C433C7;
+	Thu, 22 Feb 2024 23:40:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708645219;
-	bh=npZGDo35/7mN8tFn53WkdHOnHt8Tyf/3fzVC4oTjv3Q=;
+	s=korg; t=1708645220;
+	bh=NtXfVjeQzCQM1xWHO7SjLTcjjNK2U7lDZRsv3Tf6OW4=;
 	h=Date:To:From:Subject:From;
-	b=Sc1CtNuTXD38tjMP5kBU0nWqr5sky/c0CR9f6dP676MAqDleT0Jx1PKQWbi6VsU+o
-	 eQm1/0j3Wq1OBK923MTTpYhothMhkKnlAe5lt8+oDNNams8GERp5w80C0wRxFvbipe
-	 GTLJyUNG7LthziThpplUAy2alFWlgdcvyAN6o1Xw=
-Date: Thu, 22 Feb 2024 15:40:18 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hirofumi@mail.parknet.co.jp,amir73il@gmail.com,jack@suse.cz,akpm@linux-foundation.org
+	b=DpvbQxpdM2ijBqvlHGe+jsc9UjpDiEMBVYu6ApvZVrfFXNzrXwmDzP0q39L0soOjm
+	 sve1K+fXBgZ6Zwfkrth+h0iziircZxkB7dmy7BA+EPiNooexPbKEuR44eOebjinNgm
+	 2ZJzK7q2/jXIhbJu65VsbTu+GIJsBCAdEOjGXFQw=
+Date: Thu, 22 Feb 2024 15:40:20 -0800
+To: mm-commits@vger.kernel.org,peterz@infradead.org,adobriyan@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] fat-fix-uninitialized-field-in-nostale-filehandles.patch removed from -mm tree
-Message-Id: <20240222234019.79533C433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] smp-make-__smp_processor_id-0-argument-macro.patch removed from -mm tree
+Message-Id: <20240222234020.9C9E1C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fat: fix uninitialized field in nostale filehandles
+     Subject: smp: make __smp_processor_id() 0-argument macro
 has been removed from the -mm tree.  Its filename was
-     fat-fix-uninitialized-field-in-nostale-filehandles.patch
+     smp-make-__smp_processor_id-0-argument-macro.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: fat: fix uninitialized field in nostale filehandles
-Date: Mon, 5 Feb 2024 13:26:26 +0100
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: smp: make __smp_processor_id() 0-argument macro
+Date: Mon, 5 Feb 2024 12:39:30 +0300
 
-When fat_encode_fh_nostale() encodes file handle without a parent it
-stores only first 10 bytes of the file handle. However the length of the
-file handle must be a multiple of 4 so the file handle is actually 12
-bytes long and the last two bytes remain uninitialized. This is not
-great at we potentially leak uninitialized information with the handle
-to userspace. Properly initialize the full handle length.
+smp_processor_id family of macros never accepted any arguments.
 
-Link: https://lkml.kernel.org/r/20240205122626.13701-1-jack@suse.cz
-Reported-by: syzbot+3ce5dea5b1539ff36769@syzkaller.appspotmail.com
-Fixes: ea3983ace6b7 ("fat: restructure export_operations")
-Signed-off-by: Jan Kara <jack@suse.cz>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: <stable@vger.kernel.org>
+	#define __smp_processor_id(x)
+
+works by accident (see C99 6.10.3 §4). __smp_processor_id() gets
+1 (empty) argument and passes it down to raw_smp_processor_id()
+which doesn't accept arguments.
+
+Link: https://lkml.kernel.org/r/0037d1f2-8153-4b33-b43e-f4b6ecd710ac@p183
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/nfs.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/smp.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/fat/nfs.c~fat-fix-uninitialized-field-in-nostale-filehandles
-+++ a/fs/fat/nfs.c
-@@ -130,6 +130,12 @@ fat_encode_fh_nostale(struct inode *inod
- 		fid->parent_i_gen = parent->i_generation;
- 		type = FILEID_FAT_WITH_PARENT;
- 		*lenp = FAT_FID_SIZE_WITH_PARENT;
-+	} else {
-+		/*
-+		 * We need to initialize this field because the fh is actually
-+		 * 12 bytes long
-+		 */
-+		fid->parent_i_pos_hi = 0;
- 	}
+--- a/include/linux/smp.h~smp-make-__smp_processor_id-0-argument-macro
++++ a/include/linux/smp.h
+@@ -261,7 +261,7 @@ static inline int get_boot_cpu_id(void)
+  * regular asm read for the stable.
+  */
+ #ifndef __smp_processor_id
+-#define __smp_processor_id(x) raw_smp_processor_id(x)
++#define __smp_processor_id() raw_smp_processor_id()
+ #endif
  
- 	return type;
+ #ifdef CONFIG_DEBUG_PREEMPT
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-shmem-properly-report-quota-mount-options.patch
 
