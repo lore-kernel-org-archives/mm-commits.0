@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B017D13BAD8
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:40:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1B97FBF4
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:40:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708645215; cv=none; b=ThyxAJavnrUfqxb1k7G7uN0z5AvzRZqdZRxWogaOQ90CobmbG+mJWl6gGKNXGQLZ2hBYmjOXfRn/EpUHKId9e1GYzTPleFhoq+K/xfVRrjXgek9Oxny9ksvhVNODScS+1g/0oETeZ2lCPGnMXjc481zpOEtrGzEHEYunWoBEobA=
+	t=1708645217; cv=none; b=gnVzITpocIjG9vUCkEyB8443E0BBUiZ7s3NLOTwKDpKMPC4JgqcbB+tb1Ovrbn7wqB24lFn637Uune6pp6Fn1UyCKN8TBlv0DcOIudIiljBVq0V8mmTa1b/VO4Gc7h4iAMiig80oFs/7E2RBCmdTNGX64EM0NtdAoz5WSn2pOnY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708645215; c=relaxed/simple;
-	bh=5MLdCxwducfHTBbCbrC3jEOm7JGFJd9J3mBpOTfYfy4=;
-	h=Date:To:From:Subject:Message-Id; b=Oj38JAJrIEb0poklAzVFpNHYbCV4BYDGkoH5Ed2gPc8rEXQQZMRpgfWklsblMHj7H1Y97zh/xWVixDq6zjjS4bU7PEYW3xhIDw2+2ArlphKywh6j0V3mIscg4iCEQ6UBVWPlidHjrbkvROxmymoNr67l1DAWCzMqgK2Q2nigThM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OadJcMe6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708645217; c=relaxed/simple;
+	bh=dgxYrWYlTHdSvq3MyK3/ciKcnlyWAglvDhLHPPnFtXc=;
+	h=Date:To:From:Subject:Message-Id; b=S8YtYKrOnNkqxv3AZov0Zowb2dDhbTXzR6eqB8f/zcD/UzEf3qoFWnOOloiJ6KNY5mbHZRq0f/IUUWbcaJ24gbSrXdRafgmZx6Ldqr9y0wF3s1STOewEdmHCJVJ/Pk5h1koc3frgp9yLzCvjAoCBJARNka79L796Z9uPEaoU2gI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dnecBidt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OadJcMe6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27EDEC433C7;
-	Thu, 22 Feb 2024 23:40:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dnecBidt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79B38C433F1;
+	Thu, 22 Feb 2024 23:40:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708645215;
-	bh=5MLdCxwducfHTBbCbrC3jEOm7JGFJd9J3mBpOTfYfy4=;
+	s=korg; t=1708645216;
+	bh=dgxYrWYlTHdSvq3MyK3/ciKcnlyWAglvDhLHPPnFtXc=;
 	h=Date:To:From:Subject:From;
-	b=OadJcMe6t68OcZyuQtqpPQ1r9JqHyJgHVSoSZnBU/o+4ELMZoDfurGlueZK7GW7XK
-	 PmAhBWo6DF3FnIC6Nsc5EyWnv0O4NM0NpIgwc1Mn84wAGqs6ZFKIqt4lJniMnACdrp
-	 HPnfUVt8SpzK8CmvGqVdvav63gkZGbO/upXJNV9A=
-Date: Thu, 22 Feb 2024 15:40:14 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,usama.anjum@collabora.com,akpm@linux-foundation.org
+	b=dnecBidta2IGJFu3u6tQLPsIUCUYkJxrYF3w+z2KilrDLwannFM8f5S7XZKM8PVAX
+	 2k34IVbZ/lvYkPk+k3BJdlIgmcZbK5+Z3p6H3zQdo9W4Bs2X95M7XDXBqS1xsl8pqv
+	 m0z+Kf5hBg/hvysKnmDD0/YFXvqSUPC0/J3LRcFw=
+Date: Thu, 22 Feb 2024 15:40:15 -0800
+To: mm-commits@vger.kernel.org,peterz@infradead.org,jpoimboe@kernel.org,iii@linux.ibm.com,arnd@arndb.de,geert+renesas@glider.be,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-run_vmtestssh-add-missing-tests.patch removed from -mm tree
-Message-Id: <20240222234015.27EDEC433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] init-remove-obsolete-arch_call_rest_init-wrapper.patch removed from -mm tree
+Message-Id: <20240222234016.79B38C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,94 +35,93 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: run_vmtests.sh: add missing tests
+     Subject: init: remove obsolete arch_call_rest_init() wrapper
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-run_vmtestssh-add-missing-tests.patch
+     init-remove-obsolete-arch_call_rest_init-wrapper.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: run_vmtests.sh: add missing tests
-Date: Thu, 25 Jan 2024 20:46:08 +0500
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: init: remove obsolete arch_call_rest_init() wrapper
+Date: Wed, 24 Jan 2024 15:27:35 +0100
 
-Add missing tests to run_vmtests.sh.  The mm kselftests are run through
-run_vmtests.sh.  If a test isn't present in this script, it'll not run
-with run_tests or `make -C tools/testing/selftests/mm run_tests`.
+Since commit 3570ee046c46b5dc ("s390/smp: keep the original lowcore for
+CPU 0"), there is no longer any architecture that needs to override
+arch_call_rest_init().
 
-[usama.anjum@collabora.com: use correct flag in the code]
-  Link: https://lkml.kernel.org/r/20240201130538.1404897-2-usama.anjum@collabora.com
-Link: https://lkml.kernel.org/r/20240125154608.720072-6-usama.anjum@collabora.com
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Remove the weak wrapper around rest_init(), call rest_init() directly, and
+make rest_init() static.
+
+Link: https://lkml.kernel.org/r/aa10868bfb176eef4abb8bb4a710b85330792694.1706106183.git.geert@linux-m68k.org
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Ilya Leoshkevich <iii@linux.ibm.com>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile       |    5 +++++
- tools/testing/selftests/mm/run_vmtests.sh |   10 +++++++++-
- 2 files changed, 14 insertions(+), 1 deletion(-)
+ include/linux/start_kernel.h |    2 --
+ init/main.c                  |    9 ++-------
+ tools/objtool/noreturns.h    |    1 -
+ 3 files changed, 2 insertions(+), 10 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-run_vmtestssh-add-missing-tests
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -114,6 +114,11 @@ TEST_PROGS := run_vmtests.sh
- TEST_FILES := test_vmalloc.sh
- TEST_FILES += test_hmm.sh
- TEST_FILES += va_high_addr_switch.sh
-+TEST_FILES += charge_reserved_hugetlb.sh
-+TEST_FILES += hugetlb_reparenting_test.sh
-+
-+# required by charge_reserved_hugetlb.sh
-+TEST_FILES += write_hugetlb_memory.sh
+--- a/include/linux/start_kernel.h~init-remove-obsolete-arch_call_rest_init-wrapper
++++ a/include/linux/start_kernel.h
+@@ -9,7 +9,5 @@
+    up something else. */
  
- include ../lib.mk
+ extern asmlinkage void __init __noreturn start_kernel(void);
+-extern void __init __noreturn arch_call_rest_init(void);
+-extern void __ref __noreturn rest_init(void);
  
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-run_vmtestssh-add-missing-tests
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -15,10 +15,11 @@ usage() {
- 	cat <<EOF
- usage: ${BASH_SOURCE[0]:-$0} [ options ]
+ #endif /* _LINUX_START_KERNEL_H */
+--- a/init/main.c~init-remove-obsolete-arch_call_rest_init-wrapper
++++ a/init/main.c
+@@ -681,7 +681,7 @@ static void __init setup_command_line(ch
  
--  -a: run all tests, including extra ones
-+  -a: run all tests, including extra ones (other than destructive ones)
-   -t: specify specific categories to tests to run
-   -h: display this message
-   -n: disable TAP output
-+  -d: run destructive tests
+ static __initdata DECLARE_COMPLETION(kthreadd_done);
  
- The default behavior is to run required tests only.  If -a is specified,
- will run all tests.
-@@ -79,6 +80,7 @@ EOF
- }
+-noinline void __ref __noreturn rest_init(void)
++static noinline void __ref __noreturn rest_init(void)
+ {
+ 	struct task_struct *tsk;
+ 	int pid;
+@@ -822,11 +822,6 @@ static int __init early_randomize_kstack
+ early_param("randomize_kstack_offset", early_randomize_kstack_offset);
+ #endif
  
- RUN_ALL=false
-+RUN_DESTRUCTIVE=false
- TAP_PREFIX="# "
+-void __init __weak __noreturn arch_call_rest_init(void)
+-{
+-	rest_init();
+-}
+-
+ static void __init print_unknown_bootoptions(void)
+ {
+ 	char *unknown_options;
+@@ -1069,7 +1064,7 @@ void start_kernel(void)
+ 	kcsan_init();
  
- while getopts "aht:n" OPT; do
-@@ -87,6 +89,7 @@ while getopts "aht:n" OPT; do
- 		"h") usage ;;
- 		"t") VM_SELFTEST_ITEMS=${OPTARG} ;;
- 		"n") TAP_PREFIX= ;;
-+		"d") RUN_DESTRUCTIVE=true ;;
- 	esac
- done
- shift $((OPTIND -1))
-@@ -309,6 +312,11 @@ CATEGORY="process_mrelease" run_test ./m
- CATEGORY="mremap" run_test ./mremap_test
+ 	/* Do the rest non-__init'ed, we're now alive */
+-	arch_call_rest_init();
++	rest_init();
  
- CATEGORY="hugetlb" run_test ./thuge-gen
-+CATEGORY="hugetlb" run_test ./charge_reserved_hugetlb.sh -cgroup-v2
-+CATEGORY="hugetlb" run_test ./hugetlb_reparenting_test.sh -cgroup-v2
-+if $RUN_DESTRUCTIVE; then
-+CATEGORY="hugetlb" run_test ./hugetlb-read-hwpoison
-+fi
- 
- if [ $VADDR64 -ne 0 ]; then
- 
+ 	/*
+ 	 * Avoid stack canaries in callers of boot_init_stack_canary for gcc-10
+--- a/tools/objtool/noreturns.h~init-remove-obsolete-arch_call_rest_init-wrapper
++++ a/tools/objtool/noreturns.h
+@@ -12,7 +12,6 @@ NORETURN(__reiserfs_panic)
+ NORETURN(__stack_chk_fail)
+ NORETURN(__tdx_hypercall_failed)
+ NORETURN(__ubsan_handle_builtin_unreachable)
+-NORETURN(arch_call_rest_init)
+ NORETURN(arch_cpu_idle_dead)
+ NORETURN(bch2_trans_in_restart_error)
+ NORETURN(bch2_trans_restart_error)
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from geert+renesas@glider.be are
 
 
