@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61E0712D1EF
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 21:43:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4308412D1EF
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 21:43:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708638218; cv=none; b=UYqLrypCKlW+jxiI2wyfazt5hhCIU23EjOgo4GbbSXMOJnErcTjES0ut5dzeE3poh+bgHYuNA32saQa/Q/O/aQhM0Lc9d8/94Mc4w2htW/UE9LZZv8MjM8xnACDCghqMuovKKkvUAMPqZYO9YflLwy7gq2WgW4jqT0w9k4XTfXE=
+	t=1708638219; cv=none; b=YCfa23Vn1TZVdRnfwFPaOWp2XWord8uCpYgBXZli02D2GUU4o+pdJk0s5z0Z7pW+gRqEDn2nctPCSm2hVFswQVlQMr4NWOHRIbv1/7ViMct3C7KAYCsn937MSK0ev5oPN5WGs2nxVEHFURbU5AU4DvLyUooVJ2jUn3wFg5dBAfc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708638218; c=relaxed/simple;
-	bh=WY77f31SG9jyVsSO0ebRNzn7auVjUwEsM0YraGqDEOU=;
-	h=Date:To:From:Subject:Message-Id; b=YpkHIwzd5786DxoqbGjeTBB0bqAWpPzNRquZjR9h4lRSu2R5XcHkmcxZk7X/xzAJ341kQgxns8R9CudWrG4+dkvJcrAWhD0TGsyV1n0SJ/ECc0BGRFsTyPxWBr8K/9Y9wEAoerDL2AKrKu2qdYSgcvgqq6VK7Ou2L3V2KvCkmO0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1t2/ZO/i; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708638219; c=relaxed/simple;
+	bh=EN7VWo2Nmp1T5TOYdE4x8M/0b2IdHvh1F4aqDvom/iU=;
+	h=Date:To:From:Subject:Message-Id; b=KK9nFNWcXDtTI780ADU0578T34gv6Sr+MDpbm//GkxiZxC/m9CS/hBShciKj/5BXLv3NC+SDiFGZUcsqkRlMjxEGYzdHZHSFHmBb3P7TTk1pfwazsCj2LE08/Hyw8xHB0vCQnUrdNLiRqJMNuNgRNI3HVFrQyqmdQlVB9k8CbbY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LV+1oGrm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1t2/ZO/i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7537C433F1;
-	Thu, 22 Feb 2024 21:43:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LV+1oGrm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D7E5C433F1;
+	Thu, 22 Feb 2024 21:43:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708638217;
-	bh=WY77f31SG9jyVsSO0ebRNzn7auVjUwEsM0YraGqDEOU=;
+	s=korg; t=1708638219;
+	bh=EN7VWo2Nmp1T5TOYdE4x8M/0b2IdHvh1F4aqDvom/iU=;
 	h=Date:To:From:Subject:From;
-	b=1t2/ZO/inHbUy2D71xX3sij/GI8C9JvvL1P3QUfedeSlseQOKrOpm2yQjyNKiBxq2
-	 0+v2MayjBNkwDdIn76shuWlJPZHPQNuBuxdAENkhmZk/N0dmpQdbXTVqxMMsnN2zxD
-	 XRYGUd7gAvp9G3r6nQORtqaQ5JXJRNWikuhqcYUg=
-Date: Thu, 22 Feb 2024 13:43:37 -0800
+	b=LV+1oGrmj8I2Sph2SxWaBffIu7oD4Y1Ay4tGVDCsx1gIKLeKHEsio1byB74YSv+kP
+	 S20W9Pyk/NtUOCA+JVhWtG8jPpGD0eR0iDTHyAh2OdL41Cn7FiEo1tYiTS4590zgyk
+	 d1qwu4zi7hiNT5WXZPVmziiQ8AdlStFeWhXoUzlI=
+Date: Thu, 22 Feb 2024 13:43:38 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,muchun.song@linux.dev,vishal.moola@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-pass-struct-vm_fault-through-to-hugetlb_handle_userfault.patch added to mm-unstable branch
-Message-Id: <20240222214337.D7537C433F1@smtp.kernel.org>
+Subject: + hugetlb-use-vmf_anon_prepare-instead-of-anon_vma_prepare.patch added to mm-unstable branch
+Message-Id: <20240222214339.0D7E5C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hugetlb: pass struct vm_fault through to hugetlb_handle_userfault()
+     Subject: hugetlb: use vmf_anon_prepare() instead of anon_vma_prepare()
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-pass-struct-vm_fault-through-to-hugetlb_handle_userfault.patch
+     hugetlb-use-vmf_anon_prepare-instead-of-anon_vma_prepare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-pass-struct-vm_fault-through-to-hugetlb_handle_userfault.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-use-vmf_anon_prepare-instead-of-anon_vma_prepare.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,112 +59,84 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: hugetlb: pass struct vm_fault through to hugetlb_handle_userfault()
-Date: Wed, 21 Feb 2024 15:47:30 -0800
+Subject: hugetlb: use vmf_anon_prepare() instead of anon_vma_prepare()
+Date: Wed, 21 Feb 2024 15:47:31 -0800
 
-Now that hugetlb_fault() has a struct vm_fault, have
-hugetlb_handle_userfault() use it instead of creating one of its own.
+hugetlb_no_page() and hugetlb_wp() call anon_vma_prepare().  In
+preparation for hugetlb to safely handle faults under the VMA lock, use
+vmf_anon_prepare() here instead.
 
-This lets us reduce the number of arguments passed to
-hugetlb_handle_userfault() from 7 to 3, cleaning up the code and stack.
+Additionally, passing hugetlb_wp() the vm_fault struct from
+hugetlb_fault() works toward cleaning up the hugetlb code and function
+stack.
 
-Link: https://lkml.kernel.org/r/20240221234732.187629-4-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20240221234732.187629-5-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   38 +++++++++-----------------------------
- 1 file changed, 9 insertions(+), 29 deletions(-)
+ mm/hugetlb.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-pass-struct-vm_fault-through-to-hugetlb_handle_userfault
+--- a/mm/hugetlb.c~hugetlb-use-vmf_anon_prepare-instead-of-anon_vma_prepare
 +++ a/mm/hugetlb.c
-@@ -6172,39 +6172,21 @@ int hugetlb_add_to_page_cache(struct fol
- 	return 0;
- }
- 
--static inline vm_fault_t hugetlb_handle_userfault(struct vm_area_struct *vma,
-+static inline vm_fault_t hugetlb_handle_userfault(struct vm_fault *vmf,
- 						  struct address_space *mapping,
--						  pgoff_t idx,
--						  unsigned int flags,
--						  unsigned long haddr,
--						  unsigned long addr,
- 						  unsigned long reason)
+@@ -5938,7 +5938,8 @@ static void unmap_ref_private(struct mm_
+  */
+ static vm_fault_t hugetlb_wp(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		       unsigned long address, pte_t *ptep, unsigned int flags,
+-		       struct folio *pagecache_folio, spinlock_t *ptl)
++		       struct folio *pagecache_folio, spinlock_t *ptl,
++		       struct vm_fault *vmf)
  {
- 	u32 hash;
--	struct vm_fault vmf = {
--		.vma = vma,
--		.address = haddr,
--		.real_address = addr,
--		.flags = flags,
--
--		/*
--		 * Hard to debug if it ends up being
--		 * used by a callee that assumes
--		 * something about the other
--		 * uninitialized fields... same as in
--		 * memory.c
--		 */
--	};
- 
- 	/*
- 	 * vma_lock and hugetlb_fault_mutex must be dropped before handling
- 	 * userfault. Also mmap_lock could be dropped due to handling
- 	 * userfault, any vma operation should be careful from here.
+ 	const bool unshare = flags & FAULT_FLAG_UNSHARE;
+ 	pte_t pte = huge_ptep_get(ptep);
+@@ -6072,10 +6073,9 @@ retry_avoidcopy:
+ 	 * When the original hugepage is shared one, it does not have
+ 	 * anon_vma prepared.
  	 */
--	hugetlb_vma_unlock_read(vma);
--	hash = hugetlb_fault_mutex_hash(mapping, idx);
-+	hugetlb_vma_unlock_read(vmf->vma);
-+	hash = hugetlb_fault_mutex_hash(mapping, vmf->pgoff);
- 	mutex_unlock(&hugetlb_fault_mutex_table[hash]);
--	return handle_userfault(&vmf, reason);
-+	return handle_userfault(vmf, reason);
- }
+-	if (unlikely(anon_vma_prepare(vma))) {
+-		ret = VM_FAULT_OOM;
++	ret = vmf_anon_prepare(vmf);
++	if (unlikely(ret))
+ 		goto out_release_all;
+-	}
  
- /*
-@@ -6228,7 +6210,8 @@ static vm_fault_t hugetlb_no_page(struct
- 			struct vm_area_struct *vma,
- 			struct address_space *mapping, pgoff_t idx,
- 			unsigned long address, pte_t *ptep,
--			pte_t old_pte, unsigned int flags)
-+			pte_t old_pte, unsigned int flags,
-+			struct vm_fault *vmf)
- {
- 	struct hstate *h = hstate_vma(vma);
- 	vm_fault_t ret = VM_FAULT_SIGBUS;
-@@ -6287,8 +6270,7 @@ static vm_fault_t hugetlb_no_page(struct
- 				goto out;
- 			}
- 
--			return hugetlb_handle_userfault(vma, mapping, idx, flags,
--							haddr, address,
-+			return hugetlb_handle_userfault(vmf, mapping,
- 							VM_UFFD_MISSING);
+ 	if (copy_user_large_folio(new_folio, old_folio, address, vma)) {
+ 		ret = VM_FAULT_HWPOISON_LARGE;
+@@ -6315,10 +6315,10 @@ static vm_fault_t hugetlb_no_page(struct
+ 			new_pagecache_folio = true;
+ 		} else {
+ 			folio_lock(folio);
+-			if (unlikely(anon_vma_prepare(vma))) {
+-				ret = VM_FAULT_OOM;
++
++			ret = vmf_anon_prepare(vmf);
++			if (unlikely(ret))
+ 				goto backout_unlocked;
+-			}
+ 			anon_rmap = 1;
  		}
- 
-@@ -6360,8 +6342,7 @@ static vm_fault_t hugetlb_no_page(struct
- 				ret = 0;
- 				goto out;
- 			}
--			return hugetlb_handle_userfault(vma, mapping, idx, flags,
--							haddr, address,
-+			return hugetlb_handle_userfault(vmf, mapping,
- 							VM_UFFD_MINOR);
- 		}
- 	}
-@@ -6531,9 +6512,8 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 		 * hugetlb_no_page will drop vma lock and hugetlb fault
- 		 * mutex internally, which make us return immediately.
- 		 */
--
- 		return hugetlb_no_page(mm, vma, mapping, vmf.pgoff, address,
--					ptep, entry, flags);
-+					ptep, entry, flags, &vmf);
+ 	} else {
+@@ -6385,7 +6385,7 @@ static vm_fault_t hugetlb_no_page(struct
+ 	hugetlb_count_add(pages_per_huge_page(h), mm);
+ 	if ((flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
+ 		/* Optimization, do the COW without a second fault */
+-		ret = hugetlb_wp(mm, vma, address, ptep, flags, folio, ptl);
++		ret = hugetlb_wp(mm, vma, address, ptep, flags, folio, ptl, vmf);
  	}
  
- 	ret = 0;
+ 	spin_unlock(ptl);
+@@ -6608,7 +6608,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 	if (flags & (FAULT_FLAG_WRITE|FAULT_FLAG_UNSHARE)) {
+ 		if (!huge_pte_write(entry)) {
+ 			ret = hugetlb_wp(mm, vma, address, ptep, flags,
+-					 pagecache_folio, ptl);
++					 pagecache_folio, ptl, &vmf);
+ 			goto out_put_page;
+ 		} else if (likely(flags & FAULT_FLAG_WRITE)) {
+ 			entry = huge_pte_mkdirty(entry);
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
