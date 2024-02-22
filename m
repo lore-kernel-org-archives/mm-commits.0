@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D699290E
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD6CD10A2D
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560066; cv=none; b=cx88J6RUMSxBmH7qs+R68iA6KMCPGMmukvtM9a/oLQ9sSJoVQqZMIyzK/Pe9QDDTCFQ9XMFtJAQ0HsE3MXbu4EKGLGO0VW3t8etGun9jkj1KcM/V1YtVn7pTKIgFatMfxTtsRElynrQlkHGJmjCxpGAaJSqMFI9qnE+rOwy6z+I=
+	t=1708560067; cv=none; b=p7gL1v3DNQl+5ZKmRB0/7XRtot1vq/Qqdpa22yePKyFqqNW2LrX95yYjgL/EDalhTXSfzhS796LKEji5cQ0zAQKQL3EMZ1YcXZfRyDkSRUmpsrQhzAvIX07Jxx1kJURQly7PIzkj5rl0FqRgv+Taqjn4tdrIMVCZmBUJAfKkF6s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560066; c=relaxed/simple;
-	bh=jFlJIovL2/K2HaZQkxNnD55teKeBaH/CnalEy+svm9A=;
-	h=Date:To:From:Subject:Message-Id; b=oMmr3w1sJpgN8xtUeDHFS6ktMdeF/dQOzr4cN5NuG5F4J9a7PMQSrB9wTpMKFRRz8TEHRyM7ziP1786pLzVxp6Ll8KJ3+ZaO+FuWzK5VZCrIolwD0a+ZXjpa9t09QPof+9j/jcfZ1yCzXQ2RTKPOkDxEbnnwYEUzInQXfQaDsHE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1kheuH1T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560067; c=relaxed/simple;
+	bh=aK2mcPWWFvjDO10TSjD4gLBYW8WHwjPpEnIOIJOw+Qg=;
+	h=Date:To:From:Subject:Message-Id; b=HeYcLT0HN0kMh2mBU8fGpqZCOpLj0wn0kH47iNkQKNj6CM3ySLqCSV38mctBv0RD6MSVDwOSCUbLiikXh4/F299WCop6kOSO/GGCdbB8lD0Fo9xivZ2TQB8ROhNKXb/RYyfPJQrruLLvWx36eLFfBgM4A8Qepby6lGaYyS71vBM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MVEgBhPH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1kheuH1T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58E2FC43394;
-	Thu, 22 Feb 2024 00:01:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MVEgBhPH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 494E1C43390;
+	Thu, 22 Feb 2024 00:01:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560066;
-	bh=jFlJIovL2/K2HaZQkxNnD55teKeBaH/CnalEy+svm9A=;
+	s=korg; t=1708560067;
+	bh=aK2mcPWWFvjDO10TSjD4gLBYW8WHwjPpEnIOIJOw+Qg=;
 	h=Date:To:From:Subject:From;
-	b=1kheuH1TqFTgApdkhwTjTDRmK1p65MzTgHdeUJ+p6RZFijLeTqzeHqkDpDbTsChw8
-	 4uFc2VN+3kQUwXuw0iVtQSyhGaNyi2Pr0mkXbdg+4JPRBtIXvX2/8Q3528IIyi+iCO
-	 ll5k7Hq4+3j9rAzcmPYXuPKzgOk6pl4d4XAhCs74=
-Date: Wed, 21 Feb 2024 16:01:05 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=MVEgBhPHjEFtZzIMMNE1euGFNhtfg32dVeoVC3me51RSZ9O1GeudnTl9fIrhpv2cm
+	 sfilYjf0lp96yDbxyse1TDqJNE0jJUrPxPb0lSYttBxYXMNo/arOlLqcV+ri1WTKSj
+	 P91Dxivd3TcoI5/MoQSopqZaKGMQ5vUeXDGmnS5E=
+Date: Wed, 21 Feb 2024 16:01:06 -0800
+To: mm-commits@vger.kernel.org,shakeelb@google.com,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,haifeng.xu@shopee.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-use-nth_page-in-clear-copy_subpage.patch removed from -mm tree
-Message-Id: <20240222000106.58E2FC43394@smtp.kernel.org>
+Subject: [merged mm-stable] mm-list_lru-disable-memcg_aware-when-cgroupmemory-is-set-to-nokmem.patch removed from -mm tree
+Message-Id: <20240222000107.494E1C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memory: use nth_page() in clear/copy_subpage()
+     Subject: mm: list_lru: disable memcg_aware when cgroup.memory is set to "nokmem"
 has been removed from the -mm tree.  Its filename was
-     mm-memory-use-nth_page-in-clear-copy_subpage.patch
+     mm-list_lru-disable-memcg_aware-when-cgroupmemory-is-set-to-nokmem.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory: use nth_page() in clear/copy_subpage()
-Date: Fri, 29 Dec 2023 16:22:07 +0800
+From: Haifeng Xu <haifeng.xu@shopee.com>
+Subject: mm: list_lru: disable memcg_aware when cgroup.memory is set to "nokmem"
+Date: Thu, 28 Dec 2023 06:27:14 +0000
 
-The clear and copy of huge gigantic page has converted to use nth_page()
-to handle the possible discontinuous struct page(SPARSEMEM without
-VMEMMAP), but not change for the non-gigantic part, fix it too.
+Actually, when using a boot time kernel option "cgroup.memory=nokmem", all
+lru items are inserted to list_lru_node.  But for those users who invoke
+list_lru_init_memcg() to initialize list_lru, list_lru_memcg_aware()
+returns true.  And this brings unneeded operations related to memcg.
 
-Link: https://lkml.kernel.org/r/20231229082207.60235-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
+To make things more convenient, let's disable memcg_aware when
+cgroup.memory is set to "nokmem".
+
+Link: https://lkml.kernel.org/r/20231228062715.338672-1-haifeng.xu@shopee.com
+Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/list_lru.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/memory.c~mm-memory-use-nth_page-in-clear-copy_subpage
-+++ a/mm/memory.c
-@@ -6163,7 +6163,7 @@ static int clear_subpage(unsigned long a
- {
- 	struct page *page = arg;
+--- a/mm/list_lru.c~mm-list_lru-disable-memcg_aware-when-cgroupmemory-is-set-to-nokmem
++++ a/mm/list_lru.c
+@@ -567,6 +567,9 @@ int __list_lru_init(struct list_lru *lru
+ 		lru->shrinker_id = shrinker->id;
+ 	else
+ 		lru->shrinker_id = -1;
++
++	if (mem_cgroup_kmem_disabled())
++		memcg_aware = false;
+ #endif
  
--	clear_user_highpage(page + idx, addr);
-+	clear_user_highpage(nth_page(page, idx), addr);
- 	return 0;
- }
- 
-@@ -6213,10 +6213,11 @@ struct copy_subpage_arg {
- static int copy_subpage(unsigned long addr, int idx, void *arg)
- {
- 	struct copy_subpage_arg *copy_arg = arg;
-+	struct page *dst = nth_page(copy_arg->dst, idx);
-+	struct page *src = nth_page(copy_arg->src, idx);
- 
--	if (copy_mc_user_highpage(copy_arg->dst + idx, copy_arg->src + idx,
--				  addr, copy_arg->vma)) {
--		memory_failure_queue(page_to_pfn(copy_arg->src + idx), 0);
-+	if (copy_mc_user_highpage(dst, src, addr, copy_arg->vma)) {
-+		memory_failure_queue(page_to_pfn(src), 0);
- 		return -EHWPOISON;
- 	}
- 	return 0;
+ 	lru->node = kcalloc(nr_node_ids, sizeof(*lru->node), GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from haifeng.xu@shopee.com are
 
-mm-compaction-early-termination-in-compact_nodes.patch
 
