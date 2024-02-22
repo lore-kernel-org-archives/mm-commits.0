@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FAAD1D53F
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:28:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6498413790E
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:28:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708644499; cv=none; b=cCi9D1cVAmZdyYARBILcQECOg0/YfGBfgheB5A8sJb40U2dCGnIkPvJiTLbmfYUGGh3WFf7W0ovZm771VAPZ5MLzbh7gaZa4ryAdBjxM2yA57mNQattdX+orG6udQt4xg9+FYCzhdzB9AJh4v71jzRbHPsjlImqzdW9ayqeJJnw=
+	t=1708644500; cv=none; b=U9JnmMjCtpFWB8mHeU7ZI0vdjCTERTusRYu3FiK4PSGlwoHVphTAHz31EqTWPIZ+VsOLTdkE6czkqTyue7h+n9aLG/DE1RoW1GT6eSHimlwiYf93FprjJbNnmXdPXb3/+oQah9zBctToIDf/U+HLikV0KFuOXVzLJ+2ed1e6AFY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708644499; c=relaxed/simple;
-	bh=Dprh/IbuOLl0Rdk/W0S0S5od5ldW/NvrLbUg2j6iKJA=;
-	h=Date:To:From:Subject:Message-Id; b=mXQnBhKhp8PHh8kJ+/idloJ76I8mbGSgoNXptAnTrW/FT1HDx9lcZRNmfju0wg+FrtcwJZ+pp9vZaxp3Aku2kVVJPSV7oOjGGXHL/3xs52MfPZikqvCap4/w7pWfQigrWXgBUl3ijY28yZXAF0NbBVQqR2ZDajyMBgu9rSCn7HE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a8Ho4PXT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708644500; c=relaxed/simple;
+	bh=98NM5NMKfp5DAJLpK/Ies+YZJzELr0cODtowic5opDA=;
+	h=Date:To:From:Subject:Message-Id; b=G2yI0hI3RLyIfal9j7EE45s6VPL48xjPvG9UspH7axZZhP6Gy1YYhscTEDzzUNBW70Cv8Jtv/Jj0QqmZhLZV0H9D37ILCJvB26/gZcHzJIPLtZ/8uR7Sbky4T8UqUwhORgRra+42PTbAzTW14+7KnhwzhsCwnqGmLSs4BFsC1J4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KAbkiYuZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a8Ho4PXT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32164C433C7;
-	Thu, 22 Feb 2024 23:28:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KAbkiYuZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FBFFC433C7;
+	Thu, 22 Feb 2024 23:28:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708644499;
-	bh=Dprh/IbuOLl0Rdk/W0S0S5od5ldW/NvrLbUg2j6iKJA=;
+	s=korg; t=1708644500;
+	bh=98NM5NMKfp5DAJLpK/Ies+YZJzELr0cODtowic5opDA=;
 	h=Date:To:From:Subject:From;
-	b=a8Ho4PXTg1f5d6J7063sg1vZ+tYvBEI/wzJqu/mg31HM9DORUAaISuutYqHTQav1q
-	 0/h8QaDNQEO3Y1Po0/QDB5+KEsKZUKteTuK1K0LI7F2xp8j0MZjTfrUWdCVSECbX4o
-	 f6T60Jw9e8AkGCnYiEAtuUJ4ds12elUllllo/stM=
-Date: Thu, 22 Feb 2024 15:28:18 -0800
+	b=KAbkiYuZQev8fD89Hr/nx3FbIGyo6s/SFssJ8gtCf1OOQ8Jz/Sl+LdBFB1231CKy8
+	 1+qoxKXxIaKCGtZcaFQ81QvhMsV1KVWJMB1xn7kL9ilwhNN5CmSoFC/1YRG9tKvcdW
+	 r4FrxCy9i55A6n6JBjM3GeCG8hGMDgaGQwxM9Xq4=
+Date: Thu, 22 Feb 2024 15:28:19 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,tglx@linutronix.de,shy828301@gmail.com,ryabinin.a.a@gmail.com,mingo@redhat.com,maz@kernel.org,mark.rutland@arm.com,jhubbard@nvidia.com,james.morse@arm.com,hpa@zytor.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,ardb@kernel.org,apopple@nvidia.com,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] arm64-mm-implement-pte_batch_hint.patch removed from -mm tree
-Message-Id: <20240222232819.32164C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] arm64-mm-__always_inline-to-improve-fork-perf.patch removed from -mm tree
+Message-Id: <20240222232820.2FBFFC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,36 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arm64/mm: implement pte_batch_hint()
+     Subject: arm64/mm: __always_inline to improve fork() perf
 has been removed from the -mm tree.  Its filename was
-     arm64-mm-implement-pte_batch_hint.patch
+     arm64-mm-__always_inline-to-improve-fork-perf.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: arm64/mm: implement pte_batch_hint()
-Date: Thu, 15 Feb 2024 10:32:03 +0000
+Subject: arm64/mm: __always_inline to improve fork() perf
+Date: Thu, 15 Feb 2024 10:32:04 +0000
 
-When core code iterates over a range of ptes and calls ptep_get() for each
-of them, if the range happens to cover contpte mappings, the number of pte
-reads becomes amplified by a factor of the number of PTEs in a contpte
-block.  This is because for each call to ptep_get(), the implementation
-must read all of the ptes in the contpte block to which it belongs to
-gather the access and dirty bits.
+As set_ptes() and wrprotect_ptes() become a bit more complex, the compiler
+may choose not to inline them.  But this is critical for fork()
+performance.  So mark the functions, along with contpte_try_unfold() which
+is called by them, as __always_inline.  This is worth ~1% on the fork()
+microbenchmark with order-0 folios (the common case).
 
-This causes a hotspot for fork(), as well as operations that unmap memory
-such as munmap(), exit and madvise(MADV_DONTNEED).  Fortunately we can fix
-this by implementing pte_batch_hint() which allows their iterators to skip
-getting the contpte tail ptes when gathering the batch of ptes to operate
-on.  This results in the number of PTE reads returning to 1 per pte.
-
-Link: https://lkml.kernel.org/r/20240215103205.2607016-17-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20240215103205.2607016-18-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Acked-by: Mark Rutland <mark.rutland@arm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Tested-by: John Hubbard <jhubbard@nvidia.com>
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -72,9 +63,11 @@ Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Barry Song <21cnbao@gmail.com>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: James Morse <james.morse@arm.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Marc Zyngier <maz@kernel.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -85,27 +78,42 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/arm64/include/asm/pgtable.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-implement-pte_batch_hint
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mm-__always_inline-to-improve-fork-perf
 +++ a/arch/arm64/include/asm/pgtable.h
-@@ -1213,6 +1213,15 @@ static inline void contpte_try_unfold(st
+@@ -1206,8 +1206,8 @@ extern int contpte_ptep_set_access_flags
+ 				unsigned long addr, pte_t *ptep,
+ 				pte_t entry, int dirty);
+ 
+-static inline void contpte_try_unfold(struct mm_struct *mm, unsigned long addr,
+-					pte_t *ptep, pte_t pte)
++static __always_inline void contpte_try_unfold(struct mm_struct *mm,
++				unsigned long addr, pte_t *ptep, pte_t pte)
+ {
+ 	if (unlikely(pte_valid_cont(pte)))
  		__contpte_try_unfold(mm, addr, ptep, pte);
+@@ -1278,7 +1278,7 @@ static inline void set_pte(pte_t *ptep,
  }
  
-+#define pte_batch_hint pte_batch_hint
-+static inline unsigned int pte_batch_hint(pte_t *ptep, pte_t pte)
-+{
-+	if (!pte_valid_cont(pte))
-+		return 1;
-+
-+	return CONT_PTES - (((unsigned long)ptep >> 3) & (CONT_PTES - 1));
-+}
-+
- /*
-  * The below functions constitute the public API that arm64 presents to the
-  * core-mm to manipulate PTE entries within their page tables (or at least this
+ #define set_ptes set_ptes
+-static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
++static __always_inline void set_ptes(struct mm_struct *mm, unsigned long addr,
+ 				pte_t *ptep, pte_t pte, unsigned int nr)
+ {
+ 	pte = pte_mknoncont(pte);
+@@ -1360,8 +1360,8 @@ static inline int ptep_clear_flush_young
+ }
+ 
+ #define wrprotect_ptes wrprotect_ptes
+-static inline void wrprotect_ptes(struct mm_struct *mm, unsigned long addr,
+-				pte_t *ptep, unsigned int nr)
++static __always_inline void wrprotect_ptes(struct mm_struct *mm,
++				unsigned long addr, pte_t *ptep, unsigned int nr)
+ {
+ 	if (likely(nr == 1)) {
+ 		/*
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
