@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF96A13BAC9
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:28:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CEC4210E8
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:28:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708644519; cv=none; b=rkTQA/RNVwcREjUvB5smT7tzWet+GD7kExaVS0TVE4D2VNeudaRdH+Jv4Oj+YYt0Vgrary8570nXkveuKyfB2xLP/m/pymFrZtQYZfgU0NspkTeakX8mpWtiML+RX2go8J9hKw0XJWjtMwJzgI6WnF8Vl1n09v0ezqBUpucps7k=
+	t=1708644520; cv=none; b=Fi6r/GVbUUEc6RtBeBQyYqWylGDKMA6vePnWlGSBlPNo/NgH9V0vtIFeyN8z7jxobxTruTs/4QxwXKa7wRWqwACDQ9trSG+BxHBOLU69T00dWHq/IY+tOZskXSU9+M/ZikgetcqWJGY0dWGs2wNLQF7GSYGbzIpSX/qODnJQtJw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708644519; c=relaxed/simple;
-	bh=3MyeyUcDM3mB6BzyVVd0OPSOeYSFXqVDJr27rdekunw=;
-	h=Date:To:From:Subject:Message-Id; b=OSsPGjv1o+EXuBxnbjlLIMCS/nb+WjqMQKoVPdV9eTL+fGSsNmTfTbeu69xh13uC4pzJNknnDUymuot/rSwsGGBKxc0K3rEvEE9+D9G5Qo4Oyhr9NXxwouv6BoTOloFfqAmc2rZojetlKiEttc5RqgqUymEw0I4cr9oeIl1JkwM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1p8kbjAM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708644520; c=relaxed/simple;
+	bh=mSlh55oqdY6AnC1qgrD+JebaFplId+N8ersgt2/yJMw=;
+	h=Date:To:From:Subject:Message-Id; b=mKY1aM1O2/XfCBKSXBNWUyHHXfLs1dVT/UxjhUfjhNkLOzfgxhZ6Zu4Brcc9jM2tM92P+xmSJps+5pN3QUVcZoPQfofDOeqpMyGll6Tjotyk2D6TQRs79+hnQdZ1G4dYIlzqxgbvDdR3OUZlvs6IYI+c64f50iI5FeLbDriec7s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tFvulY/c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1p8kbjAM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65A00C433A6;
-	Thu, 22 Feb 2024 23:28:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tFvulY/c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D1FBC43390;
+	Thu, 22 Feb 2024 23:28:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708644519;
-	bh=3MyeyUcDM3mB6BzyVVd0OPSOeYSFXqVDJr27rdekunw=;
+	s=korg; t=1708644520;
+	bh=mSlh55oqdY6AnC1qgrD+JebaFplId+N8ersgt2/yJMw=;
 	h=Date:To:From:Subject:From;
-	b=1p8kbjAM80qcJJAD7E6Ma+2k11CSm4wvPa5OZEe+sxhZ1C9Hq1ek/m+ZxpgYog2C6
-	 fWMjdpQIri+ZmWsF9zZNKP9mOc8sozxy60jwjhiIWVAE7hQxcZaVizsH9jbYd1fyd2
-	 5xyK50bkC//7ASJkdb0Gosgyhw/ZIc7D54cyIRkI=
-Date: Thu, 22 Feb 2024 15:28:38 -0800
+	b=tFvulY/c9lL4sN1zMdR3XH8JHPWQi0ldEaL1wcH18SyPiWtk+yP5eFmrGGy18sW04
+	 UxoDwJFlbR7aI9/icU7EMWvJuQwXeOR6+MmtxiiXqnvy58PCE8YJa9TYIsDq9dghBI
+	 GVQfr5aLOksbmW4b6I91RQ/jiCK5B19km5Dqo6GY=
+Date: Thu, 22 Feb 2024 15:28:39 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-mm-damon-maintainer-profile-fix-reference-links-for-mm-stable-tree.patch removed from -mm tree
-Message-Id: <20240222232839.65A00C433A6@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-move-the-list-of-damos-actions-to-design-doc.patch removed from -mm tree
+Message-Id: <20240222232840.6D1FBC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,133 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/mm/damon/maintainer-profile: fix reference links for mm-[un]stable tree
+     Subject: Docs/mm/damon: move the list of DAMOS actions to design doc
 has been removed from the -mm tree.  Its filename was
-     docs-mm-damon-maintainer-profile-fix-reference-links-for-mm-stable-tree.patch
+     docs-mm-damon-move-the-list-of-damos-actions-to-design-doc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/maintainer-profile: fix reference links for mm-[un]stable tree
-Date: Fri, 16 Feb 2024 16:58:38 -0800
+Subject: Docs/mm/damon: move the list of DAMOS actions to design doc
+Date: Fri, 16 Feb 2024 16:58:39 -0800
 
-Patch series "Docs/mm/damon: misc readability improvements".
+DAMOS operation actions are explained nearly twice on the DAMON usage
+document, once for the sysfs interface, and then again for the debugfs
+interface.  Duplication is bad.  Also it would better to keep this kind of
+concept level details in design document and keep the usage document small
+and focus on only the usage.  Move the list to design document and update
+usage document to reference it.
 
-Fix trivial mistakes and improve layout of information on different
-documents for DAMON.
-
-
-This patch (of 5):
-
-A couple of sentences on maintainer-profile.rst are having reference links
-for mm-unstable and mm-stable trees with wrong rst markup.  Fix those.
-
-Link: https://lkml.kernel.org/r/20240217005842.87348-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20240217005842.87348-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240217005842.87348-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/maintainer-profile.rst |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/admin-guide/mm/damon/usage.rst |   47 ++++-------------
+ Documentation/mm/damon/design.rst            |   26 ++++++++-
+ 2 files changed, 36 insertions(+), 37 deletions(-)
 
---- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-fix-reference-links-for-mm-stable-tree
-+++ a/Documentation/mm/damon/maintainer-profile.rst
-@@ -21,8 +21,8 @@ be queued in mm-stable [3]_ , and finall
- memory management subsystem maintainer.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-mm-damon-move-the-list-of-damos-actions-to-design-doc
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -302,27 +302,8 @@ In each scheme directory, five directori
  
- Note again the patches for review should be made against the mm-unstable
--tree[1] whenever possible.  damon/next is only for preview of others' works in
--progress.
-+tree [1]_ whenever possible.  damon/next is only for preview of others' works
-+in progress.
+ The ``action`` file is for setting and getting the scheme's :ref:`action
+ <damon_design_damos_action>`.  The keywords that can be written to and read
+-from the file and their meaning are as below.
+-
+-Note that support of each action depends on the running DAMON operations set
+-:ref:`implementation <sysfs_context>`.
+-
+- - ``willneed``: Call ``madvise()`` for the region with ``MADV_WILLNEED``.
+-   Supported by ``vaddr`` and ``fvaddr`` operations set.
+- - ``cold``: Call ``madvise()`` for the region with ``MADV_COLD``.
+-   Supported by ``vaddr`` and ``fvaddr`` operations set.
+- - ``pageout``: Call ``madvise()`` for the region with ``MADV_PAGEOUT``.
+-   Supported by ``vaddr``, ``fvaddr`` and ``paddr`` operations set.
+- - ``hugepage``: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``.
+-   Supported by ``vaddr`` and ``fvaddr`` operations set.
+- - ``nohugepage``: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``.
+-   Supported by ``vaddr`` and ``fvaddr`` operations set.
+- - ``lru_prio``: Prioritize the region on its LRU lists.
+-   Supported by ``paddr`` operations set.
+- - ``lru_deprio``: Deprioritize the region on its LRU lists.
+-   Supported by ``paddr`` operations set.
+- - ``stat``: Do nothing but count the statistics.
+-   Supported by all operations sets.
++from the file and their meaning are same to those of the list on
++:ref:`design doc <damon_design_damos_action>`.
  
- Submit checklist addendum
- -------------------------
-@@ -41,8 +41,8 @@ Further doing below and putting the resu
- Key cycle dates
- ---------------
+ The ``apply_interval_us`` file is for setting and getting the scheme's
+ :ref:`apply_interval <damon_design_damos>` in microseconds.
+@@ -763,19 +744,17 @@ Action
+ ~~~~~~
  
--Patches can be sent anytime.  Key cycle dates of the mm-unstable[1] and
--mm-stable[3] trees depend on the memory management subsystem maintainer.
-+Patches can be sent anytime.  Key cycle dates of the mm-unstable [1]_ and
-+mm-stable [3]_ trees depend on the memory management subsystem maintainer.
+ The ``<action>`` is a predefined integer for memory management :ref:`actions
+-<damon_design_damos_action>`.  The supported numbers and their meanings are as
+-below.
+-
+- - 0: Call ``madvise()`` for the region with ``MADV_WILLNEED``.  Ignored if
+-   ``target`` is ``paddr``.
+- - 1: Call ``madvise()`` for the region with ``MADV_COLD``.  Ignored if
+-   ``target`` is ``paddr``.
+- - 2: Call ``madvise()`` for the region with ``MADV_PAGEOUT``.
+- - 3: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``.  Ignored if
+-   ``target`` is ``paddr``.
+- - 4: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``.  Ignored if
+-   ``target`` is ``paddr``.
+- - 5: Do nothing but count the statistics
++<damon_design_damos_action>`.  The mapping between the ``<action>`` values and
++the memory management actions is as below.  For the detailed meaning of the
++action and DAMON operations set supporting each action, please refer to the
++list on :ref:`design doc <damon_design_damos_action>`.
++
++ - 0: ``willneed``
++ - 1: ``cold``
++ - 2: ``pageout``
++ - 3: ``hugepage``
++ - 4: ``nohugepage``
++ - 5: ``stat``
  
- Review cadence
- --------------
+ Quota
+ ~~~~~
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-move-the-list-of-damos-actions-to-design-doc
++++ a/Documentation/mm/damon/design.rst
+@@ -294,9 +294,29 @@ not mandated to support all actions of t
+ specific DAMOS action depends on what operations set is selected to be used
+ together.
+ 
+-Applying an action to a region is considered as changing the region's
+-characteristics.  Hence, DAMOS resets the age of regions when an action is
+-applied to those.
++The list of the supported actions, their meaning, and DAMON operations sets
++that supports each action are as below.
++
++ - ``willneed``: Call ``madvise()`` for the region with ``MADV_WILLNEED``.
++   Supported by ``vaddr`` and ``fvaddr`` operations set.
++ - ``cold``: Call ``madvise()`` for the region with ``MADV_COLD``.
++   Supported by ``vaddr`` and ``fvaddr`` operations set.
++ - ``pageout``: Call ``madvise()`` for the region with ``MADV_PAGEOUT``.
++   Supported by ``vaddr``, ``fvaddr`` and ``paddr`` operations set.
++ - ``hugepage``: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``.
++   Supported by ``vaddr`` and ``fvaddr`` operations set.
++ - ``nohugepage``: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``.
++   Supported by ``vaddr`` and ``fvaddr`` operations set.
++ - ``lru_prio``: Prioritize the region on its LRU lists.
++   Supported by ``paddr`` operations set.
++ - ``lru_deprio``: Deprioritize the region on its LRU lists.
++   Supported by ``paddr`` operations set.
++ - ``stat``: Do nothing but count the statistics.
++   Supported by all operations sets.
++
++Applying the actions except ``stat`` to a region is considered as changing the
++region's characteristics.  Hence, DAMOS resets the age of regions when any such
++actions are applied to those.
+ 
+ 
+ .. _damon_design_damos_access_pattern:
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
