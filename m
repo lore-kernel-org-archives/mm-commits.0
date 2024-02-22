@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36B908468
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 472E2CA47
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560222; cv=none; b=Oq/8bHdEBDMu1h+fDUMYV/2YEp6rWywiFhOigM1a6fzYV3dOjr1xnAT6Auh6WmIfDTe5cEAKa7TAzprnjWcc9i3cVe29hTY9/OPslckowNkAo8gHeLhibZ7cYB+IotcDfIXHZIL9I7zWgY6K8PJPWKK7wMNiEhh4vnOxpH21zaA=
+	t=1708560223; cv=none; b=IDVqofqTgwLJR7ZZu5h3DaEQbSSh/GyFckdVAGusHuu0GcE0tfzNesZrivc68H3GZfeKjM1g+dVFrHO5YB+c2J2AMIof2Dx7OSNxeoFpQ1V06y1wEyprLt8WzUUxrMHrGJn/h4yJ8G8fOdVhmnYaf8KuhDWSDwmIWdk3aAkfA2Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560222; c=relaxed/simple;
-	bh=DEqXWNrICNAVjTuFJgZuPJ16Yr+nbHWzi2vESwhjfz4=;
-	h=Date:To:From:Subject:Message-Id; b=DyMpMMtXi0LgfznvcPu0XjYo7Bu5vNl13I7bBl0JcdaeHhXlSttwsWW2T7xpVEqTGd00Tvm3I48CpDhAk/3z4jPPtFyq3j310mJHQseLSjNKLvCo9cKw/B41sQlM4IkdadE9RAslrZ+vBwpG59L+4+9AsTQF2b1TSaiuRQ3yIUo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sDG8N58n; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560223; c=relaxed/simple;
+	bh=WbnpoWKtteAZNU0lvYWIdRfTWc9nLNmh8ReJDhaks6c=;
+	h=Date:To:From:Subject:Message-Id; b=oJ6MoBKoiV/JTHhjL8R5JEfvsX6nf5K+LtRVir4c/U1YEkt8IL4z68zL9OsP2GVPHwU5Uulxa9KaTcqhU76MkQygoUGzerPk0u0C/cp8S4Gj0FtTutq61CxmShp6PloZs8Y5fItP6fwRVTobRYJBDadNKCXz9KtX29Fmfwmn5Bg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lqk9le2j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sDG8N58n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BF3BC43390;
-	Thu, 22 Feb 2024 00:03:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lqk9le2j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14FDAC43394;
+	Thu, 22 Feb 2024 00:03:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560222;
-	bh=DEqXWNrICNAVjTuFJgZuPJ16Yr+nbHWzi2vESwhjfz4=;
+	s=korg; t=1708560223;
+	bh=WbnpoWKtteAZNU0lvYWIdRfTWc9nLNmh8ReJDhaks6c=;
 	h=Date:To:From:Subject:From;
-	b=sDG8N58nTdKJu9MnHi39oChYZC2HJGVdVY1XINU/nGVVwlitkOY+ybEPyFqj8Sd8v
-	 EUbqzVyVLQbTxBSuvssV94GCoT4lOO7N8/jS4v4klbBPGoEDyXhOPDLG8u696W+9yU
-	 NyT8onHZCTXTXMere89bW2hdwEELWpDmDnPvTqWM=
-Date: Wed, 21 Feb 2024 16:03:41 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,donettom@linux.vnet.ibm.com,aneesh.kumar@linux.ibm.com,kinseyho@google.com,akpm@linux-foundation.org
+	b=lqk9le2j4RBEdSb2GuRoDliA7MyHKzmh6aos5oC3EvCxnMzIzekiGXN/GldujZvzq
+	 +R831E0s9u/On8SXHjqLa9qfDtjORLfdn8/J3YH8p85BAIXfUCFjezqliANCzMhXoh
+	 9qR4+47jGMfIn4O5rJ/8Xlu54Bc3Mpv1LsKUd53I=
+Date: Wed, 21 Feb 2024 16:03:42 -0800
+To: mm-commits@vger.kernel.org,will@kernel.org,npiggin@gmail.com,mpe@ellerman.id.au,jane.chu@oracle.com,david@redhat.com,catalin.marinas@arm.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mglru-improve-swappiness-handling.patch removed from -mm tree
-Message-Id: <20240222000342.0BF3BC43390@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve.patch removed from -mm tree
+Message-Id: <20240222000343.14FDAC43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,102 +35,84 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mglru: improve swappiness handling
+     Subject: mm/hugetlb: move page order check inside hugetlb_cma_reserve()
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-improve-swappiness-handling.patch
+     mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kinsey Ho <kinseyho@google.com>
-Subject: mm/mglru: improve swappiness handling
-Date: Wed, 14 Feb 2024 06:05:38 +0000
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/hugetlb: move page order check inside hugetlb_cma_reserve()
+Date: Fri, 9 Feb 2024 11:12:21 +0530
 
-The reclaimable number of anon pages used to set initial reclaim priority
-is only based on get_swappiness().  Use can_reclaim_anon_pages() to
-include NUMA node demotion.
+All platforms could benefit from page order check against MAX_PAGE_ORDER
+before allocating a CMA area for gigantic hugetlb pages.  Let's move this
+check from individual platforms to generic hugetlb.
 
-Also move the swappiness handling of when !__GFP_IO in
-try_to_shrink_lruvec() into isolate_folios().
-
-Link: https://lkml.kernel.org/r/20240214060538.3524462-6-kinseyho@google.com
-Signed-off-by: Kinsey Ho <kinseyho@google.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Donet Tom <donettom@linux.vnet.ibm.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20240209054221.1403364-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Jane Chu <jane.chu@oracle.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ arch/arm64/mm/hugetlbpage.c   |    7 -------
+ arch/powerpc/mm/hugetlbpage.c |    4 +---
+ mm/hugetlb.c                  |    7 +++++++
+ 3 files changed, 8 insertions(+), 10 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-improve-swappiness-handling
-+++ a/mm/vmscan.c
-@@ -4289,7 +4289,7 @@ static bool isolate_folio(struct lruvec
- {
- 	bool success;
- 
--	/* swapping inhibited */
-+	/* swap constrained */
- 	if (!(sc->gfp_mask & __GFP_IO) &&
- 	    (folio_test_dirty(folio) ||
- 	     (folio_test_anon(folio) && !folio_test_swapcache(folio))))
-@@ -4458,9 +4458,12 @@ static int isolate_folios(struct lruvec
- 	DEFINE_MIN_SEQ(lruvec);
- 
- 	/*
--	 * Try to make the obvious choice first. When anon and file are both
--	 * available from the same generation, interpret swappiness 1 as file
--	 * first and 200 as anon first.
-+	 * Try to make the obvious choice first, and if anon and file are both
-+	 * available from the same generation,
-+	 * 1. Interpret swappiness 1 as file first and MAX_SWAPPINESS as anon
-+	 *    first.
-+	 * 2. If !__GFP_IO, file first since clean pagecache is more likely to
-+	 *    exist than clean swapcache.
- 	 */
- 	if (!swappiness)
- 		type = LRU_GEN_FILE;
-@@ -4470,6 +4473,8 @@ static int isolate_folios(struct lruvec
- 		type = LRU_GEN_FILE;
- 	else if (swappiness == 200)
- 		type = LRU_GEN_ANON;
-+	else if (!(sc->gfp_mask & __GFP_IO))
-+		type = LRU_GEN_FILE;
+--- a/arch/arm64/mm/hugetlbpage.c~mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -45,13 +45,6 @@ void __init arm64_hugetlb_cma_reserve(vo
  	else
- 		type = get_type_to_scan(lruvec, swappiness, &tier);
+ 		order = CONT_PMD_SHIFT - PAGE_SHIFT;
  
-@@ -4713,10 +4718,6 @@ static bool try_to_shrink_lruvec(struct
- 	unsigned long scanned = 0;
- 	int swappiness = get_swappiness(lruvec, sc);
+-	/*
+-	 * HugeTLB CMA reservation is required for gigantic
+-	 * huge pages which could not be allocated via the
+-	 * page allocator. Just warn if there is any change
+-	 * breaking this assumption.
+-	 */
+-	WARN_ON(order <= MAX_PAGE_ORDER);
+ 	hugetlb_cma_reserve(order);
+ }
+ #endif /* CONFIG_CMA */
+--- a/arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -614,8 +614,6 @@ void __init gigantic_hugetlb_cma_reserve
+ 		 */
+ 		order = mmu_psize_to_shift(MMU_PAGE_16G) - PAGE_SHIFT;
  
--	/* clean file folios are more likely to exist */
--	if (swappiness && !(sc->gfp_mask & __GFP_IO))
--		swappiness = 1;
--
- 	while (true) {
- 		int delta;
+-	if (order) {
+-		VM_WARN_ON(order <= MAX_PAGE_ORDER);
++	if (order)
+ 		hugetlb_cma_reserve(order);
+-	}
+ }
+--- a/mm/hugetlb.c~mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve
++++ a/mm/hugetlb.c
+@@ -7720,6 +7720,13 @@ void __init hugetlb_cma_reserve(int orde
+ 	bool node_specific_cma_alloc = false;
+ 	int nid;
  
-@@ -4879,7 +4880,6 @@ static void set_initial_priority(struct
- {
- 	int priority;
- 	unsigned long reclaimable;
--	struct lruvec *lruvec = mem_cgroup_lruvec(NULL, pgdat);
++	/*
++	 * HugeTLB CMA reservation is required for gigantic
++	 * huge pages which could not be allocated via the
++	 * page allocator. Just warn if there is any change
++	 * breaking this assumption.
++	 */
++	VM_WARN_ON(order <= MAX_PAGE_ORDER);
+ 	cma_reserve_called = true;
  
- 	if (sc->priority != DEF_PRIORITY || sc->nr_to_reclaim < MIN_LRU_BATCH)
- 		return;
-@@ -4889,7 +4889,7 @@ static void set_initial_priority(struct
- 	 * where reclaimed_to_scanned_ratio = inactive / total.
- 	 */
- 	reclaimable = node_page_state(pgdat, NR_INACTIVE_FILE);
--	if (get_swappiness(lruvec, sc))
-+	if (can_reclaim_anon_pages(NULL, pgdat->node_id, sc))
- 		reclaimable += node_page_state(pgdat, NR_INACTIVE_ANON);
- 
- 	/* round down reclaimable and round up sc->nr_to_reclaim */
+ 	if (!hugetlb_cma_size)
 _
 
-Patches currently in -mm which might be from kinseyho@google.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
 
