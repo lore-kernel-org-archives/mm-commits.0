@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0771979D9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3DAC79D9
 	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560183; cv=none; b=LWCaA76NBkjsO52tCcHNT/gdplmujYwnVdZggI1m2XCmC2rQpdriPQlfTB4sWRXU78CEPs9Zurk5ZB5Q6jmPjqYA8DMAiBpJ+xGRH0MOhakRXN8rCjlLMFT2miq4nUmKd3ptm327jA7+UARoPsOmt0erSW+afppsfk9tXPr+erg=
+	t=1708560183; cv=none; b=a4Q4AeAZRZycxzn7YoR5x29vhM9E7Z7lMzoPNTspVYMVK39rmdC+fwbf7G7jAI3G52/rDUlvtwuvy+fyqsQkGZa/DXmkd8JfxMTzRSDecw4LyRBcPRnz5JqzdOyVAsimzqVa5dAaPVa1LWV1iHY1+kz44vqn/KWhxkWvU7t44q0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708560183; c=relaxed/simple;
-	bh=mhL8rYCYn7Lp9SZDzPv82Cg2NWYC/ZeStL3fYHTMGtQ=;
-	h=Date:To:From:Subject:Message-Id; b=rrhh4KWe2HW8I+q3ffefAViNzz9BHIRegQSy84nUNKY7U2c7TxPH3ixetY/NuYp4buM6sVaWOavE14z34pBHKwlMZa0dCkUTQqro1GO4vf0QeIRGDLW4TUmuaI2bLdKF4Z/Wpy+w9e03VEExJMNpXZ//z4VQ1FOG6kj7N3OsBdU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IAsk5Llr; arc=none smtp.client-ip=10.30.226.201
+	bh=6VH6GSiJF1Z7UNSgtjowucBPONesyvytmczqyPDaJFc=;
+	h=Date:To:From:Subject:Message-Id; b=VxxCZz+vEWhnCvEv+zVAx89gDbNxi49923fM70hZ2y1LL6E5Xs3V9ZHc/z6zzEg8eBJ+4x0IsccKKaLV3qJ7873CqTS7qZeHuZ6TC5xx+fc/hGI+TcNqZygQFGFAP0scOoB4NHOny4TUOzSTmghCAasWQWIxxHrWwkYK91EGcWk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qj+C44IQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IAsk5Llr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C617BC43394;
-	Thu, 22 Feb 2024 00:03:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qj+C44IQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8A42C43390;
+	Thu, 22 Feb 2024 00:03:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560182;
-	bh=mhL8rYCYn7Lp9SZDzPv82Cg2NWYC/ZeStL3fYHTMGtQ=;
+	s=korg; t=1708560183;
+	bh=6VH6GSiJF1Z7UNSgtjowucBPONesyvytmczqyPDaJFc=;
 	h=Date:To:From:Subject:From;
-	b=IAsk5LlrSjvj3Gjl37JtFkDIgl6a+thKuiyZMGJiLRsCqo6LWowqqvecB9L8mBaYF
-	 uVH1lu9iU6JaeAquAQBH8Omv4r6YZui+K8hId8cHEBVTonW0Xew45RgrvCli3Of5aD
-	 AuSDKSMqqjbQKVzf5e2pVtDIKMsKYfo8f4KQXk4g=
-Date: Wed, 21 Feb 2024 16:03:02 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,yangyifei03@kuaishou.com,songmuchun@bytedance.com,shakeelb@google.com,roman.gushchin@linux.dev,mkoutny@suse.com,mhocko@suse.com,hannes@cmpxchg.org,tjmercier@google.com,akpm@linux-foundation.org
+	b=Qj+C44IQt39wkZOX4VRF/fnznZd0d5vFxYTKD9f+h2xnJJ3MbUKb6Vh7DVRF5ckM1
+	 1y+5DOa79vV/gifNpERoLlETIQ/evUs+7LHmaKcmqg4ZWWZb5YZbtzF9YBd4rrqrwv
+	 dHzyOI4mhC3N2gsKGiDQ1aeKdAhyjwon/jv5tjkM=
+Date: Wed, 21 Feb 2024 16:03:03 -0800
+To: mm-commits@vger.kernel.org,christophe.jaillet@wanadoo.fr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-use-larger-batches-for-proactive-reclaim.patch removed from -mm tree
-Message-Id: <20240222000302.C617BC43394@smtp.kernel.org>
+Subject: [merged mm-stable] mm-reduce-dependencies-on-linux-kernelh.patch removed from -mm tree
+Message-Id: <20240222000303.A8A42C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,99 +35,71 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcg: use larger batches for proactive reclaim
+     Subject: mm: reduce dependencies on <linux/kernel.h>
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-use-larger-batches-for-proactive-reclaim.patch
+     mm-reduce-dependencies-on-linux-kernelh.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "T.J. Mercier" <tjmercier@google.com>
-Subject: mm: memcg: use larger batches for proactive reclaim
-Date: Fri, 2 Feb 2024 23:38:54 +0000
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: mm: reduce dependencies on <linux/kernel.h>
+Date: Fri, 2 Feb 2024 22:23:18 +0100
 
-Before 388536ac291 ("mm:vmscan: fix inaccurate reclaim during proactive
-reclaim") we passed the number of pages for the reclaim request directly
-to try_to_free_mem_cgroup_pages, which could lead to significant
-overreclaim.  After 0388536ac291 the number of pages was limited to a
-maximum 32 (SWAP_CLUSTER_MAX) to reduce the amount of overreclaim. 
-However such a small batch size caused a regression in reclaim performance
-due to many more reclaim start/stop cycles inside memory_reclaim.  The
-restart cost is amortized over more pages with larger batch sizes, and
-becomes a significant component of the runtime if the batch size is too
-small.
+"page_counter.h" does not need <linux/kernel.h>. <linux/limits.h> is enough
+to get LONG_MAX.
 
-Reclaim tries to balance nr_to_reclaim fidelity with fairness across nodes
-and cgroups over which the pages are spread.  As such, the bigger the
-request, the bigger the absolute overreclaim error.  Historic in-kernel
-users of reclaim have used fixed, small sized requests to approach an
-appropriate reclaim rate over time.  When we reclaim a user request of
-arbitrary size, use decaying batch sizes to manage error while maintaining
-reasonable throughput.
+Files that include page_counter.h are limited. They have been compile
+tested or checked.
 
-MGLRU enabled - memcg LRU used
-root - full reclaim       pages/sec   time (sec)
-pre-0388536ac291      :    68047        10.46
-post-0388536ac291     :    13742        inf
-(reclaim-reclaimed)/4 :    67352        10.51
+$ git grep page_counter\.h
+include/linux/hugetlb_cgroup.h: struct page_counter hugepage[HUGE_MAX_HSTATE];
+	--> all files that include it have been compile tested
 
-MGLRU enabled - memcg LRU not used
-/uid_0 - 1G reclaim       pages/sec   time (sec)  overreclaim (MiB)
-pre-0388536ac291      :    258822       1.12            107.8
-post-0388536ac291     :    105174       2.49            3.5
-(reclaim-reclaimed)/4 :    233396       1.12            -7.4
+include/linux/memcontrol.h:#include <linux/page_counter.h>
+	--> <linux/kernel.h> has been added, to be safe
 
-MGLRU enabled - memcg LRU not used
-/uid_0 - full reclaim     pages/sec   time (sec)
-pre-0388536ac291      :    72334        7.09
-post-0388536ac291     :    38105        14.45
-(reclaim-reclaimed)/4 :    72914        6.96
+include/net/sock.h:#include <linux/page_counter.h>
+	--> already include <linux/kernel.h>
 
-[tjmercier@google.com: v4]
-  Link: https://lkml.kernel.org/r/20240206175251.3364296-1-tjmercier@google.com
-Link: https://lkml.kernel.org/r/20240202233855.1236422-1-tjmercier@google.com
-Fixes: 0388536ac291 ("mm:vmscan: fix inaccurate reclaim during proactive reclaim")
-Signed-off-by: T.J. Mercier <tjmercier@google.com>
-Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Michal Koutny <mkoutny@suse.com>
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Efly Young <yangyifei03@kuaishou.com>
-Cc: Yu Zhao <yuzhao@google.com>
+mm/hugetlb_cgroup.c:#include <linux/page_counter.h>
+mm/memcontrol.c:#include <linux/page_counter.h>
+mm/page_counter.c:#include <linux/page_counter.h>
+	--> compile tested
+
+Link: https://lkml.kernel.org/r/adfdbe21c4d06400d7bd802868762deb85cae8b6.1706908921.git.christophe.jaillet@wanadoo.fr
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h   |    1 +
+ include/linux/page_counter.h |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcg-use-larger-batches-for-proactive-reclaim
-+++ a/mm/memcontrol.c
-@@ -6981,6 +6981,8 @@ static ssize_t memory_reclaim(struct ker
+--- a/include/linux/memcontrol.h~mm-reduce-dependencies-on-linux-kernelh
++++ a/include/linux/memcontrol.h
+@@ -14,6 +14,7 @@
+ #include <linux/vm_event_item.h>
+ #include <linux/hardirq.h>
+ #include <linux/jump_label.h>
++#include <linux/kernel.h>
+ #include <linux/page_counter.h>
+ #include <linux/vmpressure.h>
+ #include <linux/eventfd.h>
+--- a/include/linux/page_counter.h~mm-reduce-dependencies-on-linux-kernelh
++++ a/include/linux/page_counter.h
+@@ -4,7 +4,7 @@
  
- 	reclaim_options	= MEMCG_RECLAIM_MAY_SWAP | MEMCG_RECLAIM_PROACTIVE;
- 	while (nr_reclaimed < nr_to_reclaim) {
-+		/* Will converge on zero, but reclaim enforces a minimum */
-+		unsigned long batch_size = (nr_to_reclaim - nr_reclaimed) / 4;
- 		unsigned long reclaimed;
+ #include <linux/atomic.h>
+ #include <linux/cache.h>
+-#include <linux/kernel.h>
++#include <linux/limits.h>
+ #include <asm/page.h>
  
- 		if (signal_pending(current))
-@@ -6995,8 +6997,7 @@ static ssize_t memory_reclaim(struct ker
- 			lru_add_drain_all();
- 
- 		reclaimed = try_to_free_mem_cgroup_pages(memcg,
--					min(nr_to_reclaim - nr_reclaimed, SWAP_CLUSTER_MAX),
--					GFP_KERNEL, reclaim_options);
-+					batch_size, GFP_KERNEL, reclaim_options);
- 
- 		if (!reclaimed && !nr_retries--)
- 			return -EAGAIN;
+ struct page_counter {
 _
 
-Patches currently in -mm which might be from tjmercier@google.com are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
 
