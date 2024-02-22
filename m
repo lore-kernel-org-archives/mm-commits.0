@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFA4654912
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 19:09:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A6FE6E5E5
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 19:09:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708628943; cv=none; b=SUDpsxl6Jb+YbD/2NAdjiTwyMKHz8rBBydChRiyH7MlvIVaJVd5v0gXwvhJ+1339L0RKAYBJPfpaJgpAuzkPwxkAMRaqHICExiazwl4mjOSQapFiqJd1perCdgz7HqFQLKOiy4XguprZZDcA8CU2IBB8xUOdCT8jLpK6m0RBeYk=
+	t=1708628946; cv=none; b=gmpY9zkJfmpE7FOsclPdyIh7WucoA0AxiCAYVdekpYLeXlkFLFm9qmi8lcGzwxnrjb1+UmJpevElnIOsg+2kU1iLRSz64SKlmjYotEsobkdoJDO0BP8nblq4N0ze6p75nZnRYui9x6OoUZ2w5H89Oen0nVK6KykmPiHKx4mu890=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708628943; c=relaxed/simple;
-	bh=VQCV5xllnbY9Fj5b25lhKaBdZY1pzx5oulM4jkiFlkE=;
-	h=Date:To:From:Subject:Message-Id; b=RVQAIE5pw7NCMjK5a8SMWv19Q55UVrBTPHX4dDVlUWt682mkj6R7yB6pkrHSHH5AKv15s7R8UV/aqUqyRmf68J41iAkNw7jHJOMO8bL8TX/qJePdDIt7qem2qq/rOtQj/d/i1Yf8R1poMU6iJ8yKIe+6b+phb41xkatDIp9H9vU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MNbXK9xe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708628946; c=relaxed/simple;
+	bh=78eQgAnn90iNuF0zvX5v6d0JgIVXnwE1qXCIq6j8ZOs=;
+	h=Date:To:From:Subject:Message-Id; b=LEJGHhuP/kK3t9RyPQcxsK65gR5J5w1zNDvvGR4GKlxnVrLu2Vl8nZNUkYzwmqyAwb7tfCys6UqeHNiCefww8FeFnNJkSiTN3fXWFSvmqvH5DqxxLbIztG61WbZkSShlamWKdsCNqiytdSIt/IKUd8d+yBU2UgrfENtVS5Ugcds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=15PRuXkv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MNbXK9xe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4748FC43390;
-	Thu, 22 Feb 2024 19:09:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="15PRuXkv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB533C433C7;
+	Thu, 22 Feb 2024 19:09:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708628943;
-	bh=VQCV5xllnbY9Fj5b25lhKaBdZY1pzx5oulM4jkiFlkE=;
+	s=korg; t=1708628945;
+	bh=78eQgAnn90iNuF0zvX5v6d0JgIVXnwE1qXCIq6j8ZOs=;
 	h=Date:To:From:Subject:From;
-	b=MNbXK9xe3Ut4Vxh5TNIM6QBhUFkqUQAj5ilJW0LP2hy8xeYcPXbit3vrvNqp6RMMC
-	 jLm64UP+gXcE/DXxJ776DDkYH3X3G74RBVEgAsVLeqZC+7kyhJJvy8DLrT+Wd3FV3M
-	 TgEHW4E2tNn56A3HvPXWU8nFUvC2rxFvZgtu74q8=
-Date: Thu, 22 Feb 2024 11:09:02 -0800
-To: mm-commits@vger.kernel.org,rientjes@google.com,muchun.song@linux.dev,ligang.bdlg@bytedance.com,gang.li@linux.dev,akpm@linux-foundation.org
+	b=15PRuXkvqqefQwzBMlXxV82DouMCe7Z762DdxPycNpK+/ChurpRQcIH2ZB2bzDJHk
+	 rgRksCwJwmFL4kuWjw1iLjKjF3Nzds3cE6XOqtT+SuvgbEV51E3qG8fHXANER2Hba5
+	 LjL7bMmCjSbAnFxFnx5NpTs6lBrS/ZbcnnxiLcGA=
+Date: Thu, 22 Feb 2024 11:09:05 -0800
+To: mm-commits@vger.kernel.org,tim.c.chen@linux.intel.com,rientjes@google.com,muchun.song@linux.dev,mike.kravetz@oracle.com,ligang.bdlg@bytedance.com,gang.li@linux.dev,david@redhat.com,adobriyan@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-parallelize-1g-hugetlb-initialization.patch added to mm-unstable branch
-Message-Id: <20240222190903.4748FC43390@smtp.kernel.org>
+Subject: + hugetlb-parallelize-1g-hugetlb-initialization-fix.patch added to mm-unstable branch
+Message-Id: <20240222190905.DB533C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hugetlb: parallelize 1G hugetlb initialization
+     Subject: hugetlb-parallelize-1g-hugetlb-initialization-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-parallelize-1g-hugetlb-initialization.patch
+     hugetlb-parallelize-1g-hugetlb-initialization-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-parallelize-1g-hugetlb-initialization.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-parallelize-1g-hugetlb-initialization-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,191 +58,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gang Li <gang.li@linux.dev>
-Subject: hugetlb: parallelize 1G hugetlb initialization
-Date: Thu, 22 Feb 2024 22:04:21 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hugetlb-parallelize-1g-hugetlb-initialization-fix
+Date: Thu Feb 22 10:34:41 AM PST 2024
 
-Optimizing the initialization speed of 1G huge pages through
-parallelization.
+s/initialied/initialized/, per Alexey
 
-1G hugetlbs are allocated from bootmem, a process that is already very
-fast and does not currently require optimization.  Therefore, we focus on
-parallelizing only the initialization phase in `gather_bootmem_prealloc`.
-
-Here are some test results:
-      test case       no patch(ms)   patched(ms)   saved
- ------------------- -------------- ------------- --------
-  256c2T(4 node) 1G           4745          2024   57.34%
-  128c1T(2 node) 1G           3358          1712   49.02%
-     12T         1G          77000         18300   76.23%
-
-Link: https://lkml.kernel.org/r/20240222140422.393911-9-gang.li@linux.dev
-Signed-off-by: Gang Li <ligang.bdlg@bytedance.com>
-Tested-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Gang Li <gang.li@linux.dev>
+Cc: Gang Li <ligang.bdlg@bytedance.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/hugetlbpage.c |    2 -
- include/linux/hugetlb.h       |    2 -
- mm/hugetlb.c                  |   51 ++++++++++++++++++++++++++------
- 3 files changed, 45 insertions(+), 10 deletions(-)
+ mm/hugetlb.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/powerpc/mm/hugetlbpage.c~hugetlb-parallelize-1g-hugetlb-initialization
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -226,7 +226,7 @@ static int __init pseries_alloc_bootmem_
- 		return 0;
- 	m = phys_to_virt(gpage_freearray[--nr_gpages]);
- 	gpage_freearray[nr_gpages] = 0;
--	list_add(&m->list, &huge_boot_pages);
-+	list_add(&m->list, &huge_boot_pages[0]);
- 	m->hstate = hstate;
- 	return 1;
- }
---- a/include/linux/hugetlb.h~hugetlb-parallelize-1g-hugetlb-initialization
-+++ a/include/linux/hugetlb.h
-@@ -178,7 +178,7 @@ pte_t *huge_pmd_share(struct mm_struct *
- struct address_space *hugetlb_page_mapping_lock_write(struct page *hpage);
- 
- extern int sysctl_hugetlb_shm_group;
--extern struct list_head huge_boot_pages;
-+extern struct list_head huge_boot_pages[MAX_NUMNODES];
- 
- /* arch callbacks */
- 
---- a/mm/hugetlb.c~hugetlb-parallelize-1g-hugetlb-initialization
+--- a/mm/hugetlb.c~hugetlb-parallelize-1g-hugetlb-initialization-fix
 +++ a/mm/hugetlb.c
-@@ -69,7 +69,7 @@ static bool hugetlb_cma_folio(struct fol
- #endif
- static unsigned long hugetlb_cma_size __initdata;
- 
--__initdata LIST_HEAD(huge_boot_pages);
-+__initdata struct list_head huge_boot_pages[MAX_NUMNODES];
- 
- /* for command line parsing */
- static struct hstate * __initdata parsed_hstate;
-@@ -3301,7 +3301,7 @@ int alloc_bootmem_huge_page(struct hstat
- int __alloc_bootmem_huge_page(struct hstate *h, int nid)
- {
- 	struct huge_bootmem_page *m = NULL; /* initialize for clang */
--	int nr_nodes, node;
-+	int nr_nodes, node = nid;
- 
- 	/* do node specific alloc */
- 	if (nid != NUMA_NO_NODE) {
-@@ -3339,7 +3339,7 @@ found:
- 		huge_page_size(h) - PAGE_SIZE);
- 	/* Put them into a private list first because mem_map is not up yet */
- 	INIT_LIST_HEAD(&m->list);
--	list_add(&m->list, &huge_boot_pages);
-+	list_add(&m->list, &huge_boot_pages[node]);
- 	m->hstate = h;
- 	return 1;
- }
-@@ -3390,8 +3390,6 @@ static void __init prep_and_add_bootmem_
- 	/* Send list for bulk vmemmap optimization processing */
- 	hugetlb_vmemmap_optimize_folios(h, folio_list);
- 
--	/* Add all new pool pages to free lists in one lock cycle */
--	spin_lock_irqsave(&hugetlb_lock, flags);
- 	list_for_each_entry_safe(folio, tmp_f, folio_list, lru) {
- 		if (!folio_test_hugetlb_vmemmap_optimized(folio)) {
- 			/*
-@@ -3404,23 +3402,25 @@ static void __init prep_and_add_bootmem_
- 					HUGETLB_VMEMMAP_RESERVE_PAGES,
- 					pages_per_huge_page(h));
- 		}
-+		/* Subdivide locks to achieve better parallel performance */
-+		spin_lock_irqsave(&hugetlb_lock, flags);
- 		__prep_account_new_huge_page(h, folio_nid(folio));
- 		enqueue_hugetlb_folio(h, folio);
-+		spin_unlock_irqrestore(&hugetlb_lock, flags);
- 	}
--	spin_unlock_irqrestore(&hugetlb_lock, flags);
- }
- 
- /*
-  * Put bootmem huge pages into the standard lists after mem_map is up.
-  * Note: This only applies to gigantic (order > MAX_PAGE_ORDER) pages.
-  */
--static void __init gather_bootmem_prealloc(void)
-+static void __init gather_bootmem_prealloc_node(unsigned long nid)
- {
- 	LIST_HEAD(folio_list);
- 	struct huge_bootmem_page *m;
- 	struct hstate *h = NULL, *prev_h = NULL;
- 
--	list_for_each_entry(m, &huge_boot_pages, list) {
-+	list_for_each_entry(m, &huge_boot_pages[nid], list) {
- 		struct page *page = virt_to_page(m);
- 		struct folio *folio = (void *)page;
- 
-@@ -3453,6 +3453,31 @@ static void __init gather_bootmem_preall
- 	prep_and_add_bootmem_folios(h, &folio_list);
- }
- 
-+static void __init gather_bootmem_prealloc_parallel(unsigned long start,
-+						    unsigned long end, void *arg)
-+{
-+	int nid;
-+
-+	for (nid = start; nid < end; nid++)
-+		gather_bootmem_prealloc_node(nid);
-+}
-+
-+static void __init gather_bootmem_prealloc(void)
-+{
-+	struct padata_mt_job job = {
-+		.thread_fn	= gather_bootmem_prealloc_parallel,
-+		.fn_arg		= NULL,
-+		.start		= 0,
-+		.size		= num_node_state(N_MEMORY),
-+		.align		= 1,
-+		.min_chunk	= 1,
-+		.max_threads	= num_node_state(N_MEMORY),
-+		.numa_aware	= true,
-+	};
-+
-+	padata_do_multithreaded(&job);
-+}
-+
- static void __init hugetlb_hstate_alloc_pages_onenode(struct hstate *h, int nid)
- {
- 	unsigned long i;
-@@ -3600,6 +3625,7 @@ static unsigned long __init hugetlb_page
+@@ -3625,7 +3625,7 @@ static unsigned long __init hugetlb_page
  static void __init hugetlb_hstate_alloc_pages(struct hstate *h)
  {
  	unsigned long allocated;
-+	static bool initialied __initdata;
+-	static bool initialied __initdata;
++	static bool initialized __initdata;
  
  	/* skip gigantic hugepages allocation if hugetlb_cma enabled */
  	if (hstate_is_gigantic(h) && hugetlb_cma_size) {
-@@ -3607,6 +3633,15 @@ static void __init hugetlb_hstate_alloc_
- 		return;
+@@ -3634,12 +3634,12 @@ static void __init hugetlb_hstate_alloc_
  	}
  
-+	/* hugetlb_hstate_alloc_pages will be called many times, initialize huge_boot_pages once */
-+	if (!initialied) {
-+		int i = 0;
-+
-+		for (i = 0; i < MAX_NUMNODES; i++)
-+			INIT_LIST_HEAD(&huge_boot_pages[i]);
-+		initialied = true;
-+	}
-+
+ 	/* hugetlb_hstate_alloc_pages will be called many times, initialize huge_boot_pages once */
+-	if (!initialied) {
++	if (!initialized) {
+ 		int i = 0;
+ 
+ 		for (i = 0; i < MAX_NUMNODES; i++)
+ 			INIT_LIST_HEAD(&huge_boot_pages[i]);
+-		initialied = true;
++		initialized = true;
+ 	}
+ 
  	/* do node specific alloc */
- 	if (hugetlb_hstate_alloc_pages_specific_nodes(h))
- 		return;
 _
 
-Patches currently in -mm which might be from gang.li@linux.dev are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hugetlb-code-clean-for-hugetlb_hstate_alloc_pages.patch
-hugetlb-split-hugetlb_hstate_alloc_pages.patch
-hugetlb-pass-next_nid_to_alloc-directly-to-for_each_node_mask_to_alloc.patch
-padata-dispatch-works-on-different-nodes.patch
-padata-downgrade-padata_do_multithreaded-to-serial-execution-for-non-smp.patch
-hugetlb-have-config_hugetlbfs-select-config_padata.patch
-hugetlb-parallelize-2m-hugetlb-allocation-and-initialization.patch
-hugetlb-parallelize-1g-hugetlb-initialization.patch
+kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch
+arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix.patch
+mm-swapfile-__swap_duplicate-drop-redundant-write_once-on-swap_map-for-err-cases-fix.patch
+hugetlb-parallelize-1g-hugetlb-initialization-fix.patch
+kprobes-use-synchronize_rcu_tasks_rude-in-kprobe_optimizer-fix.patch
+panic-add-option-to-dump-blocked-tasks-in-panic_print-fix.patch
 
