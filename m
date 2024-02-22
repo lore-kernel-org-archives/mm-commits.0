@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 067DD17BBA
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:39:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE19C13792F
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:39:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708645168; cv=none; b=CJh61YwKLthwOtCCtrjaF5ODp30GoyetlG/Z5sFbd2tXTSuGmQA+Up7k8diyVVOUS/94omYKw57NP52RKZ5FehUAqbUpnRWl/uGJ6TprbwipdLngAm6E6C/oT00qS+Km+PVYXNf3P1baOseZqO0Y7UUR7dLGnh6P5SnWaNNKfv4=
+	t=1708645168; cv=none; b=IUaD3lpzEDg3JoL0jLIGnyfdj8lxHFZVimNF15G//Lp693ZM5NTykdrUNOaDAkYxVTyKXKk/X89U2ubfiFPLIgLY5BgBdpYdDe1DOdep/8a/LkuerDXg5jwyEpDxKUH9IZdyUTOR1DHJLRbhgLKyAGSiyUN01EbEnydhXtQwc9o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708645168; c=relaxed/simple;
-	bh=pDCqXjvm6Jl9kkL3xPVzBD69Z03IhIgQ4vhxBGBWI6g=;
-	h=Date:To:From:Subject:Message-Id; b=H9b8ICkH7ziUA4X6aB0UP27/I4OfUxg1lTdyT/gZjuTAo+GyZbCpXHIjSVdp7fLjqW0fC4ADgxcR/ywCVm+yhk7Vi93DRju4Pn2pmz+Ng1DYlIg1X8qfmEcJecI8xhN5RbUNUNZbBFI+7pXjqR/ZBPyUhQMOZkdddufZPgz2iD4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1EsvkUiq; arc=none smtp.client-ip=10.30.226.201
+	bh=AoqFdC1FAf6oDbFmW2TrNPvISbZy4EExR/Q/PY6VHFY=;
+	h=Date:To:From:Subject:Message-Id; b=aPO8qIIm374CP6/OWz8EwIyTSOEiwwjbpoPJZpycD5PkzxCIn2bk3z4zUgyQ2yhmyiWRmFZ6wKrNm70c+giBoHPSbb32yVgM/LaJLzFkOY8naoi/v/u8vn5NlWaum8vAfNnlqXXNKGprLSDg5akPcGFE5G7nz740XTaSpKlPrbg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uAPt95Wr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1EsvkUiq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC3BAC433F1;
-	Thu, 22 Feb 2024 23:39:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uAPt95Wr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0A57C433C7;
+	Thu, 22 Feb 2024 23:39:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708645167;
-	bh=pDCqXjvm6Jl9kkL3xPVzBD69Z03IhIgQ4vhxBGBWI6g=;
+	s=korg; t=1708645168;
+	bh=AoqFdC1FAf6oDbFmW2TrNPvISbZy4EExR/Q/PY6VHFY=;
 	h=Date:To:From:Subject:From;
-	b=1EsvkUiq4j+T3OhFY6s7PGpWWwxD6eo4nXm5YYbqFimEJc1KyT47zqW+otK2ESdtx
-	 MtDOjeKPHpbuXGxbEYV6n0n4IIa7DodJ06yC44bsuZQYbTZVWP+3fS/BdAonOqV529
-	 2tjkPExQhdUO6KfBnYPx8/JpaW+MuMhV3yLdRIKg=
-Date: Thu, 22 Feb 2024 15:39:27 -0800
-To: mm-commits@vger.kernel.org,mykolal@fb.com,maskray@google.com,keescook@chromium.org,daniel@iogearbox.net,ast@kernel.org,andrii@kernel.org,nathan@kernel.org,akpm@linux-foundation.org
+	b=uAPt95WrOVC7ezF9qBVSiBQSG1y+qSn3qtvQBksrj74ItdxU7s4qBCzK0XVs2wfOZ
+	 YuqNLA1pfKe4Q6M9qyAW99NBDIQ3/3z+bvy8neISRYpxq72xuj6pIWr1C5B9N533GL
+	 dh+s/UhYlnnSPwIild+xsP0Wiy8hj5yX8wPySa0w=
+Date: Thu, 22 Feb 2024 15:39:28 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,rostedt@goodmis.org,pengfei.xu@intel.com,mszeredi@redhat.com,mathieu.desnoyers@efficios.com,javierm@redhat.com,brauner@kernel.org,avagin@google.com,wenyang.linux@foxmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] treewide-update-llvm-bugzilla-links.patch removed from -mm tree
-Message-Id: <20240222233927.BC3BAC433F1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-add-eventfd-selftests.patch removed from -mm tree
+Message-Id: <20240222233928.B0A57C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,247 +35,245 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: treewide: update LLVM Bugzilla links
+     Subject: selftests: add eventfd selftests
 has been removed from the -mm tree.  Its filename was
-     treewide-update-llvm-bugzilla-links.patch
+     selftests-add-eventfd-selftests.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nathan Chancellor <nathan@kernel.org>
-Subject: treewide: update LLVM Bugzilla links
-Date: Tue, 09 Jan 2024 15:16:31 -0700
+From: Wen Yang <wenyang.linux@foxmail.com>
+Subject: selftests: add eventfd selftests
+Date: Mon, 8 Jan 2024 23:51:32 +0800
 
-LLVM moved their issue tracker from their own Bugzilla instance to GitHub
-issues.  While all of the links are still valid, they may not necessarily
-show the most up to date information around the issues, as all updates
-will occur on GitHub, not Bugzilla.
+This adds the promised selftest for eventfd.  It will verify the flags of
+eventfd2, including EFD_CLOEXEC, EFD_NONBLOCK and EFD_SEMAPHORE.
 
-Another complication is that the Bugzilla issue number is not always the
-same as the GitHub issue number.  Thankfully, LLVM maintains this mapping
-through two shortlinks:
-
-  https://llvm.org/bz<num> -> https://bugs.llvm.org/show_bug.cgi?id=<num>
-  https://llvm.org/pr<num> -> https://github.com/llvm/llvm-project/issues/<mapped_num>
-
-Switch all "https://bugs.llvm.org/show_bug.cgi?id=<num>" links to the
-"https://llvm.org/pr<num>" shortlink so that the links show the most up to
-date information.  Each migrated issue links back to the Bugzilla entry,
-so there should be no loss of fidelity of information here.
-
-Link: https://lkml.kernel.org/r/20240109-update-llvm-links-v1-3-eb09b59db071@kernel.org
-Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Acked-by: Fangrui Song <maskray@google.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Mykola Lysenko <mykolal@fb.com>
+Link: https://lkml.kernel.org/r/tencent_3C9A298878D22B5D8F79DC2FEE99BB4A8F05@qq.com
+Signed-off-by: Wen Yang <wenyang.linux@foxmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Javier Martinez Canillas <javierm@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Pengfei Xu <pengfei.xu@intel.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Andrei Vagin <avagin@google.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Makefile                           |    4 ++--
- arch/powerpc/kvm/book3s_hv_nested.c             |    2 +-
- arch/s390/include/asm/ftrace.h                  |    2 +-
- arch/x86/power/Makefile                         |    2 +-
- crypto/blake2b_generic.c                        |    2 +-
- drivers/firmware/efi/libstub/Makefile           |    2 +-
- drivers/gpu/drm/amd/amdgpu/sdma_v4_4_2.c        |    2 +-
- drivers/media/test-drivers/vicodec/codec-fwht.c |    2 +-
- drivers/regulator/Kconfig                       |    2 +-
- include/asm-generic/vmlinux.lds.h               |    2 +-
- lib/Kconfig.kasan                               |    2 +-
- lib/raid6/Makefile                              |    2 +-
- lib/stackinit_kunit.c                           |    2 +-
- mm/slab_common.c                                |    2 +-
- net/bridge/br_multicast.c                       |    2 +-
- security/Kconfig                                |    2 +-
- 16 files changed, 17 insertions(+), 17 deletions(-)
+ tools/testing/selftests/filesystems/eventfd/.gitignore     |    2 
+ tools/testing/selftests/filesystems/eventfd/Makefile       |    7 
+ tools/testing/selftests/filesystems/eventfd/eventfd_test.c |  186 ++++++++++
+ 3 files changed, 195 insertions(+)
 
---- a/arch/powerpc/kvm/book3s_hv_nested.c~treewide-update-llvm-bugzilla-links
-+++ a/arch/powerpc/kvm/book3s_hv_nested.c
-@@ -55,7 +55,7 @@ void kvmhv_save_hv_regs(struct kvm_vcpu
- 	hr->dawrx1 = vcpu->arch.dawrx1;
- }
- 
--/* Use noinline_for_stack due to https://bugs.llvm.org/show_bug.cgi?id=49610 */
-+/* Use noinline_for_stack due to https://llvm.org/pr49610 */
- static noinline_for_stack void byteswap_pt_regs(struct pt_regs *regs)
- {
- 	unsigned long *addr = (unsigned long *) regs;
---- a/arch/powerpc/Makefile~treewide-update-llvm-bugzilla-links
-+++ a/arch/powerpc/Makefile
-@@ -144,11 +144,11 @@ CFLAGS-$(CONFIG_PPC64)	+= $(call cc-opti
- CFLAGS-$(CONFIG_PPC64)	+= $(call cc-option,-mlong-double-128)
- 
- # Clang unconditionally reserves r2 on ppc32 and does not support the flag
--# https://bugs.llvm.org/show_bug.cgi?id=39555
-+# https://llvm.org/pr39555
- CFLAGS-$(CONFIG_PPC32)	:= $(call cc-option, -ffixed-r2)
- 
- # Clang doesn't support -mmultiple / -mno-multiple
--# https://bugs.llvm.org/show_bug.cgi?id=39556
-+# https://llvm.org/pr39556
- CFLAGS-$(CONFIG_PPC32)	+= $(call cc-option, $(MULTIPLEWORD))
- 
- CFLAGS-$(CONFIG_PPC32)	+= $(call cc-option,-mno-readonly-in-sdata)
---- a/arch/s390/include/asm/ftrace.h~treewide-update-llvm-bugzilla-links
-+++ a/arch/s390/include/asm/ftrace.h
-@@ -9,7 +9,7 @@
- #ifndef __ASSEMBLY__
- 
- #ifdef CONFIG_CC_IS_CLANG
--/* https://bugs.llvm.org/show_bug.cgi?id=41424 */
-+/* https://llvm.org/pr41424 */
- #define ftrace_return_address(n) 0UL
- #else
- #define ftrace_return_address(n) __builtin_return_address(n)
---- a/arch/x86/power/Makefile~treewide-update-llvm-bugzilla-links
-+++ a/arch/x86/power/Makefile
-@@ -5,7 +5,7 @@
- CFLAGS_cpu.o	:= -fno-stack-protector
- 
- # Clang may incorrectly inline functions with stack protector enabled into
--# __restore_processor_state(): https://bugs.llvm.org/show_bug.cgi?id=47479
-+# __restore_processor_state(): https://llvm.org/pr47479
- CFLAGS_REMOVE_cpu.o := $(CC_FLAGS_LTO)
- 
- obj-$(CONFIG_PM_SLEEP)		+= cpu.o
---- a/crypto/blake2b_generic.c~treewide-update-llvm-bugzilla-links
-+++ a/crypto/blake2b_generic.c
-@@ -102,7 +102,7 @@ static void blake2b_compress_one_generic
- 	ROUND(10);
- 	ROUND(11);
- #ifdef CONFIG_CC_IS_CLANG
--#pragma nounroll /* https://bugs.llvm.org/show_bug.cgi?id=45803 */
-+#pragma nounroll /* https://llvm.org/pr45803 */
- #endif
- 	for (i = 0; i < 8; ++i)
- 		S->h[i] = S->h[i] ^ v[i] ^ v[i + 8];
---- a/drivers/firmware/efi/libstub/Makefile~treewide-update-llvm-bugzilla-links
-+++ a/drivers/firmware/efi/libstub/Makefile
-@@ -105,7 +105,7 @@ lib-y				:= $(patsubst %.o,%.stub.o,$(li
- # Even when -mbranch-protection=none is set, Clang will generate a
- # .note.gnu.property for code-less object files (like lib/ctype.c),
- # so work around this by explicitly removing the unwanted section.
--# https://bugs.llvm.org/show_bug.cgi?id=46480
-+# https://llvm.org/pr46480
- STUBCOPY_FLAGS-y		+= --remove-section=.note.gnu.property
- 
- STUBCOPY_RELOC-$(CONFIG_X86_32)	:= R_386_32
---- a/drivers/gpu/drm/amd/amdgpu/sdma_v4_4_2.c~treewide-update-llvm-bugzilla-links
-+++ a/drivers/gpu/drm/amd/amdgpu/sdma_v4_4_2.c
-@@ -610,7 +610,7 @@ static uint32_t sdma_v4_4_2_rb_cntl(stru
- 	/* Set ring buffer size in dwords */
- 	uint32_t rb_bufsz = order_base_2(ring->ring_size / 4);
- 
--	barrier(); /* work around https://bugs.llvm.org/show_bug.cgi?id=42576 */
-+	barrier(); /* work around https://llvm.org/pr42576 */
- 	rb_cntl = REG_SET_FIELD(rb_cntl, SDMA_GFX_RB_CNTL, RB_SIZE, rb_bufsz);
- #ifdef __BIG_ENDIAN
- 	rb_cntl = REG_SET_FIELD(rb_cntl, SDMA_GFX_RB_CNTL, RB_SWAP_ENABLE, 1);
---- a/drivers/media/test-drivers/vicodec/codec-fwht.c~treewide-update-llvm-bugzilla-links
-+++ a/drivers/media/test-drivers/vicodec/codec-fwht.c
-@@ -49,7 +49,7 @@ static const uint8_t zigzag[64] = {
- 
- /*
-  * noinline_for_stack to work around
-- * https://bugs.llvm.org/show_bug.cgi?id=38809
-+ * https://llvm.org/pr38809
-  */
- static int noinline_for_stack
- rlc(const s16 *in, __be16 *output, int blocktype)
---- a/drivers/regulator/Kconfig~treewide-update-llvm-bugzilla-links
-+++ a/drivers/regulator/Kconfig
-@@ -288,7 +288,7 @@ config REGULATOR_CROS_EC
- config REGULATOR_DA903X
- 	tristate "Dialog Semiconductor DA9030/DA9034 regulators"
- 	depends on PMIC_DA903X
--	depends on !CC_IS_CLANG # https://bugs.llvm.org/show_bug.cgi?id=38789
-+	depends on !CC_IS_CLANG # https://llvm.org/pr38789
- 	help
- 	  Say y here to support the BUCKs and LDOs regulators found on
- 	  Dialog Semiconductor DA9030/DA9034 PMIC.
---- a/include/asm-generic/vmlinux.lds.h~treewide-update-llvm-bugzilla-links
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -984,7 +984,7 @@
-  * -fsanitize=thread produce unwanted sections (.eh_frame
-  * and .init_array.*), but CONFIG_CONSTRUCTORS wants to
-  * keep any .init_array.* sections.
-- * https://bugs.llvm.org/show_bug.cgi?id=46478
-+ * https://llvm.org/pr46478
-  */
- #ifdef CONFIG_UNWIND_TABLES
- #define DISCARD_EH_FRAME
---- a/lib/Kconfig.kasan~treewide-update-llvm-bugzilla-links
-+++ a/lib/Kconfig.kasan
-@@ -158,7 +158,7 @@ config KASAN_STACK
- 	  out-of-bounds bugs in stack variables.
- 
- 	  With Clang, stack instrumentation has a problem that causes excessive
--	  stack usage, see https://bugs.llvm.org/show_bug.cgi?id=38809. Thus,
-+	  stack usage, see https://llvm.org/pr38809. Thus,
- 	  with Clang, this option is deemed unsafe.
- 
- 	  This option is always disabled when compile-testing with Clang to
---- a/lib/raid6/Makefile~treewide-update-llvm-bugzilla-links
-+++ a/lib/raid6/Makefile
-@@ -21,7 +21,7 @@ altivec_flags += -isystem $(shell $(CC)
- ifdef CONFIG_CC_IS_CLANG
- # clang ppc port does not yet support -maltivec when -msoft-float is
- # enabled. A future release of clang will resolve this
--# https://bugs.llvm.org/show_bug.cgi?id=31177
-+# https://llvm.org/pr31177
- CFLAGS_REMOVE_altivec1.o  += -msoft-float
- CFLAGS_REMOVE_altivec2.o  += -msoft-float
- CFLAGS_REMOVE_altivec4.o  += -msoft-float
---- a/lib/stackinit_kunit.c~treewide-update-llvm-bugzilla-links
-+++ a/lib/stackinit_kunit.c
-@@ -404,7 +404,7 @@ static noinline int leaf_switch_2_none(u
-  * These are expected to fail for most configurations because neither
-  * GCC nor Clang have a way to perform initialization of variables in
-  * non-code areas (i.e. in a switch statement before the first "case").
-- * https://bugs.llvm.org/show_bug.cgi?id=44916
-+ * https://llvm.org/pr44916
-  */
- DEFINE_TEST_DRIVER(switch_1_none, uint64_t, SCALAR, ALWAYS_FAIL);
- DEFINE_TEST_DRIVER(switch_2_none, uint64_t, SCALAR, ALWAYS_FAIL);
---- a/mm/slab_common.c~treewide-update-llvm-bugzilla-links
-+++ a/mm/slab_common.c
-@@ -651,7 +651,7 @@ static struct kmem_cache *__init create_
- 
- struct kmem_cache *
- kmalloc_caches[NR_KMALLOC_TYPES][KMALLOC_SHIFT_HIGH + 1] __ro_after_init =
--{ /* initialization for https://bugs.llvm.org/show_bug.cgi?id=42570 */ };
-+{ /* initialization for https://llvm.org/pr42570 */ };
- EXPORT_SYMBOL(kmalloc_caches);
- 
- #ifdef CONFIG_RANDOM_KMALLOC_CACHES
---- a/net/bridge/br_multicast.c~treewide-update-llvm-bugzilla-links
-+++ a/net/bridge/br_multicast.c
-@@ -5053,7 +5053,7 @@ void br_multicast_uninit_stats(struct ne
- 	free_percpu(br->mcast_stats);
- }
- 
--/* noinline for https://bugs.llvm.org/show_bug.cgi?id=45802#c9 */
-+/* noinline for https://llvm.org/pr45802#c9 */
- static noinline_for_stack void mcast_stats_add_dir(u64 *dst, u64 *src)
- {
- 	dst[BR_MCAST_DIR_RX] += src[BR_MCAST_DIR_RX];
---- a/security/Kconfig~treewide-update-llvm-bugzilla-links
-+++ a/security/Kconfig
-@@ -142,7 +142,7 @@ config HARDENED_USERCOPY
- config FORTIFY_SOURCE
- 	bool "Harden common str/mem functions against buffer overflows"
- 	depends on ARCH_HAS_FORTIFY_SOURCE
--	# https://bugs.llvm.org/show_bug.cgi?id=41459
-+	# https://llvm.org/pr41459
- 	depends on !CC_IS_CLANG || CLANG_VERSION >= 120001
- 	# https://github.com/llvm/llvm-project/issues/53645
- 	depends on !CC_IS_CLANG || !X86_32
+--- /dev/null
++++ a/tools/testing/selftests/filesystems/eventfd/eventfd_test.c
+@@ -0,0 +1,186 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#define _GNU_SOURCE
++#include <errno.h>
++#include <fcntl.h>
++#include <asm/unistd.h>
++#include <linux/time_types.h>
++#include <unistd.h>
++#include <assert.h>
++#include <signal.h>
++#include <pthread.h>
++#include <sys/epoll.h>
++#include <sys/eventfd.h>
++#include "../../kselftest_harness.h"
++
++struct error {
++	int  code;
++	char msg[512];
++};
++
++static int error_set(struct error *err, int code, const char *fmt, ...)
++{
++	va_list args;
++	int r;
++
++	if (code == 0 || !err || err->code != 0)
++		return code;
++
++	err->code = code;
++	va_start(args, fmt);
++	r = vsnprintf(err->msg, sizeof(err->msg), fmt, args);
++	assert((size_t)r < sizeof(err->msg));
++	va_end(args);
++
++	return code;
++}
++
++static inline int sys_eventfd2(unsigned int count, int flags)
++{
++	return syscall(__NR_eventfd2, count, flags);
++}
++
++TEST(eventfd01)
++{
++	int fd, flags;
++
++	fd = sys_eventfd2(0, 0);
++	ASSERT_GE(fd, 0);
++
++	flags = fcntl(fd, F_GETFL);
++	// since the kernel automatically added O_RDWR.
++	EXPECT_EQ(flags, O_RDWR);
++
++	close(fd);
++}
++
++TEST(eventfd02)
++{
++	int fd, flags;
++
++	fd = sys_eventfd2(0, EFD_CLOEXEC);
++	ASSERT_GE(fd, 0);
++
++	flags = fcntl(fd, F_GETFD);
++	ASSERT_GT(flags, -1);
++	EXPECT_EQ(flags, FD_CLOEXEC);
++
++	close(fd);
++}
++
++TEST(eventfd03)
++{
++	int fd, flags;
++
++	fd = sys_eventfd2(0, EFD_NONBLOCK);
++	ASSERT_GE(fd, 0);
++
++	flags = fcntl(fd, F_GETFL);
++	ASSERT_GT(flags, -1);
++	EXPECT_EQ(flags & EFD_NONBLOCK, EFD_NONBLOCK);
++	EXPECT_EQ(flags & O_RDWR, O_RDWR);
++
++	close(fd);
++}
++
++TEST(eventfd04)
++{
++	int fd, flags;
++
++	fd = sys_eventfd2(0, EFD_CLOEXEC|EFD_NONBLOCK);
++	ASSERT_GE(fd, 0);
++
++	flags = fcntl(fd, F_GETFL);
++	ASSERT_GT(flags, -1);
++	EXPECT_EQ(flags & EFD_NONBLOCK, EFD_NONBLOCK);
++	EXPECT_EQ(flags & O_RDWR, O_RDWR);
++
++	flags = fcntl(fd, F_GETFD);
++	ASSERT_GT(flags, -1);
++	EXPECT_EQ(flags, FD_CLOEXEC);
++
++	close(fd);
++}
++
++static inline void trim_newline(char *str)
++{
++	char *pos = strrchr(str, '\n');
++
++	if (pos)
++		*pos = '\0';
++}
++
++static int verify_fdinfo(int fd, struct error *err, const char *prefix,
++		size_t prefix_len, const char *expect, ...)
++{
++	char buffer[512] = {0, };
++	char path[512] = {0, };
++	va_list args;
++	FILE *f;
++	char *line = NULL;
++	size_t n = 0;
++	int found = 0;
++	int r;
++
++	va_start(args, expect);
++	r = vsnprintf(buffer, sizeof(buffer), expect, args);
++	assert((size_t)r < sizeof(buffer));
++	va_end(args);
++
++	snprintf(path, sizeof(path), "/proc/self/fdinfo/%d", fd);
++	f = fopen(path, "re");
++	if (!f)
++		return error_set(err, -1, "fdinfo open failed for %d", fd);
++
++	while (getline(&line, &n, f) != -1) {
++		char *val;
++
++		if (strncmp(line, prefix, prefix_len))
++			continue;
++
++		found = 1;
++
++		val = line + prefix_len;
++		r = strcmp(val, buffer);
++		if (r != 0) {
++			trim_newline(line);
++			trim_newline(buffer);
++			error_set(err, -1, "%s '%s' != '%s'",
++				  prefix, val, buffer);
++		}
++		break;
++	}
++
++	free(line);
++	fclose(f);
++
++	if (found == 0)
++		return error_set(err, -1, "%s not found for fd %d",
++				 prefix, fd);
++
++	return 0;
++}
++
++TEST(eventfd05)
++{
++	struct error err = {0};
++	int fd, ret;
++
++	fd = sys_eventfd2(0, EFD_SEMAPHORE);
++	ASSERT_GE(fd, 0);
++
++	ret = fcntl(fd, F_GETFL);
++	ASSERT_GT(ret, -1);
++	EXPECT_EQ(ret & O_RDWR, O_RDWR);
++
++	// The semaphore could only be obtained from fdinfo.
++	ret = verify_fdinfo(fd, &err, "eventfd-semaphore: ", 19, "1\n");
++	if (ret != 0)
++		ksft_print_msg("eventfd-semaphore check failed, msg: %s\n",
++				err.msg);
++	EXPECT_EQ(ret, 0);
++
++	close(fd);
++}
++
++TEST_HARNESS_MAIN
+--- /dev/null
++++ a/tools/testing/selftests/filesystems/eventfd/.gitignore
+@@ -0,0 +1,2 @@
++# SPDX-License-Identifier: GPL-2.0-only
++eventfd_test
+--- /dev/null
++++ a/tools/testing/selftests/filesystems/eventfd/Makefile
+@@ -0,0 +1,7 @@
++# SPDX-License-Identifier: GPL-2.0
++
++CFLAGS += $(KHDR_INCLUDES)
++LDLIBS += -lpthread
++TEST_GEN_PROGS := eventfd_test
++
++include ../../lib.mk
 _
 
-Patches currently in -mm which might be from nathan@kernel.org are
+Patches currently in -mm which might be from wenyang.linux@foxmail.com are
 
 
