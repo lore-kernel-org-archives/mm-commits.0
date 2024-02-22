@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6116213BADA
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:39:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 967E413BADD
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:40:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708645199; cv=none; b=sM53E5AFLtWDNHvDj45W57jObuTb6M7bqutIjxV3JbBqT9egtVW6zFZ2iQr0uHztafLEreHxnNmiy0XLraT9dWnd4dK2kAh49B6gbTNkPc1cJwtl7qXjXwAk21GWpC7whRv46XzqmUDfcY810jwV9NS0eLOqa/YeMWj5aQZfqyo=
+	t=1708645200; cv=none; b=IcI/QXfCoX7rBYt3JwhZLePsKzB341Vm6/EWEySNhOQff2+13Lbb3v7f5cfy4qBhxqOIl0PUCg6Wka3jr5MXEU6yPPSivypZlBoagFe5BFh7S3c9Ll2ndfs3SvFEkNVi48xBqt+mgiREv5Vy27DAN2hRB7XxqpcE2mUiqyxLUjA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708645199; c=relaxed/simple;
-	bh=Jm6FRIdkM+7T2/+YPq5BAcoV4e9u9fA0KREza3CQvQc=;
-	h=Date:To:From:Subject:Message-Id; b=RyRKZGUXogro/E4Zbg/58i+vq8zq+s1Xijko1/gJ5KczNbKqCq/SwglFVcLqCMUdDTdAXFhf44X2CnNDUqKGC9MLYJ/HsPsbc7let+kQ0MYYFmh2Oca55akBaYchj3RrLkWhjLeUQrZsPD1X10Eo/lKIHEwSqPdmQ6wk/SGdwr0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SkMf7BeH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708645200; c=relaxed/simple;
+	bh=RjfDSjFN9kz1Xzry283HOiNP4LL77fN4Z5N3SY3cjl8=;
+	h=Date:To:From:Subject:Message-Id; b=IPek6+MLBAiU9hlyau8GBXv06fKx7lXCthNxt8SSqq7dgZND32Kvpd5ZqU/BwrT06QAsMFqX9+wGgem+7/qEzVAWXn9dXGFkRiNCQBdVMJ5qJ4sht5blayWpoxephmVDPQwMaFiCX261M3T9s2UGKFQIYimusa32KstTkuFia/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CQ20ihyh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SkMf7BeH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33C77C433C7;
-	Thu, 22 Feb 2024 23:39:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CQ20ihyh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66910C433F1;
+	Thu, 22 Feb 2024 23:40:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708645199;
-	bh=Jm6FRIdkM+7T2/+YPq5BAcoV4e9u9fA0KREza3CQvQc=;
+	s=korg; t=1708645200;
+	bh=RjfDSjFN9kz1Xzry283HOiNP4LL77fN4Z5N3SY3cjl8=;
 	h=Date:To:From:Subject:From;
-	b=SkMf7BeHMrLAQDsZV1M7VPNpIbhzJdpl1wFlqX4Ccm6U7TLE5tpCgBjmW60FdTca0
-	 2VHWp8e5i+imKUF989MJ1tF+wm/sEtLUkUInM2fpnX1NqISOapg9mrQwQFe49IvfKU
-	 DaeiQe+ur+248SHPXhlKRxzylZ0rGqFtl6Qgccpo=
-Date: Thu, 22 Feb 2024 15:39:58 -0800
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=CQ20ihyhyQWnooMmfwkgeBJY9+OyrhfP2qas2ZjjhQuAJ/JduvnJrvsMEysyHGCyV
+	 ONMwcbuBkwt/J10vYz9Tk9jCxpHDZj6M0nmPrTSYTfPoJxj0BAH1txFPFOxFxdqCaN
+	 UiZsz/QwEWkE2RU/uBnYsPcCSL1N3e63kS0UjAnM=
+Date: Thu, 22 Feb 2024 15:39:59 -0800
+To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,nicolas@fjasle.eu,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,masahiroy@kernel.org,mark.rutland@arm.com,linux@armlinux.org.uk,keescook@chromium.org,dave.hansen@linux.intel.com,conor@kernel.org,catalin.marinas@arm.com,bp@alien8.de,ardb@kernel.org,aou@eecs.berkeley.edu,aneesh.kumar@kernel.org,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-convert-cpfile-to-use-kmap_local.patch removed from -mm tree
-Message-Id: <20240222233959.33C77C433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kbuild-raise-the-minimum-supported-version-of-llvm-to-1301.patch removed from -mm tree
+Message-Id: <20240222234000.66910C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,326 +35,185 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: convert cpfile to use kmap_local
+     Subject: kbuild: raise the minimum supported version of LLVM to 13.0.1
 has been removed from the -mm tree.  Its filename was
-     nilfs2-convert-cpfile-to-use-kmap_local.patch
+     kbuild-raise-the-minimum-supported-version-of-llvm-to-1301.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: convert cpfile to use kmap_local
-Date: Mon, 22 Jan 2024 23:02:02 +0900
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: kbuild: raise the minimum supported version of LLVM to 13.0.1
+Date: Thu, 25 Jan 2024 15:55:07 -0700
 
-Convert all remaining usages of kmap_atomic in cpfile to kmap_local.
+Patch series "Bump the minimum supported version of LLVM to 13.0.1".
 
-Link: https://lkml.kernel.org/r/20240122140202.6950-16-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+This series bumps the minimum supported version of LLVM for building the
+kernel to 13.0.1.  The first patch does the bump and all subsequent
+patches clean up all the various workarounds and checks for earlier
+versions.
+
+Quoting the first patch's commit message for those that were only on CC
+for the clean ups:
+
+  When __builtin_mul_overflow() has arguments that differ in terms of
+  signedness and width, LLVM may generate a libcall to __muloti4 because
+  it performs the checks in terms of 65-bit multiplication. This issue
+  becomes harder to hit (but still possible) after LLVM 12.0.0, which
+  includes a special case for matching widths but different signs.
+
+  To gain access to this special case, which the kernel can take advantage
+  of when calls to __muloti4 appear, bump the minimum supported version of
+  LLVM for building the kernel to 13.0.1. 13.0.1 was chosen because there
+  is minimal impact to distribution support while allowing a few more
+  workarounds to be dropped in the kernel source than if 12.0.0 were
+  chosen. Looking at container images of up to date distribution versions:
+
+    archlinux:latest              clang version 16.0.6
+    debian:oldoldstable-slim      clang version 7.0.1-8+deb10u2 (tags/RELEASE_701/final)
+    debian:oldstable-slim         Debian clang version 11.0.1-2
+    debian:stable-slim            Debian clang version 14.0.6
+    debian:testing-slim           Debian clang version 16.0.6 (19)
+    debian:unstable-slim          Debian clang version 16.0.6 (19)
+    fedora:38                     clang version 16.0.6 (Fedora 16.0.6-3.fc38)
+    fedora:latest                 clang version 17.0.6 (Fedora 17.0.6-1.fc39)
+    fedora:rawhide                clang version 17.0.6 (Fedora 17.0.6-1.fc40)
+    opensuse/leap:latest          clang version 15.0.7
+    opensuse/tumbleweed:latest    clang version 17.0.6
+    ubuntu:focal                  clang version 10.0.0-4ubuntu1
+    ubuntu:latest                 Ubuntu clang version 14.0.0-1ubuntu1.1
+    ubuntu:rolling                Ubuntu clang version 16.0.6 (15)
+    ubuntu:devel                  Ubuntu clang version 17.0.6 (3)
+
+  The only distribution that gets left behind is Debian Bullseye, as the
+  default version is 11.0.1; other distributions either have a newer
+  version than 13.0.1 or one older than the current minimum of 11.0.0.
+  Debian has easy access to more recent LLVM versions through
+  apt.llvm.org, so this is not as much of a concern. There are also the
+  kernel.org LLVM toolchains, which should work with distributions with
+  glibc 2.28 and newer.
+
+  Another benefit of slimming up the number of supported versions of LLVM
+  for building the kernel is reducing the build capacity needed to support
+  a matrix that builds with each supported version, which allows a matrix
+  to reallocate the freed up build capacity towards something else, such
+  as more configuration combinations.
+
+This passes my build matrix with all supported versions.
+
+This is based on Andrew's mm-nonmm-unstable to avoid trivial conflicts
+with my series to update the LLVM links across the repository [1] but I
+can easily rebase it to linux-kbuild if Masahiro would rather these
+patches go through there (and defer the conflict resolution to the merge
+window).
+
+[1]: https://lore.kernel.org/20240109-update-llvm-links-v1-0-eb09b59db071@kernel.org/
+
+
+This patch (of 11):
+
+When __builtin_mul_overflow() has arguments that differ in terms of
+signedness and width, LLVM may generate a libcall to __muloti4 because it
+performs the checks in terms of 65-bit multiplication.  This issue becomes
+harder to hit (but still possible) after LLVM 12.0.0, which includes a
+special case for matching widths but different signs.
+
+To gain access to this special case, which the kernel can take advantage
+of when calls to __muloti4 appear, bump the minimum supported version of
+LLVM for building the kernel to 13.0.1.  13.0.1 was chosen because there
+is minimal impact to distribution support while allowing a few more
+workarounds to be dropped in the kernel source than if 12.0.0 were chosen.
+Looking at container images of up to date distribution versions:
+
+  archlinux:latest              clang version 16.0.6
+  debian:oldoldstable-slim      clang version 7.0.1-8+deb10u2 (tags/RELEASE_701/final)
+  debian:oldstable-slim         Debian clang version 11.0.1-2
+  debian:stable-slim            Debian clang version 14.0.6
+  debian:testing-slim           Debian clang version 16.0.6 (19)
+  debian:unstable-slim          Debian clang version 16.0.6 (19)
+  fedora:38                     clang version 16.0.6 (Fedora 16.0.6-3.fc38)
+  fedora:latest                 clang version 17.0.6 (Fedora 17.0.6-1.fc39)
+  fedora:rawhide                clang version 17.0.6 (Fedora 17.0.6-1.fc40)
+  opensuse/leap:latest          clang version 15.0.7
+  opensuse/tumbleweed:latest    clang version 17.0.6
+  ubuntu:focal                  clang version 10.0.0-4ubuntu1
+  ubuntu:latest                 Ubuntu clang version 14.0.0-1ubuntu1.1
+  ubuntu:rolling                Ubuntu clang version 16.0.6 (15)
+  ubuntu:devel                  Ubuntu clang version 17.0.6 (3)
+
+The only distribution that gets left behind is Debian Bullseye, as the
+default version is 11.0.1; other distributions either have a newer version
+than 13.0.1 or one older than the current minimum of 11.0.0.  Debian has
+easy access to more recent LLVM versions through apt.llvm.org, so this is
+not as much of a concern.  There are also the kernel.org LLVM toolchains,
+which should work with distributions with glibc 2.28 and newer.
+
+Another benefit of slimming up the number of supported versions of LLVM
+for building the kernel is reducing the build capacity needed to support a
+matrix that builds with each supported version, which allows a matrix to
+reallocate the freed up build capacity towards something else, such as
+more configuration combinations.
+
+Link: https://lkml.kernel.org/r/20240125-bump-min-llvm-ver-to-13-0-1-v1-0-f5ff9bda41c5@kernel.org
+Closes: https://github.com/ClangBuiltLinux/linux/issues/1975
+Link: https://github.com/llvm/llvm-project/issues/38013
+Link: https://github.com/llvm/llvm-project/commit/3203143f1356a4e4e3ada231156fc6da6e1a9f9d
+Link: https://mirrors.edge.kernel.org/pub/tools/llvm/
+Link: https://lkml.kernel.org/r/20240125-bump-min-llvm-ver-to-13-0-1-v1-1-f5ff9bda41c5@kernel.org
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: "Aneesh Kumar K.V (IBM)" <aneesh.kumar@kernel.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Conor Dooley <conor@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Nicolas Schier <nicolas@fjasle.eu>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/cpfile.c |   90 +++++++++++++++++++++----------------------
- 1 file changed, 45 insertions(+), 45 deletions(-)
+ Documentation/process/changes.rst |    2 +-
+ scripts/min-tool-version.sh       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/nilfs2/cpfile.c~nilfs2-convert-cpfile-to-use-kmap_local
-+++ a/fs/nilfs2/cpfile.c
-@@ -460,7 +460,7 @@ int nilfs_cpfile_delete_checkpoints(stru
- 			continue;
- 		}
- 
--		kaddr = kmap_atomic(cp_bh->b_page);
-+		kaddr = kmap_local_page(cp_bh->b_page);
- 		cp = nilfs_cpfile_block_get_checkpoint(
- 			cpfile, cno, cp_bh, kaddr);
- 		nicps = 0;
-@@ -482,7 +482,7 @@ int nilfs_cpfile_delete_checkpoints(stru
- 						cpfile, cp_bh, kaddr, nicps);
- 				if (count == 0) {
- 					/* make hole */
--					kunmap_atomic(kaddr);
-+					kunmap_local(kaddr);
- 					brelse(cp_bh);
- 					ret =
- 					  nilfs_cpfile_delete_checkpoint_block(
-@@ -497,18 +497,18 @@ int nilfs_cpfile_delete_checkpoints(stru
- 			}
- 		}
- 
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		brelse(cp_bh);
- 	}
- 
- 	if (tnicps > 0) {
--		kaddr = kmap_atomic(header_bh->b_page);
-+		kaddr = kmap_local_page(header_bh->b_page);
- 		header = nilfs_cpfile_block_get_header(cpfile, header_bh,
- 						       kaddr);
- 		le64_add_cpu(&header->ch_ncheckpoints, -(u64)tnicps);
- 		mark_buffer_dirty(header_bh);
- 		nilfs_mdt_mark_dirty(cpfile);
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 	}
- 
- 	brelse(header_bh);
-@@ -560,7 +560,7 @@ static ssize_t nilfs_cpfile_do_get_cpinf
- 		}
- 		ncps = nilfs_cpfile_checkpoints_in_block(cpfile, cno, cur_cno);
- 
--		kaddr = kmap_atomic(bh->b_page);
-+		kaddr = kmap_local_page(bh->b_page);
- 		cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, bh, kaddr);
- 		for (i = 0; i < ncps && n < nci; i++, cp = (void *)cp + cpsz) {
- 			if (!nilfs_checkpoint_invalid(cp)) {
-@@ -570,7 +570,7 @@ static ssize_t nilfs_cpfile_do_get_cpinf
- 				n++;
- 			}
- 		}
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		brelse(bh);
- 	}
- 
-@@ -604,10 +604,10 @@ static ssize_t nilfs_cpfile_do_get_ssinf
- 		ret = nilfs_cpfile_get_header_block(cpfile, &bh);
- 		if (ret < 0)
- 			goto out;
--		kaddr = kmap_atomic(bh->b_page);
-+		kaddr = kmap_local_page(bh->b_page);
- 		header = nilfs_cpfile_block_get_header(cpfile, bh, kaddr);
- 		curr = le64_to_cpu(header->ch_snapshot_list.ssl_next);
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		brelse(bh);
- 		if (curr == 0) {
- 			ret = 0;
-@@ -625,7 +625,7 @@ static ssize_t nilfs_cpfile_do_get_ssinf
- 			ret = 0; /* No snapshots (started from a hole block) */
- 		goto out;
- 	}
--	kaddr = kmap_atomic(bh->b_page);
-+	kaddr = kmap_local_page(bh->b_page);
- 	while (n < nci) {
- 		cp = nilfs_cpfile_block_get_checkpoint(cpfile, curr, bh, kaddr);
- 		curr = ~(__u64)0; /* Terminator */
-@@ -641,7 +641,7 @@ static ssize_t nilfs_cpfile_do_get_ssinf
- 
- 		next_blkoff = nilfs_cpfile_get_blkoff(cpfile, next);
- 		if (curr_blkoff != next_blkoff) {
--			kunmap_atomic(kaddr);
-+			kunmap_local(kaddr);
- 			brelse(bh);
- 			ret = nilfs_cpfile_get_checkpoint_block(cpfile, next,
- 								0, &bh);
-@@ -649,12 +649,12 @@ static ssize_t nilfs_cpfile_do_get_ssinf
- 				WARN_ON(ret == -ENOENT);
- 				goto out;
- 			}
--			kaddr = kmap_atomic(bh->b_page);
-+			kaddr = kmap_local_page(bh->b_page);
- 		}
- 		curr = next;
- 		curr_blkoff = next_blkoff;
- 	}
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 	brelse(bh);
- 	*cnop = curr;
- 	ret = n;
-@@ -763,24 +763,24 @@ static int nilfs_cpfile_set_snapshot(str
- 	ret = nilfs_cpfile_get_checkpoint_block(cpfile, cno, 0, &cp_bh);
- 	if (ret < 0)
- 		goto out_sem;
--	kaddr = kmap_atomic(cp_bh->b_page);
-+	kaddr = kmap_local_page(cp_bh->b_page);
- 	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, cp_bh, kaddr);
- 	if (nilfs_checkpoint_invalid(cp)) {
- 		ret = -ENOENT;
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		goto out_cp;
- 	}
- 	if (nilfs_checkpoint_snapshot(cp)) {
- 		ret = 0;
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		goto out_cp;
- 	}
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	ret = nilfs_cpfile_get_header_block(cpfile, &header_bh);
- 	if (ret < 0)
- 		goto out_cp;
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = nilfs_cpfile_block_get_header(cpfile, header_bh, kaddr);
- 	list = &header->ch_snapshot_list;
- 	curr_bh = header_bh;
-@@ -792,13 +792,13 @@ static int nilfs_cpfile_set_snapshot(str
- 		prev_blkoff = nilfs_cpfile_get_blkoff(cpfile, prev);
- 		curr = prev;
- 		if (curr_blkoff != prev_blkoff) {
--			kunmap_atomic(kaddr);
-+			kunmap_local(kaddr);
- 			brelse(curr_bh);
- 			ret = nilfs_cpfile_get_checkpoint_block(cpfile, curr,
- 								0, &curr_bh);
- 			if (ret < 0)
- 				goto out_header;
--			kaddr = kmap_atomic(curr_bh->b_page);
-+			kaddr = kmap_local_page(curr_bh->b_page);
- 		}
- 		curr_blkoff = prev_blkoff;
- 		cp = nilfs_cpfile_block_get_checkpoint(
-@@ -806,7 +806,7 @@ static int nilfs_cpfile_set_snapshot(str
- 		list = &cp->cp_snapshot_list;
- 		prev = le64_to_cpu(list->ssl_prev);
- 	}
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	if (prev != 0) {
- 		ret = nilfs_cpfile_get_checkpoint_block(cpfile, prev, 0,
-@@ -818,29 +818,29 @@ static int nilfs_cpfile_set_snapshot(str
- 		get_bh(prev_bh);
- 	}
- 
--	kaddr = kmap_atomic(curr_bh->b_page);
-+	kaddr = kmap_local_page(curr_bh->b_page);
- 	list = nilfs_cpfile_block_get_snapshot_list(
- 		cpfile, curr, curr_bh, kaddr);
- 	list->ssl_prev = cpu_to_le64(cno);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
--	kaddr = kmap_atomic(cp_bh->b_page);
-+	kaddr = kmap_local_page(cp_bh->b_page);
- 	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, cp_bh, kaddr);
- 	cp->cp_snapshot_list.ssl_next = cpu_to_le64(curr);
- 	cp->cp_snapshot_list.ssl_prev = cpu_to_le64(prev);
- 	nilfs_checkpoint_set_snapshot(cp);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
--	kaddr = kmap_atomic(prev_bh->b_page);
-+	kaddr = kmap_local_page(prev_bh->b_page);
- 	list = nilfs_cpfile_block_get_snapshot_list(
- 		cpfile, prev, prev_bh, kaddr);
- 	list->ssl_next = cpu_to_le64(cno);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = nilfs_cpfile_block_get_header(cpfile, header_bh, kaddr);
- 	le64_add_cpu(&header->ch_nsnapshots, 1);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	mark_buffer_dirty(prev_bh);
- 	mark_buffer_dirty(curr_bh);
-@@ -881,23 +881,23 @@ static int nilfs_cpfile_clear_snapshot(s
- 	ret = nilfs_cpfile_get_checkpoint_block(cpfile, cno, 0, &cp_bh);
- 	if (ret < 0)
- 		goto out_sem;
--	kaddr = kmap_atomic(cp_bh->b_page);
-+	kaddr = kmap_local_page(cp_bh->b_page);
- 	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, cp_bh, kaddr);
- 	if (nilfs_checkpoint_invalid(cp)) {
- 		ret = -ENOENT;
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		goto out_cp;
- 	}
- 	if (!nilfs_checkpoint_snapshot(cp)) {
- 		ret = 0;
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		goto out_cp;
- 	}
- 
- 	list = &cp->cp_snapshot_list;
- 	next = le64_to_cpu(list->ssl_next);
- 	prev = le64_to_cpu(list->ssl_prev);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	ret = nilfs_cpfile_get_header_block(cpfile, &header_bh);
- 	if (ret < 0)
-@@ -921,29 +921,29 @@ static int nilfs_cpfile_clear_snapshot(s
- 		get_bh(prev_bh);
- 	}
- 
--	kaddr = kmap_atomic(next_bh->b_page);
-+	kaddr = kmap_local_page(next_bh->b_page);
- 	list = nilfs_cpfile_block_get_snapshot_list(
- 		cpfile, next, next_bh, kaddr);
- 	list->ssl_prev = cpu_to_le64(prev);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
--	kaddr = kmap_atomic(prev_bh->b_page);
-+	kaddr = kmap_local_page(prev_bh->b_page);
- 	list = nilfs_cpfile_block_get_snapshot_list(
- 		cpfile, prev, prev_bh, kaddr);
- 	list->ssl_next = cpu_to_le64(next);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
--	kaddr = kmap_atomic(cp_bh->b_page);
-+	kaddr = kmap_local_page(cp_bh->b_page);
- 	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, cp_bh, kaddr);
- 	cp->cp_snapshot_list.ssl_next = cpu_to_le64(0);
- 	cp->cp_snapshot_list.ssl_prev = cpu_to_le64(0);
- 	nilfs_checkpoint_clear_snapshot(cp);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = nilfs_cpfile_block_get_header(cpfile, header_bh, kaddr);
- 	le64_add_cpu(&header->ch_nsnapshots, -1);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	mark_buffer_dirty(next_bh);
- 	mark_buffer_dirty(prev_bh);
-@@ -1002,13 +1002,13 @@ int nilfs_cpfile_is_snapshot(struct inod
- 	ret = nilfs_cpfile_get_checkpoint_block(cpfile, cno, 0, &bh);
- 	if (ret < 0)
- 		goto out;
--	kaddr = kmap_atomic(bh->b_page);
-+	kaddr = kmap_local_page(bh->b_page);
- 	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, bh, kaddr);
- 	if (nilfs_checkpoint_invalid(cp))
- 		ret = -ENOENT;
+--- a/Documentation/process/changes.rst~kbuild-raise-the-minimum-supported-version-of-llvm-to-1301
++++ a/Documentation/process/changes.rst
+@@ -30,7 +30,7 @@ you probably needn't concern yourself wi
+         Program        Minimal version       Command to check the version
+ ====================== ===============  ========================================
+ GNU C                  5.1              gcc --version
+-Clang/LLVM (optional)  11.0.0           clang --version
++Clang/LLVM (optional)  13.0.1           clang --version
+ Rust (optional)        1.74.1           rustc --version
+ bindgen (optional)     0.65.1           bindgen --version
+ GNU make               3.82             make --version
+--- a/scripts/min-tool-version.sh~kbuild-raise-the-minimum-supported-version-of-llvm-to-1301
++++ a/scripts/min-tool-version.sh
+@@ -29,7 +29,7 @@ llvm)
+ 	elif [ "$SRCARCH" = loongarch ]; then
+ 		echo 18.0.0
  	else
- 		ret = nilfs_checkpoint_snapshot(cp);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 	brelse(bh);
- 
-  out:
-@@ -1085,12 +1085,12 @@ int nilfs_cpfile_get_stat(struct inode *
- 	ret = nilfs_cpfile_get_header_block(cpfile, &bh);
- 	if (ret < 0)
- 		goto out_sem;
--	kaddr = kmap_atomic(bh->b_page);
-+	kaddr = kmap_local_page(bh->b_page);
- 	header = nilfs_cpfile_block_get_header(cpfile, bh, kaddr);
- 	cpstat->cs_cno = nilfs_mdt_cno(cpfile);
- 	cpstat->cs_ncps = le64_to_cpu(header->ch_ncheckpoints);
- 	cpstat->cs_nsss = le64_to_cpu(header->ch_nsnapshots);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 	brelse(bh);
- 
-  out_sem:
+-		echo 11.0.0
++		echo 13.0.1
+ 	fi
+ 	;;
+ rustc)
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from nathan@kernel.org are
 
 
