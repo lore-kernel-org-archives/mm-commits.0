@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0C17A929
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B196DA929
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560107; cv=none; b=FEVIV+u96QzTXI148qQpICNZGd7h8u1I46lahw78KMbNTTwyjCT5e/3cHQJCvuNVsAfyVLM5YIeMOUk3jJ6dF7P2qoZ031efwTYzyBoP4sktbwrmAHWTwp7oEtLpjui+UelO+0+6+9VHGQjcmGnETxuzAC+nknarBePfWV2qGfg=
+	t=1708560108; cv=none; b=tADF7So+2LioIplIeitMcdQyYHNL4o0TyzW4UyNHpht9couNC2VBj9SkRrdAN5JdUbmnQvBmi50bCPPhzJGeMkLGFsl446gwk+dG0GY9ctK3Ix4FjlcBZ/kf6nNmX55HWIvFMUWkWqOxN18N1Fqme/dmD6UHeKq00G+eZBrcZr8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560107; c=relaxed/simple;
-	bh=xNK/JcTU4pJzS4+7qDHi+rYcs8LF+UN450fE3No8vo8=;
-	h=Date:To:From:Subject:Message-Id; b=c5UprwATVSN8U+zP03SQ1/HCRmS0K7JJrPTe5zjHbMimkMR9//oq8nxlaS1TrdqFuBY07GPiW3nzWYltR2OqZ5GiL3tZ3XxA6Q7VghG4nQsNQ2NhQ8VGp8YD5YWHfXL8KxE0xFXraa4835xuMWyNG+EUU1ZdwyRqwT+V0szDs6Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cwiWVrDy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560108; c=relaxed/simple;
+	bh=R5z1fe+v1TWLXHo7DXZnOhV1z4oRZAH218LHZN1lTIA=;
+	h=Date:To:From:Subject:Message-Id; b=NWW8yip4pshrwg3xsHyOnay+omv/GcOedItC513WtQ2H9Hv7ERq2v45z6v290bknmjZba2g6rmX8MRV0BSxZFEBjXlUooHcGXInQe3RlzKJ434I1kJ3d51iY+So9GI6UmXdt3zCrtaI8tUck/24ITLF/RuAIIArNkTF57uh1AnY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oss6hJkY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cwiWVrDy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 770B3C43394;
-	Thu, 22 Feb 2024 00:01:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oss6hJkY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82745C43390;
+	Thu, 22 Feb 2024 00:01:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560107;
-	bh=xNK/JcTU4pJzS4+7qDHi+rYcs8LF+UN450fE3No8vo8=;
+	s=korg; t=1708560108;
+	bh=R5z1fe+v1TWLXHo7DXZnOhV1z4oRZAH218LHZN1lTIA=;
 	h=Date:To:From:Subject:From;
-	b=cwiWVrDyXNozQ/d/xRAd30YqsdmX8EXh9rEJuN1PXzdddCVWGyIM8gDqS/51u7FTl
-	 LzD8vaHgiRcpd2pdTmBaipRjPLhRI9PIL8Oc6PZO6MAYcCkzJO40EGbIn3OXJ/N1sN
-	 PCyba4fuZb+pfLx9uqRK866gN70lrFlrspnc3kIw=
-Date: Wed, 21 Feb 2024 16:01:46 -0800
-To: mm-commits@vger.kernel.org,ppbuk5246@gmail.com,akpm@linux-foundation.org
+	b=oss6hJkYP4XxhKkh04WkCzhWZdyA/ps+4jPqOKwJtCrmAOBgglGAW+GIhBIkbSdci
+	 VvWE8aj7tBuocu4GifF0KJAKReoxdcTNBDN0KKJjZi3xN2p+kqO4UBJuQQVIc0IhJf
+	 WiamoClA6bKps0ZJLSsXpGhve6THBhm01wmy4sIs=
+Date: Wed, 21 Feb 2024 16:01:47 -0800
+To: mm-commits@vger.kernel.org,sudeep.holla@arm.com,mgorman@techsingularity.net,kyle.meyer@hpe.com,ying.huang@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kswapd-replace-try_to_freeze-to-kthread_freezable_should_stop.patch removed from -mm tree
-Message-Id: <20240222000147.770B3C43394@smtp.kernel.org>
+Subject: [merged mm-stable] mm-and-cache_info-remove-unnecessary-cpu-cache-info-update.patch removed from -mm tree
+Message-Id: <20240222000148.82745C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,209 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kswapd: replace try_to_freeze() with kthread_freezable_should_stop()
+     Subject: mm and cache_info: remove unnecessary CPU cache info update
 has been removed from the -mm tree.  Its filename was
-     kswapd-replace-try_to_freeze-to-kthread_freezable_should_stop.patch
+     mm-and-cache_info-remove-unnecessary-cpu-cache-info-update.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Levi Yun <ppbuk5246@gmail.com>
-Subject: kswapd: replace try_to_freeze() with kthread_freezable_should_stop()
-Date: Fri, 26 Jan 2024 15:25:54 +0000
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm and cache_info: remove unnecessary CPU cache info update
+Date: Fri, 26 Jan 2024 16:19:44 +0800
 
-Instead of using try_to_freeze, use kthread_freezable_should_stop in
-kswapd.  By this, we can avoid unnecessary freezing when kswapd should
-stop.
+For each CPU hotplug event, we will update per-CPU data slice size and
+corresponding PCP configuration for every online CPU to make the
+implementation simple.  But, Kyle reported that this takes tens seconds
+during boot on a machine with 34 zones and 3840 CPUs.
 
-Link: https://lkml.kernel.org/r/20240126152556.58791-1-ppbuk5246@gmail.com
-Signed-off-by: Levi Yun <ppbuk5246@gmail.com>
+So, in this patch, for each CPU hotplug event, we only update per-CPU data
+slice size and corresponding PCP configuration for the CPUs that share
+caches with the hotplugged CPU.  With the patch, the system boot time
+reduces 67 seconds on the machine.
+
+Link: https://lkml.kernel.org/r/20240126081944.414520-1-ying.huang@intel.com
+Fixes: 362d37a106dd ("mm, pcp: reduce lock contention for draining high-order pages")
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Originally-by: Kyle Meyer <kyle.meyer@hpe.com>
+Reported-and-tested-by: Kyle Meyer <kyle.meyer@hpe.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/base/cacheinfo.c |   50 ++++++++++++++++++++++++++++++++-----
+ include/linux/gfp.h      |    2 -
+ mm/page_alloc.c          |   39 +++++++++++++---------------
+ 3 files changed, 63 insertions(+), 28 deletions(-)
 
---- a/mm/vmscan.c~kswapd-replace-try_to_freeze-to-kthread_freezable_should_stop
-+++ a/mm/vmscan.c
-@@ -6796,6 +6796,7 @@ restart:
- 		bool raise_priority = true;
- 		bool balanced;
- 		bool ret;
-+		bool was_frozen;
+--- a/drivers/base/cacheinfo.c~mm-and-cache_info-remove-unnecessary-cpu-cache-info-update
++++ a/drivers/base/cacheinfo.c
+@@ -898,6 +898,37 @@ err:
+ 	return rc;
+ }
  
- 		sc.reclaim_idx = highest_zoneidx;
++static unsigned int cpu_map_shared_cache(bool online, unsigned int cpu,
++					 cpumask_t **map)
++{
++	struct cacheinfo *llc, *sib_llc;
++	unsigned int sibling;
++
++	if (!last_level_cache_is_valid(cpu))
++		return 0;
++
++	llc = per_cpu_cacheinfo_idx(cpu, cache_leaves(cpu) - 1);
++
++	if (llc->type != CACHE_TYPE_DATA && llc->type != CACHE_TYPE_UNIFIED)
++		return 0;
++
++	if (online) {
++		*map = &llc->shared_cpu_map;
++		return cpumask_weight(*map);
++	}
++
++	/* shared_cpu_map of offlined CPU will be cleared, so use sibling map */
++	for_each_cpu(sibling, &llc->shared_cpu_map) {
++		if (sibling == cpu || !last_level_cache_is_valid(sibling))
++			continue;
++		sib_llc = per_cpu_cacheinfo_idx(sibling, cache_leaves(sibling) - 1);
++		*map = &sib_llc->shared_cpu_map;
++		return cpumask_weight(*map);
++	}
++
++	return 0;
++}
++
+ /*
+  * Calculate the size of the per-CPU data cache slice.  This can be
+  * used to estimate the size of the data cache slice that can be used
+@@ -929,28 +960,31 @@ static void update_per_cpu_data_slice_si
+ 		ci->per_cpu_data_slice_size = llc->size / nr_shared;
+ }
  
-@@ -6894,9 +6895,9 @@ restart:
+-static void update_per_cpu_data_slice_size(bool cpu_online, unsigned int cpu)
++static void update_per_cpu_data_slice_size(bool cpu_online, unsigned int cpu,
++					   cpumask_t *cpu_map)
+ {
+ 	unsigned int icpu;
  
- 		/* Check if kswapd should be suspending */
- 		__fs_reclaim_release(_THIS_IP_);
--		ret = try_to_freeze();
-+		ret = kthread_freezable_should_stop(&was_frozen);
- 		__fs_reclaim_acquire(_THIS_IP_);
--		if (ret || kthread_should_stop())
-+		if (was_frozen || ret)
- 			break;
- 
- 		/*
-@@ -7102,7 +7103,7 @@ static int kswapd(void *p)
- 	WRITE_ONCE(pgdat->kswapd_highest_zoneidx, MAX_NR_ZONES);
- 	atomic_set(&pgdat->nr_writeback_throttled, 0);
- 	for ( ; ; ) {
--		bool ret;
-+		bool was_frozen;
- 
- 		alloc_order = reclaim_order = READ_ONCE(pgdat->kswapd_order);
- 		highest_zoneidx = kswapd_highest_zoneidx(pgdat,
-@@ -7119,15 +7120,14 @@ kswapd_try_sleep:
- 		WRITE_ONCE(pgdat->kswapd_order, 0);
- 		WRITE_ONCE(pgdat->kswapd_highest_zoneidx, MAX_NR_ZONES);
- 
--		ret = try_to_freeze();
--		if (kthread_should_stop())
-+		if (kthread_freezable_should_stop(&was_frozen))
- 			break;
- 
- 		/*
- 		 * We can speed up thawing tasks if we don't call balance_pgdat
- 		 * after returning from the refrigerator
- 		 */
--		if (ret)
-+		if (was_frozen)
+-	for_each_online_cpu(icpu) {
++	for_each_cpu(icpu, cpu_map) {
+ 		if (!cpu_online && icpu == cpu)
  			continue;
+ 		update_per_cpu_data_slice_size_cpu(icpu);
++		setup_pcp_cacheinfo(icpu);
+ 	}
+ }
  
- 		/*
+ static int cacheinfo_cpu_online(unsigned int cpu)
+ {
+ 	int rc = detect_cache_attributes(cpu);
++	cpumask_t *cpu_map;
+ 
+ 	if (rc)
+ 		return rc;
+ 	rc = cache_add_dev(cpu);
+ 	if (rc)
+ 		goto err;
+-	update_per_cpu_data_slice_size(true, cpu);
+-	setup_pcp_cacheinfo();
++	if (cpu_map_shared_cache(true, cpu, &cpu_map))
++		update_per_cpu_data_slice_size(true, cpu, cpu_map);
+ 	return 0;
+ err:
+ 	free_cache_attributes(cpu);
+@@ -959,12 +993,16 @@ err:
+ 
+ static int cacheinfo_cpu_pre_down(unsigned int cpu)
+ {
++	cpumask_t *cpu_map;
++	unsigned int nr_shared;
++
++	nr_shared = cpu_map_shared_cache(false, cpu, &cpu_map);
+ 	if (cpumask_test_and_clear_cpu(cpu, &cache_dev_map))
+ 		cpu_cache_sysfs_exit(cpu);
+ 
+ 	free_cache_attributes(cpu);
+-	update_per_cpu_data_slice_size(false, cpu);
+-	setup_pcp_cacheinfo();
++	if (nr_shared > 1)
++		update_per_cpu_data_slice_size(false, cpu, cpu_map);
+ 	return 0;
+ }
+ 
+--- a/include/linux/gfp.h~mm-and-cache_info-remove-unnecessary-cpu-cache-info-update
++++ a/include/linux/gfp.h
+@@ -334,7 +334,7 @@ void drain_all_pages(struct zone *zone);
+ void drain_local_pages(struct zone *zone);
+ 
+ void page_alloc_init_late(void);
+-void setup_pcp_cacheinfo(void);
++void setup_pcp_cacheinfo(unsigned int cpu);
+ 
+ /*
+  * gfp_allowed_mask is set to GFP_BOOT_MASK during early boot to restrict what
+--- a/mm/page_alloc.c~mm-and-cache_info-remove-unnecessary-cpu-cache-info-update
++++ a/mm/page_alloc.c
+@@ -5572,37 +5572,34 @@ static void zone_pcp_update(struct zone
+ 	mutex_unlock(&pcp_batch_high_lock);
+ }
+ 
+-static void zone_pcp_update_cacheinfo(struct zone *zone)
++static void zone_pcp_update_cacheinfo(struct zone *zone, unsigned int cpu)
+ {
+-	int cpu;
+ 	struct per_cpu_pages *pcp;
+ 	struct cpu_cacheinfo *cci;
+ 
+-	for_each_online_cpu(cpu) {
+-		pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
+-		cci = get_cpu_cacheinfo(cpu);
+-		/*
+-		 * If data cache slice of CPU is large enough, "pcp->batch"
+-		 * pages can be preserved in PCP before draining PCP for
+-		 * consecutive high-order pages freeing without allocation.
+-		 * This can reduce zone lock contention without hurting
+-		 * cache-hot pages sharing.
+-		 */
+-		spin_lock(&pcp->lock);
+-		if ((cci->per_cpu_data_slice_size >> PAGE_SHIFT) > 3 * pcp->batch)
+-			pcp->flags |= PCPF_FREE_HIGH_BATCH;
+-		else
+-			pcp->flags &= ~PCPF_FREE_HIGH_BATCH;
+-		spin_unlock(&pcp->lock);
+-	}
++	pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
++	cci = get_cpu_cacheinfo(cpu);
++	/*
++	 * If data cache slice of CPU is large enough, "pcp->batch"
++	 * pages can be preserved in PCP before draining PCP for
++	 * consecutive high-order pages freeing without allocation.
++	 * This can reduce zone lock contention without hurting
++	 * cache-hot pages sharing.
++	 */
++	spin_lock(&pcp->lock);
++	if ((cci->per_cpu_data_slice_size >> PAGE_SHIFT) > 3 * pcp->batch)
++		pcp->flags |= PCPF_FREE_HIGH_BATCH;
++	else
++		pcp->flags &= ~PCPF_FREE_HIGH_BATCH;
++	spin_unlock(&pcp->lock);
+ }
+ 
+-void setup_pcp_cacheinfo(void)
++void setup_pcp_cacheinfo(unsigned int cpu)
+ {
+ 	struct zone *zone;
+ 
+ 	for_each_populated_zone(zone)
+-		zone_pcp_update_cacheinfo(zone);
++		zone_pcp_update_cacheinfo(zone, cpu);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from ppbuk5246@gmail.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
 
