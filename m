@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10DA7548E0
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 19:08:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C9CB14B810
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 19:08:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708628934; cv=none; b=gbB1EASmQ+ICH0JXu5dazUE+CRtqsjZoIlqjgJHS3lYhDDS3753UwnZ5QivpZaGp1vsRhYuSxbGeak3YMIIF+NDPh4quFH2j9Qb7sGDidbg6IQe0aGYSGCxz9HrhOnzgddRsVpCEOvzffGfDtGL6NG1K+JCltg9i2c6AzgFJnm0=
+	t=1708628936; cv=none; b=JxaaSmR3Yn9RB0Qf/P7sB72/IAwAVlpNhQZFSHsKc01ZUMV5bStmNWZ3Nh9OU20t8Ty4qAUdfQoOpsNJJyAdbWPgdwO41UPM3ogQ1Anq5xgt5eu+qDxTFa0llbm3wvGSyBIZgqU2g66/tfUi7R4xwuX2NwRGlpMR991fDV+qgLk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708628934; c=relaxed/simple;
-	bh=osf+yRwUGtuDT8g9vNoL7s+PSr31jlDLEHLiSvF4o5g=;
-	h=Date:To:From:Subject:Message-Id; b=SDXvVtYEBgGL7QjNtlCKf3bgVqpLL0r3s1nc9KkzyjjdPvyNPPWzCxH1EKO7FcThpAa+5CHYIUyavBVRDnRRc4hKCxny9SzGCUK6e9qD5KrSDv8Yz76SVJ5EVh2o0Esh5XJF4pqgv/P9DmHmGu4XBweAgjWGx6Py6R/n1RyJ+gw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1YvRf2RZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708628936; c=relaxed/simple;
+	bh=DTp4YvChDxpIvAiR/G59VaGmKK8oEgLqUcl257OqsJc=;
+	h=Date:To:From:Subject:Message-Id; b=g5wSIah9bsSWxKtOTRtgnagG/STMBep+DqUSr/CdA3NDRcZQUx78gKM+wT6fmcY/kF+wZypljYUAWRs4f2v2zhDU0vI18HfWWvflssToV5+8tXW/PeNY6p1RXuP5BfaTJk8RpH3nDbaGmy4u5Z3B1Mke29TlFed0k2tp8J+c4pk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IkcjzFgO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1YvRf2RZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BC8BC433C7;
-	Thu, 22 Feb 2024 19:08:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IkcjzFgO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89358C433F1;
+	Thu, 22 Feb 2024 19:08:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708628933;
-	bh=osf+yRwUGtuDT8g9vNoL7s+PSr31jlDLEHLiSvF4o5g=;
+	s=korg; t=1708628935;
+	bh=DTp4YvChDxpIvAiR/G59VaGmKK8oEgLqUcl257OqsJc=;
 	h=Date:To:From:Subject:From;
-	b=1YvRf2RZZD4xMaBL9MQCskDjgJxPVkpl+tapa1Quy3gbCsJe0Dcbjx8YtsSELIP29
-	 MJ9HMzNQVT5p/80WsedwAlaeei/WT/+0sVjQ4M5wJtDgzuPlt8REiQuTeywRZpkV5O
-	 xlX+xCPdQs+VnMy8YEUKkGo6wYTdbo36dp8ll6NY=
-Date: Thu, 22 Feb 2024 11:08:53 -0800
+	b=IkcjzFgOHFGW2PQ+2cK+SIuFrNu+fNmgfj3XkPybJ3kmg3oW+3CQhzBLV86Fe1k1C
+	 rH2hsD1WwOplL+MUH1CUPR8HIOl6w6QsYKovoiq4FDtL5DWFWl+NGkIKK0ITsiAOb1
+	 UUIcjIN5+UnsRcXNCe68py5iVSSkocu5pQjAaYZA=
+Date: Thu, 22 Feb 2024 11:08:54 -0800
 To: mm-commits@vger.kernel.org,tim.c.chen@linux.intel.com,rientjes@google.com,muchun.song@linux.dev,ligang.bdlg@bytedance.com,gang.li@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-pass-next_nid_to_alloc-directly-to-for_each_node_mask_to_alloc.patch added to mm-unstable branch
-Message-Id: <20240222190853.8BC8BC433C7@smtp.kernel.org>
+Subject: + padata-dispatch-works-on-different-nodes.patch added to mm-unstable branch
+Message-Id: <20240222190855.89358C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hugetlb: pass *next_nid_to_alloc directly to for_each_node_mask_to_alloc
+     Subject: padata: dispatch works on different nodes
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-pass-next_nid_to_alloc-directly-to-for_each_node_mask_to_alloc.patch
+     padata-dispatch-works-on-different-nodes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-pass-next_nid_to_alloc-directly-to-for_each_node_mask_to_alloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/padata-dispatch-works-on-different-nodes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,108 +59,87 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Gang Li <gang.li@linux.dev>
-Subject: hugetlb: pass *next_nid_to_alloc directly to for_each_node_mask_to_alloc
-Date: Thu, 22 Feb 2024 22:04:16 +0800
+Subject: padata: dispatch works on different nodes
+Date: Thu, 22 Feb 2024 22:04:17 +0800
 
-With parallelization of hugetlb allocation across different threads, each
-thread works on a differnet node to allocate pages from, instead of all
-allocating from a common node h->next_nid_to_alloc.  To address this, it's
-necessary to assign a separate next_nid_to_alloc for each thread.
+When a group of tasks that access different nodes are scheduled on the
+same node, they may encounter bandwidth bottlenecks and access latency.
 
-Consequently, the hstate_next_node_to_alloc and
-for_each_node_mask_to_alloc have been modified to directly accept a
-*next_nid_to_alloc parameter, ensuring thread-specific allocation and
-avoiding concurrent access issues.
+Thus, numa_aware flag is introduced here, allowing tasks to be distributed
+across different nodes to fully utilize the advantage of multi-node
+systems.
 
-Link: https://lkml.kernel.org/r/20240222140422.393911-4-gang.li@linux.dev
+Link: https://lkml.kernel.org/r/20240222140422.393911-5-gang.li@linux.dev
 Signed-off-by: Gang Li <ligang.bdlg@bytedance.com>
 Tested-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ include/linux/padata.h |    2 ++
+ kernel/padata.c        |   14 ++++++++++++--
+ mm/mm_init.c           |    1 +
+ 3 files changed, 15 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-pass-next_nid_to_alloc-directly-to-for_each_node_mask_to_alloc
-+++ a/mm/hugetlb.c
-@@ -1464,15 +1464,15 @@ static int get_valid_node_allowed(int ni
-  * next node from which to allocate, handling wrap at end of node
-  * mask.
+--- a/include/linux/padata.h~padata-dispatch-works-on-different-nodes
++++ a/include/linux/padata.h
+@@ -137,6 +137,7 @@ struct padata_shell {
+  *             appropriate for one worker thread to do at once.
+  * @max_threads: Max threads to use for the job, actual number may be less
+  *               depending on task size and minimum chunk size.
++ * @numa_aware: Distribute jobs to different nodes with CPU in a round robin fashion.
   */
--static int hstate_next_node_to_alloc(struct hstate *h,
-+static int hstate_next_node_to_alloc(int *next_node,
- 					nodemask_t *nodes_allowed)
- {
- 	int nid;
+ struct padata_mt_job {
+ 	void (*thread_fn)(unsigned long start, unsigned long end, void *arg);
+@@ -146,6 +147,7 @@ struct padata_mt_job {
+ 	unsigned long		align;
+ 	unsigned long		min_chunk;
+ 	int			max_threads;
++	bool			numa_aware;
+ };
  
- 	VM_BUG_ON(!nodes_allowed);
+ /**
+--- a/kernel/padata.c~padata-dispatch-works-on-different-nodes
++++ a/kernel/padata.c
+@@ -485,7 +485,8 @@ void __init padata_do_multithreaded(stru
+ 	struct padata_work my_work, *pw;
+ 	struct padata_mt_job_state ps;
+ 	LIST_HEAD(works);
+-	int nworks;
++	int nworks, nid;
++	static atomic_t last_used_nid __initdata;
  
--	nid = get_valid_node_allowed(h->next_nid_to_alloc, nodes_allowed);
--	h->next_nid_to_alloc = next_node_allowed(nid, nodes_allowed);
-+	nid = get_valid_node_allowed(*next_node, nodes_allowed);
-+	*next_node = next_node_allowed(nid, nodes_allowed);
+ 	if (job->size == 0)
+ 		return;
+@@ -517,7 +518,16 @@ void __init padata_do_multithreaded(stru
+ 	ps.chunk_size = roundup(ps.chunk_size, job->align);
  
- 	return nid;
- }
-@@ -1495,10 +1495,10 @@ static int hstate_next_node_to_free(stru
- 	return nid;
- }
+ 	list_for_each_entry(pw, &works, pw_list)
+-		queue_work(system_unbound_wq, &pw->pw_work);
++		if (job->numa_aware) {
++			int old_node = atomic_read(&last_used_nid);
++
++			do {
++				nid = next_node_in(old_node, node_states[N_CPU]);
++			} while (!atomic_try_cmpxchg(&last_used_nid, &old_node, nid));
++			queue_work_node(nid, system_unbound_wq, &pw->pw_work);
++		} else {
++			queue_work(system_unbound_wq, &pw->pw_work);
++		}
  
--#define for_each_node_mask_to_alloc(hs, nr_nodes, node, mask)		\
-+#define for_each_node_mask_to_alloc(next_node, nr_nodes, node, mask)		\
- 	for (nr_nodes = nodes_weight(*mask);				\
- 		nr_nodes > 0 &&						\
--		((node = hstate_next_node_to_alloc(hs, mask)) || 1);	\
-+		((node = hstate_next_node_to_alloc(next_node, mask)) || 1);	\
- 		nr_nodes--)
+ 	/* Use the current thread, which saves starting a workqueue worker. */
+ 	padata_work_init(&my_work, padata_mt_helper, &ps, PADATA_WORK_ONSTACK);
+--- a/mm/mm_init.c~padata-dispatch-works-on-different-nodes
++++ a/mm/mm_init.c
+@@ -2231,6 +2231,7 @@ static int __init deferred_init_memmap(v
+ 			.align       = PAGES_PER_SECTION,
+ 			.min_chunk   = PAGES_PER_SECTION,
+ 			.max_threads = max_threads,
++			.numa_aware  = false,
+ 		};
  
- #define for_each_node_mask_to_free(hs, nr_nodes, node, mask)		\
-@@ -2350,12 +2350,13 @@ static void prep_and_add_allocated_folio
-  */
- static struct folio *alloc_pool_huge_folio(struct hstate *h,
- 					nodemask_t *nodes_allowed,
--					nodemask_t *node_alloc_noretry)
-+					nodemask_t *node_alloc_noretry,
-+					int *next_node)
- {
- 	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
- 	int nr_nodes, node;
- 
--	for_each_node_mask_to_alloc(h, nr_nodes, node, nodes_allowed) {
-+	for_each_node_mask_to_alloc(next_node, nr_nodes, node, nodes_allowed) {
- 		struct folio *folio;
- 
- 		folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, node,
-@@ -3310,7 +3311,7 @@ int __alloc_bootmem_huge_page(struct hst
- 		goto found;
- 	}
- 	/* allocate from next node when distributing huge pages */
--	for_each_node_mask_to_alloc(h, nr_nodes, node, &node_states[N_MEMORY]) {
-+	for_each_node_mask_to_alloc(&h->next_nid_to_alloc, nr_nodes, node, &node_states[N_MEMORY]) {
- 		m = memblock_alloc_try_nid_raw(
- 				huge_page_size(h), huge_page_size(h),
- 				0, MEMBLOCK_ALLOC_ACCESSIBLE, node);
-@@ -3679,7 +3680,7 @@ static int adjust_pool_surplus(struct hs
- 	VM_BUG_ON(delta != -1 && delta != 1);
- 
- 	if (delta < 0) {
--		for_each_node_mask_to_alloc(h, nr_nodes, node, nodes_allowed) {
-+		for_each_node_mask_to_alloc(&h->next_nid_to_alloc, nr_nodes, node, nodes_allowed) {
- 			if (h->surplus_huge_pages_node[node])
- 				goto found;
- 		}
-@@ -3794,7 +3795,8 @@ static int set_max_huge_pages(struct hst
- 		cond_resched();
- 
- 		folio = alloc_pool_huge_folio(h, nodes_allowed,
--						node_alloc_noretry);
-+						node_alloc_noretry,
-+						&h->next_nid_to_alloc);
- 		if (!folio) {
- 			prep_and_add_allocated_folios(h, &page_list);
- 			spin_lock_irq(&hugetlb_lock);
+ 		padata_do_multithreaded(&job);
 _
 
 Patches currently in -mm which might be from gang.li@linux.dev are
