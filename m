@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0D3D8F4D
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF1FB10A37
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560072; cv=none; b=u0dT9dcatoHl1up0cuK1603WFuzze8N0Mx4HGZpz3u0HetcNzmIfXplQnMqvb91tf5JfEy4skLVKk85vaImLtCAeDNRBcdS9xTEj7QEpvT1pnJFKgVymByEComzci+Csfv3Mw/xTNhbMMRs32v3FziJFWpbnKHvckZPKi98j1Pc=
+	t=1708560073; cv=none; b=mK6UrZDrEADK8YHEvAv6kKTjFgJhQNE8B78jHyJ8AnN3IW62MWPJ7M0mPLg6TGc7ruc2VulXdgezZHhdMpIz5qlDZkUiG2f5jUiKujLj8Q71yHxQAFKf8zCbl7lQ6G2SUV3RJLHeyrF3sTY1mQHwh8RYJet/ocJPKRExMv2Z7Fc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560072; c=relaxed/simple;
-	bh=VZ/uOdA+1sH02O47tNu3Q0Pigla9In0TV2ZpmcweM3o=;
-	h=Date:To:From:Subject:Message-Id; b=Pi/jEFTabkMl0VNhpEY0uHp121CgqUqyaCij1vrRvHPci5uqPSYds7oG7e7U59fW+k1H02AbfzyvYEvHI6JYCChBILLmcJfzlseCp3dZ/t8SNnuXTlYb5+Jy/SRJvij4p+HpSgq/kvIzpgzEcSfuu6IoDLXH6xbztrRrEC+xfOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vAzvEwRL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560073; c=relaxed/simple;
+	bh=7HOdLR7JsVIEdkJcKkN9bFJyUx5tqgC/DHWsnMXBmv8=;
+	h=Date:To:From:Subject:Message-Id; b=fgHyeBUJL7tDFHyUmQfJ0XzTQ1+auUeuPTHcY8N3IoMo298TYH/jK9eBMw1wL33afFaAfBSHl+M71GEQNh6D6fbIY5mcHEnZuHMAzKs0QHy1Vr046rby2FM5cqPdDDl4T8frAfKVqddU+GxkYj/00K26P1by5/v8WjFxkZfyImo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eXb+VDdQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vAzvEwRL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92E9EC43394;
-	Thu, 22 Feb 2024 00:01:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eXb+VDdQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80123C43399;
+	Thu, 22 Feb 2024 00:01:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560072;
-	bh=VZ/uOdA+1sH02O47tNu3Q0Pigla9In0TV2ZpmcweM3o=;
+	s=korg; t=1708560073;
+	bh=7HOdLR7JsVIEdkJcKkN9bFJyUx5tqgC/DHWsnMXBmv8=;
 	h=Date:To:From:Subject:From;
-	b=vAzvEwRLtOmk05qy1PLz7y/fx8Rb6ooGjN1wN+TqEc0fiYo5lm9N9BTlXh65kRsAX
-	 vTjwWWG0CFDy/0OwCMVoo3YyisMnb0/cwef+ljtIt/SnujjcZJDrsXPYsK5tFi9ojn
-	 S7rzP514ETt+3HWxDVqsKzIqca0E6vVBPmPcVIs4=
+	b=eXb+VDdQxz5zfSP5hnhmcea9XlUoV5H0momeeca6KAD9s9I3CTBuljOq8yBaj1Lzg
+	 ycI9yPTHt48DnKJ2u7XOKOpoXnnUtLG7ea9069kuvVITWHOamFi+l6Dw+BzbuHsxmN
+	 S6hGDoCZ2xxiAHQ0FDAEiGJh4rrm8vHz2npc3XwY=
 Date: Wed, 21 Feb 2024 16:01:12 -0800
-To: mm-commits@vger.kernel.org,shakeelb@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,willy@infradead.org,akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-use-a-folio-in-get_mctgt_type_thp.patch removed from -mm tree
-Message-Id: <20240222000112.92E9EC43394@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-pfn_swap_entry_folio.patch removed from -mm tree
+Message-Id: <20240222000113.80123C43399@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,87 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: use a folio in get_mctgt_type_thp
+     Subject: mm: add pfn_swap_entry_folio()
 has been removed from the -mm tree.  Its filename was
-     memcg-use-a-folio-in-get_mctgt_type_thp.patch
+     mm-add-pfn_swap_entry_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: memcg: use a folio in get_mctgt_type_thp
-Date: Thu, 11 Jan 2024 18:12:19 +0000
+Subject: mm: add pfn_swap_entry_folio()
+Date: Thu, 11 Jan 2024 15:24:20 +0000
 
-Replace five calls to compound_head() with one.
+Patch series "mm: convert mm counter to take a folio", v3.
 
-Link: https://lkml.kernel.org/r/20240111181219.3462852-5-willy@infradead.org
+Make sure all mm_counter() and mm_counter_file() callers have a folio,
+then convert mm counter functions to take a folio, which saves some
+compound_head() calls.
+
+
+This patch (of 10):  
+
+Thanks to the compound_head() hidden inside PageLocked(), this saves a
+call to compound_head() over calling page_folio(pfn_swap_entry_to_page())
+
+Link: https://lkml.kernel.org/r/20240111152429.3374566-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240111152429.3374566-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ include/linux/swapops.h |   13 +++++++++++++
+ mm/filemap.c            |    2 +-
+ mm/huge_memory.c        |    2 +-
+ 3 files changed, 15 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~memcg-use-a-folio-in-get_mctgt_type_thp
-+++ a/mm/memcontrol.c
-@@ -6194,6 +6194,7 @@ static enum mc_target_type get_mctgt_typ
- 		unsigned long addr, pmd_t pmd, union mc_target *target)
- {
- 	struct page *page = NULL;
-+	struct folio *folio;
- 	enum mc_target_type ret = MC_TARGET_NONE;
+--- a/include/linux/swapops.h~mm-add-pfn_swap_entry_folio
++++ a/include/linux/swapops.h
+@@ -468,6 +468,19 @@ static inline struct page *pfn_swap_entr
+ 	return p;
+ }
  
- 	if (unlikely(is_swap_pmd(pmd))) {
-@@ -6203,17 +6204,18 @@ static enum mc_target_type get_mctgt_typ
- 	}
- 	page = pmd_page(pmd);
- 	VM_BUG_ON_PAGE(!page || !PageHead(page), page);
-+	folio = page_folio(page);
- 	if (!(mc.flags & MOVE_ANON))
- 		return ret;
--	if (page_memcg(page) == mc.from) {
-+	if (folio_memcg(folio) == mc.from) {
- 		ret = MC_TARGET_PAGE;
- 		if (target) {
--			get_page(page);
--			if (!trylock_page(page)) {
--				put_page(page);
-+			folio_get(folio);
-+			if (!folio_trylock(folio)) {
-+				folio_put(folio);
- 				return MC_TARGET_NONE;
- 			}
--			target->folio = page_folio(page);
-+			target->folio = folio;
- 		}
- 	}
- 	return ret;
++static inline struct folio *pfn_swap_entry_folio(swp_entry_t entry)
++{
++	struct folio *folio = pfn_folio(swp_offset_pfn(entry));
++
++	/*
++	 * Any use of migration entries may only occur while the
++	 * corresponding folio is locked
++	 */
++	BUG_ON(is_migration_entry(entry) && !folio_test_locked(folio));
++
++	return folio;
++}
++
+ /*
+  * A pfn swap entry is a special type of swap entry that always has a pfn stored
+  * in the swap offset. They are used to represent unaddressable device memory
+--- a/mm/filemap.c~mm-add-pfn_swap_entry_folio
++++ a/mm/filemap.c
+@@ -1354,7 +1354,7 @@ void migration_entry_wait_on_locked(swp_
+ 	unsigned long pflags;
+ 	bool in_thrashing;
+ 	wait_queue_head_t *q;
+-	struct folio *folio = page_folio(pfn_swap_entry_to_page(entry));
++	struct folio *folio = pfn_swap_entry_folio(entry);
+ 
+ 	q = folio_waitqueue(folio);
+ 	if (!folio_test_uptodate(folio) && folio_test_workingset(folio)) {
+--- a/mm/huge_memory.c~mm-add-pfn_swap_entry_folio
++++ a/mm/huge_memory.c
+@@ -2045,7 +2045,7 @@ int change_huge_pmd(struct mmu_gather *t
+ #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
+ 	if (is_swap_pmd(*pmd)) {
+ 		swp_entry_t entry = pmd_to_swp_entry(*pmd);
+-		struct folio *folio = page_folio(pfn_swap_entry_to_page(entry));
++		struct folio *folio = pfn_swap_entry_folio(entry);
+ 		pmd_t newpmd;
+ 
+ 		VM_BUG_ON(!is_pmd_migration_entry(*pmd));
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
