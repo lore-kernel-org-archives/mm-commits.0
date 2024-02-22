@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B47FFA923
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98EC128EF
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560188; cv=none; b=g4BgjrTTkHmqMKA3eFNlmyV2AiUlGHEy4CnOrpSj6BsrrxergZEIW5iFT8eHJRf3uoVr3Y3xRdXKW32RRMweK+EneNJOWE5APttbKu7j131tehRZ+zw8gGHf4SiHgdZ+pv6XOK/G/jm6JR9K0e8waukzmQoME17WzkOCubgiUkk=
+	t=1708560189; cv=none; b=D+4P4HGHhjaJyRcqs3Fuxz+vpg0PK69K+tPWkFBT99DwXhbISqs/skYHZYpwizDfARfZ2QFOGimAtEKm6I5mGLMfEmrBV60vXBOx7I8BZuHE1bmsjzJc5ue2U+a9hc53TIrXHglISkNCQLmdXRO0YyNfgaw3AJiXub4a+3Rzpcc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560188; c=relaxed/simple;
-	bh=53TsPclAvyuNAP3VVv1tjOqYDPEwNtYtiPJSzvU8gUk=;
-	h=Date:To:From:Subject:Message-Id; b=nd1t40ovV2qmm8fz3CN/JuKQS7U+zAzX1tnokl4NrmSGQWpGtG5gmkE42RGoPhdhiQxYAA/3H2juo22Lj2A84s2VZcj8fhvKElCrQH2cHF2EKpqQUGtIY8uGAlPDry2c7pazgfLfR/Cy7F/S7uL8FsqejqpntCyFlhSvyf2Ktjk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0P3GbUH/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560189; c=relaxed/simple;
+	bh=elS1Zsa7f63tF2wjyvl6JQCILlq05ahuxGYuM2l2t3k=;
+	h=Date:To:From:Subject:Message-Id; b=MpVH18OSv0kpyMNQHFHjVIYY2Vox6kijnfxJIJDI7+23N9KcLWU0/BosQ1DevjHlwnFE4gG84Ccl6u38B76xrvgZ4fwbmcXkcDyvyg36aHPy7MD5Sez+4Iqj4m+wHF/YEOWoNDvM53HFz0WI+hR4LaAQhVZ9gUNDpEKdYrA6S2Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bwkKuUMw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0P3GbUH/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 808C5C433C7;
-	Thu, 22 Feb 2024 00:03:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bwkKuUMw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 620E5C433F1;
+	Thu, 22 Feb 2024 00:03:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560188;
-	bh=53TsPclAvyuNAP3VVv1tjOqYDPEwNtYtiPJSzvU8gUk=;
+	s=korg; t=1708560189;
+	bh=elS1Zsa7f63tF2wjyvl6JQCILlq05ahuxGYuM2l2t3k=;
 	h=Date:To:From:Subject:From;
-	b=0P3GbUH/62Iab+KGA8EliqGHP+LswB2mVbDyoafZjDhaK0LuXQputtB98UJS7os9J
-	 YgRKXrYeuA2SVREopR+qc3x1mDshTEx8ykZB/kgCP6DNrE4dXXkeFb5SJy3oXOeRA5
-	 kvaZTro6zxrsMHC9A5OaPVmCiim0YBltn1UmwQIs=
-Date: Wed, 21 Feb 2024 16:03:07 -0800
+	b=bwkKuUMwWdmF3R1V68KTyQjWo1eeR1Be5dJqY40/JhoxNkKRtBuQmksDuTPRDcJbw
+	 QTjxrflCbpqFZC4ZtOloxXhZPCqZM7ybRnQdqC+haiM18dpeE2X56cDAPoKu4W1CYf
+	 A4RdE0jAKPtt/JZlid4XfNySYzdpoW4pAe+4Vffw=
+Date: Wed, 21 Feb 2024 16:03:08 -0800
 To: mm-commits@vger.kernel.org,elver@google.com,corbet@lwn.net,andreyknvl@gmail.com,yangtiezhu@loongson.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-docs-update-descriptions-about-test-file-and-module.patch removed from -mm tree
-Message-Id: <20240222000308.808C5C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-rename-test_kasan_module_init-to-kasan_test_module_init.patch removed from -mm tree
+Message-Id: <20240222000309.620E5C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: docs: update descriptions about test file and module
+     Subject: kasan: rename test_kasan_module_init to kasan_test_module_init
 has been removed from the -mm tree.  Its filename was
-     kasan-docs-update-descriptions-about-test-file-and-module.patch
+     kasan-rename-test_kasan_module_init-to-kasan_test_module_init.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Tiezhu Yang <yangtiezhu@loongson.cn>
-Subject: kasan: docs: update descriptions about test file and module
-Date: Mon, 5 Feb 2024 14:09:21 +0800
+Subject: kasan: rename test_kasan_module_init to kasan_test_module_init
+Date: Mon, 5 Feb 2024 14:09:22 +0800
 
 After commit f7e01ab828fd ("kasan: move tests to mm/kasan/"), the test
-file is renamed to mm/kasan/kasan_test.c and the test module is renamed to
-kasan_test.ko, so update the descriptions in the document.
+module file is renamed from lib/test_kasan_module.c to
+mm/kasan/kasan_test_module.c, in order to keep consistent, rename
+test_kasan_module_init to kasan_test_module_init.
 
-While at it, update the line number and testcase number when the tests
-kmalloc_large_oob_right and kmalloc_double_kzfree failed to sync with the
-current code in mm/kasan/kasan_test.c.
-
-Link: https://lkml.kernel.org/r/20240205060925.15594-2-yangtiezhu@loongson.cn
+Link: https://lkml.kernel.org/r/20240205060925.15594-3-yangtiezhu@loongson.cn
 Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
 Acked-by: Marco Elver <elver@google.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
@@ -63,197 +60,27 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst                    |   20 +++++-----
- Documentation/translations/zh_CN/dev-tools/kasan.rst |   20 +++++-----
- Documentation/translations/zh_TW/dev-tools/kasan.rst |   20 +++++-----
- 3 files changed, 30 insertions(+), 30 deletions(-)
+ mm/kasan/kasan_test_module.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-descriptions-about-test-file-and-module
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -169,7 +169,7 @@ Error reports
- A typical KASAN report looks like this::
+--- a/mm/kasan/kasan_test_module.c~kasan-rename-test_kasan_module_init-to-kasan_test_module_init
++++ a/mm/kasan/kasan_test_module.c
+@@ -62,7 +62,7 @@ static noinline void __init copy_user_te
+ 	kfree(kmem);
+ }
  
-     ==================================================================
--    BUG: KASAN: slab-out-of-bounds in kmalloc_oob_right+0xa8/0xbc [test_kasan]
-+    BUG: KASAN: slab-out-of-bounds in kmalloc_oob_right+0xa8/0xbc [kasan_test]
-     Write of size 1 at addr ffff8801f44ec37b by task insmod/2760
+-static int __init test_kasan_module_init(void)
++static int __init kasan_test_module_init(void)
+ {
+ 	/*
+ 	 * Temporarily enable multi-shot mode. Otherwise, KASAN would only
+@@ -77,5 +77,5 @@ static int __init test_kasan_module_init
+ 	return -EAGAIN;
+ }
  
-     CPU: 1 PID: 2760 Comm: insmod Not tainted 4.19.0-rc3+ #698
-@@ -179,8 +179,8 @@ A typical KASAN report looks like this::
-      print_address_description+0x73/0x280
-      kasan_report+0x144/0x187
-      __asan_report_store1_noabort+0x17/0x20
--     kmalloc_oob_right+0xa8/0xbc [test_kasan]
--     kmalloc_tests_init+0x16/0x700 [test_kasan]
-+     kmalloc_oob_right+0xa8/0xbc [kasan_test]
-+     kmalloc_tests_init+0x16/0x700 [kasan_test]
-      do_one_initcall+0xa5/0x3ae
-      do_init_module+0x1b6/0x547
-      load_module+0x75df/0x8070
-@@ -200,8 +200,8 @@ A typical KASAN report looks like this::
-      save_stack+0x43/0xd0
-      kasan_kmalloc+0xa7/0xd0
-      kmem_cache_alloc_trace+0xe1/0x1b0
--     kmalloc_oob_right+0x56/0xbc [test_kasan]
--     kmalloc_tests_init+0x16/0x700 [test_kasan]
-+     kmalloc_oob_right+0x56/0xbc [kasan_test]
-+     kmalloc_tests_init+0x16/0x700 [kasan_test]
-      do_one_initcall+0xa5/0x3ae
-      do_init_module+0x1b6/0x547
-      load_module+0x75df/0x8070
-@@ -510,15 +510,15 @@ When a test passes::
- 
- When a test fails due to a failed ``kmalloc``::
- 
--        # kmalloc_large_oob_right: ASSERTION FAILED at lib/test_kasan.c:163
-+        # kmalloc_large_oob_right: ASSERTION FAILED at mm/kasan/kasan_test.c:245
-         Expected ptr is not null, but is
--        not ok 4 - kmalloc_large_oob_right
-+        not ok 5 - kmalloc_large_oob_right
- 
- When a test fails due to a missing KASAN report::
- 
--        # kmalloc_double_kzfree: EXPECTATION FAILED at lib/test_kasan.c:974
-+        # kmalloc_double_kzfree: EXPECTATION FAILED at mm/kasan/kasan_test.c:709
-         KASAN failure expected in "kfree_sensitive(ptr)", but none occurred
--        not ok 44 - kmalloc_double_kzfree
-+        not ok 28 - kmalloc_double_kzfree
- 
- 
- At the end the cumulative status of all KASAN tests is printed. On success::
-@@ -534,7 +534,7 @@ There are a few ways to run KUnit-compat
- 1. Loadable module
- 
-    With ``CONFIG_KUNIT`` enabled, KASAN-KUnit tests can be built as a loadable
--   module and run by loading ``test_kasan.ko`` with ``insmod`` or ``modprobe``.
-+   module and run by loading ``kasan_test.ko`` with ``insmod`` or ``modprobe``.
- 
- 2. Built-In
- 
---- a/Documentation/translations/zh_CN/dev-tools/kasan.rst~kasan-docs-update-descriptions-about-test-file-and-module
-+++ a/Documentation/translations/zh_CN/dev-tools/kasan.rst
-@@ -137,7 +137,7 @@ 错误报告
- 典型的KASAN报告如下所示::
- 
-     ==================================================================
--    BUG: KASAN: slab-out-of-bounds in kmalloc_oob_right+0xa8/0xbc [test_kasan]
-+    BUG: KASAN: slab-out-of-bounds in kmalloc_oob_right+0xa8/0xbc [kasan_test]
-     Write of size 1 at addr ffff8801f44ec37b by task insmod/2760
- 
-     CPU: 1 PID: 2760 Comm: insmod Not tainted 4.19.0-rc3+ #698
-@@ -147,8 +147,8 @@ 典型的KASAN报告如下所示::
-      print_address_description+0x73/0x280
-      kasan_report+0x144/0x187
-      __asan_report_store1_noabort+0x17/0x20
--     kmalloc_oob_right+0xa8/0xbc [test_kasan]
--     kmalloc_tests_init+0x16/0x700 [test_kasan]
-+     kmalloc_oob_right+0xa8/0xbc [kasan_test]
-+     kmalloc_tests_init+0x16/0x700 [kasan_test]
-      do_one_initcall+0xa5/0x3ae
-      do_init_module+0x1b6/0x547
-      load_module+0x75df/0x8070
-@@ -168,8 +168,8 @@ 典型的KASAN报告如下所示::
-      save_stack+0x43/0xd0
-      kasan_kmalloc+0xa7/0xd0
-      kmem_cache_alloc_trace+0xe1/0x1b0
--     kmalloc_oob_right+0x56/0xbc [test_kasan]
--     kmalloc_tests_init+0x16/0x700 [test_kasan]
-+     kmalloc_oob_right+0x56/0xbc [kasan_test]
-+     kmalloc_tests_init+0x16/0x700 [kasan_test]
-      do_one_initcall+0xa5/0x3ae
-      do_init_module+0x1b6/0x547
-      load_module+0x75df/0x8070
-@@ -421,15 +421,15 @@ 当测试通过::
- 
- 当由于 ``kmalloc`` 失败而导致测试失败时::
- 
--        # kmalloc_large_oob_right: ASSERTION FAILED at lib/test_kasan.c:163
-+        # kmalloc_large_oob_right: ASSERTION FAILED at mm/kasan/kasan_test.c:245
-         Expected ptr is not null, but is
--        not ok 4 - kmalloc_large_oob_right
-+        not ok 5 - kmalloc_large_oob_right
- 
- 当由于缺少KASAN报告而导致测试失败时::
- 
--        # kmalloc_double_kzfree: EXPECTATION FAILED at lib/test_kasan.c:974
-+        # kmalloc_double_kzfree: EXPECTATION FAILED at mm/kasan/kasan_test.c:709
-         KASAN failure expected in "kfree_sensitive(ptr)", but none occurred
--        not ok 44 - kmalloc_double_kzfree
-+        not ok 28 - kmalloc_double_kzfree
- 
- 
- 最后打印所有KASAN测试的累积状态。成功::
-@@ -445,7 +445,7 @@ 有几种方法可以运行与KUnit兼�
- 1. 可加载模块
- 
-    启用 ``CONFIG_KUNIT`` 后，KASAN-KUnit测试可以构建为可加载模块，并通过使用
--   ``insmod`` 或 ``modprobe`` 加载 ``test_kasan.ko`` 来运行。
-+   ``insmod`` 或 ``modprobe`` 加载 ``kasan_test.ko`` 来运行。
- 
- 2. 内置
- 
---- a/Documentation/translations/zh_TW/dev-tools/kasan.rst~kasan-docs-update-descriptions-about-test-file-and-module
-+++ a/Documentation/translations/zh_TW/dev-tools/kasan.rst
-@@ -137,7 +137,7 @@ 錯誤報告
- 典型的KASAN報告如下所示::
- 
-     ==================================================================
--    BUG: KASAN: slab-out-of-bounds in kmalloc_oob_right+0xa8/0xbc [test_kasan]
-+    BUG: KASAN: slab-out-of-bounds in kmalloc_oob_right+0xa8/0xbc [kasan_test]
-     Write of size 1 at addr ffff8801f44ec37b by task insmod/2760
- 
-     CPU: 1 PID: 2760 Comm: insmod Not tainted 4.19.0-rc3+ #698
-@@ -147,8 +147,8 @@ 典型的KASAN報告如下所示::
-      print_address_description+0x73/0x280
-      kasan_report+0x144/0x187
-      __asan_report_store1_noabort+0x17/0x20
--     kmalloc_oob_right+0xa8/0xbc [test_kasan]
--     kmalloc_tests_init+0x16/0x700 [test_kasan]
-+     kmalloc_oob_right+0xa8/0xbc [kasan_test]
-+     kmalloc_tests_init+0x16/0x700 [kasan_test]
-      do_one_initcall+0xa5/0x3ae
-      do_init_module+0x1b6/0x547
-      load_module+0x75df/0x8070
-@@ -168,8 +168,8 @@ 典型的KASAN報告如下所示::
-      save_stack+0x43/0xd0
-      kasan_kmalloc+0xa7/0xd0
-      kmem_cache_alloc_trace+0xe1/0x1b0
--     kmalloc_oob_right+0x56/0xbc [test_kasan]
--     kmalloc_tests_init+0x16/0x700 [test_kasan]
-+     kmalloc_oob_right+0x56/0xbc [kasan_test]
-+     kmalloc_tests_init+0x16/0x700 [kasan_test]
-      do_one_initcall+0xa5/0x3ae
-      do_init_module+0x1b6/0x547
-      load_module+0x75df/0x8070
-@@ -421,15 +421,15 @@ 當測試通過::
- 
- 當由於 ``kmalloc`` 失敗而導致測試失敗時::
- 
--        # kmalloc_large_oob_right: ASSERTION FAILED at lib/test_kasan.c:163
-+        # kmalloc_large_oob_right: ASSERTION FAILED at mm/kasan/kasan_test.c:245
-         Expected ptr is not null, but is
--        not ok 4 - kmalloc_large_oob_right
-+        not ok 5 - kmalloc_large_oob_right
- 
- 當由於缺少KASAN報告而導致測試失敗時::
- 
--        # kmalloc_double_kzfree: EXPECTATION FAILED at lib/test_kasan.c:974
-+        # kmalloc_double_kzfree: EXPECTATION FAILED at mm/kasan/kasan_test.c:709
-         KASAN failure expected in "kfree_sensitive(ptr)", but none occurred
--        not ok 44 - kmalloc_double_kzfree
-+        not ok 28 - kmalloc_double_kzfree
- 
- 
- 最後打印所有KASAN測試的累積狀態。成功::
-@@ -445,7 +445,7 @@ 有幾種方法可以運行與KUnit兼�
- 1. 可加載模塊
- 
-    啓用 ``CONFIG_KUNIT`` 後，KASAN-KUnit測試可以構建爲可加載模塊，並通過使用
--   ``insmod`` 或 ``modprobe`` 加載 ``test_kasan.ko`` 來運行。
-+   ``insmod`` 或 ``modprobe`` 加載 ``kasan_test.ko`` 來運行。
- 
- 2. 內置
- 
+-module_init(test_kasan_module_init);
++module_init(kasan_test_module_init);
+ MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from yangtiezhu@loongson.cn are
