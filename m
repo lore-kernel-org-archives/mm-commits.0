@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 482988BFD
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3405AEEAD
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560203; cv=none; b=sGFo/zVS2ARrs6P9BuhyNdZ3eVofHf1l21Hj4vaAYJdLCJ3VC339Ktv/+dZ/oTIpO92qjSDgkL1Y7WTa/jtWcnOGOa7dy0uSPVqTA9JkXNikMWYRxxQQYa904Mg5F/xT7JvyX6Qk5cwRBYSudRSEc5XYVsKIfTYaf+tnTqrXROg=
+	t=1708560204; cv=none; b=e7qY3kSC6R+MT5+RboygTQNnuc3zXF+KdI4B0+pZ+UT/wddlsi8t6mMFiYtLXYGG2+fpZ8y4EuAki0l6dST0psOMJp+u+HYiYd+MZJJIom3eXnvVInIBuvOz1Gw9RrbZB4NZ7AVcBEzxqgnS+iSG6sgXaEAyXY55aSReTXC4zoY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560203; c=relaxed/simple;
-	bh=ij4qLlp6fyUAmg8ulIuNAYkg3MfWqZv/0v3WGofZYBY=;
-	h=Date:To:From:Subject:Message-Id; b=Qwje6wRCUVRVg8K1BuUmyHw8SZw5qJjiWpescQFgXVM0sMZ08Ap6/kLy9DgZZ4jrn6xyiwb7kKL3Rh9JhYfk26+rNxZxYFdMRqMxUJO7tPz+0gYSqXIkYvczaLKnk7WROrssh/PKkcKWKEfQn+SafkNlFlBOmCrAaL1ejQOS6p8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fb/wzX2R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560204; c=relaxed/simple;
+	bh=lFY1SdQbwaHMfchLJs9OBgThbJ3C+vVnwnVTz8ld4qI=;
+	h=Date:To:From:Subject:Message-Id; b=IH4v4pWQJJIM7os6zxJgPOjn5xENhqeoymmKJ5xyc7kuB48BU9maHj2xAHaL5N+uGil+kO/j8EHsyDTTg28ZFTDpY2F0X0oo8O1/pBtHtel8DmePJgzZ+I/h/5IsG21FvReK6BgwA4pF0Zlg/jFAwJO2wRpJwqVbDjD34+6XAGY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qozogS0s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fb/wzX2R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BE9BC433F1;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qozogS0s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F13FCC43390;
 	Thu, 22 Feb 2024 00:03:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560203;
-	bh=ij4qLlp6fyUAmg8ulIuNAYkg3MfWqZv/0v3WGofZYBY=;
+	s=korg; t=1708560204;
+	bh=lFY1SdQbwaHMfchLJs9OBgThbJ3C+vVnwnVTz8ld4qI=;
 	h=Date:To:From:Subject:From;
-	b=fb/wzX2RSx3kxcGhq4hJeZnJvqXrBHT2WcrBH5xvKKxBXK/TufeCnp9IN/P4mW9EF
-	 qymomJOUUSUHJDWl4SJF29wbL9Lo9AnSRf0tjfKQPvSGKUfpniTyDWK2PlmHxm77v5
-	 k0jqJV6XJhbodvz2kR+sepo+xAT/bV9uIYtannRA=
-Date: Wed, 21 Feb 2024 16:03:22 -0800
-To: mm-commits@vger.kernel.org,yj.chiang@mediatek.com,senozhatsky@chromium.org,minchan@kernel.org,matthias.bgg@gmail.com,axboe@kernel.dk,angelogioacchino.delregno@collabora.com,mark-pk.tsai@mediatek.com,akpm@linux-foundation.org
+	b=qozogS0s+Ht6XdJSw8ISxzhGp+NSCEEEe15h1j2/mEY31IjZ488jU8DVCU1fkszTW
+	 g4pZ5mLC3qoy3GzmSKwfx5CVJjoe5p4Hot59PXDR1AHDwrIikvZbXx39WyTOSBjZJp
+	 QwcCFFbfdlYtUAqJ6THBL2F8dBdpuAeNtqS2No80=
+Date: Wed, 21 Feb 2024 16:03:23 -0800
+To: mm-commits@vger.kernel.org,john@groves.net,hch@infradead.org,dan.j.williams@intel.com,John@Groves.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-use-copy_page-for-full-page-copy.patch removed from -mm tree
-Message-Id: <20240222000323.1BE9BC433F1@smtp.kernel.org>
+Subject: [merged mm-stable] memremaph-correct-an-error-in-a-comment.patch removed from -mm tree
+Message-Id: <20240222000323.F13FCC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: use copy_page for full page copy
+     Subject: memremap.h: correct an error in a comment
 has been removed from the -mm tree.  Its filename was
-     zram-use-copy_page-for-full-page-copy.patch
+     memremaph-correct-an-error-in-a-comment.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mark-PK Tsai <mark-pk.tsai@mediatek.com>
-Subject: zram: use copy_page for full page copy
-Date: Sat, 7 Oct 2023 15:05:53 +0800
+From: John Groves <John@Groves.net>
+Subject: memremap.h: correct an error in a comment
+Date: Mon, 5 Feb 2024 18:57:37 -0600
 
-Some architectures, such as arm, have implemented optimized copy_page for
-full page copying.
+It tried to send me off to memory_hotplug.h for an enum that is a few
+lines above...
 
-Replace the full page memcpy with copy_page to take advantage of the
-optimization.
-
-Link: https://lkml.kernel.org/r/20231007070554.8657-1-mark-pk.tsai@mediatek.com
-Signed-off-by: Mark-PK Tsai <mark-pk.tsai@mediatek.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: YJ Chiang <yj.chiang@mediatek.com>
+Link: https://lkml.kernel.org/r/dba0f5f01162d6fa16e4da2a9fede7f97080e92d.1707179960.git.john@groves.net
+Signed-off-by: John Groves <john@groves.net>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    2 +-
+ include/linux/memremap.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-use-copy_page-for-full-page-copy
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1337,7 +1337,7 @@ static int zram_read_from_zspool(struct
- 	src = zs_map_object(zram->mem_pool, handle, ZS_MM_RO);
- 	if (size == PAGE_SIZE) {
- 		dst = kmap_local_page(page);
--		memcpy(dst, src, PAGE_SIZE);
-+		copy_page(dst, src);
- 		kunmap_local(dst);
- 		ret = 0;
- 	} else {
+--- a/include/linux/memremap.h~memremaph-correct-an-error-in-a-comment
++++ a/include/linux/memremap.h
+@@ -109,7 +109,7 @@ struct dev_pagemap_ops {
+  * @altmap: pre-allocated/reserved memory for vmemmap allocations
+  * @ref: reference count that pins the devm_memremap_pages() mapping
+  * @done: completion for @ref
+- * @type: memory type: see MEMORY_* in memory_hotplug.h
++ * @type: memory type: see MEMORY_* above in memremap.h
+  * @flags: PGMAP_* flags to specify defailed behavior
+  * @vmemmap_shift: structural definition of how the vmemmap page metadata
+  *      is populated, specifically the metadata page order.
 _
 
-Patches currently in -mm which might be from mark-pk.tsai@mediatek.com are
+Patches currently in -mm which might be from John@Groves.net are
 
 
