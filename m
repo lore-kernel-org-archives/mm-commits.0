@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE3D71A5A2
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:35:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65B4D17BBA;
+	Thu, 22 Feb 2024 23:39:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708644937; cv=none; b=cb9Hc6XmTZBURp6y+cfqWBnberXJZ0I6N7JMthvuqC+a6P+B6Ejgs2aY+hMevoqQm6d7Bw83gFw+tMjvz6VjyyEKdwxNp/lRNp5CK5LKnFD9Uyz88Mfj6QYRnIQPpLBnmCb3ioQs+o5ASeg0owFvgOEYAqg2imX5oGi8fw2B2WE=
+	t=1708645166; cv=none; b=mexrVnv1NLzkVzPzZk2QiAqHWVvI/qGNdNFhTavFSkfm95TRbplf7v3l7OYYT7CDP08i7dNzNDUC3S9A/seazcTaGZrFfwf4Lcop54AR7Yt5hk2TypSuhwj0Xylm5WZTthM8seH+SyYyz2jkbxuX5Z6mE5cMaSO0TGkccjXRGwM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708644937; c=relaxed/simple;
-	bh=0wwvtqd7n64pzX3tEw1mfNhxQUDucKD28HfWtzBoLH8=;
-	h=Date:To:From:Subject:Message-Id; b=TxjUakNRlVzcSXZfekjWH00gU4TmITrvmJS1J9umiqtcDgPZxU7lOswBAJ8dOhuynPrzNT19KwmvBa63FVS6YIAr35Te2JrRoUuhIpngRiPFItKIQrtO8K4J9MIdY+YDLUVsogD7bguybMSIqF1wBY5wdaRgnEIzTHnx/NNfPsM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QOWmCfir; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708645166; c=relaxed/simple;
+	bh=7Zz9N2qREAhZwfH7evuuc/XT4gBx9hbfdzNuiYDkEA0=;
+	h=Date:To:From:Subject:Message-Id; b=VmnYA+L9mmMof43SMoclhnafREeDhDPGGL3JT2EriS11Psz9I+ij7+EvZK3P3HgIwCdm7IfyAkYcVPA4Hzt+eV2VYK5hpdHV1MmI4yXn1ebowyTMM5i/ZJpiTL/CzA81kTRJ+j168G9ucJ6rXCfh8klkT4RWvDT5Z/enFjRHZOY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ItWMVVKO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QOWmCfir"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32F63C433F1;
-	Thu, 22 Feb 2024 23:35:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ItWMVVKO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF575C433F1;
+	Thu, 22 Feb 2024 23:39:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708644937;
-	bh=0wwvtqd7n64pzX3tEw1mfNhxQUDucKD28HfWtzBoLH8=;
+	s=korg; t=1708645166;
+	bh=7Zz9N2qREAhZwfH7evuuc/XT4gBx9hbfdzNuiYDkEA0=;
 	h=Date:To:From:Subject:From;
-	b=QOWmCfirHJqxUkzBvk8IyFpUAiyS0r4Jhl16VBrnRdqjgLiaxJZO9rrDCxXhQWtlY
-	 2SGsexV8QkN5Xy3VW7w4Jnv9TnWFMX7cfXr+CK8wgLXO4KhSnh5NLkOQVKea7Ylbol
-	 eDbbA89Qd7bTSaHeErBP4FGyiPc1I4b5pxSbtpLE=
-Date: Thu, 22 Feb 2024 15:35:36 -0800
-To: mm-commits@vger.kernel.org,rdunlap@infradead.org,peterz@infradead.org,jpoimboe@kernel.org,gpiccoli@igalia.com,feng.tang@intel.com,corbet@lwn.net,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=ItWMVVKOVit+9SnGpHLCewpuKWf/LjA1H09pBoLorMKZfNqicV3+deELn3dILvpfq
+	 C/8eo431o3QPg1SNbZWX9rLq7CPFmL4N84hXzYpC6LRKwChL409HavMJkdZjV41MAC
+	 sSdyudk1fn4QD6CzbewzNhm20zZx8NRoVYmG4UIA=
+Date: Thu, 22 Feb 2024 15:39:25 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,riel@surriel.com,peterz@infradead.org,mingo@kernel.org,mgorman@techsingularity.net,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] panic-add-option-to-dump-blocked-tasks-in-panic_print-fix.patch removed from -mm tree
-Message-Id: <20240222233537.32F63C433F1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] bounds-support-non-power-of-two-config_nr_cpus.patch removed from -mm tree
+Message-Id: <20240222233925.DF575C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: panic-add-option-to-dump-blocked-tasks-in-panic_print-fix
+     Subject: bounds: support non-power-of-two CONFIG_NR_CPUS
 has been removed from the -mm tree.  Its filename was
-     panic-add-option-to-dump-blocked-tasks-in-panic_print-fix.patch
+     bounds-support-non-power-of-two-config_nr_cpus.patch
 
-This patch was dropped because it was folded into panic-add-option-to-dump-blocked-tasks-in-panic_print.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: panic-add-option-to-dump-blocked-tasks-in-panic_print-fix
-Date: Sat Feb  3 04:31:14 AM PST 2024
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: bounds: support non-power-of-two CONFIG_NR_CPUS
+Date: Tue, 10 Oct 2023 15:55:49 +0100
 
-clarify documentation a little
+ilog2() rounds down, so for example when PowerPC 85xx sets CONFIG_NR_CPUS
+to 24, we will only allocate 4 bits to store the number of CPUs instead of
+5.  Use bits_per() instead, which rounds up.  Found by code inspection. 
+The effect of this would probably be a misaccounting when doing NUMA
+balancing, so to a user, it would only be a performance penalty.  The
+effects may be more wide-spread; it's hard to tell.
 
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: Guilherme G. Piccoli <gpiccoli@igalia.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20231010145549.1244748-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Fixes: 90572890d202 ("mm: numa: Change page last {nid,pid} into {cpu,pid}")
+Reviewed-by: Rik van Riel <riel@surriel.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    2 +-
- Documentation/admin-guide/sysctl/kernel.rst     |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/bounds.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~panic-add-option-to-dump-blocked-tasks-in-panic_print-fix
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -4182,7 +4182,7 @@
- 			bit 4: print ftrace buffer
- 			bit 5: print all printk messages in buffer
- 			bit 6: print all CPUs backtrace (if available in the arch)
--			bit 7: print tasks in uninterruptible (blocked) state
-+			bit 7: print only tasks in uninterruptible (blocked) state
- 			*Be aware* that this option may print a _lot_ of lines,
- 			so there are risks of losing older messages in the log.
- 			Use this option carefully, maybe worth to setup a
---- a/Documentation/admin-guide/sysctl/kernel.rst~panic-add-option-to-dump-blocked-tasks-in-panic_print-fix
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -853,7 +853,7 @@ bit 3  print locks info if ``CONFIG_LOCK
- bit 4  print ftrace buffer
- bit 5  print all printk messages in buffer
- bit 6  print all CPUs backtrace (if available in the arch)
--bit 7  print tasks in uninterruptible (blocked) state
-+bit 7  print only tasks in uninterruptible (blocked) state
- =====  ============================================
- 
- So for example to print tasks and memory info on panic, user can::
+--- a/kernel/bounds.c~bounds-support-non-power-of-two-config_nr_cpus
++++ a/kernel/bounds.c
+@@ -19,7 +19,7 @@ int main(void)
+ 	DEFINE(NR_PAGEFLAGS, __NR_PAGEFLAGS);
+ 	DEFINE(MAX_NR_ZONES, __MAX_NR_ZONES);
+ #ifdef CONFIG_SMP
+-	DEFINE(NR_CPUS_BITS, ilog2(CONFIG_NR_CPUS));
++	DEFINE(NR_CPUS_BITS, bits_per(CONFIG_NR_CPUS));
+ #endif
+ 	DEFINE(SPINLOCK_SIZE, sizeof(spinlock_t));
+ #ifdef CONFIG_LRU_GEN
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
-kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch
-arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix.patch
-mm-swapfile-__swap_duplicate-drop-redundant-write_once-on-swap_map-for-err-cases-fix.patch
-hugetlb-parallelize-1g-hugetlb-initialization-fix.patch
-panic-add-option-to-dump-blocked-tasks-in-panic_print.patch
+writeback-remove-a-duplicate-prototype-for-tag_pages_for_writeback.patch
+writeback-factor-folio_prepare_writeback-out-of-write_cache_pages.patch
+writeback-factor-writeback_get_batch-out-of-write_cache_pages.patch
+writeback-simplify-the-loops-in-write_cache_pages.patch
+pagevec-add-ability-to-iterate-a-queue.patch
+writeback-use-the-folio_batch-queue-iterator.patch
+writeback-move-the-folio_prepare_writeback-loop-out-of-write_cache_pages.patch
+writeback-remove-a-use-of-write_cache_pages-from-do_writepages.patch
 
