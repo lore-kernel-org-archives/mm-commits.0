@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 314F97E1
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:02:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42C8A15A8
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:02:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560134; cv=none; b=lROI8fQY8GcbRhJo2Pp3Hj9o51gxpcniCrRr2JCJjHzXDpOM6AgeHOzFRn0MHSQghCNiRNtAV6tQup3tauhqDvYuJ1pjDKOsargSEsXpMjfS8qSL/OGUdjwSq6nw4uC1FoqjApqZpt0ew2iIAoHhcZbYiSH90q1AYztHc69GKaE=
+	t=1708560135; cv=none; b=TxtNkFsteQ0mVGDWvgvNS/yeG9EynF7nC0AmazLH+8ERKHjmXMju9dItM3Iw9n0MFFpYtw+asm6iXSiYhmcP4vUKbjlDdzlp+o+yZVxxCLwnyFAa045AESZMYnyy2ETgZCNKqhWy+9SY+VEcAlLce/RerGss3ULCKKFe0QHe3RY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560134; c=relaxed/simple;
-	bh=LyNpFEDN59ED4m2Cdqni+O07xYwHYjS64Mupg8IfiTU=;
-	h=Date:To:From:Subject:Message-Id; b=Q0oq/Ykr6RB1Ug4Ay9c64GLKcGddbb8TMZ3xZbWCVKGWD4sarAzQcB0V3U23uCZG59pc8T+y+vWiIB44EPh+cO2YUIkMPKirEgBF/zsVmtPtNLj/KxQFe/26isMqswN2NAZh6Qbm7p+mgZMx+DfKKTVUYYmLelC8Ui7sTYH0Y2g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JkGAMcfh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560135; c=relaxed/simple;
+	bh=vJx+sBr6QFfthg675UABg3jQYD2Q+y/XxyH/I+F9NsM=;
+	h=Date:To:From:Subject:Message-Id; b=KkmWaPHjVk9801hX56lkpIZQfK4niPb98lIObyPRVjVX+51Pn8d9r79xAAjxiMpg40EnSUF8pMkdAZYHJD42C0mhm5DGRckuLr3kE8a2HwZAODBp+LBZ6vWHWrD9Aatj1ICbBV79YY6JLRIXqHF44jV8+gPZhU5H/vajPHAUlkI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hSm29IvH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JkGAMcfh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06ADDC433F1;
-	Thu, 22 Feb 2024 00:02:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hSm29IvH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6C7FC433C7;
+	Thu, 22 Feb 2024 00:02:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
 	s=korg; t=1708560134;
-	bh=LyNpFEDN59ED4m2Cdqni+O07xYwHYjS64Mupg8IfiTU=;
+	bh=vJx+sBr6QFfthg675UABg3jQYD2Q+y/XxyH/I+F9NsM=;
 	h=Date:To:From:Subject:From;
-	b=JkGAMcfhZ5M+Ci2tKitxSwmMyb9JgMZlZsAydo7WQGfRJTxZsAhQu810h9UOTNDgc
-	 OhLceIbxr2ssO6fsXKEirDsBFt4N8S/jNGrX8hLw8ggvySbJ9CKHeg+7KELmeqGfv/
-	 YmNOFdmuLWMHMDAXzbAwIV0VrNO5/NoJ0Sfggpyw=
-Date: Wed, 21 Feb 2024 16:02:13 -0800
+	b=hSm29IvH480KUfQTtUFEz4QwVfpNpyvaxSeB4rIpQxUyiE4UsFPFQKzWTMovYe3qC
+	 2gU2RfCAoQU+AKIAfMT0iHyB+YLJ/5TerXKnQbKF3PpjUqp1peGe743UBAWqb4/ipr
+	 FK8aNWoyyOtYKZK3i820S8raZ8AjDUoAMt4MKm0M=
+Date: Wed, 21 Feb 2024 16:02:14 -0800
 To: mm-commits@vger.kernel.org,siyanteng@loongson.cn,shuah@kernel.org,corbet@lwn.net,alexs@kernel.org,2023002089@link.tyut.edu.cn,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-usage-document-deprecated-file-of-damon-debugfs-interface.patch removed from -mm tree
-Message-Id: <20240222000214.06ADDC433F1@smtp.kernel.org>
+Subject: [merged mm-stable] selftets-damon-prepare-for-monitor_on-file-renaming.patch removed from -mm tree
+Message-Id: <20240222000214.D6C7FC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: document 'DEPRECATED' file of DAMON debugfs interface
+     Subject: selftets/damon: prepare for monitor_on file renaming
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-usage-document-deprecated-file-of-damon-debugfs-interface.patch
+     selftets-damon-prepare-for-monitor_on-file-renaming.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: document 'DEPRECATED' file of DAMON debugfs interface
-Date: Mon, 29 Jan 2024 17:35:44 -0800
+Subject: selftets/damon: prepare for monitor_on file renaming
+Date: Mon, 29 Jan 2024 17:35:45 -0800
 
-Document the newly added DAMON debugfs interface deprecation notice file
-on the usage document.
+Following change will rename 'monitor_on' DAMON debugfs file to
+'monitor_on_DEPRECATED', to make the deprecation unignorable in runtime. 
+Since it could make DAMON selftests fail and disturb future bisects,
+update DAMON selftests to support the change.
 
-Link: https://lkml.kernel.org/r/20240130013549.89538-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240130013549.89538-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Alex Shi <alexs@kernel.org>
 Cc: Hu Haowen <2023002089@link.tyut.edu.cn>
@@ -60,31 +62,73 @@ Cc: Yanteng Si <siyanteng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ tools/testing/selftests/damon/_chk_dependency.sh       |   11 +++++++--
+ tools/testing/selftests/damon/_debugfs_common.sh       |    7 +++++
+ tools/testing/selftests/damon/debugfs_empty_targets.sh |   12 ++++++++--
+ 3 files changed, 26 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-deprecated-file-of-damon-debugfs-interface
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -628,9 +628,16 @@ debugfs Interface (DEPRECATED!)
-   move, please report your usecase to damon@lists.linux.dev and
-   linux-mm@kvack.org.
+--- a/tools/testing/selftests/damon/_chk_dependency.sh~selftets-damon-prepare-for-monitor_on-file-renaming
++++ a/tools/testing/selftests/damon/_chk_dependency.sh
+@@ -18,7 +18,14 @@ then
+ 	exit $ksft_skip
+ fi
  
--DAMON exports eight files, ``attrs``, ``target_ids``, ``init_regions``,
--``schemes``, ``monitor_on``, ``kdamond_pid``, ``mk_contexts`` and
--``rm_contexts`` under its debugfs directory, ``<debugfs>/damon/``.
-+DAMON exports nine files, ``DEPRECATED``, ``attrs``, ``target_ids``,
-+``init_regions``, ``schemes``, ``monitor_on``, ``kdamond_pid``, ``mk_contexts``
-+and ``rm_contexts`` under its debugfs directory, ``<debugfs>/damon/``.
+-for f in attrs target_ids monitor_on
++if [ -f "$DBGFS/monitor_on_DEPRECATED" ]
++then
++	monitor_on_file="monitor_on_DEPRECATED"
++else
++	monitor_on_file="monitor_on"
++fi
 +
-+
-+``DEPRECATED`` is a read-only file for the DAMON debugfs interface deprecation
-+notice.  Reading it returns the deprecation notice, as below::
-+
-+    # cat DEPRECATED
-+    DAMON debugfs interface is deprecated, so users should move to DAMON_SYSFS. If you cannot, please report your usecase to damon@lists.linux.dev and linux-mm@kvack.org.
++for f in attrs target_ids "$monitor_on_file"
+ do
+ 	if [ ! -f "$DBGFS/$f" ]
+ 	then
+@@ -28,7 +35,7 @@ do
+ done
  
+ permission_error="Operation not permitted"
+-for f in attrs target_ids monitor_on
++for f in attrs target_ids "$monitor_on_file"
+ do
+ 	status=$( cat "$DBGFS/$f" 2>&1 )
+ 	if [ "${status#*$permission_error}" != "$status" ]; then
+--- a/tools/testing/selftests/damon/_debugfs_common.sh~selftets-damon-prepare-for-monitor_on-file-renaming
++++ a/tools/testing/selftests/damon/_debugfs_common.sh
+@@ -45,6 +45,13 @@ test_content() {
+ source ./_chk_dependency.sh
  
- Attributes
+ damon_onoff="$DBGFS/monitor_on"
++if [ -f "$DBGFS/monitor_on_DEPRECATED" ]
++then
++	damon_onoff="$DBGFS/monitor_on_DEPRECATED"
++else
++	damon_onoff="$DBGFS/monitor_on"
++fi
++
+ if [ $(cat "$damon_onoff") = "on" ]
+ then
+ 	echo "monitoring is on"
+--- a/tools/testing/selftests/damon/debugfs_empty_targets.sh~selftets-damon-prepare-for-monitor_on-file-renaming
++++ a/tools/testing/selftests/damon/debugfs_empty_targets.sh
+@@ -8,6 +8,14 @@ source _debugfs_common.sh
+ 
+ orig_target_ids=$(cat "$DBGFS/target_ids")
+ echo "" > "$DBGFS/target_ids"
+-orig_monitor_on=$(cat "$DBGFS/monitor_on")
+-test_write_fail "$DBGFS/monitor_on" "on" "orig_monitor_on" "empty target ids"
++
++if [ -f "$DBGFS/monitor_on_DEPRECATED" ]
++then
++	monitor_on_file="$DBGFS/monitor_on_DEPRECATED"
++else
++	monitor_on_file="$DBGFS/monitor_on"
++fi
++
++orig_monitor_on=$(cat "$monitor_on_file")
++test_write_fail "$monitor_on_file" "on" "orig_monitor_on" "empty target ids"
+ echo "$orig_target_ids" > "$DBGFS/target_ids"
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
