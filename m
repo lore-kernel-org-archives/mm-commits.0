@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82800548E0
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 19:08:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AF4F14B828
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 19:08:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708628938; cv=none; b=oTWsRIiDma7zwu/HvSWMJmc9YgqQ+cRlfr0INqtaOv5dx2pJpkXvcbApNvY0XGyv7Po04BQX61tb1UUfoBATCRmjFYDOXhmL3Yt6z6e/RzA4OOiSTqtTwk+tt4DCcd1wmW3JNKw9R9DQc+FCHjRartiqRE1WDfb7ngfHix+G8Vw=
+	t=1708628940; cv=none; b=uirCD2kCzTrYGWDeEWxEEUJO77xhmGV+mbaGpapzSJpQgqLsMQuUCtUT24R/GCgrNpyAXjWjyhz6XWDXJvi15I8E4MXWrsoki0Dze1XOhBVNMkz5oJAy4WCqFdT943kF/0nsYjH3Ons9MFyelezf43XwLrPHeimcAC0XzenTrq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708628938; c=relaxed/simple;
-	bh=mmqWc7mQ5w7RYN34qduda0rkwcCYF5qgYQ4zojiWghE=;
-	h=Date:To:From:Subject:Message-Id; b=DzAE6UzIsF/C8zRhUV6TLMKqJsr9kznSRmYNuHcrIsWYrc/O3DfyJ0bFA9MoQKebTt0pCM35CU0Z99aDUg3J6EBdOpBv1KVb0yXrVyB5k+F5qVuEjy5fXU/44KJnN3/GCZqAAlVTz699VXQKVZ4KrMlM1B+h/YIfj4TuikVsnUs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=srY8PwUY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708628940; c=relaxed/simple;
+	bh=U7DJAh3AzYxmjij/q8a7t8cqTUdTMbBqlEEa0UEQDAM=;
+	h=Date:To:From:Subject:Message-Id; b=Ps3jDVRAzvFvAc08895ZEgQCLxNdOrkuq4iSTn5TKoOygDZko3LoH8zFmamUjdAUu7RxfQr4GRrOZ+dIyO5Y6kPkCEh83kIc7B/HPdGlYolB5wqNx7HBvlvGM9gKciNk7xcgY8AG29DU9n3I41F8K6woUlJDmqOjZ4sOUV/JRUE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eMosIcIT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="srY8PwUY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0639FC433F1;
-	Thu, 22 Feb 2024 19:08:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eMosIcIT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7D12C433F1;
+	Thu, 22 Feb 2024 19:08:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708628938;
-	bh=mmqWc7mQ5w7RYN34qduda0rkwcCYF5qgYQ4zojiWghE=;
+	s=korg; t=1708628939;
+	bh=U7DJAh3AzYxmjij/q8a7t8cqTUdTMbBqlEEa0UEQDAM=;
 	h=Date:To:From:Subject:From;
-	b=srY8PwUY1nqUzg/9ula4RZJ/A3ghwodUqTsOXxCIn5duxqOShFc8sZ4qwFW1lyWoO
-	 CjbDGJNyu2mlVeOydNwfEvNHD87zxvPFgYEVaf/XD3Hho4dEXMCK2+gJX6roW69pGC
-	 w1VrbaOhZhR7qP8bOP+NhjYtqc+JImwaM7dZrhUU=
-Date: Thu, 22 Feb 2024 11:08:57 -0800
-To: mm-commits@vger.kernel.org,paulmck@kernel.org,ligang.bdlg@bytedance.com,gang.li@linux.dev,akpm@linux-foundation.org
+	b=eMosIcITkKi04eXkL6em0WsinMJzPho6HcEUz7VnZPB2q5BTT7cRlK0QqkrrnbZ1s
+	 g1GZ8e3wJ+od/DSX/0XHAHXeCYcpQWmvd9ZxQnlH4rx/tEFLdS7OvIQI75Cbd0HQ5I
+	 VS31+8WkQNY2bzVDH8i5sb/rW2FNbTnWNUv2AxlU=
+Date: Thu, 22 Feb 2024 11:08:59 -0800
+To: mm-commits@vger.kernel.org,rientjes@google.com,paulmck@kernel.org,muchun.song@linux.dev,ligang.bdlg@bytedance.com,gang.li@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + padata-downgrade-padata_do_multithreaded-to-serial-execution-for-non-smp.patch added to mm-unstable branch
-Message-Id: <20240222190858.0639FC433F1@smtp.kernel.org>
+Subject: + hugetlb-have-config_hugetlbfs-select-config_padata.patch added to mm-unstable branch
+Message-Id: <20240222190859.B7D12C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: padata: downgrade padata_do_multithreaded to serial execution for non-SMP
+     Subject: hugetlb: have CONFIG_HUGETLBFS select CONFIG_PADATA
 has been added to the -mm mm-unstable branch.  Its filename is
-     padata-downgrade-padata_do_multithreaded-to-serial-execution-for-non-smp.patch
+     hugetlb-have-config_hugetlbfs-select-config_padata.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/padata-downgrade-padata_do_multithreaded-to-serial-execution-for-non-smp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-have-config_hugetlbfs-select-config_padata.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,61 +59,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Gang Li <gang.li@linux.dev>
-Subject: padata: downgrade padata_do_multithreaded to serial execution for non-SMP
-Date: Thu, 22 Feb 2024 22:04:18 +0800
+Subject: hugetlb: have CONFIG_HUGETLBFS select CONFIG_PADATA
+Date: Thu, 22 Feb 2024 22:04:19 +0800
 
-hugetlb parallelization depends on PADATA, and PADATA depends on SMP.
+Allow hugetlb use padata_do_multithreaded for parallel initialization. 
+Select CONFIG_PADATA in this case.
 
-PADATA consists of two distinct functionality: One part is
-padata_do_multithreaded which disregards order and simply divides tasks
-into several groups for parallel execution.  Hugetlb init parallelization
-depends on padata_do_multithreaded.
-
-The other part is composed of a set of APIs that, while handling data in
-an out-of-order parallel manner, can eventually return the data with
-ordered sequence.  Currently Only `crypto/pcrypt.c` use them.
-
-All users of PADATA of non-SMP case currently only use
-padata_do_multithreaded.  It is easy to implement a serial one in
-include/linux/padata.h.  And it is not necessary to implement another
-functionality unless the only user of crypto/pcrypt.c does not depend on
-SMP in the future.
-
-Link: https://lkml.kernel.org/r/20240222140422.393911-6-gang.li@linux.dev
+Link: https://lkml.kernel.org/r/20240222140422.393911-7-gang.li@linux.dev
 Signed-off-by: Gang Li <ligang.bdlg@bytedance.com>
+Tested-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Tested-by: Paul E. McKenney <paulmck@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/padata.h |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ fs/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/padata.h~padata-downgrade-padata_do_multithreaded-to-serial-execution-for-non-smp
-+++ a/include/linux/padata.h
-@@ -180,10 +180,6 @@ struct padata_instance {
- 
- #ifdef CONFIG_PADATA
- extern void __init padata_init(void);
--#else
--static inline void __init padata_init(void) {}
--#endif
--
- extern struct padata_instance *padata_alloc(const char *name);
- extern void padata_free(struct padata_instance *pinst);
- extern struct padata_shell *padata_alloc_shell(struct padata_instance *pinst);
-@@ -194,4 +190,12 @@ extern void padata_do_serial(struct pada
- extern void __init padata_do_multithreaded(struct padata_mt_job *job);
- extern int padata_set_cpumask(struct padata_instance *pinst, int cpumask_type,
- 			      cpumask_var_t cpumask);
-+#else
-+static inline void __init padata_init(void) {}
-+static inline void __init padata_do_multithreaded(struct padata_mt_job *job)
-+{
-+	job->thread_fn(job->start, job->start + job->size, job->fn_arg);
-+}
-+#endif
-+
- #endif
+--- a/fs/Kconfig~hugetlb-have-config_hugetlbfs-select-config_padata
++++ a/fs/Kconfig
+@@ -261,6 +261,7 @@ menuconfig HUGETLBFS
+ 	depends on X86 || SPARC64 || ARCH_SUPPORTS_HUGETLBFS || BROKEN
+ 	depends on (SYSFS || SYSCTL)
+ 	select MEMFD_CREATE
++	select PADATA if SMP
+ 	help
+ 	  hugetlbfs is a filesystem backing for HugeTLB pages, based on
+ 	  ramfs. For architectures that support it, say Y here and read
 _
 
 Patches currently in -mm which might be from gang.li@linux.dev are
