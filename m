@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6969712CD85
-	for <mm-commits@vger.kernel.org>; Wed, 21 Feb 2024 23:50:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40B551FA0
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:00:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708559420; cv=none; b=Eg1FFHQx8aq4Bsvh9xx2XYDQbzZdbAkUkm+qUG23ATx+SBxIdvJ4bOJCG+5bbsWFNnEa55vlrDPQPPekKSPw5jMzFB4hOijGzPjwLh0wHZsUyBWigIHZAcbd3QN+TOlCMjQZbPdaeTv0f6wSE7AXU+ITVLUxrfWKZs6qa7rAkQw=
+	t=1708560056; cv=none; b=KHhFEWQn6zbrKHXrTr3Ym1gvWGAYzXwiB67LIs0/HEGzHYPKFUQp2W+QLXnE2KBLALF3ZKRuvBP/Ci6e/N8BVon3n14+EINoUjvtonpNvAPIfOMVTt+Z9uRiYzknQnmDLfTGSf8iJMDeJNo99Rx0ATJK4ZEatgPEZhwCnWRjFu0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708559420; c=relaxed/simple;
-	bh=RQfiEcjVxZC57t5c7tFbp2fmzQOa22GYo7jleErpLzo=;
-	h=Date:To:From:Subject:Message-Id; b=ViIggQo7IDHhQP3GZHvAolGAmiBgI9mkAES6/H5EtPUh5Uz0i7LxInnxT2aW2r2TAcCMrw/mrvU2/1t2+p4MQfbB32jrTveWeZ2E0GKvXsjpW+G4kczPiAoMBFXS5XBPlOteTiU2FTfPiMx3yszjHC+owrZr5VkWBaiCCNORFkM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZdOJgp7S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560056; c=relaxed/simple;
+	bh=pDRXxnQKPGeQN+5dw/0+jud5sZ9skxq+wlz7Op6N7Mo=;
+	h=Date:To:From:Subject:Message-Id; b=jZ9fN5kDaBF6a0UiffJTQrPEFW8is3EgqZPjYU/ZOXpV9r9zxF3IY+yjWmdkXYZ/Y+OGv71ToaKQOlK14EbFTrruxVkKjPhJa0D11P+VzcdVdBFJ/B1yBUFIPu8t86qXQeSpDvZCghM+OCjq2yW9wLS9waTrfW+lPl8ChQHgnyo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cw/oFtl6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZdOJgp7S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FF1EC43390;
-	Wed, 21 Feb 2024 23:50:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cw/oFtl6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A17EFC43390;
+	Thu, 22 Feb 2024 00:00:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708559420;
-	bh=RQfiEcjVxZC57t5c7tFbp2fmzQOa22GYo7jleErpLzo=;
+	s=korg; t=1708560055;
+	bh=pDRXxnQKPGeQN+5dw/0+jud5sZ9skxq+wlz7Op6N7Mo=;
 	h=Date:To:From:Subject:From;
-	b=ZdOJgp7SWhJ89cwo9j/swUDkdlFD3dcN6XqTI6w0ItbVOCYvH9QFxRIQCYGuMq7/S
-	 mxGk0OPEL7FABZI+arr8zMO3YDsIN2S76VDLUsywGoq6EXFbdFPK2Y6uIOfBSmOhrr
-	 s4ZPna7qLQ3RM6pMyI0q7kAg+63DcHJlY00HmIss=
-Date: Wed, 21 Feb 2024 15:50:19 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,rppt@kernel.org,pasha.tatashin@soleen.com,mhocko@suse.com,mgorman@techsingularity.net,kent.overstreet@linux.dev,vbabka@suse.cz,akpm@linux-foundation.org
+	b=cw/oFtl648O1KuuEsNUUWOApv6txMlJa19CaRe9QHlXClQSk5yrjH+xT5fFBMjISf
+	 S9DbQ85/hMKhtB3DyxZVxlTqaGtevU/kjIzAqIIm2N6+S/I31njjJJjt5sf1UKqdBV
+	 t1cVcjRZYeozPedD+QlFmOCJjZygvWZhUxV+f9Ao=
+Date: Wed, 21 Feb 2024 16:00:55 -0800
+To: mm-commits@vger.kernel.org,minchan@kernel.org,lmark@codeaurora.org,kaleshsingh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-document-memalloc_noreclaim_save-and-memalloc_pin_save-v2.patch removed from -mm tree
-Message-Id: <20240221235020.2FF1EC43390@smtp.kernel.org>
+Subject: [merged mm-stable] mm-cma-fix-placement-of-trace_cma_alloc_start-finish.patch removed from -mm tree
+Message-Id: <20240222000055.A17EFC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,95 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-document-memalloc_noreclaim_save-and-memalloc_pin_save-v2
+     Subject: mm/cma: fix placement of trace_cma_alloc_start/finish
 has been removed from the -mm tree.  Its filename was
-     mm-document-memalloc_noreclaim_save-and-memalloc_pin_save-v2.patch
+     mm-cma-fix-placement-of-trace_cma_alloc_start-finish.patch
 
-This patch was dropped because it was folded into mm-document-memalloc_noreclaim_save-and-memalloc_pin_save.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-document-memalloc_noreclaim_save-and-memalloc_pin_save-v2
-Date: Thu, 15 Feb 2024 10:58:28 +0100
+From: Kalesh Singh <kaleshsingh@google.com>
+Subject: mm/cma: fix placement of trace_cma_alloc_start/finish
+Date: Tue, 9 Jan 2024 17:22:33 -0800
 
-fix issues that Mike pointed out
+The current placement of trace_cma_alloc_start/finish misses the fail
+cases: !cma || !cma->count || !cma->bitmap.
 
-Link: https://lkml.kernel.org/r/20240215095827.13756-2-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+trace_cma_alloc_finish is also not emitted for the failure case
+where bitmap_count > bitmap_maxno.
+
+Fix these missed cases by moving the start event before the failure
+checks and moving the finish event to the out label.
+
+Link: https://lkml.kernel.org/r/20240110012234.3793639-1-kaleshsingh@google.com
+Fixes: 7bc1aec5e287 ("mm: cma: add trace events for CMA alloc perf testing")
+Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Liam Mark <lmark@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/mm.h |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ mm/cma.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/sched/mm.h~mm-document-memalloc_noreclaim_save-and-memalloc_pin_save-v2
-+++ a/include/linux/sched/mm.h
-@@ -315,7 +315,8 @@ static inline void might_alloc(gfp_t gfp
-  * point of view. Use memalloc_noio_restore to end the scope with flags
-  * returned by this function.
-  *
-- * This function is safe to be used from any context.
-+ * Context: This function is safe to be used from any context.
-+ * Return: The saved flags to be passed to memalloc_noio_restore.
-  */
- static inline unsigned int memalloc_noio_save(void)
- {
-@@ -346,7 +347,8 @@ static inline void memalloc_noio_restore
-  * point of view. Use memalloc_nofs_restore to end the scope with flags
-  * returned by this function.
-  *
-- * This function is safe to be used from any context.
-+ * Context: This function is safe to be used from any context.
-+ * Return: The saved flags to be passed to memalloc_nofs_restore.
-  */
- static inline unsigned int memalloc_nofs_save(void)
- {
-@@ -371,7 +373,7 @@ static inline void memalloc_nofs_restore
- /**
-  * memalloc_noreclaim_save - Marks implicit __GFP_MEMALLOC scope.
-  *
-- * This functions marks the beginning of the __GFP_MEMALLOC allocation scope.
-+ * This function marks the beginning of the __GFP_MEMALLOC allocation scope.
-  * All further allocations will implicitly add the __GFP_MEMALLOC flag, which
-  * prevents entering reclaim and allows access to all memory reserves. This
-  * should only be used when the caller guarantees the allocation will allow more
-@@ -386,8 +388,10 @@ static inline void memalloc_nofs_restore
-  *
-  * Individual allocations under the scope can opt out using __GFP_NOMEMALLOC
-  *
-- * This function should not be used in an interrupt context as that one does not
-- * give PF_MEMALLOC access to reserves, see __gfp_pfmemalloc_flags().
-+ * Context: This function should not be used in an interrupt context as that one
-+ *          does not give PF_MEMALLOC access to reserves.
-+ *          See __gfp_pfmemalloc_flags().
-+ * Return: The saved flags to be passed to memalloc_noreclaim_restore.
-  */
- static inline unsigned int memalloc_noreclaim_save(void)
- {
-@@ -412,10 +416,12 @@ static inline void memalloc_noreclaim_re
- /**
-  * memalloc_pin_save - Marks implicit ~__GFP_MOVABLE scope.
-  *
-- * This functions marks the beginning of the ~__GFP_MOVABLE allocation scope.
-+ * This function marks the beginning of the ~__GFP_MOVABLE allocation scope.
-  * All further allocations will implicitly remove the __GFP_MOVABLE flag, which
-  * will constraint the allocations to zones that allow long term pinning, i.e.
-  * not ZONE_MOVABLE zones.
-+ *
-+ * Return: The saved flags to be passed to memalloc_pin_restore.
-  */
- static inline unsigned int memalloc_pin_save(void)
- {
+--- a/mm/cma.c~mm-cma-fix-placement-of-trace_cma_alloc_start-finish
++++ a/mm/cma.c
+@@ -436,6 +436,9 @@ struct page *cma_alloc(struct cma *cma,
+ 	unsigned long i;
+ 	struct page *page = NULL;
+ 	int ret = -ENOMEM;
++	const char *name = cma ? cma->name : NULL;
++
++	trace_cma_alloc_start(name, count, align);
+ 
+ 	if (!cma || !cma->count || !cma->bitmap)
+ 		goto out;
+@@ -446,8 +449,6 @@ struct page *cma_alloc(struct cma *cma,
+ 	if (!count)
+ 		goto out;
+ 
+-	trace_cma_alloc_start(cma->name, count, align);
+-
+ 	mask = cma_bitmap_aligned_mask(cma, align);
+ 	offset = cma_bitmap_aligned_offset(cma, align);
+ 	bitmap_maxno = cma_bitmap_maxno(cma);
+@@ -496,8 +497,6 @@ struct page *cma_alloc(struct cma *cma,
+ 		start = bitmap_no + mask + 1;
+ 	}
+ 
+-	trace_cma_alloc_finish(cma->name, pfn, page, count, align, ret);
+-
+ 	/*
+ 	 * CMA can allocate multiple page blocks, which results in different
+ 	 * blocks being marked with different tags. Reset the tags to ignore
+@@ -516,6 +515,7 @@ struct page *cma_alloc(struct cma *cma,
+ 
+ 	pr_debug("%s(): returned %p\n", __func__, page);
+ out:
++	trace_cma_alloc_finish(name, pfn, page, count, align, ret);
+ 	if (page) {
+ 		count_vm_event(CMA_ALLOC_SUCCESS);
+ 		cma_sysfs_account_success_pages(cma, count);
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from kaleshsingh@google.com are
 
-mm-vmscan-prevent-infinite-loop-for-costly-gfp_noio-__gfp_retry_mayfail-allocations.patch
-mm-document-memalloc_noreclaim_save-and-memalloc_pin_save.patch
 
