@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD6CD10A2D
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60FEB8F4D
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560067; cv=none; b=p7gL1v3DNQl+5ZKmRB0/7XRtot1vq/Qqdpa22yePKyFqqNW2LrX95yYjgL/EDalhTXSfzhS796LKEji5cQ0zAQKQL3EMZ1YcXZfRyDkSRUmpsrQhzAvIX07Jxx1kJURQly7PIzkj5rl0FqRgv+Taqjn4tdrIMVCZmBUJAfKkF6s=
+	t=1708560068; cv=none; b=IsdRPSBWtH3iaBWqBTGmtv0mBDx9BP4pNEKX6fOPx0ptQEDK8gG3QbXWSfzjO8bt9h+Fgss7BBVbhXR06PtV4q4OGgUgO0WQXhTLt68XJRdoDcTiZCsMK0UwR9tIjvVT/+VzbkB13e3iIYN8pUrva0yV5xBbx1tcctuSqQvL9QY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560067; c=relaxed/simple;
-	bh=aK2mcPWWFvjDO10TSjD4gLBYW8WHwjPpEnIOIJOw+Qg=;
-	h=Date:To:From:Subject:Message-Id; b=HeYcLT0HN0kMh2mBU8fGpqZCOpLj0wn0kH47iNkQKNj6CM3ySLqCSV38mctBv0RD6MSVDwOSCUbLiikXh4/F299WCop6kOSO/GGCdbB8lD0Fo9xivZ2TQB8ROhNKXb/RYyfPJQrruLLvWx36eLFfBgM4A8Qepby6lGaYyS71vBM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MVEgBhPH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560068; c=relaxed/simple;
+	bh=FvnpmcTh+Pbnk2D/PAE6fh7eEoybbNyOMYvoTewG1qo=;
+	h=Date:To:From:Subject:Message-Id; b=SRChPLW7dCionw+JHziZMUh9NCro9TSlmD4wxPWfNcLMCMza8vhbOCAXFw+a1pmzWOwI/Q1QACGSYJVD3AqdcocMrpJhQf8fhlSOPS7+3IEYSSeg9xmjfSgn0ib1zGS9aVkeEvToIf+j0PS6iHW4mcI0xRI/qI2OYe9ZSL5aVzY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bm1iA8Kr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MVEgBhPH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 494E1C43390;
-	Thu, 22 Feb 2024 00:01:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bm1iA8Kr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 236BFC43394;
+	Thu, 22 Feb 2024 00:01:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560067;
-	bh=aK2mcPWWFvjDO10TSjD4gLBYW8WHwjPpEnIOIJOw+Qg=;
+	s=korg; t=1708560068;
+	bh=FvnpmcTh+Pbnk2D/PAE6fh7eEoybbNyOMYvoTewG1qo=;
 	h=Date:To:From:Subject:From;
-	b=MVEgBhPHjEFtZzIMMNE1euGFNhtfg32dVeoVC3me51RSZ9O1GeudnTl9fIrhpv2cm
-	 sfilYjf0lp96yDbxyse1TDqJNE0jJUrPxPb0lSYttBxYXMNo/arOlLqcV+ri1WTKSj
-	 P91Dxivd3TcoI5/MoQSopqZaKGMQ5vUeXDGmnS5E=
-Date: Wed, 21 Feb 2024 16:01:06 -0800
+	b=bm1iA8KrpOlfZ1mgj+ObM3o17F2/KORYjU2gcBaht9rA2eKSum8UGiq13zuBQAgR4
+	 JnLVGjcUM6CzIvgtbzRvNppp7EJdFsq2UP7k3K9MDX/ZkuGZHnMDQWoBYqOsXvHXcP
+	 bSW7WLbq8ba87O615J4/cxDreTwlm7RJBvsgeygM=
+Date: Wed, 21 Feb 2024 16:01:07 -0800
 To: mm-commits@vger.kernel.org,shakeelb@google.com,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,haifeng.xu@shopee.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-list_lru-disable-memcg_aware-when-cgroupmemory-is-set-to-nokmem.patch removed from -mm tree
-Message-Id: <20240222000107.494E1C43390@smtp.kernel.org>
+Subject: [merged mm-stable] mm-list_lru-remove-unused-macro-list_lru_init_key.patch removed from -mm tree
+Message-Id: <20240222000108.236BFC43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: list_lru: disable memcg_aware when cgroup.memory is set to "nokmem"
+     Subject: mm: list_lru: remove unused macro list_lru_init_key()
 has been removed from the -mm tree.  Its filename was
-     mm-list_lru-disable-memcg_aware-when-cgroupmemory-is-set-to-nokmem.patch
+     mm-list_lru-remove-unused-macro-list_lru_init_key.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Haifeng Xu <haifeng.xu@shopee.com>
-Subject: mm: list_lru: disable memcg_aware when cgroup.memory is set to "nokmem"
-Date: Thu, 28 Dec 2023 06:27:14 +0000
+Subject: mm: list_lru: remove unused macro list_lru_init_key()
+Date: Thu, 28 Dec 2023 06:27:15 +0000
 
-Actually, when using a boot time kernel option "cgroup.memory=nokmem", all
-lru items are inserted to list_lru_node.  But for those users who invoke
-list_lru_init_memcg() to initialize list_lru, list_lru_memcg_aware()
-returns true.  And this brings unneeded operations related to memcg.
+list_lru_init_key() isn't used by anyone, remove it to clean up.
 
-To make things more convenient, let's disable memcg_aware when
-cgroup.memory is set to "nokmem".
-
-Link: https://lkml.kernel.org/r/20231228062715.338672-1-haifeng.xu@shopee.com
+Link: https://lkml.kernel.org/r/20231228062715.338672-2-haifeng.xu@shopee.com
 Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
 Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -64,21 +58,20 @@ Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/list_lru.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/list_lru.c~mm-list_lru-disable-memcg_aware-when-cgroupmemory-is-set-to-nokmem
-+++ a/mm/list_lru.c
-@@ -567,6 +567,9 @@ int __list_lru_init(struct list_lru *lru
- 		lru->shrinker_id = shrinker->id;
- 	else
- 		lru->shrinker_id = -1;
-+
-+	if (mem_cgroup_kmem_disabled())
-+		memcg_aware = false;
- #endif
+--- a/include/linux/list_lru.h~mm-list_lru-remove-unused-macro-list_lru_init_key
++++ a/include/linux/list_lru.h
+@@ -62,8 +62,6 @@ int __list_lru_init(struct list_lru *lru
  
- 	lru->node = kcalloc(nr_node_ids, sizeof(*lru->node), GFP_KERNEL);
+ #define list_lru_init(lru)				\
+ 	__list_lru_init((lru), false, NULL, NULL)
+-#define list_lru_init_key(lru, key)			\
+-	__list_lru_init((lru), false, (key), NULL)
+ #define list_lru_init_memcg(lru, shrinker)		\
+ 	__list_lru_init((lru), true, NULL, shrinker)
+ 
 _
 
 Patches currently in -mm which might be from haifeng.xu@shopee.com are
