@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 317A2320B
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:02:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ACEA320B
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:02:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560150; cv=none; b=KQjv6awgZCY9zruCY23OA5qrj8hBlgWCuamELsupsMjqt+3SDWjLBAxL+8Gdwc5xkg6yO72EpsCdhd5oMWY/uRddysIKR1JEkB8zzBwXo542sqVhUcrCMiOhCm5WQrkfO/uD8NReo9mszcf42gUa5UeEoONVTZ6Bb7JZh0TMWf0=
+	t=1708560151; cv=none; b=cVR2+noFd68+fINZRrYvs8s1XAY6DdEVs9wbEbkWrt10PGVwOmE1wQMen4/6RP+sBIoqBPQdqXwIiiJW/I5Foe+oIl1kxFCJPD39bi7i2/A8odvjg3EW+hIpACgb01qMVAD2PhjmEly4H1oKjo4DXRzArPGtMwjPH8+8Hp1iYTY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560150; c=relaxed/simple;
-	bh=hNxpdT/IeRJZwLLFDlkCnDkZUzupU1xKBDWexCGq3iw=;
-	h=Date:To:From:Subject:Message-Id; b=RmWynY6G5YyoQ8hojAACKPHw5ml55yiem/oTzK1H462lFnxO7zRcwQpI9InhHAnVogJESfN/3ccaMCDfbW6Dvm+zuQsN9EUKW18KZPp1x/RMXRVAy/3oAgdA5Sfjc6ZCrH7XnVzBg2+hDAqzv+WfTYcfCnont0I/8JPUmWnKeLI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zzcfWU2a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560151; c=relaxed/simple;
+	bh=ENyUS9NXugJbqVz+n9pQPeGgaAE5AOcp95Ptz0iPt0c=;
+	h=Date:To:From:Subject:Message-Id; b=mt4n65TiLUSX1pAlsVzst180H+2REmhiJLvYVb6a85az/wqkWBk8oaXHlvgVlfZSWOM+5jf2aQk66sZoVgqe6gTgEFdVxqI1UGkOygsgx5G4UxgIDgzo2NdcIPgvSp7D6N5hT32Psb5U0yXo2KZz4obE8owi40Fwv0/Qz+LRaSI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lN/CuTWQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zzcfWU2a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFB7FC43390;
-	Thu, 22 Feb 2024 00:02:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lN/CuTWQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB38FC433F1;
+	Thu, 22 Feb 2024 00:02:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560150;
-	bh=hNxpdT/IeRJZwLLFDlkCnDkZUzupU1xKBDWexCGq3iw=;
+	s=korg; t=1708560151;
+	bh=ENyUS9NXugJbqVz+n9pQPeGgaAE5AOcp95Ptz0iPt0c=;
 	h=Date:To:From:Subject:From;
-	b=zzcfWU2aBddZ/lEo/AQeZ8dqYcVuyFHwSUAwGqWyZxRBMazOwPlS3KVBKn91XwlEE
-	 ijfAzleaGQnABjdd7+sYYzsOPYTvjhD3yXiGi4Ue4CxNtNRD2KoGqnFn+XnkgAWhYw
-	 S/nxqOO0U0f8h3THRgT8pcOWbs3LjO9Wf+zN+UP4=
-Date: Wed, 21 Feb 2024 16:02:29 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,p.raghav@samsung.com,hare@suse.com,djwong@kernel.org,david@fromorbit.com,da.gomez@samsung.com,mcgrof@kernel.org,akpm@linux-foundation.org
+	b=lN/CuTWQmvVTPBUNMXQix7x+jnTgm5ZdJKkNJnZ6i/Y9EyA1xlwegedBOF8hbbqiC
+	 dkOGA5tn33nVmkKoJA1MkTWpylMEyA5RmFCCVNf0PsvgiccYR34f0yORKuy9iU2qTK
+	 +wDp4pY79+PcHX2X/Ww8cJeTPs8kHq066OvJlNDg=
+Date: Wed, 21 Feb 2024 16:02:30 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,p.raghav@samsung.com,mcgrof@kernel.org,hare@suse.com,djwong@kernel.org,david@fromorbit.com,da.gomez@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] test_xarray-add-tests-for-advanced-multi-index-use.patch removed from -mm tree
-Message-Id: <20240222000229.EFB7FC43390@smtp.kernel.org>
+Subject: [merged mm-stable] xarray-add-cmpxchg-order-test.patch removed from -mm tree
+Message-Id: <20240222000230.DB38FC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: test_xarray: add tests for advanced multi-index use
+     Subject: XArray: add cmpxchg order test
 has been removed from the -mm tree.  Its filename was
-     test_xarray-add-tests-for-advanced-multi-index-use.patch
+     xarray-add-cmpxchg-order-test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: test_xarray: add tests for advanced multi-index use
-Date: Wed, 31 Jan 2024 14:51:24 -0800
+From: Daniel Gomez <da.gomez@samsung.com>
+Subject: XArray: add cmpxchg order test
+Date: Wed, 31 Jan 2024 14:51:25 -0800
 
-Patch series "test_xarray: advanced API multi-index tests", v2.
+XArray multi-index entries do not keep track of the order stored once the
+entry is being marked as used with cmpxchg (conditionally replaced with
+NULL).  Add a test to check the order is actually lost.  The test also
+verifies the order and entries for all the tied indexes before and after
+the NULL replacement with xa_cmpxchg.
 
-This is a respin of the test_xarray multi-index tests [0] which use and
-demonstrate the advanced API which is used by the page cache.  This should
-let folks more easily follow how we use multi-index to support for example
-a min order later in the page cache.  It also lets us grow the selftests
-to mimic more of what we do in the page cache.
+Add another entry at 1 << order that keeps the node around and the order
+information for the NULL-entry after xa_cmpxchg.
 
-
-This patch (of 2):
-
-The multi index selftests are great but they don't replicate how we deal
-with the page cache exactly, which makes it a bit hard to follow as the
-page cache uses the advanced API.
-
-Add tests which use the advanced API, mimicking what we do in the page
-cache, while at it, extend the example to do what is needed for min order
-support.
-
-[mcgrof@kernel.org: fix soft lockup for advanced-api tests]
-  Link: https://lkml.kernel.org/r/20240216194329.840555-1-mcgrof@kernel.org
-[akpm@linux-foundation.org: s/i/loops/, make non-static]
-[akpm@linux-foundation.org: restore static storage for loop counter]
-Link: https://lkml.kernel.org/r/20240131225125.1370598-1-mcgrof@kernel.org
-Link: https://lkml.kernel.org/r/20240131225125.1370598-2-mcgrof@kernel.org
+Link: https://lkml.kernel.org/r/20240131225125.1370598-3-mcgrof@kernel.org
+Signed-off-by: Daniel Gomez <da.gomez@samsung.com>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
-Tested-by: Daniel Gomez <da.gomez@samsung.com>
 Cc: Darrick J. Wong <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Hannes Reinecke <hare@suse.com>
@@ -82,203 +67,81 @@ Cc: Pankaj Raghav <p.raghav@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_xarray.c |  176 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 176 insertions(+)
+ lib/test_xarray.c |   54 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
 
---- a/lib/test_xarray.c~test_xarray-add-tests-for-advanced-multi-index-use
+--- a/lib/test_xarray.c~xarray-add-cmpxchg-order-test
 +++ a/lib/test_xarray.c
-@@ -674,6 +674,181 @@ static noinline void check_multi_store(s
- #endif
+@@ -423,6 +423,59 @@ static noinline void check_cmpxchg(struc
+ 	XA_BUG_ON(xa, !xa_empty(xa));
  }
  
-+#ifdef CONFIG_XARRAY_MULTI
-+/* mimics page cache __filemap_add_folio() */
-+static noinline void check_xa_multi_store_adv_add(struct xarray *xa,
-+						  unsigned long index,
-+						  unsigned int order,
-+						  void *p)
-+{
-+	XA_STATE(xas, xa, index);
-+	unsigned int nrpages = 1UL << order;
-+
-+	/* users are responsible for index alignemnt to the order when adding */
-+	XA_BUG_ON(xa, index & (nrpages - 1));
-+
-+	xas_set_order(&xas, index, order);
-+
-+	do {
-+		xas_lock_irq(&xas);
-+
-+		xas_store(&xas, p);
-+		XA_BUG_ON(xa, xas_error(&xas));
-+		XA_BUG_ON(xa, xa_load(xa, index) != p);
-+
-+		xas_unlock_irq(&xas);
-+	} while (xas_nomem(&xas, GFP_KERNEL));
-+
-+	XA_BUG_ON(xa, xas_error(&xas));
-+}
-+
-+/* mimics page_cache_delete() */
-+static noinline void check_xa_multi_store_adv_del_entry(struct xarray *xa,
-+							unsigned long index,
-+							unsigned int order)
-+{
-+	XA_STATE(xas, xa, index);
-+
-+	xas_set_order(&xas, index, order);
-+	xas_store(&xas, NULL);
-+	xas_init_marks(&xas);
-+}
-+
-+static noinline void check_xa_multi_store_adv_delete(struct xarray *xa,
-+						     unsigned long index,
-+						     unsigned int order)
-+{
-+	xa_lock_irq(xa);
-+	check_xa_multi_store_adv_del_entry(xa, index, order);
-+	xa_unlock_irq(xa);
-+}
-+
-+/* mimics page cache filemap_get_entry() */
-+static noinline void *test_get_entry(struct xarray *xa, unsigned long index)
-+{
-+	XA_STATE(xas, xa, index);
-+	void *p;
-+	static unsigned int loops = 0;
-+
-+	rcu_read_lock();
-+repeat:
-+	xas_reset(&xas);
-+	p = xas_load(&xas);
-+	if (xas_retry(&xas, p))
-+		goto repeat;
-+	rcu_read_unlock();
-+
-+	/*
-+	 * This is not part of the page cache, this selftest is pretty
-+	 * aggressive and does not want to trust the xarray API but rather
-+	 * test it, and for order 20 (4 GiB block size) we can loop over
-+	 * over a million entries which can cause a soft lockup. Page cache
-+	 * APIs won't be stupid, proper page cache APIs loop over the proper
-+	 * order so when using a larger order we skip shared entries.
-+	 */
-+	if (++loops % XA_CHECK_SCHED == 0)
-+		schedule();
-+
-+	return p;
-+}
-+
-+static unsigned long some_val = 0xdeadbeef;
-+static unsigned long some_val_2 = 0xdeaddead;
-+
-+/* mimics the page cache usage */
-+static noinline void check_xa_multi_store_adv(struct xarray *xa,
-+					      unsigned long pos,
-+					      unsigned int order)
-+{
-+	unsigned int nrpages = 1UL << order;
-+	unsigned long index, base, next_index, next_next_index;
-+	unsigned int i;
-+
-+	index = pos >> PAGE_SHIFT;
-+	base = round_down(index, nrpages);
-+	next_index = round_down(base + nrpages, nrpages);
-+	next_next_index = round_down(next_index + nrpages, nrpages);
-+
-+	check_xa_multi_store_adv_add(xa, base, order, &some_val);
-+
-+	for (i = 0; i < nrpages; i++)
-+		XA_BUG_ON(xa, test_get_entry(xa, base + i) != &some_val);
-+
-+	XA_BUG_ON(xa, test_get_entry(xa, next_index) != NULL);
-+
-+	/* Use order 0 for the next item */
-+	check_xa_multi_store_adv_add(xa, next_index, 0, &some_val_2);
-+	XA_BUG_ON(xa, test_get_entry(xa, next_index) != &some_val_2);
-+
-+	/* Remove the next item */
-+	check_xa_multi_store_adv_delete(xa, next_index, 0);
-+
-+	/* Now use order for a new pointer */
-+	check_xa_multi_store_adv_add(xa, next_index, order, &some_val_2);
-+
-+	for (i = 0; i < nrpages; i++)
-+		XA_BUG_ON(xa, test_get_entry(xa, next_index + i) != &some_val_2);
-+
-+	check_xa_multi_store_adv_delete(xa, next_index, order);
-+	check_xa_multi_store_adv_delete(xa, base, order);
-+	XA_BUG_ON(xa, !xa_empty(xa));
-+
-+	/* starting fresh again */
-+
-+	/* let's test some holes now */
-+
-+	/* hole at base and next_next */
-+	check_xa_multi_store_adv_add(xa, next_index, order, &some_val_2);
-+
-+	for (i = 0; i < nrpages; i++)
-+		XA_BUG_ON(xa, test_get_entry(xa, base + i) != NULL);
-+
-+	for (i = 0; i < nrpages; i++)
-+		XA_BUG_ON(xa, test_get_entry(xa, next_index + i) != &some_val_2);
-+
-+	for (i = 0; i < nrpages; i++)
-+		XA_BUG_ON(xa, test_get_entry(xa, next_next_index + i) != NULL);
-+
-+	check_xa_multi_store_adv_delete(xa, next_index, order);
-+	XA_BUG_ON(xa, !xa_empty(xa));
-+
-+	/* hole at base and next */
-+
-+	check_xa_multi_store_adv_add(xa, next_next_index, order, &some_val_2);
-+
-+	for (i = 0; i < nrpages; i++)
-+		XA_BUG_ON(xa, test_get_entry(xa, base + i) != NULL);
-+
-+	for (i = 0; i < nrpages; i++)
-+		XA_BUG_ON(xa, test_get_entry(xa, next_index + i) != NULL);
-+
-+	for (i = 0; i < nrpages; i++)
-+		XA_BUG_ON(xa, test_get_entry(xa, next_next_index + i) != &some_val_2);
-+
-+	check_xa_multi_store_adv_delete(xa, next_next_index, order);
-+	XA_BUG_ON(xa, !xa_empty(xa));
-+}
-+#endif
-+
-+static noinline void check_multi_store_advanced(struct xarray *xa)
++static noinline void check_cmpxchg_order(struct xarray *xa)
 +{
 +#ifdef CONFIG_XARRAY_MULTI
-+	unsigned int max_order = IS_ENABLED(CONFIG_XARRAY_MULTI) ? 20 : 1;
-+	unsigned long end = ULONG_MAX/2;
-+	unsigned long pos, i;
++	void *FIVE = xa_mk_value(5);
++	unsigned int i, order = 3;
 +
-+	/*
-+	 * About 117 million tests below.
-+	 */
-+	for (pos = 7; pos < end; pos = (pos * pos) + 564) {
-+		for (i = 0; i < max_order; i++) {
-+			check_xa_multi_store_adv(xa, pos, i);
-+			check_xa_multi_store_adv(xa, pos + 157, i);
-+		}
++	XA_BUG_ON(xa, xa_store_order(xa, 0, order, FIVE, GFP_KERNEL));
++
++	/* Check entry FIVE has the order saved */
++	XA_BUG_ON(xa, xa_get_order(xa, xa_to_value(FIVE)) != order);
++
++	/* Check all the tied indexes have the same entry and order */
++	for (i = 0; i < (1 << order); i++) {
++		XA_BUG_ON(xa, xa_load(xa, i) != FIVE);
++		XA_BUG_ON(xa, xa_get_order(xa, i) != order);
 +	}
++
++	/* Ensure that nothing is stored at index '1 << order' */
++	XA_BUG_ON(xa, xa_load(xa, 1 << order) != NULL);
++
++	/*
++	 * Additionally, keep the node information and the order at
++	 * '1 << order'
++	 */
++	XA_BUG_ON(xa, xa_store_order(xa, 1 << order, order, FIVE, GFP_KERNEL));
++	for (i = (1 << order); i < (1 << order) + (1 << order) - 1; i++) {
++		XA_BUG_ON(xa, xa_load(xa, i) != FIVE);
++		XA_BUG_ON(xa, xa_get_order(xa, i) != order);
++	}
++
++	/* Conditionally replace FIVE entry at index '0' with NULL */
++	XA_BUG_ON(xa, xa_cmpxchg(xa, 0, FIVE, NULL, GFP_KERNEL) != FIVE);
++
++	/* Verify the order is lost at FIVE (and old) entries */
++	XA_BUG_ON(xa, xa_get_order(xa, xa_to_value(FIVE)) != 0);
++
++	/* Verify the order and entries are lost in all the tied indexes */
++	for (i = 0; i < (1 << order); i++) {
++		XA_BUG_ON(xa, xa_load(xa, i) != NULL);
++		XA_BUG_ON(xa, xa_get_order(xa, i) != 0);
++	}
++
++	/* Verify node and order are kept at '1 << order' */
++	for (i = (1 << order); i < (1 << order) + (1 << order) - 1; i++) {
++		XA_BUG_ON(xa, xa_load(xa, i) != FIVE);
++		XA_BUG_ON(xa, xa_get_order(xa, i) != order);
++	}
++
++	xa_store_order(xa, 0, BITS_PER_LONG - 1, NULL, GFP_KERNEL);
++	XA_BUG_ON(xa, !xa_empty(xa));
 +#endif
 +}
 +
- static noinline void check_xa_alloc_1(struct xarray *xa, unsigned int base)
+ static noinline void check_reserve(struct xarray *xa)
  {
- 	int i;
-@@ -1804,6 +1979,7 @@ static int xarray_checks(void)
+ 	void *entry;
+@@ -1976,6 +2029,7 @@ static int xarray_checks(void)
+ 	check_xas_erase(&array);
+ 	check_insert(&array);
+ 	check_cmpxchg(&array);
++	check_cmpxchg_order(&array);
  	check_reserve(&array);
  	check_reserve(&xa0);
  	check_multi_store(&array);
-+	check_multi_store_advanced(&array);
- 	check_get_order(&array);
- 	check_xa_alloc();
- 	check_find(&array);
 _
 
-Patches currently in -mm which might be from mcgrof@kernel.org are
+Patches currently in -mm which might be from da.gomez@samsung.com are
 
 
