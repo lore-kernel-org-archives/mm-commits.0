@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9938111B2
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0771979D9
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560182; cv=none; b=MQsj2qYVoeUSBQ2X0j+TZpZujhIR3STa4hQIMUDnNWcre3p0kPwpTrNxR5iWHhHaFK5WH7aUqWm5Ylq94Z6gE6sP3bvNgFxxJqQJoHpbNiJDeX5JMMEJg/wQX/M+ao+G4o6JYO2NNaxJHlX8gF/ZdidwDhxbBjZwmqqeaOyv59U=
+	t=1708560183; cv=none; b=LWCaA76NBkjsO52tCcHNT/gdplmujYwnVdZggI1m2XCmC2rQpdriPQlfTB4sWRXU78CEPs9Zurk5ZB5Q6jmPjqYA8DMAiBpJ+xGRH0MOhakRXN8rCjlLMFT2miq4nUmKd3ptm327jA7+UARoPsOmt0erSW+afppsfk9tXPr+erg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560182; c=relaxed/simple;
-	bh=fAglSGoqYl1phewENBAQZ9Mc+9vzoSJlHT8cdgbnf2Y=;
-	h=Date:To:From:Subject:Message-Id; b=r0pH/du9tav2HrjOE5lbLAgLW7v7tLQKkLj3C6e+5xYjG0FOHSlnQNkvARvPxNHblxGmNazVqm1tgAf7NksRoNWSBkdnVGILDSCLBAL+C+XdKkbPEajrmyGW2d2UUx0XHb8P+80CU9tnm+9zlN81aQsMSqYQFhpI37lNowQWx7A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HSK5KEJz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560183; c=relaxed/simple;
+	bh=mhL8rYCYn7Lp9SZDzPv82Cg2NWYC/ZeStL3fYHTMGtQ=;
+	h=Date:To:From:Subject:Message-Id; b=rrhh4KWe2HW8I+q3ffefAViNzz9BHIRegQSy84nUNKY7U2c7TxPH3ixetY/NuYp4buM6sVaWOavE14z34pBHKwlMZa0dCkUTQqro1GO4vf0QeIRGDLW4TUmuaI2bLdKF4Z/Wpy+w9e03VEExJMNpXZ//z4VQ1FOG6kj7N3OsBdU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IAsk5Llr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HSK5KEJz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0742C43390;
-	Thu, 22 Feb 2024 00:03:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IAsk5Llr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C617BC43394;
+	Thu, 22 Feb 2024 00:03:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560181;
-	bh=fAglSGoqYl1phewENBAQZ9Mc+9vzoSJlHT8cdgbnf2Y=;
+	s=korg; t=1708560182;
+	bh=mhL8rYCYn7Lp9SZDzPv82Cg2NWYC/ZeStL3fYHTMGtQ=;
 	h=Date:To:From:Subject:From;
-	b=HSK5KEJzmmQqAdxfyWVfAcuUQqI5hJRJ8vdW24s84GEZ+RTcUK6xrkwicSsZwILGy
-	 Da3PO0AZOfdvgHPuuk93t9OgMoQqFYwErgr6nDK6LV29LMlWZr5zyG2xfwKEQxe2UI
-	 T9/Yj6679PD0tcWMaIEzYZ1QIDdHBRfpjEMbUv1A=
-Date: Wed, 21 Feb 2024 16:03:01 -0800
-To: mm-commits@vger.kernel.org,Liam.Howlett@oracle.com,yajun.deng@linux.dev,akpm@linux-foundation.org
+	b=IAsk5LlrSjvj3Gjl37JtFkDIgl6a+thKuiyZMGJiLRsCqo6LWowqqvecB9L8mBaYF
+	 uVH1lu9iU6JaeAquAQBH8Omv4r6YZui+K8hId8cHEBVTonW0Xew45RgrvCli3Of5aD
+	 AuSDKSMqqjbQKVzf5e2pVtDIKMsKYfo8f4KQXk4g=
+Date: Wed, 21 Feb 2024 16:03:02 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,yangyifei03@kuaishou.com,songmuchun@bytedance.com,shakeelb@google.com,roman.gushchin@linux.dev,mkoutny@suse.com,mhocko@suse.com,hannes@cmpxchg.org,tjmercier@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mmap-pass-vma-to-vma_merge.patch removed from -mm tree
-Message-Id: <20240222000301.C0742C43390@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-use-larger-batches-for-proactive-reclaim.patch removed from -mm tree
+Message-Id: <20240222000302.C617BC43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,97 +35,99 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mmap: pass vma to vma_merge()
+     Subject: mm: memcg: use larger batches for proactive reclaim
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-pass-vma-to-vma_merge.patch
+     mm-memcg-use-larger-batches-for-proactive-reclaim.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yajun Deng <yajun.deng@linux.dev>
-Subject: mm/mmap: pass vma to vma_merge()
-Date: Sat, 3 Feb 2024 09:46:32 +0800
+From: "T.J. Mercier" <tjmercier@google.com>
+Subject: mm: memcg: use larger batches for proactive reclaim
+Date: Fri, 2 Feb 2024 23:38:54 +0000
 
-These vma_merge() callers will pass mm, anon_vma and file, they all from
-the same vma.  There is no need to pass three parameters at the same time.
+Before 388536ac291 ("mm:vmscan: fix inaccurate reclaim during proactive
+reclaim") we passed the number of pages for the reclaim request directly
+to try_to_free_mem_cgroup_pages, which could lead to significant
+overreclaim.  After 0388536ac291 the number of pages was limited to a
+maximum 32 (SWAP_CLUSTER_MAX) to reduce the amount of overreclaim. 
+However such a small batch size caused a regression in reclaim performance
+due to many more reclaim start/stop cycles inside memory_reclaim.  The
+restart cost is amortized over more pages with larger batch sizes, and
+becomes a significant component of the runtime if the batch size is too
+small.
 
-Pass vma instead of mm, anon_vma and file to vma_merge(), so that it can
-save two parameters.
+Reclaim tries to balance nr_to_reclaim fidelity with fairness across nodes
+and cgroups over which the pages are spread.  As such, the bigger the
+request, the bigger the absolute overreclaim error.  Historic in-kernel
+users of reclaim have used fixed, small sized requests to approach an
+appropriate reclaim rate over time.  When we reclaim a user request of
+arbitrary size, use decaying batch sizes to manage error while maintaining
+reasonable throughput.
 
-Link: https://lkml.kernel.org/r/20240203014632.2726545-1-yajun.deng@linux.dev
-Link: https://lore.kernel.org/lkml/20240125034922.1004671-2-yajun.deng@linux.dev/
-Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Yajun Deng <yajun.deng@linux.dev>
+MGLRU enabled - memcg LRU used
+root - full reclaim       pages/sec   time (sec)
+pre-0388536ac291      :    68047        10.46
+post-0388536ac291     :    13742        inf
+(reclaim-reclaimed)/4 :    67352        10.51
+
+MGLRU enabled - memcg LRU not used
+/uid_0 - 1G reclaim       pages/sec   time (sec)  overreclaim (MiB)
+pre-0388536ac291      :    258822       1.12            107.8
+post-0388536ac291     :    105174       2.49            3.5
+(reclaim-reclaimed)/4 :    233396       1.12            -7.4
+
+MGLRU enabled - memcg LRU not used
+/uid_0 - full reclaim     pages/sec   time (sec)
+pre-0388536ac291      :    72334        7.09
+post-0388536ac291     :    38105        14.45
+(reclaim-reclaimed)/4 :    72914        6.96
+
+[tjmercier@google.com: v4]
+  Link: https://lkml.kernel.org/r/20240206175251.3364296-1-tjmercier@google.com
+Link: https://lkml.kernel.org/r/20240202233855.1236422-1-tjmercier@google.com
+Fixes: 0388536ac291 ("mm:vmscan: fix inaccurate reclaim during proactive reclaim")
+Signed-off-by: T.J. Mercier <tjmercier@google.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Michal Koutny <mkoutny@suse.com>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Efly Young <yangyifei03@kuaishou.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   27 +++++++++++++--------------
- 1 file changed, 13 insertions(+), 14 deletions(-)
+ mm/memcontrol.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-pass-vma-to-vma_merge
-+++ a/mm/mmap.c
-@@ -860,13 +860,15 @@ can_vma_merge_after(struct vm_area_struc
-  *      area is returned, or the function will return NULL
-  */
- static struct vm_area_struct
--*vma_merge(struct vma_iterator *vmi, struct mm_struct *mm,
--	   struct vm_area_struct *prev, unsigned long addr, unsigned long end,
--	   unsigned long vm_flags, struct anon_vma *anon_vma, struct file *file,
--	   pgoff_t pgoff, struct mempolicy *policy,
-+*vma_merge(struct vma_iterator *vmi, struct vm_area_struct *prev,
-+	   struct vm_area_struct *src, unsigned long addr, unsigned long end,
-+	   unsigned long vm_flags, pgoff_t pgoff, struct mempolicy *policy,
- 	   struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
- 	   struct anon_vma_name *anon_name)
- {
-+	struct mm_struct *mm = src->vm_mm;
-+	struct anon_vma *anon_vma = src->anon_vma;
-+	struct file *file = src->vm_file;
- 	struct vm_area_struct *curr, *next, *res;
- 	struct vm_area_struct *vma, *adjust, *remove, *remove2;
- 	struct vm_area_struct *anon_dup = NULL;
-@@ -2426,9 +2428,8 @@ struct vm_area_struct *vma_modify(struct
- 	pgoff_t pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
- 	struct vm_area_struct *merged;
+--- a/mm/memcontrol.c~mm-memcg-use-larger-batches-for-proactive-reclaim
++++ a/mm/memcontrol.c
+@@ -6981,6 +6981,8 @@ static ssize_t memory_reclaim(struct ker
  
--	merged = vma_merge(vmi, vma->vm_mm, prev, start, end, vm_flags,
--			   vma->anon_vma, vma->vm_file, pgoff, policy,
--			   uffd_ctx, anon_name);
-+	merged = vma_merge(vmi, prev, vma, start, end, vm_flags,
-+			   pgoff, policy, uffd_ctx, anon_name);
- 	if (merged)
- 		return merged;
+ 	reclaim_options	= MEMCG_RECLAIM_MAY_SWAP | MEMCG_RECLAIM_PROACTIVE;
+ 	while (nr_reclaimed < nr_to_reclaim) {
++		/* Will converge on zero, but reclaim enforces a minimum */
++		unsigned long batch_size = (nr_to_reclaim - nr_reclaimed) / 4;
+ 		unsigned long reclaimed;
  
-@@ -2458,9 +2459,8 @@ static struct vm_area_struct
- 		   struct vm_area_struct *vma, unsigned long start,
- 		   unsigned long end, pgoff_t pgoff)
- {
--	return vma_merge(vmi, vma->vm_mm, prev, start, end, vma->vm_flags,
--			 vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
--			 vma->vm_userfaultfd_ctx, anon_vma_name(vma));
-+	return vma_merge(vmi, prev, vma, start, end, vma->vm_flags, pgoff,
-+			 vma_policy(vma), vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- }
+ 		if (signal_pending(current))
+@@ -6995,8 +6997,7 @@ static ssize_t memory_reclaim(struct ker
+ 			lru_add_drain_all();
  
- /*
-@@ -2474,10 +2474,9 @@ struct vm_area_struct *vma_merge_extend(
- 	pgoff_t pgoff = vma->vm_pgoff + vma_pages(vma);
+ 		reclaimed = try_to_free_mem_cgroup_pages(memcg,
+-					min(nr_to_reclaim - nr_reclaimed, SWAP_CLUSTER_MAX),
+-					GFP_KERNEL, reclaim_options);
++					batch_size, GFP_KERNEL, reclaim_options);
  
- 	/* vma is specified as prev, so case 1 or 2 will apply. */
--	return vma_merge(vmi, vma->vm_mm, vma, vma->vm_end, vma->vm_end + delta,
--			 vma->vm_flags, vma->anon_vma, vma->vm_file, pgoff,
--			 vma_policy(vma), vma->vm_userfaultfd_ctx,
--			 anon_vma_name(vma));
-+	return vma_merge(vmi, vma, vma, vma->vm_end, vma->vm_end + delta,
-+			 vma->vm_flags, pgoff, vma_policy(vma),
-+			 vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- }
- 
- /*
+ 		if (!reclaimed && !nr_retries--)
+ 			return -EAGAIN;
 _
 
-Patches currently in -mm which might be from yajun.deng@linux.dev are
+Patches currently in -mm which might be from tjmercier@google.com are
 
 
