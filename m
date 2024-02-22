@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8678CEC3
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6232D8BFD
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560201; cv=none; b=vEnPmXAtEUYlDGqgdAXTIeo34PSOWPQXmGJ1a4U0PD5Wy9zoa0Zlgq3PmGUUEG0WGh1V65DWw9kgA1J50NLhNo/uOjqMENJz6uPb8B6Lt7yafbZsh4NSolcUgNuybEHV2pRf9Sk1L52mPhTMvbR62U4bvzUhsOCPH4YuRmqWFKQ=
+	t=1708560202; cv=none; b=C9Pe+yVXlypKEbfCOBYBO7ZQeH7nx9TpsLZyecFtIqleyde8ncvzVx4vn3UnEb6hjsz5RIALCazCrSoFXVPgUPFCSONtDqR9TgQl2Te3pwnU0URWZTxqigyovH34VCMdP3l9Huy/N9oJdd2yNFsM2ArK8BatErmnkTaasa0pnEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560201; c=relaxed/simple;
-	bh=jXU9pPZLleErz0uO4a22Sn8TiPqkxwsAMQ9XTw/OLLk=;
-	h=Date:To:From:Subject:Message-Id; b=nLbrLwFWrlFi7u/IMInahmBM9PgoKBsJsdF7oVQYFjPgXLVkYFFSWp1cd6aQRyBzB3DSX5iyKq9AXdWw4ZOqxtoqkBpFHu2+Nnxa4w9BHT7ivLVTA+bK2Wn+yRj9CtQ63i+Vwt/Ogqaptbi58jcxH5t97hCHE5+MyRYwQ39Bk6w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mqdqf3uL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560202; c=relaxed/simple;
+	bh=I1wqNjImsdlFpPtZtfFeXaNTd58My0WFjJV4B+sax4E=;
+	h=Date:To:From:Subject:Message-Id; b=BeVO8/+UUex01zq5SP2r+IRHc1YwuJGUelBAbUATyyPELI4ozugr36xsv1YxrVKrmLRFtXUr82R2KFc4wsXs9J4R64ellc9rSrQjCF58TISC7Nmas2e6f1RpVo8QluAf2xRD4meXudE9QwTfghtKR4cN48feeLLDUgiKS/Qr7ho=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OLZ5lyUx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mqdqf3uL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E313C433F1;
-	Thu, 22 Feb 2024 00:03:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OLZ5lyUx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3966AC43390;
+	Thu, 22 Feb 2024 00:03:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560201;
-	bh=jXU9pPZLleErz0uO4a22Sn8TiPqkxwsAMQ9XTw/OLLk=;
+	s=korg; t=1708560202;
+	bh=I1wqNjImsdlFpPtZtfFeXaNTd58My0WFjJV4B+sax4E=;
 	h=Date:To:From:Subject:From;
-	b=Mqdqf3uLQJj786khnBIg3+y72uRdTHPMnZIZqMtlOky4+D30Q3SEmhMkAVC8RSvSL
-	 hom/2cVuhSwxLreeUJi/wPXIswm88zJd3pUQ0mVx9zISKlgjsVSDNp0kPZUb4mRn1c
-	 HKrCRV9Q7sRgqbWaPWHV4ZnHP6e14xM1ZdQAmm+s=
-Date: Wed, 21 Feb 2024 16:03:20 -0800
-To: mm-commits@vger.kernel.org,xiongping1@xiaomi.com,sj@kernel.org,akpm@linux-foundation.org
+	b=OLZ5lyUxKY7iwWnjQ8D9+65s+NEWA7GoDTFZcmw1S5rotJpV/UXfPxL4BjFEWnm+2
+	 diVohI764nRGqcFWX006/1g2R5ae+LwvId1cbfmhqEoTKTiY+hcTKrKo1lXbzx1XVn
+	 dwlkjVB87uCR6vAa7FRZ6KnGY4e9whsU61gHpw9c=
+Date: Wed, 21 Feb 2024 16:03:21 -0800
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,aneesh.kumar@linux.ibm.com,lizhijian@fujitsu.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-handle-state-file-inputs-for-every-sampling-interval-if-possible.patch removed from -mm tree
-Message-Id: <20240222000321.4E313C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-demotion-print-demotion-targets.patch removed from -mm tree
+Message-Id: <20240222000322.3966AC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,223 +35,125 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: handle 'state' file inputs for every sampling interval if possible
+     Subject: mm/demotion: print demotion targets
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-handle-state-file-inputs-for-every-sampling-interval-if-possible.patch
+     mm-demotion-print-demotion-targets.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: handle 'state' file inputs for every sampling interval if possible
-Date: Mon, 5 Feb 2024 18:51:58 -0800
+From: Li Zhijian <lizhijian@fujitsu.com>
+Subject: mm/demotion: print demotion targets
+Date: Tue, 6 Feb 2024 10:01:51 +0800
 
-DAMON sysfs interface need to access kdamond-touching data for some of
-kdamond user commands.  It uses ->after_aggregation() kdamond callback to
-safely access the data in the case.  It had to use the aggregation
-interval callback because that was the only callback that users can access
-complete monitoring results.
+Currently, when a demotion occurs, it will prioritize selecting a node
+from the preferred targets as the destination node for the demotion.  If
+the preferred node does not meet the requirements, it will try from all
+the lower memory tier nodes until it finds a suitable demotion destination
+node or ultimately fails.
 
-Since patch series "mm/damon: provide pseudo-moving sum based access
-rate", which starts from commit 78fbfb155d20 ("mm/damon/core: define and
-use a dedicated function for region access rate update"), DAMON provides
-good-to-use quality moitoring results for every sampling interval.  It
-aims to help users who need to quickly retrieve the monitoring results. 
-When the aggregation interval is set too long and therefore waiting for
-the aggregation interval can degrade user experience, or when the access
-pattern is expected to be significantly changed[1] could be such cases.
+However, the demotion target information isn't exposed to the users,
+especially the preferred target information, which relies on more factors.
+This makes it hard for users to understand the exact demotion behavior.
 
-However, because DAMON sysfs interface is still handling the commands per
-aggregation interval, the end user cannot get the benefit.  Update DAMON
-sysfs interface to handle kdamond commands for every sampling interval if
-applicable.  Specifically, all kdamond data accessing commands except
-'commit' command are applicable.
+Rather than having a new sysfs interface to expose this information,
+printing directly to kernel messages, just like the current page
+allocation fallback order does.
 
-[1] https://lore.kernel.org/r/20240129121316.GA9706@cuiyangpei
+A dmesg example with this patch is as follows:
+[    0.704860] Demotion targets for Node 0: null
+[    0.705456] Demotion targets for Node 1: null
+// node 2 is onlined
+[   32.259775] Demotion targets for Node 0: perferred: 2, fallback: 2
+[   32.261290] Demotion targets for Node 1: perferred: 2, fallback: 2
+[   32.262726] Demotion targets for Node 2: null
+// node 3 is onlined
+[   42.448809] Demotion targets for Node 0: perferred: 2, fallback: 2-3
+[   42.450704] Demotion targets for Node 1: perferred: 2, fallback: 2-3
+[   42.452556] Demotion targets for Node 2: perferred: 3, fallback: 3
+[   42.454136] Demotion targets for Node 3: null
+// node 4 is onlined
+[   52.676833] Demotion targets for Node 0: perferred: 2, fallback: 2-4
+[   52.678735] Demotion targets for Node 1: perferred: 2, fallback: 2-4
+[   52.680493] Demotion targets for Node 2: perferred: 4, fallback: 3-4
+[   52.682154] Demotion targets for Node 3: null
+[   52.683405] Demotion targets for Node 4: null
+// node 5 is onlined
+[   62.931902] Demotion targets for Node 0: perferred: 2, fallback: 2-5
+[   62.938266] Demotion targets for Node 1: perferred: 5, fallback: 2-5
+[   62.943515] Demotion targets for Node 2: perferred: 4, fallback: 3-4
+[   62.947471] Demotion targets for Node 3: null
+[   62.949908] Demotion targets for Node 4: null
+[   62.952137] Demotion targets for Node 5: perferred: 3, fallback: 3-4
 
-Link: https://lkml.kernel.org/r/20240206025158.203097-1-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: xiongping1 <xiongping1@xiaomi.com>
+Regarding this requirement, we have previously discussed [1].  The initial
+proposal involved introducing a new sysfs interface.  However, due to
+concerns about potential changes and compatibility issues with the
+interface in the future, a consensus was not reached with the community. 
+Therefore, this time, we are directly printing out the information.
+
+[1] https://lore.kernel.org/all/d1d5add8-8f4a-4578-8bf0-2cbe79b09989@fujitsu.com/
+
+Link: https://lkml.kernel.org/r/20240206020151.605516-1-lizhijian@fujitsu.com
+Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-common.h  |    2 ++
- mm/damon/sysfs-schemes.c |   22 +++++++++-------------
- mm/damon/sysfs.c         |   21 ++++++++++++++++++---
- 3 files changed, 29 insertions(+), 16 deletions(-)
+ mm/memory-tiers.c |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-handle-state-file-inputs-for-every-sampling-interval-if-possible
-+++ a/mm/damon/sysfs.c
-@@ -1379,11 +1379,13 @@ static int damon_sysfs_commit_schemes_qu
-  * damon_sysfs_cmd_request_callback() - DAMON callback for handling requests.
-  * @c:		The DAMON context of the callback.
-  * @active:	Whether @c is not deactivated due to watermarks.
-+ * @after_aggr:	Whether this is called from after_aggregation() callback.
-  *
-  * This function is periodically called back from the kdamond thread for @c.
-  * Then, it checks if there is a waiting DAMON sysfs request and handles it.
-  */
--static int damon_sysfs_cmd_request_callback(struct damon_ctx *c, bool active)
-+static int damon_sysfs_cmd_request_callback(struct damon_ctx *c, bool active,
-+		bool after_aggregation)
- {
- 	struct damon_sysfs_kdamond *kdamond;
- 	bool total_bytes_only = false;
-@@ -1401,6 +1403,8 @@ static int damon_sysfs_cmd_request_callb
- 		err = damon_sysfs_upd_schemes_stats(kdamond);
- 		break;
- 	case DAMON_SYSFS_CMD_COMMIT:
-+		if (!after_aggregation)
-+			goto out;
- 		err = damon_sysfs_commit_input(kdamond);
- 		break;
- 	case DAMON_SYSFS_CMD_COMMIT_SCHEMES_QUOTA_GOALS:
-@@ -1418,6 +1422,7 @@ static int damon_sysfs_cmd_request_callb
- 				goto keep_lock_out;
- 			}
- 		} else {
-+			damos_sysfs_mark_finished_regions_updates(c);
- 			/*
- 			 * Continue regions updating if DAMON is till
- 			 * active and the update for all schemes is not
-@@ -1450,7 +1455,16 @@ static int damon_sysfs_after_wmarks_chec
- 	 * after_wmarks_check() is called back while the context is deactivated
- 	 * by watermarks.
- 	 */
--	return damon_sysfs_cmd_request_callback(c, false);
-+	return damon_sysfs_cmd_request_callback(c, false, false);
+--- a/mm/memory-tiers.c~mm-demotion-print-demotion-targets
++++ a/mm/memory-tiers.c
+@@ -359,6 +359,26 @@ static void disable_all_demotion_targets
+ 	synchronize_rcu();
+ }
+ 
++static void dump_demotion_targets(void)
++{
++	int node;
++
++	for_each_node_state(node, N_MEMORY) {
++		struct memory_tier *memtier = __node_get_memory_tier(node);
++		nodemask_t preferred = node_demotion[node].preferred;
++
++		if (!memtier)
++			continue;
++
++		if (nodes_empty(preferred))
++			pr_info("Demotion targets for Node %d: null\n", node);
++		else
++			pr_info("Demotion targets for Node %d: preferred: %*pbl, fallback: %*pbl\n",
++				node, nodemask_pr_args(&preferred),
++				nodemask_pr_args(&memtier->lower_tier_mask));
++	}
 +}
 +
-+static int damon_sysfs_after_sampling(struct damon_ctx *c)
-+{
-+	/*
-+	 * after_sampling() is called back only while the context is not
-+	 * deactivated by watermarks.
-+	 */
-+	return damon_sysfs_cmd_request_callback(c, true, false);
- }
- 
- static int damon_sysfs_after_aggregation(struct damon_ctx *c)
-@@ -1459,7 +1473,7 @@ static int damon_sysfs_after_aggregation
- 	 * after_aggregation() is called back only while the context is not
- 	 * deactivated by watermarks.
+ /*
+  * Find an automatic demotion target for all memory
+  * nodes. Failing here is OK.  It might just indicate
+@@ -443,7 +463,7 @@ static void establish_demotion_targets(v
+ 	 * Now build the lower_tier mask for each node collecting node mask from
+ 	 * all memory tier below it. This allows us to fallback demotion page
+ 	 * allocation to a set of nodes that is closer the above selected
+-	 * perferred node.
++	 * preferred node.
  	 */
--	return damon_sysfs_cmd_request_callback(c, true);
-+	return damon_sysfs_cmd_request_callback(c, true, true);
- }
- 
- static struct damon_ctx *damon_sysfs_build_ctx(
-@@ -1478,6 +1492,7 @@ static struct damon_ctx *damon_sysfs_bui
+ 	lower_tier = node_states[N_MEMORY];
+ 	list_for_each_entry(memtier, &memory_tiers, list) {
+@@ -456,6 +476,8 @@ static void establish_demotion_targets(v
+ 		nodes_andnot(lower_tier, lower_tier, tier_nodes);
+ 		memtier->lower_tier_mask = lower_tier;
  	}
- 
- 	ctx->callback.after_wmarks_check = damon_sysfs_after_wmarks_check;
-+	ctx->callback.after_sampling = damon_sysfs_after_sampling;
- 	ctx->callback.after_aggregation = damon_sysfs_after_aggregation;
- 	ctx->callback.before_terminate = damon_sysfs_before_terminate;
- 	return ctx;
---- a/mm/damon/sysfs-common.h~mm-damon-sysfs-handle-state-file-inputs-for-every-sampling-interval-if-possible
-+++ a/mm/damon/sysfs-common.h
-@@ -49,6 +49,8 @@ int damon_sysfs_schemes_update_regions_s
- 		struct damon_sysfs_schemes *sysfs_schemes,
- 		struct damon_ctx *ctx, bool total_bytes_only);
- 
-+void damos_sysfs_mark_finished_regions_updates(struct damon_ctx *ctx);
 +
- bool damos_sysfs_regions_upd_done(void);
- 
- int damon_sysfs_schemes_update_regions_stop(struct damon_ctx *ctx);
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-handle-state-file-inputs-for-every-sampling-interval-if-possible
-+++ a/mm/damon/sysfs-schemes.c
-@@ -127,17 +127,17 @@ static const struct kobj_type damon_sysf
-  *
-  * Once the tried regions update request is received, the request handling
-  * start function (damon_sysfs_scheme_update_regions_start()) sets the status
-- * of all schemes as 'idle' again, and register ->before_damos_apply() and
-- * ->after_sampling() callbacks.
-+ * of all schemes as 'idle' again, and register ->before_damos_apply()
-+ * callback.
-  *
-  * Then, the first followup ->before_damos_apply() callback
-  * (damon_sysfs_before_damos_apply()) sets the status 'started'.  The first
-- * ->after_sampling() callback (damon_sysfs_after_sampling()) after the call
-- * is called only after the scheme is completely applied
-- * to the given snapshot.  Hence the callback knows the situation by showing
-- * 'started' status, and sets the status as 'finished'.  Then,
-- * damon_sysfs_before_damos_apply() understands the situation by showing the
-- * 'finished' status and do nothing.
-+ * ->after_sampling() or ->after_aggregation() callback
-+ *  (damon_sysfs_cmd_request_callback()) after the call is called only after
-+ *  the scheme is completely applied to the given snapshot.  Hence the callback
-+ *  knows the situation by showing 'started' status, and sets the status as
-+ *  'finished'.  Then, damon_sysfs_before_damos_apply() understands the
-+ *  situation by showing the 'finished' status and do nothing.
-  *
-  * If DAMOS is not applied to any region due to any reasons including the
-  * access pattern, the watermarks, the quotas, and the filters,
-@@ -2122,7 +2122,7 @@ static int damon_sysfs_before_damos_appl
-  * callback is registered, damon_sysfs_lock should be held to ensure the
-  * regions directories exist.
-  */
--static int damon_sysfs_after_sampling(struct damon_ctx *ctx)
-+void damos_sysfs_mark_finished_regions_updates(struct damon_ctx *ctx)
- {
- 	struct damon_sysfs_schemes *sysfs_schemes =
- 		damon_sysfs_schemes_for_damos_callback;
-@@ -2138,8 +2138,6 @@ static int damon_sysfs_after_sampling(st
- 			sysfs_regions->upd_status =
- 				DAMOS_TRIED_REGIONS_UPD_FINISHED;
- 	}
--
--	return 0;
++	dump_demotion_targets();
  }
  
- /* Called from damon_sysfs_cmd_request_callback under damon_sysfs_lock */
-@@ -2212,7 +2210,6 @@ int damon_sysfs_schemes_update_regions_s
- 	damos_tried_regions_init_upd_status(sysfs_schemes, ctx);
- 	damos_regions_upd_total_bytes_only = total_bytes_only;
- 	ctx->callback.before_damos_apply = damon_sysfs_before_damos_apply;
--	ctx->callback.after_sampling = damon_sysfs_after_sampling;
- 	return 0;
- }
- 
-@@ -2241,7 +2238,6 @@ int damon_sysfs_schemes_update_regions_s
- {
- 	damon_sysfs_schemes_for_damos_callback = NULL;
- 	ctx->callback.before_damos_apply = NULL;
--	ctx->callback.after_sampling = NULL;
- 	damon_sysfs_schemes_region_idx = 0;
- 	return 0;
- }
+ #else
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from lizhijian@fujitsu.com are
 
-docs-mm-damon-maintainer-profile-fix-reference-links-for-mm-stable-tree.patch
-docs-mm-damon-move-the-list-of-damos-actions-to-design-doc.patch
-docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document.patch
-docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document-fix.patch
-docs-mm-damon-move-monitoring-target-regions-setup-detail-from-the-usage-to-the-design-document.patch
-docs-admin-guide-mm-damon-usage-fix-wrong-quotas-diabling-condition.patch
-mm-damon-core-set-damos_quota-esz-as-public-field-and-document.patch
-mm-damon-sysfs-schemes-implement-quota-effective_bytes-file.patch
-mm-damon-sysfs-implement-a-kdamond-command-for-updating-schemes-effective-quotas.patch
-docs-abi-damon-document-effective_bytes-sysfs-file.patch
-docs-admin-guide-mm-damon-usage-document-effective_bytes-file.patch
-mm-damon-move-comments-and-fields-for-damos-quota-prioritization-to-the-end.patch
-mm-damon-core-split-out-quota-goal-related-fields-to-a-struct.patch
-mm-damon-core-add-multiple-goals-per-damos_quota-and-helpers-for-those.patch
-mm-damon-sysfs-use-only-quota-goals.patch
-mm-damon-core-remove-goal-field-of-damos_quota.patch
-mm-damon-core-let-goal-specified-with-only-target-and-current-values.patch
-mm-damon-core-support-multiple-metrics-for-quota-goal.patch
-mm-damon-core-implement-psi-metric-damos-quota-goal.patch
-mm-damon-sysfs-schemes-support-psi-based-quota-auto-tune.patch
-docs-mm-damon-design-document-quota-goal-self-tuning.patch
-docs-abi-damon-document-quota-goal-metric-file.patch
-docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file.patch
-docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file-fix.patch
-mm-damon-reclaim-implement-user-feedback-driven-quota-auto-tuning.patch
-mm-damon-reclaim-implement-memory-psi-driven-quota-self-tuning.patch
-docs-admin-guide-mm-damon-reclaim-document-auto-tuning-parameters.patch
 
