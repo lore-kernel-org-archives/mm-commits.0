@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FE72137935
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:39:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E80EFBF4
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:39:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708645183; cv=none; b=BLsAACHxNTGHfZyhcvT+w8tVktXqHJNhBI5ZnRFEtLwO5f+MKvNwab9Bdvbxv7Nc7rJEXGkAtfRUYcS4nAd3VtK61LzytJkQ3h6lxzaE/+/QltxxIysHFGYBzuN/mIcwCwsI4fxzuwUedlBmryVWzGIuGRAx7Gsh9vgjap2OdQk=
+	t=1708645184; cv=none; b=bdf9UuLvE7DdtRVlXvhsa/Waz+0U2onZyvOkglkzcE5b/cuJrWXiNSYQ2Pn7D89lu2EYrH2AyITfpjMeRtU5BFIA7BMr5lvL2YdJBZta0vEmrLsf5ySLqhOcwY1bajIHreBQ6f7Yq2JaY9bwmIkoGS5inb/3VP/2qM/sDB45qAM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708645183; c=relaxed/simple;
-	bh=WUdc61l97vPtLomerXqJ8oYXBaLUREJaYDtMubv3bG4=;
-	h=Date:To:From:Subject:Message-Id; b=LEofuGfHdPKlGfJEin9sujW8l/l8xr6ARa1i4iqYTHKGdGWWydOwLT21Br95OEynLBq/lez74Bbtj6+hyC5o643so2JfFIb3gYVSMCFEYWMbvYYTiQeVlLwE5PysjggtU2mz0MFtCQlHXpXul94canh3AddlOdD4CQ+fO5LOzKk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0nsIaTGb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708645184; c=relaxed/simple;
+	bh=w2I8PuOg8pkFt1wQauG8jUbBcAt8j4pznPCWvsV0daE=;
+	h=Date:To:From:Subject:Message-Id; b=Bi6YGbpiAb795uwIpwuAkRP/265jlat3z53wK8whViMWEzCrHVTcjPqUm+0i5k2rPdKtDcBWu7Ff8hPuDZorCWU16Kz6w/XSWBePZ9EMFwHUaD98tirAYTzVE4kl06M81GhSa7Xbk8nky27qkcDm4pUajcpILPEBuM95yrN6SfA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZeMsQ3VQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0nsIaTGb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAF50C433F1;
-	Thu, 22 Feb 2024 23:39:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZeMsQ3VQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1654C433C7;
+	Thu, 22 Feb 2024 23:39:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708645182;
-	bh=WUdc61l97vPtLomerXqJ8oYXBaLUREJaYDtMubv3bG4=;
+	s=korg; t=1708645183;
+	bh=w2I8PuOg8pkFt1wQauG8jUbBcAt8j4pznPCWvsV0daE=;
 	h=Date:To:From:Subject:From;
-	b=0nsIaTGbUybmvTIBARrPyMo5cjDM1gx2wESc33jy6HlOoW2+vviIqYtsS0E01RheD
-	 /+KZjom0CQkFfib9m/R40s51uqxgoIBXvmncm3Qyb2gUqmHIAgIrp+9bpk8etveo81
-	 qXA1Y4WnfKeVlzd8gr5t9hY5NZv2abe0q7O81HeA=
-Date: Thu, 22 Feb 2024 15:39:42 -0800
-To: mm-commits@vger.kernel.org,jack@suse.cz,shikemeng@huaweicloud.com,akpm@linux-foundation.org
+	b=ZeMsQ3VQuPMzSRwHoH7x2+ZzWt6kkGy33VCkx3ZeR8EUSo8NBsR7eljuJBIdXq+NA
+	 S6Qrvz05nwYhuD4Cj7FWmeSFvpSNpd0RpptfSjoN0M9vEErDtbMQHAwwbQmp0sR4T6
+	 FmF/jWQS0U9y/fgyU9kZw94OJMNHcHt2gGnFFXpg=
+Date: Thu, 22 Feb 2024 15:39:43 -0800
+To: mm-commits@vger.kernel.org,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] flex_proportions-remove-unused-fprop_local_single.patch removed from -mm tree
-Message-Id: <20240222233942.CAF50C433F1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] ptrace_attach-shift-sendsigstop-into-ptrace_set_stopped.patch removed from -mm tree
+Message-Id: <20240222233943.A1654C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,159 +35,66 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: flex_proportions: remove unused fprop_local_single
+     Subject: ptrace_attach: shift send(SIGSTOP) into ptrace_set_stopped()
 has been removed from the -mm tree.  Its filename was
-     flex_proportions-remove-unused-fprop_local_single.patch
+     ptrace_attach-shift-sendsigstop-into-ptrace_set_stopped.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: flex_proportions: remove unused fprop_local_single
-Date: Fri, 19 Jan 2024 04:13:21 +0800
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: ptrace_attach: shift send(SIGSTOP) into ptrace_set_stopped()
+Date: Mon, 22 Jan 2024 18:16:31 +0100
 
-The single variant of flex_proportions is not used.  Simply remove it.
+Turn send_sig_info(SIGSTOP) into send_signal_locked(SIGSTOP) and move it
+from ptrace_attach() to ptrace_set_stopped().
 
-Link: https://lkml.kernel.org/r/20240118201321.759174-1-shikemeng@huaweicloud.com
-Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+This looks more logical and avoids lock(siglock) right after unlock().
+
+Link: https://lkml.kernel.org/r/20240122171631.GA29844@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/flex_proportions.h |   32 ------------
- lib/flex_proportions.c           |   77 -----------------------------
- 2 files changed, 109 deletions(-)
+ kernel/ptrace.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
---- a/include/linux/flex_proportions.h~flex_proportions-remove-unused-fprop_local_single
-+++ a/include/linux/flex_proportions.h
-@@ -39,38 +39,6 @@ void fprop_global_destroy(struct fprop_g
- bool fprop_new_period(struct fprop_global *p, int periods);
- 
- /*
-- *  ---- SINGLE ----
-- */
--struct fprop_local_single {
--	/* the local events counter */
--	unsigned long events;
--	/* Period in which we last updated events */
--	unsigned int period;
--	raw_spinlock_t lock;	/* Protect period and numerator */
--};
--
--#define INIT_FPROP_LOCAL_SINGLE(name)			\
--{	.lock = __RAW_SPIN_LOCK_UNLOCKED(name.lock),	\
--}
--
--int fprop_local_init_single(struct fprop_local_single *pl);
--void fprop_local_destroy_single(struct fprop_local_single *pl);
--void __fprop_inc_single(struct fprop_global *p, struct fprop_local_single *pl);
--void fprop_fraction_single(struct fprop_global *p,
--	struct fprop_local_single *pl, unsigned long *numerator,
--	unsigned long *denominator);
--
--static inline
--void fprop_inc_single(struct fprop_global *p, struct fprop_local_single *pl)
--{
--	unsigned long flags;
--
--	local_irq_save(flags);
--	__fprop_inc_single(p, pl);
--	local_irq_restore(flags);
--}
--
--/*
-  * ---- PERCPU ----
-  */
- struct fprop_local_percpu {
---- a/lib/flex_proportions.c~flex_proportions-remove-unused-fprop_local_single
-+++ a/lib/flex_proportions.c
-@@ -84,83 +84,6 @@ bool fprop_new_period(struct fprop_globa
+--- a/kernel/ptrace.c~ptrace_attach-shift-sendsigstop-into-ptrace_set_stopped
++++ a/kernel/ptrace.c
+@@ -375,10 +375,13 @@ static int check_ptrace_options(unsigned
+ 	return 0;
  }
  
- /*
-- * ---- SINGLE ----
-- */
+-static inline void ptrace_set_stopped(struct task_struct *task)
++static inline void ptrace_set_stopped(struct task_struct *task, bool seize)
+ {
+ 	guard(spinlock)(&task->sighand->siglock);
+ 
++	/* SEIZE doesn't trap tracee on attach */
++	if (!seize)
++		send_signal_locked(SIGSTOP, SEND_SIG_PRIV, task, PIDTYPE_PID);
+ 	/*
+ 	 * If the task is already STOPPED, set JOBCTL_TRAP_STOP and
+ 	 * TRAPPING, and kick it so that it transits to TRACED.  TRAPPING
+@@ -457,14 +460,8 @@ static int ptrace_attach(struct task_str
+ 				return -EPERM;
+ 
+ 			task->ptrace = flags;
 -
--int fprop_local_init_single(struct fprop_local_single *pl)
--{
--	pl->events = 0;
--	pl->period = 0;
--	raw_spin_lock_init(&pl->lock);
--	return 0;
--}
+ 			ptrace_link(task, current);
 -
--void fprop_local_destroy_single(struct fprop_local_single *pl)
--{
--}
+-			/* SEIZE doesn't trap tracee on attach */
+-			if (!seize)
+-				send_sig_info(SIGSTOP, SEND_SIG_PRIV, task);
 -
--static void fprop_reflect_period_single(struct fprop_global *p,
--					struct fprop_local_single *pl)
--{
--	unsigned int period = p->period;
--	unsigned long flags;
--
--	/* Fast path - period didn't change */
--	if (pl->period == period)
--		return;
--	raw_spin_lock_irqsave(&pl->lock, flags);
--	/* Someone updated pl->period while we were spinning? */
--	if (pl->period >= period) {
--		raw_spin_unlock_irqrestore(&pl->lock, flags);
--		return;
--	}
--	/* Aging zeroed our fraction? */
--	if (period - pl->period < BITS_PER_LONG)
--		pl->events >>= period - pl->period;
--	else
--		pl->events = 0;
--	pl->period = period;
--	raw_spin_unlock_irqrestore(&pl->lock, flags);
--}
--
--/* Event of type pl happened */
--void __fprop_inc_single(struct fprop_global *p, struct fprop_local_single *pl)
--{
--	fprop_reflect_period_single(p, pl);
--	pl->events++;
--	percpu_counter_add(&p->events, 1);
--}
--
--/* Return fraction of events of type pl */
--void fprop_fraction_single(struct fprop_global *p,
--			   struct fprop_local_single *pl,
--			   unsigned long *numerator, unsigned long *denominator)
--{
--	unsigned int seq;
--	s64 num, den;
--
--	do {
--		seq = read_seqcount_begin(&p->sequence);
--		fprop_reflect_period_single(p, pl);
--		num = pl->events;
--		den = percpu_counter_read_positive(&p->events);
--	} while (read_seqcount_retry(&p->sequence, seq));
--
--	/*
--	 * Make fraction <= 1 and denominator > 0 even in presence of percpu
--	 * counter errors
--	 */
--	if (den <= num) {
--		if (num)
--			den = num;
--		else
--			den = 1;
--	}
--	*denominator = den;
--	*numerator = num;
--}
--
--/*
-  * ---- PERCPU ----
-  */
- #define PROP_BATCH (8*(1+ilog2(nr_cpu_ids)))
+-			ptrace_set_stopped(task);
++			ptrace_set_stopped(task, seize);
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from shikemeng@huaweicloud.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 
