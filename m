@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26C018480
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06B494A18
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560064; cv=none; b=EjHpQFYuCmPGF8P2y9Rka8XC1uuWpHBe1EUE4hHRUuhN19BkdHAWzth1EA9dfkFh8nkpwA7DcayNo4ucLrlgfCqpG4F34L/A7ZTtgaEpBiFeiMKKx7kr2AgBAydxFicxULSTwU7qclWumuSpELtCzm/T69WhmmRxVlV4FYDyXeg=
+	t=1708560065; cv=none; b=HvELRievY4FAExORtp55au1WKo1ND67l9QK85EqnlfmWUGCzIahgksAu/FmpSTITwFihoh61Vjf8gth1ubLbRUnHjckmex/SpNCGFGYPv9+sweY2KerxpMzJwBYN/qRF+nhaXr582AEfxvocF/o9/N1RhzEYCHj2UkJDGL0/ci0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560064; c=relaxed/simple;
-	bh=IFA9Eyuv4IQ67WnIk9CHs12u0YpenosRm2E/KjsrZaM=;
-	h=Date:To:From:Subject:Message-Id; b=KHwS8lXL8cqkACkAS/420nXpIZOaJdljt2wK4NSX/gerPTSNOmK6Qr+jVA4U8w802NfgOTEd730vUlW2N2bowWHRq37BQewPe16EHKFjiUUphDyGqel89bQQOfFez8LRaNiu8prsDwx0DYrdsl+bpGK6jCezTMDQi770TcbygNg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R4n4r+rL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560065; c=relaxed/simple;
+	bh=zgsWKiOGnP6X9bCJwH5aw/n8m0cDaJJUChrMzv98bdY=;
+	h=Date:To:From:Subject:Message-Id; b=XAdO6qWChPqlupVLfpiN0YudMQJwX7111toNDA7/CNaBQ6NHsDteX65Puw2UYeVEJ7k9ZFSjj6si+AFwLDWHsBfGhCZJI4CLcPfrV/7AWw0ejE+CN7DrM1EqZZm+nsi63KArHJyvMHDdnnWrB7RARIpenYYmjmANf4mw3LhoVng=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dbiERGdD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R4n4r+rL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A05ADC43394;
-	Thu, 22 Feb 2024 00:01:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dbiERGdD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8121BC43394;
+	Thu, 22 Feb 2024 00:01:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560063;
-	bh=IFA9Eyuv4IQ67WnIk9CHs12u0YpenosRm2E/KjsrZaM=;
+	s=korg; t=1708560064;
+	bh=zgsWKiOGnP6X9bCJwH5aw/n8m0cDaJJUChrMzv98bdY=;
 	h=Date:To:From:Subject:From;
-	b=R4n4r+rLG20gk3wAuvq7bXSPJuv2pXh2aRULgJDRfNiqbhXs6LlNIsZrKfFhIFJp1
-	 WKTvkA8BSnV1q1/XehKSA5OLg1CY41XjhjkSBan1VoOIG8enO08JurccUstOQtS0Iy
-	 BL7j+/pu+Hkm9CgZs17KOLDwtfsbyTAoAaZp2x8M=
-Date: Wed, 21 Feb 2024 16:01:03 -0800
-To: mm-commits@vger.kernel.org,david@redhat.com,inwardvessel@gmail.com,akpm@linux-foundation.org
+	b=dbiERGdD64trQS1pj1q7tpzQ2eyQYA9SZM/f5iFjRieJnaljznMdzjf4OLhXdbKEC
+	 WDZfNuEIFqBUCOnxo9dEYOApT3/gcihQpS73uGc+8KKuHWIIA/rZbWfJQ3DKIIUxMa
+	 JulbSMYlAaGgoO44VYnvMAxRvw/ANZS620qse464=
+Date: Wed, 21 Feb 2024 16:01:04 -0800
+To: mm-commits@vger.kernel.org,urezki@gmail.com,qun-wei.lin@mediatek.com,matthias.bgg@gmail.com,kbingham@kernel.org,jan.kiszka@siemens.com,chinwen.chang@mediatek.com,casper.li@mediatek.com,angelogioacchino.delregno@collabora.com,Kuan-Ying.Lee@mediatek.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-ksm_functional-prevent-unmapping-undefined-address.patch removed from -mm tree
-Message-Id: <20240222000103.A05ADC43394@smtp.kernel.org>
+Subject: [merged mm-stable] scripts-gdb-vmalloc-fix-vmallocinfo-error.patch removed from -mm tree
+Message-Id: <20240222000104.8121BC43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,109 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm/ksm_functional: prevent unmapping undefined address
+     Subject: scripts/gdb/vmalloc: fix vmallocinfo error
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-ksm_functional-prevent-unmapping-undefined-address.patch
+     scripts-gdb-vmalloc-fix-vmallocinfo-error.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: JP Kobryn <inwardvessel@gmail.com>
-Subject: selftests/mm/ksm_functional: prevent unmapping undefined address
-Date: Fri, 5 Jan 2024 12:24:01 -0800
+From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Subject: scripts/gdb/vmalloc: fix vmallocinfo error
+Date: Wed, 7 Feb 2024 16:58:51 +0800
 
-Replace some goto statements with return statements so that unmap() is not
-called on an undefined address.  This change is made so that unmap() can
-only be reached after mmap() is called (and the address mentioned is
-defined).  Returning MAP_FAILED seems acceptable since client code checks
-for this value.
+The patch series "Mitigate a vmap lock contention" removes vmap_area_list,
+which will break the gdb vmallocinfo command:
 
-Link: https://lkml.kernel.org/r/20240105202401.28851-1-inwardvessel@gmail.com
-Fixes: 42096aa24b82 ("selftest/mm: ksm_functional_tests: test in mmap_and_merge_range() if anything got merged")
-Signed-off-by: JP Kobryn <inwardvessel@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+(gdb) lx-vmallocinfo
+Python Exception <class 'gdb.error'>: No symbol "vmap_area_list" in current context.
+Error occurred in Python: No symbol "vmap_area_list" in current context.
+
+So we can instead use vmap_nodes to iterate all vmallocinfo.
+
+Link: https://lkml.kernel.org/r/20240207085856.11190-1-Kuan-Ying.Lee@mediatek.com
+Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Cc: Casper Li <casper.li@mediatek.com>
+Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_functional_tests.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/gdb/linux/vmalloc.py |   56 +++++++++++++++++----------------
+ 1 file changed, 29 insertions(+), 27 deletions(-)
 
---- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-mm-ksm_functional-prevent-unmapping-undefined-address
-+++ a/tools/testing/selftests/mm/ksm_functional_tests.c
-@@ -155,12 +155,12 @@ static char *mmap_and_merge_range(char v
- 	/* Stabilize accounting by disabling KSM completely. */
- 	if (ksm_unmerge()) {
- 		ksft_test_result_fail("Disabling (unmerging) KSM failed\n");
--		goto unmap;
-+		return MAP_FAILED;
- 	}
+--- a/scripts/gdb/linux/vmalloc.py~scripts-gdb-vmalloc-fix-vmallocinfo-error
++++ a/scripts/gdb/linux/vmalloc.py
+@@ -29,32 +29,34 @@ class LxVmallocInfo(gdb.Command):
+         if not constants.LX_CONFIG_MMU:
+             raise gdb.GdbError("Requires MMU support")
  
- 	if (get_my_merging_pages() > 0) {
- 		ksft_test_result_fail("Still pages merged\n");
--		goto unmap;
-+		return MAP_FAILED;
- 	}
+-        vmap_area_list = gdb.parse_and_eval('vmap_area_list')
+-        for vmap_area in lists.list_for_each_entry(vmap_area_list, vmap_area_ptr_type, "list"):
+-            if not vmap_area['vm']:
+-                gdb.write("0x%x-0x%x %10d vm_map_ram\n" % (vmap_area['va_start'], vmap_area['va_end'],
+-                    vmap_area['va_end'] - vmap_area['va_start']))
+-                continue
+-            v = vmap_area['vm']
+-            gdb.write("0x%x-0x%x %10d" % (v['addr'], v['addr'] + v['size'], v['size']))
+-            if v['caller']:
+-                gdb.write(" %s" % str(v['caller']).split(' ')[-1])
+-            if v['nr_pages']:
+-                gdb.write(" pages=%d" % v['nr_pages'])
+-            if v['phys_addr']:
+-                gdb.write(" phys=0x%x" % v['phys_addr'])
+-            if v['flags'] & constants.LX_VM_IOREMAP:
+-                gdb.write(" ioremap")
+-            if v['flags'] & constants.LX_VM_ALLOC:
+-                gdb.write(" vmalloc")
+-            if v['flags'] & constants.LX_VM_MAP:
+-                gdb.write(" vmap")
+-            if v['flags'] & constants.LX_VM_USERMAP:
+-                gdb.write(" user")
+-            if v['flags'] & constants.LX_VM_DMA_COHERENT:
+-                gdb.write(" dma-coherent")
+-            if is_vmalloc_addr(v['pages']):
+-                gdb.write(" vpages")
+-            gdb.write("\n")
++        nr_vmap_nodes = gdb.parse_and_eval('nr_vmap_nodes')
++        for i in range(0, nr_vmap_nodes):
++            vn = gdb.parse_and_eval('&vmap_nodes[%d]' % i)
++            for vmap_area in lists.list_for_each_entry(vn['busy']['head'], vmap_area_ptr_type, "list"):
++                if not vmap_area['vm']:
++                    gdb.write("0x%x-0x%x %10d vm_map_ram\n" % (vmap_area['va_start'], vmap_area['va_end'],
++                        vmap_area['va_end'] - vmap_area['va_start']))
++                    continue
++                v = vmap_area['vm']
++                gdb.write("0x%x-0x%x %10d" % (v['addr'], v['addr'] + v['size'], v['size']))
++                if v['caller']:
++                    gdb.write(" %s" % str(v['caller']).split(' ')[-1])
++                if v['nr_pages']:
++                    gdb.write(" pages=%d" % v['nr_pages'])
++                if v['phys_addr']:
++                    gdb.write(" phys=0x%x" % v['phys_addr'])
++                if v['flags'] & constants.LX_VM_IOREMAP:
++                    gdb.write(" ioremap")
++                if v['flags'] & constants.LX_VM_ALLOC:
++                    gdb.write(" vmalloc")
++                if v['flags'] & constants.LX_VM_MAP:
++                    gdb.write(" vmap")
++                if v['flags'] & constants.LX_VM_USERMAP:
++                    gdb.write(" user")
++                if v['flags'] & constants.LX_VM_DMA_COHERENT:
++                    gdb.write(" dma-coherent")
++                if is_vmalloc_addr(v['pages']):
++                    gdb.write(" vpages")
++                gdb.write("\n")
  
- 	map = mmap(NULL, size, PROT_READ|PROT_WRITE,
+ LxVmallocInfo()
 _
 
-Patches currently in -mm which might be from inwardvessel@gmail.com are
+Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
 
 
