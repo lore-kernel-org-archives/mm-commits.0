@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAD9E14010
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B47FFA923
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560187; cv=none; b=Qwwi+OBPzAZJjBy1fv3EpRLG7zYlsZ07waPoTpHvy+wuTGsgVrgQqPnjrCBLWbmUHY5JK3ideWIcLedyJc3umodGQCW4DLR9TC7xtOrTuK2BIwvR3ksfP48J6I8BNQ4k8bgBV9g7/VdtHuFn5wdtzmXolRJHJWtef0YMsxi5Sjg=
+	t=1708560188; cv=none; b=g4BgjrTTkHmqMKA3eFNlmyV2AiUlGHEy4CnOrpSj6BsrrxergZEIW5iFT8eHJRf3uoVr3Y3xRdXKW32RRMweK+EneNJOWE5APttbKu7j131tehRZ+zw8gGHf4SiHgdZ+pv6XOK/G/jm6JR9K0e8waukzmQoME17WzkOCubgiUkk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560187; c=relaxed/simple;
-	bh=tPd6iVGmW+DiSATS0pcRfxgkvBdmjd2UDeqonh8e4kE=;
-	h=Date:To:From:Subject:Message-Id; b=TZ9A2S84P1CrSFBsLB1QbIivGWtzDKV7WXKDL3cGpfteyb3GCRjewSBaFy41zGBrmM9EMr/UPDOLOSZxuPLAJ2ZNmQB2kE0y0NgYqtIIY8YrCLKDDdR8Ss/6ESX25TMFjiRCIHhQoW8BOecsu7Yx3BxmkXo9nYIMjF/jepkXgHQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=st+V9jb5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560188; c=relaxed/simple;
+	bh=53TsPclAvyuNAP3VVv1tjOqYDPEwNtYtiPJSzvU8gUk=;
+	h=Date:To:From:Subject:Message-Id; b=nd1t40ovV2qmm8fz3CN/JuKQS7U+zAzX1tnokl4NrmSGQWpGtG5gmkE42RGoPhdhiQxYAA/3H2juo22Lj2A84s2VZcj8fhvKElCrQH2cHF2EKpqQUGtIY8uGAlPDry2c7pazgfLfR/Cy7F/S7uL8FsqejqpntCyFlhSvyf2Ktjk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0P3GbUH/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="st+V9jb5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CB05C433F1;
-	Thu, 22 Feb 2024 00:03:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0P3GbUH/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 808C5C433C7;
+	Thu, 22 Feb 2024 00:03:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560187;
-	bh=tPd6iVGmW+DiSATS0pcRfxgkvBdmjd2UDeqonh8e4kE=;
+	s=korg; t=1708560188;
+	bh=53TsPclAvyuNAP3VVv1tjOqYDPEwNtYtiPJSzvU8gUk=;
 	h=Date:To:From:Subject:From;
-	b=st+V9jb5mUZVP/eHlcRc5fPR7UnE0/48iBRQ92mJwCJ/OUu0jgTgnS9YtetR69SH1
-	 ipcZ8TqYk3JyTOdkk153+87OXjzmAWJRD6HEZovKIhEzQVBCIwRFeJYiw42GUHbcU9
-	 vsN/0jMmjzx75CZPtU8uyfYEZpf9V5NbheiEmyj8=
+	b=0P3GbUH/62Iab+KGA8EliqGHP+LswB2mVbDyoafZjDhaK0LuXQputtB98UJS7os9J
+	 YgRKXrYeuA2SVREopR+qc3x1mDshTEx8ykZB/kgCP6DNrE4dXXkeFb5SJy3oXOeRA5
+	 kvaZTro6zxrsMHC9A5OaPVmCiim0YBltn1UmwQIs=
 Date: Wed, 21 Feb 2024 16:03:07 -0800
-To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,przemyslaw.kitszel@intel.com,peterz@infradead.org,ojeda@kernel.org,nicolas@fjasle.eu,ndesaulniers@google.com,nathan@kernel.org,masahiroy@kernel.org,justinstitt@google.com,haoluo@google.com,elver@google.com,andreyknvl@gmail.com,keescook@chromium.org,akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org,elver@google.com,corbet@lwn.net,andreyknvl@gmail.com,yangtiezhu@loongson.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] ubsan-reintroduce-signed-overflow-sanitizer.patch removed from -mm tree
-Message-Id: <20240222000307.9CB05C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-docs-update-descriptions-about-test-file-and-module.patch removed from -mm tree
+Message-Id: <20240222000308.808C5C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,277 +35,227 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ubsan: reintroduce signed overflow sanitizer
+     Subject: kasan: docs: update descriptions about test file and module
 has been removed from the -mm tree.  Its filename was
-     ubsan-reintroduce-signed-overflow-sanitizer.patch
+     kasan-docs-update-descriptions-about-test-file-and-module.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: ubsan: reintroduce signed overflow sanitizer
-Date: Mon, 5 Feb 2024 01:37:29 -0800
+From: Tiezhu Yang <yangtiezhu@loongson.cn>
+Subject: kasan: docs: update descriptions about test file and module
+Date: Mon, 5 Feb 2024 14:09:21 +0800
 
-In order to mitigate unexpected signed wrap-around[1], bring back the
-signed integer overflow sanitizer.  It was removed in commit 6aaa31aeb9cf
-("ubsan: remove overflow checks") because it was effectively a no-op when
-combined with -fno-strict-overflow (which correctly changes signed
-overflow from being "undefined" to being explicitly "wrap around").
+After commit f7e01ab828fd ("kasan: move tests to mm/kasan/"), the test
+file is renamed to mm/kasan/kasan_test.c and the test module is renamed to
+kasan_test.ko, so update the descriptions in the document.
 
-Compilers are adjusting their sanitizers to trap wrap-around and to
-detecting common code patterns that should not be instrumented (e.g.  "var
-+ offset < var").  Prepare for this and explicitly rename the option from
-"OVERFLOW" to "WRAP".
+While at it, update the line number and testcase number when the tests
+kmalloc_large_oob_right and kmalloc_double_kzfree failed to sync with the
+current code in mm/kasan/kasan_test.c.
 
-To annotate intentional wrap-around arithmetic, the add/sub/mul_wrap()
-helpers can be used for individual statements.  At the function level, the
-__signed_wrap attribute can be used to mark an entire function as
-expecting its signed arithmetic to wrap around.  For a single object file
-the Makefile can use "UBSAN_WRAP_SIGNED_target.o := n" to mark it as
-wrapping, and for an entire directory, "UBSAN_WRAP_SIGNED := n" can be
-used.
-
-Additionally keep these disabled under CONFIG_COMPILE_TEST for now.
-
-Link: https://github.com/KSPP/linux/issues/26 [1]
-Link: https://lkml.kernel.org/r/20240205093725.make.582-kees@kernel.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Justin Stitt <justinstitt@google.com>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Hao Luo <haoluo@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Nicolas Schier <nicolas@fjasle.eu>
-Cc: Przemek Kitszel <przemyslaw.kitszel@intel.com>
+Link: https://lkml.kernel.org/r/20240205060925.15594-2-yangtiezhu@loongson.cn
+Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
+Acked-by: Marco Elver <elver@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler_types.h |    9 +++-
- lib/Kconfig.ubsan              |   14 ++++++
- lib/test_ubsan.c               |   37 ++++++++++++++++
- lib/ubsan.c                    |   68 +++++++++++++++++++++++++++++++
- lib/ubsan.h                    |    4 +
- scripts/Makefile.lib           |    3 +
- scripts/Makefile.ubsan         |    3 +
- 7 files changed, 137 insertions(+), 1 deletion(-)
+ Documentation/dev-tools/kasan.rst                    |   20 +++++-----
+ Documentation/translations/zh_CN/dev-tools/kasan.rst |   20 +++++-----
+ Documentation/translations/zh_TW/dev-tools/kasan.rst |   20 +++++-----
+ 3 files changed, 30 insertions(+), 30 deletions(-)
 
---- a/include/linux/compiler_types.h~ubsan-reintroduce-signed-overflow-sanitizer
-+++ a/include/linux/compiler_types.h
-@@ -282,11 +282,18 @@ struct ftrace_likely_data {
- #define __no_sanitize_or_inline __always_inline
- #endif
+--- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-descriptions-about-test-file-and-module
++++ a/Documentation/dev-tools/kasan.rst
+@@ -169,7 +169,7 @@ Error reports
+ A typical KASAN report looks like this::
  
-+/* Do not trap wrapping arithmetic within an annotated function. */
-+#ifdef CONFIG_UBSAN_SIGNED_WRAP
-+# define __signed_wrap __attribute__((no_sanitize("signed-integer-overflow")))
-+#else
-+# define __signed_wrap
-+#endif
-+
- /* Section for code which can't be instrumented at all */
- #define __noinstr_section(section)					\
- 	noinline notrace __attribute((__section__(section)))		\
- 	__no_kcsan __no_sanitize_address __no_profile __no_sanitize_coverage \
--	__no_sanitize_memory
-+	__no_sanitize_memory __signed_wrap
+     ==================================================================
+-    BUG: KASAN: slab-out-of-bounds in kmalloc_oob_right+0xa8/0xbc [test_kasan]
++    BUG: KASAN: slab-out-of-bounds in kmalloc_oob_right+0xa8/0xbc [kasan_test]
+     Write of size 1 at addr ffff8801f44ec37b by task insmod/2760
  
- #define noinstr __noinstr_section(".noinstr.text")
+     CPU: 1 PID: 2760 Comm: insmod Not tainted 4.19.0-rc3+ #698
+@@ -179,8 +179,8 @@ A typical KASAN report looks like this::
+      print_address_description+0x73/0x280
+      kasan_report+0x144/0x187
+      __asan_report_store1_noabort+0x17/0x20
+-     kmalloc_oob_right+0xa8/0xbc [test_kasan]
+-     kmalloc_tests_init+0x16/0x700 [test_kasan]
++     kmalloc_oob_right+0xa8/0xbc [kasan_test]
++     kmalloc_tests_init+0x16/0x700 [kasan_test]
+      do_one_initcall+0xa5/0x3ae
+      do_init_module+0x1b6/0x547
+      load_module+0x75df/0x8070
+@@ -200,8 +200,8 @@ A typical KASAN report looks like this::
+      save_stack+0x43/0xd0
+      kasan_kmalloc+0xa7/0xd0
+      kmem_cache_alloc_trace+0xe1/0x1b0
+-     kmalloc_oob_right+0x56/0xbc [test_kasan]
+-     kmalloc_tests_init+0x16/0x700 [test_kasan]
++     kmalloc_oob_right+0x56/0xbc [kasan_test]
++     kmalloc_tests_init+0x16/0x700 [kasan_test]
+      do_one_initcall+0xa5/0x3ae
+      do_init_module+0x1b6/0x547
+      load_module+0x75df/0x8070
+@@ -510,15 +510,15 @@ When a test passes::
  
---- a/lib/Kconfig.ubsan~ubsan-reintroduce-signed-overflow-sanitizer
-+++ a/lib/Kconfig.ubsan
-@@ -116,6 +116,20 @@ config UBSAN_UNREACHABLE
- 	  This option enables -fsanitize=unreachable which checks for control
- 	  flow reaching an expected-to-be-unreachable position.
+ When a test fails due to a failed ``kmalloc``::
  
-+config UBSAN_SIGNED_WRAP
-+	bool "Perform checking for signed arithmetic wrap-around"
-+	default UBSAN
-+	depends on !COMPILE_TEST
-+	depends on $(cc-option,-fsanitize=signed-integer-overflow)
-+	help
-+	  This option enables -fsanitize=signed-integer-overflow which checks
-+	  for wrap-around of any arithmetic operations with signed integers.
-+	  This currently performs nearly no instrumentation due to the
-+	  kernel's use of -fno-strict-overflow which converts all would-be
-+	  arithmetic undefined behavior into wrap-around arithmetic. Future
-+	  sanitizer versions will allow for wrap-around checking (rather than
-+	  exclusively undefined behavior).
-+
- config UBSAN_BOOL
- 	bool "Perform checking for non-boolean values used as boolean"
- 	default UBSAN
---- a/lib/test_ubsan.c~ubsan-reintroduce-signed-overflow-sanitizer
-+++ a/lib/test_ubsan.c
-@@ -11,6 +11,39 @@ typedef void(*test_ubsan_fp)(void);
- 			#config, IS_ENABLED(config) ? "y" : "n");	\
- 	} while (0)
+-        # kmalloc_large_oob_right: ASSERTION FAILED at lib/test_kasan.c:163
++        # kmalloc_large_oob_right: ASSERTION FAILED at mm/kasan/kasan_test.c:245
+         Expected ptr is not null, but is
+-        not ok 4 - kmalloc_large_oob_right
++        not ok 5 - kmalloc_large_oob_right
  
-+static void test_ubsan_add_overflow(void)
-+{
-+	volatile int val = INT_MAX;
-+
-+	UBSAN_TEST(CONFIG_UBSAN_SIGNED_WRAP);
-+	val += 2;
-+}
-+
-+static void test_ubsan_sub_overflow(void)
-+{
-+	volatile int val = INT_MIN;
-+	volatile int val2 = 2;
-+
-+	UBSAN_TEST(CONFIG_UBSAN_SIGNED_WRAP);
-+	val -= val2;
-+}
-+
-+static void test_ubsan_mul_overflow(void)
-+{
-+	volatile int val = INT_MAX / 2;
-+
-+	UBSAN_TEST(CONFIG_UBSAN_SIGNED_WRAP);
-+	val *= 3;
-+}
-+
-+static void test_ubsan_negate_overflow(void)
-+{
-+	volatile int val = INT_MIN;
-+
-+	UBSAN_TEST(CONFIG_UBSAN_SIGNED_WRAP);
-+	val = -val;
-+}
-+
- static void test_ubsan_divrem_overflow(void)
- {
- 	volatile int val = 16;
-@@ -90,6 +123,10 @@ static void test_ubsan_misaligned_access
- }
+ When a test fails due to a missing KASAN report::
  
- static const test_ubsan_fp test_ubsan_array[] = {
-+	test_ubsan_add_overflow,
-+	test_ubsan_sub_overflow,
-+	test_ubsan_mul_overflow,
-+	test_ubsan_negate_overflow,
- 	test_ubsan_shift_out_of_bounds,
- 	test_ubsan_out_of_bounds,
- 	test_ubsan_load_invalid_value,
---- a/lib/ubsan.c~ubsan-reintroduce-signed-overflow-sanitizer
-+++ a/lib/ubsan.c
-@@ -222,6 +222,74 @@ static void ubsan_epilogue(void)
- 	check_panic_on_warn("UBSAN");
- }
+-        # kmalloc_double_kzfree: EXPECTATION FAILED at lib/test_kasan.c:974
++        # kmalloc_double_kzfree: EXPECTATION FAILED at mm/kasan/kasan_test.c:709
+         KASAN failure expected in "kfree_sensitive(ptr)", but none occurred
+-        not ok 44 - kmalloc_double_kzfree
++        not ok 28 - kmalloc_double_kzfree
  
-+static void handle_overflow(struct overflow_data *data, void *lhs,
-+			void *rhs, char op)
-+{
-+
-+	struct type_descriptor *type = data->type;
-+	char lhs_val_str[VALUE_LENGTH];
-+	char rhs_val_str[VALUE_LENGTH];
-+
-+	if (suppress_report(&data->location))
-+		return;
-+
-+	ubsan_prologue(&data->location, type_is_signed(type) ?
-+			"signed-integer-overflow" :
-+			"unsigned-integer-overflow");
-+
-+	val_to_string(lhs_val_str, sizeof(lhs_val_str), type, lhs);
-+	val_to_string(rhs_val_str, sizeof(rhs_val_str), type, rhs);
-+	pr_err("%s %c %s cannot be represented in type %s\n",
-+		lhs_val_str,
-+		op,
-+		rhs_val_str,
-+		type->type_name);
-+
-+	ubsan_epilogue();
-+}
-+
-+void __ubsan_handle_add_overflow(void *data,
-+				void *lhs, void *rhs)
-+{
-+
-+	handle_overflow(data, lhs, rhs, '+');
-+}
-+EXPORT_SYMBOL(__ubsan_handle_add_overflow);
-+
-+void __ubsan_handle_sub_overflow(void *data,
-+				void *lhs, void *rhs)
-+{
-+	handle_overflow(data, lhs, rhs, '-');
-+}
-+EXPORT_SYMBOL(__ubsan_handle_sub_overflow);
-+
-+void __ubsan_handle_mul_overflow(void *data,
-+				void *lhs, void *rhs)
-+{
-+	handle_overflow(data, lhs, rhs, '*');
-+}
-+EXPORT_SYMBOL(__ubsan_handle_mul_overflow);
-+
-+void __ubsan_handle_negate_overflow(void *_data, void *old_val)
-+{
-+	struct overflow_data *data = _data;
-+	char old_val_str[VALUE_LENGTH];
-+
-+	if (suppress_report(&data->location))
-+		return;
-+
-+	ubsan_prologue(&data->location, "negation-overflow");
-+
-+	val_to_string(old_val_str, sizeof(old_val_str), data->type, old_val);
-+
-+	pr_err("negation of %s cannot be represented in type %s:\n",
-+		old_val_str, data->type->type_name);
-+
-+	ubsan_epilogue();
-+}
-+EXPORT_SYMBOL(__ubsan_handle_negate_overflow);
-+
-+
- void __ubsan_handle_divrem_overflow(void *_data, void *lhs, void *rhs)
- {
- 	struct overflow_data *data = _data;
---- a/lib/ubsan.h~ubsan-reintroduce-signed-overflow-sanitizer
-+++ a/lib/ubsan.h
-@@ -124,6 +124,10 @@ typedef s64 s_max;
- typedef u64 u_max;
- #endif
  
-+void __ubsan_handle_add_overflow(void *data, void *lhs, void *rhs);
-+void __ubsan_handle_sub_overflow(void *data, void *lhs, void *rhs);
-+void __ubsan_handle_mul_overflow(void *data, void *lhs, void *rhs);
-+void __ubsan_handle_negate_overflow(void *_data, void *old_val);
- void __ubsan_handle_divrem_overflow(void *_data, void *lhs, void *rhs);
- void __ubsan_handle_type_mismatch(struct type_mismatch_data *data, void *ptr);
- void __ubsan_handle_type_mismatch_v1(void *_data, void *ptr);
---- a/scripts/Makefile.lib~ubsan-reintroduce-signed-overflow-sanitizer
-+++ a/scripts/Makefile.lib
-@@ -177,6 +177,9 @@ ifeq ($(CONFIG_UBSAN),y)
- _c_flags += $(if $(patsubst n%,, \
- 		$(UBSAN_SANITIZE_$(basetarget).o)$(UBSAN_SANITIZE)$(CONFIG_UBSAN_SANITIZE_ALL)), \
- 		$(CFLAGS_UBSAN))
-+_c_flags += $(if $(patsubst n%,, \
-+		$(UBSAN_WRAP_SIGNED_$(basetarget).o)$(UBSAN_SANITIZE_$(basetarget).o)$(UBSAN_WRAP_SIGNED)$(UBSAN_SANITIZE)y), \
-+		$(CFLAGS_UBSAN_WRAP_SIGNED))
- endif
+ At the end the cumulative status of all KASAN tests is printed. On success::
+@@ -534,7 +534,7 @@ There are a few ways to run KUnit-compat
+ 1. Loadable module
  
- ifeq ($(CONFIG_KCOV),y)
---- a/scripts/Makefile.ubsan~ubsan-reintroduce-signed-overflow-sanitizer
-+++ a/scripts/Makefile.ubsan
-@@ -13,3 +13,6 @@ ubsan-cflags-$(CONFIG_UBSAN_ENUM)		+= -f
- ubsan-cflags-$(CONFIG_UBSAN_TRAP)		+= -fsanitize-undefined-trap-on-error
+    With ``CONFIG_KUNIT`` enabled, KASAN-KUnit tests can be built as a loadable
+-   module and run by loading ``test_kasan.ko`` with ``insmod`` or ``modprobe``.
++   module and run by loading ``kasan_test.ko`` with ``insmod`` or ``modprobe``.
  
- export CFLAGS_UBSAN := $(ubsan-cflags-y)
-+
-+ubsan-wrap-signed-cflags-$(CONFIG_UBSAN_SIGNED_WRAP)     += -fsanitize=signed-integer-overflow
-+export CFLAGS_UBSAN_WRAP_SIGNED := $(ubsan-wrap-signed-cflags-y)
+ 2. Built-In
+ 
+--- a/Documentation/translations/zh_CN/dev-tools/kasan.rst~kasan-docs-update-descriptions-about-test-file-and-module
++++ a/Documentation/translations/zh_CN/dev-tools/kasan.rst
+@@ -137,7 +137,7 @@ 错误报告
+ 典型的KASAN报告如下所示::
+ 
+     ==================================================================
+-    BUG: KASAN: slab-out-of-bounds in kmalloc_oob_right+0xa8/0xbc [test_kasan]
++    BUG: KASAN: slab-out-of-bounds in kmalloc_oob_right+0xa8/0xbc [kasan_test]
+     Write of size 1 at addr ffff8801f44ec37b by task insmod/2760
+ 
+     CPU: 1 PID: 2760 Comm: insmod Not tainted 4.19.0-rc3+ #698
+@@ -147,8 +147,8 @@ 典型的KASAN报告如下所示::
+      print_address_description+0x73/0x280
+      kasan_report+0x144/0x187
+      __asan_report_store1_noabort+0x17/0x20
+-     kmalloc_oob_right+0xa8/0xbc [test_kasan]
+-     kmalloc_tests_init+0x16/0x700 [test_kasan]
++     kmalloc_oob_right+0xa8/0xbc [kasan_test]
++     kmalloc_tests_init+0x16/0x700 [kasan_test]
+      do_one_initcall+0xa5/0x3ae
+      do_init_module+0x1b6/0x547
+      load_module+0x75df/0x8070
+@@ -168,8 +168,8 @@ 典型的KASAN报告如下所示::
+      save_stack+0x43/0xd0
+      kasan_kmalloc+0xa7/0xd0
+      kmem_cache_alloc_trace+0xe1/0x1b0
+-     kmalloc_oob_right+0x56/0xbc [test_kasan]
+-     kmalloc_tests_init+0x16/0x700 [test_kasan]
++     kmalloc_oob_right+0x56/0xbc [kasan_test]
++     kmalloc_tests_init+0x16/0x700 [kasan_test]
+      do_one_initcall+0xa5/0x3ae
+      do_init_module+0x1b6/0x547
+      load_module+0x75df/0x8070
+@@ -421,15 +421,15 @@ 当测试通过::
+ 
+ 当由于 ``kmalloc`` 失败而导致测试失败时::
+ 
+-        # kmalloc_large_oob_right: ASSERTION FAILED at lib/test_kasan.c:163
++        # kmalloc_large_oob_right: ASSERTION FAILED at mm/kasan/kasan_test.c:245
+         Expected ptr is not null, but is
+-        not ok 4 - kmalloc_large_oob_right
++        not ok 5 - kmalloc_large_oob_right
+ 
+ 当由于缺少KASAN报告而导致测试失败时::
+ 
+-        # kmalloc_double_kzfree: EXPECTATION FAILED at lib/test_kasan.c:974
++        # kmalloc_double_kzfree: EXPECTATION FAILED at mm/kasan/kasan_test.c:709
+         KASAN failure expected in "kfree_sensitive(ptr)", but none occurred
+-        not ok 44 - kmalloc_double_kzfree
++        not ok 28 - kmalloc_double_kzfree
+ 
+ 
+ 最后打印所有KASAN测试的累积状态。成功::
+@@ -445,7 +445,7 @@ 有几种方法可以运行与KUnit兼�
+ 1. 可加载模块
+ 
+    启用 ``CONFIG_KUNIT`` 后，KASAN-KUnit测试可以构建为可加载模块，并通过使用
+-   ``insmod`` 或 ``modprobe`` 加载 ``test_kasan.ko`` 来运行。
++   ``insmod`` 或 ``modprobe`` 加载 ``kasan_test.ko`` 来运行。
+ 
+ 2. 内置
+ 
+--- a/Documentation/translations/zh_TW/dev-tools/kasan.rst~kasan-docs-update-descriptions-about-test-file-and-module
++++ a/Documentation/translations/zh_TW/dev-tools/kasan.rst
+@@ -137,7 +137,7 @@ 錯誤報告
+ 典型的KASAN報告如下所示::
+ 
+     ==================================================================
+-    BUG: KASAN: slab-out-of-bounds in kmalloc_oob_right+0xa8/0xbc [test_kasan]
++    BUG: KASAN: slab-out-of-bounds in kmalloc_oob_right+0xa8/0xbc [kasan_test]
+     Write of size 1 at addr ffff8801f44ec37b by task insmod/2760
+ 
+     CPU: 1 PID: 2760 Comm: insmod Not tainted 4.19.0-rc3+ #698
+@@ -147,8 +147,8 @@ 典型的KASAN報告如下所示::
+      print_address_description+0x73/0x280
+      kasan_report+0x144/0x187
+      __asan_report_store1_noabort+0x17/0x20
+-     kmalloc_oob_right+0xa8/0xbc [test_kasan]
+-     kmalloc_tests_init+0x16/0x700 [test_kasan]
++     kmalloc_oob_right+0xa8/0xbc [kasan_test]
++     kmalloc_tests_init+0x16/0x700 [kasan_test]
+      do_one_initcall+0xa5/0x3ae
+      do_init_module+0x1b6/0x547
+      load_module+0x75df/0x8070
+@@ -168,8 +168,8 @@ 典型的KASAN報告如下所示::
+      save_stack+0x43/0xd0
+      kasan_kmalloc+0xa7/0xd0
+      kmem_cache_alloc_trace+0xe1/0x1b0
+-     kmalloc_oob_right+0x56/0xbc [test_kasan]
+-     kmalloc_tests_init+0x16/0x700 [test_kasan]
++     kmalloc_oob_right+0x56/0xbc [kasan_test]
++     kmalloc_tests_init+0x16/0x700 [kasan_test]
+      do_one_initcall+0xa5/0x3ae
+      do_init_module+0x1b6/0x547
+      load_module+0x75df/0x8070
+@@ -421,15 +421,15 @@ 當測試通過::
+ 
+ 當由於 ``kmalloc`` 失敗而導致測試失敗時::
+ 
+-        # kmalloc_large_oob_right: ASSERTION FAILED at lib/test_kasan.c:163
++        # kmalloc_large_oob_right: ASSERTION FAILED at mm/kasan/kasan_test.c:245
+         Expected ptr is not null, but is
+-        not ok 4 - kmalloc_large_oob_right
++        not ok 5 - kmalloc_large_oob_right
+ 
+ 當由於缺少KASAN報告而導致測試失敗時::
+ 
+-        # kmalloc_double_kzfree: EXPECTATION FAILED at lib/test_kasan.c:974
++        # kmalloc_double_kzfree: EXPECTATION FAILED at mm/kasan/kasan_test.c:709
+         KASAN failure expected in "kfree_sensitive(ptr)", but none occurred
+-        not ok 44 - kmalloc_double_kzfree
++        not ok 28 - kmalloc_double_kzfree
+ 
+ 
+ 最後打印所有KASAN測試的累積狀態。成功::
+@@ -445,7 +445,7 @@ 有幾種方法可以運行與KUnit兼�
+ 1. 可加載模塊
+ 
+    啓用 ``CONFIG_KUNIT`` 後，KASAN-KUnit測試可以構建爲可加載模塊，並通過使用
+-   ``insmod`` 或 ``modprobe`` 加載 ``test_kasan.ko`` 來運行。
++   ``insmod`` 或 ``modprobe`` 加載 ``kasan_test.ko`` 來運行。
+ 
+ 2. 內置
+ 
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from yangtiezhu@loongson.cn are
 
 
