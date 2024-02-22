@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5094B210F8;
-	Thu, 22 Feb 2024 23:28:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 540DD210F8;
+	Thu, 22 Feb 2024 23:28:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708644511; cv=none; b=m+hZ6UOLupK8yl/0iwdrmqUw0VOqzDOiS+E+LOqeDO2TqvU1GSlYsNuePI6w9su47RXEZG9yF+Xb6gOF2T+64qAJzHhFVai0pyy2knHGqmsAe6M7lVCTCVyrQH34fwxiQ5DLiUkkl6WmDJ5Kq6TlMfQHYSChrlvAYyt6VW2+DxA=
+	t=1708644512; cv=none; b=PuQBm9LyDdFf59jz5kEAyGg7DrHbelEppAWzGqAKG2TkPqfvMRU4VXBIOvOIqAeBnBVy1CaOactNKmHBJJLvosWkCpGlM9Es+npEvSoLRhWde1zK2mGrRLdfZem3Ai/eJhqlyAS7/bPtaZ8gihKEY/YiHvo+MnryWF6fWTnoJ7k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708644511; c=relaxed/simple;
-	bh=w2FhOEfmHeM8KeHMkIiX9HmZ/nXxTuNbl03Ghio5ke0=;
-	h=Date:To:From:Subject:Message-Id; b=Fs8vgX3/K8KmgtxMw/RhuMne2dXhSOxW71yoYYWHfi/CCjihMjm00w8OylC5q5IPiwDF+oLxnE2NZAN1IUBo0lVEdjyHwxhxBiL/PZU3Ks+aJGDmIcNDZ+GqpmoNT8cN2ff9bA+ypi7BRWpF0/phI1bEwrYuN5L23EIhk3T8FTs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CQcykyqq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708644512; c=relaxed/simple;
+	bh=cir/6b6g0lwcVlHZPpyFvr6Mt+KOxsK89qL0js8+Pq8=;
+	h=Date:To:From:Subject:Message-Id; b=ggpFZWiM/tL0Ux4sWETpqNZtaCImOeCnO7RbDP+T3jZDdKLA6s9OCPAmKmlu5UiOrirvkGG8kWCAynP7FfGYTvrlGtmRvuDWXYgQDglLpRoS0DkmFUjk3+pC66/18kswQFUGYhNIR2C9/ayJBj12+GCf6SAigjTjd2XaBWRWfY8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mW1YNZFK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CQcykyqq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 231C9C433F1;
-	Thu, 22 Feb 2024 23:28:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mW1YNZFK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28FA7C433C7;
+	Thu, 22 Feb 2024 23:28:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708644511;
-	bh=w2FhOEfmHeM8KeHMkIiX9HmZ/nXxTuNbl03Ghio5ke0=;
+	s=korg; t=1708644512;
+	bh=cir/6b6g0lwcVlHZPpyFvr6Mt+KOxsK89qL0js8+Pq8=;
 	h=Date:To:From:Subject:From;
-	b=CQcykyqqbmIQs1mU1eWRTLiuY/+g4PPAF8ijRR8wos4WzMRHAK7wOSoSDO8ra2/Ym
-	 CP5xXpNeEoXwUcfBW4OHxC9s2IlPoaVTZFkmvPHFczKAxnWbzbui6F1mCO0RuBKqfk
-	 QmJJxkxQK+bwL8YQqyKtudQn3CPkuEVsYfIASfik=
-Date: Thu, 22 Feb 2024 15:28:30 -0800
+	b=mW1YNZFKdrYbqEnQuFbXAynIy7W85YbbXjTvkNL4vP6iysam45LsGVH+E2ff4rRO7
+	 7BzyzDDvZOmW8U/iTK86rlNJ+V4646ojei5Rl5D6gHbM/cKUKk124m9bKweV9gyWki
+	 yF3qcL3hMiiluHNfQlZuYdplhTVQSg899VQzZwvg=
+Date: Thu, 22 Feb 2024 15:28:31 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.l.verma@intel.com,snitzer@kernel.org,mpatocka@redhat.com,lkp@intel.com,linux@armlinux.org.uk,hch@lst.de,hca@linux.ibm.com,dm-devel@lists.linux.dev,david@fromorbit.com,dave.jiang@intel.com,dan.j.williams@intel.com,arnd@arndb.de,agk@redhat.com,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] introduce-cpu_dcache_is_aliasing-across-all-architectures.patch removed from -mm tree
-Message-Id: <20240222232831.231C9C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] dax-fix-incorrect-list-of-data-cache-aliasing-architectures.patch removed from -mm tree
+Message-Id: <20240222232832.28FA7C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Introduce cpu_dcache_is_aliasing() across all architectures
+     Subject: dax: fix incorrect list of data cache aliasing architectures
 has been removed from the -mm tree.  Its filename was
-     introduce-cpu_dcache_is_aliasing-across-all-architectures.patch
+     dax-fix-incorrect-list-of-data-cache-aliasing-architectures.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: Introduce cpu_dcache_is_aliasing() across all architectures
-Date: Thu, 15 Feb 2024 09:46:32 -0500
+Subject: dax: fix incorrect list of data cache aliasing architectures
+Date: Thu, 15 Feb 2024 09:46:33 -0500
 
-Introduce a generic way to query whether the data cache is virtually
-aliased on all architectures. Its purpose is to ensure that subsystems
-which are incompatible with virtually aliased data caches (e.g. FS_DAX)
-can reliably query this.
+commit d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
+prevents DAX from building on architectures with virtually aliased
+dcache with:
 
-For data cache aliasing, there are three scenarios dependending on the
-architecture. Here is a breakdown based on my understanding:
+  depends on !(ARM || MIPS || SPARC)
 
-A) The data cache is always aliasing:
+This check is too broad (e.g. recent ARMv7 don't have virtually aliased
+dcaches), and also misses many other architectures with virtually
+aliased data cache.
 
-* arc
-* csky
-* m68k (note: shared memory mappings are incoherent ? SHMLBA is missing there.)
-* sh
-* parisc
+This is a regression introduced in the v4.0 Linux kernel where the
+dax mount option is removed for 32-bit ARMv7 boards which have no data
+cache aliasing, and therefore should work fine with FS_DAX.
 
-B) The data cache aliasing is statically known or depends on querying CPU
-   state at runtime:
+This was turned into the following check in alloc_dax() by a preparatory
+change:
 
-* arm (cache_is_vivt() || cache_is_vipt_aliasing())
-* mips (cpu_has_dc_aliases)
-* nios2 (NIOS2_DCACHE_SIZE > PAGE_SIZE)
-* sparc32 (vac_cache_size > PAGE_SIZE)
-* sparc64 (L1DCACHE_SIZE > PAGE_SIZE)
-* xtensa (DCACHE_WAY_SIZE > PAGE_SIZE)
+        if (ops && (IS_ENABLED(CONFIG_ARM) ||
+            IS_ENABLED(CONFIG_MIPS) ||
+            IS_ENABLED(CONFIG_SPARC)))
+                return NULL;
 
-C) The data cache is never aliasing:
+Use cpu_dcache_is_aliasing() instead to figure out whether the environment
+has aliasing data caches.
 
-* alpha
-* arm64 (aarch64)
-* hexagon
-* loongarch (but with incoherent write buffers, which are disabled since
-             commit d23b7795 ("LoongArch: Change SHMLBA from SZ_64K to PAGE_SIZE"))
-* microblaze
-* openrisc
-* powerpc
-* riscv
-* s390
-* um
-* x86
-
-Require architectures in A) and B) to select ARCH_HAS_CPU_CACHE_ALIASING and
-implement "cpu_dcache_is_aliasing()".
-
-Architectures in C) don't select ARCH_HAS_CPU_CACHE_ALIASING, and thus
-cpu_dcache_is_aliasing() simply evaluates to "false".
-
-Note that this leaves "cpu_icache_is_aliasing()" to be implemented as future
-work. This would be useful to gate features like XIP on architectures
-which have aliasing CPU dcache-icache but not CPU dcache-dcache.
-
-Use "cpu_dcache" and "cpu_cache" rather than just "dcache" and "cache"
-to clarify that we really mean "CPU data cache" and "CPU cache" to
-eliminate any possible confusion with VFS "dentry cache" and "page
-cache".
-
-Link: https://lore.kernel.org/lkml/20030910210416.GA24258@mail.jlokier.co.uk/
-Link: https://lkml.kernel.org/r/20240215144633.96437-9-mathieu.desnoyers@efficios.com
+Link: https://lkml.kernel.org/r/20240215144633.96437-10-mathieu.desnoyers@efficios.com
 Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
@@ -124,284 +93,30 @@ Cc: Mikulas Patocka <mpatocka@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/Kconfig                    |    1 +
- arch/arc/include/asm/cachetype.h    |    9 +++++++++
- arch/arm/Kconfig                    |    1 +
- arch/arm/include/asm/cachetype.h    |    2 ++
- arch/csky/Kconfig                   |    1 +
- arch/csky/include/asm/cachetype.h   |    9 +++++++++
- arch/m68k/Kconfig                   |    1 +
- arch/m68k/include/asm/cachetype.h   |    9 +++++++++
- arch/mips/Kconfig                   |    1 +
- arch/mips/include/asm/cachetype.h   |    9 +++++++++
- arch/nios2/Kconfig                  |    1 +
- arch/nios2/include/asm/cachetype.h  |   10 ++++++++++
- arch/parisc/Kconfig                 |    1 +
- arch/parisc/include/asm/cachetype.h |    9 +++++++++
- arch/sh/Kconfig                     |    1 +
- arch/sh/include/asm/cachetype.h     |    9 +++++++++
- arch/sparc/Kconfig                  |    1 +
- arch/sparc/include/asm/cachetype.h  |   14 ++++++++++++++
- arch/xtensa/Kconfig                 |    1 +
- arch/xtensa/include/asm/cachetype.h |   10 ++++++++++
- include/linux/cacheinfo.h           |    6 ++++++
- mm/Kconfig                          |    6 ++++++
- 22 files changed, 112 insertions(+)
+ drivers/dax/super.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- /dev/null
-+++ a/arch/arc/include/asm/cachetype.h
-@@ -0,0 +1,9 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef __ASM_ARC_CACHETYPE_H
-+#define __ASM_ARC_CACHETYPE_H
-+
-+#include <linux/types.h>
-+
-+#define cpu_dcache_is_aliasing()	true
-+
-+#endif
---- a/arch/arc/Kconfig~introduce-cpu_dcache_is_aliasing-across-all-architectures
-+++ a/arch/arc/Kconfig
-@@ -6,6 +6,7 @@
- config ARC
- 	def_bool y
- 	select ARC_TIMERS
-+	select ARCH_HAS_CPU_CACHE_ALIASING
- 	select ARCH_HAS_CACHE_LINE_SIZE
- 	select ARCH_HAS_DEBUG_VM_PGTABLE
- 	select ARCH_HAS_DMA_PREP_COHERENT
---- a/arch/arm/include/asm/cachetype.h~introduce-cpu_dcache_is_aliasing-across-all-architectures
-+++ a/arch/arm/include/asm/cachetype.h
-@@ -20,6 +20,8 @@ extern unsigned int cacheid;
- #define icache_is_vipt_aliasing()	cacheid_is(CACHEID_VIPT_I_ALIASING)
- #define icache_is_pipt()		cacheid_is(CACHEID_PIPT)
+--- a/drivers/dax/super.c~dax-fix-incorrect-list-of-data-cache-aliasing-architectures
++++ a/drivers/dax/super.c
+@@ -13,6 +13,7 @@
+ #include <linux/uio.h>
+ #include <linux/dax.h>
+ #include <linux/fs.h>
++#include <linux/cacheinfo.h>
+ #include "dax-private.h"
  
-+#define cpu_dcache_is_aliasing()	(cache_is_vivt() || cache_is_vipt_aliasing())
-+
- /*
-  * __LINUX_ARM_ARCH__ is the minimum supported CPU architecture
-  * Mask out support which will never be present on newer CPUs.
---- a/arch/arm/Kconfig~introduce-cpu_dcache_is_aliasing-across-all-architectures
-+++ a/arch/arm/Kconfig
-@@ -5,6 +5,7 @@ config ARM
- 	select ARCH_32BIT_OFF_T
- 	select ARCH_CORRECT_STACKTRACE_ON_KRETPROBE if HAVE_KRETPROBES && FRAME_POINTER && !ARM_UNWIND
- 	select ARCH_HAS_BINFMT_FLAT
-+	select ARCH_HAS_CPU_CACHE_ALIASING
- 	select ARCH_HAS_CPU_FINALIZE_INIT if MMU
- 	select ARCH_HAS_CURRENT_STACK_POINTER
- 	select ARCH_HAS_DEBUG_VIRTUAL if MMU
---- /dev/null
-+++ a/arch/csky/include/asm/cachetype.h
-@@ -0,0 +1,9 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef __ASM_CSKY_CACHETYPE_H
-+#define __ASM_CSKY_CACHETYPE_H
-+
-+#include <linux/types.h>
-+
-+#define cpu_dcache_is_aliasing()	true
-+
-+#endif
---- a/arch/csky/Kconfig~introduce-cpu_dcache_is_aliasing-across-all-architectures
-+++ a/arch/csky/Kconfig
-@@ -2,6 +2,7 @@
- config CSKY
- 	def_bool y
- 	select ARCH_32BIT_OFF_T
-+	select ARCH_HAS_CPU_CACHE_ALIASING
- 	select ARCH_HAS_DMA_PREP_COHERENT
- 	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_HAS_SYNC_DMA_FOR_CPU
---- /dev/null
-+++ a/arch/m68k/include/asm/cachetype.h
-@@ -0,0 +1,9 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef __ASM_M68K_CACHETYPE_H
-+#define __ASM_M68K_CACHETYPE_H
-+
-+#include <linux/types.h>
-+
-+#define cpu_dcache_is_aliasing()	true
-+
-+#endif
---- a/arch/m68k/Kconfig~introduce-cpu_dcache_is_aliasing-across-all-architectures
-+++ a/arch/m68k/Kconfig
-@@ -3,6 +3,7 @@ config M68K
- 	bool
- 	default y
- 	select ARCH_32BIT_OFF_T
-+	select ARCH_HAS_CPU_CACHE_ALIASING
- 	select ARCH_HAS_BINFMT_FLAT
- 	select ARCH_HAS_CPU_FINALIZE_INIT if MMU
- 	select ARCH_HAS_CURRENT_STACK_POINTER
---- /dev/null
-+++ a/arch/mips/include/asm/cachetype.h
-@@ -0,0 +1,9 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef __ASM_MIPS_CACHETYPE_H
-+#define __ASM_MIPS_CACHETYPE_H
-+
-+#include <asm/cpu-features.h>
-+
-+#define cpu_dcache_is_aliasing()	cpu_has_dc_aliases
-+
-+#endif
---- a/arch/mips/Kconfig~introduce-cpu_dcache_is_aliasing-across-all-architectures
-+++ a/arch/mips/Kconfig
-@@ -4,6 +4,7 @@ config MIPS
- 	default y
- 	select ARCH_32BIT_OFF_T if !64BIT
- 	select ARCH_BINFMT_ELF_STATE if MIPS_FP_SUPPORT
-+	select ARCH_HAS_CPU_CACHE_ALIASING
- 	select ARCH_HAS_CPU_FINALIZE_INIT
- 	select ARCH_HAS_CURRENT_STACK_POINTER if !CC_IS_CLANG || CLANG_VERSION >= 140000
- 	select ARCH_HAS_DEBUG_VIRTUAL if !64BIT
---- /dev/null
-+++ a/arch/nios2/include/asm/cachetype.h
-@@ -0,0 +1,10 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef __ASM_NIOS2_CACHETYPE_H
-+#define __ASM_NIOS2_CACHETYPE_H
-+
-+#include <asm/page.h>
-+#include <asm/cache.h>
-+
-+#define cpu_dcache_is_aliasing()	(NIOS2_DCACHE_SIZE > PAGE_SIZE)
-+
-+#endif
---- a/arch/nios2/Kconfig~introduce-cpu_dcache_is_aliasing-across-all-architectures
-+++ a/arch/nios2/Kconfig
-@@ -2,6 +2,7 @@
- config NIOS2
- 	def_bool y
- 	select ARCH_32BIT_OFF_T
-+	select ARCH_HAS_CPU_CACHE_ALIASING
- 	select ARCH_HAS_DMA_PREP_COHERENT
- 	select ARCH_HAS_SYNC_DMA_FOR_CPU
- 	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
---- /dev/null
-+++ a/arch/parisc/include/asm/cachetype.h
-@@ -0,0 +1,9 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef __ASM_PARISC_CACHETYPE_H
-+#define __ASM_PARISC_CACHETYPE_H
-+
-+#include <linux/types.h>
-+
-+#define cpu_dcache_is_aliasing()	true
-+
-+#endif
---- a/arch/parisc/Kconfig~introduce-cpu_dcache_is_aliasing-across-all-architectures
-+++ a/arch/parisc/Kconfig
-@@ -8,6 +8,7 @@ config PARISC
- 	select HAVE_FUNCTION_GRAPH_TRACER
- 	select HAVE_SYSCALL_TRACEPOINTS
- 	select ARCH_WANT_FRAME_POINTERS
-+	select ARCH_HAS_CPU_CACHE_ALIASING
- 	select ARCH_HAS_DMA_ALLOC if PA11
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_STRICT_KERNEL_RWX
---- /dev/null
-+++ a/arch/sh/include/asm/cachetype.h
-@@ -0,0 +1,9 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef __ASM_SH_CACHETYPE_H
-+#define __ASM_SH_CACHETYPE_H
-+
-+#include <linux/types.h>
-+
-+#define cpu_dcache_is_aliasing()	true
-+
-+#endif
---- a/arch/sh/Kconfig~introduce-cpu_dcache_is_aliasing-across-all-architectures
-+++ a/arch/sh/Kconfig
-@@ -2,6 +2,7 @@
- config SUPERH
- 	def_bool y
- 	select ARCH_32BIT_OFF_T
-+	select ARCH_HAS_CPU_CACHE_ALIASING
- 	select ARCH_ENABLE_MEMORY_HOTPLUG if SPARSEMEM && MMU
- 	select ARCH_ENABLE_MEMORY_HOTREMOVE if SPARSEMEM && MMU
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG if (GUSA_RB || CPU_SH4A)
---- /dev/null
-+++ a/arch/sparc/include/asm/cachetype.h
-@@ -0,0 +1,14 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef __ASM_SPARC_CACHETYPE_H
-+#define __ASM_SPARC_CACHETYPE_H
-+
-+#include <asm/page.h>
-+
-+#ifdef CONFIG_SPARC32
-+extern int vac_cache_size;
-+#define cpu_dcache_is_aliasing()	(vac_cache_size > PAGE_SIZE)
-+#else
-+#define cpu_dcache_is_aliasing()	(L1DCACHE_SIZE > PAGE_SIZE)
-+#endif
-+
-+#endif
---- a/arch/sparc/Kconfig~introduce-cpu_dcache_is_aliasing-across-all-architectures
-+++ a/arch/sparc/Kconfig
-@@ -13,6 +13,7 @@ config 64BIT
- config SPARC
- 	bool
- 	default y
-+	select ARCH_HAS_CPU_CACHE_ALIASING
- 	select ARCH_MIGHT_HAVE_PC_PARPORT if SPARC64 && PCI
- 	select ARCH_MIGHT_HAVE_PC_SERIO
- 	select DMA_OPS
---- /dev/null
-+++ a/arch/xtensa/include/asm/cachetype.h
-@@ -0,0 +1,10 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef __ASM_XTENSA_CACHETYPE_H
-+#define __ASM_XTENSA_CACHETYPE_H
-+
-+#include <asm/cache.h>
-+#include <asm/page.h>
-+
-+#define cpu_dcache_is_aliasing()	(DCACHE_WAY_SIZE > PAGE_SIZE)
-+
-+#endif
---- a/arch/xtensa/Kconfig~introduce-cpu_dcache_is_aliasing-across-all-architectures
-+++ a/arch/xtensa/Kconfig
-@@ -2,6 +2,7 @@
- config XTENSA
- 	def_bool y
- 	select ARCH_32BIT_OFF_T
-+	select ARCH_HAS_CPU_CACHE_ALIASING
- 	select ARCH_HAS_BINFMT_FLAT if !MMU
- 	select ARCH_HAS_CURRENT_STACK_POINTER
- 	select ARCH_HAS_DEBUG_VM_PGTABLE
---- a/include/linux/cacheinfo.h~introduce-cpu_dcache_is_aliasing-across-all-architectures
-+++ a/include/linux/cacheinfo.h
-@@ -138,4 +138,10 @@ static inline int get_cpu_cacheinfo_id(i
- #define use_arch_cache_info()	(false)
- #endif
+ /**
+@@ -456,9 +457,7 @@ struct dax_device *alloc_dax(void *priva
+ 	 * except for device-dax (NULL operations pointer), which does
+ 	 * not use aliased mappings from the kernel.
+ 	 */
+-	if (ops && (IS_ENABLED(CONFIG_ARM) ||
+-	    IS_ENABLED(CONFIG_MIPS) ||
+-	    IS_ENABLED(CONFIG_SPARC)))
++	if (ops && cpu_dcache_is_aliasing())
+ 		return ERR_PTR(-EOPNOTSUPP);
  
-+#ifndef CONFIG_ARCH_HAS_CPU_CACHE_ALIASING
-+#define cpu_dcache_is_aliasing()	false
-+#else
-+#include <asm/cachetype.h>
-+#endif
-+
- #endif /* _LINUX_CACHEINFO_H */
---- a/mm/Kconfig~introduce-cpu_dcache_is_aliasing-across-all-architectures
-+++ a/mm/Kconfig
-@@ -973,6 +973,12 @@ config IDLE_PAGE_TRACKING
- 	  See Documentation/admin-guide/mm/idle_page_tracking.rst for
- 	  more details.
- 
-+# Architectures which implement cpu_dcache_is_aliasing() to query
-+# whether the data caches are aliased (VIVT or VIPT with dcache
-+# aliasing) need to select this.
-+config ARCH_HAS_CPU_CACHE_ALIASING
-+	bool
-+
- config ARCH_HAS_CACHE_LINE_SIZE
- 	bool
- 
+ 	if (WARN_ON_ONCE(ops && !ops->zero_page_range))
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
