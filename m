@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D65F64685
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:02:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68A2E4685
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:02:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560131; cv=none; b=aE40uI+ILJNE9Ix8ABZUzNL7XGYZcphNsNRhS/9Ub0DQv87e3AYgi3snE1lFM1KLJ281uiyIVyQDoFTW2F4Vs/Lkn81tOupds1azFSxBY1FmRM5Cgszso40d9fCOgKU9jr0K6Qt4jFGryXwJuPkmvxwpttSXKpstPtlQSswnabo=
+	t=1708560132; cv=none; b=Rp6/zDrDPSltvN/KADdjpEG+rhIvnSCw7ZicKJSx+anjM8Th5DpAxd4xXJOIW7vvCcy3veJJLhMcFW1UaGF7mNklLCLhl7KIx6BOIntJMYgZwZX7JJCenRal/y8MXFtVjIaDpLum14HNOm6UsdS3JUMX3ofC//KBN432WsJ5A2U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560131; c=relaxed/simple;
-	bh=DJszT5OAQjlw9rqCNt1QAW9kLaliOA/muQ7TS5pebJU=;
-	h=Date:To:From:Subject:Message-Id; b=NWPDLcVX0eFWzbATTncL3hEjizudoseqB30tO/Pg9jf1An/B5JFp6AplpL8FLHo2N4t07AYKmmO9xdBJ5NxDJCSP+69b0yaVbkihKXEJo2pap1WM5KMaW5tsLQpIeof0+ODAmLOKLBC3Rmcdoh3sbn6igc5XssUalQaMwjq+Zmw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=so3yVcAX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560132; c=relaxed/simple;
+	bh=rZpGUT7yZyaJxrv7jScKGcsNoQp4PlWozsFtWcMaupo=;
+	h=Date:To:From:Subject:Message-Id; b=cxgTVfXjoNOUPv1EsSRqVJO+/zgt9wyP7NREDeFRWqnHMT8V1v99tpmZwtM3EkX/7MuVwHRbLHrMJcnPCV/8lCbWjXxkaeLXuKRcic1Jq1YFYORwOTuqicTiZH8HzLc9Ro9AaA/8QnEjom1j/ljJwWwj5ciBOUxnA1FxyHITGuI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=proc7IqH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="so3yVcAX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4817FC43399;
-	Thu, 22 Feb 2024 00:02:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="proc7IqH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30F28C433C7;
+	Thu, 22 Feb 2024 00:02:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560131;
-	bh=DJszT5OAQjlw9rqCNt1QAW9kLaliOA/muQ7TS5pebJU=;
+	s=korg; t=1708560132;
+	bh=rZpGUT7yZyaJxrv7jScKGcsNoQp4PlWozsFtWcMaupo=;
 	h=Date:To:From:Subject:From;
-	b=so3yVcAXCfV35sLNrIm/seWLvaThIIJYpeVNhGQLfVtXmUb50wTpSglED/zi6DxOj
-	 eEcy4b1w8VW1qGxhpz5Kbk2l1tljbHNXKNhWgO9xDvucYO+233tEARXmHFFvCip37s
-	 4rrv4m57N+P3iCwvSkVbP64mLDIuhv0DytZPiuWI=
-Date: Wed, 21 Feb 2024 16:02:10 -0800
-To: mm-commits@vger.kernel.org,siyanteng@loongson.cn,shuah@kernel.org,corbet@lwn.net,alexs@kernel.org,2023002089@link.tyut.edu.cn,sj@kernel.org,akpm@linux-foundation.org
+	b=proc7IqHuMwU6hQ4Jr9jLnWY5paudKoT97TPI9/H+aca6Qb7oZa1amWpSWb3KAu5W
+	 WIFSYHBvOL/X9O6FEUWFOdmy/xQ+gNo61f/pFYraBm/MNM+z0T6OYpSPfFtFjBwtZ8
+	 iVjTXC9fgJwVVBBcTvZraeHrsZ/ptZ/qDqJ859os=
+Date: Wed, 21 Feb 2024 16:02:11 -0800
+To: mm-commits@vger.kernel.org,siyanteng@loongson.cn,shuah@kernel.org,corbet@lwn.net,arnd@arndb.de,alexs@kernel.org,2023002089@link.tyut.edu.cn,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-rename-config_damon_dbgfs-to-damon_dbgfs_deprecated.patch removed from -mm tree
-Message-Id: <20240222000211.4817FC43399@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-dbgfs-implement-deprecation-notice-file.patch removed from -mm tree
+Message-Id: <20240222000212.30F28C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: rename CONFIG_DAMON_DBGFS to DAMON_DBGFS_DEPRECATED
+     Subject: mm/damon/dbgfs: implement deprecation notice file
 has been removed from the -mm tree.  Its filename was
-     mm-damon-rename-config_damon_dbgfs-to-damon_dbgfs_deprecated.patch
+     mm-damon-dbgfs-implement-deprecation-notice-file.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: rename CONFIG_DAMON_DBGFS to DAMON_DBGFS_DEPRECATED
-Date: Mon, 29 Jan 2024 17:35:41 -0800
+Subject: mm/damon/dbgfs: implement deprecation notice file
+Date: Mon, 29 Jan 2024 17:35:42 -0800
 
-DAMON debugfs interface is deprecated.  The fact has documented by commit
-5445fcbc4cda ("Docs/admin-guide/mm/damon/usage: add DAMON debugfs
-interface deprecation notice").  Commit 620932cd2852 ("mm/damon/dbgfs:
-print DAMON debugfs interface deprecation message") further started
-printing a warning message when users still use it.  Many people don't
-read documentation or kernel log, though.
+Implement a read-only file for DAMON debugfs interface deprecation notice,
+to let users who manually read/write the DAMON debugfs files from their
+shell command line easily notice the fact.
 
-Make the deprecation harder to be ignored using the approach of commit
-eb07c4f39c3e ("mm/slab: rename CONFIG_SLAB to CONFIG_SLAB_DEPRECATED"). 
-'make oldconfig' with 'CONFIG_DAMON_DBGFS=y' will get a new prompt with
-the explicit deprecation notice on the name.  'make olddefconfig' with
-'CONFIG_DAMON_DBGFS=y' will result in not building DAMON debugfs
-interface.  If there is a real user of DAMON debugfs interface, they will
-complain the change to the builder.
-
-Link: https://lkml.kernel.org/r/20240130013549.89538-3-sj@kernel.org
+[arnd@arndb.de: fix bogus string length]
+  Link: https://lkml.kernel.org/r/20240202124339.892862-1-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20240130013549.89538-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Alex Shi <alexs@kernel.org>
 Cc: Hu Haowen <2023002089@link.tyut.edu.cn>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Yanteng Si <siyanteng@loongson.cn>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/Kconfig |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/damon/dbgfs.c |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
---- a/mm/damon/Kconfig~mm-damon-rename-config_damon_dbgfs-to-damon_dbgfs_deprecated
-+++ a/mm/damon/Kconfig
-@@ -71,7 +71,7 @@ config DAMON_SYSFS_KUNIT_TEST
+--- a/mm/damon/dbgfs.c~mm-damon-dbgfs-implement-deprecation-notice-file
++++ a/mm/damon/dbgfs.c
+@@ -805,6 +805,17 @@ static void dbgfs_destroy_ctx(struct dam
+ 	damon_destroy_ctx(ctx);
+ }
  
- 	  If unsure, say N.
- 
--config DAMON_DBGFS
-+config DAMON_DBGFS_DEPRECATED
- 	bool "DAMON debugfs interface (DEPRECATED!)"
- 	depends on DAMON_VADDR && DAMON_PADDR && DEBUG_FS
- 	help
-@@ -84,6 +84,11 @@ config DAMON_DBGFS
- 	  (DAMON_SYSFS).  If you depend on this and cannot move, please report
- 	  your usecase to damon@lists.linux.dev and linux-mm@kvack.org.
- 
-+config DAMON_DBGFS
-+	bool
-+	default y
-+	depends on DAMON_DBGFS_DEPRECATED
++static ssize_t damon_dbgfs_deprecated_read(struct file *file,
++		char __user *buf, size_t count, loff_t *ppos)
++{
++	static const char kbuf[512] = "DAMON debugfs interface is deprecated, "
++		     "so users should move to DAMON_SYSFS. If you cannot, "
++		     "please report your usecase to damon@lists.linux.dev and "
++		     "linux-mm@kvack.org.\n";
 +
- config DAMON_DBGFS_KUNIT_TEST
- 	bool "Test for damon debugfs interface" if !KUNIT_ALL_TESTS
- 	depends on DAMON_DBGFS && KUNIT=y
++	return simple_read_from_buffer(buf, count, ppos, kbuf, strlen(kbuf));
++}
++
+ /*
+  * Make a context of @name and create a debugfs directory for it.
+  *
+@@ -1056,6 +1067,10 @@ static int damon_dbgfs_static_file_open(
+ 	return nonseekable_open(inode, file);
+ }
+ 
++static const struct file_operations deprecated_fops = {
++	.read = damon_dbgfs_deprecated_read,
++};
++
+ static const struct file_operations mk_contexts_fops = {
+ 	.open = damon_dbgfs_static_file_open,
+ 	.write = dbgfs_mk_context_write,
+@@ -1076,9 +1091,9 @@ static int __init __damon_dbgfs_init(voi
+ {
+ 	struct dentry *dbgfs_root;
+ 	const char * const file_names[] = {"mk_contexts", "rm_contexts",
+-		"monitor_on"};
++		"monitor_on", "DEPRECATED"};
+ 	const struct file_operations *fops[] = {&mk_contexts_fops,
+-		&rm_contexts_fops, &monitor_on_fops};
++		&rm_contexts_fops, &monitor_on_fops, &deprecated_fops};
+ 	int i;
+ 
+ 	dbgfs_root = debugfs_create_dir("damon", NULL);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
