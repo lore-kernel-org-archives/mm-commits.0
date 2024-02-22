@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB8B2137928
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:39:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F14013BAE2
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:39:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708645191; cv=none; b=GyH3yLG+NSK9+8bBXj7HfRdxPeXQ/ooOyK30vvoiyzdrMmnEMBEVC3VTsFjrRBLsrrNu15jjpniXutnuFS4GYqVLVJZJeXOER+UUrVt4rwZGcWVoieaXAhsgSl4XJMAlMopH9fxUnG7/WyOOVv02BBY9oso+Ief2PscYQkmCp6E=
+	t=1708645191; cv=none; b=Opt9/5LsiV5liGLsxhqE6GAlLmOqG++Xn8la84LBuSzc5yEzidRoXeGTFFqf4p4lx1rG0CMPdzU4IYlwN6MoN/ArtzASmCJM9PVdm15W5Ri7+X48uaRWCR0jWyKrGfTsCTL4hpKB/oAcUXFaoSt7q3K+Iyixa4TEYmdYJxDHrp0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708645191; c=relaxed/simple;
-	bh=gev2L8v7WSXhuqKE2Ic5khli4mlZTc4TxPfe0dPBiXY=;
-	h=Date:To:From:Subject:Message-Id; b=ioE4nN45meo4ZKyf7hZ4lb6N2CMMZeh85HFljw27EcbdeEHViINYBB3EWBOBPy8xtkUdusV1EFXt/p1O839gI/4Oa11yN9qL3RN9RoX6qolrt1zUKzo1clNpSonEI+g1RV5qCYYM5bQYe2GbSJLO20IfvHpVwYrPwEuiCg5FwsM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T8EkQj6J; arc=none smtp.client-ip=10.30.226.201
+	bh=RkXDsUxWSf9HISJbEXSwJ88O1/fZ1zFqn2wwOsn8Vpo=;
+	h=Date:To:From:Subject:Message-Id; b=ZYuqCGJjJqlcmQsFvGa4zy8hrOk5WMVO9kx3t9sMgTF1SI1jCRfqOdNS5udklUUet6ehtLZBXMLOI0SVxfw56P7TijhQ835xAxiZok/RxTMGJnJ/HFBecEk0wpspg3dFVXMxbnI2V6ITyYK9XlNCjU0CFmT1Cd1arwPwLYIv+K4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=na0MUJ/l; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T8EkQj6J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DE4EC43390;
-	Thu, 22 Feb 2024 23:39:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="na0MUJ/l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EEC3C433C7;
+	Thu, 22 Feb 2024 23:39:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708645190;
-	bh=gev2L8v7WSXhuqKE2Ic5khli4mlZTc4TxPfe0dPBiXY=;
+	s=korg; t=1708645191;
+	bh=RkXDsUxWSf9HISJbEXSwJ88O1/fZ1zFqn2wwOsn8Vpo=;
 	h=Date:To:From:Subject:From;
-	b=T8EkQj6JIjOAxy+U4kPQKI0mXkLOHUYEvkSk24CWYBqW5/zpRC8gLFasryNV6q6X1
-	 X06z8pZYywzQxdNVtxVh4/So+58vXxADzIM995FNSx+m5K+w4FNDdsE30oCKSFLI1h
-	 hjArpiiR+e2hI17nz5FCvXHfx4LZ+p2SjL3LRstM=
+	b=na0MUJ/lt3fweFbgFa+WqU6v/qnJr2JQgQmoMPUfI1jGrSoBJi11KEzLjjwkDvEJH
+	 K6fvWcIUJ746HGZybfas/PJk+TOzOnfQjLpTpXPrvDM5Ac7YTOmPbdRzcf99WyrEaW
+	 EeQL/m2S9wGCjOEoQhhCRUt46Ut+LMFXC/kgW8eM=
 Date: Thu, 22 Feb 2024 15:39:50 -0800
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-convert-sufile-to-use-kmap_local.patch removed from -mm tree
-Message-Id: <20240222233950.7DE4EC43390@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-convert-persistent-object-allocator-to-use-kmap_local.patch removed from -mm tree
+Message-Id: <20240222233951.5EEC3C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,366 +35,207 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: convert sufile to use kmap_local
+     Subject: nilfs2: convert persistent object allocator to use kmap_local
 has been removed from the -mm tree.  Its filename was
-     nilfs2-convert-sufile-to-use-kmap_local.patch
+     nilfs2-convert-persistent-object-allocator-to-use-kmap_local.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: convert sufile to use kmap_local
-Date: Mon, 22 Jan 2024 23:01:52 +0900
+Subject: nilfs2: convert persistent object allocator to use kmap_local
+Date: Mon, 22 Jan 2024 23:01:53 +0900
 
-Concerning the code of the metadata file sufile for segment management,
-convert all parts that uses the deprecated kmap_atomic() to use
-kmap_local.  All transformations are directly possible here.
+Regarding the allocator code that is commonly used in the ondisk inode
+metadata file ifile and the disk address translation metadata file DAT,
+convert the parts that use the deprecated kmap_atomic() and kmap() to use
+kmap_local.
 
-Link: https://lkml.kernel.org/r/20240122140202.6950-6-konishi.ryusuke@gmail.com
+Most can be converted directly, but only
+nilfs_palloc_prepare_alloc_entry() needs to be rewritten to change mapping
+sections so that multiple kmap_local/kunmap_local calls are nested and
+disk I/O can be avoided within the mapping sections.
+
+Link: https://lkml.kernel.org/r/20240122140202.6950-7-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/sufile.c |   86 +++++++++++++++++++++----------------------
- 1 file changed, 43 insertions(+), 43 deletions(-)
+ fs/nilfs2/alloc.c |   91 ++++++++++++++++++++++----------------------
+ 1 file changed, 46 insertions(+), 45 deletions(-)
 
---- a/fs/nilfs2/sufile.c~nilfs2-convert-sufile-to-use-kmap_local
-+++ a/fs/nilfs2/sufile.c
-@@ -107,11 +107,11 @@ static void nilfs_sufile_mod_counter(str
- 	struct nilfs_sufile_header *header;
- 	void *kaddr;
- 
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = kaddr + bh_offset(header_bh);
- 	le64_add_cpu(&header->sh_ncleansegs, ncleanadd);
- 	le64_add_cpu(&header->sh_ndirtysegs, ndirtyadd);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	mark_buffer_dirty(header_bh);
- }
-@@ -315,10 +315,10 @@ int nilfs_sufile_alloc(struct inode *suf
- 	ret = nilfs_sufile_get_header_block(sufile, &header_bh);
- 	if (ret < 0)
- 		goto out_sem;
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = kaddr + bh_offset(header_bh);
- 	last_alloc = le64_to_cpu(header->sh_last_alloc);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	nsegments = nilfs_sufile_get_nsegments(sufile);
- 	maxsegnum = sui->allocmax;
-@@ -352,7 +352,7 @@ int nilfs_sufile_alloc(struct inode *suf
- 							   &su_bh);
+--- a/fs/nilfs2/alloc.c~nilfs2-convert-persistent-object-allocator-to-use-kmap_local
++++ a/fs/nilfs2/alloc.c
+@@ -525,54 +525,55 @@ int nilfs_palloc_prepare_alloc_entry(str
+ 		ret = nilfs_palloc_get_desc_block(inode, group, 1, &desc_bh);
  		if (ret < 0)
- 			goto out_header;
--		kaddr = kmap_atomic(su_bh->b_page);
-+		kaddr = kmap_local_page(su_bh->b_page);
- 		su = nilfs_sufile_block_get_segment_usage(
- 			sufile, segnum, su_bh, kaddr);
- 
-@@ -363,14 +363,14 @@ int nilfs_sufile_alloc(struct inode *suf
- 				continue;
- 			/* found a clean segment */
- 			nilfs_segment_usage_set_dirty(su);
--			kunmap_atomic(kaddr);
-+			kunmap_local(kaddr);
- 
--			kaddr = kmap_atomic(header_bh->b_page);
-+			kaddr = kmap_local_page(header_bh->b_page);
- 			header = kaddr + bh_offset(header_bh);
- 			le64_add_cpu(&header->sh_ncleansegs, -1);
- 			le64_add_cpu(&header->sh_ndirtysegs, 1);
- 			header->sh_last_alloc = cpu_to_le64(segnum);
--			kunmap_atomic(kaddr);
-+			kunmap_local(kaddr);
- 
- 			sui->ncleansegs--;
- 			mark_buffer_dirty(header_bh);
-@@ -384,7 +384,7 @@ int nilfs_sufile_alloc(struct inode *suf
- 			goto out_header;
- 		}
- 
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		brelse(su_bh);
- 	}
- 
-@@ -406,16 +406,16 @@ void nilfs_sufile_do_cancel_free(struct
- 	struct nilfs_segment_usage *su;
- 	void *kaddr;
- 
--	kaddr = kmap_atomic(su_bh->b_page);
-+	kaddr = kmap_local_page(su_bh->b_page);
- 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, su_bh, kaddr);
- 	if (unlikely(!nilfs_segment_usage_clean(su))) {
- 		nilfs_warn(sufile->i_sb, "%s: segment %llu must be clean",
- 			   __func__, (unsigned long long)segnum);
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		return;
- 	}
- 	nilfs_segment_usage_set_dirty(su);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	nilfs_sufile_mod_counter(header_bh, -1, 1);
- 	NILFS_SUI(sufile)->ncleansegs--;
-@@ -432,11 +432,11 @@ void nilfs_sufile_do_scrap(struct inode
- 	void *kaddr;
- 	int clean, dirty;
- 
--	kaddr = kmap_atomic(su_bh->b_page);
-+	kaddr = kmap_local_page(su_bh->b_page);
- 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, su_bh, kaddr);
- 	if (su->su_flags == cpu_to_le32(BIT(NILFS_SEGMENT_USAGE_DIRTY)) &&
- 	    su->su_nblocks == cpu_to_le32(0)) {
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		return;
- 	}
- 	clean = nilfs_segment_usage_clean(su);
-@@ -446,7 +446,7 @@ void nilfs_sufile_do_scrap(struct inode
- 	su->su_lastmod = cpu_to_le64(0);
- 	su->su_nblocks = cpu_to_le32(0);
- 	su->su_flags = cpu_to_le32(BIT(NILFS_SEGMENT_USAGE_DIRTY));
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	nilfs_sufile_mod_counter(header_bh, clean ? (u64)-1 : 0, dirty ? 0 : 1);
- 	NILFS_SUI(sufile)->ncleansegs -= clean;
-@@ -463,12 +463,12 @@ void nilfs_sufile_do_free(struct inode *
- 	void *kaddr;
- 	int sudirty;
- 
--	kaddr = kmap_atomic(su_bh->b_page);
-+	kaddr = kmap_local_page(su_bh->b_page);
- 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, su_bh, kaddr);
- 	if (nilfs_segment_usage_clean(su)) {
- 		nilfs_warn(sufile->i_sb, "%s: segment %llu is already clean",
- 			   __func__, (unsigned long long)segnum);
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		return;
- 	}
- 	if (unlikely(nilfs_segment_usage_error(su)))
-@@ -481,7 +481,7 @@ void nilfs_sufile_do_free(struct inode *
- 			   (unsigned long long)segnum);
- 
- 	nilfs_segment_usage_set_clean(su);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 	mark_buffer_dirty(su_bh);
- 
- 	nilfs_sufile_mod_counter(header_bh, 1, sudirty ? (u64)-1 : 0);
-@@ -509,12 +509,12 @@ int nilfs_sufile_mark_dirty(struct inode
- 	if (ret)
- 		goto out_sem;
- 
--	kaddr = kmap_atomic(bh->b_page);
-+	kaddr = kmap_local_page(bh->b_page);
- 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, bh, kaddr);
- 	if (unlikely(nilfs_segment_usage_error(su))) {
- 		struct the_nilfs *nilfs = sufile->i_sb->s_fs_info;
- 
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		brelse(bh);
- 		if (nilfs_segment_is_active(nilfs, segnum)) {
- 			nilfs_error(sufile->i_sb,
-@@ -532,7 +532,7 @@ int nilfs_sufile_mark_dirty(struct inode
- 		ret = -EIO;
- 	} else {
- 		nilfs_segment_usage_set_dirty(su);
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		mark_buffer_dirty(bh);
- 		nilfs_mdt_mark_dirty(sufile);
- 		brelse(bh);
-@@ -562,7 +562,7 @@ int nilfs_sufile_set_segment_usage(struc
- 	if (ret < 0)
- 		goto out_sem;
- 
--	kaddr = kmap_atomic(bh->b_page);
-+	kaddr = kmap_local_page(bh->b_page);
- 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, bh, kaddr);
- 	if (modtime) {
- 		/*
-@@ -573,7 +573,7 @@ int nilfs_sufile_set_segment_usage(struc
- 		su->su_lastmod = cpu_to_le64(modtime);
- 	}
- 	su->su_nblocks = cpu_to_le32(nblocks);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	mark_buffer_dirty(bh);
- 	nilfs_mdt_mark_dirty(sufile);
-@@ -614,7 +614,7 @@ int nilfs_sufile_get_stat(struct inode *
- 	if (ret < 0)
- 		goto out_sem;
- 
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = kaddr + bh_offset(header_bh);
- 	sustat->ss_nsegs = nilfs_sufile_get_nsegments(sufile);
- 	sustat->ss_ncleansegs = le64_to_cpu(header->sh_ncleansegs);
-@@ -624,7 +624,7 @@ int nilfs_sufile_get_stat(struct inode *
- 	spin_lock(&nilfs->ns_last_segment_lock);
- 	sustat->ss_prot_seq = nilfs->ns_prot_seq;
- 	spin_unlock(&nilfs->ns_last_segment_lock);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 	brelse(header_bh);
- 
-  out_sem:
-@@ -640,15 +640,15 @@ void nilfs_sufile_do_set_error(struct in
- 	void *kaddr;
- 	int suclean;
- 
--	kaddr = kmap_atomic(su_bh->b_page);
-+	kaddr = kmap_local_page(su_bh->b_page);
- 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, su_bh, kaddr);
- 	if (nilfs_segment_usage_error(su)) {
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		return;
- 	}
- 	suclean = nilfs_segment_usage_clean(su);
- 	nilfs_segment_usage_set_error(su);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	if (suclean) {
- 		nilfs_sufile_mod_counter(header_bh, -1, 0);
-@@ -717,7 +717,7 @@ static int nilfs_sufile_truncate_range(s
- 			/* hole */
- 			continue;
- 		}
--		kaddr = kmap_atomic(su_bh->b_page);
-+		kaddr = kmap_local_page(su_bh->b_page);
- 		su = nilfs_sufile_block_get_segment_usage(
- 			sufile, segnum, su_bh, kaddr);
- 		su2 = su;
-@@ -726,7 +726,7 @@ static int nilfs_sufile_truncate_range(s
- 			     ~BIT(NILFS_SEGMENT_USAGE_ERROR)) ||
- 			    nilfs_segment_is_active(nilfs, segnum + j)) {
- 				ret = -EBUSY;
--				kunmap_atomic(kaddr);
-+				kunmap_local(kaddr);
- 				brelse(su_bh);
- 				goto out_header;
- 			}
-@@ -738,7 +738,7 @@ static int nilfs_sufile_truncate_range(s
- 				nc++;
- 			}
- 		}
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		if (nc > 0) {
- 			mark_buffer_dirty(su_bh);
- 			ncleaned += nc;
-@@ -823,10 +823,10 @@ int nilfs_sufile_resize(struct inode *su
- 		sui->allocmin = 0;
- 	}
- 
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = kaddr + bh_offset(header_bh);
- 	header->sh_ncleansegs = cpu_to_le64(sui->ncleansegs);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	mark_buffer_dirty(header_bh);
- 	nilfs_mdt_mark_dirty(sufile);
-@@ -891,7 +891,7 @@ ssize_t nilfs_sufile_get_suinfo(struct i
- 			continue;
- 		}
- 
--		kaddr = kmap_atomic(su_bh->b_page);
-+		kaddr = kmap_local_page(su_bh->b_page);
- 		su = nilfs_sufile_block_get_segment_usage(
- 			sufile, segnum, su_bh, kaddr);
- 		for (j = 0; j < n;
-@@ -904,7 +904,7 @@ ssize_t nilfs_sufile_get_suinfo(struct i
- 				si->sui_flags |=
- 					BIT(NILFS_SEGMENT_USAGE_ACTIVE);
- 		}
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		brelse(su_bh);
- 	}
- 	ret = nsegs;
-@@ -973,7 +973,7 @@ ssize_t nilfs_sufile_set_suinfo(struct i
- 		goto out_header;
- 
- 	for (;;) {
--		kaddr = kmap_atomic(bh->b_page);
-+		kaddr = kmap_local_page(bh->b_page);
- 		su = nilfs_sufile_block_get_segment_usage(
- 			sufile, sup->sup_segnum, bh, kaddr);
- 
-@@ -1010,7 +1010,7 @@ ssize_t nilfs_sufile_set_suinfo(struct i
- 			su->su_flags = cpu_to_le32(sup->sup_sui.sui_flags);
- 		}
- 
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 
- 		sup = (void *)sup + supsz;
- 		if (sup >= supend)
-@@ -1115,7 +1115,7 @@ int nilfs_sufile_trim_fs(struct inode *s
- 			continue;
- 		}
- 
--		kaddr = kmap_atomic(su_bh->b_page);
-+		kaddr = kmap_local_page(su_bh->b_page);
- 		su = nilfs_sufile_block_get_segment_usage(sufile, segnum,
- 				su_bh, kaddr);
- 		for (i = 0; i < n; ++i, ++segnum, su = (void *)su + susz) {
-@@ -1145,7 +1145,7 @@ int nilfs_sufile_trim_fs(struct inode *s
+ 			return ret;
+-		desc_kaddr = kmap(desc_bh->b_page);
++		desc_kaddr = kmap_local_page(desc_bh->b_page);
+ 		desc = nilfs_palloc_block_get_group_desc(
+ 			inode, group, desc_bh, desc_kaddr);
+ 		n = nilfs_palloc_rest_groups_in_desc_block(inode, group,
+ 							   maxgroup);
+-		for (j = 0; j < n; j++, desc++, group++) {
++		for (j = 0; j < n; j++, desc++, group++, group_offset = 0) {
+ 			lock = nilfs_mdt_bgl_lock(inode, group);
+-			if (nilfs_palloc_group_desc_nfrees(desc, lock) > 0) {
+-				ret = nilfs_palloc_get_bitmap_block(
+-					inode, group, 1, &bitmap_bh);
+-				if (ret < 0)
+-					goto out_desc;
+-				bitmap_kaddr = kmap(bitmap_bh->b_page);
+-				bitmap = bitmap_kaddr + bh_offset(bitmap_bh);
+-				pos = nilfs_palloc_find_available_slot(
+-					bitmap, group_offset,
+-					entries_per_group, lock);
+-				if (pos >= 0) {
+-					/* found a free entry */
+-					nilfs_palloc_group_desc_add_entries(
+-						desc, lock, -1);
+-					req->pr_entry_nr =
+-						entries_per_group * group + pos;
+-					kunmap(desc_bh->b_page);
+-					kunmap(bitmap_bh->b_page);
+-
+-					req->pr_desc_bh = desc_bh;
+-					req->pr_bitmap_bh = bitmap_bh;
+-					return 0;
+-				}
+-				kunmap(bitmap_bh->b_page);
+-				brelse(bitmap_bh);
++			if (nilfs_palloc_group_desc_nfrees(desc, lock) == 0)
++				continue;
++
++			kunmap_local(desc_kaddr);
++			ret = nilfs_palloc_get_bitmap_block(inode, group, 1,
++							    &bitmap_bh);
++			if (unlikely(ret < 0)) {
++				brelse(desc_bh);
++				return ret;
  			}
  
- 			if (nblocks >= minlen) {
--				kunmap_atomic(kaddr);
-+				kunmap_local(kaddr);
- 
- 				ret = blkdev_issue_discard(nilfs->ns_bdev,
- 						start * sects_per_block,
-@@ -1157,7 +1157,7 @@ int nilfs_sufile_trim_fs(struct inode *s
- 				}
- 
- 				ndiscarded += nblocks;
--				kaddr = kmap_atomic(su_bh->b_page);
-+				kaddr = kmap_local_page(su_bh->b_page);
- 				su = nilfs_sufile_block_get_segment_usage(
- 					sufile, segnum, su_bh, kaddr);
- 			}
-@@ -1166,7 +1166,7 @@ int nilfs_sufile_trim_fs(struct inode *s
- 			start = seg_start;
- 			nblocks = seg_end - seg_start + 1;
+-			group_offset = 0;
++			desc_kaddr = kmap_local_page(desc_bh->b_page);
++			desc = nilfs_palloc_block_get_group_desc(
++				inode, group, desc_bh, desc_kaddr);
++
++			bitmap_kaddr = kmap_local_page(bitmap_bh->b_page);
++			bitmap = bitmap_kaddr + bh_offset(bitmap_bh);
++			pos = nilfs_palloc_find_available_slot(
++				bitmap, group_offset, entries_per_group, lock);
++			kunmap_local(bitmap_kaddr);
++			if (pos >= 0)
++				goto found;
++
++			brelse(bitmap_bh);
  		}
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		put_bh(su_bh);
+ 
+-		kunmap(desc_bh->b_page);
++		kunmap_local(desc_kaddr);
+ 		brelse(desc_bh);
  	}
  
-@@ -1246,10 +1246,10 @@ int nilfs_sufile_read(struct super_block
- 		goto failed;
+ 	/* no entries left */
+ 	return -ENOSPC;
  
- 	sui = NILFS_SUI(sufile);
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = kaddr + bh_offset(header_bh);
- 	sui->ncleansegs = le64_to_cpu(header->sh_ncleansegs);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 	brelse(header_bh);
+- out_desc:
+-	kunmap(desc_bh->b_page);
+-	brelse(desc_bh);
+-	return ret;
++found:
++	/* found a free entry */
++	nilfs_palloc_group_desc_add_entries(desc, lock, -1);
++	req->pr_entry_nr = entries_per_group * group + pos;
++	kunmap_local(desc_kaddr);
++
++	req->pr_desc_bh = desc_bh;
++	req->pr_bitmap_bh = bitmap_bh;
++	return 0;
+ }
  
- 	sui->allocmax = nilfs_sufile_get_nsegments(sufile) - 1;
+ /**
+@@ -606,10 +607,10 @@ void nilfs_palloc_commit_free_entry(stru
+ 	spinlock_t *lock;
+ 
+ 	group = nilfs_palloc_group(inode, req->pr_entry_nr, &group_offset);
+-	desc_kaddr = kmap(req->pr_desc_bh->b_page);
++	desc_kaddr = kmap_local_page(req->pr_desc_bh->b_page);
+ 	desc = nilfs_palloc_block_get_group_desc(inode, group,
+ 						 req->pr_desc_bh, desc_kaddr);
+-	bitmap_kaddr = kmap(req->pr_bitmap_bh->b_page);
++	bitmap_kaddr = kmap_local_page(req->pr_bitmap_bh->b_page);
+ 	bitmap = bitmap_kaddr + bh_offset(req->pr_bitmap_bh);
+ 	lock = nilfs_mdt_bgl_lock(inode, group);
+ 
+@@ -621,8 +622,8 @@ void nilfs_palloc_commit_free_entry(stru
+ 	else
+ 		nilfs_palloc_group_desc_add_entries(desc, lock, 1);
+ 
+-	kunmap(req->pr_bitmap_bh->b_page);
+-	kunmap(req->pr_desc_bh->b_page);
++	kunmap_local(bitmap_kaddr);
++	kunmap_local(desc_kaddr);
+ 
+ 	mark_buffer_dirty(req->pr_desc_bh);
+ 	mark_buffer_dirty(req->pr_bitmap_bh);
+@@ -647,10 +648,10 @@ void nilfs_palloc_abort_alloc_entry(stru
+ 	spinlock_t *lock;
+ 
+ 	group = nilfs_palloc_group(inode, req->pr_entry_nr, &group_offset);
+-	desc_kaddr = kmap(req->pr_desc_bh->b_page);
++	desc_kaddr = kmap_local_page(req->pr_desc_bh->b_page);
+ 	desc = nilfs_palloc_block_get_group_desc(inode, group,
+ 						 req->pr_desc_bh, desc_kaddr);
+-	bitmap_kaddr = kmap(req->pr_bitmap_bh->b_page);
++	bitmap_kaddr = kmap_local_page(req->pr_bitmap_bh->b_page);
+ 	bitmap = bitmap_kaddr + bh_offset(req->pr_bitmap_bh);
+ 	lock = nilfs_mdt_bgl_lock(inode, group);
+ 
+@@ -662,8 +663,8 @@ void nilfs_palloc_abort_alloc_entry(stru
+ 	else
+ 		nilfs_palloc_group_desc_add_entries(desc, lock, 1);
+ 
+-	kunmap(req->pr_bitmap_bh->b_page);
+-	kunmap(req->pr_desc_bh->b_page);
++	kunmap_local(bitmap_kaddr);
++	kunmap_local(desc_kaddr);
+ 
+ 	brelse(req->pr_bitmap_bh);
+ 	brelse(req->pr_desc_bh);
+@@ -755,7 +756,7 @@ int nilfs_palloc_freev(struct inode *ino
+ 		/* Get the first entry number of the group */
+ 		group_min_nr = (__u64)group * epg;
+ 
+-		bitmap_kaddr = kmap(bitmap_bh->b_page);
++		bitmap_kaddr = kmap_local_page(bitmap_bh->b_page);
+ 		bitmap = bitmap_kaddr + bh_offset(bitmap_bh);
+ 		lock = nilfs_mdt_bgl_lock(inode, group);
+ 
+@@ -801,7 +802,7 @@ int nilfs_palloc_freev(struct inode *ino
+ 			entry_start = rounddown(group_offset, epb);
+ 		} while (true);
+ 
+-		kunmap(bitmap_bh->b_page);
++		kunmap_local(bitmap_kaddr);
+ 		mark_buffer_dirty(bitmap_bh);
+ 		brelse(bitmap_bh);
+ 
+@@ -815,11 +816,11 @@ int nilfs_palloc_freev(struct inode *ino
+ 					   inode->i_ino);
+ 		}
+ 
+-		desc_kaddr = kmap_atomic(desc_bh->b_page);
++		desc_kaddr = kmap_local_page(desc_bh->b_page);
+ 		desc = nilfs_palloc_block_get_group_desc(
+ 			inode, group, desc_bh, desc_kaddr);
+ 		nfree = nilfs_palloc_group_desc_add_entries(desc, lock, n);
+-		kunmap_atomic(desc_kaddr);
++		kunmap_local(desc_kaddr);
+ 		mark_buffer_dirty(desc_bh);
+ 		nilfs_mdt_mark_dirty(inode);
+ 		brelse(desc_bh);
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
