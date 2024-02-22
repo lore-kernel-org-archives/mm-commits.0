@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B15B637
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 221281C17
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560091; cv=none; b=MAxdPvUZ2zybQPPcFjiHCfVvQuXMVJTWQw3+5yWeQKQPURTo1C4W1iD/wkAoAiCkWrnn+XsSse3RAKcVGTJ1A1AY2Lhe0T2pVyPIZuhur/F9O5ilFyImPnTG3Q/6HmAioZeQecMM/aQvbH07Dre1akyW9lt02/Dutz5GIHyp9qs=
+	t=1708560092; cv=none; b=m5MVllffCv4jgaCGRSKUCrNWKH0tqMvhgvECjpRIDEot4kHc5AVwiFL1XAc5DdfX/jfhDUC3vVAhQeNcW25eZjzRjeNqgkkSUHw2B7h7MbJEn1SyK/f77aVV5LfE3tPG/siFyTh/UoHRnS8Z5cLFjCuYfZXF9Fqw6XLGQo8uDVg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560091; c=relaxed/simple;
-	bh=cZ6X+ecsW+Fz9IUQXld+Sar20HTQHj0/pUAD85Ey9iA=;
-	h=Date:To:From:Subject:Message-Id; b=ktfIN5fwTDtr7f4Ryr5nrd9o8I3ADAo968xD6vu6e364vYGnHuTxRQ9tgXNPNL/Wb3gY/pAjQlKN7bOujXR7YE1UQl4hqJM1KdjrHX7brQ1NdY5Sjgoh6ZscQFBaGt5X7VDF6VNWtlldxX+OhqKa+BIRVe64RylozQH7EtwS4MM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qVCBu/rf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560092; c=relaxed/simple;
+	bh=GlTIogH20QlJbwiUMJVMRRMb7QmJW+q+mVr1dJMQ9kw=;
+	h=Date:To:From:Subject:Message-Id; b=dNqJMOffdme+nRRJPhAUIj8pD7V5npfyzw6w8as7gTQpqrTJbxpkH7XWP0Jvw+dTvAWBJ8MfXjhjakrusv44Z22Ha0HW5AYgfLmHQfC2W6+DtCzyS/cCfsQrblHA/jfZcURihyfx0RDX5TWs3B8vMCmfIRggW2EyhZcJ4ludVs0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M08McW7t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qVCBu/rf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D5EDC433C7;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M08McW7t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC7D6C43399;
 	Thu, 22 Feb 2024 00:01:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560091;
-	bh=cZ6X+ecsW+Fz9IUQXld+Sar20HTQHj0/pUAD85Ey9iA=;
+	s=korg; t=1708560092;
+	bh=GlTIogH20QlJbwiUMJVMRRMb7QmJW+q+mVr1dJMQ9kw=;
 	h=Date:To:From:Subject:From;
-	b=qVCBu/rfsulvgxQ57R+VsreB37FLmegbaD2mxOlcZFeRcw+lY0Te9pDWuhcmQtfgc
-	 E6swPJoduKhejv7fpAsRg6+FaPDmmYXxSeD1dlTIvgAD57SonMn6OQ+PblQDLOIJW6
-	 acac6dPalZBsuMA3MzBreRJEiuSLXqUQ4peWADqs=
-Date: Wed, 21 Feb 2024 16:01:30 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,npache@redhat.com,akpm@linux-foundation.org
+	b=M08McW7tznCmsl4fA50+R7oSFJIAKezFrPoFiDvGD9pm8yFNx5tJBvEts+I6Q6no+
+	 Q4xIA3qJigBZWEFNCp28T0yUhhs6d7INN95hxPNvgPVAkzittwz2xf8nIbzcv4KcUx
+	 2GjHMWd/ravq8+dlSamJpiuU7ftcHmiOcMLhDmRI=
+Date: Wed, 21 Feb 2024 16:01:31 -0800
+To: mm-commits@vger.kernel.org,Liam.Howlett@oracle.com,lukas.bulwahn@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-perform-some-system-cleanup-before-using-hugepages.patch removed from -mm tree
-Message-Id: <20240222000131.1D5EDC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-avoid-duplicate-variable-init-in-mast_spanning_rebalance.patch removed from -mm tree
+Message-Id: <20240222000131.EC7D6C43399@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests: mm: perform some system cleanup before using hugepages
+     Subject: maple_tree: avoid duplicate variable init in mast_spanning_rebalance()
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-perform-some-system-cleanup-before-using-hugepages.patch
+     maple_tree-avoid-duplicate-variable-init-in-mast_spanning_rebalance.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nico Pache <npache@redhat.com>
-Subject: selftests: mm: perform some system cleanup before using hugepages
-Date: Wed, 17 Jan 2024 11:00:37 -0700
+From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Subject: maple_tree: avoid duplicate variable init in mast_spanning_rebalance()
+Date: Mon, 22 Jan 2024 11:20:00 +0100
 
-When running with CATEGORY= (thp | hugetlb) we see a large numbers of
-tests failing.  These failures are due to not being able to allocate a
-hugepage and normally occur on memory contrainted systems or when using
-large page sizes.
+The local variables r_tmp and l_tmp in mast_spanning_rebalance() are
+already initialized at its declaration; there is no need to assign the
+value again.
 
-drop_cache and compact_memory before the tests for a higher chance at a
-successful hugepage allocation.
+Remove the duplicate initialization of {r,l}_tmp.  No functional change. 
+Due to common compiler optimizations, also no change to object code.
 
-Link: https://lkml.kernel.org/r/20240117180037.15734-1-npache@redhat.com
-Signed-off-by: Nico Pache <npache@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+This issue was identified with clang-analyzer's dead stores analysis.
+
+Link: https://lkml.kernel.org/r/20240122102000.29558-1-lukas.bulwahn@gmail.com
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ lib/maple_tree.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-perform-some-system-cleanup-before-using-hugepages
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -206,6 +206,15 @@ pretty_name() {
- # Usage: run_test [test binary] [arbitrary test arguments...]
- run_test() {
- 	if test_selected ${CATEGORY}; then
-+		# On memory constrainted systems some tests can fail to allocate hugepages.
-+		# perform some cleanup before the test for a higher success rate.
-+		if [ ${CATEGORY} == "thp" ] | [ ${CATEGORY} == "hugetlb" ]; then
-+			echo 3 > /proc/sys/vm/drop_caches
-+			sleep 2
-+			echo 1 > /proc/sys/vm/compact_memory
-+			sleep 2
-+		fi
-+
- 		local test=$(pretty_name "$*")
- 		local title="running $*"
- 		local sep=$(echo -n "$title" | tr "[:graph:][:space:]" -)
+--- a/lib/maple_tree.c~maple_tree-avoid-duplicate-variable-init-in-mast_spanning_rebalance
++++ a/lib/maple_tree.c
+@@ -2271,8 +2271,6 @@ bool mast_spanning_rebalance(struct mapl
+ 	struct ma_state l_tmp = *mast->orig_l;
+ 	unsigned char depth = 0;
+ 
+-	r_tmp = *mast->orig_r;
+-	l_tmp = *mast->orig_l;
+ 	do {
+ 		mas_ascend(mast->orig_r);
+ 		mas_ascend(mast->orig_l);
 _
 
-Patches currently in -mm which might be from npache@redhat.com are
+Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
 
 
