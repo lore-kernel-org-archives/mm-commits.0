@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65B4D17BBA;
-	Thu, 22 Feb 2024 23:39:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A4DE17BBA
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:39:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708645166; cv=none; b=mexrVnv1NLzkVzPzZk2QiAqHWVvI/qGNdNFhTavFSkfm95TRbplf7v3l7OYYT7CDP08i7dNzNDUC3S9A/seazcTaGZrFfwf4Lcop54AR7Yt5hk2TypSuhwj0Xylm5WZTthM8seH+SyYyz2jkbxuX5Z6mE5cMaSO0TGkccjXRGwM=
+	t=1708645167; cv=none; b=Cgo74mAnVCBxMf9qynwfpDBiDJcPjJZ5apCWqTCeZZbAB97HN3dWIxN3UlS2d/vc1smO3YYsmUH91n1haiw+4tb8urci5gzG8ZmqSy6BSe1rVRD/9as/CS1d9Rqp/x2GlnaZhfF5UKoYf3zyrEVpaUxxWrbrlFmac5m/OD+BdeI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708645166; c=relaxed/simple;
-	bh=7Zz9N2qREAhZwfH7evuuc/XT4gBx9hbfdzNuiYDkEA0=;
-	h=Date:To:From:Subject:Message-Id; b=VmnYA+L9mmMof43SMoclhnafREeDhDPGGL3JT2EriS11Psz9I+ij7+EvZK3P3HgIwCdm7IfyAkYcVPA4Hzt+eV2VYK5hpdHV1MmI4yXn1ebowyTMM5i/ZJpiTL/CzA81kTRJ+j168G9ucJ6rXCfh8klkT4RWvDT5Z/enFjRHZOY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ItWMVVKO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708645167; c=relaxed/simple;
+	bh=bhns/tG/EMovVYXL0/oDWuAXxgxEcgxlALJ8paI8Uv4=;
+	h=Date:To:From:Subject:Message-Id; b=UGVk2zL/z23fkpe8I/ilkGE2quoT39UKbKAP8gg2ul97R74aEC+cvpIxtVTpY7kidS/ukA45JcKmW1rlCbKIUsXTL/xrhSUqcSyLf3TJM8uDQL7Qwciu/llyE6Sgcsq9un8Qh8O9OnAAq4BD1OsiLe7RsNYWVuk5y21s/L2tnHA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GAqhDWWq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ItWMVVKO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF575C433F1;
-	Thu, 22 Feb 2024 23:39:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GAqhDWWq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D342CC43390;
+	Thu, 22 Feb 2024 23:39:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
 	s=korg; t=1708645166;
-	bh=7Zz9N2qREAhZwfH7evuuc/XT4gBx9hbfdzNuiYDkEA0=;
+	bh=bhns/tG/EMovVYXL0/oDWuAXxgxEcgxlALJ8paI8Uv4=;
 	h=Date:To:From:Subject:From;
-	b=ItWMVVKOVit+9SnGpHLCewpuKWf/LjA1H09pBoLorMKZfNqicV3+deELn3dILvpfq
-	 C/8eo431o3QPg1SNbZWX9rLq7CPFmL4N84hXzYpC6LRKwChL409HavMJkdZjV41MAC
-	 sSdyudk1fn4QD6CzbewzNhm20zZx8NRoVYmG4UIA=
-Date: Thu, 22 Feb 2024 15:39:25 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,riel@surriel.com,peterz@infradead.org,mingo@kernel.org,mgorman@techsingularity.net,willy@infradead.org,akpm@linux-foundation.org
+	b=GAqhDWWqdr1zYh8CO/5P0IwUnTVS11iyaQWcjFVmXXT62hqFHB/FH4Cv2Ni4OShXA
+	 EH8Ncg7DHfZf4fAAN/YLg4G/JnWCzoUXBohiUOrlBYYCOb0TN4aZGs7lwaXqSks7jN
+	 RTJbqh/INzZU07gJ1ReF3GT1KFJqdY0ovcXFaD80=
+Date: Thu, 22 Feb 2024 15:39:26 -0800
+To: mm-commits@vger.kernel.org,mykolal@fb.com,maskray@google.com,keescook@chromium.org,daniel@iogearbox.net,conor.dooley@microchip.com,ast@kernel.org,andrii@kernel.org,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] bounds-support-non-power-of-two-config_nr_cpus.patch removed from -mm tree
-Message-Id: <20240222233925.DF575C433F1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] arch-and-include-update-llvm-phabricator-links.patch removed from -mm tree
+Message-Id: <20240222233926.D342CC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,103 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: bounds: support non-power-of-two CONFIG_NR_CPUS
+     Subject: arch and include: update LLVM Phabricator links
 has been removed from the -mm tree.  Its filename was
-     bounds-support-non-power-of-two-config_nr_cpus.patch
+     arch-and-include-update-llvm-phabricator-links.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: bounds: support non-power-of-two CONFIG_NR_CPUS
-Date: Tue, 10 Oct 2023 15:55:49 +0100
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: arch and include: update LLVM Phabricator links
+Date: Tue, 09 Jan 2024 15:16:30 -0700
 
-ilog2() rounds down, so for example when PowerPC 85xx sets CONFIG_NR_CPUS
-to 24, we will only allocate 4 bits to store the number of CPUs instead of
-5.  Use bits_per() instead, which rounds up.  Found by code inspection. 
-The effect of this would probably be a misaccounting when doing NUMA
-balancing, so to a user, it would only be a performance penalty.  The
-effects may be more wide-spread; it's hard to tell.
+reviews.llvm.org was LLVM's Phabricator instances for code review.  It has
+been abandoned in favor of GitHub pull requests.  While the majority of
+links in the kernel sources still work because of the work Fangrui has
+done turning the dynamic Phabricator instance into a static archive, there
+are some issues with that work, so preemptively convert all the links in
+the kernel sources to point to the commit on GitHub.
 
-Link: https://lkml.kernel.org/r/20231010145549.1244748-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Fixes: 90572890d202 ("mm: numa: Change page last {nid,pid} into {cpu,pid}")
-Reviewed-by: Rik van Riel <riel@surriel.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: <stable@vger.kernel.org>
+Most of the commits have the corresponding differential review link in the
+commit message itself so there should not be any loss of fidelity in the
+relevant information.
+
+Link: https://discourse.llvm.org/t/update-on-github-pull-requests/71540/172
+Link: https://lkml.kernel.org/r/20240109-update-llvm-links-v1-2-eb09b59db071@kernel.org
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Reviewed-by: Conor Dooley <conor.dooley@microchip.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Acked-by: Fangrui Song <maskray@google.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Mykola Lysenko <mykolal@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/bounds.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/Kconfig              |    4 ++--
+ arch/riscv/Kconfig              |    2 +-
+ arch/riscv/include/asm/ftrace.h |    2 +-
+ include/linux/compiler-clang.h  |    2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/kernel/bounds.c~bounds-support-non-power-of-two-config_nr_cpus
-+++ a/kernel/bounds.c
-@@ -19,7 +19,7 @@ int main(void)
- 	DEFINE(NR_PAGEFLAGS, __NR_PAGEFLAGS);
- 	DEFINE(MAX_NR_ZONES, __MAX_NR_ZONES);
- #ifdef CONFIG_SMP
--	DEFINE(NR_CPUS_BITS, ilog2(CONFIG_NR_CPUS));
-+	DEFINE(NR_CPUS_BITS, bits_per(CONFIG_NR_CPUS));
- #endif
- 	DEFINE(SPINLOCK_SIZE, sizeof(spinlock_t));
- #ifdef CONFIG_LRU_GEN
+--- a/arch/arm64/Kconfig~arch-and-include-update-llvm-phabricator-links
++++ a/arch/arm64/Kconfig
+@@ -382,7 +382,7 @@ config BROKEN_GAS_INST
+ config BUILTIN_RETURN_ADDRESS_STRIPS_PAC
+ 	bool
+ 	# Clang's __builtin_return_adddress() strips the PAC since 12.0.0
+-	# https://reviews.llvm.org/D75044
++	# https://github.com/llvm/llvm-project/commit/2a96f47c5ffca84cd774ad402cacd137f4bf45e2
+ 	default y if CC_IS_CLANG && (CLANG_VERSION >= 120000)
+ 	# GCC's __builtin_return_address() strips the PAC since 11.1.0,
+ 	# and this was backported to 10.2.0, 9.4.0, 8.5.0, but not earlier
+@@ -2222,7 +2222,7 @@ config STACKPROTECTOR_PER_TASK
+ 
+ config UNWIND_PATCH_PAC_INTO_SCS
+ 	bool "Enable shadow call stack dynamically using code patching"
+-	# needs Clang with https://reviews.llvm.org/D111780 incorporated
++	# needs Clang with https://github.com/llvm/llvm-project/commit/de07cde67b5d205d58690be012106022aea6d2b3 incorporated
+ 	depends on CC_IS_CLANG && CLANG_VERSION >= 150000
+ 	depends on ARM64_PTR_AUTH_KERNEL && CC_HAS_BRANCH_PROT_PAC_RET
+ 	depends on SHADOW_CALL_STACK
+--- a/arch/riscv/include/asm/ftrace.h~arch-and-include-update-llvm-phabricator-links
++++ a/arch/riscv/include/asm/ftrace.h
+@@ -15,7 +15,7 @@
+ 
+ /*
+  * Clang prior to 13 had "mcount" instead of "_mcount":
+- * https://reviews.llvm.org/D98881
++ * https://github.com/llvm/llvm-project/commit/ef58ae86ba778ed7d01cd3f6bd6d08f943abab44
+  */
+ #if defined(CONFIG_CC_IS_GCC) || CONFIG_CLANG_VERSION >= 130000
+ #define MCOUNT_NAME _mcount
+--- a/arch/riscv/Kconfig~arch-and-include-update-llvm-phabricator-links
++++ a/arch/riscv/Kconfig
+@@ -312,7 +312,7 @@ config AS_HAS_INSN
+ 	def_bool $(as-instr,.insn r 51$(comma) 0$(comma) 0$(comma) t0$(comma) t0$(comma) zero)
+ 
+ config AS_HAS_OPTION_ARCH
+-	# https://reviews.llvm.org/D123515
++	# https://github.com/llvm/llvm-project/commit/9e8ed3403c191ab9c4903e8eeb8f732ff8a43cb4
+ 	def_bool y
+ 	depends on $(as-instr, .option arch$(comma) +m)
+ 	depends on !$(as-instr, .option arch$(comma) -i)
+--- a/include/linux/compiler-clang.h~arch-and-include-update-llvm-phabricator-links
++++ a/include/linux/compiler-clang.h
+@@ -9,7 +9,7 @@
+  * Clang prior to 17 is being silly and considers many __cleanup() variables
+  * as unused (because they are, their sole purpose is to go out of scope).
+  *
+- * https://reviews.llvm.org/D152180
++ * https://github.com/llvm/llvm-project/commit/877210faa447f4cc7db87812f8ed80e398fedd61
+  */
+ #undef __cleanup
+ #define __cleanup(func) __maybe_unused __attribute__((__cleanup__(func)))
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from nathan@kernel.org are
 
-writeback-remove-a-duplicate-prototype-for-tag_pages_for_writeback.patch
-writeback-factor-folio_prepare_writeback-out-of-write_cache_pages.patch
-writeback-factor-writeback_get_batch-out-of-write_cache_pages.patch
-writeback-simplify-the-loops-in-write_cache_pages.patch
-pagevec-add-ability-to-iterate-a-queue.patch
-writeback-use-the-folio_batch-queue-iterator.patch
-writeback-move-the-folio_prepare_writeback-loop-out-of-write_cache_pages.patch
-writeback-remove-a-use-of-write_cache_pages-from-do_writepages.patch
 
