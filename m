@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF02D168AC
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 763DE17577
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:03:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560197; cv=none; b=iQmTQZd7NI54kGTFWREwHIz36c7rHUymwU5LsXNsIrYrd8mIn/A8Li11/IA3KfviY7EcATybs8uY69ISgj9feiabmR/wsYeScq2B1la5x/61PHDEGv6h39aX6ty6tC6AkM9GPD2bLDYPpK3CWi46jFt1E+J5yBx+G0dbijRaLDY=
+	t=1708560198; cv=none; b=Mdi43EGevnRUk7kq6HWk93xVjAxysNQf3IpBeQnOau6ykkbqAuRdNyZUScYVgeTcQAK/syPDOdHBYSS7N7LjZqganZXfWdN4exkjtPIXnvFOaWjWBrzhDeFXsLOpGBMq+ho1VlKLx/Akca5M1g2AN8vEsUVRaLjQMXG6AOTZL4c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560197; c=relaxed/simple;
-	bh=a0lSKR/Ht1+ahjz6AnK93kGUHd/iBANQJFr0aDOGYqg=;
-	h=Date:To:From:Subject:Message-Id; b=Bz8Tpo9CzARhCrK93Z0+aRcp2nEeVD1OTpTZEnEC0nYEAKzJtFYPFP6DdM4sW+UxIsiAtTCkeQnxMoPSc4GhWnlazWAnB81W9Duqse7YKTQd4v/S2wkvR1/640Q7KcKIOPGVqYsRZQJWJBnNAx2S9N2mJyABtYNrZIeK0UOK3bg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=irbea1nX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560198; c=relaxed/simple;
+	bh=wV5y3xGkVLaCOS2FUh3ffvop5E3hNGvQcYbACm6XYIc=;
+	h=Date:To:From:Subject:Message-Id; b=N2gm0XprCOy8YPKZwK+JZzWs9mPPqb4vfWCHX7cJKQeXiThsNH8g0uIaQFOP8A1c7FNv/GMds7dgGgG75t1FTYl0S0LJtFySOgSS1R5eOm+B7JZU/DTgtHnAVzz7ir5DDZEKP3ufBgfLF/Z6q2VJzEm0tVKjTVN8kdXDcqmNE9k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EIiWvw2b; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="irbea1nX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 952E3C433F1;
-	Thu, 22 Feb 2024 00:03:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EIiWvw2b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFA53C433C7;
+	Thu, 22 Feb 2024 00:03:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560197;
-	bh=a0lSKR/Ht1+ahjz6AnK93kGUHd/iBANQJFr0aDOGYqg=;
+	s=korg; t=1708560196;
+	bh=wV5y3xGkVLaCOS2FUh3ffvop5E3hNGvQcYbACm6XYIc=;
 	h=Date:To:From:Subject:From;
-	b=irbea1nX9Oi3xW9tjpDqi9rj3cVQOkKVoiJXbOyoIEoSf0opRAbGNM7UdxC/PtpqU
-	 NIaATYiivzGUOVHL7+z0LamcCYVqvq/a4QpzniOSaNQbHlKxGvIpByI03JlfdWerCg
-	 Ko5Ee9VoXqGSqBItVzTwhXUFcfKFkWUuE5SLVvV4=
-Date: Wed, 21 Feb 2024 16:03:17 -0800
+	b=EIiWvw2bjNeY1kOlOERmRotD53P/7XIkQqBbndajNTdt/SL5JTEWOTA/PL3/BQ5HN
+	 cQ9Eib7zWxr98ITaSC2wr2Pc7rcersSeOuuCDplzEGoS9lyR/117p4FDrO8Dpc97Ml
+	 Hj1N9Lc3KOcI4mPHJgKIMtBTu5r7DwJWs3n/EexI=
+Date: Wed, 21 Feb 2024 16:03:15 -0800
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,zhouchengming@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-only-support-zswap_exclusive_loads_enabled.patch removed from -mm tree
-Message-Id: <20240222000317.952E3C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-stop-lru-list-shrinking-when-encounter-warm-region.patch removed from -mm tree
+Message-Id: <20240222000315.DFA53C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,139 +35,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zswap: only support zswap_exclusive_loads_enabled
+     Subject: mm/zswap: stop lru list shrinking when encounter warm region
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-only-support-zswap_exclusive_loads_enabled.patch
+     mm-zswap-stop-lru-list-shrinking-when-encounter-warm-region.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Chengming Zhou <zhouchengming@bytedance.com>
-Subject: mm/zswap: only support zswap_exclusive_loads_enabled
-Date: Sun, 04 Feb 2024 03:06:03 +0000
+Subject: mm/zswap: stop lru list shrinking when encounter warm region
+Date: Sun, 04 Feb 2024 03:06:01 +0000
 
-The !zswap_exclusive_loads_enabled mode will leave compressed copy in
-the zswap tree and lru list after the folio swapin.
+When the shrinker encounter an existing folio in swap cache, it means we
+are shrinking into the warmer region.  We should terminate shrinking if
+we're in the dynamic shrinker context.
 
-There are some disadvantages in this mode:
-1. It's a waste of memory since there are two copies of data, one is
-   folio, the other one is compressed data in zswap. And it's unlikely
-   the compressed data is useful in the near future.
+This patch add LRU_STOP to support this, to avoid overshrinking.
 
-2. If that folio is dirtied, the compressed data must be not useful,
-   but we don't know and don't invalidate the trashy memory in zswap.
-
-3. It's not reclaimable from zswap shrinker since zswap_writeback_entry()
-   will always return -EEXIST and terminate the shrinking process.
-
-On the other hand, the only downside of zswap_exclusive_loads_enabled
-is a little more cpu usage/latency when compression, and the same if
-the folio is removed from swapcache or dirtied.
-
-More explanation by Johannes on why we should consider exclusive load
-as the default for zswap:
-
-  Caching "swapout work" is helpful when the system is thrashing. Then
-  recently swapped in pages might get swapped out again very soon. It
-  certainly makes sense with conventional swap, because keeping a clean
-  copy on the disk saves IO work and doesn't cost any additional memory.
-
-  But with zswap, it's different. It saves some compression work on a
-  thrashing page. But the act of keeping compressed memory contributes
-  to a higher rate of thrashing. And that can cause IO in other places
-  like zswap writeback and file memory.
-
-And the A/B test results of the kernel build in tmpfs with limited memory
-can support this theory:
-
-			!exclusive	exclusive
-real                       63.80         63.01
-user                       1063.83       1061.32
-sys                        290.31        266.15
-
-workingset_refault_anon    2383084.40    1976397.40
-workingset_refault_file    44134.00      45689.40
-workingset_activate_anon   837878.00     728441.20
-workingset_activate_file   4710.00       4085.20
-workingset_restore_anon    732622.60     639428.40
-workingset_restore_file    1007.00       926.80
-workingset_nodereclaim     0.00          0.00
-pgscan                     14343003.40   12409570.20
-pgscan_kswapd              0.00          0.00
-pgscan_direct              14343003.40   12409570.20
-pgscan_khugepaged          0.00          0.00
-
-Link: https://lkml.kernel.org/r/20240201-b4-zswap-invalidate-entry-v2-5-99d4084260a0@bytedance.com
+Link: https://lkml.kernel.org/r/20240201-b4-zswap-invalidate-entry-v2-3-99d4084260a0@bytedance.com
 Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |   16 ----------------
- mm/zswap.c |   14 +++-----------
- 2 files changed, 3 insertions(+), 27 deletions(-)
+ include/linux/list_lru.h |    2 ++
+ mm/list_lru.c            |    3 +++
+ mm/zswap.c               |    4 +++-
+ 3 files changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/Kconfig~mm-zswap-only-support-zswap_exclusive_loads_enabled
-+++ a/mm/Kconfig
-@@ -45,22 +45,6 @@ config ZSWAP_DEFAULT_ON
- 	  The selection made here can be overridden by using the kernel
- 	  command line 'zswap.enabled=' option.
+--- a/include/linux/list_lru.h~mm-zswap-stop-lru-list-shrinking-when-encounter-warm-region
++++ a/include/linux/list_lru.h
+@@ -24,6 +24,8 @@ enum lru_status {
+ 	LRU_SKIP,		/* item cannot be locked, skip */
+ 	LRU_RETRY,		/* item not freeable. May drop the lock
+ 				   internally, but has to return locked. */
++	LRU_STOP,		/* stop lru list walking. May drop the lock
++				   internally, but has to return locked. */
+ };
  
--config ZSWAP_EXCLUSIVE_LOADS_DEFAULT_ON
--	bool "Invalidate zswap entries when pages are loaded"
--	depends on ZSWAP
--	help
--	  If selected, exclusive loads for zswap will be enabled at boot,
--	  otherwise it will be disabled.
--
--	  If exclusive loads are enabled, when a page is loaded from zswap,
--	  the zswap entry is invalidated at once, as opposed to leaving it
--	  in zswap until the swap entry is freed.
--
--	  This avoids having two copies of the same page in memory
--	  (compressed and uncompressed) after faulting in a page from zswap.
--	  The cost is that if the page was never dirtied and needs to be
--	  swapped out again, it will be re-compressed.
--
- config ZSWAP_SHRINKER_DEFAULT_ON
- 	bool "Shrink the zswap pool on memory pressure"
- 	depends on ZSWAP
---- a/mm/zswap.c~mm-zswap-only-support-zswap_exclusive_loads_enabled
+ struct list_lru_one {
+--- a/mm/list_lru.c~mm-zswap-stop-lru-list-shrinking-when-encounter-warm-region
++++ a/mm/list_lru.c
+@@ -243,6 +243,9 @@ restart:
+ 			 */
+ 			assert_spin_locked(&nlru->lock);
+ 			goto restart;
++		case LRU_STOP:
++			assert_spin_locked(&nlru->lock);
++			goto out;
+ 		default:
+ 			BUG();
+ 		}
+--- a/mm/zswap.c~mm-zswap-stop-lru-list-shrinking-when-encounter-warm-region
 +++ a/mm/zswap.c
-@@ -139,10 +139,6 @@ static bool zswap_non_same_filled_pages_
- module_param_named(non_same_filled_pages_enabled, zswap_non_same_filled_pages_enabled,
- 		   bool, 0644);
- 
--static bool zswap_exclusive_loads_enabled = IS_ENABLED(
--		CONFIG_ZSWAP_EXCLUSIVE_LOADS_DEFAULT_ON);
--module_param_named(exclusive_loads, zswap_exclusive_loads_enabled, bool, 0644);
--
- /* Number of zpools in zswap_pool (empirically determined for scalability) */
- #define ZSWAP_NR_ZPOOLS 32
- 
-@@ -1723,16 +1719,12 @@ bool zswap_load(struct folio *folio)
- 		count_objcg_event(entry->objcg, ZSWPIN);
- 
- 	spin_lock(&tree->lock);
--	if (zswap_exclusive_loads_enabled) {
--		zswap_invalidate_entry(tree, entry);
--		folio_mark_dirty(folio);
--	} else if (entry->length) {
--		zswap_lru_del(&entry->pool->list_lru, entry);
--		zswap_lru_add(&entry->pool->list_lru, entry);
--	}
-+	zswap_invalidate_entry(tree, entry);
- 	zswap_entry_put(entry);
- 	spin_unlock(&tree->lock);
- 
-+	folio_mark_dirty(folio);
-+
- 	return true;
- }
- 
+@@ -1315,8 +1315,10 @@ static enum lru_status shrink_memcg_cb(s
+ 		 * into the warmer region. We should terminate shrinking (if we're in the dynamic
+ 		 * shrinker context).
+ 		 */
+-		if (writeback_result == -EEXIST && encountered_page_in_swapcache)
++		if (writeback_result == -EEXIST && encountered_page_in_swapcache) {
++			ret = LRU_STOP;
+ 			*encountered_page_in_swapcache = true;
++		}
+ 	} else {
+ 		zswap_written_back_pages++;
+ 	}
 _
 
 Patches currently in -mm which might be from zhouchengming@bytedance.com are
