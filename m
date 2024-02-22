@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9AB413BAF8
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:40:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4D2A13BAF8
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:40:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708645220; cv=none; b=TuukNTPdUkqOTwZKxoYIS2nOoUvFand0BA3N45JhP97kze4Ua1wvVd/syCKyPiYgsuNuzkG+uDfmbx9HRYDdD7L18AMAgaxT7KpS4ZKWDYhjaICqL+uolGDPFlpj0XOlBR3w54emo8IqZQ8rG950Zes9KK3w/plQ/3lbBzmWlOA=
+	t=1708645221; cv=none; b=K97MTDVaoQOan9YrmboTEio/OyD+WZuQbFUAzYhQ3crsStnGR6HLZ9Q7A0pVyfsJKPAOhEijMF6FLp2bNTHvg1a39iwScaPb/sJtz7WoQQfL0Cj4SUs5/bTQD1mccbtxFa7kZc6jJTot6kutb0ANqAjDXlvfRwfFWQ4sq0ZdjNM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708645220; c=relaxed/simple;
-	bh=NtXfVjeQzCQM1xWHO7SjLTcjjNK2U7lDZRsv3Tf6OW4=;
-	h=Date:To:From:Subject:Message-Id; b=s1Y7eWc2NPYISinZn85AMODtlovEPV6eFNQod8zzizC/o6qp/F5mWDnHez6l/F0rWBwM76hXhD9Rg8NSGPA2s8if+3OGNgt/qCIPRW04CqoH6asUBOr0I81Zveq2LDAsfAeiU4+nCDVkt0267Sn+YJEfii6ZegPmo2waiojmKzA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DpvbQxpd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708645221; c=relaxed/simple;
+	bh=lbkBeFCjuJd0Ogs0bESUJVjuN0l9fnFWh3uhtI2gsRI=;
+	h=Date:To:From:Subject:Message-Id; b=aYrzMJZBhnhhmOLtdRCblahC1kA50dcFN6l9LAGW87XhMD+pHgCNmmae9igU4U5ArfX2Hi/UBdncCkHdS3O6eZbF/MmfqHy16muOz36MZZvNz62O8OKWl86amXSbsUMZ/kygjCyAMCX8pm53oWDhLpAkzQpB/w9CZThMPRmWlCY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JmcFotzr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DpvbQxpd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C9E1C433C7;
-	Thu, 22 Feb 2024 23:40:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JmcFotzr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7996FC433C7;
+	Thu, 22 Feb 2024 23:40:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708645220;
-	bh=NtXfVjeQzCQM1xWHO7SjLTcjjNK2U7lDZRsv3Tf6OW4=;
+	s=korg; t=1708645221;
+	bh=lbkBeFCjuJd0Ogs0bESUJVjuN0l9fnFWh3uhtI2gsRI=;
 	h=Date:To:From:Subject:From;
-	b=DpvbQxpdM2ijBqvlHGe+jsc9UjpDiEMBVYu6ApvZVrfFXNzrXwmDzP0q39L0soOjm
-	 sve1K+fXBgZ6Zwfkrth+h0iziircZxkB7dmy7BA+EPiNooexPbKEuR44eOebjinNgm
-	 2ZJzK7q2/jXIhbJu65VsbTu+GIJsBCAdEOjGXFQw=
+	b=JmcFotzrv0BMveOTcswtZHprYScFCcwih+obaGsP8Y5Ieq04+ICnBiCJPIYU0+2ht
+	 Ow2djr6qGNcp/VsgRn05Le3USNIJ82xcQIympbw+Xnk6fCM7tlCTcDpvWqEgd0AxRW
+	 FaXZ/pnCRqACqcODZ0H+wA3sD6NBa2TdX8bMmc/4=
 Date: Thu, 22 Feb 2024 15:40:20 -0800
-To: mm-commits@vger.kernel.org,peterz@infradead.org,adobriyan@gmail.com,akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] smp-make-__smp_processor_id-0-argument-macro.patch removed from -mm tree
-Message-Id: <20240222234020.9C9E1C433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-maintainers-drop-unreachable-project-mirror-site.patch removed from -mm tree
+Message-Id: <20240222234021.7996FC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: smp: make __smp_processor_id() 0-argument macro
+     Subject: nilfs2: MAINTAINERS: drop unreachable project mirror site
 has been removed from the -mm tree.  Its filename was
-     smp-make-__smp_processor_id-0-argument-macro.patch
+     nilfs2-maintainers-drop-unreachable-project-mirror-site.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: smp: make __smp_processor_id() 0-argument macro
-Date: Mon, 5 Feb 2024 12:39:30 +0300
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: MAINTAINERS: drop unreachable project mirror site
+Date: Thu, 8 Feb 2024 18:30:18 +0900
 
-smp_processor_id family of macros never accepted any arguments.
+The hosting site where the nilfs project had a mirror site continues to be
+in trouble, so we have decided not to use that site.  This will reflect it
+in the MAINTAINERS file.
 
-	#define __smp_processor_id(x)
-
-works by accident (see C99 6.10.3 §4). __smp_processor_id() gets
-1 (empty) argument and passes it down to raw_smp_processor_id()
-which doesn't accept arguments.
-
-Link: https://lkml.kernel.org/r/0037d1f2-8153-4b33-b43e-f4b6ecd710ac@p183
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20240208093018.6334-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/include/linux/smp.h~smp-make-__smp_processor_id-0-argument-macro
-+++ a/include/linux/smp.h
-@@ -261,7 +261,7 @@ static inline int get_boot_cpu_id(void)
-  * regular asm read for the stable.
-  */
- #ifndef __smp_processor_id
--#define __smp_processor_id(x) raw_smp_processor_id(x)
-+#define __smp_processor_id() raw_smp_processor_id()
- #endif
- 
- #ifdef CONFIG_DEBUG_PREEMPT
+--- a/MAINTAINERS~nilfs2-maintainers-drop-unreachable-project-mirror-site
++++ a/MAINTAINERS
+@@ -15435,7 +15435,6 @@ M:	Ryusuke Konishi <konishi.ryusuke@gmai
+ L:	linux-nilfs@vger.kernel.org
+ S:	Supported
+ W:	https://nilfs.sourceforge.io/
+-W:	https://nilfs.osdn.jp/
+ T:	git https://github.com/konis/nilfs2.git
+ F:	Documentation/filesystems/nilfs2.rst
+ F:	fs/nilfs2/
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
 
