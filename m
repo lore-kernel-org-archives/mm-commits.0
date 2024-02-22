@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60FEB8F4D
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B8C28F4D
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560068; cv=none; b=IsdRPSBWtH3iaBWqBTGmtv0mBDx9BP4pNEKX6fOPx0ptQEDK8gG3QbXWSfzjO8bt9h+Fgss7BBVbhXR06PtV4q4OGgUgO0WQXhTLt68XJRdoDcTiZCsMK0UwR9tIjvVT/+VzbkB13e3iIYN8pUrva0yV5xBbx1tcctuSqQvL9QY=
+	t=1708560069; cv=none; b=GjMwhrqEqr8bJkWnCzpmhTweCNqP+S10V2PJCFy+6tuXg9qhJmCeziY/whZrCs3oZaAr7sPIMGkXnviGksGomtpZCRP85iZ6mCmT3xgLUxtRcqCdXjjPCLx8S6aJvmroTLpV6XCOOXCVTFw1zaCngoYX0dgMt0Twa/RPGwlq3bI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560068; c=relaxed/simple;
-	bh=FvnpmcTh+Pbnk2D/PAE6fh7eEoybbNyOMYvoTewG1qo=;
-	h=Date:To:From:Subject:Message-Id; b=SRChPLW7dCionw+JHziZMUh9NCro9TSlmD4wxPWfNcLMCMza8vhbOCAXFw+a1pmzWOwI/Q1QACGSYJVD3AqdcocMrpJhQf8fhlSOPS7+3IEYSSeg9xmjfSgn0ib1zGS9aVkeEvToIf+j0PS6iHW4mcI0xRI/qI2OYe9ZSL5aVzY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bm1iA8Kr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560069; c=relaxed/simple;
+	bh=KOl+I6AC3iJW8HtRd8oGhtZiRCeYkOMlKTSSiqyHu7M=;
+	h=Date:To:From:Subject:Message-Id; b=IrIO3Gc23v+TKEVTBRBeVmVzTVfsaOpUWusARs4NsTDLW7E4+dWPnbmFDrWrzXPUxEALoPe4JjDWV34LvXsKX3XC/zK8tfDDZzidnwX/VAIL4EJk9QVq/Gp3BEpvDVyLg7xurNKhhMBCAAgz8fTxhAG4+I9Bb3tzmzxusNb6flA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=giz2Amg6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bm1iA8Kr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 236BFC43394;
-	Thu, 22 Feb 2024 00:01:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="giz2Amg6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D99CC43390;
+	Thu, 22 Feb 2024 00:01:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560068;
-	bh=FvnpmcTh+Pbnk2D/PAE6fh7eEoybbNyOMYvoTewG1qo=;
+	s=korg; t=1708560069;
+	bh=KOl+I6AC3iJW8HtRd8oGhtZiRCeYkOMlKTSSiqyHu7M=;
 	h=Date:To:From:Subject:From;
-	b=bm1iA8KrpOlfZ1mgj+ObM3o17F2/KORYjU2gcBaht9rA2eKSum8UGiq13zuBQAgR4
-	 JnLVGjcUM6CzIvgtbzRvNppp7EJdFsq2UP7k3K9MDX/ZkuGZHnMDQWoBYqOsXvHXcP
-	 bSW7WLbq8ba87O615J4/cxDreTwlm7RJBvsgeygM=
-Date: Wed, 21 Feb 2024 16:01:07 -0800
-To: mm-commits@vger.kernel.org,shakeelb@google.com,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,haifeng.xu@shopee.com,akpm@linux-foundation.org
+	b=giz2Amg6W0iHZCJCByaBWjciI93kZDifQUTIRvSSNpKD+mgd2MkqVEFZLBaRPbU4x
+	 JW0HzSreyLcGFltVig+j+gcY1FZOc3eA/u72GnZAO4y3dif5yDWhZCzIbDcsJ9sI7R
+	 cjaoifR28tCAj2RMQxNw6TzChtoU7TiXFqxRWO/I=
+Date: Wed, 21 Feb 2024 16:01:08 -0800
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,riel@surriel.com,oliver.sang@intel.com,fengwei.yin@intel.com,cl@linux.com,yang@os.amperecomputing.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-list_lru-remove-unused-macro-list_lru_init_key.patch removed from -mm tree
-Message-Id: <20240222000108.236BFC43394@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mmap-no-need-to-call-khugepaged_enter_vma-for-stack.patch removed from -mm tree
+Message-Id: <20240222000109.0D99CC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,56 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: list_lru: remove unused macro list_lru_init_key()
+     Subject: mm: mmap: no need to call khugepaged_enter_vma() for stack
 has been removed from the -mm tree.  Its filename was
-     mm-list_lru-remove-unused-macro-list_lru_init_key.patch
+     mm-mmap-no-need-to-call-khugepaged_enter_vma-for-stack.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Haifeng Xu <haifeng.xu@shopee.com>
-Subject: mm: list_lru: remove unused macro list_lru_init_key()
-Date: Thu, 28 Dec 2023 06:27:15 +0000
+From: Yang Shi <yang@os.amperecomputing.com>
+Subject: mm: mmap: no need to call khugepaged_enter_vma() for stack
+Date: Wed, 20 Dec 2023 22:59:42 -0800
 
-list_lru_init_key() isn't used by anyone, remove it to clean up.
+We avoid allocating THP for temporary stack, even though
+khugepaged_enter_vma() is called for stack VMAs, it actualy returns
+false.  So no need to call it in the first place at all.
 
-Link: https://lkml.kernel.org/r/20231228062715.338672-2-haifeng.xu@shopee.com
-Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/20231221065943.2803551-1-shy828301@gmail.com
+Signed-off-by: Yang Shi <yang@os.amperecomputing.com>
+Reviewed-by: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: kernel test robot <oliver.sang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list_lru.h |    2 --
+ mm/mmap.c |    2 --
  1 file changed, 2 deletions(-)
 
---- a/include/linux/list_lru.h~mm-list_lru-remove-unused-macro-list_lru_init_key
-+++ a/include/linux/list_lru.h
-@@ -62,8 +62,6 @@ int __list_lru_init(struct list_lru *lru
- 
- #define list_lru_init(lru)				\
- 	__list_lru_init((lru), false, NULL, NULL)
--#define list_lru_init_key(lru, key)			\
--	__list_lru_init((lru), false, (key), NULL)
- #define list_lru_init_memcg(lru, shrinker)		\
- 	__list_lru_init((lru), true, NULL, shrinker)
- 
+--- a/mm/mmap.c~mm-mmap-no-need-to-call-khugepaged_enter_vma-for-stack
++++ a/mm/mmap.c
+@@ -2051,7 +2051,6 @@ static int expand_upwards(struct vm_area
+ 		}
+ 	}
+ 	anon_vma_unlock_write(vma->anon_vma);
+-	khugepaged_enter_vma(vma, vma->vm_flags);
+ 	mas_destroy(&mas);
+ 	validate_mm(mm);
+ 	return error;
+@@ -2145,7 +2144,6 @@ int expand_downwards(struct vm_area_stru
+ 		}
+ 	}
+ 	anon_vma_unlock_write(vma->anon_vma);
+-	khugepaged_enter_vma(vma, vma->vm_flags);
+ 	mas_destroy(&mas);
+ 	validate_mm(mm);
+ 	return error;
 _
 
-Patches currently in -mm which might be from haifeng.xu@shopee.com are
+Patches currently in -mm which might be from yang@os.amperecomputing.com are
 
 
