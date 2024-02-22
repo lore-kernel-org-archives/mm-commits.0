@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8ECA917550
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DC9017550
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560088; cv=none; b=T4+FsHrcxYxzNhhpWtBCtqtR9rJHxU7ujzW9WRgvi4D6fy0o68O9zFnj9giD8U8mxIsuYYPwtIAqJhDMwmIrb/pzeX99xkEAiNOgs8dsYCCskFyqiLTp7XUPft+cFXQWmismuEFYVqxgcrkkoS7X7AWkMuw66/qbQVrNmJd6GMM=
+	t=1708560089; cv=none; b=gYzvjW/hf/vKy6g4emCb90lOdhfpTpNcnGHUpN+MzCTwE8P8lI1LDkxIiHI2/MrH2S3LsHfjHBrkbJkVvQXIH0LBeGvuakUNv4LxU+dxCkbEzUsmpTPNfTr5t2ZIKMYalYlHVYi3Nq9XXT7LmTXw4NG6nrUjug+Kbja0mQxnrPM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560088; c=relaxed/simple;
-	bh=17CzwoPFfkoGBzGCc31xxFmjJe8oCr4BxJtpGHmrH5c=;
-	h=Date:To:From:Subject:Message-Id; b=LsiSiG3qwAYMz8gAM/N0ix2LCh+cXeOjfI18KZK+qthexiTSrCX5KWncoaMOCe6xADvxRjW5gFby4fHUyn9dc7IK+bkxUejWb+ih79mm7SV7P3kOkDC9haWnQpIdQ6rcnKlQdOKsjJhoVQZ2D/ahMlnccsiSJAAp1iScwYhFnew=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sd7thiJ5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560089; c=relaxed/simple;
+	bh=2vXA7Sx59Cks7mts1viiwA6UG6Ru55VCN1sWV2BAvC0=;
+	h=Date:To:From:Subject:Message-Id; b=M2NwrckWyBY1PkGpIV2xskKKvfWHjrYKh3IzS52iAI46p/zdqpmYGomakv0m/jYM43Y21XgsqQ+vVSJ2USbVDIck3MHU9FGyY2HbNMwovGfvQ4+CIqxqQSrSr0f1phOCJ65BhMe5a7uvPNRhqTZd2xcnmJgLWIjntLsYjBN7YjI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kSYPQkGG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sd7thiJ5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DB4BC433C7;
-	Thu, 22 Feb 2024 00:01:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kSYPQkGG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 414C7C43394;
+	Thu, 22 Feb 2024 00:01:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560088;
-	bh=17CzwoPFfkoGBzGCc31xxFmjJe8oCr4BxJtpGHmrH5c=;
+	s=korg; t=1708560089;
+	bh=2vXA7Sx59Cks7mts1viiwA6UG6Ru55VCN1sWV2BAvC0=;
 	h=Date:To:From:Subject:From;
-	b=sd7thiJ507EHhmE7GkHws1Etk0fDC9YWLNmOsB2RKBO8fVb7EG0WVsUDDELmOM3K9
-	 1BhsfS1nK21+ibT1xCBuJDI1WND7rfoCHYZdFqQq97OvPzf6J5lhm47I08b3DmrUWu
-	 aYY8vJUaW62UjJmGU3cfYejy11CmjYleEMFBAhyI=
-Date: Wed, 21 Feb 2024 16:01:27 -0800
-To: mm-commits@vger.kernel.org,tj@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,jack@suse.cz,hannes@cmpxchg.org,axboe@kernel.dk,shakeelb@google.com,akpm@linux-foundation.org
+	b=kSYPQkGGkgYzC8SrsIHnB42NHfkLGf/3gtyFoc2Xwhjr3ysOX/tjRQWqehfVO6dRY
+	 40B+jjTLIADqgq7VSki3dsYY8Zr4h9Ey2luD0dkvK+VIZvVaK0nVzVp8sE2f5hkwvM
+	 yRy4iwf+qxNzh0wGac0H0Ds0lZcvnegW6w0IKhfQ=
+Date: Wed, 21 Feb 2024 16:01:28 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,keescook@chromium.org,jeffxu@google.com,dverkamp@chromium.org,cyphar@cyphar.com,gthelen@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-writeback-ratelimit-stat-flush-from-mem_cgroup_wb_stats.patch removed from -mm tree
-Message-Id: <20240222000128.5DB4BC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-memfd-delete-unused-declarations.patch removed from -mm tree
+Message-Id: <20240222000129.414C7C43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,106 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: writeback: ratelimit stat flush from mem_cgroup_wb_stats
+     Subject: selftests/memfd: delete unused declarations
 has been removed from the -mm tree.  Its filename was
-     mm-writeback-ratelimit-stat-flush-from-mem_cgroup_wb_stats.patch
+     selftests-memfd-delete-unused-declarations.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm: writeback: ratelimit stat flush from mem_cgroup_wb_stats
-Date: Thu, 18 Jan 2024 18:42:35 +0000
+From: Greg Thelen <gthelen@google.com>
+Subject: selftests/memfd: delete unused declarations
+Date: Thu, 18 Jan 2024 01:50:57 -0800
 
-One of our workloads (Postgres 14) has regressed when migrated from 5.10
-to 6.1 upstream kernel.  The regression can be reproduced by sysbench's
-oltp_write_only benchmark.  It seems like the always on rstat flush in
-mem_cgroup_wb_stats() is causing the regression.  So, rate limit that
-specific rstat flush.  One potential consequence would be the dirty
-throttling might be decided on stale memcg stats.  However from our
-benchmarks and production traffic we have not observed any change in the
-dirty throttling behavior of the application.
+Commit 32d118ad50a5 ("selftests/memfd: add tests for F_SEAL_EXEC"):
+- added several unused 'nbytes' local variables
 
-Link: https://lkml.kernel.org/r/20240118184235.618164-1-shakeelb@google.com
-Fixes: 2d146aa3aa84 ("mm: memcontrol: switch to rstat")
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
+Commit 6469b66e3f5a ("selftests: improve vm.memfd_noexec sysctl tests"):
+- orphaned 'newpid_thread_fn2()' forward declaration
+- orphaned 'join_newpid_thread()' forward declaration
+- added unused 'pid' local in sysctl_simple_child()
+- orphaned 'fd' local in sysctl_simple_child()
+- added unused 'fd' in sysctl_nested_child()
+
+Delete the unused locals and forward declarations.
+
+Link: https://lkml.kernel.org/r/20240118095057.677544-1-gthelen@google.com
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Cc: Aleksa Sarai <cyphar@cyphar.com>
+Cc: Daniel Verkamp <dverkamp@chromium.org>
+Cc: Jeff Xu <jeffxu@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/memfd/memfd_test.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
---- a/mm/memcontrol.c~mm-writeback-ratelimit-stat-flush-from-mem_cgroup_wb_stats
-+++ a/mm/memcontrol.c
-@@ -4800,7 +4800,7 @@ void mem_cgroup_wb_stats(struct bdi_writ
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(wb->memcg_css);
- 	struct mem_cgroup *parent;
+--- a/tools/testing/selftests/memfd/memfd_test.c~selftests-memfd-delete-unused-declarations
++++ a/tools/testing/selftests/memfd/memfd_test.c
+@@ -44,8 +44,6 @@
+  */
+ static size_t mfd_def_size = MFD_DEF_SIZE;
+ static const char *memfd_str = MEMFD_STR;
+-static int newpid_thread_fn2(void *arg);
+-static void join_newpid_thread(pid_t pid);
  
--	mem_cgroup_flush_stats(memcg);
-+	mem_cgroup_flush_stats_ratelimited(memcg);
+ static ssize_t fd2name(int fd, char *buf, size_t bufsize)
+ {
+@@ -194,7 +192,6 @@ static unsigned int mfd_assert_get_seals
+ static void mfd_assert_has_seals(int fd, unsigned int seals)
+ {
+ 	char buf[PATH_MAX];
+-	int nbytes;
+ 	unsigned int s;
+ 	fd2name(fd, buf, PATH_MAX);
  
- 	*pdirty = memcg_page_state(memcg, NR_FILE_DIRTY);
- 	*pwriteback = memcg_page_state(memcg, NR_WRITEBACK);
+@@ -696,7 +693,6 @@ static void mfd_assert_mode(int fd, int
+ {
+ 	struct stat st;
+ 	char buf[PATH_MAX];
+-	int nbytes;
+ 
+ 	fd2name(fd, buf, PATH_MAX);
+ 
+@@ -715,7 +711,6 @@ static void mfd_assert_mode(int fd, int
+ static void mfd_assert_chmod(int fd, int mode)
+ {
+ 	char buf[PATH_MAX];
+-	int nbytes;
+ 
+ 	fd2name(fd, buf, PATH_MAX);
+ 
+@@ -731,7 +726,6 @@ static void mfd_fail_chmod(int fd, int m
+ {
+ 	struct stat st;
+ 	char buf[PATH_MAX];
+-	int nbytes;
+ 
+ 	fd2name(fd, buf, PATH_MAX);
+ 
+@@ -1254,9 +1248,6 @@ static void test_sysctl_set_sysctl2(void
+ 
+ static int sysctl_simple_child(void *arg)
+ {
+-	int fd;
+-	int pid;
+-
+ 	printf("%s sysctl 0\n", memfd_str);
+ 	test_sysctl_set_sysctl0();
+ 
+@@ -1321,7 +1312,6 @@ static void test_sysctl_sysctl2_failset(
+ 
+ static int sysctl_nested_child(void *arg)
+ {
+-	int fd;
+ 	int pid;
+ 
+ 	printf("%s nested sysctl 0\n", memfd_str);
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
 
