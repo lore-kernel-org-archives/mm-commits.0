@@ -1,117 +1,118 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55D9F18032;
-	Thu, 22 Feb 2024 23:06:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 846FA17BC7
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:15:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708643170; cv=none; b=manzboi7WtAwP4cBPcRS5AQVnZ78hpTsscJNj/IfLukSyZAQNBS26P/2XwDXjrH7/6TX5qFUXc0COKSVj4HHFhzkmYoktXKDDHREdX3n/9bZHqntyI3R7o6fb2yB+/87lBhOj8pwyPw1rB14VLc7n430KyweS6dh3QaOJFh2AO8=
+	t=1708643753; cv=none; b=hbE422RA57Xzf0Uk1QYuVwgN+ShybzoQvhjjxALaiGtov2gp4Ob6F+TNYtaBYobfKXGFM4LnIy1FYArrKTiGPv32aEgw+Gc2rKV9KukEnBOxupCibfnXNb4I0j4vgZKSsMeAm4Z8ob9GSlsZEzfnkMM4kQljDPcetnUSR8zNWfA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708643170; c=relaxed/simple;
-	bh=hYrpPsLRcrNhzOLOLhn2V6Z7Ec9eAWm7xV/uL9PKg4k=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=rFLUtkKIoZJ3U2xyPLZtyImdYRAn1giljtACnduFmmD+Kqo/2+tWLogbWKiUKAY1u3Bzcijhrca5mwL/x9Xz4YLZKT5XM/YsrGEQo0bVmvHigwCQZueQpv6qcPvWBQWwX3cbyfB4CvDoZOW2JOQRl7x9XI7PG3Qy6z6WMJ1AZnA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UI0A8Wt+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708643753; c=relaxed/simple;
+	bh=9zDmgnWp+NUIOuDz3B0JA9jAC5w6wuVV9BpzdoVOkjY=;
+	h=Date:To:From:Subject:Message-Id; b=TmQ2t4k+5H/8k92dehmgSwBvooh9s72sWqTBQhoZXvmzkTGH7tT7NAJUkr1WtaBr1rFXZYsZ3oHWETH++YQmElt/vZ7hyk79cs5Mtp0Kah01s5Xzjb3sE+Uz3AvTC2t6WWfbeviaSA3k6KBGtxEDs5V10PQQbzfmAjTNlvM/kBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BL2v78Z+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UI0A8Wt+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 870C1C433F1;
-	Thu, 22 Feb 2024 23:06:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BL2v78Z+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8BA8C433C7;
+	Thu, 22 Feb 2024 23:15:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708643169;
-	bh=hYrpPsLRcrNhzOLOLhn2V6Z7Ec9eAWm7xV/uL9PKg4k=;
-	h=Date:From:To:Cc:Subject:From;
-	b=UI0A8Wt+vdtYj5x/lR7GPqNZ7hObkZgqPUCpbEOu943jvyiTpexpjItEwXKqcqo9H
-	 r2I6y4+edA3q+8RWW8OJJK1jMkYYrfxYOTfIwCCCxZnJP769dArAy7Q81Zdx14AzZs
-	 miym5YJ781HBJuhO2DgNJuL41ywJzH63swZGbMjY=
-Date: Thu, 22 Feb 2024 15:06:09 -0800
+	s=korg; t=1708643752;
+	bh=9zDmgnWp+NUIOuDz3B0JA9jAC5w6wuVV9BpzdoVOkjY=;
+	h=Date:To:From:Subject:From;
+	b=BL2v78Z+nt5vNO+2ZOMMIANkcO+168C2fvlC4IdyE1/LhFtPn4o0k1l19UH/uJoTY
+	 XKnBJN71YrMqKSEb4LVEKkrjPlxGkaayyUqLzFCbkaj2XvvMztbnYjjdA8mueALAL7
+	 ldS2qPP8OQ7kdRUOXHVh2HTK13WAKRe0gJB7f8ZM=
+Date: Thu, 22 Feb 2024 15:15:52 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,nphamcs@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.8-rc6
-Message-Id: <20240222150609.61c32cf2ababec81509bf5fc@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: [folded-merged] selftests-add-zswapin-and-no-zswap-tests-fix.patch removed from -mm tree
+Message-Id: <20240222231552.D8BA8C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please merge this batch of MM (and one non-MM) hotfixes, thanks.
+The quilt patch titled
+     Subject: selftests: add zswapin and no zswap tests (fix)
+has been removed from the -mm tree.  Its filename was
+     selftests-add-zswapin-and-no-zswap-tests-fix.patch
 
+This patch was dropped because it was folded into selftests-add-zswapin-and-no-zswap-tests.patch
 
-The following changes since commit b401b621758e46812da61fa58a67c3fd8d91de0d:
+------------------------------------------------------
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: selftests: add zswapin and no zswap tests (fix)
+Date: Wed, 21 Feb 2024 20:31:32 -0800
 
-  Linux 6.8-rc5 (2024-02-18 12:56:25 -0800)
+Remove redundant "set up" comment and add check to ensure enough data is
+swapped out (in swapin test) and zswapped-in.
 
-are available in the Git repository at:
+Link: https://lkml.kernel.org/r/20240222043132.616320-1-nphamcs@gmail.com
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Suggested-by: Yosry Ahmed <yosryahmed@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-02-22-15-02
+ tools/testing/selftests/cgroup/test_zswap.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-for you to fetch changes up to 2597c9947b0174fcc71bdd7ab6cb49c2b4291e95:
+--- a/tools/testing/selftests/cgroup/test_zswap.c~selftests-add-zswapin-and-no-zswap-tests-fix
++++ a/tools/testing/selftests/cgroup/test_zswap.c
+@@ -71,7 +71,7 @@ static int allocate_and_read_bytes(const
+ 	for (int i = 0; i < size; i += 4095)
+ 		mem[i] = 'a';
+ 
+-	/* go through the allocated memory to (z)swap in and out pages */
++	/* Go through the allocated memory to (z)swap in and out pages */
+ 	for (int i = 0; i < size; i += 4095) {
+ 		if (mem[i] != 'a')
+ 			ret = -1;
+@@ -184,8 +184,8 @@ static int test_swapin_nozswap(const cha
+ 		goto out;
+ 	}
+ 
+-	if (swap_peak == 0) {
+-		ksft_print_msg("pages should be swapped out\n");
++	if (swap_peak < MB(24)) {
++		ksft_print_msg("at least 24MB of memory should be swapped out\n");
+ 		goto out;
+ 	}
+ 
+@@ -215,7 +215,6 @@ static int test_zswapin(const char *root
+ 	char *test_group;
+ 	long zswpin;
+ 
+-	/* Set up */
+ 	test_group = cg_name(root, "zswapin_test");
+ 	if (!test_group)
+ 		goto out;
+@@ -236,8 +235,8 @@ static int test_zswapin(const char *root
+ 		goto out;
+ 	}
+ 
+-	if (zswpin == 0) {
+-		ksft_print_msg("zswpin should not be 0\n");
++	if (zswpin < MB(24) / PAGE_SIZE) {
++		ksft_print_msg("at least 24MB should be brought back from zswap\n");
+ 		goto out;
+ 	}
+ 
+@@ -260,7 +259,6 @@ static int test_no_invasive_cgroup_shrin
+ 	size_t control_allocation_size = MB(10);
+ 	char *control_allocation, *wb_group = NULL, *control_group = NULL;
+ 
+-	/* Set up */
+ 	wb_group = setup_test_group_1M(root, "per_memcg_wb_test1");
+ 	if (!wb_group)
+ 		return KSFT_FAIL;
+_
 
-  kasan: guard release_free_meta() shadow access with kasan_arch_is_ready() (2024-02-20 14:20:50 -0800)
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
-----------------------------------------------------------------
-14 hotfixes.  10 are cc:stable and the remainder address post-6.7 issues
-or aren't considered appropriate for backporting.
-
-----------------------------------------------------------------
-Anshuman Khandual (1):
-      mm/memblock: add MEMBLOCK_RSRV_NOINIT into flagname[] array
-
-Benjamin Gray (1):
-      kasan: guard release_free_meta() shadow access with kasan_arch_is_ready()
-
-Chengming Zhou (1):
-      mm/zswap: invalidate duplicate entry when !zswap_enabled
-
-Guenter Roeck (1):
-      lib/Kconfig.debug: TEST_IOV_ITER depends on MMU
-
-Johannes Weiner (1):
-      mm: memcontrol: clarify swapaccount=0 deprecation warning
-
-Kairui Song (1):
-      mm/swap: fix race when skipping swapcache
-
-Nhat Pham (1):
-      mm/swap_state: update zswap LRU's protection range with the folio locked
-
-SeongJae Park (4):
-      mm/damon/core: check apply interval in damon_do_apply_schemes()
-      mm/damon/sysfs-schemes: handle schemes sysfs dir removal before commit_schemes_quota_goals
-      mm/damon/reclaim: fix quota stauts loss due to online tunings
-      mm/damon/lru_sort: fix quota status loss due to online tunings
-
-Shakeel Butt (1):
-      MAINTAINERS: mailmap: update Shakeel's email address
-
-Terry Tritton (1):
-      selftests/mm: uffd-unit-test check if huge page size is 0
-
-Yosry Ahmed (1):
-      mm: zswap: fix missing folio cleanup in writeback race path
-
- .mailmap                                     |  1 +
- MAINTAINERS                                  |  2 +-
- include/linux/swap.h                         |  5 ++++
- lib/Kconfig.debug                            |  1 +
- mm/damon/core.c                              | 15 +++++++---
- mm/damon/lru_sort.c                          | 43 +++++++++++++++++++++++-----
- mm/damon/reclaim.c                           | 18 +++++++++++-
- mm/damon/sysfs-schemes.c                     |  4 +++
- mm/kasan/generic.c                           |  3 ++
- mm/memblock.c                                |  1 +
- mm/memcontrol.c                              | 10 +++++--
- mm/memory.c                                  | 20 +++++++++++++
- mm/swap.h                                    |  5 ++++
- mm/swap_state.c                              | 10 ++++---
- mm/swapfile.c                                | 13 +++++++++
- mm/zswap.c                                   | 15 ++++++----
- tools/testing/selftests/mm/uffd-unit-tests.c |  6 ++++
- 17 files changed, 147 insertions(+), 25 deletions(-)
+mm-cachestat-fix-folio-read-after-free-in-cache-walk.patch
+selftests-zswap-add-zswap-selftest-file-to-zswap-maintainer-entry.patch
+selftests-fix-the-zswap-invasive-shrink-test.patch
+selftests-add-zswapin-and-no-zswap-tests.patch
 
