@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40B551FA0
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:00:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E00A7E6
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:00:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560056; cv=none; b=KHhFEWQn6zbrKHXrTr3Ym1gvWGAYzXwiB67LIs0/HEGzHYPKFUQp2W+QLXnE2KBLALF3ZKRuvBP/Ci6e/N8BVon3n14+EINoUjvtonpNvAPIfOMVTt+Z9uRiYzknQnmDLfTGSf8iJMDeJNo99Rx0ATJK4ZEatgPEZhwCnWRjFu0=
+	t=1708560057; cv=none; b=Tb8i8Lk0zIIf7plh0+dgblfrnnpDFwBo8g2EXocrEfZo5k3l2fjFawZWj5bHVfCgocOzD3nF4Aae7Ht2UYUEsv8/BIrfDS5fGbhdjK+9TfPDykuzSHEDu8MVTsO+u8cyMm1yFMVEAL10plzEx8WJvQ0aVkwGGw5Y6xE8dnv/sP0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560056; c=relaxed/simple;
-	bh=pDRXxnQKPGeQN+5dw/0+jud5sZ9skxq+wlz7Op6N7Mo=;
-	h=Date:To:From:Subject:Message-Id; b=jZ9fN5kDaBF6a0UiffJTQrPEFW8is3EgqZPjYU/ZOXpV9r9zxF3IY+yjWmdkXYZ/Y+OGv71ToaKQOlK14EbFTrruxVkKjPhJa0D11P+VzcdVdBFJ/B1yBUFIPu8t86qXQeSpDvZCghM+OCjq2yW9wLS9waTrfW+lPl8ChQHgnyo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cw/oFtl6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560057; c=relaxed/simple;
+	bh=+B/iQCRgT6in491se8sCRWxL60tHRWExshDnJ0gBAdY=;
+	h=Date:To:From:Subject:Message-Id; b=g/rymdMp0PEXPehvH75Cl7ix518r+fbu84yJlq/BzUS0AD1AgOi/d5uRz2V+KQu9y9Zw2vZdHVDFM4t3QR5HuQM/KaZ/JJ81eQsWxHZpbRNuK3R+d0pphTPdTcSFcrWNoL3dxiE4Y8HvLUiL/SbO6FJZomAE+tvLgQlf+cIz2gc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JB+vTLYh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cw/oFtl6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A17EFC43390;
-	Thu, 22 Feb 2024 00:00:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JB+vTLYh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92B76C43399;
+	Thu, 22 Feb 2024 00:00:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560055;
-	bh=pDRXxnQKPGeQN+5dw/0+jud5sZ9skxq+wlz7Op6N7Mo=;
+	s=korg; t=1708560056;
+	bh=+B/iQCRgT6in491se8sCRWxL60tHRWExshDnJ0gBAdY=;
 	h=Date:To:From:Subject:From;
-	b=cw/oFtl648O1KuuEsNUUWOApv6txMlJa19CaRe9QHlXClQSk5yrjH+xT5fFBMjISf
-	 S9DbQ85/hMKhtB3DyxZVxlTqaGtevU/kjIzAqIIm2N6+S/I31njjJJjt5sf1UKqdBV
-	 t1cVcjRZYeozPedD+QlFmOCJjZygvWZhUxV+f9Ao=
-Date: Wed, 21 Feb 2024 16:00:55 -0800
-To: mm-commits@vger.kernel.org,minchan@kernel.org,lmark@codeaurora.org,kaleshsingh@google.com,akpm@linux-foundation.org
+	b=JB+vTLYhjjjJ4zKEZMmBNOkCjN3xnp4QrKyXUTKXBPp4+zer7ARg8/2d17uQjPqmS
+	 0n4KfCK2OCUWf25aNYR782DSIi9Zz5IXUO/crME6i3nE1muZQb8+H3mWkWwm5TYf/Q
+	 E0HCoAOVxDfuX2+ySspnFXKx60FQ3VWQmWCZ92uA=
+Date: Wed, 21 Feb 2024 16:00:56 -0800
+To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-cma-fix-placement-of-trace_cma_alloc_start-finish.patch removed from -mm tree
-Message-Id: <20240222000055.A17EFC43390@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-fix-comment-describing-mas_node_count_gfp.patch removed from -mm tree
+Message-Id: <20240222000056.92B76C43399@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/cma: fix placement of trace_cma_alloc_start/finish
+     Subject: maple_tree: fix comment describing mas_node_count_gfp()
 has been removed from the -mm tree.  Its filename was
-     mm-cma-fix-placement-of-trace_cma_alloc_start-finish.patch
+     maple_tree-fix-comment-describing-mas_node_count_gfp.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kalesh Singh <kaleshsingh@google.com>
-Subject: mm/cma: fix placement of trace_cma_alloc_start/finish
-Date: Tue, 9 Jan 2024 17:22:33 -0800
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: maple_tree: fix comment describing mas_node_count_gfp()
+Date: Tue, 9 Jan 2024 14:31:19 -0800
 
-The current placement of trace_cma_alloc_start/finish misses the fail
-cases: !cma || !cma->count || !cma->bitmap.
+The function description comment for mas_node_count_gfp() mistakingly
+refers to the function as mas_node_count().  Change it to refer to the
+correct function.
 
-trace_cma_alloc_finish is also not emitted for the failure case
-where bitmap_count > bitmap_maxno.
-
-Fix these missed cases by moving the start event before the failure
-checks and moving the finish event to the out label.
-
-Link: https://lkml.kernel.org/r/20240110012234.3793639-1-kaleshsingh@google.com
-Fixes: 7bc1aec5e287 ("mm: cma: add trace events for CMA alloc perf testing")
-Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Liam Mark <lmark@codeaurora.org>
+Link: https://lkml.kernel.org/r/20240109223119.162357-1-sidhartha.kumar@oracle.com
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/maple_tree.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/cma.c~mm-cma-fix-placement-of-trace_cma_alloc_start-finish
-+++ a/mm/cma.c
-@@ -436,6 +436,9 @@ struct page *cma_alloc(struct cma *cma,
- 	unsigned long i;
- 	struct page *page = NULL;
- 	int ret = -ENOMEM;
-+	const char *name = cma ? cma->name : NULL;
-+
-+	trace_cma_alloc_start(name, count, align);
+--- a/lib/maple_tree.c~maple_tree-fix-comment-describing-mas_node_count_gfp
++++ a/lib/maple_tree.c
+@@ -1307,8 +1307,8 @@ static inline void mas_free(struct ma_st
+ }
  
- 	if (!cma || !cma->count || !cma->bitmap)
- 		goto out;
-@@ -446,8 +449,6 @@ struct page *cma_alloc(struct cma *cma,
- 	if (!count)
- 		goto out;
- 
--	trace_cma_alloc_start(cma->name, count, align);
--
- 	mask = cma_bitmap_aligned_mask(cma, align);
- 	offset = cma_bitmap_aligned_offset(cma, align);
- 	bitmap_maxno = cma_bitmap_maxno(cma);
-@@ -496,8 +497,6 @@ struct page *cma_alloc(struct cma *cma,
- 		start = bitmap_no + mask + 1;
- 	}
- 
--	trace_cma_alloc_finish(cma->name, pfn, page, count, align, ret);
--
- 	/*
- 	 * CMA can allocate multiple page blocks, which results in different
- 	 * blocks being marked with different tags. Reset the tags to ignore
-@@ -516,6 +515,7 @@ struct page *cma_alloc(struct cma *cma,
- 
- 	pr_debug("%s(): returned %p\n", __func__, page);
- out:
-+	trace_cma_alloc_finish(name, pfn, page, count, align, ret);
- 	if (page) {
- 		count_vm_event(CMA_ALLOC_SUCCESS);
- 		cma_sysfs_account_success_pages(cma, count);
+ /*
+- * mas_node_count() - Check if enough nodes are allocated and request more if
+- * there is not enough nodes.
++ * mas_node_count_gfp() - Check if enough nodes are allocated and request more
++ * if there is not enough nodes.
+  * @mas: The maple state
+  * @count: The number of nodes needed
+  * @gfp: the gfp flags
 _
 
-Patches currently in -mm which might be from kaleshsingh@google.com are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
 
