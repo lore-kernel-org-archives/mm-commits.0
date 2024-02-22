@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A54D0BA53
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96FBB24B23
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:01:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560086; cv=none; b=K8rKRPLk0LLXOWwDack+eh2/TotPHDHjcc9Py1mnTOb03ik2SRTvbVpP+s8SA0p2Ol5bTTjWu9uj4JkbRCo4LTOoh4b6mN3bwuaQjZoJBVOZsDZu8xZY1u8uNt+xNY0Y/jzArLHYFBANlYvalWYZLGxucs4wUtu20y46qDWhln4=
+	t=1708560087; cv=none; b=Angv+yXRMNJcfq2UxCcnrFcaI8alyVrZellSvfv6ScCqfxD6Tfs48iQe6Mk33IMrMJtY8ZDeecm+Gc4sOdDdaHeOCy9+axjUk+ogtF1I+dSP1YUU2CYlaTBqooyTllujSVa5QS/wQ55Sqk5wbXkSJuGWaZ5oLlFasbnbDdrp9Wg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560086; c=relaxed/simple;
-	bh=ssRmADJ8M8Fdh+F2gIpxzIpUVqIQqysBELqN+PvZ11Y=;
-	h=Date:To:From:Subject:Message-Id; b=umSaHUm0z29k8m6QUNutEVA5DEr68LL/ip9cjiadv4ATMPE2uIoyjY54ThdKWNeXptGh2cyjNIQkQNCX+hz3YY+PmtnnI+F6qNgTkJMavgpyj+OZYeoWgC0SC9ksuE9sz+ZoVJ+J/nQZdIlU2Ii6vhx76RiinNNrI3eN3hZkS2g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t8JCyc/X; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560087; c=relaxed/simple;
+	bh=cslaQrekDCO3SUXy77rX9m6hCyd9H+S2FZKL8Vg62OQ=;
+	h=Date:To:From:Subject:Message-Id; b=rNlN02TUNIZ3+ur7LtdON1FEkWqMEjfgaPQRODxc7lE7BNtnKvDJqByd9fk+/BVLIhae/OgbRE1+RUJPuWnrKu9EhBsW0IbEn8YnVfmEHSOdQVaE0R0o6oAFlq517ny7oVDLZ8twCn3K1fPa/xjERKSA7JVAlJnGsHOyYoltbM4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=An95Df+0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t8JCyc/X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71C35C43390;
-	Thu, 22 Feb 2024 00:01:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="An95Df+0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68AE0C43399;
+	Thu, 22 Feb 2024 00:01:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560086;
-	bh=ssRmADJ8M8Fdh+F2gIpxzIpUVqIQqysBELqN+PvZ11Y=;
+	s=korg; t=1708560087;
+	bh=cslaQrekDCO3SUXy77rX9m6hCyd9H+S2FZKL8Vg62OQ=;
 	h=Date:To:From:Subject:From;
-	b=t8JCyc/Xsvu1652ydB4nyOcWNXQLePNPqaCr1emDxjfnEKmqn5xCVQWNzzfQ/oKnR
-	 z4pWzS3tDrMWILznpS1bGIcwcJllQiCr6sxzyyvr9AohNY/iird+JAMGD5bVVR2zfe
-	 T3+XWqAYuanUktPM5Th98TAtETdLTtLlpQiTIDNs=
-Date: Wed, 21 Feb 2024 16:01:25 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzenghui@huawei.com,willy@infradead.org,william.kucharski@oracle.com,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,jhubbard@nvidia.com,david@redhat.com,apopple@nvidia.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=An95Df+0+1z8Zz+hcAk7/6KIarzY18Td52KOeSX3iiEP/AQbY3JZNdlxpTXxeum8c
+	 VOFBrvN8EEP8COqGynaTDNZmxyZzxUIJbu1v69k79nK8Pw78g1fC6j7bn64Za1WMUj
+	 /xBMu+AGciO1IB8gcj8bmAypVum/JOj+ktuBXl/4=
+Date: Wed, 21 Feb 2024 16:01:26 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,shakeelb@google.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-mm-add-thpmaps-script-to-dump-thp-usage-info.patch removed from -mm tree
-Message-Id: <20240222000126.71C35C43390@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-move-mem_cgroup_charge-into-alloc_anon_folio.patch removed from -mm tree
+Message-Id: <20240222000127.68AE0C43399@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,939 +35,115 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/mm: add thpmaps script to dump THP usage info
+     Subject: mm: memory: move mem_cgroup_charge() into alloc_anon_folio()
 has been removed from the -mm tree.  Its filename was
-     tools-mm-add-thpmaps-script-to-dump-thp-usage-info.patch
+     mm-memory-move-mem_cgroup_charge-into-alloc_anon_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: tools/mm: add thpmaps script to dump THP usage info
-Date: Tue, 16 Jan 2024 14:12:35 +0000
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: memory: move mem_cgroup_charge() into alloc_anon_folio()
+Date: Wed, 17 Jan 2024 18:39:54 +0800
 
-With the proliferation of large folios for file-backed memory, and more
-recently the introduction of multi-size THP for anonymous memory, it is
-becoming useful to be able to see exactly how large folios are mapped into
-processes.  For some architectures (e.g.  arm64), if most memory is mapped
-using contpte-sized and -aligned blocks, TLB usage can be optimized so
-it's useful to see where these requirements are and are not being met.
+The GFP flags from vma_thp_gfp_mask() according to user configuration only
+used for large folio allocation but not for memory cgroup charge, and
+GFP_KERNEL is used for both order-0 and large order folio when memory
+cgroup charge at present.  However, mem_cgroup_charge() uses the GFP flags
+in a fairly sophisticated way.  In addition to checking
+gfpflags_allow_blocking(), it pays attention to __GFP_NORETRY and
+__GFP_RETRY_MAYFAIL to ensure that processes within this memcg do not
+exceed their quotas.
 
-thpmaps is a Python utility that reads /proc/<pid>/smaps,
-/proc/<pid>/pagemap and /proc/kpageflags to print information about how
-transparent huge pages (both file and anon) are mapped to a specified
-process or cgroup.  It aims to help users debug and optimize their
-workloads.  In future we may wish to introduce stats directly into the
-kernel (e.g.  smaps or similar), but for now this provides a short term
-solution without the need to introduce any new ABI.
+So we'd better to move mem_cgroup_charge() into alloc_anon_folio(),
 
-Run with help option for a full listing of the arguments:
+1) it will make us to allocate as much as possible large order folio,
+   because we could try the next order if mem_cgroup_charge() fails,
+   although the memcg's memory usage is close to its limits.
 
-    # ./thpmaps --help
+2) using same GFP flags for allocation and charge is to be consistent
+   with PMD THP firstly, in addition, according to GFP flag returned from
+   vma_thp_gfp_mask(), GFP_TRANSHUGE_LIGHT could make us skip direct
+   reclaim, _GFP_NORETRY will make us skip mem_cgroup_oom() and won't
+   trigger memory cgroup oom from large order(order <= COSTLY_ORDER) folio
+   charging.
 
---8<--
-usage: thpmaps [-h] [--pid pid | --cgroup path] [--rollup]
-               [--cont size[KMG]] [--inc-smaps] [--inc-empty]
-               [--periodic sleep_ms]
-
-Prints information about how transparent huge pages are mapped, either
-system-wide, or for a specified process or cgroup.
-
-When run with --pid, the user explicitly specifies the set of pids to
-scan.  e.g.  "--pid 10 [--pid 134 ...]".  When run with --cgroup, the user
-passes either a v1 or v2 cgroup and all pids that belong to the cgroup
-subtree are scanned.  When run with neither --pid nor --cgroup, the full
-set of pids on the system is gathered from /proc and scanned as if the
-user had provided "--pid 1 --pid 2 ...".
-
-A default set of statistics is always generated for THP mappings. 
-However, it is also possible to generate additional statistics for
-"contiguous block mappings" where the block size is user-defined.
-
-Statistics are maintained independently for anonymous and file-backed
-(pagecache) memory and are shown both in kB and as a percentage of either
-total anonymous or total file-backed memory as appropriate.
-
-THP Statistics
---------------
-
-Statistics are always generated for fully- and contiguously-mapped THPs
-whose mapping address is aligned to their size, for each <size> supported
-by the system.  Separate counters describe THPs mapped by PTE vs those
-mapped by PMD.  (Although note a THP can only be mapped by PMD if it is
-PMD-sized):
-
-- anon-thp-pte-aligned-<size>kB
-- file-thp-pte-aligned-<size>kB
-- anon-thp-pmd-aligned-<size>kB
-- file-thp-pmd-aligned-<size>kB
-
-Similarly, statistics are always generated for fully- and contiguously-
-mapped THPs whose mapping address is *not* aligned to their size, for each
-<size> supported by the system.  Due to the unaligned mapping, it is
-impossible to map by PMD, so there are only PTE counters for this case:
-
-- anon-thp-pte-unaligned-<size>kB
-- file-thp-pte-unaligned-<size>kB
-
-Statistics are also always generated for mapped pages that belong to a THP
-but where the is THP is *not* fully- and contiguously- mapped.  These
-"partial" mappings are all counted in the same counter regardless of the
-size of the THP that is partially mapped:
-
-- anon-thp-pte-partial
-- file-thp-pte-partial
-
-Contiguous Block Statistics
----------------------------
-
-An optional, additional set of statistics is generated for every
-contiguous block size specified with `--cont <size>`.  These statistics
-show how much memory is mapped in contiguous blocks of <size> and also
-aligned to <size>.  A given contiguous block must all belong to the same
-THP, but there is no requirement for it to be the *whole* THP.  Separate
-counters describe contiguous blocks mapped by PTE vs those mapped by PMD:
-
-- anon-cont-pte-aligned-<size>kB
-- file-cont-pte-aligned-<size>kB
-- anon-cont-pmd-aligned-<size>kB
-- file-cont-pmd-aligned-<size>kB
-
-As an example, if monitoring 64K contiguous blocks (--cont 64K), there are
-a number of sources that could provide such blocks: a fully- and
-contiguously-mapped 64K THP that is aligned to a 64K boundary would
-provide 1 block.  A fully- and contiguously-mapped 128K THP that is
-aligned to at least a 64K boundary would provide 2 blocks.  Or a 128K THP
-that maps its first 100K, but contiguously and starting at a 64K boundary
-would provide 1 block.  A fully- and contiguously-mapped 2M THP would
-provide 32 blocks.  There are many other possible permutations.
-
-options:
-  -h, --help           show this help message and exit
-  --pid pid            Process id of the target process. Maybe issued
-                       multiple times to scan multiple processes. --pid
-                       and --cgroup are mutually exclusive. If neither
-                       are provided, all processes are scanned to
-                       provide system-wide information.
-  --cgroup path        Path to the target cgroup in sysfs. Iterates
-                       over every pid in the cgroup and its children.
-                       --pid and --cgroup are mutually exclusive. If
-                       neither are provided, all processes are scanned
-                       to provide system-wide information.
-  --rollup             Sum the per-vma statistics to provide a summary
-                       over the whole system, process or cgroup.
-  --cont size[KMG]     Adds stats for memory that is mapped in
-                       contiguous blocks of <size> and also aligned to
-                       <size>. May be issued multiple times to track
-                       multiple sized blocks. Useful to infer e.g.
-                       arm64 contpte and hpa mappings. Size must be a
-                       power-of-2 number of pages.
-  --inc-smaps          Include all numerical, additive
-                       /proc/<pid>/smaps stats in the output.
-  --inc-empty          Show all statistics including those whose value
-                       is 0.
-  --periodic sleep_ms  Run in a loop, polling every sleep_ms
-                       milliseconds.
-
-Requires root privilege to access pagemap and kpageflags.
---8<--
-
-Example command to summarise fully and partially mapped THPs and 64K
-contiguous blocks over all VMAs in all processes in the system
-(--inc-empty forces printing stats that are 0):
-
-    # ./thpmaps --cont 64K --rollup --inc-empty
-
---8<--
-anon-thp-pmd-aligned-2048kB:      139264 kB ( 6%)
-file-thp-pmd-aligned-2048kB:           0 kB ( 0%)
-anon-thp-pte-aligned-16kB:             0 kB ( 0%)
-anon-thp-pte-aligned-32kB:             0 kB ( 0%)
-anon-thp-pte-aligned-64kB:         72256 kB ( 3%)
-anon-thp-pte-aligned-128kB:            0 kB ( 0%)
-anon-thp-pte-aligned-256kB:            0 kB ( 0%)
-anon-thp-pte-aligned-512kB:            0 kB ( 0%)
-anon-thp-pte-aligned-1024kB:           0 kB ( 0%)
-anon-thp-pte-aligned-2048kB:           0 kB ( 0%)
-anon-thp-pte-unaligned-16kB:           0 kB ( 0%)
-anon-thp-pte-unaligned-32kB:           0 kB ( 0%)
-anon-thp-pte-unaligned-64kB:           0 kB ( 0%)
-anon-thp-pte-unaligned-128kB:          0 kB ( 0%)
-anon-thp-pte-unaligned-256kB:          0 kB ( 0%)
-anon-thp-pte-unaligned-512kB:          0 kB ( 0%)
-anon-thp-pte-unaligned-1024kB:         0 kB ( 0%)
-anon-thp-pte-unaligned-2048kB:         0 kB ( 0%)
-anon-thp-pte-partial:              63232 kB ( 3%)
-file-thp-pte-aligned-16kB:        809024 kB (47%)
-file-thp-pte-aligned-32kB:         43168 kB ( 3%)
-file-thp-pte-aligned-64kB:         98496 kB ( 6%)
-file-thp-pte-aligned-128kB:        17536 kB ( 1%)
-file-thp-pte-aligned-256kB:            0 kB ( 0%)
-file-thp-pte-aligned-512kB:            0 kB ( 0%)
-file-thp-pte-aligned-1024kB:           0 kB ( 0%)
-file-thp-pte-aligned-2048kB:           0 kB ( 0%)
-file-thp-pte-unaligned-16kB:       21712 kB ( 1%)
-file-thp-pte-unaligned-32kB:         704 kB ( 0%)
-file-thp-pte-unaligned-64kB:         896 kB ( 0%)
-file-thp-pte-unaligned-128kB:      44928 kB ( 3%)
-file-thp-pte-unaligned-256kB:          0 kB ( 0%)
-file-thp-pte-unaligned-512kB:          0 kB ( 0%)
-file-thp-pte-unaligned-1024kB:         0 kB ( 0%)
-file-thp-pte-unaligned-2048kB:         0 kB ( 0%)
-file-thp-pte-partial:               9252 kB ( 1%)
-anon-cont-pmd-aligned-64kB:       139264 kB ( 6%)
-file-cont-pmd-aligned-64kB:            0 kB ( 0%)
-anon-cont-pte-aligned-64kB:       100672 kB ( 4%)
-file-cont-pte-aligned-64kB:       161856 kB ( 9%)
---8<--
-
-Link: https://lkml.kernel.org/r/20240116141235.960842-1-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Tested-by: Barry Song <v-songbaohua@oppo.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Link: https://lkml.kernel.org/r/20240122011612.501029-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240117103954.2756050-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Zenghui Yu <yuzenghui@huawei.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/Makefile |    9 
- tools/mm/thpmaps  |  675 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 680 insertions(+), 4 deletions(-)
+ mm/memory.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/tools/mm/Makefile~tools-mm-add-thpmaps-script-to-dump-thp-usage-info
-+++ a/tools/mm/Makefile
-@@ -3,7 +3,8 @@
- #
- include ../scripts/Makefile.include
+--- a/mm/memory.c~mm-memory-move-mem_cgroup_charge-into-alloc_anon_folio
++++ a/mm/memory.c
+@@ -4173,8 +4173,8 @@ static bool pte_range_none(pte_t *pte, i
  
--TARGETS=page-types slabinfo page_owner_sort
-+BUILD_TARGETS=page-types slabinfo page_owner_sort
-+INSTALL_TARGETS = $(BUILD_TARGETS) thpmaps
+ static struct folio *alloc_anon_folio(struct vm_fault *vmf)
+ {
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	struct vm_area_struct *vma = vmf->vma;
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	unsigned long orders;
+ 	struct folio *folio;
+ 	unsigned long addr;
+@@ -4226,15 +4226,21 @@ static struct folio *alloc_anon_folio(st
+ 		addr = ALIGN_DOWN(vmf->address, PAGE_SIZE << order);
+ 		folio = vma_alloc_folio(gfp, order, vma, addr, true);
+ 		if (folio) {
++			if (mem_cgroup_charge(folio, vma->vm_mm, gfp)) {
++				folio_put(folio);
++				goto next;
++			}
++			folio_throttle_swaprate(folio, gfp);
+ 			clear_huge_page(&folio->page, vmf->address, 1 << order);
+ 			return folio;
+ 		}
++next:
+ 		order = next_order(&orders, order);
+ 	}
  
- LIB_DIR = ../lib/api
- LIBS = $(LIB_DIR)/libapi.a
-@@ -11,9 +12,9 @@ LIBS = $(LIB_DIR)/libapi.a
- CFLAGS += -Wall -Wextra -I../lib/ -pthread
- LDFLAGS += $(LIBS) -pthread
+ fallback:
+ #endif
+-	return vma_alloc_zeroed_movable_folio(vmf->vma, vmf->address);
++	return folio_prealloc(vma->vm_mm, vma, vmf->address, true);
+ }
  
--all: $(TARGETS)
-+all: $(BUILD_TARGETS)
+ /*
+@@ -4301,10 +4307,6 @@ static vm_fault_t do_anonymous_page(stru
+ 	nr_pages = folio_nr_pages(folio);
+ 	addr = ALIGN_DOWN(vmf->address, nr_pages * PAGE_SIZE);
  
--$(TARGETS): $(LIBS)
-+$(BUILD_TARGETS): $(LIBS)
- 
- $(LIBS):
- 	make -C $(LIB_DIR)
-@@ -29,4 +30,4 @@ sbindir ?= /usr/sbin
- 
- install: all
- 	install -d $(DESTDIR)$(sbindir)
--	install -m 755 -p $(TARGETS) $(DESTDIR)$(sbindir)
-+	install -m 755 -p $(INSTALL_TARGETS) $(DESTDIR)$(sbindir)
---- /dev/null
-+++ a/tools/mm/thpmaps
-@@ -0,0 +1,675 @@
-+#!/usr/bin/env python3
-+# SPDX-License-Identifier: GPL-2.0-only
-+# Copyright (C) 2024 ARM Ltd.
-+#
-+# Utility providing smaps-like output detailing transparent hugepage usage.
-+# For more info, run:
-+# ./thpmaps --help
-+#
-+# Requires numpy:
-+# pip3 install numpy
-+
-+
-+import argparse
-+import collections
-+import math
-+import os
-+import re
-+import resource
-+import shutil
-+import sys
-+import textwrap
-+import time
-+import numpy as np
-+
-+
-+with open('/sys/kernel/mm/transparent_hugepage/hpage_pmd_size') as f:
-+    PAGE_SIZE = resource.getpagesize()
-+    PAGE_SHIFT = int(math.log2(PAGE_SIZE))
-+    PMD_SIZE = int(f.read())
-+    PMD_ORDER = int(math.log2(PMD_SIZE / PAGE_SIZE))
-+
-+
-+def align_forward(v, a):
-+    return (v + (a - 1)) & ~(a - 1)
-+
-+
-+def align_offset(v, a):
-+    return v & (a - 1)
-+
-+
-+def kbnr(kb):
-+    # Convert KB to number of pages.
-+    return (kb << 10) >> PAGE_SHIFT
-+
-+
-+def nrkb(nr):
-+    # Convert number of pages to KB.
-+    return (nr << PAGE_SHIFT) >> 10
-+
-+
-+def odkb(order):
-+    # Convert page order to KB.
-+    return (PAGE_SIZE << order) >> 10
-+
-+
-+def cont_ranges_all(search, index):
-+    # Given a list of arrays, find the ranges for which values are monotonically
-+    # incrementing in all arrays. all arrays in search and index must be the
-+    # same size.
-+    sz = len(search[0])
-+    r = np.full(sz, 2)
-+    d = np.diff(search[0]) == 1
-+    for dd in [np.diff(arr) == 1 for arr in search[1:]]:
-+        d &= dd
-+    r[1:] -= d
-+    r[:-1] -= d
-+    return [np.repeat(arr, r).reshape(-1, 2) for arr in index]
-+
-+
-+class ArgException(Exception):
-+    pass
-+
-+
-+class FileIOException(Exception):
-+    pass
-+
-+
-+class BinArrayFile:
-+    # Base class used to read /proc/<pid>/pagemap and /proc/kpageflags into a
-+    # numpy array. Use inherrited class in a with clause to ensure file is
-+    # closed when it goes out of scope.
-+    def __init__(self, filename, element_size):
-+        self.element_size = element_size
-+        self.filename = filename
-+        self.fd = os.open(self.filename, os.O_RDONLY)
-+
-+    def cleanup(self):
-+        os.close(self.fd)
-+
-+    def __enter__(self):
-+        return self
-+
-+    def __exit__(self, exc_type, exc_val, exc_tb):
-+        self.cleanup()
-+
-+    def _readin(self, offset, buffer):
-+        length = os.preadv(self.fd, (buffer,), offset)
-+        if len(buffer) != length:
-+            raise FileIOException('error: {} failed to read {} bytes at {:x}'
-+                            .format(self.filename, len(buffer), offset))
-+
-+    def _toarray(self, buf):
-+        assert(self.element_size == 8)
-+        return np.frombuffer(buf, dtype=np.uint64)
-+
-+    def getv(self, vec):
-+        vec *= self.element_size
-+        offsets = vec[:, 0]
-+        lengths = (np.diff(vec) + self.element_size).reshape(len(vec))
-+        buf = bytearray(int(np.sum(lengths)))
-+        view = memoryview(buf)
-+        pos = 0
-+        for offset, length in zip(offsets, lengths):
-+            offset = int(offset)
-+            length = int(length)
-+            self._readin(offset, view[pos:pos+length])
-+            pos += length
-+        return self._toarray(buf)
-+
-+    def get(self, index, nr=1):
-+        offset = index * self.element_size
-+        length = nr * self.element_size
-+        buf = bytearray(length)
-+        self._readin(offset, buf)
-+        return self._toarray(buf)
-+
-+
-+PM_PAGE_PRESENT = 1 << 63
-+PM_PFN_MASK = (1 << 55) - 1
-+
-+class PageMap(BinArrayFile):
-+    # Read ranges of a given pid's pagemap into a numpy array.
-+    def __init__(self, pid='self'):
-+        super().__init__(f'/proc/{pid}/pagemap', 8)
-+
-+
-+KPF_ANON = 1 << 12
-+KPF_COMPOUND_HEAD = 1 << 15
-+KPF_COMPOUND_TAIL = 1 << 16
-+KPF_THP = 1 << 22
-+
-+class KPageFlags(BinArrayFile):
-+    # Read ranges of /proc/kpageflags into a numpy array.
-+    def __init__(self):
-+         super().__init__(f'/proc/kpageflags', 8)
-+
-+
-+vma_all_stats = set([
-+    "Size",
-+    "Rss",
-+    "Pss",
-+    "Pss_Dirty",
-+    "Shared_Clean",
-+    "Shared_Dirty",
-+    "Private_Clean",
-+    "Private_Dirty",
-+    "Referenced",
-+    "Anonymous",
-+    "KSM",
-+    "LazyFree",
-+    "AnonHugePages",
-+    "ShmemPmdMapped",
-+    "FilePmdMapped",
-+    "Shared_Hugetlb",
-+    "Private_Hugetlb",
-+    "Swap",
-+    "SwapPss",
-+    "Locked",
-+])
-+
-+vma_min_stats = set([
-+    "Rss",
-+    "Anonymous",
-+    "AnonHugePages",
-+    "ShmemPmdMapped",
-+    "FilePmdMapped",
-+])
-+
-+VMA = collections.namedtuple('VMA', [
-+    'name',
-+    'start',
-+    'end',
-+    'read',
-+    'write',
-+    'execute',
-+    'private',
-+    'pgoff',
-+    'major',
-+    'minor',
-+    'inode',
-+    'stats',
-+])
-+
-+class VMAList:
-+    # A container for VMAs, parsed from /proc/<pid>/smaps. Iterate over the
-+    # instance to receive VMAs.
-+    def __init__(self, pid='self', stats=[]):
-+        self.vmas = []
-+        with open(f'/proc/{pid}/smaps', 'r') as file:
-+            for line in file:
-+                elements = line.split()
-+                if '-' in elements[0]:
-+                    start, end = map(lambda x: int(x, 16), elements[0].split('-'))
-+                    major, minor = map(lambda x: int(x, 16), elements[3].split(':'))
-+                    self.vmas.append(VMA(
-+                        name=elements[5] if len(elements) == 6 else '',
-+                        start=start,
-+                        end=end,
-+                        read=elements[1][0] == 'r',
-+                        write=elements[1][1] == 'w',
-+                        execute=elements[1][2] == 'x',
-+                        private=elements[1][3] == 'p',
-+                        pgoff=int(elements[2], 16),
-+                        major=major,
-+                        minor=minor,
-+                        inode=int(elements[4], 16),
-+                        stats={},
-+                    ))
-+                else:
-+                    param = elements[0][:-1]
-+                    if param in stats:
-+                        value = int(elements[1])
-+                        self.vmas[-1].stats[param] = {'type': None, 'value': value}
-+
-+    def __iter__(self):
-+        yield from self.vmas
-+
-+
-+def thp_parse(vma, kpageflags, ranges, indexes, vfns, pfns, anons, heads):
-+    # Given 4 same-sized arrays representing a range within a page table backed
-+    # by THPs (vfns: virtual frame numbers, pfns: physical frame numbers, anons:
-+    # True if page is anonymous, heads: True if page is head of a THP), return a
-+    # dictionary of statistics describing the mapped THPs.
-+    stats = {
-+        'file': {
-+            'partial': 0,
-+            'aligned': [0] * (PMD_ORDER + 1),
-+            'unaligned': [0] * (PMD_ORDER + 1),
-+        },
-+        'anon': {
-+            'partial': 0,
-+            'aligned': [0] * (PMD_ORDER + 1),
-+            'unaligned': [0] * (PMD_ORDER + 1),
-+        },
-+    }
-+
-+    for rindex, rpfn in zip(ranges[0], ranges[2]):
-+        index_next = int(rindex[0])
-+        index_end = int(rindex[1]) + 1
-+        pfn_end = int(rpfn[1]) + 1
-+
-+        folios = indexes[index_next:index_end][heads[index_next:index_end]]
-+
-+        # Account pages for any partially mapped THP at the front. In that case,
-+        # the first page of the range is a tail.
-+        nr = (int(folios[0]) if len(folios) else index_end) - index_next
-+        stats['anon' if anons[index_next] else 'file']['partial'] += nr
-+
-+        # Account pages for any partially mapped THP at the back. In that case,
-+        # the next page after the range is a tail.
-+        if len(folios):
-+            flags = int(kpageflags.get(pfn_end)[0])
-+            if flags & KPF_COMPOUND_TAIL:
-+                nr = index_end - int(folios[-1])
-+                folios = folios[:-1]
-+                index_end -= nr
-+                stats['anon' if anons[index_end - 1] else 'file']['partial'] += nr
-+
-+        # Account fully mapped THPs in the middle of the range.
-+        if len(folios):
-+            folio_nrs = np.append(np.diff(folios), np.uint64(index_end - folios[-1]))
-+            folio_orders = np.log2(folio_nrs).astype(np.uint64)
-+            for index, order in zip(folios, folio_orders):
-+                index = int(index)
-+                order = int(order)
-+                nr = 1 << order
-+                vfn = int(vfns[index])
-+                align = 'aligned' if align_forward(vfn, nr) == vfn else 'unaligned'
-+                anon = 'anon' if anons[index] else 'file'
-+                stats[anon][align][order] += nr
-+
-+    # Account PMD-mapped THPs spearately, so filter out of the stats. There is a
-+    # race between acquiring the smaps stats and reading pagemap, where memory
-+    # could be deallocated. So clamp to zero incase it would have gone negative.
-+    anon_pmd_mapped = vma.stats['AnonHugePages']['value']
-+    file_pmd_mapped = vma.stats['ShmemPmdMapped']['value'] + \
-+                      vma.stats['FilePmdMapped']['value']
-+    stats['anon']['aligned'][PMD_ORDER] = max(0, stats['anon']['aligned'][PMD_ORDER] - kbnr(anon_pmd_mapped))
-+    stats['file']['aligned'][PMD_ORDER] = max(0, stats['file']['aligned'][PMD_ORDER] - kbnr(file_pmd_mapped))
-+
-+    rstats = {
-+        f"anon-thp-pmd-aligned-{odkb(PMD_ORDER)}kB": {'type': 'anon', 'value': anon_pmd_mapped},
-+        f"file-thp-pmd-aligned-{odkb(PMD_ORDER)}kB": {'type': 'file', 'value': file_pmd_mapped},
-+    }
-+
-+    def flatten_sub(type, subtype, stats):
-+        param = f"{type}-thp-pte-{subtype}-{{}}kB"
-+        for od, nr in enumerate(stats[2:], 2):
-+            rstats[param.format(odkb(od))] = {'type': type, 'value': nrkb(nr)}
-+
-+    def flatten_type(type, stats):
-+        flatten_sub(type, 'aligned', stats['aligned'])
-+        flatten_sub(type, 'unaligned', stats['unaligned'])
-+        rstats[f"{type}-thp-pte-partial"] = {'type': type, 'value': nrkb(stats['partial'])}
-+
-+    flatten_type('anon', stats['anon'])
-+    flatten_type('file', stats['file'])
-+
-+    return rstats
-+
-+
-+def cont_parse(vma, order, ranges, anons, heads):
-+    # Given 4 same-sized arrays representing a range within a page table backed
-+    # by THPs (vfns: virtual frame numbers, pfns: physical frame numbers, anons:
-+    # True if page is anonymous, heads: True if page is head of a THP), return a
-+    # dictionary of statistics describing the contiguous blocks.
-+    nr_cont = 1 << order
-+    nr_anon = 0
-+    nr_file = 0
-+
-+    for rindex, rvfn, rpfn in zip(*ranges):
-+        index_next = int(rindex[0])
-+        index_end = int(rindex[1]) + 1
-+        vfn_start = int(rvfn[0])
-+        pfn_start = int(rpfn[0])
-+
-+        if align_offset(pfn_start, nr_cont) != align_offset(vfn_start, nr_cont):
-+            continue
-+
-+        off = align_forward(vfn_start, nr_cont) - vfn_start
-+        index_next += off
-+
-+        while index_next + nr_cont <= index_end:
-+            folio_boundary = heads[index_next+1:index_next+nr_cont].any()
-+            if not folio_boundary:
-+                if anons[index_next]:
-+                    nr_anon += nr_cont
-+                else:
-+                    nr_file += nr_cont
-+            index_next += nr_cont
-+
-+    # Account blocks that are PMD-mapped spearately, so filter out of the stats.
-+    # There is a race between acquiring the smaps stats and reading pagemap,
-+    # where memory could be deallocated. So clamp to zero incase it would have
-+    # gone negative.
-+    anon_pmd_mapped = vma.stats['AnonHugePages']['value']
-+    file_pmd_mapped = vma.stats['ShmemPmdMapped']['value'] + \
-+                    vma.stats['FilePmdMapped']['value']
-+    nr_anon = max(0, nr_anon - kbnr(anon_pmd_mapped))
-+    nr_file = max(0, nr_file - kbnr(file_pmd_mapped))
-+
-+    rstats = {
-+        f"anon-cont-pmd-aligned-{nrkb(nr_cont)}kB": {'type': 'anon', 'value': anon_pmd_mapped},
-+        f"file-cont-pmd-aligned-{nrkb(nr_cont)}kB": {'type': 'file', 'value': file_pmd_mapped},
-+    }
-+
-+    rstats[f"anon-cont-pte-aligned-{nrkb(nr_cont)}kB"] = {'type': 'anon', 'value': nrkb(nr_anon)}
-+    rstats[f"file-cont-pte-aligned-{nrkb(nr_cont)}kB"] = {'type': 'file', 'value': nrkb(nr_file)}
-+
-+    return rstats
-+
-+
-+def vma_print(vma, pid):
-+    # Prints a VMA instance in a format similar to smaps. The main difference is
-+    # that the pid is included as the first value.
-+    print("{:010d}: {:016x}-{:016x} {}{}{}{} {:08x} {:02x}:{:02x} {:08x} {}"
-+        .format(
-+            pid, vma.start, vma.end,
-+            'r' if vma.read else '-', 'w' if vma.write else '-',
-+            'x' if vma.execute else '-', 'p' if vma.private else 's',
-+            vma.pgoff, vma.major, vma.minor, vma.inode, vma.name
-+        ))
-+
-+
-+def stats_print(stats, tot_anon, tot_file, inc_empty):
-+    # Print a statistics dictionary.
-+    label_field = 32
-+    for label, stat in stats.items():
-+        type = stat['type']
-+        value = stat['value']
-+        if value or inc_empty:
-+            pad = max(0, label_field - len(label) - 1)
-+            if type == 'anon' and tot_anon > 0:
-+                percent = f' ({value / tot_anon:3.0%})'
-+            elif type == 'file' and tot_file > 0:
-+                percent = f' ({value / tot_file:3.0%})'
-+            else:
-+                percent = ''
-+            print(f"{label}:{' ' * pad}{value:8} kB{percent}")
-+
-+
-+def vma_parse(vma, pagemap, kpageflags, contorders):
-+    # Generate thp and cont statistics for a single VMA.
-+    start = vma.start >> PAGE_SHIFT
-+    end = vma.end >> PAGE_SHIFT
-+
-+    pmes = pagemap.get(start, end - start)
-+    present = pmes & PM_PAGE_PRESENT != 0
-+    pfns = pmes & PM_PFN_MASK
-+    pfns = pfns[present]
-+    vfns = np.arange(start, end, dtype=np.uint64)
-+    vfns = vfns[present]
-+
-+    pfn_vec = cont_ranges_all([pfns], [pfns])[0]
-+    flags = kpageflags.getv(pfn_vec)
-+    anons = flags & KPF_ANON != 0
-+    heads = flags & KPF_COMPOUND_HEAD != 0
-+    thps = flags & KPF_THP != 0
-+
-+    vfns = vfns[thps]
-+    pfns = pfns[thps]
-+    anons = anons[thps]
-+    heads = heads[thps]
-+
-+    indexes = np.arange(len(vfns), dtype=np.uint64)
-+    ranges = cont_ranges_all([vfns, pfns], [indexes, vfns, pfns])
-+
-+    thpstats = thp_parse(vma, kpageflags, ranges, indexes, vfns, pfns, anons, heads)
-+    contstats = [cont_parse(vma, order, ranges, anons, heads) for order in contorders]
-+
-+    tot_anon = vma.stats['Anonymous']['value']
-+    tot_file = vma.stats['Rss']['value'] - tot_anon
-+
-+    return {
-+        **thpstats,
-+        **{k: v for s in contstats for k, v in s.items()}
-+    }, tot_anon, tot_file
-+
-+
-+def do_main(args):
-+    pids = set()
-+    rollup = {}
-+    rollup_anon = 0
-+    rollup_file = 0
-+
-+    if args.cgroup:
-+        strict = False
-+        for walk_info in os.walk(args.cgroup):
-+            cgroup = walk_info[0]
-+            with open(f'{cgroup}/cgroup.procs') as pidfile:
-+                for line in pidfile.readlines():
-+                    pids.add(int(line.strip()))
-+    elif args.pid:
-+        strict = True
-+        pids = pids.union(args.pid)
-+    else:
-+        strict = False
-+        for pid in os.listdir('/proc'):
-+            if pid.isdigit():
-+                pids.add(int(pid))
-+
-+    if not args.rollup:
-+        print("       PID             START              END PROT   OFFSET   DEV    INODE OBJECT")
-+
-+    for pid in pids:
-+        try:
-+            with PageMap(pid) as pagemap:
-+                with KPageFlags() as kpageflags:
-+                    for vma in VMAList(pid, vma_all_stats if args.inc_smaps else vma_min_stats):
-+                        if (vma.read or vma.write or vma.execute) and vma.stats['Rss']['value'] > 0:
-+                            stats, vma_anon, vma_file = vma_parse(vma, pagemap, kpageflags, args.cont)
-+                        else:
-+                            stats = {}
-+                            vma_anon = 0
-+                            vma_file = 0
-+                        if args.inc_smaps:
-+                            stats = {**vma.stats, **stats}
-+                        if args.rollup:
-+                            for k, v in stats.items():
-+                                if k in rollup:
-+                                    assert(rollup[k]['type'] == v['type'])
-+                                    rollup[k]['value'] += v['value']
-+                                else:
-+                                    rollup[k] = v
-+                            rollup_anon += vma_anon
-+                            rollup_file += vma_file
-+                        else:
-+                            vma_print(vma, pid)
-+                            stats_print(stats, vma_anon, vma_file, args.inc_empty)
-+        except (FileNotFoundError, ProcessLookupError, FileIOException):
-+            if strict:
-+                raise
-+
-+    if args.rollup:
-+        stats_print(rollup, rollup_anon, rollup_file, args.inc_empty)
-+
-+
-+def main():
-+    docs_width = shutil.get_terminal_size().columns
-+    docs_width -= 2
-+    docs_width = min(80, docs_width)
-+
-+    def format(string):
-+        text = re.sub(r'\s+', ' ', string)
-+        text = re.sub(r'\s*\\n\s*', '\n', text)
-+        paras = text.split('\n')
-+        paras = [textwrap.fill(p, width=docs_width) for p in paras]
-+        return '\n'.join(paras)
-+
-+    def formatter(prog):
-+        return argparse.RawDescriptionHelpFormatter(prog, width=docs_width)
-+
-+    def size2order(human):
-+        units = {
-+            "K": 2**10, "M": 2**20, "G": 2**30,
-+            "k": 2**10, "m": 2**20, "g": 2**30,
-+        }
-+        unit = 1
-+        if human[-1] in units:
-+            unit = units[human[-1]]
-+            human = human[:-1]
-+        try:
-+            size = int(human)
-+        except ValueError:
-+            raise ArgException('error: --cont value must be integer size with optional KMG unit')
-+        size *= unit
-+        order = int(math.log2(size / PAGE_SIZE))
-+        if order < 1:
-+            raise ArgException('error: --cont value must be size of at least 2 pages')
-+        if (1 << order) * PAGE_SIZE != size:
-+            raise ArgException('error: --cont value must be size of power-of-2 pages')
-+        if order > PMD_ORDER:
-+            raise ArgException('error: --cont value must be less than or equal to PMD order')
-+        return order
-+
-+    parser = argparse.ArgumentParser(formatter_class=formatter,
-+        description=format("""Prints information about how transparent huge
-+                    pages are mapped, either system-wide, or for a specified
-+                    process or cgroup.\\n
-+                    \\n
-+                    When run with --pid, the user explicitly specifies the set
-+                    of pids to scan. e.g. "--pid 10 [--pid 134 ...]". When run
-+                    with --cgroup, the user passes either a v1 or v2 cgroup and
-+                    all pids that belong to the cgroup subtree are scanned. When
-+                    run with neither --pid nor --cgroup, the full set of pids on
-+                    the system is gathered from /proc and scanned as if the user
-+                    had provided "--pid 1 --pid 2 ...".\\n
-+                    \\n
-+                    A default set of statistics is always generated for THP
-+                    mappings. However, it is also possible to generate
-+                    additional statistics for "contiguous block mappings" where
-+                    the block size is user-defined.\\n
-+                    \\n
-+                    Statistics are maintained independently for anonymous and
-+                    file-backed (pagecache) memory and are shown both in kB and
-+                    as a percentage of either total anonymous or total
-+                    file-backed memory as appropriate.\\n
-+                    \\n
-+                    THP Statistics\\n
-+                    --------------\\n
-+                    \\n
-+                    Statistics are always generated for fully- and
-+                    contiguously-mapped THPs whose mapping address is aligned to
-+                    their size, for each <size> supported by the system.
-+                    Separate counters describe THPs mapped by PTE vs those
-+                    mapped by PMD. (Although note a THP can only be mapped by
-+                    PMD if it is PMD-sized):\\n
-+                    \\n
-+                    - anon-thp-pte-aligned-<size>kB\\n
-+                    - file-thp-pte-aligned-<size>kB\\n
-+                    - anon-thp-pmd-aligned-<size>kB\\n
-+                    - file-thp-pmd-aligned-<size>kB\\n
-+                    \\n
-+                    Similarly, statistics are always generated for fully- and
-+                    contiguously-mapped THPs whose mapping address is *not*
-+                    aligned to their size, for each <size> supported by the
-+                    system. Due to the unaligned mapping, it is impossible to
-+                    map by PMD, so there are only PTE counters for this case:\\n
-+                    \\n
-+                    - anon-thp-pte-unaligned-<size>kB\\n
-+                    - file-thp-pte-unaligned-<size>kB\\n
-+                    \\n
-+                    Statistics are also always generated for mapped pages that
-+                    belong to a THP but where the is THP is *not* fully- and
-+                    contiguously- mapped. These "partial" mappings are all
-+                    counted in the same counter regardless of the size of the
-+                    THP that is partially mapped:\\n
-+                    \\n
-+                    - anon-thp-pte-partial\\n
-+                    - file-thp-pte-partial\\n
-+                    \\n
-+                    Contiguous Block Statistics\\n
-+                    ---------------------------\\n
-+                    \\n
-+                    An optional, additional set of statistics is generated for
-+                    every contiguous block size specified with `--cont <size>`.
-+                    These statistics show how much memory is mapped in
-+                    contiguous blocks of <size> and also aligned to <size>. A
-+                    given contiguous block must all belong to the same THP, but
-+                    there is no requirement for it to be the *whole* THP.
-+                    Separate counters describe contiguous blocks mapped by PTE
-+                    vs those mapped by PMD:\\n
-+                    \\n
-+                    - anon-cont-pte-aligned-<size>kB\\n
-+                    - file-cont-pte-aligned-<size>kB\\n
-+                    - anon-cont-pmd-aligned-<size>kB\\n
-+                    - file-cont-pmd-aligned-<size>kB\\n
-+                    \\n
-+                    As an example, if monitoring 64K contiguous blocks (--cont
-+                    64K), there are a number of sources that could provide such
-+                    blocks: a fully- and contiguously-mapped 64K THP that is
-+                    aligned to a 64K boundary would provide 1 block. A fully-
-+                    and contiguously-mapped 128K THP that is aligned to at least
-+                    a 64K boundary would provide 2 blocks. Or a 128K THP that
-+                    maps its first 100K, but contiguously and starting at a 64K
-+                    boundary would provide 1 block. A fully- and
-+                    contiguously-mapped 2M THP would provide 32 blocks. There
-+                    are many other possible permutations.\\n"""),
-+        epilog=format("""Requires root privilege to access pagemap and
-+                    kpageflags."""))
-+
-+    group = parser.add_mutually_exclusive_group(required=False)
-+    group.add_argument('--pid',
-+        metavar='pid', required=False, type=int, default=[], action='append',
-+        help="""Process id of the target process. Maybe issued multiple times to
-+            scan multiple processes. --pid and --cgroup are mutually exclusive.
-+            If neither are provided, all processes are scanned to provide
-+            system-wide information.""")
-+
-+    group.add_argument('--cgroup',
-+        metavar='path', required=False,
-+        help="""Path to the target cgroup in sysfs. Iterates over every pid in
-+            the cgroup and its children. --pid and --cgroup are mutually
-+            exclusive. If neither are provided, all processes are scanned to
-+            provide system-wide information.""")
-+
-+    parser.add_argument('--rollup',
-+        required=False, default=False, action='store_true',
-+        help="""Sum the per-vma statistics to provide a summary over the whole
-+            system, process or cgroup.""")
-+
-+    parser.add_argument('--cont',
-+        metavar='size[KMG]', required=False, default=[], action='append',
-+        help="""Adds stats for memory that is mapped in contiguous blocks of
-+            <size> and also aligned to <size>. May be issued multiple times to
-+            track multiple sized blocks. Useful to infer e.g. arm64 contpte and
-+            hpa mappings. Size must be a power-of-2 number of pages.""")
-+
-+    parser.add_argument('--inc-smaps',
-+        required=False, default=False, action='store_true',
-+        help="""Include all numerical, additive /proc/<pid>/smaps stats in the
-+            output.""")
-+
-+    parser.add_argument('--inc-empty',
-+        required=False, default=False, action='store_true',
-+        help="""Show all statistics including those whose value is 0.""")
-+
-+    parser.add_argument('--periodic',
-+        metavar='sleep_ms', required=False, type=int,
-+        help="""Run in a loop, polling every sleep_ms milliseconds.""")
-+
-+    args = parser.parse_args()
-+
-+    try:
-+        args.cont = [size2order(cont) for cont in args.cont]
-+    except ArgException as e:
-+        parser.print_usage()
-+        raise
-+
-+    if args.periodic:
-+        while True:
-+            do_main(args)
-+            print()
-+            time.sleep(args.periodic / 1000)
-+    else:
-+        do_main(args)
-+
-+
-+if __name__ == "__main__":
-+    try:
-+        main()
-+    except Exception as e:
-+        prog = os.path.basename(sys.argv[0])
-+        print(f'{prog}: {e}')
-+        exit(1)
+-	if (mem_cgroup_charge(folio, vma->vm_mm, GFP_KERNEL))
+-		goto oom_free_page;
+-	folio_throttle_swaprate(folio, GFP_KERNEL);
+-
+ 	/*
+ 	 * The memory barrier inside __folio_mark_uptodate makes sure that
+ 	 * preceding stores to the page contents become visible before
+@@ -4358,8 +4360,6 @@ unlock:
+ release:
+ 	folio_put(folio);
+ 	goto unlock;
+-oom_free_page:
+-	folio_put(folio);
+ oom:
+ 	return VM_FAULT_OOM;
+ }
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-clarify-the-spec-for-set_ptes.patch
-mm-thp-batch-collapse-pmd-with-set_ptes.patch
-mm-introduce-pte_advance_pfn-and-use-for-pte_next_pfn.patch
-arm64-mm-convert-pte_next_pfn-to-pte_advance_pfn.patch
-x86-mm-convert-pte_next_pfn-to-pte_advance_pfn.patch
-mm-tidy-up-pte_next_pfn-definition.patch
-arm64-mm-convert-read_onceptep-to-ptep_getptep.patch
-arm64-mm-convert-set_pte_at-to-set_ptes-1.patch
-arm64-mm-convert-ptep_clear-to-ptep_get_and_clear.patch
-arm64-mm-new-ptep-layer-to-manage-contig-bit.patch
-arm64-mm-split-__flush_tlb_range-to-elide-trailing-dsb.patch
-arm64-mm-wire-up-pte_cont-for-user-mappings.patch
-arm64-mm-implement-new-wrprotect_ptes-batch-api.patch
-arm64-mm-implement-new-clear_full_ptes-batch-apis.patch
-mm-add-pte_batch_hint-to-reduce-scanning-in-folio_pte_batch.patch
-arm64-mm-implement-pte_batch_hint.patch
-arm64-mm-__always_inline-to-improve-fork-perf.patch
-arm64-mm-automatically-fold-contpte-mappings.patch
+mm-compaction-early-termination-in-compact_nodes.patch
 
