@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E00A7E6
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:00:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9CD57E6
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:00:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560057; cv=none; b=Tb8i8Lk0zIIf7plh0+dgblfrnnpDFwBo8g2EXocrEfZo5k3l2fjFawZWj5bHVfCgocOzD3nF4Aae7Ht2UYUEsv8/BIrfDS5fGbhdjK+9TfPDykuzSHEDu8MVTsO+u8cyMm1yFMVEAL10plzEx8WJvQ0aVkwGGw5Y6xE8dnv/sP0=
+	t=1708560057; cv=none; b=Pg9ymenDo9D1u5UYuS0ON2vMCKPt9a6j5Nu42+NUlOJBkQBIkptdohkwpJ07mUivAMB591td16m3KCncDS5FwWBqVlv8/RDRxsB1i+oljcdpS3clWxxJMGKIirEtHAQh31NqpLgRjVELPKL9Dd4sUlhagunEcDJwW+Dbds7Qnzw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708560057; c=relaxed/simple;
-	bh=+B/iQCRgT6in491se8sCRWxL60tHRWExshDnJ0gBAdY=;
-	h=Date:To:From:Subject:Message-Id; b=g/rymdMp0PEXPehvH75Cl7ix518r+fbu84yJlq/BzUS0AD1AgOi/d5uRz2V+KQu9y9Zw2vZdHVDFM4t3QR5HuQM/KaZ/JJ81eQsWxHZpbRNuK3R+d0pphTPdTcSFcrWNoL3dxiE4Y8HvLUiL/SbO6FJZomAE+tvLgQlf+cIz2gc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JB+vTLYh; arc=none smtp.client-ip=10.30.226.201
+	bh=iAG6CScEfKxj2TnGNLFC7bMnQeZshJ/3NCUomNUu59o=;
+	h=Date:To:From:Subject:Message-Id; b=kLvSJZBjFV8R2LejagyTMWKnOHAwQj/H3ZeEshqgwd8xnHgoWlx5iQTr6y91QbsC0RcHoFG3UTF6GEaqaCnESZJ++w3q5QmOujR5uGXHt1ZKLMTPxaWCSlsFtYACyjdNS3dPeotenxeyFDxEdo0Uw9C8F61Y0epcGw1GAkZ10E4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SR7BlIhB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JB+vTLYh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92B76C43399;
-	Thu, 22 Feb 2024 00:00:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SR7BlIhB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A57B6C43390;
+	Thu, 22 Feb 2024 00:00:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560056;
-	bh=+B/iQCRgT6in491se8sCRWxL60tHRWExshDnJ0gBAdY=;
+	s=korg; t=1708560057;
+	bh=iAG6CScEfKxj2TnGNLFC7bMnQeZshJ/3NCUomNUu59o=;
 	h=Date:To:From:Subject:From;
-	b=JB+vTLYhjjjJ4zKEZMmBNOkCjN3xnp4QrKyXUTKXBPp4+zer7ARg8/2d17uQjPqmS
-	 0n4KfCK2OCUWf25aNYR782DSIi9Zz5IXUO/crME6i3nE1muZQb8+H3mWkWwm5TYf/Q
-	 E0HCoAOVxDfuX2+ySspnFXKx60FQ3VWQmWCZ92uA=
-Date: Wed, 21 Feb 2024 16:00:56 -0800
-To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
+	b=SR7BlIhBTlFamPM7i7aGXf89YjUXqXQhoTpUcOnjioWTWxIev1lp6KhWB321utSpl
+	 i90ZEBmzpviSPGjLa6sSkqvt2cjfwdwNm9EiEj27Oe6Kxh0K4QBHqqEgsB+cfnarcT
+	 CQAkO6i42WHPqVr7QdVU/6o3EgaWSG/a7j2p02fY=
+Date: Wed, 21 Feb 2024 16:00:57 -0800
+To: mm-commits@vger.kernel.org,osalvador@suse.de,mhocko@suse.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,anshuman.khandual@arm.com,aneesh.kumar@linux.ibm.com,agordeev@linux.ibm.com,sumanthk@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-fix-comment-describing-mas_node_count_gfp.patch removed from -mm tree
-Message-Id: <20240222000056.92B76C43399@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers.patch removed from -mm tree
+Message-Id: <20240222000057.A57B6C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,337 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: fix comment describing mas_node_count_gfp()
+     Subject: mm/memory_hotplug: introduce MEM_PREPARE_ONLINE/MEM_FINISH_OFFLINE notifiers
 has been removed from the -mm tree.  Its filename was
-     maple_tree-fix-comment-describing-mas_node_count_gfp.patch
+     mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: maple_tree: fix comment describing mas_node_count_gfp()
-Date: Tue, 9 Jan 2024 14:31:19 -0800
+From: Sumanth Korikkar <sumanthk@linux.ibm.com>
+Subject: mm/memory_hotplug: introduce MEM_PREPARE_ONLINE/MEM_FINISH_OFFLINE notifiers
+Date: Mon, 8 Jan 2024 14:27:43 +0100
 
-The function description comment for mas_node_count_gfp() mistakingly
-refers to the function as mas_node_count().  Change it to refer to the
-correct function.
+Patch series "implement "memmap on memory" feature on s390".
 
-Link: https://lkml.kernel.org/r/20240109223119.162357-1-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+This series provides "memmap on memory" support on s390 platform.  "memmap
+on memory" allows struct pages array to be allocated from the hotplugged
+memory range instead of allocating it from main system memory.
+
+s390 currently preallocates struct pages array for all potentially
+possible memory, which ensures memory onlining always succeeds, but with
+the cost of significant memory consumption from the available system
+memory during boottime.  In certain extreme configuration, this could lead
+to ipl failure.
+
+"memmap on memory" ensures struct pages array are populated from self
+contained hotplugged memory range instead of depleting the available
+system memory and this could eliminate ipl failure on s390 platform.
+
+On other platforms, system might go OOM when the physically hotplugged
+memory depletes the available memory before it is onlined.  Hence, "memmap
+on memory" feature was introduced as described in commit a08a2ae34613
+("mm,memory_hotplug: allocate memmap from the added memory range").
+
+Unlike other architectures, s390 memory blocks are not physically
+accessible until it is online.  To make it physically accessible two new
+memory notifiers MEM_PREPARE_ONLINE / MEM_FINISH_OFFLINE are added and
+this notifier lets the hypervisor inform that the memory should be made
+physically accessible.  This allows for "memmap on memory" initialization
+during memory hotplug onlining phase, which is performed before calling
+MEM_GOING_ONLINE notifier.
+
+Patch 1 introduces MEM_PREPARE_ONLINE/MEM_FINISH_OFFLINE memory notifiers
+to prepare the transition of memory to and from a physically accessible
+state.  New mhp_flag MHP_OFFLINE_INACCESSIBLE is introduced to ensure
+altmap cannot be written when adding memory - before it is set online. 
+This enhancement is crucial for implementing the "memmap on memory"
+feature for s390 in a subsequent patch.
+
+Patches 2 allocates vmemmap pages from self-contained memory range for
+s390.  It allocates memory map (struct pages array) from the hotplugged
+memory range, rather than using system memory by passing altmap to vmemmap
+functions.
+
+Patch 3 removes unhandled memory notifier types on s390.
+
+Patch 4 implements MEM_PREPARE_ONLINE/MEM_FINISH_OFFLINE memory notifiers
+on s390.  MEM_PREPARE_ONLINE memory notifier makes memory block physical
+accessible via sclp assign command.  The notifier ensures self-contained
+memory maps are accessible and hence enabling the "memmap on memory" on
+s390.  MEM_FINISH_OFFLINE memory notifier shifts the memory block to an
+inaccessible state via sclp unassign command.
+
+Patch 5 finally enables MHP_MEMMAP_ON_MEMORY on s390.
+
+
+This patch (of 5):
+
+Introduce MEM_PREPARE_ONLINE/MEM_FINISH_OFFLINE memory notifiers to
+prepare the transition of memory to and from a physically accessible
+state.  This enhancement is crucial for implementing the "memmap on
+memory" feature for s390 in a subsequent patch.
+
+Platforms such as x86 can support physical memory hotplug via ACPI.  When
+there is physical memory hotplug, ACPI event leads to the memory addition
+with the following callchain:
+
+acpi_memory_device_add()
+  -> acpi_memory_enable_device()
+     -> __add_memory()
+
+After this, the hotplugged memory is physically accessible, and altmap
+support prepared, before the "memmap on memory" initialization in
+memory_block_online() is called.
+
+On s390, memory hotplug works in a different way.  The available hotplug
+memory has to be defined upfront in the hypervisor, but it is made
+physically accessible only when the user sets it online via sysfs,
+currently in the MEM_GOING_ONLINE notifier.  This is too late and "memmap
+on memory" initialization is performed before calling MEM_GOING_ONLINE
+notifier.
+
+During the memory hotplug addition phase, altmap support is prepared and
+during the memory onlining phase s390 requires memory to be physically
+accessible and then subsequently initiate the "memmap on memory"
+initialization process.
+
+The memory provider will handle new MEM_PREPARE_ONLINE /
+MEM_FINISH_OFFLINE notifications and make the memory accessible.
+
+The mhp_flag MHP_OFFLINE_INACCESSIBLE is introduced and is relevant when
+used along with MHP_MEMMAP_ON_MEMORY, because the altmap cannot be written
+(e.g., poisoned) when adding memory -- before it is set online.  This
+allows for adding memory with an altmap that is not currently made
+available by a hypervisor.  When onlining that memory, the hypervisor can
+be instructed to make that memory accessible via the new notifiers and the
+onlining phase will not require any memory allocations, which is helpful
+in low-memory situations.
+
+All architectures ignore unknown memory notifiers.  Therefore, the
+introduction of these new notifiers does not result in any functional
+modifications across architectures.
+
+Link: https://lkml.kernel.org/r/20240108132747.3238763-1-sumanthk@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240108132747.3238763-2-sumanthk@linux.ibm.com
+Signed-off-by: Sumanth Korikkar <sumanthk@linux.ibm.com>
+Suggested-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/base/memory.c          |   23 ++++++++++++++++++++++-
+ include/linux/memory.h         |    9 +++++++++
+ include/linux/memory_hotplug.h |   18 +++++++++++++++++-
+ include/linux/memremap.h       |    1 +
+ mm/memory_hotplug.c            |   17 ++++++++++++++---
+ mm/sparse.c                    |    3 ++-
+ 6 files changed, 65 insertions(+), 6 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-fix-comment-describing-mas_node_count_gfp
-+++ a/lib/maple_tree.c
-@@ -1307,8 +1307,8 @@ static inline void mas_free(struct ma_st
+--- a/drivers/base/memory.c~mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers
++++ a/drivers/base/memory.c
+@@ -188,6 +188,7 @@ static int memory_block_online(struct me
+ 	unsigned long start_pfn = section_nr_to_pfn(mem->start_section_nr);
+ 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
+ 	unsigned long nr_vmemmap_pages = 0;
++	struct memory_notify arg;
+ 	struct zone *zone;
+ 	int ret;
+ 
+@@ -207,9 +208,19 @@ static int memory_block_online(struct me
+ 	if (mem->altmap)
+ 		nr_vmemmap_pages = mem->altmap->free;
+ 
++	arg.altmap_start_pfn = start_pfn;
++	arg.altmap_nr_pages = nr_vmemmap_pages;
++	arg.start_pfn = start_pfn + nr_vmemmap_pages;
++	arg.nr_pages = nr_pages - nr_vmemmap_pages;
+ 	mem_hotplug_begin();
++	ret = memory_notify(MEM_PREPARE_ONLINE, &arg);
++	ret = notifier_to_errno(ret);
++	if (ret)
++		goto out_notifier;
++
+ 	if (nr_vmemmap_pages) {
+-		ret = mhp_init_memmap_on_memory(start_pfn, nr_vmemmap_pages, zone);
++		ret = mhp_init_memmap_on_memory(start_pfn, nr_vmemmap_pages,
++						zone, mem->altmap->inaccessible);
+ 		if (ret)
+ 			goto out;
+ 	}
+@@ -231,7 +242,11 @@ static int memory_block_online(struct me
+ 					  nr_vmemmap_pages);
+ 
+ 	mem->zone = zone;
++	mem_hotplug_done();
++	return ret;
+ out:
++	memory_notify(MEM_FINISH_OFFLINE, &arg);
++out_notifier:
+ 	mem_hotplug_done();
+ 	return ret;
  }
+@@ -244,6 +259,7 @@ static int memory_block_offline(struct m
+ 	unsigned long start_pfn = section_nr_to_pfn(mem->start_section_nr);
+ 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
+ 	unsigned long nr_vmemmap_pages = 0;
++	struct memory_notify arg;
+ 	int ret;
+ 
+ 	if (!mem->zone)
+@@ -275,6 +291,11 @@ static int memory_block_offline(struct m
+ 		mhp_deinit_memmap_on_memory(start_pfn, nr_vmemmap_pages);
+ 
+ 	mem->zone = NULL;
++	arg.altmap_start_pfn = start_pfn;
++	arg.altmap_nr_pages = nr_vmemmap_pages;
++	arg.start_pfn = start_pfn + nr_vmemmap_pages;
++	arg.nr_pages = nr_pages - nr_vmemmap_pages;
++	memory_notify(MEM_FINISH_OFFLINE, &arg);
+ out:
+ 	mem_hotplug_done();
+ 	return ret;
+--- a/include/linux/memory.h~mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers
++++ a/include/linux/memory.h
+@@ -96,8 +96,17 @@ int set_memory_block_size_order(unsigned
+ #define	MEM_GOING_ONLINE	(1<<3)
+ #define	MEM_CANCEL_ONLINE	(1<<4)
+ #define	MEM_CANCEL_OFFLINE	(1<<5)
++#define	MEM_PREPARE_ONLINE	(1<<6)
++#define	MEM_FINISH_OFFLINE	(1<<7)
+ 
+ struct memory_notify {
++	/*
++	 * The altmap_start_pfn and altmap_nr_pages fields are designated for
++	 * specifying the altmap range and are exclusively intended for use in
++	 * MEM_PREPARE_ONLINE/MEM_FINISH_OFFLINE notifiers.
++	 */
++	unsigned long altmap_start_pfn;
++	unsigned long altmap_nr_pages;
+ 	unsigned long start_pfn;
+ 	unsigned long nr_pages;
+ 	int status_change_nid_normal;
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers
++++ a/include/linux/memory_hotplug.h
+@@ -106,6 +106,22 @@ typedef int __bitwise mhp_t;
+  * implies the node id (nid).
+  */
+ #define MHP_NID_IS_MGID		((__force mhp_t)BIT(2))
++/*
++ * The hotplugged memory is completely inaccessible while the memory is
++ * offline. The memory provider will handle MEM_PREPARE_ONLINE /
++ * MEM_FINISH_OFFLINE notifications and make the memory accessible.
++ *
++ * This flag is only relevant when used along with MHP_MEMMAP_ON_MEMORY,
++ * because the altmap cannot be written (e.g., poisoned) when adding
++ * memory -- before it is set online.
++ *
++ * This allows for adding memory with an altmap that is not currently
++ * made available by a hypervisor. When onlining that memory, the
++ * hypervisor can be instructed to make that memory available, and
++ * the onlining phase will not require any memory allocations, which is
++ * helpful in low-memory situations.
++ */
++#define MHP_OFFLINE_INACCESSIBLE	((__force mhp_t)BIT(3))
  
  /*
-- * mas_node_count() - Check if enough nodes are allocated and request more if
-- * there is not enough nodes.
-+ * mas_node_count_gfp() - Check if enough nodes are allocated and request more
-+ * if there is not enough nodes.
-  * @mas: The maple state
-  * @count: The number of nodes needed
-  * @gfp: the gfp flags
+  * Extended parameters for memory hotplug:
+@@ -154,7 +170,7 @@ extern void adjust_present_page_count(st
+ 				      long nr_pages);
+ /* VM interface that may be used by firmware interface */
+ extern int mhp_init_memmap_on_memory(unsigned long pfn, unsigned long nr_pages,
+-				     struct zone *zone);
++				     struct zone *zone, bool mhp_off_inaccessible);
+ extern void mhp_deinit_memmap_on_memory(unsigned long pfn, unsigned long nr_pages);
+ extern int online_pages(unsigned long pfn, unsigned long nr_pages,
+ 			struct zone *zone, struct memory_group *group);
+--- a/include/linux/memremap.h~mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers
++++ a/include/linux/memremap.h
+@@ -25,6 +25,7 @@ struct vmem_altmap {
+ 	unsigned long free;
+ 	unsigned long align;
+ 	unsigned long alloc;
++	bool inaccessible;
+ };
+ 
+ /*
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers
++++ a/mm/memory_hotplug.c
+@@ -1087,7 +1087,7 @@ void adjust_present_page_count(struct pa
+ }
+ 
+ int mhp_init_memmap_on_memory(unsigned long pfn, unsigned long nr_pages,
+-			      struct zone *zone)
++			      struct zone *zone, bool mhp_off_inaccessible)
+ {
+ 	unsigned long end_pfn = pfn + nr_pages;
+ 	int ret, i;
+@@ -1096,6 +1096,15 @@ int mhp_init_memmap_on_memory(unsigned l
+ 	if (ret)
+ 		return ret;
+ 
++	/*
++	 * Memory block is accessible at this stage and hence poison the struct
++	 * pages now.  If the memory block is accessible during memory hotplug
++	 * addition phase, then page poisining is already performed in
++	 * sparse_add_section().
++	 */
++	if (mhp_off_inaccessible)
++		page_init_poison(pfn_to_page(pfn), sizeof(struct page) * nr_pages);
++
+ 	move_pfn_range_to_zone(zone, pfn, nr_pages, NULL, MIGRATE_UNMOVABLE);
+ 
+ 	for (i = 0; i < nr_pages; i++)
+@@ -1415,7 +1424,7 @@ static void __ref remove_memory_blocks_a
+ }
+ 
+ static int create_altmaps_and_memory_blocks(int nid, struct memory_group *group,
+-					    u64 start, u64 size)
++					    u64 start, u64 size, mhp_t mhp_flags)
+ {
+ 	unsigned long memblock_size = memory_block_size_bytes();
+ 	u64 cur_start;
+@@ -1431,6 +1440,8 @@ static int create_altmaps_and_memory_blo
+ 		};
+ 
+ 		mhp_altmap.free = memory_block_memmap_on_memory_pages();
++		if (mhp_flags & MHP_OFFLINE_INACCESSIBLE)
++			mhp_altmap.inaccessible = true;
+ 		params.altmap = kmemdup(&mhp_altmap, sizeof(struct vmem_altmap),
+ 					GFP_KERNEL);
+ 		if (!params.altmap) {
+@@ -1516,7 +1527,7 @@ int __ref add_memory_resource(int nid, s
+ 	 */
+ 	if ((mhp_flags & MHP_MEMMAP_ON_MEMORY) &&
+ 	    mhp_supports_memmap_on_memory(memory_block_size_bytes())) {
+-		ret = create_altmaps_and_memory_blocks(nid, group, start, size);
++		ret = create_altmaps_and_memory_blocks(nid, group, start, size, mhp_flags);
+ 		if (ret)
+ 			goto error;
+ 	} else {
+--- a/mm/sparse.c~mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers
++++ a/mm/sparse.c
+@@ -908,7 +908,8 @@ int __meminit sparse_add_section(int nid
+ 	 * Poison uninitialized struct pages in order to catch invalid flags
+ 	 * combinations.
+ 	 */
+-	page_init_poison(memmap, sizeof(struct page) * nr_pages);
++	if (!altmap || !altmap->inaccessible)
++		page_init_poison(memmap, sizeof(struct page) * nr_pages);
+ 
+ 	ms = __nr_to_section(section_nr);
+ 	set_section_nid(section_nr, nid);
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from sumanthk@linux.ibm.com are
 
 
