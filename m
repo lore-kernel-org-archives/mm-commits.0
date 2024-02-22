@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 994DC73F3D
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 21:46:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADD4173F3D
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 21:46:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708638390; cv=none; b=iOmEBBDSy0a3iWnRqaWd74v4KLGfZjkbXdAs/KpS1nRV7kxUV4dshd4mIuDH2LJsiKtq1szCFGNGF8LoiB8wpRHxE8hOyFqN/v+L4SKIm87gmEqJ1SjtougZAex4pLn9yO94czD+EBpZe/p34Ui/Z0x73WaAhXyk1sinoIlKeSo=
+	t=1708638391; cv=none; b=eqrsvqqVpQ11PotvZ43+NsUGe3d/ER7/Qv+Qmt3fwdV5iDOULNUcTYHaHaBbzG2ujLArg2qOtgDjFaSzvefbt5lYvFxd2e+mFXbwCmf4tYJRuHBXJ3kO/AAUySDzGQuYdD2hqbcvnbNKSJVgKVXErrOsm2gsKB1kM3JyjIgM9rQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708638390; c=relaxed/simple;
-	bh=xs+P7/8VA/Nxcamll8Av4V2X0UK7dzhDzihRctFewlA=;
-	h=Date:To:From:Subject:Message-Id; b=f7nD4mOlbjlHsKNF5+auZNf9aOHTtIdRF+MPQRFFLzlMtarqR6kd15U9hxQi/LlPBF+au4oZNzW4nDTgoltiyMFBUQG4/MOQH/1vwRBwv1m9BdXeMxDezvurkSuOWcAUXIi/L2OH/AiiutxkfyHloeFCSITxyCnGsydjq/NFeH0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XLl9bg/y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708638391; c=relaxed/simple;
+	bh=2LOfWfYED2MuzNwhDC1AKIQHKJWBx+d5EZUZaiO5ykI=;
+	h=Date:To:From:Subject:Message-Id; b=CJgEmop0F34b+C1+ip6FPkBs5IjCKNIsmkmEzFAitSaqWaRSYgZ5070ZwExRADujSF9xVdgK9pQVnKbeAkh+AsCvkYlqripVdaNsOP9MEI1UmVS3QdcfbsFgC77W0ew2m1a5/F7StEn8XL3PP2eD2/eieoJKs2iNvvKKX/FCKwQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PNy1RFfI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XLl9bg/y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E64A8C433C7;
-	Thu, 22 Feb 2024 21:46:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PNy1RFfI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33780C433F1;
+	Thu, 22 Feb 2024 21:46:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708638390;
-	bh=xs+P7/8VA/Nxcamll8Av4V2X0UK7dzhDzihRctFewlA=;
+	s=korg; t=1708638391;
+	bh=2LOfWfYED2MuzNwhDC1AKIQHKJWBx+d5EZUZaiO5ykI=;
 	h=Date:To:From:Subject:From;
-	b=XLl9bg/yO3CwsWzAwaYO6FarTO4ylmXFTw2n9OrIEXYWxhizhyNpa9PHaWF5h4mQx
-	 EVYkSw+6gbWKNT9ZYddH6NUvQPV7XkL6ZY08LKzVLQv8z9E3WRfu5CkgIpVcTmCtvj
-	 iEoLzCMAp8Bzsz5DYsSzPA2E5MkB7Rnef8ad/l2M=
-Date: Thu, 22 Feb 2024 13:46:29 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,javier.carrasco.cruz@gmail.com,bernd.edlinger@hotmail.de,vincenzo.mezzela@gmail.com,akpm@linux-foundation.org
+	b=PNy1RFfI4LBRTYEIrqM+JZSqb/S17hisv7X5szK4yyjLcEHaodpSCLAzOlXZp7RVG
+	 kMdoe+SK2Hj5Rdv5TEBq1Lz49K4vL9akKHPNxVqzRRGPFVNqE9iawXIyfCIBKAkN/e
+	 Ypi2lp3VkkX/VbVo0Y20f0xcjiMSkEijxDj+crJ0=
+Date: Thu, 22 Feb 2024 13:46:30 -0800
+To: mm-commits@vger.kernel.org,vincenzo.mezzela@gmail.com,sj@kernel.org,bernd.edlinger@hotmail.de,javier.carrasco.cruz@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-damon-fix-minor-typos-in-test-logs.patch added to mm-unstable branch
-Message-Id: <20240222214629.E64A8C433C7@smtp.kernel.org>
+Subject: + selftests-damon-add-access_memory-to-gitignore.patch added to mm-unstable branch
+Message-Id: <20240222214631.33780C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftest: damon: fix minor typos in test logs
+     Subject: selftests: damon: add access_memory to .gitignore
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftest-damon-fix-minor-typos-in-test-logs.patch
+     selftests-damon-add-access_memory-to-gitignore.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-damon-fix-minor-typos-in-test-logs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-add-access_memory-to-gitignore.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,62 +58,36 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vincenzo Mezzela <vincenzo.mezzela@gmail.com>
-Subject: selftest: damon: fix minor typos in test logs
-Date: Wed, 21 Feb 2024 13:11:47 -0800
+From: Javier Carrasco <javier.carrasco.cruz@gmail.com>
+Subject: selftests: damon: add access_memory to .gitignore
+Date: Wed, 21 Feb 2024 13:11:48 -0800
 
-Patch series "selftests/damon: misc fixes".
+This binary is missing in the .gitignore and stays as an untracked file.
 
-Misc fixes for DAMON selftets on behalf of the original authors.
-
-
-This patch (of 2):
-
-This patch resolves a spelling error in the test log, preventing potential
-confusion.
-
-It is submitted as part of my application to the "Linux Kernel Bug Fixing
-Spring Unpaid 2024" mentorship program of the Linux Foundation.
-
-Link: https://lore.kernel.org/r/20240204122523.14160-1-vincenzo.mezzela@gmail.com
-Link: https://lkml.kernel.org/r/20240221211148.46522-2-sj@kernel.org
-Signed-off-by: Vincenzo Mezzela <vincenzo.mezzela@gmail.com>
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lore.kernel.org/r/20240214-damon_selftest_gitignore-v1-1-f517d0f9f783@gmail.com
+Link: https://lkml.kernel.org/r/20240221211148.46522-3-sj@kernel.org
+Signed-off-by: Javier Carrasco <javier.carrasco.cruz@gmail.com>
+Singed-off-by: SeongJae Park <sj@kernel.org>
+Reported-by: Bernd Edlinger <bernd.edlinger@hotmail.de>
+Closes: https://lore.kernel.org/all/AS8P193MB1285C963658008F1B2702AF7E4792@AS8P193MB1285.EURP193.PROD.OUTLOOK.COM/
 Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Bernd Edlinger <bernd.edlinger@hotmail.de>
-Cc: Javier Carrasco <javier.carrasco.cruz@gmail.com>
+Cc: Vincenzo Mezzela <vincenzo.mezzela@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_hang.py           |    2 +-
- tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/damon/.gitignore |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_hang.py~selftest-damon-fix-minor-typos-in-test-logs
-+++ a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_hang.py
-@@ -20,7 +20,7 @@ def main():
- 
-     err = kdamonds.start()
-     if err != None:
--        print('kdmaond start failed: %s' % err)
-+        print('kdamond start failed: %s' % err)
-         exit(1)
- 
-     while proc.poll() == None:
---- a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py~selftest-damon-fix-minor-typos-in-test-logs
-+++ a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py
-@@ -23,7 +23,7 @@ def main():
- 
-     err = kdamonds.start()
-     if err != None:
--        print('kdmaond start failed: %s' % err)
-+        print('kdamond start failed: %s' % err)
-         exit(1)
- 
-     wss_collected = []
+--- a/tools/testing/selftests/damon/.gitignore~selftests-damon-add-access_memory-to-gitignore
++++ a/tools/testing/selftests/damon/.gitignore
+@@ -2,3 +2,4 @@
+ huge_count_read_write
+ debugfs_target_ids_read_before_terminate_race
+ debugfs_target_ids_pid_leak
++access_memory
 _
 
-Patches currently in -mm which might be from vincenzo.mezzela@gmail.com are
+Patches currently in -mm which might be from javier.carrasco.cruz@gmail.com are
 
-selftest-damon-fix-minor-typos-in-test-logs.patch
+selftests-damon-add-access_memory-to-gitignore.patch
 
