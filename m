@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63306224EE
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:28:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7437B224EE
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 23:28:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708644495; cv=none; b=QVb5E1zl0tX8kTjyjtb9NPNcP44sobEsOCVxmGnHDkHj2OwLzzwZVytGujJTl7QEj0Qbt+n5ZILdQhJZZDiKkV87K23DwvxtJEm4rCX/d+Sl1fmax8BVR/h68tvSORHnQOdtJmMStyAUzCB/9B8STo1bKkjRUMI5TJfC1c1fAaQ=
+	t=1708644496; cv=none; b=obmOkAEL4MaVltrUrlZGo7IUikaY/yvw5j0rf/yv9jagMewXlWfgMKonWAw5pqGNXf82tVUuuIkb0QFR/NkTly7S9+uF7fUJywTIzI1MszzXciIZ9e/HUXfQlki8Nk+cHHywmIlhD/37OIWpPGPqrmgjDEdQKNlPxCl6VlTFQNI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708644495; c=relaxed/simple;
-	bh=lFdbOgXhBO82bmI420CiKEUZ/hPS7MtYwLeJnFjyKAM=;
-	h=Date:To:From:Subject:Message-Id; b=JN/5eFz1NgSlL/0W5XMjWMpRMuhYZu+Bvh0axHJEyj7UA/CNpz7SS0x3/ZVPmQCQfIHYxlPL4PDmqnlYlhUv1WY2np4/qvyUhuluYG9hBa+NUe7Tpuq3W4RMY0NC8KXdm/8BURY9ITBNheiwNNm+9dLDdKxCA1OG/D0SMVb+wPg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h1n9bmY5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708644496; c=relaxed/simple;
+	bh=WFdfEPnynxaWtBHHjnUMKYEPhgQnEfQQvOKSz1HOTs8=;
+	h=Date:To:From:Subject:Message-Id; b=nZWhVSFv9fLVEAGrZNMYhRqaqOUMCsfkY9NLnUNUEVVV/eOKvX3dsSfDczCcAh2pdE2CUTpn7+shb8xWYwK7WuaMdmA1XAWdnlEvMzhhpif3xxgTgrKRKZOSeS+WTm0mcfGs39uWqskkfjDfNKG+NB7xZUItufPd7TOi1uyWNBw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1t3jTzbI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h1n9bmY5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DACDC433C7;
-	Thu, 22 Feb 2024 23:28:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1t3jTzbI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E5DDC43390;
+	Thu, 22 Feb 2024 23:28:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708644495;
-	bh=lFdbOgXhBO82bmI420CiKEUZ/hPS7MtYwLeJnFjyKAM=;
+	s=korg; t=1708644496;
+	bh=WFdfEPnynxaWtBHHjnUMKYEPhgQnEfQQvOKSz1HOTs8=;
 	h=Date:To:From:Subject:From;
-	b=h1n9bmY5PZvwg16CB2r7R5nMnr0P9TtMD3VL61wbrFi/SZJGbdUi/OZjvzq1rvTK9
-	 NKKKujD5Hqw8gBi/uBXdcjF1Mx1n1vZa6HSAivV0nKuinXMGP7A/J5W4JVcBCOYg8E
-	 pBlglLEDWTJegYUfcJMuiWuJFWB0pjWnDKj7TVzk=
-Date: Thu, 22 Feb 2024 15:28:14 -0800
+	b=1t3jTzbIFuo11btfiwsFMlNsAC35TxKaFpqyAKk1g8eCgL/vIkdxcPZPQGKdca9O1
+	 GL9y++4I865P2yXBnFFm3udrbRKZSye3iYqabwc80Y7JDHb9MNvwuQkyvO5N2RT3p9
+	 X7jrSsnOkwQBQEtKoI71QBNcH+1r2KRzlaIqxx34=
+Date: Thu, 22 Feb 2024 15:28:15 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,tglx@linutronix.de,shy828301@gmail.com,ryabinin.a.a@gmail.com,mingo@redhat.com,maz@kernel.org,mark.rutland@arm.com,jhubbard@nvidia.com,james.morse@arm.com,hpa@zytor.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,ardb@kernel.org,apopple@nvidia.com,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] arm64-mm-wire-up-pte_cont-for-user-mappings.patch removed from -mm tree
-Message-Id: <20240222232815.2DACDC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] arm64-mm-implement-new-wrprotect_ptes-batch-api.patch removed from -mm tree
+Message-Id: <20240222232816.3E5DDC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arm64/mm: wire up PTE_CONT for user mappings
+     Subject: arm64/mm: implement new wrprotect_ptes() batch API
 has been removed from the -mm tree.  Its filename was
-     arm64-mm-wire-up-pte_cont-for-user-mappings.patch
+     arm64-mm-implement-new-wrprotect_ptes-batch-api.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: arm64/mm: wire up PTE_CONT for user mappings
-Date: Thu, 15 Feb 2024 10:31:59 +0000
+Subject: arm64/mm: implement new wrprotect_ptes() batch API
+Date: Thu, 15 Feb 2024 10:32:00 +0000
 
-With the ptep API sufficiently refactored, we can now introduce a new
-"contpte" API layer, which transparently manages the PTE_CONT bit for user
-mappings.
+Optimize the contpte implementation to fix some of the fork performance
+regression introduced by the initial contpte commit.  Subsequent patches
+will solve it entirely.
 
-In this initial implementation, only suitable batches of PTEs, set via
-set_ptes(), are mapped with the PTE_CONT bit.  Any subsequent modification
-of individual PTEs will cause an "unfold" operation to repaint the contpte
-block as individual PTEs before performing the requested operation. 
-While, a modification of a single PTE could cause the block of PTEs to
-which it belongs to become eligible for "folding" into a contpte entry,
-"folding" is not performed in this initial implementation due to the costs
-of checking the requirements are met.  Due to this, contpte mappings will
-degrade back to normal pte mappings over time if/when protections are
-changed.  This will be solved in a future patch.
+During fork(), any private memory in the parent must be write-protected. 
+Previously this was done 1 PTE at a time.  But the core-mm supports
+batched wrprotect via the new wrprotect_ptes() API.  So let's implement
+that API and for fully covered contpte mappings, we no longer need to
+unfold the contpte.  This has 2 benefits:
 
-Since a contpte block only has a single access and dirty bit, the semantic
-here changes slightly; when getting a pte (e.g.  ptep_get()) that is part
-of a contpte mapping, the access and dirty information are pulled from the
-block (so all ptes in the block return the same access/dirty info).  When
-changing the access/dirty info on a pte (e.g.  ptep_set_access_flags())
-that is part of a contpte mapping, this change will affect the whole
-contpte block.  This is works fine in practice since we guarantee that
-only a single folio is mapped by a contpte block, and the core-mm tracks
-access/dirty information per folio.
+  - reduced unfolding, reduces the number of tlbis that must be issued.
+  - The memory remains contpte-mapped ("folded") in the parent, so it
+    continues to benefit from the more efficient use of the TLB after
+    the fork.
 
-In order for the public functions, which used to be pure inline, to
-continue to be callable by modules, export all the contpte_* symbols that
-are now called by those public inline functions.
+The optimization to wrprotect a whole contpte block without unfolding is
+possible thanks to the tightening of the Arm ARM in respect to the
+definition and behaviour when 'Misprogramming the Contiguous bit'.  See
+section D21194 at https://developer.arm.com/documentation/102105/ja-07/
 
-The feature is enabled/disabled with the ARM64_CONTPTE Kconfig parameter
-at build time.  It defaults to enabled as long as its dependency,
-TRANSPARENT_HUGEPAGE is also enabled.  The core-mm depends upon
-TRANSPARENT_HUGEPAGE to be able to allocate large folios, so if its not
-enabled, then there is no chance of meeting the physical contiguity
-requirement for contpte mappings.
-
-Link: https://lkml.kernel.org/r/20240215103205.2607016-13-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20240215103205.2607016-14-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: Ard Biesheuvel <ardb@kernel.org>
 Tested-by: John Hubbard <jhubbard@nvidia.com>
 Acked-by: Mark Rutland <mark.rutland@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Barry Song <21cnbao@gmail.com>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
@@ -108,533 +92,168 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig               |    9 
- arch/arm64/include/asm/pgtable.h |  167 ++++++++++++++++
- arch/arm64/mm/Makefile           |    1 
- arch/arm64/mm/contpte.c          |  285 +++++++++++++++++++++++++++++
- include/linux/efi.h              |    5 
- 5 files changed, 467 insertions(+)
+ arch/arm64/include/asm/pgtable.h |   61 ++++++++++++++++++++++++-----
+ arch/arm64/mm/contpte.c          |   38 ++++++++++++++++++
+ 2 files changed, 89 insertions(+), 10 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-wire-up-pte_cont-for-user-mappings
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mm-implement-new-wrprotect_ptes-batch-api
 +++ a/arch/arm64/include/asm/pgtable.h
-@@ -134,6 +134,10 @@ static inline pteval_t __phys_to_pte_val
- #define pte_valid_not_user(pte) \
- 	((pte_val(pte) & (PTE_VALID | PTE_USER | PTE_UXN)) == (PTE_VALID | PTE_UXN))
- /*
-+ * Returns true if the pte is valid and has the contiguous bit set.
-+ */
-+#define pte_valid_cont(pte)	(pte_valid(pte) && pte_cont(pte))
-+/*
-  * Could the pte be present in the TLB? We must check mm_tlb_flush_pending
-  * so that we don't erroneously return false for pages that have been
-  * remapped as PROT_NONE but are yet to be flushed from the TLB.
-@@ -1128,6 +1132,167 @@ extern void ptep_modify_prot_commit(stru
- 				    unsigned long addr, pte_t *ptep,
- 				    pte_t old_pte, pte_t new_pte);
+@@ -978,16 +978,12 @@ static inline pmd_t pmdp_huge_get_and_cl
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
-+#ifdef CONFIG_ARM64_CONTPTE
-+
+-/*
+- * __ptep_set_wrprotect - mark read-only while trasferring potential hardware
+- * dirty status (PTE_DBM && !PTE_RDONLY) to the software PTE_DIRTY bit.
+- */
+-static inline void __ptep_set_wrprotect(struct mm_struct *mm,
+-					unsigned long address, pte_t *ptep)
++static inline void ___ptep_set_wrprotect(struct mm_struct *mm,
++					unsigned long address, pte_t *ptep,
++					pte_t pte)
+ {
+-	pte_t old_pte, pte;
++	pte_t old_pte;
+ 
+-	pte = __ptep_get(ptep);
+ 	do {
+ 		old_pte = pte;
+ 		pte = pte_wrprotect(pte);
+@@ -996,6 +992,25 @@ static inline void __ptep_set_wrprotect(
+ 	} while (pte_val(pte) != pte_val(old_pte));
+ }
+ 
 +/*
-+ * The contpte APIs are used to transparently manage the contiguous bit in ptes
-+ * where it is possible and makes sense to do so. The PTE_CONT bit is considered
-+ * a private implementation detail of the public ptep API (see below).
++ * __ptep_set_wrprotect - mark read-only while trasferring potential hardware
++ * dirty status (PTE_DBM && !PTE_RDONLY) to the software PTE_DIRTY bit.
 + */
-+extern void __contpte_try_unfold(struct mm_struct *mm, unsigned long addr,
-+				pte_t *ptep, pte_t pte);
-+extern pte_t contpte_ptep_get(pte_t *ptep, pte_t orig_pte);
-+extern pte_t contpte_ptep_get_lockless(pte_t *orig_ptep);
-+extern void contpte_set_ptes(struct mm_struct *mm, unsigned long addr,
-+				pte_t *ptep, pte_t pte, unsigned int nr);
-+extern int contpte_ptep_test_and_clear_young(struct vm_area_struct *vma,
-+				unsigned long addr, pte_t *ptep);
-+extern int contpte_ptep_clear_flush_young(struct vm_area_struct *vma,
-+				unsigned long addr, pte_t *ptep);
-+extern int contpte_ptep_set_access_flags(struct vm_area_struct *vma,
-+				unsigned long addr, pte_t *ptep,
-+				pte_t entry, int dirty);
-+
-+static inline void contpte_try_unfold(struct mm_struct *mm, unsigned long addr,
-+					pte_t *ptep, pte_t pte)
++static inline void __ptep_set_wrprotect(struct mm_struct *mm,
++					unsigned long address, pte_t *ptep)
 +{
-+	if (unlikely(pte_valid_cont(pte)))
-+		__contpte_try_unfold(mm, addr, ptep, pte);
++	___ptep_set_wrprotect(mm, address, ptep, __ptep_get(ptep));
 +}
 +
-+/*
-+ * The below functions constitute the public API that arm64 presents to the
-+ * core-mm to manipulate PTE entries within their page tables (or at least this
-+ * is the subset of the API that arm64 needs to implement). These public
-+ * versions will automatically and transparently apply the contiguous bit where
-+ * it makes sense to do so. Therefore any users that are contig-aware (e.g.
-+ * hugetlb, kernel mapper) should NOT use these APIs, but instead use the
-+ * private versions, which are prefixed with double underscore. All of these
-+ * APIs except for ptep_get_lockless() are expected to be called with the PTL
-+ * held. Although the contiguous bit is considered private to the
-+ * implementation, it is deliberately allowed to leak through the getters (e.g.
-+ * ptep_get()), back to core code. This is required so that pte_leaf_size() can
-+ * provide an accurate size for perf_get_pgtable_size(). But this leakage means
-+ * its possible a pte will be passed to a setter with the contiguous bit set, so
-+ * we explicitly clear the contiguous bit in those cases to prevent accidentally
-+ * setting it in the pgtable.
-+ */
-+
-+#define ptep_get ptep_get
-+static inline pte_t ptep_get(pte_t *ptep)
++static inline void __wrprotect_ptes(struct mm_struct *mm, unsigned long address,
++				pte_t *ptep, unsigned int nr)
 +{
-+	pte_t pte = __ptep_get(ptep);
++	unsigned int i;
 +
-+	if (likely(!pte_valid_cont(pte)))
-+		return pte;
-+
-+	return contpte_ptep_get(ptep, pte);
++	for (i = 0; i < nr; i++, address += PAGE_SIZE, ptep++)
++		__ptep_set_wrprotect(mm, address, ptep);
 +}
 +
-+#define ptep_get_lockless ptep_get_lockless
-+static inline pte_t ptep_get_lockless(pte_t *ptep)
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ #define __HAVE_ARCH_PMDP_SET_WRPROTECT
+ static inline void pmdp_set_wrprotect(struct mm_struct *mm,
+@@ -1149,6 +1164,8 @@ extern int contpte_ptep_test_and_clear_y
+ 				unsigned long addr, pte_t *ptep);
+ extern int contpte_ptep_clear_flush_young(struct vm_area_struct *vma,
+ 				unsigned long addr, pte_t *ptep);
++extern void contpte_wrprotect_ptes(struct mm_struct *mm, unsigned long addr,
++				pte_t *ptep, unsigned int nr);
+ extern int contpte_ptep_set_access_flags(struct vm_area_struct *vma,
+ 				unsigned long addr, pte_t *ptep,
+ 				pte_t entry, int dirty);
+@@ -1268,12 +1285,35 @@ static inline int ptep_clear_flush_young
+ 	return contpte_ptep_clear_flush_young(vma, addr, ptep);
+ }
+ 
++#define wrprotect_ptes wrprotect_ptes
++static inline void wrprotect_ptes(struct mm_struct *mm, unsigned long addr,
++				pte_t *ptep, unsigned int nr)
 +{
-+	pte_t pte = __ptep_get(ptep);
-+
-+	if (likely(!pte_valid_cont(pte)))
-+		return pte;
-+
-+	return contpte_ptep_get_lockless(ptep);
-+}
-+
-+static inline void set_pte(pte_t *ptep, pte_t pte)
-+{
-+	/*
-+	 * We don't have the mm or vaddr so cannot unfold contig entries (since
-+	 * it requires tlb maintenance). set_pte() is not used in core code, so
-+	 * this should never even be called. Regardless do our best to service
-+	 * any call and emit a warning if there is any attempt to set a pte on
-+	 * top of an existing contig range.
-+	 */
-+	pte_t orig_pte = __ptep_get(ptep);
-+
-+	WARN_ON_ONCE(pte_valid_cont(orig_pte));
-+	__set_pte(ptep, pte_mknoncont(pte));
-+}
-+
-+#define set_ptes set_ptes
-+static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
-+				pte_t *ptep, pte_t pte, unsigned int nr)
-+{
-+	pte = pte_mknoncont(pte);
-+
 +	if (likely(nr == 1)) {
-+		contpte_try_unfold(mm, addr, ptep, __ptep_get(ptep));
-+		__set_ptes(mm, addr, ptep, pte, 1);
++		/*
++		 * Optimization: wrprotect_ptes() can only be called for present
++		 * ptes so we only need to check contig bit as condition for
++		 * unfold, and we can remove the contig bit from the pte we read
++		 * to avoid re-reading. This speeds up fork() which is sensitive
++		 * for order-0 folios. Equivalent to contpte_try_unfold().
++		 */
++		pte_t orig_pte = __ptep_get(ptep);
++
++		if (unlikely(pte_cont(orig_pte))) {
++			__contpte_try_unfold(mm, addr, ptep, orig_pte);
++			orig_pte = pte_mknoncont(orig_pte);
++		}
++		___ptep_set_wrprotect(mm, addr, ptep, orig_pte);
 +	} else {
-+		contpte_set_ptes(mm, addr, ptep, pte, nr);
++		contpte_wrprotect_ptes(mm, addr, ptep, nr);
 +	}
 +}
 +
-+static inline void pte_clear(struct mm_struct *mm,
-+				unsigned long addr, pte_t *ptep)
-+{
-+	contpte_try_unfold(mm, addr, ptep, __ptep_get(ptep));
-+	__pte_clear(mm, addr, ptep);
-+}
-+
-+#define __HAVE_ARCH_PTEP_GET_AND_CLEAR
-+static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
-+				unsigned long addr, pte_t *ptep)
-+{
-+	contpte_try_unfold(mm, addr, ptep, __ptep_get(ptep));
-+	return __ptep_get_and_clear(mm, addr, ptep);
-+}
-+
-+#define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
-+static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
-+				unsigned long addr, pte_t *ptep)
-+{
-+	pte_t orig_pte = __ptep_get(ptep);
-+
-+	if (likely(!pte_valid_cont(orig_pte)))
-+		return __ptep_test_and_clear_young(vma, addr, ptep);
-+
-+	return contpte_ptep_test_and_clear_young(vma, addr, ptep);
-+}
-+
-+#define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
-+static inline int ptep_clear_flush_young(struct vm_area_struct *vma,
-+				unsigned long addr, pte_t *ptep)
-+{
-+	pte_t orig_pte = __ptep_get(ptep);
-+
-+	if (likely(!pte_valid_cont(orig_pte)))
-+		return __ptep_clear_flush_young(vma, addr, ptep);
-+
-+	return contpte_ptep_clear_flush_young(vma, addr, ptep);
-+}
-+
-+#define __HAVE_ARCH_PTEP_SET_WRPROTECT
-+static inline void ptep_set_wrprotect(struct mm_struct *mm,
-+				unsigned long addr, pte_t *ptep)
-+{
-+	contpte_try_unfold(mm, addr, ptep, __ptep_get(ptep));
-+	__ptep_set_wrprotect(mm, addr, ptep);
-+}
-+
-+#define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
-+static inline int ptep_set_access_flags(struct vm_area_struct *vma,
-+				unsigned long addr, pte_t *ptep,
-+				pte_t entry, int dirty)
-+{
-+	pte_t orig_pte = __ptep_get(ptep);
-+
-+	entry = pte_mknoncont(entry);
-+
-+	if (likely(!pte_valid_cont(orig_pte)))
-+		return __ptep_set_access_flags(vma, addr, ptep, entry, dirty);
-+
-+	return contpte_ptep_set_access_flags(vma, addr, ptep, entry, dirty);
-+}
-+
-+#else /* CONFIG_ARM64_CONTPTE */
-+
- #define ptep_get				__ptep_get
- #define set_pte					__set_pte
- #define set_ptes				__set_ptes
-@@ -1143,6 +1308,8 @@ extern void ptep_modify_prot_commit(stru
+ #define __HAVE_ARCH_PTEP_SET_WRPROTECT
+ static inline void ptep_set_wrprotect(struct mm_struct *mm,
+ 				unsigned long addr, pte_t *ptep)
+ {
+-	contpte_try_unfold(mm, addr, ptep, __ptep_get(ptep));
+-	__ptep_set_wrprotect(mm, addr, ptep);
++	wrprotect_ptes(mm, addr, ptep, 1);
+ }
+ 
+ #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
+@@ -1305,6 +1345,7 @@ static inline int ptep_set_access_flags(
+ #define ptep_clear_flush_young			__ptep_clear_flush_young
+ #define __HAVE_ARCH_PTEP_SET_WRPROTECT
+ #define ptep_set_wrprotect			__ptep_set_wrprotect
++#define wrprotect_ptes				__wrprotect_ptes
  #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
  #define ptep_set_access_flags			__ptep_set_access_flags
  
-+#endif /* CONFIG_ARM64_CONTPTE */
-+
- #endif /* !__ASSEMBLY__ */
- 
- #endif /* __ASM_PGTABLE_H */
---- a/arch/arm64/Kconfig~arm64-mm-wire-up-pte_cont-for-user-mappings
-+++ a/arch/arm64/Kconfig
-@@ -2229,6 +2229,15 @@ config UNWIND_PATCH_PAC_INTO_SCS
- 	select UNWIND_TABLES
- 	select DYNAMIC_SCS
- 
-+config ARM64_CONTPTE
-+	bool "Contiguous PTE mappings for user memory" if EXPERT
-+	depends on TRANSPARENT_HUGEPAGE
-+	default y
-+	help
-+	  When enabled, user mappings are configured using the PTE contiguous
-+	  bit, for any mappings that meet the size and alignment requirements.
-+	  This reduces TLB pressure and improves performance.
-+
- endmenu # "Kernel Features"
- 
- menu "Boot options"
---- /dev/null
+--- a/arch/arm64/mm/contpte.c~arm64-mm-implement-new-wrprotect_ptes-batch-api
 +++ a/arch/arm64/mm/contpte.c
-@@ -0,0 +1,285 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Copyright (C) 2023 ARM Ltd.
-+ */
-+
-+#include <linux/mm.h>
-+#include <linux/efi.h>
-+#include <linux/export.h>
-+#include <asm/tlbflush.h>
-+
-+static inline bool mm_is_user(struct mm_struct *mm)
-+{
-+	/*
-+	 * Don't attempt to apply the contig bit to kernel mappings, because
-+	 * dynamically adding/removing the contig bit can cause page faults.
-+	 * These racing faults are ok for user space, since they get serialized
-+	 * on the PTL. But kernel mappings can't tolerate faults.
-+	 */
-+	if (unlikely(mm_is_efi(mm)))
-+		return false;
-+	return mm != &init_mm;
-+}
-+
-+static inline pte_t *contpte_align_down(pte_t *ptep)
-+{
-+	return PTR_ALIGN_DOWN(ptep, sizeof(*ptep) * CONT_PTES);
-+}
-+
-+static void contpte_convert(struct mm_struct *mm, unsigned long addr,
-+			    pte_t *ptep, pte_t pte)
-+{
-+	struct vm_area_struct vma = TLB_FLUSH_VMA(mm, 0);
-+	unsigned long start_addr;
-+	pte_t *start_ptep;
-+	int i;
-+
-+	start_ptep = ptep = contpte_align_down(ptep);
-+	start_addr = addr = ALIGN_DOWN(addr, CONT_PTE_SIZE);
-+	pte = pfn_pte(ALIGN_DOWN(pte_pfn(pte), CONT_PTES), pte_pgprot(pte));
-+
-+	for (i = 0; i < CONT_PTES; i++, ptep++, addr += PAGE_SIZE) {
-+		pte_t ptent = __ptep_get_and_clear(mm, addr, ptep);
-+
-+		if (pte_dirty(ptent))
-+			pte = pte_mkdirty(pte);
-+
-+		if (pte_young(ptent))
-+			pte = pte_mkyoung(pte);
-+	}
-+
-+	__flush_tlb_range(&vma, start_addr, addr, PAGE_SIZE, true, 3);
-+
-+	__set_ptes(mm, start_addr, start_ptep, pte, CONT_PTES);
-+}
-+
-+void __contpte_try_unfold(struct mm_struct *mm, unsigned long addr,
-+			pte_t *ptep, pte_t pte)
-+{
-+	/*
-+	 * We have already checked that the ptes are contiguous in
-+	 * contpte_try_unfold(), so just check that the mm is user space.
-+	 */
-+	if (!mm_is_user(mm))
-+		return;
-+
-+	pte = pte_mknoncont(pte);
-+	contpte_convert(mm, addr, ptep, pte);
-+}
-+EXPORT_SYMBOL(__contpte_try_unfold);
-+
-+pte_t contpte_ptep_get(pte_t *ptep, pte_t orig_pte)
-+{
-+	/*
-+	 * Gather access/dirty bits, which may be populated in any of the ptes
-+	 * of the contig range. We are guaranteed to be holding the PTL, so any
-+	 * contiguous range cannot be unfolded or otherwise modified under our
-+	 * feet.
-+	 */
-+
-+	pte_t pte;
-+	int i;
-+
-+	ptep = contpte_align_down(ptep);
-+
-+	for (i = 0; i < CONT_PTES; i++, ptep++) {
-+		pte = __ptep_get(ptep);
-+
-+		if (pte_dirty(pte))
-+			orig_pte = pte_mkdirty(orig_pte);
-+
-+		if (pte_young(pte))
-+			orig_pte = pte_mkyoung(orig_pte);
-+	}
-+
-+	return orig_pte;
-+}
-+EXPORT_SYMBOL(contpte_ptep_get);
-+
-+pte_t contpte_ptep_get_lockless(pte_t *orig_ptep)
-+{
-+	/*
-+	 * Gather access/dirty bits, which may be populated in any of the ptes
-+	 * of the contig range. We may not be holding the PTL, so any contiguous
-+	 * range may be unfolded/modified/refolded under our feet. Therefore we
-+	 * ensure we read a _consistent_ contpte range by checking that all ptes
-+	 * in the range are valid and have CONT_PTE set, that all pfns are
-+	 * contiguous and that all pgprots are the same (ignoring access/dirty).
-+	 * If we find a pte that is not consistent, then we must be racing with
-+	 * an update so start again. If the target pte does not have CONT_PTE
-+	 * set then that is considered consistent on its own because it is not
-+	 * part of a contpte range.
-+	 */
-+
-+	pgprot_t orig_prot;
-+	unsigned long pfn;
-+	pte_t orig_pte;
-+	pgprot_t prot;
-+	pte_t *ptep;
-+	pte_t pte;
-+	int i;
-+
-+retry:
-+	orig_pte = __ptep_get(orig_ptep);
-+
-+	if (!pte_valid_cont(orig_pte))
-+		return orig_pte;
-+
-+	orig_prot = pte_pgprot(pte_mkold(pte_mkclean(orig_pte)));
-+	ptep = contpte_align_down(orig_ptep);
-+	pfn = pte_pfn(orig_pte) - (orig_ptep - ptep);
-+
-+	for (i = 0; i < CONT_PTES; i++, ptep++, pfn++) {
-+		pte = __ptep_get(ptep);
-+		prot = pte_pgprot(pte_mkold(pte_mkclean(pte)));
-+
-+		if (!pte_valid_cont(pte) ||
-+		   pte_pfn(pte) != pfn ||
-+		   pgprot_val(prot) != pgprot_val(orig_prot))
-+			goto retry;
-+
-+		if (pte_dirty(pte))
-+			orig_pte = pte_mkdirty(orig_pte);
-+
-+		if (pte_young(pte))
-+			orig_pte = pte_mkyoung(orig_pte);
-+	}
-+
-+	return orig_pte;
-+}
-+EXPORT_SYMBOL(contpte_ptep_get_lockless);
-+
-+void contpte_set_ptes(struct mm_struct *mm, unsigned long addr,
-+					pte_t *ptep, pte_t pte, unsigned int nr)
-+{
-+	unsigned long next;
-+	unsigned long end;
-+	unsigned long pfn;
-+	pgprot_t prot;
-+
-+	/*
-+	 * The set_ptes() spec guarantees that when nr > 1, the initial state of
-+	 * all ptes is not-present. Therefore we never need to unfold or
-+	 * otherwise invalidate a range before we set the new ptes.
-+	 * contpte_set_ptes() should never be called for nr < 2.
-+	 */
-+	VM_WARN_ON(nr == 1);
-+
-+	if (!mm_is_user(mm))
-+		return __set_ptes(mm, addr, ptep, pte, nr);
-+
-+	end = addr + (nr << PAGE_SHIFT);
-+	pfn = pte_pfn(pte);
-+	prot = pte_pgprot(pte);
-+
-+	do {
-+		next = pte_cont_addr_end(addr, end);
-+		nr = (next - addr) >> PAGE_SHIFT;
-+		pte = pfn_pte(pfn, prot);
-+
-+		if (((addr | next | (pfn << PAGE_SHIFT)) & ~CONT_PTE_MASK) == 0)
-+			pte = pte_mkcont(pte);
-+		else
-+			pte = pte_mknoncont(pte);
-+
-+		__set_ptes(mm, addr, ptep, pte, nr);
-+
-+		addr = next;
-+		ptep += nr;
-+		pfn += nr;
-+
-+	} while (addr != end);
-+}
-+EXPORT_SYMBOL(contpte_set_ptes);
-+
-+int contpte_ptep_test_and_clear_young(struct vm_area_struct *vma,
-+					unsigned long addr, pte_t *ptep)
-+{
-+	/*
-+	 * ptep_clear_flush_young() technically requires us to clear the access
-+	 * flag for a _single_ pte. However, the core-mm code actually tracks
-+	 * access/dirty per folio, not per page. And since we only create a
-+	 * contig range when the range is covered by a single folio, we can get
-+	 * away with clearing young for the whole contig range here, so we avoid
-+	 * having to unfold.
-+	 */
-+
-+	int young = 0;
-+	int i;
-+
-+	ptep = contpte_align_down(ptep);
-+	addr = ALIGN_DOWN(addr, CONT_PTE_SIZE);
-+
-+	for (i = 0; i < CONT_PTES; i++, ptep++, addr += PAGE_SIZE)
-+		young |= __ptep_test_and_clear_young(vma, addr, ptep);
-+
-+	return young;
-+}
-+EXPORT_SYMBOL(contpte_ptep_test_and_clear_young);
-+
-+int contpte_ptep_clear_flush_young(struct vm_area_struct *vma,
-+					unsigned long addr, pte_t *ptep)
-+{
-+	int young;
-+
-+	young = contpte_ptep_test_and_clear_young(vma, addr, ptep);
-+
-+	if (young) {
-+		/*
-+		 * See comment in __ptep_clear_flush_young(); same rationale for
-+		 * eliding the trailing DSB applies here.
-+		 */
-+		addr = ALIGN_DOWN(addr, CONT_PTE_SIZE);
-+		__flush_tlb_range_nosync(vma, addr, addr + CONT_PTE_SIZE,
-+					 PAGE_SIZE, true, 3);
-+	}
-+
-+	return young;
-+}
-+EXPORT_SYMBOL(contpte_ptep_clear_flush_young);
-+
-+int contpte_ptep_set_access_flags(struct vm_area_struct *vma,
-+					unsigned long addr, pte_t *ptep,
-+					pte_t entry, int dirty)
-+{
-+	unsigned long start_addr;
-+	pte_t orig_pte;
-+	int i;
-+
-+	/*
-+	 * Gather the access/dirty bits for the contiguous range. If nothing has
-+	 * changed, its a noop.
-+	 */
-+	orig_pte = pte_mknoncont(ptep_get(ptep));
-+	if (pte_val(orig_pte) == pte_val(entry))
-+		return 0;
-+
-+	/*
-+	 * We can fix up access/dirty bits without having to unfold the contig
-+	 * range. But if the write bit is changing, we must unfold.
-+	 */
-+	if (pte_write(orig_pte) == pte_write(entry)) {
-+		/*
-+		 * For HW access management, we technically only need to update
-+		 * the flag on a single pte in the range. But for SW access
-+		 * management, we need to update all the ptes to prevent extra
-+		 * faults. Avoid per-page tlb flush in __ptep_set_access_flags()
-+		 * and instead flush the whole range at the end.
-+		 */
-+		ptep = contpte_align_down(ptep);
-+		start_addr = addr = ALIGN_DOWN(addr, CONT_PTE_SIZE);
-+
-+		for (i = 0; i < CONT_PTES; i++, ptep++, addr += PAGE_SIZE)
-+			__ptep_set_access_flags(vma, addr, ptep, entry, 0);
-+
-+		if (dirty)
-+			__flush_tlb_range(vma, start_addr, addr,
-+							PAGE_SIZE, true, 3);
-+	} else {
-+		__contpte_try_unfold(vma->vm_mm, addr, ptep, orig_pte);
-+		__ptep_set_access_flags(vma, addr, ptep, entry, dirty);
-+	}
-+
-+	return 1;
-+}
-+EXPORT_SYMBOL(contpte_ptep_set_access_flags);
---- a/arch/arm64/mm/Makefile~arm64-mm-wire-up-pte_cont-for-user-mappings
-+++ a/arch/arm64/mm/Makefile
-@@ -3,6 +3,7 @@ obj-y				:= dma-mapping.o extable.o faul
- 				   cache.o copypage.o flush.o \
- 				   ioremap.o mmap.o pgd.o mmu.o \
- 				   context.o proc.o pageattr.o fixmap.o
-+obj-$(CONFIG_ARM64_CONTPTE)	+= contpte.o
- obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
- obj-$(CONFIG_PTDUMP_CORE)	+= ptdump.o
- obj-$(CONFIG_PTDUMP_DEBUGFS)	+= ptdump_debugfs.o
---- a/include/linux/efi.h~arm64-mm-wire-up-pte_cont-for-user-mappings
-+++ a/include/linux/efi.h
-@@ -692,6 +692,11 @@ extern struct efi {
+@@ -26,6 +26,26 @@ static inline pte_t *contpte_align_down(
+ 	return PTR_ALIGN_DOWN(ptep, sizeof(*ptep) * CONT_PTES);
+ }
  
- extern struct mm_struct efi_mm;
- 
-+static inline bool mm_is_efi(struct mm_struct *mm)
++static void contpte_try_unfold_partial(struct mm_struct *mm, unsigned long addr,
++					pte_t *ptep, unsigned int nr)
 +{
-+	return IS_ENABLED(CONFIG_EFI) && mm == &efi_mm;
++	/*
++	 * Unfold any partially covered contpte block at the beginning and end
++	 * of the range.
++	 */
++
++	if (ptep != contpte_align_down(ptep) || nr < CONT_PTES)
++		contpte_try_unfold(mm, addr, ptep, __ptep_get(ptep));
++
++	if (ptep + nr != contpte_align_down(ptep + nr)) {
++		unsigned long last_addr = addr + PAGE_SIZE * (nr - 1);
++		pte_t *last_ptep = ptep + nr - 1;
++
++		contpte_try_unfold(mm, last_addr, last_ptep,
++				   __ptep_get(last_ptep));
++	}
 +}
 +
- static inline int
- efi_guidcmp (efi_guid_t left, efi_guid_t right)
+ static void contpte_convert(struct mm_struct *mm, unsigned long addr,
+ 			    pte_t *ptep, pte_t pte)
  {
+@@ -238,6 +258,24 @@ int contpte_ptep_clear_flush_young(struc
+ }
+ EXPORT_SYMBOL(contpte_ptep_clear_flush_young);
+ 
++void contpte_wrprotect_ptes(struct mm_struct *mm, unsigned long addr,
++					pte_t *ptep, unsigned int nr)
++{
++	/*
++	 * If wrprotecting an entire contig range, we can avoid unfolding. Just
++	 * set wrprotect and wait for the later mmu_gather flush to invalidate
++	 * the tlb. Until the flush, the page may or may not be wrprotected.
++	 * After the flush, it is guaranteed wrprotected. If it's a partial
++	 * range though, we must unfold, because we can't have a case where
++	 * CONT_PTE is set but wrprotect applies to a subset of the PTEs; this
++	 * would cause it to continue to be unpredictable after the flush.
++	 */
++
++	contpte_try_unfold_partial(mm, addr, ptep, nr);
++	__wrprotect_ptes(mm, addr, ptep, nr);
++}
++EXPORT_SYMBOL(contpte_wrprotect_ptes);
++
+ int contpte_ptep_set_access_flags(struct vm_area_struct *vma,
+ 					unsigned long addr, pte_t *ptep,
+ 					pte_t entry, int dirty)
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
