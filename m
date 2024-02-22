@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3837362
-	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:02:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF44E10FF
+	for <mm-commits@vger.kernel.org>; Thu, 22 Feb 2024 00:02:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560174; cv=none; b=hUlblBIoq7H8DLGXF2wobx3yA8ICNaGL4IEgKMRFEFUcJf5H3y8PATvO0aREOnWoJJpXsXrCPYDpEGHtxOq9pP4G++CEVwlmHNNO8QK3XtUXaZwlgYwPoSmV+o6j/i+85WO2F78K8DGZmx3iH+dRD8Pi923w/bfKuN2op5Woo0Q=
+	t=1708560175; cv=none; b=sc4jTArNVowgxm8inBDVxZE2JgX/+aPTOuLPlDvKv/pp+rFcJNSZ8U3PI+G0f4vRRdJJdQIyn4Kpl8xN5JPj4hcgW1YH75pFmRo/uoMzHqzgJw/o2AgmWtTV+vTFV6dw0911pjEe97aKAK8S7Kk7agEV6TtyVOfRw+23davzKPA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560174; c=relaxed/simple;
-	bh=UPJqtU2qkiJdDMygitAK6t2r6vt4uKBkVH2XX2ug1A0=;
-	h=Date:To:From:Subject:Message-Id; b=X+YszoBZ9JzySt83nN59t8sCEDbys2qWRk2GCYUYeyRvWR7QnYj5oDhmB9w+cdPIUJsxj2eMLw4NDwHoexNco4NfdR6mEPFQMLKbjKHE+yJ4i9/nafnjV2Ob9pM0AJyLzfC5nZJfoY9x+EFAomL4PqG4vAZW4+44QwaACX7cffk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0VcJ9/jB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708560175; c=relaxed/simple;
+	bh=N0ogOAfRI6wWAbHiDYJ75gjpy1YAwZt2IXoxbAqhlkw=;
+	h=Date:To:From:Subject:Message-Id; b=cJC4C6v+/xFKgOgzfPFP6URzlMfF4PgEYeUda8MpcVjUkPBLoES0cBgZiF828Krqk1RvjXix0KDBuB7XzLGHcbtOKcwRVuTzC+Y07ecPSjHMlKCrZGnjuIZhd4SjKVKccqwY+ybnZVooo0hEUsbaKM+PCUImo5AJZBRjXf6zVbQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yKKjR2K/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0VcJ9/jB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81E86C433F1;
-	Thu, 22 Feb 2024 00:02:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yKKjR2K/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89319C433F1;
+	Thu, 22 Feb 2024 00:02:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708560174;
-	bh=UPJqtU2qkiJdDMygitAK6t2r6vt4uKBkVH2XX2ug1A0=;
+	s=korg; t=1708560175;
+	bh=N0ogOAfRI6wWAbHiDYJ75gjpy1YAwZt2IXoxbAqhlkw=;
 	h=Date:To:From:Subject:From;
-	b=0VcJ9/jByHMotRtR03S7oaKUEkKK1WgBmaEKauhq/2S+SrTQUNy7a+CvUvJd98qhp
-	 2lLjt6nomyU5PHedk1icv9dtICiPE2icn89VGVc2uZ23Ho0lBFfcuNt3uI5nBz2KZp
-	 B3zvzFGo7LEYoqvxD99l8o1B0bq0/rhvhl5FT5pI=
-Date: Wed, 21 Feb 2024 16:02:54 -0800
+	b=yKKjR2K/ILoQmMNK1K77fbFvqq83fbxK6x0S66vwK0nVH4dcLbX1r8wohbR/Vd1qc
+	 kCVnWqnbtWaNH6kO/XWciHPXiTA3aYzfU0Zo98ylkHyzi8PGm9F0QfGsPzX/E96U0r
+	 nHcNYf4EjqY97iL/JEUdbn+IGRAzYMzl9TF7HqTM=
+Date: Wed, 21 Feb 2024 16:02:55 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,svens@linux.ibm.com,ryan.roberts@arm.com,rppt@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,linux@armlinux.org.uk,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,dinguyen@kernel.org,davem@davemloft.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,aneesh.kumar@kernel.org,alexghiti@rivosinc.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] powerpc-mm-use-pte_next_pfn-in-set_ptes.patch removed from -mm tree
-Message-Id: <20240222000254.81E86C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-factor-out-copying-the-actual-pte-in-copy_present_pte.patch removed from -mm tree
+Message-Id: <20240222000255.89319C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: powerpc/mm: use pte_next_pfn() in set_ptes()
+     Subject: mm/memory: factor out copying the actual PTE in copy_present_pte()
 has been removed from the -mm tree.  Its filename was
-     powerpc-mm-use-pte_next_pfn-in-set_ptes.patch
+     mm-memory-factor-out-copying-the-actual-pte-in-copy_present_pte.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: powerpc/mm: use pte_next_pfn() in set_ptes()
-Date: Mon, 29 Jan 2024 13:46:44 +0100
+Subject: mm/memory: factor out copying the actual PTE in copy_present_pte()
+Date: Mon, 29 Jan 2024 13:46:45 +0100
 
-Let's use our handy new helper. Note that the implementation is slightly
-different, but shouldn't really make a difference in practice.
+Let's prepare for further changes.
 
-Link: https://lkml.kernel.org/r/20240129124649.189745-11-david@redhat.com
+Link: https://lkml.kernel.org/r/20240129124649.189745-12-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Tested-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -61,6 +59,7 @@ Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Dinh Nguyen <dinguyen@kernel.org>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
@@ -78,21 +77,108 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/pgtable.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/memory.c |   63 ++++++++++++++++++++++++++------------------------
+ 1 file changed, 33 insertions(+), 30 deletions(-)
 
---- a/arch/powerpc/mm/pgtable.c~powerpc-mm-use-pte_next_pfn-in-set_ptes
-+++ a/arch/powerpc/mm/pgtable.c
-@@ -220,10 +220,7 @@ void set_ptes(struct mm_struct *mm, unsi
- 			break;
- 		ptep++;
- 		addr += PAGE_SIZE;
--		/*
--		 * increment the pfn.
--		 */
--		pte = pfn_pte(pte_pfn(pte) + 1, pte_pgprot((pte)));
-+		pte = pte_next_pfn(pte);
+--- a/mm/memory.c~mm-memory-factor-out-copying-the-actual-pte-in-copy_present_pte
++++ a/mm/memory.c
+@@ -930,6 +930,29 @@ copy_present_page(struct vm_area_struct
+ 	return 0;
+ }
+ 
++static inline void __copy_present_pte(struct vm_area_struct *dst_vma,
++		struct vm_area_struct *src_vma, pte_t *dst_pte, pte_t *src_pte,
++		pte_t pte, unsigned long addr)
++{
++	struct mm_struct *src_mm = src_vma->vm_mm;
++
++	/* If it's a COW mapping, write protect it both processes. */
++	if (is_cow_mapping(src_vma->vm_flags) && pte_write(pte)) {
++		ptep_set_wrprotect(src_mm, addr, src_pte);
++		pte = pte_wrprotect(pte);
++	}
++
++	/* If it's a shared mapping, mark it clean in the child. */
++	if (src_vma->vm_flags & VM_SHARED)
++		pte = pte_mkclean(pte);
++	pte = pte_mkold(pte);
++
++	if (!userfaultfd_wp(dst_vma))
++		pte = pte_clear_uffd_wp(pte);
++
++	set_pte_at(dst_vma->vm_mm, addr, dst_pte, pte);
++}
++
+ /*
+  * Copy one pte.  Returns 0 if succeeded, or -EAGAIN if one preallocated page
+  * is required to copy this pte.
+@@ -939,23 +962,23 @@ copy_present_pte(struct vm_area_struct *
+ 		 pte_t *dst_pte, pte_t *src_pte, unsigned long addr, int *rss,
+ 		 struct folio **prealloc)
+ {
+-	struct mm_struct *src_mm = src_vma->vm_mm;
+-	unsigned long vm_flags = src_vma->vm_flags;
+ 	pte_t pte = ptep_get(src_pte);
+ 	struct page *page;
+ 	struct folio *folio;
+ 
+ 	page = vm_normal_page(src_vma, addr, pte);
+-	if (page)
+-		folio = page_folio(page);
+-	if (page && folio_test_anon(folio)) {
++	if (unlikely(!page))
++		goto copy_pte;
++
++	folio = page_folio(page);
++	folio_get(folio);
++	if (folio_test_anon(folio)) {
+ 		/*
+ 		 * If this page may have been pinned by the parent process,
+ 		 * copy the page immediately for the child so that we'll always
+ 		 * guarantee the pinned page won't be randomly replaced in the
+ 		 * future.
+ 		 */
+-		folio_get(folio);
+ 		if (unlikely(folio_try_dup_anon_rmap_pte(folio, page, src_vma))) {
+ 			/* Page may be pinned, we have to copy. */
+ 			folio_put(folio);
+@@ -963,34 +986,14 @@ copy_present_pte(struct vm_area_struct *
+ 						 addr, rss, prealloc, page);
+ 		}
+ 		rss[MM_ANONPAGES]++;
+-	} else if (page) {
+-		folio_get(folio);
++		VM_WARN_ON_FOLIO(PageAnonExclusive(page), folio);
++	} else {
+ 		folio_dup_file_rmap_pte(folio, page);
+ 		rss[mm_counter_file(folio)]++;
  	}
+ 
+-	/*
+-	 * If it's a COW mapping, write protect it both
+-	 * in the parent and the child
+-	 */
+-	if (is_cow_mapping(vm_flags) && pte_write(pte)) {
+-		ptep_set_wrprotect(src_mm, addr, src_pte);
+-		pte = pte_wrprotect(pte);
+-	}
+-	VM_BUG_ON(page && folio_test_anon(folio) && PageAnonExclusive(page));
+-
+-	/*
+-	 * If it's a shared mapping, mark it clean in
+-	 * the child
+-	 */
+-	if (vm_flags & VM_SHARED)
+-		pte = pte_mkclean(pte);
+-	pte = pte_mkold(pte);
+-
+-	if (!userfaultfd_wp(dst_vma))
+-		pte = pte_clear_uffd_wp(pte);
+-
+-	set_pte_at(dst_vma->vm_mm, addr, dst_pte, pte);
++copy_pte:
++	__copy_present_pte(dst_vma, src_vma, dst_pte, src_pte, pte, addr);
+ 	return 0;
  }
  
 _
