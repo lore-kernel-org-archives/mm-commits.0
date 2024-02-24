@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B954538D
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 00:26:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC1C1818
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 00:26:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708734386; cv=none; b=aY+4/jbBm3mUHRp7jfFQDPu7hSsoHhpXqFLAcNMkhhSqWydmDY5/ZsVtWA1aU6Oimk2rMG4drOoiZ3JwefGbfx7XkgnhMF0dzY1UqMYLS1wNIg4g5+g+j4jWKiycEBm12aE3rExGVss2+5FV2B6WlPh+f1PkT4cpr2/k68oY/Qo=
+	t=1708734388; cv=none; b=oMKJP7VZlhe5HKr248KQWAkIukn8tZ5h/tKyeoWR6Bt1zhhkbIKfcAEp4Y1O1mG7HEjm6/HLYxJffoSV0dOb8cuTWFlbvOOlL9FkgcbTjuIWP/NafR+J5RKwshbzC8yHwbKq55TNZ+T2oMKjCNZAX1u7lfQ7iValjb9IeVLHVec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708734386; c=relaxed/simple;
-	bh=5iT1ybAbtnpmohoHzS9xd+nVJAdlxSAp6PT32woQFrs=;
-	h=Date:To:From:Subject:Message-Id; b=FQEdhW4nPSbiR2FKyHvttpdotZMO7+2Fh6MXJyfz28xarcOuyWKCineL50tiLpbwCskSx2qPEU007zgcwdOFkfU/+czwVusYMe5XrqLFCZ/CPMy1KSwWGHZr7G8XI9UWNtvPiFbVWfQhMA687uhkI2EmmiEIOYerAPXljcAPQxE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=piHouGGQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708734388; c=relaxed/simple;
+	bh=m0iYgVGldGAUBRWQtBXHAmyh0kJJqBshriMkq3m0U5w=;
+	h=Date:To:From:Subject:Message-Id; b=NMvrx6FeQEOxEbvhcuRuvSlaBKWncEQnYMQohLeKy96hREekweePkW3Pc37LATs6F9cmFO2ZavQ2c/NWAcslwxXV4ZXxoXBG1YKDuf+69zNpE7eX19UReVJwq4tYk/dvNNnjfOEk8DS+zN/TyurQk41NcGB9vO2htplSUPbIAXc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KOGQH1Fu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="piHouGGQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 125D5C433C7;
-	Sat, 24 Feb 2024 00:26:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KOGQH1Fu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C6E1C433F1;
+	Sat, 24 Feb 2024 00:26:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708734386;
-	bh=5iT1ybAbtnpmohoHzS9xd+nVJAdlxSAp6PT32woQFrs=;
+	s=korg; t=1708734388;
+	bh=m0iYgVGldGAUBRWQtBXHAmyh0kJJqBshriMkq3m0U5w=;
 	h=Date:To:From:Subject:From;
-	b=piHouGGQ+hHYFPA1TDq7bY6gPqjWMEtQI1Uw5g80p/04QefQIX68zFz2lwM2ceV3q
-	 pfNqYPqdHMbH5YHT/tTparQg6rmzthbtpeRIrxrW3dbg4iEpjATc1gPytTWYeR7YqB
-	 f9SSgOda9azc/j8xfB73pSYMfgxAxwe8c3ILheNU=
-Date: Fri, 23 Feb 2024 16:26:25 -0800
+	b=KOGQH1FuqnnU+7M4EK/sbnvYqoDS1WGNz3GPtNbsnAKzCuJ4+jfa6+cwNhBzmGyAF
+	 IRku4tevt9qhB5p4yGFqzwfsUueSlo6xYQqtR7HAkdS5HSKZt4kTPK7j+oguxaKmr+
+	 eMuqNWXw9QIXHH4HkyWEA9WctBRFhR513D3a9npg=
+Date: Fri, 23 Feb 2024 16:26:27 -0800
 To: mm-commits@vger.kernel.org,stefani@seibold.net,jirislaby@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kfifo-drop-__kfifo_dma_out_finish_r.patch added to mm-nonmm-unstable branch
-Message-Id: <20240224002626.125D5C433C7@smtp.kernel.org>
+Subject: + kfifo-introduce-and-use-kfifo_skip_count.patch added to mm-nonmm-unstable branch
+Message-Id: <20240224002628.4C6E1C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kfifo: drop __kfifo_dma_out_finish_r()
+     Subject: kfifo: introduce and use kfifo_skip_count()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kfifo-drop-__kfifo_dma_out_finish_r.patch
+     kfifo-introduce-and-use-kfifo_skip_count.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kfifo-drop-__kfifo_dma_out_finish_r.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kfifo-introduce-and-use-kfifo_skip_count.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,57 +59,86 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Jiri Slaby (SUSE)" <jirislaby@kernel.org>
-Subject: kfifo: drop __kfifo_dma_out_finish_r()
-Date: Fri, 23 Feb 2024 12:51:52 +0100
+Subject: kfifo: introduce and use kfifo_skip_count()
+Date: Fri, 23 Feb 2024 12:51:53 +0100
 
-It is the same as __kfifo_skip_r(), so:
-* drop __kfifo_dma_out_finish_r() completely, and
-* replace its (only) use by __kfifo_skip_r().
+kfifo_skip_count() is an extended version of kfifo_skip(), accepting also
+count.  This will be useful in the serial code later.
 
-Link: https://lkml.kernel.org/r/20240223115155.8806-2-jirislaby@kernel.org
+Now, it can be used to implement both kfifo_skip() and
+kfifo_dma_out_finish().  In the latter, 'len' only needs to be divided by
+'type' size (as it was until now).
+
+And stop using statement expressions when the return value is cast to
+'void'.  Use classic 'do {} while (0)' instead.
+
+Note: perhaps we should skip 'count' records for the 'recsize' case, but
+the original (kfifo_dma_out_finish()) used to skip only one record.  So
+this is kept unchanged and 'count' is still ignored in the recsize case.
+
+Link: https://lkml.kernel.org/r/20240223115155.8806-3-jirislaby@kernel.org
 Signed-off-by: Jiri Slaby (SUSE) <jirislaby@kernel.org>
 Cc: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kfifo.h |    4 +---
- lib/kfifo.c           |    8 --------
- 2 files changed, 1 insertion(+), 11 deletions(-)
+ include/linux/kfifo.h |   29 ++++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
 
---- a/include/linux/kfifo.h~kfifo-drop-__kfifo_dma_out_finish_r
+--- a/include/linux/kfifo.h~kfifo-introduce-and-use-kfifo_skip_count
 +++ a/include/linux/kfifo.h
-@@ -797,7 +797,7 @@ __kfifo_int_must_check_helper( \
+@@ -304,19 +304,25 @@ __kfifo_uint_must_check_helper( \
+ )
+ 
+ /**
+- * kfifo_skip - skip output data
++ * kfifo_skip_count - skip output data
+  * @fifo: address of the fifo to be used
++ * @count: count of data to skip
+  */
+-#define	kfifo_skip(fifo) \
+-(void)({ \
++#define	kfifo_skip_count(fifo, count) do { \
+ 	typeof((fifo) + 1) __tmp = (fifo); \
  	const size_t __recsize = sizeof(*__tmp->rectype); \
  	struct __kfifo *__kfifo = &__tmp->kfifo; \
  	if (__recsize) \
--		__kfifo_dma_out_finish_r(__kfifo, __recsize); \
-+		__kfifo_skip_r(__kfifo, __recsize); \
+ 		__kfifo_skip_r(__kfifo, __recsize); \
  	else \
- 		__kfifo->out += __len / sizeof(*__tmp->type); \
- })
-@@ -879,8 +879,6 @@ extern void __kfifo_dma_in_finish_r(stru
- extern unsigned int __kfifo_dma_out_prepare_r(struct __kfifo *fifo,
- 	struct scatterlist *sgl, int nents, unsigned int len, size_t recsize);
+-		__kfifo->out++; \
+-})
++		__kfifo->out += (count); \
++} while(0)
++
++/**
++ * kfifo_skip - skip output data
++ * @fifo: address of the fifo to be used
++ */
++#define	kfifo_skip(fifo)	kfifo_skip_count(fifo, 1)
  
--extern void __kfifo_dma_out_finish_r(struct __kfifo *fifo, size_t recsize);
--
- extern unsigned int __kfifo_len_r(struct __kfifo *fifo, size_t recsize);
+ /**
+  * kfifo_peek_len - gets the size of the next fifo record
+@@ -790,17 +796,10 @@ __kfifo_int_must_check_helper( \
+  * Note that with only one concurrent reader and one concurrent
+  * writer, you don't need extra locking to use these macros.
+  */
+-#define kfifo_dma_out_finish(fifo, len) \
+-(void)({ \
++#define kfifo_dma_out_finish(fifo, len) do { \
+ 	typeof((fifo) + 1) __tmp = (fifo); \
+-	unsigned int __len = (len); \
+-	const size_t __recsize = sizeof(*__tmp->rectype); \
+-	struct __kfifo *__kfifo = &__tmp->kfifo; \
+-	if (__recsize) \
+-		__kfifo_skip_r(__kfifo, __recsize); \
+-	else \
+-		__kfifo->out += __len / sizeof(*__tmp->type); \
+-})
++	kfifo_skip_count(__tmp, (len) / sizeof(*__tmp->type)); \
++} while (0)
  
- extern void __kfifo_skip_r(struct __kfifo *fifo, size_t recsize);
---- a/lib/kfifo.c~kfifo-drop-__kfifo_dma_out_finish_r
-+++ a/lib/kfifo.c
-@@ -582,11 +582,3 @@ unsigned int __kfifo_dma_out_prepare_r(s
- }
- EXPORT_SYMBOL(__kfifo_dma_out_prepare_r);
- 
--void __kfifo_dma_out_finish_r(struct __kfifo *fifo, size_t recsize)
--{
--	unsigned int len;
--
--	len = __kfifo_peek_n(fifo, recsize);
--	fifo->out += len + recsize;
--}
--EXPORT_SYMBOL(__kfifo_dma_out_finish_r);
+ /**
+  * kfifo_out_peek - gets some data from the fifo
 _
 
 Patches currently in -mm which might be from jirislaby@kernel.org are
