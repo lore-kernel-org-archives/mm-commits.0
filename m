@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86E548F7A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 819638F7A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739415; cv=none; b=F5aNHw47IaYYH8lBH8etNDc6hUnMELw3YYCNZE0NJ/9WYHsjEe59/3dS0GVI5F97WHs81XwLIX+KcBJa70CQu6RD/9bDDmCKOP4DWltXRWB1KZkNYVPAFx9Jzc+dT8dX4Eu006Br4VBBF0xQFwM0fGMddvovP4cWDOZLqXomAKM=
+	t=1708739416; cv=none; b=lmTwzx2ZgaDI3hXjM+U1XiDb37jrFVANyhpGodQIgvEVrLzLBPsJ/VRNxUhv+wD/V/tN53qZEVsoJbpL98Bv+Tpocx6tOl5VhVnuNthMD6NVv3muoHof2uWsdR8go5bVikGzSgrU7zCwygwNXDvv/UQai1iB4gMVmprB0B6e1oc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708739415; c=relaxed/simple;
-	bh=YjaRSFX5dbzLSnf6WO84N12uiciLynORn0erwJpktZM=;
-	h=Date:To:From:Subject:Message-Id; b=aEKsmhoN2xPxcBgOLsOPVAaf4dFMe+33jCixr4zkwUAUl3NKRJvM/OLeDMw+vIclyYqstIXpNkdQKYDoe9Gh0FPmVEgRAJhDEvdWZEhByDluu4XAieGV1bMFJ4YhTfW3JETixPDq1WAsgaAMqKmcjou7qMf9rk2qObhv8atEMtI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C/faalvg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708739416; c=relaxed/simple;
+	bh=qp9JxO3KjIM6e/gxELxHrHjkq28/4Ayp5phUNRmdA8I=;
+	h=Date:To:From:Subject:Message-Id; b=oMqunr9UN1VoorzpSfyP6Go2h1dAv9ttYmBwy5LsFYixtLFN8aRZFqSfmyOs22e2a7w7asyiMU5NSmHLAoxwksl7R94PUdc2G/VMws8AOFT6ZVq81eM87BNJ/oBatVM03OGUOigBKoU5cRSckC/L3oxj+ghZAh3ULO1n092C2HU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=piVGldtn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C/faalvg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DB16C433C7;
-	Sat, 24 Feb 2024 01:50:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="piVGldtn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57AE7C433F1;
+	Sat, 24 Feb 2024 01:50:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739415;
-	bh=YjaRSFX5dbzLSnf6WO84N12uiciLynORn0erwJpktZM=;
+	s=korg; t=1708739416;
+	bh=qp9JxO3KjIM6e/gxELxHrHjkq28/4Ayp5phUNRmdA8I=;
 	h=Date:To:From:Subject:From;
-	b=C/faalvgC7mWEljBNAU8sR99Rgr3ysjI+0G7PP/fgzVf4gWxZqlXKFjdRcsGWfG9X
-	 fUlRMCCWozkigbPvErNoaI4yXP5wdPhOYI07q8jY+P4lhUuMF2lSrucXoZEfffylMl
-	 dPhFkdklYhe++3sl5oCZxgJ55TBMsu0p8YG97cN8=
-Date: Fri, 23 Feb 2024 17:50:14 -0800
+	b=piVGldtncnc3dEl0heEsYQKAgwhGn5oF9X7KcS7JJT2T7vZ/FiYDjw8YmO0ka0RmK
+	 85h6jGHQqtIYAD7AiS3VO4YcHPz2sDlFD3zh6043ed3xy/v1DGMWJvMOJS9a9oPo0X
+	 1Kfs8GCxidHrbPGxssszEQvYuYniy/SE733vDVgo=
+Date: Fri, 23 Feb 2024 17:50:15 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-usage-document-effective_bytes-file.patch removed from -mm tree
-Message-Id: <20240224015015.5DB16C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-move-comments-and-fields-for-damos-quota-prioritization-to-the-end.patch removed from -mm tree
+Message-Id: <20240224015016.57AE7C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,102 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: document effective_bytes file
+     Subject: mm/damon: move comments and fields for damos-quota-prioritization to the end
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-usage-document-effective_bytes-file.patch
+     mm-damon-move-comments-and-fields-for-damos-quota-prioritization-to-the-end.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: document effective_bytes file
-Date: Mon, 19 Feb 2024 11:44:16 -0800
+Subject: mm/damon: move comments and fields for damos-quota-prioritization to the end
+Date: Mon, 19 Feb 2024 11:44:17 -0800
 
-Update DAMON usage document for the effective quota file of the DAMON
-sysfs interface.
+The comments and definition of 'struct damos_quota' lists a few fields for
+effective quota generation first, fields for regions prioritization under
+the quota, and then remaining fields for effective quota generation. 
+Readers' should unnecesssarily switch their context in the middle.  List
+all the fields for the effective quota first, and then fields for the
+prioritization for making it easier to read.
 
-Link: https://lkml.kernel.org/r/20240219194431.159606-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240219194431.159606-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   19 ++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ include/linux/damon.h |   30 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-effective_bytes-file
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -83,7 +83,7 @@ comma (",").
-     │ │ │ │ │ │ │ │ sz/min,max
-     │ │ │ │ │ │ │ │ nr_accesses/min,max
-     │ │ │ │ │ │ │ │ age/min,max
--    │ │ │ │ │ │ │ :ref:`quotas <sysfs_quotas>`/ms,bytes,reset_interval_ms
-+    │ │ │ │ │ │ │ :ref:`quotas <sysfs_quotas>`/ms,bytes,reset_interval_ms,effective_bytes
-     │ │ │ │ │ │ │ │ weights/sz_permil,nr_accesses_permil,age_permil
-     │ │ │ │ │ │ │ │ :ref:`goals <sysfs_schemes_quota_goals>`/nr_goals
-     │ │ │ │ │ │ │ │ │ 0/target_value,current_value
-@@ -153,6 +153,9 @@ Users can write below commands for the k
- - ``clear_schemes_tried_regions``: Clear the DAMON-based operating scheme
-   action tried regions directory for each DAMON-based operation scheme of the
-   kdamond.
-+- ``update_schemes_effective_bytes``: Update the contents of
-+  ``effective_bytes`` files for each DAMON-based operation scheme of the
-+  kdamond.  For more details, refer to :ref:`quotas directory <sysfs_quotas>`.
+--- a/include/linux/damon.h~mm-damon-move-comments-and-fields-for-damos-quota-prioritization-to-the-end
++++ a/include/linux/damon.h
+@@ -128,18 +128,17 @@ enum damos_action {
  
- If the state is ``on``, reading ``pid`` shows the pid of the kdamond thread.
+ /**
+  * struct damos_quota - Controls the aggressiveness of the given scheme.
++ * @reset_interval:	Charge reset interval in milliseconds.
+  * @ms:			Maximum milliseconds that the scheme can use.
+  * @sz:			Maximum bytes of memory that the action can be applied.
+- * @reset_interval:	Charge reset interval in milliseconds.
++ * @get_score:		Feedback function for self-tuning quota.
++ * @get_score_arg:	Parameter for @get_score
++ * @esz:		Effective size quota in bytes.
+  *
+  * @weight_sz:		Weight of the region's size for prioritization.
+  * @weight_nr_accesses:	Weight of the region's nr_accesses for prioritization.
+  * @weight_age:		Weight of the region's age for prioritization.
+  *
+- * @get_score:		Feedback function for self-tuning quota.
+- * @get_score_arg:	Parameter for @get_score
+- * @esz:		Effective size quota in bytes.
+- *
+  * To avoid consuming too much CPU time or IO resources for applying the
+  * &struct damos->action to large memory, DAMON allows users to set time and/or
+  * size quotas.  The quotas can be set by writing non-zero values to &ms and
+@@ -152,12 +151,6 @@ enum damos_action {
+  * throughput of the scheme's action.  DAMON then compares it against &sz and
+  * uses smaller one as the effective quota.
+  *
+- * For selecting regions within the quota, DAMON prioritizes current scheme's
+- * target memory regions using the &struct damon_operations->get_scheme_score.
+- * You could customize the prioritization logic by setting &weight_sz,
+- * &weight_nr_accesses, and &weight_age, because monitoring operations are
+- * encouraged to respect those.
+- *
+  * If @get_score function pointer is set, DAMON calls it back with
+  * @get_score_arg and get the return value of it for every @reset_interval.
+  * Then, DAMON adjusts the effective quota using the return value as a feedback
+@@ -170,20 +163,25 @@ enum damos_action {
+  * set, the mechanism starts from the quota of one byte.
+  *
+  * The resulting effective size quota in bytes is set to @esz.
++ *
++ * For selecting regions within the quota, DAMON prioritizes current scheme's
++ * target memory regions using the &struct damon_operations->get_scheme_score.
++ * You could customize the prioritization logic by setting &weight_sz,
++ * &weight_nr_accesses, and &weight_age, because monitoring operations are
++ * encouraged to respect those.
+  */
+ struct damos_quota {
++	unsigned long reset_interval;
+ 	unsigned long ms;
+ 	unsigned long sz;
+-	unsigned long reset_interval;
++	unsigned long (*get_score)(void *arg);
++	void *get_score_arg;
++	unsigned long esz;
  
-@@ -320,8 +323,9 @@ schemes/<N>/quotas/
- The directory for the :ref:`quotas <damon_design_damos_quotas>` of the given
- DAMON-based operation scheme.
+ 	unsigned int weight_sz;
+ 	unsigned int weight_nr_accesses;
+ 	unsigned int weight_age;
  
--Under ``quotas`` directory, three files (``ms``, ``bytes``,
--``reset_interval_ms``) and two directores (``weights`` and ``goals``) exist.
-+Under ``quotas`` directory, four files (``ms``, ``bytes``,
-+``reset_interval_ms``, ``effective_bytes``) and two directores (``weights`` and
-+``goals``) exist.
- 
- You can set the ``time quota`` in milliseconds, ``size quota`` in bytes, and
- ``reset interval`` in milliseconds by writing the values to the three files,
-@@ -332,6 +336,15 @@ apply the action to only up to ``bytes``
- quota limits unless at least one :ref:`goal <sysfs_schemes_quota_goals>` is
- set.
- 
-+The time quota is internally transformed to a size quota.  Between the
-+transformed size quota and user-specified size quota, smaller one is applied.
-+Based on the user-specified :ref:`goal <sysfs_schemes_quota_goals>`, the
-+effective size quota is further adjusted.  Reading ``effective_bytes`` returns
-+the current effective size quota.  The file is not updated in real time, so
-+users should ask DAMON sysfs interface to update the content of the file for
-+the stats by writing a special keyword, ``update_schemes_effective_bytes`` to
-+the relevant ``kdamonds/<N>/state`` file.
-+
- Under ``weights`` directory, three files (``sz_permil``,
- ``nr_accesses_permil``, and ``age_permil``) exist.
- You can set the :ref:`prioritization weights
+-	unsigned long (*get_score)(void *arg);
+-	void *get_score_arg;
+-	unsigned long esz;
+-
+ /* private: */
+ 	/* For throughput estimation */
+ 	unsigned long total_charged_sz;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
