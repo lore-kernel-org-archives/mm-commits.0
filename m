@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA61F79C5
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E208A79F4
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739409; cv=none; b=ik+JbJpsF3kCXhiCl9wiOm6SB/33TIk3jPGa3Uv5Jr0+tIRzGY5sNivsAn0fzNVDJKz789erdAj1O47KeXANKaP1tgmppeBe1tT7dLf7NpaJ8q4wYcHM6DXkI4ATIvfvpVjRcnuKR2rjOXK/u1BP44NCZkD9lekDsd+fYjpoxxA=
+	t=1708739411; cv=none; b=N+sQBEN5x5/nE8zZKOV2U84HS+FAbjmo1wzepGneVGn11LoLc6U6p2I+KoS1fOMKO1Nyl30rPYNHjfcJ3xAjZUo+rTyODtMM8bZNp3Dazg3kAemp1V8ofvk+gyb9nwaGJz+sm1yKOj2Fr4kob/1pYGxYKQWzrxeRXlkcMm2zBoY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708739409; c=relaxed/simple;
-	bh=49xNq30qA50g+0RyOdsTTJjPpMAq/b+96l1bPqfpfmY=;
-	h=Date:To:From:Subject:Message-Id; b=kPdJl6dzrktm430O7hQ7B7fhrCYN/8Zn5R5ioHptvU2kB2iNNHiiP1RvWACZwWd+aBr0DnKPXNWu2rpveAwvz8Tx8jwApcXF9TXKpeLbBwiY4NEUgRQu+9ZPgWEO5aWDX8kfLqIHJUfUkBUpuZf+PTVZoyNlu6cpuh6IxRFYEaU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mZead060; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708739411; c=relaxed/simple;
+	bh=XP+qVolYAggwFL/3H6AroD1gQNftF8NURapYO0lAkAU=;
+	h=Date:To:From:Subject:Message-Id; b=VUR+4XtAsVd+ykl4qVVoPrcmJQ9pyI2Q7+zl2QLQWngoot0mTvICK9/jrycYoyvyyi5w/UMvprxA+LKL6h+n9ThgI8dhnIozFbs3E/hGI4l1U4Y2JFdpIGraQ/7p5Lk+bSx17T4BASgj11tcS+1oPOz9Cyo4DtC939qCZZo6vJA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0HlDNyEe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mZead060"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0A3EC433F1;
-	Sat, 24 Feb 2024 01:50:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0HlDNyEe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8177C43390;
+	Sat, 24 Feb 2024 01:50:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739409;
-	bh=49xNq30qA50g+0RyOdsTTJjPpMAq/b+96l1bPqfpfmY=;
+	s=korg; t=1708739410;
+	bh=XP+qVolYAggwFL/3H6AroD1gQNftF8NURapYO0lAkAU=;
 	h=Date:To:From:Subject:From;
-	b=mZead060+kM5iyxbIbSP4dWjlz+lEDpTTc7gYKuzU3lSaoAg9lOQ+tfFTPZ9/CkV0
-	 lahQCtLNBy8ZwYpg3bAjyHx9BCldrCnYt3vb2zE8mKBQrznek2X8mk35Kemy2Y+F1d
-	 0YbtDrPQRnGEBl8wwLKIrABkyEWjruq2Kud+IFT8=
-Date: Fri, 23 Feb 2024 17:50:09 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=0HlDNyEeWiaML7sWQFrQ40BUw1zbyqr0Qvfl9kKzjV51I4YjWUqNNu6uHeA14Rqqj
+	 ziL09an5K/ejUaFbNUDwjWhhNZADv2xm3T3JkUc6yEWiYWQrqiM8TmxbRRlZkGVk3J
+	 4zJHuTWYO4XhGMDvxigU0/eajZ2Mw7ALQnO5J1z4=
+Date: Fri, 23 Feb 2024 17:50:10 -0800
+To: mm-commits@vger.kernel.org,zokeefe@google.com,songmuchun@bytedance.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,david@redhat.com,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maintainers-update-mm-and-memcg-entries.patch removed from -mm tree
-Message-Id: <20240224015009.B0A3EC433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check.patch removed from -mm tree
+Message-Id: <20240224015010.B8177C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,148 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: update mm and memcg entries
+     Subject: mm/khugepaged: bypassing unnecessary scans with MMF_DISABLE_THP check
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-mm-and-memcg-entries.patch
+     mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: MAINTAINERS: update mm and memcg entries
-Date: Thu, 8 Feb 2024 07:57:27 +0200
+From: Lance Yang <ioworker0@gmail.com>
+Subject: mm/khugepaged: bypassing unnecessary scans with MMF_DISABLE_THP check
+Date: Mon, 29 Jan 2024 13:45:51 +0800
 
-Add F: lines for memory management and memory cgroup include files.
+khugepaged scans the entire address space in the background for each
+given mm, looking for opportunities to merge sequences of basic pages
+into huge pages.  However, when an mm is inserted to the mm_slots list,
+and the MMF_DISABLE_THP flag is set later, this scanning process
+becomes unnecessary for that mm and can be skipped to avoid redundant
+operations, especially in scenarios with a large address space.
 
-Link: https://lkml.kernel.org/r/20240208055727.142387-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+On an Intel Core i5 CPU, the time taken by khugepaged to scan the
+address space of the process, which has been set with the
+MMF_DISABLE_THP flag after being added to the mm_slots list, is as
+follows (shorter is better):
+
+VMA Count |   Old   |   New   |  Change
+---------------------------------------
+    50    |   23us  |    9us  |  -60.9%
+   100    |   32us  |    9us  |  -71.9%
+   200    |   44us  |    9us  |  -79.5%
+   400    |   75us  |    9us  |  -88.0%
+   800    |   98us  |    9us  |  -90.8%
+
+Once the count of VMAs for the process exceeds page_to_scan, khugepaged
+needs to wait for scan_sleep_millisecs ms before scanning the next
+process.  IMO, unnecessary scans could actually be skipped with a very
+inexpensive mm->flags check in this case.
+
+This commit introduces a check before each scanning process to test the
+MMF_DISABLE_THP flag for the given mm; if the flag is set, the scanning
+process is bypassed, thereby improving the efficiency of khugepaged.
+
+This optimization is not a correctness issue but rather an enhancement
+to save expensive checks on each VMA when userspace cannot prctl itself
+before spawning into the new process.
+
+On some servers within our company, we deploy a daemon responsible for
+monitoring and updating local applications.  Some applications prefer
+not to use THP, so the daemon calls prctl to disable THP before
+fork/exec.  Conversely, for other applications, the daemon calls prctl
+to enable THP before fork/exec.
+
+Ideally, the daemon should invoke prctl after the fork, but its current
+implementation follows the described approach.  In the Go standard
+library, there is no direct encapsulation of the fork system call;
+instead, fork and execve are combined into one through
+syscall.ForkExec.
+
+Link: https://lkml.kernel.org/r/20240129054551.57728-1-ioworker0@gmail.com
+Signed-off-by: Lance Yang <ioworker0@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/khugepaged.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
---- a/MAINTAINERS~maintainers-update-mm-and-memcg-entries
-+++ a/MAINTAINERS
-@@ -5383,6 +5383,7 @@ R:	Muchun Song <muchun.song@linux.dev>
- L:	cgroups@vger.kernel.org
- L:	linux-mm@kvack.org
- S:	Maintained
-+F:	include/linux/memcontrol.h
- F:	mm/memcontrol.c
- F:	mm/swap_cgroup.c
- F:	samples/cgroup/*
-@@ -14101,15 +14102,24 @@ T:	git git://git.kernel.org/pub/scm/linu
- T:	quilt git://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new
- F:	include/linux/gfp.h
- F:	include/linux/gfp_types.h
-+F:	include/linux/memfd.h
-+F:	include/linux/memory.h
- F:	include/linux/memory_hotplug.h
-+F:	include/linux/memory-tiers.h
-+F:	include/linux/mempolicy.h
-+F:	include/linux/mempool.h
-+F:	include/linux/memremap.h
- F:	include/linux/mm.h
-+F:	include/linux/mm_*.h
- F:	include/linux/mmzone.h
-+F:	include/linux/mmu_notifier.h
- F:	include/linux/pagewalk.h
- F:	include/linux/rmap.h
- F:	include/trace/events/ksm.h
- F:	mm/
- F:	tools/mm/
- F:	tools/testing/selftests/mm/
-+N:	include/linux/page[-_]*
+--- a/mm/khugepaged.c~mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check
++++ a/mm/khugepaged.c
+@@ -410,6 +410,12 @@ static inline int hpage_collapse_test_ex
+ 	return atomic_read(&mm->mm_users) == 0;
+ }
  
- MEMORY MAPPING
- M:	Andrew Morton <akpm@linux-foundation.org>
++static inline int hpage_collapse_test_exit_or_disable(struct mm_struct *mm)
++{
++	return hpage_collapse_test_exit(mm) ||
++	       test_bit(MMF_DISABLE_THP, &mm->flags);
++}
++
+ void __khugepaged_enter(struct mm_struct *mm)
+ {
+ 	struct khugepaged_mm_slot *mm_slot;
+@@ -1422,7 +1428,7 @@ static void collect_mm_slot(struct khuge
+ 
+ 	lockdep_assert_held(&khugepaged_mm_lock);
+ 
+-	if (hpage_collapse_test_exit(mm)) {
++	if (hpage_collapse_test_exit_or_disable(mm)) {
+ 		/* free mm_slot */
+ 		hash_del(&slot->hash);
+ 		list_del(&slot->mm_node);
+@@ -2360,7 +2366,7 @@ static unsigned int khugepaged_scan_mm_s
+ 		goto breakouterloop_mmap_lock;
+ 
+ 	progress++;
+-	if (unlikely(hpage_collapse_test_exit(mm)))
++	if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
+ 		goto breakouterloop;
+ 
+ 	vma_iter_init(&vmi, mm, khugepaged_scan.address);
+@@ -2368,7 +2374,7 @@ static unsigned int khugepaged_scan_mm_s
+ 		unsigned long hstart, hend;
+ 
+ 		cond_resched();
+-		if (unlikely(hpage_collapse_test_exit(mm))) {
++		if (unlikely(hpage_collapse_test_exit_or_disable(mm))) {
+ 			progress++;
+ 			break;
+ 		}
+@@ -2390,7 +2396,7 @@ skip:
+ 			bool mmap_locked = true;
+ 
+ 			cond_resched();
+-			if (unlikely(hpage_collapse_test_exit(mm)))
++			if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
+ 				goto breakouterloop;
+ 
+ 			VM_BUG_ON(khugepaged_scan.address < hstart ||
+@@ -2408,7 +2414,7 @@ skip:
+ 				fput(file);
+ 				if (*result == SCAN_PTE_MAPPED_HUGEPAGE) {
+ 					mmap_read_lock(mm);
+-					if (hpage_collapse_test_exit(mm))
++					if (hpage_collapse_test_exit_or_disable(mm))
+ 						goto breakouterloop;
+ 					*result = collapse_pte_mapped_thp(mm,
+ 						khugepaged_scan.address, false);
+@@ -2450,7 +2456,7 @@ breakouterloop_mmap_lock:
+ 	 * Release the current mm_slot if this mm is about to die, or
+ 	 * if we scanned all vmas of this mm.
+ 	 */
+-	if (hpage_collapse_test_exit(mm) || !vma) {
++	if (hpage_collapse_test_exit_or_disable(mm) || !vma) {
+ 		/*
+ 		 * Make sure that if mm_users is reaching zero while
+ 		 * khugepaged runs here, khugepaged_exit will find
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from ioworker0@gmail.com are
 
 
