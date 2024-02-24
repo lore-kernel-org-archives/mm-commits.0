@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECB53BA2D
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:51:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1531BA2D
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:51:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739467; cv=none; b=fH4j+Dkw1dUAk1+4iX7YFJVYmL+KxB04UDlWKzd+gKNmEBBE/dsT6sFJDHlxFp2fbJW5mLGpN5QRJYXGr4bz5ZYUyfJmtbhwghFht3qrJpo350AZG2ASLqU0HvyQRb8OUXKnXYnUpP+wXU8mulkXNVA6g9ezBdPfXwRnDAfabfI=
+	t=1708739468; cv=none; b=GIR7jblrGBPBVLFpsSul8lj93Kpue9QEkmUQVJax3uZYkDsFasOidCimGob/EKaIR9URRE4AO8PR9sW72Yr3KPwjg2eT3usIvRLp42PXmPhyBBe9X++77m/O0LE7bfQdl2JcWhQM/1WKIbYZs9nhyEbs6k6BMTXf8TTv5fUlYtc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708739467; c=relaxed/simple;
-	bh=xn5tHAsQmiIaWvnIMWjQnfQBzzbT1XQt5k+vLJXIksc=;
-	h=Date:To:From:Subject:Message-Id; b=LtPMHnT2lAzTYmAs+iGN3DdrXUL47DTASQemZA55kDrx+CR6uD+A2wgY//mwND6y2VaYHmNljgnxu+F32tgyc+e0cfJ2dQfJBRkYKIII3JmsYtXAIYDT7oQKz/60p/f/i2cWkPfhL7su2nGU0WdwHBqD9UIQXVglSlPyqClLG8A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VjKDdnEa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708739468; c=relaxed/simple;
+	bh=JOUoTDx+2+896x5T24ISWMk48USJTze1pNHe63hAFrc=;
+	h=Date:To:From:Subject:Message-Id; b=WuS4cW+twnJ46y+AKSXWBnTJ75BEWk3nhu7ZYCW3253heHbI+VFYZNA3VjLLVc+rFwuHLd90AUzgZhw8jpnhYsUp0+2usycRo7V//3RejcArmdcsJTkkSCY5xMND6E4ZRFDTfin3v4U3mfTi/rIXjhpYaM4r/umChEapE9PyEnA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W51+n9XO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VjKDdnEa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1683C43390;
-	Sat, 24 Feb 2024 01:51:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W51+n9XO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B94E8C433F1;
+	Sat, 24 Feb 2024 01:51:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739466;
-	bh=xn5tHAsQmiIaWvnIMWjQnfQBzzbT1XQt5k+vLJXIksc=;
+	s=korg; t=1708739467;
+	bh=JOUoTDx+2+896x5T24ISWMk48USJTze1pNHe63hAFrc=;
 	h=Date:To:From:Subject:From;
-	b=VjKDdnEazi52xlmAGyaXYd+JWxsqaG0j4VmaWIayqjoEP2lR3u2y45LXE4C78jZb6
-	 xHuVAIVyi/YDgWxrKGQo5nleihLuZ2OXin9MmbbSTx0+XgjClPK14FXe/cjKtYb78Q
-	 rrbme4wGM8b2HmdRO+uEVB8AB6nu3JPGp7RG92I0=
-Date: Fri, 23 Feb 2024 17:51:06 -0800
+	b=W51+n9XOCG6JMRUzxpGhCoElo1uDVjvyqirWo0wABTTidIwerNGePQLTAxvlK1a5H
+	 A+5uiBJhWrUOKCs9GB+0xYH/N/vD6mag8PenE7cB4QlgHZb3ssXB8NXjbMOqLK9P6T
+	 3gIfQpqnTo+0UQxW62TmDT6FUc0rUhNUnCX/txdQ=
+Date: Fri, 23 Feb 2024 17:51:07 -0800
 To: mm-commits@vger.kernel.org,jack@suse.cz,hch@lst.de,dhowells@redhat.com,dchinner@redhat.com,brauner@kernel.org,bfoster@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] pagevec-add-ability-to-iterate-a-queue.patch removed from -mm tree
-Message-Id: <20240224015106.C1683C43390@smtp.kernel.org>
+Subject: [merged mm-stable] writeback-use-the-folio_batch-queue-iterator.patch removed from -mm tree
+Message-Id: <20240224015107.B94E8C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: pagevec: add ability to iterate a queue
+     Subject: writeback: use the folio_batch queue iterator
 has been removed from the -mm tree.  Its filename was
-     pagevec-add-ability-to-iterate-a-queue.patch
+     writeback-use-the-folio_batch-queue-iterator.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: pagevec: add ability to iterate a queue
-Date: Thu, 15 Feb 2024 07:36:45 +0100
+Subject: writeback: use the folio_batch queue iterator
+Date: Thu, 15 Feb 2024 07:36:46 +0100
 
-Add a loop counter inside the folio_batch to let us iterate from 0-nr
-instead of decrementing nr and treating the batch as a stack.  It would
-generate some very weird and suboptimal I/O patterns for page writeback to
-iterate over the batch as a stack.
+Instead of keeping our own local iterator variable, use the one just added
+to folio_batch.
 
-Link: https://lkml.kernel.org/r/20240215063649.2164017-11-hch@lst.de
+Link: https://lkml.kernel.org/r/20240215063649.2164017-12-hch@lst.de
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Brian Foster <bfoster@redhat.com>
@@ -63,56 +61,64 @@ Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagevec.h |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ mm/page-writeback.c |   28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
---- a/include/linux/pagevec.h~pagevec-add-ability-to-iterate-a-queue
-+++ a/include/linux/pagevec.h
-@@ -27,6 +27,7 @@ struct folio;
-  */
- struct folio_batch {
- 	unsigned char nr;
-+	unsigned char i;
- 	bool percpu_pvec_drained;
- 	struct folio *folios[PAGEVEC_SIZE];
- };
-@@ -40,12 +41,14 @@ struct folio_batch {
- static inline void folio_batch_init(struct folio_batch *fbatch)
+--- a/mm/page-writeback.c~writeback-use-the-folio_batch-queue-iterator
++++ a/mm/page-writeback.c
+@@ -2406,13 +2406,21 @@ static pgoff_t wbc_end(struct writeback_
+ 	return wbc->range_end >> PAGE_SHIFT;
+ }
+ 
+-static void writeback_get_batch(struct address_space *mapping,
++static struct folio *writeback_get_folio(struct address_space *mapping,
+ 		struct writeback_control *wbc)
  {
- 	fbatch->nr = 0;
-+	fbatch->i = 0;
- 	fbatch->percpu_pvec_drained = false;
- }
- 
- static inline void folio_batch_reinit(struct folio_batch *fbatch)
- {
- 	fbatch->nr = 0;
-+	fbatch->i = 0;
- }
- 
- static inline unsigned int folio_batch_count(struct folio_batch *fbatch)
-@@ -75,6 +78,21 @@ static inline unsigned folio_batch_add(s
- 	return folio_batch_space(fbatch);
- }
- 
-+/**
-+ * folio_batch_next - Return the next folio to process.
-+ * @fbatch: The folio batch being processed.
-+ *
-+ * Use this function to implement a queue of folios.
-+ *
-+ * Return: The next folio in the queue, or NULL if the queue is empty.
-+ */
-+static inline struct folio *folio_batch_next(struct folio_batch *fbatch)
-+{
-+	if (fbatch->i == fbatch->nr)
-+		return NULL;
-+	return fbatch->folios[fbatch->i++];
-+}
+-	folio_batch_release(&wbc->fbatch);
+-	cond_resched();
+-	filemap_get_folios_tag(mapping, &wbc->index, wbc_end(wbc),
+-			wbc_to_tag(wbc), &wbc->fbatch);
++	struct folio *folio;
 +
- void __folio_batch_release(struct folio_batch *pvec);
++	folio = folio_batch_next(&wbc->fbatch);
++	if (!folio) {
++		folio_batch_release(&wbc->fbatch);
++		cond_resched();
++		filemap_get_folios_tag(mapping, &wbc->index, wbc_end(wbc),
++				wbc_to_tag(wbc), &wbc->fbatch);
++		folio = folio_batch_next(&wbc->fbatch);
++	}
++
++	return folio;
+ }
  
- static inline void folio_batch_release(struct folio_batch *fbatch)
+ /**
+@@ -2454,7 +2462,6 @@ int write_cache_pages(struct address_spa
+ 	int error;
+ 	struct folio *folio;
+ 	pgoff_t end;		/* Inclusive */
+-	int i = 0;
+ 
+ 	if (wbc->range_cyclic) {
+ 		wbc->index = mapping->writeback_index; /* prev offset */
+@@ -2469,15 +2476,10 @@ int write_cache_pages(struct address_spa
+ 	folio_batch_init(&wbc->fbatch);
+ 
+ 	for (;;) {
+-		if (i == wbc->fbatch.nr) {
+-			writeback_get_batch(mapping, wbc);
+-			i = 0;
+-		}
+-		if (wbc->fbatch.nr == 0)
++		folio = writeback_get_folio(mapping, wbc);
++		if (!folio)
+ 			break;
+ 
+-		folio = wbc->fbatch.folios[i++];
+-
+ 		folio_lock(folio);
+ 		if (!folio_prepare_writeback(mapping, wbc, folio)) {
+ 			folio_unlock(folio);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
