@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70712DDA2
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E9F1DF42
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739450; cv=none; b=qgjacp2W/iStgWvBXuZ2Mny/spNcbe1P/T14/WZc44oFsHobm+JkYaIuNSVQVFYjJ5ndJUkJjxTc4wu2KcGWkCvEOxvM3FXLN+tuU+mLZMabvV3jF6Lw/t4O8LEY+y9EiOy8cm3Xo3oaCYLVR2N5N9Xi5ffo8TojpbEcZ8WjIos=
+	t=1708739451; cv=none; b=q7dv8h55kszn5+3jOoan+Y9EkbSEKIFbcJRobgYP4OSwH5T/Ts6DaXkIp+78be8I57JfJ2dH8tsFZ1EWNy2OzscYO9+ZTcKFxUUiJ1TpUcUy8wSdwbe5+AOzBEm7aJI9pIOJX2QH/5Zvob3XKEW6yj2yeGpwayp32C0peLQq2no=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708739450; c=relaxed/simple;
-	bh=xbke+WHFsfNzex8nLLNYlm61YPwMsfzVjaWlhKO7/1Q=;
-	h=Date:To:From:Subject:Message-Id; b=gGYpRzqNx90xuIQHvWV3lmwArfoMzIWZcz9cR/yL+5OJwbCBIpdFY4aErh5svpYqtKH5EqERtFnYROQlNXoc7dZKPl/O3/TA9knHM4zFJS5H7qrNyMUnIrqKQVFXdfQ2JpzEYS31deFtRrrhAgpJxA24iGuY5Keh4DtQn8wKaZE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QW0dxak3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708739451; c=relaxed/simple;
+	bh=aeYwGa8iFmK6l9JzeGebFJoBzrtNFao3BKPoWO41ZoM=;
+	h=Date:To:From:Subject:Message-Id; b=qdETk3sASncloXilg6ClP/5uEu5Rj1c2XWwdk567ycWARjivAxUJoBHiNHBVl1G4uMZPQ7Q1yoPfgehZmtR9d9tiAPiXvWoaTlMxfgHDvAWvktYBE82CoopCK4G1X2gIXPnU/JiXYKSe636lEG0hB4ORqV7FNhjubMsdz56244Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G/rFHyRd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QW0dxak3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46E83C433F1;
-	Sat, 24 Feb 2024 01:50:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G/rFHyRd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74A2DC433F1;
+	Sat, 24 Feb 2024 01:50:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739450;
-	bh=xbke+WHFsfNzex8nLLNYlm61YPwMsfzVjaWlhKO7/1Q=;
+	s=korg; t=1708739451;
+	bh=aeYwGa8iFmK6l9JzeGebFJoBzrtNFao3BKPoWO41ZoM=;
 	h=Date:To:From:Subject:From;
-	b=QW0dxak3uXeVWcVfZUmxawiGPAO7zBjLgn/kaAYVAN1RlyuBwIUoFpaUTiBmO67j6
-	 ySNjd942pswTyEyGZJJBdCvCWgRKR5tfo9xsdL/1IiEKl74Kf877dXD7QUf9dYjXlY
-	 OYvwiE9puaBSdHxs5yDHHL1IwwXgbpJFvjxgsekk=
-Date: Fri, 23 Feb 2024 17:50:49 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,ying.huang@intel.com,willy@infradead.org,vishal.moola@gmail.com,vbabka@suse.cz,shikemeng@huaweicloud.com,ryan.roberts@arm.com,mgorman@techsingularity.net,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,hannes@cmpxchg.org,fengwei.yin@intel.com,david@redhat.com,baolin.wang@linux.alibaba.com,a.manzanares@samsung.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=G/rFHyRd9Arun1gNKIRAyxa1xdvNEE38d4yx+XT/+n9uLeKmiWG32WB3Ian533TFu
+	 H7hASFIQ4r005ttdaNG7ZspdN4tC7uJwv0QyCQu9C85X7MT3kDcORNOthDG+N5fLVf
+	 J/oGHpNMDCmTY+XZ6P0/gqYsC7/Ih/4T6hMf7qoo=
+Date: Fri, 23 Feb 2024 17:50:50 -0800
+To: mm-commits@vger.kernel.org,hughd@google.com,cmaiolino@redhat.com,jack@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-optimize-0-order-folio-compaction-with-free-page-split.patch removed from -mm tree
-Message-Id: <20240224015050.46E83C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] shmem-properly-report-quota-mount-options.patch removed from -mm tree
+Message-Id: <20240224015051.74A2DC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,105 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/compaction: optimize >0 order folio compaction with free page split.
+     Subject: shmem: properly report quota mount options
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-optimize-0-order-folio-compaction-with-free-page-split.patch
+     shmem-properly-report-quota-mount-options.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/compaction: optimize >0 order folio compaction with free page split.
-Date: Tue, 20 Feb 2024 13:32:20 -0500
+From: Jan Kara <jack@suse.cz>
+Subject: shmem: properly report quota mount options
+Date: Mon, 29 Jan 2024 13:01:31 +0100
 
-During migration in a memory compaction, free pages are placed in an array
-of page lists based on their order.  But the desired free page order
-(i.e., the order of a source page) might not be always present, thus
-leading to migration failures and premature compaction termination.  Split
-a high order free pages when source migration page has a lower order to
-increase migration successful rate.
+Report quota options among the set of mount options. This allows proper
+user visibility into whether quotas are enabled or not.
 
-Note: merging free pages when a migration fails and a lower order free
-page is returned via compaction_free() is possible, but there is too much
-work.  Since the free pages are not buddy pages, it is hard to identify
-these free pages using existing PFN-based page merging algorithm.
-
-Link: https://lkml.kernel.org/r/20240220183220.1451315-5-zi.yan@sent.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Tested-by: Yu Zhao <yuzhao@google.com>
-Cc: Adam Manzanares <a.manzanares@samsung.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
+Link: https://lkml.kernel.org/r/20240129120131.21145-1-jack@suse.cz
+Fixes: e09764cff44b ("shmem: quota support")
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Carlos Maiolino <cmaiolino@redhat.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   35 ++++++++++++++++++++++++++++++-----
- 1 file changed, 30 insertions(+), 5 deletions(-)
+ mm/shmem.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
---- a/mm/compaction.c~mm-compaction-optimize-0-order-folio-compaction-with-free-page-split
-+++ a/mm/compaction.c
-@@ -1856,15 +1856,40 @@ static struct folio *compaction_alloc(st
- 	struct compact_control *cc = (struct compact_control *)data;
- 	struct folio *dst;
- 	int order = folio_order(src);
-+	bool has_isolated_pages = false;
-+	int start_order;
-+	struct page *freepage;
-+	unsigned long size;
+--- a/mm/shmem.c~shmem-properly-report-quota-mount-options
++++ a/mm/shmem.c
+@@ -4265,6 +4265,24 @@ static int shmem_show_options(struct seq
+ 	mpol_put(mpol);
+ 	if (sbinfo->noswap)
+ 		seq_printf(seq, ",noswap");
++#ifdef CONFIG_TMPFS_QUOTA
++	if (sb_has_quota_active(root->d_sb, USRQUOTA))
++		seq_printf(seq, ",usrquota");
++	if (sb_has_quota_active(root->d_sb, GRPQUOTA))
++		seq_printf(seq, ",grpquota");
++	if (sbinfo->qlimits.usrquota_bhardlimit)
++		seq_printf(seq, ",usrquota_block_hardlimit=%lld",
++			   sbinfo->qlimits.usrquota_bhardlimit);
++	if (sbinfo->qlimits.grpquota_bhardlimit)
++		seq_printf(seq, ",grpquota_block_hardlimit=%lld",
++			   sbinfo->qlimits.grpquota_bhardlimit);
++	if (sbinfo->qlimits.usrquota_ihardlimit)
++		seq_printf(seq, ",usrquota_inode_hardlimit=%lld",
++			   sbinfo->qlimits.usrquota_ihardlimit);
++	if (sbinfo->qlimits.grpquota_ihardlimit)
++		seq_printf(seq, ",grpquota_inode_hardlimit=%lld",
++			   sbinfo->qlimits.grpquota_ihardlimit);
++#endif
+ 	return 0;
+ }
  
--	if (list_empty(&cc->freepages[order])) {
--		isolate_freepages(cc);
--		if (list_empty(&cc->freepages[order]))
-+again:
-+	for (start_order = order; start_order < NR_PAGE_ORDERS; start_order++)
-+		if (!list_empty(&cc->freepages[start_order]))
-+			break;
-+
-+	/* no free pages in the list */
-+	if (start_order == NR_PAGE_ORDERS) {
-+		if (has_isolated_pages)
- 			return NULL;
-+		isolate_freepages(cc);
-+		has_isolated_pages = true;
-+		goto again;
-+	}
-+
-+	freepage = list_first_entry(&cc->freepages[start_order], struct page,
-+				lru);
-+	size = 1 << start_order;
-+
-+	list_del(&freepage->lru);
-+
-+	while (start_order > order) {
-+		start_order--;
-+		size >>= 1;
-+
-+		list_add(&freepage[size].lru, &cc->freepages[start_order]);
-+		set_page_private(&freepage[size], start_order);
- 	}
-+	dst = (struct folio *)freepage;
- 
--	dst = list_first_entry(&cc->freepages[order], struct folio, lru);
--	list_del(&dst->lru);
- 	post_alloc_hook(&dst->page, order, __GFP_MOVABLE);
- 	if (order)
- 		prep_compound_page(&dst->page, order);
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 
