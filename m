@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3EE6BA2D
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABB29BE65
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739439; cv=none; b=Bbj21uveAvjwyMy2CgD68VByNN9dZFq/cPMJGnukXmnJtKvDHvgdXPEAfigQFbpLAmJE8dsmzupX+1DIMhg/A8gGubZcSOLqkW+CBz368rpBLbdesnS6iqFNuJLwkW07NFobGmG+yM0uJA4+lJncz808P+TBJjyZ2h6PnswzBKU=
+	t=1708739441; cv=none; b=r5JPAlwrJPqZlYgg5aNqvE6BHHCPRS/aoLqJQRT0L3vBtFoSsd4sUO7yny7nEM3bDKRlQaV7lBIyv9FteioMeS/6Y9F199xwhAYRc5KF2TZ9TQblp6GfV9Yu/BbIFvvNszJ4hcAHaBsdYP9VsTU7xH5Rw5MAOhblsUNAeUd12f8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708739439; c=relaxed/simple;
-	bh=ItLv/z7Mb831UWbYy69/dngPk+fHm9LzXQBr6Y76y68=;
-	h=Date:To:From:Subject:Message-Id; b=V0u89TfZ0KDN1lV00WNNeipm7JCy0B9xr85K+tADZHXVHZa+7HJIiBGNfq2eFii/0CXLlnuQJurQmGUCEcd2zOjKiLns1hMXhH+bH+bGO4zWrW1zCSTH+ySaLuFr096nD6YFu19oxxtNoxhukORl+uLs2uRifEEq6Bxucfn1q24=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FlH5ZOGw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708739441; c=relaxed/simple;
+	bh=Ycurp41aonSEPaIK8ChsJ8FJHFqe3YynVtafCYOzstM=;
+	h=Date:To:From:Subject:Message-Id; b=IYzxjNjUFdXPMhGlyBNABkhbv8WzqMnkkl0cNudue2oPNfyltuUEPOxdKFWwLxSsWMS+JmJGfYS5IhskYyNmbumfU4PSVLbdxkazVeLi6A7oA4yeBJHWQksl//smw1tlcrjf0R/ATDVMqJZ2cCg1RZXNL4Pgx9wRYz6tRV1kDzs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q7c/tf+0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FlH5ZOGw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABEC1C433C7;
-	Sat, 24 Feb 2024 01:50:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q7c/tf+0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80870C433F1;
+	Sat, 24 Feb 2024 01:50:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739439;
-	bh=ItLv/z7Mb831UWbYy69/dngPk+fHm9LzXQBr6Y76y68=;
+	s=korg; t=1708739441;
+	bh=Ycurp41aonSEPaIK8ChsJ8FJHFqe3YynVtafCYOzstM=;
 	h=Date:To:From:Subject:From;
-	b=FlH5ZOGwWk7OUFAFLdigtAxPJnzyTCBgsmlk6Dajvlc/+ZUXRuavLe4NTTKgHaspg
-	 HTmZoAPv1C3SaLkSvT1lTBWAfT0788EfWjnTKGCRYZTYTnzZRiJJSW14dw+1AGbNjy
-	 5pHmHCkQA0F/MvunidTL7QYL9VLDQIMH2HtAVcOU=
-Date: Fri, 23 Feb 2024 17:50:39 -0800
+	b=q7c/tf+0TGoMeivF5fHKXJLcfzMjIzljP/ebVaajYhfVHr7xVQwrNYiWNDsZzQ99c
+	 psNh5kibwYDUAGWJQ8kjfRisttzj/7Wvh+MqADRcLnzZJ7Z5CjJGpgXMaf6k1F8QmU
+	 tZeUrK+tDVKPheVkgK4pXVZwr0YVdBHFtPFSBlj0=
+Date: Fri, 23 Feb 2024 17:50:41 -0800
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,zhouchengming@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zsmalloc-remove-set_zspage_mapping.patch removed from -mm tree
-Message-Id: <20240224015039.ABEC1C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zsmalloc-remove_zspage-dont-need-fullness-parameter.patch removed from -mm tree
+Message-Id: <20240224015041.80870C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zsmalloc: remove set_zspage_mapping()
+     Subject: mm/zsmalloc: remove_zspage() don't need fullness parameter
 has been removed from the -mm tree.  Its filename was
-     mm-zsmalloc-remove-set_zspage_mapping.patch
+     mm-zsmalloc-remove_zspage-dont-need-fullness-parameter.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Chengming Zhou <zhouchengming@bytedance.com>
-Subject: mm/zsmalloc: remove set_zspage_mapping()
-Date: Tue, 20 Feb 2024 06:53:00 +0000
+Subject: mm/zsmalloc: remove_zspage() don't need fullness parameter
+Date: Tue, 20 Feb 2024 06:53:01 +0000
 
-Patch series "mm/zsmalloc: some cleanup for get/set_zspage_mapping()".
+We must remove_zspage() from its current fullness list, then use
+insert_zspage() to update its fullness and insert to new fullness list. 
+Obviously, remove_zspage() doesn't need the fullness parameter.
 
-The discussion[1] with Sergey shows there are some cleanup works to do
-in get/set_zspage_mapping():
-
-- the fullness returned from get_zspage_mapping() is not stable outside
-  pool->lock, this usage pattern is confusing, but should be ok in this
-  free_zspage path.
-
-- we seldom use the class_idx returned from get_zspage_mapping(), only
-  free_zspage path use to get its class.
-
-- set_zspage_mapping() always set the zspage->class, but it's never
-  changed after zspage allocated.
-
-[1] https://lore.kernel.org/all/a6c22e30-cf10-4122-91bc-ceb9fb57a5d6@bytedance.com/
-
-
-This patch (of 3):
-
-We only need to update zspage->fullness when insert_zspage(), since
-zspage->class is never changed after allocated.
-
-Link: https://lkml.kernel.org/r/20240220-b4-zsmalloc-cleanup-v1-0-5c5ee4ccdd87@bytedance.com
-Link: https://lkml.kernel.org/r/20240220-b4-zsmalloc-cleanup-v1-1-5c5ee4ccdd87@bytedance.com
+Link: https://lkml.kernel.org/r/20240220-b4-zsmalloc-cleanup-v1-2-5c5ee4ccdd87@bytedance.com
 Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
 Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -81,66 +61,61 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ mm/zsmalloc.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-remove-set_zspage_mapping
+--- a/mm/zsmalloc.c~mm-zsmalloc-remove_zspage-dont-need-fullness-parameter
 +++ a/mm/zsmalloc.c
-@@ -486,14 +486,6 @@ static struct size_class *zspage_class(s
- 	return pool->size_class[zspage->class];
- }
- 
--static void set_zspage_mapping(struct zspage *zspage,
--			       unsigned int class_idx,
--			       int fullness)
--{
--	zspage->class = class_idx;
--	zspage->fullness = fullness;
--}
--
- /*
-  * zsmalloc divides the pool into various size classes where each
-  * class maintains a list of zspages where each zspage is divided
-@@ -688,6 +680,7 @@ static void insert_zspage(struct size_cl
+@@ -687,10 +687,10 @@ static void insert_zspage(struct size_cl
+  * This function removes the given zspage from the freelist identified
+  * by <class, fullness_group>.
+  */
+-static void remove_zspage(struct size_class *class,
+-				struct zspage *zspage,
+-				int fullness)
++static void remove_zspage(struct size_class *class, struct zspage *zspage)
  {
- 	class_stat_inc(class, fullness, 1);
- 	list_add(&zspage->list, &class->fullness_list[fullness]);
-+	zspage->fullness = fullness;
- }
++	int fullness = zspage->fullness;
++
+ 	VM_BUG_ON(list_empty(&class->fullness_list[fullness]));
  
- /*
-@@ -725,7 +718,6 @@ static int fix_fullness_group(struct siz
+ 	list_del_init(&zspage->list);
+@@ -716,7 +716,7 @@ static int fix_fullness_group(struct siz
+ 	if (newfg == currfg)
+ 		goto out;
  
- 	remove_zspage(class, zspage, currfg);
+-	remove_zspage(class, zspage, currfg);
++	remove_zspage(class, zspage);
  	insert_zspage(class, zspage, newfg);
--	set_zspage_mapping(zspage, class_idx, newfg);
  out:
  	return newfg;
- }
-@@ -1005,6 +997,7 @@ static struct zspage *alloc_zspage(struc
- 	create_page_chain(class, zspage, pages);
- 	init_zspage(class, zspage);
- 	zspage->pool = pool;
-+	zspage->class = class->index;
+@@ -878,7 +878,7 @@ static void free_zspage(struct zs_pool *
+ 		return;
+ 	}
  
- 	return zspage;
+-	remove_zspage(class, zspage, ZS_INUSE_RATIO_0);
++	remove_zspage(class, zspage);
+ 	__free_zspage(pool, class, zspage);
  }
-@@ -1397,7 +1390,6 @@ unsigned long zs_malloc(struct zs_pool *
- 	obj = obj_malloc(pool, zspage, handle);
- 	newfg = get_fullness_group(class, zspage);
- 	insert_zspage(class, zspage, newfg);
--	set_zspage_mapping(zspage, class->index, newfg);
- 	record_obj(handle, obj);
- 	atomic_long_add(class->pages_per_zspage, &pool->pages_allocated);
- 	class_stat_inc(class, ZS_OBJS_ALLOCATED, class->objs_per_zspage);
-@@ -1655,7 +1647,6 @@ static int putback_zspage(struct size_cl
  
- 	fullness = get_fullness_group(class, zspage);
- 	insert_zspage(class, zspage, fullness);
--	set_zspage_mapping(zspage, class->index, fullness);
- 
- 	return fullness;
- }
+@@ -1609,7 +1609,7 @@ static struct zspage *isolate_src_zspage
+ 		zspage = list_first_entry_or_null(&class->fullness_list[fg],
+ 						  struct zspage, list);
+ 		if (zspage) {
+-			remove_zspage(class, zspage, fg);
++			remove_zspage(class, zspage);
+ 			return zspage;
+ 		}
+ 	}
+@@ -1626,7 +1626,7 @@ static struct zspage *isolate_dst_zspage
+ 		zspage = list_first_entry_or_null(&class->fullness_list[fg],
+ 						  struct zspage, list);
+ 		if (zspage) {
+-			remove_zspage(class, zspage, fg);
++			remove_zspage(class, zspage);
+ 			return zspage;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from zhouchengming@bytedance.com are
