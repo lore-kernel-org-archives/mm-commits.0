@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65538C148
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A66DEBA2D
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739431; cv=none; b=TXCXvOAqHu4RlRbFicXrLVkOjoUgxGnjsXnp10KsfkvQL3mKRAKKahN1pqymT4BJT1k2LW1m06QoWkY4WQcFUww23OVArzxcSW8wMpMC7O/NU+c1SXt9mvI7pDnixWG2iruqaVROowSnQIo2Dr+jFrXBohWj9a7vYEXEHs+oLcQ=
+	t=1708739431; cv=none; b=PRrsV7ie8VS6pXJ/nnd9z2jRJ0JWIkmei6v2h9WPhFsI/hkIdsMS7UVRjwXPUkFZ+1fRj9En+uuNELRSju0l56gyJ4yiTu7xpVf/kz2VcsJoYwH2qmZikP6PlY4K4kShp6vNS0NmpujdwAKPsUkfmoKRANhcLwpUQM2578q0bQI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708739431; c=relaxed/simple;
-	bh=Mz/qbMdHZgX+eHT9dCOJ7GD9KV2RB/yedYaTHV1bYj4=;
-	h=Date:To:From:Subject:Message-Id; b=Yaxt8uzpF3+FIuLPClcbR3sdw8Aj5YQOBMQ6AhF2cn0FyEWf1A3kF/01sGhprOGGp9ikGE/hmd9xuFP7YPnLLaRl5RsK442ql4xv2fvnQ6bCbIVEmHlsrA2g4c1crmFG9yHfrXYKscqr7X7aIR9bm9VSXIIoO4vPjMdGcblGDfY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YrbJ2buw; arc=none smtp.client-ip=10.30.226.201
+	bh=CAnkyS019uqp325oDy9NziO4L3X4XFO55Cjo4yyg6KE=;
+	h=Date:To:From:Subject:Message-Id; b=RD32fwIJPAE4PattRnrBm9kyqMfcQtGMyMXhRFJ7OKmG8t6bttXEglo/EW/340230O2qJZdoRROyj8Bhgi41WhfQ8GrvSAsSLZvLWczvunZLLWczcggqb0g+iNkNE+HLVl8hWDXgJKg0B6N3W+j/+j//TfaXr/Y7geJFBSD0jvU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t3LcFZjW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YrbJ2buw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28238C433F1;
-	Sat, 24 Feb 2024 01:50:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t3LcFZjW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2519BC43394;
+	Sat, 24 Feb 2024 01:50:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739430;
-	bh=Mz/qbMdHZgX+eHT9dCOJ7GD9KV2RB/yedYaTHV1bYj4=;
+	s=korg; t=1708739431;
+	bh=CAnkyS019uqp325oDy9NziO4L3X4XFO55Cjo4yyg6KE=;
 	h=Date:To:From:Subject:From;
-	b=YrbJ2buwQWizLUCTMPdRcjEm8dIblrQOB5gGi7WKn+BqIZdWGSe1KJ3upMGq8D1Rb
-	 ZZ81CmvKrsC685/IUV+yqrZCQ4B2SNUn+tmAv6YKR+WqPP0/ljMbR79ncYskMGCvlp
-	 nTJJBw5oISp9Htu1jBUGNfjZ7RufxEW3QWjZFlIw=
-Date: Fri, 23 Feb 2024 17:50:29 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=t3LcFZjWkNON2GohkpZGvKdjdW6o7gH6LAH9Bx75ryRgwRDGzwLdZ3oXYEw7QJ/Va
+	 UmHdQEU5MWHKIzsLa42Jr6iER20K18nstKMlpUBIBokKab9+eH27zpZkuxuoQwD2i/
+	 4pYfoC+2445fGB5pQBxTwvzyOxSh1uLUh9AISOZY=
+Date: Fri, 23 Feb 2024 17:50:30 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,zhouchengming@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-reclaim-document-auto-tuning-parameters.patch removed from -mm tree
-Message-Id: <20240224015030.28238C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zsmalloc-fix-migrate_write_lock-when-config_compaction.patch removed from -mm tree
+Message-Id: <20240224015031.2519BC43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/reclaim: document auto-tuning parameters
+     Subject: mm/zsmalloc: fix migrate_write_lock() when !CONFIG_COMPACTION
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-reclaim-document-auto-tuning-parameters.patch
+     mm-zsmalloc-fix-migrate_write_lock-when-config_compaction.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/reclaim: document auto-tuning parameters
-Date: Mon, 19 Feb 2024 11:44:31 -0800
+From: Chengming Zhou <zhouchengming@bytedance.com>
+Subject: mm/zsmalloc: fix migrate_write_lock() when !CONFIG_COMPACTION
+Date: Mon, 19 Feb 2024 13:33:51 +0000
 
-Update DAMON_RECLAIM usage document for the user/self feedback based
-auto-tuning of the quota.
+Patch series "mm/zsmalloc: fix and optimize objects/page migration".
 
-Link: https://lkml.kernel.org/r/20240219194431.159606-21-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+This series is to fix and optimize the zsmalloc objects/page migration.
+
+
+This patch (of 3):
+
+migrate_write_lock() is a empty function when !CONFIG_COMPACTION, in which
+case zs_compact() can be triggered from shrinker reclaim context.  (Maybe
+it's better to rename it to zs_shrink()?)
+
+And zspage map object users rely on this migrate_read_lock() so object
+won't be migrated elsewhere.
+
+Fix it by always implementing the migrate_write_lock() related functions.
+
+Link: https://lkml.kernel.org/r/20240219-b4-szmalloc-migrate-v1-0-34cd49c6545b@bytedance.com
+Link: https://lkml.kernel.org/r/20240219-b4-szmalloc-migrate-v1-1-34cd49c6545b@bytedance.com
+Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/reclaim.rst |   27 +++++++++++++++
- 1 file changed, 27 insertions(+)
+ mm/zsmalloc.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/reclaim.rst~docs-admin-guide-mm-damon-reclaim-document-auto-tuning-parameters
-+++ a/Documentation/admin-guide/mm/damon/reclaim.rst
-@@ -117,6 +117,33 @@ milliseconds.
+--- a/mm/zsmalloc.c~mm-zsmalloc-fix-migrate_write_lock-when-config_compaction
++++ a/mm/zsmalloc.c
+@@ -278,18 +278,15 @@ static bool ZsHugePage(struct zspage *zs
+ static void migrate_lock_init(struct zspage *zspage);
+ static void migrate_read_lock(struct zspage *zspage);
+ static void migrate_read_unlock(struct zspage *zspage);
+-
+-#ifdef CONFIG_COMPACTION
+ static void migrate_write_lock(struct zspage *zspage);
+ static void migrate_write_lock_nested(struct zspage *zspage);
+ static void migrate_write_unlock(struct zspage *zspage);
++
++#ifdef CONFIG_COMPACTION
+ static void kick_deferred_free(struct zs_pool *pool);
+ static void init_deferred_free(struct zs_pool *pool);
+ static void SetZsPageMovable(struct zs_pool *pool, struct zspage *zspage);
+ #else
+-static void migrate_write_lock(struct zspage *zspage) {}
+-static void migrate_write_lock_nested(struct zspage *zspage) {}
+-static void migrate_write_unlock(struct zspage *zspage) {}
+ static void kick_deferred_free(struct zs_pool *pool) {}
+ static void init_deferred_free(struct zs_pool *pool) {}
+ static void SetZsPageMovable(struct zs_pool *pool, struct zspage *zspage) {}
+@@ -1725,7 +1722,6 @@ static void migrate_read_unlock(struct z
+ 	read_unlock(&zspage->lock);
+ }
  
- 1 second by default.
+-#ifdef CONFIG_COMPACTION
+ static void migrate_write_lock(struct zspage *zspage)
+ {
+ 	write_lock(&zspage->lock);
+@@ -1741,6 +1737,7 @@ static void migrate_write_unlock(struct
+ 	write_unlock(&zspage->lock);
+ }
  
-+quota_mem_pressure_us
-+---------------------
-+
-+Desired level of memory pressure-stall time in microseconds.
-+
-+While keeping the caps that set by other quotas, DAMON_RECLAIM automatically
-+increases and decreases the effective level of the quota aiming this level of
-+memory pressure is incurred.  System-wide ``some`` memory PSI in microseconds
-+per quota reset interval (``quota_reset_interval_ms``) is collected and
-+compared to this value to see if the aim is satisfied.  Value zero means
-+disabling this auto-tuning feature.
-+
-+Disabled by default.
-+
-+quota_autotune_feedback
-+-----------------------
-+
-+User-specifiable feedback for auto-tuning of the effective quota.
-+
-+While keeping the caps that set by other quotas, DAMON_RECLAIM automatically
-+increases and decreases the effective level of the quota aiming receiving this
-+feedback of value ``10,000`` from the user.  DAMON_RECLAIM assumes the feedback
-+value and the quota are positively proportional.  Value zero means disabling
-+this auto-tuning feature.
-+
-+Disabled by default.
-+
- wmarks_interval
- ---------------
- 
++#ifdef CONFIG_COMPACTION
+ /* Number of isolated subpage for *page migration* in this zspage */
+ static void inc_zspage_isolation(struct zspage *zspage)
+ {
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from zhouchengming@bytedance.com are
 
+mm-zswap-global-lru-and-shrinker-shared-by-all-zswap_pools.patch
+mm-zswap-change-zswap_pool-kref-to-percpu_ref.patch
 
