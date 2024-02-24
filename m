@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B85001378
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 02:38:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23919482DD
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 19:36:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708742289; cv=none; b=lc9fVIGWqCGKYGAkyu1WSnIWpNCpJhzG0G5bVjT04XqowAufoRjEVb0YicNmhlHtzmS2jn1DOLptNgOXAmc67uWEYl/EmlsIZXyAPwbLQ2EzaUGncn9h64LPrq/U+uLLXAJZFb+Gv4E84Q5AKH7h4XHU9AIld8t5cjajn1fZi0I=
+	t=1708803393; cv=none; b=XNJHM/mKs/nXNawU+OWHdhtmI0d79DQVY13ni1t6SvwlnCTylCoIsQbwH9RJ6vbv1dyWXQcRcJANXP3FlZtnq2TMrvZwp5iCAdsSIeFC/PxbWkutMfvQskx7wsTPcb7DpkDDIfFZRXuJekLCVzpaLQVV3ALh45Kp0NKwJQUc6Pk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708742289; c=relaxed/simple;
-	bh=OMauyuGS75WA5ijh+3NRuLfYNAX9F2dS7rMvBpYdh2M=;
-	h=Date:To:From:Subject:Message-Id; b=nR6SvpM0Yu2d9TVz6P7cd47hRMOb2bM/VQ/BzkFZzeGp918F7V/cRxO17ohYpc5+IznjgHhzAfYFPXwACSfw7iKhsZ2YJtAMR8rgoY0B5R4goo2UgKnH6tGnDbSHwbVR6wjbEVNcBJ6VB7m3024eoEWWVAWZiSnjhcJoKvAHpl0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sl3rMVzU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708803393; c=relaxed/simple;
+	bh=K7ne8ofZGOWSdtmjMfnBU0LaddIkdiLMSVxwBh2lZAA=;
+	h=Date:To:From:Subject:Message-Id; b=i3xBOINWxKD+jhtjiILK+9SlSi3PRDnQH/nTVwrlgut3tzqe63JEzsgTmsQ0KwUAl+DOXbKggSnG7dJqT17Y5Z1OzoHOwlrQPZJDUFByvZeXXjIzsH4r+fku0blw1QSpHvdZvPF9zBFD6pURBBvfeCm+4nomUkXENp5bFxhQRwE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wYtElXol; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sl3rMVzU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FE83C433F1;
-	Sat, 24 Feb 2024 02:38:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wYtElXol"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9ABCFC433F1;
+	Sat, 24 Feb 2024 19:36:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708742289;
-	bh=OMauyuGS75WA5ijh+3NRuLfYNAX9F2dS7rMvBpYdh2M=;
+	s=korg; t=1708803392;
+	bh=K7ne8ofZGOWSdtmjMfnBU0LaddIkdiLMSVxwBh2lZAA=;
 	h=Date:To:From:Subject:From;
-	b=sl3rMVzU+SRUQqCzbEF3ZJKH6yvpuWODAj2Kef/L8Le8p2uRTdJT8+CF9hPS+paUv
-	 zqdtWFH/oReQV6VuhHOZu8yEt4KQ9xSp1qwSydd3RmMHWAZUvUz77Tz6slyEoG+kid
-	 YuIm5pHNxFVKcHAfRR64PlHpH0KD7Y+83NyqqDEY=
-Date: Fri, 23 Feb 2024 18:38:08 -0800
-To: mm-commits@vger.kernel.org,stefani@seibold.net,jirislaby@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=wYtElXolAYSNJh91Oet0RbfIFxw2P7xUoRUq8n6xEebEbH0czfv0xDkldgsIq/u0p
+	 0oZeei5PrLFVPrSErwfKq8ES5SnWPJry8orW8BKBvTKj0uY5DeolrdPxngg0ZEN/TR
+	 ojgs8DTlBDY5tE9eiBJ7WSp2PsGl/0ds0+avH0rc=
+Date: Sat, 24 Feb 2024 11:36:31 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,mark.rutland@arm.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,paul.heidekrueger@tum.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kfifo-add-kfifo_out_linear_ptr-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20240224023809.1FE83C433F1@smtp.kernel.org>
+Subject: + kasan-fix-a2-allocation-and-remove-explicit-cast-in-atomic-tests.patch added to mm-unstable branch
+Message-Id: <20240224193632.9ABCFC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kfifo-add-kfifo_out_linear_ptr-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kfifo-add-kfifo_out_linear_ptr-fix.patch
+     Subject: kasan: fix a2 allocation and remove explicit cast in atomic tests
+has been added to the -mm mm-unstable branch.  Its filename is
+     kasan-fix-a2-allocation-and-remove-explicit-cast-in-atomic-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kfifo-add-kfifo_out_linear_ptr-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-fix-a2-allocation-and-remove-explicit-cast-in-atomic-tests.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,41 +58,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kfifo-add-kfifo_out_linear_ptr-fix
-Date: Fri Feb 23 06:28:24 PM PST 2024
+From: Paul Heidekrüger <paul.heidekrueger@tum.de>
+Subject: kasan: fix a2 allocation and remove explicit cast in atomic tests
+Date: Sat, 24 Feb 2024 10:54:14 +0000
 
-fix mismatched parenthesis build error
+Address the additional feedback since 4e76c8cc3378 kasan: add atomic tests
+(""kasan: add atomic tests") by removing an explicit cast and fixing the
+size as well as the check of the allocation of `a2`.
 
-Cc: "Jiri Slaby (SUSE)" <jirislaby@kernel.org>
-Cc: Stefani Seibold <stefani@seibold.net>
+Link: https://lkml.kernel.org/r/20240224105414.211995-1-paul.heidekrueger@tum.de
+Link: https://lore.kernel.org/all/20240131210041.686657-1-paul.heidekrueger@tum.de/T/#u
+Fixes: 4e76c8cc3378a20923965e3345f40f6b8ae0bdba
+Signed-off-by: Paul Heidekrüger <paul.heidekrueger@tum.de>
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=214055
+Reviewed-by: Marco Elver <elver@google.com>
+Tested-by: Marco Elver <elver@google.com>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kfifo.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/kasan/kasan_test.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/lib/kfifo.c~kfifo-add-kfifo_out_linear_ptr-fix
-+++ a/lib/kfifo.c
-@@ -497,7 +497,7 @@ unsigned int __kfifo_out_linear_r(struct
- 	if (tail)
- 		*tail = fifo->out + recsize;
+--- a/mm/kasan/kasan_test.c~kasan-fix-a2-allocation-and-remove-explicit-cast-in-atomic-tests
++++ a/mm/kasan/kasan_test.c
+@@ -700,7 +700,7 @@ static void kmalloc_uaf3(struct kunit *t
  
--	return min(n, __kfifo_peek_n(fifo, recsize);
-+	return min(n, __kfifo_peek_n(fifo, recsize));
- }
- EXPORT_SYMBOL(__kfifo_out_linear_r);
+ static void kasan_atomics_helper(struct kunit *test, void *unsafe, void *safe)
+ {
+-	int *i_unsafe = (int *)unsafe;
++	int *i_unsafe = unsafe;
  
-@@ -609,4 +609,3 @@ unsigned int __kfifo_dma_out_prepare_r(s
- 	return setup_sgl(fifo, sgl, nents, len, fifo->out + recsize);
- }
- EXPORT_SYMBOL(__kfifo_dma_out_prepare_r);
--
+ 	KUNIT_EXPECT_KASAN_FAIL(test, READ_ONCE(*i_unsafe));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, WRITE_ONCE(*i_unsafe, 42));
+@@ -766,8 +766,8 @@ static void kasan_atomics(struct kunit *
+ 	 */
+ 	a1 = kzalloc(48, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, a1);
+-	a2 = kzalloc(sizeof(int), GFP_KERNEL);
+-	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, a1);
++	a2 = kzalloc(sizeof(atomic_long_t), GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, a2);
+ 
+ 	/* Use atomics to access the redzone. */
+ 	kasan_atomics_helper(test, a1 + 48, a2);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from paul.heidekrueger@tum.de are
 
-hugetlb-parallelize-1g-hugetlb-initialization-fix.patch
-mm-vmscan-do-not-turn-on-cache_trim_mode-if-it-doesnt-work-fix.patch
-kfifo-add-kfifo_out_linear_ptr-fix.patch
+kasan-fix-a2-allocation-and-remove-explicit-cast-in-atomic-tests.patch
 
