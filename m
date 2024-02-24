@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 943A263AC
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:49:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3E0263AC
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:49:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739380; cv=none; b=AMFncrAO6MuNNFZtkhUJl6BKfEdkKqXp5/aIou1eJG0UV7fXTi5Zebu5V5VYddqQn9JfMzHGu/0fpRtT9a315dkr/oTVEp6MGT4NOjoFmUFrdPe+fbEzOrunHOf6FS7R8ZWpiKBfzjB9u0c/pa7AbL3xhYa3v5EBRHIxjyCJ8MY=
+	t=1708739381; cv=none; b=SubzqlJLx0sJ5o78u6aiD8Wms4Z5hRPI2g3IY186UE/bpA9eMJsRyRK8R6xvWSXm/qOUUEfx97chjnwcKnEHsNQwZDyOEiavxuwHtCSdafGZnTVP+1HK7oGwlGSBB45+GcpZ1WPw/gl9Ewtp6vft3JSSNalcZNXxOM9/rJhncwo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708739380; c=relaxed/simple;
-	bh=dAZ/9MbEgEXiJn5Ikk4vgzr3mPUdAU/tWYK4anML5GA=;
-	h=Date:To:From:Subject:Message-Id; b=Zp1YXfkBGizSlu9rPKGA9rE1lK9A5OT04qPxLlZzhq/nMvvjEcUQkyZIIOq5a+g+eaA4Ua6mj0I75GCP/CXz4j3NmlZVfpUF7zGKd6ZnqvtgujjzveUw02igTkVgxMPu5nx9v06CaZ+RxbGWAoNhQPWuoXuJBqpllUpv9wqtLac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=amRWs9or; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708739381; c=relaxed/simple;
+	bh=UxvOuCtt3BDvKgXo7IaH7tJXd8GoiECAgq+SNpy8XGE=;
+	h=Date:To:From:Subject:Message-Id; b=Ll6tBxvP8aNUZULK7cShu3ylqwW4rK+Htb2iKSMHoiqPPMHII+ys+e2ccoHhXNZSwZDlgwWREIhfvStFTysHHgVrMd0Ur7+H6VGLAuDSQ+1i0dpdas+Dil6t478GIvP1++7VI+cuWjuv6eWFazIKysyV2ZfDZlDmKy9HFV/a2Qg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BR38LEaA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="amRWs9or"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AFDDC433F1;
-	Sat, 24 Feb 2024 01:49:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BR38LEaA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 875EFC433F1;
+	Sat, 24 Feb 2024 01:49:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739380;
-	bh=dAZ/9MbEgEXiJn5Ikk4vgzr3mPUdAU/tWYK4anML5GA=;
+	s=korg; t=1708739381;
+	bh=UxvOuCtt3BDvKgXo7IaH7tJXd8GoiECAgq+SNpy8XGE=;
 	h=Date:To:From:Subject:From;
-	b=amRWs9or86oBRqjXP4x/TRs0XX/oMMcJvIE+ZXudo2/aZdTV5dk56sSzymD6uvcFP
-	 aIqGLp1mRGH4nd9SyzzNy1kk+UF/3r0lmMIQNlNgZ3I0nrE0eo63qp5Wos/c/TQ6X6
-	 e9VbF6HHcJVL8r3bVeqnD8860Qyg9Gx5118onO3M=
-Date: Fri, 23 Feb 2024 17:49:39 -0800
+	b=BR38LEaA2D5fndMj3VaJAGfZIg+Hc979cjbCKCTePp8F7NqC/iMsy9dZ9Ye10Gd92
+	 qigmPst1KOh6uXWO+mpU7qnj3YxcTB6QV0qWwj03Vv16XNZ97ii14RiwPIVzhzpr2T
+	 m+wRMK2oDTq+NqojRIRdu158mNx7rlIi/XNYhtRU=
+Date: Fri, 23 Feb 2024 17:49:41 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,paulmck@kernel.org,oleksiy.avramchenko@sony.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,k-hagio-ab@nec.com,joel@joelfernandes.org,hch@lst.de,david@fromorbit.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmalloc-set-nr_nodes-based-on-cpus-in-a-system.patch removed from -mm tree
-Message-Id: <20240224014940.6AFDDC433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmalloc-add-a-shrinker-to-drain-vmap-pools.patch removed from -mm tree
+Message-Id: <20240224014941.875EFC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,104 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmalloc: set nr_nodes based on CPUs in a system
+     Subject: mm: vmalloc: add a shrinker to drain vmap pools
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-set-nr_nodes-based-on-cpus-in-a-system.patch
+     mm-vmalloc-add-a-shrinker-to-drain-vmap-pools.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm: vmalloc: set nr_nodes based on CPUs in a system
-Date: Tue, 2 Jan 2024 19:46:32 +0100
+Subject: mm: vmalloc: add a shrinker to drain vmap pools
+Date: Tue, 2 Jan 2024 19:46:33 +0100
 
-A number of nodes which are used in the alloc/free paths is set based on
-num_possible_cpus() in a system.  Please note a high limit threshold
-though is fixed and corresponds to 128 nodes.
+The added shrinker is used to return back current cached VAs into a global
+vmap space, when a system enters into a low memory mode.
 
-For 32-bit or single core systems an access to a global vmap heap is not
-balanced.  Such small systems do not suffer from lock contentions due to
-low number of CPUs.  In such case the nr_nodes is equal to 1.
-
-Test on AMD Ryzen Threadripper 3970X 32-Core Processor: sudo
-./test_vmalloc.sh run_test_mask=7 nr_threads=64
-
-<default perf>
- 94.41%     0.89%  [kernel]        [k] _raw_spin_lock
- 93.35%    93.07%  [kernel]        [k] native_queued_spin_lock_slowpath
- 76.13%     0.28%  [kernel]        [k] __vmalloc_node_range
- 72.96%     0.81%  [kernel]        [k] alloc_vmap_area
- 56.94%     0.00%  [kernel]        [k] __get_vm_area_node
- 41.95%     0.00%  [kernel]        [k] vmalloc
- 37.15%     0.01%  [test_vmalloc]  [k] full_fit_alloc_test
- 35.17%     0.00%  [kernel]        [k] ret_from_fork_asm
- 35.17%     0.00%  [kernel]        [k] ret_from_fork
- 35.17%     0.00%  [kernel]        [k] kthread
- 35.08%     0.00%  [test_vmalloc]  [k] test_func
- 34.45%     0.00%  [test_vmalloc]  [k] fix_size_alloc_test
- 28.09%     0.01%  [test_vmalloc]  [k] long_busy_list_alloc_test
- 23.53%     0.25%  [kernel]        [k] vfree.part.0
- 21.72%     0.00%  [kernel]        [k] remove_vm_area
- 20.08%     0.21%  [kernel]        [k] find_unlink_vmap_area
-  2.34%     0.61%  [kernel]        [k] free_vmap_area_noflush
-<default perf>
-   vs
-<patch-series perf>
- 82.32%     0.22%  [test_vmalloc]  [k] long_busy_list_alloc_test
- 63.36%     0.02%  [kernel]        [k] vmalloc
- 63.34%     2.64%  [kernel]        [k] __vmalloc_node_range
- 30.42%     4.46%  [kernel]        [k] vfree.part.0
- 28.98%     2.51%  [kernel]        [k] __alloc_pages_bulk
- 27.28%     0.19%  [kernel]        [k] __get_vm_area_node
- 26.13%     1.50%  [kernel]        [k] alloc_vmap_area
- 21.72%    21.67%  [kernel]        [k] clear_page_rep
- 19.51%     2.43%  [kernel]        [k] _raw_spin_lock
- 16.61%    16.51%  [kernel]        [k] native_queued_spin_lock_slowpath
- 13.40%     2.07%  [kernel]        [k] free_unref_page
- 10.62%     0.01%  [kernel]        [k] remove_vm_area
-  9.02%     8.73%  [kernel]        [k] insert_vmap_area
-  8.94%     0.00%  [kernel]        [k] ret_from_fork_asm
-  8.94%     0.00%  [kernel]        [k] ret_from_fork
-  8.94%     0.00%  [kernel]        [k] kthread
-  8.29%     0.00%  [test_vmalloc]  [k] test_func
-  7.81%     0.05%  [test_vmalloc]  [k] full_fit_alloc_test
-  5.30%     4.73%  [kernel]        [k] purge_vmap_node
-  4.47%     2.65%  [kernel]        [k] free_vmap_area_noflush
-<patch-series perf>
-
-confirms that a native_queued_spin_lock_slowpath goes down to
-16.51% percent from 93.07%.
-
-The throughput is ~12x higher:
-
-urezki@pc638:~$ time sudo ./test_vmalloc.sh run_test_mask=7 nr_threads=64
-Run the test with following parameters: run_test_mask=7 nr_threads=64
-Done.
-Check the kernel ring buffer to see the summary.
-
-real    10m51.271s
-user    0m0.013s
-sys     0m0.187s
-urezki@pc638:~$
-
-urezki@pc638:~$ time sudo ./test_vmalloc.sh run_test_mask=7 nr_threads=64
-Run the test with following parameters: run_test_mask=7 nr_threads=64
-Done.
-Check the kernel ring buffer to see the summary.
-
-real    0m51.301s
-user    0m0.015s
-sys     0m0.040s
-urezki@pc638:~$
-
-Link: https://lkml.kernel.org/r/20240102184633.748113-11-urezki@gmail.com
+Link: https://lkml.kernel.org/r/20240102184633.748113-12-urezki@gmail.com
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Kazuhito Hagio <k-hagio-ab@nec.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Kazuhito Hagio <k-hagio-ab@nec.com>
 Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -141,55 +65,64 @@ Cc: Paul E. McKenney <paulmck@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   29 +++++++++++++++++++++++------
- 1 file changed, 23 insertions(+), 6 deletions(-)
+ mm/vmalloc.c |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-set-nr_nodes-based-on-cpus-in-a-system
+--- a/mm/vmalloc.c~mm-vmalloc-add-a-shrinker-to-drain-vmap-pools
 +++ a/mm/vmalloc.c
-@@ -4879,10 +4879,27 @@ static void __init vmap_init_free_space(
- static void vmap_init_nodes(void)
- {
- 	struct vmap_node *vn;
--	int i, j;
-+	int i, n;
+@@ -4917,8 +4917,37 @@ static void vmap_init_nodes(void)
+ 	}
+ }
  
--	for (i = 0; i < nr_vmap_nodes; i++) {
--		vn = &vmap_nodes[i];
-+#if BITS_PER_LONG == 64
-+	/* A high threshold of max nodes is fixed and bound to 128. */
-+	n = clamp_t(unsigned int, num_possible_cpus(), 1, 128);
++static unsigned long
++vmap_node_shrink_count(struct shrinker *shrink, struct shrink_control *sc)
++{
++	unsigned long count;
++	struct vmap_node *vn;
++	int i, j;
 +
-+	if (n > 1) {
-+		vn = kmalloc_array(n, sizeof(*vn), GFP_NOWAIT | __GFP_NOWARN);
-+		if (vn) {
-+			/* Node partition is 16 pages. */
-+			vmap_zone_size = (1 << 4) * PAGE_SIZE;
-+			nr_vmap_nodes = n;
-+			vmap_nodes = vn;
-+		} else {
-+			pr_err("Failed to allocate an array. Disable a node layer\n");
-+		}
++	for (count = 0, i = 0; i < nr_vmap_nodes; i++) {
++		vn = &vmap_nodes[i];
++
++		for (j = 0; j < MAX_VA_SIZE_PAGES; j++)
++			count += READ_ONCE(vn->pool[j].len);
 +	}
-+#endif
 +
-+	for (n = 0; n < nr_vmap_nodes; n++) {
-+		vn = &vmap_nodes[n];
- 		vn->busy.root = RB_ROOT;
- 		INIT_LIST_HEAD(&vn->busy.head);
- 		spin_lock_init(&vn->busy.lock);
-@@ -4891,9 +4908,9 @@ static void vmap_init_nodes(void)
- 		INIT_LIST_HEAD(&vn->lazy.head);
- 		spin_lock_init(&vn->lazy.lock);
- 
--		for (j = 0; j < MAX_VA_SIZE_PAGES; j++) {
--			INIT_LIST_HEAD(&vn->pool[j].head);
--			WRITE_ONCE(vn->pool[j].len, 0);
-+		for (i = 0; i < MAX_VA_SIZE_PAGES; i++) {
-+			INIT_LIST_HEAD(&vn->pool[i].head);
-+			WRITE_ONCE(vn->pool[i].len, 0);
- 		}
- 
- 		spin_lock_init(&vn->pool_lock);
++	return count ? count : SHRINK_EMPTY;
++}
++
++static unsigned long
++vmap_node_shrink_scan(struct shrinker *shrink, struct shrink_control *sc)
++{
++	int i;
++
++	for (i = 0; i < nr_vmap_nodes; i++)
++		decay_va_pool_node(&vmap_nodes[i], true);
++
++	return SHRINK_STOP;
++}
++
+ void __init vmalloc_init(void)
+ {
++	struct shrinker *vmap_node_shrinker;
+ 	struct vmap_area *va;
+ 	struct vmap_node *vn;
+ 	struct vm_struct *tmp;
+@@ -4966,4 +4995,14 @@ void __init vmalloc_init(void)
+ 	 */
+ 	vmap_init_free_space();
+ 	vmap_initialized = true;
++
++	vmap_node_shrinker = shrinker_alloc(0, "vmap-node");
++	if (!vmap_node_shrinker) {
++		pr_err("Failed to allocate vmap-node shrinker!\n");
++		return;
++	}
++
++	vmap_node_shrinker->count_objects = vmap_node_shrink_count;
++	vmap_node_shrinker->scan_objects = vmap_node_shrink_scan;
++	shrinker_register(vmap_node_shrinker);
+ }
 _
 
 Patches currently in -mm which might be from urezki@gmail.com are
