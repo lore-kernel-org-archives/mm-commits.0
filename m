@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E9F1DF42
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8963C147
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739451; cv=none; b=q7dv8h55kszn5+3jOoan+Y9EkbSEKIFbcJRobgYP4OSwH5T/Ts6DaXkIp+78be8I57JfJ2dH8tsFZ1EWNy2OzscYO9+ZTcKFxUUiJ1TpUcUy8wSdwbe5+AOzBEm7aJI9pIOJX2QH/5Zvob3XKEW6yj2yeGpwayp32C0peLQq2no=
+	t=1708739452; cv=none; b=dT+wOawMLxEK3zijuv9tACgWOXvN4c+vh3hdcUNjL35/gTd13ZDXm3SZh1eEO7NcpD9b9sqprLEOuSlHnlmj0lhKEjyF1o7qBqHzKJ9X62q74mF2CwAt5z/ocKEY54bcUrmnsXXbDgbPCwxv0v/W50iUVOEbDrvvh4LL+ozi0+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708739451; c=relaxed/simple;
-	bh=aeYwGa8iFmK6l9JzeGebFJoBzrtNFao3BKPoWO41ZoM=;
-	h=Date:To:From:Subject:Message-Id; b=qdETk3sASncloXilg6ClP/5uEu5Rj1c2XWwdk567ycWARjivAxUJoBHiNHBVl1G4uMZPQ7Q1yoPfgehZmtR9d9tiAPiXvWoaTlMxfgHDvAWvktYBE82CoopCK4G1X2gIXPnU/JiXYKSe636lEG0hB4ORqV7FNhjubMsdz56244Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G/rFHyRd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708739452; c=relaxed/simple;
+	bh=lWmH5Rm7R5M/ir3uL6O7Sp8EevfdmEzTUewRIlEHWeY=;
+	h=Date:To:From:Subject:Message-Id; b=SLWAgqpTEfSS9mg3VDl7Gz1df7qfn69vdS9HPURMMgH6YsD+4LeZhyHYl90kIFrcbHsgB8GqzpHLk8znYmk68Utax5QMP6EfSmeUCFLiHfu316//pjsk/LCZy+PDjPOvftGOXKnxM1Z6DPzdFRniPtjs5ayovopI1e65UJ7i/+U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1KWnxXWf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G/rFHyRd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74A2DC433F1;
-	Sat, 24 Feb 2024 01:50:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1KWnxXWf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E920C433C7;
+	Sat, 24 Feb 2024 01:50:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739451;
-	bh=aeYwGa8iFmK6l9JzeGebFJoBzrtNFao3BKPoWO41ZoM=;
+	s=korg; t=1708739452;
+	bh=lWmH5Rm7R5M/ir3uL6O7Sp8EevfdmEzTUewRIlEHWeY=;
 	h=Date:To:From:Subject:From;
-	b=G/rFHyRd9Arun1gNKIRAyxa1xdvNEE38d4yx+XT/+n9uLeKmiWG32WB3Ian533TFu
-	 H7hASFIQ4r005ttdaNG7ZspdN4tC7uJwv0QyCQu9C85X7MT3kDcORNOthDG+N5fLVf
-	 J/oGHpNMDCmTY+XZ6P0/gqYsC7/Ih/4T6hMf7qoo=
-Date: Fri, 23 Feb 2024 17:50:50 -0800
-To: mm-commits@vger.kernel.org,hughd@google.com,cmaiolino@redhat.com,jack@suse.cz,akpm@linux-foundation.org
+	b=1KWnxXWfnMy3EgHxncw31pefvH9H4BbHbCeEtEiSiAaFMDluyc5HNHF7i2E5GUCbI
+	 HP0eW2vKdg21RFTLaglW/TYmyulR7byIevqqyrfdIKb56UXJFOMb6eHjpTYhxbiiFM
+	 diCGwv/QWjiO2USd0QZ48RWXKB7BfxX51dn/MQg8=
+Date: Fri, 23 Feb 2024 17:50:51 -0800
+To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,21cnbao@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] shmem-properly-report-quota-mount-options.patch removed from -mm tree
-Message-Id: <20240224015051.74A2DC433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swapfile-__swap_duplicate-drop-redundant-write_once-on-swap_map-for-err-cases.patch removed from -mm tree
+Message-Id: <20240224015052.7E920C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: shmem: properly report quota mount options
+     Subject: mm/swapfile:__swap_duplicate: drop redundant WRITE_ONCE on swap_map for err cases
 has been removed from the -mm tree.  Its filename was
-     shmem-properly-report-quota-mount-options.patch
+     mm-swapfile-__swap_duplicate-drop-redundant-write_once-on-swap_map-for-err-cases.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: shmem: properly report quota mount options
-Date: Mon, 29 Jan 2024 13:01:31 +0100
+From: Barry Song <21cnbao@gmail.com>
+Subject: mm/swapfile:__swap_duplicate: drop redundant WRITE_ONCE on swap_map for err cases
+Date: Wed, 21 Feb 2024 22:10:28 +1300
 
-Report quota options among the set of mount options. This allows proper
-user visibility into whether quotas are enabled or not.
+From: Barry Song <v-songbaohua@oppo.com>
 
-Link: https://lkml.kernel.org/r/20240129120131.21145-1-jack@suse.cz
-Fixes: e09764cff44b ("shmem: quota support")
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Carlos Maiolino <cmaiolino@redhat.com>
-Acked-by: Hugh Dickins <hughd@google.com>
+The code is quite hard to read, we are still writing swap_map after
+errors happen. Though the written value is as before,
+
+ has_cache = count & SWAP_HAS_CACHE;
+ count &= ~SWAP_HAS_CACHE;
+ [snipped]
+ WRITE_ONCE(p->swap_map[offset], count | has_cache);
+
+It would be better to entirely drop the WRITE_ONCE for both
+performance and readability.
+
+[akpm@linux-foundation.org: avoid using goto]
+Link: https://lkml.kernel.org/r/20240221091028.123122-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ mm/swapfile.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/shmem.c~shmem-properly-report-quota-mount-options
-+++ a/mm/shmem.c
-@@ -4265,6 +4265,24 @@ static int shmem_show_options(struct seq
- 	mpol_put(mpol);
- 	if (sbinfo->noswap)
- 		seq_printf(seq, ",noswap");
-+#ifdef CONFIG_TMPFS_QUOTA
-+	if (sb_has_quota_active(root->d_sb, USRQUOTA))
-+		seq_printf(seq, ",usrquota");
-+	if (sb_has_quota_active(root->d_sb, GRPQUOTA))
-+		seq_printf(seq, ",grpquota");
-+	if (sbinfo->qlimits.usrquota_bhardlimit)
-+		seq_printf(seq, ",usrquota_block_hardlimit=%lld",
-+			   sbinfo->qlimits.usrquota_bhardlimit);
-+	if (sbinfo->qlimits.grpquota_bhardlimit)
-+		seq_printf(seq, ",grpquota_block_hardlimit=%lld",
-+			   sbinfo->qlimits.grpquota_bhardlimit);
-+	if (sbinfo->qlimits.usrquota_ihardlimit)
-+		seq_printf(seq, ",usrquota_inode_hardlimit=%lld",
-+			   sbinfo->qlimits.usrquota_ihardlimit);
-+	if (sbinfo->qlimits.grpquota_ihardlimit)
-+		seq_printf(seq, ",grpquota_inode_hardlimit=%lld",
-+			   sbinfo->qlimits.grpquota_ihardlimit);
-+#endif
- 	return 0;
- }
+--- a/mm/swapfile.c~mm-swapfile-__swap_duplicate-drop-redundant-write_once-on-swap_map-for-err-cases
++++ a/mm/swapfile.c
+@@ -3335,7 +3335,8 @@ static int __swap_duplicate(swp_entry_t
+ 	} else
+ 		err = -ENOENT;			/* unused swap entry */
  
+-	WRITE_ONCE(p->swap_map[offset], count | has_cache);
++	if (!err)
++		WRITE_ONCE(p->swap_map[offset], count | has_cache);
+ 
+ unlock_out:
+ 	unlock_cluster_or_swap_info(p, ci);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from 21cnbao@gmail.com are
 
 
