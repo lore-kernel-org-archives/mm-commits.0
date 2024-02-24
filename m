@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8963C147
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F54FDF5C
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739452; cv=none; b=dT+wOawMLxEK3zijuv9tACgWOXvN4c+vh3hdcUNjL35/gTd13ZDXm3SZh1eEO7NcpD9b9sqprLEOuSlHnlmj0lhKEjyF1o7qBqHzKJ9X62q74mF2CwAt5z/ocKEY54bcUrmnsXXbDgbPCwxv0v/W50iUVOEbDrvvh4LL+ozi0+4=
+	t=1708739454; cv=none; b=gCH3YB5DrruNe/2T6hSFzmPa8R/9zqSzWPUxrkTQAprPJ44W/K9uH5X6TzSlfVpQMpgAnP1rINqjT8ljpYJpqIfpr73OF/YnCTmoRQt1EFFVTknWKb4nlqOav5TIiz30Qk0SjtxsgZPnHHnePRDooq8AjxdJVScaRB2lrCZlj0w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708739452; c=relaxed/simple;
-	bh=lWmH5Rm7R5M/ir3uL6O7Sp8EevfdmEzTUewRIlEHWeY=;
-	h=Date:To:From:Subject:Message-Id; b=SLWAgqpTEfSS9mg3VDl7Gz1df7qfn69vdS9HPURMMgH6YsD+4LeZhyHYl90kIFrcbHsgB8GqzpHLk8znYmk68Utax5QMP6EfSmeUCFLiHfu316//pjsk/LCZy+PDjPOvftGOXKnxM1Z6DPzdFRniPtjs5ayovopI1e65UJ7i/+U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1KWnxXWf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708739454; c=relaxed/simple;
+	bh=44Of4yYlPTDoGT3usUpUR+eGsoHWIvFNP0sSRO76qLk=;
+	h=Date:To:From:Subject:Message-Id; b=Xh4pBeOWmiClKxrznh7b3EANX61yGn4d64jFSaOwp0W5AyZ4CjoVdXn1ydCF8AtI/JhHp0YNm/JEnNSAEnRY0Ed5kiAcbMDGi1E6LvsLKAd6aEgM37nbVDOdQykEUXRdLCYY+gtEyXgPXO1jG8E2HfoyjrrvSb9y9U2GHzWn7L0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WUPTb4FM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1KWnxXWf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E920C433C7;
-	Sat, 24 Feb 2024 01:50:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WUPTb4FM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64263C433F1;
+	Sat, 24 Feb 2024 01:50:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739452;
-	bh=lWmH5Rm7R5M/ir3uL6O7Sp8EevfdmEzTUewRIlEHWeY=;
+	s=korg; t=1708739454;
+	bh=44Of4yYlPTDoGT3usUpUR+eGsoHWIvFNP0sSRO76qLk=;
 	h=Date:To:From:Subject:From;
-	b=1KWnxXWfnMy3EgHxncw31pefvH9H4BbHbCeEtEiSiAaFMDluyc5HNHF7i2E5GUCbI
-	 HP0eW2vKdg21RFTLaglW/TYmyulR7byIevqqyrfdIKb56UXJFOMb6eHjpTYhxbiiFM
-	 diCGwv/QWjiO2USd0QZ48RWXKB7BfxX51dn/MQg8=
-Date: Fri, 23 Feb 2024 17:50:51 -0800
-To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,21cnbao@gmail.com,akpm@linux-foundation.org
+	b=WUPTb4FMAbkviVrI9k2i/w4uQqqc4Q1ffbwKWyFI+WAXtwQ7hYBskOWpPAFkNFrQI
+	 STBjSwyqQvoY6f0jMykfGSeDcPw7cjl4FBm22bx6aWcPBHZe4ai1R90McNQrbE/WDw
+	 lFaibS4lqbAG1X5hvZV3XlJpeHi/tEPWuIwRyKdQ=
+Date: Fri, 23 Feb 2024 17:50:53 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,shy828301@gmail.com,ryan.roberts@arm.com,minchan@kernel.org,fengwei.yin@intel.com,david@redhat.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swapfile-__swap_duplicate-drop-redundant-write_once-on-swap_map-for-err-cases.patch removed from -mm tree
-Message-Id: <20240224015052.7E920C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] madvise-madvise_cold_or_pageout_pte_range-allow-split-while-folio_estimated_sharers-=-0.patch removed from -mm tree
+Message-Id: <20240224015054.64263C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,70 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/swapfile:__swap_duplicate: drop redundant WRITE_ONCE on swap_map for err cases
+     Subject: madvise:madvise_cold_or_pageout_pte_range(): allow split while folio_estimated_sharers = 0
 has been removed from the -mm tree.  Its filename was
-     mm-swapfile-__swap_duplicate-drop-redundant-write_once-on-swap_map-for-err-cases.patch
+     madvise-madvise_cold_or_pageout_pte_range-allow-split-while-folio_estimated_sharers-=-0.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Barry Song <21cnbao@gmail.com>
-Subject: mm/swapfile:__swap_duplicate: drop redundant WRITE_ONCE on swap_map for err cases
-Date: Wed, 21 Feb 2024 22:10:28 +1300
-
 From: Barry Song <v-songbaohua@oppo.com>
+Subject: madvise:madvise_cold_or_pageout_pte_range(): allow split while folio_estimated_sharers = 0
+Date: Wed, 21 Feb 2024 21:50:36 +1300
 
-The code is quite hard to read, we are still writing swap_map after
-errors happen. Though the written value is as before,
+The purpose is stopping splitting large folios whose mapcount are 2 or
+above.  Folios whose estimated_shares = 0 should be still perfect and even
+better candidates than estimated_shares = 1.
 
- has_cache = count & SWAP_HAS_CACHE;
- count &= ~SWAP_HAS_CACHE;
- [snipped]
- WRITE_ONCE(p->swap_map[offset], count | has_cache);
+Consider a pte-mapped large folio with 16 subpages, if we unmap 1-15, the
+current code will split folios and reclaim them while madvise goes on this
+folio; but if we unmap subpage 0, we will keep this folio and break.  This
+is weird.
 
-It would be better to entirely drop the WRITE_ONCE for both
-performance and readability.
+For pmd-mapped large folios, we can still use "= 1" as the condition as
+anyway we have the entire map for it.  So this patch doesn't change the
+condition for pmd-mapped large folios.  This also explains why we had been
+using "= 1" for both pmd-mapped and pte-mapped large folios before commit
+07e8c82b5eff ("madvise: convert madvise_cold_or_pageout_pte_range() to use
+folios"), because in the past, we used the mapcount of the specific
+subpage, since the subpage had pte present, its mapcount wouldn't be 0.
 
-[akpm@linux-foundation.org: avoid using goto]
-Link: https://lkml.kernel.org/r/20240221091028.123122-1-21cnbao@gmail.com
+The problem can be quite easily reproduced by writing a small program,
+unmapping the first subpage of a pte-mapped large folio vs.  unmapping
+anyone other than the first subpage.
+
+Link: https://lkml.kernel.org/r/20240221085036.105621-1-21cnbao@gmail.com
+Fixes: 2f406263e3e9 ("madvise:madvise_cold_or_pageout_pte_range(): don't use mapcount() against large folio for sharing check")
 Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/madvise.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swapfile-__swap_duplicate-drop-redundant-write_once-on-swap_map-for-err-cases
-+++ a/mm/swapfile.c
-@@ -3335,7 +3335,8 @@ static int __swap_duplicate(swp_entry_t
- 	} else
- 		err = -ENOENT;			/* unused swap entry */
+--- a/mm/madvise.c~madvise-madvise_cold_or_pageout_pte_range-allow-split-while-folio_estimated_sharers-=-0
++++ a/mm/madvise.c
+@@ -453,7 +453,7 @@ restart:
+ 		if (folio_test_large(folio)) {
+ 			int err;
  
--	WRITE_ONCE(p->swap_map[offset], count | has_cache);
-+	if (!err)
-+		WRITE_ONCE(p->swap_map[offset], count | has_cache);
- 
- unlock_out:
- 	unlock_cluster_or_swap_info(p, ci);
+-			if (folio_estimated_sharers(folio) != 1)
++			if (folio_estimated_sharers(folio) > 1)
+ 				break;
+ 			if (pageout_anon_only_filter && !folio_test_anon(folio))
+ 				break;
 _
 
-Patches currently in -mm which might be from 21cnbao@gmail.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
 
