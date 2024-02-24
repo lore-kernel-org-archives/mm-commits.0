@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E78433D5;
-	Sat, 24 Feb 2024 01:27:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EAA74A15
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:27:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708738072; cv=none; b=Vzd2SO0A7+PI0hixb9Xr1N+eCD5P0IR/fuacCJ0AymN7ELLqRZo7ByvHTZd9h0Nl/91Pszpjo1Ff23RACRGvv/Wkp9mWPUpa9u0NS1hOEYxg/9wQ81NmUdwxkEQTo6mRzGo55zMgV/uXrSsVXOOz5tdsWX1Mp8ZmhCNf5p0s0z0=
+	t=1708738073; cv=none; b=eGe8hE9O/4gqRl2l4iy8bXK8xj24NfZHAnXkZ7bBcSjNBxUR5Eqt8f9NKerRPe60Mp/0onn7+OJmJaAVUjO0UuLntWASsx3QjzrGliGJkybygUxX8xktCdu7028BELXJi3Kc11tkpR4dGW5mX9GZKmnZ0QYX7pUSUuF5cPtiG9w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708738072; c=relaxed/simple;
-	bh=8ZAAk5VgMUnKuccmnCOoGGYPN3supMsTtoCZnsWaOos=;
-	h=Date:To:From:Subject:Message-Id; b=ZQMQZsD12YMpFknO4nMzUBPxa/QgflKQ424u2nnd9r4HWoBv/dp7sXVOpGxoFBF6LZA3M+nNYAaSpT6U8e8i8GPj1TFUo3yLeN6SqIJpRm4WOYlAylF6cBKRd7kR5O3iA1qiWgJl4hNEaVLE5026fidThm46FgL3xmOsQVLtKdc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mgcKDGH+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708738073; c=relaxed/simple;
+	bh=p8ymkM0HYKIWtO2M+Nlw8ZsUgtIq+DQi4Mr6p6pefWM=;
+	h=Date:To:From:Subject:Message-Id; b=qrxnG9HHenBWFrL8t5YS8MsZedbzKT6iZXDnkfWWlqtfqxFzyoGXlXNPdTaOoquHUEAl3fuiM9/w0BcAC3yGw3p2rITO/ast9Rq3wRb965EwYRCoby2b1XSQHQXwcqEWb9aQAgkYHxX/xQFs/aPq5/HoNtdHprpyiXVW02V/EXE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZDRZxvoz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mgcKDGH+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A89E2C433F1;
-	Sat, 24 Feb 2024 01:27:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZDRZxvoz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB7AAC43390;
+	Sat, 24 Feb 2024 01:27:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708738071;
-	bh=8ZAAk5VgMUnKuccmnCOoGGYPN3supMsTtoCZnsWaOos=;
+	s=korg; t=1708738072;
+	bh=p8ymkM0HYKIWtO2M+Nlw8ZsUgtIq+DQi4Mr6p6pefWM=;
 	h=Date:To:From:Subject:From;
-	b=mgcKDGH++Q1pE3lhzH5PlM9NWuYLUH5WfqO/ofYEl2DewVmy6YCQgCvpBtraDx2xz
-	 OKiM6CIkilV7xdmG8/79AmFEUM1OCy7gpdyW6EpfpcKFRif/ZcuKTGx3izyQthv3KP
-	 Hdi+n7QC3/rUNs3cP8z6rY+z/wEX42Cz39hbAEAQ=
-Date: Fri, 23 Feb 2024 17:27:51 -0800
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,stable@vger.kernel.org,osalvador@suse.de,hyeongtak.ji@sk.com,hannes@cmpxchg.org,baolin.wang@linux.alibaba.com,byungchul@sk.com,akpm@linux-foundation.org
+	b=ZDRZxvoz5/ZrD4vZPNjg2+99suv/LSLyq7ynLqaetixsCcOEaqQENShYaul63sATf
+	 lnB9SMkBMTAvAoJ+0SYL5+2nXp2LerUzCZj6/XzUobi6/TMi+/00cdtUqpZ6OLd3Cx
+	 hAcU5/TedRfxyzC60C4H2lQdcf0U9whsNxFfvzeo=
+Date: Fri, 23 Feb 2024 17:27:52 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,Liam.Howlett@oracle.com,lstoakes@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-vmscan-fix-a-bug-calling-wakeup_kswapd-with-a-wrong-zone-index.patch removed from -mm tree
-Message-Id: <20240224012751.A89E2C433F1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-add-memory-mapping-entry-with-reviewers.patch removed from -mm tree
+Message-Id: <20240224012752.BB7AAC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,106 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmscan: fix a bug calling wakeup_kswapd() with a wrong zone index
+     Subject: MAINTAINERS: add memory mapping entry with reviewers
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-fix-a-bug-calling-wakeup_kswapd-with-a-wrong-zone-index.patch
+     maintainers-add-memory-mapping-entry-with-reviewers.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Byungchul Park <byungchul@sk.com>
-Subject: mm/vmscan: fix a bug calling wakeup_kswapd() with a wrong zone index
-Date: Fri, 16 Feb 2024 20:15:02 +0900
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: MAINTAINERS: add memory mapping entry with reviewers
+Date: Tue, 20 Feb 2024 06:44:10 +0000
 
-With numa balancing on, when a numa system is running where a numa node
-doesn't have its local memory so it has no managed zones, the following
-oops has been observed.  It's because wakeup_kswapd() is called with a
-wrong zone index, -1.  Fixed it by checking the index before calling
-wakeup_kswapd().
+Recently there have been a number of patches which have affected various
+aspects of the memory mapping logic as implemented in mm/mmap.c where it
+would have been useful for regular contributors to have been notified.
 
-> BUG: unable to handle page fault for address: 00000000000033f3
-> #PF: supervisor read access in kernel mode
-> #PF: error_code(0x0000) - not-present page
-> PGD 0 P4D 0
-> Oops: 0000 [#1] PREEMPT SMP NOPTI
-> CPU: 2 PID: 895 Comm: masim Not tainted 6.6.0-dirty #255
-> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS
->    rel-1.16.0-0-gd239552ce722-prebuilt.qemu.org 04/01/2014
-> RIP: 0010:wakeup_kswapd (./linux/mm/vmscan.c:7812)
-> Code: (omitted)
-> RSP: 0000:ffffc90004257d58 EFLAGS: 00010286
-> RAX: ffffffffffffffff RBX: ffff88883fff0480 RCX: 0000000000000003
-> RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff88883fff0480
-> RBP: ffffffffffffffff R08: ff0003ffffffffff R09: ffffffffffffffff
-> R10: ffff888106c95540 R11: 0000000055555554 R12: 0000000000000003
-> R13: 0000000000000000 R14: 0000000000000000 R15: ffff88883fff0940
-> FS:  00007fc4b8124740(0000) GS:ffff888827c00000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 00000000000033f3 CR3: 000000026cc08004 CR4: 0000000000770ee0
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-> PKRU: 55555554
-> Call Trace:
->  <TASK>
-> ? __die
-> ? page_fault_oops
-> ? __pte_offset_map_lock
-> ? exc_page_fault
-> ? asm_exc_page_fault
-> ? wakeup_kswapd
-> migrate_misplaced_page
-> __handle_mm_fault
-> handle_mm_fault
-> do_user_addr_fault
-> exc_page_fault
-> asm_exc_page_fault
-> RIP: 0033:0x55b897ba0808
-> Code: (omitted)
-> RSP: 002b:00007ffeefa821a0 EFLAGS: 00010287
-> RAX: 000055b89983acd0 RBX: 00007ffeefa823f8 RCX: 000055b89983acd0
-> RDX: 00007fc2f8122010 RSI: 0000000000020000 RDI: 000055b89983acd0
-> RBP: 00007ffeefa821a0 R08: 0000000000000037 R09: 0000000000000075
-> R10: 0000000000000000 R11: 0000000000000202 R12: 0000000000000000
-> R13: 00007ffeefa82410 R14: 000055b897ba5dd8 R15: 00007fc4b8340000
->  </TASK>
+Add an entry for this part of mm in particular with regular contributors
+tagged as reviewers.
 
-Link: https://lkml.kernel.org/r/20240216111502.79759-1-byungchul@sk.com
-Signed-off-by: Byungchul Park <byungchul@sk.com>
-Reported-by: Hyeongtak Ji <hyeongtak.ji@sk.com>
-Fixes: c574bbe917036 ("NUMA balancing: optimize page placement for memory tiering system")
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240220064410.4639-1-lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ MAINTAINERS |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/mm/migrate.c~mm-vmscan-fix-a-bug-calling-wakeup_kswapd-with-a-wrong-zone-index
-+++ a/mm/migrate.c
-@@ -2519,6 +2519,14 @@ static int numamigrate_isolate_folio(pg_
- 			if (managed_zone(pgdat->node_zones + z))
- 				break;
- 		}
+--- a/MAINTAINERS~maintainers-add-memory-mapping-entry-with-reviewers
++++ a/MAINTAINERS
+@@ -14111,6 +14111,17 @@ F:	mm/
+ F:	tools/mm/
+ F:	tools/testing/selftests/mm/
+ 
++MEMORY MAPPING
++M:	Andrew Morton <akpm@linux-foundation.org>
++R:	Liam R. Howlett <Liam.Howlett@oracle.com>
++R:	Vlastimil Babka <vbabka@suse.cz>
++R:	Lorenzo Stoakes <lstoakes@gmail.com>
++L:	linux-mm@kvack.org
++S:	Maintained
++W:	http://www.linux-mm.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	mm/mmap.c
 +
-+		/*
-+		 * If there are no managed zones, it should not proceed
-+		 * further.
-+		 */
-+		if (z < 0)
-+			return 0;
-+
- 		wakeup_kswapd(pgdat->node_zones + z, 0,
- 			      folio_order(folio), ZONE_MOVABLE);
- 		return 0;
+ MEMORY TECHNOLOGY DEVICES (MTD)
+ M:	Miquel Raynal <miquel.raynal@bootlin.com>
+ M:	Richard Weinberger <richard@nod.at>
 _
 
-Patches currently in -mm which might be from byungchul@sk.com are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-sched-numa-mm-do-not-try-to-migrate-memory-to-memoryless-nodes.patch
-mm-vmscan-do-not-turn-on-cache_trim_mode-if-it-doesnt-work.patch
 
