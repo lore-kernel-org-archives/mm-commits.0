@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E208A79F4
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC8F079C5
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739411; cv=none; b=N+sQBEN5x5/nE8zZKOV2U84HS+FAbjmo1wzepGneVGn11LoLc6U6p2I+KoS1fOMKO1Nyl30rPYNHjfcJ3xAjZUo+rTyODtMM8bZNp3Dazg3kAemp1V8ofvk+gyb9nwaGJz+sm1yKOj2Fr4kob/1pYGxYKQWzrxeRXlkcMm2zBoY=
+	t=1708739412; cv=none; b=Fc48ezTjtTm3NEkvisJvJuJMAeqMv4iZQLIhZNTbtOvsmUrHPKOAPjO/80B0JstzzHeLYFbAY4uFxlF3/m3L2/WU9tUTePVTEIAxB5nxs60TxFgVt0UlbwHTd72cuf8NmM4v8YjR2XXy1m5kjiz1W+saeRke/77nGh5tl+LeHTo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708739411; c=relaxed/simple;
-	bh=XP+qVolYAggwFL/3H6AroD1gQNftF8NURapYO0lAkAU=;
-	h=Date:To:From:Subject:Message-Id; b=VUR+4XtAsVd+ykl4qVVoPrcmJQ9pyI2Q7+zl2QLQWngoot0mTvICK9/jrycYoyvyyi5w/UMvprxA+LKL6h+n9ThgI8dhnIozFbs3E/hGI4l1U4Y2JFdpIGraQ/7p5Lk+bSx17T4BASgj11tcS+1oPOz9Cyo4DtC939qCZZo6vJA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0HlDNyEe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708739412; c=relaxed/simple;
+	bh=gZUiBUn/tLTrw1+iE30KTMK4H6pham/6rRzCpCefPvU=;
+	h=Date:To:From:Subject:Message-Id; b=jYcQpPmINZKNwFQu1aR+WJln38W5rGc4ZJcJkfVppNUoeX7h31XdnCVjK02U5DkgOLA3b8HyTwrkFtqTbQUhMgz4yj8JG8PMR9dF/t3n3nFlRWW7r53FKhrnWlFurXYf4LxPg4nZqvaVhopQqsTObBM/BUpvffpauj8mP0kvchg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2fgInk8s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0HlDNyEe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8177C43390;
-	Sat, 24 Feb 2024 01:50:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2fgInk8s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFB20C433C7;
+	Sat, 24 Feb 2024 01:50:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739410;
-	bh=XP+qVolYAggwFL/3H6AroD1gQNftF8NURapYO0lAkAU=;
+	s=korg; t=1708739411;
+	bh=gZUiBUn/tLTrw1+iE30KTMK4H6pham/6rRzCpCefPvU=;
 	h=Date:To:From:Subject:From;
-	b=0HlDNyEeWiaML7sWQFrQ40BUw1zbyqr0Qvfl9kKzjV51I4YjWUqNNu6uHeA14Rqqj
-	 ziL09an5K/ejUaFbNUDwjWhhNZADv2xm3T3JkUc6yEWiYWQrqiM8TmxbRRlZkGVk3J
-	 4zJHuTWYO4XhGMDvxigU0/eajZ2Mw7ALQnO5J1z4=
-Date: Fri, 23 Feb 2024 17:50:10 -0800
-To: mm-commits@vger.kernel.org,zokeefe@google.com,songmuchun@bytedance.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,david@redhat.com,ioworker0@gmail.com,akpm@linux-foundation.org
+	b=2fgInk8sbm1XhK9e4FIcmfpfgtO2fbBv4WjTzcdnx2ceEMeMj/NAUqHNnlrX0zGZ6
+	 oNI4ydQZCzgc6LJDdf916EAgEiC1NSIQevq0TG/+d6gX3ZmyHqTemrxz2bRPtFNd3q
+	 PhTCMughBiL8jVa575AtMwgwoco5rY0yt/cSPuqc=
+Date: Fri, 23 Feb 2024 17:50:11 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check.patch removed from -mm tree
-Message-Id: <20240224015010.B8177C43390@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-set-damos_quota-esz-as-public-field-and-document.patch removed from -mm tree
+Message-Id: <20240224015011.BFB20C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,148 +35,159 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: bypassing unnecessary scans with MMF_DISABLE_THP check
+     Subject: mm/damon/core: set damos_quota->esz as public field and document
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check.patch
+     mm-damon-core-set-damos_quota-esz-as-public-field-and-document.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lance Yang <ioworker0@gmail.com>
-Subject: mm/khugepaged: bypassing unnecessary scans with MMF_DISABLE_THP check
-Date: Mon, 29 Jan 2024 13:45:51 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: set damos_quota->esz as public field and document
+Date: Mon, 19 Feb 2024 11:44:12 -0800
 
-khugepaged scans the entire address space in the background for each
-given mm, looking for opportunities to merge sequences of basic pages
-into huge pages.  However, when an mm is inserted to the mm_slots list,
-and the MMF_DISABLE_THP flag is set later, this scanning process
-becomes unnecessary for that mm and can be skipped to avoid redundant
-operations, especially in scenarios with a large address space.
+Patch series "mm/damon: let DAMOS feeds and tame/auto-tune itself".
 
-On an Intel Core i5 CPU, the time taken by khugepaged to scan the
-address space of the process, which has been set with the
-MMF_DISABLE_THP flag after being added to the mm_slots list, is as
-follows (shorter is better):
+The Aim-oriented Feedback-driven DAMOS Aggressiveness Auto-tuning
+patchset[1] which has merged since commit 9294a037c015 ("mm/damon/core:
+implement goal-oriented feedback-driven quota auto-tuning") made the
+mechanism and the policy separated.  That is, users can set a part of
+DAMOS control policies without a deep understanding of the mechanism but
+just their demands such as SLA.
 
-VMA Count |   Old   |   New   |  Change
----------------------------------------
-    50    |   23us  |    9us  |  -60.9%
-   100    |   32us  |    9us  |  -71.9%
-   200    |   44us  |    9us  |  -79.5%
-   400    |   75us  |    9us  |  -88.0%
-   800    |   98us  |    9us  |  -90.8%
+However, users are still required to do some additional work of manually
+collecting their target metric and feeding it to DAMOS.  In the case of
+end-users who use DAMON sysfs interface, the context switches between
+user-space and kernel-space could also make it inefficient.  The overhead
+is supposed to be only trivial in common cases, though.  Meanwhile, in
+simple use cases, the target metric could be common system metrics that
+the kernel can efficiently self-retrieve, such as memory pressure stall
+time (PSI).
 
-Once the count of VMAs for the process exceeds page_to_scan, khugepaged
-needs to wait for scan_sleep_millisecs ms before scanning the next
-process.  IMO, unnecessary scans could actually be skipped with a very
-inexpensive mm->flags check in this case.
+Extend DAMOS quota auto-tuning to support multiple types of metrics
+including the DAMOS self-retrievable ones, and add support for memory
+pressure stall time metric.  Different types of metrics can be supported
+in future.  The auto-tuning capability is currently supported for only
+users of DAMOS kernel API and DAMON sysfs interface.  Extend the support
+to DAMON_RECLAIM.
 
-This commit introduces a check before each scanning process to test the
-MMF_DISABLE_THP flag for the given mm; if the flag is set, the scanning
-process is bypassed, thereby improving the efficiency of khugepaged.
+Patches Sequence
+================
 
-This optimization is not a correctness issue but rather an enhancement
-to save expensive checks on each VMA when userspace cannot prctl itself
-before spawning into the new process.
+First five patches are for helping debugging and fine-tuning existing
+quota control features.  The first one (patch 1) exposes the effective
+quota that is made with given user inputs to DAMOS kernel API users and
+kernel-doc documents.  Following four patches implement (patches 1, 2 and
+3) and document (patches 4 and 5) a new DAMON sysfs file that exposes the
+value.
 
-On some servers within our company, we deploy a daemon responsible for
-monitoring and updating local applications.  Some applications prefer
-not to use THP, so the daemon calls prctl to disable THP before
-fork/exec.  Conversely, for other applications, the daemon calls prctl
-to enable THP before fork/exec.
+Following six patches cleanup and simplify the existing DAMOS quota
+auto-tuning code by improving layout of comments and data structures
+(patches 6 and 7), supporting common use cases, namely multiple goals
+(patches 8, 9 and 10), and simplifying the interface (patch 11).
 
-Ideally, the daemon should invoke prctl after the fork, but its current
-implementation follows the described approach.  In the Go standard
-library, there is no direct encapsulation of the fork system call;
-instead, fork and execve are combined into one through
-syscall.ForkExec.
+Then six patches for the main purpose of this patchset follow.  The first
+three changes extend the core logic for various target metrics (patch 12),
+implement memory pressure stall time-based target metric support (patch
+13), and update DAMON sysfs interface to support the new target metric
+(patch 14).  Then, documentation updates for the features on design (patch
+15), ABI (patch 16), and usage (patch 17) follow.
 
-Link: https://lkml.kernel.org/r/20240129054551.57728-1-ioworker0@gmail.com
-Signed-off-by: Lance Yang <ioworker0@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Last three patches add auto-tuning support on DAMON_RECLAIM.  The patches
+implement DAMON_RECLAIM parameters for user-feedback driven quota
+auto-tuning (patch 18), memory pressure stall time-driven quota
+self-tuning (patch 19), and finally update the DAMON_RECLAIM usage
+document for the new parameters (patch 20).
+
+[1] https://lore.kernel.org/all/20231130023652.50284-1-sj@kernel.org/
+
+
+This patch (of 20):
+
+DAMOS allow users to specify the quota as they want in multiple ways
+including time quota, size quota, and feedback-based auto-tuning.  DAMOS
+makes one effective quota out of the inputs and use it at the end. 
+Knowing the current effective quota helps understanding DAMOS' internal
+mechanism and fine-tuning quotas.  DAMON kernel API users can get the
+information from ->esz field of damos_quota struct, but the field is
+marked as private purpose, and not kernel-doc documented.  Make it public
+and document.
+
+Link: https://lkml.kernel.org/r/20240219194431.159606-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240219194431.159606-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ include/linux/damon.h |    6 ++++--
+ mm/damon/core.c       |    8 ++++----
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check
-+++ a/mm/khugepaged.c
-@@ -410,6 +410,12 @@ static inline int hpage_collapse_test_ex
- 	return atomic_read(&mm->mm_users) == 0;
+--- a/include/linux/damon.h~mm-damon-core-set-damos_quota-esz-as-public-field-and-document
++++ a/include/linux/damon.h
+@@ -138,6 +138,7 @@ enum damos_action {
+  *
+  * @get_score:		Feedback function for self-tuning quota.
+  * @get_score_arg:	Parameter for @get_score
++ * @esz:		Effective size quota in bytes.
+  *
+  * To avoid consuming too much CPU time or IO resources for applying the
+  * &struct damos->action to large memory, DAMON allows users to set time and/or
+@@ -167,6 +168,8 @@ enum damos_action {
+  * tuning is getting the feedback screo value of 10,000.  If @ms and/or @sz are
+  * set together, those work as a hard limit quota.  If neither @ms nor @sz are
+  * set, the mechanism starts from the quota of one byte.
++ *
++ * The resulting effective size quota in bytes is set to @esz.
+  */
+ struct damos_quota {
+ 	unsigned long ms;
+@@ -179,14 +182,13 @@ struct damos_quota {
+ 
+ 	unsigned long (*get_score)(void *arg);
+ 	void *get_score_arg;
++	unsigned long esz;
+ 
+ /* private: */
+ 	/* For throughput estimation */
+ 	unsigned long total_charged_sz;
+ 	unsigned long total_charged_ns;
+ 
+-	unsigned long esz;	/* Effective size quota in bytes */
+-
+ 	/* For charging the quota */
+ 	unsigned long charged_sz;
+ 	unsigned long charged_from;
+--- a/mm/damon/core.c~mm-damon-core-set-damos_quota-esz-as-public-field-and-document
++++ a/mm/damon/core.c
+@@ -299,12 +299,12 @@ void damos_destroy_filter(struct damos_f
+ 	damos_free_filter(f);
  }
  
-+static inline int hpage_collapse_test_exit_or_disable(struct mm_struct *mm)
-+{
-+	return hpage_collapse_test_exit(mm) ||
-+	       test_bit(MMF_DISABLE_THP, &mm->flags);
-+}
-+
- void __khugepaged_enter(struct mm_struct *mm)
+-/* initialize private fields of damos_quota and return the pointer */
+-static struct damos_quota *damos_quota_init_priv(struct damos_quota *quota)
++/* initialize fields of @quota that normally API users wouldn't set */
++static struct damos_quota *damos_quota_init(struct damos_quota *quota)
  {
- 	struct khugepaged_mm_slot *mm_slot;
-@@ -1422,7 +1428,7 @@ static void collect_mm_slot(struct khuge
++	quota->esz = 0;
+ 	quota->total_charged_sz = 0;
+ 	quota->total_charged_ns = 0;
+-	quota->esz = 0;
+ 	quota->charged_sz = 0;
+ 	quota->charged_from = 0;
+ 	quota->charge_target_from = NULL;
+@@ -336,7 +336,7 @@ struct damos *damon_new_scheme(struct da
+ 	scheme->stat = (struct damos_stat){};
+ 	INIT_LIST_HEAD(&scheme->list);
  
- 	lockdep_assert_held(&khugepaged_mm_lock);
+-	scheme->quota = *(damos_quota_init_priv(quota));
++	scheme->quota = *(damos_quota_init(quota));
  
--	if (hpage_collapse_test_exit(mm)) {
-+	if (hpage_collapse_test_exit_or_disable(mm)) {
- 		/* free mm_slot */
- 		hash_del(&slot->hash);
- 		list_del(&slot->mm_node);
-@@ -2360,7 +2366,7 @@ static unsigned int khugepaged_scan_mm_s
- 		goto breakouterloop_mmap_lock;
- 
- 	progress++;
--	if (unlikely(hpage_collapse_test_exit(mm)))
-+	if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
- 		goto breakouterloop;
- 
- 	vma_iter_init(&vmi, mm, khugepaged_scan.address);
-@@ -2368,7 +2374,7 @@ static unsigned int khugepaged_scan_mm_s
- 		unsigned long hstart, hend;
- 
- 		cond_resched();
--		if (unlikely(hpage_collapse_test_exit(mm))) {
-+		if (unlikely(hpage_collapse_test_exit_or_disable(mm))) {
- 			progress++;
- 			break;
- 		}
-@@ -2390,7 +2396,7 @@ skip:
- 			bool mmap_locked = true;
- 
- 			cond_resched();
--			if (unlikely(hpage_collapse_test_exit(mm)))
-+			if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
- 				goto breakouterloop;
- 
- 			VM_BUG_ON(khugepaged_scan.address < hstart ||
-@@ -2408,7 +2414,7 @@ skip:
- 				fput(file);
- 				if (*result == SCAN_PTE_MAPPED_HUGEPAGE) {
- 					mmap_read_lock(mm);
--					if (hpage_collapse_test_exit(mm))
-+					if (hpage_collapse_test_exit_or_disable(mm))
- 						goto breakouterloop;
- 					*result = collapse_pte_mapped_thp(mm,
- 						khugepaged_scan.address, false);
-@@ -2450,7 +2456,7 @@ breakouterloop_mmap_lock:
- 	 * Release the current mm_slot if this mm is about to die, or
- 	 * if we scanned all vmas of this mm.
- 	 */
--	if (hpage_collapse_test_exit(mm) || !vma) {
-+	if (hpage_collapse_test_exit_or_disable(mm) || !vma) {
- 		/*
- 		 * Make sure that if mm_users is reaching zero while
- 		 * khugepaged runs here, khugepaged_exit will find
+ 	scheme->wmarks = *wmarks;
+ 	scheme->wmarks.activated = true;
 _
 
-Patches currently in -mm which might be from ioworker0@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
