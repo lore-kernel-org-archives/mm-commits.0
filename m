@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65FD51870
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:38:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 896E21870
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:38:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708738699; cv=none; b=r5L7hKvJ7+bUDTdwd8ZgMgaQMjiPg+seg03k+5eH9eYF/cCBY6d4Yc4Jcp9ab6ZPcCPm4gHHg0Ehatl9rA4gfFFU4ZLVzEWXkZfWDS29WV3m9YtQnHeKrsRQsRxEXiiJfyITcA+gGzfosI+p6psCGp11oBb4yfZKEI85+b/0yD0=
+	t=1708738700; cv=none; b=CPnmy1n46ZwesoTxGbKjSXB2Urxm39I1Ynrel8zMg1CXmTCTiDTNJlYVnVmfAe+/GHH8f0JvSTE2N1qyObs14IqpKMncV4iadsAFznSSQbFCG0b8obMw/yrRqUCZ5MPMO/wHszWZlAJdaFZXwgspEYvr7eZHeit16rrN2aOvE+0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708738699; c=relaxed/simple;
-	bh=liOfG2O4D4zW3hqtxC+Zwxn+ziioerjsyiAgyzuATjY=;
-	h=Date:To:From:Subject:Message-Id; b=YcyCJrCOKmhaQum6nBbH2Lfhn7LR7nxKLUlJy7Vlvl8w7cPtkNm9mitG1yN7RHbHORS/3+ekbv1QDK6LYzTHvqrcEt2RIhGcSfYY/PiofwLxxIq6c1vq6ugpZyagAHLSwzmwBqf9u1qlLzVPDjwtJ+jJP9aIUYFbm8/HKp2aHiM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TNhN7yk+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708738700; c=relaxed/simple;
+	bh=YTlH+OcqqAEMgfiCyP0fn5xSpwQ5LH0ZXfmqN1gSmO4=;
+	h=Date:To:From:Subject:Message-Id; b=YzEMb7I4VgF8CqdLU3P1fl2/eXqNFgOpHrei+GMJkLi5pxAzFlI0XV4IvoFCPTZ+BJoQfo0LdSatKv/iVO4Nc4/J1GMNyTdy5uGSYO4qRQ0ahUb5EvNRpCtJF9PYOgCFgdYoyjw8ifuIXTNvDdJJYi1JYSK8a5J65eJj10iNBZM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W1Cr7Tla; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TNhN7yk+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02A98C433C7;
-	Sat, 24 Feb 2024 01:38:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W1Cr7Tla"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54DCBC43394;
+	Sat, 24 Feb 2024 01:38:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708738699;
-	bh=liOfG2O4D4zW3hqtxC+Zwxn+ziioerjsyiAgyzuATjY=;
+	s=korg; t=1708738700;
+	bh=YTlH+OcqqAEMgfiCyP0fn5xSpwQ5LH0ZXfmqN1gSmO4=;
 	h=Date:To:From:Subject:From;
-	b=TNhN7yk+ztEY6zxi5DKByGMoQHsRre+QH+5yPr9bs99mvxuaxOw1mp6R7kFqE+rcF
-	 rREo9hQhiEXQLi5CHStLO9ziban8leXb1lb1IHFOcyUoAKkR0N5pczyhdxMXvETYLS
-	 NlpvBnnpUgTUkBGaH4OEFRGjwJ5eDcz9HldB5JY8=
-Date: Fri, 23 Feb 2024 17:38:18 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,oleksiy.avramchenko@sony.com,lstoakes@gmail.com,lkp@intel.com,Liam.Howlett@oracle.com,hch@lst.de,david@fromorbit.com,bhe@redhat.com,anshuman.khandual@arm.com,urezki@gmail.com,akpm@linux-foundation.org
+	b=W1Cr7TlaG6rAzdo8tEIGvXrwbH8TSCsWKaxVekHEAXmiQEtB4OJKG04vLca/teR/j
+	 AIxG0shOqEx0hCnayPA5b/mZBLrR9A/xen2esO8ciXFTxYuF6zov++nnYeFSh3ZuT5
+	 KH/7qHEVRJHLgVxoWJU+3Ng7HJIqG7qi7BnLl0Q0=
+Date: Fri, 23 Feb 2024 17:38:19 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,oleksiy.avramchenko@sony.com,nathan@kernel.org,lstoakes@gmail.com,lkp@intel.com,Liam.Howlett@oracle.com,hch@infradead.org,david@fromorbit.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-vmalloc-remove-global-vmap_area_root-rb-tree-fix.patch removed from -mm tree
-Message-Id: <20240224013819.02A98C433C7@smtp.kernel.org>
+Subject: [folded-merged] mm-vmalloc-remove-global-vmap_area_root-rb-tree-fix-2.patch removed from -mm tree
+Message-Id: <20240224013820.54DCBC43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,34 +35,33 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmalloc: mark vmap_init_free_space() with __init tag
+     Subject: fix a wrong value passed to __find_vmap_area()
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-remove-global-vmap_area_root-rb-tree-fix.patch
+     mm-vmalloc-remove-global-vmap_area_root-rb-tree-fix-2.patch
 
 This patch was dropped because it was folded into mm-vmalloc-remove-global-vmap_area_root-rb-tree.patch
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm: vmalloc: mark vmap_init_free_space() with __init tag
-Date: Thu, 11 Jan 2024 14:26:28 +0100
+Subject: fix a wrong value passed to __find_vmap_area()
+Date: Thu, 11 Jan 2024 13:11:04 +0100
 
-vmap_init_free_space() is called only once therefore tag it with __init. 
-Apart of that it access the "vmlist" variable that is located in
-".init.data" section.
+There was a typo in the vmalloc_dump_obj() function.  Instead of passing a
+real address which is "objp" an "addr" was used what is wrong and not
+initialized.
 
-Link: https://lkml.kernel.org/r/20240111132628.299644-1-urezki@gmail.com
-Fixes: 86817057732a ("mm: vmalloc: remove global vmap_area_root rb-tree")
+Link: https://lkml.kernel.org/r/20240111121104.180993-1-urezki@gmail.com
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202401112056.I41bELL4-lkp@intel.com/
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Fixes: 86817057732a ("mm: vmalloc: remove global vmap_area_root rb-tree")
+Closes: https://lore.kernel.org/oe-kbuild-all/202401111810.TKPIXLCs-lkp@intel.com/
 Cc: Baoquan He <bhe@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -70,17 +69,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/vmalloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-remove-global-vmap_area_root-rb-tree-fix
+--- a/mm/vmalloc.c~mm-vmalloc-remove-global-vmap_area_root-rb-tree-fix-2
 +++ a/mm/vmalloc.c
-@@ -4508,7 +4508,7 @@ module_init(proc_vmalloc_init);
+@@ -4342,7 +4342,7 @@ bool vmalloc_dump_obj(void *object)
+ 	vn = addr_to_node((unsigned long)objp);
  
- #endif
+ 	if (spin_trylock(&vn->busy.lock)) {
+-		va = __find_vmap_area(addr, &vn->busy.root);
++		va = __find_vmap_area((unsigned long)objp, &vn->busy.root);
  
--static void vmap_init_free_space(void)
-+static void __init vmap_init_free_space(void)
- {
- 	unsigned long vmap_start = 1;
- 	const unsigned long vmap_end = ULONG_MAX;
+ 		if (va && va->vm) {
+ 			addr = (unsigned long)va->vm->addr;
 _
 
 Patches currently in -mm which might be from urezki@gmail.com are
@@ -89,7 +88,6 @@ mm-vmalloc-add-va_alloc-helper.patch
 mm-vmalloc-rename-adjust_va_to_fit_type-function.patch
 mm-vmalloc-move-vmap_init_free_space-down-in-vmallocc.patch
 mm-vmalloc-remove-global-vmap_area_root-rb-tree.patch
-mm-vmalloc-remove-global-vmap_area_root-rb-tree-fix-2.patch
 mm-vmalloc-remove-vmap_area_list-fix.patch
 mm-vmalloc-remove-global-purge_vmap_area_root-rb-tree.patch
 mm-vmalloc-offload-free_vmap_area_lock-lock.patch
