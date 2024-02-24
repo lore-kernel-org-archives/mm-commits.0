@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D471D53F
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:51:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B85001378
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 02:38:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739471; cv=none; b=lFTkFc04RQW4645jz05xGceVJIiIjjUfOmch+NhhDsvZnYXVhwDbDPTqtfwnqReFSPAXjqm5l3a1LQRW2S8NUjX/rtK9KUOC41+gRSGjW0Zu2nXN3VnVRuTmCv7Hy8yKNNZOhZeLiC67EaXlBh8VJlwTIEdjTI5ltJyfaB3qVGI=
+	t=1708742289; cv=none; b=lc9fVIGWqCGKYGAkyu1WSnIWpNCpJhzG0G5bVjT04XqowAufoRjEVb0YicNmhlHtzmS2jn1DOLptNgOXAmc67uWEYl/EmlsIZXyAPwbLQ2EzaUGncn9h64LPrq/U+uLLXAJZFb+Gv4E84Q5AKH7h4XHU9AIld8t5cjajn1fZi0I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708739471; c=relaxed/simple;
-	bh=eoCV8baoR1TOCJT6COSgoHwewkvLW19I3EjBhY16L+w=;
-	h=Date:To:From:Subject:Message-Id; b=gic8Zj5x3kFazsh00joGcfuP7+4SBXX65qEfYDc34PGZNO6tAL/OUMm9Dpjm9pP5kyHBCheDJwY5kQP/jYxZWh6WLngI/vIoMLeXOAGYO8qqBef8FyrBKpoVpiUJHNGIfrQwrXoUndHJ0S3hbE0PZ0Jg3dvuH3phlkK5ddp/Ol8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fw6akYfa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708742289; c=relaxed/simple;
+	bh=OMauyuGS75WA5ijh+3NRuLfYNAX9F2dS7rMvBpYdh2M=;
+	h=Date:To:From:Subject:Message-Id; b=nR6SvpM0Yu2d9TVz6P7cd47hRMOb2bM/VQ/BzkFZzeGp918F7V/cRxO17ohYpc5+IznjgHhzAfYFPXwACSfw7iKhsZ2YJtAMR8rgoY0B5R4goo2UgKnH6tGnDbSHwbVR6wjbEVNcBJ6VB7m3024eoEWWVAWZiSnjhcJoKvAHpl0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sl3rMVzU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fw6akYfa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00742C433F1;
-	Sat, 24 Feb 2024 01:51:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sl3rMVzU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FE83C433F1;
+	Sat, 24 Feb 2024 02:38:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739471;
-	bh=eoCV8baoR1TOCJT6COSgoHwewkvLW19I3EjBhY16L+w=;
+	s=korg; t=1708742289;
+	bh=OMauyuGS75WA5ijh+3NRuLfYNAX9F2dS7rMvBpYdh2M=;
 	h=Date:To:From:Subject:From;
-	b=Fw6akYfa6H7TJx4gNtb2F9NLc4YpMfHy0uXEN8OweEIzsAFUykTabY0m9lsARljVy
-	 bxK9fTwbk+nJy2FZKY/6rKtvsmAmPWuuqImG5BT9fMJsBpda2rUzUsBArqznmWdkvd
-	 dyCBJ3ByjEjGAOUYVnVAJg1RMTZzY6I8XZPIo9jY=
-Date: Fri, 23 Feb 2024 17:51:10 -0800
-To: mm-commits@vger.kernel.org,jack@suse.cz,hch@lst.de,dhowells@redhat.com,dchinner@redhat.com,brauner@kernel.org,bfoster@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=sl3rMVzU+SRUQqCzbEF3ZJKH6yvpuWODAj2Kef/L8Le8p2uRTdJT8+CF9hPS+paUv
+	 zqdtWFH/oReQV6VuhHOZu8yEt4KQ9xSp1qwSydd3RmMHWAZUvUz77Tz6slyEoG+kid
+	 YuIm5pHNxFVKcHAfRR64PlHpH0KD7Y+83NyqqDEY=
+Date: Fri, 23 Feb 2024 18:38:08 -0800
+To: mm-commits@vger.kernel.org,stefani@seibold.net,jirislaby@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] writeback-remove-a-use-of-write_cache_pages-from-do_writepages.patch removed from -mm tree
-Message-Id: <20240224015111.00742C433F1@smtp.kernel.org>
+Subject: + kfifo-add-kfifo_out_linear_ptr-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20240224023809.1FE83C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,88 +34,65 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: writeback: remove a use of write_cache_pages() from do_writepages()
-has been removed from the -mm tree.  Its filename was
-     writeback-remove-a-use-of-write_cache_pages-from-do_writepages.patch
+The patch titled
+     Subject: kfifo-add-kfifo_out_linear_ptr-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kfifo-add-kfifo_out_linear_ptr-fix.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kfifo-add-kfifo_out_linear_ptr-fix.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: writeback: remove a use of write_cache_pages() from do_writepages()
-Date: Thu, 15 Feb 2024 07:36:49 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kfifo-add-kfifo_out_linear_ptr-fix
+Date: Fri Feb 23 06:28:24 PM PST 2024
 
-Use the new writeback_iter() directly instead of indirecting through a
-callback.
+fix mismatched parenthesis build error
 
-[hch@lst.de: ported to the while based iter style]
-Link: https://lkml.kernel.org/r/20240215063649.2164017-15-hch@lst.de
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Brian Foster <bfoster@redhat.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: "Jiri Slaby (SUSE)" <jirislaby@kernel.org>
+Cc: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   31 ++++++++++++++++++-------------
- 1 file changed, 18 insertions(+), 13 deletions(-)
+ lib/kfifo.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/page-writeback.c~writeback-remove-a-use-of-write_cache_pages-from-do_writepages
-+++ a/mm/page-writeback.c
-@@ -2577,15 +2577,25 @@ int write_cache_pages(struct address_spa
+--- a/lib/kfifo.c~kfifo-add-kfifo_out_linear_ptr-fix
++++ a/lib/kfifo.c
+@@ -497,7 +497,7 @@ unsigned int __kfifo_out_linear_r(struct
+ 	if (tail)
+ 		*tail = fifo->out + recsize;
+ 
+-	return min(n, __kfifo_peek_n(fifo, recsize);
++	return min(n, __kfifo_peek_n(fifo, recsize));
  }
- EXPORT_SYMBOL(write_cache_pages);
+ EXPORT_SYMBOL(__kfifo_out_linear_r);
  
--static int writepage_cb(struct folio *folio, struct writeback_control *wbc,
--		void *data)
-+static int writeback_use_writepage(struct address_space *mapping,
-+		struct writeback_control *wbc)
- {
--	struct address_space *mapping = data;
--	int ret = mapping->a_ops->writepage(&folio->page, wbc);
-+	struct folio *folio = NULL;
-+	struct blk_plug plug;
-+	int err;
- 
--	if (ret < 0)
--		mapping_set_error(mapping, ret);
--	return ret;
-+	blk_start_plug(&plug);
-+	while ((folio = writeback_iter(mapping, wbc, folio, &err))) {
-+		err = mapping->a_ops->writepage(&folio->page, wbc);
-+		if (err == AOP_WRITEPAGE_ACTIVATE) {
-+			folio_unlock(folio);
-+			err = 0;
-+		}
-+		mapping_set_error(mapping, err);
-+	}
-+	blk_finish_plug(&plug);
-+
-+	return err;
+@@ -609,4 +609,3 @@ unsigned int __kfifo_dma_out_prepare_r(s
+ 	return setup_sgl(fifo, sgl, nents, len, fifo->out + recsize);
  }
- 
- int do_writepages(struct address_space *mapping, struct writeback_control *wbc)
-@@ -2601,12 +2611,7 @@ int do_writepages(struct address_space *
- 		if (mapping->a_ops->writepages) {
- 			ret = mapping->a_ops->writepages(mapping, wbc);
- 		} else if (mapping->a_ops->writepage) {
--			struct blk_plug plug;
+ EXPORT_SYMBOL(__kfifo_dma_out_prepare_r);
 -
--			blk_start_plug(&plug);
--			ret = write_cache_pages(mapping, wbc, writepage_cb,
--						mapping);
--			blk_finish_plug(&plug);
-+			ret = writeback_use_writepage(mapping, wbc);
- 		} else {
- 			/* deal with chardevs and other special files */
- 			ret = 0;
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+hugetlb-parallelize-1g-hugetlb-initialization-fix.patch
+mm-vmscan-do-not-turn-on-cache_trim_mode-if-it-doesnt-work-fix.patch
+kfifo-add-kfifo_out_linear_ptr-fix.patch
 
