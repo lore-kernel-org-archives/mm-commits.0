@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A4B64688
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:49:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F01F94688
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:49:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739359; cv=none; b=iXHJXZBElZmu8PzSiLAymhTwXFmkJI9t+4T5mc34hySJNz+DVgiL3AM9LgObjRNPTJYr/vdsxh1vRAYEw0LPWHmu3P/Wo9OGNRIefXSI4prYGBogXwW6TXnLzbxB5l+Wn5iepXUJOxdRrj4C19C1R9VIFOWurs5fq17/09J5eGY=
+	t=1708739360; cv=none; b=Se5/+3+FZBL2SSGYm9dHQpeP0V760LnYIEHbWT8O/rEgE45bLCAC1DmMTB/YRpBksUW51lYxLejuvAZqMweoQwiL8Fo2uhcFnHORNtoxaSEq36tW9l2eZs90Pv0rtVCjSj1IHMVCRvr1iTynMaojYzrt8p8P3oM4a/p7+7ZbTDo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708739359; c=relaxed/simple;
-	bh=z8trJFuopElZ/3uPpFMyLQteUPk2zw9tvQrxKiPlZi4=;
-	h=Date:To:From:Subject:Message-Id; b=mIMVCYzF8U+LCmQUGk0xgjuYxQ8bgJ2SuCMXXSTRBtXkdvaVLGO9pz8N/ytZWOvscgXvlyor+fZKV95lfT0PQFaFQTncy76AeDoQv1a+XqK+MFYw/aM2trg+CX9BpYT/WSOMvzTZkKhYhtBdWK13fqu+GsyOSDuv3p4JjGTGW2A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TDjAM8z5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708739360; c=relaxed/simple;
+	bh=+ngNMiBfCNDJfCM/rIavgtrPS8cwgV5t+prj4YAfoHs=;
+	h=Date:To:From:Subject:Message-Id; b=J+V9KVZYKn0HFlKUAmZW0D7p2/AkRtBGZIj0C336KsxCsnK1Wguc/vhiLeWTdpi5tGtDWpiwLVEyFZtYpxCNTF7H9Ddh2ZQ3J96YZINLbXdxKBwNTpfcUspTGM8YylqqS74uSntM7gkAE4y3gHQ5DyiEDTL/979y+PvxZk7Loi0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YJv8KEKA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TDjAM8z5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CC88C43390;
-	Sat, 24 Feb 2024 01:49:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YJv8KEKA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF426C433C7;
+	Sat, 24 Feb 2024 01:49:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739358;
-	bh=z8trJFuopElZ/3uPpFMyLQteUPk2zw9tvQrxKiPlZi4=;
+	s=korg; t=1708739359;
+	bh=+ngNMiBfCNDJfCM/rIavgtrPS8cwgV5t+prj4YAfoHs=;
 	h=Date:To:From:Subject:From;
-	b=TDjAM8z544umfzOQPYLZAd6MfHLpYhYR5w66H4ppRYKZ9ruH+UssoJ+GzNIyyQXA9
-	 kXwQUOqqx72JE2E404Bk/7g9gHE8qNT9vgoZs3Br7raElPRFjQQFD7XuNjYVOtJH1g
-	 weqItkEF765+9Qjdnli4CBrjhRr4KW/NVDDIbF5M=
-Date: Fri, 23 Feb 2024 17:49:17 -0800
+	b=YJv8KEKAWSYr7sP/QmUCsGlIoTy7q8Z5T0bkF/qZh5GYtwTvJlQvoKo3A1PNgKwnj
+	 0Q1j5K/5YA05ZIYFkjnVAXO07YTkpH/sg1y9fTu00ZOXUWgWuh4JphNwlAeq5x2eJf
+	 NJxInFvGDsvWPlzmA6EgsJFTJqaNMH6ciB9rEiAI=
+Date: Fri, 23 Feb 2024 17:49:19 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] lib-stackdepot-move-stack_record-struct-definition-into-the-header.patch removed from -mm tree
-Message-Id: <20240224014918.6CC88C43390@smtp.kernel.org>
+Subject: [merged mm-stable] mmpage_owner-maintain-own-list-of-stack_records-structs.patch removed from -mm tree
+Message-Id: <20240224014919.AF426C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,151 +35,120 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/stackdepot: move stack_record struct definition into the header
+     Subject: mm,page_owner: maintain own list of stack_records structs
 has been removed from the -mm tree.  Its filename was
-     lib-stackdepot-move-stack_record-struct-definition-into-the-header.patch
+     mmpage_owner-maintain-own-list-of-stack_records-structs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: lib/stackdepot: move stack_record struct definition into the header
-Date: Thu, 15 Feb 2024 22:59:02 +0100
+Subject: mm,page_owner: maintain own list of stack_records structs
+Date: Thu, 15 Feb 2024 22:59:03 +0100
 
-In order to move the heavy lifting into page_owner code, this one needs to
-have access to the stack_record structure, which right now sits in
-lib/stackdepot.c.  Move it to the stackdepot.h header so page_owner can
-access stack_record's struct fields.
+page_owner needs to increment a stack_record refcount when a new
+allocation occurs, and decrement it on a free operation.  In order to do
+that, we need to have a way to get a stack_record from a handle. 
+Implement __stack_depot_get_stack_record() which just does that, and make
+it public so page_owner can use it.
 
-Link: https://lkml.kernel.org/r/20240215215907.20121-3-osalvador@suse.de
+Also, traversing all stackdepot buckets comes with its own complexity,
+plus we would have to implement a way to mark only those stack_records
+that were originated from page_owner, as those are the ones we are
+interested in.  For that reason, page_owner maintains its own list of
+stack_records, because traversing that list is faster than traversing all
+buckets while keeping at the same time a low complexity.
+
+For now, add to stack_list only the stack_records of dummy_handle and
+failure_handle, and set their refcount of 1.
+
+Further patches will add code to increment or decrement stack_records
+count on allocation and free operation.
+
+Link: https://lkml.kernel.org/r/20240215215907.20121-4-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Marco Elver <elver@google.com>
 Acked-by: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stackdepot.h |   47 +++++++++++++++++++++++++++++++++++
- lib/stackdepot.c           |   43 --------------------------------
- 2 files changed, 47 insertions(+), 43 deletions(-)
+ include/linux/stackdepot.h |   11 +++++++++++
+ lib/stackdepot.c           |    8 ++++++++
+ mm/page_owner.c            |   15 +++++++++++++++
+ 3 files changed, 34 insertions(+)
 
---- a/include/linux/stackdepot.h~lib-stackdepot-move-stack_record-struct-definition-into-the-header
+--- a/include/linux/stackdepot.h~mmpage_owner-maintain-own-list-of-stack_records-structs
 +++ a/include/linux/stackdepot.h
-@@ -30,6 +30,53 @@ typedef u32 depot_stack_handle_t;
-  */
- #define STACK_DEPOT_EXTRA_BITS 5
+@@ -179,6 +179,17 @@ depot_stack_handle_t stack_depot_save(un
+ 				      unsigned int nr_entries, gfp_t gfp_flags);
  
-+#define DEPOT_HANDLE_BITS (sizeof(depot_stack_handle_t) * 8)
+ /**
++ * __stack_depot_get_stack_record - Get a pointer to a stack_record struct
++ *
++ * @handle: Stack depot handle
++ *
++ * This function is only for internal purposes.
++ *
++ * Return: Returns a pointer to a stack_record struct
++ */
++struct stack_record *__stack_depot_get_stack_record(depot_stack_handle_t handle);
 +
-+#define DEPOT_POOL_ORDER 2 /* Pool size order, 4 pages */
-+#define DEPOT_POOL_SIZE (1LL << (PAGE_SHIFT + DEPOT_POOL_ORDER))
-+#define DEPOT_STACK_ALIGN 4
-+#define DEPOT_OFFSET_BITS (DEPOT_POOL_ORDER + PAGE_SHIFT - DEPOT_STACK_ALIGN)
-+#define DEPOT_POOL_INDEX_BITS (DEPOT_HANDLE_BITS - DEPOT_OFFSET_BITS - \
-+			       STACK_DEPOT_EXTRA_BITS)
-+
-+#ifdef CONFIG_STACKDEPOT
-+/* Compact structure that stores a reference to a stack. */
-+union handle_parts {
-+	depot_stack_handle_t handle;
-+	struct {
-+		/* pool_index is offset by 1 */
-+		u32 pool_index	: DEPOT_POOL_INDEX_BITS;
-+		u32 offset	: DEPOT_OFFSET_BITS;
-+		u32 extra	: STACK_DEPOT_EXTRA_BITS;
-+	};
-+};
-+
-+struct stack_record {
-+	struct list_head hash_list;	/* Links in the hash table */
-+	u32 hash;			/* Hash in hash table */
-+	u32 size;			/* Number of stored frames */
-+	union handle_parts handle;	/* Constant after initialization */
-+	refcount_t count;
-+	union {
-+		unsigned long entries[CONFIG_STACKDEPOT_MAX_FRAMES];	/* Frames */
-+		struct {
-+			/*
-+			 * An important invariant of the implementation is to
-+			 * only place a stack record onto the freelist iff its
-+			 * refcount is zero. Because stack records with a zero
-+			 * refcount are never considered as valid, it is safe to
-+			 * union @entries and freelist management state below.
-+			 * Conversely, as soon as an entry is off the freelist
-+			 * and its refcount becomes non-zero, the below must not
-+			 * be accessed until being placed back on the freelist.
-+			 */
-+			struct list_head free_list;	/* Links in the freelist */
-+			unsigned long rcu_state;	/* RCU cookie */
-+		};
-+	};
-+};
-+#endif
-+
- typedef u32 depot_flags_t;
- 
- /*
---- a/lib/stackdepot.c~lib-stackdepot-move-stack_record-struct-definition-into-the-header
++/**
+  * stack_depot_fetch - Fetch a stack trace from stack depot
+  *
+  * @handle:	Stack depot handle returned from stack_depot_save()
+--- a/lib/stackdepot.c~mmpage_owner-maintain-own-list-of-stack_records-structs
 +++ a/lib/stackdepot.c
-@@ -36,55 +36,12 @@
- #include <linux/memblock.h>
- #include <linux/kasan-enabled.h>
+@@ -687,6 +687,14 @@ depot_stack_handle_t stack_depot_save(un
+ }
+ EXPORT_SYMBOL_GPL(stack_depot_save);
  
--#define DEPOT_HANDLE_BITS (sizeof(depot_stack_handle_t) * 8)
--
--#define DEPOT_POOL_ORDER 2 /* Pool size order, 4 pages */
--#define DEPOT_POOL_SIZE (1LL << (PAGE_SHIFT + DEPOT_POOL_ORDER))
--#define DEPOT_STACK_ALIGN 4
--#define DEPOT_OFFSET_BITS (DEPOT_POOL_ORDER + PAGE_SHIFT - DEPOT_STACK_ALIGN)
--#define DEPOT_POOL_INDEX_BITS (DEPOT_HANDLE_BITS - DEPOT_OFFSET_BITS - \
--			       STACK_DEPOT_EXTRA_BITS)
- #define DEPOT_POOLS_CAP 8192
- /* The pool_index is offset by 1 so the first record does not have a 0 handle. */
- #define DEPOT_MAX_POOLS \
- 	(((1LL << (DEPOT_POOL_INDEX_BITS)) - 1 < DEPOT_POOLS_CAP) ? \
- 	 (1LL << (DEPOT_POOL_INDEX_BITS)) - 1 : DEPOT_POOLS_CAP)
++struct stack_record *__stack_depot_get_stack_record(depot_stack_handle_t handle)
++{
++	if (!handle)
++		return NULL;
++
++	return depot_fetch_stack(handle);
++}
++
+ unsigned int stack_depot_fetch(depot_stack_handle_t handle,
+ 			       unsigned long **entries)
+ {
+--- a/mm/page_owner.c~mmpage_owner-maintain-own-list-of-stack_records-structs
++++ a/mm/page_owner.c
+@@ -36,6 +36,14 @@ struct page_owner {
+ 	pid_t free_tgid;
+ };
  
--/* Compact structure that stores a reference to a stack. */
--union handle_parts {
--	depot_stack_handle_t handle;
--	struct {
--		u32 pool_index	: DEPOT_POOL_INDEX_BITS; /* pool_index is offset by 1 */
--		u32 offset	: DEPOT_OFFSET_BITS;
--		u32 extra	: STACK_DEPOT_EXTRA_BITS;
--	};
--};
--
--struct stack_record {
--	struct list_head hash_list;	/* Links in the hash table */
--	u32 hash;			/* Hash in hash table */
--	u32 size;			/* Number of stored frames */
--	union handle_parts handle;	/* Constant after initialization */
--	refcount_t count;
--	union {
--		unsigned long entries[CONFIG_STACKDEPOT_MAX_FRAMES];	/* Frames */
--		struct {
--			/*
--			 * An important invariant of the implementation is to
--			 * only place a stack record onto the freelist iff its
--			 * refcount is zero. Because stack records with a zero
--			 * refcount are never considered as valid, it is safe to
--			 * union @entries and freelist management state below.
--			 * Conversely, as soon as an entry is off the freelist
--			 * and its refcount becomes non-zero, the below must not
--			 * be accessed until being placed back on the freelist.
--			 */
--			struct list_head free_list;	/* Links in the freelist */
--			unsigned long rcu_state;	/* RCU cookie */
--		};
--	};
--};
--
- static bool stack_depot_disabled;
- static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
- static bool __stack_depot_early_init_passed __initdata;
++struct stack {
++	struct stack_record *stack_record;
++	struct stack *next;
++};
++static struct stack dummy_stack;
++static struct stack failure_stack;
++static struct stack *stack_list;
++
+ static bool page_owner_enabled __initdata;
+ DEFINE_STATIC_KEY_FALSE(page_owner_inited);
+ 
+@@ -95,6 +103,13 @@ static __init void init_page_owner(void)
+ 	register_early_stack();
+ 	static_branch_enable(&page_owner_inited);
+ 	init_early_allocated_pages();
++	/* Initialize dummy and failure stacks and link them to stack_list */
++	dummy_stack.stack_record = __stack_depot_get_stack_record(dummy_handle);
++	failure_stack.stack_record = __stack_depot_get_stack_record(failure_handle);
++	refcount_set(&dummy_stack.stack_record->count, 1);
++	refcount_set(&failure_stack.stack_record->count, 1);
++	dummy_stack.next = &failure_stack;
++	stack_list = &dummy_stack;
+ }
+ 
+ struct page_ext_operations page_owner_ops = {
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
