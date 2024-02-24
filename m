@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE159B663
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3EE6BA2D
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739439; cv=none; b=gLelo55XgrgQdsfV2PC61TsSORPpPp8on8Gcy03mNK3BN+4IFc0EkmO8lB8m/UsLlk8jl7bmCmpE4orOdesdH6BCjXvqUZszHFakoZUdaV6+LFOFXoazVXXLj4MkKdD6yY7uJUqe1+l75TwfkERZvP1u4k/4DhD4tr9faUkTEyU=
+	t=1708739439; cv=none; b=Bbj21uveAvjwyMy2CgD68VByNN9dZFq/cPMJGnukXmnJtKvDHvgdXPEAfigQFbpLAmJE8dsmzupX+1DIMhg/A8gGubZcSOLqkW+CBz368rpBLbdesnS6iqFNuJLwkW07NFobGmG+yM0uJA4+lJncz808P+TBJjyZ2h6PnswzBKU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708739439; c=relaxed/simple;
-	bh=mIEbAbIyzmgLsNK7WAVHHkTPQkUNLScCjJslDhvFJXI=;
-	h=Date:To:From:Subject:Message-Id; b=PquxutTAIch9iPPnQcE7xHpaNu9xPXBpcwY5RBx4Qg0VrWaylekpUkg2n57WG7BIwG7Av6nNLHcHFvF+fz1TEa36pGVQhLC8vnmx8rOTukkn7s8baa42uLZwODD3QcszT+ot893/t6DA9mSNuljE9zsJ7Nw7z068YC8q6p1u+yY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gEJs/1oY; arc=none smtp.client-ip=10.30.226.201
+	bh=ItLv/z7Mb831UWbYy69/dngPk+fHm9LzXQBr6Y76y68=;
+	h=Date:To:From:Subject:Message-Id; b=V0u89TfZ0KDN1lV00WNNeipm7JCy0B9xr85K+tADZHXVHZa+7HJIiBGNfq2eFii/0CXLlnuQJurQmGUCEcd2zOjKiLns1hMXhH+bH+bGO4zWrW1zCSTH+ySaLuFr096nD6YFu19oxxtNoxhukORl+uLs2uRifEEq6Bxucfn1q24=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FlH5ZOGw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gEJs/1oY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F014C43390;
-	Sat, 24 Feb 2024 01:50:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FlH5ZOGw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABEC1C433C7;
+	Sat, 24 Feb 2024 01:50:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739438;
-	bh=mIEbAbIyzmgLsNK7WAVHHkTPQkUNLScCjJslDhvFJXI=;
+	s=korg; t=1708739439;
+	bh=ItLv/z7Mb831UWbYy69/dngPk+fHm9LzXQBr6Y76y68=;
 	h=Date:To:From:Subject:From;
-	b=gEJs/1oYU/t0Ym37oayf5wZWAnPmWtanI5G0j+4TCaex2buR+S7esDlQep68f41Es
-	 GabTpS6YxAHNGbQenQ/N7s25wGVytletRKunQ4/v7ZhkySrjzf8+SJci/7ZyYOjUfM
-	 KqRPJnyyZuxWEtJUt/g07XjfBI0wUd5TP1xRKyRo=
-Date: Fri, 23 Feb 2024 17:50:37 -0800
-To: mm-commits@vger.kernel.org,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=FlH5ZOGwWk7OUFAFLdigtAxPJnzyTCBgsmlk6Dajvlc/+ZUXRuavLe4NTTKgHaspg
+	 HTmZoAPv1C3SaLkSvT1lTBWAfT0788EfWjnTKGCRYZTYTnzZRiJJSW14dw+1AGbNjy
+	 5pHmHCkQA0F/MvunidTL7QYL9VLDQIMH2HtAVcOU=
+Date: Fri, 23 Feb 2024 17:50:39 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,zhouchengming@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-early-termination-in-compact_nodes.patch removed from -mm tree
-Message-Id: <20240224015038.4F014C43390@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zsmalloc-remove-set_zspage_mapping.patch removed from -mm tree
+Message-Id: <20240224015039.ABEC1C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,102 +35,116 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: compaction: early termination in compact_nodes()
+     Subject: mm/zsmalloc: remove set_zspage_mapping()
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-early-termination-in-compact_nodes.patch
+     mm-zsmalloc-remove-set_zspage_mapping.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: compaction: early termination in compact_nodes()
-Date: Thu, 8 Feb 2024 10:25:08 +0800
+From: Chengming Zhou <zhouchengming@bytedance.com>
+Subject: mm/zsmalloc: remove set_zspage_mapping()
+Date: Tue, 20 Feb 2024 06:53:00 +0000
 
-No need to continue try compact memory if pending fatal signal, allow loop
-termination earlier in compact_nodes().
+Patch series "mm/zsmalloc: some cleanup for get/set_zspage_mapping()".
 
-The existing fatal_signal_pending() check does make compact_zone()
-break out of the while loop, but it still enters the next zone/next
-nid, and some unnecessary functions(eg, lru_add_drain) are called. 
-There was no observable benefit from the new test, it is just found
-from code inspection when refactoring compact_node().
+The discussion[1] with Sergey shows there are some cleanup works to do
+in get/set_zspage_mapping():
 
-Link: https://lkml.kernel.org/r/20240208022508.1771534-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
+- the fullness returned from get_zspage_mapping() is not stable outside
+  pool->lock, this usage pattern is confusing, but should be ok in this
+  free_zspage path.
+
+- we seldom use the class_idx returned from get_zspage_mapping(), only
+  free_zspage path use to get its class.
+
+- set_zspage_mapping() always set the zspage->class, but it's never
+  changed after zspage allocated.
+
+[1] https://lore.kernel.org/all/a6c22e30-cf10-4122-91bc-ceb9fb57a5d6@bytedance.com/
+
+
+This patch (of 3):
+
+We only need to update zspage->fullness when insert_zspage(), since
+zspage->class is never changed after allocated.
+
+Link: https://lkml.kernel.org/r/20240220-b4-zsmalloc-cleanup-v1-0-5c5ee4ccdd87@bytedance.com
+Link: https://lkml.kernel.org/r/20240220-b4-zsmalloc-cleanup-v1-1-5c5ee4ccdd87@bytedance.com
+Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   24 +++++++++++++++++-------
- 1 file changed, 17 insertions(+), 7 deletions(-)
+ mm/zsmalloc.c |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-early-termination-in-compact_nodes
-+++ a/mm/compaction.c
-@@ -2808,7 +2808,7 @@ enum compact_result try_to_compact_pages
-  * reaching score targets due to various back-off conditions, such as,
-  * contention on per-node or per-zone locks.
-  */
--static void compact_node(pg_data_t *pgdat, bool proactive)
-+static int compact_node(pg_data_t *pgdat, bool proactive)
+--- a/mm/zsmalloc.c~mm-zsmalloc-remove-set_zspage_mapping
++++ a/mm/zsmalloc.c
+@@ -486,14 +486,6 @@ static struct size_class *zspage_class(s
+ 	return pool->size_class[zspage->class];
+ }
+ 
+-static void set_zspage_mapping(struct zspage *zspage,
+-			       unsigned int class_idx,
+-			       int fullness)
+-{
+-	zspage->class = class_idx;
+-	zspage->fullness = fullness;
+-}
+-
+ /*
+  * zsmalloc divides the pool into various size classes where each
+  * class maintains a list of zspages where each zspage is divided
+@@ -688,6 +680,7 @@ static void insert_zspage(struct size_cl
  {
- 	int zoneid;
- 	struct zone *zone;
-@@ -2826,6 +2826,9 @@ static void compact_node(pg_data_t *pgda
- 		if (!populated_zone(zone))
- 			continue;
- 
-+		if (fatal_signal_pending(current))
-+			return -EINTR;
-+
- 		cc.zone = zone;
- 
- 		compact_zone(&cc, NULL);
-@@ -2837,18 +2840,25 @@ static void compact_node(pg_data_t *pgda
- 					     cc.total_free_scanned);
- 		}
- 	}
-+
-+	return 0;
+ 	class_stat_inc(class, fullness, 1);
+ 	list_add(&zspage->list, &class->fullness_list[fullness]);
++	zspage->fullness = fullness;
  }
  
- /* Compact all zones of all nodes in the system */
--static void compact_nodes(void)
-+static int compact_nodes(void)
- {
--	int nid;
-+	int ret, nid;
+ /*
+@@ -725,7 +718,6 @@ static int fix_fullness_group(struct siz
  
- 	/* Flush pending updates to the LRU lists */
- 	lru_add_drain_all();
- 
--	for_each_online_node(nid)
--		compact_node(NODE_DATA(nid), false);
-+	for_each_online_node(nid) {
-+		ret = compact_node(NODE_DATA(nid), false);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return 0;
+ 	remove_zspage(class, zspage, currfg);
+ 	insert_zspage(class, zspage, newfg);
+-	set_zspage_mapping(zspage, class_idx, newfg);
+ out:
+ 	return newfg;
  }
+@@ -1005,6 +997,7 @@ static struct zspage *alloc_zspage(struc
+ 	create_page_chain(class, zspage, pages);
+ 	init_zspage(class, zspage);
+ 	zspage->pool = pool;
++	zspage->class = class->index;
  
- static int compaction_proactiveness_sysctl_handler(struct ctl_table *table, int write,
-@@ -2894,9 +2904,9 @@ static int sysctl_compaction_handler(str
- 		return -EINVAL;
- 
- 	if (write)
--		compact_nodes();
-+		ret = compact_nodes();
- 
--	return 0;
-+	return ret;
+ 	return zspage;
  }
+@@ -1397,7 +1390,6 @@ unsigned long zs_malloc(struct zs_pool *
+ 	obj = obj_malloc(pool, zspage, handle);
+ 	newfg = get_fullness_group(class, zspage);
+ 	insert_zspage(class, zspage, newfg);
+-	set_zspage_mapping(zspage, class->index, newfg);
+ 	record_obj(handle, obj);
+ 	atomic_long_add(class->pages_per_zspage, &pool->pages_allocated);
+ 	class_stat_inc(class, ZS_OBJS_ALLOCATED, class->objs_per_zspage);
+@@ -1655,7 +1647,6 @@ static int putback_zspage(struct size_cl
  
- #if defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
+ 	fullness = get_fullness_group(class, zspage);
+ 	insert_zspage(class, zspage, fullness);
+-	set_zspage_mapping(zspage, class->index, fullness);
+ 
+ 	return fullness;
+ }
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from zhouchengming@bytedance.com are
 
-zram-zcomp-remove-zcomp_set_max_streams-declaration.patch
+mm-zswap-global-lru-and-shrinker-shared-by-all-zswap_pools.patch
+mm-zswap-change-zswap_pool-kref-to-percpu_ref.patch
 
