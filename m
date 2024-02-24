@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A66DEBA2D
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C90CB663
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739431; cv=none; b=PRrsV7ie8VS6pXJ/nnd9z2jRJ0JWIkmei6v2h9WPhFsI/hkIdsMS7UVRjwXPUkFZ+1fRj9En+uuNELRSju0l56gyJ4yiTu7xpVf/kz2VcsJoYwH2qmZikP6PlY4K4kShp6vNS0NmpujdwAKPsUkfmoKRANhcLwpUQM2578q0bQI=
+	t=1708739433; cv=none; b=OQtG3dYgLmj+4pMA550wwzO82FUHfJ6+MKlnttPPYlQStkZbO0eUWab38BrfGoNQDCF8EADW6b5U5OyPod6TBtmEkt6Mwy48i/tzzjW8aqcT1pCF0NWX7HHaZ6G5KT4Dv8DEPnFojIqFO0V3GFRzazZvgdPfNRzaiFrFe0YK4yM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708739431; c=relaxed/simple;
-	bh=CAnkyS019uqp325oDy9NziO4L3X4XFO55Cjo4yyg6KE=;
-	h=Date:To:From:Subject:Message-Id; b=RD32fwIJPAE4PattRnrBm9kyqMfcQtGMyMXhRFJ7OKmG8t6bttXEglo/EW/340230O2qJZdoRROyj8Bhgi41WhfQ8GrvSAsSLZvLWczvunZLLWczcggqb0g+iNkNE+HLVl8hWDXgJKg0B6N3W+j/+j//TfaXr/Y7geJFBSD0jvU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t3LcFZjW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708739433; c=relaxed/simple;
+	bh=QQaUwt3lSAcG/RE7BdrW9CfV5+0VHfg9mj8DGsFeHuM=;
+	h=Date:To:From:Subject:Message-Id; b=fsG4Fe1S8NThRVf7Vn3P7QCp/2rYWrW6IrRwGk0+gI9SDIJrOcwHmw9FrjEg9D+NvY7o4W6U/l3eVDTLdKp/+/FMRUIZ/TSLsbQbyIeNbwalfLExYZiw19TTFlihPPjhwyXhQEXfTesp4mUJ+QtE09JRvvapZn55egcFqIcUhbM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WeGdssei; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t3LcFZjW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2519BC43394;
-	Sat, 24 Feb 2024 01:50:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WeGdssei"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3B08C433C7;
+	Sat, 24 Feb 2024 01:50:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739431;
-	bh=CAnkyS019uqp325oDy9NziO4L3X4XFO55Cjo4yyg6KE=;
+	s=korg; t=1708739432;
+	bh=QQaUwt3lSAcG/RE7BdrW9CfV5+0VHfg9mj8DGsFeHuM=;
 	h=Date:To:From:Subject:From;
-	b=t3LcFZjWkNON2GohkpZGvKdjdW6o7gH6LAH9Bx75ryRgwRDGzwLdZ3oXYEw7QJ/Va
-	 UmHdQEU5MWHKIzsLa42Jr6iER20K18nstKMlpUBIBokKab9+eH27zpZkuxuoQwD2i/
-	 4pYfoC+2445fGB5pQBxTwvzyOxSh1uLUh9AISOZY=
-Date: Fri, 23 Feb 2024 17:50:30 -0800
+	b=WeGdssei4VC0BkUL9XTL+2r8wS4BN60I7fRFgHRwpLxSYIWSQkjSjSPpyluEkJIBN
+	 x9PEF5supnyaXrPIXTSpgetlJhz0CbeizIK0JEYiuqesK1E4NWBynQB5zXUOcgHUyn
+	 jSG50hJcTyNr/vfmdJVEYbJyhAv29/9JDPv3EGIc=
+Date: Fri, 23 Feb 2024 17:50:32 -0800
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,zhouchengming@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zsmalloc-fix-migrate_write_lock-when-config_compaction.patch removed from -mm tree
-Message-Id: <20240224015031.2519BC43394@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zsmalloc-remove-migrate_write_lock_nested.patch removed from -mm tree
+Message-Id: <20240224015032.D3B08C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,36 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zsmalloc: fix migrate_write_lock() when !CONFIG_COMPACTION
+     Subject: mm/zsmalloc: remove migrate_write_lock_nested()
 has been removed from the -mm tree.  Its filename was
-     mm-zsmalloc-fix-migrate_write_lock-when-config_compaction.patch
+     mm-zsmalloc-remove-migrate_write_lock_nested.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Chengming Zhou <zhouchengming@bytedance.com>
-Subject: mm/zsmalloc: fix migrate_write_lock() when !CONFIG_COMPACTION
-Date: Mon, 19 Feb 2024 13:33:51 +0000
+Subject: mm/zsmalloc: remove migrate_write_lock_nested()
+Date: Mon, 19 Feb 2024 13:33:52 +0000
 
-Patch series "mm/zsmalloc: fix and optimize objects/page migration".
+The migrate write lock is to protect the race between zspage migration and
+zspage objects' map users.
 
-This series is to fix and optimize the zsmalloc objects/page migration.
+We only need to lock out the map users of src zspage, not dst zspage,
+which is safe to map by users concurrently, since we only need to do
+obj_malloc() from dst zspage.
 
+So we can remove the migrate_write_lock_nested() use case.
 
-This patch (of 3):
+As we are here, cleanup the __zs_compact() by moving putback_zspage()
+outside of migrate_write_unlock since we hold pool lock, no malloc or free
+users can come in.
 
-migrate_write_lock() is a empty function when !CONFIG_COMPACTION, in which
-case zs_compact() can be triggered from shrinker reclaim context.  (Maybe
-it's better to rename it to zs_shrink()?)
-
-And zspage map object users rely on this migrate_read_lock() so object
-won't be migrated elsewhere.
-
-Fix it by always implementing the migrate_write_lock() related functions.
-
-Link: https://lkml.kernel.org/r/20240219-b4-szmalloc-migrate-v1-0-34cd49c6545b@bytedance.com
-Link: https://lkml.kernel.org/r/20240219-b4-szmalloc-migrate-v1-1-34cd49c6545b@bytedance.com
+Link: https://lkml.kernel.org/r/20240219-b4-szmalloc-migrate-v1-2-34cd49c6545b@bytedance.com
 Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
 Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -74,48 +70,80 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ mm/zsmalloc.c |   22 +++++-----------------
+ 1 file changed, 5 insertions(+), 17 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-fix-migrate_write_lock-when-config_compaction
+--- a/mm/zsmalloc.c~mm-zsmalloc-remove-migrate_write_lock_nested
 +++ a/mm/zsmalloc.c
-@@ -278,18 +278,15 @@ static bool ZsHugePage(struct zspage *zs
- static void migrate_lock_init(struct zspage *zspage);
+@@ -279,7 +279,6 @@ static void migrate_lock_init(struct zsp
  static void migrate_read_lock(struct zspage *zspage);
  static void migrate_read_unlock(struct zspage *zspage);
--
--#ifdef CONFIG_COMPACTION
  static void migrate_write_lock(struct zspage *zspage);
- static void migrate_write_lock_nested(struct zspage *zspage);
+-static void migrate_write_lock_nested(struct zspage *zspage);
  static void migrate_write_unlock(struct zspage *zspage);
-+
-+#ifdef CONFIG_COMPACTION
- static void kick_deferred_free(struct zs_pool *pool);
- static void init_deferred_free(struct zs_pool *pool);
- static void SetZsPageMovable(struct zs_pool *pool, struct zspage *zspage);
- #else
--static void migrate_write_lock(struct zspage *zspage) {}
--static void migrate_write_lock_nested(struct zspage *zspage) {}
--static void migrate_write_unlock(struct zspage *zspage) {}
- static void kick_deferred_free(struct zs_pool *pool) {}
- static void init_deferred_free(struct zs_pool *pool) {}
- static void SetZsPageMovable(struct zs_pool *pool, struct zspage *zspage) {}
-@@ -1725,7 +1722,6 @@ static void migrate_read_unlock(struct z
- 	read_unlock(&zspage->lock);
- }
  
--#ifdef CONFIG_COMPACTION
- static void migrate_write_lock(struct zspage *zspage)
- {
+ #ifdef CONFIG_COMPACTION
+@@ -1727,11 +1726,6 @@ static void migrate_write_lock(struct zs
  	write_lock(&zspage->lock);
-@@ -1741,6 +1737,7 @@ static void migrate_write_unlock(struct
- 	write_unlock(&zspage->lock);
  }
  
-+#ifdef CONFIG_COMPACTION
- /* Number of isolated subpage for *page migration* in this zspage */
- static void inc_zspage_isolation(struct zspage *zspage)
+-static void migrate_write_lock_nested(struct zspage *zspage)
+-{
+-	write_lock_nested(&zspage->lock, SINGLE_DEPTH_NESTING);
+-}
+-
+ static void migrate_write_unlock(struct zspage *zspage)
  {
+ 	write_unlock(&zspage->lock);
+@@ -2003,19 +1997,17 @@ static unsigned long __zs_compact(struct
+ 			dst_zspage = isolate_dst_zspage(class);
+ 			if (!dst_zspage)
+ 				break;
+-			migrate_write_lock(dst_zspage);
+ 		}
+ 
+ 		src_zspage = isolate_src_zspage(class);
+ 		if (!src_zspage)
+ 			break;
+ 
+-		migrate_write_lock_nested(src_zspage);
+-
++		migrate_write_lock(src_zspage);
+ 		migrate_zspage(pool, src_zspage, dst_zspage);
+-		fg = putback_zspage(class, src_zspage);
+ 		migrate_write_unlock(src_zspage);
+ 
++		fg = putback_zspage(class, src_zspage);
+ 		if (fg == ZS_INUSE_RATIO_0) {
+ 			free_zspage(pool, class, src_zspage);
+ 			pages_freed += class->pages_per_zspage;
+@@ -2025,7 +2017,6 @@ static unsigned long __zs_compact(struct
+ 		if (get_fullness_group(class, dst_zspage) == ZS_INUSE_RATIO_100
+ 		    || spin_is_contended(&pool->lock)) {
+ 			putback_zspage(class, dst_zspage);
+-			migrate_write_unlock(dst_zspage);
+ 			dst_zspage = NULL;
+ 
+ 			spin_unlock(&pool->lock);
+@@ -2034,15 +2025,12 @@ static unsigned long __zs_compact(struct
+ 		}
+ 	}
+ 
+-	if (src_zspage) {
++	if (src_zspage)
+ 		putback_zspage(class, src_zspage);
+-		migrate_write_unlock(src_zspage);
+-	}
+ 
+-	if (dst_zspage) {
++	if (dst_zspage)
+ 		putback_zspage(class, dst_zspage);
+-		migrate_write_unlock(dst_zspage);
+-	}
++
+ 	spin_unlock(&pool->lock);
+ 
+ 	return pages_freed;
 _
 
 Patches currently in -mm which might be from zhouchengming@bytedance.com are
