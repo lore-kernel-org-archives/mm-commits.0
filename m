@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A872579F4
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF0A210958
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739458; cv=none; b=qF01+63Np9rJIxjD8odHP70QZcUEASeZERCSXiET4aR1sHiXZgG8F3uFRSa8oG/5h6U+skpSkCgz1/1rwr7ic/vTgquy5d1qtgdYHamBw3uTLhK81RYU3mXTdBNosXFS/fJZu2i13ENolTwxIVEcCzobr1ve6Ztt5LzPkG5eUho=
+	t=1708739459; cv=none; b=QkXbLAHmRVvN1B23JoWZ5ae6dtANk90ZGch505CrWWc2rZNazKwSLpqRXca5WWElphK9eJH0lXcQDvyMeUEdxdjecKYo8tykUaJEsym7XgAP7vXUGmyIlWGaN7IC5eHntURB+5urGW/T/M62sMAH0o2RH8difmLYfh+6GrfWqf4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708739458; c=relaxed/simple;
-	bh=hmJG1Wot8T8gf9wPg5QW/gHY9VgexmVwK/tb4XMYVmA=;
-	h=Date:To:From:Subject:Message-Id; b=USy3PnML1bGSwLzylQ/4qBG3WwLhMdg0Gyez2R0TChrFNkBHufjrFmW6zaJJ0nEtdZxrXLGnVcchRG3TiGq2CWFxMWAXqzNcPEEjHehpG3nCb0pQwsaVsbupR3G/PdkX1f9mVKQjBNfWHjdaJc79y9XveBfEO6bDOigdLlxeC7w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lA38ZtxF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708739459; c=relaxed/simple;
+	bh=ox00fLJL6YDbBK3iTSt9EYe6kEndyqR/zYOAeqCXwSk=;
+	h=Date:To:From:Subject:Message-Id; b=X9Wwa6KoFwwDRXWrPNq4QWacbIKMt54nX7LQg2uo21v8f/rXQNbp51tZFXUQ1xNj88OtF7MtrgG+JDNZNgv/15Sh51X9hJ4YYo5VK5tGfKuicopVUXhztHathI66eHs6YnQVRGNJYAUXZZAlPtGWmycAFbPmcnm0yLWbPZ3ps74=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1pVAAlzv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lA38ZtxF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C403C43394;
-	Sat, 24 Feb 2024 01:50:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1pVAAlzv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91483C43390;
+	Sat, 24 Feb 2024 01:50:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739458;
-	bh=hmJG1Wot8T8gf9wPg5QW/gHY9VgexmVwK/tb4XMYVmA=;
+	s=korg; t=1708739459;
+	bh=ox00fLJL6YDbBK3iTSt9EYe6kEndyqR/zYOAeqCXwSk=;
 	h=Date:To:From:Subject:From;
-	b=lA38ZtxFVSaC4DUg2aobjC2KMUPBjQmqSgMqoSn33ZvW/It3+2/WhWLF7A8Jp+Gwg
-	 N2N01U2FibTvW6jFNrkr/F1uOiOZOoJ/8/65pcP8VFCVKOtkrlk3J8zL7h5wtjXZn3
-	 YcpljqjdpYHiC+aDgy5RsnfBxWvzzbIfC/CnhiYo=
-Date: Fri, 23 Feb 2024 17:50:58 -0800
+	b=1pVAAlzvy4dSXhfNCLc1R/IbaRIVdXiFV5E06wyi5HXEFH9K1QNOCvXoAed9Ha7Ut
+	 Mx4NDiIq2I2GZ2iS4q1b/3Veyq5965XordSDPc9VooUV/bs7HGDrmDd6Qk2xHKDwnN
+	 v1aRs2RDwXb4Ie50obHCcrDwDbxt7t1VEHnGNATw=
+Date: Fri, 23 Feb 2024 17:50:59 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,jack@suse.cz,dhowells@redhat.com,dchinner@redhat.com,brauner@kernel.org,bfoster@redhat.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] writeback-fix-done_index-when-hitting-the-wbc-nr_to_write.patch removed from -mm tree
-Message-Id: <20240224015058.7C403C43394@smtp.kernel.org>
+Subject: [merged mm-stable] writeback-also-update-wbc-nr_to_write-on-writeback-failure.patch removed from -mm tree
+Message-Id: <20240224015059.91483C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: writeback: fix done_index when hitting the wbc->nr_to_write
+     Subject: writeback: also update wbc->nr_to_write on writeback failure
 has been removed from the -mm tree.  Its filename was
-     writeback-fix-done_index-when-hitting-the-wbc-nr_to_write.patch
+     writeback-also-update-wbc-nr_to_write-on-writeback-failure.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: writeback: fix done_index when hitting the wbc->nr_to_write
-Date: Thu, 15 Feb 2024 07:36:38 +0100
+Subject: writeback: also update wbc->nr_to_write on writeback failure
+Date: Thu, 15 Feb 2024 07:36:39 +0100
 
-When write_cache_pages finishes writing out a folio, it fails to update
-done_index to account for the number of pages in the folio just written. 
-That means when range_cyclic writeback is restarted, it will be restarted
-at this folio instead of after it as it should.  Fix that by updating
-done_index before breaking out of the loop.
+When exiting write_cache_pages early due to a non-integrity write failure,
+wbc->nr_to_write currently doesn't account for the folio we just failed to
+write.  This doesn't matter because the callers always ingore the value on
+a failure, but moving the update to common code will allow to simplify the
+code, so do it.
 
-Link: https://lkml.kernel.org/r/20240215063649.2164017-4-hch@lst.de
+Link: https://lkml.kernel.org/r/20240215063649.2164017-5-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Brian Foster <bfoster@redhat.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
@@ -64,19 +64,27 @@ Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page-writeback.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page-writeback.c~writeback-fix-done_index-when-hitting-the-wbc-nr_to_write
+--- a/mm/page-writeback.c~writeback-also-update-wbc-nr_to_write-on-writeback-failure
 +++ a/mm/page-writeback.c
-@@ -2505,6 +2505,7 @@ continue_unlock:
- 			 * keep going until we have written all the pages
+@@ -2473,6 +2473,7 @@ continue_unlock:
+ 			trace_wbc_writepage(wbc, inode_to_bdi(mapping->host));
+ 			error = writepage(folio, wbc, data);
+ 			nr = folio_nr_pages(folio);
++			wbc->nr_to_write -= nr;
+ 			if (unlikely(error)) {
+ 				/*
+ 				 * Handle errors according to the type of
+@@ -2506,7 +2507,6 @@ continue_unlock:
  			 * we tagged for writeback prior to entering this loop.
  			 */
-+			done_index = folio->index + nr;
- 			wbc->nr_to_write -= nr;
+ 			done_index = folio->index + nr;
+-			wbc->nr_to_write -= nr;
  			if (wbc->nr_to_write <= 0 &&
  			    wbc->sync_mode == WB_SYNC_NONE) {
+ 				done = 1;
 _
 
 Patches currently in -mm which might be from hch@lst.de are
