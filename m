@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC7FAB663
-	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8586CB663
+	for <mm-commits@vger.kernel.org>; Sat, 24 Feb 2024 01:50:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708739437; cv=none; b=LrXb4URZIZIRcDCzL3Wc9T/OSBfRkWvgnJpdxCmzbPETozTzLldWqZ5pOQ+MjwnlnuYCZ8mslZm6R8MqZT5+2av+A3LRTAMNyzLY5Lkng1IMTZ02BWaYhuL+/D10uXqzNVGTFCHqVg7KQhQwTUzyGpfWv7FuD0gGlcSgcFPQeoU=
+	t=1708739437; cv=none; b=QmlqMsZiSMQSzHz2+FU8j/9l5Y1Um2AoF/DEWCTValaPmQIkyuRSe9NC784ItKLh7qs4svle77bv5aNQ4L8yLo7A08vXkTWEn17OGmT3xyedheL82xiziprux3zXRrTjLEsD7Zu7Y1l/okCnfKHDjb6ShCXo6k9/20oSIYPuX+0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708739437; c=relaxed/simple;
-	bh=y91QvSW1TDtwHYKidbWUmSjB444D+yGYeIX7dL4nX/Q=;
-	h=Date:To:From:Subject:Message-Id; b=Bl2b721svrj10DqUdy/jE5fPvVy3RWcoWHFbEPjgny5ZqNJyRkQnrryEp3Swz6fR/0vzFVtBGD7DMZOkCCkb6hPobgxEI+ThP5MEfwNKAG6o1OHNrYPqlGlasellu6rG5zS68825moEtWxJ/FLJT1dFBpl9v5hn2q85WbsXMW/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2s1ke6rA; arc=none smtp.client-ip=10.30.226.201
+	bh=q3r8I7p5eFpQunQpv8AEB3+q8xD0Yv5pFPEUNiZyStM=;
+	h=Date:To:From:Subject:Message-Id; b=Q/ChKepgmPJrBdesIICMJywEMDj0nC6QdfTnKm8KcFmuUubo46xQDvRJ+D+85jbyMQitkMziChbZLnPe4TGITHzftwVW8VTZR8/J3NaXKoSeHzCsx82H+LL4e1heG21CCxTmoKQCzho+xeZQY5WCYgFkKf877Uql4cjNBs6Ws9Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BQZTE2Jf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2s1ke6rA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62AD9C433A6;
-	Sat, 24 Feb 2024 01:50:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BQZTE2Jf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E14EC433C7;
+	Sat, 24 Feb 2024 01:50:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708739436;
-	bh=y91QvSW1TDtwHYKidbWUmSjB444D+yGYeIX7dL4nX/Q=;
+	s=korg; t=1708739437;
+	bh=q3r8I7p5eFpQunQpv8AEB3+q8xD0Yv5pFPEUNiZyStM=;
 	h=Date:To:From:Subject:From;
-	b=2s1ke6rALYll2JW0TtwDsRvrsoxb5wJvj0eRNQpTGOBD3RKzaI5dVT89F7ZsOwvaZ
-	 Z0bvHMnF224HmBbIgkwQCK2ewts10njKLA+1eiMBvrYve6RmEmxlQoDnUBln5q/Oaa
-	 D5CFsdWNQB894uizdRWNNCHKXSpJmSq5dhhMeIBA=
-Date: Fri, 23 Feb 2024 17:50:35 -0800
-To: mm-commits@vger.kernel.org,vitaly.wool@konsulko.com,linmiaohe@huawei.com,hannes@cmpxchg.org,hezhongkun.hzk@bytedance.com,akpm@linux-foundation.org
+	b=BQZTE2JfIcD4McBu/cm3wJIZvKq+PgYiqBqD07CJfrH0muM6PkyRmWn9z0lTz1G8o
+	 nFaGybbKipskYxsUXaogED1WBzNGDOo7NHnLJWJNhY6F4sYDK8OVpPKrD5E1SXeAgf
+	 /htzlpTVdJYkwcuNaMPiY3iTUlfcYCZcH1pTCBnM=
+Date: Fri, 23 Feb 2024 17:50:36 -0800
+To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,senozhatsky@chromium.org,nphamcs@gmail.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-z3fold-fix-the-comment-for-__encode_handle.patch removed from -mm tree
-Message-Id: <20240224015036.62AD9C433A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-increase-reject_compress_poor-but-not-reject_compress_fail-if-compression-returns-enospc.patch removed from -mm tree
+Message-Id: <20240224015037.5E14EC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,107 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/z3fold: fix the comment for __encode_handle()
+     Subject: mm: zswap: increase reject_compress_poor but not reject_compress_fail if compression returns ENOSPC
 has been removed from the -mm tree.  Its filename was
-     mm-z3fold-fix-the-comment-for-__encode_handle.patch
+     mm-zswap-increase-reject_compress_poor-but-not-reject_compress_fail-if-compression-returns-enospc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zhongkun He <hezhongkun.hzk@bytedance.com>
-Subject: mm/z3fold: fix the comment for __encode_handle()
-Date: Mon, 19 Feb 2024 10:44:53 +0800
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: zswap: increase reject_compress_poor but not reject_compress_fail if compression returns ENOSPC
+Date: Tue, 20 Feb 2024 10:19:35 +1300
 
-The comment is confusing that Pool lock should be held as this function
-accesses first_num above the __encode_handle() because first_num is the
-element of z3fold_header which is protected by z3fold_header->page_lock.
+We used to rely on the returned -ENOSPC of zpool_malloc() to increase
+reject_compress_poor.  But the code wouldn't get to there after commit
+744e1885922a ("crypto: scomp - fix req->dst buffer overflow") as the new
+code will goto out immediately after the special compression case happens.
+So there might be no longer a chance to execute zpool_malloc now.  We are
+incorrectly increasing zswap_reject_compress_fail instead.  Thus, we need
+to fix the counters handling right after compressions return ENOSPC.  This
+patch also centralizes the counters handling for all of compress_poor,
+compress_fail and alloc_fail.
 
-I found the same comment for encode_handle() in zbud.c by accident ,Pool
-lock should be held as this function accesses first|last_chunks, which is
-the element of zbud_header and it does not have any lock, so pool lock
-should be held.
-
-Z3fold is based on zbud, maybe the comment come from zbud, but it was
-wrong, so fix it.
-
-Link: https://lkml.kernel.org/r/20240219024453.2240147-1-hezhongkun.hzk@bytedance.com
-Signed-off-by: Zhongkun He <hezhongkun.hzk@bytedance.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Link: https://lkml.kernel.org/r/20240219211935.72394-1-21cnbao@gmail.com
+Fixes: 744e1885922a ("crypto: scomp - fix req->dst buffer overflow")
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Chengming Zhou <zhouchengming@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/zswap.c |   27 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 14 deletions(-)
 
---- a/mm/z3fold.c~mm-z3fold-fix-the-comment-for-__encode_handle
-+++ a/mm/z3fold.c
-@@ -364,8 +364,9 @@ static inline int __idx(struct z3fold_he
+--- a/mm/zswap.c~mm-zswap-increase-reject_compress_poor-but-not-reject_compress_fail-if-compression-returns-enospc
++++ a/mm/zswap.c
+@@ -1021,12 +1021,12 @@ static bool zswap_compress(struct folio
+ {
+ 	struct crypto_acomp_ctx *acomp_ctx;
+ 	struct scatterlist input, output;
++	int comp_ret = 0, alloc_ret = 0;
+ 	unsigned int dlen = PAGE_SIZE;
+ 	unsigned long handle;
+ 	struct zpool *zpool;
+ 	char *buf;
+ 	gfp_t gfp;
+-	int ret;
+ 	u8 *dst;
+ 
+ 	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
+@@ -1057,26 +1057,18 @@ static bool zswap_compress(struct folio
+ 	 * but in different threads running on different cpu, we have different
+ 	 * acomp instance, so multiple threads can do (de)compression in parallel.
+ 	 */
+-	ret = crypto_wait_req(crypto_acomp_compress(acomp_ctx->req), &acomp_ctx->wait);
++	comp_ret = crypto_wait_req(crypto_acomp_compress(acomp_ctx->req), &acomp_ctx->wait);
+ 	dlen = acomp_ctx->req->dlen;
+-	if (ret) {
+-		zswap_reject_compress_fail++;
++	if (comp_ret)
+ 		goto unlock;
+-	}
+ 
+ 	zpool = zswap_find_zpool(entry);
+ 	gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
+ 	if (zpool_malloc_support_movable(zpool))
+ 		gfp |= __GFP_HIGHMEM | __GFP_MOVABLE;
+-	ret = zpool_malloc(zpool, dlen, gfp, &handle);
+-	if (ret == -ENOSPC) {
+-		zswap_reject_compress_poor++;
+-		goto unlock;
+-	}
+-	if (ret) {
+-		zswap_reject_alloc_fail++;
++	alloc_ret = zpool_malloc(zpool, dlen, gfp, &handle);
++	if (alloc_ret)
+ 		goto unlock;
+-	}
+ 
+ 	buf = zpool_map_handle(zpool, handle, ZPOOL_MM_WO);
+ 	memcpy(buf, dst, dlen);
+@@ -1086,8 +1078,15 @@ static bool zswap_compress(struct folio
+ 	entry->length = dlen;
+ 
+ unlock:
++	if (comp_ret == -ENOSPC || alloc_ret == -ENOSPC)
++		zswap_reject_compress_poor++;
++	else if (comp_ret)
++		zswap_reject_compress_fail++;
++	else if (alloc_ret)
++		zswap_reject_alloc_fail++;
++
+ 	mutex_unlock(&acomp_ctx->mutex);
+-	return ret == 0;
++	return comp_ret == 0 && alloc_ret == 0;
  }
  
- /*
-- * Encodes the handle of a particular buddy within a z3fold page
-- * Pool lock should be held as this function accesses first_num
-+ * Encodes the handle of a particular buddy within a z3fold page.
-+ * Zhdr->page_lock should be held as this function accesses first_num
-+ * if bud != HEADLESS.
-  */
- static unsigned long __encode_handle(struct z3fold_header *zhdr,
- 				struct z3fold_buddy_slots *slots,
+ static void zswap_decompress(struct zswap_entry *entry, struct page *page)
 _
 
-Patches currently in -mm which might be from hezhongkun.hzk@bytedance.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
 
