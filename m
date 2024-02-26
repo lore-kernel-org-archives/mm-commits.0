@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F10AC13249E
-	for <mm-commits@vger.kernel.org>; Mon, 26 Feb 2024 22:25:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64A2713249E
+	for <mm-commits@vger.kernel.org>; Mon, 26 Feb 2024 22:25:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708986325; cv=none; b=WN2rvfFpG/fSOVyz9p9HXMjxFHaz02HGQluu1oO9/qCLZ+0Ds9GxPpBR0yAtmqg8EL4vG3qsOrXytyePlzlCe/HADUED2CWYfp/OVjWvNBH+oRl1R2AXj6CJs4Ldj2lKMUFVle2CGKXNOW5ANzib/2hkqOa56yNYXb2K35TbiFQ=
+	t=1708986326; cv=none; b=ReRGtVZ26D7MNqgHMW09iE7Q8cRLNxby5YwZIs1JfwQ6cQqRIss/F7M5y+IBP3eCXNdf/skaI05lfzEK967xJCVf/b97NHdVd434wfVdm0/d3lj3NtC5A5Ooka7lQ4snPOKI4XDQDemdXA3eHGMuvXrRT1y/9Qa/0XnZvWir3kI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708986325; c=relaxed/simple;
-	bh=nJbUlibk6KFsLrPsybZ6ev93ZbpAM8owQs5I3uzwbzI=;
-	h=Date:To:From:Subject:Message-Id; b=lqsdJnTKRFEw6t1HlutFs3fXZhAwmn8hTCELNLRdDOxOxh7g7Mq13AIhPyFmRX819zGtkOegc0keIjc3tc6GSHNp3udw1+HkqDtYCKOZW+XN1PZMj4So2B9J6VqoiBHHAtNUluY2QQG349Tu4Ur6nVmHlxPbA2x24UQFuEbP3w4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qFEBIbFG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708986326; c=relaxed/simple;
+	bh=GKbZGjSYYVpzX7PsRODxmmN+izc8X2grdbnmRCL90lU=;
+	h=Date:To:From:Subject:Message-Id; b=V+8JMXnHLobD/UrFeqg46l0mVeawATyWWZNjTTdA1iIoHPnGIFHOieeEspATXCDVz6YzOoMjnoa9jWNruGy/qCgDc9zlYbzeM3FMd+a8a0Yb7WzEUj7cqana4WmWFjS7b99/iJl5qKgmF5VNk/8Dm+c8bgdPLrJcNqcMjPvs8uE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uSDAytO4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qFEBIbFG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F361C433C7;
-	Mon, 26 Feb 2024 22:25:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uSDAytO4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C580C43601;
+	Mon, 26 Feb 2024 22:25:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708986324;
-	bh=nJbUlibk6KFsLrPsybZ6ev93ZbpAM8owQs5I3uzwbzI=;
+	s=korg; t=1708986326;
+	bh=GKbZGjSYYVpzX7PsRODxmmN+izc8X2grdbnmRCL90lU=;
 	h=Date:To:From:Subject:From;
-	b=qFEBIbFGqJg0Eb0spB3lQHs9EtFu7uwUlWlBGAJg5BVqJ9BJMtpXQdVlwyJ2yv6ZU
-	 KR7qvnkRWfXGUTTfShSby+12mq89nMSAsOxroe2gON4k2iO72Rv5LR4aKy+a+MYFb3
-	 rgVxgY2W5n7WYjkg0bdbi1K7EW+tSfn10A6ov3NQ=
-Date: Mon, 26 Feb 2024 14:25:23 -0800
-To: mm-commits@vger.kernel.org,zokeefe@google.com,yuzhao@google.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,mkoutny@suse.com,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,hughd@google.com,david@redhat.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=uSDAytO49CQBqa5snolyAiNUsebN7gPxKDSCwqnAT8RjWJgQagtI/JhBmIfOCCznx
+	 YHpSTyZDO1rVXODU6eTOi95J0NFDtTchQLfuJ9vWKHB5CiYWl5W4uDKpI1jzuBqMfB
+	 kNomGuUbAuw+7P3yRIVe/s/dErN/pUPvnnzLo3Dw=
+Date: Mon, 26 Feb 2024 14:25:25 -0800
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,yuzhao@google.com,shy828301@gmail.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,mkoutny@suse.com,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,hughd@google.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-only-split-pmd-mapping-when-necessary-in-unmap_folio.patch added to mm-unstable branch
-Message-Id: <20240226222524.9F361C433C7@smtp.kernel.org>
+Subject: + mm-support-order-1-folios-in-the-page-cache.patch added to mm-unstable branch
+Message-Id: <20240226222526.1C580C43601@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: only split PMD mapping when necessary in unmap_folio()
+     Subject: mm: support order-1 folios in the page cache
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-only-split-pmd-mapping-when-necessary-in-unmap_folio.patch
+     mm-support-order-1-folios-in-the-page-cache.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-only-split-pmd-mapping-when-necessary-in-unmap_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-support-order-1-folios-in-the-page-cache.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,49 +58,24 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: only split PMD mapping when necessary in unmap_folio()
-Date: Mon, 26 Feb 2024 15:55:27 -0500
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: support order-1 folios in the page cache
+Date: Mon, 26 Feb 2024 15:55:28 -0500
 
-Patch series "Split a folio to any lower order folios", v5.
+Folios of order 1 have no space to store the deferred list.  This is not a
+problem for the page cache as file-backed folios are never placed on the
+deferred list.  All we need to do is prevent the core MM from touching the
+deferred list for order 1 folios and remove the code which prevented us
+from allocating order 1 folios.
 
-File folio supports any order and multi-size THP is upstreamed[1], so both
-file and anonymous folios can be >0 order.  Currently, split_huge_page()
-only splits a huge page to order-0 pages, but splitting to orders higher
-than 0 might better utilize large folios, if done properly.  In addition,
-Large Block Sizes in XFS support would benefit from it during truncate[2].
-This patchset adds support for splitting a large folio to any lower order
-folios.
-
-In addition to this implementation of split_huge_page_to_list_to_order(),
-a possible optimization could be splitting a large folio to arbitrary
-smaller folios instead of a single order.  As both Hugh and Ryan pointed
-out [3,5] that split to a single order might not be optimal, an order-9
-folio might be better split into 1 order-8, 1 order-7, ..., 1 order-1, and
-2 order-0 folios, depending on subsequent folio operations.  Leave this as
-future work.
-
-[1] https://lore.kernel.org/all/20231207161211.2374093-1-ryan.roberts@arm.com/
-[2] https://lore.kernel.org/linux-mm/20240226094936.2677493-1-kernel@pankajraghav.com/
-[3] https://lore.kernel.org/linux-mm/9dd96da-efa2-5123-20d4-4992136ef3ad@google.com/
-[4] https://lore.kernel.org/linux-mm/cbb1d6a0-66dd-47d0-8733-f836fe050374@arm.com/
-[5] https://lore.kernel.org/linux-mm/20240213215520.1048625-1-zi.yan@sent.com/
-
-
-This patch (of 8):
-
-As multi-size THP support is added, not all THPs are PMD-mapped, thus
-during a huge page split, there is no need to always split PMD mapping in
-unmap_folio().  Make it conditional.
-
-Link: https://lkml.kernel.org/r/20240226205534.1603748-1-zi.yan@sent.com
-Link: https://lkml.kernel.org/r/20240226205534.1603748-2-zi.yan@sent.com
+Link: https://lore.kernel.org/linux-mm/90344ea7-4eec-47ee-5996-0c22f42d6a6a@google.com/
+Link: https://lkml.kernel.org/r/20240226205534.1603748-3-zi.yan@sent.com
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michal Koutny <mkoutny@suse.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
@@ -110,37 +85,99 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/filemap.c     |    2 --
+ mm/huge_memory.c |   19 +++++++++++++++----
+ mm/internal.h    |    3 +--
+ mm/readahead.c   |    3 ---
+ 4 files changed, 16 insertions(+), 11 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-only-split-pmd-mapping-when-necessary-in-unmap_folio
+--- a/mm/filemap.c~mm-support-order-1-folios-in-the-page-cache
++++ a/mm/filemap.c
+@@ -1912,8 +1912,6 @@ no_page:
+ 			gfp_t alloc_gfp = gfp;
+ 
+ 			err = -ENOMEM;
+-			if (order == 1)
+-				order = 0;
+ 			if (order > 0)
+ 				alloc_gfp |= __GFP_NORETRY | __GFP_NOWARN;
+ 			folio = filemap_alloc_folio(alloc_gfp, order);
+--- a/mm/huge_memory.c~mm-support-order-1-folios-in-the-page-cache
 +++ a/mm/huge_memory.c
-@@ -2727,11 +2727,14 @@ void vma_adjust_trans_huge(struct vm_are
+@@ -790,8 +790,10 @@ struct deferred_split *get_deferred_spli
  
- static void unmap_folio(struct folio *folio)
+ void folio_prep_large_rmappable(struct folio *folio)
  {
--	enum ttu_flags ttu_flags = TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD |
--		TTU_SYNC | TTU_BATCH_FLUSH;
-+	enum ttu_flags ttu_flags = TTU_RMAP_LOCKED | TTU_SYNC |
-+		TTU_BATCH_FLUSH;
+-	VM_BUG_ON_FOLIO(folio_order(folio) < 2, folio);
+-	INIT_LIST_HEAD(&folio->_deferred_list);
++	if (!folio || !folio_test_large(folio))
++		return;
++	if (folio_order(folio) > 1)
++		INIT_LIST_HEAD(&folio->_deferred_list);
+ 	folio_set_large_rmappable(folio);
+ }
  
- 	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
+@@ -3114,7 +3116,8 @@ int split_huge_page_to_list(struct page
+ 	/* Prevent deferred_split_scan() touching ->_refcount */
+ 	spin_lock(&ds_queue->split_queue_lock);
+ 	if (folio_ref_freeze(folio, 1 + extra_pins)) {
+-		if (!list_empty(&folio->_deferred_list)) {
++		if (folio_order(folio) > 1 &&
++		    !list_empty(&folio->_deferred_list)) {
+ 			ds_queue->split_queue_len--;
+ 			list_del(&folio->_deferred_list);
+ 		}
+@@ -3165,6 +3168,9 @@ void folio_undo_large_rmappable(struct f
+ 	struct deferred_split *ds_queue;
+ 	unsigned long flags;
  
-+	if (folio_test_pmd_mappable(folio))
-+		ttu_flags |= TTU_SPLIT_HUGE_PMD;
++	if (folio_order(folio) <= 1)
++		return;
 +
  	/*
- 	 * Anon pages need migration entries to preserve them, but file
- 	 * pages can simply be left unmapped, then faulted back on demand.
+ 	 * At this point, there is no one trying to add the folio to
+ 	 * deferred_list. If folio is not in deferred_list, it's safe
+@@ -3190,7 +3196,12 @@ void deferred_split_folio(struct folio *
+ #endif
+ 	unsigned long flags;
+ 
+-	VM_BUG_ON_FOLIO(folio_order(folio) < 2, folio);
++	/*
++	 * Order 1 folios have no space for a deferred list, but we also
++	 * won't waste much memory by not adding them to the deferred list.
++	 */
++	if (folio_order(folio) <= 1)
++		return;
+ 
+ 	/*
+ 	 * The try_to_unmap() in page reclaim path might reach here too,
+--- a/mm/internal.h~mm-support-order-1-folios-in-the-page-cache
++++ a/mm/internal.h
+@@ -420,8 +420,7 @@ static inline struct folio *page_rmappab
+ {
+ 	struct folio *folio = (struct folio *)page;
+ 
+-	if (folio && folio_order(folio) > 1)
+-		folio_prep_large_rmappable(folio);
++	folio_prep_large_rmappable(folio);
+ 	return folio;
+ }
+ 
+--- a/mm/readahead.c~mm-support-order-1-folios-in-the-page-cache
++++ a/mm/readahead.c
+@@ -514,9 +514,6 @@ void page_cache_ra_order(struct readahea
+ 		/* Don't allocate pages past EOF */
+ 		while (index + (1UL << order) - 1 > limit)
+ 			order--;
+-		/* THP machinery does not support order-1 */
+-		if (order == 1)
+-			order = 0;
+ 		err = ra_alloc_folio(ractl, index, mark, order, gfp);
+ 		if (err)
+ 			break;
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-huge_memory-only-split-pmd-mapping-when-necessary-in-unmap_folio.patch
-mm-memcg-use-order-instead-of-nr-in-split_page_memcg.patch
-mm-page_owner-use-order-instead-of-nr-in-split_page_owner.patch
-mm-memcg-make-memcg-huge-page-split-support-any-order-split.patch
-mm-page_owner-add-support-for-splitting-to-any-order-in-split-page_owner.patch
-mm-thp-split-huge-page-to-any-lower-order-pages.patch
-mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order.patch
+mm-support-order-1-folios-in-the-page-cache.patch
 
