@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86E741BF27
-	for <mm-commits@vger.kernel.org>; Mon, 26 Feb 2024 04:05:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E631B12F369
+	for <mm-commits@vger.kernel.org>; Mon, 26 Feb 2024 17:06:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708920302; cv=none; b=ghCdiKa1NEf3oMUNHZ0CdfBR3/d2ji22qOXu9HGGcM7jIrz8ZpIODMJHR5Q2DS2zPf7ZDRsx9BQMD/aU0bOFastS2skhTbj9xHBlxTZCXp7Xl928Y6aDB1yGKiwa8/oeGWCfvH+3/mGiSBYBIIhKSJGtJoAF92BmP7IXHNr5s98=
+	t=1708967179; cv=none; b=Ueli9iqbdCrIG90QqyTteRCjzRs4hKTco66NdKkLAn8dAvepO3MJwMVZLsmGAWU3nKRgBj0VgvGBIaABsIVhgMWbnOi5fEaptcjJ841Jg4GL/VIF6Uw5KL9r4fwYSXYGMj/EUULZXYVIQHHcrbOGpaO23SukugPvqTkBa+h/oBs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708920302; c=relaxed/simple;
-	bh=C6IWjitJktsQBUkKOuZawzv1XmALoUQYG3zNIRMMhb4=;
-	h=Date:To:From:Subject:Message-Id; b=MZnWD/bwFDayyUxqY/Z1+PSJpDAlOAZrumXjHlDTJS79jXn9ve0J/YW6Ncd+SzdxSURSL+qqV2xQluBFumCljw93NuulOQ479IwoVddq13EhzSt4UBzsS4emPD5L4pUfWKcZG9WXhBC/kLvDU1A0fqK07ZTBgwWDgXNmBLxlMPw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UA9eOR83; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708967179; c=relaxed/simple;
+	bh=R88P15ONHQOurPyqVFjpOpfE1teZg37OKtNfMgjjUss=;
+	h=Date:To:From:Subject:Message-Id; b=Q3faHh7w1yik9AEcX5MmYJXQjPQwpci2y77/3E7sE1olTCo5vFg43LEvWef3MCCA/AhjRv3C1tUS+WzjV3SRulJ9lQA32gSg5N8M6ODWJqAVInNmC8HI8ReyWG7wKGT4cSIUhu2C36ILjVt120sse8jvwBakMceV2Jlqlh2gp1A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZOvBP2tE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UA9eOR83"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0512C433C7;
-	Mon, 26 Feb 2024 04:05:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZOvBP2tE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AEC5C43394;
+	Mon, 26 Feb 2024 17:06:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708920301;
-	bh=C6IWjitJktsQBUkKOuZawzv1XmALoUQYG3zNIRMMhb4=;
+	s=korg; t=1708967178;
+	bh=R88P15ONHQOurPyqVFjpOpfE1teZg37OKtNfMgjjUss=;
 	h=Date:To:From:Subject:From;
-	b=UA9eOR83vvQ2HZTcfwxFe160MeJhpx0ybaFk5aoZgJYa7wWEqTXhz0vV6MvCdpeys
-	 k58ZMu4WyB2duP5pnvCBo86gbAjz9u8QuxgjuPjitEuEe4rQFUROBbUn9k9nIH/Ou+
-	 DGFu1C8DIbmSBaIDug9qxDmAU9FKQB28drYKEVXA=
-Date: Sun, 25 Feb 2024 20:05:00 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,minchan@kernel.org,mhocko@suse.com,hannes@cmpxchg.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=ZOvBP2tEN/RYX5+FCuuSGkHOQN0B1XwciufG4z7N8hzD8tkPFDN24o65irg3On7mG
+	 /sfFv+QHrZDEAOuWsvlSUexlg048e1aL2lw8Rj/aECXT4FCBsbk1zVNyQnYrmvI/f9
+	 ToKeRJIu/fxQLofv7i2yKRVFv1fa06uIvRNhI9qc=
+Date: Mon, 26 Feb 2024 09:06:17 -0800
+To: mm-commits@vger.kernel.org,stefani@seibold.net,jirislaby@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-remove-the-details-for-pageout-as-paddr-doesnt-use-madv_pageout.patch added to mm-unstable branch
-Message-Id: <20240226040501.B0512C433C7@smtp.kernel.org>
+Subject: [to-be-updated] kfifo-drop-__kfifo_dma_out_finish_r.patch removed from -mm tree
+Message-Id: <20240226170618.5AEC5C43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,68 +34,71 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: Docs/mm/damon/design: remove the details for pageout as paddr doesn't use MADV_PAGEOUT
-has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-design-remove-the-details-for-pageout-as-paddr-doesnt-use-madv_pageout.patch
+The quilt patch titled
+     Subject: kfifo: drop __kfifo_dma_out_finish_r()
+has been removed from the -mm tree.  Its filename was
+     kfifo-drop-__kfifo_dma_out_finish_r.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-remove-the-details-for-pageout-as-paddr-doesnt-use-madv_pageout.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: Docs/mm/damon/design: remove the details for pageout as paddr doesn't use MADV_PAGEOUT
-Date: Sun, 25 Feb 2024 11:47:51 +1300
+From: "Jiri Slaby (SUSE)" <jirislaby@kernel.org>
+Subject: kfifo: drop __kfifo_dma_out_finish_r()
+Date: Fri, 23 Feb 2024 12:51:52 +0100
 
-The doc needs fix.  As only in the case of virtual address, we are calling
-madvise() with MADV_PAGEOUT.  But in the case of physical address, we are
-calling reclaim_pages() directly.  MADV_PAGEOUT on virtual address is much
-more aggresive to reclaim memory compared to reclaim_pages() on paddr
-region.  This patch removes the details so that the description can apply
-to both cases.  And we don't need to couple with the implementation
-details.
+It is the same as __kfifo_skip_r(), so:
+* drop __kfifo_dma_out_finish_r() completely, and
+* replace its (only) use by __kfifo_skip_r().
 
-Link: https://lkml.kernel.org/r/20240224224751.4673-1-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20240223115155.8806-2-jirislaby@kernel.org
+Signed-off-by: Jiri Slaby (SUSE) <jirislaby@kernel.org>
+Cc: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kfifo.h |    4 +---
+ lib/kfifo.c           |    8 --------
+ 2 files changed, 1 insertion(+), 11 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-remove-the-details-for-pageout-as-paddr-doesnt-use-madv_pageout
-+++ a/Documentation/mm/damon/design.rst
-@@ -315,7 +315,7 @@ that supports each action are as below.
-    Supported by ``vaddr`` and ``fvaddr`` operations set.
-  - ``cold``: Call ``madvise()`` for the region with ``MADV_COLD``.
-    Supported by ``vaddr`` and ``fvaddr`` operations set.
-- - ``pageout``: Call ``madvise()`` for the region with ``MADV_PAGEOUT``.
-+ - ``pageout``: Reclaim the region.
-    Supported by ``vaddr``, ``fvaddr`` and ``paddr`` operations set.
-  - ``hugepage``: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``.
-    Supported by ``vaddr`` and ``fvaddr`` operations set.
+--- a/include/linux/kfifo.h~kfifo-drop-__kfifo_dma_out_finish_r
++++ a/include/linux/kfifo.h
+@@ -797,7 +797,7 @@ __kfifo_int_must_check_helper( \
+ 	const size_t __recsize = sizeof(*__tmp->rectype); \
+ 	struct __kfifo *__kfifo = &__tmp->kfifo; \
+ 	if (__recsize) \
+-		__kfifo_dma_out_finish_r(__kfifo, __recsize); \
++		__kfifo_skip_r(__kfifo, __recsize); \
+ 	else \
+ 		__kfifo->out += __len / sizeof(*__tmp->type); \
+ })
+@@ -879,8 +879,6 @@ extern void __kfifo_dma_in_finish_r(stru
+ extern unsigned int __kfifo_dma_out_prepare_r(struct __kfifo *fifo,
+ 	struct scatterlist *sgl, int nents, unsigned int len, size_t recsize);
+ 
+-extern void __kfifo_dma_out_finish_r(struct __kfifo *fifo, size_t recsize);
+-
+ extern unsigned int __kfifo_len_r(struct __kfifo *fifo, size_t recsize);
+ 
+ extern void __kfifo_skip_r(struct __kfifo *fifo, size_t recsize);
+--- a/lib/kfifo.c~kfifo-drop-__kfifo_dma_out_finish_r
++++ a/lib/kfifo.c
+@@ -582,11 +582,3 @@ unsigned int __kfifo_dma_out_prepare_r(s
+ }
+ EXPORT_SYMBOL(__kfifo_dma_out_prepare_r);
+ 
+-void __kfifo_dma_out_finish_r(struct __kfifo *fifo, size_t recsize)
+-{
+-	unsigned int len;
+-
+-	len = __kfifo_peek_n(fifo, recsize);
+-	fifo->out += len + recsize;
+-}
+-EXPORT_SYMBOL(__kfifo_dma_out_finish_r);
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from jirislaby@kernel.org are
 
-docs-mm-damon-design-remove-the-details-for-pageout-as-paddr-doesnt-use-madv_pageout.patch
+kfifo-introduce-and-use-kfifo_skip_count.patch
+kfifo-add-kfifo_out_linear_ptr.patch
+kfifo-fix-typos-in-kernel-doc.patch
 
