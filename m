@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3BD8132C00
-	for <mm-commits@vger.kernel.org>; Mon, 26 Feb 2024 22:25:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC8271DFCD
+	for <mm-commits@vger.kernel.org>; Mon, 26 Feb 2024 22:25:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708986328; cv=none; b=Q+lKuUqCxtdaroLgiX34FPvd7GdD0MSYPg8RuVsVgJZlFBnXZLrsE7PE8FHgUXxWI2kN/LNtiO+t9w6eyJ/1x0WKrsnYLDa8wV5n+WfsEbxB4zJDGRJfNqmom1TMPhmz/JFffRe2OUqeFlde7gVNz6eMdYIQgGrKAgSwQ9qtzr8=
+	t=1708986329; cv=none; b=MMG+QlPwkosx7nnEesQt5ZVmW5rEcrRk3HYq0BWYEfWYhPj0n+DKC3eaXMCIRtoP1egDK7IpkU9H9ZZe/bdaCoK1ezPnIHkcT5H45rjThyO2/ZFSQYnzOoilKhilnsFus6YIdq3Ebz3E6CetTvUNkKAXozLJAOsNGcNbzkL40aI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708986328; c=relaxed/simple;
-	bh=SMrsfdMn8boULD5FEkfk0OLUCxS/acuRWaW09wgG7nY=;
-	h=Date:To:From:Subject:Message-Id; b=uErOY/DG1rytCHT12u6jobLgYwh2H6+p+g8fWrKPppsrmJ3pdtkKUskKlukL35Y8wf3Nk0492/kuoX9q6Bkk2BcmXn4NHBpo/ERBIff5pSYe4OrIfnrV2GD+k5K694mJt5hQOSmSHJDmhLEz/mJVcm2IcbxzXz/iEszQgfiIm1M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T3RvMLjC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708986329; c=relaxed/simple;
+	bh=RF8m79hv7P7RYpW8WIk5mXQlFf5w5lzSDd/kn8LzAlM=;
+	h=Date:To:From:Subject:Message-Id; b=p/CygNZk5RP+0ig6Zfu8as321SOiQGADpd4BxLm5CEd2DREDyfRbaP0CdW4mGOuWyzUSwCcQVjf9RSKiTO2qOZFBEN3rnEmjiwtvIWEXP+CWThWnC99L71tqLq1NtnZPP3eZyxMTmxDKAoUoo3cKxItSRu1QMkdWHP0TxZWOt+g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CCAaJ9/b; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T3RvMLjC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6B79C43394;
-	Mon, 26 Feb 2024 22:25:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CCAaJ9/b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59957C43390;
+	Mon, 26 Feb 2024 22:25:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708986327;
-	bh=SMrsfdMn8boULD5FEkfk0OLUCxS/acuRWaW09wgG7nY=;
+	s=korg; t=1708986329;
+	bh=RF8m79hv7P7RYpW8WIk5mXQlFf5w5lzSDd/kn8LzAlM=;
 	h=Date:To:From:Subject:From;
-	b=T3RvMLjCwf5KPnjTM7Lve2nz9uRgSTxMnpwjN3xNslBpzEooHVYdQhCc+XAAuKO/5
-	 2APXGRfwbjj9FBZHzLqXt6jB0moSSU1ND7f41P9h8sHX0augvf3k4jVPJJjhbF2+xG
-	 30jMdMHA5Ve6c4lvU8rycGhttdhOLnBJyPM5SC4w=
-Date: Mon, 26 Feb 2024 14:25:27 -0800
+	b=CCAaJ9/b1Nomp9wKDkauICd+IjavYMOT5rBLPzzy5InFOUWTWb7Zy3m7JCfPyriy+
+	 ssyzBaUmP9/2tFs5h1aWhnYM1YvKWTXErrVrc/M4bTOAE+5mzk8c8smukPRYEUOQEj
+	 mKnjhArAs4gGLj7p5Zjb5BhSVDrnYy70vjjukSkw=
+Date: Mon, 26 Feb 2024 14:25:28 -0800
 To: mm-commits@vger.kernel.org,zokeefe@google.com,yuzhao@google.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,mkoutny@suse.com,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,hughd@google.com,david@redhat.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-use-order-instead-of-nr-in-split_page_memcg.patch added to mm-unstable branch
-Message-Id: <20240226222527.B6B79C43394@smtp.kernel.org>
+Subject: + mm-page_owner-use-order-instead-of-nr-in-split_page_owner.patch added to mm-unstable branch
+Message-Id: <20240226222529.59957C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memcg: use order instead of nr in split_page_memcg()
+     Subject: mm/page_owner: use order instead of nr in split_page_owner()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-use-order-instead-of-nr-in-split_page_memcg.patch
+     mm-page_owner-use-order-instead-of-nr-in-split_page_owner.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-use-order-instead-of-nr-in-split_page_memcg.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-use-order-instead-of-nr-in-split_page_owner.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/memcg: use order instead of nr in split_page_memcg()
-Date: Mon, 26 Feb 2024 15:55:29 -0500
+Subject: mm/page_owner: use order instead of nr in split_page_owner()
+Date: Mon, 26 Feb 2024 15:55:30 -0500
 
 We do not have non power of two pages, using nr is error prone if nr is
 not power-of-two.  Use page order instead.
 
-Link: https://lkml.kernel.org/r/20240226205534.1603748-4-zi.yan@sent.com
+Link: https://lkml.kernel.org/r/20240226205534.1603748-5-zi.yan@sent.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -81,85 +81,93 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 ++--
- mm/huge_memory.c           |    5 +++--
- mm/memcontrol.c            |    3 ++-
+ include/linux/page_owner.h |    9 ++++-----
+ mm/huge_memory.c           |    2 +-
  mm/page_alloc.c            |    4 ++--
- 4 files changed, 9 insertions(+), 7 deletions(-)
+ mm/page_owner.c            |    3 ++-
+ 4 files changed, 9 insertions(+), 9 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-use-order-instead-of-nr-in-split_page_memcg
-+++ a/include/linux/memcontrol.h
-@@ -1163,7 +1163,7 @@ static inline void memcg_memory_event_mm
- 	rcu_read_unlock();
+--- a/include/linux/page_owner.h~mm-page_owner-use-order-instead-of-nr-in-split_page_owner
++++ a/include/linux/page_owner.h
+@@ -11,7 +11,7 @@ extern struct page_ext_operations page_o
+ extern void __reset_page_owner(struct page *page, unsigned short order);
+ extern void __set_page_owner(struct page *page,
+ 			unsigned short order, gfp_t gfp_mask);
+-extern void __split_page_owner(struct page *page, unsigned int nr);
++extern void __split_page_owner(struct page *page, int order);
+ extern void __folio_copy_owner(struct folio *newfolio, struct folio *old);
+ extern void __set_page_owner_migrate_reason(struct page *page, int reason);
+ extern void __dump_page_owner(const struct page *page);
+@@ -31,10 +31,10 @@ static inline void set_page_owner(struct
+ 		__set_page_owner(page, order, gfp_mask);
  }
  
--void split_page_memcg(struct page *head, unsigned int nr);
-+void split_page_memcg(struct page *head, int order);
- 
- unsigned long mem_cgroup_soft_limit_reclaim(pg_data_t *pgdat, int order,
- 						gfp_t gfp_mask,
-@@ -1621,7 +1621,7 @@ void count_memcg_event_mm(struct mm_stru
+-static inline void split_page_owner(struct page *page, unsigned int nr)
++static inline void split_page_owner(struct page *page, int order)
+ {
+ 	if (static_branch_unlikely(&page_owner_inited))
+-		__split_page_owner(page, nr);
++		__split_page_owner(page, order);
+ }
+ static inline void folio_copy_owner(struct folio *newfolio, struct folio *old)
+ {
+@@ -59,8 +59,7 @@ static inline void set_page_owner(struct
+ 			unsigned int order, gfp_t gfp_mask)
  {
  }
- 
--static inline void split_page_memcg(struct page *head, unsigned int nr)
-+static inline void split_page_memcg(struct page *head, int order)
+-static inline void split_page_owner(struct page *page,
+-			unsigned short order)
++static inline void split_page_owner(struct page *page, int order)
  {
  }
- 
---- a/mm/huge_memory.c~mm-memcg-use-order-instead-of-nr-in-split_page_memcg
+ static inline void folio_copy_owner(struct folio *newfolio, struct folio *folio)
+--- a/mm/huge_memory.c~mm-page_owner-use-order-instead-of-nr-in-split_page_owner
 +++ a/mm/huge_memory.c
-@@ -2889,11 +2889,12 @@ static void __split_huge_page(struct pag
- 	struct lruvec *lruvec;
- 	struct address_space *swap_cache = NULL;
- 	unsigned long offset = 0;
--	unsigned int nr = thp_nr_pages(head);
- 	int i, nr_dropped = 0;
-+	int order = folio_order(folio);
-+	unsigned int nr = 1 << order;
+@@ -2933,7 +2933,7 @@ static void __split_huge_page(struct pag
+ 	unlock_page_lruvec(lruvec);
+ 	/* Caller disabled irqs, so they are still disabled here */
  
- 	/* complete memcg works before add pages to LRU */
--	split_page_memcg(head, nr);
-+	split_page_memcg(head, order);
+-	split_page_owner(head, nr);
++	split_page_owner(head, order);
  
- 	if (folio_test_anon(folio) && folio_test_swapcache(folio)) {
- 		offset = swp_offset(folio->swap);
---- a/mm/memcontrol.c~mm-memcg-use-order-instead-of-nr-in-split_page_memcg
-+++ a/mm/memcontrol.c
-@@ -3606,11 +3606,12 @@ void obj_cgroup_uncharge(struct obj_cgro
- /*
-  * Because page_memcg(head) is not set on tails, set it now.
-  */
--void split_page_memcg(struct page *head, unsigned int nr)
-+void split_page_memcg(struct page *head, int order)
- {
- 	struct folio *folio = page_folio(head);
- 	struct mem_cgroup *memcg = folio_memcg(folio);
- 	int i;
-+	unsigned int nr = 1 << order;
- 
- 	if (mem_cgroup_disabled() || !memcg)
- 		return;
---- a/mm/page_alloc.c~mm-memcg-use-order-instead-of-nr-in-split_page_memcg
+ 	/* See comment in __split_huge_page_tail() */
+ 	if (PageAnon(head)) {
+--- a/mm/page_alloc.c~mm-page_owner-use-order-instead-of-nr-in-split_page_owner
 +++ a/mm/page_alloc.c
-@@ -2617,7 +2617,7 @@ void split_page(struct page *page, unsig
+@@ -2616,7 +2616,7 @@ void split_page(struct page *page, unsig
+ 
  	for (i = 1; i < (1 << order); i++)
  		set_page_refcounted(page + i);
- 	split_page_owner(page, 1 << order);
--	split_page_memcg(page, 1 << order);
-+	split_page_memcg(page, order);
+-	split_page_owner(page, 1 << order);
++	split_page_owner(page, order);
+ 	split_page_memcg(page, order);
  }
  EXPORT_SYMBOL_GPL(split_page);
- 
-@@ -4804,7 +4804,7 @@ static void *make_alloc_exact(unsigned l
+@@ -4803,7 +4803,7 @@ static void *make_alloc_exact(unsigned l
+ 		struct page *page = virt_to_page((void *)addr);
  		struct page *last = page + nr;
  
- 		split_page_owner(page, 1 << order);
--		split_page_memcg(page, 1 << order);
-+		split_page_memcg(page, order);
+-		split_page_owner(page, 1 << order);
++		split_page_owner(page, order);
+ 		split_page_memcg(page, order);
  		while (page < --last)
  			set_page_refcounted(last);
+--- a/mm/page_owner.c~mm-page_owner-use-order-instead-of-nr-in-split_page_owner
++++ a/mm/page_owner.c
+@@ -306,11 +306,12 @@ void __set_page_owner_migrate_reason(str
+ 	page_ext_put(page_ext);
+ }
  
+-void __split_page_owner(struct page *page, unsigned int nr)
++void __split_page_owner(struct page *page, int order)
+ {
+ 	int i;
+ 	struct page_ext *page_ext = page_ext_get(page);
+ 	struct page_owner *page_owner;
++	unsigned int nr = 1 << order;
+ 
+ 	if (unlikely(!page_ext))
+ 		return;
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
