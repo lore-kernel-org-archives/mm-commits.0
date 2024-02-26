@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DB74131750
-	for <mm-commits@vger.kernel.org>; Mon, 26 Feb 2024 22:14:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC70B131750
+	for <mm-commits@vger.kernel.org>; Mon, 26 Feb 2024 22:14:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708985653; cv=none; b=Sy3ms/wIWHqobhLyWV5Jzmg5AdfN2/RRA6P9CgvTVGrJ/YeBUHcyCkxJ7+04zPYzXaQEtx+oWUeWhSSPmA104HLy2v02nmBwZqCwTngTbc2jOew0B9HsRBgdyOEhLZ4dY8gqKyXjqbamHvSolttjI/Du4l69P+Y0o5eyp0e0KLE=
+	t=1708985654; cv=none; b=npWVBuqdP+3aPzvdTnrk/kw/W8BUwlrJZb+PilEL0AZtV3vcZVcpqgonRC73tGX4SJtHYR2zgmkdiQyGZhtehUS1hh/81VAOMvQnOzB7+Xh8MQwJb/Zgu4ms9KYIbUYdM3z2ejLOKTLMSu3YQdQ58bW9cRb7GYck2c7e6ZaVUY8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708985653; c=relaxed/simple;
-	bh=XjnQADXRFOy4ZLrBQ7YsfNRJqbSwS+W6vWiJ6T+0s/E=;
-	h=Date:To:From:Subject:Message-Id; b=SYvJEndTlIJxYJPeTsozhRbv8Yv3YAtdvBlIgXkfkFFqZ9IKf+cxOpBHmCcK8N4jR86koy2LVBjznJAVwIou30dni0fTo9vSz6wjGvX7WSVWaCZsb9vTfCHdx5hmMmgPHZJQFK2MwyeAJilLdlFhVI+tGhONUYP+BSJSQzaGe08=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iZLGcclM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708985654; c=relaxed/simple;
+	bh=eEyJKq1bSzQXHt5+t2rdboeASdYBSPa73EkpyQbzWDA=;
+	h=Date:To:From:Subject:Message-Id; b=YJ6IWIuPlKyoVWx482SgJDkWD45uChWeOrnTWWuxqyPH9Co4pGSrKKFjvqTt4/Fy0QFwCjNFpL0cZc8oePTjsVwuvCj4xJQm3+P79G+plWw9Z1A27mq6msy5avmFfxg8hZGDGNX2RleL3Omf1WUCpD3tKQYWj254mEXVP0Z0HiY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sEaWvTGl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iZLGcclM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5B82C433C7;
-	Mon, 26 Feb 2024 22:14:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sEaWvTGl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38E59C433F1;
+	Mon, 26 Feb 2024 22:14:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708985653;
-	bh=XjnQADXRFOy4ZLrBQ7YsfNRJqbSwS+W6vWiJ6T+0s/E=;
+	s=korg; t=1708985654;
+	bh=eEyJKq1bSzQXHt5+t2rdboeASdYBSPa73EkpyQbzWDA=;
 	h=Date:To:From:Subject:From;
-	b=iZLGcclMNKBD2n7hMRuwodTA52ZmMw+PCKOdyxn6tzz9k1KwbBMPYj6R2fsfwUSge
-	 A/u6Nm4X8fc8UkusvWK0K6tx++/Q+ZTv4Vw4f8vYYN3zyG0NDSoHTmXaXucWE4zNVj
-	 7hRAzUds/j+jwlxcE1Rb2BESmVmy0gjQroHdSDA0=
-Date: Mon, 26 Feb 2024 14:14:12 -0800
+	b=sEaWvTGlaYX0cnc9hqlY/cfVjPf9vRa4WN4tCr9mEwsqY6KXcPJxtiJo+OiKOcp44
+	 3sUh8fQE4CuAw3LkwNIgmtUhQWQtwIdXNC7ZN+x/JpGk5o8yhyGjFvAaf1QyDlxZyh
+	 6FL3qvaeoj+g55Y205AFF2O20u2kCX16BhfC+gRI=
+Date: Mon, 26 Feb 2024 14:14:13 -0800
 To: mm-commits@vger.kernel.org,urezki@gmail.com,martin@kaiser.cx,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_vmallocc-drop-empty-exit-function.patch added to mm-nonmm-unstable branch
-Message-Id: <20240226221412.D5B82C433C7@smtp.kernel.org>
+Subject: + lib-test_vmallocc-use-unsigned-long-constant.patch added to mm-nonmm-unstable branch
+Message-Id: <20240226221414.38E59C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/test_vmalloc.c: drop empty exit function
+     Subject: lib/test_vmalloc.c: use unsigned long constant
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-test_vmallocc-drop-empty-exit-function.patch
+     lib-test_vmallocc-use-unsigned-long-constant.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_vmallocc-drop-empty-exit-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_vmallocc-use-unsigned-long-constant.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,36 +59,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Martin Kaiser <martin@kaiser.cx>
-Subject: lib/test_vmalloc.c: drop empty exit function
-Date: Mon, 26 Feb 2024 20:11:58 +0100
+Subject: lib/test_vmalloc.c: use unsigned long constant
+Date: Mon, 26 Feb 2024 20:11:59 +0100
 
-The module is never loaded successfully.  Therefore, it'll never be
-unloaded and we can remove the exit function.
+Use an unsigned long constant instead of an int constant and a cast.  This
+fixes the checkpatch warning
 
-Link: https://lkml.kernel.org/r/20240226191159.39509-3-martin@kaiser.cx
+WARNING: Unnecessary typecast of c90 int constant - '(unsigned long) 1' could be '1UL'
++     align = ((unsigned long) 1) << i;
+
+Link: https://lkml.kernel.org/r/20240226191159.39509-4-martin@kaiser.cx
 Signed-off-by: Martin Kaiser <martin@kaiser.cx>
 Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_vmalloc.c |    5 -----
- 1 file changed, 5 deletions(-)
+ lib/test_vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/test_vmalloc.c~lib-test_vmallocc-drop-empty-exit-function
+--- a/lib/test_vmalloc.c~lib-test_vmallocc-use-unsigned-long-constant
 +++ a/lib/test_vmalloc.c
-@@ -600,12 +600,7 @@ static int vmalloc_test_init(void)
- 	return -EAGAIN; /* Fail will directly unload the module */
- }
+@@ -117,7 +117,7 @@ static int align_shift_alloc_test(void)
+ 	int i;
  
--static void vmalloc_test_exit(void)
--{
--}
--
- module_init(vmalloc_test_init)
--module_exit(vmalloc_test_exit)
+ 	for (i = 0; i < BITS_PER_LONG; i++) {
+-		align = ((unsigned long) 1) << i;
++		align = 1UL << i;
  
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Uladzislau Rezki");
+ 		ptr = __vmalloc_node(PAGE_SIZE, align, GFP_KERNEL|__GFP_ZERO, 0,
+ 				__builtin_return_address(0));
 _
 
 Patches currently in -mm which might be from martin@kaiser.cx are
