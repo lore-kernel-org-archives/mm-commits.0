@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 980162557E
-	for <mm-commits@vger.kernel.org>; Tue, 27 Feb 2024 18:47:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED7CA2557E
+	for <mm-commits@vger.kernel.org>; Tue, 27 Feb 2024 18:47:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709059674; cv=none; b=jk+NaYYeT9CASArIik3kbEpVOTlryfnJS7xViZMRSayU334WsyKB73sS9o6W//8nVJCbRFdzcIkZUWJ3y8YXMVpIQ4YNq3v2ZXY/4z1Sx14Qur4Vw+Ezec7FFLOrSOLDuBo9NHex2jvA+S3VIRtV0+rkOONCUHIiJnoRzrNVLh0=
+	t=1709059676; cv=none; b=c6k+/7jGoX8GJEElZcJc4r8C+ZvWH3QHm6PTzGuUp0chQKmWefY0bYhQtGQYtDXgTB/HYozYLYjIX9dV9gGImLCDtT06sf/RFkmAinMW0otWpyUJurYc8B+WUeeF7iXxQ7eNNF/yrfDnesFSvOC1taLCR7rHzEmIL2vQSRTxlZc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709059674; c=relaxed/simple;
-	bh=gKizGk1pSGq0nDmdpFaditgcXdA0bqc2+jOSqTMTqg0=;
-	h=Date:To:From:Subject:Message-Id; b=jbivwvzZkX3HXtJ7YMBFz7/nkFqwLvvn11lUylbPTJFhmgTd0SPQdvfUaRkPXvPLmRzB3rulnPOUFz5kMeO4wsxBXJ6u4dNVL8EcxCB1/eAJZz2q2WP0dJOKCR7Kabl3ushB+GyX3SVnjDVHt1bXp01YjlUiTwfq2AP+dkofafk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q7BbbP2y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709059676; c=relaxed/simple;
+	bh=4A3tEa01lrOoi+vaTpcm5cRrhJlG5IIChj+QUnd02Bk=;
+	h=Date:To:From:Subject:Message-Id; b=d0hKSi0jO8+gtx+I/vZakoRwBC61jNzkWOdO2Kufs7O0GONq0SfiZ17xp4giFQR/B5D0WdrLTdTJETu1xrNE7zUmt7/PihQr2KRoItsdw3R4iTCim8EMAl/IBRtLaPm/XjT/e+iPjsn1t1l+/b1wp3lIQ9rQuu4vA5uZbqRp8+c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LOAsujNL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q7BbbP2y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 492B9C433F1;
-	Tue, 27 Feb 2024 18:47:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LOAsujNL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6842C433F1;
+	Tue, 27 Feb 2024 18:47:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709059674;
-	bh=gKizGk1pSGq0nDmdpFaditgcXdA0bqc2+jOSqTMTqg0=;
+	s=korg; t=1709059675;
+	bh=4A3tEa01lrOoi+vaTpcm5cRrhJlG5IIChj+QUnd02Bk=;
 	h=Date:To:From:Subject:From;
-	b=Q7BbbP2yFPDFJSsZ8/aW095SRxrmxvZBoc5R7z94oWR29wQXft40SERe46ou+ghMi
-	 5bnRX/B0knxA93aG5haybxygPJyDVnQgqQEeEU1INjvdSgRgviTtwaV73tn4Q9xh3p
-	 IcAwF5v5jO8M2ChXEdYHCifYFgO16nbp+VgeK6tc=
-Date: Tue, 27 Feb 2024 10:47:53 -0800
+	b=LOAsujNLJDzmzzEitS9/Hlt5y9g84Bn1ouJNdgZiIRTv+/8WwkdSlTaU3cItmc5Lt
+	 Cu9QlQMKsSo/eUmdwySTysrcQw59OzEeH9tfa9ti62PG7EolOFNf3gMi2uDeBR3mF5
+	 CLJ5GBY5L4lf1YSiWxoT4fjJlTcp8+ftjBXswDao=
+Date: Tue, 27 Feb 2024 10:47:55 -0800
 To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,mgorman@suse.de,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-add-mem_cgroup_uncharge_folios.patch added to mm-unstable branch
-Message-Id: <20240227184754.492B9C433F1@smtp.kernel.org>
+Subject: + mm-remove-use-of-folio-list-from-folios_put.patch added to mm-unstable branch
+Message-Id: <20240227184755.A6842C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: add mem_cgroup_uncharge_folios()
+     Subject: mm: remove use of folio list from folios_put()
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-add-mem_cgroup_uncharge_folios.patch
+     mm-remove-use-of-folio-list-from-folios_put.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-add-mem_cgroup_uncharge_folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-use-of-folio-list-from-folios_put.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: memcg: add mem_cgroup_uncharge_folios()
-Date: Tue, 27 Feb 2024 17:42:39 +0000
+Subject: mm: remove use of folio list from folios_put()
+Date: Tue, 27 Feb 2024 17:42:40 +0000
 
-Almost identical to mem_cgroup_uncharge_list(), except it takes a
-folio_batch instead of a list_head.
+Instead of putting the interesting folios on a list, delete the
+uninteresting one from the folio_batch.
 
-Link: https://lkml.kernel.org/r/20240227174254.710559-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240227174254.710559-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -73,71 +73,51 @@ Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   14 ++++++++++++--
- mm/memcontrol.c            |   13 +++++++++++++
- 2 files changed, 25 insertions(+), 2 deletions(-)
+ mm/swap.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-add-mem_cgroup_uncharge_folios
-+++ a/include/linux/memcontrol.h
-@@ -721,10 +721,16 @@ static inline void mem_cgroup_uncharge_l
- 	__mem_cgroup_uncharge_list(page_list);
- }
+--- a/mm/swap.c~mm-remove-use-of-folio-list-from-folios_put
++++ a/mm/swap.c
+@@ -961,12 +961,11 @@ void lru_cache_disable(void)
+  */
+ void folios_put_refs(struct folio_batch *folios, unsigned int *refs)
+ {
+-	int i;
+-	LIST_HEAD(pages_to_free);
++	int i, j;
+ 	struct lruvec *lruvec = NULL;
+ 	unsigned long flags = 0;
  
--void mem_cgroup_cancel_charge(struct mem_cgroup *memcg, unsigned int nr_pages);
-+void __mem_cgroup_uncharge_folios(struct folio_batch *folios);
-+static inline void mem_cgroup_uncharge_folios(struct folio_batch *folios)
-+{
-+	if (mem_cgroup_disabled())
+-	for (i = 0; i < folios->nr; i++) {
++	for (i = 0, j = 0; i < folios->nr; i++) {
+ 		struct folio *folio = folios->folios[i];
+ 		unsigned int nr_refs = refs ? refs[i] : 1;
+ 
+@@ -1016,14 +1015,20 @@ void folios_put_refs(struct folio_batch
+ 			count_vm_event(UNEVICTABLE_PGCLEARED);
+ 		}
+ 
+-		list_add(&folio->lru, &pages_to_free);
++		if (j != i)
++			folios->folios[j] = folio;
++		j++;
+ 	}
+ 	if (lruvec)
+ 		unlock_page_lruvec_irqrestore(lruvec, flags);
++	if (!j) {
++		folio_batch_reinit(folios);
 +		return;
-+	__mem_cgroup_uncharge_folios(folios);
-+}
++	}
  
-+void mem_cgroup_cancel_charge(struct mem_cgroup *memcg, unsigned int nr_pages);
- void mem_cgroup_replace_folio(struct folio *old, struct folio *new);
--
- void mem_cgroup_migrate(struct folio *old, struct folio *new);
- 
- /**
-@@ -1299,6 +1305,10 @@ static inline void mem_cgroup_uncharge_l
- {
+-	mem_cgroup_uncharge_list(&pages_to_free);
+-	free_unref_page_list(&pages_to_free);
+-	folio_batch_reinit(folios);
++	folios->nr = j;
++	mem_cgroup_uncharge_folios(folios);
++	free_unref_folios(folios);
  }
+ EXPORT_SYMBOL(folios_put_refs);
  
-+static inline void mem_cgroup_uncharge_folios(struct folio_batch *folios)
-+{
-+}
-+
- static inline void mem_cgroup_cancel_charge(struct mem_cgroup *memcg,
- 		unsigned int nr_pages)
- {
---- a/mm/memcontrol.c~memcg-add-mem_cgroup_uncharge_folios
-+++ a/mm/memcontrol.c
-@@ -33,6 +33,7 @@
- #include <linux/shmem_fs.h>
- #include <linux/hugetlb.h>
- #include <linux/pagemap.h>
-+#include <linux/pagevec.h>
- #include <linux/vm_event_item.h>
- #include <linux/smp.h>
- #include <linux/page-flags.h>
-@@ -7530,6 +7531,18 @@ void __mem_cgroup_uncharge_list(struct l
- 	if (ug.memcg)
- 		uncharge_batch(&ug);
- }
-+
-+void __mem_cgroup_uncharge_folios(struct folio_batch *folios)
-+{
-+	struct uncharge_gather ug;
-+	unsigned int i;
-+
-+	uncharge_gather_clear(&ug);
-+	for (i = 0; i < folios->nr; i++)
-+		uncharge_folio(folios->folios[i], &ug);
-+	if (ug.memcg)
-+		uncharge_batch(&ug);
-+}
- 
- /**
-  * mem_cgroup_replace_folio - Charge a folio's replacement.
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
