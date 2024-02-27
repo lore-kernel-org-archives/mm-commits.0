@@ -1,296 +1,91 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 063D04E1DC
-	for <mm-commits@vger.kernel.org>; Tue, 27 Feb 2024 19:09:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BC4955C06;
+	Tue, 27 Feb 2024 22:56:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709060998; cv=none; b=aBqnKXXTUS24le7by4ptssAhIxj4vU+ixFxWeK8JYRiI+iaAK52J+felt8aRmB4RDtJSbipVEC/wALYOMmVxZTuJFEfqg8W7nxHPXDvqkUWMGmu2vZJGxHZElTiZDWSL/k3UhqaWo68lGpv4ff+Vyh2AbumZ3XwBlzOFoAiUDVA=
+	t=1709074580; cv=none; b=JcU3XT3+XKw2QwynkdwVxxuU53uMOlXUb4Z6+nxSV/s3ci46oX6BVmvSuFWdA+1KeiNoMlvFF0EixILcz3shLvFdo8TCp0+2294Fe3va89KJVDLNIpzDAuAmbT8Z6z2nNU4N1e6QFbJZxhWcKeGp4yi0dOvghXn0H62canP0VGY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709060998; c=relaxed/simple;
-	bh=tvo8tJJH94YmwdRltDbqZXrN/J9OIWJ4cTBS0ciBw5g=;
-	h=Date:To:From:Subject:Message-Id; b=gjA9LQs3oRtQImZxKPxkgsApVzTgYC1Y1cZ73TpYW2ItELo/3Z+Mm3yjbd1BbbIoO8elvl3i2rmLJ2csBOgGUA+Gr/7d7TVGT6isDHK9eC/V1f9pTtcpPuTR8S03t2IIeGFpOd3CJbuOA11elbSqoKRZg1mBOoRuj8uCbV0WElI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k2kip8jH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709074580; c=relaxed/simple;
+	bh=0xYe4eHD+sqMlHm03hdfPxhdITI5Y4HdAXjAhrt1CwM=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=IQef/5q6xpVpZxAIXge9P3V09K5M7Z0+2gCW9Yggxwq8KjjvFCs6hiwf8RccA+eWelVRjzgU8I5i9t6NRxJN18MCwxvUrQHbYcv4la1mgolFbigfNQ+f8UCTN1cW1jSYiN5sKRpL5Lp0ycALSAOluUJWHRl9PAbCr+K9jJOsA3I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k9eZZbaQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k2kip8jH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DF42C433F1;
-	Tue, 27 Feb 2024 19:09:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k9eZZbaQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1B2EC433C7;
+	Tue, 27 Feb 2024 22:56:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709060997;
-	bh=tvo8tJJH94YmwdRltDbqZXrN/J9OIWJ4cTBS0ciBw5g=;
-	h=Date:To:From:Subject:From;
-	b=k2kip8jH9Thyw//fe00ETbWo7EzdlrmI+mtHfA9kWupelDiQMnGwGTYptQdzj+HmL
-	 GMGq1kBOrbw24FtvCWrNr2fJnDoz++h2TxbVMrlRVN5Gmo+Gi9qysxvVVNKZDGHOAZ
-	 DGcnlngeaU5uecVzLhRHR0cJCHPkRzJH/6isno8I=
-Date: Tue, 27 Feb 2024 11:09:56 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,sidhartha.kumar@oracle.com,jianfeng.w.wang@oracle.com,akpm@linux-foundation.org
+	s=korg; t=1709074580;
+	bh=0xYe4eHD+sqMlHm03hdfPxhdITI5Y4HdAXjAhrt1CwM=;
+	h=Date:From:To:Cc:Subject:From;
+	b=k9eZZbaQq4lmxFqkiP7xJSqq8UcPjnIFfBAEJYPlYDaTIYbBzQ/ltwx3dS1/D41MS
+	 w0w9XdSXEyJvNxXPIW97IpowoJklLokOcC3nFrEeOo2OYGlADwYHYAvLXrOD6M+te6
+	 BIvYGJ1kvl4UGNKLWbDSAx1honC5BWY+reaIZIw0=
+Date: Tue, 27 Feb 2024 14:56:19 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] mm-cma-convert-cma_alloc-to-return-folio.patch removed from -mm tree
-Message-Id: <20240227190957.6DF42C433F1@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.8-rc7
+Message-Id: <20240227145619.40b2f9b33dc2723df27f68c0@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The quilt patch titled
-     Subject: mm/cma: convert cma_alloc() to return folio
-has been removed from the -mm tree.  Its filename was
-     mm-cma-convert-cma_alloc-to-return-folio.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch was dropped because it was nacked
 
-------------------------------------------------------
-From: Jianfeng Wang <jianfeng.w.wang@oracle.com>
-Subject: mm/cma: convert cma_alloc() to return folio
-Date: Tue, 27 Feb 2024 10:13:38 -0800
 
-Change cma_alloc() to return struct folio.  This further increases the
-usage of folios in mm/hugetlb.
+The following changes since commit 2597c9947b0174fcc71bdd7ab6cb49c2b4291e95:
 
-Link: https://lkml.kernel.org/r/20240227181338.59932-1-jianfeng.w.wang@oracle.com
-Signed-off-by: Jianfeng Wang <jianfeng.w.wang@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+  kasan: guard release_free_meta() shadow access with kasan_arch_is_ready() (2024-02-20 14:20:50 -0800)
 
- arch/powerpc/kvm/book3s_hv_builtin.c |    6 ++++--
- drivers/dma-buf/heaps/cma_heap.c     |   18 +++++++++---------
- drivers/s390/char/vmcp.c             |    8 ++++----
- include/linux/cma.h                  |    3 ++-
- kernel/dma/contiguous.c              |    8 ++++++--
- mm/cma.c                             |    4 ++--
- mm/cma_debug.c                       |    6 +++---
- mm/hugetlb.c                         |   13 +++++++------
- 8 files changed, 37 insertions(+), 29 deletions(-)
+are available in the Git repository at:
 
---- a/arch/powerpc/kvm/book3s_hv_builtin.c~mm-cma-convert-cma_alloc-to-return-folio
-+++ a/arch/powerpc/kvm/book3s_hv_builtin.c
-@@ -57,10 +57,12 @@ early_param("kvm_cma_resv_ratio", early_
- 
- struct page *kvm_alloc_hpt_cma(unsigned long nr_pages)
- {
-+	struct folio *folio;
- 	VM_BUG_ON(order_base_2(nr_pages) < KVM_CMA_CHUNK_ORDER - PAGE_SHIFT);
- 
--	return cma_alloc(kvm_cma, nr_pages, order_base_2(HPT_ALIGN_PAGES),
--			 false);
-+	folio = cma_alloc(kvm_cma, nr_pages, order_base_2(HPT_ALIGN_PAGES),
-+			false);
-+	return folio ? &folio->page : NULL;
- }
- EXPORT_SYMBOL_GPL(kvm_alloc_hpt_cma);
- 
---- a/drivers/dma-buf/heaps/cma_heap.c~mm-cma-convert-cma_alloc-to-return-folio
-+++ a/drivers/dma-buf/heaps/cma_heap.c
-@@ -283,7 +283,7 @@ static struct dma_buf *cma_heap_allocate
- 	size_t size = PAGE_ALIGN(len);
- 	pgoff_t pagecount = size >> PAGE_SHIFT;
- 	unsigned long align = get_order(size);
--	struct page *cma_pages;
-+	struct folio *cma_folios;
- 	struct dma_buf *dmabuf;
- 	int ret = -ENOMEM;
- 	pgoff_t pg;
-@@ -299,14 +299,14 @@ static struct dma_buf *cma_heap_allocate
- 	if (align > CONFIG_CMA_ALIGNMENT)
- 		align = CONFIG_CMA_ALIGNMENT;
- 
--	cma_pages = cma_alloc(cma_heap->cma, pagecount, align, false);
--	if (!cma_pages)
-+	cma_folios = cma_alloc(cma_heap->cma, pagecount, align, false);
-+	if (!cma_folios)
- 		goto free_buffer;
- 
- 	/* Clear the cma pages */
--	if (PageHighMem(cma_pages)) {
-+	if (folio_test_highmem(cma_folios)) {
- 		unsigned long nr_clear_pages = pagecount;
--		struct page *page = cma_pages;
-+		struct page *page = &cma_folios->page;
- 
- 		while (nr_clear_pages > 0) {
- 			void *vaddr = kmap_atomic(page);
-@@ -323,7 +323,7 @@ static struct dma_buf *cma_heap_allocate
- 			nr_clear_pages--;
- 		}
- 	} else {
--		memset(page_address(cma_pages), 0, size);
-+		memset(folio_address(cma_folios), 0, size);
- 	}
- 
- 	buffer->pages = kmalloc_array(pagecount, sizeof(*buffer->pages), GFP_KERNEL);
-@@ -333,9 +333,9 @@ static struct dma_buf *cma_heap_allocate
- 	}
- 
- 	for (pg = 0; pg < pagecount; pg++)
--		buffer->pages[pg] = &cma_pages[pg];
-+		buffer->pages[pg] = &cma_folios[pg].page;
- 
--	buffer->cma_pages = cma_pages;
-+	buffer->cma_pages = &cma_folios->page;
- 	buffer->heap = cma_heap;
- 	buffer->pagecount = pagecount;
- 
-@@ -355,7 +355,7 @@ static struct dma_buf *cma_heap_allocate
- free_pages:
- 	kfree(buffer->pages);
- free_cma:
--	cma_release(cma_heap->cma, cma_pages, pagecount);
-+	cma_release(cma_heap->cma, &cma_folios->page, pagecount);
- free_buffer:
- 	kfree(buffer);
- 
---- a/drivers/s390/char/vmcp.c~mm-cma-convert-cma_alloc-to-return-folio
-+++ a/drivers/s390/char/vmcp.c
-@@ -59,7 +59,7 @@ void __init vmcp_cma_reserve(void)
- 
- static void vmcp_response_alloc(struct vmcp_session *session)
- {
--	struct page *page = NULL;
-+	struct folio *folio = NULL;
- 	int nr_pages, order;
- 
- 	order = get_order(session->bufsize);
-@@ -70,9 +70,9 @@ static void vmcp_response_alloc(struct v
- 	 * anymore the system won't work anyway.
- 	 */
- 	if (order > 2)
--		page = cma_alloc(vmcp_cma, nr_pages, 0, false);
--	if (page) {
--		session->response = (char *)page_to_virt(page);
-+		folio = cma_alloc(vmcp_cma, nr_pages, 0, false);
-+	if (folio) {
-+		session->response = (char *)page_to_virt(&folio->page);
- 		session->cma_alloc = 1;
- 		return;
- 	}
---- a/include/linux/cma.h~mm-cma-convert-cma_alloc-to-return-folio
-+++ a/include/linux/cma.h
-@@ -21,6 +21,7 @@
- #define CMA_MIN_ALIGNMENT_BYTES (PAGE_SIZE * CMA_MIN_ALIGNMENT_PAGES)
- 
- struct cma;
-+struct page;
- 
- extern unsigned long totalcma_pages;
- extern phys_addr_t cma_get_base(const struct cma *cma);
-@@ -44,7 +45,7 @@ extern int cma_init_reserved_mem(phys_ad
- 					unsigned int order_per_bit,
- 					const char *name,
- 					struct cma **res_cma);
--extern struct page *cma_alloc(struct cma *cma, unsigned long count, unsigned int align,
-+extern struct folio *cma_alloc(struct cma *cma, unsigned long count, unsigned int align,
- 			      bool no_warn);
- extern bool cma_pages_valid(struct cma *cma, const struct page *pages, unsigned long count);
- extern bool cma_release(struct cma *cma, const struct page *pages, unsigned long count);
---- a/kernel/dma/contiguous.c~mm-cma-convert-cma_alloc-to-return-folio
-+++ a/kernel/dma/contiguous.c
-@@ -304,10 +304,12 @@ int __init dma_contiguous_reserve_area(p
- struct page *dma_alloc_from_contiguous(struct device *dev, size_t count,
- 				       unsigned int align, bool no_warn)
- {
-+	struct folio *folio;
- 	if (align > CONFIG_CMA_ALIGNMENT)
- 		align = CONFIG_CMA_ALIGNMENT;
- 
--	return cma_alloc(dev_get_cma_area(dev), count, align, no_warn);
-+	folio = cma_alloc(dev_get_cma_area(dev), count, align, no_warn);
-+	return folio ? &folio->page : NULL;
- }
- 
- /**
-@@ -328,9 +330,11 @@ bool dma_release_from_contiguous(struct
- 
- static struct page *cma_alloc_aligned(struct cma *cma, size_t size, gfp_t gfp)
- {
-+	struct folio *folio;
- 	unsigned int align = min(get_order(size), CONFIG_CMA_ALIGNMENT);
- 
--	return cma_alloc(cma, size >> PAGE_SHIFT, align, gfp & __GFP_NOWARN);
-+	folio = cma_alloc(cma, size >> PAGE_SHIFT, align, gfp & __GFP_NOWARN);
-+	return folio ? &folio->page : NULL;
- }
- 
- /**
---- a/mm/cma.c~mm-cma-convert-cma_alloc-to-return-folio
-+++ a/mm/cma.c
-@@ -417,7 +417,7 @@ static void cma_debug_show_areas(struct
-  * This function allocates part of contiguous memory on specific
-  * contiguous memory area.
-  */
--struct page *cma_alloc(struct cma *cma, unsigned long count,
-+struct folio *cma_alloc(struct cma *cma, unsigned long count,
- 		       unsigned int align, bool no_warn)
- {
- 	unsigned long mask, offset;
-@@ -514,7 +514,7 @@ struct page *cma_alloc(struct cma *cma,
- 		cma_sysfs_account_fail_pages(cma, count);
- 	}
- 
--	return page;
-+	return page ? page_folio(page) : NULL;
- }
- 
- bool cma_pages_valid(struct cma *cma, const struct page *pages,
---- a/mm/cma_debug.c~mm-cma-convert-cma_alloc-to-return-folio
-+++ a/mm/cma_debug.c
-@@ -131,14 +131,14 @@ DEFINE_DEBUGFS_ATTRIBUTE(cma_free_fops,
- static int cma_alloc_mem(struct cma *cma, int count)
- {
- 	struct cma_mem *mem;
--	struct page *p;
-+	struct folio *folio;
- 
- 	mem = kzalloc(sizeof(*mem), GFP_KERNEL);
- 	if (!mem)
- 		return -ENOMEM;
- 
--	p = cma_alloc(cma, count, 0, false);
--	if (!p) {
-+	folio = cma_alloc(cma, count, 0, false);
-+	if (!folio) {
- 		kfree(mem);
- 		return -ENOMEM;
- 	}
---- a/mm/hugetlb.c~mm-cma-convert-cma_alloc-to-return-folio
-+++ a/mm/hugetlb.c
-@@ -1572,13 +1572,14 @@ static struct folio *alloc_gigantic_foli
- 
- #ifdef CONFIG_CMA
- 	{
-+		struct folio *folio;
- 		int node;
- 
- 		if (hugetlb_cma[nid]) {
--			page = cma_alloc(hugetlb_cma[nid], nr_pages,
-+			folio = cma_alloc(hugetlb_cma[nid], nr_pages,
- 					huge_page_order(h), true);
--			if (page)
--				return page_folio(page);
-+			if (folio)
-+				return folio;
- 		}
- 
- 		if (!(gfp_mask & __GFP_THISNODE)) {
-@@ -1586,10 +1587,10 @@ static struct folio *alloc_gigantic_foli
- 				if (node == nid || !hugetlb_cma[node])
- 					continue;
- 
--				page = cma_alloc(hugetlb_cma[node], nr_pages,
-+				folio = cma_alloc(hugetlb_cma[node], nr_pages,
- 						huge_page_order(h), true);
--				if (page)
--					return page_folio(page);
-+				if (folio)
-+					return folio;
- 			}
- 		}
- 	}
-_
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-02-27-14-52
 
-Patches currently in -mm which might be from jianfeng.w.wang@oracle.com are
+for you to fetch changes up to 720da1e593b85a550593b415bf1d79a053133451:
 
+  mm/debug_vm_pgtable: fix BUG_ON with pud advanced test (2024-02-23 17:27:13 -0800)
+
+----------------------------------------------------------------
+6 hotfixes.  3 are cc:stable and the remainder address post-6.7 issues
+or aren't considered appropriate for backporting.
+
+----------------------------------------------------------------
+Aneesh Kumar K.V (IBM) (1):
+      mm/debug_vm_pgtable: fix BUG_ON with pud advanced test
+
+Byungchul Park (1):
+      mm/vmscan: fix a bug calling wakeup_kswapd() with a wrong zone index
+
+Lorenzo Stoakes (1):
+      MAINTAINERS: add memory mapping entry with reviewers
+
+Marco Elver (2):
+      stackdepot: use variable size records for non-evictable entries
+      kasan: revert eviction of stack traces in generic mode
+
+Nhat Pham (1):
+      mm: cachestat: fix folio read-after-free in cache walk
+
+ MAINTAINERS            |  11 +++
+ include/linux/poison.h |   3 +
+ lib/stackdepot.c       | 250 +++++++++++++++++++++++++------------------------
+ mm/debug_vm_pgtable.c  |   8 ++
+ mm/filemap.c           |  51 +++++-----
+ mm/kasan/common.c      |   8 +-
+ mm/kasan/generic.c     |  68 ++------------
+ mm/kasan/kasan.h       |  10 --
+ mm/kasan/quarantine.c  |   5 +-
+ mm/migrate.c           |   8 ++
+ 10 files changed, 197 insertions(+), 225 deletions(-)
 
