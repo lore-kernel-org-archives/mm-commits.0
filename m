@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D760F3D988
-	for <mm-commits@vger.kernel.org>; Tue, 27 Feb 2024 18:54:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 063D04E1DC
+	for <mm-commits@vger.kernel.org>; Tue, 27 Feb 2024 19:09:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709060074; cv=none; b=PTH5YBSktntQY/9WSzbddtut5WL+8fkimzBs9IvSgUn0MAyOFyT5riXfjx9d20d9qEIRq+yaVZkYCCBnLKGXMms4u8CCNwxdk/NwM8F7AqMHGC3FpIhIt4fAx2qDBLJJ2IQ8cm5dotIjvnwbeZp7cEe65zt6ZCZJTtbJQqJ0g88=
+	t=1709060998; cv=none; b=aBqnKXXTUS24le7by4ptssAhIxj4vU+ixFxWeK8JYRiI+iaAK52J+felt8aRmB4RDtJSbipVEC/wALYOMmVxZTuJFEfqg8W7nxHPXDvqkUWMGmu2vZJGxHZElTiZDWSL/k3UhqaWo68lGpv4ff+Vyh2AbumZ3XwBlzOFoAiUDVA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709060074; c=relaxed/simple;
-	bh=ea0i9YpK80J2uam33VHr0KsnMta7iCnM0/G7ZlISldo=;
-	h=Date:To:From:Subject:Message-Id; b=g7EEsziDRbVGZKtAU9rwO+HmaGGrVxfJnH7XtFDDIT0RvLTIVFsILLceVR+tKAR82WqKy5tCakjO04hLzH3S0KT0VXmKOYGlGWMyQ7mdjKK4fPuAOVcsHGe1BiLIMc9u7RPNYxaEduOpg4Fw7bhog2LyHyLcApMXadC7NSgFhqM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fud+m/dR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709060998; c=relaxed/simple;
+	bh=tvo8tJJH94YmwdRltDbqZXrN/J9OIWJ4cTBS0ciBw5g=;
+	h=Date:To:From:Subject:Message-Id; b=gjA9LQs3oRtQImZxKPxkgsApVzTgYC1Y1cZ73TpYW2ItELo/3Z+Mm3yjbd1BbbIoO8elvl3i2rmLJ2csBOgGUA+Gr/7d7TVGT6isDHK9eC/V1f9pTtcpPuTR8S03t2IIeGFpOd3CJbuOA11elbSqoKRZg1mBOoRuj8uCbV0WElI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k2kip8jH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fud+m/dR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D964C433F1;
-	Tue, 27 Feb 2024 18:54:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k2kip8jH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DF42C433F1;
+	Tue, 27 Feb 2024 19:09:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709060074;
-	bh=ea0i9YpK80J2uam33VHr0KsnMta7iCnM0/G7ZlISldo=;
+	s=korg; t=1709060997;
+	bh=tvo8tJJH94YmwdRltDbqZXrN/J9OIWJ4cTBS0ciBw5g=;
 	h=Date:To:From:Subject:From;
-	b=Fud+m/dR6GsZxoGjvdhlid3UVZmlrkZx2NjG7PxaEEY0fkACyLLZNWt1D7zM4sFF7
-	 pADIb0xdgeiTaIG7ZjbTXC2KN5UosajX7f5ZnTuYKlK3XFKxYGQDS2LjOE7fiyF2mz
-	 fVlGkGgDGnbTzpBStaZRXQlstB94neGvbAldTN68=
-Date: Tue, 27 Feb 2024 10:54:33 -0800
+	b=k2kip8jH9Thyw//fe00ETbWo7EzdlrmI+mtHfA9kWupelDiQMnGwGTYptQdzj+HmL
+	 GMGq1kBOrbw24FtvCWrNr2fJnDoz++h2TxbVMrlRVN5Gmo+Gi9qysxvVVNKZDGHOAZ
+	 DGcnlngeaU5uecVzLhRHR0cJCHPkRzJH/6isno8I=
+Date: Tue, 27 Feb 2024 11:09:56 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,sidhartha.kumar@oracle.com,jianfeng.w.wang@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-convert-cma_alloc-to-return-folio.patch added to mm-unstable branch
-Message-Id: <20240227185434.4D964C433F1@smtp.kernel.org>
+Subject: [nacked] mm-cma-convert-cma_alloc-to-return-folio.patch removed from -mm tree
+Message-Id: <20240227190957.6DF42C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,28 +34,12 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
+The quilt patch titled
      Subject: mm/cma: convert cma_alloc() to return folio
-has been added to the -mm mm-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-cma-convert-cma_alloc-to-return-folio.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-convert-cma_alloc-to-return-folio.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Jianfeng Wang <jianfeng.w.wang@oracle.com>
@@ -309,5 +293,4 @@ _
 
 Patches currently in -mm which might be from jianfeng.w.wang@oracle.com are
 
-mm-cma-convert-cma_alloc-to-return-folio.patch
 
