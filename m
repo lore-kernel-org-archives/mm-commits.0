@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78FC22557F
-	for <mm-commits@vger.kernel.org>; Tue, 27 Feb 2024 17:38:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30EC5EEDD
+	for <mm-commits@vger.kernel.org>; Tue, 27 Feb 2024 18:04:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709055482; cv=none; b=I76hWiRXtEBF0Mcxm8LlAaYZQFVOiJDmxI4vB96qgxvXj4aAwBAziylSLW7GKUUUogiOwAO8A9cCL2T36uSUmPRHFTQf/6TOJHsOIdjHPt8jRos0JBJBLTTJ9EkewffSuwRJNo73+67kcJkpHFn+RKpfL/3vUuR0yW5Qe0slNL0=
+	t=1709057056; cv=none; b=Ga0JKDWodRqr1terLAwUzrXOGn+JhD47nHWawqX2KqIUfsKKKHAjwchMuJSGvKpm//I0ZO1+GbOvrS7oe9v8oY5cXLnHWGE6OHd8ZyjJ640OjgLxuiNfa6yN9CzDmSZBlo2xKjKAEM0Zf49Mjhql2olqr9KyAawoIYHrrI9x2VQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709055482; c=relaxed/simple;
-	bh=KgX4vjjDPy3iervGCKwb7SAHN/ZiVQLcq2cwGEOphxc=;
-	h=Date:To:From:Subject:Message-Id; b=Kr4EkOY8kGJxwgJ9/N5fIaTrT3yfqc8iJuAF77gcSP6WR6SgzrbcrpLboTmg5stWSZd4sYUIDNIsHyHK+I4EHvjzQ8QwT/XZgf49GmesVGVRilHL0ELDTrl5QOyZKFH4Dk8IKfWN0WYBBTgW+bnl1/TtPn8oKVk5olCgRLiE4mQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XXonC1X3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709057056; c=relaxed/simple;
+	bh=Tq8PJJf1pmD+MJW20gevJXCuv55B0dHmoqxKIfYeGNY=;
+	h=Date:To:From:Subject:Message-Id; b=Sn+u1aWAeaFyQKDmH/fjkfLoGkRdh6Y6aH3H+csiZx4mQjOhqX1cxXX5dNP13x8fw988EMRLIbgmRlmH94XpbnIfghi7kPd1dytcU41RVm9SixfYTLW+bRcYyWbYcibL91F8NdSaCH5dkQ0nhxt733z67c0mgRIX30Yqxm+4YX0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0VnJctyx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XXonC1X3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5CC5C433C7;
-	Tue, 27 Feb 2024 17:38:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0VnJctyx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E4BBC433F1;
+	Tue, 27 Feb 2024 18:04:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709055482;
-	bh=KgX4vjjDPy3iervGCKwb7SAHN/ZiVQLcq2cwGEOphxc=;
+	s=korg; t=1709057055;
+	bh=Tq8PJJf1pmD+MJW20gevJXCuv55B0dHmoqxKIfYeGNY=;
 	h=Date:To:From:Subject:From;
-	b=XXonC1X3eRChvIpNDaHR9DD+zgNtma86jRq0HKc9TQK/ixVhAgk9HZFjIvdwHfAh3
-	 2CNYOc3a00veO9YkMEy0+dUSGekU/perEf4DQ2kc/bQ18Zv2HqlnwjEunq3xJmzjjN
-	 pdSm+DvqU2NB4zjEk6bVc1g/QFPruyDSqG0Lt7xA=
-Date: Tue, 27 Feb 2024 09:38:01 -0800
-To: mm-commits@vger.kernel.org,zokeefe@google.com,songmuchun@bytedance.com,shy828301@gmail.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,david@redhat.com,ioworker0@gmail.com,akpm@linux-foundation.org
+	b=0VnJctyxVb3fqkHLIxC0UhCKmchI5WdjGNfOmcX7FWxOLpugDILitxPEindpqf2vt
+	 zPAWRdwzXNK7yf0HVhD0tLIv0TPsUHpi1TGRBlZjlLwHSZMbuyLcdB/rduaYwyNZea
+	 tTqTiVnzyjwMCcw0XzBQx03SJvEodElkBZIAhx28=
+Date: Tue, 27 Feb 2024 10:04:12 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,zhouchengming@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-keep-mm-in-mm_slot-without-mmf_disable_thp-check.patch added to mm-unstable branch
-Message-Id: <20240227173801.D5CC5C433C7@smtp.kernel.org>
+Subject: + mm-zsmalloc-dont-hold-locks-of-all-pages-when-free_zspage.patch added to mm-unstable branch
+Message-Id: <20240227180415.6E4BBC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: keep mm in mm_slot without MMF_DISABLE_THP check
+     Subject: mm/zsmalloc: don't hold locks of all pages when free_zspage()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-keep-mm-in-mm_slot-without-mmf_disable_thp-check.patch
+     mm-zsmalloc-dont-hold-locks-of-all-pages-when-free_zspage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-keep-mm-in-mm_slot-without-mmf_disable_thp-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-dont-hold-locks-of-all-pages-when-free_zspage.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,63 +58,285 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lance Yang <ioworker0@gmail.com>
-Subject: mm/khugepaged: keep mm in mm_slot without MMF_DISABLE_THP check
-Date: Tue, 27 Feb 2024 11:51:35 +0800
+From: Chengming Zhou <zhouchengming@bytedance.com>
+Subject: mm/zsmalloc: don't hold locks of all pages when free_zspage()
+Date: Tue, 27 Feb 2024 03:02:54 +0000
 
-Previously, we removed the mm from mm_slot and dropped mm_count
-if the MMF_THP_DISABLE flag was set. However, we didn't re-add
-the mm back after clearing the MMF_THP_DISABLE flag. Additionally,
-We add a check for the MMF_THP_DISABLE flag in hugepage_vma_revalidate().
+Patch series "mm/zsmalloc: simplify synchronization between
+zs_page_migrate() and free_zspage()".
 
-Link: https://lkml.kernel.org/r/20240227035135.54593-1-ioworker0@gmail.com
-Fixes: 879c6000e191 ("mm/khugepaged: bypassing unnecessary scans with MMF_DISABLE_THP check")
-Signed-off-by: Lance Yang <ioworker0@gmail.com>
-Suggested-by: Yang Shi <shy828301@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
+free_zspage() has to hold locks of all pages, since zs_page_migrate() path
+rely on this page lock to protect the race between zs_free() and it, so it
+can safely get zspage from page->private.
+
+But this way is not good and simple enough:
+
+1. Since zs_free() couldn't be sleepable, it can only trylock pages,
+   or has to kick_deferred_free() to defer that to a work.
+
+2. Even in the worker context, async_free_zspage() can't simply
+   lock all pages in lock_zspage(), it's still trylock because of
+   the race between zs_free() and zs_page_migrate(). Please see
+   the commit 2505a981114d ("zsmalloc: fix races between asynchronous
+   zspage free and page migration") for details.
+
+Actually, all free_zspage() needs is to get zspage from page safely, we
+can use RCU to achieve it easily.  Then free_zspage() don't need to hold
+locks of all pages, so don't need the deferred free mechanism at all. 
+This patchset implements it and remove all of deferred free related code.
+
+
+This patch (of 2):
+
+free_zspage() has to hold locks of all pages, since zs_page_migrate() path
+rely on this page lock to protect the race between zs_free() and it, so it
+can safely get zspage from page->private.
+
+But this way is not good and simple enough:
+
+1. Since zs_free() couldn't be sleepable, it can only trylock pages,
+   or has to kick_deferred_free() to defer that to a work.
+
+2. Even in the worker context, async_free_zspage() can't simply
+   lock all pages in lock_zspage(), it's still trylock because of
+   the race between zs_free() and zs_page_migrate(). Please see
+   the commit 2505a981114d ("zsmalloc: fix races between asynchronous
+   zspage free and page migration") for details.
+
+Actually, all free_zspage() needs is to get zspage from page safely, we
+can use RCU to achieve it easily.  Then free_zspage() don't need to hold
+locks of all pages, so don't need the deferred free mechanism at all.
+
+The updated zs_page_migrate() now has two more cases to consider:
+
+1. get_zspage_lockless() return NULL: it means free_zspage() has used
+   reset_page() on this page and its reference of page.
+
+2. get_zspage_lockless() return zspage but it's not on pool list:
+   it means zspage has been removed from list and in process of free.
+
+I'm not sure what value should be returned in these cases?  -EINVAL or
+-EAGAIN or other value?  If the migration caller can find that page has no
+extra referenced and can just free it, I think we should return -EAGAIN to
+let the migration caller retry this page later to free it.  Now I choose
+to use -EINVAL to skip migration of this page, it seems not a big deal to
+fail migration of some pages?
+
+Link: https://lkml.kernel.org/r/20240226-zsmalloc-zspage-rcu-v1-0-456b0ef1a89d@bytedance.com
+Link: https://lkml.kernel.org/r/20240226-zsmalloc-zspage-rcu-v1-1-456b0ef1a89d@bytedance.com
+Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/zsmalloc.c |   97 +++++++++++++++++++++++++++---------------------
+ 1 file changed, 56 insertions(+), 41 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-keep-mm-in-mm_slot-without-mmf_disable_thp-check
-+++ a/mm/khugepaged.c
-@@ -920,7 +920,7 @@ static int hugepage_vma_revalidate(struc
+--- a/mm/zsmalloc.c~mm-zsmalloc-dont-hold-locks-of-all-pages-when-free_zspage
++++ a/mm/zsmalloc.c
+@@ -253,6 +253,7 @@ struct zspage {
+ 	struct list_head list; /* fullness list */
+ 	struct zs_pool *pool;
+ 	rwlock_t lock;
++	struct rcu_head rcu_head;
+ };
+ 
+ struct mapping_area {
+@@ -310,6 +311,8 @@ static int create_cache(struct zs_pool *
+ static void destroy_cache(struct zs_pool *pool)
  {
- 	struct vm_area_struct *vma;
+ 	kmem_cache_destroy(pool->handle_cachep);
++	/* Synchronize RCU to free zspage. */
++	synchronize_rcu();
+ 	kmem_cache_destroy(pool->zspage_cachep);
+ }
  
--	if (unlikely(hpage_collapse_test_exit(mm)))
-+	if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
- 		return SCAN_ANY_PROCESS;
+@@ -335,6 +338,14 @@ static void cache_free_zspage(struct zs_
+ 	kmem_cache_free(pool->zspage_cachep, zspage);
+ }
  
- 	*vmap = vma = find_vma(mm, address);
-@@ -1428,7 +1428,7 @@ static void collect_mm_slot(struct khuge
++static void rcu_free_zspage(struct rcu_head *h)
++{
++	struct zspage *zspage = container_of(h, struct zspage, rcu_head);
++	struct zs_pool *pool = zspage->pool;
++
++	kmem_cache_free(pool->zspage_cachep, zspage);
++}
++
+ /* pool->lock(which owns the handle) synchronizes races */
+ static void record_obj(unsigned long handle, unsigned long obj)
+ {
+@@ -710,14 +721,31 @@ out:
+ 	return newfg;
+ }
  
- 	lockdep_assert_held(&khugepaged_mm_lock);
++static void set_zspage(struct page *page, struct zspage *zspage)
++{
++	struct zspage __rcu **private = (struct zspage __rcu **)&page->private;
++
++	rcu_assign_pointer(*private, zspage);
++}
++
+ static struct zspage *get_zspage(struct page *page)
+ {
+-	struct zspage *zspage = (struct zspage *)page_private(page);
++	struct zspage __rcu **private = (struct zspage __rcu **)&page->private;
++	struct zspage *zspage;
  
--	if (hpage_collapse_test_exit_or_disable(mm)) {
-+	if (hpage_collapse_test_exit(mm)) {
- 		/* free mm_slot */
- 		hash_del(&slot->hash);
- 		list_del(&slot->mm_node);
-@@ -2456,7 +2456,7 @@ breakouterloop_mmap_lock:
- 	 * Release the current mm_slot if this mm is about to die, or
- 	 * if we scanned all vmas of this mm.
++	zspage = rcu_dereference_protected(*private, true);
+ 	BUG_ON(zspage->magic != ZSPAGE_MAGIC);
+ 	return zspage;
+ }
+ 
++/* Only used in zs_page_migrate() to get zspage locklessly. */
++static struct zspage *get_zspage_lockless(struct page *page)
++{
++	struct zspage __rcu **private = (struct zspage __rcu **)&page->private;
++
++	return rcu_dereference(*private);
++}
++
+ static struct page *get_next_page(struct page *page)
+ {
+ 	struct zspage *zspage = get_zspage(page);
+@@ -793,32 +821,11 @@ static void reset_page(struct page *page
+ {
+ 	__ClearPageMovable(page);
+ 	ClearPagePrivate(page);
+-	set_page_private(page, 0);
++	set_zspage(page, NULL);
+ 	page_mapcount_reset(page);
+ 	page->index = 0;
+ }
+ 
+-static int trylock_zspage(struct zspage *zspage)
+-{
+-	struct page *cursor, *fail;
+-
+-	for (cursor = get_first_page(zspage); cursor != NULL; cursor =
+-					get_next_page(cursor)) {
+-		if (!trylock_page(cursor)) {
+-			fail = cursor;
+-			goto unlock;
+-		}
+-	}
+-
+-	return 1;
+-unlock:
+-	for (cursor = get_first_page(zspage); cursor != fail; cursor =
+-					get_next_page(cursor))
+-		unlock_page(cursor);
+-
+-	return 0;
+-}
+-
+ static void __free_zspage(struct zs_pool *pool, struct size_class *class,
+ 				struct zspage *zspage)
+ {
+@@ -834,13 +841,12 @@ static void __free_zspage(struct zs_pool
+ 		VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 		next = get_next_page(page);
+ 		reset_page(page);
+-		unlock_page(page);
+ 		dec_zone_page_state(page, NR_ZSPAGES);
+ 		put_page(page);
+ 		page = next;
+ 	} while (page != NULL);
+ 
+-	cache_free_zspage(pool, zspage);
++	call_rcu(&zspage->rcu_head, rcu_free_zspage);
+ 
+ 	class_stat_dec(class, ZS_OBJS_ALLOCATED, class->objs_per_zspage);
+ 	atomic_long_sub(class->pages_per_zspage, &pool->pages_allocated);
+@@ -852,16 +858,6 @@ static void free_zspage(struct zs_pool *
+ 	VM_BUG_ON(get_zspage_inuse(zspage));
+ 	VM_BUG_ON(list_empty(&zspage->list));
+ 
+-	/*
+-	 * Since zs_free couldn't be sleepable, this function cannot call
+-	 * lock_page. The page locks trylock_zspage got will be released
+-	 * by __free_zspage.
+-	 */
+-	if (!trylock_zspage(zspage)) {
+-		kick_deferred_free(pool);
+-		return;
+-	}
+-
+ 	remove_zspage(class, zspage);
+ 	__free_zspage(pool, class, zspage);
+ }
+@@ -929,7 +925,7 @@ static void create_page_chain(struct siz
  	 */
--	if (hpage_collapse_test_exit_or_disable(mm) || !vma) {
-+	if (hpage_collapse_test_exit(mm) || !vma) {
- 		/*
- 		 * Make sure that if mm_users is reaching zero while
- 		 * khugepaged runs here, khugepaged_exit will find
+ 	for (i = 0; i < nr_pages; i++) {
+ 		page = pages[i];
+-		set_page_private(page, (unsigned long)zspage);
++		set_zspage(page, zspage);
+ 		page->index = 0;
+ 		if (i == 0) {
+ 			zspage->first_page = page;
+@@ -978,10 +974,11 @@ static struct zspage *alloc_zspage(struc
+ 		pages[i] = page;
+ 	}
+ 
+-	create_page_chain(class, zspage, pages);
+ 	init_zspage(class, zspage);
+ 	zspage->pool = pool;
+ 	zspage->class = class->index;
++	/* RCU set_zspage() after zspage initialized. */
++	create_page_chain(class, zspage, pages);
+ 
+ 	return zspage;
+ }
+@@ -1765,17 +1762,35 @@ static int zs_page_migrate(struct page *
+ 
+ 	VM_BUG_ON_PAGE(!PageIsolated(page), page);
+ 
+-	/* The page is locked, so this pointer must remain valid */
+-	zspage = get_zspage(page);
+-	pool = zspage->pool;
++	rcu_read_lock();
++	zspage = get_zspage_lockless(page);
++	if (!zspage) {
++		rcu_read_unlock();
++		return -EINVAL;
++	}
+ 
+ 	/*
+ 	 * The pool's lock protects the race between zpage migration
+-	 * and zs_free.
++	 * and zs_free. We check if the zspage is still in pool with
++	 * pool->lock protection. If the zspage isn't in pool anymore,
++	 * it should be freed by RCU soon.
+ 	 */
++	pool = zspage->pool;
+ 	spin_lock(&pool->lock);
+ 	class = zspage_class(pool, zspage);
+ 
++	if (list_empty(&zspage->list)) {
++		spin_unlock(&pool->lock);
++		rcu_read_unlock();
++		return -EINVAL;
++	}
++
++	/*
++	 * Now the zspage is still on pool, and we held pool->lock,
++	 * it can't be freed in the meantime.
++	 */
++	rcu_read_unlock();
++
+ 	/* the migrate_write_lock protects zpage access via zs_map_object */
+ 	migrate_write_lock(zspage);
+ 
 _
 
-Patches currently in -mm which might be from ioworker0@gmail.com are
+Patches currently in -mm which might be from zhouchengming@bytedance.com are
 
-mm-khugepaged-keep-mm-in-mm_slot-without-mmf_disable_thp-check.patch
+mm-zswap-global-lru-and-shrinker-shared-by-all-zswap_pools.patch
+mm-zswap-change-zswap_pool-kref-to-percpu_ref.patch
+mm-zsmalloc-dont-hold-locks-of-all-pages-when-free_zspage.patch
+mm-zsmalloc-remove-the-deferred-free-mechanism.patch
 
