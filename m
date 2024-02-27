@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78B992D050
-	for <mm-commits@vger.kernel.org>; Tue, 27 Feb 2024 18:36:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55EA63DB86
+	for <mm-commits@vger.kernel.org>; Tue, 27 Feb 2024 18:43:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709058971; cv=none; b=Q1uaI7HfcLgcCVK92P1kl/ZQ+2puWkGqRBiY1/K3wdE0Sdp9DN4xJ9bzIzkdR6TKT4D6UokqfvBSQqHQNZldn02wLNJyjJg6NrCBaL/e5FjD9HOu4va4yVyMnHyZw/Mu9M2qdsvI7d1YC6a23L2n5+C6QkeB13/K88pdAfKa5Lk=
+	t=1709059384; cv=none; b=jOXzmckRU5pqLwLcOmNT5boKH5mS5VqpMtnQYULv48Lq705sfpdsFEdgnf2DvdX8Pu7YwP5My3CMyT+NUBOWcOuYvYjXUJwzjXvp6tcYIpgrlDEKTcaInRsFcrdxkjT8KsTcE83i2IKqIXtZCCPZZg33rz0g1mhQRIgzzDHRDI0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709058971; c=relaxed/simple;
-	bh=Ek2Z98OQxydu5iWJ6KSlw4Ge2mqURm/65ab0+gO+BCo=;
-	h=Date:To:From:Subject:Message-Id; b=c7lqk2b8M6mtr/+AOrdNj3M2tldNFKPWjGz8xL4PLBNxSuO+VcB8HngmalK1EFudSOn/L7Sv6/1UALBS9n7zEiBGrFXGbnsekUXmYjwN2dSYtDjbJJfEb6Ka5QmzvoGiVeJruTikXNwuupZeEouciR5FXPTYTZQGaZ5otNNWPLA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XweD8lwP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709059384; c=relaxed/simple;
+	bh=D0wHbql/02mVywHGZEvBA8uGaD4hsDoRKp5IamiQ6dM=;
+	h=Date:To:From:Subject:Message-Id; b=QZ3ffiE20NL9/HdNc3GRzfXGTUc6kSvycWGsMjKp73bOoqt1ByEdnpVaU8U6VHKYA+SJ+HH/9yQJu8fbdwlexWABbfpIfcEFzn/hjCK4c7d9u79yoqK4GNEusApySTtOERiuIbhRAeku5fsmZTjGYdbQTz5P+M2ds19bgVHxLtA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Rc6t+EQj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XweD8lwP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7AC7C433F1;
-	Tue, 27 Feb 2024 18:36:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rc6t+EQj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0E77C433F1;
+	Tue, 27 Feb 2024 18:43:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709058971;
-	bh=Ek2Z98OQxydu5iWJ6KSlw4Ge2mqURm/65ab0+gO+BCo=;
+	s=korg; t=1709059383;
+	bh=D0wHbql/02mVywHGZEvBA8uGaD4hsDoRKp5IamiQ6dM=;
 	h=Date:To:From:Subject:From;
-	b=XweD8lwPMzQ/rqPQbzWmu9U0T4m66yMe9XfOg/HvqweA8JIcZgL/RVugkBjYNnQw/
-	 I9SL+TX+ZpkUkP8tjmfw+iQM7Jg/9uImdzlLrgdezDkDy5U0+EB7gHmeGnLXT+Sr+M
-	 wt/5Dr9IRtXc445pAP1GLWF7YZfsxoBYToV7MfS8=
-Date: Tue, 27 Feb 2024 10:36:10 -0800
-To: mm-commits@vger.kernel.org,suxiaoyi@huawei.com,mcgrof@kernel.org,echanude@redhat.com,changbin.du@huawei.com,akpm@linux-foundation.org
+	b=Rc6t+EQjfTFRc1y1pYH31QcdS7FpRnHM1uVS3Fn7pW75jjzR4pT356TO7SluXtkrx
+	 ai6kPKE6+FfzSdJgZykdTTYUTTIqko33DaVsOprqEjuA0qfcN1al6Z6DG+7ZPk2KS0
+	 QtMhsI+ZDjrpVJD9kh1c/ld0sfsTIthvVS11dcKI=
+Date: Tue, 27 Feb 2024 10:43:03 -0800
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,lijiang@redhat.com,k-hagio-ab@nec.com,dyoung@redhat.com,bhe@redhat.com,shijie@os.amperecomputing.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + modules-wait-do_free_init-correctly.patch added to mm-nonmm-unstable branch
-Message-Id: <20240227183610.E7AC7C433F1@smtp.kernel.org>
+Subject: + crash_core-export-vmemmap-when-config_sparsemem_vmemmap-is-enabled.patch added to mm-nonmm-unstable branch
+Message-Id: <20240227184303.C0E77C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: modules: wait do_free_init correctly
+     Subject: crash_core: export vmemmap when CONFIG_SPARSEMEM_VMEMMAP is enabled
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     modules-wait-do_free_init-correctly.patch
+     crash_core-export-vmemmap-when-config_sparsemem_vmemmap-is-enabled.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/modules-wait-do_free_init-correctly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash_core-export-vmemmap-when-config_sparsemem_vmemmap-is-enabled.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,120 +58,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Changbin Du <changbin.du@huawei.com>
-Subject: modules: wait do_free_init correctly
-Date: Tue, 27 Feb 2024 10:35:46 +0800
+From: Huang Shijie <shijie@os.amperecomputing.com>
+Subject: crash_core: export vmemmap when CONFIG_SPARSEMEM_VMEMMAP is enabled
+Date: Tue, 27 Feb 2024 09:49:52 +0800
 
-The synchronization here is to ensure the ordering of freeing of a module
-init so that it happens before W+X checking.  It is worth noting it is not
-that the freeing was not happening, it is just that our sanity checkers
-raced against the permission checkers which assume init memory is already
-gone.
+In memory_model.h, if CONFIG_SPARSEMEM_VMEMMAP is configed, kernel will
+use vmemmap to do the __pfn_to_page/page_to_pfn, and kernel will not use
+the "classic sparse" to do the __pfn_to_page/page_to_pfn.
 
-Commit 1a7b7d922081 ("modules: Use vmalloc special flag") moved calling
-do_free_init() into a global workqueue instead of relying on it being
-called through call_rcu(..., do_free_init), which used to allowed us call
-do_free_init() asynchronously after the end of a subsequent grace period. 
-The move to a global workqueue broke the gaurantees for code which needed
-to be sure the do_free_init() would complete with rcu_barrier().  To fix
-this callers which used to rely on rcu_barrier() must now instead use
-flush_work(&init_free_wq).
+So export the vmemmap when CONFIG_SPARSEMEM_VMEMMAP is configed.  This
+makes the user applications (crash, etc) get faster
+pfn_to_page/page_to_pfn operations too.
 
-Without this fix, we still could encounter false positive reports in W+X
-checking since the rcu_barrier() here can not ensure the ordering now.
-
-Even worse, the rcu_barrier() can introduce significant delay.  Eric
-Chanudet reported that the rcu_barrier introduces ~0.1s delay on a
-PREEMPT_RT kernel.
-
-  [    0.291444] Freeing unused kernel memory: 5568K
-  [    0.402442] Run /sbin/init as init process
-
-With this fix, the above delay can be eliminated.
-
-Link: https://lkml.kernel.org/r/20240227023546.2490667-1-changbin.du@huawei.com
-Fixes: 1a7b7d922081 ("modules: Use vmalloc special flag")
-Signed-off-by: Changbin Du <changbin.du@huawei.com>
-Tested-by: Eric Chanudet <echanude@redhat.com>
-Acked-by: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Xiaoyi Su <suxiaoyi@huawei.com>
+Link: https://lkml.kernel.org/r/20240227014952.3184-1-shijie@os.amperecomputing.com
+Signed-off-by: Huang Shijie <shijie@os.amperecomputing.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Kazuhito Hagio <k-hagio-ab@nec.com>
+Cc: Lianbo Jiang <lijiang@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/moduleloader.h |    8 ++++++++
- init/main.c                  |    5 +++--
- kernel/module/main.c         |    9 +++++++--
- 3 files changed, 18 insertions(+), 4 deletions(-)
+ kernel/vmcore_info.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/moduleloader.h~modules-wait-do_free_init-correctly
-+++ a/include/linux/moduleloader.h
-@@ -115,6 +115,14 @@ int module_finalize(const Elf_Ehdr *hdr,
- 		    const Elf_Shdr *sechdrs,
- 		    struct module *mod);
- 
-+#ifdef CONFIG_MODULES
-+void flush_module_init_free_work(void);
-+#else
-+static inline void flush_module_init_free_work(void)
-+{
-+}
+--- a/kernel/vmcore_info.c~crash_core-export-vmemmap-when-config_sparsemem_vmemmap-is-enabled
++++ a/kernel/vmcore_info.c
+@@ -152,6 +152,9 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_SYMBOL(mem_map);
+ 	VMCOREINFO_SYMBOL(contig_page_data);
+ #endif
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
++	VMCOREINFO_SYMBOL_ARRAY(vmemmap);
 +#endif
-+
- /* Any cleanup needed when module leaves. */
- void module_arch_cleanup(struct module *mod);
- 
---- a/init/main.c~modules-wait-do_free_init-correctly
-+++ a/init/main.c
-@@ -88,6 +88,7 @@
- #include <linux/sched/task_stack.h>
- #include <linux/context_tracking.h>
- #include <linux/random.h>
-+#include <linux/moduleloader.h>
- #include <linux/list.h>
- #include <linux/integrity.h>
- #include <linux/proc_ns.h>
-@@ -1398,11 +1399,11 @@ static void mark_readonly(void)
- 	if (rodata_enabled) {
- 		/*
- 		 * load_module() results in W+X mappings, which are cleaned
--		 * up with call_rcu().  Let's make sure that queued work is
-+		 * up with init_free_wq. Let's make sure that queued work is
- 		 * flushed so that we don't hit false positives looking for
- 		 * insecure pages which are W+X.
- 		 */
--		rcu_barrier();
-+		flush_module_init_free_work();
- 		mark_rodata_ro();
- 		debug_checkwx();
- 		rodata_test();
---- a/kernel/module/main.c~modules-wait-do_free_init-correctly
-+++ a/kernel/module/main.c
-@@ -2489,6 +2489,11 @@ static void do_free_init(struct work_str
- 	}
- }
- 
-+void flush_module_init_free_work(void)
-+{
-+	flush_work(&init_free_wq);
-+}
-+
- #undef MODULE_PARAM_PREFIX
- #define MODULE_PARAM_PREFIX "module."
- /* Default value for module->async_probe_requested */
-@@ -2593,8 +2598,8 @@ static noinline int do_init_module(struc
- 	 * Note that module_alloc() on most architectures creates W+X page
- 	 * mappings which won't be cleaned up until do_free_init() runs.  Any
- 	 * code such as mark_rodata_ro() which depends on those mappings to
--	 * be cleaned up needs to sync with the queued work - ie
--	 * rcu_barrier()
-+	 * be cleaned up needs to sync with the queued work by invoking
-+	 * flush_module_init_free_work().
- 	 */
- 	if (llist_add(&freeinit->node, &init_free_list))
- 		schedule_work(&init_free_wq);
+ #ifdef CONFIG_SPARSEMEM
+ 	VMCOREINFO_SYMBOL_ARRAY(mem_section);
+ 	VMCOREINFO_LENGTH(mem_section, NR_SECTION_ROOTS);
 _
 
-Patches currently in -mm which might be from changbin.du@huawei.com are
+Patches currently in -mm which might be from shijie@os.amperecomputing.com are
 
-modules-wait-do_free_init-correctly.patch
+crash_core-export-vmemmap-when-config_sparsemem_vmemmap-is-enabled.patch
 
