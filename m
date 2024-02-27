@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC79550A73
-	for <mm-commits@vger.kernel.org>; Tue, 27 Feb 2024 18:48:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E909151028
+	for <mm-commits@vger.kernel.org>; Tue, 27 Feb 2024 18:48:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709059692; cv=none; b=r2Kxf7Iwl2KVk02mOaS41vsYs0eUtiQVYisn8utlMgV2RqA9jFqJis3pLmG7hpd518lxsw3Oks0Uj4k0eAmCFcBehDj+XqgioJSfmAhOOI9VFlOlHjrdQSdRr0MmCBHNj51pk1CFnCmf43gLr9fwiEbQYeEOgmU4Yucw2O1y7+o=
+	t=1709059694; cv=none; b=phiKS8oPnBcG/K10XO4hfBWUg8SZxdf4h8wGhxNWWk7c+CUhGO5h3RMCOR2Zf1t3QXJ0zsh57YFfSfn66n4DfqYn9Tx1+pIv9B6wM4bxy+LbKwPvvUU8g17fvkYvs85+1y8c6HWsMiA1Av4CFz+JIHemx2x+SbIFLcdsg0eDbXw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709059692; c=relaxed/simple;
-	bh=STFwsQAHwJggHLB/kxqGoHIpWUzyx0OO5DATYBZ8nLc=;
-	h=Date:To:From:Subject:Message-Id; b=aeWHsPghUihWVQwEoSfbItXiMTiq/A1e4Crfh6KTJlnYrocv2duN5XZ7jm+/O93qZen55KVtTsrzS/bYgBIl6KsFM0k12aPMXSUeE0VGgIfdgs9nN0la/TINPv0QYnXIbC/iEviLQSOL2EZV4OrmBXHLm3g0eNUtZ1tWQYlY920=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VWI4eawz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709059694; c=relaxed/simple;
+	bh=x0XLEi8fB7y8L0NwwRgLQ1TXAiO7Jc/p0ad+wnz5rG4=;
+	h=Date:To:From:Subject:Message-Id; b=gUfL5NSjaAa4QUI7LrX1Pl7ddrxlvkJp3ZFK87J3xVsdlggZ0XIiwQAE5laKtp8r6Nsckxw5C79S5Jrkp8bOGtxKOmXGYC/68YxlUFYBhOZw1oLzi6VpVdcSfSWNQuekTxh1izTClwNa/qY0Fy6aSEgZgmtHUy61FVwI8jpKPos=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sDVBptOX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VWI4eawz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71F96C433C7;
-	Tue, 27 Feb 2024 18:48:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sDVBptOX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3C17C43394;
+	Tue, 27 Feb 2024 18:48:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709059692;
-	bh=STFwsQAHwJggHLB/kxqGoHIpWUzyx0OO5DATYBZ8nLc=;
+	s=korg; t=1709059693;
+	bh=x0XLEi8fB7y8L0NwwRgLQ1TXAiO7Jc/p0ad+wnz5rG4=;
 	h=Date:To:From:Subject:From;
-	b=VWI4eawzrZpTXJAYvFEcBiesPsQNKhfGuZbizO+iiFuqcriE8BstnuGPSmEftEZHC
-	 5E7Gm/tXny8hz6/5Q/VwUC8U0YSTMCxiVxojUvJYW4nwPpzGkJK7wvkmWEcdm1qN5H
-	 MnGjlDVCTFKTaBDGzDE0USX8sgkWTNOVrh1M56ac=
-Date: Tue, 27 Feb 2024 10:48:11 -0800
+	b=sDVBptOXsCyo1pANtVp6TglyBvrVNCbSc+4j++o02pJX4LGhb34DbzBieLuboJKr7
+	 KrVoNTWWVihMWOlcW9bJc12t5Vja9kjWmK3KDvsj1w/V2AFoziSiNA5LI7J1jhbLH5
+	 YgQV3N6ZaIAN6XSA4MNJcRx/Cn0bmagxK2aYB/ek=
+Date: Tue, 27 Feb 2024 10:48:13 -0800
 To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,mgorman@suse.de,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-a-folio-in-__collapse_huge_page_copy_succeeded.patch added to mm-unstable branch
-Message-Id: <20240227184812.71F96C433C7@smtp.kernel.org>
+Subject: + mm-convert-free_swap_cache-to-take-a-folio.patch added to mm-unstable branch
+Message-Id: <20240227184813.B3C17C43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: use a folio in __collapse_huge_page_copy_succeeded()
+     Subject: mm: convert free_swap_cache() to take a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-use-a-folio-in-__collapse_huge_page_copy_succeeded.patch
+     mm-convert-free_swap_cache-to-take-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-a-folio-in-__collapse_huge_page_copy_succeeded.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-free_swap_cache-to-take-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,82 +59,110 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: use a folio in __collapse_huge_page_copy_succeeded()
-Date: Tue, 27 Feb 2024 17:42:51 +0000
+Subject: mm: convert free_swap_cache() to take a folio
+Date: Tue, 27 Feb 2024 17:42:52 +0000
 
-These pages are all chained together through the lru list, so we know
-they're folios.  Use the folio APIs to save three hidden calls to
-compound_head().
+All but one caller already has a folio, so convert
+free_page_and_swap_cache() to have a folio and remove the call to
+page_folio().
 
-Link: https://lkml.kernel.org/r/20240227174254.710559-18-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240227174254.710559-19-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   30 ++++++++++++++----------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
+ include/linux/swap.h |    8 ++++----
+ mm/khugepaged.c      |    2 +-
+ mm/memory.c          |    2 +-
+ mm/swap_state.c      |   12 ++++++------
+ 4 files changed, 12 insertions(+), 12 deletions(-)
 
---- a/mm/khugepaged.c~mm-use-a-folio-in-__collapse_huge_page_copy_succeeded
-+++ a/mm/khugepaged.c
-@@ -689,9 +689,7 @@ static void __collapse_huge_page_copy_su
- 						spinlock_t *ptl,
- 						struct list_head *compound_pagelist)
- {
--	struct folio *src_folio;
--	struct page *src_page;
--	struct page *tmp;
-+	struct folio *src, *tmp;
- 	pte_t *_pte;
- 	pte_t pteval;
- 
-@@ -710,10 +708,11 @@ static void __collapse_huge_page_copy_su
- 				ksm_might_unmap_zero_page(vma->vm_mm, pteval);
- 			}
- 		} else {
--			src_page = pte_page(pteval);
--			src_folio = page_folio(src_page);
--			if (!folio_test_large(src_folio))
--				release_pte_folio(src_folio);
-+			struct page *src_page = pte_page(pteval);
-+
-+			src = page_folio(src_page);
-+			if (!folio_test_large(src))
-+				release_pte_folio(src);
- 			/*
- 			 * ptl mostly unnecessary, but preempt has to
- 			 * be disabled to update the per-cpu stats
-@@ -721,20 +720,19 @@ static void __collapse_huge_page_copy_su
- 			 */
- 			spin_lock(ptl);
- 			ptep_clear(vma->vm_mm, address, _pte);
--			folio_remove_rmap_pte(src_folio, src_page, vma);
-+			folio_remove_rmap_pte(src, src_page, vma);
- 			spin_unlock(ptl);
- 			free_page_and_swap_cache(src_page);
- 		}
- 	}
- 
--	list_for_each_entry_safe(src_page, tmp, compound_pagelist, lru) {
--		list_del(&src_page->lru);
--		mod_node_page_state(page_pgdat(src_page),
--				    NR_ISOLATED_ANON + page_is_file_lru(src_page),
--				    -compound_nr(src_page));
--		unlock_page(src_page);
--		free_swap_cache(src_page);
--		putback_lru_page(src_page);
-+	list_for_each_entry_safe(src, tmp, compound_pagelist, lru) {
-+		list_del(&src->lru);
-+		node_stat_sub_folio(src, NR_ISOLATED_ANON +
-+				folio_is_file_lru(src));
-+		folio_unlock(src);
-+		free_swap_cache(&src->page);
-+		folio_putback_lru(src);
- 	}
+--- a/include/linux/swap.h~mm-convert-free_swap_cache-to-take-a-folio
++++ a/include/linux/swap.h
+@@ -447,9 +447,9 @@ static inline unsigned long total_swapca
+ 	return global_node_page_state(NR_SWAPCACHE);
  }
  
+-extern void free_swap_cache(struct page *page);
+-extern void free_page_and_swap_cache(struct page *);
+-extern void free_pages_and_swap_cache(struct encoded_page **, int);
++void free_swap_cache(struct folio *folio);
++void free_page_and_swap_cache(struct page *);
++void free_pages_and_swap_cache(struct encoded_page **, int);
+ /* linux/mm/swapfile.c */
+ extern atomic_long_t nr_swap_pages;
+ extern long total_swap_pages;
+@@ -531,7 +531,7 @@ static inline void put_swap_device(struc
+ /* used to sanity check ptes in zap_pte_range when CONFIG_SWAP=0 */
+ #define free_swap_and_cache(e) is_pfn_swap_entry(e)
+ 
+-static inline void free_swap_cache(struct page *page)
++static inline void free_swap_cache(struct folio *folio)
+ {
+ }
+ 
+--- a/mm/khugepaged.c~mm-convert-free_swap_cache-to-take-a-folio
++++ a/mm/khugepaged.c
+@@ -731,7 +731,7 @@ static void __collapse_huge_page_copy_su
+ 		node_stat_sub_folio(src, NR_ISOLATED_ANON +
+ 				folio_is_file_lru(src));
+ 		folio_unlock(src);
+-		free_swap_cache(&src->page);
++		free_swap_cache(src);
+ 		folio_putback_lru(src);
+ 	}
+ }
+--- a/mm/memory.c~mm-convert-free_swap_cache-to-take-a-folio
++++ a/mm/memory.c
+@@ -3376,7 +3376,7 @@ static vm_fault_t wp_page_copy(struct vm
+ 		folio_put(new_folio);
+ 	if (old_folio) {
+ 		if (page_copied)
+-			free_swap_cache(&old_folio->page);
++			free_swap_cache(old_folio);
+ 		folio_put(old_folio);
+ 	}
+ 
+--- a/mm/swap_state.c~mm-convert-free_swap_cache-to-take-a-folio
++++ a/mm/swap_state.c
+@@ -283,10 +283,8 @@ void clear_shadow_from_swap_cache(int ty
+  * folio_free_swap() _with_ the lock.
+  * 					- Marcelo
+  */
+-void free_swap_cache(struct page *page)
++void free_swap_cache(struct folio *folio)
+ {
+-	struct folio *folio = page_folio(page);
+-
+ 	if (folio_test_swapcache(folio) && !folio_mapped(folio) &&
+ 	    folio_trylock(folio)) {
+ 		folio_free_swap(folio);
+@@ -300,9 +298,11 @@ void free_swap_cache(struct page *page)
+  */
+ void free_page_and_swap_cache(struct page *page)
+ {
+-	free_swap_cache(page);
++	struct folio *folio = page_folio(page);
++
++	free_swap_cache(folio);
+ 	if (!is_huge_zero_page(page))
+-		put_page(page);
++		folio_put(folio);
+ }
+ 
+ /*
+@@ -319,7 +319,7 @@ void free_pages_and_swap_cache(struct en
+ 	for (int i = 0; i < nr; i++) {
+ 		struct folio *folio = page_folio(encoded_page_ptr(pages[i]));
+ 
+-		free_swap_cache(&folio->page);
++		free_swap_cache(folio);
+ 		refs[folios.nr] = 1;
+ 		if (unlikely(encoded_page_flags(pages[i]) &
+ 			     ENCODED_PAGE_BIT_NR_PAGES_NEXT))
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
