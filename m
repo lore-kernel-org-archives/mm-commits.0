@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED7CA2557E
-	for <mm-commits@vger.kernel.org>; Tue, 27 Feb 2024 18:47:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2CBA2557E
+	for <mm-commits@vger.kernel.org>; Tue, 27 Feb 2024 18:47:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709059676; cv=none; b=c6k+/7jGoX8GJEElZcJc4r8C+ZvWH3QHm6PTzGuUp0chQKmWefY0bYhQtGQYtDXgTB/HYozYLYjIX9dV9gGImLCDtT06sf/RFkmAinMW0otWpyUJurYc8B+WUeeF7iXxQ7eNNF/yrfDnesFSvOC1taLCR7rHzEmIL2vQSRTxlZc=
+	t=1709059677; cv=none; b=V5s+HP4+qZasbBzXO7ftP2HK5P+at/LQqO9k9YUsuJRPyMCqApNCOpRtY5qqBQvv9WpKzIDyB07o3sowh+vEArGFSx94LX6ZmilBNmAVvYIl6Fi7o/IBJF2TbA8OuszHJq6zjG6A9w/tXoAjii+wG1uUgWn5MKw8Bnn3nnnaKmA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709059676; c=relaxed/simple;
-	bh=4A3tEa01lrOoi+vaTpcm5cRrhJlG5IIChj+QUnd02Bk=;
-	h=Date:To:From:Subject:Message-Id; b=d0hKSi0jO8+gtx+I/vZakoRwBC61jNzkWOdO2Kufs7O0GONq0SfiZ17xp4giFQR/B5D0WdrLTdTJETu1xrNE7zUmt7/PihQr2KRoItsdw3R4iTCim8EMAl/IBRtLaPm/XjT/e+iPjsn1t1l+/b1wp3lIQ9rQuu4vA5uZbqRp8+c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LOAsujNL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709059677; c=relaxed/simple;
+	bh=qCKa8kYEntgf3FNq5OWnVvGdKPjEt6zNoV/EgzCYNaU=;
+	h=Date:To:From:Subject:Message-Id; b=uOmk7U5+yQg+H5K0Lu0FDFaAUJPrnYIPpV2JrUrKmWQA8FpQZxynIr26wxW02ONVov1zIbI4XZaret+X00KETd8BaXU6F8niYr9T1pp/WjJaFhywfnxRuHuhx/jIlzVTN12s1049Q2w+xXClDbOSHA0Bja8OpLO78ijdJFatvF0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fTdYRaD/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LOAsujNL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6842C433F1;
-	Tue, 27 Feb 2024 18:47:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fTdYRaD/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AF17C43390;
+	Tue, 27 Feb 2024 18:47:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709059675;
-	bh=4A3tEa01lrOoi+vaTpcm5cRrhJlG5IIChj+QUnd02Bk=;
+	s=korg; t=1709059677;
+	bh=qCKa8kYEntgf3FNq5OWnVvGdKPjEt6zNoV/EgzCYNaU=;
 	h=Date:To:From:Subject:From;
-	b=LOAsujNLJDzmzzEitS9/Hlt5y9g84Bn1ouJNdgZiIRTv+/8WwkdSlTaU3cItmc5Lt
-	 Cu9QlQMKsSo/eUmdwySTysrcQw59OzEeH9tfa9ti62PG7EolOFNf3gMi2uDeBR3mF5
-	 CLJ5GBY5L4lf1YSiWxoT4fjJlTcp8+ftjBXswDao=
-Date: Tue, 27 Feb 2024 10:47:55 -0800
+	b=fTdYRaD/ZWHAHG0kQPobHGCowO1inoWa2urEx77Z+9sNwh3rRsetZ1z3/jDxi+Ed6
+	 gJ83NBA2jVrRwOVZoRlWRQiHN31aFkk3rRVqtqLWhI9EiUp6fFy/mawms5AbPfsBpG
+	 U1bEdTZJCGVGbmZSFfh7898DysNxjUtS9n3PMSe0=
+Date: Tue, 27 Feb 2024 10:47:56 -0800
 To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,mgorman@suse.de,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-use-of-folio-list-from-folios_put.patch added to mm-unstable branch
-Message-Id: <20240227184755.A6842C433F1@smtp.kernel.org>
+Subject: + mm-use-free_unref_folios-in-put_pages_list.patch added to mm-unstable branch
+Message-Id: <20240227184757.2AF17C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove use of folio list from folios_put()
+     Subject: mm: use free_unref_folios() in put_pages_list()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-use-of-folio-list-from-folios_put.patch
+     mm-use-free_unref_folios-in-put_pages_list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-use-of-folio-list-from-folios_put.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-free_unref_folios-in-put_pages_list.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,65 +59,58 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove use of folio list from folios_put()
-Date: Tue, 27 Feb 2024 17:42:40 +0000
+Subject: mm: use free_unref_folios() in put_pages_list()
+Date: Tue, 27 Feb 2024 17:42:41 +0000
 
-Instead of putting the interesting folios on a list, delete the
-uninteresting one from the folio_batch.
+Break up the list of folios into batches here so that the folios are more
+likely to be cache hot when doing the rest of the processing.
 
-Link: https://lkml.kernel.org/r/20240227174254.710559-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240227174254.710559-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ mm/swap.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
---- a/mm/swap.c~mm-remove-use-of-folio-list-from-folios_put
+--- a/mm/swap.c~mm-use-free_unref_folios-in-put_pages_list
 +++ a/mm/swap.c
-@@ -961,12 +961,11 @@ void lru_cache_disable(void)
+@@ -138,22 +138,25 @@ EXPORT_SYMBOL(__folio_put);
   */
- void folios_put_refs(struct folio_batch *folios, unsigned int *refs)
+ void put_pages_list(struct list_head *pages)
  {
--	int i;
--	LIST_HEAD(pages_to_free);
-+	int i, j;
- 	struct lruvec *lruvec = NULL;
- 	unsigned long flags = 0;
+-	struct folio *folio, *next;
++	struct folio_batch fbatch;
++	struct folio *folio;
  
--	for (i = 0; i < folios->nr; i++) {
-+	for (i = 0, j = 0; i < folios->nr; i++) {
- 		struct folio *folio = folios->folios[i];
- 		unsigned int nr_refs = refs ? refs[i] : 1;
- 
-@@ -1016,14 +1015,20 @@ void folios_put_refs(struct folio_batch
- 			count_vm_event(UNEVICTABLE_PGCLEARED);
+-	list_for_each_entry_safe(folio, next, pages, lru) {
+-		if (!folio_put_testzero(folio)) {
+-			list_del(&folio->lru);
++	folio_batch_init(&fbatch);
++	list_for_each_entry(folio, pages, lru) {
++		if (!folio_put_testzero(folio))
+ 			continue;
+-		}
+ 		if (folio_test_large(folio)) {
+-			list_del(&folio->lru);
+ 			__folio_put_large(folio);
+ 			continue;
  		}
- 
--		list_add(&folio->lru, &pages_to_free);
-+		if (j != i)
-+			folios->folios[j] = folio;
-+		j++;
+ 		/* LRU flag must be clear because it's passed using the lru */
++		if (folio_batch_add(&fbatch, folio) > 0)
++			continue;
++		free_unref_folios(&fbatch);
  	}
- 	if (lruvec)
- 		unlock_page_lruvec_irqrestore(lruvec, flags);
-+	if (!j) {
-+		folio_batch_reinit(folios);
-+		return;
-+	}
  
--	mem_cgroup_uncharge_list(&pages_to_free);
--	free_unref_page_list(&pages_to_free);
--	folio_batch_reinit(folios);
-+	folios->nr = j;
-+	mem_cgroup_uncharge_folios(folios);
-+	free_unref_folios(folios);
+-	free_unref_page_list(pages);
++	if (fbatch.nr)
++		free_unref_folios(&fbatch);
+ 	INIT_LIST_HEAD(pages);
  }
- EXPORT_SYMBOL(folios_put_refs);
- 
+ EXPORT_SYMBOL(put_pages_list);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
