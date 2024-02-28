@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08BE620DD5
-	for <mm-commits@vger.kernel.org>; Wed, 28 Feb 2024 18:27:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B16B71EB9
+	for <mm-commits@vger.kernel.org>; Wed, 28 Feb 2024 18:51:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709144878; cv=none; b=ro6DThAoeXkBhYe6qVGP4ZOCS+xpkJIj3MrF3+RJfgmsoXFiu+s8QVbZaXfnRQmMnwwQX/5XsLOO6bzsNWcz7icSLVTNFpNfcfCxKQID4dUnoVsx9uxXwiQTppG6qBu4NWvMmGVdqTw0lPc6GdSqy5mn3pEUu8IXuJZEZRWUMHQ=
+	t=1709146309; cv=none; b=rdb/sK37+zfiHC0bGES0Qsv0JlFudAmQCYjW/Z+QA1nAvvpggv16pjtpPlNBLlNY92ew0brzNJHAdZ1y9zRUGVgGrNFLg160JpAkVbZb4soevVnW5PvaRFPzmxTQsz7VM7PaRmgrDVG9aY2vCOpaTO7L4darIN/bDzoIdPLZLII=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709144878; c=relaxed/simple;
-	bh=sk82+QLZ6ztd4hCcb28AvBui6wapjl8lx0Deu6O15nA=;
-	h=Date:To:From:Subject:Message-Id; b=LLJX7xQbv3eT0QEevdsO0kE5pJy5yicOuEPcjaDPu/HYANKz/LL+KcyhlsFtoBnxUNYmcVJ1Ve+S1MYbEwitGUKxhm1z23UZsEruVBdRhbtLRTcGokj+oJKv9jiCrpl7x+Y3WYzOfwWquejVz0X7uGolQDRutPwk9WxvmmLCUEI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mWTZrGNP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709146309; c=relaxed/simple;
+	bh=Bj7f2F5c4TP8E4Y8QVN9Kpa63CO5JpbVqXX0sOAN+2o=;
+	h=Date:To:From:Subject:Message-Id; b=CBdtRQY6p9jamVbgvEwvsN0mxgnEJ3BU4RZrDYab/QHONZpRp8pmadvq3qaf8VEDQIWAKYRCCkSQ8Y89Lc7JWADXQCpablUjuxKTM0bmHt3bGgH5stn0RyNbsIaKizxDDpny18qwNPvLOLciP7OVHiyxiplSU7Gzq7Zq4Ub6yAQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZUsfxYMi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mWTZrGNP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75871C433F1;
-	Wed, 28 Feb 2024 18:27:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZUsfxYMi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B18F5C43394;
+	Wed, 28 Feb 2024 18:51:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709144877;
-	bh=sk82+QLZ6ztd4hCcb28AvBui6wapjl8lx0Deu6O15nA=;
+	s=korg; t=1709146308;
+	bh=Bj7f2F5c4TP8E4Y8QVN9Kpa63CO5JpbVqXX0sOAN+2o=;
 	h=Date:To:From:Subject:From;
-	b=mWTZrGNP7a6fyBXH547jj/TPxk1FBnCkG7ZVp1nGdrgS1u3+kiG5sSibaLwimzsTF
-	 lKgA6BonWeJOstZH7mtXU046StfMwRVhNCrC7PKQ/PMT0zGpbJdYovqmXYNUF9Ct8r
-	 oNjg5bfKB0ObUL5xal359FTT5AwrEY1Jny7aNX8M=
-Date: Wed, 28 Feb 2024 10:27:56 -0800
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,ioworker0@gmail.com,fengwei.yin@intel.com,david@redhat.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=ZUsfxYMiSSkeDtbATTFNgx2M4wrqBnsY+majmnta0ce0Of+ZrmPunLXtWcEK9BTey
+	 aUhudF/H+IyzjN2QzaV5L2nIQJAkAm+JUMsOITUqeuVlHlH48hOKmWpcp8WayVkdAF
+	 BSY0YiGQ6/Zj1b3JHEV/oZNemks/dwZ4nsk1PHwc=
+Date: Wed, 28 Feb 2024 10:51:47 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,rostedt@goodmis.org.,minchan@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,liumartin@google.com,richardycc@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-make-folio_pte_batch-available-outside-of-mm-memoryc.patch removed from -mm tree
-Message-Id: <20240228182757.75871C433F1@smtp.kernel.org>
+Subject: + mm-add-alloc_contig_migrate_range-allocation-statistics.patch added to mm-unstable branch
+Message-Id: <20240228185148.B18F5C43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,234 +34,205 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: make folio_pte_batch available outside of mm/memory.c
-has been removed from the -mm tree.  Its filename was
-     mm-make-folio_pte_batch-available-outside-of-mm-memoryc.patch
+The patch titled
+     Subject: mm: add alloc_contig_migrate_range allocation statistics
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-alloc_contig_migrate_range-allocation-statistics.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-alloc_contig_migrate_range-allocation-statistics.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: make folio_pte_batch available outside of mm/memory.c
-Date: Tue, 27 Feb 2024 23:42:01 +1300
+From: Richard Chang <richardycc@google.com>
+Subject: mm: add alloc_contig_migrate_range allocation statistics
+Date: Wed, 28 Feb 2024 05:11:17 +0000
 
-madvise, mprotect and some others might need folio_pte_batch to check if a
-range of PTEs are completely mapped to a large folio with contiguous
-physical addresses.  Let's make it available in mm/internal.h.
+alloc_contig_migrate_range has every information to be able to understand
+big contiguous allocation latency.  For example, how many pages are
+migrated, how many times they were needed to unmap from page tables.
 
-While at it, add proper kernel doc and sanity-check more input parameters
-using two additional VM_WARN_ON_FOLIO().
+This patch adds the trace event to collect the allocation statistics.  In
+the field, it was quite useful to understand CMA allocation latency.
 
-[21cnbao@gmail.com: build fix]
-  Link: https://lkml.kernel.org/r/CAGsJ_4wWzG-37D82vqP_zt+Fcbz+URVe5oXLBc4M5wbN8A_gpQ@mail.gmail.com
-[david@redhat.com: improve the doc for the exported func]
-Link: https://lkml.kernel.org/r/20240227104201.337988-1-21cnbao@gmail.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
+Link: https://lkml.kernel.org/r/20240228051127.2859472-1-richardycc@google.com
+Signed-off-by: Richard Chang <richardycc@google.com>
+Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org.
+Cc: Martin Liu <liumartin@google.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   93 ++++++++++++++++++++++++++++++++++++++++++++++++
- mm/memory.c   |   76 ---------------------------------------
- 2 files changed, 93 insertions(+), 76 deletions(-)
+ include/trace/events/kmem.h |   38 ++++++++++++++++++++++++++++++++++
+ mm/internal.h               |    3 +-
+ mm/page_alloc.c             |   32 ++++++++++++++++++++++++----
+ mm/page_isolation.c         |    2 -
+ 4 files changed, 68 insertions(+), 7 deletions(-)
 
---- a/mm/internal.h~mm-make-folio_pte_batch-available-outside-of-mm-memoryc
-+++ a/mm/internal.h
-@@ -83,6 +83,99 @@ static inline void *folio_raw_mapping(st
- 	return (void *)(mapping & ~PAGE_MAPPING_FLAGS);
- }
+--- a/include/trace/events/kmem.h~mm-add-alloc_contig_migrate_range-allocation-statistics
++++ a/include/trace/events/kmem.h
+@@ -304,6 +304,44 @@ TRACE_EVENT(mm_page_alloc_extfrag,
+ 		__entry->change_ownership)
+ );
  
-+#ifdef CONFIG_MMU
++TRACE_EVENT(mm_alloc_contig_migrate_range_info,
 +
-+/* Flags for folio_pte_batch(). */
-+typedef int __bitwise fpb_t;
++	TP_PROTO(unsigned long start,
++		 unsigned long end,
++		 unsigned long nr_migrated,
++		 unsigned long nr_reclaimed,
++		 unsigned long nr_mapped,
++		 int migratetype),
 +
-+/* Compare PTEs after pte_mkclean(), ignoring the dirty bit. */
-+#define FPB_IGNORE_DIRTY		((__force fpb_t)BIT(0))
++	TP_ARGS(start, end, nr_migrated, nr_reclaimed, nr_mapped, migratetype),
 +
-+/* Compare PTEs after pte_clear_soft_dirty(), ignoring the soft-dirty bit. */
-+#define FPB_IGNORE_SOFT_DIRTY		((__force fpb_t)BIT(1))
++	TP_STRUCT__entry(
++		__field(unsigned long, start)
++		__field(unsigned long, end)
++		__field(unsigned long, nr_migrated)
++		__field(unsigned long, nr_reclaimed)
++		__field(unsigned long, nr_mapped)
++		__field(int, migratetype)
++	),
 +
-+static inline pte_t __pte_batch_clear_ignored(pte_t pte, fpb_t flags)
-+{
-+	if (flags & FPB_IGNORE_DIRTY)
-+		pte = pte_mkclean(pte);
-+	if (likely(flags & FPB_IGNORE_SOFT_DIRTY))
-+		pte = pte_clear_soft_dirty(pte);
-+	return pte_wrprotect(pte_mkold(pte));
-+}
++	TP_fast_assign(
++		__entry->start = start;
++		__entry->end = end;
++		__entry->nr_migrated = nr_migrated;
++		__entry->nr_reclaimed = nr_reclaimed;
++		__entry->nr_mapped = nr_mapped;
++		__entry->migratetype = migratetype;
++	),
 +
-+/**
-+ * folio_pte_batch - detect a PTE batch for a large folio
-+ * @folio: The large folio to detect a PTE batch for.
-+ * @addr: The user virtual address the first page is mapped at.
-+ * @start_ptep: Page table pointer for the first entry.
-+ * @pte: Page table entry for the first page.
-+ * @max_nr: The maximum number of table entries to consider.
-+ * @flags: Flags to modify the PTE batch semantics.
-+ * @any_writable: Optional pointer to indicate whether any entry except the
-+ *		  first one is writable.
-+ *
-+ * Detect a PTE batch: consecutive (present) PTEs that map consecutive
-+ * pages of the same large folio.
-+ *
-+ * All PTEs inside a PTE batch have the same PTE bits set, excluding the PFN,
-+ * the accessed bit, writable bit, dirty bit (with FPB_IGNORE_DIRTY) and
-+ * soft-dirty bit (with FPB_IGNORE_SOFT_DIRTY).
-+ *
-+ * start_ptep must map any page of the folio. max_nr must be at least one and
-+ * must be limited by the caller so scanning cannot exceed a single page table.
-+ *
-+ * Return: the number of table entries in the batch.
-+ */
-+static inline int folio_pte_batch(struct folio *folio, unsigned long addr,
-+		pte_t *start_ptep, pte_t pte, int max_nr, fpb_t flags,
-+		bool *any_writable)
-+{
-+	unsigned long folio_end_pfn = folio_pfn(folio) + folio_nr_pages(folio);
-+	const pte_t *end_ptep = start_ptep + max_nr;
-+	pte_t expected_pte, *ptep;
-+	bool writable;
-+	int nr;
++	TP_printk("start=0x%lx end=0x%lx migratetype=%d nr_migrated=%lu nr_reclaimed=%lu nr_mapped=%lu",
++		  __entry->start,
++		  __entry->end,
++		  __entry->migratetype,
++		  __entry->nr_migrated,
++		  __entry->nr_reclaimed,
++		  __entry->nr_mapped)
++);
 +
-+	if (any_writable)
-+		*any_writable = false;
-+
-+	VM_WARN_ON_FOLIO(!pte_present(pte), folio);
-+	VM_WARN_ON_FOLIO(!folio_test_large(folio) || max_nr < 1, folio);
-+	VM_WARN_ON_FOLIO(page_folio(pfn_to_page(pte_pfn(pte))) != folio, folio);
-+
-+	nr = pte_batch_hint(start_ptep, pte);
-+	expected_pte = __pte_batch_clear_ignored(pte_advance_pfn(pte, nr), flags);
-+	ptep = start_ptep + nr;
-+
-+	while (ptep < end_ptep) {
-+		pte = ptep_get(ptep);
-+		if (any_writable)
-+			writable = !!pte_write(pte);
-+		pte = __pte_batch_clear_ignored(pte, flags);
-+
-+		if (!pte_same(pte, expected_pte))
-+			break;
-+
-+		/*
-+		 * Stop immediately once we reached the end of the folio. In
-+		 * corner cases the next PFN might fall into a different
-+		 * folio.
-+		 */
-+		if (pte_pfn(pte) >= folio_end_pfn)
-+			break;
-+
-+		if (any_writable)
-+			*any_writable |= writable;
-+
-+		nr = pte_batch_hint(ptep, pte);
-+		expected_pte = pte_advance_pfn(expected_pte, nr);
-+		ptep += nr;
-+	}
-+
-+	return min(ptep - start_ptep, max_nr);
-+}
-+#endif /* CONFIG_MMU */
-+
- void __acct_reclaim_writeback(pg_data_t *pgdat, struct folio *folio,
- 						int nr_throttled);
- static inline void acct_reclaim_writeback(struct folio *folio)
---- a/mm/memory.c~mm-make-folio_pte_batch-available-outside-of-mm-memoryc
-+++ a/mm/memory.c
-@@ -953,82 +953,6 @@ static __always_inline void __copy_prese
- 	set_ptes(dst_vma->vm_mm, addr, dst_pte, pte, nr);
- }
- 
--/* Flags for folio_pte_batch(). */
--typedef int __bitwise fpb_t;
--
--/* Compare PTEs after pte_mkclean(), ignoring the dirty bit. */
--#define FPB_IGNORE_DIRTY		((__force fpb_t)BIT(0))
--
--/* Compare PTEs after pte_clear_soft_dirty(), ignoring the soft-dirty bit. */
--#define FPB_IGNORE_SOFT_DIRTY		((__force fpb_t)BIT(1))
--
--static inline pte_t __pte_batch_clear_ignored(pte_t pte, fpb_t flags)
--{
--	if (flags & FPB_IGNORE_DIRTY)
--		pte = pte_mkclean(pte);
--	if (likely(flags & FPB_IGNORE_SOFT_DIRTY))
--		pte = pte_clear_soft_dirty(pte);
--	return pte_wrprotect(pte_mkold(pte));
--}
--
--/*
-- * Detect a PTE batch: consecutive (present) PTEs that map consecutive
-- * pages of the same folio.
-- *
-- * All PTEs inside a PTE batch have the same PTE bits set, excluding the PFN,
-- * the accessed bit, writable bit, dirty bit (with FPB_IGNORE_DIRTY) and
-- * soft-dirty bit (with FPB_IGNORE_SOFT_DIRTY).
-- *
-- * If "any_writable" is set, it will indicate if any other PTE besides the
-- * first (given) PTE is writable.
-- */
--static inline int folio_pte_batch(struct folio *folio, unsigned long addr,
--		pte_t *start_ptep, pte_t pte, int max_nr, fpb_t flags,
--		bool *any_writable)
--{
--	unsigned long folio_end_pfn = folio_pfn(folio) + folio_nr_pages(folio);
--	const pte_t *end_ptep = start_ptep + max_nr;
--	pte_t expected_pte, *ptep;
--	bool writable;
--	int nr;
--
--	if (any_writable)
--		*any_writable = false;
--
--	VM_WARN_ON_FOLIO(!pte_present(pte), folio);
--
--	nr = pte_batch_hint(start_ptep, pte);
--	expected_pte = __pte_batch_clear_ignored(pte_advance_pfn(pte, nr), flags);
--	ptep = start_ptep + nr;
--
--	while (ptep < end_ptep) {
--		pte = ptep_get(ptep);
--		if (any_writable)
--			writable = !!pte_write(pte);
--		pte = __pte_batch_clear_ignored(pte, flags);
--
--		if (!pte_same(pte, expected_pte))
--			break;
--
--		/*
--		 * Stop immediately once we reached the end of the folio. In
--		 * corner cases the next PFN might fall into a different
--		 * folio.
--		 */
--		if (pte_pfn(pte) >= folio_end_pfn)
--			break;
--
--		if (any_writable)
--			*any_writable |= writable;
--
--		nr = pte_batch_hint(ptep, pte);
--		expected_pte = pte_advance_pfn(expected_pte, nr);
--		ptep += nr;
--	}
--
--	return min(ptep - start_ptep, max_nr);
--}
--
  /*
-  * Copy one present PTE, trying to batch-process subsequent PTEs that map
-  * consecutive pages of the same folio by copying them as well.
+  * Required for uniquely and securely identifying mm in rss_stat tracepoint.
+  */
+--- a/mm/internal.h~mm-add-alloc_contig_migrate_range-allocation-statistics
++++ a/mm/internal.h
+@@ -539,7 +539,8 @@ isolate_migratepages_range(struct compac
+ 			   unsigned long low_pfn, unsigned long end_pfn);
+ 
+ int __alloc_contig_migrate_range(struct compact_control *cc,
+-					unsigned long start, unsigned long end);
++					unsigned long start, unsigned long end,
++					int migratetype);
+ 
+ /* Free whole pageblock and set its migration type to MIGRATE_CMA. */
+ void init_cma_reserved_pageblock(struct page *page);
+--- a/mm/page_alloc.c~mm-add-alloc_contig_migrate_range-allocation-statistics
++++ a/mm/page_alloc.c
+@@ -6224,9 +6224,14 @@ static void alloc_contig_dump_pages(stru
+ 	}
+ }
+ 
+-/* [start, end) must belong to a single zone. */
++/*
++ * [start, end) must belong to a single zone.
++ * @migratetype: using migratetype to filter the type of migration in
++ *		trace_mm_alloc_contig_migrate_range_info.
++ */
+ int __alloc_contig_migrate_range(struct compact_control *cc,
+-					unsigned long start, unsigned long end)
++					unsigned long start, unsigned long end,
++					int migratetype)
+ {
+ 	/* This function is based on compact_zone() from compaction.c. */
+ 	unsigned int nr_reclaimed;
+@@ -6237,6 +6242,10 @@ int __alloc_contig_migrate_range(struct
+ 		.nid = zone_to_nid(cc->zone),
+ 		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
+ 	};
++	struct page *page;
++	unsigned long total_mapped = 0;
++	unsigned long total_migrated = 0;
++	unsigned long total_reclaimed = 0;
+ 
+ 	lru_cache_disable();
+ 
+@@ -6262,9 +6271,18 @@ int __alloc_contig_migrate_range(struct
+ 							&cc->migratepages);
+ 		cc->nr_migratepages -= nr_reclaimed;
+ 
++		if (trace_mm_alloc_contig_migrate_range_info_enabled()) {
++			total_reclaimed += nr_reclaimed;
++			list_for_each_entry(page, &cc->migratepages, lru)
++				total_mapped += page_mapcount(page);
++		}
++
+ 		ret = migrate_pages(&cc->migratepages, alloc_migration_target,
+ 			NULL, (unsigned long)&mtc, cc->mode, MR_CONTIG_RANGE, NULL);
+ 
++		if (trace_mm_alloc_config_migrate_range_info_enabled() && !ret)
++			total_migrated += cc->nr_migratepages;
++
+ 		/*
+ 		 * On -ENOMEM, migrate_pages() bails out right away. It is pointless
+ 		 * to retry again over this error, so do the same here.
+@@ -6278,9 +6296,13 @@ int __alloc_contig_migrate_range(struct
+ 		if (!(cc->gfp_mask & __GFP_NOWARN) && ret == -EBUSY)
+ 			alloc_contig_dump_pages(&cc->migratepages);
+ 		putback_movable_pages(&cc->migratepages);
+-		return ret;
+ 	}
+-	return 0;
++
++	trace_mm_alloc_contig_migrate_range_info(start, end, migratetype,
++						 total_migrated,
++						 total_reclaimed,
++						 total_mapped);
++	return (ret < 0) ? ret : 0;
+ }
+ 
+ /**
+@@ -6360,7 +6382,7 @@ int alloc_contig_range(unsigned long sta
+ 	 * allocated.  So, if we fall through be sure to clear ret so that
+ 	 * -EBUSY is not accidentally used or returned to caller.
+ 	 */
+-	ret = __alloc_contig_migrate_range(&cc, start, end);
++	ret = __alloc_contig_migrate_range(&cc, start, end, migratetype);
+ 	if (ret && ret != -EBUSY)
+ 		goto done;
+ 	ret = 0;
+--- a/mm/page_isolation.c~mm-add-alloc_contig_migrate_range-allocation-statistics
++++ a/mm/page_isolation.c
+@@ -434,7 +434,7 @@ static int isolate_single_pageblock(unsi
+ 				}
+ 
+ 				ret = __alloc_contig_migrate_range(&cc, head_pfn,
+-							head_pfn + nr_pages);
++							head_pfn + nr_pages, page_mt);
+ 
+ 				/*
+ 				 * restore the page's migratetype so that it can
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from richardycc@google.com are
 
-docs-mm-damon-design-remove-the-details-for-pageout-as-paddr-doesnt-use-madv_pageout.patch
-mm-madvise-pageout-ignore-references-rather-than-clearing-young.patch
+mm-add-alloc_contig_migrate_range-allocation-statistics.patch
 
