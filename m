@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FFF220DD5
-	for <mm-commits@vger.kernel.org>; Wed, 28 Feb 2024 18:27:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08BE620DD5
+	for <mm-commits@vger.kernel.org>; Wed, 28 Feb 2024 18:27:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709144846; cv=none; b=htEHvNkKv4p1kESOySNSAnO9vOn6kAU9Jk/ltKIar1vc2lmn1fiMY3uLtoeHNGxVX29ByMYitgCcjZzNg0ETrQu1jUwnqBT+3FG0YiqkkO8mfjefyaUigsmxcx8L825ph1a7C7EdupXoDMxwBmic9JAcs51oougwpbz+5Q5vNWs=
+	t=1709144878; cv=none; b=ro6DThAoeXkBhYe6qVGP4ZOCS+xpkJIj3MrF3+RJfgmsoXFiu+s8QVbZaXfnRQmMnwwQX/5XsLOO6bzsNWcz7icSLVTNFpNfcfCxKQID4dUnoVsx9uxXwiQTppG6qBu4NWvMmGVdqTw0lPc6GdSqy5mn3pEUu8IXuJZEZRWUMHQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709144846; c=relaxed/simple;
-	bh=kKfFozVL0gBVF/WL4hAfwKJ9R+6ieVMe9M0XZToU7Ik=;
-	h=Date:To:From:Subject:Message-Id; b=IBk6DosvUxYPVzbm7dayyTsjIO7jbEBHaYsDb7uHaLzpXsa4la8scZiTku02ZiQ6uiDaF19BnbOVoA4LlJF4dAbyFcvhnUnavlPrY6m6ZGl/MKlb4kYLM6etZc+IVzZOW45am2rtjsWKTSHHuDFKdebF+I8CGe4xeG7DzgLiFak=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bWXZDQGI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709144878; c=relaxed/simple;
+	bh=sk82+QLZ6ztd4hCcb28AvBui6wapjl8lx0Deu6O15nA=;
+	h=Date:To:From:Subject:Message-Id; b=LLJX7xQbv3eT0QEevdsO0kE5pJy5yicOuEPcjaDPu/HYANKz/LL+KcyhlsFtoBnxUNYmcVJ1Ve+S1MYbEwitGUKxhm1z23UZsEruVBdRhbtLRTcGokj+oJKv9jiCrpl7x+Y3WYzOfwWquejVz0X7uGolQDRutPwk9WxvmmLCUEI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mWTZrGNP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bWXZDQGI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8823C433F1;
-	Wed, 28 Feb 2024 18:27:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mWTZrGNP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75871C433F1;
+	Wed, 28 Feb 2024 18:27:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709144845;
-	bh=kKfFozVL0gBVF/WL4hAfwKJ9R+6ieVMe9M0XZToU7Ik=;
+	s=korg; t=1709144877;
+	bh=sk82+QLZ6ztd4hCcb28AvBui6wapjl8lx0Deu6O15nA=;
 	h=Date:To:From:Subject:From;
-	b=bWXZDQGItk6QDhPzRMXzC9NL4Nq5rchmIr7gLZbx7KikNE/KRjEdmaT+iM+O7rCk/
-	 X/Hda16rZ9x9AOh6CDcO9ArzdAvZnTAvnMGTqZyvnjedCYJxWa9giyiBmSioPwAANY
-	 cwa4hyiFM/y9+QswmFz0piWQ3CxsfGNqiF3wu4TA=
-Date: Wed, 28 Feb 2024 10:27:25 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,21cnbao@gmail.com,akpm@linux-foundation.org
+	b=mWTZrGNP7a6fyBXH547jj/TPxk1FBnCkG7ZVp1nGdrgS1u3+kiG5sSibaLwimzsTF
+	 lKgA6BonWeJOstZH7mtXU046StfMwRVhNCrC7PKQ/PMT0zGpbJdYovqmXYNUF9Ct8r
+	 oNjg5bfKB0ObUL5xal359FTT5AwrEY1Jny7aNX8M=
+Date: Wed, 28 Feb 2024 10:27:56 -0800
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,ioworker0@gmail.com,fengwei.yin@intel.com,david@redhat.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-make-folio_pte_batch-available-outside-of-mm-memoryc-fix.patch removed from -mm tree
-Message-Id: <20240228182725.C8823C433F1@smtp.kernel.org>
+Subject: [failures] mm-make-folio_pte_batch-available-outside-of-mm-memoryc.patch removed from -mm tree
+Message-Id: <20240228182757.75871C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,233 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-make-folio_pte_batch-available-outside-of-mm-memoryc-fix
+     Subject: mm: make folio_pte_batch available outside of mm/memory.c
 has been removed from the -mm tree.  Its filename was
-     mm-make-folio_pte_batch-available-outside-of-mm-memoryc-fix.patch
+     mm-make-folio_pte_batch-available-outside-of-mm-memoryc.patch
 
-This patch was dropped because it was folded into mm-make-folio_pte_batch-available-outside-of-mm-memoryc.patch
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Barry Song <21cnbao@gmail.com>
-Subject: mm-make-folio_pte_batch-available-outside-of-mm-memoryc-fix
-Date: Wed, 28 Feb 2024 13:10:06 +1300
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: make folio_pte_batch available outside of mm/memory.c
+Date: Tue, 27 Feb 2024 23:42:01 +1300
 
-build fix
+madvise, mprotect and some others might need folio_pte_batch to check if a
+range of PTEs are completely mapped to a large folio with contiguous
+physical addresses.  Let's make it available in mm/internal.h.
 
-Link: https://lkml.kernel.org/r/CAGsJ_4wWzG-37D82vqP_zt+Fcbz+URVe5oXLBc4M5wbN8A_gpQ@mail.gmail.com
-Signed-off-by: Barry Song <21cnbao@gmail.com>
-Reported-by: SeongJae Park <sj@kernel.org>
-Tested-by: SeongJae Park <sj@kernel.org>
+While at it, add proper kernel doc and sanity-check more input parameters
+using two additional VM_WARN_ON_FOLIO().
+
+[21cnbao@gmail.com: build fix]
+  Link: https://lkml.kernel.org/r/CAGsJ_4wWzG-37D82vqP_zt+Fcbz+URVe5oXLBc4M5wbN8A_gpQ@mail.gmail.com
+[david@redhat.com: improve the doc for the exported func]
+Link: https://lkml.kernel.org/r/20240227104201.337988-1-21cnbao@gmail.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/internal.h |   93 ++++++++++++++++++++++++++++++++++++++++++++++++
+ mm/memory.c   |   76 ---------------------------------------
+ 2 files changed, 93 insertions(+), 76 deletions(-)
 
---- a/mm/internal.h~mm-make-folio_pte_batch-available-outside-of-mm-memoryc-fix
+--- a/mm/internal.h~mm-make-folio_pte_batch-available-outside-of-mm-memoryc
 +++ a/mm/internal.h
-@@ -83,6 +83,8 @@ static inline void *folio_raw_mapping(st
+@@ -83,6 +83,99 @@ static inline void *folio_raw_mapping(st
  	return (void *)(mapping & ~PAGE_MAPPING_FLAGS);
  }
  
 +#ifdef CONFIG_MMU
 +
- /* Flags for folio_pte_batch(). */
- typedef int __bitwise fpb_t;
- 
-@@ -172,6 +174,7 @@ static inline int folio_pte_batch(struct
- 
- 	return min(ptep - start_ptep, max_nr);
- }
++/* Flags for folio_pte_batch(). */
++typedef int __bitwise fpb_t;
++
++/* Compare PTEs after pte_mkclean(), ignoring the dirty bit. */
++#define FPB_IGNORE_DIRTY		((__force fpb_t)BIT(0))
++
++/* Compare PTEs after pte_clear_soft_dirty(), ignoring the soft-dirty bit. */
++#define FPB_IGNORE_SOFT_DIRTY		((__force fpb_t)BIT(1))
++
++static inline pte_t __pte_batch_clear_ignored(pte_t pte, fpb_t flags)
++{
++	if (flags & FPB_IGNORE_DIRTY)
++		pte = pte_mkclean(pte);
++	if (likely(flags & FPB_IGNORE_SOFT_DIRTY))
++		pte = pte_clear_soft_dirty(pte);
++	return pte_wrprotect(pte_mkold(pte));
++}
++
++/**
++ * folio_pte_batch - detect a PTE batch for a large folio
++ * @folio: The large folio to detect a PTE batch for.
++ * @addr: The user virtual address the first page is mapped at.
++ * @start_ptep: Page table pointer for the first entry.
++ * @pte: Page table entry for the first page.
++ * @max_nr: The maximum number of table entries to consider.
++ * @flags: Flags to modify the PTE batch semantics.
++ * @any_writable: Optional pointer to indicate whether any entry except the
++ *		  first one is writable.
++ *
++ * Detect a PTE batch: consecutive (present) PTEs that map consecutive
++ * pages of the same large folio.
++ *
++ * All PTEs inside a PTE batch have the same PTE bits set, excluding the PFN,
++ * the accessed bit, writable bit, dirty bit (with FPB_IGNORE_DIRTY) and
++ * soft-dirty bit (with FPB_IGNORE_SOFT_DIRTY).
++ *
++ * start_ptep must map any page of the folio. max_nr must be at least one and
++ * must be limited by the caller so scanning cannot exceed a single page table.
++ *
++ * Return: the number of table entries in the batch.
++ */
++static inline int folio_pte_batch(struct folio *folio, unsigned long addr,
++		pte_t *start_ptep, pte_t pte, int max_nr, fpb_t flags,
++		bool *any_writable)
++{
++	unsigned long folio_end_pfn = folio_pfn(folio) + folio_nr_pages(folio);
++	const pte_t *end_ptep = start_ptep + max_nr;
++	pte_t expected_pte, *ptep;
++	bool writable;
++	int nr;
++
++	if (any_writable)
++		*any_writable = false;
++
++	VM_WARN_ON_FOLIO(!pte_present(pte), folio);
++	VM_WARN_ON_FOLIO(!folio_test_large(folio) || max_nr < 1, folio);
++	VM_WARN_ON_FOLIO(page_folio(pfn_to_page(pte_pfn(pte))) != folio, folio);
++
++	nr = pte_batch_hint(start_ptep, pte);
++	expected_pte = __pte_batch_clear_ignored(pte_advance_pfn(pte, nr), flags);
++	ptep = start_ptep + nr;
++
++	while (ptep < end_ptep) {
++		pte = ptep_get(ptep);
++		if (any_writable)
++			writable = !!pte_write(pte);
++		pte = __pte_batch_clear_ignored(pte, flags);
++
++		if (!pte_same(pte, expected_pte))
++			break;
++
++		/*
++		 * Stop immediately once we reached the end of the folio. In
++		 * corner cases the next PFN might fall into a different
++		 * folio.
++		 */
++		if (pte_pfn(pte) >= folio_end_pfn)
++			break;
++
++		if (any_writable)
++			*any_writable |= writable;
++
++		nr = pte_batch_hint(ptep, pte);
++		expected_pte = pte_advance_pfn(expected_pte, nr);
++		ptep += nr;
++	}
++
++	return min(ptep - start_ptep, max_nr);
++}
 +#endif /* CONFIG_MMU */
- 
++
  void __acct_reclaim_writeback(pg_data_t *pgdat, struct folio *folio,
  						int nr_throttled);
+ static inline void acct_reclaim_writeback(struct folio *folio)
+--- a/mm/memory.c~mm-make-folio_pte_batch-available-outside-of-mm-memoryc
++++ a/mm/memory.c
+@@ -953,82 +953,6 @@ static __always_inline void __copy_prese
+ 	set_ptes(dst_vma->vm_mm, addr, dst_pte, pte, nr);
+ }
+ 
+-/* Flags for folio_pte_batch(). */
+-typedef int __bitwise fpb_t;
+-
+-/* Compare PTEs after pte_mkclean(), ignoring the dirty bit. */
+-#define FPB_IGNORE_DIRTY		((__force fpb_t)BIT(0))
+-
+-/* Compare PTEs after pte_clear_soft_dirty(), ignoring the soft-dirty bit. */
+-#define FPB_IGNORE_SOFT_DIRTY		((__force fpb_t)BIT(1))
+-
+-static inline pte_t __pte_batch_clear_ignored(pte_t pte, fpb_t flags)
+-{
+-	if (flags & FPB_IGNORE_DIRTY)
+-		pte = pte_mkclean(pte);
+-	if (likely(flags & FPB_IGNORE_SOFT_DIRTY))
+-		pte = pte_clear_soft_dirty(pte);
+-	return pte_wrprotect(pte_mkold(pte));
+-}
+-
+-/*
+- * Detect a PTE batch: consecutive (present) PTEs that map consecutive
+- * pages of the same folio.
+- *
+- * All PTEs inside a PTE batch have the same PTE bits set, excluding the PFN,
+- * the accessed bit, writable bit, dirty bit (with FPB_IGNORE_DIRTY) and
+- * soft-dirty bit (with FPB_IGNORE_SOFT_DIRTY).
+- *
+- * If "any_writable" is set, it will indicate if any other PTE besides the
+- * first (given) PTE is writable.
+- */
+-static inline int folio_pte_batch(struct folio *folio, unsigned long addr,
+-		pte_t *start_ptep, pte_t pte, int max_nr, fpb_t flags,
+-		bool *any_writable)
+-{
+-	unsigned long folio_end_pfn = folio_pfn(folio) + folio_nr_pages(folio);
+-	const pte_t *end_ptep = start_ptep + max_nr;
+-	pte_t expected_pte, *ptep;
+-	bool writable;
+-	int nr;
+-
+-	if (any_writable)
+-		*any_writable = false;
+-
+-	VM_WARN_ON_FOLIO(!pte_present(pte), folio);
+-
+-	nr = pte_batch_hint(start_ptep, pte);
+-	expected_pte = __pte_batch_clear_ignored(pte_advance_pfn(pte, nr), flags);
+-	ptep = start_ptep + nr;
+-
+-	while (ptep < end_ptep) {
+-		pte = ptep_get(ptep);
+-		if (any_writable)
+-			writable = !!pte_write(pte);
+-		pte = __pte_batch_clear_ignored(pte, flags);
+-
+-		if (!pte_same(pte, expected_pte))
+-			break;
+-
+-		/*
+-		 * Stop immediately once we reached the end of the folio. In
+-		 * corner cases the next PFN might fall into a different
+-		 * folio.
+-		 */
+-		if (pte_pfn(pte) >= folio_end_pfn)
+-			break;
+-
+-		if (any_writable)
+-			*any_writable |= writable;
+-
+-		nr = pte_batch_hint(ptep, pte);
+-		expected_pte = pte_advance_pfn(expected_pte, nr);
+-		ptep += nr;
+-	}
+-
+-	return min(ptep - start_ptep, max_nr);
+-}
+-
+ /*
+  * Copy one present PTE, trying to batch-process subsequent PTEs that map
+  * consecutive pages of the same folio by copying them as well.
 _
 
-Patches currently in -mm which might be from 21cnbao@gmail.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mm-make-folio_pte_batch-available-outside-of-mm-memoryc.patch
+docs-mm-damon-design-remove-the-details-for-pageout-as-paddr-doesnt-use-madv_pageout.patch
+mm-madvise-pageout-ignore-references-rather-than-clearing-young.patch
 
