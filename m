@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0690840869
-	for <mm-commits@vger.kernel.org>; Wed, 28 Feb 2024 18:59:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 684D740869
+	for <mm-commits@vger.kernel.org>; Wed, 28 Feb 2024 18:59:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709146749; cv=none; b=opmhU6A8Hxg2YUrmrGNjf7u1PQ45zR7lmeZq778oHq/wranSPOVLDO6kkeGYLAZhuFE6uHI3G8LxC+f+gFjY7EvgK0utXs04Io0WCMtYqHSyK9ZhRABznzqGxMjLGdZaTn2Yv+cO/jCZHZMcA3abkZ9hfyfK3teIcnYeNhrAqtw=
+	t=1709146750; cv=none; b=gCVOWa5kBZ6Ni6RQA0KgwGyFG95wnbbGq5c1Gmn9cPjSKdcqChUAbRVgaWZNyqQrUZ9ZbpLn27VMyHx2f4uGov+woyd067iCHzcbBuqRuK5EsK9l+s68yeR+lQSs8q2QcEwnWuJipYfvnHk2qJLKKDPMVLId2uhpTw7tn32/cP0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709146749; c=relaxed/simple;
-	bh=FTj+IKC23sdPuRh8JtTDWIFvMBxZx7cj5I3EmNliTZs=;
-	h=Date:To:From:Subject:Message-Id; b=m5sOHoL4LwSrcSQ3hrB1wXPw1rxb4gGPQGyyxVV0i+YvKpJsqS5YEYpxrJwvIMU2wZ6Zuu2QOg8lG6Yf8Oyao06DXH7oa1OZorSHbqXzaswUHiM+Biw8Ux4ac/kJT+rm4MOCkKgU6Hmzvh5kmLG4VPm++p8VXIUeKnj8fZrmnEw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LsgaA51O; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709146750; c=relaxed/simple;
+	bh=75utfuB50vR55ClGarMAHshor64YJKEiTqB3WIcvxBY=;
+	h=Date:To:From:Subject:Message-Id; b=GKDPV0fMdlU53O3kDuAzzkiI60J1TyBsb9SdXALtV985QSPUm8DDGHDv/b2SWY1detSghCha7McAlysRwIk3QgB8Hu8Owk+ElqwGqEFkdqy2czeQpf3bGM6ZXnC30Kgt84+P53Xrj5HPK6XRi0z1b52C/OyHUpKz/DpmxiREbYc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RsG6qLus; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LsgaA51O"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7DFDC433F1;
-	Wed, 28 Feb 2024 18:59:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RsG6qLus"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19739C433C7;
+	Wed, 28 Feb 2024 18:59:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709146748;
-	bh=FTj+IKC23sdPuRh8JtTDWIFvMBxZx7cj5I3EmNliTZs=;
+	s=korg; t=1709146750;
+	bh=75utfuB50vR55ClGarMAHshor64YJKEiTqB3WIcvxBY=;
 	h=Date:To:From:Subject:From;
-	b=LsgaA51OwHobJXCllX8brWfRrw5h/jO8qRGPvtwAUHX9dm5rv/hEZ36AeCO6BZPhj
-	 Rga63cZYlwV6f0/ZWxj+l96LD3iYQkW58qMhtnV9hBPE2+y+tGPJ+yo4RPl3iwQDrJ
-	 3XQ3VBgFJenTE2KYtBUkHvI1saiByEKcqWUBaUVQ=
-Date: Wed, 28 Feb 2024 10:59:07 -0800
+	b=RsG6qLus3wsqJyir9EMn84Uluaw9JQ/OYV660OQN69+xDo/jQQUWAyOpNZZuolroQ
+	 jCoxK83eDPsTMCAYUyh8THJDofU9cTPhqoNjxCegE5Peg5zJItYDSgXgK1z/ezLbaq
+	 0rvKpw3dXg9U9fGPBCPbqEErd3x880U1gDos68g0=
+Date: Wed, 28 Feb 2024 10:59:09 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-pagewaiters-pagesetwaiters-and-pageclearwaiters.patch added to mm-unstable branch
-Message-Id: <20240228185908.B7DFDC433F1@smtp.kernel.org>
+Subject: + mm-remove-pageyoung-and-pageidle-definitions.patch added to mm-unstable branch
+Message-Id: <20240228185910.19739C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove PageWaiters, PageSetWaiters and PageClearWaiters
+     Subject: mm: remove PageYoung and PageIdle definitions
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-pagewaiters-pagesetwaiters-and-pageclearwaiters.patch
+     mm-remove-pageyoung-and-pageidle-definitions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pagewaiters-pagesetwaiters-and-pageclearwaiters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pageyoung-and-pageidle-definitions.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,67 +59,37 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove PageWaiters, PageSetWaiters and PageClearWaiters
-Date: Tue, 27 Feb 2024 19:23:29 +0000
+Subject: mm: remove PageYoung and PageIdle definitions
+Date: Tue, 27 Feb 2024 19:23:30 +0000
 
-All callers have been converted to use folios.  This was the only user of
-PF_ONLY_HEAD, so remove that too.
+All callers have been converted to use folios, so remove the various
+set/clear/test functions defined on pages.
 
-Link: https://lkml.kernel.org/r/20240227192337.757313-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240227192337.757313-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ include/linux/page-flags.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/page-flags.h~mm-remove-pagewaiters-pagesetwaiters-and-pageclearwaiters
+--- a/include/linux/page-flags.h~mm-remove-pageyoung-and-pageidle-definitions
 +++ a/include/linux/page-flags.h
-@@ -328,9 +328,6 @@ static unsigned long *folio_flags(struct
-  *     for compound page all operations related to the page flag applied to
-  *     head page.
-  *
-- * PF_ONLY_HEAD:
-- *     for compound page, callers only ever operate on the head page.
-- *
-  * PF_NO_TAIL:
-  *     modifications of the page flag must be done on small or head pages,
-  *     checks can be done on tail pages too.
-@@ -346,9 +343,6 @@ static unsigned long *folio_flags(struct
- 		page; })
- #define PF_ANY(page, enforce)	PF_POISONED_CHECK(page)
- #define PF_HEAD(page, enforce)	PF_POISONED_CHECK(compound_head(page))
--#define PF_ONLY_HEAD(page, enforce) ({					\
--		VM_BUG_ON_PGFLAGS(PageTail(page), page);		\
--		PF_POISONED_CHECK(page); })
- #define PF_NO_TAIL(page, enforce) ({					\
- 		VM_BUG_ON_PGFLAGS(enforce && PageTail(page), page);	\
- 		PF_POISONED_CHECK(compound_head(page)); })
-@@ -362,7 +356,6 @@ static unsigned long *folio_flags(struct
- /* Which page is the flag stored in */
- #define FOLIO_PF_ANY		0
- #define FOLIO_PF_HEAD		0
--#define FOLIO_PF_ONLY_HEAD	0
- #define FOLIO_PF_NO_TAIL	0
- #define FOLIO_PF_NO_COMPOUND	0
- #define FOLIO_PF_SECOND		1
-@@ -488,7 +481,7 @@ static inline int TestClearPage##uname(s
- 	TESTSETFLAG_FALSE(uname, lname) TESTCLEARFLAG_FALSE(uname, lname)
+@@ -599,10 +599,10 @@ PAGEFLAG_FALSE(HWPoison, hwpoison)
+ #endif
  
- __PAGEFLAG(Locked, locked, PF_NO_TAIL)
--PAGEFLAG(Waiters, waiters, PF_ONLY_HEAD)
-+FOLIO_FLAG(waiters, FOLIO_HEAD_PAGE)
- PAGEFLAG(Error, error, PF_NO_TAIL) TESTCLEARFLAG(Error, error, PF_NO_TAIL)
- PAGEFLAG(Referenced, referenced, PF_HEAD)
- 	TESTCLEARFLAG(Referenced, referenced, PF_HEAD)
-@@ -1138,7 +1131,6 @@ static inline bool folio_has_private(str
+ #if defined(CONFIG_PAGE_IDLE_FLAG) && defined(CONFIG_64BIT)
+-TESTPAGEFLAG(Young, young, PF_ANY)
+-SETPAGEFLAG(Young, young, PF_ANY)
+-TESTCLEARFLAG(Young, young, PF_ANY)
+-PAGEFLAG(Idle, idle, PF_ANY)
++FOLIO_TEST_FLAG(young, FOLIO_HEAD_PAGE)
++FOLIO_SET_FLAG(young, FOLIO_HEAD_PAGE)
++FOLIO_TEST_CLEAR_FLAG(young, FOLIO_HEAD_PAGE)
++FOLIO_FLAG(idle, FOLIO_HEAD_PAGE)
+ #endif
  
- #undef PF_ANY
- #undef PF_HEAD
--#undef PF_ONLY_HEAD
- #undef PF_NO_TAIL
- #undef PF_NO_COMPOUND
- #undef PF_SECOND
+ /*
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
