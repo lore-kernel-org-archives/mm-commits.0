@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEFDB6EF17
-	for <mm-commits@vger.kernel.org>; Wed, 28 Feb 2024 16:38:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8567D3FBB4
+	for <mm-commits@vger.kernel.org>; Wed, 28 Feb 2024 18:13:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709138318; cv=none; b=DM8MKnHGvm/GTv3BWa3XFzL0dekPtTIH0k2m30bg9+0Ecx1X2y+rRPER6/a3RwAM2ki2bJRF3PV6lrmjcycn/YfNZ0YCVPdPUVLQWydPXq/dWvznZD2s9ZqorEcdMcPfsnsd27eraDspxHGVeCZwPmntOv/DnmKYGtCC2Qfr5MI=
+	t=1709144009; cv=none; b=kPjOjqk7S3k2ma9OuHf03MvaJLZR26xCRyIy4dAtX054dByILpyWUzwGN15RO2GXYiM7ljBLFHkPdhYmXTLL7z9FjuKKsrVTM+7e2s43PmqdY0UQUD/jgFrL5Jutt6bLbhHV/JUyWUbDwE/SF/yEdT7MeV/yz7wQUU3rmDC5cx0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709138318; c=relaxed/simple;
-	bh=j7Gj/c8msOB8A8CNNv5HC00EUNrw5C+2nNoh3VvpJQk=;
-	h=Date:To:From:Subject:Message-Id; b=AjQiCzVdMWFL+sU/09M4nUpdhIwmKYnLnKxBVm8i1dbDvOsO+gIzBcb/Pu3mImDyjUAWXw/YnCbDsgLuef91SqdyBvw3es3IUflpeqvSpRn7/y4yZpsQ+CsuZqi+XYIsHjOhGj/jVfP4KgFyldvsxybJL3aoDd7bq/RZAm/i7bY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QuQI4te/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709144009; c=relaxed/simple;
+	bh=3PQ9Q4JVVpc/9AKG3bI5J21D9i9YPWJVv2r5/liGOCg=;
+	h=Date:To:From:Subject:Message-Id; b=PcZnzKvDXLBg5FP3d8hZ16uJdozwISp0V3qpk/JKMbbdsAZrDE2b/AykFaRGDpOiTMIHSICK2y+sC/cdddpzI7Z/rpofJFU2SjAK6YHvyKjMbxU4YyVfNhAq0s3idleOhJUYXbgDgYb4+FuGr0Cuc+DGfaUeKPpRN7HKsgZQZgE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QkuDa+xG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QuQI4te/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 316BCC433C7;
-	Wed, 28 Feb 2024 16:38:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QkuDa+xG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00D76C433C7;
+	Wed, 28 Feb 2024 18:13:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709138318;
-	bh=j7Gj/c8msOB8A8CNNv5HC00EUNrw5C+2nNoh3VvpJQk=;
+	s=korg; t=1709144009;
+	bh=3PQ9Q4JVVpc/9AKG3bI5J21D9i9YPWJVv2r5/liGOCg=;
 	h=Date:To:From:Subject:From;
-	b=QuQI4te/g6k61TIKdPbkCclO2mdidh3KGBnGbQSKTTgbosGsIxkLEguDy8Sigk2ju
-	 PAGIu4Finvwy/K+59OQygV5v8LZHEOZMsbmM5rMJO18RqwjugOwBwADeT6cSjLfdOb
-	 1IWltAciUntqt7Rli+bwZGI02bJb6JW/763HY8qc=
-Date: Wed, 28 Feb 2024 08:38:37 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,zhouchengming@bytedance.com,akpm@linux-foundation.org
+	b=QkuDa+xG7QFvkXGhjUPas28tNgQg1p1sEOoM44dFuoVYpMJuKov/d5h/MUEWaEQAW
+	 Ud07XsJ5N2DcToXe/3HL9t1i7bG+VNGA1/iD7hqPGkBcwbk70tz/upZqBWDz1RK05S
+	 FhGGl0YqP9rVkjm2lKNybV+Y9tlmPPZQzWcQXqV0=
+Date: Wed, 28 Feb 2024 10:13:28 -0800
+To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-zsmalloc-remove-the-deferred-free-mechanism.patch removed from -mm tree
-Message-Id: <20240228163838.316BCC433C7@smtp.kernel.org>
+Subject: + mm-use-folio-more-widely-in-__split_huge_page.patch added to mm-unstable branch
+Message-Id: <20240228181329.00D76C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,207 +34,132 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/zsmalloc: remove the deferred free mechanism
-has been removed from the -mm tree.  Its filename was
-     mm-zsmalloc-remove-the-deferred-free-mechanism.patch
+The patch titled
+     Subject: mm: use folio more widely in __split_huge_page
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-use-folio-more-widely-in-__split_huge_page.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-folio-more-widely-in-__split_huge_page.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chengming Zhou <zhouchengming@bytedance.com>
-Subject: mm/zsmalloc: remove the deferred free mechanism
-Date: Tue, 27 Feb 2024 03:02:55 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: use folio more widely in __split_huge_page
+Date: Wed, 28 Feb 2024 16:42:36 +0000
 
-Since the only user of kick_deferred_free() has gone, remove all the
-deferred mechanism related code.
+We already have a folio; use it instead of the head page where reasonable.
+Saves a couple of calls to compound_head() and elimimnates a few
+references to page->mapping.
 
-Link: https://lkml.kernel.org/r/20240226-zsmalloc-zspage-rcu-v1-2-456b0ef1a89d@bytedance.com
-Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Link: https://lkml.kernel.org/r/20240228164326.1355045-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |  109 ------------------------------------------------
- 1 file changed, 109 deletions(-)
+ mm/huge_memory.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-remove-the-deferred-free-mechanism
-+++ a/mm/zsmalloc.c
-@@ -233,9 +233,6 @@ struct zs_pool {
- #ifdef CONFIG_ZSMALLOC_STAT
- 	struct dentry *stat_dentry;
- #endif
--#ifdef CONFIG_COMPACTION
--	struct work_struct free_work;
--#endif
- 	spinlock_t lock;
- 	atomic_t compaction_in_progress;
- };
-@@ -281,12 +278,8 @@ static void migrate_write_lock(struct zs
- static void migrate_write_unlock(struct zspage *zspage);
+--- a/mm/huge_memory.c~mm-use-folio-more-widely-in-__split_huge_page
++++ a/mm/huge_memory.c
+@@ -2919,7 +2919,7 @@ static void __split_huge_page(struct pag
+ 		if (head[i].index >= end) {
+ 			struct folio *tail = page_folio(head + i);
  
- #ifdef CONFIG_COMPACTION
--static void kick_deferred_free(struct zs_pool *pool);
--static void init_deferred_free(struct zs_pool *pool);
- static void SetZsPageMovable(struct zs_pool *pool, struct zspage *zspage);
- #else
--static void kick_deferred_free(struct zs_pool *pool) {}
--static void init_deferred_free(struct zs_pool *pool) {}
- static void SetZsPageMovable(struct zs_pool *pool, struct zspage *zspage) {}
- #endif
+-			if (shmem_mapping(head->mapping))
++			if (shmem_mapping(folio->mapping))
+ 				nr_dropped++;
+ 			else if (folio_test_clear_dirty(tail))
+ 				folio_account_cleaned(tail,
+@@ -2927,7 +2927,7 @@ static void __split_huge_page(struct pag
+ 			__filemap_remove_folio(tail, NULL);
+ 			folio_put(tail);
+ 		} else if (!PageAnon(page)) {
+-			__xa_store(&head->mapping->i_pages, head[i].index,
++			__xa_store(&folio->mapping->i_pages, head[i].index,
+ 					head + i, 0);
+ 		} else if (swap_cache) {
+ 			__xa_store(&swap_cache->i_pages, offset + i,
+@@ -2948,23 +2948,23 @@ static void __split_huge_page(struct pag
+ 	split_page_owner(head, order, new_order);
  
-@@ -1632,50 +1625,6 @@ static int putback_zspage(struct size_cl
- 	return fullness;
- }
+ 	/* See comment in __split_huge_page_tail() */
+-	if (PageAnon(head)) {
++	if (folio_test_anon(folio)) {
+ 		/* Additional pin to swap cache */
+-		if (PageSwapCache(head)) {
+-			page_ref_add(head, 1 + new_nr);
++		if (folio_test_swapcache(folio)) {
++			folio_ref_add(folio, 1 + new_nr);
+ 			xa_unlock(&swap_cache->i_pages);
+ 		} else {
+-			page_ref_inc(head);
++			folio_ref_inc(folio);
+ 		}
+ 	} else {
+ 		/* Additional pin to page cache */
+-		page_ref_add(head, 1 + new_nr);
+-		xa_unlock(&head->mapping->i_pages);
++		folio_ref_add(folio, 1 + new_nr);
++		xa_unlock(&folio->mapping->i_pages);
+ 	}
+ 	local_irq_enable();
  
--#ifdef CONFIG_COMPACTION
--/*
-- * To prevent zspage destroy during migration, zspage freeing should
-- * hold locks of all pages in the zspage.
-- */
--static void lock_zspage(struct zspage *zspage)
--{
--	struct page *curr_page, *page;
--
--	/*
--	 * Pages we haven't locked yet can be migrated off the list while we're
--	 * trying to lock them, so we need to be careful and only attempt to
--	 * lock each page under migrate_read_lock(). Otherwise, the page we lock
--	 * may no longer belong to the zspage. This means that we may wait for
--	 * the wrong page to unlock, so we must take a reference to the page
--	 * prior to waiting for it to unlock outside migrate_read_lock().
--	 */
--	while (1) {
--		migrate_read_lock(zspage);
--		page = get_first_page(zspage);
--		if (trylock_page(page))
--			break;
--		get_page(page);
--		migrate_read_unlock(zspage);
--		wait_on_page_locked(page);
--		put_page(page);
--	}
--
--	curr_page = page;
--	while ((page = get_next_page(curr_page))) {
--		if (trylock_page(page)) {
--			curr_page = page;
--		} else {
--			get_page(page);
--			migrate_read_unlock(zspage);
--			wait_on_page_locked(page);
--			put_page(page);
--			migrate_read_lock(zspage);
--		}
--	}
--	migrate_read_unlock(zspage);
--}
--#endif /* CONFIG_COMPACTION */
--
- static void migrate_lock_init(struct zspage *zspage)
- {
- 	rwlock_init(&zspage->lock);
-@@ -1730,10 +1679,6 @@ static void replace_sub_page(struct size
+ 	if (nr_dropped)
+-		shmem_uncharge(head->mapping->host, nr_dropped);
++		shmem_uncharge(folio->mapping->host, nr_dropped);
+ 	remap_page(folio, nr);
  
- static bool zs_page_isolate(struct page *page, isolate_mode_t mode)
- {
--	/*
--	 * Page is locked so zspage couldn't be destroyed. For detail, look at
--	 * lock_zspage in free_zspage.
--	 */
- 	VM_BUG_ON_PAGE(PageIsolated(page), page);
+ 	if (folio_test_swapcache(folio))
+@@ -2980,9 +2980,10 @@ static void __split_huge_page(struct pag
  
- 	return true;
-@@ -1848,56 +1793,6 @@ static const struct movable_operations z
- 	.putback_page = zs_page_putback,
- };
+ 	for (i = 0; i < nr; i += new_nr) {
+ 		struct page *subpage = head + i;
++		struct folio *new_folio = page_folio(subpage);
+ 		if (subpage == page)
+ 			continue;
+-		unlock_page(subpage);
++		folio_unlock(new_folio);
  
--/*
-- * Caller should hold page_lock of all pages in the zspage
-- * In here, we cannot use zspage meta data.
-- */
--static void async_free_zspage(struct work_struct *work)
--{
--	int i;
--	struct size_class *class;
--	struct zspage *zspage, *tmp;
--	LIST_HEAD(free_pages);
--	struct zs_pool *pool = container_of(work, struct zs_pool,
--					free_work);
--
--	for (i = 0; i < ZS_SIZE_CLASSES; i++) {
--		class = pool->size_class[i];
--		if (class->index != i)
--			continue;
--
--		spin_lock(&pool->lock);
--		list_splice_init(&class->fullness_list[ZS_INUSE_RATIO_0],
--				 &free_pages);
--		spin_unlock(&pool->lock);
--	}
--
--	list_for_each_entry_safe(zspage, tmp, &free_pages, list) {
--		list_del(&zspage->list);
--		lock_zspage(zspage);
--
--		spin_lock(&pool->lock);
--		class = zspage_class(pool, zspage);
--		__free_zspage(pool, class, zspage);
--		spin_unlock(&pool->lock);
--	}
--};
--
--static void kick_deferred_free(struct zs_pool *pool)
--{
--	schedule_work(&pool->free_work);
--}
--
--static void zs_flush_migration(struct zs_pool *pool)
--{
--	flush_work(&pool->free_work);
--}
--
--static void init_deferred_free(struct zs_pool *pool)
--{
--	INIT_WORK(&pool->free_work, async_free_zspage);
--}
--
- static void SetZsPageMovable(struct zs_pool *pool, struct zspage *zspage)
- {
- 	struct page *page = get_first_page(zspage);
-@@ -1908,8 +1803,6 @@ static void SetZsPageMovable(struct zs_p
- 		unlock_page(page);
- 	} while ((page = get_next_page(page)) != NULL);
- }
--#else
--static inline void zs_flush_migration(struct zs_pool *pool) { }
- #endif
- 
- /*
-@@ -2121,7 +2014,6 @@ struct zs_pool *zs_create_pool(const cha
- 	if (!pool)
- 		return NULL;
- 
--	init_deferred_free(pool);
- 	spin_lock_init(&pool->lock);
- 	atomic_set(&pool->compaction_in_progress, 0);
- 
-@@ -2229,7 +2121,6 @@ void zs_destroy_pool(struct zs_pool *poo
- 	int i;
- 
- 	zs_unregister_shrinker(pool);
--	zs_flush_migration(pool);
- 	zs_pool_stat_destroy(pool);
- 
- 	for (i = 0; i < ZS_SIZE_CLASSES; i++) {
+ 		/*
+ 		 * Subpages may be freed if there wasn't any mapping
 _
 
-Patches currently in -mm which might be from zhouchengming@bytedance.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-zswap-global-lru-and-shrinker-shared-by-all-zswap_pools.patch
-mm-zswap-change-zswap_pool-kref-to-percpu_ref.patch
+mm-support-order-1-folios-in-the-page-cache.patch
+mm-make-folios_put-the-basis-of-release_pages.patch
+mm-convert-free_unref_page_list-to-use-folios.patch
+mm-add-free_unref_folios.patch
+mm-use-folios_put-in-__folio_batch_release.patch
+memcg-add-mem_cgroup_uncharge_folios.patch
+mm-remove-use-of-folio-list-from-folios_put.patch
+mm-use-free_unref_folios-in-put_pages_list.patch
+mm-use-__page_cache_release-in-folios_put.patch
+mm-handle-large-folios-in-free_unref_folios.patch
+mm-allow-non-hugetlb-large-folios-to-be-batch-processed.patch
+mm-free-folios-in-a-batch-in-shrink_folio_list.patch
+mm-free-folios-directly-in-move_folios_to_lru.patch
+memcg-remove-mem_cgroup_uncharge_list.patch
+mm-remove-free_unref_page_list.patch
+mm-remove-lru_to_page.patch
+mm-convert-free_pages_and_swap_cache-to-use-folios_put.patch
+mm-use-a-folio-in-__collapse_huge_page_copy_succeeded.patch
+mm-convert-free_swap_cache-to-take-a-folio.patch
+mm-use-folio-more-widely-in-__split_huge_page.patch
 
