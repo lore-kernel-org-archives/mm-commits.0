@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8567D3FBB4
-	for <mm-commits@vger.kernel.org>; Wed, 28 Feb 2024 18:13:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90A9479B61
+	for <mm-commits@vger.kernel.org>; Wed, 28 Feb 2024 18:16:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709144009; cv=none; b=kPjOjqk7S3k2ma9OuHf03MvaJLZR26xCRyIy4dAtX054dByILpyWUzwGN15RO2GXYiM7ljBLFHkPdhYmXTLL7z9FjuKKsrVTM+7e2s43PmqdY0UQUD/jgFrL5Jutt6bLbhHV/JUyWUbDwE/SF/yEdT7MeV/yz7wQUU3rmDC5cx0=
+	t=1709144206; cv=none; b=fsoWsPZMacgsvcq3+RBFoufeGzy61uSQ7Epswy4TTnUeuemwShfAXsMyiLivS4/Z96NVpysEyu9H6/hxrX/UK6BmrbehYGUE34GDFqgW+XOK432XsnTJPQIhOjMfUXsaloSF6h+S/9WYBtQrsSVlr18zYCGAdDrW7sco7S1cmKk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709144009; c=relaxed/simple;
-	bh=3PQ9Q4JVVpc/9AKG3bI5J21D9i9YPWJVv2r5/liGOCg=;
-	h=Date:To:From:Subject:Message-Id; b=PcZnzKvDXLBg5FP3d8hZ16uJdozwISp0V3qpk/JKMbbdsAZrDE2b/AykFaRGDpOiTMIHSICK2y+sC/cdddpzI7Z/rpofJFU2SjAK6YHvyKjMbxU4YyVfNhAq0s3idleOhJUYXbgDgYb4+FuGr0Cuc+DGfaUeKPpRN7HKsgZQZgE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QkuDa+xG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709144206; c=relaxed/simple;
+	bh=rV1gnAIHygyj226eelzMVHtRKCeE9OjeEPT9NPGEcYU=;
+	h=Date:To:From:Subject:Message-Id; b=vAtgVNpvTLly9+M57mkfg+Tj3D+ciD7jgHm/fPfT1z5/5lk+ZMG9XkNj668DBhUJT27i5Jrb5kVXdUrdcU5F+E1w1Be7SEGc7lgZEpv9NseZB4hUwUa+8MV1wvOLDKpzk2esOV/7QdjcnKWYcnCFr0AXS+tDx5dOBSSIEOZPTv8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k0Er7hh9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QkuDa+xG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00D76C433C7;
-	Wed, 28 Feb 2024 18:13:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k0Er7hh9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFACCC433C7;
+	Wed, 28 Feb 2024 18:16:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709144009;
-	bh=3PQ9Q4JVVpc/9AKG3bI5J21D9i9YPWJVv2r5/liGOCg=;
+	s=korg; t=1709144206;
+	bh=rV1gnAIHygyj226eelzMVHtRKCeE9OjeEPT9NPGEcYU=;
 	h=Date:To:From:Subject:From;
-	b=QkuDa+xG7QFvkXGhjUPas28tNgQg1p1sEOoM44dFuoVYpMJuKov/d5h/MUEWaEQAW
-	 Ud07XsJ5N2DcToXe/3HL9t1i7bG+VNGA1/iD7hqPGkBcwbk70tz/upZqBWDz1RK05S
-	 FhGGl0YqP9rVkjm2lKNybV+Y9tlmPPZQzWcQXqV0=
-Date: Wed, 28 Feb 2024 10:13:28 -0800
-To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,willy@infradead.org,akpm@linux-foundation.org
+	b=k0Er7hh9gaz5zzki5db/sETvuPiHcwX0XN0zRWRyS34smk6appEYb9cw5lZOT7R3r
+	 Qp9cI6NzgtnDmG7ad2ic3RloiVA6krQDAh/CO3uod2bfADgfc+Tb8Ww66WknY/g8VE
+	 O6QZW3FmYcDlykvMx6oTLsq4TWj82PKwa/9fTPOk=
+Date: Wed, 28 Feb 2024 10:16:44 -0800
+To: mm-commits@vger.kernel.org,zokeefe@google.com,yuzhao@google.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,mkoutny@suse.com,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,hughd@google.com,david@redhat.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-folio-more-widely-in-__split_huge_page.patch added to mm-unstable branch
-Message-Id: <20240228181329.00D76C433C7@smtp.kernel.org>
+Subject: + mm-thp-split-huge-page-to-any-lower-order-pages-fix.patch added to mm-unstable branch
+Message-Id: <20240228181645.DFACCC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: use folio more widely in __split_huge_page
+     Subject: mm-thp-split-huge-page-to-any-lower-order-pages-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-use-folio-more-widely-in-__split_huge_page.patch
+     mm-thp-split-huge-page-to-any-lower-order-pages-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-folio-more-widely-in-__split_huge_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-split-huge-page-to-any-lower-order-pages-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,108 +58,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: use folio more widely in __split_huge_page
-Date: Wed, 28 Feb 2024 16:42:36 +0000
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm-thp-split-huge-page-to-any-lower-order-pages-fix
+Date: Wed, 28 Feb 2024 10:52:23 -0500
 
-We already have a folio; use it instead of the head page where reasonable.
-Saves a couple of calls to compound_head() and elimimnates a few
-references to page->mapping.
+fixup per discussion with Ryan at https://lore.kernel.org/linux-mm/408df79a-130e-43cd-a21a-9b3a2ddef617
 
-Link: https://lkml.kernel.org/r/20240228164326.1355045-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Link: https://lkml.kernel.org/r/494F48CD-1F0F-4CAD-884E-6D48F40AF990@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Michal Koutny <mkoutny@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ mm/huge_memory.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/huge_memory.c~mm-use-folio-more-widely-in-__split_huge_page
+--- a/mm/huge_memory.c~mm-thp-split-huge-page-to-any-lower-order-pages-fix
 +++ a/mm/huge_memory.c
-@@ -2919,7 +2919,7 @@ static void __split_huge_page(struct pag
- 		if (head[i].index >= end) {
- 			struct folio *tail = page_folio(head + i);
+@@ -3059,11 +3059,8 @@ int split_huge_page_to_list_to_order(str
  
--			if (shmem_mapping(head->mapping))
-+			if (shmem_mapping(folio->mapping))
- 				nr_dropped++;
- 			else if (folio_test_clear_dirty(tail))
- 				folio_account_cleaned(tail,
-@@ -2927,7 +2927,7 @@ static void __split_huge_page(struct pag
- 			__filemap_remove_folio(tail, NULL);
- 			folio_put(tail);
- 		} else if (!PageAnon(page)) {
--			__xa_store(&head->mapping->i_pages, head[i].index,
-+			__xa_store(&folio->mapping->i_pages, head[i].index,
- 					head + i, 0);
- 		} else if (swap_cache) {
- 			__xa_store(&swap_cache->i_pages, offset + i,
-@@ -2948,23 +2948,23 @@ static void __split_huge_page(struct pag
- 	split_page_owner(head, order, new_order);
- 
- 	/* See comment in __split_huge_page_tail() */
--	if (PageAnon(head)) {
-+	if (folio_test_anon(folio)) {
- 		/* Additional pin to swap cache */
--		if (PageSwapCache(head)) {
--			page_ref_add(head, 1 + new_nr);
-+		if (folio_test_swapcache(folio)) {
-+			folio_ref_add(folio, 1 + new_nr);
- 			xa_unlock(&swap_cache->i_pages);
- 		} else {
--			page_ref_inc(head);
-+			folio_ref_inc(folio);
- 		}
- 	} else {
- 		/* Additional pin to page cache */
--		page_ref_add(head, 1 + new_nr);
--		xa_unlock(&head->mapping->i_pages);
-+		folio_ref_add(folio, 1 + new_nr);
-+		xa_unlock(&folio->mapping->i_pages);
- 	}
- 	local_irq_enable();
- 
- 	if (nr_dropped)
--		shmem_uncharge(head->mapping->host, nr_dropped);
-+		shmem_uncharge(folio->mapping->host, nr_dropped);
- 	remap_page(folio, nr);
- 
- 	if (folio_test_swapcache(folio))
-@@ -2980,9 +2980,10 @@ static void __split_huge_page(struct pag
- 
- 	for (i = 0; i < nr; i += new_nr) {
- 		struct page *subpage = head + i;
-+		struct folio *new_folio = page_folio(subpage);
- 		if (subpage == page)
- 			continue;
--		unlock_page(subpage);
-+		folio_unlock(new_folio);
- 
- 		/*
- 		 * Subpages may be freed if there wasn't any mapping
+ 	if (new_order) {
+ 		/* Only swapping a whole PMD-mapped folio is supported */
+-		if (folio_test_swapcache(folio)) {
+-			VM_WARN_ONCE(1,
+-				"Cannot split swap-cached folio to non-0 order");
++		if (folio_test_swapcache(folio))
+ 			return -EINVAL;
+-		}
+ 		/* Split shmem folio to non-zero order not supported */
+ 		if (shmem_mapping(folio->mapping)) {
+ 			VM_WARN_ONCE(1,
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-support-order-1-folios-in-the-page-cache.patch
-mm-make-folios_put-the-basis-of-release_pages.patch
-mm-convert-free_unref_page_list-to-use-folios.patch
-mm-add-free_unref_folios.patch
-mm-use-folios_put-in-__folio_batch_release.patch
-memcg-add-mem_cgroup_uncharge_folios.patch
-mm-remove-use-of-folio-list-from-folios_put.patch
-mm-use-free_unref_folios-in-put_pages_list.patch
-mm-use-__page_cache_release-in-folios_put.patch
-mm-handle-large-folios-in-free_unref_folios.patch
-mm-allow-non-hugetlb-large-folios-to-be-batch-processed.patch
-mm-free-folios-in-a-batch-in-shrink_folio_list.patch
-mm-free-folios-directly-in-move_folios_to_lru.patch
-memcg-remove-mem_cgroup_uncharge_list.patch
-mm-remove-free_unref_page_list.patch
-mm-remove-lru_to_page.patch
-mm-convert-free_pages_and_swap_cache-to-use-folios_put.patch
-mm-use-a-folio-in-__collapse_huge_page_copy_succeeded.patch
-mm-convert-free_swap_cache-to-take-a-folio.patch
-mm-use-folio-more-widely-in-__split_huge_page.patch
+mm-huge_memory-only-split-pmd-mapping-when-necessary-in-unmap_folio.patch
+mm-memcg-use-order-instead-of-nr-in-split_page_memcg.patch
+mm-page_owner-use-order-instead-of-nr-in-split_page_owner.patch
+mm-memcg-make-memcg-huge-page-split-support-any-order-split.patch
+mm-page_owner-add-support-for-splitting-to-any-order-in-split-page_owner.patch
+mm-thp-split-huge-page-to-any-lower-order-pages.patch
+mm-thp-split-huge-page-to-any-lower-order-pages-fix.patch
+mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order.patch
 
