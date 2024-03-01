@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB0FB160629
-	for <mm-commits@vger.kernel.org>; Thu, 29 Feb 2024 18:50:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9F0F848D
+	for <mm-commits@vger.kernel.org>; Fri,  1 Mar 2024 17:43:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709232643; cv=none; b=Fr2RtMwap1Y1hf55DOYx8OMq7fNYKur6Btkh6bSIWQ4CfsBdxkdM9ANcKOMSXzvoPl0WevDqswgh2uBKl1GnvNvhmuw/9Uz6mIDA1lV++TWJ2oFTykm341eE411vqIclBJAGm7W0+4sg3vc4JTEskw1r1ahiOq5NQKFgd/QqgPs=
+	t=1709315021; cv=none; b=YahKNqak3mdFmZFRCDvh7Myj5odYsTcxOuwu+3araRtPE60Zb68ZxLSgb8Y795cOwEuzcdpW9QAsOqKxEuixLe4okfKvCR6p38f1glWpVdXfZR/bkx09SrG7VmY3Gmat1GotkjXD7yCdWk1aOE/BsMZWmLO8//0x5MBjR6c6DGw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709232643; c=relaxed/simple;
-	bh=UQZ32bz/WXgZX6zU+q6KEOjfKJszc+y7fKYDc4yRtxQ=;
-	h=Date:To:From:Subject:Message-Id; b=fy1wiT7aJKwgDVLbwzQLVb1BFkiU9drSSTzOFuLYgYveyRum1JrgaUd5ANX2xErl2BdIkxil9q/N/krnZ6WD4po74EW4YywDJm78b36BjWD1Uz8UqDC3DWoR0gaehR+gKgTjoR9aUFU/in5S2BodUQxKlzyTjKzV+bRVCq+mpmM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I6kurNLr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709315021; c=relaxed/simple;
+	bh=500zXiiskSWGTmwHdjLvAdmZI3Kv/uAnX//1gFqYHkM=;
+	h=Date:To:From:Subject:Message-Id; b=r0SWvoiIeoijayxrFtUIhsI8MRbwWF8yc3MUCjKhJ3GslcaeOfcKK5qxOGKTquOCCt55wf4aWSFkFcOVna7/DLUUCSLLBgCZAI89Glc9rbwt8vHjXTzVvOMQRs0yjrV/FkWr5wF7NkZO9nNX3dHnThnDo79TnENROrmdyqyuXrg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YwhpriBw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I6kurNLr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B6E8C433F1;
-	Thu, 29 Feb 2024 18:50:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YwhpriBw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 642BEC433C7;
+	Fri,  1 Mar 2024 17:43:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709232643;
-	bh=UQZ32bz/WXgZX6zU+q6KEOjfKJszc+y7fKYDc4yRtxQ=;
+	s=korg; t=1709315020;
+	bh=500zXiiskSWGTmwHdjLvAdmZI3Kv/uAnX//1gFqYHkM=;
 	h=Date:To:From:Subject:From;
-	b=I6kurNLrzLNTQc0bJzqx5ribrqrVKxOljvnkRbl1PPPC8mndBsf4vPnEXAObl3RxM
-	 RUyWuRM+7z27x4snytPuQk0iNPkrkrORphw9vu2zPIRw0frQd+MWIhc4KAWg7GjoL8
-	 EfMZFjd9dYqRy9S9MVB8SOVaUf0yQ6cUdLyZp1F4=
-Date: Thu, 29 Feb 2024 10:50:42 -0800
-To: mm-commits@vger.kernel.org,thorsten.blum@toblux.com,akpm@linux-foundation.org
+	b=YwhpriBwGkw+i/fMKMyjRrG0mFZcuSLzBbjaS0Y/GdV7k1n+5NUk7cocE6pnzOtGt
+	 fTvVSwcfweTmSviHoA86P1i/clnD2Zp3ipXGh28PasPI+MBENUYkF+SHpDsMfBnROA
+	 Hu+xkggZoXrTp68K+3Hbj1zCuHV+Y8sSbxksIcnI=
+Date: Fri, 01 Mar 2024 09:43:39 -0800
+To: mm-commits@vger.kernel.org,bhe@redhat.com,yang.zhang@hexintek.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-use-div64_ul-instead-of-do_div.patch added to mm-unstable branch
-Message-Id: <20240229185043.2B6E8C433F1@smtp.kernel.org>
+Subject: + kexec-copy-only-happens-before-uchunk-goes-to-zero.patch added to mm-nonmm-unstable branch
+Message-Id: <20240301174340.642BEC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: use div64_ul() instead of do_div()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-use-div64_ul-instead-of-do_div.patch
+     Subject: kexec: copy only happens before uchunk goes to zero
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kexec-copy-only-happens-before-uchunk-goes-to-zero.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-use-div64_ul-instead-of-do_div.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-copy-only-happens-before-uchunk-goes-to-zero.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,37 +58,104 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@toblux.com>
-Subject: mm: page_alloc: use div64_ul() instead of do_div()
-Date: Wed, 28 Feb 2024 23:49:12 +0100
+From: "yang.zhang" <yang.zhang@hexintek.com>
+Subject: kexec: copy only happens before uchunk goes to zero
+Date: Thu, 22 Feb 2024 17:21:19 +0800
 
-Fixes Coccinelle/coccicheck warning reported by do_div.cocci.
+When loading segments, ubytes is <= mbytes.  When ubytes is exhausted,
+there could be remaining mbytes.  Then in the while loop, the buf pointer
+advancing with mchunk will causing meaningless reading even though it
+doesn't harm.
 
-Compared to do_div(), div64_ul() does not implicitly cast the divisor and
-does not unnecessarily calculate the remainder.
+So let's change to make sure that all of the copying and the rest only
+happens before uchunk goes to zero.
 
-Link: https://lkml.kernel.org/r/20240228224911.1164-2-thorsten.blum@toblux.com
-Signed-off-by: Thorsten Blum <thorsten.blum@toblux.com>
+Link: https://lkml.kernel.org/r/20240222092119.5602-1-gaoshanliukou@163.com
+Signed-off-by: yang.zhang <yang.zhang@hexintek.com>
+Acked-by: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kexec_core.c |   44 ++++++++++++++++++++++--------------------
+ 1 file changed, 24 insertions(+), 20 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-use-div64_ul-instead-of-do_div
-+++ a/mm/page_alloc.c
-@@ -5850,7 +5850,7 @@ static void __setup_per_zone_wmarks(void
+--- a/kernel/kexec_core.c~kexec-copy-only-happens-before-uchunk-goes-to-zero
++++ a/kernel/kexec_core.c
+@@ -750,22 +750,24 @@ static int kimage_load_normal_segment(st
+ 				PAGE_SIZE - (maddr & ~PAGE_MASK));
+ 		uchunk = min(ubytes, mchunk);
  
- 		spin_lock_irqsave(&zone->lock, flags);
- 		tmp = (u64)pages_min * zone_managed_pages(zone);
--		do_div(tmp, lowmem_pages);
-+		tmp = div64_ul(tmp, lowmem_pages);
- 		if (is_highmem(zone) || zone_idx(zone) == ZONE_MOVABLE) {
- 			/*
- 			 * __GFP_HIGH and PF_MEMALLOC allocations usually don't
+-		/* For file based kexec, source pages are in kernel memory */
+-		if (image->file_mode)
+-			memcpy(ptr, kbuf, uchunk);
+-		else
+-			result = copy_from_user(ptr, buf, uchunk);
++		if (uchunk) {
++			/* For file based kexec, source pages are in kernel memory */
++			if (image->file_mode)
++				memcpy(ptr, kbuf, uchunk);
++			else
++				result = copy_from_user(ptr, buf, uchunk);
++			ubytes -= uchunk;
++			if (image->file_mode)
++				kbuf += uchunk;
++			else
++				buf += uchunk;
++		}
+ 		kunmap_local(ptr);
+ 		if (result) {
+ 			result = -EFAULT;
+ 			goto out;
+ 		}
+-		ubytes -= uchunk;
+ 		maddr  += mchunk;
+-		if (image->file_mode)
+-			kbuf += mchunk;
+-		else
+-			buf += mchunk;
+ 		mbytes -= mchunk;
+ 
+ 		cond_resched();
+@@ -817,11 +819,18 @@ static int kimage_load_crash_segment(str
+ 			memset(ptr + uchunk, 0, mchunk - uchunk);
+ 		}
+ 
+-		/* For file based kexec, source pages are in kernel memory */
+-		if (image->file_mode)
+-			memcpy(ptr, kbuf, uchunk);
+-		else
+-			result = copy_from_user(ptr, buf, uchunk);
++		if (uchunk) {
++			/* For file based kexec, source pages are in kernel memory */
++			if (image->file_mode)
++				memcpy(ptr, kbuf, uchunk);
++			else
++				result = copy_from_user(ptr, buf, uchunk);
++			ubytes -= uchunk;
++			if (image->file_mode)
++				kbuf += uchunk;
++			else
++				buf += uchunk;
++		}
+ 		kexec_flush_icache_page(page);
+ 		kunmap_local(ptr);
+ 		arch_kexec_pre_free_pages(page_address(page), 1);
+@@ -829,12 +838,7 @@ static int kimage_load_crash_segment(str
+ 			result = -EFAULT;
+ 			goto out;
+ 		}
+-		ubytes -= uchunk;
+ 		maddr  += mchunk;
+-		if (image->file_mode)
+-			kbuf += mchunk;
+-		else
+-			buf += mchunk;
+ 		mbytes -= mchunk;
+ 
+ 		cond_resched();
 _
 
-Patches currently in -mm which might be from thorsten.blum@toblux.com are
+Patches currently in -mm which might be from yang.zhang@hexintek.com are
 
-mm-page_alloc-use-div64_ul-instead-of-do_div.patch
+kexec-copy-only-happens-before-uchunk-goes-to-zero.patch
 
