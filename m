@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60AFF78689
-	for <mm-commits@vger.kernel.org>; Mon,  4 Mar 2024 18:38:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58DC678B5C
+	for <mm-commits@vger.kernel.org>; Mon,  4 Mar 2024 19:11:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709577504; cv=none; b=aAYjSAcmz/M/KT+PsBZKBlMGZQl9CwN4t+SO02NtcY7BkdcGA9Fo4XwIQdtJnpldy6nDuwVy03rkiQhNOwkLW5KMskQCJmkRWAzOBaBu6RR94wRraqEh7+rnbsexFlreQhIJbAoOUgkGOZ1g04/cnXEqa1u675ODY4PttPKTGh0=
+	t=1709579489; cv=none; b=lQS5s/VWr4CJrMnftjaDg6XWVLR0s1ZrpXDyHUxeygGSC+LzWXdQ/sbQtxQ7Y4WB8gUH8a7fKeXrxladvVbqsQN+OulvNtzPJnq8s7kHGDpMpdHeKP4ZrUKW7Z9MXL04viIAo7CNLmnO4F0+ktoIz7cvNXE4vIFORTog0XfwfIg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709577504; c=relaxed/simple;
-	bh=MwL4EbAfAeEyZMpXFJBlHnnf587FI9y2aYxcz4T+X1E=;
-	h=Date:To:From:Subject:Message-Id; b=np7JwLyPyG6xthc4lUX1mQRHYrrM9+KQ8K4mzemTCFIZNXCkCl1PTuhvRFY/XwpWVnDoXQmIVxmsGo1keSojeShrsdI+3lLs2F/688R1We63hn3nzLw8LC5FPYOwUw8bbZ7dNzNUVAz63NnWfZekfUujfLgsVkd5mYigxa92wsc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kxtF0dBh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709579489; c=relaxed/simple;
+	bh=QolAhQ+376xmNBvyYIDupoDc4bXkPheTlOYfWFd/zhI=;
+	h=Date:To:From:Subject:Message-Id; b=EuezhPQ8rVhCJX2CDyP82H8QnZIFKLCbCmE9rbAW32fIzHGXzGCLp3ggDQsk9DxHB6Ep9mudvIPC+jM41IJadlMKDXLIGKEDhy5d5KeI0jXuQgO0bzRgoBdROuCNjeKX4hwzkueJIVXQvoNUwp0v04iZzJXxcpTqfLUDBx5WEPY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bb24oI8a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kxtF0dBh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6959C433C7;
-	Mon,  4 Mar 2024 18:38:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bb24oI8a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBF45C433F1;
+	Mon,  4 Mar 2024 19:11:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709577503;
-	bh=MwL4EbAfAeEyZMpXFJBlHnnf587FI9y2aYxcz4T+X1E=;
+	s=korg; t=1709579488;
+	bh=QolAhQ+376xmNBvyYIDupoDc4bXkPheTlOYfWFd/zhI=;
 	h=Date:To:From:Subject:From;
-	b=kxtF0dBholzHwWD2ikNQZ9NaKWGjC9QwkIuf61+g+tTba4AK6R9SMvWhdkYuinP7K
-	 gmmTHyenfeW1WjC8zfKU6NH+VEEo7wECoTUkALDI11YNjCRpuCGRJvPQXP/pQSZBN2
-	 kxDdCyeoGEF9Dc9aHuw1h3LSWkVvKQGf/DBWCYAA=
-Date: Mon, 04 Mar 2024 10:38:23 -0800
-To: mm-commits@vger.kernel.org,zokeefe@google.com,yuzhao@google.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,mkoutny@suse.com,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,hughd@google.com,david@redhat.com,aishwarya.tcv@arm.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=Bb24oI8aHIaToC73HQihMmPGgnc7ObawpEe2RFWG0d9H2RG4YM8NBrU5dhy9MWmgd
+	 IKbLtEGp+CXhurq5u7UWExZcbx/ba+9uiMf38ZAlwTmvV5DlfnqPxhIgeRZ1Ed0EF0
+	 iGeV9Ci0G/omTOehY68X0IUAfoTcqjj5Er84r48o=
+Date: Mon, 04 Mar 2024 11:11:28 -0800
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,broonie@kernel.org,ardb@kernel.org,aishwarya.tcv@arm.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order-fix.patch added to mm-unstable branch
-Message-Id: <20240304183823.C6959C433C7@smtp.kernel.org>
+Subject: + mm-add-__dump_folio-fix-3.patch added to mm-unstable branch
+Message-Id: <20240304191128.CBF45C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order-fix
+     Subject: mm-add-__dump_folio-fix-3
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order-fix.patch
+     mm-add-__dump_folio-fix-3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-__dump_folio-fix-3.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,235 +58,133 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order-fix
-Date: Mon, 04 Mar 2024 10:57:25 -0500
+From: Matthew Wilcox <willy@infradead.org>
+Subject: mm-add-__dump_folio-fix-3
+Date: Mon, 4 Mar 2024 19:02:43 +0000
 
-The error comes from that the opened test files are not munmapped and their
-file descriptors are not closed in the skip path. NFS creates .nfsXXX files
-for them, making the temp folder not empty.
+Further testing revealed some more problems.  We were getting confused
+between various different pointers leading to spurious messages about
+the page not matching the folio and passing the wrong pointer to
+__dump_folio().  Here's a fix-3 patch which I tested like so:
 
-The attached patch cleans up properly and works on a NFS folder.
++static int __init page_dump(void)
++{
++       struct page *page;
++
++       printk("testing page dump\n");
++
++       page = alloc_page(GFP_KERNEL);
++       dump_page(page, "single");
++       put_page(page);
++       page = alloc_pages(GFP_KERNEL | __GFP_COMP, 2);
++       dump_page(page, "head");
++       dump_page(page + 1, "tail 1");
++       dump_page(page + 2, "tail 2");
++       dump_page(page + 3, "tail 3");
++       put_page(page);
++
++       return 0;
++}
++
++module_init(page_dump);
 
-Link: https://lkml.kernel.org/r/262E4DAA-4A78-4328-B745-1355AE356A07@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reported-by: Aishwarya TCV <aishwarya.tcv@arm.com>
-Tested-by: Aishwarya TCV <aishwarya.tcv@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Michal Koutny <mkoutny@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+(needed some extra debug to check the values of the pointers being
+passed to __dump_folio() which we wouldn't want to include)
+
+Link: https://lkml.kernel.org/r/ZeYa00ixxC4k1ot-@casper.infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Aishwarya TCV <aishwarya.tcv@arm.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Mark Brown <broonie@kernel.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh         |   22 +++
- tools/testing/selftests/mm/split_huge_page_test.c |   75 ++++++++++--
- 2 files changed, 85 insertions(+), 12 deletions(-)
+ mm/debug.c |   36 ++++++++++++++++++++++--------------
+ 1 file changed, 22 insertions(+), 14 deletions(-)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order-fix
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -399,7 +399,27 @@ CATEGORY="thp" run_test ./khugepaged -s
- 
- CATEGORY="thp" run_test ./transhuge-stress -d 20
- 
--CATEGORY="thp" run_test ./split_huge_page_test
-+# Try to create XFS if not provided
-+if [ -z "${SPLIT_HUGE_PAGE_TEST_XFS_PATH}" ]; then
-+    if test_selected "thp"; then
-+        if grep xfs /proc/filesystems &>/dev/null; then
-+            XFS_IMG=$(mktemp /tmp/xfs_img_XXXXXX)
-+            SPLIT_HUGE_PAGE_TEST_XFS_PATH=$(mktemp -d /tmp/xfs_dir_XXXXXX)
-+            truncate -s 314572800 ${XFS_IMG}
-+            mkfs.xfs -q ${XFS_IMG}
-+            mount -o loop ${XFS_IMG} ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
-+            MOUNTED_XFS=1
-+        fi
-+    fi
-+fi
-+
-+CATEGORY="thp" run_test ./split_huge_page_test ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
-+
-+if [ -n "${MOUNTED_XFS}" ]; then
-+    umount ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
-+    rmdir ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
-+    rm -f ${XFS_IMG}
-+fi
- 
- CATEGORY="migration" run_test ./migration
- 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order-fix
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -26,7 +26,6 @@ uint64_t pmd_pagesize;
- 
- #define SPLIT_DEBUGFS "/sys/kernel/debug/split_huge_pages"
- #define SMAP_PATH "/proc/self/smaps"
--#define THP_FS_PATH "/mnt/thp_fs"
- #define INPUT_MAX 80
- 
- #define PID_FMT "%d,0x%lx,0x%lx,%d"
-@@ -268,7 +267,37 @@ cleanup:
- 	ksft_exit_fail_msg("Error occurred\n");
- }
- 
--void create_pagecache_thp_and_fd(const char *testfile, size_t fd_size, int *fd, char **addr)
-+bool prepare_thp_fs(const char *xfs_path, char *thp_fs_template,
-+		const char **thp_fs_loc)
-+{
-+	if (xfs_path) {
-+		*thp_fs_loc = xfs_path;
-+		return false;
+--- a/mm/debug.c~mm-add-__dump_folio-fix-3
++++ a/mm/debug.c
+@@ -121,23 +121,31 @@ static void __dump_page(const struct pag
+ again:
+ 	memcpy(&precise, page, sizeof(*page));
+ 	foliop = page_folio(&precise);
+-	idx = folio_page_idx(foliop, page);
+-	if (idx != 0) {
+-		if (idx < MAX_FOLIO_NR_PAGES) {
+-			memcpy(&folio, foliop, 2 * sizeof(struct page));
+-			nr_pages = folio_nr_pages(&folio);
+-		}
++	if (foliop == (struct folio *)&precise) {
++		idx = 0;
++		if (!folio_test_large(foliop))
++			goto dump;
++		foliop = (struct folio *)page;
++	} else {
++		idx = folio_page_idx(foliop, page);
 +	}
 +
-+	*thp_fs_loc = mkdtemp(thp_fs_template);
-+
-+	if (!*thp_fs_loc)
-+		ksft_exit_fail_msg("cannot create temp folder\n");
-+
-+	return true;
-+}
-+
-+void cleanup_thp_fs(const char *thp_fs_loc, bool created_tmp)
-+{
-+	int status;
-+
-+	if (!created_tmp)
-+		return;
-+
-+	status = rmdir(thp_fs_loc);
-+	if (status)
-+		ksft_exit_fail_msg("cannot remove tmp dir: %s\n",
-+				   strerror(errno));
-+}
-+
-+int create_pagecache_thp_and_fd(const char *testfile, size_t fd_size, int *fd,
-+		char **addr)
- {
- 	size_t i;
- 	int dummy;
-@@ -277,7 +306,7 @@ void create_pagecache_thp_and_fd(const c
++	if (idx < MAX_FOLIO_NR_PAGES) {
++		memcpy(&folio, foliop, 2 * sizeof(struct page));
++		nr_pages = folio_nr_pages(&folio);
++		foliop = &folio;
++	}
  
- 	*fd = open(testfile, O_CREAT | O_RDWR, 0664);
- 	if (*fd == -1)
--		ksft_exit_fail_msg("Failed to create a file at "THP_FS_PATH);
-+		ksft_exit_fail_msg("Failed to create a file at %s\n", testfile);
- 
- 	for (i = 0; i < fd_size; i++) {
- 		unsigned char byte = (unsigned char)i;
-@@ -299,7 +328,7 @@ void create_pagecache_thp_and_fd(const c
- 
- 	*fd = open(testfile, O_RDWR);
- 	if (*fd == -1) {
--		ksft_perror("Failed to open a file at "THP_FS_PATH);
-+		ksft_perror("Failed to open testfile\n");
- 		goto err_out_unlink;
+-		if (idx > nr_pages) {
+-			if (loops-- > 0)
+-				goto again;
+-			printk("page does not match folio\n");
+-			precise.compound_head &= ~1UL;
+-			foliop = (struct folio *)&precise;
+-			idx = 0;
+-		}
++	if (idx > nr_pages) {
++		if (loops-- > 0)
++			goto again;
++		printk("page does not match folio\n");
++		precise.compound_head &= ~1UL;
++		foliop = (struct folio *)&precise;
++		idx = 0;
  	}
  
-@@ -314,26 +343,39 @@ void create_pagecache_thp_and_fd(const c
- 		dummy += *(*addr + i);
- 
- 	if (!check_huge_file(*addr, fd_size / pmd_pagesize, pmd_pagesize)) {
--		ksft_print_msg("No large pagecache folio generated, please mount a filesystem supporting large folio at "THP_FS_PATH"\n");
--		goto err_out_close;
-+		ksft_print_msg("No large pagecache folio generated, please provide a filesystem supporting large folio\n");
-+		munmap(*addr, fd_size);
-+		close(*fd);
-+		unlink(testfile);
-+		ksft_test_result_skip("Pagecache folio split skipped\n");
-+		return -2;
- 	}
--	return;
-+	return 0;
- err_out_close:
- 	close(*fd);
- err_out_unlink:
- 	unlink(testfile);
- 	ksft_exit_fail_msg("Failed to create large pagecache folios\n");
-+	return -1;
++dump:
+ 	__dump_folio(foliop, &precise, pfn, idx);
  }
- 
--void split_thp_in_pagecache_to_order(size_t fd_size, int order)
-+void split_thp_in_pagecache_to_order(size_t fd_size, int order, const char *fs_loc)
- {
- 	int fd;
- 	char *addr;
- 	size_t i;
--	const char testfile[] = THP_FS_PATH "/test";
-+	char testfile[INPUT_MAX];
- 	int err = 0;
- 
--	create_pagecache_thp_and_fd(testfile, fd_size, &fd, &addr);
-+	err = snprintf(testfile, INPUT_MAX, "%s/test", fs_loc);
-+
-+	if (err < 0)
-+		ksft_exit_fail_msg("cannot generate right test file name\n");
-+
-+	err = create_pagecache_thp_and_fd(testfile, fd_size, &fd, &addr);
-+	if (err)
-+		return;
-+	err = 0;
- 
- 	write_debugfs(PID_FMT, getpid(), (uint64_t)addr, (uint64_t)addr + fd_size, order);
- 
-@@ -351,6 +393,7 @@ void split_thp_in_pagecache_to_order(siz
- 	}
- 
- out:
-+	munmap(addr, fd_size);
- 	close(fd);
- 	unlink(testfile);
- 	if (err)
-@@ -362,6 +405,10 @@ int main(int argc, char **argv)
- {
- 	int i;
- 	size_t fd_size;
-+	char *optional_xfs_path = NULL;
-+	char fs_loc_template[] = "/tmp/thp_fs_XXXXXX";
-+	const char *fs_loc;
-+	bool created_tmp;
- 
- 	ksft_print_header();
- 
-@@ -370,6 +417,9 @@ int main(int argc, char **argv)
- 		ksft_finished();
- 	}
- 
-+	if (argc > 1)
-+		optional_xfs_path = argv[1];
-+
- 	ksft_set_plan(3+9);
- 
- 	pagesize = getpagesize();
-@@ -384,8 +434,11 @@ int main(int argc, char **argv)
- 	split_pte_mapped_thp();
- 	split_file_backed_thp();
- 
-+	created_tmp = prepare_thp_fs(optional_xfs_path, fs_loc_template,
-+			&fs_loc);
- 	for (i = 8; i >= 0; i--)
--		split_thp_in_pagecache_to_order(fd_size, i);
-+		split_thp_in_pagecache_to_order(fd_size, i, fs_loc);
-+	cleanup_thp_fs(fs_loc, created_tmp);
- 
- 	ksft_finished();
  
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-huge_memory-only-split-pmd-mapping-when-necessary-in-unmap_folio.patch
-mm-memcg-use-order-instead-of-nr-in-split_page_memcg.patch
-mm-page_owner-use-order-instead-of-nr-in-split_page_owner.patch
-mm-memcg-make-memcg-huge-page-split-support-any-order-split.patch
-mm-page_owner-add-support-for-splitting-to-any-order-in-split-page_owner.patch
-mm-thp-split-huge-page-to-any-lower-order-pages.patch
-mm-thp-split-huge-page-to-any-lower-order-pages-fix.patch
-mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order.patch
-mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order-fix.patch
+mm-support-order-1-folios-in-the-page-cache.patch
+mm-make-folios_put-the-basis-of-release_pages.patch
+mm-convert-free_unref_page_list-to-use-folios.patch
+mm-add-free_unref_folios.patch
+mm-use-folios_put-in-__folio_batch_release.patch
+memcg-add-mem_cgroup_uncharge_folios.patch
+mm-remove-use-of-folio-list-from-folios_put.patch
+mm-use-free_unref_folios-in-put_pages_list.patch
+mm-use-__page_cache_release-in-folios_put.patch
+mm-handle-large-folios-in-free_unref_folios.patch
+mm-allow-non-hugetlb-large-folios-to-be-batch-processed.patch
+mm-free-folios-in-a-batch-in-shrink_folio_list.patch
+mm-free-folios-directly-in-move_folios_to_lru.patch
+memcg-remove-mem_cgroup_uncharge_list.patch
+mm-remove-free_unref_page_list.patch
+mm-remove-lru_to_page.patch
+mm-convert-free_pages_and_swap_cache-to-use-folios_put.patch
+mm-use-a-folio-in-__collapse_huge_page_copy_succeeded.patch
+mm-convert-free_swap_cache-to-take-a-folio.patch
+mm-use-folio-more-widely-in-__split_huge_page.patch
+mm-separate-out-folio_flags-from-pageflags.patch
+mm-remove-pagewaiters-pagesetwaiters-and-pageclearwaiters.patch
+mm-remove-pageyoung-and-pageidle-definitions.patch
+mm-add-__dump_folio.patch
+mm-add-__dump_folio-fix.patch
+mm-add-__dump_folio-fix-2.patch
+mm-add-__dump_folio-fix-3.patch
+mm-make-dump_page-take-a-const-argument.patch
+mm-constify-testing-page-folio-flags.patch
+mm-constify-more-page-folio-tests.patch
+mm-remove-cast-from-page_to_nid.patch
+mm-mempolicy-use-a-folio-in-do_mbind.patch
 
