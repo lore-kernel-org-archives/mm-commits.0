@@ -1,96 +1,65 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4B7A78B68
-	for <mm-commits@vger.kernel.org>; Mon,  4 Mar 2024 19:17:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4D8879946
+	for <mm-commits@vger.kernel.org>; Mon,  4 Mar 2024 19:29:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709579865; cv=none; b=JVRk2ZtdIJHQrX6r3wkCiMkE/lomN52gilzO7kF4+7/z9Mzz3VAfSoQY9dNKXUtMMELcyeDIRyw/q0HCOI2Y/QxOHuQMRsfzzTf6Q9DvyuAJ0/hZF2MN5Qi/EZFjJNVop0C63URrdPhoPwApxunwF50Jah/T5mUiLI2uU/hzcBk=
+	t=1709580585; cv=none; b=rBI1LCDbXnH0fFBOBOVuRGUetnEkH26gLn6nCHILTuYsNsAGY9jLIaVBQVFYpIKl7S1A6IPP42g664h/o8VE1EaQVuxqUKty3ViHiQCh0r/807lyMnpvmlYV3OL7qBhibIOuSiHMZXMa5gHFcwxhoirVtuR49f7wkP/sSqKyuBU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709579865; c=relaxed/simple;
-	bh=NzpwFWLw9DT+svIiCLiGGjC5Dz1u+N5Y2z17NdFUoFY=;
-	h=Date:To:From:Subject:Message-Id; b=h48hdMyViyWu7WU1EPkeL9YxuIWSGWih2IEikvkaDo8r6xKX0fBzKc5GEhlxvL8PrGPD35DMD8g5uLfIYTE0byHukHDTQg3Qspg1QIBLyPm0ywivjnMCF4c0fuGoPAnIZOMDt688gkwWECUR3/pwjSWZM7gSLkKjE1tueSlC//0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=drl9audc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709580585; c=relaxed/simple;
+	bh=gIVlMmMwarjyqg3hd3tdCgSB2v4HonmvTfe0ra/elK0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gl7sSDYV9o8bSm/D9xol6gfXseu4uF4ASDsaDCMYHj2h5F2jsDMZkg7A2TL6l/5HkWT+pKQMo0+E+r/GEqXh72Hh5viRwX4ba0mwYXH236Yzjn6GGhCWwvzkqG2NqNXADOFXMGLLs3YesCiLCPufZRI7ibxjjV8ZaVnZBSaFaog=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=VdqhKx7H; arc=none smtp.client-ip=90.155.50.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="drl9audc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F09DC433F1;
-	Mon,  4 Mar 2024 19:17:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709579865;
-	bh=NzpwFWLw9DT+svIiCLiGGjC5Dz1u+N5Y2z17NdFUoFY=;
-	h=Date:To:From:Subject:From;
-	b=drl9audcRQsAUOrcfSpSxy3iigF21IzOLCUROM6PzIqJP+wBB5JpvLGPSkmEdP+Wl
-	 kxBKnSmW7U6wP9f/b7YBfpxtACTeSi8DgndMBu9Lpxt3si/RRl/8cZsRbPUpXgHJNA
-	 WsHGxTkRbPFUomX9V5E/eJCllzG71wEuzzgueKe0=
-Date: Mon, 04 Mar 2024 11:17:44 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,ryan.roberts@arm.com,broonie@kernel.org,ardb@kernel.org,aishwarya.tcv@arm.com,akpm@linux-foundation.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-__dump_folio-fix-3-fix.patch added to mm-unstable branch
-Message-Id: <20240304191745.3F09DC433F1@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="VdqhKx7H"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=+HFlqTotS0p870CLpOp500ESOzFNIL3qnvYu3t4Q58k=; b=VdqhKx7H5GWSJiNR/tcVBt6Y84
+	kC1Vl4i5ax1q48u4cesCYw4zY8Oc/NW6orZf/XZUpGGiNLz3B7PeinZC1uoucJGqDOg1Za1lUjkEQ
+	olTAZlmSuB+QXNdy3fVuMLs61WkFiKnq6fzxbBliiT1E40GNOkQaP49JCl6CnTWi4VoDVrrng2B5N
+	p2O8ZAdgqZC0RqSvK5mkeoRpJpicGqTjsE08g0+hGk1mQUNRaD+D1BAM9O/SDgJ9NDjt6IEY5tu7l
+	9LkQkAXtmBJPdgesGKCE1uZnGmuWrgqzD0LEJJAXy3jqjZwBISmTNNMnFInRAfHk9jKzck45YI8hi
+	4fJcApWA==;
+Received: from willy by casper.infradead.org with local (Exim 4.97.1 #2 (Red Hat Linux))
+	id 1rhE0J-00000002EqZ-1D8i;
+	Mon, 04 Mar 2024 19:29:39 +0000
+Date: Mon, 4 Mar 2024 19:29:39 +0000
+From: Matthew Wilcox <willy@infradead.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, ryan.roberts@arm.com, broonie@kernel.org,
+	ardb@kernel.org, aishwarya.tcv@arm.com
+Subject: Re: + mm-add-__dump_folio-fix-3.patch added to mm-unstable branch
+Message-ID: <ZeYhIwWBfYcAOiWU@casper.infradead.org>
+References: <20240304191128.CBF45C433F1@smtp.kernel.org>
+ <20240304111722.49e949bc5367e99a5624bbcd@linux-foundation.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240304111722.49e949bc5367e99a5624bbcd@linux-foundation.org>
 
+On Mon, Mar 04, 2024 at 11:17:22AM -0800, Andrew Morton wrote:
+> On Mon, 04 Mar 2024 11:11:28 -0800 Andrew Morton <akpm@linux-foundation.org> wrote:
+> > +	if (idx > nr_pages) {
+> > +		if (loops-- > 0)
+> > +			goto again;
+> > +		printk("page does not match folio\n");
+> 
+> We shouldn't use a bare printk().  I'll make it pr_warn(), but should
+> we be using WARN() here to get a backtrace?
 
-The patch titled
-     Subject: mm-add-__dump_folio-fix-3-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-__dump_folio-fix-3-fix.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-__dump_folio-fix-3-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-__dump_folio-fix-3-fix
-Date: Mon Mar  4 11:15:25 AM PST 2024
-
-s/printk/pr_warn/
-
-Cc: Aishwarya TCV <aishwarya.tcv@arm.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/debug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/mm/debug.c~mm-add-__dump_folio-fix-3-fix
-+++ a/mm/debug.c
-@@ -139,7 +139,7 @@ again:
- 	if (idx > nr_pages) {
- 		if (loops-- > 0)
- 			goto again;
--		printk("page does not match folio\n");
-+		pr_warn("page does not match folio\n");
- 		precise.compound_head &= ~1UL;
- 		foliop = (struct folio *)&precise;
- 		idx = 0;
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-hugetlb-parallelize-1g-hugetlb-initialization-fix.patch
-mm-add-alloc_contig_migrate_range-allocation-statistics-fix.patch
-mm-add-__dump_folio-fix-3-fix.patch
+I'm wary of doing that.  We're in dump_page(), so we might well be in
+the middle of something else going wrong.  A backtrace will cause more
+confusion than good.  pr_warn() is fine; matches
+                pr_warn("page dumped because: %s\n", reason);
 
