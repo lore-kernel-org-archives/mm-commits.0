@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE3D27465
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 00:57:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 640877465
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 00:58:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600259; cv=none; b=UfNNW7FUOmqr7OnzZUmnE884EIq6WZfLiOjQGyPWUK9Vc65TdvTy4DnQSfoz7ME3I6LE4c20MTnjdbIf/7N/T4HvPgAan+yK18qt00H00TRsk/YpG2010Ngyfqz5f4arUh/RGJ2s2/2S3SKpMtfj6Ol5aSeys32qbzRlzl180A4=
+	t=1709600339; cv=none; b=Dp6n/2Nj/wXqr8JgLUNHI/qhBd9k03Rvm4onXd21kZdqdgA8RvR1jF4luPNmkSCmFKQZcrrWIWxLVoQIjZA3YzeTwCAd6TwgmkdqJ0NEz8TnKojw7hdgNQBHR3gAEPOZQluizylFvA0L//R9ZcU/hIFCMLT4suEU85Dy5krd1pQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600259; c=relaxed/simple;
-	bh=JnqQcd6e1T56IaC2c3MEJ7Kg3hFnKM8F49IZohE/vSU=;
-	h=Date:To:From:Subject:Message-Id; b=BIsFNBaZE8PDNYvmxQJg9OiJ/GnGQQjG9k5AxoQwDGeXqaxYu0ErVmXROK7VObgD8O1B3YFYsagZmSshGnUgLVgKxZzTYFvyzHuFWVg7naXTzFuzgtyY9u4lByTXt3RzgAW+X/mREBnMLOzbFHJVzby6NpI68fqmjLh2gyJrW4M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WGvqQRFw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709600339; c=relaxed/simple;
+	bh=xVFTZ6ZvirPITHQuC+0fp5T4Fh+WMn0t4Zz6tSPQruA=;
+	h=Date:To:From:Subject:Message-Id; b=KL9IoFs8scD+4yqJn9PRubq79nljBbdHvXJFUya7rbH2ryW7IOgZxKacbh+QtPVzOrbxdqcNOuPe46mnrCmnog/6NYqifRAXZKcYPdw9m6y4/UFFY6pMmpkeHpTChTLx7Q8OpX0w8uXtIsRFZDKHm1ykh1gyvUucDS8H5yHEHOU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SHa6bSoK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WGvqQRFw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38F94C433F1;
-	Tue,  5 Mar 2024 00:57:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SHa6bSoK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8888C433C7;
+	Tue,  5 Mar 2024 00:58:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600259;
-	bh=JnqQcd6e1T56IaC2c3MEJ7Kg3hFnKM8F49IZohE/vSU=;
+	s=korg; t=1709600338;
+	bh=xVFTZ6ZvirPITHQuC+0fp5T4Fh+WMn0t4Zz6tSPQruA=;
 	h=Date:To:From:Subject:From;
-	b=WGvqQRFwocUIR8yEu9w5AJdmZy7dgz4x9e7Zz2vGzZnTfCsbXj6EUgC0EDDL6aDfg
-	 Y194+S8dAouI7IpPz8Sc+ZcY6rUOwve6GoYM+d7AgpBejf1GK0ynD4iohJw6VJ0Oeq
-	 FHGXz0Hl+JIBo2S2EFZLLYOx3RDnFnb2YAoOrQ8I=
-Date: Mon, 04 Mar 2024 16:57:38 -0800
-To: mm-commits@vger.kernel.org,zokeefe@google.com,yuzhao@google.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,mkoutny@suse.com,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,hughd@google.com,david@redhat.com,aishwarya.tcv@arm.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=SHa6bSoKBd9aKTVreY1/sjzPal2Co8xcNUXh58kEoC3OlBbcCluwGWoTbMxrjmo5I
+	 ONHbO1UU5xI/869GmJk0FFVjbiCUEnBtLgsK/uYCMysKsIy3mtWwS0srHUNO7NHtwC
+	 jdEvI/PbnC6fbNebTSlLXt2U3VKtalCP3RZAYiQI=
+Date: Mon, 04 Mar 2024 16:58:58 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,richardycc@google.com,minchan@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,liumartin@google.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order-fix.patch removed from -mm tree
-Message-Id: <20240305005739.38F94C433F1@smtp.kernel.org>
+Subject: [folded-merged] mm-add-alloc_contig_migrate_range-allocation-statistics-fix.patch removed from -mm tree
+Message-Id: <20240305005858.D8888C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,240 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order-fix
+     Subject: mm-add-alloc_contig_migrate_range-allocation-statistics-fix
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order-fix.patch
+     mm-add-alloc_contig_migrate_range-allocation-statistics-fix.patch
 
-This patch was dropped because it was folded into mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order.patch
+This patch was dropped because it was folded into mm-add-alloc_contig_migrate_range-allocation-statistics.patch
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order-fix
-Date: Mon, 04 Mar 2024 10:57:25 -0500
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-add-alloc_contig_migrate_range-allocation-statistics-fix
+Date: Wed Feb 28 11:42:35 AM PST 2024
 
-The error comes from that the opened test files are not munmapped and their
-file descriptors are not closed in the skip path. NFS creates .nfsXXX files
-for them, making the temp folder not empty.
+fix typo/braino: trace_mm_alloc_config_migrate_range_info_enabled
+should be trace_mm_alloc_contig_migrate_range_info_enabled.
 
-The attached patch cleans up properly and works on a NFS folder.
-
-Link: https://lkml.kernel.org/r/262E4DAA-4A78-4328-B745-1355AE356A07@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reported-by: Aishwarya TCV <aishwarya.tcv@arm.com>
-Tested-by: Aishwarya TCV <aishwarya.tcv@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Michal Koutny <mkoutny@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Martin Liu <liumartin@google.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Richard Chang <richardycc@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh         |   22 +++
- tools/testing/selftests/mm/split_huge_page_test.c |   75 ++++++++++--
- 2 files changed, 85 insertions(+), 12 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order-fix
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -399,7 +399,27 @@ CATEGORY="thp" run_test ./khugepaged -s
+--- a/mm/page_alloc.c~mm-add-alloc_contig_migrate_range-allocation-statistics-fix
++++ a/mm/page_alloc.c
+@@ -6280,7 +6280,7 @@ int __alloc_contig_migrate_range(struct
+ 		ret = migrate_pages(&cc->migratepages, alloc_migration_target,
+ 			NULL, (unsigned long)&mtc, cc->mode, MR_CONTIG_RANGE, NULL);
  
- CATEGORY="thp" run_test ./transhuge-stress -d 20
+-		if (trace_mm_alloc_config_migrate_range_info_enabled() && !ret)
++		if (trace_mm_alloc_contig_migrate_range_info_enabled() && !ret)
+ 			total_migrated += cc->nr_migratepages;
  
--CATEGORY="thp" run_test ./split_huge_page_test
-+# Try to create XFS if not provided
-+if [ -z "${SPLIT_HUGE_PAGE_TEST_XFS_PATH}" ]; then
-+    if test_selected "thp"; then
-+        if grep xfs /proc/filesystems &>/dev/null; then
-+            XFS_IMG=$(mktemp /tmp/xfs_img_XXXXXX)
-+            SPLIT_HUGE_PAGE_TEST_XFS_PATH=$(mktemp -d /tmp/xfs_dir_XXXXXX)
-+            truncate -s 314572800 ${XFS_IMG}
-+            mkfs.xfs -q ${XFS_IMG}
-+            mount -o loop ${XFS_IMG} ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
-+            MOUNTED_XFS=1
-+        fi
-+    fi
-+fi
-+
-+CATEGORY="thp" run_test ./split_huge_page_test ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
-+
-+if [ -n "${MOUNTED_XFS}" ]; then
-+    umount ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
-+    rmdir ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
-+    rm -f ${XFS_IMG}
-+fi
- 
- CATEGORY="migration" run_test ./migration
- 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order-fix
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -26,7 +26,6 @@ uint64_t pmd_pagesize;
- 
- #define SPLIT_DEBUGFS "/sys/kernel/debug/split_huge_pages"
- #define SMAP_PATH "/proc/self/smaps"
--#define THP_FS_PATH "/mnt/thp_fs"
- #define INPUT_MAX 80
- 
- #define PID_FMT "%d,0x%lx,0x%lx,%d"
-@@ -268,7 +267,37 @@ cleanup:
- 	ksft_exit_fail_msg("Error occurred\n");
- }
- 
--void create_pagecache_thp_and_fd(const char *testfile, size_t fd_size, int *fd, char **addr)
-+bool prepare_thp_fs(const char *xfs_path, char *thp_fs_template,
-+		const char **thp_fs_loc)
-+{
-+	if (xfs_path) {
-+		*thp_fs_loc = xfs_path;
-+		return false;
-+	}
-+
-+	*thp_fs_loc = mkdtemp(thp_fs_template);
-+
-+	if (!*thp_fs_loc)
-+		ksft_exit_fail_msg("cannot create temp folder\n");
-+
-+	return true;
-+}
-+
-+void cleanup_thp_fs(const char *thp_fs_loc, bool created_tmp)
-+{
-+	int status;
-+
-+	if (!created_tmp)
-+		return;
-+
-+	status = rmdir(thp_fs_loc);
-+	if (status)
-+		ksft_exit_fail_msg("cannot remove tmp dir: %s\n",
-+				   strerror(errno));
-+}
-+
-+int create_pagecache_thp_and_fd(const char *testfile, size_t fd_size, int *fd,
-+		char **addr)
- {
- 	size_t i;
- 	int dummy;
-@@ -277,7 +306,7 @@ void create_pagecache_thp_and_fd(const c
- 
- 	*fd = open(testfile, O_CREAT | O_RDWR, 0664);
- 	if (*fd == -1)
--		ksft_exit_fail_msg("Failed to create a file at "THP_FS_PATH);
-+		ksft_exit_fail_msg("Failed to create a file at %s\n", testfile);
- 
- 	for (i = 0; i < fd_size; i++) {
- 		unsigned char byte = (unsigned char)i;
-@@ -299,7 +328,7 @@ void create_pagecache_thp_and_fd(const c
- 
- 	*fd = open(testfile, O_RDWR);
- 	if (*fd == -1) {
--		ksft_perror("Failed to open a file at "THP_FS_PATH);
-+		ksft_perror("Failed to open testfile\n");
- 		goto err_out_unlink;
- 	}
- 
-@@ -314,26 +343,39 @@ void create_pagecache_thp_and_fd(const c
- 		dummy += *(*addr + i);
- 
- 	if (!check_huge_file(*addr, fd_size / pmd_pagesize, pmd_pagesize)) {
--		ksft_print_msg("No large pagecache folio generated, please mount a filesystem supporting large folio at "THP_FS_PATH"\n");
--		goto err_out_close;
-+		ksft_print_msg("No large pagecache folio generated, please provide a filesystem supporting large folio\n");
-+		munmap(*addr, fd_size);
-+		close(*fd);
-+		unlink(testfile);
-+		ksft_test_result_skip("Pagecache folio split skipped\n");
-+		return -2;
- 	}
--	return;
-+	return 0;
- err_out_close:
- 	close(*fd);
- err_out_unlink:
- 	unlink(testfile);
- 	ksft_exit_fail_msg("Failed to create large pagecache folios\n");
-+	return -1;
- }
- 
--void split_thp_in_pagecache_to_order(size_t fd_size, int order)
-+void split_thp_in_pagecache_to_order(size_t fd_size, int order, const char *fs_loc)
- {
- 	int fd;
- 	char *addr;
- 	size_t i;
--	const char testfile[] = THP_FS_PATH "/test";
-+	char testfile[INPUT_MAX];
- 	int err = 0;
- 
--	create_pagecache_thp_and_fd(testfile, fd_size, &fd, &addr);
-+	err = snprintf(testfile, INPUT_MAX, "%s/test", fs_loc);
-+
-+	if (err < 0)
-+		ksft_exit_fail_msg("cannot generate right test file name\n");
-+
-+	err = create_pagecache_thp_and_fd(testfile, fd_size, &fd, &addr);
-+	if (err)
-+		return;
-+	err = 0;
- 
- 	write_debugfs(PID_FMT, getpid(), (uint64_t)addr, (uint64_t)addr + fd_size, order);
- 
-@@ -351,6 +393,7 @@ void split_thp_in_pagecache_to_order(siz
- 	}
- 
- out:
-+	munmap(addr, fd_size);
- 	close(fd);
- 	unlink(testfile);
- 	if (err)
-@@ -362,6 +405,10 @@ int main(int argc, char **argv)
- {
- 	int i;
- 	size_t fd_size;
-+	char *optional_xfs_path = NULL;
-+	char fs_loc_template[] = "/tmp/thp_fs_XXXXXX";
-+	const char *fs_loc;
-+	bool created_tmp;
- 
- 	ksft_print_header();
- 
-@@ -370,6 +417,9 @@ int main(int argc, char **argv)
- 		ksft_finished();
- 	}
- 
-+	if (argc > 1)
-+		optional_xfs_path = argv[1];
-+
- 	ksft_set_plan(3+9);
- 
- 	pagesize = getpagesize();
-@@ -384,8 +434,11 @@ int main(int argc, char **argv)
- 	split_pte_mapped_thp();
- 	split_file_backed_thp();
- 
-+	created_tmp = prepare_thp_fs(optional_xfs_path, fs_loc_template,
-+			&fs_loc);
- 	for (i = 8; i >= 0; i--)
--		split_thp_in_pagecache_to_order(fd_size, i);
-+		split_thp_in_pagecache_to_order(fd_size, i, fs_loc);
-+	cleanup_thp_fs(fs_loc, created_tmp);
- 
- 	ksft_finished();
- 
+ 		/*
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-huge_memory-only-split-pmd-mapping-when-necessary-in-unmap_folio.patch
-mm-memcg-use-order-instead-of-nr-in-split_page_memcg.patch
-mm-page_owner-use-order-instead-of-nr-in-split_page_owner.patch
-mm-memcg-make-memcg-huge-page-split-support-any-order-split.patch
-mm-page_owner-add-support-for-splitting-to-any-order-in-split-page_owner.patch
-mm-thp-split-huge-page-to-any-lower-order-pages.patch
-mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order.patch
+mm-add-alloc_contig_migrate_range-allocation-statistics.patch
+hugetlb-parallelize-1g-hugetlb-initialization-fix.patch
+mm-add-__dump_folio-fix-3-fix.patch
 
