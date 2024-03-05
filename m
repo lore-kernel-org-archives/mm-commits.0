@@ -1,112 +1,75 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7660412B6C
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:03:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96ECB10A1B
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 05:19:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600586; cv=none; b=TTlC+FOz1RxQgZZTMDQezoth+DI2uCnj6iRdTZKXIhZzdBpRNh6ISbigH0AYaA9ff7U2v8cH0XEGpVMo5iy1HRBD+YgKaGhdO5Vr1Db+vStnwXIdDdanUoC1bPR7HqUJ8jfQ0anA5gk4Dj2iONDX79QdwXgQj15zm+Kr2mRIvqk=
+	t=1709615958; cv=none; b=mo80jTNfMOpyOLl67VzszFqjJ8D1L0OqI5fZ1SIGAw/Wnt8xM/NdTBdGAMjD8VWcKZtZ5fwiuJfreI0JE3IFX5KvpdkTdNxDr8bM9ABpE1JY6Gu4yp3JQY1VWN8ImixuKFG3fOMpiMd1oB9LfZtgg2aMnyue32qQWPRiBv3Tpyk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600586; c=relaxed/simple;
-	bh=Dx54D2yJXAd27CBvE7xRiD2rqyUsyzB97QYyOWdA/n8=;
-	h=Date:To:From:Subject:Message-Id; b=ejDmIxB7D/CIkoL6V2Rr5dxBtzs007f8koIjzR2JtHSv3YKX1t5rOianqNmWttgSXpXi/W2eaxmFdLTdbaYv3dueTF//xH/YlxCapdjxyEmZyZCAVOuNPF9u9HcTyYtWB0IfpbLyL1HjiGhmnRyi3q2ebcvUf4qBvXtqPle92Fs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZKvEZukU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709615958; c=relaxed/simple;
+	bh=Rjj5ou1XAzQApdPHsLFoi3aL5J1+quxDA4UBkxYZd1Q=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=C0fuC7/s3CoHy9oyzh5p0QH0HRfd4+oZI+UPReRsPXEseVVbL6uj6A/cohXfOiU961vFB33zYUAtGChvtX7Q1CjcVRMtM6QFgRMFtzEDpqjskv82sByXU6+gbpVAZSfMRkSqnSH+V3Ga9HadPCOTDeoKZezBcDCFN4GWedlzvEU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=c9hDAuQl; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZKvEZukU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42945C433C7;
-	Tue,  5 Mar 2024 01:03:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600586;
-	bh=Dx54D2yJXAd27CBvE7xRiD2rqyUsyzB97QYyOWdA/n8=;
-	h=Date:To:From:Subject:From;
-	b=ZKvEZukUdvpN8f4MloszRgihIjiGKvqWYNC6rwFCQjQv9PJEmPHTaQuOXImeCiq4k
-	 Uolnt3DNvE/W711FCNq6V6w8X6+w9BW6GnqfIEd6wE/VdxhREMZlEu+cMCfd/x2eJu
-	 DvP1yqIe5VZsyrMtSwgYu5+pyDNoYx1egAdKQGZ8=
-Date: Mon, 04 Mar 2024 17:03:05 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zsmalloc-dont-need-to-reserve-lsb-in-handle.patch removed from -mm tree
-Message-Id: <20240305010306.42945C433C7@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="c9hDAuQl"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1709615955;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=wuCkWdtz79lvqpSghMVmbUJfNWo+CSQ88jjSNKw/Vnw=;
+	b=c9hDAuQlmiNRi+qHGLkVV7AYnRIZoLNQq+Qu1ITX2V2zQot+uJyT5CU624kafyI6x46mXR
+	/ripWwcaL4yBAKmYJXmJgDLT+7Fl5nUC8h0+FVQr+T7jRaJz723BmqCYeHRO6pz6IB7Prx
+	oKV6yIVcY2a6qg2fZdy7sy2kSETRO5A=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-127-ur0yTltnMgq8SDcQWE1gYA-1; Tue, 05 Mar 2024 00:19:12 -0500
+X-MC-Unique: ur0yTltnMgq8SDcQWE1gYA-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id A8D0484B0C5;
+	Tue,  5 Mar 2024 05:19:11 +0000 (UTC)
+Received: from localhost (unknown [10.72.116.6])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id 07E14202451F;
+	Tue,  5 Mar 2024 05:19:10 +0000 (UTC)
+Date: Tue, 5 Mar 2024 13:19:07 +0800
+From: "bhe@redhat.com" <bhe@redhat.com>
+To: =?utf-8?B?5byg5rSL?= <yang.zhang@hexintek.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	"mm-commits@vger.kernel.org" <mm-commits@vger.kernel.org>
+Subject: Re: =?utf-8?B?562U5aSNOiArIGtleGVjLWNvcHkt?=
+ =?utf-8?Q?only-happens-before-uchunk-goes-to-zero=2Epatc?= =?utf-8?Q?h?=
+ added to mm-nonmm-unstable branch
+Message-ID: <ZearS74XGZAspiCA@MiWiFi-R3L-srv>
+References: <20240301174340.642BEC433C7@smtp.kernel.org>
+ <d5dcc228289d48109a558d8fafdc3590@hexintek.com>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <d5dcc228289d48109a558d8fafdc3590@hexintek.com>
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.4
 
+On 03/05/24 at 02:25am, 张洋 wrote:
+> Thank you for your reply
+> 
+> I am not very clear about the next process. I would like to know if there is anything I need to do next. I hope you will not hesitate to give me your advice.
+> Thanks again.
 
-The quilt patch titled
-     Subject: mm/zsmalloc: don't need to reserve LSB in handle
-has been removed from the -mm tree.  Its filename was
-     mm-zsmalloc-dont-need-to-reserve-lsb-in-handle.patch
-
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-------------------------------------------------------
-From: Chengming Zhou <chengming.zhou@linux.dev>
-Subject: mm/zsmalloc: don't need to reserve LSB in handle
-Date: Wed, 28 Feb 2024 02:38:54 +0000
-
-We will save allocated tag in the object header to indicate that it's
-allocated.
-
-	handle |= OBJ_ALLOCATED_TAG;
-
-So the object header needs to reserve LSB for this tag bit.
-
-But the handle itself doesn't need to reserve LSB to save tag, since it's
-only used to find the position of object, by (pfn + obj_idx).  So remove
-LSB reserve from handle, one more bit can be used as obj_idx.
-
-Link: https://lkml.kernel.org/r/20240228023854.3511239-1-chengming.zhou@linux.dev
-Signed-off-by: Chengming Zhou <chengming.zhou@linux.dev>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/zsmalloc.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
-
---- a/mm/zsmalloc.c~mm-zsmalloc-dont-need-to-reserve-lsb-in-handle
-+++ a/mm/zsmalloc.c
-@@ -110,7 +110,7 @@
- #define OBJ_TAG_BITS	1
- #define OBJ_TAG_MASK	OBJ_ALLOCATED_TAG
- 
--#define OBJ_INDEX_BITS	(BITS_PER_LONG - _PFN_BITS - OBJ_TAG_BITS)
-+#define OBJ_INDEX_BITS	(BITS_PER_LONG - _PFN_BITS)
- #define OBJ_INDEX_MASK	((_AC(1, UL) << OBJ_INDEX_BITS) - 1)
- 
- #define HUGE_BITS	1
-@@ -737,14 +737,12 @@ static struct page *get_next_page(struct
- static void obj_to_location(unsigned long obj, struct page **page,
- 				unsigned int *obj_idx)
- {
--	obj >>= OBJ_TAG_BITS;
- 	*page = pfn_to_page(obj >> OBJ_INDEX_BITS);
- 	*obj_idx = (obj & OBJ_INDEX_MASK);
- }
- 
- static void obj_to_page(unsigned long obj, struct page **page)
- {
--	obj >>= OBJ_TAG_BITS;
- 	*page = pfn_to_page(obj >> OBJ_INDEX_BITS);
- }
- 
-@@ -759,7 +757,6 @@ static unsigned long location_to_obj(str
- 
- 	obj = page_to_pfn(page) << OBJ_INDEX_BITS;
- 	obj |= obj_idx & OBJ_INDEX_MASK;
--	obj <<= OBJ_TAG_BITS;
- 
- 	return obj;
- }
-_
-
-Patches currently in -mm which might be from chengming.zhou@linux.dev are
-
+No, you don't need to do anything. Andrew has been helping pick 
+kexec/kdump patches into his tree, then will submit them to linus's tree
+during next merging window if code is reliable.
 
