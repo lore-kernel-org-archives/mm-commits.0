@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CC1EFC1C
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:03:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7660412B6C
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:03:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600585; cv=none; b=CAR4E182lDtBbxLtUuLP9gYeNyLs5Jsz213Pjtt463IUrDG9y0rndVO2Kg83oHJDIkVFD0COyun9HCJaqLt1a9hgoePTsHpv0zEF5YmRKPPAbDB2Hby/+xPV34bGrry4xgTA//GmqE77RreT7HsGID3suISijJhQ6R2JzAmPOP4=
+	t=1709600586; cv=none; b=TTlC+FOz1RxQgZZTMDQezoth+DI2uCnj6iRdTZKXIhZzdBpRNh6ISbigH0AYaA9ff7U2v8cH0XEGpVMo5iy1HRBD+YgKaGhdO5Vr1Db+vStnwXIdDdanUoC1bPR7HqUJ8jfQ0anA5gk4Dj2iONDX79QdwXgQj15zm+Kr2mRIvqk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600585; c=relaxed/simple;
-	bh=hN1GnKCDKhkuOvLMFFdqadZLquQLGMmo3tDJakBY1zQ=;
-	h=Date:To:From:Subject:Message-Id; b=PYvAdj2/JAq/pkPtENc3qqdGa1H8m4aZx6UNdajLlrKvdsRjusCce6p6IkMpJwCVmC15AZLX5+D1D6Tg1dUs1xE6qzba7X7a2B0x7TUccubedUUY9bfaQ6Y/fu0slbhXJoiOf85W9R+UNX6pRLhPkON1K82cMOE+dQJz6RafcaI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mV6szpOO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709600586; c=relaxed/simple;
+	bh=Dx54D2yJXAd27CBvE7xRiD2rqyUsyzB97QYyOWdA/n8=;
+	h=Date:To:From:Subject:Message-Id; b=ejDmIxB7D/CIkoL6V2Rr5dxBtzs007f8koIjzR2JtHSv3YKX1t5rOianqNmWttgSXpXi/W2eaxmFdLTdbaYv3dueTF//xH/YlxCapdjxyEmZyZCAVOuNPF9u9HcTyYtWB0IfpbLyL1HjiGhmnRyi3q2ebcvUf4qBvXtqPle92Fs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZKvEZukU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mV6szpOO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F845C433C7;
-	Tue,  5 Mar 2024 01:03:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZKvEZukU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42945C433C7;
+	Tue,  5 Mar 2024 01:03:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600585;
-	bh=hN1GnKCDKhkuOvLMFFdqadZLquQLGMmo3tDJakBY1zQ=;
+	s=korg; t=1709600586;
+	bh=Dx54D2yJXAd27CBvE7xRiD2rqyUsyzB97QYyOWdA/n8=;
 	h=Date:To:From:Subject:From;
-	b=mV6szpOOUx4dKS2LGxCvTPji+NSxn4RuFiAvWygEsj7VE11vKQL2CgnnsSDsl5ABe
-	 upmyDbiL9rxPc8MvCJu33vqu/k0g5j38G3uXNNTTUHVSNp2dUE1enlIALp4PsBtw/A
-	 BBvLaM/i9yXEcqfbmijLMpYBsWCtzQIH3itDQOzs=
-Date: Mon, 04 Mar 2024 17:03:04 -0800
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,david@redhat.com,jhubbard@nvidia.com,akpm@linux-foundation.org
+	b=ZKvEZukUdvpN8f4MloszRgihIjiGKvqWYNC6rwFCQjQv9PJEmPHTaQuOXImeCiq4k
+	 Uolnt3DNvE/W711FCNq6V6w8X6+w9BW6GnqfIEd6wE/VdxhREMZlEu+cMCfd/x2eJu
+	 DvP1yqIe5VZsyrMtSwgYu5+pyDNoYx1egAdKQGZ8=
+Date: Mon, 04 Mar 2024 17:03:05 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memoryc-do_numa_page-remove-a-redundant-page-table-read.patch removed from -mm tree
-Message-Id: <20240305010305.2F845C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zsmalloc-dont-need-to-reserve-lsb-in-handle.patch removed from -mm tree
+Message-Id: <20240305010306.42945C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory.c: do_numa_page(): remove a redundant page table read
+     Subject: mm/zsmalloc: don't need to reserve LSB in handle
 has been removed from the -mm tree.  Its filename was
-     mm-memoryc-do_numa_page-remove-a-redundant-page-table-read.patch
+     mm-zsmalloc-dont-need-to-reserve-lsb-in-handle.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/memory.c: do_numa_page(): remove a redundant page table read
-Date: Tue, 27 Feb 2024 19:41:51 -0800
+From: Chengming Zhou <chengming.zhou@linux.dev>
+Subject: mm/zsmalloc: don't need to reserve LSB in handle
+Date: Wed, 28 Feb 2024 02:38:54 +0000
 
-do_numa_page() is reading from the same page table entry, twice, while
-holding the page table lock: once while checking that the pte hasn't
-changed, and again in order to modify the pte.
+We will save allocated tag in the object header to indicate that it's
+allocated.
 
-Instead, just read the pte once, and save it in the same old_pte variable
-that already exists.  This has no effect on behavior, other than to
-provide a tiny potential improvement to performance, by avoiding the
-redundant memory read (which the compiler cannot elide, due to
-READ_ONCE()).
+	handle |= OBJ_ALLOCATED_TAG;
 
-Also improve the associated comments nearby.
+So the object header needs to reserve LSB for this tag bit.
 
-Link: https://lkml.kernel.org/r/20240228034151.459370-1-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+But the handle itself doesn't need to reserve LSB to save tag, since it's
+only used to find the position of object, by (pfn + obj_idx).  So remove
+LSB reserve from handle, one more bit can be used as obj_idx.
+
+Link: https://lkml.kernel.org/r/20240228023854.3511239-1-chengming.zhou@linux.dev
+Signed-off-by: Chengming Zhou <chengming.zhou@linux.dev>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/zsmalloc.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/memory.c~mm-memoryc-do_numa_page-remove-a-redundant-page-table-read
-+++ a/mm/memory.c
-@@ -5127,18 +5127,18 @@ static vm_fault_t do_numa_page(struct vm
- 	int flags = 0;
+--- a/mm/zsmalloc.c~mm-zsmalloc-dont-need-to-reserve-lsb-in-handle
++++ a/mm/zsmalloc.c
+@@ -110,7 +110,7 @@
+ #define OBJ_TAG_BITS	1
+ #define OBJ_TAG_MASK	OBJ_ALLOCATED_TAG
  
- 	/*
--	 * The "pte" at this point cannot be used safely without
--	 * validation through pte_unmap_same(). It's of NUMA type but
--	 * the pfn may be screwed if the read is non atomic.
-+	 * The pte cannot be used safely until we verify, while holding the page
-+	 * table lock, that its contents have not changed during fault handling.
- 	 */
- 	spin_lock(vmf->ptl);
--	if (unlikely(!pte_same(ptep_get(vmf->pte), vmf->orig_pte))) {
-+	/* Read the live PTE from the page tables: */
-+	old_pte = ptep_get(vmf->pte);
-+
-+	if (unlikely(!pte_same(old_pte, vmf->orig_pte))) {
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
- 		goto out;
- 	}
+-#define OBJ_INDEX_BITS	(BITS_PER_LONG - _PFN_BITS - OBJ_TAG_BITS)
++#define OBJ_INDEX_BITS	(BITS_PER_LONG - _PFN_BITS)
+ #define OBJ_INDEX_MASK	((_AC(1, UL) << OBJ_INDEX_BITS) - 1)
  
--	/* Get the normal PTE  */
--	old_pte = ptep_get(vmf->pte);
- 	pte = pte_modify(old_pte, vma->vm_page_prot);
+ #define HUGE_BITS	1
+@@ -737,14 +737,12 @@ static struct page *get_next_page(struct
+ static void obj_to_location(unsigned long obj, struct page **page,
+ 				unsigned int *obj_idx)
+ {
+-	obj >>= OBJ_TAG_BITS;
+ 	*page = pfn_to_page(obj >> OBJ_INDEX_BITS);
+ 	*obj_idx = (obj & OBJ_INDEX_MASK);
+ }
  
- 	/*
+ static void obj_to_page(unsigned long obj, struct page **page)
+ {
+-	obj >>= OBJ_TAG_BITS;
+ 	*page = pfn_to_page(obj >> OBJ_INDEX_BITS);
+ }
+ 
+@@ -759,7 +757,6 @@ static unsigned long location_to_obj(str
+ 
+ 	obj = page_to_pfn(page) << OBJ_INDEX_BITS;
+ 	obj |= obj_idx & OBJ_INDEX_MASK;
+-	obj <<= OBJ_TAG_BITS;
+ 
+ 	return obj;
+ }
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from chengming.zhou@linux.dev are
 
 
