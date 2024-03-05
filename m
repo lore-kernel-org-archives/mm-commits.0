@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D28D8BE5
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52AE38BE5
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600574; cv=none; b=ufzZuH9Bxd6J/+A8xTUC/1IULhjsO9VifwI4maDzhMk5VkXax9AY+6gGZcVsNZVktLaECSK3+bizo9RzJf0JThLiXF3JFpKk6Ao3q2RSqswlPWxLYUCQlV0rybkx6l+hLJ3TVG0KtGoDq/k1am1fCgmUPzl+J5gaAifZqhjRCKY=
+	t=1709600575; cv=none; b=J0S/gZPvijlcufdnTmh5mYCj03bPGMeg1/hSG+L4QhGkIh/gCcxvFLaLoYkSDpBvYqMXKNJ0SyijHT9zIkfPBo7X9cRzrFdY8M8mdyQ8y8FIYdRJ8bhI6kjFzC4Uxt7GormF6p2ZynuRbLYvHwR/KGRiOpAZMSzlPOZhK+Wravk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600574; c=relaxed/simple;
-	bh=sZhuG+yMgtuFpd34jDLrgdxTiqTy1HxMYnCPjSz47nE=;
-	h=Date:To:From:Subject:Message-Id; b=XDPY6aKo1vQ+xAWxyN8w+cjOQ3xz4CWRky85402lu6bfg8NTTgCBxsnwprOcG4lPVjlSbpSqTM0oZ/FHcInNfp5RCYQHrhYRNs6j2o+776cyKL0pU5qsLle0wLAdfywkYEC7LFJxl2JRRbSHELhuJpJnXHBmZH/hnhlKlM+wLNg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xd+dDL7p; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709600575; c=relaxed/simple;
+	bh=1QzswODT1OY0+yKESxo04cNGhWCR4N1k36BzHVTCojQ=;
+	h=Date:To:From:Subject:Message-Id; b=YWqrsljm9bU3VVL3e5irsHZRpRPJAVxpGb7GuiBEXrEJU5GLJkPlalGVAz/tGAeolRaN7wagjTPT4qcRrxt6Y3Ws6nmfE6zaMpOrgqXv9v71/+W+iEv9dRpDduVuC6E2BexRDkAhKCvA6rlzZzDj1EY78ClCN07fwsqC3WWR4qk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=in+1BXGI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xd+dDL7p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F363FC433C7;
-	Tue,  5 Mar 2024 01:02:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="in+1BXGI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1FB8C43390;
+	Tue,  5 Mar 2024 01:02:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600574;
-	bh=sZhuG+yMgtuFpd34jDLrgdxTiqTy1HxMYnCPjSz47nE=;
+	s=korg; t=1709600575;
+	bh=1QzswODT1OY0+yKESxo04cNGhWCR4N1k36BzHVTCojQ=;
 	h=Date:To:From:Subject:From;
-	b=xd+dDL7pl2KN9R2VfqbQ3FjJqdXPId0hMFCil8qZjGQDfNtNQRB2MBd0yhwrP8dzl
-	 KeueXFPJDZE6P0yZ+DPlW/Xo8iSGcP967sNsatUMYsiV69f+FMemLozmBUyI6knwrN
-	 jt/fE9+xSYW4+G/YN5r2zwB9hqSioa/t5hnBjads=
-Date: Mon, 04 Mar 2024 17:02:53 -0800
+	b=in+1BXGI9R4rTqB5J/5900QLPqcGR0eHdggTEp5yuNjBCkG9YbnWdwHiie7evCKnD
+	 N3q69qNMAGirK5+8D4SwPD4A7BwwIYe3tt7fQlOr0oISbaGjSaDuvgo4uorkrAqEWd
+	 Az88VF0yIgcayeeY6G0YHhVMxRUjBH6Hvf0e4qCU=
+Date: Mon, 04 Mar 2024 17:02:54 -0800
 To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,mgorman@suse.de,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-remove-mem_cgroup_uncharge_list.patch removed from -mm tree
-Message-Id: <20240305010253.F363FC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-free_unref_page_list.patch removed from -mm tree
+Message-Id: <20240305010254.E1FB8C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: remove mem_cgroup_uncharge_list()
+     Subject: mm: remove free_unref_page_list()
 has been removed from the -mm tree.  Its filename was
-     memcg-remove-mem_cgroup_uncharge_list.patch
+     mm-remove-free_unref_page_list.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: memcg: remove mem_cgroup_uncharge_list()
-Date: Tue, 27 Feb 2024 17:42:47 +0000
+Subject: mm: remove free_unref_page_list()
+Date: Tue, 27 Feb 2024 17:42:48 +0000
 
-All users have been converted to mem_cgroup_uncharge_folios() so we can
-remove this API.
+All callers now use free_unref_folios() so we can delete this function.
 
-Link: https://lkml.kernel.org/r/20240227174254.710559-14-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240227174254.710559-15-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -58,66 +57,47 @@ Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   12 ------------
- mm/memcontrol.c            |   19 -------------------
- 2 files changed, 31 deletions(-)
+ mm/internal.h   |    1 -
+ mm/page_alloc.c |   18 ------------------
+ 2 files changed, 19 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-remove-mem_cgroup_uncharge_list
-+++ a/include/linux/memcontrol.h
-@@ -713,14 +713,6 @@ static inline void mem_cgroup_uncharge(s
- 	__mem_cgroup_uncharge(folio);
+--- a/mm/internal.h~mm-remove-free_unref_page_list
++++ a/mm/internal.h
+@@ -453,7 +453,6 @@ extern int user_min_free_kbytes;
+ 
+ void free_unref_page(struct page *page, unsigned int order);
+ void free_unref_folios(struct folio_batch *fbatch);
+-void free_unref_page_list(struct list_head *list);
+ 
+ extern void zone_pcp_reset(struct zone *zone);
+ extern void zone_pcp_disable(struct zone *zone);
+--- a/mm/page_alloc.c~mm-remove-free_unref_page_list
++++ a/mm/page_alloc.c
+@@ -2605,24 +2605,6 @@ void free_unref_folios(struct folio_batc
+ 	folio_batch_reinit(folios);
  }
  
--void __mem_cgroup_uncharge_list(struct list_head *page_list);
--static inline void mem_cgroup_uncharge_list(struct list_head *page_list)
+-void free_unref_page_list(struct list_head *list)
 -{
--	if (mem_cgroup_disabled())
--		return;
--	__mem_cgroup_uncharge_list(page_list);
+-	struct folio_batch fbatch;
+-
+-	folio_batch_init(&fbatch);
+-	while (!list_empty(list)) {
+-		struct folio *folio = list_first_entry(list, struct folio, lru);
+-
+-		list_del(&folio->lru);
+-		if (folio_batch_add(&fbatch, folio) > 0)
+-			continue;
+-		free_unref_folios(&fbatch);
+-	}
+-
+-	if (fbatch.nr)
+-		free_unref_folios(&fbatch);
 -}
 -
- void __mem_cgroup_uncharge_folios(struct folio_batch *folios);
- static inline void mem_cgroup_uncharge_folios(struct folio_batch *folios)
- {
-@@ -1301,10 +1293,6 @@ static inline void mem_cgroup_uncharge(s
- {
- }
- 
--static inline void mem_cgroup_uncharge_list(struct list_head *page_list)
--{
--}
--
- static inline void mem_cgroup_uncharge_folios(struct folio_batch *folios)
- {
- }
---- a/mm/memcontrol.c~memcg-remove-mem_cgroup_uncharge_list
-+++ a/mm/memcontrol.c
-@@ -7513,25 +7513,6 @@ void __mem_cgroup_uncharge(struct folio
- 	uncharge_batch(&ug);
- }
- 
--/**
-- * __mem_cgroup_uncharge_list - uncharge a list of page
-- * @page_list: list of pages to uncharge
-- *
-- * Uncharge a list of pages previously charged with
-- * __mem_cgroup_charge().
-- */
--void __mem_cgroup_uncharge_list(struct list_head *page_list)
--{
--	struct uncharge_gather ug;
--	struct folio *folio;
--
--	uncharge_gather_clear(&ug);
--	list_for_each_entry(folio, page_list, lru)
--		uncharge_folio(folio, &ug);
--	if (ug.memcg)
--		uncharge_batch(&ug);
--}
--
- void __mem_cgroup_uncharge_folios(struct folio_batch *folios)
- {
- 	struct uncharge_gather ug;
+ /*
+  * split_page takes a non-compound higher-order page, and splits it into
+  * n (1<<order) sub-pages: page[0..n]
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
