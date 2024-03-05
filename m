@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A408FC1C
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E999FC1C
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600569; cv=none; b=npAnaXeeiCdNSPgskbbIkYJxdZ7RUqqAZBjlnergl8Pdz2DpytIwig1K6ncl+qulf1x1eeSlC0ZAdWNeqZvRnXP0DPBxcWw+7L7hotU2dGG7tRx216AjkXoquSye2hE3nL2NVd5Z9ACyBSGQCIXTM7kNXGCa1jASRNYWqmlOT50=
+	t=1709600570; cv=none; b=L8ld15glmK7QRqdldaPfEHV8vmnnUNKALsh25P0jJLvlfwzmNieYEpvu4Ub0IFl6YtTsjt0thNdYmS7hhEuySyUf1B9Ckfx4daG52DMXdQ88JfsTiudqf5PFgegRnFakGZ3iwC/8c5GcmcQuUgV7d7syGNMGkw8owZp953AF4/M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600569; c=relaxed/simple;
-	bh=5HYqaowMVhnOiG6+RNklswMYs5NkqNPGINktuKEP30g=;
-	h=Date:To:From:Subject:Message-Id; b=jSn0Fzx/rRwv3y1zUWf+zylm9Kb2VWLraC8TjWvGfMI3PFEMxpPMfS9B97RCa5IeeoDkBtEkIalgJX+wXGmE2BWMHbRSvrs5g2Uy1mwrKzc3IjU3ftvlCHww8ywoo9pyzbVREEJjdN2LXou5z+3HszQhTZAxLB87VuY7YICMX7o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UXyStwwX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709600570; c=relaxed/simple;
+	bh=L4Tq8LETqJYokNV7ZJe8sVRfpnZMqyK17IeqdCyZDmM=;
+	h=Date:To:From:Subject:Message-Id; b=JLpGMsD1ZU3bEyyg74UtqzKgB1aHRLQLh6L65k3psRKl5I9k0lRxaym5TawKWOa8Pqc0daUHF3VjqDIRlsQs0/P+rLdYUBr+C/+p+5G1e2UQEggUfwh2vCPIh3sLItZQYEP/vossGccGJfGe/HVY3ADQ9l4s+BUe0LQjPpxEkZc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jG0HCDM0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UXyStwwX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1450C43390;
-	Tue,  5 Mar 2024 01:02:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jG0HCDM0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E065CC433C7;
+	Tue,  5 Mar 2024 01:02:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600569;
-	bh=5HYqaowMVhnOiG6+RNklswMYs5NkqNPGINktuKEP30g=;
+	s=korg; t=1709600570;
+	bh=L4Tq8LETqJYokNV7ZJe8sVRfpnZMqyK17IeqdCyZDmM=;
 	h=Date:To:From:Subject:From;
-	b=UXyStwwXkgJMp6C/WIFNyWIOg+11/c5TvjQf0Jbc5Vrq7QHaD1u4bHD7S2Hyhus0g
-	 mSJs18oOVgAhm8XrPOKHx5C27bwtUmFF0ySz7DhZNUF9xOfV8EnamXuzdPButIbH7O
-	 1JrRauQZkYtvjRnsnxBQwx9HgpgV1qvRGBvQTcLs=
-Date: Mon, 04 Mar 2024 17:02:48 -0800
+	b=jG0HCDM0Gs8/8mXnpJgCHf7Z4LFg61WdkC5qkRZFhcpVze+C3yGDNmqXSkzN/VgQv
+	 gi9MxqG52lRJNeLg/lrvxOgkuxxMhycA2A9XaE/cYPPje7umyGDaLGN0sRYcanb9yq
+	 S0MFudaH41flX16AIZ3YKp/dbpSFY8mDcRnq2FB8=
+Date: Mon, 04 Mar 2024 17:02:49 -0800
 To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,mgorman@suse.de,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-use-__page_cache_release-in-folios_put.patch removed from -mm tree
-Message-Id: <20240305010248.F1450C43390@smtp.kernel.org>
+Subject: [merged mm-stable] mm-handle-large-folios-in-free_unref_folios.patch removed from -mm tree
+Message-Id: <20240305010249.E065CC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: use __page_cache_release() in folios_put()
+     Subject: mm: handle large folios in free_unref_folios()
 has been removed from the -mm tree.  Its filename was
-     mm-use-__page_cache_release-in-folios_put.patch
+     mm-handle-large-folios-in-free_unref_folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: use __page_cache_release() in folios_put()
-Date: Tue, 27 Feb 2024 17:42:42 +0000
+Subject: mm: handle large folios in free_unref_folios()
+Date: Tue, 27 Feb 2024 17:42:43 +0000
 
-Pass a pointer to the lruvec so we can take advantage of the
-folio_lruvec_relock_irqsave().  Adjust the calling convention of
-folio_lruvec_relock_irqsave() to suit and add a page_cache_release()
-wrapper.
+Call folio_undo_large_rmappable() if needed.  free_unref_page_prepare()
+destroys the ability to call folio_order(), so stash the order in
+folio->private for the benefit of the second loop.
 
-Link: https://lkml.kernel.org/r/20240227174254.710559-9-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240227174254.710559-10-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -60,144 +59,80 @@ Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   16 ++++-----
- mm/swap.c                  |   62 ++++++++++++++++-------------------
- 2 files changed, 37 insertions(+), 41 deletions(-)
+ mm/page_alloc.c |   25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-use-__page_cache_release-in-folios_put
-+++ a/include/linux/memcontrol.h
-@@ -1705,18 +1705,18 @@ static inline struct lruvec *folio_lruve
- 	return folio_lruvec_lock_irq(folio);
+--- a/mm/page_alloc.c~mm-handle-large-folios-in-free_unref_folios
++++ a/mm/page_alloc.c
+@@ -2516,7 +2516,7 @@ void free_unref_page(struct page *page,
  }
  
--/* Don't lock again iff page's lruvec locked */
--static inline struct lruvec *folio_lruvec_relock_irqsave(struct folio *folio,
--		struct lruvec *locked_lruvec, unsigned long *flags)
-+/* Don't lock again iff folio's lruvec locked */
-+static inline void folio_lruvec_relock_irqsave(struct folio *folio,
-+		struct lruvec **lruvecp, unsigned long *flags)
+ /*
+- * Free a batch of 0-order pages
++ * Free a batch of folios
+  */
+ void free_unref_folios(struct folio_batch *folios)
  {
--	if (locked_lruvec) {
--		if (folio_matches_lruvec(folio, locked_lruvec))
--			return locked_lruvec;
-+	if (*lruvecp) {
-+		if (folio_matches_lruvec(folio, *lruvecp))
-+			return;
- 
--		unlock_page_lruvec_irqrestore(locked_lruvec, *flags);
-+		unlock_page_lruvec_irqrestore(*lruvecp, *flags);
- 	}
- 
--	return folio_lruvec_lock_irqsave(folio, flags);
-+	*lruvecp = folio_lruvec_lock_irqsave(folio, flags);
- }
- 
- #ifdef CONFIG_CGROUP_WRITEBACK
---- a/mm/swap.c~mm-use-__page_cache_release-in-folios_put
-+++ a/mm/swap.c
-@@ -74,22 +74,21 @@ static DEFINE_PER_CPU(struct cpu_fbatche
- 	.lock = INIT_LOCAL_LOCK(lock),
- };
- 
--/*
-- * This path almost never happens for VM activity - pages are normally freed
-- * in batches.  But it gets used by networking - and for compound pages.
-- */
--static void __page_cache_release(struct folio *folio)
-+static void __page_cache_release(struct folio *folio, struct lruvec **lruvecp,
-+		unsigned long *flagsp)
- {
- 	if (folio_test_lru(folio)) {
--		struct lruvec *lruvec;
--		unsigned long flags;
--
--		lruvec = folio_lruvec_lock_irqsave(folio, &flags);
--		lruvec_del_folio(lruvec, folio);
-+		folio_lruvec_relock_irqsave(folio, lruvecp, flagsp);
-+		lruvec_del_folio(*lruvecp, folio);
- 		__folio_clear_lru_flags(folio);
--		unlock_page_lruvec_irqrestore(lruvec, flags);
- 	}
--	/* See comment on folio_test_mlocked in folios_put() */
+@@ -2529,19 +2529,25 @@ void free_unref_folios(struct folio_batc
+ 	for (i = 0, j = 0; i < folios->nr; i++) {
+ 		struct folio *folio = folios->folios[i];
+ 		unsigned long pfn = folio_pfn(folio);
+-		if (!free_unref_page_prepare(&folio->page, pfn, 0))
++		unsigned int order = folio_order(folio);
 +
-+	/*
-+	 * In rare cases, when truncation or holepunching raced with
-+	 * munlock after VM_LOCKED was cleared, Mlocked may still be
-+	 * found set here.  This does not indicate a problem, unless
-+	 * "unevictable_pgs_cleared" appears worryingly large.
-+	 */
- 	if (unlikely(folio_test_mlocked(folio))) {
- 		long nr_pages = folio_nr_pages(folio);
- 
-@@ -99,9 +98,23 @@ static void __page_cache_release(struct
- 	}
- }
- 
-+/*
-+ * This path almost never happens for VM activity - pages are normally freed
-+ * in batches.  But it gets used by networking - and for compound pages.
-+ */
-+static void page_cache_release(struct folio *folio)
-+{
-+	struct lruvec *lruvec = NULL;
-+	unsigned long flags;
-+
-+	__page_cache_release(folio, &lruvec, &flags);
-+	if (lruvec)
-+		unlock_page_lruvec_irqrestore(lruvec, flags);
-+}
-+
- static void __folio_put_small(struct folio *folio)
- {
--	__page_cache_release(folio);
-+	page_cache_release(folio);
- 	mem_cgroup_uncharge(folio);
- 	free_unref_page(&folio->page, 0);
- }
-@@ -115,7 +128,7 @@ static void __folio_put_large(struct fol
- 	 * be called for hugetlb (it has a separate hugetlb_cgroup.)
- 	 */
- 	if (!folio_test_hugetlb(folio))
--		__page_cache_release(folio);
-+		page_cache_release(folio);
- 	destroy_large_folio(folio);
- }
- 
-@@ -216,7 +229,7 @@ static void folio_batch_move_lru(struct
- 		if (move_fn != lru_add_fn && !folio_test_clear_lru(folio))
++		if (order > 0 && folio_test_large_rmappable(folio))
++			folio_undo_large_rmappable(folio);
++		if (!free_unref_page_prepare(&folio->page, pfn, order))
  			continue;
  
--		lruvec = folio_lruvec_relock_irqsave(folio, lruvec, &flags);
-+		folio_lruvec_relock_irqsave(folio, &lruvec, &flags);
- 		move_fn(lruvec, folio);
- 
- 		folio_set_lru(folio);
-@@ -999,24 +1012,7 @@ void folios_put_refs(struct folio_batch
+ 		/*
+-		 * Free isolated folios directly to the allocator, see
+-		 * comment in free_unref_page.
++		 * Free isolated folios and orders not handled on the PCP
++		 * directly to the allocator, see comment in free_unref_page.
+ 		 */
+ 		migratetype = get_pcppage_migratetype(&folio->page);
+-		if (unlikely(is_migrate_isolate(migratetype))) {
++		if (!pcp_allowed_order(order) ||
++		    is_migrate_isolate(migratetype)) {
+ 			free_one_page(folio_zone(folio), &folio->page, pfn,
+-					0, migratetype, FPI_NONE);
++					order, migratetype, FPI_NONE);
  			continue;
  		}
- 
--		if (folio_test_lru(folio)) {
--			lruvec = folio_lruvec_relock_irqsave(folio, lruvec,
--									&flags);
--			lruvec_del_folio(lruvec, folio);
--			__folio_clear_lru_flags(folio);
--		}
--
--		/*
--		 * In rare cases, when truncation or holepunching raced with
--		 * munlock after VM_LOCKED was cleared, Mlocked may still be
--		 * found set here.  This does not indicate a problem, unless
--		 * "unevictable_pgs_cleared" appears worryingly large.
--		 */
--		if (unlikely(folio_test_mlocked(folio))) {
--			__folio_clear_mlocked(folio);
--			zone_stat_sub_folio(folio, NR_MLOCK);
--			count_vm_event(UNEVICTABLE_PGCLEARED);
--		}
-+		__page_cache_release(folio, &lruvec, &flags);
- 
++		folio->private = (void *)(unsigned long)order;
  		if (j != i)
  			folios->folios[j] = folio;
+ 		j++;
+@@ -2551,7 +2557,9 @@ void free_unref_folios(struct folio_batc
+ 	for (i = 0; i < folios->nr; i++) {
+ 		struct folio *folio = folios->folios[i];
+ 		struct zone *zone = folio_zone(folio);
++		unsigned int order = (unsigned long)folio->private;
+ 
++		folio->private = NULL;
+ 		migratetype = get_pcppage_migratetype(&folio->page);
+ 
+ 		/* Different zone requires a different pcp lock */
+@@ -2570,7 +2578,7 @@ void free_unref_folios(struct folio_batc
+ 			if (unlikely(!pcp)) {
+ 				pcp_trylock_finish(UP_flags);
+ 				free_one_page(zone, &folio->page,
+-						folio_pfn(folio), 0,
++						folio_pfn(folio), order,
+ 						migratetype, FPI_NONE);
+ 				locked_zone = NULL;
+ 				continue;
+@@ -2586,7 +2594,8 @@ void free_unref_folios(struct folio_batc
+ 			migratetype = MIGRATE_MOVABLE;
+ 
+ 		trace_mm_page_free_batched(&folio->page);
+-		free_unref_page_commit(zone, pcp, &folio->page, migratetype, 0);
++		free_unref_page_commit(zone, pcp, &folio->page, migratetype,
++				order);
+ 	}
+ 
+ 	if (pcp) {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
