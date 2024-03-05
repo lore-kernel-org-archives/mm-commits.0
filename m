@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7DD97465;
-	Tue,  5 Mar 2024 00:41:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E07779DF
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 00:41:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709599273; cv=none; b=sfwa3Xpi3jJUozuEFjw/zFxPbnyip5Fb6EzM93/rH+pHm3Ra2Yl0ECNGpLw7Hy9CYlQuaiJ1GWxfcqc3tSzkHzcRFkakKjkbI748SaUOT7OJ6QUaj2lkN9nr8GrGFQEtXRzzzyNdZ+JVU/kYk0tQbAaGOp8iTTjRjAgw2A9xODM=
+	t=1709599274; cv=none; b=TeJdY/IIJZlrueMNO0K0X5WR+NsHZZEr8oCKPv5v/vAZliqUWRBGgn8GsxrzpGKe5eqqQdSQbWtMF1Z2osZjZ41ColOC2PLE6QYKWrYf9U6lcp2blrlEphV6OyVCGGE8pVhNEj/KwHgVks0wDn5Q9NidSP9vKxsuG3V1SCNdOaE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709599273; c=relaxed/simple;
-	bh=Y3tlLWdcMDYAY7zxuJRvCRdzPbV26/WfeDZyE3FJCcI=;
-	h=Date:To:From:Subject:Message-Id; b=SOL0QeKvAHU+ivAj1nvwdO+am1awMViE0IGNv+yRdtNQFgfN7t6Wlq+KJ9rZeEpSU8Asiwnt8qt86ZrZcDURL7JzDIjOC/9h51wwo/qIrTl9oeGNvPRpcmv9uqgqKHOilVPi30eOvSHHkYsU5B3bqyJntf2D001XFheI69UFXu8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DR1Cufk1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709599274; c=relaxed/simple;
+	bh=dTNk4WPABAgRlU5Ve3FgWXejBG7PSi07/VXzn6xpb8Y=;
+	h=Date:To:From:Subject:Message-Id; b=HTWT5Uo8KxbqVNBA30nyYhv1rBxS+yOtBanjw4AdtttqPN0QCzN9IK+x6wfWwHtsh788qY1Jff7AQ7LnQtkqnQMGkkcPkTCPRfXEqFyua4XU9BI1lFlbU0FemvrpS5dxf+FqDbaFLWrFw3Cia/wFElr6DV0xHuwADUU09xMckdY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zCaZt9tj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DR1Cufk1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0A2EC43390;
-	Tue,  5 Mar 2024 00:41:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zCaZt9tj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD3B9C433F1;
+	Tue,  5 Mar 2024 00:41:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709599272;
-	bh=Y3tlLWdcMDYAY7zxuJRvCRdzPbV26/WfeDZyE3FJCcI=;
+	s=korg; t=1709599273;
+	bh=dTNk4WPABAgRlU5Ve3FgWXejBG7PSi07/VXzn6xpb8Y=;
 	h=Date:To:From:Subject:From;
-	b=DR1Cufk1JCBD2nexgukWAwQBYEZtMqsPdrGw1955hz5pcP3ERzOA7IgGHvvJom33A
-	 BkZoE/XURii26kZ/MNqEDxUIC67fZZHfhC6YoI6xtoPGo9sXQpSa6+B4wh3H29zVJ2
-	 Y2N2z0bcT1/YTjv++CkkVkm2lPaXhLBu2cUozQ1s=
-Date: Mon, 04 Mar 2024 16:41:12 -0800
-To: mm-commits@vger.kernel.org,yaolu@kylinos.cn,tsi@tuyoix.net,surenb@google.com,stable@vger.kernel.org,rdunlap@infradead.org,pmladek@suse.com,paul@paul-moore.com,nphamcs@gmail.com,nathan@kernel.org,masahiroy@kernel.org,hannes@cmpxchg.org,gustavoars@kernel.org,gregkh@linuxfoundation.org,christophe.leroy@csgroup.eu,ardb@kernel.org,keescook@chromium.org,akpm@linux-foundation.org
+	b=zCaZt9tjIeSzXJnOVQAbE9fv3HkFZlnHIS5E9BgPeqAGkXhV6zyNSB1hhmlI/bDtm
+	 /obrCgtNXob2uCYI/3D+Q0chxxk0xOWOrntYtByCrtwS44sqHxc6bhx1ofuNhzG0RL
+	 D1o6dRtLUoqLfOwQdRBcWg1whu3SCR5ff13cuxQQ=
+Date: Mon, 04 Mar 2024 16:41:13 -0800
+To: mm-commits@vger.kernel.org,kishon@ti.com,kishon@kernel.org,cassel@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] init-kconfig-lower-gcc-version-check-for-warray-bounds.patch removed from -mm tree
-Message-Id: <20240305004112.A0A2EC43390@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mailmap-fix-kishons-email.patch removed from -mm tree
+Message-Id: <20240305004113.CD3B9C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: init/Kconfig: lower GCC version check for -Warray-bounds
+     Subject: mailmap: fix Kishon's email
 has been removed from the -mm tree.  Its filename was
-     init-kconfig-lower-gcc-version-check-for-warray-bounds.patch
+     mailmap-fix-kishons-email.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: init/Kconfig: lower GCC version check for -Warray-bounds
-Date: Fri, 23 Feb 2024 09:08:27 -0800
+From: Niklas Cassel <cassel@kernel.org>
+Subject: mailmap: fix Kishon's email
+Date: Thu, 29 Feb 2024 14:43:18 +0100
 
-We continue to see false positives from -Warray-bounds even in GCC 10,
-which is getting reported in a few places[1] still:
+Kishon updated his email in commit e6aa4edd2f5b ("MAINTAINERS: Update
+Kishon's email address in PCI endpoint subsystem").
 
-security/security.c:811:2: warning: `memcpy' offset 32 is out of the bounds [0, 0] [-Warray-bounds]
+However, as he is no longer at TI, his TI email now bounces.
 
-Lower the GCC version check from 11 to 10.
+Add the same email as he has in MAINTAINERS to a mailmap, so that
+get_maintainer.pl will not output an email that bounces.
 
-Link: https://lkml.kernel.org/r/20240223170824.work.768-kees@kernel.org
-Reported-by: Lu Yao <yaolu@kylinos.cn>
-Closes: https://lore.kernel.org/lkml/20240117014541.8887-1-yaolu@kylinos.cn/
-Link: https://lore.kernel.org/linux-next/65d84438.620a0220.7d171.81a7@mx.google.com [1]
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Paul Moore <paul@paul-moore.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Marc Aurèle La France <tsi@tuyoix.net>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: <stable@vger.kernel.org>
+(This is neeed as get_maintainer.pl will use "git author" to CC
+people who have significantly modified the same file as you.)
+
+Link: https://lkml.kernel.org/r/20240229134318.1201935-1-cassel@kernel.org
+Signed-off-by: Niklas Cassel <cassel@kernel.org>
+Cc: Kishon Vijay Abraham I <kishon@kernel.org>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/init/Kconfig~init-kconfig-lower-gcc-version-check-for-warray-bounds
-+++ a/init/Kconfig
-@@ -876,14 +876,14 @@ config CC_IMPLICIT_FALLTHROUGH
- 	default "-Wimplicit-fallthrough=5" if CC_IS_GCC && $(cc-option,-Wimplicit-fallthrough=5)
- 	default "-Wimplicit-fallthrough" if CC_IS_CLANG && $(cc-option,-Wunreachable-code-fallthrough)
- 
--# Currently, disable gcc-11+ array-bounds globally.
-+# Currently, disable gcc-10+ array-bounds globally.
- # It's still broken in gcc-13, so no upper bound yet.
--config GCC11_NO_ARRAY_BOUNDS
-+config GCC10_NO_ARRAY_BOUNDS
- 	def_bool y
- 
- config CC_NO_ARRAY_BOUNDS
- 	bool
--	default y if CC_IS_GCC && GCC_VERSION >= 110000 && GCC11_NO_ARRAY_BOUNDS
-+	default y if CC_IS_GCC && GCC_VERSION >= 100000 && GCC10_NO_ARRAY_BOUNDS
- 
- # Currently, disable -Wstringop-overflow for GCC globally.
- config GCC_NO_STRINGOP_OVERFLOW
+--- a/.mailmap~mailmap-fix-kishons-email
++++ a/.mailmap
+@@ -325,6 +325,7 @@ Kenneth W Chen <kenneth.w.chen@intel.com
+ Kenneth Westfield <quic_kwestfie@quicinc.com> <kwestfie@codeaurora.org>
+ Kiran Gunda <quic_kgunda@quicinc.com> <kgunda@codeaurora.org>
+ Kirill Tkhai <tkhai@ya.ru> <ktkhai@virtuozzo.com>
++Kishon Vijay Abraham I <kishon@kernel.org> <kishon@ti.com>
+ Konstantin Khlebnikov <koct9i@gmail.com> <khlebnikov@yandex-team.ru>
+ Konstantin Khlebnikov <koct9i@gmail.com> <k.khlebnikov@samsung.com>
+ Koushik <raghavendra.koushik@neterion.com>
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from cassel@kernel.org are
 
 
