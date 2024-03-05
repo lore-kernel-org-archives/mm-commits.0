@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEFDF8C07
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBB7D8C07
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600521; cv=none; b=FUlPoUrgTlRbGTZ92gDvxxeEecUISKsICPxOE2W5hGDqsYWFrWUan7Y0STYTeZTVNeX6/s3kH4tiFn0ewQhalGDJELS6eriUPK3kJc+Vk7yTFjRCyFvG2cGLvtB79llk2VwqKlK1XeRxdsxF1c9k3i2NniSZj8dWky888Js/j9Y=
+	t=1709600522; cv=none; b=uuabr50PRsv6nc8C/OEIYDEhcC4QbnTf0TDfoAPHpqaQuDSN3G/SNo5PUMU6N/nvWK2mD0YuOyywmD7hcewGV+TZyv2/9z0bbhlEgPkdMo+TqDhuGTVjkrdQT3OhxUD5e6I86ysiMwOdArOUjKx7F0nbTSLWm54Sw4f36q+/w2U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600521; c=relaxed/simple;
-	bh=81Ae2jC9U2FAvTgmSeJlHLf9gW2kfmQVDPGVZAu3HFo=;
-	h=Date:To:From:Subject:Message-Id; b=Lz6o0x/gnhEijcxe+ghGvkU3ufjjxkDdGYYj6sqRtp+jXz2CygRRBuEKky3g08oJaWs1pLdDunhUxkLZDdMIr9Lwe/Y2IvqGVQZ2I8Bt7txgcfWOEHRHozhMYm2b+WU/7A4vqFAYgd/Pkr8PdOOIjLdpy466UAu94tNwoXT8yfU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EQVENY73; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709600522; c=relaxed/simple;
+	bh=kJVd73EmoWbqf7p+NsOeFkLN8RepqEfZ7zRhJ1yI+uM=;
+	h=Date:To:From:Subject:Message-Id; b=pmpCTJRqhSvU6qG7PS/nPyCRpXweW01/if2tC+qZobn/zKV8ZO1sjh+HtNd8zhja97hmZfbU6BKCYxQjJqXWs9H8L+Ml1mE2/mf79RJwI0BoZBWt0n0FdlzC/MeT0YXXlzr8YaN9ac4eGdG1LrWlAkPHp4dsespAn1dPwZ7gCo0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RWjWy8mf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EQVENY73"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62E3DC433C7;
-	Tue,  5 Mar 2024 01:02:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RWjWy8mf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70B44C43390;
+	Tue,  5 Mar 2024 01:02:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600520;
-	bh=81Ae2jC9U2FAvTgmSeJlHLf9gW2kfmQVDPGVZAu3HFo=;
+	s=korg; t=1709600521;
+	bh=kJVd73EmoWbqf7p+NsOeFkLN8RepqEfZ7zRhJ1yI+uM=;
 	h=Date:To:From:Subject:From;
-	b=EQVENY73v7mNecBcfEEFvmwUzO3Nf52prOysCS0lSfcrSawzFkrW2fKjJ23lRIN5t
-	 id3zxuXkbmSqFT8Q1jMO+3N1xkSE5j76sgeqTYaCloE7P7TKrEunA3VSlZSp6dk7g2
-	 xVZo2mCsT/qAkUMIbPfXzWfq4dvOVmnGxOtNUDIo=
-Date: Mon, 04 Mar 2024 17:01:59 -0800
-To: mm-commits@vger.kernel.org,david@redhat.com,mcassell411@gmail.com,akpm@linux-foundation.org
+	b=RWjWy8mf+Q2ABmRsic/YY231XyqcQN8Zf1tUhHNrX+qmHavcts3DZOAoz1WlcXzJB
+	 aFkP3oHUO7O8ioJ+RnGPG45HWs6V5pfF0sPwso3U8qI7z2wCmW4kqzA2XSRzm+fAJx
+	 y9MEdZsg8owqJvMXsLfYjPWJCyhDCS2RKmtiEj+o=
+Date: Mon, 04 Mar 2024 17:02:00 -0800
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,peterz@infradead.org,mingo@redhat.com,luto@kernel.org,dave.hansen@intel.com,bp@alien8.de,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-utilc-added-byte-count-to-__vm_enough_memory-failure-warning.patch removed from -mm tree
-Message-Id: <20240305010200.62E3DC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] x86-mm-further-clarify-switch_mm_irqs_off-documentation.patch removed from -mm tree
+Message-Id: <20240305010201.70B44C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,93 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/util.c: add byte count to __vm_enough_memory failure warning
+     Subject: x86/mm: further clarify switch_mm_irqs_off() documentation
 has been removed from the -mm tree.  Its filename was
-     mm-utilc-added-byte-count-to-__vm_enough_memory-failure-warning.patch
+     x86-mm-further-clarify-switch_mm_irqs_off-documentation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Matthew Cassell <mcassell411@gmail.com>
-Subject: mm/util.c: add byte count to __vm_enough_memory failure warning
-Date: Thu, 22 Feb 2024 19:46:17 +0000
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: x86/mm: further clarify switch_mm_irqs_off() documentation
+Date: Thu, 22 Feb 2024 19:09:10 +0000
 
-Commit 44b414c8715c5dcf53288 ("mm/util.c: add warning if
-__vm_enough_memory fails") adds debug information which gives the process
-id and executable name should __vm_enough_memory() fail.  Adding the
-number of pages to the failure message would benefit application
-developers and system administrators in debugging overambitious memory
-requests by providing a point of reference to the amount of memory causing
-__vm_enough_memory() to fail.
+Commit accf6b23d1e5a ("x86/mm: clarify "prev" usage in
+switch_mm_irqs_off()") attempted to clarify x86's usage of the arguments
+passed by generic code, specifically the "prev" argument the is unused by
+x86.  However, it could have done a better job with the comment above
+switch_mm_irqs_off().  Rewrite this comment according to Dave Hansen's
+suggestion.
 
-1. Set appropriate kernel tunable to reach code path for failure
-   message:
-
-	# echo 2 > /proc/sys/vm/overcommit_memory
-
-2. Test program to generate failure - requests 1 gibibyte per
-   iteration:
-
-	#include <stdlib.h>
-	#include <stdio.h>
-
-	int main(int argc, char **argv) {
-		for(;;) {
-			if(malloc(1<<30) == NULL)
-				break;
-
-			printf("allocated 1 GiB\n");
-		}
-
-		return 0;
-	}
-
-3. Output:
-
-	Before:
-
-	__vm_enough_memory: pid: 1218, comm: a.out, not enough memory
-for the allocation
-
-	After:
-
-	__vm_enough_memory: pid: 1137, comm: a.out, bytes: 1073741824,
-not enough memory for the allocation
-
-Link: https://lkml.kernel.org/r/20240222194617.1255-1-mcassell411@gmail.com
-Signed-off-by: Matthew Cassell <mcassell411@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20240222190911.1903054-1-yosryahmed@google.com
+Fixes: 3cfd6625a6cf ("x86/mm: clarify "prev" usage in switch_mm_irqs_off()")
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Suggested-by: Dave Hansen <dave.hansen@intel.com>
+Acked-by: Dave Hansen <dave.hansen@intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/x86/mm/tlb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/util.c~mm-utilc-added-byte-count-to-__vm_enough_memory-failure-warning
-+++ a/mm/util.c
-@@ -942,6 +942,7 @@ EXPORT_SYMBOL_GPL(vm_memory_committed);
- int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
- {
- 	long allowed;
-+	unsigned long bytes_failed;
+--- a/arch/x86/mm/tlb.c~x86-mm-further-clarify-switch_mm_irqs_off-documentation
++++ a/arch/x86/mm/tlb.c
+@@ -493,10 +493,10 @@ static inline void cr4_update_pce_mm(str
+ #endif
  
- 	vm_acct_memory(pages);
- 
-@@ -976,8 +977,9 @@ int __vm_enough_memory(struct mm_struct
- 	if (percpu_counter_read_positive(&vm_committed_as) < allowed)
- 		return 0;
- error:
--	pr_warn_ratelimited("%s: pid: %d, comm: %s, not enough memory for the allocation\n",
--			    __func__, current->pid, current->comm);
-+	bytes_failed = pages << PAGE_SHIFT;
-+	pr_warn_ratelimited("%s: pid: %d, comm: %s, bytes: %lu not enough memory for the allocation\n",
-+			    __func__, current->pid, current->comm, bytes_failed);
- 	vm_unacct_memory(pages);
- 
- 	return -ENOMEM;
+ /*
+- * The "prev" argument passed by the caller does not always match CR3. For
+- * example, the scheduler passes in active_mm when switching from lazy TLB mode
+- * to normal mode, but switch_mm_irqs_off() can be called from x86 code without
+- * updating active_mm. Use cpu_tlbstate.loaded_mm instead.
++ * This optimizes when not actually switching mm's.  Some architectures use the
++ * 'unused' argument for this optimization, but x86 must use
++ * 'cpu_tlbstate.loaded_mm' instead because it does not always keep
++ * 'current->active_mm' up to date.
+  */
+ void switch_mm_irqs_off(struct mm_struct *unused, struct mm_struct *next,
+ 			struct task_struct *tsk)
 _
 
-Patches currently in -mm which might be from mcassell411@gmail.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
 
