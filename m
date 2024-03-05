@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D5CDFC1C
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:03:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CC1EFC1C
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:03:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600583; cv=none; b=GefQpLq6t26HmXV80TCucOHcNBBt0BP776ThsPFamYX3FP9vTklOQwgo3vH4MZFUtbd8CgX1oWkX8xXs9Sqv/5TwEwOZTtwSTr7iyJbE3RkTvpiEPt/0dy2mrRwtMDutVBaQPUlwL85ebmJxGDzttDxOj1aUIucfkGl6XE4dm2E=
+	t=1709600585; cv=none; b=CAR4E182lDtBbxLtUuLP9gYeNyLs5Jsz213Pjtt463IUrDG9y0rndVO2Kg83oHJDIkVFD0COyun9HCJaqLt1a9hgoePTsHpv0zEF5YmRKPPAbDB2Hby/+xPV34bGrry4xgTA//GmqE77RreT7HsGID3suISijJhQ6R2JzAmPOP4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600583; c=relaxed/simple;
-	bh=YEGYKTQn4EpQmjre74Hohu319kF6mSAPUndR4Xv5vF4=;
-	h=Date:To:From:Subject:Message-Id; b=Y6PcZBAjcvAJKSHkXijRGMqslKxSn0aDrG8PO/jLcizgWC3A2aoGA+BXWjkmK7kLB1GfzNGztO7ep3aqTbfpiIHNzc2TX5xv/9GzaBGROt3NBoPUtNUeFFUByZFgS4pjSm+GKk+DFAJXg4emApzbx3RqywsGjwmCoyHIYvCgmTI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j4FPPPg5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709600585; c=relaxed/simple;
+	bh=hN1GnKCDKhkuOvLMFFdqadZLquQLGMmo3tDJakBY1zQ=;
+	h=Date:To:From:Subject:Message-Id; b=PYvAdj2/JAq/pkPtENc3qqdGa1H8m4aZx6UNdajLlrKvdsRjusCce6p6IkMpJwCVmC15AZLX5+D1D6Tg1dUs1xE6qzba7X7a2B0x7TUccubedUUY9bfaQ6Y/fu0slbhXJoiOf85W9R+UNX6pRLhPkON1K82cMOE+dQJz6RafcaI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mV6szpOO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j4FPPPg5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F5D0C433F1;
-	Tue,  5 Mar 2024 01:03:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mV6szpOO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F845C433C7;
+	Tue,  5 Mar 2024 01:03:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600583;
-	bh=YEGYKTQn4EpQmjre74Hohu319kF6mSAPUndR4Xv5vF4=;
+	s=korg; t=1709600585;
+	bh=hN1GnKCDKhkuOvLMFFdqadZLquQLGMmo3tDJakBY1zQ=;
 	h=Date:To:From:Subject:From;
-	b=j4FPPPg5JxOpoMBPGmQxNGXaSgEX0aPTzaQeGWZB7hav6VJcTX2S2Qv8RpYglTW1i
-	 YHSCDkqesGO0RwLbsJX4QKWzmPJOB/ylULpGhluM5cB+LQl5K5nRTJ8l7apr3MinNc
-	 L8+Xkpt+wCy9Mfr7ID9eqETr7SA7yljoQC6OILt0=
-Date: Mon, 04 Mar 2024 17:03:02 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,rostedt@goodmis.org.,minchan@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,liumartin@google.com,richardycc@google.com,akpm@linux-foundation.org
+	b=mV6szpOOUx4dKS2LGxCvTPji+NSxn4RuFiAvWygEsj7VE11vKQL2CgnnsSDsl5ABe
+	 upmyDbiL9rxPc8MvCJu33vqu/k0g5j38G3uXNNTTUHVSNp2dUE1enlIALp4PsBtw/A
+	 BBvLaM/i9yXEcqfbmijLMpYBsWCtzQIH3itDQOzs=
+Date: Mon, 04 Mar 2024 17:03:04 -0800
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,david@redhat.com,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-alloc_contig_migrate_range-allocation-statistics.patch removed from -mm tree
-Message-Id: <20240305010303.1F5D0C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memoryc-do_numa_page-remove-a-redundant-page-table-read.patch removed from -mm tree
+Message-Id: <20240305010305.2F845C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,189 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add alloc_contig_migrate_range allocation statistics
+     Subject: mm/memory.c: do_numa_page(): remove a redundant page table read
 has been removed from the -mm tree.  Its filename was
-     mm-add-alloc_contig_migrate_range-allocation-statistics.patch
+     mm-memoryc-do_numa_page-remove-a-redundant-page-table-read.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Richard Chang <richardycc@google.com>
-Subject: mm: add alloc_contig_migrate_range allocation statistics
-Date: Wed, 28 Feb 2024 05:11:17 +0000
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/memory.c: do_numa_page(): remove a redundant page table read
+Date: Tue, 27 Feb 2024 19:41:51 -0800
 
-alloc_contig_migrate_range has every information to be able to understand
-big contiguous allocation latency.  For example, how many pages are
-migrated, how many times they were needed to unmap from page tables.
+do_numa_page() is reading from the same page table entry, twice, while
+holding the page table lock: once while checking that the pte hasn't
+changed, and again in order to modify the pte.
 
-This patch adds the trace event to collect the allocation statistics.  In
-the field, it was quite useful to understand CMA allocation latency.
+Instead, just read the pte once, and save it in the same old_pte variable
+that already exists.  This has no effect on behavior, other than to
+provide a tiny potential improvement to performance, by avoiding the
+redundant memory read (which the compiler cannot elide, due to
+READ_ONCE()).
 
-[akpm@linux-foundation.org: a/trace_mm_alloc_config_migrate_range_info_enabled/trace_mm_alloc_contig_migrate_range_info_enabled]
-Link: https://lkml.kernel.org/r/20240228051127.2859472-1-richardycc@google.com
-Signed-off-by: Richard Chang <richardycc@google.com>
-Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org.
-Cc: Martin Liu <liumartin@google.com>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Also improve the associated comments nearby.
+
+Link: https://lkml.kernel.org/r/20240228034151.459370-1-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/kmem.h |   38 ++++++++++++++++++++++++++++++++++
- mm/internal.h               |    3 +-
- mm/page_alloc.c             |   32 ++++++++++++++++++++++++----
- mm/page_isolation.c         |    2 -
- 4 files changed, 68 insertions(+), 7 deletions(-)
+ mm/memory.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/include/trace/events/kmem.h~mm-add-alloc_contig_migrate_range-allocation-statistics
-+++ a/include/trace/events/kmem.h
-@@ -304,6 +304,44 @@ TRACE_EVENT(mm_page_alloc_extfrag,
- 		__entry->change_ownership)
- );
+--- a/mm/memory.c~mm-memoryc-do_numa_page-remove-a-redundant-page-table-read
++++ a/mm/memory.c
+@@ -5127,18 +5127,18 @@ static vm_fault_t do_numa_page(struct vm
+ 	int flags = 0;
  
-+TRACE_EVENT(mm_alloc_contig_migrate_range_info,
-+
-+	TP_PROTO(unsigned long start,
-+		 unsigned long end,
-+		 unsigned long nr_migrated,
-+		 unsigned long nr_reclaimed,
-+		 unsigned long nr_mapped,
-+		 int migratetype),
-+
-+	TP_ARGS(start, end, nr_migrated, nr_reclaimed, nr_mapped, migratetype),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, start)
-+		__field(unsigned long, end)
-+		__field(unsigned long, nr_migrated)
-+		__field(unsigned long, nr_reclaimed)
-+		__field(unsigned long, nr_mapped)
-+		__field(int, migratetype)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->start = start;
-+		__entry->end = end;
-+		__entry->nr_migrated = nr_migrated;
-+		__entry->nr_reclaimed = nr_reclaimed;
-+		__entry->nr_mapped = nr_mapped;
-+		__entry->migratetype = migratetype;
-+	),
-+
-+	TP_printk("start=0x%lx end=0x%lx migratetype=%d nr_migrated=%lu nr_reclaimed=%lu nr_mapped=%lu",
-+		  __entry->start,
-+		  __entry->end,
-+		  __entry->migratetype,
-+		  __entry->nr_migrated,
-+		  __entry->nr_reclaimed,
-+		  __entry->nr_mapped)
-+);
-+
- /*
-  * Required for uniquely and securely identifying mm in rss_stat tracepoint.
-  */
---- a/mm/internal.h~mm-add-alloc_contig_migrate_range-allocation-statistics
-+++ a/mm/internal.h
-@@ -539,7 +539,8 @@ isolate_migratepages_range(struct compac
- 			   unsigned long low_pfn, unsigned long end_pfn);
- 
- int __alloc_contig_migrate_range(struct compact_control *cc,
--					unsigned long start, unsigned long end);
-+					unsigned long start, unsigned long end,
-+					int migratetype);
- 
- /* Free whole pageblock and set its migration type to MIGRATE_CMA. */
- void init_cma_reserved_pageblock(struct page *page);
---- a/mm/page_alloc.c~mm-add-alloc_contig_migrate_range-allocation-statistics
-+++ a/mm/page_alloc.c
-@@ -6222,9 +6222,14 @@ static void alloc_contig_dump_pages(stru
- 	}
- }
- 
--/* [start, end) must belong to a single zone. */
-+/*
-+ * [start, end) must belong to a single zone.
-+ * @migratetype: using migratetype to filter the type of migration in
-+ *		trace_mm_alloc_contig_migrate_range_info.
-+ */
- int __alloc_contig_migrate_range(struct compact_control *cc,
--					unsigned long start, unsigned long end)
-+					unsigned long start, unsigned long end,
-+					int migratetype)
- {
- 	/* This function is based on compact_zone() from compaction.c. */
- 	unsigned int nr_reclaimed;
-@@ -6235,6 +6240,10 @@ int __alloc_contig_migrate_range(struct
- 		.nid = zone_to_nid(cc->zone),
- 		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
- 	};
-+	struct page *page;
-+	unsigned long total_mapped = 0;
-+	unsigned long total_migrated = 0;
-+	unsigned long total_reclaimed = 0;
- 
- 	lru_cache_disable();
- 
-@@ -6260,9 +6269,18 @@ int __alloc_contig_migrate_range(struct
- 							&cc->migratepages);
- 		cc->nr_migratepages -= nr_reclaimed;
- 
-+		if (trace_mm_alloc_contig_migrate_range_info_enabled()) {
-+			total_reclaimed += nr_reclaimed;
-+			list_for_each_entry(page, &cc->migratepages, lru)
-+				total_mapped += page_mapcount(page);
-+		}
-+
- 		ret = migrate_pages(&cc->migratepages, alloc_migration_target,
- 			NULL, (unsigned long)&mtc, cc->mode, MR_CONTIG_RANGE, NULL);
- 
-+		if (trace_mm_alloc_contig_migrate_range_info_enabled() && !ret)
-+			total_migrated += cc->nr_migratepages;
-+
- 		/*
- 		 * On -ENOMEM, migrate_pages() bails out right away. It is pointless
- 		 * to retry again over this error, so do the same here.
-@@ -6276,9 +6294,13 @@ int __alloc_contig_migrate_range(struct
- 		if (!(cc->gfp_mask & __GFP_NOWARN) && ret == -EBUSY)
- 			alloc_contig_dump_pages(&cc->migratepages);
- 		putback_movable_pages(&cc->migratepages);
--		return ret;
- 	}
--	return 0;
-+
-+	trace_mm_alloc_contig_migrate_range_info(start, end, migratetype,
-+						 total_migrated,
-+						 total_reclaimed,
-+						 total_mapped);
-+	return (ret < 0) ? ret : 0;
- }
- 
- /**
-@@ -6358,7 +6380,7 @@ int alloc_contig_range(unsigned long sta
- 	 * allocated.  So, if we fall through be sure to clear ret so that
- 	 * -EBUSY is not accidentally used or returned to caller.
+ 	/*
+-	 * The "pte" at this point cannot be used safely without
+-	 * validation through pte_unmap_same(). It's of NUMA type but
+-	 * the pfn may be screwed if the read is non atomic.
++	 * The pte cannot be used safely until we verify, while holding the page
++	 * table lock, that its contents have not changed during fault handling.
  	 */
--	ret = __alloc_contig_migrate_range(&cc, start, end);
-+	ret = __alloc_contig_migrate_range(&cc, start, end, migratetype);
- 	if (ret && ret != -EBUSY)
- 		goto done;
- 	ret = 0;
---- a/mm/page_isolation.c~mm-add-alloc_contig_migrate_range-allocation-statistics
-+++ a/mm/page_isolation.c
-@@ -434,7 +434,7 @@ static int isolate_single_pageblock(unsi
- 				}
+ 	spin_lock(vmf->ptl);
+-	if (unlikely(!pte_same(ptep_get(vmf->pte), vmf->orig_pte))) {
++	/* Read the live PTE from the page tables: */
++	old_pte = ptep_get(vmf->pte);
++
++	if (unlikely(!pte_same(old_pte, vmf->orig_pte))) {
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 		goto out;
+ 	}
  
- 				ret = __alloc_contig_migrate_range(&cc, head_pfn,
--							head_pfn + nr_pages);
-+							head_pfn + nr_pages, page_mt);
+-	/* Get the normal PTE  */
+-	old_pte = ptep_get(vmf->pte);
+ 	pte = pte_modify(old_pte, vma->vm_page_prot);
  
- 				/*
- 				 * restore the page's migratetype so that it can
+ 	/*
 _
 
-Patches currently in -mm which might be from richardycc@google.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
 
