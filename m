@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 225F911C94
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22A7210979
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600571; cv=none; b=NAB8adG63CFnaocKq0xCzstkz8FV3lhNNAsAcPr2QCcmfMJJSJ0CEveDcmjXozHZ7pdm1yj5haVQuAPw5cDrMMm6RrBqo6kzz8TKTKWStFTPRsS8Fc9oc9Q89wGGntH4rZfA1bBCoJNti2OTYoukbZhMvBXhPTQFOXwuCQNxmmU=
+	t=1709600572; cv=none; b=ffzmc0eRhsnJb6ChnAdOvlukXpkiJ2+LeXqL97O52iWjOa4gEeaHmng9uimHzpeJwJNiR/8BQEVqIKITPyrTPRt82ogFCgHCwe/NdL3Yb8/asEPvaniOKZa+fGlqJCCxsoQ0w7F084aOGanGjmX+FNgGpPDGbKsn2u2JUd2QbvY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600571; c=relaxed/simple;
-	bh=wejam5ddzWlqKvZXwfCuA7bJmL26Y8EOBtzHZoWXtqQ=;
-	h=Date:To:From:Subject:Message-Id; b=Anj8jjrvwi7QfxciD/B5aR+WgtjTa7oVXFBwkjugyEjN3OTv/+WVY+T5cELD57wCfFVptW31fbJLQc5LGlhxRdlfiAXkMGI5MhoCrnzJohedw4H41afkWPBMRmZejH8iSQSMhickBYnksaSLaxBBwT0mkQSZT1svGnt8JvaqLog=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I28c0Nzn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709600572; c=relaxed/simple;
+	bh=6Y0izR4qu3N87A7hoLmXXgthD7yLsUYAUcWls/+tJOA=;
+	h=Date:To:From:Subject:Message-Id; b=deOlxkjQR65J0RrE3rJqVlHE/aurDpBYVXgDJPIICZr6XqrlsdN4Q4p0uNnXWtwGRfP0jcMD/+WURkP4sBHomLvcVrseZ8lHP53BVUPDsoRYVlFIs00X/wiOTHsmh1jfuVn02E1De8maHj2eBL4234Qcs+cAssPmLh9/WxkCnhk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ErQKuIhG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I28c0Nzn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAAB8C433C7;
-	Tue,  5 Mar 2024 01:02:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ErQKuIhG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA4B8C433F1;
+	Tue,  5 Mar 2024 01:02:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600571;
-	bh=wejam5ddzWlqKvZXwfCuA7bJmL26Y8EOBtzHZoWXtqQ=;
+	s=korg; t=1709600572;
+	bh=6Y0izR4qu3N87A7hoLmXXgthD7yLsUYAUcWls/+tJOA=;
 	h=Date:To:From:Subject:From;
-	b=I28c0NznPDheg7xuuNBQ5Vuht7LBwUxSQZsriRkw0tobdbSo1++8awulCA1cT+zcD
-	 J44GN3btBKvFD7FQaXYIZ3p3e8bv5qN2eFqkLKmtcWr0sj5gpHI6VhwEQGJcMxrBGb
-	 utJtXOVjPRP6agZufHdywn5dJ0H7BYc0QnS1HcI4=
-Date: Mon, 04 Mar 2024 17:02:50 -0800
+	b=ErQKuIhGEHL3SNZ/na9j/Y/M7Hwm7fA+HaMo3JICAe2b/zixmQRk/FewlR9i8tdaY
+	 TnSNyvT6wKx3DOJsnSk7kXe35JTZy81yQBzeWSM4heV/wfzpN2qV0bHZZzanTvXCHx
+	 SYdRc/bjc0vjDUJsmAbwVF2+aDl9LbDQ/A6Mh3LE=
+Date: Mon, 04 Mar 2024 17:02:51 -0800
 To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,mgorman@suse.de,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-allow-non-hugetlb-large-folios-to-be-batch-processed.patch removed from -mm tree
-Message-Id: <20240305010250.EAAB8C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-free-folios-in-a-batch-in-shrink_folio_list.patch removed from -mm tree
+Message-Id: <20240305010251.EA4B8C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,86 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: allow non-hugetlb large folios to be batch processed
+     Subject: mm: free folios in a batch in shrink_folio_list()
 has been removed from the -mm tree.  Its filename was
-     mm-allow-non-hugetlb-large-folios-to-be-batch-processed.patch
+     mm-free-folios-in-a-batch-in-shrink_folio_list.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: allow non-hugetlb large folios to be batch processed
-Date: Tue, 27 Feb 2024 17:42:44 +0000
+Subject: mm: free folios in a batch in shrink_folio_list()
+Date: Tue, 27 Feb 2024 17:42:45 +0000
 
-Hugetlb folios still get special treatment, but normal large folios can
-now be freed by free_unref_folios().  This should have a reasonable
-performance impact, TBD.
+Use free_unref_page_batch() to free the folios.  This may increase the
+number of IPIs from calling try_to_unmap_flush() more often, but that's
+going to be very workload-dependent.  It may even reduce the number of
+IPIs as we now batch-free large folios instead of freeing them one at a
+time.
 
-Link: https://lkml.kernel.org/r/20240227174254.710559-11-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240227174254.710559-12-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
---- a/mm/swap.c~mm-allow-non-hugetlb-large-folios-to-be-batch-processed
-+++ a/mm/swap.c
-@@ -1003,12 +1003,13 @@ void folios_put_refs(struct folio_batch
- 		if (!folio_ref_sub_and_test(folio, nr_refs))
- 			continue;
+--- a/mm/vmscan.c~mm-free-folios-in-a-batch-in-shrink_folio_list
++++ a/mm/vmscan.c
+@@ -1006,14 +1006,15 @@ static unsigned int shrink_folio_list(st
+ 		struct pglist_data *pgdat, struct scan_control *sc,
+ 		struct reclaim_stat *stat, bool ignore_references)
+ {
++	struct folio_batch free_folios;
+ 	LIST_HEAD(ret_folios);
+-	LIST_HEAD(free_folios);
+ 	LIST_HEAD(demote_folios);
+ 	unsigned int nr_reclaimed = 0;
+ 	unsigned int pgactivate = 0;
+ 	bool do_demote_pass;
+ 	struct swap_iocb *plug = NULL;
  
--		if (folio_test_large(folio)) {
-+		/* hugetlb has its own memcg */
-+		if (folio_test_hugetlb(folio)) {
- 			if (lruvec) {
- 				unlock_page_lruvec_irqrestore(lruvec, flags);
- 				lruvec = NULL;
- 			}
--			__folio_put_large(folio);
-+			free_huge_folio(folio);
- 			continue;
- 		}
++	folio_batch_init(&free_folios);
+ 	memset(stat, 0, sizeof(*stat));
+ 	cond_resched();
+ 	do_demote_pass = can_demote(pgdat->node_id, sc);
+@@ -1412,14 +1413,11 @@ free_it:
+ 		 */
+ 		nr_reclaimed += nr_pages;
  
+-		/*
+-		 * Is there need to periodically free_folio_list? It would
+-		 * appear not as the counts should be low
+-		 */
+-		if (unlikely(folio_test_large(folio)))
+-			destroy_large_folio(folio);
+-		else
+-			list_add(&folio->lru, &free_folios);
++		if (folio_batch_add(&free_folios, folio) == 0) {
++			mem_cgroup_uncharge_folios(&free_folios);
++			try_to_unmap_flush();
++			free_unref_folios(&free_folios);
++		}
+ 		continue;
+ 
+ activate_locked_split:
+@@ -1483,9 +1481,9 @@ keep:
+ 
+ 	pgactivate = stat->nr_activate[0] + stat->nr_activate[1];
+ 
+-	mem_cgroup_uncharge_list(&free_folios);
++	mem_cgroup_uncharge_folios(&free_folios);
+ 	try_to_unmap_flush();
+-	free_unref_page_list(&free_folios);
++	free_unref_folios(&free_folios);
+ 
+ 	list_splice(&ret_folios, folio_list);
+ 	count_vm_events(PGACTIVATE, pgactivate);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
