@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A0158BE5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00BE010949
 	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600576; cv=none; b=c9zR7wBuywIp5nncLQbGHEmsKWeg6jfdhe8xKg1ueHpb9EqBoEAYTBoHadkjyoJ+i7Rp6o9AJV0/wMKKL/maDobBFBvMdtjP22JA9wezE6Wg4vNjMVT5+Fpou994SAV/iGepijZfQxOStHZuhR7GKj3+utCswFNg5tUPu/8FCwU=
+	t=1709600577; cv=none; b=nghi/exUj+5bOgejaf9hXmd1zBpk73h83Bo5sCVVjpRrqKPS/XRx0WF+dFl2xgttuZ4Y88U8oxn8R85pJoq127ejpVf85QctHxxM9CXjN9zO5y8toOeD/D2elAnhU63Mh3uWDqxF88xE/I0ocTeU4Ij70un+kguU6VbxzXXCTCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600576; c=relaxed/simple;
-	bh=YXywscWghgqxWYUfwE8tMvo9jufiu8c7nYnY0EUXGYg=;
-	h=Date:To:From:Subject:Message-Id; b=fHXQowwH08I/Y+11hPbNnAotx7NT+dJXqauwx8iD6SRFjeax3UI30CSKtip+mQTEgPuDNzjx71jmA7QuSUf3zLOU1gFCh/6+vNDJ9bH8+nV3CzkOWrRSGDQqaoKkLI+DFte0vsKc38r9WV0RUKZlFxbCE2gKsVOb/8KJa8/t6cc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tbcQDKga; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709600577; c=relaxed/simple;
+	bh=Vixuj/p4vl99XnT/YCwbikgiAA5Wx2Fj8+Ep8spYYZ8=;
+	h=Date:To:From:Subject:Message-Id; b=VIkjxz6FGrzaM+VSO1Zjk4LMmRGJgDK8vLWIzWZGnN3oGY0mP6eQeq5+A9grKZZgCGssiVxlowzGbR3PRnreWvKv+3Hug6hHV9gKawwtNLGPciiQVAozN3xx+glBZhqIBYSsxhZU3vtScgMnAYcQdF7DzrbOsUJw8cB3bjisrWI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OC0+WVUX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tbcQDKga"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2189C433F1;
-	Tue,  5 Mar 2024 01:02:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OC0+WVUX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1431C43390;
+	Tue,  5 Mar 2024 01:02:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600575;
-	bh=YXywscWghgqxWYUfwE8tMvo9jufiu8c7nYnY0EUXGYg=;
+	s=korg; t=1709600576;
+	bh=Vixuj/p4vl99XnT/YCwbikgiAA5Wx2Fj8+Ep8spYYZ8=;
 	h=Date:To:From:Subject:From;
-	b=tbcQDKgaWneKifFqcK7gNKpAhddFuXSoZXs0giDSSQII3fWd9ZLwniA7N0aEjs6HB
-	 fYe2P9b3/xdURq9fc7tVUdKteV27qqt6eny016iMA6/4QijRLeOlU1TgFr/5B9Ra4w
-	 NgknZgtKDzbN0O/TotfM5GnjmlqKmBOZgm8Q5S44=
-Date: Mon, 04 Mar 2024 17:02:55 -0800
+	b=OC0+WVUXFsTmzTD74PY8LP4NRy9QshW8Jr2U9p09b9R+FXfDr6eia2kPeSg29KebA
+	 jhP+PqjHRuErDkt+xewOFnw413qNyY3utP+KKwuFrJ8mONX2ovzPUhYyJ1/RtoOVmz
+	 fXZvr2TUBWg66Cm4DEttpUT3aDGmNNh8rYCEQ1z0=
+Date: Mon, 04 Mar 2024 17:02:56 -0800
 To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,mgorman@suse.de,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-lru_to_page.patch removed from -mm tree
-Message-Id: <20240305010255.D2189C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-free_pages_and_swap_cache-to-use-folios_put.patch removed from -mm tree
+Message-Id: <20240305010256.C1431C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove lru_to_page()
+     Subject: mm: convert free_pages_and_swap_cache() to use folios_put()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-lru_to_page.patch
+     mm-convert-free_pages_and_swap_cache-to-use-folios_put.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove lru_to_page()
-Date: Tue, 27 Feb 2024 17:42:49 +0000
+Subject: mm: convert free_pages_and_swap_cache() to use folios_put()
+Date: Tue, 27 Feb 2024 17:42:50 +0000
 
-The last user was removed over a year ago; remove the definition.
+Process the pages in batch-sized quantities instead of all-at-once.
 
-Link: https://lkml.kernel.org/r/20240227174254.710559-16-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240227174254.710559-17-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -57,19 +57,53 @@ Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 -
- 1 file changed, 1 deletion(-)
+ mm/swap_state.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
---- a/include/linux/mm.h~mm-remove-lru_to_page
-+++ a/include/linux/mm.h
-@@ -227,7 +227,6 @@ int overcommit_policy_handler(struct ctl
- /* test whether an address (unsigned long or pointer) is aligned to PAGE_SIZE */
- #define PAGE_ALIGNED(addr)	IS_ALIGNED((unsigned long)(addr), PAGE_SIZE)
- 
--#define lru_to_page(head) (list_entry((head)->prev, struct page, lru))
- static inline struct folio *lru_to_folio(struct list_head *head)
+--- a/mm/swap_state.c~mm-convert-free_pages_and_swap_cache-to-use-folios_put
++++ a/mm/swap_state.c
+@@ -15,6 +15,7 @@
+ #include <linux/swapops.h>
+ #include <linux/init.h>
+ #include <linux/pagemap.h>
++#include <linux/pagevec.h>
+ #include <linux/backing-dev.h>
+ #include <linux/blkdev.h>
+ #include <linux/migrate.h>
+@@ -310,21 +311,25 @@ void free_page_and_swap_cache(struct pag
+  */
+ void free_pages_and_swap_cache(struct encoded_page **pages, int nr)
  {
- 	return list_entry((head)->prev, struct folio, lru);
++	struct folio_batch folios;
++	unsigned int refs[PAGEVEC_SIZE];
++
+ 	lru_add_drain();
++	folio_batch_init(&folios);
+ 	for (int i = 0; i < nr; i++) {
+-		struct page *page = encoded_page_ptr(pages[i]);
++		struct folio *folio = page_folio(encoded_page_ptr(pages[i]));
+ 
+-		/*
+-		 * Skip over the "nr_pages" entry. It's sufficient to call
+-		 * free_swap_cache() only once per folio.
+-		 */
++		free_swap_cache(&folio->page);
++		refs[folios.nr] = 1;
+ 		if (unlikely(encoded_page_flags(pages[i]) &
+ 			     ENCODED_PAGE_BIT_NR_PAGES_NEXT))
+-			i++;
++			refs[folios.nr] = encoded_nr_pages(pages[++i]);
+ 
+-		free_swap_cache(page);
++		if (folio_batch_add(&folios, folio) == 0)
++			folios_put_refs(&folios, refs);
+ 	}
+-	release_pages(pages, nr);
++	if (folios.nr)
++		folios_put_refs(&folios, refs);
+ }
+ 
+ static inline bool swap_use_vma_readahead(void)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
