@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 107808C07
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D18C8C07
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600556; cv=none; b=inwkoPTdBf/C49LLyBqDVxZzZ1aZfN0Nnss8E1RYE4sa9Wqk7ScZiuNTV54VVhE4EjxyzDZc3+JwQvuwYRqSUswFs8nYv9tiwUwZpbFXzi+4MZdkN0um1FLEyG//MQ0yFODenDSCpcMEY/U2X3Vf9G+WCqpdDR6ahG2SM50TIpI=
+	t=1709600557; cv=none; b=bQowGjDQfZOCF46bASCpqLlxKEl5cjTctGmkMkyg4UEAl0CiyAft7ekrKEln55x765Cwj/uhvGyT9fimIQccZ110vGo+IjmY32vPjHTW/0z6QdU2Sd2MSWcHOTiSIFvALZmrhl5Rsj7xRmx0HsIvqrPGKAuWLPJWvSydzFjhXmc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600556; c=relaxed/simple;
-	bh=mSFy9CxCJKbluT6AOAThDY08yCSJbYxgnr9uhzTKAqk=;
-	h=Date:To:From:Subject:Message-Id; b=fdoSguwJCC9elKlpaWHN5/K4YhN8knxR2xuUV/IAmw2PT0FzzzWx85y7sXGet5obGqpW5OGCRWabvLBb8II6L1Ve4puRUhVKrk8MBJmR2OLMQ6P3Q+HhGMHDtq3z98iKsX7gUbLTZ2zAfShs1okbvxNr+B6vIVMLn3N5ULKr3Hg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pWkyIrpL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709600557; c=relaxed/simple;
+	bh=XgmAKDP23PWxN5srduZLwXgIUcXdP3fyYeQPVxVjwLw=;
+	h=Date:To:From:Subject:Message-Id; b=MnAnnp7oAvDySvuFEbDfYjKAOQoueeMnFDTEWocwm5zWn9Hf72Pa9BTijE37YVD/tgnIi7M58ZK2AIKZc/OYMh3aE7tvD9INodVyMq9NX/g+qE9S4gx7MfjR6bvfFTJRkcZOuQIzCINuEocDoy3hNbiXd/embgDqQE+1v/wQJjw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2JHGb26H; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pWkyIrpL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D664CC433F1;
-	Tue,  5 Mar 2024 01:02:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2JHGb26H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5BF1C43394;
+	Tue,  5 Mar 2024 01:02:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600555;
-	bh=mSFy9CxCJKbluT6AOAThDY08yCSJbYxgnr9uhzTKAqk=;
+	s=korg; t=1709600556;
+	bh=XgmAKDP23PWxN5srduZLwXgIUcXdP3fyYeQPVxVjwLw=;
 	h=Date:To:From:Subject:From;
-	b=pWkyIrpLDd4z1EQ5Ncleh02EoacqsaKY804p2IhlQmYNGI38PTDiSWepTtHQvwOaL
-	 SjqPPRAeF+g6lwbqmc0cYVdSb/KRr+7u5ViHCNPk6nElHZ2J70V//6dV2J4Pw8zD12
-	 i6qg442e2abVppA7R/bZz5ieJVSl3DDTJMt5+1zw=
-Date: Mon, 04 Mar 2024 17:02:35 -0800
+	b=2JHGb26HZ1jPom6OQ1zxDk9TUjPLGoGKDgJhTkc7bRN7CA0G1Nt4zOb+9KuwldRVq
+	 JlmBiS1pi1ohApW7EmrjfgQ9vHnaxLLDXQ24ECYay0k8BzRmvbIzG3knO/kqDY6Ev1
+	 kBLMvs5a0g2OebjxeG1yPp6Slzlq6FTiVPQJYIxI=
+Date: Mon, 04 Mar 2024 17:02:36 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memfd-refactor-memfd_tag_pins-and-memfd_wait_for_pins.patch removed from -mm tree
-Message-Id: <20240305010235.D664CC433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-total_mapcount.patch removed from -mm tree
+Message-Id: <20240305010236.D5BF1C43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,161 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memfd: refactor memfd_tag_pins() and memfd_wait_for_pins()
+     Subject: mm: remove total_mapcount()
 has been removed from the -mm tree.  Its filename was
-     mm-memfd-refactor-memfd_tag_pins-and-memfd_wait_for_pins.patch
+     mm-remove-total_mapcount.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memfd: refactor memfd_tag_pins() and memfd_wait_for_pins()
-Date: Mon, 26 Feb 2024 15:13:23 +0100
+Subject: mm: remove total_mapcount()
+Date: Mon, 26 Feb 2024 15:13:24 +0100
 
-Patch series "mm: remove total_mapcount()", v2.
+All users of total_mapcount() are gone, let's remove it.
 
-Let's remove the remaining user from mm/memfd.c so we can get rid of
-total_mapcount().
-
-
-This patch (of 2):
-
-Both functions are the remaining users of total_mapcount().  Let's get rid
-of the calls by converting the code to folios.
-
-As it turns out, the code is unnecessarily complicated, especially:
-
-1) We can query the number of pagecache references for a folio simply via
-   folio_nr_pages(). This will handle other folio sizes in the future
-   correctly.
-
-2) The xas_set(xas, page->index + cache_count) call to increment the
-   iterator for large folios is not required. Remove it.
-
-Further, simplify the XA_CHECK_SCHED check, counting each entry exactly
-once.
-
-Memfd pages can be swapped out when using shmem; leave xa_is_value()
-checks in place.
-
-Link: https://lkml.kernel.org/r/20240226141324.278526-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20240226141324.278526-2-david@redhat.com
-Co-developed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20240226141324.278526-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd.c |   47 ++++++++++++++++++-----------------------------
- 1 file changed, 18 insertions(+), 29 deletions(-)
+ include/linux/mm.h |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
---- a/mm/memfd.c~mm-memfd-refactor-memfd_tag_pins-and-memfd_wait_for_pins
-+++ a/mm/memfd.c
-@@ -29,29 +29,25 @@
- #define MEMFD_TAG_PINNED        PAGECACHE_TAG_TOWRITE
- #define LAST_SCAN               4       /* about 150ms max */
- 
-+static bool memfd_folio_has_extra_refs(struct folio *folio)
-+{
-+	return folio_ref_count(folio) - folio_mapcount(folio) !=
-+	       folio_nr_pages(folio);
-+}
-+
- static void memfd_tag_pins(struct xa_state *xas)
- {
--	struct page *page;
-+	struct folio *folio;
- 	int latency = 0;
--	int cache_count;
- 
- 	lru_add_drain();
- 
- 	xas_lock_irq(xas);
--	xas_for_each(xas, page, ULONG_MAX) {
--		cache_count = 1;
--		if (!xa_is_value(page) &&
--		    PageTransHuge(page) && !PageHuge(page))
--			cache_count = HPAGE_PMD_NR;
--
--		if (!xa_is_value(page) &&
--		    page_count(page) - total_mapcount(page) != cache_count)
-+	xas_for_each(xas, folio, ULONG_MAX) {
-+		if (!xa_is_value(folio) && memfd_folio_has_extra_refs(folio))
- 			xas_set_mark(xas, MEMFD_TAG_PINNED);
--		if (cache_count != 1)
--			xas_set(xas, page->index + cache_count);
- 
--		latency += cache_count;
--		if (latency < XA_CHECK_SCHED)
-+		if (++latency < XA_CHECK_SCHED)
- 			continue;
- 		latency = 0;
- 
-@@ -66,16 +62,16 @@ static void memfd_tag_pins(struct xa_sta
- /*
-  * Setting SEAL_WRITE requires us to verify there's no pending writer. However,
-  * via get_user_pages(), drivers might have some pending I/O without any active
-- * user-space mappings (eg., direct-IO, AIO). Therefore, we look at all pages
-+ * user-space mappings (eg., direct-IO, AIO). Therefore, we look at all folios
-  * and see whether it has an elevated ref-count. If so, we tag them and wait for
-  * them to be dropped.
-  * The caller must guarantee that no new user will acquire writable references
-- * to those pages to avoid races.
-+ * to those folios to avoid races.
+--- a/include/linux/mm.h~mm-remove-total_mapcount
++++ a/include/linux/mm.h
+@@ -1183,7 +1183,7 @@ static inline int is_vmalloc_or_module_a
+  * How many times the entire folio is mapped as a single unit (eg by a
+  * PMD or PUD entry).  This is probably not what you want, except for
+  * debugging purposes - it does not include PTE-mapped sub-pages; look
+- * at folio_mapcount() or page_mapcount() or total_mapcount() instead.
++ * at folio_mapcount() or page_mapcount() instead.
   */
- static int memfd_wait_for_pins(struct address_space *mapping)
+ static inline int folio_entire_mapcount(struct folio *folio)
  {
- 	XA_STATE(xas, &mapping->i_pages, 0);
--	struct page *page;
-+	struct folio *folio;
- 	int error, scan;
+@@ -1243,13 +1243,6 @@ static inline int folio_mapcount(struct
+ 	return folio_total_mapcount(folio);
+ }
  
- 	memfd_tag_pins(&xas);
-@@ -83,7 +79,6 @@ static int memfd_wait_for_pins(struct ad
- 	error = 0;
- 	for (scan = 0; scan <= LAST_SCAN; scan++) {
- 		int latency = 0;
--		int cache_count;
- 
- 		if (!xas_marked(&xas, MEMFD_TAG_PINNED))
- 			break;
-@@ -95,20 +90,15 @@ static int memfd_wait_for_pins(struct ad
- 
- 		xas_set(&xas, 0);
- 		xas_lock_irq(&xas);
--		xas_for_each_marked(&xas, page, ULONG_MAX, MEMFD_TAG_PINNED) {
-+		xas_for_each_marked(&xas, folio, ULONG_MAX, MEMFD_TAG_PINNED) {
- 			bool clear = true;
- 
--			cache_count = 1;
--			if (!xa_is_value(page) &&
--			    PageTransHuge(page) && !PageHuge(page))
--				cache_count = HPAGE_PMD_NR;
+-static inline int total_mapcount(struct page *page)
+-{
+-	if (likely(!PageCompound(page)))
+-		return atomic_read(&page->_mapcount) + 1;
+-	return folio_total_mapcount(page_folio(page));
+-}
 -
--			if (!xa_is_value(page) && cache_count !=
--			    page_count(page) - total_mapcount(page)) {
-+			if (!xa_is_value(folio) &&
-+			    memfd_folio_has_extra_refs(folio)) {
- 				/*
- 				 * On the last scan, we clean up all those tags
- 				 * we inserted; but make a note that we still
--				 * found pages pinned.
-+				 * found folios pinned.
- 				 */
- 				if (scan == LAST_SCAN)
- 					error = -EBUSY;
-@@ -118,8 +108,7 @@ static int memfd_wait_for_pins(struct ad
- 			if (clear)
- 				xas_clear_mark(&xas, MEMFD_TAG_PINNED);
- 
--			latency += cache_count;
--			if (latency < XA_CHECK_SCHED)
-+			if (++latency < XA_CHECK_SCHED)
- 				continue;
- 			latency = 0;
- 
+ static inline bool folio_large_is_mapped(struct folio *folio)
+ {
+ 	/*
 _
 
 Patches currently in -mm which might be from david@redhat.com are
