@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97D5210961
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC7B8101C5
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600541; cv=none; b=mPer82e1hmEOtleKJ/0rohHzWaY4PQKAc0xSEaf6VzzJrK+QGxXlshJH/k3pYPWJAk5WEHOtatFqVeXAY+qQu7iUHdb92tpdp685Rs5W5DwkyVWEJawsIxThH00719Grj7vFvJZ8RHrct6gkHNSteRHvM/kDqjq8cSO9sBlIV3Q=
+	t=1709600543; cv=none; b=RInb0lLhyR0vTFOYLLpB6ua7PSP/URHfbKQEP9AGOzoSC7L/I5DWkCIGVLptEoRWFqY4+Q23mN3cFS94q9aY/URDuWAb5YbXaxz4s52NiqJEtZWWD8XMuTp8j+d2vpBv4WMya9V1hO5wWp2ATjQBTmVnLSEG00UvBjguQr2ih3g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600541; c=relaxed/simple;
-	bh=7aogvU0OcwLkzxhSxScc42MNnzvSKmFMBPtsaBtzcGQ=;
-	h=Date:To:From:Subject:Message-Id; b=n/iNry761kzNJ5wMPAT3XV/X//nhFwR0iM6CM0UOvXhbaNQGdGzjTp6qgQR+CwVcIDTC9xo6Fwg46eeDcxGlukxtrrEZkvG/TqgWeK/LLpJw2OAsagORs65z/W/3Ia9xadrW9/pCPaAS0VHXmzI2NHh2uYVvlA96+exWkBDQfeE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eaDR8HE4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709600543; c=relaxed/simple;
+	bh=ATiWByTZ38BGstNBA8Li541diPQR3YNw8H6kTvca+58=;
+	h=Date:To:From:Subject:Message-Id; b=AwEXk5Kwo992ZKUi1MV0t5Pt9g8hh/M4R/p1IW1dIsn9TLIZGii4vzbEKEbtxK4qaZ7bFCg1o+C1wz1TpNRatDJo6F7HJaYpEfn6xQN421IC3LM/FosQS8+j3ovNEPac0sB0nxS7U4a5YupL/ElmfoEdSp5RO2HV2f4hCrvQB8s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qbP+23Hx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eaDR8HE4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 688D5C433C7;
-	Tue,  5 Mar 2024 01:02:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qbP+23Hx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85696C433C7;
+	Tue,  5 Mar 2024 01:02:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600541;
-	bh=7aogvU0OcwLkzxhSxScc42MNnzvSKmFMBPtsaBtzcGQ=;
+	s=korg; t=1709600542;
+	bh=ATiWByTZ38BGstNBA8Li541diPQR3YNw8H6kTvca+58=;
 	h=Date:To:From:Subject:From;
-	b=eaDR8HE4PC3ibPt+YwtMxds1B3up8ERxQsPaCajas2eMxKM2GERbkeNinSkDp/Qb4
-	 3MHq8rxNzrPf9iNOiLFCzonzHJAogrT5dv+d73YVLcIvR09OdrzAxqHhYFD3W6l8NJ
-	 aNE0NYl6VpeQckTzeZs5kHaHg37NdTpBGYeqFIp0=
-Date: Mon, 04 Mar 2024 17:02:20 -0800
-To: mm-commits@vger.kernel.org,petr@tesarici.cz,pasha.tatashin@soleen.com,mhocko@suse.com,kent.overstreet@linux.dev,keescook@chromium.org,surenb@google.com,akpm@linux-foundation.org
+	b=qbP+23HxYJFxlnml0vwbh5P68qE0CYYCU+6kMoclUSij7T7Sdego3LGSlmXNr68wY
+	 MRkjCJQyABcaecTe6uVJQ9CHgVYUFr3w8OpdWzQo2JLteulENyJvPwAKq2VspIf+Ew
+	 7vH+OjaNIzBJDlYo2+wOfbPPqEV+FY1fDxrpUbFw=
+Date: Mon, 04 Mar 2024 17:02:22 -0800
+To: mm-commits@vger.kernel.org,zokeefe@google.com,yuzhao@google.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,mkoutny@suse.com,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,hughd@google.com,david@redhat.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-enumerate-all-gfp-flags.patch removed from -mm tree
-Message-Id: <20240305010221.688D5C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-only-split-pmd-mapping-when-necessary-in-unmap_folio.patch removed from -mm tree
+Message-Id: <20240305010222.85696C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,155 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: enumerate all gfp flags
+     Subject: mm/huge_memory: only split PMD mapping when necessary in unmap_folio()
 has been removed from the -mm tree.  Its filename was
-     mm-enumerate-all-gfp-flags.patch
+     mm-huge_memory-only-split-pmd-mapping-when-necessary-in-unmap_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: enumerate all gfp flags
-Date: Fri, 23 Feb 2024 17:58:00 -0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: only split PMD mapping when necessary in unmap_folio()
+Date: Mon, 26 Feb 2024 15:55:27 -0500
 
-Introduce GFP bits enumeration to let compiler track the number of used
-bits (which depends on the config options) instead of hardcoding them. 
-That simplifies __GFP_BITS_SHIFT calculation.
+Patch series "Split a folio to any lower order folios", v5.
 
-Link: https://lkml.kernel.org/r/20240224015800.2569851-1-surenb@google.com
-Suggested-by: Petr Tesařík <petr@tesarici.cz>
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Petr Tesarik <petr@tesarici.cz>
+File folio supports any order and multi-size THP is upstreamed[1], so both
+file and anonymous folios can be >0 order.  Currently, split_huge_page()
+only splits a huge page to order-0 pages, but splitting to orders higher
+than 0 might better utilize large folios, if done properly.  In addition,
+Large Block Sizes in XFS support would benefit from it during truncate[2].
+This patchset adds support for splitting a large folio to any lower order
+folios.
+
+In addition to this implementation of split_huge_page_to_list_to_order(),
+a possible optimization could be splitting a large folio to arbitrary
+smaller folios instead of a single order.  As both Hugh and Ryan pointed
+out [3,5] that split to a single order might not be optimal, an order-9
+folio might be better split into 1 order-8, 1 order-7, ..., 1 order-1, and
+2 order-0 folios, depending on subsequent folio operations.  Leave this as
+future work.
+
+[1] https://lore.kernel.org/all/20231207161211.2374093-1-ryan.roberts@arm.com/
+[2] https://lore.kernel.org/linux-mm/20240226094936.2677493-1-kernel@pankajraghav.com/
+[3] https://lore.kernel.org/linux-mm/9dd96da-efa2-5123-20d4-4992136ef3ad@google.com/
+[4] https://lore.kernel.org/linux-mm/cbb1d6a0-66dd-47d0-8733-f836fe050374@arm.com/
+[5] https://lore.kernel.org/linux-mm/20240213215520.1048625-1-zi.yan@sent.com/
+
+
+This patch (of 8):
+
+As multi-size THP support is added, not all THPs are PMD-mapped, thus
+during a huge page split, there is no need to always split PMD mapping in
+unmap_folio().  Make it conditional.
+
+Link: https://lkml.kernel.org/r/20240226205534.1603748-1-zi.yan@sent.com
+Link: https://lkml.kernel.org/r/20240226205534.1603748-2-zi.yan@sent.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Koutny <mkoutny@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp_types.h |   90 ++++++++++++++++++++++++------------
- 1 file changed, 62 insertions(+), 28 deletions(-)
+ mm/huge_memory.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/include/linux/gfp_types.h~mm-enumerate-all-gfp-flags
-+++ a/include/linux/gfp_types.h
-@@ -21,44 +21,78 @@ typedef unsigned int __bitwise gfp_t;
-  * include/trace/events/mmflags.h and tools/perf/builtin-kmem.c
-  */
+--- a/mm/huge_memory.c~mm-huge_memory-only-split-pmd-mapping-when-necessary-in-unmap_folio
++++ a/mm/huge_memory.c
+@@ -2727,11 +2727,14 @@ void vma_adjust_trans_huge(struct vm_are
  
-+enum {
-+	___GFP_DMA_BIT,
-+	___GFP_HIGHMEM_BIT,
-+	___GFP_DMA32_BIT,
-+	___GFP_MOVABLE_BIT,
-+	___GFP_RECLAIMABLE_BIT,
-+	___GFP_HIGH_BIT,
-+	___GFP_IO_BIT,
-+	___GFP_FS_BIT,
-+	___GFP_ZERO_BIT,
-+	___GFP_UNUSED_BIT,	/* 0x200u unused */
-+	___GFP_DIRECT_RECLAIM_BIT,
-+	___GFP_KSWAPD_RECLAIM_BIT,
-+	___GFP_WRITE_BIT,
-+	___GFP_NOWARN_BIT,
-+	___GFP_RETRY_MAYFAIL_BIT,
-+	___GFP_NOFAIL_BIT,
-+	___GFP_NORETRY_BIT,
-+	___GFP_MEMALLOC_BIT,
-+	___GFP_COMP_BIT,
-+	___GFP_NOMEMALLOC_BIT,
-+	___GFP_HARDWALL_BIT,
-+	___GFP_THISNODE_BIT,
-+	___GFP_ACCOUNT_BIT,
-+	___GFP_ZEROTAGS_BIT,
-+#ifdef CONFIG_KASAN_HW_TAGS
-+	___GFP_SKIP_ZERO_BIT,
-+	___GFP_SKIP_KASAN_BIT,
-+#endif
-+#ifdef CONFIG_LOCKDEP
-+	___GFP_NOLOCKDEP_BIT,
-+#endif
-+	___GFP_LAST_BIT
-+};
+ static void unmap_folio(struct folio *folio)
+ {
+-	enum ttu_flags ttu_flags = TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD |
+-		TTU_SYNC | TTU_BATCH_FLUSH;
++	enum ttu_flags ttu_flags = TTU_RMAP_LOCKED | TTU_SYNC |
++		TTU_BATCH_FLUSH;
+ 
+ 	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
+ 
++	if (folio_test_pmd_mappable(folio))
++		ttu_flags |= TTU_SPLIT_HUGE_PMD;
 +
- /* Plain integer GFP bitmasks. Do not use this directly. */
--#define ___GFP_DMA		0x01u
--#define ___GFP_HIGHMEM		0x02u
--#define ___GFP_DMA32		0x04u
--#define ___GFP_MOVABLE		0x08u
--#define ___GFP_RECLAIMABLE	0x10u
--#define ___GFP_HIGH		0x20u
--#define ___GFP_IO		0x40u
--#define ___GFP_FS		0x80u
--#define ___GFP_ZERO		0x100u
-+#define ___GFP_DMA		BIT(___GFP_DMA_BIT)
-+#define ___GFP_HIGHMEM		BIT(___GFP_HIGHMEM_BIT)
-+#define ___GFP_DMA32		BIT(___GFP_DMA32_BIT)
-+#define ___GFP_MOVABLE		BIT(___GFP_MOVABLE_BIT)
-+#define ___GFP_RECLAIMABLE	BIT(___GFP_RECLAIMABLE_BIT)
-+#define ___GFP_HIGH		BIT(___GFP_HIGH_BIT)
-+#define ___GFP_IO		BIT(___GFP_IO_BIT)
-+#define ___GFP_FS		BIT(___GFP_FS_BIT)
-+#define ___GFP_ZERO		BIT(___GFP_ZERO_BIT)
- /* 0x200u unused */
--#define ___GFP_DIRECT_RECLAIM	0x400u
--#define ___GFP_KSWAPD_RECLAIM	0x800u
--#define ___GFP_WRITE		0x1000u
--#define ___GFP_NOWARN		0x2000u
--#define ___GFP_RETRY_MAYFAIL	0x4000u
--#define ___GFP_NOFAIL		0x8000u
--#define ___GFP_NORETRY		0x10000u
--#define ___GFP_MEMALLOC		0x20000u
--#define ___GFP_COMP		0x40000u
--#define ___GFP_NOMEMALLOC	0x80000u
--#define ___GFP_HARDWALL		0x100000u
--#define ___GFP_THISNODE		0x200000u
--#define ___GFP_ACCOUNT		0x400000u
--#define ___GFP_ZEROTAGS		0x800000u
-+#define ___GFP_DIRECT_RECLAIM	BIT(___GFP_DIRECT_RECLAIM_BIT)
-+#define ___GFP_KSWAPD_RECLAIM	BIT(___GFP_KSWAPD_RECLAIM_BIT)
-+#define ___GFP_WRITE		BIT(___GFP_WRITE_BIT)
-+#define ___GFP_NOWARN		BIT(___GFP_NOWARN_BIT)
-+#define ___GFP_RETRY_MAYFAIL	BIT(___GFP_RETRY_MAYFAIL_BIT)
-+#define ___GFP_NOFAIL		BIT(___GFP_NOFAIL_BIT)
-+#define ___GFP_NORETRY		BIT(___GFP_NORETRY_BIT)
-+#define ___GFP_MEMALLOC		BIT(___GFP_MEMALLOC_BIT)
-+#define ___GFP_COMP		BIT(___GFP_COMP_BIT)
-+#define ___GFP_NOMEMALLOC	BIT(___GFP_NOMEMALLOC_BIT)
-+#define ___GFP_HARDWALL		BIT(___GFP_HARDWALL_BIT)
-+#define ___GFP_THISNODE		BIT(___GFP_THISNODE_BIT)
-+#define ___GFP_ACCOUNT		BIT(___GFP_ACCOUNT_BIT)
-+#define ___GFP_ZEROTAGS		BIT(___GFP_ZEROTAGS_BIT)
- #ifdef CONFIG_KASAN_HW_TAGS
--#define ___GFP_SKIP_ZERO	0x1000000u
--#define ___GFP_SKIP_KASAN	0x2000000u
-+#define ___GFP_SKIP_ZERO	BIT(___GFP_SKIP_ZERO_BIT)
-+#define ___GFP_SKIP_KASAN	BIT(___GFP_SKIP_KASAN_BIT)
- #else
- #define ___GFP_SKIP_ZERO	0
- #define ___GFP_SKIP_KASAN	0
- #endif
- #ifdef CONFIG_LOCKDEP
--#define ___GFP_NOLOCKDEP	0x4000000u
-+#define ___GFP_NOLOCKDEP	BIT(___GFP_NOLOCKDEP_BIT)
- #else
- #define ___GFP_NOLOCKDEP	0
- #endif
--/* If the above are modified, __GFP_BITS_SHIFT may need updating */
- 
- /*
-  * Physical address zone modifiers (see linux/mmzone.h - low four bits)
-@@ -249,7 +283,7 @@ typedef unsigned int __bitwise gfp_t;
- #define __GFP_NOLOCKDEP ((__force gfp_t)___GFP_NOLOCKDEP)
- 
- /* Room for N __GFP_FOO bits */
--#define __GFP_BITS_SHIFT (26 + IS_ENABLED(CONFIG_LOCKDEP))
-+#define __GFP_BITS_SHIFT ___GFP_LAST_BIT
- #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
- 
- /**
+ 	/*
+ 	 * Anon pages need migration entries to preserve them, but file
+ 	 * pages can simply be left unmapped, then faulted back on demand.
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
 
