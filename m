@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5CC0182DF
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 17:51:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B32412AACB
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 20:46:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709661065; cv=none; b=uG9JcrWwx1HpYw7QvQhOPY9ghGPN0DoVayHHChIURUSgqKBaMb5quT2MkAojnKhTb8ST0spumPC9IMlQ8WLNR9ejP2ls5oXrW1i7NTJLuM+mCzmX3XnroMBcR/wNY+OmEk+XKzv4ZHK5MFepXn+cRx8Ej0M1/SUMkwdeYNukjXU=
+	t=1709671616; cv=none; b=tOyswF0UsYYZ2a9CUSU9TQq/kqPyjQMWJGHrpRp1GmhHfjhRWdyDuke0jLBxKmYrSRhmQEjWKLuuHYJICz/yTC03bJMAfau9E8VjVFAP4z3zrRxY3cSqHoWAdqFXuFsas+OwsMCPW/Vx9n1Z3GO4NRhhB9wze6vDpFePRwDVtlU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709661065; c=relaxed/simple;
-	bh=bwngKlxNkH3lbQoAslOxNaodNDK1spTX2U0V1EKpH+o=;
-	h=Date:To:From:Subject:Message-Id; b=p5DqP42x3vQ/WhMxsi5qVkqOOVXBAoezyv0yE43X9e91+jLTBkZAr25eHl1TcjbSH0PChjWaOsKdaUX2j29CNDgbb6b1eXYx8WpnOWOLsJL9Gqb96CoJq5tYGyCzwfOMD5rdWvn8GrSxRtf7AcN+z/myCfXlTeINucfhKfXMn2U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iIATfQaC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709671616; c=relaxed/simple;
+	bh=9KiorXj1BCsliH0rpEoV8FIOdRkqB4seqkiavEZaHrI=;
+	h=Date:To:From:Subject:Message-Id; b=B24Khho9GdnDR1v08GZLNlYXTG3nOyRCL4UmK1dm1D+95ynHvV9umEcqABg/E8M3bfhwHpKKQKCXc92YAaevpZMZ2LITNkmoHhp7ZD7bGP8zCCmCt9K7lNsRKUIJtr0UoqnduMEcmtlRcELkhIbY1tq6nI/lAP/RSKfogLhMlgI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JNxW2tgH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iIATfQaC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBEA8C433F1;
-	Tue,  5 Mar 2024 17:51:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JNxW2tgH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9357FC43390;
+	Tue,  5 Mar 2024 20:46:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709661064;
-	bh=bwngKlxNkH3lbQoAslOxNaodNDK1spTX2U0V1EKpH+o=;
+	s=korg; t=1709671615;
+	bh=9KiorXj1BCsliH0rpEoV8FIOdRkqB4seqkiavEZaHrI=;
 	h=Date:To:From:Subject:From;
-	b=iIATfQaCM4oS0SqZUr3FL6EVy68pvSb26JzfgomTe4S78eXRaaip7LuROORs2A7/E
-	 Ugaok1V6JoLjdtT0V7/gozPAMCFU3SilUTOIXaPTSzG7QRzSp3+8bBXrZWP+12oilw
-	 XJbKXVqQEbbLWrIJcp7jEk6ZNDhSvekI15x27y0A=
-Date: Tue, 05 Mar 2024 09:51:04 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,tglx@linutronix.de,shy828301@gmail.com,ryabinin.a.a@gmail.com,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,muchun.song@linux.dev,mpe@ellerman.id.au,mingo@redhat.com,kirill@shutemov.name,jgg@nvidia.com,glider@google.com,dvyukov@google.com,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,bp@alien8.de,aneesh.kumar@kernel.org,andreyknvl@gmail.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=JNxW2tgHGOREV6+6uDXZ1Qzkl92cccf6HCKHurqN2nX+Nj7G9kYD7wtBzu8xWKPtN
+	 XHtvdOUKdGwIhar2sSxobm1iW1zLNbYPIWMxuHZDP+nZgd9ql69fcJ+UfvSw8ng58Q
+	 BI1AXwobbVqr2LXG17eUtJyoioZZOLp/+mhASGWQ=
+Date: Tue, 05 Mar 2024 12:46:54 -0800
+To: mm-commits@vger.kernel.org,tim.c.chen@linux.intel.com,steffen.klassert@secunet.com,rientjes@google.com,rdunlap@infradead.org,paulmck@kernel.org,muchun.song@linux.dev,mike.kravetz@oracle.com,ligang.bdlg@bytedance.com,jane.chu@oracle.com,gang.li@linux.dev,david@redhat.com,daniel.m.jordan@oracle.com,adobriyan@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-treewide-align-up-pxd_leaf-retval-across-archs.patch added to mm-unstable branch
-Message-Id: <20240305175104.BBEA8C433F1@smtp.kernel.org>
+Subject: [folded-merged] hugetlb-parallelize-1g-hugetlb-initialization-fix.patch removed from -mm tree
+Message-Id: <20240305204655.9357FC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,206 +34,69 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/treewide: align up pXd_leaf() retval across archs
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-treewide-align-up-pxd_leaf-retval-across-archs.patch
+The quilt patch titled
+     Subject: hugetlb-parallelize-1g-hugetlb-initialization-fix
+has been removed from the -mm tree.  Its filename was
+     hugetlb-parallelize-1g-hugetlb-initialization-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-treewide-align-up-pxd_leaf-retval-across-archs.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into hugetlb-parallelize-1g-hugetlb-initialization.patch
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/treewide: align up pXd_leaf() retval across archs
-Date: Tue, 5 Mar 2024 12:37:50 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hugetlb-parallelize-1g-hugetlb-initialization-fix
+Date: Thu Feb 22 10:34:41 AM PST 2024
 
-Even if pXd_leaf() API is defined globally, it's not clear on the retval,
-and there are three types used (bool, int, unsigned log).
+s/initialied/initialized/, per Alexey
 
-Always return a boolean for pXd_leaf() APIs.
-
-Link: https://lkml.kernel.org/r/20240305043750.93762-11-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Gang Li <gang.li@linux.dev>
+Cc: Gang Li <ligang.bdlg@bytedance.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/include/asm/pgtable-64.h |    2 +-
- arch/riscv/include/asm/pgtable.h    |    2 +-
- arch/s390/include/asm/pgtable.h     |    4 ++--
- arch/sparc/include/asm/pgtable_64.h |    4 ++--
- arch/x86/include/asm/pgtable.h      |    8 ++++----
- include/linux/pgtable.h             |    8 ++++----
- 6 files changed, 14 insertions(+), 14 deletions(-)
+ mm/hugetlb.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/riscv/include/asm/pgtable-64.h~mm-treewide-align-up-pxd_leaf-retval-across-archs
-+++ a/arch/riscv/include/asm/pgtable-64.h
-@@ -190,7 +190,7 @@ static inline int pud_bad(pud_t pud)
- }
- 
- #define pud_leaf	pud_leaf
--static inline int pud_leaf(pud_t pud)
-+static inline bool pud_leaf(pud_t pud)
+--- a/mm/hugetlb.c~hugetlb-parallelize-1g-hugetlb-initialization-fix
++++ a/mm/hugetlb.c
+@@ -3625,7 +3625,7 @@ static unsigned long __init hugetlb_page
+ static void __init hugetlb_hstate_alloc_pages(struct hstate *h)
  {
- 	return pud_present(pud) && (pud_val(pud) & _PAGE_LEAF);
- }
---- a/arch/riscv/include/asm/pgtable.h~mm-treewide-align-up-pxd_leaf-retval-across-archs
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -241,7 +241,7 @@ static inline int pmd_bad(pmd_t pmd)
- }
+ 	unsigned long allocated;
+-	static bool initialied __initdata;
++	static bool initialized __initdata;
  
- #define pmd_leaf	pmd_leaf
--static inline int pmd_leaf(pmd_t pmd)
-+static inline bool pmd_leaf(pmd_t pmd)
- {
- 	return pmd_present(pmd) && (pmd_val(pmd) & _PAGE_LEAF);
- }
---- a/arch/s390/include/asm/pgtable.h~mm-treewide-align-up-pxd_leaf-retval-across-archs
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -706,7 +706,7 @@ static inline int pud_none(pud_t pud)
- }
+ 	/* skip gigantic hugepages allocation if hugetlb_cma enabled */
+ 	if (hstate_is_gigantic(h) && hugetlb_cma_size) {
+@@ -3634,12 +3634,12 @@ static void __init hugetlb_hstate_alloc_
+ 	}
  
- #define pud_leaf pud_leaf
--static inline int pud_leaf(pud_t pud)
-+static inline bool pud_leaf(pud_t pud)
- {
- 	if ((pud_val(pud) & _REGION_ENTRY_TYPE_MASK) != _REGION_ENTRY_TYPE_R3)
- 		return 0;
-@@ -714,7 +714,7 @@ static inline int pud_leaf(pud_t pud)
- }
+ 	/* hugetlb_hstate_alloc_pages will be called many times, initialize huge_boot_pages once */
+-	if (!initialied) {
++	if (!initialized) {
+ 		int i = 0;
  
- #define pmd_leaf pmd_leaf
--static inline int pmd_leaf(pmd_t pmd)
-+static inline bool pmd_leaf(pmd_t pmd)
- {
- 	return (pmd_val(pmd) & _SEGMENT_ENTRY_LARGE) != 0;
- }
---- a/arch/sparc/include/asm/pgtable_64.h~mm-treewide-align-up-pxd_leaf-retval-across-archs
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -681,7 +681,7 @@ static inline unsigned long pte_special(
- }
+ 		for (i = 0; i < MAX_NUMNODES; i++)
+ 			INIT_LIST_HEAD(&huge_boot_pages[i]);
+-		initialied = true;
++		initialized = true;
+ 	}
  
- #define pmd_leaf pmd_leaf
--static inline unsigned long pmd_leaf(pmd_t pmd)
-+static inline bool pmd_leaf(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
- 
-@@ -868,7 +868,7 @@ static inline pmd_t *pud_pgtable(pud_t p
- #define p4d_page(p4d)			NULL
- 
- #define pud_leaf pud_leaf
--static inline unsigned long pud_leaf(pud_t pud)
-+static inline bool pud_leaf(pud_t pud)
- {
- 	pte_t pte = __pte(pud_val(pud));
- 
---- a/arch/x86/include/asm/pgtable.h~mm-treewide-align-up-pxd_leaf-retval-across-archs
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -252,7 +252,7 @@ static inline unsigned long pgd_pfn(pgd_
- }
- 
- #define p4d_leaf p4d_leaf
--static inline int p4d_leaf(p4d_t p4d)
-+static inline bool p4d_leaf(p4d_t p4d)
- {
- 	/* No 512 GiB pages yet */
- 	return 0;
-@@ -261,7 +261,7 @@ static inline int p4d_leaf(p4d_t p4d)
- #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
- 
- #define pmd_leaf pmd_leaf
--static inline int pmd_leaf(pmd_t pte)
-+static inline bool pmd_leaf(pmd_t pte)
- {
- 	return pmd_flags(pte) & _PAGE_PSE;
- }
-@@ -1086,7 +1086,7 @@ static inline pmd_t *pud_pgtable(pud_t p
- #define pud_page(pud)	pfn_to_page(pud_pfn(pud))
- 
- #define pud_leaf pud_leaf
--static inline int pud_leaf(pud_t pud)
-+static inline bool pud_leaf(pud_t pud)
- {
- 	return (pud_val(pud) & (_PAGE_PSE | _PAGE_PRESENT)) ==
- 		(_PAGE_PSE | _PAGE_PRESENT);
-@@ -1413,7 +1413,7 @@ static inline bool pgdp_maps_userspace(v
- }
- 
- #define pgd_leaf	pgd_leaf
--static inline int pgd_leaf(pgd_t pgd) { return 0; }
-+static inline bool pgd_leaf(pgd_t pgd) { return false; }
- 
- #ifdef CONFIG_PAGE_TABLE_ISOLATION
- /*
---- a/include/linux/pgtable.h~mm-treewide-align-up-pxd_leaf-retval-across-archs
-+++ a/include/linux/pgtable.h
-@@ -1777,16 +1777,16 @@ typedef unsigned int pgtbl_mod_mask;
-  * Only meaningful when called on a valid entry.
-  */
- #ifndef pgd_leaf
--#define pgd_leaf(x)	0
-+#define pgd_leaf(x)	false
- #endif
- #ifndef p4d_leaf
--#define p4d_leaf(x)	0
-+#define p4d_leaf(x)	false
- #endif
- #ifndef pud_leaf
--#define pud_leaf(x)	0
-+#define pud_leaf(x)	false
- #endif
- #ifndef pmd_leaf
--#define pmd_leaf(x)	0
-+#define pmd_leaf(x)	false
- #endif
- 
- #ifndef pgd_leaf_size
+ 	/* do node specific alloc */
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-ppc-define-pxd_large-with-pxd_leaf.patch
-mm-ppc-replace-pxd_is_leaf-with-pxd_leaf.patch
-mm-x86-replace-p4d_large-with-p4d_leaf.patch
-mm-x86-replace-pgd_large-with-pgd_leaf.patch
-mm-x86-drop-two-unnecessary-pud_leaf-definitions.patch
-mm-kasan-use-pxd_leaf-in-shadow_mapped.patch
-mm-treewide-replace-pmd_large-with-pmd_leaf.patch
-mm-treewide-replace-pud_large-with-pud_leaf.patch
-mm-treewide-drop-pxd_large.patch
-mm-treewide-align-up-pxd_leaf-retval-across-archs.patch
+hugetlb-parallelize-1g-hugetlb-initialization.patch
+mm-add-__dump_folio-fix-3-fix.patch
 
