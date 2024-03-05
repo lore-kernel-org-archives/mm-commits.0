@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEA10FC08
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 107808C07
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600553; cv=none; b=lbgPVkaVvl6PXFSzFsv+1JhZ3gJyqRkhEbRVTj9NHZMeVjufhLW2J4iSgXlToI7V9+dt94Htm0QtJvyqO359fZeQ7PD18OJjT4a+EHtLjfBpU3C0J9toMvQZjV+nVu2ecNoPWNC+uP3gg5+grDumt1IDQwTFJltqfO+emPtiBVs=
+	t=1709600556; cv=none; b=inwkoPTdBf/C49LLyBqDVxZzZ1aZfN0Nnss8E1RYE4sa9Wqk7ScZiuNTV54VVhE4EjxyzDZc3+JwQvuwYRqSUswFs8nYv9tiwUwZpbFXzi+4MZdkN0um1FLEyG//MQ0yFODenDSCpcMEY/U2X3Vf9G+WCqpdDR6ahG2SM50TIpI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600553; c=relaxed/simple;
-	bh=w+BCwxWn4kCUJbiGzl3F2YgF5mJQJ4DIat+otThfO30=;
-	h=Date:To:From:Subject:Message-Id; b=Ro7+t7mDenWVHqyBhrtLx2FcHFK90jH+IynfLw6Mt68wxIphHLgx2bSfH5HUAamnFfFeYjWgW5KyekLF9+6sBtHKXHnx16jZyu+x4tCsFhwqxHfXLMweHE19MT9hZ9HGjIZTatYWtPUdUmI/4UEFCnd9qf/ci4ZEj78piY0bkQ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y3xTzDey; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709600556; c=relaxed/simple;
+	bh=mSFy9CxCJKbluT6AOAThDY08yCSJbYxgnr9uhzTKAqk=;
+	h=Date:To:From:Subject:Message-Id; b=fdoSguwJCC9elKlpaWHN5/K4YhN8knxR2xuUV/IAmw2PT0FzzzWx85y7sXGet5obGqpW5OGCRWabvLBb8II6L1Ve4puRUhVKrk8MBJmR2OLMQ6P3Q+HhGMHDtq3z98iKsX7gUbLTZ2zAfShs1okbvxNr+B6vIVMLn3N5ULKr3Hg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pWkyIrpL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y3xTzDey"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78682C433F1;
-	Tue,  5 Mar 2024 01:02:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pWkyIrpL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D664CC433F1;
+	Tue,  5 Mar 2024 01:02:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600553;
-	bh=w+BCwxWn4kCUJbiGzl3F2YgF5mJQJ4DIat+otThfO30=;
+	s=korg; t=1709600555;
+	bh=mSFy9CxCJKbluT6AOAThDY08yCSJbYxgnr9uhzTKAqk=;
 	h=Date:To:From:Subject:From;
-	b=Y3xTzDeycVrI2j/yrdGsLU/7++LNVj3wL+OdFX+eM86biZ2O6X/6hqL/f2mrGNykB
-	 IL1sQO5kYHUrfRFiaEFmImd60fNC1qKNwekQINiPuYiW3Tj/f0fycQKFiKjAWstXYM
-	 xr/TvVR95HXX1ILP10V5zI+lZTf18vpph0muvjOE=
-Date: Mon, 04 Mar 2024 17:02:33 -0800
-To: mm-commits@vger.kernel.org,zokeefe@google.com,yuzhao@google.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,mkoutny@suse.com,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,hughd@google.com,david@redhat.com,aishwarya.tcv@arm.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=pWkyIrpLDd4z1EQ5Ncleh02EoacqsaKY804p2IhlQmYNGI38PTDiSWepTtHQvwOaL
+	 SjqPPRAeF+g6lwbqmc0cYVdSb/KRr+7u5ViHCNPk6nElHZ2J70V//6dV2J4Pw8zD12
+	 i6qg442e2abVppA7R/bZz5ieJVSl3DDTJMt5+1zw=
+Date: Mon, 04 Mar 2024 17:02:35 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order.patch removed from -mm tree
-Message-Id: <20240305010233.78682C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memfd-refactor-memfd_tag_pins-and-memfd_wait_for_pins.patch removed from -mm tree
+Message-Id: <20240305010235.D664CC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,415 +35,163 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: huge_memory: enable debugfs to split huge pages to any order
+     Subject: mm/memfd: refactor memfd_tag_pins() and memfd_wait_for_pins()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order.patch
+     mm-memfd-refactor-memfd_tag_pins-and-memfd_wait_for_pins.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm: huge_memory: enable debugfs to split huge pages to any order
-Date: Mon, 26 Feb 2024 15:55:34 -0500
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/memfd: refactor memfd_tag_pins() and memfd_wait_for_pins()
+Date: Mon, 26 Feb 2024 15:13:23 +0100
 
-It is used to test split_huge_page_to_list_to_order for pagecache THPs. 
-Also add test cases for split_huge_page_to_list_to_order via both debugfs.
+Patch series "mm: remove total_mapcount()", v2.
 
-[ziy@nvidia.com: fix issue discovered with NFS]
-  Link: https://lkml.kernel.org/r/262E4DAA-4A78-4328-B745-1355AE356A07@nvidia.com
-Link: https://lkml.kernel.org/r/20240226205534.1603748-9-zi.yan@sent.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Tested-by: Aishwarya TCV <aishwarya.tcv@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Michal Koutny <mkoutny@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Aishwarya TCV <aishwarya.tcv@arm.com>
+Let's remove the remaining user from mm/memfd.c so we can get rid of
+total_mapcount().
+
+
+This patch (of 2):
+
+Both functions are the remaining users of total_mapcount().  Let's get rid
+of the calls by converting the code to folios.
+
+As it turns out, the code is unnecessarily complicated, especially:
+
+1) We can query the number of pagecache references for a folio simply via
+   folio_nr_pages(). This will handle other folio sizes in the future
+   correctly.
+
+2) The xas_set(xas, page->index + cache_count) call to increment the
+   iterator for large folios is not required. Remove it.
+
+Further, simplify the XA_CHECK_SCHED check, counting each entry exactly
+once.
+
+Memfd pages can be swapped out when using shmem; leave xa_is_value()
+checks in place.
+
+Link: https://lkml.kernel.org/r/20240226141324.278526-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20240226141324.278526-2-david@redhat.com
+Co-developed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c                                  |   34 +-
- tools/testing/selftests/mm/run_vmtests.sh         |   22 +
- tools/testing/selftests/mm/split_huge_page_test.c |  168 +++++++++++-
- 3 files changed, 205 insertions(+), 19 deletions(-)
+ mm/memfd.c |   47 ++++++++++++++++++-----------------------------
+ 1 file changed, 18 insertions(+), 29 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order
-+++ a/mm/huge_memory.c
-@@ -3419,7 +3419,7 @@ static inline bool vma_not_suitable_for_
- }
+--- a/mm/memfd.c~mm-memfd-refactor-memfd_tag_pins-and-memfd_wait_for_pins
++++ a/mm/memfd.c
+@@ -29,29 +29,25 @@
+ #define MEMFD_TAG_PINNED        PAGECACHE_TAG_TOWRITE
+ #define LAST_SCAN               4       /* about 150ms max */
  
- static int split_huge_pages_pid(int pid, unsigned long vaddr_start,
--				unsigned long vaddr_end)
-+				unsigned long vaddr_end, unsigned int new_order)
- {
- 	int ret = 0;
- 	struct task_struct *task;
-@@ -3483,13 +3483,19 @@ static int split_huge_pages_pid(int pid,
- 			goto next;
- 
- 		total++;
--		if (!can_split_folio(folio, NULL))
-+		/*
-+		 * For folios with private, split_huge_page_to_list_to_order()
-+		 * will try to drop it before split and then check if the folio
-+		 * can be split or not. So skip the check here.
-+		 */
-+		if (!folio_test_private(folio) &&
-+		    !can_split_folio(folio, NULL))
- 			goto next;
- 
- 		if (!folio_trylock(folio))
- 			goto next;
- 
--		if (!split_folio(folio))
-+		if (!split_folio_to_order(folio, new_order))
- 			split++;
- 
- 		folio_unlock(folio);
-@@ -3507,7 +3513,7 @@ out:
- }
- 
- static int split_huge_pages_in_file(const char *file_path, pgoff_t off_start,
--				pgoff_t off_end)
-+				pgoff_t off_end, unsigned int new_order)
- {
- 	struct filename *file;
- 	struct file *candidate;
-@@ -3546,7 +3552,7 @@ static int split_huge_pages_in_file(cons
- 		if (!folio_trylock(folio))
- 			goto next;
- 
--		if (!split_folio(folio))
-+		if (!split_folio_to_order(folio, new_order))
- 			split++;
- 
- 		folio_unlock(folio);
-@@ -3571,10 +3577,14 @@ static ssize_t split_huge_pages_write(st
- {
- 	static DEFINE_MUTEX(split_debug_mutex);
- 	ssize_t ret;
--	/* hold pid, start_vaddr, end_vaddr or file_path, off_start, off_end */
-+	/*
-+	 * hold pid, start_vaddr, end_vaddr, new_order or
-+	 * file_path, off_start, off_end, new_order
-+	 */
- 	char input_buf[MAX_INPUT_BUF_SZ];
- 	int pid;
- 	unsigned long vaddr_start, vaddr_end;
-+	unsigned int new_order = 0;
- 
- 	ret = mutex_lock_interruptible(&split_debug_mutex);
- 	if (ret)
-@@ -3603,29 +3613,29 @@ static ssize_t split_huge_pages_write(st
- 			goto out;
- 		}
- 
--		ret = sscanf(buf, "0x%lx,0x%lx", &off_start, &off_end);
--		if (ret != 2) {
-+		ret = sscanf(buf, "0x%lx,0x%lx,%d", &off_start, &off_end, &new_order);
-+		if (ret != 2 && ret != 3) {
- 			ret = -EINVAL;
- 			goto out;
- 		}
--		ret = split_huge_pages_in_file(file_path, off_start, off_end);
-+		ret = split_huge_pages_in_file(file_path, off_start, off_end, new_order);
- 		if (!ret)
- 			ret = input_len;
- 
- 		goto out;
- 	}
- 
--	ret = sscanf(input_buf, "%d,0x%lx,0x%lx", &pid, &vaddr_start, &vaddr_end);
-+	ret = sscanf(input_buf, "%d,0x%lx,0x%lx,%d", &pid, &vaddr_start, &vaddr_end, &new_order);
- 	if (ret == 1 && pid == 1) {
- 		split_huge_pages_all();
- 		ret = strlen(input_buf);
- 		goto out;
--	} else if (ret != 3) {
-+	} else if (ret != 3 && ret != 4) {
- 		ret = -EINVAL;
- 		goto out;
- 	}
- 
--	ret = split_huge_pages_pid(pid, vaddr_start, vaddr_end);
-+	ret = split_huge_pages_pid(pid, vaddr_start, vaddr_end, new_order);
- 	if (!ret)
- 		ret = strlen(input_buf);
- out:
---- a/tools/testing/selftests/mm/run_vmtests.sh~mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -399,7 +399,27 @@ CATEGORY="thp" run_test ./khugepaged -s
- 
- CATEGORY="thp" run_test ./transhuge-stress -d 20
- 
--CATEGORY="thp" run_test ./split_huge_page_test
-+# Try to create XFS if not provided
-+if [ -z "${SPLIT_HUGE_PAGE_TEST_XFS_PATH}" ]; then
-+    if test_selected "thp"; then
-+        if grep xfs /proc/filesystems &>/dev/null; then
-+            XFS_IMG=$(mktemp /tmp/xfs_img_XXXXXX)
-+            SPLIT_HUGE_PAGE_TEST_XFS_PATH=$(mktemp -d /tmp/xfs_dir_XXXXXX)
-+            truncate -s 314572800 ${XFS_IMG}
-+            mkfs.xfs -q ${XFS_IMG}
-+            mount -o loop ${XFS_IMG} ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
-+            MOUNTED_XFS=1
-+        fi
-+    fi
-+fi
-+
-+CATEGORY="thp" run_test ./split_huge_page_test ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
-+
-+if [ -n "${MOUNTED_XFS}" ]; then
-+    umount ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
-+    rmdir ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
-+    rm -f ${XFS_IMG}
-+fi
- 
- CATEGORY="migration" run_test ./migration
- 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -16,6 +16,7 @@
- #include <sys/mount.h>
- #include <malloc.h>
- #include <stdbool.h>
-+#include <time.h>
- #include "vm_util.h"
- #include "../kselftest.h"
- 
-@@ -24,10 +25,11 @@ unsigned int pageshift;
- uint64_t pmd_pagesize;
- 
- #define SPLIT_DEBUGFS "/sys/kernel/debug/split_huge_pages"
-+#define SMAP_PATH "/proc/self/smaps"
- #define INPUT_MAX 80
- 
--#define PID_FMT "%d,0x%lx,0x%lx"
--#define PATH_FMT "%s,0x%lx,0x%lx"
-+#define PID_FMT "%d,0x%lx,0x%lx,%d"
-+#define PATH_FMT "%s,0x%lx,0x%lx,%d"
- 
- #define PFN_MASK     ((1UL<<55)-1)
- #define KPF_THP      (1UL<<22)
-@@ -102,7 +104,7 @@ void split_pmd_thp(void)
- 
- 	/* split all THPs */
- 	write_debugfs(PID_FMT, getpid(), (uint64_t)one_page,
--		(uint64_t)one_page + len);
-+		(uint64_t)one_page + len, 0);
- 
- 	for (i = 0; i < len; i++)
- 		if (one_page[i] != (char)i)
-@@ -177,7 +179,7 @@ void split_pte_mapped_thp(void)
- 
- 	/* split all remapped THPs */
- 	write_debugfs(PID_FMT, getpid(), (uint64_t)pte_mapped,
--		      (uint64_t)pte_mapped + pagesize * 4);
-+		      (uint64_t)pte_mapped + pagesize * 4, 0);
- 
- 	/* smap does not show THPs after mremap, use kpageflags instead */
- 	thp_size = 0;
-@@ -237,7 +239,7 @@ void split_file_backed_thp(void)
- 	}
- 
- 	/* split the file-backed THP */
--	write_debugfs(PATH_FMT, testfile, pgoff_start, pgoff_end);
-+	write_debugfs(PATH_FMT, testfile, pgoff_start, pgoff_end, 0);
- 
- 	status = unlink(testfile);
- 	if (status) {
-@@ -265,8 +267,149 @@ cleanup:
- 	ksft_exit_fail_msg("Error occurred\n");
- }
- 
-+bool prepare_thp_fs(const char *xfs_path, char *thp_fs_template,
-+		const char **thp_fs_loc)
++static bool memfd_folio_has_extra_refs(struct folio *folio)
 +{
-+	if (xfs_path) {
-+		*thp_fs_loc = xfs_path;
-+		return false;
-+	}
-+
-+	*thp_fs_loc = mkdtemp(thp_fs_template);
-+
-+	if (!*thp_fs_loc)
-+		ksft_exit_fail_msg("cannot create temp folder\n");
-+
-+	return true;
++	return folio_ref_count(folio) - folio_mapcount(folio) !=
++	       folio_nr_pages(folio);
 +}
 +
-+void cleanup_thp_fs(const char *thp_fs_loc, bool created_tmp)
-+{
-+	int status;
-+
-+	if (!created_tmp)
-+		return;
-+
-+	status = rmdir(thp_fs_loc);
-+	if (status)
-+		ksft_exit_fail_msg("cannot remove tmp dir: %s\n",
-+				   strerror(errno));
-+}
-+
-+int create_pagecache_thp_and_fd(const char *testfile, size_t fd_size, int *fd,
-+		char **addr)
-+{
-+	size_t i;
-+	int dummy;
-+
-+	srand(time(NULL));
-+
-+	*fd = open(testfile, O_CREAT | O_RDWR, 0664);
-+	if (*fd == -1)
-+		ksft_exit_fail_msg("Failed to create a file at %s\n", testfile);
-+
-+	for (i = 0; i < fd_size; i++) {
-+		unsigned char byte = (unsigned char)i;
-+
-+		write(*fd, &byte, sizeof(byte));
-+	}
-+	close(*fd);
-+	sync();
-+	*fd = open("/proc/sys/vm/drop_caches", O_WRONLY);
-+	if (*fd == -1) {
-+		ksft_perror("open drop_caches");
-+		goto err_out_unlink;
-+	}
-+	if (write(*fd, "3", 1) != 1) {
-+		ksft_perror("write to drop_caches");
-+		goto err_out_unlink;
-+	}
-+	close(*fd);
-+
-+	*fd = open(testfile, O_RDWR);
-+	if (*fd == -1) {
-+		ksft_perror("Failed to open testfile\n");
-+		goto err_out_unlink;
-+	}
-+
-+	*addr = mmap(NULL, fd_size, PROT_READ|PROT_WRITE, MAP_SHARED, *fd, 0);
-+	if (*addr == (char *)-1) {
-+		ksft_perror("cannot mmap");
-+		goto err_out_close;
-+	}
-+	madvise(*addr, fd_size, MADV_HUGEPAGE);
-+
-+	for (size_t i = 0; i < fd_size; i++)
-+		dummy += *(*addr + i);
-+
-+	if (!check_huge_file(*addr, fd_size / pmd_pagesize, pmd_pagesize)) {
-+		ksft_print_msg("No large pagecache folio generated, please provide a filesystem supporting large folio\n");
-+		munmap(*addr, fd_size);
-+		close(*fd);
-+		unlink(testfile);
-+		ksft_test_result_skip("Pagecache folio split skipped\n");
-+		return -2;
-+	}
-+	return 0;
-+err_out_close:
-+	close(*fd);
-+err_out_unlink:
-+	unlink(testfile);
-+	ksft_exit_fail_msg("Failed to create large pagecache folios\n");
-+	return -1;
-+}
-+
-+void split_thp_in_pagecache_to_order(size_t fd_size, int order, const char *fs_loc)
-+{
-+	int fd;
-+	char *addr;
-+	size_t i;
-+	char testfile[INPUT_MAX];
-+	int err = 0;
-+
-+	err = snprintf(testfile, INPUT_MAX, "%s/test", fs_loc);
-+
-+	if (err < 0)
-+		ksft_exit_fail_msg("cannot generate right test file name\n");
-+
-+	err = create_pagecache_thp_and_fd(testfile, fd_size, &fd, &addr);
-+	if (err)
-+		return;
-+	err = 0;
-+
-+	write_debugfs(PID_FMT, getpid(), (uint64_t)addr, (uint64_t)addr + fd_size, order);
-+
-+	for (i = 0; i < fd_size; i++)
-+		if (*(addr + i) != (char)i) {
-+			ksft_print_msg("%lu byte corrupted in the file\n", i);
-+			err = EXIT_FAILURE;
-+			goto out;
-+		}
-+
-+	if (!check_huge_file(addr, 0, pmd_pagesize)) {
-+		ksft_print_msg("Still FilePmdMapped not split\n");
-+		err = EXIT_FAILURE;
-+		goto out;
-+	}
-+
-+out:
-+	munmap(addr, fd_size);
-+	close(fd);
-+	unlink(testfile);
-+	if (err)
-+		ksft_exit_fail_msg("Split PMD-mapped pagecache folio to order %d failed\n", order);
-+	ksft_test_result_pass("Split PMD-mapped pagecache folio to order %d passed\n", order);
-+}
-+
- int main(int argc, char **argv)
+ static void memfd_tag_pins(struct xa_state *xas)
  {
-+	int i;
-+	size_t fd_size;
-+	char *optional_xfs_path = NULL;
-+	char fs_loc_template[] = "/tmp/thp_fs_XXXXXX";
-+	const char *fs_loc;
-+	bool created_tmp;
-+
- 	ksft_print_header();
+-	struct page *page;
++	struct folio *folio;
+ 	int latency = 0;
+-	int cache_count;
  
- 	if (geteuid() != 0) {
-@@ -274,7 +417,10 @@ int main(int argc, char **argv)
- 		ksft_finished();
- 	}
+ 	lru_add_drain();
  
--	ksft_set_plan(3);
-+	if (argc > 1)
-+		optional_xfs_path = argv[1];
-+
-+	ksft_set_plan(3+9);
+ 	xas_lock_irq(xas);
+-	xas_for_each(xas, page, ULONG_MAX) {
+-		cache_count = 1;
+-		if (!xa_is_value(page) &&
+-		    PageTransHuge(page) && !PageHuge(page))
+-			cache_count = HPAGE_PMD_NR;
+-
+-		if (!xa_is_value(page) &&
+-		    page_count(page) - total_mapcount(page) != cache_count)
++	xas_for_each(xas, folio, ULONG_MAX) {
++		if (!xa_is_value(folio) && memfd_folio_has_extra_refs(folio))
+ 			xas_set_mark(xas, MEMFD_TAG_PINNED);
+-		if (cache_count != 1)
+-			xas_set(xas, page->index + cache_count);
  
- 	pagesize = getpagesize();
- 	pageshift = ffs(pagesize) - 1;
-@@ -282,9 +428,19 @@ int main(int argc, char **argv)
- 	if (!pmd_pagesize)
- 		ksft_exit_fail_msg("Reading PMD pagesize failed\n");
+-		latency += cache_count;
+-		if (latency < XA_CHECK_SCHED)
++		if (++latency < XA_CHECK_SCHED)
+ 			continue;
+ 		latency = 0;
  
-+	fd_size = 2 * pmd_pagesize;
-+
- 	split_pmd_thp();
- 	split_pte_mapped_thp();
- 	split_file_backed_thp();
+@@ -66,16 +62,16 @@ static void memfd_tag_pins(struct xa_sta
+ /*
+  * Setting SEAL_WRITE requires us to verify there's no pending writer. However,
+  * via get_user_pages(), drivers might have some pending I/O without any active
+- * user-space mappings (eg., direct-IO, AIO). Therefore, we look at all pages
++ * user-space mappings (eg., direct-IO, AIO). Therefore, we look at all folios
+  * and see whether it has an elevated ref-count. If so, we tag them and wait for
+  * them to be dropped.
+  * The caller must guarantee that no new user will acquire writable references
+- * to those pages to avoid races.
++ * to those folios to avoid races.
+  */
+ static int memfd_wait_for_pins(struct address_space *mapping)
+ {
+ 	XA_STATE(xas, &mapping->i_pages, 0);
+-	struct page *page;
++	struct folio *folio;
+ 	int error, scan;
  
-+	created_tmp = prepare_thp_fs(optional_xfs_path, fs_loc_template,
-+			&fs_loc);
-+	for (i = 8; i >= 0; i--)
-+		split_thp_in_pagecache_to_order(fd_size, i, fs_loc);
-+	cleanup_thp_fs(fs_loc, created_tmp);
-+
- 	ksft_finished();
-+
-+	return 0;
- }
+ 	memfd_tag_pins(&xas);
+@@ -83,7 +79,6 @@ static int memfd_wait_for_pins(struct ad
+ 	error = 0;
+ 	for (scan = 0; scan <= LAST_SCAN; scan++) {
+ 		int latency = 0;
+-		int cache_count;
+ 
+ 		if (!xas_marked(&xas, MEMFD_TAG_PINNED))
+ 			break;
+@@ -95,20 +90,15 @@ static int memfd_wait_for_pins(struct ad
+ 
+ 		xas_set(&xas, 0);
+ 		xas_lock_irq(&xas);
+-		xas_for_each_marked(&xas, page, ULONG_MAX, MEMFD_TAG_PINNED) {
++		xas_for_each_marked(&xas, folio, ULONG_MAX, MEMFD_TAG_PINNED) {
+ 			bool clear = true;
+ 
+-			cache_count = 1;
+-			if (!xa_is_value(page) &&
+-			    PageTransHuge(page) && !PageHuge(page))
+-				cache_count = HPAGE_PMD_NR;
+-
+-			if (!xa_is_value(page) && cache_count !=
+-			    page_count(page) - total_mapcount(page)) {
++			if (!xa_is_value(folio) &&
++			    memfd_folio_has_extra_refs(folio)) {
+ 				/*
+ 				 * On the last scan, we clean up all those tags
+ 				 * we inserted; but make a note that we still
+-				 * found pages pinned.
++				 * found folios pinned.
+ 				 */
+ 				if (scan == LAST_SCAN)
+ 					error = -EBUSY;
+@@ -118,8 +108,7 @@ static int memfd_wait_for_pins(struct ad
+ 			if (clear)
+ 				xas_clear_mark(&xas, MEMFD_TAG_PINNED);
+ 
+-			latency += cache_count;
+-			if (latency < XA_CHECK_SCHED)
++			if (++latency < XA_CHECK_SCHED)
+ 				continue;
+ 			latency = 0;
+ 
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from david@redhat.com are
 
 
