@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC4028C07
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:01:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEFDF8C07
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600519; cv=none; b=Dg4aYEED95tzNL73o8YKapwzUks1rTo5l2R4m2QDkOQRqfQGX5lYZotiOjgfhz/KmUa53oP/m09/gLHn4sGGfFQ9gyDTDzlauowPOCHJrO+QjoCjC3arK+p5nB9CcT04jpE5JYz4+54b7/33m2m0ZpFGCzh9hYBVyOwuAfxweCk=
+	t=1709600521; cv=none; b=FUlPoUrgTlRbGTZ92gDvxxeEecUISKsICPxOE2W5hGDqsYWFrWUan7Y0STYTeZTVNeX6/s3kH4tiFn0ewQhalGDJELS6eriUPK3kJc+Vk7yTFjRCyFvG2cGLvtB79llk2VwqKlK1XeRxdsxF1c9k3i2NniSZj8dWky888Js/j9Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600519; c=relaxed/simple;
-	bh=2YwtvBiESy/eHN+2nFTB/nfy4+yTxNWfzoYfiRxkn7s=;
-	h=Date:To:From:Subject:Message-Id; b=dZBcIJb5R/MnFwnC9djCoSnLoE8XRyzYZaWYV+RR99Rcvo7NFFVFNI2R24evSg/IFKEzU2mNoS6HWi1/QImtyaMr90RRWECK0fLf76gF20Wuf10HdRKejcn3Ux3FSIg0a/rZ0T5RP4JPu5WonOZm7VMh1MRMMPW0iGIrVy3Bse8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ir1ftLqJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709600521; c=relaxed/simple;
+	bh=81Ae2jC9U2FAvTgmSeJlHLf9gW2kfmQVDPGVZAu3HFo=;
+	h=Date:To:From:Subject:Message-Id; b=Lz6o0x/gnhEijcxe+ghGvkU3ufjjxkDdGYYj6sqRtp+jXz2CygRRBuEKky3g08oJaWs1pLdDunhUxkLZDdMIr9Lwe/Y2IvqGVQZ2I8Bt7txgcfWOEHRHozhMYm2b+WU/7A4vqFAYgd/Pkr8PdOOIjLdpy466UAu94tNwoXT8yfU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EQVENY73; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ir1ftLqJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60473C433C7;
-	Tue,  5 Mar 2024 01:01:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EQVENY73"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62E3DC433C7;
+	Tue,  5 Mar 2024 01:02:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600519;
-	bh=2YwtvBiESy/eHN+2nFTB/nfy4+yTxNWfzoYfiRxkn7s=;
+	s=korg; t=1709600520;
+	bh=81Ae2jC9U2FAvTgmSeJlHLf9gW2kfmQVDPGVZAu3HFo=;
 	h=Date:To:From:Subject:From;
-	b=Ir1ftLqJGUAZboo9eHzEZ+CH29ho1RYg2w+NqWt1OkR4Q+py6H0dQVcgkatUNuxZ8
-	 2wUBkoyClHVy9xJ4D9YQwyYnir9bX8wFVhaZ0XBOtjcWAlmCzzGGM/coNFI+WWQ6zu
-	 3tZ+b6KqEPYvnlF773rnPjEddRDWgMYYFZJHRzT0=
-Date: Mon, 04 Mar 2024 17:01:58 -0800
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,vschneid@redhat.com,vincent.guittot@linaro.org,rostedt@goodmis.org,peterz@infradead.org,pauld@redhat.com,osalvador@suse.de,mingo@redhat.com,mgorman@suse.de,juri.lelli@redhat.com,dietmar.eggemann@arm.com,david@redhat.com,dave@stgolabs.net,bsegall@google.com,bristot@redhat.com,byungchul@sk.com,akpm@linux-foundation.org
+	b=EQVENY73v7mNecBcfEEFvmwUzO3Nf52prOysCS0lSfcrSawzFkrW2fKjJ23lRIN5t
+	 id3zxuXkbmSqFT8Q1jMO+3N1xkSE5j76sgeqTYaCloE7P7TKrEunA3VSlZSp6dk7g2
+	 xVZo2mCsT/qAkUMIbPfXzWfq4dvOVmnGxOtNUDIo=
+Date: Mon, 04 Mar 2024 17:01:59 -0800
+To: mm-commits@vger.kernel.org,david@redhat.com,mcassell411@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] sched-numa-mm-do-not-try-to-migrate-memory-to-memoryless-nodes.patch removed from -mm tree
-Message-Id: <20240305010159.60473C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-utilc-added-byte-count-to-__vm_enough_memory-failure-warning.patch removed from -mm tree
+Message-Id: <20240305010200.62E3DC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,64 +35,93 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: sched/numa, mm: do not try to migrate memory to memoryless nodes
+     Subject: mm/util.c: add byte count to __vm_enough_memory failure warning
 has been removed from the -mm tree.  Its filename was
-     sched-numa-mm-do-not-try-to-migrate-memory-to-memoryless-nodes.patch
+     mm-utilc-added-byte-count-to-__vm_enough_memory-failure-warning.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Byungchul Park <byungchul@sk.com>
-Subject: sched/numa, mm: do not try to migrate memory to memoryless nodes
-Date: Mon, 19 Feb 2024 13:10:47 +0900
+From: Matthew Cassell <mcassell411@gmail.com>
+Subject: mm/util.c: add byte count to __vm_enough_memory failure warning
+Date: Thu, 22 Feb 2024 19:46:17 +0000
 
-Memoryless nodes do not have any memory to migrate to, so, as an
-optimization, stop trying it.
+Commit 44b414c8715c5dcf53288 ("mm/util.c: add warning if
+__vm_enough_memory fails") adds debug information which gives the process
+id and executable name should __vm_enough_memory() fail.  Adding the
+number of pages to the failure message would benefit application
+developers and system administrators in debugging overambitious memory
+requests by providing a point of reference to the amount of memory causing
+__vm_enough_memory() to fail.
 
-Link: https://lkml.kernel.org/r/20240219041920.1183-1-byungchul@sk.com
-Link: https://lkml.kernel.org/r/20240216111502.79759-1-byungchul@sk.com
-Fixes: c574bbe91703 ("NUMA balancing: optimize page placement for memory tiering system")
-Signed-off-by: Byungchul Park <byungchul@sk.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Phil Auld <pauld@redhat.com>
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Benjamin Segall <bsegall@google.com>
-Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
+1. Set appropriate kernel tunable to reach code path for failure
+   message:
+
+	# echo 2 > /proc/sys/vm/overcommit_memory
+
+2. Test program to generate failure - requests 1 gibibyte per
+   iteration:
+
+	#include <stdlib.h>
+	#include <stdio.h>
+
+	int main(int argc, char **argv) {
+		for(;;) {
+			if(malloc(1<<30) == NULL)
+				break;
+
+			printf("allocated 1 GiB\n");
+		}
+
+		return 0;
+	}
+
+3. Output:
+
+	Before:
+
+	__vm_enough_memory: pid: 1218, comm: a.out, not enough memory
+for the allocation
+
+	After:
+
+	__vm_enough_memory: pid: 1137, comm: a.out, bytes: 1073741824,
+not enough memory for the allocation
+
+Link: https://lkml.kernel.org/r/20240222194617.1255-1-mcassell411@gmail.com
+Signed-off-by: Matthew Cassell <mcassell411@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/fair.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/util.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/kernel/sched/fair.c~sched-numa-mm-do-not-try-to-migrate-memory-to-memoryless-nodes
-+++ a/kernel/sched/fair.c
-@@ -1831,6 +1831,12 @@ bool should_numa_migrate_memory(struct t
- 	int last_cpupid, this_cpupid;
+--- a/mm/util.c~mm-utilc-added-byte-count-to-__vm_enough_memory-failure-warning
++++ a/mm/util.c
+@@ -942,6 +942,7 @@ EXPORT_SYMBOL_GPL(vm_memory_committed);
+ int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
+ {
+ 	long allowed;
++	unsigned long bytes_failed;
  
- 	/*
-+	 * Cannot migrate to memoryless nodes.
-+	 */
-+	if (!node_state(dst_nid, N_MEMORY))
-+		return false;
-+
-+	/*
- 	 * The pages in slow memory node should be migrated according
- 	 * to hot/cold instead of private/shared.
- 	 */
+ 	vm_acct_memory(pages);
+ 
+@@ -976,8 +977,9 @@ int __vm_enough_memory(struct mm_struct
+ 	if (percpu_counter_read_positive(&vm_committed_as) < allowed)
+ 		return 0;
+ error:
+-	pr_warn_ratelimited("%s: pid: %d, comm: %s, not enough memory for the allocation\n",
+-			    __func__, current->pid, current->comm);
++	bytes_failed = pages << PAGE_SHIFT;
++	pr_warn_ratelimited("%s: pid: %d, comm: %s, bytes: %lu not enough memory for the allocation\n",
++			    __func__, current->pid, current->comm, bytes_failed);
+ 	vm_unacct_memory(pages);
+ 
+ 	return -ENOMEM;
 _
 
-Patches currently in -mm which might be from byungchul@sk.com are
+Patches currently in -mm which might be from mcassell411@gmail.com are
 
-mm-vmscan-retry-kswapds-priority-loop-with-cache_trim_mode-off-on-failure.patch
 
