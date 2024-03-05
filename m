@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 228F9F9DB
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:01:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC4028C07
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:01:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600518; cv=none; b=hAsx/mqSHSbVizclUyVOB6ZD9B6yQ5LEXbnAUyTvP/teieJVAW+JVtXj3cNSy8N/VEs/scqSk2CuTe9ETDOYSvNZRDJ+6qI+6LThT+hw2xdPPNwxkP2m3KRgWiYEbht72gdxlCyDBICVFoGhM+hu5lkx2wEW0zQi7DkPFoVPwZI=
+	t=1709600519; cv=none; b=Dg4aYEED95tzNL73o8YKapwzUks1rTo5l2R4m2QDkOQRqfQGX5lYZotiOjgfhz/KmUa53oP/m09/gLHn4sGGfFQ9gyDTDzlauowPOCHJrO+QjoCjC3arK+p5nB9CcT04jpE5JYz4+54b7/33m2m0ZpFGCzh9hYBVyOwuAfxweCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600518; c=relaxed/simple;
-	bh=KLnfsMvEiMqtpIgSn1UPvhJ5teKl9GCpQxOQ7F7HnwA=;
-	h=Date:To:From:Subject:Message-Id; b=jzsnnvEQYw8KcbgKZ/uhLvfXcz7Q8x6XDbwj8MeRlUb7+0srj2uUq9XF4wQpILwizLM9UaaX5ShAirJdIQYCMhPL78p1iKi3J18rbrvhkAikGoOe3PTopkDazg/1fW/xEBUvx6l3lzBg+lo8qR2P0UoAggKmVrU6JF9IIlWsSQU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HlSpuujd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709600519; c=relaxed/simple;
+	bh=2YwtvBiESy/eHN+2nFTB/nfy4+yTxNWfzoYfiRxkn7s=;
+	h=Date:To:From:Subject:Message-Id; b=dZBcIJb5R/MnFwnC9djCoSnLoE8XRyzYZaWYV+RR99Rcvo7NFFVFNI2R24evSg/IFKEzU2mNoS6HWi1/QImtyaMr90RRWECK0fLf76gF20Wuf10HdRKejcn3Ux3FSIg0a/rZ0T5RP4JPu5WonOZm7VMh1MRMMPW0iGIrVy3Bse8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ir1ftLqJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HlSpuujd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96479C433F1;
-	Tue,  5 Mar 2024 01:01:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ir1ftLqJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60473C433C7;
+	Tue,  5 Mar 2024 01:01:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600517;
-	bh=KLnfsMvEiMqtpIgSn1UPvhJ5teKl9GCpQxOQ7F7HnwA=;
+	s=korg; t=1709600519;
+	bh=2YwtvBiESy/eHN+2nFTB/nfy4+yTxNWfzoYfiRxkn7s=;
 	h=Date:To:From:Subject:From;
-	b=HlSpuujdU5SadwZ5fmgoj/n30oFoezj6ALHTX3UwNiZi/2F7+quhh8tGz67Lv0QOc
-	 Mjcrm3bY32Ean30TpMsWGs5LPw2qBmpBFBYUcpXmmUNqVBmcbwfDj7ikAj6rP33zku
-	 yC+Iqb78fANSpv/svcy8YEj7Ip6evp01SSsc+iH8=
-Date: Mon, 04 Mar 2024 17:01:57 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,zhouchengming@bytedance.com,akpm@linux-foundation.org
+	b=Ir1ftLqJGUAZboo9eHzEZ+CH29ho1RYg2w+NqWt1OkR4Q+py6H0dQVcgkatUNuxZ8
+	 2wUBkoyClHVy9xJ4D9YQwyYnir9bX8wFVhaZ0XBOtjcWAlmCzzGGM/coNFI+WWQ6zu
+	 3tZ+b6KqEPYvnlF773rnPjEddRDWgMYYFZJHRzT0=
+Date: Mon, 04 Mar 2024 17:01:58 -0800
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,vschneid@redhat.com,vincent.guittot@linaro.org,rostedt@goodmis.org,peterz@infradead.org,pauld@redhat.com,osalvador@suse.de,mingo@redhat.com,mgorman@suse.de,juri.lelli@redhat.com,dietmar.eggemann@arm.com,david@redhat.com,dave@stgolabs.net,bsegall@google.com,bristot@redhat.com,byungchul@sk.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-change-zswap_pool-kref-to-percpu_ref.patch removed from -mm tree
-Message-Id: <20240305010157.96479C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] sched-numa-mm-do-not-try-to-migrate-memory-to-memoryless-nodes.patch removed from -mm tree
+Message-Id: <20240305010159.60473C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,201 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zswap: change zswap_pool kref to percpu_ref
+     Subject: sched/numa, mm: do not try to migrate memory to memoryless nodes
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-change-zswap_pool-kref-to-percpu_ref.patch
+     sched-numa-mm-do-not-try-to-migrate-memory-to-memoryless-nodes.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chengming Zhou <zhouchengming@bytedance.com>
-Subject: mm/zswap: change zswap_pool kref to percpu_ref
-Date: Fri, 16 Feb 2024 08:55:05 +0000
+From: Byungchul Park <byungchul@sk.com>
+Subject: sched/numa, mm: do not try to migrate memory to memoryless nodes
+Date: Mon, 19 Feb 2024 13:10:47 +0900
 
-All zswap entries will take a reference of zswap_pool when zswap_store(),
-and drop it when free.  Change it to use the percpu_ref is better for
-scalability performance.
+Memoryless nodes do not have any memory to migrate to, so, as an
+optimization, stop trying it.
 
-Although percpu_ref use a bit more memory which should be ok for our use
-case, since we almost have only one zswap_pool to be using.  The
-performance gain is for zswap_store/load hotpath.
-
-Testing kernel build (32 threads) in tmpfs with memory.max=2GB.  (zswap
-shrinker and writeback enabled with one 50GB swapfile, on a 128 CPUs
-x86-64 machine, below is the average of 5 runs)
-
-        mm-unstable  zswap-global-lru
-real    63.20        63.12
-user    1061.75      1062.95
-sys     268.74       264.44
-
-[chengming.zhou@linux.dev: fix zswap_pools_lock usages after changing to percpu_ref]
-  Link: https://lkml.kernel.org/r/20240228154954.3028626-1-chengming.zhou@linux.dev
-Link: https://lkml.kernel.org/r/20240210-zswap-global-lru-v3-2-200495333595@bytedance.com
-Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Link: https://lkml.kernel.org/r/20240219041920.1183-1-byungchul@sk.com
+Link: https://lkml.kernel.org/r/20240216111502.79759-1-byungchul@sk.com
+Fixes: c574bbe91703 ("NUMA balancing: optimize page placement for memory tiering system")
+Signed-off-by: Byungchul Park <byungchul@sk.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Phil Auld <pauld@redhat.com>
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Benjamin Segall <bsegall@google.com>
+Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   48 +++++++++++++++++++++++++++++++++---------------
- 1 file changed, 33 insertions(+), 15 deletions(-)
+ kernel/sched/fair.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/zswap.c~mm-zswap-change-zswap_pool-kref-to-percpu_ref
-+++ a/mm/zswap.c
-@@ -173,7 +173,7 @@ struct crypto_acomp_ctx {
- struct zswap_pool {
- 	struct zpool *zpools[ZSWAP_NR_ZPOOLS];
- 	struct crypto_acomp_ctx __percpu *acomp_ctx;
--	struct kref kref;
-+	struct percpu_ref ref;
- 	struct list_head list;
- 	struct work_struct release_work;
- 	struct hlist_node node;
-@@ -305,6 +305,7 @@ static void zswap_update_total_size(void
- /*********************************
- * pool functions
- **********************************/
-+static void __zswap_pool_empty(struct percpu_ref *ref);
+--- a/kernel/sched/fair.c~sched-numa-mm-do-not-try-to-migrate-memory-to-memoryless-nodes
++++ a/kernel/sched/fair.c
+@@ -1831,6 +1831,12 @@ bool should_numa_migrate_memory(struct t
+ 	int last_cpupid, this_cpupid;
  
- static struct zswap_pool *zswap_pool_create(char *type, char *compressor)
- {
-@@ -358,13 +359,18 @@ static struct zswap_pool *zswap_pool_cre
- 	/* being the current pool takes 1 ref; this func expects the
- 	 * caller to always add the new pool as the current pool
- 	 */
--	kref_init(&pool->kref);
-+	ret = percpu_ref_init(&pool->ref, __zswap_pool_empty,
-+			      PERCPU_REF_ALLOW_REINIT, GFP_KERNEL);
-+	if (ret)
-+		goto ref_fail;
- 	INIT_LIST_HEAD(&pool->list);
- 
- 	zswap_pool_debug("created", pool);
- 
- 	return pool;
- 
-+ref_fail:
-+	cpuhp_state_remove_instance(CPUHP_MM_ZSWP_POOL_PREPARE, &pool->node);
- error:
- 	if (pool->acomp_ctx)
- 		free_percpu(pool->acomp_ctx);
-@@ -437,8 +443,9 @@ static void __zswap_pool_release(struct
- 
- 	synchronize_rcu();
- 
--	/* nobody should have been able to get a kref... */
--	WARN_ON(kref_get_unless_zero(&pool->kref));
-+	/* nobody should have been able to get a ref... */
-+	WARN_ON(!percpu_ref_is_zero(&pool->ref));
-+	percpu_ref_exit(&pool->ref);
- 
- 	/* pool is now off zswap_pools list and has no references. */
- 	zswap_pool_destroy(pool);
-@@ -446,13 +453,13 @@ static void __zswap_pool_release(struct
- 
- static struct zswap_pool *zswap_pool_current(void);
- 
--static void __zswap_pool_empty(struct kref *kref)
-+static void __zswap_pool_empty(struct percpu_ref *ref)
- {
- 	struct zswap_pool *pool;
- 
--	pool = container_of(kref, typeof(*pool), kref);
-+	pool = container_of(ref, typeof(*pool), ref);
- 
--	spin_lock(&zswap_pools_lock);
-+	spin_lock_bh(&zswap_pools_lock);
- 
- 	WARN_ON(pool == zswap_pool_current());
- 
-@@ -461,7 +468,7 @@ static void __zswap_pool_empty(struct kr
- 	INIT_WORK(&pool->release_work, __zswap_pool_release);
- 	schedule_work(&pool->release_work);
- 
--	spin_unlock(&zswap_pools_lock);
-+	spin_unlock_bh(&zswap_pools_lock);
- }
- 
- static int __must_check zswap_pool_get(struct zswap_pool *pool)
-@@ -469,12 +476,12 @@ static int __must_check zswap_pool_get(s
- 	if (!pool)
- 		return 0;
- 
--	return kref_get_unless_zero(&pool->kref);
-+	return percpu_ref_tryget(&pool->ref);
- }
- 
- static void zswap_pool_put(struct zswap_pool *pool)
- {
--	kref_put(&pool->kref, __zswap_pool_empty);
-+	percpu_ref_put(&pool->ref);
- }
- 
- static struct zswap_pool *__zswap_pool_current(void)
-@@ -591,7 +598,7 @@ static int __zswap_param_set(const char
- 		return -EINVAL;
- 	}
- 
--	spin_lock(&zswap_pools_lock);
-+	spin_lock_bh(&zswap_pools_lock);
- 
- 	pool = zswap_pool_find_get(type, compressor);
- 	if (pool) {
-@@ -600,17 +607,28 @@ static int __zswap_param_set(const char
- 		list_del_rcu(&pool->list);
- 	}
- 
--	spin_unlock(&zswap_pools_lock);
-+	spin_unlock_bh(&zswap_pools_lock);
- 
- 	if (!pool)
- 		pool = zswap_pool_create(type, compressor);
-+	else {
-+		/*
-+		 * Restore the initial ref dropped by percpu_ref_kill()
-+		 * when the pool was decommissioned and switch it again
-+		 * to percpu mode.
-+		 */
-+		percpu_ref_resurrect(&pool->ref);
+ 	/*
++	 * Cannot migrate to memoryless nodes.
++	 */
++	if (!node_state(dst_nid, N_MEMORY))
++		return false;
 +
-+		/* Drop the ref from zswap_pool_find_get(). */
-+		zswap_pool_put(pool);
-+	}
- 
- 	if (pool)
- 		ret = param_set_charp(s, kp);
- 	else
- 		ret = -EINVAL;
- 
--	spin_lock(&zswap_pools_lock);
-+	spin_lock_bh(&zswap_pools_lock);
- 
- 	if (!ret) {
- 		put_pool = zswap_pool_current();
-@@ -625,7 +643,7 @@ static int __zswap_param_set(const char
- 		put_pool = pool;
- 	}
- 
--	spin_unlock(&zswap_pools_lock);
-+	spin_unlock_bh(&zswap_pools_lock);
- 
- 	if (!zswap_has_pool && !pool) {
- 		/* if initial pool creation failed, and this pool creation also
-@@ -642,7 +660,7 @@ static int __zswap_param_set(const char
- 	 * or the new pool we failed to add
++	/*
+ 	 * The pages in slow memory node should be migrated according
+ 	 * to hot/cold instead of private/shared.
  	 */
- 	if (put_pool)
--		zswap_pool_put(put_pool);
-+		percpu_ref_kill(&put_pool->ref);
- 
- 	return ret;
- }
 _
 
-Patches currently in -mm which might be from zhouchengming@bytedance.com are
+Patches currently in -mm which might be from byungchul@sk.com are
 
+mm-vmscan-retry-kswapds-priority-loop-with-cache_trim_mode-off-on-failure.patch
 
