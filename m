@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4F8EEEC6
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D77B0EEC6
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600535; cv=none; b=V11HOckFcQa7RcID9J8svUycPgp350FRox70kV1NIJTg3WofkTEq6G7HK1JWMpVN3HWN1QyvKgxQG66aYO5Z9KJOdfGVmCTBqDSzFOWEAZb1YXSl1S7b8ktTGpc0vrLz8ltcIkyYDfff5r4xsjVTgB3EJLd9/bS78cyUHWeHZPo=
+	t=1709600536; cv=none; b=X1HhvoQalM+x3FtnW7xrwALl4w0l1ni1KYQdugNUuitmD43duvQD2Td9ufZ0xBJ6qEGNpbFycvqs0Pj2mQe06FV/o6bMihzA+XZEVInQdVT+Rl7+uDKafm+EyRuvMF/LTbMNvx11B7BZ6LwZzMkbR9fTEWBYTXTEQHMqeWleGMA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600535; c=relaxed/simple;
-	bh=RFVblZBX18bhLSfyGk2Hi2a2WMhM/SmyOiD81gOxwlA=;
-	h=Date:To:From:Subject:Message-Id; b=EQJtcuKPtSAaxC6JsowkpTSHaAKjFpoNo3+BXlx43Ja8hOBSELN3U43nrH3SP9V4+7ZEsArkTk1KaKimrr81I7XHNG6Z//7ZDGGQx+R1M9XLbCZmxqI4w3qmztV8KOEXXAADTkOamqduJPxnPIvseDcKvkmn64XCbm7b1+f0HSw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cXO21VMY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709600536; c=relaxed/simple;
+	bh=REKysteEtF/YCDTMkpaSEjST5LXM78OMiaXs6VR3//8=;
+	h=Date:To:From:Subject:Message-Id; b=SUMT6DZm0JliabJ0DBICaxwvJVm6nVnUblUhXoszXAz97m1sAJJlUCOJJL2bPRqV8RX3MPLPa8xqa6hBjJGUlC58TDPVLVXemo8xEI5BupW2QgSwdIpPY88U46ElcbGD3659pN4cQU+U+/K6p1a8VTqb+KirN2lQN/Fq+499HdQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xoXbX3fK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cXO21VMY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7AA2C433F1;
-	Tue,  5 Mar 2024 01:02:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xoXbX3fK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA849C43390;
+	Tue,  5 Mar 2024 01:02:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600535;
-	bh=RFVblZBX18bhLSfyGk2Hi2a2WMhM/SmyOiD81gOxwlA=;
+	s=korg; t=1709600536;
+	bh=REKysteEtF/YCDTMkpaSEjST5LXM78OMiaXs6VR3//8=;
 	h=Date:To:From:Subject:From;
-	b=cXO21VMY8CSCwJlMaEaqSyMmvv3AdbQGF3Y5CLLuXrjskY2rxmlHsq7s5p3hmCxkI
-	 hGmh+DGppahoqE2c6E0sGzL0eY4L/bGP8I6JCUp2npuz0QQUy1XZf0bX9VF4lVPcVh
-	 DOT1SVjLWa4P2mFFcWpMaHfWB75Z3nlYEuCfdSWg=
-Date: Mon, 04 Mar 2024 17:02:15 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,mark.rutland@arm.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,paul.heidekrueger@tum.de,akpm@linux-foundation.org
+	b=xoXbX3fKbPWm+yI+TrYVuxJsQaJEvuzPhQtypkep7R2SxveVc7TOZXNxiDg+2V/Gb
+	 xlS9sGpqWgXue1kPoay0gtP+503vzcEpsQWI7R7NHKMpb60TW8nd4G/vl40s7oGYiU
+	 LZ8a6ukhdqWNWtbbivEJ+xdPUMj0g7u9/ACoEgTg=
+Date: Mon, 04 Mar 2024 17:02:16 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,minchan@kernel.org,mhocko@suse.com,hannes@cmpxchg.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-fix-a2-allocation-and-remove-explicit-cast-in-atomic-tests.patch removed from -mm tree
-Message-Id: <20240305010215.A7AA2C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-design-remove-the-details-for-pageout-as-paddr-doesnt-use-madv_pageout.patch removed from -mm tree
+Message-Id: <20240305010216.AA849C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: fix a2 allocation and remove explicit cast in atomic tests
+     Subject: Docs/mm/damon/design: remove the details for pageout as paddr doesn't use MADV_PAGEOUT
 has been removed from the -mm tree.  Its filename was
-     kasan-fix-a2-allocation-and-remove-explicit-cast-in-atomic-tests.patch
+     docs-mm-damon-design-remove-the-details-for-pageout-as-paddr-doesnt-use-madv_pageout.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Paul Heidekrüger <paul.heidekrueger@tum.de>
-Subject: kasan: fix a2 allocation and remove explicit cast in atomic tests
-Date: Sat, 24 Feb 2024 10:54:14 +0000
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: Docs/mm/damon/design: remove the details for pageout as paddr doesn't use MADV_PAGEOUT
+Date: Sun, 25 Feb 2024 11:47:51 +1300
 
-Address the additional feedback since 4e76c8cc3378 kasan: add atomic tests
-(""kasan: add atomic tests") by removing an explicit cast and fixing the
-size as well as the check of the allocation of `a2`.
+The doc needs a fix.  As only in the case of virtual address, we are
+calling madvise() with MADV_PAGEOUT.  But in the case of physical address,
+we are calling reclaim_pages() directly.  MADV_PAGEOUT on virtual address
+is much more aggresive to reclaim memory compared to reclaim_pages() on
+paddr region.  This patch removes the details so that the description can
+apply to both cases.  And we don't need to couple with the implementation
+details.
 
-Link: https://lkml.kernel.org/r/20240224105414.211995-1-paul.heidekrueger@tum.de
-Link: https://lore.kernel.org/all/20240131210041.686657-1-paul.heidekrueger@tum.de/T/#u
-Fixes: 4e76c8cc3378 ("kasan: add atomic tests")
-Signed-off-by: Paul Heidekrüger <paul.heidekrueger@tum.de>
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=214055
-Reviewed-by: Marco Elver <elver@google.com>
-Tested-by: Marco Elver <elver@google.com>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Link: https://lkml.kernel.org/r/20240224224751.4673-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/mm/damon/design.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kasan/kasan_test.c~kasan-fix-a2-allocation-and-remove-explicit-cast-in-atomic-tests
-+++ a/mm/kasan/kasan_test.c
-@@ -700,7 +700,7 @@ static void kmalloc_uaf3(struct kunit *t
- 
- static void kasan_atomics_helper(struct kunit *test, void *unsafe, void *safe)
- {
--	int *i_unsafe = (int *)unsafe;
-+	int *i_unsafe = unsafe;
- 
- 	KUNIT_EXPECT_KASAN_FAIL(test, READ_ONCE(*i_unsafe));
- 	KUNIT_EXPECT_KASAN_FAIL(test, WRITE_ONCE(*i_unsafe, 42));
-@@ -766,8 +766,8 @@ static void kasan_atomics(struct kunit *
- 	 */
- 	a1 = kzalloc(48, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, a1);
--	a2 = kzalloc(sizeof(int), GFP_KERNEL);
--	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, a1);
-+	a2 = kzalloc(sizeof(atomic_long_t), GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, a2);
- 
- 	/* Use atomics to access the redzone. */
- 	kasan_atomics_helper(test, a1 + 48, a2);
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-remove-the-details-for-pageout-as-paddr-doesnt-use-madv_pageout
++++ a/Documentation/mm/damon/design.rst
+@@ -315,7 +315,7 @@ that supports each action are as below.
+    Supported by ``vaddr`` and ``fvaddr`` operations set.
+  - ``cold``: Call ``madvise()`` for the region with ``MADV_COLD``.
+    Supported by ``vaddr`` and ``fvaddr`` operations set.
+- - ``pageout``: Call ``madvise()`` for the region with ``MADV_PAGEOUT``.
++ - ``pageout``: Reclaim the region.
+    Supported by ``vaddr``, ``fvaddr`` and ``paddr`` operations set.
+  - ``hugepage``: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``.
+    Supported by ``vaddr`` and ``fvaddr`` operations set.
 _
 
-Patches currently in -mm which might be from paul.heidekrueger@tum.de are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
+mm-make-folio_pte_batch-available-outside-of-mm-memoryc.patch
 
