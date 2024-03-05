@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C013710940
-	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38A11FC09
+	for <mm-commits@vger.kernel.org>; Tue,  5 Mar 2024 01:02:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709600543; cv=none; b=Tlj/HBDOaipO5P2KPNdLfNOHqLETLuosWNNb+k0fdTbaBkNEfICv2imqBuL/EypwFHCxiazMZb2Ftu2hbDcji6iFXKZ6kuOP7avdOslQOtTJZQywV5GapdJJlhSRJlOZ9t8d/ld7ThXjDZzrHGVRWR6TvBLDoW3yld4/5tYriTw=
+	t=1709600545; cv=none; b=BtywQ6guYvCxHGDmal5Ot5NnFFigdqIjF/rNWuN7jBu2eiv/oUfGjiMAdV5xi8LfCm1Y90638uJZSe0BaTCIYeZX/NrqNhho+6ZvAYmeJB5DjG6U7uu14o/g255YtO2JrAPUf1ajLQy7xk8BBBTTxmw8sKSWZpJdIUD3y/LY8k0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709600543; c=relaxed/simple;
-	bh=EYr9ssQZjDxRbSByM91tIrb+0MNuHtJb4qgMoj5g4WQ=;
-	h=Date:To:From:Subject:Message-Id; b=RJhizefF8YD/G/dtkjUIADcE1BmKscxNB9E5qOFljXQyecsZ4t1a/n1NWM8CfcUbRcvcijGuotUSjwBD7u3FLea86Jv40mfThh8UiJppXwGr0CefSVUd+2DiNgjV5gZjZPxSi5VgLDNavX+PwUDe4MctygPWSyfzpj/J0Ri4QgI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rkazojup; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709600545; c=relaxed/simple;
+	bh=N/m0di0bxw+EocwPu84vEPLXqNwH+rNraYV6djoxW88=;
+	h=Date:To:From:Subject:Message-Id; b=B8MTYFl5vVO5JKsxIwObBgL6wuR4pLHrE+1jW6hKifHxQWqxeTPgHX7EWMDhT//yjGkcx/zbRooa93y01JwsLlvve9ZxJBP6M3teTcenoQIiS0bvuO+uqBLwg1pgvGvtN7LGqc3U6B3bzzPE5Ivd8zwjbCNeTtt29qMjFSo1k7I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yhH3wjxd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rkazojup"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93ACAC43390;
-	Tue,  5 Mar 2024 01:02:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yhH3wjxd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC15CC433F1;
+	Tue,  5 Mar 2024 01:02:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709600543;
-	bh=EYr9ssQZjDxRbSByM91tIrb+0MNuHtJb4qgMoj5g4WQ=;
+	s=korg; t=1709600544;
+	bh=N/m0di0bxw+EocwPu84vEPLXqNwH+rNraYV6djoxW88=;
 	h=Date:To:From:Subject:From;
-	b=rkazojup0J7OY2fQ1OPt1rIdIxsYmfX+twV/thaecz6wPyQOkHtbTKl2M0wDAog3g
-	 dkqqgyfrm3vEy+R+QUQZEORlC3aJfgdaEnZn6tFMgXikr/MdAGj2YHh+Omap8/4PHs
-	 FDU+jLsQGJ0rQUbQ2vSOr9lPzm9/DyZmUxwQaaOQ=
-Date: Mon, 04 Mar 2024 17:02:23 -0800
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,yuzhao@google.com,shy828301@gmail.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,mkoutny@suse.com,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,hughd@google.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=yhH3wjxditFlUvkdDEpoyvkFV0VDBmxTkVNvlDQSiBBxyFBAk6lFo/p466ma0zAmk
+	 t88kDEOOlJBeJvX9lyos+wXYqBBCgF2fn4eyfTioYww9cQk2j2XGXGqUr0z6OP519b
+	 PdWMofcKFWiUldTb89d+gW5z0dNNnKDHPINnqQZ8=
+Date: Mon, 04 Mar 2024 17:02:24 -0800
+To: mm-commits@vger.kernel.org,zokeefe@google.com,yuzhao@google.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,mkoutny@suse.com,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,hughd@google.com,david@redhat.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-support-order-1-folios-in-the-page-cache.patch removed from -mm tree
-Message-Id: <20240305010223.93ACAC43390@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-use-order-instead-of-nr-in-split_page_memcg.patch removed from -mm tree
+Message-Id: <20240305010224.AC15CC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,32 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: support order-1 folios in the page cache
+     Subject: mm/memcg: use order instead of nr in split_page_memcg()
 has been removed from the -mm tree.  Its filename was
-     mm-support-order-1-folios-in-the-page-cache.patch
+     mm-memcg-use-order-instead-of-nr-in-split_page_memcg.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: support order-1 folios in the page cache
-Date: Mon, 26 Feb 2024 15:55:28 -0500
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/memcg: use order instead of nr in split_page_memcg()
+Date: Mon, 26 Feb 2024 15:55:29 -0500
 
-Folios of order 1 have no space to store the deferred list.  This is not a
-problem for the page cache as file-backed folios are never placed on the
-deferred list.  All we need to do is prevent the core MM from touching the
-deferred list for order 1 folios and remove the code which prevented us
-from allocating order 1 folios.
+We do not have non power of two pages, using nr is error prone if nr is
+not power-of-two.  Use page order instead.
 
-Link: https://lore.kernel.org/linux-mm/90344ea7-4eec-47ee-5996-0c22f42d6a6a@google.com/
-Link: https://lkml.kernel.org/r/20240226205534.1603748-3-zi.yan@sent.com
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20240226205534.1603748-4-zi.yan@sent.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: Michal Koutny <mkoutny@suse.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
@@ -70,110 +66,87 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c     |    2 --
- mm/huge_memory.c |   19 +++++++++++++++----
- mm/internal.h    |    3 +--
- mm/readahead.c   |    3 ---
- 4 files changed, 16 insertions(+), 11 deletions(-)
+ include/linux/memcontrol.h |    4 ++--
+ mm/huge_memory.c           |    5 +++--
+ mm/memcontrol.c            |    3 ++-
+ mm/page_alloc.c            |    4 ++--
+ 4 files changed, 9 insertions(+), 7 deletions(-)
 
---- a/mm/filemap.c~mm-support-order-1-folios-in-the-page-cache
-+++ a/mm/filemap.c
-@@ -1912,8 +1912,6 @@ no_page:
- 			gfp_t alloc_gfp = gfp;
+--- a/include/linux/memcontrol.h~mm-memcg-use-order-instead-of-nr-in-split_page_memcg
++++ a/include/linux/memcontrol.h
+@@ -1163,7 +1163,7 @@ static inline void memcg_memory_event_mm
+ 	rcu_read_unlock();
+ }
  
- 			err = -ENOMEM;
--			if (order == 1)
--				order = 0;
- 			if (order > 0)
- 				alloc_gfp |= __GFP_NORETRY | __GFP_NOWARN;
- 			folio = filemap_alloc_folio(alloc_gfp, order);
---- a/mm/huge_memory.c~mm-support-order-1-folios-in-the-page-cache
+-void split_page_memcg(struct page *head, unsigned int nr);
++void split_page_memcg(struct page *head, int order);
+ 
+ unsigned long mem_cgroup_soft_limit_reclaim(pg_data_t *pgdat, int order,
+ 						gfp_t gfp_mask,
+@@ -1621,7 +1621,7 @@ void count_memcg_event_mm(struct mm_stru
+ {
+ }
+ 
+-static inline void split_page_memcg(struct page *head, unsigned int nr)
++static inline void split_page_memcg(struct page *head, int order)
+ {
+ }
+ 
+--- a/mm/huge_memory.c~mm-memcg-use-order-instead-of-nr-in-split_page_memcg
 +++ a/mm/huge_memory.c
-@@ -790,8 +790,10 @@ struct deferred_split *get_deferred_spli
+@@ -2889,11 +2889,12 @@ static void __split_huge_page(struct pag
+ 	struct lruvec *lruvec;
+ 	struct address_space *swap_cache = NULL;
+ 	unsigned long offset = 0;
+-	unsigned int nr = thp_nr_pages(head);
+ 	int i, nr_dropped = 0;
++	int order = folio_order(folio);
++	unsigned int nr = 1 << order;
  
- void folio_prep_large_rmappable(struct folio *folio)
+ 	/* complete memcg works before add pages to LRU */
+-	split_page_memcg(head, nr);
++	split_page_memcg(head, order);
+ 
+ 	if (folio_test_anon(folio) && folio_test_swapcache(folio)) {
+ 		offset = swp_offset(folio->swap);
+--- a/mm/memcontrol.c~mm-memcg-use-order-instead-of-nr-in-split_page_memcg
++++ a/mm/memcontrol.c
+@@ -3606,11 +3606,12 @@ void obj_cgroup_uncharge(struct obj_cgro
+ /*
+  * Because page_memcg(head) is not set on tails, set it now.
+  */
+-void split_page_memcg(struct page *head, unsigned int nr)
++void split_page_memcg(struct page *head, int order)
  {
--	VM_BUG_ON_FOLIO(folio_order(folio) < 2, folio);
--	INIT_LIST_HEAD(&folio->_deferred_list);
-+	if (!folio || !folio_test_large(folio))
-+		return;
-+	if (folio_order(folio) > 1)
-+		INIT_LIST_HEAD(&folio->_deferred_list);
- 	folio_set_large_rmappable(folio);
+ 	struct folio *folio = page_folio(head);
+ 	struct mem_cgroup *memcg = folio_memcg(folio);
+ 	int i;
++	unsigned int nr = 1 << order;
+ 
+ 	if (mem_cgroup_disabled() || !memcg)
+ 		return;
+--- a/mm/page_alloc.c~mm-memcg-use-order-instead-of-nr-in-split_page_memcg
++++ a/mm/page_alloc.c
+@@ -2617,7 +2617,7 @@ void split_page(struct page *page, unsig
+ 	for (i = 1; i < (1 << order); i++)
+ 		set_page_refcounted(page + i);
+ 	split_page_owner(page, 1 << order);
+-	split_page_memcg(page, 1 << order);
++	split_page_memcg(page, order);
  }
+ EXPORT_SYMBOL_GPL(split_page);
  
-@@ -3114,7 +3116,8 @@ int split_huge_page_to_list(struct page
- 	/* Prevent deferred_split_scan() touching ->_refcount */
- 	spin_lock(&ds_queue->split_queue_lock);
- 	if (folio_ref_freeze(folio, 1 + extra_pins)) {
--		if (!list_empty(&folio->_deferred_list)) {
-+		if (folio_order(folio) > 1 &&
-+		    !list_empty(&folio->_deferred_list)) {
- 			ds_queue->split_queue_len--;
- 			list_del(&folio->_deferred_list);
- 		}
-@@ -3165,6 +3168,9 @@ void folio_undo_large_rmappable(struct f
- 	struct deferred_split *ds_queue;
- 	unsigned long flags;
+@@ -4802,7 +4802,7 @@ static void *make_alloc_exact(unsigned l
+ 		struct page *last = page + nr;
  
-+	if (folio_order(folio) <= 1)
-+		return;
-+
- 	/*
- 	 * At this point, there is no one trying to add the folio to
- 	 * deferred_list. If folio is not in deferred_list, it's safe
-@@ -3190,7 +3196,12 @@ void deferred_split_folio(struct folio *
- #endif
- 	unsigned long flags;
+ 		split_page_owner(page, 1 << order);
+-		split_page_memcg(page, 1 << order);
++		split_page_memcg(page, order);
+ 		while (page < --last)
+ 			set_page_refcounted(last);
  
--	VM_BUG_ON_FOLIO(folio_order(folio) < 2, folio);
-+	/*
-+	 * Order 1 folios have no space for a deferred list, but we also
-+	 * won't waste much memory by not adding them to the deferred list.
-+	 */
-+	if (folio_order(folio) <= 1)
-+		return;
- 
- 	/*
- 	 * The try_to_unmap() in page reclaim path might reach here too,
---- a/mm/internal.h~mm-support-order-1-folios-in-the-page-cache
-+++ a/mm/internal.h
-@@ -420,8 +420,7 @@ static inline struct folio *page_rmappab
- {
- 	struct folio *folio = (struct folio *)page;
- 
--	if (folio && folio_order(folio) > 1)
--		folio_prep_large_rmappable(folio);
-+	folio_prep_large_rmappable(folio);
- 	return folio;
- }
- 
---- a/mm/readahead.c~mm-support-order-1-folios-in-the-page-cache
-+++ a/mm/readahead.c
-@@ -514,9 +514,6 @@ void page_cache_ra_order(struct readahea
- 		/* Don't allocate pages past EOF */
- 		while (index + (1UL << order) - 1 > limit)
- 			order--;
--		/* THP machinery does not support order-1 */
--		if (order == 1)
--			order = 0;
- 		err = ra_alloc_folio(ractl, index, mark, order, gfp);
- 		if (err)
- 			break;
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-separate-out-folio_flags-from-pageflags.patch
-mm-remove-pagewaiters-pagesetwaiters-and-pageclearwaiters.patch
-mm-remove-pageyoung-and-pageidle-definitions.patch
-mm-add-__dump_folio.patch
-mm-add-__dump_folio-fix.patch
-mm-add-__dump_folio-fix-2.patch
-mm-add-__dump_folio-fix-3.patch
-mm-make-dump_page-take-a-const-argument.patch
-mm-constify-testing-page-folio-flags.patch
-mm-constify-more-page-folio-tests.patch
-mm-remove-cast-from-page_to_nid.patch
-mm-mempolicy-use-a-folio-in-do_mbind.patch
 
