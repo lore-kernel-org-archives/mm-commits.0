@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC9BD63A1
-	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 20:34:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 547DB14F64
+	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 20:52:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709757279; cv=none; b=WR5hzEYn8l7UAjiMFogLBHMM9ru6BpV0BNXgXeNjheGiwGiW8VihjB3YvEpgxiyqz/LdiWsMXS81Rtipas5pvj74DWT/rx9+pdgBI8iJ8weNmQ1XTkgjpHNFKzah3YSV9VTgozWRdbERaiqC/21ZagKABLfcfqlzHaiiSYWBL/0=
+	t=1709758333; cv=none; b=YW/MoSl7vEP54KG/I0K8ZLIBp9wd1fbl6IPjdw7635TyjaKq5EKLO33DYBa3eNmXPWPX/OpifPxWAYw7EeimLkuxEOIbP1QKz77TEup8+nXc5vTFnqDA5AvT5pRGLrURpZnIGfrCA3kHVPu9G5Rf2pJiPj2uv3ZT7aTLJW8SFcU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709757279; c=relaxed/simple;
-	bh=WDbkB+Bd8BC/JEHNUclG9WSrl1iV1fWXC7JTmjOQBc0=;
-	h=Date:To:From:Subject:Message-Id; b=bWQe+buWeW82me3UImXtgxxagK61hZBFFDxBgxrLV7FCUB/UYf+Q8zg0REuKr2UZqtucNCubIZg68Szg5GLCzlrZ28W4UTEUWQKfO+Z6BrlTPui05e5xin4LFG1FrmzwyN3r8+ZltN+im10NbItkryKhhR261G9xc0lq2Rwo6aE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=svRTtlpg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709758333; c=relaxed/simple;
+	bh=cLyuhunWGMu5ew7uAMdAMlkLOaj2ljNpOFDVnmOn1kA=;
+	h=Date:To:From:Subject:Message-Id; b=I/C4x/bxiXUCnPGwbC0IODsMAH8iiK18TyqmTnYmBTm36Gmv32s1sn5alW9RtnbM5TbavnLzNEP1RqeE3x2Ys3L3PweLWJbt9UXExcrFmDNcM1guRbzhiaVB+vTwHalUWuFrFCKLQRSlRKjtFcd6J+NjQW5SZnmgXfvbVc2fJEs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UYz9XJDp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="svRTtlpg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 396F7C43394;
-	Wed,  6 Mar 2024 20:34:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UYz9XJDp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE99EC433F1;
+	Wed,  6 Mar 2024 20:52:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709757279;
-	bh=WDbkB+Bd8BC/JEHNUclG9WSrl1iV1fWXC7JTmjOQBc0=;
+	s=korg; t=1709758332;
+	bh=cLyuhunWGMu5ew7uAMdAMlkLOaj2ljNpOFDVnmOn1kA=;
 	h=Date:To:From:Subject:From;
-	b=svRTtlpgkWo0A8gdxEkcEbD7d74pFHff0Vz3fN8x0SwNLUxLbGVyqzju3JOP7VOxh
-	 HR3OQPqQIvKku7mNNznrcPU5hJGq7/zDQRIDlGzkajAoToUey0Lw2qVj4JDe757xKA
-	 0bSlab+DS+dlrnT3dhHPiMWwGCZaF6QZqnY1kVgo=
-Date: Wed, 06 Mar 2024 12:34:38 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,oliver.sang@intel.com,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
+	b=UYz9XJDpnDAFUGgqFg+LjhIr3BqCCwHWUnAoENBfcpHZJ+t7lLoT1phqTRUjQT9gS
+	 hYgf+BkK/c5/RDrf9wLOiAGw0brxFn+ERc/jLwdRt1A3bYYld7YphNK7VSFRfoyifN
+	 67ueiKFRORUU/EJ5AZ5zkLJ939e+TkfKOt+Pa9UE=
+Date: Wed, 06 Mar 2024 12:52:12 -0800
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,wangkefeng.wang@huawei.com,david@redhat.com,zhangpeng362@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmpage_owner-drop-unnecesary-check.patch added to mm-unstable branch
-Message-Id: <20240306203439.396F7C43394@smtp.kernel.org>
+Subject: + filemap-avoid-unnecessary-major-faults-in-filemap_fault.patch added to mm-unstable branch
+Message-Id: <20240306205212.BE99EC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,page_owner: drop unnecesary check
+     Subject: filemap: avoid unnecessary major faults in filemap_fault()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmpage_owner-drop-unnecesary-check.patch
+     filemap-avoid-unnecessary-major-faults-in-filemap_fault.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-drop-unnecesary-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-avoid-unnecessary-major-faults-in-filemap_fault.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,44 +58,137 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,page_owner: drop unnecesary check
-Date: Wed, 6 Mar 2024 13:32:17 +0100
+From: ZhangPeng <zhangpeng362@huawei.com>
+Subject: filemap: avoid unnecessary major faults in filemap_fault()
+Date: Wed, 6 Mar 2024 16:38:09 +0800
 
-stackdepot only saves stack_records which size is greather than 0,
-so we cannot possibly have empty stack_records.
-Drop the check.
+A major fault occurred when using mlockall(MCL_CURRENT | MCL_FUTURE) in
+application, which leading to an unexpected issue[1].
 
-Link: https://lkml.kernel.org/r/20240306123217.29774-3-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: kernel test robot <oliver.sang@intel.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+This is caused by temporarily cleared PTE during a read+clear/modify/write
+update of the PTE, eg, do_numa_page()/change_pte_range().
+
+For the data segment of the user-mode program, the global variable area is
+a private mapping.  After the pagecache is loaded, the private anonymous
+page is generated after the COW is triggered.  Mlockall can lock COW pages
+(anonymous pages), but the original file pages cannot be locked and may be
+reclaimed.  If the global variable (private anon page) is accessed when
+vmf->pte is zeroed in numa fault, a file page fault will be triggered.  At
+this time, the original private file page may have been reclaimed.  If the
+page cache is not available at this time, a major fault will be triggered
+and the file will be read, causing additional overhead.
+
+This issue affects our traffic analysis service.  The inbound traffic is
+heavy.  If a major fault occurs, the I/O schedule is triggered and the
+original I/O is suspended.  Generally, the I/O schedule is 0.7 ms.  If
+other applications are operating disks, the system needs to wait for more
+than 10 ms.  However, the inbound traffic is heavy and the NIC buffer is
+small.  As a result, packet loss occurs.  But the traffic analysis service
+can't tolerate packet loss.
+
+Fix this by holding PTL and rechecking the PTE in filemap_fault() before
+triggering a major fault.  We do this check only if vma is VM_LOCKED to
+reduce the performance impact in common scenarios.
+
+In our product environment, there were 7 major faults every 12 hours. 
+After the patch is applied, no major fault have been triggered.
+
+Testing file page read and write page fault performance in ext4 and
+ramdisk using will-it-scale[2] on a x86 physical machine.  The data is the
+average change compared with the mainline after the patch is applied.  The
+test results are within the range of fluctuation.  We do this check only
+if vma is VM_LOCKED, therefore, no performance regressions is caused for
+most common cases.
+
+The test results are as follows:
+                          processes processes_idle  threads threads_idle
+ext4    private file write:  0.22%    0.26%           1.21%  -0.15%
+ext4    private file  read:  0.03%    1.00%           1.39%   0.34%
+ext4    shared  file write: -0.50%   -0.02%          -0.14%  -0.02%
+ramdisk private file write:  0.07%    0.02%           0.53%   0.04%
+ramdisk private file  read:  0.01%    1.60%          -0.32%  -0.02%
+
+[1] https://lore.kernel.org/linux-mm/9e62fd9a-bee0-52bf-50a7-498fa17434ee@huawei.com/
+[2] https://github.com/antonblanchard/will-it-scale/
+
+Link: https://lkml.kernel.org/r/20240306083809.1236634-1-zhangpeng362@huawei.com
+Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Suggested-by: "Huang, Ying" <ying.huang@intel.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/filemap.c |   46 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
---- a/mm/page_owner.c~mmpage_owner-drop-unnecesary-check
-+++ a/mm/page_owner.c
-@@ -865,8 +865,7 @@ static int stack_print(struct seq_file *
- 	entries = stack_record->entries;
- 	stack_count = refcount_read(&stack_record->count) - 1;
+--- a/mm/filemap.c~filemap-avoid-unnecessary-major-faults-in-filemap_fault
++++ a/mm/filemap.c
+@@ -3181,6 +3181,48 @@ static struct file *do_async_mmap_readah
+ 	return fpin;
+ }
  
--	if (!nr_entries || nr_entries < 0 || stack_count < 1 ||
--	    stack_count < page_owner_stack_threshold)
-+	if (stack_count < 1 || stack_count < page_owner_stack_threshold)
- 		return 0;
- 
- 	for (i = 0; i < nr_entries; i++)
++static vm_fault_t filemap_fault_recheck_pte_none(struct vm_fault *vmf)
++{
++	struct vm_area_struct *vma = vmf->vma;
++	vm_fault_t ret = 0;
++	pte_t *ptep;
++
++	/*
++	 * We might have COW'ed a pagecache folio and might now have an mlocked
++	 * anon folio mapped. The original pagecache folio is not mlocked and
++	 * might have been evicted. During a read+clear/modify/write update of
++	 * the PTE, such as done in do_numa_page()/change_pte_range(), we
++	 * temporarily clear the PTE under PT lock and might detect it here as
++	 * "none" when not holding the PT lock.
++	 *
++	 * Not rechecking the PTE under PT lock could result in an unexpected
++	 * major fault in an mlock'ed region. Recheck only for this special
++	 * scenario while holding the PT lock, to not degrade non-mlocked
++	 * scenarios. Recheck the PTE without PT lock firstly, thereby reducing
++	 * the number of times we hold PT lock.
++	 */
++	if (!(vma->vm_flags & VM_LOCKED))
++		return 0;
++
++	if (!(vmf->flags & FAULT_FLAG_ORIG_PTE_VALID))
++		return 0;
++
++	ptep = pte_offset_map(vmf->pmd, vmf->address);
++	if (unlikely(!ptep))
++		return VM_FAULT_NOPAGE;
++
++	if (unlikely(!pte_none(ptep_get_lockless(ptep)))) {
++		ret = VM_FAULT_NOPAGE;
++	} else {
++		spin_lock(vmf->ptl);
++		if (unlikely(!pte_none(ptep_get(ptep))))
++			ret = VM_FAULT_NOPAGE;
++		spin_unlock(vmf->ptl);
++	}
++	pte_unmap(ptep);
++	return ret;
++}
++
+ /**
+  * filemap_fault - read in file data for page fault handling
+  * @vmf:	struct vm_fault containing details of the fault
+@@ -3236,6 +3278,10 @@ vm_fault_t filemap_fault(struct vm_fault
+ 			mapping_locked = true;
+ 		}
+ 	} else {
++		ret = filemap_fault_recheck_pte_none(vmf);
++		if (unlikely(ret))
++			return ret;
++
+ 		/* No page in the page cache at all */
+ 		count_vm_event(PGMAJFAULT);
+ 		count_memcg_event_mm(vmf->vma->vm_mm, PGMAJFAULT);
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from zhangpeng362@huawei.com are
 
-mmpage_owner-check-for-null-stack_record-before-bumping-its-refcount.patch
-mmpage_owner-drop-unnecesary-check.patch
+filemap-avoid-unnecessary-major-faults-in-filemap_fault.patch
 
