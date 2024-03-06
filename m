@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 963221C11
-	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 21:05:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72D45179B1
+	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 21:05:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709759105; cv=none; b=NFPCBb+EDzRVrNqqQ4J1UYKFgiW06ydtkbPBnZ4xRjnxFYo+jR6GYH0f0cm7weUM5XrJSNE+uTyVARLdC16TEpqJcdmFtGugYZhV/qOMTVFcNy26tDaiJU2RfRo7Vzoe163FxEGfNnXxlTCTAfeuIndbHJ1E9w9194kkLL+zf9o=
+	t=1709759106; cv=none; b=HtDYOatsaykFTGRQyJisdM+Jfqu2wIwbVoaFf+nR2FrnJn/Lj9y6iCbBKgcoCgoyREHJR03p2QkbA9swP0zB7VQDWuILJQileI/EUugzUV1wDvHs/VmXgDD+S4SQjA86oG88UBde9JySzpqUcTk4zXsWXnXYderTFUg+zDweoN0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709759105; c=relaxed/simple;
-	bh=CXzA9bw74MTgg5Ir5WRl8lXmoEXng/kfGV0H4QzQr+Y=;
-	h=Date:To:From:Subject:Message-Id; b=kmK+NYAabtB/eMk1ka1Z3cQPmAhL9k/F4SAzp6TimzyHZRnDI36QYbC96f6+bK4mcu+litvhPK1kcmRujfKPDMNMfr4SY1FFQRWpoYK5dAWKds0gxX7qQ8Z1KxLNwYuv4cs8bdWTMsDGzpHT0RN00+NkEnIQbY+wrS6V9Mbv+Aw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AxGy+oaK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709759106; c=relaxed/simple;
+	bh=E99ktMpSvcQnvSG5Rq4Jz6RDuFPZcR76fFbce+PcDFI=;
+	h=Date:To:From:Subject:Message-Id; b=Q8uRqvfjkSPg2EWvuINo3L6cHSX4ZxMFkXimf2ZXpStM/OzKaZG+oBW/wZ7vVKbuUqQFf45w+hOR0V7A9Ue94RlpZVgn3WfcqdBT6miYPezm1nXU3h+IrnMLzOlmp+6Y+hz+PnTrq1VeLToEEDOIPiuAE7NIbgp/01rcLr1JHvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OeSdCzNI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AxGy+oaK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1CC8C43394;
-	Wed,  6 Mar 2024 21:05:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OeSdCzNI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 004EEC433C7;
+	Wed,  6 Mar 2024 21:05:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709759105;
-	bh=CXzA9bw74MTgg5Ir5WRl8lXmoEXng/kfGV0H4QzQr+Y=;
+	s=korg; t=1709759106;
+	bh=E99ktMpSvcQnvSG5Rq4Jz6RDuFPZcR76fFbce+PcDFI=;
 	h=Date:To:From:Subject:From;
-	b=AxGy+oaKyCFqxra7vwgooslUgVbuVRJ86qYN4ZrFc+3wOAEK/1U4WULXUCe4ocywJ
-	 DjryuHZDt8iLwWN9ZF06sgwtleuoJ2TEQ1nB30AMDvVtw07e1NxkAWSsMKfB9KD1dl
-	 gfdEqtQCzHT1l1MIYbn2tCJKugxXqkC4yeana6aw=
-Date: Wed, 06 Mar 2024 13:05:04 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=OeSdCzNICuKakPvRuo1yRxnxDgZG6cr8NX3F26+A5b3juLcT/kEOCYN1jd1vfRS8s
+	 KOG8hbSZDPIxTq2EMn8OI2H51N48QI7khBvXA0mZfc6rfCXqVtKMDsYDrn7Gq8iKOH
+	 csRgBebW9efqhzYNYoTKgzcJYr+RryJCaL3lOSXE=
+Date: Wed, 06 Mar 2024 13:05:05 -0800
+To: mm-commits@vger.kernel.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-__dump_folio.patch removed from -mm tree
-Message-Id: <20240306210504.F1CC8C43394@smtp.kernel.org>
+Subject: [merged mm-stable] mm-make-dump_page-take-a-const-argument.patch removed from -mm tree
+Message-Id: <20240306210506.004EEC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,230 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add __dump_folio()
+     Subject: mm: make dump_page() take a const argument
 has been removed from the -mm tree.  Its filename was
-     mm-add-__dump_folio.patch
+     mm-make-dump_page-take-a-const-argument.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: add __dump_folio()
-Date: Tue, 27 Feb 2024 19:23:31 +0000
+Subject: mm: make dump_page() take a const argument
+Date: Tue, 27 Feb 2024 19:23:32 +0000
 
-Turn __dump_page() into a wrapper around __dump_folio().  Snapshot the
-page & folio into a stack variable so we don't hit BUG_ON() if an
-allocation is freed under us and what was a folio pointer becomes a
-pointer to a tail page.
+Now that __dump_page() takes a const argument, we can make dump_page()
+take a const struct page too.
 
-[willy@infradead.org: fix build issue]
-  Link: https://lkml.kernel.org/r/ZeAKCyTn_xS3O9cE@casper.infradead.org
-[willy@infradead.org: fix __dump_folio]
-  Link: https://lkml.kernel.org/r/ZeJJegP8zM7S9GTy@casper.infradead.org
-[willy@infradead.org: fix pointer confusion]
-  Link: https://lkml.kernel.org/r/ZeYa00ixxC4k1ot-@casper.infradead.org
-[akpm@linux-foundation.org: s/printk/pr_warn/]
-Link: https://lkml.kernel.org/r/20240227192337.757313-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240227192337.757313-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h     |    7 ++
- include/linux/mmzone.h |    3 
- mm/debug.c             |  126 ++++++++++++++++++++++-----------------
- 3 files changed, 82 insertions(+), 54 deletions(-)
+ include/linux/mmdebug.h |    2 +-
+ mm/debug.c              |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-add-__dump_folio
-+++ a/include/linux/mm.h
-@@ -2066,6 +2066,13 @@ static inline long folio_nr_pages(struct
- #endif
- }
+--- a/include/linux/mmdebug.h~mm-make-dump_page-take-a-const-argument
++++ a/include/linux/mmdebug.h
+@@ -10,7 +10,7 @@ struct vm_area_struct;
+ struct mm_struct;
+ struct vma_iterator;
  
-+/* Only hugetlbfs can allocate folios larger than MAX_ORDER */
-+#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
-+#define MAX_FOLIO_NR_PAGES	(1UL << PUD_ORDER)
-+#else
-+#define MAX_FOLIO_NR_PAGES	MAX_ORDER_NR_PAGES
-+#endif
-+
- /*
-  * compound_nr() returns the number of pages in this potentially compound
-  * page.  compound_nr() can be called on a tail page, and is defined to
---- a/include/linux/mmzone.h~mm-add-__dump_folio
-+++ a/include/linux/mmzone.h
-@@ -76,9 +76,12 @@ extern const char * const migratetype_na
- #ifdef CONFIG_CMA
- #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
- #  define is_migrate_cma_page(_page) (get_pageblock_migratetype(_page) == MIGRATE_CMA)
-+#  define is_migrate_cma_folio(folio, pfn)	(MIGRATE_CMA ==		\
-+	get_pfnblock_flags_mask(&folio->page, pfn, MIGRATETYPE_MASK))
- #else
- #  define is_migrate_cma(migratetype) false
- #  define is_migrate_cma_page(_page) false
-+#  define is_migrate_cma_folio(folio, pfn) false
- #endif
- 
- static inline bool is_migrate_movable(int mt)
---- a/mm/debug.c~mm-add-__dump_folio
+-void dump_page(struct page *page, const char *reason);
++void dump_page(const struct page *page, const char *reason);
+ void dump_vma(const struct vm_area_struct *vma);
+ void dump_mm(const struct mm_struct *mm);
+ void vma_iter_dump_tree(const struct vma_iterator *vmi);
+--- a/mm/debug.c~mm-make-dump_page-take-a-const-argument
 +++ a/mm/debug.c
-@@ -51,84 +51,102 @@ const struct trace_print_flags vmaflag_n
- 	{0, NULL}
- };
- 
--static void __dump_page(struct page *page)
-+static void __dump_folio(struct folio *folio, struct page *page,
-+		unsigned long pfn, unsigned long idx)
- {
--	struct folio *folio = page_folio(page);
--	struct page *head = &folio->page;
--	struct address_space *mapping;
--	bool compound = PageCompound(page);
--	/*
--	 * Accessing the pageblock without the zone lock. It could change to
--	 * "isolate" again in the meantime, but since we are just dumping the
--	 * state for debugging, it should be fine to accept a bit of
--	 * inaccuracy here due to racing.
--	 */
--	bool page_cma = is_migrate_cma_page(page);
--	int mapcount;
-+	struct address_space *mapping = folio_mapping(folio);
-+	int mapcount = 0;
- 	char *type = "";
- 
--	if (page < head || (page >= head + MAX_ORDER_NR_PAGES)) {
--		/*
--		 * Corrupt page, so we cannot call page_mapping. Instead, do a
--		 * safe subset of the steps that page_mapping() does. Caution:
--		 * this will be misleading for tail pages, PageSwapCache pages,
--		 * and potentially other situations. (See the page_mapping()
--		 * implementation for what's missing here.)
--		 */
--		unsigned long tmp = (unsigned long)page->mapping;
--
--		if (tmp & PAGE_MAPPING_ANON)
--			mapping = NULL;
--		else
--			mapping = (void *)(tmp & ~PAGE_MAPPING_FLAGS);
--		head = page;
--		folio = (struct folio *)page;
--		compound = false;
--	} else {
--		mapping = page_mapping(page);
--	}
--
- 	/*
--	 * Avoid VM_BUG_ON() in page_mapcount().
--	 * page->_mapcount space in struct page is used by sl[aou]b pages to
--	 * encode own info.
-+	 * page->_mapcount space in struct page is used by slab pages to
-+	 * encode own info, and we must avoid calling page_folio() again.
- 	 */
--	mapcount = PageSlab(head) ? 0 : page_mapcount(page);
-+	if (!folio_test_slab(folio)) {
-+		mapcount = atomic_read(&page->_mapcount) + 1;
-+		if (folio_test_large(folio))
-+			mapcount += folio_entire_mapcount(folio);
-+	}
- 
--	pr_warn("page:%p refcount:%d mapcount:%d mapping:%p index:%#lx pfn:%#lx\n",
--			page, page_ref_count(head), mapcount, mapping,
--			page_to_pgoff(page), page_to_pfn(page));
--	if (compound) {
--		pr_warn("head:%p order:%u entire_mapcount:%d nr_pages_mapped:%d pincount:%d\n",
--				head, compound_order(head),
-+	pr_warn("page: refcount:%d mapcount:%d mapping:%p index:%#lx pfn:%#lx\n",
-+			folio_ref_count(folio), mapcount, mapping,
-+			folio->index + idx, pfn);
-+	if (folio_test_large(folio)) {
-+		pr_warn("head: order:%u entire_mapcount:%d nr_pages_mapped:%d pincount:%d\n",
-+				folio_order(folio),
- 				folio_entire_mapcount(folio),
- 				folio_nr_pages_mapped(folio),
- 				atomic_read(&folio->_pincount));
- 	}
- 
- #ifdef CONFIG_MEMCG
--	if (head->memcg_data)
--		pr_warn("memcg:%lx\n", head->memcg_data);
-+	if (folio->memcg_data)
-+		pr_warn("memcg:%lx\n", folio->memcg_data);
- #endif
--	if (PageKsm(page))
-+	if (folio_test_ksm(folio))
- 		type = "ksm ";
--	else if (PageAnon(page))
-+	else if (folio_test_anon(folio))
- 		type = "anon ";
- 	else if (mapping)
- 		dump_mapping(mapping);
- 	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS + 1);
- 
--	pr_warn("%sflags: %pGp%s\n", type, &head->flags,
--		page_cma ? " CMA" : "");
--	pr_warn("page_type: %pGt\n", &head->page_type);
-+	/*
-+	 * Accessing the pageblock without the zone lock. It could change to
-+	 * "isolate" again in the meantime, but since we are just dumping the
-+	 * state for debugging, it should be fine to accept a bit of
-+	 * inaccuracy here due to racing.
-+	 */
-+	pr_warn("%sflags: %pGp%s\n", type, &folio->flags,
-+		is_migrate_cma_folio(folio, pfn) ? " CMA" : "");
-+	pr_warn("page_type: %pGt\n", &folio->page.page_type);
- 
- 	print_hex_dump(KERN_WARNING, "raw: ", DUMP_PREFIX_NONE, 32,
- 			sizeof(unsigned long), page,
- 			sizeof(struct page), false);
--	if (head != page)
-+	if (folio_test_large(folio))
- 		print_hex_dump(KERN_WARNING, "head: ", DUMP_PREFIX_NONE, 32,
--			sizeof(unsigned long), head,
--			sizeof(struct page), false);
-+			sizeof(unsigned long), folio,
-+			2 * sizeof(struct page), false);
-+}
-+
-+static void __dump_page(const struct page *page)
-+{
-+	struct folio *foliop, folio;
-+	struct page precise;
-+	unsigned long pfn = page_to_pfn(page);
-+	unsigned long idx, nr_pages = 1;
-+	int loops = 5;
-+
-+again:
-+	memcpy(&precise, page, sizeof(*page));
-+	foliop = page_folio(&precise);
-+	if (foliop == (struct folio *)&precise) {
-+		idx = 0;
-+		if (!folio_test_large(foliop))
-+			goto dump;
-+		foliop = (struct folio *)page;
-+	} else {
-+		idx = folio_page_idx(foliop, page);
-+	}
-+
-+	if (idx < MAX_FOLIO_NR_PAGES) {
-+		memcpy(&folio, foliop, 2 * sizeof(struct page));
-+		nr_pages = folio_nr_pages(&folio);
-+		foliop = &folio;
-+	}
-+
-+	if (idx > nr_pages) {
-+		if (loops-- > 0)
-+			goto again;
-+		pr_warn("page does not match folio\n");
-+		precise.compound_head &= ~1UL;
-+		foliop = (struct folio *)&precise;
-+		idx = 0;
-+	}
-+
-+dump:
-+	__dump_folio(foliop, &precise, pfn, idx);
+@@ -149,7 +149,7 @@ dump:
+ 	__dump_folio(foliop, &precise, pfn, idx);
  }
  
- void dump_page(struct page *page, const char *reason)
+-void dump_page(struct page *page, const char *reason)
++void dump_page(const struct page *page, const char *reason)
+ {
+ 	if (PagePoisoned(page))
+ 		pr_warn("page:%p is uninitialized and poisoned", page);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
