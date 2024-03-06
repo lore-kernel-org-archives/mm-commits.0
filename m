@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB9D814AAD
-	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 21:05:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF8E614AAD
+	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 21:05:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709759116; cv=none; b=T6xtLcGLo5F4qvOFdDXL7IFyCzLnLmKodb5n5nzBbiPcPKUfd+IdUMsXCUHwYtkUgF9mk1HKTH+0768UMurzvTk0V+Yl0xnSPnCAybzw8YScWwaUPrts093IQdUhM6xq36aE4kwJP3k9BF4P/wLXrKcprr3t2Q5oLTVzP/veZAA=
+	t=1709759117; cv=none; b=NGmGVC8KXbIKseE/TQi0loMgpW6w7+JWNNscM/EmmdzeimyhuFVGz3YSO2vxc2sWzSja7ulTP5wXAeTdqyvtmAaQEp7VVnhvRbL1RFGC+IO9TNWap8y+GG9Xb5rkHASr3er3lI4i97LvVXFvBTgGZS+VhDQJy4qqFgWGnsRyynM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709759116; c=relaxed/simple;
-	bh=To26v0PXsmj8IQvd+1I4yK/UjpWd/rVJkmiTrae/qfk=;
-	h=Date:To:From:Subject:Message-Id; b=H201BogpNBnhgdBnxst8Tn2hujI1gPnEmnwjBPLE/B6BK01uXXxpywzjVqDkQ+YkYnVMWKLaHDbepwntGB3CHKVrYfogJP3rnlJHHpvMD+d/gf6CA2WgLeikoVzLzy0PZw8TYishTGEiifc3qZkYDhlG3vvZLjHPMKXNHDWvTAI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zojdsKxY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709759117; c=relaxed/simple;
+	bh=w07k+vUqouRQ74nL2L5R1yJn5sSDF1ZbsfA0ypJ4Q4Y=;
+	h=Date:To:From:Subject:Message-Id; b=MseE51aM9vufUpOGO/V/0ifR2DQFaA8f3Eo8CPS5JMo8JvAIWy+5e4OC3IJSnc3Dhv5ywvI7Tof3T1Aob8xClOZQu0OdJsvBu2gKWT9INo/lRfM5VpadQQUOpDlHXyDOdaapjG+cRuR8HTX8GoR2fDfwwACfMyB8UxjYlz0gZhI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rKpoE5l2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zojdsKxY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEE30C433F1;
-	Wed,  6 Mar 2024 21:05:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rKpoE5l2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C31CBC433F1;
+	Wed,  6 Mar 2024 21:05:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709759115;
-	bh=To26v0PXsmj8IQvd+1I4yK/UjpWd/rVJkmiTrae/qfk=;
+	s=korg; t=1709759116;
+	bh=w07k+vUqouRQ74nL2L5R1yJn5sSDF1ZbsfA0ypJ4Q4Y=;
 	h=Date:To:From:Subject:From;
-	b=zojdsKxYzny+eDmGw6aO7ihTpmOQl0KMfFws+ZiRAy7wZlmY2ORQnpSeTTeEwBEj1
-	 MJDea18VFStzvsXmlvRnnsMzteAE7Om/b3YuwpCr/BuNAtZGp5LuGX/r8lYHdzRw/j
-	 BYkI98gGNuj5wZUhGtMN0+hpQuqgRAKU9MejPEyo=
-Date: Wed, 06 Mar 2024 13:05:15 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,oliver.sang@intel.com,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,akpm@linux-foundation.org
+	b=rKpoE5l2ZY03L2d1601hafmUU9uy08PQmFJwVXLZyZwvus4HlUJ6t8DAPOCihua2K
+	 7sCdQk+3Nk0oEBBNN/WyrSRRCr7xdjRfue+I2tObHsznZBmPEF7kC6zEc/yxw7QiQE
+	 JVv4bVTdWVcVnR4Xkr2UQCABUB/H225efuQYeFQk=
+Date: Wed, 06 Mar 2024 13:05:16 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,tglx@linutronix.de,shy828301@gmail.com,ryabinin.a.a@gmail.com,rppt@kernel.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,muchun.song@linux.dev,mpe@ellerman.id.au,mingo@redhat.com,kirill@shutemov.name,jgg@nvidia.com,glider@google.com,dvyukov@google.com,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,bp@alien8.de,aneesh.kumar@kernel.org,andreyknvl@gmail.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-global-lru-and-shrinker-shared-by-all-zswap_pools-fix.patch removed from -mm tree
-Message-Id: <20240306210515.BEE30C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-ppc-define-pxd_large-with-pxd_leaf.patch removed from -mm tree
+Message-Id: <20240306210516.C31CBC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,246 +35,122 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zswap: global lru and shrinker shared by all zswap_pools fix
+     Subject: mm/powerpc: define pXd_large() with pXd_leaf()
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-global-lru-and-shrinker-shared-by-all-zswap_pools-fix.patch
+     mm-ppc-define-pxd_large-with-pxd_leaf.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chengming Zhou <chengming.zhou@linux.dev>
-Subject: mm/zswap: global lru and shrinker shared by all zswap_pools fix
-Date: Tue, 5 Mar 2024 07:53:45 +0000
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/powerpc: define pXd_large() with pXd_leaf()
+Date: Tue, 5 Mar 2024 12:37:41 +0800
 
-Commit bf9b7df23cb3 ("mm/zswap: global lru and shrinker shared by all
-zswap_pools") introduced a new lock to protect zswap_next_shrink, instead
-of reusing zswap_pools_lock.
+Patch series "mm/treewide: Replace pXd_large() with pXd_leaf()", v3.
 
-But the problem is that it's initialized only when zswap enabled, which
-causes bug if zswap_memcg_offline_cleanup() called without zswap enabled.
+These two APIs are mostly always the same.  It's confusing to have both of
+them.  Merge them into one.  Here I used pXd_leaf() only because
+pXd_leaf() is a global API which is always defined, while pXd_large() is
+not.
 
-Fix it by using DEFINE_SPINLOCK() to statically initialize them and define
-them as multiple static variables to keep in consistent with the existing
-global variables in zswap.
+We have yet one more API that is similar which is pXd_huge(), but that's
+even trickier, so let's do it step by step.
 
-Link: https://lkml.kernel.org/r/20240305075345.1493214-1-chengming.zhou@linux.dev
-Fixes: bf9b7df23cb3 ("mm/zswap: global lru and shrinker shared by all zswap_pools")
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202403051008.a8cf8a94-lkp@intel.com
-Signed-off-by: Chengming Zhou <chengming.zhou@linux.dev>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Some special cares are taken for ppc and x86, they're done as separate
+cleanups first.  
+
+
+This patch (of 10):
+
+The two definitions are the same.  The only difference is that pXd_large()
+is only defined with THP selected, and only on book3s 64bits.
+
+Instead of implementing it twice, make pXd_large() a macro to pXd_leaf(). 
+Define it unconditionally just like pXd_leaf().  This helps to prepare
+merging the two APIs.
+
+Link: https://lkml.kernel.org/r/20240305043750.93762-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240305043750.93762-2-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   77 +++++++++++++++++++++++++--------------------------
- 1 file changed, 38 insertions(+), 39 deletions(-)
+ arch/powerpc/include/asm/book3s/64/pgtable.h |   16 ++--------------
+ arch/powerpc/include/asm/pgtable.h           |    2 +-
+ 2 files changed, 3 insertions(+), 15 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-global-lru-and-shrinker-shared-by-all-zswap_pools-fix
-+++ a/mm/zswap.c
-@@ -180,15 +180,16 @@ struct zswap_pool {
- 	char tfm_name[CRYPTO_MAX_ALG_NAME];
- };
- 
--static struct {
--	struct list_lru list_lru;
--	atomic_t nr_stored;
--	struct shrinker *shrinker;
--	struct work_struct shrink_work;
--	struct mem_cgroup *next_shrink;
--	/* The lock protects next_shrink. */
--	spinlock_t shrink_lock;
--} zswap;
-+/* Global LRU lists shared by all zswap pools. */
-+static struct list_lru zswap_list_lru;
-+/* counter of pages stored in all zswap pools. */
-+static atomic_t zswap_nr_stored = ATOMIC_INIT(0);
-+
-+/* The lock protects zswap_next_shrink updates. */
-+static DEFINE_SPINLOCK(zswap_shrink_lock);
-+static struct mem_cgroup *zswap_next_shrink;
-+static struct work_struct zswap_shrink_work;
-+static struct shrinker *zswap_shrinker;
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-ppc-define-pxd_large-with-pxd_leaf
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -1158,20 +1158,6 @@ pud_hugepage_update(struct mm_struct *mm
+ }
  
  /*
-  * struct zswap_entry
-@@ -798,10 +799,10 @@ void zswap_folio_swapin(struct folio *fo
- void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg)
+- * returns true for pmd migration entries, THP, devmap, hugetlb
+- * But compile time dependent on THP config
+- */
+-static inline int pmd_large(pmd_t pmd)
+-{
+-	return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
+-}
+-
+-static inline int pud_large(pud_t pud)
+-{
+-	return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
+-}
+-
+-/*
+  * For radix we should always find H_PAGE_HASHPTE zero. Hence
+  * the below will work for radix too
+  */
+@@ -1455,6 +1441,7 @@ static inline bool is_pte_rw_upgrade(uns
+  */
+ #define pmd_is_leaf pmd_is_leaf
+ #define pmd_leaf pmd_is_leaf
++#define pmd_large pmd_leaf
+ static inline bool pmd_is_leaf(pmd_t pmd)
  {
- 	/* lock out zswap shrinker walking memcg tree */
--	spin_lock(&zswap.shrink_lock);
--	if (zswap.next_shrink == memcg)
--		zswap.next_shrink = mem_cgroup_iter(NULL, zswap.next_shrink, NULL);
--	spin_unlock(&zswap.shrink_lock);
-+	spin_lock(&zswap_shrink_lock);
-+	if (zswap_next_shrink == memcg)
-+		zswap_next_shrink = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
-+	spin_unlock(&zswap_shrink_lock);
- }
+ 	return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
+@@ -1462,6 +1449,7 @@ static inline bool pmd_is_leaf(pmd_t pmd
  
- /*********************************
-@@ -900,9 +901,9 @@ static void zswap_entry_free(struct zswa
- 	if (!entry->length)
- 		atomic_dec(&zswap_same_filled_pages);
- 	else {
--		zswap_lru_del(&zswap.list_lru, entry);
-+		zswap_lru_del(&zswap_list_lru, entry);
- 		zpool_free(zswap_find_zpool(entry), entry->handle);
--		atomic_dec(&zswap.nr_stored);
-+		atomic_dec(&zswap_nr_stored);
- 		zswap_pool_put(entry->pool);
- 	}
- 	if (entry->objcg) {
-@@ -1274,7 +1275,7 @@ static unsigned long zswap_shrinker_scan
+ #define pud_is_leaf pud_is_leaf
+ #define pud_leaf pud_is_leaf
++#define pud_large pud_leaf
+ static inline bool pud_is_leaf(pud_t pud)
+ {
+ 	return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
+--- a/arch/powerpc/include/asm/pgtable.h~mm-ppc-define-pxd_large-with-pxd_leaf
++++ a/arch/powerpc/include/asm/pgtable.h
+@@ -101,7 +101,7 @@ void poking_init(void);
+ extern unsigned long ioremap_bot;
+ extern const pgprot_t protection_map[16];
  
- 	nr_protected =
- 		atomic_long_read(&lruvec->zswap_lruvec_state.nr_zswap_protected);
--	lru_size = list_lru_shrink_count(&zswap.list_lru, sc);
-+	lru_size = list_lru_shrink_count(&zswap_list_lru, sc);
- 
- 	/*
- 	 * Abort if we are shrinking into the protected region.
-@@ -1291,7 +1292,7 @@ static unsigned long zswap_shrinker_scan
- 		return SHRINK_STOP;
- 	}
- 
--	shrink_ret = list_lru_shrink_walk(&zswap.list_lru, sc, &shrink_memcg_cb,
-+	shrink_ret = list_lru_shrink_walk(&zswap_list_lru, sc, &shrink_memcg_cb,
- 		&encountered_page_in_swapcache);
- 
- 	if (encountered_page_in_swapcache)
-@@ -1317,7 +1318,7 @@ static unsigned long zswap_shrinker_coun
- #else
- 	/* use pool stats instead of memcg stats */
- 	nr_backing = zswap_pool_total_size >> PAGE_SHIFT;
--	nr_stored = atomic_read(&zswap.nr_stored);
-+	nr_stored = atomic_read(&zswap_nr_stored);
+-#ifndef CONFIG_TRANSPARENT_HUGEPAGE
++#ifndef pmd_large
+ #define pmd_large(pmd)		0
  #endif
  
- 	if (!nr_stored)
-@@ -1325,7 +1326,7 @@ static unsigned long zswap_shrinker_coun
- 
- 	nr_protected =
- 		atomic_long_read(&lruvec->zswap_lruvec_state.nr_zswap_protected);
--	nr_freeable = list_lru_shrink_count(&zswap.list_lru, sc);
-+	nr_freeable = list_lru_shrink_count(&zswap_list_lru, sc);
- 	/*
- 	 * Subtract the lru size by an estimate of the number of pages
- 	 * that should be protected.
-@@ -1374,7 +1375,7 @@ static int shrink_memcg(struct mem_cgrou
- 	for_each_node_state(nid, N_NORMAL_MEMORY) {
- 		unsigned long nr_to_walk = 1;
- 
--		shrunk += list_lru_walk_one(&zswap.list_lru, nid, memcg,
-+		shrunk += list_lru_walk_one(&zswap_list_lru, nid, memcg,
- 					    &shrink_memcg_cb, NULL, &nr_to_walk);
- 	}
- 	return shrunk ? 0 : -EAGAIN;
-@@ -1387,9 +1388,9 @@ static void shrink_worker(struct work_st
- 
- 	/* global reclaim will select cgroup in a round-robin fashion. */
- 	do {
--		spin_lock(&zswap.shrink_lock);
--		zswap.next_shrink = mem_cgroup_iter(NULL, zswap.next_shrink, NULL);
--		memcg = zswap.next_shrink;
-+		spin_lock(&zswap_shrink_lock);
-+		zswap_next_shrink = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
-+		memcg = zswap_next_shrink;
- 
- 		/*
- 		 * We need to retry if we have gone through a full round trip, or if we
-@@ -1403,7 +1404,7 @@ static void shrink_worker(struct work_st
- 		 * memcg is not killed when we are reclaiming.
- 		 */
- 		if (!memcg) {
--			spin_unlock(&zswap.shrink_lock);
-+			spin_unlock(&zswap_shrink_lock);
- 			if (++failures == MAX_RECLAIM_RETRIES)
- 				break;
- 
-@@ -1413,15 +1414,15 @@ static void shrink_worker(struct work_st
- 		if (!mem_cgroup_tryget_online(memcg)) {
- 			/* drop the reference from mem_cgroup_iter() */
- 			mem_cgroup_iter_break(NULL, memcg);
--			zswap.next_shrink = NULL;
--			spin_unlock(&zswap.shrink_lock);
-+			zswap_next_shrink = NULL;
-+			spin_unlock(&zswap_shrink_lock);
- 
- 			if (++failures == MAX_RECLAIM_RETRIES)
- 				break;
- 
- 			goto resched;
- 		}
--		spin_unlock(&zswap.shrink_lock);
-+		spin_unlock(&zswap_shrink_lock);
- 
- 		ret = shrink_memcg(memcg);
- 		/* drop the extra reference */
-@@ -1542,7 +1543,7 @@ bool zswap_store(struct folio *folio)
- 
- 	if (objcg) {
- 		memcg = get_mem_cgroup_from_objcg(objcg);
--		if (memcg_list_lru_alloc(memcg, &zswap.list_lru, GFP_KERNEL)) {
-+		if (memcg_list_lru_alloc(memcg, &zswap_list_lru, GFP_KERNEL)) {
- 			mem_cgroup_put(memcg);
- 			goto put_pool;
- 		}
-@@ -1573,8 +1574,8 @@ insert_entry:
- 	}
- 	if (entry->length) {
- 		INIT_LIST_HEAD(&entry->lru);
--		zswap_lru_add(&zswap.list_lru, entry);
--		atomic_inc(&zswap.nr_stored);
-+		zswap_lru_add(&zswap_list_lru, entry);
-+		atomic_inc(&zswap_nr_stored);
- 	}
- 	spin_unlock(&tree->lock);
- 
-@@ -1606,7 +1607,7 @@ check_old:
- 	return false;
- 
- shrink:
--	queue_work(shrink_wq, &zswap.shrink_work);
-+	queue_work(shrink_wq, &zswap_shrink_work);
- 	goto reject;
- }
- 
-@@ -1773,16 +1774,14 @@ static int zswap_setup(void)
- 	if (!shrink_wq)
- 		goto shrink_wq_fail;
- 
--	zswap.shrinker = zswap_alloc_shrinker();
--	if (!zswap.shrinker)
-+	zswap_shrinker = zswap_alloc_shrinker();
-+	if (!zswap_shrinker)
- 		goto shrinker_fail;
--	if (list_lru_init_memcg(&zswap.list_lru, zswap.shrinker))
-+	if (list_lru_init_memcg(&zswap_list_lru, zswap_shrinker))
- 		goto lru_fail;
--	shrinker_register(zswap.shrinker);
-+	shrinker_register(zswap_shrinker);
- 
--	INIT_WORK(&zswap.shrink_work, shrink_worker);
--	atomic_set(&zswap.nr_stored, 0);
--	spin_lock_init(&zswap.shrink_lock);
-+	INIT_WORK(&zswap_shrink_work, shrink_worker);
- 
- 	pool = __zswap_pool_create_fallback();
- 	if (pool) {
-@@ -1801,7 +1800,7 @@ static int zswap_setup(void)
- 	return 0;
- 
- lru_fail:
--	shrinker_free(zswap.shrinker);
-+	shrinker_free(zswap_shrinker);
- shrinker_fail:
- 	destroy_workqueue(shrink_wq);
- shrink_wq_fail:
 _
 
-Patches currently in -mm which might be from chengming.zhou@linux.dev are
+Patches currently in -mm which might be from peterx@redhat.com are
 
 
