@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A089479C4
-	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 20:34:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC9BD63A1
+	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 20:34:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709757278; cv=none; b=FNelA9cb98Pt8uiNm6gwrDV9fwL4Q6UAIPYqun91ckatfV02rlM/qY12Yieiv3uO0T9ZA/sg2auj/K3hax/TlNWKeo+1GGNk22NrdTlNXgaJb00FXKLxT964R6BycvtclHMJ6z03yOW9BwbRVAQvDCEvNUaTU9aUS+tIO1FKxnY=
+	t=1709757279; cv=none; b=WR5hzEYn8l7UAjiMFogLBHMM9ru6BpV0BNXgXeNjheGiwGiW8VihjB3YvEpgxiyqz/LdiWsMXS81Rtipas5pvj74DWT/rx9+pdgBI8iJ8weNmQ1XTkgjpHNFKzah3YSV9VTgozWRdbERaiqC/21ZagKABLfcfqlzHaiiSYWBL/0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709757278; c=relaxed/simple;
-	bh=qiDEoq4Qsv4rk6C+CviAZ8v/aIqqTCK740QalFtXdk8=;
-	h=Date:To:From:Subject:Message-Id; b=rdaKOaKt8XgP1q+naA1LNDXAKFDhyzQLmIvBGpZrlPhdz/VWeCaKPyduqfSWXI9HDjKG0cbeRy/MYCXylnajSf0mfWGRua2WfO5iWwkAbM8fodlOPi2oUbnVkBUjXdxvmrxZgKCK3LtqNrBw5XxMJKwFEY7Wcb0KoseBK0CXAJQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IfD95f29; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709757279; c=relaxed/simple;
+	bh=WDbkB+Bd8BC/JEHNUclG9WSrl1iV1fWXC7JTmjOQBc0=;
+	h=Date:To:From:Subject:Message-Id; b=bWQe+buWeW82me3UImXtgxxagK61hZBFFDxBgxrLV7FCUB/UYf+Q8zg0REuKr2UZqtucNCubIZg68Szg5GLCzlrZ28W4UTEUWQKfO+Z6BrlTPui05e5xin4LFG1FrmzwyN3r8+ZltN+im10NbItkryKhhR261G9xc0lq2Rwo6aE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=svRTtlpg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IfD95f29"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C5D0C433C7;
-	Wed,  6 Mar 2024 20:34:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="svRTtlpg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 396F7C43394;
+	Wed,  6 Mar 2024 20:34:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709757278;
-	bh=qiDEoq4Qsv4rk6C+CviAZ8v/aIqqTCK740QalFtXdk8=;
+	s=korg; t=1709757279;
+	bh=WDbkB+Bd8BC/JEHNUclG9WSrl1iV1fWXC7JTmjOQBc0=;
 	h=Date:To:From:Subject:From;
-	b=IfD95f29Qf4v+sbHnSGwUmzWl5x21SysBlIgBJnDOiU2WtgKPA3EstM41cOq8umyc
-	 dYnNu+Xhz5C8N/GPB2j3XKVNEFvr850SOkiglq+TnLK0Erg+VXvvXFj2Ev4r2cfe+d
-	 prxUx1PYtgUbU6jatJCwzn9+N1JXww12vrYORFNQ=
-Date: Wed, 06 Mar 2024 12:34:37 -0800
+	b=svRTtlpgkWo0A8gdxEkcEbD7d74pFHff0Vz3fN8x0SwNLUxLbGVyqzju3JOP7VOxh
+	 HR3OQPqQIvKku7mNNznrcPU5hJGq7/zDQRIDlGzkajAoToUey0Lw2qVj4JDe757xKA
+	 0bSlab+DS+dlrnT3dhHPiMWwGCZaF6QZqnY1kVgo=
+Date: Wed, 06 Mar 2024 12:34:38 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,oliver.sang@intel.com,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmpage_owner-check-for-null-stack_record-before-bumping-its-refcount.patch added to mm-unstable branch
-Message-Id: <20240306203438.0C5D0C433C7@smtp.kernel.org>
+Subject: + mmpage_owner-drop-unnecesary-check.patch added to mm-unstable branch
+Message-Id: <20240306203439.396F7C43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,page_owner: check for null stack_record before bumping its refcount
+     Subject: mm,page_owner: drop unnecesary check
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmpage_owner-check-for-null-stack_record-before-bumping-its-refcount.patch
+     mmpage_owner-drop-unnecesary-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-check-for-null-stack_record-before-bumping-its-refcount.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-drop-unnecesary-check.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,75 +59,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,page_owner: check for null stack_record before bumping its refcount
-Date: Wed, 6 Mar 2024 13:32:16 +0100
+Subject: mm,page_owner: drop unnecesary check
+Date: Wed, 6 Mar 2024 13:32:17 +0100
 
-Patch series "page_owner: Fixup and cleanup".
+stackdepot only saves stack_records which size is greather than 0,
+so we cannot possibly have empty stack_records.
+Drop the check.
 
-This patchset consists of a fixup by an error that was reported by intel
-robot, where it seems to be that by the time page_owner gets initialized,
-stackdepot has already depleted its allocation space and returns
-0-handles, turning that into null stack_records when trying to retrieve
-the stack_record.  I was not able to reproduce that from the config
-because it booted fine for me, but when setting e.g: dummy_handle to 0
-artificially, I could see the same error that was reported.
-
-The second patch is a cleanup that can also lead to a compilation warning.
-
-
-This patch (of 2):
-
-Although the retrieval of the stack_records for {dummy,failure}_handle
-happen when page_owner gets initialized, there seems to be some situations
-where stackdepot space has been already depleted by then, so we get
-0-handles which make stack_records being NULL for those cases.
-
-Be careful to 1) only bump stack_records refcount and 2) only access
-stack_record fields if we actually have a non-null stack_record between
-hands.
-
-Link: https://lkml.kernel.org/r/20240306123217.29774-1-osalvador@suse.de
-Link: https://lkml.kernel.org/r/20240306123217.29774-2-osalvador@suse.de
-Fixes: 4bedfb314bdd ("mm,page_owner: implement the tracking of the stacks count")
+Link: https://lkml.kernel.org/r/20240306123217.29774-3-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202403051032.e2f865a-lkp@intel.com
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: kernel test robot <oliver.sang@intel.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/page_owner.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/page_owner.c~mmpage_owner-check-for-null-stack_record-before-bumping-its-refcount
+--- a/mm/page_owner.c~mmpage_owner-drop-unnecesary-check
 +++ a/mm/page_owner.c
-@@ -107,8 +107,10 @@ static __init void init_page_owner(void)
- 	/* Initialize dummy and failure stacks and link them to stack_list */
- 	dummy_stack.stack_record = __stack_depot_get_stack_record(dummy_handle);
- 	failure_stack.stack_record = __stack_depot_get_stack_record(failure_handle);
--	refcount_set(&dummy_stack.stack_record->count, 1);
--	refcount_set(&failure_stack.stack_record->count, 1);
-+	if (dummy_stack.stack_record)
-+		refcount_set(&dummy_stack.stack_record->count, 1);
-+	if (failure_stack.stack_record)
-+		refcount_set(&failure_stack.stack_record->count, 1);
- 	dummy_stack.next = &failure_stack;
- 	stack_list = &dummy_stack;
- }
-@@ -856,6 +858,9 @@ static int stack_print(struct seq_file *
- 	unsigned long nr_entries;
- 	struct stack_record *stack_record = stack->stack_record;
- 
-+	if (!stack->stack_record)
-+		return 0;
-+
- 	nr_entries = stack_record->size;
+@@ -865,8 +865,7 @@ static int stack_print(struct seq_file *
  	entries = stack_record->entries;
  	stack_count = refcount_read(&stack_record->count) - 1;
+ 
+-	if (!nr_entries || nr_entries < 0 || stack_count < 1 ||
+-	    stack_count < page_owner_stack_threshold)
++	if (stack_count < 1 || stack_count < page_owner_stack_threshold)
+ 		return 0;
+ 
+ 	for (i = 0; i < nr_entries; i++)
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
