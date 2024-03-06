@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 986A6140E25
-	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 20:24:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE33A41C74;
+	Wed,  6 Mar 2024 20:27:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709756662; cv=none; b=GJfuG27B/1iAD7PUoMwS2a2uSKNIXm4T083x+XQLq3kXsJZ29U0S8xhGZkEiHjh4i1tNlsbfHMf+J/shqvmjlBunm/9D5Vi0ZZLhfnJUbCt0Urevi3X/7xhtK8QxLrtm3O1G6YH3kdSYeTShnkDK94pCmIo++pYNYsMq3QPzVQM=
+	t=1709756833; cv=none; b=KWdHqfsenZA+7+9AKTs4yp2ttpxGrzBIpboZnpC4ax+ClQR3SpJOKOwwh6RoSf6dsFuk6ownk2vv1RuNzOtBkBqAuEWLKGjlxXO1fIjcaYWN6ZNY4PMhSYdIev4QlEBcWCtgjxYZ5bWeboCAeSD7Iv0QOIZi+qvfYjnGGzunNNM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709756662; c=relaxed/simple;
-	bh=iddSVvGXcNjj9e9UPH6TXQt/bxa6dphjfXbnrnHO8+c=;
-	h=Date:To:From:Subject:Message-Id; b=Ujq4MaBcelQaJR2nDXPCgOvlw3xLvilWZnArJb/3BY9gy6xYcItEUoUbi4B1lquzg/qgfj6FcS5mshOmZF27ESiXZg6ClgAqc8CLpDxadCrluHY8GVisJpg8VVx/E4ZdQx1ITKdMV2PLXnHr+KKsMr4NErDdWfaHvOUE7R8Nalw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S0V5C+PQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709756833; c=relaxed/simple;
+	bh=rk2JVoz97p+K8aij5PpnivnTk8yi4FeJBtzL6rmOEHg=;
+	h=Date:To:From:Subject:Message-Id; b=ApfV3RFvBIIyVYpwvfxVBZrtYW8psuHfbS3vFFwVrAq/YgCZdqjVkWmoD6XFuAVzyQ8qNADAO9pw2LbFSrrih5lbdoiU61ICJeH2RVQ/SqYAReI4UWmJnzqxKsLuQCe98Xi4/vqexMOdbz4Z/GgERLGNDjinukJzlV1xrat8Xt4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1ZFQArIW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S0V5C+PQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D384C433F1;
-	Wed,  6 Mar 2024 20:24:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1ZFQArIW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4ABC7C433C7;
+	Wed,  6 Mar 2024 20:27:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709756662;
-	bh=iddSVvGXcNjj9e9UPH6TXQt/bxa6dphjfXbnrnHO8+c=;
+	s=korg; t=1709756833;
+	bh=rk2JVoz97p+K8aij5PpnivnTk8yi4FeJBtzL6rmOEHg=;
 	h=Date:To:From:Subject:From;
-	b=S0V5C+PQcZDH4RMGCZOW9qQKRnJJMzz8vKUsallcQ6+TVOAuFFApt25SDttyE1U9e
-	 tYxbbp5BAeTgZ8OJEjq01VzXL44I535qz0P/9IKbYWf9OozREJRwtW2dJkyPGEZ+gj
-	 oUVx5NNHV6y+J276TPooaEnaS9wGzFNm80t8rXtc=
-Date: Wed, 06 Mar 2024 12:24:21 -0800
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,thorsten.blum@toblux.com,akpm@linux-foundation.org
+	b=1ZFQArIWbyhUdMvt+xwnURGMPgqjqG6YQbSg3s1VB/5esrx1l496G4IJXTQYzjgto
+	 w7Y8sQuD15aOptLn8nh7QWnyx8REyNAAKsa2AQCN4lGEjUznakRbeF0nCYoA/tn29o
+	 La9mfO2d1DMHCAD28MT/Hrjw2HxaRwkeJ+kudzCY=
+Date: Wed, 06 Mar 2024 12:27:12 -0800
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,stable@vger.kernel.org,david@redhat.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-use-div64_ul-instead-of-do_div.patch added to mm-nonmm-unstable branch
-Message-Id: <20240306202422.1D384C433F1@smtp.kernel.org>
+Subject: + mm-swap-fix-race-between-free_swap_and_cache-and-swapoff.patch added to mm-unstable branch
+Message-Id: <20240306202713.4ABC7C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: Use div64_ul() instead of do_div()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-use-div64_ul-instead-of-do_div.patch
+     Subject: mm: swap: fix race between free_swap_and_cache() and swapoff()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-swap-fix-race-between-free_swap_and_cache-and-swapoff.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-use-div64_ul-instead-of-do_div.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-race-between-free_swap_and_cache-and-swapoff.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,109 +58,118 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@toblux.com>
-Subject: nilfs2: Use div64_ul() instead of do_div()
-Date: Wed, 6 Mar 2024 23:25:47 +0900
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: swap: fix race between free_swap_and_cache() and swapoff()
+Date: Wed, 6 Mar 2024 14:03:56 +0000
 
-Fixes Coccinelle/coccicheck warnings reported by do_div.cocci.
+There was previously a theoretical window where swapoff() could run and
+teardown a swap_info_struct while a call to free_swap_and_cache() was
+running in another thread.  This could cause, amongst other bad
+possibilities, swap_page_trans_huge_swapped() (called by
+free_swap_and_cache()) to access the freed memory for swap_map.
 
-Compared to do_div(), div64_ul() does not implicitly cast the divisor and
-does not unnecessarily calculate the remainder.
+This is a theoretical problem and I haven't been able to provoke it from a
+test case.  But there has been agreement based on code review that this is
+possible (see link below).
 
-Link: https://lkml.kernel.org/r/20240229210456.63234-2-thorsten.blum@toblux.com
-Link: https://lkml.kernel.org/r/20240306142547.4612-1-konishi.ryusuke@gmail.com
-Signed-off-by: Thorsten Blum <thorsten.blum@toblux.com>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Fix it by using get_swap_device()/put_swap_device(), which will stall
+swapoff().  There was an extra check in _swap_info_get() to confirm that
+the swap entry was not free.  This isn't present in get_swap_device()
+because it doesn't make sense in general due to the race between getting
+the reference and swapoff.  So I've added an equivalent check directly in
+free_swap_and_cache().
+
+Details of how to provoke one possible issue (thanks to David Hildenbrand
+for deriving this):
+
+--8<-----
+
+__swap_entry_free() might be the last user and result in
+"count == SWAP_HAS_CACHE".
+
+swapoff->try_to_unuse() will stop as soon as soon as si->inuse_pages==0.
+
+So the question is: could someone reclaim the folio and turn
+si->inuse_pages==0, before we completed swap_page_trans_huge_swapped().
+
+Imagine the following: 2 MiB folio in the swapcache. Only 2 subpages are
+still references by swap entries.
+
+Process 1 still references subpage 0 via swap entry.
+Process 2 still references subpage 1 via swap entry.
+
+Process 1 quits. Calls free_swap_and_cache().
+-> count == SWAP_HAS_CACHE
+[then, preempted in the hypervisor etc.]
+
+Process 2 quits. Calls free_swap_and_cache().
+-> count == SWAP_HAS_CACHE
+
+Process 2 goes ahead, passes swap_page_trans_huge_swapped(), and calls
+__try_to_reclaim_swap().
+
+__try_to_reclaim_swap()->folio_free_swap()->delete_from_swap_cache()->
+put_swap_folio()->free_swap_slot()->swapcache_free_entries()->
+swap_entry_free()->swap_range_free()->
+...
+WRITE_ONCE(si->inuse_pages, si->inuse_pages - nr_entries);
+
+What stops swapoff to succeed after process 2 reclaimed the swap cache
+but before process1 finished its call to swap_page_trans_huge_swapped()?
+
+--8<-----
+
+Link: https://lkml.kernel.org/r/20240306140356.3974886-1-ryan.roberts@arm.com
+Fixes: 7c00bafee87c ("mm/swap: free swap slots in batch")
+Closes: https://lore.kernel.org/linux-mm/65a66eb9-41f8-4790-8db2-0c70ea15979f@redhat.com/
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/cpfile.c    |    2 +-
- fs/nilfs2/dat.c       |    2 +-
- fs/nilfs2/ioctl.c     |    4 ++--
- fs/nilfs2/sufile.c    |    2 +-
- fs/nilfs2/super.c     |    2 +-
- fs/nilfs2/the_nilfs.c |    2 +-
- 6 files changed, 7 insertions(+), 7 deletions(-)
+ mm/swapfile.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/fs/nilfs2/cpfile.c~nilfs2-use-div64_ul-instead-of-do_div
-+++ a/fs/nilfs2/cpfile.c
-@@ -28,7 +28,7 @@ nilfs_cpfile_get_blkoff(const struct ino
- {
- 	__u64 tcno = cno + NILFS_MDT(cpfile)->mi_first_entry_offset - 1;
+--- a/mm/swapfile.c~mm-swap-fix-race-between-free_swap_and_cache-and-swapoff
++++ a/mm/swapfile.c
+@@ -1232,6 +1232,11 @@ static unsigned char __swap_entry_free_l
+  * with get_swap_device() and put_swap_device(), unless the swap
+  * functions call get/put_swap_device() by themselves.
+  *
++ * Note that when only holding the PTL, swapoff might succeed immediately
++ * after freeing a swap entry. Therefore, immediately after
++ * __swap_entry_free(), the swap info might become stale and should not
++ * be touched without a prior get_swap_device().
++ *
+  * Check whether swap entry is valid in the swap device.  If so,
+  * return pointer to swap_info_struct, and keep the swap entry valid
+  * via preventing the swap device from being swapoff, until
+@@ -1609,13 +1614,19 @@ int free_swap_and_cache(swp_entry_t entr
+ 	if (non_swap_entry(entry))
+ 		return 1;
  
--	do_div(tcno, nilfs_cpfile_checkpoints_per_block(cpfile));
-+	tcno = div64_ul(tcno, nilfs_cpfile_checkpoints_per_block(cpfile));
- 	return (unsigned long)tcno;
+-	p = _swap_info_get(entry);
++	p = get_swap_device(entry);
+ 	if (p) {
++		if (WARN_ON(data_race(!p->swap_map[swp_offset(entry)]))) {
++			put_swap_device(p);
++			return 0;
++		}
++
+ 		count = __swap_entry_free(p, entry);
+ 		if (count == SWAP_HAS_CACHE &&
+ 		    !swap_page_trans_huge_swapped(p, entry))
+ 			__try_to_reclaim_swap(p, swp_offset(entry),
+ 					      TTRS_UNMAPPED | TTRS_FULL);
++		put_swap_device(p);
+ 	}
+ 	return p != NULL;
  }
- 
---- a/fs/nilfs2/dat.c~nilfs2-use-div64_ul-instead-of-do_div
-+++ a/fs/nilfs2/dat.c
-@@ -460,7 +460,7 @@ ssize_t nilfs_dat_get_vinfo(struct inode
- 		kaddr = kmap_local_page(entry_bh->b_page);
- 		/* last virtual block number in this block */
- 		first = vinfo->vi_vblocknr;
--		do_div(first, entries_per_block);
-+		first = div64_ul(first, entries_per_block);
- 		first *= entries_per_block;
- 		last = first + entries_per_block - 1;
- 		for (j = i, n = 0;
---- a/fs/nilfs2/ioctl.c~nilfs2-use-div64_ul-instead-of-do_div
-+++ a/fs/nilfs2/ioctl.c
-@@ -1111,7 +1111,7 @@ static int nilfs_ioctl_set_alloc_range(s
- 	segbytes = nilfs->ns_blocks_per_segment * nilfs->ns_blocksize;
- 
- 	minseg = range[0] + segbytes - 1;
--	do_div(minseg, segbytes);
-+	minseg = div64_ul(minseg, segbytes);
- 
- 	if (range[1] < 4096)
- 		goto out;
-@@ -1120,7 +1120,7 @@ static int nilfs_ioctl_set_alloc_range(s
- 	if (maxseg < segbytes)
- 		goto out;
- 
--	do_div(maxseg, segbytes);
-+	maxseg = div64_ul(maxseg, segbytes);
- 	maxseg--;
- 
- 	ret = nilfs_sufile_set_alloc_range(nilfs->ns_sufile, minseg, maxseg);
---- a/fs/nilfs2/sufile.c~nilfs2-use-div64_ul-instead-of-do_div
-+++ a/fs/nilfs2/sufile.c
-@@ -48,7 +48,7 @@ nilfs_sufile_get_blkoff(const struct ino
- {
- 	__u64 t = segnum + NILFS_MDT(sufile)->mi_first_entry_offset;
- 
--	do_div(t, nilfs_sufile_segment_usages_per_block(sufile));
-+	t = div64_ul(t, nilfs_sufile_segment_usages_per_block(sufile));
- 	return (unsigned long)t;
- }
- 
---- a/fs/nilfs2/super.c~nilfs2-use-div64_ul-instead-of-do_div
-+++ a/fs/nilfs2/super.c
-@@ -448,7 +448,7 @@ int nilfs_resize_fs(struct super_block *
- 
- 	sb2off = NILFS_SB2_OFFSET_BYTES(newsize);
- 	newnsegs = sb2off >> nilfs->ns_blocksize_bits;
--	do_div(newnsegs, nilfs->ns_blocks_per_segment);
-+	newnsegs = div64_ul(newnsegs, nilfs->ns_blocks_per_segment);
- 
- 	ret = nilfs_sufile_resize(nilfs->ns_sufile, newnsegs);
- 	up_write(&nilfs->ns_segctor_sem);
---- a/fs/nilfs2/the_nilfs.c~nilfs2-use-div64_ul-instead-of-do_div
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -413,7 +413,7 @@ static u64 nilfs_max_segment_count(struc
- {
- 	u64 max_count = U64_MAX;
- 
--	do_div(max_count, nilfs->ns_blocks_per_segment);
-+	max_count = div64_ul(max_count, nilfs->ns_blocks_per_segment);
- 	return min_t(u64, max_count, ULONG_MAX);
- }
- 
 _
 
-Patches currently in -mm which might be from thorsten.blum@toblux.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-mm-page_alloc-use-div64_ul-instead-of-do_div.patch
-nilfs2-use-div64_ul-instead-of-do_div.patch
+mm-swap-fix-race-between-free_swap_and_cache-and-swapoff.patch
 
