@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1500E175AD
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB9D814AAD
 	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 21:05:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709759115; cv=none; b=eATFM2Hdqt8sw6RHqJs1xtAIpF/Yi8/MbtWw6GfNhROWr9bDrjepK9pUEF/su0g6CBwTat8mob729YE3fK8BQ8lmZhA4byf/+RdDtCYSW1s97UjbrWqwFOPOvrTUj/C/FLjIYzLJIBzdq5sdKxCVgym2NroQZH7IbbvPafpp5cM=
+	t=1709759116; cv=none; b=T6xtLcGLo5F4qvOFdDXL7IFyCzLnLmKodb5n5nzBbiPcPKUfd+IdUMsXCUHwYtkUgF9mk1HKTH+0768UMurzvTk0V+Yl0xnSPnCAybzw8YScWwaUPrts093IQdUhM6xq36aE4kwJP3k9BF4P/wLXrKcprr3t2Q5oLTVzP/veZAA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709759115; c=relaxed/simple;
-	bh=n9yWgq4MOLch6xMrYzSf4FY22cs1K/rZVe+IB+06pqo=;
-	h=Date:To:From:Subject:Message-Id; b=BAqdYOQ3m3nNweKCdS09di1RxHXglKzzplRnGJG7Fj+nL+0jgKS499Sr4uG0fJPZEe9DIwz3+PquxmOgDNG/BIHiPxOHsn33jGGlZI/pe72PIxjq5iro8hKkBECovhHfG2ApZ//W8VcT+vZsQjvIXOzzgs3gvSJPPJ66LZOGggY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FhNdQ0sd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709759116; c=relaxed/simple;
+	bh=To26v0PXsmj8IQvd+1I4yK/UjpWd/rVJkmiTrae/qfk=;
+	h=Date:To:From:Subject:Message-Id; b=H201BogpNBnhgdBnxst8Tn2hujI1gPnEmnwjBPLE/B6BK01uXXxpywzjVqDkQ+YkYnVMWKLaHDbepwntGB3CHKVrYfogJP3rnlJHHpvMD+d/gf6CA2WgLeikoVzLzy0PZw8TYishTGEiifc3qZkYDhlG3vvZLjHPMKXNHDWvTAI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zojdsKxY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FhNdQ0sd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA8AFC43390;
-	Wed,  6 Mar 2024 21:05:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zojdsKxY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEE30C433F1;
+	Wed,  6 Mar 2024 21:05:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709759114;
-	bh=n9yWgq4MOLch6xMrYzSf4FY22cs1K/rZVe+IB+06pqo=;
+	s=korg; t=1709759115;
+	bh=To26v0PXsmj8IQvd+1I4yK/UjpWd/rVJkmiTrae/qfk=;
 	h=Date:To:From:Subject:From;
-	b=FhNdQ0sdD/smoH0hGGv4lTZb65sjcIDJD6KBKyB0JOr6p0tacvQXF4QZBIUfrKP64
-	 pMAdRGCWZYXdCAtJ5XGBZWuNv3pq2Y3UR5WFzWuu/VVODUeN3H+wC21PYlgnYNuOlh
-	 QGeI0db32lZzYurXJ4Iq8FNdtVHe6DLf05hlbmPw=
-Date: Wed, 06 Mar 2024 13:05:14 -0800
-To: mm-commits@vger.kernel.org,samsun1006219@gmail.com,lstoakes@gmail.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=zojdsKxYzny+eDmGw6aO7ihTpmOQl0KMfFws+ZiRAy7wZlmY2ORQnpSeTTeEwBEj1
+	 MJDea18VFStzvsXmlvRnnsMzteAE7Om/b3YuwpCr/BuNAtZGp5LuGX/r8lYHdzRw/j
+	 BYkI98gGNuj5wZUhGtMN0+hpQuqgRAKU9MejPEyo=
+Date: Wed, 06 Mar 2024 13:05:15 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,oliver.sang@intel.com,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-fix-shift-out-of-bounds-in-fault_around_bytes_set.patch removed from -mm tree
-Message-Id: <20240306210514.DA8AFC43390@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-global-lru-and-shrinker-shared-by-all-zswap_pools-fix.patch removed from -mm tree
+Message-Id: <20240306210515.BEE30C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,246 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memory: fix shift-out-of-bounds in fault_around_bytes_set
+     Subject: mm/zswap: global lru and shrinker shared by all zswap_pools fix
 has been removed from the -mm tree.  Its filename was
-     mm-memory-fix-shift-out-of-bounds-in-fault_around_bytes_set.patch
+     mm-zswap-global-lru-and-shrinker-shared-by-all-zswap_pools-fix.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory: fix shift-out-of-bounds in fault_around_bytes_set
-Date: Sat, 2 Mar 2024 14:43:12 +0800
+From: Chengming Zhou <chengming.zhou@linux.dev>
+Subject: mm/zswap: global lru and shrinker shared by all zswap_pools fix
+Date: Tue, 5 Mar 2024 07:53:45 +0000
 
-The rounddown_pow_of_two(0) is undefined, so val = 0 is not allowed in the
-fault_around_bytes_set(), and leads to shift-out-of-bounds,
+Commit bf9b7df23cb3 ("mm/zswap: global lru and shrinker shared by all
+zswap_pools") introduced a new lock to protect zswap_next_shrink, instead
+of reusing zswap_pools_lock.
 
-UBSAN: shift-out-of-bounds in include/linux/log2.h:67:13
-shift exponent 4294967295 is too large for 64-bit type 'long unsigned int'
-CPU: 7 PID: 107 Comm: sh Not tainted 6.8.0-rc6-next-20240301 #294
-Hardware name: QEMU QEMU Virtual Machine, BIOS 0.0.0 02/06/2015
-Call trace:
- dump_backtrace+0x94/0xec
- show_stack+0x18/0x24
- dump_stack_lvl+0x78/0x90
- dump_stack+0x18/0x24
- ubsan_epilogue+0x10/0x44
- __ubsan_handle_shift_out_of_bounds+0x98/0x134
- fault_around_bytes_set+0xa4/0xb0
- simple_attr_write_xsigned.isra.0+0xe4/0x1ac
- simple_attr_write+0x18/0x24
- debugfs_attr_write+0x4c/0x98
- vfs_write+0xd0/0x4b0
- ksys_write+0x6c/0xfc
- __arm64_sys_write+0x1c/0x28
- invoke_syscall+0x44/0x104
- el0_svc_common.constprop.0+0x40/0xe0
- do_el0_svc+0x1c/0x28
- el0_svc+0x34/0xdc
- el0t_64_sync_handler+0xc0/0xc4
- el0t_64_sync+0x190/0x194
----[ end trace ]---
+But the problem is that it's initialized only when zswap enabled, which
+causes bug if zswap_memcg_offline_cleanup() called without zswap enabled.
 
-Fix it by setting the minimum val to PAGE_SIZE.
+Fix it by using DEFINE_SPINLOCK() to statically initialize them and define
+them as multiple static variables to keep in consistent with the existing
+global variables in zswap.
 
-Link: https://lkml.kernel.org/r/20240302064312.2358924-1-wangkefeng.wang@huawei.com
-Fixes: 53d36a56d8c4 ("mm: prefer fault_around_pages to fault_around_bytes")
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reported-by: Yue Sun <samsun1006219@gmail.com>
-Closes: https://lore.kernel.org/all/CAEkJfYPim6DQqW1GqCiHLdh2-eweqk1fGyXqs3JM+8e1qGge8w@mail.gmail.com/
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Link: https://lkml.kernel.org/r/20240305075345.1493214-1-chengming.zhou@linux.dev
+Fixes: bf9b7df23cb3 ("mm/zswap: global lru and shrinker shared by all zswap_pools")
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202403051008.a8cf8a94-lkp@intel.com
+Signed-off-by: Chengming Zhou <chengming.zhou@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/zswap.c |   77 +++++++++++++++++++++++++--------------------------
+ 1 file changed, 38 insertions(+), 39 deletions(-)
 
---- a/mm/memory.c~mm-memory-fix-shift-out-of-bounds-in-fault_around_bytes_set
-+++ a/mm/memory.c
-@@ -4776,7 +4776,8 @@ static int fault_around_bytes_set(void *
- 	 * The minimum value is 1 page, however this results in no fault-around
- 	 * at all. See should_fault_around().
- 	 */
--	fault_around_pages = max(rounddown_pow_of_two(val) >> PAGE_SHIFT, 1UL);
-+	val = max(val, PAGE_SIZE);
-+	fault_around_pages = rounddown_pow_of_two(val) >> PAGE_SHIFT;
+--- a/mm/zswap.c~mm-zswap-global-lru-and-shrinker-shared-by-all-zswap_pools-fix
++++ a/mm/zswap.c
+@@ -180,15 +180,16 @@ struct zswap_pool {
+ 	char tfm_name[CRYPTO_MAX_ALG_NAME];
+ };
  
- 	return 0;
+-static struct {
+-	struct list_lru list_lru;
+-	atomic_t nr_stored;
+-	struct shrinker *shrinker;
+-	struct work_struct shrink_work;
+-	struct mem_cgroup *next_shrink;
+-	/* The lock protects next_shrink. */
+-	spinlock_t shrink_lock;
+-} zswap;
++/* Global LRU lists shared by all zswap pools. */
++static struct list_lru zswap_list_lru;
++/* counter of pages stored in all zswap pools. */
++static atomic_t zswap_nr_stored = ATOMIC_INIT(0);
++
++/* The lock protects zswap_next_shrink updates. */
++static DEFINE_SPINLOCK(zswap_shrink_lock);
++static struct mem_cgroup *zswap_next_shrink;
++static struct work_struct zswap_shrink_work;
++static struct shrinker *zswap_shrinker;
+ 
+ /*
+  * struct zswap_entry
+@@ -798,10 +799,10 @@ void zswap_folio_swapin(struct folio *fo
+ void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg)
+ {
+ 	/* lock out zswap shrinker walking memcg tree */
+-	spin_lock(&zswap.shrink_lock);
+-	if (zswap.next_shrink == memcg)
+-		zswap.next_shrink = mem_cgroup_iter(NULL, zswap.next_shrink, NULL);
+-	spin_unlock(&zswap.shrink_lock);
++	spin_lock(&zswap_shrink_lock);
++	if (zswap_next_shrink == memcg)
++		zswap_next_shrink = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
++	spin_unlock(&zswap_shrink_lock);
  }
+ 
+ /*********************************
+@@ -900,9 +901,9 @@ static void zswap_entry_free(struct zswa
+ 	if (!entry->length)
+ 		atomic_dec(&zswap_same_filled_pages);
+ 	else {
+-		zswap_lru_del(&zswap.list_lru, entry);
++		zswap_lru_del(&zswap_list_lru, entry);
+ 		zpool_free(zswap_find_zpool(entry), entry->handle);
+-		atomic_dec(&zswap.nr_stored);
++		atomic_dec(&zswap_nr_stored);
+ 		zswap_pool_put(entry->pool);
+ 	}
+ 	if (entry->objcg) {
+@@ -1274,7 +1275,7 @@ static unsigned long zswap_shrinker_scan
+ 
+ 	nr_protected =
+ 		atomic_long_read(&lruvec->zswap_lruvec_state.nr_zswap_protected);
+-	lru_size = list_lru_shrink_count(&zswap.list_lru, sc);
++	lru_size = list_lru_shrink_count(&zswap_list_lru, sc);
+ 
+ 	/*
+ 	 * Abort if we are shrinking into the protected region.
+@@ -1291,7 +1292,7 @@ static unsigned long zswap_shrinker_scan
+ 		return SHRINK_STOP;
+ 	}
+ 
+-	shrink_ret = list_lru_shrink_walk(&zswap.list_lru, sc, &shrink_memcg_cb,
++	shrink_ret = list_lru_shrink_walk(&zswap_list_lru, sc, &shrink_memcg_cb,
+ 		&encountered_page_in_swapcache);
+ 
+ 	if (encountered_page_in_swapcache)
+@@ -1317,7 +1318,7 @@ static unsigned long zswap_shrinker_coun
+ #else
+ 	/* use pool stats instead of memcg stats */
+ 	nr_backing = zswap_pool_total_size >> PAGE_SHIFT;
+-	nr_stored = atomic_read(&zswap.nr_stored);
++	nr_stored = atomic_read(&zswap_nr_stored);
+ #endif
+ 
+ 	if (!nr_stored)
+@@ -1325,7 +1326,7 @@ static unsigned long zswap_shrinker_coun
+ 
+ 	nr_protected =
+ 		atomic_long_read(&lruvec->zswap_lruvec_state.nr_zswap_protected);
+-	nr_freeable = list_lru_shrink_count(&zswap.list_lru, sc);
++	nr_freeable = list_lru_shrink_count(&zswap_list_lru, sc);
+ 	/*
+ 	 * Subtract the lru size by an estimate of the number of pages
+ 	 * that should be protected.
+@@ -1374,7 +1375,7 @@ static int shrink_memcg(struct mem_cgrou
+ 	for_each_node_state(nid, N_NORMAL_MEMORY) {
+ 		unsigned long nr_to_walk = 1;
+ 
+-		shrunk += list_lru_walk_one(&zswap.list_lru, nid, memcg,
++		shrunk += list_lru_walk_one(&zswap_list_lru, nid, memcg,
+ 					    &shrink_memcg_cb, NULL, &nr_to_walk);
+ 	}
+ 	return shrunk ? 0 : -EAGAIN;
+@@ -1387,9 +1388,9 @@ static void shrink_worker(struct work_st
+ 
+ 	/* global reclaim will select cgroup in a round-robin fashion. */
+ 	do {
+-		spin_lock(&zswap.shrink_lock);
+-		zswap.next_shrink = mem_cgroup_iter(NULL, zswap.next_shrink, NULL);
+-		memcg = zswap.next_shrink;
++		spin_lock(&zswap_shrink_lock);
++		zswap_next_shrink = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
++		memcg = zswap_next_shrink;
+ 
+ 		/*
+ 		 * We need to retry if we have gone through a full round trip, or if we
+@@ -1403,7 +1404,7 @@ static void shrink_worker(struct work_st
+ 		 * memcg is not killed when we are reclaiming.
+ 		 */
+ 		if (!memcg) {
+-			spin_unlock(&zswap.shrink_lock);
++			spin_unlock(&zswap_shrink_lock);
+ 			if (++failures == MAX_RECLAIM_RETRIES)
+ 				break;
+ 
+@@ -1413,15 +1414,15 @@ static void shrink_worker(struct work_st
+ 		if (!mem_cgroup_tryget_online(memcg)) {
+ 			/* drop the reference from mem_cgroup_iter() */
+ 			mem_cgroup_iter_break(NULL, memcg);
+-			zswap.next_shrink = NULL;
+-			spin_unlock(&zswap.shrink_lock);
++			zswap_next_shrink = NULL;
++			spin_unlock(&zswap_shrink_lock);
+ 
+ 			if (++failures == MAX_RECLAIM_RETRIES)
+ 				break;
+ 
+ 			goto resched;
+ 		}
+-		spin_unlock(&zswap.shrink_lock);
++		spin_unlock(&zswap_shrink_lock);
+ 
+ 		ret = shrink_memcg(memcg);
+ 		/* drop the extra reference */
+@@ -1542,7 +1543,7 @@ bool zswap_store(struct folio *folio)
+ 
+ 	if (objcg) {
+ 		memcg = get_mem_cgroup_from_objcg(objcg);
+-		if (memcg_list_lru_alloc(memcg, &zswap.list_lru, GFP_KERNEL)) {
++		if (memcg_list_lru_alloc(memcg, &zswap_list_lru, GFP_KERNEL)) {
+ 			mem_cgroup_put(memcg);
+ 			goto put_pool;
+ 		}
+@@ -1573,8 +1574,8 @@ insert_entry:
+ 	}
+ 	if (entry->length) {
+ 		INIT_LIST_HEAD(&entry->lru);
+-		zswap_lru_add(&zswap.list_lru, entry);
+-		atomic_inc(&zswap.nr_stored);
++		zswap_lru_add(&zswap_list_lru, entry);
++		atomic_inc(&zswap_nr_stored);
+ 	}
+ 	spin_unlock(&tree->lock);
+ 
+@@ -1606,7 +1607,7 @@ check_old:
+ 	return false;
+ 
+ shrink:
+-	queue_work(shrink_wq, &zswap.shrink_work);
++	queue_work(shrink_wq, &zswap_shrink_work);
+ 	goto reject;
+ }
+ 
+@@ -1773,16 +1774,14 @@ static int zswap_setup(void)
+ 	if (!shrink_wq)
+ 		goto shrink_wq_fail;
+ 
+-	zswap.shrinker = zswap_alloc_shrinker();
+-	if (!zswap.shrinker)
++	zswap_shrinker = zswap_alloc_shrinker();
++	if (!zswap_shrinker)
+ 		goto shrinker_fail;
+-	if (list_lru_init_memcg(&zswap.list_lru, zswap.shrinker))
++	if (list_lru_init_memcg(&zswap_list_lru, zswap_shrinker))
+ 		goto lru_fail;
+-	shrinker_register(zswap.shrinker);
++	shrinker_register(zswap_shrinker);
+ 
+-	INIT_WORK(&zswap.shrink_work, shrink_worker);
+-	atomic_set(&zswap.nr_stored, 0);
+-	spin_lock_init(&zswap.shrink_lock);
++	INIT_WORK(&zswap_shrink_work, shrink_worker);
+ 
+ 	pool = __zswap_pool_create_fallback();
+ 	if (pool) {
+@@ -1801,7 +1800,7 @@ static int zswap_setup(void)
+ 	return 0;
+ 
+ lru_fail:
+-	shrinker_free(zswap.shrinker);
++	shrinker_free(zswap_shrinker);
+ shrinker_fail:
+ 	destroy_workqueue(shrink_wq);
+ shrink_wq_fail:
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from chengming.zhou@linux.dev are
 
 
