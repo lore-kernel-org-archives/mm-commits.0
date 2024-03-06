@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7286717551
-	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 20:59:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01D39175A7
+	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 21:04:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709758760; cv=none; b=c41s9s6eJAEhxPqB8zGo9MXvPFVx1W05gr8J15Fqa7eNJqHWM357ZFMM7aFnZn2w8kDygLyUrvG1uPMS/FXoYMzfFNSinLjQAJJGLti0DLg9juPIrtE68xAjmK0OAV+/USF5NvVscXkU8jA6K0P/QQ8a2XaWUpOoPLumZsvJygI=
+	t=1709759095; cv=none; b=SL3a/IocuH6oqgxoHZVH+cCMsNF5rzVPsjxdI0UOczoLgl8QTpgxDTr6bOMcpYnyGMnXlTh9r6n5tXeLIvPSHbOOV4uAyXqiln1rgBE6W9DKSEtFv+NfGIBKMYHgXN7OGgTMGoRF31KhPPXMuti0mqII/Q6TkY8d260SgDdLAOQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709758760; c=relaxed/simple;
-	bh=N/CJqp0tH2vYjf9bstemGrT7W52xafWW5mhvoYumWCQ=;
-	h=Date:To:From:Subject:Message-Id; b=bNiR+KwxjqMZRojEkF8Btqvmofg8IHh9Ob+XHWM0zJLfgjDvM/3AGGDcmcFHWfgXX7/NB+nbqu/egmlZ82ERL/csx7DUfjG8+9NNNzlr/0CScMesjLMIy1oeaalmzpJbPSK/etE6auSdMLWMTl75/ohT5ZT40xEOagcguZUNku0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pVUDU6YK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709759095; c=relaxed/simple;
+	bh=ajkJ4GEdyJ2DE4EtJM7/aQb+8fi9dLeRrLEdPRsvLds=;
+	h=Date:To:From:Subject:Message-Id; b=DU9AIhTpeVevQNX7iMB5YGtNYjlJmdy63oiDIYkp4Cx7kXrHxE57iSXXSqK71Pt26LdPVa967mxRyp8YrW0G18RzXSVNIlkGoM67HzYgMlRGCY97III3WFTn0ZQBAH5DO/cD+Xl1xIn6pN2n3+79cOmuoZEmkc8S5wXbwteFg2M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qVRXGdy+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pVUDU6YK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9AD0C433F1;
-	Wed,  6 Mar 2024 20:59:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qVRXGdy+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56DF5C433C7;
+	Wed,  6 Mar 2024 21:04:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709758760;
-	bh=N/CJqp0tH2vYjf9bstemGrT7W52xafWW5mhvoYumWCQ=;
+	s=korg; t=1709759094;
+	bh=ajkJ4GEdyJ2DE4EtJM7/aQb+8fi9dLeRrLEdPRsvLds=;
 	h=Date:To:From:Subject:From;
-	b=pVUDU6YK31tPaySnhLKZ17+CCQGKzMRV/xRqouJGgbtdIoIZHHpZwl11jjTXIjpZM
-	 8DLimqZC18C8eoN+NFU29CfS2rrJE263dn6G0pKB/heSFjHTH+m2Jkbvh7tFEy6lfK
-	 jhyrpnpZk3BQ/c1ZITIOreAe1b+uETt/Qyff/JaY=
-Date: Wed, 06 Mar 2024 12:59:19 -0800
-To: mm-commits@vger.kernel.org,flyingpeng@tencent.com,akpm@linux-foundation.org
+	b=qVRXGdy+P7EcsTgxVxGZVmw8oO/IGZJ5UrBVSHn42MDH7v1dlhRfKZE4t8zXShMrs
+	 jiOLZiyLb6z5IEZAIyYtRyqiD9Clz7gh6X4gcvRd7KZba3TCez/3x/z9bxoXyoKW9g
+	 j7QTsPSRog3qCUafGztCPT9exuT0XzFL6oydFtgY=
+Date: Wed, 06 Mar 2024 13:04:53 -0800
+To: mm-commits@vger.kernel.org,tim.c.chen@linux.intel.com,steffen.klassert@secunet.com,rientjes@google.com,rdunlap@infradead.org,paulmck@kernel.org,muchun.song@linux.dev,mike.kravetz@oracle.com,ligang.bdlg@bytedance.com,jane.chu@oracle.com,david@redhat.com,daniel.m.jordan@oracle.com,adobriyan@gmail.com,gang.li@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + buildid-use-kmap_local_page.patch added to mm-nonmm-unstable branch
-Message-Id: <20240306205919.E9AD0C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] hugetlb-code-clean-for-hugetlb_hstate_alloc_pages.patch removed from -mm tree
+Message-Id: <20240306210454.56DF5C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,67 +34,188 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: buildid: use kmap_local_page()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     buildid-use-kmap_local_page.patch
+The quilt patch titled
+     Subject: hugetlb: code clean for hugetlb_hstate_alloc_pages
+has been removed from the -mm tree.  Its filename was
+     hugetlb-code-clean-for-hugetlb_hstate_alloc_pages.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buildid-use-kmap_local_page.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peng Hao <flyingpeng@tencent.com>
-Subject: buildid: use kmap_local_page()
-Date: Wed, 6 Mar 2024 11:48:04 +0800
+From: Gang Li <gang.li@linux.dev>
+Subject: hugetlb: code clean for hugetlb_hstate_alloc_pages
+Date: Thu, 22 Feb 2024 22:04:14 +0800
 
-Use kmap_local_page() instead of kmap_atomic() which has been deprecated.
+Patch series "hugetlb: parallelize hugetlb page init on boot", v6.
 
-Link: https://lkml.kernel.org/r/20240306034804.62087-1-flyingpeng@tencent.com
-Signed-off-by: Peng Hao <flyingpeng@tencent.com>
+Introduction
+------------
+Hugetlb initialization during boot takes up a considerable amount of time.
+For instance, on a 2TB system, initializing 1,800 1GB huge pages takes
+1-2 seconds out of 10 seconds.  Initializing 11,776 1GB pages on a 12TB
+Intel host takes more than 1 minute[1].  This is a noteworthy figure.
+
+Inspired by [2] and [3], hugetlb initialization can also be accelerated
+through parallelization.  Kernel already has infrastructure like
+padata_do_multithreaded, this patch uses it to achieve effective results
+by minimal modifications.
+
+[1] https://lore.kernel.org/all/783f8bac-55b8-5b95-eb6a-11a583675000@google.com/
+[2] https://lore.kernel.org/all/20200527173608.2885243-1-daniel.m.jordan@oracle.com/
+[3] https://lore.kernel.org/all/20230906112605.2286994-1-usama.arif@bytedance.com/
+[4] https://lore.kernel.org/all/76becfc1-e609-e3e8-2966-4053143170b6@google.com/
+
+max_threads
+-----------
+This patch use `padata_do_multithreaded` like this:
+
+```
+job.max_threads	= num_node_state(N_MEMORY) * multiplier;
+padata_do_multithreaded(&job);
+```
+
+To fully utilize the CPU, the number of parallel threads needs to be
+carefully considered.  `max_threads = num_node_state(N_MEMORY)` does not
+fully utilize the CPU, so we need to multiply it by a multiplier.
+
+Tests below indicate that a multiplier of 2 significantly improves
+performance, and although larger values also provide improvements, the
+gains are marginal.
+
+  multiplier     1       2       3       4       5
+ ------------ ------- ------- ------- ------- -------
+  256G 2node   358ms   215ms   157ms   134ms   126ms
+  2T   4node   979ms   679ms   543ms   489ms   481ms
+  50G  2node   71ms    44ms    37ms    30ms    31ms
+
+Therefore, choosing 2 as the multiplier strikes a good balance between
+enhancing parallel processing capabilities and maintaining efficient
+resource management.
+
+Test result
+-----------
+      test case       no patch(ms)   patched(ms)   saved
+ ------------------- -------------- ------------- --------
+  256c2T(4 node) 1G           4745          2024   57.34%
+  128c1T(2 node) 1G           3358          1712   49.02%
+     12T         1G          77000         18300   76.23%
+
+  256c2T(4 node) 2M           3336          1051   68.52%
+  128c1T(2 node) 2M           1943           716   63.15%
+
+
+This patch (of 8):
+
+The readability of `hugetlb_hstate_alloc_pages` is poor.  By cleaning the
+code, its readability can be improved, facilitating future modifications.
+
+This patch extracts two functions to reduce the complexity of
+`hugetlb_hstate_alloc_pages` and has no functional changes.
+
+- hugetlb_hstate_alloc_pages_node_specific() to handle iterates through
+  each online node and performs allocation if necessary.
+- hugetlb_hstate_alloc_pages_report() report error during allocation.
+  And the value of h->max_huge_pages is updated accordingly.
+
+Link: https://lkml.kernel.org/r/20240222140422.393911-1-gang.li@linux.dev
+Link: https://lkml.kernel.org/r/20240222140422.393911-2-gang.li@linux.dev
+Signed-off-by: Gang Li <ligang.bdlg@bytedance.com>
+Tested-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/buildid.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |   46 +++++++++++++++++++++++++++++-----------------
+ 1 file changed, 29 insertions(+), 17 deletions(-)
 
---- a/lib/buildid.c~buildid-use-kmap_local_page
-+++ a/lib/buildid.c
-@@ -140,7 +140,7 @@ int build_id_parse(struct vm_area_struct
- 		return -EFAULT;	/* page not mapped */
- 
- 	ret = -EINVAL;
--	page_addr = kmap_atomic(page);
-+	page_addr = kmap_local_page(page);
- 	ehdr = (Elf32_Ehdr *)page_addr;
- 
- 	/* compare magic x7f "ELF" */
-@@ -156,7 +156,7 @@ int build_id_parse(struct vm_area_struct
- 	else if (ehdr->e_ident[EI_CLASS] == ELFCLASS64)
- 		ret = get_build_id_64(page_addr, build_id, size);
- out:
--	kunmap_atomic(page_addr);
-+	kunmap_local(page_addr);
- 	put_page(page);
- 	return ret;
+--- a/mm/hugetlb.c~hugetlb-code-clean-for-hugetlb_hstate_alloc_pages
++++ a/mm/hugetlb.c
+@@ -3482,6 +3482,33 @@ static void __init hugetlb_hstate_alloc_
+ 	h->max_huge_pages_node[nid] = i;
  }
+ 
++static bool __init hugetlb_hstate_alloc_pages_specific_nodes(struct hstate *h)
++{
++	int i;
++	bool node_specific_alloc = false;
++
++	for_each_online_node(i) {
++		if (h->max_huge_pages_node[i] > 0) {
++			hugetlb_hstate_alloc_pages_onenode(h, i);
++			node_specific_alloc = true;
++		}
++	}
++
++	return node_specific_alloc;
++}
++
++static void __init hugetlb_hstate_alloc_pages_errcheck(unsigned long allocated, struct hstate *h)
++{
++	if (allocated < h->max_huge_pages) {
++		char buf[32];
++
++		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
++		pr_warn("HugeTLB: allocating %lu of page size %s failed.  Only allocated %lu hugepages.\n",
++			h->max_huge_pages, buf, allocated);
++		h->max_huge_pages = allocated;
++	}
++}
++
+ /*
+  * NOTE: this routine is called in different contexts for gigantic and
+  * non-gigantic pages.
+@@ -3499,7 +3526,6 @@ static void __init hugetlb_hstate_alloc_
+ 	struct folio *folio;
+ 	LIST_HEAD(folio_list);
+ 	nodemask_t *node_alloc_noretry;
+-	bool node_specific_alloc = false;
+ 
+ 	/* skip gigantic hugepages allocation if hugetlb_cma enabled */
+ 	if (hstate_is_gigantic(h) && hugetlb_cma_size) {
+@@ -3508,14 +3534,7 @@ static void __init hugetlb_hstate_alloc_
+ 	}
+ 
+ 	/* do node specific alloc */
+-	for_each_online_node(i) {
+-		if (h->max_huge_pages_node[i] > 0) {
+-			hugetlb_hstate_alloc_pages_onenode(h, i);
+-			node_specific_alloc = true;
+-		}
+-	}
+-
+-	if (node_specific_alloc)
++	if (hugetlb_hstate_alloc_pages_specific_nodes(h))
+ 		return;
+ 
+ 	/* below will do all node balanced alloc */
+@@ -3558,14 +3577,7 @@ static void __init hugetlb_hstate_alloc_
+ 	/* list will be empty if hstate_is_gigantic */
+ 	prep_and_add_allocated_folios(h, &folio_list);
+ 
+-	if (i < h->max_huge_pages) {
+-		char buf[32];
+-
+-		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
+-		pr_warn("HugeTLB: allocating %lu of page size %s failed.  Only allocated %lu hugepages.\n",
+-			h->max_huge_pages, buf, i);
+-		h->max_huge_pages = i;
+-	}
++	hugetlb_hstate_alloc_pages_errcheck(i, h);
+ 	kfree(node_alloc_noretry);
+ }
+ 
 _
 
-Patches currently in -mm which might be from flyingpeng@tencent.com are
+Patches currently in -mm which might be from gang.li@linux.dev are
 
-buildid-use-kmap_local_page.patch
 
