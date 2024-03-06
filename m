@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AF6B14AAD
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33C9514AAD
 	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 21:05:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709759107; cv=none; b=MyJiZWM0h8d//pTAkQO4mIvasaVMe6LNytA0aOsoG1n2TTMC2kDFxVwMENiW5hD4PdRC+EvndKIljQoVSHfO5XsofMG9APEehhddb/5cM+vPDMj9Pv98tIe85AELIdU7cUhLEyQLBqYPLRIh5PSILULdGFp3w3ghjM3rBNQ0Msw=
+	t=1709759108; cv=none; b=LuZHRtWwqWo5ehCjC1VKQsrmghaaHP0jfGuMoUr6jI/TP2XvRqCMzous4zUdTD4rDJbr3YpsxN1JZjXnFv9XixIhyZyyOHApxhTOxL3F+cya0dv9xWDXqTUr6LSSDmHe66rAmtQsvdRfXHL5YYLSMPRhOZVWtW/FXhzJut/hm6c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709759107; c=relaxed/simple;
-	bh=wEzCrYx5TH3WovVwHuOD31x4kxv/N91Ua7DG7mSGXgY=;
-	h=Date:To:From:Subject:Message-Id; b=cvx2lMvly9B6kgD94PDOTGP9zLVqgsdeGxp6qktCfaygCHUSknm+ZCEXa0viHFp5Iwz5oTgMmdQcKq0oAf2yzsURuDFp7p79KfoUqhoyuoB7C0ggM6SArzsv5ecHql/syLx7Pc9MiadD352oXaSpHwqcD0E396XEDgjZPJflf6I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kCygEmuN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709759108; c=relaxed/simple;
+	bh=B8CejewxhI0enWUk6Lrx4SoNeSVpk0oU/6dLM/9OCxY=;
+	h=Date:To:From:Subject:Message-Id; b=ulVbs8uSICfn4ZLPLWWsBGlERGztNu3gAZNBbnb1ldSvZiW5xqs5dczNsPP/YmarFkcSLFDJkP7eHp3Yri1PYLUXsXwe7UHgkpE8q3jKnyXNZXNazNlzSh2uPoPk2aD58r45LU9tqa/ApQ5yy0vF5cucq1RfVob44o0a6HvYxFI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NGd1tbHZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kCygEmuN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0E76C43390;
-	Wed,  6 Mar 2024 21:05:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NGd1tbHZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD495C433F1;
+	Wed,  6 Mar 2024 21:05:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709759106;
-	bh=wEzCrYx5TH3WovVwHuOD31x4kxv/N91Ua7DG7mSGXgY=;
+	s=korg; t=1709759107;
+	bh=B8CejewxhI0enWUk6Lrx4SoNeSVpk0oU/6dLM/9OCxY=;
 	h=Date:To:From:Subject:From;
-	b=kCygEmuNrmUCibSCslEDVqvCPRJCrEKfpliGNDadQt8U3SJQDhignXCxJh16smL0M
-	 mjw9UasyIK40afAW3tgexirf3kz08GM3wWURmkAeTOHrmpQoO28JC61x6yN7o3TrCo
-	 bU0XSB+jpdafF6QObn88J/wiB/PkbCG1oqlsVb2I=
-Date: Wed, 06 Mar 2024 13:05:06 -0800
+	b=NGd1tbHZiOC+nrRakQ6wGMw89Y5edEeU6d7azitVwbMH83YkmC2lLJSttA+wT6/rb
+	 WmL37QtyeQqM/CwZjJQ1fEplJUqDuz8DVeOOXGej20urw0nZYrLp/hFYkU+8fLcyRu
+	 mtb2S0of170xAJi6+zWwDGRsZwF2GdVVfvsTA6N0=
+Date: Wed, 06 Mar 2024 13:05:07 -0800
 To: mm-commits@vger.kernel.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-constify-testing-page-folio-flags.patch removed from -mm tree
-Message-Id: <20240306210506.D0E76C43390@smtp.kernel.org>
+Subject: [merged mm-stable] mm-constify-more-page-folio-tests.patch removed from -mm tree
+Message-Id: <20240306210507.AD495C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,102 +35,240 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: constify testing page/folio flags
+     Subject: mm: constify more page/folio tests
 has been removed from the -mm tree.  Its filename was
-     mm-constify-testing-page-folio-flags.patch
+     mm-constify-more-page-folio-tests.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: constify testing page/folio flags
-Date: Tue, 27 Feb 2024 19:23:33 +0000
+Subject: mm: constify more page/folio tests
+Date: Tue, 27 Feb 2024 19:23:34 +0000
 
-Now that dump_page() takes a const argument, we can constify all the page
-flag tests.
+Constify the flag tests that aren't automatically generated and the tests
+that look like flag tests but are more complicated.
 
-Link: https://lkml.kernel.org/r/20240227192337.757313-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240227192337.757313-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   24 +++++++++++++++++-------
- 1 file changed, 17 insertions(+), 7 deletions(-)
+ include/linux/page-flags.h |   52 +++++++++++++++++------------------
+ mm/hugetlb.c               |    4 +-
+ 2 files changed, 28 insertions(+), 28 deletions(-)
 
---- a/include/linux/page-flags.h~mm-constify-testing-page-folio-flags
+--- a/include/linux/page-flags.h~mm-constify-more-page-folio-tests
 +++ a/include/linux/page-flags.h
-@@ -237,7 +237,7 @@ static inline const struct page *page_fi
- }
+@@ -558,13 +558,13 @@ PAGEFLAG_FALSE(HighMem, highmem)
  #endif
  
--static __always_inline int page_is_fake_head(struct page *page)
-+static __always_inline int page_is_fake_head(const struct page *page)
+ #ifdef CONFIG_SWAP
+-static __always_inline bool folio_test_swapcache(struct folio *folio)
++static __always_inline bool folio_test_swapcache(const struct folio *folio)
  {
- 	return page_fixed_fake_head(page) != page;
+ 	return folio_test_swapbacked(folio) &&
+-			test_bit(PG_swapcache, folio_flags(folio, 0));
++			test_bit(PG_swapcache, const_folio_flags(folio, 0));
  }
-@@ -281,12 +281,12 @@ static inline unsigned long _compound_he
+ 
+-static __always_inline bool PageSwapCache(struct page *page)
++static __always_inline bool PageSwapCache(const struct page *page)
+ {
+ 	return folio_test_swapcache(page_folio(page));
+ }
+@@ -663,22 +663,22 @@ PAGEFLAG_FALSE(VmemmapSelfHosted, vmemma
   */
- #define folio_page(folio, n)	nth_page(&(folio)->page, n)
+ #define PAGE_MAPPING_DAX_SHARED	((void *)0x1)
  
--static __always_inline int PageTail(struct page *page)
-+static __always_inline int PageTail(const struct page *page)
+-static __always_inline bool folio_mapping_flags(struct folio *folio)
++static __always_inline bool folio_mapping_flags(const struct folio *folio)
  {
- 	return READ_ONCE(page->compound_head) & 1 || page_is_fake_head(page);
+ 	return ((unsigned long)folio->mapping & PAGE_MAPPING_FLAGS) != 0;
  }
  
--static __always_inline int PageCompound(struct page *page)
-+static __always_inline int PageCompound(const struct page *page)
+-static __always_inline int PageMappingFlags(struct page *page)
++static __always_inline int PageMappingFlags(const struct page *page)
  {
- 	return test_bit(PG_head, &page->flags) ||
- 	       READ_ONCE(page->compound_head) & 1;
-@@ -306,6 +306,16 @@ static inline void page_init_poison(stru
+ 	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) != 0;
  }
- #endif
  
-+static const unsigned long *const_folio_flags(const struct folio *folio,
-+		unsigned n)
-+{
-+	const struct page *page = &folio->page;
-+
-+	VM_BUG_ON_PGFLAGS(PageTail(page), page);
-+	VM_BUG_ON_PGFLAGS(n > 0 && !test_bit(PG_head, &page->flags), page);
-+	return &page[n].flags;
-+}
-+
- static unsigned long *folio_flags(struct folio *folio, unsigned n)
+-static __always_inline bool folio_test_anon(struct folio *folio)
++static __always_inline bool folio_test_anon(const struct folio *folio)
  {
- 	struct page *page = &folio->page;
-@@ -367,8 +377,8 @@ static unsigned long *folio_flags(struct
-  * Macros to create function definitions for page flags
+ 	return ((unsigned long)folio->mapping & PAGE_MAPPING_ANON) != 0;
+ }
+ 
+-static __always_inline bool PageAnon(struct page *page)
++static __always_inline bool PageAnon(const struct page *page)
+ {
+ 	return folio_test_anon(page_folio(page));
+ }
+@@ -689,7 +689,7 @@ static __always_inline bool __folio_test
+ 			PAGE_MAPPING_MOVABLE;
+ }
+ 
+-static __always_inline int __PageMovable(struct page *page)
++static __always_inline int __PageMovable(const struct page *page)
+ {
+ 	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) ==
+ 				PAGE_MAPPING_MOVABLE;
+@@ -702,13 +702,13 @@ static __always_inline int __PageMovable
+  * is found in VM_MERGEABLE vmas.  It's a PageAnon page, pointing not to any
+  * anon_vma, but to that page's node of the stable tree.
   */
- #define FOLIO_TEST_FLAG(name, page)					\
--static __always_inline bool folio_test_##name(struct folio *folio)	\
--{ return test_bit(PG_##name, folio_flags(folio, page)); }
-+static __always_inline bool folio_test_##name(const struct folio *folio) \
-+{ return test_bit(PG_##name, const_folio_flags(folio, page)); }
- 
- #define FOLIO_SET_FLAG(name, page)					\
- static __always_inline void folio_set_##name(struct folio *folio)	\
-@@ -401,7 +411,7 @@ FOLIO_CLEAR_FLAG(name, page)
- 
- #define TESTPAGEFLAG(uname, lname, policy)				\
- FOLIO_TEST_FLAG(lname, FOLIO_##policy)					\
--static __always_inline int Page##uname(struct page *page)		\
-+static __always_inline int Page##uname(const struct page *page)		\
- { return test_bit(PG_##lname, &policy(page, 0)->flags); }
- 
- #define SETPAGEFLAG(uname, lname, policy)				\
-@@ -801,7 +811,7 @@ static __always_inline bool folio_test_h
- 	return test_bit(PG_head, folio_flags(folio, FOLIO_PF_ANY));
+-static __always_inline bool folio_test_ksm(struct folio *folio)
++static __always_inline bool folio_test_ksm(const struct folio *folio)
+ {
+ 	return ((unsigned long)folio->mapping & PAGE_MAPPING_FLAGS) ==
+ 				PAGE_MAPPING_KSM;
  }
  
--static __always_inline int PageHead(struct page *page)
-+static __always_inline int PageHead(const struct page *page)
+-static __always_inline bool PageKsm(struct page *page)
++static __always_inline bool PageKsm(const struct page *page)
  {
- 	PF_POISONED_CHECK(page);
- 	return test_bit(PG_head, &page->flags) && !page_is_fake_head(page);
+ 	return folio_test_ksm(page_folio(page));
+ }
+@@ -747,9 +747,9 @@ static inline bool folio_xor_flags_has_w
+  * some of the bytes in it may be; see the is_partially_uptodate()
+  * address_space operation.
+  */
+-static inline bool folio_test_uptodate(struct folio *folio)
++static inline bool folio_test_uptodate(const struct folio *folio)
+ {
+-	bool ret = test_bit(PG_uptodate, folio_flags(folio, 0));
++	bool ret = test_bit(PG_uptodate, const_folio_flags(folio, 0));
+ 	/*
+ 	 * Must ensure that the data we read out of the folio is loaded
+ 	 * _after_ we've loaded folio->flags to check the uptodate bit.
+@@ -764,7 +764,7 @@ static inline bool folio_test_uptodate(s
+ 	return ret;
+ }
+ 
+-static inline int PageUptodate(struct page *page)
++static inline int PageUptodate(const struct page *page)
+ {
+ 	return folio_test_uptodate(page_folio(page));
+ }
+@@ -806,9 +806,9 @@ void set_page_writeback(struct page *pag
+ #define folio_start_writeback_keepwrite(folio)	\
+ 	__folio_start_writeback(folio, true)
+ 
+-static __always_inline bool folio_test_head(struct folio *folio)
++static __always_inline bool folio_test_head(const struct folio *folio)
+ {
+-	return test_bit(PG_head, folio_flags(folio, FOLIO_PF_ANY));
++	return test_bit(PG_head, const_folio_flags(folio, FOLIO_PF_ANY));
+ }
+ 
+ static __always_inline int PageHead(const struct page *page)
+@@ -827,7 +827,7 @@ CLEARPAGEFLAG(Head, head, PF_ANY)
+  *
+  * Return: True if the folio is larger than one page.
+  */
+-static inline bool folio_test_large(struct folio *folio)
++static inline bool folio_test_large(const struct folio *folio)
+ {
+ 	return folio_test_head(folio);
+ }
+@@ -856,7 +856,7 @@ TESTPAGEFLAG_FALSE(LargeRmappable, large
+ #define PG_head_mask ((1UL << PG_head))
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
+-int PageHuge(struct page *page);
++int PageHuge(const struct page *page);
+ SETPAGEFLAG(HugeTLB, hugetlb, PF_SECOND)
+ CLEARPAGEFLAG(HugeTLB, hugetlb, PF_SECOND)
+ 
+@@ -869,10 +869,10 @@ CLEARPAGEFLAG(HugeTLB, hugetlb, PF_SECON
+  * Return: True for hugetlbfs folios, false for anon folios or folios
+  * belonging to other filesystems.
+  */
+-static inline bool folio_test_hugetlb(struct folio *folio)
++static inline bool folio_test_hugetlb(const struct folio *folio)
+ {
+ 	return folio_test_large(folio) &&
+-		test_bit(PG_hugetlb, folio_flags(folio, 1));
++		test_bit(PG_hugetlb, const_folio_flags(folio, 1));
+ }
+ #else
+ TESTPAGEFLAG_FALSE(Huge, hugetlb)
+@@ -887,7 +887,7 @@ TESTPAGEFLAG_FALSE(Huge, hugetlb)
+  * hugetlbfs pages, but not normal pages. PageTransHuge() can only be
+  * called only in the core VM paths where hugetlbfs pages can't exist.
+  */
+-static inline int PageTransHuge(struct page *page)
++static inline int PageTransHuge(const struct page *page)
+ {
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
+ 	return PageHead(page);
+@@ -898,7 +898,7 @@ static inline int PageTransHuge(struct p
+  * and hugetlbfs pages, so it should only be called when it's known
+  * that hugetlbfs pages aren't involved.
+  */
+-static inline int PageTransCompound(struct page *page)
++static inline int PageTransCompound(const struct page *page)
+ {
+ 	return PageCompound(page);
+ }
+@@ -908,7 +908,7 @@ static inline int PageTransCompound(stru
+  * and hugetlbfs pages, so it should only be called when it's known
+  * that hugetlbfs pages aren't involved.
+  */
+-static inline int PageTransTail(struct page *page)
++static inline int PageTransTail(const struct page *page)
+ {
+ 	return PageTail(page);
+ }
+@@ -972,7 +972,7 @@ static inline int page_type_has_type(uns
+ 	return (int)page_type < PAGE_MAPCOUNT_RESERVE;
+ }
+ 
+-static inline int page_has_type(struct page *page)
++static inline int page_has_type(const struct page *page)
+ {
+ 	return page_type_has_type(page->page_type);
+ }
+@@ -1056,7 +1056,7 @@ extern bool is_free_buddy_page(struct pa
+ 
+ PAGEFLAG(Isolated, isolated, PF_ANY);
+ 
+-static __always_inline int PageAnonExclusive(struct page *page)
++static __always_inline int PageAnonExclusive(const struct page *page)
+ {
+ 	VM_BUG_ON_PGFLAGS(!PageAnon(page), page);
+ 	VM_BUG_ON_PGFLAGS(PageHuge(page) && !PageHead(page), page);
+@@ -1129,12 +1129,12 @@ static __always_inline void __ClearPageA
+  * Determine if a page has private stuff, indicating that release routines
+  * should be invoked upon it.
+  */
+-static inline int page_has_private(struct page *page)
++static inline int page_has_private(const struct page *page)
+ {
+ 	return !!(page->flags & PAGE_FLAGS_PRIVATE);
+ }
+ 
+-static inline bool folio_has_private(struct folio *folio)
++static inline bool folio_has_private(const struct folio *folio)
+ {
+ 	return page_has_private(&folio->page);
+ }
+--- a/mm/hugetlb.c~mm-constify-more-page-folio-tests
++++ a/mm/hugetlb.c
+@@ -2164,9 +2164,9 @@ static bool prep_compound_gigantic_folio
+  * transparent huge pages.  See the PageTransHuge() documentation for more
+  * details.
+  */
+-int PageHuge(struct page *page)
++int PageHuge(const struct page *page)
+ {
+-	struct folio *folio;
++	const struct folio *folio;
+ 
+ 	if (!PageCompound(page))
+ 		return 0;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
