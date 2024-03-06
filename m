@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FE491862F
-	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 21:05:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A87D81862F;
+	Wed,  6 Mar 2024 21:05:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709759126; cv=none; b=inesMqKUYLU46Go1FDxLKBW5OjBSZJnAegs+hcpVoKHAZu1cCrYr8UJyNyRAZ/70kb2dHV/DYzPY3zYkUni3r7xJLst8GQOtvqV/kJ63V4+D2BOFMBAXPaVhwzpz3yTwrjREa6Ob0nZOYIN9uZUYoPjIfPtWqPy/gK4nABlr3Rk=
+	t=1709759127; cv=none; b=iUV2vqGB+XJ3axE6kkMW+ax4MBDfkfhpOY0Y1whdQFCDsBCzWRv17/P5I5HpxrTs5Uza6UOBYc2EqiYfWxiHmYO2pUFxc9PYIH87C0QKx9ZLy4DyEo5siMW52CcyvpLpOsMH30AwXkNJAOQJBLJfJW0iyF/JPwQIhrPVKn1AVoA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709759126; c=relaxed/simple;
-	bh=abY8ZQM1xSNsDQeSKtl4tT8Si1YEipqmsjvlIMMtjVs=;
-	h=Date:To:From:Subject:Message-Id; b=oilTu3ewDWtyGe7dXuBhqRMG/Fps+xoSjOGPvEQkzyXco/DnUH6eHx17+jtFF2ksGpQUdLnT6x3R9FV4EIGJYAvJWSrtUi0Hb/FOcRrSckkME204jiYGMEFrE+yRjG9zENc7QDbvIJv1ONYoJetWfnnYNZm6yhoVuUkRHAe2x2U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KwCOhkbJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709759127; c=relaxed/simple;
+	bh=tIjys/FUQaWw4XD+wpR/5C9NgGzIzIubyk8iZgGNAiQ=;
+	h=Date:To:From:Subject:Message-Id; b=Z4/YqSkle19d/IF2MNst6ZJ8s9I385ORfCR6AtaVnG2lGUQeFQ2MwSCjjReh37OYSqo3TMI8vEPD1JLvpKTT/TFVX0j1m4T2+vabSCz+urM02jiBOOO9Mxxn0hThukcyiDq15uTVaISsPLTV78LRFi/nUb+axLwTleRwirmnu08=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bj42NrcM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KwCOhkbJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 741CFC433F1;
-	Wed,  6 Mar 2024 21:05:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bj42NrcM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AD86C433F1;
+	Wed,  6 Mar 2024 21:05:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709759126;
-	bh=abY8ZQM1xSNsDQeSKtl4tT8Si1YEipqmsjvlIMMtjVs=;
+	s=korg; t=1709759127;
+	bh=tIjys/FUQaWw4XD+wpR/5C9NgGzIzIubyk8iZgGNAiQ=;
 	h=Date:To:From:Subject:From;
-	b=KwCOhkbJCH8U59mXFfx1D8d42aKOphZDp/RcMwhnO70MIzfjTTLhhGCks6T05AoOE
-	 yJ0OqUV59j4soQNUsj6gSv8oABXuM+ahIRxO7nhuLUB1Wk/YA46N8kVEgAz8c3W4qo
-	 2tgO8C3a0twtBoxrkgbbT+wFCbpFD9rkuJx66ScM=
-Date: Wed, 06 Mar 2024 13:05:25 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,tglx@linutronix.de,shy828301@gmail.com,ryabinin.a.a@gmail.com,rppt@kernel.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,muchun.song@linux.dev,mpe@ellerman.id.au,mingo@redhat.com,kirill@shutemov.name,jgg@nvidia.com,glider@google.com,dvyukov@google.com,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,bp@alien8.de,aneesh.kumar@kernel.org,andreyknvl@gmail.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=bj42NrcM5qr41jUgvHdnSkZQVE80wvhIzAA0LUqfynLfEGi5OAxoXAmlz1o+YwTQN
+	 F0LQ7oUWrzt3sp6Pcd12ITYXHeZn+q5zik8EODuDN6pnAGFOMigMQp2Nua29Jk4WNU
+	 K+gr1qA0ycAr6u1IENFZdeRxzVzvxOmiK8WlqLSw=
+Date: Wed, 06 Mar 2024 13:05:26 -0800
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,stable@vger.kernel.org,david@redhat.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-treewide-align-up-pxd_leaf-retval-across-archs.patch removed from -mm tree
-Message-Id: <20240306210526.741CFC433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-fix-race-between-free_swap_and_cache-and-swapoff.patch removed from -mm tree
+Message-Id: <20240306210527.7AD86C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,181 +35,125 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/treewide: align up pXd_leaf() retval across archs
+     Subject: mm: swap: fix race between free_swap_and_cache() and swapoff()
 has been removed from the -mm tree.  Its filename was
-     mm-treewide-align-up-pxd_leaf-retval-across-archs.patch
+     mm-swap-fix-race-between-free_swap_and_cache-and-swapoff.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/treewide: align up pXd_leaf() retval across archs
-Date: Tue, 5 Mar 2024 12:37:50 +0800
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: swap: fix race between free_swap_and_cache() and swapoff()
+Date: Wed, 6 Mar 2024 14:03:56 +0000
 
-Even if pXd_leaf() API is defined globally, it's not clear on the retval,
-and there are three types used (bool, int, unsigned log).
+There was previously a theoretical window where swapoff() could run and
+teardown a swap_info_struct while a call to free_swap_and_cache() was
+running in another thread.  This could cause, amongst other bad
+possibilities, swap_page_trans_huge_swapped() (called by
+free_swap_and_cache()) to access the freed memory for swap_map.
 
-Always return a boolean for pXd_leaf() APIs.
+This is a theoretical problem and I haven't been able to provoke it from a
+test case.  But there has been agreement based on code review that this is
+possible (see link below).
 
-Link: https://lkml.kernel.org/r/20240305043750.93762-11-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Fix it by using get_swap_device()/put_swap_device(), which will stall
+swapoff().  There was an extra check in _swap_info_get() to confirm that
+the swap entry was not free.  This isn't present in get_swap_device()
+because it doesn't make sense in general due to the race between getting
+the reference and swapoff.  So I've added an equivalent check directly in
+free_swap_and_cache().
+
+Details of how to provoke one possible issue (thanks to David Hildenbrand
+for deriving this):
+
+--8<-----
+
+__swap_entry_free() might be the last user and result in
+"count == SWAP_HAS_CACHE".
+
+swapoff->try_to_unuse() will stop as soon as soon as si->inuse_pages==0.
+
+So the question is: could someone reclaim the folio and turn
+si->inuse_pages==0, before we completed swap_page_trans_huge_swapped().
+
+Imagine the following: 2 MiB folio in the swapcache. Only 2 subpages are
+still references by swap entries.
+
+Process 1 still references subpage 0 via swap entry.
+Process 2 still references subpage 1 via swap entry.
+
+Process 1 quits. Calls free_swap_and_cache().
+-> count == SWAP_HAS_CACHE
+[then, preempted in the hypervisor etc.]
+
+Process 2 quits. Calls free_swap_and_cache().
+-> count == SWAP_HAS_CACHE
+
+Process 2 goes ahead, passes swap_page_trans_huge_swapped(), and calls
+__try_to_reclaim_swap().
+
+__try_to_reclaim_swap()->folio_free_swap()->delete_from_swap_cache()->
+put_swap_folio()->free_swap_slot()->swapcache_free_entries()->
+swap_entry_free()->swap_range_free()->
+...
+WRITE_ONCE(si->inuse_pages, si->inuse_pages - nr_entries);
+
+What stops swapoff to succeed after process 2 reclaimed the swap cache
+but before process1 finished its call to swap_page_trans_huge_swapped()?
+
+--8<-----
+
+Link: https://lkml.kernel.org/r/20240306140356.3974886-1-ryan.roberts@arm.com
+Fixes: 7c00bafee87c ("mm/swap: free swap slots in batch")
+Closes: https://lore.kernel.org/linux-mm/65a66eb9-41f8-4790-8db2-0c70ea15979f@redhat.com/
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/include/asm/pgtable-64.h |    2 +-
- arch/riscv/include/asm/pgtable.h    |    2 +-
- arch/s390/include/asm/pgtable.h     |    4 ++--
- arch/sparc/include/asm/pgtable_64.h |    4 ++--
- arch/x86/include/asm/pgtable.h      |    8 ++++----
- include/linux/pgtable.h             |    8 ++++----
- 6 files changed, 14 insertions(+), 14 deletions(-)
+ mm/swapfile.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/arch/riscv/include/asm/pgtable-64.h~mm-treewide-align-up-pxd_leaf-retval-across-archs
-+++ a/arch/riscv/include/asm/pgtable-64.h
-@@ -190,7 +190,7 @@ static inline int pud_bad(pud_t pud)
+--- a/mm/swapfile.c~mm-swap-fix-race-between-free_swap_and_cache-and-swapoff
++++ a/mm/swapfile.c
+@@ -1232,6 +1232,11 @@ static unsigned char __swap_entry_free_l
+  * with get_swap_device() and put_swap_device(), unless the swap
+  * functions call get/put_swap_device() by themselves.
+  *
++ * Note that when only holding the PTL, swapoff might succeed immediately
++ * after freeing a swap entry. Therefore, immediately after
++ * __swap_entry_free(), the swap info might become stale and should not
++ * be touched without a prior get_swap_device().
++ *
+  * Check whether swap entry is valid in the swap device.  If so,
+  * return pointer to swap_info_struct, and keep the swap entry valid
+  * via preventing the swap device from being swapoff, until
+@@ -1609,13 +1614,19 @@ int free_swap_and_cache(swp_entry_t entr
+ 	if (non_swap_entry(entry))
+ 		return 1;
+ 
+-	p = _swap_info_get(entry);
++	p = get_swap_device(entry);
+ 	if (p) {
++		if (WARN_ON(data_race(!p->swap_map[swp_offset(entry)]))) {
++			put_swap_device(p);
++			return 0;
++		}
++
+ 		count = __swap_entry_free(p, entry);
+ 		if (count == SWAP_HAS_CACHE &&
+ 		    !swap_page_trans_huge_swapped(p, entry))
+ 			__try_to_reclaim_swap(p, swp_offset(entry),
+ 					      TTRS_UNMAPPED | TTRS_FULL);
++		put_swap_device(p);
+ 	}
+ 	return p != NULL;
  }
- 
- #define pud_leaf	pud_leaf
--static inline int pud_leaf(pud_t pud)
-+static inline bool pud_leaf(pud_t pud)
- {
- 	return pud_present(pud) && (pud_val(pud) & _PAGE_LEAF);
- }
---- a/arch/riscv/include/asm/pgtable.h~mm-treewide-align-up-pxd_leaf-retval-across-archs
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -241,7 +241,7 @@ static inline int pmd_bad(pmd_t pmd)
- }
- 
- #define pmd_leaf	pmd_leaf
--static inline int pmd_leaf(pmd_t pmd)
-+static inline bool pmd_leaf(pmd_t pmd)
- {
- 	return pmd_present(pmd) && (pmd_val(pmd) & _PAGE_LEAF);
- }
---- a/arch/s390/include/asm/pgtable.h~mm-treewide-align-up-pxd_leaf-retval-across-archs
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -706,7 +706,7 @@ static inline int pud_none(pud_t pud)
- }
- 
- #define pud_leaf pud_leaf
--static inline int pud_leaf(pud_t pud)
-+static inline bool pud_leaf(pud_t pud)
- {
- 	if ((pud_val(pud) & _REGION_ENTRY_TYPE_MASK) != _REGION_ENTRY_TYPE_R3)
- 		return 0;
-@@ -714,7 +714,7 @@ static inline int pud_leaf(pud_t pud)
- }
- 
- #define pmd_leaf pmd_leaf
--static inline int pmd_leaf(pmd_t pmd)
-+static inline bool pmd_leaf(pmd_t pmd)
- {
- 	return (pmd_val(pmd) & _SEGMENT_ENTRY_LARGE) != 0;
- }
---- a/arch/sparc/include/asm/pgtable_64.h~mm-treewide-align-up-pxd_leaf-retval-across-archs
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -681,7 +681,7 @@ static inline unsigned long pte_special(
- }
- 
- #define pmd_leaf pmd_leaf
--static inline unsigned long pmd_leaf(pmd_t pmd)
-+static inline bool pmd_leaf(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
- 
-@@ -868,7 +868,7 @@ static inline pmd_t *pud_pgtable(pud_t p
- #define p4d_page(p4d)			NULL
- 
- #define pud_leaf pud_leaf
--static inline unsigned long pud_leaf(pud_t pud)
-+static inline bool pud_leaf(pud_t pud)
- {
- 	pte_t pte = __pte(pud_val(pud));
- 
---- a/arch/x86/include/asm/pgtable.h~mm-treewide-align-up-pxd_leaf-retval-across-archs
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -252,7 +252,7 @@ static inline unsigned long pgd_pfn(pgd_
- }
- 
- #define p4d_leaf p4d_leaf
--static inline int p4d_leaf(p4d_t p4d)
-+static inline bool p4d_leaf(p4d_t p4d)
- {
- 	/* No 512 GiB pages yet */
- 	return 0;
-@@ -261,7 +261,7 @@ static inline int p4d_leaf(p4d_t p4d)
- #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
- 
- #define pmd_leaf pmd_leaf
--static inline int pmd_leaf(pmd_t pte)
-+static inline bool pmd_leaf(pmd_t pte)
- {
- 	return pmd_flags(pte) & _PAGE_PSE;
- }
-@@ -1086,7 +1086,7 @@ static inline pmd_t *pud_pgtable(pud_t p
- #define pud_page(pud)	pfn_to_page(pud_pfn(pud))
- 
- #define pud_leaf pud_leaf
--static inline int pud_leaf(pud_t pud)
-+static inline bool pud_leaf(pud_t pud)
- {
- 	return (pud_val(pud) & (_PAGE_PSE | _PAGE_PRESENT)) ==
- 		(_PAGE_PSE | _PAGE_PRESENT);
-@@ -1413,7 +1413,7 @@ static inline bool pgdp_maps_userspace(v
- }
- 
- #define pgd_leaf	pgd_leaf
--static inline int pgd_leaf(pgd_t pgd) { return 0; }
-+static inline bool pgd_leaf(pgd_t pgd) { return false; }
- 
- #ifdef CONFIG_PAGE_TABLE_ISOLATION
- /*
---- a/include/linux/pgtable.h~mm-treewide-align-up-pxd_leaf-retval-across-archs
-+++ a/include/linux/pgtable.h
-@@ -1777,16 +1777,16 @@ typedef unsigned int pgtbl_mod_mask;
-  * Only meaningful when called on a valid entry.
-  */
- #ifndef pgd_leaf
--#define pgd_leaf(x)	0
-+#define pgd_leaf(x)	false
- #endif
- #ifndef p4d_leaf
--#define p4d_leaf(x)	0
-+#define p4d_leaf(x)	false
- #endif
- #ifndef pud_leaf
--#define pud_leaf(x)	0
-+#define pud_leaf(x)	false
- #endif
- #ifndef pmd_leaf
--#define pmd_leaf(x)	0
-+#define pmd_leaf(x)	false
- #endif
- 
- #ifndef pgd_leaf_size
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
 
