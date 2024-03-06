@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A40B175AD
-	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 21:05:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1500E175AD
+	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 21:05:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709759114; cv=none; b=cMDSqUWXg6djW+WNt+HV+Fmp5S/EMEyVt7KmO1SHFMv+kNnLi07S4vroQVVX5/VrUxebfYuBVYNLwktvvqySzJMkewqL5r/5kAhds8ukkgE5f8XJUQMa0lrh6YC7A+Htq6ysr/b9ViweWzJ+5Mu9922rOgVFL+IE6flmLtMFj+E=
+	t=1709759115; cv=none; b=eATFM2Hdqt8sw6RHqJs1xtAIpF/Yi8/MbtWw6GfNhROWr9bDrjepK9pUEF/su0g6CBwTat8mob729YE3fK8BQ8lmZhA4byf/+RdDtCYSW1s97UjbrWqwFOPOvrTUj/C/FLjIYzLJIBzdq5sdKxCVgym2NroQZH7IbbvPafpp5cM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709759114; c=relaxed/simple;
-	bh=m5fukqTbLvUgGWHvSzvTjZMFqQgVK6fUvHarbNuZARY=;
-	h=Date:To:From:Subject:Message-Id; b=Upn+mwHyARUAHhTLagfnM4dXpOv7E/zK/48UPZNOn/hgtJfV4p59c+qomRgl4z6CiAFzFft9A7zrmNAfvUwzdDWV0Xy+bs7ieKC4+h+5GapSVhvuAhZLi2zkn66SqSqC1cMpe7ExxxzOw4oFBTkeyIDMrciLngNE1z8AQ+WhrL8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ov+EOpEu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709759115; c=relaxed/simple;
+	bh=n9yWgq4MOLch6xMrYzSf4FY22cs1K/rZVe+IB+06pqo=;
+	h=Date:To:From:Subject:Message-Id; b=BAqdYOQ3m3nNweKCdS09di1RxHXglKzzplRnGJG7Fj+nL+0jgKS499Sr4uG0fJPZEe9DIwz3+PquxmOgDNG/BIHiPxOHsn33jGGlZI/pe72PIxjq5iro8hKkBECovhHfG2ApZ//W8VcT+vZsQjvIXOzzgs3gvSJPPJ66LZOGggY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FhNdQ0sd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ov+EOpEu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F107DC433F1;
-	Wed,  6 Mar 2024 21:05:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FhNdQ0sd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA8AFC43390;
+	Wed,  6 Mar 2024 21:05:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
 	s=korg; t=1709759114;
-	bh=m5fukqTbLvUgGWHvSzvTjZMFqQgVK6fUvHarbNuZARY=;
+	bh=n9yWgq4MOLch6xMrYzSf4FY22cs1K/rZVe+IB+06pqo=;
 	h=Date:To:From:Subject:From;
-	b=ov+EOpEubiRyVnerv2TcFhZznpo8lnxgZCJTpB8+WLxxj3U3u2qWXBYCWWFeCPQyL
-	 2vsZHq17q0JRPdTXEac6ijCXjlEAO4XkpbgbO7GGM84S/taderV4YE22kTSLMK2lHn
-	 IGmoCu8nh4OPMOx5XHNTJcKBricr7JER8QZBBQrg=
-Date: Wed, 06 Mar 2024 13:05:13 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,rppt@kernel.org,muchun.song@linux.dev,imbrenda@linux.ibm.com,hughd@google.com,frankja@linux.ibm.com,david@redhat.com,borntraeger@linux.ibm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=FhNdQ0sdD/smoH0hGGv4lTZb65sjcIDJD6KBKyB0JOr6p0tacvQXF4QZBIUfrKP64
+	 pMAdRGCWZYXdCAtJ5XGBZWuNv3pq2Y3UR5WFzWuu/VVODUeN3H+wC21PYlgnYNuOlh
+	 QGeI0db32lZzYurXJ4Iq8FNdtVHe6DLf05hlbmPw=
+Date: Wed, 06 Mar 2024 13:05:14 -0800
+To: mm-commits@vger.kernel.org,samsun1006219@gmail.com,lstoakes@gmail.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] s390-supplement-for-ptdesc-conversion.patch removed from -mm tree
-Message-Id: <20240306210513.F107DC433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-fix-shift-out-of-bounds-in-fault_around_bytes_set.patch removed from -mm tree
+Message-Id: <20240306210514.DA8AFC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,192 +35,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: s390: supplement for ptdesc conversion
+     Subject: mm: memory: fix shift-out-of-bounds in fault_around_bytes_set
 has been removed from the -mm tree.  Its filename was
-     s390-supplement-for-ptdesc-conversion.patch
+     mm-memory-fix-shift-out-of-bounds-in-fault_around_bytes_set.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: s390: supplement for ptdesc conversion
-Date: Mon, 4 Mar 2024 19:07:20 +0800
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: memory: fix shift-out-of-bounds in fault_around_bytes_set
+Date: Sat, 2 Mar 2024 14:43:12 +0800
 
-After commit 6326c26c1514 ("s390: convert various pgalloc functions to use
-ptdescs"), there are still some positions that use page->{lru, index}
-instead of ptdesc->{pt_list, pt_index}.  In order to make the use of
-ptdesc->{pt_list, pt_index} clearer, it would be better to convert them as
-well.
+The rounddown_pow_of_two(0) is undefined, so val = 0 is not allowed in the
+fault_around_bytes_set(), and leads to shift-out-of-bounds,
 
-[zhengqi.arch@bytedance.com: fix build failure]
-  Link: https://lkml.kernel.org/r/20240305072154.26168-1-zhengqi.arch@bytedance.com
-Link: https://lkml.kernel.org/r/04beaf3255056ffe131a5ea595736066c1e84756.1709541697.git.zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+UBSAN: shift-out-of-bounds in include/linux/log2.h:67:13
+shift exponent 4294967295 is too large for 64-bit type 'long unsigned int'
+CPU: 7 PID: 107 Comm: sh Not tainted 6.8.0-rc6-next-20240301 #294
+Hardware name: QEMU QEMU Virtual Machine, BIOS 0.0.0 02/06/2015
+Call trace:
+ dump_backtrace+0x94/0xec
+ show_stack+0x18/0x24
+ dump_stack_lvl+0x78/0x90
+ dump_stack+0x18/0x24
+ ubsan_epilogue+0x10/0x44
+ __ubsan_handle_shift_out_of_bounds+0x98/0x134
+ fault_around_bytes_set+0xa4/0xb0
+ simple_attr_write_xsigned.isra.0+0xe4/0x1ac
+ simple_attr_write+0x18/0x24
+ debugfs_attr_write+0x4c/0x98
+ vfs_write+0xd0/0x4b0
+ ksys_write+0x6c/0xfc
+ __arm64_sys_write+0x1c/0x28
+ invoke_syscall+0x44/0x104
+ el0_svc_common.constprop.0+0x40/0xe0
+ do_el0_svc+0x1c/0x28
+ el0_svc+0x34/0xdc
+ el0t_64_sync_handler+0xc0/0xc4
+ el0t_64_sync+0x190/0x194
+---[ end trace ]---
+
+Fix it by setting the minimum val to PAGE_SIZE.
+
+Link: https://lkml.kernel.org/r/20240302064312.2358924-1-wangkefeng.wang@huawei.com
+Fixes: 53d36a56d8c4 ("mm: prefer fault_around_pages to fault_around_bytes")
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reported-by: Yue Sun <samsun1006219@gmail.com>
+Closes: https://lore.kernel.org/all/CAEkJfYPim6DQqW1GqCiHLdh2-eweqk1fGyXqs3JM+8e1qGge8w@mail.gmail.com/
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgalloc.h |    4 +--
- arch/s390/mm/gmap.c             |   38 +++++++++++++++---------------
- arch/s390/mm/pgalloc.c          |    8 +++---
- 3 files changed, 26 insertions(+), 24 deletions(-)
+ mm/memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/arch/s390/include/asm/pgalloc.h~s390-supplement-for-ptdesc-conversion
-+++ a/arch/s390/include/asm/pgalloc.h
-@@ -23,9 +23,9 @@ unsigned long *crst_table_alloc(struct m
- void crst_table_free(struct mm_struct *, unsigned long *);
+--- a/mm/memory.c~mm-memory-fix-shift-out-of-bounds-in-fault_around_bytes_set
++++ a/mm/memory.c
+@@ -4776,7 +4776,8 @@ static int fault_around_bytes_set(void *
+ 	 * The minimum value is 1 page, however this results in no fault-around
+ 	 * at all. See should_fault_around().
+ 	 */
+-	fault_around_pages = max(rounddown_pow_of_two(val) >> PAGE_SHIFT, 1UL);
++	val = max(val, PAGE_SIZE);
++	fault_around_pages = rounddown_pow_of_two(val) >> PAGE_SHIFT;
  
- unsigned long *page_table_alloc(struct mm_struct *);
--struct page *page_table_alloc_pgste(struct mm_struct *mm);
-+struct ptdesc *page_table_alloc_pgste(struct mm_struct *mm);
- void page_table_free(struct mm_struct *, unsigned long *);
--void page_table_free_pgste(struct page *page);
-+void page_table_free_pgste(struct ptdesc *ptdesc);
- extern int page_table_allocate_pgste;
- 
- static inline void crst_table_init(unsigned long *crst, unsigned long entry)
---- a/arch/s390/mm/gmap.c~s390-supplement-for-ptdesc-conversion
-+++ a/arch/s390/mm/gmap.c
-@@ -206,9 +206,11 @@ static void gmap_free(struct gmap *gmap)
- 
- 	/* Free additional data for a shadow gmap */
- 	if (gmap_is_shadow(gmap)) {
-+		struct ptdesc *ptdesc, *n;
-+
- 		/* Free all page tables. */
--		list_for_each_entry_safe(page, next, &gmap->pt_list, lru)
--			page_table_free_pgste(page);
-+		list_for_each_entry_safe(ptdesc, n, &gmap->pt_list, pt_list)
-+			page_table_free_pgste(ptdesc);
- 		gmap_rmap_radix_tree_free(&gmap->host_to_rmap);
- 		/* Release reference to the parent */
- 		gmap_put(gmap->parent);
-@@ -1348,7 +1350,7 @@ static void gmap_unshadow_pgt(struct gma
- {
- 	unsigned long *ste;
- 	phys_addr_t sto, pgt;
--	struct page *page;
-+	struct ptdesc *ptdesc;
- 
- 	BUG_ON(!gmap_is_shadow(sg));
- 	ste = gmap_table_walk(sg, raddr, 1); /* get segment pointer */
-@@ -1361,9 +1363,9 @@ static void gmap_unshadow_pgt(struct gma
- 	*ste = _SEGMENT_ENTRY_EMPTY;
- 	__gmap_unshadow_pgt(sg, raddr, __va(pgt));
- 	/* Free page table */
--	page = phys_to_page(pgt);
--	list_del(&page->lru);
--	page_table_free_pgste(page);
-+	ptdesc = page_ptdesc(phys_to_page(pgt));
-+	list_del(&ptdesc->pt_list);
-+	page_table_free_pgste(ptdesc);
+ 	return 0;
  }
- 
- /**
-@@ -1377,7 +1379,7 @@ static void gmap_unshadow_pgt(struct gma
- static void __gmap_unshadow_sgt(struct gmap *sg, unsigned long raddr,
- 				unsigned long *sgt)
- {
--	struct page *page;
-+	struct ptdesc *ptdesc;
- 	phys_addr_t pgt;
- 	int i;
- 
-@@ -1389,9 +1391,9 @@ static void __gmap_unshadow_sgt(struct g
- 		sgt[i] = _SEGMENT_ENTRY_EMPTY;
- 		__gmap_unshadow_pgt(sg, raddr, __va(pgt));
- 		/* Free page table */
--		page = phys_to_page(pgt);
--		list_del(&page->lru);
--		page_table_free_pgste(page);
-+		ptdesc = page_ptdesc(phys_to_page(pgt));
-+		list_del(&ptdesc->pt_list);
-+		page_table_free_pgste(ptdesc);
- 	}
- }
- 
-@@ -2058,19 +2060,19 @@ int gmap_shadow_pgt(struct gmap *sg, uns
- {
- 	unsigned long raddr, origin;
- 	unsigned long *table;
--	struct page *page;
-+	struct ptdesc *ptdesc;
- 	phys_addr_t s_pgt;
- 	int rc;
- 
- 	BUG_ON(!gmap_is_shadow(sg) || (pgt & _SEGMENT_ENTRY_LARGE));
- 	/* Allocate a shadow page table */
--	page = page_table_alloc_pgste(sg->mm);
--	if (!page)
-+	ptdesc = page_table_alloc_pgste(sg->mm);
-+	if (!ptdesc)
- 		return -ENOMEM;
--	page->index = pgt & _SEGMENT_ENTRY_ORIGIN;
-+	ptdesc->pt_index = pgt & _SEGMENT_ENTRY_ORIGIN;
- 	if (fake)
--		page->index |= GMAP_SHADOW_FAKE_TABLE;
--	s_pgt = page_to_phys(page);
-+		ptdesc->pt_index |= GMAP_SHADOW_FAKE_TABLE;
-+	s_pgt = page_to_phys(ptdesc_page(ptdesc));
- 	/* Install shadow page table */
- 	spin_lock(&sg->guest_table_lock);
- 	table = gmap_table_walk(sg, saddr, 1); /* get segment pointer */
-@@ -2088,7 +2090,7 @@ int gmap_shadow_pgt(struct gmap *sg, uns
- 	/* mark as invalid as long as the parent table is not protected */
- 	*table = (unsigned long) s_pgt | _SEGMENT_ENTRY |
- 		 (pgt & _SEGMENT_ENTRY_PROTECT) | _SEGMENT_ENTRY_INVALID;
--	list_add(&page->lru, &sg->pt_list);
-+	list_add(&ptdesc->pt_list, &sg->pt_list);
- 	if (fake) {
- 		/* nothing to protect for fake tables */
- 		*table &= ~_SEGMENT_ENTRY_INVALID;
-@@ -2114,7 +2116,7 @@ int gmap_shadow_pgt(struct gmap *sg, uns
- 	return rc;
- out_free:
- 	spin_unlock(&sg->guest_table_lock);
--	page_table_free_pgste(page);
-+	page_table_free_pgste(ptdesc);
- 	return rc;
- 
- }
---- a/arch/s390/mm/pgalloc.c~s390-supplement-for-ptdesc-conversion
-+++ a/arch/s390/mm/pgalloc.c
-@@ -135,7 +135,7 @@ err_p4d:
- 
- #ifdef CONFIG_PGSTE
- 
--struct page *page_table_alloc_pgste(struct mm_struct *mm)
-+struct ptdesc *page_table_alloc_pgste(struct mm_struct *mm)
- {
- 	struct ptdesc *ptdesc;
- 	u64 *table;
-@@ -147,12 +147,12 @@ struct page *page_table_alloc_pgste(stru
- 		memset64(table, _PAGE_INVALID, PTRS_PER_PTE);
- 		memset64(table + PTRS_PER_PTE, 0, PTRS_PER_PTE);
- 	}
--	return ptdesc_page(ptdesc);
-+	return ptdesc;
- }
- 
--void page_table_free_pgste(struct page *page)
-+void page_table_free_pgste(struct ptdesc *ptdesc)
- {
--	pagetable_free(page_ptdesc(page));
-+	pagetable_free(ptdesc);
- }
- 
- #endif /* CONFIG_PGSTE */
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
 
