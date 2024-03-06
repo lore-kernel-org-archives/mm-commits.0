@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 444EE175AD
-	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 21:05:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DB2F175AD
+	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 21:05:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709759111; cv=none; b=iKpiSoEEggbfkLgLntjpAjq67TbfhDgT6bh96EscK/IjqUICf/IiQr4d0tm2vAm2uA3MKt5McFqP2oHttrJWq+2+PnHdipl9LLB8WcXc0bBFGPsxyM1wioaru9bTcro8GC2Fx2rYJ8rk+NHU6TYfbmRKLiYxxSUJbYxluNvgMjw=
+	t=1709759112; cv=none; b=JM1djMfnbmv2iopcNPn/QoBjySgGfVCccaobka6iW7B1DXCZv1hfep2eyLCA/inmFGWAodSVkmH565znBpiKR9GVvgZTkZL3vk0VNjDwndUegW01y1h+BKyqa8SKoQ/EabIbJB+1Cf8O/6q6BNc0prTadulkttuQQeJlo8RYtmg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709759111; c=relaxed/simple;
-	bh=UmkkaegYomIIB/7SlrnfE4OIBENRxkxZ8g29rZ69uEc=;
-	h=Date:To:From:Subject:Message-Id; b=Xzyx8xuOOnwUUQ58seIeDiuHD/d8rZFWWkOj+2THMP41GLTCvOnYZZMEJv97PzYqF/CJFQmliGn9teNpi2uqmyLGdyP9VIPcsaK8D1KZuYNnAiPSDTvqyahzMjrxRTSv3Fd3sDaXLvVBzR3iep9FRx/dF7hlaZ6sK+TGsPwAf5w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JlhDOzTS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709759112; c=relaxed/simple;
+	bh=saya3nJCka4q24TnTDea/5CTwdR1DL9IYcRs3/9iHxc=;
+	h=Date:To:From:Subject:Message-Id; b=Amhxx22tCFHZz5Ax6BtjL3jXLuUMt7DK6jGyeTOySR5UaJPw+AWhptWzb5DKBfuI2N/8tb6+KP12J4tjpxV6AtUFlgLB0jaROohQDAEFvjF3dkfe8dUq/TakLEk+yV6owmdUW+eUhnXupQp4ZdApkHPFlwmJ/z4NMxlXy9mI5NQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DToWsr0p; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JlhDOzTS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 175AFC433F1;
-	Wed,  6 Mar 2024 21:05:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DToWsr0p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EFB9C43390;
+	Wed,  6 Mar 2024 21:05:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709759111;
-	bh=UmkkaegYomIIB/7SlrnfE4OIBENRxkxZ8g29rZ69uEc=;
+	s=korg; t=1709759112;
+	bh=saya3nJCka4q24TnTDea/5CTwdR1DL9IYcRs3/9iHxc=;
 	h=Date:To:From:Subject:From;
-	b=JlhDOzTSQwSV1WUxjhljc2l6J0hSaKejHvnueiSZeyXm5Ahc2mjpj+MQ+vNs1t1e6
-	 pjcLJ7zRszPUdE9VlWdaIlLatlptbltC8bhaynlI50WAQNBeF4PFPsxr0BlgtNb9vM
-	 nvwNDDZCCOEQ6+jlwOIQBCCiRskidJ6dl1nzn4qQ=
-Date: Wed, 06 Mar 2024 13:05:10 -0800
-To: mm-commits@vger.kernel.org,thorsten.blum@toblux.com,akpm@linux-foundation.org
+	b=DToWsr0pp7GmFiURctJZRBb3+WdoedrGDu8BAZFoL3sLgoOIbEikjPKGrER2chTNv
+	 DpQvTn91nkIwlXWGOxiQOOemkLfNIlRjtLxwl5abwUA+x2nzq5xpx2p9p/CqYknD41
+	 K65Ii7IsVeoealqBRPH04cJgtDecw4jGRZ6aF/C4=
+Date: Wed, 06 Mar 2024 13:05:11 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,rppt@kernel.org,muchun.song@linux.dev,imbrenda@linux.ibm.com,hughd@google.com,frankja@linux.ibm.com,david@redhat.com,borntraeger@linux.ibm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-use-div64_ul-instead-of-do_div.patch removed from -mm tree
-Message-Id: <20240306210511.175AFC433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pgtable-correct-the-wrong-comment-about-ptdesc-__page_flags.patch removed from -mm tree
+Message-Id: <20240306210512.1EFB9C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: use div64_ul() instead of do_div()
+     Subject: mm: pgtable: correct the wrong comment about ptdesc->__page_flags
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-use-div64_ul-instead-of-do_div.patch
+     mm-pgtable-correct-the-wrong-comment-about-ptdesc-__page_flags.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@toblux.com>
-Subject: mm: page_alloc: use div64_ul() instead of do_div()
-Date: Wed, 28 Feb 2024 23:49:12 +0100
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: pgtable: correct the wrong comment about ptdesc->__page_flags
+Date: Mon, 4 Mar 2024 19:07:18 +0800
 
-Fixes Coccinelle/coccicheck warning reported by do_div.cocci.
+Patch series "minor fixes and supplement for ptdesc".
 
-Compared to do_div(), div64_ul() does not implicitly cast the divisor and
-does not unnecessarily calculate the remainder.
+In this series, the [PATCH 1/3] and [PATCH 2/3] are fixes for some issues
+discovered during code inspection.
 
-Link: https://lkml.kernel.org/r/20240228224911.1164-2-thorsten.blum@toblux.com
-Signed-off-by: Thorsten Blum <thorsten.blum@toblux.com>
+The [PATCH 3/3] is a supplement to ptdesc conversion in s390, I don't know
+why this is not done in the commit 6326c26c1514 ("s390: convert various
+pgalloc functions to use ptdescs"), maybe I missed something.  And since I
+don't have an s390 environment, I hope kernel test robot can help compile
+and test, and this is why I did not fold [PATCH 2/3] and [PATCH 3/3] into
+one patch.
+
+
+This patch (of 3):
+
+The commit 32cc0b7c9d50 ("powerpc: add pte_free_defer() for pgtables
+sharing page") introduced the use of PageActive flag to page table
+fragments tracking, so the ptdesc->__page_flags is not unused, so correct
+the wrong comment.
+
+Link: https://lkml.kernel.org/r/cover.1709541697.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/cc42d5915fd98fd802f920de243f535efcfe01db.1709541697.git.zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Cc: Janosch Frank <frankja@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
+ include/linux/mm_types.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-use-div64_ul-instead-of-do_div
-+++ a/mm/page_alloc.c
-@@ -5848,7 +5848,7 @@ static void __setup_per_zone_wmarks(void
+--- a/include/linux/mm_types.h~mm-pgtable-correct-the-wrong-comment-about-ptdesc-__page_flags
++++ a/include/linux/mm_types.h
+@@ -419,7 +419,7 @@ FOLIO_MATCH(compound_head, _head_2a);
  
- 		spin_lock_irqsave(&zone->lock, flags);
- 		tmp = (u64)pages_min * zone_managed_pages(zone);
--		do_div(tmp, lowmem_pages);
-+		tmp = div64_ul(tmp, lowmem_pages);
- 		if (is_highmem(zone) || zone_idx(zone) == ZONE_MOVABLE) {
- 			/*
- 			 * __GFP_HIGH and PF_MEMALLOC allocations usually don't
+ /**
+  * struct ptdesc -    Memory descriptor for page tables.
+- * @__page_flags:     Same as page flags. Unused for page tables.
++ * @__page_flags:     Same as page flags. Powerpc only.
+  * @pt_rcu_head:      For freeing page table pages.
+  * @pt_list:          List of used page tables. Used for s390 and x86.
+  * @_pt_pad_1:        Padding that aliases with page's compound head.
 _
 
-Patches currently in -mm which might be from thorsten.blum@toblux.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-nilfs2-use-div64_ul-instead-of-do_div.patch
 
