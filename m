@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 946F114006
-	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 20:55:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7286717551
+	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 20:59:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709758510; cv=none; b=mH5+mo0/MUTr758+Lb+i3Vp/FKD5Z+hAnhqE5oyStc+6Ea5lwkuzxTdAvb7yumJaL7YEw0QglcS4xQDqLipFO6diQjojb4BiifAhvE7PmFWDXXQqzPcIdjV3ME3Rp/ckNYDMxt6Tyel9VHOO302hnttTzCSHn4KEDJxQvgO4ogE=
+	t=1709758760; cv=none; b=c41s9s6eJAEhxPqB8zGo9MXvPFVx1W05gr8J15Fqa7eNJqHWM357ZFMM7aFnZn2w8kDygLyUrvG1uPMS/FXoYMzfFNSinLjQAJJGLti0DLg9juPIrtE68xAjmK0OAV+/USF5NvVscXkU8jA6K0P/QQ8a2XaWUpOoPLumZsvJygI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709758510; c=relaxed/simple;
-	bh=hkaa/0eHNebmTQgq6LRnG9AF8otL2KsNCfKqn1u37G8=;
-	h=Date:To:From:Subject:Message-Id; b=OJg2+4VSLjrDqUv2JoDzxu5sY8NgaRUw9LRrs0PS+WPTwxlH9pzp4aUESgF23UU92PK54eKolKLX0AcKzwTUHKyi+AQaD27OE/99VJ33UUOMhV7JCbaDq+OPqGPcOcRCh56V+nbqes+S22HShBeDxUi3jjqHkazTClOuXYW7WgQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YqWhOaS/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709758760; c=relaxed/simple;
+	bh=N/CJqp0tH2vYjf9bstemGrT7W52xafWW5mhvoYumWCQ=;
+	h=Date:To:From:Subject:Message-Id; b=bNiR+KwxjqMZRojEkF8Btqvmofg8IHh9Ob+XHWM0zJLfgjDvM/3AGGDcmcFHWfgXX7/NB+nbqu/egmlZ82ERL/csx7DUfjG8+9NNNzlr/0CScMesjLMIy1oeaalmzpJbPSK/etE6auSdMLWMTl75/ohT5ZT40xEOagcguZUNku0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pVUDU6YK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YqWhOaS/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12949C433C7;
-	Wed,  6 Mar 2024 20:55:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pVUDU6YK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9AD0C433F1;
+	Wed,  6 Mar 2024 20:59:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709758510;
-	bh=hkaa/0eHNebmTQgq6LRnG9AF8otL2KsNCfKqn1u37G8=;
+	s=korg; t=1709758760;
+	bh=N/CJqp0tH2vYjf9bstemGrT7W52xafWW5mhvoYumWCQ=;
 	h=Date:To:From:Subject:From;
-	b=YqWhOaS/ZH8isIJOTDTN/SehWO8pnqzaitQRtk7eU3/z2+0BO3hEkqXeTjotCAZ/T
-	 /c9HNZsHYrQc+cnvGJFL5RqajC+8/WOHXHRdfaAWtlK0RX+LDqSsqKDFws+jm8GKly
-	 uqMI1Mib7I33Jq/2pFP0GGiJBDZKPDmK9NdBQKwc=
-Date: Wed, 06 Mar 2024 12:55:09 -0800
-To: mm-commits@vger.kernel.org,linux@weissschuh.net,akpm@linux-foundation.org
+	b=pVUDU6YK31tPaySnhLKZ17+CCQGKzMRV/xRqouJGgbtdIoIZHHpZwl11jjTXIjpZM
+	 8DLimqZC18C8eoN+NFU29CfS2rrJE263dn6G0pKB/heSFjHTH+m2Jkbvh7tFEy6lfK
+	 jhyrpnpZk3BQ/c1ZITIOreAe1b+uETt/Qyff/JaY=
+Date: Wed, 06 Mar 2024 12:59:19 -0800
+To: mm-commits@vger.kernel.org,flyingpeng@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-core-remove-sysctl-handlers-from-public-header.patch added to mm-nonmm-unstable branch
-Message-Id: <20240306205510.12949C433C7@smtp.kernel.org>
+Subject: + buildid-use-kmap_local_page.patch added to mm-nonmm-unstable branch
+Message-Id: <20240306205919.E9AD0C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: watchdog/core: remove sysctl handlers from public header
+     Subject: buildid: use kmap_local_page()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-core-remove-sysctl-handlers-from-public-header.patch
+     buildid-use-kmap_local_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-core-remove-sysctl-handlers-from-public-header.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buildid-use-kmap_local_page.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,107 +58,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thomas Weißschuh <linux@weissschuh.net>
-Subject: watchdog/core: remove sysctl handlers from public header
-Date: Wed, 06 Mar 2024 07:49:16 +0100
+From: Peng Hao <flyingpeng@tencent.com>
+Subject: buildid: use kmap_local_page()
+Date: Wed, 6 Mar 2024 11:48:04 +0800
 
-The functions are only used in the file where they are defined.  Remove
-them from the header and make them static.
+Use kmap_local_page() instead of kmap_atomic() which has been deprecated.
 
-Also guard proc_soft_watchdog with a #define-guard as it is not used
-otherwise.
-
-Link: https://lkml.kernel.org/r/20240306-const-sysctl-prep-watchdog-v1-1-bd45da3a41cf@weissschuh.net
-Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
+Link: https://lkml.kernel.org/r/20240306034804.62087-1-flyingpeng@tencent.com
+Signed-off-by: Peng Hao <flyingpeng@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h |    7 -------
- kernel/watchdog.c   |   22 ++++++++++++----------
- 2 files changed, 12 insertions(+), 17 deletions(-)
+ lib/buildid.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/nmi.h~watchdog-core-remove-sysctl-handlers-from-public-header
-+++ a/include/linux/nmi.h
-@@ -216,13 +216,6 @@ void watchdog_update_hrtimer_threshold(u
- static inline void watchdog_update_hrtimer_threshold(u64 period) { }
- #endif
+--- a/lib/buildid.c~buildid-use-kmap_local_page
++++ a/lib/buildid.c
+@@ -140,7 +140,7 @@ int build_id_parse(struct vm_area_struct
+ 		return -EFAULT;	/* page not mapped */
  
--struct ctl_table;
--int proc_watchdog(struct ctl_table *, int, void *, size_t *, loff_t *);
--int proc_nmi_watchdog(struct ctl_table *, int , void *, size_t *, loff_t *);
--int proc_soft_watchdog(struct ctl_table *, int , void *, size_t *, loff_t *);
--int proc_watchdog_thresh(struct ctl_table *, int , void *, size_t *, loff_t *);
--int proc_watchdog_cpumask(struct ctl_table *, int, void *, size_t *, loff_t *);
--
- #ifdef CONFIG_HAVE_ACPI_APEI_NMI
- #include <asm/nmi.h>
- #endif
---- a/kernel/watchdog.c~watchdog-core-remove-sysctl-handlers-from-public-header
-+++ a/kernel/watchdog.c
-@@ -796,8 +796,8 @@ static int proc_watchdog_common(int whic
- /*
-  * /proc/sys/kernel/watchdog
-  */
--int proc_watchdog(struct ctl_table *table, int write,
--		  void *buffer, size_t *lenp, loff_t *ppos)
-+static int proc_watchdog(struct ctl_table *table, int write,
-+			 void *buffer, size_t *lenp, loff_t *ppos)
- {
- 	return proc_watchdog_common(WATCHDOG_HARDLOCKUP_ENABLED |
- 				    WATCHDOG_SOFTOCKUP_ENABLED,
-@@ -807,8 +807,8 @@ int proc_watchdog(struct ctl_table *tabl
- /*
-  * /proc/sys/kernel/nmi_watchdog
-  */
--int proc_nmi_watchdog(struct ctl_table *table, int write,
--		      void *buffer, size_t *lenp, loff_t *ppos)
-+static int proc_nmi_watchdog(struct ctl_table *table, int write,
-+			     void *buffer, size_t *lenp, loff_t *ppos)
- {
- 	if (!watchdog_hardlockup_available && write)
- 		return -ENOTSUPP;
-@@ -816,21 +816,23 @@ int proc_nmi_watchdog(struct ctl_table *
- 				    table, write, buffer, lenp, ppos);
+ 	ret = -EINVAL;
+-	page_addr = kmap_atomic(page);
++	page_addr = kmap_local_page(page);
+ 	ehdr = (Elf32_Ehdr *)page_addr;
+ 
+ 	/* compare magic x7f "ELF" */
+@@ -156,7 +156,7 @@ int build_id_parse(struct vm_area_struct
+ 	else if (ehdr->e_ident[EI_CLASS] == ELFCLASS64)
+ 		ret = get_build_id_64(page_addr, build_id, size);
+ out:
+-	kunmap_atomic(page_addr);
++	kunmap_local(page_addr);
+ 	put_page(page);
+ 	return ret;
  }
- 
-+#ifdef CONFIG_SOFTLOCKUP_DETECTOR
- /*
-  * /proc/sys/kernel/soft_watchdog
-  */
--int proc_soft_watchdog(struct ctl_table *table, int write,
--			void *buffer, size_t *lenp, loff_t *ppos)
-+static int proc_soft_watchdog(struct ctl_table *table, int write,
-+			      void *buffer, size_t *lenp, loff_t *ppos)
- {
- 	return proc_watchdog_common(WATCHDOG_SOFTOCKUP_ENABLED,
- 				    table, write, buffer, lenp, ppos);
- }
-+#endif
- 
- /*
-  * /proc/sys/kernel/watchdog_thresh
-  */
--int proc_watchdog_thresh(struct ctl_table *table, int write,
--			 void *buffer, size_t *lenp, loff_t *ppos)
-+static int proc_watchdog_thresh(struct ctl_table *table, int write,
-+				void *buffer, size_t *lenp, loff_t *ppos)
- {
- 	int err, old;
- 
-@@ -852,8 +854,8 @@ int proc_watchdog_thresh(struct ctl_tabl
-  * user to specify a mask that will include cpus that have not yet
-  * been brought online, if desired.
-  */
--int proc_watchdog_cpumask(struct ctl_table *table, int write,
--			  void *buffer, size_t *lenp, loff_t *ppos)
-+static int proc_watchdog_cpumask(struct ctl_table *table, int write,
-+				 void *buffer, size_t *lenp, loff_t *ppos)
- {
- 	int err;
- 
 _
 
-Patches currently in -mm which might be from linux@weissschuh.net are
+Patches currently in -mm which might be from flyingpeng@tencent.com are
 
-watchdog-core-remove-sysctl-handlers-from-public-header.patch
+buildid-use-kmap_local_page.patch
 
