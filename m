@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83EC7175AD
-	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 21:05:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A40B175AD
+	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 21:05:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709759113; cv=none; b=JNe6Bfd62gcw0ze97VNZuWEd6Tvc/DbJ4OkKVbGw50bh4BkyUJW7BSizmSU4PYjm87wdyUxuIvh11PZJwS2FKSQ9XS54CRLX1nQbQUma7Zopl8/s/a9mqVONUNG2vLFC/UigE25ilJJywXTfUc3ivccUUOFRnzkR6+/m7XnAN8Q=
+	t=1709759114; cv=none; b=cMDSqUWXg6djW+WNt+HV+Fmp5S/EMEyVt7KmO1SHFMv+kNnLi07S4vroQVVX5/VrUxebfYuBVYNLwktvvqySzJMkewqL5r/5kAhds8ukkgE5f8XJUQMa0lrh6YC7A+Htq6ysr/b9ViweWzJ+5Mu9922rOgVFL+IE6flmLtMFj+E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709759113; c=relaxed/simple;
-	bh=qcyGVU0rYgG1rHOUXeRMHhiDrzWTwjQSAFhm/Vf0QVA=;
-	h=Date:To:From:Subject:Message-Id; b=UBl6/HNRko6Rie2Jsb0vNKRKrNGxKy/YivgzNGGetXZ+pZ5Q9ydRaWCCfu6aTOzdBH2g6WdpAYe3zz4/r/VSZ9+OYAnQYL95zasj3cnqTs3Lb0rdg5VaRbspraY5VwMzwOgyXVtWOo5OxHzbEhEUHDk5A/P1WtZX4z/kzCHczhM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qR/yCp6z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709759114; c=relaxed/simple;
+	bh=m5fukqTbLvUgGWHvSzvTjZMFqQgVK6fUvHarbNuZARY=;
+	h=Date:To:From:Subject:Message-Id; b=Upn+mwHyARUAHhTLagfnM4dXpOv7E/zK/48UPZNOn/hgtJfV4p59c+qomRgl4z6CiAFzFft9A7zrmNAfvUwzdDWV0Xy+bs7ieKC4+h+5GapSVhvuAhZLi2zkn66SqSqC1cMpe7ExxxzOw4oFBTkeyIDMrciLngNE1z8AQ+WhrL8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ov+EOpEu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qR/yCp6z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C6C4C433C7;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ov+EOpEu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F107DC433F1;
 	Wed,  6 Mar 2024 21:05:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709759113;
-	bh=qcyGVU0rYgG1rHOUXeRMHhiDrzWTwjQSAFhm/Vf0QVA=;
+	s=korg; t=1709759114;
+	bh=m5fukqTbLvUgGWHvSzvTjZMFqQgVK6fUvHarbNuZARY=;
 	h=Date:To:From:Subject:From;
-	b=qR/yCp6zpoae2Sp7wWOxzbXBlilndxVBjPNYB7NfYPvgnb2B/LLinZDbIg1TitRHT
-	 J88N1xriVbms8HXHYR+0kBPKWEJAJHu3DmV9R/zcM6eVW5gNrfN/5AHV/uUtqhyd6M
-	 IQwCoyZsZI4H93WKKudsIXCSbf5XuzO09Z5r0A6E=
-Date: Wed, 06 Mar 2024 13:05:12 -0800
+	b=ov+EOpEubiRyVnerv2TcFhZznpo8lnxgZCJTpB8+WLxxj3U3u2qWXBYCWWFeCPQyL
+	 2vsZHq17q0JRPdTXEac6ijCXjlEAO4XkpbgbO7GGM84S/taderV4YE22kTSLMK2lHn
+	 IGmoCu8nh4OPMOx5XHNTJcKBricr7JER8QZBBQrg=
+Date: Wed, 06 Mar 2024 13:05:13 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,rppt@kernel.org,muchun.song@linux.dev,imbrenda@linux.ibm.com,hughd@google.com,frankja@linux.ibm.com,david@redhat.com,borntraeger@linux.ibm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-pgtable-add-missing-pt_index-to-struct-ptdesc.patch removed from -mm tree
-Message-Id: <20240306210513.0C6C4C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] s390-supplement-for-ptdesc-conversion.patch removed from -mm tree
+Message-Id: <20240306210513.F107DC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,33 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: pgtable: add missing pt_index to struct ptdesc
+     Subject: s390: supplement for ptdesc conversion
 has been removed from the -mm tree.  Its filename was
-     mm-pgtable-add-missing-pt_index-to-struct-ptdesc.patch
+     s390-supplement-for-ptdesc-conversion.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: pgtable: add missing pt_index to struct ptdesc
-Date: Mon, 4 Mar 2024 19:07:19 +0800
+Subject: s390: supplement for ptdesc conversion
+Date: Mon, 4 Mar 2024 19:07:20 +0800
 
-In s390, the page->index field is used for gmap (see gmap_shadow_pgt()),
-so add the corresponding pt_index to struct ptdesc and add a comment to
-clarify this.
+After commit 6326c26c1514 ("s390: convert various pgalloc functions to use
+ptdescs"), there are still some positions that use page->{lru, index}
+instead of ptdesc->{pt_list, pt_index}.  In order to make the use of
+ptdesc->{pt_list, pt_index} clearer, it would be better to convert them as
+well.
 
-Link: https://lkml.kernel.org/r/283624c2af45fb2090b41a6b1b5481bb0a45bad7.1709541697.git.zhengqi.arch@bytedance.com
+[zhengqi.arch@bytedance.com: fix build failure]
+  Link: https://lkml.kernel.org/r/20240305072154.26168-1-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/04beaf3255056ffe131a5ea595736066c1e84756.1709541697.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Janosch Frank <frankja@linux.ibm.com>
 Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Janosch Frank <frankja@linux.ibm.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
@@ -65,35 +69,156 @@ Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/s390/include/asm/pgalloc.h |    4 +--
+ arch/s390/mm/gmap.c             |   38 +++++++++++++++---------------
+ arch/s390/mm/pgalloc.c          |    8 +++---
+ 3 files changed, 26 insertions(+), 24 deletions(-)
 
---- a/include/linux/mm_types.h~mm-pgtable-add-missing-pt_index-to-struct-ptdesc
-+++ a/include/linux/mm_types.h
-@@ -425,6 +425,7 @@ FOLIO_MATCH(compound_head, _head_2a);
-  * @_pt_pad_1:        Padding that aliases with page's compound head.
-  * @pmd_huge_pte:     Protected by ptdesc->ptl, used for THPs.
-  * @__page_mapping:   Aliases with page->mapping. Unused for page tables.
-+ * @pt_index:         Used for s390 gmap.
-  * @pt_mm:            Used for x86 pgds.
-  * @pt_frag_refcount: For fragmented page table tracking. Powerpc only.
-  * @_pt_pad_2:        Padding to ensure proper alignment.
-@@ -450,6 +451,7 @@ struct ptdesc {
- 	unsigned long __page_mapping;
+--- a/arch/s390/include/asm/pgalloc.h~s390-supplement-for-ptdesc-conversion
++++ a/arch/s390/include/asm/pgalloc.h
+@@ -23,9 +23,9 @@ unsigned long *crst_table_alloc(struct m
+ void crst_table_free(struct mm_struct *, unsigned long *);
  
- 	union {
-+		pgoff_t pt_index;
- 		struct mm_struct *pt_mm;
- 		atomic_t pt_frag_refcount;
- 	};
-@@ -475,6 +477,7 @@ TABLE_MATCH(flags, __page_flags);
- TABLE_MATCH(compound_head, pt_list);
- TABLE_MATCH(compound_head, _pt_pad_1);
- TABLE_MATCH(mapping, __page_mapping);
-+TABLE_MATCH(index, pt_index);
- TABLE_MATCH(rcu_head, pt_rcu_head);
- TABLE_MATCH(page_type, __page_type);
- TABLE_MATCH(_refcount, __page_refcount);
+ unsigned long *page_table_alloc(struct mm_struct *);
+-struct page *page_table_alloc_pgste(struct mm_struct *mm);
++struct ptdesc *page_table_alloc_pgste(struct mm_struct *mm);
+ void page_table_free(struct mm_struct *, unsigned long *);
+-void page_table_free_pgste(struct page *page);
++void page_table_free_pgste(struct ptdesc *ptdesc);
+ extern int page_table_allocate_pgste;
+ 
+ static inline void crst_table_init(unsigned long *crst, unsigned long entry)
+--- a/arch/s390/mm/gmap.c~s390-supplement-for-ptdesc-conversion
++++ a/arch/s390/mm/gmap.c
+@@ -206,9 +206,11 @@ static void gmap_free(struct gmap *gmap)
+ 
+ 	/* Free additional data for a shadow gmap */
+ 	if (gmap_is_shadow(gmap)) {
++		struct ptdesc *ptdesc, *n;
++
+ 		/* Free all page tables. */
+-		list_for_each_entry_safe(page, next, &gmap->pt_list, lru)
+-			page_table_free_pgste(page);
++		list_for_each_entry_safe(ptdesc, n, &gmap->pt_list, pt_list)
++			page_table_free_pgste(ptdesc);
+ 		gmap_rmap_radix_tree_free(&gmap->host_to_rmap);
+ 		/* Release reference to the parent */
+ 		gmap_put(gmap->parent);
+@@ -1348,7 +1350,7 @@ static void gmap_unshadow_pgt(struct gma
+ {
+ 	unsigned long *ste;
+ 	phys_addr_t sto, pgt;
+-	struct page *page;
++	struct ptdesc *ptdesc;
+ 
+ 	BUG_ON(!gmap_is_shadow(sg));
+ 	ste = gmap_table_walk(sg, raddr, 1); /* get segment pointer */
+@@ -1361,9 +1363,9 @@ static void gmap_unshadow_pgt(struct gma
+ 	*ste = _SEGMENT_ENTRY_EMPTY;
+ 	__gmap_unshadow_pgt(sg, raddr, __va(pgt));
+ 	/* Free page table */
+-	page = phys_to_page(pgt);
+-	list_del(&page->lru);
+-	page_table_free_pgste(page);
++	ptdesc = page_ptdesc(phys_to_page(pgt));
++	list_del(&ptdesc->pt_list);
++	page_table_free_pgste(ptdesc);
+ }
+ 
+ /**
+@@ -1377,7 +1379,7 @@ static void gmap_unshadow_pgt(struct gma
+ static void __gmap_unshadow_sgt(struct gmap *sg, unsigned long raddr,
+ 				unsigned long *sgt)
+ {
+-	struct page *page;
++	struct ptdesc *ptdesc;
+ 	phys_addr_t pgt;
+ 	int i;
+ 
+@@ -1389,9 +1391,9 @@ static void __gmap_unshadow_sgt(struct g
+ 		sgt[i] = _SEGMENT_ENTRY_EMPTY;
+ 		__gmap_unshadow_pgt(sg, raddr, __va(pgt));
+ 		/* Free page table */
+-		page = phys_to_page(pgt);
+-		list_del(&page->lru);
+-		page_table_free_pgste(page);
++		ptdesc = page_ptdesc(phys_to_page(pgt));
++		list_del(&ptdesc->pt_list);
++		page_table_free_pgste(ptdesc);
+ 	}
+ }
+ 
+@@ -2058,19 +2060,19 @@ int gmap_shadow_pgt(struct gmap *sg, uns
+ {
+ 	unsigned long raddr, origin;
+ 	unsigned long *table;
+-	struct page *page;
++	struct ptdesc *ptdesc;
+ 	phys_addr_t s_pgt;
+ 	int rc;
+ 
+ 	BUG_ON(!gmap_is_shadow(sg) || (pgt & _SEGMENT_ENTRY_LARGE));
+ 	/* Allocate a shadow page table */
+-	page = page_table_alloc_pgste(sg->mm);
+-	if (!page)
++	ptdesc = page_table_alloc_pgste(sg->mm);
++	if (!ptdesc)
+ 		return -ENOMEM;
+-	page->index = pgt & _SEGMENT_ENTRY_ORIGIN;
++	ptdesc->pt_index = pgt & _SEGMENT_ENTRY_ORIGIN;
+ 	if (fake)
+-		page->index |= GMAP_SHADOW_FAKE_TABLE;
+-	s_pgt = page_to_phys(page);
++		ptdesc->pt_index |= GMAP_SHADOW_FAKE_TABLE;
++	s_pgt = page_to_phys(ptdesc_page(ptdesc));
+ 	/* Install shadow page table */
+ 	spin_lock(&sg->guest_table_lock);
+ 	table = gmap_table_walk(sg, saddr, 1); /* get segment pointer */
+@@ -2088,7 +2090,7 @@ int gmap_shadow_pgt(struct gmap *sg, uns
+ 	/* mark as invalid as long as the parent table is not protected */
+ 	*table = (unsigned long) s_pgt | _SEGMENT_ENTRY |
+ 		 (pgt & _SEGMENT_ENTRY_PROTECT) | _SEGMENT_ENTRY_INVALID;
+-	list_add(&page->lru, &sg->pt_list);
++	list_add(&ptdesc->pt_list, &sg->pt_list);
+ 	if (fake) {
+ 		/* nothing to protect for fake tables */
+ 		*table &= ~_SEGMENT_ENTRY_INVALID;
+@@ -2114,7 +2116,7 @@ int gmap_shadow_pgt(struct gmap *sg, uns
+ 	return rc;
+ out_free:
+ 	spin_unlock(&sg->guest_table_lock);
+-	page_table_free_pgste(page);
++	page_table_free_pgste(ptdesc);
+ 	return rc;
+ 
+ }
+--- a/arch/s390/mm/pgalloc.c~s390-supplement-for-ptdesc-conversion
++++ a/arch/s390/mm/pgalloc.c
+@@ -135,7 +135,7 @@ err_p4d:
+ 
+ #ifdef CONFIG_PGSTE
+ 
+-struct page *page_table_alloc_pgste(struct mm_struct *mm)
++struct ptdesc *page_table_alloc_pgste(struct mm_struct *mm)
+ {
+ 	struct ptdesc *ptdesc;
+ 	u64 *table;
+@@ -147,12 +147,12 @@ struct page *page_table_alloc_pgste(stru
+ 		memset64(table, _PAGE_INVALID, PTRS_PER_PTE);
+ 		memset64(table + PTRS_PER_PTE, 0, PTRS_PER_PTE);
+ 	}
+-	return ptdesc_page(ptdesc);
++	return ptdesc;
+ }
+ 
+-void page_table_free_pgste(struct page *page)
++void page_table_free_pgste(struct ptdesc *ptdesc)
+ {
+-	pagetable_free(page_ptdesc(page));
++	pagetable_free(ptdesc);
+ }
+ 
+ #endif /* CONFIG_PGSTE */
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
