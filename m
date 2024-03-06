@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 547DB14F64
-	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 20:52:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 946F114006
+	for <mm-commits@vger.kernel.org>; Wed,  6 Mar 2024 20:55:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709758333; cv=none; b=YW/MoSl7vEP54KG/I0K8ZLIBp9wd1fbl6IPjdw7635TyjaKq5EKLO33DYBa3eNmXPWPX/OpifPxWAYw7EeimLkuxEOIbP1QKz77TEup8+nXc5vTFnqDA5AvT5pRGLrURpZnIGfrCA3kHVPu9G5Rf2pJiPj2uv3ZT7aTLJW8SFcU=
+	t=1709758510; cv=none; b=mH5+mo0/MUTr758+Lb+i3Vp/FKD5Z+hAnhqE5oyStc+6Ea5lwkuzxTdAvb7yumJaL7YEw0QglcS4xQDqLipFO6diQjojb4BiifAhvE7PmFWDXXQqzPcIdjV3ME3Rp/ckNYDMxt6Tyel9VHOO302hnttTzCSHn4KEDJxQvgO4ogE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709758333; c=relaxed/simple;
-	bh=cLyuhunWGMu5ew7uAMdAMlkLOaj2ljNpOFDVnmOn1kA=;
-	h=Date:To:From:Subject:Message-Id; b=I/C4x/bxiXUCnPGwbC0IODsMAH8iiK18TyqmTnYmBTm36Gmv32s1sn5alW9RtnbM5TbavnLzNEP1RqeE3x2Ys3L3PweLWJbt9UXExcrFmDNcM1guRbzhiaVB+vTwHalUWuFrFCKLQRSlRKjtFcd6J+NjQW5SZnmgXfvbVc2fJEs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UYz9XJDp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709758510; c=relaxed/simple;
+	bh=hkaa/0eHNebmTQgq6LRnG9AF8otL2KsNCfKqn1u37G8=;
+	h=Date:To:From:Subject:Message-Id; b=OJg2+4VSLjrDqUv2JoDzxu5sY8NgaRUw9LRrs0PS+WPTwxlH9pzp4aUESgF23UU92PK54eKolKLX0AcKzwTUHKyi+AQaD27OE/99VJ33UUOMhV7JCbaDq+OPqGPcOcRCh56V+nbqes+S22HShBeDxUi3jjqHkazTClOuXYW7WgQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YqWhOaS/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UYz9XJDp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE99EC433F1;
-	Wed,  6 Mar 2024 20:52:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YqWhOaS/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12949C433C7;
+	Wed,  6 Mar 2024 20:55:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709758332;
-	bh=cLyuhunWGMu5ew7uAMdAMlkLOaj2ljNpOFDVnmOn1kA=;
+	s=korg; t=1709758510;
+	bh=hkaa/0eHNebmTQgq6LRnG9AF8otL2KsNCfKqn1u37G8=;
 	h=Date:To:From:Subject:From;
-	b=UYz9XJDpnDAFUGgqFg+LjhIr3BqCCwHWUnAoENBfcpHZJ+t7lLoT1phqTRUjQT9gS
-	 hYgf+BkK/c5/RDrf9wLOiAGw0brxFn+ERc/jLwdRt1A3bYYld7YphNK7VSFRfoyifN
-	 67ueiKFRORUU/EJ5AZ5zkLJ939e+TkfKOt+Pa9UE=
-Date: Wed, 06 Mar 2024 12:52:12 -0800
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,wangkefeng.wang@huawei.com,david@redhat.com,zhangpeng362@huawei.com,akpm@linux-foundation.org
+	b=YqWhOaS/ZH8isIJOTDTN/SehWO8pnqzaitQRtk7eU3/z2+0BO3hEkqXeTjotCAZ/T
+	 /c9HNZsHYrQc+cnvGJFL5RqajC+8/WOHXHRdfaAWtlK0RX+LDqSsqKDFws+jm8GKly
+	 uqMI1Mib7I33Jq/2pFP0GGiJBDZKPDmK9NdBQKwc=
+Date: Wed, 06 Mar 2024 12:55:09 -0800
+To: mm-commits@vger.kernel.org,linux@weissschuh.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + filemap-avoid-unnecessary-major-faults-in-filemap_fault.patch added to mm-unstable branch
-Message-Id: <20240306205212.BE99EC433F1@smtp.kernel.org>
+Subject: + watchdog-core-remove-sysctl-handlers-from-public-header.patch added to mm-nonmm-unstable branch
+Message-Id: <20240306205510.12949C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: filemap: avoid unnecessary major faults in filemap_fault()
-has been added to the -mm mm-unstable branch.  Its filename is
-     filemap-avoid-unnecessary-major-faults-in-filemap_fault.patch
+     Subject: watchdog/core: remove sysctl handlers from public header
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     watchdog-core-remove-sysctl-handlers-from-public-header.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-avoid-unnecessary-major-faults-in-filemap_fault.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-core-remove-sysctl-handlers-from-public-header.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,137 +58,107 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: filemap: avoid unnecessary major faults in filemap_fault()
-Date: Wed, 6 Mar 2024 16:38:09 +0800
+From: Thomas Weißschuh <linux@weissschuh.net>
+Subject: watchdog/core: remove sysctl handlers from public header
+Date: Wed, 06 Mar 2024 07:49:16 +0100
 
-A major fault occurred when using mlockall(MCL_CURRENT | MCL_FUTURE) in
-application, which leading to an unexpected issue[1].
+The functions are only used in the file where they are defined.  Remove
+them from the header and make them static.
 
-This is caused by temporarily cleared PTE during a read+clear/modify/write
-update of the PTE, eg, do_numa_page()/change_pte_range().
+Also guard proc_soft_watchdog with a #define-guard as it is not used
+otherwise.
 
-For the data segment of the user-mode program, the global variable area is
-a private mapping.  After the pagecache is loaded, the private anonymous
-page is generated after the COW is triggered.  Mlockall can lock COW pages
-(anonymous pages), but the original file pages cannot be locked and may be
-reclaimed.  If the global variable (private anon page) is accessed when
-vmf->pte is zeroed in numa fault, a file page fault will be triggered.  At
-this time, the original private file page may have been reclaimed.  If the
-page cache is not available at this time, a major fault will be triggered
-and the file will be read, causing additional overhead.
-
-This issue affects our traffic analysis service.  The inbound traffic is
-heavy.  If a major fault occurs, the I/O schedule is triggered and the
-original I/O is suspended.  Generally, the I/O schedule is 0.7 ms.  If
-other applications are operating disks, the system needs to wait for more
-than 10 ms.  However, the inbound traffic is heavy and the NIC buffer is
-small.  As a result, packet loss occurs.  But the traffic analysis service
-can't tolerate packet loss.
-
-Fix this by holding PTL and rechecking the PTE in filemap_fault() before
-triggering a major fault.  We do this check only if vma is VM_LOCKED to
-reduce the performance impact in common scenarios.
-
-In our product environment, there were 7 major faults every 12 hours. 
-After the patch is applied, no major fault have been triggered.
-
-Testing file page read and write page fault performance in ext4 and
-ramdisk using will-it-scale[2] on a x86 physical machine.  The data is the
-average change compared with the mainline after the patch is applied.  The
-test results are within the range of fluctuation.  We do this check only
-if vma is VM_LOCKED, therefore, no performance regressions is caused for
-most common cases.
-
-The test results are as follows:
-                          processes processes_idle  threads threads_idle
-ext4    private file write:  0.22%    0.26%           1.21%  -0.15%
-ext4    private file  read:  0.03%    1.00%           1.39%   0.34%
-ext4    shared  file write: -0.50%   -0.02%          -0.14%  -0.02%
-ramdisk private file write:  0.07%    0.02%           0.53%   0.04%
-ramdisk private file  read:  0.01%    1.60%          -0.32%  -0.02%
-
-[1] https://lore.kernel.org/linux-mm/9e62fd9a-bee0-52bf-50a7-498fa17434ee@huawei.com/
-[2] https://github.com/antonblanchard/will-it-scale/
-
-Link: https://lkml.kernel.org/r/20240306083809.1236634-1-zhangpeng362@huawei.com
-Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Suggested-by: "Huang, Ying" <ying.huang@intel.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20240306-const-sysctl-prep-watchdog-v1-1-bd45da3a41cf@weissschuh.net
+Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   46 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+ include/linux/nmi.h |    7 -------
+ kernel/watchdog.c   |   22 ++++++++++++----------
+ 2 files changed, 12 insertions(+), 17 deletions(-)
 
---- a/mm/filemap.c~filemap-avoid-unnecessary-major-faults-in-filemap_fault
-+++ a/mm/filemap.c
-@@ -3181,6 +3181,48 @@ static struct file *do_async_mmap_readah
- 	return fpin;
+--- a/include/linux/nmi.h~watchdog-core-remove-sysctl-handlers-from-public-header
++++ a/include/linux/nmi.h
+@@ -216,13 +216,6 @@ void watchdog_update_hrtimer_threshold(u
+ static inline void watchdog_update_hrtimer_threshold(u64 period) { }
+ #endif
+ 
+-struct ctl_table;
+-int proc_watchdog(struct ctl_table *, int, void *, size_t *, loff_t *);
+-int proc_nmi_watchdog(struct ctl_table *, int , void *, size_t *, loff_t *);
+-int proc_soft_watchdog(struct ctl_table *, int , void *, size_t *, loff_t *);
+-int proc_watchdog_thresh(struct ctl_table *, int , void *, size_t *, loff_t *);
+-int proc_watchdog_cpumask(struct ctl_table *, int, void *, size_t *, loff_t *);
+-
+ #ifdef CONFIG_HAVE_ACPI_APEI_NMI
+ #include <asm/nmi.h>
+ #endif
+--- a/kernel/watchdog.c~watchdog-core-remove-sysctl-handlers-from-public-header
++++ a/kernel/watchdog.c
+@@ -796,8 +796,8 @@ static int proc_watchdog_common(int whic
+ /*
+  * /proc/sys/kernel/watchdog
+  */
+-int proc_watchdog(struct ctl_table *table, int write,
+-		  void *buffer, size_t *lenp, loff_t *ppos)
++static int proc_watchdog(struct ctl_table *table, int write,
++			 void *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	return proc_watchdog_common(WATCHDOG_HARDLOCKUP_ENABLED |
+ 				    WATCHDOG_SOFTOCKUP_ENABLED,
+@@ -807,8 +807,8 @@ int proc_watchdog(struct ctl_table *tabl
+ /*
+  * /proc/sys/kernel/nmi_watchdog
+  */
+-int proc_nmi_watchdog(struct ctl_table *table, int write,
+-		      void *buffer, size_t *lenp, loff_t *ppos)
++static int proc_nmi_watchdog(struct ctl_table *table, int write,
++			     void *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	if (!watchdog_hardlockup_available && write)
+ 		return -ENOTSUPP;
+@@ -816,21 +816,23 @@ int proc_nmi_watchdog(struct ctl_table *
+ 				    table, write, buffer, lenp, ppos);
  }
  
-+static vm_fault_t filemap_fault_recheck_pte_none(struct vm_fault *vmf)
-+{
-+	struct vm_area_struct *vma = vmf->vma;
-+	vm_fault_t ret = 0;
-+	pte_t *ptep;
-+
-+	/*
-+	 * We might have COW'ed a pagecache folio and might now have an mlocked
-+	 * anon folio mapped. The original pagecache folio is not mlocked and
-+	 * might have been evicted. During a read+clear/modify/write update of
-+	 * the PTE, such as done in do_numa_page()/change_pte_range(), we
-+	 * temporarily clear the PTE under PT lock and might detect it here as
-+	 * "none" when not holding the PT lock.
-+	 *
-+	 * Not rechecking the PTE under PT lock could result in an unexpected
-+	 * major fault in an mlock'ed region. Recheck only for this special
-+	 * scenario while holding the PT lock, to not degrade non-mlocked
-+	 * scenarios. Recheck the PTE without PT lock firstly, thereby reducing
-+	 * the number of times we hold PT lock.
-+	 */
-+	if (!(vma->vm_flags & VM_LOCKED))
-+		return 0;
-+
-+	if (!(vmf->flags & FAULT_FLAG_ORIG_PTE_VALID))
-+		return 0;
-+
-+	ptep = pte_offset_map(vmf->pmd, vmf->address);
-+	if (unlikely(!ptep))
-+		return VM_FAULT_NOPAGE;
-+
-+	if (unlikely(!pte_none(ptep_get_lockless(ptep)))) {
-+		ret = VM_FAULT_NOPAGE;
-+	} else {
-+		spin_lock(vmf->ptl);
-+		if (unlikely(!pte_none(ptep_get(ptep))))
-+			ret = VM_FAULT_NOPAGE;
-+		spin_unlock(vmf->ptl);
-+	}
-+	pte_unmap(ptep);
-+	return ret;
-+}
-+
- /**
-  * filemap_fault - read in file data for page fault handling
-  * @vmf:	struct vm_fault containing details of the fault
-@@ -3236,6 +3278,10 @@ vm_fault_t filemap_fault(struct vm_fault
- 			mapping_locked = true;
- 		}
- 	} else {
-+		ret = filemap_fault_recheck_pte_none(vmf);
-+		if (unlikely(ret))
-+			return ret;
-+
- 		/* No page in the page cache at all */
- 		count_vm_event(PGMAJFAULT);
- 		count_memcg_event_mm(vmf->vma->vm_mm, PGMAJFAULT);
++#ifdef CONFIG_SOFTLOCKUP_DETECTOR
+ /*
+  * /proc/sys/kernel/soft_watchdog
+  */
+-int proc_soft_watchdog(struct ctl_table *table, int write,
+-			void *buffer, size_t *lenp, loff_t *ppos)
++static int proc_soft_watchdog(struct ctl_table *table, int write,
++			      void *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	return proc_watchdog_common(WATCHDOG_SOFTOCKUP_ENABLED,
+ 				    table, write, buffer, lenp, ppos);
+ }
++#endif
+ 
+ /*
+  * /proc/sys/kernel/watchdog_thresh
+  */
+-int proc_watchdog_thresh(struct ctl_table *table, int write,
+-			 void *buffer, size_t *lenp, loff_t *ppos)
++static int proc_watchdog_thresh(struct ctl_table *table, int write,
++				void *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	int err, old;
+ 
+@@ -852,8 +854,8 @@ int proc_watchdog_thresh(struct ctl_tabl
+  * user to specify a mask that will include cpus that have not yet
+  * been brought online, if desired.
+  */
+-int proc_watchdog_cpumask(struct ctl_table *table, int write,
+-			  void *buffer, size_t *lenp, loff_t *ppos)
++static int proc_watchdog_cpumask(struct ctl_table *table, int write,
++				 void *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	int err;
+ 
 _
 
-Patches currently in -mm which might be from zhangpeng362@huawei.com are
+Patches currently in -mm which might be from linux@weissschuh.net are
 
-filemap-avoid-unnecessary-major-faults-in-filemap_fault.patch
+watchdog-core-remove-sysctl-handlers-from-public-header.patch
 
