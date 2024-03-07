@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD6F81369B9
-	for <mm-commits@vger.kernel.org>; Thu,  7 Mar 2024 20:06:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69BE5137C54
+	for <mm-commits@vger.kernel.org>; Thu,  7 Mar 2024 20:09:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709841984; cv=none; b=ufFbGLvA9RGMHwbl3XTRpZKk6Wx1SG7MBhbq6yrZJ+jlulKyiON4llRTacx6kn1XUb9eowF+avyQ1qAvExIcqCLvlGjEOZAgL0DV/LLLmF0Jkr8eFqcBPznQWrsJZ2Rcuz4pMsKodBDMYJs18d59yM8Ar+pP3BVkbBJC9ILh07s=
+	t=1709842169; cv=none; b=MfDWq9xvVK8fkGv6jVN5FTz6sw2qnePsshyibMlwJarnFuKzzWkOSTFnf2tOYWOwCTrC5GBbldMtPMRwAqBVuB5omnKmFowHvhOpRAStfW4xCVwzfLTSdQU5ubEY9oKvV2e33fuguMkDLaPlZkXX4hT4I66ZEBOg9Vdk1QjKwzY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709841984; c=relaxed/simple;
-	bh=YuxGgIBvmD6mzoKrE/YGWoaMX2kh0Fk0DmlPWYsIPOQ=;
-	h=Date:To:From:Subject:Message-Id; b=NomJthhc6EfVwlYSAnsDpoH7ynlakJz1GinzszwPouQbiZwWmDdczugbLfcy28wwW6wa790rr1mdcoXMRV4VICs6Vpfhm9Wz8kHXPnJM7rYaFRfVIkPFIgyQNzHvhqQadimC5C0Z+zuj9rqa4HJZmLFWHaw4ZlSQIH9MORas0Sk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h8KJQf09; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709842169; c=relaxed/simple;
+	bh=XUL+F/upuDkakL9GsX5bOpFkqpMXP9AyRUzLnUBSqeE=;
+	h=Date:To:From:Subject:Message-Id; b=FlhcRizNyAF6NVk99QZZetkpiuZDOXTzUWvH8nJpFtzdAg9V3wWONL8G2c5sa5c6J3t9SG95idwYiJCrBUaDCZ+bo594y+IjGHQGJaf9tf53fUGcKRtoP8eFFtsiTmectEdwhQqqFCVPtU25wVESYVHstsi8LvO3zLbCCCv/dOU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xTs91WH7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h8KJQf09"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64C96C43390;
-	Thu,  7 Mar 2024 20:06:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xTs91WH7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF1E3C433F1;
+	Thu,  7 Mar 2024 20:09:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709841984;
-	bh=YuxGgIBvmD6mzoKrE/YGWoaMX2kh0Fk0DmlPWYsIPOQ=;
+	s=korg; t=1709842169;
+	bh=XUL+F/upuDkakL9GsX5bOpFkqpMXP9AyRUzLnUBSqeE=;
 	h=Date:To:From:Subject:From;
-	b=h8KJQf09txdB8/bk+iaJJUbdGnMBRbgtOQckgoxeGuyi9KUDN45FhCxSlLIemZ3Sd
-	 V4OYR6lNEPpbKWsH+jMxYq0hYN0Unz5nzEox7A5lFOi3mFoEDiAI92MaFS+P+VXR+E
-	 a8cxCCNCl0EDNDO/zt4Fv+jllAfU+gnpkSXnA29I=
-Date: Thu, 07 Mar 2024 12:06:23 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,kirill.shutemov@linux.intel.com,david@redhat.com,dan.carpenter@linaro.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=xTs91WH7K4N3HIBKNkIvMJrmdy4eyj1sMjokRAhSYo11bTrCXeVtVIbkRwm/qkxeB
+	 NDqfUPeas7Z4pqDBPvhSYbN1iqxwGK8x5uCbr0DRwdy+pgSjUu5sPpofI0efZkx6qa
+	 vC414AnVEGlNMOo5fU7J2pw1EbbSkv0aJux6ib/M=
+Date: Thu, 07 Mar 2024 12:09:28 -0800
+To: mm-commits@vger.kernel.org,s.shtylyov@omp.ru,r.smirnov@omp.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-skip-invalid-debugfs-new_order-input-for-folio-split.patch added to mm-unstable branch
-Message-Id: <20240307200624.64C96C43390@smtp.kernel.org>
+Subject: + assoc_array-fix-the-return-value-in-assoc_array_insert_mid_shortcut.patch added to mm-nonmm-unstable branch
+Message-Id: <20240307200928.DF1E3C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: skip invalid debugfs new_order input for folio split
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-skip-invalid-debugfs-new_order-input-for-folio-split.patch
+     Subject: assoc_array: fix the return value in assoc_array_insert_mid_shortcut()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     assoc_array-fix-the-return-value-in-assoc_array_insert_mid_shortcut.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-skip-invalid-debugfs-new_order-input-for-folio-split.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/assoc_array-fix-the-return-value-in-assoc_array_insert_mid_shortcut.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,57 +58,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: skip invalid debugfs new_order input for folio split
-Date: Thu, 7 Mar 2024 13:18:54 -0500
+From: Roman Smirnov <r.smirnov@omp.ru>
+Subject: assoc_array: fix the return value in assoc_array_insert_mid_shortcut()
+Date: Thu, 7 Mar 2024 10:17:17 +0300
 
-User can put arbitrary new_order via debugfs for folio split test. 
-Although new_order check is added to split_huge_page_to_list_order() in
-the prior commit, these two additional checks can avoid unnecessary folio
-locking and split_folio_to_order() calls.
+Returning the edit variable is redundant because it is dereferenced right
+before it is returned.  It would be better to return true.
 
-Link: https://lkml.kernel.org/r/20240307181854.138928-2-zi.yan@sent.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
-Closes: https://lore.kernel.org/linux-mm/7dda9283-b437-4cf8-ab0d-83c330deb9c0@moroto.mountain/
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Found by Linux Verification Center (linuxtesting.org) with Svace.
+
+Link: https://lkml.kernel.org/r/20240307071717.5318-1-r.smirnov@omp.ru
+Signed-off-by: Roman Smirnov <r.smirnov@omp.ru>
+Reviewed-by: Sergey Shtylyov <s.shtylyov@omp.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ lib/assoc_array.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-skip-invalid-debugfs-new_order-input-for-folio-split
-+++ a/mm/huge_memory.c
-@@ -3486,6 +3486,9 @@ static int split_huge_pages_pid(int pid,
- 		if (!is_transparent_hugepage(folio))
- 			goto next;
+--- a/lib/assoc_array.c~assoc_array-fix-the-return-value-in-assoc_array_insert_mid_shortcut
++++ a/lib/assoc_array.c
+@@ -938,7 +938,7 @@ static bool assoc_array_insert_mid_short
+ 		edit->leaf_p = &new_n0->slots[0];
  
-+		if (new_order >= folio_order(folio))
-+			goto next;
-+
- 		total++;
- 		/*
- 		 * For folios with private, split_huge_page_to_list_to_order()
-@@ -3553,6 +3556,9 @@ static int split_huge_pages_in_file(cons
- 		total++;
- 		nr_pages = folio_nr_pages(folio);
+ 	pr_devel("<--%s() = ok [split shortcut]\n", __func__);
+-	return edit;
++	return true;
+ }
  
-+		if (new_order >= folio_order(folio))
-+			goto next;
-+
- 		if (!folio_trylock(folio))
- 			goto next;
- 
+ /**
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from r.smirnov@omp.ru are
 
-mm-huge_memory-check-new-folio-order-when-split-a-folio.patch
-mm-huge_memory-skip-invalid-debugfs-new_order-input-for-folio-split.patch
+assoc_array-fix-the-return-value-in-assoc_array_insert_mid_shortcut.patch
 
