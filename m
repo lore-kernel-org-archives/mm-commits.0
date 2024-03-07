@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12FDA1DA37
-	for <mm-commits@vger.kernel.org>; Thu,  7 Mar 2024 16:53:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B5161369B9
+	for <mm-commits@vger.kernel.org>; Thu,  7 Mar 2024 20:06:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709830408; cv=none; b=IZDrMwAz4J7yiGxPSTkMOeGKAmPLklgDa9Td6Wd2hh3iLab7G73Dp8etRG130HEnqIBgQDHI9o9pWnHkvPvVvWejIEej/eh/m3hED24HOjh9iRnuqtTzZaLpa9LMN4mTPs+3WMS+90aT/WOqadCy2tfSnqmtVti7uqjD6jS36O8=
+	t=1709841983; cv=none; b=Rka/wVQqOXWvRL7s/KM7QQKr3PRQPnlNSqSV6nOXdvnZZKkIPMxLc92ojAjiaMBQgrfhOf8P64Fm9ZtTHC2KBNfu7QnPAut5939JqSqdowaGjsl4k1tFTK5lsaobEhAGtfHY85yQl/2jKWXlXpmgzZ7WGOh4zmo7Gooi7mAP0So=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709830408; c=relaxed/simple;
-	bh=jzXDYmDS9RysP0UIMd0ZQ+/DLVDgKUYJmrTK5ZEr1Pg=;
-	h=Date:To:From:Subject:Message-Id; b=cPi1s4UC9jGH3EvR10gyt9nDKSvyRRxNjiqk21ObkTpZW/zYo5KyezwwFN+WtrSY/HXNjqWsskGJgQeA0XUtBw/VXvIyha8eNPTdXzogkUpppiiIOMt8kXPKwPNCQzyL9xfSez+KASHyJ5vC9/JNTmphlZpbATWKRfLYaDXWfZE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OQUenY7p; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709841983; c=relaxed/simple;
+	bh=OIYLKAohZzb5GJLzqbZNrXw3Yaccij1AM9ayrmqkvu0=;
+	h=Date:To:From:Subject:Message-Id; b=CkXCLPl6iUheteC5S9rDIsPIZBSXGK1b1DKfGNecEl+lv8hDruQxkpvdCCwuN5/K8hMBZPkSyfU0gqflx9CPoQ9bYykAS/eYN/3eB5gVFriemP0TB4s/RGROXdzTtd3O6zF9t/P7G43svhxVzDm36vAAiFy5Gpuccz4j4yf3Jcc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bb4fk3JE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OQUenY7p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58B04C433F1;
-	Thu,  7 Mar 2024 16:53:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bb4fk3JE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E05A7C433C7;
+	Thu,  7 Mar 2024 20:06:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709830407;
-	bh=jzXDYmDS9RysP0UIMd0ZQ+/DLVDgKUYJmrTK5ZEr1Pg=;
+	s=korg; t=1709841983;
+	bh=OIYLKAohZzb5GJLzqbZNrXw3Yaccij1AM9ayrmqkvu0=;
 	h=Date:To:From:Subject:From;
-	b=OQUenY7psrNh5Z2rVbXo7PaJc3ihvS8toWOUh5duSgo4Z3gP5sfL5wun+PtY4BimQ
-	 g/cNxxaQK+GvDwd8vA2JIdcn9Xo/tPGm1BwA276UucG2CF02wjwYHxnhvHtX5cLKCF
-	 XLAL2xAma3JsYu0mRRteDJWMQZNQZC7uhfj3XPSs=
-Date: Thu, 07 Mar 2024 08:53:26 -0800
-To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,peterx@redhat.com,axelrasmussen@google.com,jthoughton@google.com,akpm@linux-foundation.org
+	b=Bb4fk3JEdVBie8NgNkyjXwTKseg9373ZUP4kQgYHXbswQPCKMcB59D3ZCLMJ1Ex39
+	 hnHa7fXDAfMr0FC2Wx73UIDu/OQo7schEKa0lkntt1Ufi+6ZYzi40iLSXTgGTdgZI3
+	 lieIs86bQMfPzKocmEkvYyIkinZmV0gT/zbJlBnY=
+Date: Thu, 07 Mar 2024 12:06:22 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,kirill.shutemov@linux.intel.com,david@redhat.com,dan.carpenter@linaro.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-an-explicit-smp_wmb-to-uffdio_continue.patch added to mm-unstable branch
-Message-Id: <20240307165327.58B04C433F1@smtp.kernel.org>
+Subject: + mm-huge_memory-check-new-folio-order-when-split-a-folio.patch added to mm-unstable branch
+Message-Id: <20240307200622.E05A7C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add an explicit smp_wmb() to UFFDIO_CONTINUE
+     Subject: mm/huge_memory: check new folio order when split a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-an-explicit-smp_wmb-to-uffdio_continue.patch
+     mm-huge_memory-check-new-folio-order-when-split-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-an-explicit-smp_wmb-to-uffdio_continue.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-check-new-folio-order-when-split-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,87 +58,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: James Houghton <jthoughton@google.com>
-Subject: mm: add an explicit smp_wmb() to UFFDIO_CONTINUE
-Date: Thu, 7 Mar 2024 01:02:50 +0000
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: check new folio order when split a folio
+Date: Thu, 7 Mar 2024 13:18:53 -0500
 
-Users of UFFDIO_CONTINUE may reasonably assume that a write memory barrier
-is included as part of UFFDIO_CONTINUE.  That is, a user may believe that
-all writes it has done to a page that it is now UFFDIO_CONTINUE'ing are
-guaranteed to be visible to anyone subsequently reading the page through
-the newly mapped virtual memory region.
+A folio can only be split into lower orders.  Check new_order to make sure
+it is smaller than input folio order.
 
-Today, such a user happens to be correct.  mmget_not_zero(), for example,
-is called as part of UFFDIO_CONTINUE (and comes before any PTE updates),
-and it implicitly gives us a write barrier.
-
-To be resilient against future changes, include an explicit smp_wmb(). 
-While we're at it, optimize the smp_wmb() that is already incidentally
-present for the HugeTLB case.
-
-Merely making a syscall does not generally imply the memory ordering
-constraints that we need (including on x86).
-
-Link: https://lkml.kernel.org/r/20240307010250.3847179-1-jthoughton@google.com
-Signed-off-by: James Houghton <jthoughton@google.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20240307181854.138928-1-zi.yan@sent.com
+Fixes: c010d47f107f ("mm: thp: split huge page to any lower order pages")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
+Closes: https://lore.kernel.org/linux-mm/7dda9283-b437-4cf8-ab0d-83c330deb9c0@moroto.mountain/
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c     |   17 +++++++++++++----
- mm/userfaultfd.c |    9 +++++++++
- 2 files changed, 22 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/hugetlb.c~mm-add-an-explicit-smp_wmb-to-uffdio_continue
-+++ a/mm/hugetlb.c
-@@ -6780,11 +6780,20 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 	}
+--- a/mm/huge_memory.c~mm-huge_memory-check-new-folio-order-when-split-a-folio
++++ a/mm/huge_memory.c
+@@ -3052,6 +3052,9 @@ int split_huge_page_to_list_to_order(str
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+ 	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
  
- 	/*
--	 * The memory barrier inside __folio_mark_uptodate makes sure that
--	 * preceding stores to the page contents become visible before
--	 * the set_pte_at() write.
-+	 * If we just allocated a new page, we need a memory barrier to ensure
-+	 * that preceding stores to the page become visible before the
-+	 * set_pte_at() write. The memory barrier inside __folio_mark_uptodate
-+	 * is what we need.
-+	 *
-+	 * In the case where we have not allocated a new page (is_continue),
-+	 * the page must already be uptodate. UFFDIO_CONTINUE already includes
-+	 * an earlier smp_wmb() to ensure that prior stores will be visible
-+	 * before the set_pte_at() write.
- 	 */
--	__folio_mark_uptodate(folio);
-+	if (!is_continue)
-+		__folio_mark_uptodate(folio);
-+	else
-+		WARN_ON_ONCE(!folio_test_uptodate(folio));
- 
- 	/* Add shared, newly allocated pages to the page cache. */
- 	if (vm_shared && !is_continue) {
---- a/mm/userfaultfd.c~mm-add-an-explicit-smp_wmb-to-uffdio_continue
-+++ a/mm/userfaultfd.c
-@@ -845,6 +845,15 @@ ssize_t mfill_atomic_zeropage(struct use
- ssize_t mfill_atomic_continue(struct userfaultfd_ctx *ctx, unsigned long start,
- 			      unsigned long len, uffd_flags_t flags)
- {
++	if (new_order >= folio_order(folio))
++		return -EINVAL;
 +
-+	/*
-+	 * A caller might reasonably assume that UFFDIO_CONTINUE contains an
-+	 * smp_wmb() to ensure that any writes to the about-to-be-mapped page by
-+	 * the thread doing the UFFDIO_CONTINUE are guaranteed to be visible to
-+	 * subsequent loads from the page through the newly mapped address range.
-+	 */
-+	smp_wmb();
-+
- 	return mfill_atomic(ctx, start, 0, len,
- 			    uffd_flags_set_mode(flags, MFILL_ATOMIC_CONTINUE));
- }
+ 	/* Cannot split anonymous THP to order-1 */
+ 	if (new_order == 1 && folio_test_anon(folio)) {
+ 		VM_WARN_ONCE(1, "Cannot split to order-1 folio");
 _
 
-Patches currently in -mm which might be from jthoughton@google.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-add-an-explicit-smp_wmb-to-uffdio_continue.patch
+mm-huge_memory-check-new-folio-order-when-split-a-folio.patch
+mm-huge_memory-skip-invalid-debugfs-new_order-input-for-folio-split.patch
 
