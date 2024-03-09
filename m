@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00D5310A34
-	for <mm-commits@vger.kernel.org>; Sat,  9 Mar 2024 04:38:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DD44364A0
+	for <mm-commits@vger.kernel.org>; Sat,  9 Mar 2024 04:43:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709959130; cv=none; b=XIGu+gMspMIFMs4s1GxTCfIYNgj6RLwVd85rHY5GiNcwQwu3n4XT3zxLYmzTWInematYInleOgqGELtdlVZR53RzaH1/piliccf6kftSCQeWjDgOg7KQWw6ghYfxAGhCcPmkHOYIKd1WLJo/kRLEy6FgMjU3AbcrdRbF01XM0Sw=
+	t=1709959416; cv=none; b=ixfHqyTHxYUKwSQztnw4b9ex8VM1OnPR//O5Te+moyZC2nk/F8d6CSxDuGU9QTJyAPotaI5rSC3JIezN4DY+EA5yM+ClP31Xwt+MXL8YsqigX9hZGngu59r31p1fiIAtjGbKTclc6sNAe83HzpwuX9rxOGJ/IMIFvOfXc5SXPNo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709959130; c=relaxed/simple;
-	bh=2FN3VRj/O2qJW01n+MA08fE9SUkPhGeWx9porj64/Vc=;
-	h=Date:To:From:Subject:Message-Id; b=BAsf3TqBGIBA2B0pavPoSw6wg6t5WoZRLuyrw+ItOFILGuIXd2REs90pA49s5aG3Hf+IOHxHJ+aSM+ngi4dNNMANhrSOOLRASioQfIVBqFpZ0I/i81inWcYYLgyq0kA5ypBXq0suwIJFg4t5KYZk8+xjRigdoEtUQAU/3p3yYkw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0j9HvyGG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709959416; c=relaxed/simple;
+	bh=7oRvPd7CxV+u2RkYkwd9HSOhnfBlbhUxx0i21WocDUM=;
+	h=Date:To:From:Subject:Message-Id; b=X37chZo8iQ52mabq9FtjOXe0BYc1/PzlMdIpu90CiwRjNMsgd6nBVBh2Vc/c2NzjXplfyYR/FOAxdb8VCpYxjGJZ/VAgyII/jXxKwAusnzW69wCcpHwUQMFDmXVKaY+Uy906Io9WIQbqcOcf2sCy5/dE4LmwU6DAaV1gSXPZhZk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hjTuN6+w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0j9HvyGG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B89F8C433C7;
-	Sat,  9 Mar 2024 04:38:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hjTuN6+w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9CAAC433F1;
+	Sat,  9 Mar 2024 04:43:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1709959129;
-	bh=2FN3VRj/O2qJW01n+MA08fE9SUkPhGeWx9porj64/Vc=;
+	s=korg; t=1709959415;
+	bh=7oRvPd7CxV+u2RkYkwd9HSOhnfBlbhUxx0i21WocDUM=;
 	h=Date:To:From:Subject:From;
-	b=0j9HvyGG786IWszMjkkx+Z/9aB9Cp/o1nJRPhurl7N/LvUCt/jYZK8VFeF6RH2Kw0
-	 8bB1XOVAImC99MEpI2wUe91Auayep8bcQbcWARFc+ypgUOxnE8Sapi3T9VXKaMgWSa
-	 N1L27pw8MJkQ4XwLLSjiLj5bBD8OLHjWdVFUgPyQ=
-Date: Fri, 08 Mar 2024 20:38:49 -0800
+	b=hjTuN6+w4Zt0BNA2Ohu/v01JNnvk9paOi/TZ1O18mXTo4JDMYPSmzpbfhf8ffdpcW
+	 huqflToUcjYZBIV9CfozLoA/CdZF2CUr7ZBimV8Ozny5peGYPJHB+RYWYWL8yILfYa
+	 mX2PzbX/kbqH2EREx1s+/jL1dICaEQLVg/urr+ek=
+Date: Fri, 08 Mar 2024 20:43:35 -0800
 To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,vitaly.wool@konsulko.com,sjenning@redhat.com,nphamcs@gmail.com,herbert@gondor.apana.org.au,hannes@cmpxchg.org,ddstreet@ieee.org,davem@davemloft.net,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-remove-the-memcpy-if-acomp-is-not-sleepable.patch added to mm-unstable branch
-Message-Id: <20240309043849.B89F8C433C7@smtp.kernel.org>
+Subject: [failures] mm-zswap-remove-the-memcpy-if-acomp-is-not-sleepable.patch removed from -mm tree
+Message-Id: <20240309044335.C9CAAC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,28 +34,12 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
+The quilt patch titled
      Subject: mm/zswap: remove the memcpy if acomp is not sleepable
-has been added to the -mm mm-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-zswap-remove-the-memcpy-if-acomp-is-not-sleepable.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-remove-the-memcpy-if-acomp-is-not-sleepable.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
 From: Barry Song <v-songbaohua@oppo.com>
@@ -142,5 +126,4 @@ _
 Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
 mm-prohibit-the-last-subpage-from-reusing-the-entire-large-folio.patch
-mm-zswap-remove-the-memcpy-if-acomp-is-not-sleepable.patch
 
