@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F3E31428EC
-	for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2024 20:09:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D2621428E8
+	for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2024 20:09:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710274187; cv=none; b=A8+9KBVMWzW0BQBnGevenRess/RHgGRJXW2xbSfiOTA6JJHXK2M7F1x22TyW+ME455deNVhjeYfqfooyvL17wu/Ci0u2KKF3E0NcgGXFciyX8mfgF+iYcOJ2/vqp4t0J3u+cjxcw3AbcsHBvuVRdUta1ZQu6INXUTWbO5OEYGoE=
+	t=1710274187; cv=none; b=Tjh8FWwZbac8OohUbP8QxVoYMF4vkXMMVlZn1gEpKebjTy8D7hqP/AlLqru0F7xRGk2YHDX96DxCQ+F6XejxfcPwMgOR9veMUZk51Nx95lY90C75znkXni8URGeVUgeTxOL7c2FdFrvKDsrISkYJkdsOj6NiHw02ihiRoEEJseg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1710274187; c=relaxed/simple;
-	bh=NdT9+xtXVRhjwrNuf9vsQ4y+bAwulGLgGt2mWNDz7Dg=;
-	h=Date:To:From:Subject:Message-Id; b=jJb1Gr1xS2NS1zobZp8kfIajl0M/T7p3mZPiDgV6cyzcejIfRtF2f0GsvHDqFEE/90aHjGciX/Lk05+O4dgdG4n/0T36SxcAVKAhzdK+ezuqdi8ie0kA4zniY3iHAwbgR5inmUdb7c6qCLPpEqwrT9njU6d7ipM01A4+qc/gMWs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ePjLCyKk; arc=none smtp.client-ip=10.30.226.201
+	bh=dZvVU2d2fk4lGEIYNxnlhD+9Q5VBTZfZHAdcTi6M/QE=;
+	h=Date:To:From:Subject:Message-Id; b=idHFJFgWUugOdHhGZgPW4H/SdQO3mYv1CVh+peEDKMttXLBqpJsGnldi27lH/NDFnTyJGPH6Xxz/tpIvorc5mg3qWfhkAyCZUYqh0O1kwj7fVf/qGXXIMxYAzZSpR1AI0lyolM3wrmGSUCRBsCcruA2TYzfG7LxwYLUL2VhkzWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2lR3cRq4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ePjLCyKk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CEECC43390;
-	Tue, 12 Mar 2024 20:09:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2lR3cRq4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21657C433C7;
+	Tue, 12 Mar 2024 20:09:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710274185;
-	bh=NdT9+xtXVRhjwrNuf9vsQ4y+bAwulGLgGt2mWNDz7Dg=;
+	s=korg; t=1710274187;
+	bh=dZvVU2d2fk4lGEIYNxnlhD+9Q5VBTZfZHAdcTi6M/QE=;
 	h=Date:To:From:Subject:From;
-	b=ePjLCyKkHiKNM+bzimOshEPjE8NobHRiMVgGSj7d1kTJ7hosd3Fp4Yb5m4VKrcsgQ
-	 t9h5XVyBQBj6JzyhT3A30c8Ihn7u4WXIzMSfEYDd6JjFE89DiinllgSZqxTYSSl/9x
-	 GkrywEJoEIu+5wGBUCInGdjSluFzaZcsw//sKe0M=
-Date: Tue, 12 Mar 2024 13:09:45 -0700
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,thorsten.blum@toblux.com,akpm@linux-foundation.org
+	b=2lR3cRq4THWIYONT3S+HAHZKWCMHw0kLSvcya5+96Z5L5UYnS/qrqZm6HwtH6cBmO
+	 KNtD15h87w36Ees1HzI7WwxCXDxpky/a21wMmbPMYU3Z33212jPnuB/R/rmtKDlmd3
+	 0E9EBh3hecUm0CEuO84+tIyPxwol3hME1m8Xz6UU=
+Date: Tue, 12 Mar 2024 13:09:46 -0700
+To: mm-commits@vger.kernel.org,linux@weissschuh.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-use-div64_ul-instead-of-do_div.patch removed from -mm tree
-Message-Id: <20240312200945.9CEECC43390@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] watchdog-core-remove-sysctl-handlers-from-public-header.patch removed from -mm tree
+Message-Id: <20240312200947.21657C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,115 +35,114 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: use div64_ul() instead of do_div()
+     Subject: watchdog/core: remove sysctl handlers from public header
 has been removed from the -mm tree.  Its filename was
-     nilfs2-use-div64_ul-instead-of-do_div.patch
+     watchdog-core-remove-sysctl-handlers-from-public-header.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@toblux.com>
-Subject: nilfs2: use div64_ul() instead of do_div()
-Date: Wed, 6 Mar 2024 23:25:47 +0900
+From: Thomas Weißschuh <linux@weissschuh.net>
+Subject: watchdog/core: remove sysctl handlers from public header
+Date: Wed, 06 Mar 2024 07:49:16 +0100
 
-Fixes Coccinelle/coccicheck warnings reported by do_div.cocci.
+The functions are only used in the file where they are defined.  Remove
+them from the header and make them static.
 
-Compared to do_div(), div64_ul() does not implicitly cast the divisor and
-does not unnecessarily calculate the remainder.
+Also guard proc_soft_watchdog with a #define-guard as it is not used
+otherwise.
 
-Link: https://lkml.kernel.org/r/20240229210456.63234-2-thorsten.blum@toblux.com
-Link: https://lkml.kernel.org/r/20240306142547.4612-1-konishi.ryusuke@gmail.com
-Signed-off-by: Thorsten Blum <thorsten.blum@toblux.com>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Link: https://lkml.kernel.org/r/20240306-const-sysctl-prep-watchdog-v1-1-bd45da3a41cf@weissschuh.net
+Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/cpfile.c    |    2 +-
- fs/nilfs2/dat.c       |    2 +-
- fs/nilfs2/ioctl.c     |    4 ++--
- fs/nilfs2/sufile.c    |    2 +-
- fs/nilfs2/super.c     |    2 +-
- fs/nilfs2/the_nilfs.c |    2 +-
- 6 files changed, 7 insertions(+), 7 deletions(-)
+ include/linux/nmi.h |    7 -------
+ kernel/watchdog.c   |   22 ++++++++++++----------
+ 2 files changed, 12 insertions(+), 17 deletions(-)
 
---- a/fs/nilfs2/cpfile.c~nilfs2-use-div64_ul-instead-of-do_div
-+++ a/fs/nilfs2/cpfile.c
-@@ -28,7 +28,7 @@ nilfs_cpfile_get_blkoff(const struct ino
- {
- 	__u64 tcno = cno + NILFS_MDT(cpfile)->mi_first_entry_offset - 1;
+--- a/include/linux/nmi.h~watchdog-core-remove-sysctl-handlers-from-public-header
++++ a/include/linux/nmi.h
+@@ -216,13 +216,6 @@ void watchdog_update_hrtimer_threshold(u
+ static inline void watchdog_update_hrtimer_threshold(u64 period) { }
+ #endif
  
--	do_div(tcno, nilfs_cpfile_checkpoints_per_block(cpfile));
-+	tcno = div64_ul(tcno, nilfs_cpfile_checkpoints_per_block(cpfile));
- 	return (unsigned long)tcno;
+-struct ctl_table;
+-int proc_watchdog(struct ctl_table *, int, void *, size_t *, loff_t *);
+-int proc_nmi_watchdog(struct ctl_table *, int , void *, size_t *, loff_t *);
+-int proc_soft_watchdog(struct ctl_table *, int , void *, size_t *, loff_t *);
+-int proc_watchdog_thresh(struct ctl_table *, int , void *, size_t *, loff_t *);
+-int proc_watchdog_cpumask(struct ctl_table *, int, void *, size_t *, loff_t *);
+-
+ #ifdef CONFIG_HAVE_ACPI_APEI_NMI
+ #include <asm/nmi.h>
+ #endif
+--- a/kernel/watchdog.c~watchdog-core-remove-sysctl-handlers-from-public-header
++++ a/kernel/watchdog.c
+@@ -796,8 +796,8 @@ static int proc_watchdog_common(int whic
+ /*
+  * /proc/sys/kernel/watchdog
+  */
+-int proc_watchdog(struct ctl_table *table, int write,
+-		  void *buffer, size_t *lenp, loff_t *ppos)
++static int proc_watchdog(struct ctl_table *table, int write,
++			 void *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	return proc_watchdog_common(WATCHDOG_HARDLOCKUP_ENABLED |
+ 				    WATCHDOG_SOFTOCKUP_ENABLED,
+@@ -807,8 +807,8 @@ int proc_watchdog(struct ctl_table *tabl
+ /*
+  * /proc/sys/kernel/nmi_watchdog
+  */
+-int proc_nmi_watchdog(struct ctl_table *table, int write,
+-		      void *buffer, size_t *lenp, loff_t *ppos)
++static int proc_nmi_watchdog(struct ctl_table *table, int write,
++			     void *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	if (!watchdog_hardlockup_available && write)
+ 		return -ENOTSUPP;
+@@ -816,21 +816,23 @@ int proc_nmi_watchdog(struct ctl_table *
+ 				    table, write, buffer, lenp, ppos);
  }
  
---- a/fs/nilfs2/dat.c~nilfs2-use-div64_ul-instead-of-do_div
-+++ a/fs/nilfs2/dat.c
-@@ -460,7 +460,7 @@ ssize_t nilfs_dat_get_vinfo(struct inode
- 		kaddr = kmap_local_page(entry_bh->b_page);
- 		/* last virtual block number in this block */
- 		first = vinfo->vi_vblocknr;
--		do_div(first, entries_per_block);
-+		first = div64_ul(first, entries_per_block);
- 		first *= entries_per_block;
- 		last = first + entries_per_block - 1;
- 		for (j = i, n = 0;
---- a/fs/nilfs2/ioctl.c~nilfs2-use-div64_ul-instead-of-do_div
-+++ a/fs/nilfs2/ioctl.c
-@@ -1111,7 +1111,7 @@ static int nilfs_ioctl_set_alloc_range(s
- 	segbytes = nilfs->ns_blocks_per_segment * nilfs->ns_blocksize;
- 
- 	minseg = range[0] + segbytes - 1;
--	do_div(minseg, segbytes);
-+	minseg = div64_ul(minseg, segbytes);
- 
- 	if (range[1] < 4096)
- 		goto out;
-@@ -1120,7 +1120,7 @@ static int nilfs_ioctl_set_alloc_range(s
- 	if (maxseg < segbytes)
- 		goto out;
- 
--	do_div(maxseg, segbytes);
-+	maxseg = div64_ul(maxseg, segbytes);
- 	maxseg--;
- 
- 	ret = nilfs_sufile_set_alloc_range(nilfs->ns_sufile, minseg, maxseg);
---- a/fs/nilfs2/sufile.c~nilfs2-use-div64_ul-instead-of-do_div
-+++ a/fs/nilfs2/sufile.c
-@@ -48,7 +48,7 @@ nilfs_sufile_get_blkoff(const struct ino
++#ifdef CONFIG_SOFTLOCKUP_DETECTOR
+ /*
+  * /proc/sys/kernel/soft_watchdog
+  */
+-int proc_soft_watchdog(struct ctl_table *table, int write,
+-			void *buffer, size_t *lenp, loff_t *ppos)
++static int proc_soft_watchdog(struct ctl_table *table, int write,
++			      void *buffer, size_t *lenp, loff_t *ppos)
  {
- 	__u64 t = segnum + NILFS_MDT(sufile)->mi_first_entry_offset;
- 
--	do_div(t, nilfs_sufile_segment_usages_per_block(sufile));
-+	t = div64_ul(t, nilfs_sufile_segment_usages_per_block(sufile));
- 	return (unsigned long)t;
+ 	return proc_watchdog_common(WATCHDOG_SOFTOCKUP_ENABLED,
+ 				    table, write, buffer, lenp, ppos);
  }
++#endif
  
---- a/fs/nilfs2/super.c~nilfs2-use-div64_ul-instead-of-do_div
-+++ a/fs/nilfs2/super.c
-@@ -448,7 +448,7 @@ int nilfs_resize_fs(struct super_block *
- 
- 	sb2off = NILFS_SB2_OFFSET_BYTES(newsize);
- 	newnsegs = sb2off >> nilfs->ns_blocksize_bits;
--	do_div(newnsegs, nilfs->ns_blocks_per_segment);
-+	newnsegs = div64_ul(newnsegs, nilfs->ns_blocks_per_segment);
- 
- 	ret = nilfs_sufile_resize(nilfs->ns_sufile, newnsegs);
- 	up_write(&nilfs->ns_segctor_sem);
---- a/fs/nilfs2/the_nilfs.c~nilfs2-use-div64_ul-instead-of-do_div
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -413,7 +413,7 @@ static u64 nilfs_max_segment_count(struc
+ /*
+  * /proc/sys/kernel/watchdog_thresh
+  */
+-int proc_watchdog_thresh(struct ctl_table *table, int write,
+-			 void *buffer, size_t *lenp, loff_t *ppos)
++static int proc_watchdog_thresh(struct ctl_table *table, int write,
++				void *buffer, size_t *lenp, loff_t *ppos)
  {
- 	u64 max_count = U64_MAX;
+ 	int err, old;
  
--	do_div(max_count, nilfs->ns_blocks_per_segment);
-+	max_count = div64_ul(max_count, nilfs->ns_blocks_per_segment);
- 	return min_t(u64, max_count, ULONG_MAX);
- }
+@@ -852,8 +854,8 @@ int proc_watchdog_thresh(struct ctl_tabl
+  * user to specify a mask that will include cpus that have not yet
+  * been brought online, if desired.
+  */
+-int proc_watchdog_cpumask(struct ctl_table *table, int write,
+-			  void *buffer, size_t *lenp, loff_t *ppos)
++static int proc_watchdog_cpumask(struct ctl_table *table, int write,
++				 void *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	int err;
  
 _
 
-Patches currently in -mm which might be from thorsten.blum@toblux.com are
+Patches currently in -mm which might be from linux@weissschuh.net are
 
 
