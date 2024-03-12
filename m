@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20E5A7CF01
-	for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2024 15:55:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4AD37E104
+	for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2024 15:57:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710258915; cv=none; b=FJdYSb7a1arQDsxMLFtCEA2wkusfAzrKUKlj9SCd3CAB6+c0ula9xb6kCQxN9GyQiiJMQWJvWWVuZ1t6r9vmdN9uhsAjOoJnWDe03Vv9z58rX0+4BomMSSTX9N1BurYi0QbNPbRc0nOPpoQIqcOsp6Q3HdtSo3gFFM3IydMMqzw=
+	t=1710259049; cv=none; b=ff/s4EaotSaJE/Q7sWQg9eQYeP5X35u6BbYCUhRoobY43AmQamU23qpARs/63AdSaEARMs4pCEmh84PbpG5qV80OIGVdedjeMIXImSLpiMI1/5lp0QD4XR5zmReytJDg2nSk6GTNo4xGAUKKfmJuBfDV+5u1Ox0TlWPEF+cynIk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710258915; c=relaxed/simple;
-	bh=C8Xj7Iaia0koQUgZeMftGWiNgCN5fOSSiXOtVGtPpLk=;
-	h=Date:To:From:Subject:Message-Id; b=jvVztg6WO7JUyGv+4JCv2HgppElsdiJ2R6dfo5kOy1UrvK25yb44+YOlzbGcTXMm/f+yFfIhh85acxhg8Lg/y7/JvvYgpXLUvvF7ekGrXTydiqZ8jyaxtElmto73uDWED04/UIjbUVAFKeMJyy0IoFgUpV+5G4t7uA75mxTc8iE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qZdjIaja; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710259049; c=relaxed/simple;
+	bh=0rT0sutlSrZIWPaQlEPx/irh2/Cpyiu+GSTcMIkXrgM=;
+	h=Date:To:From:Subject:Message-Id; b=sm7NVGqPDvkxW853NOJyKvslZgyClsHfUzrTVJYthlowEyb/Kt7FBgen8y06sgYSyWg1qOE/r+k00jf7S5gea7G7Y0WFMrDCi9dIhfOWJLWEobx9PtET1kZDpXJaJN0suz7quFsFoRPCu2RBHswUYCTgSNcbHivjsfu+fOVp23M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UixGdWB+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qZdjIaja"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CD7CC43394;
-	Tue, 12 Mar 2024 15:55:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UixGdWB+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B319C433C7;
+	Tue, 12 Mar 2024 15:57:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710258914;
-	bh=C8Xj7Iaia0koQUgZeMftGWiNgCN5fOSSiXOtVGtPpLk=;
+	s=korg; t=1710259049;
+	bh=0rT0sutlSrZIWPaQlEPx/irh2/Cpyiu+GSTcMIkXrgM=;
 	h=Date:To:From:Subject:From;
-	b=qZdjIajadH70IUEqb0j1tqBs1Mun/3HGfNxngOEUJCiNmkyyU/qAjRcRoUZp70o/F
-	 kBveXOUjtdgOkr16xN4KSh7XTwef8+2eTAOZCKs735oHzGi+tTT7lskBIWderH1NPf
-	 /CD62bkrpr58urkQ4F3KArXbAJXvDGE8OaCSMSE0=
-Date: Tue, 12 Mar 2024 08:55:14 -0700
+	b=UixGdWB+Ys4LW0epBTVfDjHN/XcgYVBDtJutANGuIJvkW1aSt7NGrxycejYl5XVs8
+	 qQUOJSoptJ8IR/aIm4BR4iRS9I9vt1Sz9RM+WsjgShi8h2TQFtY6gfwwhqPI5lun7s
+	 NOqkZ+jG/g4BQ2eo9SewLBNpvjii58KtHzaAspxo=
+Date: Tue, 12 Mar 2024 08:57:28 -0700
 To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,vitaly.wool@konsulko.com,sjenning@redhat.com,nphamcs@gmail.com,herbert@gondor.apana.org.au,hannes@cmpxchg.org,ddstreet@ieee.org,davem@davemloft.net,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + crypto-introduce-acomp_is_async-to-expose-if-comp-drivers-might-sleep.patch added to mm-unstable branch
-Message-Id: <20240312155514.9CD7CC43394@smtp.kernel.org>
+Subject: + mm-zswap-remove-the-memcpy-if-acomp-is-not-sleepable.patch added to mm-unstable branch
+Message-Id: <20240312155729.4B319C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: crypto: introduce: acomp_is_async to expose if comp drivers might sleep
+     Subject: mm/zswap: remove the memcpy if acomp is not sleepable
 has been added to the -mm mm-unstable branch.  Its filename is
-     crypto-introduce-acomp_is_async-to-expose-if-comp-drivers-might-sleep.patch
+     mm-zswap-remove-the-memcpy-if-acomp-is-not-sleepable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crypto-introduce-acomp_is_async-to-expose-if-comp-drivers-might-sleep.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-remove-the-memcpy-if-acomp-is-not-sleepable.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,52 +59,84 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Barry Song <v-songbaohua@oppo.com>
-Subject: crypto: introduce: acomp_is_async to expose if comp drivers might sleep
-Date: Thu, 22 Feb 2024 21:11:34 +1300
+Subject: mm/zswap: remove the memcpy if acomp is not sleepable
+Date: Thu, 22 Feb 2024 21:11:35 +1300
 
-acomp's users might want to know if acomp is really async to optimize
-themselves.  One typical user which can benefit from exposed async stat is
-zswap.
+Most compressors are actually CPU-based and won't sleep during compression
+and decompression.  We should remove the redundant memcpy for them.
 
-In zswap, zsmalloc is the most commonly used allocator for (and perhaps
-the only one).  For zsmalloc, we cannot sleep while we map the compressed
-memory, so we copy it to a temporary buffer.  By knowing the alg won't
-sleep can help zswap to avoid the need for a buffer.  This shows
-noticeable improvement in load/store latency of zswap.
+This patch checks if the algorithm is sleepable by testing the
+CRYPTO_ALG_ASYNC algorithm flag.
 
-Link: https://lkml.kernel.org/r/20240222081135.173040-2-21cnbao@gmail.com
+Generally speaking, async and sleepable are semantically similar but not
+equal.  But for compress drivers, they are basically equal at least due to
+the below facts.
+
+Firstly, scompress drivers - crypto/deflate.c, lz4.c, zstd.c, lzo.c etc
+have no sleep.  Secondly, zRAM has been using these scompress drivers for
+years in atomic contexts, and never worried those drivers going to sleep.
+
+One exception is that an async driver can sometimes still return
+synchronously per Herbert's clarification.  In this case, we are still
+having a redundant memcpy.  But we can't know if one particular acomp
+request will sleep or not unless crypto can expose more details for each
+specific request from offload drivers.
+
+Link: https://lkml.kernel.org/r/20240222081135.173040-3-21cnbao@gmail.com
 Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Acked-by: Herbert Xu <herbert@gondor.apana.org.au>
+Tested-by: Chengming Zhou <zhouchengming@bytedance.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Chengming Zhou <zhouchengming@bytedance.com>
 Acked-by: Chris Li <chrisl@kernel.org>
-Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: David S. Miller <davem@davemloft.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Cc: Seth Jennings <sjenning@redhat.com>
 Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/crypto/acompress.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/zswap.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/include/crypto/acompress.h~crypto-introduce-acomp_is_async-to-expose-if-comp-drivers-might-sleep
-+++ a/include/crypto/acompress.h
-@@ -160,6 +160,12 @@ static inline void acomp_request_set_tfm
- 	req->base.tfm = crypto_acomp_tfm(tfm);
+--- a/mm/zswap.c~mm-zswap-remove-the-memcpy-if-acomp-is-not-sleepable
++++ a/mm/zswap.c
+@@ -162,6 +162,7 @@ struct crypto_acomp_ctx {
+ 	struct crypto_wait wait;
+ 	u8 *buffer;
+ 	struct mutex mutex;
++	bool is_sleepable;
+ };
+ 
+ /*
+@@ -951,6 +952,7 @@ static int zswap_cpu_comp_prepare(unsign
+ 		goto acomp_fail;
+ 	}
+ 	acomp_ctx->acomp = acomp;
++	acomp_ctx->is_sleepable = acomp_is_async(acomp);
+ 
+ 	req = acomp_request_alloc(acomp_ctx->acomp);
+ 	if (!req) {
+@@ -1078,7 +1080,7 @@ static void zswap_decompress(struct zswa
+ 	mutex_lock(&acomp_ctx->mutex);
+ 
+ 	src = zpool_map_handle(zpool, entry->handle, ZPOOL_MM_RO);
+-	if (!zpool_can_sleep_mapped(zpool)) {
++	if (acomp_ctx->is_sleepable && !zpool_can_sleep_mapped(zpool)) {
+ 		memcpy(acomp_ctx->buffer, src, entry->length);
+ 		src = acomp_ctx->buffer;
+ 		zpool_unmap_handle(zpool, entry->handle);
+@@ -1092,7 +1094,7 @@ static void zswap_decompress(struct zswa
+ 	BUG_ON(acomp_ctx->req->dlen != PAGE_SIZE);
+ 	mutex_unlock(&acomp_ctx->mutex);
+ 
+-	if (zpool_can_sleep_mapped(zpool))
++	if (!acomp_ctx->is_sleepable || zpool_can_sleep_mapped(zpool))
+ 		zpool_unmap_handle(zpool, entry->handle);
  }
  
-+static inline bool acomp_is_async(struct crypto_acomp *tfm)
-+{
-+	return crypto_comp_alg_common(tfm)->base.cra_flags &
-+	       CRYPTO_ALG_ASYNC;
-+}
-+
- static inline struct crypto_acomp *crypto_acomp_reqtfm(struct acomp_req *req)
- {
- 	return __crypto_acomp_tfm(req->base.tfm);
 _
 
 Patches currently in -mm which might be from v-songbaohua@oppo.com are
