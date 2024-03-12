@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BB961428E1
-	for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2024 20:07:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EE2B14264A
+	for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2024 20:07:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710274068; cv=none; b=Byz5qs1zV5p8nLQYRXSEZ0kZPrzfwgMHARcVJ3VxR2GGarePAs5ltKSV/C7Y30s5iiC6OXeMk6nSYh836u8A4de29MxZlh9Igzk22J44xnjwJKfo4Eq0589/q3dPUAgZL557gmS0U1YbSrW2n5wawiKfkQ1IXg4UVhpw+Ty1EsU=
+	t=1710274069; cv=none; b=BhoaYkRiuQASh4IpwdzprZgy/Ff8+nDQwORLGB0+n8o8CN7nm4HMvnNfa1qs1UqeWE09H8TzMy3quFmXw1T8tMA0gdrYkjFRa25GGQJ2YdxNs2VSONKS9+CoSytTQPw+NhwK20ReJF3ynXj/T2W/TItxJffvNFhG4OkA5bDAm7g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710274068; c=relaxed/simple;
-	bh=vTuyfKMStZ3CkeyeaoE7tLyOytk6GcKm7WhjcIi6Enw=;
-	h=Date:To:From:Subject:Message-Id; b=utMnMMvecIm1GOc5J3OM0yuAV3n45DbGrMg0xY31AuT5PBoCrxgc5d4N6b5gSaWTMQ5vmrIlhLBHOc5akRk94Xwg7u9FJIKZ8/lWA6YIB2ZN959xavRBD7qq/FCehgD9ZLPT/kYCsweKdx8tkgu2knIxRGrOA+ozxjm6U0mEl50=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LCQK78/v; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710274069; c=relaxed/simple;
+	bh=UkA0V4gyWOALjGG7BDrXHYdxPVU8MLW7tPnNHFsKn70=;
+	h=Date:To:From:Subject:Message-Id; b=PNJbOP9QMMGt236QRNZs424QOu4uNrCyJ+jbNg2dU7+xdZsIHXqJ6M8Yu87ohQBR3MTjXhnGDbKhpAWf8fCFc7kVhvCYSqZjVpyDD+a1lwN3j/qI0SIkejUwS9qzjy+wIPBnIyiKduewzwrGXkVbglBKYuViFDdCCc9QXknjVn0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c12htL1D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LCQK78/v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CB9EC43390;
-	Tue, 12 Mar 2024 20:07:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c12htL1D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 539D4C433F1;
+	Tue, 12 Mar 2024 20:07:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710274068;
-	bh=vTuyfKMStZ3CkeyeaoE7tLyOytk6GcKm7WhjcIi6Enw=;
+	s=korg; t=1710274069;
+	bh=UkA0V4gyWOALjGG7BDrXHYdxPVU8MLW7tPnNHFsKn70=;
 	h=Date:To:From:Subject:From;
-	b=LCQK78/vl92SN19XgjlJh40cVs5pl5xlUHJgpLw7r1pVfHW4462Tha7wi37zc7NyU
-	 KjFg7/p3CrEM7vg18l2hAaGA9P38REp8PXMeiY6Daovs+fLT4BUQ0t+oj9RV4GtPir
-	 CUZFL13H0mNQFk3epvDD2j5Rv8rGjTXP5242/Kmk=
-Date: Tue, 12 Mar 2024 13:07:47 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,hannes@cmpxchg.org,byungchul@sk.com,akpm@linux-foundation.org
+	b=c12htL1Di0DLxzaXy0PrchAumnmj0zHuy/0AVV+gYLEs454GrEd2pAWTrUcQp3My2
+	 nzjfdZp//gXydORvMi+VWtR1pXiu6NKISDaCwSxdKsiQDNqZ8QiPD4jEyfnXcEq1K9
+	 5Lwq59iu8ToFYsa+UCmOEO6/cjpE6Lm5qtWwFACk=
+Date: Tue, 12 Mar 2024 13:07:48 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,kirill.shutemov@linux.intel.com,david@redhat.com,dan.carpenter@linaro.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-retry-kswapds-priority-loop-with-cache_trim_mode-off-on-failure.patch removed from -mm tree
-Message-Id: <20240312200748.0CB9EC43390@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-check-new-folio-order-when-split-a-folio.patch removed from -mm tree
+Message-Id: <20240312200749.539D4C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,140 +35,56 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, vmscan: retry kswapd's priority loop with cache_trim_mode off on failure
+     Subject: mm/huge_memory: check new folio order when split a folio
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-retry-kswapds-priority-loop-with-cache_trim_mode-off-on-failure.patch
+     mm-huge_memory-check-new-folio-order-when-split-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Byungchul Park <byungchul@sk.com>
-Subject: mm, vmscan: retry kswapd's priority loop with cache_trim_mode off on failure
-Date: Mon, 4 Mar 2024 15:27:37 +0900
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: check new folio order when split a folio
+Date: Thu, 7 Mar 2024 13:18:53 -0500
 
-With cache_trim_mode on, reclaim logic doesn't bother reclaiming anon
-pages.  However, it should be more careful to use the mode because it's
-going to prevent anon pages from being reclaimed even if there are a huge
-number of anon pages that are cold and should be reclaimed.  Even worse,
-that leads kswapd_failures to reach MAX_RECLAIM_RETRIES and stopping
-kswapd from functioning until direct reclaim eventually works to resume
-kswapd.
+A folio can only be split into lower orders.
 
-So kswapd needs to retry its scan priority loop with cache_trim_mode off
-again if the mode doesn't work for reclaim.
+Since there are no new_order checks in debugfs, any new_order can be
+passed via debugfs into split_huge_page_to_list_to_order().
 
-The problematic behavior can be reproduced by:
+Check new_order to make sure it is smaller than input folio order.
 
-   CONFIG_NUMA_BALANCING enabled
-   sysctl_numa_balancing_mode set to NUMA_BALANCING_MEMORY_TIERING
-   numa node0 (8GB local memory, 16 CPUs)
-   numa node1 (8GB slow tier memory, no CPUs)
-
-   Sequence:
-
-   1) echo 3 > /proc/sys/vm/drop_caches
-   2) To emulate the system with full of cold memory in local DRAM, run
-      the following dummy program and never touch the region:
-
-         mmap(0, 8 * 1024 * 1024 * 1024, PROT_READ | PROT_WRITE,
-              MAP_ANONYMOUS | MAP_PRIVATE | MAP_POPULATE, -1, 0);
-
-   3) Run any memory intensive work e.g. XSBench.
-   4) Check if numa balancing is working e.i. promotion/demotion.
-   5) Iterate 1) ~ 4) until numa balancing stops.
-
-With this, you could see that promotion/demotion are not working because
-kswapd has stopped due to ->kswapd_failures >= MAX_RECLAIM_RETRIES.
-
-Interesting vmstat delta's differences between before and after are like:
-
-   +-----------------------+-------------------------------+
-   | interesting vmstat    | before        | after         |
-   +-----------------------+-------------------------------+
-   | nr_inactive_anon      | 321935        | 1664772       |
-   | nr_active_anon        | 1780700       | 437834        |
-   | nr_inactive_file      | 30425         | 40882         |
-   | nr_active_file        | 14961         | 3012          |
-   | pgpromote_success     | 356           | 1293122       |
-   | pgpromote_candidate   | 21953245      | 1824148       |
-   | pgactivate            | 1844523       | 3311907       |
-   | pgdeactivate          | 50634         | 1554069       |
-   | pgfault               | 31100294      | 6518806       |
-   | pgdemote_kswapd       | 30856         | 2230821       |
-   | pgscan_kswapd         | 1861981       | 7667629       |
-   | pgscan_anon           | 1822930       | 7610583       |
-   | pgscan_file           | 39051         | 57046         |
-   | pgsteal_anon          | 386           | 2192033       |
-   | pgsteal_file          | 30470         | 38788         |
-   | pageoutrun            | 30            | 412           |
-   | numa_hint_faults      | 27418279      | 2875955       |
-   | numa_pages_migrated   | 356           | 1293122       |
-   +-----------------------+-------------------------------+
-
-Link: https://lkml.kernel.org/r/20240304082118.20499-1-byungchul@sk.com
-Signed-off-by: Byungchul Park <byungchul@sk.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20240307181854.138928-1-zi.yan@sent.com
+Fixes: c010d47f107f ("mm: thp: split huge page to any lower order pages")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
+Closes: https://lore.kernel.org/linux-mm/7dda9283-b437-4cf8-ab0d-83c330deb9c0@moroto.mountain/
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/vmscan.c~mm-vmscan-retry-kswapds-priority-loop-with-cache_trim_mode-off-on-failure
-+++ a/mm/vmscan.c
-@@ -108,6 +108,12 @@ struct scan_control {
- 	/* Can folios be swapped as part of reclaim? */
- 	unsigned int may_swap:1;
+--- a/mm/huge_memory.c~mm-huge_memory-check-new-folio-order-when-split-a-folio
++++ a/mm/huge_memory.c
+@@ -3052,6 +3052,9 @@ int split_huge_page_to_list_to_order(str
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+ 	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
  
-+	/* Not allow cache_trim_mode to be turned on as part of reclaim? */
-+	unsigned int no_cache_trim_mode:1;
++	if (new_order >= folio_order(folio))
++		return -EINVAL;
 +
-+	/* Has cache_trim_mode failed at least once? */
-+	unsigned int cache_trim_mode_failed:1;
-+
- 	/* Proactive reclaim invoked by userspace through memory.reclaim */
- 	unsigned int proactive:1;
- 
-@@ -2271,7 +2277,8 @@ static void prepare_scan_control(pg_data
- 	 * anonymous pages.
- 	 */
- 	file = lruvec_page_state(target_lruvec, NR_INACTIVE_FILE);
--	if (file >> sc->priority && !(sc->may_deactivate & DEACTIVATE_FILE))
-+	if (file >> sc->priority && !(sc->may_deactivate & DEACTIVATE_FILE) &&
-+	    !sc->no_cache_trim_mode)
- 		sc->cache_trim_mode = 1;
- 	else
- 		sc->cache_trim_mode = 0;
-@@ -5986,6 +5993,8 @@ again:
- 	 */
- 	if (reclaimable)
- 		pgdat->kswapd_failures = 0;
-+	else if (sc->cache_trim_mode)
-+		sc->cache_trim_mode_failed = 1;
- }
- 
- /*
-@@ -6918,6 +6927,16 @@ restart:
- 			sc.priority--;
- 	} while (sc.priority >= 1);
- 
-+	/*
-+	 * Restart only if it went through the priority loop all the way,
-+	 * but cache_trim_mode didn't work.
-+	 */
-+	if (!sc.nr_reclaimed && sc.priority < 1 &&
-+	    !sc.no_cache_trim_mode && sc.cache_trim_mode_failed) {
-+		sc.no_cache_trim_mode = 1;
-+		goto restart;
-+	}
-+
- 	if (!sc.nr_reclaimed)
- 		pgdat->kswapd_failures++;
- 
+ 	/* Cannot split anonymous THP to order-1 */
+ 	if (new_order == 1 && folio_test_anon(folio)) {
+ 		VM_WARN_ONCE(1, "Cannot split to order-1 folio");
 _
 
-Patches currently in -mm which might be from byungchul@sk.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
 
