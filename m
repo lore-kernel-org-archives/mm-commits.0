@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 547FD7D412
-	for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2024 15:51:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20E5A7CF01
+	for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2024 15:55:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710258692; cv=none; b=DoiJb/olxIFRD6FM9imlAZWgj0Hofdy+toFONrFxJ5sunlNMYabKa69Z8ZcZ9mRRXt5g/p+tfPhyd874/a7I62+0+YKx7r1GQVFgVZ0ybQLxs6ZPnIgqFlLz6LtezlrEi61RyUrHIeUy1mBoJCLF1/SW20+y9T0H3VMx7L5/RyU=
+	t=1710258915; cv=none; b=FJdYSb7a1arQDsxMLFtCEA2wkusfAzrKUKlj9SCd3CAB6+c0ula9xb6kCQxN9GyQiiJMQWJvWWVuZ1t6r9vmdN9uhsAjOoJnWDe03Vv9z58rX0+4BomMSSTX9N1BurYi0QbNPbRc0nOPpoQIqcOsp6Q3HdtSo3gFFM3IydMMqzw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710258692; c=relaxed/simple;
-	bh=AIA3pyOIeGDKnbFTUdM/iALoZTOmuDTwB0F/BB4OmTM=;
-	h=Date:To:From:Subject:Message-Id; b=bxi2xd7iMKZFTaKQfTgfMz6BChwcjVuyWgFyzgQ3LX3LRxbMOCcFGR1NxDTSvJa4levZYGnRdW4C+WGaVll3nEhRFHAy97A2FKXbW1HdXzKfM6dyZ/Gfr1zWO2/HfYmS3rqDBEqi3i1kytZYEDCAX244FD5yvTn7iz3R2UKKBW8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QO1tT6YH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710258915; c=relaxed/simple;
+	bh=C8Xj7Iaia0koQUgZeMftGWiNgCN5fOSSiXOtVGtPpLk=;
+	h=Date:To:From:Subject:Message-Id; b=jvVztg6WO7JUyGv+4JCv2HgppElsdiJ2R6dfo5kOy1UrvK25yb44+YOlzbGcTXMm/f+yFfIhh85acxhg8Lg/y7/JvvYgpXLUvvF7ekGrXTydiqZ8jyaxtElmto73uDWED04/UIjbUVAFKeMJyy0IoFgUpV+5G4t7uA75mxTc8iE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qZdjIaja; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QO1tT6YH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1771C433C7;
-	Tue, 12 Mar 2024 15:51:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qZdjIaja"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CD7CC43394;
+	Tue, 12 Mar 2024 15:55:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710258691;
-	bh=AIA3pyOIeGDKnbFTUdM/iALoZTOmuDTwB0F/BB4OmTM=;
+	s=korg; t=1710258914;
+	bh=C8Xj7Iaia0koQUgZeMftGWiNgCN5fOSSiXOtVGtPpLk=;
 	h=Date:To:From:Subject:From;
-	b=QO1tT6YHz5I8i0xtVfZ41TUI/idajoP8N9AW2WEYHim6PrSjkb/ZraqwkWfINozTU
-	 pguYb3zJFndUE1Dvl/8grFqVOwY3MQ2UHUYP2knZZfR4vyhMFltJMWpjtU3wlJy6DN
-	 k2SPZAsWnA56wbTzqiET6o3Sd+EcaQMuEJ8LoHzs=
-Date: Tue, 12 Mar 2024 08:51:31 -0700
-To: mm-commits@vger.kernel.org,kernel@pengutronix.de,u.kleine-koenig@pengutronix.de,akpm@linux-foundation.org
+	b=qZdjIajadH70IUEqb0j1tqBs1Mun/3HGfNxngOEUJCiNmkyyU/qAjRcRoUZp70o/F
+	 kBveXOUjtdgOkr16xN4KSh7XTwef8+2eTAOZCKs735oHzGi+tTT7lskBIWderH1NPf
+	 /CD62bkrpr58urkQ4F3KArXbAJXvDGE8OaCSMSE0=
+Date: Tue, 12 Mar 2024 08:55:14 -0700
+To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,vitaly.wool@konsulko.com,sjenning@redhat.com,nphamcs@gmail.com,herbert@gondor.apana.org.au,hannes@cmpxchg.org,ddstreet@ieee.org,davem@davemloft.net,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-build_oid_registry-dont-mention-the-full-path-of-the-script-in-output.patch added to mm-nonmm-unstable branch
-Message-Id: <20240312155131.C1771C433C7@smtp.kernel.org>
+Subject: + crypto-introduce-acomp_is_async-to-expose-if-comp-drivers-might-sleep.patch added to mm-unstable branch
+Message-Id: <20240312155514.9CD7CC43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/build_OID_registry: Don't mention the full path of the script in output
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-build_oid_registry-dont-mention-the-full-path-of-the-script-in-output.patch
+     Subject: crypto: introduce: acomp_is_async to expose if comp drivers might sleep
+has been added to the -mm mm-unstable branch.  Its filename is
+     crypto-introduce-acomp_is_async-to-expose-if-comp-drivers-might-sleep.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-build_oid_registry-dont-mention-the-full-path-of-the-script-in-output.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crypto-introduce-acomp_is_async-to-expose-if-comp-drivers-might-sleep.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,43 +58,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Subject: lib/build_OID_registry: Don't mention the full path of the script in output
-Date: Mon, 11 Mar 2024 12:01:22 +0100
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: crypto: introduce: acomp_is_async to expose if comp drivers might sleep
+Date: Thu, 22 Feb 2024 21:11:34 +1300
 
-This change strips the full path of the script generating
-lib/oid_registry_data.c to just lib/build_OID_registry. The motivation
-for this change is Yocto emitting a build warning
+acomp's users might want to know if acomp is really async to optimize
+themselves.  One typical user which can benefit from exposed async stat is
+zswap.
 
-	File /usr/src/debug/linux-lxatac/6.7-r0/lib/oid_registry_data.c in package linux-lxatac-src contains reference to TMPDIR [buildpaths]
+In zswap, zsmalloc is the most commonly used allocator for (and perhaps
+the only one).  For zsmalloc, we cannot sleep while we map the compressed
+memory, so we copy it to a temporary buffer.  By knowing the alg won't
+sleep can help zswap to avoid the need for a buffer.  This shows
+noticeable improvement in load/store latency of zswap.
 
-So this change brings us one step closer to make the build result
-reproducible independent of the build path.
-
-Link: https://lkml.kernel.org/r/20240311110121.459581-2-u.kleine-koenig@pengutronix.de
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Cc: Pengutronix Kernel Team <kernel@pengutronix.de>
+Link: https://lkml.kernel.org/r/20240222081135.173040-2-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Acked-by: Herbert Xu <herbert@gondor.apana.org.au>
+Acked-by: Chris Li <chrisl@kernel.org>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/build_OID_registry |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/crypto/acompress.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/lib/build_OID_registry~lib-build_oid_registry-dont-mention-the-full-path-of-the-script-in-output
-+++ a/lib/build_OID_registry
-@@ -35,7 +35,7 @@ close IN_FILE || die;
- #
- open C_FILE, ">$ARGV[1]" or die;
- print C_FILE "/*\n";
--print C_FILE " * Automatically generated by ", $0, ".  Do not edit\n";
-+print C_FILE " * Automatically generated by ", $0 =~ s#^\Q$ENV{'abs_srctree'}/\E##r, ".  Do not edit\n";
- print C_FILE " */\n";
+--- a/include/crypto/acompress.h~crypto-introduce-acomp_is_async-to-expose-if-comp-drivers-might-sleep
++++ a/include/crypto/acompress.h
+@@ -160,6 +160,12 @@ static inline void acomp_request_set_tfm
+ 	req->base.tfm = crypto_acomp_tfm(tfm);
+ }
  
- #
++static inline bool acomp_is_async(struct crypto_acomp *tfm)
++{
++	return crypto_comp_alg_common(tfm)->base.cra_flags &
++	       CRYPTO_ALG_ASYNC;
++}
++
+ static inline struct crypto_acomp *crypto_acomp_reqtfm(struct acomp_req *req)
+ {
+ 	return __crypto_acomp_tfm(req->base.tfm);
 _
 
-Patches currently in -mm which might be from u.kleine-koenig@pengutronix.de are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mul_u64_u64_div_u64-increase-precision-by-conditionally-swapping-a-and-b.patch
-lib-build_oid_registry-dont-mention-the-full-path-of-the-script-in-output.patch
+mm-prohibit-the-last-subpage-from-reusing-the-entire-large-folio.patch
+crypto-introduce-acomp_is_async-to-expose-if-comp-drivers-might-sleep.patch
+mm-zswap-remove-the-memcpy-if-acomp-is-not-sleepable.patch
 
