@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0EB67D406
-	for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2024 20:07:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 219F614265A
+	for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2024 20:07:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710274064; cv=none; b=krcpWuZs7AkOqV5U0hD+0fW/cPx7YE1QC/5AasM6z+JMAo7vmhLA05Tfm/KobjbHbo6ngBWsvhmWtlZLQrXtevo9DeIYzQxE+P+jzyGD/Dm3N6Srv5qXa8Tc3jLf3Qo6B2a1g1OCQkTGXAW3M7ydqT/OguMiWzaJIlYJRnn0eKw=
+	t=1710274066; cv=none; b=DryhfPZHO0vmSRObyU03II/9zSGV+C1kEqHGALPLu7FNYIwiKXrldWWVKWxG9DyNqE8aSFr+smv6UNcEjIt3glbrOApBgjcSQpJan/W4kw5E/y0F3EhV3WHFrtu8rmo8Kv4duTHoSNDIwZpkaLtZpwZBE4mN5QK771tGFanUGDk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710274064; c=relaxed/simple;
-	bh=wbJdeLtxgVsS3tMQTv/q6cH/dx9ZYbdm2Mi6RWBsdec=;
-	h=Date:To:From:Subject:Message-Id; b=L6syDAwSJRACHgFr8zZrswe/CAhI/qlNc9lzHYF/T6fdp+XlfDpzKHhvfG5Ki+41MiTOv3UBoascCwMQBeIF5ZWdnDb8CTL+zKmMvtlk378a0UwySlCDsTuBen7DYtvuEXN/VGeVGkCf/8qsB1Vnf5kWPyuud956vNk/F6d+K6g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rbLdGwMM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710274066; c=relaxed/simple;
+	bh=NL9rcmBd3wlTbK0NT8KZSbRHUcTl7WWW1cLlEsnbHfs=;
+	h=Date:To:From:Subject:Message-Id; b=mQzNFX4WR7OLFQjPjIg5CJwtlufXJUtO8htX7PWmA7awakFez6p3BJRLSUCKOGtZ+U8x/KKR0OlXABxh1Ix1BlH1J7PGFKB5YJqc/9MW5GMBSgr15AQmDh8u+1geDroh79NPheYzELAO+W0MmWmyr6ZoFboiRG+uAFQgwTHsnHE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lscqaTFE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rbLdGwMM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3ECB2C433C7;
-	Tue, 12 Mar 2024 20:07:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lscqaTFE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E104CC433F1;
+	Tue, 12 Mar 2024 20:07:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710274064;
-	bh=wbJdeLtxgVsS3tMQTv/q6cH/dx9ZYbdm2Mi6RWBsdec=;
+	s=korg; t=1710274066;
+	bh=NL9rcmBd3wlTbK0NT8KZSbRHUcTl7WWW1cLlEsnbHfs=;
 	h=Date:To:From:Subject:From;
-	b=rbLdGwMMDm5hd9jhIuVjEN7k7tVxSZJ9mMZQJ7nkhNSiLaCDxF/MaXG8LEuxuvoej
-	 crC59l2dWUyrI+Y3LnqQp1VlRJSAIYp9OldKgruq6m8uqCSvgGn7QHeAU/W2Nrqt4T
-	 1mzEmNfWP1C2yoznqEggDB9B/1IvXV3pksXVx0Z0=
-Date: Tue, 12 Mar 2024 13:07:43 -0700
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,willy@infradead.org,akpm@linux-foundation.org
+	b=lscqaTFELRUF05HlveTNcb3xD71T00GCKyuFNogoxccB8Ae56YxcszG1mkkdTPAhX
+	 nT7e96xYOyuwLDebmdUb9F1kyLD1eS0LDZjeo4JrECEqUaxDRQXnbN59ak4fBjmBks
+	 vADKnF2R01kfbWAWR1QIc6tCRZNGrCFG8C04jspY=
+Date: Tue, 12 Mar 2024 13:07:45 -0700
+To: mm-commits@vger.kernel.org,chaitanya.kumar.borah@intel.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-folio-from-deferred-split-list-before-uncharging-it.patch removed from -mm tree
-Message-Id: <20240312200744.3ECB2C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-fix-list-corruption-in-put_pages_list.patch removed from -mm tree
+Message-Id: <20240312200745.E104CC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,73 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove folio from deferred split list before uncharging it
+     Subject: mm: fix list corruption in put_pages_list
 has been removed from the -mm tree.  Its filename was
-     mm-remove-folio-from-deferred-split-list-before-uncharging-it.patch
+     mm-fix-list-corruption-in-put_pages_list.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove folio from deferred split list before uncharging it
-Date: Mon, 11 Mar 2024 19:18:34 +0000
+Subject: mm: fix list corruption in put_pages_list
+Date: Wed, 6 Mar 2024 21:27:30 +0000
 
-When freeing a large folio, we must remove it from the deferred split list
-before we uncharge it as each memcg has its own deferred split list (with
-associated lock) and removing a folio from the deferred split list while
-holding the wrong lock will corrupt that list and cause various related
-problems.
+My recent change to put_pages_list() dereferences folio->lru.next after
+returning the folio to the page allocator.  Usually this is now on the pcp
+list with other free folios, so we try to free an already-free folio. 
+This only happens with lists that have more than 15 entries, so it wasn't
+immediately discovered.  Revert to using list_for_each_safe() so we
+dereference lru.next before disposing of the folio.
 
-Link: https://lore.kernel.org/linux-mm/367a14f7-340e-4b29-90ae-bc3fcefdd5f4@arm.com/
-Link: https://lkml.kernel.org/r/20240311191835.312162-1-willy@infradead.org
-Fixes: f77171d241e3 (mm: allow non-hugetlb large folios to be batch processed)
-Fixes: 29f3843026cf (mm: free folios directly in move_folios_to_lru())
-Fixes: bc2ff4cbc329 (mm: free folios in a batch in shrink_folio_list())
+Link: https://lkml.kernel.org/r/20240306212749.1823380-1-willy@infradead.org
+Fixes: 24835f899c01 ("mm: use free_unref_folios() in put_pages_list()")
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Debugged-by: Ryan Roberts <ryan.roberts@arm.com>
-Tested-by: Ryan Roberts <ryan.roberts@arm.com>
+Reported-by: "Borah, Chaitanya Kumar" <chaitanya.kumar.borah@intel.com>
+Closes: https://lore.kernel.org/intel-gfx/SJ1PR11MB61292145F3B79DA58ADDDA63B9232@SJ1PR11MB6129.namprd11.prod.outlook.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c   |    3 +++
- mm/vmscan.c |    6 ++++++
- 2 files changed, 9 insertions(+)
+ mm/swap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/swap.c~mm-remove-folio-from-deferred-split-list-before-uncharging-it
+--- a/mm/swap.c~mm-fix-list-corruption-in-put_pages_list
 +++ a/mm/swap.c
-@@ -1012,6 +1012,9 @@ void folios_put_refs(struct folio_batch
- 			free_huge_folio(folio);
+@@ -152,10 +152,10 @@ EXPORT_SYMBOL(__folio_put);
+ void put_pages_list(struct list_head *pages)
+ {
+ 	struct folio_batch fbatch;
+-	struct folio *folio;
++	struct folio *folio, *next;
+ 
+ 	folio_batch_init(&fbatch);
+-	list_for_each_entry(folio, pages, lru) {
++	list_for_each_entry_safe(folio, next, pages, lru) {
+ 		if (!folio_put_testzero(folio))
  			continue;
- 		}
-+		if (folio_test_large(folio) &&
-+		    folio_test_large_rmappable(folio))
-+			folio_undo_large_rmappable(folio);
- 
- 		__page_cache_release(folio, &lruvec, &flags);
- 
---- a/mm/vmscan.c~mm-remove-folio-from-deferred-split-list-before-uncharging-it
-+++ a/mm/vmscan.c
-@@ -1413,6 +1413,9 @@ free_it:
- 		 */
- 		nr_reclaimed += nr_pages;
- 
-+		if (folio_test_large(folio) &&
-+		    folio_test_large_rmappable(folio))
-+			folio_undo_large_rmappable(folio);
- 		if (folio_batch_add(&free_folios, folio) == 0) {
- 			mem_cgroup_uncharge_folios(&free_folios);
- 			try_to_unmap_flush();
-@@ -1819,6 +1822,9 @@ static unsigned int move_folios_to_lru(s
- 		if (unlikely(folio_put_testzero(folio))) {
- 			__folio_clear_lru_flags(folio);
- 
-+			if (folio_test_large(folio) &&
-+			    folio_test_large_rmappable(folio))
-+				folio_undo_large_rmappable(folio);
- 			if (folio_batch_add(&free_folios, folio) == 0) {
- 				spin_unlock_irq(&lruvec->lru_lock);
- 				mem_cgroup_uncharge_folios(&free_folios);
+ 		if (folio_test_large(folio)) {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
