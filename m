@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EE2B14264A
-	for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2024 20:07:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D03E614264A
+	for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2024 20:07:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710274069; cv=none; b=BhoaYkRiuQASh4IpwdzprZgy/Ff8+nDQwORLGB0+n8o8CN7nm4HMvnNfa1qs1UqeWE09H8TzMy3quFmXw1T8tMA0gdrYkjFRa25GGQJ2YdxNs2VSONKS9+CoSytTQPw+NhwK20ReJF3ynXj/T2W/TItxJffvNFhG4OkA5bDAm7g=
+	t=1710274070; cv=none; b=Tp3bMHw3lTgwEcbE65XBCODYJllkp+wXHRIRuq7MkliPWEIGLHnsn0gcFMHmhCEGv6nRAFO4QLE1igKse7NHL4NzuN6oiBoobEzhk6FZfFi/ZgsrWwa5+uAh2gpuAJC24jI62sYFTWi5nBNSBo2L/r+4SuXcb6AoTp9+UIBaYNw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710274069; c=relaxed/simple;
-	bh=UkA0V4gyWOALjGG7BDrXHYdxPVU8MLW7tPnNHFsKn70=;
-	h=Date:To:From:Subject:Message-Id; b=PNJbOP9QMMGt236QRNZs424QOu4uNrCyJ+jbNg2dU7+xdZsIHXqJ6M8Yu87ohQBR3MTjXhnGDbKhpAWf8fCFc7kVhvCYSqZjVpyDD+a1lwN3j/qI0SIkejUwS9qzjy+wIPBnIyiKduewzwrGXkVbglBKYuViFDdCCc9QXknjVn0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c12htL1D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710274070; c=relaxed/simple;
+	bh=YyXs2ulQUkUXjp5yWRGT2lroLRNNYj5XCIbrmDErTTY=;
+	h=Date:To:From:Subject:Message-Id; b=gGxFDTOa813OkDShgBVx9TlPJEDlJgi3fu6pfANKU9gfW+fWGK7m4V25C7lYPCAT+Eq+kd9xxBpn6PGcvMHYS8A7J2Igmqwv+RHUMC+1+nLIJ8AvO3Sczq5Ef4s3ET3IugtDOGjvNPllmTM6jDWd7w9fDo2KWPQv96vssoNffrQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UuFIF+4b; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c12htL1D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 539D4C433F1;
-	Tue, 12 Mar 2024 20:07:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UuFIF+4b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52D94C43390;
+	Tue, 12 Mar 2024 20:07:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710274069;
-	bh=UkA0V4gyWOALjGG7BDrXHYdxPVU8MLW7tPnNHFsKn70=;
+	s=korg; t=1710274070;
+	bh=YyXs2ulQUkUXjp5yWRGT2lroLRNNYj5XCIbrmDErTTY=;
 	h=Date:To:From:Subject:From;
-	b=c12htL1Di0DLxzaXy0PrchAumnmj0zHuy/0AVV+gYLEs454GrEd2pAWTrUcQp3My2
-	 nzjfdZp//gXydORvMi+VWtR1pXiu6NKISDaCwSxdKsiQDNqZ8QiPD4jEyfnXcEq1K9
-	 5Lwq59iu8ToFYsa+UCmOEO6/cjpE6Lm5qtWwFACk=
-Date: Tue, 12 Mar 2024 13:07:48 -0700
+	b=UuFIF+4bbkjajjI/iZljYcVTFoosNVwnEMk6XXmSPBaYB8w5a1WcZeaCXEJk0ua9l
+	 NvZrgrP/DOwccVX/MU6Ah9gLFyq4npa2vhJsM0rUReddxj9TxmUprpE1o52Duwjynf
+	 RVLmc1M0JAnlxhZy0+o9gEyfuf2LJC71bu1W0mTE=
+Date: Tue, 12 Mar 2024 13:07:49 -0700
 To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,kirill.shutemov@linux.intel.com,david@redhat.com,dan.carpenter@linaro.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-check-new-folio-order-when-split-a-folio.patch removed from -mm tree
-Message-Id: <20240312200749.539D4C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-skip-invalid-debugfs-new_order-input-for-folio-split.patch removed from -mm tree
+Message-Id: <20240312200750.52D94C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: check new folio order when split a folio
+     Subject: mm/huge_memory: skip invalid debugfs new_order input for folio split
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-check-new-folio-order-when-split-a-folio.patch
+     mm-huge_memory-skip-invalid-debugfs-new_order-input-for-folio-split.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: check new folio order when split a folio
-Date: Thu, 7 Mar 2024 13:18:53 -0500
+Subject: mm/huge_memory: skip invalid debugfs new_order input for folio split
+Date: Thu, 7 Mar 2024 13:18:54 -0500
 
-A folio can only be split into lower orders.
+User can put arbitrary new_order via debugfs for folio split test. 
+Although new_order check is added to split_huge_page_to_list_order() in
+the prior commit, these two additional checks can avoid unnecessary folio
+locking and split_folio_to_order() calls.
 
-Since there are no new_order checks in debugfs, any new_order can be
-passed via debugfs into split_huge_page_to_list_to_order().
-
-Check new_order to make sure it is smaller than input folio order.
-
-Link: https://lkml.kernel.org/r/20240307181854.138928-1-zi.yan@sent.com
-Fixes: c010d47f107f ("mm: thp: split huge page to any lower order pages")
+Link: https://lkml.kernel.org/r/20240307181854.138928-2-zi.yan@sent.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
 Closes: https://lore.kernel.org/linux-mm/7dda9283-b437-4cf8-ab0d-83c330deb9c0@moroto.mountain/
@@ -68,21 +65,31 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/huge_memory.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/huge_memory.c~mm-huge_memory-check-new-folio-order-when-split-a-folio
+--- a/mm/huge_memory.c~mm-huge_memory-skip-invalid-debugfs-new_order-input-for-folio-split
 +++ a/mm/huge_memory.c
-@@ -3052,6 +3052,9 @@ int split_huge_page_to_list_to_order(str
- 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
- 	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
+@@ -3486,6 +3486,9 @@ static int split_huge_pages_pid(int pid,
+ 		if (!is_transparent_hugepage(folio))
+ 			goto next;
  
-+	if (new_order >= folio_order(folio))
-+		return -EINVAL;
++		if (new_order >= folio_order(folio))
++			goto next;
 +
- 	/* Cannot split anonymous THP to order-1 */
- 	if (new_order == 1 && folio_test_anon(folio)) {
- 		VM_WARN_ONCE(1, "Cannot split to order-1 folio");
+ 		total++;
+ 		/*
+ 		 * For folios with private, split_huge_page_to_list_to_order()
+@@ -3553,6 +3556,9 @@ static int split_huge_pages_in_file(cons
+ 		total++;
+ 		nr_pages = folio_nr_pages(folio);
+ 
++		if (new_order >= folio_order(folio))
++			goto next;
++
+ 		if (!folio_trylock(folio))
+ 			goto next;
+ 
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
