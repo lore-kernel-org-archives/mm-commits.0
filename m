@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99FD97350F
-	for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2024 16:17:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E11A77318B
+	for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2024 16:17:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710433071; cv=none; b=vCmDKaFEYCYDm8aRX6CkUxdROYCJalBy4cRhm7WN2SZcH/1Ur40LqWQ2XLH5UK4HuqElmCdLVLwkYLxssowU3c4UOWJ6SsVcqNC1ZWR/FgSn3ntyBoFhHndCxRK8Asb8fzaVuHjA+65UioTMUGcFOHlAqmfC8Fc5rhpqfwbNdOE=
+	t=1710433073; cv=none; b=YEvUCexlvLA7jRvCzM4ZbpZGmC01Wuzkx/IgJzU2z9XKKLzx4plJYMjZXpVCJhBQjRHvK4iTG02QbJBWwQGGFEstbOWXgN28qFrI0ls/3CWlkqPKbnRULVzqF6ajINBYi1JP8YC0lyz6KiRsKDVGV6MpHC+ODgG4iKp7kuJ2GXY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710433071; c=relaxed/simple;
-	bh=hSv7r2iyfrghbR3sr5YmH1/F3Pu+/z3q+I8hHSnvD98=;
-	h=Date:To:From:Subject:Message-Id; b=eWn8L9ZQkaWc9Xs0PCyxxg9rH0GG5jwS3LoYq6BiCEyCmBeIElSlGLXZNSZDdJk0xxnolHW1wlJLAwRqQNy17XSKKKhGf6GH2T/ds2cTtyr9B0vhZ50rcjqBfWnW6Xk2rw16KQ7Aj7ksgPc22fG5YuhaIYr3Jn84pLBZ7lswW7w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W23wuXFx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710433073; c=relaxed/simple;
+	bh=qKWRMKUC8e/lnkT2gQEVyeytguSkjudxvEFJJQYXYeQ=;
+	h=Date:To:From:Subject:Message-Id; b=H2QDx729c2WtthVIQu+OIxhnuj/6Q6lrsYy7T1LRKkdS8Lek05d3gXziMmrmBpYYjcoiDho2A1tyB6frhdx75iWCw6VQ/5to7iaHx97WIYENnBJTczLaySYduV7qbYv2Hx1SoKFJhAUXKpo99MNYEomFrsLqRT5sp6ri6ZR/1XU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z1+4cRu9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W23wuXFx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2609DC433F1;
-	Thu, 14 Mar 2024 16:17:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z1+4cRu9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F1D6C433F1;
+	Thu, 14 Mar 2024 16:17:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710433071;
-	bh=hSv7r2iyfrghbR3sr5YmH1/F3Pu+/z3q+I8hHSnvD98=;
+	s=korg; t=1710433072;
+	bh=qKWRMKUC8e/lnkT2gQEVyeytguSkjudxvEFJJQYXYeQ=;
 	h=Date:To:From:Subject:From;
-	b=W23wuXFxhGbFgZ5BRSA/NCjCciSS6ayTDDv2dEMGHYF5yqhJTTO8SCAAi5zMQCUJt
-	 vpEqWhl0Ewxy1vlfZ9DVdtDzeSJuRGqieyYE9VKt0TqCXGD0l8gEnt/0CW6SkVmAY5
-	 Q9S97kHlzkbfXMTew/irun917QpkY99Ek3qqNNa0=
-Date: Thu, 14 Mar 2024 09:17:50 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,zhouchengming@bytedance.com,akpm@linux-foundation.org
+	b=Z1+4cRu9Hm7g5TYcaPjpefJ4YKF37UR/4LYf2vIAOBa+RSs4QIlVbSwGTbtYhJNZp
+	 ygKgEprrTzDmnLF2h48vosrgYCbfE6RWmOm/VBKZOzuNdPmU1t9nQc+neV7j14CNoG
+	 CPGQ30FnJ9vohS3BLHRaPbnYm0QOxVwWbfMYw8GQ=
+Date: Thu, 14 Mar 2024 09:17:51 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,glass.su@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-remove-slab_mem_spread-flag-usage.patch removed from -mm tree
-Message-Id: <20240314161751.2609DC433F1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-enable-ocfs2_listxattr-for-special-files.patch removed from -mm tree
+Message-Id: <20240314161752.5F1D6C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,37 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: remove SLAB_MEM_SPREAD flag usage
+     Subject: ocfs2: enable ocfs2_listxattr for special files
 has been removed from the -mm tree.  Its filename was
-     ocfs2-remove-slab_mem_spread-flag-usage.patch
+     ocfs2-enable-ocfs2_listxattr-for-special-files.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chengming Zhou <zhouchengming@bytedance.com>
-Subject: ocfs2: remove SLAB_MEM_SPREAD flag usage
-Date: Sat, 24 Feb 2024 13:50:08 +0000
+From: Su Yue <glass.su@suse.com>
+Subject: ocfs2: enable ocfs2_listxattr for special files
+Date: Tue, 12 Mar 2024 12:29:08 +0800
 
-The SLAB_MEM_SPREAD flag is already a no-op as of 6.8-rc1, remove
-its usage so we can delete it from slab. No functional change.
+For special files in S_IFBLK/S_IFCHR/S_IFIFO type, we already have
+ocfs2_setattr and ocfs2_getattr enabled.  It's confusing for user space if
+it can use setattr/getattr to control one attribute appointed but can not
+list attributes using listxattr for above type files:
 
-Link: https://lkml.kernel.org/r/20240224135008.829878-1-chengming.zhou@linux.dev
-Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
+$ mknod /mnt/b b 0 0
+$ setfattr -h -n trusted.name -v 0xbabe /mnt/b
+$ getfattr -n trusted.name  /mnt/b
+getfattr: Removing leading '/' from absolute path names
+trusted.name=0sur4=
+
+$ getfattr -m trusted  /mnt/b
+$
+
+Fix it by enabling ocfs2_listxattr for ocfs2_special_file_iops.  After the
+commit, fstests/generic/062 will pass.
+
+Link: https://lkml.kernel.org/r/20240312042908.8889-1-l@damenly.org
+Signed-off-by: Su Yue <glass.su@suse.com>
 Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
@@ -62,47 +76,21 @@ Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmfs/dlmfs.c |    2 +-
- fs/ocfs2/super.c       |    7 +++----
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ fs/ocfs2/file.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/ocfs2/dlmfs/dlmfs.c~ocfs2-remove-slab_mem_spread-flag-usage
-+++ a/fs/ocfs2/dlmfs/dlmfs.c
-@@ -578,7 +578,7 @@ static int __init init_dlmfs_fs(void)
- 	dlmfs_inode_cache = kmem_cache_create("dlmfs_inode_cache",
- 				sizeof(struct dlmfs_inode_private),
- 				0, (SLAB_HWCACHE_ALIGN|SLAB_RECLAIM_ACCOUNT|
--					SLAB_MEM_SPREAD|SLAB_ACCOUNT),
-+					SLAB_ACCOUNT),
- 				dlmfs_init_once);
- 	if (!dlmfs_inode_cache) {
- 		status = -ENOMEM;
---- a/fs/ocfs2/super.c~ocfs2-remove-slab_mem_spread-flag-usage
-+++ a/fs/ocfs2/super.c
-@@ -1706,18 +1706,17 @@ static int ocfs2_initialize_mem_caches(v
- 				       sizeof(struct ocfs2_inode_info),
- 				       0,
- 				       (SLAB_HWCACHE_ALIGN|SLAB_RECLAIM_ACCOUNT|
--						SLAB_MEM_SPREAD|SLAB_ACCOUNT),
-+						SLAB_ACCOUNT),
- 				       ocfs2_inode_init_once);
- 	ocfs2_dquot_cachep = kmem_cache_create("ocfs2_dquot_cache",
- 					sizeof(struct ocfs2_dquot),
- 					0,
--					(SLAB_HWCACHE_ALIGN|SLAB_RECLAIM_ACCOUNT|
--						SLAB_MEM_SPREAD),
-+					SLAB_HWCACHE_ALIGN|SLAB_RECLAIM_ACCOUNT,
- 					NULL);
- 	ocfs2_qf_chunk_cachep = kmem_cache_create("ocfs2_qf_chunk_cache",
- 					sizeof(struct ocfs2_quota_chunk),
- 					0,
--					(SLAB_RECLAIM_ACCOUNT|SLAB_MEM_SPREAD),
-+					SLAB_RECLAIM_ACCOUNT,
- 					NULL);
- 	if (!ocfs2_inode_cachep || !ocfs2_dquot_cachep ||
- 	    !ocfs2_qf_chunk_cachep) {
+--- a/fs/ocfs2/file.c~ocfs2-enable-ocfs2_listxattr-for-special-files
++++ a/fs/ocfs2/file.c
+@@ -2763,6 +2763,7 @@ const struct inode_operations ocfs2_file
+ const struct inode_operations ocfs2_special_file_iops = {
+ 	.setattr	= ocfs2_setattr,
+ 	.getattr	= ocfs2_getattr,
++	.listxattr	= ocfs2_listxattr,
+ 	.permission	= ocfs2_permission,
+ 	.get_inode_acl	= ocfs2_iop_get_acl,
+ 	.set_acl	= ocfs2_iop_set_acl,
 _
 
-Patches currently in -mm which might be from zhouchengming@bytedance.com are
+Patches currently in -mm which might be from glass.su@suse.com are
 
 
