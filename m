@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EB2258201
-	for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2024 19:22:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BC9555C16;
+	Mon, 18 Mar 2024 19:25:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710789749; cv=none; b=pw4Kro6BeBOUaBbIc6PCo3kuCOsEJEBTQ3LLblCeQLduRiTntYe2ktEudNLlo4ex4hDtcqnVlU9XTbu5SbniJHkac7ccAR347qpNbFzu2q5tPhteD6HFUIt42ZE6sT1AmP5DDMwDXrqh7JegGcsEI/J73mEBsOV5uc7fHACOM7s=
+	t=1710789915; cv=none; b=Qtm+Ax/X9dd3vbyHQuFde/0mqgHtMIfyQnB8jE7T/d2Hf89gOSUnS2eRscKMPSIHzwi/qosKS/ECr1CGihqYHORNhp1/ntBFkYOX3OFs5cHeet9LrEPy9OMtqA7Aiyr6C6Gq9k2kpTqaRP3DXAeQ70KGHulk+V7eCFa1x5FEvAw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710789749; c=relaxed/simple;
-	bh=4hOJjMbhZaJUA+KHw1qfM/SAD+b3RSrXrX+QwFtlUI4=;
-	h=Date:To:From:Subject:Message-Id; b=oFogqpb/tS6XUfzAbLrLEBd2rNeXT58rcBpWdhs+CPS1khblcnMTQM/I3K3gkrWNw/WUlxkUqDIyibYx0PST9/cYyEEePrSCxOQZTdshv4Apm7vcR74V2WUOXjqR1M9XMvsvOjYbYP7Jh5szGTRkF+KgBp46kX5F0JDpJQYbCC4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s2aTrHL8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710789915; c=relaxed/simple;
+	bh=Av/ON1HOSRbDOn3Trqb+akXjfyDeOtmnnvfxi2FEdyM=;
+	h=Date:To:From:Subject:Message-Id; b=lwDya6uiPW4jj9OcYimglwzLvbekOXvGoKtXbkcla+11O2LZGNiTR5zyAcyj6SupNf25XGluad6tG2kB934toV753D9b9G/uz/rquZijCiIXpBCo9WFVUn+tx20C5wKezqukUR3Vk/K80FxLHoJf18ynjFi0M3E1R56ctSVQynw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uS5ZK69Q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s2aTrHL8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37074C433F1;
-	Mon, 18 Mar 2024 19:22:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uS5ZK69Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D76AC433F1;
+	Mon, 18 Mar 2024 19:25:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710789749;
-	bh=4hOJjMbhZaJUA+KHw1qfM/SAD+b3RSrXrX+QwFtlUI4=;
+	s=korg; t=1710789915;
+	bh=Av/ON1HOSRbDOn3Trqb+akXjfyDeOtmnnvfxi2FEdyM=;
 	h=Date:To:From:Subject:From;
-	b=s2aTrHL8r26SNCZeTmau4tw4WoRSGYJARkdX6zOXI8tCQ2GS1LTgUwYtMGHFd8RaG
-	 SmGuwuljc4ixk8duE4Xpzg12LHh1fGjws4YUVmoCRGjh7PtgHwS/5ZlK6Uw0M8yMeU
-	 kKyDScZ6+bM2C2erClrUQ0XgER/rwYE/zcnyMw+o=
-Date: Mon, 18 Mar 2024 12:22:28 -0700
-To: mm-commits@vger.kernel.org,yujie.liu@intel.com,oliver.sang@intel.com,willy@infradead.org,akpm@linux-foundation.org
+	b=uS5ZK69Q2Fb5DtXKHnkIy81U72tUWbkB2djyFJOvCUvDjzUkORPcEOlkYpLF6teDY
+	 rR6g3GgS1k+Gr4+eOd0fD6ko1H/Euikc6W2adkrfYpyMaxzVh27o1WBAWydSJe0Ast
+	 nMwd4NFFxTKPsreArX3KLfrovXbPZGGHl8QhHysE=
+Date: Mon, 18 Mar 2024 12:25:14 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,nphamcs@gmail.com,jannh@google.com,chengming.zhou@linux.dev,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-increase-folio-batch-size.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240318192229.37074C433F1@smtp.kernel.org>
+Subject: + mm-cachestat-fix-two-shmem-bugs.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240318192515.4D76AC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: increase folio batch size
+     Subject: mm: cachestat: fix two shmem bugs
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-increase-folio-batch-size.patch
+     mm-cachestat-fix-two-shmem-bugs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-increase-folio-batch-size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cachestat-fix-two-shmem-bugs.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,50 +58,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: increase folio batch size
-Date: Fri, 15 Mar 2024 14:08:21 +0000
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: cachestat: fix two shmem bugs
+Date: Fri, 15 Mar 2024 05:55:56 -0400
 
-On a 104 thread, 2 socket Skylake system, Intel report a 4.7% performance
-reduction with will-it-scale page_fault2.  This was due to reducing the
-size of the batch from 32 to 15.  Increasing the folio batch size from 15
-to 31 gives a performance increase of 12.5% relative to the original, or
-17.2% relative to the reduced performance commit.
+When cachestat on shmem races with swapping and invalidation, there
+are two possible bugs:
 
-The penalty of this commit is an additional 128 bytes of stack usage.  Six
-folio_batches are also allocated from percpu memory in cpu_fbatches so
-that will be an additional 768 bytes of percpu memory (per CPU).  Tim Chen
-originally submitted a patch like this in 2020:
-https://lore.kernel.org/linux-mm/d1cc9f12a8ad6c2a52cb600d93b06b064f2bbc57.1593205965.git.tim.c.chen@linux.intel.com/
+1) A swapin error can have resulted in a poisoned swap entry in the
+   shmem inode's xarray. Calling get_shadow_from_swap_cache() on it
+   will result in an out-of-bounds access to swapper_spaces[].
 
-Link: https://lkml.kernel.org/r/20240315140823.2478146-1-willy@infradead.org
-Fixes: 99fbb6bfc16f ("mm: make folios_put() the basis of release_pages()")
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Tested-by: Yujie Liu <yujie.liu@intel.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202403151058.7048f6a8-oliver.sang@intel.com
+   Validate the entry with non_swap_entry() before going further.
+
+2) When we find a valid swap entry in the shmem's inode, the shadow
+   entry in the swapcache might not exist yet: swap IO is still in
+   progress and we're before __remove_mapping; swapin, invalidation,
+   or swapoff have removed the shadow from swapcache after we saw the
+   shmem swap entry.
+
+   This will send a NULL to workingset_test_recent(). The latter
+   purely operates on pointer bits, so it won't crash - node 0, memcg
+   ID 0, eviction timestamp 0, etc. are all valid inputs - but it's a
+   bogus test. In theory that could result in a false "recently
+   evicted" count.
+
+   Such a false positive wouldn't be the end of the world. But for
+   code clarity and (future) robustness, be explicit about this case.
+
+   Bail on get_shadow_from_swap_cache() returning NULL.
+
+Link: https://lkml.kernel.org/r/20240315095556.GC581298@cmpxchg.org
+Fixes: cf264e1329fb ("cachestat: implement cachestat syscall")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Chengming Zhou <chengming.zhou@linux.dev>	[Bug #1]
+Reported-by: Jann Horn <jannh@google.com>		[Bug #2]
+Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Cc: <stable@vger.kernel.org>				[v6.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagevec.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/filemap.c |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
---- a/include/linux/pagevec.h~mm-increase-folio-batch-size
-+++ a/include/linux/pagevec.h
-@@ -11,8 +11,8 @@
+--- a/mm/filemap.c~mm-cachestat-fix-two-shmem-bugs
++++ a/mm/filemap.c
+@@ -4197,7 +4197,23 @@ static void filemap_cachestat(struct add
+ 				/* shmem file - in swap cache */
+ 				swp_entry_t swp = radix_to_swp_entry(folio);
  
- #include <linux/types.h>
- 
--/* 15 pointers + header align the folio_batch structure to a power of two */
--#define PAGEVEC_SIZE	15
-+/* 31 pointers + header align the folio_batch structure to a power of two */
-+#define PAGEVEC_SIZE	31
- 
- struct folio;
- 
++				/* swapin error results in poisoned entry */
++				if (non_swap_entry(swp))
++					goto resched;
++
++				/*
++				 * Getting a swap entry from the shmem
++				 * inode means we beat
++				 * shmem_unuse(). rcu_read_lock()
++				 * ensures swapoff waits for us before
++				 * freeing the swapper space. However,
++				 * we can race with swapping and
++				 * invalidation, so there might not be
++				 * a shadow in the swapcache (yet).
++				 */
+ 				shadow = get_shadow_from_swap_cache(swp);
++				if (!shadow)
++					goto resched;
+ 			}
+ #endif
+ 			if (workingset_test_recent(shadow, true, &workingset))
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-increase-folio-batch-size.patch
+mm-cachestat-fix-two-shmem-bugs.patch
 
