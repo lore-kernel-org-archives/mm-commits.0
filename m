@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11AAA2747F
-	for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2024 20:49:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDC31535B9
+	for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2024 20:50:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710794959; cv=none; b=az0fW4sEmuopQ6dTp4hA0aup79f/wvuIivCU2nycy52hj57eALPkfoRoaSPdZd0g4/tmGT4YfVM8zav37esTWLWFo0YNGrp/xPTKadXX5QPccp/rV6hGSYPFaX2kTt85s+mqT1MlG/uIgvgNsjWU7tYdYb/Swkb0mzqbXwvei8w=
+	t=1710795053; cv=none; b=cpC0NHQ7T6nBUK4tUYHGSmRwzZ2sIaBg+cRf4cj/xfsWYinViCoZsKTgry6DeCTvw+/vKeDXYmCZ5BI4c4bw06VCzZugPnNi4SCdK6XCmExcoETxygMyChE59AohXX4EbQL6dbkIEQlM35nvPGXYfz4kMVaA+pw/HOrWPyMSQKA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710794959; c=relaxed/simple;
-	bh=iUE40ZcJWBVAGVtYrPFnM80NRZnzhGKLsM8IoMWRyDM=;
-	h=Date:To:From:Subject:Message-Id; b=pSQi7oOot1ACsN6JHArckKGjInTQXZm17Hlt1W26+2v96uD63Uof/i1Slb97/zHLKdLYj8BFNdNv27EMWm3d9KJw/mcDoCtGe3F9kBD4JSElPan2hqRKEcerHNRp/K4Ukqm2+ASVv+ViYdSjjdwPru7f+HRm+xUz6/Y5Z6Nm6eg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gwri5HPM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710795053; c=relaxed/simple;
+	bh=UgBaDnvt+81Vk2rOihXZS1j6GnB1AkGMMJjnxTPdUsA=;
+	h=Date:To:From:Subject:Message-Id; b=HieupcorIpfhCnhv8R0JX+jnWGgz2y2xU01wF2zwF8kCBk6RzMd0WEdha7gr8Br+wvZRdKpVG3dWN3IeHN/FBuWTkjyxQ2s61Kfle8jKONyz+joJZ3ji3t4XRSQZD4x/8Hjs73CNEtL/h9uGdoUu8Ko4gMx2faQp/XSZaxdQdkU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nHSFNlE9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gwri5HPM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA5EBC433C7;
-	Mon, 18 Mar 2024 20:49:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nHSFNlE9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E270C433C7;
+	Mon, 18 Mar 2024 20:50:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710794958;
-	bh=iUE40ZcJWBVAGVtYrPFnM80NRZnzhGKLsM8IoMWRyDM=;
+	s=korg; t=1710795052;
+	bh=UgBaDnvt+81Vk2rOihXZS1j6GnB1AkGMMJjnxTPdUsA=;
 	h=Date:To:From:Subject:From;
-	b=Gwri5HPMmFMU9RSUFZpqBxO9zNLtVpjVSVFG0+UugZOZZtzOWsZPpQg6Efc6BmizX
-	 6JTh2KBwP0I6W+8tBVu5wfqbxVhl5j9idi5VbTLql8pGfYOUWK3rvp6y7XQyg9ROXw
-	 C7stCd9Pc4hpGo3bsNgbGJB0M/8KNwGnqfIh71Mo=
-Date: Mon, 18 Mar 2024 13:49:18 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,joey.gouly@arm.com,usama.anjum@collabora.com,akpm@linux-foundation.org
+	b=nHSFNlE9VIC2eU4DnbDhDBDZarRL6DhlNj3mIi4FK+9Mj6ChtxBqKPD+8W7PTNbIv
+	 Ts1wkHHoXF0UNvVE9yU1xfw12WHsrqAZsXwsV3z+mVq0+SUgSW+OBnKYQcLw1S53b2
+	 SXVdqf5Dz395bzbFirT/5UYM1wiWnMDvrkehjLQo=
+Date: Mon, 18 Mar 2024 13:50:51 -0700
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,shuah@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-restore-settings-from-only-parent-process.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240318204918.AA5EBC433C7@smtp.kernel.org>
+Subject: + selftests-mm-virtual_address_range-switch-to-ksft_exit_fail_msg.patch added to mm-unstable branch
+Message-Id: <20240318205052.5E270C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: mm: restore settings from only parent process
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mm-restore-settings-from-only-parent-process.patch
+     Subject: selftests/mm: virtual_address_range: Switch to ksft_exit_fail_msg
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-virtual_address_range-switch-to-ksft_exit_fail_msg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-restore-settings-from-only-parent-process.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-virtual_address_range-switch-to-ksft_exit_fail_msg.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,53 +58,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests: mm: restore settings from only parent process
-Date: Thu, 14 Mar 2024 14:40:45 +0500
+From: Dev Jain <dev.jain@arm.com>
+Subject: selftests/mm: virtual_address_range: Switch to ksft_exit_fail_msg
+Date: Thu, 14 Mar 2024 17:52:50 +0530
 
-The atexit() is called from parent process as well as forked processes. 
-Hence the child restores the settings at exit while the parent is still
-executing.  Fix this by checking pid of atexit() calling process and only
-restore THP number from parent process.
+mmap() must not succeed in validate_lower_address_hint(), for if it does,
+it is a bug in mmap() itself.  Reflect this behaviour with
+ksft_exit_fail_msg().  While at it, do some formatting changes.
 
-Link: https://lkml.kernel.org/r/20240314094045.157149-1-usama.anjum@collabora.com
-Fixes: c23ea61726d5 ("selftests/mm: protection_keys: save/restore nr_hugepages settings")
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Tested-by: Joey Gouly <joey.gouly@arm.com>
+Link: https://lkml.kernel.org/r/20240314122250.68534-1-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/protection_keys.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/virtual_address_range.c |   12 ++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-restore-settings-from-only-parent-process
-+++ a/tools/testing/selftests/mm/protection_keys.c
-@@ -1745,9 +1745,12 @@ void pkey_setup_shadow(void)
- 	shadow_pkey_reg = __read_pkey_reg();
- }
+--- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-virtual_address_range-switch-to-ksft_exit_fail_msg
++++ a/tools/testing/selftests/mm/virtual_address_range.c
+@@ -85,7 +85,7 @@ static int validate_lower_address_hint(v
+ 	char *ptr;
  
-+pid_t parent_pid;
-+
- void restore_settings_atexit(void)
- {
--	cat_into_file(buf, "/proc/sys/vm/nr_hugepages");
-+	if (parent_pid == getpid())
-+		cat_into_file(buf, "/proc/sys/vm/nr_hugepages");
- }
+ 	ptr = mmap((void *) (1UL << 45), MAP_CHUNK_SIZE, PROT_READ |
+-			PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++		   PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
  
- void save_settings(void)
-@@ -1773,6 +1776,7 @@ void save_settings(void)
- 		exit(__LINE__);
- 	}
+ 	if (ptr == MAP_FAILED)
+ 		return 0;
+@@ -105,13 +105,11 @@ int main(int argc, char *argv[])
  
-+	parent_pid = getpid();
- 	atexit(restore_settings_atexit);
- 	close(fd);
- }
+ 	for (i = 0; i < NR_CHUNKS_LOW; i++) {
+ 		ptr[i] = mmap(NULL, MAP_CHUNK_SIZE, PROT_READ | PROT_WRITE,
+-					MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++			      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+ 
+ 		if (ptr[i] == MAP_FAILED) {
+-			if (validate_lower_address_hint()) {
+-				ksft_test_result_skip("Memory constraint not fulfilled\n");
+-				ksft_finished();
+-			}
++			if (validate_lower_address_hint())
++				ksft_exit_fail_msg("mmap unexpectedly succeeded with hint\n");
+ 			break;
+ 		}
+ 
+@@ -127,7 +125,7 @@ int main(int argc, char *argv[])
+ 	for (i = 0; i < NR_CHUNKS_HIGH; i++) {
+ 		hint = hind_addr();
+ 		hptr[i] = mmap(hint, MAP_CHUNK_SIZE, PROT_READ | PROT_WRITE,
+-					MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++			       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+ 
+ 		if (hptr[i] == MAP_FAILED)
+ 			break;
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-selftests-mm-restore-settings-from-only-parent-process.patch
+selftests-mm-virtual_address_range-switch-to-ksft_exit_fail_msg.patch
 
