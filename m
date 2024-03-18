@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B5FE58AAA
-	for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2024 20:42:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11AAA2747F
+	for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2024 20:49:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710794563; cv=none; b=BheSxFzx2vDcwsTufZ8UBfu804GXDu0JRLtHTbpTF6hib4Ghyg4H+bUIem4RbSy+VBYZdALEtb2gQUqt52xuWsPYW3OwHSupfcZY7fQnJ41xp5BXkVNWXnc7f+kD2LTTi8lxBjIxPjq53VMOTW4+cN818Xy7wmkEkSY7x5n9Xb8=
+	t=1710794959; cv=none; b=az0fW4sEmuopQ6dTp4hA0aup79f/wvuIivCU2nycy52hj57eALPkfoRoaSPdZd0g4/tmGT4YfVM8zav37esTWLWFo0YNGrp/xPTKadXX5QPccp/rV6hGSYPFaX2kTt85s+mqT1MlG/uIgvgNsjWU7tYdYb/Swkb0mzqbXwvei8w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710794563; c=relaxed/simple;
-	bh=GW9EC7K/+zadrM5uIetJ4E0QF7E17egQ7Wm+ESkZX6Q=;
-	h=Date:To:From:Subject:Message-Id; b=GLbcoB3mu7pnkNu6oE9HCotVIdao86N6U6SS7/HpjTfqCg5uFp4DVrqG1BhAislb+ym7Ocp9GHb4G4WjM8JdvyfJalu3/HJg+Ssmx42D3CPo+0QZVD1Me/NmpFR9YceGQQcTwxbhtuFmCkr608szLGSuhPzPHGb9DNCXSGOJk+8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d6TCe9jo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710794959; c=relaxed/simple;
+	bh=iUE40ZcJWBVAGVtYrPFnM80NRZnzhGKLsM8IoMWRyDM=;
+	h=Date:To:From:Subject:Message-Id; b=pSQi7oOot1ACsN6JHArckKGjInTQXZm17Hlt1W26+2v96uD63Uof/i1Slb97/zHLKdLYj8BFNdNv27EMWm3d9KJw/mcDoCtGe3F9kBD4JSElPan2hqRKEcerHNRp/K4Ukqm2+ASVv+ViYdSjjdwPru7f+HRm+xUz6/Y5Z6Nm6eg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gwri5HPM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d6TCe9jo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15FF0C43390;
-	Mon, 18 Mar 2024 20:42:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gwri5HPM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA5EBC433C7;
+	Mon, 18 Mar 2024 20:49:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710794563;
-	bh=GW9EC7K/+zadrM5uIetJ4E0QF7E17egQ7Wm+ESkZX6Q=;
+	s=korg; t=1710794958;
+	bh=iUE40ZcJWBVAGVtYrPFnM80NRZnzhGKLsM8IoMWRyDM=;
 	h=Date:To:From:Subject:From;
-	b=d6TCe9joHhQCk2NZANkD9ZR3R2tfyMzW0AQlqNP3JIChMyjK39vzKEPR2jl9VL5eK
-	 TIhcrH18zGsO68LOTJJ2X4KL6mt4UF6JfbDS9luT94FdFZ+VteKYlkiSz0gIbqUM35
-	 zaf9arA/6hhgudrkXRa8bydOa0XNsw0MG7xF00+g=
-Date: Mon, 18 Mar 2024 13:42:42 -0700
-To: mm-commits@vger.kernel.org,sdf@google.com,ddrokosov@salutedevices.com,liucong2@kylinos.cn,akpm@linux-foundation.org
+	b=Gwri5HPMmFMU9RSUFZpqBxO9zNLtVpjVSVFG0+UugZOZZtzOWsZPpQg6Efc6BmizX
+	 6JTh2KBwP0I6W+8tBVu5wfqbxVhl5j9idi5VbTLql8pGfYOUWK3rvp6y7XQyg9ROXw
+	 C7stCd9Pc4hpGo3bsNgbGJB0M/8KNwGnqfIh71Mo=
+Date: Mon, 18 Mar 2024 13:49:18 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,joey.gouly@arm.com,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-makefile-remove-cgroup-target.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240318204243.15FF0C43390@smtp.kernel.org>
+Subject: + selftests-mm-restore-settings-from-only-parent-process.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240318204918.AA5EBC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/Makefile: remove cgroup target
+     Subject: selftests: mm: restore settings from only parent process
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     tools-makefile-remove-cgroup-target.patch
+     selftests-mm-restore-settings-from-only-parent-process.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-makefile-remove-cgroup-target.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-restore-settings-from-only-parent-process.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,99 +58,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Cong Liu <liucong2@kylinos.cn>
-Subject: tools/Makefile: remove cgroup target
-Date: Fri, 15 Mar 2024 09:22:48 +0800
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: selftests: mm: restore settings from only parent process
+Date: Thu, 14 Mar 2024 14:40:45 +0500
 
-The tools/cgroup directory no longer contains a Makefile.  This patch
-updates the top-level tools/Makefile to remove references to building and
-installing cgroup components.  This change reflects the current structure
-of the tools directory and fixes the build failure when building tools in
-the top-level directory.
+The atexit() is called from parent process as well as forked processes. 
+Hence the child restores the settings at exit while the parent is still
+executing.  Fix this by checking pid of atexit() calling process and only
+restore THP number from parent process.
 
-linux/tools$ make cgroup
-  DESCEND cgroup
-make[1]: *** No targets specified and no makefile found.  Stop.
-make: *** [Makefile:73: cgroup] Error 2
-
-Link: https://lkml.kernel.org/r/20240315012249.439639-1-liucong2@kylinos.cn
-Signed-off-by: Cong Liu <liucong2@kylinos.cn>
-Acked-by: Stanislav Fomichev <sdf@google.com>
-Reviewed-by: Dmitry Rokosov <ddrokosov@salutedevices.com>
-Cc: Cong Liu <liucong2@kylinos.cn>
+Link: https://lkml.kernel.org/r/20240314094045.157149-1-usama.anjum@collabora.com
+Fixes: c23ea61726d5 ("selftests/mm: protection_keys: save/restore nr_hugepages settings")
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Tested-by: Joey Gouly <joey.gouly@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/Makefile |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ tools/testing/selftests/mm/protection_keys.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/tools/Makefile~tools-makefile-remove-cgroup-target
-+++ a/tools/Makefile
-@@ -11,7 +11,6 @@ help:
- 	@echo ''
- 	@echo '  acpi                   - ACPI tools'
- 	@echo '  bpf                    - misc BPF tools'
--	@echo '  cgroup                 - cgroup tools'
- 	@echo '  counter                - counter tools'
- 	@echo '  cpupower               - a tool for all things x86 CPU power'
- 	@echo '  debugging              - tools for debugging'
-@@ -69,7 +68,7 @@ acpi: FORCE
- cpupower: FORCE
- 	$(call descend,power/$@)
+--- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-restore-settings-from-only-parent-process
++++ a/tools/testing/selftests/mm/protection_keys.c
+@@ -1745,9 +1745,12 @@ void pkey_setup_shadow(void)
+ 	shadow_pkey_reg = __read_pkey_reg();
+ }
  
--cgroup counter firewire hv guest bootconfig spi usb virtio mm bpf iio gpio objtool leds wmi pci firmware debugging tracing: FORCE
-+counter firewire hv guest bootconfig spi usb virtio mm bpf iio gpio objtool leds wmi pci firmware debugging tracing: FORCE
- 	$(call descend,$@)
++pid_t parent_pid;
++
+ void restore_settings_atexit(void)
+ {
+-	cat_into_file(buf, "/proc/sys/vm/nr_hugepages");
++	if (parent_pid == getpid())
++		cat_into_file(buf, "/proc/sys/vm/nr_hugepages");
+ }
  
- bpf/%: FORCE
-@@ -116,7 +115,7 @@ freefall: FORCE
- kvm_stat: FORCE
- 	$(call descend,kvm/$@)
+ void save_settings(void)
+@@ -1773,6 +1776,7 @@ void save_settings(void)
+ 		exit(__LINE__);
+ 	}
  
--all: acpi cgroup counter cpupower gpio hv firewire \
-+all: acpi counter cpupower gpio hv firewire \
- 		perf selftests bootconfig spi turbostat usb \
- 		virtio mm bpf x86_energy_perf_policy \
- 		tmon freefall iio objtool kvm_stat wmi \
-@@ -128,7 +127,7 @@ acpi_install:
- cpupower_install:
- 	$(call descend,power/$(@:_install=),install)
- 
--cgroup_install counter_install firewire_install gpio_install hv_install iio_install perf_install bootconfig_install spi_install usb_install virtio_install mm_install bpf_install objtool_install wmi_install pci_install debugging_install tracing_install:
-+counter_install firewire_install gpio_install hv_install iio_install perf_install bootconfig_install spi_install usb_install virtio_install mm_install bpf_install objtool_install wmi_install pci_install debugging_install tracing_install:
- 	$(call descend,$(@:_install=),install)
- 
- selftests_install:
-@@ -155,7 +154,7 @@ freefall_install:
- kvm_stat_install:
- 	$(call descend,kvm/$(@:_install=),install)
- 
--install: acpi_install cgroup_install counter_install cpupower_install gpio_install \
-+install: acpi_install counter_install cpupower_install gpio_install \
- 		hv_install firewire_install iio_install \
- 		perf_install selftests_install turbostat_install usb_install \
- 		virtio_install mm_install bpf_install x86_energy_perf_policy_install \
-@@ -169,7 +168,7 @@ acpi_clean:
- cpupower_clean:
- 	$(call descend,power/cpupower,clean)
- 
--cgroup_clean counter_clean hv_clean firewire_clean bootconfig_clean spi_clean usb_clean virtio_clean mm_clean wmi_clean bpf_clean iio_clean gpio_clean objtool_clean leds_clean pci_clean firmware_clean debugging_clean tracing_clean:
-+counter_clean hv_clean firewire_clean bootconfig_clean spi_clean usb_clean virtio_clean mm_clean wmi_clean bpf_clean iio_clean gpio_clean objtool_clean leds_clean pci_clean firmware_clean debugging_clean tracing_clean:
- 	$(call descend,$(@:_clean=),clean)
- 
- libapi_clean:
-@@ -209,7 +208,7 @@ freefall_clean:
- build_clean:
- 	$(call descend,build,clean)
- 
--clean: acpi_clean cgroup_clean counter_clean cpupower_clean hv_clean firewire_clean \
-+clean: acpi_clean counter_clean cpupower_clean hv_clean firewire_clean \
- 		perf_clean selftests_clean turbostat_clean bootconfig_clean spi_clean usb_clean virtio_clean \
- 		mm_clean bpf_clean iio_clean x86_energy_perf_policy_clean tmon_clean \
- 		freefall_clean build_clean libbpf_clean libsubcmd_clean \
++	parent_pid = getpid();
+ 	atexit(restore_settings_atexit);
+ 	close(fd);
+ }
 _
 
-Patches currently in -mm which might be from liucong2@kylinos.cn are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
-tools-makefile-remove-cgroup-target.patch
+selftests-mm-restore-settings-from-only-parent-process.patch
 
