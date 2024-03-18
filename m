@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE3A0381C8
-	for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2024 18:53:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F624381C8
+	for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2024 18:53:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710788001; cv=none; b=jFl4W9Qkw60hszR7CG6zBqTECgc7awUiyGRplL9Te6AdZQjKo2mMiBN2uCIuQNjFBS9GyHOslaRGPI+Fhz5giwebq4zMc+S8GEmDlzhTEb+WZ0diKMX71GJhLAArBtqlp0C4BkRSpGJPL80pTZk0nKKUpuvUitd1Ht/N0SZwcrc=
+	t=1710788004; cv=none; b=Egi609A6g0UFp7nAMRW7fXzKCXpblgTya/V6hNs187reEsfRZcNlOGlQkgViu8mzW+UUZNTqgjIjJ2ujs1dvpHn7wym9emSHsfsaYOhLiaMIFP84FKy5lulJ0lbTZTjLsNFS0fPuZncLKb2RLTGVkDqoVkpfWzgOcHyV9iRIC3M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710788001; c=relaxed/simple;
-	bh=BIVG8vW9jErDzc5Zk6S+2bsJmozAdilrhy3+OqegAPk=;
-	h=Date:To:From:Subject:Message-Id; b=DyfQPF2l53y8tdpvgUYK3Ucw/M1svddwqCKu9AEFu6PgFPAc3P4f/FPG43ORZfLi9Q4lQbFL5mY60kWnNdSw6CiokfbYlr0E7/uMijwN5+zDMLTUKNaGnn++zRsayMWeJs4U+J7j3hMKD6I2qdskXs52xLZ3J0owjI5tj0DvsMM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i3oyTVhk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710788004; c=relaxed/simple;
+	bh=6dnoHqTPzcBm3UKCd2+BB5bERe8/1lM0BaExtZLEPSs=;
+	h=Date:To:From:Subject:Message-Id; b=nItwx/W/dKtxV/NG9jjyQ+OhgB3pEdvcmFYBKQpEw+YDP+7U6cYT/+ofxocaGfjulBrGcEAH8HvMGdKO8F/nlZVNfj72Ha1zd4qve4KSiuyfFHeOSIw3mTdBqvM4SLBXfxb14sl8zVkpqD1ekML1Wk/V9wgUlDAnDcxBy8+njqM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KT9urMkF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i3oyTVhk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 333DFC433C7;
-	Mon, 18 Mar 2024 18:53:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KT9urMkF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B229AC433F1;
+	Mon, 18 Mar 2024 18:53:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710788001;
-	bh=BIVG8vW9jErDzc5Zk6S+2bsJmozAdilrhy3+OqegAPk=;
+	s=korg; t=1710788003;
+	bh=6dnoHqTPzcBm3UKCd2+BB5bERe8/1lM0BaExtZLEPSs=;
 	h=Date:To:From:Subject:From;
-	b=i3oyTVhkTE159r9E0qpLiBP+9rRYuKCl7E84Vk8I2Kqv8hIhE+LoWbR2DE0aIqFJ7
-	 v8/vWBUtJ+q/PY/I3ChKheo/1/Ha/+P9ktCI227S4vlfc1dxghsqGvVw+4Y/KOCidE
-	 aaLN9U9AIpRC1gfjvGgPeNLdG016S3fKF6GygagM=
-Date: Mon, 18 Mar 2024 11:53:20 -0700
+	b=KT9urMkFwxWwv3R3q0c92QgBUGeaRHb8GP30vn3shmJtNKO7aXI0CL4D+cerfzK0L
+	 zgLBz6dByKziS03aXzXlzn6W87qOeWFkfcP1KN3Q6biVpBdb01Uq3tKBwUQ+ayrGyn
+	 AsX5pJppw02WV5X0AoHFzp91nsFsGobDIHcfOTEo=
+Date: Mon, 18 Mar 2024 11:53:23 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_initc-remove-the-useless-dma_reserve.patch added to mm-unstable branch
-Message-Id: <20240318185321.333DFC433C7@smtp.kernel.org>
+Subject: + x86-remove-memblock_find_dma_reserve.patch added to mm-unstable branch
+Message-Id: <20240318185323.B229AC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mm_init.c: remove the useless dma_reserve
+     Subject: x86: remove memblock_find_dma_reserve()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mm_initc-remove-the-useless-dma_reserve.patch
+     x86-remove-memblock_find_dma_reserve.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_initc-remove-the-useless-dma_reserve.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-remove-memblock_find_dma_reserve.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,128 +59,97 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/mm_init.c: remove the useless dma_reserve
-Date: Mon, 18 Mar 2024 22:21:33 +0800
+Subject: x86: remove memblock_find_dma_reserve()
+Date: Mon, 18 Mar 2024 22:21:34 +0800
 
-Patch series "mm/mm_init.c: refactor free_area_init_core()".
+This is not needed any more.
 
-In free_area_init_core(), the code calculating zone->managed_pages and the
-subtracting dma_reserve from DMA zone looks very confusing.
-
-From git history, the code calculating zone->managed_pages was for
-zone->present_pages originally.  The early rough assignment is for
-optimize zone's pcp and water mark setting.  Later, managed_pages was
-introduced into zone to represent the number of managed pages by buddy. 
-Now, zone->managed_pages is zeroed out and reset in mem_init() when
-calling memblock_free_all().  zone's pcp and wmark setting relying on
-actual zone->managed_pages are done later than mem_init() invocation.  So
-we don't need rush to early calculate and set zone->managed_pages, just
-set it as zone->present_pages, will adjust it in mem_init().
-
-And also add a new function calc_nr_kernel_pages() to count up free but
-not reserved pages in memblock, then assign it to nr_all_pages and
-nr_kernel_pages after memmap pages are allocated.
-
-
-This patch (of 6):
-
-Variable dma_reserve and its usage was introduced in commit 0e0b864e069c
-("[PATCH] Account for memmap and optionally the kernel image as holes"). 
-Its original purpose was to accounting for the reserved pages in DMA zone
-to make DMA zone's watermarks calculation more accurate on x86.
-
-However, currently there's zone->managed_pages to account for all
-available pages for buddy, zone->present_pages to account for all present
-physical pages in zone.  What is more important, on x86, calculating and
-setting the zone->managed_pages is a temporary move, all zone's
-managed_pages will be zeroed out and reset to the actual value according
-to how many pages are added to buddy allocator in mem_init().  Before
-mem_init(), no buddy alloction is requested.  And zone's pcp and watermark
-setting are all done after mem_init().  So, no need to worry about the DMA
-zone's setting accuracy during free_area_init().
-
-Hence, remove dma_reserve and its handling in free_area_init_core()
-because it's useless and causes confusion.
-
-Link: https://lkml.kernel.org/r/20240318142138.783350-1-bhe@redhat.com
-Link: https://lkml.kernel.org/r/20240318142138.783350-2-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20240318142138.783350-3-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init.c |    2 --
- include/linux/mm.h |    1 -
- mm/mm_init.c       |   23 -----------------------
- 3 files changed, 26 deletions(-)
+ arch/x86/include/asm/pgtable.h |    1 
+ arch/x86/kernel/setup.c        |    2 -
+ arch/x86/mm/init.c             |   45 -------------------------------
+ 3 files changed, 48 deletions(-)
 
---- a/arch/x86/mm/init.c~mm-mm_initc-remove-the-useless-dma_reserve
+--- a/arch/x86/include/asm/pgtable.h~x86-remove-memblock_find_dma_reserve
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1200,7 +1200,6 @@ static inline int pgd_none(pgd_t pgd)
+ extern int direct_gbpages;
+ void init_mem_mapping(void);
+ void early_alloc_pgt_buf(void);
+-extern void memblock_find_dma_reserve(void);
+ void __init poking_init(void);
+ unsigned long init_memory_mapping(unsigned long start,
+ 				  unsigned long end, pgprot_t prot);
+--- a/arch/x86/kernel/setup.c~x86-remove-memblock_find_dma_reserve
++++ a/arch/x86/kernel/setup.c
+@@ -1106,8 +1106,6 @@ void __init setup_arch(char **cmdline_p)
+ 	 */
+ 	arch_reserve_crashkernel();
+ 
+-	memblock_find_dma_reserve();
+-
+ 	if (!early_xdbc_setup_hardware())
+ 		early_xdbc_register_console();
+ 
+--- a/arch/x86/mm/init.c~x86-remove-memblock_find_dma_reserve
 +++ a/arch/x86/mm/init.c
-@@ -1032,8 +1032,6 @@ void __init memblock_find_dma_reserve(vo
- 		if (start_pfn < end_pfn)
- 			nr_free_pages += end_pfn - start_pfn;
- 	}
--
--	set_dma_reserve(nr_pages - nr_free_pages);
- #endif
+@@ -990,51 +990,6 @@ void __init free_initrd_mem(unsigned lon
  }
- 
---- a/include/linux/mm.h~mm-mm_initc-remove-the-useless-dma_reserve
-+++ a/include/linux/mm.h
-@@ -3210,7 +3210,6 @@ static inline int early_pfn_to_nid(unsig
- extern int __meminit early_pfn_to_nid(unsigned long pfn);
  #endif
  
--extern void set_dma_reserve(unsigned long new_dma_reserve);
- extern void mem_init(void);
- extern void __init mmap_init(void);
- 
---- a/mm/mm_init.c~mm-mm_initc-remove-the-useless-dma_reserve
-+++ a/mm/mm_init.c
-@@ -226,7 +226,6 @@ static unsigned long required_movablecor
- 
- static unsigned long nr_kernel_pages __initdata;
- static unsigned long nr_all_pages __initdata;
--static unsigned long dma_reserve __initdata;
- 
- static bool deferred_struct_pages __meminitdata;
- 
-@@ -1583,12 +1582,6 @@ static void __init free_area_init_core(s
- 					zone_names[j], memmap_pages, freesize);
- 		}
- 
--		/* Account for reserved pages */
--		if (j == 0 && freesize > dma_reserve) {
--			freesize -= dma_reserve;
--			pr_debug("  %s zone: %lu pages reserved\n", zone_names[0], dma_reserve);
--		}
--
- 		if (!is_highmem_idx(j))
- 			nr_kernel_pages += freesize;
- 		/* Charge for highmem memmap if there are enough kernel pages */
-@@ -2547,22 +2540,6 @@ void *__init alloc_large_system_hash(con
- 	return table;
- }
- 
--/**
-- * set_dma_reserve - set the specified number of pages reserved in the first zone
-- * @new_dma_reserve: The number of pages to mark reserved
+-/*
+- * Calculate the precise size of the DMA zone (first 16 MB of RAM),
+- * and pass it to the MM layer - to help it set zone watermarks more
+- * accurately.
 - *
-- * The per-cpu batchsize and zone watermarks are determined by managed_pages.
-- * In the DMA zone, a significant percentage may be consumed by kernel image
-- * and other unfreeable allocations which can skew the watermarks badly. This
-- * function may optionally be used to account for unfreeable pages in the
-- * first zone (e.g., ZONE_DMA). The effect will be lower watermarks and
-- * smaller per-cpu batchsize.
+- * Done on 64-bit systems only for the time being, although 32-bit systems
+- * might benefit from this as well.
 - */
--void __init set_dma_reserve(unsigned long new_dma_reserve)
+-void __init memblock_find_dma_reserve(void)
 -{
--	dma_reserve = new_dma_reserve;
+-#ifdef CONFIG_X86_64
+-	u64 nr_pages = 0, nr_free_pages = 0;
+-	unsigned long start_pfn, end_pfn;
+-	phys_addr_t start_addr, end_addr;
+-	int i;
+-	u64 u;
+-
+-	/*
+-	 * Iterate over all memory ranges (free and reserved ones alike),
+-	 * to calculate the total number of pages in the first 16 MB of RAM:
+-	 */
+-	nr_pages = 0;
+-	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, NULL) {
+-		start_pfn = min(start_pfn, MAX_DMA_PFN);
+-		end_pfn   = min(end_pfn,   MAX_DMA_PFN);
+-
+-		nr_pages += end_pfn - start_pfn;
+-	}
+-
+-	/*
+-	 * Iterate over free memory ranges to calculate the number of free
+-	 * pages in the DMA zone, while not counting potential partial
+-	 * pages at the beginning or the end of the range:
+-	 */
+-	nr_free_pages = 0;
+-	for_each_free_mem_range(u, NUMA_NO_NODE, MEMBLOCK_NONE, &start_addr, &end_addr, NULL) {
+-		start_pfn = min_t(unsigned long, PFN_UP(start_addr), MAX_DMA_PFN);
+-		end_pfn   = min_t(unsigned long, PFN_DOWN(end_addr), MAX_DMA_PFN);
+-
+-		if (start_pfn < end_pfn)
+-			nr_free_pages += end_pfn - start_pfn;
+-	}
+-#endif
 -}
 -
- void __init memblock_free_pages(struct page *page, unsigned long pfn,
- 							unsigned int order)
+ void __init zone_sizes_init(void)
  {
+ 	unsigned long max_zone_pfns[MAX_NR_ZONES];
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
