@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEE965674B
-	for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2024 19:19:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EB2258201
+	for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2024 19:22:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710789545; cv=none; b=PO8NQ8Btg6Hf1vFo03UbA+ygoy9wNxkr1Bp4vpkCdtZodKYG8yrViDmcPuy6C2m1pei8N75PnItbf2oxrzhI6/4GQpOSNYbp6lDqngZrIzIobEJ4xaGev9W3xZudHqWuGK2onOsFPycO73h1SueZcEQtkibP4NhsnIrrTv+qd8I=
+	t=1710789749; cv=none; b=pw4Kro6BeBOUaBbIc6PCo3kuCOsEJEBTQ3LLblCeQLduRiTntYe2ktEudNLlo4ex4hDtcqnVlU9XTbu5SbniJHkac7ccAR347qpNbFzu2q5tPhteD6HFUIt42ZE6sT1AmP5DDMwDXrqh7JegGcsEI/J73mEBsOV5uc7fHACOM7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710789545; c=relaxed/simple;
-	bh=doKkbe9nasnGhFNxB03uejFCQZRbKecQud5zm92nWlk=;
-	h=Date:To:From:Subject:Message-Id; b=Ds9DElyC+nvl1W2CYWtrnqoruxshp0f1Y7FzZ8HrQr94OzMN+tiJ4vbIkTq8oDyKRBfu4IjeC1bU2fXqZIrl3xnvgKFoWgLKpU/fS1glRX20YUUI5fpirQ3EJfHpgOjBi4AfPYyYKV3Gmf0se+mrK8twFzMc/Qu4Cz6t1zCr1QU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GqQ2bsAm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710789749; c=relaxed/simple;
+	bh=4hOJjMbhZaJUA+KHw1qfM/SAD+b3RSrXrX+QwFtlUI4=;
+	h=Date:To:From:Subject:Message-Id; b=oFogqpb/tS6XUfzAbLrLEBd2rNeXT58rcBpWdhs+CPS1khblcnMTQM/I3K3gkrWNw/WUlxkUqDIyibYx0PST9/cYyEEePrSCxOQZTdshv4Apm7vcR74V2WUOXjqR1M9XMvsvOjYbYP7Jh5szGTRkF+KgBp46kX5F0JDpJQYbCC4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s2aTrHL8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GqQ2bsAm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5343BC433F1;
-	Mon, 18 Mar 2024 19:19:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s2aTrHL8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37074C433F1;
+	Mon, 18 Mar 2024 19:22:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710789545;
-	bh=doKkbe9nasnGhFNxB03uejFCQZRbKecQud5zm92nWlk=;
+	s=korg; t=1710789749;
+	bh=4hOJjMbhZaJUA+KHw1qfM/SAD+b3RSrXrX+QwFtlUI4=;
 	h=Date:To:From:Subject:From;
-	b=GqQ2bsAmuLic6JIScIng0dGPnIGNc5jXBF2ILZEIwAC8cd1Jr5ZacQ0D0kPu5FuqQ
-	 ziFruLb1ebR5YtG3cESzgz0Jo+32N1MLE6nQpYTuNWqCbX4lRS1WwTuKy4YQTLOE+r
-	 dP/jzIdRjV+siqloN2ZrjXMMJBkbPpzy3diJo63k=
-Date: Mon, 18 Mar 2024 12:19:04 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
+	b=s2aTrHL8r26SNCZeTmau4tw4WoRSGYJARkdX6zOXI8tCQ2GS1LTgUwYtMGHFd8RaG
+	 SmGuwuljc4ixk8duE4Xpzg12LHh1fGjws4YUVmoCRGjh7PtgHwS/5ZlK6Uw0M8yMeU
+	 kKyDScZ6+bM2C2erClrUQ0XgER/rwYE/zcnyMw+o=
+Date: Mon, 18 Mar 2024 12:22:28 -0700
+To: mm-commits@vger.kernel.org,yujie.liu@intel.com,oliver.sang@intel.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmpage_owner-fix-recursion.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240318191905.5343BC433F1@smtp.kernel.org>
+Subject: + mm-increase-folio-batch-size.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240318192229.37074C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,page_owner: fix recursion
+     Subject: mm: increase folio batch size
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mmpage_owner-fix-recursion.patch
+     mm-increase-folio-batch-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-fix-recursion.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-increase-folio-batch-size.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,113 +58,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,page_owner: fix recursion
-Date: Fri, 15 Mar 2024 23:26:10 +0100
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: increase folio batch size
+Date: Fri, 15 Mar 2024 14:08:21 +0000
 
-Prior to 217b2119b9e2 ("mm,page_owner: implement the tracking of the
-stacks count") the only place where page_owner could potentially go into
-recursion due to its need of allocating more memory was in save_stack(),
-which ends up calling into stackdepot code with the possibility of
-allocating memory.
+On a 104 thread, 2 socket Skylake system, Intel report a 4.7% performance
+reduction with will-it-scale page_fault2.  This was due to reducing the
+size of the batch from 32 to 15.  Increasing the folio batch size from 15
+to 31 gives a performance increase of 12.5% relative to the original, or
+17.2% relative to the reduced performance commit.
 
-We made sure to guard against that by signaling that the current task was
-already in page_owner code, so in case a recursion attempt was made, we
-could catch that and return dummy_handle.
+The penalty of this commit is an additional 128 bytes of stack usage.  Six
+folio_batches are also allocated from percpu memory in cpu_fbatches so
+that will be an additional 768 bytes of percpu memory (per CPU).  Tim Chen
+originally submitted a patch like this in 2020:
+https://lore.kernel.org/linux-mm/d1cc9f12a8ad6c2a52cb600d93b06b064f2bbc57.1593205965.git.tim.c.chen@linux.intel.com/
 
-After above commit, a new place in page_owner code was introduced where we
-could allocate memory, meaning we could go into recursion would we take
-that path.
-
-Make sure to signal that we are in page_owner in that codepath as well. 
-Move the guard code into two helpers {un}set_current_in_page_owner() and
-use them prior to calling in the two functions that might allocate memory.
-
-Link: https://lkml.kernel.org/r/20240315222610.6870-1-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Fixes: 217b2119b9e2 ("mm,page_owner: implement the tracking of the stacks count")
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/20240315140823.2478146-1-willy@infradead.org
+Fixes: 99fbb6bfc16f ("mm: make folios_put() the basis of release_pages()")
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Tested-by: Yujie Liu <yujie.liu@intel.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202403151058.7048f6a8-oliver.sang@intel.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   33 +++++++++++++++++++++++----------
- 1 file changed, 23 insertions(+), 10 deletions(-)
+ include/linux/pagevec.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_owner.c~mmpage_owner-fix-recursion
-+++ a/mm/page_owner.c
-@@ -54,6 +54,22 @@ static depot_stack_handle_t early_handle
+--- a/include/linux/pagevec.h~mm-increase-folio-batch-size
++++ a/include/linux/pagevec.h
+@@ -11,8 +11,8 @@
  
- static void init_early_allocated_pages(void);
+ #include <linux/types.h>
  
-+static inline void set_current_in_page_owner(void)
-+{
-+	/*
-+	 * Avoid recursion.
-+	 *
-+	 * We might need to allocate more memory from page_owner code, so make
-+	 * sure to signal it in order to avoid recursion.
-+	 */
-+	current->in_page_owner = 1;
-+}
-+
-+static inline void unset_current_in_page_owner(void)
-+{
-+	current->in_page_owner = 0;
-+}
-+
- static int __init early_page_owner_param(char *buf)
- {
- 	int ret = kstrtobool(buf, &page_owner_enabled);
-@@ -137,23 +153,16 @@ static noinline depot_stack_handle_t sav
- 	depot_stack_handle_t handle;
- 	unsigned int nr_entries;
+-/* 15 pointers + header align the folio_batch structure to a power of two */
+-#define PAGEVEC_SIZE	15
++/* 31 pointers + header align the folio_batch structure to a power of two */
++#define PAGEVEC_SIZE	31
  
--	/*
--	 * Avoid recursion.
--	 *
--	 * Sometimes page metadata allocation tracking requires more
--	 * memory to be allocated:
--	 * - when new stack trace is saved to stack depot
--	 */
- 	if (current->in_page_owner)
- 		return dummy_handle;
--	current->in_page_owner = 1;
+ struct folio;
  
-+	set_current_in_page_owner();
- 	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 2);
- 	handle = stack_depot_save(entries, nr_entries, flags);
- 	if (!handle)
- 		handle = failure_handle;
-+	unset_current_in_page_owner();
- 
--	current->in_page_owner = 0;
- 	return handle;
- }
- 
-@@ -168,9 +177,13 @@ static void add_stack_record_to_list(str
- 	gfp_mask &= (GFP_ATOMIC | GFP_KERNEL);
- 	gfp_mask |= __GFP_NOWARN;
- 
-+	set_current_in_page_owner();
- 	stack = kmalloc(sizeof(*stack), gfp_mask);
--	if (!stack)
-+	if (!stack) {
-+		unset_current_in_page_owner();
- 		return;
-+	}
-+	unset_current_in_page_owner();
- 
- 	stack->stack_record = stack_record;
- 	stack->next = NULL;
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mmpage_owner-fix-refcount-imbalance.patch
-mmpage_owner-fix-recursion.patch
+mm-increase-folio-batch-size.patch
 
