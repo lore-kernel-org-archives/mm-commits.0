@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BC9555C16;
-	Mon, 18 Mar 2024 19:25:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 093081862C
+	for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2024 20:32:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710789915; cv=none; b=Qtm+Ax/X9dd3vbyHQuFde/0mqgHtMIfyQnB8jE7T/d2Hf89gOSUnS2eRscKMPSIHzwi/qosKS/ECr1CGihqYHORNhp1/ntBFkYOX3OFs5cHeet9LrEPy9OMtqA7Aiyr6C6Gq9k2kpTqaRP3DXAeQ70KGHulk+V7eCFa1x5FEvAw=
+	t=1710793969; cv=none; b=WqXy0RqCETR7li9PP6ooURNKz8fhFHGl1/3REIYwsGTcRXrwJp57UR5PiVLpihy7XhmUqz7nXA4E7of4s5ztRdaayVxNibCIbUKx0LG3IVC2wG8mZ13mH2HgBXpbeOb23YOpo+VJu4FkWnhGRZmjQnS3pi3EI9zdTnIcqANFEAI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710789915; c=relaxed/simple;
-	bh=Av/ON1HOSRbDOn3Trqb+akXjfyDeOtmnnvfxi2FEdyM=;
-	h=Date:To:From:Subject:Message-Id; b=lwDya6uiPW4jj9OcYimglwzLvbekOXvGoKtXbkcla+11O2LZGNiTR5zyAcyj6SupNf25XGluad6tG2kB934toV753D9b9G/uz/rquZijCiIXpBCo9WFVUn+tx20C5wKezqukUR3Vk/K80FxLHoJf18ynjFi0M3E1R56ctSVQynw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uS5ZK69Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710793969; c=relaxed/simple;
+	bh=jWzTMBGkFZ3yltmdP88mk1AA+vv0XpieUtmHUUrt67k=;
+	h=Date:To:From:Subject:Message-Id; b=QwZrAttxPMNyekpZYEXzsZX6/AUufpLd+TqXu7VZWa/BRlmoUoeIwP4IAfFDAjOo58KqAOMTDzl8oHXf9RechWzBxS2BU9Jdbnjdkt8KvjHTisypxYLmW93QDcik3uTkn9DXh7VgKw09u5dMwr8siTZsxilT6sJd88G/2Wbmtf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UB9zsaSF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uS5ZK69Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D76AC433F1;
-	Mon, 18 Mar 2024 19:25:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UB9zsaSF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 736A8C433C7;
+	Mon, 18 Mar 2024 20:32:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710789915;
-	bh=Av/ON1HOSRbDOn3Trqb+akXjfyDeOtmnnvfxi2FEdyM=;
+	s=korg; t=1710793968;
+	bh=jWzTMBGkFZ3yltmdP88mk1AA+vv0XpieUtmHUUrt67k=;
 	h=Date:To:From:Subject:From;
-	b=uS5ZK69Q2Fb5DtXKHnkIy81U72tUWbkB2djyFJOvCUvDjzUkORPcEOlkYpLF6teDY
-	 rR6g3GgS1k+Gr4+eOd0fD6ko1H/Euikc6W2adkrfYpyMaxzVh27o1WBAWydSJe0Ast
-	 nMwd4NFFxTKPsreArX3KLfrovXbPZGGHl8QhHysE=
-Date: Mon, 18 Mar 2024 12:25:14 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,nphamcs@gmail.com,jannh@google.com,chengming.zhou@linux.dev,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=UB9zsaSFmifaCnhmCM7C9LuOhyZaV4zN/HLCS2zVumj2uWIwZ/hYx5TQXZlHczz7q
+	 69ZkTikqMksIc5VBD7zIVGTdJwlY9GImnB6PI9XO6XFSLkrXE+bvMmO0lDU0PwBGuv
+	 xnCqey+7EQnrz9oogY4jdzPfpXyAw7H3X9spxE+4=
+Date: Mon, 18 Mar 2024 13:32:47 -0700
+To: mm-commits@vger.kernel.org,jhubbard@nvidia.com,jgg@nvidia.com,hughd@google.com,djwong@kernel.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cachestat-fix-two-shmem-bugs.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240318192515.4D76AC433F1@smtp.kernel.org>
+Subject: + mm-madvise-make-madv_populate_readwrite-handle-vm_fault_retry-properly.patch added to mm-unstable branch
+Message-Id: <20240318203248.736A8C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: cachestat: fix two shmem bugs
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-cachestat-fix-two-shmem-bugs.patch
+     Subject: mm/madvise: make MADV_POPULATE_(READ|WRITE) handle VM_FAULT_RETRY properly
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-madvise-make-madv_populate_readwrite-handle-vm_fault_retry-properly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cachestat-fix-two-shmem-bugs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-make-madv_populate_readwrite-handle-vm_fault_retry-properly.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,79 +58,275 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: cachestat: fix two shmem bugs
-Date: Fri, 15 Mar 2024 05:55:56 -0400
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/madvise: make MADV_POPULATE_(READ|WRITE) handle VM_FAULT_RETRY properly
+Date: Thu, 14 Mar 2024 17:12:59 +0100
 
-When cachestat on shmem races with swapping and invalidation, there
-are two possible bugs:
+Patch series "mm/madvise: make MADV_POPULATE_(READ|WRITE) handle
+VM_FAULT_RETRY properly". 
 
-1) A swapin error can have resulted in a poisoned swap entry in the
-   shmem inode's xarray. Calling get_shadow_from_swap_cache() on it
-   will result in an out-of-bounds access to swapper_spaces[].
+Derrick reports that in some cases where pread() would fail with -EIO and
+mmap()+access would generate a SIGBUS signal, MADV_POPULATE_READ /
+MADV_POPULATE_WRITE will keep retrying forever and not fail with -EFAULT.
 
-   Validate the entry with non_swap_entry() before going further.
+It all boils down to missing VM_FAULT_RETRY handling.  Let's try to handle
+that in a better way, similar to how ordinary GUP handles it.
 
-2) When we find a valid swap entry in the shmem's inode, the shadow
-   entry in the swapcache might not exist yet: swap IO is still in
-   progress and we're before __remove_mapping; swapin, invalidation,
-   or swapoff have removed the shadow from swapcache after we saw the
-   shmem swap entry.
+Details in patch #1.  In short, move special MADV_POPULATE_(READ|WRITE)
+VMA handling into __get_user_pages(), and make faultin_page_range() call
+__get_user_pages_locked(), which handles VM_FAULT_RETRY.  Further, avoid
+the now-useless madvise VMA walk, because __get_user_pages() will perform
+the VMA lookup either way.
 
-   This will send a NULL to workingset_test_recent(). The latter
-   purely operates on pointer bits, so it won't crash - node 0, memcg
-   ID 0, eviction timestamp 0, etc. are all valid inputs - but it's a
-   bogus test. In theory that could result in a false "recently
-   evicted" count.
+I briefly played with handling the FOLL_MADV_POPULATE checks in
+__get_user_pages() a bit differently, integrating them with existing
+handling, but it ended up looking worse.  So I decided to keep it simple.
 
-   Such a false positive wouldn't be the end of the world. But for
-   code clarity and (future) robustness, be explicit about this case.
+Likely, we need better selftests, but the reproducer from Darrick might be
+a bit hard to convert into a simple selftest.
 
-   Bail on get_shadow_from_swap_cache() returning NULL.
+Note that using mlock() in Darricks reproducer results in a similar
+endless retry.  Likely, that is not what we want, and we should handle
+VM_FAULT_RETRY in populate_vma_page_range() / __mm_populate() as well. 
+However, similarly using __get_user_pages_locked() might be more
+complicated, because of the advanced VMA handling in
+populate_vma_page_range().
 
-Link: https://lkml.kernel.org/r/20240315095556.GC581298@cmpxchg.org
-Fixes: cf264e1329fb ("cachestat: implement cachestat syscall")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Chengming Zhou <chengming.zhou@linux.dev>	[Bug #1]
-Reported-by: Jann Horn <jannh@google.com>		[Bug #2]
-Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Cc: <stable@vger.kernel.org>				[v6.5+]
+Further, most populate_vma_page_range() callers simply ignore the return
+values, so it's unclear in which cases we expect to just silently fail, or
+where we'd want to retry+fail or endlessly retry instead.
+
+
+This patch (of 2): 
+
+Darrick reports that in some cases where pread() would fail with -EIO and
+mmap()+access would generate a SIGBUS signal, MADV_POPULATE_READ /
+MADV_POPULATE_WRITE will keep retrying forever and not fail with -EFAULT.
+
+While the madvise() call can be interrupted by a signal, this is not the
+desired behavior.  MADV_POPULATE_READ / MADV_POPULATE_WRITE should behave
+like page faults in that case: fail and not retry forever.
+
+A reproducer can be found at [1].
+
+The reason is that __get_user_pages(), as called by
+faultin_vma_page_range(), will not handle VM_FAULT_RETRY in a proper way:
+it will simply return 0 when VM_FAULT_RETRY happened, making
+madvise_populate()->faultin_vma_page_range() retry again and again, never
+setting FOLL_TRIED->FAULT_FLAG_TRIED for __get_user_pages().
+
+__get_user_pages_locked() does what we want, but duplicating that logic in
+faultin_vma_page_range() feels wrong.
+
+So let's use __get_user_pages_locked() instead, that will detect
+VM_FAULT_RETRY and set FOLL_TRIED when retrying, making the fault handler
+return VM_FAULT_SIGBUS (VM_FAULT_ERROR) at some point, propagating -EFAULT
+from faultin_page() to __get_user_pages(), all the way to
+madvise_populate().
+
+But, there is an issue: __get_user_pages_locked() will end up re-taking
+the MM lock and then __get_user_pages() will do another VMA lookup.  In
+the meantime, the VMA layout could have changed and we'd fail with
+different error codes than we'd want to.
+
+As __get_user_pages() will currently do a new VMA lookup either way, let
+it do the VMA handling in a different way, controlled by a new
+FOLL_MADV_POPULATE flag, effectively moving these checks from
+madvise_populate() + faultin_page_range() in there.
+
+With this change, Darricks reproducer properly fails with -EFAULT, as
+documented for MADV_POPULATE_READ / MADV_POPULATE_WRITE.
+
+[1] https://lore.kernel.org/all/20240313171936.GN1927156@frogsfrogsfrogs/
+
+Link: https://lkml.kernel.org/r/20240314161300.382526-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20240314161300.382526-2-david@redhat.com
+Fixes: 4ca9b3859dac ("mm/madvise: introduce MADV_POPULATE_(READ|WRITE) to prefault page tables")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: Darrick J. Wong <djwong@kernel.org>
+Closes: https://lore.kernel.org/all/20240311223815.GW1927156@frogsfrogsfrogs/
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ mm/gup.c      |   54 ++++++++++++++++++++++++++++--------------------
+ mm/internal.h |   10 +++++---
+ mm/madvise.c  |   17 +--------------
+ 3 files changed, 40 insertions(+), 41 deletions(-)
 
---- a/mm/filemap.c~mm-cachestat-fix-two-shmem-bugs
-+++ a/mm/filemap.c
-@@ -4197,7 +4197,23 @@ static void filemap_cachestat(struct add
- 				/* shmem file - in swap cache */
- 				swp_entry_t swp = radix_to_swp_entry(folio);
+--- a/mm/gup.c~mm-madvise-make-madv_populate_readwrite-handle-vm_fault_retry-properly
++++ a/mm/gup.c
+@@ -1206,6 +1206,22 @@ static long __get_user_pages(struct mm_s
  
-+				/* swapin error results in poisoned entry */
-+				if (non_swap_entry(swp))
-+					goto resched;
-+
-+				/*
-+				 * Getting a swap entry from the shmem
-+				 * inode means we beat
-+				 * shmem_unuse(). rcu_read_lock()
-+				 * ensures swapoff waits for us before
-+				 * freeing the swapper space. However,
-+				 * we can race with swapping and
-+				 * invalidation, so there might not be
-+				 * a shadow in the swapcache (yet).
-+				 */
- 				shadow = get_shadow_from_swap_cache(swp);
-+				if (!shadow)
-+					goto resched;
+ 		/* first iteration or cross vma bound */
+ 		if (!vma || start >= vma->vm_end) {
++			/*
++			 * MADV_POPULATE_(READ|WRITE) wants to handle VMA
++			 * lookups+error reporting differently.
++			 */
++			if (gup_flags & FOLL_MADV_POPULATE) {
++				vma = vma_lookup(mm, start);
++				if (!vma) {
++					ret = -ENOMEM;
++					goto out;
++				}
++				if (check_vma_flags(vma, gup_flags)) {
++					ret = -EINVAL;
++					goto out;
++				}
++				goto retry;
++			}
+ 			vma = gup_vma_lookup(mm, start);
+ 			if (!vma && in_gate_area(mm, start)) {
+ 				ret = get_gate_page(mm, start & PAGE_MASK,
+@@ -1683,35 +1699,35 @@ long populate_vma_page_range(struct vm_a
+ }
+ 
+ /*
+- * faultin_vma_page_range() - populate (prefault) page tables inside the
+- *			      given VMA range readable/writable
++ * faultin_page_range() - populate (prefault) page tables inside the
++ *			  given range readable/writable
+  *
+  * This takes care of mlocking the pages, too, if VM_LOCKED is set.
+  *
+- * @vma: target vma
++ * @mm: the mm to populate page tables in
+  * @start: start address
+  * @end: end address
+  * @write: whether to prefault readable or writable
+  * @locked: whether the mmap_lock is still held
+  *
+- * Returns either number of processed pages in the vma, or a negative error
+- * code on error (see __get_user_pages()).
++ * Returns either number of processed pages in the MM, or a negative error
++ * code on error (see __get_user_pages()). Note that this function reports
++ * errors related to VMAs, such as incompatible mappings, as expected by
++ * MADV_POPULATE_(READ|WRITE).
+  *
+- * vma->vm_mm->mmap_lock must be held. The range must be page-aligned and
+- * covered by the VMA. If it's released, *@locked will be set to 0.
++ * The range must be page-aligned.
++ *
++ * mm->mmap_lock must be held. If it's released, *@locked will be set to 0.
+  */
+-long faultin_vma_page_range(struct vm_area_struct *vma, unsigned long start,
+-			    unsigned long end, bool write, int *locked)
++long faultin_page_range(struct mm_struct *mm, unsigned long start,
++			unsigned long end, bool write, int *locked)
+ {
+-	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long nr_pages = (end - start) / PAGE_SIZE;
+ 	int gup_flags;
+ 	long ret;
+ 
+ 	VM_BUG_ON(!PAGE_ALIGNED(start));
+ 	VM_BUG_ON(!PAGE_ALIGNED(end));
+-	VM_BUG_ON_VMA(start < vma->vm_start, vma);
+-	VM_BUG_ON_VMA(end > vma->vm_end, vma);
+ 	mmap_assert_locked(mm);
+ 
+ 	/*
+@@ -1723,19 +1739,13 @@ long faultin_vma_page_range(struct vm_ar
+ 	 *		  a poisoned page.
+ 	 * !FOLL_FORCE: Require proper access permissions.
+ 	 */
+-	gup_flags = FOLL_TOUCH | FOLL_HWPOISON | FOLL_UNLOCKABLE;
++	gup_flags = FOLL_TOUCH | FOLL_HWPOISON | FOLL_UNLOCKABLE |
++		    FOLL_MADV_POPULATE;
+ 	if (write)
+ 		gup_flags |= FOLL_WRITE;
+ 
+-	/*
+-	 * We want to report -EINVAL instead of -EFAULT for any permission
+-	 * problems or incompatible mappings.
+-	 */
+-	if (check_vma_flags(vma, gup_flags))
+-		return -EINVAL;
+-
+-	ret = __get_user_pages(mm, start, nr_pages, gup_flags,
+-			       NULL, locked);
++	ret = __get_user_pages_locked(mm, start, nr_pages, NULL, locked,
++				      gup_flags);
+ 	lru_add_drain();
+ 	return ret;
+ }
+--- a/mm/internal.h~mm-madvise-make-madv_populate_readwrite-handle-vm_fault_retry-properly
++++ a/mm/internal.h
+@@ -686,9 +686,8 @@ struct anon_vma *folio_anon_vma(struct f
+ void unmap_mapping_folio(struct folio *folio);
+ extern long populate_vma_page_range(struct vm_area_struct *vma,
+ 		unsigned long start, unsigned long end, int *locked);
+-extern long faultin_vma_page_range(struct vm_area_struct *vma,
+-				   unsigned long start, unsigned long end,
+-				   bool write, int *locked);
++extern long faultin_page_range(struct mm_struct *mm, unsigned long start,
++		unsigned long end, bool write, int *locked);
+ extern bool mlock_future_ok(struct mm_struct *mm, unsigned long flags,
+ 			       unsigned long bytes);
+ 
+@@ -1127,10 +1126,13 @@ enum {
+ 	FOLL_FAST_ONLY = 1 << 20,
+ 	/* allow unlocking the mmap lock */
+ 	FOLL_UNLOCKABLE = 1 << 21,
++	/* VMA lookup+checks compatible with MADV_POPULATE_(READ|WRITE) */
++	FOLL_MADV_POPULATE = 1 << 22,
+ };
+ 
+ #define INTERNAL_GUP_FLAGS (FOLL_TOUCH | FOLL_TRIED | FOLL_REMOTE | FOLL_PIN | \
+-			    FOLL_FAST_ONLY | FOLL_UNLOCKABLE)
++			    FOLL_FAST_ONLY | FOLL_UNLOCKABLE | \
++			    FOLL_MADV_POPULATE)
+ 
+ /*
+  * Indicates for which pages that are write-protected in the page table,
+--- a/mm/madvise.c~mm-madvise-make-madv_populate_readwrite-handle-vm_fault_retry-properly
++++ a/mm/madvise.c
+@@ -908,27 +908,14 @@ static long madvise_populate(struct vm_a
+ {
+ 	const bool write = behavior == MADV_POPULATE_WRITE;
+ 	struct mm_struct *mm = vma->vm_mm;
+-	unsigned long tmp_end;
+ 	int locked = 1;
+ 	long pages;
+ 
+ 	*prev = vma;
+ 
+ 	while (start < end) {
+-		/*
+-		 * We might have temporarily dropped the lock. For example,
+-		 * our VMA might have been split.
+-		 */
+-		if (!vma || start >= vma->vm_end) {
+-			vma = vma_lookup(mm, start);
+-			if (!vma)
+-				return -ENOMEM;
+-		}
+-
+-		tmp_end = min_t(unsigned long, end, vma->vm_end);
+ 		/* Populate (prefault) page tables readable/writable. */
+-		pages = faultin_vma_page_range(vma, start, tmp_end, write,
+-					       &locked);
++		pages = faultin_page_range(mm, start, end, write, &locked);
+ 		if (!locked) {
+ 			mmap_read_lock(mm);
+ 			locked = 1;
+@@ -949,7 +936,7 @@ static long madvise_populate(struct vm_a
+ 				pr_warn_once("%s: unhandled return value: %ld\n",
+ 					     __func__, pages);
+ 				fallthrough;
+-			case -ENOMEM:
++			case -ENOMEM: /* No VMA or out of memory. */
+ 				return -ENOMEM;
  			}
- #endif
- 			if (workingset_test_recent(shadow, true, &workingset))
+ 		}
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-cachestat-fix-two-shmem-bugs.patch
+mm-madvise-make-madv_populate_readwrite-handle-vm_fault_retry-properly.patch
+mm-madvise-dont-perform-madvise-vma-walk-for-madv_populate_readwrite.patch
 
