@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 218DA3BB38;
-	Tue, 19 Mar 2024 20:41:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5374A3BB38
+	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 20:42:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710880861; cv=none; b=pa8kWLQeGe4CaVXzxCjB/60AFht1tgLaf++OTbh/EQZ+sTfWEg7eUEVwTI7HPVoHTEdJyHhTkbtrAlSoM2CGvQ6eqJz7lsm2bGdkWhbOgWZLabg6/bDMSCJvvKiQlgfsF/9bQ4JA9NQI0q0VQwO+dvz9MYRArhgMMvu+KCaNStc=
+	t=1710880970; cv=none; b=paHpL76fegrs8/Kgmn/QpVa9bbhbBfABCTVHsCrZ5aXkCtNFcojmamrsDDcvuK+qAydbGj/lt5m6xF6QUEQT7YHybX4aQTFLWHOo969v8/+Gg2mesAUHqSeb07T0DLB0RI4Aohmjityb5sRUHY1ChKjagbz2DoJrmmNsJI6HYjs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710880861; c=relaxed/simple;
-	bh=rFkVijGyWTlc3II8gfa9QNHrFY6cORFkW5KVIBqabFY=;
-	h=Date:To:From:Subject:Message-Id; b=stafmuagKY7SqVGinEFH47OocuK56qUPoFmLXJDf2NEFE9YbDsaAonawqEaxRi+4s+n13uocUAPR2RQxDBIQ6K5zxoSpMU1nqtxQvYeoswC0nyJtcaPFEwY46bJ0+2D/yMu9gNUrqQ282gl9iCjdIaxuav3kV+Q9VY7M9/agMvg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pRcvDC8h; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710880970; c=relaxed/simple;
+	bh=QLiNP7g2Cvb6CVOkZM9/P3LZaJcj7GhiVzNugkZgSio=;
+	h=Date:To:From:Subject:Message-Id; b=E1a5tHXKl+B9p1QVHSfs5ILlCcR2vS6H8AHXR0acFNcVc59HsviU30iX0suQMKPMFoQ5Lk2GLkoN8Zg4Qbiqj9GjEl6bvPmpEPpsf1pAgwVmBB1g5krNmWt40WZx6Bww9fN5zo/45rGF99aE9akK65W8+w9J8oUcpMkLEcR5zNM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bAZORtNi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pRcvDC8h"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7918C433C7;
-	Tue, 19 Mar 2024 20:41:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bAZORtNi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6A47C433C7;
+	Tue, 19 Mar 2024 20:42:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710880860;
-	bh=rFkVijGyWTlc3II8gfa9QNHrFY6cORFkW5KVIBqabFY=;
+	s=korg; t=1710880969;
+	bh=QLiNP7g2Cvb6CVOkZM9/P3LZaJcj7GhiVzNugkZgSio=;
 	h=Date:To:From:Subject:From;
-	b=pRcvDC8hOAMKqNgtjoBoVZGqrDbiBlyjcKibnEAcrEFbCtkApwvUYpe33JLKJZXPQ
-	 pV+a38N2Ub65wTvNMh2XI6siy/uPqAvhADp9rlm4EKJbdxIhk/m50BZy1AaczbhCIy
-	 cGK3rOugJDU1qUs5luUHAzsL9uiqTg3QAsJSBFNk=
-Date: Tue, 19 Mar 2024 13:41:00 -0700
-To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,stable@vger.kernel.org,shr@devkernel.io,sam@gentoo.org,rppt@kernel.org,rick.p.edgecombe@intel.com,revest@chromium.org,omosnace@redhat.com,oleg@redhat.com,ojeda@kernel.org,linux@armlinux.org.uk,keescook@chromium.org,josh@joshtriplett.org,James.Bottomley@HansenPartnership.com,fengwei.yin@intel.com,deller@gmx.de,david@redhat.com,bp@alien8.de,zev@bewilderbeest.net,akpm@linux-foundation.org
+	b=bAZORtNibeK19ycRIl5o3fjsjEUdTd6ZxWzcvpvHs1bYEcDGEKgFyY+L7DI5oqQye
+	 upBUI5fGlLXfhMHUlKbzwRdHLA4K+FUWZsjianj9mLG2SO0ExXQ6JNkssNhdPEAKdX
+	 cclK3d4O67vvqraakS50j94XeOqcG6WGMs8/tJwM=
+Date: Tue, 19 Mar 2024 13:42:49 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,kirill.shutemov@linux.intel.com,fengwei.yin@intel.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm-prctl-reject-pr_set_mdwe-on-pre-armv6.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240319204100.C7918C433C7@smtp.kernel.org>
+Subject: + mm-migrate-split-source-folio-if-it-is-on-deferred-split-list.patch added to mm-unstable branch
+Message-Id: <20240319204249.D6A47C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ARM: prctl: reject PR_SET_MDWE on pre-ARMv6
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     arm-prctl-reject-pr_set_mdwe-on-pre-armv6.patch
+     Subject: mm/migrate: split source folio if it is on deferred split list
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-migrate-split-source-folio-if-it-is-on-deferred-split-list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-prctl-reject-pr_set_mdwe-on-pre-armv6.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-split-source-folio-if-it-is-on-deferred-split-list.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,65 +58,184 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zev Weiss <zev@bewilderbeest.net>
-Subject: ARM: prctl: reject PR_SET_MDWE on pre-ARMv6
-Date: Mon, 26 Feb 2024 17:35:42 -0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/migrate: split source folio if it is on deferred split list
+Date: Tue, 19 Mar 2024 11:47:53 -0400
 
-On v5 and lower CPUs we can't provide MDWE protection, so ensure we fail
-any attempt to enable it via prctl(PR_SET_MDWE).
+If the source folio is on deferred split list, it is likely some subpages
+are not used.  Split it before migration to avoid migrating unused
+subpages.
 
-Previously such an attempt would misleadingly succeed, leading to any
-subsequent mmap(PROT_READ|PROT_WRITE) or execve() failing unconditionally
-(the latter somewhat violently via force_fatal_sig(SIGSEGV) due to
-READ_IMPLIES_EXEC).
+Commit 616b8371539a6 ("mm: thp: enable thp migration in generic path") did
+not check if a THP is on deferred split list before migration, thus, the
+destination THP is never put on deferred split list even if the source THP
+might be.  The opportunity of reclaiming free pages in a partially mapped
+THP during deferred list scanning is lost, but no other harmful
+consequence is present[1].
 
-Link: https://lkml.kernel.org/r/20240227013546.15769-6-zev@bewilderbeest.net
-Signed-off-by: Zev Weiss <zev@bewilderbeest.net>
-Cc: <stable@vger.kernel.org>	[6.3+]
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Florent Revest <revest@chromium.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Ondrej Mosnacek <omosnace@redhat.com>
-Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Cc: Russell King (Oracle) <linux@armlinux.org.uk>
-Cc: Sam James <sam@gentoo.org>
-Cc: Stefan Roesch <shr@devkernel.io>
-Cc: Yang Shi <yang@os.amperecomputing.com>
+[1]: https://lore.kernel.org/linux-mm/03CE3A00-917C-48CC-8E1C-6A98713C817C@nvidia.com/
+
+Link: https://lkml.kernel.org/r/20240319154753.253262-1-zi.yan@sent.com
+Fixes: 616b8371539a ("mm: thp: enable thp migration in generic path")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Huang, Ying <ying.huang@intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/mman.h |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ mm/huge_memory.c |   22 ----------------
+ mm/internal.h    |   23 +++++++++++++++++
+ mm/migrate.c     |   60 ++++++++++++++++++++++++++++++++++++---------
+ 3 files changed, 72 insertions(+), 33 deletions(-)
 
---- /dev/null
-+++ a/arch/arm/include/asm/mman.h
-@@ -0,0 +1,14 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef __ASM_MMAN_H__
-+#define __ASM_MMAN_H__
-+
-+#include <asm/system_info.h>
-+#include <uapi/asm/mman.h>
-+
-+static inline bool arch_memory_deny_write_exec_supported(void)
+--- a/mm/huge_memory.c~mm-migrate-split-source-folio-if-it-is-on-deferred-split-list
++++ a/mm/huge_memory.c
+@@ -766,28 +766,6 @@ pmd_t maybe_pmd_mkwrite(pmd_t pmd, struc
+ 	return pmd;
+ }
+ 
+-#ifdef CONFIG_MEMCG
+-static inline
+-struct deferred_split *get_deferred_split_queue(struct folio *folio)
+-{
+-	struct mem_cgroup *memcg = folio_memcg(folio);
+-	struct pglist_data *pgdat = NODE_DATA(folio_nid(folio));
+-
+-	if (memcg)
+-		return &memcg->deferred_split_queue;
+-	else
+-		return &pgdat->deferred_split_queue;
+-}
+-#else
+-static inline
+-struct deferred_split *get_deferred_split_queue(struct folio *folio)
+-{
+-	struct pglist_data *pgdat = NODE_DATA(folio_nid(folio));
+-
+-	return &pgdat->deferred_split_queue;
+-}
+-#endif
+-
+ void folio_prep_large_rmappable(struct folio *folio)
+ {
+ 	if (!folio || !folio_test_large(folio))
+--- a/mm/internal.h~mm-migrate-split-source-folio-if-it-is-on-deferred-split-list
++++ a/mm/internal.h
+@@ -1106,6 +1106,29 @@ struct page *follow_trans_huge_pmd(struc
+ 				   unsigned long addr, pmd_t *pmd,
+ 				   unsigned int flags);
+ 
++#ifdef CONFIG_MEMCG
++static inline
++struct deferred_split *get_deferred_split_queue(struct folio *folio)
 +{
-+	return cpu_architecture() >= CPU_ARCH_ARMv6;
-+}
-+#define arch_memory_deny_write_exec_supported arch_memory_deny_write_exec_supported
++	struct mem_cgroup *memcg = folio_memcg(folio);
++	struct pglist_data *pgdat = NODE_DATA(folio_nid(folio));
 +
-+#endif /* __ASM_MMAN_H__ */
++	if (memcg)
++		return &memcg->deferred_split_queue;
++	else
++		return &pgdat->deferred_split_queue;
++}
++#else
++static inline
++struct deferred_split *get_deferred_split_queue(struct folio *folio)
++{
++	struct pglist_data *pgdat = NODE_DATA(folio_nid(folio));
++
++	return &pgdat->deferred_split_queue;
++}
++#endif
++
++
+ /*
+  * mm/mmap.c
+  */
+--- a/mm/migrate.c~mm-migrate-split-source-folio-if-it-is-on-deferred-split-list
++++ a/mm/migrate.c
+@@ -1654,25 +1654,63 @@ static int migrate_pages_batch(struct li
+ 
+ 			/*
+ 			 * Large folio migration might be unsupported or
+-			 * the allocation might be failed so we should retry
+-			 * on the same folio with the large folio split
++			 * the folio is on deferred split list so we should
++			 * retry on the same folio with the large folio split
+ 			 * to normal folios.
+ 			 *
+ 			 * Split folios are put in split_folios, and
+ 			 * we will migrate them after the rest of the
+ 			 * list is processed.
+ 			 */
+-			if (!thp_migration_supported() && is_thp) {
+-				nr_failed++;
+-				stats->nr_thp_failed++;
+-				if (!try_split_folio(folio, split_folios)) {
+-					stats->nr_thp_split++;
+-					stats->nr_split++;
++			if (is_thp) {
++				bool is_on_deferred_list = false;
++
++				/*
++				 * Check without taking split_queue_lock to
++				 * reduce locking overheads. The worst case is
++				 * that if the folio is put on the deferred
++				 * split list after the check, it will be
++				 * migrated and not put back on the list.
++				 * The migrated folio will not be split
++				 * via shrinker during memory pressure.
++				 */
++				if (!data_race(list_empty(&folio->_deferred_list))) {
++					struct deferred_split *ds_queue;
++					unsigned long flags;
++
++					ds_queue =
++						get_deferred_split_queue(folio);
++					spin_lock_irqsave(&ds_queue->split_queue_lock,
++							  flags);
++					/*
++					 * Only check if the folio is on
++					 * deferred split list without removing
++					 * it. Since the folio can be on
++					 * deferred_split_scan() local list and
++					 * removing it can cause the local list
++					 * corruption. Folio split process
++					 * below can handle it with the help of
++					 * folio_ref_freeze().
++					 */
++					is_on_deferred_list =
++						!list_empty(&folio->_deferred_list);
++					spin_unlock_irqrestore(&ds_queue->split_queue_lock,
++							       flags);
++				}
++				if (!thp_migration_supported() ||
++						is_on_deferred_list) {
++					nr_failed++;
++					stats->nr_thp_failed++;
++					if (!try_split_folio(folio,
++							     split_folios)) {
++						stats->nr_thp_split++;
++						stats->nr_split++;
++						continue;
++					}
++					stats->nr_failed_pages += nr_pages;
++					list_move_tail(&folio->lru, ret_folios);
+ 					continue;
+ 				}
+-				stats->nr_failed_pages += nr_pages;
+-				list_move_tail(&folio->lru, ret_folios);
+-				continue;
+ 			}
+ 
+ 			rc = migrate_folio_unmap(get_new_folio, put_new_folio,
 _
 
-Patches currently in -mm which might be from zev@bewilderbeest.net are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-prctl-generalize-pr_set_mdwe-support-check-to-be-per-arch.patch
-arm-prctl-reject-pr_set_mdwe-on-pre-armv6.patch
+mm-migrate-split-source-folio-if-it-is-on-deferred-split-list.patch
 
