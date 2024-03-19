@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B33745FBA4
-	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 22:00:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C55D6364D4
+	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 23:20:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710885639; cv=none; b=hbJvUfnmMMMAR119Z3mVfZQKkCnYYo6krgfA+QYgA3vLWWq/WpWGV6t7M90nYPhnPaYvipYteo8HNCNzzSXRpbEhvJt4XnqCfpHU2ehgcJqu+cm4GGDYgUehH5Tk9p3bG2ORb2macSiucBfo+930dLfr8/frus95+R1jFgv2w34=
+	t=1710890437; cv=none; b=YiXDmGl+O4B6sK5frwMqZdm+7ay/Sds4mwwBmFYCYQGPGkHlZOm0eIQWD5LDjP5tzRRzJSzh0m/nHpGlBg4jc5BBa8yH0sYdNJb3zw6TkVZCvmyWJ1qGIxuFxApgkh8EFwNVq3zQVVJtCWvG5Avyxz8moVr9xPzDK6zcQjN484Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710885639; c=relaxed/simple;
-	bh=M0tapZ4wUTqAjPFCCVOjWVwHEwbnCbYtB+tTa9VomzU=;
-	h=Date:To:From:Subject:Message-Id; b=OIHuf9qepFwvgI6yNYUwkXABSirM8nrELxzFWR4Vyyrhw48fq74KYOnIdR2gXy5UKpzQXql/G4eXeS7A0qr1HjdhFKWBP0kddg2k9TVscZsdDDt4YO4C3ioJYRWHo74jnD/UeMf1DFPC4W8gq/pN4ntS7GF7W34GB2CjedmMwRw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QD++7W3D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710890437; c=relaxed/simple;
+	bh=jy0+0H8yGYlQf87JRa8Hes0Y/bM8gHn9iuWNyJGAneI=;
+	h=Date:To:From:Subject:Message-Id; b=f7lZRvdNVZyRhUk+odVuGUUDPRxk88Jkh1FSNByM7VPTC+ycFD9ymfMaoQrYYlwCx7s9c9xgXSOvEWe1npM2ir3Dff7XeWu2W6fRWTDTtxMPxmgeuhfm2j47ZmvE25XexYznx70+PMktODHIa5S/HIl7YBI04o5kkoQzIXATMV8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r4cLEAWk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QD++7W3D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FC65C43394;
-	Tue, 19 Mar 2024 22:00:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r4cLEAWk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BF92C433F1;
+	Tue, 19 Mar 2024 23:20:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710885639;
-	bh=M0tapZ4wUTqAjPFCCVOjWVwHEwbnCbYtB+tTa9VomzU=;
+	s=korg; t=1710890436;
+	bh=jy0+0H8yGYlQf87JRa8Hes0Y/bM8gHn9iuWNyJGAneI=;
 	h=Date:To:From:Subject:From;
-	b=QD++7W3D70l3JX5sWO5cz7C8mzoZJpok2FsmTTHLYygiVDpW5XGPf/PuRqxqLgBIK
-	 lsXdF6npTguyDWUaXKCHL9JX42iy4tnj9pw/5mi5GyI75l4gBEYQY1qylX7lEECQso
-	 Tl1ei7fOX69ZcuC5BaH63NLmlVm+GZFR3U+HD608=
-Date: Tue, 19 Mar 2024 15:00:38 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,vbabka@suse.cz,surenb@google.com,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,mhocko@kernel.org,mgorman@suse.de,hughd@google.com,hannes@cmpxchg.org,feng.tang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,aneesh.kumar@kernel.org,aarcange@redhat.com,donettom@linux.ibm.com,akpm@linux-foundation.org
+	b=r4cLEAWks98MR+EqmPaUzQIKs5K+2YxDzZttcPOCC0Nvnigagxp8gxXJL0BsOQZL5
+	 yqOf0viKjtW88OwjMIjM6mZZ7xlUPEjX0/HNK+5dinNv/xYql7JH3ELMQWDgI+mBmc
+	 bvAJyZsKKnebCtNik2nDyqw1eyu/DlE0GvzsXvYA=
+Date: Tue, 19 Mar 2024 16:20:35 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,penguin-kernel@I-love.SAKURA.ne.jp,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-numa_balancing-allow-migrate-on-protnone-reference-with-mpol_preferred_many-policy.patch added to mm-unstable branch
-Message-Id: <20240319220039.2FC65C43394@smtp.kernel.org>
+Subject: + mmpage_owner-fix-refcount-imbalance.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240319232036.2BF92C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/numa_balancing: allow migrate on protnone reference with MPOL_PREFERRED_MANY policy
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-numa_balancing-allow-migrate-on-protnone-reference-with-mpol_preferred_many-policy.patch
+     Subject: mm,page_owner: fix refcount imbalance
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mmpage_owner-fix-refcount-imbalance.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numa_balancing-allow-migrate-on-protnone-reference-with-mpol_preferred_many-policy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-fix-refcount-imbalance.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,116 +58,251 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Donet Tom <donettom@linux.ibm.com>
-Subject: mm/numa_balancing: allow migrate on protnone reference with MPOL_PREFERRED_MANY policy
-Date: Fri, 8 Mar 2024 09:15:38 -0600
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,page_owner: fix refcount imbalance
+Date: Tue, 19 Mar 2024 19:32:11 +0100
 
-commit bda420b98505 ("numa balancing: migrate on fault among multiple
-bound nodes") added support for migrate on protnone reference with
-MPOL_BIND memory policy.  This allowed numa fault migration when the
-executing node is part of the policy mask for MPOL_BIND.  This patch
-extends migration support to MPOL_PREFERRED_MANY policy.
+Current code does not contemplate scenarios were an allocation and free
+operation on the same pages do not handle it in the same amount at once.
 
-Currently, we cannot specify MPOL_PREFERRED_MANY with the mempolicy flag
-MPOL_F_NUMA_BALANCING.  This causes issues when we want to use
-NUMA_BALANCING_MEMORY_TIERING.  To effectively use the slow memory tier,
-the kernel should not allocate pages from the slower memory tier via
-allocation control zonelist fallback.  Instead, we should move cold pages
-from the faster memory node via memory demotion.  For a page allocation,
-kswapd is only woken up after we try to allocate pages from all nodes in
-the allocation zone list.  This implies that, without using memory
-policies, we will end up allocating hot pages in the slower memory tier.
+To give an example, page_alloc_exact(), where we will allocate a page of
+enough order to stafisfy the size request, but we will free the remainings
+right away.
 
-MPOL_PREFERRED_MANY was added by commit b27abaccf8e8 ("mm/mempolicy: add
-MPOL_PREFERRED_MANY for multiple preferred nodes") to allow better
-allocation control when we have memory tiers in the system.  With
-MPOL_PREFERRED_MANY, the user can use a policy node mask consisting only
-of faster memory nodes.  When we fail to allocate pages from the faster
-memory node, kswapd would be woken up, allowing demotion of cold pages to
-slower memory nodes.
+In the above example, we will increment the stack_record refcount only
+once, but we will decrease it the same number of times as number of unused
+pages we have to free.  This will lead to a warning because of refcount
+imbalance.
 
-With the current kernel, such usage of memory policies implies we can't do
-page promotion from a slower memory tier to a faster memory tier using
-numa fault.  This patch fixes this issue.
+Fix this by recording the number of base pages in the refcount field.
 
-For MPOL_PREFERRED_MANY, if the executing node is in the policy node mask,
-we allow numa migration to the executing nodes.  If the executing node is
-not in the policy node mask, we do not allow numa migration.
-
-Link: https://lkml.kernel.org/r/369d6a58758396335fd1176d97bbca4e7730d75a.1709909210.git.donettom@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V (IBM) <aneesh.kumar@kernel.org>
-Signed-off-by: Donet Tom <donettom@linux.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: Huang, Ying <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20240319183212.17156-2-osalvador@suse.de
+Fixes: 217b2119b9e2 ("mm,page_owner: implement the tracking of the stacks count")
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Reported-by: syzbot+41bbfdb8d41003d12c0f@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/linux-mm/00000000000090e8ff0613eda0e5@google.com
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ Documentation/mm/page_owner.rst |   73 +++++++++++++++---------------
+ mm/page_owner.c                 |   38 +++++++--------
+ 2 files changed, 56 insertions(+), 55 deletions(-)
 
---- a/mm/mempolicy.c~mm-numa_balancing-allow-migrate-on-protnone-reference-with-mpol_preferred_many-policy
-+++ a/mm/mempolicy.c
-@@ -1504,9 +1504,10 @@ static inline int sanitize_mpol_flags(in
- 	if ((*flags & MPOL_F_STATIC_NODES) && (*flags & MPOL_F_RELATIVE_NODES))
- 		return -EINVAL;
- 	if (*flags & MPOL_F_NUMA_BALANCING) {
--		if (*mode != MPOL_BIND)
-+		if (*mode == MPOL_BIND || *mode == MPOL_PREFERRED_MANY)
-+			*flags |= (MPOL_F_MOF | MPOL_F_MORON);
-+		else
- 			return -EINVAL;
--		*flags |= (MPOL_F_MOF | MPOL_F_MORON);
- 	}
+--- a/Documentation/mm/page_owner.rst~mmpage_owner-fix-refcount-imbalance
++++ a/Documentation/mm/page_owner.rst
+@@ -24,10 +24,10 @@ fragmentation statistics can be obtained
+ each page. It is already implemented and activated if page owner is
+ enabled. Other usages are more than welcome.
+ 
+-It can also be used to show all the stacks and their outstanding
+-allocations, which gives us a quick overview of where the memory is going
+-without the need to screen through all the pages and match the allocation
+-and free operation.
++It can also be used to show all the stacks and their current number of
++allocated base pages, which gives us a quick overview of where the memory
++is going without the need to screen through all the pages and match the
++allocation and free operation.
+ 
+ page owner is disabled by default. So, if you'd like to use it, you need
+ to add "page_owner=on" to your boot cmdline. If the kernel is built
+@@ -75,42 +75,45 @@ Usage
+ 
+ 	cat /sys/kernel/debug/page_owner_stacks/show_stacks > stacks.txt
+ 	cat stacks.txt
+-	 prep_new_page+0xa9/0x120
+-	 get_page_from_freelist+0x7e6/0x2140
+-	 __alloc_pages+0x18a/0x370
+-	 new_slab+0xc8/0x580
+-	 ___slab_alloc+0x1f2/0xaf0
+-	 __slab_alloc.isra.86+0x22/0x40
+-	 kmem_cache_alloc+0x31b/0x350
+-	 __khugepaged_enter+0x39/0x100
+-	 dup_mmap+0x1c7/0x5ce
+-	 copy_process+0x1afe/0x1c90
+-	 kernel_clone+0x9a/0x3c0
+-	 __do_sys_clone+0x66/0x90
+-	 do_syscall_64+0x7f/0x160
+-	 entry_SYSCALL_64_after_hwframe+0x6c/0x74
+-	stack_count: 234
++	 post_alloc_hook+0x177/0x1a0
++	 get_page_from_freelist+0xd01/0xd80
++	 __alloc_pages+0x39e/0x7e0
++	 allocate_slab+0xbc/0x3f0
++	 ___slab_alloc+0x528/0x8a0
++	 kmem_cache_alloc+0x224/0x3b0
++	 sk_prot_alloc+0x58/0x1a0
++	 sk_alloc+0x32/0x4f0
++	 inet_create+0x427/0xb50
++	 __sock_create+0x2e4/0x650
++	 inet_ctl_sock_create+0x30/0x180
++	 igmp_net_init+0xc1/0x130
++	 ops_init+0x167/0x410
++	 setup_net+0x304/0xa60
++	 copy_net_ns+0x29b/0x4a0
++	 create_new_namespaces+0x4a1/0x820
++	nr_base_pages: 16
+ 	...
+ 	...
+ 	echo 7000 > /sys/kernel/debug/page_owner_stacks/count_threshold
+ 	cat /sys/kernel/debug/page_owner_stacks/show_stacks> stacks_7000.txt
+ 	cat stacks_7000.txt
+-	 prep_new_page+0xa9/0x120
+-	 get_page_from_freelist+0x7e6/0x2140
+-	 __alloc_pages+0x18a/0x370
+-	 alloc_pages_mpol+0xdf/0x1e0
+-	 folio_alloc+0x14/0x50
+-	 filemap_alloc_folio+0xb0/0x100
+-	 page_cache_ra_unbounded+0x97/0x180
+-	 filemap_fault+0x4b4/0x1200
+-	 __do_fault+0x2d/0x110
+-	 do_pte_missing+0x4b0/0xa30
+-	 __handle_mm_fault+0x7fa/0xb70
+-	 handle_mm_fault+0x125/0x300
+-	 do_user_addr_fault+0x3c9/0x840
+-	 exc_page_fault+0x68/0x150
+-	 asm_exc_page_fault+0x22/0x30
+-	stack_count: 8248
++	 post_alloc_hook+0x177/0x1a0
++	 get_page_from_freelist+0xd01/0xd80
++	 __alloc_pages+0x39e/0x7e0
++	 alloc_pages_mpol+0x22e/0x490
++	 folio_alloc+0xd5/0x110
++	 filemap_alloc_folio+0x78/0x230
++	 page_cache_ra_order+0x287/0x6f0
++	 filemap_get_pages+0x517/0x1160
++	 filemap_read+0x304/0x9f0
++	 xfs_file_buffered_read+0xe6/0x1d0 [xfs]
++	 xfs_file_read_iter+0x1f0/0x380 [xfs]
++	 __kernel_read+0x3b9/0x730
++	 kernel_read_file+0x309/0x4d0
++	 __do_sys_finit_module+0x381/0x730
++	 do_syscall_64+0x8d/0x150
++	 entry_SYSCALL_64_after_hwframe+0x62/0x6a
++	nr_base_pages: 20824
+ 	...
+ 
+ 	cat /sys/kernel/debug/page_owner > page_owner_full.txt
+--- a/mm/page_owner.c~mmpage_owner-fix-refcount-imbalance
++++ a/mm/page_owner.c
+@@ -196,9 +196,11 @@ static void add_stack_record_to_list(str
+ 	spin_unlock_irqrestore(&stack_list_lock, flags);
+ }
+ 
+-static void inc_stack_record_count(depot_stack_handle_t handle, gfp_t gfp_mask)
++static void inc_stack_record_count(depot_stack_handle_t handle, gfp_t gfp_mask,
++				   int nr_base_pages)
+ {
+ 	struct stack_record *stack_record = __stack_depot_get_stack_record(handle);
++	int old = REFCOUNT_SATURATED;
+ 
+ 	if (!stack_record)
+ 		return;
+@@ -210,22 +212,18 @@ static void inc_stack_record_count(depot
+ 	 * Since we do not use STACK_DEPOT_FLAG_GET API, let us
+ 	 * set a refcount of 1 ourselves.
+ 	 */
+-	if (refcount_read(&stack_record->count) == REFCOUNT_SATURATED) {
+-		int old = REFCOUNT_SATURATED;
+-
+-		if (atomic_try_cmpxchg_relaxed(&stack_record->count.refs, &old, 1))
+-			/* Add the new stack_record to our list */
+-			add_stack_record_to_list(stack_record, gfp_mask);
+-	}
+-	refcount_inc(&stack_record->count);
++	if (atomic_try_cmpxchg_relaxed(&stack_record->count.refs, &old, 1))
++		add_stack_record_to_list(stack_record, gfp_mask);
++	refcount_add(nr_base_pages, &stack_record->count);
+ }
+ 
+-static void dec_stack_record_count(depot_stack_handle_t handle)
++static void dec_stack_record_count(depot_stack_handle_t handle,
++				   int nr_base_pages)
+ {
+ 	struct stack_record *stack_record = __stack_depot_get_stack_record(handle);
+ 
+ 	if (stack_record)
+-		refcount_dec(&stack_record->count);
++		refcount_sub_and_test(nr_base_pages, &stack_record->count);
+ }
+ 
+ void __reset_page_owner(struct page *page, unsigned short order)
+@@ -263,7 +261,7 @@ void __reset_page_owner(struct page *pag
+ 		 * the machinery is not ready yet, we cannot decrement
+ 		 * their refcount either.
+ 		 */
+-		dec_stack_record_count(alloc_handle);
++		dec_stack_record_count(alloc_handle, 1 << order);
+ }
+ 
+ static inline void __set_page_owner_handle(struct page_ext *page_ext,
+@@ -305,7 +303,7 @@ noinline void __set_page_owner(struct pa
+ 		return;
+ 	__set_page_owner_handle(page_ext, handle, order, gfp_mask);
+ 	page_ext_put(page_ext);
+-	inc_stack_record_count(handle, gfp_mask);
++	inc_stack_record_count(handle, gfp_mask, 1 << order);
+ }
+ 
+ void __set_page_owner_migrate_reason(struct page *page, int reason)
+@@ -861,11 +859,11 @@ static void *stack_next(struct seq_file
+ 	return stack;
+ }
+ 
+-static unsigned long page_owner_stack_threshold;
++static unsigned long page_owner_pages_threshold;
+ 
+ static int stack_print(struct seq_file *m, void *v)
+ {
+-	int i, stack_count;
++	int i, nr_base_pages;
+ 	struct stack *stack = v;
+ 	unsigned long *entries;
+ 	unsigned long nr_entries;
+@@ -876,14 +874,14 @@ static int stack_print(struct seq_file *
+ 
+ 	nr_entries = stack_record->size;
+ 	entries = stack_record->entries;
+-	stack_count = refcount_read(&stack_record->count) - 1;
++	nr_base_pages = refcount_read(&stack_record->count) - 1;
+ 
+-	if (stack_count < 1 || stack_count < page_owner_stack_threshold)
++	if (nr_base_pages < 1 || nr_base_pages < page_owner_pages_threshold)
+ 		return 0;
+ 
+ 	for (i = 0; i < nr_entries; i++)
+ 		seq_printf(m, " %pS\n", (void *)entries[i]);
+-	seq_printf(m, "stack_count: %d\n\n", stack_count);
++	seq_printf(m, "nr_base_pages: %d\n\n", nr_base_pages);
+ 
  	return 0;
  }
-@@ -2770,15 +2771,26 @@ int mpol_misplaced(struct folio *folio,
- 		break;
+@@ -913,13 +911,13 @@ static const struct file_operations page
  
- 	case MPOL_BIND:
--		/* Optimize placement among multiple nodes via NUMA balancing */
-+	case MPOL_PREFERRED_MANY:
-+		/*
-+		 * Even though MPOL_PREFERRED_MANY can allocate pages outside
-+		 * policy nodemask we don't allow numa migration to nodes
-+		 * outside policy nodemask for now. This is done so that if we
-+		 * want demotion to slow memory to happen, before allocating
-+		 * from some DRAM node say 'x', we will end up using a
-+		 * MPOL_PREFERRED_MANY mask excluding node 'x'. In such scenario
-+		 * we should not promote to node 'x' from slow memory node.
-+		 */
- 		if (pol->flags & MPOL_F_MORON) {
-+			/*
-+			 * Optimize placement among multiple nodes
-+			 * via NUMA balancing
-+			 */
- 			if (node_isset(thisnid, pol->nodes))
- 				break;
- 			goto out;
- 		}
--		fallthrough;
+ static int page_owner_threshold_get(void *data, u64 *val)
+ {
+-	*val = READ_ONCE(page_owner_stack_threshold);
++	*val = READ_ONCE(page_owner_pages_threshold);
+ 	return 0;
+ }
  
--	case MPOL_PREFERRED_MANY:
- 		/*
- 		 * use current page if in policy nodemask,
- 		 * else select nearest allowed node, if any.
+ static int page_owner_threshold_set(void *data, u64 val)
+ {
+-	WRITE_ONCE(page_owner_stack_threshold, val);
++	WRITE_ONCE(page_owner_pages_threshold, val);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from donettom@linux.ibm.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-mm-mempolicy-use-numa_node_id-instead-of-cpu_to_node.patch
-mm-numa_balancing-allow-migrate-on-protnone-reference-with-mpol_preferred_many-policy.patch
+mmpage_owner-fix-recursion.patch
+mmpage_owner-fix-refcount-imbalance.patch
 
