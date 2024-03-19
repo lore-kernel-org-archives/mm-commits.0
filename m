@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24C4B3D55B
-	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 21:16:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F3063C47C
+	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 21:16:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710882971; cv=none; b=sV/II4aiz/M/C0skKbalW7BzEkoduydGJDGRbrslxi+iIcCUAZTE7PJR0eaKgaqmI4JIwouRw83onN8HmcxSajyMx4KhSGB+xmrXsrbAl9eDsYPGk6SNuuMEHLsd/ejUIE+QdnKN8qA4YVCXsKWs2O/wAkdFxBxlGJ+z6vOICQE=
+	t=1710882973; cv=none; b=AXX6/59O1HZm2QDKdBc+OV0I+khmfFiFQjEc89VMHtqfBungmjA9S+hSyW7/Nj4wbJtvUO8al7kOPvp9UDZuMclpxTOQsV74pUFhfNVxULQPlf7lb30L56+PZinbBJEazMVZwjW/S6rQmVHsonNnvOcLDeHMxM4TX6VXxcUbOYk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710882971; c=relaxed/simple;
-	bh=2LZacbNgUAf4efvBJIjmP9JZElhyJrCHSdpdr0vYsVA=;
-	h=Date:To:From:Subject:Message-Id; b=KeCBUZKAYSKkVx4ki9ltR04a3Y62uv4IxudglpwmaPHyd8VmQZ9N3ur+XP98cICzm3pBYX5dqr8iPTV+qjutYVFYq78I5owekMNEGB6uaveGIDaDflX8tNt740WbhhPy+DD1zKWyl4Y6Sn4Xzvs7j3yH3J5wv3hbf1zL1V9T1Fc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cTOdALfe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710882973; c=relaxed/simple;
+	bh=z7s2Ed1wINXl4kbA/TGy/zjBvVNdPnf0l87TXDVK6iQ=;
+	h=Date:To:From:Subject:Message-Id; b=YqyrGKAf+jEyQOpIaUqBQ2ciqbhR7wdxXjSVgUZA18dfqMK0KzjV6fkgw9mJii7c4/5aMQxuoaCu5KMirbq2BWc6Na99ZJmTT1Vzg4ETbBeJ4pMABSXfJsp6UNhrL+9h/+tdIKTmIS11oA8C6p3rGLPxmlfBPGMZd0g4z9yMvCw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IoTeBx05; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cTOdALfe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AD04C433C7;
-	Tue, 19 Mar 2024 21:16:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IoTeBx05"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B08D4C43394;
+	Tue, 19 Mar 2024 21:16:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710882970;
-	bh=2LZacbNgUAf4efvBJIjmP9JZElhyJrCHSdpdr0vYsVA=;
+	s=korg; t=1710882972;
+	bh=z7s2Ed1wINXl4kbA/TGy/zjBvVNdPnf0l87TXDVK6iQ=;
 	h=Date:To:From:Subject:From;
-	b=cTOdALfeLMTIX7QMreX3ed8B6vDb1SlH+DAGavp7xuCMY2ZWx/YzZH/KPyUPtuC45
-	 siwVT74S6dPS0fj8Kk7aN5pWc5YQbx+K2ZTD47so2FQjIK4bNt68aYsBditmIymp4n
-	 T6G0jU447pE5VDQ7/MCqMoVXF2B6mYvdC1ZZCCO4=
-Date: Tue, 19 Mar 2024 14:16:10 -0700
+	b=IoTeBx05i6IZ8DxD2PP88dEFldJOIoyDKd2O8plILHPE5kvV99pdUcH+Nro5ZCMW0
+	 zp0PndP5KZs2xe5/zV6bggHULd3LxhyGjHLA54vMzseEtgzWWUjCmSAXnIy001fk86
+	 V9H5RcSkC/ROiLNdd2VoVOQxFq69gdhh9uypSyzI=
+Date: Tue, 19 Mar 2024 14:16:12 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,tglx@linutronix.de,shawnguo@kernel.org,rppt@kernel.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,msalter@redhat.com,mpe@ellerman.id.au,mingo@redhat.com,l.stach@pengutronix.de,linux@armlinux.org.uk,krzysztof.kozlowski@linaro.org,konrad.dybcio@linaro.org,jgg@nvidia.com,festevam@denx.de,davem@davemloft.net,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,apopple@nvidia.com,aneesh.kumar@kernel.org,andreas@gaisler.com,andersson@kernel.org,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-cache-p4d-in-follow_p4d_mask.patch added to mm-unstable branch
-Message-Id: <20240319211610.9AD04C433C7@smtp.kernel.org>
+Subject: + mm-gup-check-p4d-presence-before-going-on.patch added to mm-unstable branch
+Message-Id: <20240319211612.B08D4C43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: cache p4d in follow_p4d_mask()
+     Subject: mm/gup: check p4d presence before going on
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-cache-p4d-in-follow_p4d_mask.patch
+     mm-gup-check-p4d-presence-before-going-on.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-cache-p4d-in-follow_p4d_mask.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-check-p4d-presence-before-going-on.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/gup: cache p4d in follow_p4d_mask()
-Date: Mon, 18 Mar 2024 16:03:52 -0400
+Subject: mm/gup: check p4d presence before going on
+Date: Mon, 18 Mar 2024 16:03:53 -0400
 
-Add a variable to cache p4d in follow_p4d_mask().  It's a good practise to
-make sure all the following checks will have a consistent view of the
-entry.
+Currently there should have no p4d swap entries so it may not matter much,
+however this may help us to rule out swap entries in pXd_huge() API, which
+will include p4d_huge().  The p4d_present() checks make it 100% clear that
+we won't rely on p4d_huge() for swap entries.
 
-Link: https://lkml.kernel.org/r/20240318200404.448346-3-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240318200404.448346-4-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
@@ -99,35 +100,29 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ mm/gup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/gup.c~mm-gup-cache-p4d-in-follow_p4d_mask
+--- a/mm/gup.c~mm-gup-check-p4d-presence-before-going-on
 +++ a/mm/gup.c
-@@ -772,16 +772,17 @@ static struct page *follow_p4d_mask(stru
- 				    unsigned int flags,
- 				    struct follow_page_context *ctx)
- {
--	p4d_t *p4d;
-+	p4d_t *p4dp, p4d;
+@@ -776,7 +776,7 @@ static struct page *follow_p4d_mask(stru
  
--	p4d = p4d_offset(pgdp, address);
--	if (p4d_none(*p4d))
-+	p4dp = p4d_offset(pgdp, address);
-+	p4d = READ_ONCE(*p4dp);
-+	if (p4d_none(p4d))
+ 	p4dp = p4d_offset(pgdp, address);
+ 	p4d = READ_ONCE(*p4dp);
+-	if (p4d_none(p4d))
++	if (!p4d_present(p4d))
  		return no_page_table(vma, flags);
--	BUILD_BUG_ON(p4d_huge(*p4d));
--	if (unlikely(p4d_bad(*p4d)))
-+	BUILD_BUG_ON(p4d_huge(p4d));
-+	if (unlikely(p4d_bad(p4d)))
- 		return no_page_table(vma, flags);
+ 	BUILD_BUG_ON(p4d_huge(p4d));
+ 	if (unlikely(p4d_bad(p4d)))
+@@ -3079,7 +3079,7 @@ static int gup_p4d_range(pgd_t *pgdp, pg
+ 		p4d_t p4d = READ_ONCE(*p4dp);
  
--	return follow_pud_mask(vma, address, p4d, flags, ctx);
-+	return follow_pud_mask(vma, address, p4dp, flags, ctx);
- }
- 
- /**
+ 		next = p4d_addr_end(addr, end);
+-		if (p4d_none(p4d))
++		if (!p4d_present(p4d))
+ 			return 0;
+ 		BUILD_BUG_ON(p4d_huge(p4d));
+ 		if (unlikely(is_hugepd(__hugepd(p4d_val(p4d))))) {
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
