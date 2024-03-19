@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5BE03BBC7
-	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 20:57:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB76C3BBF4
+	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 21:00:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710881855; cv=none; b=gfl07RGi6vgBCX6QaaVquBR/Dvy5LOe4WpT5b18G9ZdKoDtpjSsAbWNP9k8BNLULvy9ON8rZH/hikiD+23l1gvHxxRDLff7n7p8oE50DyRdMS0lvOyxN2LE6hNzP6hwTe/nft1SST8xgmnf3u0zDgyLLgAFHRBmRB3dw6T0+LMI=
+	t=1710882056; cv=none; b=E/elS3Qx2imK7vW0q61IpU47y09sTJbxkVeQWDiwjVOP8UvJwITSc8Nh6r3GxV2P7wlz3oyhwRDFEhLrY2Fg6fRaTy3w7oWywDhm6FPKemM+2ZAhlamPOo2iZ2qq7ZUuFKNWpKBLhh28eaG2MHfbbL8zIUd8/WHu3lqUfpxiU7g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710881855; c=relaxed/simple;
-	bh=vP5/yFKpA0QMJxzNnJ5Lur0xTGKS5nWpGbp9CAzGaE4=;
-	h=Date:To:From:Subject:Message-Id; b=MDbIx0AbnDuyuaqR8HPBQ6Nd8vhqoR+0qdzrCEDcG0QxfPnuFgO8tZoUqG0u6NZYfB4qXAd6o8BZSGKtBGlUjj9Ehs8Nx1bdqsMJNCiwzA2NWVLUqjSnpWdbnmpr0wz4WVC6toqmEODH+EFmfUEfnr4a4+51Vfo/ynsDe3WJ/bE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rRClV4JC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710882056; c=relaxed/simple;
+	bh=Xgu7D9Ib7+9xnUZ6GfsFmC+nCiUpJycO6maa5o9Ryj8=;
+	h=Date:To:From:Subject:Message-Id; b=OSvvrYYDGI0BbZ7GNllmo5u/XprNAJ/gE0D/z/r3vZqoRvokFDVwWbPKShCTCzCsCEbemckL164jpY1GXq047ZHcNy6Xsd7FcDkwleF47NkfMJPM1UOllkYiEsoy8GQP41TOLUpNfxrsIanl0iJEcI2tHgLX2TuE6jeLkGmesSs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A8th68+D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rRClV4JC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37AAEC433C7;
-	Tue, 19 Mar 2024 20:57:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A8th68+D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43F94C433F1;
+	Tue, 19 Mar 2024 21:00:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710881855;
-	bh=vP5/yFKpA0QMJxzNnJ5Lur0xTGKS5nWpGbp9CAzGaE4=;
+	s=korg; t=1710882056;
+	bh=Xgu7D9Ib7+9xnUZ6GfsFmC+nCiUpJycO6maa5o9Ryj8=;
 	h=Date:To:From:Subject:From;
-	b=rRClV4JCj8lhHVQ+ZL00PvZGZayaM4tzpcAxzH8c1dQ7LJKJqC9ZbUeM1ugOdgGHX
-	 TwH7OzLcAU5a62l3EMD+7tqBoYfqYjj3oVfDMRG/YYDVnN1YpLzCyf9PxZ3UJ3xJrS
-	 q36+ghUfJGoHszl1IXVNBJIfDVOz7yZuaEHrzKDE=
-Date: Tue, 19 Mar 2024 13:57:34 -0700
-To: mm-commits@vger.kernel.org,yury.norov@gmail.com,linux@rasmusvillemoes.dk,andriy.shevchenko@linux.intel.com,dawei.li@shingroup.cn,akpm@linux-foundation.org
+	b=A8th68+D3ahn4BulNh+s9xwkmpVDKfWZ4ORzqXAPf+IIx4ylBWEB2DtILkz3Hno1i
+	 mKsmnznZOy6PfReK3HcZbSMOiRSwY/9sK9WTTkktPVdjDSghqNLr+ngmatIXoxaEmk
+	 hkmoClvxO24xQ79coTVZnZ0gU8FhB/C9ZBa/JzZY=
+Date: Tue, 19 Mar 2024 14:00:55 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,glass.su@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + cpumask-create-dedicated-kmem-cache-for-cpumask-var.patch added to mm-nonmm-unstable branch
-Message-Id: <20240319205735.37AAEC433C7@smtp.kernel.org>
+Subject: + ocfs2-update-inode-ctime-in-ocfs2_fileattr_set.patch added to mm-nonmm-unstable branch
+Message-Id: <20240319210056.43F94C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: cpumask: create dedicated kmem cache for cpumask var
+     Subject: ocfs2: update inode ctime in ocfs2_fileattr_set
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     cpumask-create-dedicated-kmem-cache-for-cpumask-var.patch
+     ocfs2-update-inode-ctime-in-ocfs2_fileattr_set.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cpumask-create-dedicated-kmem-cache-for-cpumask-var.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-update-inode-ctime-in-ocfs2_fileattr_set.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,104 +58,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dawei Li <dawei.li@shingroup.cn>
-Subject: cpumask: create dedicated kmem cache for cpumask var
-Date: Tue, 19 Mar 2024 20:24:00 +0800
+From: Su Yue <glass.su@suse.com>
+Subject: ocfs2: update inode ctime in ocfs2_fileattr_set
+Date: Mon, 18 Mar 2024 19:56:09 +0800
 
-alloc_cpumask_var_node() and friends allocate cpumask var dynamically
-for CONFIG_CPUMASK_OFFSTACK=y kernel. The allocated size of cpumask var
-is cpumask_size(), which is runtime constant after nr_cpu_ids is
-freezed.
+inode ctime should be updated if ocfs2_fileattr_set is called.
 
-Create a dedicated kmem cache for dynamic allocation of cpumask var.
-
-The window for creation of cache is somewhat narrow:
-- After last update of nr_cpu_ids(via set_nr_cpu_ids())
-- After kmem cache is available.
-- Before any alloc_cpumask_var_node() invocations(sched_init() e.g).
-
-Link: https://lkml.kernel.org/r/20240319122400.399516-1-dawei.li@shingroup.cn
-Signed-off-by: Dawei Li <dawei.li@shingroup.cn>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Yury Norov <yury.norov@gmail.com>
+Link: https://lkml.kernel.org/r/20240318115609.3194-1-l@damenly.org
+Signed-off-by: Su Yue <glass.su@suse.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpumask.h |    7 +++++++
- init/main.c             |    1 +
- lib/cpumask.c           |   15 +++++++++++++--
- 3 files changed, 21 insertions(+), 2 deletions(-)
+ fs/ocfs2/ioctl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/cpumask.h~cpumask-create-dedicated-kmem-cache-for-cpumask-var
-+++ a/include/linux/cpumask.h
-@@ -902,6 +902,8 @@ typedef struct cpumask *cpumask_var_t;
- #define this_cpu_cpumask_var_ptr(x)	this_cpu_read(x)
- #define __cpumask_var_read_mostly	__read_mostly
+--- a/fs/ocfs2/ioctl.c~ocfs2-update-inode-ctime-in-ocfs2_fileattr_set
++++ a/fs/ocfs2/ioctl.c
+@@ -125,6 +125,7 @@ int ocfs2_fileattr_set(struct mnt_idmap
  
-+int __init cpumask_cache_init(void);
-+
- bool alloc_cpumask_var_node(cpumask_var_t *mask, gfp_t flags, int node);
+ 	ocfs2_inode->ip_attr = flags;
+ 	ocfs2_set_inode_flags(inode);
++	inode_set_ctime_current(inode);
  
- static inline
-@@ -949,6 +951,11 @@ typedef struct cpumask cpumask_var_t[1];
- #define this_cpu_cpumask_var_ptr(x) this_cpu_ptr(x)
- #define __cpumask_var_read_mostly
- 
-+static inline int cpumask_cache_init(void)
-+{
-+	return 0;
-+}
-+
- static inline bool alloc_cpumask_var(cpumask_var_t *mask, gfp_t flags)
- {
- 	return true;
---- a/init/main.c~cpumask-create-dedicated-kmem-cache-for-cpumask-var
-+++ a/init/main.c
-@@ -931,6 +931,7 @@ void start_kernel(void)
- 	sort_main_extable();
- 	trap_init();
- 	mm_core_init();
-+	cpumask_cache_init();
- 	poking_init();
- 	ftrace_init();
- 
---- a/lib/cpumask.c~cpumask-create-dedicated-kmem-cache-for-cpumask-var
-+++ a/lib/cpumask.c
-@@ -57,9 +57,20 @@ EXPORT_SYMBOL(cpumask_next_wrap);
-  * CONFIG_CPUMASK_OFFSTACK=n, so does code elimination in that case
-  * too.
-  */
-+
-+static struct kmem_cache *cpumask_cache __ro_after_init;
-+
-+int __init cpumask_cache_init(void)
-+{
-+	cpumask_cache = kmem_cache_create("cpumask", cpumask_size(), sizeof(long),
-+					  SLAB_HWCACHE_ALIGN, NULL);
-+
-+	return cpumask_cache ? 0 : -ENOMEM;
-+}
-+
- bool alloc_cpumask_var_node(cpumask_var_t *mask, gfp_t flags, int node)
- {
--	*mask = kmalloc_node(cpumask_size(), flags, node);
-+	*mask = kmem_cache_alloc_node(cpumask_cache, flags, node);
- 
- #ifdef CONFIG_DEBUG_PER_CPU_MAPS
- 	if (!*mask) {
-@@ -97,7 +108,7 @@ void __init alloc_bootmem_cpumask_var(cp
-  */
- void free_cpumask_var(cpumask_var_t mask)
- {
--	kfree(mask);
-+	kmem_cache_free(cpumask_cache, mask);
- }
- EXPORT_SYMBOL(free_cpumask_var);
- 
+ 	status = ocfs2_mark_inode_dirty(handle, inode, bh);
+ 	if (status < 0)
 _
 
-Patches currently in -mm which might be from dawei.li@shingroup.cn are
+Patches currently in -mm which might be from glass.su@suse.com are
 
-cpumask-create-dedicated-kmem-cache-for-cpumask-var.patch
+ocfs2-update-inode-ctime-in-ocfs2_fileattr_set.patch
 
