@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C55D6364D4
-	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 23:20:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9962364D4
+	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 23:25:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710890437; cv=none; b=YiXDmGl+O4B6sK5frwMqZdm+7ay/Sds4mwwBmFYCYQGPGkHlZOm0eIQWD5LDjP5tzRRzJSzh0m/nHpGlBg4jc5BBa8yH0sYdNJb3zw6TkVZCvmyWJ1qGIxuFxApgkh8EFwNVq3zQVVJtCWvG5Avyxz8moVr9xPzDK6zcQjN484Y=
+	t=1710890734; cv=none; b=sehrChOAa7UTLULT0jDZSWAsdsKl6tX7CHSj11tXnlfFH33EnOQx0k7hcxKF4Pw3t7qy/XVvr45KLKGRADr96b8ux6WALRVifzGt5lMAJpGsxA7suWbYb3VXN/+FFpQIRNBjsFPcvQ2MfR07o2zEheElty8H8OBGWliMED+Icqc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710890437; c=relaxed/simple;
-	bh=jy0+0H8yGYlQf87JRa8Hes0Y/bM8gHn9iuWNyJGAneI=;
-	h=Date:To:From:Subject:Message-Id; b=f7lZRvdNVZyRhUk+odVuGUUDPRxk88Jkh1FSNByM7VPTC+ycFD9ymfMaoQrYYlwCx7s9c9xgXSOvEWe1npM2ir3Dff7XeWu2W6fRWTDTtxMPxmgeuhfm2j47ZmvE25XexYznx70+PMktODHIa5S/HIl7YBI04o5kkoQzIXATMV8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r4cLEAWk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710890734; c=relaxed/simple;
+	bh=HihrbM7J2re5LJ0EfQUZ/4ryq+5Bmqa7YQF6CuzqdPk=;
+	h=Date:To:From:Subject:Message-Id; b=dFMA8v3L8fvxOvww5Czjhm4G/gIa1JbZdWQq6Ls77ZpuQeQv3JPxw7peq5Otexf3i4AWTcgH3X5mBGFpxBKuFAgh1/37/1BHkK7mG4vCCCjNfuJB6MT+RqgMjoOzXGoQvtpklFng33EH+H/Lws0X9bTT+CfG4Qv8ztu1q6syK6I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iC4+P3AV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r4cLEAWk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BF92C433F1;
-	Tue, 19 Mar 2024 23:20:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iC4+P3AV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67DB4C433C7;
+	Tue, 19 Mar 2024 23:25:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710890436;
-	bh=jy0+0H8yGYlQf87JRa8Hes0Y/bM8gHn9iuWNyJGAneI=;
+	s=korg; t=1710890733;
+	bh=HihrbM7J2re5LJ0EfQUZ/4ryq+5Bmqa7YQF6CuzqdPk=;
 	h=Date:To:From:Subject:From;
-	b=r4cLEAWks98MR+EqmPaUzQIKs5K+2YxDzZttcPOCC0Nvnigagxp8gxXJL0BsOQZL5
-	 yqOf0viKjtW88OwjMIjM6mZZ7xlUPEjX0/HNK+5dinNv/xYql7JH3ELMQWDgI+mBmc
-	 bvAJyZsKKnebCtNik2nDyqw1eyu/DlE0GvzsXvYA=
-Date: Tue, 19 Mar 2024 16:20:35 -0700
+	b=iC4+P3AV5ughd3BX6a+13OF+I1/PcLjfrpT/2CgXrLKUrP/QeUCXZymWP7br4ZWjh
+	 pPkwpX3IAttagBP/PYMNam+IFKakbYrnlGYf2eF6uIDyu5scWMyaZkZUYVaciAVSc3
+	 8YCcraGAcBtH6d4IQUEohO6uNRz+aAH5lP6hTzmE=
+Date: Tue, 19 Mar 2024 16:25:32 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,penguin-kernel@I-love.SAKURA.ne.jp,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmpage_owner-fix-refcount-imbalance.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240319232036.2BF92C433F1@smtp.kernel.org>
+Subject: [failures] mmpage_owner-fix-refcount-imbalance.patch removed from -mm tree
+Message-Id: <20240319232533.67DB4C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,28 +34,12 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
+The quilt patch titled
      Subject: mm,page_owner: fix refcount imbalance
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mmpage_owner-fix-refcount-imbalance.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-fix-refcount-imbalance.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
@@ -304,5 +288,4 @@ _
 Patches currently in -mm which might be from osalvador@suse.de are
 
 mmpage_owner-fix-recursion.patch
-mmpage_owner-fix-refcount-imbalance.patch
 
