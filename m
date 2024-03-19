@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 473D63EA77
-	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 21:16:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D2C23EA77
+	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 21:16:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710882992; cv=none; b=bmrY065jHrxtZ5nOZj9K90TKMaHmXSV7bSYWOqUMbxfQPsLWfrz2X4B6cx3Na4IZHKoglX3r6uFJJSJtDO1SQh7Wqo5JxX8bdi2VRSRm4lEqa+wuItJzzwkCK+2HgRQqIyqkfs0iIM9zJWp0+SutnpEBHUtg9vxokSRzY73/BaE=
+	t=1710882993; cv=none; b=g8XE6cVUqFWYCGwZjpVVH/MoPTnpgNyGiAvdimgeved1U6Iu2G4x85N7kg9vf6lDMRoDtVCEOC1yLuseXSc5LUeTvGBxGVovd9ii/xqmqiOLdT1ojM6+zPXAl3e9mg/YEdpVL6ICHw01M9H501kDhQgzdjoESVOqlZYvMbltUpo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710882992; c=relaxed/simple;
-	bh=Y/mW2hmgGegQHTvDszB3BU36hPORPmmynpsbdv92vlM=;
-	h=Date:To:From:Subject:Message-Id; b=awy0WkylP0U0y05ohbeSEy/HaO7LdcC1fTz1jv71C6pDiBWTTpC4Gjgqj2n09TfpfyvQDaAZ51gCEYSD/z3bhpAU0Kgz2vL46yvXBIBV6yUd/hgpWIElJcw8rFiRoaruhoihhnhbdHJTJcrHXLxSTjZI2SgWwuyl8h/P6GkkmZg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UOhQikH3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710882993; c=relaxed/simple;
+	bh=+nCno+je7cdyOWi+02TPqbaadsNsk02IDqwRr9Nr8Tc=;
+	h=Date:To:From:Subject:Message-Id; b=PdBtZu2SsKWXPqRsM2a0D3r8njHOXjC/JZzQg2ObDgcKlY3NAXgjA34X6olnYVukB/NfRLTdc4Weu3zD2FI5BtZ/MaZPOGkHS/aZDLyMvi3YkMhiXBTw+9FQuD5szqdnHl4ST0BQKheWkhG3idzwTC5z+obK+dUt7S/fIt2rU4M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wPwW6PtM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UOhQikH3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9D0BC43390;
-	Tue, 19 Mar 2024 21:16:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wPwW6PtM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBA36C43390;
+	Tue, 19 Mar 2024 21:16:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710882990;
-	bh=Y/mW2hmgGegQHTvDszB3BU36hPORPmmynpsbdv92vlM=;
+	s=korg; t=1710882993;
+	bh=+nCno+je7cdyOWi+02TPqbaadsNsk02IDqwRr9Nr8Tc=;
 	h=Date:To:From:Subject:From;
-	b=UOhQikH34t8cqcZ6ZeOqLsBYIU47AWShXhm8mSzVmcI3q4mfgamczR4QMcwmxS53G
-	 oeDtBGd2pTamAl8jNi2yE2z86iaDgtdzrzslFWvCkgP5J0P8M6OZM6emDjrbQjbBJh
-	 pklCmNUwP8hpddVbc9JLlKutIr9RKhb0ra/J8cCE=
-Date: Tue, 19 Mar 2024 14:16:30 -0700
+	b=wPwW6PtM7RoI9CkftRfbHx7q561jioxGyqSYMU+B4xmhGmamzKot/vwgaCqhaFoLM
+	 JS88RAFV1qGsYI4UffaZo1QDBVb+fdZwZG5sWr4M5AFn05/HAbxi+RnzD6G7CeqkXE
+	 3+lI1facFs5d1rpAy7PfC0AnfI1t+2Oe9+UGVEfs=
+Date: Tue, 19 Mar 2024 14:16:32 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,tglx@linutronix.de,shawnguo@kernel.org,rppt@kernel.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,msalter@redhat.com,mpe@ellerman.id.au,mingo@redhat.com,l.stach@pengutronix.de,linux@armlinux.org.uk,krzysztof.kozlowski@linaro.org,konrad.dybcio@linaro.org,jgg@nvidia.com,festevam@denx.de,davem@davemloft.net,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,apopple@nvidia.com,aneesh.kumar@kernel.org,andreas@gaisler.com,andersson@kernel.org,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-merge-pxd-huge-mapping-checks.patch added to mm-unstable branch
-Message-Id: <20240319211630.C9D0BC43390@smtp.kernel.org>
+Subject: + mm-treewide-replace-pxd_huge-with-pxd_leaf.patch added to mm-unstable branch
+Message-Id: <20240319211632.EBA36C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: merge pXd huge mapping checks
+     Subject: mm/treewide: replace pXd_huge() with pXd_leaf()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-merge-pxd-huge-mapping-checks.patch
+     mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-merge-pxd-huge-mapping-checks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/gup: merge pXd huge mapping checks
-Date: Mon, 18 Mar 2024 16:04:00 -0400
+Subject: mm/treewide: replace pXd_huge() with pXd_leaf()
+Date: Mon, 18 Mar 2024 16:04:01 -0400
 
-Huge mapping checks in GUP are slightly redundant and can be simplified.
+Now after we're sure all pXd_huge() definitions are the same as pXd_leaf(),
+reuse it.  Luckily, pXd_huge() isn't widely used.
 
-pXd_huge() now is the same as pXd_leaf().  pmd_trans_huge() and
-pXd_devmap() should both imply pXd_leaf(). Time to merge them into one.
-
-Link: https://lkml.kernel.org/r/20240318200404.448346-11-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240318200404.448346-12-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
@@ -82,6 +79,7 @@ Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Fabio Estevam <festevam@denx.de>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Konrad Dybcio <konrad.dybcio@linaro.org>
 Cc: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 Cc: Lucas Stach <l.stach@pengutronix.de>
@@ -100,39 +98,173 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ arch/arm/include/asm/pgtable-3level.h |    2 +-
+ arch/arm64/include/asm/pgtable.h      |    2 +-
+ arch/arm64/mm/hugetlbpage.c           |    4 ++--
+ arch/loongarch/mm/hugetlbpage.c       |    2 +-
+ arch/mips/mm/tlb-r4k.c                |    2 +-
+ arch/powerpc/mm/pgtable_64.c          |    6 +++---
+ arch/x86/mm/pgtable.c                 |    4 ++--
+ mm/gup.c                              |    4 ++--
+ mm/hmm.c                              |    2 +-
+ mm/memory.c                           |    2 +-
+ 10 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/mm/gup.c~mm-gup-merge-pxd-huge-mapping-checks
-+++ a/mm/gup.c
-@@ -3015,8 +3015,7 @@ static int gup_pmd_range(pud_t *pudp, pu
- 		if (!pmd_present(pmd))
- 			return 0;
+--- a/arch/arm64/include/asm/pgtable.h~mm-treewide-replace-pxd_huge-with-pxd_leaf
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -517,7 +517,7 @@ static inline pmd_t pmd_mkinvalid(pmd_t
+ 	return pmd;
+ }
  
--		if (unlikely(pmd_trans_huge(pmd) || pmd_huge(pmd) ||
--			     pmd_devmap(pmd))) {
-+		if (unlikely(pmd_leaf(pmd))) {
- 			/* See gup_pte_range() */
- 			if (pmd_protnone(pmd))
- 				return 0;
-@@ -3053,7 +3052,7 @@ static int gup_pud_range(p4d_t *p4dp, p4
- 		next = pud_addr_end(addr, end);
- 		if (unlikely(!pud_present(pud)))
+-#define pmd_thp_or_huge(pmd)	(pmd_huge(pmd) || pmd_trans_huge(pmd))
++#define pmd_thp_or_huge(pmd)	(pmd_leaf(pmd) || pmd_trans_huge(pmd))
+ 
+ #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
+ 
+--- a/arch/arm64/mm/hugetlbpage.c~mm-treewide-replace-pxd_huge-with-pxd_leaf
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -321,7 +321,7 @@ pte_t *huge_pte_offset(struct mm_struct
+ 	if (sz != PUD_SIZE && pud_none(pud))
+ 		return NULL;
+ 	/* hugepage or swap? */
+-	if (pud_huge(pud) || !pud_present(pud))
++	if (pud_leaf(pud) || !pud_present(pud))
+ 		return (pte_t *)pudp;
+ 	/* table; check the next level */
+ 
+@@ -333,7 +333,7 @@ pte_t *huge_pte_offset(struct mm_struct
+ 	if (!(sz == PMD_SIZE || sz == CONT_PMD_SIZE) &&
+ 	    pmd_none(pmd))
+ 		return NULL;
+-	if (pmd_huge(pmd) || !pmd_present(pmd))
++	if (pmd_leaf(pmd) || !pmd_present(pmd))
+ 		return (pte_t *)pmdp;
+ 
+ 	if (sz == CONT_PTE_SIZE)
+--- a/arch/arm/include/asm/pgtable-3level.h~mm-treewide-replace-pxd_huge-with-pxd_leaf
++++ a/arch/arm/include/asm/pgtable-3level.h
+@@ -190,7 +190,7 @@ static inline pte_t pte_mkspecial(pte_t
+ #define pmd_dirty(pmd)		(pmd_isset((pmd), L_PMD_SECT_DIRTY))
+ 
+ #define pmd_hugewillfault(pmd)	(!pmd_young(pmd) || !pmd_write(pmd))
+-#define pmd_thp_or_huge(pmd)	(pmd_huge(pmd) || pmd_trans_huge(pmd))
++#define pmd_thp_or_huge(pmd)	(pmd_leaf(pmd) || pmd_trans_huge(pmd))
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ #define pmd_trans_huge(pmd)	(pmd_val(pmd) && !pmd_table(pmd))
+--- a/arch/loongarch/mm/hugetlbpage.c~mm-treewide-replace-pxd_huge-with-pxd_leaf
++++ a/arch/loongarch/mm/hugetlbpage.c
+@@ -64,7 +64,7 @@ uint64_t pmd_to_entrylo(unsigned long pm
+ {
+ 	uint64_t val;
+ 	/* PMD as PTE. Must be huge page */
+-	if (!pmd_huge(__pmd(pmd_val)))
++	if (!pmd_leaf(__pmd(pmd_val)))
+ 		panic("%s", __func__);
+ 
+ 	val = pmd_val ^ _PAGE_HUGE;
+--- a/arch/mips/mm/tlb-r4k.c~mm-treewide-replace-pxd_huge-with-pxd_leaf
++++ a/arch/mips/mm/tlb-r4k.c
+@@ -326,7 +326,7 @@ void __update_tlb(struct vm_area_struct
+ 	idx = read_c0_index();
+ #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+ 	/* this could be a huge page  */
+-	if (pmd_huge(*pmdp)) {
++	if (pmd_leaf(*pmdp)) {
+ 		unsigned long lo;
+ 		write_c0_pagemask(PM_HUGE_MASK);
+ 		ptep = (pte_t *)pmdp;
+--- a/arch/powerpc/mm/pgtable_64.c~mm-treewide-replace-pxd_huge-with-pxd_leaf
++++ a/arch/powerpc/mm/pgtable_64.c
+@@ -102,7 +102,7 @@ struct page *p4d_page(p4d_t p4d)
+ {
+ 	if (p4d_leaf(p4d)) {
+ 		if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMAP))
+-			VM_WARN_ON(!p4d_huge(p4d));
++			VM_WARN_ON(!p4d_leaf(p4d));
+ 		return pte_page(p4d_pte(p4d));
+ 	}
+ 	return virt_to_page(p4d_pgtable(p4d));
+@@ -113,7 +113,7 @@ struct page *pud_page(pud_t pud)
+ {
+ 	if (pud_leaf(pud)) {
+ 		if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMAP))
+-			VM_WARN_ON(!pud_huge(pud));
++			VM_WARN_ON(!pud_leaf(pud));
+ 		return pte_page(pud_pte(pud));
+ 	}
+ 	return virt_to_page(pud_pgtable(pud));
+@@ -132,7 +132,7 @@ struct page *pmd_page(pmd_t pmd)
+ 		 * enabled so these checks can't be used.
+ 		 */
+ 		if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMAP))
+-			VM_WARN_ON(!(pmd_leaf(pmd) || pmd_huge(pmd)));
++			VM_WARN_ON(!pmd_leaf(pmd));
+ 		return pte_page(pmd_pte(pmd));
+ 	}
+ 	return virt_to_page(pmd_page_vaddr(pmd));
+--- a/arch/x86/mm/pgtable.c~mm-treewide-replace-pxd_huge-with-pxd_leaf
++++ a/arch/x86/mm/pgtable.c
+@@ -731,7 +731,7 @@ int pud_set_huge(pud_t *pud, phys_addr_t
+ 		return 0;
+ 
+ 	/* Bail out if we are we on a populated non-leaf entry: */
+-	if (pud_present(*pud) && !pud_huge(*pud))
++	if (pud_present(*pud) && !pud_leaf(*pud))
+ 		return 0;
+ 
+ 	set_pte((pte_t *)pud, pfn_pte(
+@@ -760,7 +760,7 @@ int pmd_set_huge(pmd_t *pmd, phys_addr_t
+ 	}
+ 
+ 	/* Bail out if we are we on a populated non-leaf entry: */
+-	if (pmd_present(*pmd) && !pmd_huge(*pmd))
++	if (pmd_present(*pmd) && !pmd_leaf(*pmd))
+ 		return 0;
+ 
+ 	set_pte((pte_t *)pmd, pfn_pte(
+--- a/mm/gup.c~mm-treewide-replace-pxd_huge-with-pxd_leaf
++++ a/mm/gup.c
+@@ -778,7 +778,7 @@ static struct page *follow_p4d_mask(stru
+ 	p4d = READ_ONCE(*p4dp);
+ 	if (!p4d_present(p4d))
+ 		return no_page_table(vma, flags);
+-	BUILD_BUG_ON(p4d_huge(p4d));
++	BUILD_BUG_ON(p4d_leaf(p4d));
+ 	if (unlikely(p4d_bad(p4d)))
+ 		return no_page_table(vma, flags);
+ 
+@@ -3080,7 +3080,7 @@ static int gup_p4d_range(pgd_t *pgdp, pg
+ 		next = p4d_addr_end(addr, end);
+ 		if (!p4d_present(p4d))
  			return 0;
--		if (unlikely(pud_huge(pud) || pud_devmap(pud))) {
-+		if (unlikely(pud_leaf(pud))) {
- 			if (!gup_huge_pud(pud, pudp, addr, next, flags,
- 					  pages, nr))
- 				return 0;
-@@ -3106,7 +3105,7 @@ static void gup_pgd_range(unsigned long
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none(pgd))
- 			return;
--		if (unlikely(pgd_huge(pgd))) {
-+		if (unlikely(pgd_leaf(pgd))) {
- 			if (!gup_huge_pgd(pgd, pgdp, addr, next, flags,
- 					  pages, nr))
- 				return;
+-		BUILD_BUG_ON(p4d_huge(p4d));
++		BUILD_BUG_ON(p4d_leaf(p4d));
+ 		if (unlikely(is_hugepd(__hugepd(p4d_val(p4d))))) {
+ 			if (!gup_huge_pd(__hugepd(p4d_val(p4d)), addr,
+ 					 P4D_SHIFT, next, flags, pages, nr))
+--- a/mm/hmm.c~mm-treewide-replace-pxd_huge-with-pxd_leaf
++++ a/mm/hmm.c
+@@ -429,7 +429,7 @@ static int hmm_vma_walk_pud(pud_t *pudp,
+ 		return hmm_vma_walk_hole(start, end, -1, walk);
+ 	}
+ 
+-	if (pud_huge(pud) && pud_devmap(pud)) {
++	if (pud_leaf(pud) && pud_devmap(pud)) {
+ 		unsigned long i, npages, pfn;
+ 		unsigned int required_fault;
+ 		unsigned long *hmm_pfns;
+--- a/mm/memory.c~mm-treewide-replace-pxd_huge-with-pxd_leaf
++++ a/mm/memory.c
+@@ -2765,7 +2765,7 @@ static int apply_to_pmd_range(struct mm_
+ 	unsigned long next;
+ 	int err = 0;
+ 
+-	BUG_ON(pud_huge(*pud));
++	BUG_ON(pud_leaf(*pud));
+ 
+ 	if (create) {
+ 		pmd = pmd_alloc_track(mm, pud, addr, mask);
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
