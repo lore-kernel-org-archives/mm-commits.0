@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C4313FB80
-	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 21:16:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B3483FB9F
+	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 21:39:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710882998; cv=none; b=ZMWy1G923zMv2lxbiaZgl37da9jGJEQ1BV89mTNpb14gPVM0ilW0/GEZUjbx7drreZ3bg/sPkcz5xF5kLU19cARM/sS7entSHDv80y0yugFkpziNrtsrkSnuPwKlqPg6Iiv1QQhbAj1iBBUs56vMZkgQr0SoR3VHcPcBXxtvw4w=
+	t=1710884360; cv=none; b=AZYe3DrvWiGxRBa2MOXQlCL14s659YFSY/aJy+lYfe2zXXpujb6YiIfek5CxShSNiTBchvdqLjBOjtPGP1tDMxqON/s8iS+wMbn/+m2RFM48B7DQOLxvlJ15aQMy4P2ksOh4W4jPOAmVcJ/OIvu04qUbLxiN76M0TdTjEYPqG3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710882998; c=relaxed/simple;
-	bh=t6z6qpcJ6ql5WafxGx+va3Hc+cYw7wgy36zpODqiIo0=;
-	h=Date:To:From:Subject:Message-Id; b=jnPoFNM19ua/ah+CiRuyR/s2ymxPwG4GM+wL682UeU25qULgU+2DLuogdLf7xo+nkAZpI2Kq/ig1W3F4RRG8MgUdhvORT8u0B76IDGtYzhS5OsdF0IOaA9YxuqsqrlQSZ/f1G8b8yx0CD0JlHAgT2E5AARMe4ckWFJEYDIXjBKg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wDzxQL1C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710884360; c=relaxed/simple;
+	bh=Huyn9JP6VGv7+4T5o23G8PEyYHSkPy57MGmvv4SZhmw=;
+	h=Date:To:From:Subject:Message-Id; b=Jy0RB1JZcYOcQUZ6p0vuF8oiY1dxxWC4+t0Cf3vx6T18EQkTpmBS0U/GxIIrvgHZqUoqU3AqmKjBs9e7Ma54BvF14/jaic8+JUm5CGQ2IxiczcCZf5poTx0vpAWF2zq+L4Ja7nrPybJwV10w7JcgKHhd8K3f3UQxwaN6ZPJmYHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z+ei+4Vt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wDzxQL1C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4612AC433F1;
-	Tue, 19 Mar 2024 21:16:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z+ei+4Vt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1E67C433F1;
+	Tue, 19 Mar 2024 21:39:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710882998;
-	bh=t6z6qpcJ6ql5WafxGx+va3Hc+cYw7wgy36zpODqiIo0=;
+	s=korg; t=1710884360;
+	bh=Huyn9JP6VGv7+4T5o23G8PEyYHSkPy57MGmvv4SZhmw=;
 	h=Date:To:From:Subject:From;
-	b=wDzxQL1Cd/iYm4M4Uki16KNrRe4IQIqB1Z9jxpA8JBH6brYPxd8HW1WLEMs1duqF7
-	 cWOxZf3T3CR0o7t68ABAicsHO4vkW/+W7H71nSMSfVXMu5HXaN23PP/VlCHDtV0ChK
-	 q9iigSh4Ql4oAmpvm/8KDI2aDc0KHBtbvfkd8jzg=
-Date: Tue, 19 Mar 2024 14:16:37 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,tglx@linutronix.de,shawnguo@kernel.org,rppt@kernel.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,msalter@redhat.com,mpe@ellerman.id.au,mingo@redhat.com,l.stach@pengutronix.de,linux@armlinux.org.uk,krzysztof.kozlowski@linaro.org,konrad.dybcio@linaro.org,jgg@nvidia.com,festevam@denx.de,davem@davemloft.net,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,apopple@nvidia.com,aneesh.kumar@kernel.org,andreas@gaisler.com,andersson@kernel.org,peterx@redhat.com,akpm@linux-foundation.org
+	b=z+ei+4VtThNrx9SA/2Le0UvFyl1VDqWr1hYJhz2AOG8JDjCg7et+S5nkDS+2FZzgo
+	 NMzttCOPMQg8GcnHMm6QufsouD4eGH/NvJXD1v2pIGXZMACqnZXpszXctQmLuSGgFK
+	 zA6mcm1LhMT6h+K6vlpzuJy4d34WJBKhI1QqJnG4=
+Date: Tue, 19 Mar 2024 14:39:19 -0700
+To: mm-commits@vger.kernel.org,nicolas@fjasle.eu,masahiroy@kernel.org,u.kleine-koenig@pengutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-treewide-remove-pxd_huge.patch added to mm-unstable branch
-Message-Id: <20240319211638.4612AC433F1@smtp.kernel.org>
+Subject: + lib-build_oid_registry-dont-mention-the-full-path-of-the-script-in-output.patch added to mm-nonmm-unstable branch
+Message-Id: <20240319213919.E1E67C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/treewide: remove pXd_huge()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-treewide-remove-pxd_huge.patch
+     Subject: lib/build_OID_registry: don't mention the full path of the script in output
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-build_oid_registry-dont-mention-the-full-path-of-the-script-in-output.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-treewide-remove-pxd_huge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-build_oid_registry-dont-mention-the-full-path-of-the-script-in-output.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,436 +58,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/treewide: remove pXd_huge()
-Date: Mon, 18 Mar 2024 16:04:02 -0400
+From: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Subject: lib/build_OID_registry: don't mention the full path of the script in output
+Date: Wed, 13 Mar 2024 22:19:56 +0100
 
-This API is not used anymore, drop it for the whole tree.
+This change strips the full path of the script generating
+lib/oid_registry_data.c to just lib/build_OID_registry.  The motivation
+for this change is Yocto emitting a build warning
 
-Link: https://lkml.kernel.org/r/20240318200404.448346-13-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Bjorn Andersson <andersson@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Fabio Estevam <festevam@denx.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Konrad Dybcio <konrad.dybcio@linaro.org>
-Cc: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Cc: Lucas Stach <l.stach@pengutronix.de>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Shawn Guo <shawnguo@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
+	File /usr/src/debug/linux-lxatac/6.7-r0/lib/oid_registry_data.c in package linux-lxatac-src contains reference to TMPDIR [buildpaths]
+
+So this change brings us one step closer to make the build result
+reproducible independent of the build path.
+
+Link: https://lkml.kernel.org/r/20240313211957.884561-2-u.kleine-koenig@pengutronix.de
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Reviewed-by: Nicolas Schier <nicolas@fjasle.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/Makefile                             |    1 
- arch/arm/mm/hugetlbpage.c                        |   29 -------------
- arch/arm64/mm/hugetlbpage.c                      |   10 ----
- arch/loongarch/mm/hugetlbpage.c                  |   10 ----
- arch/mips/include/asm/pgtable-32.h               |    2 
- arch/mips/include/asm/pgtable-64.h               |    2 
- arch/mips/mm/hugetlbpage.c                       |   10 ----
- arch/parisc/mm/hugetlbpage.c                     |   11 ----
- arch/powerpc/include/asm/book3s/64/pgtable-4k.h  |   10 ----
- arch/powerpc/include/asm/book3s/64/pgtable-64k.h |   25 -----------
- arch/powerpc/include/asm/nohash/pgtable.h        |   10 ----
- arch/riscv/mm/hugetlbpage.c                      |   10 ----
- arch/s390/mm/hugetlbpage.c                       |   10 ----
- arch/sh/mm/hugetlbpage.c                         |   10 ----
- arch/sparc/mm/hugetlbpage.c                      |   10 ----
- arch/x86/mm/hugetlbpage.c                        |   16 -------
- include/linux/hugetlb.h                          |   24 ----------
- 17 files changed, 2 insertions(+), 198 deletions(-)
+ lib/build_OID_registry |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/arch/arm64/mm/hugetlbpage.c~mm-treewide-remove-pxd_huge
-+++ a/arch/arm64/mm/hugetlbpage.c
-@@ -79,16 +79,6 @@ bool arch_hugetlb_migration_supported(st
- }
- #endif
+--- a/lib/build_OID_registry~lib-build_oid_registry-dont-mention-the-full-path-of-the-script-in-output
++++ a/lib/build_OID_registry
+@@ -8,6 +8,7 @@
+ #
  
--int pmd_huge(pmd_t pmd)
--{
--	return pmd_leaf(pmd);
--}
--
--int pud_huge(pud_t pud)
--{
--	return pud_leaf(pud);
--}
--
- static int find_num_contig(struct mm_struct *mm, unsigned long addr,
- 			   pte_t *ptep, size_t *pgsize)
- {
---- a/arch/arm/mm/hugetlbpage.c
-+++ /dev/null
-@@ -1,29 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- * arch/arm/mm/hugetlbpage.c
-- *
-- * Copyright (C) 2012 ARM Ltd.
-- *
-- * Based on arch/x86/include/asm/hugetlb.h and Bill Carson's patches
-- */
--
--#include <linux/init.h>
--#include <linux/fs.h>
--#include <linux/mm.h>
--#include <linux/hugetlb.h>
--#include <linux/pagemap.h>
--#include <linux/err.h>
--#include <linux/sysctl.h>
--#include <asm/mman.h>
--#include <asm/tlb.h>
--#include <asm/tlbflush.h>
--
--int pud_huge(pud_t pud)
--{
--	return 0;
--}
--
--int pmd_huge(pmd_t pmd)
--{
--	return pmd_leaf(pmd);
--}
---- a/arch/arm/mm/Makefile~mm-treewide-remove-pxd_huge
-+++ a/arch/arm/mm/Makefile
-@@ -21,7 +21,6 @@ KASAN_SANITIZE_physaddr.o	:= n
- obj-$(CONFIG_DEBUG_VIRTUAL)	+= physaddr.o
+ use strict;
++use Cwd qw(abs_path);
  
- obj-$(CONFIG_ALIGNMENT_TRAP)	+= alignment.o
--obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
- obj-$(CONFIG_ARM_PV_FIXUP)	+= pv-fixup-asm.o
- 
- obj-$(CONFIG_CPU_ABRT_NOMMU)	+= abort-nommu.o
---- a/arch/loongarch/mm/hugetlbpage.c~mm-treewide-remove-pxd_huge
-+++ a/arch/loongarch/mm/hugetlbpage.c
-@@ -50,16 +50,6 @@ pte_t *huge_pte_offset(struct mm_struct
- 	return (pte_t *) pmd;
+ my @names = ();
+ my @oids = ();
+@@ -17,6 +18,8 @@ if ($#ARGV != 1) {
+     exit(2);
  }
  
--int pmd_huge(pmd_t pmd)
--{
--	return (pmd_val(pmd) & _PAGE_HUGE) != 0;
--}
--
--int pud_huge(pud_t pud)
--{
--	return (pud_val(pud) & _PAGE_HUGE) != 0;
--}
--
- uint64_t pmd_to_entrylo(unsigned long pmd_val)
- {
- 	uint64_t val;
---- a/arch/mips/include/asm/pgtable-32.h~mm-treewide-remove-pxd_huge
-+++ a/arch/mips/include/asm/pgtable-32.h
-@@ -129,7 +129,7 @@ static inline int pmd_none(pmd_t pmd)
- static inline int pmd_bad(pmd_t pmd)
- {
- #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
--	/* pmd_huge(pmd) but inline */
-+	/* pmd_leaf(pmd) but inline */
- 	if (unlikely(pmd_val(pmd) & _PAGE_HUGE))
- 		return 0;
- #endif
---- a/arch/mips/include/asm/pgtable-64.h~mm-treewide-remove-pxd_huge
-+++ a/arch/mips/include/asm/pgtable-64.h
-@@ -245,7 +245,7 @@ static inline int pmd_none(pmd_t pmd)
- static inline int pmd_bad(pmd_t pmd)
- {
- #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
--	/* pmd_huge(pmd) but inline */
-+	/* pmd_leaf(pmd) but inline */
- 	if (unlikely(pmd_val(pmd) & _PAGE_HUGE))
- 		return 0;
- #endif
---- a/arch/mips/mm/hugetlbpage.c~mm-treewide-remove-pxd_huge
-+++ a/arch/mips/mm/hugetlbpage.c
-@@ -57,13 +57,3 @@ pte_t *huge_pte_offset(struct mm_struct
- 	}
- 	return (pte_t *) pmd;
- }
--
--int pmd_huge(pmd_t pmd)
--{
--	return (pmd_val(pmd) & _PAGE_HUGE) != 0;
--}
--
--int pud_huge(pud_t pud)
--{
--	return (pud_val(pud) & _PAGE_HUGE) != 0;
--}
---- a/arch/parisc/mm/hugetlbpage.c~mm-treewide-remove-pxd_huge
-+++ a/arch/parisc/mm/hugetlbpage.c
-@@ -180,14 +180,3 @@ int huge_ptep_set_access_flags(struct vm
- 	}
- 	return changed;
- }
--
--
--int pmd_huge(pmd_t pmd)
--{
--	return 0;
--}
--
--int pud_huge(pud_t pud)
--{
--	return 0;
--}
---- a/arch/powerpc/include/asm/book3s/64/pgtable-4k.h~mm-treewide-remove-pxd_huge
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable-4k.h
-@@ -6,16 +6,6 @@
-  */
- #ifndef __ASSEMBLY__
- #ifdef CONFIG_HUGETLB_PAGE
--static inline int pmd_huge(pmd_t pmd)
--{
--	return pmd_leaf(pmd);
--}
--
--static inline int pud_huge(pud_t pud)
--{
--	return pud_leaf(pud);
--}
--
- /*
-  * With radix , we have hugepage ptes in the pud and pmd entries. We don't
-  * need to setup hugepage directory for them. Our pte and page directory format
---- a/arch/powerpc/include/asm/book3s/64/pgtable-64k.h~mm-treewide-remove-pxd_huge
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable-64k.h
-@@ -4,31 +4,6 @@
++my $abs_srctree = abs_path($ENV{'srctree'});
++
+ #
+ # Open the file to read from
+ #
+@@ -35,7 +38,7 @@ close IN_FILE || die;
+ #
+ open C_FILE, ">$ARGV[1]" or die;
+ print C_FILE "/*\n";
+-print C_FILE " * Automatically generated by ", $0, ".  Do not edit\n";
++print C_FILE " * Automatically generated by ", $0 =~ s#^\Q$abs_srctree/\E##r, ".  Do not edit\n";
+ print C_FILE " */\n";
  
- #ifndef __ASSEMBLY__
- #ifdef CONFIG_HUGETLB_PAGE
--/*
-- * We have PGD_INDEX_SIZ = 12 and PTE_INDEX_SIZE = 8, so that we can have
-- * 16GB hugepage pte in PGD and 16MB hugepage pte at PMD;
-- *
-- * Defined in such a way that we can optimize away code block at build time
-- * if CONFIG_HUGETLB_PAGE=n.
-- *
-- * returns true for pmd migration entries, THP, devmap, hugetlb
-- * But compile time dependent on CONFIG_HUGETLB_PAGE
-- */
--static inline int pmd_huge(pmd_t pmd)
--{
--	/*
--	 * leaf pte for huge page
--	 */
--	return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
--}
--
--static inline int pud_huge(pud_t pud)
--{
--	/*
--	 * leaf pte for huge page
--	 */
--	return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
--}
- 
- /*
-  * With 64k page size, we have hugepage ptes in the pgd and pmd entries. We don't
---- a/arch/powerpc/include/asm/nohash/pgtable.h~mm-treewide-remove-pxd_huge
-+++ a/arch/powerpc/include/asm/nohash/pgtable.h
-@@ -351,16 +351,6 @@ static inline int hugepd_ok(hugepd_t hpd
- #endif
- }
- 
--static inline int pmd_huge(pmd_t pmd)
--{
--	return 0;
--}
--
--static inline int pud_huge(pud_t pud)
--{
--	return 0;
--}
--
- #define is_hugepd(hpd)		(hugepd_ok(hpd))
- #endif
- 
---- a/arch/riscv/mm/hugetlbpage.c~mm-treewide-remove-pxd_huge
-+++ a/arch/riscv/mm/hugetlbpage.c
-@@ -399,16 +399,6 @@ static bool is_napot_size(unsigned long
- 
- #endif /*CONFIG_RISCV_ISA_SVNAPOT*/
- 
--int pud_huge(pud_t pud)
--{
--	return pud_leaf(pud);
--}
--
--int pmd_huge(pmd_t pmd)
--{
--	return pmd_leaf(pmd);
--}
--
- static bool __hugetlb_valid_size(unsigned long size)
- {
- 	if (size == HPAGE_SIZE)
---- a/arch/s390/mm/hugetlbpage.c~mm-treewide-remove-pxd_huge
-+++ a/arch/s390/mm/hugetlbpage.c
-@@ -233,16 +233,6 @@ pte_t *huge_pte_offset(struct mm_struct
- 	return (pte_t *) pmdp;
- }
- 
--int pmd_huge(pmd_t pmd)
--{
--	return pmd_leaf(pmd);
--}
--
--int pud_huge(pud_t pud)
--{
--	return pud_leaf(pud);
--}
--
- bool __init arch_hugetlb_valid_size(unsigned long size)
- {
- 	if (MACHINE_HAS_EDAT1 && size == PMD_SIZE)
---- a/arch/sh/mm/hugetlbpage.c~mm-treewide-remove-pxd_huge
-+++ a/arch/sh/mm/hugetlbpage.c
-@@ -70,13 +70,3 @@ pte_t *huge_pte_offset(struct mm_struct
- 
- 	return pte;
- }
--
--int pmd_huge(pmd_t pmd)
--{
--	return 0;
--}
--
--int pud_huge(pud_t pud)
--{
--	return 0;
--}
---- a/arch/sparc/mm/hugetlbpage.c~mm-treewide-remove-pxd_huge
-+++ a/arch/sparc/mm/hugetlbpage.c
-@@ -407,16 +407,6 @@ pte_t huge_ptep_get_and_clear(struct mm_
- 	return entry;
- }
- 
--int pmd_huge(pmd_t pmd)
--{
--	return pmd_leaf(pmd);
--}
--
--int pud_huge(pud_t pud)
--{
--	return pud_leaf(pud);
--}
--
- static void hugetlb_free_pte_range(struct mmu_gather *tlb, pmd_t *pmd,
- 			   unsigned long addr)
- {
---- a/arch/x86/mm/hugetlbpage.c~mm-treewide-remove-pxd_huge
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -19,22 +19,6 @@
- #include <asm/tlbflush.h>
- #include <asm/elf.h>
- 
--/*
-- * pmd_huge() returns 1 if @pmd is hugetlb related entry.
-- */
--int pmd_huge(pmd_t pmd)
--{
--	return pmd_leaf(pmd);
--}
--
--/*
-- * pud_huge() returns 1 if @pud is hugetlb related entry.
-- */
--int pud_huge(pud_t pud)
--{
--	return pud_leaf(pud);
--}
--
- #ifdef CONFIG_HUGETLB_PAGE
- static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *file,
- 		unsigned long addr, unsigned long len,
---- a/include/linux/hugetlb.h~mm-treewide-remove-pxd_huge
-+++ a/include/linux/hugetlb.h
-@@ -272,13 +272,9 @@ void hugetlb_vma_unlock_write(struct vm_
- int hugetlb_vma_trylock_write(struct vm_area_struct *vma);
- void hugetlb_vma_assert_locked(struct vm_area_struct *vma);
- void hugetlb_vma_lock_release(struct kref *kref);
--
--int pmd_huge(pmd_t pmd);
--int pud_huge(pud_t pud);
- long hugetlb_change_protection(struct vm_area_struct *vma,
- 		unsigned long address, unsigned long end, pgprot_t newprot,
- 		unsigned long cp_flags);
--
- bool is_hugetlb_entry_migration(pte_t pte);
- bool is_hugetlb_entry_hwpoisoned(pte_t pte);
- void hugetlb_unshare_all_pmds(struct vm_area_struct *vma);
-@@ -399,16 +395,6 @@ static inline void hugetlb_vma_assert_lo
- {
- }
- 
--static inline int pmd_huge(pmd_t pmd)
--{
--	return 0;
--}
--
--static inline int pud_huge(pud_t pud)
--{
--	return 0;
--}
--
- static inline int is_hugepage_only_range(struct mm_struct *mm,
- 					unsigned long addr, unsigned long len)
- {
-@@ -493,16 +479,6 @@ static inline vm_fault_t hugetlb_fault(s
- static inline void hugetlb_unshare_all_pmds(struct vm_area_struct *vma) { }
- 
- #endif /* !CONFIG_HUGETLB_PAGE */
--/*
-- * hugepages at page global directory. If arch support
-- * hugepages at pgd level, they need to define this.
-- */
--#ifndef pgd_huge
--#define pgd_huge(x)	0
--#endif
--#ifndef p4d_huge
--#define p4d_huge(x)	0
--#endif
- 
- #ifndef pgd_write
- static inline int pgd_write(pgd_t pgd)
+ #
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from u.kleine-koenig@pengutronix.de are
 
-mm-memory-fix-missing-pte-marker-for-page-on-pte-zaps.patch
-mm-hmm-process-pud-swap-entry-without-pud_huge.patch
-mm-gup-cache-p4d-in-follow_p4d_mask.patch
-mm-gup-check-p4d-presence-before-going-on.patch
-mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-arm-use-macros-to-define-pmd-pud-helpers.patch
-mm-arm-redefine-pmd_huge-with-pmd_leaf.patch
-mm-arm64-merge-pxd_huge-and-pxd_leaf-definitions.patch
-mm-powerpc-redefine-pxd_huge-with-pxd_leaf.patch
-mm-gup-merge-pxd-huge-mapping-checks.patch
-mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
-mm-treewide-remove-pxd_huge.patch
-mm-arm-remove-pmd_thp_or_huge.patch
-mm-document-pxd_leaf-api.patch
+lib-build_oid_registry-dont-mention-the-full-path-of-the-script-in-output.patch
 
