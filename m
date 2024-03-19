@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9962364D4
-	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 23:25:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D101364D4
+	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 23:25:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710890734; cv=none; b=sehrChOAa7UTLULT0jDZSWAsdsKl6tX7CHSj11tXnlfFH33EnOQx0k7hcxKF4Pw3t7qy/XVvr45KLKGRADr96b8ux6WALRVifzGt5lMAJpGsxA7suWbYb3VXN/+FFpQIRNBjsFPcvQ2MfR07o2zEheElty8H8OBGWliMED+Icqc=
+	t=1710890753; cv=none; b=i5yd92n6yGCibOu/AYLbB8s1ukZEpzay983sFHm7xMa16uIrMwtvW6HhqPzW0+B903GxjHlJ96OrDTeel3li5rRHkCaSpl4S923P/bnB+cPdGi3R8n8ihzuygMuFP1bmg6YD+JELGl7TgbLhAYWNDblzRCqowOuP01auXWRTzrg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710890734; c=relaxed/simple;
-	bh=HihrbM7J2re5LJ0EfQUZ/4ryq+5Bmqa7YQF6CuzqdPk=;
-	h=Date:To:From:Subject:Message-Id; b=dFMA8v3L8fvxOvww5Czjhm4G/gIa1JbZdWQq6Ls77ZpuQeQv3JPxw7peq5Otexf3i4AWTcgH3X5mBGFpxBKuFAgh1/37/1BHkK7mG4vCCCjNfuJB6MT+RqgMjoOzXGoQvtpklFng33EH+H/Lws0X9bTT+CfG4Qv8ztu1q6syK6I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iC4+P3AV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710890753; c=relaxed/simple;
+	bh=l+nIygyfgT722Q8EUocFWEsqvM3yqIeFpNJiAc7wZYw=;
+	h=Date:To:From:Subject:Message-Id; b=qyFdeUTgzHkzs+eD4TytXCdLVcWIR0qtbbzB2DBmaBuRXiPUQITklJn0F0m/Lum7Z05V2GC0hrhOOcYaNxLuuZemGB+tSwRe0JbmGvN1sQ32l1Viqwjkz5JvbZlgNw1/1pe7MXf3HPL3SPR4KUPTfWYA7zdhs+ETVnfDs8sT31o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x0ujRCwv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iC4+P3AV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67DB4C433C7;
-	Tue, 19 Mar 2024 23:25:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x0ujRCwv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99CF3C433F1;
+	Tue, 19 Mar 2024 23:25:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710890733;
-	bh=HihrbM7J2re5LJ0EfQUZ/4ryq+5Bmqa7YQF6CuzqdPk=;
+	s=korg; t=1710890752;
+	bh=l+nIygyfgT722Q8EUocFWEsqvM3yqIeFpNJiAc7wZYw=;
 	h=Date:To:From:Subject:From;
-	b=iC4+P3AV5ughd3BX6a+13OF+I1/PcLjfrpT/2CgXrLKUrP/QeUCXZymWP7br4ZWjh
-	 pPkwpX3IAttagBP/PYMNam+IFKakbYrnlGYf2eF6uIDyu5scWMyaZkZUYVaciAVSc3
-	 8YCcraGAcBtH6d4IQUEohO6uNRz+aAH5lP6hTzmE=
-Date: Tue, 19 Mar 2024 16:25:32 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,penguin-kernel@I-love.SAKURA.ne.jp,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
+	b=x0ujRCwvSh3+grz0QsTnSTuwQiuFZuQRGr6e90WrjgQXogr1uNIJYzGFa93aV4JOQ
+	 bY9NDwO7JpAj6lePibYnk0iifXmjPrRskPvlkBB6Gt+TdwG/YyJUEjYVD3jO6D8Oj8
+	 rud59NuayU1++NXQQjO8/rpJ93r5JjMheHZ33yCA=
+Date: Tue, 19 Mar 2024 16:25:52 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,tglx@linutronix.de,shawnguo@kernel.org,rppt@kernel.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,msalter@redhat.com,mpe@ellerman.id.au,mingo@redhat.com,l.stach@pengutronix.de,linux@armlinux.org.uk,krzysztof.kozlowski@linaro.org,konrad.dybcio@linaro.org,jgg@nvidia.com,festevam@denx.de,davem@davemloft.net,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,apopple@nvidia.com,aneesh.kumar@kernel.org,andreas@gaisler.com,andersson@kernel.org,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mmpage_owner-fix-refcount-imbalance.patch removed from -mm tree
-Message-Id: <20240319232533.67DB4C433C7@smtp.kernel.org>
+Subject: + mm-arm-remove-pmd_thp_or_huge.patch added to mm-unstable branch
+Message-Id: <20240319232552.99CF3C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,258 +34,139 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm,page_owner: fix refcount imbalance
-has been removed from the -mm tree.  Its filename was
-     mmpage_owner-fix-refcount-imbalance.patch
+The patch titled
+     Subject: mm/arm: remove pmd_thp_or_huge()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-arm-remove-pmd_thp_or_huge.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-arm-remove-pmd_thp_or_huge.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,page_owner: fix refcount imbalance
-Date: Tue, 19 Mar 2024 19:32:11 +0100
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/arm: remove pmd_thp_or_huge()
+Date: Mon, 18 Mar 2024 16:04:03 -0400
 
-Current code does not contemplate scenarios were an allocation and free
-operation on the same pages do not handle it in the same amount at once.
+ARM/ARM64 used to define pmd_thp_or_huge().  Now this macro is completely
+redundant.  Remove it and use pmd_leaf().
 
-To give an example, page_alloc_exact(), where we will allocate a page of
-enough order to stafisfy the size request, but we will free the remainings
-right away.
-
-In the above example, we will increment the stack_record refcount only
-once, but we will decrease it the same number of times as number of unused
-pages we have to free.  This will lead to a warning because of refcount
-imbalance.
-
-Fix this by recording the number of base pages in the refcount field.
-
-Link: https://lkml.kernel.org/r/20240319183212.17156-2-osalvador@suse.de
-Fixes: 217b2119b9e2 ("mm,page_owner: implement the tracking of the stacks count")
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reported-by: syzbot+41bbfdb8d41003d12c0f@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/linux-mm/00000000000090e8ff0613eda0e5@google.com
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20240318200404.448346-14-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Shawn Guo <shawnguo@kernel.org>
+Cc: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Cc: Bjorn Andersson <andersson@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Konrad Dybcio <konrad.dybcio@linaro.org>
+Cc: Fabio Estevam <festevam@denx.de>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Lucas Stach <l.stach@pengutronix.de>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/page_owner.rst |   73 +++++++++++++++---------------
- mm/page_owner.c                 |   38 +++++++--------
- 2 files changed, 56 insertions(+), 55 deletions(-)
+ arch/arm/include/asm/pgtable-2level.h |    1 -
+ arch/arm/include/asm/pgtable-3level.h |    1 -
+ arch/arm/lib/uaccess_with_memcpy.c    |    4 ++--
+ arch/arm64/include/asm/pgtable.h      |    2 --
+ 4 files changed, 2 insertions(+), 6 deletions(-)
 
---- a/Documentation/mm/page_owner.rst~mmpage_owner-fix-refcount-imbalance
-+++ a/Documentation/mm/page_owner.rst
-@@ -24,10 +24,10 @@ fragmentation statistics can be obtained
- each page. It is already implemented and activated if page owner is
- enabled. Other usages are more than welcome.
- 
--It can also be used to show all the stacks and their outstanding
--allocations, which gives us a quick overview of where the memory is going
--without the need to screen through all the pages and match the allocation
--and free operation.
-+It can also be used to show all the stacks and their current number of
-+allocated base pages, which gives us a quick overview of where the memory
-+is going without the need to screen through all the pages and match the
-+allocation and free operation.
- 
- page owner is disabled by default. So, if you'd like to use it, you need
- to add "page_owner=on" to your boot cmdline. If the kernel is built
-@@ -75,42 +75,45 @@ Usage
- 
- 	cat /sys/kernel/debug/page_owner_stacks/show_stacks > stacks.txt
- 	cat stacks.txt
--	 prep_new_page+0xa9/0x120
--	 get_page_from_freelist+0x7e6/0x2140
--	 __alloc_pages+0x18a/0x370
--	 new_slab+0xc8/0x580
--	 ___slab_alloc+0x1f2/0xaf0
--	 __slab_alloc.isra.86+0x22/0x40
--	 kmem_cache_alloc+0x31b/0x350
--	 __khugepaged_enter+0x39/0x100
--	 dup_mmap+0x1c7/0x5ce
--	 copy_process+0x1afe/0x1c90
--	 kernel_clone+0x9a/0x3c0
--	 __do_sys_clone+0x66/0x90
--	 do_syscall_64+0x7f/0x160
--	 entry_SYSCALL_64_after_hwframe+0x6c/0x74
--	stack_count: 234
-+	 post_alloc_hook+0x177/0x1a0
-+	 get_page_from_freelist+0xd01/0xd80
-+	 __alloc_pages+0x39e/0x7e0
-+	 allocate_slab+0xbc/0x3f0
-+	 ___slab_alloc+0x528/0x8a0
-+	 kmem_cache_alloc+0x224/0x3b0
-+	 sk_prot_alloc+0x58/0x1a0
-+	 sk_alloc+0x32/0x4f0
-+	 inet_create+0x427/0xb50
-+	 __sock_create+0x2e4/0x650
-+	 inet_ctl_sock_create+0x30/0x180
-+	 igmp_net_init+0xc1/0x130
-+	 ops_init+0x167/0x410
-+	 setup_net+0x304/0xa60
-+	 copy_net_ns+0x29b/0x4a0
-+	 create_new_namespaces+0x4a1/0x820
-+	nr_base_pages: 16
- 	...
- 	...
- 	echo 7000 > /sys/kernel/debug/page_owner_stacks/count_threshold
- 	cat /sys/kernel/debug/page_owner_stacks/show_stacks> stacks_7000.txt
- 	cat stacks_7000.txt
--	 prep_new_page+0xa9/0x120
--	 get_page_from_freelist+0x7e6/0x2140
--	 __alloc_pages+0x18a/0x370
--	 alloc_pages_mpol+0xdf/0x1e0
--	 folio_alloc+0x14/0x50
--	 filemap_alloc_folio+0xb0/0x100
--	 page_cache_ra_unbounded+0x97/0x180
--	 filemap_fault+0x4b4/0x1200
--	 __do_fault+0x2d/0x110
--	 do_pte_missing+0x4b0/0xa30
--	 __handle_mm_fault+0x7fa/0xb70
--	 handle_mm_fault+0x125/0x300
--	 do_user_addr_fault+0x3c9/0x840
--	 exc_page_fault+0x68/0x150
--	 asm_exc_page_fault+0x22/0x30
--	stack_count: 8248
-+	 post_alloc_hook+0x177/0x1a0
-+	 get_page_from_freelist+0xd01/0xd80
-+	 __alloc_pages+0x39e/0x7e0
-+	 alloc_pages_mpol+0x22e/0x490
-+	 folio_alloc+0xd5/0x110
-+	 filemap_alloc_folio+0x78/0x230
-+	 page_cache_ra_order+0x287/0x6f0
-+	 filemap_get_pages+0x517/0x1160
-+	 filemap_read+0x304/0x9f0
-+	 xfs_file_buffered_read+0xe6/0x1d0 [xfs]
-+	 xfs_file_read_iter+0x1f0/0x380 [xfs]
-+	 __kernel_read+0x3b9/0x730
-+	 kernel_read_file+0x309/0x4d0
-+	 __do_sys_finit_module+0x381/0x730
-+	 do_syscall_64+0x8d/0x150
-+	 entry_SYSCALL_64_after_hwframe+0x62/0x6a
-+	nr_base_pages: 20824
- 	...
- 
- 	cat /sys/kernel/debug/page_owner > page_owner_full.txt
---- a/mm/page_owner.c~mmpage_owner-fix-refcount-imbalance
-+++ a/mm/page_owner.c
-@@ -196,9 +196,11 @@ static void add_stack_record_to_list(str
- 	spin_unlock_irqrestore(&stack_list_lock, flags);
+--- a/arch/arm64/include/asm/pgtable.h~mm-arm-remove-pmd_thp_or_huge
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -517,8 +517,6 @@ static inline pmd_t pmd_mkinvalid(pmd_t
+ 	return pmd;
  }
  
--static void inc_stack_record_count(depot_stack_handle_t handle, gfp_t gfp_mask)
-+static void inc_stack_record_count(depot_stack_handle_t handle, gfp_t gfp_mask,
-+				   int nr_base_pages)
- {
- 	struct stack_record *stack_record = __stack_depot_get_stack_record(handle);
-+	int old = REFCOUNT_SATURATED;
- 
- 	if (!stack_record)
- 		return;
-@@ -210,22 +212,18 @@ static void inc_stack_record_count(depot
- 	 * Since we do not use STACK_DEPOT_FLAG_GET API, let us
- 	 * set a refcount of 1 ourselves.
- 	 */
--	if (refcount_read(&stack_record->count) == REFCOUNT_SATURATED) {
--		int old = REFCOUNT_SATURATED;
+-#define pmd_thp_or_huge(pmd)	(pmd_leaf(pmd) || pmd_trans_huge(pmd))
 -
--		if (atomic_try_cmpxchg_relaxed(&stack_record->count.refs, &old, 1))
--			/* Add the new stack_record to our list */
--			add_stack_record_to_list(stack_record, gfp_mask);
--	}
--	refcount_inc(&stack_record->count);
-+	if (atomic_try_cmpxchg_relaxed(&stack_record->count.refs, &old, 1))
-+		add_stack_record_to_list(stack_record, gfp_mask);
-+	refcount_add(nr_base_pages, &stack_record->count);
- }
+ #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
  
--static void dec_stack_record_count(depot_stack_handle_t handle)
-+static void dec_stack_record_count(depot_stack_handle_t handle,
-+				   int nr_base_pages)
- {
- 	struct stack_record *stack_record = __stack_depot_get_stack_record(handle);
+ #define pmd_mkhuge(pmd)		(__pmd(pmd_val(pmd) & ~PMD_TABLE_BIT))
+--- a/arch/arm/include/asm/pgtable-2level.h~mm-arm-remove-pmd_thp_or_huge
++++ a/arch/arm/include/asm/pgtable-2level.h
+@@ -241,7 +241,6 @@ static inline pmd_t *pmd_offset(pud_t *p
+  * define empty stubs for use by pin_page_for_write.
+  */
+ #define pmd_hugewillfault(pmd)	(0)
+-#define pmd_thp_or_huge(pmd)	(0)
  
- 	if (stack_record)
--		refcount_dec(&stack_record->count);
-+		refcount_sub_and_test(nr_base_pages, &stack_record->count);
- }
+ #endif /* __ASSEMBLY__ */
  
- void __reset_page_owner(struct page *page, unsigned short order)
-@@ -263,7 +261,7 @@ void __reset_page_owner(struct page *pag
- 		 * the machinery is not ready yet, we cannot decrement
- 		 * their refcount either.
- 		 */
--		dec_stack_record_count(alloc_handle);
-+		dec_stack_record_count(alloc_handle, 1 << order);
- }
+--- a/arch/arm/include/asm/pgtable-3level.h~mm-arm-remove-pmd_thp_or_huge
++++ a/arch/arm/include/asm/pgtable-3level.h
+@@ -190,7 +190,6 @@ static inline pte_t pte_mkspecial(pte_t
+ #define pmd_dirty(pmd)		(pmd_isset((pmd), L_PMD_SECT_DIRTY))
  
- static inline void __set_page_owner_handle(struct page_ext *page_ext,
-@@ -305,7 +303,7 @@ noinline void __set_page_owner(struct pa
- 		return;
- 	__set_page_owner_handle(page_ext, handle, order, gfp_mask);
- 	page_ext_put(page_ext);
--	inc_stack_record_count(handle, gfp_mask);
-+	inc_stack_record_count(handle, gfp_mask, 1 << order);
- }
+ #define pmd_hugewillfault(pmd)	(!pmd_young(pmd) || !pmd_write(pmd))
+-#define pmd_thp_or_huge(pmd)	(pmd_leaf(pmd) || pmd_trans_huge(pmd))
  
- void __set_page_owner_migrate_reason(struct page *page, int reason)
-@@ -861,11 +859,11 @@ static void *stack_next(struct seq_file
- 	return stack;
- }
- 
--static unsigned long page_owner_stack_threshold;
-+static unsigned long page_owner_pages_threshold;
- 
- static int stack_print(struct seq_file *m, void *v)
- {
--	int i, stack_count;
-+	int i, nr_base_pages;
- 	struct stack *stack = v;
- 	unsigned long *entries;
- 	unsigned long nr_entries;
-@@ -876,14 +874,14 @@ static int stack_print(struct seq_file *
- 
- 	nr_entries = stack_record->size;
- 	entries = stack_record->entries;
--	stack_count = refcount_read(&stack_record->count) - 1;
-+	nr_base_pages = refcount_read(&stack_record->count) - 1;
- 
--	if (stack_count < 1 || stack_count < page_owner_stack_threshold)
-+	if (nr_base_pages < 1 || nr_base_pages < page_owner_pages_threshold)
- 		return 0;
- 
- 	for (i = 0; i < nr_entries; i++)
- 		seq_printf(m, " %pS\n", (void *)entries[i]);
--	seq_printf(m, "stack_count: %d\n\n", stack_count);
-+	seq_printf(m, "nr_base_pages: %d\n\n", nr_base_pages);
- 
- 	return 0;
- }
-@@ -913,13 +911,13 @@ static const struct file_operations page
- 
- static int page_owner_threshold_get(void *data, u64 *val)
- {
--	*val = READ_ONCE(page_owner_stack_threshold);
-+	*val = READ_ONCE(page_owner_pages_threshold);
- 	return 0;
- }
- 
- static int page_owner_threshold_set(void *data, u64 val)
- {
--	WRITE_ONCE(page_owner_stack_threshold, val);
-+	WRITE_ONCE(page_owner_pages_threshold, val);
- 	return 0;
- }
- 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ #define pmd_trans_huge(pmd)	(pmd_val(pmd) && !pmd_table(pmd))
+--- a/arch/arm/lib/uaccess_with_memcpy.c~mm-arm-remove-pmd_thp_or_huge
++++ a/arch/arm/lib/uaccess_with_memcpy.c
+@@ -56,10 +56,10 @@ pin_page_for_write(const void __user *_a
+ 	 * to see that it's still huge and whether or not we will
+ 	 * need to fault on write.
+ 	 */
+-	if (unlikely(pmd_thp_or_huge(*pmd))) {
++	if (unlikely(pmd_leaf(*pmd))) {
+ 		ptl = &current->mm->page_table_lock;
+ 		spin_lock(ptl);
+-		if (unlikely(!pmd_thp_or_huge(*pmd)
++		if (unlikely(!pmd_leaf(*pmd)
+ 			|| pmd_hugewillfault(*pmd))) {
+ 			spin_unlock(ptl);
+ 			return 0;
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mmpage_owner-fix-recursion.patch
+mm-memory-fix-missing-pte-marker-for-page-on-pte-zaps.patch
+mm-hmm-process-pud-swap-entry-without-pud_huge.patch
+mm-gup-cache-p4d-in-follow_p4d_mask.patch
+mm-gup-check-p4d-presence-before-going-on.patch
+mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch
+mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
+mm-arm-use-macros-to-define-pmd-pud-helpers.patch
+mm-arm-redefine-pmd_huge-with-pmd_leaf.patch
+mm-arm64-merge-pxd_huge-and-pxd_leaf-definitions.patch
+mm-powerpc-redefine-pxd_huge-with-pxd_leaf.patch
+mm-gup-merge-pxd-huge-mapping-checks.patch
+mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
+mm-treewide-remove-pxd_huge.patch
+mm-arm-remove-pmd_thp_or_huge.patch
+mm-document-pxd_leaf-api.patch
 
