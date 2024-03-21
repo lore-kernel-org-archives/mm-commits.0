@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B76F12CD89
-	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 20:43:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 488D112CD89
+	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 20:43:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711053833; cv=none; b=K25K83l4jmE75FUtwHfJYX5Co1uwYJO4gq24pDdsePv3PWJ92ZYoImse2rtzbovbwGSxdMOtXetWnGbrOILLLkGw8TrPD0MrK8Z53SDvLqVfLkiU1KY+pfdd3y5Eppr/PTIivgi+hXRIbVGRMLqeIf+Ih6uSkn+W5z8+AUr9i0Y=
+	t=1711053835; cv=none; b=dJlf6eY6F5yVH8c1tIv7uayTZKSZgm/tmeQcuM75dJEUAu2GB+3wvPfsi7ubybRRbe5cGcP2bCZ3KayXVtUYHs+pXxc2eI6+81KNxpaNmlw3VZI9jUgj8IO1fTKVOecxPPqpPgJ79+dxMjtmm+KIYGbZ7/D907oecPRoSYzN6fo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711053833; c=relaxed/simple;
-	bh=QTOkUqJ8UUb3gAVcAemTtQgW4YRoDGeKG0nQt/NQJ0M=;
-	h=Date:To:From:Subject:Message-Id; b=MwFfszAPjfqkwlwtbDeBVzyb6Jo6Vv/78OUyqDPa3idZhY1OPs9o3y5xM+7HMauqX1wXbz72fFJc1zQ8CqV7S/fCBP7s2o8dDURINsTQBvtwKchf6bHw6VxiUbgb+FOxjYe8kSg6lOejo0a0IzY+W8iImcTdJEC3jwkamFQDuZc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s32vBYPj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711053835; c=relaxed/simple;
+	bh=KuuL6aAhGzixQkz53uaw2kFyH5Hum9O6H6udTUK13P4=;
+	h=Date:To:From:Subject:Message-Id; b=LBLBNDr1ZUWJImEFNFMQmcVN9/bv7lBgaGZC4AXQ3LZxIkns1Sa0ULbJJ+1qVl9uY1r5tQ5fCrQqHNPgBXekj4RbYATcgvwKoeIrOiE0L7nUZo7BPeo5qqzRXOc2OPkqYHJRina4ECGbGXHi2639UuWumDsH8LWjmUetmzKg5io=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MF3B9LBb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s32vBYPj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14854C433F1;
-	Thu, 21 Mar 2024 20:43:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MF3B9LBb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1233FC433C7;
+	Thu, 21 Mar 2024 20:43:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711053833;
-	bh=QTOkUqJ8UUb3gAVcAemTtQgW4YRoDGeKG0nQt/NQJ0M=;
+	s=korg; t=1711053835;
+	bh=KuuL6aAhGzixQkz53uaw2kFyH5Hum9O6H6udTUK13P4=;
 	h=Date:To:From:Subject:From;
-	b=s32vBYPjiD8GcYwZh4BIzz08q7+cqR72YyGyTjCSd2VQxLDp2PnPVawRtSkCkeEOw
-	 UDv7A9j9kf4Zl5ibbi3XovWMx9o07eNAqLzV6eBj46/Z5GW6ZAAGCHeoMf3bB75oUb
-	 iLI8KL7RzMYRZg/29A4axwfuCFSvMdSK8eoIALfg=
-Date: Thu, 21 Mar 2024 13:43:52 -0700
+	b=MF3B9LBbE0lhrepTRDxBuI2lFZ1mgH5rRA/d/424m7YfDZItienfpVPdBPkcd8ceO
+	 dJ5iQ/3pp8E4SaaDp8SHk4htWshtHqOiJ+kScprWE3zlWXqj1PNFNvUvIsU1rJCr6Q
+	 l2APZfr/i95TW2kheDJFXf4x4YOtw5Ghgxgfaxqs=
+Date: Thu, 21 Mar 2024 13:43:54 -0700
 To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,peterz@infradead.org,pasha.tatashin@soleen.com,ojeda@kernel.org,kent.overstreet@linux.dev,keescook@chromium.org,gary@garyguo.net,dennis@kernel.org,cl@linux.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@samsung.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_ext-enable-early_page_ext-when-config_mem_alloc_profiling_debug=y.patch added to mm-unstable branch
-Message-Id: <20240321204353.14854C433F1@smtp.kernel.org>
+Subject: + lib-add-codetag-reference-into-slabobj_ext.patch added to mm-unstable branch
+Message-Id: <20240321204355.1233FC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_ext: enable early_page_ext when CONFIG_MEM_ALLOC_PROFILING_DEBUG=y
+     Subject: lib: add codetag reference into slabobj_ext
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_ext-enable-early_page_ext-when-config_mem_alloc_profiling_debug=y.patch
+     lib-add-codetag-reference-into-slabobj_ext.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_ext-enable-early_page_ext-when-config_mem_alloc_profiling_debug=y.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-add-codetag-reference-into-slabobj_ext.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,23 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm/page_ext: enable early_page_ext when CONFIG_MEM_ALLOC_PROFILING_DEBUG=y
-Date: Thu, 21 Mar 2024 09:36:43 -0700
+Subject: lib: add codetag reference into slabobj_ext
+Date: Thu, 21 Mar 2024 09:36:44 -0700
 
-For all page allocations to be tagged, page_ext has to be initialized
-before the first page allocation.  Early tasks allocate their stacks using
-page allocator before alloc_node_page_ext() initializes page_ext area,
-unless early_page_ext is enabled.  Therefore these allocations will
-generate a warning when CONFIG_MEM_ALLOC_PROFILING_DEBUG is enabled. 
-Enable early_page_ext whenever CONFIG_MEM_ALLOC_PROFILING_DEBUG=y to
-ensure page_ext initialization prior to any page allocation.  This will
-have all the negative effects associated with early_page_ext, such as
-possible longer boot time, therefore we enable it only when debugging with
-CONFIG_MEM_ALLOC_PROFILING_DEBUG enabled and not universally for
-CONFIG_MEM_ALLOC_PROFILING.
+To store code tag for every slab object, a codetag reference is embedded
+into slabobj_ext when CONFIG_MEM_ALLOC_PROFILING=y.
 
-Link: https://lkml.kernel.org/r/20240321163705.3067592-22-surenb@google.com
+Link: https://lkml.kernel.org/r/20240321163705.3067592-23-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Co-developed-by: Kent Overstreet <kent.overstreet@linux.dev>
+Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alex Gaynor <alex.gaynor@gmail.com>
@@ -88,7 +81,6 @@ Cc: Christoph Lameter <cl@linux.com>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Gary Guo <gary@garyguo.net>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Miguel Ojeda <ojeda@kernel.org>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -97,28 +89,35 @@ Cc: Wedson Almeida Filho <wedsonaf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_ext.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/linux/memcontrol.h |    5 +++++
+ lib/Kconfig.debug          |    1 +
+ 2 files changed, 6 insertions(+)
 
---- a/mm/page_ext.c~mm-page_ext-enable-early_page_ext-when-config_mem_alloc_profiling_debug=y
-+++ a/mm/page_ext.c
-@@ -95,7 +95,16 @@ unsigned long page_ext_size;
- 
- static unsigned long total_usage;
- 
-+#ifdef CONFIG_MEM_ALLOC_PROFILING_DEBUG
-+/*
-+ * To ensure correct allocation tagging for pages, page_ext should be available
-+ * before the first page allocation. Otherwise early task stacks will be
-+ * allocated before page_ext initialization and missing tags will be flagged.
-+ */
-+bool early_page_ext __meminitdata = true;
-+#else
- bool early_page_ext __meminitdata;
+--- a/include/linux/memcontrol.h~lib-add-codetag-reference-into-slabobj_ext
++++ a/include/linux/memcontrol.h
+@@ -1653,7 +1653,12 @@ unsigned long mem_cgroup_soft_limit_recl
+  * if MEMCG_DATA_OBJEXTS is set.
+  */
+ struct slabobj_ext {
++#ifdef CONFIG_MEMCG_KMEM
+ 	struct obj_cgroup *objcg;
 +#endif
- static int __init setup_early_page_ext(char *str)
- {
- 	early_page_ext = true;
++#ifdef CONFIG_MEM_ALLOC_PROFILING
++	union codetag_ref ref;
++#endif
+ } __aligned(8);
+ 
+ static inline void __inc_lruvec_kmem_state(void *p, enum node_stat_item idx)
+--- a/lib/Kconfig.debug~lib-add-codetag-reference-into-slabobj_ext
++++ a/lib/Kconfig.debug
+@@ -979,6 +979,7 @@ config MEM_ALLOC_PROFILING
+ 	depends on !DEBUG_FORCE_WEAK_PER_CPU
+ 	select CODE_TAGGING
+ 	select PAGE_EXTENSION
++	select SLAB_OBJ_EXT
+ 	help
+ 	  Track allocation source code and record total allocation size
+ 	  initiated at that code location. The mechanism can be used to track
 _
 
 Patches currently in -mm which might be from surenb@google.com are
