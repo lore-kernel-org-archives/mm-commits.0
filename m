@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19C6D136984
-	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 22:29:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 602F55228
+	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 23:02:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711060192; cv=none; b=EQNhd5mJ2M7VdgtnMniKqy2gVuYhsZxvEbI+BcsMELYfU+b5p1P0qorb9+Qo6ZjICoShs/L9IXEdxCY//AQ9CY8Zs6J5yI1AmatQbiAdXBSO5BQ2x/L2finozsSEo1Mvfsymao2kkOEqAvcLagaA+S3s/Oag3VmtrCY3bk/V0ck=
+	t=1711062143; cv=none; b=ine2tl5t+OCwfkhKsWEE0tC/TBxt35B07ReXOjjtOQ5Lmg7VZYOuctFUGgI5E8Zip7V+QFMTTNEVgDNr3++aPVMo6Mim086pjkfSbE2m4fFjJRyO+NG8G/dLIDnB3tR9yVskzZo8piKXGtEqKw3Pnd2xevOZMJwwzXM4ZHCZPqk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711060192; c=relaxed/simple;
-	bh=zESTAqDG0L/gdWHtNqWNJsyFd4wKF2T1DK3PJ/qzIjg=;
-	h=Date:To:From:Subject:Message-Id; b=jXcSAmRvrqB9b88PGor7dyjhDDeAT9arja4WJPR7+sPxZvch+i2ntLXOdEMOBEkI5KVV8wTRB78+/MPgQeRpeB4m/efPDJa5XqIKiqVsvgh6JrVN/ruIF8mm1vXXc+KHP44XBsH+dmy0W2gxWdLy9blRZtOQcyBgHNF4Mb3h6/M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XZxPD6qH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711062143; c=relaxed/simple;
+	bh=aZci2+El5RxgRHssFu0VbmFe2fge/RTyvRcfrWv7aoM=;
+	h=Date:To:From:Subject:Message-Id; b=R7fvzYUdx2DooFJI6k5rt47Ypxuoyr9cUqznHvL+NmhXJin+adSWr4r1eqjjzeJWpStysrp6YFf66m6hw6pAOwZNucN2KnXtcmIuptGgFMxV+55Y1EJsaao46WPyxQdM8INwo8WtREevYz7uen4pc1+H+Pw6tnJNjXMc0BqwjAw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RZ0jBVnT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XZxPD6qH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 921DFC433F1;
-	Thu, 21 Mar 2024 22:29:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RZ0jBVnT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4166C433C7;
+	Thu, 21 Mar 2024 23:02:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711060191;
-	bh=zESTAqDG0L/gdWHtNqWNJsyFd4wKF2T1DK3PJ/qzIjg=;
+	s=korg; t=1711062142;
+	bh=aZci2+El5RxgRHssFu0VbmFe2fge/RTyvRcfrWv7aoM=;
 	h=Date:To:From:Subject:From;
-	b=XZxPD6qH90+LZmrh7drZ/kU0+c5xDnmTSTK5qMgtajoUEVdKmyOYbKY8LOiMOHCin
-	 oUP0JUMY9jmNYlx/9rGkSEZjufbMOXEZJrSYnq5iIQk1XpGtUb/jUK7QweYxdApTc/
-	 Czf7sclbQa7ddgKT1X56uwPLv/KSI9DXs1HgTTuI=
-Date: Thu, 21 Mar 2024 15:29:51 -0700
-To: mm-commits@vger.kernel.org,jiat0218@gmail.com,lasse.collin@tukaani.org,akpm@linux-foundation.org
+	b=RZ0jBVnTo7jgHYvCGzMZy6bhUXwaQMDEr11uEBCr9c2pdaEC4WHWrCdqIFNwlQjdz
+	 VAnNCInMBQXMNH2CfPLCJ77yAAOwHU15dP7ErfOJh6BfoYk6QLuOz5xVbaMWp6ZCgb
+	 bgNplqFu9TKN5M6F9rDc3MQUc+RVnAudf/KRdPzs=
+Date: Thu, 21 Mar 2024 16:02:22 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,shy828301@gmail.com,rppt@kernel.org,riel@surriel.com,muchun.song@linux.dev,mpe@ellerman.id.au,mike.kravetz@oracle.com,lstoakes@gmail.com,kirill@shutemov.name,jthoughton@google.com,jhubbard@nvidia.com,jgg@nvidia.com,hch@infradead.org,david@redhat.com,christophe.leroy@csgroup.eu,axelrasmussen@google.com,aneesh.kumar@kernel.org,andrew.jones@linux.dev,aarcange@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xz-adjust-arch-specific-options-for-better-kernel-compression.patch added to mm-nonmm-unstable branch
-Message-Id: <20240321222951.921DFC433F1@smtp.kernel.org>
+Subject: + mm-kconfig-config_pgtable_has_huge_leaves.patch added to mm-unstable branch
+Message-Id: <20240321230222.C4166C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: xz: adjust arch-specific options for better kernel compression
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     xz-adjust-arch-specific-options-for-better-kernel-compression.patch
+     Subject: mm/Kconfig: CONFIG_PGTABLE_HAS_HUGE_LEAVES
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-kconfig-config_pgtable_has_huge_leaves.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xz-adjust-arch-specific-options-for-better-kernel-compression.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kconfig-config_pgtable_has_huge_leaves.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,257 +58,149 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lasse Collin <lasse.collin@tukaani.org>
-Subject: xz: adjust arch-specific options for better kernel compression
-Date: Wed, 20 Mar 2024 20:38:44 +0200
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/Kconfig: CONFIG_PGTABLE_HAS_HUGE_LEAVES
+Date: Thu, 21 Mar 2024 18:07:51 -0400
 
-Use LZMA2 options that match the arch-specific alignment of instructions. 
-This change reduces compressed kernel size 0-2 % depending on the arch. 
-On 1-byte-aligned x86 it makes no difference and on 4-byte-aligned archs
-it helps the most.
+Patch series "mm/gup: Unify hugetlb, part 2".
 
-Use the ARM-Thumb filter for ARM-Thumb2 kernels.  This reduces compressed
-kernel size about 5 %.[1] Previously such kernels were compressed using
-the ARM filter which didn't do anything useful with ARM-Thumb2 code.
+The series removes the hugetlb slow gup path after a previous refactor
+work [1], so that slow gup now uses the exact same path to process all
+kinds of memory including hugetlb.
 
-Add BCJ filter support for ARM64 and RISC-V.  On ARM64 the compressed
-kernel size is reduced about 5 % and on RISC-V by 7-8 % compared to
-unfiltered XZ or plain LZMA.  However:
+For the long term, we may want to remove most, if not all, call sites of
+huge_pte_offset().  It'll be ideal if that API can be completely dropped
+from arch hugetlb API.  This series is one small step towards merging
+hugetlb specific codes into generic mm paths.  From that POV, this series
+removes one reference to huge_pte_offset() out of many others.
 
-  - arch/arm64/boot/Makefile and arch/riscv/boot/Makefile don't include
-    the build rule (two lines) for XZ support even though they support
-    six other compressors. It would be trivial to add the rule but boot
-    loaders would need XZ support too.
+One goal of such a route is that we can reconsider merging hugetlb
+features like High Granularity Mapping (HGM).  It was not accepted in the
+past because it may add lots of hugetlb specific codes and make the mm
+code even harder to maintain.  With a merged codeset, features like HGM
+can hopefully share some code with THP, legacy (PMD+) or modern
+(continuous PTEs).
 
- - A new enough version of the xz tool is required: 5.4.0 for ARM64 and
-   5.6.0 for RISC-V. With an old xz version a message is printed to
-   standard error and the kernel is compressed without the filter.
+To make it work, the generic slow gup code will need to at least
+understand hugepd, which is already done like so in fast-gup.  Due to the
+specialty of hugepd to be software-only solution (no hardware recognizes
+the hugepd format, so it's purely artificial structures), there's chance
+we can merge some or all hugepd formats with cont_pte in the future.  That
+question is yet unsettled from Power side to have an acknowledgement.  As
+of now for this series, I kept the hugepd handling because we may still
+need to do so before getting a clearer picture of the future of hugepd. 
+The other reason is simply that we did it already for fast-gup and most
+codes are still around to be reused.  It'll make more sense to keep
+slow/fast gup behave the same before a decision is made to remove hugepd.
 
-Update lib/decompress_unxz.c to match the changes to xz_wrap.sh.
+There's one major difference for slow-gup on cont_pte / cont_pmd handling,
+currently supported on three architectures (aarch64, riscv, ppc).  Before
+the series, slow gup will be able to recognize e.g.  cont_pte entries with
+the help of huge_pte_offset() when hstate is around.  Now it's gone but
+still working, by looking up pgtable entries one by one.
 
-Update the CONFIG_KERNEL_XZ help text in init/Kconfig:
-  - Add the RISC-V and ARM64 filters.
-  - Clarify that the PowerPC filter is for big endian only.
-  - Omit IA-64.
+It's not ideal, but hopefully this change should not affect yet on major
+workloads.  There's some more information in the commit message of the
+last patch.  If this would be a concern, we can consider teaching slow gup
+to recognize cont pte/pmd entries, and that should recover the lost
+performance.  But I doubt its necessity for now, so I kept it as simple as
+it can be.
 
-Link: https://lore.kernel.org/lkml/1637379771-39449-1-git-send-email-zhongjubin@huawei.com/ [1]
-Link: https://lkml.kernel.org/r/20240320183846.19475-12-lasse.collin@tukaani.org
-Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
-Reviewed-by: Jia Tan <jiat0218@gmail.com>
+Patch layout
+=============
+
+Patch 1-8:    Preparation works, or cleanups in relevant code paths
+Patch 9-11:   Teach slow gup with all kinds of huge entries (pXd, hugepd)
+Patch 12:     Drop hugetlb_follow_page_mask()
+
+More information can be found in the commit messages of each patch.  Any
+comment will be welcomed.  Thanks.
+
+[1] https://lore.kernel.org/all/20230628215310.73782-1-peterx@redhat.com
+[2] https://lore.kernel.org/r/20240321215047.678172-1-peterx@redhat.com
+
+
+This patch (of 12):
+
+Introduce a config option that will be selected as long as huge leaves are
+involved in pgtable (thp or hugetlbfs).  It would be useful to mark any
+code with this new config that can process either hugetlb or thp pages in
+any level that is higher than pte level.
+
+Link: https://lkml.kernel.org/r/20240321220802.679544-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240321220802.679544-2-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andrew Jones <andrew.jones@linux.dev>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig          |    5 -
- lib/decompress_unxz.c |   14 +++
- scripts/xz_wrap.sh    |  141 ++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 151 insertions(+), 9 deletions(-)
+ mm/Kconfig |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/init/Kconfig~xz-adjust-arch-specific-options-for-better-kernel-compression
-+++ a/init/Kconfig
-@@ -308,8 +308,9 @@ config KERNEL_XZ
- 	  BCJ filters which can improve compression ratio of executable
- 	  code. The size of the kernel is about 30% smaller with XZ in
- 	  comparison to gzip. On architectures for which there is a BCJ
--	  filter (i386, x86_64, ARM, IA-64, PowerPC, and SPARC), XZ
--	  will create a few percent smaller kernel than plain LZMA.
-+	  filter (i386, x86_64, ARM, ARM64, RISC-V, big endian PowerPC,
-+	  and SPARC), XZ will create a few percent smaller kernel than
-+	  plain LZMA.
+--- a/mm/Kconfig~mm-kconfig-config_pgtable_has_huge_leaves
++++ a/mm/Kconfig
+@@ -851,6 +851,12 @@ config READ_ONLY_THP_FOR_FS
+ endif # TRANSPARENT_HUGEPAGE
  
- 	  The speed is about the same as with LZMA: The decompression
- 	  speed of XZ is better than that of bzip2 but worse than gzip
---- a/lib/decompress_unxz.c~xz-adjust-arch-specific-options-for-better-kernel-compression
-+++ a/lib/decompress_unxz.c
-@@ -126,11 +126,21 @@
- #ifdef CONFIG_X86
- #	define XZ_DEC_X86
- #endif
--#ifdef CONFIG_PPC
-+#if defined(CONFIG_PPC) && defined(CONFIG_CPU_BIG_ENDIAN)
- #	define XZ_DEC_POWERPC
- #endif
- #ifdef CONFIG_ARM
--#	define XZ_DEC_ARM
-+#	ifdef CONFIG_THUMB2_KERNEL
-+#		define XZ_DEC_ARMTHUMB
-+#	else
-+#		define XZ_DEC_ARM
-+#	endif
-+#endif
-+#ifdef CONFIG_ARM64
-+#	define XZ_DEC_ARM64
-+#endif
-+#ifdef CONFIG_RISCV
-+#	define XZ_DEC_RISCV
- #endif
- #ifdef CONFIG_SPARC
- #	define XZ_DEC_SPARC
---- a/scripts/xz_wrap.sh~xz-adjust-arch-specific-options-for-better-kernel-compression
-+++ a/scripts/xz_wrap.sh
-@@ -6,14 +6,145 @@
  #
- # Author: Lasse Collin <lasse.collin@tukaani.org>
- 
-+# This has specialized settings for the following archs. However,
-+# XZ-compressed kernel isn't currently supported on every listed arch.
++# The architecture supports pgtable leaves that is larger than PAGE_SIZE
 +#
-+#   Arch        Align   Notes
-+#   arm          2/4    ARM and ARM-Thumb2
-+#   arm64         4
-+#   csky          2
-+#   loongarch     4
-+#   mips         2/4    MicroMIPS is 2-byte aligned
-+#   parisc        4
-+#   powerpc       4     Uses its own wrapper for compressors instead of this.
-+#   riscv        2/4
-+#   s390          2
-+#   sh            2
-+#   sparc         4
-+#   x86           1
++config PGTABLE_HAS_HUGE_LEAVES
++	def_bool TRANSPARENT_HUGEPAGE || HUGETLB_PAGE
 +
-+# A few archs use 2-byte or 4-byte aligned instructions depending on
-+# the kernel config. This function is used to check if the relevant
-+# config option is set to "y".
-+is_enabled()
-+{
-+	grep -q "^$1=y$" include/config/auto.conf
-+}
-+
-+# Set XZ_VERSION (and LIBLZMA_VERSION). This is needed to disable features
-+# that aren't available in old XZ Utils versions.
-+eval "$($XZ --robot --version)" || exit
-+
-+# Assume that no BCJ filter is available.
- BCJ=
--LZMA2OPTS=
- 
-+# Set the instruction alignment to 1, 2, or 4 bytes.
 +#
-+# Set the BCJ filter if one is available.
-+# It must match the #ifdef usage in lib/decompress_unxz.c.
- case $SRCARCH in
--	x86)            BCJ=--x86 ;;
--	powerpc)        BCJ=--powerpc ;;
--	arm)            BCJ=--arm ;;
--	sparc)          BCJ=--sparc ;;
-+	arm)
-+		if is_enabled CONFIG_THUMB2_KERNEL; then
-+			ALIGN=2
-+			BCJ=--armthumb
-+		else
-+			ALIGN=4
-+			BCJ=--arm
-+		fi
-+		;;
-+
-+	arm64)
-+		ALIGN=4
-+
-+		# ARM64 filter was added in XZ Utils 5.4.0.
-+		if [ "$XZ_VERSION" -ge 50040002 ]; then
-+			BCJ=--arm64
-+		else
-+			echo "$0: Upgrading to xz >= 5.4.0" \
-+				"would enable the ARM64 filter" \
-+				"for better compression" >&2
-+		fi
-+		;;
-+
-+	csky)
-+		ALIGN=2
-+		;;
-+
-+	loongarch)
-+		ALIGN=4
-+		;;
-+
-+	mips)
-+		if is_enabled CONFIG_CPU_MICROMIPS; then
-+			ALIGN=2
-+		else
-+			ALIGN=4
-+		fi
-+		;;
-+
-+	parisc)
-+		ALIGN=4
-+		;;
-+
-+	powerpc)
-+		ALIGN=4
-+
-+		# The filter is only for big endian instruction encoding.
-+		if is_enabled CONFIG_CPU_BIG_ENDIAN; then
-+			BCJ=--powerpc
-+		fi
-+		;;
-+
-+	riscv)
-+		if is_enabled CONFIG_RISCV_ISA_C; then
-+			ALIGN=2
-+		else
-+			ALIGN=4
-+		fi
-+
-+		# RISC-V filter was added in XZ Utils 5.6.0.
-+		if [ "$XZ_VERSION" -ge 50060002 ]; then
-+			BCJ=--riscv
-+		else
-+			echo "$0: Upgrading to xz >= 5.6.0" \
-+				"would enable the RISC-V filter" \
-+				"for better compression" >&2
-+		fi
-+		;;
-+
-+	s390)
-+		ALIGN=2
-+		;;
-+
-+	sh)
-+		ALIGN=2
-+		;;
-+
-+	sparc)
-+		ALIGN=4
-+		BCJ=--sparc
-+		;;
-+
-+	x86)
-+		ALIGN=1
-+		BCJ=--x86
-+		;;
-+
-+	*)
-+		echo "$0: Arch-specific tuning is missing for '$SRCARCH'" >&2
-+
-+		# Guess 2-byte-aligned instructions. Guessing too low
-+		# should hurt less than guessing too high.
-+		ALIGN=2
-+		;;
-+esac
-+
-+# Select the LZMA2 options matching the instruction alignment.
-+case $ALIGN in
-+	1)  LZMA2OPTS= ;;
-+	2)  LZMA2OPTS=lp=1 ;;
-+	4)  LZMA2OPTS=lp=2,lc=2 ;;
-+	*)  echo "$0: ALIGN wrong or missing" >&2; exit 1 ;;
- esac
- 
- # Use single-threaded mode because it compresses a little better
+ # UP and nommu archs use km based percpu allocator
+ #
+ config NEED_PER_CPU_KM
 _
 
-Patches currently in -mm which might be from lasse.collin@tukaani.org are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-maintainers-add-xz-embedded-maintainers.patch
-licenses-add-0bsd-license-text.patch
-xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd.patch
-xz-documentation-staging-xzrst-revise-thoroughly.patch
-xz-fix-comments-and-coding-style.patch
-xz-cleanup-crc32-edits-from-2018.patch
-xz-optimize-for-loop-conditions-in-the-bcj-decoders.patch
-xz-add-arm64-bcj-filter.patch
-xz-add-risc-v-bcj-filter.patch
-xz-use-128-mib-dictionary-and-force-single-threaded-mode.patch
-xz-adjust-arch-specific-options-for-better-kernel-compression.patch
+mm-memory-fix-missing-pte-marker-for-page-on-pte-zaps.patch
+mm-hmm-process-pud-swap-entry-without-pud_huge.patch
+mm-gup-cache-p4d-in-follow_p4d_mask.patch
+mm-gup-check-p4d-presence-before-going-on.patch
+mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch
+mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
+mm-arm-use-macros-to-define-pmd-pud-helpers.patch
+mm-arm-redefine-pmd_huge-with-pmd_leaf.patch
+mm-arm64-merge-pxd_huge-and-pxd_leaf-definitions.patch
+mm-powerpc-redefine-pxd_huge-with-pxd_leaf.patch
+mm-gup-merge-pxd-huge-mapping-checks.patch
+mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
+mm-treewide-remove-pxd_huge.patch
+mm-arm-remove-pmd_thp_or_huge.patch
+mm-document-pxd_leaf-api.patch
+mm-kconfig-config_pgtable_has_huge_leaves.patch
+mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch
+mm-make-hpage_pxd_-macros-even-if-thp.patch
+mm-introduce-vma_pgtable_walk_beginend.patch
+mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing.patch
+mm-gup-refactor-record_subpages-to-find-1st-small-page.patch
+mm-gup-handle-hugetlb-for-no_page_table.patch
+mm-gup-cache-pudp-in-follow_pud_mask.patch
+mm-gup-handle-huge-pud-for-follow_pud_mask.patch
+mm-gup-handle-huge-pmd-for-follow_pmd_mask.patch
+mm-gup-handle-hugepd-for-follow_page.patch
+mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code.patch
 
