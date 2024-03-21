@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BFD913443D
-	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 20:43:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FF7012CD89
+	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 20:43:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711053808; cv=none; b=rmWTHF0i87zIQWuE1VfvgVNv011MnMAkIYkuNTu9TFGrqqLHxcK7xSgJDOpIIvsqxzQWc1zzcJj9c3RsQzQMSYGbwA7LdiVI+brarGBhn8S8X+BwkdCehK4oHfVb/bJSdTEH/mrAYnyf1iwdj6yIMB+/xYrs/Xbz7OE8+9J03JM=
+	t=1711053813; cv=none; b=mZu1myxKTerCw/yQbhxSrxR7kbv40JspPXg4SWSIOFX3jjlM2q2Inj+Z4B2ewd04uNoZ15JcvNB9bMGHIwCiLWurCoOIhptDqI3ES5YoEpejd0Z2mgB4VBo89mC/cwHwswHH/CSOKhS6N3m2kHkStJ4TLlVLemsQD0r5BviWwCc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711053808; c=relaxed/simple;
-	bh=c2m7FTc05fVJCZnPylbnE9+59a2A2DpDWIvNPV+mKGc=;
-	h=Date:To:From:Subject:Message-Id; b=P4tqsLuiR6ylp521Im31PfHudq+ygtxrN+fNZWxUhk5DYRhg60y/567PttUANA1IdfZx8vjwQBYXqdCwbylx88BM6mMWC/iBI/dMpG3zrx9zyBp6jf8FQnJvKQoZmBHrFoqtDhW4qX4V2sgiCYeEOREwls8ZXljGn3KFu4K6gy4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oG1zf/o7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711053813; c=relaxed/simple;
+	bh=fGnamhR+QfFGNAK+F3V/EAQQZpx4tGF+b+Hz8rIz0S4=;
+	h=Date:To:From:Subject:Message-Id; b=KGC8wEPXKUEiSz+kbo67hiI/t2++jmP7B/8fnzCmUaJG3p3d2YdHpbD0r/verOPjdOa2nU6lWjMCGI1Aj2+WkdbWfeLoConKEEvra3ISEy+zr+Oh7dkcESy1pmfhU5AGfya16FrR8RKkWRNFiQuRGY16Fo61BTuvTligJ7MQGp0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EXb6bGlI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oG1zf/o7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3ED5CC433C7;
-	Thu, 21 Mar 2024 20:43:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EXb6bGlI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9A3DC433F1;
+	Thu, 21 Mar 2024 20:43:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711053808;
-	bh=c2m7FTc05fVJCZnPylbnE9+59a2A2DpDWIvNPV+mKGc=;
+	s=korg; t=1711053812;
+	bh=fGnamhR+QfFGNAK+F3V/EAQQZpx4tGF+b+Hz8rIz0S4=;
 	h=Date:To:From:Subject:From;
-	b=oG1zf/o7P1eF0vJgK4nIdLAPFNziBwrJZiPCq5FHv2x7OACh3sc1enNYsh8UhzVrL
-	 rjzZefm27WhYU/Yoz6nW4U01fgmAJCXDHlbjqBDLVq1RC74ZtxnYqKguozo9Ee7my6
-	 gXvmZ5ltmnNFikAniicRPbmFahbrjkJ63ZPuAaqI=
-Date: Thu, 21 Mar 2024 13:43:27 -0700
+	b=EXb6bGlI1Fgrln/41cCZ6E6rqbJc32oTQM4xEonw0TbvE9h4jAQm2n+pu+6NVha1N
+	 WuVuo/0Ovdg0ygNLCwZWe3YyNmmgIXMZ/jeGe+C5a86MSEmu4UbSjVPStgX+FL4C3G
+	 MJrS4eaflIqFWXqhzsbFAwH4ctrLPYhpoRwkhE2o=
+Date: Thu, 21 Mar 2024 13:43:32 -0700
 To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,peterz@infradead.org,pasha.tatashin@soleen.com,ojeda@kernel.org,kent.overstreet@linux.dev,keescook@chromium.org,gary@garyguo.net,dennis@kernel.org,cl@linux.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@samsung.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-introduce-support-for-page-allocation-tagging.patch added to mm-unstable branch
-Message-Id: <20240321204328.3ED5CC433C7@smtp.kernel.org>
+Subject: + lib-introduce-early-boot-parameter-to-avoid-page_ext-memory-overhead.patch added to mm-unstable branch
+Message-Id: <20240321204332.D9A3DC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: introduce support for page allocation tagging
+     Subject: lib: introduce early boot parameter to avoid page_ext memory overhead
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-introduce-support-for-page-allocation-tagging.patch
+     lib-introduce-early-boot-parameter-to-avoid-page_ext-memory-overhead.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-introduce-support-for-page-allocation-tagging.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-introduce-early-boot-parameter-to-avoid-page_ext-memory-overhead.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: lib: introduce support for page allocation tagging
-Date: Thu, 21 Mar 2024 09:36:36 -0700
+Subject: lib: introduce early boot parameter to avoid page_ext memory overhead
+Date: Thu, 21 Mar 2024 09:36:37 -0700
 
-Introduce helper functions to easily instrument page allocators by storing
-a pointer to the allocation tag associated with the code that allocated
-the page in a page_ext field.
+The highest memory overhead from memory allocation profiling comes from
+page_ext objects.  This overhead exists even if the feature is disabled
+but compiled-in.  To avoid it, introduce an early boot parameter that
+prevents page_ext object creation.  The new boot parameter is a tri-state
+with possible values of 0|1|never.  When it is set to "never" the memory
+allocation profiling support is disabled, and overhead is minimized
+(currently no page_ext objects are allocated, in the future more overhead
+might be eliminated).  As a result we also lose ability to enable memory
+allocation profiling at runtime (because there is no space to store
+alloctag references).  Runtime sysctrl becomes read-only if the early boot
+parameter was set to "never".  Note that the default value of this boot
+parameter depends on the CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT
+configuration.  When CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT=n the
+boot parameter is set to "never", therefore eliminating any overhead. 
+CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT=y results in boot parameter
+being set to 1 (enabled).  This allows distributions to avoid any overhead
+by setting CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT=n config and with
+no changes to the kernel command line.
 
-Link: https://lkml.kernel.org/r/20240321163705.3067592-15-surenb@google.com
+We reuse sysctl.vm.mem_profiling boot parameter name in order to avoid
+introducing yet another control.  This change turns it into a tri-state
+early boot parameter.
+
+Link: https://lkml.kernel.org/r/20240321163705.3067592-16-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Co-developed-by: Kent Overstreet <kent.overstreet@linux.dev>
-Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alex Gaynor <alex.gaynor@gmail.com>
@@ -82,6 +99,7 @@ Cc: Christoph Lameter <cl@linux.com>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Gary Guo <gary@garyguo.net>
 Cc: Kees Cook <keescook@chromium.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Miguel Ojeda <ojeda@kernel.org>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -90,213 +108,68 @@ Cc: Wedson Almeida Filho <wedsonaf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_ext.h    |    1 
- include/linux/pgalloc_tag.h |   78 ++++++++++++++++++++++++++++++++++
- lib/Kconfig.debug           |    1 
- lib/alloc_tag.c             |   17 +++++++
- mm/mm_init.c                |    1 
- mm/page_alloc.c             |    4 +
- mm/page_ext.c               |    4 +
- 7 files changed, 105 insertions(+), 1 deletion(-)
+ lib/alloc_tag.c |   41 ++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 40 insertions(+), 1 deletion(-)
 
---- a/include/linux/page_ext.h~lib-introduce-support-for-page-allocation-tagging
-+++ a/include/linux/page_ext.h
-@@ -4,7 +4,6 @@
- 
- #include <linux/types.h>
- #include <linux/stacktrace.h>
--#include <linux/stackdepot.h>
- 
- struct pglist_data;
- 
---- /dev/null
-+++ a/include/linux/pgalloc_tag.h
-@@ -0,0 +1,78 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * page allocation tagging
-+ */
-+#ifndef _LINUX_PGALLOC_TAG_H
-+#define _LINUX_PGALLOC_TAG_H
-+
-+#include <linux/alloc_tag.h>
-+
-+#ifdef CONFIG_MEM_ALLOC_PROFILING
-+
-+#include <linux/page_ext.h>
-+
-+extern struct page_ext_operations page_alloc_tagging_ops;
-+extern struct page_ext *page_ext_get(struct page *page);
-+extern void page_ext_put(struct page_ext *page_ext);
-+
-+static inline union codetag_ref *codetag_ref_from_page_ext(struct page_ext *page_ext)
-+{
-+	return (void *)page_ext + page_alloc_tagging_ops.offset;
-+}
-+
-+static inline struct page_ext *page_ext_from_codetag_ref(union codetag_ref *ref)
-+{
-+	return (void *)ref - page_alloc_tagging_ops.offset;
-+}
-+
-+/* Should be called only if mem_alloc_profiling_enabled() */
-+static inline union codetag_ref *get_page_tag_ref(struct page *page)
-+{
-+	if (page) {
-+		struct page_ext *page_ext = page_ext_get(page);
-+
-+		if (page_ext)
-+			return codetag_ref_from_page_ext(page_ext);
-+	}
-+	return NULL;
-+}
-+
-+static inline void put_page_tag_ref(union codetag_ref *ref)
-+{
-+	page_ext_put(page_ext_from_codetag_ref(ref));
-+}
-+
-+static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
-+				   unsigned int nr)
-+{
-+	if (mem_alloc_profiling_enabled()) {
-+		union codetag_ref *ref = get_page_tag_ref(page);
-+
-+		if (ref) {
-+			alloc_tag_add(ref, task->alloc_tag, PAGE_SIZE * nr);
-+			put_page_tag_ref(ref);
-+		}
-+	}
-+}
-+
-+static inline void pgalloc_tag_sub(struct page *page, unsigned int nr)
-+{
-+	if (mem_alloc_profiling_enabled()) {
-+		union codetag_ref *ref = get_page_tag_ref(page);
-+
-+		if (ref) {
-+			alloc_tag_sub(ref, PAGE_SIZE * nr);
-+			put_page_tag_ref(ref);
-+		}
-+	}
-+}
-+
-+#else /* CONFIG_MEM_ALLOC_PROFILING */
-+
-+static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
-+				   unsigned int nr) {}
-+static inline void pgalloc_tag_sub(struct page *page, unsigned int nr) {}
-+
-+#endif /* CONFIG_MEM_ALLOC_PROFILING */
-+
-+#endif /* _LINUX_PGALLOC_TAG_H */
---- a/lib/alloc_tag.c~lib-introduce-support-for-page-allocation-tagging
+--- a/lib/alloc_tag.c~lib-introduce-early-boot-parameter-to-avoid-page_ext-memory-overhead
 +++ a/lib/alloc_tag.c
-@@ -3,6 +3,7 @@
- #include <linux/fs.h>
- #include <linux/gfp.h>
- #include <linux/module.h>
-+#include <linux/page_ext.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_buf.h>
- #include <linux/seq_file.h>
-@@ -115,6 +116,22 @@ static bool alloc_tag_module_unload(stru
+@@ -116,9 +116,46 @@ static bool alloc_tag_module_unload(stru
  	return module_unused;
  }
  
-+static __init bool need_page_alloc_tagging(void)
++#ifdef CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT
++static bool mem_profiling_support __meminitdata = true;
++#else
++static bool mem_profiling_support __meminitdata;
++#endif
++
++static int __init setup_early_mem_profiling(char *str)
 +{
-+	return true;
++	bool enable;
++
++	if (!str || !str[0])
++		return -EINVAL;
++
++	if (!strncmp(str, "never", 5)) {
++		enable = false;
++		mem_profiling_support = false;
++	} else {
++		int res;
++
++		res = kstrtobool(str, &enable);
++		if (res)
++			return res;
++
++		mem_profiling_support = true;
++	}
++
++	if (enable != static_key_enabled(&mem_alloc_profiling_key)) {
++		if (enable)
++			static_branch_enable(&mem_alloc_profiling_key);
++		else
++			static_branch_disable(&mem_alloc_profiling_key);
++	}
++
++	return 0;
 +}
++early_param("sysctl.vm.mem_profiling", setup_early_mem_profiling);
 +
-+static __init void init_page_alloc_tagging(void)
-+{
-+}
-+
-+struct page_ext_operations page_alloc_tagging_ops = {
-+	.size = sizeof(union codetag_ref),
-+	.need = need_page_alloc_tagging,
-+	.init = init_page_alloc_tagging,
-+};
-+EXPORT_SYMBOL(page_alloc_tagging_ops);
-+
- static struct ctl_table memory_allocation_profiling_sysctls[] = {
- 	{
- 		.procname	= "mem_profiling",
---- a/lib/Kconfig.debug~lib-introduce-support-for-page-allocation-tagging
-+++ a/lib/Kconfig.debug
-@@ -978,6 +978,7 @@ config MEM_ALLOC_PROFILING
- 	depends on PROC_FS
- 	depends on !DEBUG_FORCE_WEAK_PER_CPU
- 	select CODE_TAGGING
-+	select PAGE_EXTENSION
- 	help
- 	  Track allocation source code and record total allocation size
- 	  initiated at that code location. The mechanism can be used to track
---- a/mm/mm_init.c~lib-introduce-support-for-page-allocation-tagging
-+++ a/mm/mm_init.c
-@@ -24,6 +24,7 @@
- #include <linux/page_ext.h>
- #include <linux/pti.h>
- #include <linux/pgtable.h>
-+#include <linux/stackdepot.h>
- #include <linux/swap.h>
- #include <linux/cma.h>
- #include <linux/crash_dump.h>
---- a/mm/page_alloc.c~lib-introduce-support-for-page-allocation-tagging
-+++ a/mm/page_alloc.c
-@@ -54,6 +54,7 @@
- #include <linux/khugepaged.h>
- #include <linux/delayacct.h>
- #include <linux/cacheinfo.h>
-+#include <linux/pgalloc_tag.h>
- #include <asm/div64.h>
- #include "internal.h"
- #include "shuffle.h"
-@@ -1101,6 +1102,7 @@ __always_inline bool free_pages_prepare(
- 		/* Do not let hwpoison pages hit pcplists/buddy */
- 		reset_page_owner(page, order);
- 		page_table_check_free(page, order);
-+		pgalloc_tag_sub(page, 1 << order);
- 		return false;
- 	}
- 
-@@ -1140,6 +1142,7 @@ __always_inline bool free_pages_prepare(
- 	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
- 	reset_page_owner(page, order);
- 	page_table_check_free(page, order);
-+	pgalloc_tag_sub(page, 1 << order);
- 
- 	if (!PageHighMem(page)) {
- 		debug_check_no_locks_freed(page_address(page),
-@@ -1533,6 +1536,7 @@ inline void post_alloc_hook(struct page
- 
- 	set_page_owner(page, order, gfp_flags);
- 	page_table_check_alloc(page, order);
-+	pgalloc_tag_add(page, current, 1 << order);
+ static __init bool need_page_alloc_tagging(void)
+ {
+-	return true;
++	return mem_profiling_support;
  }
  
- static void prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags,
---- a/mm/page_ext.c~lib-introduce-support-for-page-allocation-tagging
-+++ a/mm/page_ext.c
-@@ -10,6 +10,7 @@
- #include <linux/page_idle.h>
- #include <linux/page_table_check.h>
- #include <linux/rcupdate.h>
-+#include <linux/pgalloc_tag.h>
+ static __init void init_page_alloc_tagging(void)
+@@ -158,6 +195,8 @@ static int __init alloc_tag_init(void)
+ 	if (IS_ERR_OR_NULL(alloc_tag_cttype))
+ 		return PTR_ERR(alloc_tag_cttype);
  
- /*
-  * struct page extension
-@@ -82,6 +83,9 @@ static struct page_ext_operations *page_
- #if defined(CONFIG_PAGE_IDLE_FLAG) && !defined(CONFIG_64BIT)
- 	&page_idle_ops,
- #endif
-+#ifdef CONFIG_MEM_ALLOC_PROFILING
-+	&page_alloc_tagging_ops,
-+#endif
- #ifdef CONFIG_PAGE_TABLE_CHECK
- 	&page_table_check_ops,
- #endif
++	if (!mem_profiling_support)
++		memory_allocation_profiling_sysctls[0].mode = 0444;
+ 	register_sysctl_init("vm", memory_allocation_profiling_sysctls);
+ 	procfs_init();
+ 
 _
 
 Patches currently in -mm which might be from surenb@google.com are
