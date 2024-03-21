@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47AA8BA57
-	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 23:12:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3101D1DFD6
+	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 23:12:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711062764; cv=none; b=Y9+rLE7/0dcrDOyxRC674yx0DNqL0bODDETH/qnao2ZR01xGxu4dV0ctro+AgZypjIVkU6vmtcFXsrAnURyUf6LM2NUGyqLa+Qykneg55ObRCkckvGqSJM6/rEihJUOvLpzXgKP/baQkguwIh66PU6CSv9mXoV/djtwxS9/xzwY=
+	t=1711062766; cv=none; b=iuzRRSHaCIMg3GprHzD5Xi6Fj0NYbEDHEFZ2N/o6XQQMPElsSp1xWaGKvkEISBMG27B4GpvXXBDYACWmlMPfSyUvVJ2Cw98qXkkNOVUGT0Yafa2UIspoObiOfLjWcK3wJ84Xv38f0foTBKF1KJXpuRgqX0KhuMOLLO8OEeZINGk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711062764; c=relaxed/simple;
-	bh=DlXrU28KtrNdSgrbdIAWJ6gYVhLjg78yo0OuKseSeN8=;
-	h=Date:To:From:Subject:Message-Id; b=Gqgoq92o6AVWy3eL8p7CTDbeoVXL0uOAi9j1Qu72AvBxbYz/jurvDc4/+Nkvo6Z0yupG3Q1AfrGr6S19xPz445kKbiThGx45jll7IuuL4ys8wnTswvLmJiGW3tsfYGkkH7Minm6hyZAc6jZezRcYMrpFxw+8cDPDqhfq3WEhDWk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KcDeODOR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711062766; c=relaxed/simple;
+	bh=Hq6pAUQPAB4FD/UrcwwoLT60F5EzoK8G8CAWKdZCkNo=;
+	h=Date:To:From:Subject:Message-Id; b=aiTSKXZHM+pKDLXiH9sK//qi+LHLwMPKsbL1rtjEWoFTdRH8gprCyk8FpmPTB+51DVa9IzKHOztQoR3NVYuulpS9z2hit0Py4sI/pWNPgs24hH8QmCnbrdVWbPm5xjK/MHQbiLR4W/Z786mY/OuUcb2PjTmPhR53rtCRaQpMY5c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1JbOdh1z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KcDeODOR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4FB1C43394;
-	Thu, 21 Mar 2024 23:12:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1JbOdh1z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91F21C433F1;
+	Thu, 21 Mar 2024 23:12:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711062763;
-	bh=DlXrU28KtrNdSgrbdIAWJ6gYVhLjg78yo0OuKseSeN8=;
+	s=korg; t=1711062765;
+	bh=Hq6pAUQPAB4FD/UrcwwoLT60F5EzoK8G8CAWKdZCkNo=;
 	h=Date:To:From:Subject:From;
-	b=KcDeODOR7yAa7gJdQD3YaLC5efNzAbvoZMQqfZOYieOuBVvpPh76XbZU3qBSK9Pc0
-	 ydy5/vU61Iw6xM3qh4u0YKYgSNBq9eWM+FoA26rRdCJxOe/puYJw7ZIuxOFtIP2omd
-	 5OeQAIZwV2PV+WITnKoZ+crEdmOX/7hmYexaKoPE=
-Date: Thu, 21 Mar 2024 16:12:43 -0700
+	b=1JbOdh1zGjJ9rpoKvkN1+qjhuzbdjSAj99lN2m67p/hbrcSHr4kmbc+RVj/Dlvu1R
+	 YDnS6YFmWGxRtLqj86LZ6Ke2ryt66Q43uicP7RKrlLsDDDO64ppNAK5Em/8KfxachM
+	 I5cTEHvw/arwvmDANzBGWRM1PnooQ3kdwK7+6a5E=
+Date: Thu, 21 Mar 2024 16:12:45 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,vbabka@suse.cz,mgorman@techsingularity.net,david@redhat.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-optimize-free_unref_folios.patch added to mm-unstable branch
-Message-Id: <20240321231243.A4FB1C43394@smtp.kernel.org>
+Subject: + mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch added to mm-unstable branch
+Message-Id: <20240321231245.91F21C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: optimize free_unref_folios()
+     Subject: mm: page_alloc: fix up block types when merging compatible blocks
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-optimize-free_unref_folios.patch
+     mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-optimize-free_unref_folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,99 +59,55 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: optimize free_unref_folios()
-Date: Wed, 20 Mar 2024 14:02:07 -0400
+Subject: mm: page_alloc: fix up block types when merging compatible blocks
+Date: Wed, 20 Mar 2024 14:02:08 -0400
 
-Move direct freeing of isolated pages to the lock-breaking block in the
-second loop.  This saves an unnecessary migratetype reassessment.
+The buddy allocator coalesces compatible blocks during freeing, but it
+doesn't update the types of the subblocks to match.  When an allocation
+later breaks the chunk down again, its pieces will be put on freelists of
+the wrong type.  This encourages incompatible page mixing (ask for one
+type, get another), and thus long-term fragmentation.
 
-Minor comment and local variable scoping cleanups.
+Update the subblocks when merging a larger chunk, such that a later
+expand() will maintain freelist type hygiene.
 
-Link: https://lkml.kernel.org/r/20240320180429.678181-3-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20240320180429.678181-4-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Tested-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   32 +++++++++++++++++++++++---------
- 1 file changed, 23 insertions(+), 9 deletions(-)
+ mm/page_alloc.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-optimize-free_unref_folios
+--- a/mm/page_alloc.c~mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks
 +++ a/mm/page_alloc.c
-@@ -2493,7 +2493,7 @@ void free_unref_folios(struct folio_batc
- 	unsigned long __maybe_unused UP_flags;
- 	struct per_cpu_pages *pcp = NULL;
- 	struct zone *locked_zone = NULL;
--	int i, j, migratetype;
-+	int i, j;
+@@ -786,10 +786,17 @@ static inline void __free_one_page(struc
+ 			 */
+ 			int buddy_mt = get_pfnblock_migratetype(buddy, buddy_pfn);
  
- 	/* Prepare folios for freeing */
- 	for (i = 0, j = 0; i < folios->nr; i++) {
-@@ -2505,14 +2505,15 @@ void free_unref_folios(struct folio_batc
- 			folio_undo_large_rmappable(folio);
- 		if (!free_pages_prepare(&folio->page, order))
- 			continue;
--
- 		/*
--		 * Free isolated folios and orders not handled on the PCP
--		 * directly to the allocator, see comment in free_unref_page.
-+		 * Free orders not handled on the PCP directly to the
-+		 * allocator.
- 		 */
--		migratetype = get_pfnblock_migratetype(&folio->page, pfn);
--		if (!pcp_allowed_order(order) ||
--		    is_migrate_isolate(migratetype)) {
-+		if (!pcp_allowed_order(order)) {
-+			int migratetype;
-+
-+			migratetype = get_pfnblock_migratetype(&folio->page,
-+							       pfn);
- 			free_one_page(folio_zone(folio), &folio->page, pfn,
- 					order, migratetype, FPI_NONE);
- 			continue;
-@@ -2529,15 +2530,29 @@ void free_unref_folios(struct folio_batc
- 		struct zone *zone = folio_zone(folio);
- 		unsigned long pfn = folio_pfn(folio);
- 		unsigned int order = (unsigned long)folio->private;
-+		int migratetype;
- 
- 		folio->private = NULL;
- 		migratetype = get_pfnblock_migratetype(&folio->page, pfn);
- 
- 		/* Different zone requires a different pcp lock */
--		if (zone != locked_zone) {
-+		if (zone != locked_zone ||
-+		    is_migrate_isolate(migratetype)) {
- 			if (pcp) {
- 				pcp_spin_unlock(pcp);
- 				pcp_trylock_finish(UP_flags);
-+				locked_zone = NULL;
-+				pcp = NULL;
+-			if (migratetype != buddy_mt
+-					&& (!migratetype_is_mergeable(migratetype) ||
+-						!migratetype_is_mergeable(buddy_mt)))
+-				goto done_merging;
++			if (migratetype != buddy_mt) {
++				if (!migratetype_is_mergeable(migratetype) ||
++				    !migratetype_is_mergeable(buddy_mt))
++					goto done_merging;
++				/*
++				 * Match buddy type. This ensures that
++				 * an expand() down the line puts the
++				 * sub-blocks on the right freelists.
++				 */
++				set_pageblock_migratetype(buddy, migratetype);
 +			}
-+
-+			/*
-+			 * Free isolated pages directly to the
-+			 * allocator, see comment in free_unref_page.
-+			 */
-+			if (is_migrate_isolate(migratetype)) {
-+				free_one_page(zone, &folio->page, pfn,
-+					      order, migratetype, FPI_NONE);
-+				continue;
- 			}
+ 		}
  
- 			/*
-@@ -2550,7 +2565,6 @@ void free_unref_folios(struct folio_batc
- 				pcp_trylock_finish(UP_flags);
- 				free_one_page(zone, &folio->page, pfn,
- 					      order, migratetype, FPI_NONE);
--				locked_zone = NULL;
- 				continue;
- 			}
- 			locked_zone = zone;
+ 		/*
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
