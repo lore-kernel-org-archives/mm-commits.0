@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DFE779EA
-	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 23:12:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47AA8BA57
+	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 23:12:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711062762; cv=none; b=lCuUcU1UMkfmokWyWxH2FEU1rcNMmgTD+qRx7B2CzQ4XBXC1x+aLi+9u/1wKscS6QU/qGKdT5CAFhzNuVPv3BtFhO93R0U+rlRD2fWOgpFf5gfwJvL/gfg2XlwcjRvAzIqqSCuJCZGQSxFbpr/WFl5RypAuWa3f7ulvvGbiZsl0=
+	t=1711062764; cv=none; b=Y9+rLE7/0dcrDOyxRC674yx0DNqL0bODDETH/qnao2ZR01xGxu4dV0ctro+AgZypjIVkU6vmtcFXsrAnURyUf6LM2NUGyqLa+Qykneg55ObRCkckvGqSJM6/rEihJUOvLpzXgKP/baQkguwIh66PU6CSv9mXoV/djtwxS9/xzwY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711062762; c=relaxed/simple;
-	bh=gH0xEmk72zVIX2goW6plA0JuNZFzJAlVU3oS5NQTV5E=;
-	h=Date:To:From:Subject:Message-Id; b=TomOiTOcoVA126gHil3LQayPbsAO9izak6T4z91o6VgQUv8AzhkMMfCbPECz9hRnfjXpsyQuwnZUqQkhxuof0V8De47zBuP2Mpaue+Q55bTSQdN0k1RHvVeMt+JJzWsEMyO9UxFly9Nt2FFAdEDOxKSc7m+oRxeAunHFRpZ8c5k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=atg7FyBH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711062764; c=relaxed/simple;
+	bh=DlXrU28KtrNdSgrbdIAWJ6gYVhLjg78yo0OuKseSeN8=;
+	h=Date:To:From:Subject:Message-Id; b=Gqgoq92o6AVWy3eL8p7CTDbeoVXL0uOAi9j1Qu72AvBxbYz/jurvDc4/+Nkvo6Z0yupG3Q1AfrGr6S19xPz445kKbiThGx45jll7IuuL4ys8wnTswvLmJiGW3tsfYGkkH7Minm6hyZAc6jZezRcYMrpFxw+8cDPDqhfq3WEhDWk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KcDeODOR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="atg7FyBH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3BC3C433C7;
-	Thu, 21 Mar 2024 23:12:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KcDeODOR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4FB1C43394;
+	Thu, 21 Mar 2024 23:12:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711062761;
-	bh=gH0xEmk72zVIX2goW6plA0JuNZFzJAlVU3oS5NQTV5E=;
+	s=korg; t=1711062763;
+	bh=DlXrU28KtrNdSgrbdIAWJ6gYVhLjg78yo0OuKseSeN8=;
 	h=Date:To:From:Subject:From;
-	b=atg7FyBHZqcLhAWCC52EAlavnVBhrfJi4t7d8fVyVCu8TrG3KtvleSeImdyA2YJtq
-	 l7sgoYzz2ktO35K3e6yaZpHnEyHUKgDXc0dgB2BwfyciXkG7puMSmy3oKPT6M8Osnc
-	 LrzPYRMQ8kPayaYxDiOVRaq26LFegHOE3ip+Zn2g=
-Date: Thu, 21 Mar 2024 16:12:41 -0700
+	b=KcDeODOR7yAa7gJdQD3YaLC5efNzAbvoZMQqfZOYieOuBVvpPh76XbZU3qBSK9Pc0
+	 ydy5/vU61Iw6xM3qh4u0YKYgSNBq9eWM+FoA26rRdCJxOe/puYJw7ZIuxOFtIP2omd
+	 5OeQAIZwV2PV+WITnKoZ+crEdmOX/7hmYexaKoPE=
+Date: Thu, 21 Mar 2024 16:12:43 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,vbabka@suse.cz,mgorman@techsingularity.net,david@redhat.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-remove-pcppage-migratetype-caching.patch added to mm-unstable branch
-Message-Id: <20240321231241.C3BC3C433C7@smtp.kernel.org>
+Subject: + mm-page_alloc-optimize-free_unref_folios.patch added to mm-unstable branch
+Message-Id: <20240321231243.A4FB1C43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: remove pcppage migratetype caching
+     Subject: mm: page_alloc: optimize free_unref_folios()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-remove-pcppage-migratetype-caching.patch
+     mm-page_alloc-optimize-free_unref_folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-pcppage-migratetype-caching.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-optimize-free_unref_folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,424 +59,99 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: remove pcppage migratetype caching
-Date: Wed, 20 Mar 2024 14:02:06 -0400
+Subject: mm: page_alloc: optimize free_unref_folios()
+Date: Wed, 20 Mar 2024 14:02:07 -0400
 
-Patch series "mm: page_alloc: freelist migratetype hygiene", v4.
+Move direct freeing of isolated pages to the lock-breaking block in the
+second loop.  This saves an unnecessary migratetype reassessment.
 
-The page allocator's mobility grouping is intended to keep unmovable pages
-separate from reclaimable/compactable ones to allow on-demand
-defragmentation for higher-order allocations and huge pages.
+Minor comment and local variable scoping cleanups.
 
-Currently, there are several places where accidental type mixing occurs:
-an allocation asks for a page of a certain migratetype and receives
-another.  This ruins pageblocks for compaction, which in turn makes
-allocating huge pages more expensive and less reliable.
-
-The series addresses those causes.  The last patch adds type checks on all
-freelist movements to prevent new violations being introduced.
-
-The benefits can be seen in a mixed workload that stresses the machine
-with a memcache-type workload and a kernel build job while periodically
-attempting to allocate batches of THP.  The following data is aggregated
-over 50 consecutive defconfig builds:
-
-                                                        VANILLA                 PATCHED
-Hugealloc Time mean                      165843.93 (    +0.00%)  113025.88 (   -31.85%)
-Hugealloc Time stddev                    158957.35 (    +0.00%)  114716.07 (   -27.83%)
-Kbuild Real time                            310.24 (    +0.00%)     300.73 (    -3.06%)
-Kbuild User time                           1271.13 (    +0.00%)    1259.42 (    -0.92%)
-Kbuild System time                          582.02 (    +0.00%)     559.79 (    -3.81%)
-THP fault alloc                           30585.14 (    +0.00%)   40853.62 (   +33.57%)
-THP fault fallback                        36626.46 (    +0.00%)   26357.62 (   -28.04%)
-THP fault fail rate %                        54.49 (    +0.00%)      39.22 (   -27.53%)
-Pagealloc fallback                         1328.00 (    +0.00%)       1.00 (   -99.85%)
-Pagealloc type mismatch                  181009.50 (    +0.00%)       0.00 (  -100.00%)
-Direct compact stall                        434.56 (    +0.00%)     257.66 (   -40.61%)
-Direct compact fail                         421.70 (    +0.00%)     249.94 (   -40.63%)
-Direct compact success                       12.86 (    +0.00%)       7.72 (   -37.09%)
-Direct compact success rate %                 2.86 (    +0.00%)       2.82 (    -0.96%)
-Compact daemon scanned migrate          3370059.62 (    +0.00%) 3612054.76 (    +7.18%)
-Compact daemon scanned free             7718439.20 (    +0.00%) 5386385.02 (   -30.21%)
-Compact direct scanned migrate           309248.62 (    +0.00%)  176721.04 (   -42.85%)
-Compact direct scanned free              433582.84 (    +0.00%)  315727.66 (   -27.18%)
-Compact migrate scanned daemon %             91.20 (    +0.00%)      94.48 (    +3.56%)
-Compact free scanned daemon %                94.58 (    +0.00%)      94.42 (    -0.16%)
-Compact total migrate scanned           3679308.24 (    +0.00%) 3788775.80 (    +2.98%)
-Compact total free scanned              8152022.04 (    +0.00%) 5702112.68 (   -30.05%)
-Alloc stall                                 872.04 (    +0.00%)    5156.12 (  +490.71%)
-Pages kswapd scanned                     510645.86 (    +0.00%)    3394.94 (   -99.33%)
-Pages kswapd reclaimed                   134811.62 (    +0.00%)    2701.26 (   -98.00%)
-Pages direct scanned                      99546.06 (    +0.00%)  376407.52 (  +278.12%)
-Pages direct reclaimed                    62123.40 (    +0.00%)  289535.70 (  +366.06%)
-Pages total scanned                      610191.92 (    +0.00%)  379802.46 (   -37.76%)
-Pages scanned kswapd %                       76.36 (    +0.00%)       0.10 (   -98.58%)
-Swap out                                  12057.54 (    +0.00%)   15022.98 (   +24.59%)
-Swap in                                     209.16 (    +0.00%)     256.48 (   +22.52%)
-File refaults                             17701.64 (    +0.00%)   11765.40 (   -33.53%)
-
-Huge page success rate is higher, allocation latencies are shorter and
-more predictable.
-
-Stealing (fallback) rate is drastically reduced.  Notably, while the
-vanilla kernel keeps doing fallbacks on an ongoing basis, the patched
-kernel enters a steady state once the distribution of block types is
-adequate for the workload.  Steals over 50 runs:
-
-VANILLA         PATCHED
-1504.0		227.0
-1557.0		6.0
-1391.0		13.0
-1080.0		26.0
-1057.0		40.0
-1156.0		6.0
-805.0		46.0
-736.0		20.0
-1747.0		2.0
-1699.0		34.0
-1269.0		13.0
-1858.0		12.0
-907.0		4.0
-727.0		2.0
-563.0		2.0
-3094.0		2.0
-10211.0		3.0
-2621.0		1.0
-5508.0		2.0
-1060.0		2.0
-538.0		3.0
-5773.0		2.0
-2199.0		0.0
-3781.0		2.0
-1387.0		1.0
-4977.0		0.0
-2865.0		1.0
-1814.0		1.0
-3739.0		1.0
-6857.0		0.0
-382.0		0.0
-407.0		1.0
-3784.0		0.0
-297.0		0.0
-298.0		0.0
-6636.0		0.0
-4188.0		0.0
-242.0		0.0
-9960.0		0.0
-5816.0		0.0
-354.0		0.0
-287.0		0.0
-261.0		0.0
-140.0		1.0
-2065.0		0.0
-312.0		0.0
-331.0		0.0
-164.0		0.0
-465.0		1.0
-219.0		0.0
-
-Type mismatches are down too.  Those count every time an allocation
-request asks for one migratetype and gets another.  This can still occur
-minimally in the patched kernel due to non-stealing fallbacks, but it's
-quite rare and follows the pattern of overall fallbacks - once the block
-type distribution settles, mismatches cease as well:
-
-VANILLA:        PATCHED:
-182602.0	268.0
-135794.0	20.0
-88619.0		19.0
-95973.0		0.0
-129590.0	0.0
-129298.0	0.0
-147134.0	0.0
-230854.0	0.0
-239709.0	0.0
-137670.0	0.0
-132430.0	0.0
-65712.0		0.0
-57901.0		0.0
-67506.0		0.0
-63565.0		4.0
-34806.0		0.0
-42962.0		0.0
-32406.0		0.0
-38668.0		0.0
-61356.0		0.0
-57800.0		0.0
-41435.0		0.0
-83456.0		0.0
-65048.0		0.0
-28955.0		0.0
-47597.0		0.0
-75117.0		0.0
-55564.0		0.0
-38280.0		0.0
-52404.0		0.0
-26264.0		0.0
-37538.0		0.0
-19671.0		0.0
-30936.0		0.0
-26933.0		0.0
-16962.0		0.0
-44554.0		0.0
-46352.0		0.0
-24995.0		0.0
-35152.0		0.0
-12823.0		0.0
-21583.0		0.0
-18129.0		0.0
-31693.0		0.0
-28745.0		0.0
-33308.0		0.0
-31114.0		0.0
-35034.0		0.0
-12111.0		0.0
-24885.0		0.0
-
-Compaction work is markedly reduced despite much better THP rates.
-
-In the vanilla kernel, reclaim seems to have been driven primarily by
-watermark boosting that happens as a result of fallbacks.  With those all
-but eliminated, watermarks average lower and kswapd does less work.  The
-uptick in direct reclaim is because THP requests have to fend for
-themselves more often - which is intended policy right now.  Aggregate
-reclaim activity is lowered significantly, though.
-
-
-This patch (of 10):
-
-The idea behind the cache is to save get_pageblock_migratetype() lookups
-during bulk freeing.  A microbenchmark suggests this isn't helping,
-though.  The pcp migratetype can get stale, which means that bulk freeing
-has an extra branch to check if the pageblock was isolated while on the
-pcp.
-
-While the variance overlaps, the cache write and the branch seem to make
-this a net negative.  The following test allocates and frees batches of
-10,000 pages (~3x the pcp high marks to trigger flushing):
-
-Before:
-          8,668.48 msec task-clock                       #   99.735 CPUs utilized               ( +-  2.90% )
-                19      context-switches                 #    4.341 /sec                        ( +-  3.24% )
-                 0      cpu-migrations                   #    0.000 /sec
-            17,440      page-faults                      #    3.984 K/sec                       ( +-  2.90% )
-    41,758,692,473      cycles                           #    9.541 GHz                         ( +-  2.90% )
-   126,201,294,231      instructions                     #    5.98  insn per cycle              ( +-  2.90% )
-    25,348,098,335      branches                         #    5.791 G/sec                       ( +-  2.90% )
-        33,436,921      branch-misses                    #    0.26% of all branches             ( +-  2.90% )
-
-         0.0869148 +- 0.0000302 seconds time elapsed  ( +-  0.03% )
-
-After:
-          8,444.81 msec task-clock                       #   99.726 CPUs utilized               ( +-  2.90% )
-                22      context-switches                 #    5.160 /sec                        ( +-  3.23% )
-                 0      cpu-migrations                   #    0.000 /sec
-            17,443      page-faults                      #    4.091 K/sec                       ( +-  2.90% )
-    40,616,738,355      cycles                           #    9.527 GHz                         ( +-  2.90% )
-   126,383,351,792      instructions                     #    6.16  insn per cycle              ( +-  2.90% )
-    25,224,985,153      branches                         #    5.917 G/sec                       ( +-  2.90% )
-        32,236,793      branch-misses                    #    0.25% of all branches             ( +-  2.90% )
-
-         0.0846799 +- 0.0000412 seconds time elapsed  ( +-  0.05% )
-
-A side effect is that this also ensures that pages whose pageblock gets
-stolen while on the pcplist end up on the right freelist and we don't
-perform potentially type-incompatible buddy merges (or skip merges when we
-shouldn't), which is likely beneficial to long-term fragmentation
-management, although the effects would be harder to measure.  Settle for
-simpler and faster code as justification here.
-
-Link: https://lkml.kernel.org/r/20240320180429.678181-1-hannes@cmpxchg.org
-Link: https://lkml.kernel.org/r/20240320180429.678181-2-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20240320180429.678181-3-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
 Tested-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   66 +++++++++-------------------------------------
- 1 file changed, 14 insertions(+), 52 deletions(-)
+ mm/page_alloc.c |   32 +++++++++++++++++++++++---------
+ 1 file changed, 23 insertions(+), 9 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-remove-pcppage-migratetype-caching
+--- a/mm/page_alloc.c~mm-page_alloc-optimize-free_unref_folios
 +++ a/mm/page_alloc.c
-@@ -207,24 +207,6 @@ EXPORT_SYMBOL(node_states);
+@@ -2493,7 +2493,7 @@ void free_unref_folios(struct folio_batc
+ 	unsigned long __maybe_unused UP_flags;
+ 	struct per_cpu_pages *pcp = NULL;
+ 	struct zone *locked_zone = NULL;
+-	int i, j, migratetype;
++	int i, j;
  
- gfp_t gfp_allowed_mask __read_mostly = GFP_BOOT_MASK;
- 
--/*
-- * A cached value of the page's pageblock's migratetype, used when the page is
-- * put on a pcplist. Used to avoid the pageblock migratetype lookup when
-- * freeing from pcplists in most cases, at the cost of possibly becoming stale.
-- * Also the migratetype set in the page does not necessarily match the pcplist
-- * index, e.g. page might have MIGRATE_CMA set but be on a pcplist with any
-- * other index - this ensures that it will be put on the correct CMA freelist.
-- */
--static inline int get_pcppage_migratetype(struct page *page)
--{
--	return page->index;
--}
--
--static inline void set_pcppage_migratetype(struct page *page, int migratetype)
--{
--	page->index = migratetype;
--}
--
- #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
- unsigned int pageblock_order __read_mostly;
- #endif
-@@ -1195,7 +1177,6 @@ static void free_pcppages_bulk(struct zo
- {
- 	unsigned long flags;
- 	unsigned int order;
--	bool isolated_pageblocks;
- 	struct page *page;
- 
- 	/*
-@@ -1208,7 +1189,6 @@ static void free_pcppages_bulk(struct zo
- 	pindex = pindex - 1;
- 
- 	spin_lock_irqsave(&zone->lock, flags);
--	isolated_pageblocks = has_isolate_pageblock(zone);
- 
- 	while (count > 0) {
- 		struct list_head *list;
-@@ -1224,23 +1204,19 @@ static void free_pcppages_bulk(struct zo
- 		order = pindex_to_order(pindex);
- 		nr_pages = 1 << order;
- 		do {
-+			unsigned long pfn;
- 			int mt;
- 
- 			page = list_last_entry(list, struct page, pcp_list);
--			mt = get_pcppage_migratetype(page);
-+			pfn = page_to_pfn(page);
-+			mt = get_pfnblock_migratetype(page, pfn);
- 
- 			/* must delete to avoid corrupting pcp list */
- 			list_del(&page->pcp_list);
- 			count -= nr_pages;
- 			pcp->count -= nr_pages;
- 
--			/* MIGRATE_ISOLATE page should not go to pcplists */
--			VM_BUG_ON_PAGE(is_migrate_isolate(mt), page);
--			/* Pageblock could have been isolated meanwhile */
--			if (unlikely(isolated_pageblocks))
--				mt = get_pageblock_migratetype(page);
--
--			__free_one_page(page, page_to_pfn(page), zone, order, mt, FPI_NONE);
-+			__free_one_page(page, pfn, zone, order, mt, FPI_NONE);
- 			trace_mm_page_pcpu_drain(page, order, mt);
- 		} while (count > 0 && !list_empty(list));
- 	}
-@@ -1580,7 +1556,6 @@ struct page *__rmqueue_smallest(struct z
- 			continue;
- 		del_page_from_free_list(page, zone, current_order);
- 		expand(zone, page, order, current_order, migratetype);
--		set_pcppage_migratetype(page, migratetype);
- 		trace_mm_page_alloc_zone_locked(page, order, migratetype,
- 				pcp_allowed_order(order) &&
- 				migratetype < MIGRATE_PCPTYPES);
-@@ -2151,7 +2126,7 @@ static int rmqueue_bulk(struct zone *zon
- 		 * pages are ordered properly.
- 		 */
- 		list_add_tail(&page->pcp_list, list);
--		if (is_migrate_cma(get_pcppage_migratetype(page)))
-+		if (is_migrate_cma(get_pageblock_migratetype(page)))
- 			__mod_zone_page_state(zone, NR_FREE_CMA_PAGES,
- 					      -(1 << order));
- 	}
-@@ -2347,19 +2322,6 @@ void drain_all_pages(struct zone *zone)
- 	__drain_all_pages(zone, false);
- }
- 
--static bool free_unref_page_prepare(struct page *page, unsigned long pfn,
--							unsigned int order)
--{
--	int migratetype;
--
--	if (!free_pages_prepare(page, order))
--		return false;
--
--	migratetype = get_pfnblock_migratetype(page, pfn);
--	set_pcppage_migratetype(page, migratetype);
--	return true;
--}
--
- static int nr_pcp_free(struct per_cpu_pages *pcp, int batch, int high, bool free_high)
- {
- 	int min_nr_free, max_nr_free;
-@@ -2492,7 +2454,7 @@ void free_unref_page(struct page *page,
- 	unsigned long pfn = page_to_pfn(page);
- 	int migratetype, pcpmigratetype;
- 
--	if (!free_unref_page_prepare(page, pfn, order))
-+	if (!free_pages_prepare(page, order))
- 		return;
- 
- 	/*
-@@ -2502,7 +2464,7 @@ void free_unref_page(struct page *page,
- 	 * get those areas back if necessary. Otherwise, we may have to free
- 	 * excessively into the page allocator
- 	 */
--	migratetype = pcpmigratetype = get_pcppage_migratetype(page);
-+	migratetype = pcpmigratetype = get_pfnblock_migratetype(page, pfn);
- 	if (unlikely(migratetype >= MIGRATE_PCPTYPES)) {
- 		if (unlikely(is_migrate_isolate(migratetype))) {
- 			free_one_page(page_zone(page), page, pfn, order, migratetype, FPI_NONE);
-@@ -2541,14 +2503,14 @@ void free_unref_folios(struct folio_batc
- 
- 		if (order > 0 && folio_test_large_rmappable(folio))
+ 	/* Prepare folios for freeing */
+ 	for (i = 0, j = 0; i < folios->nr; i++) {
+@@ -2505,14 +2505,15 @@ void free_unref_folios(struct folio_batc
  			folio_undo_large_rmappable(folio);
--		if (!free_unref_page_prepare(&folio->page, pfn, order))
-+		if (!free_pages_prepare(&folio->page, order))
+ 		if (!free_pages_prepare(&folio->page, order))
  			continue;
- 
+-
  		/*
- 		 * Free isolated folios and orders not handled on the PCP
- 		 * directly to the allocator, see comment in free_unref_page.
+-		 * Free isolated folios and orders not handled on the PCP
+-		 * directly to the allocator, see comment in free_unref_page.
++		 * Free orders not handled on the PCP directly to the
++		 * allocator.
  		 */
--		migratetype = get_pcppage_migratetype(&folio->page);
-+		migratetype = get_pfnblock_migratetype(&folio->page, pfn);
- 		if (!pcp_allowed_order(order) ||
- 		    is_migrate_isolate(migratetype)) {
+-		migratetype = get_pfnblock_migratetype(&folio->page, pfn);
+-		if (!pcp_allowed_order(order) ||
+-		    is_migrate_isolate(migratetype)) {
++		if (!pcp_allowed_order(order)) {
++			int migratetype;
++
++			migratetype = get_pfnblock_migratetype(&folio->page,
++							       pfn);
  			free_one_page(folio_zone(folio), &folio->page, pfn,
-@@ -2565,10 +2527,11 @@ void free_unref_folios(struct folio_batc
- 	for (i = 0; i < folios->nr; i++) {
- 		struct folio *folio = folios->folios[i];
+ 					order, migratetype, FPI_NONE);
+ 			continue;
+@@ -2529,15 +2530,29 @@ void free_unref_folios(struct folio_batc
  		struct zone *zone = folio_zone(folio);
-+		unsigned long pfn = folio_pfn(folio);
+ 		unsigned long pfn = folio_pfn(folio);
  		unsigned int order = (unsigned long)folio->private;
++		int migratetype;
  
  		folio->private = NULL;
--		migratetype = get_pcppage_migratetype(&folio->page);
-+		migratetype = get_pfnblock_migratetype(&folio->page, pfn);
+ 		migratetype = get_pfnblock_migratetype(&folio->page, pfn);
  
  		/* Different zone requires a different pcp lock */
- 		if (zone != locked_zone) {
-@@ -2585,9 +2548,8 @@ void free_unref_folios(struct folio_batc
- 			pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 			if (unlikely(!pcp)) {
+-		if (zone != locked_zone) {
++		if (zone != locked_zone ||
++		    is_migrate_isolate(migratetype)) {
+ 			if (pcp) {
+ 				pcp_spin_unlock(pcp);
  				pcp_trylock_finish(UP_flags);
--				free_one_page(zone, &folio->page,
--						folio_pfn(folio), order,
--						migratetype, FPI_NONE);
++				locked_zone = NULL;
++				pcp = NULL;
++			}
++
++			/*
++			 * Free isolated pages directly to the
++			 * allocator, see comment in free_unref_page.
++			 */
++			if (is_migrate_isolate(migratetype)) {
 +				free_one_page(zone, &folio->page, pfn,
 +					      order, migratetype, FPI_NONE);
- 				locked_zone = NULL;
++				continue;
+ 			}
+ 
+ 			/*
+@@ -2550,7 +2565,6 @@ void free_unref_folios(struct folio_batc
+ 				pcp_trylock_finish(UP_flags);
+ 				free_one_page(zone, &folio->page, pfn,
+ 					      order, migratetype, FPI_NONE);
+-				locked_zone = NULL;
  				continue;
  			}
-@@ -2757,7 +2719,7 @@ struct page *rmqueue_buddy(struct zone *
- 			}
- 		}
- 		__mod_zone_freepage_state(zone, -(1 << order),
--					  get_pcppage_migratetype(page));
-+					  get_pageblock_migratetype(page));
- 		spin_unlock_irqrestore(&zone->lock, flags);
- 	} while (check_new_pages(page, order));
- 
+ 			locked_zone = zone;
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
