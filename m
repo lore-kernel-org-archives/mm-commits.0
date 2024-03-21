@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 643471384B7
-	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 20:44:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1C8B1386A6
+	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 20:44:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711053871; cv=none; b=PoT7vz6GD+MfsXcRFpdlGVDXd71vw1gldapG5X+/tDtEFxvCbPquHPqnG95YaoGEwpbFgab0h2oksje9+1RmMENfadNvFiJ1qnyHRFbEJ7TbWUvsKuSQGfZ8rEutyepfpz0mgX4X1DiTlUfyzHhM6a/9/nka3+5C3s3B1FTMr4Y=
+	t=1711053873; cv=none; b=Enf0E03myW4G00yBFuBFHHAk8WrJmDg8y5+4+eGagpCDo2H+UwPa+mZovWKfeQU1qlRNApjEeh1EFn4rb01Q3IwDAfM5ssiyNrc/lIai0j5buxGmNJcp8pjjv0arzLr00gDJ0IR2xjtxIvwKqqrvVBpfWdG+dn7hw66NqvUpDKE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711053871; c=relaxed/simple;
-	bh=vmqyXy5E9dn8nmlxRi+mKkDUWjszd01wl6m1uHEOsFE=;
-	h=Date:To:From:Subject:Message-Id; b=L3Re9XUdx7tfdVysO88bQ65PWnAZ4VhHaMIKeOeAgbxVghIlDnI8IldUSmary4G17ZsOxjV83oijS0mazlg58+jHgyltaYeE8Oz7OCFhmU18inumGus2uf/qb+BxdPTZaMloesE9zg7xnfqkH862+vKE/x2tM0b0lv8D7AuEu4U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KYYgcVcG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711053873; c=relaxed/simple;
+	bh=EG2D+jdlk+edU8sg8k1LwlBTo3cqyh3LicNIz/YybKc=;
+	h=Date:To:From:Subject:Message-Id; b=fbWdXEUlYQ02VI4XyzKlUhqhjnUZViTkzS0R2ZiyV9FGOeFJZXipVPrRjTdtv3+9FChmtgKUVJwab22KPNHQtcDxoP2X+JbWkhM1iY1Nrzgelb8dGX/eTO/M6w3G9y0OMBFM+p1H9LR6xUVvVOT3gULN9jwt8c8R0BNJPq5CRjA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B25CgOfJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KYYgcVcG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 384A0C43394;
-	Thu, 21 Mar 2024 20:44:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B25CgOfJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96808C43390;
+	Thu, 21 Mar 2024 20:44:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711053871;
-	bh=vmqyXy5E9dn8nmlxRi+mKkDUWjszd01wl6m1uHEOsFE=;
+	s=korg; t=1711053873;
+	bh=EG2D+jdlk+edU8sg8k1LwlBTo3cqyh3LicNIz/YybKc=;
 	h=Date:To:From:Subject:From;
-	b=KYYgcVcGlONbskx+wyph+3hG8MrU788R5LzmeLGM4asZ4sYA2rTuVyEiK4PtQL9/F
-	 +NrGVSVF18ZxA8XGYMARPnnn6XoPB44QUQGJBQfuadLikcTRDA37KNZfGzBaSjwcMd
-	 lPeMvNYhr8IJzROAmZLCllMxNkifTQilZtPstW28=
-Date: Thu, 21 Mar 2024 13:44:30 -0700
-To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,peterz@infradead.org,pasha.tatashin@soleen.com,ojeda@kernel.org,kent.overstreet@linux.dev,keescook@chromium.org,gary@garyguo.net,dennis@kernel.org,cl@linux.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@samsung.com,surenb@google.com,akpm@linux-foundation.org
+	b=B25CgOfJdOvYdcu0f64tYVQ2Ic4FeBrjZyoCaAPNe/BSxg3vaDbkQPGRfC7wP5IaB
+	 0JeDbJYEIFghXnkXoWk1cSdLV6PZUUIuHgaukqUZ7JCjOjnA3v0Iuxr+/ko8ymKptL
+	 ppLl9M6mLGppCoMEVTFDLZMD8W18MVbwNm6MWNXk=
+Date: Thu, 21 Mar 2024 13:44:33 -0700
+To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,surenb@google.com,peterz@infradead.org,pasha.tatashin@soleen.com,ojeda@kernel.org,keescook@chromium.org,gary@garyguo.net,dennis@kernel.org,cl@linux.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@samsung.com,kent.overstreet@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations.patch added to mm-unstable branch
-Message-Id: <20240321204431.384A0C43394@smtp.kernel.org>
+Subject: + maintainers-add-entries-for-code-tagging-and-memory-allocation-profiling.patch added to mm-unstable branch
+Message-Id: <20240321204433.96808C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: codetag: debug: introduce OBJEXTS_ALLOC_FAIL to mark failed slab_ext allocations
+     Subject: MAINTAINERS: add entries for code tagging and memory allocation profiling
 has been added to the -mm mm-unstable branch.  Its filename is
-     codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations.patch
+     maintainers-add-entries-for-code-tagging-and-memory-allocation-profiling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-entries-for-code-tagging-and-memory-allocation-profiling.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,22 +58,16 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: codetag: debug: introduce OBJEXTS_ALLOC_FAIL to mark failed slab_ext allocations
-Date: Thu, 21 Mar 2024 09:36:57 -0700
+From: Kent Overstreet <kent.overstreet@linux.dev>
+Subject: MAINTAINERS: add entries for code tagging and memory allocation profiling
+Date: Thu, 21 Mar 2024 09:36:58 -0700
 
-If slabobj_ext vector allocation for a slab object fails and later on it
-succeeds for another object in the same slab, the slabobj_ext for the
-original object will be NULL and will be flagged in case when
-CONFIG_MEM_ALLOC_PROFILING_DEBUG is enabled.
+The new code & libraries added are being maintained - mark them as such.
 
-Mark failed slabobj_ext vector allocations using a new objext_flags flag
-stored in the lower bits of slab->obj_exts.  When new allocation succeeds
-it marks all tag references in the same slabobj_ext vector as empty to
-avoid warnings implemented by CONFIG_MEM_ALLOC_PROFILING_DEBUG checks.
-
-Link: https://lkml.kernel.org/r/20240321163705.3067592-36-surenb@google.com
+Link: https://lkml.kernel.org/r/20240321163705.3067592-37-surenb@google.com
+Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alex Gaynor <alex.gaynor@gmail.com>
 Cc: Alice Ryhl <aliceryhl@google.com>
@@ -84,8 +78,6 @@ Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Gary Guo <gary@garyguo.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Miguel Ojeda <ojeda@kernel.org>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -95,131 +87,57 @@ Cc: Wedson Almeida Filho <wedsonaf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 ++-
- mm/slub.c                  |   46 +++++++++++++++++++++++++++++------
- 2 files changed, 42 insertions(+), 8 deletions(-)
+ MAINTAINERS |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
---- a/include/linux/memcontrol.h~codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations
-+++ a/include/linux/memcontrol.h
-@@ -366,8 +366,10 @@ enum page_memcg_data_flags {
- #endif /* CONFIG_MEMCG */
+--- a/MAINTAINERS~maintainers-add-entries-for-code-tagging-and-memory-allocation-profiling
++++ a/MAINTAINERS
+@@ -5241,6 +5241,13 @@ S:	Supported
+ F:	Documentation/process/code-of-conduct-interpretation.rst
+ F:	Documentation/process/code-of-conduct.rst
  
- enum objext_flags {
-+	/* slabobj_ext vector failed to allocate */
-+	OBJEXTS_ALLOC_FAIL = __FIRST_OBJEXT_FLAG,
- 	/* the next bit after the last actual flag */
--	__NR_OBJEXTS_FLAGS  = __FIRST_OBJEXT_FLAG,
-+	__NR_OBJEXTS_FLAGS  = (__FIRST_OBJEXT_FLAG << 1),
- };
- 
- #define OBJEXTS_FLAGS_MASK (__NR_OBJEXTS_FLAGS - 1)
---- a/mm/slub.c~codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations
-+++ a/mm/slub.c
-@@ -1891,9 +1891,33 @@ static inline void mark_objexts_empty(st
- 	}
- }
- 
-+static inline void mark_failed_objexts_alloc(struct slab *slab)
-+{
-+	slab->obj_exts = OBJEXTS_ALLOC_FAIL;
-+}
++CODE TAGGING
++M:	Suren Baghdasaryan <surenb@google.com>
++M:	Kent Overstreet <kent.overstreet@linux.dev>
++S:	Maintained
++F:	include/linux/codetag.h
++F:	lib/codetag.c
 +
-+static inline void handle_failed_objexts_alloc(unsigned long obj_exts,
-+			struct slabobj_ext *vec, unsigned int objects)
-+{
-+	/*
-+	 * If vector previously failed to allocate then we have live
-+	 * objects with no tag reference. Mark all references in this
-+	 * vector as empty to avoid warnings later on.
-+	 */
-+	if (obj_exts & OBJEXTS_ALLOC_FAIL) {
-+		unsigned int i;
+ COMEDI DRIVERS
+ M:	Ian Abbott <abbotti@mev.co.uk>
+ M:	H Hartley Sweeten <hsweeten@visionengravers.com>
+@@ -14123,6 +14130,16 @@ F:	mm/memblock.c
+ F:	mm/mm_init.c
+ F:	tools/testing/memblock/
+ 
++MEMORY ALLOCATION PROFILING
++M:	Suren Baghdasaryan <surenb@google.com>
++M:	Kent Overstreet <kent.overstreet@linux.dev>
++L:	linux-mm@kvack.org
++S:	Maintained
++F:	include/linux/alloc_tag.h
++F:	include/linux/codetag_ctx.h
++F:	lib/alloc_tag.c
++F:	lib/pgalloc_tag.c
 +
-+		for (i = 0; i < objects; i++)
-+			set_codetag_empty(&vec[i].ref);
-+	}
-+}
-+
- #else /* CONFIG_MEM_ALLOC_PROFILING_DEBUG */
- 
- static inline void mark_objexts_empty(struct slabobj_ext *obj_exts) {}
-+static inline void mark_failed_objexts_alloc(struct slab *slab) {}
-+static inline void handle_failed_objexts_alloc(unsigned long obj_exts,
-+			struct slabobj_ext *vec, unsigned int objects) {}
- 
- #endif /* CONFIG_MEM_ALLOC_PROFILING_DEBUG */
- 
-@@ -1909,29 +1933,37 @@ static int alloc_slab_obj_exts(struct sl
- 			       gfp_t gfp, bool new_slab)
- {
- 	unsigned int objects = objs_per_slab(s, slab);
--	unsigned long obj_exts;
--	void *vec;
-+	unsigned long new_exts;
-+	unsigned long old_exts;
-+	struct slabobj_ext *vec;
- 
- 	gfp &= ~OBJCGS_CLEAR_MASK;
- 	/* Prevent recursive extension vector allocation */
- 	gfp |= __GFP_NO_OBJ_EXT;
- 	vec = kcalloc_node(objects, sizeof(struct slabobj_ext), gfp,
- 			   slab_nid(slab));
--	if (!vec)
-+	if (!vec) {
-+		/* Mark vectors which failed to allocate */
-+		if (new_slab)
-+			mark_failed_objexts_alloc(slab);
-+
- 		return -ENOMEM;
-+	}
- 
--	obj_exts = (unsigned long)vec;
-+	new_exts = (unsigned long)vec;
- #ifdef CONFIG_MEMCG
--	obj_exts |= MEMCG_DATA_OBJEXTS;
-+	new_exts |= MEMCG_DATA_OBJEXTS;
- #endif
-+	old_exts = slab->obj_exts;
-+	handle_failed_objexts_alloc(old_exts, vec, objects);
- 	if (new_slab) {
- 		/*
- 		 * If the slab is brand new and nobody can yet access its
- 		 * obj_exts, no synchronization is required and obj_exts can
- 		 * be simply assigned.
- 		 */
--		slab->obj_exts = obj_exts;
--	} else if (cmpxchg(&slab->obj_exts, 0, obj_exts)) {
-+		slab->obj_exts = new_exts;
-+	} else if (cmpxchg(&slab->obj_exts, old_exts, new_exts) != old_exts) {
- 		/*
- 		 * If the slab is already in use, somebody can allocate and
- 		 * assign slabobj_exts in parallel. In this case the existing
+ MEMORY CONTROLLER DRIVERS
+ M:	Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+ L:	linux-kernel@vger.kernel.org
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from kent.overstreet@linux.dev are
 
-mm-introduce-slabobj_ext-to-support-slab-object-extensions.patch
-mm-introduce-__gfp_no_obj_ext-flag-to-selectively-prevent-slabobj_ext-creation.patch
-mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation.patch
-slab-objext-introduce-objext_flags-as-extension-to-page_memcg_data_flags.patch
-lib-code-tagging-framework.patch
-lib-code-tagging-module-support.patch
-lib-prevent-module-unloading-if-memory-is-not-freed.patch
-lib-add-allocation-tagging-support-for-memory-allocation-profiling.patch
-lib-introduce-support-for-page-allocation-tagging.patch
-lib-introduce-early-boot-parameter-to-avoid-page_ext-memory-overhead.patch
-mm-percpu-increase-percpu_module_reserve-to-accommodate-allocation-tags.patch
-change-alloc_pages-name-in-dma_map_ops-to-avoid-name-conflicts.patch
-mm-enable-page-allocation-tagging.patch
-mm-create-new-codetag-references-during-page-splitting.patch
-mm-fix-non-compound-multi-order-memory-accounting-in-__free_pages.patch
-mm-page_ext-enable-early_page_ext-when-config_mem_alloc_profiling_debug=y.patch
-lib-add-codetag-reference-into-slabobj_ext.patch
-mm-slab-add-allocation-accounting-into-slab-allocation-and-free-paths.patch
-mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends.patch
-mm-percpu-enable-per-cpu-allocation-tagging.patch
-lib-add-memory-allocations-report-in-show_mem.patch
-codetag-debug-skip-objext-checking-when-its-for-objext-itself.patch
-codetag-debug-mark-codetags-for-reserved-pages-as-empty.patch
-codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations.patch
+fix-missing-vmalloch-includes.patch
+asm-generic-ioh-kill-vmalloch-dependency.patch
+mm-slub-mark-slab_free_freelist_hook-__always_inline.patch
+scripts-kallysms-always-include-__start-and-__stop-symbols.patch
+fs-convert-alloc_inode_sb-to-a-macro.patch
+rust-add-a-rust-helper-for-krealloc.patch
+mempool-hook-up-to-memory-allocation-profiling.patch
+mm-percpu-introduce-pcpuobj_ext.patch
+mm-percpu-add-codetag-reference-into-pcpuobj_ext.patch
+mm-vmalloc-enable-memory-allocation-profiling.patch
+rhashtable-plumb-through-alloc-tag.patch
+maintainers-add-entries-for-code-tagging-and-memory-allocation-profiling.patch
+memprofiling-documentation.patch
 
