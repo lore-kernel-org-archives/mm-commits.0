@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D86E01350F8
-	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 20:43:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 289E31350FD
+	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 20:43:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711053784; cv=none; b=GH66GpapjiqQKT8JnO/PvXmcj0+fPR3LAv84A3CGWhFBWfVlc3sksQ8l7rhyd5xw2u+UgsZ4oqThm90UQOJAEtb1nNf9YOT986NLK7wAEHD7o6diOs4NRl4bId2XxCkvbPEjBLXOoQt4+DUVF8oy+qchKMiwXfPAiT2XExNb+uo=
+	t=1711053787; cv=none; b=jcrp0R3zI9brSyhzahnfHPeZphPU3SD4TqKQFiYA5Yf/gg5Ihbc/5tADgQsLWIReirjxelqTEC6qNwP5/mi8otHFhbm9cnQLm7U/n2m17fuqTXVUjpxR3e9CXF4gIYiDRlCebMO3UGPxr+azfaplaLwVs/mjwbezPXh83Fr/g2E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711053784; c=relaxed/simple;
-	bh=n1EN9J8SiSnbqXniMDgXpIfbmmYDagvyoRZJeZtp8bQ=;
-	h=Date:To:From:Subject:Message-Id; b=j0Fe+TJ9h/u+VcAA19p3xPLHoDe25RxzPn4HYZe4PRqbWINbuKp3bS6795uvJTLeAMIL+OlJreqaJYmQvdHdILkWlRAPmIHDIbD06qyM7C/GtRgL3uJXOqJseBKAwqBcMsAw2xJm2+WTnWR4ImXjMFiPHAxXnsTEni7nWuGlt6s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fwh7ayov; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711053787; c=relaxed/simple;
+	bh=U0Gg+1r3YbSEQsijRAJJ9Rm+tCe941XVxo5mUzmFznY=;
+	h=Date:To:From:Subject:Message-Id; b=Ykez0HLhtEmPEjrCI3/gsGwoGKaRqGwbnZ/XW4xKCuiyeyi2TEBoymEgdBleAMJ1BMpP3ibtzjLRm+AfBNqpGxQMdj6u0phLzTUe1pR0CEoCYEg/JNDtJIR+b+CvJ5nr0RO8VyEFsK27GnDE0bYHK2gGWpozqXZaiwnokAfIMqk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xI/q3xYe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fwh7ayov"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5996BC433C7;
-	Thu, 21 Mar 2024 20:43:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xI/q3xYe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1608C433C7;
+	Thu, 21 Mar 2024 20:43:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711053784;
-	bh=n1EN9J8SiSnbqXniMDgXpIfbmmYDagvyoRZJeZtp8bQ=;
+	s=korg; t=1711053786;
+	bh=U0Gg+1r3YbSEQsijRAJJ9Rm+tCe941XVxo5mUzmFznY=;
 	h=Date:To:From:Subject:From;
-	b=fwh7ayovYcDX5ie6cXDJw/qfDNDs7HF4kF1hlv4vKBo/Xlh8Oao/EBT5BxQHEGfCc
-	 xve1qFKuObHaGKYduoF0ShI6rTUQzVnZbjVgTS6ClgbKAemsNGg121XwBKHAU7hcsc
-	 RY3+63hwQdB7W9F2sTt7bxe04DQMNEX+q4ybw9po=
-Date: Thu, 21 Mar 2024 13:43:03 -0700
+	b=xI/q3xYeE/CtFf0w6NIk3wtv8y4JfZNHY5GuCgY8UJYfRBxUAg4b3WZ2uEalMa49Y
+	 QacqC3/s+ZZDnj1zN60bpBI5EMEck+nJXJSmrX73MmQzRCSYUBlyuFzf3Dj5QIKGHv
+	 pnhvbxJxjzEX9sbRWH2PJwE05ThLh0nqOUCb6UPU=
+Date: Thu, 21 Mar 2024 13:43:06 -0700
 To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,peterz@infradead.org,pasha.tatashin@soleen.com,ojeda@kernel.org,kent.overstreet@linux.dev,keescook@chromium.org,gary@garyguo.net,dennis@kernel.org,cl@linux.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@samsung.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-__gfp_no_obj_ext-flag-to-selectively-prevent-slabobj_ext-creation.patch added to mm-unstable branch
-Message-Id: <20240321204304.5996BC433C7@smtp.kernel.org>
+Subject: + mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation.patch added to mm-unstable branch
+Message-Id: <20240321204306.A1608C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce __GFP_NO_OBJ_EXT flag to selectively prevent slabobj_ext creation
+     Subject: mm/slab: introduce SLAB_NO_OBJ_EXT to avoid obj_ext creation
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-introduce-__gfp_no_obj_ext-flag-to-selectively-prevent-slabobj_ext-creation.patch
+     mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-__gfp_no_obj_ext-flag-to-selectively-prevent-slabobj_ext-creation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: introduce __GFP_NO_OBJ_EXT flag to selectively prevent slabobj_ext creation
-Date: Thu, 21 Mar 2024 09:36:29 -0700
+Subject: mm/slab: introduce SLAB_NO_OBJ_EXT to avoid obj_ext creation
+Date: Thu, 21 Mar 2024 09:36:30 -0700
 
-Introduce __GFP_NO_OBJ_EXT flag in order to prevent recursive allocations
-when allocating slabobj_ext on a slab.
+Slab extension objects can't be allocated before slab infrastructure is
+initialized.  Some caches, like kmem_cache and kmem_cache_node, are
+created before slab infrastructure is initialized.  Objects from these
+caches can't have extension objects.  Introduce SLAB_NO_OBJ_EXT slab flag
+to mark these caches and avoid creating extensions for objects allocated
+from these slabs.
 
-Link: https://lkml.kernel.org/r/20240321163705.3067592-8-surenb@google.com
+Link: https://lkml.kernel.org/r/20240321163705.3067592-9-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Kees Cook <keescook@chromium.org>
 Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
@@ -88,61 +92,57 @@ Cc: Wedson Almeida Filho <wedsonaf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp_types.h |   11 +++++++++++
- mm/slub.c                 |    2 ++
- 2 files changed, 13 insertions(+)
+ include/linux/slab.h |   10 ++++++++++
+ mm/slub.c            |    5 +++--
+ 2 files changed, 13 insertions(+), 2 deletions(-)
 
---- a/include/linux/gfp_types.h~mm-introduce-__gfp_no_obj_ext-flag-to-selectively-prevent-slabobj_ext-creation
-+++ a/include/linux/gfp_types.h
-@@ -53,6 +53,9 @@ enum {
- #ifdef CONFIG_LOCKDEP
- 	___GFP_NOLOCKDEP_BIT,
+--- a/include/linux/slab.h~mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation
++++ a/include/linux/slab.h
+@@ -56,6 +56,9 @@ enum _slab_flag_bits {
  #endif
+ 	_SLAB_OBJECT_POISON,
+ 	_SLAB_CMPXCHG_DOUBLE,
 +#ifdef CONFIG_SLAB_OBJ_EXT
-+	___GFP_NO_OBJ_EXT_BIT,
++	_SLAB_NO_OBJ_EXT,
 +#endif
- 	___GFP_LAST_BIT
+ 	_SLAB_FLAGS_LAST_BIT
  };
  
-@@ -93,6 +96,11 @@ enum {
- #else
- #define ___GFP_NOLOCKDEP	0
+@@ -202,6 +205,13 @@ enum _slab_flag_bits {
  #endif
+ #define SLAB_TEMPORARY		SLAB_RECLAIM_ACCOUNT	/* Objects are short-lived */
+ 
++/* Slab created using create_boot_cache */
 +#ifdef CONFIG_SLAB_OBJ_EXT
-+#define ___GFP_NO_OBJ_EXT       BIT(___GFP_NO_OBJ_EXT_BIT)
++#define SLAB_NO_OBJ_EXT		__SLAB_FLAG_BIT(_SLAB_NO_OBJ_EXT)
 +#else
-+#define ___GFP_NO_OBJ_EXT       0
++#define SLAB_NO_OBJ_EXT		__SLAB_FLAG_UNUSED
 +#endif
- 
++
  /*
-  * Physical address zone modifiers (see linux/mmzone.h - low four bits)
-@@ -133,12 +141,15 @@ enum {
-  * node with no fallbacks or placement policy enforcements.
+  * ZERO_SIZE_PTR will be returned for zero sized kmalloc requests.
   *
-  * %__GFP_ACCOUNT causes the allocation to be accounted to kmemcg.
-+ *
-+ * %__GFP_NO_OBJ_EXT causes slab allocation to have no object extension.
-  */
- #define __GFP_RECLAIMABLE ((__force gfp_t)___GFP_RECLAIMABLE)
- #define __GFP_WRITE	((__force gfp_t)___GFP_WRITE)
- #define __GFP_HARDWALL   ((__force gfp_t)___GFP_HARDWALL)
- #define __GFP_THISNODE	((__force gfp_t)___GFP_THISNODE)
- #define __GFP_ACCOUNT	((__force gfp_t)___GFP_ACCOUNT)
-+#define __GFP_NO_OBJ_EXT   ((__force gfp_t)___GFP_NO_OBJ_EXT)
- 
- /**
-  * DOC: Watermark modifiers
---- a/mm/slub.c~mm-introduce-__gfp_no_obj_ext-flag-to-selectively-prevent-slabobj_ext-creation
+--- a/mm/slub.c~mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation
 +++ a/mm/slub.c
-@@ -1889,6 +1889,8 @@ static int alloc_slab_obj_exts(struct sl
- 	void *vec;
+@@ -5693,7 +5693,8 @@ void __init kmem_cache_init(void)
+ 		node_set(node, slab_nodes);
  
- 	gfp &= ~OBJCGS_CLEAR_MASK;
-+	/* Prevent recursive extension vector allocation */
-+	gfp |= __GFP_NO_OBJ_EXT;
- 	vec = kcalloc_node(objects, sizeof(struct slabobj_ext), gfp,
- 			   slab_nid(slab));
- 	if (!vec)
+ 	create_boot_cache(kmem_cache_node, "kmem_cache_node",
+-		sizeof(struct kmem_cache_node), SLAB_HWCACHE_ALIGN, 0, 0);
++			sizeof(struct kmem_cache_node),
++			SLAB_HWCACHE_ALIGN | SLAB_NO_OBJ_EXT, 0, 0);
+ 
+ 	hotplug_memory_notifier(slab_memory_callback, SLAB_CALLBACK_PRI);
+ 
+@@ -5703,7 +5704,7 @@ void __init kmem_cache_init(void)
+ 	create_boot_cache(kmem_cache, "kmem_cache",
+ 			offsetof(struct kmem_cache, node) +
+ 				nr_node_ids * sizeof(struct kmem_cache_node *),
+-		       SLAB_HWCACHE_ALIGN, 0, 0);
++			SLAB_HWCACHE_ALIGN | SLAB_NO_OBJ_EXT, 0, 0);
+ 
+ 	kmem_cache = bootstrap(&boot_kmem_cache);
+ 	kmem_cache_node = bootstrap(&boot_kmem_cache_node);
 _
 
 Patches currently in -mm which might be from surenb@google.com are
