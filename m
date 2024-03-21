@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4AE31369BA
-	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 20:44:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31A765660
+	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 20:44:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711053850; cv=none; b=pcvJ3B+nFCTo0t+VZfxLUw5BD2HZ+35iRq+p2jk8l5ulyAEzslciAlGtD/Y7f1lYEK32TJnOsI6UklQGtlkRR0aDhag8iYqRRyeh5+IjFMphiyZ3lWyT/gMAXKwtzW/dQz4QYW9nnTIbv8gUIgnS7zC/pefPtieG6buJ8ME+Hck=
+	t=1711053853; cv=none; b=OkvfLTh+fBH2AC3s4CvJUy03R176xCSMhwDFJWPCMax6Ssh8NbUNZCACATpc2jjrCUgg+IQg4r3dszaVdbdfujyA8J4CKfrY1xKdsMALpgoMiJZHiS6hahIJkEwHQQK3QrJhwg094itNXrw1kZ17LHYMzZChd8xaEIFsu4m+4SI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711053850; c=relaxed/simple;
-	bh=fUKk3LHnhp3lAKyy9CIMTLo232I4lUe5WBoEyJXSI1M=;
-	h=Date:To:From:Subject:Message-Id; b=m62iCCPVZ3iAPHUDW3qs3SldRbr2sr7kDFPX5Y0O31+JUHeGcBwBFwy98HWk5LG83kYjYdobQ4FKO0PerClZ7+i4+6fEots70wDwVi4YrvBSOgveHJiGwxkEoKZhewbBX6YzjRcgCl/Pc+DLgz+uAr5qUtVfMUXfWuHvdD8SePA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EmXUGDlL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711053853; c=relaxed/simple;
+	bh=bO+f92ntTyuJpuILA/vSK4F/j0J1meXg8/uXoV/xze4=;
+	h=Date:To:From:Subject:Message-Id; b=XKVjuGbRQRdnVBztAMTyGjBGdyPrzNeAV06aHFcUIRg0R78EF7pvNJSY5FkN6CCTeUufBQfmm0i75FOe715uDNkmUHJYPBn73BdZQwairGGl5Ux6tpLItKOigYUFdigebRzdgwCyue+urPfD0ppx3rRam+Fccz/rI30RSufRmeY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JL4lQ+J3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EmXUGDlL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A84D5C433C7;
-	Thu, 21 Mar 2024 20:44:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JL4lQ+J3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 044A6C43601;
+	Thu, 21 Mar 2024 20:44:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711053850;
-	bh=fUKk3LHnhp3lAKyy9CIMTLo232I4lUe5WBoEyJXSI1M=;
+	s=korg; t=1711053853;
+	bh=bO+f92ntTyuJpuILA/vSK4F/j0J1meXg8/uXoV/xze4=;
 	h=Date:To:From:Subject:From;
-	b=EmXUGDlLeLfHlclP6DicJESHQ4I48P76btUQGeS4UZiIgzVcKeRWxh3+zWd/JVq5J
-	 SvngOpElfGSMbVbl5/i+35JWpIHvNslxKEB6G/gP00GHG4M8hNy8e5R1DlOzgSzl5/
-	 SfBgsvTqy8Pmh1lN43R2znjLwx9njCNn/1PA1KhM=
-Date: Thu, 21 Mar 2024 13:44:10 -0700
-To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,surenb@google.com,peterz@infradead.org,pasha.tatashin@soleen.com,ojeda@kernel.org,keescook@chromium.org,gary@garyguo.net,dennis@kernel.org,cl@linux.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@samsung.com,kent.overstreet@linux.dev,akpm@linux-foundation.org
+	b=JL4lQ+J3Vo4ToJg2ldh/uaegVCKx9Cr72bFXQoTlZ3xOilc2i60I87Adwqeo2bTA2
+	 oKe11q0RpnfPL+aNlOC81Vnw62Shs5K5BwlMbhTMk4qjLFK7TtgCgNFCIIadgj+x6j
+	 L5Ok31RyKCGMiIScIfdAvOxB98l4aX3GtJgLqQQ8=
+Date: Thu, 21 Mar 2024 13:44:12 -0700
+To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,peterz@infradead.org,pasha.tatashin@soleen.com,ojeda@kernel.org,kent.overstreet@linux.dev,keescook@chromium.org,gary@garyguo.net,dennis@kernel.org,cl@linux.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@samsung.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-percpu-add-codetag-reference-into-pcpuobj_ext.patch added to mm-unstable branch
-Message-Id: <20240321204410.A84D5C433C7@smtp.kernel.org>
+Subject: + mm-percpu-enable-per-cpu-allocation-tagging.patch added to mm-unstable branch
+Message-Id: <20240321204413.044A6C43601@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: percpu: add codetag reference into pcpuobj_ext
+     Subject: mm: percpu: enable per-cpu allocation tagging
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-percpu-add-codetag-reference-into-pcpuobj_ext.patch
+     mm-percpu-enable-per-cpu-allocation-tagging.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-percpu-add-codetag-reference-into-pcpuobj_ext.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-percpu-enable-per-cpu-allocation-tagging.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,15 +58,14 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kent Overstreet <kent.overstreet@linux.dev>
-Subject: mm: percpu: add codetag reference into pcpuobj_ext
-Date: Thu, 21 Mar 2024 09:36:50 -0700
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: percpu: enable per-cpu allocation tagging
+Date: Thu, 21 Mar 2024 09:36:51 -0700
 
-To store codetag for every per-cpu allocation, a codetag reference is
-embedded into pcpuobj_ext when CONFIG_MEM_ALLOC_PROFILING=y.  Hooks to use
-the newly introduced codetag are added.
+Redefine __alloc_percpu, __alloc_percpu_gfp and __alloc_reserved_percpu
+to record allocations and deallocations done by these functions.
 
-Link: https://lkml.kernel.org/r/20240321163705.3067592-29-surenb@google.com
+Link: https://lkml.kernel.org/r/20240321163705.3067592-30-surenb@google.com
 Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -89,89 +88,199 @@ Cc: Wedson Almeida Filho <wedsonaf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu-internal.h |   11 +++++++++--
- mm/percpu.c          |   26 ++++++++++++++++++++++++++
- 2 files changed, 35 insertions(+), 2 deletions(-)
+ include/linux/percpu.h |   23 +++++++++-----
+ mm/percpu.c            |   64 ++++-----------------------------------
+ 2 files changed, 23 insertions(+), 64 deletions(-)
 
---- a/mm/percpu.c~mm-percpu-add-codetag-reference-into-pcpuobj_ext
+--- a/include/linux/percpu.h~mm-percpu-enable-per-cpu-allocation-tagging
++++ a/include/linux/percpu.h
+@@ -2,6 +2,7 @@
+ #ifndef __LINUX_PERCPU_H
+ #define __LINUX_PERCPU_H
+ 
++#include <linux/alloc_tag.h>
+ #include <linux/mmdebug.h>
+ #include <linux/preempt.h>
+ #include <linux/smp.h>
+@@ -9,6 +10,7 @@
+ #include <linux/pfn.h>
+ #include <linux/init.h>
+ #include <linux/cleanup.h>
++#include <linux/sched.h>
+ 
+ #include <asm/percpu.h>
+ 
+@@ -125,7 +127,6 @@ extern int __init pcpu_page_first_chunk(
+ 				pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn);
+ #endif
+ 
+-extern void __percpu *__alloc_reserved_percpu(size_t size, size_t align) __alloc_size(1);
+ extern bool __is_kernel_percpu_address(unsigned long addr, unsigned long *can_addr);
+ extern bool is_kernel_percpu_address(unsigned long addr);
+ 
+@@ -133,14 +134,16 @@ extern bool is_kernel_percpu_address(uns
+ extern void __init setup_per_cpu_areas(void);
+ #endif
+ 
+-extern void __percpu *__alloc_percpu_gfp(size_t size, size_t align, gfp_t gfp) __alloc_size(1);
+-extern void __percpu *__alloc_percpu(size_t size, size_t align) __alloc_size(1);
+-extern void free_percpu(void __percpu *__pdata);
++extern void __percpu *pcpu_alloc_noprof(size_t size, size_t align, bool reserved,
++				   gfp_t gfp) __alloc_size(1);
+ extern size_t pcpu_alloc_size(void __percpu *__pdata);
+ 
+-DEFINE_FREE(free_percpu, void __percpu *, free_percpu(_T))
+-
+-extern phys_addr_t per_cpu_ptr_to_phys(void *addr);
++#define __alloc_percpu_gfp(_size, _align, _gfp)				\
++	alloc_hooks(pcpu_alloc_noprof(_size, _align, false, _gfp))
++#define __alloc_percpu(_size, _align)					\
++	alloc_hooks(pcpu_alloc_noprof(_size, _align, false, GFP_KERNEL))
++#define __alloc_reserved_percpu(_size, _align)				\
++	alloc_hooks(pcpu_alloc_noprof(_size, _align, true, GFP_KERNEL))
+ 
+ #define alloc_percpu_gfp(type, gfp)					\
+ 	(typeof(type) __percpu *)__alloc_percpu_gfp(sizeof(type),	\
+@@ -149,6 +152,12 @@ extern phys_addr_t per_cpu_ptr_to_phys(v
+ 	(typeof(type) __percpu *)__alloc_percpu(sizeof(type),		\
+ 						__alignof__(type))
+ 
++extern void free_percpu(void __percpu *__pdata);
++
++DEFINE_FREE(free_percpu, void __percpu *, free_percpu(_T))
++
++extern phys_addr_t per_cpu_ptr_to_phys(void *addr);
++
+ extern unsigned long pcpu_nr_pages(void);
+ 
+ #endif /* __LINUX_PERCPU_H */
+--- a/mm/percpu.c~mm-percpu-enable-per-cpu-allocation-tagging
 +++ a/mm/percpu.c
-@@ -1699,6 +1699,32 @@ static void pcpu_memcg_free_hook(struct
- }
- #endif /* CONFIG_MEMCG_KMEM */
+@@ -1726,7 +1726,7 @@ static void pcpu_alloc_tag_free_hook(str
+ #endif
  
-+#ifdef CONFIG_MEM_ALLOC_PROFILING
-+static void pcpu_alloc_tag_alloc_hook(struct pcpu_chunk *chunk, int off,
-+				      size_t size)
-+{
-+	if (mem_alloc_profiling_enabled() && likely(chunk->obj_exts)) {
-+		alloc_tag_add(&chunk->obj_exts[off >> PCPU_MIN_ALLOC_SHIFT].tag,
-+			      current->alloc_tag, size);
-+	}
-+}
-+
-+static void pcpu_alloc_tag_free_hook(struct pcpu_chunk *chunk, int off, size_t size)
-+{
-+	if (mem_alloc_profiling_enabled() && likely(chunk->obj_exts))
-+		alloc_tag_sub(&chunk->obj_exts[off >> PCPU_MIN_ALLOC_SHIFT].tag, size);
-+}
-+#else
-+static void pcpu_alloc_tag_alloc_hook(struct pcpu_chunk *chunk, int off,
-+				      size_t size)
-+{
-+}
-+
-+static void pcpu_alloc_tag_free_hook(struct pcpu_chunk *chunk, int off, size_t size)
-+{
-+}
-+#endif
-+
  /**
-  * pcpu_alloc - the percpu allocator
+- * pcpu_alloc - the percpu allocator
++ * pcpu_alloc_noprof - the percpu allocator
   * @size: size of area to allocate in bytes
---- a/mm/percpu-internal.h~mm-percpu-add-codetag-reference-into-pcpuobj_ext
-+++ a/mm/percpu-internal.h
-@@ -36,9 +36,12 @@ struct pcpuobj_ext {
- #ifdef CONFIG_MEMCG_KMEM
- 	struct obj_cgroup	*cgroup;
- #endif
-+#ifdef CONFIG_MEM_ALLOC_PROFILING
-+	union codetag_ref	tag;
-+#endif
- };
- 
--#ifdef CONFIG_MEMCG_KMEM
-+#if defined(CONFIG_MEMCG_KMEM) || defined(CONFIG_MEM_ALLOC_PROFILING)
- #define NEED_PCPUOBJ_EXT
- #endif
- 
-@@ -86,7 +89,11 @@ struct pcpu_chunk {
- 
- static inline bool need_pcpuobj_ext(void)
+  * @align: alignment of area (max PAGE_SIZE)
+  * @reserved: allocate from the reserved chunk if available
+@@ -1740,7 +1740,7 @@ static void pcpu_alloc_tag_free_hook(str
+  * RETURNS:
+  * Percpu pointer to the allocated area on success, NULL on failure.
+  */
+-static void __percpu *pcpu_alloc(size_t size, size_t align, bool reserved,
++void __percpu *pcpu_alloc_noprof(size_t size, size_t align, bool reserved,
+ 				 gfp_t gfp)
  {
--	return !mem_cgroup_kmem_disabled();
-+	if (IS_ENABLED(CONFIG_MEM_ALLOC_PROFILING))
-+		return true;
-+	if (!mem_cgroup_kmem_disabled())
-+		return true;
-+	return false;
- }
+ 	gfp_t pcpu_gfp;
+@@ -1907,6 +1907,8 @@ area_found:
  
- extern spinlock_t pcpu_lock;
+ 	pcpu_memcg_post_alloc_hook(objcg, chunk, off, size);
+ 
++	pcpu_alloc_tag_alloc_hook(chunk, off, size);
++
+ 	return ptr;
+ 
+ fail_unlock:
+@@ -1935,61 +1937,7 @@ fail:
+ 
+ 	return NULL;
+ }
+-
+-/**
+- * __alloc_percpu_gfp - allocate dynamic percpu area
+- * @size: size of area to allocate in bytes
+- * @align: alignment of area (max PAGE_SIZE)
+- * @gfp: allocation flags
+- *
+- * Allocate zero-filled percpu area of @size bytes aligned at @align.  If
+- * @gfp doesn't contain %GFP_KERNEL, the allocation doesn't block and can
+- * be called from any context but is a lot more likely to fail. If @gfp
+- * has __GFP_NOWARN then no warning will be triggered on invalid or failed
+- * allocation requests.
+- *
+- * RETURNS:
+- * Percpu pointer to the allocated area on success, NULL on failure.
+- */
+-void __percpu *__alloc_percpu_gfp(size_t size, size_t align, gfp_t gfp)
+-{
+-	return pcpu_alloc(size, align, false, gfp);
+-}
+-EXPORT_SYMBOL_GPL(__alloc_percpu_gfp);
+-
+-/**
+- * __alloc_percpu - allocate dynamic percpu area
+- * @size: size of area to allocate in bytes
+- * @align: alignment of area (max PAGE_SIZE)
+- *
+- * Equivalent to __alloc_percpu_gfp(size, align, %GFP_KERNEL).
+- */
+-void __percpu *__alloc_percpu(size_t size, size_t align)
+-{
+-	return pcpu_alloc(size, align, false, GFP_KERNEL);
+-}
+-EXPORT_SYMBOL_GPL(__alloc_percpu);
+-
+-/**
+- * __alloc_reserved_percpu - allocate reserved percpu area
+- * @size: size of area to allocate in bytes
+- * @align: alignment of area (max PAGE_SIZE)
+- *
+- * Allocate zero-filled percpu area of @size bytes aligned at @align
+- * from reserved percpu area if arch has set it up; otherwise,
+- * allocation is served from the same dynamic area.  Might sleep.
+- * Might trigger writeouts.
+- *
+- * CONTEXT:
+- * Does GFP_KERNEL allocation.
+- *
+- * RETURNS:
+- * Percpu pointer to the allocated area on success, NULL on failure.
+- */
+-void __percpu *__alloc_reserved_percpu(size_t size, size_t align)
+-{
+-	return pcpu_alloc(size, align, true, GFP_KERNEL);
+-}
++EXPORT_SYMBOL_GPL(pcpu_alloc_noprof);
+ 
+ /**
+  * pcpu_balance_free - manage the amount of free chunks
+@@ -2328,6 +2276,8 @@ void free_percpu(void __percpu *ptr)
+ 	spin_lock_irqsave(&pcpu_lock, flags);
+ 	size = pcpu_free_area(chunk, off);
+ 
++	pcpu_alloc_tag_free_hook(chunk, off, size);
++
+ 	pcpu_memcg_free_hook(chunk, off, size);
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from kent.overstreet@linux.dev are
+Patches currently in -mm which might be from surenb@google.com are
 
-fix-missing-vmalloch-includes.patch
-asm-generic-ioh-kill-vmalloch-dependency.patch
-mm-slub-mark-slab_free_freelist_hook-__always_inline.patch
-scripts-kallysms-always-include-__start-and-__stop-symbols.patch
-fs-convert-alloc_inode_sb-to-a-macro.patch
-rust-add-a-rust-helper-for-krealloc.patch
-mempool-hook-up-to-memory-allocation-profiling.patch
-mm-percpu-introduce-pcpuobj_ext.patch
-mm-percpu-add-codetag-reference-into-pcpuobj_ext.patch
-mm-vmalloc-enable-memory-allocation-profiling.patch
-rhashtable-plumb-through-alloc-tag.patch
-maintainers-add-entries-for-code-tagging-and-memory-allocation-profiling.patch
-memprofiling-documentation.patch
+mm-introduce-slabobj_ext-to-support-slab-object-extensions.patch
+mm-introduce-__gfp_no_obj_ext-flag-to-selectively-prevent-slabobj_ext-creation.patch
+mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation.patch
+slab-objext-introduce-objext_flags-as-extension-to-page_memcg_data_flags.patch
+lib-code-tagging-framework.patch
+lib-code-tagging-module-support.patch
+lib-prevent-module-unloading-if-memory-is-not-freed.patch
+lib-add-allocation-tagging-support-for-memory-allocation-profiling.patch
+lib-introduce-support-for-page-allocation-tagging.patch
+lib-introduce-early-boot-parameter-to-avoid-page_ext-memory-overhead.patch
+mm-percpu-increase-percpu_module_reserve-to-accommodate-allocation-tags.patch
+change-alloc_pages-name-in-dma_map_ops-to-avoid-name-conflicts.patch
+mm-enable-page-allocation-tagging.patch
+mm-create-new-codetag-references-during-page-splitting.patch
+mm-fix-non-compound-multi-order-memory-accounting-in-__free_pages.patch
+mm-page_ext-enable-early_page_ext-when-config_mem_alloc_profiling_debug=y.patch
+lib-add-codetag-reference-into-slabobj_ext.patch
+mm-slab-add-allocation-accounting-into-slab-allocation-and-free-paths.patch
+mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends.patch
+mm-percpu-enable-per-cpu-allocation-tagging.patch
+lib-add-memory-allocations-report-in-show_mem.patch
+codetag-debug-skip-objext-checking-when-its-for-objext-itself.patch
+codetag-debug-mark-codetags-for-reserved-pages-as-empty.patch
+codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations.patch
 
