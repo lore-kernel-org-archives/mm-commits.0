@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3101D1DFD6
-	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 23:12:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD94C31A8F
+	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 23:12:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711062766; cv=none; b=iuzRRSHaCIMg3GprHzD5Xi6Fj0NYbEDHEFZ2N/o6XQQMPElsSp1xWaGKvkEISBMG27B4GpvXXBDYACWmlMPfSyUvVJ2Cw98qXkkNOVUGT0Yafa2UIspoObiOfLjWcK3wJ84Xv38f0foTBKF1KJXpuRgqX0KhuMOLLO8OEeZINGk=
+	t=1711062767; cv=none; b=Fzpvq2L7oJYpkLxupqRBd+Du85lFyScldCJUIMmoJCpSvH50V+P2EtGZtbESIjpOAWUq4L73P7nUrDe/1pD348a0lrJ2BkCaL3hvEeqq+V3FjqlpLipgH8sMMdnjq+tiP8lkBCRp2mjHzU0lvZQ0vR1ScCSTvisr1Mlwxi2qYKI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711062766; c=relaxed/simple;
-	bh=Hq6pAUQPAB4FD/UrcwwoLT60F5EzoK8G8CAWKdZCkNo=;
-	h=Date:To:From:Subject:Message-Id; b=aiTSKXZHM+pKDLXiH9sK//qi+LHLwMPKsbL1rtjEWoFTdRH8gprCyk8FpmPTB+51DVa9IzKHOztQoR3NVYuulpS9z2hit0Py4sI/pWNPgs24hH8QmCnbrdVWbPm5xjK/MHQbiLR4W/Z786mY/OuUcb2PjTmPhR53rtCRaQpMY5c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1JbOdh1z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711062767; c=relaxed/simple;
+	bh=l3o9fctimhrFfGbLkuimRq3r7Iq1x+6DYCFUKuf4JH8=;
+	h=Date:To:From:Subject:Message-Id; b=R+gOpgwHO4MC35puWNuaUHfoQwv8TFX1xTMETpHX1xQvJfBaP+LBqtxAZdWvJTgDihpyaG2tPqVdP7+bffqGWPnuEaZjDysy6KR1V7b3rZjfuANtSprRukrggpobgzysslV94jcStMp7Ak/YHLhdUxeIAoBvzZjZ27Zd+OGol68=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E44EzllE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1JbOdh1z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91F21C433F1;
-	Thu, 21 Mar 2024 23:12:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E44EzllE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59DA0C43390;
+	Thu, 21 Mar 2024 23:12:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711062765;
-	bh=Hq6pAUQPAB4FD/UrcwwoLT60F5EzoK8G8CAWKdZCkNo=;
+	s=korg; t=1711062767;
+	bh=l3o9fctimhrFfGbLkuimRq3r7Iq1x+6DYCFUKuf4JH8=;
 	h=Date:To:From:Subject:From;
-	b=1JbOdh1zGjJ9rpoKvkN1+qjhuzbdjSAj99lN2m67p/hbrcSHr4kmbc+RVj/Dlvu1R
-	 YDnS6YFmWGxRtLqj86LZ6Ke2ryt66Q43uicP7RKrlLsDDDO64ppNAK5Em/8KfxachM
-	 I5cTEHvw/arwvmDANzBGWRM1PnooQ3kdwK7+6a5E=
-Date: Thu, 21 Mar 2024 16:12:45 -0700
+	b=E44EzllEVgGQuxDg/vLfNFuD/6i2RRH+dW0X5creGeFYzZHPXyE5X2YWSPa4lxWZE
+	 FoW0Rvjhp6DU8njLRjOZkiLt+9MesGWnw+5nF4M8biNLfzyzKdUMB4ksBMuvrK7ycm
+	 mo7uVVkUQuAgGsvuOTpNUeetIGv3NNb4axee+vK4=
+Date: Thu, 21 Mar 2024 16:12:46 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,vbabka@suse.cz,mgorman@techsingularity.net,david@redhat.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch added to mm-unstable branch
-Message-Id: <20240321231245.91F21C433F1@smtp.kernel.org>
+Subject: + mm-page_alloc-move-free-pages-when-converting-block-during-isolation.patch added to mm-unstable branch
+Message-Id: <20240321231247.59DA0C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: fix up block types when merging compatible blocks
+     Subject: mm: page_alloc: move free pages when converting block during isolation
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch
+     mm-page_alloc-move-free-pages-when-converting-block-during-isolation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-move-free-pages-when-converting-block-during-isolation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: fix up block types when merging compatible blocks
-Date: Wed, 20 Mar 2024 14:02:08 -0400
+Subject: mm: page_alloc: move free pages when converting block during isolation
+Date: Wed, 20 Mar 2024 14:02:09 -0400
 
-The buddy allocator coalesces compatible blocks during freeing, but it
-doesn't update the types of the subblocks to match.  When an allocation
-later breaks the chunk down again, its pieces will be put on freelists of
-the wrong type.  This encourages incompatible page mixing (ask for one
-type, get another), and thus long-term fragmentation.
+When claiming a block during compaction isolation, move any remaining free
+pages to the correct freelists as well, instead of stranding them on the
+wrong list.  Otherwise, this encourages incompatible page mixing down the
+line, and thus long-term fragmentation.
 
-Update the subblocks when merging a larger chunk, such that a later
-expand() will maintain freelist type hygiene.
-
-Link: https://lkml.kernel.org/r/20240320180429.678181-4-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20240320180429.678181-5-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
@@ -81,33 +77,25 @@ Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks
+--- a/mm/page_alloc.c~mm-page_alloc-move-free-pages-when-converting-block-during-isolation
 +++ a/mm/page_alloc.c
-@@ -786,10 +786,17 @@ static inline void __free_one_page(struc
+@@ -2653,9 +2653,12 @@ int __isolate_free_page(struct page *pag
+ 			 * Only change normal pageblocks (i.e., they can merge
+ 			 * with others)
  			 */
- 			int buddy_mt = get_pfnblock_migratetype(buddy, buddy_pfn);
- 
--			if (migratetype != buddy_mt
--					&& (!migratetype_is_mergeable(migratetype) ||
--						!migratetype_is_mergeable(buddy_mt)))
--				goto done_merging;
-+			if (migratetype != buddy_mt) {
-+				if (!migratetype_is_mergeable(migratetype) ||
-+				    !migratetype_is_mergeable(buddy_mt))
-+					goto done_merging;
-+				/*
-+				 * Match buddy type. This ensures that
-+				 * an expand() down the line puts the
-+				 * sub-blocks on the right freelists.
-+				 */
-+				set_pageblock_migratetype(buddy, migratetype);
+-			if (migratetype_is_mergeable(mt))
++			if (migratetype_is_mergeable(mt)) {
+ 				set_pageblock_migratetype(page,
+ 							  MIGRATE_MOVABLE);
++				move_freepages_block(zone, page,
++						     MIGRATE_MOVABLE, NULL);
 +			}
  		}
+ 	}
  
- 		/*
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
