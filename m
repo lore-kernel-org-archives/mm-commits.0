@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04AC85228
-	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 23:02:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B37A35228
+	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 23:02:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711062145; cv=none; b=ZN0uXXTV6bICRYAwgQhUeEi3MioBajIp689o+R3ZFszgUrXWwiU+epSqF0VClm04wxUMQV4s2h8K8YYAN1nT6SKr09LrEmPHNWJ3glVpkaf5+c+O9fVReN8lX7R7exnC4t6eEgyOHVZWncerec5yiRw3oGFGMO9KSXHReVOiJjE=
+	t=1711062147; cv=none; b=RBk+9rppaQ2JPG3PokOVzmn2IpfrlGk3zVGFzuckjGnz2QEeXI8oOM5Gc+u/XQeLmqDFB9fyAUSrUqYct2qGCsX8LIzpz0PjvcxDPb7Ph7umwnwOwrG2tvQYwwoGk2BjYWFsV3c/pVNf4dRBjnTgMjsUi1MBQV6BGYBX9Dxquog=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711062145; c=relaxed/simple;
-	bh=Q8+SbqfD3E8kLBkinH8aDqB8Dn7fDYOR7EVTvrwq8rI=;
-	h=Date:To:From:Subject:Message-Id; b=VTq+N3Tsrl3cZdp8vBj23rFZnNmG8R7eLTR30GI6lajs1dAg87yIgUcPZabHiXGsqaW4XAkAfTgYoy9tgg3kCEdVLaplFSG0TAonwYdI2k+oFMGG99C+JfcvCUDaQdmten6B1cRA4xahtjPfVdH6cgrH0P6uI+RYweE4/1l/vAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K+3bfLN5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711062147; c=relaxed/simple;
+	bh=JGs5i9dXo8BqPa7C88uxu0WpvAQQnB/Cj3i3TDoJsN4=;
+	h=Date:To:From:Subject:Message-Id; b=q5adxUvIb3ENClTMvUtUr9zCXQsq9q7MBe+dJZNC+fXd9o2UiynBdL7Bp7ZFPAQrhN+dGdEmzALBFoH4jdkOI3Dc+vu/SLZBNh7mQIWjKjUpTJjGZLV6I5IgxRT3oB4hZWLgu4G41SbDvNPjlU3iVyLjPWtsp3BcYOTLlA8iz3o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S9RVzYej; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K+3bfLN5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B335EC433F1;
-	Thu, 21 Mar 2024 23:02:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S9RVzYej"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28040C433F1;
+	Thu, 21 Mar 2024 23:02:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711062144;
-	bh=Q8+SbqfD3E8kLBkinH8aDqB8Dn7fDYOR7EVTvrwq8rI=;
+	s=korg; t=1711062147;
+	bh=JGs5i9dXo8BqPa7C88uxu0WpvAQQnB/Cj3i3TDoJsN4=;
 	h=Date:To:From:Subject:From;
-	b=K+3bfLN5LNuw4Xf+RBvZrBDIZD/w6Kya00hzlXxGMddzeciAMLrLqW6EUy3DYS6wk
-	 IZ3PfxaNOX+1pKu39p45eNdRrQbYTPMdwnf+IPnFguViLMbXevc/B6pqGwuR5bnnZk
-	 vCpfjSK2nGbwSU3DY8xN5ZGacxEFN6dVXWh+cEIM=
-Date: Thu, 21 Mar 2024 16:02:24 -0700
+	b=S9RVzYejX6iCzfwmNWd+Nwor/C1LjZMxPbyvEllp764REx9FZm2xwESzZuT0ncEm9
+	 fZ8obInTLy95MEwd8zL4tBmD2PvkFhbqtK466EyXMvxPI3/o0oSGHXAF0ILCcszJqP
+	 jFp9dBmIk3iLNWFkKDNI4KsATjYT7oW1rFapXr2o=
+Date: Thu, 21 Mar 2024 16:02:26 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,shy828301@gmail.com,rppt@kernel.org,riel@surriel.com,muchun.song@linux.dev,mpe@ellerman.id.au,mike.kravetz@oracle.com,lstoakes@gmail.com,kirill@shutemov.name,jthoughton@google.com,jhubbard@nvidia.com,jgg@nvidia.com,hch@infradead.org,david@redhat.com,christophe.leroy@csgroup.eu,axelrasmussen@google.com,aneesh.kumar@kernel.org,andrew.jones@linux.dev,aarcange@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch added to mm-unstable branch
-Message-Id: <20240321230224.B335EC433F1@smtp.kernel.org>
+Subject: + mm-make-hpage_pxd_-macros-even-if-thp.patch added to mm-unstable branch
+Message-Id: <20240321230227.28040C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: declare hugetlbfs_pagecache_present() non-static
+     Subject: mm: make HPAGE_PXD_* macros even if !THP
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch
+     mm-make-hpage_pxd_-macros-even-if-thp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-hpage_pxd_-macros-even-if-thp.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,26 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: declare hugetlbfs_pagecache_present() non-static
-Date: Thu, 21 Mar 2024 18:07:52 -0400
+Subject: mm: make HPAGE_PXD_* macros even if !THP
+Date: Thu, 21 Mar 2024 18:07:53 -0400
 
-It will be used outside hugetlb.c soon.
+These macros can be helpful when we plan to merge hugetlb code into generic
+code.  Move them out and define them even if !THP.
 
-Link: https://lkml.kernel.org/r/20240321220802.679544-3-peterx@redhat.com
+We actually already defined HPAGE_PMD_NR for other reasons even if !THP.
+Reorganize these macros.
+
+Link: https://lkml.kernel.org/r/20240321220802.679544-4-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Christoph Hellwig <hch@infradead.org>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrew Jones <andrew.jones@linux.dev>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Christoph Hellwig <hch@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: James Houghton <jthoughton@google.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
@@ -89,48 +93,56 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    9 +++++++++
- mm/hugetlb.c            |    4 ++--
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ include/linux/huge_mm.h |   17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static
-+++ a/include/linux/hugetlb.h
-@@ -174,6 +174,9 @@ u32 hugetlb_fault_mutex_hash(struct addr
+--- a/include/linux/huge_mm.h~mm-make-hpage_pxd_-macros-even-if-thp
++++ a/include/linux/huge_mm.h
+@@ -64,9 +64,6 @@ ssize_t single_hugepage_flag_show(struct
+ 				  enum transparent_hugepage_flag flag);
+ extern struct kobj_attribute shmem_enabled_attr;
  
- pte_t *huge_pmd_share(struct mm_struct *mm, struct vm_area_struct *vma,
- 		      unsigned long addr, pud_t *pud);
-+bool hugetlbfs_pagecache_present(struct hstate *h,
-+				 struct vm_area_struct *vma,
-+				 unsigned long address);
- 
- struct address_space *hugetlb_page_mapping_lock_write(struct page *hpage);
- 
-@@ -1197,6 +1200,12 @@ static inline void hugetlb_register_node
- static inline void hugetlb_unregister_node(struct node *node)
- {
- }
-+
-+static inline bool hugetlbfs_pagecache_present(
-+    struct hstate *h, struct vm_area_struct *vma, unsigned long address)
-+{
-+	return false;
-+}
- #endif	/* CONFIG_HUGETLB_PAGE */
- 
- static inline spinlock_t *huge_pte_lock(struct hstate *h,
---- a/mm/hugetlb.c~mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static
-+++ a/mm/hugetlb.c
-@@ -6106,8 +6106,8 @@ out_release_old:
+-#define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
+-#define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
+-
  /*
-  * Return whether there is a pagecache page to back given address within VMA.
-  */
--static bool hugetlbfs_pagecache_present(struct hstate *h,
--			struct vm_area_struct *vma, unsigned long address)
-+bool hugetlbfs_pagecache_present(struct hstate *h,
-+				 struct vm_area_struct *vma, unsigned long address)
+  * Mask of all large folio orders supported for anonymous THP; all orders up to
+  * and including PMD_ORDER, except order-0 (which is not "huge") and order-1
+@@ -87,14 +84,19 @@ extern struct kobj_attribute shmem_enabl
+ #define thp_vma_allowable_order(vma, vm_flags, smaps, in_pf, enforce_sysfs, order) \
+ 	(!!thp_vma_allowable_orders(vma, vm_flags, smaps, in_pf, enforce_sysfs, BIT(order)))
+ 
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ #define HPAGE_PMD_SHIFT PMD_SHIFT
+ #define HPAGE_PMD_SIZE	((1UL) << HPAGE_PMD_SHIFT)
+ #define HPAGE_PMD_MASK	(~(HPAGE_PMD_SIZE - 1))
++#define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
++#define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
+ 
+ #define HPAGE_PUD_SHIFT PUD_SHIFT
+ #define HPAGE_PUD_SIZE	((1UL) << HPAGE_PUD_SHIFT)
+ #define HPAGE_PUD_MASK	(~(HPAGE_PUD_SIZE - 1))
++#define HPAGE_PUD_ORDER (HPAGE_PUD_SHIFT-PAGE_SHIFT)
++#define HPAGE_PUD_NR (1<<HPAGE_PUD_ORDER)
++
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 
+ extern unsigned long transparent_hugepage_flags;
+ extern unsigned long huge_anon_orders_always;
+@@ -377,13 +379,6 @@ static inline bool thp_migration_support
+ }
+ 
+ #else /* CONFIG_TRANSPARENT_HUGEPAGE */
+-#define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
+-#define HPAGE_PMD_MASK ({ BUILD_BUG(); 0; })
+-#define HPAGE_PMD_SIZE ({ BUILD_BUG(); 0; })
+-
+-#define HPAGE_PUD_SHIFT ({ BUILD_BUG(); 0; })
+-#define HPAGE_PUD_MASK ({ BUILD_BUG(); 0; })
+-#define HPAGE_PUD_SIZE ({ BUILD_BUG(); 0; })
+ 
+ static inline bool folio_test_pmd_mappable(struct folio *folio)
  {
- 	struct address_space *mapping = vma->vm_file->f_mapping;
- 	pgoff_t idx = linear_page_index(vma, address);
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
