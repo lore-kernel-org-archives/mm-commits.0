@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6E18F516
-	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 23:25:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C5783AC2B;
+	Thu, 21 Mar 2024 23:29:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711063528; cv=none; b=Jv4HMzB6MJCrSMDlwtNk26fSPphdLWGLixXCu4yLs0eXcJnNVaXi6lI5xrlJR8dAZzKvDUD7tVarcdi0q9OGEloq1Ja6s3s716PVpeJg/Alc36y3rLrWk/BuZ+rirOL29vHGF3Jx3N6Rp8kNLfxPNecyjKzEQ1o79+CP86kxDPE=
+	t=1711063766; cv=none; b=sTqw3E9AKVRUyA07KS0wVKV7X3ReSYjT0GpR3pPaN1F6z4czOv+MnCy6P5VzgXrTVWeEUF1o+X5RqytSXBShsXK0RkqG2Ity/fdDdLHvrleA/GljghnP92V/NBN9Xwv7Iu+Ey6ulQKQe201Vra9OBeATKrWsExM/GDVFLprz/w0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711063528; c=relaxed/simple;
-	bh=u7xTgq0ePRxLfCL3ORsDY8oQIncbfvpSfvjoBuTe/Dc=;
-	h=Date:To:From:Subject:Message-Id; b=kjwTU5Jo/UIyC8vVxIPP8w/RaRJUaC7s+SkcOtQ0Y2Pb5cPsRRGX65L3NkEG2LPIs0Az7FdXXwEK8EbND2uXtJ+ky2WiEPCEmjhAMXVOI4KcqvvBHS2sQ6mnw45ekiEfaYn8khmurPF1LIPEaA41ID9Flg4mQ670POvtrWB+Njk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WCL/G8IA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711063766; c=relaxed/simple;
+	bh=Cwy3gjtlov2MBpkg2h/pA/fEJLYD2JcccAuiRul6qU4=;
+	h=Date:To:From:Subject:Message-Id; b=rgO9R0TkMSlP5im4vGAQLRB2p+1c0QCMwai1J3LSwm5Nfso0LZdCXETYesxFjwCMoZwNjmLNW4Fm2fBcT64wF4R0N0dqlI6aKf6rlqa0OYtIvhhldmYbSERdA3DQpPlDvxS9VxzTyPCSqgxjgD5PO/ssR+nhms60TID/Kid5mLY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tvTbpaC+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WCL/G8IA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 216C5C433F1;
-	Thu, 21 Mar 2024 23:25:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tvTbpaC+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0B9CC433C7;
+	Thu, 21 Mar 2024 23:29:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711063528;
-	bh=u7xTgq0ePRxLfCL3ORsDY8oQIncbfvpSfvjoBuTe/Dc=;
+	s=korg; t=1711063765;
+	bh=Cwy3gjtlov2MBpkg2h/pA/fEJLYD2JcccAuiRul6qU4=;
 	h=Date:To:From:Subject:From;
-	b=WCL/G8IAbXXMp4ZcXBBnSbYAtz7BWxLMpbUQCp3QEggohzJ8SNwAtBP3xdxpb40WI
-	 WHt7kdSrSQ3AWFl8GV9eA/M7onQVN3BuMgXUCN812kjt8/j20wgQdxT/KetPbvcKHw
-	 /EKydJMBdWaL4s+W3+N6m9z5w/Zxkcm0yDpPBwGQ=
-Date: Thu, 21 Mar 2024 16:25:27 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,kirill.shutemov@linux.intel.com,fengwei.yin@intel.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=tvTbpaC+0Sb3jzmnn8HAWuIG6W9v1dRra7YsTmROoNte7x0Bq3iNJr+A8eI8Kftzt
+	 ctqSgclUKJjuidKsdTPx5gXuJWu25QNl+Yz8u8qJYuPoaqix0Nmnc/QAnwI3hS0/BI
+	 kn/VIy6BkivIKpCx7wS2G2cDe3LGXAOn6yaclmMI=
+Date: Thu, 21 Mar 2024 16:29:25 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,peterx@redhat.com,edliaw@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-migrate-split-source-folio-if-it-is-on-deferred-split-list.patch removed from -mm tree
-Message-Id: <20240321232528.216C5C433F1@smtp.kernel.org>
+Subject: + selftests-mm-sigbus-wp-test-requires-uffd_feature_wp_hugetlbfs_shmem.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240321232925.B0B9CC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,192 +34,65 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/migrate: split source folio if it is on deferred split list
-has been removed from the -mm tree.  Its filename was
-     mm-migrate-split-source-folio-if-it-is-on-deferred-split-list.patch
+The patch titled
+     Subject: selftests/mm: sigbus-wp test requires UFFD_FEATURE_WP_HUGETLBFS_SHMEM
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-mm-sigbus-wp-test-requires-uffd_feature_wp_hugetlbfs_shmem.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-sigbus-wp-test-requires-uffd_feature_wp_hugetlbfs_shmem.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/migrate: split source folio if it is on deferred split list
-Date: Tue, 19 Mar 2024 11:47:53 -0400
+From: Edward Liaw <edliaw@google.com>
+Subject: selftests/mm: sigbus-wp test requires UFFD_FEATURE_WP_HUGETLBFS_SHMEM
+Date: Thu, 21 Mar 2024 23:20:21 +0000
 
-If the source folio is on deferred split list, it is likely some subpages
-are not used.  Split it before migration to avoid migrating unused
-subpages.
+The sigbus-wp test requires the UFFD_FEATURE_WP_HUGETLBFS_SHMEM flag for
+shmem and hugetlb targets.  Otherwise it is not backwards compatible with
+kernels <5.19 and fails with EINVAL.
 
-Commit 616b8371539a6 ("mm: thp: enable thp migration in generic path") did
-not check if a THP is on deferred split list before migration, thus, the
-destination THP is never put on deferred split list even if the source THP
-might be.  The opportunity of reclaiming free pages in a partially mapped
-THP during deferred list scanning is lost, but no other harmful
-consequence is present[1].
-
-[1]: https://lore.kernel.org/linux-mm/03CE3A00-917C-48CC-8E1C-6A98713C817C@nvidia.com/
-
-Link: https://lkml.kernel.org/r/20240319154753.253262-1-zi.yan@sent.com
-Fixes: 616b8371539a ("mm: thp: enable thp migration in generic path")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Huang, Ying <ying.huang@intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
+Link: https://lkml.kernel.org/r/20240321232023.2064975-1-edliaw@google.com
+Fixes: 73c1ea939b65 ("selftests/mm: move uffd sig/events tests into uffd unit tests")
+Signed-off-by: Edward Liaw <edliaw@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Peter Xu <peterx@redhat.com
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   22 ----------------
- mm/internal.h    |   23 +++++++++++++++++
- mm/migrate.c     |   60 ++++++++++++++++++++++++++++++++++++---------
- 3 files changed, 72 insertions(+), 33 deletions(-)
+ tools/testing/selftests/mm/uffd-unit-tests.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-migrate-split-source-folio-if-it-is-on-deferred-split-list
-+++ a/mm/huge_memory.c
-@@ -766,28 +766,6 @@ pmd_t maybe_pmd_mkwrite(pmd_t pmd, struc
- 	return pmd;
- }
- 
--#ifdef CONFIG_MEMCG
--static inline
--struct deferred_split *get_deferred_split_queue(struct folio *folio)
--{
--	struct mem_cgroup *memcg = folio_memcg(folio);
--	struct pglist_data *pgdat = NODE_DATA(folio_nid(folio));
--
--	if (memcg)
--		return &memcg->deferred_split_queue;
--	else
--		return &pgdat->deferred_split_queue;
--}
--#else
--static inline
--struct deferred_split *get_deferred_split_queue(struct folio *folio)
--{
--	struct pglist_data *pgdat = NODE_DATA(folio_nid(folio));
--
--	return &pgdat->deferred_split_queue;
--}
--#endif
--
- void folio_prep_large_rmappable(struct folio *folio)
- {
- 	if (!folio || !folio_test_large(folio))
---- a/mm/internal.h~mm-migrate-split-source-folio-if-it-is-on-deferred-split-list
-+++ a/mm/internal.h
-@@ -1106,6 +1106,29 @@ struct page *follow_trans_huge_pmd(struc
- 				   unsigned long addr, pmd_t *pmd,
- 				   unsigned int flags);
- 
-+#ifdef CONFIG_MEMCG
-+static inline
-+struct deferred_split *get_deferred_split_queue(struct folio *folio)
-+{
-+	struct mem_cgroup *memcg = folio_memcg(folio);
-+	struct pglist_data *pgdat = NODE_DATA(folio_nid(folio));
-+
-+	if (memcg)
-+		return &memcg->deferred_split_queue;
-+	else
-+		return &pgdat->deferred_split_queue;
-+}
-+#else
-+static inline
-+struct deferred_split *get_deferred_split_queue(struct folio *folio)
-+{
-+	struct pglist_data *pgdat = NODE_DATA(folio_nid(folio));
-+
-+	return &pgdat->deferred_split_queue;
-+}
-+#endif
-+
-+
- /*
-  * mm/mmap.c
-  */
---- a/mm/migrate.c~mm-migrate-split-source-folio-if-it-is-on-deferred-split-list
-+++ a/mm/migrate.c
-@@ -1654,25 +1654,63 @@ static int migrate_pages_batch(struct li
- 
- 			/*
- 			 * Large folio migration might be unsupported or
--			 * the allocation might be failed so we should retry
--			 * on the same folio with the large folio split
-+			 * the folio is on deferred split list so we should
-+			 * retry on the same folio with the large folio split
- 			 * to normal folios.
- 			 *
- 			 * Split folios are put in split_folios, and
- 			 * we will migrate them after the rest of the
- 			 * list is processed.
- 			 */
--			if (!thp_migration_supported() && is_thp) {
--				nr_failed++;
--				stats->nr_thp_failed++;
--				if (!try_split_folio(folio, split_folios)) {
--					stats->nr_thp_split++;
--					stats->nr_split++;
-+			if (is_thp) {
-+				bool is_on_deferred_list = false;
-+
-+				/*
-+				 * Check without taking split_queue_lock to
-+				 * reduce locking overheads. The worst case is
-+				 * that if the folio is put on the deferred
-+				 * split list after the check, it will be
-+				 * migrated and not put back on the list.
-+				 * The migrated folio will not be split
-+				 * via shrinker during memory pressure.
-+				 */
-+				if (!data_race(list_empty(&folio->_deferred_list))) {
-+					struct deferred_split *ds_queue;
-+					unsigned long flags;
-+
-+					ds_queue =
-+						get_deferred_split_queue(folio);
-+					spin_lock_irqsave(&ds_queue->split_queue_lock,
-+							  flags);
-+					/*
-+					 * Only check if the folio is on
-+					 * deferred split list without removing
-+					 * it. Since the folio can be on
-+					 * deferred_split_scan() local list and
-+					 * removing it can cause the local list
-+					 * corruption. Folio split process
-+					 * below can handle it with the help of
-+					 * folio_ref_freeze().
-+					 */
-+					is_on_deferred_list =
-+						!list_empty(&folio->_deferred_list);
-+					spin_unlock_irqrestore(&ds_queue->split_queue_lock,
-+							       flags);
-+				}
-+				if (!thp_migration_supported() ||
-+						is_on_deferred_list) {
-+					nr_failed++;
-+					stats->nr_thp_failed++;
-+					if (!try_split_folio(folio,
-+							     split_folios)) {
-+						stats->nr_thp_split++;
-+						stats->nr_split++;
-+						continue;
-+					}
-+					stats->nr_failed_pages += nr_pages;
-+					list_move_tail(&folio->lru, ret_folios);
- 					continue;
- 				}
--				stats->nr_failed_pages += nr_pages;
--				list_move_tail(&folio->lru, ret_folios);
--				continue;
- 			}
- 
- 			rc = migrate_folio_unmap(get_new_folio, put_new_folio,
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-sigbus-wp-test-requires-uffd_feature_wp_hugetlbfs_shmem
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -1427,7 +1427,8 @@ uffd_test_case_t uffd_tests[] = {
+ 		.uffd_fn = uffd_sigbus_wp_test,
+ 		.mem_targets = MEM_ALL,
+ 		.uffd_feature_required = UFFD_FEATURE_SIGBUS |
+-		UFFD_FEATURE_EVENT_FORK | UFFD_FEATURE_PAGEFAULT_FLAG_WP,
++		UFFD_FEATURE_EVENT_FORK | UFFD_FEATURE_PAGEFAULT_FLAG_WP |
++		UFFD_FEATURE_WP_HUGETLBFS_SHMEM,
+ 	},
+ 	{
+ 		.name = "events",
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from edliaw@google.com are
 
-mm-page_alloc-set-migratetype-inside-move_freepages.patch
+selftests-mm-sigbus-wp-test-requires-uffd_feature_wp_hugetlbfs_shmem.patch
 
