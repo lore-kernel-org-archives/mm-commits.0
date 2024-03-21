@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 289E31350FD
-	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 20:43:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3149B5660
+	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 20:43:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711053787; cv=none; b=jcrp0R3zI9brSyhzahnfHPeZphPU3SD4TqKQFiYA5Yf/gg5Ihbc/5tADgQsLWIReirjxelqTEC6qNwP5/mi8otHFhbm9cnQLm7U/n2m17fuqTXVUjpxR3e9CXF4gIYiDRlCebMO3UGPxr+azfaplaLwVs/mjwbezPXh83Fr/g2E=
+	t=1711053789; cv=none; b=k3a0grHEJQSs70kBIVlCdylsd+g0y0CpwySBoYkAfwsLc5BobDnWlVTAF/JgFF4gz3N3qGA9IfGqvjg3EPP5NkrYH1+3l4Z2wAKB+iZk5jPkyf/1LCw8eAmKTpyrDMVbkX/XdX5G6H2m9B/1aEjZ8w02PJSFfDdgzWBPS582mRI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711053787; c=relaxed/simple;
-	bh=U0Gg+1r3YbSEQsijRAJJ9Rm+tCe941XVxo5mUzmFznY=;
-	h=Date:To:From:Subject:Message-Id; b=Ykez0HLhtEmPEjrCI3/gsGwoGKaRqGwbnZ/XW4xKCuiyeyi2TEBoymEgdBleAMJ1BMpP3ibtzjLRm+AfBNqpGxQMdj6u0phLzTUe1pR0CEoCYEg/JNDtJIR+b+CvJ5nr0RO8VyEFsK27GnDE0bYHK2gGWpozqXZaiwnokAfIMqk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xI/q3xYe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711053789; c=relaxed/simple;
+	bh=iPdL/6J2k0Lqx3y1nKi8D22bwfLL9q0gVHlbPgV670c=;
+	h=Date:To:From:Subject:Message-Id; b=L/obFsTnaHebZi3hFrh/OiW4bmWIPDlk26oRLg7iS3pBwAeFozZ7hpT+IJ5na8cm3DjoG1wqKL2cpUwTMn+SEFIo1/T5MK8TN/irJzglnEJEmaQFoGIgmVFJuSS++rpvOEAAmf9ctfOVzDP5cmjCGGxWfd5fZVSn9kEpjIzRknM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iI/ZBgqB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xI/q3xYe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1608C433C7;
-	Thu, 21 Mar 2024 20:43:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iI/ZBgqB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE0FAC433C7;
+	Thu, 21 Mar 2024 20:43:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711053786;
-	bh=U0Gg+1r3YbSEQsijRAJJ9Rm+tCe941XVxo5mUzmFznY=;
+	s=korg; t=1711053789;
+	bh=iPdL/6J2k0Lqx3y1nKi8D22bwfLL9q0gVHlbPgV670c=;
 	h=Date:To:From:Subject:From;
-	b=xI/q3xYeE/CtFf0w6NIk3wtv8y4JfZNHY5GuCgY8UJYfRBxUAg4b3WZ2uEalMa49Y
-	 QacqC3/s+ZZDnj1zN60bpBI5EMEck+nJXJSmrX73MmQzRCSYUBlyuFzf3Dj5QIKGHv
-	 pnhvbxJxjzEX9sbRWH2PJwE05ThLh0nqOUCb6UPU=
-Date: Thu, 21 Mar 2024 13:43:06 -0700
+	b=iI/ZBgqB69bOXrdqxD1PzscvO308oxojBTPIEchp3aZZQNt+qBnm2Jie9XIuIkd+2
+	 RF53fFVGjoTATYgsvgfSxJFHMTKmICuahppBF9piLI8P7+Kb1FBaoGT0hb7DwtSVOm
+	 +Yoq6tFQHmNQcUWIxChWj23ztAF8HknyocOTeP5k=
+Date: Thu, 21 Mar 2024 13:43:08 -0700
 To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,peterz@infradead.org,pasha.tatashin@soleen.com,ojeda@kernel.org,kent.overstreet@linux.dev,keescook@chromium.org,gary@garyguo.net,dennis@kernel.org,cl@linux.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@samsung.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation.patch added to mm-unstable branch
-Message-Id: <20240321204306.A1608C433C7@smtp.kernel.org>
+Subject: + slab-objext-introduce-objext_flags-as-extension-to-page_memcg_data_flags.patch added to mm-unstable branch
+Message-Id: <20240321204308.EE0FAC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/slab: introduce SLAB_NO_OBJ_EXT to avoid obj_ext creation
+     Subject: slab: objext: introduce objext_flags as extension to page_memcg_data_flags
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation.patch
+     slab-objext-introduce-objext_flags-as-extension-to-page_memcg_data_flags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/slab-objext-introduce-objext_flags-as-extension-to-page_memcg_data_flags.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm/slab: introduce SLAB_NO_OBJ_EXT to avoid obj_ext creation
-Date: Thu, 21 Mar 2024 09:36:30 -0700
+Subject: slab: objext: introduce objext_flags as extension to page_memcg_data_flags
+Date: Thu, 21 Mar 2024 09:36:31 -0700
 
-Slab extension objects can't be allocated before slab infrastructure is
-initialized.  Some caches, like kmem_cache and kmem_cache_node, are
-created before slab infrastructure is initialized.  Objects from these
-caches can't have extension objects.  Introduce SLAB_NO_OBJ_EXT slab flag
-to mark these caches and avoid creating extensions for objects allocated
-from these slabs.
+Introduce objext_flags to store additional objext flags unrelated to memcg.
 
-Link: https://lkml.kernel.org/r/20240321163705.3067592-9-surenb@google.com
+Link: https://lkml.kernel.org/r/20240321163705.3067592-10-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Kees Cook <keescook@chromium.org>
 Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
@@ -92,57 +87,97 @@ Cc: Wedson Almeida Filho <wedsonaf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |   10 ++++++++++
- mm/slub.c            |    5 +++--
- 2 files changed, 13 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |   29 ++++++++++++++++++++++-------
+ mm/slab.h                  |    5 +----
+ 2 files changed, 23 insertions(+), 11 deletions(-)
 
---- a/include/linux/slab.h~mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation
-+++ a/include/linux/slab.h
-@@ -56,6 +56,9 @@ enum _slab_flag_bits {
- #endif
- 	_SLAB_OBJECT_POISON,
- 	_SLAB_CMPXCHG_DOUBLE,
-+#ifdef CONFIG_SLAB_OBJ_EXT
-+	_SLAB_NO_OBJ_EXT,
-+#endif
- 	_SLAB_FLAGS_LAST_BIT
+--- a/include/linux/memcontrol.h~slab-objext-introduce-objext_flags-as-extension-to-page_memcg_data_flags
++++ a/include/linux/memcontrol.h
+@@ -357,7 +357,22 @@ enum page_memcg_data_flags {
+ 	__NR_MEMCG_DATA_FLAGS  = (1UL << 2),
  };
  
-@@ -202,6 +205,13 @@ enum _slab_flag_bits {
- #endif
- #define SLAB_TEMPORARY		SLAB_RECLAIM_ACCOUNT	/* Objects are short-lived */
- 
-+/* Slab created using create_boot_cache */
-+#ifdef CONFIG_SLAB_OBJ_EXT
-+#define SLAB_NO_OBJ_EXT		__SLAB_FLAG_BIT(_SLAB_NO_OBJ_EXT)
-+#else
-+#define SLAB_NO_OBJ_EXT		__SLAB_FLAG_UNUSED
-+#endif
+-#define MEMCG_DATA_FLAGS_MASK (__NR_MEMCG_DATA_FLAGS - 1)
++#define __FIRST_OBJEXT_FLAG	__NR_MEMCG_DATA_FLAGS
 +
++#else /* CONFIG_MEMCG */
++
++#define __FIRST_OBJEXT_FLAG	(1UL << 0)
++
++#endif /* CONFIG_MEMCG */
++
++enum objext_flags {
++	/* the next bit after the last actual flag */
++	__NR_OBJEXTS_FLAGS  = __FIRST_OBJEXT_FLAG,
++};
++
++#define OBJEXTS_FLAGS_MASK (__NR_OBJEXTS_FLAGS - 1)
++
++#ifdef CONFIG_MEMCG
+ 
+ static inline bool folio_memcg_kmem(struct folio *folio);
+ 
+@@ -391,7 +406,7 @@ static inline struct mem_cgroup *__folio
+ 	VM_BUG_ON_FOLIO(memcg_data & MEMCG_DATA_OBJEXTS, folio);
+ 	VM_BUG_ON_FOLIO(memcg_data & MEMCG_DATA_KMEM, folio);
+ 
+-	return (struct mem_cgroup *)(memcg_data & ~MEMCG_DATA_FLAGS_MASK);
++	return (struct mem_cgroup *)(memcg_data & ~OBJEXTS_FLAGS_MASK);
+ }
+ 
  /*
-  * ZERO_SIZE_PTR will be returned for zero sized kmalloc requests.
-  *
---- a/mm/slub.c~mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation
-+++ a/mm/slub.c
-@@ -5693,7 +5693,8 @@ void __init kmem_cache_init(void)
- 		node_set(node, slab_nodes);
+@@ -412,7 +427,7 @@ static inline struct obj_cgroup *__folio
+ 	VM_BUG_ON_FOLIO(memcg_data & MEMCG_DATA_OBJEXTS, folio);
+ 	VM_BUG_ON_FOLIO(!(memcg_data & MEMCG_DATA_KMEM), folio);
  
- 	create_boot_cache(kmem_cache_node, "kmem_cache_node",
--		sizeof(struct kmem_cache_node), SLAB_HWCACHE_ALIGN, 0, 0);
-+			sizeof(struct kmem_cache_node),
-+			SLAB_HWCACHE_ALIGN | SLAB_NO_OBJ_EXT, 0, 0);
+-	return (struct obj_cgroup *)(memcg_data & ~MEMCG_DATA_FLAGS_MASK);
++	return (struct obj_cgroup *)(memcg_data & ~OBJEXTS_FLAGS_MASK);
+ }
  
- 	hotplug_memory_notifier(slab_memory_callback, SLAB_CALLBACK_PRI);
+ /*
+@@ -469,11 +484,11 @@ static inline struct mem_cgroup *folio_m
+ 	if (memcg_data & MEMCG_DATA_KMEM) {
+ 		struct obj_cgroup *objcg;
  
-@@ -5703,7 +5704,7 @@ void __init kmem_cache_init(void)
- 	create_boot_cache(kmem_cache, "kmem_cache",
- 			offsetof(struct kmem_cache, node) +
- 				nr_node_ids * sizeof(struct kmem_cache_node *),
--		       SLAB_HWCACHE_ALIGN, 0, 0);
-+			SLAB_HWCACHE_ALIGN | SLAB_NO_OBJ_EXT, 0, 0);
+-		objcg = (void *)(memcg_data & ~MEMCG_DATA_FLAGS_MASK);
++		objcg = (void *)(memcg_data & ~OBJEXTS_FLAGS_MASK);
+ 		return obj_cgroup_memcg(objcg);
+ 	}
  
- 	kmem_cache = bootstrap(&boot_kmem_cache);
- 	kmem_cache_node = bootstrap(&boot_kmem_cache_node);
+-	return (struct mem_cgroup *)(memcg_data & ~MEMCG_DATA_FLAGS_MASK);
++	return (struct mem_cgroup *)(memcg_data & ~OBJEXTS_FLAGS_MASK);
+ }
+ 
+ /*
+@@ -512,11 +527,11 @@ static inline struct mem_cgroup *folio_m
+ 	if (memcg_data & MEMCG_DATA_KMEM) {
+ 		struct obj_cgroup *objcg;
+ 
+-		objcg = (void *)(memcg_data & ~MEMCG_DATA_FLAGS_MASK);
++		objcg = (void *)(memcg_data & ~OBJEXTS_FLAGS_MASK);
+ 		return obj_cgroup_memcg(objcg);
+ 	}
+ 
+-	return (struct mem_cgroup *)(memcg_data & ~MEMCG_DATA_FLAGS_MASK);
++	return (struct mem_cgroup *)(memcg_data & ~OBJEXTS_FLAGS_MASK);
+ }
+ 
+ static inline struct mem_cgroup *page_memcg_check(struct page *page)
+--- a/mm/slab.h~slab-objext-introduce-objext_flags-as-extension-to-page_memcg_data_flags
++++ a/mm/slab.h
+@@ -554,11 +554,8 @@ static inline struct slabobj_ext *slab_o
+ 	VM_BUG_ON_PAGE(obj_exts && !(obj_exts & MEMCG_DATA_OBJEXTS),
+ 							slab_page(slab));
+ 	VM_BUG_ON_PAGE(obj_exts & MEMCG_DATA_KMEM, slab_page(slab));
+-
+-	return (struct slabobj_ext *)(obj_exts & ~MEMCG_DATA_FLAGS_MASK);
+-#else
+-	return (struct slabobj_ext *)obj_exts;
+ #endif
++	return (struct slabobj_ext *)(obj_exts & ~OBJEXTS_FLAGS_MASK);
+ }
+ 
+ #else /* CONFIG_SLAB_OBJ_EXT */
 _
 
 Patches currently in -mm which might be from surenb@google.com are
