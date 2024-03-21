@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DB0E364D4
-	for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2024 23:26:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3102E56B98
+	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 20:13:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710890765; cv=none; b=e1ff0re700HsQ4xZHoGLxjkomMwSkU6Blt1RvBpSMKd23EaJFASQ8CGjFEMl/2s2TMdJrw1f0ZIMiaKucr8qW9BfNgVukyj5uvJr3GbH5rvLV3/nDwF7W1C/39j+f1Vab8Fs7p4Yqd1T0BzCAqoj7Wu/8hFY3rpjj7sK06YRGw8=
+	t=1711052002; cv=none; b=kKMC2awBWolZPdaOi2X2M4h5OKyXGnHEwnn+VCz0I5XrrQidmNJID0CxulC3FuRvB5/PnCB8m1qrqHoWBg0HC9ZVQZ0OWfT7PI+OWtwl1VQOGbNABhsDdBOGNjCjdwc430iTpFohcYIjXEMps2HYuwkDX7DRItnuYmxmxFZl/cs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710890765; c=relaxed/simple;
-	bh=sp4svHNiuo2Z1+zLguFJC99n6oYGV621Cl+SJIjBjEs=;
-	h=Date:To:From:Subject:Message-Id; b=fW2qpicXiU474zLedG7PvdICj5RJUuyDEkTiQ+hanepS+lNz7GVgNUe2VLr+0Uf5b+XaKHTi4I9QDUx6KvDQg7dyihHetB8wYeyxysCzSJLbWpY0F7HPDP/HkWWOwGMQi7+aPNI828xnFFOyr32/epMwk6A98TQyNOnHqoGa8Xw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CTpYVgXH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711052002; c=relaxed/simple;
+	bh=86JgNkPCwocvzt7P7MlJoijR/DI1FRL/YuOEAjI2xNg=;
+	h=Date:To:From:Subject:Message-Id; b=tvS3BqGuOXIPCaECmOr1uFXtWcado3sHkG2VJKtirRpfEKYQ0N5vQ5iTkOqIZid4szjRDxatycjMp9oFPGxfX+LLcHBQlGnCZPf0MfnL1v722i4lKfTvVgtNS4ed0pG+Vej3r4LgNjAJFsPM1/fU+Q3E07AURfyQfiQZ0dy2K64=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2OegyMk5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CTpYVgXH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 891DEC433F1;
-	Tue, 19 Mar 2024 23:26:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2OegyMk5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3D6CC43390;
+	Thu, 21 Mar 2024 20:13:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1710890764;
-	bh=sp4svHNiuo2Z1+zLguFJC99n6oYGV621Cl+SJIjBjEs=;
+	s=korg; t=1711052001;
+	bh=86JgNkPCwocvzt7P7MlJoijR/DI1FRL/YuOEAjI2xNg=;
 	h=Date:To:From:Subject:From;
-	b=CTpYVgXH0SweaPEtJXBqGRQt9LN7FZDMLnxMhkxu9HrC5ffaryb0Piu4H06PG80V2
-	 fuanLfSwcB+LYrZiQWv8dTJhzOQ/2NLiUvlL2xbQwPEPRLS5qutR6TFLCPCiWO54Yv
-	 u7jOSb5o8YbwoWIwYyQzCw0CVCe/xG9aALwl6HZI=
-Date: Tue, 19 Mar 2024 16:26:03 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,tglx@linutronix.de,shawnguo@kernel.org,rppt@kernel.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,msalter@redhat.com,mpe@ellerman.id.au,mingo@redhat.com,l.stach@pengutronix.de,linux@armlinux.org.uk,krzysztof.kozlowski@linaro.org,konrad.dybcio@linaro.org,jgg@nvidia.com,festevam@denx.de,davem@davemloft.net,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,apopple@nvidia.com,aneesh.kumar@kernel.org,andreas@gaisler.com,andersson@kernel.org,peterx@redhat.com,akpm@linux-foundation.org
+	b=2OegyMk5M6+ZEfE6ZmGHZN1nai5+RFNWwUcneC5UI5vrkFus80BFZQah+XFJgwBUB
+	 VI2+/loYi8sXKrcAVMO+RDroejB5cG6Rc/Tf5Hse0YwHEg12B+LrMdoeSjR2U0DyAX
+	 uZtQ1efHXVhwNHybNi0MXC49Wc0Au+CiEs13DjOg=
+Date: Thu, 21 Mar 2024 13:13:21 -0700
+To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,nphamcs@gmail.com,kent.overstreet@linux.dev,jeromepoulin@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-document-pxd_leaf-api.patch added to mm-unstable branch
-Message-Id: <20240319232604.891DEC433F1@smtp.kernel.org>
+Subject: + mm-zswap-fix-writeback-shinker-gfp_noio-gfp_nofs-recursion.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240321201321.B3D6CC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: document pXd_leaf() API
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-document-pxd_leaf-api.patch
+     Subject: mm: zswap: fix writeback shinker GFP_NOIO/GFP_NOFS recursion
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-zswap-fix-writeback-shinker-gfp_noio-gfp_nofs-recursion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-document-pxd_leaf-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-writeback-shinker-gfp_noio-gfp_nofs-recursion.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,102 +58,99 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm: document pXd_leaf() API
-Date: Mon, 18 Mar 2024 16:04:04 -0400
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: zswap: fix writeback shinker GFP_NOIO/GFP_NOFS recursion
+Date: Thu, 21 Mar 2024 14:25:32 -0400
 
-There's one small section already, but since we're going to remove
-pXd_huge(), that comment may start to obsolete.
+Kent forwards this bug report of zswap re-entering the block layer
+from an IO request allocation and locking up:
 
-Rewrite that section with more information, hopefully with that the API is
-crystal clear on what it implies.
+[10264.128242] sysrq: Show Blocked State
+[10264.128268] task:kworker/20:0H   state:D stack:0     pid:143   tgid:143   ppid:2      flags:0x00004000
+[10264.128271] Workqueue: bcachefs_io btree_write_submit [bcachefs]
+[10264.128295] Call Trace:
+[10264.128295]  <TASK>
+[10264.128297]  __schedule+0x3e6/0x1520
+[10264.128303]  schedule+0x32/0xd0
+[10264.128304]  schedule_timeout+0x98/0x160
+[10264.128308]  io_schedule_timeout+0x50/0x80
+[10264.128309]  wait_for_completion_io_timeout+0x7f/0x180
+[10264.128310]  submit_bio_wait+0x78/0xb0
+[10264.128313]  swap_writepage_bdev_sync+0xf6/0x150
+[10264.128317]  zswap_writeback_entry+0xf2/0x180
+[10264.128319]  shrink_memcg_cb+0xe7/0x2f0
+[10264.128322]  __list_lru_walk_one+0xb9/0x1d0
+[10264.128325]  list_lru_walk_one+0x5d/0x90
+[10264.128326]  zswap_shrinker_scan+0xc4/0x130
+[10264.128327]  do_shrink_slab+0x13f/0x360
+[10264.128328]  shrink_slab+0x28e/0x3c0
+[10264.128329]  shrink_one+0x123/0x1b0
+[10264.128331]  shrink_node+0x97e/0xbc0
+[10264.128332]  do_try_to_free_pages+0xe7/0x5b0
+[10264.128333]  try_to_free_pages+0xe1/0x200
+[10264.128334]  __alloc_pages_slowpath.constprop.0+0x343/0xde0
+[10264.128337]  __alloc_pages+0x32d/0x350
+[10264.128338]  allocate_slab+0x400/0x460
+[10264.128339]  ___slab_alloc+0x40d/0xa40
+[10264.128345]  kmem_cache_alloc+0x2e7/0x330
+[10264.128348]  mempool_alloc+0x86/0x1b0
+[10264.128349]  bio_alloc_bioset+0x200/0x4f0
+[10264.128352]  bio_alloc_clone+0x23/0x60
+[10264.128354]  alloc_io+0x26/0xf0 [dm_mod 7e9e6b44df4927f93fb3e4b5c782767396f58382]
+[10264.128361]  dm_submit_bio+0xb8/0x580 [dm_mod 7e9e6b44df4927f93fb3e4b5c782767396f58382]
+[10264.128366]  __submit_bio+0xb0/0x170
+[10264.128367]  submit_bio_noacct_nocheck+0x159/0x370
+[10264.128368]  bch2_submit_wbio_replicas+0x21c/0x3a0 [bcachefs 85f1b9a7a824f272eff794653a06dde1a94439f2]
+[10264.128391]  btree_write_submit+0x1cf/0x220 [bcachefs 85f1b9a7a824f272eff794653a06dde1a94439f2]
+[10264.128406]  process_one_work+0x178/0x350
+[10264.128408]  worker_thread+0x30f/0x450
+[10264.128409]  kthread+0xe5/0x120
 
-Link: https://lkml.kernel.org/r/20240318200404.448346-15-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Bjorn Andersson <andersson@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Fabio Estevam <festevam@denx.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Konrad Dybcio <konrad.dybcio@linaro.org>
-Cc: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Cc: Lucas Stach <l.stach@pengutronix.de>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Shawn Guo <shawnguo@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
+The zswap shrinker resumes the swap_writepage()s that were intercepted
+by the zswap store. This will enter the block layer, and may even
+enter the filesystem depending on the swap backing file.
+
+Make it respect GFP_NOIO and GFP_NOFS.
+
+Link: https://lore.kernel.org/linux-mm/rc4pk2r42oyvjo4dc62z6sovquyllq56i5cdgcaqbd7wy3hfzr@n4nbxido3fme/
+Link: https://lkml.kernel.org/r/20240321182532.60000-1-hannes@cmpxchg.org
+Fixes: b5ba474f3f51 ("zswap: shrink zswap pool based on memory pressure")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Kent Overstreet <kent.overstreet@linux.dev>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Reported-by: Jérôme Poulin <jeromepoulin@gmail.com>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: stable@vger.kernel.org	[v6.8]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |   24 +++++++++++++++++++-----
- 1 file changed, 19 insertions(+), 5 deletions(-)
+ mm/zswap.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/include/linux/pgtable.h~mm-document-pxd_leaf-api
-+++ a/include/linux/pgtable.h
-@@ -1768,11 +1768,25 @@ typedef unsigned int pgtbl_mod_mask;
- #endif
+--- a/mm/zswap.c~mm-zswap-fix-writeback-shinker-gfp_noio-gfp_nofs-recursion
++++ a/mm/zswap.c
+@@ -1323,6 +1323,14 @@ static unsigned long zswap_shrinker_coun
+ 	if (!zswap_shrinker_enabled || !mem_cgroup_zswap_writeback_enabled(memcg))
+ 		return 0;
  
- /*
-- * p?d_leaf() - true if this entry is a final mapping to a physical address.
-- * This differs from p?d_huge() by the fact that they are always available (if
-- * the architecture supports large pages at the appropriate level) even
-- * if CONFIG_HUGETLB_PAGE is not defined.
-- * Only meaningful when called on a valid entry.
-+ * pXd_leaf() is the API to check whether a pgtable entry is a huge page
-+ * mapping.  It should work globally across all archs, without any
-+ * dependency on CONFIG_* options.  For architectures that do not support
-+ * huge mappings on specific levels, below fallbacks will be used.
-+ *
-+ * A leaf pgtable entry should always imply the following:
-+ *
-+ * - It is a "present" entry.  IOW, before using this API, please check it
-+ *   with pXd_present() first. NOTE: it may not always mean the "present
-+ *   bit" is set.  For example, PROT_NONE entries are always "present".
-+ *
-+ * - It should _never_ be a swap entry of any type.  Above "present" check
-+ *   should have guarded this, but let's be crystal clear on this.
-+ *
-+ * - It should contain a huge PFN, which points to a huge page larger than
-+ *   PAGE_SIZE of the platform.  The PFN format isn't important here.
-+ *
-+ * - It should cover all kinds of huge mappings (e.g., pXd_trans_huge(),
-+ *   pXd_devmap(), or hugetlb mappings).
-  */
- #ifndef pgd_leaf
- #define pgd_leaf(x)	false
++	/*
++	 * The shrinker resumes swap writeback, which will enter block
++	 * and may enter fs. XXX: Harmonize with vmscan.c __GFP_FS
++	 * rules (may_enter_fs()), which apply on a per-folio basis.
++	 */
++	if (!gfp_has_io_fs(sc->gfp_mask))
++		return 0;
++
+ #ifdef CONFIG_MEMCG_KMEM
+ 	mem_cgroup_flush_stats(memcg);
+ 	nr_backing = memcg_page_state(memcg, MEMCG_ZSWAP_B) >> PAGE_SHIFT;
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-memory-fix-missing-pte-marker-for-page-on-pte-zaps.patch
-mm-hmm-process-pud-swap-entry-without-pud_huge.patch
-mm-gup-cache-p4d-in-follow_p4d_mask.patch
-mm-gup-check-p4d-presence-before-going-on.patch
-mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-arm-use-macros-to-define-pmd-pud-helpers.patch
-mm-arm-redefine-pmd_huge-with-pmd_leaf.patch
-mm-arm64-merge-pxd_huge-and-pxd_leaf-definitions.patch
-mm-powerpc-redefine-pxd_huge-with-pxd_leaf.patch
-mm-gup-merge-pxd-huge-mapping-checks.patch
-mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
-mm-treewide-remove-pxd_huge.patch
-mm-arm-remove-pmd_thp_or_huge.patch
-mm-document-pxd_leaf-api.patch
+mm-cachestat-fix-two-shmem-bugs.patch
+mm-zswap-fix-writeback-shinker-gfp_noio-gfp_nofs-recursion.patch
+mm-zswap-optimize-zswap-pool-size-tracking.patch
+mm-zpool-return-pool-size-in-pages.patch
 
