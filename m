@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE08E137C54
-	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 20:44:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9C02138496
+	for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2024 20:44:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711053859; cv=none; b=AI5uA+QdiZH8QVdCcaNx+JylokrZNDNTOAHaRODBMywNDfDlizjH9WlqTrqsvyG4lZ+Qr4h2YBr736rsXPvu9dXKZKlUXLYH9mdtmBe3K2yvaRq8SDpVEYxiBAGBuJQ/00MR+ioDtpHdHCyx1RUDgaTwbFICLtM8pyL2DpLbkS4=
+	t=1711053863; cv=none; b=smoCIX8ZvWsT5xp4FbR/6up61dmg1S+NhdZc5t+pAL/ycKl54UCIy+TbWs3BTtAjZnFfPipfkvsN7jTgyf+Bnj8En9m/NEF1Oye6TqpfbnXMFXuASC9IwrrNagcQRFoZAkf+fMjL+tEXikHdejfyPaOmniuZOOlZg9k107pi6KQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711053859; c=relaxed/simple;
-	bh=yGuwmjK4n9NZ0rpbJVXC2o6LMcmS0tYJi78lE7klLSU=;
-	h=Date:To:From:Subject:Message-Id; b=uIjXu6dRPwbYEQKAwMvHAUW3oRe3ib+cdEZpL4C5Codirvw+n6s/01Aqir1F3pdvR7kJ1nBYriJXHJuoKdGv7FkN/H8XkyB1QSDsuoIzmzDZ/WLgRNLQd1QSgn9yFE8UEIZx+BUc3v+KH2xs8qfTl//9v+vlrbfFxPIQYSgHZl8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ieWbM2UR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711053863; c=relaxed/simple;
+	bh=xDJhfB0TTizNLdTj+1AVj8u2/sgLXgeExA5nuy+xESU=;
+	h=Date:To:From:Subject:Message-Id; b=AjuUviFSF+WwIMk9Bi3tnX0NWYQU4v+j0REaJDWyyrRgpZps7DOYux8F2FxtN6Vjg4h6gaDbsEqJ4nbdCR6o4ynGOCr2JU+ej1ObUPKqSVmeQamTmWvYoH72+is1qyVaMEFg3PoP1oDYkgxPPJAn/mae7XokD15fCN3Ewovoau4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GYJOSB5+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ieWbM2UR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8074CC433C7;
-	Thu, 21 Mar 2024 20:44:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GYJOSB5+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BFB4C43142;
+	Thu, 21 Mar 2024 20:44:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711053859;
-	bh=yGuwmjK4n9NZ0rpbJVXC2o6LMcmS0tYJi78lE7klLSU=;
+	s=korg; t=1711053862;
+	bh=xDJhfB0TTizNLdTj+1AVj8u2/sgLXgeExA5nuy+xESU=;
 	h=Date:To:From:Subject:From;
-	b=ieWbM2UREEuVtu4IYfjcQfFv7qE2+6DP3D3moe55Gt7CDVFBiGEYxEB9Jg+L5gzf9
-	 oHIvw71faiHPph0VfzCHJ8tjUONFOWiTDRay2MD+nE3KycfIw12LYh4bXlqh9cbqVm
-	 IxAdurywQJQ+z5L71MOQlX0NGEQxxBqYuaQdsyUQ=
-Date: Thu, 21 Mar 2024 13:44:19 -0700
-To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,surenb@google.com,peterz@infradead.org,pasha.tatashin@soleen.com,ojeda@kernel.org,keescook@chromium.org,gary@garyguo.net,dennis@kernel.org,cl@linux.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@samsung.com,kent.overstreet@linux.dev,akpm@linux-foundation.org
+	b=GYJOSB5+qlMxjPnp2NCxjpl7Xw6HX6f9O4Nfu8xtw877dKE859QQMgeaIVuLD2/o2
+	 qih0RmQ62488R9Z3wVEjJv2HbCNRZRhUfwxQ4WGxzWvPgdAjhnlIPCnvqZjGj3dYzm
+	 Rdyv36FpR7V6Z+bAbUCjiz38FwPuo1hJLmrRputE=
+Date: Thu, 21 Mar 2024 13:44:21 -0700
+To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,peterz@infradead.org,pasha.tatashin@soleen.com,ojeda@kernel.org,kent.overstreet@linux.dev,keescook@chromium.org,gary@garyguo.net,dennis@kernel.org,cl@linux.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@samsung.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + rhashtable-plumb-through-alloc-tag.patch added to mm-unstable branch
-Message-Id: <20240321204419.8074CC433C7@smtp.kernel.org>
+Subject: + lib-add-memory-allocations-report-in-show_mem.patch added to mm-unstable branch
+Message-Id: <20240321204422.5BFB4C43142@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: rhashtable: plumb through alloc tag
+     Subject: lib: add memory allocations report in show_mem()
 has been added to the -mm mm-unstable branch.  Its filename is
-     rhashtable-plumb-through-alloc-tag.patch
+     lib-add-memory-allocations-report-in-show_mem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rhashtable-plumb-through-alloc-tag.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-add-memory-allocations-report-in-show_mem.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,16 +58,16 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kent Overstreet <kent.overstreet@linux.dev>
-Subject: rhashtable: plumb through alloc tag
-Date: Thu, 21 Mar 2024 09:36:53 -0700
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: lib: add memory allocations report in show_mem()
+Date: Thu, 21 Mar 2024 09:36:54 -0700
 
-This gives better memory allocation profiling results; rhashtable
-allocations will be accounted to the code that initialized the rhashtable.
+Include allocations in show_mem reports.
 
-Link: https://lkml.kernel.org/r/20240321163705.3067592-32-surenb@google.com
+Link: https://lkml.kernel.org/r/20240321163705.3067592-33-surenb@google.com
 Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alex Gaynor <alex.gaynor@gmail.com>
 Cc: Alice Ryhl <aliceryhl@google.com>
@@ -83,178 +83,163 @@ Cc: Miguel Ojeda <ojeda@kernel.org>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wedson Almeida Filho <wedsonaf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/alloc_tag.h        |    3 +++
- include/linux/rhashtable-types.h |   11 +++++++++--
- lib/rhashtable.c                 |   28 +++++++++++++++++-----------
- 3 files changed, 29 insertions(+), 13 deletions(-)
+ include/linux/alloc_tag.h |    7 ++++++
+ include/linux/codetag.h   |    1 
+ lib/alloc_tag.c           |   38 ++++++++++++++++++++++++++++++++++++
+ lib/codetag.c             |    5 ++++
+ mm/show_mem.c             |   26 ++++++++++++++++++++++++
+ 5 files changed, 77 insertions(+)
 
---- a/include/linux/alloc_tag.h~rhashtable-plumb-through-alloc-tag
+--- a/include/linux/alloc_tag.h~lib-add-memory-allocations-report-in-show_mem
 +++ a/include/linux/alloc_tag.h
-@@ -141,6 +141,8 @@ static inline void alloc_tag_sub(union c
- 	ref->ct = NULL;
+@@ -30,6 +30,13 @@ struct alloc_tag {
+ 
+ #ifdef CONFIG_MEM_ALLOC_PROFILING
+ 
++struct codetag_bytes {
++	struct codetag *ct;
++	s64 bytes;
++};
++
++size_t alloc_tag_top_users(struct codetag_bytes *tags, size_t count, bool can_sleep);
++
+ static inline struct alloc_tag *ct_to_alloc_tag(struct codetag *ct)
+ {
+ 	return container_of(ct, struct alloc_tag, ct);
+--- a/include/linux/codetag.h~lib-add-memory-allocations-report-in-show_mem
++++ a/include/linux/codetag.h
+@@ -61,6 +61,7 @@ struct codetag_iterator {
  }
  
-+#define alloc_tag_record(p)	((p) = current->alloc_tag)
+ void codetag_lock_module_list(struct codetag_type *cttype, bool lock);
++bool codetag_trylock_module_list(struct codetag_type *cttype);
+ struct codetag_iterator codetag_get_ct_iter(struct codetag_type *cttype);
+ struct codetag *codetag_next_ct(struct codetag_iterator *iter);
+ 
+--- a/lib/alloc_tag.c~lib-add-memory-allocations-report-in-show_mem
++++ a/lib/alloc_tag.c
+@@ -86,6 +86,44 @@ static const struct seq_operations alloc
+ 	.show	= allocinfo_show,
+ };
+ 
++size_t alloc_tag_top_users(struct codetag_bytes *tags, size_t count, bool can_sleep)
++{
++	struct codetag_iterator iter;
++	struct codetag *ct;
++	struct codetag_bytes n;
++	unsigned int i, nr = 0;
 +
- #else /* CONFIG_MEM_ALLOC_PROFILING */
++	if (can_sleep)
++		codetag_lock_module_list(alloc_tag_cttype, true);
++	else if (!codetag_trylock_module_list(alloc_tag_cttype))
++		return 0;
++
++	iter = codetag_get_ct_iter(alloc_tag_cttype);
++	while ((ct = codetag_next_ct(&iter))) {
++		struct alloc_tag_counters counter = alloc_tag_read(ct_to_alloc_tag(ct));
++
++		n.ct	= ct;
++		n.bytes = counter.bytes;
++
++		for (i = 0; i < nr; i++)
++			if (n.bytes > tags[i].bytes)
++				break;
++
++		if (i < count) {
++			nr -= nr == count;
++			memmove(&tags[i + 1],
++				&tags[i],
++				sizeof(tags[0]) * (nr - i));
++			nr++;
++			tags[i] = n;
++		}
++	}
++
++	codetag_lock_module_list(alloc_tag_cttype, false);
++
++	return nr;
++}
++
+ static void __init procfs_init(void)
+ {
+ 	proc_create_seq("allocinfo", 0444, NULL, &allocinfo_seq_op);
+--- a/lib/codetag.c~lib-add-memory-allocations-report-in-show_mem
++++ a/lib/codetag.c
+@@ -36,6 +36,11 @@ void codetag_lock_module_list(struct cod
+ 		up_read(&cttype->mod_lock);
+ }
  
- #define DEFINE_ALLOC_TAG(_alloc_tag)
-@@ -148,6 +150,7 @@ static inline bool mem_alloc_profiling_e
- static inline void alloc_tag_add(union codetag_ref *ref, struct alloc_tag *tag,
- 				 size_t bytes) {}
- static inline void alloc_tag_sub(union codetag_ref *ref, size_t bytes) {}
-+#define alloc_tag_record(p)	do {} while (0)
- 
- #endif /* CONFIG_MEM_ALLOC_PROFILING */
- 
---- a/include/linux/rhashtable-types.h~rhashtable-plumb-through-alloc-tag
-+++ a/include/linux/rhashtable-types.h
-@@ -9,6 +9,7 @@
- #ifndef _LINUX_RHASHTABLE_TYPES_H
- #define _LINUX_RHASHTABLE_TYPES_H
- 
-+#include <linux/alloc_tag.h>
- #include <linux/atomic.h>
- #include <linux/compiler.h>
- #include <linux/mutex.h>
-@@ -88,6 +89,9 @@ struct rhashtable {
- 	struct mutex                    mutex;
- 	spinlock_t			lock;
- 	atomic_t			nelems;
++bool codetag_trylock_module_list(struct codetag_type *cttype)
++{
++	return down_read_trylock(&cttype->mod_lock) != 0;
++}
++
+ struct codetag_iterator codetag_get_ct_iter(struct codetag_type *cttype)
+ {
+ 	struct codetag_iterator iter = {
+--- a/mm/show_mem.c~lib-add-memory-allocations-report-in-show_mem
++++ a/mm/show_mem.c
+@@ -423,4 +423,30 @@ void __show_mem(unsigned int filter, nod
+ #ifdef CONFIG_MEMORY_FAILURE
+ 	printk("%lu pages hwpoisoned\n", atomic_long_read(&num_poisoned_pages));
+ #endif
 +#ifdef CONFIG_MEM_ALLOC_PROFILING
-+	struct alloc_tag		*alloc_tag;
++	{
++		struct codetag_bytes tags[10];
++		size_t i, nr;
++
++		nr = alloc_tag_top_users(tags, ARRAY_SIZE(tags), false);
++		if (nr) {
++			pr_notice("Memory allocations:\n");
++			for (i = 0; i < nr; i++) {
++				struct codetag *ct = tags[i].ct;
++				struct alloc_tag *tag = ct_to_alloc_tag(ct);
++				struct alloc_tag_counters counter = alloc_tag_read(tag);
++
++				/* Same as alloc_tag_to_text() but w/o intermediate buffer */
++				if (ct->modname)
++					pr_notice("%12lli %8llu %s:%u [%s] func:%s\n",
++						  counter.bytes, counter.calls, ct->filename,
++						  ct->lineno, ct->modname, ct->function);
++				else
++					pr_notice("%12lli %8llu %s:%u func:%s\n",
++						  counter.bytes, counter.calls, ct->filename,
++						  ct->lineno, ct->function);
++			}
++		}
++	}
 +#endif
- };
- 
- /**
-@@ -127,9 +131,12 @@ struct rhashtable_iter {
- 	bool end_of_table;
- };
- 
--int rhashtable_init(struct rhashtable *ht,
-+int rhashtable_init_noprof(struct rhashtable *ht,
- 		    const struct rhashtable_params *params);
--int rhltable_init(struct rhltable *hlt,
-+#define rhashtable_init(...)	alloc_hooks(rhashtable_init_noprof(__VA_ARGS__))
-+
-+int rhltable_init_noprof(struct rhltable *hlt,
- 		  const struct rhashtable_params *params);
-+#define rhltable_init(...)	alloc_hooks(rhltable_init_noprof(__VA_ARGS__))
- 
- #endif /* _LINUX_RHASHTABLE_TYPES_H */
---- a/lib/rhashtable.c~rhashtable-plumb-through-alloc-tag
-+++ a/lib/rhashtable.c
-@@ -130,7 +130,8 @@ static union nested_table *nested_table_
- 	if (ntbl)
- 		return ntbl;
- 
--	ntbl = kzalloc(PAGE_SIZE, GFP_ATOMIC);
-+	ntbl = alloc_hooks_tag(ht->alloc_tag,
-+			kmalloc_noprof(PAGE_SIZE, GFP_ATOMIC|__GFP_ZERO));
- 
- 	if (ntbl && leaf) {
- 		for (i = 0; i < PAGE_SIZE / sizeof(ntbl[0]); i++)
-@@ -157,7 +158,8 @@ static struct bucket_table *nested_bucke
- 
- 	size = sizeof(*tbl) + sizeof(tbl->buckets[0]);
- 
--	tbl = kzalloc(size, gfp);
-+	tbl = alloc_hooks_tag(ht->alloc_tag,
-+			kmalloc_noprof(size, gfp|__GFP_ZERO));
- 	if (!tbl)
- 		return NULL;
- 
-@@ -181,7 +183,9 @@ static struct bucket_table *bucket_table
- 	int i;
- 	static struct lock_class_key __key;
- 
--	tbl = kvzalloc(struct_size(tbl, buckets, nbuckets), gfp);
-+	tbl = alloc_hooks_tag(ht->alloc_tag,
-+			kvmalloc_node_noprof(struct_size(tbl, buckets, nbuckets),
-+					     gfp|__GFP_ZERO, NUMA_NO_NODE));
- 
- 	size = nbuckets;
- 
-@@ -975,7 +979,7 @@ static u32 rhashtable_jhash2(const void
  }
- 
- /**
-- * rhashtable_init - initialize a new hash table
-+ * rhashtable_init_noprof - initialize a new hash table
-  * @ht:		hash table to be initialized
-  * @params:	configuration parameters
-  *
-@@ -1016,7 +1020,7 @@ static u32 rhashtable_jhash2(const void
-  *	.obj_hashfn = my_hash_fn,
-  * };
-  */
--int rhashtable_init(struct rhashtable *ht,
-+int rhashtable_init_noprof(struct rhashtable *ht,
- 		    const struct rhashtable_params *params)
- {
- 	struct bucket_table *tbl;
-@@ -1031,6 +1035,8 @@ int rhashtable_init(struct rhashtable *h
- 	spin_lock_init(&ht->lock);
- 	memcpy(&ht->p, params, sizeof(*params));
- 
-+	alloc_tag_record(ht->alloc_tag);
-+
- 	if (params->min_size)
- 		ht->p.min_size = roundup_pow_of_two(params->min_size);
- 
-@@ -1076,26 +1082,26 @@ int rhashtable_init(struct rhashtable *h
- 
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(rhashtable_init);
-+EXPORT_SYMBOL_GPL(rhashtable_init_noprof);
- 
- /**
-- * rhltable_init - initialize a new hash list table
-+ * rhltable_init_noprof - initialize a new hash list table
-  * @hlt:	hash list table to be initialized
-  * @params:	configuration parameters
-  *
-  * Initializes a new hash list table.
-  *
-- * See documentation for rhashtable_init.
-+ * See documentation for rhashtable_init_noprof.
-  */
--int rhltable_init(struct rhltable *hlt, const struct rhashtable_params *params)
-+int rhltable_init_noprof(struct rhltable *hlt, const struct rhashtable_params *params)
- {
- 	int err;
- 
--	err = rhashtable_init(&hlt->ht, params);
-+	err = rhashtable_init_noprof(&hlt->ht, params);
- 	hlt->ht.rhlist = true;
- 	return err;
- }
--EXPORT_SYMBOL_GPL(rhltable_init);
-+EXPORT_SYMBOL_GPL(rhltable_init_noprof);
- 
- static void rhashtable_free_one(struct rhashtable *ht, struct rhash_head *obj,
- 				void (*free_fn)(void *ptr, void *arg),
 _
 
-Patches currently in -mm which might be from kent.overstreet@linux.dev are
+Patches currently in -mm which might be from surenb@google.com are
 
-fix-missing-vmalloch-includes.patch
-asm-generic-ioh-kill-vmalloch-dependency.patch
-mm-slub-mark-slab_free_freelist_hook-__always_inline.patch
-scripts-kallysms-always-include-__start-and-__stop-symbols.patch
-fs-convert-alloc_inode_sb-to-a-macro.patch
-rust-add-a-rust-helper-for-krealloc.patch
-mempool-hook-up-to-memory-allocation-profiling.patch
-mm-percpu-introduce-pcpuobj_ext.patch
-mm-percpu-add-codetag-reference-into-pcpuobj_ext.patch
-mm-vmalloc-enable-memory-allocation-profiling.patch
-rhashtable-plumb-through-alloc-tag.patch
-maintainers-add-entries-for-code-tagging-and-memory-allocation-profiling.patch
-memprofiling-documentation.patch
+mm-introduce-slabobj_ext-to-support-slab-object-extensions.patch
+mm-introduce-__gfp_no_obj_ext-flag-to-selectively-prevent-slabobj_ext-creation.patch
+mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation.patch
+slab-objext-introduce-objext_flags-as-extension-to-page_memcg_data_flags.patch
+lib-code-tagging-framework.patch
+lib-code-tagging-module-support.patch
+lib-prevent-module-unloading-if-memory-is-not-freed.patch
+lib-add-allocation-tagging-support-for-memory-allocation-profiling.patch
+lib-introduce-support-for-page-allocation-tagging.patch
+lib-introduce-early-boot-parameter-to-avoid-page_ext-memory-overhead.patch
+mm-percpu-increase-percpu_module_reserve-to-accommodate-allocation-tags.patch
+change-alloc_pages-name-in-dma_map_ops-to-avoid-name-conflicts.patch
+mm-enable-page-allocation-tagging.patch
+mm-create-new-codetag-references-during-page-splitting.patch
+mm-fix-non-compound-multi-order-memory-accounting-in-__free_pages.patch
+mm-page_ext-enable-early_page_ext-when-config_mem_alloc_profiling_debug=y.patch
+lib-add-codetag-reference-into-slabobj_ext.patch
+mm-slab-add-allocation-accounting-into-slab-allocation-and-free-paths.patch
+mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends.patch
+mm-percpu-enable-per-cpu-allocation-tagging.patch
+lib-add-memory-allocations-report-in-show_mem.patch
+codetag-debug-skip-objext-checking-when-its-for-objext-itself.patch
+codetag-debug-mark-codetags-for-reserved-pages-as-empty.patch
+codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations.patch
 
