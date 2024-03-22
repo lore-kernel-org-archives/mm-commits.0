@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8112376
-	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 00:43:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8328C2570
+	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 00:47:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711068234; cv=none; b=myB0d4dK6xEfHzhAR+b9FqxVJ96+KHRWesDj9KJVtwuQyJWGpjEW8LnFAZLS69hAAIckKrXNbp+GhahBrxp5IHAOX+1zenqW2xN5a7m0OGUUHl7srHmy42RvkamdNEXdzncZjVPMcOKvQzi8PYjgjFaoqA1HatHuwsuBlSswQfg=
+	t=1711068467; cv=none; b=InT4cjqk9jMv6l1MpjHMySUFoXCq4bSrBUgSlsNwGleVSBKeST3vCNnPy6du4IYxwmewGHXInk5No4glKaveilANIumY7IM6akYWrccy7Ebw8HWQjAeoOZCf3WUAFKiRA7j+DsklBq5OsFae+2WEm8gMIHa6Lj6+UlRbeAFVvTs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711068234; c=relaxed/simple;
-	bh=V181N1sk8IBz5SzbjzuBNaTMZYL5XTP9Tpzfc/T8nDs=;
-	h=Date:To:From:Subject:Message-Id; b=flZ9FEo+xqzVWtNlMQBjD+C8zScYNGVixvVwNG3/ILL8qFZfb9mFzgYij5U7oIi3R7Co8Dk2sv9q9f6bFlc/mBbW+c/16i5/4mRRokF2BBTZsKL6+DaOw5WXdCgJbDtrK57c5sjvPe7zru844wULllNqupDFZG/H2iBV+1y/02Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UKa8Dz7T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711068467; c=relaxed/simple;
+	bh=eulSk5/RxsWNVyZM0iC+QeARBkmkEwRLGCsTWciD7cg=;
+	h=Date:To:From:Subject:Message-Id; b=bq9o10G/OvLCNmDc4MtKZwkNTQN2uR0nTFA88rexf5IACTixcf/6K4I4ftzGE5BlsxdQI4X5vzlfqXYzlKoyeaIIa5joaYEO0HF3MZbAn0qGc6rhJ98z4FB7lEb/H9m5A3n+szbt501S9HDZ2oiFB71fpq5KsJGWGZ4klz73PYE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g9J3WPsM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UKa8Dz7T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 486DAC433F1;
-	Fri, 22 Mar 2024 00:43:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g9J3WPsM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC84DC433C7;
+	Fri, 22 Mar 2024 00:47:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711068234;
-	bh=V181N1sk8IBz5SzbjzuBNaTMZYL5XTP9Tpzfc/T8nDs=;
+	s=korg; t=1711068467;
+	bh=eulSk5/RxsWNVyZM0iC+QeARBkmkEwRLGCsTWciD7cg=;
 	h=Date:To:From:Subject:From;
-	b=UKa8Dz7TNx5+u+q/NKnIM+g2Ht250E2Y8xyv1t2hanGDugpeJf90HGAYu6Ih2XOvh
-	 HeFC3XwJuqwIhE/m7ngUz6IT26kLGlQJenpsB+2powYnTpPdcEsDlt3zBb3Ajv4o+e
-	 2L3d2Q0dVd8NX1rEsq/LAPwgDI9DYudcZHAbkC6Q=
-Date: Thu, 21 Mar 2024 17:43:53 -0700
-To: mm-commits@vger.kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,yosryahmed@google.com,akpm@linux-foundation.org
+	b=g9J3WPsMH4vJUFhLXF4oR2R1f9cdOmyfigM++P3miiO+/h4ZcbysInBtRMKQSID/n
+	 DvIVkzitMcJoA/i9IrJS65fK8m8DdNwrV3UbLfzYWTwJT7/yZ/puqtUYSJvijpQMUY
+	 IMT3RJSfLk+yF3vwh1uzNU2tuE41hiVR3H4UHorg=
+Date: Thu, 21 Mar 2024 17:47:46 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,peterx@redhat.com,ngeoffray@google.com,kaleshsingh@google.com,jannh@google.com,hdanton@sina.com,david@redhat.com,bgeffon@google.com,axelrasmussen@google.com,aarcange@redhat.com,lokeshgidra@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-remove-nr_zswap_stored-atomic.patch added to mm-unstable branch
-Message-Id: <20240322004354.486DAC433F1@smtp.kernel.org>
+Subject: + userfaultfd-fix-deadlock-warning-when-locking-src-and-dst-vmas.patch added to mm-nonmm-unstable branch
+Message-Id: <20240322004746.EC84DC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: remove nr_zswap_stored atomic
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-remove-nr_zswap_stored-atomic.patch
+     Subject: userfaultfd: fix deadlock warning when locking src and dst VMAs
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     userfaultfd-fix-deadlock-warning-when-locking-src-and-dst-vmas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-remove-nr_zswap_stored-atomic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-fix-deadlock-warning-when-locking-src-and-dst-vmas.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,101 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zswap: remove nr_zswap_stored atomic
-Date: Fri, 22 Mar 2024 00:10:01 +0000
+From: Lokesh Gidra <lokeshgidra@google.com>
+Subject: userfaultfd: fix deadlock warning when locking src and dst VMAs
+Date: Thu, 21 Mar 2024 16:58:18 -0700
 
-nr_stored was introduced by commit b5ba474f3f51 ("zswap: shrink zswap pool
-based on memory pressure") as a per zswap_pool counter of the number of
-stored pages that are not same-filled pages.  It is used in
-zswap_shrinker_count() to scale the number of freeable compressed pages by
-the compression ratio.  That is, to reduce the amount of writeback from
-zswap with higher compression ratios as the ROI from IO diminishes.
+Use down_read_nested() to avoid the warning.
 
-Later on, commit bf9b7df23cb3 ("mm/zswap: global lru and shrinker shared
-by all zswap_pools") made the shrinker global (not per zswap_pool), and
-replaced nr_stored with nr_zswap_stored (initially introduced as
-zswap.nr_stored), which is now a global counter.
-
-The counter is now awfully close to zswap_stored_pages.  The only
-difference is that the latter also includes same-filled pages.  Also, when
-memcgs are enabled, we use memcg_page_state(memcg, MEMCG_ZSWAPPED), which
-includes same-filled pages anyway (i.e.  equivalent to
-zswap_stored_pages).
-
-Use zswap_stored_pages instead in zswap_shrinker_count() to keep things
-consistent whether memcgs are enabled or not, and add a comment about the
-number of freeable pages possibly being scaled down more than it should if
-we have lots of same-filled pages (i.e.  inflated compression ratio).
-
-Remove nr_zswap_stored and one atomic operation in the store and free
-paths.
-
-Link: https://lkml.kernel.org/r/20240322001001.1562517-1-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev> [Bug #1]
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20240321235818.125118-1-lokeshgidra@google.com
+Fixes: 867a43a34ff8a ("userfaultfd: use per-vma locks in userfaultfd operations")
+Reported-by: syzbot+49056626fe41e01f2ba7@syzkaller.appspotmail.com
+Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Jann Horn <jannh@google.com> [Bug #2]
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Nicolas Geoffray <ngeoffray@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/userfaultfd.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/zswap.c~mm-zswap-remove-nr_zswap_stored-atomic
-+++ a/mm/zswap.c
-@@ -180,8 +180,6 @@ struct zswap_pool {
- 
- /* Global LRU lists shared by all zswap pools. */
- static struct list_lru zswap_list_lru;
--/* counter of pages stored in all zswap pools. */
--static atomic_t zswap_nr_stored = ATOMIC_INIT(0);
- 
- /* The lock protects zswap_next_shrink updates. */
- static DEFINE_SPINLOCK(zswap_shrink_lock);
-@@ -819,7 +817,6 @@ static void zswap_entry_free(struct zswa
- 	else {
- 		zswap_lru_del(&zswap_list_lru, entry);
- 		zpool_free(zswap_find_zpool(entry), entry->handle);
--		atomic_dec(&zswap_nr_stored);
- 		zswap_pool_put(entry->pool);
+--- a/mm/userfaultfd.c~userfaultfd-fix-deadlock-warning-when-locking-src-and-dst-vmas
++++ a/mm/userfaultfd.c
+@@ -1479,7 +1479,8 @@ static int uffd_move_lock(struct mm_stru
+ 		 */
+ 		down_read(&(*dst_vmap)->vm_lock->lock);
+ 		if (*dst_vmap != *src_vmap)
+-			down_read(&(*src_vmap)->vm_lock->lock);
++			down_read_nested(&(*src_vmap)->vm_lock->lock,
++					 SINGLE_DEPTH_NESTING);
  	}
- 	if (entry->objcg) {
-@@ -1236,7 +1233,7 @@ static unsigned long zswap_shrinker_coun
- #else
- 	/* use pool stats instead of memcg stats */
- 	nr_backing = zswap_total_pages();
--	nr_stored = atomic_read(&zswap_nr_stored);
-+	nr_stored = atomic_read(&zswap_stored_pages);
- #endif
- 
- 	if (!nr_stored)
-@@ -1256,6 +1253,11 @@ static unsigned long zswap_shrinker_coun
- 	 * This ensures that the better zswap compresses memory, the fewer
- 	 * pages we will evict to swap (as it will otherwise incur IO for
- 	 * relatively small memory saving).
-+	 *
-+	 * The memory saving factor calculated here takes same-filled pages into
-+	 * account, but those are not freeable since they almost occupy no
-+	 * space. Hence, we may scale nr_freeable down a little bit more than we
-+	 * should if we have a lot of same-filled pages.
- 	 */
- 	return mult_frac(nr_freeable, nr_backing, nr_stored);
- }
-@@ -1518,7 +1520,6 @@ insert_entry:
- 	if (entry->length) {
- 		INIT_LIST_HEAD(&entry->lru);
- 		zswap_lru_add(&zswap_list_lru, entry);
--		atomic_inc(&zswap_nr_stored);
- 	}
- 
- 	/* update stats */
+ 	mmap_read_unlock(mm);
+ 	return err;
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from lokeshgidra@google.com are
 
-mm-memcg-add-null-check-to-obj_cgroup_put.patch
-mm-zswap-remove-unnecessary-check-in-zswap_find_zpool.patch
-percpu-clean-up-all-mappings-when-pcpu_map_pages-fails.patch
-mm-zswap-remove-nr_zswap_stored-atomic.patch
+userfaultfd-fix-deadlock-warning-when-locking-src-and-dst-vmas.patch
 
