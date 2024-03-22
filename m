@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D9C7757E6
-	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 18:56:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1677762F1
+	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 18:58:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711133792; cv=none; b=Lz23Kr2kze+1mfDgCIkwd5UvMDhN2sFkCXdNCqTcFTmrnH6FeXX/voF9owr+ASsjR/5/hV28lQbRMPEitOjlA1vPclllpPgt1Ebn1gRauxeVqfzQOXZDFM6yAoHs2zaNoQWxAx45HuLxDXBDjyxuGeTJv4WvB8BOBSb1MfqRdGE=
+	t=1711133935; cv=none; b=Znb6Iu9Py/EM7uQ3aZQ9Wn34AWn3EtxMt6iIJ9wfYXDmFXP2jzDuJRJkweqAYJf9D8CgbP5m7YdmbbaSpLKff6OiW1N0fLC9vKVqPR9FnsutZey7Lrf0yvfHNHCb5YMbL1Zlb7982E2g/KTmhojoQeo3nXzk922dUH051Ah/glw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711133792; c=relaxed/simple;
-	bh=CzgYhEYRtx0M6uZxcTABefDac2DL2uTVeyszQPRhhAQ=;
-	h=Date:To:From:Subject:Message-Id; b=uv8OYUO6TqXxJgl6tqSqp0wcxlz1Hxx0XEW2XiL7vZZInbPUHaL/XWHMWkw5Oiiw36yeWM0/a6GyOIZkN8eWrwchUoLazk7ekpA97RFmzihUc1F8qOLj+/qyL3YkItm0bIzp5ii1vyrVcbrSiDvc3BT3OVxN9xii2xOvZ2/Ev10=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gYNXl0lx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711133935; c=relaxed/simple;
+	bh=RvmsAR11dw746YWvXQuPe4mZf7NBYIG3RcH9yHkE/vw=;
+	h=Date:To:From:Subject:Message-Id; b=sloP9n/yRlimvrMVPomZHoGXKWL40EzObOp/6ReP/MAhSBSKBFnt6DOpME3IURXZnMZPCqGRIuienw192DwthbSsEcAQWxu7EzQlbarOyhS8wX8MTobPOMyRZdmj8xC8+5f5eFi2pShSfZACYfuTfM4VyahV4IfncaoiC4S9i8g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jpS5uT4d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gYNXl0lx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1569CC433F1;
-	Fri, 22 Mar 2024 18:56:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jpS5uT4d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75807C433C7;
+	Fri, 22 Mar 2024 18:58:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711133792;
-	bh=CzgYhEYRtx0M6uZxcTABefDac2DL2uTVeyszQPRhhAQ=;
+	s=korg; t=1711133935;
+	bh=RvmsAR11dw746YWvXQuPe4mZf7NBYIG3RcH9yHkE/vw=;
 	h=Date:To:From:Subject:From;
-	b=gYNXl0lxas4fFY/d7szDn4U0lt8Xo8ze7G256ZXOkApSb2BfsEwD70P7aggQQFGbh
-	 ErVI9wy0Gj3Hy3V+OWXkKlXzK+YhWZiki7gdhl5RvO63WWGu4AcyfZYUNTmS8OK7kz
-	 IS3I1Pj9lxzrtzYwtfW1Z9uQs72ZYR9h9prylhKg=
-Date: Fri, 22 Mar 2024 11:56:31 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,viro@ZenIV.linux.org.uk,tujinjiang@huawei.com,jack@suse.cz,brauner@kernel.org,liushixin2@huawei.com,akpm@linux-foundation.org
+	b=jpS5uT4d5u/sPQ1VJiWoFosfVX5y9YdESYDtp7alOL0XW96xgQ7ZjW2sUhRjikLKg
+	 dQ/yCfG7j+U4vvsG8JOc4AUP+h7iCA84usL+diciEC1vmiVqVWFh4lTl5aAcNPei8X
+	 f6t9C7x/U1Of3F6fRKqAbeROL+eAQn2a5A/Ls0kE=
+Date: Fri, 22 Mar 2024 11:58:54 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags.patch added to mm-unstable branch
-Message-Id: <20240322185632.1569CC433F1@smtp.kernel.org>
+Subject: + mm-vmallocc-optimize-to-reduce-arguments-of-alloc_vmap_area.patch added to mm-unstable branch
+Message-Id: <20240322185855.75807C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/readahead: don't decrease mmap_miss when folio has workingset flags
+     Subject: mm/vmalloc.c: optimize to reduce arguments of alloc_vmap_area()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags.patch
+     mm-vmallocc-optimize-to-reduce-arguments-of-alloc_vmap_area.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmallocc-optimize-to-reduce-arguments-of-alloc_vmap_area.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,60 +58,92 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm/readahead: don't decrease mmap_miss when folio has workingset flags
-Date: Fri, 22 Mar 2024 17:35:55 +0800
+From: Baoquan He <bhe@redhat.com>
+Subject: mm/vmalloc.c: optimize to reduce arguments of alloc_vmap_area()
+Date: Sat, 9 Mar 2024 12:44:54 +0800
 
-If there are too many folios that are recently evicted in a file, then
-they will probably continue to be evicted.  In such situation, there is no
-positive effect to read-ahead this file since it is only a waste of IO.
+If called by __get_vm_area_node(), by open coding the field assignments of
+'struct vm_struct *vm', and move the vm->flags and vm->caller assignments
+into __get_vm_area_node(), the passed in arguments 'flags' and 'caller'
+can be removed.
 
-The mmap_miss is increased in do_sync_mmap_readahead() and decreased in
-both do_async_mmap_readahead() and filemap_map_pages().  In order to skip
-read-ahead in above scenario, the mmap_miss have to increased exceed
-MMAP_LOTSAMISS.  This can be done by stop decreased mmap_miss when folio
-has workingset flags.  The async path is not to care because in above
-scenario, it's hard to run into the async path.
+This alleviates overloaded arguments passed in for alloc_vmap_area().
 
-Link: https://lkml.kernel.org/r/20240322093555.226789-3-liushixin2@huawei.com
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jinjiang Tu <tujinjiang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20240309044454.648888-1-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
---- a/mm/filemap.c~mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags
-+++ a/mm/filemap.c
-@@ -3492,7 +3492,8 @@ static vm_fault_t filemap_map_folio_rang
- 		if (PageHWPoison(page + count))
- 			goto skip;
+--- a/mm/vmalloc.c~mm-vmallocc-optimize-to-reduce-arguments-of-alloc_vmap_area
++++ a/mm/vmalloc.c
+@@ -1931,8 +1931,7 @@ static struct vmap_area *alloc_vmap_area
+ 				unsigned long align,
+ 				unsigned long vstart, unsigned long vend,
+ 				int node, gfp_t gfp_mask,
+-				unsigned long va_flags, struct vm_struct *vm,
+-				unsigned long flags, const void *caller)
++				unsigned long va_flags, struct vm_struct *vm)
+ {
+ 	struct vmap_node *vn;
+ 	struct vmap_area *va;
+@@ -1995,8 +1994,11 @@ retry:
+ 	va->vm = NULL;
+ 	va->flags = (va_flags | vn_id);
  
--		(*mmap_miss)++;
-+		if (!folio_test_workingset(folio))
-+			(*mmap_miss)++;
+-	if (vm)
+-		setup_vmalloc_vm(vm, va, flags, caller);
++	if (vm) {
++		vm->addr = (void *)va->va_start;
++		vm->size = va->va_end - va->va_start;
++		va->vm = vm;
++	}
  
- 		/*
- 		 * NOTE: If there're PTE markers, we'll leave them to be
-@@ -3541,7 +3542,8 @@ static vm_fault_t filemap_map_order0_fol
- 	if (PageHWPoison(page))
- 		return ret;
+ 	vn = addr_to_node(va->va_start);
  
--	(*mmap_miss)++;
-+	if (!folio_test_workingset(folio))
-+		(*mmap_miss)++;
+@@ -2572,8 +2574,7 @@ static void *new_vmap_block(unsigned int
+ 	va = alloc_vmap_area(VMAP_BLOCK_SIZE, VMAP_BLOCK_SIZE,
+ 					VMALLOC_START, VMALLOC_END,
+ 					node, gfp_mask,
+-					VMAP_RAM|VMAP_BLOCK, NULL,
+-					0, NULL);
++					VMAP_RAM|VMAP_BLOCK, NULL);
+ 	if (IS_ERR(va)) {
+ 		kfree(vb);
+ 		return ERR_CAST(va);
+@@ -2931,7 +2932,7 @@ void *vm_map_ram(struct page **pages, un
+ 		va = alloc_vmap_area(size, PAGE_SIZE,
+ 				VMALLOC_START, VMALLOC_END,
+ 				node, GFP_KERNEL, VMAP_RAM,
+-				NULL, 0, NULL);
++				NULL);
+ 		if (IS_ERR(va))
+ 			return NULL;
  
- 	/*
- 	 * NOTE: If there're PTE markers, we'll leave them to be
+@@ -3070,7 +3071,10 @@ static struct vm_struct *__get_vm_area_n
+ 	if (!(flags & VM_NO_GUARD))
+ 		size += PAGE_SIZE;
+ 
+-	va = alloc_vmap_area(size, align, start, end, node, gfp_mask, 0, area, flags, caller);
++	area->flags = flags;
++	area->caller = caller;
++
++	va = alloc_vmap_area(size, align, start, end, node, gfp_mask, 0, area);
+ 	if (IS_ERR(va)) {
+ 		kfree(area);
+ 		return NULL;
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-mm-readahead-break-read-ahead-loop-if-filemap_add_folio-return-enomem.patch
-mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags.patch
+mm-mm_initc-remove-the-useless-dma_reserve.patch
+x86-remove-memblock_find_dma_reserve.patch
+mm-mm_initc-add-new-function-calc_nr_kernel_pages.patch
+mm-mm_initc-remove-meaningless-calculation-of-zone-managed_pages-in-free_area_init_core.patch
+mm-mm_initc-remove-unneeded-calc_memmap_size.patch
+mm-mm_initc-remove-arch_reserved_kernel_pages.patch
+mm-vmallocc-optimize-to-reduce-arguments-of-alloc_vmap_area.patch
 
