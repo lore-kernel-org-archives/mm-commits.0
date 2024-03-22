@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61E325F87D
-	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 17:11:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 133126CDB0
+	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 18:44:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711127466; cv=none; b=tFGs5NAurWk++aOYreMOqHjm65StnzqUii/LS6kow30rQYUJoMCDtdSJbkotVgIXrL5LSK/ruMChyCIwOS3zLIM6ZiMwfO/rTbpYrNPg2EABcStiMjFtHkKI3JE5huEZBwhWmTJqoiPLTeKImj6hD0fi16Ovy6WlJl26d2qhwHk=
+	t=1711133068; cv=none; b=hSV4G+F/Lj60Wal7E+0t6IdmfT0pXRlQiegnRbRZh4SiPzsBT+UajO/o9D/sXDOreIa0veaiFQJ2zXg3Vs1Lk4MaOUi5aBGkIhujhvBvy6ZHPhm7rKmqBCoLBeU078yAxFb20txgp/0BGDr3HFNbI/DOrqKm64f5ebh5teoZiEs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711127466; c=relaxed/simple;
-	bh=oT2f3WiIW1jv8cQ7QcchM9MADZOjOEOrf1Ksu1GnBWw=;
-	h=Date:To:From:Subject:Message-Id; b=a+/RtADjapYeZyGVzW74GWIRht8qBqz55Dez7RZ+PuSR2T+x0MjE4HqgN2e/CQn/cCzR0rjUWSvUILHReGPW017PUsMvRaqk6W9dSFzeKWZepP7YQT9A+UPRY31gqoIVKaEHwQk5hs96j7i5m9VmDagxlw4mdQHr7ZcseKMI7PQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MK8OvPyy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711133068; c=relaxed/simple;
+	bh=VKpUy+df7ecaOnCwQBgknVH/SvfhwpFq/HRIuCfBnco=;
+	h=Date:To:From:Subject:Message-Id; b=H0/pwzQzyDf7rBbOX46baGUh0SS8/y/Ds1e2LWroFIZXH3niUJQ7zg4QNCRCM5K5EIOS7bVJWkq6PRjs32pyfIdJCekyPDBVXLolKtw4KDXsWNS5y1d9XshGpfT0e8ys1HeYWySdeHUfbxE7Lp0dMo47DF0bFl42W+73Xhy6Pnk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jWDamPCp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MK8OvPyy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E22C7C433C7;
-	Fri, 22 Mar 2024 17:11:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jWDamPCp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBA29C433C7;
+	Fri, 22 Mar 2024 18:44:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711127466;
-	bh=oT2f3WiIW1jv8cQ7QcchM9MADZOjOEOrf1Ksu1GnBWw=;
+	s=korg; t=1711133067;
+	bh=VKpUy+df7ecaOnCwQBgknVH/SvfhwpFq/HRIuCfBnco=;
 	h=Date:To:From:Subject:From;
-	b=MK8OvPyyAsFj5bo3+aQpwg4bSPH3VnVgnz3zjMrGMMgbPiQ/ZbnAEblaHXDWjSAir
-	 NBoN8Nt88eIHNfg9LQp/OulXZovJV9aOflxtezQBV4uToY/dS7O+evqAFURUhbpPRj
-	 xvj6LRvwBbvI5LzqJcQPrWFvI6zB/vuYPlXuhu7E=
-Date: Fri, 22 Mar 2024 10:11:05 -0700
-To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,yang.lee@linux.alibaba.com,akpm@linux-foundation.org
+	b=jWDamPCp4CDQgVw5EBPlS9g9RXXogTr+G7oL0uAIcZljiWLxBz4n8DGKQfpOl0Bwd
+	 l4j1RRc31sY+nzM+oMdNsm5fdzSj47afY9Wf3Bq/cy2GEoLQbsPyg+/G20XTdONnFn
+	 YcVWtTdKOZ92y5/jn1aVMxcbyjq3B+ZydTiI2Ufc=
+Date: Fri, 22 Mar 2024 11:44:27 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-add-kernel-doc-comments-to-fat_parse_long.patch added to mm-nonmm-unstable branch
-Message-Id: <20240322171105.E22C7C433C7@smtp.kernel.org>
+Subject: + selftests-mm-parse-vma-range-in-one-go.patch added to mm-unstable branch
+Message-Id: <20240322184427.BBA29C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs: add kernel-doc comments to fat_parse_long()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fs-add-kernel-doc-comments-to-fat_parse_long.patch
+     Subject: selftests/mm: parse VMA range in one go
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-parse-vma-range-in-one-go.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-add-kernel-doc-comments-to-fat_parse_long.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-parse-vma-range-in-one-go.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,46 +58,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yang Li <yang.lee@linux.alibaba.com>
-Subject: fs: add kernel-doc comments to fat_parse_long()
-Date: Fri, 22 Mar 2024 15:37:24 +0800
+From: Dev Jain <dev.jain@arm.com>
+Subject: selftests/mm: parse VMA range in one go
+Date: Fri, 22 Mar 2024 17:35:51 +0530
 
-Add kernel-doc style comments with complete parameter descriptions for
-fat_parse_long().
+Use sscanf() to directly parse the VMA range. No functional change is intended.
 
-Link: https://lkml.kernel.org/r/20240322073724.102332-1-yang.lee@linux.alibaba.com
-Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Link: https://lkml.kernel.org/r/20240322120551.818764-1-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/dir.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ tools/testing/selftests/mm/mlock2-tests.c |   15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
---- a/fs/fat/dir.c~fs-add-kernel-doc-comments-to-fat_parse_long
-+++ a/fs/fat/dir.c
-@@ -269,6 +269,18 @@ enum { PARSE_INVALID = 1, PARSE_NOT_LONG
- /**
-  * fat_parse_long - Parse extended directory entry.
-  *
-+ * @dir: Pointer to the inode that represents the directory.
-+ * @pos: On input, contains the starting position to read from.
-+ *       On output, updated with the new position.
-+ * @bh: Pointer to the buffer head that may be used for reading directory
-+ *	 entries. May be updated.
-+ * @de: On input, points to the current directory entry.
-+ *      On output, points to the next directory entry.
-+ * @unicode: Pointer to a buffer where the parsed Unicode long filename will be
-+ *	      stored.
-+ * @nr_slots: Pointer to a variable that will store the number of longname
-+ *	       slots found.
-+ *
-  * This function returns zero on success, negative value on error, or one of
-  * the following:
-  *
+--- a/tools/testing/selftests/mm/mlock2-tests.c~selftests-mm-parse-vma-range-in-one-go
++++ a/tools/testing/selftests/mm/mlock2-tests.c
+@@ -20,8 +20,6 @@ static int get_vm_area(unsigned long add
+ 	FILE *file;
+ 	int ret = 1;
+ 	char line[1024] = {0};
+-	char *end_addr;
+-	char *stop;
+ 	unsigned long start;
+ 	unsigned long end;
+ 
+@@ -37,21 +35,10 @@ static int get_vm_area(unsigned long add
+ 	memset(area, 0, sizeof(struct vm_boundaries));
+ 
+ 	while(fgets(line, 1024, file)) {
+-		end_addr = strchr(line, '-');
+-		if (!end_addr) {
++		if (sscanf(line, "%lx-%lx", &start, &end) != 2) {
+ 			ksft_print_msg("cannot parse /proc/self/maps\n");
+ 			goto out;
+ 		}
+-		*end_addr = '\0';
+-		end_addr++;
+-		stop = strchr(end_addr, ' ');
+-		if (!stop) {
+-			ksft_print_msg("cannot parse /proc/self/maps\n");
+-			goto out;
+-		}
+-
+-		sscanf(line, "%lx", &start);
+-		sscanf(end_addr, "%lx", &end);
+ 
+ 		if (start <= addr && end > addr) {
+ 			area->start = start;
 _
 
-Patches currently in -mm which might be from yang.lee@linux.alibaba.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-fs-add-kernel-doc-comments-to-fat_parse_long.patch
+selftests-mm-virtual_address_range-switch-to-ksft_exit_fail_msg.patch
+selftests-mm-confirm-va-exhaustion-without-reliance-on-correctness-of-mmap.patch
+selftests-mm-parse-vma-range-in-one-go.patch
 
