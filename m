@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F52223AD
-	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 00:30:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F66510F2
+	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 00:30:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711067403; cv=none; b=hZu/C2DWJKcZ3JHcpTAMDuS/RjOcLQzBIKmK8WoA6kFEHNd9QmN1eLWQWWXnvFvJc40kmeDp9vE+pP2bUEtSk/Eg6DysSUJfhp8GKi3NcZdPXdf7VMc7v9/3xmkTfotCk/kzPAhJWSbCGxRTovKnXWqHqM/zkFCT8GVc6+Xib2c=
+	t=1711067405; cv=none; b=ZaommM/xcdD4sF1XMNTZ6EajudQ6KQ7v4xmUjIHjARaVFBC7j91G+DhuVBiYV9CCsVbCzu7M2RueZ5Z9KczQM4ukF3Nv7oPlzehLfG6eppZyMHNO0ZxKmswoYEqFofSWIlzUojO2CP8Jv5XTQkn8kVebdV9144YXRRQBLWrlVQI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711067403; c=relaxed/simple;
-	bh=TuNk+nxTw77aY1/MIT8naoaMsrrh4q1aPLCgzcuPOuk=;
-	h=Date:To:From:Subject:Message-Id; b=Ss3MfjSG7lsevWjaDbfFXsJGs5fLZyURjXjte5jnMJk6MJ6l3vxdfgDKWTiCjXLEA/Cgc1bKFwq+h0vqi7FGLnoUCWxypFUEBAsxwntQ46KhHW3aF6QU1PonEmCtoti3PM5Ep/Pus/7winieaBVXdB2rJluuOLvc7RjasqSSfWQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CPkvPIdS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711067405; c=relaxed/simple;
+	bh=lUMCeZdv5T5tfBxThAeOCdQvV23iN8YbLsAPyXZ6PQI=;
+	h=Date:To:From:Subject:Message-Id; b=oQxnEzuHU4FMGru1jcV15q/p8tnMIL5XEZuxSen+ZLs2U7ANY6dao9RfYesxhobQBggLGrFvK270mudQaayIj0u0+rje4VfM5hVpCbIiYkix8i6hCdUwZRhWvDfWzWHOSLmHgyb1XZF/nL1eAmS9sW2ejhl4sZLbbpFDq91iMUc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iNNORPLh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CPkvPIdS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E9A8C433F1;
-	Fri, 22 Mar 2024 00:30:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iNNORPLh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBC57C433C7;
+	Fri, 22 Mar 2024 00:30:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711067403;
-	bh=TuNk+nxTw77aY1/MIT8naoaMsrrh4q1aPLCgzcuPOuk=;
+	s=korg; t=1711067405;
+	bh=lUMCeZdv5T5tfBxThAeOCdQvV23iN8YbLsAPyXZ6PQI=;
 	h=Date:To:From:Subject:From;
-	b=CPkvPIdSXnoHtKsRwAVz0ZeWTst9F35McVzXhziQi0Yo+HcZ0h4e/37gjzq3UI/XI
-	 GIx8yfa6vBQUCNvardAIeJhn5gVkJXTbwOsvL5SBbaBis0GgJfhlo4QBo3pHeGoUKW
-	 ufMoP19ypJSlLVmiNiq4NYcoGhvr2XTdRlf6X7Go=
-Date: Thu, 21 Mar 2024 17:30:02 -0700
+	b=iNNORPLhiJb0yyt8cp1GenaqXG56KqSeOBlRLKbHvxqvL9L7yUW6GMPuRooqnBtvx
+	 qCGvIi47vN6BBcd+v465sfDIJJepW5uInHm51PqUFfxAibC1m7R3XAfMA7s/x3OZQy
+	 uqYI25Yp8XSpgFzKuFpgdtlH/v1KsIrilOdXjPOk=
+Date: Thu, 21 Mar 2024 17:30:04 -0700
 To: mm-commits@vger.kernel.org,torvalds@linux-foundation.org,tglx@linutronix.de,penguin-kernel@I-love.SAKURA.ne.jp,elver@google.com,dvyukov@google.com,glider@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + instrumentedh-add-instrument_memcpy_before-instrument_memcpy_after.patch added to mm-nonmm-unstable branch
-Message-Id: <20240322003003.0E9A8C433F1@smtp.kernel.org>
+Subject: + x86-call-instrumentation-hooks-from-copy_mcc.patch added to mm-nonmm-unstable branch
+Message-Id: <20240322003004.EBC57C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: instrumented.h: add instrument_memcpy_before, instrument_memcpy_after
+     Subject: x86: call instrumentation hooks from copy_mc.c
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     instrumentedh-add-instrument_memcpy_before-instrument_memcpy_after.patch
+     x86-call-instrumentation-hooks-from-copy_mcc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/instrumentedh-add-instrument_memcpy_before-instrument_memcpy_after.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-call-instrumentation-hooks-from-copy_mcc.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,72 +59,84 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: instrumented.h: add instrument_memcpy_before, instrument_memcpy_after
-Date: Wed, 20 Mar 2024 11:18:50 +0100
+Subject: x86: call instrumentation hooks from copy_mc.c
+Date: Wed, 20 Mar 2024 11:18:51 +0100
 
-Bug detection tools based on compiler instrumentation may miss memory
-accesses in custom memcpy implementations (such as copy_mc_to_kernel). 
-Provide instrumentation hooks that tell KASAN, KCSAN, and KMSAN about such
-accesses.
+Memory accesses in copy_mc_to_kernel() and copy_mc_to_user() are performed
+by assembly routines and are invisible to KASAN, KCSAN, and KMSAN.  Add
+hooks from instrumentation.h to tell the tools these functions have
+memcpy/copy_from_user semantics.
+
+The call to copy_mc_fragile() in copy_mc_fragile_handle_tail() is left
+intact, because the latter is only called from the assembly implementation
+of copy_mc_fragile(), so the memory accesses in it are covered by the
+instrumentation in copy_mc_to_kernel() and copy_mc_to_user().
 
 Link: https://lore.kernel.org/all/3b7dbd88-0861-4638-b2d2-911c97a4cadf@I-love.SAKURA.ne.jp/
-Link: https://lkml.kernel.org/r/20240320101851.2589698-2-glider@google.com
+Link: https://lkml.kernel.org/r/20240320101851.2589698-3-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/instrumented.h |   35 +++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ arch/x86/lib/copy_mc.c |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
---- a/include/linux/instrumented.h~instrumentedh-add-instrument_memcpy_before-instrument_memcpy_after
-+++ a/include/linux/instrumented.h
-@@ -148,6 +148,41 @@ instrument_copy_from_user_after(const vo
- }
+--- a/arch/x86/lib/copy_mc.c~x86-call-instrumentation-hooks-from-copy_mcc
++++ a/arch/x86/lib/copy_mc.c
+@@ -4,6 +4,7 @@
+ #include <linux/jump_label.h>
+ #include <linux/uaccess.h>
+ #include <linux/export.h>
++#include <linux/instrumented.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
  
- /**
-+ * instrument_memcpy_before - add instrumentation before non-instrumented memcpy
-+ * @to: destination address
-+ * @from: source address
-+ * @n: number of bytes to copy
-+ *
-+ * Instrument memory accesses that happen in custom memcpy implementations. The
-+ * instrumentation should be inserted before the memcpy call.
-+ */
-+static __always_inline void instrument_memcpy_before(void *to, const void *from,
-+						     unsigned long n)
-+{
-+	kasan_check_write(to, n);
-+	kasan_check_read(from, n);
-+	kcsan_check_write(to, n);
-+	kcsan_check_read(from, n);
-+}
+@@ -61,10 +62,20 @@ unsigned long copy_mc_enhanced_fast_stri
+  */
+ unsigned long __must_check copy_mc_to_kernel(void *dst, const void *src, unsigned len)
+ {
+-	if (copy_mc_fragile_enabled)
+-		return copy_mc_fragile(dst, src, len);
+-	if (static_cpu_has(X86_FEATURE_ERMS))
+-		return copy_mc_enhanced_fast_string(dst, src, len);
++	unsigned long ret;
 +
-+/**
-+ * instrument_memcpy_after - add instrumentation after non-instrumented memcpy
-+ * @to: destination address
-+ * @from: source address
-+ * @n: number of bytes to copy
-+ * @left: number of bytes not copied (if known)
-+ *
-+ * Instrument memory accesses that happen in custom memcpy implementations. The
-+ * instrumentation should be inserted after the memcpy call.
-+ */
-+static __always_inline void instrument_memcpy_after(void *to, const void *from,
-+						    unsigned long n,
-+						    unsigned long left)
-+{
-+	kmsan_memmove(to, from, n - left);
-+}
-+
-+/**
-  * instrument_get_user() - add instrumentation to get_user()-like macros
-  * @to: destination variable, may not be address-taken
-  *
++	if (copy_mc_fragile_enabled) {
++		instrument_memcpy_before(dst, src, len);
++		ret = copy_mc_fragile(dst, src, len);
++		instrument_memcpy_after(dst, src, len, ret);
++		return ret;
++	}
++	if (static_cpu_has(X86_FEATURE_ERMS)) {
++		instrument_memcpy_before(dst, src, len);
++		ret = copy_mc_enhanced_fast_string(dst, src, len);
++		instrument_memcpy_after(dst, src, len, ret);
++		return ret;
++	}
+ 	memcpy(dst, src, len);
+ 	return 0;
+ }
+@@ -75,6 +86,7 @@ unsigned long __must_check copy_mc_to_us
+ 	unsigned long ret;
+ 
+ 	if (copy_mc_fragile_enabled) {
++		instrument_copy_to_user(dst, src, len);
+ 		__uaccess_begin();
+ 		ret = copy_mc_fragile((__force void *)dst, src, len);
+ 		__uaccess_end();
+@@ -82,6 +94,7 @@ unsigned long __must_check copy_mc_to_us
+ 	}
+ 
+ 	if (static_cpu_has(X86_FEATURE_ERMS)) {
++		instrument_copy_to_user(dst, src, len);
+ 		__uaccess_begin();
+ 		ret = copy_mc_enhanced_fast_string((__force void *)dst, src, len);
+ 		__uaccess_end();
 _
 
 Patches currently in -mm which might be from glider@google.com are
