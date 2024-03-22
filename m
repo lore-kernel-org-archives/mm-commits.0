@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F908376
-	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 01:04:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2422A376
+	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 01:04:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711069444; cv=none; b=OxIc85Thegk1CAv4vGj3Dri0MoDyKJEqbvqnLZ9aHoBwKlHXwV/EbEdaIUcTVB22oG7I7SiFx7vieowSlUJQNzo1fD98MVTBj49vDengX5iNttFHOvC6l1+LwrQ3OXNhZBK8LAfh2oJLMrBBSWDS0Ag51jgUujyzmoURI505Sl4=
+	t=1711069448; cv=none; b=nU9Z0MhZxD3zTpye3tIFIkb2TDX4nwYNll8Cu6ecfXJRtFJbeKt8g8tK/Oy/0Bfo5Lr5qpdydJBdfB9n+Vth/V9LptUQXTmhEHTsTs0ZWa4DQU8V2/jLTwiAurC3niIzY+50sBuLnLkQ5LFaGwW1vOPHnhFyVFwSpeUT1wWLzsk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711069444; c=relaxed/simple;
-	bh=W0KHQWCq9hAaia7FV1q9xWu2tcJ2w1zljZidW1UxVqw=;
-	h=Date:To:From:Subject:Message-Id; b=r3+CmA+bKf3vCWix9lAkdGZ6qsuI+P3L868U8xxAnocMm8RU6Jr9Ga+yA1t24XGIknYYNSCIm0iJUNx9tedKCJNlPFE3ZIhFlVhh6r17IVonwjqnYK8IuxPsKOwRZcNtrduhDQSxWrHatxcZa/JK9xjVX0LJFN6Fxhhd15/z+Sw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lp5OcfHK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711069448; c=relaxed/simple;
+	bh=EWu7MPIDHU3O31BDgcPSjXhG9cMu3RIWU50PBFIZkpA=;
+	h=Date:To:From:Subject:Message-Id; b=fb+GmrEltn0r7t14clLGtzxMUh/9l6BkdOvmdn5fbvImwolXDvZUlvpkIheNi2xLxsqVIkeDL5IDQeGNaFtaOuU2tv4/sXjqUfHZDmHjIFpHVuslVIUWDVfRKLe2+oIEEODNalh+5iFIraOQeNJF+dL5HEySpxRBTtPQ9bAOrC0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q9KhsVxO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lp5OcfHK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8808CC433F1;
-	Fri, 22 Mar 2024 01:04:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q9KhsVxO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2AD2C433F1;
+	Fri, 22 Mar 2024 01:04:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711069443;
-	bh=W0KHQWCq9hAaia7FV1q9xWu2tcJ2w1zljZidW1UxVqw=;
+	s=korg; t=1711069448;
+	bh=EWu7MPIDHU3O31BDgcPSjXhG9cMu3RIWU50PBFIZkpA=;
 	h=Date:To:From:Subject:From;
-	b=lp5OcfHKUISIF6AiSDs82cdn22zN+ia6RXqUstbmDVKs4oKfJx2mJu2WFudZL5I5R
-	 CqeXqJXu4LR4wN23gg0XJqe7jXbEF8EP8RvksVUxNqxeZL9aIXzZXgWXMlvAkfyOaw
-	 VNiY5zn2zcPzRH7aYFXBidvVkV2Deoqb90KORWCU=
-Date: Thu, 21 Mar 2024 18:04:02 -0700
+	b=Q9KhsVxOGBAUtj1rhzK1fZdQCfAKW4RLpp3ffPZcRHKQaYkksla3PdLy327Gtxxlv
+	 0Yvh1gSa1GBJARA54tlylXab6CzmrGkphlyKdvCWhuXROp/XXimQce3vk36AIfub/s
+	 y2OLAIMIaRJgJ8QWQrz9sNucg1vXPV97dHH4nBgE=
+Date: Thu, 21 Mar 2024 18:04:07 -0700
 To: mm-commits@vger.kernel.org,osalvador@suse.de,naoya.horiguchi@nec.com,muchun.song@linux.dev,mhocko@kernel.org,linmiaohe@huawei.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-record-the-migration-reason-for-struct-migration_target_control.patch added to mm-unstable branch
-Message-Id: <20240322010403.8808CC433F1@smtp.kernel.org>
+Subject: + mm-hugetlb-make-the-hugetlb-migration-strategy-consistent.patch added to mm-unstable branch
+Message-Id: <20240322010407.E2AD2C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: record the migration reason for struct migration_target_control
+     Subject: mm: hugetlb: make the hugetlb migration strategy consistent
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-record-the-migration-reason-for-struct-migration_target_control.patch
+     mm-hugetlb-make-the-hugetlb-migration-strategy-consistent.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-record-the-migration-reason-for-struct-migration_target_control.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-make-the-hugetlb-migration-strategy-consistent.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,11 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: record the migration reason for struct migration_target_control
-Date: Wed, 6 Mar 2024 18:13:26 +0800
-
-Patch series "make the hugetlb migration strategy consistent", v2.
+Subject: mm: hugetlb: make the hugetlb migration strategy consistent
+Date: Wed, 6 Mar 2024 18:13:27 +0800
 
 As discussed in previous thread [1], there is an inconsistency when
-handling hugetlb migration.  When handling the migration of freed hugetlb,
+handing hugetlb migration.  When handling the migration of freed hugetlb,
 it prevents fallback to other NUMA nodes in
 alloc_and_dissolve_hugetlb_folio().  However, when dealing with in-use
 hugetlb, it allows fallback to other NUMA nodes in
@@ -73,123 +71,184 @@ alloc_hugetlb_folio_nodemask(), which can break the per-node hugetlb pool
 and might result in unexpected failures when node bound workloads doesn't
 get what is asssumed available.
 
-This patchset tries to make the hugetlb migration strategy more clear
-and consistent. Please find details in each patch.
+To make hugetlb migration strategy more clear, we should list all the scenarios
+of hugetlb migration and analyze whether allocation fallback is permitted:
 
-[1]
-https://lore.kernel.org/all/6f26ce22d2fcd523418a085f2c588fe0776d46e7.1706794035.git.baolin.wang@linux.alibaba.com/
+1) Memory offline: will call dissolve_free_huge_pages() to free the
+   freed hugetlb, and call do_migrate_range() to migrate the in-use
+   hugetlb.  Both can break the per-node hugetlb pool, but as this is an
+   explicit offlining operation, no better choice.  So should allow the
+   hugetlb allocation fallback.
 
+2) Memory failure: same as memory offline.  Should allow fallback to a
+   different node might be the only option to handle it, otherwise the
+   impact of poisoned memory can be amplified.
 
-This patch (of 2):
+3) Longterm pinning: will call migrate_longterm_unpinnable_pages() to
+   migrate in-use and not-longterm-pinnable hugetlb, which can break the
+   per-node pool.  But we should fail to longterm pinning if can not
+   allocate on current node to avoid breaking the per-node pool.
 
-To support different hugetlb allocation strategies during hugetlb
-migration based on various migration reasons, record the migration reason
-in the migration_target_control structure as a preparation.
+4) Syscalls (mbind, migrate_pages, move_pages): these are explicit
+   users operation to move pages to other nodes, so fallback to other
+   nodes should not be prohibited.
 
-Link: https://lkml.kernel.org/r/cover.1709719720.git.baolin.wang@linux.alibaba.com
-Link: https://lkml.kernel.org/r/7b95d4981e07211f57139fc5b1f7ce91b920cee4.1709719720.git.baolin.wang@linux.alibaba.com
+5) alloc_contig_range: used by CMA allocation and virtio-mem
+   fake-offline to allocate given range of pages.  Now the freed hugetlb
+   migration is not allowed to fallback, to keep consistency, the in-use
+   hugetlb migration should be also not allowed to fallback.
+
+6) alloc_contig_pages: used by kfence, pgtable_debug etc.  The strategy
+   should be consistent with that of alloc_contig_range().
+
+Based on the analysis of the various scenarios above, introducing a new
+helper to determine whether fallback is permitted according to the
+migration reason..
+
+[1] https://lore.kernel.org/all/6f26ce22d2fcd523418a085f2c588fe0776d46e7.1706794035.git.baolin.wang@linux.alibaba.com/
+Link: https://lkml.kernel.org/r/3519fcd41522817307a05b40fb551e2e17e68101.1709719720.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c            |    1 +
- mm/internal.h       |    1 +
- mm/memory-failure.c |    1 +
- mm/memory_hotplug.c |    1 +
- mm/mempolicy.c      |    1 +
- mm/migrate.c        |    1 +
- mm/page_alloc.c     |    1 +
- mm/vmscan.c         |    3 ++-
- 8 files changed, 9 insertions(+), 1 deletion(-)
+ include/linux/hugetlb.h |   35 +++++++++++++++++++++++++++++++++--
+ mm/hugetlb.c            |   14 ++++++++++++--
+ mm/mempolicy.c          |    3 ++-
+ mm/migrate.c            |    3 ++-
+ 4 files changed, 49 insertions(+), 6 deletions(-)
 
---- a/mm/gup.c~mm-record-the-migration-reason-for-struct-migration_target_control
-+++ a/mm/gup.c
-@@ -2326,6 +2326,7 @@ static int migrate_longterm_unpinnable_p
- 		struct migration_target_control mtc = {
- 			.nid = NUMA_NO_NODE,
- 			.gfp_mask = GFP_USER | __GFP_NOWARN,
-+			.reason = MR_LONGTERM_PIN,
- 		};
+--- a/include/linux/hugetlb.h~mm-hugetlb-make-the-hugetlb-migration-strategy-consistent
++++ a/include/linux/hugetlb.h
+@@ -719,7 +719,8 @@ int isolate_or_dissolve_huge_page(struct
+ struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
+ 				unsigned long addr, int avoid_reserve);
+ struct folio *alloc_hugetlb_folio_nodemask(struct hstate *h, int preferred_nid,
+-				nodemask_t *nmask, gfp_t gfp_mask);
++				nodemask_t *nmask, gfp_t gfp_mask,
++				bool allow_alloc_fallback);
+ int hugetlb_add_to_page_cache(struct folio *folio, struct address_space *mapping,
+ 			pgoff_t idx);
+ void restore_reserve_on_error(struct hstate *h, struct vm_area_struct *vma,
+@@ -942,6 +943,30 @@ static inline gfp_t htlb_modify_alloc_ma
+ 	return modified_mask;
+ }
  
- 		if (migrate_pages(movable_page_list, alloc_migration_target,
---- a/mm/internal.h~mm-record-the-migration-reason-for-struct-migration_target_control
-+++ a/mm/internal.h
-@@ -1045,6 +1045,7 @@ struct migration_target_control {
- 	int nid;		/* preferred node id */
- 	nodemask_t *nmask;
- 	gfp_t gfp_mask;
-+	enum migrate_reason reason;
- };
++static inline bool htlb_allow_alloc_fallback(int reason)
++{
++	bool allowed_fallback = false;
++
++	/*
++	 * Note: the memory offline, memory failure and migration syscalls will
++	 * be allowed to fallback to other nodes due to lack of a better chioce,
++	 * that might break the per-node hugetlb pool. While other cases will
++	 * set the __GFP_THISNODE to avoid breaking the per-node hugetlb pool.
++	 */
++	switch (reason) {
++	case MR_MEMORY_HOTPLUG:
++	case MR_MEMORY_FAILURE:
++	case MR_SYSCALL:
++	case MR_MEMPOLICY_MBIND:
++		allowed_fallback = true;
++		break;
++	default:
++		break;
++	}
++
++	return allowed_fallback;
++}
++
+ static inline spinlock_t *huge_pte_lockptr(struct hstate *h,
+ 					   struct mm_struct *mm, pte_t *pte)
+ {
+@@ -1037,7 +1062,8 @@ static inline struct folio *alloc_hugetl
  
- /*
---- a/mm/memory-failure.c~mm-record-the-migration-reason-for-struct-migration_target_control
-+++ a/mm/memory-failure.c
-@@ -2657,6 +2657,7 @@ static int soft_offline_in_use_page(stru
- 	struct migration_target_control mtc = {
- 		.nid = NUMA_NO_NODE,
- 		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
-+		.reason = MR_MEMORY_FAILURE,
- 	};
+ static inline struct folio *
+ alloc_hugetlb_folio_nodemask(struct hstate *h, int preferred_nid,
+-			nodemask_t *nmask, gfp_t gfp_mask)
++			nodemask_t *nmask, gfp_t gfp_mask,
++			bool allow_alloc_fallback)
+ {
+ 	return NULL;
+ }
+@@ -1153,6 +1179,11 @@ static inline gfp_t htlb_modify_alloc_ma
+ 	return 0;
+ }
  
- 	if (!huge && folio_test_large(folio)) {
---- a/mm/memory_hotplug.c~mm-record-the-migration-reason-for-struct-migration_target_control
-+++ a/mm/memory_hotplug.c
-@@ -1841,6 +1841,7 @@ static void do_migrate_range(unsigned lo
- 		struct migration_target_control mtc = {
- 			.nmask = &nmask,
- 			.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
-+			.reason = MR_MEMORY_HOTPLUG,
- 		};
- 		int ret;
++static inline bool htlb_allow_alloc_fallback(int reason)
++{
++	return false;
++}
++
+ static inline spinlock_t *huge_pte_lockptr(struct hstate *h,
+ 					   struct mm_struct *mm, pte_t *pte)
+ {
+--- a/mm/hugetlb.c~mm-hugetlb-make-the-hugetlb-migration-strategy-consistent
++++ a/mm/hugetlb.c
+@@ -2598,7 +2598,7 @@ struct folio *alloc_buddy_hugetlb_folio_
  
---- a/mm/mempolicy.c~mm-record-the-migration-reason-for-struct-migration_target_control
+ /* folio migration callback function */
+ struct folio *alloc_hugetlb_folio_nodemask(struct hstate *h, int preferred_nid,
+-		nodemask_t *nmask, gfp_t gfp_mask)
++		nodemask_t *nmask, gfp_t gfp_mask, bool allow_alloc_fallback)
+ {
+ 	spin_lock_irq(&hugetlb_lock);
+ 	if (available_huge_pages(h)) {
+@@ -2613,6 +2613,10 @@ struct folio *alloc_hugetlb_folio_nodema
+ 	}
+ 	spin_unlock_irq(&hugetlb_lock);
+ 
++	/* We cannot fallback to other nodes, as we could break the per-node pool. */
++	if (!allow_alloc_fallback)
++		gfp_mask |= __GFP_THISNODE;
++
+ 	return alloc_migrate_hugetlb_folio(h, gfp_mask, preferred_nid, nmask);
+ }
+ 
+@@ -6630,7 +6634,13 @@ static struct folio *alloc_hugetlb_folio
+ 
+ 	gfp_mask = htlb_alloc_mask(h);
+ 	node = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
+-	folio = alloc_hugetlb_folio_nodemask(h, node, nodemask, gfp_mask);
++	/*
++	 * This is used to allocate a temporary hugetlb to hold the copied
++	 * content, which will then be copied again to the final hugetlb
++	 * consuming a reservation. Set the alloc_fallback to false to indicate
++	 * that breaking the per-node hugetlb pool is not allowed in this case.
++	 */
++	folio = alloc_hugetlb_folio_nodemask(h, node, nodemask, gfp_mask, false);
+ 	mpol_cond_put(mpol);
+ 
+ 	return folio;
+--- a/mm/mempolicy.c~mm-hugetlb-make-the-hugetlb-migration-strategy-consistent
 +++ a/mm/mempolicy.c
-@@ -1070,6 +1070,7 @@ static long migrate_to_node(struct mm_st
- 	struct migration_target_control mtc = {
- 		.nid = dest,
- 		.gfp_mask = GFP_HIGHUSER_MOVABLE | __GFP_THISNODE,
-+		.reason = MR_SYSCALL,
- 	};
+@@ -1228,7 +1228,8 @@ static struct folio *alloc_migration_tar
+ 		h = folio_hstate(src);
+ 		gfp = htlb_alloc_mask(h);
+ 		nodemask = policy_nodemask(gfp, pol, ilx, &nid);
+-		return alloc_hugetlb_folio_nodemask(h, nid, nodemask, gfp);
++		return alloc_hugetlb_folio_nodemask(h, nid, nodemask, gfp,
++				htlb_allow_alloc_fallback(MR_MEMPOLICY_MBIND));
+ 	}
  
- 	nodes_clear(nmask);
---- a/mm/migrate.c~mm-record-the-migration-reason-for-struct-migration_target_control
+ 	if (folio_test_large(src))
+--- a/mm/migrate.c~mm-hugetlb-make-the-hugetlb-migration-strategy-consistent
 +++ a/mm/migrate.c
-@@ -2060,6 +2060,7 @@ static int do_move_pages_to_node(struct
- 	struct migration_target_control mtc = {
- 		.nid = node,
- 		.gfp_mask = GFP_HIGHUSER_MOVABLE | __GFP_THISNODE,
-+		.reason = MR_SYSCALL,
- 	};
+@@ -2022,7 +2022,8 @@ struct folio *alloc_migration_target(str
  
- 	err = migrate_pages(pagelist, alloc_migration_target, NULL,
---- a/mm/page_alloc.c~mm-record-the-migration-reason-for-struct-migration_target_control
-+++ a/mm/page_alloc.c
-@@ -6356,6 +6356,7 @@ int __alloc_contig_migrate_range(struct
- 	struct migration_target_control mtc = {
- 		.nid = zone_to_nid(cc->zone),
- 		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
-+		.reason = MR_CONTIG_RANGE,
- 	};
- 	struct page *page;
- 	unsigned long total_mapped = 0;
---- a/mm/vmscan.c~mm-record-the-migration-reason-for-struct-migration_target_control
-+++ a/mm/vmscan.c
-@@ -967,7 +967,8 @@ static unsigned int demote_folio_list(st
- 		.gfp_mask = (GFP_HIGHUSER_MOVABLE & ~__GFP_RECLAIM) | __GFP_NOWARN |
- 			__GFP_NOMEMALLOC | GFP_NOWAIT,
- 		.nid = target_nid,
--		.nmask = &allowed_mask
-+		.nmask = &allowed_mask,
-+		.reason = MR_DEMOTION,
- 	};
+ 		gfp_mask = htlb_modify_alloc_mask(h, gfp_mask);
+ 		return alloc_hugetlb_folio_nodemask(h, nid,
+-						mtc->nmask, gfp_mask);
++						mtc->nmask, gfp_mask,
++						htlb_allow_alloc_fallback(mtc->reason));
+ 	}
  
- 	if (list_empty(demote_folios))
+ 	if (folio_test_large(src)) {
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
