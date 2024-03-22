@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 227D6376;
-	Fri, 22 Mar 2024 00:19:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A854382
+	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 00:26:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711066779; cv=none; b=lyWcbvD1ytSflziPFNzenIoTNPbDONDg4sqYNgRdyUURQzF3R0lXiQcXRvCIrrYLRaezCnwdzQO2NITqf7A6DJcN56W9vmjAyR0HtWo5TQ6lz038Lm17uVqHSDmuHOOPHxCnSseke6q8EW0BhfYJ16+48kI1fl+Kv/YfdD/Zy6Y=
+	t=1711067218; cv=none; b=pTzQJFwueNZ+n2sd7sxK7AMaJmYmbz+PF4tmnY+lPgCHhGjM88m67iPjHXS9DMqaDwi5RqXD18cWr/LO5Ykr5rTe0O2cn3ASLOQ1tnjSou5TeXkKNEdeWRcjoefz6RFkMja5QCsvq1QwVlyL7LsC99xJLejiCg90q8gSyQd8Z9k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711066779; c=relaxed/simple;
-	bh=uc2r7HoQ8OKZNrE7ua7uvrgrD+GSmmWdRylhkDcXb1w=;
-	h=Date:To:From:Subject:Message-Id; b=cON2N8MU5fVDnX8zX9rtPUeQ5f7zckNoiIKOSOt7CPveOi8/sj1s0atjg9tWw65WfXbDLP2m05x36697QAzt9wArhIZ2E6Rf7+vUWRlFe3DTLwx32g9g3Rqq3H3ZRme25OAXDyuJWlST5zxfrujgo8c2E7DGlNCwQXN/Lj20cuI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ix8/kw67; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711067218; c=relaxed/simple;
+	bh=09aOEs+rSxHbLMEyDNcJ4dcnodmuf/5npTbhm1G3mlo=;
+	h=Date:To:From:Subject:Message-Id; b=Mn4Msbu+BQ+LSBMXUVT2qEtQE+dggqAkdFM6DSniMLDbiV0hWoqP2GcHo6G9QZbNMcKnVEDZdyUKtx8DgZAfSf32dxF8GbJEgLDxIm1ZqT8ayIMMVvjMhS7tjnoXAf8xN7JCOlANE+PQwRcSr8mfUA9mrFIo1WkXshpyVsNo//k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AtMSmMCn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ix8/kw67"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 972A2C433C7;
-	Fri, 22 Mar 2024 00:19:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AtMSmMCn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D73F4C433C7;
+	Fri, 22 Mar 2024 00:26:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711066778;
-	bh=uc2r7HoQ8OKZNrE7ua7uvrgrD+GSmmWdRylhkDcXb1w=;
+	s=korg; t=1711067217;
+	bh=09aOEs+rSxHbLMEyDNcJ4dcnodmuf/5npTbhm1G3mlo=;
 	h=Date:To:From:Subject:From;
-	b=ix8/kw676lY96qbbIIA1Lfzh5spCcve1/mkv45l4AuH9OEEJtoU3XsS+qQpQVWIgF
-	 sMhTJ1cWttt+nq9WMGDOw6dCbGVAFTgnzDcLJfYOU5SL4HZ94RDml/WPmsfDVnHt27
-	 Jhjflq/9gYPixBNY6BtlHOX23Efo3aPyOlYvFUrM=
-Date: Thu, 21 Mar 2024 17:19:38 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,jack@suse.cz,hughd@google.com,cmaiolino@redhat.com,bugreport@ubisectech.com,cem@kernel.org,akpm@linux-foundation.org
+	b=AtMSmMCni7rzGlFFuTrBIeoUz2IYJbvYVLVX3WlNVGmBWrpBuhYsTq0ftTMZAbnrv
+	 a/wLqovNZZjWWKTTYlNvpdXkxSsC4U5IsTqAwVWiIVAHIIEO9Jiyinf46786ANtY5h
+	 iHeTGn6E6Apz2aUXkZCXUWAH+qM4OBKWmxpRFdUY=
+Date: Thu, 21 Mar 2024 17:26:57 -0700
+To: mm-commits@vger.kernel.org,mhiramat@kernel.org,linux@rasmusvillemoes.dk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tmpfs-fix-race-on-handling-dquot-rbtree.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240322001938.972A2C433C7@smtp.kernel.org>
+Subject: + bootconfig-do-not-put-quotes-on-cmdline-items-unless-necessary.patch added to mm-nonmm-unstable branch
+Message-Id: <20240322002657.D73F4C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tmpfs: fix race on handling dquot rbtree
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     tmpfs-fix-race-on-handling-dquot-rbtree.patch
+     Subject: bootconfig: do not put quotes on cmdline items unless necessary
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     bootconfig-do-not-put-quotes-on-cmdline-items-unless-necessary.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tmpfs-fix-race-on-handling-dquot-rbtree.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bootconfig-do-not-put-quotes-on-cmdline-items-unless-necessary.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,104 +58,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Carlos Maiolino <cem@kernel.org>
-Subject: tmpfs: fix race on handling dquot rbtree
-Date: Wed, 20 Mar 2024 13:39:59 +0100
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: bootconfig: do not put quotes on cmdline items unless necessary
+Date: Wed, 20 Mar 2024 11:19:52 +0100
 
-A syzkaller reproducer found a race while attempting to remove dquot
-information from the rb tree.
+When trying to migrate to using bootconfig to embed the kernel's and
+PID1's command line with the kernel image itself, and so allowing changing
+that without modifying the bootloader, I noticed that /proc/cmdline
+changed from e.g.
 
-Fetching the rb_tree root node must also be protected by the
-dqopt->dqio_sem, otherwise, giving the right timing, shmem_release_dquot()
-will trigger a warning because it couldn't find a node in the tree, when
-the real reason was the root node changing before the search starts:
+  console=ttymxc0,115200n8 cma=128M quiet -- --log-level=notice
 
-Thread 1				Thread 2
-- shmem_release_dquot()			- shmem_{acquire,release}_dquot()
+to
 
-- fetch ROOT				- Fetch ROOT
+  console="ttymxc0,115200n8" cma="128M" quiet -- --log-level="notice"
 
-					- acquire dqio_sem
-- wait dqio_sem
+The kernel parameters are parsed just fine, and the quotes are indeed
+stripped from the actual argv[] given to PID1.  However, the quoting
+doesn't really serve any purpose and looks excessive, and might confuse
+some (naive) userspace tool trying to parse /proc/cmdline.  So do not
+quote the value unless it contains whitespace.
 
-					- do something, triger a tree rebalance
-					- release dqio_sem
-
-- acquire dqio_sem
-- start searching for the node, but
-  from the wrong location, missing
-  the node, and triggering a warning.
-
-Link: https://lkml.kernel.org/r/20240320124011.398847-1-cem@kernel.org
-Fixes: eafc474e202978 ("shmem: prepare shmem quota infrastructure")
-Signed-off-by: Carlos Maiolino <cmaiolino@redhat.com>
-Reported-by: Ubisectech Sirius <bugreport@ubisectech.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240320101952.62135-1-linux@rasmusvillemoes.dk
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem_quota.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ init/main.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
---- a/mm/shmem_quota.c~tmpfs-fix-race-on-handling-dquot-rbtree
-+++ a/mm/shmem_quota.c
-@@ -116,7 +116,7 @@ static int shmem_free_file_info(struct s
- static int shmem_get_next_id(struct super_block *sb, struct kqid *qid)
+--- a/init/main.c~bootconfig-do-not-put-quotes-on-cmdline-items-unless-necessary
++++ a/init/main.c
+@@ -327,7 +327,7 @@ static int __init xbc_snprint_cmdline(ch
  {
- 	struct mem_dqinfo *info = sb_dqinfo(sb, qid->type);
--	struct rb_node *node = ((struct rb_root *)info->dqi_priv)->rb_node;
-+	struct rb_node *node;
- 	qid_t id = from_kqid(&init_user_ns, *qid);
- 	struct quota_info *dqopt = sb_dqopt(sb);
- 	struct quota_id *entry = NULL;
-@@ -126,6 +126,7 @@ static int shmem_get_next_id(struct supe
- 		return -ESRCH;
+ 	struct xbc_node *knode, *vnode;
+ 	char *end = buf + size;
+-	const char *val;
++	const char *val, *q;
+ 	int ret;
  
- 	down_read(&dqopt->dqio_sem);
-+	node = ((struct rb_root *)info->dqi_priv)->rb_node;
- 	while (node) {
- 		entry = rb_entry(node, struct quota_id, node);
- 
-@@ -165,7 +166,7 @@ out_unlock:
- static int shmem_acquire_dquot(struct dquot *dquot)
- {
- 	struct mem_dqinfo *info = sb_dqinfo(dquot->dq_sb, dquot->dq_id.type);
--	struct rb_node **n = &((struct rb_root *)info->dqi_priv)->rb_node;
-+	struct rb_node **n;
- 	struct shmem_sb_info *sbinfo = dquot->dq_sb->s_fs_info;
- 	struct rb_node *parent = NULL, *new_node = NULL;
- 	struct quota_id *new_entry, *entry;
-@@ -176,6 +177,8 @@ static int shmem_acquire_dquot(struct dq
- 	mutex_lock(&dquot->dq_lock);
- 
- 	down_write(&dqopt->dqio_sem);
-+	n = &((struct rb_root *)info->dqi_priv)->rb_node;
-+
- 	while (*n) {
- 		parent = *n;
- 		entry = rb_entry(parent, struct quota_id, node);
-@@ -264,7 +267,7 @@ static bool shmem_is_empty_dquot(struct
- static int shmem_release_dquot(struct dquot *dquot)
- {
- 	struct mem_dqinfo *info = sb_dqinfo(dquot->dq_sb, dquot->dq_id.type);
--	struct rb_node *node = ((struct rb_root *)info->dqi_priv)->rb_node;
-+	struct rb_node *node;
- 	qid_t id = from_kqid(&init_user_ns, dquot->dq_id);
- 	struct quota_info *dqopt = sb_dqopt(dquot->dq_sb);
- 	struct quota_id *entry = NULL;
-@@ -275,6 +278,7 @@ static int shmem_release_dquot(struct dq
- 		goto out_dqlock;
- 
- 	down_write(&dqopt->dqio_sem);
-+	node = ((struct rb_root *)info->dqi_priv)->rb_node;
- 	while (node) {
- 		entry = rb_entry(node, struct quota_id, node);
- 
+ 	xbc_node_for_each_key_value(root, knode, val) {
+@@ -345,8 +345,14 @@ static int __init xbc_snprint_cmdline(ch
+ 			continue;
+ 		}
+ 		xbc_array_for_each_value(vnode, val) {
+-			ret = snprintf(buf, rest(buf, end), "%s=\"%s\" ",
+-				       xbc_namebuf, val);
++			/*
++			 * For prettier and more readable /proc/cmdline, only
++			 * quote the value when necessary, i.e. when it contains
++			 * whitespace.
++			 */
++			q = strpbrk(val, " \t\r\n") ? "\"" : "";
++			ret = snprintf(buf, rest(buf, end), "%s=%s%s%s ",
++				       xbc_namebuf, q, val, q);
+ 			if (ret < 0)
+ 				return ret;
+ 			buf += ret;
 _
 
-Patches currently in -mm which might be from cem@kernel.org are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-tmpfs-fix-race-on-handling-dquot-rbtree.patch
+bootconfig-do-not-put-quotes-on-cmdline-items-unless-necessary.patch
 
