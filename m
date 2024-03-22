@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62F822F3B
-	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 00:30:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F52223AD
+	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 00:30:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711067401; cv=none; b=mC6GZOB0oJiOI2fasfiY4k9KRRbt7UWUf1ZNOWGhkb6OTaJtD4+lqucqdqSOhMWkJCfZbhvwHMesxZIE419yIF64MM2ngpEapqTrJ362FcFlIB1F/MUKoShB/kI7fsDve4iduxcYo4fV1cB1y9ap8olzwB1p+uaprYxcNXbw2Q0=
+	t=1711067403; cv=none; b=hZu/C2DWJKcZ3JHcpTAMDuS/RjOcLQzBIKmK8WoA6kFEHNd9QmN1eLWQWWXnvFvJc40kmeDp9vE+pP2bUEtSk/Eg6DysSUJfhp8GKi3NcZdPXdf7VMc7v9/3xmkTfotCk/kzPAhJWSbCGxRTovKnXWqHqM/zkFCT8GVc6+Xib2c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711067401; c=relaxed/simple;
-	bh=zepDyGf2PEc+/FgE3n/a2l3MOQHlJ8cCxNuWJC68c7c=;
-	h=Date:To:From:Subject:Message-Id; b=Ry1nedeSVhJLb+0Us6CsmzEFWHcfOdPT5URyVqsDrsMozOqDXF+WiGjm9+HKl9DyHFYTQelvZ0UeA1b02HwchFypwrf2pb31mX5f+JaQRt1zqvIowGDm70MSQRHL858fyHHbVueQJeNjdKy+R0hS/eODCbQl4K5TqDv5nrJx7rM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZpkGZovW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711067403; c=relaxed/simple;
+	bh=TuNk+nxTw77aY1/MIT8naoaMsrrh4q1aPLCgzcuPOuk=;
+	h=Date:To:From:Subject:Message-Id; b=Ss3MfjSG7lsevWjaDbfFXsJGs5fLZyURjXjte5jnMJk6MJ6l3vxdfgDKWTiCjXLEA/Cgc1bKFwq+h0vqi7FGLnoUCWxypFUEBAsxwntQ46KhHW3aF6QU1PonEmCtoti3PM5Ep/Pus/7winieaBVXdB2rJluuOLvc7RjasqSSfWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CPkvPIdS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZpkGZovW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD95FC433F1;
-	Fri, 22 Mar 2024 00:30:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CPkvPIdS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E9A8C433F1;
+	Fri, 22 Mar 2024 00:30:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711067401;
-	bh=zepDyGf2PEc+/FgE3n/a2l3MOQHlJ8cCxNuWJC68c7c=;
+	s=korg; t=1711067403;
+	bh=TuNk+nxTw77aY1/MIT8naoaMsrrh4q1aPLCgzcuPOuk=;
 	h=Date:To:From:Subject:From;
-	b=ZpkGZovWya3vmVdRu49srr98DV26uwPzJ247YWfu+58sB5RN9BDQ7VSEQyTMKfNhC
-	 38y4xBdo8TuMOj7S/C+e3323oeACgzOHJ/ejqYQI/oG9YcF3YYn4ye3pURTng4bWvL
-	 1WEr5ygLM/B0k/+f3rXuuwran+/XUa39w/LA/Vbs=
-Date: Thu, 21 Mar 2024 17:30:00 -0700
+	b=CPkvPIdSXnoHtKsRwAVz0ZeWTst9F35McVzXhziQi0Yo+HcZ0h4e/37gjzq3UI/XI
+	 GIx8yfa6vBQUCNvardAIeJhn5gVkJXTbwOsvL5SBbaBis0GgJfhlo4QBo3pHeGoUKW
+	 ufMoP19ypJSlLVmiNiq4NYcoGhvr2XTdRlf6X7Go=
+Date: Thu, 21 Mar 2024 17:30:02 -0700
 To: mm-commits@vger.kernel.org,torvalds@linux-foundation.org,tglx@linutronix.de,penguin-kernel@I-love.SAKURA.ne.jp,elver@google.com,dvyukov@google.com,glider@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmsan-implement-kmsan_memmove.patch added to mm-nonmm-unstable branch
-Message-Id: <20240322003000.DD95FC433F1@smtp.kernel.org>
+Subject: + instrumentedh-add-instrument_memcpy_before-instrument_memcpy_after.patch added to mm-nonmm-unstable branch
+Message-Id: <20240322003003.0E9A8C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: kmsan: implement kmsan_memmove()
+     Subject: instrumented.h: add instrument_memcpy_before, instrument_memcpy_after
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mm-kmsan-implement-kmsan_memmove.patch
+     instrumentedh-add-instrument_memcpy_before-instrument_memcpy_after.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmsan-implement-kmsan_memmove.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/instrumentedh-add-instrument_memcpy_before-instrument_memcpy_after.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,81 +59,72 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: mm: kmsan: implement kmsan_memmove()
-Date: Wed, 20 Mar 2024 11:18:49 +0100
+Subject: instrumented.h: add instrument_memcpy_before, instrument_memcpy_after
+Date: Wed, 20 Mar 2024 11:18:50 +0100
 
-Provide a hook that can be used by custom memcpy implementations to tell
-KMSAN that the metadata needs to be copied.  Without that, false positive
-reports are possible in the cases where KMSAN fails to intercept memory
-initialization.
+Bug detection tools based on compiler instrumentation may miss memory
+accesses in custom memcpy implementations (such as copy_mc_to_kernel). 
+Provide instrumentation hooks that tell KASAN, KCSAN, and KMSAN about such
+accesses.
 
 Link: https://lore.kernel.org/all/3b7dbd88-0861-4638-b2d2-911c97a4cadf@I-love.SAKURA.ne.jp/
-Link: https://lkml.kernel.org/r/20240320101851.2589698-1-glider@google.com
+Link: https://lkml.kernel.org/r/20240320101851.2589698-2-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
-Suggested-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmsan-checks.h |   15 +++++++++++++++
- mm/kmsan/hooks.c             |   11 +++++++++++
- 2 files changed, 26 insertions(+)
+ include/linux/instrumented.h |   35 +++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
---- a/include/linux/kmsan-checks.h~mm-kmsan-implement-kmsan_memmove
-+++ a/include/linux/kmsan-checks.h
-@@ -61,6 +61,17 @@ void kmsan_check_memory(const void *addr
- void kmsan_copy_to_user(void __user *to, const void *from, size_t to_copy,
- 			size_t left);
+--- a/include/linux/instrumented.h~instrumentedh-add-instrument_memcpy_before-instrument_memcpy_after
++++ a/include/linux/instrumented.h
+@@ -148,6 +148,41 @@ instrument_copy_from_user_after(const vo
+ }
  
-+/**
-+ * kmsan_memmove() - Notify KMSAN about a data copy within kernel.
-+ * @to:   destination address in the kernel.
-+ * @from: source address in the kernel.
-+ * @size: number of bytes to copy.
+ /**
++ * instrument_memcpy_before - add instrumentation before non-instrumented memcpy
++ * @to: destination address
++ * @from: source address
++ * @n: number of bytes to copy
 + *
-+ * Invoked after non-instrumented version (e.g. implemented using assembly
-+ * code) of memmove()/memcpy() is called, in order to copy KMSAN's metadata.
++ * Instrument memory accesses that happen in custom memcpy implementations. The
++ * instrumentation should be inserted before the memcpy call.
 + */
-+void kmsan_memmove(void *to, const void *from, size_t to_copy);
-+
- #else
- 
- static inline void kmsan_poison_memory(const void *address, size_t size,
-@@ -78,6 +89,10 @@ static inline void kmsan_copy_to_user(vo
- {
- }
- 
-+static inline void kmsan_memmove(void *to, const void *from, size_t to_copy)
++static __always_inline void instrument_memcpy_before(void *to, const void *from,
++						     unsigned long n)
 +{
++	kasan_check_write(to, n);
++	kasan_check_read(from, n);
++	kcsan_check_write(to, n);
++	kcsan_check_read(from, n);
 +}
 +
- #endif
- 
- #endif /* _LINUX_KMSAN_CHECKS_H */
---- a/mm/kmsan/hooks.c~mm-kmsan-implement-kmsan_memmove
-+++ a/mm/kmsan/hooks.c
-@@ -285,6 +285,17 @@ void kmsan_copy_to_user(void __user *to,
- }
- EXPORT_SYMBOL(kmsan_copy_to_user);
- 
-+void kmsan_memmove(void *to, const void *from, size_t size)
++/**
++ * instrument_memcpy_after - add instrumentation after non-instrumented memcpy
++ * @to: destination address
++ * @from: source address
++ * @n: number of bytes to copy
++ * @left: number of bytes not copied (if known)
++ *
++ * Instrument memory accesses that happen in custom memcpy implementations. The
++ * instrumentation should be inserted after the memcpy call.
++ */
++static __always_inline void instrument_memcpy_after(void *to, const void *from,
++						    unsigned long n,
++						    unsigned long left)
 +{
-+	if (!kmsan_enabled || kmsan_in_runtime())
-+		return;
-+
-+	kmsan_enter_runtime();
-+	kmsan_internal_memmove_metadata(to, (void *)from, size);
-+	kmsan_leave_runtime();
++	kmsan_memmove(to, from, n - left);
 +}
-+EXPORT_SYMBOL(kmsan_memmove);
 +
- /* Helper function to check an URB. */
- void kmsan_handle_urb(const struct urb *urb, bool is_out)
- {
++/**
+  * instrument_get_user() - add instrumentation to get_user()-like macros
+  * @to: destination variable, may not be address-taken
+  *
 _
 
 Patches currently in -mm which might be from glider@google.com are
