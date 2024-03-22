@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 772BC762FC
-	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 19:07:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B5567E584
+	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 19:45:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711134420; cv=none; b=YRxA6Yrmav03MDCdHD9os+Y1dJBpQSQ0BB1Hyh9JfQUUTPfYFQy0heIVQL/euhDdiUT4IwiIkqD8ESNwGU9Rwc2BbhmWvKHK0K3vgt9IHrP80h+YFPn7bZ19ZdYZv3BUcGV0uedEA6Ius6gYBFmtqDmB4eMSN1p8+W8dT1AJ7Tg=
+	t=1711136748; cv=none; b=C+YOI09xifZahmSrRGVr6KcwxC1m4KBGSi/gJoZf6bHJTf/DdTGKYT9gmGLFbMb3zyFWK6dkTlyIEeOVoY1eouMfvgEV6bHmHTHBX7T1bY1tGpufpZPriMqM6gFXUXLcgNzubDR7d6NU992bGQPlggfMb4CkwRmqanMLeeAemEA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711134420; c=relaxed/simple;
-	bh=jxdzlnQMYV57xLyHVKlbqp8kFobvLLOkkSMw5x4wBUQ=;
-	h=Date:To:From:Subject:Message-Id; b=CVsIAs4cbeodtr3v1etJNMxTObPsdOwXbRSvAgRSO16DfpCrquVmxOHyASzmVFQkKLhHhRmDdJ0hybGw5n8c1bnQZgUZeE3vsJjePb8EvqLIgDV2T5G0N3ZzxTT/wy2HV/2Iuad43wDown+QBYb/vQMi2HaQyUBFHMhZEMvT47U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yyg/MvhC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711136748; c=relaxed/simple;
+	bh=lKIlyMxHrpPuFr/cJAliG8/Luw8YiiRMOj+6j3ux22k=;
+	h=Date:To:From:Subject:Message-Id; b=QNEiB3QYqWEpTbQ4nEIMD9y4pB1U24kjrJm8tLnKsa9U+QTAD6WmVNoBHSckiM2fCbxmk3J2WhId01vqhS3eRWNeJ/+A9wlVkeHTK0ScNubrqmjEFEsSCAw1QCFWU3KOAF3R68MeBxddC3E3hI0PJCeTod4u5sCQPpk9cnRZYqQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EnAZNC4W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yyg/MvhC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6A0EC433C7;
-	Fri, 22 Mar 2024 19:06:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EnAZNC4W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0ACFAC43390;
+	Fri, 22 Mar 2024 19:45:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711134420;
-	bh=jxdzlnQMYV57xLyHVKlbqp8kFobvLLOkkSMw5x4wBUQ=;
+	s=korg; t=1711136748;
+	bh=lKIlyMxHrpPuFr/cJAliG8/Luw8YiiRMOj+6j3ux22k=;
 	h=Date:To:From:Subject:From;
-	b=yyg/MvhCRG+E+IowBr+RYrmVDnqnsT+SyEtC1AbfWBLA1+9UdE7JYCmGzOI6EGSM+
-	 SUqnHt8DfR20T5wkMcJcAk+bTSTfreuqVhMVFHu3EDEdEEahQnk/pWOj5qHwHPlHIA
-	 Iw7nh7iNOCCIfgjnSeAFZsodCAyArxGZCjV4fgHU=
-Date: Fri, 22 Mar 2024 12:06:59 -0700
-To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,sfr@canb.auug.org.au,lukas.bulwahn@gmail.com,linux@roeck-us.net,joe@perches.com,jcmvbkbc@gmail.com,herbert@gondor.apana.org.au,dwaipayanray1@gmail.com,corbet@lwn.net,chris@zankel.net,chenhuacai@loongson.cn,broonie@kernel.org,apw@canonical.com,ma.xxn@outlook.com,akpm@linux-foundation.org
+	b=EnAZNC4WPVhzBodPV40SyhnwcvF/Ctjp72MbaLAYp7ufCvXxEc1vbo9mz8SjRu3Ao
+	 0PnUwZwv56fikjhzXIEumrfryodAUq9mvE7A0pEHzOoZk8YWEadSHxJrZdjM9hs8JN
+	 oj6NSIIsByT0GsVyDouGHbRvmznDxXxTwYe2w9mI=
+Date: Fri, 22 Mar 2024 12:45:47 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,ryan.roberts@arm.com,mhocko@suse.com,hughd@google.com,hanchuanhua@oppo.com,david@redhat.com,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-checkpatch-check-unused-parameters-for-function-like-macro.patch added to mm-nonmm-unstable branch
-Message-Id: <20240322190659.E6A0EC433C7@smtp.kernel.org>
+Subject: + mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio.patch added to mm-unstable branch
+Message-Id: <20240322194548.0ACFAC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts: checkpatch: check unused parameters for function-like macro
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-checkpatch-check-unused-parameters-for-function-like-macro.patch
+     Subject: mm: hold PTL from the first PTE while reclaiming a large folio
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-checkpatch-check-unused-parameters-for-function-like-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,86 +58,90 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xining Xu <ma.xxn@outlook.com>
-Subject: scripts: checkpatch: check unused parameters for function-like macro
-Date: Fri, 22 Mar 2024 21:49:37 +1300
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: hold PTL from the first PTE while reclaiming a large folio
+Date: Wed, 6 Mar 2024 22:52:19 +1300
 
-If function-like macros do not utilize a parameter, it might result in a
-build warning.  In our coding style guidelines, we advocate for utilizing
-static inline functions to replace such macros.  This patch verifies
-compliance with the new rule.
+Within try_to_unmap_one(), page_vma_mapped_walk() races with other PTE
+modifications preceded by pte clear.  While iterating over PTEs of a large
+folio, it only starts acquiring PTL from the first valid (present) PTE. 
+PTE modifications can temporarily set PTEs to pte_none.  Consequently, the
+initial PTEs of a large folio might be skipped in try_to_unmap_one().
 
-For a macro such as the one below,
+For example, for an anon folio, if we skip PTE0, we may have PTE0 which is
+still present, while PTE1 ~ PTE(nr_pages - 1) are swap entries after
+try_to_unmap_one().
 
- #define test(a) do { } while (0)
+So folio will be still mapped, the folio fails to be reclaimed and is put
+back to LRU in this round.
 
-The test result is as follows.
+This also breaks up PTEs optimization such as CONT-PTE on this large folio
+and may lead to accident folio_split() afterwards.  And since a part of
+PTEs are now swap entries, accessing those parts will introduce overhead -
+do_swap_page.  Although the kernel can withstand all of the above issues,
+the situation still seems quite awkward and warrants making it more ideal.
 
- ERROR: Parameter 'a' is not used in function-like macro, please use static
- inline instead
- #21: FILE: mm/init-mm.c:20:
- +#define test(a) do { } while (0)
+The same race also occurs with small folios, but they have only one PTE,
+thus, it won't be possible for them to be partially unmapped.
 
- total: 1 errors, 0 warnings, 8 lines checked
+This patch holds PTL from PTE0, allowing us to avoid reading PTE values
+that are in the process of being transformed.  With stable PTE values, we
+can ensure that this large folio is either completely reclaimed or that
+all PTEs remain untouched in this round.
 
-Link: https://lkml.kernel.org/r/20240322084937.66018-3-21cnbao@gmail.com
-Signed-off-by: Xining Xu <ma.xxn@outlook.com>
+A corner case is that if we hold PTL from PTE0 and most initial PTEs have
+been really unmapped before that, we may increase the duration of holding
+PTL.  Thus we only apply this optimization to folios which are still
+entirely mapped (not in deferred_split list).
 
-Tested-by: Barry Song <v-songbaohua@oppo.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Huacai Chen <chenhuacai@loongson.cn>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
+Link: https://lkml.kernel.org/r/20240306095219.71086-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Chuanhua Han <hanchuanhua@oppo.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gao Xiang <xiang@kernel.org>
+Cc: Huang, Ying <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ mm/vmscan.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/scripts/checkpatch.pl~scripts-checkpatch-check-unused-parameters-for-function-like-macro
-+++ a/scripts/checkpatch.pl
-@@ -6109,6 +6109,30 @@ sub process {
- 				WARN("TRAILING_SEMICOLON",
- 				     "macros should not use a trailing semicolon\n" . "$herectx");
- 			}
-+
-+			if ($dstat =~ /^\+\s*#\s*define\s+$Ident\s*(\((?:[^\(\)]++|(?-1))*\))\s+(\S+.*)(\/\/.*)?/) {
-+				my $params = $1 || "";
-+				my $body = $2 || "";
-+
-+			    # get the individual params
-+				$params =~ tr/()//d;
-+				# remove leading and trailing whitespace
-+				$params =~ s/^\s+|\s+$//g;
-+
-+				$ctx =~ s/\n*$//;
-+				my $cnt = statement_rawlines($ctx);
-+				my $herectx = get_stat_here($linenr, $cnt, $here);
-+
-+				if ($params ne "") {
-+					my @paramList = split /,\s*/, $params;
-+					foreach my $param(@paramList) {
-+						if ($body !~ /\b$param\b/) {
-+							ERROR("UNUSED_PARAM_IN_MACRO",
-+							     "Parameter '$param' is not used in function-like macro, please use static inline instead\n" . "$herectx");
-+						}
-+					}
-+				}
-+			}
- 		}
+--- a/mm/vmscan.c~mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio
++++ a/mm/vmscan.c
+@@ -1257,6 +1257,18 @@ retry:
  
- # check for redundant bracing round if etc
+ 			if (folio_test_pmd_mappable(folio))
+ 				flags |= TTU_SPLIT_HUGE_PMD;
++			/*
++			 * Without TTU_SYNC, try_to_unmap will only begin to hold PTL
++			 * from the first present PTE within a large folio. Some initial
++			 * PTEs might be skipped due to races with parallel PTE writes
++			 * in which PTEs can be cleared temporarily before being written
++			 * new present values. This will lead to a large folio is still
++			 * mapped while some subpages have been partially unmapped after
++			 * try_to_unmap; TTU_SYNC helps try_to_unmap acquire PTL from the
++			 * first PTE, eliminating the influence of temporary PTE values.
++			 */
++			if (folio_test_large(folio) && list_empty(&folio->_deferred_list))
++				flags |= TTU_SYNC;
+ 
+ 			try_to_unmap(folio, flags);
+ 			if (folio_mapped(folio)) {
 _
 
-Patches currently in -mm which might be from ma.xxn@outlook.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-scripts-checkpatch-check-unused-parameters-for-function-like-macro.patch
+mm-zswap-fix-kernel-bug-in-sg_init_one.patch
+arm64-mm-swap-support-thp_swap-on-hardware-with-mte.patch
+mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio.patch
+documentation-coding-style-ask-function-like-macros-to-evaluate-parameters.patch
 
