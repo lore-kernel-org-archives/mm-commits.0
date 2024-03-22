@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 909046D1C6
-	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 18:45:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8268D64CC6
+	for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2024 18:56:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711133154; cv=none; b=h4Uyk2snkbG2S3qG8DVeibB12X6V/vtLKGJoViVKI/TXc4t9dxwuVGfzgmuZ3mbV5Be1vgcx2tiLyAmqcbXTX94zNK2craL0OmPLNTj6RYKF+VIomRSGW1xElpRjOx2Dk0QhKPgM0vozSqLegFcLtRu52zhKTZLtP8N72fJEYSA=
+	t=1711133790; cv=none; b=XUHWMqbiu0FpIJDLv59cc4G5imPeZDtH8bY7XSTfbWENmxqbuNWBNiVamoYWgZ8vV0KP6n1IU4ZWe4MuiL03qA07+PZ5rd6iEOgb6ZFtmxgoFHqVVGSX1dA75TG+yCbhzjednq0AYAr1sPTkDJl5nnxyV4wDkqLvtYBJeBHrpNs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711133154; c=relaxed/simple;
-	bh=xXL8RgnWe3XwypVTY8O+dS2HOQRbBwodm/PGQuXMyTs=;
-	h=Date:To:From:Subject:Message-Id; b=dOA2Ah+qeX8/L72Sj+4n3F5cwXxUePz/dcxlrvCTIQV7SkI5AYZmCs+1DONmtsVnXNnXhi/gq/Lz0yoV8ZUW8lpuwG0slf3QBbA+8kbDtW35G+tUgf5aF/95qeYL73CWRoLCTS/lM63a13QCLIKaDy6zLS2xamB02tio14RJmP8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sE3MX56Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711133790; c=relaxed/simple;
+	bh=cJnY5YZM24/5bkU3iGVMjuKsZsUxJzI6NfHuCfgMgL8=;
+	h=Date:To:From:Subject:Message-Id; b=KGY5RzqWg0ZWMY5A3toquUT9jLYCfLrGCOF3ZZqiVgDG8M9aSwcZBLQ/JsArkIp5mgRE+WPaWFE1eC9ZylHIIwkZ0IMUoWXstKFhMm5gbcUnpisu+mK/cjDbhQSWwVkHZw2kGRk4zIQYxO8XYxdTYW5E3YWWT1mSUZoDwR1K00k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0ggi6c/X; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sE3MX56Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C9E1C43399;
-	Fri, 22 Mar 2024 18:45:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0ggi6c/X"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36D9EC433C7;
+	Fri, 22 Mar 2024 18:56:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711133154;
-	bh=xXL8RgnWe3XwypVTY8O+dS2HOQRbBwodm/PGQuXMyTs=;
+	s=korg; t=1711133790;
+	bh=cJnY5YZM24/5bkU3iGVMjuKsZsUxJzI6NfHuCfgMgL8=;
 	h=Date:To:From:Subject:From;
-	b=sE3MX56Q5ULLfd1PpfWmsuo2md5+FiZO8YxBJ3jv9Yl5cohyNJbPWy+XJl+IRsBBH
-	 mnWuGDr2XtU2O+dLiTxj92hPqDJLV9CxPU5Acy0XnJYYLBPYsaTVXmay/MK7LCPEjo
-	 FG2cQauZhNmldKUu8hjbfQLh2pOplvznm8rVupBA=
-Date: Fri, 22 Mar 2024 11:45:53 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,willy@infradead.org,will@kernel.org,steven.price@arm.com,shikemeng@huaweicloud.com,ryan.roberts@arm.com,rppt@kernel.org,rick.p.edgecombe@intel.com,peterx@redhat.com,pcc@google.com,mark.rutland@arm.com,lstoakes@gmail.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,catalin.marinas@arm.com,anshuman.khandual@arm.com,aneesh.kumar@linux.ibm.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=0ggi6c/X/fPvpCaOjK5NCPLfHZ96WKDOI9zZbnFis/YYBp3wo1tMzLnvimpETgGrM
+	 n5JcmUP2fbXm1MV0OPvvDZo0LFRLEnEwlib74vaFeMglOgpasqJQAUoN3JsRHGfovY
+	 /kJJzzBtka3TPkjHtY+SGLHPxFfVihY+okfCcRHU=
+Date: Fri, 22 Mar 2024 11:56:29 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@ZenIV.linux.org.uk,tujinjiang@huawei.com,jack@suse.cz,brauner@kernel.org,liushixin2@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-swap-support-thp_swap-on-hardware-with-mte.patch added to mm-unstable branch
-Message-Id: <20240322184554.3C9E1C43399@smtp.kernel.org>
+Subject: + mm-readahead-break-read-ahead-loop-if-filemap_add_folio-return-enomem.patch added to mm-unstable branch
+Message-Id: <20240322185630.36D9EC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: mm: swap: support THP_SWAP on hardware with MTE
+     Subject: mm/readahead: break read-ahead loop if filemap_add_folio return -ENOMEM
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-swap-support-thp_swap-on-hardware-with-mte.patch
+     mm-readahead-break-read-ahead-loop-if-filemap_add_folio-return-enomem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-swap-support-thp_swap-on-hardware-with-mte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-readahead-break-read-ahead-loop-if-filemap_add_folio-return-enomem.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,292 +58,144 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: arm64: mm: swap: support THP_SWAP on hardware with MTE
-Date: Sat, 23 Mar 2024 00:41:36 +1300
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: mm/readahead: break read-ahead loop if filemap_add_folio return -ENOMEM
+Date: Fri, 22 Mar 2024 17:35:54 +0800
 
-Commit d0637c505f8a1 ("arm64: enable THP_SWAP for arm64") brings up
-THP_SWAP on ARM64, but it doesn't enable THP_SWP on hardware with MTE as
-the MTE code works with the assumption tags save/restore is always
-handling a folio with only one page.
+Patch series "Fix I/O high when memory almost met memcg limit", v2.
 
-The limitation should be removed as more and more ARM64 SoCs have this
-feature.  Co-existence of MTE and THP_SWAP becomes more and more
-important.
+Recently, when install package in a docker which almost reached its memory
+limit, the installer has no respond severely for more than 15 minutes. 
+During this period, I/O stays high(~1G/s) and influence the whole machine.
+I've constructed a use case as follows:
 
-This patch makes MTE tags saving support large folios, then we don't need
-to split large folios into base pages for swapping out on ARM64 SoCs with
-MTE any more.
+  1. create a docker:
 
-arch_prepare_to_swap() should take folio rather than page as parameter
-because we support THP swap-out as a whole.  It saves tags for all pages
-in a large folio.
+	$ cat test.sh
+	#!/bin/bash
+  
+	docker rm centos7 --force
 
-As now we are restoring tags based-on folio, in arch_swap_restore(), we
-may increase some extra loops and early-exitings while refaulting a large
-folio which is still in swapcache in do_swap_page().  In case a large
-folio has nr pages, do_swap_page() will only set the PTE of the particular
-page which is causing the page fault.  Thus do_swap_page() runs nr times,
-and each time, arch_swap_restore() will loop nr times for those subpages
-in the folio.  So right now the algorithmic complexity becomes O(nr^2).
+	docker create --name centos7 --memory 4G --memory-swap 6G centos:7 /usr/sbin/init
+	docker start centos7
+	sleep 1
 
-Once we support mapping large folios in do_swap_page(), extra loops and
-early-exitings will decrease while not being completely removed as a large
-folio might get partially tagged in corner cases such as, 1.  a large
-folio in swapcache can be partially unmapped, thus, MTE tags for the
-unmapped pages will be invalidated; 2.  users might use mprotect() to set
-MTEs on a part of a large folio.
+	docker cp ./alloc_page centos7:/
+	docker cp ./reproduce.sh centos7:/
 
-arch_thp_swp_supported() is dropped since ARM64 MTE was the only one who
-needed it.
+	docker exec -it centos7 /bin/bash
 
-Link: https://lkml.kernel.org/r/20240322114136.61386-2-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Reviewed-by: Steven Price <steven.price@arm.com>
-Acked-by: Chris Li <chrisl@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
+  2. try reproduce the problem in docker:
+
+	$ cat reproduce.sh
+	#!/bin/bash
+  
+	while true; do
+		flag=$(ps -ef | grep -v grep | grep alloc_page| wc -l)
+		if [ "$flag" -eq 0 ]; then
+			/alloc_page &
+		fi
+
+		sleep 30
+
+		start_time=$(date +%s)
+		yum install -y expect > /dev/null 2>&1
+
+		end_time=$(date +%s)
+
+		elapsed_time=$((end_time - start_time))
+
+		echo "$elapsed_time seconds"
+		yum remove -y expect > /dev/null 2>&1
+	done
+
+	$ cat alloc_page.c:
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <unistd.h>
+	#include <string.h>
+
+	#define SIZE 1*1024*1024 //1M
+
+	int main()
+	{
+		void *addr = NULL;
+		int i;
+
+		for (i = 0; i < 1024 * 6 - 50;i++) {
+			addr = (void *)malloc(SIZE);
+			if (!addr)
+				return -1;
+
+			memset(addr, 0, SIZE);
+		}
+
+		sleep(99999);
+		return 0;
+	}
+
+
+We found that this problem is caused by a lot ot meaningless read-ahead. 
+Since the docker is almost met memory limit, the page will be reclaimed
+immediately after read-ahead and will read-ahead again immediately.  The
+program is executed slowly and waste a lot of I/O resource.
+
+These two patch aim to break the read-ahead in above scenario.
+
+[1] https://lore.kernel.org/linux-mm/c2f4a2fa-3bde-72ce-66f5-db81a373fdbc@huawei.com/T/
+[2] https://lore.kernel.org/all/20240201100835.1626685-1-liushixin2@huawei.com/
+[3] https://lore.kernel.org/all/20240201173130.frpaqpy7iyzias5j@quack3/
+
+
+This patch (of 2):
+
+When filemap_add_folio() return -ENOMEM, break read-ahead loop like what
+filemap_alloc_folio() does.
+
+Link: https://lkml.kernel.org/r/20240322093555.226789-1-liushixin2@huawei.com
+Link: https://lkml.kernel.org/r/20240322093555.226789-2-liushixin2@huawei.com
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Liu Shixin <liushixin2@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |   19 +-----------
- arch/arm64/mm/mteswap.c          |   45 +++++++++++++++++++++++++++++
- include/linux/huge_mm.h          |   12 -------
- include/linux/pgtable.h          |    2 -
- mm/internal.h                    |   14 +++++++++
- mm/memory.c                      |    2 -
- mm/page_io.c                     |    2 -
- mm/shmem.c                       |    2 -
- mm/swap_slots.c                  |    2 -
- mm/swapfile.c                    |    2 -
- 10 files changed, 67 insertions(+), 35 deletions(-)
+ mm/readahead.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-swap-support-thp_swap-on-hardware-with-mte
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -49,12 +49,6 @@
- 	__flush_tlb_range(vma, addr, end, PUD_SIZE, false, 1)
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
--static inline bool arch_thp_swp_supported(void)
--{
--	return !system_supports_mte();
--}
--#define arch_thp_swp_supported arch_thp_swp_supported
--
- /*
-  * Outside of a few very special situations (e.g. hibernation), we always
-  * use broadcast TLB invalidation instructions, therefore a spurious page
-@@ -1282,12 +1276,7 @@ static inline pmd_t pmdp_establish(struc
- #ifdef CONFIG_ARM64_MTE
- 
- #define __HAVE_ARCH_PREPARE_TO_SWAP
--static inline int arch_prepare_to_swap(struct page *page)
--{
--	if (system_supports_mte())
--		return mte_save_tags(page);
--	return 0;
--}
-+extern int arch_prepare_to_swap(struct folio *folio);
- 
- #define __HAVE_ARCH_SWAP_INVALIDATE
- static inline void arch_swap_invalidate_page(int type, pgoff_t offset)
-@@ -1303,11 +1292,7 @@ static inline void arch_swap_invalidate_
- }
- 
- #define __HAVE_ARCH_SWAP_RESTORE
--static inline void arch_swap_restore(swp_entry_t entry, struct folio *folio)
--{
--	if (system_supports_mte())
--		mte_restore_tags(entry, &folio->page);
--}
-+extern void arch_swap_restore(swp_entry_t entry, struct folio *folio);
- 
- #endif /* CONFIG_ARM64_MTE */
- 
---- a/arch/arm64/mm/mteswap.c~arm64-mm-swap-support-thp_swap-on-hardware-with-mte
-+++ a/arch/arm64/mm/mteswap.c
-@@ -68,6 +68,13 @@ void mte_invalidate_tags(int type, pgoff
- 	mte_free_tag_storage(tags);
- }
- 
-+static inline void __mte_invalidate_tags(struct page *page)
-+{
-+	swp_entry_t entry = page_swap_entry(page);
-+
-+	mte_invalidate_tags(swp_type(entry), swp_offset(entry));
-+}
-+
- void mte_invalidate_tags_area(int type)
- {
- 	swp_entry_t entry = swp_entry(type, 0);
-@@ -83,3 +90,41 @@ void mte_invalidate_tags_area(int type)
- 	}
- 	xa_unlock(&mte_pages);
- }
-+
-+int arch_prepare_to_swap(struct folio *folio)
-+{
-+	long i, nr;
-+	int err;
-+
-+	if (!system_supports_mte())
-+		return 0;
-+
-+	nr = folio_nr_pages(folio);
-+
-+	for (i = 0; i < nr; i++) {
-+		err = mte_save_tags(folio_page(folio, i));
-+		if (err)
-+			goto out;
-+	}
-+	return 0;
-+
-+out:
-+	while (i--)
-+		__mte_invalidate_tags(folio_page(folio, i));
-+	return err;
-+}
-+
-+void arch_swap_restore(swp_entry_t entry, struct folio *folio)
-+{
-+	long i, nr;
-+
-+	if (!system_supports_mte())
-+		return;
-+
-+	nr = folio_nr_pages(folio);
-+
-+	for (i = 0; i < nr; i++) {
-+		mte_restore_tags(entry, folio_page(folio, i));
-+		entry.val++;
-+	}
-+}
---- a/include/linux/huge_mm.h~arm64-mm-swap-support-thp_swap-on-hardware-with-mte
-+++ a/include/linux/huge_mm.h
-@@ -519,16 +519,4 @@ static inline int split_folio_to_order(s
- #define split_folio_to_list(f, l) split_folio_to_list_to_order(f, l, 0)
- #define split_folio(f) split_folio_to_order(f, 0)
- 
--/*
-- * archs that select ARCH_WANTS_THP_SWAP but don't support THP_SWP due to
-- * limitations in the implementation like arm64 MTE can override this to
-- * false
-- */
--#ifndef arch_thp_swp_supported
--static inline bool arch_thp_swp_supported(void)
--{
--	return true;
--}
--#endif
--
- #endif /* _LINUX_HUGE_MM_H */
---- a/include/linux/pgtable.h~arm64-mm-swap-support-thp_swap-on-hardware-with-mte
-+++ a/include/linux/pgtable.h
-@@ -1050,7 +1050,7 @@ static inline int arch_unmap_one(struct
-  * prototypes must be defined in the arch-specific asm/pgtable.h file.
-  */
- #ifndef __HAVE_ARCH_PREPARE_TO_SWAP
--static inline int arch_prepare_to_swap(struct page *page)
-+static inline int arch_prepare_to_swap(struct folio *folio)
- {
- 	return 0;
- }
---- a/mm/internal.h~arm64-mm-swap-support-thp_swap-on-hardware-with-mte
-+++ a/mm/internal.h
-@@ -76,6 +76,20 @@ static inline int folio_nr_pages_mapped(
- 	return atomic_read(&folio->_nr_pages_mapped) & FOLIO_PAGES_MAPPED;
- }
- 
-+/*
-+ * Retrieve the first entry of a folio based on a provided entry within the
-+ * folio. We cannot rely on folio->swap as there is no guarantee that it has
-+ * been initialized. Used for calling arch_swap_restore()
-+ */
-+static inline swp_entry_t folio_swap(swp_entry_t entry, struct folio *folio)
-+{
-+	swp_entry_t swap = {
-+		.val = ALIGN_DOWN(entry.val, folio_nr_pages(folio)),
-+	};
-+
-+	return swap;
-+}
-+
- static inline void *folio_raw_mapping(struct folio *folio)
- {
- 	unsigned long mapping = (unsigned long)folio->mapping;
---- a/mm/memory.c~arm64-mm-swap-support-thp_swap-on-hardware-with-mte
-+++ a/mm/memory.c
-@@ -4190,7 +4190,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 	 * when reading from swap. This metadata may be indexed by swap entry
- 	 * so this must be called before swap_free().
+--- a/mm/readahead.c~mm-readahead-break-read-ahead-loop-if-filemap_add_folio-return-enomem
++++ a/mm/readahead.c
+@@ -228,6 +228,7 @@ void page_cache_ra_unbounded(struct read
  	 */
--	arch_swap_restore(entry, folio);
-+	arch_swap_restore(folio_swap(entry, folio), folio);
+ 	for (i = 0; i < nr_to_read; i++) {
+ 		struct folio *folio = xa_load(&mapping->i_pages, index + i);
++		int ret;
  
- 	/*
- 	 * Remove the swap entry and conditionally try to free up the swapcache.
---- a/mm/page_io.c~arm64-mm-swap-support-thp_swap-on-hardware-with-mte
-+++ a/mm/page_io.c
-@@ -189,7 +189,7 @@ int swap_writepage(struct page *page, st
- 	 * Arch code may have to preserve more data than just the page
- 	 * contents, e.g. memory tags.
- 	 */
--	ret = arch_prepare_to_swap(&folio->page);
-+	ret = arch_prepare_to_swap(folio);
- 	if (ret) {
- 		folio_mark_dirty(folio);
- 		folio_unlock(folio);
---- a/mm/shmem.c~arm64-mm-swap-support-thp_swap-on-hardware-with-mte
-+++ a/mm/shmem.c
-@@ -1913,7 +1913,7 @@ static int shmem_swapin_folio(struct ino
- 	 * Some architectures may have to restore extra metadata to the
- 	 * folio after reading from swap.
- 	 */
--	arch_swap_restore(swap, folio);
-+	arch_swap_restore(folio_swap(swap, folio), folio);
- 
- 	if (shmem_should_replace_folio(folio, gfp)) {
- 		error = shmem_replace_folio(&folio, gfp, info, index);
---- a/mm/swapfile.c~arm64-mm-swap-support-thp_swap-on-hardware-with-mte
-+++ a/mm/swapfile.c
-@@ -1806,7 +1806,7 @@ static int unuse_pte(struct vm_area_stru
- 	 * when reading from swap. This metadata may be indexed by swap entry
- 	 * so this must be called before swap_free().
- 	 */
--	arch_swap_restore(entry, folio);
-+	arch_swap_restore(folio_swap(entry, folio), folio);
- 
- 	dec_mm_counter(vma->vm_mm, MM_SWAPENTS);
- 	inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
---- a/mm/swap_slots.c~arm64-mm-swap-support-thp_swap-on-hardware-with-mte
-+++ a/mm/swap_slots.c
-@@ -310,7 +310,7 @@ swp_entry_t folio_alloc_swap(struct foli
- 	entry.val = 0;
- 
- 	if (folio_test_large(folio)) {
--		if (IS_ENABLED(CONFIG_THP_SWAP) && arch_thp_swp_supported())
-+		if (IS_ENABLED(CONFIG_THP_SWAP))
- 			get_swap_pages(1, &entry, folio_nr_pages(folio));
- 		goto out;
- 	}
+ 		if (folio && !xa_is_value(folio)) {
+ 			/*
+@@ -247,9 +248,12 @@ void page_cache_ra_unbounded(struct read
+ 		folio = filemap_alloc_folio(gfp_mask, 0);
+ 		if (!folio)
+ 			break;
+-		if (filemap_add_folio(mapping, folio, index + i,
+-					gfp_mask) < 0) {
++
++		ret = filemap_add_folio(mapping, folio, index + i, gfp_mask);
++		if (ret < 0) {
+ 			folio_put(folio);
++			if (ret == -ENOMEM)
++				break;
+ 			read_pages(ractl);
+ 			ractl->_index++;
+ 			i = ractl->_index + ractl->_nr_pages - index - 1;
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
-mm-zswap-fix-kernel-bug-in-sg_init_one.patch
-arm64-mm-swap-support-thp_swap-on-hardware-with-mte.patch
+mm-readahead-break-read-ahead-loop-if-filemap_add_folio-return-enomem.patch
+mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags.patch
 
