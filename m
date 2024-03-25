@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC4F57492
-	for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2024 18:11:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1D093DAC1C;
+	Mon, 25 Mar 2024 18:27:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711390280; cv=none; b=bsXrFApygohv491l4iSMdKt0jozkWbuhP0cmBfccnQzh8NYuKIBKHsTJilQw63fHLsoba0zcR/eYFZAT1LKKuN5NaVWbsTLvj7kOjXq2PC+Rr8gLIMgyVHGZhIW+XgZyYXxizIxaJxKgGmdZii494jEBHW5Yj0tpc+vU2cywG/Q=
+	t=1711391269; cv=none; b=cCRZTN+O78T9iEb11ztJo5qZquAbOmrJBAZWgiaojkeYVqrG9jaETROrpx9lQ8m5qGxHM2xwIuPgslwb3FAQ+DfFFDPkpXM3cFcrpbQjVPrUdh62DknRWEgTCZrJMmd24OJapyhcYXxFXjIz6R5MVyov3RXLeynUa/r5+ZJBnyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711390280; c=relaxed/simple;
-	bh=qphFlwfZeLAJGaemYvX1PHhiUPf37H+wH1mk47feMAM=;
-	h=Date:To:From:Subject:Message-Id; b=Ed/nRAn/S0t6cnHpuydWz1QFpeGkTbLhQQMNNIvyECb4MMXKK0C7icgjCzIDQqkIvO8NYc6T1RRocE9FI64coDu2QB40DR2/KhIwNc7UEjQAZMQLk3g5m0EDqKG2a0X8ca8r1B8VH/wR5mBJvWr5VAcNlKcDFvJ8+LIkgJaGIUk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iPY3IqQV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711391269; c=relaxed/simple;
+	bh=eBt2AV4OAjLPdcjttMAd77PV3m18dm2aYpsEJKwnkmQ=;
+	h=Date:To:From:Subject:Message-Id; b=EIpUeUWjXOc8UMWLpx7+zHeedij30SNi6eGuMSURNFsl0tTy1oMVgtWmKdKlzZ2NtsgqvmVFUoHkiyeW+AjLB7EcelJglyTTVG098deXcuKpK8Vq7l1jpDznZuReO7mcCGDwiYMJQkMVUbgMj1asLu9iyzMAS6kyaD3PW/lnblc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QX0s3s6p; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iPY3IqQV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35DCDC43390;
-	Mon, 25 Mar 2024 18:11:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QX0s3s6p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 762B6C433F1;
+	Mon, 25 Mar 2024 18:27:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711390280;
-	bh=qphFlwfZeLAJGaemYvX1PHhiUPf37H+wH1mk47feMAM=;
+	s=korg; t=1711391269;
+	bh=eBt2AV4OAjLPdcjttMAd77PV3m18dm2aYpsEJKwnkmQ=;
 	h=Date:To:From:Subject:From;
-	b=iPY3IqQVNbzITer3VRFOtxUgtCEH82u0P9BoLh0d1J2Q/bTBVn2z+j/d+eaeD6KdJ
-	 4NI9Eik5q4oZO+SsViTB5kUzOT9Dvy7JwtXpMwrn+e5fDCNkexC/kQx3h4Ukm0buoX
-	 OI4YnqB9byufQXvybMOyHrnniJgb1/YldrU5/3QE=
-Date: Mon, 25 Mar 2024 11:11:19 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
+	b=QX0s3s6pIuKC/QI2Vme+rMFFEN3rfxFq/5lIfSFY+hS7aA2fWQF9xMipLqcstVef9
+	 DyD+D5VmdPMO01q4C7HHt/LPeCipsawI2BfpvUtUJ2xJcnF8FV8TyTgLFHIKnDCzQO
+	 ijDuPPmB4hANxI5/zaVIS87LZmv5JOb+iZ7ExlJ4=
+Date: Mon, 25 Mar 2024 11:27:48 -0700
+To: mm-commits@vger.kernel.org,xrivendell7@gmail.com,stable@vger.kernel.org,samsun1006219@gmail.com,rppt@kernel.org,mszeredi@redhat.com,miklos@szeredi.hu,lstoakes@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_initc-remove-arch_reserved_kernel_pages.patch added to mm-unstable branch
-Message-Id: <20240325181120.35DCDC43390@smtp.kernel.org>
+Subject: + mm-secretmem-fix-gup-fast-succeeding-on-secretmem-folios.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240325182749.762B6C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mm_init.c: remove arch_reserved_kernel_pages()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mm_initc-remove-arch_reserved_kernel_pages.patch
+     Subject: mm/secretmem: fix GUP-fast succeeding on secretmem folios
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-secretmem-fix-gup-fast-succeeding-on-secretmem-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_initc-remove-arch_reserved_kernel_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-secretmem-fix-gup-fast-succeeding-on-secretmem-folios.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,98 +58,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm/mm_init.c: remove arch_reserved_kernel_pages()
-Date: Mon, 25 Mar 2024 22:56:46 +0800
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/secretmem: fix GUP-fast succeeding on secretmem folios
+Date: Mon, 25 Mar 2024 14:41:12 +0100
 
-Since the current calculation of calc_nr_kernel_pages() has taken into
-consideration of kernel reserved memory, no need to have
-arch_reserved_kernel_pages() any more.
+folio_is_secretmem() states that secretmem folios cannot be LRU folios: so
+we may only exit early if we find an LRU folio.  Yet, we exit early if we
+find a folio that is not a secretmem folio.
 
-Link: https://lkml.kernel.org/r/20240325145646.1044760-7-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
+Consequently, folio_is_secretmem() fails to detect secretmem folios and,
+therefore, we can succeed in grabbing a secretmem folio during GUP-fast,
+crashing the kernel when we later try reading/writing to the folio,
+because the folio has been unmapped from the directmap.
+
+Link: https://lkml.kernel.org/r/20240325134114.257544-2-david@redhat.com
+Fixes: 1507f51255c9 ("mm: introduce memfd_secret system call to create "secret" memory areas")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: xingwei lee <xrivendell7@gmail.com>
+Reported-by: yue sun <samsun1006219@gmail.com>
+Closes: https://lore.kernel.org/lkml/CABOYnLyevJeravW=QrH0JUPYEcDN160aZFb7kwndm-J2rmz0HQ@mail.gmail.com/
+Debugged-by: Miklos Szeredi <miklos@szeredi.hu>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Tested-by: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/mmu.h |    4 ----
- arch/powerpc/kernel/fadump.c   |    5 -----
- include/linux/mm.h             |    3 ---
- mm/mm_init.c                   |   12 ------------
- 4 files changed, 24 deletions(-)
+ include/linux/secretmem.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/powerpc/include/asm/mmu.h~mm-mm_initc-remove-arch_reserved_kernel_pages
-+++ a/arch/powerpc/include/asm/mmu.h
-@@ -406,9 +406,5 @@ extern void *abatron_pteptrs[2];
- #include <asm/nohash/mmu.h>
- #endif
+--- a/include/linux/secretmem.h~mm-secretmem-fix-gup-fast-succeeding-on-secretmem-folios
++++ a/include/linux/secretmem.h
+@@ -16,7 +16,7 @@ static inline bool folio_is_secretmem(st
+ 	 * We know that secretmem pages are not compound and LRU so we can
+ 	 * save a couple of cycles here.
+ 	 */
+-	if (folio_test_large(folio) || !folio_test_lru(folio))
++	if (folio_test_large(folio) || folio_test_lru(folio))
+ 		return false;
  
--#if defined(CONFIG_FA_DUMP) || defined(CONFIG_PRESERVE_FA_DUMP)
--#define __HAVE_ARCH_RESERVED_KERNEL_PAGES
--#endif
--
- #endif /* __KERNEL__ */
- #endif /* _ASM_POWERPC_MMU_H_ */
---- a/arch/powerpc/kernel/fadump.c~mm-mm_initc-remove-arch_reserved_kernel_pages
-+++ a/arch/powerpc/kernel/fadump.c
-@@ -1735,8 +1735,3 @@ static void __init fadump_reserve_crash_
- 		memblock_reserve(mstart, msize);
- 	}
- }
--
--unsigned long __init arch_reserved_kernel_pages(void)
--{
--	return memblock_reserved_size() / PAGE_SIZE;
--}
---- a/include/linux/mm.h~mm-mm_initc-remove-arch_reserved_kernel_pages
-+++ a/include/linux/mm.h
-@@ -3258,9 +3258,6 @@ static inline void show_mem(void)
- extern long si_mem_available(void);
- extern void si_meminfo(struct sysinfo * val);
- extern void si_meminfo_node(struct sysinfo *val, int nid);
--#ifdef __HAVE_ARCH_RESERVED_KERNEL_PAGES
--extern unsigned long arch_reserved_kernel_pages(void);
--#endif
- 
- extern __printf(3, 4)
- void warn_alloc(gfp_t gfp_mask, nodemask_t *nodemask, const char *fmt, ...);
---- a/mm/mm_init.c~mm-mm_initc-remove-arch_reserved_kernel_pages
-+++ a/mm/mm_init.c
-@@ -2374,17 +2374,6 @@ void __init page_alloc_init_late(void)
- 	page_alloc_sysctl_init();
- }
- 
--#ifndef __HAVE_ARCH_RESERVED_KERNEL_PAGES
--/*
-- * Returns the number of pages that arch has reserved but
-- * is not known to alloc_large_system_hash().
-- */
--static unsigned long __init arch_reserved_kernel_pages(void)
--{
--	return 0;
--}
--#endif
--
- /*
-  * Adaptive scale is meant to reduce sizes of hash tables on large memory
-  * machines. As memory size is increased the scale is also increased but at
-@@ -2427,7 +2416,6 @@ void *__init alloc_large_system_hash(con
- 	if (!numentries) {
- 		/* round applicable memory size up to nearest megabyte */
- 		numentries = nr_kernel_pages;
--		numentries -= arch_reserved_kernel_pages();
- 
- 		/* It isn't necessary when PAGE_SIZE >= 1MB */
- 		if (PAGE_SIZE < SZ_1M)
+ 	mapping = (struct address_space *)
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-vmallocc-optimize-to-reduce-arguments-of-alloc_vmap_area.patch
-x86-remove-unneeded-memblock_find_dma_reserve.patch
-mm-mm_initc-remove-the-useless-dma_reserve.patch
-mm-mm_initc-add-new-function-calc_nr_all_pages.patch
-mm-mm_initc-remove-meaningless-calculation-of-zone-managed_pages-in-free_area_init_core.patch
-mm-mm_initc-remove-unneeded-calc_memmap_size.patch
-mm-mm_initc-remove-arch_reserved_kernel_pages.patch
+mm-secretmem-fix-gup-fast-succeeding-on-secretmem-folios.patch
+mm-madvise-make-madv_populate_readwrite-handle-vm_fault_retry-properly.patch
+mm-madvise-dont-perform-madvise-vma-walk-for-madv_populate_readwrite.patch
+mm-userfaultfd-dont-place-zeropages-when-zeropages-are-disallowed.patch
+s390-mm-re-enable-the-shared-zeropage-for-pv-and-skeys-kvm-guests.patch
+mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared.patch
 
