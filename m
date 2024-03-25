@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D294255E59
-	for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2024 17:57:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25C42129E9F
+	for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2024 18:00:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711389474; cv=none; b=rCOduQzPMh/H3lQsbwd74clLJYh0FTqJW+l+aOryXqSYtIAoEvJVLJ22PAhz+b3EpW2i4lbozk9eXgVfYXIhlbQvUyN6crzCJuiOPxN0AqaLCClosVdemdOSigAc6hEm33dHpdYHsqAlvhnbt0tB1Q+uOby2uWZaoRA/s3tx9SI=
+	t=1711389615; cv=none; b=Rn9HfuqAskquB5An48rtxeHWCXIgB4B6+HRpiOGiovuuhXKTWVgw0amMf5VePxYN4MgA/Q4fQzPRgMmc3ECPDeKke7TlVvJA8Z9uoVXAZXIVnw7ePQexCABs9YxIhNeBNDJQuVNdbt4y/z3wpHyAwM8jC9Dtna1h6sZq67YHt9k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711389474; c=relaxed/simple;
-	bh=Bs4vaE7tTyW+MBy2BZ6u2pTViRyIxsvu+dPmp4re95g=;
-	h=Date:To:From:Subject:Message-Id; b=T15pD1KvY1BsHNf8ynA1BXhiYHLsM8Rp20i8nw66Uu7Gea7fmnPyP6Rp0vDJt+P4etZB5xSQ6r90EL3jhsmtxsttdww+oat3BiGynIvJssUdaMjQEOSsb+Vz/56PfFziLonyY4f9YP9ONuaTlr3idTNcqdK7T3W4sZrmySR6zVU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=poREihkr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711389615; c=relaxed/simple;
+	bh=5eUeR9aSNOPF1X4k8AT5sg302Fg2m5BMkefpCisF17M=;
+	h=Date:To:From:Subject:Message-Id; b=SIglLm9QB5BXDqG4BlD7BA8DANaoB+S6rpUaaiOd1VkezdL65yVy+4OTHVqwPV+8NP8u216YJ/oDuL1XHME+CxzcOFlEYBbH/Cyn1Nv7yB4Wh80IOG6WE+mSObyfVfH5Kpdp4MELwqE6iAPjHacqe4U8sT4s8svNB45D/5xffHs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cE+2LmJm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="poREihkr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53764C433F1;
-	Mon, 25 Mar 2024 17:57:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cE+2LmJm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0E63C433C7;
+	Mon, 25 Mar 2024 18:00:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711389474;
-	bh=Bs4vaE7tTyW+MBy2BZ6u2pTViRyIxsvu+dPmp4re95g=;
+	s=korg; t=1711389614;
+	bh=5eUeR9aSNOPF1X4k8AT5sg302Fg2m5BMkefpCisF17M=;
 	h=Date:To:From:Subject:From;
-	b=poREihkrZ5276tZFFZIkGvmu43MI1n355c965KVvtQnYux28QIkJzndl7RYRfpFUs
-	 74xQ3lWBBLpG8Juz6/EcyqvnfRMKwpsOq8j9qoFYU1d8WDsgjE51qAjzmnkdVfUXYg
-	 mT+ZqJ4Pmcngo0QqcWtgDFQ064C2hzmNmJ60ybps=
-Date: Mon, 25 Mar 2024 10:57:53 -0700
+	b=cE+2LmJmB9TPt7xQiOgLgL9xojxKebjJD+owHuq3n/lDVZ6wroNI9EIc23acmt3gU
+	 5NfcEVAPk2rY2BE+JTGzGY47Si/mMJ1NIAYSEdZWou/1jdcjJIYIY3guaqohFD46RR
+	 qu9na0Qkax/xPU1FLaxnLh47ON++k9indTW+XB1g=
+Date: Mon, 25 Mar 2024 11:00:14 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,muchun.song@linux.dev,linmiaohe@huawei.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-free-up-pg_slab-fix.patch added to mm-unstable branch
-Message-Id: <20240325175754.53764C433F1@smtp.kernel.org>
+Subject: + mm-turn-folio_test_hugetlb-into-a-pagetype-fix.patch added to mm-unstable branch
+Message-Id: <20240325180014.D0E63C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-free-up-pg_slab-fix
+     Subject: mm-turn-folio_test_hugetlb-into-a-pagetype-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-free-up-pg_slab-fix.patch
+     mm-turn-folio_test_hugetlb-into-a-pagetype-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-free-up-pg_slab-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-turn-folio_test_hugetlb-into-a-pagetype-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@infradead.org>
-Subject: mm-free-up-pg_slab-fix
-Date: Mon, 25 Mar 2024 15:19:20 +0000
+Subject: mm-turn-folio_test_hugetlb-into-a-pagetype-fix
+Date: Mon, 25 Mar 2024 15:33:38 +0000
 
 update vmcoreinfo
 
-Link: https://lkml.kernel.org/r/ZgGV-O8WYQ_83kxp@casper.infradead.org
+Link: https://lkml.kernel.org/r/ZgGZUvsdhaT1Va-T@casper.infradead.org
 Signed-off-by: Matthew Wilcox <willy@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
@@ -74,21 +74,25 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/vmcore_info.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/vmcore_info.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/kernel/vmcore_info.c~mm-free-up-pg_slab-fix
+--- a/kernel/vmcore_info.c~mm-turn-folio_test_hugetlb-into-a-pagetype-fix
 +++ a/kernel/vmcore_info.c
-@@ -198,7 +198,8 @@ static int __init crash_save_vmcoreinfo_
- 	VMCOREINFO_NUMBER(PG_private);
- 	VMCOREINFO_NUMBER(PG_swapcache);
- 	VMCOREINFO_NUMBER(PG_swapbacked);
--	VMCOREINFO_NUMBER(PG_slab);
-+#define PAGE_SLAB_MAPCOUNT_VALUE	(~PG_slab)
-+	VMCOREINFO_NUMBER(PAGE_SLAB_MAPCOUNT_VALUE);
- #ifdef CONFIG_MEMORY_FAILURE
- 	VMCOREINFO_NUMBER(PG_hwpoison);
- #endif
+@@ -205,11 +205,10 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_NUMBER(PG_head_mask);
+ #define PAGE_BUDDY_MAPCOUNT_VALUE	(~PG_buddy)
+ 	VMCOREINFO_NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE);
+-#ifdef CONFIG_HUGETLB_PAGE
+-	VMCOREINFO_NUMBER(PG_hugetlb);
++#define PAGE_HUGETLB_MAPCOUNT_VALUE	(~PG_hugetlb)
++	VMCOREINFO_NUMBER(PAGE_HUGETLB_MAPCOUNT_VALUE);
+ #define PAGE_OFFLINE_MAPCOUNT_VALUE	(~PG_offline)
+ 	VMCOREINFO_NUMBER(PAGE_OFFLINE_MAPCOUNT_VALUE);
+-#endif
+ 
+ #ifdef CONFIG_KALLSYMS
+ 	VMCOREINFO_SYMBOL(kallsyms_names);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -99,6 +103,7 @@ mm-create-folio_flag_false-and-folio_type_ops-macros.patch
 mm-remove-folio_prep_large_rmappable.patch
 mm-support-page_mapcount-on-page_has_type-pages.patch
 mm-turn-folio_test_hugetlb-into-a-pagetype.patch
+mm-turn-folio_test_hugetlb-into-a-pagetype-fix.patch
 mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch
 mm-free-up-pg_slab.patch
 mm-free-up-pg_slab-fix.patch
