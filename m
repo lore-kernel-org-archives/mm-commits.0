@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49F028836
-	for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2024 19:39:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A53444361
+	for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2024 19:54:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711395599; cv=none; b=S7GCQ2ohyNwHADX5wAjW1uID/PnYJSrwwSFeckikIeTvPnnYfCrxvNWlLFHL5oH9v207pKl25hIlu3H/dPJb0uWz03hKIYWGwPgImCVi+J+VKZddKSXvGsffeOMFQcqNiZ9jxizuoShmEGWyvrdPhfwS3BXwhm8nLFVK1mHm3lk=
+	t=1711396467; cv=none; b=pk+p4/6LAZokCu6I384xSs2XjDq6rqir6t0/9iDuffFhEKCcDezXXuPNrdu0XVwMVr+WMoN2qxidiYWUBFE6cqErvYh9dm5F1zcv4B3YGHUAHF+ZPLbe0a9V+83CeBrIvIasBzid2+6xDM9hA2k5yH1/GJtPoexD85BhCzwwT/I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711395599; c=relaxed/simple;
-	bh=oKu4VmRE8cnbppzN2j+ovYdZaXHtAOrBWTSOPdMTwGU=;
-	h=Date:To:From:Subject:Message-Id; b=VFmOTlTRGWbMlxbPwEylaUJImmcPGYPJo5jbdTIxkbR9fudbPzmDBNFr/CU0njl+h9W69+fBK/Io8CSWYEdksNGoGGgjwTl1TG4IepCP8C52gAFM+kNXoN37/Hi0OKLWNvVmbVrW3NmczD8vS9EuOUEmSiA3CA7xpQTLOPQKn74=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1CZNFqpI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711396467; c=relaxed/simple;
+	bh=tFzb1q1y8AJ+/EEkc4pIf3IMgjDbLD5PZAc/BFwzU0c=;
+	h=Date:To:From:Subject:Message-Id; b=ZenhpWHZd7hO1X1rw0k4TAbWIaGDmjKh16vi440HTteeC+dStS1NOjPP0M7PLjCH8wuKuJ9c+HXtSZ+2uFwtVu/p+6bEER6I/VKSs2cRdnEm+cTLT7kKz/ks5Zf7Bhr77gDVRymsYbPMxpeVcGQESthaU/Z2fs9r2XA8mYlLOqs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xdLcTdMC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1CZNFqpI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4001C433C7;
-	Mon, 25 Mar 2024 19:39:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xdLcTdMC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69A5DC433F1;
+	Mon, 25 Mar 2024 19:54:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711395598;
-	bh=oKu4VmRE8cnbppzN2j+ovYdZaXHtAOrBWTSOPdMTwGU=;
+	s=korg; t=1711396466;
+	bh=tFzb1q1y8AJ+/EEkc4pIf3IMgjDbLD5PZAc/BFwzU0c=;
 	h=Date:To:From:Subject:From;
-	b=1CZNFqpI+6B49hoYgUZeGXA96qb7JBDdPYztXeZMdA+V8Fc3/EAo4HySDMHeh0Pgz
-	 yVjff1zL1/JjlnGpDTv0NJNhFw5wwftyiMfL7kWiVshGEZxV1WEUBngsZnMKg5Zw3z
-	 6KEUIaebAwiEUOpkpgmhu/yy4fORogSOIoqmkYWs=
-Date: Mon, 25 Mar 2024 12:39:58 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,david@redhat.com,jhubbard@nvidia.com,akpm@linux-foundation.org
+	b=xdLcTdMCqI5nTpJhZK+AkNQGVu0dsSlh+e/PPVW9QW7dk6MsPr6A4N+Ru5U1F6KF/
+	 j/pM8v11+qvy6tBZvURyjXQyZCeKquhTLIRWfJe4eh54II+v7iYiLW2NS3hircotMH
+	 rFAbCEp9WSl15EM2rU6KnER5AxOS6sk/b16KBWMw=
+Date: Mon, 25 Mar 2024 12:54:25 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + huge_memoryc-document-huge-page-splitting-rules-more-thoroughly.patch added to mm-unstable branch
-Message-Id: <20240325193958.D4001C433C7@smtp.kernel.org>
+Subject: + selftests-mm-confirm-va-exhaustion-without-reliance-on-correctness-of-mmap-v2.patch added to mm-unstable branch
+Message-Id: <20240325195426.69A5DC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: huge_memory.c: document huge page splitting rules more thoroughly
+     Subject: selftests-mm-confirm-va-exhaustion-without-reliance-on-correctness-of-mmap-v2
 has been added to the -mm mm-unstable branch.  Its filename is
-     huge_memoryc-document-huge-page-splitting-rules-more-thoroughly.patch
+     selftests-mm-confirm-va-exhaustion-without-reliance-on-correctness-of-mmap-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/huge_memoryc-document-huge-page-splitting-rules-more-thoroughly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-confirm-va-exhaustion-without-reliance-on-correctness-of-mmap-v2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,90 +58,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: huge_memory.c: document huge page splitting rules more thoroughly
-Date: Sun, 24 Mar 2024 21:44:52 -0700
+From: Dev Jain <dev.jain@arm.com>
+Subject: selftests-mm-confirm-va-exhaustion-without-reliance-on-correctness-of-mmap-v2
+Date: Mon, 25 Mar 2024 09:56:53 +0530
 
-1. Add information about the behavior of huge page splitting, with
-   respect to page/folio refcounts, and gup/pup pins.
+replace SZ_1GB with MAP_CHUNK_SIZE, tidy-up
 
-2. Update and clarify the existing documentation, to compensate for the
-   ravages of time and code change.
-
-Link: https://lkml.kernel.org/r/20240325044452.217463-1-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20240325042653.867055-1-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   46 ++++++++++++++++++++++++++++-----------------
- 1 file changed, 29 insertions(+), 17 deletions(-)
+ tools/testing/selftests/mm/virtual_address_range.c |   15 ++++-------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
---- a/mm/huge_memory.c~huge_memoryc-document-huge-page-splitting-rules-more-thoroughly
-+++ a/mm/huge_memory.c
-@@ -3006,28 +3006,40 @@ bool can_split_folio(struct folio *folio
- }
+--- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-confirm-va-exhaustion-without-reliance-on-correctness-of-mmap-v2
++++ a/tools/testing/selftests/mm/virtual_address_range.c
+@@ -117,19 +117,17 @@ static int validate_complete_va_space(vo
+ 	prev_end_addr = 0;
+ 	while (fgets(line, sizeof(line), file)) {
+ 		unsigned long hop;
+-		int ret;
  
- /*
-- * This function splits huge page into pages in @new_order. @page can point to
-- * any subpage of huge page to split. Split doesn't change the position of
-- * @page.
-- *
-- * NOTE: order-1 anonymous folio is not supported because _deferred_list,
-- * which is used by partially mapped folios, is stored in subpage 2 and an
-- * order-1 folio only has subpage 0 and 1. File-backed order-1 folios are OK,
-- * since they do not use _deferred_list.
-- *
-- * Only caller must hold pin on the @page, otherwise split fails with -EBUSY.
-- * The huge page must be locked.
-+ * This function splits a large folio into smaller folios of order @new_order.
-+ * @page can point to any page of the large folio to split. The split operation
-+ * does not change the position of @page.
-+ *
-+ * Prerequisites:
-+ *
-+ * 1) The caller must hold a reference on the @page's owning folio, also known
-+ *    as the large folio.
-+ *
-+ * 2) The large folio must be locked.
-+ *
-+ * 3) The folio must not be pinned. Any unexpected folio references, including
-+ *    GUP pins, will result in the folio not getting split; instead, the caller
-+ *    will receive an -EBUSY.
-+ *
-+ * 4) @new_order > 1, usually. Splitting to order-1 anonymous folios is not
-+ *    supported for non-file-backed folios, because folio->_deferred_list, which
-+ *    is used by partially mapped folios, is stored in subpage 2, but an order-1
-+ *    folio only has subpages 0 and 1. File-backed order-1 folios are supported,
-+ *    since they do not use _deferred_list.
-+ *
-+ * After splitting, the caller's folio reference will be transferred to @page,
-+ * resulting in a raised refcount of @page after this call. The other pages may
-+ * be freed if they are not mapped.
-  *
-  * If @list is null, tail pages will be added to LRU list, otherwise, to @list.
-  *
-- * Pages in new_order will inherit mapping, flags, and so on from the hugepage.
-+ * Pages in @new_order will inherit the mapping, flags, and so on from the
-+ * huge page.
-  *
-- * GUP pin and PG_locked transferred to @page or the compound page @page belongs
-- * to. Rest subpages can be freed if they are not mapped.
-+ * Returns 0 if the huge page was split successfully.
-  *
-- * Returns 0 if the hugepage is split successfully.
-- * Returns -EBUSY if the page is pinned or if anon_vma disappeared from under
-- * us.
-+ * Returns -EBUSY if @page's folio is pinned, or if the anon_vma disappeared
-+ * from under us.
-  */
- int split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
- 				     unsigned int new_order)
+-		ret = sscanf(line, "%lx-%lx %s[rwxp-]",
+-			     &start_addr, &end_addr, prot);
+-		if (ret != 3)
+-			ksft_exit_fail_msg("sscanf failed, cannot parse\n");
++		if (sscanf(line, "%lx-%lx %s[rwxp-]",
++			   &start_addr, &end_addr, prot) != 3)
++			ksft_exit_fail_msg("cannot parse /proc/self/maps\n");
+ 
+ 		/* end of userspace mappings; ignore vsyscall mapping */
+ 		if (start_addr & (1UL << 63))
+ 			return 0;
+ 
+-		/* /proc/self/maps must have gaps less than 1GB only */
+-		if (start_addr - prev_end_addr >= SZ_1GB)
++		/* /proc/self/maps must have gaps less than MAP_CHUNK_SIZE */
++		if (start_addr - prev_end_addr >= MAP_CHUNK_SIZE)
+ 			return 1;
+ 
+ 		prev_end_addr = end_addr;
+@@ -149,8 +147,7 @@ static int validate_complete_va_space(vo
+ 		while (start_addr + hop < end_addr) {
+ 			if (write(fd, (void *)(start_addr + hop), 1) != 1)
+ 				return 1;
+-			else
+-				lseek(fd, 0, SEEK_SET);
++			lseek(fd, 0, SEEK_SET);
+ 
+ 			hop += MAP_CHUNK_SIZE;
+ 		}
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-huge_memoryc-document-huge-page-splitting-rules-more-thoroughly.patch
+selftests-mm-virtual_address_range-switch-to-ksft_exit_fail_msg.patch
+selftests-mm-confirm-va-exhaustion-without-reliance-on-correctness-of-mmap.patch
+selftests-mm-confirm-va-exhaustion-without-reliance-on-correctness-of-mmap-v2.patch
+selftests-mm-parse-vma-range-in-one-go.patch
 
