@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 683BE2F4A
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:30:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E91CDBE71
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:30:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711477828; cv=none; b=Qim8qZpPN03hqcCaTaqWdOiNrIb93RukkOovVjWnyBe0KBi+PALYC8bp4wuXDK+FkJQA+3KO5pkQIsfqIKu3AWQp9D5gQNh7aAH0okExBEBg6emp6wl/rRI2twhc91kclLSv/PveXcceNVqYRyU93LWnAHiNAVSOxbfCiZHiya8=
+	t=1711477832; cv=none; b=UlKd1rrmzyfKJvxgUFHRDK4wkrNWBVGCIUUnVm2OGOTDdb2xlWWvv2bnHYmnv0ka2wbIXtj1vy5uS3JyiNnXazGwZO+cC3Zno1qM6S8odK+ObHLtx0nS5iRoArDZdTxpMvRxveoaqdHkDl0ba6wKUAuge+BgrMs+p2bepW9E1KA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711477828; c=relaxed/simple;
-	bh=5EEq6eR4Uru4rxARa9WHTSDdkiUcA4At5o9NJ2G0ppc=;
-	h=Date:To:From:Subject:Message-Id; b=p1opoHpwe3pf1BnI2+r+wup0Wsac3va0xmPPc0zKLBKiaZcVzDgkybia6KnEhMrlG039rV1PKHCgRT6f4Q70DgiGPJgNgqjgMHwSdMUhiGCTHY4beSHE08So8/4HxINZgzHmeY6Fc3YOZMLTZweF0vfP3VZ1ZDEF40XM1YFgQ48=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HXIsrNxX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711477832; c=relaxed/simple;
+	bh=URvJUf69VfZdlQyQG048xwWcHLzzA7R2k7SLbuYkkvQ=;
+	h=Date:To:From:Subject:Message-Id; b=gQ6bJv3cQHmz40pgJhd+Eh/2+KFPxraJkzRTLT0m16+njMaSbSbf66kCJrno7sJY2pvtsxICNm90kGfCYPIUd6bBrwnJqFu6vLgHNp0gH6s1JR/E4MvjeY9LUQdSvegQ+1e96PvYr6ikIKulGww93KFhkB8rmHVXhG5Dz2sI6W4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dc5gf643; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HXIsrNxX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AAD1C43390;
-	Tue, 26 Mar 2024 18:30:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dc5gf643"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C5E6C43390;
+	Tue, 26 Mar 2024 18:30:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711477828;
-	bh=5EEq6eR4Uru4rxARa9WHTSDdkiUcA4At5o9NJ2G0ppc=;
+	s=korg; t=1711477831;
+	bh=URvJUf69VfZdlQyQG048xwWcHLzzA7R2k7SLbuYkkvQ=;
 	h=Date:To:From:Subject:From;
-	b=HXIsrNxXNEuHW5+U07KG/FwW6TUg7/+ZpYm/ehwxU9DFSFGXwf6pbVAuXngt9SEZT
-	 /RfZc3oLdD55Irl5F2I2bPf9X3LPCZ5qtYZkz7O29M0jW1/rg5w8f9xn8zzamhwP4X
-	 wMh8BzavDNVtKXFjrqQPUvlXZ22TTnMdSa0hNFXA=
-Date: Tue, 26 Mar 2024 11:30:27 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=Dc5gf6431av0/GqdjwdQO+ma+AvD9CDJGMYSb4fH32ifaMRPdypJQ+EN4fM/T23KS
+	 XsQ5ab/5CiQHsPSLSfv18Pj2XBJmPxsRk4SgcikdUTRaDybcry7hS0VzoKsSHdzWgQ
+	 Fm44mPo/BRXziBU/5dpINDIKp3NmHcOex1YtNumw=
+Date: Tue, 26 Mar 2024 11:30:30 -0700
+To: mm-commits@vger.kernel.org,svetly.todorov@memverge.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + remove-references-to-page-flags-in-documentation.patch added to mm-unstable branch
-Message-Id: <20240326183028.3AAD1C43390@smtp.kernel.org>
+Subject: + proc-rewrite-stable_page_flags.patch added to mm-unstable branch
+Message-Id: <20240326183031.5C5E6C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: remove references to page->flags in documentation
+     Subject: proc: rewrite stable_page_flags()
 has been added to the -mm mm-unstable branch.  Its filename is
-     remove-references-to-page-flags-in-documentation.patch
+     proc-rewrite-stable_page_flags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/remove-references-to-page-flags-in-documentation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-rewrite-stable_page_flags.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,117 +59,207 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: remove references to page->flags in documentation
-Date: Tue, 26 Mar 2024 17:10:31 +0000
+Subject: proc: rewrite stable_page_flags()
+Date: Tue, 26 Mar 2024 17:10:32 +0000
 
-Mostly rewording, but remove entirely the copy of page_fixed_fake_head()
-in the documentation; we can refer people to the actual source if
-necessary.
+Reduce the usage of PageFlag tests and reduce the number of
+compound_head() calls.
 
-Link: https://lkml.kernel.org/r/20240326171045.410737-10-willy@infradead.org
+For multi-page folios, we'll now show all pages as having the flags that
+apply to them, e.g.  if it's dirty, all pages will have the dirty flag set
+instead of just the head page.  The mapped flag is still per page, as is
+the hwpoison flag.
+
+Link: https://lkml.kernel.org/r/20240326171045.410737-11-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Svetly Todorov <svetly.todorov@memverge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v1/memory.rst         |    4 -
- Documentation/mm/vmemmap_dedup.rst                     |   22 ----------
- Documentation/translations/zh_CN/core-api/cachetlb.rst |    2 
- mm/migrate.c                                           |    2 
- mm/rmap.c                                              |    4 -
- 5 files changed, 7 insertions(+), 27 deletions(-)
+ fs/proc/page.c             |   66 ++++++++++++++++++-----------------
+ include/linux/huge_mm.h    |    4 +-
+ include/linux/page-flags.h |    2 -
+ 3 files changed, 38 insertions(+), 34 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v1/memory.rst~remove-references-to-page-flags-in-documentation
-+++ a/Documentation/admin-guide/cgroup-v1/memory.rst
-@@ -300,14 +300,14 @@ When oom event notifier is registered, e
+--- a/fs/proc/page.c~proc-rewrite-stable_page_flags
++++ a/fs/proc/page.c
+@@ -107,10 +107,13 @@ static inline u64 kpf_copy_bit(u64 kflag
+ 	return ((kflags >> kbit) & 1) << ubit;
+ }
  
- Lock order is as follows::
+-u64 stable_page_flags(struct page *page)
++u64 stable_page_flags(const struct page *page)
+ {
+-	u64 k;
+-	u64 u;
++	const struct folio *folio;
++	unsigned long k;
++	unsigned long mapping;
++	bool is_anon;
++	u64 u = 0;
  
--  Page lock (PG_locked bit of page->flags)
-+  folio_lock
-     mm->page_table_lock or split pte_lock
-       folio_memcg_lock (memcg->move_lock)
-         mapping->i_pages lock
-           lruvec->lru_lock.
+ 	/*
+ 	 * pseudo flag: KPF_NOPAGE
+@@ -118,49 +121,47 @@ u64 stable_page_flags(struct page *page)
+ 	 */
+ 	if (!page)
+ 		return 1 << KPF_NOPAGE;
++	folio = page_folio(page);
  
- Per-node-per-memcgroup LRU (cgroup's private LRU) is guarded by
--lruvec->lru_lock; PG_lru bit of page->flags is cleared before
-+lruvec->lru_lock; the folio LRU flag is cleared before
- isolating a page from its LRU under lruvec->lru_lock.
+-	k = page->flags;
+-	u = 0;
++	k = folio->flags;
++	mapping = (unsigned long)folio->mapping;
++	is_anon = mapping & PAGE_MAPPING_ANON;
  
- .. _cgroup-v1-memory-kernel-extension:
---- a/Documentation/mm/vmemmap_dedup.rst~remove-references-to-page-flags-in-documentation
-+++ a/Documentation/mm/vmemmap_dedup.rst
-@@ -180,27 +180,7 @@ this correctly. There is only **one** he
- ``struct page`` with ``PG_head`` are fake head ``struct page``.  We need an
- approach to distinguish between those two different types of ``struct page`` so
- that ``compound_head()`` can return the real head ``struct page`` when the
--parameter is the tail ``struct page`` but with ``PG_head``. The following code
--snippet describes how to distinguish between real and fake head ``struct page``.
+ 	/*
+ 	 * pseudo flags for the well known (anonymous) memory mapped pages
+ 	 */
+ 	if (page_mapped(page))
+ 		u |= 1 << KPF_MMAP;
+-	if (PageAnon(page))
++	if (is_anon) {
+ 		u |= 1 << KPF_ANON;
+-	if (PageKsm(page))
+-		u |= 1 << KPF_KSM;
++		if (mapping & PAGE_MAPPING_KSM)
++			u |= 1 << KPF_KSM;
++	}
+ 
+ 	/*
+ 	 * compound pages: export both head/tail info
+ 	 * they together define a compound page's start/end pos and order
+ 	 */
+-	if (PageHead(page))
+-		u |= 1 << KPF_COMPOUND_HEAD;
+-	if (PageTail(page))
++	if (page == &folio->page)
++		u |= kpf_copy_bit(k, KPF_COMPOUND_HEAD, PG_head);
++	else
+ 		u |= 1 << KPF_COMPOUND_TAIL;
+-	if (PageHuge(page))
++	if (folio_test_hugetlb(folio))
+ 		u |= 1 << KPF_HUGE;
+ 	/*
+-	 * PageTransCompound can be true for non-huge compound pages (slab
+-	 * pages or pages allocated by drivers with __GFP_COMP) because it
+-	 * just checks PG_head/PG_tail, so we need to check PageLRU/PageAnon
++	 * We need to check PageLRU/PageAnon
+ 	 * to make sure a given page is a thp, not a non-huge compound page.
+ 	 */
+-	else if (PageTransCompound(page)) {
+-		struct page *head = compound_head(page);
 -
--.. code-block:: c
+-		if (PageLRU(head) || PageAnon(head))
++	else if (folio_test_large(folio)) {
++		if ((k & PG_lru) || is_anon)
+ 			u |= 1 << KPF_THP;
+-		else if (is_huge_zero_page(head)) {
++		else if (is_huge_zero_page(&folio->page)) {
+ 			u |= 1 << KPF_ZERO_PAGE;
+ 			u |= 1 << KPF_THP;
+ 		}
+ 	} else if (is_zero_pfn(page_to_pfn(page)))
+ 		u |= 1 << KPF_ZERO_PAGE;
+ 
 -
--	if (test_bit(PG_head, &page->flags)) {
--		unsigned long head = READ_ONCE(page[1].compound_head);
+ 	/*
+ 	 * Caveats on high order pages: PG_buddy and PG_slab will only be set
+ 	 * on the head page.
+@@ -175,15 +176,15 @@ u64 stable_page_flags(struct page *page)
+ 	if (PageTable(page))
+ 		u |= 1 << KPF_PGTABLE;
+ 
+-	if (page_is_idle(page))
++#if defined(CONFIG_PAGE_IDLE_FLAG) && defined(CONFIG_64BIT)
++	u |= kpf_copy_bit(k, KPF_IDLE,          PG_idle);
++#else
++	if (folio_test_idle(folio))
+ 		u |= 1 << KPF_IDLE;
++#endif
+ 
+ 	u |= kpf_copy_bit(k, KPF_LOCKED,	PG_locked);
 -
--		if (head & 1) {
--			if (head == (unsigned long)page + 1)
--				/* head struct page */
--			else
--				/* tail struct page */
--		} else {
--			/* head struct page */
--		}
--	}
+ 	u |= kpf_copy_bit(k, KPF_SLAB,		PG_slab);
+-	if (PageTail(page) && PageSlab(page))
+-		u |= 1 << KPF_SLAB;
 -
--We can safely access the field of the **page[1]** with ``PG_head`` because the
--page is a compound page composed with at least two contiguous pages.
--The implementation refers to ``page_fixed_fake_head()``.
-+parameter is the tail ``struct page`` but with ``PG_head``.
+ 	u |= kpf_copy_bit(k, KPF_ERROR,		PG_error);
+ 	u |= kpf_copy_bit(k, KPF_DIRTY,		PG_dirty);
+ 	u |= kpf_copy_bit(k, KPF_UPTODATE,	PG_uptodate);
+@@ -194,7 +195,8 @@ u64 stable_page_flags(struct page *page)
+ 	u |= kpf_copy_bit(k, KPF_ACTIVE,	PG_active);
+ 	u |= kpf_copy_bit(k, KPF_RECLAIM,	PG_reclaim);
  
- Device DAX
- ==========
---- a/Documentation/translations/zh_CN/core-api/cachetlb.rst~remove-references-to-page-flags-in-documentation
-+++ a/Documentation/translations/zh_CN/core-api/cachetlb.rst
-@@ -260,7 +260,7 @@ 问题有可能存在，因为内核已�
- 	如果D-cache别名不是一个问题，这个程序可以简单地定义为该架构上
- 	的nop。
+-	if (PageSwapCache(page))
++#define SWAPCACHE ((1 << PG_swapbacked) | (1 << PG_swapcache))
++	if ((k & SWAPCACHE) == SWAPCACHE)
+ 		u |= 1 << KPF_SWAPCACHE;
+ 	u |= kpf_copy_bit(k, KPF_SWAPBACKED,	PG_swapbacked);
  
--	在page->flags (PG_arch_1)中有一个位是“架构私有”。内核保证，
-+	在folio->flags (PG_arch_1)中有一个位是“架构私有”。内核保证，
- 	对于分页缓存的页面，当这样的页面第一次进入分页缓存时，它将清除
- 	这个位。
+@@ -202,7 +204,10 @@ u64 stable_page_flags(struct page *page)
+ 	u |= kpf_copy_bit(k, KPF_MLOCKED,	PG_mlocked);
  
---- a/mm/migrate.c~remove-references-to-page-flags-in-documentation
-+++ a/mm/migrate.c
-@@ -113,7 +113,7 @@ bool isolate_movable_page(struct page *p
- 	if (!mops->isolate_page(&folio->page, mode))
- 		goto out_no_isolated;
+ #ifdef CONFIG_MEMORY_FAILURE
+-	u |= kpf_copy_bit(k, KPF_HWPOISON,	PG_hwpoison);
++	if (u & KPF_HUGE)
++		u |= kpf_copy_bit(k, KPF_HWPOISON,	PG_hwpoison);
++	else
++		u |= kpf_copy_bit(page->flags, KPF_HWPOISON,	PG_hwpoison);
+ #endif
  
--	/* Driver shouldn't use PG_isolated bit of page->flags */
-+	/* Driver shouldn't use the isolated flag */
- 	WARN_ON_ONCE(folio_test_isolated(folio));
- 	folio_set_isolated(folio);
- 	folio_unlock(folio);
---- a/mm/rmap.c~remove-references-to-page-flags-in-documentation
-+++ a/mm/rmap.c
-@@ -23,7 +23,7 @@
-  * inode->i_rwsem	(while writing or truncating, not reading or faulting)
-  *   mm->mmap_lock
-  *     mapping->invalidate_lock (in filemap_fault)
-- *       page->flags PG_locked (lock_page)
-+ *       folio_lock
-  *         hugetlbfs_i_mmap_rwsem_key (in huge_pmd_share, see hugetlbfs below)
-  *           vma_start_write
-  *             mapping->i_mmap_rwsem
-@@ -50,7 +50,7 @@
-  *   hugetlb_fault_mutex (hugetlbfs specific page fault mutex)
-  *     vma_lock (hugetlb specific lock for pmd_sharing)
-  *       mapping->i_mmap_rwsem (also used for hugetlb pmd sharing)
-- *         page->flags PG_locked (lock_page)
-+ *         folio_lock
-  */
+ #ifdef CONFIG_ARCH_USES_PG_UNCACHED
+@@ -228,7 +233,6 @@ static ssize_t kpageflags_read(struct fi
+ {
+ 	const unsigned long max_dump_pfn = get_max_dump_pfn();
+ 	u64 __user *out = (u64 __user *)buf;
+-	struct page *ppage;
+ 	unsigned long src = *ppos;
+ 	unsigned long pfn;
+ 	ssize_t ret = 0;
+@@ -245,9 +249,9 @@ static ssize_t kpageflags_read(struct fi
+ 		 * TODO: ZONE_DEVICE support requires to identify
+ 		 * memmaps that were actually initialized.
+ 		 */
+-		ppage = pfn_to_online_page(pfn);
++		struct page *page = pfn_to_online_page(pfn);
  
- #include <linux/mm.h>
+-		if (put_user(stable_page_flags(ppage), out)) {
++		if (put_user(stable_page_flags(page), out)) {
+ 			ret = -EFAULT;
+ 			break;
+ 		}
+--- a/include/linux/huge_mm.h~proc-rewrite-stable_page_flags
++++ a/include/linux/huge_mm.h
+@@ -351,7 +351,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ extern struct page *huge_zero_page;
+ extern unsigned long huge_zero_pfn;
+ 
+-static inline bool is_huge_zero_page(struct page *page)
++static inline bool is_huge_zero_page(const struct page *page)
+ {
+ 	return READ_ONCE(huge_zero_page) == page;
+ }
+@@ -480,7 +480,7 @@ static inline vm_fault_t do_huge_pmd_num
+ 	return 0;
+ }
+ 
+-static inline bool is_huge_zero_page(struct page *page)
++static inline bool is_huge_zero_page(const struct page *page)
+ {
+ 	return false;
+ }
+--- a/include/linux/page-flags.h~proc-rewrite-stable_page_flags
++++ a/include/linux/page-flags.h
+@@ -734,7 +734,7 @@ static __always_inline bool PageKsm(cons
+ TESTPAGEFLAG_FALSE(Ksm, ksm)
+ #endif
+ 
+-u64 stable_page_flags(struct page *page);
++u64 stable_page_flags(const struct page *page);
+ 
+ /**
+  * folio_xor_flags_has_waiters - Change some folio flags.
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
