@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D74D284D0D;
-	Tue, 26 Mar 2024 18:08:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04DF984D0D;
+	Tue, 26 Mar 2024 18:08:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711476508; cv=none; b=LY0WiS0cBk5Gge9qsC0F3+S5sJas41h85qJrLPV9JAhc9H9hVj18wuOEW6FV9Z5eBLM+A8XcMoMXJ3wSE/oDJHkEnNbcTqtdyz/twnxFXkNApHpP88Q/eMWGHT0PsKwfAUIgHX0c/TMIGEBkr5v7d7/7sThGSzfDidJYKQAa5Cs=
+	t=1711476510; cv=none; b=NHat+LJp2mZZZhQKvmM8Vs5y5Qp2/R2i5uzmsmVaPZG3TWRGTu7MSmjUwIunzTWK5uqDWzKVpJMVmJYY71fWPuyyol+gRkJ5P9J3nFBdXik6KwdImf6R7kwqUdqUR7f2zpe/0IP5OjYB20k6z0e87sPvYuOenKMwxOslwwRpgHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711476508; c=relaxed/simple;
-	bh=aDpuWIg2C8GSfgg3yoqIFqThS/nE2Ersj1nNm9b4lnk=;
-	h=Date:To:From:Subject:Message-Id; b=agdBYyaYIDNYlm4qS13XPck1v8Itr4LDLkenBskSMCyJZN/Dnej+LcKshkpzr6BIkY9XdQgJtX6C1r4FvfQ6K2Gbvh0QNwStlHrlEXtAWCHtW2+pdC2/kzip3mAGX2bRsdjaI3b4wboK83FjzvLvD0bC7j49yW15Krk8KY4C2T8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N2SzTirj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711476510; c=relaxed/simple;
+	bh=7al0y6XMSyiNP3DGXWZf5zZ5FDe88VA2xAQTEdFbXCU=;
+	h=Date:To:From:Subject:Message-Id; b=bu7q5OcLezcL/iHwFmtu6P5CzvuBsug7okWsA+FQfxer3M1MLLc0bp2Sm16n/nTM0IhZR3XOz+WQMGRUCMcA2rRMACs/OJzwaf9Bt4rFxy8ugQ4ZgF2hO1Bufq5npyyET6MeFy37lvF/NuiznYnSPfd00gHifD+ap9cdfy9eLAI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yj4PrZsZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N2SzTirj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC6E1C433F1;
-	Tue, 26 Mar 2024 18:08:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yj4PrZsZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C25F4C433C7;
+	Tue, 26 Mar 2024 18:08:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711476508;
-	bh=aDpuWIg2C8GSfgg3yoqIFqThS/nE2Ersj1nNm9b4lnk=;
+	s=korg; t=1711476509;
+	bh=7al0y6XMSyiNP3DGXWZf5zZ5FDe88VA2xAQTEdFbXCU=;
 	h=Date:To:From:Subject:From;
-	b=N2SzTirj+aeFUSwsOpVTtGyj3dr3tKJCr2NaRC3LIBYCvNHBdh8UwvhrIM6IHhxuV
-	 txFbwdk9KO3Wjfg8RhJhCSGLR28C7bisn2qqTA38gadStcnps0W2ssbmM6gt4+16GX
-	 cDWv8tedOzXCPuPf809b6XFM9G2VHy6Co1b+nzhc=
-Date: Tue, 26 Mar 2024 11:08:28 -0700
-To: mm-commits@vger.kernel.org,xrivendell7@gmail.com,stable@vger.kernel.org,samsun1006219@gmail.com,rppt@kernel.org,mszeredi@redhat.com,miklos@szeredi.hu,lstoakes@gmail.com,david@redhat.com,akpm@linux-foundation.org
+	b=yj4PrZsZtUwakgzvmjHA39lrFWHxP6M92Os37UUnvETjDyg8+WVxHjCOgIVC2isqq
+	 9LdsFhJAYu74gzed5dlMMnJSveunrppNABoh9Eu6uaLELEEH5Jt2O5Qfb7cfuVKiXZ
+	 zxdGq/zTDbcT5fUyzjFgYuoQsIIULxVUiQlfnJGg=
+Date: Tue, 26 Mar 2024 11:08:29 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peterx@redhat.com,lokeshgidra@google.com,edliaw@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-secretmem-fix-gup-fast-succeeding-on-secretmem-folios.patch removed from -mm tree
-Message-Id: <20240326180828.AC6E1C433F1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-fix-arm-related-issue-with-fork-after-pthread_create.patch removed from -mm tree
+Message-Id: <20240326180829.C25F4C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,66 +35,120 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/secretmem: fix GUP-fast succeeding on secretmem folios
+     Subject: selftests/mm: fix ARM related issue with fork after pthread_create
 has been removed from the -mm tree.  Its filename was
-     mm-secretmem-fix-gup-fast-succeeding-on-secretmem-folios.patch
+     selftests-mm-fix-arm-related-issue-with-fork-after-pthread_create.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/secretmem: fix GUP-fast succeeding on secretmem folios
-Date: Mon, 25 Mar 2024 14:41:12 +0100
+From: Edward Liaw <edliaw@google.com>
+Subject: selftests/mm: fix ARM related issue with fork after pthread_create
+Date: Mon, 25 Mar 2024 19:40:52 +0000
 
-folio_is_secretmem() states that secretmem folios cannot be LRU folios: so
-we may only exit early if we find an LRU folio.  Yet, we exit early if we
-find a folio that is not a secretmem folio.
+Following issue was observed while running the uffd-unit-tests selftest
+on ARM devices. On x86_64 no issues were detected:
 
-Consequently, folio_is_secretmem() fails to detect secretmem folios and,
-therefore, we can succeed in grabbing a secretmem folio during GUP-fast,
-crashing the kernel when we later try reading/writing to the folio,
-because the folio has been unmapped from the directmap.
+pthread_create followed by fork caused deadlock in certain cases wherein
+fork required some work to be completed by the created thread.  Used
+synchronization to ensure that created thread's start function has started
+before invoking fork.
 
-Link: https://lkml.kernel.org/r/20240325134114.257544-2-david@redhat.com
-Fixes: 1507f51255c9 ("mm: introduce memfd_secret system call to create "secret" memory areas")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reported-by: xingwei lee <xrivendell7@gmail.com>
-Reported-by: yue sun <samsun1006219@gmail.com>
-Closes: https://lore.kernel.org/lkml/CABOYnLyevJeravW=QrH0JUPYEcDN160aZFb7kwndm-J2rmz0HQ@mail.gmail.com/
-Debugged-by: Miklos Szeredi <miklos@szeredi.hu>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Tested-by: Miklos Szeredi <mszeredi@redhat.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
+[edliaw@google.com: refactored to use atomic_bool]
+Link: https://lkml.kernel.org/r/20240325194100.775052-1-edliaw@google.com
+Fixes: 760aee0b71e3 ("selftests/mm: add tests for RO pinning vs fork()")
+Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
+Signed-off-by: Edward Liaw <edliaw@google.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/secretmem.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/uffd-common.c     |    3 +++
+ tools/testing/selftests/mm/uffd-common.h     |    2 ++
+ tools/testing/selftests/mm/uffd-unit-tests.c |   10 ++++++++++
+ 3 files changed, 15 insertions(+)
 
---- a/include/linux/secretmem.h~mm-secretmem-fix-gup-fast-succeeding-on-secretmem-folios
-+++ a/include/linux/secretmem.h
-@@ -16,7 +16,7 @@ static inline bool folio_is_secretmem(st
- 	 * We know that secretmem pages are not compound and LRU so we can
- 	 * save a couple of cycles here.
- 	 */
--	if (folio_test_large(folio) || !folio_test_lru(folio))
-+	if (folio_test_large(folio) || folio_test_lru(folio))
- 		return false;
+--- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-fix-arm-related-issue-with-fork-after-pthread_create
++++ a/tools/testing/selftests/mm/uffd-common.c
+@@ -18,6 +18,7 @@ bool test_uffdio_wp = true;
+ unsigned long long *count_verify;
+ uffd_test_ops_t *uffd_test_ops;
+ uffd_test_case_ops_t *uffd_test_case_ops;
++atomic_bool ready_for_fork;
  
- 	mapping = (struct address_space *)
+ static int uffd_mem_fd_create(off_t mem_size, bool hugetlb)
+ {
+@@ -518,6 +519,8 @@ void *uffd_poll_thread(void *arg)
+ 	pollfd[1].fd = pipefd[cpu*2];
+ 	pollfd[1].events = POLLIN;
+ 
++	ready_for_fork = true;
++
+ 	for (;;) {
+ 		ret = poll(pollfd, 2, -1);
+ 		if (ret <= 0) {
+--- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-fix-arm-related-issue-with-fork-after-pthread_create
++++ a/tools/testing/selftests/mm/uffd-common.h
+@@ -32,6 +32,7 @@
+ #include <inttypes.h>
+ #include <stdint.h>
+ #include <sys/random.h>
++#include <stdatomic.h>
+ 
+ #include "../kselftest.h"
+ #include "vm_util.h"
+@@ -103,6 +104,7 @@ extern bool map_shared;
+ extern bool test_uffdio_wp;
+ extern unsigned long long *count_verify;
+ extern volatile bool test_uffdio_copy_eexist;
++extern atomic_bool ready_for_fork;
+ 
+ extern uffd_test_ops_t anon_uffd_test_ops;
+ extern uffd_test_ops_t shmem_uffd_test_ops;
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-fix-arm-related-issue-with-fork-after-pthread_create
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -775,6 +775,8 @@ static void uffd_sigbus_test_common(bool
+ 	char c;
+ 	struct uffd_args args = { 0 };
+ 
++	ready_for_fork = false;
++
+ 	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
+ 
+ 	if (uffd_register(uffd, area_dst, nr_pages * page_size,
+@@ -790,6 +792,9 @@ static void uffd_sigbus_test_common(bool
+ 	if (pthread_create(&uffd_mon, NULL, uffd_poll_thread, &args))
+ 		err("uffd_poll_thread create");
+ 
++	while (!ready_for_fork)
++		; /* Wait for the poll_thread to start executing before forking */
++
+ 	pid = fork();
+ 	if (pid < 0)
+ 		err("fork");
+@@ -829,6 +834,8 @@ static void uffd_events_test_common(bool
+ 	char c;
+ 	struct uffd_args args = { 0 };
+ 
++	ready_for_fork = false;
++
+ 	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
+ 	if (uffd_register(uffd, area_dst, nr_pages * page_size,
+ 			  true, wp, false))
+@@ -838,6 +845,9 @@ static void uffd_events_test_common(bool
+ 	if (pthread_create(&uffd_mon, NULL, uffd_poll_thread, &args))
+ 		err("uffd_poll_thread create");
+ 
++	while (!ready_for_fork)
++		; /* Wait for the poll_thread to start executing before forking */
++
+ 	pid = fork();
+ 	if (pid < 0)
+ 		err("fork");
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from edliaw@google.com are
 
-mm-madvise-make-madv_populate_readwrite-handle-vm_fault_retry-properly.patch
-mm-madvise-dont-perform-madvise-vma-walk-for-madv_populate_readwrite.patch
-mm-userfaultfd-dont-place-zeropages-when-zeropages-are-disallowed.patch
-s390-mm-re-enable-the-shared-zeropage-for-pv-and-skeys-kvm-guests.patch
-mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared.patch
-mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared-fix.patch
-selftests-memfd_secret-add-vmsplice-test.patch
-mm-merge-folio_is_secretmem-into-folio_fast_pin_allowed.patch
 
