@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD58452F8A
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:08:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 359151B28D
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:08:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711476487; cv=none; b=hcmEhGoq/SM99vWml30/b6hD4gyU3zHTN9oHhgiN9GZIY1WQxTez++8fjQbFW2j4GQlgWcwQp+whYdXS0pGCSU4TFPMx/+qKDkxeKBjUOOs0buXrWrkdi5oG2Ly5qwmkMG9yOfzNqULvjNAv/9bAk2hWyFOJCL17hlpq1HYinVA=
+	t=1711476489; cv=none; b=gE97NF/pcexJ/EzCiSIKWAfbumWCSlhMvw/orOujw/sw7mQ9WDp4ZtSkaSi9vKn4MylqQPwGIw45p4woDSe3HrP0ja+e7Q3wzSsbnlzH1g+JXzK3sTivHqNJPcEAUW4RDOMvjQs1aSdL/IK1m19c4uXqYCnDVA2RsUT+ImCUInE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711476487; c=relaxed/simple;
-	bh=j41/wFbBdluQ9yntPhtA/hOh9Y75hBwd9uxZtNo+fz8=;
-	h=Date:To:From:Subject:Message-Id; b=NaB0N+7cd5MFq1vySz7F3nTZRhk666HtsWMQtLfv64Kwx7URmfXimILrDYdW11Uya/OuD6rh1dt6yq0QiFw0zlHxCSfe1HDYzhGcMQbonmR+/R8f0geA8k4OjpFSg/pxBU0+JEe+9edWAEAhu18uQUrTmZ+RAtS2z6uw/b1cQpE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GI4vyXXf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711476489; c=relaxed/simple;
+	bh=OoWpAkFIOZoWbHvtINxxtkQILTfQPTQa8N6cXsontWM=;
+	h=Date:To:From:Subject:Message-Id; b=pMD+75fUk7xQNCr+4Be5+Duhpifeesa8KZTeSM0HuJBlIOZsyFkdnX4/HcyfYNB/NH59Gg0wnwe73T6MSRZqGaYT82b7Y53Xiz9BDNyvCQ3O0CrkexS2sW1oGSK0IqnQSxC04gJAtg63xrb6bZ1CP6igpwhEFdjy9HLTKQm1bdQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dT5N/Gn4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GI4vyXXf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47D7FC433C7;
-	Tue, 26 Mar 2024 18:08:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dT5N/Gn4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C0BAC433F1;
+	Tue, 26 Mar 2024 18:08:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711476487;
-	bh=j41/wFbBdluQ9yntPhtA/hOh9Y75hBwd9uxZtNo+fz8=;
+	s=korg; t=1711476488;
+	bh=OoWpAkFIOZoWbHvtINxxtkQILTfQPTQa8N6cXsontWM=;
 	h=Date:To:From:Subject:From;
-	b=GI4vyXXfXTz9qLfdN5PhrZVIpBxMXFNdLv6nnUx4RrSY2sbyUb3GrsmeUMbCqAhEe
-	 aVKDKPFQgd+kQhqScqyDt2Nhtn0Kv/SyQ/EDz2P46EMX4kxp4KlF+jKqg9a1bEqsql
-	 7vLfQr9EfNwa5RKt9S2ijUs6bWMH7Ocu6Eeiw8Ys=
-Date: Tue, 26 Mar 2024 11:08:06 -0700
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,david@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=dT5N/Gn4Rd3UVp97/Ww2R8dvd5cukVH+6U7qWL1aFwhlQ5cLEkMXdXEVHfejEkQpO
+	 E3W1rCvkJj17+SMjIkS+DsWREDOjkZ7KBhNXPbZgzfh8z/OREBF92GRw37czzBdZFO
+	 50b1m+KEvt6ufiImjcEBSzbiGVSo/wOkuFk+9lZk=
+Date: Tue, 26 Mar 2024 11:08:07 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,shy828301@gmail.com,peterx@redhat.com,nadav.amit@gmail.com,kbusch@kernel.org,david@redhat.com,aarcange@redhat.com,vt@altlinux.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memory-fix-missing-pte-marker-for-page-on-pte-zaps.patch removed from -mm tree
-Message-Id: <20240326180807.47D7FC433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-fix-build-with-_fortify_source.patch removed from -mm tree
+Message-Id: <20240326180808.9C0BAC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,93 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory: fix missing pte marker for !page on pte zaps
+     Subject: selftests/mm: Fix build with _FORTIFY_SOURCE
 has been removed from the -mm tree.  Its filename was
-     mm-memory-fix-missing-pte-marker-for-page-on-pte-zaps.patch
+     selftests-mm-fix-build-with-_fortify_source.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/memory: fix missing pte marker for !page on pte zaps
-Date: Wed, 13 Mar 2024 17:31:07 -0400
+From: Vitaly Chikunov <vt@altlinux.org>
+Subject: selftests/mm: Fix build with _FORTIFY_SOURCE
+Date: Mon, 18 Mar 2024 05:34:44 +0300
 
-Commit 0cf18e839f64 of large folio zap work broke uffd-wp.  Now mm's uffd
-unit test "wp-unpopulated" will trigger this WARN_ON_ONCE().
+Add missing flags argument to open(2) call with O_CREAT.
 
-The WARN_ON_ONCE() asserts that an VMA cannot be registered with
-userfaultfd-wp if it contains a !normal page, but it's actually possible. 
-One example is an anonymous vma, register with uffd-wp, read anything will
-install a zero page.  Then when zap on it, this should trigger.
+Some tests fail to compile if _FORTIFY_SOURCE is defined (to any valid
+value) (together with -O), resulting in similar error messages such as:
 
-What's more, removing that WARN_ON_ONCE may not be enough either, because
-we should also not rely on "whether it's a normal page" to decide whether
-pte marker is needed.  For example, one can register wr-protect over some
-DAX regions to track writes when UFFD_FEATURE_WP_ASYNC enabled, in which
-case it can have page==NULL for a devmap but we may want to keep the
-marker around.
+  In file included from /usr/include/fcntl.h:342,
+                   from gup_test.c:1:
+  In function 'open',
+      inlined from 'main' at gup_test.c:206:10:
+  /usr/include/bits/fcntl2.h:50:11: error: call to '__open_missing_mode' declared with attribute error: open with O_CREAT or O_TMPFILE in second argument needs 3 arguments
+     50 |           __open_missing_mode ();
+        |           ^~~~~~~~~~~~~~~~~~~~~~
 
-Link: https://lkml.kernel.org/r/20240313213107.235067-1-peterx@redhat.com
-Fixes: 0cf18e839f64 ("mm/memory: handle !page case in zap_present_pte() separately")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+_FORTIFY_SOURCE is enabled by default in some distributions, so the
+tests are not built by default and are skipped.
+
+open(2) man-page warns about missing flags argument: "if it is not
+supplied, some arbitrary bytes from the stack will be applied as the
+file mode."
+
+Link: https://lkml.kernel.org/r/20240318023445.3192922-1-vt@altlinux.org
+Fixes: aeb85ed4f41a ("tools/testing/selftests/vm/gup_benchmark.c: allow user specified file")
+Fixes: fbe37501b252 ("mm: huge_memory: debugfs for file-backed THP split")
+Fixes: c942f5bd17b3 ("selftests: soft-dirty: add test for mprotect")
+Signed-off-by: Vitaly Chikunov <vt@altlinux.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Keith Busch <kbusch@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/gup_test.c             |    2 +-
+ tools/testing/selftests/mm/soft-dirty.c           |    2 +-
+ tools/testing/selftests/mm/split_huge_page_test.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-memory-fix-missing-pte-marker-for-page-on-pte-zaps
-+++ a/mm/memory.c
-@@ -1536,7 +1536,9 @@ static inline int zap_present_ptes(struc
- 		ptep_get_and_clear_full(mm, addr, pte, tlb->fullmm);
- 		arch_check_zapped_pte(vma, ptent);
- 		tlb_remove_tlb_entry(tlb, pte, addr);
--		VM_WARN_ON_ONCE(userfaultfd_wp(vma));
-+		if (userfaultfd_pte_wp(vma, ptent))
-+			zap_install_uffd_wp_if_needed(vma, addr, pte, 1,
-+						      details, ptent);
- 		ksm_might_unmap_zero_page(mm, ptent);
- 		return 1;
+--- a/tools/testing/selftests/mm/gup_test.c~selftests-mm-fix-build-with-_fortify_source
++++ a/tools/testing/selftests/mm/gup_test.c
+@@ -203,7 +203,7 @@ int main(int argc, char **argv)
+ 	ksft_print_header();
+ 	ksft_set_plan(nthreads);
+ 
+-	filed = open(file, O_RDWR|O_CREAT);
++	filed = open(file, O_RDWR|O_CREAT, 0664);
+ 	if (filed < 0)
+ 		ksft_exit_fail_msg("Unable to open %s: %s\n", file, strerror(errno));
+ 
+--- a/tools/testing/selftests/mm/soft-dirty.c~selftests-mm-fix-build-with-_fortify_source
++++ a/tools/testing/selftests/mm/soft-dirty.c
+@@ -137,7 +137,7 @@ static void test_mprotect(int pagemap_fd
+ 		if (!map)
+ 			ksft_exit_fail_msg("anon mmap failed\n");
+ 	} else {
+-		test_fd = open(fname, O_RDWR | O_CREAT);
++		test_fd = open(fname, O_RDWR | O_CREAT, 0664);
+ 		if (test_fd < 0) {
+ 			ksft_test_result_skip("Test %s open() file failed\n", __func__);
+ 			return;
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-fix-build-with-_fortify_source
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -223,7 +223,7 @@ void split_file_backed_thp(void)
+ 		ksft_exit_fail_msg("Fail to create file-backed THP split testing file\n");
  	}
+ 
+-	fd = open(testfile, O_CREAT|O_WRONLY);
++	fd = open(testfile, O_CREAT|O_WRONLY, 0664);
+ 	if (fd == -1) {
+ 		ksft_perror("Cannot open testing file");
+ 		goto cleanup;
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from vt@altlinux.org are
 
-mm-hmm-process-pud-swap-entry-without-pud_huge.patch
-mm-gup-cache-p4d-in-follow_p4d_mask.patch
-mm-gup-check-p4d-presence-before-going-on.patch
-mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-arm-use-macros-to-define-pmd-pud-helpers.patch
-mm-arm-redefine-pmd_huge-with-pmd_leaf.patch
-mm-arm64-merge-pxd_huge-and-pxd_leaf-definitions.patch
-mm-powerpc-redefine-pxd_huge-with-pxd_leaf.patch
-mm-gup-merge-pxd-huge-mapping-checks.patch
-mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
-mm-treewide-remove-pxd_huge.patch
-mm-arm-remove-pmd_thp_or_huge.patch
-mm-document-pxd_leaf-api.patch
-selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation.patch
 
