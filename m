@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 764A884D11
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:08:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 669F11B59A;
+	Tue, 26 Mar 2024 18:08:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711476503; cv=none; b=k+aBJPCvhrlcqiSOoTu/5SqsDqIMQOa07TxSWjFFZQAWIOMQx2sh9LN/fCDh60gwBCfbSQshq7o9f0Byt7eQj8Q9c9eYt13bP+uK6WxjS1ImklRiiXHO06BVbIerPq0JIpEByussIzLB2dY/ngVgwzFY0SJGcMhe1BjKDp2ITfk=
+	t=1711476505; cv=none; b=ozoc4QVBRD2gAhbMkExI8m1UinTrMHblaJV+DfeFd7Rzx3BCLGiYPams9n+5JAz2D/08gAhQdklwwOLsWYT68aSKlwekqxEJRGioCPo++rTiJfHCnk6TPNa+B/4nR1xp23uRrtcVRSvS66o5MrwhY/jTUb+IH3M+Ymuy6rdbXao=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711476503; c=relaxed/simple;
-	bh=bce1qSGFhtRpe/OnaDccXZrlwsx8npcZD19bA4FWYwM=;
-	h=Date:To:From:Subject:Message-Id; b=bGtSY4YtbhlpWPw9i8VESIpuLCuqYbwdD6KhZ7FWdOmuNz0QeyCyd+up/sY0i/K83wJdWV8pFeQKHpjzeU0/r1wFGlFf1mN41hyItM2ad/Xg0C08GyddOGAzys0K3Tj02qhCSD0+l2RvKiaPHTDu8SWdz8oUWwKA8cTf3dHWSl0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tbqUSlPI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711476505; c=relaxed/simple;
+	bh=/pcANzZwF1IiU7ErWgj2QFS58+v8NAvF3NBuwTC9i98=;
+	h=Date:To:From:Subject:Message-Id; b=Mu6c4Lp0c8AFL8YtTne5bVdvVmuaDcYeYh7bX/8Ido8TfXANTqwYJPOxytBFVjyBS9ccyzv5N9gbVDNisgoRWuU+zo1bNmstVZo8v8x1Cx9kRXmPrLLdvxDNORFLhjiGDUvU+3Rwnj03awcPatGOyDOVwy1VJYxunZgTgIM7Ptw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XZli9lGA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tbqUSlPI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC88DC43394;
-	Tue, 26 Mar 2024 18:08:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XZli9lGA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39372C43399;
+	Tue, 26 Mar 2024 18:08:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711476503;
-	bh=bce1qSGFhtRpe/OnaDccXZrlwsx8npcZD19bA4FWYwM=;
+	s=korg; t=1711476505;
+	bh=/pcANzZwF1IiU7ErWgj2QFS58+v8NAvF3NBuwTC9i98=;
 	h=Date:To:From:Subject:From;
-	b=tbqUSlPIe5Zc+Czx61x/b+jqrrMtW0ZnJUXOJ5bE24qkBhkFOnGIOwhGRz+9OzDci
-	 k4ZqUWuzmJJDnLDF3fMHQwXc2+/4+lTqMbu/6P0tM/i89GWR157PDo+vG7xXfpVJEN
-	 DZ4I37tfiF2An6LgkbNInb6EhpFFv5zklbEwOQCU=
-Date: Tue, 26 Mar 2024 11:08:22 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,nphamcs@gmail.com,kent.overstreet@linux.dev,jeromepoulin@gmail.com,chengming.zhou@linux.dev,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=XZli9lGAikRwU0G1agTnCIsUql4fAjH1WX56jtDMfODzlAwoeuqWzQ3IAMS7Y++if
+	 bdDNdtRjG/P0sqv6gEM/6hwmrH16tMrbHI1sqELwSbx/+pbpyYHSSB/On5Jleqk70I
+	 IQHt0eDr0xSl8z2WeVk4bUSBbz3JtZ2h1kO4fuZQ=
+Date: Tue, 26 Mar 2024 11:08:24 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,jack@suse.cz,hughd@google.com,cmaiolino@redhat.com,bugreport@ubisectech.com,cem@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-zswap-fix-writeback-shinker-gfp_noio-gfp_nofs-recursion.patch removed from -mm tree
-Message-Id: <20240326180822.EC88DC43394@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] tmpfs-fix-race-on-handling-dquot-rbtree.patch removed from -mm tree
+Message-Id: <20240326180825.39372C43399@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,115 +35,111 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: zswap: fix writeback shinker GFP_NOIO/GFP_NOFS recursion
+     Subject: tmpfs: fix race on handling dquot rbtree
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-fix-writeback-shinker-gfp_noio-gfp_nofs-recursion.patch
+     tmpfs-fix-race-on-handling-dquot-rbtree.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: zswap: fix writeback shinker GFP_NOIO/GFP_NOFS recursion
-Date: Thu, 21 Mar 2024 14:25:32 -0400
+From: Carlos Maiolino <cem@kernel.org>
+Subject: tmpfs: fix race on handling dquot rbtree
+Date: Wed, 20 Mar 2024 13:39:59 +0100
 
-Kent forwards this bug report of zswap re-entering the block layer
-from an IO request allocation and locking up:
+A syzkaller reproducer found a race while attempting to remove dquot
+information from the rb tree.
 
-[10264.128242] sysrq: Show Blocked State
-[10264.128268] task:kworker/20:0H   state:D stack:0     pid:143   tgid:143   ppid:2      flags:0x00004000
-[10264.128271] Workqueue: bcachefs_io btree_write_submit [bcachefs]
-[10264.128295] Call Trace:
-[10264.128295]  <TASK>
-[10264.128297]  __schedule+0x3e6/0x1520
-[10264.128303]  schedule+0x32/0xd0
-[10264.128304]  schedule_timeout+0x98/0x160
-[10264.128308]  io_schedule_timeout+0x50/0x80
-[10264.128309]  wait_for_completion_io_timeout+0x7f/0x180
-[10264.128310]  submit_bio_wait+0x78/0xb0
-[10264.128313]  swap_writepage_bdev_sync+0xf6/0x150
-[10264.128317]  zswap_writeback_entry+0xf2/0x180
-[10264.128319]  shrink_memcg_cb+0xe7/0x2f0
-[10264.128322]  __list_lru_walk_one+0xb9/0x1d0
-[10264.128325]  list_lru_walk_one+0x5d/0x90
-[10264.128326]  zswap_shrinker_scan+0xc4/0x130
-[10264.128327]  do_shrink_slab+0x13f/0x360
-[10264.128328]  shrink_slab+0x28e/0x3c0
-[10264.128329]  shrink_one+0x123/0x1b0
-[10264.128331]  shrink_node+0x97e/0xbc0
-[10264.128332]  do_try_to_free_pages+0xe7/0x5b0
-[10264.128333]  try_to_free_pages+0xe1/0x200
-[10264.128334]  __alloc_pages_slowpath.constprop.0+0x343/0xde0
-[10264.128337]  __alloc_pages+0x32d/0x350
-[10264.128338]  allocate_slab+0x400/0x460
-[10264.128339]  ___slab_alloc+0x40d/0xa40
-[10264.128345]  kmem_cache_alloc+0x2e7/0x330
-[10264.128348]  mempool_alloc+0x86/0x1b0
-[10264.128349]  bio_alloc_bioset+0x200/0x4f0
-[10264.128352]  bio_alloc_clone+0x23/0x60
-[10264.128354]  alloc_io+0x26/0xf0 [dm_mod 7e9e6b44df4927f93fb3e4b5c782767396f58382]
-[10264.128361]  dm_submit_bio+0xb8/0x580 [dm_mod 7e9e6b44df4927f93fb3e4b5c782767396f58382]
-[10264.128366]  __submit_bio+0xb0/0x170
-[10264.128367]  submit_bio_noacct_nocheck+0x159/0x370
-[10264.128368]  bch2_submit_wbio_replicas+0x21c/0x3a0 [bcachefs 85f1b9a7a824f272eff794653a06dde1a94439f2]
-[10264.128391]  btree_write_submit+0x1cf/0x220 [bcachefs 85f1b9a7a824f272eff794653a06dde1a94439f2]
-[10264.128406]  process_one_work+0x178/0x350
-[10264.128408]  worker_thread+0x30f/0x450
-[10264.128409]  kthread+0xe5/0x120
+Fetching the rb_tree root node must also be protected by the
+dqopt->dqio_sem, otherwise, giving the right timing, shmem_release_dquot()
+will trigger a warning because it couldn't find a node in the tree, when
+the real reason was the root node changing before the search starts:
 
-The zswap shrinker resumes the swap_writepage()s that were intercepted
-by the zswap store. This will enter the block layer, and may even
-enter the filesystem depending on the swap backing file.
+Thread 1				Thread 2
+- shmem_release_dquot()			- shmem_{acquire,release}_dquot()
 
-Make it respect GFP_NOIO and GFP_NOFS.
+- fetch ROOT				- Fetch ROOT
 
-Link: https://lore.kernel.org/linux-mm/rc4pk2r42oyvjo4dc62z6sovquyllq56i5cdgcaqbd7wy3hfzr@n4nbxido3fme/
-Link: https://lkml.kernel.org/r/20240321182532.60000-1-hannes@cmpxchg.org
-Fixes: b5ba474f3f51 ("zswap: shrink zswap pool based on memory pressure")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Kent Overstreet <kent.overstreet@linux.dev>
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
-Reported-by: Jérôme Poulin <jeromepoulin@gmail.com>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: stable@vger.kernel.org	[v6.8]
+					- acquire dqio_sem
+- wait dqio_sem
+
+					- do something, triger a tree rebalance
+					- release dqio_sem
+
+- acquire dqio_sem
+- start searching for the node, but
+  from the wrong location, missing
+  the node, and triggering a warning.
+
+Link: https://lkml.kernel.org/r/20240320124011.398847-1-cem@kernel.org
+Fixes: eafc474e2029 ("shmem: prepare shmem quota infrastructure")
+Signed-off-by: Carlos Maiolino <cmaiolino@redhat.com>
+Reported-by: Ubisectech Sirius <bugreport@ubisectech.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/shmem_quota.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-fix-writeback-shinker-gfp_noio-gfp_nofs-recursion
-+++ a/mm/zswap.c
-@@ -1323,6 +1323,14 @@ static unsigned long zswap_shrinker_coun
- 	if (!zswap_shrinker_enabled || !mem_cgroup_zswap_writeback_enabled(memcg))
- 		return 0;
+--- a/mm/shmem_quota.c~tmpfs-fix-race-on-handling-dquot-rbtree
++++ a/mm/shmem_quota.c
+@@ -116,7 +116,7 @@ static int shmem_free_file_info(struct s
+ static int shmem_get_next_id(struct super_block *sb, struct kqid *qid)
+ {
+ 	struct mem_dqinfo *info = sb_dqinfo(sb, qid->type);
+-	struct rb_node *node = ((struct rb_root *)info->dqi_priv)->rb_node;
++	struct rb_node *node;
+ 	qid_t id = from_kqid(&init_user_ns, *qid);
+ 	struct quota_info *dqopt = sb_dqopt(sb);
+ 	struct quota_id *entry = NULL;
+@@ -126,6 +126,7 @@ static int shmem_get_next_id(struct supe
+ 		return -ESRCH;
  
-+	/*
-+	 * The shrinker resumes swap writeback, which will enter block
-+	 * and may enter fs. XXX: Harmonize with vmscan.c __GFP_FS
-+	 * rules (may_enter_fs()), which apply on a per-folio basis.
-+	 */
-+	if (!gfp_has_io_fs(sc->gfp_mask))
-+		return 0;
+ 	down_read(&dqopt->dqio_sem);
++	node = ((struct rb_root *)info->dqi_priv)->rb_node;
+ 	while (node) {
+ 		entry = rb_entry(node, struct quota_id, node);
+ 
+@@ -165,7 +166,7 @@ out_unlock:
+ static int shmem_acquire_dquot(struct dquot *dquot)
+ {
+ 	struct mem_dqinfo *info = sb_dqinfo(dquot->dq_sb, dquot->dq_id.type);
+-	struct rb_node **n = &((struct rb_root *)info->dqi_priv)->rb_node;
++	struct rb_node **n;
+ 	struct shmem_sb_info *sbinfo = dquot->dq_sb->s_fs_info;
+ 	struct rb_node *parent = NULL, *new_node = NULL;
+ 	struct quota_id *new_entry, *entry;
+@@ -176,6 +177,8 @@ static int shmem_acquire_dquot(struct dq
+ 	mutex_lock(&dquot->dq_lock);
+ 
+ 	down_write(&dqopt->dqio_sem);
++	n = &((struct rb_root *)info->dqi_priv)->rb_node;
 +
- #ifdef CONFIG_MEMCG_KMEM
- 	mem_cgroup_flush_stats(memcg);
- 	nr_backing = memcg_page_state(memcg, MEMCG_ZSWAP_B) >> PAGE_SHIFT;
+ 	while (*n) {
+ 		parent = *n;
+ 		entry = rb_entry(parent, struct quota_id, node);
+@@ -264,7 +267,7 @@ static bool shmem_is_empty_dquot(struct
+ static int shmem_release_dquot(struct dquot *dquot)
+ {
+ 	struct mem_dqinfo *info = sb_dqinfo(dquot->dq_sb, dquot->dq_id.type);
+-	struct rb_node *node = ((struct rb_root *)info->dqi_priv)->rb_node;
++	struct rb_node *node;
+ 	qid_t id = from_kqid(&init_user_ns, dquot->dq_id);
+ 	struct quota_info *dqopt = sb_dqopt(dquot->dq_sb);
+ 	struct quota_id *entry = NULL;
+@@ -275,6 +278,7 @@ static int shmem_release_dquot(struct dq
+ 		goto out_dqlock;
+ 
+ 	down_write(&dqopt->dqio_sem);
++	node = ((struct rb_root *)info->dqi_priv)->rb_node;
+ 	while (node) {
+ 		entry = rb_entry(node, struct quota_id, node);
+ 
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from cem@kernel.org are
 
-mm-zswap-optimize-zswap-pool-size-tracking.patch
-mm-zpool-return-pool-size-in-pages.patch
-mm-page_alloc-remove-pcppage-migratetype-caching.patch
-mm-page_alloc-optimize-free_unref_folios.patch
-mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch
-mm-page_alloc-move-free-pages-when-converting-block-during-isolation.patch
-mm-page_alloc-fix-move_freepages_block-range-error.patch
-mm-page_alloc-fix-freelist-movement-during-block-conversion.patch
-mm-page_alloc-close-migratetype-race-between-freeing-and-stealing.patch
-mm-page_isolation-prepare-for-hygienic-freelists.patch
-mm-page_isolation-prepare-for-hygienic-freelists-fix.patch
-mm-page_alloc-consolidate-free-page-accounting.patch
 
