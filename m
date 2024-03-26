@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 006511CD30
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:18:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 645D3208A7
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:18:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711477094; cv=none; b=JyMsCNukyzQwuv950Zz7bhhf6QCLhjkSq1bwesycDs0Oo6M89bRftA+1B4IlAWeAkQWK6IsQdQberHe2f1hGxm6mcPLT7qOo/xQFH5MyVJSPsQYc0+zmZ3js7reNwD07u330BFiO27OsnL/ezs26/bK2RKvFgxFc4XuPeYYaiQc=
+	t=1711477129; cv=none; b=rUJsTjQC1fGnY5qRx/4RjwiZjqQiEqUsgxyclXlYTl3Ztmb2ccssghAH7aLlotIigkymoINWfqeTXKez22grXHTxgeu7bpEURWup+Dyiz5ocgdicuE+JcMEMlIkiC2LGVFlb1+En6fRNxf1CcPOfMR7z1XmvosV9f+il7hkuLfs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711477094; c=relaxed/simple;
-	bh=Mfq5bQz7Qbz4Ul/ty17RKaJIp8GJWJypqRLj8rPYhew=;
-	h=Date:To:From:Subject:Message-Id; b=KQcIaV8vNJze/Th2pjI6SrwBfY6+uwmw646JBNt8FXWwAL69/IGy9Q0BG9aDj8ClR/24uIn+GThPXca2mkKGWnYmr6+YbIJ8mTOhgHm0lBKf6S999BCi5pseHdlurfB+w4zYx4N1wcTcqBGJLpx6ojdv9QVdK8ap0bUiWCWDzI0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S243e1x2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711477129; c=relaxed/simple;
+	bh=m7H8F7+9EIrWnkTlF33RZcFqXHPw1mjsDl2X/A3hE18=;
+	h=Date:To:From:Subject:Message-Id; b=kcB665H7MUHpmupWa1NHdNsmLP6NPbNHz9UMxLLevBHQ6HaA5jmvr9hNExnCq2S/g9JW0DAl84ooGLVnYChk5pvFUQlGmEdJRzlMtzgNpp0ezJhry9PswKaaM7b+M4WrYnMR4Up/V+7jB1Veu02KSEvmwFof6gPsTc15SdE2Bt8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zQK0ArFw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S243e1x2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D992C433F1;
-	Tue, 26 Mar 2024 18:18:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zQK0ArFw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E15E3C433C7;
+	Tue, 26 Mar 2024 18:18:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711477093;
-	bh=Mfq5bQz7Qbz4Ul/ty17RKaJIp8GJWJypqRLj8rPYhew=;
+	s=korg; t=1711477129;
+	bh=m7H8F7+9EIrWnkTlF33RZcFqXHPw1mjsDl2X/A3hE18=;
 	h=Date:To:From:Subject:From;
-	b=S243e1x2Ci+lVCmwSY6jt3RjjMPybYJ/CeYOTstqKXsiD0I2Ll/WG3wDvUdTJBtVB
-	 In+aHE7eNXS52gZCgws6LCWjRtZXIClWPI6V5ACnF8fZCIrTPOj/JcSlx+MUyYAHqt
-	 ihvTHD9cFvzFwu5/vzhYYikaS+ITOAgwTwE4R90w=
-Date: Tue, 26 Mar 2024 11:18:12 -0700
+	b=zQK0ArFwqHARQXHEpDt7p67mssvCC9jxyqVaSRuVuSlP5Sh66U+UCoi9aN85HZtcJ
+	 IyGg9TpRR2YcXQwyXTm8rVFbnT9ZezmlKi1ikjJkWjOIHwRV/8Y+SbTXpjneLkZN3Q
+	 PfDHooSk0fjwyi4MAWGUpSxS1LO3FN+ibaqzwAys=
+Date: Tue, 26 Mar 2024 11:18:48 -0700
 To: mm-commits@vger.kernel.org,xrivendell7@gmail.com,samsun1006219@gmail.com,rppt@kernel.org,mszeredi@redhat.com,lstoakes@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-memfd_secret-add-vmsplice-test.patch added to mm-unstable branch
-Message-Id: <20240326181813.6D992C433F1@smtp.kernel.org>
+Subject: + mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed.patch added to mm-unstable branch
+Message-Id: <20240326181848.E15E3C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/memfd_secret: add vmsplice() test
+     Subject: mm: merge folio_is_secretmem() and folio_fast_pin_allowed() into gup_fast_folio_allowed()
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-memfd_secret-add-vmsplice-test.patch
+     mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-memfd_secret-add-vmsplice-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,29 +59,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: selftests/memfd_secret: add vmsplice() test
-Date: Tue, 26 Mar 2024 15:32:09 +0100
+Subject: mm: merge folio_is_secretmem() and folio_fast_pin_allowed() into gup_fast_folio_allowed()
+Date: Tue, 26 Mar 2024 15:32:10 +0100
 
-Let's add a simple reproducer for a scenario where GUP-fast could succeed
-on secretmem folios, making vmsplice() succeed instead of failing.  The
-reproducer is based on a reproducer [1] by Miklos Szeredi.
+folio_is_secretmem() is currently only used during GUP-fast.  Nowadays,
+folio_fast_pin_allowed() performs similar checks during GUP-fast and
+contains a lot of careful handling -- READ_ONCE() -- , sanity checks --
+lockdep_assert_irqs_disabled() -- and helpful comments on how this
+handling is safe and correct.
 
-We want to perform two tests: vmsplice() when a fresh page was just
-faulted in, and vmsplice() on an existing page after munmap() that would
-drain certain LRU caches/batches in the kernel.
+So let's merge folio_is_secretmem() into folio_fast_pin_allowed().  Rename
+folio_fast_pin_allowed() to gup_fast_folio_allowed(), to better match the
+new semantics.
 
-In an ideal world, we could use fallocate(FALLOC_FL_PUNCH_HOLE) /
-MADV_REMOVE to remove any existing page.  As that is currently not
-possible, run the test before any other tests that would allocate memory
-in the secretmem fd.
-
-Perform the ftruncate() only once, and check the return value.
-
-[1] https://lkml.kernel.org/r/CAJfpegt3UCsMmxd0taOY11Uaw5U=eS1fE5dn0wZX3HF0oy8-oQ@mail.gmail.com
-
-Link: https://lkml.kernel.org/r/20240326143210.291116-3-david@redhat.com
+Link: https://lkml.kernel.org/r/20240326143210.291116-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Miklos Szeredi <mszeredi@redhat.com>
 Cc: xingwei lee <xrivendell7@gmail.com>
@@ -89,100 +83,179 @@ Cc: yue sun <samsun1006219@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/memfd_secret.c |   51 +++++++++++++++++++-
- 1 file changed, 49 insertions(+), 2 deletions(-)
+ include/linux/secretmem.h |   21 +--------------
+ mm/gup.c                  |   48 +++++++++++++++++++++---------------
+ 2 files changed, 30 insertions(+), 39 deletions(-)
 
---- a/tools/testing/selftests/mm/memfd_secret.c~selftests-memfd_secret-add-vmsplice-test
-+++ a/tools/testing/selftests/mm/memfd_secret.c
-@@ -20,6 +20,7 @@
- #include <unistd.h>
- #include <errno.h>
- #include <stdio.h>
-+#include <fcntl.h>
+--- a/include/linux/secretmem.h~mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed
++++ a/include/linux/secretmem.h
+@@ -6,25 +6,8 @@
  
- #include "../kselftest.h"
+ extern const struct address_space_operations secretmem_aops;
  
-@@ -83,6 +84,45 @@ static void test_mlock_limit(int fd)
- 	pass("mlock limit is respected\n");
+-static inline bool folio_is_secretmem(struct folio *folio)
++static inline bool secretmem_mapping(struct address_space *mapping)
+ {
+-	struct address_space *mapping;
+-
+-	/*
+-	 * Using folio_mapping() is quite slow because of the actual call
+-	 * instruction.
+-	 * We know that secretmem pages are not compound, so we can
+-	 * save a couple of cycles here.
+-	 */
+-	if (folio_test_large(folio))
+-		return false;
+-
+-	mapping = (struct address_space *)
+-		((unsigned long)folio->mapping & ~PAGE_MAPPING_FLAGS);
+-
+-	if (!mapping || mapping != folio->mapping)
+-		return false;
+-
+ 	return mapping->a_ops == &secretmem_aops;
  }
  
-+static void test_vmsplice(int fd, const char *desc)
-+{
-+	ssize_t transferred;
-+	struct iovec iov;
-+	int pipefd[2];
-+	char *mem;
-+
-+	if (pipe(pipefd)) {
-+		fail("pipe failed: %s\n", strerror(errno));
-+		return;
-+	}
-+
-+	mem = mmap(NULL, page_size, prot, mode, fd, 0);
-+	if (mem == MAP_FAILED) {
-+		fail("Unable to mmap secret memory\n");
-+		goto close_pipe;
-+	}
-+
-+	/*
-+	 * vmsplice() may use GUP-fast, which must also fail. Prefault the
-+	 * page table, so GUP-fast could find it.
-+	 */
-+	memset(mem, PATTERN, page_size);
-+
-+	iov.iov_base = mem;
-+	iov.iov_len = page_size;
-+	transferred = vmsplice(pipefd[1], &iov, 1, 0);
-+
-+	if (transferred < 0 && errno == EFAULT)
-+		pass("vmsplice is blocked as expected with %s\n", desc);
-+	else
-+		fail("vmsplice: unexpected memory access with %s\n", desc);
-+
-+	munmap(mem, page_size);
-+close_pipe:
-+	close(pipefd[0]);
-+	close(pipefd[1]);
-+}
-+
- static void try_process_vm_read(int fd, int pipefd[2])
- {
- 	struct iovec liov, riov;
-@@ -187,7 +227,6 @@ static void test_remote_access(int fd, c
- 		return;
- 	}
- 
--	ftruncate(fd, page_size);
- 	memset(mem, PATTERN, page_size);
- 
- 	if (write(pipefd[1], &mem, sizeof(mem)) < 0) {
-@@ -258,7 +297,7 @@ static void prepare(void)
- 				   strerror(errno));
+@@ -38,7 +21,7 @@ static inline bool vma_is_secretmem(stru
+ 	return false;
  }
  
--#define NUM_TESTS 4
-+#define NUM_TESTS 6
- 
- int main(int argc, char *argv[])
+-static inline bool folio_is_secretmem(struct folio *folio)
++static inline bool secretmem_mapping(struct address_space *mapping)
  {
-@@ -277,9 +316,17 @@ int main(int argc, char *argv[])
- 			ksft_exit_fail_msg("memfd_secret failed: %s\n",
- 					   strerror(errno));
+ 	return false;
+ }
+--- a/mm/gup.c~mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed
++++ a/mm/gup.c
+@@ -2466,12 +2466,14 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
+ #ifdef CONFIG_HAVE_FAST_GUP
+ 
+ /*
+- * Used in the GUP-fast path to determine whether a pin is permitted for a
+- * specific folio.
++ * Used in the GUP-fast path to determine whether GUP is permitted to work on
++ * a specific folio.
+  *
+  * This call assumes the caller has pinned the folio, that the lowest page table
+  * level still points to this folio, and that interrupts have been disabled.
+  *
++ * GUP-fast must reject all secretmem folios.
++ *
+  * Writing to pinned file-backed dirty tracked folios is inherently problematic
+  * (see comment describing the writable_file_mapping_allowed() function). We
+  * therefore try to avoid the most egregious case of a long-term mapping doing
+@@ -2481,25 +2483,34 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
+  * in the fast path, so instead we whitelist known good cases and if in doubt,
+  * fall back to the slow path.
+  */
+-static bool folio_fast_pin_allowed(struct folio *folio, unsigned int flags)
++static bool gup_fast_folio_allowed(struct folio *folio, unsigned int flags)
+ {
++	bool reject_file_backed = false;
+ 	struct address_space *mapping;
++	bool check_secretmem = false;
+ 	unsigned long mapping_flags;
+ 
+ 	/*
+ 	 * If we aren't pinning then no problematic write can occur. A long term
+ 	 * pin is the most egregious case so this is the one we disallow.
+ 	 */
+-	if ((flags & (FOLL_PIN | FOLL_LONGTERM | FOLL_WRITE)) !=
++	if ((flags & (FOLL_PIN | FOLL_LONGTERM | FOLL_WRITE)) ==
+ 	    (FOLL_PIN | FOLL_LONGTERM | FOLL_WRITE))
+-		return true;
++		reject_file_backed = true;
++
++	/* We hold a folio reference, so we can safely access folio fields. */
+ 
+-	/* The folio is pinned, so we can safely access folio fields. */
++	/* secretmem folios are always order-0 folios. */
++	if (IS_ENABLED(CONFIG_SECRETMEM) && !folio_test_large(folio))
++		check_secretmem = true;
++
++	if (!reject_file_backed && !check_secretmem)
++		return true;
+ 
+ 	if (WARN_ON_ONCE(folio_test_slab(folio)))
+ 		return false;
+ 
+-	/* hugetlb mappings do not require dirty-tracking. */
++	/* hugetlb neither requires dirty-tracking nor can be secretmem. */
+ 	if (folio_test_hugetlb(folio))
+ 		return true;
+ 
+@@ -2535,10 +2546,12 @@ static bool folio_fast_pin_allowed(struc
+ 
+ 	/*
+ 	 * At this point, we know the mapping is non-null and points to an
+-	 * address_space object. The only remaining whitelisted file system is
+-	 * shmem.
++	 * address_space object.
+ 	 */
+-	return shmem_mapping(mapping);
++	if (check_secretmem && secretmem_mapping(mapping))
++		return false;
++	/* The only remaining allowed file system is shmem. */
++	return !reject_file_backed || shmem_mapping(mapping);
+ }
+ 
+ static void __maybe_unused undo_dev_pagemap(int *nr, int nr_start,
+@@ -2624,18 +2637,13 @@ static int gup_pte_range(pmd_t pmd, pmd_
+ 		if (!folio)
+ 			goto pte_unmap;
+ 
+-		if (unlikely(folio_is_secretmem(folio))) {
+-			gup_put_folio(folio, 1, flags);
+-			goto pte_unmap;
+-		}
+-
+ 		if (unlikely(pmd_val(pmd) != pmd_val(*pmdp)) ||
+ 		    unlikely(pte_val(pte) != pte_val(ptep_get(ptep)))) {
+ 			gup_put_folio(folio, 1, flags);
+ 			goto pte_unmap;
+ 		}
+ 
+-		if (!folio_fast_pin_allowed(folio, flags)) {
++		if (!gup_fast_folio_allowed(folio, flags)) {
+ 			gup_put_folio(folio, 1, flags);
+ 			goto pte_unmap;
+ 		}
+@@ -2832,7 +2840,7 @@ static int gup_hugepte(pte_t *ptep, unsi
+ 		return 0;
  	}
-+	if (ftruncate(fd, page_size))
-+		ksft_exit_fail_msg("ftruncate failed: %s\n", strerror(errno));
  
- 	test_mlock_limit(fd);
- 	test_file_apis(fd);
-+	/*
-+	 * We have to run the first vmsplice test before any secretmem page was
-+	 * allocated for this fd.
-+	 */
-+	test_vmsplice(fd, "fresh page");
-+	test_vmsplice(fd, "existing page");
- 	test_process_vm_read(fd);
- 	test_ptrace(fd);
+-	if (!folio_fast_pin_allowed(folio, flags)) {
++	if (!gup_fast_folio_allowed(folio, flags)) {
+ 		gup_put_folio(folio, refs, flags);
+ 		return 0;
+ 	}
+@@ -2903,7 +2911,7 @@ static int gup_huge_pmd(pmd_t orig, pmd_
+ 		return 0;
+ 	}
  
+-	if (!folio_fast_pin_allowed(folio, flags)) {
++	if (!gup_fast_folio_allowed(folio, flags)) {
+ 		gup_put_folio(folio, refs, flags);
+ 		return 0;
+ 	}
+@@ -2947,7 +2955,7 @@ static int gup_huge_pud(pud_t orig, pud_
+ 		return 0;
+ 	}
+ 
+-	if (!folio_fast_pin_allowed(folio, flags)) {
++	if (!gup_fast_folio_allowed(folio, flags)) {
+ 		gup_put_folio(folio, refs, flags);
+ 		return 0;
+ 	}
+@@ -2992,7 +3000,7 @@ static int gup_huge_pgd(pgd_t orig, pgd_
+ 		return 0;
+ 	}
+ 
+-	if (!folio_fast_pin_allowed(folio, flags)) {
++	if (!gup_fast_folio_allowed(folio, flags)) {
+ 		gup_put_folio(folio, refs, flags);
+ 		return 0;
+ 	}
 _
 
 Patches currently in -mm which might be from david@redhat.com are
@@ -195,4 +268,5 @@ s390-mm-re-enable-the-shared-zeropage-for-pv-and-skeys-kvm-guests.patch
 mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared.patch
 mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared-fix.patch
 selftests-memfd_secret-add-vmsplice-test.patch
+mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed.patch
 
