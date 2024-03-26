@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0865E1272DC
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:30:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ABF53DABFF
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:30:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711477814; cv=none; b=IfmdK4o/Y6OSTIzuCYsRm0ekgpslt17+oXVMPoUAnPBrOmrYhSC5I66T1uvymlKlyc1sYIc7IYp6x6A023z+A8C5GoWJVOTSb0Swo+PVrh1RtP43/pvmerZK6IIc/vBVWDnS3i0s1WH19QcuIkVWoZl3YwyeLEj7LaAP6b+tCu4=
+	t=1711477816; cv=none; b=MBMPhQGiz7Q9Acb2mTxBQ6p88LHe2cXKys6lYjGuDwAhRaiJN8Ip6sz50Xe25h+sLNoPLguZJvIYgjOXIGkc8n6wPXgYs//08dwnvf4vksn9vFdocKIQXg00sLU1yxa1eiBcb2B6kyRVRaxEuIMT9/kZHh4x1mANt1q6HcszBnI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711477814; c=relaxed/simple;
-	bh=GHk1kSd9QtpH0V1nCVjDHwFz2cqrb3e2AEjU0VP0npA=;
-	h=Date:To:From:Subject:Message-Id; b=l0i98BVhtK5gi9+nMzWooUNyYZrngYsDg5c9F0/e2Ld00vENAsd01U9zdLN65KmVsrksWqfh7xYNiFe0TB6JfUe6wF8X/gtyZnyjJ2dX5FHxDEQ+VtdoSxQroQSFfghq1ZGqxbudjZ9MqJ2kis9UCRKhdExOwHTQ25rXcn02yp0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fogYBGg4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711477816; c=relaxed/simple;
+	bh=BBC8+Kbtx6sdbqpBqpjyjc3N+1DAcoXYt+KujEuQb08=;
+	h=Date:To:From:Subject:Message-Id; b=tSsqlT9Na+b4uKlkus4nVLMWURmWN0RCdN2wOeyiGxAf8/1d4toznB4S8oCPuIpNnQNlInpLa7QD1k/twuybPcT6LBAPgJ1QQT0E55WMf5UToQs8nSLAGhj22bvfkEA1gFDWJIJ+yIKUM0VCvLHiLitL70bIBiwCZa6tpwmhD1U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ip3PUTke; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fogYBGg4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B293EC433F1;
-	Tue, 26 Mar 2024 18:30:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ip3PUTke"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24955C43390;
+	Tue, 26 Mar 2024 18:30:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711477813;
-	bh=GHk1kSd9QtpH0V1nCVjDHwFz2cqrb3e2AEjU0VP0npA=;
+	s=korg; t=1711477816;
+	bh=BBC8+Kbtx6sdbqpBqpjyjc3N+1DAcoXYt+KujEuQb08=;
 	h=Date:To:From:Subject:From;
-	b=fogYBGg4/JkZ/mb3W32Zx70Zz0kIAZB6xuCaIaUtROUjubebl7Rw0x9xHN1W9zrtm
-	 4BBGFXWqgxpC3Do6bflwqJLeBcNiwUWTYmF3pVX+6Rt/bpFAyX0jpU7oa7LzhS6SF+
-	 71VEdmKjAyPXLLOA9E1UIc4Hcv8VsCh7uArZmb5g=
-Date: Tue, 26 Mar 2024 11:30:13 -0700
+	b=Ip3PUTkeMqyatq7Rj3B68uems+J3s381sT4KmY9Nc4Wo2zOpnm+EC5fcjOWgIO+T/
+	 1qY5N5K77c0R/ii0e5kLtTCPNzS/dLzOPshujEclDKTXWI37nPAMoj+a42EuxXWE5Q
+	 z18HYE0y/7ykH1W1nfdPDqeztOwSNt/yZQBelZuk=
+Date: Tue, 26 Mar 2024 11:30:15 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-page_ext_get-take-a-const-argument.patch added to mm-unstable branch
-Message-Id: <20240326183013.B293EC433F1@smtp.kernel.org>
+Subject: + mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument.patch added to mm-unstable branch
+Message-Id: <20240326183016.24955C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: make page_ext_get() take a const argument
+     Subject: mm: make folio_test_idle and folio_test_young take a const argument
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-make-page_ext_get-take-a-const-argument.patch
+     mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-page_ext_get-take-a-const-argument.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,64 +59,67 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: make page_ext_get() take a const argument
-Date: Tue, 26 Mar 2024 17:10:25 +0000
+Subject: mm: make folio_test_idle and folio_test_young take a const argument
+Date: Tue, 26 Mar 2024 17:10:26 +0000
 
-In order to constify other functions, we need page_ext_get() to be const. 
-This is no problem as lookup_page_ext() already takes a const argument.
+If these functions are defined in page-flags.h, they already take a const
+argument; make it true for these alternate definitions too.
 
-Link: https://lkml.kernel.org/r/20240326171045.410737-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240326171045.410737-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_ext.h    |    4 ++--
- include/linux/pgalloc_tag.h |    2 --
- mm/page_ext.c               |    2 +-
- 3 files changed, 3 insertions(+), 5 deletions(-)
+ include/linux/page_idle.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/include/linux/page_ext.h~mm-make-page_ext_get-take-a-const-argument
-+++ a/include/linux/page_ext.h
-@@ -77,7 +77,7 @@ static inline void page_ext_init(void)
- }
- #endif
- 
--extern struct page_ext *page_ext_get(struct page *page);
-+extern struct page_ext *page_ext_get(const struct page *page);
- extern void page_ext_put(struct page_ext *page_ext);
- 
- static inline void *page_ext_data(struct page_ext *page_ext,
-@@ -117,7 +117,7 @@ static inline void page_ext_init_flatmem
- {
- }
- 
--static inline struct page_ext *page_ext_get(struct page *page)
-+static inline struct page_ext *page_ext_get(const struct page *page)
- {
- 	return NULL;
- }
---- a/include/linux/pgalloc_tag.h~mm-make-page_ext_get-take-a-const-argument
-+++ a/include/linux/pgalloc_tag.h
-@@ -12,8 +12,6 @@
- #include <linux/page_ext.h>
- 
- extern struct page_ext_operations page_alloc_tagging_ops;
--extern struct page_ext *page_ext_get(struct page *page);
--extern void page_ext_put(struct page_ext *page_ext);
- 
- static inline union codetag_ref *codetag_ref_from_page_ext(struct page_ext *page_ext)
- {
---- a/mm/page_ext.c~mm-make-page_ext_get-take-a-const-argument
-+++ a/mm/page_ext.c
-@@ -514,7 +514,7 @@ void __meminit pgdat_page_ext_init(struc
-  * Context: Any context.  Caller may not sleep until they have called
-  * page_ext_put().
+--- a/include/linux/page_idle.h~mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument
++++ a/include/linux/page_idle.h
+@@ -13,7 +13,7 @@
+  * If there is not enough space to store Idle and Young bits in page flags, use
+  * page ext flags instead.
   */
--struct page_ext *page_ext_get(struct page *page)
-+struct page_ext *page_ext_get(const struct page *page)
+-static inline bool folio_test_young(struct folio *folio)
++static inline bool folio_test_young(const struct folio *folio)
  {
- 	struct page_ext *page_ext;
+ 	struct page_ext *page_ext = page_ext_get(&folio->page);
+ 	bool page_young;
+@@ -52,7 +52,7 @@ static inline bool folio_test_clear_youn
+ 	return page_young;
+ }
  
+-static inline bool folio_test_idle(struct folio *folio)
++static inline bool folio_test_idle(const struct folio *folio)
+ {
+ 	struct page_ext *page_ext = page_ext_get(&folio->page);
+ 	bool page_idle;
+@@ -60,7 +60,7 @@ static inline bool folio_test_idle(struc
+ 	if (unlikely(!page_ext))
+ 		return false;
+ 
+-	page_idle =  test_bit(PAGE_EXT_IDLE, &page_ext->flags);
++	page_idle = test_bit(PAGE_EXT_IDLE, &page_ext->flags);
+ 	page_ext_put(page_ext);
+ 
+ 	return page_idle;
+@@ -91,7 +91,7 @@ static inline void folio_clear_idle(stru
+ 
+ #else /* !CONFIG_PAGE_IDLE_FLAG */
+ 
+-static inline bool folio_test_young(struct folio *folio)
++static inline bool folio_test_young(const struct folio *folio)
+ {
+ 	return false;
+ }
+@@ -105,7 +105,7 @@ static inline bool folio_test_clear_youn
+ 	return false;
+ }
+ 
+-static inline bool folio_test_idle(struct folio *folio)
++static inline bool folio_test_idle(const struct folio *folio)
+ {
+ 	return false;
+ }
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
