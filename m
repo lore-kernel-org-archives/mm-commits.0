@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC7B713D60A
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 20:46:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 308EF17591
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 20:46:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711485997; cv=none; b=ea8sh35LqCBNG3qx4VSMcDD4MpKN0wluWKa8Ti++Q3SXZMakL8UCAjkGNzpKt5JmaA15btIanbji4WYCScBnKx0h7wZiooTGTEaBsE/24YP1X+ly0W0yPpueQDFILPzouA4Vz/F2mhIu/FqmrmrG5Qi5wxPFpSJbg9f1FR8KLaQ=
+	t=1711486001; cv=none; b=QLS7iTzwuNAoEGJbZgHKlxyt+geQ2btMo3cCXxB256+x20Id7JjU3bCkNtDilCEQp5xE/f1fY+7b7q8VBMEXoZjX37poXKjxM+hMjj8SC5t9kjCltt9+8AeOiIXZ22mxENlxwDQNB5gp0aQrKCOI9YfgZk21F66W4I682dUh10o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711485997; c=relaxed/simple;
-	bh=QcOTvyu2ukMLJSR5X4geZHYc7g2+BtLeIym6KKlDTtU=;
-	h=Date:To:From:Subject:Message-Id; b=R2DUa3D6ujMveqJGld9DcpomnQpP6hwd1bF4hQUpmqa/daBq1MFssF6P7O2+tCxV2g0/Aa84ZRwP4JAinaUr4sdhK4Hgm/yr6Hlo7yYcNe3Lhib6/5JbxGBQ9WYhynLXVQhYWm8jEDypMV+C53QioowzmDS1BCi5ZvBj8/mHmVM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b2B+evFF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711486001; c=relaxed/simple;
+	bh=EvGRlNlZToIauk8uzjj//gZlUIj+JHTuWT4SlGq1ZoA=;
+	h=Date:To:From:Subject:Message-Id; b=hfcG/BgBrxVSPUWfjARqY5Fy5yYrAX9KyCBJ8iHpys++iAtML99xvWOC9fydUmt9OcOl3TdSg+tk4o3w1zhzaBqWvWVaKXUmWvHLnz9qemCdAXWMQMCXw4ixR4FBKEaBz3mlEe3jcPrRVCajwb0M2GD3AbUrg7id6BqIzAXcyGw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=suDJaoLh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b2B+evFF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4D22C433C7;
-	Tue, 26 Mar 2024 20:46:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="suDJaoLh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 941B7C433F1;
+	Tue, 26 Mar 2024 20:46:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711485996;
-	bh=QcOTvyu2ukMLJSR5X4geZHYc7g2+BtLeIym6KKlDTtU=;
+	s=korg; t=1711486000;
+	bh=EvGRlNlZToIauk8uzjj//gZlUIj+JHTuWT4SlGq1ZoA=;
 	h=Date:To:From:Subject:From;
-	b=b2B+evFFSMRFHUCk8eFHqfR1DymKHVDNlaRjCabrKD1tmqV47UbOrgyWq5SSuFZ2F
-	 Ph8WGJCrhZVjOcqP+d9jgZG1zML3uS468YRB6WUOvx1pAisELqFlmP4Obw54jFSCTI
-	 xvAjcgB/lcHJL/9EUfL/EMbaymqcSc5Vn/YeJepY=
-Date: Tue, 26 Mar 2024 13:46:36 -0700
+	b=suDJaoLhgzz5BoW0bp38bMdSP9Y0vQOeIXKEbmmPorZpmty7y/2PrE9NLV4ZW8Ykj
+	 rh7MiUCGCEe0PCs9IiUHhVhGPjGZMHk6dEs3Zg4iw8eFOzbUIkxeVPCdl7t4+WUHLq
+	 HxQH0uo1tDjzPDxL59f7BWhAbItpqeqG3LMPOVQ0=
+Date: Tue, 26 Mar 2024 13:46:40 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-is_huge_zero_folio.patch added to mm-unstable branch
-Message-Id: <20240326204636.B4D22C433C7@smtp.kernel.org>
+Subject: + mm-add-pmd_folio.patch added to mm-unstable branch
+Message-Id: <20240326204640.941B7C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add is_huge_zero_folio()
+     Subject: mm: add pmd_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-is_huge_zero_folio.patch
+     mm-add-pmd_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-is_huge_zero_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-pmd_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,134 +59,110 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: add is_huge_zero_folio()
-Date: Tue, 26 Mar 2024 20:28:22 +0000
+Subject: mm: add pmd_folio()
+Date: Tue, 26 Mar 2024 20:28:23 +0000
 
-This is the folio equivalent of is_huge_zero_page().  It doesn't add any
-efficiency, but it does prevent the caller from passing a tail page and
-getting confused when the predicate returns false.
+Convert directly from a pmd to a folio without going through another
+representation first.  For now this is just a slightly shorter way to
+write it, but it might end up being more efficient later.
 
-Link: https://lkml.kernel.org/r/20240326202833.523759-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240326202833.523759-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c          |    2 +-
- include/linux/huge_mm.h |   10 ++++++++++
+ include/linux/pgtable.h |    2 ++
  mm/huge_memory.c        |    6 +++---
+ mm/madvise.c            |    2 +-
  mm/mempolicy.c          |    2 +-
- mm/swap.c               |    2 +-
- mm/swap_state.c         |    2 +-
+ mm/mlock.c              |    2 +-
  mm/userfaultfd.c        |    2 +-
- 7 files changed, 18 insertions(+), 8 deletions(-)
+ 6 files changed, 9 insertions(+), 7 deletions(-)
 
---- a/fs/proc/page.c~mm-add-is_huge_zero_folio
-+++ a/fs/proc/page.c
-@@ -155,7 +155,7 @@ u64 stable_page_flags(const struct page
- 	else if (folio_test_large(folio)) {
- 		if ((k & PG_lru) || is_anon)
- 			u |= 1 << KPF_THP;
--		else if (is_huge_zero_page(&folio->page)) {
-+		else if (is_huge_zero_folio(folio)) {
- 			u |= 1 << KPF_ZERO_PAGE;
- 			u |= 1 << KPF_THP;
- 		}
---- a/include/linux/huge_mm.h~mm-add-is_huge_zero_folio
-+++ a/include/linux/huge_mm.h
-@@ -356,6 +356,11 @@ static inline bool is_huge_zero_page(con
- 	return READ_ONCE(huge_zero_page) == page;
- }
- 
-+static inline bool is_huge_zero_folio(const struct folio *folio)
-+{
-+	return READ_ONCE(huge_zero_page) == &folio->page;
-+}
-+
- static inline bool is_huge_zero_pmd(pmd_t pmd)
- {
- 	return pmd_present(pmd) && READ_ONCE(huge_zero_pfn) == pmd_pfn(pmd);
-@@ -484,6 +489,11 @@ static inline bool is_huge_zero_page(con
- {
- 	return false;
- }
-+
-+static inline bool is_huge_zero_folio(const struct folio *folio)
-+{
-+	return false;
-+}
- 
- static inline bool is_huge_zero_pmd(pmd_t pmd)
- {
---- a/mm/huge_memory.c~mm-add-is_huge_zero_folio
-+++ a/mm/huge_memory.c
-@@ -789,12 +789,12 @@ struct deferred_split *get_deferred_spli
- }
+--- a/include/linux/pgtable.h~mm-add-pmd_folio
++++ a/include/linux/pgtable.h
+@@ -50,6 +50,8 @@
+ #define pmd_pgtable(pmd) pmd_page(pmd)
  #endif
  
--static inline bool is_transparent_hugepage(struct folio *folio)
-+static inline bool is_transparent_hugepage(const struct folio *folio)
- {
- 	if (!folio_test_large(folio))
- 		return false;
- 
--	return is_huge_zero_page(&folio->page) ||
-+	return is_huge_zero_folio(folio) ||
- 		folio_test_large_rmappable(folio);
- }
- 
-@@ -3085,7 +3085,7 @@ int split_huge_page_to_list_to_order(str
++#define pmd_folio(pmd) page_folio(pmd_page(pmd))
++
+ /*
+  * A page table page can be thought of an array like this: pXd_t[PTRS_PER_PxD]
+  *
+--- a/mm/huge_memory.c~mm-add-pmd_folio
++++ a/mm/huge_memory.c
+@@ -1816,7 +1816,7 @@ bool madvise_free_huge_pmd(struct mmu_ga
+ 		goto out;
  	}
  
+-	folio = pfn_folio(pmd_pfn(orig_pmd));
++	folio = pmd_folio(orig_pmd);
+ 	/*
+ 	 * If other processes are mapping this folio, we couldn't discard
+ 	 * the folio unless they all do MADV_FREE so let's skip the folio.
+@@ -2086,7 +2086,7 @@ int change_huge_pmd(struct mmu_gather *t
+ 		if (pmd_protnone(*pmd))
+ 			goto unlock;
  
--	is_hzp = is_huge_zero_page(&folio->page);
-+	is_hzp = is_huge_zero_folio(folio);
- 	if (is_hzp) {
- 		pr_warn_ratelimited("Called split_huge_page for huge zero page\n");
- 		return -EBUSY;
---- a/mm/mempolicy.c~mm-add-is_huge_zero_folio
+-		folio = page_folio(pmd_page(*pmd));
++		folio = pmd_folio(*pmd);
+ 		toptier = node_is_toptier(folio_nid(folio));
+ 		/*
+ 		 * Skip scanning top tier node if normal numa
+@@ -2663,7 +2663,7 @@ void __split_huge_pmd(struct vm_area_str
+ 		 * It's safe to call pmd_page when folio is set because it's
+ 		 * guaranteed that pmd is present.
+ 		 */
+-		if (folio && folio != page_folio(pmd_page(*pmd)))
++		if (folio && folio != pmd_folio(*pmd))
+ 			goto out;
+ 		__split_huge_pmd_locked(vma, pmd, range.start, freeze);
+ 	}
+--- a/mm/madvise.c~mm-add-pmd_folio
++++ a/mm/madvise.c
+@@ -363,7 +363,7 @@ static int madvise_cold_or_pageout_pte_r
+ 			goto huge_unlock;
+ 		}
+ 
+-		folio = pfn_folio(pmd_pfn(orig_pmd));
++		folio = pmd_folio(orig_pmd);
+ 
+ 		/* Do not interfere with other mappings of this folio */
+ 		if (folio_likely_mapped_shared(folio))
+--- a/mm/mempolicy.c~mm-add-pmd_folio
 +++ a/mm/mempolicy.c
-@@ -510,7 +510,7 @@ static void queue_folios_pmd(pmd_t *pmd,
+@@ -509,7 +509,7 @@ static void queue_folios_pmd(pmd_t *pmd,
+ 		qp->nr_failed++;
  		return;
  	}
- 	folio = pfn_folio(pmd_pfn(*pmd));
--	if (is_huge_zero_page(&folio->page)) {
-+	if (is_huge_zero_folio(folio)) {
+-	folio = pfn_folio(pmd_pfn(*pmd));
++	folio = pmd_folio(*pmd);
+ 	if (is_huge_zero_folio(folio)) {
  		walk->action = ACTION_CONTINUE;
  		return;
- 	}
---- a/mm/swap.c~mm-add-is_huge_zero_folio
-+++ a/mm/swap.c
-@@ -985,7 +985,7 @@ void folios_put_refs(struct folio_batch
- 		struct folio *folio = folios->folios[i];
- 		unsigned int nr_refs = refs ? refs[i] : 1;
- 
--		if (is_huge_zero_page(&folio->page))
-+		if (is_huge_zero_folio(folio))
- 			continue;
- 
- 		if (folio_is_zone_device(folio)) {
---- a/mm/swap_state.c~mm-add-is_huge_zero_folio
-+++ a/mm/swap_state.c
-@@ -301,7 +301,7 @@ void free_page_and_swap_cache(struct pag
- 	struct folio *folio = page_folio(page);
- 
- 	free_swap_cache(folio);
--	if (!is_huge_zero_page(page))
-+	if (!is_huge_zero_folio(folio))
- 		folio_put(folio);
- }
- 
---- a/mm/userfaultfd.c~mm-add-is_huge_zero_folio
+--- a/mm/mlock.c~mm-add-pmd_folio
++++ a/mm/mlock.c
+@@ -378,7 +378,7 @@ static int mlock_pte_range(pmd_t *pmd, u
+ 			goto out;
+ 		if (is_huge_zero_pmd(*pmd))
+ 			goto out;
+-		folio = page_folio(pmd_page(*pmd));
++		folio = pmd_folio(*pmd);
+ 		if (vma->vm_flags & VM_LOCKED)
+ 			mlock_folio(folio);
+ 		else
+--- a/mm/userfaultfd.c~mm-add-pmd_folio
 +++ a/mm/userfaultfd.c
-@@ -1699,7 +1699,7 @@ ssize_t move_pages(struct userfaultfd_ct
+@@ -1697,7 +1697,7 @@ ssize_t move_pages(struct userfaultfd_ct
+ 			/* Check if we can move the pmd without splitting it. */
+ 			if (move_splits_huge_pmd(dst_addr, src_addr, src_start + len) ||
  			    !pmd_none(dst_pmdval)) {
- 				struct folio *folio = pfn_folio(pmd_pfn(*src_pmd));
+-				struct folio *folio = pfn_folio(pmd_pfn(*src_pmd));
++				struct folio *folio = pmd_folio(*src_pmd);
  
--				if (!folio || (!is_huge_zero_page(&folio->page) &&
-+				if (!folio || (!is_huge_zero_folio(folio) &&
+ 				if (!folio || (!is_huge_zero_folio(folio) &&
  					       !PageAnonExclusive(&folio->page))) {
- 					spin_unlock(ptl);
- 					err = -EBUSY;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
