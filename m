@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB6DC13CAA0
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 19:27:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8970F200CB
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 19:52:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711481273; cv=none; b=SyTtoLzwdjU9sfBbjdeaDutudD2fLpI4lXZRlr2O3IWIi7xxnLwpLcFniglbX2X0tgjOCi7USo95wFwvVIUk8Sn/UUpoRgNLoyI6QCfZTJ22E0ERLWQb9THP+I3cZtq8gCBEp6yjFNIr+Srs76hZcHVCb9o2KkELC0Sq2WROZNo=
+	t=1711482773; cv=none; b=A90nkWoNTKeoX7hfZ2dkAn9xhZVVoobBhDcks0Exyil4bWA0YrfCOwnc1KapdtZTtBa/5Cl/5u9rN3yekrN0FeU5Aw/927M4EFkePluWrbwEsPSF2Fl+1cXR91Rd1Y42o9smmAaM6uploCGW+Oa61rCixtwqkam46irZ0kdXX9c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711481273; c=relaxed/simple;
-	bh=PdnHj3byBVsXBAEn3ld2agqEI62DtXkWthwvjecgrmY=;
-	h=Date:To:From:Subject:Message-Id; b=Q311pJ1wJO+Xpy01ZG18pTQfSSMNPTDAjjAicy1xoz2NhxOtiZnNDthHtRLgjM9JXOgLdz8dIEVXd/SLGpZiyNxQHvh11oFTd3oMWxGcnAkTjMyxRv6mcQ4QYqXXq1hVXOFk5Hp5wYOvh3sTBm8AIZ90JQxlq6jHK2y6lgxpkmY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kezx+PVQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711482773; c=relaxed/simple;
+	bh=BU3w2fKmnVon/eNXKk+PEApvSh1wnIhHJkq5QmimHeU=;
+	h=Date:To:From:Subject:Message-Id; b=FR7bCo4HJ86nuCwelx4LJI9poYq+50JgOoSpiTJsT8qtVqI5cuSIXs8EL6nCESz65VEfZvdY/Y89v1Z6riQB12ifJVJpHuMSDTmnw8w1TXZ75wt6LfJ+g2CJH7xILnwcVqDErY1Hct96cWnGyJhxn3bBb86p80gcUZ60Cf4DVoQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0uLR6vnL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kezx+PVQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BFEEC433C7;
-	Tue, 26 Mar 2024 19:27:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0uLR6vnL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 341DEC433C7;
+	Tue, 26 Mar 2024 19:52:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711481273;
-	bh=PdnHj3byBVsXBAEn3ld2agqEI62DtXkWthwvjecgrmY=;
+	s=korg; t=1711482773;
+	bh=BU3w2fKmnVon/eNXKk+PEApvSh1wnIhHJkq5QmimHeU=;
 	h=Date:To:From:Subject:From;
-	b=Kezx+PVQTQpv22uK3EEAXIBiUxoEZf3H5oXaToOvR6Kr6heWoLd+UJa2rI+Tmb1Ju
-	 G6znXCpDagl7h+D9NjGp0QlBqyjEUoxgXtar71l8Dm1l6Hp3SjqOKrLJwn5hSdmgQt
-	 liLXlp2bIgEcDt2RXG8vUvfi2MyvmZpwFzVjrlA8=
-Date: Tue, 26 Mar 2024 12:27:52 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
+	b=0uLR6vnLAwcD3csQB/7/hNuxYDqlV3+EjYVyPf639iwD049VUaEO6FnwXV4ppqSFI
+	 b7ViJ4ygqyFX/aEhpCgLYOWhQxgHFferjffeM6URyYA04zVbrqZumsUhcyd9SCCWhO
+	 GCGygewak/92VZxOOjI/JTxXcz12FVcq9hlZYe44=
+Date: Tue, 26 Mar 2024 12:52:52 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,mgorman@suse.de,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmpage_owner-fix-accounting-of-pages-when-migrating.patch added to mm-unstable branch
-Message-Id: <20240326192753.3BFEEC433C7@smtp.kernel.org>
+Subject: + mm-move-array-mem_section-init-code-out-of-memory_present.patch added to mm-unstable branch
+Message-Id: <20240326195253.341DEC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,page_owner: fix accounting of pages when migrating
+     Subject: mm: move array mem_section init code out of memory_present()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmpage_owner-fix-accounting-of-pages-when-migrating.patch
+     mm-move-array-mem_section-init-code-out-of-memory_present.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-fix-accounting-of-pages-when-migrating.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-array-mem_section-init-code-out-of-memory_present.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,85 +58,95 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,page_owner: fix accounting of pages when migrating
-Date: Tue, 26 Mar 2024 07:30:36 +0100
+From: Baoquan He <bhe@redhat.com>
+Subject: mm: move array mem_section init code out of memory_present()
+Date: Tue, 26 Mar 2024 14:11:27 +0800
 
-Upon migration, new allocated pages are being given the handle of the old
-pages.  This is problematic because it means that for the stack which
-allocated the old page, we will be substracting the old page + the new one
-when that page is freed, creating an accounting imbalance.
+Patch series "mm/init: minor clean up and improvement".
 
-There is an interest in keeping it that way, as otherwise the output will
-biased towards migration stacks should those operations occur often, but
-that is not really helpful.
+These are all observed when going through code flow during mm init.
 
-The link from the new page to the old stack is being performed by calling
-__update_page_owner_handle() in __folio_copy_owner().  The only thing that
-is left is to link the migrate stack to the old page, so the old page will
-be subtracted from the migrate stack, avoiding by doing so any possible
-imbalance.
 
-Link: https://lkml.kernel.org/r/20240326063036.6242-4-osalvador@suse.de
-Fixes: 217b2119b9e2 ("mm,page_owner: implement the tracking of the stacks count")
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+This patch (of 7):
+
+When CONFIG_SPARSEMEM_EXTREME is enabled, mem_section need be initialized
+to point at a two-dimensional array, and its 1st dimension of length
+NR_SECTION_ROOTS will be dynamically allocated.  Once the allocation is
+done, it's available for all nodes.
+
+So take the 1st dimension of mem_section initialization out of
+memory_present()(), and put it into memblocks_present() which is a more
+appripriate place.
+
+Link: https://lkml.kernel.org/r/20240326061134.1055295-1-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20240326061134.1055295-2-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ mm/sparse.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
---- a/mm/page_owner.c~mmpage_owner-fix-accounting-of-pages-when-migrating
-+++ a/mm/page_owner.c
-@@ -366,9 +366,12 @@ void __split_page_owner(struct page *pag
- 
- void __folio_copy_owner(struct folio *newfolio, struct folio *old)
+--- a/mm/sparse.c~mm-move-array-mem_section-init-code-out-of-memory_present
++++ a/mm/sparse.c
+@@ -226,19 +226,6 @@ static void __init memory_present(int ni
  {
-+	int i;
- 	struct page_ext *old_ext;
- 	struct page_ext *new_ext;
- 	struct page_owner *old_page_owner;
-+	struct page_owner *new_page_owner;
-+	depot_stack_handle_t migrate_handle;
+ 	unsigned long pfn;
  
- 	old_ext = page_ext_get(&old->page);
- 	if (unlikely(!old_ext))
-@@ -381,6 +384,8 @@ void __folio_copy_owner(struct folio *ne
- 	}
+-#ifdef CONFIG_SPARSEMEM_EXTREME
+-	if (unlikely(!mem_section)) {
+-		unsigned long size, align;
+-
+-		size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
+-		align = 1 << (INTERNODE_CACHE_SHIFT);
+-		mem_section = memblock_alloc(size, align);
+-		if (!mem_section)
+-			panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-			      __func__, size, align);
+-	}
+-#endif
+-
+ 	start &= PAGE_SECTION_MASK;
+ 	mminit_validate_memmodel_limits(&start, &end);
+ 	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION) {
+@@ -267,6 +254,19 @@ static void __init memblocks_present(voi
+ 	unsigned long start, end;
+ 	int i, nid;
  
- 	old_page_owner = get_page_owner(old_ext);
-+	new_page_owner = get_page_owner(new_ext);
-+	migrate_handle = new_page_owner->handle;
- 	__update_page_owner_handle(new_ext, old_page_owner->handle,
- 				   old_page_owner->order, old_page_owner->gfp_mask,
- 				   old_page_owner->last_migrate_reason,
-@@ -395,6 +400,16 @@ void __folio_copy_owner(struct folio *ne
- 					old_page_owner->free_pid,
- 					old_page_owner->free_tgid,
- 					old_page_owner->free_ts_nsec);
-+	/*
-+	 * We linked the original stack to the new folio, we need to do the same
-+	 * for the new one and the old folio otherwise there will be an imbalance
-+	 * when subtracting those pages from the stack.
-+	 */
-+	for (i = 0; i < (1 << new_page_owner->order); i++) {
-+		old_page_owner->handle = migrate_handle;
-+		old_ext = page_ext_next(old_ext);
-+		old_page_owner = get_page_owner(old_ext);
++#ifdef CONFIG_SPARSEMEM_EXTREME
++	if (unlikely(!mem_section)) {
++		unsigned long size, align;
++
++		size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
++		align = 1 << (INTERNODE_CACHE_SHIFT);
++		mem_section = memblock_alloc(size, align);
++		if (!mem_section)
++			panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
++			      __func__, size, align);
 +	}
- 
- 	page_ext_put(new_ext);
- 	page_ext_put(old_ext);
++#endif
++
+ 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, &nid)
+ 		memory_present(nid, start, end);
+ }
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-mmpage_owner-update-metada-for-tail-pages.patch
-mmpage_owner-fix-refcount-imbalance.patch
-mmpage_owner-fix-accounting-of-pages-when-migrating.patch
+mm-vmallocc-optimize-to-reduce-arguments-of-alloc_vmap_area.patch
+x86-remove-unneeded-memblock_find_dma_reserve.patch
+mm-mm_initc-remove-the-useless-dma_reserve.patch
+mm-mm_initc-add-new-function-calc_nr_all_pages.patch
+mm-mm_initc-remove-meaningless-calculation-of-zone-managed_pages-in-free_area_init_core.patch
+mm-mm_initc-remove-unneeded-calc_memmap_size.patch
+mm-mm_initc-remove-arch_reserved_kernel_pages.patch
+mm-move-array-mem_section-init-code-out-of-memory_present.patch
+mm-init-remove-the-unnecessary-special-treatment-for-memory-less-node.patch
+mm-make-__absent_pages_in_range-as-static.patch
+mm-page_allocc-remove-unneeded-codes-in-numa-version-of-build_zonelists.patch
+mm-mm_initc-remove-the-outdated-code-comment-above-deferred_grow_zone.patch
+mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone.patch
+mm-page_allocc-change-the-array-length-to-migrate_pcptypes.patch
 
