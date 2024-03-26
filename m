@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CD6D13CC42
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 19:27:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB6DC13CAA0
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 19:27:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711481271; cv=none; b=k0N6vSz26fxO/8WYPmI6XqFkO1XInDP0vtWVvX1enlJocn/KfAQmtBcKr2w9jCJk5h658NlvonRlmudAbanwTXrsODvd5NL4BvopyEwOPFrjq+OSY4d2KtFTQl71w+LXlMfgxo3gpypGN6GJ4SkMKLJGxstoIbd+KrObZERDszw=
+	t=1711481273; cv=none; b=SyTtoLzwdjU9sfBbjdeaDutudD2fLpI4lXZRlr2O3IWIi7xxnLwpLcFniglbX2X0tgjOCi7USo95wFwvVIUk8Sn/UUpoRgNLoyI6QCfZTJ22E0ERLWQb9THP+I3cZtq8gCBEp6yjFNIr+Srs76hZcHVCb9o2KkELC0Sq2WROZNo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711481271; c=relaxed/simple;
-	bh=gHmG+NnG+GG4uk8dYpb5AN/hFdiyIEkpNpRi3iPwjx4=;
-	h=Date:To:From:Subject:Message-Id; b=AFDYbjGRQ3pnQgMp/cL2/cXQ95NMkGNto55TYnun04M9u1oDrWNL4C69d0jEkBDhILX4kv1eVlYViJo2ss3x+ICaaBCDPCAusr3atcEYA9ek453qgc/m5M2n7GexqHJu2cd6TshAXil5MGNytFhfTKVmIOxSMElu9eCA+uYeG+U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eg8sPCRV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711481273; c=relaxed/simple;
+	bh=PdnHj3byBVsXBAEn3ld2agqEI62DtXkWthwvjecgrmY=;
+	h=Date:To:From:Subject:Message-Id; b=Q311pJ1wJO+Xpy01ZG18pTQfSSMNPTDAjjAicy1xoz2NhxOtiZnNDthHtRLgjM9JXOgLdz8dIEVXd/SLGpZiyNxQHvh11oFTd3oMWxGcnAkTjMyxRv6mcQ4QYqXXq1hVXOFk5Hp5wYOvh3sTBm8AIZ90JQxlq6jHK2y6lgxpkmY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kezx+PVQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eg8sPCRV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01D1AC43394;
-	Tue, 26 Mar 2024 19:27:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kezx+PVQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BFEEC433C7;
+	Tue, 26 Mar 2024 19:27:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711481271;
-	bh=gHmG+NnG+GG4uk8dYpb5AN/hFdiyIEkpNpRi3iPwjx4=;
+	s=korg; t=1711481273;
+	bh=PdnHj3byBVsXBAEn3ld2agqEI62DtXkWthwvjecgrmY=;
 	h=Date:To:From:Subject:From;
-	b=eg8sPCRVm66Gl/ZbHI5L/OD/6GI5OQn15O43PQvjWZiLFwvO+pWC2w3kWMhYYoqWs
-	 gNyE4dbrBNRPSh7RpoLLDhsfjCd2zlHbtHZy5N64QBLcc6TvHy2XwCwK/401GroPIF
-	 x+ky0TeLu2A5tN74JdlFwuHSb0iEMzdA2BNOYiVc=
-Date: Tue, 26 Mar 2024 12:27:50 -0700
+	b=Kezx+PVQTQpv22uK3EEAXIBiUxoEZf3H5oXaToOvR6Kr6heWoLd+UJa2rI+Tmb1Ju
+	 G6znXCpDagl7h+D9NjGp0QlBqyjEUoxgXtar71l8Dm1l6Hp3SjqOKrLJwn5hSdmgQt
+	 liLXlp2bIgEcDt2RXG8vUvfi2MyvmZpwFzVjrlA8=
+Date: Tue, 26 Mar 2024 12:27:52 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmpage_owner-fix-refcount-imbalance.patch added to mm-unstable branch
-Message-Id: <20240326192751.01D1AC43394@smtp.kernel.org>
+Subject: + mmpage_owner-fix-accounting-of-pages-when-migrating.patch added to mm-unstable branch
+Message-Id: <20240326192753.3BFEEC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,page_owner: fix refcount imbalance
+     Subject: mm,page_owner: fix accounting of pages when migrating
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmpage_owner-fix-refcount-imbalance.patch
+     mmpage_owner-fix-accounting-of-pages-when-migrating.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-fix-refcount-imbalance.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-fix-accounting-of-pages-when-migrating.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,237 +59,79 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,page_owner: fix refcount imbalance
-Date: Tue, 26 Mar 2024 07:30:35 +0100
+Subject: mm,page_owner: fix accounting of pages when migrating
+Date: Tue, 26 Mar 2024 07:30:36 +0100
 
-Current code does not contemplate scenarios were an allocation and free
-operation on the same pages do not handle it in the same amount at once.
+Upon migration, new allocated pages are being given the handle of the old
+pages.  This is problematic because it means that for the stack which
+allocated the old page, we will be substracting the old page + the new one
+when that page is freed, creating an accounting imbalance.
 
-To give an example, page_alloc_exact(), where we will allocate a page of
-enough order to stafisfy the size request, but we will free the remainings
-right away.
+There is an interest in keeping it that way, as otherwise the output will
+biased towards migration stacks should those operations occur often, but
+that is not really helpful.
 
-In the above example, we will increment the stack_record refcount only
-once, but we will decrease it the same number of times as number of unused
-pages we have to free.  This will lead to a warning because of refcount
+The link from the new page to the old stack is being performed by calling
+__update_page_owner_handle() in __folio_copy_owner().  The only thing that
+is left is to link the migrate stack to the old page, so the old page will
+be subtracted from the migrate stack, avoiding by doing so any possible
 imbalance.
 
-Fix this by recording the number of base pages in the refcount field.
-
-Link: https://lkml.kernel.org/r/20240326063036.6242-3-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20240326063036.6242-4-osalvador@suse.de
 Fixes: 217b2119b9e2 ("mm,page_owner: implement the tracking of the stacks count")
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reported-by: syzbot+41bbfdb8d41003d12c0f@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/linux-mm/00000000000090e8ff0613eda0e5@google.com
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/page_owner.rst |   73 +++++++++++++++---------------
- mm/page_owner.c                 |   34 ++++++++-----
- 2 files changed, 58 insertions(+), 49 deletions(-)
+ mm/page_owner.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
---- a/Documentation/mm/page_owner.rst~mmpage_owner-fix-refcount-imbalance
-+++ a/Documentation/mm/page_owner.rst
-@@ -24,10 +24,10 @@ fragmentation statistics can be obtained
- each page. It is already implemented and activated if page owner is
- enabled. Other usages are more than welcome.
- 
--It can also be used to show all the stacks and their outstanding
--allocations, which gives us a quick overview of where the memory is going
--without the need to screen through all the pages and match the allocation
--and free operation.
-+It can also be used to show all the stacks and their current number of
-+allocated base pages, which gives us a quick overview of where the memory
-+is going without the need to screen through all the pages and match the
-+allocation and free operation.
- 
- page owner is disabled by default. So, if you'd like to use it, you need
- to add "page_owner=on" to your boot cmdline. If the kernel is built
-@@ -75,42 +75,45 @@ Usage
- 
- 	cat /sys/kernel/debug/page_owner_stacks/show_stacks > stacks.txt
- 	cat stacks.txt
--	 prep_new_page+0xa9/0x120
--	 get_page_from_freelist+0x7e6/0x2140
--	 __alloc_pages+0x18a/0x370
--	 new_slab+0xc8/0x580
--	 ___slab_alloc+0x1f2/0xaf0
--	 __slab_alloc.isra.86+0x22/0x40
--	 kmem_cache_alloc+0x31b/0x350
--	 __khugepaged_enter+0x39/0x100
--	 dup_mmap+0x1c7/0x5ce
--	 copy_process+0x1afe/0x1c90
--	 kernel_clone+0x9a/0x3c0
--	 __do_sys_clone+0x66/0x90
--	 do_syscall_64+0x7f/0x160
--	 entry_SYSCALL_64_after_hwframe+0x6c/0x74
--	stack_count: 234
-+	 post_alloc_hook+0x177/0x1a0
-+	 get_page_from_freelist+0xd01/0xd80
-+	 __alloc_pages+0x39e/0x7e0
-+	 allocate_slab+0xbc/0x3f0
-+	 ___slab_alloc+0x528/0x8a0
-+	 kmem_cache_alloc+0x224/0x3b0
-+	 sk_prot_alloc+0x58/0x1a0
-+	 sk_alloc+0x32/0x4f0
-+	 inet_create+0x427/0xb50
-+	 __sock_create+0x2e4/0x650
-+	 inet_ctl_sock_create+0x30/0x180
-+	 igmp_net_init+0xc1/0x130
-+	 ops_init+0x167/0x410
-+	 setup_net+0x304/0xa60
-+	 copy_net_ns+0x29b/0x4a0
-+	 create_new_namespaces+0x4a1/0x820
-+	nr_base_pages: 16
- 	...
- 	...
- 	echo 7000 > /sys/kernel/debug/page_owner_stacks/count_threshold
- 	cat /sys/kernel/debug/page_owner_stacks/show_stacks> stacks_7000.txt
- 	cat stacks_7000.txt
--	 prep_new_page+0xa9/0x120
--	 get_page_from_freelist+0x7e6/0x2140
--	 __alloc_pages+0x18a/0x370
--	 alloc_pages_mpol+0xdf/0x1e0
--	 folio_alloc+0x14/0x50
--	 filemap_alloc_folio+0xb0/0x100
--	 page_cache_ra_unbounded+0x97/0x180
--	 filemap_fault+0x4b4/0x1200
--	 __do_fault+0x2d/0x110
--	 do_pte_missing+0x4b0/0xa30
--	 __handle_mm_fault+0x7fa/0xb70
--	 handle_mm_fault+0x125/0x300
--	 do_user_addr_fault+0x3c9/0x840
--	 exc_page_fault+0x68/0x150
--	 asm_exc_page_fault+0x22/0x30
--	stack_count: 8248
-+	 post_alloc_hook+0x177/0x1a0
-+	 get_page_from_freelist+0xd01/0xd80
-+	 __alloc_pages+0x39e/0x7e0
-+	 alloc_pages_mpol+0x22e/0x490
-+	 folio_alloc+0xd5/0x110
-+	 filemap_alloc_folio+0x78/0x230
-+	 page_cache_ra_order+0x287/0x6f0
-+	 filemap_get_pages+0x517/0x1160
-+	 filemap_read+0x304/0x9f0
-+	 xfs_file_buffered_read+0xe6/0x1d0 [xfs]
-+	 xfs_file_read_iter+0x1f0/0x380 [xfs]
-+	 __kernel_read+0x3b9/0x730
-+	 kernel_read_file+0x309/0x4d0
-+	 __do_sys_finit_module+0x381/0x730
-+	 do_syscall_64+0x8d/0x150
-+	 entry_SYSCALL_64_after_hwframe+0x62/0x6a
-+	nr_base_pages: 20824
- 	...
- 
- 	cat /sys/kernel/debug/page_owner > page_owner_full.txt
---- a/mm/page_owner.c~mmpage_owner-fix-refcount-imbalance
+--- a/mm/page_owner.c~mmpage_owner-fix-accounting-of-pages-when-migrating
 +++ a/mm/page_owner.c
-@@ -196,7 +196,8 @@ static void add_stack_record_to_list(str
- 	spin_unlock_irqrestore(&stack_list_lock, flags);
- }
+@@ -366,9 +366,12 @@ void __split_page_owner(struct page *pag
  
--static void inc_stack_record_count(depot_stack_handle_t handle, gfp_t gfp_mask)
-+static void inc_stack_record_count(depot_stack_handle_t handle, gfp_t gfp_mask,
-+				   int nr_base_pages)
+ void __folio_copy_owner(struct folio *newfolio, struct folio *old)
  {
- 	struct stack_record *stack_record = __stack_depot_get_stack_record(handle);
++	int i;
+ 	struct page_ext *old_ext;
+ 	struct page_ext *new_ext;
+ 	struct page_owner *old_page_owner;
++	struct page_owner *new_page_owner;
++	depot_stack_handle_t migrate_handle;
  
-@@ -217,15 +218,20 @@ static void inc_stack_record_count(depot
- 			/* Add the new stack_record to our list */
- 			add_stack_record_to_list(stack_record, gfp_mask);
+ 	old_ext = page_ext_get(&old->page);
+ 	if (unlikely(!old_ext))
+@@ -381,6 +384,8 @@ void __folio_copy_owner(struct folio *ne
  	}
--	refcount_inc(&stack_record->count);
-+	refcount_add(nr_base_pages, &stack_record->count);
- }
  
--static void dec_stack_record_count(depot_stack_handle_t handle)
-+static void dec_stack_record_count(depot_stack_handle_t handle,
-+				   int nr_base_pages)
- {
- 	struct stack_record *stack_record = __stack_depot_get_stack_record(handle);
+ 	old_page_owner = get_page_owner(old_ext);
++	new_page_owner = get_page_owner(new_ext);
++	migrate_handle = new_page_owner->handle;
+ 	__update_page_owner_handle(new_ext, old_page_owner->handle,
+ 				   old_page_owner->order, old_page_owner->gfp_mask,
+ 				   old_page_owner->last_migrate_reason,
+@@ -395,6 +400,16 @@ void __folio_copy_owner(struct folio *ne
+ 					old_page_owner->free_pid,
+ 					old_page_owner->free_tgid,
+ 					old_page_owner->free_ts_nsec);
++	/*
++	 * We linked the original stack to the new folio, we need to do the same
++	 * for the new one and the old folio otherwise there will be an imbalance
++	 * when subtracting those pages from the stack.
++	 */
++	for (i = 0; i < (1 << new_page_owner->order); i++) {
++		old_page_owner->handle = migrate_handle;
++		old_ext = page_ext_next(old_ext);
++		old_page_owner = get_page_owner(old_ext);
++	}
  
--	if (stack_record)
--		refcount_dec(&stack_record->count);
-+	if (!stack_record)
-+		return;
-+
-+	if (refcount_sub_and_test(nr_base_pages, &stack_record->count))
-+		pr_warn("%s: refcount went to 0 for %u handle\n", __func__,
-+			handle);
- }
- 
- static inline void __update_page_owner_handle(struct page_ext *page_ext,
-@@ -306,7 +312,7 @@ void __reset_page_owner(struct page *pag
- 		 * the machinery is not ready yet, we cannot decrement
- 		 * their refcount either.
- 		 */
--		dec_stack_record_count(alloc_handle);
-+		dec_stack_record_count(alloc_handle, 1 << order);
- }
- 
- noinline void __set_page_owner(struct page *page, unsigned short order,
-@@ -325,7 +331,7 @@ noinline void __set_page_owner(struct pa
- 				   current->pid, current->tgid, ts_nsec,
- 				   current->comm);
- 	page_ext_put(page_ext);
--	inc_stack_record_count(handle, gfp_mask);
-+	inc_stack_record_count(handle, gfp_mask, 1 << order);
- }
- 
- void __set_page_owner_migrate_reason(struct page *page, int reason)
-@@ -872,11 +878,11 @@ static void *stack_next(struct seq_file
- 	return stack;
- }
- 
--static unsigned long page_owner_stack_threshold;
-+static unsigned long page_owner_pages_threshold;
- 
- static int stack_print(struct seq_file *m, void *v)
- {
--	int i, stack_count;
-+	int i, nr_base_pages;
- 	struct stack *stack = v;
- 	unsigned long *entries;
- 	unsigned long nr_entries;
-@@ -887,14 +893,14 @@ static int stack_print(struct seq_file *
- 
- 	nr_entries = stack_record->size;
- 	entries = stack_record->entries;
--	stack_count = refcount_read(&stack_record->count) - 1;
-+	nr_base_pages = refcount_read(&stack_record->count) - 1;
- 
--	if (stack_count < 1 || stack_count < page_owner_stack_threshold)
-+	if (nr_base_pages < 1 || nr_base_pages < page_owner_pages_threshold)
- 		return 0;
- 
- 	for (i = 0; i < nr_entries; i++)
- 		seq_printf(m, " %pS\n", (void *)entries[i]);
--	seq_printf(m, "stack_count: %d\n\n", stack_count);
-+	seq_printf(m, "nr_base_pages: %d\n\n", nr_base_pages);
- 
- 	return 0;
- }
-@@ -924,13 +930,13 @@ static const struct file_operations page
- 
- static int page_owner_threshold_get(void *data, u64 *val)
- {
--	*val = READ_ONCE(page_owner_stack_threshold);
-+	*val = READ_ONCE(page_owner_pages_threshold);
- 	return 0;
- }
- 
- static int page_owner_threshold_set(void *data, u64 val)
- {
--	WRITE_ONCE(page_owner_stack_threshold, val);
-+	WRITE_ONCE(page_owner_pages_threshold, val);
- 	return 0;
- }
- 
+ 	page_ext_put(new_ext);
+ 	page_ext_put(old_ext);
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
