@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 645D3208A7
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:18:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2C861FBB
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:30:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711477129; cv=none; b=rUJsTjQC1fGnY5qRx/4RjwiZjqQiEqUsgxyclXlYTl3Ztmb2ccssghAH7aLlotIigkymoINWfqeTXKez22grXHTxgeu7bpEURWup+Dyiz5ocgdicuE+JcMEMlIkiC2LGVFlb1+En6fRNxf1CcPOfMR7z1XmvosV9f+il7hkuLfs=
+	t=1711477810; cv=none; b=H4qnfGx2wXh9eBLMpxclrci5k0QDJWiBlaD5Wru3/U8AMmCBOsYKjsY3/T7/PrRI/6cqiMZIXCzT7m7p59TdHQDoidWnupZFTS1HcDd2zkrGj63XsL00auVP7j3zC8YTXidRonAE2rc1IlBWFMFzBqtMaEPsM/BvZIcqSNYDHgw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711477129; c=relaxed/simple;
-	bh=m7H8F7+9EIrWnkTlF33RZcFqXHPw1mjsDl2X/A3hE18=;
-	h=Date:To:From:Subject:Message-Id; b=kcB665H7MUHpmupWa1NHdNsmLP6NPbNHz9UMxLLevBHQ6HaA5jmvr9hNExnCq2S/g9JW0DAl84ooGLVnYChk5pvFUQlGmEdJRzlMtzgNpp0ezJhry9PswKaaM7b+M4WrYnMR4Up/V+7jB1Veu02KSEvmwFof6gPsTc15SdE2Bt8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zQK0ArFw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711477810; c=relaxed/simple;
+	bh=pRYx1d+Gen/VyYUESoMEnB7VEJ3JeohXzBvNHRWhUg4=;
+	h=Date:To:From:Subject:Message-Id; b=RFYJiiiuOA1mvDd5yFE9DibftZYXhPMQcQ7HQYw1eRp//O/ZkJZC/TDC11rwXqwV8JnZNZ6KmLD8tbVCj88VCZlXHgQpbdUsOC+Zy5cbC62cSdUKIHXEFbyRcaIpKVgu5LzXZFdDZgvuI1hIJjsixAj8gKL/5EfqiJV7Vzkl5j8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sEqasor1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zQK0ArFw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E15E3C433C7;
-	Tue, 26 Mar 2024 18:18:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sEqasor1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FE3FC433C7;
+	Tue, 26 Mar 2024 18:30:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711477129;
-	bh=m7H8F7+9EIrWnkTlF33RZcFqXHPw1mjsDl2X/A3hE18=;
+	s=korg; t=1711477810;
+	bh=pRYx1d+Gen/VyYUESoMEnB7VEJ3JeohXzBvNHRWhUg4=;
 	h=Date:To:From:Subject:From;
-	b=zQK0ArFwqHARQXHEpDt7p67mssvCC9jxyqVaSRuVuSlP5Sh66U+UCoi9aN85HZtcJ
-	 IyGg9TpRR2YcXQwyXTm8rVFbnT9ZezmlKi1ikjJkWjOIHwRV/8Y+SbTXpjneLkZN3Q
-	 PfDHooSk0fjwyi4MAWGUpSxS1LO3FN+ibaqzwAys=
-Date: Tue, 26 Mar 2024 11:18:48 -0700
-To: mm-commits@vger.kernel.org,xrivendell7@gmail.com,samsun1006219@gmail.com,rppt@kernel.org,mszeredi@redhat.com,lstoakes@gmail.com,david@redhat.com,akpm@linux-foundation.org
+	b=sEqasor1fJBMK5icOvaIlWrPapVQhjeoWHjLYMgKFWY7POTG5+z4maEauMa6+lLwL
+	 8Wlof7nG1uMr/58yE+YYckUqoN6xjS0Nw1LZdU0SDXe/EZ2TYoHFz73DZYSwuivpso
+	 vM89tRBCD4yk6ffYqX0H19tt2V7g7N6i1lEecGik=
+Date: Tue, 26 Mar 2024 11:30:09 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed.patch added to mm-unstable branch
-Message-Id: <20240326181848.E15E3C433C7@smtp.kernel.org>
+Subject: + sh-remove-use-of-pg_arch_1-on-individual-pages.patch added to mm-unstable branch
+Message-Id: <20240326183010.2FE3FC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: merge folio_is_secretmem() and folio_fast_pin_allowed() into gup_fast_folio_allowed()
+     Subject: sh: remove use of PG_arch_1 on individual pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed.patch
+     sh-remove-use-of-pg_arch_1-on-individual-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-remove-use-of-pg_arch_1-on-individual-pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,215 +58,77 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm: merge folio_is_secretmem() and folio_fast_pin_allowed() into gup_fast_folio_allowed()
-Date: Tue, 26 Mar 2024 15:32:10 +0100
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: sh: remove use of PG_arch_1 on individual pages
+Date: Tue, 26 Mar 2024 17:10:23 +0000
 
-folio_is_secretmem() is currently only used during GUP-fast.  Nowadays,
-folio_fast_pin_allowed() performs similar checks during GUP-fast and
-contains a lot of careful handling -- READ_ONCE() -- , sanity checks --
-lockdep_assert_irqs_disabled() -- and helpful comments on how this
-handling is safe and correct.
+Patch series "Various page->flags cleanups".
 
-So let's merge folio_is_secretmem() into folio_fast_pin_allowed().  Rename
-folio_fast_pin_allowed() to gup_fast_folio_allowed(), to better match the
-new semantics.
+The first two patches are bug fixes, although I'm not sure that either
+architecture will have noticed.  There aren't a lot of uses of page->flags
+left!  The big build-up here is to reworking stable_page_flags(), which
+will definitely be a user-visible change.  I think a welcome one, given
+the special case we had to spread the Slab flag into all tail pages.
 
-Link: https://lkml.kernel.org/r/20240326143210.291116-4-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>
-Cc: xingwei lee <xrivendell7@gmail.com>
-Cc: yue sun <samsun1006219@gmail.com>
+
+This patch (of 10):
+
+Since switching to the new page table range API, we do not set the
+PG_arch_1 (aka dcache clean) flag on tail pages, only on the folio.  Test
+it on the folio.  Also use page_mapped() instead of page_mapcount() as it
+is more efficient.
+
+Link: https://lkml.kernel.org/r/20240326171045.410737-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240326171045.410737-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/secretmem.h |   21 +--------------
- mm/gup.c                  |   48 +++++++++++++++++++++---------------
- 2 files changed, 30 insertions(+), 39 deletions(-)
+ arch/sh/mm/cache-sh4.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/include/linux/secretmem.h~mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed
-+++ a/include/linux/secretmem.h
-@@ -6,25 +6,8 @@
- 
- extern const struct address_space_operations secretmem_aops;
- 
--static inline bool folio_is_secretmem(struct folio *folio)
-+static inline bool secretmem_mapping(struct address_space *mapping)
- {
--	struct address_space *mapping;
--
--	/*
--	 * Using folio_mapping() is quite slow because of the actual call
--	 * instruction.
--	 * We know that secretmem pages are not compound, so we can
--	 * save a couple of cycles here.
--	 */
--	if (folio_test_large(folio))
--		return false;
--
--	mapping = (struct address_space *)
--		((unsigned long)folio->mapping & ~PAGE_MAPPING_FLAGS);
--
--	if (!mapping || mapping != folio->mapping)
--		return false;
--
- 	return mapping->a_ops == &secretmem_aops;
- }
- 
-@@ -38,7 +21,7 @@ static inline bool vma_is_secretmem(stru
- 	return false;
- }
- 
--static inline bool folio_is_secretmem(struct folio *folio)
-+static inline bool secretmem_mapping(struct address_space *mapping)
- {
- 	return false;
- }
---- a/mm/gup.c~mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed
-+++ a/mm/gup.c
-@@ -2466,12 +2466,14 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
- #ifdef CONFIG_HAVE_FAST_GUP
- 
- /*
-- * Used in the GUP-fast path to determine whether a pin is permitted for a
-- * specific folio.
-+ * Used in the GUP-fast path to determine whether GUP is permitted to work on
-+ * a specific folio.
-  *
-  * This call assumes the caller has pinned the folio, that the lowest page table
-  * level still points to this folio, and that interrupts have been disabled.
-  *
-+ * GUP-fast must reject all secretmem folios.
-+ *
-  * Writing to pinned file-backed dirty tracked folios is inherently problematic
-  * (see comment describing the writable_file_mapping_allowed() function). We
-  * therefore try to avoid the most egregious case of a long-term mapping doing
-@@ -2481,25 +2483,34 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
-  * in the fast path, so instead we whitelist known good cases and if in doubt,
-  * fall back to the slow path.
-  */
--static bool folio_fast_pin_allowed(struct folio *folio, unsigned int flags)
-+static bool gup_fast_folio_allowed(struct folio *folio, unsigned int flags)
- {
-+	bool reject_file_backed = false;
- 	struct address_space *mapping;
-+	bool check_secretmem = false;
- 	unsigned long mapping_flags;
- 
- 	/*
- 	 * If we aren't pinning then no problematic write can occur. A long term
- 	 * pin is the most egregious case so this is the one we disallow.
- 	 */
--	if ((flags & (FOLL_PIN | FOLL_LONGTERM | FOLL_WRITE)) !=
-+	if ((flags & (FOLL_PIN | FOLL_LONGTERM | FOLL_WRITE)) ==
- 	    (FOLL_PIN | FOLL_LONGTERM | FOLL_WRITE))
--		return true;
-+		reject_file_backed = true;
-+
-+	/* We hold a folio reference, so we can safely access folio fields. */
- 
--	/* The folio is pinned, so we can safely access folio fields. */
-+	/* secretmem folios are always order-0 folios. */
-+	if (IS_ENABLED(CONFIG_SECRETMEM) && !folio_test_large(folio))
-+		check_secretmem = true;
-+
-+	if (!reject_file_backed && !check_secretmem)
-+		return true;
- 
- 	if (WARN_ON_ONCE(folio_test_slab(folio)))
- 		return false;
- 
--	/* hugetlb mappings do not require dirty-tracking. */
-+	/* hugetlb neither requires dirty-tracking nor can be secretmem. */
- 	if (folio_test_hugetlb(folio))
- 		return true;
- 
-@@ -2535,10 +2546,12 @@ static bool folio_fast_pin_allowed(struc
- 
- 	/*
- 	 * At this point, we know the mapping is non-null and points to an
--	 * address_space object. The only remaining whitelisted file system is
--	 * shmem.
-+	 * address_space object.
- 	 */
--	return shmem_mapping(mapping);
-+	if (check_secretmem && secretmem_mapping(mapping))
-+		return false;
-+	/* The only remaining allowed file system is shmem. */
-+	return !reject_file_backed || shmem_mapping(mapping);
- }
- 
- static void __maybe_unused undo_dev_pagemap(int *nr, int nr_start,
-@@ -2624,18 +2637,13 @@ static int gup_pte_range(pmd_t pmd, pmd_
- 		if (!folio)
- 			goto pte_unmap;
- 
--		if (unlikely(folio_is_secretmem(folio))) {
--			gup_put_folio(folio, 1, flags);
--			goto pte_unmap;
--		}
--
- 		if (unlikely(pmd_val(pmd) != pmd_val(*pmdp)) ||
- 		    unlikely(pte_val(pte) != pte_val(ptep_get(ptep)))) {
- 			gup_put_folio(folio, 1, flags);
- 			goto pte_unmap;
- 		}
- 
--		if (!folio_fast_pin_allowed(folio, flags)) {
-+		if (!gup_fast_folio_allowed(folio, flags)) {
- 			gup_put_folio(folio, 1, flags);
- 			goto pte_unmap;
- 		}
-@@ -2832,7 +2840,7 @@ static int gup_hugepte(pte_t *ptep, unsi
- 		return 0;
- 	}
- 
--	if (!folio_fast_pin_allowed(folio, flags)) {
-+	if (!gup_fast_folio_allowed(folio, flags)) {
- 		gup_put_folio(folio, refs, flags);
- 		return 0;
- 	}
-@@ -2903,7 +2911,7 @@ static int gup_huge_pmd(pmd_t orig, pmd_
- 		return 0;
- 	}
- 
--	if (!folio_fast_pin_allowed(folio, flags)) {
-+	if (!gup_fast_folio_allowed(folio, flags)) {
- 		gup_put_folio(folio, refs, flags);
- 		return 0;
- 	}
-@@ -2947,7 +2955,7 @@ static int gup_huge_pud(pud_t orig, pud_
- 		return 0;
- 	}
- 
--	if (!folio_fast_pin_allowed(folio, flags)) {
-+	if (!gup_fast_folio_allowed(folio, flags)) {
- 		gup_put_folio(folio, refs, flags);
- 		return 0;
- 	}
-@@ -2992,7 +3000,7 @@ static int gup_huge_pgd(pgd_t orig, pgd_
- 		return 0;
- 	}
- 
--	if (!folio_fast_pin_allowed(folio, flags)) {
-+	if (!gup_fast_folio_allowed(folio, flags)) {
- 		gup_put_folio(folio, refs, flags);
- 		return 0;
- 	}
+--- a/arch/sh/mm/cache-sh4.c~sh-remove-use-of-pg_arch_1-on-individual-pages
++++ a/arch/sh/mm/cache-sh4.c
+@@ -241,13 +241,14 @@ static void sh4_flush_cache_page(void *a
+ 	if ((vma->vm_mm == current->active_mm))
+ 		vaddr = NULL;
+ 	else {
++		struct folio *folio = page_folio(page);
+ 		/*
+ 		 * Use kmap_coherent or kmap_atomic to do flushes for
+ 		 * another ASID than the current one.
+ 		 */
+ 		map_coherent = (current_cpu_data.dcache.n_aliases &&
+-			test_bit(PG_dcache_clean, &page->flags) &&
+-			page_mapcount(page));
++			test_bit(PG_dcache_clean, folio_flags(folio)) &&
++			page_mapped(page));
+ 		if (map_coherent)
+ 			vaddr = kmap_coherent(page, address);
+ 		else
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-secretmem-fix-gup-fast-succeeding-on-secretmem-folios.patch
-mm-madvise-make-madv_populate_readwrite-handle-vm_fault_retry-properly.patch
-mm-madvise-dont-perform-madvise-vma-walk-for-madv_populate_readwrite.patch
-mm-userfaultfd-dont-place-zeropages-when-zeropages-are-disallowed.patch
-s390-mm-re-enable-the-shared-zeropage-for-pv-and-skeys-kvm-guests.patch
-mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared.patch
-mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared-fix.patch
-selftests-memfd_secret-add-vmsplice-test.patch
-mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed.patch
+mm-always-initialise-folio-_deferred_list.patch
+mm-create-folio_flag_false-and-folio_type_ops-macros.patch
+mm-remove-folio_prep_large_rmappable.patch
+mm-support-page_mapcount-on-page_has_type-pages.patch
+mm-turn-folio_test_hugetlb-into-a-pagetype.patch
+mm-turn-folio_test_hugetlb-into-a-pagetype-fix.patch
+mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch
+mm-free-up-pg_slab.patch
+mm-free-up-pg_slab-fix.patch
+mm-improve-dumping-of-mapcount-and-page_type.patch
+hugetlb-remove-mention-of-destructors.patch
+sh-remove-use-of-pg_arch_1-on-individual-pages.patch
+xtensa-remove-uses-of-pg_arch_1-on-individual-pages.patch
+mm-make-page_ext_get-take-a-const-argument.patch
+mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument.patch
+mm-make-is_free_buddy_page-take-a-const-argument.patch
+mm-make-page_mapped-take-a-const-argument.patch
+mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
+slub-remove-use-of-page-flags.patch
+remove-references-to-page-flags-in-documentation.patch
+proc-rewrite-stable_page_flags.patch
 
