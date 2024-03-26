@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74D0F6F07B
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:08:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6A1984D34
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:08:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711476492; cv=none; b=j34CCBnNTAlIilmcpUS91H8859nTFA+E1sTRtayMyj1HcFKrhrBEGZ+V/0yBLaP2vVRiBpiQETTiL50wOlHkRAwBQuzD2MmmFvYO/GUKSiuh7EzzYLKm6Jk0wThP5EWSA1y9pMEl8ohqCfrI9+/zotdljLBNL8lEGdZvz3zFd/o=
+	t=1711476492; cv=none; b=scGMvTa3dM/QZ/qvOAcsIpHtdkV2otiM6hsWu3Sem6/4lfw6TA3cyuODF/9ThhzpbAH7aWHlLaoDooBamXn9Oh4nk98dtV5Z2R53qUCyrVZNclygk4vG9uwe3O6bx3N3zZUmwFntHOffldOHJI8QgZjYGkkE9mbl58B5U0k0lf8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1711476492; c=relaxed/simple;
-	bh=jtuu5OBSZyoBPBO1gsqEh1Uhf3KGTyKdy6ouJQRkvNs=;
-	h=Date:To:From:Subject:Message-Id; b=K/y0k2rFRgyrTMU3/IxWkBAlNXAYCicI8BvrsI0K0M1ST7fZmOQhHjxxYYAGexpuqjo+DJjAyUHq9ZoIBm7THFA8fjOh0eV9I/kze2YkiD999rkqIY/Lj45RJlp6Kn2PPp9essXCrPUBnBbNuZSCqq1PQK3hvO0m5+NxIOx78Cw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ykPmC8Ae; arc=none smtp.client-ip=10.30.226.201
+	bh=XdkREf5rUMquxt4+GGBbNdsBKheelSTwV7fIpYlQ7OY=;
+	h=Date:To:From:Subject:Message-Id; b=V5UZJAr/dpbrG9/2NUEJaI0nJ3/cMgF21OShksKGZLhUNunB31jdEfI8q1nxwCeR4TVGdctQEm0NFwOR74Wi8YHMk6gQWHFplyFemZ4+k9gv8Rt5p7heWIQhLJrny7/uVTr6lqO6eselllu/OujJEtgMhoIKDS6HYUSn6Vu9GaM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZlN6iX7l; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ykPmC8Ae"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7CEAC43399;
-	Tue, 26 Mar 2024 18:08:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZlN6iX7l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32199C433C7;
+	Tue, 26 Mar 2024 18:08:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711476491;
-	bh=jtuu5OBSZyoBPBO1gsqEh1Uhf3KGTyKdy6ouJQRkvNs=;
+	s=korg; t=1711476492;
+	bh=XdkREf5rUMquxt4+GGBbNdsBKheelSTwV7fIpYlQ7OY=;
 	h=Date:To:From:Subject:From;
-	b=ykPmC8Ae3dTOZQLkm5uVYKAa3W7cvFn35NB1g0OKgLJacX+SFoCUyMky+ilBQiT+i
-	 s7cu1ZhLjIKmxRM0wEqqSJhd1Y5e5nVk4+1MhI4eLiJBDmI88jxx6Swon6IrGFK0f6
-	 aBceYwQfKHGhuVip8K0IGwz7d+WPSFs9GpI2sD6M=
-Date: Tue, 26 Mar 2024 11:08:10 -0700
-To: mm-commits@vger.kernel.org,f.fainelli@gmail.com,cdleonard@gmail.com,akpm@linux-foundation.org
+	b=ZlN6iX7llPUCaajKFKHELP6mXuy03LwMlhN2iaD9zUzTDd7XyGP3ODDydhYKGfJm4
+	 SIA+EpxE+QcdRIrRAkJDARgLnCZJ73xK7+Wfn5Mu3zy5y2WuE4DB7MWTqYLEHm0/EF
+	 Adi3zAlYpwBQZAYyTVTyJpLatr3Xjqj+b7OjjKJg=
+Date: Tue, 26 Mar 2024 11:08:11 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mailmap-update-entry-for-leonard-crestez.patch removed from -mm tree
-Message-Id: <20240326180810.E7CEAC43399@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mmpage_owner-fix-recursion.patch removed from -mm tree
+Message-Id: <20240326180812.32199C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,119 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mailmap: update entry for Leonard Crestez
+     Subject: mm,page_owner: fix recursion
 has been removed from the -mm tree.  Its filename was
-     mailmap-update-entry-for-leonard-crestez.patch
+     mmpage_owner-fix-recursion.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Leonard Crestez <cdleonard@gmail.com>
-Subject: mailmap: update entry for Leonard Crestez
-Date: Sat, 16 Mar 2024 20:28:37 +0200
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,page_owner: fix recursion
+Date: Fri, 15 Mar 2024 23:26:10 +0100
 
-Put my personal email first because NXP employment ended some time ago.
-Also add my old intel email address.
+Prior to 217b2119b9e2 ("mm,page_owner: implement the tracking of the
+stacks count") the only place where page_owner could potentially go into
+recursion due to its need of allocating more memory was in save_stack(),
+which ends up calling into stackdepot code with the possibility of
+allocating memory.
 
-Link: https://lkml.kernel.org/r/f568faa0-2380-4e93-a312-b80c1e367645@gmail.com
-Signed-off-by: Leonard Crestez <cdleonard@gmail.com>
-Cc: Florian Fainelli <f.fainelli@gmail.com>
+We made sure to guard against that by signaling that the current task was
+already in page_owner code, so in case a recursion attempt was made, we
+could catch that and return dummy_handle.
+
+After above commit, a new place in page_owner code was introduced where we
+could allocate memory, meaning we could go into recursion would we take
+that path.
+
+Make sure to signal that we are in page_owner in that codepath as well. 
+Move the guard code into two helpers {un}set_current_in_page_owner() and
+use them prior to calling in the two functions that might allocate memory.
+
+Link: https://lkml.kernel.org/r/20240315222610.6870-1-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Fixes: 217b2119b9e2 ("mm,page_owner: implement the tracking of the stacks count")
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_owner.c |   33 +++++++++++++++++++++++----------
+ 1 file changed, 23 insertions(+), 10 deletions(-)
 
---- a/.mailmap~mailmap-update-entry-for-leonard-crestez
-+++ a/.mailmap
-@@ -340,7 +340,8 @@ Lee Jones <lee@kernel.org> <joneslee@goo
- Lee Jones <lee@kernel.org> <lee.jones@canonical.com>
- Lee Jones <lee@kernel.org> <lee.jones@linaro.org>
- Lee Jones <lee@kernel.org> <lee@ubuntu.com>
--Leonard Crestez <leonard.crestez@nxp.com> Leonard Crestez <cdleonard@gmail.com>
-+Leonard Crestez <cdleonard@gmail.com> <leonard.crestez@nxp.com>
-+Leonard Crestez <cdleonard@gmail.com> <leonard.crestez@intel.com>
- Leonardo Bras <leobras.c@gmail.com> <leonardo@linux.ibm.com>
- Leonard Göhrs <l.goehrs@pengutronix.de>
- Leonid I Ananiev <leonid.i.ananiev@intel.com>
+--- a/mm/page_owner.c~mmpage_owner-fix-recursion
++++ a/mm/page_owner.c
+@@ -54,6 +54,22 @@ static depot_stack_handle_t early_handle
+ 
+ static void init_early_allocated_pages(void);
+ 
++static inline void set_current_in_page_owner(void)
++{
++	/*
++	 * Avoid recursion.
++	 *
++	 * We might need to allocate more memory from page_owner code, so make
++	 * sure to signal it in order to avoid recursion.
++	 */
++	current->in_page_owner = 1;
++}
++
++static inline void unset_current_in_page_owner(void)
++{
++	current->in_page_owner = 0;
++}
++
+ static int __init early_page_owner_param(char *buf)
+ {
+ 	int ret = kstrtobool(buf, &page_owner_enabled);
+@@ -133,23 +149,16 @@ static noinline depot_stack_handle_t sav
+ 	depot_stack_handle_t handle;
+ 	unsigned int nr_entries;
+ 
+-	/*
+-	 * Avoid recursion.
+-	 *
+-	 * Sometimes page metadata allocation tracking requires more
+-	 * memory to be allocated:
+-	 * - when new stack trace is saved to stack depot
+-	 */
+ 	if (current->in_page_owner)
+ 		return dummy_handle;
+-	current->in_page_owner = 1;
+ 
++	set_current_in_page_owner();
+ 	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 2);
+ 	handle = stack_depot_save(entries, nr_entries, flags);
+ 	if (!handle)
+ 		handle = failure_handle;
++	unset_current_in_page_owner();
+ 
+-	current->in_page_owner = 0;
+ 	return handle;
+ }
+ 
+@@ -164,9 +173,13 @@ static void add_stack_record_to_list(str
+ 	gfp_mask &= (GFP_ATOMIC | GFP_KERNEL);
+ 	gfp_mask |= __GFP_NOWARN;
+ 
++	set_current_in_page_owner();
+ 	stack = kmalloc(sizeof(*stack), gfp_mask);
+-	if (!stack)
++	if (!stack) {
++		unset_current_in_page_owner();
+ 		return;
++	}
++	unset_current_in_page_owner();
+ 
+ 	stack->stack_record = stack_record;
+ 	stack->next = NULL;
 _
 
-Patches currently in -mm which might be from cdleonard@gmail.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
 
