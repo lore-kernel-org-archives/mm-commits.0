@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6152140397
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 20:30:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8436D17591
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 20:46:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711485007; cv=none; b=WSgx2Z/9iMWKO6gTv60PFPYa2csEFfFgcCmSNKWIXMDvKum2UqXRnfpXZqsDkzYYiN7PmiGerTKpIGJMPD/RWvXtT+WvIINJeXHVY7gzzjRm7VgGcLOnAh27V9eA9M9VsB8ByywG69J6ZsAJLj04oOdYePlo6zP4q/6wgbIdqYo=
+	t=1711485995; cv=none; b=cV8gmtVeScIgHU1rLGDGHGNkiPJR1eEhbSxZLExCnR30oNLOpaTCRPaUc5f+FJMDB25Q0NBJKJaCsHqZHq4BGglORTOLpGVkIcd+loR068oTjSu5DhFPAjRRIKDwSHmZlyep+Tjb71dwcFaHUgZySfg7eEtp+3v4AOR1rbiryg8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711485007; c=relaxed/simple;
-	bh=e4EDvJebQcqoZr6LUXaP3X7SRN4AKwaJl8HxOkW79p4=;
-	h=Date:To:From:Subject:Message-Id; b=E5mt/3YKBv8Ezi6oW3oApmMxnPexaPSsoc1V9+hBYmxRNPRkCz8zs4Yxy4+k797hklI0xc1Z4JITELjS4bZ2f2PK2qVsyE6gPuyuz3yJhWl0ccTomRRJKOFzbVgpwEYnjIRSyFvkFgfMekgpvPEtrTnZuwTzLpDw9aJO4pUJbZA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=egc8R4Qm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711485995; c=relaxed/simple;
+	bh=8y3v99jpwkQZw6dqgh1L93aJm13Y+IRQGks0UYcprMg=;
+	h=Date:To:From:Subject:Message-Id; b=T4qWpoYHJzgjb+FE1JhPGvRLU+fI1+ipRJoM7kLMqXl8vmXmEOpp8vBiLkue1MDhCFCa/r7ye0kjATdpROq3tK3aFQQKnU6HUoTvRbpssdghTeOQ3kTO+BUSfpZ+XGfZtvMZVUO6uFsO+C1KME/ZpcX9BGg7I82bRe6ClMNSLkI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2dAmM2pL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="egc8R4Qm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EBD9C433C7;
-	Tue, 26 Mar 2024 20:30:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2dAmM2pL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D83C8C43390;
+	Tue, 26 Mar 2024 20:46:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711485006;
-	bh=e4EDvJebQcqoZr6LUXaP3X7SRN4AKwaJl8HxOkW79p4=;
+	s=korg; t=1711485994;
+	bh=8y3v99jpwkQZw6dqgh1L93aJm13Y+IRQGks0UYcprMg=;
 	h=Date:To:From:Subject:From;
-	b=egc8R4QmU++yQqS+8OfIjyegP2eLlhgijxj2pmtq5qPyeyfHXUOTs579QJBAw7TXj
-	 2fccr28vyT4wzjd8I8RxKW0SH542I/b1WPRYZmNeT+s7gLJU6SBy6Yx30WHYm+ogzF
-	 Ab7XFFfczexJij70s044ld0r1YECnXwR9tfawQ2s=
-Date: Tue, 26 Mar 2024 13:30:05 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,oleksiy.avramchenko@sony.com,lstoakes@gmail.com,linux@roeck-us.net,hch@infradead.org,hca@linux.ibm.com,david@fromorbit.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
+	b=2dAmM2pLx5kehLX17jqgOxVVOK2Nzi69Ts8jjbm3CsDqG21qpVttKbmoyTGWzDwrX
+	 h8+2VQhGlEFAuYBSU4s4GhLFgfEIOc0gDFS+uEFXeqWbgmsLJhAnhWX0D3Smsba8Gv
+	 huHG++HOW8MU0NHy5jxPuhdO3W5CSrZ2Gp+EKoTI=
+Date: Tue, 26 Mar 2024 13:46:34 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-bail-out-early-in-find_vmap_area-if-vmap-is-not-init.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240326203006.5EBD9C433C7@smtp.kernel.org>
+Subject: + sparc-use-is_huge_zero_pmd.patch added to mm-unstable branch
+Message-Id: <20240326204634.D83C8C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmalloc: bail out early in find_vmap_area() if vmap is not init
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vmalloc-bail-out-early-in-find_vmap_area-if-vmap-is-not-init.patch
+     Subject: sparc: use is_huge_zero_pmd()
+has been added to the -mm mm-unstable branch.  Its filename is
+     sparc-use-is_huge_zero_pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-bail-out-early-in-find_vmap_area-if-vmap-is-not-init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc-use-is_huge_zero_pmd.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,90 +58,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm: vmalloc: bail out early in find_vmap_area() if vmap is not init
-Date: Sat, 23 Mar 2024 15:15:44 +0100
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: sparc: use is_huge_zero_pmd()
+Date: Tue, 26 Mar 2024 20:28:21 +0000
 
-During the boot the s390 system triggers "spinlock bad magic" messages
-if the spinlock debugging is enabled:
+Patch series "Convert huge_zero_page to huge_zero_folio".
 
-[    0.465445] BUG: spinlock bad magic on CPU#0, swapper/0
-[    0.465490]  lock: single+0x1860/0x1958, .magic: 00000000, .owner: <none>/-1, .owner_cpu: 0
-[    0.466067] CPU: 0 PID: 0 Comm: swapper Not tainted 6.8.0-12955-g8e938e398669 #1
-[    0.466188] Hardware name: QEMU 8561 QEMU (KVM/Linux)
-[    0.466270] Call Trace:
-[    0.466470]  [<00000000011f26c8>] dump_stack_lvl+0x98/0xd8
-[    0.466516]  [<00000000001dcc6a>] do_raw_spin_lock+0x8a/0x108
-[    0.466545]  [<000000000042146c>] find_vmap_area+0x6c/0x108
-[    0.466572]  [<000000000042175a>] find_vm_area+0x22/0x40
-[    0.466597]  [<000000000012f152>] __set_memory+0x132/0x150
-[    0.466624]  [<0000000001cc0398>] vmem_map_init+0x40/0x118
-[    0.466651]  [<0000000001cc0092>] paging_init+0x22/0x68
-[    0.466677]  [<0000000001cbbed2>] setup_arch+0x52a/0x708
-[    0.466702]  [<0000000001cb6140>] start_kernel+0x80/0x5c8
-[    0.466727]  [<0000000000100036>] startup_continue+0x36/0x40
+Almost all the callers of is_huge_zero_page() already have a folio.  And
+they should -- is_huge_zero_page() will return false for tail pages, even
+if they're tail pages of the huge zero page.  That's confusing, and one of
+the benefits of the folio conversion is to get rid of this confusion.
 
-it happens because such system tries to access some vmap areas
-whereas the vmalloc initialization is not even yet done:
 
-[    0.465490] lock: single+0x1860/0x1958, .magic: 00000000, .owner: <none>/-1, .owner_cpu: 0
-[    0.466067] CPU: 0 PID: 0 Comm: swapper Not tainted 6.8.0-12955-g8e938e398669 #1
-[    0.466188] Hardware name: QEMU 8561 QEMU (KVM/Linux)
-[    0.466270] Call Trace:
-[    0.466470] dump_stack_lvl (lib/dump_stack.c:117)
-[    0.466516] do_raw_spin_lock (kernel/locking/spinlock_debug.c:87 kernel/locking/spinlock_debug.c:115)
-[    0.466545] find_vmap_area (mm/vmalloc.c:1059 mm/vmalloc.c:2364)
-[    0.466572] find_vm_area (mm/vmalloc.c:3150)
-[    0.466597] __set_memory (arch/s390/mm/pageattr.c:360 arch/s390/mm/pageattr.c:393)
-[    0.466624] vmem_map_init (./arch/s390/include/asm/set_memory.h:55 arch/s390/mm/vmem.c:660)
-[    0.466651] paging_init (arch/s390/mm/init.c:97)
-[    0.466677] setup_arch (arch/s390/kernel/setup.c:972)
-[    0.466702] start_kernel (init/main.c:899)
-[    0.466727] startup_continue (arch/s390/kernel/head64.S:35)
-[    0.466811] INFO: lockdep is turned off.
-...
-[    0.718250] vmalloc init - busy lock init 0000000002871860
-[    0.718328] vmalloc init - busy lock init 00000000028731b8
+This patch (of 8):
 
-Some background. It worked before because the lock that is in question
-was statically defined and initialized. As of now, the locks and data
-structures are initialized in the vmalloc_init() function.
+There's no need to convert to a page, much less a folio.  We can tell from
+the pmd whether it is a huge zero page or not.  Saves 60 bytes of text.
 
-To address that issue add the check whether the "vmap_initialized"
-variable is set, if not find_vmap_area() bails out on entry returning NULL.
-
-Link: https://lkml.kernel.org/r/20240323141544.4150-1-urezki@gmail.com
-Fixes: 72210662c5a2 ("mm: vmalloc: offload free_vmap_area_lock lock")
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Acked-by: Heiko Carstens <hca@linux.ibm.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
+Link: https://lkml.kernel.org/r/20240326202833.523759-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240326202833.523759-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/sparc/mm/tlb.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-bail-out-early-in-find_vmap_area-if-vmap-is-not-init
-+++ a/mm/vmalloc.c
-@@ -2343,6 +2343,9 @@ struct vmap_area *find_vmap_area(unsigne
- 	struct vmap_area *va;
- 	int i, j;
+--- a/arch/sparc/mm/tlb.c~sparc-use-is_huge_zero_pmd
++++ a/arch/sparc/mm/tlb.c
+@@ -183,12 +183,12 @@ static void __set_pmd_acct(struct mm_str
+ 		 * hugetlb_pte_count.
+ 		 */
+ 		if (pmd_val(pmd) & _PAGE_PMD_HUGE) {
+-			if (is_huge_zero_page(pmd_page(pmd)))
++			if (is_huge_zero_pmd(pmd))
+ 				mm->context.hugetlb_pte_count++;
+ 			else
+ 				mm->context.thp_pte_count++;
+ 		} else {
+-			if (is_huge_zero_page(pmd_page(orig)))
++			if (is_huge_zero_pmd(orig))
+ 				mm->context.hugetlb_pte_count--;
+ 			else
+ 				mm->context.thp_pte_count--;
+@@ -259,7 +259,7 @@ pmd_t pmdp_invalidate(struct vm_area_str
+ 	 * Sanity check pmd before doing the actual decrement.
+ 	 */
+ 	if ((pmd_val(entry) & _PAGE_PMD_HUGE) &&
+-	    !is_huge_zero_page(pmd_page(entry)))
++	    !is_huge_zero_pmd(entry))
+ 		(vma->vm_mm)->context.thp_pte_count--;
  
-+	if (unlikely(!vmap_initialized))
-+		return NULL;
-+
- 	/*
- 	 * An addr_to_node_id(addr) converts an address to a node index
- 	 * where a VA is located. If VA spans several zones and passed
+ 	return old;
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-vmalloc-bail-out-early-in-find_vmap_area-if-vmap-is-not-init.patch
+mm-always-initialise-folio-_deferred_list.patch
+mm-create-folio_flag_false-and-folio_type_ops-macros.patch
+mm-remove-folio_prep_large_rmappable.patch
+mm-support-page_mapcount-on-page_has_type-pages.patch
+mm-turn-folio_test_hugetlb-into-a-pagetype.patch
+mm-turn-folio_test_hugetlb-into-a-pagetype-fix.patch
+mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch
+mm-free-up-pg_slab.patch
+mm-free-up-pg_slab-fix.patch
+mm-improve-dumping-of-mapcount-and-page_type.patch
+hugetlb-remove-mention-of-destructors.patch
+sh-remove-use-of-pg_arch_1-on-individual-pages.patch
+xtensa-remove-uses-of-pg_arch_1-on-individual-pages.patch
+mm-make-page_ext_get-take-a-const-argument.patch
+mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument.patch
+mm-make-is_free_buddy_page-take-a-const-argument.patch
+mm-make-page_mapped-take-a-const-argument.patch
+mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
+slub-remove-use-of-page-flags.patch
+remove-references-to-page-flags-in-documentation.patch
+proc-rewrite-stable_page_flags.patch
+sparc-use-is_huge_zero_pmd.patch
+mm-add-is_huge_zero_folio.patch
+mm-add-pmd_folio.patch
+mm-convert-migrate_vma_collect_pmd-to-use-a-folio.patch
+mm-convert-huge_zero_page-to-huge_zero_folio.patch
+mm-convert-do_huge_pmd_anonymous_page-to-huge_zero_folio.patch
+dax-use-huge_zero_folio.patch
+mm-rename-mm_put_huge_zero_page-to-mm_put_huge_zero_folio.patch
 
