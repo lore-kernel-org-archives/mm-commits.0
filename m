@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8623286AE9;
-	Tue, 26 Mar 2024 18:08:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E60A285634
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:08:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711476505; cv=none; b=ktWWkqT5A+Cw5UmDm+Yx3dMutWKifhMqtdTA6+RPoVyNFcD669sZ4ukKb/RN4nIbgAlsKN6cpfJnV4QB89PBX494Zo44nuUJusnhOLHfohaEbNdigoP/yoUX8i+izgx8UWEfUK3ELe6EhrFzoJFnedGAIR0BqgQhs55SyDMGgpo=
+	t=1711476507; cv=none; b=IVB0Q2ok6QQiMjtdtrrkvQO1ZpMsPAMnbQoaEk5pvItDAyQ3jWQUa3m/iZYQVG3aSlTTBnSnkKIqLPK9paf56mAMFaT4KA7bkcKx5gxNENMZQygmTuNgUbFWVC6C2MJOh940KijBVabIpqLBQS68waztstsQMut+8xvYWdPVNM0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711476505; c=relaxed/simple;
-	bh=8qAQjKK8IxkWeiFg9rQqmOXh6rlHyrGyVrlH4/OYatQ=;
-	h=Date:To:From:Subject:Message-Id; b=B8nl9Z1CwH56+NNjaPihjMe+OwEpP7qYBrDtdBdAtQKvBq8qpzb9Xf9Y2UB8DJYzsaBDepdz7nCGXtsjrlk7M/1iVtK7qb0SNokS0Znk8Vb93kTTY2lOybxaCXZI90J71xoodfTcgXhzL1BYw/yq8j95Rmwa8A8qS7nykWAwXD4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tG7Pxz7W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711476507; c=relaxed/simple;
+	bh=sRO/aRjfObchWJ0g+VL84/fsc1tyiBV+hVa3T8AF5CU=;
+	h=Date:To:From:Subject:Message-Id; b=NpQeRRsbjmcXntcFCgDTdVK7aJLhfW387vvKx5yU6ZjF2W7vk7wnet3rYgRS3ybMQL/37bid0ozuDAGn9Br8eMuaT3+mg4BocYHTEvG7yRuNXQCnlU0l0hO4rzR+QSjDjonppQHTGEqCqy6b4ZmShUrW4ixPJb4yX493jTZkwzU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=scYLRZxX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tG7Pxz7W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11521C43390;
-	Tue, 26 Mar 2024 18:08:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="scYLRZxX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71E5FC433F1;
+	Tue, 26 Mar 2024 18:08:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711476504;
-	bh=8qAQjKK8IxkWeiFg9rQqmOXh6rlHyrGyVrlH4/OYatQ=;
+	s=korg; t=1711476506;
+	bh=sRO/aRjfObchWJ0g+VL84/fsc1tyiBV+hVa3T8AF5CU=;
 	h=Date:To:From:Subject:From;
-	b=tG7Pxz7WNWq3kw4SOSUlJJhApT3dCuUX8xsCXeeeDKb4WLezXDx0+9n1S3CFER9id
-	 aff4RYUc5eCVobulr+jqSuwKiEzu8EHv3/E3u0QTJLPOke+5u+Sh9W72eb/kDscPI7
-	 iqNEOlFf5ByP5a6Q/7sRAhenvrZQNM+wpIKPzNgI=
-Date: Tue, 26 Mar 2024 11:08:23 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,peterx@redhat.com,edliaw@google.com,akpm@linux-foundation.org
+	b=scYLRZxXOcNvKhSCr59nvT9v3sjHSo3/OgTUQQCFLdIvLcVsZJuGJkseU4YH2UaAe
+	 uEodj7XG3bt4kFZ6WcfKYzgK/oot0hB1hfRp+YZBjKIfDKtn3/cFVXkQkYgIyijvsM
+	 dSPW9vYd/F0JqKahl7lVvZiunGyO68kEHaQGM6BQ=
+Date: Tue, 26 Mar 2024 11:08:25 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,peterx@redhat.com,ngeoffray@google.com,kaleshsingh@google.com,jannh@google.com,hdanton@sina.com,david@redhat.com,bgeffon@google.com,axelrasmussen@google.com,aarcange@redhat.com,lokeshgidra@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-sigbus-wp-test-requires-uffd_feature_wp_hugetlbfs_shmem.patch removed from -mm tree
-Message-Id: <20240326180824.11521C43390@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] userfaultfd-fix-deadlock-warning-when-locking-src-and-dst-vmas.patch removed from -mm tree
+Message-Id: <20240326180826.71E5FC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,56 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: sigbus-wp test requires UFFD_FEATURE_WP_HUGETLBFS_SHMEM
+     Subject: userfaultfd: fix deadlock warning when locking src and dst VMAs
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-sigbus-wp-test-requires-uffd_feature_wp_hugetlbfs_shmem.patch
+     userfaultfd-fix-deadlock-warning-when-locking-src-and-dst-vmas.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Edward Liaw <edliaw@google.com>
-Subject: selftests/mm: sigbus-wp test requires UFFD_FEATURE_WP_HUGETLBFS_SHMEM
-Date: Thu, 21 Mar 2024 23:20:21 +0000
+From: Lokesh Gidra <lokeshgidra@google.com>
+Subject: userfaultfd: fix deadlock warning when locking src and dst VMAs
+Date: Thu, 21 Mar 2024 16:58:18 -0700
 
-The sigbus-wp test requires the UFFD_FEATURE_WP_HUGETLBFS_SHMEM flag for
-shmem and hugetlb targets.  Otherwise it is not backwards compatible with
-kernels <5.19 and fails with EINVAL.
+Use down_read_nested() to avoid the warning.
 
-Link: https://lkml.kernel.org/r/20240321232023.2064975-1-edliaw@google.com
-Fixes: 73c1ea939b65 ("selftests/mm: move uffd sig/events tests into uffd unit tests")
-Signed-off-by: Edward Liaw <edliaw@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Peter Xu <peterx@redhat.com
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240321235818.125118-1-lokeshgidra@google.com
+Fixes: 867a43a34ff8 ("userfaultfd: use per-vma locks in userfaultfd operations")
+Reported-by: syzbot+49056626fe41e01f2ba7@syzkaller.appspotmail.com
+Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Jann Horn <jannh@google.com> [Bug #2]
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Nicolas Geoffray <ngeoffray@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |    3 ++-
+ mm/userfaultfd.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-sigbus-wp-test-requires-uffd_feature_wp_hugetlbfs_shmem
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -1427,7 +1427,8 @@ uffd_test_case_t uffd_tests[] = {
- 		.uffd_fn = uffd_sigbus_wp_test,
- 		.mem_targets = MEM_ALL,
- 		.uffd_feature_required = UFFD_FEATURE_SIGBUS |
--		UFFD_FEATURE_EVENT_FORK | UFFD_FEATURE_PAGEFAULT_FLAG_WP,
-+		UFFD_FEATURE_EVENT_FORK | UFFD_FEATURE_PAGEFAULT_FLAG_WP |
-+		UFFD_FEATURE_WP_HUGETLBFS_SHMEM,
- 	},
- 	{
- 		.name = "events",
+--- a/mm/userfaultfd.c~userfaultfd-fix-deadlock-warning-when-locking-src-and-dst-vmas
++++ a/mm/userfaultfd.c
+@@ -1444,7 +1444,8 @@ static int uffd_move_lock(struct mm_stru
+ 		 */
+ 		down_read(&(*dst_vmap)->vm_lock->lock);
+ 		if (*dst_vmap != *src_vmap)
+-			down_read(&(*src_vmap)->vm_lock->lock);
++			down_read_nested(&(*src_vmap)->vm_lock->lock,
++					 SINGLE_DEPTH_NESTING);
+ 	}
+ 	mmap_read_unlock(mm);
+ 	return err;
 _
 
-Patches currently in -mm which might be from edliaw@google.com are
+Patches currently in -mm which might be from lokeshgidra@google.com are
 
 
