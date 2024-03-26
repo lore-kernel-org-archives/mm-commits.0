@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5A8213D26F
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 19:22:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96D4713CAA0
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 19:27:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711480935; cv=none; b=ZkZNXl/72Ag09lRW8n+GOZiyxH2TO5Sf6WP7m9gFTve+ppzVnyvcX867TtozLHspzOkE+ljIuH+/Y9yOCPDKhNM90eeJRc5hqXSWFtkryZZAP5suHM/HxY1ggX4nWHxf8hJAen67qjoIadPnR5/wrsTZUwsYLgKyf6Ae0l1BvH4=
+	t=1711481269; cv=none; b=DnvQTp5niYzfN5sjeuJB0oEEVkDVe1qBZq0N0iS+1UkdHvQiDkA0orNJSExWBUba5ODflAidlSDJoW2QnPX/TFGVlGmalSYCv9nxRcKnKM4fIfsCBmLBbeeepfvawY6WX9WFEgx1JhojjxgZ+gz+dlGgXJS3ri4faDmYb8KM1XI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711480935; c=relaxed/simple;
-	bh=QT5HTiNY9GYk3TsbOM1T+0zsgE30+Pus8p9Ve/NKr4Q=;
-	h=Date:To:From:Subject:Message-Id; b=CvFoja6ZQkVvhg0di+P8JMk5rJtP8tcHsQaaUsTltZXhZR6XwglXGeJYnIGReTzU2RMpOd7+OsLCzObMi7PcsIc7uGTOgYFSqPvz7xhX3YN/+Rvcw8h6Y/Ob5h7cDbV53flGRS/pW2gP8FDMigrnkD/SQWCwBygzR/5kYOqPumY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i1HggQcM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711481269; c=relaxed/simple;
+	bh=aBsAsllIMsBy0J94y+jCk6mCnIm1YtS5vKFJ8DCjF1g=;
+	h=Date:To:From:Subject:Message-Id; b=gyjy8gMgThX8nqw1lrik4goCoAHWDsfHds3SxcP/RA2Cnl+EM++UlfdnAaQaXTA8H0zs3cBUdevNvh+sYq4QkI3UunbW1VEY7T/U2lttlqsNm/wKkXhvxCTics8vHBB3HZxYtrUe6FEmC9hfV05lIHN/uHpTB3Jc31TwKQCPhBM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fS9w2lPW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i1HggQcM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C7F7C433F1;
-	Tue, 26 Mar 2024 19:22:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fS9w2lPW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CCBFC433F1;
+	Tue, 26 Mar 2024 19:27:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711480934;
-	bh=QT5HTiNY9GYk3TsbOM1T+0zsgE30+Pus8p9Ve/NKr4Q=;
+	s=korg; t=1711481269;
+	bh=aBsAsllIMsBy0J94y+jCk6mCnIm1YtS5vKFJ8DCjF1g=;
 	h=Date:To:From:Subject:From;
-	b=i1HggQcM1l4AzC5flRhCeRlRhyfulgpR+SC0411UEjma7L+a0PZlXIT4lKzs+rcDW
-	 IhJmOyWQaVNW3g8qUezLp3A6T+tZy89gMtuXw/PORnkH6SJBeXCVclkCtw0dhVJ9Ob
-	 GEMYyEBJijPea3+qq6o36LapRhbWoyHagKldupWA=
-Date: Tue, 26 Mar 2024 12:22:13 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,viro@ZenIV.linux.org.uk,tujinjiang@huawei.com,jack@suse.cz,brauner@kernel.org,liushixin2@huawei.com,akpm@linux-foundation.org
+	b=fS9w2lPWpptYpg5rKolLmT+iJCPCa8mCIkToQlO4i7JZ5jxy31d2BPlHvIuzxN38n
+	 Jm/7naUQYxM7VvlkWanA+cU6pzy/yZMWgoelyls+YjjP4wUIKfUpecceCz+oXHR2aO
+	 wendi6XAjbWVRROEzlVov5/TRccEaGLhr9vcN5ZQ=
+Date: Tue, 26 Mar 2024 12:27:48 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags-fix.patch added to mm-unstable branch
-Message-Id: <20240326192214.5C7F7C433F1@smtp.kernel.org>
+Subject: + mmpage_owner-update-metada-for-tail-pages.patch added to mm-unstable branch
+Message-Id: <20240326192749.0CCBFC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/filemap: don't decrease mmap_miss when folio has workingset flag
+     Subject: mm,page_owner: update metada for tail pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags-fix.patch
+     mmpage_owner-update-metada-for-tail-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-update-metada-for-tail-pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,54 +58,262 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm/filemap: don't decrease mmap_miss when folio has workingset flag
-Date: Tue, 26 Mar 2024 14:50:26 +0800
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,page_owner: update metada for tail pages
+Date: Tue, 26 Mar 2024 07:30:34 +0100
 
-add comments
+Patch series "page_owner: Fix refcount imbalance".
 
-Link: https://lkml.kernel.org/r/20240326065026.1910584-1-liushixin2@huawei.com
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jinjiang Tu <tujinjiang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+This series consists of a refactoring/correctness of updating the metadata
+of tail pages and a couple of fixups for the refcounting part.
+
+From this series on, instead of counting the stacks, we count the
+outstanding nr_base_pages each stack has, which gives us a much better
+memory overview.  The other fixup is for the migration part.
+
+More detailed explanations can be found in the changelogs of the
+respective patches.
+
+
+This patch (of 3):
+
+__set_page_owner_handle() and __reset_page_owner() update the metadata of
+all pages when the page is of a higher-order, but we miss to do the same
+when the pages are migrated.
+
+__folio_copy_owner() only updates the metadata of the head page, meaning
+that the information stored in the first page and the tail pages will not
+match.
+
+Strictly speaking that is not a big problem because 1) we do not print
+tail pages and 2) upon splitting all tail pages will inherit the metada of
+the head page, but it is better to have all metadata in check should there
+be any problem, so it can ease debugging.
+
+For that purpose, a couple of helpers are created
+__update_page_owner_handle() which updates the metadata on allocation, and
+__update_page_owner_free_handle() which does the same when the page is
+freed.
+
+__folio_copy_owner() will make use of both as it needs to entirely replace
+the page_owner metadata for the new page.
+
+Link: https://lkml.kernel.org/r/20240326063036.6242-1-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20240326063036.6242-2-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/page_owner.c |  137 ++++++++++++++++++++++++----------------------
+ 1 file changed, 74 insertions(+), 63 deletions(-)
 
---- a/mm/filemap.c~mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags-fix
-+++ a/mm/filemap.c
-@@ -3492,6 +3492,13 @@ static vm_fault_t filemap_map_folio_rang
- 		if (PageHWPoison(page + count))
- 			goto skip;
+--- a/mm/page_owner.c~mmpage_owner-update-metada-for-tail-pages
++++ a/mm/page_owner.c
+@@ -228,9 +228,58 @@ static void dec_stack_record_count(depot
+ 		refcount_dec(&stack_record->count);
+ }
  
-+		/*
-+		 * If there are too many folios that are recently evicted
-+		 * in a file, they will probably continue to be evicted.
-+		 * In such situation, read-ahead is only a waste of IO.
-+		 * Don't decrease mmap_miss in this scenario to make sure
-+		 * we can stop read-ahead.
-+		 */
- 		if (!folio_test_workingset(folio))
- 			(*mmap_miss)++;
+-void __reset_page_owner(struct page *page, unsigned short order)
++static inline void __update_page_owner_handle(struct page_ext *page_ext,
++					      depot_stack_handle_t handle,
++					      unsigned short order,
++					      gfp_t gfp_mask,
++					      short last_migrate_reason, u64 ts_nsec,
++					      pid_t pid, pid_t tgid, char *comm)
+ {
+ 	int i;
++	struct page_owner *page_owner;
++
++	for (i = 0; i < (1 << order); i++) {
++		page_owner = get_page_owner(page_ext);
++		page_owner->handle = handle;
++		page_owner->order = order;
++		page_owner->gfp_mask = gfp_mask;
++		page_owner->last_migrate_reason = last_migrate_reason;
++		page_owner->pid = pid;
++		page_owner->tgid = tgid;
++		page_owner->ts_nsec = ts_nsec;
++		strscpy(page_owner->comm, comm,
++			sizeof(page_owner->comm));
++		__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
++		__set_bit(PAGE_EXT_OWNER_ALLOCATED, &page_ext->flags);
++		page_ext = page_ext_next(page_ext);
++	}
++}
++
++static inline void __update_page_owner_free_handle(struct page_ext *page_ext,
++						   depot_stack_handle_t handle,
++						   unsigned short order,
++						   pid_t pid, pid_t tgid,
++						   u64 free_ts_nsec)
++{
++	int i;
++	struct page_owner *page_owner;
++
++	for (i = 0; i < (1 << order); i++) {
++		page_owner = get_page_owner(page_ext);
++		/* Only __reset_page_owner() wants to clear the bit */
++		if (handle) {
++			__clear_bit(PAGE_EXT_OWNER_ALLOCATED, &page_ext->flags);
++			page_owner->free_handle = handle;
++		}
++		page_owner->free_ts_nsec = free_ts_nsec;
++		page_owner->free_pid = current->pid;
++		page_owner->free_tgid = current->tgid;
++		page_ext = page_ext_next(page_ext);
++	}
++}
++
++void __reset_page_owner(struct page *page, unsigned short order)
++{
+ 	struct page_ext *page_ext;
+ 	depot_stack_handle_t handle;
+ 	depot_stack_handle_t alloc_handle;
+@@ -245,16 +294,10 @@ void __reset_page_owner(struct page *pag
+ 	alloc_handle = page_owner->handle;
  
-@@ -3542,6 +3549,7 @@ static vm_fault_t filemap_map_order0_fol
- 	if (PageHWPoison(page))
- 		return ret;
+ 	handle = save_stack(GFP_NOWAIT | __GFP_NOWARN);
+-	for (i = 0; i < (1 << order); i++) {
+-		__clear_bit(PAGE_EXT_OWNER_ALLOCATED, &page_ext->flags);
+-		page_owner->free_handle = handle;
+-		page_owner->free_ts_nsec = free_ts_nsec;
+-		page_owner->free_pid = current->pid;
+-		page_owner->free_tgid = current->tgid;
+-		page_ext = page_ext_next(page_ext);
+-		page_owner = get_page_owner(page_ext);
+-	}
++	__update_page_owner_free_handle(page_ext, handle, order, current->pid,
++					current->tgid, free_ts_nsec);
+ 	page_ext_put(page_ext);
++
+ 	if (alloc_handle != early_handle)
+ 		/*
+ 		 * early_handle is being set as a handle for all those
+@@ -266,36 +309,11 @@ void __reset_page_owner(struct page *pag
+ 		dec_stack_record_count(alloc_handle);
+ }
  
-+	/* See comment of filemap_map_folio_range() */
- 	if (!folio_test_workingset(folio))
- 		(*mmap_miss)++;
+-static inline void __set_page_owner_handle(struct page_ext *page_ext,
+-					depot_stack_handle_t handle,
+-					unsigned short order, gfp_t gfp_mask)
+-{
+-	struct page_owner *page_owner;
+-	int i;
+-	u64 ts_nsec = local_clock();
+-
+-	for (i = 0; i < (1 << order); i++) {
+-		page_owner = get_page_owner(page_ext);
+-		page_owner->handle = handle;
+-		page_owner->order = order;
+-		page_owner->gfp_mask = gfp_mask;
+-		page_owner->last_migrate_reason = -1;
+-		page_owner->pid = current->pid;
+-		page_owner->tgid = current->tgid;
+-		page_owner->ts_nsec = ts_nsec;
+-		strscpy(page_owner->comm, current->comm,
+-			sizeof(page_owner->comm));
+-		__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
+-		__set_bit(PAGE_EXT_OWNER_ALLOCATED, &page_ext->flags);
+-
+-		page_ext = page_ext_next(page_ext);
+-	}
+-}
+-
+ noinline void __set_page_owner(struct page *page, unsigned short order,
+ 					gfp_t gfp_mask)
+ {
+ 	struct page_ext *page_ext;
++	u64 ts_nsec = local_clock();
+ 	depot_stack_handle_t handle;
  
+ 	handle = save_stack(gfp_mask);
+@@ -303,7 +321,9 @@ noinline void __set_page_owner(struct pa
+ 	page_ext = page_ext_get(page);
+ 	if (unlikely(!page_ext))
+ 		return;
+-	__set_page_owner_handle(page_ext, handle, order, gfp_mask);
++	__update_page_owner_handle(page_ext, handle, order, gfp_mask, -1,
++				   current->pid, current->tgid, ts_nsec,
++				   current->comm);
+ 	page_ext_put(page_ext);
+ 	inc_stack_record_count(handle, gfp_mask);
+ }
+@@ -342,7 +362,7 @@ void __folio_copy_owner(struct folio *ne
+ {
+ 	struct page_ext *old_ext;
+ 	struct page_ext *new_ext;
+-	struct page_owner *old_page_owner, *new_page_owner;
++	struct page_owner *old_page_owner;
+ 
+ 	old_ext = page_ext_get(&old->page);
+ 	if (unlikely(!old_ext))
+@@ -355,31 +375,21 @@ void __folio_copy_owner(struct folio *ne
+ 	}
+ 
+ 	old_page_owner = get_page_owner(old_ext);
+-	new_page_owner = get_page_owner(new_ext);
+-	new_page_owner->order = old_page_owner->order;
+-	new_page_owner->gfp_mask = old_page_owner->gfp_mask;
+-	new_page_owner->last_migrate_reason =
+-		old_page_owner->last_migrate_reason;
+-	new_page_owner->handle = old_page_owner->handle;
+-	new_page_owner->pid = old_page_owner->pid;
+-	new_page_owner->tgid = old_page_owner->tgid;
+-	new_page_owner->free_pid = old_page_owner->free_pid;
+-	new_page_owner->free_tgid = old_page_owner->free_tgid;
+-	new_page_owner->ts_nsec = old_page_owner->ts_nsec;
+-	new_page_owner->free_ts_nsec = old_page_owner->ts_nsec;
+-	strcpy(new_page_owner->comm, old_page_owner->comm);
+-
++	__update_page_owner_handle(new_ext, old_page_owner->handle,
++				   old_page_owner->order, old_page_owner->gfp_mask,
++				   old_page_owner->last_migrate_reason,
++				   old_page_owner->ts_nsec, old_page_owner->pid,
++				   old_page_owner->tgid, old_page_owner->comm);
+ 	/*
+-	 * We don't clear the bit on the old folio as it's going to be freed
+-	 * after migration. Until then, the info can be useful in case of
+-	 * a bug, and the overall stats will be off a bit only temporarily.
+-	 * Also, migrate_misplaced_transhuge_page() can still fail the
+-	 * migration and then we want the old folio to retain the info. But
+-	 * in that case we also don't need to explicitly clear the info from
+-	 * the new page, which will be freed.
++	 * Do not proactively clear PAGE_EXT_OWNER{_ALLOCATED} bits as the folio
++	 * will be freed after migration. Keep them until then as they may be
++	 * useful.
+ 	 */
+-	__set_bit(PAGE_EXT_OWNER, &new_ext->flags);
+-	__set_bit(PAGE_EXT_OWNER_ALLOCATED, &new_ext->flags);
++	__update_page_owner_free_handle(new_ext, 0, old_page_owner->order,
++					old_page_owner->free_pid,
++					old_page_owner->free_tgid,
++					old_page_owner->free_ts_nsec);
++
+ 	page_ext_put(new_ext);
+ 	page_ext_put(old_ext);
+ }
+@@ -787,8 +797,9 @@ static void init_pages_in_zone(pg_data_t
+ 				goto ext_put_continue;
+ 
+ 			/* Found early allocated page */
+-			__set_page_owner_handle(page_ext, early_handle,
+-						0, 0);
++			__update_page_owner_handle(page_ext, early_handle, 0, 0,
++						   -1, local_clock(), current->pid,
++						   current->tgid, current->comm);
+ 			count++;
+ ext_put_continue:
+ 			page_ext_put(page_ext);
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-mm-readahead-break-read-ahead-loop-if-filemap_add_folio-return-enomem.patch
-mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags.patch
-mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags-fix.patch
+mmpage_owner-update-metada-for-tail-pages.patch
+mmpage_owner-fix-refcount-imbalance.patch
+mmpage_owner-fix-accounting-of-pages-when-migrating.patch
 
