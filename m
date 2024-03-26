@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8970F200CB
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 19:52:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99DC413D263
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 19:52:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711482773; cv=none; b=A90nkWoNTKeoX7hfZ2dkAn9xhZVVoobBhDcks0Exyil4bWA0YrfCOwnc1KapdtZTtBa/5Cl/5u9rN3yekrN0FeU5Aw/927M4EFkePluWrbwEsPSF2Fl+1cXR91Rd1Y42o9smmAaM6uploCGW+Oa61rCixtwqkam46irZ0kdXX9c=
+	t=1711482775; cv=none; b=c+CBJpSKuqTRph0RXRHcGw06UChB20f+M7PQvlrS4U080jO+TGKL4c11nex/XbXA8Pk2Xk9r3MZrmA4WjCA46sr3CHnSLfKeE6BE/e5jw738LayOAYNcFGkzlGKPeabX5mUYQwZYZ4yH2qs8LKn5ySPRRfjFHI/MDtMYo9IRDjk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711482773; c=relaxed/simple;
-	bh=BU3w2fKmnVon/eNXKk+PEApvSh1wnIhHJkq5QmimHeU=;
-	h=Date:To:From:Subject:Message-Id; b=FR7bCo4HJ86nuCwelx4LJI9poYq+50JgOoSpiTJsT8qtVqI5cuSIXs8EL6nCESz65VEfZvdY/Y89v1Z6riQB12ifJVJpHuMSDTmnw8w1TXZ75wt6LfJ+g2CJH7xILnwcVqDErY1Hct96cWnGyJhxn3bBb86p80gcUZ60Cf4DVoQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0uLR6vnL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711482775; c=relaxed/simple;
+	bh=IRDOLuQTnd6ACO6DldwZwDl6IogrKm+XrGSE7/RhzYA=;
+	h=Date:To:From:Subject:Message-Id; b=XnnhOFDlpa/HMOtrfAwpq4uzS6WfDk09RY5EKjkxTGScBBGtX8ctx1QnwGjkvFK6nw2pmKe+a3w40kjDssdk/8G7rvZPaX/ObybhWB34V0F4IuDHUCwy824wAX0Mp6oo6WQZ6QZSbbX79OWGEm+rnoYJindwdjvdzgc5LlL3AZg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jnOQaHHm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0uLR6vnL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 341DEC433C7;
-	Tue, 26 Mar 2024 19:52:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jnOQaHHm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BF0BC433F1;
+	Tue, 26 Mar 2024 19:52:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711482773;
-	bh=BU3w2fKmnVon/eNXKk+PEApvSh1wnIhHJkq5QmimHeU=;
+	s=korg; t=1711482775;
+	bh=IRDOLuQTnd6ACO6DldwZwDl6IogrKm+XrGSE7/RhzYA=;
 	h=Date:To:From:Subject:From;
-	b=0uLR6vnLAwcD3csQB/7/hNuxYDqlV3+EjYVyPf639iwD049VUaEO6FnwXV4ppqSFI
-	 b7ViJ4ygqyFX/aEhpCgLYOWhQxgHFferjffeM6URyYA04zVbrqZumsUhcyd9SCCWhO
-	 GCGygewak/92VZxOOjI/JTxXcz12FVcq9hlZYe44=
-Date: Tue, 26 Mar 2024 12:52:52 -0700
+	b=jnOQaHHmkqr7NLLKJKpaH5vUpCCFOljySAhbTMzK68rCDc/coetnXWhTKWCix8uCz
+	 dsw3z8udvZ6WuyJjPJs4CpLYETqULsnyhRsZc7ikBSFtCQ0nt/oRCUV3YJGEMmxYJ+
+	 BGzhPujp/TllBj9pJ1y65nJPR/1cQW5fvxQCRKS8=
+Date: Tue, 26 Mar 2024 12:52:54 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,mgorman@suse.de,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-array-mem_section-init-code-out-of-memory_present.patch added to mm-unstable branch
-Message-Id: <20240326195253.341DEC433C7@smtp.kernel.org>
+Subject: + mm-init-remove-the-unnecessary-special-treatment-for-memory-less-node.patch added to mm-unstable branch
+Message-Id: <20240326195255.0BF0BC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: move array mem_section init code out of memory_present()
+     Subject: mm/init: remove the unnecessary special treatment for memory-less node
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-move-array-mem_section-init-code-out-of-memory_present.patch
+     mm-init-remove-the-unnecessary-special-treatment-for-memory-less-node.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-array-mem_section-init-code-out-of-memory_present.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-init-remove-the-unnecessary-special-treatment-for-memory-less-node.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,78 +59,63 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm: move array mem_section init code out of memory_present()
-Date: Tue, 26 Mar 2024 14:11:27 +0800
+Subject: mm/init: remove the unnecessary special treatment for memory-less node
+Date: Tue, 26 Mar 2024 14:11:28 +0800
 
-Patch series "mm/init: minor clean up and improvement".
+Because memory-less node's ->node_present_pages and its zone's
+->present_pages are all 0, the judgement before calling node_set_state()
+to set N_MEMORY, N_HIGH_MEMORY, N_NORMAL_MEMORY for node is enough to skip
+memory-less node.  The 'continue;' statement inside for_each_node() loop
+of free_area_init() is gilding the lily.
 
-These are all observed when going through code flow during mm init.
+Here, remove the special handling to make memory-less node share the same
+code flow as normal node.  And the code comment above the 'continue'
+statement is not needed either.
 
-
-This patch (of 7):
-
-When CONFIG_SPARSEMEM_EXTREME is enabled, mem_section need be initialized
-to point at a two-dimensional array, and its 1st dimension of length
-NR_SECTION_ROOTS will be dynamically allocated.  Once the allocation is
-done, it's available for all nodes.
-
-So take the 1st dimension of mem_section initialization out of
-memory_present()(), and put it into memblocks_present() which is a more
-appripriate place.
-
-Link: https://lkml.kernel.org/r/20240326061134.1055295-1-bhe@redhat.com
-Link: https://lkml.kernel.org/r/20240326061134.1055295-2-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20240326061134.1055295-3-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ mm/mm_init.c |   18 +++---------------
+ 1 file changed, 3 insertions(+), 15 deletions(-)
 
---- a/mm/sparse.c~mm-move-array-mem_section-init-code-out-of-memory_present
-+++ a/mm/sparse.c
-@@ -226,19 +226,6 @@ static void __init memory_present(int ni
- {
- 	unsigned long pfn;
- 
--#ifdef CONFIG_SPARSEMEM_EXTREME
--	if (unlikely(!mem_section)) {
--		unsigned long size, align;
+--- a/mm/mm_init.c~mm-init-remove-the-unnecessary-special-treatment-for-memory-less-node
++++ a/mm/mm_init.c
+@@ -1835,28 +1835,16 @@ void __init free_area_init(unsigned long
+ 				panic("Cannot allocate %zuB for node %d.\n",
+ 				       sizeof(*pgdat), nid);
+ 			arch_refresh_nodedata(nid, pgdat);
+-			free_area_init_node(nid);
 -
--		size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
--		align = 1 << (INTERNODE_CACHE_SHIFT);
--		mem_section = memblock_alloc(size, align);
--		if (!mem_section)
--			panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
--			      __func__, size, align);
--	}
--#endif
--
- 	start &= PAGE_SECTION_MASK;
- 	mminit_validate_memmodel_limits(&start, &end);
- 	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION) {
-@@ -267,6 +254,19 @@ static void __init memblocks_present(voi
- 	unsigned long start, end;
- 	int i, nid;
+-			/*
+-			 * We do not want to confuse userspace by sysfs
+-			 * files/directories for node without any memory
+-			 * attached to it, so this node is not marked as
+-			 * N_MEMORY and not marked online so that no sysfs
+-			 * hierarchy will be created via register_one_node for
+-			 * it. The pgdat will get fully initialized by
+-			 * hotadd_init_pgdat() when memory is hotplugged into
+-			 * this node.
+-			 */
+-			continue;
+ 		}
  
-+#ifdef CONFIG_SPARSEMEM_EXTREME
-+	if (unlikely(!mem_section)) {
-+		unsigned long size, align;
-+
-+		size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
-+		align = 1 << (INTERNODE_CACHE_SHIFT);
-+		mem_section = memblock_alloc(size, align);
-+		if (!mem_section)
-+			panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
-+			      __func__, size, align);
-+	}
-+#endif
-+
- 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, &nid)
- 		memory_present(nid, start, end);
- }
+ 		pgdat = NODE_DATA(nid);
+ 		free_area_init_node(nid);
+ 
+ 		/* Any memory on that node */
+-		if (pgdat->node_present_pages)
++		if (pgdat->node_present_pages) {
+ 			node_set_state(nid, N_MEMORY);
+-		check_for_memory(pgdat);
++			check_for_memory(pgdat);
++		}
+ 	}
+ 
+ 	calc_nr_kernel_pages();
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
