@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DED613D258
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 19:53:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05FB5481A3
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 19:53:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711482781; cv=none; b=K88HHQwThY9E/ZwUY11KGQLpILDB1TwT1UNRQN6k2xr1jOwJ7C4S/ACufi9NkY7gV1xQa8BTWJFiGk9WZloMNsgcoNKjCVSjXaPEyYKdhChiahQPDBbXzBMsyAvETkDG74ljVqtVuw/WDp82tdQVsGXAetEbygt2yrZDr+WoRvI=
+	t=1711482783; cv=none; b=LaDCC9LO+1xEwR2XWwabjZmiUcq9wGVnYkG04GBAHiVRcKQR+Tfg/RavHykMMOhYB+gr+XY2ePCAc3HjLgyQOabcvPrzpOhr0sUW1xrjmYQzVv+NEekEJjrJpoX72EpnH9O8CRKLJZxkcUZKw5lTxOm/fhIdw2YbE81rerOgltE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711482781; c=relaxed/simple;
-	bh=5G8tnGCipCoB4zVxJDCYPB4diMswbmwEKyUp95yCoOo=;
-	h=Date:To:From:Subject:Message-Id; b=GCggSMJgiVdHOZi2yTZoqzRfafvSUyshEg9lkHxbN9ucZDSXxWWqAnCLnAMvree9BA1nNGNB2s0fgipYspg3dG9ot2FvqWIC8/ZHqv51ZbGvT7VBanrK3xbN+B37vFyOCu8Sic/FaWpJyZ1dsghrNBykB+fsfhq7Z/EevIAS0Mc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AsP1j8ab; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711482783; c=relaxed/simple;
+	bh=rJkq4XxkM+XipZnCNI6AGv+qt/jXq1nXmFVlDdDX6jk=;
+	h=Date:To:From:Subject:Message-Id; b=Zi2veJU6H+iIZgfxs4lxYsyui7e3O4IvMTdbfiDhfd1EQd0zhXRX29oyTFtae9fiHaWaFaDjzTuoREdAuT66p6YMlqLv4KrBu7wn0UjNN/ZAlOeFXoInbisVSpsxhR9g/tgo+fxbNT9bbJLkaCY8ZjuXqhjaK+m9BcsN5hSpcGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pB6CIvwK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AsP1j8ab"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4F81C433F1;
-	Tue, 26 Mar 2024 19:53:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pB6CIvwK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E17EC433F1;
+	Tue, 26 Mar 2024 19:53:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711482780;
-	bh=5G8tnGCipCoB4zVxJDCYPB4diMswbmwEKyUp95yCoOo=;
+	s=korg; t=1711482782;
+	bh=rJkq4XxkM+XipZnCNI6AGv+qt/jXq1nXmFVlDdDX6jk=;
 	h=Date:To:From:Subject:From;
-	b=AsP1j8abkksORCN9RJv/y42/BO0pUmdAJThyaSHobh5IvbX61QotgmbOrH28x3kUM
-	 9rnElSt5cYtj+tg3wSBAT2v5uDagVf4Nv9+pf8swX+gVDH4kIESRvq+7kb6xB/fqUj
-	 J4QK1IiGfSPQtDa41x+xQNaNkeZ0COI3/NAJMvBg=
-Date: Tue, 26 Mar 2024 12:53:00 -0700
+	b=pB6CIvwKORHh2ow+bSs2WeiNKVGqz+x2zFZI8WBlVyXb0VAiV+SJ/ce/TjAiKjdVP
+	 vM5QiHVmYK86wM+7LIUZZ4EUI4a7txE2uQVoC6VHzSKKxFAaKyTh2Y0tfWVObd52xo
+	 YwEU7S1L9/xVHIqF7x40Cz5RiQQcMPuemYpFhuho=
+Date: Tue, 26 Mar 2024 12:53:02 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,mgorman@suse.de,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_initc-remove-the-outdated-code-comment-above-deferred_grow_zone.patch added to mm-unstable branch
-Message-Id: <20240326195300.A4F81C433F1@smtp.kernel.org>
+Subject: + mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone.patch added to mm-unstable branch
+Message-Id: <20240326195302.9E17EC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mm_init.c: remove the outdated code comment above deferred_grow_zone()
+     Subject: mm/page_alloc.c: don't show protection in zone's ->lowmem_reserve[] for empty zone
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mm_initc-remove-the-outdated-code-comment-above-deferred_grow_zone.patch
+     mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_initc-remove-the-outdated-code-comment-above-deferred_grow_zone.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,47 +59,121 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/mm_init.c: remove the outdated code comment above deferred_grow_zone()
-Date: Tue, 26 Mar 2024 14:11:31 +0800
+Subject: mm/page_alloc.c: don't show protection in zone's ->lowmem_reserve[] for empty zone
+Date: Tue, 26 Mar 2024 14:11:32 +0800
 
-The noinline attribute has been taken off in commit 9420f89db2dd ("mm:
-move most of core MM initialization to mm/mm_init.c").  So remove the
-unneeded code comment above deferred_grow_zone().
+On one node, for lower zone's ->lowmem_reserve[], it will show how much
+memory is reserved in this lower zone to avoid excessive page allocation
+from the relevant higher zone's fallback allocation.
 
-And also remove the unneeded bracket in deferred_init_pages().
+However, currently lower zone's lowmem_reserve[] element will be filled
+even though the relevant higher zone is empty.  That doesnt' make sense
+and can cause confusion.
 
-Link: https://lkml.kernel.org/r/20240326061134.1055295-6-bhe@redhat.com
+E.g on node 0 of one system as below, it has zone
+DMA/DMA32/NORMAL/MOVABLE/DEVICE, among them zone MOVABLE/DEVICE are the
+highest and both are empty.  In zone DMA/DMA32's protection array, we can
+see that it has value for zone MOVABLE and DEVICE.
+
+Node 0, zone      DMA
+  ......
+  pages free     2816
+        boost    0
+        min      7
+        low      10
+        high     13
+        spanned  4095
+        present  3998
+        managed  3840
+        cma      0
+        protection: (0, 1582, 23716, 23716, 23716)
+   ......
+Node 0, zone    DMA32
+  pages free     403269
+        boost    0
+        min      753
+        low      1158
+        high     1563
+        spanned  1044480
+        present  487039
+        managed  405070
+        cma      0
+        protection: (0, 0, 22134, 22134, 22134)
+   ......
+Node 0, zone   Normal
+  pages free     5423879
+        boost    0
+        min      10539
+        low      16205
+        high     21871
+        spanned  5767168
+        present  5767168
+        managed  5666438
+        cma      0
+        protection: (0, 0, 0, 0, 0)
+   ......
+Node 0, zone  Movable
+  pages free     0
+        boost    0
+        min      32
+        low      32
+        high     32
+        spanned  0
+        present  0
+        managed  0
+        cma      0
+        protection: (0, 0, 0, 0, 0)
+Node 0, zone   Device
+  pages free     0
+        boost    0
+        min      0
+        low      0
+        high     0
+        spanned  0
+        present  0
+        managed  0
+        cma      0
+        protection: (0, 0, 0, 0, 0)
+
+Here, clear out the element value in lower zone's ->lowmem_reserve[] if the
+relevant higher zone is empty.
+
+And also replace space with tab in _deferred_grow_zone()
+
+Link: https://lkml.kernel.org/r/20240326061134.1055295-7-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ mm/page_alloc.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/mm_init.c~mm-mm_initc-remove-the-outdated-code-comment-above-deferred_grow_zone
-+++ a/mm/mm_init.c
-@@ -2007,7 +2007,7 @@ static unsigned long  __init deferred_in
- 		__init_single_page(page, pfn, zid, nid);
- 		nr_pages++;
- 	}
--	return (nr_pages);
-+	return nr_pages;
- }
- 
- /*
-@@ -2209,10 +2209,6 @@ zone_empty:
-  * Return true when zone was grown, otherwise return false. We return true even
-  * when we grow less than requested, to let the caller decide if there are
-  * enough pages to satisfy the allocation.
-- *
-- * Note: We use noinline because this function is needed only during boot, and
-- * it is called from a __ref function _deferred_grow_zone. This way we are
-- * making sure that it is not inlined into permanent text section.
-  */
- bool __init deferred_grow_zone(struct zone *zone, unsigned int order)
+--- a/mm/page_alloc.c~mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone
++++ a/mm/page_alloc.c
+@@ -315,7 +315,7 @@ static inline bool deferred_pages_enable
+ static bool __ref
+ _deferred_grow_zone(struct zone *zone, unsigned int order)
  {
+-       return deferred_grow_zone(zone, order);
++	return deferred_grow_zone(zone, order);
+ }
+ #else
+ static inline bool deferred_pages_enabled(void)
+@@ -5911,10 +5911,11 @@ static void setup_per_zone_lowmem_reserv
+ 
+ 			for (j = i + 1; j < MAX_NR_ZONES; j++) {
+ 				struct zone *upper_zone = &pgdat->node_zones[j];
++				bool empty = !zone_managed_pages(upper_zone);
+ 
+ 				managed_pages += zone_managed_pages(upper_zone);
+ 
+-				if (clear)
++				if (clear || empty)
+ 					zone->lowmem_reserve[j] = 0;
+ 				else
+ 					zone->lowmem_reserve[j] = managed_pages / ratio;
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
