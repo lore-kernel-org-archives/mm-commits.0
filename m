@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 363CE366
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:40:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBDBD14265
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:51:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711478402; cv=none; b=QdcE7ETL5GanvHTTHmfcI230+CepvBUq8jWQip3ANz3I6EGRVUN2h7lbq5JnlUZdPFj7zDoKhu8g+U8avqx0D+2i5LQZVSQTf5G+Up3luwqkfqlso8BlgrtFI6zODcLhsYuHauLwlQ5Lngjt3c++twDhKeFRkz9AcF1G0yuuvLA=
+	t=1711479105; cv=none; b=mlkNn3E2YtcWo1urX0aVtwGe7Caa0+e+7RBJiZGHVLynobBbQmZJSqMotqj0/YxM5lJ1NXDRzaW0rplIOnkQLu5DuxUK1VM7XHDPfhh2bzWoVTUKqsUTpE4fbfBXTJUjWLpbEI3VbBebSFR12z0xiQ5g/2oeYqF6fi877fLIWa8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711478402; c=relaxed/simple;
-	bh=ZOcPjuTWhlFcTvqjZr6P5t7RJU5pzY9v7in1HmMvV6M=;
-	h=Date:To:From:Subject:Message-Id; b=nUWG1Y6jNNs6Kx3T4TkloYmEm5tbdztYge29C3l7O3rteqgmDGN9M8bELZ3LEMiA1e4J+Z9RLDl/JbDwbk9N+zCVhvnd+q9HLoFwl4bvd3AJ+3gNnhi26WXMmux+vsM7y7fGTtyhSfZvrz9HeDQ3jQr1f9DGoV+pV2DASFff9ec=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZavQnuHu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711479105; c=relaxed/simple;
+	bh=Dy5EJdZ2/6/LJtsuiiQ1xdgcql/469vpyjY4q+Y6exs=;
+	h=Date:To:From:Subject:Message-Id; b=ryG55F1fHFoBpDzagBZ0gdcOq13ugF7u8wFwClmspsqgdPxEpyN9wWjvWDKUmhHq/HOzXOXjQJyHlH9sO8Y0HaoXhZBcW4mlbbFj6Quxw+bNwIkv7fRy/LPNXWuxA0F2oRXx9FTCIb4qXWZEIKEYj7ZYW5RLQ51AluelTNSzyPk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pIXGCuom; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZavQnuHu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98DC6C433F1;
-	Tue, 26 Mar 2024 18:40:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pIXGCuom"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A653C433F1;
+	Tue, 26 Mar 2024 18:51:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711478401;
-	bh=ZOcPjuTWhlFcTvqjZr6P5t7RJU5pzY9v7in1HmMvV6M=;
+	s=korg; t=1711479105;
+	bh=Dy5EJdZ2/6/LJtsuiiQ1xdgcql/469vpyjY4q+Y6exs=;
 	h=Date:To:From:Subject:From;
-	b=ZavQnuHu87xsv+bO2XZZqI2xwMCfzuRHJQj63EavmVvMXdPz5luf7WYFGX6H151IB
-	 vYk563HjRJf2Qg8RarHB03iiQKus7qvVRmyk8fXV0aPg89+k48iNX8QtUY3IHvX8MT
-	 q+NP/hF4izQfNMP2IycKWqoqmaJp39NpTeCP//wM=
-Date: Tue, 26 Mar 2024 11:40:00 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,surenb@google.com,akpm@linux-foundation.org
+	b=pIXGCuomUOJGD+WwHPJxl/mDx+gsJ/xNtRcdq/ZeLYHpuFacMiLdeUjqpOAAH+Y1h
+	 MxovnX0f1Fw/1XhaCeNdK7/b5wHK1OMCNQO0Ufx8jmR3iqHm5CIgOGI/zamI/xVGgZ
+	 FRMP1ue+rMZmNI7j62EN1rnsw6gAeCnf3Pe+rtvE=
+Date: Tue, 26 Mar 2024 11:51:44 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,sj@kernel.org,shy828301@gmail.com,ryan.roberts@arm.com,kirill.shutemov@linux.intel.com,fengwei.yin@intel.com,baolin.wang@linux.alibaba.com,zi.yan@sent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-enable-memory-allocation-profiling-fix.patch added to mm-unstable branch
-Message-Id: <20240326184001.98DC6C433F1@smtp.kernel.org>
+Subject: + mm-migrate-split-source-folio-if-it-is-on-deferred-split-list-fix.patch added to mm-unstable branch
+Message-Id: <20240326185145.2A653C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arch/um: fix forward declaration for vmalloc
+     Subject: mm-migrate-split-source-folio-if-it-is-on-deferred-split-list-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-enable-memory-allocation-profiling-fix.patch
+     mm-migrate-split-source-folio-if-it-is-on-deferred-split-list-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-enable-memory-allocation-profiling-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-split-source-folio-if-it-is-on-deferred-split-list-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,74 +58,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: arch/um: fix forward declaration for vmalloc
-Date: Tue, 26 Mar 2024 00:37:50 -0700
+From: Zi Yan <zi.yan@sent.com>
+Subject: mm-migrate-split-source-folio-if-it-is-on-deferred-split-list-fix
+Date: Tue, 26 Mar 2024 11:00:31 -0400
 
-Patch [1] replaced vmalloc() function with a new definition but it did not
-adjust the forward declaration used in UML architecture.  Change it to act
-as before.
+fix an error in migrate_misplaced_folio() reported by Baolin Wang
 
-Note that this prevents the vmalloc() allocations in __wrap_malloc() from
-being accounted.  If accounting here is critical, we will have to remove
-this forward declaration and include vmalloc.h, however that would pull in
-more dependencies and would require introducing more architecture-specific
-headers, like asm/bug.h, asm/rwonce.h, etc.  This is likely the reason why
-this forward declaration was introduced in the first place.
-
-[1] https://lore.kernel.org/all/20240321163705.3067592-31-surenb@google.com/
-
-Link: https://lkml.kernel.org/r/20240326073750.726636-1-surenb@google.com
-Fixes: 576477564ede ("mm: vmalloc: enable memory allocation profiling")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: SeongJae Park <sj@kernel.org>
-Closes: https://lore.kernel.org/all/20240323180506.195396-1-sj@kernel.org/
-Tested-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20240326150031.569387-1-zi.yan@sent.com
+Link: https://lore.kernel.org/linux-mm/df9a644c-a007-46ac-98e3-61d4014fcfff@linux.alibaba.com/
+Fixes: 616b8371539a ("mm: thp: enable thp migration in generic path")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Huang, Ying <ying.huang@intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/shared/um_malloc.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/um/include/shared/um_malloc.h~mm-vmalloc-enable-memory-allocation-profiling-fix
-+++ a/arch/um/include/shared/um_malloc.h
-@@ -11,7 +11,8 @@
- extern void *uml_kmalloc(int size, int flags);
- extern void kfree(const void *ptr);
- 
--extern void *vmalloc(unsigned long size);
-+extern void *vmalloc_noprof(unsigned long size);
-+#define vmalloc(...)		vmalloc_noprof(__VA_ARGS__)
- extern void vfree(void *ptr);
- 
- #endif /* __UM_MALLOC_H__ */
+--- a/mm/migrate.c~mm-migrate-split-source-folio-if-it-is-on-deferred-split-list-fix
++++ a/mm/migrate.c
+@@ -1668,7 +1668,7 @@ static int migrate_pages_batch(struct li
+ 			 */
+ 			if (nr_pages > 2 &&
+ 			   !list_empty(&folio->_deferred_list)) {
+-				if (try_split_folio(folio, from) == 0) {
++				if (try_split_folio(folio, split_folios) == 0) {
+ 					stats->nr_thp_split += is_thp;
+ 					stats->nr_split++;
+ 					continue;
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from zi.yan@sent.com are
 
-mm-introduce-slabobj_ext-to-support-slab-object-extensions.patch
-mm-introduce-__gfp_no_obj_ext-flag-to-selectively-prevent-slabobj_ext-creation.patch
-mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation.patch
-slab-objext-introduce-objext_flags-as-extension-to-page_memcg_data_flags.patch
-lib-code-tagging-framework.patch
-lib-code-tagging-module-support.patch
-lib-prevent-module-unloading-if-memory-is-not-freed.patch
-lib-add-allocation-tagging-support-for-memory-allocation-profiling.patch
-lib-introduce-support-for-page-allocation-tagging.patch
-lib-introduce-early-boot-parameter-to-avoid-page_ext-memory-overhead.patch
-mm-percpu-increase-percpu_module_reserve-to-accommodate-allocation-tags.patch
-change-alloc_pages-name-in-dma_map_ops-to-avoid-name-conflicts.patch
-mm-enable-page-allocation-tagging.patch
-mm-create-new-codetag-references-during-page-splitting.patch
-mm-fix-non-compound-multi-order-memory-accounting-in-__free_pages.patch
-mm-page_ext-enable-early_page_ext-when-config_mem_alloc_profiling_debug=y.patch
-lib-add-codetag-reference-into-slabobj_ext.patch
-mm-slab-add-allocation-accounting-into-slab-allocation-and-free-paths.patch
-mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends.patch
-mm-percpu-enable-per-cpu-allocation-tagging.patch
-mm-vmalloc-enable-memory-allocation-profiling-fix.patch
-lib-add-memory-allocations-report-in-show_mem.patch
-codetag-debug-skip-objext-checking-when-its-for-objext-itself.patch
-codetag-debug-mark-codetags-for-reserved-pages-as-empty.patch
-codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations.patch
+mm-migrate-split-source-folio-if-it-is-on-deferred-split-list-fix.patch
 
