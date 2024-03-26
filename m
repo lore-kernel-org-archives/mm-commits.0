@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80E3184FDA
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:32:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 363CE366
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:40:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711477944; cv=none; b=qZAqnlxl6nQ9EydBRuIYSCtUUn1hj6mGNshE6T7Gh90sSfxN+Rh7dcILNEa+kKjd2XfoTBrLgs6B/GgFtnrLlskjCKESiemlq6lUouBWTjvYBzbc+PhQAOLLxyFisCQg0rysmUcuN55S8o6Bz/MLUhWEGnh1T0c3zCA/QwNaPTM=
+	t=1711478402; cv=none; b=QdcE7ETL5GanvHTTHmfcI230+CepvBUq8jWQip3ANz3I6EGRVUN2h7lbq5JnlUZdPFj7zDoKhu8g+U8avqx0D+2i5LQZVSQTf5G+Up3luwqkfqlso8BlgrtFI6zODcLhsYuHauLwlQ5Lngjt3c++twDhKeFRkz9AcF1G0yuuvLA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711477944; c=relaxed/simple;
-	bh=U0QVvc0+1gc5bVILXj7Ae98T1q2SyW9xu1z+qgtV4Pg=;
-	h=Date:To:From:Subject:Message-Id; b=RJJsTW6F9s/ko1yZSQAr7xhC8s8mV1elXpeFrt1lceG4UT35LMIAWe3I7BNfz3+0nUMkmukgbLpXNyrgIyMw+lz8WPJylSXdojCM5u1vWvDpEgm8kkcEev3L1azOylwYuYXUEr+ltXrlYkBOWT/HqHvAJIxAWQbLdhJAznw6ckA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X/nJ1Ehb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711478402; c=relaxed/simple;
+	bh=ZOcPjuTWhlFcTvqjZr6P5t7RJU5pzY9v7in1HmMvV6M=;
+	h=Date:To:From:Subject:Message-Id; b=nUWG1Y6jNNs6Kx3T4TkloYmEm5tbdztYge29C3l7O3rteqgmDGN9M8bELZ3LEMiA1e4J+Z9RLDl/JbDwbk9N+zCVhvnd+q9HLoFwl4bvd3AJ+3gNnhi26WXMmux+vsM7y7fGTtyhSfZvrz9HeDQ3jQr1f9DGoV+pV2DASFff9ec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZavQnuHu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X/nJ1Ehb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 516E5C433C7;
-	Tue, 26 Mar 2024 18:32:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZavQnuHu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98DC6C433F1;
+	Tue, 26 Mar 2024 18:40:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711477944;
-	bh=U0QVvc0+1gc5bVILXj7Ae98T1q2SyW9xu1z+qgtV4Pg=;
+	s=korg; t=1711478401;
+	bh=ZOcPjuTWhlFcTvqjZr6P5t7RJU5pzY9v7in1HmMvV6M=;
 	h=Date:To:From:Subject:From;
-	b=X/nJ1EhbQKujfGI1HKemmsZTWSobuxKvcZCfLfahSBkM8/zsVoKMn24VraVFG/3Ja
-	 4wMUyQPXfRtFaO9UkX6UtpB33FeblGzGzDQyDjMuGuwnms8g1koGRnmcTy6iBABDf4
-	 bAmA/V6Dj+mJ9A1PnKTjKVepCyCObLflLXgKRjAw=
-Date: Tue, 26 Mar 2024 11:32:23 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,v-songbaohua@oppo.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=ZavQnuHu87xsv+bO2XZZqI2xwMCfzuRHJQj63EavmVvMXdPz5luf7WYFGX6H151IB
+	 vYk563HjRJf2Qg8RarHB03iiQKus7qvVRmyk8fXV0aPg89+k48iNX8QtUY3IHvX8MT
+	 q+NP/hF4izQfNMP2IycKWqoqmaJp39NpTeCP//wM=
+Date: Tue, 26 Mar 2024 11:40:00 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio-fix.patch added to mm-unstable branch
-Message-Id: <20240326183224.516E5C433C7@smtp.kernel.org>
+Subject: + mm-vmalloc-enable-memory-allocation-profiling-fix.patch added to mm-unstable branch
+Message-Id: <20240326184001.98DC6C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio-fix
+     Subject: arch/um: fix forward declaration for vmalloc
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio-fix.patch
+     mm-vmalloc-enable-memory-allocation-profiling-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-enable-memory-allocation-profiling-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,52 +58,74 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio-fix
-Date: Tue Mar 26 11:30:46 AM PDT 2024
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: arch/um: fix forward declaration for vmalloc
+Date: Tue, 26 Mar 2024 00:37:50 -0700
 
-rewrap comment, per Matthew
+Patch [1] replaced vmalloc() function with a new definition but it did not
+adjust the forward declaration used in UML architecture.  Change it to act
+as before.
 
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Note that this prevents the vmalloc() allocations in __wrap_malloc() from
+being accounted.  If accounting here is critical, we will have to remove
+this forward declaration and include vmalloc.h, however that would pull in
+more dependencies and would require introducing more architecture-specific
+headers, like asm/bug.h, asm/rwonce.h, etc.  This is likely the reason why
+this forward declaration was introduced in the first place.
+
+[1] https://lore.kernel.org/all/20240321163705.3067592-31-surenb@google.com/
+
+Link: https://lkml.kernel.org/r/20240326073750.726636-1-surenb@google.com
+Fixes: 576477564ede ("mm: vmalloc: enable memory allocation profiling")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reported-by: SeongJae Park <sj@kernel.org>
+Closes: https://lore.kernel.org/all/20240323180506.195396-1-sj@kernel.org/
+Tested-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ arch/um/include/shared/um_malloc.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio-fix
-+++ a/mm/vmscan.c
-@@ -1258,14 +1258,16 @@ retry:
- 			if (folio_test_pmd_mappable(folio))
- 				flags |= TTU_SPLIT_HUGE_PMD;
- 			/*
--			 * Without TTU_SYNC, try_to_unmap will only begin to hold PTL
--			 * from the first present PTE within a large folio. Some initial
--			 * PTEs might be skipped due to races with parallel PTE writes
--			 * in which PTEs can be cleared temporarily before being written
--			 * new present values. This will lead to a large folio is still
--			 * mapped while some subpages have been partially unmapped after
--			 * try_to_unmap; TTU_SYNC helps try_to_unmap acquire PTL from the
--			 * first PTE, eliminating the influence of temporary PTE values.
-+			 * Without TTU_SYNC, try_to_unmap will only begin to
-+			 * hold PTL from the first present PTE within a large
-+			 * folio. Some initial PTEs might be skipped due to
-+			 * races with parallel PTE writes in which PTEs can be
-+			 * cleared temporarily before being written new present
-+			 * values. This will lead to a large folio is still
-+			 * mapped while some subpages have been partially
-+			 * unmapped after try_to_unmap; TTU_SYNC helps
-+			 * try_to_unmap acquire PTL from the first PTE,
-+			 * eliminating the influence of temporary PTE values.
- 			 */
- 			if (folio_test_large(folio) && list_empty(&folio->_deferred_list))
- 				flags |= TTU_SYNC;
+--- a/arch/um/include/shared/um_malloc.h~mm-vmalloc-enable-memory-allocation-profiling-fix
++++ a/arch/um/include/shared/um_malloc.h
+@@ -11,7 +11,8 @@
+ extern void *uml_kmalloc(int size, int flags);
+ extern void kfree(const void *ptr);
+ 
+-extern void *vmalloc(unsigned long size);
++extern void *vmalloc_noprof(unsigned long size);
++#define vmalloc(...)		vmalloc_noprof(__VA_ARGS__)
+ extern void vfree(void *ptr);
+ 
+ #endif /* __UM_MALLOC_H__ */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries-fix.patch
-mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio-fix.patch
-mm-move-follow_phys-to-arch-x86-mm-pat-memtypec-fix.patch
+mm-introduce-slabobj_ext-to-support-slab-object-extensions.patch
+mm-introduce-__gfp_no_obj_ext-flag-to-selectively-prevent-slabobj_ext-creation.patch
+mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation.patch
+slab-objext-introduce-objext_flags-as-extension-to-page_memcg_data_flags.patch
+lib-code-tagging-framework.patch
+lib-code-tagging-module-support.patch
+lib-prevent-module-unloading-if-memory-is-not-freed.patch
+lib-add-allocation-tagging-support-for-memory-allocation-profiling.patch
+lib-introduce-support-for-page-allocation-tagging.patch
+lib-introduce-early-boot-parameter-to-avoid-page_ext-memory-overhead.patch
+mm-percpu-increase-percpu_module_reserve-to-accommodate-allocation-tags.patch
+change-alloc_pages-name-in-dma_map_ops-to-avoid-name-conflicts.patch
+mm-enable-page-allocation-tagging.patch
+mm-create-new-codetag-references-during-page-splitting.patch
+mm-fix-non-compound-multi-order-memory-accounting-in-__free_pages.patch
+mm-page_ext-enable-early_page_ext-when-config_mem_alloc_profiling_debug=y.patch
+lib-add-codetag-reference-into-slabobj_ext.patch
+mm-slab-add-allocation-accounting-into-slab-allocation-and-free-paths.patch
+mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends.patch
+mm-percpu-enable-per-cpu-allocation-tagging.patch
+mm-vmalloc-enable-memory-allocation-profiling-fix.patch
+lib-add-memory-allocations-report-in-show_mem.patch
+codetag-debug-skip-objext-checking-when-its-for-objext-itself.patch
+codetag-debug-mark-codetags-for-reserved-pages-as-empty.patch
+codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations.patch
 
