@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E5E013D26E
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 19:52:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AE3213D258
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 19:52:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711482777; cv=none; b=uBL/UpraD6yh84c9J53VzV2TmletPB10dFlSvLvbzguleptSrF2+1YR9s+rohSHtIohx5UDqQOQ019or4mpiCcWKPuZ/zfsJ2ZA3O9VC/rY5/eLIAy42pyKeh9GkCD8kdSE44T85O8IFJg2nU/NLUWdUKg2vfv/lNY/dVAsoCFU=
+	t=1711482779; cv=none; b=M6NqLRhSesICyHPcQTh0SbDfsLkW/eNJk5OVR0H+wanEeRhQTxrKJkYT1KtKbAQ6z9I8w6DUOIcaiEUyk4XV0kNwcnCxFJW+pxdxqd/XN1LySDuDWH1d6xLGxlihzEh2mrIGdqqlrJ6eXsEFrjb17lJC+lkqiK33nhosxPIFpNg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711482777; c=relaxed/simple;
-	bh=NwAC9T24+TjQRQvi4DHePJhH/I85r8M9sEkoLsNQCQc=;
-	h=Date:To:From:Subject:Message-Id; b=r/iozWgnmvbSTvfEKH45xGI3D3fRfDVXG+njZ3jko/915Yeggnaq3a2dYuKmJquRewYb6hfnoG/+14pyPnCv5RQ9wGJARLSTJEheArGrAeudfYToy1patnoJ2mvgihDNcSI8u1fFvhBXzi/TBXOe5M/Bgp1w9oayUyud1lnDUG0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d6wo2JLU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711482779; c=relaxed/simple;
+	bh=uVoIMU07j5N2HZpa1+tcihhK+dnNo3X3R2abA7msXpc=;
+	h=Date:To:From:Subject:Message-Id; b=SV/jtgjhmY7lYmMNwUX87m6916AsstLNsOFjfKVIy02/Htlu4HH816uBOgRc8iPKsBu4XT+YUnQnGhjpqG3j1cZ72hS4o53yp+xi5JP5rdMU7qMP5uKwqL3R7jSZ1rKxK2Q0XQdiNOTHHaHHA+6LMFyblLJlGB680OTii9fbb68=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MuQG5/Td; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d6wo2JLU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBF6BC433C7;
-	Tue, 26 Mar 2024 19:52:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MuQG5/Td"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E481DC433F1;
+	Tue, 26 Mar 2024 19:52:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711482776;
-	bh=NwAC9T24+TjQRQvi4DHePJhH/I85r8M9sEkoLsNQCQc=;
+	s=korg; t=1711482779;
+	bh=uVoIMU07j5N2HZpa1+tcihhK+dnNo3X3R2abA7msXpc=;
 	h=Date:To:From:Subject:From;
-	b=d6wo2JLUZKsQ2mPYfD9+tt6tY4E3dEGB5ubH8bIUq8cDU/aci5L9GuvVVJBDXPke/
-	 N1v8vC86OiOfQFW3ZDQdxdXb7a1Ot0Ybv6S3d9DIMxBQ8bqL8KG1wiOA/7Bpscm8o9
-	 PDb/eaQom9t7+b9Y5Ettg73S+8jfJfMmxzWw4fNA=
-Date: Tue, 26 Mar 2024 12:52:56 -0700
+	b=MuQG5/Td6rYS9eISzS+sapHR6yfoxpY4fB4SvFb5bOM/e88IuZZnx0o/bBafX08A+
+	 D03/EqHrinHLuqexSFww4PzCSE7XhDejboasTovkN+m26sXRR+rgymL0V24nbLBdK4
+	 /ZZvOL2yWb5ZXXeh8yDzFH50QYJQ3h2Qg2VKx0Dw=
+Date: Tue, 26 Mar 2024 12:52:58 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,mgorman@suse.de,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-__absent_pages_in_range-as-static.patch added to mm-unstable branch
-Message-Id: <20240326195256.CBF6BC433C7@smtp.kernel.org>
+Subject: + mm-page_allocc-remove-unneeded-codes-in-numa-version-of-build_zonelists.patch added to mm-unstable branch
+Message-Id: <20240326195258.E481DC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: make __absent_pages_in_range() as static
+     Subject: mm/page_alloc.c: remove unneeded codes in !NUMA version of build_zonelists()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-make-__absent_pages_in_range-as-static.patch
+     mm-page_allocc-remove-unneeded-codes-in-numa-version-of-build_zonelists.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-__absent_pages_in_range-as-static.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_allocc-remove-unneeded-codes-in-numa-version-of-build_zonelists.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,44 +59,56 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm: make __absent_pages_in_range() as static
-Date: Tue, 26 Mar 2024 14:11:29 +0800
+Subject: mm/page_alloc.c: remove unneeded codes in !NUMA version of build_zonelists()
+Date: Tue, 26 Mar 2024 14:11:30 +0800
 
-It's only called in mm/mm_init.c now.
+When CONFIG_NUMA=n, MAX_NUMNODES is always 1 because Kconfig item
+NODES_SHIFT depends on NUMA.  So in !NUMA version of build_zonelists(), no
+need to bother with the two for loop because code execution won't enter
+them ever.
 
-Link: https://lkml.kernel.org/r/20240326061134.1055295-4-bhe@redhat.com
+Here, remove those unneeded codes in !NUMA version of build_zonelists().
+
+Link: https://lkml.kernel.org/r/20240326061134.1055295-5-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 --
- mm/mm_init.c       |    2 +-
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ mm/page_alloc.c |   21 ---------------------
+ 1 file changed, 21 deletions(-)
 
---- a/include/linux/mm.h~mm-make-__absent_pages_in_range-as-static
-+++ a/include/linux/mm.h
-@@ -3228,8 +3228,6 @@ static inline unsigned long get_num_phys
-  */
- void free_area_init(unsigned long *max_zone_pfn);
- unsigned long node_map_pfn_alignment(void);
--unsigned long __absent_pages_in_range(int nid, unsigned long start_pfn,
--						unsigned long end_pfn);
- extern unsigned long absent_pages_in_range(unsigned long start_pfn,
- 						unsigned long end_pfn);
- extern void get_pfn_range_for_nid(unsigned int nid,
---- a/mm/mm_init.c~mm-make-__absent_pages_in_range-as-static
-+++ a/mm/mm_init.c
-@@ -1144,7 +1144,7 @@ static void __init adjust_zone_range_for
-  * Return the number of holes in a range on a node. If nid is MAX_NUMNODES,
-  * then all holes in the requested range will be accounted for.
-  */
--unsigned long __init __absent_pages_in_range(int nid,
-+static unsigned long __init __absent_pages_in_range(int nid,
- 				unsigned long range_start_pfn,
- 				unsigned long range_end_pfn)
- {
+--- a/mm/page_alloc.c~mm-page_allocc-remove-unneeded-codes-in-numa-version-of-build_zonelists
++++ a/mm/page_alloc.c
+@@ -5295,27 +5295,6 @@ static void build_zonelists(pg_data_t *p
+ 	nr_zones = build_zonerefs_node(pgdat, zonerefs);
+ 	zonerefs += nr_zones;
+ 
+-	/*
+-	 * Now we build the zonelist so that it contains the zones
+-	 * of all the other nodes.
+-	 * We don't want to pressure a particular node, so when
+-	 * building the zones for node N, we make sure that the
+-	 * zones coming right after the local ones are those from
+-	 * node N+1 (modulo N)
+-	 */
+-	for (node = local_node + 1; node < MAX_NUMNODES; node++) {
+-		if (!node_online(node))
+-			continue;
+-		nr_zones = build_zonerefs_node(NODE_DATA(node), zonerefs);
+-		zonerefs += nr_zones;
+-	}
+-	for (node = 0; node < local_node; node++) {
+-		if (!node_online(node))
+-			continue;
+-		nr_zones = build_zonerefs_node(NODE_DATA(node), zonerefs);
+-		zonerefs += nr_zones;
+-	}
+-
+ 	zonerefs->zone = NULL;
+ 	zonerefs->zone_idx = 0;
+ }
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
