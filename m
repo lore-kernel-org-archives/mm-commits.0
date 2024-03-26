@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBDBD14265
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 18:51:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B8E51272DB
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 19:11:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711479105; cv=none; b=mlkNn3E2YtcWo1urX0aVtwGe7Caa0+e+7RBJiZGHVLynobBbQmZJSqMotqj0/YxM5lJ1NXDRzaW0rplIOnkQLu5DuxUK1VM7XHDPfhh2bzWoVTUKqsUTpE4fbfBXTJUjWLpbEI3VbBebSFR12z0xiQ5g/2oeYqF6fi877fLIWa8=
+	t=1711480277; cv=none; b=hMnq39taFWlth7o5oPHvYcr5bjyds5HbuZRFUuNCkW6zI3ufvrnysFlSl7xtwEgdnq0QiD4iSCocvbsTOcdKXIwFfLiHoC9U+vr4bPlsWS7P90IwT9r0nLkZ2oBch+MZGTRJb6ybZvfGwNupsqEvOc/XWEfFOT0LNzsEuli32B8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711479105; c=relaxed/simple;
-	bh=Dy5EJdZ2/6/LJtsuiiQ1xdgcql/469vpyjY4q+Y6exs=;
-	h=Date:To:From:Subject:Message-Id; b=ryG55F1fHFoBpDzagBZ0gdcOq13ugF7u8wFwClmspsqgdPxEpyN9wWjvWDKUmhHq/HOzXOXjQJyHlH9sO8Y0HaoXhZBcW4mlbbFj6Quxw+bNwIkv7fRy/LPNXWuxA0F2oRXx9FTCIb4qXWZEIKEYj7ZYW5RLQ51AluelTNSzyPk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pIXGCuom; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711480277; c=relaxed/simple;
+	bh=deqGj4VmtwUshhfQTtecJUcXK25L7e1dCibA9qo9c0g=;
+	h=Date:To:From:Subject:Message-Id; b=t9H2za8TSga294y76wl6XnNxcgW2WUwwy7uXDrId9Chkp7wIJj6moNR4kuHOcn36FF70vDWnVyS1BdMjeODgH6jVXBq0qHasSsS2LvxCcuC7xiTJVmvQbOIt4Vv2UgQX6agaN/cK5c9EdXpfSjzGWz2F8du+UbqKfsQpVhg02h0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QpeTtNAS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pIXGCuom"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A653C433F1;
-	Tue, 26 Mar 2024 18:51:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QpeTtNAS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE9B1C433F1;
+	Tue, 26 Mar 2024 19:11:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711479105;
-	bh=Dy5EJdZ2/6/LJtsuiiQ1xdgcql/469vpyjY4q+Y6exs=;
+	s=korg; t=1711480276;
+	bh=deqGj4VmtwUshhfQTtecJUcXK25L7e1dCibA9qo9c0g=;
 	h=Date:To:From:Subject:From;
-	b=pIXGCuomUOJGD+WwHPJxl/mDx+gsJ/xNtRcdq/ZeLYHpuFacMiLdeUjqpOAAH+Y1h
-	 MxovnX0f1Fw/1XhaCeNdK7/b5wHK1OMCNQO0Ufx8jmR3iqHm5CIgOGI/zamI/xVGgZ
-	 FRMP1ue+rMZmNI7j62EN1rnsw6gAeCnf3Pe+rtvE=
-Date: Tue, 26 Mar 2024 11:51:44 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,sj@kernel.org,shy828301@gmail.com,ryan.roberts@arm.com,kirill.shutemov@linux.intel.com,fengwei.yin@intel.com,baolin.wang@linux.alibaba.com,zi.yan@sent.com,akpm@linux-foundation.org
+	b=QpeTtNASkT9/vHbJEowSEykhIfCKuCNbSllsHYzRZs8+sOKRF/stHND57B1AQp1dq
+	 UfKG42XMCz9xKYA/oYAybznRI+kXCteqZ2SQ08tG4StZa6VlcYbEzSUy05tp51Qlrp
+	 zh4Cwb70znKUHTJ6MBwXBAPq269facJShgNrBpSA=
+Date: Tue, 26 Mar 2024 12:11:16 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,mgorman@techsingularity.net,jhubbard@nvidia.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-split-source-folio-if-it-is-on-deferred-split-list-fix.patch added to mm-unstable branch
-Message-Id: <20240326185145.2A653C433F1@smtp.kernel.org>
+Subject: + mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch added to mm-unstable branch
+Message-Id: <20240326191116.BE9B1C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-migrate-split-source-folio-if-it-is-on-deferred-split-list-fix
+     Subject: mm: factor out the numa mapping rebuilding into a new helper
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate-split-source-folio-if-it-is-on-deferred-split-list-fix.patch
+     mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-split-source-folio-if-it-is-on-deferred-split-list-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,45 +58,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <zi.yan@sent.com>
-Subject: mm-migrate-split-source-folio-if-it-is-on-deferred-split-list-fix
-Date: Tue, 26 Mar 2024 11:00:31 -0400
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: factor out the numa mapping rebuilding into a new helper
+Date: Tue, 26 Mar 2024 19:51:24 +0800
 
-fix an error in migrate_misplaced_folio() reported by Baolin Wang
+Patch series "support multi-size THP numa balancing".
 
-Link: https://lkml.kernel.org/r/20240326150031.569387-1-zi.yan@sent.com
-Link: https://lore.kernel.org/linux-mm/df9a644c-a007-46ac-98e3-61d4014fcfff@linux.alibaba.com/
-Fixes: 616b8371539a ("mm: thp: enable thp migration in generic path")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Huang, Ying <ying.huang@intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+This patchset tries to support mTHP numa balancing, as a simple solution
+to start, the NUMA balancing algorithm for mTHP will follow the THP
+strategy as the basic support.
+
+
+This patch (of 2):
+
+To support large folio's numa balancing, factor out the numa mapping
+rebuilding into a new helper as a preparation.
+
+Link: https://lkml.kernel.org/r/cover.1711453317.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/0c9df470bd2a62af8cc707cf01e42c7c744dd927.1711453317.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |   22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-split-source-folio-if-it-is-on-deferred-split-list-fix
-+++ a/mm/migrate.c
-@@ -1668,7 +1668,7 @@ static int migrate_pages_batch(struct li
- 			 */
- 			if (nr_pages > 2 &&
- 			   !list_empty(&folio->_deferred_list)) {
--				if (try_split_folio(folio, from) == 0) {
-+				if (try_split_folio(folio, split_folios) == 0) {
- 					stats->nr_thp_split += is_thp;
- 					stats->nr_split++;
- 					continue;
+--- a/mm/memory.c~mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper
++++ a/mm/memory.c
+@@ -5054,6 +5054,20 @@ int numa_migrate_prep(struct folio *foli
+ 	return mpol_misplaced(folio, vmf, addr);
+ }
+ 
++static void numa_rebuild_single_mapping(struct vm_fault *vmf, struct vm_area_struct *vma,
++					bool writable)
++{
++	pte_t pte, old_pte;
++
++	old_pte = ptep_modify_prot_start(vma, vmf->address, vmf->pte);
++	pte = pte_modify(old_pte, vma->vm_page_prot);
++	pte = pte_mkyoung(pte);
++	if (writable)
++		pte = pte_mkwrite(pte, vma);
++	ptep_modify_prot_commit(vma, vmf->address, vmf->pte, old_pte, pte);
++	update_mmu_cache_range(vmf, vma, vmf->address, vmf->pte, 1);
++}
++
+ static vm_fault_t do_numa_page(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+@@ -5159,13 +5173,7 @@ out_map:
+ 	 * Make it present again, depending on how arch implements
+ 	 * non-accessible ptes, some can allow access by kernel mode.
+ 	 */
+-	old_pte = ptep_modify_prot_start(vma, vmf->address, vmf->pte);
+-	pte = pte_modify(old_pte, vma->vm_page_prot);
+-	pte = pte_mkyoung(pte);
+-	if (writable)
+-		pte = pte_mkwrite(pte, vma);
+-	ptep_modify_prot_commit(vma, vmf->address, vmf->pte, old_pte, pte);
+-	update_mmu_cache_range(vmf, vma, vmf->address, vmf->pte, 1);
++	numa_rebuild_single_mapping(vmf, vma, writable);
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	goto out;
+ }
 _
 
-Patches currently in -mm which might be from zi.yan@sent.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-migrate-split-source-folio-if-it-is-on-deferred-split-list-fix.patch
+mm-record-the-migration-reason-for-struct-migration_target_control.patch
+mm-hugetlb-make-the-hugetlb-migration-strategy-consistent.patch
+docs-hugetlbpagerst-add-hugetlb-migration-description.patch
+mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch
+mm-support-multi-size-thp-numa-balancing.patch
 
