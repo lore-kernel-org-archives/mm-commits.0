@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A312F13D618
-	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 20:46:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BAC37442F
+	for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2024 20:46:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711486004; cv=none; b=vCA2rdziSeqOv6Q76LGV5tD+aXzxFElnrFieF+25lcbtx4gmBsqEHBhD4TvXtqVx+BxBetcOWRLXdZVzUHxzZ6A9hwTx20qqCQMQBPwhqp9ojqQQuNc9TIhsigB01R6jQdfBxU72b9AO8FI3RDEGgrfy+TkVrhcZv7DJ1JO5/cw=
+	t=1711486006; cv=none; b=hw5U04ZZb1rahhqzzjGdoBg9Sb+TNCwHHyCQ1Bj7aSK9g5IbGXE+HzW68zL15EXzXZ6IOlY2sSdlwjrs05cJ1sbjI0dnWHVo3/pMT52/c5VtBDrYTsG5n4DCCe8K2EUL8xE4myW0fxb90GMit1lut7qS2EvfZTqEcT1puvahgA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711486004; c=relaxed/simple;
-	bh=oO9Gv14FXwQqj50CtJ4zJNkBqUaEaM0Z/8LjSgmYOTk=;
-	h=Date:To:From:Subject:Message-Id; b=dGhLlyNgnzqbotkDE1zPfX8nYUH8gbO+EcNdSm2GMcleMvLcLSKyxC3rkZWK4FkM0nfjAqhqLo1N6Y8sIdEcNEQkr5hiI9g3gwloEdX4XoXkMBU+laEjFCK93Gl98sIaZXu8FUpxoXEbn+ha4BJgNnavKwvpNOa8QAbQPoD4Dnc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sTSwbZiH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711486006; c=relaxed/simple;
+	bh=sT55g5VqWKiWJ0P3xMuu4jlWV3XuyxCb5P7Cuo50894=;
+	h=Date:To:From:Subject:Message-Id; b=VI36dapVnZFAVpGyNTxBzF9MUq0WsUBe7ADVP0GL9QrPUvSXzAk3LTPG3v9M59UwTeFjQM2kIEG/gPuJpmoXDbeQz0KfShTkC/GkMOyo074O8RJF09UpDlaf3oGndjbwIX3H1pxBAl9W0+3H5pgb1OiHQ1jgEeEEdM/CSUO66Ao=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dviLOhsd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sTSwbZiH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D017C433F1;
-	Tue, 26 Mar 2024 20:46:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dviLOhsd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECFB9C433F1;
+	Tue, 26 Mar 2024 20:46:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711486004;
-	bh=oO9Gv14FXwQqj50CtJ4zJNkBqUaEaM0Z/8LjSgmYOTk=;
+	s=korg; t=1711486006;
+	bh=sT55g5VqWKiWJ0P3xMuu4jlWV3XuyxCb5P7Cuo50894=;
 	h=Date:To:From:Subject:From;
-	b=sTSwbZiHQJcY4BJJ+lqND7rYk5oWKT4PKeruenyAAybV0V3jGfU7Q10IoHHJ2CDEX
-	 VJjmpiQd/6Ztg2vbIX8nTy8M4/+6b6XAVzOaNCBCrADxmj8chP0UDN7BR/zRuJY2LR
-	 NhPC5jkbb7w6/8k9rW+lRRVhxjMvpnFuwY3TVwng=
-Date: Tue, 26 Mar 2024 13:46:43 -0700
+	b=dviLOhsdV3ii5dqFQODMNu3mCKGzDQ9Gzxl5GufJB8Qtba1Y43BuTfo3Z7Kc9lgiQ
+	 E63hrmRorcIhqavGEjE+rh+GmxY60Lm5vKOV9k94hzax5hG5j4c8pTdOQHm4qZAn8S
+	 q9GV0kO9gvxbixHFiihftXygVHJQYLy+caoo3LNM=
+Date: Tue, 26 Mar 2024 13:46:45 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-migrate_vma_collect_pmd-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20240326204644.2D017C433F1@smtp.kernel.org>
+Subject: + mm-convert-huge_zero_page-to-huge_zero_folio.patch added to mm-unstable branch
+Message-Id: <20240326204645.ECFB9C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: convert migrate_vma_collect_pmd to use a folio
+     Subject: mm: convert huge_zero_page to huge_zero_folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-migrate_vma_collect_pmd-to-use-a-folio.patch
+     mm-convert-huge_zero_page-to-huge_zero_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-migrate_vma_collect_pmd-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-huge_zero_page-to-huge_zero_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,60 +59,158 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert migrate_vma_collect_pmd to use a folio
-Date: Tue, 26 Mar 2024 20:28:24 +0000
+Subject: mm: convert huge_zero_page to huge_zero_folio
+Date: Tue, 26 Mar 2024 20:28:25 +0000
 
-Convert the pmd directly to a folio and use it.  Turns four calls to
-compound_head() into one.
+With all callers of is_huge_zero_page() converted, we can now switch the
+huge_zero_page itself from being a compound page to a folio.
 
-Link: https://lkml.kernel.org/r/20240326202833.523759-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240326202833.523759-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate_device.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/linux/huge_mm.h |   21 ++++++++-------------
+ mm/huge_memory.c        |   28 ++++++++++++++--------------
+ 2 files changed, 22 insertions(+), 27 deletions(-)
 
---- a/mm/migrate_device.c~mm-convert-migrate_vma_collect_pmd-to-use-a-folio
-+++ a/mm/migrate_device.c
-@@ -71,7 +71,7 @@ again:
- 		return migrate_vma_collect_hole(start, end, -1, walk);
+--- a/include/linux/huge_mm.h~mm-convert-huge_zero_page-to-huge_zero_folio
++++ a/include/linux/huge_mm.h
+@@ -348,17 +348,12 @@ struct page *follow_devmap_pud(struct vm
  
- 	if (pmd_trans_huge(*pmdp)) {
--		struct page *page;
-+		struct folio *folio;
+ vm_fault_t do_huge_pmd_numa_page(struct vm_fault *vmf);
  
- 		ptl = pmd_lock(mm, pmdp);
- 		if (unlikely(!pmd_trans_huge(*pmdp))) {
-@@ -79,21 +79,21 @@ again:
- 			goto again;
- 		}
+-extern struct page *huge_zero_page;
++extern struct folio *huge_zero_folio;
+ extern unsigned long huge_zero_pfn;
  
--		page = pmd_page(*pmdp);
--		if (is_huge_zero_page(page)) {
-+		folio = pmd_folio(*pmdp);
-+		if (is_huge_zero_folio(folio)) {
- 			spin_unlock(ptl);
- 			split_huge_pmd(vma, pmdp, addr);
- 		} else {
- 			int ret;
+-static inline bool is_huge_zero_page(const struct page *page)
+-{
+-	return READ_ONCE(huge_zero_page) == page;
+-}
+-
+ static inline bool is_huge_zero_folio(const struct folio *folio)
+ {
+-	return READ_ONCE(huge_zero_page) == &folio->page;
++	return READ_ONCE(huge_zero_folio) == folio;
+ }
  
--			get_page(page);
-+			folio_get(folio);
- 			spin_unlock(ptl);
--			if (unlikely(!trylock_page(page)))
-+			if (unlikely(!folio_trylock(folio)))
- 				return migrate_vma_collect_skip(start, end,
- 								walk);
--			ret = split_huge_page(page);
--			unlock_page(page);
--			put_page(page);
-+			ret = split_folio(folio);
-+			folio_unlock(folio);
-+			folio_put(folio);
- 			if (ret)
- 				return migrate_vma_collect_skip(start, end,
- 								walk);
+ static inline bool is_huge_zero_pmd(pmd_t pmd)
+@@ -371,9 +366,14 @@ static inline bool is_huge_zero_pud(pud_
+ 	return false;
+ }
+ 
+-struct page *mm_get_huge_zero_page(struct mm_struct *mm);
++struct folio *mm_get_huge_zero_folio(struct mm_struct *mm);
+ void mm_put_huge_zero_page(struct mm_struct *mm);
+ 
++static inline struct page *mm_get_huge_zero_page(struct mm_struct *mm)
++{
++	return &mm_get_huge_zero_folio(mm)->page;
++}
++
+ #define mk_huge_pmd(page, prot) pmd_mkhuge(mk_pmd(page, prot))
+ 
+ static inline bool thp_migration_supported(void)
+@@ -485,11 +485,6 @@ static inline vm_fault_t do_huge_pmd_num
+ 	return 0;
+ }
+ 
+-static inline bool is_huge_zero_page(const struct page *page)
+-{
+-	return false;
+-}
+-
+ static inline bool is_huge_zero_folio(const struct folio *folio)
+ {
+ 	return false;
+--- a/mm/huge_memory.c~mm-convert-huge_zero_page-to-huge_zero_folio
++++ a/mm/huge_memory.c
+@@ -74,7 +74,7 @@ static unsigned long deferred_split_scan
+ 					 struct shrink_control *sc);
+ 
+ static atomic_t huge_zero_refcount;
+-struct page *huge_zero_page __read_mostly;
++struct folio *huge_zero_folio __read_mostly;
+ unsigned long huge_zero_pfn __read_mostly = ~0UL;
+ unsigned long huge_anon_orders_always __read_mostly;
+ unsigned long huge_anon_orders_madvise __read_mostly;
+@@ -192,24 +192,24 @@ unsigned long __thp_vma_allowable_orders
+ 
+ static bool get_huge_zero_page(void)
+ {
+-	struct page *zero_page;
++	struct folio *zero_folio;
+ retry:
+ 	if (likely(atomic_inc_not_zero(&huge_zero_refcount)))
+ 		return true;
+ 
+-	zero_page = alloc_pages((GFP_TRANSHUGE | __GFP_ZERO) & ~__GFP_MOVABLE,
++	zero_folio = folio_alloc((GFP_TRANSHUGE | __GFP_ZERO) & ~__GFP_MOVABLE,
+ 			HPAGE_PMD_ORDER);
+-	if (!zero_page) {
++	if (!zero_folio) {
+ 		count_vm_event(THP_ZERO_PAGE_ALLOC_FAILED);
+ 		return false;
+ 	}
+ 	preempt_disable();
+-	if (cmpxchg(&huge_zero_page, NULL, zero_page)) {
++	if (cmpxchg(&huge_zero_folio, NULL, zero_folio)) {
+ 		preempt_enable();
+-		__free_pages(zero_page, compound_order(zero_page));
++		folio_put(zero_folio);
+ 		goto retry;
+ 	}
+-	WRITE_ONCE(huge_zero_pfn, page_to_pfn(zero_page));
++	WRITE_ONCE(huge_zero_pfn, folio_pfn(zero_folio));
+ 
+ 	/* We take additional reference here. It will be put back by shrinker */
+ 	atomic_set(&huge_zero_refcount, 2);
+@@ -227,10 +227,10 @@ static void put_huge_zero_page(void)
+ 	BUG_ON(atomic_dec_and_test(&huge_zero_refcount));
+ }
+ 
+-struct page *mm_get_huge_zero_page(struct mm_struct *mm)
++struct folio *mm_get_huge_zero_folio(struct mm_struct *mm)
+ {
+ 	if (test_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
+-		return READ_ONCE(huge_zero_page);
++		return READ_ONCE(huge_zero_folio);
+ 
+ 	if (!get_huge_zero_page())
+ 		return NULL;
+@@ -238,7 +238,7 @@ struct page *mm_get_huge_zero_page(struc
+ 	if (test_and_set_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
+ 		put_huge_zero_page();
+ 
+-	return READ_ONCE(huge_zero_page);
++	return READ_ONCE(huge_zero_folio);
+ }
+ 
+ void mm_put_huge_zero_page(struct mm_struct *mm)
+@@ -258,10 +258,10 @@ static unsigned long shrink_huge_zero_pa
+ 				       struct shrink_control *sc)
+ {
+ 	if (atomic_cmpxchg(&huge_zero_refcount, 1, 0) == 1) {
+-		struct page *zero_page = xchg(&huge_zero_page, NULL);
+-		BUG_ON(zero_page == NULL);
++		struct folio *zero_folio = xchg(&huge_zero_folio, NULL);
++		BUG_ON(zero_folio == NULL);
+ 		WRITE_ONCE(huge_zero_pfn, ~0UL);
+-		__free_pages(zero_page, compound_order(zero_page));
++		folio_put(zero_folio);
+ 		return HPAGE_PMD_NR;
+ 	}
+ 
+@@ -1340,7 +1340,7 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 		 * since we already have a zero page to copy. It just takes a
+ 		 * reference.
+ 		 */
+-		mm_get_huge_zero_page(dst_mm);
++		mm_get_huge_zero_folio(dst_mm);
+ 		goto out_zero_page;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
