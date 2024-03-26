@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04DF984D0D;
-	Tue, 26 Mar 2024 18:08:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8100984D0D;
+	Tue, 26 Mar 2024 18:08:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711476510; cv=none; b=NHat+LJp2mZZZhQKvmM8Vs5y5Qp2/R2i5uzmsmVaPZG3TWRGTu7MSmjUwIunzTWK5uqDWzKVpJMVmJYY71fWPuyyol+gRkJ5P9J3nFBdXik6KwdImf6R7kwqUdqUR7f2zpe/0IP5OjYB20k6z0e87sPvYuOenKMwxOslwwRpgHg=
+	t=1711476512; cv=none; b=l1hc8+QYa0W95cyLqIXc85xwCvFG3DGvB6FGBL63nk2VA1nwVpLRNoJh/VFJnZB6zVQrDG3VV6ULlPY2dkAxCZvyayDxUXTjpp0ZPvgI9onf/ogyE9Z0WgN1E5gY1NsbVKN3sI/0uY6kB8X15AJV5WObrg1VGCo26zWz6Bmfr1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711476510; c=relaxed/simple;
-	bh=7al0y6XMSyiNP3DGXWZf5zZ5FDe88VA2xAQTEdFbXCU=;
-	h=Date:To:From:Subject:Message-Id; b=bu7q5OcLezcL/iHwFmtu6P5CzvuBsug7okWsA+FQfxer3M1MLLc0bp2Sm16n/nTM0IhZR3XOz+WQMGRUCMcA2rRMACs/OJzwaf9Bt4rFxy8ugQ4ZgF2hO1Bufq5npyyET6MeFy37lvF/NuiznYnSPfd00gHifD+ap9cdfy9eLAI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yj4PrZsZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711476512; c=relaxed/simple;
+	bh=5LMSrHypk30QL0+JmUJhcwBJDtWZn/tLfrw8fWTfvq0=;
+	h=Date:To:From:Subject:Message-Id; b=QwYiyodbdL/SPWHc7jxb2ZjSpYjsxhfX2Ulehy/PicqGA6q2iPR6JuS41QiUjnTl4HlRMxGcLQXcDYMjpmQbmVycOGEgoQcWQ7MRCUhNx9KD96XOuojhXueFtS0sedrBuBzJMHC1l8dbyHKsVHTvrB8QE+z1g2hnlxf53bZz5zY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MZjBI5RA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yj4PrZsZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C25F4C433C7;
-	Tue, 26 Mar 2024 18:08:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MZjBI5RA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAEA1C43390;
+	Tue, 26 Mar 2024 18:08:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711476509;
-	bh=7al0y6XMSyiNP3DGXWZf5zZ5FDe88VA2xAQTEdFbXCU=;
+	s=korg; t=1711476511;
+	bh=5LMSrHypk30QL0+JmUJhcwBJDtWZn/tLfrw8fWTfvq0=;
 	h=Date:To:From:Subject:From;
-	b=yj4PrZsZtUwakgzvmjHA39lrFWHxP6M92Os37UUnvETjDyg8+WVxHjCOgIVC2isqq
-	 9LdsFhJAYu74gzed5dlMMnJSveunrppNABoh9Eu6uaLELEEH5Jt2O5Qfb7cfuVKiXZ
-	 zxdGq/zTDbcT5fUyzjFgYuoQsIIULxVUiQlfnJGg=
-Date: Tue, 26 Mar 2024 11:08:29 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peterx@redhat.com,lokeshgidra@google.com,edliaw@google.com,akpm@linux-foundation.org
+	b=MZjBI5RAfIK9RWssNVNr7sb1uzDEXE9TTaeq/Zq01RreJ1mh3I/u4ieObGRavI5uR
+	 oCT+/n3MRQH0F62UcMV54yMvd2CAfOmhabRTedJ8v3WnlP5ancnUF8Vz0cCpF6NXkR
+	 DMwjjnARlr3K7/n1lraVpThsw/XXcEbZ65wkD4AM=
+Date: Tue, 26 Mar 2024 11:08:30 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,stable@vger.kernel.org,nphamcs@gmail.com,hezhongkun.hzk@bytedance.com,chrisl@kernel.org,chengming.zhou@linux.dev,baohua@kernel.org,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-fix-arm-related-issue-with-fork-after-pthread_create.patch removed from -mm tree
-Message-Id: <20240326180829.C25F4C433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-zswap-fix-data-loss-on-swp_synchronous_io-devices.patch removed from -mm tree
+Message-Id: <20240326180830.EAEA1C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,120 +35,107 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix ARM related issue with fork after pthread_create
+     Subject: mm: zswap: fix data loss on SWP_SYNCHRONOUS_IO devices
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-arm-related-issue-with-fork-after-pthread_create.patch
+     mm-zswap-fix-data-loss-on-swp_synchronous_io-devices.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Edward Liaw <edliaw@google.com>
-Subject: selftests/mm: fix ARM related issue with fork after pthread_create
-Date: Mon, 25 Mar 2024 19:40:52 +0000
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: zswap: fix data loss on SWP_SYNCHRONOUS_IO devices
+Date: Sun, 24 Mar 2024 17:04:47 -0400
 
-Following issue was observed while running the uffd-unit-tests selftest
-on ARM devices. On x86_64 no issues were detected:
+Zhongkun He reports data corruption when combining zswap with zram.
 
-pthread_create followed by fork caused deadlock in certain cases wherein
-fork required some work to be completed by the created thread.  Used
-synchronization to ensure that created thread's start function has started
-before invoking fork.
+The issue is the exclusive loads we're doing in zswap. They assume
+that all reads are going into the swapcache, which can assume
+authoritative ownership of the data and so the zswap copy can go.
 
-[edliaw@google.com: refactored to use atomic_bool]
-Link: https://lkml.kernel.org/r/20240325194100.775052-1-edliaw@google.com
-Fixes: 760aee0b71e3 ("selftests/mm: add tests for RO pinning vs fork()")
-Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
-Signed-off-by: Edward Liaw <edliaw@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: <stable@vger.kernel.org>
+However, zram files are marked SWP_SYNCHRONOUS_IO, and faults will try to
+bypass the swapcache.  This results in an optimistic read of the swap data
+into a page that will be dismissed if the fault fails due to races.  In
+this case, zswap mustn't drop its authoritative copy.
+
+Link: https://lore.kernel.org/all/CACSyD1N+dUvsu8=zV9P691B9bVq33erwOXNTmEaUbi9DrDeJzw@mail.gmail.com/
+Fixes: b9c91c43412f ("mm: zswap: support exclusive loads")
+Link: https://lkml.kernel.org/r/20240324210447.956973-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Zhongkun He <hezhongkun.hzk@bytedance.com>
+Tested-by: Zhongkun He <hezhongkun.hzk@bytedance.com>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Chris Li <chrisl@kernel.org>
+Cc: <stable@vger.kernel.org>	[6.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-common.c     |    3 +++
- tools/testing/selftests/mm/uffd-common.h     |    2 ++
- tools/testing/selftests/mm/uffd-unit-tests.c |   10 ++++++++++
- 3 files changed, 15 insertions(+)
+ mm/zswap.c |   23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-fix-arm-related-issue-with-fork-after-pthread_create
-+++ a/tools/testing/selftests/mm/uffd-common.c
-@@ -18,6 +18,7 @@ bool test_uffdio_wp = true;
- unsigned long long *count_verify;
- uffd_test_ops_t *uffd_test_ops;
- uffd_test_case_ops_t *uffd_test_case_ops;
-+atomic_bool ready_for_fork;
+--- a/mm/zswap.c~mm-zswap-fix-data-loss-on-swp_synchronous_io-devices
++++ a/mm/zswap.c
+@@ -1636,6 +1636,7 @@ bool zswap_load(struct folio *folio)
+ 	swp_entry_t swp = folio->swap;
+ 	pgoff_t offset = swp_offset(swp);
+ 	struct page *page = &folio->page;
++	bool swapcache = folio_test_swapcache(folio);
+ 	struct zswap_tree *tree = swap_zswap_tree(swp);
+ 	struct zswap_entry *entry;
+ 	u8 *dst;
+@@ -1648,7 +1649,20 @@ bool zswap_load(struct folio *folio)
+ 		spin_unlock(&tree->lock);
+ 		return false;
+ 	}
+-	zswap_rb_erase(&tree->rbroot, entry);
++	/*
++	 * When reading into the swapcache, invalidate our entry. The
++	 * swapcache can be the authoritative owner of the page and
++	 * its mappings, and the pressure that results from having two
++	 * in-memory copies outweighs any benefits of caching the
++	 * compression work.
++	 *
++	 * (Most swapins go through the swapcache. The notable
++	 * exception is the singleton fault on SWP_SYNCHRONOUS_IO
++	 * files, which reads into a private page and may free it if
++	 * the fault fails. We remain the primary owner of the entry.)
++	 */
++	if (swapcache)
++		zswap_rb_erase(&tree->rbroot, entry);
+ 	spin_unlock(&tree->lock);
  
- static int uffd_mem_fd_create(off_t mem_size, bool hugetlb)
- {
-@@ -518,6 +519,8 @@ void *uffd_poll_thread(void *arg)
- 	pollfd[1].fd = pipefd[cpu*2];
- 	pollfd[1].events = POLLIN;
+ 	if (entry->length)
+@@ -1663,9 +1677,10 @@ bool zswap_load(struct folio *folio)
+ 	if (entry->objcg)
+ 		count_objcg_event(entry->objcg, ZSWPIN);
  
-+	ready_for_fork = true;
-+
- 	for (;;) {
- 		ret = poll(pollfd, 2, -1);
- 		if (ret <= 0) {
---- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-fix-arm-related-issue-with-fork-after-pthread_create
-+++ a/tools/testing/selftests/mm/uffd-common.h
-@@ -32,6 +32,7 @@
- #include <inttypes.h>
- #include <stdint.h>
- #include <sys/random.h>
-+#include <stdatomic.h>
+-	zswap_entry_free(entry);
+-
+-	folio_mark_dirty(folio);
++	if (swapcache) {
++		zswap_entry_free(entry);
++		folio_mark_dirty(folio);
++	}
  
- #include "../kselftest.h"
- #include "vm_util.h"
-@@ -103,6 +104,7 @@ extern bool map_shared;
- extern bool test_uffdio_wp;
- extern unsigned long long *count_verify;
- extern volatile bool test_uffdio_copy_eexist;
-+extern atomic_bool ready_for_fork;
- 
- extern uffd_test_ops_t anon_uffd_test_ops;
- extern uffd_test_ops_t shmem_uffd_test_ops;
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-fix-arm-related-issue-with-fork-after-pthread_create
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -775,6 +775,8 @@ static void uffd_sigbus_test_common(bool
- 	char c;
- 	struct uffd_args args = { 0 };
- 
-+	ready_for_fork = false;
-+
- 	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
- 
- 	if (uffd_register(uffd, area_dst, nr_pages * page_size,
-@@ -790,6 +792,9 @@ static void uffd_sigbus_test_common(bool
- 	if (pthread_create(&uffd_mon, NULL, uffd_poll_thread, &args))
- 		err("uffd_poll_thread create");
- 
-+	while (!ready_for_fork)
-+		; /* Wait for the poll_thread to start executing before forking */
-+
- 	pid = fork();
- 	if (pid < 0)
- 		err("fork");
-@@ -829,6 +834,8 @@ static void uffd_events_test_common(bool
- 	char c;
- 	struct uffd_args args = { 0 };
- 
-+	ready_for_fork = false;
-+
- 	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
- 	if (uffd_register(uffd, area_dst, nr_pages * page_size,
- 			  true, wp, false))
-@@ -838,6 +845,9 @@ static void uffd_events_test_common(bool
- 	if (pthread_create(&uffd_mon, NULL, uffd_poll_thread, &args))
- 		err("uffd_poll_thread create");
- 
-+	while (!ready_for_fork)
-+		; /* Wait for the poll_thread to start executing before forking */
-+
- 	pid = fork();
- 	if (pid < 0)
- 		err("fork");
+ 	return true;
+ }
 _
 
-Patches currently in -mm which might be from edliaw@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
+mm-zswap-optimize-zswap-pool-size-tracking.patch
+mm-zpool-return-pool-size-in-pages.patch
+mm-page_alloc-remove-pcppage-migratetype-caching.patch
+mm-page_alloc-optimize-free_unref_folios.patch
+mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch
+mm-page_alloc-move-free-pages-when-converting-block-during-isolation.patch
+mm-page_alloc-fix-move_freepages_block-range-error.patch
+mm-page_alloc-fix-freelist-movement-during-block-conversion.patch
+mm-page_alloc-close-migratetype-race-between-freeing-and-stealing.patch
+mm-page_isolation-prepare-for-hygienic-freelists.patch
+mm-page_isolation-prepare-for-hygienic-freelists-fix.patch
+mm-page_alloc-consolidate-free-page-accounting.patch
 
