@@ -1,147 +1,150 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96ED614C5BC
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 18:17:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F0AD14D458;
+	Wed, 27 Mar 2024 18:32:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711563434; cv=none; b=S8ypHNQ5mv5wK0p+pwlxNA9jOiZw61ac9iC+dS6ko/Ox6qIzR1cCfdNEhFkzdc+8T4eOQO9/sexuhcAa/kcVoOCGNDgXe1RaiMosPQZlzQlC4Z0W+EO/ZA55kBQkVBGvRHNmurEaIOkujsMvA+1pvDAhUdRiD/fDgeVXoflj8I4=
+	t=1711564336; cv=none; b=ECl0Cdr5FI+h655ZsZP4ko6fwGqojJ8dYDwMr62ZvbeTxTmAmgI/7rSRv6RpntqbHfI9DAXo38xXiziZiUIKsNWF0tLcN/XdomjHdCfzOxjQJDNNLsdmtx1feXriG6xAXTf1R5G4nJZZUe+gXVqVaH7KLt4KdOQRWXYtemvK4pA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711563434; c=relaxed/simple;
-	bh=R35kR0W5drGWd1+545dEaxEpIFU1t2orAq4J4sy5JpM=;
-	h=Date:To:From:Subject:Message-Id; b=mbh2wzb27timOrPK/WTxHyAENni4U9z7jz58llAbMbfjp7k1RCqjRtilGRS5YSPT4+ZWZ37O+UiIFq5jJdev6C4wEOu82Tx+t1veqBB9TLU3wOSs3Q4cbGSR3wT3jsbVIwzKwMAaJn6vz5YTNWI2NaxNWeOuy/ZyJ3pbZqgWqTI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OVUO93Wl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711564336; c=relaxed/simple;
+	bh=grX1DH7yM9NWRvLZabboI42gsdIFaYdeSY/rPjWV1VI=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=bJGkZkMEy0ntw4Fe4FVLV5k9uJEKhHO4D+nlt5TTTo697OCbt3lDVWOc0BXy6zLcahqpp3ReVLZCVkClWGvIjp7nDNySdSqt3PQ5wimMVEoXSPUGtnzFJfl8AlTUt+cQT4KxhD6JiNNDozFjZUKFJOCClT3HiraQ07p2KfRUrkI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RsQHvkGK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OVUO93Wl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F297FC433C7;
-	Wed, 27 Mar 2024 18:17:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RsQHvkGK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53853C433F1;
+	Wed, 27 Mar 2024 18:32:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711563434;
-	bh=R35kR0W5drGWd1+545dEaxEpIFU1t2orAq4J4sy5JpM=;
-	h=Date:To:From:Subject:From;
-	b=OVUO93Wl7ZSisjW/wGx4AC/LoG/eLkWPs6UfpYVptujEqAJvsXrwlviqVUqBAUKt+
-	 RfR64JUY1JNCsBde5vBrD9kKwywGF0VszpKxZyMXtF49st2/MO4Y9zVA3ICkK+9B0u
-	 ZLnarconvPuGEbC/3roVZZDiM1xMWPFxzDw54mdc=
-Date: Wed, 27 Mar 2024 11:17:13 -0700
-To: mm-commits@vger.kernel.org,yury.norov@gmail.com,will@kernel.org,vschneid@redhat.com,vbabka@suse.cz,tglx@linutronix.de,rppt@kernel.org,rafael@kernel.org,paul.walmsley@sifive.com,palmer@rivosinc.com,ndesaulniers@google.com,mpe@ellerman.id.au,mingo@kernel.org,mikelley@microsoft.com,mhiramat@kernel.org,mark.rutland@arm.com,kuba@kernel.org,jpoimboe@kernel.org,jiaxun.yang@flygoat.com,gregkh@linuxfoundation.org,chenhuacai@kernel.org,catalin.marinas@arm.com,arnd@arndb.de,aou@eecs.berkeley.edu,shijie@os.amperecomputing.com,akpm@linux-foundation.org
+	s=korg; t=1711564335;
+	bh=grX1DH7yM9NWRvLZabboI42gsdIFaYdeSY/rPjWV1VI=;
+	h=Date:From:To:Cc:Subject:From;
+	b=RsQHvkGKO1KiHSe/lopBY7UVNdobL371dIYPIiy1OWLmwVwBM6gCVniGyGcPf0nvI
+	 9h5jtY2QwUYUYM/hN5N0vGpTRcjAj1WLGcfXyhuSUIbANRWBXwvS4hs7YxwbUW+upj
+	 OlxYsKLB81rzzC8xN5W3g52D9NW1LcgWPOvYoZjo=
+Date: Wed, 27 Mar 2024 11:32:14 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + numa-early-use-of-cpu_to_node-returns-0-instead-of-the-correct-node-id.patch added to mm-nonmm-unstable branch
-Message-Id: <20240327181713.F297FC433C7@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.9-rc2
+Message-Id: <20240327113214.f0200bec5624169a86371797@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: NUMA: early use of cpu_to_node() returns 0 instead of the correct node id
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     numa-early-use-of-cpu_to_node-returns-0-instead-of-the-correct-node-id.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/numa-early-use-of-cpu_to_node-returns-0-instead-of-the-correct-node-id.patch
+The following changes since commit 4cece764965020c22cff7665b18a012006359095:
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+  Linux 6.9-rc1 (2024-03-24 14:10:05 -0700)
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+are available in the Git repository at:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-03-27-11-25
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+for you to fetch changes up to 32fbe5246582af4f611ccccee33fd6e559087252:
 
-------------------------------------------------------
-From: Huang Shijie <shijie@os.amperecomputing.com>
-Subject: NUMA: early use of cpu_to_node() returns 0 instead of the correct node id
-Date: Fri, 26 Jan 2024 14:44:51 +0800
+  crash: use macro to add crashk_res into iomem early for specific arch (2024-03-26 11:14:12 -0700)
 
-During the kernel booting, the generic cpu_to_node() is called too early
-in arm64, powerpc and riscv when CONFIG_NUMA is enabled.
+----------------------------------------------------------------
+21 hotfixes.  11 are cc:stable and the remainder address post-6.8 issues
+or aren't considered suitable for backporting.
 
-There are at least four places in the common code where
-the generic cpu_to_node() is called before it is initialized:
-	   1.) early_trace_init()         in kernel/trace/trace.c
-	   2.) sched_init()               in kernel/sched/core.c
-	   3.) init_sched_fair_class()    in kernel/sched/fair.c
-	   4.) workqueue_init_early()     in kernel/workqueue.c
+zswap figures prominently in the post-6.8 issues - folloup against the
+large amount of changes we have just made to that code.
 
-In order to fix the bug, the patch introduces early_numa_node_init() which
-is called after smp_prepare_boot_cpu() in start_kernel. 
-early_numa_node_init will initialize the "numa_node" as soon as the
-early_cpu_to_node() is ready, before the cpu_to_node() is called at the
-first time.
+Apart from that, all over the map.
 
-Link: https://lkml.kernel.org/r/20240126064451.5465-1-shijie@os.amperecomputing.com
-Signed-off-by: Huang Shijie <shijie@os.amperecomputing.com>
-Acked-by: Palmer Dabbelt <palmer@rivosinc.com>	[RISC-V]
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michael Kelley (LINUX) <mikelley@microsoft.com>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yury Norov <yury.norov@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+----------------------------------------------------------------
+Baoquan He (1):
+      crash: use macro to add crashk_res into iomem early for specific arch
 
- init/main.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+Barry Song (1):
+      mm: zswap: fix kernel BUG in sg_init_one
 
---- a/init/main.c~numa-early-use-of-cpu_to_node-returns-0-instead-of-the-correct-node-id
-+++ a/init/main.c
-@@ -877,6 +877,19 @@ static void __init print_unknown_bootopt
- 	memblock_free(unknown_options, len);
- }
- 
-+static void __init early_numa_node_init(void)
-+{
-+#ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
-+#ifndef cpu_to_node
-+	int cpu;
-+
-+	/* The early_cpu_to_node() should be ready here. */
-+	for_each_possible_cpu(cpu)
-+		set_cpu_numa_node(cpu, early_cpu_to_node(cpu));
-+#endif
-+#endif
-+}
-+
- asmlinkage __visible __init __no_sanitize_address __noreturn __no_stack_protector
- void start_kernel(void)
- {
-@@ -907,6 +920,7 @@ void start_kernel(void)
- 	setup_nr_cpu_ids();
- 	setup_per_cpu_areas();
- 	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
-+	early_numa_node_init();
- 	boot_cpu_hotplug_init();
- 
- 	pr_notice("Kernel command line: %s\n", saved_command_line);
-_
+Carlos Maiolino (1):
+      tmpfs: fix race on handling dquot rbtree
 
-Patches currently in -mm which might be from shijie@os.amperecomputing.com are
+Cong Liu (1):
+      tools/Makefile: remove cgroup target
 
-numa-early-use-of-cpu_to_node-returns-0-instead-of-the-correct-node-id.patch
+Edward Liaw (2):
+      selftests/mm: sigbus-wp test requires UFFD_FEATURE_WP_HUGETLBFS_SHMEM
+      selftests/mm: fix ARM related issue with fork after pthread_create
+
+Johannes Weiner (3):
+      mm: cachestat: fix two shmem bugs
+      mm: zswap: fix writeback shinker GFP_NOIO/GFP_NOFS recursion
+      mm: zswap: fix data loss on SWP_SYNCHRONOUS_IO devices
+
+John Sperbeck (1):
+      init: open /initrd.image with O_LARGEFILE
+
+Kuan-Wei Chiu (1):
+      MAINTAINERS: remove incorrect M: tag for dm-devel@lists.linux.dev
+
+Leonard Crestez (1):
+      mailmap: update entry for Leonard Crestez
+
+Lokesh Gidra (1):
+      userfaultfd: fix deadlock warning when locking src and dst VMAs
+
+Matthew Wilcox (Oracle) (1):
+      mm: increase folio batch size
+
+Muhammad Usama Anjum (1):
+      selftests: mm: restore settings from only parent process
+
+Nathan Chancellor (1):
+      hexagon: vmlinux.lds.S: handle attributes section
+
+Oscar Salvador (1):
+      mm,page_owner: fix recursion
+
+Peter Xu (1):
+      mm/memory: fix missing pte marker for !page on pte zaps
+
+Vitaly Chikunov (1):
+      selftests/mm: Fix build with _FORTIFY_SOURCE
+
+Zev Weiss (2):
+      prctl: generalize PR_SET_MDWE support check to be per-arch
+      ARM: prctl: reject PR_SET_MDWE on pre-ARMv6
+
+ .mailmap                                          |  3 +-
+ MAINTAINERS                                       |  1 -
+ arch/arm/include/asm/mman.h                       | 14 +++++++
+ arch/hexagon/kernel/vmlinux.lds.S                 |  1 +
+ arch/parisc/include/asm/mman.h                    | 14 +++++++
+ arch/x86/include/asm/crash_reserve.h              |  2 +
+ include/linux/mman.h                              |  8 ++++
+ include/linux/pagevec.h                           |  4 +-
+ init/initramfs.c                                  |  2 +-
+ kernel/crash_reserve.c                            |  7 ++++
+ kernel/sys.c                                      |  7 +++-
+ mm/filemap.c                                      | 16 ++++++++
+ mm/memory.c                                       |  4 +-
+ mm/page_owner.c                                   | 33 ++++++++++++-----
+ mm/shmem_quota.c                                  | 10 +++--
+ mm/userfaultfd.c                                  |  3 +-
+ mm/zswap.c                                        | 45 ++++++++++++++++++++---
+ tools/Makefile                                    | 13 +++----
+ tools/testing/selftests/mm/gup_test.c             |  2 +-
+ tools/testing/selftests/mm/protection_keys.c      |  6 ++-
+ tools/testing/selftests/mm/soft-dirty.c           |  2 +-
+ tools/testing/selftests/mm/split_huge_page_test.c |  2 +-
+ tools/testing/selftests/mm/uffd-common.c          |  3 ++
+ tools/testing/selftests/mm/uffd-common.h          |  2 +
+ tools/testing/selftests/mm/uffd-unit-tests.c      | 13 ++++++-
+ 25 files changed, 177 insertions(+), 40 deletions(-)
+ create mode 100644 arch/arm/include/asm/mman.h
+ create mode 100644 arch/parisc/include/asm/mman.h
 
