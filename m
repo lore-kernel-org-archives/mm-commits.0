@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55ED712F374
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:30:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCEEB131E2E
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:30:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711571408; cv=none; b=a7c8/Ly37nmJAZizSan5t12DjZ3dug0qKK7VSQu+UbY6ezu521MGctlPP7rGxHSODA9DqkDcskfaqR0GpIzuPcaiccgeQrRQ3j7H6ywCwGBO7sCzWFEuRT+SWJ/HKDsvctoPrPe4907aZ63WOAWroN65pJNGMBB2fuIE4R1oexQ=
+	t=1711571410; cv=none; b=UJPMZ6tnu7Mo6Up5XpTgm4NfK+wqN4z82JUZFh8cISE/a1HbWlb3nhE4v/livwMk5LWROGZpy7CRUgvDpboU2r3vszsREfqW5Ix2haOJFEbVib18DJooAaZfzeoGu0/j0yDsrOGjoq57vsqqU7F+dY2sUqdRwRzu2bimj+fXLrM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711571408; c=relaxed/simple;
-	bh=Q4Pi1ahk/bSADwJYKvRF4QMh5tk6HbBWv7YonhWrYso=;
-	h=Date:To:From:Subject:Message-Id; b=Q4jgjDVdCa5bM0aANw29GAoyrPfubHbiBl0YulCIfHOH7kQsbLKvsCg38iV+kHSqpKiC4j+V8v6BuGiVQvcn1I+0ztKSd/dVV6ojtTlukj3zX16bioGzTl3dxTAviOaV5499XSQh4XPYaXXhKs9BUXFsuzr42UN4gCQSCoMkJHc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rlsfdCfJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711571410; c=relaxed/simple;
+	bh=6eqNYMS/qX3HP9s8gr97vKWyzAe1hmnKwN78E8zTqKk=;
+	h=Date:To:From:Subject:Message-Id; b=fhzpJL7ECLElNHxhqbMoAhVI/BOwR+c10TKA88Y4Se7QkIQh07H4SDag+Ryem79TJolnCd1vO8nlwE/OeoXF6Dzw7bz/+q/bT2CvEgEsDUVuBnGLBw0IjYLx9cv/vkvD+Ap0Rnl155BpA4AknY7gwgpdGE3Chct0nLasOO3nNIA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iHgs/sa1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rlsfdCfJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2C25C433C7;
-	Wed, 27 Mar 2024 20:30:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iHgs/sa1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F364C433F1;
+	Wed, 27 Mar 2024 20:30:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711571407;
-	bh=Q4Pi1ahk/bSADwJYKvRF4QMh5tk6HbBWv7YonhWrYso=;
+	s=korg; t=1711571410;
+	bh=6eqNYMS/qX3HP9s8gr97vKWyzAe1hmnKwN78E8zTqKk=;
 	h=Date:To:From:Subject:From;
-	b=rlsfdCfJe2zNhICNYVxB9d8Dx2a/X6Fmsqh59ShBip4HEE8hWYD577xV5531KU2s4
-	 M44F1GbBHtJ0vj9TZETw3ok49WnmnQK1Z3WP9dN2+k2UbaDFh9VKHcb5McEZ2KjTJo
-	 OXb2LeElSLpDyJzqWgxCYSeGQqo9LO2vRhNya5i8=
-Date: Wed, 27 Mar 2024 13:30:07 -0700
+	b=iHgs/sa1fXfStFYWZAq7ZMQAI1QSPojd9s8lz39EjZTBzw2hJZwzHQWNuA2eBdphC
+	 8JdndFSprreuvocjTaziGytwtZMbOJxON0ar3g9cr7kIgXyjwfjrVXzfi4dWDmMWSq
+	 hRx6o2QQjaEIfJ+928squW2Yj4Lo7+gvIPxLBID8=
+Date: Wed, 27 Mar 2024 13:30:09 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,palmer@rivosinc.com,nicolas@fjasle.eu,nathan@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,masahiroy@kernel.org,linux@armlinux.org.uk,hch@lst.de,git@xen0n.name,dave.hansen@linux.intel.com,corbet@lwn.net,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,alexander.deucher@amd.com,samuel.holland@sifive.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-implement-arch_has_kernel_fpu_support.patch added to mm-nonmm-unstable branch
-Message-Id: <20240327203007.D2C25C433C7@smtp.kernel.org>
+Subject: + arm64-crypto-use-cc_flags_fpu-for-neon-cflags.patch added to mm-nonmm-unstable branch
+Message-Id: <20240327203010.3F364C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: implement ARCH_HAS_KERNEL_FPU_SUPPORT
+     Subject: arm64: crypto: use CC_FLAGS_FPU for NEON CFLAGS
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     arm64-implement-arch_has_kernel_fpu_support.patch
+     arm64-crypto-use-cc_flags_fpu-for-neon-cflags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-implement-arch_has_kernel_fpu_support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-crypto-use-cc_flags_fpu-for-neon-cflags.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Samuel Holland <samuel.holland@sifive.com>
-Subject: arm64: implement ARCH_HAS_KERNEL_FPU_SUPPORT
-Date: Wed, 27 Mar 2024 13:00:35 -0700
+Subject: arm64: crypto: use CC_FLAGS_FPU for NEON CFLAGS
+Date: Wed, 27 Mar 2024 13:00:36 -0700
 
-arm64 provides an equivalent to the common kernel-mode FPU API, but in a
-different header and using different function names.  Add a wrapper
-header, and export CFLAGS adjustments as found in lib/raid6/Makefile.
+Now that CC_FLAGS_FPU is exported and can be used anywhere in the source
+tree, use it instead of duplicating the flags here.
 
-Link: https://lkml.kernel.org/r/20240327200157.1097089-5-samuel.holland@sifive.com
+Link: https://lkml.kernel.org/r/20240327200157.1097089-6-samuel.holland@sifive.com
 Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Alex Deucher <alexander.deucher@amd.com>
@@ -88,57 +87,24 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig           |    1 +
- arch/arm64/Makefile          |    9 ++++++++-
- arch/arm64/include/asm/fpu.h |   15 +++++++++++++++
- 3 files changed, 24 insertions(+), 1 deletion(-)
+ arch/arm64/lib/Makefile |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- /dev/null
-+++ a/arch/arm64/include/asm/fpu.h
-@@ -0,0 +1,15 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/*
-+ * Copyright (C) 2023 SiFive
-+ */
-+
-+#ifndef __ASM_FPU_H
-+#define __ASM_FPU_H
-+
-+#include <asm/neon.h>
-+
-+#define kernel_fpu_available()	cpu_has_neon()
-+#define kernel_fpu_begin()	kernel_neon_begin()
-+#define kernel_fpu_end()	kernel_neon_end()
-+
-+#endif /* ! __ASM_FPU_H */
---- a/arch/arm64/Kconfig~arm64-implement-arch_has_kernel_fpu_support
-+++ a/arch/arm64/Kconfig
-@@ -30,6 +30,7 @@ config ARM64
- 	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_HAS_GIGANTIC_PAGE
- 	select ARCH_HAS_KCOV
-+	select ARCH_HAS_KERNEL_FPU_SUPPORT if KERNEL_MODE_NEON
- 	select ARCH_HAS_KEEPINITRD
- 	select ARCH_HAS_MEMBARRIER_SYNC_CORE
- 	select ARCH_HAS_NMI_SAFE_THIS_CPU_OPS
---- a/arch/arm64/Makefile~arm64-implement-arch_has_kernel_fpu_support
-+++ a/arch/arm64/Makefile
-@@ -36,7 +36,14 @@ ifeq ($(CONFIG_BROKEN_GAS_INST),y)
- $(warning Detected assembler with broken .inst; disassembly will be unreliable)
+--- a/arch/arm64/lib/Makefile~arm64-crypto-use-cc_flags_fpu-for-neon-cflags
++++ a/arch/arm64/lib/Makefile
+@@ -7,10 +7,8 @@ lib-y		:= clear_user.o delay.o copy_from
+ 
+ ifeq ($(CONFIG_KERNEL_MODE_NEON), y)
+ obj-$(CONFIG_XOR_BLOCKS)	+= xor-neon.o
+-CFLAGS_REMOVE_xor-neon.o	+= -mgeneral-regs-only
+-CFLAGS_xor-neon.o		+= -ffreestanding
+-# Enable <arm_neon.h>
+-CFLAGS_xor-neon.o		+= -isystem $(shell $(CC) -print-file-name=include)
++CFLAGS_xor-neon.o		+= $(CC_FLAGS_FPU)
++CFLAGS_REMOVE_xor-neon.o	+= $(CC_FLAGS_NO_FPU)
  endif
  
--KBUILD_CFLAGS	+= -mgeneral-regs-only	\
-+# The GCC option -ffreestanding is required in order to compile code containing
-+# ARM/NEON intrinsics in a non C99-compliant environment (such as the kernel)
-+CC_FLAGS_FPU	:= -ffreestanding
-+# Enable <arm_neon.h>
-+CC_FLAGS_FPU	+= -isystem $(shell $(CC) -print-file-name=include)
-+CC_FLAGS_NO_FPU	:= -mgeneral-regs-only
-+
-+KBUILD_CFLAGS	+= $(CC_FLAGS_NO_FPU) \
- 		   $(compat_vdso) $(cc_has_k_constraint)
- KBUILD_CFLAGS	+= $(call cc-disable-warning, psabi)
- KBUILD_AFLAGS	+= $(compat_vdso)
+ lib-$(CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE) += uaccess_flushcache.o
 _
 
 Patches currently in -mm which might be from samuel.holland@sifive.com are
