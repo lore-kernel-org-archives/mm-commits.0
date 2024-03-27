@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCC49137764
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:21:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15B0E12F363
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:21:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711570879; cv=none; b=TuW6+lNFXN99pXZhrw7ol9rnWiaN5DDkw5S1sbIiLO8P/P2FRlpAuQH6lpRfUGIFtbAT+PVAhytZXQCQWI8fWi9ST7nMK6N8Ck6+iiFn35HtGlVJeTWeHcqf+WwY+PtxDmT929jE/1rEazKbkHjxwgPkg154unXhCvr6+QsqFtc=
+	t=1711570883; cv=none; b=AfYjHxagYu9qoZJvY5XmLrPeAqqwwbDZeW8NtAt5ay8ly3W4dlhJ8kICl1hIpIiea7veeIQIlqjJQDFCvdPSrClQfeVyw67xTJ0QWSSJwNG/SCZhLaPxOhE1QBipXJtYUqAKcHKb8L7d+syVNmigZi7FldwPzrfawiQ8cea+9qU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711570879; c=relaxed/simple;
-	bh=UnwVGqXrbj/SD3sleZTGjmtXyXIKwtK3DJjv3KKr+EY=;
-	h=Date:To:From:Subject:Message-Id; b=XQ5xombg6/Yp2fCc8psGK+8YWIb+UEp5HkR9RwFXrHlWxSbkrE1qB4vTbWa8KGiQEkgBiawk3t2yXV1nOwTpU1SbavtwiDbCDIdPm235vNSFuTTzFB0rfCIIKskTfaYdrwjfN/DwUaknpCIecU1O/WALwpKZlx9u/1h/jGgkJNE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=168Rxyaq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711570883; c=relaxed/simple;
+	bh=QLr9lbXukeLhZhSkXpU2d0X7c6+YttDfVFm5Us9G9Ys=;
+	h=Date:To:From:Subject:Message-Id; b=RBocyMBJgd6I/QHgXwfRs40K7BswQdnV9h5ZYX2ZRg6JI6zEf86ft52WT9nP+fAJg8qra50tDzEXsGvb1cRysG2Zy/MR1cm0q0EZuzqgXijvZPik3h55lf/aYzAAn9nV+moBbW1uLf7/9TTRw3lO64T8yf//WISEEnUbCKye5pw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DVr0Qcl1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="168Rxyaq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93042C433F1;
-	Wed, 27 Mar 2024 20:21:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DVr0Qcl1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8242DC433F1;
+	Wed, 27 Mar 2024 20:21:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711570879;
-	bh=UnwVGqXrbj/SD3sleZTGjmtXyXIKwtK3DJjv3KKr+EY=;
+	s=korg; t=1711570882;
+	bh=QLr9lbXukeLhZhSkXpU2d0X7c6+YttDfVFm5Us9G9Ys=;
 	h=Date:To:From:Subject:From;
-	b=168RxyaqCKaIqTSRLHPDRjJ+GstHXHcU1VoXf9rZmMl8WufkAprFfQMf2SRqLMmD0
-	 JpWc+Q8KxSt6heBXo7biI+ZQSLqLB5L4OSvWAkgsfnEo+KdosNbEIXSCUGJQGWr8t/
-	 Q7FNb9/DgliX3tIh5MWyd4LWuas7AHVD+t63Y9P0=
-Date: Wed, 27 Mar 2024 13:21:18 -0700
+	b=DVr0Qcl1QdTniK3/7LEzatZG1cQI3M44+MncBFW0hAJvdGw30lkpShpYfjqI76OY4
+	 FvKwQnCmCseDkjBRHB1cLSYe6nFqOY+0mJsbRgy36v6kpRNlR/eqWlDIKMbepE1Kf4
+	 biI3t9LsQaN+HTkiTAiGN3kGF+3YvgWFZwqWw+c0=
+Date: Wed, 27 Mar 2024 13:21:21 -0700
 To: mm-commits@vger.kernel.org,rdunlap@infradead.org,kent.overstreet@linux.dev,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-enable-page-allocation-tagging-fix.patch added to mm-unstable branch
-Message-Id: <20240327202119.93042C433F1@smtp.kernel.org>
+Subject: + mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix.patch added to mm-unstable branch
+Message-Id: <20240327202122.8242DC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation: mm: undo _noprof additions in the documentation
+     Subject: Documentation: mm/slab: undo _noprof additions in the documentation
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-enable-page-allocation-tagging-fix.patch
+     mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-enable-page-allocation-tagging-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,91 +59,55 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: Documentation: mm: undo _noprof additions in the documentation
-Date: Tue, 26 Mar 2024 16:14:48 -0700
+Subject: Documentation: mm/slab: undo _noprof additions in the documentation
+Date: Tue, 26 Mar 2024 16:14:52 -0700
 
 With kernel-doc script change to handle xyz_noprof() names, the previous
 documentation changes and not needed anymore.
 
-Link: https://lkml.kernel.org/r/20240326231453.1206227-3-surenb@google.com
-Fixes: 6522e08ac1c6 ("mm: enable page allocation tagging")
+Link: https://lkml.kernel.org/r/20240326231453.1206227-7-surenb@google.com
+Fixes: bc7b83f5e4bf ("mm/slab: enable slab allocation tagging for kmalloc and friends")
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Tested-by: Randy Dunlap <rdunlap@infradead.org>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c  |    6 +++---
- mm/page_alloc.c |    8 ++++----
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ mm/slub.c |    2 +-
+ mm/util.c |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/mempolicy.c~mm-enable-page-allocation-tagging-fix
-+++ a/mm/mempolicy.c
-@@ -2209,7 +2209,7 @@ static struct page *alloc_pages_preferre
- }
+--- a/mm/slub.c~mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix
++++ a/mm/slub.c
+@@ -4026,7 +4026,7 @@ void *kmem_cache_alloc_lru_noprof(struct
+ EXPORT_SYMBOL(kmem_cache_alloc_lru_noprof);
  
  /**
-- * alloc_pages_mpol_noprof - Allocate pages according to NUMA mempolicy.
-+ * alloc_pages_mpol - Allocate pages according to NUMA mempolicy.
-  * @gfp: GFP flags.
-  * @order: Order of the page allocation.
-  * @pol: Pointer to the NUMA mempolicy.
-@@ -2278,7 +2278,7 @@ struct page *alloc_pages_mpol_noprof(gfp
- }
+- * kmem_cache_alloc_node_noprof - Allocate an object on the specified node
++ * kmem_cache_alloc_node - Allocate an object on the specified node
+  * @s: The cache to allocate from.
+  * @gfpflags: See kmalloc().
+  * @node: node number of the target node.
+--- a/mm/util.c~mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix
++++ a/mm/util.c
+@@ -115,7 +115,7 @@ char *kstrndup(const char *s, size_t max
+ EXPORT_SYMBOL(kstrndup);
  
  /**
-- * vma_alloc_folio_noprof - Allocate a folio for a VMA.
-+ * vma_alloc_folio - Allocate a folio for a VMA.
-  * @gfp: GFP flags.
-  * @order: Order of the folio.
-  * @vma: Pointer to VMA.
-@@ -2309,7 +2309,7 @@ struct folio *vma_alloc_folio_noprof(gfp
- EXPORT_SYMBOL(vma_alloc_folio_noprof);
- 
- /**
-- * alloc_pages_noprof - Allocate pages.
-+ * alloc_pages - Allocate pages.
-  * @gfp: GFP flags.
-  * @order: Power of two of number of pages to allocate.
+- * kmemdup_noprof - duplicate region of memory
++ * kmemdup - duplicate region of memory
   *
---- a/mm/page_alloc.c~mm-enable-page-allocation-tagging-fix
-+++ a/mm/page_alloc.c
-@@ -4839,7 +4839,7 @@ static void *make_alloc_exact(unsigned l
- }
+  * @src: memory region to duplicate
+  * @len: memory region length
+@@ -594,7 +594,7 @@ unsigned long vm_mmap(struct file *file,
+ EXPORT_SYMBOL(vm_mmap);
  
  /**
-- * alloc_pages_exact_noprof - allocate an exact number physically-contiguous pages.
-+ * alloc_pages_exact - allocate an exact number physically-contiguous pages.
-  * @size: the number of bytes to allocate
-  * @gfp_mask: GFP flags for the allocation, must not contain __GFP_COMP
-  *
-@@ -4867,7 +4867,7 @@ void *alloc_pages_exact_noprof(size_t si
- EXPORT_SYMBOL(alloc_pages_exact_noprof);
- 
- /**
-- * alloc_pages_exact_nid_noprof - allocate an exact number of physically-contiguous
-+ * alloc_pages_exact_nid - allocate an exact number of physically-contiguous
-  *			   pages on a node.
-  * @nid: the preferred node ID where memory should be allocated
-  * @size: the number of bytes to allocate
-@@ -6323,7 +6323,7 @@ int __alloc_contig_migrate_range(struct
- }
- 
- /**
-- * alloc_contig_range_noprof() -- tries to allocate given range of pages
-+ * alloc_contig_range() -- tries to allocate given range of pages
-  * @start:	start PFN to allocate
-  * @end:	one-past-the-last PFN to allocate
-  * @migratetype:	migratetype of the underlying pageblocks (either
-@@ -6510,7 +6510,7 @@ static bool zone_spans_last_pfn(const st
- }
- 
- /**
-- * alloc_contig_pages_noprof() -- tries to find and allocate contiguous range of pages
-+ * alloc_contig_pages() -- tries to find and allocate contiguous range of pages
-  * @nr_pages:	Number of contiguous pages to allocate
-  * @gfp_mask:	GFP mask to limit search and used during compaction
-  * @nid:	Target node
+- * kvmalloc_node_noprof - attempt to allocate physically contiguous memory, but upon
++ * kvmalloc_node - attempt to allocate physically contiguous memory, but upon
+  * failure, fall back to non-contiguous (vmalloc) allocation.
+  * @size: size of the request.
+  * @flags: gfp mask for the allocation - must be compatible (superset) with GFP_KERNEL.
 _
 
 Patches currently in -mm which might be from surenb@google.com are
