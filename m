@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01A6F13CC67
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 18:01:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96ED614C5BC
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 18:17:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711562480; cv=none; b=jsuaJtqbUn7+6qfR9E5BcSAWdi8nMcYH094EuhCZitHL1fgHvVf4YTn8xs7qGE9BElT6NvWXfBzacD0YBDnIgKTqRWMXqM2xFgavav+Xi0VvuKSoLiKcNNN6pGfDmX1UiAIyIJq/Pys8yhzXdsVoO3zaDzVBWESjovem6Nhr0qM=
+	t=1711563434; cv=none; b=S8ypHNQ5mv5wK0p+pwlxNA9jOiZw61ac9iC+dS6ko/Ox6qIzR1cCfdNEhFkzdc+8T4eOQO9/sexuhcAa/kcVoOCGNDgXe1RaiMosPQZlzQlC4Z0W+EO/ZA55kBQkVBGvRHNmurEaIOkujsMvA+1pvDAhUdRiD/fDgeVXoflj8I4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711562480; c=relaxed/simple;
-	bh=3L/Zbt3wYDKKtY+HVai6j1QHGRpDYzYcI1liM90fF/I=;
-	h=Date:To:From:Subject:Message-Id; b=Uy1IxE+7QiB+YPlrzcwpVIm3vCQuKhpYDg4FDdCHQFG2YF0awg/fICDvUrm+cj7Kfw+dHJJkuDjO3o+WswwJ3ZaxOuHfOICWhzUJyuhKWkb/4BdIyxmvhYtB0vZsxZJ796gKtWLb2swh+jVm2Ft2PX7lC3PI63GZSttovwWOvIM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YqJ3Lwpj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711563434; c=relaxed/simple;
+	bh=R35kR0W5drGWd1+545dEaxEpIFU1t2orAq4J4sy5JpM=;
+	h=Date:To:From:Subject:Message-Id; b=mbh2wzb27timOrPK/WTxHyAENni4U9z7jz58llAbMbfjp7k1RCqjRtilGRS5YSPT4+ZWZ37O+UiIFq5jJdev6C4wEOu82Tx+t1veqBB9TLU3wOSs3Q4cbGSR3wT3jsbVIwzKwMAaJn6vz5YTNWI2NaxNWeOuy/ZyJ3pbZqgWqTI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OVUO93Wl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YqJ3Lwpj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CC74C433C7;
-	Wed, 27 Mar 2024 18:01:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OVUO93Wl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F297FC433C7;
+	Wed, 27 Mar 2024 18:17:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711562479;
-	bh=3L/Zbt3wYDKKtY+HVai6j1QHGRpDYzYcI1liM90fF/I=;
+	s=korg; t=1711563434;
+	bh=R35kR0W5drGWd1+545dEaxEpIFU1t2orAq4J4sy5JpM=;
 	h=Date:To:From:Subject:From;
-	b=YqJ3LwpjXOJdhSDYmBV/JT+e+XaWeCSEj7pXP8hjMptaL0t43pDYlKALbifL1WN9v
-	 SLY2Pun42P1Ru6uSTnoIUpCjveCtT7pUpYIbxI0+5itkjXx5rsMByGwD2BOvoKk0Bh
-	 0EcUG6T5JxJrxEr+LOXsldbn2P79lBd9pP7YnP9c=
-Date: Wed, 27 Mar 2024 11:01:18 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,mhocko@suse.com,ioworker0@gmail.com,david@redhat.com,chrisl@kernel.org,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=OVUO93Wl7ZSisjW/wGx4AC/LoG/eLkWPs6UfpYVptujEqAJvsXrwlviqVUqBAUKt+
+	 RfR64JUY1JNCsBde5vBrD9kKwywGF0VszpKxZyMXtF49st2/MO4Y9zVA3ICkK+9B0u
+	 ZLnarconvPuGEbC/3roVZZDiM1xMWPFxzDw54mdc=
+Date: Wed, 27 Mar 2024 11:17:13 -0700
+To: mm-commits@vger.kernel.org,yury.norov@gmail.com,will@kernel.org,vschneid@redhat.com,vbabka@suse.cz,tglx@linutronix.de,rppt@kernel.org,rafael@kernel.org,paul.walmsley@sifive.com,palmer@rivosinc.com,ndesaulniers@google.com,mpe@ellerman.id.au,mingo@kernel.org,mikelley@microsoft.com,mhiramat@kernel.org,mark.rutland@arm.com,kuba@kernel.org,jpoimboe@kernel.org,jiaxun.yang@flygoat.com,gregkh@linuxfoundation.org,chenhuacai@kernel.org,catalin.marinas@arm.com,arnd@arndb.de,aou@eecs.berkeley.edu,shijie@os.amperecomputing.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-avoid-split-during-madv_pageout-and-madv_cold.patch added to mm-unstable branch
-Message-Id: <20240327180119.7CC74C433C7@smtp.kernel.org>
+Subject: + numa-early-use-of-cpu_to_node-returns-0-instead-of-the-correct-node-id.patch added to mm-nonmm-unstable branch
+Message-Id: <20240327181713.F297FC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: madvise: avoid split during MADV_PAGEOUT and MADV_COLD
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-avoid-split-during-madv_pageout-and-madv_cold.patch
+     Subject: NUMA: early use of cpu_to_node() returns 0 instead of the correct node id
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     numa-early-use-of-cpu_to_node-returns-0-instead-of-the-correct-node-id.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-avoid-split-during-madv_pageout-and-madv_cold.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/numa-early-use-of-cpu_to_node-returns-0-instead-of-the-correct-node-id.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,297 +58,90 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: madvise: avoid split during MADV_PAGEOUT and MADV_COLD
-Date: Wed, 27 Mar 2024 14:45:37 +0000
+From: Huang Shijie <shijie@os.amperecomputing.com>
+Subject: NUMA: early use of cpu_to_node() returns 0 instead of the correct node id
+Date: Fri, 26 Jan 2024 14:44:51 +0800
 
-Rework madvise_cold_or_pageout_pte_range() to avoid splitting any large
-folio that is fully and contiguously mapped in the pageout/cold vm range. 
-This change means that large folios will be maintained all the way to swap
-storage.  This both improves performance during swap-out, by eliding the
-cost of splitting the folio, and sets us up nicely for maintaining the
-large folio when it is swapped back in (to be covered in a separate
-series).
+During the kernel booting, the generic cpu_to_node() is called too early
+in arm64, powerpc and riscv when CONFIG_NUMA is enabled.
 
-Folios that are not fully mapped in the target range are still split, but
-note that behavior is changed so that if the split fails for any reason
-(folio locked, shared, etc) we now leave it as is and move to the next pte
-in the range and continue work on the proceeding folios.  Previously any
-failure of this sort would cause the entire operation to give up and no
-folios mapped at higher addresses were paged out or made cold.  Given
-large folios are becoming more common, this old behavior would have likely
-lead to wasted opportunities.
+There are at least four places in the common code where
+the generic cpu_to_node() is called before it is initialized:
+	   1.) early_trace_init()         in kernel/trace/trace.c
+	   2.) sched_init()               in kernel/sched/core.c
+	   3.) init_sched_fair_class()    in kernel/sched/fair.c
+	   4.) workqueue_init_early()     in kernel/workqueue.c
 
-While we are at it, change the code that clears young from the ptes to use
-ptep_test_and_clear_young(), via the new mkold_ptes() batch helper
-function.  This is more efficent than get_and_clear/modify/set, especially
-for contpte mappings on arm64, where the old approach would require
-unfolding/refolding and the new approach can be done in place.
+In order to fix the bug, the patch introduces early_numa_node_init() which
+is called after smp_prepare_boot_cpu() in start_kernel. 
+early_numa_node_init will initialize the "numa_node" as soon as the
+early_cpu_to_node() is ready, before the cpu_to_node() is called at the
+first time.
 
-Link: https://lkml.kernel.org/r/20240327144537.4165578-7-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: Barry Song <v-songbaohua@oppo.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gao Xiang <xiang@kernel.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20240126064451.5465-1-shijie@os.amperecomputing.com
+Signed-off-by: Huang Shijie <shijie@os.amperecomputing.com>
+Acked-by: Palmer Dabbelt <palmer@rivosinc.com>	[RISC-V]
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michael Kelley (LINUX) <mikelley@microsoft.com>
+Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yury Norov <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |   30 ++++++++++++
- mm/internal.h           |   12 ++++-
- mm/madvise.c            |   88 ++++++++++++++++++++++----------------
- mm/memory.c             |    4 -
- 4 files changed, 93 insertions(+), 41 deletions(-)
+ init/main.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/include/linux/pgtable.h~mm-madvise-avoid-split-during-madv_pageout-and-madv_cold
-+++ a/include/linux/pgtable.h
-@@ -361,6 +361,36 @@ static inline int ptep_test_and_clear_yo
+--- a/init/main.c~numa-early-use-of-cpu_to_node-returns-0-instead-of-the-correct-node-id
++++ a/init/main.c
+@@ -877,6 +877,19 @@ static void __init print_unknown_bootopt
+ 	memblock_free(unknown_options, len);
  }
- #endif
  
-+#ifndef mkold_ptes
-+/**
-+ * mkold_ptes - Mark PTEs that map consecutive pages of the same folio as old.
-+ * @vma: VMA the pages are mapped into.
-+ * @addr: Address the first page is mapped at.
-+ * @ptep: Page table pointer for the first entry.
-+ * @nr: Number of entries to mark old.
-+ *
-+ * May be overridden by the architecture; otherwise, implemented as a simple
-+ * loop over ptep_test_and_clear_young().
-+ *
-+ * Note that PTE bits in the PTE range besides the PFN can differ. For example,
-+ * some PTEs might be write-protected.
-+ *
-+ * Context: The caller holds the page table lock.  The PTEs map consecutive
-+ * pages that belong to the same folio.  The PTEs are all in the same PMD.
-+ */
-+static inline void mkold_ptes(struct vm_area_struct *vma, unsigned long addr,
-+		pte_t *ptep, unsigned int nr)
++static void __init early_numa_node_init(void)
 +{
-+	for (;;) {
-+		ptep_test_and_clear_young(vma, addr, ptep);
-+		if (--nr == 0)
-+			break;
-+		ptep++;
-+		addr += PAGE_SIZE;
-+	}
-+}
++#ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
++#ifndef cpu_to_node
++	int cpu;
++
++	/* The early_cpu_to_node() should be ready here. */
++	for_each_possible_cpu(cpu)
++		set_cpu_numa_node(cpu, early_cpu_to_node(cpu));
 +#endif
++#endif
++}
 +
- #ifndef __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG)
- static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
---- a/mm/internal.h~mm-madvise-avoid-split-during-madv_pageout-and-madv_cold
-+++ a/mm/internal.h
-@@ -130,6 +130,8 @@ static inline pte_t __pte_batch_clear_ig
-  * @flags: Flags to modify the PTE batch semantics.
-  * @any_writable: Optional pointer to indicate whether any entry except the
-  *		  first one is writable.
-+ * @any_young: Optional pointer to indicate whether any entry except the
-+ *		  first one is young.
-  *
-  * Detect a PTE batch: consecutive (present) PTEs that map consecutive
-  * pages of the same large folio.
-@@ -145,16 +147,18 @@ static inline pte_t __pte_batch_clear_ig
-  */
- static inline int folio_pte_batch(struct folio *folio, unsigned long addr,
- 		pte_t *start_ptep, pte_t pte, int max_nr, fpb_t flags,
--		bool *any_writable)
-+		bool *any_writable, bool *any_young)
+ asmlinkage __visible __init __no_sanitize_address __noreturn __no_stack_protector
+ void start_kernel(void)
  {
- 	unsigned long folio_end_pfn = folio_pfn(folio) + folio_nr_pages(folio);
- 	const pte_t *end_ptep = start_ptep + max_nr;
- 	pte_t expected_pte, *ptep;
--	bool writable;
-+	bool writable, young;
- 	int nr;
+@@ -907,6 +920,7 @@ void start_kernel(void)
+ 	setup_nr_cpu_ids();
+ 	setup_per_cpu_areas();
+ 	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
++	early_numa_node_init();
+ 	boot_cpu_hotplug_init();
  
- 	if (any_writable)
- 		*any_writable = false;
-+	if (any_young)
-+		*any_young = false;
- 
- 	VM_WARN_ON_FOLIO(!pte_present(pte), folio);
- 	VM_WARN_ON_FOLIO(!folio_test_large(folio) || max_nr < 1, folio);
-@@ -168,6 +172,8 @@ static inline int folio_pte_batch(struct
- 		pte = ptep_get(ptep);
- 		if (any_writable)
- 			writable = !!pte_write(pte);
-+		if (any_young)
-+			young = !!pte_young(pte);
- 		pte = __pte_batch_clear_ignored(pte, flags);
- 
- 		if (!pte_same(pte, expected_pte))
-@@ -183,6 +189,8 @@ static inline int folio_pte_batch(struct
- 
- 		if (any_writable)
- 			*any_writable |= writable;
-+		if (any_young)
-+			*any_young |= young;
- 
- 		nr = pte_batch_hint(ptep, pte);
- 		expected_pte = pte_advance_pfn(expected_pte, nr);
---- a/mm/madvise.c~mm-madvise-avoid-split-during-madv_pageout-and-madv_cold
-+++ a/mm/madvise.c
-@@ -336,6 +336,7 @@ static int madvise_cold_or_pageout_pte_r
- 	LIST_HEAD(folio_list);
- 	bool pageout_anon_only_filter;
- 	unsigned int batch_count = 0;
-+	int nr;
- 
- 	if (fatal_signal_pending(current))
- 		return -EINTR;
-@@ -423,7 +424,8 @@ restart:
- 		return 0;
- 	flush_tlb_batched_pending(mm);
- 	arch_enter_lazy_mmu_mode();
--	for (; addr < end; pte++, addr += PAGE_SIZE) {
-+	for (; addr < end; pte += nr, addr += nr * PAGE_SIZE) {
-+		nr = 1;
- 		ptent = ptep_get(pte);
- 
- 		if (++batch_count == SWAP_CLUSTER_MAX) {
-@@ -447,55 +449,67 @@ restart:
- 			continue;
- 
- 		/*
--		 * Creating a THP page is expensive so split it only if we
--		 * are sure it's worth. Split it if we are only owner.
-+		 * If we encounter a large folio, only split it if it is not
-+		 * fully mapped within the range we are operating on. Otherwise
-+		 * leave it as is so that it can be swapped out whole. If we
-+		 * fail to split a folio, leave it in place and advance to the
-+		 * next pte in the range.
- 		 */
- 		if (folio_test_large(folio)) {
--			int err;
--
--			if (folio_likely_mapped_shared(folio))
--				break;
--			if (pageout_anon_only_filter && !folio_test_anon(folio))
--				break;
--			if (!folio_trylock(folio))
--				break;
--			folio_get(folio);
--			arch_leave_lazy_mmu_mode();
--			pte_unmap_unlock(start_pte, ptl);
--			start_pte = NULL;
--			err = split_folio(folio);
--			folio_unlock(folio);
--			folio_put(folio);
--			if (err)
--				break;
--			start_pte = pte =
--				pte_offset_map_lock(mm, pmd, addr, &ptl);
--			if (!start_pte)
--				break;
--			arch_enter_lazy_mmu_mode();
--			pte--;
--			addr -= PAGE_SIZE;
--			continue;
-+			const fpb_t fpb_flags = FPB_IGNORE_DIRTY |
-+						FPB_IGNORE_SOFT_DIRTY;
-+			int max_nr = (end - addr) / PAGE_SIZE;
-+			bool any_young;
-+
-+			nr = folio_pte_batch(folio, addr, pte, ptent, max_nr,
-+					     fpb_flags, NULL, &any_young);
-+			if (any_young)
-+				ptent = pte_mkyoung(ptent);
-+
-+			if (nr < folio_nr_pages(folio)) {
-+				int err;
-+
-+				if (folio_likely_mapped_shared(folio))
-+					continue;
-+				if (pageout_anon_only_filter && !folio_test_anon(folio))
-+					continue;
-+				if (!folio_trylock(folio))
-+					continue;
-+				folio_get(folio);
-+				arch_leave_lazy_mmu_mode();
-+				pte_unmap_unlock(start_pte, ptl);
-+				start_pte = NULL;
-+				err = split_folio(folio);
-+				folio_unlock(folio);
-+				folio_put(folio);
-+				if (err)
-+					continue;
-+				start_pte = pte =
-+					pte_offset_map_lock(mm, pmd, addr, &ptl);
-+				if (!start_pte)
-+					break;
-+				arch_enter_lazy_mmu_mode();
-+				nr = 0;
-+				continue;
-+			}
- 		}
- 
- 		/*
- 		 * Do not interfere with other mappings of this folio and
--		 * non-LRU folio.
-+		 * non-LRU folio. If we have a large folio at this point, we
-+		 * know it is fully mapped so if its mapcount is the same as its
-+		 * number of pages, it must be exclusive.
- 		 */
--		if (!folio_test_lru(folio) || folio_mapcount(folio) != 1)
-+		if (!folio_test_lru(folio) ||
-+		    folio_mapcount(folio) != folio_nr_pages(folio))
- 			continue;
- 
- 		if (pageout_anon_only_filter && !folio_test_anon(folio))
- 			continue;
- 
--		VM_BUG_ON_FOLIO(folio_test_large(folio), folio);
--
- 		if (!pageout && pte_young(ptent)) {
--			ptent = ptep_get_and_clear_full(mm, addr, pte,
--							tlb->fullmm);
--			ptent = pte_mkold(ptent);
--			set_pte_at(mm, addr, pte, ptent);
--			tlb_remove_tlb_entry(tlb, pte, addr);
-+			mkold_ptes(vma, addr, pte, nr);
-+			tlb_remove_tlb_entries(tlb, pte, nr, addr);
- 		}
- 
- 		/*
---- a/mm/memory.c~mm-madvise-avoid-split-during-madv_pageout-and-madv_cold
-+++ a/mm/memory.c
-@@ -989,7 +989,7 @@ copy_present_ptes(struct vm_area_struct
- 			flags |= FPB_IGNORE_SOFT_DIRTY;
- 
- 		nr = folio_pte_batch(folio, addr, src_pte, pte, max_nr, flags,
--				     &any_writable);
-+				     &any_writable, NULL);
- 		folio_ref_add(folio, nr);
- 		if (folio_test_anon(folio)) {
- 			if (unlikely(folio_try_dup_anon_rmap_ptes(folio, page,
-@@ -1553,7 +1553,7 @@ static inline int zap_present_ptes(struc
- 	 */
- 	if (unlikely(folio_test_large(folio) && max_nr != 1)) {
- 		nr = folio_pte_batch(folio, addr, pte, ptent, max_nr, fpb_flags,
--				     NULL);
-+				     NULL, NULL);
- 
- 		zap_present_folio_ptes(tlb, vma, folio, page, pte, ptent, nr,
- 				       addr, details, rss, force_flush,
+ 	pr_notice("Kernel command line: %s\n", saved_command_line);
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from shijie@os.amperecomputing.com are
 
-mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags.patch
-mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache.patch
-mm-swap-simplify-struct-percpu_cluster.patch
-mm-swap-allow-storage-of-all-mthp-orders.patch
-mm-vmscan-avoid-split-during-shrink_folio_list.patch
-mm-madvise-avoid-split-during-madv_pageout-and-madv_cold.patch
+numa-early-use-of-cpu_to_node-returns-0-instead-of-the-correct-node-id.patch
 
