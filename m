@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A63C14F11F
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 19:19:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EC5C14D280
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 19:19:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711567154; cv=none; b=UueVd+UTn3MFm7AUblBsq05AW+BtNRbTRGsZzperVB0BXV4/I4EEHU8ZbQC0cc6UqreSIwY+eizd6wr4lH4/Up9aV5VOs92ECAejWr2Pl3fHAmUA+MDE2phEqQF4reJmBK2w5a5Fd9/arOk5mN+OQYs6iE3dRiJKXcIhnovACS4=
+	t=1711567198; cv=none; b=sVHu/c/9SO1Pq2m7LnjwoCnFQQeSdAlgpweu/s7CfYEmFqR9wy5kGPeasZ6OTji9ZcsM/WBpCoVZzbmXn4OIL+bvgq+s6/crmYeFY3h4zEQja7zNx8v0qXmYuyBBaQho4y/1NgI2/OT1QTEb+QCfBQ5ll27w7SnqRN+dMkScn3Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711567154; c=relaxed/simple;
-	bh=hmzEGk0WOjZKlOcEsnw6UhNc6bmEFiNwb8ItjFwzYQY=;
-	h=Date:To:From:Subject:Message-Id; b=rPMHaXqPUcPte+hAbmhM5iNKvSkitkjmZRY/8g8L2gKdnHHsrJYlV01a1XEOVyGqLh90vKKIS4QgPC6zOvcjc2iqrEoQ+FuWQnKP+tD2n1gXrZV7L/DI0sHlgRNMWqTwS0p3RNIEOQAyTuFyzobI7hjVk6vwUOEeOdBFza4vnuA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VHTtCaYw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711567198; c=relaxed/simple;
+	bh=GEqem8+0OLBeoKlzFOw14VZiDDkhDHm4qQ9ZMiGo8uY=;
+	h=Date:To:From:Subject:Message-Id; b=LbeoLfPyLdGh99qtP2HCdsrElx6lmXhGmOk3vosv1irdAYw3wTwzbILjmKCkB/7TTS/bQlt7tscX6vj+P63II9dcdLLxY4g5oGd3RZbbrbeK2D3KX6S9o2pcjg9i0y548U54Vq6bhN3DNgA8BROyh6fHHZecmN1UxELVAvd9IOI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=chucnPcQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VHTtCaYw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9F2DC433C7;
-	Wed, 27 Mar 2024 19:19:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="chucnPcQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1B58C433C7;
+	Wed, 27 Mar 2024 19:19:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711567154;
-	bh=hmzEGk0WOjZKlOcEsnw6UhNc6bmEFiNwb8ItjFwzYQY=;
+	s=korg; t=1711567197;
+	bh=GEqem8+0OLBeoKlzFOw14VZiDDkhDHm4qQ9ZMiGo8uY=;
 	h=Date:To:From:Subject:From;
-	b=VHTtCaYwvCEXio+uu+ATC6xe6Zx50pbwwQbo5u/kIQiCD5KcD+s2KUcF6ji75zXXR
-	 Rzvf2FGB9pP9/0USOsgzsCeZLugn8xgn+G4gxIY4K5W9MRyfMjRGrWUc1zGig1N9ri
-	 or+5TIAVa5z7iOwbte6NKWKA5SXUonJ2MiKIDy28=
-Date: Wed, 27 Mar 2024 12:19:12 -0700
+	b=chucnPcQGt/uh0WMmHDulq5ZESZ5DxAOLkY/iVkJc1xWIYJFSO2/D6iAFs44nTqVR
+	 TJRjbcHLRBexqSD2tQuqT0DJPOlGWhV2qvpLmtUzn3tRf6V5b+FqRCygoBOoXCZdLT
+	 QUQFMo9PQPL76NsGPC5sDJ0FDzh0AR5leT+0YlBo=
+Date: Wed, 27 Mar 2024 12:19:56 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-rwsem-assertion-macros-for-mmap_lock.patch added to mm-unstable branch
-Message-Id: <20240327191913.E9F2DC433C7@smtp.kernel.org>
+Subject: + filemap-remove-__set_page_dirty.patch added to mm-unstable branch
+Message-Id: <20240327191957.C1B58C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: use rwsem assertion macros for mmap_lock
+     Subject: filemap: remove __set_page_dirty()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-use-rwsem-assertion-macros-for-mmap_lock.patch
+     filemap-remove-__set_page_dirty.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-rwsem-assertion-macros-for-mmap_lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-remove-__set_page_dirty.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,45 +59,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: use rwsem assertion macros for mmap_lock
-Date: Wed, 27 Mar 2024 19:06:59 +0000
+Subject: filemap: remove __set_page_dirty()
+Date: Wed, 27 Mar 2024 18:54:29 +0000
 
-This slightly strengthens our write assertion when lockdep is disabled. 
-It also downgrades us from BUG_ON to WARN_ON, but I think that's an
-improvement.  I don't think dumping the mm_struct was all that valuable;
-the call chain is what's important.
+All callers have been converted to use folios; remove this wrapper.
 
-Link: https://lkml.kernel.org/r/20240327190701.1082560-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240327185447.1076689-1-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmap_lock.h |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ include/linux/pagemap.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-use-rwsem-assertion-macros-for-mmap_lock
-+++ a/include/linux/mmap_lock.h
-@@ -60,16 +60,14 @@ static inline void __mmap_lock_trace_rel
- 
- #endif /* CONFIG_TRACING */
- 
--static inline void mmap_assert_locked(struct mm_struct *mm)
-+static inline void mmap_assert_locked(const struct mm_struct *mm)
- {
--	lockdep_assert_held(&mm->mmap_lock);
--	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_lock), mm);
-+	rwsem_assert_held(&mm->mmap_lock);
- }
- 
--static inline void mmap_assert_write_locked(struct mm_struct *mm)
-+static inline void mmap_assert_write_locked(const struct mm_struct *mm)
- {
--	lockdep_assert_held_write(&mm->mmap_lock);
--	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_lock), mm);
-+	rwsem_assert_held_write(&mm->mmap_lock);
- }
- 
- #ifdef CONFIG_PER_VMA_LOCK
+--- a/include/linux/pagemap.h~filemap-remove-__set_page_dirty
++++ a/include/linux/pagemap.h
+@@ -1147,11 +1147,6 @@ void folio_end_writeback(struct folio *f
+ void wait_for_stable_page(struct page *page);
+ void folio_wait_stable(struct folio *folio);
+ void __folio_mark_dirty(struct folio *folio, struct address_space *, int warn);
+-static inline void __set_page_dirty(struct page *page,
+-		struct address_space *mapping, int warn)
+-{
+-	__folio_mark_dirty(page_folio(page), mapping, warn);
+-}
+ void folio_account_cleaned(struct folio *folio, struct bdi_writeback *wb);
+ void __folio_cancel_dirty(struct folio *folio);
+ static inline void folio_cancel_dirty(struct folio *folio)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -132,4 +120,5 @@ mm-convert-do_huge_pmd_anonymous_page-to-huge_zero_folio.patch
 dax-use-huge_zero_folio.patch
 mm-rename-mm_put_huge_zero_page-to-mm_put_huge_zero_folio.patch
 mm-use-rwsem-assertion-macros-for-mmap_lock.patch
+filemap-remove-__set_page_dirty.patch
 
