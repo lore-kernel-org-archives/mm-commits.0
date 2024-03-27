@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41C9F12F363
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:21:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9900C12F363
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:21:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711570888; cv=none; b=clR19dkTDKNxVX1a3u/kZHJjvpS/aiK5M4S8n3c2mz8BBoZ87+jm6LWKtaLZWlupuxFHLD+hvvTrkBT7F/F6oLEzhzl5myPQDYGADrRKdvRQ/Z1yzKn1ynCpUceNXZHbgSBgQL7v/4m1MGkTK8x5m/NzPskbM9d14aKZu5Ff+O4=
+	t=1711570890; cv=none; b=PZg/H8feZIrATjJHW+8nwhldz0uo+9jg2o7wXw6Th0c1AXiFUTpaC4gmXBiWclzisO1i9Q2uWgiMHxz8CbqCxHVw7+lkcSm/P2zxu8KQgah10pghoj6zAdomw+7JaQ5Es1QHdwOpObfmpDA0DSbdraeD+/mt5TTJkkXLsN76jQY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711570888; c=relaxed/simple;
-	bh=gSfqLGOJK3W1xCD5i8Yk/NoN1jjZObShVV2D+3t9FCU=;
-	h=Date:To:From:Subject:Message-Id; b=MGhXtKPsaB1QwSdJ1a06k4L5dFp8RYpbzDCMyK9Lyfi1zX6eTa4MfDp7OYBlHxOZVf0zKLx5xqkiykJwPrE3oA5eaz3od7VW9PI0PKbxeA2b2OaEmJoTmosBpBTniFJTn8u+C44eoCUULXlwQeaDSWwF0kptoUE5J+1fgG7nBRM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HLDT2Ke8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711570890; c=relaxed/simple;
+	bh=efA66WZgEJ9X/GH4D+suoVS0QtCGBh3WA0EZ7tLW+iE=;
+	h=Date:To:From:Subject:Message-Id; b=dL7ef1vid2TRNJkIq5ssOUkv6buHrTCPOhft9SfraApcF8jCY8cXVWJ9xyHa1/qVzVYMM0RTcAiDAruuaG+DX1hTP5Ui6KU4K/VQ5cbvbEGDIiqx8x1Oc0L+z5n6w52TtuX0fDucCsBd6IA9PmV4WTflZuXIGM9XEwHCbzPbESQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ismaSsCN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HLDT2Ke8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DBE9C433F1;
-	Wed, 27 Mar 2024 20:21:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ismaSsCN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10E0AC433C7;
+	Wed, 27 Mar 2024 20:21:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711570888;
-	bh=gSfqLGOJK3W1xCD5i8Yk/NoN1jjZObShVV2D+3t9FCU=;
+	s=korg; t=1711570890;
+	bh=efA66WZgEJ9X/GH4D+suoVS0QtCGBh3WA0EZ7tLW+iE=;
 	h=Date:To:From:Subject:From;
-	b=HLDT2Ke8yLjJNLNO9622+bhdLlj1cb58XikaP+GCf584Wqexyu447h3ndFCpRRRpy
-	 uO4YhUZIeYYrESJ1OFyuAnxMz0tzroGK4mwSj3R+jT7CmqDthDoxbJfyHQFSbhfKrq
-	 iZ/TR2H8iTtGpTliJqNsSvRT5nRUWd7WxXk3qvzY=
-Date: Wed, 27 Mar 2024 13:21:27 -0700
+	b=ismaSsCNo3QyTgCGHXo/ibxhAwSQvpiALGKSKaiVlh3cg3W51vddEvS5tsEAoEBQn
+	 LIcIru5nsk+fa9pSKhcpoFwK6grlKy8uCnwiW8oUq26PtWIo0LB8H/lYWsGGMIwnTY
+	 1kr8PL8FVyJlG1dvCHPmHG9nZ7e3m5QXKFWEoWwE=
+Date: Wed, 27 Mar 2024 13:21:29 -0700
 To: mm-commits@vger.kernel.org,rdunlap@infradead.org,kent.overstreet@linux.dev,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-enable-memory-allocation-profiling-fix-2.patch added to mm-unstable branch
-Message-Id: <20240327202128.0DBE9C433F1@smtp.kernel.org>
+Subject: + rhashtable-plumb-through-alloc-tag-fix.patch added to mm-unstable branch
+Message-Id: <20240327202130.10E0AC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation: mm: vmalloc: undo _noprof additions in the documentation
+     Subject: Documentation: rhashtable: undo _noprof additions in the documentation
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-enable-memory-allocation-profiling-fix-2.patch
+     rhashtable-plumb-through-alloc-tag-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-enable-memory-allocation-profiling-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rhashtable-plumb-through-alloc-tag-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,157 +59,63 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: Documentation: mm: vmalloc: undo _noprof additions in the documentation
-Date: Tue, 26 Mar 2024 16:14:50 -0700
+Subject: Documentation: rhashtable: undo _noprof additions in the documentation
+Date: Tue, 26 Mar 2024 16:14:47 -0700
+
+Patch series "Documentation fixes for memory allocation profiling".
+
+With the introduction of [1] kernel-doc can handle _noprof function names.
+This patchset changes back _noprof documentation changes introduced in
+memory allocation profiling patchset [2].
+
+[1] https://lore.kernel.org/all/20240326054149.2121-1-rdunlap@infradead.org/
+[2] https://lore.kernel.org/all/20240321163705.3067592-1-surenb@google.com/
+
+
+This patch (of 6):
 
 With kernel-doc script change to handle xyz_noprof() names, the previous
 documentation changes and not needed anymore.
 
-Link: https://lkml.kernel.org/r/20240326231453.1206227-5-surenb@google.com
-Fixes: ed49858097c1 ("mm: vmalloc: enable memory allocation profiling")
+Link: https://lkml.kernel.org/r/20240326231453.1206227-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20240326231453.1206227-2-surenb@google.com
+Fixes: 11c91be0e244 ("rhashtable: plumb through alloc tag")
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Tested-by: Randy Dunlap <rdunlap@infradead.org>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c   |    8 ++++----
- mm/util.c    |    6 +++---
- mm/vmalloc.c |   14 +++++++-------
- 3 files changed, 14 insertions(+), 14 deletions(-)
+ lib/rhashtable.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/nommu.c~mm-vmalloc-enable-memory-allocation-profiling-fix-2
-+++ a/mm/nommu.c
-@@ -244,7 +244,7 @@ void *vzalloc_noprof(unsigned long size)
- EXPORT_SYMBOL(vzalloc_noprof);
- 
- /**
-- * vmalloc_node_noprof - allocate memory on a specific node
-+ * vmalloc_node - allocate memory on a specific node
-  * @size:	allocation size
-  * @node:	numa node
-  *
-@@ -261,7 +261,7 @@ void *vmalloc_node_noprof(unsigned long
- EXPORT_SYMBOL(vmalloc_node_noprof);
- 
- /**
-- * vzalloc_node_noprof - allocate memory on a specific node with zero fill
-+ * vzalloc_node - allocate memory on a specific node with zero fill
-  * @size:	allocation size
-  * @node:	numa node
-  *
-@@ -279,7 +279,7 @@ void *vzalloc_node_noprof(unsigned long
- EXPORT_SYMBOL(vzalloc_node_noprof);
- 
- /**
-- * vmalloc_32_noprof  -  allocate virtually contiguous memory (32bit addressable)
-+ * vmalloc_32  -  allocate virtually contiguous memory (32bit addressable)
-  *	@size:		allocation size
-  *
-  *	Allocate enough 32bit PA addressable pages to cover @size from the
-@@ -292,7 +292,7 @@ void *vmalloc_32_noprof(unsigned long si
- EXPORT_SYMBOL(vmalloc_32_noprof);
- 
- /**
-- * vmalloc_32_user_noprof - allocate zeroed virtually contiguous 32bit memory
-+ * vmalloc_32_user - allocate zeroed virtually contiguous 32bit memory
-  *	@size:		allocation size
-  *
-  * The resulting memory area is 32bit addressable and zeroed so it can be
---- a/mm/util.c~mm-vmalloc-enable-memory-allocation-profiling-fix-2
-+++ a/mm/util.c
-@@ -715,7 +715,7 @@ void *kvrealloc_noprof(const void *p, si
- EXPORT_SYMBOL(kvrealloc_noprof);
- 
- /**
-- * __vmalloc_array_noprof - allocate memory for a virtually contiguous array.
-+ * __vmalloc_array - allocate memory for a virtually contiguous array.
-  * @n: number of elements.
-  * @size: element size.
-  * @flags: the type of memory to allocate (see kmalloc).
-@@ -731,7 +731,7 @@ void *__vmalloc_array_noprof(size_t n, s
- EXPORT_SYMBOL(__vmalloc_array_noprof);
- 
- /**
-- * vmalloc_array_noprof - allocate memory for a virtually contiguous array.
-+ * vmalloc_array - allocate memory for a virtually contiguous array.
-  * @n: number of elements.
-  * @size: element size.
-  */
-@@ -754,7 +754,7 @@ void *__vcalloc_noprof(size_t n, size_t
- EXPORT_SYMBOL(__vcalloc_noprof);
- 
- /**
-- * vcalloc_noprof - allocate and zero memory for a virtually contiguous array.
-+ * vcalloc - allocate and zero memory for a virtually contiguous array.
-  * @n: number of elements.
-  * @size: element size.
-  */
---- a/mm/vmalloc.c~mm-vmalloc-enable-memory-allocation-profiling-fix-2
-+++ a/mm/vmalloc.c
-@@ -3690,7 +3690,7 @@ fail:
+--- a/lib/rhashtable.c~rhashtable-plumb-through-alloc-tag-fix
++++ a/lib/rhashtable.c
+@@ -979,7 +979,7 @@ static u32 rhashtable_jhash2(const void
  }
  
  /**
-- * __vmalloc_node_range_noprof - allocate virtually contiguous memory
-+ * __vmalloc_node_range - allocate virtually contiguous memory
-  * @size:		  allocation size
-  * @align:		  desired alignment
-  * @start:		  vm area range start
-@@ -3846,7 +3846,7 @@ fail:
- }
- 
- /**
-- * __vmalloc_node_noprof - allocate virtually contiguous memory
-+ * __vmalloc_node - allocate virtually contiguous memory
-  * @size:	    allocation size
-  * @align:	    desired alignment
-  * @gfp_mask:	    flags for the page level allocator
-@@ -3926,7 +3926,7 @@ void *vmalloc_huge_noprof(unsigned long
- EXPORT_SYMBOL_GPL(vmalloc_huge_noprof);
- 
- /**
-- * vzalloc_noprof - allocate virtually contiguous memory with zero fill
-+ * vzalloc - allocate virtually contiguous memory with zero fill
-  * @size:    allocation size
+- * rhashtable_init_noprof - initialize a new hash table
++ * rhashtable_init - initialize a new hash table
+  * @ht:		hash table to be initialized
+  * @params:	configuration parameters
   *
-  * Allocate enough pages to cover @size from the page level
-@@ -3964,7 +3964,7 @@ void *vmalloc_user_noprof(unsigned long
- EXPORT_SYMBOL(vmalloc_user_noprof);
+@@ -1085,13 +1085,13 @@ int rhashtable_init_noprof(struct rhasht
+ EXPORT_SYMBOL_GPL(rhashtable_init_noprof);
  
  /**
-- * vmalloc_node_noprof - allocate memory on a specific node
-+ * vmalloc_node - allocate memory on a specific node
-  * @size:	  allocation size
-  * @node:	  numa node
+- * rhltable_init_noprof - initialize a new hash list table
++ * rhltable_init - initialize a new hash list table
+  * @hlt:	hash list table to be initialized
+  * @params:	configuration parameters
   *
-@@ -3984,7 +3984,7 @@ void *vmalloc_node_noprof(unsigned long
- EXPORT_SYMBOL(vmalloc_node_noprof);
- 
- /**
-- * vzalloc_node_noprof - allocate memory on a specific node with zero fill
-+ * vzalloc_node - allocate memory on a specific node with zero fill
-  * @size:	allocation size
-  * @node:	numa node
+  * Initializes a new hash list table.
   *
-@@ -4014,7 +4014,7 @@ EXPORT_SYMBOL(vzalloc_node_noprof);
- #endif
- 
- /**
-- * vmalloc_32_noprof - allocate virtually contiguous memory (32bit addressable)
-+ * vmalloc_32 - allocate virtually contiguous memory (32bit addressable)
-  * @size:	allocation size
-  *
-  * Allocate enough 32bit PA addressable pages to cover @size from the
-@@ -4030,7 +4030,7 @@ void *vmalloc_32_noprof(unsigned long si
- EXPORT_SYMBOL(vmalloc_32_noprof);
- 
- /**
-- * vmalloc_32_user_noprof - allocate zeroed virtually contiguous 32bit memory
-+ * vmalloc_32_user - allocate zeroed virtually contiguous 32bit memory
-  * @size:	     allocation size
-  *
-  * The resulting memory area is 32bit addressable and zeroed so it can be
+- * See documentation for rhashtable_init_noprof.
++ * See documentation for rhashtable_init.
+  */
+ int rhltable_init_noprof(struct rhltable *hlt, const struct rhashtable_params *params)
+ {
 _
 
 Patches currently in -mm which might be from surenb@google.com are
