@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CDE642A83
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 19:40:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A02DE3DAC11
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 19:42:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711568434; cv=none; b=jj1+Y8naheDZ1TEP2ovji//yDK2T6JN53nJjdNC7mc4dNOyqXohKDekNCmBrmi6ZT2Ysx3OnqrPWy/ya0YrrfaCTyWqGwOIuXGNawRF/8OFc7wrqX/jKxNkjip2xgzpqGVcG+g5yOEt40FpSss+hNW3YdaOMwU+I4rABQ+AVlfc=
+	t=1711568565; cv=none; b=ObGFgZtnCwLBiVLwTXsTpfaDpgxszdoT0mU9SXus5Psdg/yKCVP2DODAwRyZ+5ySoGHR67UBk+jX1xSDR2GHsSfpoHNrpNr6l7wC0jENIQnrRmjAi+wupB+DiCAA8gg2HmBKF6uBnshLmDi0098yB53Jehlllia6gP8TSnAy+7M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711568434; c=relaxed/simple;
-	bh=TJ9rNXrcISSuzq7/HXv/Ean2Ees70jRvsNU2wZhnpo4=;
-	h=Date:To:From:Subject:Message-Id; b=HnrDnUV6VqJuIHukNyKUH1rv0zI7HBlja77LdKpzhFwwqV5anhP8Ih6EoqoNOV6ku+35ImIi0YXD43LwS4Uts9U+3UEhYAGFFyNlvYv7PHBMQPG2fHJIFv1wX9yf3GsNcfSOzkkvCSa9k9D8MJz9VHvElLmsqvTMY/PslttdmCE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zig+U0KN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711568565; c=relaxed/simple;
+	bh=U9KvYn56zDYNeRT6pxsMvDQhR+UhUchq/r0wTQpWy6Y=;
+	h=Date:To:From:Subject:Message-Id; b=CTRJ5n5VtayX/mNJHSTcaPmTXxY8O1SubyaGnUbgOnxWyyzU2UCWtjUoXvsxddHtmeLoU28VkkpZF8gGBqBJmGZpsXl3N07pGLdKUqBTz60ShRhgscd7c74A3waouGPqJZUNLBajxJD0+tukX65LKxK5iRnB+y6kQ8eS6xg8FRc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RKqJmyNv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zig+U0KN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09685C433C7;
-	Wed, 27 Mar 2024 19:40:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RKqJmyNv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E90DC433F1;
+	Wed, 27 Mar 2024 19:42:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711568434;
-	bh=TJ9rNXrcISSuzq7/HXv/Ean2Ees70jRvsNU2wZhnpo4=;
+	s=korg; t=1711568565;
+	bh=U9KvYn56zDYNeRT6pxsMvDQhR+UhUchq/r0wTQpWy6Y=;
 	h=Date:To:From:Subject:From;
-	b=zig+U0KNAjivsesWPkr0HtMu4Rp16exnaNMbM+cK3nWuXfMem0MRCCrF8swJKeKjG
-	 PI6NNDmbLU0+PGKK4QXsCwaw4/2sBae0h/FR700raousj/JXNdDapDhxYJnTbRCaWQ
-	 EgKxkviXWNHd+HoTHAjdl7lfRx9MhwrseQShCqZY=
-Date: Wed, 27 Mar 2024 12:40:33 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,surenb@google.com,sunnanyong@huawei.com,peterx@redhat.com,lokeshgidra@google.com,Liam.Howlett@oracle.com,david@redhat.com,axelrasmussen@google.com,zhangpeng362@huawei.com,akpm@linux-foundation.org
+	b=RKqJmyNvjrIwkWG3P7oFCsTpGRMBh1giyQcS2RLldsVrXXkn/0w7sVQmMQONkW40z
+	 5PQNOJxCdMZL65Dpoq3H0QcjWxncxPyRBYqBQrwt+EAtlADUOUTd6/vryjADGcTnEe
+	 oegOE5txghV5UF+ZFh7BOFtRJsHPjahYGTzh6R9s=
+Date: Wed, 27 Mar 2024 12:42:44 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,vbabka@suse.cz,mgorman@techsingularity.net,david@redhat.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-early-return-in-dup_userfaultfd.patch added to mm-unstable branch
-Message-Id: <20240327194034.09685C433C7@smtp.kernel.org>
+Subject: + mm-page_alloc-consolidate-free-page-accounting-fix.patch added to mm-unstable branch
+Message-Id: <20240327194245.0E90DC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: userfaultfd: early return in dup_userfaultfd()
+     Subject: mm: page_alloc: consolidate free page accounting fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     userfaultfd-early-return-in-dup_userfaultfd.patch
+     mm-page_alloc-consolidate-free-page-accounting-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-early-return-in-dup_userfaultfd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-consolidate-free-page-accounting-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,54 +58,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: userfaultfd: early return in dup_userfaultfd()
-Date: Wed, 27 Mar 2024 17:08:35 +0800
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_alloc: consolidate free page accounting fix
+Date: Wed, 27 Mar 2024 12:19:17 -0400
 
-When vma->vm_userfaultfd_ctx.ctx is NULL, vma->vm_flags should have
-cleared __VM_UFFD_FLAGS. Therefore, there is no need to down_write or
-clear the flag, which will affect fork performance. Fix this by
-returning early if octx is NULL in dup_userfaultfd().
+undo unrelated drive-by line wrap
 
-By applying this patch we can get a 1.3% performance improvement for
-lmbench fork_prot. Results are as follows:
-                   base      early return
-Process fork+exit: 419.1106  413.4804
-
-Link: https://lkml.kernel.org/r/20240327090835.3232629-1-zhangpeng362@huawei.com
-Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
+Link: https://lkml.kernel.org/r/20240327185736.GA7597@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/page_isolation.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/fs/userfaultfd.c~userfaultfd-early-return-in-dup_userfaultfd
-+++ a/fs/userfaultfd.c
-@@ -657,7 +657,10 @@ int dup_userfaultfd(struct vm_area_struc
- 	struct userfaultfd_fork_ctx *fctx;
- 
- 	octx = vma->vm_userfaultfd_ctx.ctx;
--	if (!octx || !(octx->features & UFFD_FEATURE_EVENT_FORK)) {
-+	if (!octx)
-+		return 0;
-+
-+	if (!(octx->features & UFFD_FEATURE_EVENT_FORK)) {
- 		vma_start_write(vma);
- 		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
- 		userfaultfd_set_vm_flags(vma, vma->vm_flags & ~__VM_UFFD_FLAGS);
+--- a/mm/page_isolation.c~mm-page_alloc-consolidate-free-page-accounting-fix
++++ a/mm/page_isolation.c
+@@ -252,8 +252,7 @@ static void unset_migratetype_isolate(st
+ 		 * Isolating this block already succeeded, so this
+ 		 * should not fail on zone boundaries.
+ 		 */
+-		WARN_ON_ONCE(!move_freepages_block_isolate(zone, page,
+-							   migratetype));
++		WARN_ON_ONCE(!move_freepages_block_isolate(zone, page, migratetype));
+ 	} else {
+ 		set_pageblock_migratetype(page, migratetype);
+ 		__putback_isolated_page(page, order, migratetype);
 _
 
-Patches currently in -mm which might be from zhangpeng362@huawei.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-userfaultfd-early-return-in-dup_userfaultfd.patch
-filemap-replace-pte_offset_map-with-pte_offset_map_nolock.patch
+mm-zswap-optimize-zswap-pool-size-tracking.patch
+mm-zpool-return-pool-size-in-pages.patch
+mm-page_alloc-remove-pcppage-migratetype-caching.patch
+mm-page_alloc-optimize-free_unref_folios.patch
+mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch
+mm-page_alloc-move-free-pages-when-converting-block-during-isolation.patch
+mm-page_alloc-fix-move_freepages_block-range-error.patch
+mm-page_alloc-fix-freelist-movement-during-block-conversion.patch
+mm-page_alloc-close-migratetype-race-between-freeing-and-stealing.patch
+mm-page_isolation-prepare-for-hygienic-freelists.patch
+mm-page_isolation-prepare-for-hygienic-freelists-fix.patch
+mm-page_alloc-consolidate-free-page-accounting.patch
+mm-page_alloc-consolidate-free-page-accounting-fix.patch
+mm-page_alloc-consolidate-free-page-accounting-fix-2.patch
 
