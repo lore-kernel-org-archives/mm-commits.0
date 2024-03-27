@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31F013DAC11
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 19:42:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ACB413C9D1
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 19:44:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711568567; cv=none; b=EB6eLKwWQ052zKQewqXjIYN3Mgmb4B3CP40EcAJRFut0jNjV+dCrBekUBfJlZ51KsRklt41AqnXGNAL+8LYeookEimFLTohfRReEA4g9pXHqnPDConVBlJiS1UIx/3WUTPS5gl67shfWx5napCZKF6CITvb8Msm+MddrQd1fZwo=
+	t=1711568648; cv=none; b=Wr+gpRjaleFZI/zeMrICRZBYjHZ2xqMtFVkbHDY55XxLxB+ZgOsBu+CdSA+9sEHNzxavkCjHv/MSwOlA4CF9JAsvOlIw7/tY5XJ+vk4HtJ+w+6u7M6V4AyynRu9cc1fUu0LphN5aEc43JrlWC6oLrg6fZVGJcg5yJxAFMIDwGRM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711568567; c=relaxed/simple;
-	bh=Fttj7fN3Wv1qp8gfg3hwzwo1X0ilHxLRo6AAwuB6Bm0=;
-	h=Date:To:From:Subject:Message-Id; b=aL/zhoWiedEkng6K+0XDMJBXLPhJ9tbqkGQaLJYV1I48blAsW+9Q9z1CHUm00rzXIP+6mpZgeppYSEC8B8wOI/qy0UKVvTdv7ZvMofDLt0AXMX4zEqTNpn81+wni2xq8W1VBw9T54gbdpnYtKJaa7ehxR/Ns+pLFA8wAMJD7fOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r0xGlnfF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711568648; c=relaxed/simple;
+	bh=THQn2gqf/f21u06QweQdyMp3ejpyj1IaAjg6y/VhS4c=;
+	h=Date:To:From:Subject:Message-Id; b=h134KgRtXtxImT8gYQwO5eLP53gd6KuCkEjTwxKDb1u95u7ywckS9bD0wHSl8Meiy6efZy7XHcWmYXcO9gkzrSF0T8okcipOHDg2326bAqA/zuChhH4ms3Xmihr391h57iqttpPI5aTMYeJKtrphng8iQPXF+ZnhWY/y7YgseV4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YyZpLtP2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r0xGlnfF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98CD1C433F1;
-	Wed, 27 Mar 2024 19:42:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YyZpLtP2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26F45C433C7;
+	Wed, 27 Mar 2024 19:44:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711568566;
-	bh=Fttj7fN3Wv1qp8gfg3hwzwo1X0ilHxLRo6AAwuB6Bm0=;
+	s=korg; t=1711568648;
+	bh=THQn2gqf/f21u06QweQdyMp3ejpyj1IaAjg6y/VhS4c=;
 	h=Date:To:From:Subject:From;
-	b=r0xGlnfFV4l/pVm576PTz2qRtXS3uS/SWLG6ZES1+ZVSVJhPtc53z8yIiChJnIMms
-	 arMtdImGN+ch/SybBoFaGohmiEZ0+dGifONICwbK57QfoHDPnAhUETnO4iOWn4ZQ8N
-	 jT5a1jCIb3TKM4RuWCP+uqqzSyOpoUqdakc2l+h4=
-Date: Wed, 27 Mar 2024 12:42:45 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,vbabka@suse.cz,mgorman@techsingularity.net,david@redhat.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=YyZpLtP2A9HFcX7gg8SNqvpdhwpxi9hbcidYbLcV/Df4ZdxuC0D4g0DAm1CJhiSF8
+	 YtFh2cEs3b0ytJbbCtEtDsMQP7b4eD+JcZ3UKSSO0ngcs0VqlDEKKy7ON79hRgcO1l
+	 lQzkEXUvm4fXwSJGl1eJh31v2YOpmyq3Ld/yOQ/o=
+Date: Wed, 27 Mar 2024 12:44:07 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-consolidate-free-page-accounting-fix-2.patch added to mm-unstable branch
-Message-Id: <20240327194246.98CD1C433F1@smtp.kernel.org>
+Subject: + mm-page_alloc-batch-vmstat-updates-in-expand.patch added to mm-unstable branch
+Message-Id: <20240327194408.26F45C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: consolidate free page accounting fix 2
+     Subject: mm: page_alloc: batch vmstat updates in expand()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-consolidate-free-page-accounting-fix-2.patch
+     mm-page_alloc-batch-vmstat-updates-in-expand.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-consolidate-free-page-accounting-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-batch-vmstat-updates-in-expand.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,93 +59,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: consolidate free page accounting fix 2
-Date: Wed, 27 Mar 2024 12:28:41 -0400
+Subject: mm: page_alloc: batch vmstat updates in expand()
+Date: Wed, 27 Mar 2024 15:01:11 -0400
 
-remove unused page parameter from account_freepages()
+expand() currently updates vmstat for every subpage.  This is unnecessary,
+since they're all of the same zone and migratetype.
 
-Link: https://lkml.kernel.org/r/20240327185831.GB7597@cmpxchg.org
+Count added pages locally, then do a single vmstat update.
+
+Link: https://lkml.kernel.org/r/20240327190111.GC7597@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/page_alloc.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-consolidate-free-page-accounting-fix-2
+--- a/mm/page_alloc.c~mm-page_alloc-batch-vmstat-updates-in-expand
 +++ a/mm/page_alloc.c
-@@ -643,8 +643,8 @@ compaction_capture(struct capture_contro
- }
- #endif /* CONFIG_COMPACTION */
- 
--static inline void account_freepages(struct page *page, struct zone *zone,
--				     int nr_pages, int migratetype)
-+static inline void account_freepages(struct zone *zone, int nr_pages,
-+				     int migratetype)
+@@ -1341,6 +1341,7 @@ static inline void expand(struct zone *z
+ 	int low, int high, int migratetype)
  {
- 	if (is_migrate_isolate(migratetype))
- 		return;
-@@ -678,7 +678,7 @@ static inline void add_to_free_list(stru
- 				    bool tail)
- {
- 	__add_to_free_list(page, zone, order, migratetype, tail);
--	account_freepages(page, zone, 1 << order, migratetype);
-+	account_freepages(zone, 1 << order, migratetype);
+ 	unsigned long size = 1 << high;
++	unsigned long nr_added = 0;
+ 
+ 	while (high > low) {
+ 		high--;
+@@ -1356,9 +1357,11 @@ static inline void expand(struct zone *z
+ 		if (set_page_guard(zone, &page[size], high))
+ 			continue;
+ 
+-		add_to_free_list(&page[size], zone, high, migratetype, false);
++		__add_to_free_list(&page[size], zone, high, migratetype, false);
+ 		set_buddy_order(&page[size], high);
++		nr_added += size;
+ 	}
++	account_freepages(zone, nr_added, migratetype);
  }
  
- /*
-@@ -698,8 +698,8 @@ static inline void move_to_free_list(str
- 
- 	list_move_tail(&page->buddy_list, &area->free_list[new_mt]);
- 
--	account_freepages(page, zone, -(1 << order), old_mt);
--	account_freepages(page, zone, 1 << order, new_mt);
-+	account_freepages(zone, -(1 << order), old_mt);
-+	account_freepages(zone, 1 << order, new_mt);
- }
- 
- static inline void __del_page_from_free_list(struct page *page, struct zone *zone,
-@@ -723,7 +723,7 @@ static inline void del_page_from_free_li
- 					   unsigned int order, int migratetype)
- {
- 	__del_page_from_free_list(page, zone, order, migratetype);
--	account_freepages(page, zone, -(1 << order), migratetype);
-+	account_freepages(zone, -(1 << order), migratetype);
- }
- 
- static inline struct page *get_page_from_free_area(struct free_area *area,
-@@ -800,7 +800,7 @@ static inline void __free_one_page(struc
- 	VM_BUG_ON_PAGE(pfn & ((1 << order) - 1), page);
- 	VM_BUG_ON_PAGE(bad_range(zone, page), page);
- 
--	account_freepages(page, zone, 1 << order, migratetype);
-+	account_freepages(zone, 1 << order, migratetype);
- 
- 	while (order < MAX_PAGE_ORDER) {
- 		int buddy_mt = migratetype;
-@@ -6930,7 +6930,7 @@ static bool try_to_accept_memory_one(str
- 	list_del(&page->lru);
- 	last = list_empty(&zone->unaccepted_pages);
- 
--	account_freepages(page, zone, -MAX_ORDER_NR_PAGES, MIGRATE_MOVABLE);
-+	account_freepages(zone, -MAX_ORDER_NR_PAGES, MIGRATE_MOVABLE);
- 	__mod_zone_page_state(zone, NR_UNACCEPTED, -MAX_ORDER_NR_PAGES);
- 	spin_unlock_irqrestore(&zone->lock, flags);
- 
-@@ -6982,7 +6982,7 @@ static bool __free_unaccepted(struct pag
- 	spin_lock_irqsave(&zone->lock, flags);
- 	first = list_empty(&zone->unaccepted_pages);
- 	list_add_tail(&page->lru, &zone->unaccepted_pages);
--	account_freepages(page, zone, MAX_ORDER_NR_PAGES, MIGRATE_MOVABLE);
-+	account_freepages(zone, MAX_ORDER_NR_PAGES, MIGRATE_MOVABLE);
- 	__mod_zone_page_state(zone, NR_UNACCEPTED, MAX_ORDER_NR_PAGES);
- 	spin_unlock_irqrestore(&zone->lock, flags);
- 
+ static void check_new_page_bad(struct page *page)
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
@@ -164,4 +117,5 @@ mm-page_isolation-prepare-for-hygienic-freelists-fix.patch
 mm-page_alloc-consolidate-free-page-accounting.patch
 mm-page_alloc-consolidate-free-page-accounting-fix.patch
 mm-page_alloc-consolidate-free-page-accounting-fix-2.patch
+mm-page_alloc-batch-vmstat-updates-in-expand.patch
 
