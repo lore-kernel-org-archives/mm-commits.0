@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1510C2D047
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:11:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC10F2D047
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:11:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711570288; cv=none; b=euL4xkIz1Z05FZ/EUztn/93+UJKQWigiUZ62fy2UUbZ6bBeFnX2yjPfyE9mZXrpxeCxmEn44DZGbXhx465PesuZdJh0cOc1L1wVXXDYexFoAS2H8JoNoKBpY8j4s+0B5YTde7C4sfRHtlgPnzSRQcaiNANeLskzaXLcwBhCewks=
+	t=1711570293; cv=none; b=rV47h3iS/Gb2p8+Y1gDfurqsKaKkZ3ziOP0/85L68XN97+Fz4GFMRdpAPXdJgw1Ohg2rQJq5/IpaNLaeACKcfGAAjYP93mN0DmCB6yzoSX9rziM1niE6Mpd1LGsVhiPUarkF3xjoZ934s3MkQpZ5QIdBnLCyHmOQbuxRwNEUbLg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711570288; c=relaxed/simple;
-	bh=qJ7we7ZGHF3BtxRDokBnbLP+2OpFvEXj6oOhd6ACjas=;
-	h=Date:To:From:Subject:Message-Id; b=X+BZotOlQzG0uSHu4QXGLGXjiVXfpRRtr+SxxE/iX7hLU07hATBPCiR8ChJSWruvfKPWASONqQSREKCIdxn+tUlctI0VvAc0j3w0n5Grohwr4XtEG3k+qXCJazgxl8OScl/Goth9h5kYBKTeH6gJEcO4Z9WoNhQb9/wB9cAXahA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VAzq63H2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711570293; c=relaxed/simple;
+	bh=Qcru4Ci9BRDqxb3xVYds9ppMZinyFNvk/VBlR9hQYsU=;
+	h=Date:To:From:Subject:Message-Id; b=TpnsMwEEehX7EdtGmABoU2UNHi/ZFcYDjTKgaapuE/lp2uH7wDG9NgyTiCUMMUv3wFqH4+9MxlHWHqRz9/i/D/+kAdeZhKhhA42neXcY/t+vff/vrf5jUUTDFnRYS1e/w71sekX0/g3/q2TnR9hmkwc8qC3+8oYUNyMBj1gqB5Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=czn6I9Ea; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VAzq63H2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A262CC433C7;
-	Wed, 27 Mar 2024 20:11:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="czn6I9Ea"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A326C433F1;
+	Wed, 27 Mar 2024 20:11:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711570287;
-	bh=qJ7we7ZGHF3BtxRDokBnbLP+2OpFvEXj6oOhd6ACjas=;
+	s=korg; t=1711570293;
+	bh=Qcru4Ci9BRDqxb3xVYds9ppMZinyFNvk/VBlR9hQYsU=;
 	h=Date:To:From:Subject:From;
-	b=VAzq63H2i2xVk1m3RSVB+yRG4uGWOk/4JCiQLwqKC2HedIo/nlDBQV71AvEYwTQvM
-	 1Xe5eBmiJN2yXFk2QuUNyoMvCZAm9E9ZOUcPC/1VLQ6eQpq6LrVkGvA6dwfll1/lcK
-	 maCK3cSh+qzxwXM8Dtw13f3Kq1GvOc0q9IpZ63H4=
-Date: Wed, 27 Mar 2024 13:11:27 -0700
+	b=czn6I9EaY7jAeFxek3rqTcDqifWNrKWBcpS/csyyoWwSWRrGlNkoLzIy53n4zFh18
+	 2IfxXbp4bbc5c2Q2Q9+LkDzFA+oQhGUQZnldasCvE4g2sIVDn7baDil2dWFR2njLsB
+	 6CDT/XhD9ZB0cijDsYzPEUUI70OLlYbxzyWeb2Zw=
+Date: Wed, 27 Mar 2024 13:11:32 -0700
 To: mm-commits@vger.kernel.org,tglx@linutronix.de,peterz@infradead.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,luto@kernel.org,Liam.Howlett@oracle.com,kirill.shutemov@linux.intel.com,keescook@chromium.org,James.Bottomley@HansenPartnership.com,hpa@zytor.com,guoren@kernel.org,deller@gmx.de,debug@rivosinc.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,broonie@kernel.org,bp@alien8.de,ast@kernel.org,aneesh.kumar@kernel.org,rick.p.edgecombe@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-switch-mm-get_unmapped_area-to-a-flag.patch added to mm-unstable branch
-Message-Id: <20240327201127.A262CC433C7@smtp.kernel.org>
+Subject: + mm-introduce-arch_get_unmapped_area_vmflags.patch added to mm-unstable branch
+Message-Id: <20240327201133.4A326C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: switch mm->get_unmapped_area() to a flag
+     Subject: mm: introduce arch_get_unmapped_area_vmflags()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-switch-mm-get_unmapped_area-to-a-flag.patch
+     mm-introduce-arch_get_unmapped_area_vmflags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-switch-mm-get_unmapped_area-to-a-flag.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-arch_get_unmapped_area_vmflags.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,56 +59,55 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Subject: mm: switch mm->get_unmapped_area() to a flag
-Date: Mon, 25 Mar 2024 19:16:44 -0700
+Subject: mm: introduce arch_get_unmapped_area_vmflags()
+Date: Mon, 25 Mar 2024 19:16:45 -0700
 
-The mm_struct contains a function pointer *get_unmapped_area(), which is
-set to either arch_get_unmapped_area() or arch_get_unmapped_area_topdown()
-during the initialization of the mm.
+When memory is being placed, mmap() will take care to respect the guard
+gaps of certain types of memory (VM_SHADOWSTACK, VM_GROWSUP and
+VM_GROWSDOWN).  In order to ensure guard gaps between mappings, mmap()
+needs to consider two things:
 
-Since the function pointer only ever points to two functions that are
-named the same across all arch's, a function pointer is not really
-required.  In addition future changes will want to add versions of the
-functions that take additional arguments.  So to save a pointers worth of
-bytes in mm_struct, and prevent adding additional function pointers to
-mm_struct in future changes, remove it and keep the information about
-which get_unmapped_area() to use in a flag.
+ 1. That the new mapping isn't placed in an any existing mappings guard
+    gaps.
+ 2. That the new mapping isn't placed such that any existing mappings
+    are not in *its* guard gaps.
 
-Add the new flag to MMF_INIT_MASK so it doesn't get clobbered on fork by
-mmf_init_flags().  Most MM flags get clobbered on fork.  In the
-pre-existing behavior mm->get_unmapped_area() would get copied to the new
-mm in dup_mm(), so not clobbering the flag preserves the existing behavior
-around inheriting the topdown-ness.
+The longstanding behavior of mmap() is to ensure 1, but not take any care
+around 2.  So for example, if there is a PAGE_SIZE free area, and a mmap()
+with a PAGE_SIZE size, and a type that has a guard gap is being placed,
+mmap() may place the shadow stack in the PAGE_SIZE free area.  Then the
+mapping that is supposed to have a guard gap will not have a gap to the
+adjacent VMA.
 
-Introduce a helper, mm_get_unmapped_area(), to easily convert code that
-refers to the old function pointer to instead select and call either
-arch_get_unmapped_area() or arch_get_unmapped_area_topdown() based on the
-flag.  Then drop the mm->get_unmapped_area() function pointer.  Leave the
-get_unmapped_area() pointer in struct file_operations alone.  The main
-purpose of this change is to reorganize in preparation for future changes,
-but it also converts the calls of mm->get_unmapped_area() from indirect
-branches into a direct ones.
+In order to take the start gap into account, the maple tree search needs
+to know the size of start gap the new mapping will need.  The call chain
+from do_mmap() to the actual maple tree search looks like this:
 
-The stress-ng bigheap benchmark calls realloc a lot, which calls through
-get_unmapped_area() in the kernel.  On x86, the change yielded a ~1%
-improvement there on a retpoline config.
+do_mmap(size, vm_flags, map_flags, ..)
+	mm/mmap.c:get_unmapped_area(size, map_flags, ...)
+		arch_get_unmapped_area(size, map_flags, ...)
+			vm_unmapped_area(struct vm_unmapped_area_info)
 
-In testing a few x86 configs, removing the pointer unfortunately didn't
-result in any actual size reductions in the compiled layout of mm_struct. 
-But depending on compiler or arch alignment requirements, the change could
-shrink the size of mm_struct.
+One option would be to add another MAP_ flag to mean a one page start gap
+(as is for shadow stack), but this consumes a flag unnecessarily.  Another
+option could be to simply increase the size passed in do_mmap() by the
+start gap size, and adjust after the fact, but this will interfere with
+the alignment requirements passed in struct vm_unmapped_area_info, and
+unknown to mmap.c.  Instead, introduce variants of
+arch_get_unmapped_area/_topdown() that take vm_flags.  In future changes,
+these variants can be used in mmap.c:get_unmapped_area() to allow the
+vm_flags to be passed through to vm_unmapped_area(), while preserving the
+normal arch_get_unmapped_area/_topdown() for the existing callers.
 
-Link: https://lkml.kernel.org/r/20240326021656.202649-3-rick.p.edgecombe@intel.com
+Link: https://lkml.kernel.org/r/20240326021656.202649-4-rick.p.edgecombe@intel.com
 Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
-Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Alexei Starovoitov <ast@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Deepak Gupta <debug@rivosinc.com>
 Cc: Guo Ren <guoren@kernel.org>
 Cc: Helge Deller <deller@gmx.de>
@@ -116,6 +115,8 @@ Cc: H. Peter Anvin (Intel) <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
 Cc: Kees Cook <keescook@chromium.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Naveen N. Rao <naveen.n.rao@linux.ibm.com>
@@ -125,484 +126,73 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/hugetlbpage.c       |    2 +-
- arch/s390/mm/mmap.c              |    4 ++--
- arch/sparc/kernel/sys_sparc_64.c |   15 ++++++---------
- arch/sparc/mm/hugetlbpage.c      |    2 +-
- arch/x86/kernel/cpu/sgx/driver.c |    2 +-
- arch/x86/mm/hugetlbpage.c        |    2 +-
- arch/x86/mm/mmap.c               |    4 ++--
- drivers/char/mem.c               |    2 +-
- drivers/dax/device.c             |    6 +++---
- fs/hugetlbfs/inode.c             |    4 ++--
- fs/proc/inode.c                  |    3 ++-
- fs/ramfs/file-mmu.c              |    2 +-
- include/linux/mm_types.h         |    6 +-----
- include/linux/sched/coredump.h   |    5 ++++-
- include/linux/sched/mm.h         |    5 +++++
- io_uring/io_uring.c              |    2 +-
- kernel/bpf/arena.c               |    2 +-
- kernel/bpf/syscall.c             |    2 +-
- mm/debug.c                       |    6 ------
- mm/huge_memory.c                 |    9 ++++-----
- mm/mmap.c                        |   21 ++++++++++++++++++---
- mm/shmem.c                       |   11 +++++------
- mm/util.c                        |    6 +++---
- 23 files changed, 66 insertions(+), 57 deletions(-)
+ include/linux/sched/mm.h |   17 +++++++++++++++++
+ mm/mmap.c                |   28 ++++++++++++++++++++++++++++
+ 2 files changed, 45 insertions(+)
 
---- a/arch/s390/mm/hugetlbpage.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/arch/s390/mm/hugetlbpage.c
-@@ -318,7 +318,7 @@ unsigned long hugetlb_get_unmapped_area(
- 			goto check_asce_limit;
- 	}
- 
--	if (mm->get_unmapped_area == arch_get_unmapped_area)
-+	if (!test_bit(MMF_TOPDOWN, &mm->flags))
- 		addr = hugetlb_get_unmapped_area_bottomup(file, addr, len,
- 				pgoff, flags);
- 	else
---- a/arch/s390/mm/mmap.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/arch/s390/mm/mmap.c
-@@ -185,10 +185,10 @@ void arch_pick_mmap_layout(struct mm_str
- 	 */
- 	if (mmap_is_legacy(rlim_stack)) {
- 		mm->mmap_base = mmap_base_legacy(random_factor);
--		mm->get_unmapped_area = arch_get_unmapped_area;
-+		clear_bit(MMF_TOPDOWN, &mm->flags);
- 	} else {
- 		mm->mmap_base = mmap_base(random_factor, rlim_stack);
--		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
-+		set_bit(MMF_TOPDOWN, &mm->flags);
- 	}
- }
- 
---- a/arch/sparc/kernel/sys_sparc_64.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/arch/sparc/kernel/sys_sparc_64.c
-@@ -218,14 +218,10 @@ arch_get_unmapped_area_topdown(struct fi
- unsigned long get_fb_unmapped_area(struct file *filp, unsigned long orig_addr, unsigned long len, unsigned long pgoff, unsigned long flags)
- {
- 	unsigned long align_goal, addr = -ENOMEM;
--	unsigned long (*get_area)(struct file *, unsigned long,
--				  unsigned long, unsigned long, unsigned long);
--
--	get_area = current->mm->get_unmapped_area;
- 
- 	if (flags & MAP_FIXED) {
- 		/* Ok, don't mess with it. */
--		return get_area(NULL, orig_addr, len, pgoff, flags);
-+		return mm_get_unmapped_area(current->mm, NULL, orig_addr, len, pgoff, flags);
- 	}
- 	flags &= ~MAP_SHARED;
- 
-@@ -238,7 +234,8 @@ unsigned long get_fb_unmapped_area(struc
- 		align_goal = (64UL * 1024);
- 
- 	do {
--		addr = get_area(NULL, orig_addr, len + (align_goal - PAGE_SIZE), pgoff, flags);
-+		addr = mm_get_unmapped_area(current->mm, NULL, orig_addr,
-+					    len + (align_goal - PAGE_SIZE), pgoff, flags);
- 		if (!(addr & ~PAGE_MASK)) {
- 			addr = (addr + (align_goal - 1UL)) & ~(align_goal - 1UL);
- 			break;
-@@ -256,7 +253,7 @@ unsigned long get_fb_unmapped_area(struc
- 	 * be obtained.
- 	 */
- 	if (addr & ~PAGE_MASK)
--		addr = get_area(NULL, orig_addr, len, pgoff, flags);
-+		addr = mm_get_unmapped_area(current->mm, NULL, orig_addr, len, pgoff, flags);
- 
- 	return addr;
- }
-@@ -292,7 +289,7 @@ void arch_pick_mmap_layout(struct mm_str
- 	    gap == RLIM_INFINITY ||
- 	    sysctl_legacy_va_layout) {
- 		mm->mmap_base = TASK_UNMAPPED_BASE + random_factor;
--		mm->get_unmapped_area = arch_get_unmapped_area;
-+		clear_bit(MMF_TOPDOWN, &mm->flags);
- 	} else {
- 		/* We know it's 32-bit */
- 		unsigned long task_size = STACK_TOP32;
-@@ -303,7 +300,7 @@ void arch_pick_mmap_layout(struct mm_str
- 			gap = (task_size / 6 * 5);
- 
- 		mm->mmap_base = PAGE_ALIGN(task_size - gap - random_factor);
--		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
-+		set_bit(MMF_TOPDOWN, &mm->flags);
- 	}
- }
- 
---- a/arch/sparc/mm/hugetlbpage.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/arch/sparc/mm/hugetlbpage.c
-@@ -123,7 +123,7 @@ hugetlb_get_unmapped_area(struct file *f
- 		    (!vma || addr + len <= vm_start_gap(vma)))
- 			return addr;
- 	}
--	if (mm->get_unmapped_area == arch_get_unmapped_area)
-+	if (!test_bit(MMF_TOPDOWN, &mm->flags))
- 		return hugetlb_get_unmapped_area_bottomup(file, addr, len,
- 				pgoff, flags);
- 	else
---- a/arch/x86/kernel/cpu/sgx/driver.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/arch/x86/kernel/cpu/sgx/driver.c
-@@ -113,7 +113,7 @@ static unsigned long sgx_get_unmapped_ar
- 	if (flags & MAP_FIXED)
- 		return addr;
- 
--	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
- }
- 
- #ifdef CONFIG_COMPAT
---- a/arch/x86/mm/hugetlbpage.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -115,7 +115,7 @@ hugetlb_get_unmapped_area(struct file *f
- 	}
- 
- get_unmapped_area:
--	if (mm->get_unmapped_area == arch_get_unmapped_area)
-+	if (!test_bit(MMF_TOPDOWN, &mm->flags))
- 		return hugetlb_get_unmapped_area_bottomup(file, addr, len,
- 				pgoff, flags);
- 	else
---- a/arch/x86/mm/mmap.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/arch/x86/mm/mmap.c
-@@ -129,9 +129,9 @@ static void arch_pick_mmap_base(unsigned
- void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
- {
- 	if (mmap_is_legacy())
--		mm->get_unmapped_area = arch_get_unmapped_area;
-+		clear_bit(MMF_TOPDOWN, &mm->flags);
- 	else
--		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
-+		set_bit(MMF_TOPDOWN, &mm->flags);
- 
- 	arch_pick_mmap_base(&mm->mmap_base, &mm->mmap_legacy_base,
- 			arch_rnd(mmap64_rnd_bits), task_size_64bit(0),
---- a/drivers/char/mem.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/drivers/char/mem.c
-@@ -544,7 +544,7 @@ static unsigned long get_unmapped_area_z
- 	}
- 
- 	/* Otherwise flags & MAP_PRIVATE: with no shmem object beneath it */
--	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
- #else
- 	return -ENOSYS;
- #endif
---- a/drivers/dax/device.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/drivers/dax/device.c
-@@ -329,14 +329,14 @@ static unsigned long dax_get_unmapped_ar
- 	if ((off + len_align) < off)
- 		goto out;
- 
--	addr_align = current->mm->get_unmapped_area(filp, addr, len_align,
--			pgoff, flags);
-+	addr_align = mm_get_unmapped_area(current->mm, filp, addr, len_align,
-+					  pgoff, flags);
- 	if (!IS_ERR_VALUE(addr_align)) {
- 		addr_align += (off - addr_align) & (align - 1);
- 		return addr_align;
- 	}
-  out:
--	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags);
- }
- 
- static const struct address_space_operations dev_dax_aops = {
---- a/fs/hugetlbfs/inode.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/fs/hugetlbfs/inode.c
-@@ -249,11 +249,11 @@ generic_hugetlb_get_unmapped_area(struct
- 	}
- 
- 	/*
--	 * Use mm->get_unmapped_area value as a hint to use topdown routine.
-+	 * Use MMF_TOPDOWN flag as a hint to use topdown routine.
- 	 * If architectures have special needs, they should define their own
- 	 * version of hugetlb_get_unmapped_area.
- 	 */
--	if (mm->get_unmapped_area == arch_get_unmapped_area_topdown)
-+	if (test_bit(MMF_TOPDOWN, &mm->flags))
- 		return hugetlb_get_unmapped_area_topdown(file, addr, len,
- 				pgoff, flags);
- 	return hugetlb_get_unmapped_area_bottomup(file, addr, len,
---- a/fs/proc/inode.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/fs/proc/inode.c
-@@ -455,8 +455,9 @@ pde_get_unmapped_area(struct proc_dir_en
- 		return pde->proc_ops->proc_get_unmapped_area(file, orig_addr, len, pgoff, flags);
- 
- #ifdef CONFIG_MMU
--	return current->mm->get_unmapped_area(file, orig_addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(current->mm, file, orig_addr, len, pgoff, flags);
- #endif
-+
- 	return orig_addr;
- }
- 
---- a/fs/ramfs/file-mmu.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/fs/ramfs/file-mmu.c
-@@ -35,7 +35,7 @@ static unsigned long ramfs_mmu_get_unmap
- 		unsigned long addr, unsigned long len, unsigned long pgoff,
- 		unsigned long flags)
- {
--	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
- }
- 
- const struct file_operations ramfs_file_operations = {
---- a/include/linux/mm_types.h~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/include/linux/mm_types.h
-@@ -777,11 +777,7 @@ struct mm_struct {
- 		} ____cacheline_aligned_in_smp;
- 
- 		struct maple_tree mm_mt;
--#ifdef CONFIG_MMU
--		unsigned long (*get_unmapped_area) (struct file *filp,
--				unsigned long addr, unsigned long len,
--				unsigned long pgoff, unsigned long flags);
--#endif
-+
- 		unsigned long mmap_base;	/* base of mmap area */
- 		unsigned long mmap_legacy_base;	/* base of mmap area in bottom-up allocations */
- #ifdef CONFIG_HAVE_ARCH_COMPAT_MMAP_BASES
---- a/include/linux/sched/coredump.h~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/include/linux/sched/coredump.h
-@@ -92,9 +92,12 @@ static inline int get_dumpable(struct mm
- #define MMF_VM_MERGE_ANY	30
- #define MMF_VM_MERGE_ANY_MASK	(1 << MMF_VM_MERGE_ANY)
- 
-+#define MMF_TOPDOWN		31	/* mm searches top down by default */
-+#define MMF_TOPDOWN_MASK	(1 << MMF_TOPDOWN)
-+
- #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
- 				 MMF_DISABLE_THP_MASK | MMF_HAS_MDWE_MASK |\
--				 MMF_VM_MERGE_ANY_MASK)
-+				 MMF_VM_MERGE_ANY_MASK | MMF_TOPDOWN_MASK)
- 
- static inline unsigned long mmf_init_flags(unsigned long flags)
- {
---- a/include/linux/sched/mm.h~mm-switch-mm-get_unmapped_area-to-a-flag
+--- a/include/linux/sched/mm.h~mm-introduce-arch_get_unmapped_area_vmflags
 +++ a/include/linux/sched/mm.h
-@@ -8,6 +8,7 @@
- #include <linux/mm_types.h>
- #include <linux/gfp.h>
- #include <linux/sync_core.h>
-+#include <linux/sched/coredump.h>
+@@ -192,6 +192,23 @@ unsigned long mm_get_unmapped_area(struc
+ 				   unsigned long pgoff, unsigned long flags);
  
- /*
-  * Routines for handling mm_structs
-@@ -186,6 +187,10 @@ arch_get_unmapped_area_topdown(struct fi
- 			  unsigned long len, unsigned long pgoff,
- 			  unsigned long flags);
- 
-+unsigned long mm_get_unmapped_area(struct mm_struct *mm, struct file *filp,
-+				   unsigned long addr, unsigned long len,
-+				   unsigned long pgoff, unsigned long flags);
-+
  unsigned long
++arch_get_unmapped_area_vmflags(struct file *filp, unsigned long addr,
++			       unsigned long len, unsigned long pgoff,
++			       unsigned long flags, vm_flags_t vm_flags);
++unsigned long
++arch_get_unmapped_area_topdown_vmflags(struct file *filp, unsigned long addr,
++				       unsigned long len, unsigned long pgoff,
++				       unsigned long flags, vm_flags_t);
++
++unsigned long mm_get_unmapped_area_vmflags(struct mm_struct *mm,
++					   struct file *filp,
++					   unsigned long addr,
++					   unsigned long len,
++					   unsigned long pgoff,
++					   unsigned long flags,
++					   vm_flags_t vm_flags);
++
++unsigned long
  generic_get_unmapped_area(struct file *filp, unsigned long addr,
  			  unsigned long len, unsigned long pgoff,
---- a/io_uring/io_uring.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/io_uring/io_uring.c
-@@ -3520,7 +3520,7 @@ static unsigned long io_uring_mmu_get_un
- #else
- 	addr = 0UL;
- #endif
--	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags);
- }
- 
- #else /* !CONFIG_MMU */
---- a/kernel/bpf/arena.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/kernel/bpf/arena.c
-@@ -314,7 +314,7 @@ static unsigned long arena_get_unmapped_
- 			return -EINVAL;
- 	}
- 
--	ret = current->mm->get_unmapped_area(filp, addr, len * 2, 0, flags);
-+	ret = mm_get_unmapped_area(current->mm, filp, addr, len * 2, 0, flags);
- 	if (IS_ERR_VALUE(ret))
- 		return ret;
- 	if ((ret >> 32) == ((ret + len - 1) >> 32))
---- a/kernel/bpf/syscall.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/kernel/bpf/syscall.c
-@@ -980,7 +980,7 @@ static unsigned long bpf_get_unmapped_ar
- 	if (map->ops->map_get_unmapped_area)
- 		return map->ops->map_get_unmapped_area(filp, addr, len, pgoff, flags);
- #ifdef CONFIG_MMU
--	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags);
- #else
- 	return addr;
- #endif
---- a/mm/debug.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/mm/debug.c
-@@ -177,9 +177,6 @@ EXPORT_SYMBOL(dump_vma);
- void dump_mm(const struct mm_struct *mm)
- {
- 	pr_emerg("mm %px task_size %lu\n"
--#ifdef CONFIG_MMU
--		"get_unmapped_area %px\n"
--#endif
- 		"mmap_base %lu mmap_legacy_base %lu\n"
- 		"pgd %px mm_users %d mm_count %d pgtables_bytes %lu map_count %d\n"
- 		"hiwater_rss %lx hiwater_vm %lx total_vm %lx locked_vm %lx\n"
-@@ -205,9 +202,6 @@ void dump_mm(const struct mm_struct *mm)
- 		"def_flags: %#lx(%pGv)\n",
- 
- 		mm, mm->task_size,
--#ifdef CONFIG_MMU
--		mm->get_unmapped_area,
--#endif
- 		mm->mmap_base, mm->mmap_legacy_base,
- 		mm->pgd, atomic_read(&mm->mm_users),
- 		atomic_read(&mm->mm_count),
---- a/mm/huge_memory.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/mm/huge_memory.c
-@@ -816,8 +816,8 @@ static unsigned long __thp_get_unmapped_
- 	if (len_pad < len || (off + len_pad) < off)
- 		return 0;
- 
--	ret = current->mm->get_unmapped_area(filp, addr, len_pad,
--					      off >> PAGE_SHIFT, flags);
-+	ret = mm_get_unmapped_area(current->mm, filp, addr, len_pad,
-+				   off >> PAGE_SHIFT, flags);
- 
- 	/*
- 	 * The failure might be due to length padding. The caller will retry
-@@ -835,8 +835,7 @@ static unsigned long __thp_get_unmapped_
- 
- 	off_sub = (off - ret) & (size - 1);
- 
--	if (current->mm->get_unmapped_area == arch_get_unmapped_area_topdown &&
--	    !off_sub)
-+	if (test_bit(MMF_TOPDOWN, &current->mm->flags) && !off_sub)
- 		return ret + size;
- 
- 	ret += off_sub;
-@@ -853,7 +852,7 @@ unsigned long thp_get_unmapped_area(stru
- 	if (ret)
- 		return ret;
- 
--	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags);
- }
- EXPORT_SYMBOL_GPL(thp_get_unmapped_area);
- 
---- a/mm/mmap.c~mm-switch-mm-get_unmapped_area-to-a-flag
+ 			  unsigned long flags);
+--- a/mm/mmap.c~mm-introduce-arch_get_unmapped_area_vmflags
 +++ a/mm/mmap.c
-@@ -1812,7 +1812,8 @@ get_unmapped_area(struct file *file, uns
- 		unsigned long pgoff, unsigned long flags)
- {
- 	unsigned long (*get_area)(struct file *, unsigned long,
--				  unsigned long, unsigned long, unsigned long);
-+				  unsigned long, unsigned long, unsigned long)
-+				  = NULL;
+@@ -1807,6 +1807,34 @@ arch_get_unmapped_area_topdown(struct fi
+ }
+ #endif
  
- 	unsigned long error = arch_mmap_check(addr, len, flags);
- 	if (error)
-@@ -1822,7 +1823,6 @@ get_unmapped_area(struct file *file, uns
- 	if (len > TASK_SIZE)
- 		return -ENOMEM;
- 
--	get_area = current->mm->get_unmapped_area;
- 	if (file) {
- 		if (file->f_op->get_unmapped_area)
- 			get_area = file->f_op->get_unmapped_area;
-@@ -1841,7 +1841,11 @@ get_unmapped_area(struct file *file, uns
- 	if (!file)
- 		pgoff = 0;
- 
--	addr = get_area(file, addr, len, pgoff, flags);
-+	if (get_area)
-+		addr = get_area(file, addr, len, pgoff, flags);
-+	else
-+		addr = mm_get_unmapped_area(current->mm, file, addr, len,
-+					    pgoff, flags);
- 	if (IS_ERR_VALUE(addr))
- 		return addr;
- 
-@@ -1856,6 +1860,17 @@ get_unmapped_area(struct file *file, uns
- 
- EXPORT_SYMBOL(get_unmapped_area);
- 
++#ifndef HAVE_ARCH_UNMAPPED_AREA_VMFLAGS
 +unsigned long
-+mm_get_unmapped_area(struct mm_struct *mm, struct file *file,
-+		     unsigned long addr, unsigned long len,
-+		     unsigned long pgoff, unsigned long flags)
++arch_get_unmapped_area_vmflags(struct file *filp, unsigned long addr, unsigned long len,
++			       unsigned long pgoff, unsigned long flags, vm_flags_t vm_flags)
++{
++	return arch_get_unmapped_area(filp, addr, len, pgoff, flags);
++}
++
++unsigned long
++arch_get_unmapped_area_topdown_vmflags(struct file *filp, unsigned long addr,
++				       unsigned long len, unsigned long pgoff,
++				       unsigned long flags, vm_flags_t vm_flags)
++{
++	return arch_get_unmapped_area_topdown(filp, addr, len, pgoff, flags);
++}
++#endif
++
++unsigned long mm_get_unmapped_area_vmflags(struct mm_struct *mm, struct file *filp,
++					   unsigned long addr, unsigned long len,
++					   unsigned long pgoff, unsigned long flags,
++					   vm_flags_t vm_flags)
 +{
 +	if (test_bit(MMF_TOPDOWN, &mm->flags))
-+		return arch_get_unmapped_area_topdown(file, addr, len, pgoff, flags);
-+	return arch_get_unmapped_area(file, addr, len, pgoff, flags);
++		return arch_get_unmapped_area_topdown_vmflags(filp, addr, len, pgoff,
++							      flags, vm_flags);
++	return arch_get_unmapped_area_vmflags(filp, addr, len, pgoff, flags, vm_flags);
 +}
-+EXPORT_SYMBOL(mm_get_unmapped_area);
 +
- /**
-  * find_vma_intersection() - Look up the first VMA which intersects the interval
-  * @mm: The process address space.
---- a/mm/shmem.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/mm/shmem.c
-@@ -2273,8 +2273,6 @@ unsigned long shmem_get_unmapped_area(st
- 				      unsigned long uaddr, unsigned long len,
- 				      unsigned long pgoff, unsigned long flags)
- {
--	unsigned long (*get_area)(struct file *,
--		unsigned long, unsigned long, unsigned long, unsigned long);
- 	unsigned long addr;
- 	unsigned long offset;
- 	unsigned long inflated_len;
-@@ -2284,8 +2282,8 @@ unsigned long shmem_get_unmapped_area(st
- 	if (len > TASK_SIZE)
- 		return -ENOMEM;
- 
--	get_area = current->mm->get_unmapped_area;
--	addr = get_area(file, uaddr, len, pgoff, flags);
-+	addr = mm_get_unmapped_area(current->mm, file, uaddr, len, pgoff,
-+				    flags);
- 
- 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
- 		return addr;
-@@ -2342,7 +2340,8 @@ unsigned long shmem_get_unmapped_area(st
- 	if (inflated_len < len)
- 		return addr;
- 
--	inflated_addr = get_area(NULL, uaddr, inflated_len, 0, flags);
-+	inflated_addr = mm_get_unmapped_area(current->mm, NULL, uaddr,
-+					     inflated_len, 0, flags);
- 	if (IS_ERR_VALUE(inflated_addr))
- 		return addr;
- 	if (inflated_addr & ~PAGE_MASK)
-@@ -4807,7 +4806,7 @@ unsigned long shmem_get_unmapped_area(st
- 				      unsigned long addr, unsigned long len,
- 				      unsigned long pgoff, unsigned long flags)
- {
--	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
- }
- #endif
- 
---- a/mm/util.c~mm-switch-mm-get_unmapped_area-to-a-flag
-+++ a/mm/util.c
-@@ -469,17 +469,17 @@ void arch_pick_mmap_layout(struct mm_str
- 
- 	if (mmap_is_legacy(rlim_stack)) {
- 		mm->mmap_base = TASK_UNMAPPED_BASE + random_factor;
--		mm->get_unmapped_area = arch_get_unmapped_area;
-+		clear_bit(MMF_TOPDOWN, &mm->flags);
- 	} else {
- 		mm->mmap_base = mmap_base(random_factor, rlim_stack);
--		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
-+		set_bit(MMF_TOPDOWN, &mm->flags);
- 	}
- }
- #elif defined(CONFIG_MMU) && !defined(HAVE_ARCH_PICK_MMAP_LAYOUT)
- void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
- {
- 	mm->mmap_base = TASK_UNMAPPED_BASE;
--	mm->get_unmapped_area = arch_get_unmapped_area;
-+	clear_bit(MMF_TOPDOWN, &mm->flags);
- }
- #endif
- 
+ unsigned long
+ get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
+ 		unsigned long pgoff, unsigned long flags)
 _
 
 Patches currently in -mm which might be from rick.p.edgecombe@intel.com are
