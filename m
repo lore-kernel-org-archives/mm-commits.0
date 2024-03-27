@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BB8D2FE0F
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:30:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EC5228366
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:30:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711571423; cv=none; b=mY2UL03vdq1eEilvqkC5s/RiVx+PFO1BaX2khnFA9GuFncMwNRLsQ02xh1M/M7A6waCPsYmNgabgJe24ENiRerp3Xh7YAYmRIL3Suhjgx6SoL8JnS69xyImxERU2LNzI/Lxjyr2z17aDEEEPmtJrMuOcn6/dTLHohBZG3/pHIQQ=
+	t=1711571425; cv=none; b=Ca912KtSa9AeHTUxCuIjH4ONSetsr7dGxVEzOe9shTXjv26UmrsCDwZOAtj3/9gEzrGBGfN8Rs5k1yAQoUPx8f8/XGLC3ayWzVqiWSv2AxvfDYX6o9i42pe/aEaZ8gFczZWPujzTWZkeonF1na5eNJPv1FqjhWA3mWd9u+kaJ2c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711571423; c=relaxed/simple;
-	bh=jQkpE3I1FeibA10bsKSkFhlPDeLDB0sN0ic8H7ikHEM=;
-	h=Date:To:From:Subject:Message-Id; b=CF6jHr2sexiinJml0fSRDsyfg9MypaUvzDPHQXNl2OtJN9+7vMF1/VoCRRakYJkAqrlAaRA26rKAYdvYuUS7glWcJday7lfTFU043/t2/eD8GqaObc3YoooXi05TLysG8kc1X+zVFE9JhhbIJcGIXF+wBkQjDMn7GlTrjdLX4YU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TSbjEL6S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711571425; c=relaxed/simple;
+	bh=B5FEhojLAMZEHEAYucO65XuKnU3qfvoi0yCWv9mO72Q=;
+	h=Date:To:From:Subject:Message-Id; b=sZAxh0aoW9NAjMmEthXFyUOyUgym6cveSLeiupdUaCC0c0jUly14+GEIdlfW5lJr25sh3GVYhRJa5PHVsNCffQk8f51u7rCN/XaWvxXSP+6A8j1PPCvLQFNIe/m1YfpLh205VTNkmz5HuQexMe/ZhGQdFiWicd6aXktM7n6fE4Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H/FBnTuy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TSbjEL6S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE5D5C433C7;
-	Wed, 27 Mar 2024 20:30:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H/FBnTuy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13158C433C7;
+	Wed, 27 Mar 2024 20:30:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711571423;
-	bh=jQkpE3I1FeibA10bsKSkFhlPDeLDB0sN0ic8H7ikHEM=;
+	s=korg; t=1711571425;
+	bh=B5FEhojLAMZEHEAYucO65XuKnU3qfvoi0yCWv9mO72Q=;
 	h=Date:To:From:Subject:From;
-	b=TSbjEL6SIbCKOrU39QKDdmOt59a+mEJHQNYKb3xLqoQHxYHFZzyYf0Qcg/WsTcfLi
-	 ZCajwlMv2Q94YHr1TdaYwkk4Y3YahD/s+CCNzgFwBcOn4Eb2it7Hl2lMS4YOSMvspN
-	 jcfjOMdAF48AzCyj9LX83MsIBIjikFqUm3szE+1E=
-Date: Wed, 27 Mar 2024 13:30:22 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,samuel.holland@sifive.com,palmer@rivosinc.com,nicolas@fjasle.eu,nathan@kernel.org,mingo@redhat.com,masahiroy@kernel.org,linux@armlinux.org.uk,hch@lst.de,git@xen0n.name,dave.hansen@linux.intel.com,corbet@lwn.net,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,alexander.deucher@amd.com,mpe@ellerman.id.au,akpm@linux-foundation.org
+	b=H/FBnTuyUskeWkK1g+JqF2kV4dFMynAg21xknH4/N/cGI8XOwYfKIOt7nD7S9bfoH
+	 MKcwfiEkrBa40DCh1/QvbgVdFpMdL1M2TAve1Kp7fsrcbwP6LW2i5cdGQx5chN5hFy
+	 sB7V9FGvQsveP1ogJM0rosGAFjDXHWNbTDw5FDbQ=
+Date: Wed, 27 Mar 2024 13:30:24 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,palmer@rivosinc.com,nicolas@fjasle.eu,nathan@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,masahiroy@kernel.org,linux@armlinux.org.uk,hch@lst.de,git@xen0n.name,dave.hansen@linux.intel.com,corbet@lwn.net,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,alexander.deucher@amd.com,samuel.holland@sifive.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drm-amd-display-only-use-hard-float-not-altivec-on-powerpc.patch added to mm-nonmm-unstable branch
-Message-Id: <20240327203022.EE5D5C433C7@smtp.kernel.org>
+Subject: + drm-amd-display-use-arch_has_kernel_fpu_support.patch added to mm-nonmm-unstable branch
+Message-Id: <20240327203025.13158C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drm/amd/display: only use hard-float, not altivec on powerpc
+     Subject: drm/amd/display: use ARCH_HAS_KERNEL_FPU_SUPPORT
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     drm-amd-display-only-use-hard-float-not-altivec-on-powerpc.patch
+     drm-amd-display-use-arch_has_kernel_fpu_support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-amd-display-only-use-hard-float-not-altivec-on-powerpc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-amd-display-use-arch_has_kernel_fpu_support.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,28 +58,27 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Michael Ellerman <mpe@ellerman.id.au>
-Subject: drm/amd/display: only use hard-float, not altivec on powerpc
-Date: Wed, 27 Mar 2024 13:00:42 -0700
+From: Samuel Holland <samuel.holland@sifive.com>
+Subject: drm/amd/display: use ARCH_HAS_KERNEL_FPU_SUPPORT
+Date: Wed, 27 Mar 2024 13:00:43 -0700
 
-The compiler flags enable altivec, but that is not required; hard-float
-is sufficient for the code to build and function.
+Now that all previously-supported architectures select
+ARCH_HAS_KERNEL_FPU_SUPPORT, this code can depend on that symbol instead
+of the existing list of architectures.  It can also take advantage of the
+common kernel-mode FPU API and method of adjusting CFLAGS.
 
-Drop altivec from the compiler flags and adjust the enable/disable code
-to only enable FPU use.
-
-Link: https://lkml.kernel.org/r/20240327200157.1097089-12-samuel.holland@sifive.com
-Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Link: https://lkml.kernel.org/r/20240327200157.1097089-13-samuel.holland@sifive.com
 Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 Acked-by: Alex Deucher <alexander.deucher@amd.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Nicolas Schier <nicolas@fjasle.eu>
 Cc: Palmer Dabbelt <palmer@rivosinc.com>
@@ -90,64 +89,181 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/display/amdgpu_dm/dc_fpu.c |   12 ++----------
- drivers/gpu/drm/amd/display/dc/dml/Makefile    |    2 +-
- drivers/gpu/drm/amd/display/dc/dml2/Makefile   |    2 +-
- 3 files changed, 4 insertions(+), 12 deletions(-)
+ drivers/gpu/drm/amd/display/Kconfig            |    2 
+ drivers/gpu/drm/amd/display/amdgpu_dm/dc_fpu.c |   27 -----------
+ drivers/gpu/drm/amd/display/dc/dml/Makefile    |   36 ---------------
+ drivers/gpu/drm/amd/display/dc/dml2/Makefile   |   36 ---------------
+ 4 files changed, 7 insertions(+), 94 deletions(-)
 
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/dc_fpu.c~drm-amd-display-only-use-hard-float-not-altivec-on-powerpc
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/dc_fpu.c~drm-amd-display-use-arch_has_kernel_fpu_support
 +++ a/drivers/gpu/drm/amd/display/amdgpu_dm/dc_fpu.c
-@@ -92,11 +92,7 @@ void dc_fpu_begin(const char *function_n
- #if defined(CONFIG_X86) || defined(CONFIG_LOONGARCH)
+@@ -26,16 +26,7 @@
+ 
+ #include "dc_trace.h"
+ 
+-#if defined(CONFIG_X86)
+-#include <asm/fpu/api.h>
+-#elif defined(CONFIG_PPC64)
+-#include <asm/switch_to.h>
+-#include <asm/cputable.h>
+-#elif defined(CONFIG_ARM64)
+-#include <asm/neon.h>
+-#elif defined(CONFIG_LOONGARCH)
+-#include <asm/fpu.h>
+-#endif
++#include <linux/fpu.h>
+ 
+ /**
+  * DOC: DC FPU manipulation overview
+@@ -87,16 +78,9 @@ void dc_fpu_begin(const char *function_n
+ 	WARN_ON_ONCE(!in_task());
+ 	preempt_disable();
+ 	depth = __this_cpu_inc_return(fpu_recursion_depth);
+-
+ 	if (depth == 1) {
+-#if defined(CONFIG_X86) || defined(CONFIG_LOONGARCH)
++		BUG_ON(!kernel_fpu_available());
  		kernel_fpu_begin();
- #elif defined(CONFIG_PPC64)
--		if (cpu_has_feature(CPU_FTR_VSX_COMP))
--			enable_kernel_vsx();
--		else if (cpu_has_feature(CPU_FTR_ALTIVEC_COMP))
--			enable_kernel_altivec();
--		else if (!cpu_has_feature(CPU_FTR_FPU_UNAVAILABLE))
-+		if (!cpu_has_feature(CPU_FTR_FPU_UNAVAILABLE))
- 			enable_kernel_fp();
- #elif defined(CONFIG_ARM64)
- 		kernel_neon_begin();
-@@ -125,11 +121,7 @@ void dc_fpu_end(const char *function_nam
- #if defined(CONFIG_X86) || defined(CONFIG_LOONGARCH)
+-#elif defined(CONFIG_PPC64)
+-		if (!cpu_has_feature(CPU_FTR_FPU_UNAVAILABLE))
+-			enable_kernel_fp();
+-#elif defined(CONFIG_ARM64)
+-		kernel_neon_begin();
+-#endif
+ 	}
+ 
+ 	TRACE_DCN_FPU(true, function_name, line, depth);
+@@ -118,14 +102,7 @@ void dc_fpu_end(const char *function_nam
+ 
+ 	depth = __this_cpu_dec_return(fpu_recursion_depth);
+ 	if (depth == 0) {
+-#if defined(CONFIG_X86) || defined(CONFIG_LOONGARCH)
  		kernel_fpu_end();
- #elif defined(CONFIG_PPC64)
--		if (cpu_has_feature(CPU_FTR_VSX_COMP))
--			disable_kernel_vsx();
--		else if (cpu_has_feature(CPU_FTR_ALTIVEC_COMP))
--			disable_kernel_altivec();
--		else if (!cpu_has_feature(CPU_FTR_FPU_UNAVAILABLE))
-+		if (!cpu_has_feature(CPU_FTR_FPU_UNAVAILABLE))
- 			disable_kernel_fp();
- #elif defined(CONFIG_ARM64)
- 		kernel_neon_end();
---- a/drivers/gpu/drm/amd/display/dc/dml2/Makefile~drm-amd-display-only-use-hard-float-not-altivec-on-powerpc
+-#elif defined(CONFIG_PPC64)
+-		if (!cpu_has_feature(CPU_FTR_FPU_UNAVAILABLE))
+-			disable_kernel_fp();
+-#elif defined(CONFIG_ARM64)
+-		kernel_neon_end();
+-#endif
+ 	} else {
+ 		WARN_ON_ONCE(depth < 0);
+ 	}
+--- a/drivers/gpu/drm/amd/display/dc/dml2/Makefile~drm-amd-display-use-arch_has_kernel_fpu_support
 +++ a/drivers/gpu/drm/amd/display/dc/dml2/Makefile
-@@ -30,7 +30,7 @@ dml2_ccflags := $(dml2_ccflags-y) -msse
- endif
+@@ -24,40 +24,8 @@
+ #
+ # Makefile for dml2.
  
- ifdef CONFIG_PPC64
--dml2_ccflags := -mhard-float -maltivec
-+dml2_ccflags := -mhard-float
- endif
+-ifdef CONFIG_X86
+-dml2_ccflags-$(CONFIG_CC_IS_GCC) := -mhard-float
+-dml2_ccflags := $(dml2_ccflags-y) -msse
+-endif
+-
+-ifdef CONFIG_PPC64
+-dml2_ccflags := -mhard-float
+-endif
+-
+-ifdef CONFIG_ARM64
+-dml2_rcflags := -mgeneral-regs-only
+-endif
+-
+-ifdef CONFIG_LOONGARCH
+-dml2_ccflags := -mfpu=64
+-dml2_rcflags := -msoft-float
+-endif
+-
+-ifdef CONFIG_CC_IS_GCC
+-ifeq ($(call cc-ifversion, -lt, 0701, y), y)
+-IS_OLD_GCC = 1
+-endif
+-endif
+-
+-ifdef CONFIG_X86
+-ifdef IS_OLD_GCC
+-# Stack alignment mismatch, proceed with caution.
+-# GCC < 7.1 cannot compile code using `double` and -mpreferred-stack-boundary=3
+-# (8B stack alignment).
+-dml2_ccflags += -mpreferred-stack-boundary=4
+-else
+-dml2_ccflags += -msse2
+-endif
+-endif
++dml2_ccflags := $(CC_FLAGS_FPU)
++dml2_rcflags := $(CC_FLAGS_NO_FPU)
  
- ifdef CONFIG_ARM64
---- a/drivers/gpu/drm/amd/display/dc/dml/Makefile~drm-amd-display-only-use-hard-float-not-altivec-on-powerpc
+ ifneq ($(CONFIG_FRAME_WARN),0)
+ ifeq ($(filter y,$(CONFIG_KASAN)$(CONFIG_KCSAN)),y)
+--- a/drivers/gpu/drm/amd/display/dc/dml/Makefile~drm-amd-display-use-arch_has_kernel_fpu_support
 +++ a/drivers/gpu/drm/amd/display/dc/dml/Makefile
-@@ -31,7 +31,7 @@ dml_ccflags := $(dml_ccflags-y) -msse
- endif
+@@ -25,40 +25,8 @@
+ # It provides the general basic services required by other DAL
+ # subcomponents.
  
- ifdef CONFIG_PPC64
--dml_ccflags := -mhard-float -maltivec
-+dml_ccflags := -mhard-float
- endif
+-ifdef CONFIG_X86
+-dml_ccflags-$(CONFIG_CC_IS_GCC) := -mhard-float
+-dml_ccflags := $(dml_ccflags-y) -msse
+-endif
+-
+-ifdef CONFIG_PPC64
+-dml_ccflags := -mhard-float
+-endif
+-
+-ifdef CONFIG_ARM64
+-dml_rcflags := -mgeneral-regs-only
+-endif
+-
+-ifdef CONFIG_LOONGARCH
+-dml_ccflags := -mfpu=64
+-dml_rcflags := -msoft-float
+-endif
+-
+-ifdef CONFIG_CC_IS_GCC
+-ifneq ($(call gcc-min-version, 70100),y)
+-IS_OLD_GCC = 1
+-endif
+-endif
+-
+-ifdef CONFIG_X86
+-ifdef IS_OLD_GCC
+-# Stack alignment mismatch, proceed with caution.
+-# GCC < 7.1 cannot compile code using `double` and -mpreferred-stack-boundary=3
+-# (8B stack alignment).
+-dml_ccflags += -mpreferred-stack-boundary=4
+-else
+-dml_ccflags += -msse2
+-endif
+-endif
++dml_ccflags := $(CC_FLAGS_FPU)
++dml_rcflags := $(CC_FLAGS_NO_FPU)
  
- ifdef CONFIG_ARM64
+ ifneq ($(CONFIG_FRAME_WARN),0)
+ ifeq ($(filter y,$(CONFIG_KASAN)$(CONFIG_KCSAN)),y)
+--- a/drivers/gpu/drm/amd/display/Kconfig~drm-amd-display-use-arch_has_kernel_fpu_support
++++ a/drivers/gpu/drm/amd/display/Kconfig
+@@ -8,7 +8,7 @@ config DRM_AMD_DC
+ 	depends on BROKEN || !CC_IS_CLANG || ARM64 || RISCV || SPARC64 || X86_64
+ 	select SND_HDA_COMPONENT if SND_HDA_CORE
+ 	# !CC_IS_CLANG: https://github.com/ClangBuiltLinux/linux/issues/1752
+-	select DRM_AMD_DC_FP if (X86 || LOONGARCH || (PPC64 && ALTIVEC) || (ARM64 && KERNEL_MODE_NEON && !CC_IS_CLANG))
++	select DRM_AMD_DC_FP if ARCH_HAS_KERNEL_FPU_SUPPORT && (!ARM64 || !CC_IS_CLANG)
+ 	help
+ 	  Choose this option if you want to use the new display engine
+ 	  support for AMDGPU. This adds required support for Vega and
 _
 
-Patches currently in -mm which might be from mpe@ellerman.id.au are
+Patches currently in -mm which might be from samuel.holland@sifive.com are
 
-drm-amd-display-only-use-hard-float-not-altivec-on-powerpc.patch
+arch-add-arch_has_kernel_fpu_support.patch
+arm-implement-arch_has_kernel_fpu_support.patch
+arm-crypto-use-cc_flags_fpu-for-neon-cflags.patch
+arm64-implement-arch_has_kernel_fpu_support.patch
+arm64-crypto-use-cc_flags_fpu-for-neon-cflags.patch
+lib-raid6-use-cc_flags_fpu-for-neon-cflags.patch
+loongarch-implement-arch_has_kernel_fpu_support.patch
+powerpc-implement-arch_has_kernel_fpu_support.patch
+x86-implement-arch_has_kernel_fpu_support.patch
+riscv-add-support-for-kernel-mode-fpu.patch
+drm-amd-display-use-arch_has_kernel_fpu_support.patch
+selftests-fpu-move-fp-code-to-a-separate-translation-unit.patch
+selftests-fpu-allow-building-on-other-architectures.patch
 
