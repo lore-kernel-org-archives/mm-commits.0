@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EFCA14E2FA
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 17:53:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69A5A142E70
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 17:53:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711562023; cv=none; b=ISfT/tUSI8BM7fWhi/Sz4iu80v+MHm90mdBGFs9fornKXeMIh79mJNTvZ4uWVfaSsrP6cSCtXhJ4b1xgQVKnU3u2MQmKNSUGOO5CtbyZxnInHJw4W9OZpsVngpKKqjS+6b/CwXPhRPA8A4DDjrKR/1Qu33/RIbk9VvWkCh+U2x8=
+	t=1711562025; cv=none; b=MIrEEWV1GMuQc2zwn/NnaDkrcVzF2HTXWdqPRih6YXVNjri/A55M4C4nZBAKCw+CZOdLAardQOZ3lMCprePRlYgy/CgZdj+tlVKWLChUz9sEduy82jTxBa3yAeMUhha56Q8nmCFzPbRmx4txHCMNCGkHaDkmT4C9qLH3FAW8wIc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711562023; c=relaxed/simple;
-	bh=9QfCm7TQMQIKAN4FfKKADTKYHzgeLxAkYWbju47iwEw=;
-	h=Date:To:From:Subject:Message-Id; b=LJWC5v5n6ew8JftLVjPxvQIkO+/xdno2GkzaeaYzYMrSLhh4WIxtPz3G2sg9oo4UES96QlReUlFbVaGqwVoZHuf60h55k7vooUcFiOQO2zfEd8SOoZTu+n1cLgyISmNQUAdmD5tyPAjjz4DEUOaaA2iku5IdVwwY+sMBf5hnrUc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ETe/tyuJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711562025; c=relaxed/simple;
+	bh=XKts4yaOKiHMHYIbrhDHBL3SMHPudm38KDEHEj5p8Nw=;
+	h=Date:To:From:Subject:Message-Id; b=Hg6CzHoDx0aGoxvpE8bm7kBfPxxtRAfsVvqXR7MrcuTJW8xpM5u1oe/ZpFbqgogzjIkyoEQ1jHc3vBqaFSVeED0/tn+y3Dtpn3HDRC83jAhFJ89gfmY7vdpzSxqRoULVyCTKjxFklYJ4dFtZR6QJsa9JT9Tebm9RYNVCjHtu23c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S9bNxhrt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ETe/tyuJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9991C433F1;
-	Wed, 27 Mar 2024 17:53:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S9bNxhrt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF842C433C7;
+	Wed, 27 Mar 2024 17:53:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711562022;
-	bh=9QfCm7TQMQIKAN4FfKKADTKYHzgeLxAkYWbju47iwEw=;
+	s=korg; t=1711562025;
+	bh=XKts4yaOKiHMHYIbrhDHBL3SMHPudm38KDEHEj5p8Nw=;
 	h=Date:To:From:Subject:From;
-	b=ETe/tyuJMtR1FdMOQqsofKRtp0GBWO1eJPui7ejnkjL6wB6jDYiyaj5qaz2FTOmog
-	 q0ArrPY4u4pYpR16rkc1Iv2ZgSyKpmZv+X32r7UuUUyi/9TIGNmgTXr2CAyccWc6Sg
-	 sRB5sfpo82zuniWQ9D6kocCfwhhOYh5RMxS/nZsw=
-Date: Wed, 27 Mar 2024 10:53:42 -0700
+	b=S9bNxhrtheyBs8BcgvHI+HznA+hdKoB0nrJqkGlf6tfZ6TUNxgq1mpoQ7jw9HbjMr
+	 6k5eNGKnv6GUqojM3IKAWir8u+EqGsMx2MMQf4aHEa1knAd8M1QAi4xT27LqBCrkRm
+	 X8egNrhki7CP4xRX4U+DSBFWW1hjnLvK3yt+ETUI=
+Date: Wed, 27 Mar 2024 10:53:44 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,shy828301@gmail.com,rppt@kernel.org,riel@surriel.com,muchun.song@linux.dev,mpe@ellerman.id.au,mike.kravetz@oracle.com,lstoakes@gmail.com,kirill@shutemov.name,jthoughton@google.com,jhubbard@nvidia.com,jgg@nvidia.com,hch@infradead.org,david@redhat.com,christophe.leroy@csgroup.eu,axelrasmussen@google.com,aneesh.kumar@kernel.org,andrew.jones@linux.dev,aarcange@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-hpage_pxd_-macros-even-if-thp.patch added to mm-unstable branch
-Message-Id: <20240327175342.C9991C433F1@smtp.kernel.org>
+Subject: + mm-introduce-vma_pgtable_walk_beginend.patch added to mm-unstable branch
+Message-Id: <20240327175344.EF842C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: make HPAGE_PXD_* macros even if !THP
+     Subject: mm: introduce vma_pgtable_walk_{begin|end}()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-make-hpage_pxd_-macros-even-if-thp.patch
+     mm-introduce-vma_pgtable_walk_beginend.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-hpage_pxd_-macros-even-if-thp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-vma_pgtable_walk_beginend.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm: make HPAGE_PXD_* macros even if !THP
-Date: Wed, 27 Mar 2024 11:23:22 -0400
+Subject: mm: introduce vma_pgtable_walk_{begin|end}()
+Date: Wed, 27 Mar 2024 11:23:23 -0400
 
-These macros can be helpful when we plan to merge hugetlb code into
-generic code.  Move them out and define them as long as
-PGTABLE_HAS_HUGE_LEAVES is selected, because there are systems that only
-define HUGETLB_PAGE not THP.
+Introduce per-vma begin()/end() helpers for pgtable walks.  This is a
+preparation work to merge hugetlb pgtable walkers with generic mm.
 
-One note here is HPAGE_PMD_SHIFT must be defined even if PMD_SHIFT is not
-defined (e.g.  !CONFIG_MMU case); it (or in other forms, like
-HPAGE_PMD_NR) is already used in lots of common codes without ifdef
-guards.  Use the old trick to let complations work.
+The helpers need to be called before and after a pgtable walk, will start
+to be needed if the pgtable walker code supports hugetlb pages.  It's a
+hook point for any type of VMA, but for now only hugetlb uses it to
+stablize the pgtable pages from getting away (due to possible pmd
+unsharing).
 
-Here we only need to differenciate HPAGE_PXD_SHIFT definitions.  All the
-rest macros will be defined based on it.  When at it, move HPAGE_PMD_NR /
-HPAGE_PMD_ORDER over together.
-
-Link: https://lkml.kernel.org/r/20240327152332.950956-4-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240327152332.950956-5-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Christoph Hellwig <hch@infradead.org>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrew Jones <andrew.jones@linux.dev>
 Cc: Aneesh Kumar K.V (IBM) <aneesh.kumar@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Christoph Hellwig <hch@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: James Houghton <jthoughton@google.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
@@ -94,72 +90,44 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Rik van Riel <riel@surriel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+ include/linux/mm.h |    3 +++
+ mm/memory.c        |   12 ++++++++++++
+ 2 files changed, 15 insertions(+)
 
---- a/include/linux/huge_mm.h~mm-make-hpage_pxd_-macros-even-if-thp
-+++ a/include/linux/huge_mm.h
-@@ -64,9 +64,6 @@ ssize_t single_hugepage_flag_show(struct
- 				  enum transparent_hugepage_flag flag);
- extern struct kobj_attribute shmem_enabled_attr;
- 
--#define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
--#define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
--
- /*
-  * Mask of all large folio orders supported for anonymous THP; all orders up to
-  * and including PMD_ORDER, except order-0 (which is not "huge") and order-1
-@@ -87,14 +84,25 @@ extern struct kobj_attribute shmem_enabl
- #define thp_vma_allowable_order(vma, vm_flags, smaps, in_pf, enforce_sysfs, order) \
- 	(!!thp_vma_allowable_orders(vma, vm_flags, smaps, in_pf, enforce_sysfs, BIT(order)))
- 
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+#ifdef CONFIG_PGTABLE_HAS_HUGE_LEAVES
- #define HPAGE_PMD_SHIFT PMD_SHIFT
--#define HPAGE_PMD_SIZE	((1UL) << HPAGE_PMD_SHIFT)
-+#define HPAGE_PUD_SHIFT PUD_SHIFT
-+#else
-+#define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
-+#define HPAGE_PUD_SHIFT ({ BUILD_BUG(); 0; })
-+#endif
-+
-+#define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
-+#define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
- #define HPAGE_PMD_MASK	(~(HPAGE_PMD_SIZE - 1))
-+#define HPAGE_PMD_SIZE	((1UL) << HPAGE_PMD_SHIFT)
- 
--#define HPAGE_PUD_SHIFT PUD_SHIFT
--#define HPAGE_PUD_SIZE	((1UL) << HPAGE_PUD_SHIFT)
-+#define HPAGE_PUD_ORDER (HPAGE_PUD_SHIFT-PAGE_SHIFT)
-+#define HPAGE_PUD_NR (1<<HPAGE_PUD_ORDER)
- #define HPAGE_PUD_MASK	(~(HPAGE_PUD_SIZE - 1))
-+#define HPAGE_PUD_SIZE	((1UL) << HPAGE_PUD_SHIFT)
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 
- extern unsigned long transparent_hugepage_flags;
- extern unsigned long huge_anon_orders_always;
-@@ -377,13 +385,6 @@ static inline bool thp_migration_support
+--- a/include/linux/mm.h~mm-introduce-vma_pgtable_walk_beginend
++++ a/include/linux/mm.h
+@@ -4229,4 +4229,7 @@ static inline bool pfn_is_unaccepted_mem
+ 	return range_contains_unaccepted_memory(paddr, paddr + PAGE_SIZE);
  }
  
- #else /* CONFIG_TRANSPARENT_HUGEPAGE */
--#define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
--#define HPAGE_PMD_MASK ({ BUILD_BUG(); 0; })
--#define HPAGE_PMD_SIZE ({ BUILD_BUG(); 0; })
--
--#define HPAGE_PUD_SHIFT ({ BUILD_BUG(); 0; })
--#define HPAGE_PUD_MASK ({ BUILD_BUG(); 0; })
--#define HPAGE_PUD_SIZE ({ BUILD_BUG(); 0; })
- 
- static inline bool folio_test_pmd_mappable(struct folio *folio)
- {
++void vma_pgtable_walk_begin(struct vm_area_struct *vma);
++void vma_pgtable_walk_end(struct vm_area_struct *vma);
++
+ #endif /* _LINUX_MM_H */
+--- a/mm/memory.c~mm-introduce-vma_pgtable_walk_beginend
++++ a/mm/memory.c
+@@ -6426,3 +6426,15 @@ void ptlock_free(struct ptdesc *ptdesc)
+ 	kmem_cache_free(page_ptl_cachep, ptdesc->ptl);
+ }
+ #endif
++
++void vma_pgtable_walk_begin(struct vm_area_struct *vma)
++{
++	if (is_vm_hugetlb_page(vma))
++		hugetlb_vma_lock_read(vma);
++}
++
++void vma_pgtable_walk_end(struct vm_area_struct *vma)
++{
++	if (is_vm_hugetlb_page(vma))
++		hugetlb_vma_unlock_read(vma);
++}
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
