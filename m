@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17AFD15E9B
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:30:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 583C62FE0F
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:30:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711571418; cv=none; b=I6v9dw+ZwZCxYvARtR324pKlviiPZVNzCDkbtOpVtKlC6rI2HTTZZx53QYk4bC7aaAdEWq7EWNqZPQqJqzI7fr50N99mgHjRazj7vMLIwPuA++M6QjAfoQudSm6xwXhBXX4zk6+N6VLxX70RoRsdzseYqnxrv/3mk4FCSUwArQ4=
+	t=1711571420; cv=none; b=ifHNd2aQHxlqd3SZcDVRBgUnb1LdOlUJU9bD7G01iyvTKVaCbgKFtDmvWEsvr19DRJTH33TG95MjgcKAiDXOptCOHRQR8VXyClpLb2s2mK5zUwc0R96QtZRK3alwkA+TdrUoiOOE0o4Z2WsSmBFjrB06NsLpmhJS05VKF9bhE64=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711571418; c=relaxed/simple;
-	bh=ppRoX3sk6sqPbiMiTfQ7KFv3WGFr+wMQXdf/hhYpSI4=;
-	h=Date:To:From:Subject:Message-Id; b=RJI7ZxR4alyfb1NEUEUv/7oDRrZhysIe8cBgYKNNDBqe5fh2MjAXD55A5ISi8hSmAOXXp+CqHG9u2DJC6uaVrhnYLwdaxVSiElWWUuzpXKVVqurUy+RkHC4HzECTPTGMBTUoH/o5Ol7vVFEcLhmrSIgF6qe3bPbYoVfA793DHwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wKLfc8Lv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711571420; c=relaxed/simple;
+	bh=+rHj7XR8c6dRByFoHKATQU/98GgoGaGefBEoNryrg18=;
+	h=Date:To:From:Subject:Message-Id; b=LDS5GRT6jCz6GQaanBDKxVG2RVLLkFi6Q8iuIv8DGu/GQPApt58Qmgi4skHOe5HqGrvagyxVCvd5YGgBFJDG0Buc2ZyPP5F6HdwfdcUNNNykHTpWq2ScO+T2S06BYEdAyZ5msF73XyyVssF6pPS4OGddnh7ADOHnPjvObfTYtBA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K+4L5lK9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wKLfc8Lv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94343C433C7;
-	Wed, 27 Mar 2024 20:30:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K+4L5lK9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E114EC433F1;
+	Wed, 27 Mar 2024 20:30:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711571417;
-	bh=ppRoX3sk6sqPbiMiTfQ7KFv3WGFr+wMQXdf/hhYpSI4=;
+	s=korg; t=1711571420;
+	bh=+rHj7XR8c6dRByFoHKATQU/98GgoGaGefBEoNryrg18=;
 	h=Date:To:From:Subject:From;
-	b=wKLfc8LvRAfekTGzISLQahtjlPQ/AKi8H2fwdpyejS870rK19j3SmZiNmFXBZn4cJ
-	 XK/jp1n45uHfyH6CcNmBYVGkQqrVNeWWPKc+o+5s33tdrBDus+3RE+IMacvZsuyfSk
-	 VU+Ttnos5bM3dF+LWIGoEFZbnxae2J9cmFlij2ts=
-Date: Wed, 27 Mar 2024 13:30:16 -0700
+	b=K+4L5lK92+ewrlTWDi+i3UjKqZ2w78QrdZPNhtDy/v3FgUNupL10sJd5VxRIMggFv
+	 xfzwEY41Y/xS1Om+hnA8xixGIPGI6PfQaEyf+1LU7XW84/jwn4O8QUVnf+wYGjXqLe
+	 UlENPxjA7A0JI9WfVfqqBzvZ15QOm2DUhUrZgwOI=
+Date: Wed, 27 Mar 2024 13:30:19 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,palmer@rivosinc.com,nicolas@fjasle.eu,nathan@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,masahiroy@kernel.org,linux@armlinux.org.uk,hch@lst.de,git@xen0n.name,dave.hansen@linux.intel.com,corbet@lwn.net,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,alexander.deucher@amd.com,samuel.holland@sifive.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-implement-arch_has_kernel_fpu_support.patch added to mm-nonmm-unstable branch
-Message-Id: <20240327203017.94343C433C7@smtp.kernel.org>
+Subject: + riscv-add-support-for-kernel-mode-fpu.patch added to mm-nonmm-unstable branch
+Message-Id: <20240327203019.E114EC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86: implement ARCH_HAS_KERNEL_FPU_SUPPORT
+     Subject: riscv: add support for kernel-mode FPU
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     x86-implement-arch_has_kernel_fpu_support.patch
+     riscv-add-support-for-kernel-mode-fpu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-implement-arch_has_kernel_fpu_support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-add-support-for-kernel-mode-fpu.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Samuel Holland <samuel.holland@sifive.com>
-Subject: x86: implement ARCH_HAS_KERNEL_FPU_SUPPORT
-Date: Wed, 27 Mar 2024 13:00:40 -0700
+Subject: riscv: add support for kernel-mode FPU
+Date: Wed, 27 Mar 2024 13:00:41 -0700
 
-x86 already provides kernel_fpu_begin() and kernel_fpu_end(), but in a
-different header.  Add a wrapper header, and export the CFLAGS adjustments
-as found in lib/Makefile.
+This is motivated by the amdgpu DRM driver, which needs floating-point
+code to support recent hardware.  That code is not performance-critical,
+so only provide a minimal non-preemptible implementation for now.
 
-Link: https://lkml.kernel.org/r/20240327200157.1097089-10-samuel.holland@sifive.com
+Support is limited to riscv64 because riscv32 requires runtime (libgcc)
+assistance to convert between doubles and 64-bit integers.
+
+Link: https://lkml.kernel.org/r/20240327200157.1097089-11-samuel.holland@sifive.com
 Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
+Reviewed-by: Palmer Dabbelt <palmer@rivosinc.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Alex Deucher <alexander.deucher@amd.com>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
@@ -80,7 +85,6 @@ Cc: Masahiro Yamada <masahiroy@kernel.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Nicolas Schier <nicolas@fjasle.eu>
-Cc: Palmer Dabbelt <palmer@rivosinc.com>
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: WANG Xuerui <git@xen0n.name>
@@ -88,66 +92,95 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig           |    1 +
- arch/x86/Makefile          |   20 ++++++++++++++++++++
- arch/x86/include/asm/fpu.h |   13 +++++++++++++
- 3 files changed, 34 insertions(+)
+ arch/riscv/Kconfig                  |    1 
+ arch/riscv/Makefile                 |    3 ++
+ arch/riscv/include/asm/fpu.h        |   16 ++++++++++++++
+ arch/riscv/kernel/Makefile          |    1 
+ arch/riscv/kernel/kernel_mode_fpu.c |   28 ++++++++++++++++++++++++++
+ 5 files changed, 49 insertions(+)
 
 --- /dev/null
-+++ a/arch/x86/include/asm/fpu.h
-@@ -0,0 +1,13 @@
++++ a/arch/riscv/include/asm/fpu.h
+@@ -0,0 +1,16 @@
 +/* SPDX-License-Identifier: GPL-2.0-only */
 +/*
 + * Copyright (C) 2023 SiFive
 + */
 +
-+#ifndef _ASM_X86_FPU_H
-+#define _ASM_X86_FPU_H
++#ifndef _ASM_RISCV_FPU_H
++#define _ASM_RISCV_FPU_H
 +
-+#include <asm/fpu/api.h>
++#include <asm/switch_to.h>
 +
-+#define kernel_fpu_available()	true
++#define kernel_fpu_available()	has_fpu()
 +
-+#endif /* ! _ASM_X86_FPU_H */
---- a/arch/x86/Kconfig~x86-implement-arch_has_kernel_fpu_support
-+++ a/arch/x86/Kconfig
-@@ -83,6 +83,7 @@ config X86
- 	select ARCH_HAS_FORTIFY_SOURCE
++void kernel_fpu_begin(void);
++void kernel_fpu_end(void);
++
++#endif /* ! _ASM_RISCV_FPU_H */
+--- a/arch/riscv/Kconfig~riscv-add-support-for-kernel-mode-fpu
++++ a/arch/riscv/Kconfig
+@@ -27,6 +27,7 @@ config RISCV
  	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_HAS_KCOV			if X86_64
-+	select ARCH_HAS_KERNEL_FPU_SUPPORT
- 	select ARCH_HAS_MEM_ENCRYPT
+ 	select ARCH_HAS_GIGANTIC_PAGE
+ 	select ARCH_HAS_KCOV
++	select ARCH_HAS_KERNEL_FPU_SUPPORT if 64BIT && FPU
+ 	select ARCH_HAS_MEMBARRIER_CALLBACKS
  	select ARCH_HAS_MEMBARRIER_SYNC_CORE
- 	select ARCH_HAS_NMI_SAFE_THIS_CPU_OPS
---- a/arch/x86/Makefile~x86-implement-arch_has_kernel_fpu_support
-+++ a/arch/x86/Makefile
-@@ -74,6 +74,26 @@ KBUILD_CFLAGS += -mno-sse -mno-mmx -mno-
- KBUILD_RUSTFLAGS += --target=$(objtree)/scripts/target.json
- KBUILD_RUSTFLAGS += -Ctarget-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2
- 
-+#
-+# CFLAGS for compiling floating point code inside the kernel.
-+#
-+CC_FLAGS_FPU := -msse -msse2
-+ifdef CONFIG_CC_IS_GCC
-+# Stack alignment mismatch, proceed with caution.
-+# GCC < 7.1 cannot compile code using `double` and -mpreferred-stack-boundary=3
-+# (8B stack alignment).
-+# See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53383
-+#
-+# The "-msse" in the first argument is there so that the
-+# -mpreferred-stack-boundary=3 build error:
-+#
-+#  -mpreferred-stack-boundary=3 is not between 4 and 12
-+#
-+# can be triggered. Otherwise gcc doesn't complain.
-+CC_FLAGS_FPU += -mhard-float
-+CC_FLAGS_FPU += $(call cc-option,-msse -mpreferred-stack-boundary=3,-mpreferred-stack-boundary=4)
-+endif
+ 	select ARCH_HAS_MMIOWB
+--- /dev/null
++++ a/arch/riscv/kernel/kernel_mode_fpu.c
+@@ -0,0 +1,28 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Copyright (C) 2023 SiFive
++ */
 +
- ifeq ($(CONFIG_X86_KERNEL_IBT),y)
- #
- # Kernel IBT has S_CET.NOTRACK_EN=0, as such the compilers must not generate
++#include <linux/export.h>
++#include <linux/preempt.h>
++
++#include <asm/csr.h>
++#include <asm/fpu.h>
++#include <asm/processor.h>
++#include <asm/switch_to.h>
++
++void kernel_fpu_begin(void)
++{
++	preempt_disable();
++	fstate_save(current, task_pt_regs(current));
++	csr_set(CSR_SSTATUS, SR_FS);
++}
++EXPORT_SYMBOL_GPL(kernel_fpu_begin);
++
++void kernel_fpu_end(void)
++{
++	csr_clear(CSR_SSTATUS, SR_FS);
++	fstate_restore(current, task_pt_regs(current));
++	preempt_enable();
++}
++EXPORT_SYMBOL_GPL(kernel_fpu_end);
+--- a/arch/riscv/kernel/Makefile~riscv-add-support-for-kernel-mode-fpu
++++ a/arch/riscv/kernel/Makefile
+@@ -67,6 +67,7 @@ obj-$(CONFIG_RISCV_MISALIGNED)	+= unalig
+ obj-$(CONFIG_RISCV_PROBE_UNALIGNED_ACCESS)	+= copy-unaligned.o
+ 
+ obj-$(CONFIG_FPU)		+= fpu.o
++obj-$(CONFIG_FPU)		+= kernel_mode_fpu.o
+ obj-$(CONFIG_RISCV_ISA_V)	+= vector.o
+ obj-$(CONFIG_RISCV_ISA_V)	+= kernel_mode_vector.o
+ obj-$(CONFIG_SMP)		+= smpboot.o
+--- a/arch/riscv/Makefile~riscv-add-support-for-kernel-mode-fpu
++++ a/arch/riscv/Makefile
+@@ -84,6 +84,9 @@ KBUILD_CFLAGS += -march=$(shell echo $(r
+ 
+ KBUILD_AFLAGS += -march=$(riscv-march-y)
+ 
++# For C code built with floating-point support, exclude V but keep F and D.
++CC_FLAGS_FPU  := -march=$(shell echo $(riscv-march-y) | sed -E 's/(rv32ima|rv64ima)([^v_]*)v?/\1\2/')
++
+ KBUILD_CFLAGS += -mno-save-restore
+ KBUILD_CFLAGS += -DCONFIG_PAGE_OFFSET=$(CONFIG_PAGE_OFFSET)
+ 
 _
 
 Patches currently in -mm which might be from samuel.holland@sifive.com are
