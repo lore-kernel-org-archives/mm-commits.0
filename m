@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC4EE42A83
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 17:53:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FB72142E70
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 17:53:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711562018; cv=none; b=pl5UITECePk+l8ba61euSLpsyiA+CvGueaKi8HB6JGtcHhy83D7/EnvT+OKrlq2shYJ8olCJScLpJac0R5aLh/y1hUWkFy5NJfqS+6zpwBCwMPU83DLI7JfEB0HqSG0Wgh5LcfA7v3aavsctgGAuTdSvSvGaUOCrkL1u1jqtOpI=
+	t=1711562020; cv=none; b=ceN3SSmyPbo3UeipI49zIobIFHVK1HD9fIKWX8/mwwSY/zxSuRwR5gI6f+gEcCgTCxl6YNQ6224ZG8O8n7qA73v2kUxPJkazWADTlStXEtuxc0sxnmsYluOsH5zJbdB6yIlZgc1DfqCV7zP+J1aJVbPJALvnbgslLrEwAGioIPo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711562018; c=relaxed/simple;
-	bh=pFpDvbiaTvXYawjYJ+1O3NnoevhOb8TQNXq6Z6n9bw0=;
-	h=Date:To:From:Subject:Message-Id; b=BpyF3uw4eCX2Xr/TVjzd5qYXVKIHct8/3c71YNsA2gVBRQJqpOkGyFXh82R5dUIvoexiXyajjRIP9IwQmj82bZ4BsnR+DpXa805lypsaRyKHY1pMy+CY8CKMTZxOO/MScxtusBydd7CvttRICSOBfsiAqbLm2N+6JS7rRtslaQM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ApvQQWVO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711562020; c=relaxed/simple;
+	bh=zSMiXqz3xCDk3PkTp97EiDb7iqEYJh7Z0PnEqu0ulWE=;
+	h=Date:To:From:Subject:Message-Id; b=nZBnhMPh3rlmp2nCHiFZIcH1Q10drgqGNVpGj+xKCb1WFGfyyZWoqLFHn5o0ckWnxD+DvpCNVVzwb+jP4ykytEMD0iMA3x0LDVYklrAOebwA3eElrGIOEcE0zFUbp6DXrhi7D0nOXCDEZ1aiVMLRehD58sMc+mOfsEuvovjuA2U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cTwhWP4u; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ApvQQWVO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C8A4C433F1;
-	Wed, 27 Mar 2024 17:53:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cTwhWP4u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53163C433C7;
+	Wed, 27 Mar 2024 17:53:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711562018;
-	bh=pFpDvbiaTvXYawjYJ+1O3NnoevhOb8TQNXq6Z6n9bw0=;
+	s=korg; t=1711562020;
+	bh=zSMiXqz3xCDk3PkTp97EiDb7iqEYJh7Z0PnEqu0ulWE=;
 	h=Date:To:From:Subject:From;
-	b=ApvQQWVO52Lf+qd3+roRmJKuG6BiyGSATsfkVTXS7HyNaluUYt7q98bPOJUn4aHM5
-	 TdYE0Oaknc9EbsyWvr0/zXBXQlXnlFs1XwxQB3Gbe7Kgj+EprbUP9YlCYIZBb/GkVB
-	 Uqxi2GmDaepS60DWE6mTgGRJcWnLpjALhYwtz6fA=
-Date: Wed, 27 Mar 2024 10:53:37 -0700
+	b=cTwhWP4uYbgjQqLhqdlZQL43TYz1DWzAV/Hl6S6qdGJqfuW2ffu3fv2YT0ZzdKejC
+	 OrSwOfWZ8smWxrIhZ8/j+N2jS8CQTIkBx7aoriR35Vvnk/luqzAzkwkUp62FYMtsoj
+	 w4u0UZosW1YMkPQBfR06hnOG+Nc3N8zJj45n0k6w=
+Date: Wed, 27 Mar 2024 10:53:39 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,shy828301@gmail.com,rppt@kernel.org,riel@surriel.com,muchun.song@linux.dev,mpe@ellerman.id.au,mike.kravetz@oracle.com,lstoakes@gmail.com,kirill@shutemov.name,jthoughton@google.com,jhubbard@nvidia.com,jgg@nvidia.com,hch@infradead.org,david@redhat.com,christophe.leroy@csgroup.eu,axelrasmussen@google.com,aneesh.kumar@kernel.org,andrew.jones@linux.dev,aarcange@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kconfig-config_pgtable_has_huge_leaves.patch added to mm-unstable branch
-Message-Id: <20240327175338.3C8A4C433F1@smtp.kernel.org>
+Subject: + mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch added to mm-unstable branch
+Message-Id: <20240327175340.53163C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/Kconfig: CONFIG_PGTABLE_HAS_HUGE_LEAVES
+     Subject: mm/hugetlb: declare hugetlbfs_pagecache_present() non-static
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kconfig-config_pgtable_has_huge_leaves.patch
+     mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kconfig-config_pgtable_has_huge_leaves.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,77 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/Kconfig: CONFIG_PGTABLE_HAS_HUGE_LEAVES
-Date: Wed, 27 Mar 2024 11:23:20 -0400
+Subject: mm/hugetlb: declare hugetlbfs_pagecache_present() non-static
+Date: Wed, 27 Mar 2024 11:23:21 -0400
 
-Patch series "mm/gup: Unify hugetlb, part 2", v4.
+It will be used outside hugetlb.c soon.
 
-The series removes the hugetlb slow gup path after a previous refactor
-work [1], so that slow gup now uses the exact same path to process all
-kinds of memory including hugetlb.
-
-For the long term, we may want to remove most, if not all, call sites of
-huge_pte_offset().  It'll be ideal if that API can be completely dropped
-from arch hugetlb API.  This series is one small step towards merging
-hugetlb specific codes into generic mm paths.  From that POV, this series
-removes one reference to huge_pte_offset() out of many others.
-
-One goal of such a route is that we can reconsider merging hugetlb
-features like High Granularity Mapping (HGM).  It was not accepted in the
-past because it may add lots of hugetlb specific codes and make the mm
-code even harder to maintain.  With a merged codeset, features like HGM
-can hopefully share some code with THP, legacy (PMD+) or modern
-(continuous PTEs).
-
-To make it work, the generic slow gup code will need to at least
-understand hugepd, which is already done like so in fast-gup.  Due to the
-specialty of hugepd to be software-only solution (no hardware recognizes
-the hugepd format, so it's purely artificial structures), there's chance
-we can merge some or all hugepd formats with cont_pte in the future.  That
-question is yet unsettled from Power side to have an acknowledgement.  As
-of now for this series, I kept the hugepd handling because we may still
-need to do so before getting a clearer picture of the future of hugepd. 
-The other reason is simply that we did it already for fast-gup and most
-codes are still around to be reused.  It'll make more sense to keep
-slow/fast gup behave the same before a decision is made to remove hugepd.
-
-There's one major difference for slow-gup on cont_pte / cont_pmd handling,
-currently supported on three architectures (aarch64, riscv, ppc).  Before
-the series, slow gup will be able to recognize e.g.  cont_pte entries with
-the help of huge_pte_offset() when hstate is around.  Now it's gone but
-still working, by looking up pgtable entries one by one.
-
-It's not ideal, but hopefully this change should not affect yet on major
-workloads.  There's some more information in the commit message of the
-last patch.  If this would be a concern, we can consider teaching slow gup
-to recognize cont pte/pmd entries, and that should recover the lost
-performance.  But I doubt its necessity for now, so I kept it as simple as
-it can be.
-
-Patch layout
-=============
-
-Patch 1-8:    Preparation works, or cleanups in relevant code paths
-Patch 9-11:   Teach slow gup with all kinds of huge entries (pXd, hugepd)
-Patch 12:     Drop hugetlb_follow_page_mask()
-
-More information can be found in the commit messages of each patch.
-
-[1] https://lore.kernel.org/all/20230628215310.73782-1-peterx@redhat.com
-[2] https://lore.kernel.org/r/20240321215047.678172-1-peterx@redhat.com
-
-
-
-
-Introduce a config option that will be selected as long as huge leaves are
-involved in pgtable (thp or hugetlbfs).  It would be useful to mark any
-code with this new config that can process either hugetlb or thp pages in
-any level that is higher than pte level.
-
-Link: https://lkml.kernel.org/r/20240327152332.950956-1-peterx@redhat.com
-Link: https://lkml.kernel.org/r/20240327152332.950956-2-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240327152332.950956-3-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrew Jones <andrew.jones@linux.dev>
 Cc: Aneesh Kumar K.V (IBM) <aneesh.kumar@kernel.org>
@@ -138,6 +74,7 @@ Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: James Houghton <jthoughton@google.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
@@ -152,24 +89,48 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/hugetlb.h |    9 +++++++++
+ mm/hugetlb.c            |    4 ++--
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
---- a/mm/Kconfig~mm-kconfig-config_pgtable_has_huge_leaves
-+++ a/mm/Kconfig
-@@ -850,6 +850,12 @@ config READ_ONLY_THP_FOR_FS
- endif # TRANSPARENT_HUGEPAGE
+--- a/include/linux/hugetlb.h~mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static
++++ a/include/linux/hugetlb.h
+@@ -174,6 +174,9 @@ u32 hugetlb_fault_mutex_hash(struct addr
  
- #
-+# The architecture supports pgtable leaves that is larger than PAGE_SIZE
-+#
-+config PGTABLE_HAS_HUGE_LEAVES
-+	def_bool TRANSPARENT_HUGEPAGE || HUGETLB_PAGE
+ pte_t *huge_pmd_share(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		      unsigned long addr, pud_t *pud);
++bool hugetlbfs_pagecache_present(struct hstate *h,
++				 struct vm_area_struct *vma,
++				 unsigned long address);
+ 
+ struct address_space *hugetlb_page_mapping_lock_write(struct page *hpage);
+ 
+@@ -1228,6 +1231,12 @@ static inline void hugetlb_register_node
+ static inline void hugetlb_unregister_node(struct node *node)
+ {
+ }
 +
-+#
- # UP and nommu archs use km based percpu allocator
- #
- config NEED_PER_CPU_KM
++static inline bool hugetlbfs_pagecache_present(
++    struct hstate *h, struct vm_area_struct *vma, unsigned long address)
++{
++	return false;
++}
+ #endif	/* CONFIG_HUGETLB_PAGE */
+ 
+ static inline spinlock_t *huge_pte_lock(struct hstate *h,
+--- a/mm/hugetlb.c~mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static
++++ a/mm/hugetlb.c
+@@ -6110,8 +6110,8 @@ out_release_old:
+ /*
+  * Return whether there is a pagecache page to back given address within VMA.
+  */
+-static bool hugetlbfs_pagecache_present(struct hstate *h,
+-			struct vm_area_struct *vma, unsigned long address)
++bool hugetlbfs_pagecache_present(struct hstate *h,
++				 struct vm_area_struct *vma, unsigned long address)
+ {
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	pgoff_t idx = linear_page_index(vma, address);
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
