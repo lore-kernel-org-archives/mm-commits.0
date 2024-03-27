@@ -1,150 +1,155 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F0AD14D458;
-	Wed, 27 Mar 2024 18:32:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF01C32189
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 18:40:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711564336; cv=none; b=ECl0Cdr5FI+h655ZsZP4ko6fwGqojJ8dYDwMr62ZvbeTxTmAmgI/7rSRv6RpntqbHfI9DAXo38xXiziZiUIKsNWF0tLcN/XdomjHdCfzOxjQJDNNLsdmtx1feXriG6xAXTf1R5G4nJZZUe+gXVqVaH7KLt4KdOQRWXYtemvK4pA=
+	t=1711564829; cv=none; b=ChGImymrQ9nrEP/5fihwEmruBDuSMNvL8v7tdW7kYTSdnW+hyRBkViE3sPkjdGxc0ohT/qLINPGODMYpbgf15Fpmf0d2rJQl67jHxnUPo2EMSQezLKwh8soUpSuMPoVw87MmV9Ob7p5QFF0Ea/0W5A7BnVUeCDRJL6rqmTrd27w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711564336; c=relaxed/simple;
-	bh=grX1DH7yM9NWRvLZabboI42gsdIFaYdeSY/rPjWV1VI=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=bJGkZkMEy0ntw4Fe4FVLV5k9uJEKhHO4D+nlt5TTTo697OCbt3lDVWOc0BXy6zLcahqpp3ReVLZCVkClWGvIjp7nDNySdSqt3PQ5wimMVEoXSPUGtnzFJfl8AlTUt+cQT4KxhD6JiNNDozFjZUKFJOCClT3HiraQ07p2KfRUrkI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RsQHvkGK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711564829; c=relaxed/simple;
+	bh=aGQ92dSiWurzWoRPBim9AbC2cqkK8bzzJbHzRIufpwQ=;
+	h=Date:To:From:Subject:Message-Id; b=Lu6G8VN96QVNicR9KmJRiczyicZ2pV+Ja8EX3F6Di5XqgozVlsgZx9sSD8pKsVik7e/Wvp6r/FddYTB4zJ4nqFQ2wnsAG5ANOXC5NoU3DamWSyuJAKa2qsJ4619xzdaQqVTgf6hADOw2uYC7qWxdc6dvFJBCgNiFj2kSGCGWzQg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MheLjxOD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RsQHvkGK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53853C433F1;
-	Wed, 27 Mar 2024 18:32:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MheLjxOD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81C23C433C7;
+	Wed, 27 Mar 2024 18:40:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711564335;
-	bh=grX1DH7yM9NWRvLZabboI42gsdIFaYdeSY/rPjWV1VI=;
-	h=Date:From:To:Cc:Subject:From;
-	b=RsQHvkGKO1KiHSe/lopBY7UVNdobL371dIYPIiy1OWLmwVwBM6gCVniGyGcPf0nvI
-	 9h5jtY2QwUYUYM/hN5N0vGpTRcjAj1WLGcfXyhuSUIbANRWBXwvS4hs7YxwbUW+upj
-	 OlxYsKLB81rzzC8xN5W3g52D9NW1LcgWPOvYoZjo=
-Date: Wed, 27 Mar 2024 11:32:14 -0700
+	s=korg; t=1711564829;
+	bh=aGQ92dSiWurzWoRPBim9AbC2cqkK8bzzJbHzRIufpwQ=;
+	h=Date:To:From:Subject:From;
+	b=MheLjxODHuqyl3EUJlemnDn53oIZAWGd2ZL8S4ImxHocwAHxiutPhYI03XJwdlKNf
+	 xZyHy0rdVupi8Ti17XhTJUXODDRguxpQq0s0fBjpTj/QnbCFJUke+gbwid3kQ74l/h
+	 uWeyptflHGxmiwyobVnw3qwwWxyo/vlos4Ijc2DY=
+Date: Wed, 27 Mar 2024 11:40:29 -0700
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.9-rc2
-Message-Id: <20240327113214.f0200bec5624169a86371797@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + writeback-protect-race-between-bdi-release-and-bdi_debug_stats_show.patch added to mm-unstable branch
+Message-Id: <20240327184029.81C23C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please merge this batch of hotfixes, thanks.
+The patch titled
+     Subject: writeback: protect race between bdi release and bdi_debug_stats_show
+has been added to the -mm mm-unstable branch.  Its filename is
+     writeback-protect-race-between-bdi-release-and-bdi_debug_stats_show.patch
 
-The following changes since commit 4cece764965020c22cff7665b18a012006359095:
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-protect-race-between-bdi-release-and-bdi_debug_stats_show.patch
 
-  Linux 6.9-rc1 (2024-03-24 14:10:05 -0700)
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-are available in the Git repository at:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-03-27-11-25
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-for you to fetch changes up to 32fbe5246582af4f611ccccee33fd6e559087252:
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-  crash: use macro to add crashk_res into iomem early for specific arch (2024-03-26 11:14:12 -0700)
+------------------------------------------------------
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: writeback: protect race between bdi release and bdi_debug_stats_show
+Date: Wed, 27 Mar 2024 23:57:46 +0800
 
-----------------------------------------------------------------
-21 hotfixes.  11 are cc:stable and the remainder address post-6.8 issues
-or aren't considered suitable for backporting.
+There is a race between bdi release and bdi_debug_stats_show:
+/* get debug info */		/* bdi release */
+bdi_debug_stats_show
+  bdi = m->private;
+  wb = &bdi->wb;
+				bdi_unregister
+				bdi_put
+				  release_bdi
+				    kfree(bdi)
+  /* use after free */
+  spin_lock(&wb->list_lock);
 
-zswap figures prominently in the post-6.8 issues - folloup against the
-large amount of changes we have just made to that code.
+Search bdi on bdi_list under rcu lock in bdi_debug_stats_show to ensure
+the bdi is not freed to fix the issue.
 
-Apart from that, all over the map.
+Link: https://lkml.kernel.org/r/20240327155751.3536-2-shikemeng@huaweicloud.com
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-----------------------------------------------------------------
-Baoquan He (1):
-      crash: use macro to add crashk_res into iomem early for specific arch
+ mm/backing-dev.c |   33 +++++++++++++++++++++++++++++++--
+ 1 file changed, 31 insertions(+), 2 deletions(-)
 
-Barry Song (1):
-      mm: zswap: fix kernel BUG in sg_init_one
+--- a/mm/backing-dev.c~writeback-protect-race-between-bdi-release-and-bdi_debug_stats_show
++++ a/mm/backing-dev.c
+@@ -46,16 +46,44 @@ static void bdi_debug_init(void)
+ 	bdi_debug_root = debugfs_create_dir("bdi", NULL);
+ }
+ 
+-static int bdi_debug_stats_show(struct seq_file *m, void *v)
++static struct backing_dev_info *lookup_bdi(struct seq_file *m)
+ {
++	const struct file *file = m->file;
+ 	struct backing_dev_info *bdi = m->private;
+-	struct bdi_writeback *wb = &bdi->wb;
++	struct backing_dev_info *exist;
++
++	list_for_each_entry_rcu(exist, &bdi_list, bdi_list) {
++		if (exist != bdi)
++			continue;
++
++		if (exist->debug_dir == file->f_path.dentry->d_parent)
++			return bdi;
++		else
++			return NULL;
++	}
++
++	return NULL;
++}
++
++
++static int bdi_debug_stats_show(struct seq_file *m, void *v)
++{
++	struct backing_dev_info *bdi;
++	struct bdi_writeback *wb;
+ 	unsigned long background_thresh;
+ 	unsigned long dirty_thresh;
+ 	unsigned long wb_thresh;
+ 	unsigned long nr_dirty, nr_io, nr_more_io, nr_dirty_time;
+ 	struct inode *inode;
+ 
++	rcu_read_lock();
++	bdi = lookup_bdi(m);
++	if (!bdi) {
++		rcu_read_unlock();
++		return -EEXIST;
++	}
++
++	wb = &bdi->wb;
+ 	nr_dirty = nr_io = nr_more_io = nr_dirty_time = 0;
+ 	spin_lock(&wb->list_lock);
+ 	list_for_each_entry(inode, &wb->b_dirty, i_io_list)
+@@ -101,6 +129,7 @@ static int bdi_debug_stats_show(struct s
+ 		   nr_dirty_time,
+ 		   !list_empty(&bdi->bdi_list), bdi->wb.state);
+ 
++	rcu_read_unlock();
+ 	return 0;
+ }
+ DEFINE_SHOW_ATTRIBUTE(bdi_debug_stats);
+_
 
-Carlos Maiolino (1):
-      tmpfs: fix race on handling dquot rbtree
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
-Cong Liu (1):
-      tools/Makefile: remove cgroup target
-
-Edward Liaw (2):
-      selftests/mm: sigbus-wp test requires UFFD_FEATURE_WP_HUGETLBFS_SHMEM
-      selftests/mm: fix ARM related issue with fork after pthread_create
-
-Johannes Weiner (3):
-      mm: cachestat: fix two shmem bugs
-      mm: zswap: fix writeback shinker GFP_NOIO/GFP_NOFS recursion
-      mm: zswap: fix data loss on SWP_SYNCHRONOUS_IO devices
-
-John Sperbeck (1):
-      init: open /initrd.image with O_LARGEFILE
-
-Kuan-Wei Chiu (1):
-      MAINTAINERS: remove incorrect M: tag for dm-devel@lists.linux.dev
-
-Leonard Crestez (1):
-      mailmap: update entry for Leonard Crestez
-
-Lokesh Gidra (1):
-      userfaultfd: fix deadlock warning when locking src and dst VMAs
-
-Matthew Wilcox (Oracle) (1):
-      mm: increase folio batch size
-
-Muhammad Usama Anjum (1):
-      selftests: mm: restore settings from only parent process
-
-Nathan Chancellor (1):
-      hexagon: vmlinux.lds.S: handle attributes section
-
-Oscar Salvador (1):
-      mm,page_owner: fix recursion
-
-Peter Xu (1):
-      mm/memory: fix missing pte marker for !page on pte zaps
-
-Vitaly Chikunov (1):
-      selftests/mm: Fix build with _FORTIFY_SOURCE
-
-Zev Weiss (2):
-      prctl: generalize PR_SET_MDWE support check to be per-arch
-      ARM: prctl: reject PR_SET_MDWE on pre-ARMv6
-
- .mailmap                                          |  3 +-
- MAINTAINERS                                       |  1 -
- arch/arm/include/asm/mman.h                       | 14 +++++++
- arch/hexagon/kernel/vmlinux.lds.S                 |  1 +
- arch/parisc/include/asm/mman.h                    | 14 +++++++
- arch/x86/include/asm/crash_reserve.h              |  2 +
- include/linux/mman.h                              |  8 ++++
- include/linux/pagevec.h                           |  4 +-
- init/initramfs.c                                  |  2 +-
- kernel/crash_reserve.c                            |  7 ++++
- kernel/sys.c                                      |  7 +++-
- mm/filemap.c                                      | 16 ++++++++
- mm/memory.c                                       |  4 +-
- mm/page_owner.c                                   | 33 ++++++++++++-----
- mm/shmem_quota.c                                  | 10 +++--
- mm/userfaultfd.c                                  |  3 +-
- mm/zswap.c                                        | 45 ++++++++++++++++++++---
- tools/Makefile                                    | 13 +++----
- tools/testing/selftests/mm/gup_test.c             |  2 +-
- tools/testing/selftests/mm/protection_keys.c      |  6 ++-
- tools/testing/selftests/mm/soft-dirty.c           |  2 +-
- tools/testing/selftests/mm/split_huge_page_test.c |  2 +-
- tools/testing/selftests/mm/uffd-common.c          |  3 ++
- tools/testing/selftests/mm/uffd-common.h          |  2 +
- tools/testing/selftests/mm/uffd-unit-tests.c      | 13 ++++++-
- 25 files changed, 177 insertions(+), 40 deletions(-)
- create mode 100644 arch/arm/include/asm/mman.h
- create mode 100644 arch/parisc/include/asm/mman.h
+writeback-protect-race-between-bdi-release-and-bdi_debug_stats_show.patch
+writeback-collect-stats-of-all-wb-of-bdi-in-bdi_debug_stats_show.patch
+writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi.patch
+writeback-add-wb_monitorpy-script-to-monitor-writeback-info-on-bdi.patch
+writeback-rename-nr_reclaimable-to-nr_dirty-in-balance_dirty_pages.patch
+writeback-define-gdtc_init_no_wb-to-null.patch
 
