@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF01C32189
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 18:40:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A63C14F11F
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 19:19:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711564829; cv=none; b=ChGImymrQ9nrEP/5fihwEmruBDuSMNvL8v7tdW7kYTSdnW+hyRBkViE3sPkjdGxc0ohT/qLINPGODMYpbgf15Fpmf0d2rJQl67jHxnUPo2EMSQezLKwh8soUpSuMPoVw87MmV9Ob7p5QFF0Ea/0W5A7BnVUeCDRJL6rqmTrd27w=
+	t=1711567154; cv=none; b=UueVd+UTn3MFm7AUblBsq05AW+BtNRbTRGsZzperVB0BXV4/I4EEHU8ZbQC0cc6UqreSIwY+eizd6wr4lH4/Up9aV5VOs92ECAejWr2Pl3fHAmUA+MDE2phEqQF4reJmBK2w5a5Fd9/arOk5mN+OQYs6iE3dRiJKXcIhnovACS4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711564829; c=relaxed/simple;
-	bh=aGQ92dSiWurzWoRPBim9AbC2cqkK8bzzJbHzRIufpwQ=;
-	h=Date:To:From:Subject:Message-Id; b=Lu6G8VN96QVNicR9KmJRiczyicZ2pV+Ja8EX3F6Di5XqgozVlsgZx9sSD8pKsVik7e/Wvp6r/FddYTB4zJ4nqFQ2wnsAG5ANOXC5NoU3DamWSyuJAKa2qsJ4619xzdaQqVTgf6hADOw2uYC7qWxdc6dvFJBCgNiFj2kSGCGWzQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MheLjxOD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711567154; c=relaxed/simple;
+	bh=hmzEGk0WOjZKlOcEsnw6UhNc6bmEFiNwb8ItjFwzYQY=;
+	h=Date:To:From:Subject:Message-Id; b=rPMHaXqPUcPte+hAbmhM5iNKvSkitkjmZRY/8g8L2gKdnHHsrJYlV01a1XEOVyGqLh90vKKIS4QgPC6zOvcjc2iqrEoQ+FuWQnKP+tD2n1gXrZV7L/DI0sHlgRNMWqTwS0p3RNIEOQAyTuFyzobI7hjVk6vwUOEeOdBFza4vnuA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VHTtCaYw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MheLjxOD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81C23C433C7;
-	Wed, 27 Mar 2024 18:40:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VHTtCaYw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9F2DC433C7;
+	Wed, 27 Mar 2024 19:19:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711564829;
-	bh=aGQ92dSiWurzWoRPBim9AbC2cqkK8bzzJbHzRIufpwQ=;
+	s=korg; t=1711567154;
+	bh=hmzEGk0WOjZKlOcEsnw6UhNc6bmEFiNwb8ItjFwzYQY=;
 	h=Date:To:From:Subject:From;
-	b=MheLjxODHuqyl3EUJlemnDn53oIZAWGd2ZL8S4ImxHocwAHxiutPhYI03XJwdlKNf
-	 xZyHy0rdVupi8Ti17XhTJUXODDRguxpQq0s0fBjpTj/QnbCFJUke+gbwid3kQ74l/h
-	 uWeyptflHGxmiwyobVnw3qwwWxyo/vlos4Ijc2DY=
-Date: Wed, 27 Mar 2024 11:40:29 -0700
-To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
+	b=VHTtCaYwvCEXio+uu+ATC6xe6Zx50pbwwQbo5u/kIQiCD5KcD+s2KUcF6ji75zXXR
+	 Rzvf2FGB9pP9/0USOsgzsCeZLugn8xgn+G4gxIY4K5W9MRyfMjRGrWUc1zGig1N9ri
+	 or+5TIAVa5z7iOwbte6NKWKA5SXUonJ2MiKIDy28=
+Date: Wed, 27 Mar 2024 12:19:12 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + writeback-protect-race-between-bdi-release-and-bdi_debug_stats_show.patch added to mm-unstable branch
-Message-Id: <20240327184029.81C23C433C7@smtp.kernel.org>
+Subject: + mm-use-rwsem-assertion-macros-for-mmap_lock.patch added to mm-unstable branch
+Message-Id: <20240327191913.E9F2DC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: writeback: protect race between bdi release and bdi_debug_stats_show
+     Subject: mm: use rwsem assertion macros for mmap_lock
 has been added to the -mm mm-unstable branch.  Its filename is
-     writeback-protect-race-between-bdi-release-and-bdi_debug_stats_show.patch
+     mm-use-rwsem-assertion-macros-for-mmap_lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-protect-race-between-bdi-release-and-bdi_debug_stats_show.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-rwsem-assertion-macros-for-mmap_lock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,98 +58,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: writeback: protect race between bdi release and bdi_debug_stats_show
-Date: Wed, 27 Mar 2024 23:57:46 +0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: use rwsem assertion macros for mmap_lock
+Date: Wed, 27 Mar 2024 19:06:59 +0000
 
-There is a race between bdi release and bdi_debug_stats_show:
-/* get debug info */		/* bdi release */
-bdi_debug_stats_show
-  bdi = m->private;
-  wb = &bdi->wb;
-				bdi_unregister
-				bdi_put
-				  release_bdi
-				    kfree(bdi)
-  /* use after free */
-  spin_lock(&wb->list_lock);
+This slightly strengthens our write assertion when lockdep is disabled. 
+It also downgrades us from BUG_ON to WARN_ON, but I think that's an
+improvement.  I don't think dumping the mm_struct was all that valuable;
+the call chain is what's important.
 
-Search bdi on bdi_list under rcu lock in bdi_debug_stats_show to ensure
-the bdi is not freed to fix the issue.
-
-Link: https://lkml.kernel.org/r/20240327155751.3536-2-shikemeng@huaweicloud.com
-Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Link: https://lkml.kernel.org/r/20240327190701.1082560-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |   33 +++++++++++++++++++++++++++++++--
- 1 file changed, 31 insertions(+), 2 deletions(-)
+ include/linux/mmap_lock.h |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/mm/backing-dev.c~writeback-protect-race-between-bdi-release-and-bdi_debug_stats_show
-+++ a/mm/backing-dev.c
-@@ -46,16 +46,44 @@ static void bdi_debug_init(void)
- 	bdi_debug_root = debugfs_create_dir("bdi", NULL);
- }
+--- a/include/linux/mmap_lock.h~mm-use-rwsem-assertion-macros-for-mmap_lock
++++ a/include/linux/mmap_lock.h
+@@ -60,16 +60,14 @@ static inline void __mmap_lock_trace_rel
  
--static int bdi_debug_stats_show(struct seq_file *m, void *v)
-+static struct backing_dev_info *lookup_bdi(struct seq_file *m)
+ #endif /* CONFIG_TRACING */
+ 
+-static inline void mmap_assert_locked(struct mm_struct *mm)
++static inline void mmap_assert_locked(const struct mm_struct *mm)
  {
-+	const struct file *file = m->file;
- 	struct backing_dev_info *bdi = m->private;
--	struct bdi_writeback *wb = &bdi->wb;
-+	struct backing_dev_info *exist;
-+
-+	list_for_each_entry_rcu(exist, &bdi_list, bdi_list) {
-+		if (exist != bdi)
-+			continue;
-+
-+		if (exist->debug_dir == file->f_path.dentry->d_parent)
-+			return bdi;
-+		else
-+			return NULL;
-+	}
-+
-+	return NULL;
-+}
-+
-+
-+static int bdi_debug_stats_show(struct seq_file *m, void *v)
-+{
-+	struct backing_dev_info *bdi;
-+	struct bdi_writeback *wb;
- 	unsigned long background_thresh;
- 	unsigned long dirty_thresh;
- 	unsigned long wb_thresh;
- 	unsigned long nr_dirty, nr_io, nr_more_io, nr_dirty_time;
- 	struct inode *inode;
- 
-+	rcu_read_lock();
-+	bdi = lookup_bdi(m);
-+	if (!bdi) {
-+		rcu_read_unlock();
-+		return -EEXIST;
-+	}
-+
-+	wb = &bdi->wb;
- 	nr_dirty = nr_io = nr_more_io = nr_dirty_time = 0;
- 	spin_lock(&wb->list_lock);
- 	list_for_each_entry(inode, &wb->b_dirty, i_io_list)
-@@ -101,6 +129,7 @@ static int bdi_debug_stats_show(struct s
- 		   nr_dirty_time,
- 		   !list_empty(&bdi->bdi_list), bdi->wb.state);
- 
-+	rcu_read_unlock();
- 	return 0;
+-	lockdep_assert_held(&mm->mmap_lock);
+-	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_lock), mm);
++	rwsem_assert_held(&mm->mmap_lock);
  }
- DEFINE_SHOW_ATTRIBUTE(bdi_debug_stats);
+ 
+-static inline void mmap_assert_write_locked(struct mm_struct *mm)
++static inline void mmap_assert_write_locked(const struct mm_struct *mm)
+ {
+-	lockdep_assert_held_write(&mm->mmap_lock);
+-	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_lock), mm);
++	rwsem_assert_held_write(&mm->mmap_lock);
+ }
+ 
+ #ifdef CONFIG_PER_VMA_LOCK
 _
 
-Patches currently in -mm which might be from shikemeng@huaweicloud.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-writeback-protect-race-between-bdi-release-and-bdi_debug_stats_show.patch
-writeback-collect-stats-of-all-wb-of-bdi-in-bdi_debug_stats_show.patch
-writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi.patch
-writeback-add-wb_monitorpy-script-to-monitor-writeback-info-on-bdi.patch
-writeback-rename-nr_reclaimable-to-nr_dirty-in-balance_dirty_pages.patch
-writeback-define-gdtc_init_no_wb-to-null.patch
+mm-always-initialise-folio-_deferred_list.patch
+mm-create-folio_flag_false-and-folio_type_ops-macros.patch
+mm-remove-folio_prep_large_rmappable.patch
+mm-support-page_mapcount-on-page_has_type-pages.patch
+mm-turn-folio_test_hugetlb-into-a-pagetype.patch
+mm-turn-folio_test_hugetlb-into-a-pagetype-fix.patch
+mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch
+mm-free-up-pg_slab.patch
+mm-free-up-pg_slab-fix.patch
+mm-improve-dumping-of-mapcount-and-page_type.patch
+hugetlb-remove-mention-of-destructors.patch
+sh-remove-use-of-pg_arch_1-on-individual-pages.patch
+xtensa-remove-uses-of-pg_arch_1-on-individual-pages.patch
+mm-make-page_ext_get-take-a-const-argument.patch
+mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument.patch
+mm-make-is_free_buddy_page-take-a-const-argument.patch
+mm-make-page_mapped-take-a-const-argument.patch
+mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
+slub-remove-use-of-page-flags.patch
+remove-references-to-page-flags-in-documentation.patch
+proc-rewrite-stable_page_flags.patch
+sparc-use-is_huge_zero_pmd.patch
+mm-add-is_huge_zero_folio.patch
+mm-add-pmd_folio.patch
+mm-convert-migrate_vma_collect_pmd-to-use-a-folio.patch
+mm-convert-huge_zero_page-to-huge_zero_folio.patch
+mm-convert-do_huge_pmd_anonymous_page-to-huge_zero_folio.patch
+dax-use-huge_zero_folio.patch
+mm-rename-mm_put_huge_zero_page-to-mm_put_huge_zero_folio.patch
+mm-use-rwsem-assertion-macros-for-mmap_lock.patch
 
