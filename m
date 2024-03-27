@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D68F112D747
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 19:23:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F12D215250C
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 19:25:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711567397; cv=none; b=faWYsxeUEOBh6jPR2xUGumyMelWsbri5jUIMJXxoxysQA+D8neBPGtrX/u4lfYEzDSWbUKB+m86kRCPTG5sis1THUjqa5KdvrJ5o7IPz83aur0clVzUuQX3WCId78ZQDeByYAZoDOIdHByFzIB1lnThJk9xorvaqritMvnU97NE=
+	t=1711567556; cv=none; b=s0HLeZ9X6n7VQhQst/kMKggNRIdLTYXmv447wTeQ82lJJqx0vL8ryJtOMY1zD0+soYR7YNZPmZ70JJ9wOGMXpKQRioPDgnGZr0SefDsBRrSuiwPin4S0FCwKbvWGAr2OIaMiEkkEolpuMgyUCInzqD5hWTsBI/kzVQpsPBr6J2I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711567397; c=relaxed/simple;
-	bh=OwsFzqr+S1LhBhGwQHQgR0YZv647FKob050cIDqWM/I=;
-	h=Date:To:From:Subject:Message-Id; b=ecHm6YR0OGMmyReR4FumAKIRmw9QeZBM3i92KL/W+ALt7tj7a1FbyYmLBeB5iBSlqyStmetYnlgwcj9PREQC4oy7wIqndYlil06bKTe405H25PGZbxvKzO1nQzcovzWIwtZ7rh4VvLT7Dzh3xGMFp6YmAbosrE7FRsw+ZjUnf3Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OU4Hbyst; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711567556; c=relaxed/simple;
+	bh=wm07lY0dXY9CGrRD96La/RsGigoBz4kKT4IjS0pk5pc=;
+	h=Date:To:From:Subject:Message-Id; b=OJU5sQQKpo73/RFBU+ddp2PrXtGDeyJqZ9MAdLiIviisZ/WqlQIUOd0ZdFKqDUS7oXeuJPuFamJUsE0LXZPIzyLUn4O9TuFsGFgfnL5cQKzmhPkl3YYgM6cZp/rtdOsyvSeoBx1hKgZYvU1nUAi30d6XugBwND21C51L8sAkhno=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=axMr3XPm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OU4Hbyst"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B589C433C7;
-	Wed, 27 Mar 2024 19:23:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="axMr3XPm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75EF1C43390;
+	Wed, 27 Mar 2024 19:25:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711567397;
-	bh=OwsFzqr+S1LhBhGwQHQgR0YZv647FKob050cIDqWM/I=;
+	s=korg; t=1711567555;
+	bh=wm07lY0dXY9CGrRD96La/RsGigoBz4kKT4IjS0pk5pc=;
 	h=Date:To:From:Subject:From;
-	b=OU4Hbyst7oKkPd6Bu6pcYWIEjfjDBRkwTtbwm+2I/4RbPdhtI6vmJKFdv+f6jrXa+
-	 IMcvCNvbghNzbpIAM6JuqUD4ldf0o/I3DouFSE1xDdrW9zK2mjRSWBWQdEm4dGdAhN
-	 9V7Y0KGbm8qa8NFy62iWrQGQfPBhWNovcxlSwfao=
-Date: Wed, 27 Mar 2024 12:23:16 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=axMr3XPmzDQsnetQLrXI2la+Lh52HurvTWtVkEgwTz1QIiYVpO6e8ElXjEoASKeh+
+	 rS+MiHlNXK/b6FCXUkru0H3KK+j+1gf/0ToQ6wZDgWevz0j5HJmMYJ9ADDc7A0Cpvn
+	 lWsx8fL1FkcBl9Plc1RnHmo4lswGZHyDmAHq9qGA=
+Date: Wed, 27 Mar 2024 12:25:54 -0700
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-__set_page_dirty_nobuffers.patch added to mm-unstable branch
-Message-Id: <20240327192317.4B589C433C7@smtp.kernel.org>
+Subject: + mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix.patch added to mm-unstable branch
+Message-Id: <20240327192555.75EF1C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove __set_page_dirty_nobuffers()
+     Subject: mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-__set_page_dirty_nobuffers.patch
+     mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-__set_page_dirty_nobuffers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,53 +58,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: remove __set_page_dirty_nobuffers()
-Date: Wed, 27 Mar 2024 22:30:08 +0800
+From: Matthew Wilcox <willy@infradead.org>
+Subject: mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix
+Date: Wed, 27 Mar 2024 14:37:40 +0000
 
-There are no more callers of __set_page_dirty_nobuffers(), remove it.
+fix arm64 build
 
-Link: https://lkml.kernel.org/r/20240327143008.3739435-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Link: https://lkml.kernel.org/r/ZgQvNKGdlDkwhQEX@casper.infradead.org
+Signed-off-by: Matthew Wilcox <willy@infradead.org>
+Reported-by: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    1 -
- mm/folio-compat.c       |    6 ------
- 2 files changed, 7 deletions(-)
+ include/linux/hugetlb.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/pagemap.h~mm-remove-__set_page_dirty_nobuffers
-+++ a/include/linux/pagemap.h
-@@ -1158,7 +1158,6 @@ static inline void folio_cancel_dirty(st
- bool folio_clear_dirty_for_io(struct folio *folio);
- bool clear_page_dirty_for_io(struct page *page);
- void folio_invalidate(struct folio *folio, size_t offset, size_t length);
--int __set_page_dirty_nobuffers(struct page *page);
- bool noop_dirty_folio(struct address_space *mapping, struct folio *folio);
+--- a/include/linux/hugetlb.h~mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix
++++ a/include/linux/hugetlb.h
+@@ -836,7 +836,7 @@ static inline int is_hugepage_only_range
+ #define is_hugepage_only_range is_hugepage_only_range
+ #endif
  
- #ifdef CONFIG_MIGRATION
---- a/mm/folio-compat.c~mm-remove-__set_page_dirty_nobuffers
-+++ a/mm/folio-compat.c
-@@ -58,12 +58,6 @@ bool set_page_dirty(struct page *page)
- }
- EXPORT_SYMBOL(set_page_dirty);
- 
--int __set_page_dirty_nobuffers(struct page *page)
--{
--	return filemap_dirty_folio(page_mapping(page), page_folio(page));
--}
--EXPORT_SYMBOL(__set_page_dirty_nobuffers);
--
- bool clear_page_dirty_for_io(struct page *page)
- {
- 	return folio_clear_dirty_for_io(page_folio(page));
+-#ifndef arch_clear_hugepage_flags
++#ifndef arch_clear_hugetlb_flags
+ static inline void arch_clear_hugetlb_flags(struct folio *folio) { }
+ #define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
+ #endif
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-backing-dev-use-group-allocation-free-of-per-cpu-counters-api.patch
-mm-remove-__set_page_dirty_nobuffers.patch
+mm-always-initialise-folio-_deferred_list.patch
+mm-create-folio_flag_false-and-folio_type_ops-macros.patch
+mm-remove-folio_prep_large_rmappable.patch
+mm-support-page_mapcount-on-page_has_type-pages.patch
+mm-turn-folio_test_hugetlb-into-a-pagetype.patch
+mm-turn-folio_test_hugetlb-into-a-pagetype-fix.patch
+mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch
+mm-free-up-pg_slab.patch
+mm-free-up-pg_slab-fix.patch
+mm-improve-dumping-of-mapcount-and-page_type.patch
+hugetlb-remove-mention-of-destructors.patch
+sh-remove-use-of-pg_arch_1-on-individual-pages.patch
+xtensa-remove-uses-of-pg_arch_1-on-individual-pages.patch
+mm-make-page_ext_get-take-a-const-argument.patch
+mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument.patch
+mm-make-is_free_buddy_page-take-a-const-argument.patch
+mm-make-page_mapped-take-a-const-argument.patch
+mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
+mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix.patch
+slub-remove-use-of-page-flags.patch
+remove-references-to-page-flags-in-documentation.patch
+proc-rewrite-stable_page_flags.patch
+sparc-use-is_huge_zero_pmd.patch
+mm-add-is_huge_zero_folio.patch
+mm-add-pmd_folio.patch
+mm-convert-migrate_vma_collect_pmd-to-use-a-folio.patch
+mm-convert-huge_zero_page-to-huge_zero_folio.patch
+mm-convert-do_huge_pmd_anonymous_page-to-huge_zero_folio.patch
+dax-use-huge_zero_folio.patch
+mm-rename-mm_put_huge_zero_page-to-mm_put_huge_zero_folio.patch
+mm-use-rwsem-assertion-macros-for-mmap_lock.patch
+filemap-remove-__set_page_dirty.patch
 
