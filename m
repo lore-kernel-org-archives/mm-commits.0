@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EC5C14D280
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 19:19:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 889B514D280
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 19:21:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711567198; cv=none; b=sVHu/c/9SO1Pq2m7LnjwoCnFQQeSdAlgpweu/s7CfYEmFqR9wy5kGPeasZ6OTji9ZcsM/WBpCoVZzbmXn4OIL+bvgq+s6/crmYeFY3h4zEQja7zNx8v0qXmYuyBBaQho4y/1NgI2/OT1QTEb+QCfBQ5ll27w7SnqRN+dMkScn3Y=
+	t=1711567278; cv=none; b=ZCIBUeKhdMfd9S3Yr5HJWJ2qP9YFK+/3ZgAqRcqTbZFNfZFIEtiGf4XwOguZbd5WiVYq/qp20lq0dK5PqqgWQ8IZLiYiYS4nS24Q3HO2o6ThDgCPLIqGWLXTF+Y1JTPseHUA4skM5aFkjeHHppQxqlBBf55T60F495FSjwusN84=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711567198; c=relaxed/simple;
-	bh=GEqem8+0OLBeoKlzFOw14VZiDDkhDHm4qQ9ZMiGo8uY=;
-	h=Date:To:From:Subject:Message-Id; b=LbeoLfPyLdGh99qtP2HCdsrElx6lmXhGmOk3vosv1irdAYw3wTwzbILjmKCkB/7TTS/bQlt7tscX6vj+P63II9dcdLLxY4g5oGd3RZbbrbeK2D3KX6S9o2pcjg9i0y548U54Vq6bhN3DNgA8BROyh6fHHZecmN1UxELVAvd9IOI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=chucnPcQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711567278; c=relaxed/simple;
+	bh=MG5h8oZobTQQvSaPa4k4iw7pU/2HTlEJAJ6M9JeH3t4=;
+	h=Date:To:From:Subject:Message-Id; b=ndCJmuUAEgeUGPEYbtBUJtqHDz9BFsSzDPteK7vBAgeYROryBj14LmiPOj9EogxaspaM7w0mFJzbwHCJpXmRrWp2EVps/QVX33Txhk014u5BQQAyXklv/bwyOgkiteXDH+3rQLaFd9Jl3NhhRYWilQfSTmvywkUFoRo7rmFAu0M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MzH32Tuo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="chucnPcQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1B58C433C7;
-	Wed, 27 Mar 2024 19:19:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MzH32Tuo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13936C433F1;
+	Wed, 27 Mar 2024 19:21:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711567197;
-	bh=GEqem8+0OLBeoKlzFOw14VZiDDkhDHm4qQ9ZMiGo8uY=;
+	s=korg; t=1711567278;
+	bh=MG5h8oZobTQQvSaPa4k4iw7pU/2HTlEJAJ6M9JeH3t4=;
 	h=Date:To:From:Subject:From;
-	b=chucnPcQGt/uh0WMmHDulq5ZESZ5DxAOLkY/iVkJc1xWIYJFSO2/D6iAFs44nTqVR
-	 TJRjbcHLRBexqSD2tQuqT0DJPOlGWhV2qvpLmtUzn3tRf6V5b+FqRCygoBOoXCZdLT
-	 QUQFMo9PQPL76NsGPC5sDJ0FDzh0AR5leT+0YlBo=
-Date: Wed, 27 Mar 2024 12:19:56 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=MzH32Tuo9ONdfaxiO5FCWVJnaRgw4V0GKYnQXEcucqwtQU8af8iBDA8GG9Nd41W4P
+	 tOpvpFSx4MzfQrE8BQ9dwfwWIwfQ6uQa7QB6WwaawPjY2Exb/egSAl0jwUoPkBQ5Rm
+	 65QMvipZv9LIgwJOnaJCzyxkNC/bxSDr6Bwt95cc=
+Date: Wed, 27 Mar 2024 12:21:17 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + filemap-remove-__set_page_dirty.patch added to mm-unstable branch
-Message-Id: <20240327191957.C1B58C433C7@smtp.kernel.org>
+Subject: + mm-optimize-config_per_vma_lock-member-placement-in-vm_area_struct.patch added to mm-unstable branch
+Message-Id: <20240327192118.13936C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: filemap: remove __set_page_dirty()
+     Subject: mm: optimize CONFIG_PER_VMA_LOCK member placement in vm_area_struct
 has been added to the -mm mm-unstable branch.  Its filename is
-     filemap-remove-__set_page_dirty.patch
+     mm-optimize-config_per_vma_lock-member-placement-in-vm_area_struct.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-remove-__set_page_dirty.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-optimize-config_per_vma_lock-member-placement-in-vm_area_struct.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,67 +58,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: filemap: remove __set_page_dirty()
-Date: Wed, 27 Mar 2024 18:54:29 +0000
+From: David Hildenbrand <david@redhat.com>
+Subject: mm: optimize CONFIG_PER_VMA_LOCK member placement in vm_area_struct
+Date: Wed, 27 Mar 2024 15:35:48 +0100
 
-All callers have been converted to use folios; remove this wrapper.
+Currently, we end up wasting some memory in each vm_area_struct. Pahole
+states that:
+	[...]
+	int                        vm_lock_seq;          /*    40     4 */
 
-Link: https://lkml.kernel.org/r/20240327185447.1076689-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+	/* XXX 4 bytes hole, try to pack */
+
+	struct vma_lock *          vm_lock;              /*    48     8 */
+	bool                       detached;             /*    56     1 */
+
+	/* XXX 7 bytes hole, try to pack */
+	[...]
+
+Let's reduce the holes and memory wastage by moving the bool:
+	[...]
+	bool                       detached;             /*    40     1 */
+
+	/* XXX 3 bytes hole, try to pack */
+
+	int                        vm_lock_seq;          /*    44     4 */
+	struct vma_lock *          vm_lock;              /*    48     8 */
+	[...]
+
+Effectively shrinking the vm_area_struct with CONFIG_PER_VMA_LOCK by
+8 byte.
+
+Likely, we could place "detached" in the lowest bit of vm_lock, but at
+least on 64bit that won't really make a difference, so keep it simple.
+
+Link: https://lkml.kernel.org/r/20240327143548.744070-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    5 -----
- 1 file changed, 5 deletions(-)
+ include/linux/mm_types.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/pagemap.h~filemap-remove-__set_page_dirty
-+++ a/include/linux/pagemap.h
-@@ -1147,11 +1147,6 @@ void folio_end_writeback(struct folio *f
- void wait_for_stable_page(struct page *page);
- void folio_wait_stable(struct folio *folio);
- void __folio_mark_dirty(struct folio *folio, struct address_space *, int warn);
--static inline void __set_page_dirty(struct page *page,
--		struct address_space *mapping, int warn)
--{
--	__folio_mark_dirty(page_folio(page), mapping, warn);
--}
- void folio_account_cleaned(struct folio *folio, struct bdi_writeback *wb);
- void __folio_cancel_dirty(struct folio *folio);
- static inline void folio_cancel_dirty(struct folio *folio)
+--- a/include/linux/mm_types.h~mm-optimize-config_per_vma_lock-member-placement-in-vm_area_struct
++++ a/include/linux/mm_types.h
+@@ -671,6 +671,9 @@ struct vm_area_struct {
+ 	};
+ 
+ #ifdef CONFIG_PER_VMA_LOCK
++	/* Flag to indicate areas detached from the mm->mm_mt tree */
++	bool detached;
++
+ 	/*
+ 	 * Can only be written (using WRITE_ONCE()) while holding both:
+ 	 *  - mmap_lock (in write mode)
+@@ -687,9 +690,6 @@ struct vm_area_struct {
+ 	 */
+ 	int vm_lock_seq;
+ 	struct vma_lock *vm_lock;
+-
+-	/* Flag to indicate areas detached from the mm->mm_mt tree */
+-	bool detached;
+ #endif
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-always-initialise-folio-_deferred_list.patch
-mm-create-folio_flag_false-and-folio_type_ops-macros.patch
-mm-remove-folio_prep_large_rmappable.patch
-mm-support-page_mapcount-on-page_has_type-pages.patch
-mm-turn-folio_test_hugetlb-into-a-pagetype.patch
-mm-turn-folio_test_hugetlb-into-a-pagetype-fix.patch
-mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch
-mm-free-up-pg_slab.patch
-mm-free-up-pg_slab-fix.patch
-mm-improve-dumping-of-mapcount-and-page_type.patch
-hugetlb-remove-mention-of-destructors.patch
-sh-remove-use-of-pg_arch_1-on-individual-pages.patch
-xtensa-remove-uses-of-pg_arch_1-on-individual-pages.patch
-mm-make-page_ext_get-take-a-const-argument.patch
-mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument.patch
-mm-make-is_free_buddy_page-take-a-const-argument.patch
-mm-make-page_mapped-take-a-const-argument.patch
-mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
-slub-remove-use-of-page-flags.patch
-remove-references-to-page-flags-in-documentation.patch
-proc-rewrite-stable_page_flags.patch
-sparc-use-is_huge_zero_pmd.patch
-mm-add-is_huge_zero_folio.patch
-mm-add-pmd_folio.patch
-mm-convert-migrate_vma_collect_pmd-to-use-a-folio.patch
-mm-convert-huge_zero_page-to-huge_zero_folio.patch
-mm-convert-do_huge_pmd_anonymous_page-to-huge_zero_folio.patch
-dax-use-huge_zero_folio.patch
-mm-rename-mm_put_huge_zero_page-to-mm_put_huge_zero_folio.patch
-mm-use-rwsem-assertion-macros-for-mmap_lock.patch
-filemap-remove-__set_page_dirty.patch
+mm-secretmem-fix-gup-fast-succeeding-on-secretmem-folios.patch
+mm-madvise-make-madv_populate_readwrite-handle-vm_fault_retry-properly.patch
+mm-madvise-dont-perform-madvise-vma-walk-for-madv_populate_readwrite.patch
+mm-userfaultfd-dont-place-zeropages-when-zeropages-are-disallowed.patch
+s390-mm-re-enable-the-shared-zeropage-for-pv-and-skeys-kvm-guests.patch
+mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared.patch
+mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared-fix.patch
+selftests-memfd_secret-add-vmsplice-test.patch
+mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed.patch
+mm-optimize-config_per_vma_lock-member-placement-in-vm_area_struct.patch
 
