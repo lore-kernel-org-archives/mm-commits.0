@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC10F2D047
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:11:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B430A2D047
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:11:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711570293; cv=none; b=rV47h3iS/Gb2p8+Y1gDfurqsKaKkZ3ziOP0/85L68XN97+Fz4GFMRdpAPXdJgw1Ohg2rQJq5/IpaNLaeACKcfGAAjYP93mN0DmCB6yzoSX9rziM1niE6Mpd1LGsVhiPUarkF3xjoZ934s3MkQpZ5QIdBnLCyHmOQbuxRwNEUbLg=
+	t=1711570295; cv=none; b=gsIWB6FEYhiPA9ftL25V9nDDdr7woQqF1yIJOF3QcKSn+T2SzXDiRmbhFNcSbSyH+FMLIn60wMGAsBfzVCfjWA4UIzdWEjgmQMD0ZEGcAj0La+65cHEMqFg8o4xn+AJBvtzMKBN08JLwbIyAHrZZapB2xunDkRNt9BVqMpxTFDY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711570293; c=relaxed/simple;
-	bh=Qcru4Ci9BRDqxb3xVYds9ppMZinyFNvk/VBlR9hQYsU=;
-	h=Date:To:From:Subject:Message-Id; b=TpnsMwEEehX7EdtGmABoU2UNHi/ZFcYDjTKgaapuE/lp2uH7wDG9NgyTiCUMMUv3wFqH4+9MxlHWHqRz9/i/D/+kAdeZhKhhA42neXcY/t+vff/vrf5jUUTDFnRYS1e/w71sekX0/g3/q2TnR9hmkwc8qC3+8oYUNyMBj1gqB5Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=czn6I9Ea; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711570295; c=relaxed/simple;
+	bh=GA9nAs/yr/b+kILkzB14aK3stf1/toyE9NgTeto8TO4=;
+	h=Date:To:From:Subject:Message-Id; b=l/SDQn//pi6XSA/aD6p8Q4iVEoXUDotFR8El7i12y8UskFSAcEMlKYFLEELRGmSzxyhkUpJNPpnng8k5uJPALmO7sXhJ5YpDCFLJ4zQeg9pCl2Jo6lP7tYrBMN+UZeHjh4Sg+KAfY89qlQO+YIdFUTSSn7HdKegD86tpEv+ZAvg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hDk0QPWq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="czn6I9Ea"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A326C433F1;
-	Wed, 27 Mar 2024 20:11:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hDk0QPWq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E21FC433F1;
+	Wed, 27 Mar 2024 20:11:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711570293;
-	bh=Qcru4Ci9BRDqxb3xVYds9ppMZinyFNvk/VBlR9hQYsU=;
+	s=korg; t=1711570295;
+	bh=GA9nAs/yr/b+kILkzB14aK3stf1/toyE9NgTeto8TO4=;
 	h=Date:To:From:Subject:From;
-	b=czn6I9EaY7jAeFxek3rqTcDqifWNrKWBcpS/csyyoWwSWRrGlNkoLzIy53n4zFh18
-	 2IfxXbp4bbc5c2Q2Q9+LkDzFA+oQhGUQZnldasCvE4g2sIVDn7baDil2dWFR2njLsB
-	 6CDT/XhD9ZB0cijDsYzPEUUI70OLlYbxzyWeb2Zw=
-Date: Wed, 27 Mar 2024 13:11:32 -0700
+	b=hDk0QPWqxXL/1VWJrR2xyO7s85SOrrKCfHuDgptG+w8KhaqZNfh/+T4ne9RAYodX4
+	 z0KVTcuH1qEbgr77xf6b0Zms+WIvTAyc52Bi0UElyCnuLP81XDvvroCEap+HqzKp8z
+	 wKcZ15gjy9qbkVbVC7HOby+2D6IPKaQ6n8YBXqvY=
+Date: Wed, 27 Mar 2024 13:11:34 -0700
 To: mm-commits@vger.kernel.org,tglx@linutronix.de,peterz@infradead.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,luto@kernel.org,Liam.Howlett@oracle.com,kirill.shutemov@linux.intel.com,keescook@chromium.org,James.Bottomley@HansenPartnership.com,hpa@zytor.com,guoren@kernel.org,deller@gmx.de,debug@rivosinc.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,broonie@kernel.org,bp@alien8.de,ast@kernel.org,aneesh.kumar@kernel.org,rick.p.edgecombe@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-arch_get_unmapped_area_vmflags.patch added to mm-unstable branch
-Message-Id: <20240327201133.4A326C433F1@smtp.kernel.org>
+Subject: + mm-remove-export-for-get_unmapped_area.patch added to mm-unstable branch
+Message-Id: <20240327201135.1E21FC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce arch_get_unmapped_area_vmflags()
+     Subject: mm: remove export for get_unmapped_area()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-introduce-arch_get_unmapped_area_vmflags.patch
+     mm-remove-export-for-get_unmapped_area.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-arch_get_unmapped_area_vmflags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-export-for-get_unmapped_area.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,47 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Subject: mm: introduce arch_get_unmapped_area_vmflags()
-Date: Mon, 25 Mar 2024 19:16:45 -0700
+Subject: mm: remove export for get_unmapped_area()
+Date: Mon, 25 Mar 2024 19:16:46 -0700
 
-When memory is being placed, mmap() will take care to respect the guard
-gaps of certain types of memory (VM_SHADOWSTACK, VM_GROWSUP and
-VM_GROWSDOWN).  In order to ensure guard gaps between mappings, mmap()
-needs to consider two things:
+The mm/mmap.c function get_unmapped_area() is not used from any modules,
+so it doesn't need to be exported.  Remove the export.
 
- 1. That the new mapping isn't placed in an any existing mappings guard
-    gaps.
- 2. That the new mapping isn't placed such that any existing mappings
-    are not in *its* guard gaps.
-
-The longstanding behavior of mmap() is to ensure 1, but not take any care
-around 2.  So for example, if there is a PAGE_SIZE free area, and a mmap()
-with a PAGE_SIZE size, and a type that has a guard gap is being placed,
-mmap() may place the shadow stack in the PAGE_SIZE free area.  Then the
-mapping that is supposed to have a guard gap will not have a gap to the
-adjacent VMA.
-
-In order to take the start gap into account, the maple tree search needs
-to know the size of start gap the new mapping will need.  The call chain
-from do_mmap() to the actual maple tree search looks like this:
-
-do_mmap(size, vm_flags, map_flags, ..)
-	mm/mmap.c:get_unmapped_area(size, map_flags, ...)
-		arch_get_unmapped_area(size, map_flags, ...)
-			vm_unmapped_area(struct vm_unmapped_area_info)
-
-One option would be to add another MAP_ flag to mean a one page start gap
-(as is for shadow stack), but this consumes a flag unnecessarily.  Another
-option could be to simply increase the size passed in do_mmap() by the
-start gap size, and adjust after the fact, but this will interfere with
-the alignment requirements passed in struct vm_unmapped_area_info, and
-unknown to mmap.c.  Instead, introduce variants of
-arch_get_unmapped_area/_topdown() that take vm_flags.  In future changes,
-these variants can be used in mmap.c:get_unmapped_area() to allow the
-vm_flags to be passed through to vm_unmapped_area(), while preserving the
-normal arch_get_unmapped_area/_topdown() for the existing callers.
-
-Link: https://lkml.kernel.org/r/20240326021656.202649-4-rick.p.edgecombe@intel.com
+Link: https://lkml.kernel.org/r/20240326021656.202649-5-rick.p.edgecombe@intel.com
 Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -126,73 +92,20 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/mm.h |   17 +++++++++++++++++
- mm/mmap.c                |   28 ++++++++++++++++++++++++++++
- 2 files changed, 45 insertions(+)
+ mm/mmap.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/include/linux/sched/mm.h~mm-introduce-arch_get_unmapped_area_vmflags
-+++ a/include/linux/sched/mm.h
-@@ -192,6 +192,23 @@ unsigned long mm_get_unmapped_area(struc
- 				   unsigned long pgoff, unsigned long flags);
- 
- unsigned long
-+arch_get_unmapped_area_vmflags(struct file *filp, unsigned long addr,
-+			       unsigned long len, unsigned long pgoff,
-+			       unsigned long flags, vm_flags_t vm_flags);
-+unsigned long
-+arch_get_unmapped_area_topdown_vmflags(struct file *filp, unsigned long addr,
-+				       unsigned long len, unsigned long pgoff,
-+				       unsigned long flags, vm_flags_t);
-+
-+unsigned long mm_get_unmapped_area_vmflags(struct mm_struct *mm,
-+					   struct file *filp,
-+					   unsigned long addr,
-+					   unsigned long len,
-+					   unsigned long pgoff,
-+					   unsigned long flags,
-+					   vm_flags_t vm_flags);
-+
-+unsigned long
- generic_get_unmapped_area(struct file *filp, unsigned long addr,
- 			  unsigned long len, unsigned long pgoff,
- 			  unsigned long flags);
---- a/mm/mmap.c~mm-introduce-arch_get_unmapped_area_vmflags
+--- a/mm/mmap.c~mm-remove-export-for-get_unmapped_area
 +++ a/mm/mmap.c
-@@ -1807,6 +1807,34 @@ arch_get_unmapped_area_topdown(struct fi
+@@ -1886,8 +1886,6 @@ get_unmapped_area(struct file *file, uns
+ 	return error ? error : addr;
  }
- #endif
  
-+#ifndef HAVE_ARCH_UNMAPPED_AREA_VMFLAGS
-+unsigned long
-+arch_get_unmapped_area_vmflags(struct file *filp, unsigned long addr, unsigned long len,
-+			       unsigned long pgoff, unsigned long flags, vm_flags_t vm_flags)
-+{
-+	return arch_get_unmapped_area(filp, addr, len, pgoff, flags);
-+}
-+
-+unsigned long
-+arch_get_unmapped_area_topdown_vmflags(struct file *filp, unsigned long addr,
-+				       unsigned long len, unsigned long pgoff,
-+				       unsigned long flags, vm_flags_t vm_flags)
-+{
-+	return arch_get_unmapped_area_topdown(filp, addr, len, pgoff, flags);
-+}
-+#endif
-+
-+unsigned long mm_get_unmapped_area_vmflags(struct mm_struct *mm, struct file *filp,
-+					   unsigned long addr, unsigned long len,
-+					   unsigned long pgoff, unsigned long flags,
-+					   vm_flags_t vm_flags)
-+{
-+	if (test_bit(MMF_TOPDOWN, &mm->flags))
-+		return arch_get_unmapped_area_topdown_vmflags(filp, addr, len, pgoff,
-+							      flags, vm_flags);
-+	return arch_get_unmapped_area_vmflags(filp, addr, len, pgoff, flags, vm_flags);
-+}
-+
+-EXPORT_SYMBOL(get_unmapped_area);
+-
  unsigned long
- get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
- 		unsigned long pgoff, unsigned long flags)
+ mm_get_unmapped_area(struct mm_struct *mm, struct file *file,
+ 		     unsigned long addr, unsigned long len,
 _
 
 Patches currently in -mm which might be from rick.p.edgecombe@intel.com are
