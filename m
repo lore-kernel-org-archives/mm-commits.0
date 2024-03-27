@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36FAA2D047
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:11:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 335F8150980
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:12:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711570315; cv=none; b=l+ZJTQySo3cP1Y68bb1aDEAVRM7wnOY7UemytiS5+8fVkQIvO+bO0hnTptcWWtP1j8XTE2/eNnikARYYn2bkaMUQL6823QgoPTzoYkPzn/HCIdUS2pV0EYKUR3N2D/BIORemUAh/TCEu59rqfudlZi5NYDbt+hpZVh1/MeFNLD4=
+	t=1711570355; cv=none; b=A+gDgRWCqc615vcpWk0YBJiiLXeDp30+k0feL+nOyPp9PtJyQ3lIlaaHIXxF70iyWl9UxNdtMQFNherRZkdrAjyrf47BTccXN0J26zHRxHT9mAH3wjuBO7RmLP1bBHl4ptEIYN0mY8qhrrH91Fvn7RcD/ULzhVAciUKbyICCSEY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711570315; c=relaxed/simple;
-	bh=JEDO5LN5PER8A7vepkowRZjWN35URvlJxhU20oq0KMU=;
-	h=Date:To:From:Subject:Message-Id; b=eO3Yh+e7Um0rnumnf9yFGZK/JnNWiPV4CH88MdhpoFc6ozDWx9uIVpgA7QSz9fgpTstzavhJ8IykdZ74/OgCb+bahSajF7Q9TjlPAiGX1j3wWtvXhpgUgp40XkzwjE2zF2LvmtA5JQdXcISTlJq/fex6/o2HKI3HaaJgbzFTOj4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y6DA6TYL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711570355; c=relaxed/simple;
+	bh=hZphOrlIBZxZDaOWTC1Vvom7CiO9CPdvB3XyZmVu2Ls=;
+	h=Date:To:From:Subject:Message-Id; b=O9X8rDOmbg+J2Fyla/fcTtWEgVFOPUfGPUbRVSvuorqJzYfX9wLe6X4NkDw1B9sx9lXxdIBK2U0x6qvynnzQgLcqo3LDcfJt3iEcuT2RGgjKrlE1auc3VEhhUpCL26kbIwGgcM6oYI5rY4/ZC5liWyI7XyAnEKJys3ql/+d3gPI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qCpYWiHw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y6DA6TYL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0363AC433F1;
-	Wed, 27 Mar 2024 20:11:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qCpYWiHw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5397C433F1;
+	Wed, 27 Mar 2024 20:12:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711570315;
-	bh=JEDO5LN5PER8A7vepkowRZjWN35URvlJxhU20oq0KMU=;
+	s=korg; t=1711570354;
+	bh=hZphOrlIBZxZDaOWTC1Vvom7CiO9CPdvB3XyZmVu2Ls=;
 	h=Date:To:From:Subject:From;
-	b=y6DA6TYLWvH44hmyR29BrlJovdQ8+DjbRA9k9PllLBYRy5az3tELavpwfeDw/7ijj
-	 FsuY60z/yqQPxNehbGcTBz2zmwuLQqc7iIIPHQD/kZYPmjGMGfFPZcM1bb3eADxwbG
-	 DG99qyU+Wd1yEG+sYEjPcw3c6vFB7RGFjJlVllH8=
-Date: Wed, 27 Mar 2024 13:11:54 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,peterz@infradead.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,luto@kernel.org,Liam.Howlett@oracle.com,kirill.shutemov@linux.intel.com,keescook@chromium.org,James.Bottomley@HansenPartnership.com,hpa@zytor.com,guoren@kernel.org,deller@gmx.de,debug@rivosinc.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,broonie@kernel.org,bp@alien8.de,ast@kernel.org,aneesh.kumar@kernel.org,rick.p.edgecombe@intel.com,akpm@linux-foundation.org
+	b=qCpYWiHwEDtaThxuYBuEhIkYjtVHoaVlqE1vam+tziISfYrZAjnoJF30SkoUjHZmc
+	 NCzY7dKHJ2jU5rwpQNFYd57lL1BbmQ20ZLO6cZrWiRYc/+4ZYynlOuOmz434vbnvRa
+	 bpm9ah4Ssc1T1V6xR2eXV/vqxnAR6/bbBWD0Il6c=
+Date: Wed, 27 Mar 2024 13:12:33 -0700
+To: mm-commits@vger.kernel.org,kent.overstreet@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-x86-add-placement-guard-gap-test-for-shstk.patch added to mm-unstable branch
-Message-Id: <20240327201155.0363AC433F1@smtp.kernel.org>
+Subject: + fix-missing-vmalloch-includes-fix.patch added to mm-unstable branch
+Message-Id: <20240327201234.A5397C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/x86: add placement guard gap test for shstk
+     Subject: fixup! fix missing vmalloc.h includes
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-x86-add-placement-guard-gap-test-for-shstk.patch
+     fix-missing-vmalloch-includes-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-x86-add-placement-guard-gap-test-for-shstk.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fix-missing-vmalloch-includes-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,156 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Subject: selftests/x86: add placement guard gap test for shstk
-Date: Mon, 25 Mar 2024 19:16:56 -0700
+From: Kent Overstreet <kent.overstreet@linux.dev>
+Subject: fixup! fix missing vmalloc.h includes
+Date: Tue, 26 Mar 2024 20:21:52 -0400
 
-The existing shadow stack test for guard gaps just checks that new
-mappings are not placed in an existing mapping's guard gap.  Add one that
-checks that new mappings are not placed such that preexisting mappings are
-in the new mappings guard gap.
+The previous patch added string.h to arch/alpha/lib/memcpy.c to fix a
+warning about a missing forward declaration - but this breaks with -
+presumably - some fortify source shenanigans that redefine memcpy as a
+macro.
 
-Link: https://lkml.kernel.org/r/20240326021656.202649-15-rick.p.edgecombe@intel.com
-Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Deepak Gupta <debug@rivosinc.com>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: H. Peter Anvin (Intel) <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Naveen N. Rao <naveen.n.rao@linux.ibm.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20240327002152.3339937-1-kent.overstreet@linux.dev
+Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/x86/test_shadow_stack.c |   67 +++++++++++++-
- 1 file changed, 63 insertions(+), 4 deletions(-)
+ arch/alpha/lib/memcpy.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/tools/testing/selftests/x86/test_shadow_stack.c~selftests-x86-add-placement-guard-gap-test-for-shstk
-+++ a/tools/testing/selftests/x86/test_shadow_stack.c
-@@ -556,7 +556,7 @@ struct node {
-  *      looked at the shadow stack gaps.
-  *   5. See if it landed in the gap.
-  */
--int test_guard_gap(void)
-+int test_guard_gap_other_gaps(void)
- {
- 	void *free_area, *shstk, *test_map = (void *)0xFFFFFFFFFFFFFFFF;
- 	struct node *head = NULL, *cur;
-@@ -593,11 +593,64 @@ int test_guard_gap(void)
- 	if (shstk - test_map - PAGE_SIZE != PAGE_SIZE)
- 		return 1;
+--- a/arch/alpha/lib/memcpy.c~fix-missing-vmalloch-includes-fix
++++ a/arch/alpha/lib/memcpy.c
+@@ -18,7 +18,6 @@
  
--	printf("[OK]\tGuard gap test\n");
-+	printf("[OK]\tGuard gap test, other mapping's gaps\n");
+ #include <linux/types.h>
+ #include <linux/export.h>
+-#include <linux/string.h>
  
- 	return 0;
- }
- 
-+/* Tests respecting the guard gap of the mapping getting placed */
-+int test_guard_gap_new_mappings_gaps(void)
-+{
-+	void *free_area, *shstk_start, *test_map = (void *)0xFFFFFFFFFFFFFFFF;
-+	struct node *head = NULL, *cur;
-+	int ret = 0;
-+
-+	free_area = mmap(0, PAGE_SIZE * 4, PROT_READ | PROT_WRITE,
-+			 MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	munmap(free_area, PAGE_SIZE * 4);
-+
-+	/* Test letting map_shadow_stack find a free space */
-+	shstk_start = mmap(free_area, PAGE_SIZE, PROT_READ | PROT_WRITE,
-+			   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	if (shstk_start == MAP_FAILED || shstk_start != free_area)
-+		return 1;
-+
-+	while (test_map > shstk_start) {
-+		test_map = (void *)syscall(__NR_map_shadow_stack, 0, PAGE_SIZE, 0);
-+		if (test_map == MAP_FAILED) {
-+			printf("[INFO]\tmap_shadow_stack MAP_FAILED\n");
-+			ret = 1;
-+			break;
-+		}
-+
-+		cur = malloc(sizeof(*cur));
-+		cur->mapping = test_map;
-+
-+		cur->next = head;
-+		head = cur;
-+
-+		if (test_map == free_area + PAGE_SIZE) {
-+			printf("[INFO]\tNew mapping has other mapping in guard gap!\n");
-+			ret = 1;
-+			break;
-+		}
-+	}
-+
-+	while (head) {
-+		cur = head;
-+		head = cur->next;
-+		munmap(cur->mapping, PAGE_SIZE);
-+		free(cur);
-+	}
-+
-+	munmap(shstk_start, PAGE_SIZE);
-+
-+	if (!ret)
-+		printf("[OK]\tGuard gap test, placement mapping's gaps\n");
-+
-+	return ret;
-+}
-+
  /*
-  * Too complicated to pull it out of the 32 bit header, but also get the
-  * 64 bit one needed above. Just define a copy here.
-@@ -850,9 +903,15 @@ int main(int argc, char *argv[])
- 		goto out;
- 	}
- 
--	if (test_guard_gap()) {
-+	if (test_guard_gap_other_gaps()) {
-+		ret = 1;
-+		printf("[FAIL]\tGuard gap test, other mappings' gaps\n");
-+		goto out;
-+	}
-+
-+	if (test_guard_gap_new_mappings_gaps()) {
- 		ret = 1;
--		printf("[FAIL]\tGuard gap test\n");
-+		printf("[FAIL]\tGuard gap test, placement mapping's gaps\n");
- 		goto out;
- 	}
- 
+  * This should be done in one go with ldq_u*2/mask/stq_u. Do it
 _
 
-Patches currently in -mm which might be from rick.p.edgecombe@intel.com are
+Patches currently in -mm which might be from kent.overstreet@linux.dev are
 
-proc-refactor-pde_get_unmapped_area-as-prep.patch
-mm-switch-mm-get_unmapped_area-to-a-flag.patch
-mm-introduce-arch_get_unmapped_area_vmflags.patch
-mm-remove-export-for-get_unmapped_area.patch
-mm-use-get_unmapped_area_vmflags.patch
-thp-add-thp_get_unmapped_area_vmflags.patch
-csky-use-initializer-for-struct-vm_unmapped_area_info.patch
-parisc-use-initializer-for-struct-vm_unmapped_area_info.patch
-powerpc-use-initializer-for-struct-vm_unmapped_area_info.patch
-treewide-use-initializer-for-struct-vm_unmapped_area_info.patch
-mm-take-placement-mappings-gap-into-account.patch
-x86-mm-implement-have_arch_unmapped_area_vmflags.patch
-x86-mm-care-about-shadow-stack-guard-gap-during-placement.patch
-selftests-x86-add-placement-guard-gap-test-for-shstk.patch
+fix-missing-vmalloch-includes.patch
+fix-missing-vmalloch-includes-fix.patch
+asm-generic-ioh-kill-vmalloch-dependency.patch
+mm-slub-mark-slab_free_freelist_hook-__always_inline.patch
+scripts-kallysms-always-include-__start-and-__stop-symbols.patch
+fs-convert-alloc_inode_sb-to-a-macro.patch
+rust-add-a-rust-helper-for-krealloc.patch
+mempool-hook-up-to-memory-allocation-profiling.patch
+mm-percpu-introduce-pcpuobj_ext.patch
+mm-percpu-add-codetag-reference-into-pcpuobj_ext.patch
+mm-vmalloc-enable-memory-allocation-profiling.patch
+rhashtable-plumb-through-alloc-tag.patch
+maintainers-add-entries-for-code-tagging-and-memory-allocation-profiling.patch
+memprofiling-documentation.patch
 
