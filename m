@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 088852D047
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:11:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D3212D047
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 20:11:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711570297; cv=none; b=cBZBdlWAyko7IStr/JiIehgYj0KTn1QFUvCYTT1FaUpOqmRJ4cQZjWyzhfze8LhYuswhc5/duJhdAKScwzw4h0WGls5b0lU07BbRbuCmXidU7Tc6i71fw6uikSs4l0b/55qYLr0NyatTB8QI+Bvc7AMUnyHVJxVp0axyJRWLjh0=
+	t=1711570299; cv=none; b=X1pCAOLelc6NleBDs5VCb2eWcb+VvNCp6Obn3ocEYX7JU4ze8Q1gRzkOnHv7+4o24ZmSIPWkHx9TrBnG39+r5BMX9FfeI5AXOB1m5g94EEgUP4duDJr+YWVGYq5sfEOjJIYGDf0trklClM95xovJpIpUNcfRYWlAom/dJH6TsR4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711570297; c=relaxed/simple;
-	bh=boKC2oXyUvRA8g7GQCpjQ1fXNaYy+KMxmmah8lrzyNI=;
-	h=Date:To:From:Subject:Message-Id; b=VAWVeENLaLov7trt+78o2FhYAdmHRS1JFCn8yCrC/nWz9K1jgzRKbVOSuBg1MOpcW+WQCNWwcr2HM2DyvgQNGpxG4DadzC/Wq3lCgdUxAi4pnxuad887hex6CT9GILXSBNm7qpjhWn6jGWhbglaW3GDcjPsgaJ5I7VdF/XRtHxY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lPJfum8Z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711570299; c=relaxed/simple;
+	bh=sxG3M2ZVgxw5pABHuAXIrbbM0NsBnleUZ0XpFsCHCSY=;
+	h=Date:To:From:Subject:Message-Id; b=grP3pnCS846w5aX9zGqFd1b7mf9R9wTuHseUbdmJPlAIWy66Eh4zqqTc5q4i09XgkenCI/LfG2kVxYI8Z2rtE4sCcGPff7af5hJDlbKSyumEhuU3zW3jcrHbCjumPfraCjvBu0Dpg8vIZBydIvN+eXBo13KTDP/MtzS4ami6wF8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=piRiGJWg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lPJfum8Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B58D8C433C7;
-	Wed, 27 Mar 2024 20:11:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="piRiGJWg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CAB9C433F1;
+	Wed, 27 Mar 2024 20:11:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711570296;
-	bh=boKC2oXyUvRA8g7GQCpjQ1fXNaYy+KMxmmah8lrzyNI=;
+	s=korg; t=1711570298;
+	bh=sxG3M2ZVgxw5pABHuAXIrbbM0NsBnleUZ0XpFsCHCSY=;
 	h=Date:To:From:Subject:From;
-	b=lPJfum8ZW9UimY3l+0I3OzqYjKMGTQq62W9OZll9GYLW97EnpezYnhkUbzrtNIP/r
-	 FA1l79TsrPTZpJ8pDyK16QtYlU9/lg2sDOCAQa0CbqUxmA8B/4fhXiRinA8AKP2TBX
-	 Iw4KGk7cOXGdveXHauOajmH3Q7HaW7NZGX/nnSAA=
-Date: Wed, 27 Mar 2024 13:11:36 -0700
+	b=piRiGJWgW60nlkWROwtw1Mf12n9+0MaLsJL3uzzHCHzrmKDBBZGS5yDCp59Kl9OP3
+	 bGXogyCif+cirETevqkhpEXlaGyGNJYHo+p2hLZI9p6MB3y9uegKUAoEK0OddqcwGE
+	 nO52fVmwnOCRgA0x1BXFGFCz9CITHpcOT+vGep3c=
+Date: Wed, 27 Mar 2024 13:11:38 -0700
 To: mm-commits@vger.kernel.org,tglx@linutronix.de,peterz@infradead.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,luto@kernel.org,Liam.Howlett@oracle.com,kirill.shutemov@linux.intel.com,keescook@chromium.org,James.Bottomley@HansenPartnership.com,hpa@zytor.com,guoren@kernel.org,deller@gmx.de,debug@rivosinc.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,broonie@kernel.org,bp@alien8.de,ast@kernel.org,aneesh.kumar@kernel.org,rick.p.edgecombe@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-get_unmapped_area_vmflags.patch added to mm-unstable branch
-Message-Id: <20240327201136.B58D8C433C7@smtp.kernel.org>
+Subject: + thp-add-thp_get_unmapped_area_vmflags.patch added to mm-unstable branch
+Message-Id: <20240327201138.9CAB9C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: use get_unmapped_area_vmflags()
+     Subject: thp: add thp_get_unmapped_area_vmflags()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-use-get_unmapped_area_vmflags.patch
+     thp-add-thp_get_unmapped_area_vmflags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-get_unmapped_area_vmflags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/thp-add-thp_get_unmapped_area_vmflags.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,8 +59,8 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Subject: mm: use get_unmapped_area_vmflags()
-Date: Mon, 25 Mar 2024 19:16:47 -0700
+Subject: thp: add thp_get_unmapped_area_vmflags()
+Date: Mon, 25 Mar 2024 19:16:48 -0700
 
 When memory is being placed, mmap() will take care to respect the guard
 gaps of certain types of memory (VM_SHADOWSTACK, VM_GROWSUP and
@@ -72,20 +72,21 @@ needs to consider two things:
  2. That the new mapping isn't placed such that any existing mappings
     are not in *its* guard gaps.
 
-The long standing behavior of mmap() is to ensure 1, but not take any care
+The longstanding behavior of mmap() is to ensure 1, but not take any care
 around 2.  So for example, if there is a PAGE_SIZE free area, and a mmap()
 with a PAGE_SIZE size, and a type that has a guard gap is being placed,
 mmap() may place the shadow stack in the PAGE_SIZE free area.  Then the
 mapping that is supposed to have a guard gap will not have a gap to the
 adjacent VMA.
 
-Use mm_get_unmapped_area_vmflags() in the do_mmap() so future changes can
-cause shadow stack mappings to be placed with a guard gap.  Also use the
-THP variant that takes vm_flags, such that THP shadow stack can get the
-same treatment.  Adjust the vm_flags calculation to happen earlier so that
-the vm_flags can be passed into __get_unmapped_area().
+Add a THP implementations of the vm_flags variant of get_unmapped_area(). 
+Future changes will call this from mmap.c in the do_mmap() path to allow
+shadow stacks to be placed with consideration taken for the start guard
+gap.  Shadow stack memory is always private and anonymous and so special
+guard gap logic is not needed in a lot of caseis, but it can be mapped by
+THP, so needs to be handled.
 
-Link: https://lkml.kernel.org/r/20240326021656.202649-6-rick.p.edgecombe@intel.com
+Link: https://lkml.kernel.org/r/20240326021656.202649-7-rick.p.edgecombe@intel.com
 Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
 Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -112,89 +113,118 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   11 ++++++++++-
- mm/mmap.c          |   32 ++++++++++++++++----------------
- 2 files changed, 26 insertions(+), 17 deletions(-)
+ include/linux/huge_mm.h |   11 +++++++++++
+ mm/huge_memory.c        |   23 ++++++++++++++++-------
+ mm/mmap.c               |   12 +++++++-----
+ 3 files changed, 34 insertions(+), 12 deletions(-)
 
---- a/include/linux/mm.h~mm-use-get_unmapped_area_vmflags
-+++ a/include/linux/mm.h
-@@ -3412,7 +3412,16 @@ extern int install_special_mapping(struc
- unsigned long randomize_stack_top(unsigned long stack_top);
- unsigned long randomize_page(unsigned long start, unsigned long range);
+--- a/include/linux/huge_mm.h~thp-add-thp_get_unmapped_area_vmflags
++++ a/include/linux/huge_mm.h
+@@ -270,6 +270,9 @@ unsigned long thp_vma_allowable_orders(s
  
--extern unsigned long get_unmapped_area(struct file *, unsigned long, unsigned long, unsigned long, unsigned long);
-+unsigned long
-+__get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
-+		    unsigned long pgoff, unsigned long flags, vm_flags_t vm_flags);
-+
+ unsigned long thp_get_unmapped_area(struct file *filp, unsigned long addr,
+ 		unsigned long len, unsigned long pgoff, unsigned long flags);
++unsigned long thp_get_unmapped_area_vmflags(struct file *filp, unsigned long addr,
++		unsigned long len, unsigned long pgoff, unsigned long flags,
++		vm_flags_t vm_flags);
+ 
+ bool can_split_folio(struct folio *folio, int *pextra_pins);
+ int split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
+@@ -413,6 +416,14 @@ static inline unsigned long thp_vma_allo
+ 
+ #define thp_get_unmapped_area	NULL
+ 
 +static inline unsigned long
-+get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
-+		  unsigned long pgoff, unsigned long flags)
++thp_get_unmapped_area_vmflags(struct file *filp, unsigned long addr,
++			      unsigned long len, unsigned long pgoff,
++			      unsigned long flags, vm_flags_t vm_flags)
 +{
-+	return __get_unmapped_area(file, addr, len, pgoff, flags, 0);
++	return 0;
 +}
- 
- extern unsigned long mmap_region(struct file *file, unsigned long addr,
- 	unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
---- a/mm/mmap.c~mm-use-get_unmapped_area_vmflags
-+++ a/mm/mmap.c
-@@ -1255,18 +1255,6 @@ unsigned long do_mmap(struct file *file,
- 	if (mm->map_count > sysctl_max_map_count)
- 		return -ENOMEM;
- 
--	/* Obtain the address to map to. we verify (or select) it and ensure
--	 * that it represents a valid section of the address space.
--	 */
--	addr = get_unmapped_area(file, addr, len, pgoff, flags);
--	if (IS_ERR_VALUE(addr))
--		return addr;
--
--	if (flags & MAP_FIXED_NOREPLACE) {
--		if (find_vma_intersection(mm, addr, addr + len))
--			return -EEXIST;
--	}
--
- 	if (prot == PROT_EXEC) {
- 		pkey = execute_only_pkey(mm);
- 		if (pkey < 0)
-@@ -1280,6 +1268,18 @@ unsigned long do_mmap(struct file *file,
- 	vm_flags |= calc_vm_prot_bits(prot, pkey) | calc_vm_flag_bits(flags) |
- 			mm->def_flags | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC;
- 
-+	/* Obtain the address to map to. we verify (or select) it and ensure
-+	 * that it represents a valid section of the address space.
-+	 */
-+	addr = __get_unmapped_area(file, addr, len, pgoff, flags, vm_flags);
-+	if (IS_ERR_VALUE(addr))
-+		return addr;
 +
-+	if (flags & MAP_FIXED_NOREPLACE) {
-+		if (find_vma_intersection(mm, addr, addr + len))
-+			return -EEXIST;
-+	}
-+
- 	if (flags & MAP_LOCKED)
- 		if (!can_do_mlock())
- 			return -EPERM;
-@@ -1836,8 +1836,8 @@ unsigned long mm_get_unmapped_area_vmfla
+ static inline bool
+ can_split_folio(struct folio *folio, int *pextra_pins)
+ {
+--- a/mm/huge_memory.c~thp-add-thp_get_unmapped_area_vmflags
++++ a/mm/huge_memory.c
+@@ -800,7 +800,8 @@ static inline bool is_transparent_hugepa
+ 
+ static unsigned long __thp_get_unmapped_area(struct file *filp,
+ 		unsigned long addr, unsigned long len,
+-		loff_t off, unsigned long flags, unsigned long size)
++		loff_t off, unsigned long flags, unsigned long size,
++		vm_flags_t vm_flags)
+ {
+ 	loff_t off_end = off + len;
+ 	loff_t off_align = round_up(off, size);
+@@ -816,8 +817,8 @@ static unsigned long __thp_get_unmapped_
+ 	if (len_pad < len || (off + len_pad) < off)
+ 		return 0;
+ 
+-	ret = mm_get_unmapped_area(current->mm, filp, addr, len_pad,
+-				   off >> PAGE_SHIFT, flags);
++	ret = mm_get_unmapped_area_vmflags(current->mm, filp, addr, len_pad,
++					   off >> PAGE_SHIFT, flags, vm_flags);
+ 
+ 	/*
+ 	 * The failure might be due to length padding. The caller will retry
+@@ -842,17 +843,25 @@ static unsigned long __thp_get_unmapped_
+ 	return ret;
  }
  
- unsigned long
--get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
--		unsigned long pgoff, unsigned long flags)
-+__get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
-+		unsigned long pgoff, unsigned long flags, vm_flags_t vm_flags)
+-unsigned long thp_get_unmapped_area(struct file *filp, unsigned long addr,
+-		unsigned long len, unsigned long pgoff, unsigned long flags)
++unsigned long thp_get_unmapped_area_vmflags(struct file *filp, unsigned long addr,
++		unsigned long len, unsigned long pgoff, unsigned long flags,
++		vm_flags_t vm_flags)
  {
- 	unsigned long (*get_area)(struct file *, unsigned long,
- 				  unsigned long, unsigned long, unsigned long)
-@@ -1872,8 +1872,8 @@ get_unmapped_area(struct file *file, uns
- 	if (get_area)
+ 	unsigned long ret;
+ 	loff_t off = (loff_t)pgoff << PAGE_SHIFT;
+ 
+-	ret = __thp_get_unmapped_area(filp, addr, len, off, flags, PMD_SIZE);
++	ret = __thp_get_unmapped_area(filp, addr, len, off, flags, PMD_SIZE, vm_flags);
+ 	if (ret)
+ 		return ret;
+ 
+-	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags);
++	return mm_get_unmapped_area_vmflags(current->mm, filp, addr, len, pgoff, flags,
++					    vm_flags);
++}
++
++unsigned long thp_get_unmapped_area(struct file *filp, unsigned long addr,
++		unsigned long len, unsigned long pgoff, unsigned long flags)
++{
++	return thp_get_unmapped_area_vmflags(filp, addr, len, pgoff, flags, 0);
+ }
+ EXPORT_SYMBOL_GPL(thp_get_unmapped_area);
+ 
+--- a/mm/mmap.c~thp-add-thp_get_unmapped_area_vmflags
++++ a/mm/mmap.c
+@@ -1860,20 +1860,22 @@ __get_unmapped_area(struct file *file, u
+ 		 * so use shmem's get_unmapped_area in case it can be huge.
+ 		 */
+ 		get_area = shmem_get_unmapped_area;
+-	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
+-		/* Ensures that larger anonymous mappings are THP aligned. */
+-		get_area = thp_get_unmapped_area;
+ 	}
+ 
+ 	/* Always treat pgoff as zero for anonymous memory. */
+ 	if (!file)
+ 		pgoff = 0;
+ 
+-	if (get_area)
++	if (get_area) {
  		addr = get_area(file, addr, len, pgoff, flags);
- 	else
--		addr = mm_get_unmapped_area(current->mm, file, addr, len,
--					    pgoff, flags);
-+		addr = mm_get_unmapped_area_vmflags(current->mm, file, addr, len,
-+						    pgoff, flags, vm_flags);
+-	else
++	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
++		/* Ensures that larger anonymous mappings are THP aligned. */
++		addr = thp_get_unmapped_area_vmflags(file, addr, len,
++						     pgoff, flags, vm_flags);
++	} else {
+ 		addr = mm_get_unmapped_area_vmflags(current->mm, file, addr, len,
+ 						    pgoff, flags, vm_flags);
++	}
  	if (IS_ERR_VALUE(addr))
  		return addr;
  
