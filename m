@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3523131BC0
-	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 17:54:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3E2F12FB08
+	for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2024 18:01:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711562047; cv=none; b=n/slmJNIn1iW8Wgg3dgDYiE+8jUxUYQyut/oVO0BgmpikPfZ4mXs4jFmN4rspPeYyxL7jMyAJOgNGzSrmdK7XL6Cu2DKwEni37mRLmEV53Zg1ZMvJ9yyZNg3He0sAsocybNhzVKUgcIanUj5ctR/ndpY3A+gPENrGVNsinyhUxI=
+	t=1711562466; cv=none; b=Ag3YkvxAUlcml/4km/a2w6dUVY7Fi4Pmcsf1QtZhjEcJsDmp5RK+91kBmDjAjrajfwi1h77vJi9es5nmd1iNHL6VUruO7AC6RjERbQMP/4lA41RWzLRTeZB/HkaGlQ0A+Yqc50W58xotrOfU5+ptWDnZUMSnVvDTk4W0as4GHJo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711562047; c=relaxed/simple;
-	bh=h1WvU/OnApk9OiU3NwPNEMVq4BiLDh9vdulNssqk+Ww=;
-	h=Date:To:From:Subject:Message-Id; b=ejx2sf/OXfwTngGrrPH9G6UlHlq1TEIcl8mqfy9d/ZbKhrcGzOucEYtn8jdx+srAnoBUnshSAbUEbIBqh2GcQ4Mh7/e6OkiPzHceQUNAB56H0tw0YKPAtYe/8hb/11bE4QEIkatTGyMe4ueZOC193LEe/uJY+d0L00ECEAun7v8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1RFsB+Dj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711562466; c=relaxed/simple;
+	bh=a8HLeyoAdYAKmmAMtMdp0LTE9Pn8VHy5vfRmPwQjoOk=;
+	h=Date:To:From:Subject:Message-Id; b=uUW2nyTeRNGQVfbAEKfExZAJUX63fwQe4XEvc/Dc1V/8NHBI7sG5dOxuG2lxWb+6nR+BO51JXjyatfFoIcx1ypQ5OwroSmEqifdsCx3+AhDwvUwjxeTY5k/+EOpKShNEXtj4iPO1tc3mXxGpHKt6oeaAZP/HrYpOO6zg84V21Xc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iNhde/Fv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1RFsB+Dj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F87EC433F1;
-	Wed, 27 Mar 2024 17:54:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iNhde/Fv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78F45C43394;
+	Wed, 27 Mar 2024 18:01:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711562047;
-	bh=h1WvU/OnApk9OiU3NwPNEMVq4BiLDh9vdulNssqk+Ww=;
+	s=korg; t=1711562465;
+	bh=a8HLeyoAdYAKmmAMtMdp0LTE9Pn8VHy5vfRmPwQjoOk=;
 	h=Date:To:From:Subject:From;
-	b=1RFsB+DjxFsAojuCP54Hda/K1UaZgY4uh0pFTwVX3vzeofmtEFGtXQyWUxWKCEpdw
-	 z3RYo1hnOJ7SfbqMsKjVQGyQSBBoZjqmmpzsnsrE6Go1OUHO1cC3YQey/ZU92bIBwX
-	 0SVa2WbDbjGLtFdCHImTCglNkVFKwTRhFnAoI0Uw=
-Date: Wed, 27 Mar 2024 10:54:07 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,shy828301@gmail.com,rppt@kernel.org,riel@surriel.com,muchun.song@linux.dev,mpe@ellerman.id.au,mike.kravetz@oracle.com,lstoakes@gmail.com,kirill@shutemov.name,jthoughton@google.com,jhubbard@nvidia.com,jgg@nvidia.com,hch@infradead.org,david@redhat.com,christophe.leroy@csgroup.eu,axelrasmussen@google.com,aneesh.kumar@kernel.org,andrew.jones@linux.dev,aarcange@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=iNhde/FvnfMljkobvsJSlvHxurzQtw9jMKRgJ05gPmpsYU0IFcnViydLn+Cxp539H
+	 8ZwuzHbgO8AzDUXHMrYnFcNMBOsSF2IafChNTtrbyDc8L3mVtO0Zj1Yb6MemRW412U
+	 wJGIqHkuFN3pJAKY9OKDpTbH39hvJocmGPhshPA8=
+Date: Wed, 27 Mar 2024 11:01:04 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,mhocko@suse.com,ioworker0@gmail.com,david@redhat.com,chrisl@kernel.org,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code.patch added to mm-unstable branch
-Message-Id: <20240327175407.9F87EC433F1@smtp.kernel.org>
+Subject: + mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags.patch added to mm-unstable branch
+Message-Id: <20240327180105.78F45C43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: handle hugetlb in the generic follow_page_mask code
+     Subject: mm: swap: remove CLUSTER_FLAG_HUGE from swap_cluster_info:flags
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code.patch
+     mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,224 +58,282 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/gup: handle hugetlb in the generic follow_page_mask code
-Date: Wed, 27 Mar 2024 11:23:32 -0400
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: swap: remove CLUSTER_FLAG_HUGE from swap_cluster_info:flags
+Date: Wed, 27 Mar 2024 14:45:32 +0000
 
-Now follow_page() is ready to handle hugetlb pages in whatever form, and
-over all architectures.  Switch to the generic code path.
+Patch series "Swap-out mTHP without splitting", v5.
 
-Time to retire hugetlb_follow_page_mask(), following the previous
-retirement of follow_hugetlb_page() in 4849807114b8.
+This series adds support for swapping out multi-size THP (mTHP) without
+needing to first split the large folio via
+split_huge_page_to_list_to_order().  It closely follows the approach
+already used to swap-out PMD-sized THP.
 
-There may be a slight difference of how the loops run when processing slow
-GUP over a large hugetlb range on cont_pte/cont_pmd supported archs: each
-loop of __get_user_pages() will resolve one pgtable entry with the patch
-applied, rather than relying on the size of hugetlb hstate, the latter may
-cover multiple entries in one loop.
+There are a couple of reasons for swapping out mTHP without splitting:
 
-A quick performance test on an aarch64 VM on M1 chip shows 15% degrade
-over a tight loop of slow gup after the path switched.  That shouldn't be
-a problem because slow-gup should not be a hot path for GUP in general:
-when page is commonly present, fast-gup will already succeed, while when
-the page is indeed missing and require a follow up page fault, the slow
-gup degrade will probably buried in the fault paths anyway.  It also
-explains why slow gup for THP used to be very slow before 57edfcfd3419
-("mm/gup: accelerate thp gup even for "pages != NULL"") lands, the latter
-not part of a performance analysis but a side benefit.  If the performance
-will be a concern, we can consider handle CONT_PTE in follow_page().
+  - Performance: It is expensive to split a large folio and under extreme memory
+    pressure some workloads regressed performance when using 64K mTHP vs 4K
+    small folios because of this extra cost in the swap-out path. This series
+    not only eliminates the regression but makes it faster to swap out 64K mTHP
+    vs 4K small folios.
 
-Before that is justified to be necessary, keep everything clean and simple.
+  - Memory fragmentation avoidance: If we can avoid splitting a large folio
+    memory is less likely to become fragmented, making it easier to re-allocate
+    a large folio in future.
 
-Link: https://lkml.kernel.org/r/20240327152332.950956-14-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andrew Jones <andrew.jones@linux.dev>
-Cc: Aneesh Kumar K.V (IBM) <aneesh.kumar@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Christoph Hellwig <hch@infradead.org>
+  - Performance: Enables a separate series [5] to swap-in whole mTHPs, which
+    means we won't lose the TLB-efficiency benefits of mTHP once the memory has
+    been through a swap cycle.
+
+I've done what I thought was the smallest change possible, and as a
+result, this approach is only employed when the swap is backed by a
+non-rotating block device (just as PMD-sized THP is supported today). 
+Discussion against the RFC concluded that this is sufficient.
+
+
+Performance Testing
+===================
+
+I've run some swap performance tests on Ampere Altra VM (arm64) with 8
+CPUs.  The VM is set up with a 35G block ram device as the swap device and
+the test is run from inside a memcg limited to 40G memory.  I've then run
+`usemem` from vm-scalability with 70 processes, each allocating and
+writing 1G of memory.  I've repeated everything 6 times and taken the mean
+performance improvement relative to 4K page baseline:
+
+| alloc size |                baseline |           + this series |
+|            | mm-unstable (~v6.9-rc1) |                         |
+|:-----------|------------------------:|------------------------:|
+| 4K Page    |                    0.0% |                    1.3% |
+| 64K THP    |                  -13.6% |                   46.3% |
+| 2M THP     |                   91.4% |                   89.6% |
+
+So with this change, the 64K swap performance goes from a 14% regression
+to a 46% improvement.  While 2M shows a small regression I'm confident
+that this is just noise.
+
+[1] https://lore.kernel.org/linux-mm/20231010142111.3997780-1-ryan.roberts@arm.com/
+[2] https://lore.kernel.org/linux-mm/20231017161302.2518826-1-ryan.roberts@arm.com/
+[3] https://lore.kernel.org/linux-mm/20231025144546.577640-1-ryan.roberts@arm.com/
+[4] https://lore.kernel.org/all/20240311150058.1122862-1-ryan.roberts@arm.com/
+[5] https://lore.kernel.org/linux-mm/20240304081348.197341-1-21cnbao@gmail.com/
+[6] https://lore.kernel.org/all/b9944ac1-3919-4bb2-8b65-f3e5c52bc2aa@arm.com/
+
+
+This patch (of 6):
+
+As preparation for supporting small-sized THP in the swap-out path,
+without first needing to split to order-0, Remove the CLUSTER_FLAG_HUGE,
+which, when present, always implies PMD-sized THP, which is the same as
+the cluster size.
+
+The only use of the flag was to determine whether a swap entry refers to a
+single page or a PMD-sized THP in swap_page_trans_huge_swapped().  Instead
+of relying on the flag, we now pass in nr_pages, which originates from the
+folio's number of pages.  This allows the logic to work for folios of any
+order.
+
+The one snag is that one of the swap_page_trans_huge_swapped() call sites
+does not have the folio.  But it was only being called there to shortcut a
+call __try_to_reclaim_swap() in some cases.  __try_to_reclaim_swap() gets
+the folio and (via some other functions) calls
+swap_page_trans_huge_swapped().  So I've removed the problematic call site
+and believe the new logic should be functionally equivalent.
+
+That said, removing the fast path means that we will take a reference and
+trylock a large folio much more often, which we would like to avoid.  The
+next patch will solve this.
+
+Removing CLUSTER_FLAG_HUGE also means we can remove split_swap_cluster()
+which used to be called during folio splitting, since
+split_swap_cluster()'s only job was to remove the flag.
+
+Link: https://lkml.kernel.org/r/20240327144537.4165578-1-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20240327144537.4165578-2-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Gao Xiang <xiang@kernel.org>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    7 ---
- mm/gup.c                |   15 ++------
- mm/hugetlb.c            |   71 --------------------------------------
- 3 files changed, 5 insertions(+), 88 deletions(-)
+ include/linux/swap.h |   10 --------
+ mm/huge_memory.c     |    3 --
+ mm/swapfile.c        |   47 ++++++-----------------------------------
+ 3 files changed, 8 insertions(+), 52 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code
-+++ a/include/linux/hugetlb.h
-@@ -328,13 +328,6 @@ static inline void hugetlb_zap_end(
+--- a/include/linux/swap.h~mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags
++++ a/include/linux/swap.h
+@@ -259,7 +259,6 @@ struct swap_cluster_info {
+ };
+ #define CLUSTER_FLAG_FREE 1 /* This cluster is free */
+ #define CLUSTER_FLAG_NEXT_NULL 2 /* This cluster has no next cluster */
+-#define CLUSTER_FLAG_HUGE 4 /* This cluster is backing a transparent huge page */
+ 
+ /*
+  * We assign a cluster to each CPU, so each CPU can allocate swap entry from
+@@ -587,15 +586,6 @@ static inline int add_swap_extent(struct
+ }
+ #endif /* CONFIG_SWAP */
+ 
+-#ifdef CONFIG_THP_SWAP
+-extern int split_swap_cluster(swp_entry_t entry);
+-#else
+-static inline int split_swap_cluster(swp_entry_t entry)
+-{
+-	return 0;
+-}
+-#endif
+-
+ #ifdef CONFIG_MEMCG
+ static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
  {
+--- a/mm/huge_memory.c~mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags
++++ a/mm/huge_memory.c
+@@ -2836,9 +2836,6 @@ static void __split_huge_page(struct pag
+ 		shmem_uncharge(folio->mapping->host, nr_dropped);
+ 	remap_page(folio, nr);
+ 
+-	if (folio_test_swapcache(folio))
+-		split_swap_cluster(folio->swap);
+-
+ 	/*
+ 	 * set page to its compound_head when split to non order-0 pages, so
+ 	 * we can skip unlocking it below, since PG_locked is transferred to
+--- a/mm/swapfile.c~mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags
++++ a/mm/swapfile.c
+@@ -343,18 +343,6 @@ static inline void cluster_set_null(stru
+ 	info->data = 0;
  }
  
--static inline struct page *hugetlb_follow_page_mask(
--    struct vm_area_struct *vma, unsigned long address, unsigned int flags,
--    unsigned int *page_mask)
+-static inline bool cluster_is_huge(struct swap_cluster_info *info)
 -{
--	BUILD_BUG(); /* should never be compiled in if !CONFIG_HUGETLB_PAGE*/
+-	if (IS_ENABLED(CONFIG_THP_SWAP))
+-		return info->flags & CLUSTER_FLAG_HUGE;
+-	return false;
 -}
 -
- static inline int copy_hugetlb_page_range(struct mm_struct *dst,
- 					  struct mm_struct *src,
- 					  struct vm_area_struct *dst_vma,
---- a/mm/gup.c~mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code
-+++ a/mm/gup.c
-@@ -1135,18 +1135,11 @@ static struct page *follow_page_mask(str
- {
- 	pgd_t *pgd;
- 	struct mm_struct *mm = vma->vm_mm;
-+	struct page *page;
- 
--	ctx->page_mask = 0;
--
--	/*
--	 * Call hugetlb_follow_page_mask for hugetlb vmas as it will use
--	 * special hugetlb page table walking code.  This eliminates the
--	 * need to check for hugetlb entries in the general walking code.
--	 */
--	if (is_vm_hugetlb_page(vma))
--		return hugetlb_follow_page_mask(vma, address, flags,
--						&ctx->page_mask);
-+	vma_pgtable_walk_begin(vma);
- 
-+	ctx->page_mask = 0;
- 	pgd = pgd_offset(mm, address);
- 
- 	if (unlikely(is_hugepd(__hugepd(pgd_val(*pgd)))))
-@@ -1157,6 +1150,8 @@ static struct page *follow_page_mask(str
- 	else
- 		page = follow_p4d_mask(vma, address, pgd, flags, ctx);
- 
-+	vma_pgtable_walk_end(vma);
-+
- 	return page;
- }
- 
---- a/mm/hugetlb.c~mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code
-+++ a/mm/hugetlb.c
-@@ -6870,77 +6870,6 @@ out_release_nounlock:
- }
- #endif /* CONFIG_USERFAULTFD */
- 
--struct page *hugetlb_follow_page_mask(struct vm_area_struct *vma,
--				      unsigned long address, unsigned int flags,
--				      unsigned int *page_mask)
+-static inline void cluster_clear_huge(struct swap_cluster_info *info)
 -{
--	struct hstate *h = hstate_vma(vma);
--	struct mm_struct *mm = vma->vm_mm;
--	unsigned long haddr = address & huge_page_mask(h);
--	struct page *page = NULL;
--	spinlock_t *ptl;
--	pte_t *pte, entry;
--	int ret;
--
--	hugetlb_vma_lock_read(vma);
--	pte = hugetlb_walk(vma, haddr, huge_page_size(h));
--	if (!pte)
--		goto out_unlock;
--
--	ptl = huge_pte_lock(h, mm, pte);
--	entry = huge_ptep_get(pte);
--	if (pte_present(entry)) {
--		page = pte_page(entry);
--
--		if (!huge_pte_write(entry)) {
--			if (flags & FOLL_WRITE) {
--				page = NULL;
--				goto out;
--			}
--
--			if (gup_must_unshare(vma, flags, page)) {
--				/* Tell the caller to do unsharing */
--				page = ERR_PTR(-EMLINK);
--				goto out;
--			}
--		}
--
--		page = nth_page(page, ((address & ~huge_page_mask(h)) >> PAGE_SHIFT));
--
--		/*
--		 * Note that page may be a sub-page, and with vmemmap
--		 * optimizations the page struct may be read only.
--		 * try_grab_page() will increase the ref count on the
--		 * head page, so this will be OK.
--		 *
--		 * try_grab_page() should always be able to get the page here,
--		 * because we hold the ptl lock and have verified pte_present().
--		 */
--		ret = try_grab_page(page, flags);
--
--		if (WARN_ON_ONCE(ret)) {
--			page = ERR_PTR(ret);
--			goto out;
--		}
--
--		*page_mask = (1U << huge_page_order(h)) - 1;
--	}
--out:
--	spin_unlock(ptl);
--out_unlock:
--	hugetlb_vma_unlock_read(vma);
--
--	/*
--	 * Fixup retval for dump requests: if pagecache doesn't exist,
--	 * don't try to allocate a new page but just skip it.
--	 */
--	if (!page && (flags & FOLL_DUMP) &&
--	    !hugetlbfs_pagecache_present(h, vma, address))
--		page = ERR_PTR(-EFAULT);
--
--	return page;
+-	info->flags &= ~CLUSTER_FLAG_HUGE;
 -}
 -
- long hugetlb_change_protection(struct vm_area_struct *vma,
- 		unsigned long address, unsigned long end,
- 		pgprot_t newprot, unsigned long cp_flags)
+ static inline struct swap_cluster_info *lock_cluster(struct swap_info_struct *si,
+ 						     unsigned long offset)
+ {
+@@ -1027,7 +1015,7 @@ static int swap_alloc_cluster(struct swa
+ 	offset = idx * SWAPFILE_CLUSTER;
+ 	ci = lock_cluster(si, offset);
+ 	alloc_cluster(si, idx);
+-	cluster_set_count_flag(ci, SWAPFILE_CLUSTER, CLUSTER_FLAG_HUGE);
++	cluster_set_count(ci, SWAPFILE_CLUSTER);
+ 
+ 	memset(si->swap_map + offset, SWAP_HAS_CACHE, SWAPFILE_CLUSTER);
+ 	unlock_cluster(ci);
+@@ -1365,7 +1353,6 @@ void put_swap_folio(struct folio *folio,
+ 
+ 	ci = lock_cluster_or_swap_info(si, offset);
+ 	if (size == SWAPFILE_CLUSTER) {
+-		VM_BUG_ON(!cluster_is_huge(ci));
+ 		map = si->swap_map + offset;
+ 		for (i = 0; i < SWAPFILE_CLUSTER; i++) {
+ 			val = map[i];
+@@ -1373,7 +1360,6 @@ void put_swap_folio(struct folio *folio,
+ 			if (val == SWAP_HAS_CACHE)
+ 				free_entries++;
+ 		}
+-		cluster_clear_huge(ci);
+ 		if (free_entries == SWAPFILE_CLUSTER) {
+ 			unlock_cluster_or_swap_info(si, ci);
+ 			spin_lock(&si->lock);
+@@ -1395,23 +1381,6 @@ void put_swap_folio(struct folio *folio,
+ 	unlock_cluster_or_swap_info(si, ci);
+ }
+ 
+-#ifdef CONFIG_THP_SWAP
+-int split_swap_cluster(swp_entry_t entry)
+-{
+-	struct swap_info_struct *si;
+-	struct swap_cluster_info *ci;
+-	unsigned long offset = swp_offset(entry);
+-
+-	si = _swap_info_get(entry);
+-	if (!si)
+-		return -EBUSY;
+-	ci = lock_cluster(si, offset);
+-	cluster_clear_huge(ci);
+-	unlock_cluster(ci);
+-	return 0;
+-}
+-#endif
+-
+ static int swp_entry_cmp(const void *ent1, const void *ent2)
+ {
+ 	const swp_entry_t *e1 = ent1, *e2 = ent2;
+@@ -1519,22 +1488,23 @@ out:
+ }
+ 
+ static bool swap_page_trans_huge_swapped(struct swap_info_struct *si,
+-					 swp_entry_t entry)
++					 swp_entry_t entry,
++					 unsigned int nr_pages)
+ {
+ 	struct swap_cluster_info *ci;
+ 	unsigned char *map = si->swap_map;
+ 	unsigned long roffset = swp_offset(entry);
+-	unsigned long offset = round_down(roffset, SWAPFILE_CLUSTER);
++	unsigned long offset = round_down(roffset, nr_pages);
+ 	int i;
+ 	bool ret = false;
+ 
+ 	ci = lock_cluster_or_swap_info(si, offset);
+-	if (!ci || !cluster_is_huge(ci)) {
++	if (!ci || nr_pages == 1) {
+ 		if (swap_count(map[roffset]))
+ 			ret = true;
+ 		goto unlock_out;
+ 	}
+-	for (i = 0; i < SWAPFILE_CLUSTER; i++) {
++	for (i = 0; i < nr_pages; i++) {
+ 		if (swap_count(map[offset + i])) {
+ 			ret = true;
+ 			break;
+@@ -1556,7 +1526,7 @@ static bool folio_swapped(struct folio *
+ 	if (!IS_ENABLED(CONFIG_THP_SWAP) || likely(!folio_test_large(folio)))
+ 		return swap_swapcount(si, entry) != 0;
+ 
+-	return swap_page_trans_huge_swapped(si, entry);
++	return swap_page_trans_huge_swapped(si, entry, folio_nr_pages(folio));
+ }
+ 
+ /**
+@@ -1622,8 +1592,7 @@ int free_swap_and_cache(swp_entry_t entr
+ 		}
+ 
+ 		count = __swap_entry_free(p, entry);
+-		if (count == SWAP_HAS_CACHE &&
+-		    !swap_page_trans_huge_swapped(p, entry))
++		if (count == SWAP_HAS_CACHE)
+ 			__try_to_reclaim_swap(p, swp_offset(entry),
+ 					      TTRS_UNMAPPED | TTRS_FULL);
+ 		put_swap_device(p);
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-mm-hmm-process-pud-swap-entry-without-pud_huge.patch
-mm-gup-cache-p4d-in-follow_p4d_mask.patch
-mm-gup-check-p4d-presence-before-going-on.patch
-mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-arm-use-macros-to-define-pmd-pud-helpers.patch
-mm-arm-redefine-pmd_huge-with-pmd_leaf.patch
-mm-arm64-merge-pxd_huge-and-pxd_leaf-definitions.patch
-mm-powerpc-redefine-pxd_huge-with-pxd_leaf.patch
-mm-gup-merge-pxd-huge-mapping-checks.patch
-mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
-mm-treewide-remove-pxd_huge.patch
-mm-arm-remove-pmd_thp_or_huge.patch
-mm-document-pxd_leaf-api.patch
-selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation.patch
-mm-kconfig-config_pgtable_has_huge_leaves.patch
-mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch
-mm-make-hpage_pxd_-macros-even-if-thp.patch
-mm-introduce-vma_pgtable_walk_beginend.patch
-mm-arch-provide-pud_pfn-fallback.patch
-mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing.patch
-mm-gup-refactor-record_subpages-to-find-1st-small-page.patch
-mm-gup-handle-hugetlb-for-no_page_table.patch
-mm-gup-cache-pudp-in-follow_pud_mask.patch
-mm-gup-handle-huge-pud-for-follow_pud_mask.patch
-mm-gup-handle-huge-pmd-for-follow_pmd_mask.patch
-mm-gup-handle-hugepd-for-follow_page.patch
-mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code.patch
+mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags.patch
+mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache.patch
+mm-swap-simplify-struct-percpu_cluster.patch
+mm-swap-allow-storage-of-all-mthp-orders.patch
+mm-vmscan-avoid-split-during-shrink_folio_list.patch
+mm-madvise-avoid-split-during-madv_pageout-and-madv_cold.patch
 
