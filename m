@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD5192B9A7
-	for <mm-commits@vger.kernel.org>; Thu, 28 Mar 2024 19:16:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5362E137C44
+	for <mm-commits@vger.kernel.org>; Thu, 28 Mar 2024 19:16:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711653368; cv=none; b=nNNOIkMJgKyw0Duc6DUi7hWoOFSyI8qiDmItSYC43UMPk8UY7Y2/FADJnuiMymUrnJgwCwBCNiaiAHLAHQD/eeipXv9w6VmI8uCq5lfDMe6fXkvgAPhf0CVaNDtN1lZPx7U9HP4+8Kcx+X0lvzvWNtcVQSMQ0zGL9rcewUW6Ufk=
+	t=1711653373; cv=none; b=VfjvKwTjG5U9/KgesTR1dblFFgGGb2NrKUJ8VwJKdlZ+Cb6pLkOg/hbwuKLVQNnHd9C/dt6Fc8DNbCEDMRZB+GpR9gqnlpC4nRK/PIBUW5U8hO76CRMKG53/xf/OC8NmozOt2J7gzCvvqZ2FoIK+fAVntaQ51azy581vYmfiIfI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711653368; c=relaxed/simple;
-	bh=OQyPLJw1qIC99l7v9uzBwEBv6bNekhRTagGfPtsnWI0=;
-	h=Date:To:From:Subject:Message-Id; b=lFecU7K8R0IMnwJqnHxH5AySOWrkOgbKel5DUayb5hS1vxhVZ3iYfrkfrOKx5gxXi5Zsa/KXA0/KCBaGIZ8eoczPip+WJndCbi0pIVMLPkP5h9FzNOOdqpKmXJZSeun/T8T9wVrRQJZ4pIAUAx3Nd7snRAZiRXvqz3zV0kNCFRc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2RbWwvVz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711653373; c=relaxed/simple;
+	bh=XG5M6cNfAloIWOppXPr6HMkvUGaDBsovGfSh1Dr6gBk=;
+	h=Date:To:From:Subject:Message-Id; b=BUDBUYXXzRgr8ELP9wYwQ1SVwenDespG1qXL33XmGEaOld2/j04GUpYQ5+l33ctcKHZ9XuPlCfU9rqCOsaVswDQpWJiJXR4sFa4qO/Zhkv70LsJV2nOyNI6kULg3FobMGHpeBVXmqUOGaekUEymwHekzaGdPs3LyeqYEknWPhLA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TbEQq00f; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2RbWwvVz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CE8DC433F1;
-	Thu, 28 Mar 2024 19:16:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TbEQq00f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC30AC433F1;
+	Thu, 28 Mar 2024 19:16:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711653368;
-	bh=OQyPLJw1qIC99l7v9uzBwEBv6bNekhRTagGfPtsnWI0=;
+	s=korg; t=1711653372;
+	bh=XG5M6cNfAloIWOppXPr6HMkvUGaDBsovGfSh1Dr6gBk=;
 	h=Date:To:From:Subject:From;
-	b=2RbWwvVzEyBHpMyukIea7CyanrKVU10o9lA7O4dkunBiCPosq5GcH6C0YfcI8phKH
-	 bZ/Cwt2NdVCFexMs0ixIhv+KGWN1MptpOEvjvRkpiQeVUquWCMGT0i1pRmiyBkb7F8
-	 7AIcv2OaoaLg6zcQgGmbN7snb91IgW+Cnx4Wpymg=
-Date: Thu, 28 Mar 2024 12:16:07 -0700
+	b=TbEQq00fEZWVTfBIh3IvAhorVC0TZxJHPh7JOakjXHtbO/pWzhDdRRev6FqMQ4A+z
+	 DduJR/OsWpBsgSoTUxXyA2kMDi42Flr/zDhlgBvyfNpXiWw27tBtCaIzVWPpXijRxv
+	 l17fqBQWN9sTNy7tYujKx+yHLmxLVs/aIFeXU0Zo=
+Date: Thu, 28 Mar 2024 12:16:12 -0700
 To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,heming.zhao@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-improve-write-io-performance-when-fragmentation-is-high.patch added to mm-nonmm-unstable branch
-Message-Id: <20240328191608.4CE8DC433F1@smtp.kernel.org>
+Subject: + ocfs2-adjust-enabling-place-for-la-window.patch added to mm-nonmm-unstable branch
+Message-Id: <20240328191612.BC30AC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: improve write IO performance when fragmentation is high
+     Subject: ocfs2: adjust enabling place for la window
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-improve-write-io-performance-when-fragmentation-is-high.patch
+     ocfs2-adjust-enabling-place-for-la-window.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-improve-write-io-performance-when-fragmentation-is-high.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-adjust-enabling-place-for-la-window.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,412 +59,98 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Heming Zhao <heming.zhao@suse.com>
-Subject: ocfs2: improve write IO performance when fragmentation is high
-Date: Thu, 28 Mar 2024 20:52:00 +0800
+Subject: ocfs2: adjust enabling place for la window
+Date: Thu, 28 Mar 2024 20:52:01 +0800
 
-The group_search function ocfs2_cluster_group_search() should
-bypass groups with insufficient space to avoid unnecessary
-searches.
+Patch series "improve write IO performance when fragmentation is high",
+v6.
 
-This patch is particularly useful when ocfs2 is handling huge
-number small files, and volume fragmentation is very high.
-In this case, ocfs2 is busy with looking up available la window
-from //global_bitmap.
 
-This patch introduces a new member in the Group Description (gd)
-struct called 'bg_contig_free_bits', representing the max
-contigous free bits in this gd. When ocfs2 allocates a new
-la window from //global_bitmap, 'bg_contig_free_bits' helps
-expedite the search process.
+This patch (of 4):
 
-Let's image below path.
+After introducing gd->bg_contig_free_bits, the code path
+'ocfs2_cluster_group_search() => ocfs2_local_alloc_seen_free_bits()'
+becomes death when all the gd->bg_contig_free_bits are set to the correct
+value.  This patch relocates ocfs2_local_alloc_seen_free_bits() to a more
+appropriate location.  (The new place being ocfs2_block_group_set_bits().)
 
-1. la state (->local_alloc_state) is set THROTTLED or DISABLED.
+In ocfs2_local_alloc_seen_free_bits(), the scope of the spin-lock has been
+adjusted to reduce meaningless lock races.  e.g: when userspace creates &
+deletes 1 cluster_size files in parallel, acquiring the spin-lock in
+ocfs2_local_alloc_seen_free_bits() is totally pointless and impedes IO
+performance.
 
-2. when user delete a large file and trigger
-   ocfs2_local_alloc_seen_free_bits set osb->local_alloc_state
-   unconditionally.
-
-3. a write IOs thread run and trigger the worst performance path
-
-```
-ocfs2_reserve_clusters_with_limit
- ocfs2_reserve_local_alloc_bits
-  ocfs2_local_alloc_slide_window //[1]
-   + ocfs2_local_alloc_reserve_for_window //[2]
-   + ocfs2_local_alloc_new_window //[3]
-      ocfs2_recalc_la_window
-```
-
-[1]:
-will be called when la window bits used up.
-
-[2]:
-under la state is ENABLED, and this func only check global_bitmap
-free bits, it will succeed in general.
-
-[3]:
-will use the default la window size to search clusters then fail.
-ocfs2_recalc_la_window attempts other la window sizes.
-the timing complexity is O(n^4), resulting in a significant time
-cost for scanning global bitmap. This leads to a dramatic slowdown
-in write I/Os (e.g., user space 'dd').
-
-i.e.
-an ocfs2 partition size: 1.45TB, cluster size: 4KB,
-la window default size: 106MB.
-The partition is fragmentation by creating & deleting huge mount of
-small files.
-
-before this patch, the timing of [3] should be
-(the number got from real world):
-- la window size change order (size: MB):
-  106, 53, 26.5, 13, 6.5, 3.25, 1.6, 0.8
-  only 0.8MB succeed, 0.8MB also triggers la window to disable.
-  ocfs2_local_alloc_new_window retries 8 times, first 7 times totally
-  runs in worst case.
-- group chain number: 242
-  ocfs2_claim_suballoc_bits calls for-loop 242 times
-- each chain has 49 block group
-  ocfs2_search_chain calls while-loop 49 times
-- each bg has 32256 blocks
-  ocfs2_block_group_find_clear_bits calls while-loop for 32256 bits.
-  for ocfs2_find_next_zero_bit uses ffz() to find zero bit, let's use
-  (32256/64) (this is not worst value) for timing calucation.
-
-the loop times: 7*242*49*(32256/64) = 41835024 (~42 million times)
-
-In the worst case, user space writes 1MB data will trigger 42M scanning
-times.
-
-under this patch, the timing is '7*242*49 = 83006', reduced by three
-orders of magnitude.
-
-Link: https://lkml.kernel.org/r/20240328125203.20892-2-heming.zhao@suse.com
+Link: https://lkml.kernel.org/r/20240328125203.20892-3-heming.zhao@suse.com
 Signed-off-by: Heming Zhao <heming.zhao@suse.com>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Gang He <ghe@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Jun Piao <piaojun@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/move_extents.c |    2 
- fs/ocfs2/ocfs2_fs.h     |    3 -
- fs/ocfs2/resize.c       |    8 +++
- fs/ocfs2/suballoc.c     |  100 ++++++++++++++++++++++++++++++++++----
- fs/ocfs2/suballoc.h     |    6 +-
- 5 files changed, 108 insertions(+), 11 deletions(-)
+ fs/ocfs2/localalloc.c |   11 ++++++-----
+ fs/ocfs2/suballoc.c   |    9 ++-------
+ 2 files changed, 8 insertions(+), 12 deletions(-)
 
---- a/fs/ocfs2/move_extents.c~ocfs2-improve-write-io-performance-when-fragmentation-is-high
-+++ a/fs/ocfs2/move_extents.c
-@@ -685,7 +685,7 @@ static int ocfs2_move_extent(struct ocfs
- 	}
- 
- 	ret = ocfs2_block_group_set_bits(handle, gb_inode, gd, gd_bh,
--					 goal_bit, len);
-+					 goal_bit, len, 0, 0);
- 	if (ret) {
- 		ocfs2_rollback_alloc_dinode_counts(gb_inode, gb_bh, len,
- 					       le16_to_cpu(gd->bg_chain));
---- a/fs/ocfs2/ocfs2_fs.h~ocfs2-improve-write-io-performance-when-fragmentation-is-high
-+++ a/fs/ocfs2/ocfs2_fs.h
-@@ -883,7 +883,8 @@ struct ocfs2_group_desc
- 	__le16	bg_free_bits_count;     /* Free bits count */
- 	__le16   bg_chain;               /* What chain I am in. */
- /*10*/	__le32   bg_generation;
--	__le32	bg_reserved1;
-+	__le16   bg_contig_free_bits;   /* max contig free bits length */
-+	__le16   bg_reserved1;
- 	__le64   bg_next_group;          /* Next group in my list, in
- 					   blocks */
- /*20*/	__le64   bg_parent_dinode;       /* dinode which owns me, in
---- a/fs/ocfs2/resize.c~ocfs2-improve-write-io-performance-when-fragmentation-is-high
-+++ a/fs/ocfs2/resize.c
-@@ -91,6 +91,8 @@ static int ocfs2_update_last_group_and_i
- 	u16 cl_bpc = le16_to_cpu(cl->cl_bpc);
- 	u16 cl_cpg = le16_to_cpu(cl->cl_cpg);
- 	u16 old_bg_clusters;
-+	u16 contig_bits;
-+	__le16 old_bg_contig_free_bits;
- 
- 	trace_ocfs2_update_last_group_and_inode(new_clusters,
- 						first_new_cluster);
-@@ -122,6 +124,11 @@ static int ocfs2_update_last_group_and_i
- 		le16_add_cpu(&group->bg_free_bits_count, -1 * backups);
- 	}
- 
-+	contig_bits = ocfs2_find_max_contig_free_bits(group->bg_bitmap,
-+					le16_to_cpu(group->bg_bits), 0);
-+	old_bg_contig_free_bits = group->bg_contig_free_bits;
-+	group->bg_contig_free_bits = cpu_to_le16(contig_bits);
-+
- 	ocfs2_journal_dirty(handle, group_bh);
- 
- 	/* update the inode accordingly. */
-@@ -160,6 +167,7 @@ out_rollback:
- 		le16_add_cpu(&group->bg_free_bits_count, backups);
- 		le16_add_cpu(&group->bg_bits, -1 * num_bits);
- 		le16_add_cpu(&group->bg_free_bits_count, -1 * num_bits);
-+		group->bg_contig_free_bits = old_bg_contig_free_bits;
- 	}
- out:
- 	if (ret)
---- a/fs/ocfs2/suballoc.c~ocfs2-improve-write-io-performance-when-fragmentation-is-high
-+++ a/fs/ocfs2/suballoc.c
-@@ -50,6 +50,10 @@ struct ocfs2_suballoc_result {
- 	u64		sr_blkno;	/* The first allocated block */
- 	unsigned int	sr_bit_offset;	/* The bit in the bg */
- 	unsigned int	sr_bits;	/* How many bits we claimed */
-+	unsigned int	sr_max_contig_bits; /* The length for contiguous
-+					     * free bits, only available
-+					     * for cluster group
-+					     */
- };
- 
- static u64 ocfs2_group_from_res(struct ocfs2_suballoc_result *res)
-@@ -1272,6 +1276,26 @@ static int ocfs2_test_bg_bit_allocatable
- 	return ret;
+--- a/fs/ocfs2/localalloc.c~ocfs2-adjust-enabling-place-for-la-window
++++ a/fs/ocfs2/localalloc.c
+@@ -212,14 +212,15 @@ static inline int ocfs2_la_state_enabled
+ void ocfs2_local_alloc_seen_free_bits(struct ocfs2_super *osb,
+ 				      unsigned int num_clusters)
+ {
+-	spin_lock(&osb->osb_lock);
+-	if (osb->local_alloc_state == OCFS2_LA_DISABLED ||
+-	    osb->local_alloc_state == OCFS2_LA_THROTTLED)
+-		if (num_clusters >= osb->local_alloc_default_bits) {
++	if (num_clusters >= osb->local_alloc_default_bits) {
++		spin_lock(&osb->osb_lock);
++		if (osb->local_alloc_state == OCFS2_LA_DISABLED ||
++		    osb->local_alloc_state == OCFS2_LA_THROTTLED) {
+ 			cancel_delayed_work(&osb->la_enable_wq);
+ 			osb->local_alloc_state = OCFS2_LA_ENABLED;
+ 		}
+-	spin_unlock(&osb->osb_lock);
++		spin_unlock(&osb->osb_lock);
++	}
  }
  
-+u16 ocfs2_find_max_contig_free_bits(void *bitmap,
-+			 u16 total_bits, u16 start)
-+{
-+	u16 offset, free_bits;
-+	u16 contig_bits = 0;
-+
-+	while (start < total_bits) {
-+		offset = ocfs2_find_next_zero_bit(bitmap, total_bits, start);
-+		if (offset == total_bits)
-+			break;
-+
-+		start = ocfs2_find_next_bit(bitmap, total_bits, offset);
-+		free_bits = start - offset;
-+		if (contig_bits < free_bits)
-+			contig_bits = free_bits;
-+	}
-+
-+	return contig_bits;
-+}
-+
- static int ocfs2_block_group_find_clear_bits(struct ocfs2_super *osb,
- 					     struct buffer_head *bg_bh,
- 					     unsigned int bits_wanted,
-@@ -1280,6 +1304,7 @@ static int ocfs2_block_group_find_clear_
- {
- 	void *bitmap;
- 	u16 best_offset, best_size;
-+	u16 prev_best_size = 0;
- 	int offset, start, found, status = 0;
- 	struct ocfs2_group_desc *bg = (struct ocfs2_group_desc *) bg_bh->b_data;
- 
-@@ -1306,6 +1331,7 @@ static int ocfs2_block_group_find_clear_
- 			/* got a zero after some ones */
- 			found = 1;
- 			start = offset + 1;
-+			prev_best_size = best_size;
- 		}
- 		if (found > best_size) {
- 			best_size = found;
-@@ -1318,6 +1344,8 @@ static int ocfs2_block_group_find_clear_
- 		}
- 	}
- 
-+	/* best_size will be allocated, we save prev_best_size */
-+	res->sr_max_contig_bits = prev_best_size;
- 	if (best_size) {
- 		res->sr_bit_offset = best_offset;
- 		res->sr_bits = best_size;
-@@ -1335,11 +1363,15 @@ int ocfs2_block_group_set_bits(handle_t
- 					     struct ocfs2_group_desc *bg,
- 					     struct buffer_head *group_bh,
- 					     unsigned int bit_off,
--					     unsigned int num_bits)
-+					     unsigned int num_bits,
-+					     unsigned int max_contig_bits,
-+					     int fastpath)
- {
- 	int status;
- 	void *bitmap = bg->bg_bitmap;
+ void ocfs2_la_enable_worker(struct work_struct *work)
+--- a/fs/ocfs2/suballoc.c~ocfs2-adjust-enabling-place-for-la-window
++++ a/fs/ocfs2/suballoc.c
+@@ -1372,6 +1372,7 @@ int ocfs2_block_group_set_bits(handle_t
  	int journal_type = OCFS2_JOURNAL_ACCESS_WRITE;
-+	unsigned int start = bit_off + num_bits;
-+	u16 contig_bits;
+ 	unsigned int start = bit_off + num_bits;
+ 	u16 contig_bits;
++	struct ocfs2_super *osb = OCFS2_SB(alloc_inode->i_sb);
  
  	/* All callers get the descriptor via
  	 * ocfs2_read_group_descriptor().  Any corruption is a code bug. */
-@@ -1371,6 +1403,28 @@ int ocfs2_block_group_set_bits(handle_t
- 	while(num_bits--)
- 		ocfs2_set_bit(bit_off++, bitmap);
- 
-+	/*
-+	 * this is optimize path, caller set old contig value
-+	 * in max_contig_bits to bypass finding action.
-+	 */
-+	if (fastpath) {
-+		bg->bg_contig_free_bits = cpu_to_le16(max_contig_bits);
-+	} else if (ocfs2_is_cluster_bitmap(alloc_inode)) {
-+		/*
-+		 * Usually, the block group bitmap allocates only 1 bit
-+		 * at a time, while the cluster group allocates n bits
-+		 * each time. Therefore, we only save the contig bits for
-+		 * the cluster group.
-+		 */
-+		contig_bits = ocfs2_find_max_contig_free_bits(bitmap,
-+				    le16_to_cpu(bg->bg_bits), start);
-+		if (contig_bits > max_contig_bits)
-+			max_contig_bits = contig_bits;
-+		bg->bg_contig_free_bits = cpu_to_le16(max_contig_bits);
-+	} else {
-+		bg->bg_contig_free_bits = 0;
-+	}
-+
- 	ocfs2_journal_dirty(handle, group_bh);
- 
- bail:
-@@ -1484,7 +1538,12 @@ static int ocfs2_cluster_group_search(st
- 
- 	BUG_ON(!ocfs2_is_cluster_bitmap(inode));
- 
--	if (gd->bg_free_bits_count) {
-+	if (le16_to_cpu(gd->bg_contig_free_bits) &&
-+	    le16_to_cpu(gd->bg_contig_free_bits) < bits_wanted)
-+		return -ENOSPC;
-+
-+	/* ->bg_contig_free_bits may un-initialized, so compare again */
-+	if (le16_to_cpu(gd->bg_free_bits_count) >= bits_wanted) {
- 		max_bits = le16_to_cpu(gd->bg_bits);
- 
- 		/* Tail groups in cluster bitmaps which aren't cpg
-@@ -1553,7 +1612,7 @@ static int ocfs2_block_group_search(stru
- 	BUG_ON(min_bits != 1);
- 	BUG_ON(ocfs2_is_cluster_bitmap(inode));
- 
--	if (bg->bg_free_bits_count) {
-+	if (le16_to_cpu(bg->bg_free_bits_count) >= bits_wanted) {
- 		ret = ocfs2_block_group_find_clear_bits(OCFS2_SB(inode->i_sb),
- 							group_bh, bits_wanted,
- 							le16_to_cpu(bg->bg_bits),
-@@ -1713,7 +1772,8 @@ static int ocfs2_search_one_group(struct
+@@ -1421,6 +1422,7 @@ int ocfs2_block_group_set_bits(handle_t
+ 		if (contig_bits > max_contig_bits)
+ 			max_contig_bits = contig_bits;
+ 		bg->bg_contig_free_bits = cpu_to_le16(max_contig_bits);
++		ocfs2_local_alloc_seen_free_bits(osb, max_contig_bits);
+ 	} else {
+ 		bg->bg_contig_free_bits = 0;
+ 	}
+@@ -1587,13 +1589,6 @@ static int ocfs2_cluster_group_search(st
+ 		 * of bits. */
+ 		if (min_bits <= res->sr_bits)
+ 			search = 0; /* success */
+-		else if (res->sr_bits) {
+-			/*
+-			 * Don't show bits which we'll be returning
+-			 * for allocation to the local alloc bitmap.
+-			 */
+-			ocfs2_local_alloc_seen_free_bits(osb, res->sr_bits);
+-		}
  	}
  
- 	ret = ocfs2_block_group_set_bits(handle, alloc_inode, gd, group_bh,
--					 res->sr_bit_offset, res->sr_bits);
-+					 res->sr_bit_offset, res->sr_bits,
-+					 res->sr_max_contig_bits, 0);
- 	if (ret < 0) {
- 		ocfs2_rollback_alloc_dinode_counts(alloc_inode, ac->ac_bh,
- 					       res->sr_bits,
-@@ -1847,7 +1907,9 @@ static int ocfs2_search_chain(struct ocf
- 					    bg,
- 					    group_bh,
- 					    res->sr_bit_offset,
--					    res->sr_bits);
-+					    res->sr_bits,
-+					    res->sr_max_contig_bits,
-+					    0);
- 	if (status < 0) {
- 		ocfs2_rollback_alloc_dinode_counts(alloc_inode,
- 					ac->ac_bh, res->sr_bits, chain);
-@@ -2161,7 +2223,9 @@ int ocfs2_claim_new_inode_at_loc(handle_
- 					 bg,
- 					 bg_bh,
- 					 res->sr_bit_offset,
--					 res->sr_bits);
-+					 res->sr_bits,
-+					 res->sr_max_contig_bits,
-+					 0);
- 	if (ret < 0) {
- 		ocfs2_rollback_alloc_dinode_counts(ac->ac_inode,
- 					       ac->ac_bh, res->sr_bits, chain);
-@@ -2380,11 +2444,13 @@ static int ocfs2_block_group_clear_bits(
- 					struct buffer_head *group_bh,
- 					unsigned int bit_off,
- 					unsigned int num_bits,
-+					unsigned int max_contig_bits,
- 					void (*undo_fn)(unsigned int bit,
- 							unsigned long *bmap))
- {
- 	int status;
- 	unsigned int tmp;
-+	u16 contig_bits;
- 	struct ocfs2_group_desc *undo_bg = NULL;
- 	struct journal_head *jh;
- 
-@@ -2431,6 +2497,20 @@ static int ocfs2_block_group_clear_bits(
- 				   num_bits);
- 	}
- 
-+	/*
-+	 * TODO: even 'num_bits == 1' (the worst case, release 1 cluster),
-+	 * we still need to rescan whole bitmap.
-+	 */
-+	if (ocfs2_is_cluster_bitmap(alloc_inode)) {
-+		contig_bits = ocfs2_find_max_contig_free_bits(bg->bg_bitmap,
-+				    le16_to_cpu(bg->bg_bits), 0);
-+		if (contig_bits > max_contig_bits)
-+			max_contig_bits = contig_bits;
-+		bg->bg_contig_free_bits = cpu_to_le16(max_contig_bits);
-+	} else {
-+		bg->bg_contig_free_bits = 0;
-+	}
-+
- 	if (undo_fn)
- 		spin_unlock(&jh->b_state_lock);
- 
-@@ -2457,6 +2537,7 @@ static int _ocfs2_free_suballoc_bits(han
- 	struct ocfs2_chain_list *cl = &fe->id2.i_chain;
- 	struct buffer_head *group_bh = NULL;
- 	struct ocfs2_group_desc *group;
-+	__le16 old_bg_contig_free_bits = 0;
- 
- 	/* The alloc_bh comes from ocfs2_free_dinode() or
- 	 * ocfs2_free_clusters().  The callers have all locked the
-@@ -2481,9 +2562,11 @@ static int _ocfs2_free_suballoc_bits(han
- 
- 	BUG_ON((count + start_bit) > le16_to_cpu(group->bg_bits));
- 
-+	if (ocfs2_is_cluster_bitmap(alloc_inode))
-+		old_bg_contig_free_bits = group->bg_contig_free_bits;
- 	status = ocfs2_block_group_clear_bits(handle, alloc_inode,
- 					      group, group_bh,
--					      start_bit, count, undo_fn);
-+					      start_bit, count, 0, undo_fn);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto bail;
-@@ -2494,7 +2577,8 @@ static int _ocfs2_free_suballoc_bits(han
- 	if (status < 0) {
- 		mlog_errno(status);
- 		ocfs2_block_group_set_bits(handle, alloc_inode, group, group_bh,
--				start_bit, count);
-+				start_bit, count,
-+				le16_to_cpu(old_bg_contig_free_bits), 1);
- 		goto bail;
- 	}
- 
---- a/fs/ocfs2/suballoc.h~ocfs2-improve-write-io-performance-when-fragmentation-is-high
-+++ a/fs/ocfs2/suballoc.h
-@@ -79,12 +79,16 @@ void ocfs2_rollback_alloc_dinode_counts(
- 			 struct buffer_head *di_bh,
- 			 u32 num_bits,
- 			 u16 chain);
-+u16 ocfs2_find_max_contig_free_bits(void *bitmap,
-+			 u16 total_bits, u16 start);
- int ocfs2_block_group_set_bits(handle_t *handle,
- 			 struct inode *alloc_inode,
- 			 struct ocfs2_group_desc *bg,
- 			 struct buffer_head *group_bh,
- 			 unsigned int bit_off,
--			 unsigned int num_bits);
-+			 unsigned int num_bits,
-+			 unsigned int max_contig_bits,
-+			 int fastpath);
- 
- int ocfs2_claim_metadata(handle_t *handle,
- 			 struct ocfs2_alloc_context *ac,
+ 	return search;
 _
 
 Patches currently in -mm which might be from heming.zhao@suse.com are
