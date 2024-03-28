@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 641D8130A54
-	for <mm-commits@vger.kernel.org>; Thu, 28 Mar 2024 19:16:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C68541757
+	for <mm-commits@vger.kernel.org>; Thu, 28 Mar 2024 19:39:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711653377; cv=none; b=rZysgoKHU4elJEAZ5RDFA16bqXZYdmzSyBUZZoK24g5Peou7mXjBN6dAmcxx9mdljRxOQuqADwB+xX5Qd9RwxpKsgwVuTZBVxp/op1Ac1t+xY/DbX5fTOtkuj5w0xnESlW2jEH/Z76G8a/q8Vv01p/YKZ/l9Gp/HtdStIub2JRI=
+	t=1711654789; cv=none; b=FaK3ykrPF88X3ZhY7EEcTSxQarqLfu9VHoNl710JsKx96sbSMwGZNDSV5rNwGusSNGoZoqQlHZOKLqK187wahqAJdy5X4Ah6/GOtLFN3ujQxU2nf66uFck1voQlGiPkAzjMBQW4GTLsLProqyElnG4IXmCjGDlgGmxnMKXQuVDo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711653377; c=relaxed/simple;
-	bh=mUYCliiVk6zwz8hsMO+FSKBCSUwBez4kdTwC6PCR4gI=;
-	h=Date:To:From:Subject:Message-Id; b=B8KutYHPKXGNLJXx+gfnlwacILmxScH7KbYrpzn0qMEapV0aFwyw+5hLh/a3+L4Ojqwyew0odnzedXPt3lpJpa3yKjCtba7i652HFxZaSuOuw4S0LgIlkdXacpU+Aoe1bSDTHK7J2XNmz1wtM7Z+YtzepjsBXzJ4u7RryAcCyX0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D+/HtE2t; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711654789; c=relaxed/simple;
+	bh=cy6wjxhU+g3J0XtvfFaWTwAMwhEflwR1jHjHMbcjrdg=;
+	h=Date:To:From:Subject:Message-Id; b=foGb5Te6e0ioXpVH7ue9PIfbd8S59xCtFrOOPRvHLMJ8gohEypUmIGBePFJ6BMRWvyfL4yLnI1zEycY8+CBGLvhWrBxPlSm42BxKQYGVTFcM6zRNXdCoBBbb5GDH60UvWvR4ZEVrTB1Gr6LrL3tzq5jrsx6Uu3WwUqRWLJnqiXk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TdD2G0Lx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D+/HtE2t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9459C433F1;
-	Thu, 28 Mar 2024 19:16:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TdD2G0Lx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F6E0C43390;
+	Thu, 28 Mar 2024 19:39:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711653376;
-	bh=mUYCliiVk6zwz8hsMO+FSKBCSUwBez4kdTwC6PCR4gI=;
+	s=korg; t=1711654788;
+	bh=cy6wjxhU+g3J0XtvfFaWTwAMwhEflwR1jHjHMbcjrdg=;
 	h=Date:To:From:Subject:From;
-	b=D+/HtE2tMZq7IQn5vcvjNJQMcHVqRbehxynB9WZm5hm5PZvaV90lJhdFrdvoHUUbN
-	 7IgiKZin+indwiw4W+9ZzRnTAQtGSwnLFLEDpxnfWx60O7RkYLwPbNTpl5zKSpAxhJ
-	 R/MhgwC6LKHOJxlJDpfQV1rEK7ex+cEtaOIAYxWY=
-Date: Thu, 28 Mar 2024 12:16:16 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,heming.zhao@suse.com,akpm@linux-foundation.org
+	b=TdD2G0LxLz0TQpljEevanPtUqNVQhOnykNPQS9XfgLbPKG1Q3UaD4Xn2hvGI2eFgk
+	 G9pSAqWeiAbWAU0riIiW+/vzVDGpLg4fquKmmW7lFYl5djNlesfl24TA/YSRzzTq6w
+	 oRDU5+MWaslYliCusq2FYL3nBNMU9Q3p9g5X5NNQ=
+Date: Thu, 28 Mar 2024 12:39:48 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sfr@canb.auug.org.au,kent.overstreet@linux.dev,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-sparse-warnings.patch added to mm-nonmm-unstable branch
-Message-Id: <20240328191616.C9459C433F1@smtp.kernel.org>
+Subject: + mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix-2.patch added to mm-unstable branch
+Message-Id: <20240328193948.9F6E0C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix sparse warnings
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-sparse-warnings.patch
+     Subject: mm/slab: fix kcalloc() kernel-doc warnings
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-sparse-warnings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix-2.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,180 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Heming Zhao <heming.zhao@suse.com>
-Subject: ocfs2: fix sparse warnings
-Date: Thu, 28 Mar 2024 20:52:03 +0800
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm/slab: fix kcalloc() kernel-doc warnings
+Date: Tue, 26 Mar 2024 21:46:49 -0700
 
-1.
-fs/ocfs2/localalloc.c:1224:41: warning: incorrect type in argument 1 (different base types)
-fs/ocfs2/localalloc.c:1224:41:    expected unsigned long long val1
-fs/ocfs2/localalloc.c:1224:41:    got restricted __le32 [usertype] la_bm_off
+Fix the parameter names for kcalloc() in slab.h to prevent kernel-doc
+warnings:
 
-2.
-fs/ocfs2/export.c:258:32: warning: cast to restricted __le32
-fs/ocfs2/export.c:259:33: warning: cast to restricted __le32
-fs/ocfs2/export.c:260:32: warning: cast to restricted __le32
-fs/ocfs2/export.c:272:32: warning: cast to restricted __le32
-fs/ocfs2/export.c:273:33: warning: cast to restricted __le32
-fs/ocfs2/export.c:274:32: warning: cast to restricted __le32
+include/linux/slab.h:730: warning: Function parameter or struct member '_n' not described in 'kcalloc'
+include/linux/slab.h:730: warning: Function parameter or struct member '_size' not described in 'kcalloc'
+include/linux/slab.h:730: warning: Function parameter or struct member '_flags' not described in 'kcalloc'
+include/linux/slab.h:730: warning: Excess function parameter 'n' description in 'kcalloc'
+include/linux/slab.h:730: warning: Excess function parameter 'size' description in 'kcalloc'
+include/linux/slab.h:730: warning: Excess function parameter 'flags' description in 'kcalloc'
 
-3.
-fs/ocfs2/inode.c:1623:13: warning: context imbalance in 'ocfs2_inode_cache_lock' - wrong count at exit
-fs/ocfs2/inode.c:1630:13: warning: context imbalance in 'ocfs2_inode_cache_unlock' - unexpected unlock
-
-4.
-fs/ocfs2/refcounttree.c:633:27: warning: incorrect type in assignment (different base types)
-fs/ocfs2/refcounttree.c:633:27:    expected restricted __le32 [usertype] rf_generation
-fs/ocfs2/refcounttree.c:633:27:    got unsigned int
-
-5.
-fs/ocfs2/dlm/dlmdomain.c:1316:20: warning: context imbalance in 'dlm_query_nodeinfo_handler' - different lock contexts for basic block
-
-Link: https://lkml.kernel.org/r/20240328125203.20892-5-heming.zhao@suse.com
-Signed-off-by: Heming Zhao <heming.zhao@suse.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
+Link: https://lkml.kernel.org/r/20240327044649.9199-1-rdunlap@infradead.org
+Fixes: bc7b83f5e4bf ("mm/slab: enable slab allocation tagging for kmalloc and friends")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lore.kernel.org/linux-next/20240325123603.1bdd6588@canb.auug.org.au/
+Tested-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmdomain.c |   11 +++++------
- fs/ocfs2/export.c        |   12 ++++++------
- fs/ocfs2/inode.c         |    2 ++
- fs/ocfs2/localalloc.c    |    4 ++--
- fs/ocfs2/refcounttree.c  |    2 +-
- 5 files changed, 16 insertions(+), 15 deletions(-)
+ include/linux/slab.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-fix-sparse-warnings
-+++ a/fs/ocfs2/dlm/dlmdomain.c
-@@ -1274,7 +1274,7 @@ static int dlm_query_nodeinfo_handler(st
- {
- 	struct dlm_query_nodeinfo *qn;
- 	struct dlm_ctxt *dlm = NULL;
--	int locked = 0, status = -EINVAL;
-+	int status = -EINVAL;
+--- a/include/linux/slab.h~mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix-2
++++ a/include/linux/slab.h
+@@ -727,7 +727,7 @@ static inline __realloc_size(2, 3) void
+  * @size: element size.
+  * @flags: the type of memory to allocate (see kmalloc).
+  */
+-#define kcalloc(_n, _size, _flags)		kmalloc_array(_n, _size, (_flags) | __GFP_ZERO)
++#define kcalloc(n, size, flags)		kmalloc_array(n, size, (flags) | __GFP_ZERO)
  
- 	qn = (struct dlm_query_nodeinfo *) msg->buf;
- 
-@@ -1290,12 +1290,11 @@ static int dlm_query_nodeinfo_handler(st
- 	}
- 
- 	spin_lock(&dlm->spinlock);
--	locked = 1;
- 	if (dlm->joining_node != qn->qn_nodenum) {
- 		mlog(ML_ERROR, "Node %d queried nodes on domain %s but "
- 		     "joining node is %d\n", qn->qn_nodenum, qn->qn_domain,
- 		     dlm->joining_node);
--		goto bail;
-+		goto unlock;
- 	}
- 
- 	/* Support for node query was added in 1.1 */
-@@ -1305,14 +1304,14 @@ static int dlm_query_nodeinfo_handler(st
- 		     "but active dlm protocol is %d.%d\n", qn->qn_nodenum,
- 		     qn->qn_domain, dlm->dlm_locking_proto.pv_major,
- 		     dlm->dlm_locking_proto.pv_minor);
--		goto bail;
-+		goto unlock;
- 	}
- 
- 	status = dlm_match_nodes(dlm, qn);
- 
-+unlock:
-+	spin_unlock(&dlm->spinlock);
- bail:
--	if (locked)
--		spin_unlock(&dlm->spinlock);
- 	spin_unlock(&dlm_domain_lock);
- 
- 	return status;
---- a/fs/ocfs2/export.c~ocfs2-fix-sparse-warnings
-+++ a/fs/ocfs2/export.c
-@@ -255,9 +255,9 @@ static struct dentry *ocfs2_fh_to_dentry
- 	if (fh_len < 3 || fh_type > 2)
- 		return NULL;
- 
--	handle.ih_blkno = (u64)le32_to_cpu(fid->raw[0]) << 32;
--	handle.ih_blkno |= (u64)le32_to_cpu(fid->raw[1]);
--	handle.ih_generation = le32_to_cpu(fid->raw[2]);
-+	handle.ih_blkno = (u64)le32_to_cpu((__force __le32)fid->raw[0]) << 32;
-+	handle.ih_blkno |= (u64)le32_to_cpu((__force __le32)fid->raw[1]);
-+	handle.ih_generation = le32_to_cpu((__force __le32)fid->raw[2]);
- 	return ocfs2_get_dentry(sb, &handle);
- }
- 
-@@ -269,9 +269,9 @@ static struct dentry *ocfs2_fh_to_parent
- 	if (fh_type != 2 || fh_len < 6)
- 		return NULL;
- 
--	parent.ih_blkno = (u64)le32_to_cpu(fid->raw[3]) << 32;
--	parent.ih_blkno |= (u64)le32_to_cpu(fid->raw[4]);
--	parent.ih_generation = le32_to_cpu(fid->raw[5]);
-+	parent.ih_blkno = (u64)le32_to_cpu((__force __le32)fid->raw[3]) << 32;
-+	parent.ih_blkno |= (u64)le32_to_cpu((__force __le32)fid->raw[4]);
-+	parent.ih_generation = le32_to_cpu((__force __le32)fid->raw[5]);
- 	return ocfs2_get_dentry(sb, &parent);
- }
- 
---- a/fs/ocfs2/inode.c~ocfs2-fix-sparse-warnings
-+++ a/fs/ocfs2/inode.c
-@@ -1621,6 +1621,7 @@ static struct super_block *ocfs2_inode_c
- }
- 
- static void ocfs2_inode_cache_lock(struct ocfs2_caching_info *ci)
-+__acquires(&oi->ip_lock)
- {
- 	struct ocfs2_inode_info *oi = cache_info_to_inode(ci);
- 
-@@ -1628,6 +1629,7 @@ static void ocfs2_inode_cache_lock(struc
- }
- 
- static void ocfs2_inode_cache_unlock(struct ocfs2_caching_info *ci)
-+__releases(&oi->ip_lock)
- {
- 	struct ocfs2_inode_info *oi = cache_info_to_inode(ci);
- 
---- a/fs/ocfs2/localalloc.c~ocfs2-fix-sparse-warnings
-+++ a/fs/ocfs2/localalloc.c
-@@ -336,7 +336,7 @@ int ocfs2_load_local_alloc(struct ocfs2_
- 		     "found = %u, set = %u, taken = %u, off = %u\n",
- 		     num_used, le32_to_cpu(alloc->id1.bitmap1.i_used),
- 		     le32_to_cpu(alloc->id1.bitmap1.i_total),
--		     OCFS2_LOCAL_ALLOC(alloc)->la_bm_off);
-+		     le32_to_cpu(OCFS2_LOCAL_ALLOC(alloc)->la_bm_off));
- 
- 		status = -EINVAL;
- 		goto bail;
-@@ -1214,7 +1214,7 @@ retry_enospc:
- 			     OCFS2_LOCAL_ALLOC(alloc)->la_bitmap);
- 
- 	trace_ocfs2_local_alloc_new_window_result(
--		OCFS2_LOCAL_ALLOC(alloc)->la_bm_off,
-+		le32_to_cpu(OCFS2_LOCAL_ALLOC(alloc)->la_bm_off),
- 		le32_to_cpu(alloc->id1.bitmap1.i_total));
- 
- bail:
---- a/fs/ocfs2/refcounttree.c~ocfs2-fix-sparse-warnings
-+++ a/fs/ocfs2/refcounttree.c
-@@ -630,7 +630,7 @@ static int ocfs2_create_refcount_tree(st
- 	rb->rf_records.rl_count =
- 			cpu_to_le16(ocfs2_refcount_recs_per_rb(osb->sb));
- 	spin_lock(&osb->osb_lock);
--	rb->rf_generation = osb->s_next_generation++;
-+	rb->rf_generation = cpu_to_le32(osb->s_next_generation++);
- 	spin_unlock(&osb->osb_lock);
- 
- 	ocfs2_journal_dirty(handle, new_bh);
+ void *kmalloc_node_track_caller_noprof(size_t size, gfp_t flags, int node,
+ 				  unsigned long caller) __alloc_size(1);
 _
 
-Patches currently in -mm which might be from heming.zhao@suse.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-ocfs2-improve-write-io-performance-when-fragmentation-is-high.patch
-ocfs2-adjust-enabling-place-for-la-window.patch
-ocfs2-speed-up-chain-list-searching.patch
-ocfs2-fix-sparse-warnings.patch
+scripts-kernel-doc-drop-_noprof-on-function-prototypes.patch
+mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix-2.patch
 
