@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 247704C90
-	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 03:31:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D480320D
+	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 03:33:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711769480; cv=none; b=qvU/LNhenO4tWG35H02D/D3hdVyZPq6utGat1brz25Gu83JDLVvhJjDWS+hHNolaPMZD0nH1ZUfnZrfQ9Ng0EIFQ6pE/TlM1xYi1W/C+ZdhnLS2+pGleXQuzD5XoEJBqwIoQeFmuApt9Dl7o6YgdE23mQo2SkFudyQQ1DaQ+1L8=
+	t=1711769611; cv=none; b=Dc2yKL0w2chaRyDk+9A4UTqdzb3+MEaEfwBtR5QVMxoPj9HIvR7m+GlT5tE35FSb6eCB4TlIfqCPtqHK1gIqtuR2AiJhLJWuViOK6GN7N+Ii0n9CoXC6SaRJmXIAyFiKQ+k6ZJF8htQak8CjCRHEpwhpYpnKW2Bewjf6sEVeSRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711769480; c=relaxed/simple;
-	bh=ou5EBLgGUO2rDDJSUkUP4+DpT0EIcufKxdSSNcseOIM=;
-	h=Date:To:From:Subject:Message-Id; b=ZMFt4fyFQcAf9LSDjpHoUUOz6FttVjRDpUzD6pYjueIu5ayM2/RO4I3IK+JrQPlQjEix+z+JvThRNDmut73H6AtCS2Rox8OLEiOZ+R3Dk+BJyxIaQxluQmafQXgmWuflFokC0i66wA/e+PAV/bUDfNIm2tO+3pzxMnOuupJaCj0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a9IcT3Aa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711769611; c=relaxed/simple;
+	bh=eoCrckscNSCbACOD6caWClbq8OLuLmm2Ioz4HdpF2jw=;
+	h=Date:To:From:Subject:Message-Id; b=K16f4DuYOP5XECibj7BnuL1B9vDUKLTLyCdyQ+LWzHMF81pdhvWovc6HqZAHJv67VOV4rKFjy7/SNfMiFozqwaQhyUnZG2JHd7l5UHDh49O0O7iTTD+oYcrJxLO26fPmN+nVDroDWKFpNMnbpBptG5umI9prTEogaKdIr8xzBDk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PoD3b6KD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a9IcT3Aa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C819C433C7;
-	Sat, 30 Mar 2024 03:31:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PoD3b6KD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DD88C433C7;
+	Sat, 30 Mar 2024 03:33:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711769479;
-	bh=ou5EBLgGUO2rDDJSUkUP4+DpT0EIcufKxdSSNcseOIM=;
+	s=korg; t=1711769611;
+	bh=eoCrckscNSCbACOD6caWClbq8OLuLmm2Ioz4HdpF2jw=;
 	h=Date:To:From:Subject:From;
-	b=a9IcT3AazYKdke0Tm2MTfrvkRPueUE0BdajHIz2wGUmkiYKo9izsuTQuX0rP582Od
-	 x9kJKEMyPpN3+GrTVmVdf5uRbhaXsqKx3UqbghrV9HHwpy7f0XETF1+Mk0LRiw7npo
-	 kRZhVEPskhqzqUS5kNGyYWRlWfwW/7knUrA893HU=
-Date: Fri, 29 Mar 2024 20:31:19 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,palmer@rivosinc.com,nicolas@fjasle.eu,nathan@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,masahiroy@kernel.org,linux@armlinux.org.uk,hch@lst.de,git@xen0n.name,dave.hansen@linux.intel.com,corbet@lwn.net,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,alexander.deucher@amd.com,samuel.holland@sifive.com,akpm@linux-foundation.org
+	b=PoD3b6KDadn7hUfXqjgLOOubuxrGH9l/EYJvsOa0gJWiCSfE+5vOjMqeEloGGVIYX
+	 Psq0LF0Fs/XscM2nvhihk37A3+tz2o58yGr1OPshR65nc/6SsPpZMipfq+mHH0aZp0
+	 kGSrfPQiJoNHZkKkzHpLWSb39qk6GS+0om2Td9bg=
+Date: Fri, 29 Mar 2024 20:33:30 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,mgorman@techsingularity.net,jhubbard@nvidia.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-fpu-allow-building-on-other-architectures.patch added to mm-nonmm-unstable branch
-Message-Id: <20240330033119.9C819C433C7@smtp.kernel.org>
+Subject: + mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch added to mm-unstable branch
+Message-Id: <20240330033331.0DD88C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/fpu: allow building on other architectures
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-fpu-allow-building-on-other-architectures.patch
+     Subject: mm: factor out the numa mapping rebuilding into a new helper
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-fpu-allow-building-on-other-architectures.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,124 +58,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Samuel Holland <samuel.holland@sifive.com>
-Subject: selftests/fpu: allow building on other architectures
-Date: Fri, 29 Mar 2024 00:18:30 -0700
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: factor out the numa mapping rebuilding into a new helper
+Date: Fri, 29 Mar 2024 14:56:45 +0800
 
-Now that ARCH_HAS_KERNEL_FPU_SUPPORT provides a common way to compile and
-run floating-point code, this test is no longer x86-specific.
+Patch series "support multi-size THP numa balancing", v2.
 
-Link: https://lkml.kernel.org/r/20240329072441.591471-16-samuel.holland@sifive.com
-Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nicolas Schier <nicolas@fjasle.eu>
-Cc: Palmer Dabbelt <palmer@rivosinc.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: WANG Xuerui <git@xen0n.name>
-Cc: Will Deacon <will@kernel.org>
+This patchset tries to support mTHP numa balancing, as a simple solution
+to start, the NUMA balancing algorithm for mTHP will follow the THP
+strategy as the basic support.  Please find details in each patch.
+
+
+This patch (of 2):
+
+To support large folio's numa balancing, factor out the numa mapping
+rebuilding into a new helper as a preparation.
+
+Link: https://lkml.kernel.org/r/cover.1711683069.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/8bc2586bdd8dbbe6d83c09b77b360ec8fcac3736.1711683069.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug   |    2 +-
- lib/Makefile        |   25 ++-----------------------
- lib/test_fpu_glue.c |    5 ++++-
- 3 files changed, 7 insertions(+), 25 deletions(-)
+ mm/memory.c |   22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
---- a/lib/Kconfig.debug~selftests-fpu-allow-building-on-other-architectures
-+++ a/lib/Kconfig.debug
-@@ -2921,7 +2921,7 @@ config TEST_FREE_PAGES
+--- a/mm/memory.c~mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper
++++ a/mm/memory.c
+@@ -5064,6 +5064,20 @@ int numa_migrate_prep(struct folio *foli
+ 	return mpol_misplaced(folio, vmf, addr);
+ }
  
- config TEST_FPU
- 	tristate "Test floating point operations in kernel space"
--	depends on X86 && !KCOV_INSTRUMENT_ALL
-+	depends on ARCH_HAS_KERNEL_FPU_SUPPORT && !KCOV_INSTRUMENT_ALL
- 	help
- 	  Enable this option to add /sys/kernel/debug/selftest_helpers/test_fpu
- 	  which will trigger a sequence of floating point operations. This is used
---- a/lib/Makefile~selftests-fpu-allow-building-on-other-architectures
-+++ a/lib/Makefile
-@@ -110,31 +110,10 @@ CFLAGS_test_fprobe.o += $(CC_FLAGS_FTRAC
- obj-$(CONFIG_FPROBE_SANITY_TEST) += test_fprobe.o
- obj-$(CONFIG_TEST_OBJPOOL) += test_objpool.o
- 
--#
--# CFLAGS for compiling floating point code inside the kernel. x86/Makefile turns
--# off the generation of FPU/SSE* instructions for kernel proper but FPU_FLAGS
--# get appended last to CFLAGS and thus override those previous compiler options.
--#
--FPU_CFLAGS := -msse -msse2
--ifdef CONFIG_CC_IS_GCC
--# Stack alignment mismatch, proceed with caution.
--# GCC < 7.1 cannot compile code using `double` and -mpreferred-stack-boundary=3
--# (8B stack alignment).
--# See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53383
--#
--# The "-msse" in the first argument is there so that the
--# -mpreferred-stack-boundary=3 build error:
--#
--#  -mpreferred-stack-boundary=3 is not between 4 and 12
--#
--# can be triggered. Otherwise gcc doesn't complain.
--FPU_CFLAGS += -mhard-float
--FPU_CFLAGS += $(call cc-option,-msse -mpreferred-stack-boundary=3,-mpreferred-stack-boundary=4)
--endif
--
- obj-$(CONFIG_TEST_FPU) += test_fpu.o
- test_fpu-y := test_fpu_glue.o test_fpu_impl.o
--CFLAGS_test_fpu_impl.o += $(FPU_CFLAGS)
-+CFLAGS_test_fpu_impl.o += $(CC_FLAGS_FPU)
-+CFLAGS_REMOVE_test_fpu_impl.o += $(CC_FLAGS_NO_FPU)
- 
- # Some KUnit files (hooks.o) need to be built-in even when KUnit is a module,
- # so we can't just use obj-$(CONFIG_KUNIT).
---- a/lib/test_fpu_glue.c~selftests-fpu-allow-building-on-other-architectures
-+++ a/lib/test_fpu_glue.c
-@@ -17,7 +17,7 @@
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/debugfs.h>
--#include <asm/fpu/api.h>
-+#include <linux/fpu.h>
- 
- #include "test_fpu.h"
- 
-@@ -38,6 +38,9 @@ static struct dentry *selftest_dir;
- 
- static int __init test_fpu_init(void)
- {
-+	if (!kernel_fpu_available())
-+		return -EINVAL;
++static void numa_rebuild_single_mapping(struct vm_fault *vmf, struct vm_area_struct *vma,
++					bool writable)
++{
++	pte_t pte, old_pte;
 +
- 	selftest_dir = debugfs_create_dir("selftest_helpers", NULL);
- 	if (!selftest_dir)
- 		return -ENOMEM;
++	old_pte = ptep_modify_prot_start(vma, vmf->address, vmf->pte);
++	pte = pte_modify(old_pte, vma->vm_page_prot);
++	pte = pte_mkyoung(pte);
++	if (writable)
++		pte = pte_mkwrite(pte, vma);
++	ptep_modify_prot_commit(vma, vmf->address, vmf->pte, old_pte, pte);
++	update_mmu_cache_range(vmf, vma, vmf->address, vmf->pte, 1);
++}
++
+ static vm_fault_t do_numa_page(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+@@ -5169,13 +5183,7 @@ out_map:
+ 	 * Make it present again, depending on how arch implements
+ 	 * non-accessible ptes, some can allow access by kernel mode.
+ 	 */
+-	old_pte = ptep_modify_prot_start(vma, vmf->address, vmf->pte);
+-	pte = pte_modify(old_pte, vma->vm_page_prot);
+-	pte = pte_mkyoung(pte);
+-	if (writable)
+-		pte = pte_mkwrite(pte, vma);
+-	ptep_modify_prot_commit(vma, vmf->address, vmf->pte, old_pte, pte);
+-	update_mmu_cache_range(vmf, vma, vmf->address, vmf->pte, 1);
++	numa_rebuild_single_mapping(vmf, vma, writable);
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	goto out;
+ }
 _
 
-Patches currently in -mm which might be from samuel.holland@sifive.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-x86-fpu-fix-asm-fpu-typesh-include-guard.patch
-arch-add-arch_has_kernel_fpu_support.patch
-arm-implement-arch_has_kernel_fpu_support.patch
-arm-crypto-use-cc_flags_fpu-for-neon-cflags.patch
-arm64-implement-arch_has_kernel_fpu_support.patch
-arm64-crypto-use-cc_flags_fpu-for-neon-cflags.patch
-lib-raid6-use-cc_flags_fpu-for-neon-cflags.patch
-loongarch-implement-arch_has_kernel_fpu_support.patch
-powerpc-implement-arch_has_kernel_fpu_support.patch
-x86-implement-arch_has_kernel_fpu_support.patch
-riscv-add-support-for-kernel-mode-fpu.patch
-drm-amd-display-use-arch_has_kernel_fpu_support.patch
-selftests-fpu-move-fp-code-to-a-separate-translation-unit.patch
-selftests-fpu-allow-building-on-other-architectures.patch
+mm-record-the-migration-reason-for-struct-migration_target_control.patch
+mm-hugetlb-make-the-hugetlb-migration-strategy-consistent.patch
+docs-hugetlbpagerst-add-hugetlb-migration-description.patch
+mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch
+mm-support-multi-size-thp-numa-balancing.patch
 
