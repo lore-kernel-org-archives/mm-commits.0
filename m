@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F16E553AC
-	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 03:31:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 247704C90
+	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 03:31:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711769475; cv=none; b=HYBWnL8A6EdtMnhsj9X4HN121DKHHyV449kiK2ThOiJoSvVS4f2S88FDAY70gP5H1rZBrUnkJT2rxqBbd0eqH6QF1gG0A/IOUYciK2hBbc1W0iaFgmbR1FCYYFe6Sk+nGui2UEgCgwz6fDFR3bBGKmtUKl+S5q1g91f9OiPI6Ro=
+	t=1711769480; cv=none; b=qvU/LNhenO4tWG35H02D/D3hdVyZPq6utGat1brz25Gu83JDLVvhJjDWS+hHNolaPMZD0nH1ZUfnZrfQ9Ng0EIFQ6pE/TlM1xYi1W/C+ZdhnLS2+pGleXQuzD5XoEJBqwIoQeFmuApt9Dl7o6YgdE23mQo2SkFudyQQ1DaQ+1L8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711769475; c=relaxed/simple;
-	bh=H0Q1GoocdxkjR94CLebGVWUzaJXiSQnm5f9rMD3qMEc=;
-	h=Date:To:From:Subject:Message-Id; b=dhvk12+l6OkUE7I9cf3tvDB40lYNAKadKNEmy555AKcmY3paBziB2yhhOQGv1STNF3S9tNUeBig/rDCpnr2vgAVyoX0K4gt2dRx4peEM9TGlESAEMP343dgFGnpxCvjEXnSyAj05BeZ9CmSFI0fXUVzTxrJqfqq4Q/g526eWXt0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=shdbtR9d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711769480; c=relaxed/simple;
+	bh=ou5EBLgGUO2rDDJSUkUP4+DpT0EIcufKxdSSNcseOIM=;
+	h=Date:To:From:Subject:Message-Id; b=ZMFt4fyFQcAf9LSDjpHoUUOz6FttVjRDpUzD6pYjueIu5ayM2/RO4I3IK+JrQPlQjEix+z+JvThRNDmut73H6AtCS2Rox8OLEiOZ+R3Dk+BJyxIaQxluQmafQXgmWuflFokC0i66wA/e+PAV/bUDfNIm2tO+3pzxMnOuupJaCj0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a9IcT3Aa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="shdbtR9d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6658C433C7;
-	Sat, 30 Mar 2024 03:31:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a9IcT3Aa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C819C433C7;
+	Sat, 30 Mar 2024 03:31:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711769474;
-	bh=H0Q1GoocdxkjR94CLebGVWUzaJXiSQnm5f9rMD3qMEc=;
+	s=korg; t=1711769479;
+	bh=ou5EBLgGUO2rDDJSUkUP4+DpT0EIcufKxdSSNcseOIM=;
 	h=Date:To:From:Subject:From;
-	b=shdbtR9dca1i8J5HdSswY+vF/kRDWxOQh3bzg9bMhZ3fTb7tMdadSF+8dOc1BDKrA
-	 Pt7NEIdRozA43LNdlvoRjHSbCUZPiJzFxJh20Lx0cD5B650xsWBW+OgrbTFWjTJAwf
-	 S1zrPN3jvP4vAK7YSKp6RYkUm49UTjPhLPYApPEc=
-Date: Fri, 29 Mar 2024 20:31:14 -0700
+	b=a9IcT3AazYKdke0Tm2MTfrvkRPueUE0BdajHIz2wGUmkiYKo9izsuTQuX0rP582Od
+	 x9kJKEMyPpN3+GrTVmVdf5uRbhaXsqKx3UqbghrV9HHwpy7f0XETF1+Mk0LRiw7npo
+	 kRZhVEPskhqzqUS5kNGyYWRlWfwW/7knUrA893HU=
+Date: Fri, 29 Mar 2024 20:31:19 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,palmer@rivosinc.com,nicolas@fjasle.eu,nathan@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,masahiroy@kernel.org,linux@armlinux.org.uk,hch@lst.de,git@xen0n.name,dave.hansen@linux.intel.com,corbet@lwn.net,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,alexander.deucher@amd.com,samuel.holland@sifive.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-fpu-move-fp-code-to-a-separate-translation-unit.patch added to mm-nonmm-unstable branch
-Message-Id: <20240330033114.B6658C433C7@smtp.kernel.org>
+Subject: + selftests-fpu-allow-building-on-other-architectures.patch added to mm-nonmm-unstable branch
+Message-Id: <20240330033119.9C819C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/fpu: move FP code to a separate translation unit
+     Subject: selftests/fpu: allow building on other architectures
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-fpu-move-fp-code-to-a-separate-translation-unit.patch
+     selftests-fpu-allow-building-on-other-architectures.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-fpu-move-fp-code-to-a-separate-translation-unit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-fpu-allow-building-on-other-architectures.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Samuel Holland <samuel.holland@sifive.com>
-Subject: selftests/fpu: move FP code to a separate translation unit
-Date: Fri, 29 Mar 2024 00:18:29 -0700
+Subject: selftests/fpu: allow building on other architectures
+Date: Fri, 29 Mar 2024 00:18:30 -0700
 
-This ensures no compiler-generated floating-point code can appear outside
-kernel_fpu_{begin,end}() sections, and some architectures enforce this
-separation.
+Now that ARCH_HAS_KERNEL_FPU_SUPPORT provides a common way to compile and
+run floating-point code, this test is no longer x86-specific.
 
-Link: https://lkml.kernel.org/r/20240329072441.591471-15-samuel.holland@sifive.com
+Link: https://lkml.kernel.org/r/20240329072441.591471-16-samuel.holland@sifive.com
 Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Alex Deucher <alexander.deucher@amd.com>
@@ -88,230 +87,79 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile        |    3 -
- lib/test_fpu.c      |   89 ------------------------------------------
- lib/test_fpu.h      |    8 +++
- lib/test_fpu_glue.c |   59 +++++++++++++++++++++++++++
- lib/test_fpu_impl.c |   37 +++++++++++++++++
- 5 files changed, 106 insertions(+), 90 deletions(-)
+ lib/Kconfig.debug   |    2 +-
+ lib/Makefile        |   25 ++-----------------------
+ lib/test_fpu_glue.c |    5 ++++-
+ 3 files changed, 7 insertions(+), 25 deletions(-)
 
---- a/lib/Makefile~selftests-fpu-move-fp-code-to-a-separate-translation-unit
-+++ a/lib/Makefile
-@@ -133,7 +133,8 @@ FPU_CFLAGS += $(call cc-option,-msse -mp
- endif
+--- a/lib/Kconfig.debug~selftests-fpu-allow-building-on-other-architectures
++++ a/lib/Kconfig.debug
+@@ -2921,7 +2921,7 @@ config TEST_FREE_PAGES
  
+ config TEST_FPU
+ 	tristate "Test floating point operations in kernel space"
+-	depends on X86 && !KCOV_INSTRUMENT_ALL
++	depends on ARCH_HAS_KERNEL_FPU_SUPPORT && !KCOV_INSTRUMENT_ALL
+ 	help
+ 	  Enable this option to add /sys/kernel/debug/selftest_helpers/test_fpu
+ 	  which will trigger a sequence of floating point operations. This is used
+--- a/lib/Makefile~selftests-fpu-allow-building-on-other-architectures
++++ a/lib/Makefile
+@@ -110,31 +110,10 @@ CFLAGS_test_fprobe.o += $(CC_FLAGS_FTRAC
+ obj-$(CONFIG_FPROBE_SANITY_TEST) += test_fprobe.o
+ obj-$(CONFIG_TEST_OBJPOOL) += test_objpool.o
+ 
+-#
+-# CFLAGS for compiling floating point code inside the kernel. x86/Makefile turns
+-# off the generation of FPU/SSE* instructions for kernel proper but FPU_FLAGS
+-# get appended last to CFLAGS and thus override those previous compiler options.
+-#
+-FPU_CFLAGS := -msse -msse2
+-ifdef CONFIG_CC_IS_GCC
+-# Stack alignment mismatch, proceed with caution.
+-# GCC < 7.1 cannot compile code using `double` and -mpreferred-stack-boundary=3
+-# (8B stack alignment).
+-# See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53383
+-#
+-# The "-msse" in the first argument is there so that the
+-# -mpreferred-stack-boundary=3 build error:
+-#
+-#  -mpreferred-stack-boundary=3 is not between 4 and 12
+-#
+-# can be triggered. Otherwise gcc doesn't complain.
+-FPU_CFLAGS += -mhard-float
+-FPU_CFLAGS += $(call cc-option,-msse -mpreferred-stack-boundary=3,-mpreferred-stack-boundary=4)
+-endif
+-
  obj-$(CONFIG_TEST_FPU) += test_fpu.o
--CFLAGS_test_fpu.o += $(FPU_CFLAGS)
-+test_fpu-y := test_fpu_glue.o test_fpu_impl.o
-+CFLAGS_test_fpu_impl.o += $(FPU_CFLAGS)
+ test_fpu-y := test_fpu_glue.o test_fpu_impl.o
+-CFLAGS_test_fpu_impl.o += $(FPU_CFLAGS)
++CFLAGS_test_fpu_impl.o += $(CC_FLAGS_FPU)
++CFLAGS_REMOVE_test_fpu_impl.o += $(CC_FLAGS_NO_FPU)
  
  # Some KUnit files (hooks.o) need to be built-in even when KUnit is a module,
  # so we can't just use obj-$(CONFIG_KUNIT).
---- a/lib/test_fpu.c
-+++ /dev/null
-@@ -1,89 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0+
--/*
-- * Test cases for using floating point operations inside a kernel module.
-- *
-- * This tests kernel_fpu_begin() and kernel_fpu_end() functions, especially
-- * when userland has modified the floating point control registers. The kernel
-- * state might depend on the state set by the userland thread that was active
-- * before a syscall.
-- *
-- * To facilitate the test, this module registers file
-- * /sys/kernel/debug/selftest_helpers/test_fpu, which when read causes a
-- * sequence of floating point operations. If the operations fail, either the
-- * read returns error status or the kernel crashes.
-- * If the operations succeed, the read returns "1\n".
-- */
--
--#include <linux/module.h>
--#include <linux/kernel.h>
--#include <linux/debugfs.h>
--#include <asm/fpu/api.h>
--
--static int test_fpu(void)
--{
--	/*
--	 * This sequence of operations tests that rounding mode is
--	 * to nearest and that denormal numbers are supported.
--	 * Volatile variables are used to avoid compiler optimizing
--	 * the calculations away.
--	 */
--	volatile double a, b, c, d, e, f, g;
--
--	a = 4.0;
--	b = 1e-15;
--	c = 1e-310;
--
--	/* Sets precision flag */
--	d = a + b;
--
--	/* Result depends on rounding mode */
--	e = a + b / 2;
--
--	/* Denormal and very large values */
--	f = b / c;
--
--	/* Depends on denormal support */
--	g = a + c * f;
--
--	if (d > a && e > a && g > a)
--		return 0;
--	else
--		return -EINVAL;
--}
--
--static int test_fpu_get(void *data, u64 *val)
--{
--	int status = -EINVAL;
--
--	kernel_fpu_begin();
--	status = test_fpu();
--	kernel_fpu_end();
--
--	*val = 1;
--	return status;
--}
--
--DEFINE_DEBUGFS_ATTRIBUTE(test_fpu_fops, test_fpu_get, NULL, "%lld\n");
--static struct dentry *selftest_dir;
--
--static int __init test_fpu_init(void)
--{
--	selftest_dir = debugfs_create_dir("selftest_helpers", NULL);
--	if (!selftest_dir)
--		return -ENOMEM;
--
--	debugfs_create_file_unsafe("test_fpu", 0444, selftest_dir, NULL,
--				   &test_fpu_fops);
--
--	return 0;
--}
--
--static void __exit test_fpu_exit(void)
--{
--	debugfs_remove(selftest_dir);
--}
--
--module_init(test_fpu_init);
--module_exit(test_fpu_exit);
--
--MODULE_LICENSE("GPL");
---- /dev/null
+--- a/lib/test_fpu_glue.c~selftests-fpu-allow-building-on-other-architectures
 +++ a/lib/test_fpu_glue.c
-@@ -0,0 +1,59 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+/*
-+ * Test cases for using floating point operations inside a kernel module.
-+ *
-+ * This tests kernel_fpu_begin() and kernel_fpu_end() functions, especially
-+ * when userland has modified the floating point control registers. The kernel
-+ * state might depend on the state set by the userland thread that was active
-+ * before a syscall.
-+ *
-+ * To facilitate the test, this module registers file
-+ * /sys/kernel/debug/selftest_helpers/test_fpu, which when read causes a
-+ * sequence of floating point operations. If the operations fail, either the
-+ * read returns error status or the kernel crashes.
-+ * If the operations succeed, the read returns "1\n".
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/debugfs.h>
-+#include <asm/fpu/api.h>
-+
-+#include "test_fpu.h"
-+
-+static int test_fpu_get(void *data, u64 *val)
-+{
-+	int status = -EINVAL;
-+
-+	kernel_fpu_begin();
-+	status = test_fpu();
-+	kernel_fpu_end();
-+
-+	*val = 1;
-+	return status;
-+}
-+
-+DEFINE_DEBUGFS_ATTRIBUTE(test_fpu_fops, test_fpu_get, NULL, "%lld\n");
-+static struct dentry *selftest_dir;
-+
-+static int __init test_fpu_init(void)
-+{
-+	selftest_dir = debugfs_create_dir("selftest_helpers", NULL);
-+	if (!selftest_dir)
-+		return -ENOMEM;
-+
-+	debugfs_create_file_unsafe("test_fpu", 0444, selftest_dir, NULL,
-+				   &test_fpu_fops);
-+
-+	return 0;
-+}
-+
-+static void __exit test_fpu_exit(void)
-+{
-+	debugfs_remove(selftest_dir);
-+}
-+
-+module_init(test_fpu_init);
-+module_exit(test_fpu_exit);
-+
-+MODULE_LICENSE("GPL");
---- /dev/null
-+++ a/lib/test_fpu.h
-@@ -0,0 +1,8 @@
-+/* SPDX-License-Identifier: GPL-2.0+ */
-+
-+#ifndef _LIB_TEST_FPU_H
-+#define _LIB_TEST_FPU_H
-+
-+int test_fpu(void);
-+
-+#endif
---- /dev/null
-+++ a/lib/test_fpu_impl.c
-@@ -0,0 +1,37 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+
-+#include <linux/errno.h>
-+
-+#include "test_fpu.h"
-+
-+int test_fpu(void)
-+{
-+	/*
-+	 * This sequence of operations tests that rounding mode is
-+	 * to nearest and that denormal numbers are supported.
-+	 * Volatile variables are used to avoid compiler optimizing
-+	 * the calculations away.
-+	 */
-+	volatile double a, b, c, d, e, f, g;
-+
-+	a = 4.0;
-+	b = 1e-15;
-+	c = 1e-310;
-+
-+	/* Sets precision flag */
-+	d = a + b;
-+
-+	/* Result depends on rounding mode */
-+	e = a + b / 2;
-+
-+	/* Denormal and very large values */
-+	f = b / c;
-+
-+	/* Depends on denormal support */
-+	g = a + c * f;
-+
-+	if (d > a && e > a && g > a)
-+		return 0;
-+	else
+@@ -17,7 +17,7 @@
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/debugfs.h>
+-#include <asm/fpu/api.h>
++#include <linux/fpu.h>
+ 
+ #include "test_fpu.h"
+ 
+@@ -38,6 +38,9 @@ static struct dentry *selftest_dir;
+ 
+ static int __init test_fpu_init(void)
+ {
++	if (!kernel_fpu_available())
 +		return -EINVAL;
-+}
++
+ 	selftest_dir = debugfs_create_dir("selftest_helpers", NULL);
+ 	if (!selftest_dir)
+ 		return -ENOMEM;
 _
 
 Patches currently in -mm which might be from samuel.holland@sifive.com are
