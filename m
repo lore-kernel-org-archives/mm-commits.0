@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5230B4685
-	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 02:58:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CEEC1878
+	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 02:58:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711767538; cv=none; b=UipuPxNkYH/KLIo0bdN4CySkGY3/2VdTJJ2XDRFVDNbwBNuzmwxw8hSmH3V5b3AkVBfhkGCJUTonZ0u40UhsJlvfkXzsIfWG/pZ4uoOuHKKSyj3t7JSCY4v4Gj2Muc9q7Q2xt/rHGQRhdSr9VJS0wsBdmg31hJxeP7TwIMSu7vk=
+	t=1711767539; cv=none; b=l9n+amkTcLvIGYWmR2cbx1HOoq3SJR8ZGvjVuw2O7pJaTKXqWpofgiGagt+qmzrc6gMTaiyO495RQc5fClm7rU12HyVVUUbbW3kX5uS/AsrctFRk19ecEJQN69FXeAco64YB6xuLOv2AgTTURzgDeLkzq+Ueb7jGn5lvRE+FeEg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711767538; c=relaxed/simple;
-	bh=8KJ7ryWhsAOM52kaNCZy3guv3w17NWul2O66eGMAqI0=;
-	h=Date:To:From:Subject:Message-Id; b=GhQzBQq9Ma/+MTuQnwYL2uFFR3RjKbIADZvoqFLtdp0VrqQjwPxcryLlVyJhl+S9dJSuApPCLKHGqrhDBa5gz2iZAX3eFM2B8o6TrjL0xbwO/RIcIDEx2ljSU68Tq5+ARTwiH0as6pVRqvA9xEscBI6roRtrWL0+IAkzWUzY20k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LRFXSEsj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711767539; c=relaxed/simple;
+	bh=gDpMWoCGLF7DsRt8Nlp8cNE2JiYfTTmHs1ueSu+iQPU=;
+	h=Date:To:From:Subject:Message-Id; b=awuEHauixEZnheIdFlQ46w3sJCDQJdykG43DgcZ9QHydvJjr1o96QtIPuN7bUceJownu04gziV3bgAxfnoHKUuzB2gEsCSAJaZyc/D3F4CQ0IL52VPDW+fC6LrL0Jr0ANTfPezV4Ky4AOiVosc7LUDB9YdPVBYCtKfRtfdxPmjw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eZ5Y/ln7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LRFXSEsj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD609C433F1;
-	Sat, 30 Mar 2024 02:58:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eZ5Y/ln7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19A89C433C7;
+	Sat, 30 Mar 2024 02:58:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711767537;
-	bh=8KJ7ryWhsAOM52kaNCZy3guv3w17NWul2O66eGMAqI0=;
+	s=korg; t=1711767539;
+	bh=gDpMWoCGLF7DsRt8Nlp8cNE2JiYfTTmHs1ueSu+iQPU=;
 	h=Date:To:From:Subject:From;
-	b=LRFXSEsj+04JOzhcLgke5H4Opp/9p2HdFQng+Al3S1tEOhImusQGXSTwxsJ8H7Usr
-	 wK2MEht9RGcC5St5Pnlx2O0AHPk4AgJaevL9Xdr9AnRFzdwmapNnH3Lu7oehnGxnU2
-	 GW4ERkvF8Am354/xnyhdmCWG0n9VfvBLeIScNkc8=
-Date: Fri, 29 Mar 2024 19:58:57 -0700
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,ma.xxn@outlook.com,lukas.bulwahn@gmail.com,linux@roeck-us.net,joe@perches.com,jcmvbkbc@gmail.com,herbert@gondor.apana.org.au,dwaipayanray1@gmail.com,corbet@lwn.net,chris@zankel.net,chenhuacai@loongson.cn,broonie@kernel.org,apw@canonical.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=eZ5Y/ln75WCtvn6oJ1puVNCi3wUn95LCXHFp9JymnbdCQpDOzLiWGsP02/i1MY5j4
+	 aqV49wFbB0Jsd4ZPphJNthuOIGdwDognhrqLODWannObJrpd22V1/dKAGbi0JkvyJA
+	 eGq1Efe2wbJRvcvdvL/8SbayD7CVA6NFMUVn4umo=
+Date: Fri, 29 Mar 2024 19:58:58 -0700
+To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,sfr@canb.auug.org.au,lukas.bulwahn@gmail.com,linux@roeck-us.net,joe@perches.com,jcmvbkbc@gmail.com,herbert@gondor.apana.org.au,dwaipayanray1@gmail.com,corbet@lwn.net,chris@zankel.net,chenhuacai@loongson.cn,broonie@kernel.org,apw@canonical.com,ma.xxn@outlook.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] documentation-coding-style-ask-function-like-macros-to-evaluate-parameters.patch removed from -mm tree
-Message-Id: <20240330025857.CD609C433F1@smtp.kernel.org>
+Subject: [to-be-updated] scripts-checkpatch-check-unused-parameters-for-function-like-macro.patch removed from -mm tree
+Message-Id: <20240330025859.19A89C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,100 +35,92 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Documentation: coding-style: ask function-like macros to evaluate parameters
+     Subject: scripts: checkpatch: check unused parameters for function-like macro
 has been removed from the -mm tree.  Its filename was
-     documentation-coding-style-ask-function-like-macros-to-evaluate-parameters.patch
+     scripts-checkpatch-check-unused-parameters-for-function-like-macro.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: Documentation: coding-style: ask function-like macros to evaluate parameters
-Date: Fri, 22 Mar 2024 21:49:36 +1300
+From: Xining Xu <ma.xxn@outlook.com>
+Subject: scripts: checkpatch: check unused parameters for function-like macro
+Date: Fri, 22 Mar 2024 21:49:37 +1300
 
-Recent commit 77292bb8ca69c80 ("crypto: scomp - remove memcpy if
-sg_nents is 1 and pages are lowmem") leads to warnings on xtensa
-and loongarch,
-   In file included from crypto/scompress.c:12:
-   include/crypto/scatterwalk.h: In function 'scatterwalk_pagedone':
-   include/crypto/scatterwalk.h:76:30: warning: variable 'page' set but not used [-Wunused-but-set-variable]
-      76 |                 struct page *page;
-         |                              ^~~~
-   crypto/scompress.c: In function 'scomp_acomp_comp_decomp':
->> crypto/scompress.c:174:38: warning: unused variable 'dst_page' [-Wunused-variable]
-     174 |                         struct page *dst_page = sg_page(req->dst);
-         |
+If function-like macros do not utilize a parameter, it might result in a
+build warning.  In our coding style guidelines, we advocate for utilizing
+static inline functions to replace such macros.  This patch verifies
+compliance with the new rule.
 
-The reason is that flush_dcache_page() is implemented as a noop
-macro on these platforms as below,
+For a macro such as the one below,
 
- #define flush_dcache_page(page) do { } while (0)
+ #define test(a) do { } while (0)
 
-The driver code, for itself, seems be quite innocent and placing
-maybe_unused seems pointless,
+The test result is as follows.
 
- struct page *dst_page = sg_page(req->dst);
+ ERROR: Parameter 'a' is not used in function-like macro, please use static
+ inline instead
+ #21: FILE: mm/init-mm.c:20:
+ +#define test(a) do { } while (0)
 
- for (i = 0; i < nr_pages; i++)
- 	flush_dcache_page(dst_page + i);
+ total: 1 errors, 0 warnings, 8 lines checked
 
-And it should be independent of architectural implementation
-differences.
+Link: https://lkml.kernel.org/r/20240322084937.66018-3-21cnbao@gmail.com
+Signed-off-by: Xining Xu <ma.xxn@outlook.com>
 
-Let's provide guidance on coding style for requesting parameter
-evaluation or proposing the migration to a static inline
-function.
-
-Link: https://lkml.kernel.org/r/20240322084937.66018-2-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Suggested-by: Max Filippov <jcmvbkbc@gmail.com>
-Reviewed-by: Mark Brown <broonie@kernel.org>
+Tested-by: Barry Song <v-songbaohua@oppo.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Huacai Chen <chenhuacai@loongson.cn>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Cc: Guenter Roeck <linux@roeck-us.net>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Mark Brown <broonie@kernel.org>
 Cc: Andy Whitcroft <apw@canonical.com>
 Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
 Cc: Joe Perches <joe@perches.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Xining Xu <ma.xxn@outlook.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/process/coding-style.rst |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ scripts/checkpatch.pl |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
---- a/Documentation/process/coding-style.rst~documentation-coding-style-ask-function-like-macros-to-evaluate-parameters
-+++ a/Documentation/process/coding-style.rst
-@@ -827,6 +827,22 @@ Macros with multiple statements should b
- 				do_this(b, c);		\
- 		} while (0)
+--- a/scripts/checkpatch.pl~scripts-checkpatch-check-unused-parameters-for-function-like-macro
++++ a/scripts/checkpatch.pl
+@@ -6109,6 +6109,30 @@ sub process {
+ 				WARN("TRAILING_SEMICOLON",
+ 				     "macros should not use a trailing semicolon\n" . "$herectx");
+ 			}
++
++			if ($dstat =~ /^\+\s*#\s*define\s+$Ident\s*(\((?:[^\(\)]++|(?-1))*\))\s+(\S+.*)(\/\/.*)?/) {
++				my $params = $1 || "";
++				my $body = $2 || "";
++
++			    # get the individual params
++				$params =~ tr/()//d;
++				# remove leading and trailing whitespace
++				$params =~ s/^\s+|\s+$//g;
++
++				$ctx =~ s/\n*$//;
++				my $cnt = statement_rawlines($ctx);
++				my $herectx = get_stat_here($linenr, $cnt, $here);
++
++				if ($params ne "") {
++					my @paramList = split /,\s*/, $params;
++					foreach my $param(@paramList) {
++						if ($body !~ /\b$param\b/) {
++							ERROR("UNUSED_PARAM_IN_MACRO",
++							     "Parameter '$param' is not used in function-like macro, please use static inline instead\n" . "$herectx");
++						}
++					}
++				}
++			}
+ 		}
  
-+Function-like macros with unused parameters should be replaced by static
-+inline functions to avoid the issue of unused variables:
-+
-+.. code-block:: c
-+
-+	static inline void fun(struct foo *foo)
-+	{
-+	}
-+
-+For historical reasons, many files still use the cast to (void) to evaluate
-+parameters, but this method is not recommended:
-+
-+.. code-block:: c
-+
-+	#define macrofun(foo) do { (void) (foo); } while (0)
-+
- Things to avoid when using macros:
- 
- 1) macros that affect control flow:
+ # check for redundant bracing round if etc
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from ma.xxn@outlook.com are
 
-arm64-mm-swap-support-thp_swap-on-hardware-with-mte.patch
-mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio.patch
 
