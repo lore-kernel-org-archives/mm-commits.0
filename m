@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FAF72F25
-	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 03:13:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4390229A1
+	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 03:16:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711768420; cv=none; b=NImgBh8efFQYi2xr3YZF+Illct5rIOKwdNe+zFkn/Mbw3KEVCX9eWpiL0E6/5J0tjsOkUqriEq1Yk4qy3YlsYd5WTI+03N5BP36r77OD5q9H8NN9hgPazXZ9ipVSwEc9GTKy1qJVxrthPzJ1JsmhtRR6xCUKdns96rQeg0UtBIw=
+	t=1711768616; cv=none; b=EZd58oJWlE+dLav4LN7denm26Y1otsWC+U9Om9Aej85EWGFYL1T/Nil8nv+VcptW2z2leeDTg6OPD9zN9X+/tnXhX4ezVQsSbvYET2EjjMnE1Na572tFTXwteTWQCt7WJ9auEeWhqpDU/ua4zQ6jbK0ZDwEXPIODJhFNH6M8xNM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711768420; c=relaxed/simple;
-	bh=dOATp0wYN8W5fVxq72id487wyOn0BI2ggzH0l6Zf3MI=;
-	h=Date:To:From:Subject:Message-Id; b=JytmYlHTH5BjSFqR+d9zvVH0k27vLVSGmX9OS6QWkqNnK7WjIZV7wy8kpaSqf6cr9C7fZ6RGj3rb02zPn8qUFieXuqnEt9XfVAkeLBPep78W/XTpsOVkos7Zag9gmII/7lde4xTBw7u4n84fyM/73lhmVwHGpuEBcfHfPc02Dh0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cIwlIQfg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711768616; c=relaxed/simple;
+	bh=wYfDu4FRr02+jZSvNi44UucCWJiYLve8GAd7Rqkbk/s=;
+	h=Date:To:From:Subject:Message-Id; b=kjTTkrxrt+4riUo79cWPsWeXknCRxxZztkZLqIyQhV+9KGgRhqoAev+geMNzEKqhv0dORayU2SGrRTOXUZBrvFeDXdpvm/7EArn1SRYdHIRYpVgetIjCVIISJvAYqzfsaGdlRBpLnKODy7Ryu3fN8wTyPP/2lbvQhw1G1srpOVM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qgl9g+WJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cIwlIQfg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B317C433C7;
-	Sat, 30 Mar 2024 03:13:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qgl9g+WJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2F1BC433C7;
+	Sat, 30 Mar 2024 03:16:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711768418;
-	bh=dOATp0wYN8W5fVxq72id487wyOn0BI2ggzH0l6Zf3MI=;
+	s=korg; t=1711768615;
+	bh=wYfDu4FRr02+jZSvNi44UucCWJiYLve8GAd7Rqkbk/s=;
 	h=Date:To:From:Subject:From;
-	b=cIwlIQfgHK+Opo2hb9lMhbB00vnSI5wBcslzw39pE7jIm6oUDIJbyIfYXhdVkDbh0
-	 cqA335FKf4uPOAAI1KspBxFOJ44wWxxyNizQMo0PmmWqaw94yORubnOKJqdZ/S0tPU
-	 uVdWpd32tJKsgVvQN/WM0Lh3BnUrrA2ZXSeG3EK0=
-Date: Fri, 29 Mar 2024 20:13:38 -0700
-To: mm-commits@vger.kernel.org,minchan@kernel.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=qgl9g+WJX2ckeNoKbTTqe5aJFTDX+5SepMpYU5ZJ/m4GP5o0QZxza3TN5V25cpDpE
+	 vWmSY02iqlQoRKv1+p5lefC/quBfZCMHMnSK+p9QCWaxJHc1FinzGxlSLT+D36UBPh
+	 fIZvpWfr/F1WnbD5Q6fQZ1RANJXxeWN6olVqk78g=
+Date: Fri, 29 Mar 2024 20:16:54 -0700
+To: mm-commits@vger.kernel.org,thorsten.blum@toblux.com,pstanner@redhat.com,ndesaulniers@google.com,nathan@kernel.org,morbo@google.com,konishi.ryusuke@gmail.com,justinstitt@google.com,jlayton@kernel.org,brauner@kernel.org,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-add-max_pages-param-to-recompression.patch added to mm-unstable branch
-Message-Id: <20240330031338.9B317C433C7@smtp.kernel.org>
+Subject: + nilfs2-fix-out-of-range-warning.patch added to mm-nonmm-unstable branch
+Message-Id: <20240330031655.A2F1BC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: add max_pages param to recompression
-has been added to the -mm mm-unstable branch.  Its filename is
-     zram-add-max_pages-param-to-recompression.patch
+     Subject: nilfs2: fix out-of-range warning
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     nilfs2-fix-out-of-range-warning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-max_pages-param-to-recompression.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-out-of-range-warning.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,119 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: add max_pages param to recompression
-Date: Fri, 29 Mar 2024 18:39:41 +0900
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: nilfs2: fix out-of-range warning
+Date: Thu, 28 Mar 2024 15:30:44 +0100
 
-Introduce "max_pages" param to recompress device attribute which sets an
-upper limit on the number of entries (pages) zram attempts to recompress
-(in this particular recompression call).  S/W recompression can be quite
-expensive so limiting the number of pages recompress touches can be quite
-helpful.
+clang-14 points out that v_size is always smaller than a 64KB page size if
+that is configured by the CPU architecture:
 
-Link: https://lkml.kernel.org/r/20240329094050.2815699-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
+fs/nilfs2/ioctl.c:63:19: error: result of comparison of constant 65536 with expression of type '__u16' (aka 'unsigned short') is always false [-Werror,-Wtautological-constant-out-of-range-compare]
+        if (argv->v_size > PAGE_SIZE)
+            ~~~~~~~~~~~~ ^ ~~~~~~~~~
+
+This is ok, so just shut up that warning with a cast.
+
+Link: https://lkml.kernel.org/r/20240328143051.1069575-7-arnd@kernel.org
+Fixes: 3358b4aaa84f ("nilfs2: fix problems of memory allocation in ioctl")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Justin Stitt <justinstitt@google.com>
+Acked-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Philipp Stanner <pstanner@redhat.com>
+Cc: Thorsten Blum <thorsten.blum@toblux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |    5 ++
- drivers/block/zram/zram_drv.c               |   31 ++++++++++++++++--
- 2 files changed, 33 insertions(+), 3 deletions(-)
+ fs/nilfs2/ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-add-max_pages-param-to-recompression
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -466,6 +466,11 @@ of equal or greater size:::
- 	#recompress idle pages larger than 2000 bytes
- 	echo "type=idle threshold=2000" > /sys/block/zramX/recompress
- 
-+It is also possible to limit the number of pages zram re-compression will
-+attempt to recompress:::
-+
-+	echo "type=huge_idle max_pages=42" > /sys/block/zramX/recompress
-+
- Recompression of idle pages requires memory tracking.
- 
- During re-compression for every page, that matches re-compression criteria,
---- a/drivers/block/zram/zram_drv.c~zram-add-max_pages-param-to-recompression
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1568,7 +1568,8 @@ static int zram_bvec_write(struct zram *
-  * Corresponding ZRAM slot should be locked.
-  */
- static int zram_recompress(struct zram *zram, u32 index, struct page *page,
--			   u32 threshold, u32 prio, u32 prio_max)
-+			   u64 *num_recomp_pages, u32 threshold, u32 prio,
-+			   u32 prio_max)
- {
- 	struct zcomp_strm *zstrm = NULL;
- 	unsigned long handle_old;
-@@ -1645,6 +1646,15 @@ static int zram_recompress(struct zram *
- 	if (!zstrm)
+--- a/fs/nilfs2/ioctl.c~nilfs2-fix-out-of-range-warning
++++ a/fs/nilfs2/ioctl.c
+@@ -60,7 +60,7 @@ static int nilfs_ioctl_wrap_copy(struct
+ 	if (argv->v_nmembs == 0)
  		return 0;
  
-+	/*
-+	 * Decrement the limit (if set) on pages we can recompress, even
-+	 * when current recompression was unsuccessful or did not compress
-+	 * the page below the threshold, because we still spent resources
-+	 * on it.
-+	 */
-+	if (*num_recomp_pages)
-+		*num_recomp_pages -= 1;
-+
- 	if (class_index_new >= class_index_old) {
- 		/*
- 		 * Secondary algorithms failed to re-compress the page
-@@ -1710,6 +1720,7 @@ static ssize_t recompress_store(struct d
- 	struct zram *zram = dev_to_zram(dev);
- 	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
- 	char *args, *param, *val, *algo = NULL;
-+	u64 num_recomp_pages = ULLONG_MAX;
- 	u32 mode = 0, threshold = 0;
- 	unsigned long index;
- 	struct page *page;
-@@ -1732,6 +1743,17 @@ static ssize_t recompress_store(struct d
- 			continue;
- 		}
+-	if (argv->v_size > PAGE_SIZE)
++	if ((size_t)argv->v_size > PAGE_SIZE)
+ 		return -EINVAL;
  
-+		if (!strcmp(param, "max_pages")) {
-+			/*
-+			 * Limit the number of entries (pages) we attempt to
-+			 * recompress.
-+			 */
-+			ret = kstrtoull(val, 10, &num_recomp_pages);
-+			if (ret)
-+				return ret;
-+			continue;
-+		}
-+
- 		if (!strcmp(param, "threshold")) {
- 			/*
- 			 * We will re-compress only idle objects equal or
-@@ -1788,6 +1810,9 @@ static ssize_t recompress_store(struct d
- 	for (index = 0; index < nr_pages; index++) {
- 		int err = 0;
- 
-+		if (!num_recomp_pages)
-+			break;
-+
- 		zram_slot_lock(zram, index);
- 
- 		if (!zram_allocated(zram, index))
-@@ -1807,8 +1832,8 @@ static ssize_t recompress_store(struct d
- 		    zram_test_flag(zram, index, ZRAM_INCOMPRESSIBLE))
- 			goto next;
- 
--		err = zram_recompress(zram, index, page, threshold,
--				      prio, prio_max);
-+		err = zram_recompress(zram, index, page, &num_recomp_pages,
-+				      threshold, prio, prio_max);
- next:
- 		zram_slot_unlock(zram, index);
- 		if (err) {
+ 	/*
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-zram-add-max_pages-param-to-recompression.patch
+nilfs2-fix-out-of-range-warning.patch
 
