@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FF9D7470
-	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 03:50:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDCA97470
+	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 03:50:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711770605; cv=none; b=gLxgXNVhXOMHTd3Dv2yiJ3DWLax4srKdKeVJo3ddP0ksaUioL367LpXFTMWr+r8a9XqzjEMTjBESMOKGhDukpNCqMOgP32BIucKL4JRcSUVdwAdqh4VJ5uuSSH+tYe6mYPRRvl3G3ud0qIVia5t4nmzHfTWoHx5wpElCSRWTImc=
+	t=1711770607; cv=none; b=sHuXAfmIAMeP8DvRoYU3nbu2PrOVbMKs5EUcou+92Uew1auJKvq1C0yV9RD5L3f5hGFkp9WrxZCpZvXmbdrz3XFg4ffEehWznkymBAyPeyidAjqXE9pLTyhjQuv8fellNapBJRHBY9CPnXXGFS37jfdBHa9efL10vtfbYUexNJc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711770605; c=relaxed/simple;
-	bh=LZKzfIKRt3EtfhFQCifinyV3KYO1GFmeVegfcOYvFAA=;
-	h=Date:To:From:Subject:Message-Id; b=h5SL1jKg3WwzLpKGcSGTBv9dbakvcvECHaTg83vovJTh9+UDBSoHjEnUXQhr8/qfXkI167Gc7U51KOmaR6sZ7nU++/naHRRfV9gSNCUq7noLqyB214kXUUeH16mJvdkM//GkI+HbAp3jo11oIFNv5eiep8Ud8X2xaDrBoPeDYoo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FatVfHG2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711770607; c=relaxed/simple;
+	bh=02GkPGq64BsUFOM7eM+so6M36XgTagYzW8KWud2r0Ro=;
+	h=Date:To:From:Subject:Message-Id; b=F3eR7cHGHxAn9D+FIAiB0L1OFSihEXcoC7xmNPn51hem7HeZaQqDegC6gEnMOsjPAhgTu52XO8GdgWzBzzwG+Z4+HVTH4NGGcddVzWv0uHjqNf1oRobgRw3AQaFwySTFupUlUU3y/gSc2varo4IIyiVufql17dfRzazzGCu/rYg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZkyYEBFB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FatVfHG2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58CCFC433F1;
-	Sat, 30 Mar 2024 03:50:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZkyYEBFB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C5F5C433C7;
+	Sat, 30 Mar 2024 03:50:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711770604;
-	bh=LZKzfIKRt3EtfhFQCifinyV3KYO1GFmeVegfcOYvFAA=;
+	s=korg; t=1711770606;
+	bh=02GkPGq64BsUFOM7eM+so6M36XgTagYzW8KWud2r0Ro=;
 	h=Date:To:From:Subject:From;
-	b=FatVfHG2SwjBi9kwv8nDJQEkVrxNC7txewHPtSfK4DTMCIvNmLsVDxulDAj6n0HPQ
-	 5s7OHtT02ZF6Tl8mStbtyJ1uDjLf+U6qJ+nRXwCmH5/VLvwBmFAAqHvBBzx/t+0UG5
-	 PEuxi8sRqzYyUPM5Ct9oP8sj6eDO7qkimEgl+FjQ=
-Date: Fri, 29 Mar 2024 20:50:03 -0700
+	b=ZkyYEBFBJbbM39cjvgxTNTf7nOXv+/+VB5MdWGiASd/LiO4d7jrfzRsz9Mx5aTufZ
+	 m5onUyRVgUnf8k3i+uyYZcVxPSIJCKC0FrrTlNflFzqr/8ZEB41nXTgYTZiuLrnZDX
+	 UjsVRZyrKIdAb3nriQWu8X23Sfftv92cD8IiWbjk=
+Date: Fri, 29 Mar 2024 20:50:05 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-vma_address.patch added to mm-unstable branch
-Message-Id: <20240330035004.58CCFC433F1@smtp.kernel.org>
+Subject: + mm-rename-vma_pgoff_address-back-to-vma_address.patch added to mm-unstable branch
+Message-Id: <20240330035006.6C5F5C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove vma_address()
+     Subject: mm: rename vma_pgoff_address back to vma_address
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-vma_address.patch
+     mm-rename-vma_pgoff_address-back-to-vma_address.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-vma_address.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-vma_pgoff_address-back-to-vma_address.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,102 +59,109 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove vma_address()
-Date: Thu, 28 Mar 2024 22:58:28 +0000
+Subject: mm: rename vma_pgoff_address back to vma_address
+Date: Thu, 28 Mar 2024 22:58:29 +0000
 
-Convert the three remaining callers to call vma_pgoff_address() directly. 
-This removes an ambiguity where we'd check just one page if passed a tail
-page and all N pages if passed a head page.
+With all callers converted, we can use the nice shorter name.  Take this
+opportunity to reorder the arguments to the logical order (larger object
+first).
 
-Also add better kernel-doc for vma_pgoff_address().
-
-Link: https://lkml.kernel.org/r/20240328225831.1765286-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240328225831.1765286-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   23 ++++++++---------------
- mm/rmap.c     |   12 +++++++++---
- 2 files changed, 17 insertions(+), 18 deletions(-)
+ mm/internal.h        |    9 ++++-----
+ mm/memory-failure.c  |    2 +-
+ mm/page_vma_mapped.c |    2 +-
+ mm/rmap.c            |   12 ++++++------
+ 4 files changed, 12 insertions(+), 13 deletions(-)
 
---- a/mm/internal.h~mm-remove-vma_address
+--- a/mm/internal.h~mm-rename-vma_pgoff_address-back-to-vma_address
 +++ a/mm/internal.h
-@@ -860,9 +860,14 @@ void mlock_drain_remote(int cpu);
- 
+@@ -861,17 +861,16 @@ void mlock_drain_remote(int cpu);
  extern pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma);
  
--/*
-- * Return the start of user virtual address at the specific offset within
-- * a vma.
-+/**
-+ * vma_pgoff_address - Find the virtual address a page range is mapped at
-+ * @pgoff: The page offset within its object.
-+ * @nr_pages: The number of pages to consider.
+ /**
+- * vma_pgoff_address - Find the virtual address a page range is mapped at
++ * vma_address - Find the virtual address a page range is mapped at
 + * @vma: The vma which maps this object.
-+ *
-+ * If any page in this range is mapped by this VMA, return the first address
-+ * where any of these pages appear.  Otherwise, return -EFAULT.
+  * @pgoff: The page offset within its object.
+  * @nr_pages: The number of pages to consider.
+- * @vma: The vma which maps this object.
+  *
+  * If any page in this range is mapped by this VMA, return the first address
+  * where any of these pages appear.  Otherwise, return -EFAULT.
   */
- static inline unsigned long
- vma_pgoff_address(pgoff_t pgoff, unsigned long nr_pages,
-@@ -886,18 +891,6 @@ vma_pgoff_address(pgoff_t pgoff, unsigne
- }
- 
- /*
-- * Return the start of user virtual address of a page within a vma.
-- * Returns -EFAULT if all of the page is outside the range of vma.
-- * If page is a compound head, the entire compound page is considered.
-- */
 -static inline unsigned long
--vma_address(struct page *page, struct vm_area_struct *vma)
--{
--	VM_BUG_ON_PAGE(PageKsm(page), page);	/* KSM page->index unusable */
--	return vma_pgoff_address(page_to_pgoff(page), compound_nr(page), vma);
--}
--
--/*
-  * Then at what user virtual address will none of the range be found in vma?
-  * Assumes that vma_address() already returned a good starting address.
-  */
---- a/mm/rmap.c~mm-remove-vma_address
-+++ a/mm/rmap.c
-@@ -775,6 +775,8 @@ static bool should_defer_flush(struct mm
- unsigned long page_address_in_vma(struct page *page, struct vm_area_struct *vma)
+-vma_pgoff_address(pgoff_t pgoff, unsigned long nr_pages,
+-		  struct vm_area_struct *vma)
++static inline unsigned long vma_address(struct vm_area_struct *vma,
++		pgoff_t pgoff, unsigned long nr_pages)
  {
- 	struct folio *folio = page_folio(page);
-+	pgoff_t pgoff;
-+
- 	if (folio_test_anon(folio)) {
- 		struct anon_vma *page__anon_vma = folio_anon_vma(folio);
- 		/*
-@@ -790,7 +792,9 @@ unsigned long page_address_in_vma(struct
- 		return -EFAULT;
- 	}
+ 	unsigned long address;
  
--	return vma_address(page, vma);
-+	/* The !page__anon_vma above handles KSM folios */
-+	pgoff = folio->index + folio_page_idx(folio, page);
-+	return vma_pgoff_address(pgoff, 1, vma);
+--- a/mm/memory-failure.c~mm-rename-vma_pgoff_address-back-to-vma_address
++++ a/mm/memory-failure.c
+@@ -443,7 +443,7 @@ static void __add_to_kill(struct task_st
+ 	tk->addr = ksm_addr ? ksm_addr : page_address_in_vma(p, vma);
+ 	if (is_zone_device_page(p)) {
+ 		if (fsdax_pgoff != FSDAX_INVALID_PGOFF)
+-			tk->addr = vma_pgoff_address(fsdax_pgoff, 1, vma);
++			tk->addr = vma_address(vma, fsdax_pgoff, 1);
+ 		tk->size_shift = dev_pagemap_mapping_shift(vma, tk->addr);
+ 	} else
+ 		tk->size_shift = page_shift(compound_head(p));
+--- a/mm/page_vma_mapped.c~mm-rename-vma_pgoff_address-back-to-vma_address
++++ a/mm/page_vma_mapped.c
+@@ -334,7 +334,7 @@ int page_mapped_in_vma(struct page *page
+ 		.flags = PVMW_SYNC,
+ 	};
+ 
+-	pvmw.address = vma_pgoff_address(pgoff, 1, vma);
++	pvmw.address = vma_address(vma, pgoff, 1);
+ 	if (pvmw.address == -EFAULT)
+ 		return 0;
+ 	if (!page_vma_mapped_walk(&pvmw))
+--- a/mm/rmap.c~mm-rename-vma_pgoff_address-back-to-vma_address
++++ a/mm/rmap.c
+@@ -794,7 +794,7 @@ unsigned long page_address_in_vma(struct
+ 
+ 	/* The !page__anon_vma above handles KSM folios */
+ 	pgoff = folio->index + folio_page_idx(folio, page);
+-	return vma_pgoff_address(pgoff, 1, vma);
++	return vma_address(vma, pgoff, 1);
  }
  
  /*
-@@ -2588,7 +2592,8 @@ static void rmap_walk_anon(struct folio
+@@ -1132,7 +1132,7 @@ int pfn_mkclean_range(unsigned long pfn,
+ 	if (invalid_mkclean_vma(vma, NULL))
+ 		return 0;
+ 
+-	pvmw.address = vma_pgoff_address(pgoff, nr_pages, vma);
++	pvmw.address = vma_address(vma, pgoff, nr_pages);
+ 	VM_BUG_ON_VMA(pvmw.address == -EFAULT, vma);
+ 
+ 	return page_vma_mkclean_one(&pvmw);
+@@ -2592,8 +2592,8 @@ static void rmap_walk_anon(struct folio
  	anon_vma_interval_tree_foreach(avc, &anon_vma->rb_root,
  			pgoff_start, pgoff_end) {
  		struct vm_area_struct *vma = avc->vma;
--		unsigned long address = vma_address(&folio->page, vma);
-+		unsigned long address = vma_pgoff_address(pgoff_start,
-+				folio_nr_pages(folio), vma);
+-		unsigned long address = vma_pgoff_address(pgoff_start,
+-				folio_nr_pages(folio), vma);
++		unsigned long address = vma_address(vma, pgoff_start,
++				folio_nr_pages(folio));
  
  		VM_BUG_ON_VMA(address == -EFAULT, vma);
  		cond_resched();
-@@ -2649,7 +2654,8 @@ static void rmap_walk_file(struct folio
+@@ -2654,8 +2654,8 @@ static void rmap_walk_file(struct folio
  lookup:
  	vma_interval_tree_foreach(vma, &mapping->i_mmap,
  			pgoff_start, pgoff_end) {
--		unsigned long address = vma_address(&folio->page, vma);
-+		unsigned long address = vma_pgoff_address(pgoff_start,
-+			       folio_nr_pages(folio), vma);
+-		unsigned long address = vma_pgoff_address(pgoff_start,
+-			       folio_nr_pages(folio), vma);
++		unsigned long address = vma_address(vma, pgoff_start,
++			       folio_nr_pages(folio));
  
  		VM_BUG_ON_VMA(address == -EFAULT, vma);
  		cond_resched();
