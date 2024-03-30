@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C68541757
-	for <mm-commits@vger.kernel.org>; Thu, 28 Mar 2024 19:39:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5230B4685
+	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 02:58:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711654789; cv=none; b=FaK3ykrPF88X3ZhY7EEcTSxQarqLfu9VHoNl710JsKx96sbSMwGZNDSV5rNwGusSNGoZoqQlHZOKLqK187wahqAJdy5X4Ah6/GOtLFN3ujQxU2nf66uFck1voQlGiPkAzjMBQW4GTLsLProqyElnG4IXmCjGDlgGmxnMKXQuVDo=
+	t=1711767538; cv=none; b=UipuPxNkYH/KLIo0bdN4CySkGY3/2VdTJJ2XDRFVDNbwBNuzmwxw8hSmH3V5b3AkVBfhkGCJUTonZ0u40UhsJlvfkXzsIfWG/pZ4uoOuHKKSyj3t7JSCY4v4Gj2Muc9q7Q2xt/rHGQRhdSr9VJS0wsBdmg31hJxeP7TwIMSu7vk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711654789; c=relaxed/simple;
-	bh=cy6wjxhU+g3J0XtvfFaWTwAMwhEflwR1jHjHMbcjrdg=;
-	h=Date:To:From:Subject:Message-Id; b=foGb5Te6e0ioXpVH7ue9PIfbd8S59xCtFrOOPRvHLMJ8gohEypUmIGBePFJ6BMRWvyfL4yLnI1zEycY8+CBGLvhWrBxPlSm42BxKQYGVTFcM6zRNXdCoBBbb5GDH60UvWvR4ZEVrTB1Gr6LrL3tzq5jrsx6Uu3WwUqRWLJnqiXk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TdD2G0Lx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711767538; c=relaxed/simple;
+	bh=8KJ7ryWhsAOM52kaNCZy3guv3w17NWul2O66eGMAqI0=;
+	h=Date:To:From:Subject:Message-Id; b=GhQzBQq9Ma/+MTuQnwYL2uFFR3RjKbIADZvoqFLtdp0VrqQjwPxcryLlVyJhl+S9dJSuApPCLKHGqrhDBa5gz2iZAX3eFM2B8o6TrjL0xbwO/RIcIDEx2ljSU68Tq5+ARTwiH0as6pVRqvA9xEscBI6roRtrWL0+IAkzWUzY20k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LRFXSEsj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TdD2G0Lx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F6E0C43390;
-	Thu, 28 Mar 2024 19:39:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LRFXSEsj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD609C433F1;
+	Sat, 30 Mar 2024 02:58:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711654788;
-	bh=cy6wjxhU+g3J0XtvfFaWTwAMwhEflwR1jHjHMbcjrdg=;
+	s=korg; t=1711767537;
+	bh=8KJ7ryWhsAOM52kaNCZy3guv3w17NWul2O66eGMAqI0=;
 	h=Date:To:From:Subject:From;
-	b=TdD2G0LxLz0TQpljEevanPtUqNVQhOnykNPQS9XfgLbPKG1Q3UaD4Xn2hvGI2eFgk
-	 G9pSAqWeiAbWAU0riIiW+/vzVDGpLg4fquKmmW7lFYl5djNlesfl24TA/YSRzzTq6w
-	 oRDU5+MWaslYliCusq2FYL3nBNMU9Q3p9g5X5NNQ=
-Date: Thu, 28 Mar 2024 12:39:48 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sfr@canb.auug.org.au,kent.overstreet@linux.dev,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=LRFXSEsj+04JOzhcLgke5H4Opp/9p2HdFQng+Al3S1tEOhImusQGXSTwxsJ8H7Usr
+	 wK2MEht9RGcC5St5Pnlx2O0AHPk4AgJaevL9Xdr9AnRFzdwmapNnH3Lu7oehnGxnU2
+	 GW4ERkvF8Am354/xnyhdmCWG0n9VfvBLeIScNkc8=
+Date: Fri, 29 Mar 2024 19:58:57 -0700
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,ma.xxn@outlook.com,lukas.bulwahn@gmail.com,linux@roeck-us.net,joe@perches.com,jcmvbkbc@gmail.com,herbert@gondor.apana.org.au,dwaipayanray1@gmail.com,corbet@lwn.net,chris@zankel.net,chenhuacai@loongson.cn,broonie@kernel.org,apw@canonical.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix-2.patch added to mm-unstable branch
-Message-Id: <20240328193948.9F6E0C43390@smtp.kernel.org>
+Subject: [to-be-updated] documentation-coding-style-ask-function-like-macros-to-evaluate-parameters.patch removed from -mm tree
+Message-Id: <20240330025857.CD609C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,73 +34,101 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/slab: fix kcalloc() kernel-doc warnings
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix-2.patch
+The quilt patch titled
+     Subject: Documentation: coding-style: ask function-like macros to evaluate parameters
+has been removed from the -mm tree.  Its filename was
+     documentation-coding-style-ask-function-like-macros-to-evaluate-parameters.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix-2.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/slab: fix kcalloc() kernel-doc warnings
-Date: Tue, 26 Mar 2024 21:46:49 -0700
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: Documentation: coding-style: ask function-like macros to evaluate parameters
+Date: Fri, 22 Mar 2024 21:49:36 +1300
 
-Fix the parameter names for kcalloc() in slab.h to prevent kernel-doc
-warnings:
+Recent commit 77292bb8ca69c80 ("crypto: scomp - remove memcpy if
+sg_nents is 1 and pages are lowmem") leads to warnings on xtensa
+and loongarch,
+   In file included from crypto/scompress.c:12:
+   include/crypto/scatterwalk.h: In function 'scatterwalk_pagedone':
+   include/crypto/scatterwalk.h:76:30: warning: variable 'page' set but not used [-Wunused-but-set-variable]
+      76 |                 struct page *page;
+         |                              ^~~~
+   crypto/scompress.c: In function 'scomp_acomp_comp_decomp':
+>> crypto/scompress.c:174:38: warning: unused variable 'dst_page' [-Wunused-variable]
+     174 |                         struct page *dst_page = sg_page(req->dst);
+         |
 
-include/linux/slab.h:730: warning: Function parameter or struct member '_n' not described in 'kcalloc'
-include/linux/slab.h:730: warning: Function parameter or struct member '_size' not described in 'kcalloc'
-include/linux/slab.h:730: warning: Function parameter or struct member '_flags' not described in 'kcalloc'
-include/linux/slab.h:730: warning: Excess function parameter 'n' description in 'kcalloc'
-include/linux/slab.h:730: warning: Excess function parameter 'size' description in 'kcalloc'
-include/linux/slab.h:730: warning: Excess function parameter 'flags' description in 'kcalloc'
+The reason is that flush_dcache_page() is implemented as a noop
+macro on these platforms as below,
 
-Link: https://lkml.kernel.org/r/20240327044649.9199-1-rdunlap@infradead.org
-Fixes: bc7b83f5e4bf ("mm/slab: enable slab allocation tagging for kmalloc and friends")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Link: https://lore.kernel.org/linux-next/20240325123603.1bdd6588@canb.auug.org.au/
-Tested-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+ #define flush_dcache_page(page) do { } while (0)
+
+The driver code, for itself, seems be quite innocent and placing
+maybe_unused seems pointless,
+
+ struct page *dst_page = sg_page(req->dst);
+
+ for (i = 0; i < nr_pages; i++)
+ 	flush_dcache_page(dst_page + i);
+
+And it should be independent of architectural implementation
+differences.
+
+Let's provide guidance on coding style for requesting parameter
+evaluation or proposing the migration to a static inline
+function.
+
+Link: https://lkml.kernel.org/r/20240322084937.66018-2-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Suggested-by: Max Filippov <jcmvbkbc@gmail.com>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Huacai Chen <chenhuacai@loongson.cn>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Xining Xu <ma.xxn@outlook.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/process/coding-style.rst |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
---- a/include/linux/slab.h~mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix-2
-+++ a/include/linux/slab.h
-@@ -727,7 +727,7 @@ static inline __realloc_size(2, 3) void
-  * @size: element size.
-  * @flags: the type of memory to allocate (see kmalloc).
-  */
--#define kcalloc(_n, _size, _flags)		kmalloc_array(_n, _size, (_flags) | __GFP_ZERO)
-+#define kcalloc(n, size, flags)		kmalloc_array(n, size, (flags) | __GFP_ZERO)
+--- a/Documentation/process/coding-style.rst~documentation-coding-style-ask-function-like-macros-to-evaluate-parameters
++++ a/Documentation/process/coding-style.rst
+@@ -827,6 +827,22 @@ Macros with multiple statements should b
+ 				do_this(b, c);		\
+ 		} while (0)
  
- void *kmalloc_node_track_caller_noprof(size_t size, gfp_t flags, int node,
- 				  unsigned long caller) __alloc_size(1);
++Function-like macros with unused parameters should be replaced by static
++inline functions to avoid the issue of unused variables:
++
++.. code-block:: c
++
++	static inline void fun(struct foo *foo)
++	{
++	}
++
++For historical reasons, many files still use the cast to (void) to evaluate
++parameters, but this method is not recommended:
++
++.. code-block:: c
++
++	#define macrofun(foo) do { (void) (foo); } while (0)
++
+ Things to avoid when using macros:
+ 
+ 1) macros that affect control flow:
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-scripts-kernel-doc-drop-_noprof-on-function-prototypes.patch
-mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix-2.patch
+arm64-mm-swap-support-thp_swap-on-hardware-with-mte.patch
+mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio.patch
 
