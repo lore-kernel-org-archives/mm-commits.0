@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08BD05231
-	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 03:30:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDC3C566A
+	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 03:31:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711769459; cv=none; b=WIHaFYI8Iltpin8LhfVZ/XopcNELHA+SSRyizkek9Ji43Kqnp/gpvqAulg0mzY7p0mHQ0LkXPggeEwvjxmtVw9zvHzHPKGOt1nO2iDgjKGCqyIpB72deRMmx6HLQSRZ4BoX9T2FapJ+42DuEwNaWqHz3mWytzwKo8a3ROm4d0Lk=
+	t=1711769461; cv=none; b=gv7mcppCy+q29ZD/BGI6wsd2lAtLIfZ2oIeo+sKuxeLKLJW4LGhDVqUju8FvhNTRg8hqdeR3PUMvx+SV3ZurD2V38ix0TNdqc8lJilnIhKuezZjcy2mubP+RVp4OH7rW1CfXABPxPv38+84z5GK+oHl4ry8/53r7yFSg+b04jkg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711769459; c=relaxed/simple;
-	bh=IepXgeVsbXkhh+FhEfngjmAJBHksYL4MdfckfDOvCsM=;
-	h=Date:To:From:Subject:Message-Id; b=DjjIz3NAWE3EsmKVCaotdiQ3Xbx+xGEe89JFUmZg9+YSowzQklE4QtfQhW7USKaIs/7n+a5bo5kVqHSopc/YfMlR2dqejxtDpBAfgPxx0neuZgHghEo9vyvqGy877RRdS885kZT37xFz8Opif62HO3VsPHdTqXLQTTte0Z5JoG8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Im3n5u5W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711769461; c=relaxed/simple;
+	bh=QAP1PVcw+WqXbvg+WF9YqruUyqCjlfaNJomFn29YxTM=;
+	h=Date:To:From:Subject:Message-Id; b=pSWleB55dT3ditdrO849TfpgN2Uubcffg1ZWw7d8HYryuQy64ZceUsTI0sBjkfXnTgMfsQbQMV3I1Il+d/nKkY2BaZM5fRG6lOc9V8wjNnzsdi6/mxcRxLeqxtfd0+Z9PnOe/mcIzxgvCXABjA9gtuPfEvr759CzOgA+HggwCng=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TezpB6/M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Im3n5u5W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 801C3C433F1;
-	Sat, 30 Mar 2024 03:30:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TezpB6/M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A143CC433F1;
+	Sat, 30 Mar 2024 03:31:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711769458;
-	bh=IepXgeVsbXkhh+FhEfngjmAJBHksYL4MdfckfDOvCsM=;
+	s=korg; t=1711769461;
+	bh=QAP1PVcw+WqXbvg+WF9YqruUyqCjlfaNJomFn29YxTM=;
 	h=Date:To:From:Subject:From;
-	b=Im3n5u5WJsLGudVCDM9Bv3zuZTocSO4Wv1hRuTgXHha4jn1i90TAm8czfyRkDUA4B
-	 vPMFVO3x7R8dxvhqB0xVWvqsKF+2DRPFwKwXaN3FIi8f8XptBpfI/EneuFRQu0u6Ze
-	 Oa+uKKUDFGfmSI1mzUeocbEJRojyN4Wzqvqm+5xM=
-Date: Fri, 29 Mar 2024 20:30:58 -0700
+	b=TezpB6/MEtcou28XqoR9TOgd4w1LmNEJQF2+ulLG03gSM3nyGtnsirUzWRaK5++Ar
+	 +D3bAOpoWxn1Bs0V6SaJN19OmUbn/8C2UzyJxrVD7sUh7p2MGA4+a5HkpFlcOxU8Y1
+	 nI/Wq6KlR22x2+/Yv0zMtOArvC0QB+rgUvZtcGdI=
+Date: Fri, 29 Mar 2024 20:31:01 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,palmer@rivosinc.com,nicolas@fjasle.eu,nathan@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,masahiroy@kernel.org,linux@armlinux.org.uk,hch@lst.de,git@xen0n.name,dave.hansen@linux.intel.com,corbet@lwn.net,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,alexander.deucher@amd.com,samuel.holland@sifive.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-implement-arch_has_kernel_fpu_support.patch added to mm-nonmm-unstable branch
-Message-Id: <20240330033058.801C3C433F1@smtp.kernel.org>
+Subject: + x86-implement-arch_has_kernel_fpu_support.patch added to mm-nonmm-unstable branch
+Message-Id: <20240330033101.A143CC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: powerpc: implement ARCH_HAS_KERNEL_FPU_SUPPORT
+     Subject: x86: implement ARCH_HAS_KERNEL_FPU_SUPPORT
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     powerpc-implement-arch_has_kernel_fpu_support.patch
+     x86-implement-arch_has_kernel_fpu_support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-implement-arch_has_kernel_fpu_support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-implement-arch_has_kernel_fpu_support.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Samuel Holland <samuel.holland@sifive.com>
-Subject: powerpc: implement ARCH_HAS_KERNEL_FPU_SUPPORT
-Date: Fri, 29 Mar 2024 00:18:23 -0700
+Subject: x86: implement ARCH_HAS_KERNEL_FPU_SUPPORT
+Date: Fri, 29 Mar 2024 00:18:25 -0700
 
-PowerPC provides an equivalent to the common kernel-mode FPU API, but in a
-different header and using different function names.  The PowerPC API also
-requires a non-preemptible context.  Add a wrapper header, and export the
-CFLAGS adjustments.
+x86 already provides kernel_fpu_begin() and kernel_fpu_end(), but in a
+different header.  Add a wrapper header, and export the CFLAGS adjustments
+as found in lib/Makefile.
 
-Link: https://lkml.kernel.org/r/20240329072441.591471-9-samuel.holland@sifive.com
+Link: https://lkml.kernel.org/r/20240329072441.591471-11-samuel.holland@sifive.com
 Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Alex Deucher <alexander.deucher@amd.com>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
@@ -79,6 +77,7 @@ Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Nicolas Schier <nicolas@fjasle.eu>
 Cc: Palmer Dabbelt <palmer@rivosinc.com>
@@ -89,73 +88,66 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig           |    1 +
- arch/powerpc/Makefile          |    5 ++++-
- arch/powerpc/include/asm/fpu.h |   28 ++++++++++++++++++++++++++++
- 3 files changed, 33 insertions(+), 1 deletion(-)
+ arch/x86/Kconfig           |    1 +
+ arch/x86/Makefile          |   20 ++++++++++++++++++++
+ arch/x86/include/asm/fpu.h |   13 +++++++++++++
+ 3 files changed, 34 insertions(+)
 
 --- /dev/null
-+++ a/arch/powerpc/include/asm/fpu.h
-@@ -0,0 +1,28 @@
++++ a/arch/x86/include/asm/fpu.h
+@@ -0,0 +1,13 @@
 +/* SPDX-License-Identifier: GPL-2.0-only */
 +/*
 + * Copyright (C) 2023 SiFive
 + */
 +
-+#ifndef _ASM_POWERPC_FPU_H
-+#define _ASM_POWERPC_FPU_H
++#ifndef _ASM_X86_FPU_H
++#define _ASM_X86_FPU_H
 +
-+#include <linux/preempt.h>
++#include <asm/fpu/api.h>
 +
-+#include <asm/cpu_has_feature.h>
-+#include <asm/switch_to.h>
++#define kernel_fpu_available()	true
 +
-+#define kernel_fpu_available()	(!cpu_has_feature(CPU_FTR_FPU_UNAVAILABLE))
-+
-+static inline void kernel_fpu_begin(void)
-+{
-+	preempt_disable();
-+	enable_kernel_fp();
-+}
-+
-+static inline void kernel_fpu_end(void)
-+{
-+	disable_kernel_fp();
-+	preempt_enable();
-+}
-+
-+#endif /* ! _ASM_POWERPC_FPU_H */
---- a/arch/powerpc/Kconfig~powerpc-implement-arch_has_kernel_fpu_support
-+++ a/arch/powerpc/Kconfig
-@@ -137,6 +137,7 @@ config PPC
++#endif /* ! _ASM_X86_FPU_H */
+--- a/arch/x86/Kconfig~x86-implement-arch_has_kernel_fpu_support
++++ a/arch/x86/Kconfig
+@@ -83,6 +83,7 @@ config X86
+ 	select ARCH_HAS_FORTIFY_SOURCE
  	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_HAS_HUGEPD			if HUGETLB_PAGE
- 	select ARCH_HAS_KCOV
-+	select ARCH_HAS_KERNEL_FPU_SUPPORT	if PPC_FPU
- 	select ARCH_HAS_MEMBARRIER_CALLBACKS
+ 	select ARCH_HAS_KCOV			if X86_64
++	select ARCH_HAS_KERNEL_FPU_SUPPORT
+ 	select ARCH_HAS_MEM_ENCRYPT
  	select ARCH_HAS_MEMBARRIER_SYNC_CORE
- 	select ARCH_HAS_MEMREMAP_COMPAT_ALIGN	if PPC_64S_HASH_MMU
---- a/arch/powerpc/Makefile~powerpc-implement-arch_has_kernel_fpu_support
-+++ a/arch/powerpc/Makefile
-@@ -153,6 +153,9 @@ CFLAGS-$(CONFIG_PPC32)	+= $(call cc-opti
+ 	select ARCH_HAS_NMI_SAFE_THIS_CPU_OPS
+--- a/arch/x86/Makefile~x86-implement-arch_has_kernel_fpu_support
++++ a/arch/x86/Makefile
+@@ -74,6 +74,26 @@ KBUILD_CFLAGS += -mno-sse -mno-mmx -mno-
+ KBUILD_RUSTFLAGS += --target=$(objtree)/scripts/target.json
+ KBUILD_RUSTFLAGS += -Ctarget-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2
  
- CFLAGS-$(CONFIG_PPC32)	+= $(call cc-option,-mno-readonly-in-sdata)
- 
-+CC_FLAGS_FPU		:= $(call cc-option,-mhard-float)
-+CC_FLAGS_NO_FPU		:= $(call cc-option,-msoft-float)
++#
++# CFLAGS for compiling floating point code inside the kernel.
++#
++CC_FLAGS_FPU := -msse -msse2
++ifdef CONFIG_CC_IS_GCC
++# Stack alignment mismatch, proceed with caution.
++# GCC < 7.1 cannot compile code using `double` and -mpreferred-stack-boundary=3
++# (8B stack alignment).
++# See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53383
++#
++# The "-msse" in the first argument is there so that the
++# -mpreferred-stack-boundary=3 build error:
++#
++#  -mpreferred-stack-boundary=3 is not between 4 and 12
++#
++# can be triggered. Otherwise gcc doesn't complain.
++CC_FLAGS_FPU += -mhard-float
++CC_FLAGS_FPU += $(call cc-option,-msse -mpreferred-stack-boundary=3,-mpreferred-stack-boundary=4)
++endif
 +
- ifdef CONFIG_FUNCTION_TRACER
- ifdef CONFIG_ARCH_USING_PATCHABLE_FUNCTION_ENTRY
- KBUILD_CPPFLAGS	+= -DCC_USING_PATCHABLE_FUNCTION_ENTRY
-@@ -174,7 +177,7 @@ asinstr := $(call as-instr,lis 9$(comma)
- 
- KBUILD_CPPFLAGS	+= -I $(srctree)/arch/powerpc $(asinstr)
- KBUILD_AFLAGS	+= $(AFLAGS-y)
--KBUILD_CFLAGS	+= $(call cc-option,-msoft-float)
-+KBUILD_CFLAGS	+= $(CC_FLAGS_NO_FPU)
- KBUILD_CFLAGS	+= $(CFLAGS-y)
- CPP		= $(CC) -E $(KBUILD_CFLAGS)
- 
+ ifeq ($(CONFIG_X86_KERNEL_IBT),y)
+ #
+ # Kernel IBT has S_CET.NOTRACK_EN=0, as such the compilers must not generate
 _
 
 Patches currently in -mm which might be from samuel.holland@sifive.com are
