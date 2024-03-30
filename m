@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43A7A1C3E
-	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 03:09:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 048504685
+	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 03:09:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711768192; cv=none; b=lfShUDBq7omsfvzurAyBCTNb9tZebDzJqKYodTidTjQVYz1ljpoe+gWSqmCeOqF4ennN+hDtVWfa2bB9JX2dPCOzXjEKFUSU+eUMLd6TAx2ktJo8tiOJNw23q4U2Yteed7uAFoNEs+8PW9ZrSZ9r8lMQBetLpEKFq3qD6g9/FIM=
+	t=1711768195; cv=none; b=H8gc/OhM4Phm+IhHJlyqcIQTfiOYs4F5V0RjM5KDNO5nqWfie10S07hU6h7URgNsgI7ZdRju1nd/bVqxHBQZqrI/eKmVeGxe9SScpcBCd5t4D4P0nJDxGQdTYAyzIqFZMK//e38RUQEjiUxUXKHFOP8nqjVX43WYId0VhK9P2y0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711768192; c=relaxed/simple;
-	bh=/bcAHS9dWpDzg4LCW66BjpZlqX9vfQu+KOe38BsCEE8=;
-	h=Date:To:From:Subject:Message-Id; b=iTbQ1pwJvG8ErIH2KVz1+tdf4qgI+XJcii/dfIQa/72Fxt29cG1FKTVnawNV3zF4+X8ZTu/xWjQ50H1kPKm7zldKidxYeQYkoT29wYKRBv1Y8p2votd5RPuO/abgyyfpVZ/MbT6luuJhO09mBIxMx1J8f64XgGEOvlgG+68h1VQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sVUKkVsh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711768195; c=relaxed/simple;
+	bh=w1hkHR88b/ooWgMsd1d2DiVqMWU0aV0QA3bNc5KywXE=;
+	h=Date:To:From:Subject:Message-Id; b=LRbOuswrae+N2mMAm7Le85TnqTuBaKsyqvw/b0yZdCm0sIjdHb2JfwocDU60f471MWJeeFAc9Ks/6nnYoPLR3s5Pk/u0uJDj6hF67E8rEwGsPaHeMNCIxEvq38OvMqhfyrnJppHj8lOSBrMFxg3PG9gDeNqFBwHEXFqtHhpAWGo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t0nCUMH0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sVUKkVsh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87DC2C433C7;
-	Sat, 30 Mar 2024 03:09:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t0nCUMH0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 671F8C433F1;
+	Sat, 30 Mar 2024 03:09:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711768191;
-	bh=/bcAHS9dWpDzg4LCW66BjpZlqX9vfQu+KOe38BsCEE8=;
+	s=korg; t=1711768194;
+	bh=w1hkHR88b/ooWgMsd1d2DiVqMWU0aV0QA3bNc5KywXE=;
 	h=Date:To:From:Subject:From;
-	b=sVUKkVshLEznDBum4GzjTznx1jdolhXw/9x2L0hUr/jCC9LSAuArSArfofbuzLS02
-	 hJncQueFAdbdDE3WzV/jYn7gH5z6E3ZSsauIw+aZdu3yeuqcuCfhy/2dJ/1JjmAOG/
-	 Fv1/nD4MwFGtTjEwPeln0XGu7U6ul/G4wKmcPqrM=
-Date: Fri, 29 Mar 2024 20:09:50 -0700
+	b=t0nCUMH0+p1zbNg35hQpyZCKJ9rXiy27YNyc5q+0mNWofZ2IqYP4ZRQrMRc8jLN60
+	 892CsSsOToh1mG5oswUoVf2CD0vBqIsP29RXFSxTiMPQFs7DvmM52Z/szoPRRExp2+
+	 0tEYxGNBT5rEMRTyKOrg3UKZ41v/X2udhm/dJw0s=
+Date: Fri, 29 Mar 2024 20:09:53 -0700
 To: mm-commits@vger.kernel.org,kernel@xen0n.name,geert@linux-m68k.org,corbet@lwn.net,chenhuacai@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arch-loongarch-clean-up-the-left-code-and-kconfig-item-related-to-crash_core.patch added to mm-nonmm-unstable branch
-Message-Id: <20240330030951.87DC2C433C7@smtp.kernel.org>
+Subject: + documentation-kdump-clean-up-the-outdated-description.patch added to mm-nonmm-unstable branch
+Message-Id: <20240330030954.671F8C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arch/loongarch: clean up the left code and Kconfig item related to CRASH_CORE
+     Subject: Documentation: kdump: clean up the outdated description
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     arch-loongarch-clean-up-the-left-code-and-kconfig-item-related-to-crash_core.patch
+     documentation-kdump-clean-up-the-outdated-description.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-loongarch-clean-up-the-left-code-and-kconfig-item-related-to-crash_core.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-kdump-clean-up-the-outdated-description.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,82 +59,52 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: arch/loongarch: clean up the left code and Kconfig item related to CRASH_CORE
-Date: Fri, 29 Mar 2024 21:28:24 +0800
+Subject: Documentation: kdump: clean up the outdated description
+Date: Fri, 29 Mar 2024 21:28:25 +0800
 
-Patch series "crash: clean up outdated codes and doc related to
-CRASH_CORE".
+After commit 443cbaf9e2fd ("crash: split vmcoreinfo exporting code out
+from crash_core.c"), Kconfig item CRASH_CORE has gone away in kernel. 
+Items VMCORE_INFO and CRASH_RESERVE are used instead.
 
-As Geert pointed out that there are still left codes and doc related to
-CRASH_CORE in arch/loongarch and Documentation.  So make these two patches
-to clean them up.  Thanks to Geert.
+So clean up the outdated description about CRASH_CORE and update it
+accordingly.
 
-
-This patch (of 2):
-
-In commit 85fcde402db1 ("kexec: split crashkernel reservation code out
-from crash_core.c"), crashkernel reservation code is split out from
-crash_core.c, and add CRASH_RESERVE to control it.  And also rename each
-ARCH's <asm/crash_core.h> to <asm/crash_reserve.h> accordingly.
-
-But the relevant part in loongarch is missed. Do it now.
-
-Link: https://lkml.kernel.org/r/20240329132825.1102459-1-bhe@redhat.com
-Link: https://lkml.kernel.org/r/20240329132825.1102459-2-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20240329132825.1102459-3-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: WANG Xuerui <kernel@xen0n.name>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/Kconfig                     |    2 +-
- arch/loongarch/include/asm/crash_core.h    |   12 ------------
- arch/loongarch/include/asm/crash_reserve.h |   12 ++++++++++++
- 3 files changed, 13 insertions(+), 13 deletions(-)
+ Documentation/admin-guide/kdump/kdump.rst |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/loongarch/include/asm/crash_core.h
-+++ /dev/null
-@@ -1,12 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--#ifndef _LOONGARCH_CRASH_CORE_H
--#define _LOONGARCH_CRASH_CORE_H
--
--#define CRASH_ALIGN			SZ_2M
--
--#define CRASH_ADDR_LOW_MAX		SZ_4G
--#define CRASH_ADDR_HIGH_MAX		memblock_end_of_DRAM()
--
--extern phys_addr_t memblock_end_of_DRAM(void);
--
--#endif
---- /dev/null
-+++ a/arch/loongarch/include/asm/crash_reserve.h
-@@ -0,0 +1,12 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+#ifndef _LOONGARCH_CRASH_RESERVE_H
-+#define _LOONGARCH_CRASH_RESERVE_H
-+
-+#define CRASH_ALIGN			SZ_2M
-+
-+#define CRASH_ADDR_LOW_MAX		SZ_4G
-+#define CRASH_ADDR_HIGH_MAX		memblock_end_of_DRAM()
-+
-+extern phys_addr_t memblock_end_of_DRAM(void);
-+
-+#endif
---- a/arch/loongarch/Kconfig~arch-loongarch-clean-up-the-left-code-and-kconfig-item-related-to-crash_core
-+++ a/arch/loongarch/Kconfig
-@@ -596,7 +596,7 @@ config ARCH_SELECTS_CRASH_DUMP
- 	select RELOCATABLE
+--- a/Documentation/admin-guide/kdump/kdump.rst~documentation-kdump-clean-up-the-outdated-description
++++ a/Documentation/admin-guide/kdump/kdump.rst
+@@ -136,10 +136,6 @@ System kernel config options
  
- config ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
--	def_bool CRASH_CORE
-+	def_bool CRASH_RESERVE
+ 	CONFIG_KEXEC_CORE=y
  
- config RELOCATABLE
- 	bool "Relocatable kernel"
+-   Subsequently, CRASH_CORE is selected by KEXEC_CORE::
+-
+-	CONFIG_CRASH_CORE=y
+-
+ 2) Enable "sysfs file system support" in "Filesystem" -> "Pseudo
+    filesystems." This is usually enabled by default::
+ 
+@@ -168,6 +164,10 @@ Dump-capture kernel config options (Arch
+ 
+ 	CONFIG_CRASH_DUMP=y
+ 
++   And this will select VMCORE_INFO and CRASH_RESERVE::
++	CONFIG_VMCORE_INFO=y
++	CONFIG_CRASH_RESERVE=y
++
+ 2) Enable "/proc/vmcore support" under "Filesystems" -> "Pseudo filesystems"::
+ 
+ 	CONFIG_PROC_VMCORE=y
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
