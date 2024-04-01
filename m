@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3125263CB
-	for <mm-commits@vger.kernel.org>; Sat, 30 Mar 2024 03:52:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47AD11EB37
+	for <mm-commits@vger.kernel.org>; Mon,  1 Apr 2024 16:41:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711770734; cv=none; b=PB4Q7RpzraJ3uswuwOO+an6mwgkADUQ4XMfQRgVNee+z1e2dTUKlSpTpq1ideALFtF7emAeeLBmiIlgSh/79jftCuvQxsbbwcyaIn/Ab3aZfPFk3J3ook8UVexxfz/ZMmncHw1fk5cqcGiBsMJqPk4LZkVWhRB2z5+YoG0CkBs4=
+	t=1711989660; cv=none; b=qWNXFZ07EIQ75K/xKuR6KaUAgND2sTcUlMBYYSpiz/HH7DyEReADK9mCZtG/prpAtYD/mEki91o3uVI6g7TKVhOjdISrVNHBhVnmu6+hcni1oZI7TluxZgXQvJwNAaWVM1N0PJ1VagN3jvHX3tPNEuiVTPr+UBUX8I4wi2Z+C2E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711770734; c=relaxed/simple;
-	bh=NaTAlKLwzcikRxvTxtYbEmQtbfRxPkaCSPgdM9JxfDU=;
-	h=Date:To:From:Subject:Message-Id; b=k5brK5zxtBOYvQKNLlBNUUoI9aAewhIfkbj4XSxetQVhatsBGvu0elo0G2XVf0Rt9+fyfKlIVP2rue9qhzHPkzANJYbN+1wp4QffOCcygfQgjXhvf+N/31PZ0zwwcpwEQQzsyeYnxPwm2EZwLkFz4zeVRMtPpZjXnmXNS77vPjI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H6A0erxe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711989660; c=relaxed/simple;
+	bh=67BU/CAI8IR8zyvUCx6lOMBVR+n/slJvfjIduDo8zqM=;
+	h=Date:To:From:Subject:Message-Id; b=BG2uN6qbJCupOIBWwuUD3qqmHs6fwE6t3BxoZ2rXRAX6NdmMXbhdT/DTBUrEgge2gqgO7rELGDGy/ZrzGE3cLTVCrfcNQ4KkP4k/BzP1sD3LFB3nVQi2H0d9JWOEunjCUf3LIUCstGYzvm0bh1NbcV9qHXn1lJN3PVQucJdwHQc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JF5TqTDk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H6A0erxe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8642C433F1;
-	Sat, 30 Mar 2024 03:52:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JF5TqTDk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02F73C433F1;
+	Mon,  1 Apr 2024 16:40:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711770733;
-	bh=NaTAlKLwzcikRxvTxtYbEmQtbfRxPkaCSPgdM9JxfDU=;
+	s=korg; t=1711989660;
+	bh=67BU/CAI8IR8zyvUCx6lOMBVR+n/slJvfjIduDo8zqM=;
 	h=Date:To:From:Subject:From;
-	b=H6A0erxee4tNmih/HH5p5boWnMTXwz60IrIqPVBGZ8bTfgLiJspn8K/3fAef4xFhK
-	 7SZWc7xgcY1H/lXaaLRq9Jon+flC8uWVJi03bG3f/G7FGwG4XjsC9d/x0db5qE1dxE
-	 ND2unkwRoY9bkFAmXbYY6JO5HSAabETk7aUaIRqo=
-Date: Fri, 29 Mar 2024 20:52:13 -0700
-To: mm-commits@vger.kernel.org,ndesaulniers@google.com,nathan@kernel.org,morbo@google.com,justinstitt@google.com,dvyukov@google.com,andreyknvl@gmail.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=JF5TqTDkb7TONpG+jBA5D/bYV3+8lDbRBs9e5f/kxOhoHDHBWIHmnrQs3BefwZxYB
+	 m6O3OU9iwbobWdx6PIxO7rp++Uu0iKjLWCG3/tEc8LyntnGiHA1zcCvOo3hX13Cloh
+	 B/CYPE2eb/gRPHM/wuoIsG6X6jLxV+LyQ1dsdL9g=
+Date: Mon, 01 Apr 2024 09:40:59 -0700
+To: mm-commits@vger.kernel.org,peterz@infradead.org,mingo@kernel.org,luto@kernel.org,hch@lst.de,fei1.li@intel.com,david@redhat.com,dave.hansen@linux.intel.com,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kcov-avoid-clang-out-of-range-warning.patch added to mm-nonmm-unstable branch
-Message-Id: <20240330035213.B8642C433F1@smtp.kernel.org>
+Subject: + mm-move-follow_phys-to-arch-x86-mm-pat-memtypec-fix-2.patch added to mm-unstable branch
+Message-Id: <20240401164100.02F73C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kcov: avoid clang out-of-range warning
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kcov-avoid-clang-out-of-range-warning.patch
+     Subject: mm-move-follow_phys-to-arch-x86-mm-pat-memtypec-fix-2
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-move-follow_phys-to-arch-x86-mm-pat-memtypec-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcov-avoid-clang-out-of-range-warning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-follow_phys-to-arch-x86-mm-pat-memtypec-fix-2.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,49 +58,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kcov: avoid clang out-of-range warning
-Date: Thu, 28 Mar 2024 15:30:42 +0100
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: mm-move-follow_phys-to-arch-x86-mm-pat-memtypec-fix-2
+Date: Thu, 28 Mar 2024 08:25:58 -0700
 
-The area_size is never larger than the maximum on 64-bit architectutes:
+memtype.c needs highmem.h
 
-kernel/kcov.c:634:29: error: result of comparison of constant 1152921504606846975 with expression of type '__u32' (aka 'unsigned int') is always false [-Werror,-Wtautological-constant-out-of-range-compare]
-                if (remote_arg->area_size > LONG_MAX / sizeof(unsigned long))
-                    ~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The compiler can correctly optimize the check away and the code appears
-correct to me, so just add a cast to avoid the warning.
-
-Link: https://lkml.kernel.org/r/20240328143051.1069575-5-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Justin Stitt <justinstitt@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Bill Wendling <morbo@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
+Link: https://lkml.kernel.org/r/20240328152558.GA2652500@dev-arch.thelio-3990X
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Fei Li <fei1.li@intel.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86/mm/pat/memtype.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/kernel/kcov.c~kcov-avoid-clang-out-of-range-warning
-+++ a/kernel/kcov.c
-@@ -627,7 +627,8 @@ static int kcov_ioctl_locked(struct kcov
- 		mode = kcov_get_mode(remote_arg->trace_mode);
- 		if (mode < 0)
- 			return mode;
--		if (remote_arg->area_size > LONG_MAX / sizeof(unsigned long))
-+		if ((unsigned long)remote_arg->area_size >
-+		    LONG_MAX / sizeof(unsigned long))
- 			return -EINVAL;
- 		kcov->mode = mode;
- 		t->kcov = kcov;
+--- a/arch/x86/mm/pat/memtype.c~mm-move-follow_phys-to-arch-x86-mm-pat-memtypec-fix-2
++++ a/arch/x86/mm/pat/memtype.c
+@@ -39,6 +39,7 @@
+ #include <linux/pfn_t.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
++#include <linux/highmem.h>
+ #include <linux/fs.h>
+ #include <linux/rbtree.h>
+ 
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from nathan@kernel.org are
 
-nilfs2-fix-out-of-range-warning.patch
-kcov-avoid-clang-out-of-range-warning.patch
+mm-move-follow_phys-to-arch-x86-mm-pat-memtypec-fix-2.patch
 
