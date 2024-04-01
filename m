@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47AD11EB37
-	for <mm-commits@vger.kernel.org>; Mon,  1 Apr 2024 16:41:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 179654B5CD
+	for <mm-commits@vger.kernel.org>; Mon,  1 Apr 2024 17:15:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711989660; cv=none; b=qWNXFZ07EIQ75K/xKuR6KaUAgND2sTcUlMBYYSpiz/HH7DyEReADK9mCZtG/prpAtYD/mEki91o3uVI6g7TKVhOjdISrVNHBhVnmu6+hcni1oZI7TluxZgXQvJwNAaWVM1N0PJ1VagN3jvHX3tPNEuiVTPr+UBUX8I4wi2Z+C2E=
+	t=1711991746; cv=none; b=cVCkErfCT6+RTa6adUA5O9DI9VeNeLCwzwn/fbXtG5wxSqKUWLpgByS0uJtWPe9fhRzKQwY3OhJMPDtBMDl6lvo+QaHC6Id+hNdZSyZjLzakaTIEPiBIkZFIyrl6kfzyf9uuj2twmTECVjEHw71zgnXRl5CdL9sssi5GbB8NSLo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711989660; c=relaxed/simple;
-	bh=67BU/CAI8IR8zyvUCx6lOMBVR+n/slJvfjIduDo8zqM=;
-	h=Date:To:From:Subject:Message-Id; b=BG2uN6qbJCupOIBWwuUD3qqmHs6fwE6t3BxoZ2rXRAX6NdmMXbhdT/DTBUrEgge2gqgO7rELGDGy/ZrzGE3cLTVCrfcNQ4KkP4k/BzP1sD3LFB3nVQi2H0d9JWOEunjCUf3LIUCstGYzvm0bh1NbcV9qHXn1lJN3PVQucJdwHQc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JF5TqTDk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711991746; c=relaxed/simple;
+	bh=VDrbcIS36N5oDFYbewnfw/rT+A8ANbzZZcDcrlVo8d0=;
+	h=Date:To:From:Subject:Message-Id; b=oYFGNHL9clDymW5d/VVmZmXhSo+hVwtnJ5ry1OnGG/EBmXk/ZYTX/DZ5QF/JbdNUiCjBnTA31vMZ8TBbOHgOG9OuQxw0g5WDxtlggPxoJfPiEBVSNW93A3IQsua9DgblcDuQE8dcX0BwqzBx5FUl4sancKoJ13WkJfR2DjmxM5A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L+NOZHHQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JF5TqTDk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02F73C433F1;
-	Mon,  1 Apr 2024 16:40:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L+NOZHHQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB119C433C7;
+	Mon,  1 Apr 2024 17:15:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1711989660;
-	bh=67BU/CAI8IR8zyvUCx6lOMBVR+n/slJvfjIduDo8zqM=;
+	s=korg; t=1711991745;
+	bh=VDrbcIS36N5oDFYbewnfw/rT+A8ANbzZZcDcrlVo8d0=;
 	h=Date:To:From:Subject:From;
-	b=JF5TqTDkb7TONpG+jBA5D/bYV3+8lDbRBs9e5f/kxOhoHDHBWIHmnrQs3BefwZxYB
-	 m6O3OU9iwbobWdx6PIxO7rp++Uu0iKjLWCG3/tEc8LyntnGiHA1zcCvOo3hX13Cloh
-	 B/CYPE2eb/gRPHM/wuoIsG6X6jLxV+LyQ1dsdL9g=
-Date: Mon, 01 Apr 2024 09:40:59 -0700
-To: mm-commits@vger.kernel.org,peterz@infradead.org,mingo@kernel.org,luto@kernel.org,hch@lst.de,fei1.li@intel.com,david@redhat.com,dave.hansen@linux.intel.com,nathan@kernel.org,akpm@linux-foundation.org
+	b=L+NOZHHQ33N6iGZAvMa2KQbDai0u+wjMqZZZXrnNikgP38v3oQWI3558KT8Kyy0N4
+	 UOejzwwxYOVLoPM4nljj4Z5idXmmwJGkiVzqyhKq8sKe3JuQo7iEpArg3O32TzkTQj
+	 62QRxe8DcaYR+6/YQVN2q3uNXlFKpnRuFgD76QHE=
+Date: Mon, 01 Apr 2024 10:15:45 -0700
+To: mm-commits@vger.kernel.org,muchun.song@linux.dev,linmiaohe@huawei.com,j.granados@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-follow_phys-to-arch-x86-mm-pat-memtypec-fix-2.patch added to mm-unstable branch
-Message-Id: <20240401164100.02F73C433F1@smtp.kernel.org>
+Subject: + memory-remove-the-now-superfluous-sentinel-element-from-ctl_table-array.patch added to mm-unstable branch
+Message-Id: <20240401171545.BB119C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-move-follow_phys-to-arch-x86-mm-pat-memtypec-fix-2
+     Subject: memory: remove the now superfluous sentinel element from ctl_table array
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-move-follow_phys-to-arch-x86-mm-pat-memtypec-fix-2.patch
+     memory-remove-the-now-superfluous-sentinel-element-from-ctl_table-array.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-follow_phys-to-arch-x86-mm-pat-memtypec-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-remove-the-now-superfluous-sentinel-element-from-ctl_table-array.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,40 +58,107 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nathan Chancellor <nathan@kernel.org>
-Subject: mm-move-follow_phys-to-arch-x86-mm-pat-memtypec-fix-2
-Date: Thu, 28 Mar 2024 08:25:58 -0700
+From: Joel Granados <j.granados@samsung.com>
+Subject: memory: remove the now superfluous sentinel element from ctl_table array
+Date: Thu, 28 Mar 2024 16:57:48 +0100
 
-memtype.c needs highmem.h
+This commit comes at the tail end of a greater effort to remove the empty
+elements at the end of the ctl_table arrays (sentinels) which will reduce
+the overall build time size of the kernel and run time memory bloat by ~64
+bytes per sentinel (further information Link :
+https://lore.kernel.org/all/ZO5Yx5JFogGi%2FcBo@bombadil.infradead.org/)
 
-Link: https://lkml.kernel.org/r/20240328152558.GA2652500@dev-arch.thelio-3990X
-Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Fei Li <fei1.li@intel.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Remove sentinel from all files under mm/ that register a sysctl table.
+
+Link: https://lkml.kernel.org/r/20240328-jag-sysctl_remset_misc-v1-1-47c1463b3af2@samsung.com
+Signed-off-by: Joel Granados <j.granados@samsung.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pat/memtype.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/compaction.c      |    1 -
+ mm/hugetlb.c         |    1 -
+ mm/hugetlb_vmemmap.c |    1 -
+ mm/memory-failure.c  |    1 -
+ mm/oom_kill.c        |    1 -
+ mm/page-writeback.c  |    1 -
+ mm/page_alloc.c      |    1 -
+ 7 files changed, 7 deletions(-)
 
---- a/arch/x86/mm/pat/memtype.c~mm-move-follow_phys-to-arch-x86-mm-pat-memtypec-fix-2
-+++ a/arch/x86/mm/pat/memtype.c
-@@ -39,6 +39,7 @@
- #include <linux/pfn_t.h>
- #include <linux/slab.h>
- #include <linux/mm.h>
-+#include <linux/highmem.h>
- #include <linux/fs.h>
- #include <linux/rbtree.h>
+--- a/mm/compaction.c~memory-remove-the-now-superfluous-sentinel-element-from-ctl_table-array
++++ a/mm/compaction.c
+@@ -3350,7 +3350,6 @@ static struct ctl_table vm_compaction[]
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_ONE,
+ 	},
+-	{ }
+ };
+ 
+ static int __init kcompactd_init(void)
+--- a/mm/hugetlb.c~memory-remove-the-now-superfluous-sentinel-element-from-ctl_table-array
++++ a/mm/hugetlb.c
+@@ -5026,7 +5026,6 @@ static struct ctl_table hugetlb_table[]
+ 		.mode		= 0644,
+ 		.proc_handler	= hugetlb_overcommit_handler,
+ 	},
+-	{ }
+ };
+ 
+ static void hugetlb_sysctl_init(void)
+--- a/mm/hugetlb_vmemmap.c~memory-remove-the-now-superfluous-sentinel-element-from-ctl_table-array
++++ a/mm/hugetlb_vmemmap.c
+@@ -679,7 +679,6 @@ static struct ctl_table hugetlb_vmemmap_
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dobool,
+ 	},
+-	{ }
+ };
+ 
+ static int __init hugetlb_vmemmap_init(void)
+--- a/mm/memory-failure.c~memory-remove-the-now-superfluous-sentinel-element-from-ctl_table-array
++++ a/mm/memory-failure.c
+@@ -141,7 +141,6 @@ static struct ctl_table memory_failure_t
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_ONE,
+ 	},
+-	{ }
+ };
+ 
+ /*
+--- a/mm/oom_kill.c~memory-remove-the-now-superfluous-sentinel-element-from-ctl_table-array
++++ a/mm/oom_kill.c
+@@ -724,7 +724,6 @@ static struct ctl_table vm_oom_kill_tabl
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
+ 	},
+-	{}
+ };
+ #endif
+ 
+--- a/mm/page_alloc.c~memory-remove-the-now-superfluous-sentinel-element-from-ctl_table-array
++++ a/mm/page_alloc.c
+@@ -6293,7 +6293,6 @@ static struct ctl_table page_alloc_sysct
+ 		.extra2		= SYSCTL_ONE_HUNDRED,
+ 	},
+ #endif
+-	{}
+ };
+ 
+ void __init page_alloc_sysctl_init(void)
+--- a/mm/page-writeback.c~memory-remove-the-now-superfluous-sentinel-element-from-ctl_table-array
++++ a/mm/page-writeback.c
+@@ -2291,7 +2291,6 @@ static struct ctl_table vm_page_writebac
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_jiffies,
+ 	},
+-	{}
+ };
+ #endif
  
 _
 
-Patches currently in -mm which might be from nathan@kernel.org are
+Patches currently in -mm which might be from j.granados@samsung.com are
 
-mm-move-follow_phys-to-arch-x86-mm-pat-memtypec-fix-2.patch
+memory-remove-the-now-superfluous-sentinel-element-from-ctl_table-array.patch
 
