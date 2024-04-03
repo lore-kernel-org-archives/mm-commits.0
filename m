@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 577A3154C05
-	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 19:12:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CEE21552E2
+	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 19:12:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712171557; cv=none; b=C8mmi7EQpWvONkhTVUHeZpqjHxsbmsWsJ9j6+/Bmx33jzvwNx6Z4zXBPQDCNc+RSdicjqHK46JU0rRCPz/8yKdd1QmmXJKBaQBLsXpg4lkyv+E7bUkRsDayGtavKFvalzLB+eVFkHwyeZnxRqU1M1Ec5y/nzIG+YPxWIBomjZsY=
+	t=1712171558; cv=none; b=g4HqyqwXEJOgHeCWAsr4gXSeietw8mXo1HtCeqGw+OO+2Lfni0F+phUbNCZC/B5kJrHgTJUAHBWwzdy1M6HSS2YnmPc+GvBAgIA+BBiTAuZJOmiRbw9MPVf4oqGGYN8PXn1HxRwZQ+8XVv3emJOqMKk3qav2yufxorlj4jKL0m4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712171557; c=relaxed/simple;
-	bh=i5zil3QsTXO5pZrDb+Upr2/VaI+j8CSe08QQ/mV9xGI=;
-	h=Date:To:From:Subject:Message-Id; b=VgR5dPl83UKfwkb0pDgC3Z+35JwwlTr/Nl59Eflg8UaSDRbewPEce1AzBekAouAaDuACtBRNRW18lVtWxn+uYTdRWgt5+LdTqWRVOo11E2zdwYCcHcu7HkquFgZ2DkQMNHGvoPoOlPcXiCQ1n6t0k9HRBgWUEOBQldTOny4tMYs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UHWQWlat; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712171558; c=relaxed/simple;
+	bh=gMdoAiWKb36YTTUxhJ4lq6l/PKkB6221tDJ+Sn9G7KY=;
+	h=Date:To:From:Subject:Message-Id; b=Mr5rSy9yTGvyvaT7W8f6eAC+3fFHwhN5qbRaA0lard6sd8zsENyOUu7RNSYypCg1AHTd8XDMSdlcu/4SDv+603E7bMrCgm58zMiz6WYoFQqz3w0NRWoLKQYXTPr02QrfUX9JDSsX/NF6SzVjK5fRM4ZPZOaOVvwlBZm2CHruU24=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ild7iFjd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UHWQWlat"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C57B0C433F1;
-	Wed,  3 Apr 2024 19:12:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ild7iFjd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CD5FC433C7;
+	Wed,  3 Apr 2024 19:12:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712171556;
-	bh=i5zil3QsTXO5pZrDb+Upr2/VaI+j8CSe08QQ/mV9xGI=;
+	s=korg; t=1712171558;
+	bh=gMdoAiWKb36YTTUxhJ4lq6l/PKkB6221tDJ+Sn9G7KY=;
 	h=Date:To:From:Subject:From;
-	b=UHWQWlatvij8lheDo3tpJI0RzdrBMBzX8HeE0YRPvuXfANZxwasHbqCL8ZYVGh/gS
-	 qzHj112RuWqev3hbdUMPEf3Sp5Pfd/jBUgWx6FSsH6Vm9xLT7Wv4mPvsLPHQZUTu8f
-	 zziuzgdYTQs1lN2LTMb1BJC8uumpqBHSJcOu3dqE=
-Date: Wed, 03 Apr 2024 12:12:35 -0700
+	b=ild7iFjdEYcT1tb6kqijtNjOihnsEN75O8iEZmk668wvXqZAXof2ytKFMjDg2Omtw
+	 9+fk8Sd98HB6nkQdN5OQO3p5czKGlSGk2D3j1T/EJ1ay+XRJ5D18ZgHJ/8Xm+VljXK
+	 HnNjfMr1Vwn6MWWman1Z/NPqWbu1Jf6K/ox42vfg=
+Date: Wed, 03 Apr 2024 12:12:37 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-convert-smaps_account-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20240403191236.C57B0C433F1@smtp.kernel.org>
+Subject: + mm-remove-page_idle-and-page_young-wrappers.patch added to mm-unstable branch
+Message-Id: <20240403191238.4CD5FC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: proc: convert smaps_account() to use a folio
+     Subject: mm: remove page_idle and page_young wrappers
 has been added to the -mm mm-unstable branch.  Its filename is
-     proc-convert-smaps_account-to-use-a-folio.patch
+     mm-remove-page_idle-and-page_young-wrappers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-convert-smaps_account-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-page_idle-and-page_young-wrappers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,73 +59,52 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: proc: convert smaps_account() to use a folio
-Date: Tue, 2 Apr 2024 21:12:49 +0100
+Subject: mm: remove page_idle and page_young wrappers
+Date: Tue, 2 Apr 2024 21:12:50 +0100
 
-Replace seven calls to compound_head() with one.
+All users have now been converted to the folio equivalents, so remove the
+page wrappers.
 
-Link: https://lkml.kernel.org/r/20240402201252.917342-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240402201252.917342-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ include/linux/page_idle.h |   25 -------------------------
+ 1 file changed, 25 deletions(-)
 
---- a/fs/proc/task_mmu.c~proc-convert-smaps_account-to-use-a-folio
-+++ a/fs/proc/task_mmu.c
-@@ -444,6 +444,7 @@ static void smaps_account(struct mem_siz
- 		bool compound, bool young, bool dirty, bool locked,
- 		bool migration)
- {
-+	struct folio *folio = page_folio(page);
- 	int i, nr = compound ? compound_nr(page) : 1;
- 	unsigned long size = nr * PAGE_SIZE;
+--- a/include/linux/page_idle.h~mm-remove-page_idle-and-page_young-wrappers
++++ a/include/linux/page_idle.h
+@@ -119,29 +119,4 @@ static inline void folio_clear_idle(stru
+ }
  
-@@ -451,27 +452,28 @@ static void smaps_account(struct mem_siz
- 	 * First accumulate quantities that depend only on |size| and the type
- 	 * of the compound page.
- 	 */
--	if (PageAnon(page)) {
-+	if (folio_test_anon(folio)) {
- 		mss->anonymous += size;
--		if (!PageSwapBacked(page) && !dirty && !PageDirty(page))
-+		if (!folio_test_swapbacked(folio) && !dirty &&
-+		    !folio_test_dirty(folio))
- 			mss->lazyfree += size;
- 	}
- 
--	if (PageKsm(page))
-+	if (folio_test_ksm(folio))
- 		mss->ksm += size;
- 
- 	mss->resident += size;
- 	/* Accumulate the size in pages that have been accessed. */
--	if (young || page_is_young(page) || PageReferenced(page))
-+	if (young || folio_test_young(folio) || folio_test_referenced(folio))
- 		mss->referenced += size;
- 
- 	/*
- 	 * Then accumulate quantities that may depend on sharing, or that may
- 	 * differ page-by-page.
- 	 *
--	 * page_count(page) == 1 guarantees the page is mapped exactly once.
-+	 * refcount == 1 guarantees the page is mapped exactly once.
- 	 * If any subpage of the compound page mapped with PTE it would elevate
--	 * page_count().
-+	 * the refcount.
- 	 *
- 	 * The page_mapcount() is called to get a snapshot of the mapcount.
- 	 * Without holding the page lock this snapshot can be slightly wrong as
-@@ -480,7 +482,7 @@ static void smaps_account(struct mem_siz
- 	 * especially for migration entries.  Treat regular migration entries
- 	 * as mapcount == 1.
- 	 */
--	if ((page_count(page) == 1) || migration) {
-+	if ((folio_ref_count(folio) == 1) || migration) {
- 		smaps_page_accumulate(mss, page, size, size << PSS_SHIFT, dirty,
- 			locked, true);
- 		return;
+ #endif /* CONFIG_PAGE_IDLE_FLAG */
+-
+-static inline bool page_is_young(struct page *page)
+-{
+-	return folio_test_young(page_folio(page));
+-}
+-
+-static inline void set_page_young(struct page *page)
+-{
+-	folio_set_young(page_folio(page));
+-}
+-
+-static inline bool test_and_clear_page_young(struct page *page)
+-{
+-	return folio_test_clear_young(page_folio(page));
+-}
+-
+-static inline bool page_is_idle(struct page *page)
+-{
+-	return folio_test_idle(page_folio(page));
+-}
+-
+-static inline void set_page_idle(struct page *page)
+-{
+-	folio_set_idle(page_folio(page));
+-}
+ #endif /* _LINUX_MM_PAGE_IDLE_H */
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
