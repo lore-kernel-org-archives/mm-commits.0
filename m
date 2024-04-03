@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7293614C5B3
-	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 20:48:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15C7214C5B3
+	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 20:48:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712177312; cv=none; b=H7M3xNgs7qZpfmifysP01qX/xEaKeQ4gwFvy6q3/B1+7htX48M0UboIqucHCE9qT2tfVgSt4UGaqvPqG3n1An4pjbUrzUEpFpt30pMWgqG4c4Wb3MzHPlnTzQjjbxv3zuK/oduNofWskHPhtLXTnDud2k9ImHBTS6vVAV0hlI4E=
+	t=1712177314; cv=none; b=l+kvb2Wwif92SInJNS9DPj6n8D/r0D2k4sujxe3dg1cLNfMXEBIwgwLn0fw7rbooerpOqzqyW5ulMMau2y+ArF0quw7Hr7TcrV2evab1RPKFKXQjAC4qhJ0MAxqgdG3x7k/fxEUy4+HaHAaFTuef15Gcy6iIkgqgdwbr3X3JaK4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712177312; c=relaxed/simple;
-	bh=uS0hO4U/NGFJc2NFf4hHk1BzeCIn9/WBUfOO74r/Emg=;
-	h=Date:To:From:Subject:Message-Id; b=oFjJ5lTZtnLGf0gyRMwirbv6xgFJjR0+LCLGYcpMH9dx4Z9Kx7z5EGRA8Hdtsy2jDGEsmI2hGsNqCXqLYItZYWD50+9kOKxa4zd0sypRmUX3mzalykTPl8V8FBrQn9N28emKzcTMRIH1z5uO1dyqCVevJQ3TyYkEyyl4elh3ci4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RWYBlbl9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712177314; c=relaxed/simple;
+	bh=0FvtobxygP0TMg3tjaS1/1wnS7vt9vsCoDord0rHlq4=;
+	h=Date:To:From:Subject:Message-Id; b=DLqQVPOEaewyQzkt/GkqrH22MbLOk512rYn8uslKyjZJhRgjxENdomSgKRAc5VXzA1IAhkoFmbJuG+XFjhNZdb0+e7bu+S9QhYvmuZaqKtye7HHuORYmY8UJM0W6zgBWGwA3N9HYb45qWgiJPTj3FBHvJLlzj8npnv8V2l238iA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d+9A6Q6g; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RWYBlbl9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0729AC433C7;
-	Wed,  3 Apr 2024 20:48:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d+9A6Q6g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F3B3C433C7;
+	Wed,  3 Apr 2024 20:48:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712177312;
-	bh=uS0hO4U/NGFJc2NFf4hHk1BzeCIn9/WBUfOO74r/Emg=;
+	s=korg; t=1712177313;
+	bh=0FvtobxygP0TMg3tjaS1/1wnS7vt9vsCoDord0rHlq4=;
 	h=Date:To:From:Subject:From;
-	b=RWYBlbl90oGF01AT1GUpxZom3hAtfRPYGvPUKn6SApsDuhhaL7d7s2/n+1vFW+YXc
-	 cMZxzsbLt0wmiUjQ711PxmX+pe90FNtW1TvimTLBKiiwHRBMFMf8lpr2MdELapWGRe
-	 NXS7eCZKxSeA9kqFLFhXItgK2y6xCIUUt5t46TaQ=
-Date: Wed, 03 Apr 2024 13:48:31 -0700
+	b=d+9A6Q6gDHCtzJTTKqzYtTMuTFZyFYpY+NHsQK57S9jWg89bUduYd+nZhmEY9fSPj
+	 eZxCbeBUmSpUo4Xww6QWwPIZf30C2ZbzCwFv7supZXVCzb1JvmzJvvcSLFNAX5bexd
+	 W+Mrroe3RjCBZwbjGNjB+Y7tyT7kxQM9fHWENTEA=
+Date: Wed, 03 Apr 2024 13:48:33 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,surenb@google.com,peterz@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,luto@kernel.org,linux@armlinux.org.uk,gerald.schaefer@linux.ibm.com,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,aou@eecs.berkeley.edu,agordeev@linux.ibm.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm-mm-accelerate-pagefault-when-vm_fault_badaccess.patch added to mm-unstable branch
-Message-Id: <20240403204832.0729AC433C7@smtp.kernel.org>
+Subject: + powerpc-mm-accelerate-pagefault-when-badaccess.patch added to mm-unstable branch
+Message-Id: <20240403204833.8F3B3C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm: mm: accelerate pagefault when VM_FAULT_BADACCESS
+     Subject: powerpc: mm: accelerate pagefault when badaccess
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
+     powerpc-mm-accelerate-pagefault-when-badaccess.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-mm-accelerate-pagefault-when-badaccess.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: arm: mm: accelerate pagefault when VM_FAULT_BADACCESS
-Date: Wed, 3 Apr 2024 16:38:01 +0800
+Subject: powerpc: mm: accelerate pagefault when badaccess
+Date: Wed, 3 Apr 2024 16:38:02 +0800
 
-The vm_flags of vma already checked under per-VMA lock, if it is a bad
-access, directly set fault to VM_FAULT_BADACCESS and handle error, no need
-to retry with mmap_lock again.  Since the page faut is handled under
-per-VMA lock, count it as a vma lock event with VMA_LOCK_SUCCESS.
+The access_[pkey]_error() of vma already checked under per-VMA lock, if it
+is a bad access, directly handle error, no need to retry with mmap_lock
+again.  In order to release the correct lock, pass the mm_struct into
+bad_access_pkey()/bad_access(), if mm is NULL, release vma lock, or
+release mmap_lock.  Since the page faut is handled under per-VMA lock,
+count it as a vma lock event with VMA_LOCK_SUCCESS.
 
-Link: https://lkml.kernel.org/r/20240403083805.1818160-4-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240403083805.1818160-5-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -83,26 +84,103 @@ Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Russell King <linux@armlinux.org.uk>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/fault.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/powerpc/mm/fault.c |   33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
---- a/arch/arm/mm/fault.c~arm-mm-accelerate-pagefault-when-vm_fault_badaccess
-+++ a/arch/arm/mm/fault.c
-@@ -294,7 +294,9 @@ do_page_fault(unsigned long addr, unsign
+--- a/arch/powerpc/mm/fault.c~powerpc-mm-accelerate-pagefault-when-badaccess
++++ a/arch/powerpc/mm/fault.c
+@@ -71,23 +71,26 @@ static noinline int bad_area_nosemaphore
+ 	return __bad_area_nosemaphore(regs, address, SEGV_MAPERR);
+ }
  
- 	if (!(vma->vm_flags & vm_flags)) {
- 		vma_end_read(vma);
+-static int __bad_area(struct pt_regs *regs, unsigned long address, int si_code)
++static int __bad_area(struct pt_regs *regs, unsigned long address, int si_code,
++		      struct mm_struct *mm, struct vm_area_struct *vma)
+ {
+-	struct mm_struct *mm = current->mm;
+ 
+ 	/*
+ 	 * Something tried to access memory that isn't in our memory map..
+ 	 * Fix it, but check if it's kernel or user first..
+ 	 */
+-	mmap_read_unlock(mm);
++	if (mm)
++		mmap_read_unlock(mm);
++	else
++		vma_end_read(vma);
+ 
+ 	return __bad_area_nosemaphore(regs, address, si_code);
+ }
+ 
+ static noinline int bad_access_pkey(struct pt_regs *regs, unsigned long address,
++				    struct mm_struct *mm,
+ 				    struct vm_area_struct *vma)
+ {
+-	struct mm_struct *mm = current->mm;
+ 	int pkey;
+ 
+ 	/*
+@@ -109,7 +112,10 @@ static noinline int bad_access_pkey(stru
+ 	 */
+ 	pkey = vma_pkey(vma);
+ 
+-	mmap_read_unlock(mm);
++	if (mm)
++		mmap_read_unlock(mm);
++	else
++		vma_end_read(vma);
+ 
+ 	/*
+ 	 * If we are in kernel mode, bail out with a SEGV, this will
+@@ -124,9 +130,10 @@ static noinline int bad_access_pkey(stru
+ 	return 0;
+ }
+ 
+-static noinline int bad_access(struct pt_regs *regs, unsigned long address)
++static noinline int bad_access(struct pt_regs *regs, unsigned long address,
++			       struct mm_struct *mm, struct vm_area_struct *vma)
+ {
+-	return __bad_area(regs, address, SEGV_ACCERR);
++	return __bad_area(regs, address, SEGV_ACCERR, mm, vma);
+ }
+ 
+ static int do_sigbus(struct pt_regs *regs, unsigned long address,
+@@ -479,13 +486,13 @@ static int ___do_page_fault(struct pt_re
+ 
+ 	if (unlikely(access_pkey_error(is_write, is_exec,
+ 				       (error_code & DSISR_KEYFAULT), vma))) {
+-		vma_end_read(vma);
 -		goto lock_mmap;
 +		count_vm_vma_lock_event(VMA_LOCK_SUCCESS);
-+		fault = VM_FAULT_BADACCESS;
-+		goto bad_area;
++		return bad_access_pkey(regs, address, NULL, vma);
  	}
- 	fault = handle_mm_fault(vma, addr, flags | FAULT_FLAG_VMA_LOCK, regs);
- 	if (!(fault & (VM_FAULT_RETRY | VM_FAULT_COMPLETED)))
+ 
+ 	if (unlikely(access_error(is_write, is_exec, vma))) {
+-		vma_end_read(vma);
+-		goto lock_mmap;
++		count_vm_vma_lock_event(VMA_LOCK_SUCCESS);
++		return bad_access(regs, address, NULL, vma);
+ 	}
+ 
+ 	fault = handle_mm_fault(vma, address, flags | FAULT_FLAG_VMA_LOCK, regs);
+@@ -521,10 +528,10 @@ retry:
+ 
+ 	if (unlikely(access_pkey_error(is_write, is_exec,
+ 				       (error_code & DSISR_KEYFAULT), vma)))
+-		return bad_access_pkey(regs, address, vma);
++		return bad_access_pkey(regs, address, mm, vma);
+ 
+ 	if (unlikely(access_error(is_write, is_exec, vma)))
+-		return bad_access(regs, address);
++		return bad_access(regs, address, mm, vma);
+ 
+ 	/*
+ 	 * If for any reason at all we couldn't handle the fault,
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
