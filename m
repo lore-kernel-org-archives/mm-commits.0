@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0E7315667F
-	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 21:31:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9017718AF9
+	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 21:38:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712179900; cv=none; b=Hk+6C+QPPEX0BfCpB74HOI5h75CMtL8jZzTVNBdfMLnOuDOc9DnF0FXl4370uO87zbnX0f+XS7VfnKZubIfHhz9hsxeaigucpfYR3+fkuXqjAJ0ktThnv3HSAt6sb/h49jNIpniKGocVhXV6C5jzl+4vxjgu1eaGT1WLOLGPFiE=
+	t=1712180323; cv=none; b=ahTaaatDKid86JOWWq2g6ctETM/LAEEcSUlM9eTO+OOmM81pMtSdSG2wl0UazeQA+IilRE0RpuTDjo+OAI32FNTcnCCzfhhqTQNoXxmSvG9mA4Oki7OS73Lxm4HHiwwy0jAhOxsVTmIZiL06i/0yquV9SBmqN6YxiFLNxqERd6g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712179900; c=relaxed/simple;
-	bh=oeYKhzouomGNclp2v7PejSgf2WhDEwo4I1NfIXII4VA=;
-	h=Date:To:From:Subject:Message-Id; b=iLl6JM49+00IG4pAeoUCXaFjIS3ap2EIWJdhVLrgsmCwmOnRE4v2t1+ybJlyTSNAvTDP/BMmJkehkBoTS56xCSPQ9pfX5oApq+b3EO9JBTe3G5ojB0h3oAdbG0A1hMfgJdaJS6cHv3yqhZrl+jMLQqgHpvvyWzVWB3qgfUlzHnY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c+/LtbQG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712180323; c=relaxed/simple;
+	bh=XD3lO3UezjRQyKynVJC/KPhSahHrlC899wgHJeKL3jY=;
+	h=Date:To:From:Subject:Message-Id; b=aQ0tMoqTyKZUgJfESaXjy9YhOU9/AB1UqOGkBIWv/W+w+dXBeQDSkLvz1nCo0B/8weWry0ZDwskUr4n3l2fFPTXM3Fu3ML0OEijtGhHRoPerCsO0M5gIXvZtm4JcOm9gUBci2yYMZs2iVKKR5Pauq0LTKe0+bE/o+ie7yDXqDx0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dj8PmSE6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c+/LtbQG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21E77C433C7;
-	Wed,  3 Apr 2024 21:31:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dj8PmSE6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D41DC433C7;
+	Wed,  3 Apr 2024 21:38:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712179900;
-	bh=oeYKhzouomGNclp2v7PejSgf2WhDEwo4I1NfIXII4VA=;
+	s=korg; t=1712180323;
+	bh=XD3lO3UezjRQyKynVJC/KPhSahHrlC899wgHJeKL3jY=;
 	h=Date:To:From:Subject:From;
-	b=c+/LtbQGlAgH/P0yMmel9l1XxxLvh+YafSaNaU7PtYYJLhSiMOHWlqRwd7xJn7IN8
-	 WCO7Jqq/8S/anM1lIjWaSax9jOggJTvVsAGGSSPqBLuTi5wCiwk+7kD0jeRHdbr6Uf
-	 XlPCE7jKYlEeDVb1LXaZ6RcqNALMDdYqztiuwpI4=
-Date: Wed, 03 Apr 2024 14:31:39 -0700
-To: mm-commits@vger.kernel.org,vishnu.dasa@broadcom.com,vishal.bhakta@broadcom.com,ronak.doshi@broadcom.com,nick.shi@broadcom.com,gregkh@linuxfoundation.org,florian.fainelli@broadcom.com,bryan-bt.tan@broadcom.com,ajay.kaher@broadcom.com,alexey.makhalov@broadcom.com,akpm@linux-foundation.org
+	b=dj8PmSE6HDkGgBCV2Ai6MaYol2YpEJP3lOJ3AU1rvgXkWjUP3xVX3t0rSwu1PiCS0
+	 i7fkZTYY0jKghbiVmO4HYRSWZliZTCWF0tuAIDZ6v5yVpZ24tO9a5D97zrfflF3gim
+	 Q3cWCAdY8q4m52eXFWj3xNjJgVIOkJsKV96YMNKs=
+Date: Wed, 03 Apr 2024 14:38:42 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-change-vmwarecom-addresses-to-broadcomcom.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240403213140.21E77C433C7@smtp.kernel.org>
+Subject: + mm-remove-struct-page-from-get_shadow_from_swap_cache.patch added to mm-unstable branch
+Message-Id: <20240403213843.0D41DC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: change vmware.com addresses to broadcom.com
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-change-vmwarecom-addresses-to-broadcomcom.patch
+     Subject: mm: remove struct page from get_shadow_from_swap_cache
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-remove-struct-page-from-get_shadow_from_swap_cache.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-change-vmwarecom-addresses-to-broadcomcom.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-struct-page-from-get_shadow_from_swap_cache.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,177 +58,93 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexey Makhalov <alexey.makhalov@broadcom.com>
-Subject: MAINTAINERS: change vmware.com addresses to broadcom.com
-Date: Tue, 2 Apr 2024 16:23:34 -0700
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: remove struct page from get_shadow_from_swap_cache
+Date: Tue, 2 Apr 2024 21:16:57 +0100
 
-Update all remaining vmware.com email addresses to actual broadcom.com.
+We don't actually use any parts of struct page; all we do is check the
+value of the pointer.  So give the pointer the appropriate name & type.
 
-Add corresponding .mailmap entries for maintainers who contributed in the
-past as the vmware.com address will start bouncing soon.
-
-Maintainership update. Jeff Sipek has left VMware, Nick Shi will be
-maintaining VMware PTP.
-
-Link: https://lkml.kernel.org/r/20240402232334.33167-1-alexey.makhalov@broadcom.com
-Signed-off-by: Alexey Makhalov <alexey.makhalov@broadcom.com>
-Acked-by: Florian Fainelli <florian.fainelli@broadcom.com>
-Acked-by: Ajay Kaher <ajay.kaher@broadcom.com>
-Acked-by: Ronak Doshi <ronak.doshi@broadcom.com>
-Acked-by: Nick Shi <nick.shi@broadcom.com>
-Acked-by: Bryan Tan <bryan-bt.tan@broadcom.com>
-Acked-by: Vishnu Dasa <vishnu.dasa@broadcom.com>
-Acked-by: Vishal Bhakta <vishal.bhakta@broadcom.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: https://lkml.kernel.org/r/20240402201659.918308-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap    |    5 +++++
- MAINTAINERS |   46 +++++++++++++++++++++++-----------------------
- 2 files changed, 28 insertions(+), 23 deletions(-)
+ mm/swap_state.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/.mailmap~maintainers-change-vmwarecom-addresses-to-broadcomcom
-+++ a/.mailmap
-@@ -20,6 +20,7 @@ Adam Oldham <oldhamca@gmail.com>
- Adam Radford <aradford@gmail.com>
- Adriana Reus <adi.reus@gmail.com> <adriana.reus@intel.com>
- Adrian Bunk <bunk@stusta.de>
-+Ajay Kaher <ajay.kaher@broadcom.com> <akaher@vmware.com>
- Akhil P Oommen <quic_akhilpo@quicinc.com> <akhilpo@codeaurora.org>
- Alan Cox <alan@lxorguk.ukuu.org.uk>
- Alan Cox <root@hraefn.swansea.linux.org.uk>
-@@ -36,6 +37,7 @@ Alexei Avshalom Lazar <quic_ailizaro@qui
- Alexei Starovoitov <ast@kernel.org> <alexei.starovoitov@gmail.com>
- Alexei Starovoitov <ast@kernel.org> <ast@fb.com>
- Alexei Starovoitov <ast@kernel.org> <ast@plumgrid.com>
-+Alexey Makhalov <alexey.amakhalov@broadcom.com> <amakhalov@vmware.com>
- Alex Hung <alexhung@gmail.com> <alex.hung@canonical.com>
- Alex Shi <alexs@kernel.org> <alex.shi@intel.com>
- Alex Shi <alexs@kernel.org> <alex.shi@linaro.org>
-@@ -110,6 +112,7 @@ Brendan Higgins <brendan.higgins@linux.d
- Brian Avery <b.avery@hp.com>
- Brian King <brking@us.ibm.com>
- Brian Silverman <bsilver16384@gmail.com> <brian.silverman@bluerivertech.com>
-+Bryan Tan <bryan-bt.tan@broadcom.com> <bryantan@vmware.com>
- Cai Huoqing <cai.huoqing@linux.dev> <caihuoqing@baidu.com>
- Can Guo <quic_cang@quicinc.com> <cang@codeaurora.org>
- Carl Huang <quic_cjhuang@quicinc.com> <cjhuang@codeaurora.org>
-@@ -529,6 +532,7 @@ Rocky Liao <quic_rjliao@quicinc.com> <rj
- Roman Gushchin <roman.gushchin@linux.dev> <guro@fb.com>
- Roman Gushchin <roman.gushchin@linux.dev> <guroan@gmail.com>
- Roman Gushchin <roman.gushchin@linux.dev> <klamm@yandex-team.ru>
-+Ronak Doshi <ronak.doshi@broadcom.com> <doshir@vmware.com>
- Muchun Song <muchun.song@linux.dev> <songmuchun@bytedance.com>
- Muchun Song <muchun.song@linux.dev> <smuchun@gmail.com>
- Ross Zwisler <zwisler@kernel.org> <ross.zwisler@linux.intel.com>
-@@ -651,6 +655,7 @@ Viresh Kumar <vireshk@kernel.org> <vires
- Viresh Kumar <vireshk@kernel.org> <viresh.linux@gmail.com>
- Viresh Kumar <viresh.kumar@linaro.org> <viresh.kumar@linaro.org>
- Viresh Kumar <viresh.kumar@linaro.org> <viresh.kumar@linaro.com>
-+Vishnu Dasa <vishnu.dasa@broadcom.com> <vdasa@vmware.com>
- Vivek Aknurwar <quic_viveka@quicinc.com> <viveka@codeaurora.org>
- Vivien Didelot <vivien.didelot@gmail.com> <vivien.didelot@savoirfairelinux.com>
- Vlad Dogaru <ddvlad@gmail.com> <vlad.dogaru@intel.com>
---- a/MAINTAINERS~maintainers-change-vmwarecom-addresses-to-broadcomcom
-+++ a/MAINTAINERS
-@@ -16731,9 +16731,9 @@ F:	include/uapi/linux/ppdev.h
+--- a/mm/swap_state.c~mm-remove-struct-page-from-get_shadow_from_swap_cache
++++ a/mm/swap_state.c
+@@ -73,11 +73,11 @@ void *get_shadow_from_swap_cache(swp_ent
+ {
+ 	struct address_space *address_space = swap_address_space(entry);
+ 	pgoff_t idx = swp_offset(entry);
+-	struct page *page;
++	void *shadow;
  
- PARAVIRT_OPS INTERFACE
- M:	Juergen Gross <jgross@suse.com>
--R:	Ajay Kaher <akaher@vmware.com>
--R:	Alexey Makhalov <amakhalov@vmware.com>
--R:	VMware PV-Drivers Reviewers <pv-drivers@vmware.com>
-+R:	Ajay Kaher <ajay.kaher@broadcom.com>
-+R:	Alexey Makhalov <alexey.amakhalov@broadcom.com>
-+R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
- L:	virtualization@lists.linux.dev
- L:	x86@kernel.org
- S:	Supported
-@@ -23652,9 +23652,9 @@ S:	Supported
- F:	drivers/misc/vmw_balloon.c
+-	page = xa_load(&address_space->i_pages, idx);
+-	if (xa_is_value(page))
+-		return page;
++	shadow = xa_load(&address_space->i_pages, idx);
++	if (xa_is_value(shadow))
++		return shadow;
+ 	return NULL;
+ }
  
- VMWARE HYPERVISOR INTERFACE
--M:	Ajay Kaher <akaher@vmware.com>
--M:	Alexey Makhalov <amakhalov@vmware.com>
--R:	VMware PV-Drivers Reviewers <pv-drivers@vmware.com>
-+M:	Ajay Kaher <ajay.kaher@broadcom.com>
-+M:	Alexey Makhalov <alexey.amakhalov@broadcom.com>
-+R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
- L:	virtualization@lists.linux.dev
- L:	x86@kernel.org
- S:	Supported
-@@ -23663,34 +23663,34 @@ F:	arch/x86/include/asm/vmware.h
- F:	arch/x86/kernel/cpu/vmware.c
- 
- VMWARE PVRDMA DRIVER
--M:	Bryan Tan <bryantan@vmware.com>
--M:	Vishnu Dasa <vdasa@vmware.com>
--R:	VMware PV-Drivers Reviewers <pv-drivers@vmware.com>
-+M:	Bryan Tan <bryan-bt.tan@broadcom.com>
-+M:	Vishnu Dasa <vishnu.dasa@broadcom.com>
-+R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-rdma@vger.kernel.org
- S:	Supported
- F:	drivers/infiniband/hw/vmw_pvrdma/
- 
- VMWARE PVSCSI DRIVER
--M:	Vishal Bhakta <vbhakta@vmware.com>
--R:	VMware PV-Drivers Reviewers <pv-drivers@vmware.com>
-+M:	Vishal Bhakta <vishal.bhakta@broadcom.com>
-+R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-scsi@vger.kernel.org
- S:	Supported
- F:	drivers/scsi/vmw_pvscsi.c
- F:	drivers/scsi/vmw_pvscsi.h
- 
- VMWARE VIRTUAL PTP CLOCK DRIVER
--M:	Jeff Sipek <jsipek@vmware.com>
--R:	Ajay Kaher <akaher@vmware.com>
--R:	Alexey Makhalov <amakhalov@vmware.com>
--R:	VMware PV-Drivers Reviewers <pv-drivers@vmware.com>
-+M:	Nick Shi <nick.shi@broadcom.com>
-+R:	Ajay Kaher <ajay.kaher@broadcom.com>
-+R:	Alexey Makhalov <alexey.amakhalov@broadcom.com>
-+R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
- L:	netdev@vger.kernel.org
- S:	Supported
- F:	drivers/ptp/ptp_vmw.c
- 
- VMWARE VMCI DRIVER
--M:	Bryan Tan <bryantan@vmware.com>
--M:	Vishnu Dasa <vdasa@vmware.com>
--R:	VMware PV-Drivers Reviewers <pv-drivers@vmware.com>
-+M:	Bryan Tan <bryan-bt.tan@broadcom.com>
-+M:	Vishnu Dasa <vishnu.dasa@broadcom.com>
-+R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-kernel@vger.kernel.org
- S:	Supported
- F:	drivers/misc/vmw_vmci/
-@@ -23705,16 +23705,16 @@ F:	drivers/input/mouse/vmmouse.c
- F:	drivers/input/mouse/vmmouse.h
- 
- VMWARE VMXNET3 ETHERNET DRIVER
--M:	Ronak Doshi <doshir@vmware.com>
--R:	VMware PV-Drivers Reviewers <pv-drivers@vmware.com>
-+M:	Ronak Doshi <ronak.doshi@broadcom.com>
-+R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
- L:	netdev@vger.kernel.org
- S:	Supported
- F:	drivers/net/vmxnet3/
- 
- VMWARE VSOCK VMCI TRANSPORT DRIVER
--M:	Bryan Tan <bryantan@vmware.com>
--M:	Vishnu Dasa <vdasa@vmware.com>
--R:	VMware PV-Drivers Reviewers <pv-drivers@vmware.com>
-+M:	Bryan Tan <bryan-bt.tan@broadcom.com>
-+M:	Vishnu Dasa <vishnu.dasa@broadcom.com>
-+R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-kernel@vger.kernel.org
- S:	Supported
- F:	net/vmw_vsock/vmci_transport*
 _
 
-Patches currently in -mm which might be from alexey.makhalov@broadcom.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-maintainers-change-vmwarecom-addresses-to-broadcomcom.patch
+mm-always-initialise-folio-_deferred_list.patch
+mm-create-folio_flag_false-and-folio_type_ops-macros.patch
+mm-remove-folio_prep_large_rmappable.patch
+mm-support-page_mapcount-on-page_has_type-pages.patch
+mm-turn-folio_test_hugetlb-into-a-pagetype.patch
+mm-turn-folio_test_hugetlb-into-a-pagetype-fix.patch
+mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch
+mm-free-up-pg_slab.patch
+mm-free-up-pg_slab-fix.patch
+mm-improve-dumping-of-mapcount-and-page_type.patch
+hugetlb-remove-mention-of-destructors.patch
+sh-remove-use-of-pg_arch_1-on-individual-pages.patch
+xtensa-remove-uses-of-pg_arch_1-on-individual-pages.patch
+mm-make-page_ext_get-take-a-const-argument.patch
+mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument.patch
+mm-make-is_free_buddy_page-take-a-const-argument.patch
+mm-make-page_mapped-take-a-const-argument.patch
+mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
+mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix.patch
+slub-remove-use-of-page-flags.patch
+remove-references-to-page-flags-in-documentation.patch
+proc-rewrite-stable_page_flags.patch
+proc-rewrite-stable_page_flags-fix.patch
+sparc-use-is_huge_zero_pmd.patch
+mm-add-is_huge_zero_folio.patch
+mm-add-pmd_folio.patch
+mm-convert-migrate_vma_collect_pmd-to-use-a-folio.patch
+mm-convert-huge_zero_page-to-huge_zero_folio.patch
+mm-convert-do_huge_pmd_anonymous_page-to-huge_zero_folio.patch
+dax-use-huge_zero_folio.patch
+mm-rename-mm_put_huge_zero_page-to-mm_put_huge_zero_folio.patch
+mm-use-rwsem-assertion-macros-for-mmap_lock.patch
+filemap-remove-__set_page_dirty.patch
+mm-correct-page_mapped_in_vma-for-large-folios.patch
+mm-remove-vma_address.patch
+mm-rename-vma_pgoff_address-back-to-vma_address.patch
+khugepaged-inline-hpage_collapse_alloc_folio.patch
+khugepaged-convert-alloc_charge_hpage-to-alloc_charge_folio.patch
+khugepaged-remove-hpage-from-collapse_huge_page.patch
+khugepaged-pass-a-folio-to-__collapse_huge_page_copy.patch
+khugepaged-remove-hpage-from-collapse_file.patch
+khugepaged-use-a-folio-throughout-collapse_file.patch
+khugepaged-use-a-folio-throughout-hpage_collapse_scan_file.patch
+proc-convert-clear_refs_pte_range-to-use-a-folio.patch
+proc-convert-smaps_account-to-use-a-folio.patch
+mm-remove-page_idle-and-page_young-wrappers.patch
+mm-generate-page_idle_flag-definitions.patch
+proc-convert-gather_stats-to-use-a-folio.patch
+proc-convert-smaps_page_accumulate-to-use-a-folio.patch
+proc-pass-a-folio-to-smaps_page_accumulate.patch
+proc-convert-smaps_pmd_entry-to-use-a-folio.patch
+mm-remove-struct-page-from-get_shadow_from_swap_cache.patch
 
