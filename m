@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A39E1552E0
-	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 19:15:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98399154C05
+	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 19:15:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712171703; cv=none; b=KEiIG3+CpRRkPZK+rBk2o9CqehUfWfweWNih3sZ4uF/oQOYB4wu5G0L2IzJJvZUNOQY4wBPI6XFYeYEdzK4kyGq3ZVnWZN6C6SUtF6B+wJPkGeRygx9U5AiNI/vxGdV7GkBBffHBNLEG1Pvlqz5ogdBvUDnFKm/XGVNNpH37zNs=
+	t=1712171704; cv=none; b=rMgwwZJu/uPO4XT1K3cTlAoLpS+S1NmO0C61+r9LY9DN1wblCJzmP3xec8eTDZNWnEx9jllPm0SrLSFxQkg5axIM6llnb5oceYlZfwgCBGKOSlx6kjX09/Nx+DNp8TiQxJML2tcbK2/q40k5cbZ7IngLbhCVz1QuSYCFHzQDZNU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712171703; c=relaxed/simple;
-	bh=puNAy19qFf5nUSQBkCNLnsk+fMAZODbnJDRE8KnL/Bg=;
-	h=Date:To:From:Subject:Message-Id; b=u93leqWu8WFxAMMprHcypGyTI/fssZr7UCR67zsvdqOnPWu++HbpQp6VtmVvEwZKUO8lx2Kuc5hWynEOp1xTVkxTWZtYGsLPXHZEKQ0vSJdZBwalYGnurjoldtVkJyyDWH7tFF9adJ23qeJYlVSWdTUHRQDoqRzV4vcPnisLVPk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0+qviLYj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712171704; c=relaxed/simple;
+	bh=i96wsqwq/+DqpoF8ms7jLJf29/W1HVQVVwO0XAPU2bQ=;
+	h=Date:To:From:Subject:Message-Id; b=enTYQKaUK2RIeNPZudSU7He5yKqYl2PRUIT2XJ1l0JGWIrMo0cllo68oXv4alzBR2C1/SDL8YondfJW90o02h1+MlpEzcmYkSXNnKEgcAl5fxhG1SiaxqU0g2MsUELg6Ru+EjSyRjkxtUrMVBdni7jQAV+FriXxKfvDCBqwUfGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JiFbucyC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0+qviLYj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9532DC43390;
-	Wed,  3 Apr 2024 19:15:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JiFbucyC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27614C433C7;
+	Wed,  3 Apr 2024 19:15:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712171702;
-	bh=puNAy19qFf5nUSQBkCNLnsk+fMAZODbnJDRE8KnL/Bg=;
+	s=korg; t=1712171704;
+	bh=i96wsqwq/+DqpoF8ms7jLJf29/W1HVQVVwO0XAPU2bQ=;
 	h=Date:To:From:Subject:From;
-	b=0+qviLYjDnhpEBi0yS0aUJAGDmkyofBKJCdrVNwDWlfkdxsq9ip5i/BgfoEgV2xN5
-	 4yUwe1knRot8XHfS6edDazfULuVAKVp3vuVsxpL1cl1kwzLXrfFXkR6jQC+Ghjomeq
-	 quXNELXNUhmW18mOvVNkoYmcJdUPzzmtaQoMWmR8=
-Date: Wed, 03 Apr 2024 12:15:01 -0700
+	b=JiFbucyCBSpot9a8W3E/4cLQFMU7wOo4Bouh6iTjJQulbuGeI0NfbE59gU6Ju2HKA
+	 gF8R/ihxZpGuDnH5bJaPxAztpf5wAaQl+fZrIOvexN/qOm4Rt8jz1mGJQCnrDaMR0b
+	 a7CI3YvP8xBO1GxZAa4IavKVDSVLpIfhHuDhdS5I=
+Date: Wed, 03 Apr 2024 12:15:03 -0700
 To: mm-commits@vger.kernel.org,brauner@kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-pass-a-folio-to-smaps_page_accumulate.patch added to mm-unstable branch
-Message-Id: <20240403191502.9532DC43390@smtp.kernel.org>
+Subject: + proc-convert-smaps_pmd_entry-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20240403191504.27614C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: proc: pass a folio to smaps_page_accumulate()
+     Subject: proc: convert smaps_pmd_entry to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     proc-pass-a-folio-to-smaps_page_accumulate.patch
+     proc-convert-smaps_pmd_entry-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-pass-a-folio-to-smaps_page_accumulate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-convert-smaps_pmd_entry-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,57 +59,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: proc: pass a folio to smaps_page_accumulate()
-Date: Wed, 3 Apr 2024 18:14:54 +0100
+Subject: proc: convert smaps_pmd_entry to use a folio
+Date: Wed, 3 Apr 2024 18:14:55 +0100
 
-Both callers already have a folio; pass it in instead of doing the
-conversion each time.
+Replace two calls to compound_head() with one.
 
-Link: https://lkml.kernel.org/r/20240403171456.1445117-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240403171456.1445117-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ fs/proc/task_mmu.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/fs/proc/task_mmu.c~proc-pass-a-folio-to-smaps_page_accumulate
+--- a/fs/proc/task_mmu.c~proc-convert-smaps_pmd_entry-to-use-a-folio
 +++ a/fs/proc/task_mmu.c
-@@ -411,10 +411,9 @@ struct mem_size_stats {
- };
+@@ -578,6 +578,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
+ 	struct vm_area_struct *vma = walk->vma;
+ 	bool locked = !!(vma->vm_flags & VM_LOCKED);
+ 	struct page *page = NULL;
++	struct folio *folio;
+ 	bool migration = false;
  
- static void smaps_page_accumulate(struct mem_size_stats *mss,
--		struct page *page, unsigned long size, unsigned long pss,
-+		struct folio *folio, unsigned long size, unsigned long pss,
- 		bool dirty, bool locked, bool private)
- {
--	struct folio *folio = page_folio(page);
- 	mss->pss += pss;
- 
- 	if (folio_test_anon(folio))
-@@ -484,8 +483,8 @@ static void smaps_account(struct mem_siz
- 	 * as mapcount == 1.
- 	 */
- 	if ((folio_ref_count(folio) == 1) || migration) {
--		smaps_page_accumulate(mss, page, size, size << PSS_SHIFT, dirty,
--			locked, true);
-+		smaps_page_accumulate(mss, folio, size, size << PSS_SHIFT,
-+				dirty, locked, true);
+ 	if (pmd_present(*pmd)) {
+@@ -592,11 +593,12 @@ static void smaps_pmd_entry(pmd_t *pmd,
+ 	}
+ 	if (IS_ERR_OR_NULL(page))
  		return;
- 	}
- 	for (i = 0; i < nr; i++, page++) {
-@@ -493,8 +492,8 @@ static void smaps_account(struct mem_siz
- 		unsigned long pss = PAGE_SIZE << PSS_SHIFT;
- 		if (mapcount >= 2)
- 			pss /= mapcount;
--		smaps_page_accumulate(mss, page, PAGE_SIZE, pss, dirty, locked,
--				      mapcount < 2);
-+		smaps_page_accumulate(mss, folio, PAGE_SIZE, pss,
-+				dirty, locked, mapcount < 2);
- 	}
- }
- 
+-	if (PageAnon(page))
++	folio = page_folio(page);
++	if (folio_test_anon(folio))
+ 		mss->anonymous_thp += HPAGE_PMD_SIZE;
+-	else if (PageSwapBacked(page))
++	else if (folio_test_swapbacked(folio))
+ 		mss->shmem_thp += HPAGE_PMD_SIZE;
+-	else if (is_zone_device_page(page))
++	else if (folio_is_zone_device(folio))
+ 		/* pass */;
+ 	else
+ 		mss->file_thp += HPAGE_PMD_SIZE;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
