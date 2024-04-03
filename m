@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFEDF155381
-	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 19:14:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55F771552E2
+	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 19:15:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712171699; cv=none; b=D0DjrGHxsDbHUR7aK+VC7ZycVTwT/urzpXoF5Gxe1GdUNGy+8T2ysnmbRVqmvyOFOMysDUUodlskbNCzWg4GeUmE0vRbMwd5gL5XvAVZVphR34Y/YgeVCI8DM13x9bpr7hvzLwAlNMA4Oa9pNK7o1UU4dy0Vx6ByJlFfNrPOmfc=
+	t=1712171701; cv=none; b=GsB/Ri5IARtpyb32FQQT1oqgp6igSv2KpeWyz1SNeM75/ggEdLPcU0KNW/AsD/D4/bKXE6JNJwTDjkOgizH52kgLpQNCGYAAFklcE2k2ZzlwQeau2obNstFUyvGpF4syPoRbVFuk8G8y/xtbXB/reGV/WjDczyWfMbQvT9lqeEY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712171699; c=relaxed/simple;
-	bh=VmGEBygNrtyfrZQ2YGrVwqpj7w7z+U4NuqoDXs5sEdA=;
-	h=Date:To:From:Subject:Message-Id; b=DfqPB6psmOGhC/0+mGsyLz7kh1EVeW7WjMy8g9bH24eoWstJ5za3HnHOc3YOhFWLJ7BYb57XiwuilM8HyjUXxBz4SBdsGY9rrpofESjG+orJibUzyV1Kd66FjjndRZSH0wcqcLZAE4y/CXlwVgb6M3QNJOkLKoExt+30i2FPQh0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gy9paCDx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712171701; c=relaxed/simple;
+	bh=hMszRNv6uC8QIdup0Bj7X3cO59lvAYV9mXqIViwHqIw=;
+	h=Date:To:From:Subject:Message-Id; b=RrmFTOeuY+et0t3ZzNsZKABR/Dciw/u+ht2l1DWuwcy1owsoZnvvzZE/0ozm2M3QwdJZV4joC05cE3UMmulqpwOLkrb/Bbq7uUS+EOxSLGfCciNffvdew4jWK47gf69tU7uhbRwEIpBtSrzr1Nzp34PrcnwSz4y6GIuS9l0ch2o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZdwbEyp2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gy9paCDx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D22FC433F1;
-	Wed,  3 Apr 2024 19:14:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZdwbEyp2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1743FC433F1;
+	Wed,  3 Apr 2024 19:15:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712171699;
-	bh=VmGEBygNrtyfrZQ2YGrVwqpj7w7z+U4NuqoDXs5sEdA=;
+	s=korg; t=1712171701;
+	bh=hMszRNv6uC8QIdup0Bj7X3cO59lvAYV9mXqIViwHqIw=;
 	h=Date:To:From:Subject:From;
-	b=gy9paCDx9CrJyfMsXWFSeaGl6GA+a9VO1D9Q0kk5AlycG6OuhNvnZGINLO/OrWln0
-	 +HyIRHxlxD6hyePtph5+CE8htfVMFnszWIm2aJXWknS14mZKSTFkMsNXgXucoIkEF3
-	 r6T1AR0WiXZag1wT9PhDaEi9eXofzH4rxEcCWkws=
-Date: Wed, 03 Apr 2024 12:14:58 -0700
+	b=ZdwbEyp2SgesK+miWOkqI9ahNJjF2cbzAyKrVPsktcBgewoW39DbqwhjtjZJz7E5Y
+	 klB+MygrsSoRP2KpiGhgh9EpfMV63578N6a1/W7j/zLcDnWXQwpI5hB8I6N8VkR0Aq
+	 hII8HzwSS7tVCxttYYnarR86wweGdETetyQiq8sw=
+Date: Wed, 03 Apr 2024 12:15:00 -0700
 To: mm-commits@vger.kernel.org,brauner@kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-convert-gather_stats-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20240403191459.9D22FC433F1@smtp.kernel.org>
+Subject: + proc-convert-smaps_page_accumulate-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20240403191501.1743FC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: proc: convert gather_stats to use a folio
+     Subject: proc: convert smaps_page_accumulate to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     proc-convert-gather_stats-to-use-a-folio.patch
+     proc-convert-smaps_page_accumulate-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-convert-gather_stats-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-convert-smaps_page_accumulate-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,75 +59,47 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: proc: convert gather_stats to use a folio
-Date: Wed, 3 Apr 2024 18:14:52 +0100
+Subject: proc: convert smaps_page_accumulate to use a folio
+Date: Wed, 3 Apr 2024 18:14:53 +0100
 
-Patch series "Use folio APIs in procfs".
+Replaces three calls to compound_head() with one.  Shrinks the function
+from 2614 bytes to 1112 bytes in an allmodconfig build.
 
-We're down to very few users of the PageFoo macros, with proc being a
-major user.
-
-After this patchset and another patchset I have for khugepaged, we can get
-rid of PageActive, PageReadahead and PageSwapBacked.  This patchset has
-the usual advantages in its own right of removing hidden calls to
-compound_head().  We have the page table lock, so the mapcount & refcount
-are stable and there can't be any races with folios suddenly becoming tail
-pages.
-
-
-This patch (of 4):
-
-Replaces six calls to compound_head() with one.  Shrinks the function from
-5054 bytes to 1756 bytes in an allmodconfig build.
-
-Link: https://lkml.kernel.org/r/20240403171456.1445117-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20240403171456.1445117-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240403171456.1445117-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ fs/proc/task_mmu.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/fs/proc/task_mmu.c~proc-convert-gather_stats-to-use-a-folio
+--- a/fs/proc/task_mmu.c~proc-convert-smaps_page_accumulate-to-use-a-folio
 +++ a/fs/proc/task_mmu.c
-@@ -2549,28 +2549,29 @@ struct numa_maps_private {
- static void gather_stats(struct page *page, struct numa_maps *md, int pte_dirty,
- 			unsigned long nr_pages)
+@@ -414,11 +414,12 @@ static void smaps_page_accumulate(struct
+ 		struct page *page, unsigned long size, unsigned long pss,
+ 		bool dirty, bool locked, bool private)
  {
 +	struct folio *folio = page_folio(page);
- 	int count = page_mapcount(page);
- 
- 	md->pages += nr_pages;
--	if (pte_dirty || PageDirty(page))
-+	if (pte_dirty || folio_test_dirty(folio))
- 		md->dirty += nr_pages;
- 
--	if (PageSwapCache(page))
-+	if (folio_test_swapcache(folio))
- 		md->swapcache += nr_pages;
- 
--	if (PageActive(page) || PageUnevictable(page))
-+	if (folio_test_active(folio) || folio_test_unevictable(folio))
- 		md->active += nr_pages;
- 
--	if (PageWriteback(page))
-+	if (folio_test_writeback(folio))
- 		md->writeback += nr_pages;
+ 	mss->pss += pss;
  
 -	if (PageAnon(page))
 +	if (folio_test_anon(folio))
- 		md->anon += nr_pages;
+ 		mss->pss_anon += pss;
+-	else if (PageSwapBacked(page))
++	else if (folio_test_swapbacked(folio))
+ 		mss->pss_shmem += pss;
+ 	else
+ 		mss->pss_file += pss;
+@@ -426,7 +427,7 @@ static void smaps_page_accumulate(struct
+ 	if (locked)
+ 		mss->pss_locked += pss;
  
- 	if (count > md->mapcount_max)
- 		md->mapcount_max = count;
- 
--	md->node[page_to_nid(page)] += nr_pages;
-+	md->node[folio_nid(folio)] += nr_pages;
- }
- 
- static struct page *can_gather_numa_stats(pte_t pte, struct vm_area_struct *vma,
+-	if (dirty || PageDirty(page)) {
++	if (dirty || folio_test_dirty(folio)) {
+ 		mss->pss_dirty += pss;
+ 		if (private)
+ 			mss->private_dirty += size;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
