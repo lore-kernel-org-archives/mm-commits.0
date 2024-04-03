@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74DC4153BF3
-	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 20:48:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 976A914C5B3
+	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 20:48:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712177309; cv=none; b=A9+e9wHm9NGcuCtXJbgbTS1Y6R6iV+JIjRy8hgzB+hk9s7iLsZzD6Qt2iPUJSiH3gPp5JLmLH3nlKB9aLVBBsI7JYhOoR9Vhfm2psM9nrH2w7sg4/BrVP8o3Ruyza5TPCOmiVPP6c1vYziljyY/xDANFNiFZ7Exdjg+kAbN7mTM=
+	t=1712177311; cv=none; b=djvgzXXOlh0nozYREd555VD8bVjIT6x+RW/O7hz4vpdHuDx3hI1n9/PLbPKALbU/R/7N4Cj6XhDX1fSftndKQWCMVr3c19dj/QGkF55kXMz0A1oklXoV0ZYqjXV3TWHnl16h6rhJB7cyZqmxWcAYtNLIHIU3Wv3pboVYuOFLVAo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712177309; c=relaxed/simple;
-	bh=HWBzqPNE7gjs7ay/3HkhivFeHZa0Me2HETvEiYNTXxE=;
-	h=Date:To:From:Subject:Message-Id; b=bCYv2GYHdKd0ozSKKYZnLPYIb69lkwgYzCufJafTUS5SKoOQ7UnrcK0oX+M46Apf33HAXSdTSPJumYy6NdILSRdbCRVRRDSuxlm4VeZqYGAwRIrrW/wfhc1xW9sceMNVPwnN7VZGcaZoYuinQSquxJgxJyrMhFyXec5SCC7BoOQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rFhgbqhW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712177311; c=relaxed/simple;
+	bh=1dlxVy0ngy+HgoVicNZ1BcqWIWrEnhLRDERZKJIXYig=;
+	h=Date:To:From:Subject:Message-Id; b=ogNZLDAr0SCK/1WHLIVFd9qpgwW4bZwgFa8x/NfET5/4WSJNvjGmQWPHN5+NxLH+JghhJDo8DZcrsLlGP3lSpauqU6agAglTtjGXxMNtXDhMdN6/cWvXPX7pT6s1s+mD7Y/i6x+56pmT6cRHT8vXvBehujbxfxqNCYZgcv0pVV4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AUAsJSRa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rFhgbqhW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0DEEC433C7;
-	Wed,  3 Apr 2024 20:48:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AUAsJSRa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E2C4C43390;
+	Wed,  3 Apr 2024 20:48:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712177308;
-	bh=HWBzqPNE7gjs7ay/3HkhivFeHZa0Me2HETvEiYNTXxE=;
+	s=korg; t=1712177310;
+	bh=1dlxVy0ngy+HgoVicNZ1BcqWIWrEnhLRDERZKJIXYig=;
 	h=Date:To:From:Subject:From;
-	b=rFhgbqhW6atfHlbcPxvimSAxwOXIGq9elttZ5hao2mGPGuVL43w/3JIoOKlZGjM5l
-	 /3fs00bOrZk9NNqHe5lXgvHK7QoFjbuSTISQ2+vo/baD28/ygxWlcDUWyLUhBgPsfz
-	 t2NR4cAejxaTxfnF28mmOXaMZBfyqU2Pn2ldEcEU=
-Date: Wed, 03 Apr 2024 13:48:28 -0700
+	b=AUAsJSRa1e0S4P92fHZ5evpD73sH85qULoTSPaaHdkPHeqNM/5pbdV68LOvjN7rKn
+	 9NzDWSB5hNkPKwy1R9BI5NRk5MggrltoHl5V0cUbHeE1TnhCFC8hPTIevg3wREsRIB
+	 k5elNbqsI9GE0Lam94NjK1eRAF3Suv4UjIzOjFx8=
+Date: Wed, 03 Apr 2024 13:48:29 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,surenb@google.com,peterz@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,luto@kernel.org,linux@armlinux.org.uk,gerald.schaefer@linux.ibm.com,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,aou@eecs.berkeley.edu,agordeev@linux.ibm.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-cleanup-__do_page_fault.patch added to mm-unstable branch
-Message-Id: <20240403204828.C0DEEC433C7@smtp.kernel.org>
+Subject: + arm64-mm-accelerate-pagefault-when-vm_fault_badaccess.patch added to mm-unstable branch
+Message-Id: <20240403204830.6E2C4C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: mm: cleanup __do_page_fault()
+     Subject: arm64: mm: accelerate pagefault when VM_FAULT_BADACCESS
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-cleanup-__do_page_fault.patch
+     arm64-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-cleanup-__do_page_fault.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,27 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: arm64: mm: cleanup __do_page_fault()
-Date: Wed, 3 Apr 2024 16:37:59 +0800
+Subject: arm64: mm: accelerate pagefault when VM_FAULT_BADACCESS
+Date: Wed, 3 Apr 2024 16:38:00 +0800
 
-Patch series "arch/mm/fault: accelerate pagefault when badaccess", v2.
+The vm_flags of vma already checked under per-VMA lock, if it is a bad
+access, directly set fault to VM_FAULT_BADACCESS and handle error, no need
+to retry with mmap_lock again, the latency time reduces 34% in 'lat_sig -P
+1 prot lat_sig' from lmbench testcase.
 
-After VMA lock-based page fault handling enabled, if bad access met
-under per-vma lock, it will fallback to mmap_lock-based handling,
-so it leads to unnessary mmap lock and vma find again. A test from
-lmbench shows 34% improve after this changes on arm64,
+Since the page fault is handled under per-VMA lock, count it as a vma lock
+event with VMA_LOCK_SUCCESS.
 
-  lat_sig -P 1 prot lat_sig 0.29194 -> 0.19198
-
-
-This patch (of 7):
-
-The __do_page_fault() only calls handle_mm_fault() after vm_flags checked,
-and it is only called by do_page_fault(), let's squash it into
-do_page_fault() to cleanup code.
-
-Link: https://lkml.kernel.org/r/20240403083805.1818160-1-wangkefeng.wang@huawei.com
-Link: https://lkml.kernel.org/r/20240403083805.1818160-2-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240403083805.1818160-3-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -99,59 +90,22 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/fault.c |   27 +++++++--------------------
- 1 file changed, 7 insertions(+), 20 deletions(-)
+ arch/arm64/mm/fault.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/arch/arm64/mm/fault.c~arm64-mm-cleanup-__do_page_fault
+--- a/arch/arm64/mm/fault.c~arm64-mm-accelerate-pagefault-when-vm_fault_badaccess
 +++ a/arch/arm64/mm/fault.c
-@@ -486,25 +486,6 @@ static void do_bad_area(unsigned long fa
- 	}
- }
+@@ -572,7 +572,9 @@ static int __kprobes do_page_fault(unsig
  
--#define VM_FAULT_BADMAP		((__force vm_fault_t)0x010000)
--#define VM_FAULT_BADACCESS	((__force vm_fault_t)0x020000)
--
--static vm_fault_t __do_page_fault(struct mm_struct *mm,
--				  struct vm_area_struct *vma, unsigned long addr,
--				  unsigned int mm_flags, unsigned long vm_flags,
--				  struct pt_regs *regs)
--{
--	/*
--	 * Ok, we have a good vm_area for this memory access, so we can handle
--	 * it.
--	 * Check that the permissions on the VMA allow for the fault which
--	 * occurred.
--	 */
--	if (!(vma->vm_flags & vm_flags))
--		return VM_FAULT_BADACCESS;
--	return handle_mm_fault(vma, addr, mm_flags, regs);
--}
--
- static bool is_el0_instruction_abort(unsigned long esr)
- {
- 	return ESR_ELx_EC(esr) == ESR_ELx_EC_IABT_LOW;
-@@ -519,6 +500,9 @@ static bool is_write_abort(unsigned long
- 	return (esr & ESR_ELx_WNR) && !(esr & ESR_ELx_CM);
- }
- 
-+#define VM_FAULT_BADMAP		((__force vm_fault_t)0x010000)
-+#define VM_FAULT_BADACCESS	((__force vm_fault_t)0x020000)
-+
- static int __kprobes do_page_fault(unsigned long far, unsigned long esr,
- 				   struct pt_regs *regs)
- {
-@@ -617,7 +601,10 @@ retry:
- 		goto done;
- 	}
- 
--	fault = __do_page_fault(mm, vma, addr, mm_flags, vm_flags, regs);
-+	if (!(vma->vm_flags & vm_flags))
+ 	if (!(vma->vm_flags & vm_flags)) {
+ 		vma_end_read(vma);
+-		goto lock_mmap;
 +		fault = VM_FAULT_BADACCESS;
-+	else
-+		fault = handle_mm_fault(vma, addr, mm_flags, regs);
- 
- 	/* Quick path to respond to signals */
- 	if (fault_signal_pending(fault, regs)) {
++		count_vm_vma_lock_event(VMA_LOCK_SUCCESS);
++		goto done;
+ 	}
+ 	fault = handle_mm_fault(vma, addr, mm_flags | FAULT_FLAG_VMA_LOCK, regs);
+ 	if (!(fault & (VM_FAULT_RETRY | VM_FAULT_COMPLETED)))
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
