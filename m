@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17283155308
-	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 20:17:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5A1843AB6
+	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 20:24:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712175421; cv=none; b=UDAz2pVhBWD1NrKECsD89X/I5+JNATxn+0Gv5db+q62xvYmeCyMESNn6WtMLoA98IXzt4YtdCOVOyAj+rJt/NHaYZVV4d9xgG/x5EBOlhnWpZcfgmhmjlMnKg6YPc1Vq2axQ4v1kZnWh4H7bkPdJ0C5ynL9xCbnLmF+yFlD54qo=
+	t=1712175883; cv=none; b=bhSXd8RVTR/oyXbo/xYwBCJ+ycb8PkhHKz/4ypMTrbncKpD8Vqdaj2lTs9zluWPykIpyz8qeEcKvy5WpmrOCk3BIjkW3/BepbZ241ub0d+WS6gAQEBXqE9nWz3HtGntFxABFxJE6bpACO3nkH5bfbsegXFmBB0JKO/W1TiPlueI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712175421; c=relaxed/simple;
-	bh=uKi8mipnkkebA1I95n3kphzDXFqzb72tl9srjK3pCdA=;
-	h=Date:To:From:Subject:Message-Id; b=UCaedJsdavclqWBoXBJWy2v3s3i6O3PRv3UUcLrvmtF7Ap82r/dspPe8pCcAbhpZVTQNOvkgDhivjLFLn9cSJp9smVayxZ+Ac/w30f+jVCWF+a7N5Q22JstHbh38KVD8FDIOfDT0JfjGHLEFQVnHX+xdPem4HODERD17cuF8njA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a53lt05V; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712175883; c=relaxed/simple;
+	bh=rmS1+TSuwcUqd8XU6aa+JEZtNjh1H/6JQ80mHZu/TTA=;
+	h=Date:To:From:Subject:Message-Id; b=pTGA+hi7SYtq/5Nn/xlNDV5YT2a6T61dGgd8PK+E4CxY+vGKOFMyScjV7OG1j+D88SE6x+P4hxXytpnCZG+OPP8+AX1jq8ymolnV/DtvXrwudm7uzZlwUyWLBRrxjE2pDx4cFoIDUsAkd+yxG3eUiDVGszsF96uCzwjgdm4jmXQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SSiJS2aL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a53lt05V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBF48C433F1;
-	Wed,  3 Apr 2024 20:17:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SSiJS2aL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D194C433F1;
+	Wed,  3 Apr 2024 20:24:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712175421;
-	bh=uKi8mipnkkebA1I95n3kphzDXFqzb72tl9srjK3pCdA=;
+	s=korg; t=1712175882;
+	bh=rmS1+TSuwcUqd8XU6aa+JEZtNjh1H/6JQ80mHZu/TTA=;
 	h=Date:To:From:Subject:From;
-	b=a53lt05VFJiLTkWihaRH4NV3BGX/k7ShZyNT7l4bOLv789AqqjRTRrO7FMNIKA6cY
-	 xC8uLJENlaXF6YyoAEzDUbozfI9MOK1usyFmm9NyrfCSjmxRw2L/mOcet7pmuNqBVC
-	 fzOXvFs3YxN0aIH585nH/GwyJsI/l/x91SSXtOX0=
-Date: Wed, 03 Apr 2024 13:17:00 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,mhocko@suse.com,ioworker0@gmail.com,david@redhat.com,chrisl@kernel.org,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=SSiJS2aLgFX++BJ3RM7x4Vv3fldNRwomHdm0LBF8IEpjlWEYcYWc/Nugb/TH1+HMl
+	 H4FFCBuuJSsu5JcHFjWO1D7ZyB0guha2SUUl4csAtnRXdOHM94cj4KkoC4wHkz9xwh
+	 N/n7dA00yHk9l1+NDZMdfwMv0GBDHDeMWHdqbIAc=
+Date: Wed, 03 Apr 2024 13:24:42 -0700
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,ryan.roberts@arm.com,muchun.song@linux.dev,david@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-avoid-split-during-madv_pageout-and-madv_cold-fix.patch added to mm-unstable branch
-Message-Id: <20240403201700.DBF48C433F1@smtp.kernel.org>
+Subject: + selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation-fix.patch added to mm-unstable branch
+Message-Id: <20240403202442.9D194C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-madvise-avoid-split-during-madv_pageout-and-madv_cold-fix
+     Subject: fixup! selftests/mm: run_vmtests.sh: fix hugetlb mem size calculation
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-avoid-split-during-madv_pageout-and-madv_cold-fix.patch
+     selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-avoid-split-during-madv_pageout-and-madv_cold-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,55 +58,73 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm-madvise-avoid-split-during-madv_pageout-and-madv_cold-fix
-Date: Wed, 3 Apr 2024 18:17:56 +0100
+From: Peter Xu <peterx@redhat.com>
+Subject: fixup! selftests/mm: run_vmtests.sh: fix hugetlb mem size calculation
+Date: Wed, 3 Apr 2024 16:03:24 -0400
 
-arch_enter_lazy_mmu_mode() needs to be before the continue
+Fix up a breakage on uffd hugetlb test due to removal of a temp variable,
+as reported by Ryan [1].
 
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Chris Li <chrisl@kernel.org>
+Instead of using the previous calculation, use the largest we can
+have (which is put in freepgs) and cut it into half for userfault tests.
+
+[1] https://lore.kernel.org/r/1c20b717-c5b5-4bdf-8fcd-d46db135b7fa@arm.com
+
+Link: https://lkml.kernel.org/r/20240403200324.1603493-1-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Gao Xiang <xiang@kernel.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/run_vmtests.sh |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/madvise.c~mm-madvise-avoid-split-during-madv_pageout-and-madv_cold-fix
-+++ a/mm/madvise.c
-@@ -486,10 +486,9 @@ restart:
- 					pte_offset_map_lock(mm, pmd, addr, &ptl);
- 				if (!start_pte)
- 					break;
--				if (err)
--					continue;
- 				arch_enter_lazy_mmu_mode();
--				nr = 0;
-+				if (!err)
-+					nr = 0;
- 				continue;
- 			}
- 		}
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation-fix
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -298,7 +298,8 @@ CATEGORY="userfaultfd" run_test ./uffd-u
+ uffd_stress_bin=./uffd-stress
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} anon 20 16
+ # Hugetlb tests require source and destination huge pages. Pass in half
+-# the size ($half_ufd_size_MB), which is used for *each*.
++# the size of the free pages we have, which is used for *each*.
++half_ufd_size_MB=$((freepgs / 2))
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb "$half_ufd_size_MB" 32
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb-private "$half_ufd_size_MB" 32
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem 20 16
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags.patch
-mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache.patch
-mm-swap-simplify-struct-percpu_cluster.patch
-mm-swap-allow-storage-of-all-mthp-orders.patch
-mm-vmscan-avoid-split-during-shrink_folio_list.patch
-mm-madvise-avoid-split-during-madv_pageout-and-madv_cold.patch
-mm-madvise-avoid-split-during-madv_pageout-and-madv_cold-fix.patch
+mm-hmm-process-pud-swap-entry-without-pud_huge.patch
+mm-gup-cache-p4d-in-follow_p4d_mask.patch
+mm-gup-check-p4d-presence-before-going-on.patch
+mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch
+mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
+mm-arm-use-macros-to-define-pmd-pud-helpers.patch
+mm-arm-redefine-pmd_huge-with-pmd_leaf.patch
+mm-arm64-merge-pxd_huge-and-pxd_leaf-definitions.patch
+mm-powerpc-redefine-pxd_huge-with-pxd_leaf.patch
+mm-gup-merge-pxd-huge-mapping-checks.patch
+mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
+mm-treewide-remove-pxd_huge.patch
+mm-arm-remove-pmd_thp_or_huge.patch
+mm-document-pxd_leaf-api.patch
+selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation.patch
+selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation-fix.patch
+mm-kconfig-config_pgtable_has_huge_leaves.patch
+mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch
+mm-make-hpage_pxd_-macros-even-if-thp.patch
+mm-introduce-vma_pgtable_walk_beginend.patch
+mm-arch-provide-pud_pfn-fallback.patch
+mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing.patch
+mm-gup-refactor-record_subpages-to-find-1st-small-page.patch
+mm-gup-handle-hugetlb-for-no_page_table.patch
+mm-gup-cache-pudp-in-follow_pud_mask.patch
+mm-gup-handle-huge-pud-for-follow_pud_mask.patch
+mm-gup-handle-huge-pmd-for-follow_pmd_mask.patch
+mm-gup-handle-hugepd-for-follow_page.patch
+mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code.patch
 
