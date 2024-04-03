@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7975E14D45A
-	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 20:16:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8344BE4D
+	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 20:16:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712175417; cv=none; b=nMGzgTgqD0oKZtUM3UfjwKbzzoMoYptpUSsA/ByRZcyDP5q4+qWq6XqSUM1oFGSDMRtS1aaQdjPv83I1V0h9FufgSqgn86ls69qM54MVT+txCpJ8os6pkVR60WEPr+vSPmVb0sXwIyaG3hic8rY1dE4pBdMb6+lB/vTriD/x/Yg=
+	t=1712175418; cv=none; b=Y4sImmBGoCcJeJhUpPZYr8zprOlife6QiFCqZnKkyP7fL/X/N6QHyAvgBdMMOAE39/q9r/h/6raAtil2aoygYTeM8pY+JczhZhuFtN4in8ISc0KFp/LmWhK1WDAmTEhIYHuY+cgmuVsSCdw3xhdynWfHfF2hMc4xTu1qjwraYWQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712175417; c=relaxed/simple;
-	bh=WkcafkV8hS+XVmdCXOp45DnlS6Odizqt0n8MnPLxhx8=;
-	h=Date:To:From:Subject:Message-Id; b=VQn9gkF5mcgCaXIquppTAlFZtBW4AOqDNx6rNtwEucMk8TJfcUIz/S1RqYrVtQG+C7Mc6glVpJpB9TBJSAcrHegsY5b4V4iGQR71I1/1Oqheqlb9vfTCDW/i3sUFXfaXYhwzC7iS4V4WiKUnrxSE5JRKvFxaLvfPISETGc0fkuk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D69cZNsE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712175418; c=relaxed/simple;
+	bh=DOHGra1qLQjq4pRQY29bTK/Y1mInA4gyhaLPHdh/2F0=;
+	h=Date:To:From:Subject:Message-Id; b=UDvvXmeP7SbnbTGfKkLesQX6c0uunP65m8rA3gm5cjYfQrcDmfmXLnEhQ+m7FVm9kN2UywrT2gzY4SnLxx37cQmFXdNuH/A69Sqq7iqzv4GM6WQ9FSg932JJl739jxk8QmoVZOR5LcATY4ralTEIiUzlf+mfGUv4YX+xh/l/8go=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r9atEx+r; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D69cZNsE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9FEBC433C7;
-	Wed,  3 Apr 2024 20:16:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r9atEx+r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 911DAC433F1;
+	Wed,  3 Apr 2024 20:16:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712175417;
-	bh=WkcafkV8hS+XVmdCXOp45DnlS6Odizqt0n8MnPLxhx8=;
+	s=korg; t=1712175418;
+	bh=DOHGra1qLQjq4pRQY29bTK/Y1mInA4gyhaLPHdh/2F0=;
 	h=Date:To:From:Subject:From;
-	b=D69cZNsEYFSAmF8+5SRIWt9fSdc4/Y+TfzBpNWjiMqUqoYo0ZpyHRowJ7DIpF1rYM
-	 gb2e/QwKCD5zutFUWp5fsKHQOxOOTbEb5qkwNPTSNzAAetR3C7h6PNDRineueRd5YL
-	 HIaqc9qB761YdVmeROr7lElWcgz+pQXgv37mImFQ=
-Date: Wed, 03 Apr 2024 13:16:56 -0700
+	b=r9atEx+r7tbODMBaocfX3eMFdV1GP/Awcgh+XBZtP08Ub9Mxm8Lzx9GOcNXr4/jZa
+	 1hcPrWOkq8BGg2jV+DK07JspS0ejhrAgGes8dcFXE35r3NlKYWvInw+4jZG4UxzKZx
+	 7ao3APEh4fSUpX7BtDg2cl6BR0ii7179tn2UEEHY=
+Date: Wed, 03 Apr 2024 13:16:57 -0700
 To: mm-commits@vger.kernel.org,yuzhao@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,mhocko@suse.com,ioworker0@gmail.com,david@redhat.com,chrisl@kernel.org,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-avoid-split-during-shrink_folio_list.patch added to mm-unstable branch
-Message-Id: <20240403201656.E9FEBC433C7@smtp.kernel.org>
+Subject: + mm-madvise-avoid-split-during-madv_pageout-and-madv_cold.patch added to mm-unstable branch
+Message-Id: <20240403201658.911DAC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmscan: avoid split during shrink_folio_list()
+     Subject: mm: madvise: avoid split during MADV_PAGEOUT and MADV_COLD
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-avoid-split-during-shrink_folio_list.patch
+     mm-madvise-avoid-split-during-madv_pageout-and-madv_cold.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-avoid-split-during-shrink_folio_list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-avoid-split-during-madv_pageout-and-madv_cold.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,29 +59,38 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: vmscan: avoid split during shrink_folio_list()
-Date: Wed, 3 Apr 2024 12:40:31 +0100
+Subject: mm: madvise: avoid split during MADV_PAGEOUT and MADV_COLD
+Date: Wed, 3 Apr 2024 12:40:32 +0100
 
-Now that swap supports storing all mTHP sizes, avoid splitting large
-folios before swap-out.  This benefits performance of the swap-out path by
-eliding split_folio_to_list(), which is expensive, and also sets us up for
-swapping in large folios in a future series.
+Rework madvise_cold_or_pageout_pte_range() to avoid splitting any large
+folio that is fully and contiguously mapped in the pageout/cold vm range. 
+This change means that large folios will be maintained all the way to swap
+storage.  This both improves performance during swap-out, by eliding the
+cost of splitting the folio, and sets us up nicely for maintaining the
+large folio when it is swapped back in (to be covered in a separate
+series).
 
-If the folio is partially mapped, we continue to split it since we want to
-avoid the extra IO overhead and storage of writing out pages
-uneccessarily.
+Folios that are not fully mapped in the target range are still split, but
+note that behavior is changed so that if the split fails for any reason
+(folio locked, shared, etc) we now leave it as is and move to the next pte
+in the range and continue work on the proceeding folios.  Previously any
+failure of this sort would cause the entire operation to give up and no
+folios mapped at higher addresses were paged out or made cold.  Given
+large folios are becoming more common, this old behavior would have likely
+lead to wasted opportunities.
 
-THP_SWPOUT and THP_SWPOUT_FALLBACK counters should continue to count
-events only for PMD-mappable folios to avoid user confusion.  THP_SWPOUT
-already has the appropriate guard.  Add a guard for THP_SWPOUT_FALLBACK. 
-It may be appropriate to add per-size counters in future.
+While we are at it, change the code that clears young from the ptes to use
+ptep_test_and_clear_young(), via the new mkold_ptes() batch helper
+function.  This is more efficent than get_and_clear/modify/set, especially
+for contpte mappings on arm64, where the old approach would require
+unfolding/refolding and the new approach can be done in place.
 
-Link: https://lkml.kernel.org/r/20240403114032.1162100-6-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20240403114032.1162100-7-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Barry Song <v-songbaohua@oppo.com>
 Cc: Barry Song <21cnbao@gmail.com>
 Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Gao Xiang <xiang@kernel.org>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
@@ -93,43 +102,245 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ include/linux/pgtable.h |   30 ++++++++++++
+ mm/internal.h           |   12 ++++-
+ mm/madvise.c            |   88 ++++++++++++++++++++++----------------
+ mm/memory.c             |    4 -
+ 4 files changed, 93 insertions(+), 41 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-avoid-split-during-shrink_folio_list
-+++ a/mm/vmscan.c
-@@ -1206,11 +1206,12 @@ retry:
- 					if (!can_split_folio(folio, NULL))
- 						goto activate_locked;
- 					/*
--					 * Split folios without a PMD map right
--					 * away. Chances are some or all of the
--					 * tail pages can be freed without IO.
-+					 * Split partially mapped folios right
-+					 * away. We can free the unmapped pages
-+					 * without IO.
- 					 */
--					if (!folio_entire_mapcount(folio) &&
-+					if (data_race(!list_empty(
-+						&folio->_deferred_list)) &&
- 					    split_folio_to_list(folio,
- 								folio_list))
- 						goto activate_locked;
-@@ -1223,8 +1224,12 @@ retry:
- 								folio_list))
- 						goto activate_locked;
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--					count_memcg_folio_events(folio, THP_SWPOUT_FALLBACK, 1);
--					count_vm_event(THP_SWPOUT_FALLBACK);
-+					if (nr_pages >= HPAGE_PMD_NR) {
-+						count_memcg_folio_events(folio,
-+							THP_SWPOUT_FALLBACK, 1);
-+						count_vm_event(
-+							THP_SWPOUT_FALLBACK);
-+					}
+--- a/include/linux/pgtable.h~mm-madvise-avoid-split-during-madv_pageout-and-madv_cold
++++ a/include/linux/pgtable.h
+@@ -361,6 +361,36 @@ static inline int ptep_test_and_clear_yo
+ }
  #endif
- 					if (!add_to_swap(folio))
- 						goto activate_locked_split;
+ 
++#ifndef mkold_ptes
++/**
++ * mkold_ptes - Mark PTEs that map consecutive pages of the same folio as old.
++ * @vma: VMA the pages are mapped into.
++ * @addr: Address the first page is mapped at.
++ * @ptep: Page table pointer for the first entry.
++ * @nr: Number of entries to mark old.
++ *
++ * May be overridden by the architecture; otherwise, implemented as a simple
++ * loop over ptep_test_and_clear_young().
++ *
++ * Note that PTE bits in the PTE range besides the PFN can differ. For example,
++ * some PTEs might be write-protected.
++ *
++ * Context: The caller holds the page table lock.  The PTEs map consecutive
++ * pages that belong to the same folio.  The PTEs are all in the same PMD.
++ */
++static inline void mkold_ptes(struct vm_area_struct *vma, unsigned long addr,
++		pte_t *ptep, unsigned int nr)
++{
++	for (;;) {
++		ptep_test_and_clear_young(vma, addr, ptep);
++		if (--nr == 0)
++			break;
++		ptep++;
++		addr += PAGE_SIZE;
++	}
++}
++#endif
++
+ #ifndef __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG)
+ static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
+--- a/mm/internal.h~mm-madvise-avoid-split-during-madv_pageout-and-madv_cold
++++ a/mm/internal.h
+@@ -130,6 +130,8 @@ static inline pte_t __pte_batch_clear_ig
+  * @flags: Flags to modify the PTE batch semantics.
+  * @any_writable: Optional pointer to indicate whether any entry except the
+  *		  first one is writable.
++ * @any_young: Optional pointer to indicate whether any entry except the
++ *		  first one is young.
+  *
+  * Detect a PTE batch: consecutive (present) PTEs that map consecutive
+  * pages of the same large folio.
+@@ -145,16 +147,18 @@ static inline pte_t __pte_batch_clear_ig
+  */
+ static inline int folio_pte_batch(struct folio *folio, unsigned long addr,
+ 		pte_t *start_ptep, pte_t pte, int max_nr, fpb_t flags,
+-		bool *any_writable)
++		bool *any_writable, bool *any_young)
+ {
+ 	unsigned long folio_end_pfn = folio_pfn(folio) + folio_nr_pages(folio);
+ 	const pte_t *end_ptep = start_ptep + max_nr;
+ 	pte_t expected_pte, *ptep;
+-	bool writable;
++	bool writable, young;
+ 	int nr;
+ 
+ 	if (any_writable)
+ 		*any_writable = false;
++	if (any_young)
++		*any_young = false;
+ 
+ 	VM_WARN_ON_FOLIO(!pte_present(pte), folio);
+ 	VM_WARN_ON_FOLIO(!folio_test_large(folio) || max_nr < 1, folio);
+@@ -168,6 +172,8 @@ static inline int folio_pte_batch(struct
+ 		pte = ptep_get(ptep);
+ 		if (any_writable)
+ 			writable = !!pte_write(pte);
++		if (any_young)
++			young = !!pte_young(pte);
+ 		pte = __pte_batch_clear_ignored(pte, flags);
+ 
+ 		if (!pte_same(pte, expected_pte))
+@@ -183,6 +189,8 @@ static inline int folio_pte_batch(struct
+ 
+ 		if (any_writable)
+ 			*any_writable |= writable;
++		if (any_young)
++			*any_young |= young;
+ 
+ 		nr = pte_batch_hint(ptep, pte);
+ 		expected_pte = pte_advance_pfn(expected_pte, nr);
+--- a/mm/madvise.c~mm-madvise-avoid-split-during-madv_pageout-and-madv_cold
++++ a/mm/madvise.c
+@@ -336,6 +336,7 @@ static int madvise_cold_or_pageout_pte_r
+ 	LIST_HEAD(folio_list);
+ 	bool pageout_anon_only_filter;
+ 	unsigned int batch_count = 0;
++	int nr;
+ 
+ 	if (fatal_signal_pending(current))
+ 		return -EINTR;
+@@ -423,7 +424,8 @@ restart:
+ 		return 0;
+ 	flush_tlb_batched_pending(mm);
+ 	arch_enter_lazy_mmu_mode();
+-	for (; addr < end; pte++, addr += PAGE_SIZE) {
++	for (; addr < end; pte += nr, addr += nr * PAGE_SIZE) {
++		nr = 1;
+ 		ptent = ptep_get(pte);
+ 
+ 		if (++batch_count == SWAP_CLUSTER_MAX) {
+@@ -447,55 +449,67 @@ restart:
+ 			continue;
+ 
+ 		/*
+-		 * Creating a THP page is expensive so split it only if we
+-		 * are sure it's worth. Split it if we are only owner.
++		 * If we encounter a large folio, only split it if it is not
++		 * fully mapped within the range we are operating on. Otherwise
++		 * leave it as is so that it can be swapped out whole. If we
++		 * fail to split a folio, leave it in place and advance to the
++		 * next pte in the range.
+ 		 */
+ 		if (folio_test_large(folio)) {
+-			int err;
+-
+-			if (folio_likely_mapped_shared(folio))
+-				break;
+-			if (pageout_anon_only_filter && !folio_test_anon(folio))
+-				break;
+-			if (!folio_trylock(folio))
+-				break;
+-			folio_get(folio);
+-			arch_leave_lazy_mmu_mode();
+-			pte_unmap_unlock(start_pte, ptl);
+-			start_pte = NULL;
+-			err = split_folio(folio);
+-			folio_unlock(folio);
+-			folio_put(folio);
+-			if (err)
+-				break;
+-			start_pte = pte =
+-				pte_offset_map_lock(mm, pmd, addr, &ptl);
+-			if (!start_pte)
+-				break;
+-			arch_enter_lazy_mmu_mode();
+-			pte--;
+-			addr -= PAGE_SIZE;
+-			continue;
++			const fpb_t fpb_flags = FPB_IGNORE_DIRTY |
++						FPB_IGNORE_SOFT_DIRTY;
++			int max_nr = (end - addr) / PAGE_SIZE;
++			bool any_young;
++
++			nr = folio_pte_batch(folio, addr, pte, ptent, max_nr,
++					     fpb_flags, NULL, &any_young);
++			if (any_young)
++				ptent = pte_mkyoung(ptent);
++
++			if (nr < folio_nr_pages(folio)) {
++				int err;
++
++				if (folio_likely_mapped_shared(folio))
++					continue;
++				if (pageout_anon_only_filter && !folio_test_anon(folio))
++					continue;
++				if (!folio_trylock(folio))
++					continue;
++				folio_get(folio);
++				arch_leave_lazy_mmu_mode();
++				pte_unmap_unlock(start_pte, ptl);
++				start_pte = NULL;
++				err = split_folio(folio);
++				folio_unlock(folio);
++				folio_put(folio);
++				start_pte = pte =
++					pte_offset_map_lock(mm, pmd, addr, &ptl);
++				if (!start_pte)
++					break;
++				if (err)
++					continue;
++				arch_enter_lazy_mmu_mode();
++				nr = 0;
++				continue;
++			}
+ 		}
+ 
+ 		/*
+ 		 * Do not interfere with other mappings of this folio and
+-		 * non-LRU folio.
++		 * non-LRU folio. If we have a large folio at this point, we
++		 * know it is fully mapped so if its mapcount is the same as its
++		 * number of pages, it must be exclusive.
+ 		 */
+-		if (!folio_test_lru(folio) || folio_mapcount(folio) != 1)
++		if (!folio_test_lru(folio) ||
++		    folio_mapcount(folio) != folio_nr_pages(folio))
+ 			continue;
+ 
+ 		if (pageout_anon_only_filter && !folio_test_anon(folio))
+ 			continue;
+ 
+-		VM_BUG_ON_FOLIO(folio_test_large(folio), folio);
+-
+ 		if (!pageout && pte_young(ptent)) {
+-			ptent = ptep_get_and_clear_full(mm, addr, pte,
+-							tlb->fullmm);
+-			ptent = pte_mkold(ptent);
+-			set_pte_at(mm, addr, pte, ptent);
+-			tlb_remove_tlb_entry(tlb, pte, addr);
++			mkold_ptes(vma, addr, pte, nr);
++			tlb_remove_tlb_entries(tlb, pte, nr, addr);
+ 		}
+ 
+ 		/*
+--- a/mm/memory.c~mm-madvise-avoid-split-during-madv_pageout-and-madv_cold
++++ a/mm/memory.c
+@@ -989,7 +989,7 @@ copy_present_ptes(struct vm_area_struct
+ 			flags |= FPB_IGNORE_SOFT_DIRTY;
+ 
+ 		nr = folio_pte_batch(folio, addr, src_pte, pte, max_nr, flags,
+-				     &any_writable);
++				     &any_writable, NULL);
+ 		folio_ref_add(folio, nr);
+ 		if (folio_test_anon(folio)) {
+ 			if (unlikely(folio_try_dup_anon_rmap_ptes(folio, page,
+@@ -1559,7 +1559,7 @@ static inline int zap_present_ptes(struc
+ 	 */
+ 	if (unlikely(folio_test_large(folio) && max_nr != 1)) {
+ 		nr = folio_pte_batch(folio, addr, pte, ptent, max_nr, fpb_flags,
+-				     NULL);
++				     NULL, NULL);
+ 
+ 		zap_present_folio_ptes(tlb, vma, folio, page, pte, ptent, nr,
+ 				       addr, details, rss, force_flush,
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
