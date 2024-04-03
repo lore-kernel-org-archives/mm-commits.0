@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 947811552E2
-	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 20:28:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C9205DF0E
+	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 20:35:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712176124; cv=none; b=WeD5Fy0jo+xx9j26dEfKQ8SRD5+DoGHTOabi+DpQ8jPfPlEBJPGIswoeWZ0RbtsP76ibrhrjFXuoDkShMLg41l4X4M71t41e9vlAsNnJW7+smv7+qMtiC4GtyGn+b7wjCkj/4GhBcpLNyF4Zdne2G5yBlZWaMARZJI4peYpGaAo=
+	t=1712176529; cv=none; b=rAB6zhciBq+eluZ82IqB9kk6zeI9ymghpK2K9QZC0J4ImcmzDJy/NQgtzmOL+Hj5gHYQ1865/9ugUijQsiVo81844YoYFLThSnXN+3oyZVU7VYopyH87w0WhpaaW7nXJXIF3PQcZm4+XTwT+qh9+kOwTl7n0D3zyyKbvD2ANOb0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712176124; c=relaxed/simple;
-	bh=b6CQ3Tn1v85jT0+W9Rwde/yXFRFJU4URx0wEBSw+WFE=;
-	h=Date:To:From:Subject:Message-Id; b=mkFCOcQls7kquuC36pJQ6iUQ0l9I0sWewlbhp2RnCGdoJ8E2B84rTF+azrIoJ+WD53QOG0yNwuNzIwwECDi5ooBD0lcvPoMteuTj2ye0tt4+smGR77k0Yg+0UQJ4DpdZwZSJIYNcDH1RWor4+3BhJXcqKobUfBqYl1ezaZY8TCU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MbRuqGQe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712176529; c=relaxed/simple;
+	bh=p5teQA63lhmM+Z+avSzLmXWyZJ3vZQyTxFoMBh0GRIA=;
+	h=Date:To:From:Subject:Message-Id; b=lTNGhOl3VeyICb244UcxdAUiC3ZQLGc5LA6h+9JBmliZrr4Qp/lRK4p85nfdGVjDF9a0j48lwxb2ENxdMlcoWT538u/69o2ZfeMxcYFX4l9pkMbtZIPK42N4DayIMLk9WDwz9vR3vtp8ycTH86cje0corH71o1jv5LuRLQigcNY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=agNkwL4n; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MbRuqGQe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB0D0C433F1;
-	Wed,  3 Apr 2024 20:28:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="agNkwL4n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2084C433C7;
+	Wed,  3 Apr 2024 20:35:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712176124;
-	bh=b6CQ3Tn1v85jT0+W9Rwde/yXFRFJU4URx0wEBSw+WFE=;
+	s=korg; t=1712176528;
+	bh=p5teQA63lhmM+Z+avSzLmXWyZJ3vZQyTxFoMBh0GRIA=;
 	h=Date:To:From:Subject:From;
-	b=MbRuqGQeZihr2RGdnEh8gItZCjo2Sfqkh2R8+BYHBKOcbubcRUzNyy/I0aGwZUsIg
-	 xodDKtf3HZeO5MGrVbmCrbcafsKP1yQ/HDf4AXJKhWGSX+B5HBtkNfJ6tLdrkTOs5w
-	 w2lCTTumLnAbDEyk6PHtg5uyaG/xyUJ8xzp41OdQ=
-Date: Wed, 03 Apr 2024 13:28:43 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,akpm@linux-foundation.org
+	b=agNkwL4n8vExIs+M1fOP+bR3VshIXzUEtji/N60poK5AYkR/zGj4NKTKswCE1rzKR
+	 b8qua5Rv8JMScwgt43HBtu4A2297gZ0CRqlqLC7HPyZN5/TPzv2N+4KDDtFcX1+YK2
+	 Nj3fmImwQOvPdtjQvGYp817o3yAFJWAIp/4/La80=
+Date: Wed, 03 Apr 2024 13:35:28 -0700
+To: mm-commits@vger.kernel.org,pstanner@redhat.com,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-slab-move-memcg-charging-to-post-alloc-hook-fix-2.patch added to mm-unstable branch
-Message-Id: <20240403202843.EB0D0C433F1@smtp.kernel.org>
+Subject: + devres-switch-to-use-dev_err_probe-for-unification.patch added to mm-nonmm-unstable branch
+Message-Id: <20240403203528.C2084C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-slab-move-memcg-charging-to-post-alloc-hook-fix-2
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-slab-move-memcg-charging-to-post-alloc-hook-fix-2.patch
+     Subject: devres: switch to use dev_err_probe() for unification
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     devres-switch-to-use-dev_err_probe-for-unification.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slab-move-memcg-charging-to-post-alloc-hook-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/devres-switch-to-use-dev_err_probe-for-unification.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,35 +58,81 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm-slab-move-memcg-charging-to-post-alloc-hook-fix-2
-Date: Wed, 3 Apr 2024 10:02:40 -0700
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: devres: switch to use dev_err_probe() for unification
+Date: Wed, 3 Apr 2024 13:46:56 +0300
 
-comment fixup
+Patch series "devres: A couple of cleanups".
 
-Link: https://lkml.kernel.org/r/Zg2LsNm6twOmG69l@P9FQF9L96D.corp.robot.car
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+A couple of ad-hoc cleanups. No functional changes intended. 
+
+
+This patch (of 2):
+
+The devm_*() APIs are supposed to be called during the ->probe() stage. 
+Many drivers (especially new ones) have switched to use dev_err_probe()
+for error messaging for the sake of unification.  Let's do the same in the
+devres APIs.
+
+Link: https://lkml.kernel.org/r/20240403104820.557487-1-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20240403104820.557487-2-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Philipp Stanner <pstanner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/devres.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
---- a/mm/memcontrol.c~mm-slab-move-memcg-charging-to-post-alloc-hook-fix-2
-+++ a/mm/memcontrol.c
-@@ -350,7 +350,7 @@ static void memcg_reparent_objcgs(struct
+--- a/lib/devres.c~devres-switch-to-use-dev_err_probe-for-unification
++++ a/lib/devres.c
+@@ -125,12 +125,13 @@ __devm_ioremap_resource(struct device *d
+ 	resource_size_t size;
+ 	void __iomem *dest_ptr;
+ 	char *pretty_name;
++	int ret;
  
- /*
-  * A lot of the calls to the cache allocation functions are expected to be
-- * inlined by the compiler. Since the calls to memcg_slab_pre_alloc_hook() are
-+ * inlined by the compiler. Since the calls to memcg_slab_post_alloc_hook() are
-  * conditional to this static branch, we'll have to allow modules that does
-  * kmem_cache_alloc and the such to see this symbol as well
-  */
+ 	BUG_ON(!dev);
+ 
+ 	if (!res || resource_type(res) != IORESOURCE_MEM) {
+-		dev_err(dev, "invalid resource %pR\n", res);
+-		return IOMEM_ERR_PTR(-EINVAL);
++		ret = dev_err_probe(dev, -EINVAL, "invalid resource %pR\n", res);
++		return IOMEM_ERR_PTR(ret);
+ 	}
+ 
+ 	if (type == DEVM_IOREMAP && res->flags & IORESOURCE_MEM_NONPOSTED)
+@@ -144,20 +145,20 @@ __devm_ioremap_resource(struct device *d
+ 	else
+ 		pretty_name = devm_kstrdup(dev, dev_name(dev), GFP_KERNEL);
+ 	if (!pretty_name) {
+-		dev_err(dev, "can't generate pretty name for resource %pR\n", res);
+-		return IOMEM_ERR_PTR(-ENOMEM);
++		ret = dev_err_probe(dev, -ENOMEM, "can't generate pretty name for resource %pR\n", res);
++		return IOMEM_ERR_PTR(ret);
+ 	}
+ 
+ 	if (!devm_request_mem_region(dev, res->start, size, pretty_name)) {
+-		dev_err(dev, "can't request region for resource %pR\n", res);
+-		return IOMEM_ERR_PTR(-EBUSY);
++		ret = dev_err_probe(dev, -EBUSY, "can't request region for resource %pR\n", res);
++		return IOMEM_ERR_PTR(ret);
+ 	}
+ 
+ 	dest_ptr = __devm_ioremap(dev, res->start, size, type);
+ 	if (!dest_ptr) {
+-		dev_err(dev, "ioremap failed for resource %pR\n", res);
+ 		devm_release_mem_region(dev, res->start, size);
+-		dest_ptr = IOMEM_ERR_PTR(-ENOMEM);
++		ret = dev_err_probe(dev, -ENOMEM, "ioremap failed for resource %pR\n", res);
++		return IOMEM_ERR_PTR(ret);
+ 	}
+ 
+ 	return dest_ptr;
 _
 
-Patches currently in -mm which might be from roman.gushchin@linux.dev are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-mm-slab-move-memcg-charging-to-post-alloc-hook-fix-2.patch
+devres-switch-to-use-dev_err_probe-for-unification.patch
+devres-dont-use-proxy-headers.patch
 
