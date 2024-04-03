@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80E9B1D54B
-	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 19:05:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8377154458
+	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 19:12:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712171143; cv=none; b=Y81fimYKDQ9Rk5+OVgcHEthIrytMrH97JVa7GhfWzYNOhK/FoO9tRfbAnqoBWRL976ha0aqO4xgmznxIGgbPxLyNXrcDFib6cQJtx24ZbYqTgt9LILJ3oPmOxTndc9WhPu0BS+3a8ys3NELDRBujGFtx72vT6SxO8k1a8HU/d38=
+	t=1712171556; cv=none; b=CLw2GBLYlKJJI8t6nWBgiAAgF+7Lp3TajnrxO2NiujxIgTNZEPlxdnKJTyDjpPdPx98q1wzI/nE3IYdAD1kUVBDApO4R3hgYT22wCMWkcIv+SHWq8TIDc7rNiIf4n3UgFpzyRPASR4uoCGNj2KlDzuZIO16zLuQRRNfC5tmM0jY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712171143; c=relaxed/simple;
-	bh=Ddn4pWd6RzRJE/mfGydhPVP3gQYXZtOUh+AQ3+B3J9k=;
-	h=Date:To:From:Subject:Message-Id; b=N8TDdhUrgvCw3oCpPwKMmqCL13Z9i/Ob4BH0zsFGS//hc4g8YYhmdE1dnfnGCNHNRbdUaY+HuUeE0XmuABhlZPM8VXMUxFBXZdYKjyF3zx4PvpYnBrVso3pGVtRmeghFXSImBJGQvjGuUU5IEWaiMAdBjQJqRXCKrB2xZOcOUKQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sk6gKDmM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712171556; c=relaxed/simple;
+	bh=K9Q8+bIvPfwFJ6GVcDwZ/B6Z14utP2JKtr7z5x+Gr1c=;
+	h=Date:To:From:Subject:Message-Id; b=kn9+/Z5Qy5kl6HpIED+Db+/NohwCdVGBLNh5V/KdbtZc16uBHKjusjMBUJop5YhkeIQKDfGGvFj7QAPH4LVD4X5JYI26nSSAFMCAm50ZzKPFezvMOPHo3FpzguTNPgGt03xLzONnvdDPoSySZna+fi1777jqtP6uzF/faLsx8B8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t+EOc3Q0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sk6gKDmM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FB2DC433C7;
-	Wed,  3 Apr 2024 19:05:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t+EOc3Q0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 534B6C43390;
+	Wed,  3 Apr 2024 19:12:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712171143;
-	bh=Ddn4pWd6RzRJE/mfGydhPVP3gQYXZtOUh+AQ3+B3J9k=;
+	s=korg; t=1712171555;
+	bh=K9Q8+bIvPfwFJ6GVcDwZ/B6Z14utP2JKtr7z5x+Gr1c=;
 	h=Date:To:From:Subject:From;
-	b=sk6gKDmMc6o3hZuCRnT6+b6oHhCu4eaxSXYO66lZv2MCPolOhZZ5Yxoufo/1ZwCpU
-	 XjFkJ+B5fWbJb/ndt1+NyiCR7/MOi0C7jkoCDIDdNFSSv7KuWYkG9E3ImpXuEe8ji4
-	 NdpEd/jhnYg2a6RyR5h2J0ecpF71+pG3en7SBF2A=
-Date: Wed, 03 Apr 2024 12:05:42 -0700
+	b=t+EOc3Q0rM1JCQnEMr7yQdB9AfBd2Gv1v6yq510DeDzrZjKt0KBpSPwMemKn0XZ6U
+	 9cBH5b1vcMNLK79TOS6SaQpJPVgcB9jl1ScdP5qdi2LzaNPpTKUdUC3f1v25yiq3K4
+	 Cx7NZcg/YJqCWCLoRFrvwHXS72LgvzMN1ygGfAtA=
+Date: Wed, 03 Apr 2024 12:12:34 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + khugepaged-use-a-folio-throughout-hpage_collapse_scan_file.patch added to mm-unstable branch
-Message-Id: <20240403190543.4FB2DC433C7@smtp.kernel.org>
+Subject: + proc-convert-clear_refs_pte_range-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20240403191235.534B6C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: khugepaged: use a folio throughout hpage_collapse_scan_file()
+     Subject: proc: convert clear_refs_pte_range to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     khugepaged-use-a-folio-throughout-hpage_collapse_scan_file.patch
+     proc-convert-clear_refs_pte_range-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-use-a-folio-throughout-hpage_collapse_scan_file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-convert-clear_refs_pte_range-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,132 +59,76 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: khugepaged: use a folio throughout hpage_collapse_scan_file()
-Date: Wed, 3 Apr 2024 18:18:36 +0100
+Subject: proc: convert clear_refs_pte_range to use a folio
+Date: Tue, 2 Apr 2024 21:12:48 +0100
 
-Replace the use of pages with folios.  Saves a few calls to
-compound_head() and removes some uses of obsolete functions.
+Patch series "Remove page_idle and page_young wrappers".
 
-Link: https://lkml.kernel.org/r/20240403171838.1445826-8-willy@infradead.org
+There are only a couple of places left using the page wrappers for idle &
+young tracking.  Convert the two users in proc and then we can remove the
+wrappers.  That enables the further simplification of autogenerating the
+definitions when CONFIG_PAGE_IDLE_FLAG is disabled.  
+
+
+This patch (of 4):
+
+Replaces four calls to compound_head() with two.
+
+Link: https://lkml.kernel.org/r/20240402201252.917342-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240402201252.917342-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |    6 ++--
- mm/khugepaged.c                    |   33 +++++++++++++--------------
- 2 files changed, 19 insertions(+), 20 deletions(-)
+ fs/proc/task_mmu.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/include/trace/events/huge_memory.h~khugepaged-use-a-folio-throughout-hpage_collapse_scan_file
-+++ a/include/trace/events/huge_memory.h
-@@ -174,10 +174,10 @@ TRACE_EVENT(mm_collapse_huge_page_swapin
+--- a/fs/proc/task_mmu.c~proc-convert-clear_refs_pte_range-to-use-a-folio
++++ a/fs/proc/task_mmu.c
+@@ -1161,7 +1161,7 @@ static int clear_refs_pte_range(pmd_t *p
+ 	struct vm_area_struct *vma = walk->vma;
+ 	pte_t *pte, ptent;
+ 	spinlock_t *ptl;
+-	struct page *page;
++	struct folio *folio;
  
- TRACE_EVENT(mm_khugepaged_scan_file,
+ 	ptl = pmd_trans_huge_lock(pmd, vma);
+ 	if (ptl) {
+@@ -1173,12 +1173,12 @@ static int clear_refs_pte_range(pmd_t *p
+ 		if (!pmd_present(*pmd))
+ 			goto out;
  
--	TP_PROTO(struct mm_struct *mm, struct page *page, struct file *file,
-+	TP_PROTO(struct mm_struct *mm, struct folio *folio, struct file *file,
- 		 int present, int swap, int result),
+-		page = pmd_page(*pmd);
++		folio = pmd_folio(*pmd);
  
--	TP_ARGS(mm, page, file, present, swap, result),
-+	TP_ARGS(mm, folio, file, present, swap, result),
- 
- 	TP_STRUCT__entry(
- 		__field(struct mm_struct *, mm)
-@@ -190,7 +190,7 @@ TRACE_EVENT(mm_khugepaged_scan_file,
- 
- 	TP_fast_assign(
- 		__entry->mm = mm;
--		__entry->pfn = page ? page_to_pfn(page) : -1;
-+		__entry->pfn = folio ? folio_pfn(folio) : -1;
- 		__assign_str(filename, file->f_path.dentry->d_iname);
- 		__entry->present = present;
- 		__entry->swap = swap;
---- a/mm/khugepaged.c~khugepaged-use-a-folio-throughout-hpage_collapse_scan_file
-+++ a/mm/khugepaged.c
-@@ -2203,7 +2203,7 @@ static int hpage_collapse_scan_file(stru
- 				    struct file *file, pgoff_t start,
- 				    struct collapse_control *cc)
- {
--	struct page *page = NULL;
-+	struct folio *folio = NULL;
- 	struct address_space *mapping = file->f_mapping;
- 	XA_STATE(xas, &mapping->i_pages, start);
- 	int present, swap;
-@@ -2215,11 +2215,11 @@ static int hpage_collapse_scan_file(stru
- 	memset(cc->node_load, 0, sizeof(cc->node_load));
- 	nodes_clear(cc->alloc_nmask);
- 	rcu_read_lock();
--	xas_for_each(&xas, page, start + HPAGE_PMD_NR - 1) {
--		if (xas_retry(&xas, page))
-+	xas_for_each(&xas, folio, start + HPAGE_PMD_NR - 1) {
-+		if (xas_retry(&xas, folio))
+ 		/* Clear accessed and referenced bits. */
+ 		pmdp_test_and_clear_young(vma, addr, pmd);
+-		test_and_clear_page_young(page);
+-		ClearPageReferenced(page);
++		folio_test_clear_young(folio);
++		folio_clear_referenced(folio);
+ out:
+ 		spin_unlock(ptl);
+ 		return 0;
+@@ -1200,14 +1200,14 @@ out:
+ 		if (!pte_present(ptent))
  			continue;
  
--		if (xa_is_value(page)) {
-+		if (xa_is_value(folio)) {
- 			++swap;
- 			if (cc->is_khugepaged &&
- 			    swap > khugepaged_max_ptes_swap) {
-@@ -2234,11 +2234,9 @@ static int hpage_collapse_scan_file(stru
- 		 * TODO: khugepaged should compact smaller compound pages
- 		 * into a PMD sized page
- 		 */
--		if (PageTransCompound(page)) {
--			struct page *head = compound_head(page);
--
--			result = compound_order(head) == HPAGE_PMD_ORDER &&
--					head->index == start
-+		if (folio_test_large(folio)) {
-+			result = folio_order(folio) == HPAGE_PMD_ORDER &&
-+					folio->index == start
- 					/* Maybe PMD-mapped */
- 					? SCAN_PTE_MAPPED_HUGEPAGE
- 					: SCAN_PAGE_COMPOUND;
-@@ -2251,28 +2249,29 @@ static int hpage_collapse_scan_file(stru
- 			break;
- 		}
+-		page = vm_normal_page(vma, addr, ptent);
+-		if (!page)
++		folio = vm_normal_folio(vma, addr, ptent);
++		if (!folio)
+ 			continue;
  
--		node = page_to_nid(page);
-+		node = folio_nid(folio);
- 		if (hpage_collapse_scan_abort(node, cc)) {
- 			result = SCAN_SCAN_ABORT;
- 			break;
- 		}
- 		cc->node_load[node]++;
- 
--		if (!PageLRU(page)) {
-+		if (!folio_test_lru(folio)) {
- 			result = SCAN_PAGE_LRU;
- 			break;
- 		}
- 
--		if (page_count(page) !=
--		    1 + page_mapcount(page) + page_has_private(page)) {
-+		if (folio_ref_count(folio) !=
-+		    1 + folio_mapcount(folio) + folio_test_private(folio)) {
- 			result = SCAN_PAGE_COUNT;
- 			break;
- 		}
- 
- 		/*
--		 * We probably should check if the page is referenced here, but
--		 * nobody would transfer pte_young() to PageReferenced() for us.
--		 * And rmap walk here is just too costly...
-+		 * We probably should check if the folio is referenced
-+		 * here, but nobody would transfer pte_young() to
-+		 * folio_test_referenced() for us.  And rmap walk here
-+		 * is just too costly...
- 		 */
- 
- 		present++;
-@@ -2294,7 +2293,7 @@ static int hpage_collapse_scan_file(stru
- 		}
+ 		/* Clear accessed and referenced bits. */
+ 		ptep_test_and_clear_young(vma, addr, pte);
+-		test_and_clear_page_young(page);
+-		ClearPageReferenced(page);
++		folio_test_clear_young(folio);
++		folio_clear_referenced(folio);
  	}
- 
--	trace_mm_khugepaged_scan_file(mm, page, file, present, swap, result);
-+	trace_mm_khugepaged_scan_file(mm, folio, file, present, swap, result);
- 	return result;
- }
- #else
+ 	pte_unmap_unlock(pte - 1, ptl);
+ 	cond_resched();
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -232,4 +176,8 @@ khugepaged-pass-a-folio-to-__collapse_huge_page_copy.patch
 khugepaged-remove-hpage-from-collapse_file.patch
 khugepaged-use-a-folio-throughout-collapse_file.patch
 khugepaged-use-a-folio-throughout-hpage_collapse_scan_file.patch
+proc-convert-clear_refs_pte_range-to-use-a-folio.patch
+proc-convert-smaps_account-to-use-a-folio.patch
+mm-remove-page_idle-and-page_young-wrappers.patch
+mm-generate-page_idle_flag-definitions.patch
 
