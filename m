@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E22772F24
-	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 19:46:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88B36156223
+	for <mm-commits@vger.kernel.org>; Wed,  3 Apr 2024 19:59:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712173571; cv=none; b=gBt6aShc9DwyXtUrOs00Fwde7gbNyWnx6g9XMPotMOiCgCnIIeu+G+mdVTje9qX1uayuAlVudq05nK3sj+28F7sjP8J0eradjzVURbDUT5XFyGVevilKIUs4NnOFDtTJE/x8gogpV4B5BnVveWeE2DHjQ2mwIUrb84ByHDg5mOA=
+	t=1712174372; cv=none; b=TwebgL6rumD+oWOJ1GghE0D0HUSxelpko4qpXGZMt4ItHVE671lizJ0Ie5MfRNa4CLREzK1IR1qvtmCGLaa1UKIGkn87Tg4BiGQweygwjTVBknxJ2z5ZnrX3nR3wogeE3t0xeOjOfHZtPQQgMu1NOZr4HcHGocpDcqqzv82DYtE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712173571; c=relaxed/simple;
-	bh=EvmCHBouzkWhr06HET62yu4laHBAI+NUNTPeNHZmdIo=;
-	h=Date:To:From:Subject:Message-Id; b=fciLs8uFWA7dNlwvDCjnVgzL5v/3YYThj7HibuBQI3c9SfHvVn7dyMw4yGbnvhsWUmPebfzpU0Dt4Nfal5FN1erMo2aDruuI+eapMiCAjCcpyxPwfVGE+Gp6U63/LrMWVKWfNORX0wa1Qr+BQ9OXI6+0bfsPH3P3z6IoA9qKQww=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q52dshz5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712174372; c=relaxed/simple;
+	bh=DHFvxHnE+YFfbtwv71e/9XDmtcmGpSAfTsO2YYpNPFg=;
+	h=Date:To:From:Subject:Message-Id; b=iOvwvO5JSHKooFgGuetdWwQfLDk45in0xFeTHxtv5LRZzHFNbUaHyeXg0gBcathGz/5Lgw+0Qxy3STTJ4SGIjpkc6Hykq0fjdmjcrcDl+Xya+Nq1BMZsQXc3i1QUkBoxeSr+WmEReMxO8E5ctnoGr0UzF0ym9XDoA0f0vWAUoKo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=shCklVyb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q52dshz5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B0DAC433C7;
-	Wed,  3 Apr 2024 19:46:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="shCklVyb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7506C433F1;
+	Wed,  3 Apr 2024 19:59:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712173569;
-	bh=EvmCHBouzkWhr06HET62yu4laHBAI+NUNTPeNHZmdIo=;
+	s=korg; t=1712174372;
+	bh=DHFvxHnE+YFfbtwv71e/9XDmtcmGpSAfTsO2YYpNPFg=;
 	h=Date:To:From:Subject:From;
-	b=Q52dshz5hy0RN6xJS1IXwbe8TMAfYV/f9f42VGA3oRoKorV0zt83mfgFMw8i3OjPD
-	 WD2CAue6mYcF0kd6rHY4O9LR/MWRrIrSIgIz4YeBOSgcTpARvhUYLYGxgbZIJ3EQ+4
-	 ZMgFVfOU2HVSu9zXgZ5tqln1UMxRj+yOIukQfwOc=
-Date: Wed, 03 Apr 2024 12:46:08 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,mgorman@techsingularity.net,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=shCklVyb0LTnPVgH8bxk+lZG323erroOGxGPETv7t6bGfYsRbGzoB9OrBcncAv2PO
+	 IO0ds2WHIaTJMIDGer5cxZGDQlYmFaYw2zPblAcSZQfdUrDejlqRLk+fiVdpmAPYzl
+	 7iHY7C4vs37nlNS0uFwm9T6ZP51B4SASO+F+CZls=
+Date: Wed, 03 Apr 2024 12:59:31 -0700
+To: mm-commits@vger.kernel.org,arnd@kernel.org,schnelle@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-use-the-correct-thp-order-for-thp-pcp.patch added to mm-unstable branch
-Message-Id: <20240403194609.5B0DAC433C7@smtp.kernel.org>
+Subject: + kgdb-add-has_ioport-dependency.patch added to mm-nonmm-unstable branch
+Message-Id: <20240403195931.E7506C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: use the correct THP order for THP PCP
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-use-the-correct-thp-order-for-thp-pcp.patch
+     Subject: kgdb: add HAS_IOPORT dependency
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kgdb-add-has_ioport-dependency.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-use-the-correct-thp-order-for-thp-pcp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kgdb-add-has_ioport-dependency.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,69 +58,37 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: page_alloc: use the correct THP order for THP PCP
-Date: Wed, 3 Apr 2024 21:47:21 +0800
+From: Niklas Schnelle <schnelle@linux.ibm.com>
+Subject: kgdb: add HAS_IOPORT dependency
+Date: Wed, 3 Apr 2024 15:25:47 +0200
 
-Commit 44042b449872 ("mm/page_alloc: allow high-order pages to be stored
-on the per-cpu lists") extends the PCP allocator to store THP pages, and
-it determines whether to cache THP pages in PCP by comparing with
-pageblock_order.  But the pageblock_order is not always equal to THP
-order.  It might also be MAX_PAGE_ORDER, which could prevent PCP from
-caching THP pages.
+In a future patch HAS_IOPORT=n will disable inb()/outb() and friends at
+compile time.  We thus need to add HAS_IOPORT as dependency for those
+drivers using them.
 
-Therefore, using HPAGE_PMD_ORDER instead to determine the need for caching
-THP for PCP will fix this issue
-
-Link: https://lkml.kernel.org/r/a25c9e14cd03907d5978b60546a69e6aa3fc2a7d.1712151833.git.baolin.wang@linux.alibaba.com
-Fixes: 44042b449872 ("mm/page_alloc: allow high-order pages to be stored on the per-cpu lists")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20240403132547.762429-2-schnelle@linux.ibm.com
+Co-developed-by: Arnd Bergmann <arnd@kernel.org>
+Signed-off-by: Arnd Bergmann <arnd@kernel.org>
+Signed-off-by: Niklas Schnelle <schnelle@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/Kconfig.kgdb |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-use-the-correct-thp-order-for-thp-pcp
-+++ a/mm/page_alloc.c
-@@ -506,7 +506,7 @@ static inline unsigned int order_to_pind
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	if (order > PAGE_ALLOC_COSTLY_ORDER) {
--		VM_BUG_ON(order != pageblock_order);
-+		VM_BUG_ON(order != HPAGE_PMD_ORDER);
- 		return NR_LOWORDER_PCP_LISTS;
- 	}
- #else
-@@ -522,7 +522,7 @@ static inline int pindex_to_order(unsign
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	if (pindex == NR_LOWORDER_PCP_LISTS)
--		order = pageblock_order;
-+		order = HPAGE_PMD_ORDER;
- #else
- 	VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
- #endif
-@@ -535,7 +535,7 @@ static inline bool pcp_allowed_order(uns
- 	if (order <= PAGE_ALLOC_COSTLY_ORDER)
- 		return true;
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	if (order == pageblock_order)
-+	if (order == HPAGE_PMD_ORDER)
- 		return true;
- #endif
- 	return false;
+--- a/lib/Kconfig.kgdb~kgdb-add-has_ioport-dependency
++++ a/lib/Kconfig.kgdb
+@@ -122,6 +122,7 @@ config KDB_DEFAULT_ENABLE
+ config KDB_KEYBOARD
+ 	bool "KGDB_KDB: keyboard as input device"
+ 	depends on VT && KGDB_KDB && !PARISC
++	depends on HAS_IOPORT
+ 	default n
+ 	help
+ 	  KDB can use a PS/2 type keyboard for an input device
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from schnelle@linux.ibm.com are
 
-mm-record-the-migration-reason-for-struct-migration_target_control.patch
-mm-hugetlb-make-the-hugetlb-migration-strategy-consistent.patch
-docs-hugetlbpagerst-add-hugetlb-migration-description.patch
-mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch
-mm-support-multi-size-thp-numa-balancing.patch
-mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics.patch
-mm-page_alloc-use-the-correct-thp-order-for-thp-pcp.patch
+kgdb-add-has_ioport-dependency.patch
 
