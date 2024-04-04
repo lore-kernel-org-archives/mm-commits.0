@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B9D61332A5;
-	Thu,  4 Apr 2024 20:09:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9027C134435
+	for <mm-commits@vger.kernel.org>; Thu,  4 Apr 2024 20:19:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712261374; cv=none; b=bpckzGi8xROrZ4O1iOTTHwyn0kxjwrWJhi94ZCDLzkfb0wveoJ3MMgdML6OGiBSBbSMZCSFkvT79St3Lg9B9sApm8ghayNT+Asu8vGKRxRvbHag0uRT1/pWz76jt4T5nzg4S/kFM5aLEmgqRCqzUDXIZy2DvpN+XkE77xoQKEIA=
+	t=1712261950; cv=none; b=djVBbDxVvbyispfQp7vOMhA/ntoBjAKG2+n5i27XLG3qRrf0JVG/2c2cvypZ15zgJUIqFgGpjZYBLTOU6b0Quy6BlkLkPIbvT29yshs9IyeN7WS8jzfbztNEeuoOCyMiKZvpCtxJrt9Jd6gSTo9uVaBg60SUoVTCErB3NUElxNg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712261374; c=relaxed/simple;
-	bh=X/H1CHc0D+2EdqhFjLOoFlM2XCxEK1MPMzhCrV0Kj2k=;
-	h=Date:To:From:Subject:Message-Id; b=UtB5uCeh74flSdTfi0zwCZx8vdFOAWD0BPR49gJvQ2CgL6u7RgOOARx/1nkjLmzL6NJ5PYE1DVJY3byIS/X/TPp+oytnRRKaWQjgNBrmtreblR6UsxRZ2dANilm2sVH9d9Z6rF/TVkVBSN/L2f9Imp9+ChIvFgY9EbrghBOJZ/k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sBGZTAnN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712261950; c=relaxed/simple;
+	bh=YjlmAhTahAxYep7XeM85NI/N6BseL5HIhB3ogfRLxa4=;
+	h=Date:To:From:Subject:Message-Id; b=iwVA6AvXRHPbxhHWS9Stg0LjipWHXaJdcrH8S9NFwApRPoAc4viV5e4T5Wu/1dtXxesobjav7iudfyzzf9+ph1Baxph1pTQPy3Na+e4U8J86RrpIuFyU8L7Le2CsT2wFF41t2SFPOfYx5ANHkA4FSe44ijQAt6e4iLfsqCubDec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=161MSoSk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sBGZTAnN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0B92C43390;
-	Thu,  4 Apr 2024 20:09:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="161MSoSk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E28AC433C7;
+	Thu,  4 Apr 2024 20:19:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712261373;
-	bh=X/H1CHc0D+2EdqhFjLOoFlM2XCxEK1MPMzhCrV0Kj2k=;
+	s=korg; t=1712261949;
+	bh=YjlmAhTahAxYep7XeM85NI/N6BseL5HIhB3ogfRLxa4=;
 	h=Date:To:From:Subject:From;
-	b=sBGZTAnNhaXaLYgeWrHrsSauvVJs7LFM3v84GUh2ieYhDCUauZBJSbw0jQlZv6z1Y
-	 cxBC3NLU79poFSAvwOZDWjNhbGzzaRxoV4FlkuqNfYfEf5aq81TqcEYl0nBIb2Ebs4
-	 fOCc7b12FohBOzWHToUqJUIuDkVgl/CgjjF9orkE=
-Date: Thu, 04 Apr 2024 13:09:32 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,willy@infradead.org,stable@vger.kernel.org,peterx@redhat.com,ngeoffray@google.com,kaleshsingh@google.com,david@redhat.com,aarcange@redhat.com,lokeshgidra@google.com,akpm@linux-foundation.org
+	b=161MSoSkQhr+ACAxs8r9atXC43G6g57bn7H9MOYTTi/k+pZeYiOjsj075quAT18VI
+	 A2f1nkvKlbUXQIGxlvISWu8rtmFh88sFneGznrBIK2i7ca9zfFzNPXGqjNwQbDe4O1
+	 tdaocdU5JFb7+z/WOm9gHlGO5YFYBO+nK//YBKk4=
+Date: Thu, 04 Apr 2024 13:19:08 -0700
+To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,m.szyprowski@samsung.com,david@redhat.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-change-src_folio-after-ensuring-its-unpinned-in-uffdio_move.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240404200933.D0B92C43390@smtp.kernel.org>
+Subject: + mm-cma-drop-incorrect-alignment-check-in-cma_init_reserved_mem.patch added to mm-unstable branch
+Message-Id: <20240404201909.0E28AC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: userfaultfd: change src_folio after ensuring it's unpinned in UFFDIO_MOVE
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     userfaultfd-change-src_folio-after-ensuring-its-unpinned-in-uffdio_move.patch
+     Subject: mm/cma: drop incorrect alignment check in cma_init_reserved_mem
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-cma-drop-incorrect-alignment-check-in-cma_init_reserved_mem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-change-src_folio-after-ensuring-its-unpinned-in-uffdio_move.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-drop-incorrect-alignment-check-in-cma_init_reserved_mem.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,60 +58,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lokesh Gidra <lokeshgidra@google.com>
-Subject: userfaultfd: change src_folio after ensuring it's unpinned in UFFDIO_MOVE
-Date: Thu, 4 Apr 2024 10:17:26 -0700
+From: Frank van der Linden <fvdl@google.com>
+Subject: mm/cma: drop incorrect alignment check in cma_init_reserved_mem
+Date: Thu, 4 Apr 2024 16:25:14 +0000
 
-Commit d7a08838ab74 ("mm: userfaultfd: fix unexpected change to src_folio
-when UFFDIO_MOVE fails") moved the src_folio->{mapping, index} changing to
-after clearing the page-table and ensuring that it's not pinned.  This
-avoids failure of swapout+migration and possibly memory corruption.
+cma_init_reserved_mem uses IS_ALIGNED to check if the size represented by
+one bit in the cma allocation bitmask is aligned with
+CMA_MIN_ALIGNMENT_BYTES (pageblock size).
 
-However, the commit missed fixing it in the huge-page case.
+However, this is too strict, as this will fail if order_per_bit >
+pageblock_order, which is a valid configuration.
 
-Link: https://lkml.kernel.org/r/20240404171726.2302435-1-lokeshgidra@google.com
-Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
-Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+We could check IS_ALIGNED both ways, but since both numbers are powers of
+two, no check is needed at all.
+
+Link: https://lkml.kernel.org/r/20240404162515.527802-1-fvdl@google.com
+Fixes: de9e14eebf33 ("drivers: dma-contiguous: add initialization from device tree")
+Signed-off-by: Frank van der Linden <fvdl@google.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Nicolas Geoffray <ngeoffray@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/cma.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/huge_memory.c~userfaultfd-change-src_folio-after-ensuring-its-unpinned-in-uffdio_move
-+++ a/mm/huge_memory.c
-@@ -2259,9 +2259,6 @@ int move_pages_huge_pmd(struct mm_struct
- 			goto unlock_ptls;
- 		}
+--- a/mm/cma.c~mm-cma-drop-incorrect-alignment-check-in-cma_init_reserved_mem
++++ a/mm/cma.c
+@@ -182,10 +182,6 @@ int __init cma_init_reserved_mem(phys_ad
+ 	if (!size || !memblock_is_region_reserved(base, size))
+ 		return -EINVAL;
  
--		folio_move_anon_rmap(src_folio, dst_vma);
--		WRITE_ONCE(src_folio->index, linear_page_index(dst_vma, dst_addr));
+-	/* alignment should be aligned with order_per_bit */
+-	if (!IS_ALIGNED(CMA_MIN_ALIGNMENT_PAGES, 1 << order_per_bit))
+-		return -EINVAL;
 -
- 		src_pmdval = pmdp_huge_clear_flush(src_vma, src_addr, src_pmd);
- 		/* Folio got pinned from under us. Put it back and fail the move. */
- 		if (folio_maybe_dma_pinned(src_folio)) {
-@@ -2270,6 +2267,9 @@ int move_pages_huge_pmd(struct mm_struct
- 			goto unlock_ptls;
- 		}
- 
-+		folio_move_anon_rmap(src_folio, dst_vma);
-+		WRITE_ONCE(src_folio->index, linear_page_index(dst_vma, dst_addr));
-+
- 		_dst_pmd = mk_huge_pmd(&src_folio->page, dst_vma->vm_page_prot);
- 		/* Follow mremap() behavior and treat the entry dirty after the move */
- 		_dst_pmd = pmd_mkwrite(pmd_mkdirty(_dst_pmd), dst_vma);
+ 	/* ensure minimal alignment required by mm core */
+ 	if (!IS_ALIGNED(base | size, CMA_MIN_ALIGNMENT_BYTES))
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from lokeshgidra@google.com are
+Patches currently in -mm which might be from fvdl@google.com are
 
-userfaultfd-change-src_folio-after-ensuring-its-unpinned-in-uffdio_move.patch
+mm-cma-drop-incorrect-alignment-check-in-cma_init_reserved_mem.patch
+mm-hugetlb-pass-correct-order_per_bit-to-cma_declare_contiguous_nid.patch
 
