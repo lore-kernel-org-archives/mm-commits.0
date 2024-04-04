@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D245130495
-	for <mm-commits@vger.kernel.org>; Thu,  4 Apr 2024 17:35:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A67B12EBC5
+	for <mm-commits@vger.kernel.org>; Thu,  4 Apr 2024 17:37:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712252113; cv=none; b=huxKaeWxzT8e5vbKWlLiiFuEr+YyJu3Y+QK5ngEv4wXNMxmjsLLp/J+52HSg9uvLTUE55C8/3Fzr2+6eb+pjaeFYpZWNew5nnGuqlrM+/AEnViBbfMCrdV6fA7DJIyHuvIi9YaBNjiK7AdwdrO6OJ9MiVHsg3wSfhEJLkrxiJp0=
+	t=1712252242; cv=none; b=d1kYbGMdWkEOzmX9rFjlfkcQYBHsjbAGoQSkvUrqT09fxLt5m76LNLFqbE6y/70RhTlHjQ0TAZZHP7zThIU+bThcyFrKt/PB8zlu3xSSlKDqK+x0GF7CdwCEmtRgf9i/fV5xFr8e7gyrujcWMHUtwrjD+Bdz03pbOtSSH2czISY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712252113; c=relaxed/simple;
-	bh=uA6BhgnhuCFDto+vDWxI3KyXZE5f53NTAGssTsDTXUY=;
-	h=Date:To:From:Subject:Message-Id; b=atoeuCZ8wQn7XTRp1V7GfnhFlxwOVP7czLBlrYo3tkOfZQtswK5C5eXfTNeRmq2SuDN8rAgT9KfJ0RVKRrRc9xJxFOAYGn5FqnurpzHQ2NwPe++HvM84BMn5X8v7WbpXk+d7rghnOPuthYdKtsl2iwiiZEcccRj5V1cJeKzv1GM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lMirMQ71; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712252242; c=relaxed/simple;
+	bh=fSsKfisgMjJn4QQ0K+xHxvgOScMdtl0srU1OgFeNEEk=;
+	h=Date:To:From:Subject:Message-Id; b=GIZ1Y1DApTlHTCrnIUXvOq4oGamsQcPHJijCPEIQu3eTV+e5KOR8XUd4uKPiVsl/T71gyVnQ9A5RZWWKBRuGsZxjOhU3wuprH7GvRdrDXd/PbUXU/+nu58Opeiq4xTJKSKfcok7HXxCWOrxotsD6YPABlunmlkXEEg1F9PmDul4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zFPBk3vl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lMirMQ71"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1271C43394;
-	Thu,  4 Apr 2024 17:35:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zFPBk3vl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A39FC433F1;
+	Thu,  4 Apr 2024 17:37:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712252112;
-	bh=uA6BhgnhuCFDto+vDWxI3KyXZE5f53NTAGssTsDTXUY=;
+	s=korg; t=1712252241;
+	bh=fSsKfisgMjJn4QQ0K+xHxvgOScMdtl0srU1OgFeNEEk=;
 	h=Date:To:From:Subject:From;
-	b=lMirMQ71CGnq5wE3ybmVnp/IOSwS8lvNeESm8ppDIq5t10ywencPrO4euj763KEIx
-	 ObCWjGBitJ9UtUqDayCPxZpQvlndIhs7B8wm2Ik9HudOyyWWf8dFEPgP26DMoWFRoS
-	 jPZxe/wn5DXXwF5Epefm3dnr3+80B4PRAeWFiZQ8=
-Date: Thu, 04 Apr 2024 10:35:05 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,kent.overstreet@linux.dev,akpm@linux-foundation.org
+	b=zFPBk3vlwsVvnduX3WY8bbn52BrqcxDsdu5vFeHumAbVOEkf4jXw6pwKhIuaEHqkT
+	 5KnaUwTNY7v2nfx/Q55yA8kRz07crVDz1yUT/BkNY0cjmAq++73NPiGZtiIihoQ+S9
+	 CZISIE7IpN6GcV8Q1ts85euaMxNiUM/itpFjfdYQ=
+Date: Thu, 04 Apr 2024 10:37:21 -0700
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,dyoung@redhat.com,bhe@redhat.com,justinstitt@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fix-missing-vmalloch-includes-fix-4.patch added to mm-unstable branch
-Message-Id: <20240404173512.A1271C43394@smtp.kernel.org>
+Subject: + vmcore-replace-strncpy-with-strscpy_pad.patch added to mm-nonmm-unstable branch
+Message-Id: <20240404173721.8A39FC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fixup! fix missing vmalloc.h includes
-has been added to the -mm mm-unstable branch.  Its filename is
-     fix-missing-vmalloch-includes-fix-4.patch
+     Subject: vmcore: replace strncpy with strscpy_pad
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     vmcore-replace-strncpy-with-strscpy_pad.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fix-missing-vmalloch-includes-fix-4.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmcore-replace-strncpy-with-strscpy_pad.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,61 +58,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kent Overstreet <kent.overstreet@linux.dev>
-Subject: fixup! fix missing vmalloc.h includes
-Date: Wed, 3 Apr 2024 23:47:43 -0400
+From: Justin Stitt <justinstitt@google.com>
+Subject: vmcore: replace strncpy with strscpy_pad
+Date: Mon, 01 Apr 2024 18:39:55 +0000
 
-Few places were depending on sizes.h (convenience human-readable-units
-size macros) iplicitly; fix
+strncpy() is in the process of being replaced as it is deprecated [1].
+We should move towards safer and less ambiguous string interfaces.
 
-Link: https://lkml.kernel.org/r/20240327002152.3339937-1-kent.overstreet@linux.dev
-Link: https://lkml.kernel.org/r/20240404034744.1664840-1-kent.overstreet@linux.dev
-Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Looking at vmcoredd_header's definition:
+|	struct vmcoredd_header {
+|		__u32 n_namesz; /* Name size */
+|		__u32 n_descsz; /* Content size */
+|		__u32 n_type;   /* NT_VMCOREDD */
+|		__u8 name[8];   /* LINUX\0\0\0 */
+|		__u8 dump_name[VMCOREDD_MAX_NAME_BYTES]; /* Device dump's name */
+|	};
+.. we see that @name wants to be NUL-padded.
+
+We're copying data->dump_name which is defined as:
+|	char dump_name[VMCOREDD_MAX_NAME_BYTES]; /* Unique name of the dump */
+.. which shares the same size as vdd_hdr->dump_name. Let's make sure we
+NUL-pad this as well.
+
+Use strscpy_pad() which NUL-terminates and NUL-pads its destination
+buffers. Specifically, use the new 2-argument version of strscpy_pad
+introduced in Commit e6584c3964f2f ("string: Allow 2-argument
+strscpy()").
+
+Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strncpy-on-nul-terminated-strings [1]
+Link: https://github.com/KSPP/linux/issues/90
+Link: https://lkml.kernel.org/r/20240401-strncpy-fs-proc-vmcore-c-v2-1-dd0a73f42635@google.com
+Signed-off-by: Justin Stitt <justinstitt@google.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/io.h |    1 +
- include/linux/io.h       |    1 +
- 2 files changed, 2 insertions(+)
+ fs/proc/vmcore.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/include/asm-generic/io.h~fix-missing-vmalloch-includes-fix-4
-+++ a/include/asm-generic/io.h
-@@ -9,6 +9,7 @@
+--- a/fs/proc/vmcore.c~vmcore-replace-strncpy-with-strscpy_pad
++++ a/fs/proc/vmcore.c
+@@ -1370,9 +1370,8 @@ static void vmcoredd_write_header(void *
+ 	vdd_hdr->n_descsz = size + sizeof(vdd_hdr->dump_name);
+ 	vdd_hdr->n_type = NT_VMCOREDD;
  
- #include <asm/page.h> /* I/O is all done through memory accesses */
- #include <linux/string.h> /* for memset() and memcpy() */
-+#include <linux/sizes.h>
- #include <linux/types.h>
- #include <linux/instruction_pointer.h>
+-	strncpy((char *)vdd_hdr->name, VMCOREDD_NOTE_NAME,
+-		sizeof(vdd_hdr->name));
+-	memcpy(vdd_hdr->dump_name, data->dump_name, sizeof(vdd_hdr->dump_name));
++	strscpy_pad(vdd_hdr->name, VMCOREDD_NOTE_NAME);
++	strscpy_pad(vdd_hdr->dump_name, data->dump_name);
+ }
  
---- a/include/linux/io.h~fix-missing-vmalloch-includes-fix-4
-+++ a/include/linux/io.h
-@@ -6,6 +6,7 @@
- #ifndef _LINUX_IO_H
- #define _LINUX_IO_H
- 
-+#include <linux/sizes.h>
- #include <linux/types.h>
- #include <linux/init.h>
- #include <linux/bug.h>
+ /**
 _
 
-Patches currently in -mm which might be from kent.overstreet@linux.dev are
+Patches currently in -mm which might be from justinstitt@google.com are
 
-fix-missing-vmalloch-includes.patch
-fix-missing-vmalloch-includes-fix.patch
-fix-missing-vmalloch-includes-fix-4.patch
-asm-generic-ioh-kill-vmalloch-dependency.patch
-mm-slub-mark-slab_free_freelist_hook-__always_inline.patch
-scripts-kallysms-always-include-__start-and-__stop-symbols.patch
-fs-convert-alloc_inode_sb-to-a-macro.patch
-rust-add-a-rust-helper-for-krealloc.patch
-mempool-hook-up-to-memory-allocation-profiling.patch
-mm-percpu-introduce-pcpuobj_ext.patch
-mm-percpu-add-codetag-reference-into-pcpuobj_ext.patch
-mm-vmalloc-enable-memory-allocation-profiling.patch
-rhashtable-plumb-through-alloc-tag.patch
-maintainers-add-entries-for-code-tagging-and-memory-allocation-profiling.patch
-memprofiling-documentation.patch
+vmcore-replace-strncpy-with-strscpy_pad.patch
 
