@@ -1,73 +1,95 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9037712B95
-	for <mm-commits@vger.kernel.org>; Thu,  4 Apr 2024 17:43:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A61D012E4D
+	for <mm-commits@vger.kernel.org>; Thu,  4 Apr 2024 17:54:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712252581; cv=none; b=WS+xZA/wO00YhGl4Y62y+EhoSmdhFyknl+lNXugecCC9YV9rP/q1APJ0VPrCy4Zve9Z1OnGO3L/++nZch/55xdydoqDbeRtRjnHz3MHQcber9P4g6MMmXIsgZQCp8u1DRgo9KsGVEnXh6STxL/vQrDc/UJMPRAl7vJmGiu0BE3w=
+	t=1712253274; cv=none; b=RbNg4IAeY/dxNSYFAtK7czmYDMYGkUG62BCAtfFxTaZy+7rej9nBNGl1LelYt81HmzkHlQ1EBnPZIUG42Ie61WSUz37Mnnc+pJv5oggRGC6DrezgCX9iihzkYI2HZ5TcTCUhK9e3fSsesrZAMBazYws8pbYsuy6CIv5OXB6pqhA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712252581; c=relaxed/simple;
-	bh=cHXxt2pIvQakxTlNsFQyf4y4BMNjA6NCWNWfFjUMiVE=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=kgKiJXYc3BIfYPDHlWOeT4/e6a2LIhqfzXhoyJQxyoAWObbfHxUGRebgKN9htBd9yDaDb0KOW6lJhyGQa5/h0MhWruO8ZxoE3iEqsecCW7Zn/zxyWlhSFhi8vsPbnJK/2RhP67iQ/zprqq/zyy2n6OXf1gaFmp70bpZdpEbZiEQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NmWfAOVv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712253274; c=relaxed/simple;
+	bh=qqWbKLJxse4giUT/mvJyFRFk3pzeH+cX4/JMbsF89lQ=;
+	h=Date:To:From:Subject:Message-Id; b=IuFvVm9BMpkYbiDU4ZkTrdn2qK1goZEwgDWiLgHUwjG30PCt33TNj3k2noqAP13ledJO48PAufsEvTkkrKQRBt07YAAWzl/4UyyK85mR/VWYfD/Nm1w2zREUuF7CBx0RQz34HZlcOqbjzq1bi2Ny28UvK9CW+EYzLvlfiswX1i8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pso8J8xX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NmWfAOVv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0216C433C7;
-	Thu,  4 Apr 2024 17:43:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pso8J8xX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A0C2C433C7;
+	Thu,  4 Apr 2024 17:54:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712252581;
-	bh=cHXxt2pIvQakxTlNsFQyf4y4BMNjA6NCWNWfFjUMiVE=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=NmWfAOVv41IiqX4cXdraY3wMXGHGhj8HKCXT/PynUB7UTQJJXneeSzUpEcpOaMPGl
-	 odMXK5Zfc2EjSuI5ENKu+tHqVzRuTzYHrgUUeQKVIiiDKfHiwc7o1dxrFnt0c0bYin
-	 wewNm+NiYarXnbKWLmWV9j3AgX4B/AwBd8N3AvFo=
-Date: Thu, 4 Apr 2024 10:43:00 -0700
+	s=korg; t=1712253274;
+	bh=qqWbKLJxse4giUT/mvJyFRFk3pzeH+cX4/JMbsF89lQ=;
+	h=Date:To:From:Subject:From;
+	b=Pso8J8xX0cau9ZsZ6o9E1zL/Jo0qHNpxy6BOpZWnh5lU3rbG3Zl0LnYIVGrr8dvnf
+	 /NrUowTbqaDeJ5mDpJe0GJmPkKpmAbduW9jLRZvypltYfcApssgR1ou0EzJSiwTQFm
+	 IMiXvE/7inNsIarX6QvxA9oEFr0xN2E2WE5FBi+0=
+Date: Thu, 04 Apr 2024 10:54:33 -0700
+To: mm-commits@vger.kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Vlastimil Babka <vbabka@suse.cz>
-Cc: mm-commits@vger.kernel.org, osandov@fb.com, osalvador@suse.de,
- mhocko@suse.com, glider@google.com, elver@google.com, andreyknvl@gmail.com,
- pcc@google.com
-Subject: Re: + stackdepot-rename-pool_index-to-pool_index_plus_1.patch added
- to mm-unstable branch
-Message-Id: <20240404104300.ae702b64fa1be8968b19b34d@linux-foundation.org>
-In-Reply-To: <e268a0e7-41c9-442e-b025-638aff113388@suse.cz>
-References: <20240404015549.E6EE6C433C7@smtp.kernel.org>
-	<e268a0e7-41c9-442e-b025-638aff113388@suse.cz>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + __mod_memcg_lruvec_state-enhance-diagnostics-fix.patch added to mm-unstable branch
+Message-Id: <20240404175434.2A0C2C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-
-On Thu, 4 Apr 2024 09:17:37 +0200 Vlastimil Babka <vbabka@suse.cz> wrote:
-
-> > Commit 3ee34eabac2a ("lib/stackdepot: fix first entry having a 0-handle")
-> > changed the meaning of the pool_index field to mean "the pool index plus
-> > 1".  This made the code accessing this field less self-documenting, as
-> > well as causing debuggers such as drgn to not be able to easily remain
-> > compatible with both old and new kernels, because they typically do that
-> > by testing for presence of the new field.  Because stackdepot is a
-> > debugging tool, we should make sure that it is debugger friendly. 
-> > Therefore, give the field a different name to improve readability as well
-> > as enabling debugger backwards compatibility.
-> 
-> Can we please move this to mm-hotfixes-unstable otherwise 6.9 would become
-> an odd release with the new semantics and old name so debuggers wouldnt't
-> recognize the new semantics there.
 
 
-Done, thanks.  I added:
+The patch titled
+     Subject: __mod_memcg_lruvec_state-enhance-diagnostics-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     __mod_memcg_lruvec_state-enhance-diagnostics-fix.patch
 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/__mod_memcg_lruvec_state-enhance-diagnostics-fix.patch
 
-This is needed in 6.9, which would otherwise become an odd release with
-the new semantics and old name so debuggers wouldn't recognize the new
-semantics there.
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Fixes: 3ee34eabac2a ("lib/stackdepot: fix first entry having a 0-handle")
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: __mod_memcg_lruvec_state-enhance-diagnostics-fix
+Date: Thu Apr  4 10:51:39 AM PDT 2024
+
+VM_WARN_ON_IRQS_ENABLED is broken
+
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/mm/memcontrol.c~__mod_memcg_lruvec_state-enhance-diagnostics-fix
++++ a/mm/memcontrol.c
+@@ -864,7 +864,8 @@ void __mod_memcg_lruvec_state(struct lru
+ 				pr_warn("stat item index: %d\n", idx);
+ 			break;
+ 		default:
+-			if (VM_WARN_ON_IRQS_ENABLED())
++			VM_WARN_ON_IRQS_ENABLED();
++			if (!irqs_disabled())
+ 				pr_warn("stat item index: %d\n", idx);
+ 		}
+ 	}
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries-fix.patch
+mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio-fix.patch
+sh-remove-use-of-pg_arch_1-on-individual-pages-fix.patch
+mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing-fix.patch
+__mod_memcg_lruvec_state-enhance-diagnostics.patch
+__mod_memcg_lruvec_state-enhance-diagnostics-fix.patch
 
