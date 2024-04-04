@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEC5D12D76B
-	for <mm-commits@vger.kernel.org>; Thu,  4 Apr 2024 19:54:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B9D61332A5;
+	Thu,  4 Apr 2024 20:09:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712260464; cv=none; b=p/1Tc9xVRnIhMHW4pJD9hd3ExGBakANhZmKEUJv1vh+CrKiFfPiupBKsyJqlhB3grHX0aAhaOvtFW09NGgQMREbZbJakKkijah4fR9SbPpwvnzTWCjvkHzcdGIgZnAxNHOUE68ZpzrX3O/1uC45dwGap7ZFiu/htG1RAMJFEDb8=
+	t=1712261374; cv=none; b=bpckzGi8xROrZ4O1iOTTHwyn0kxjwrWJhi94ZCDLzkfb0wveoJ3MMgdML6OGiBSBbSMZCSFkvT79St3Lg9B9sApm8ghayNT+Asu8vGKRxRvbHag0uRT1/pWz76jt4T5nzg4S/kFM5aLEmgqRCqzUDXIZy2DvpN+XkE77xoQKEIA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712260464; c=relaxed/simple;
-	bh=yWEJnwgdfSEb/1hrA7QyoKwwDIaJ8FPBSE5nvnnuFWs=;
-	h=Date:To:From:Subject:Message-Id; b=M7pNIG9WlvPXktHCCV0FH87027JJNFrwaimU9Cy/nTnQ6dJt5/g8TXZ1ODJ/gFqcsERCDHfFicpjfUPbRRzivb+UoZP3NpFMVRWoyAMt+8jnVoa6C5LdEp6pUOb/gfKq+/6q41Iaqe2kkaeWaAuzY+y62U5xBxltaXUVrHRUl1g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oTyx4Wgw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712261374; c=relaxed/simple;
+	bh=X/H1CHc0D+2EdqhFjLOoFlM2XCxEK1MPMzhCrV0Kj2k=;
+	h=Date:To:From:Subject:Message-Id; b=UtB5uCeh74flSdTfi0zwCZx8vdFOAWD0BPR49gJvQ2CgL6u7RgOOARx/1nkjLmzL6NJ5PYE1DVJY3byIS/X/TPp+oytnRRKaWQjgNBrmtreblR6UsxRZ2dANilm2sVH9d9Z6rF/TVkVBSN/L2f9Imp9+ChIvFgY9EbrghBOJZ/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sBGZTAnN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oTyx4Wgw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5ECAFC433F1;
-	Thu,  4 Apr 2024 19:54:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sBGZTAnN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0B92C43390;
+	Thu,  4 Apr 2024 20:09:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712260463;
-	bh=yWEJnwgdfSEb/1hrA7QyoKwwDIaJ8FPBSE5nvnnuFWs=;
+	s=korg; t=1712261373;
+	bh=X/H1CHc0D+2EdqhFjLOoFlM2XCxEK1MPMzhCrV0Kj2k=;
 	h=Date:To:From:Subject:From;
-	b=oTyx4Wgw2E6ZOTEkfK0L0d8nHn0CfBOWeu+9U1J4YZ+ouXAQFengFTRZrczS+fwX2
-	 lJ5jYCWGlyBJIE+4XgmKpzWBMSfUn4ZrGq0axEx4x0pJLbw/WJ91Q9W9PTyEZ1zLuL
-	 yLdpO0uA+8NVQW0b7nrO7HHyBDVglWCM7dXmlMLg=
-Date: Thu, 04 Apr 2024 12:54:22 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,surenb@google.com,ryabinin.a.a@gmail.com,mark.rutland@arm.com,kent.overstreet@linux.dev,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=sBGZTAnNhaXaLYgeWrHrsSauvVJs7LFM3v84GUh2ieYhDCUauZBJSbw0jQlZv6z1Y
+	 cxBC3NLU79poFSAvwOZDWjNhbGzzaRxoV4FlkuqNfYfEf5aq81TqcEYl0nBIb2Ebs4
+	 fOCc7b12FohBOzWHToUqJUIuDkVgl/CgjjF9orkE=
+Date: Thu, 04 Apr 2024 13:09:32 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,willy@infradead.org,stable@vger.kernel.org,peterx@redhat.com,ngeoffray@google.com,kaleshsingh@google.com,david@redhat.com,aarcange@redhat.com,lokeshgidra@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fix-missing-vmalloch-includes-fix-5.patch added to mm-unstable branch
-Message-Id: <20240404195423.5ECAFC433F1@smtp.kernel.org>
+Subject: + userfaultfd-change-src_folio-after-ensuring-its-unpinned-in-uffdio_move.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240404200933.D0B92C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: hw_tags: include linux/vmalloc.h
-has been added to the -mm mm-unstable branch.  Its filename is
-     fix-missing-vmalloch-includes-fix-5.patch
+     Subject: userfaultfd: change src_folio after ensuring it's unpinned in UFFDIO_MOVE
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     userfaultfd-change-src_folio-after-ensuring-its-unpinned-in-uffdio_move.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fix-missing-vmalloch-includes-fix-5.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-change-src_folio-after-ensuring-its-unpinned-in-uffdio_move.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,58 +58,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kasan: hw_tags: include linux/vmalloc.h
-Date: Thu, 4 Apr 2024 14:44:30 +0200
+From: Lokesh Gidra <lokeshgidra@google.com>
+Subject: userfaultfd: change src_folio after ensuring it's unpinned in UFFDIO_MOVE
+Date: Thu, 4 Apr 2024 10:17:26 -0700
 
-This header is no longer included implicitly and instead needs to be
-pulled in directly:
+Commit d7a08838ab74 ("mm: userfaultfd: fix unexpected change to src_folio
+when UFFDIO_MOVE fails") moved the src_folio->{mapping, index} changing to
+after clearing the page-table and ensuring that it's not pinned.  This
+avoids failure of swapout+migration and possibly memory corruption.
 
-mm/kasan/hw_tags.c: In function 'unpoison_vmalloc_pages':
-mm/kasan/hw_tags.c:280:16: error: implicit declaration of function 'find_vm_area'; did you mean 'find_vma_prev'? [-Werror=implicit-function-declaration]
-  280 |         area = find_vm_area((void *)addr);
-      |                ^~~~~~~~~~~~
-      |                find_vma_prev
-mm/kasan/hw_tags.c:280:14: error: assignment to 'struct vm_struct *' from 'int' makes pointer from integer without a cast [-Werror=int-conversion]
-  280 |         area = find_vm_area((void *)addr);
-      |              ^
-mm/kasan/hw_tags.c:284:29: error: invalid use of undefined type 'struct vm_struct'
-  284 |         for (i = 0; i < area->nr_pages; i++) {
-      |                             ^~
-mm/kasan/hw_tags.c:285:41: error: invalid use of undefined type 'struct vm_struct'
-  285 |                 struct page *page = area->pages[i];
-      |                                         ^~
+However, the commit missed fixing it in the huge-page case.
 
-Link: https://lkml.kernel.org/r/20240404124435.3121534-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20240404171726.2302435-1-lokeshgidra@google.com
+Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
+Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Nicolas Geoffray <ngeoffray@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/hw_tags.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/huge_memory.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/kasan/hw_tags.c~fix-missing-vmalloch-includes-fix-5
-+++ a/mm/kasan/hw_tags.c
-@@ -16,6 +16,7 @@
- #include <linux/static_key.h>
- #include <linux/string.h>
- #include <linux/types.h>
-+#include <linux/vmalloc.h>
+--- a/mm/huge_memory.c~userfaultfd-change-src_folio-after-ensuring-its-unpinned-in-uffdio_move
++++ a/mm/huge_memory.c
+@@ -2259,9 +2259,6 @@ int move_pages_huge_pmd(struct mm_struct
+ 			goto unlock_ptls;
+ 		}
  
- #include "kasan.h"
+-		folio_move_anon_rmap(src_folio, dst_vma);
+-		WRITE_ONCE(src_folio->index, linear_page_index(dst_vma, dst_addr));
+-
+ 		src_pmdval = pmdp_huge_clear_flush(src_vma, src_addr, src_pmd);
+ 		/* Folio got pinned from under us. Put it back and fail the move. */
+ 		if (folio_maybe_dma_pinned(src_folio)) {
+@@ -2270,6 +2267,9 @@ int move_pages_huge_pmd(struct mm_struct
+ 			goto unlock_ptls;
+ 		}
  
++		folio_move_anon_rmap(src_folio, dst_vma);
++		WRITE_ONCE(src_folio->index, linear_page_index(dst_vma, dst_addr));
++
+ 		_dst_pmd = mk_huge_pmd(&src_folio->page, dst_vma->vm_page_prot);
+ 		/* Follow mremap() behavior and treat the entry dirty after the move */
+ 		_dst_pmd = pmd_mkwrite(pmd_mkdirty(_dst_pmd), dst_vma);
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from lokeshgidra@google.com are
 
-fix-missing-vmalloch-includes-fix-5.patch
-kcov-avoid-clang-out-of-range-warning.patch
+userfaultfd-change-src_folio-after-ensuring-its-unpinned-in-uffdio_move.patch
 
