@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75C534C6F
-	for <mm-commits@vger.kernel.org>; Thu,  4 Apr 2024 01:34:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D53524C6F
+	for <mm-commits@vger.kernel.org>; Thu,  4 Apr 2024 01:51:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712194494; cv=none; b=dSe4lYgiFhf9oA/49cTBfRfaWYidrtF6zBEEzz2sLg0/nsHD/0GifXHEMv5de6JhBKS4avraMApZYMA/oyVzSMb4NvhTMjYzKrR1BT8hD1x2WxH299Ft2hcLOM/QeWK+ebaYrPYNtksifOWK+DnP/Rd0OB8uY4msxUSLqDCP3hk=
+	t=1712195512; cv=none; b=gGmmAutrnug7zcG+fhz9qYjxzqGoxiIjAmT1WqmHUZHbbQ7pA0X0d/iEnXKPIis8VpthG8iMZ4N3hAitoyKlb1LV3QfyQMK8FtIKSyBOavpQcAFw5BEMbys8yG0hJfolMWpYnKK3LvFfVF0hyBhS3rgjN86N3lwFsTUjDo/6rAo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712194494; c=relaxed/simple;
-	bh=Tu7snND44euMQoi+uvf+b5FVigQnGX2HHS6AqFbUpL0=;
-	h=Date:To:From:Subject:Message-Id; b=B+aAUwLhjM+SpL3Z2tr1EP+cUez7lhP5UevERafDCGdddyTi6YgEAokQQXqYwdmIPIUFgSGRs+4sYgibKifVsk9e8k/fFSaurenpoTyqXsYv17lzDBO4FEmICQBi5gxyLK+u9TEwtP3Ll6Hq7uVJ907Kz6XUH3ZJ0Q/1oFYDB7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KWIflzrU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712195512; c=relaxed/simple;
+	bh=xFZxGBjixBAsYH7V63R3y6j/i5X51cth2I7BwryPFhs=;
+	h=Date:To:From:Subject:Message-Id; b=IGPlFeSoL5jlpyPyKzsxH6kpff5nET/3Xe0We1yhaJ1vsqupWC22st6fVGFTgSi7oE9LauQIFAmZl4vAes1BDWY+DCQAYKvW/WMZAKg+sgfwCSO4F/oQD8qxXGWmv4I63AScoQv5TcJQSo6TbmoJuzJq7+oeC5lAnJfeyGQy57c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XRLyrbU1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KWIflzrU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4464C433C7;
-	Thu,  4 Apr 2024 01:34:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XRLyrbU1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F513C433C7;
+	Thu,  4 Apr 2024 01:51:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712194493;
-	bh=Tu7snND44euMQoi+uvf+b5FVigQnGX2HHS6AqFbUpL0=;
+	s=korg; t=1712195512;
+	bh=xFZxGBjixBAsYH7V63R3y6j/i5X51cth2I7BwryPFhs=;
 	h=Date:To:From:Subject:From;
-	b=KWIflzrUp3Ydz6IeFesKGPj7J3G5FoI5RnVgs3F7XJqblocfsRFSjggG5zC2zFKDT
-	 kKuXjt78VzfmQFh35m1TOiMiS4aYz98VcGmMmaLDwA2SWLycPQq97qiqTGvrms8qjV
-	 mqGdOg0zxcMQSTiFv83iwLc3kd9AoVxwua01S5PI=
-Date: Wed, 03 Apr 2024 18:34:53 -0700
-To: mm-commits@vger.kernel.org,dave.jiang@intel.com,dan.j.williams@intel.com,alison.schofield@intel.com,vishal.l.verma@intel.com,akpm@linux-foundation.org
+	b=XRLyrbU1+iZ6Nuc1H9MvW0u0b0mQ5PVybYkM86sfBmeoZ1N+5v/r9cpXZl4jLzOnQ
+	 LopPGNirC1mIRqPFoEcrI2UVvkSt8hORIfJvNfq7bmrZgivI2adNDpkHRIgIKvOJMC
+	 8GgovuQZLYWzOm/cH+hcexJa0wn32ExKymR7o+rY=
+Date: Wed, 03 Apr 2024 18:51:51 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,glass.su@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + dax-busc-replace-warn_on_once-with-lockdep-asserts.patch added to mm-unstable branch
-Message-Id: <20240404013453.D4464C433C7@smtp.kernel.org>
+Subject: + ocfs2-return-real-error-code-in-ocfs2_dio_wr_get_block.patch added to mm-nonmm-unstable branch
+Message-Id: <20240404015152.4F513C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: dax/bus.c: replace WARN_ON_ONCE() with lockdep asserts
-has been added to the -mm mm-unstable branch.  Its filename is
-     dax-busc-replace-warn_on_once-with-lockdep-asserts.patch
+     Subject: ocfs2: return real error code in ocfs2_dio_wr_get_block
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-return-real-error-code-in-ocfs2_dio_wr_get_block.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dax-busc-replace-warn_on_once-with-lockdep-asserts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-return-real-error-code-in-ocfs2_dio_wr_get_block.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,142 +58,69 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: dax/bus.c: replace WARN_ON_ONCE() with lockdep asserts
-Date: Tue, 02 Apr 2024 00:24:28 -0600
+From: Su Yue <glass.su@suse.com>
+Subject: ocfs2: return real error code in ocfs2_dio_wr_get_block
+Date: Tue, 2 Apr 2024 09:46:48 +0800
 
-In [1], Dan points out that all of the WARN_ON_ONCE() usage in the
-referenced patch should be replaced with lockdep_assert_held(_write)().
+Patch series "ocfs2 bugs fixes exposed by fstests", v2.
 
-Replace those, and additionally, replace a couple of other WARN_ON_ONCE()
-introduced in the same patch for actual failure cases (i.e.  when
-acquiring a semaphore fails in a remove / unregister path) with
-dev_WARN_ONCE() as is the precedent here.
+The patchset is to fix some wrong behavior of ocfs2 exposed by fstests.
 
-Recall that previously, unregistration paths was implicitly protected by
-overloading the device lock, which the patch in [1] sought to remove. 
-This meant adding a semaphore acquisition in these unregistration paths. 
-Since that can fail, and it doesn't make sense to return errors from these
-paths, retain the two instances of (now) dev_WARN_ONCE().
+Patch 1,2 are about AIO+DIO vs hole punching. generic/300
 
-Link: https://lore.kernel.org/r/65f0b5ef41817_aa222941a@dwillia2-mobl3.amr.corp.intel.com.notmuch [1]
-Link: https://lkml.kernel.org/r/20240402-vv-dax_abi_fixes-v1-1-c3e0fdbafba5@intel.com
-Fixes: c05ae9d85b47 ("dax/bus.c: replace driver-core lock usage by a local rwsem")
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Reported-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
+Patch 3 fixes inode link count mismatch after power failure.
+tests/generic/040,041,104,107,336
+
+patch 4 fixes wrong atime with mount option realtime. tests/generic/192
+
+
+This patch (of 4):
+
+ocfs2_dio_wr_get_block always returns -EIO in case of errors.  However,
+some programs expect right exit codes while doing dio.  For example, tools
+like fio treat -ENOSPC as expected code while doing stress jobs.  And
+quota tools expect -EDQUOT when disk quota exceeds.
+
+-EIO is too strong return code in the dio path.  The caller of
+ocfs2_dio_wr_get_block is __blockdev_direct_IO which is widely used and it
+handles error codes well.  I have checked functions called by
+ocfs2_dio_wr_get_block and their return codes look good and clear.  So I
+think it's safe to let ocfs2_dio_wr_get_block return real error code.
+
+Link: https://lkml.kernel.org/r/20240402014651.13723-1-glass.su@suse.com
+Link: https://lkml.kernel.org/r/20240402014651.13723-2-glass.su@suse.com
+Signed-off-by: Su Yue <glass.su@suse.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/bus.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ fs/ocfs2/aops.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/drivers/dax/bus.c~dax-busc-replace-warn_on_once-with-lockdep-asserts
-+++ a/drivers/dax/bus.c
-@@ -192,7 +192,7 @@ static u64 dev_dax_size(struct dev_dax *
- 	u64 size = 0;
- 	int i;
+--- a/fs/ocfs2/aops.c~ocfs2-return-real-error-code-in-ocfs2_dio_wr_get_block
++++ a/fs/ocfs2/aops.c
+@@ -2283,8 +2283,6 @@ unlock:
+ 	ocfs2_inode_unlock(inode, 1);
+ 	brelse(di_bh);
+ out:
+-	if (ret < 0)
+-		ret = -EIO;
+ 	return ret;
+ }
  
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_dev_rwsem));
-+	lockdep_assert_held(&dax_dev_rwsem);
- 
- 	for (i = 0; i < dev_dax->nr_range; i++)
- 		size += range_len(&dev_dax->ranges[i].range);
-@@ -302,7 +302,7 @@ static unsigned long long dax_region_ava
- 	resource_size_t size = resource_size(&dax_region->res);
- 	struct resource *res;
- 
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
-+	lockdep_assert_held(&dax_region_rwsem);
- 
- 	for_each_dax_region_resource(dax_region, res)
- 		size -= resource_size(res);
-@@ -447,7 +447,7 @@ static void trim_dev_dax_range(struct de
- 	struct range *range = &dev_dax->ranges[i].range;
- 	struct dax_region *dax_region = dev_dax->region;
- 
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
-+	lockdep_assert_held_write(&dax_region_rwsem);
- 	dev_dbg(&dev_dax->dev, "delete range[%d]: %#llx:%#llx\n", i,
- 		(unsigned long long)range->start,
- 		(unsigned long long)range->end);
-@@ -471,6 +471,7 @@ static void __unregister_dev_dax(void *d
- 
- 	dev_dbg(dev, "%s\n", __func__);
- 
-+	lockdep_assert_held_write(&dax_region_rwsem);
- 	kill_dev_dax(dev_dax);
- 	device_del(dev);
- 	free_dev_dax_ranges(dev_dax);
-@@ -482,7 +483,8 @@ static void unregister_dev_dax(void *dev
- 	if (rwsem_is_locked(&dax_region_rwsem))
- 		return __unregister_dev_dax(dev);
- 
--	if (WARN_ON_ONCE(down_write_killable(&dax_region_rwsem) != 0))
-+	if (dev_WARN_ONCE(dev, down_write_killable(&dax_region_rwsem) != 0,
-+			  "unable to acquire region rwsem\n"))
- 		return;
- 	__unregister_dev_dax(dev);
- 	up_write(&dax_region_rwsem);
-@@ -507,7 +509,7 @@ static int __free_dev_dax_id(struct dev_
- 	struct dax_region *dax_region;
- 	int rc = dev_dax->id;
- 
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_dev_rwsem));
-+	lockdep_assert_held_write(&dax_dev_rwsem);
- 
- 	if (!dev_dax->dyn_id || dev_dax->id < 0)
- 		return -1;
-@@ -713,7 +715,7 @@ static void __unregister_dax_mapping(voi
- 
- 	dev_dbg(dev, "%s\n", __func__);
- 
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
-+	lockdep_assert_held_write(&dax_region_rwsem);
- 
- 	dev_dax->ranges[mapping->range_id].mapping = NULL;
- 	mapping->range_id = -1;
-@@ -726,7 +728,8 @@ static void unregister_dax_mapping(void
- 	if (rwsem_is_locked(&dax_region_rwsem))
- 		return __unregister_dax_mapping(data);
- 
--	if (WARN_ON_ONCE(down_write_killable(&dax_region_rwsem) != 0))
-+	if (dev_WARN_ONCE(data, down_write_killable(&dax_region_rwsem) != 0,
-+			  "unable to acquire region rwsem\n"))
- 		return;
- 	__unregister_dax_mapping(data);
- 	up_write(&dax_region_rwsem);
-@@ -830,7 +833,7 @@ static int devm_register_dax_mapping(str
- 	struct device *dev;
- 	int rc;
- 
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
-+	lockdep_assert_held_write(&dax_region_rwsem);
- 
- 	if (dev_WARN_ONCE(&dev_dax->dev, !dax_region->dev->driver,
- 				"region disabled\n"))
-@@ -876,7 +879,7 @@ static int alloc_dev_dax_range(struct de
- 	struct resource *alloc;
- 	int i, rc;
- 
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
-+	lockdep_assert_held_write(&dax_region_rwsem);
- 
- 	/* handle the seed alloc special case */
- 	if (!size) {
-@@ -935,7 +938,7 @@ static int adjust_dev_dax_range(struct d
- 	struct device *dev = &dev_dax->dev;
- 	int rc;
- 
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
-+	lockdep_assert_held_write(&dax_region_rwsem);
- 
- 	if (dev_WARN_ONCE(dev, !size, "deletion is handled by dev_dax_shrink\n"))
- 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from vishal.l.verma@intel.com are
+Patches currently in -mm which might be from glass.su@suse.com are
 
-dax-busc-replace-warn_on_once-with-lockdep-asserts.patch
+ocfs2-update-inode-ctime-in-ocfs2_fileattr_set.patch
+ocfs2-return-real-error-code-in-ocfs2_dio_wr_get_block.patch
+ocfs2-fix-races-between-hole-punching-and-aiodio.patch
+ocfs2-update-inode-fsync-transaction-id-in-ocfs2_unlink-and-ocfs2_link.patch
+ocfs2-use-coarse-time-for-new-created-files.patch
 
