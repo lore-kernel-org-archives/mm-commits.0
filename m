@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B501F74C14
-	for <mm-commits@vger.kernel.org>; Thu,  4 Apr 2024 19:52:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEC5D12D76B
+	for <mm-commits@vger.kernel.org>; Thu,  4 Apr 2024 19:54:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712260347; cv=none; b=sikF30UimH+1mM6K+doJ9TKrc9s3ZRleuyVHwYfnS8SoASvKYoE2QI18Uf+TBno0FAqjgXPnBIIsHC1HCEdKubz6tgAh8mPajPC1+HHzqIFGiL6mKzHSQzmdAgkdy/JnHS5PD5A9FUT/0C7GHLngGy+Ogp+Nn3DEDRD/TUbb0ZM=
+	t=1712260464; cv=none; b=p/1Tc9xVRnIhMHW4pJD9hd3ExGBakANhZmKEUJv1vh+CrKiFfPiupBKsyJqlhB3grHX0aAhaOvtFW09NGgQMREbZbJakKkijah4fR9SbPpwvnzTWCjvkHzcdGIgZnAxNHOUE68ZpzrX3O/1uC45dwGap7ZFiu/htG1RAMJFEDb8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712260347; c=relaxed/simple;
-	bh=/Ayjsl/WammzKcvgnO+Cs8DjaR65VI4y2bZc3pW+5l0=;
-	h=Date:To:From:Subject:Message-Id; b=gLU/LnaibV3DrqQ/4gyX6m6IkJG/nqpHX1mgTDPh6BO4r9QnAlRfThWs6wqCWEeFH1300rtzQfcb+XluJ6z9ZVSP8VP7HU0+JYNdvtSIXIkNUbrYYyzJk9eop6TNwb4TYWTn6cYNfzGFdgwW+GxWc+zNte2Xr4NpXZz1+PEAync=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iSVIPWra; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712260464; c=relaxed/simple;
+	bh=yWEJnwgdfSEb/1hrA7QyoKwwDIaJ8FPBSE5nvnnuFWs=;
+	h=Date:To:From:Subject:Message-Id; b=M7pNIG9WlvPXktHCCV0FH87027JJNFrwaimU9Cy/nTnQ6dJt5/g8TXZ1ODJ/gFqcsERCDHfFicpjfUPbRRzivb+UoZP3NpFMVRWoyAMt+8jnVoa6C5LdEp6pUOb/gfKq+/6q41Iaqe2kkaeWaAuzY+y62U5xBxltaXUVrHRUl1g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oTyx4Wgw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iSVIPWra"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 225D1C433F1;
-	Thu,  4 Apr 2024 19:52:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oTyx4Wgw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5ECAFC433F1;
+	Thu,  4 Apr 2024 19:54:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712260347;
-	bh=/Ayjsl/WammzKcvgnO+Cs8DjaR65VI4y2bZc3pW+5l0=;
+	s=korg; t=1712260463;
+	bh=yWEJnwgdfSEb/1hrA7QyoKwwDIaJ8FPBSE5nvnnuFWs=;
 	h=Date:To:From:Subject:From;
-	b=iSVIPWraoYspUy7oOW+k6V3ltECuLoDPR+paJOLucVEXCMY3pK7HTuYf5e9231pZL
-	 hy7vZmgTg1B4gTKWB98ALyGPsPmTtBTl1GhW7kCKS0KQWrijHd1LNDZrgIcdZaIGqx
-	 VU12CRgOot/kk5wHP6bqQdmoc3ykwm3aVAFLJP3s=
-Date: Thu, 04 Apr 2024 12:52:25 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,shr@devkernel.io,riel@surriel.com,hannes@cmpxchg.org,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=oTyx4Wgw2E6ZOTEkfK0L0d8nHn0CfBOWeu+9U1J4YZ+ouXAQFengFTRZrczS+fwX2
+	 lJ5jYCWGlyBJIE+4XgmKpzWBMSfUn4ZrGq0axEx4x0pJLbw/WJ91Q9W9PTyEZ1zLuL
+	 yLdpO0uA+8NVQW0b7nrO7HHyBDVglWCM7dXmlMLg=
+Date: Thu, 04 Apr 2024 12:54:22 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,surenb@google.com,ryabinin.a.a@gmail.com,mark.rutland@arm.com,kent.overstreet@linux.dev,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-remove-redundant-code-in-ksm_fork.patch added to mm-unstable branch
-Message-Id: <20240404195227.225D1C433F1@smtp.kernel.org>
+Subject: + fix-missing-vmalloch-includes-fix-5.patch added to mm-unstable branch
+Message-Id: <20240404195423.5ECAFC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/ksm: remove redundant code in ksm_fork
+     Subject: kasan: hw_tags: include linux/vmalloc.h
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ksm-remove-redundant-code-in-ksm_fork.patch
+     fix-missing-vmalloch-includes-fix-5.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-remove-redundant-code-in-ksm_fork.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fix-missing-vmalloch-includes-fix-5.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,55 +58,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/ksm: remove redundant code in ksm_fork
-Date: Tue, 2 Apr 2024 10:49:34 +0800
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kasan: hw_tags: include linux/vmalloc.h
+Date: Thu, 4 Apr 2024 14:44:30 +0200
 
-Since commit 3c6f33b7273a ("mm/ksm: support fork/exec for prctl"), when a
-child process is forked, the MMF_VM_MERGE_ANY flag will be inherited in
-mm_init(). So, it's unnecessary to set the flag in ksm_fork().
+This header is no longer included implicitly and instead needs to be
+pulled in directly:
 
-Link: https://lkml.kernel.org/r/20240402024934.1093361-1-tujinjiang@huawei.com
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Stefan Roesch <shr@devkernel.io>
+mm/kasan/hw_tags.c: In function 'unpoison_vmalloc_pages':
+mm/kasan/hw_tags.c:280:16: error: implicit declaration of function 'find_vm_area'; did you mean 'find_vma_prev'? [-Werror=implicit-function-declaration]
+  280 |         area = find_vm_area((void *)addr);
+      |                ^~~~~~~~~~~~
+      |                find_vma_prev
+mm/kasan/hw_tags.c:280:14: error: assignment to 'struct vm_struct *' from 'int' makes pointer from integer without a cast [-Werror=int-conversion]
+  280 |         area = find_vm_area((void *)addr);
+      |              ^
+mm/kasan/hw_tags.c:284:29: error: invalid use of undefined type 'struct vm_struct'
+  284 |         for (i = 0; i < area->nr_pages; i++) {
+      |                             ^~
+mm/kasan/hw_tags.c:285:41: error: invalid use of undefined type 'struct vm_struct'
+  285 |                 struct page *page = area->pages[i];
+      |                                         ^~
+
+Link: https://lkml.kernel.org/r/20240404124435.3121534-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ksm.h |   12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ mm/kasan/hw_tags.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/ksm.h~mm-ksm-remove-redundant-code-in-ksm_fork
-+++ a/include/linux/ksm.h
-@@ -45,16 +45,8 @@ static inline void ksm_might_unmap_zero_
+--- a/mm/kasan/hw_tags.c~fix-missing-vmalloch-includes-fix-5
++++ a/mm/kasan/hw_tags.c
+@@ -16,6 +16,7 @@
+ #include <linux/static_key.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
++#include <linux/vmalloc.h>
  
- static inline int ksm_fork(struct mm_struct *mm, struct mm_struct *oldmm)
- {
--	int ret;
--
--	if (test_bit(MMF_VM_MERGEABLE, &oldmm->flags)) {
--		ret = __ksm_enter(mm);
--		if (ret)
--			return ret;
--	}
--
--	if (test_bit(MMF_VM_MERGE_ANY, &oldmm->flags))
--		set_bit(MMF_VM_MERGE_ANY, &mm->flags);
-+	if (test_bit(MMF_VM_MERGEABLE, &oldmm->flags))
-+		return __ksm_enter(mm);
+ #include "kasan.h"
  
- 	return 0;
- }
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-ksm-fix-ksm-exec-support-for-prctl.patch
-selftest-mm-ksm_functional_tests-refactor-mmap_and_merge_range.patch
-selftest-mm-ksm_functional_tests-extend-test-case-for-ksm-fork-exec.patch
-mm-ksm-remove-redundant-code-in-ksm_fork.patch
+fix-missing-vmalloch-includes-fix-5.patch
+kcov-avoid-clang-out-of-range-warning.patch
 
