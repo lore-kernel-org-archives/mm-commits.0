@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8ABDE13A25E
-	for <mm-commits@vger.kernel.org>; Thu,  4 Apr 2024 21:35:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE49D172BAC
+	for <mm-commits@vger.kernel.org>; Fri,  5 Apr 2024 18:18:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712266504; cv=none; b=tiq9gkUmBoJadH0pN93KLNBqNWgoTGgVfpk764dg2LT5iYJh3+6f74qONAIaOY8I20qd+ZRH1UvGqD/ehxVsHvG47ztvxiLl1KNSdk6W1QiFvT+IV5QOg62d3yklmI+Hs/92TlSMe4pHLudSPZX/+vT/u42xH3yvUPu0gJ/Iv9A=
+	t=1712341105; cv=none; b=Ww2PpT6z+2oXE0wchbyziAm2eLAwDT9ZfFA2DDClxFvwNCsubjpVbpvsstDn2leehL/Gt4wQKrcXyNfDan2Fn/V1ezW/yTESFVWOeYciip7o7itRxEy7kqgJ8IGaUOw/isSrzHApm+Mai3FcbzjmMut3B+wMYsn9J6i87kcb+9g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712266504; c=relaxed/simple;
-	bh=G3bFjNeYSoF6hsySe3pbKDX7hs6z6TRJtZidbCF7fuU=;
-	h=Date:To:From:Subject:Message-Id; b=MButzzYqilzWhP/yNevGlAUu6ItgLu7g/lC6sec5Fw9JSp4zYP6LqVNS+hViYAfRxwCDJOCS4fnqHmtUxMcFat02AxJIcjKzt8gV/eE6Ht+yf0LlIVTg9usbAATMQzBKpmynrJir/46NwgtwaAM6fWecijzTqgB119BbWST52N4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k+lUCgpc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712341105; c=relaxed/simple;
+	bh=iGb8d6WPUnfjm6a11waJbNUslZ8BxhZaQGypLLtpPps=;
+	h=Date:To:From:Subject:Message-Id; b=m5Ya2Kak9Kmnk35bUL/UiXKxCs1sYRKyWYEk92Y2O3O5lG7F9d3liOAvvJyVYEGLG8vNMAwGUtWuNjbpb58gFkPRK/T9Ip/cUgEs0s3E6LVHJv0u7iMa+Za8c24OEXtxpvTpsx0yFC5WQOtQcz3TRJP1Plx5/bNdXJzl9csoQhY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k9nXUgX+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k+lUCgpc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E3D8C433F1;
-	Thu,  4 Apr 2024 21:35:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k9nXUgX+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CBE2C433F1;
+	Fri,  5 Apr 2024 18:18:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712266504;
-	bh=G3bFjNeYSoF6hsySe3pbKDX7hs6z6TRJtZidbCF7fuU=;
+	s=korg; t=1712341104;
+	bh=iGb8d6WPUnfjm6a11waJbNUslZ8BxhZaQGypLLtpPps=;
 	h=Date:To:From:Subject:From;
-	b=k+lUCgpc0hOsdbsdt5S61lb0qyf2oNbsM12DS2Ft8+Oe91luSGCwBf5Inxd3+opMa
-	 zYa8RqIBisDc8OnAVIluk8Tfd0FwQAVOIopJ6O4I7g9XI7YqXtWPNWiVpsez7fjXiL
-	 KJOmQkGZjB0gbyVA5jEe70pQTiKUCnIJuZk6KziM=
-Date: Thu, 04 Apr 2024 14:35:03 -0700
-To: mm-commits@vger.kernel.org,dave.jiang@intel.com,dan.j.williams@intel.com,alison.schofield@intel.com,vishal.l.verma@intel.com,akpm@linux-foundation.org
+	b=k9nXUgX+VqsVZaTSrsceQWCBBl0ebcO3WLCbttTPWQRsoVl1yuFX+YMU41KfdNC5Z
+	 PZPlAzAGbaYV7ay8Cw6bMvCHgOQPJqpmBSQaB6fe0m3l5/EzvPczUYqtQMG/iXjnF1
+	 k+piFzVf639tnbXDXtRctkhThWjSzBhYJtCnFbqU=
+Date: Fri, 05 Apr 2024 11:18:23 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,bhe@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] dax-busc-replace-warn_on_once-with-lockdep-asserts.patch removed from -mm tree
-Message-Id: <20240404213504.0E3D8C433F1@smtp.kernel.org>
+Subject: + mm-vmalloc-fix-lockdep-warning-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240405181824.3CBE2C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,149 +34,70 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: dax/bus.c: replace WARN_ON_ONCE() with lockdep asserts
-has been removed from the -mm tree.  Its filename was
-     dax-busc-replace-warn_on_once-with-lockdep-asserts.patch
+The patch titled
+     Subject: mm-vmalloc-fix-lockdep-warning-fix
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-vmalloc-fix-lockdep-warning-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-fix-lockdep-warning-fix.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: dax/bus.c: replace WARN_ON_ONCE() with lockdep asserts
-Date: Tue, 02 Apr 2024 00:24:28 -0600
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-vmalloc-fix-lockdep-warning-fix
+Date: Fri Apr  5 11:16:02 AM PDT 2024
 
-In [1], Dan points out that all of the WARN_ON_ONCE() usage in the
-referenced patch should be replaced with lockdep_assert_held(_write)().
+fix comment typos, per Baoquan
 
-Replace those, and additionally, replace a couple of other WARN_ON_ONCE()
-introduced in the same patch for actual failure cases (i.e.  when
-acquiring a semaphore fails in a remove / unregister path) with
-dev_WARN_ONCE() as is the precedent here.
-
-Recall that previously, unregistration paths was implicitly protected by
-overloading the device lock, which the patch in [1] sought to remove. 
-This meant adding a semaphore acquisition in these unregistration paths. 
-Since that can fail, and it doesn't make sense to return errors from these
-paths, retain the two instances of (now) dev_WARN_ONCE().
-
-Link: https://lore.kernel.org/r/65f0b5ef41817_aa222941a@dwillia2-mobl3.amr.corp.intel.com.notmuch [1]
-Link: https://lkml.kernel.org/r/20240402-vv-dax_abi_fixes-v1-1-c3e0fdbafba5@intel.com
-Fixes: c05ae9d85b47 ("dax/bus.c: replace driver-core lock usage by a local rwsem")
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Reported-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/bus.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ mm/vmalloc.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/drivers/dax/bus.c~dax-busc-replace-warn_on_once-with-lockdep-asserts
-+++ a/drivers/dax/bus.c
-@@ -192,7 +192,7 @@ static u64 dev_dax_size(struct dev_dax *
- 	u64 size = 0;
- 	int i;
+--- a/mm/vmalloc.c~mm-vmalloc-fix-lockdep-warning-fix
++++ a/mm/vmalloc.c
+@@ -1064,10 +1064,9 @@ repeat:
+ 	}
  
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_dev_rwsem));
-+	lockdep_assert_held(&dax_dev_rwsem);
- 
- 	for (i = 0; i < dev_dax->nr_range; i++)
- 		size += range_len(&dev_dax->ranges[i].range);
-@@ -302,7 +302,7 @@ static unsigned long long dax_region_ava
- 	resource_size_t size = resource_size(&dax_region->res);
- 	struct resource *res;
- 
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
-+	lockdep_assert_held(&dax_region_rwsem);
- 
- 	for_each_dax_region_resource(dax_region, res)
- 		size -= resource_size(res);
-@@ -447,7 +447,7 @@ static void trim_dev_dax_range(struct de
- 	struct range *range = &dev_dax->ranges[i].range;
- 	struct dax_region *dax_region = dev_dax->region;
- 
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
-+	lockdep_assert_held_write(&dax_region_rwsem);
- 	dev_dbg(&dev_dax->dev, "delete range[%d]: %#llx:%#llx\n", i,
- 		(unsigned long long)range->start,
- 		(unsigned long long)range->end);
-@@ -471,6 +471,7 @@ static void __unregister_dev_dax(void *d
- 
- 	dev_dbg(dev, "%s\n", __func__);
- 
-+	lockdep_assert_held_write(&dax_region_rwsem);
- 	kill_dev_dax(dev_dax);
- 	device_del(dev);
- 	free_dev_dax_ranges(dev_dax);
-@@ -482,7 +483,8 @@ static void unregister_dev_dax(void *dev
- 	if (rwsem_is_locked(&dax_region_rwsem))
- 		return __unregister_dev_dax(dev);
- 
--	if (WARN_ON_ONCE(down_write_killable(&dax_region_rwsem) != 0))
-+	if (dev_WARN_ONCE(dev, down_write_killable(&dax_region_rwsem) != 0,
-+			  "unable to acquire region rwsem\n"))
- 		return;
- 	__unregister_dev_dax(dev);
- 	up_write(&dax_region_rwsem);
-@@ -507,7 +509,7 @@ static int __free_dev_dax_id(struct dev_
- 	struct dax_region *dax_region;
- 	int rc = dev_dax->id;
- 
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_dev_rwsem));
-+	lockdep_assert_held_write(&dax_dev_rwsem);
- 
- 	if (!dev_dax->dyn_id || dev_dax->id < 0)
- 		return -1;
-@@ -713,7 +715,7 @@ static void __unregister_dax_mapping(voi
- 
- 	dev_dbg(dev, "%s\n", __func__);
- 
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
-+	lockdep_assert_held_write(&dax_region_rwsem);
- 
- 	dev_dax->ranges[mapping->range_id].mapping = NULL;
- 	mapping->range_id = -1;
-@@ -726,7 +728,8 @@ static void unregister_dax_mapping(void
- 	if (rwsem_is_locked(&dax_region_rwsem))
- 		return __unregister_dax_mapping(data);
- 
--	if (WARN_ON_ONCE(down_write_killable(&dax_region_rwsem) != 0))
-+	if (dev_WARN_ONCE(data, down_write_killable(&dax_region_rwsem) != 0,
-+			  "unable to acquire region rwsem\n"))
- 		return;
- 	__unregister_dax_mapping(data);
- 	up_write(&dax_region_rwsem);
-@@ -830,7 +833,7 @@ static int devm_register_dax_mapping(str
- 	struct device *dev;
- 	int rc;
- 
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
-+	lockdep_assert_held_write(&dax_region_rwsem);
- 
- 	if (dev_WARN_ONCE(&dev_dax->dev, !dax_region->dev->driver,
- 				"region disabled\n"))
-@@ -876,7 +879,7 @@ static int alloc_dev_dax_range(struct de
- 	struct resource *alloc;
- 	int i, rc;
- 
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
-+	lockdep_assert_held_write(&dax_region_rwsem);
- 
- 	/* handle the seed alloc special case */
- 	if (!size) {
-@@ -935,7 +938,7 @@ static int adjust_dev_dax_range(struct d
- 	struct device *dev = &dev_dax->dev;
- 	int rc;
- 
--	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
-+	lockdep_assert_held_write(&dax_region_rwsem);
- 
- 	if (dev_WARN_ONCE(dev, !size, "deletion is handled by dev_dax_shrink\n"))
- 		return -EINVAL;
+ 	/*
+-	 * Check if found VA exists, it might it is gone away.
+-	 * In this case we repeat the search because a VA has
+-	 * been removed concurrently thus we need to proceed
+-	 * with next one what is a rare case.
++	 * Check if found VA exists, it might have gone away.  In this case we
++	 * repeat the search because a VA has been removed concurrently and we
++	 * need to proceed to the next one, which is a rare case.
+ 	 */
+ 	if (va_start_lowest) {
+ 		vn = addr_to_node(va_start_lowest);
 _
 
-Patches currently in -mm which might be from vishal.l.verma@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-vmalloc-fix-lockdep-warning-fix.patch
+mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries-fix.patch
+mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio-fix.patch
+sh-remove-use-of-pg_arch_1-on-individual-pages-fix.patch
+mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing-fix.patch
+mm-allow-anon-exclusive-check-over-hugetlb-tail-pages-fix.patch
+__mod_memcg_lruvec_state-enhance-diagnostics.patch
+__mod_memcg_lruvec_state-enhance-diagnostics-fix.patch
 
