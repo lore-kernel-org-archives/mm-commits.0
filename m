@@ -1,122 +1,102 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A4AB172776
-	for <mm-commits@vger.kernel.org>; Fri,  5 Apr 2024 18:22:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25AE017277F;
+	Fri,  5 Apr 2024 18:40:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712341337; cv=none; b=DNv9IVEOyvv51pDREaEzyhnVfaBMlinDiOliLCn9mB95Rd6QqdEs4gA3yBK+7Hn4lF/MCSAAV+P8XFO7Q3B+odCOISvSlV4cSoepURwyw243Y7DNUmR3Em6w0HDzkUQtC509WTkIDwsJlFW5PnYBOO0O+gzWVMu/KsDsLZG2akc=
+	t=1712342420; cv=none; b=PfCdsir+DZgLJNWXxGfDiwx2/Qv1lTvhF8foB1An0ErGnc8g01VTVCsnnXJWo7OeMGrkxMvREaXordHLGN1oK8MXB/n3P2QiRJauwtty4MyhLJw1b7fFwxAz6w3a2ZFY7bDcFEN2jXYUAa4kkfTG52QJTSDw1rZa+L7bUcovCJ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712341337; c=relaxed/simple;
-	bh=fp0Jz7UMHUdyY9JQ/11zDio3MrQzJzEfNL2mb9tivnI=;
-	h=Date:To:From:Subject:Message-Id; b=e+DJFmu90dKc2DILH/yNWd9MezCNhjK0LgDAAFY0xdVBMPizEFMW6KZq9KVlO/+rklM1/HvC1RR8KdjffY25YDbiaBDJQB2jp8cY84w8Jn577enplwBNG9DngI1MVgp186cfDqVOEugbGIL4zEMooHOHUdcD/awNPJiUUSgsf0A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2DhnlHvl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712342420; c=relaxed/simple;
+	bh=0GIcYc8gjCqsxaKY7pEmkQXQCbPLf7ON9becUFk7k8U=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=ZgihKh1Hvsbpixbswqaj4IFrWH7sS5psCpltud4y9KTYtnpH5wfJUrYHSes7xqd80kqbkRr4dDc1C3m0IvJxkXFmUcyhyidNxWeCQ9vIdpZEVPPxZeO/HbHgFpHFOcHzZMFNlR6RHP50GLJbhzxvbZqSyLcQgsEprET/k/Wkc58=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bYm0a/XA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2DhnlHvl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00942C433C7;
-	Fri,  5 Apr 2024 18:22:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bYm0a/XA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 670A9C433C7;
+	Fri,  5 Apr 2024 18:40:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712341337;
-	bh=fp0Jz7UMHUdyY9JQ/11zDio3MrQzJzEfNL2mb9tivnI=;
-	h=Date:To:From:Subject:From;
-	b=2DhnlHvlsEGiFWEUMMYac0GNS2sh4OV6D+yl0Muep7drXnLw6LvgOTHdoQmtrHJrq
-	 O+FgQGJ8ekDA9x30tteHa3BlZ1uo9yf49pHOqUPS4scr3bV+hhex8eUccyLGJMlfaM
-	 Bc4L/PxUTtOi57CtLXtjSJvmAyhf6kAmErNYt41E=
-Date: Fri, 05 Apr 2024 11:22:16 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,osandov@fb.com,osalvador@suse.de,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,pcc@google.com,akpm@linux-foundation.org
+	s=korg; t=1712342419;
+	bh=0GIcYc8gjCqsxaKY7pEmkQXQCbPLf7ON9becUFk7k8U=;
+	h=Date:From:To:Cc:Subject:From;
+	b=bYm0a/XAxkPJJKrAQxnyjwfsskgkv4AwOkL7ifnJJ3yBPovViludhKzDVK1wWAQUt
+	 /BdgEOeYkSyW8IlxDm8qjyIa4vD62t2PF+sAWeKp9Gj+i+uH3Tsr5hIyiREuXb0dT8
+	 wH1fwOPiOeaXo6Zvfcb1IAURoHDbzAcfNVTM2r/8=
+Date: Fri, 5 Apr 2024 11:40:18 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] stackdepot-rename-pool_index-to-pool_index_plus_1.patch removed from -mm tree
-Message-Id: <20240405182217.00942C433C7@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ mm-commits@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.9-rc3
+Message-Id: <20240405114018.48d320803e1b3920f68f9f96@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The quilt patch titled
-     Subject: stackdepot: rename pool_index to pool_index_plus_1
-has been removed from the -mm tree.  Its filename was
-     stackdepot-rename-pool_index-to-pool_index_plus_1.patch
+Linus, please merge this batch of hotfixes.
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+There's a simple conflict in MAINTAINERS.  Please take the changes from
+this tree - use the four broadcom email addresses.
 
-------------------------------------------------------
-From: Peter Collingbourne <pcc@google.com>
-Subject: stackdepot: rename pool_index to pool_index_plus_1
-Date: Mon, 1 Apr 2024 17:14:58 -0700
+Thanks.
 
-Commit 3ee34eabac2a ("lib/stackdepot: fix first entry having a 0-handle")
-changed the meaning of the pool_index field to mean "the pool index plus
-1".  This made the code accessing this field less self-documenting, as
-well as causing debuggers such as drgn to not be able to easily remain
-compatible with both old and new kernels, because they typically do that
-by testing for presence of the new field.  Because stackdepot is a
-debugging tool, we should make sure that it is debugger friendly. 
-Therefore, give the field a different name to improve readability as well
-as enabling debugger backwards compatibility.
 
-This is needed in 6.9, which would otherwise become an odd release with
-the new semantics and old name so debuggers wouldn't recognize the new
-semantics there.
+The following changes since commit 39cd87c4eb2b893354f3b850f916353f2658ae6f:
 
-Fixes: 3ee34eabac2a ("lib/stackdepot: fix first entry having a 0-handle")
-Link: https://lkml.kernel.org/r/20240402001500.53533-1-pcc@google.com
-Link: https://linux-review.googlesource.com/id/Ib3e70c36c1d230dd0a118dc22649b33e768b9f88
-Signed-off-by: Peter Collingbourne <pcc@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Acked-by: Marco Elver <elver@google.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Omar Sandoval <osandov@fb.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+  Linux 6.9-rc2 (2024-03-31 14:32:39 -0700)
 
- include/linux/stackdepot.h |    7 +++----
- lib/stackdepot.c           |    4 ++--
- 2 files changed, 5 insertions(+), 6 deletions(-)
+are available in the Git repository at:
 
---- a/include/linux/stackdepot.h~stackdepot-rename-pool_index-to-pool_index_plus_1
-+++ a/include/linux/stackdepot.h
-@@ -44,10 +44,9 @@ typedef u32 depot_stack_handle_t;
- union handle_parts {
- 	depot_stack_handle_t handle;
- 	struct {
--		/* pool_index is offset by 1 */
--		u32 pool_index	: DEPOT_POOL_INDEX_BITS;
--		u32 offset	: DEPOT_OFFSET_BITS;
--		u32 extra	: STACK_DEPOT_EXTRA_BITS;
-+		u32 pool_index_plus_1	: DEPOT_POOL_INDEX_BITS;
-+		u32 offset		: DEPOT_OFFSET_BITS;
-+		u32 extra		: STACK_DEPOT_EXTRA_BITS;
- 	};
- };
- 
---- a/lib/stackdepot.c~stackdepot-rename-pool_index-to-pool_index_plus_1
-+++ a/lib/stackdepot.c
-@@ -330,7 +330,7 @@ static struct stack_record *depot_pop_fr
- 	stack = current_pool + pool_offset;
- 
- 	/* Pre-initialize handle once. */
--	stack->handle.pool_index = pool_index + 1;
-+	stack->handle.pool_index_plus_1 = pool_index + 1;
- 	stack->handle.offset = pool_offset >> DEPOT_STACK_ALIGN;
- 	stack->handle.extra = 0;
- 	INIT_LIST_HEAD(&stack->hash_list);
-@@ -441,7 +441,7 @@ static struct stack_record *depot_fetch_
- 	const int pools_num_cached = READ_ONCE(pools_num);
- 	union handle_parts parts = { .handle = handle };
- 	void *pool;
--	u32 pool_index = parts.pool_index - 1;
-+	u32 pool_index = parts.pool_index_plus_1 - 1;
- 	size_t offset = parts.offset << DEPOT_STACK_ALIGN;
- 	struct stack_record *stack;
- 
-_
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-04-05-11-30
 
-Patches currently in -mm which might be from pcc@google.com are
+for you to fetch changes up to a6c1d9cb9a68bfa4512248419c4f4d880d19fe90:
 
+  stackdepot: rename pool_index to pool_index_plus_1 (2024-04-05 11:21:31 -0700)
+
+----------------------------------------------------------------
+8 hotfixes, 3 are cc:stable
+
+There are a couple of fixups for this cycle's vmalloc changes and one for
+the stackdepot changes.  And a fix for a very old x86 PAT issue which can
+cause a warning splat.
+
+----------------------------------------------------------------
+Alexey Makhalov (1):
+      MAINTAINERS: change vmware.com addresses to broadcom.com
+
+David Hildenbrand (2):
+      mm/secretmem: fix GUP-fast succeeding on secretmem folios
+      x86/mm/pat: fix VM_PAT handling in COW mappings
+
+Edward Liaw (1):
+      selftests/mm: include strings.h for ffsl
+
+John Sperbeck (1):
+      init: open output files from cpio unpacking with O_LARGEFILE
+
+Peter Collingbourne (1):
+      stackdepot: rename pool_index to pool_index_plus_1
+
+Uladzislau Rezki (Sony) (2):
+      mm: vmalloc: bail out early in find_vmap_area() if vmap is not init
+      mm: vmalloc: fix lockdep warning
+
+ .mailmap                             |  5 +++
+ MAINTAINERS                          | 46 +++++++++++-----------
+ arch/x86/mm/pat/memtype.c            | 49 ++++++++++++++++-------
+ include/linux/secretmem.h            |  4 +-
+ include/linux/stackdepot.h           |  7 ++--
+ init/initramfs.c                     |  2 +-
+ lib/stackdepot.c                     |  4 +-
+ mm/memory.c                          |  4 ++
+ mm/vmalloc.c                         | 76 ++++++++++++++++++++++--------------
+ tools/testing/selftests/mm/vm_util.h |  2 +-
+ 10 files changed, 122 insertions(+), 77 deletions(-)
 
