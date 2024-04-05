@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82B5F17167F
-	for <mm-commits@vger.kernel.org>; Fri,  5 Apr 2024 18:22:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A2D7172764
+	for <mm-commits@vger.kernel.org>; Fri,  5 Apr 2024 18:22:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712341330; cv=none; b=WK0k6UMwpsT3/ckUPYSV9W2z06NiDP8bC18YRt9iEHdETAq4IHfwP+fLfY6Effrzq2zXWdII03eutsYGOpHUNrVSIW46uVaFUrEP1LQ8MAzJiQTUfJI25WlJ/3d/oKlXiIgWNxu+Ryj5j7kV4ppSSshz6TfzgS3V39+9gS3WgVY=
+	t=1712341331; cv=none; b=QANhLpg1nLMvmdByM5V4cKf/3m/FnCzIs5zs9GS/+vBzdnWIsKBO7YC1Nb94jeFDGnopmF3wuOrrEaXexZYl8v506rlszTJ2SoGxigGNdsP+oFpDo0CFvFYHuTxSd/hIxYQJn/yixE7R2cf2cKwkPCNgh0WlkcoI0mFkqQcHbyQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712341330; c=relaxed/simple;
-	bh=aryBsSbIkMEPQnPVcLSlL8BLzu30AExhvMhjxQbCrSk=;
-	h=Date:To:From:Subject:Message-Id; b=DpMETViP4rSpEKz4n3TqXYDmr5HpNbHgHhcA59h9eKnUn3M1OqfPmPFT2YnaknL9Zds42Pu25kVuQQZ4uEnvSr8ZuG14EfMhGEBynXQislGGf1Oi7aNdOnL7GIdw1Us1kUoPBhg+1UYZ60Xq5rukZ1flRlsyckSdskEbeuPMr9Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hrVmJKH/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712341331; c=relaxed/simple;
+	bh=J/eWMxmi9g11eQLT2CxHMhbXTU4WzcrziWEqVwh3las=;
+	h=Date:To:From:Subject:Message-Id; b=HjNEFynjxZ7vchnWq+3A07u7nppe0WoUur0M6lVzERTGeKbyS2MSm/tXWqveuFpeFc/2tQTfEt1bBXVq0mCNWbsAe7ulGXyFsYRIIgJ7WRInKMCggiNzEACZmk6H4UQZv+r8cyfh5wqtqdFbFdqhZ2JUH9m/2DM3Fq9nVUSqUw4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dLjJL4KQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hrVmJKH/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03BD9C43390;
-	Fri,  5 Apr 2024 18:22:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dLjJL4KQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DD8FC433F1;
+	Fri,  5 Apr 2024 18:22:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712341330;
-	bh=aryBsSbIkMEPQnPVcLSlL8BLzu30AExhvMhjxQbCrSk=;
+	s=korg; t=1712341331;
+	bh=J/eWMxmi9g11eQLT2CxHMhbXTU4WzcrziWEqVwh3las=;
 	h=Date:To:From:Subject:From;
-	b=hrVmJKH/iWOVCVTpX/HZhLLXrQ38FpmIZv1coJMvmohvriUV1uc5LGEm9oZUXPCvl
-	 it6W3mC+Lkhv4KLqF+J0BRRUDwnn7tqw96aL0zghME6PQprHN4ttOjCRUcUKYqMhYx
-	 5KtUl1w5Uu1yU8fBWT3BXvzQyNMP4TmWpzxq2c3k=
-Date: Fri, 05 Apr 2024 11:22:09 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,oleksiy.avramchenko@sony.com,lstoakes@gmail.com,linux@roeck-us.net,hch@infradead.org,hca@linux.ibm.com,david@fromorbit.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
+	b=dLjJL4KQ35boiOnw03D0FxCPhbdU97W8xitdeY09CXCOSBuu6TyGuxSayds9IVjMF
+	 XxgYz5iusjhXSn16QCesMTa6uW0gWf4oyx+Vmw64Wn8fxUoDKRZs2aae0PYT757Et5
+	 mcXqgEXQhcnHgrBu0A4uRiUSwH6hIFW2vFX4qCj4=
+Date: Fri, 05 Apr 2024 11:22:10 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,osandov@fb.com,oleksiy.avramchenko@sony.com,lstoakes@gmail.com,hch@infradead.org,david@fromorbit.com,bhe@redhat.com,axboe@kernel.dk,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-vmalloc-bail-out-early-in-find_vmap_area-if-vmap-is-not-init.patch removed from -mm tree
-Message-Id: <20240405182210.03BD9C43390@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-vmalloc-fix-lockdep-warning.patch removed from -mm tree
+Message-Id: <20240405182211.3DD8FC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmalloc: bail out early in find_vmap_area() if vmap is not init
+     Subject: mm: vmalloc: fix lockdep warning
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-bail-out-early-in-find_vmap_area-if-vmap-is-not-init.patch
+     mm-vmalloc-fix-lockdep-warning.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm: vmalloc: bail out early in find_vmap_area() if vmap is not init
-Date: Sat, 23 Mar 2024 15:15:44 +0100
+Subject: mm: vmalloc: fix lockdep warning
+Date: Thu, 28 Mar 2024 15:03:30 +0100
 
-During the boot the s390 system triggers "spinlock bad magic" messages
-if the spinlock debugging is enabled:
+A lockdep reports a possible deadlock in the find_vmap_area_exceed_addr_lock()
+function:
 
-[    0.465445] BUG: spinlock bad magic on CPU#0, swapper/0
-[    0.465490]  lock: single+0x1860/0x1958, .magic: 00000000, .owner: <none>/-1, .owner_cpu: 0
-[    0.466067] CPU: 0 PID: 0 Comm: swapper Not tainted 6.8.0-12955-g8e938e398669 #1
-[    0.466188] Hardware name: QEMU 8561 QEMU (KVM/Linux)
-[    0.466270] Call Trace:
-[    0.466470]  [<00000000011f26c8>] dump_stack_lvl+0x98/0xd8
-[    0.466516]  [<00000000001dcc6a>] do_raw_spin_lock+0x8a/0x108
-[    0.466545]  [<000000000042146c>] find_vmap_area+0x6c/0x108
-[    0.466572]  [<000000000042175a>] find_vm_area+0x22/0x40
-[    0.466597]  [<000000000012f152>] __set_memory+0x132/0x150
-[    0.466624]  [<0000000001cc0398>] vmem_map_init+0x40/0x118
-[    0.466651]  [<0000000001cc0092>] paging_init+0x22/0x68
-[    0.466677]  [<0000000001cbbed2>] setup_arch+0x52a/0x708
-[    0.466702]  [<0000000001cb6140>] start_kernel+0x80/0x5c8
-[    0.466727]  [<0000000000100036>] startup_continue+0x36/0x40
+============================================
+WARNING: possible recursive locking detected
+6.9.0-rc1-00060-ged3ccc57b108-dirty #6140 Not tainted
+--------------------------------------------
+drgn/455 is trying to acquire lock:
+ffff0000c00131d0 (&vn->busy.lock/1){+.+.}-{2:2}, at: find_vmap_area_exceed_addr_lock+0x64/0x124
 
-it happens because such system tries to access some vmap areas
-whereas the vmalloc initialization is not even yet done:
+but task is already holding lock:
+ffff0000c0011878 (&vn->busy.lock/1){+.+.}-{2:2}, at: find_vmap_area_exceed_addr_lock+0x64/0x124
 
-[    0.465490] lock: single+0x1860/0x1958, .magic: 00000000, .owner: <none>/-1, .owner_cpu: 0
-[    0.466067] CPU: 0 PID: 0 Comm: swapper Not tainted 6.8.0-12955-g8e938e398669 #1
-[    0.466188] Hardware name: QEMU 8561 QEMU (KVM/Linux)
-[    0.466270] Call Trace:
-[    0.466470] dump_stack_lvl (lib/dump_stack.c:117)
-[    0.466516] do_raw_spin_lock (kernel/locking/spinlock_debug.c:87 kernel/locking/spinlock_debug.c:115)
-[    0.466545] find_vmap_area (mm/vmalloc.c:1059 mm/vmalloc.c:2364)
-[    0.466572] find_vm_area (mm/vmalloc.c:3150)
-[    0.466597] __set_memory (arch/s390/mm/pageattr.c:360 arch/s390/mm/pageattr.c:393)
-[    0.466624] vmem_map_init (./arch/s390/include/asm/set_memory.h:55 arch/s390/mm/vmem.c:660)
-[    0.466651] paging_init (arch/s390/mm/init.c:97)
-[    0.466677] setup_arch (arch/s390/kernel/setup.c:972)
-[    0.466702] start_kernel (init/main.c:899)
-[    0.466727] startup_continue (arch/s390/kernel/head64.S:35)
-[    0.466811] INFO: lockdep is turned off.
-...
-[    0.718250] vmalloc init - busy lock init 0000000002871860
-[    0.718328] vmalloc init - busy lock init 00000000028731b8
+other info that might help us debug this:
+ Possible unsafe locking scenario:
 
-Some background. It worked before because the lock that is in question
-was statically defined and initialized. As of now, the locks and data
-structures are initialized in the vmalloc_init() function.
+       CPU0
+       ----
+  lock(&vn->busy.lock/1);
+  lock(&vn->busy.lock/1);
 
-To address that issue add the check whether the "vmap_initialized"
-variable is set, if not find_vmap_area() bails out on entry returning NULL.
+ *** DEADLOCK ***
 
-Link: https://lkml.kernel.org/r/20240323141544.4150-1-urezki@gmail.com
-Fixes: 72210662c5a2 ("mm: vmalloc: offload free_vmap_area_lock lock")
+indeed it can happen if the find_vmap_area_exceed_addr_lock() gets called
+concurrently because it tries to acquire two nodes locks.  It was done to
+prevent removing a lowest VA found on a previous step.
+
+To address this a lowest VA is found first without holding a node lock
+where it resides.  As a last step we check if a VA still there because it
+can go away, if removed, proceed with next lowest.
+
+[akpm@linux-foundation.org: fix comment typos, per Baoquan]
+Link: https://lkml.kernel.org/r/20240328140330.4747-1-urezki@gmail.com
+Fixes: 53becf32aec1 ("mm: vmalloc: support multiple nodes in vread_iter")
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Acked-by: Heiko Carstens <hca@linux.ibm.com>
+Tested-by: Jens Axboe <axboe@kernel.dk>
+Tested-by: Omar Sandoval <osandov@fb.com>
+Reported-by: Jens Axboe <axboe@kernel.dk>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
@@ -109,21 +94,109 @@ Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/vmalloc.c |   73 ++++++++++++++++++++++++++++---------------------
+ 1 file changed, 43 insertions(+), 30 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-bail-out-early-in-find_vmap_area-if-vmap-is-not-init
+--- a/mm/vmalloc.c~mm-vmalloc-fix-lockdep-warning
 +++ a/mm/vmalloc.c
-@@ -2343,6 +2343,9 @@ struct vmap_area *find_vmap_area(unsigne
- 	struct vmap_area *va;
- 	int i, j;
+@@ -989,6 +989,27 @@ unsigned long vmalloc_nr_pages(void)
+ 	return atomic_long_read(&nr_vmalloc_pages);
+ }
  
-+	if (unlikely(!vmap_initialized))
-+		return NULL;
++static struct vmap_area *__find_vmap_area(unsigned long addr, struct rb_root *root)
++{
++	struct rb_node *n = root->rb_node;
 +
- 	/*
- 	 * An addr_to_node_id(addr) converts an address to a node index
- 	 * where a VA is located. If VA spans several zones and passed
++	addr = (unsigned long)kasan_reset_tag((void *)addr);
++
++	while (n) {
++		struct vmap_area *va;
++
++		va = rb_entry(n, struct vmap_area, rb_node);
++		if (addr < va->va_start)
++			n = n->rb_left;
++		else if (addr >= va->va_end)
++			n = n->rb_right;
++		else
++			return va;
++	}
++
++	return NULL;
++}
++
+ /* Look up the first VA which satisfies addr < va_end, NULL if none. */
+ static struct vmap_area *
+ __find_vmap_area_exceed_addr(unsigned long addr, struct rb_root *root)
+@@ -1025,47 +1046,39 @@ __find_vmap_area_exceed_addr(unsigned lo
+ static struct vmap_node *
+ find_vmap_area_exceed_addr_lock(unsigned long addr, struct vmap_area **va)
+ {
+-	struct vmap_node *vn, *va_node = NULL;
+-	struct vmap_area *va_lowest;
++	unsigned long va_start_lowest;
++	struct vmap_node *vn;
+ 	int i;
+ 
+-	for (i = 0; i < nr_vmap_nodes; i++) {
++repeat:
++	for (i = 0, va_start_lowest = 0; i < nr_vmap_nodes; i++) {
+ 		vn = &vmap_nodes[i];
+ 
+ 		spin_lock(&vn->busy.lock);
+-		va_lowest = __find_vmap_area_exceed_addr(addr, &vn->busy.root);
+-		if (va_lowest) {
+-			if (!va_node || va_lowest->va_start < (*va)->va_start) {
+-				if (va_node)
+-					spin_unlock(&va_node->busy.lock);
+-
+-				*va = va_lowest;
+-				va_node = vn;
+-				continue;
+-			}
+-		}
++		*va = __find_vmap_area_exceed_addr(addr, &vn->busy.root);
++
++		if (*va)
++			if (!va_start_lowest || (*va)->va_start < va_start_lowest)
++				va_start_lowest = (*va)->va_start;
+ 		spin_unlock(&vn->busy.lock);
+ 	}
+ 
+-	return va_node;
+-}
++	/*
++	 * Check if found VA exists, it might have gone away.  In this case we
++	 * repeat the search because a VA has been removed concurrently and we
++	 * need to proceed to the next one, which is a rare case.
++	 */
++	if (va_start_lowest) {
++		vn = addr_to_node(va_start_lowest);
+ 
+-static struct vmap_area *__find_vmap_area(unsigned long addr, struct rb_root *root)
+-{
+-	struct rb_node *n = root->rb_node;
++		spin_lock(&vn->busy.lock);
++		*va = __find_vmap_area(va_start_lowest, &vn->busy.root);
+ 
+-	addr = (unsigned long)kasan_reset_tag((void *)addr);
++		if (*va)
++			return vn;
+ 
+-	while (n) {
+-		struct vmap_area *va;
+-
+-		va = rb_entry(n, struct vmap_area, rb_node);
+-		if (addr < va->va_start)
+-			n = n->rb_left;
+-		else if (addr >= va->va_end)
+-			n = n->rb_right;
+-		else
+-			return va;
++		spin_unlock(&vn->busy.lock);
++		goto repeat;
+ 	}
+ 
+ 	return NULL;
 _
 
 Patches currently in -mm which might be from urezki@gmail.com are
