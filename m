@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FFBA172BA4
-	for <mm-commits@vger.kernel.org>; Fri,  5 Apr 2024 18:41:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44C2638F83
+	for <mm-commits@vger.kernel.org>; Fri,  5 Apr 2024 18:51:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712342475; cv=none; b=fWNrqoaP2vWK3xesUL/2f7XGdgLS6CSLEX74PFMWBq29/gsbwR0oSN6DIKOPX3RtjiGdp7nqAm7/WLhAxMhJy59kUMi+W2NVHkl4AmTB/r9Y3CqB1+H7ljGf/973lLpiv7GOYkKXK+M+6eSwApHs1Z9h6VCd8Vs4XvEbaMe0mf8=
+	t=1712343109; cv=none; b=a1Madf24WDw+zErmAyN1rJToSkagvUKV0LVQP+w72QexCMMjrGBIAj43E683c05dfx+/zHfAS5rTRq/KQZswhpQUtWSrMmfobK67k5SHeNoCWlNAyoAOXid66g9pwmnKZYrR+GFlxUWiJf088aveVq/KpbssnII8JVF6p/r+1wQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712342475; c=relaxed/simple;
-	bh=M55RVBJwWhsXkSbQmNWl8oK2LtDlK5aNAcSBeSsxnck=;
-	h=Date:To:From:Subject:Message-Id; b=NUKczUVe1taHxpiwgekNMQkUpG9rESotFDJGXlGIndFTuLRyMAlCcqOuPX/NIDlhbTDNr3UjqYzl4q5VjwRQeiiX9/p6yeAVMSRi1yX4/zFEphRBxqTR+pF0T8muee/1TqGII4NrG/tyc2psl52igGcPAzLm7C7RV9d4f7BbBSM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yVVTLSaQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712343109; c=relaxed/simple;
+	bh=OrCpGCyz8pvOpKP8awUb1zdpj7C8eEwoXJVrPPgsiJI=;
+	h=Date:To:From:Subject:Message-Id; b=P/YAumCjLppridSsuEL8cgbvXQ12SpQT1RCQuAw9mg349RSCZBJGHGYSw88qRiiJM5Yxu8q+dk1U7kbVSZCjhiSXkXsvFcaacCqXqyb6epJRuiOk+PfDPD73ny0IKvcQC/f1jlx7pKcjd9Be4nlrZcwQgeFgFjurLSuOzh5BdOE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MrgUGa2U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yVVTLSaQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94243C433F1;
-	Fri,  5 Apr 2024 18:41:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MrgUGa2U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE768C433F1;
+	Fri,  5 Apr 2024 18:51:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712342474;
-	bh=M55RVBJwWhsXkSbQmNWl8oK2LtDlK5aNAcSBeSsxnck=;
+	s=korg; t=1712343108;
+	bh=OrCpGCyz8pvOpKP8awUb1zdpj7C8eEwoXJVrPPgsiJI=;
 	h=Date:To:From:Subject:From;
-	b=yVVTLSaQBwO5oz5d906t3g0dsdpkLZmWRDhB3TiB2nOlmtoDtGNWC/O3fV/oD9bQi
-	 EUiR8ij2erwiPu426Nk6SpmBzbI47GYYnWQPWuwkLku6gTa87aBm1RdjOhdhsxrQNW
-	 ikAk7rWvhdzRIsHGAzc9HsE6B2bN1kCrXmGZoIDU=
-Date: Fri, 05 Apr 2024 11:41:14 -0700
-To: mm-commits@vger.kernel.org,p.raghav@samsung.com,willy@infradead.org,akpm@linux-foundation.org
+	b=MrgUGa2UXoFrfEz+PgoOnqSTqn0ynPO/iPSliXmqoEC3uQ3hJ5Fw5d6PlNFxVuCYF
+	 Ksj4asygZZqlbNa6NkG4hdwIUsj8I2fTN2HVf95dxsVHE8lHE9A3oeyAqHQNnLjKP3
+	 SJd4LwNTfYlDqOT32tBOwX6/IrhGIqz0rRR024Gw=
+Date: Fri, 05 Apr 2024 11:51:48 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-pagecache_isize_extended-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20240405184114.94243C433F1@smtp.kernel.org>
+Subject: + mm-free-non-hugetlb-large-folios-in-a-batch.patch added to mm-unstable branch
+Message-Id: <20240405185148.BE768C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: convert pagecache_isize_extended to use a folio
+     Subject: mm: free non-hugetlb large folios in a batch
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-pagecache_isize_extended-to-use-a-folio.patch
+     mm-free-non-hugetlb-large-folios-in-a-batch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-pagecache_isize_extended-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-free-non-hugetlb-large-folios-in-a-batch.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,88 +59,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert pagecache_isize_extended to use a folio
-Date: Fri, 5 Apr 2024 19:00:36 +0100
+Subject: mm: free non-hugetlb large folios in a batch
+Date: Fri, 5 Apr 2024 16:32:23 +0100
 
-Remove four hidden calls to compound_head().  Also exit early if the
-filesystem block size is >= PAGE_SIZE instead of just equal to PAGE_SIZE.
+Patch series "Clean up __folio_put()".
 
-Link: https://lkml.kernel.org/r/20240405180038.2618624-1-willy@infradead.org
+With all the changes over the last few years, __folio_put_small and
+__folio_put_large have become almost identical to each other ...  except
+you can't tell because they're spread over two files.  Rearrange it all so
+that you can tell, and then inline them both into __folio_put().
+
+
+This patch (of 5):
+
+free_unref_folios() can now handle non-hugetlb large folios, so keep
+normal large folios in the batch.  hugetlb folios still need to be handled
+specially.  I believe that folios freed using put_pages_list() cannot be
+accounted to a memcg (or the small folios would trip the "page still
+charged to cgroup" warning), but put an assertion in to check that.
+
+Link: https://lkml.kernel.org/r/20240405153228.2563754-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240405153228.2563754-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Pankaj Raghav <p.raghav@samsung.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   36 +++++++++++++++++-------------------
- 1 file changed, 17 insertions(+), 19 deletions(-)
+ mm/swap.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/truncate.c~mm-convert-pagecache_isize_extended-to-use-a-folio
-+++ a/mm/truncate.c
-@@ -764,15 +764,15 @@ EXPORT_SYMBOL(truncate_setsize);
-  * @from:	original inode size
-  * @to:		new inode size
-  *
-- * Handle extension of inode size either caused by extending truncate or by
-- * write starting after current i_size. We mark the page straddling current
-- * i_size RO so that page_mkwrite() is called on the nearest write access to
-- * the page.  This way filesystem can be sure that page_mkwrite() is called on
-- * the page before user writes to the page via mmap after the i_size has been
-- * changed.
-+ * Handle extension of inode size either caused by extending truncate or
-+ * by write starting after current i_size.  We mark the page straddling
-+ * current i_size RO so that page_mkwrite() is called on the first
-+ * write access to the page.  The filesystem will update its per-block
-+ * information before user writes to the page via mmap after the i_size
-+ * has been changed.
-  *
-  * The function must be called after i_size is updated so that page fault
-- * coming after we unlock the page will already see the new i_size.
-+ * coming after we unlock the folio will already see the new i_size.
-  * The function must be called while we still hold i_rwsem - this not only
-  * makes sure i_size is stable but also that userspace cannot observe new
-  * i_size value before we are prepared to store mmap writes at new inode size.
-@@ -781,31 +781,29 @@ void pagecache_isize_extended(struct ino
- {
- 	int bsize = i_blocksize(inode);
- 	loff_t rounded_from;
--	struct page *page;
--	pgoff_t index;
-+	struct folio *folio;
- 
- 	WARN_ON(to > inode->i_size);
- 
--	if (from >= to || bsize == PAGE_SIZE)
-+	if (from >= to || bsize >= PAGE_SIZE)
- 		return;
- 	/* Page straddling @from will not have any hole block created? */
- 	rounded_from = round_up(from, bsize);
- 	if (to <= rounded_from || !(rounded_from & (PAGE_SIZE - 1)))
- 		return;
- 
--	index = from >> PAGE_SHIFT;
--	page = find_lock_page(inode->i_mapping, index);
--	/* Page not cached? Nothing to do */
--	if (!page)
-+	folio = filemap_lock_folio(inode->i_mapping, from / PAGE_SIZE);
-+	/* Folio not cached? Nothing to do */
-+	if (IS_ERR(folio))
- 		return;
- 	/*
--	 * See clear_page_dirty_for_io() for details why set_page_dirty()
-+	 * See folio_clear_dirty_for_io() for details why folio_mark_dirty()
- 	 * is needed.
- 	 */
--	if (page_mkclean(page))
--		set_page_dirty(page);
--	unlock_page(page);
--	put_page(page);
-+	if (folio_mkclean(folio))
-+		folio_mark_dirty(folio);
-+	folio_unlock(folio);
-+	folio_put(folio);
- }
- EXPORT_SYMBOL(pagecache_isize_extended);
- 
+--- a/mm/swap.c~mm-free-non-hugetlb-large-folios-in-a-batch
++++ a/mm/swap.c
+@@ -158,10 +158,11 @@ void put_pages_list(struct list_head *pa
+ 	list_for_each_entry_safe(folio, next, pages, lru) {
+ 		if (!folio_put_testzero(folio))
+ 			continue;
+-		if (folio_test_large(folio)) {
+-			__folio_put_large(folio);
++		if (folio_test_hugetlb(folio)) {
++			free_huge_folio(folio);
+ 			continue;
+ 		}
++		VM_BUG_ON_FOLIO(folio_memcg(folio), folio);
+ 		/* LRU flag must be clear because it's passed using the lru */
+ 		if (folio_batch_add(&fbatch, folio) > 0)
+ 			continue;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -199,4 +162,9 @@ proc-convert-smaps_pmd_entry-to-use-a-folio.patch
 mm-remove-struct-page-from-get_shadow_from_swap_cache.patch
 hugetlb-convert-alloc_buddy_hugetlb_folio-to-use-a-folio.patch
 mm-convert-pagecache_isize_extended-to-use-a-folio.patch
+mm-free-non-hugetlb-large-folios-in-a-batch.patch
+mm-combine-free_the_page-and-free_unref_page.patch
+mm-inline-destroy_large_folio-into-__folio_put_large.patch
+mm-combine-__folio_put_small-__folio_put_large-and-__folio_put.patch
+mm-convert-free_zone_device_page-to-free_zone_device_folio.patch
 
