@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB88D171E5B;
-	Fri,  5 Apr 2024 18:22:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4466B171072
+	for <mm-commits@vger.kernel.org>; Fri,  5 Apr 2024 18:22:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712341328; cv=none; b=GF3nUswNMKJqAQ84+JY/AEm2rXYkkEWnW22VteqUBcXgqvFclwg6XLtnasbR6kxJU70QT25rbwQj3ikV2bzz1yUy59TWyAQ9JfsTzV/XhYsNe7XXIy6F5y5LT0Voz9dC6aESfg4IaeoWlm9RlTqpfrFwheV8jGz8rZec3XS4ZCA=
+	t=1712341329; cv=none; b=nkMYpMEeIdxobgZIpYPbTUFuX0mjFyTnGxmXP6/l9BueGeFDbPjWQH2bBhyuoYDyGlPga2pr5RTFtj6gJkWCPRN9i8B2FLsY3alMANkzUJuNWjQ9nV5k6GdzQ8LZDIAAQd0X9LKWbbgEMiACzLSYRqlAbCTKHJGJB7Yn11UGSaA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712341328; c=relaxed/simple;
-	bh=MAA2j2LUcLvyJ76WZX8GyIt+FJpLYz8om1awMYUzrKQ=;
-	h=Date:To:From:Subject:Message-Id; b=HSBrk2iMfyKr0oSpCcZb+buQ49AaivLMb/+CS2GpYsoBbkz/+jaU6r8rNedBxaeF5j7QkRzHg4d3RKBG0YGc8LlGypl6bVW6/WQo6e+yYTDHE0i4x3ef6B62/978N39ztOXOzD98h1Yzr1SqDNTdJz5Hqbc3kKWHgndGUB75QC4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mPm33djd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712341329; c=relaxed/simple;
+	bh=ufvOWmmu02zYIJ7dIIW5UwG4fQGmtYzr+AZLxlQDT3Q=;
+	h=Date:To:From:Subject:Message-Id; b=s423mt6LAtzgf+342zGFtix5SNXlgbNf0pDCXxYcWvpnbCnfrZPft4yjTJvckjiBsSQaKPVp3ttXNmZeAImYsChCVSDVvea1sfvdqZ1btmvaX6H8a/nApXlw7iaC2ft2TckPnQS+G5zQhRpTPgtRpvWAB3bGa8TjnS9KYk5n5mc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=npxBnyvx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mPm33djd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53365C433F1;
-	Fri,  5 Apr 2024 18:22:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="npxBnyvx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF37EC433C7;
+	Fri,  5 Apr 2024 18:22:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712341327;
-	bh=MAA2j2LUcLvyJ76WZX8GyIt+FJpLYz8om1awMYUzrKQ=;
+	s=korg; t=1712341328;
+	bh=ufvOWmmu02zYIJ7dIIW5UwG4fQGmtYzr+AZLxlQDT3Q=;
 	h=Date:To:From:Subject:From;
-	b=mPm33djdo/9rLb4gJEnHg2YQaGwlNgJogit2aCTEBzXvELrVIeqb7wYX7Pur1GhR9
-	 5zCdr+qBzFUFQc6UwrB0wIEcBleUWvEzvg8G18LvaqnZFFDQ6tSKxIZoAkpXU/zY7f
-	 PaoJ4XtujWp+PcV0+XoWA2gvP7kplmeKphFPLZPU=
-Date: Fri, 05 Apr 2024 11:22:06 -0700
-To: mm-commits@vger.kernel.org,xrivendell7@gmail.com,stable@vger.kernel.org,samsun1006219@gmail.com,rppt@kernel.org,mszeredi@redhat.com,miklos@szeredi.hu,lstoakes@gmail.com,david@redhat.com,akpm@linux-foundation.org
+	b=npxBnyvxhLP/c0dPeTRA7EjQDe0qGhuIfFnQcn87BHuCv6n5bDTMe/XT3d2d4i2uH
+	 JOrc0dxRw8nFY9fgY15DQ0I40lgI76ioRMdMmYGmKYi5X+rBy4qU4B+VwPST/obRFQ
+	 e63T+H8zHSgfR2ddtL0TXQ39zhDG8W7JdGhSkmwg=
+Date: Fri, 05 Apr 2024 11:22:08 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,rdunlap@infradead.org,peterz@infradead.org,ndesaulniers@google.com,axboe@kernel.dk,jsperbeck@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-secretmem-fix-gup-fast-succeeding-on-secretmem-folios.patch removed from -mm tree
-Message-Id: <20240405182207.53365C433F1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] init-open-output-files-from-cpio-unpacking-with-o_largefile.patch removed from -mm tree
+Message-Id: <20240405182208.BF37EC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,84 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/secretmem: fix GUP-fast succeeding on secretmem folios
+     Subject: init: open output files from cpio unpacking with O_LARGEFILE
 has been removed from the -mm tree.  Its filename was
-     mm-secretmem-fix-gup-fast-succeeding-on-secretmem-folios.patch
+     init-open-output-files-from-cpio-unpacking-with-o_largefile.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/secretmem: fix GUP-fast succeeding on secretmem folios
-Date: Tue, 26 Mar 2024 15:32:08 +0100
+From: John Sperbeck <jsperbeck@google.com>
+Subject: init: open output files from cpio unpacking with O_LARGEFILE
+Date: Sat, 23 Mar 2024 08:29:34 -0700
 
-folio_is_secretmem() currently relies on secretmem folios being LRU
-folios, to save some cycles.
+If a member of a cpio archive for an initrd or initrams is larger than
+2Gb, we'll eventually fail to write to that file when we get to that
+limit, unless O_LARGEFILE is set.
 
-However, folios might reside in a folio batch without the LRU flag set, or
-temporarily have their LRU flag cleared.  Consequently, the LRU flag is
-unreliable for this purpose.
+The problem can be seen with this recipe, assuming that BLK_DEV_RAM
+is not configured:
 
-In particular, this is the case when secretmem_fault() allocates a fresh
-page and calls filemap_add_folio()->folio_add_lru().  The folio might be
-added to the per-cpu folio batch and won't get the LRU flag set until the
-batch was drained using e.g., lru_add_drain().
+cd /tmp
+dd if=/dev/zero of=BIGFILE bs=1048576 count=2200
+echo BIGFILE | cpio -o -H newc -R root:root > initrd.img
+kexec -l /boot/vmlinuz-$(uname -r) --initrd=initrd.img --reuse-cmdline
+kexec -e
 
-Consequently, folio_is_secretmem() might not detect secretmem folios and
-GUP-fast can succeed in grabbing a secretmem folio, crashing the kernel
-when we would later try reading/writing to the folio, because the folio
-has been unmapped from the directmap.
+The console will show 'Initramfs unpacking failed: write error'.  With
+the patch, the error is gone.
 
-Fix it by removing that unreliable check.
-
-Link: https://lkml.kernel.org/r/20240326143210.291116-2-david@redhat.com
-Fixes: 1507f51255c9 ("mm: introduce memfd_secret system call to create "secret" memory areas")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reported-by: xingwei lee <xrivendell7@gmail.com>
-Reported-by: yue sun <samsun1006219@gmail.com>
-Closes: https://lore.kernel.org/lkml/CABOYnLyevJeravW=QrH0JUPYEcDN160aZFb7kwndm-J2rmz0HQ@mail.gmail.com/
-Debugged-by: Miklos Szeredi <miklos@szeredi.hu>
-Tested-by: Miklos Szeredi <mszeredi@redhat.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240323152934.3307391-1-jsperbeck@google.com
+Signed-off-by: John Sperbeck <jsperbeck@google.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/secretmem.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ init/initramfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/secretmem.h~mm-secretmem-fix-gup-fast-succeeding-on-secretmem-folios
-+++ a/include/linux/secretmem.h
-@@ -13,10 +13,10 @@ static inline bool folio_is_secretmem(st
- 	/*
- 	 * Using folio_mapping() is quite slow because of the actual call
- 	 * instruction.
--	 * We know that secretmem pages are not compound and LRU so we can
-+	 * We know that secretmem pages are not compound, so we can
- 	 * save a couple of cycles here.
- 	 */
--	if (folio_test_large(folio) || !folio_test_lru(folio))
-+	if (folio_test_large(folio))
- 		return false;
- 
- 	mapping = (struct address_space *)
+--- a/init/initramfs.c~init-open-output-files-from-cpio-unpacking-with-o_largefile
++++ a/init/initramfs.c
+@@ -367,7 +367,7 @@ static int __init do_name(void)
+ 	if (S_ISREG(mode)) {
+ 		int ml = maybe_link();
+ 		if (ml >= 0) {
+-			int openflags = O_WRONLY|O_CREAT;
++			int openflags = O_WRONLY|O_CREAT|O_LARGEFILE;
+ 			if (ml != 1)
+ 				openflags |= O_TRUNC;
+ 			wfile = filp_open(collected, openflags, mode);
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from jsperbeck@google.com are
 
-mm-madvise-make-madv_populate_readwrite-handle-vm_fault_retry-properly.patch
-mm-madvise-dont-perform-madvise-vma-walk-for-madv_populate_readwrite.patch
-mm-userfaultfd-dont-place-zeropages-when-zeropages-are-disallowed.patch
-s390-mm-re-enable-the-shared-zeropage-for-pv-and-skeys-kvm-guests.patch
-mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared.patch
-mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared-fix.patch
-selftests-memfd_secret-add-vmsplice-test.patch
-mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed.patch
-mm-optimize-config_per_vma_lock-member-placement-in-vm_area_struct.patch
-mm-remove-prot-parameter-from-move_pte.patch
-mm-gup-consistently-name-gup-fast-functions.patch
-mm-treewide-rename-config_have_fast_gup-to-config_have_gup_fast.patch
-mm-use-gup-fast-instead-fast-gup-in-remaining-comments.patch
 
