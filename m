@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86B3938F83
-	for <mm-commits@vger.kernel.org>; Fri,  5 Apr 2024 18:51:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 519AF38F83
+	for <mm-commits@vger.kernel.org>; Fri,  5 Apr 2024 18:51:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712343112; cv=none; b=iLTj4o/JU0gvCkLHWUkSV0z9QtmrRTWYUNaL5TefQI9vbtU1jvQObEb8D/cJEAh5IecF6sWRRjJ+gMymiS5KEM4NtrLa1ijUtWo7rQrECghRcljN23rgF4u3wbjdtxrXmT8GDOsrgq8R1fPcmHeyXFqu4OmlWbkibp/20PkXhcw=
+	t=1712343115; cv=none; b=a33yMmB21bjIp/ijmR0rObRdH1WVNQ6RQYKJomY9WkcLE9BGIo4HHbTK4XBGTzYGU4yg/n/gSfCixIeMBSbKUiut4NvHPacM5jzVtQ0thON0zs0heUHo+kgeWKpJtdX++/z5QtbG/oeqZnZ9NWoX4oSdZntynriCk5gWQ9FLFGI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712343112; c=relaxed/simple;
-	bh=Do+R1yBOK5EYGltxnBrYiK230zGGFogA5LJKleHP9uE=;
-	h=Date:To:From:Subject:Message-Id; b=Y9afwgiTjhDpjIED88HcCXeqrccZhLepMT5tC14mt3zbNHweBdNs2JcmHAnOumLOci56a83DIhwOjW6smqat7aKPm74HTgJLRJlxS2q0DpSxiWmzOxcwIwPDEy4LeIhC+x8NAa6tVVJx2uR/N38899ljDQYKqtpJU53fgNU4zUE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A6JH41Dr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712343115; c=relaxed/simple;
+	bh=LywzFPhWFIhQ7AFyIkvH9uQgA9gjCkviqsMQXZZk0PE=;
+	h=Date:To:From:Subject:Message-Id; b=G+9TJGulRBH6Pes4OnqvKzPpePyA8Pvk9zwfEJjgJyMvjuHadH/NjF/15p8uTnEjsb32ds/ViEcvAELcXPf00b0aLbIxY4jfNSCyt9ZXJozht2ivAdog4+bnGu+eBXkTIUlNjbGOJLGdxYxor5wKxxnJM8a78crh/75O4E4NB+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vZFdFpNp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A6JH41Dr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FB0FC433C7;
-	Fri,  5 Apr 2024 18:51:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vZFdFpNp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9DAFC433F1;
+	Fri,  5 Apr 2024 18:51:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712343112;
-	bh=Do+R1yBOK5EYGltxnBrYiK230zGGFogA5LJKleHP9uE=;
+	s=korg; t=1712343114;
+	bh=LywzFPhWFIhQ7AFyIkvH9uQgA9gjCkviqsMQXZZk0PE=;
 	h=Date:To:From:Subject:From;
-	b=A6JH41Drlkini+N2Tj4Xl0N+Iptv923h9JzeIFnrOOrDS85c5iVPfmeq8BHNUVini
-	 Gz451uBz8lhPYTXzKuaUhcgvo1FHgh3eaZYzW4r4JiuUfZEjmPdytnmWSxE4KP7Soe
-	 R8l7E3owY6VrY/gKZFqFk5Hsg9Iy6DLTvk7axaVg=
-Date: Fri, 05 Apr 2024 11:51:51 -0700
+	b=vZFdFpNpXDM0JjyMzcFRpYyRLFZC3BQUiDe/OEd47mgQaZEJFlMq3labxbqc7G24B
+	 85lr3I1SWD2t1GTN1FRBRlDEn466VWABH6f8XQkBf2II/Ht7mVDRkQk9f9AjWsEiST
+	 HcEctrzo4P8+I2Ddr/9YFcfXaAvuvbAj9+w3MNgM=
+Date: Fri, 05 Apr 2024 11:51:54 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-inline-destroy_large_folio-into-__folio_put_large.patch added to mm-unstable branch
-Message-Id: <20240405185152.4FB0FC433C7@smtp.kernel.org>
+Subject: + mm-combine-__folio_put_small-__folio_put_large-and-__folio_put.patch added to mm-unstable branch
+Message-Id: <20240405185154.C9DAFC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: inline destroy_large_folio() into __folio_put_large()
+     Subject: mm: combine __folio_put_small, __folio_put_large and __folio_put
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-inline-destroy_large_folio-into-__folio_put_large.patch
+     mm-combine-__folio_put_small-__folio_put_large-and-__folio_put.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-inline-destroy_large_folio-into-__folio_put_large.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-combine-__folio_put_small-__folio_put_large-and-__folio_put.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,78 +59,72 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: inline destroy_large_folio() into __folio_put_large()
-Date: Fri, 5 Apr 2024 16:32:25 +0100
+Subject: mm: combine __folio_put_small, __folio_put_large and __folio_put
+Date: Fri, 5 Apr 2024 16:32:26 +0100
 
-destroy_large_folio() has only one caller, move its contents there.
+It's now obvious that __folio_put_small() and __folio_put_large() do
+almost exactly the same thing.  Inline them both into __folio_put().
 
-Link: https://lkml.kernel.org/r/20240405153228.2563754-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240405153228.2563754-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 --
- mm/page_alloc.c    |   14 --------------
- mm/swap.c          |   13 ++++++++++---
- 3 files changed, 10 insertions(+), 19 deletions(-)
+ mm/swap.c |   32 ++++++--------------------------
+ 1 file changed, 6 insertions(+), 26 deletions(-)
 
---- a/include/linux/mm.h~mm-inline-destroy_large_folio-into-__folio_put_large
-+++ a/include/linux/mm.h
-@@ -1318,8 +1318,6 @@ void folio_copy(struct folio *dst, struc
- 
- unsigned long nr_free_buffer_pages(void);
- 
--void destroy_large_folio(struct folio *folio);
--
- /* Returns the number of bytes in this potentially compound page. */
- static inline unsigned long page_size(struct page *page)
- {
---- a/mm/page_alloc.c~mm-inline-destroy_large_folio-into-__folio_put_large
-+++ a/mm/page_alloc.c
-@@ -565,20 +565,6 @@ void prep_compound_page(struct page *pag
- 	prep_compound_head(page, order);
+--- a/mm/swap.c~mm-combine-__folio_put_small-__folio_put_large-and-__folio_put
++++ a/mm/swap.c
+@@ -112,42 +112,22 @@ static void page_cache_release(struct fo
+ 		unlock_page_lruvec_irqrestore(lruvec, flags);
  }
  
--void destroy_large_folio(struct folio *folio)
+-static void __folio_put_small(struct folio *folio)
 -{
--	if (folio_test_hugetlb(folio)) {
--		free_huge_folio(folio);
--		return;
--	}
--
--	if (folio_test_large_rmappable(folio))
--		folio_undo_large_rmappable(folio);
--
+-	page_cache_release(folio);
 -	mem_cgroup_uncharge(folio);
--	free_unref_page(&folio->page, folio_order(folio));
+-	free_unref_page(&folio->page, 0);
 -}
 -
- static inline void set_buddy_order(struct page *page, unsigned int order)
+-static void __folio_put_large(struct folio *folio)
++void __folio_put(struct folio *folio)
  {
- 	set_page_private(page, order);
---- a/mm/swap.c~mm-inline-destroy_large_folio-into-__folio_put_large
-+++ a/mm/swap.c
-@@ -127,9 +127,16 @@ static void __folio_put_large(struct fol
- 	 * (it's never listed to any LRU lists) and no memcg routines should
- 	 * be called for hugetlb (it has a separate hugetlb_cgroup.)
- 	 */
--	if (!folio_test_hugetlb(folio))
--		page_cache_release(folio);
--	destroy_large_folio(folio);
-+	if (folio_test_hugetlb(folio)) {
-+		free_huge_folio(folio);
+-	/*
+-	 * __page_cache_release() is supposed to be called for thp, not for
+-	 * hugetlb. This is because hugetlb page does never have PageLRU set
+-	 * (it's never listed to any LRU lists) and no memcg routines should
+-	 * be called for hugetlb (it has a separate hugetlb_cgroup.)
+-	 */
+-	if (folio_test_hugetlb(folio)) {
++	if (unlikely(folio_is_zone_device(folio))) {
++		free_zone_device_page(&folio->page);
 +		return;
-+	}
-+
-+	page_cache_release(folio);
-+	if (folio_test_large_rmappable(folio))
-+		folio_undo_large_rmappable(folio);
-+	mem_cgroup_uncharge(folio);
-+	free_unref_page(&folio->page, folio_order(folio));
- }
++	} else if (folio_test_hugetlb(folio)) {
+ 		free_huge_folio(folio);
+ 		return;
+ 	}
  
- void __folio_put(struct folio *folio)
+ 	page_cache_release(folio);
+-	if (folio_test_large_rmappable(folio))
++	if (folio_test_large(folio) && folio_test_large_rmappable(folio))
+ 		folio_undo_large_rmappable(folio);
+ 	mem_cgroup_uncharge(folio);
+ 	free_unref_page(&folio->page, folio_order(folio));
+ }
+-
+-void __folio_put(struct folio *folio)
+-{
+-	if (unlikely(folio_is_zone_device(folio)))
+-		free_zone_device_page(&folio->page);
+-	else if (unlikely(folio_test_large(folio)))
+-		__folio_put_large(folio);
+-	else
+-		__folio_put_small(folio);
+-}
+ EXPORT_SYMBOL(__folio_put);
+ 
+ /**
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
