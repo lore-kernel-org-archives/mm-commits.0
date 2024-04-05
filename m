@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09A3638F83
-	for <mm-commits@vger.kernel.org>; Fri,  5 Apr 2024 18:51:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86B3938F83
+	for <mm-commits@vger.kernel.org>; Fri,  5 Apr 2024 18:51:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712343111; cv=none; b=K3VxGwF0Gbyfvn9t4kk15vPmLauehpCa58qvAv2LU8uG4RNpDXOxEL2lodKk24pnV2SH3YkcivF+3VtI/8KctP79WO1Q9EMwj7g6tIDcvmMq2wc7fFADcgvtqu6d1BihhWba505++pz1kHZII+XY/YVitpEywX6NZYYL3pXydQw=
+	t=1712343112; cv=none; b=iLTj4o/JU0gvCkLHWUkSV0z9QtmrRTWYUNaL5TefQI9vbtU1jvQObEb8D/cJEAh5IecF6sWRRjJ+gMymiS5KEM4NtrLa1ijUtWo7rQrECghRcljN23rgF4u3wbjdtxrXmT8GDOsrgq8R1fPcmHeyXFqu4OmlWbkibp/20PkXhcw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712343111; c=relaxed/simple;
-	bh=JNB1YGZeMXMSKI1kwLtKyOihJ9F3IL3msXQIH3HtjWk=;
-	h=Date:To:From:Subject:Message-Id; b=CvAgfc+miF1gp5mflp2wuCu2HOEfZ1F785c8t6mfOJJwiKivmjTKfMqNaYNyqJ5H6wIWGvbqOBrQQLjic7vnPndAI2o6nExYPV+MiQpGqIs7ikqXV4WpufRAZvv02a7jvilQFavde5kRaY9yuh734Gb7iUeBdutOzUGs+dqGl2Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=We3UGNoW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712343112; c=relaxed/simple;
+	bh=Do+R1yBOK5EYGltxnBrYiK230zGGFogA5LJKleHP9uE=;
+	h=Date:To:From:Subject:Message-Id; b=Y9afwgiTjhDpjIED88HcCXeqrccZhLepMT5tC14mt3zbNHweBdNs2JcmHAnOumLOci56a83DIhwOjW6smqat7aKPm74HTgJLRJlxS2q0DpSxiWmzOxcwIwPDEy4LeIhC+x8NAa6tVVJx2uR/N38899ljDQYKqtpJU53fgNU4zUE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A6JH41Dr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="We3UGNoW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F492C433F1;
-	Fri,  5 Apr 2024 18:51:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A6JH41Dr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FB0FC433C7;
+	Fri,  5 Apr 2024 18:51:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712343110;
-	bh=JNB1YGZeMXMSKI1kwLtKyOihJ9F3IL3msXQIH3HtjWk=;
+	s=korg; t=1712343112;
+	bh=Do+R1yBOK5EYGltxnBrYiK230zGGFogA5LJKleHP9uE=;
 	h=Date:To:From:Subject:From;
-	b=We3UGNoWONs25D47JIkby9aayqVVs/ZWLsFOuClQaIQ7np0SJbuwc4xInxNaApvWE
-	 dNvxJUjcNw9UKqEwm4HQ50Fldw/I3zSWNxuPY7mOoOV/Qc4P8MUCVyPZGbhpF/dnms
-	 mRn7R2SgbmFwtXnH6/ZfnmoRIgSFoj9/i4kkz6WE=
-Date: Fri, 05 Apr 2024 11:51:49 -0700
+	b=A6JH41Drlkini+N2Tj4Xl0N+Iptv923h9JzeIFnrOOrDS85c5iVPfmeq8BHNUVini
+	 Gz451uBz8lhPYTXzKuaUhcgvo1FHgh3eaZYzW4r4JiuUfZEjmPdytnmWSxE4KP7Soe
+	 R8l7E3owY6VrY/gKZFqFk5Hsg9Iy6DLTvk7axaVg=
+Date: Fri, 05 Apr 2024 11:51:51 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-combine-free_the_page-and-free_unref_page.patch added to mm-unstable branch
-Message-Id: <20240405185150.7F492C433F1@smtp.kernel.org>
+Subject: + mm-inline-destroy_large_folio-into-__folio_put_large.patch added to mm-unstable branch
+Message-Id: <20240405185152.4FB0FC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: combine free_the_page() and free_unref_page()
+     Subject: mm: inline destroy_large_folio() into __folio_put_large()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-combine-free_the_page-and-free_unref_page.patch
+     mm-inline-destroy_large_folio-into-__folio_put_large.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-combine-free_the_page-and-free_unref_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-inline-destroy_large_folio-into-__folio_put_large.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,100 +59,78 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: combine free_the_page() and free_unref_page()
-Date: Fri, 5 Apr 2024 16:32:24 +0100
+Subject: mm: inline destroy_large_folio() into __folio_put_large()
+Date: Fri, 5 Apr 2024 16:32:25 +0100
 
-The pcp_allowed_order() check in free_the_page() was only being skipped by
-__folio_put_small() which is about to be rearranged.
+destroy_large_folio() has only one caller, move its contents there.
 
-Link: https://lkml.kernel.org/r/20240405153228.2563754-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240405153228.2563754-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   25 +++++++++++--------------
- 1 file changed, 11 insertions(+), 14 deletions(-)
+ include/linux/mm.h |    2 --
+ mm/page_alloc.c    |   14 --------------
+ mm/swap.c          |   13 ++++++++++---
+ 3 files changed, 10 insertions(+), 19 deletions(-)
 
---- a/mm/page_alloc.c~mm-combine-free_the_page-and-free_unref_page
+--- a/include/linux/mm.h~mm-inline-destroy_large_folio-into-__folio_put_large
++++ a/include/linux/mm.h
+@@ -1318,8 +1318,6 @@ void folio_copy(struct folio *dst, struc
+ 
+ unsigned long nr_free_buffer_pages(void);
+ 
+-void destroy_large_folio(struct folio *folio);
+-
+ /* Returns the number of bytes in this potentially compound page. */
+ static inline unsigned long page_size(struct page *page)
+ {
+--- a/mm/page_alloc.c~mm-inline-destroy_large_folio-into-__folio_put_large
 +++ a/mm/page_alloc.c
-@@ -541,14 +541,6 @@ static inline bool pcp_allowed_order(uns
- 	return false;
+@@ -565,20 +565,6 @@ void prep_compound_page(struct page *pag
+ 	prep_compound_head(page, order);
  }
  
--static inline void free_the_page(struct page *page, unsigned int order)
+-void destroy_large_folio(struct folio *folio)
 -{
--	if (pcp_allowed_order(order))		/* Via pcp? */
--		free_unref_page(page, order);
--	else
--		__free_pages_ok(page, order, FPI_NONE);
+-	if (folio_test_hugetlb(folio)) {
+-		free_huge_folio(folio);
+-		return;
+-	}
+-
+-	if (folio_test_large_rmappable(folio))
+-		folio_undo_large_rmappable(folio);
+-
+-	mem_cgroup_uncharge(folio);
+-	free_unref_page(&folio->page, folio_order(folio));
 -}
 -
- /*
-  * Higher-order pages are called "compound pages".  They are structured thusly:
-  *
-@@ -584,7 +576,7 @@ void destroy_large_folio(struct folio *f
- 		folio_undo_large_rmappable(folio);
- 
- 	mem_cgroup_uncharge(folio);
--	free_the_page(&folio->page, folio_order(folio));
-+	free_unref_page(&folio->page, folio_order(folio));
- }
- 
  static inline void set_buddy_order(struct page *page, unsigned int order)
-@@ -2578,6 +2570,11 @@ void free_unref_page(struct page *page,
- 	unsigned long pfn = page_to_pfn(page);
- 	int migratetype;
- 
-+	if (!pcp_allowed_order(order)) {
-+		__free_pages_ok(page, order, FPI_NONE);
+ {
+ 	set_page_private(page, order);
+--- a/mm/swap.c~mm-inline-destroy_large_folio-into-__folio_put_large
++++ a/mm/swap.c
+@@ -127,9 +127,16 @@ static void __folio_put_large(struct fol
+ 	 * (it's never listed to any LRU lists) and no memcg routines should
+ 	 * be called for hugetlb (it has a separate hugetlb_cgroup.)
+ 	 */
+-	if (!folio_test_hugetlb(folio))
+-		page_cache_release(folio);
+-	destroy_large_folio(folio);
++	if (folio_test_hugetlb(folio)) {
++		free_huge_folio(folio);
 +		return;
 +	}
 +
- 	if (!free_pages_prepare(page, order))
- 		return;
- 
-@@ -4760,11 +4757,11 @@ void __free_pages(struct page *page, uns
- 	struct alloc_tag *tag = pgalloc_tag_get(page);
- 
- 	if (put_page_testzero(page))
--		free_the_page(page, order);
-+		free_unref_page(page, order);
- 	else if (!head) {
- 		pgalloc_tag_sub_pages(tag, (1 << order) - 1);
- 		while (order-- > 0)
--			free_the_page(page + (1 << order), order);
-+			free_unref_page(page + (1 << order), order);
- 	}
++	page_cache_release(folio);
++	if (folio_test_large_rmappable(folio))
++		folio_undo_large_rmappable(folio);
++	mem_cgroup_uncharge(folio);
++	free_unref_page(&folio->page, folio_order(folio));
  }
- EXPORT_SYMBOL(__free_pages);
-@@ -4826,7 +4823,7 @@ void __page_frag_cache_drain(struct page
- 	VM_BUG_ON_PAGE(page_ref_count(page) == 0, page);
  
- 	if (page_ref_sub_and_test(page, count))
--		free_the_page(page, compound_order(page));
-+		free_unref_page(page, compound_order(page));
- }
- EXPORT_SYMBOL(__page_frag_cache_drain);
- 
-@@ -4867,7 +4864,7 @@ refill:
- 			goto refill;
- 
- 		if (unlikely(nc->pfmemalloc)) {
--			free_the_page(page, compound_order(page));
-+			free_unref_page(page, compound_order(page));
- 			goto refill;
- 		}
- 
-@@ -4911,7 +4908,7 @@ void page_frag_free(void *addr)
- 	struct page *page = virt_to_head_page(addr);
- 
- 	if (unlikely(put_page_testzero(page)))
--		free_the_page(page, compound_order(page));
-+		free_unref_page(page, compound_order(page));
- }
- EXPORT_SYMBOL(page_frag_free);
- 
+ void __folio_put(struct folio *folio)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
