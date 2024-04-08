@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 364311DDD6
-	for <mm-commits@vger.kernel.org>; Mon,  8 Apr 2024 19:15:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71A93433BD
+	for <mm-commits@vger.kernel.org>; Mon,  8 Apr 2024 19:17:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712603727; cv=none; b=XPGwbZLSwM6WdgCe1EM062vjJmwK/7HnYHK6QJSpTGYNdB3hg1W/wOQO++PkxypabcgI2Hm9MTJ7W1BPJP5ZIbbUCyxrmkQ4ocP3PMoROyNGUnV7Kw+MaRrAr2bPwEXhg0y29++vppf31YifbafYXkShCxCVas5GXIDfHKDjDis=
+	t=1712603863; cv=none; b=GOAvKPHXamjDLJnRLNYAILVqwqlvHNoECVg1ea1rjhFPiB01jNLCt6OlgF+J1nat+cV8i34HudLLK+fI80STtIGxyRoqf+1Kq8+qKgRhT5v30/SXQbdDZu+JQ4O44zoeMy56PhW/1mnaivlIQ+ImWjN8HtzQY1KloKPEWoFFxno=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712603727; c=relaxed/simple;
-	bh=NjAmnaxjkHD9DynWIo8S4c6aTWmJZuNQguXhDwyTKLk=;
-	h=Date:To:From:Subject:Message-Id; b=aDcv2GHcuCQ4t6Qwmf39zJbzdTTcBjWx5attjgxs2NBGKdGueHwZsfJeWFLTgnwp0Fa8d6TCjp1xTh8flqm30kcIoU57ETd7pxEOF6AFZZcJTvrD8QBXFEzGHUjNwd2hoj5ag8yZt9LGkQwyRCR6Xg6HFs1B+Vo98Zz7KWNblw4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c3rH8n35; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712603863; c=relaxed/simple;
+	bh=TYHILt3GNW9IBGIbtx0+vy09R2+mMBYq5i6aCcvQbRA=;
+	h=Date:To:From:Subject:Message-Id; b=bQTzbyK0Sr5joQURqLcsf205TP5tUva1GNIO1Aws/Wjs7t+5h4ErFOvA51YuQiDF+19GK6Zmdt+qu1i2i4cmiQaiqho15kW7vpzlF29qkdNJo0satVx4HfwtmRoq/seXlLRU7qtAWF5teznGhpPUM77C57w2Hi5/ykReaapDm/s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iCo7ZaMb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c3rH8n35"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D845FC433C7;
-	Mon,  8 Apr 2024 19:15:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iCo7ZaMb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9E4AC433F1;
+	Mon,  8 Apr 2024 19:17:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712603726;
-	bh=NjAmnaxjkHD9DynWIo8S4c6aTWmJZuNQguXhDwyTKLk=;
+	s=korg; t=1712603862;
+	bh=TYHILt3GNW9IBGIbtx0+vy09R2+mMBYq5i6aCcvQbRA=;
 	h=Date:To:From:Subject:From;
-	b=c3rH8n35TcyS4pd6+cj8trqH1wjKXQh4mMnYuNI2J3TZlabCYlP0tYeTl5OOtik7T
-	 0NoyFmBm+bavC0zDNA2nw69HMc2jLbI6QBCW9D8cVsatfkOXP925dYY/Woc2qkuP4d
-	 FW7l+OZnRQInF29rS1Id1EyU8VjHeYm+A2MuDpcc=
-Date: Mon, 08 Apr 2024 12:15:26 -0700
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,willy@infradead.org,akpm@linux-foundation.org
+	b=iCo7ZaMbm0dezr3B69oiTK3b8tH3/7vbKv+CrHEcCwDhG1pjRt1v6MwuJ+xUkKJ64
+	 dR1E2mI5ZJPujCUaqWimfyofyIyHrnfiDMFS4u6PzxyM9nFz8yFbkhdL2KHcGhCWcU
+	 bs3bRn/QKnFC3lVz+wjoACmvy3BQTuVKH1NVDTk8=
+Date: Mon, 08 Apr 2024 12:17:37 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,lstoakes@gmail.com,Liam.Howlett@oracle.com,gehao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + khugepaged-use-a-folio-throughout-collapse_file-fix.patch added to mm-unstable branch
-Message-Id: <20240408191526.D845FC433C7@smtp.kernel.org>
+Subject: + mm-mmap-make-vma_wants_writenotify-return-bool.patch added to mm-unstable branch
+Message-Id: <20240408191742.C9E4AC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: khugepaged-use-a-folio-throughout-collapse_file-fix
+     Subject: mm/mmap: make vma_wants_writenotify return bool
 has been added to the -mm mm-unstable branch.  Its filename is
-     khugepaged-use-a-folio-throughout-collapse_file-fix.patch
+     mm-mmap-make-vma_wants_writenotify-return-bool.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-use-a-folio-throughout-collapse_file-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-make-vma_wants_writenotify-return-bool.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,95 +58,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: khugepaged-use-a-folio-throughout-collapse_file-fix
-Date: Sun, 7 Apr 2024 04:43:27 +0100
+From: Hao Ge <gehao@kylinos.cn>
+Subject: mm/mmap: make vma_wants_writenotify return bool
+Date: Sun, 7 Apr 2024 14:26:53 +0800
 
-the unlikely() is embedded in IS_ERR() so no need to keep it here
+vma_wants_writenotify should return bool,so we change it
 
-Link: https://lkml.kernel.org/r/ZhIWX8K0E2tSyMSr@casper.infradead.org
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
-Reported-by: Vishal Moola <vishal.moola@gmail.com>
+Link: https://lkml.kernel.org/r/20240407062653.803142-1-gehao@kylinos.cn
+Signed-off-by: Hao Ge <gehao@kylinos.cn>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h |    2 +-
+ mm/mmap.c          |   12 ++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-use-a-folio-throughout-collapse_file-fix
-+++ a/mm/khugepaged.c
-@@ -1865,7 +1865,7 @@ static int collapse_file(struct mm_struc
- 				/* drain lru cache to help isolate_lru_page() */
- 				lru_add_drain();
- 				folio = filemap_lock_folio(mapping, index);
--				if (unlikely(folio == NULL)) {
-+				if (IS_ERR(folio)) {
- 					result = SCAN_FAIL;
- 					goto xa_unlocked;
- 				}
+--- a/include/linux/mm.h~mm-mmap-make-vma_wants_writenotify-return-bool
++++ a/include/linux/mm.h
+@@ -2575,7 +2575,7 @@ extern unsigned long move_page_tables(st
+ 					    MM_CP_UFFD_WP_RESOLVE)
+ 
+ bool vma_needs_dirty_tracking(struct vm_area_struct *vma);
+-int vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot);
++bool vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot);
+ static inline bool vma_wants_manual_pte_write_upgrade(struct vm_area_struct *vma)
+ {
+ 	/*
+--- a/mm/mmap.c~mm-mmap-make-vma_wants_writenotify-return-bool
++++ a/mm/mmap.c
+@@ -1514,32 +1514,32 @@ bool vma_needs_dirty_tracking(struct vm_
+  * to the private version (using protection_map[] without the
+  * VM_SHARED bit).
+  */
+-int vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot)
++bool vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot)
+ {
+ 	/* If it was private or non-writable, the write bit is already clear */
+ 	if (!vma_is_shared_writable(vma))
+-		return 0;
++		return false;
+ 
+ 	/* The backer wishes to know when pages are first written to? */
+ 	if (vm_ops_needs_writenotify(vma->vm_ops))
+-		return 1;
++		return true;
+ 
+ 	/* The open routine did something to the protections that pgprot_modify
+ 	 * won't preserve? */
+ 	if (pgprot_val(vm_page_prot) !=
+ 	    pgprot_val(vm_pgprot_modify(vm_page_prot, vma->vm_flags)))
+-		return 0;
++		return false;
+ 
+ 	/*
+ 	 * Do we need to track softdirty? hugetlb does not support softdirty
+ 	 * tracking yet.
+ 	 */
+ 	if (vma_soft_dirty_enabled(vma) && !is_vm_hugetlb_page(vma))
+-		return 1;
++		return true;
+ 
+ 	/* Do we need write faults for uffd-wp tracking? */
+ 	if (userfaultfd_wp(vma))
+-		return 1;
++		return true;
+ 
+ 	/* Can the mapping track the dirty pages? */
+ 	return vma_fs_can_writeback(vma);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from gehao@kylinos.cn are
 
-mm-always-initialise-folio-_deferred_list.patch
-mm-create-folio_flag_false-and-folio_type_ops-macros.patch
-mm-remove-folio_prep_large_rmappable.patch
-mm-support-page_mapcount-on-page_has_type-pages.patch
-mm-turn-folio_test_hugetlb-into-a-pagetype.patch
-mm-turn-folio_test_hugetlb-into-a-pagetype-fix.patch
-mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch
-mm-free-up-pg_slab.patch
-mm-free-up-pg_slab-fix.patch
-mm-improve-dumping-of-mapcount-and-page_type.patch
-hugetlb-remove-mention-of-destructors.patch
-sh-remove-use-of-pg_arch_1-on-individual-pages.patch
-xtensa-remove-uses-of-pg_arch_1-on-individual-pages.patch
-mm-make-page_ext_get-take-a-const-argument.patch
-mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument.patch
-mm-make-is_free_buddy_page-take-a-const-argument.patch
-mm-make-page_mapped-take-a-const-argument.patch
-mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
-mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix.patch
-slub-remove-use-of-page-flags.patch
-remove-references-to-page-flags-in-documentation.patch
-proc-rewrite-stable_page_flags.patch
-proc-rewrite-stable_page_flags-fix.patch
-proc-rewrite-stable_page_flags-fix-2.patch
-sparc-use-is_huge_zero_pmd.patch
-mm-add-is_huge_zero_folio.patch
-mm-add-pmd_folio.patch
-mm-convert-migrate_vma_collect_pmd-to-use-a-folio.patch
-mm-convert-huge_zero_page-to-huge_zero_folio.patch
-mm-convert-do_huge_pmd_anonymous_page-to-huge_zero_folio.patch
-dax-use-huge_zero_folio.patch
-mm-rename-mm_put_huge_zero_page-to-mm_put_huge_zero_folio.patch
-mm-use-rwsem-assertion-macros-for-mmap_lock.patch
-filemap-remove-__set_page_dirty.patch
-mm-correct-page_mapped_in_vma-for-large-folios.patch
-mm-remove-vma_address.patch
-mm-rename-vma_pgoff_address-back-to-vma_address.patch
-khugepaged-inline-hpage_collapse_alloc_folio.patch
-khugepaged-convert-alloc_charge_hpage-to-alloc_charge_folio.patch
-khugepaged-remove-hpage-from-collapse_huge_page.patch
-khugepaged-pass-a-folio-to-__collapse_huge_page_copy.patch
-khugepaged-remove-hpage-from-collapse_file.patch
-khugepaged-use-a-folio-throughout-collapse_file.patch
-khugepaged-use-a-folio-throughout-collapse_file-fix.patch
-khugepaged-use-a-folio-throughout-hpage_collapse_scan_file.patch
-proc-convert-clear_refs_pte_range-to-use-a-folio.patch
-proc-convert-smaps_account-to-use-a-folio.patch
-mm-remove-page_idle-and-page_young-wrappers.patch
-mm-generate-page_idle_flag-definitions.patch
-proc-convert-gather_stats-to-use-a-folio.patch
-proc-convert-smaps_page_accumulate-to-use-a-folio.patch
-proc-pass-a-folio-to-smaps_page_accumulate.patch
-proc-convert-smaps_pmd_entry-to-use-a-folio.patch
-mm-remove-struct-page-from-get_shadow_from_swap_cache.patch
-hugetlb-convert-alloc_buddy_hugetlb_folio-to-use-a-folio.patch
-mm-convert-pagecache_isize_extended-to-use-a-folio.patch
-mm-free-non-hugetlb-large-folios-in-a-batch.patch
-mm-combine-free_the_page-and-free_unref_page.patch
-mm-inline-destroy_large_folio-into-__folio_put_large.patch
-mm-combine-__folio_put_small-__folio_put_large-and-__folio_put.patch
-mm-convert-free_zone_device_page-to-free_zone_device_folio.patch
+mm-page-flags-make-__pagemovable-return-bool.patch
+mm-page-flags-make-pagemappingflags-return-bool.patch
+mm-mmap-make-vma_wants_writenotify-return-bool.patch
 
