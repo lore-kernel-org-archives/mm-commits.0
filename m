@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6059A146A9B;
-	Mon,  8 Apr 2024 20:19:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62FEB7482
+	for <mm-commits@vger.kernel.org>; Mon,  8 Apr 2024 20:37:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712607582; cv=none; b=XRiDURNjBdaJamR3wqEmw8zciYyidGqHGuHb6pwzCMvfn5/sACWXMGiFRi8RgTqEs+8GZnT9QWcjkE5wEoe4vUwONAWr8KCZDPq9InwKX0gnjFGfet1Rr/WUO5FaaYAIKdJPtd8vxbVOLQwmMX0fmrFpHoTqxsIWdtHJF6+bd+0=
+	t=1712608664; cv=none; b=aa92IQQYog43lHg9MQ1tz1OlpdPXkBd5IKNvZxD5fxGA2JRR8Nq22kY413Zd3eZewG1Jj5JssMQosTxI3DwZSYk5T8CUwlhED8SF+VqyHFdybwSJp+36e2jYcCavdO2h1bY7dfTWaS+SG0eUO6ohcH2Za29b5vK4VpTdDRJtX+Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712607582; c=relaxed/simple;
-	bh=yv0PD3sD2INH3fQr5EHOrqNLtXW3eyy10HE15uKsiZo=;
-	h=Date:To:From:Subject:Message-Id; b=L3cNUsjWZBsQesw+swNtvV47ebBniVm85gJSfsdCowxTueVXAJy/IJC/8g44j8exHh8HV3QPZx4A28BYgUXahcY8reXffKkuEYhT5/B6xNKGluWWiDbcL8k9hOdhjko6JrTwhkkQwWd7LGJ/lTrEXH2aLg8zt78duy90QXhQziI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S864YDvY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712608664; c=relaxed/simple;
+	bh=KuQj/KaWjs2xehKgwhXsZDxrjaIywbitLoozk0b/MSg=;
+	h=Date:To:From:Subject:Message-Id; b=PSkl4j8GcIdMOZbZvZ1vOF2t+aI2GBZk1uDcKWjsbqjHfHpmChmCTcTBnbx4ZzGOEImCAABpM96GPrmE4dIyXBJ4JNXjmh+ihLBHpLWvxj6KSw37ySKFs00yjOOQAP8/k4Z6EFU3xt8Vuk9YJuYT4MfbJqFP5O4MGWsfoCGcmbI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ouQwm/n1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S864YDvY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E55A1C433F1;
-	Mon,  8 Apr 2024 20:19:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ouQwm/n1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDCBDC433C7;
+	Mon,  8 Apr 2024 20:37:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712607582;
-	bh=yv0PD3sD2INH3fQr5EHOrqNLtXW3eyy10HE15uKsiZo=;
+	s=korg; t=1712608663;
+	bh=KuQj/KaWjs2xehKgwhXsZDxrjaIywbitLoozk0b/MSg=;
 	h=Date:To:From:Subject:From;
-	b=S864YDvY+PfkZuw0T6QeMZ2ZnzoI/Zfh+oO/XpnL0XEeYnARau+aRbclchMC1c3Ej
-	 rklniYB850omLX6yn4M6ynO31suGw2wwGmpE8AG0OLPZuW6Y+3uvvcqXbMgmK0/S5A
-	 zQ7nhu6djOAQ7lMwMo+Z3BGAhnMc4YzfpdBDf780=
-Date: Mon, 08 Apr 2024 13:19:41 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,glass.su@suse.com,akpm@linux-foundation.org
+	b=ouQwm/n1/0Yh3JoEo4Cdxtt6WBxtjcYK7RBVChRrmmptt6XlKLp0u6Gk29y0jx11c
+	 gx+8bqRsSqasYY5hO3CNU51fQNO4gkceO+vlHnFbM4/Dj99PhkusRUI+aJDQ0OrxVn
+	 uOcJ+M7Pd5dLz88TfTQl/0wd+wRV8xvV4Zxhqi8g=
+Date: Mon, 08 Apr 2024 13:37:43 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,mhocko@suse.com,ioworker0@gmail.com,david@redhat.com,chrisl@kernel.org,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-use-coarse-time-for-new-created-files.patch added to mm-nonmm-unstable branch
-Message-Id: <20240408201941.E55A1C433F1@smtp.kernel.org>
+Subject: + mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags.patch added to mm-unstable branch
+Message-Id: <20240408203743.CDCBDC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: use coarse time for new created files
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-use-coarse-time-for-new-created-files.patch
+     Subject: mm: swap: remove CLUSTER_FLAG_HUGE from swap_cluster_info:flags
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-use-coarse-time-for-new-created-files.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,95 +58,285 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Su Yue <glass.su@suse.com>
-Subject: ocfs2: use coarse time for new created files
-Date: Mon, 8 Apr 2024 16:20:41 +0800
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: swap: remove CLUSTER_FLAG_HUGE from swap_cluster_info:flags
+Date: Mon, 8 Apr 2024 19:39:40 +0100
 
-The default atime related mount option is '-o realtime' which means file
-atime should be updated if atime <= ctime or atime <= mtime.  atime should
-be updated in the following scenario, but it is not:
-==========================================================
-$ rm /mnt/testfile;
-$ echo test > /mnt/testfile
-$ stat -c "%X %Y %Z" /mnt/testfile
-1711881646 1711881646 1711881646
-$ sleep 5
-$ cat /mnt/testfile > /dev/null
-$ stat -c "%X %Y %Z" /mnt/testfile
-1711881646 1711881646 1711881646
-==========================================================
+Patch series "Swap-out mTHP without splitting", v7.
 
-And the reason the atime in the test is not updated is that ocfs2 calls
-ktime_get_real_ts64() in __ocfs2_mknod_locked during file creation.  Then
-inode_set_ctime_current() is called in inode_set_ctime_current() calls
-ktime_get_coarse_real_ts64() to get current time.
+This series adds support for swapping out multi-size THP (mTHP) without
+needing to first split the large folio via
+split_huge_page_to_list_to_order().  It closely follows the approach
+already used to swap-out PMD-sized THP.
 
-ktime_get_real_ts64() is more accurate than ktime_get_coarse_real_ts64(). 
-In my test box, I saw ctime set by ktime_get_coarse_real_ts64() is less
-than ktime_get_real_ts64() even ctime is set later.  The ctime of the new
-inode is smaller than atime.
+There are a couple of reasons for swapping out mTHP without splitting:
 
-The call trace is like:
+  - Performance: It is expensive to split a large folio and under
+    extreme memory pressure some workloads regressed performance when
+    using 64K mTHP vs 4K small folios because of this extra cost in the
+    swap-out path.  This series not only eliminates the regression but
+    makes it faster to swap out 64K mTHP vs 4K small folios.
 
-ocfs2_create
-  ocfs2_mknod
-    __ocfs2_mknod_locked
-    ....
+  - Memory fragmentation avoidance: If we can avoid splitting a large
+    folio memory is less likely to become fragmented, making it easier to
+    re-allocate a large folio in future.
 
-      ktime_get_real_ts64 <------- set atime,ctime,mtime, more accurate
-      ocfs2_populate_inode
-    ...
-    ocfs2_init_acl
-      ocfs2_acl_set_mode
-        inode_set_ctime_current
-          current_time
-            ktime_get_coarse_real_ts64 <-------less accurate
+  - Performance: Enables a separate series [7] to swap-in whole mTHPs,
+    which means we won't lose the TLB-efficiency benefits of mTHP once the
+    memory has been through a swap cycle.
 
-ocfs2_file_read_iter
-  ocfs2_inode_lock_atime
-    ocfs2_should_update_atime
-      atime <= ctime ? <-------- false, ctime < atime due to accuracy
+I've done what I thought was the smallest change possible, and as a
+result, this approach is only employed when the swap is backed by a
+non-rotating block device (just as PMD-sized THP is supported today). 
+Discussion against the RFC concluded that this is sufficient.
 
-So here call ktime_get_coarse_real_ts64 to set inode time coarser while
-creating new files.  It may lower the accuracy of file times.  But it's
-not a big deal since we already use coarse time in other places like
-ocfs2_update_inode_atime and inode_set_ctime_current.
 
-Link: https://lkml.kernel.org/r/20240408082041.20925-5-glass.su@suse.com
-Fixes: c62c38f6b91b ("ocfs2: replace CURRENT_TIME macro")
-Signed-off-by: Su Yue <glass.su@suse.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+Performance Testing
+===================
+
+I've run some swap performance tests on Ampere Altra VM (arm64) with 8
+CPUs.  The VM is set up with a 35G block ram device as the swap device and
+the test is run from inside a memcg limited to 40G memory.  I've then run
+`usemem` from vm-scalability with 70 processes, each allocating and
+writing 1G of memory.  I've repeated everything 6 times and taken the mean
+performance improvement relative to 4K page baseline:
+
+| alloc size |                baseline |           + this series |
+|            | mm-unstable (~v6.9-rc1) |                         |
+|:-----------|------------------------:|------------------------:|
+| 4K Page    |                    0.0% |                    1.3% |
+| 64K THP    |                  -13.6% |                   46.3% |
+| 2M THP     |                   91.4% |                   89.6% |
+
+So with this change, the 64K swap performance goes from a 14% regression to a
+46% improvement. While 2M shows a small regression I'm confident that this is
+just noise.
+
+[1] https://lore.kernel.org/linux-mm/20231010142111.3997780-1-ryan.roberts@arm.com/
+[2] https://lore.kernel.org/linux-mm/20231017161302.2518826-1-ryan.roberts@arm.com/
+[3] https://lore.kernel.org/linux-mm/20231025144546.577640-1-ryan.roberts@arm.com/
+[4] https://lore.kernel.org/linux-mm/20240311150058.1122862-1-ryan.roberts@arm.com/
+[5] https://lore.kernel.org/linux-mm/20240327144537.4165578-1-ryan.roberts@arm.com/
+[6] https://lore.kernel.org/linux-mm/20240403114032.1162100-1-ryan.roberts@arm.com/
+[7] https://lore.kernel.org/linux-mm/20240304081348.197341-1-21cnbao@gmail.com/
+[8] https://lore.kernel.org/linux-mm/CAGsJ_4yMOow27WDvN2q=E4HAtDd2PJ=OQ5Pj9DG+6FLWwNuXUw@mail.gmail.com/
+[9] https://lore.kernel.org/linux-mm/579d5127-c763-4001-9625-4563a9316ac3@redhat.com/
+
+
+This patch (of 7):
+
+As preparation for supporting small-sized THP in the swap-out path,
+without first needing to split to order-0, Remove the CLUSTER_FLAG_HUGE,
+which, when present, always implies PMD-sized THP, which is the same as
+the cluster size.
+
+The only use of the flag was to determine whether a swap entry refers to a
+single page or a PMD-sized THP in swap_page_trans_huge_swapped().  Instead
+of relying on the flag, we now pass in order, which originates from the
+folio's order.  This allows the logic to work for folios of any order.
+
+The one snag is that one of the swap_page_trans_huge_swapped() call sites
+does not have the folio.  But it was only being called there to shortcut a
+call __try_to_reclaim_swap() in some cases.  __try_to_reclaim_swap() gets
+the folio and (via some other functions) calls
+swap_page_trans_huge_swapped().  So I've removed the problematic call site
+and believe the new logic should be functionally equivalent.
+
+That said, removing the fast path means that we will take a reference and
+trylock a large folio much more often, which we would like to avoid.  The
+next patch will solve this.
+
+Removing CLUSTER_FLAG_HUGE also means we can remove split_swap_cluster()
+which used to be called during folio splitting, since
+split_swap_cluster()'s only job was to remove the flag.
+
+Link: https://lkml.kernel.org/r/20240408183946.2991168-1-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20240408183946.2991168-2-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Chris Li <chrisl@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Gao Xiang <xiang@kernel.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/swap.h |   10 --------
+ mm/huge_memory.c     |    3 --
+ mm/swapfile.c        |   47 ++++++-----------------------------------
+ 3 files changed, 8 insertions(+), 52 deletions(-)
 
---- a/fs/ocfs2/namei.c~ocfs2-use-coarse-time-for-new-created-files
-+++ a/fs/ocfs2/namei.c
-@@ -566,7 +566,7 @@ static int __ocfs2_mknod_locked(struct i
- 	fe->i_last_eb_blk = 0;
- 	strcpy(fe->i_signature, OCFS2_INODE_SIGNATURE);
- 	fe->i_flags |= cpu_to_le32(OCFS2_VALID_FL);
--	ktime_get_real_ts64(&ts);
-+	ktime_get_coarse_real_ts64(&ts);
- 	fe->i_atime = fe->i_ctime = fe->i_mtime =
- 		cpu_to_le64(ts.tv_sec);
- 	fe->i_mtime_nsec = fe->i_ctime_nsec = fe->i_atime_nsec =
+--- a/include/linux/swap.h~mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags
++++ a/include/linux/swap.h
+@@ -259,7 +259,6 @@ struct swap_cluster_info {
+ };
+ #define CLUSTER_FLAG_FREE 1 /* This cluster is free */
+ #define CLUSTER_FLAG_NEXT_NULL 2 /* This cluster has no next cluster */
+-#define CLUSTER_FLAG_HUGE 4 /* This cluster is backing a transparent huge page */
+ 
+ /*
+  * We assign a cluster to each CPU, so each CPU can allocate swap entry from
+@@ -587,15 +586,6 @@ static inline int add_swap_extent(struct
+ }
+ #endif /* CONFIG_SWAP */
+ 
+-#ifdef CONFIG_THP_SWAP
+-extern int split_swap_cluster(swp_entry_t entry);
+-#else
+-static inline int split_swap_cluster(swp_entry_t entry)
+-{
+-	return 0;
+-}
+-#endif
+-
+ #ifdef CONFIG_MEMCG
+ static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
+ {
+--- a/mm/huge_memory.c~mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags
++++ a/mm/huge_memory.c
+@@ -2844,9 +2844,6 @@ static void __split_huge_page(struct pag
+ 		shmem_uncharge(folio->mapping->host, nr_dropped);
+ 	remap_page(folio, nr);
+ 
+-	if (folio_test_swapcache(folio))
+-		split_swap_cluster(folio->swap);
+-
+ 	/*
+ 	 * set page to its compound_head when split to non order-0 pages, so
+ 	 * we can skip unlocking it below, since PG_locked is transferred to
+--- a/mm/swapfile.c~mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags
++++ a/mm/swapfile.c
+@@ -343,18 +343,6 @@ static inline void cluster_set_null(stru
+ 	info->data = 0;
+ }
+ 
+-static inline bool cluster_is_huge(struct swap_cluster_info *info)
+-{
+-	if (IS_ENABLED(CONFIG_THP_SWAP))
+-		return info->flags & CLUSTER_FLAG_HUGE;
+-	return false;
+-}
+-
+-static inline void cluster_clear_huge(struct swap_cluster_info *info)
+-{
+-	info->flags &= ~CLUSTER_FLAG_HUGE;
+-}
+-
+ static inline struct swap_cluster_info *lock_cluster(struct swap_info_struct *si,
+ 						     unsigned long offset)
+ {
+@@ -1027,7 +1015,7 @@ static int swap_alloc_cluster(struct swa
+ 	offset = idx * SWAPFILE_CLUSTER;
+ 	ci = lock_cluster(si, offset);
+ 	alloc_cluster(si, idx);
+-	cluster_set_count_flag(ci, SWAPFILE_CLUSTER, CLUSTER_FLAG_HUGE);
++	cluster_set_count(ci, SWAPFILE_CLUSTER);
+ 
+ 	memset(si->swap_map + offset, SWAP_HAS_CACHE, SWAPFILE_CLUSTER);
+ 	unlock_cluster(ci);
+@@ -1365,7 +1353,6 @@ void put_swap_folio(struct folio *folio,
+ 
+ 	ci = lock_cluster_or_swap_info(si, offset);
+ 	if (size == SWAPFILE_CLUSTER) {
+-		VM_BUG_ON(!cluster_is_huge(ci));
+ 		map = si->swap_map + offset;
+ 		for (i = 0; i < SWAPFILE_CLUSTER; i++) {
+ 			val = map[i];
+@@ -1373,7 +1360,6 @@ void put_swap_folio(struct folio *folio,
+ 			if (val == SWAP_HAS_CACHE)
+ 				free_entries++;
+ 		}
+-		cluster_clear_huge(ci);
+ 		if (free_entries == SWAPFILE_CLUSTER) {
+ 			unlock_cluster_or_swap_info(si, ci);
+ 			spin_lock(&si->lock);
+@@ -1395,23 +1381,6 @@ void put_swap_folio(struct folio *folio,
+ 	unlock_cluster_or_swap_info(si, ci);
+ }
+ 
+-#ifdef CONFIG_THP_SWAP
+-int split_swap_cluster(swp_entry_t entry)
+-{
+-	struct swap_info_struct *si;
+-	struct swap_cluster_info *ci;
+-	unsigned long offset = swp_offset(entry);
+-
+-	si = _swap_info_get(entry);
+-	if (!si)
+-		return -EBUSY;
+-	ci = lock_cluster(si, offset);
+-	cluster_clear_huge(ci);
+-	unlock_cluster(ci);
+-	return 0;
+-}
+-#endif
+-
+ static int swp_entry_cmp(const void *ent1, const void *ent2)
+ {
+ 	const swp_entry_t *e1 = ent1, *e2 = ent2;
+@@ -1519,22 +1488,23 @@ out:
+ }
+ 
+ static bool swap_page_trans_huge_swapped(struct swap_info_struct *si,
+-					 swp_entry_t entry)
++					 swp_entry_t entry, int order)
+ {
+ 	struct swap_cluster_info *ci;
+ 	unsigned char *map = si->swap_map;
++	unsigned int nr_pages = 1 << order;
+ 	unsigned long roffset = swp_offset(entry);
+-	unsigned long offset = round_down(roffset, SWAPFILE_CLUSTER);
++	unsigned long offset = round_down(roffset, nr_pages);
+ 	int i;
+ 	bool ret = false;
+ 
+ 	ci = lock_cluster_or_swap_info(si, offset);
+-	if (!ci || !cluster_is_huge(ci)) {
++	if (!ci || nr_pages == 1) {
+ 		if (swap_count(map[roffset]))
+ 			ret = true;
+ 		goto unlock_out;
+ 	}
+-	for (i = 0; i < SWAPFILE_CLUSTER; i++) {
++	for (i = 0; i < nr_pages; i++) {
+ 		if (swap_count(map[offset + i])) {
+ 			ret = true;
+ 			break;
+@@ -1556,7 +1526,7 @@ static bool folio_swapped(struct folio *
+ 	if (!IS_ENABLED(CONFIG_THP_SWAP) || likely(!folio_test_large(folio)))
+ 		return swap_swapcount(si, entry) != 0;
+ 
+-	return swap_page_trans_huge_swapped(si, entry);
++	return swap_page_trans_huge_swapped(si, entry, folio_order(folio));
+ }
+ 
+ /**
+@@ -1622,8 +1592,7 @@ int free_swap_and_cache(swp_entry_t entr
+ 		}
+ 
+ 		count = __swap_entry_free(p, entry);
+-		if (count == SWAP_HAS_CACHE &&
+-		    !swap_page_trans_huge_swapped(p, entry))
++		if (count == SWAP_HAS_CACHE)
+ 			__try_to_reclaim_swap(p, swp_offset(entry),
+ 					      TTRS_UNMAPPED | TTRS_FULL);
+ 		put_swap_device(p);
 _
 
-Patches currently in -mm which might be from glass.su@suse.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-ocfs2-update-inode-ctime-in-ocfs2_fileattr_set.patch
-ocfs2-return-real-error-code-in-ocfs2_dio_wr_get_block.patch
-ocfs2-fix-races-between-hole-punching-and-aiodio.patch
-ocfs2-update-inode-fsync-transaction-id-in-ocfs2_unlink-and-ocfs2_link.patch
-ocfs2-use-coarse-time-for-new-created-files.patch
+mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags.patch
+mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache.patch
+mm-swap-simplify-struct-percpu_cluster.patch
+mm-swap-update-get_swap_pages-to-take-folio-order.patch
+mm-swap-allow-storage-of-all-mthp-orders.patch
+mm-vmscan-avoid-split-during-shrink_folio_list.patch
+mm-madvise-avoid-split-during-madv_pageout-and-madv_cold.patch
 
