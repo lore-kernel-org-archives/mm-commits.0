@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E056714659B;
-	Mon,  8 Apr 2024 20:19:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6489C14659B;
+	Mon,  8 Apr 2024 20:19:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712607579; cv=none; b=oHnifE9xX1feETewhECT1VoTblYPh7nHA5lln1c06pNjA5J/N926zzTf/i5GZSBM4/GB8j+9RiinMhRevxOKOIs2t5QxD2kDN7zSp0DVCHQX4omBTv1WE1H2+48hSAgu7TxVIXL14kjkBVctLPQqIiC9sw3xIAtJQ9p660n6yTU=
+	t=1712607580; cv=none; b=ZMRpdJnf7yCLf6tFmhJNtHDwjjwCQEiDntkAOn2CGMlAo6I8shWQ+0T+HtDdurMPW6E21DsWphO6X5S5wXIRZNzEVFarBFD+MKp8h96ET2YIuywRHUnUqfXRTPk/7CEptG2SDY6U93Rud3jSJKMMaOU8yMfMI6ObpR12IM5ARds=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712607579; c=relaxed/simple;
-	bh=pFGmdsyu0G75miHWTlrAL8FiH5Lj/bdC2ttLS+wFaGE=;
-	h=Date:To:From:Subject:Message-Id; b=nPk9OY6oxwiIA3A7Nos1Hy0JclmQGPZ1b1ONVnejmTDMEDKnPwx26Yau+D8ozQM46zo7uiyFX8wvpYd/OzAO27o1VZqegn0v68/xd6iwCgJw9bFjMz1JMsIvBMssGFibxDcPh2t/hqUWWL0RP0c75v77trRlmcRtW5w0k6JME/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eOJUIFnI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712607580; c=relaxed/simple;
+	bh=fInLOl6qcDECypg+QWTH0ulNOqnuYQ7PMOquaWu7Vvg=;
+	h=Date:To:From:Subject:Message-Id; b=L+AkKZVguKySDIYeaIwIsqiAJ3KT8wDBpDrRns5kZRF3sFImA+IEuWnTL0oCDa6dfmmn2EVzxDwLEU7qJDwC8JxX4/gRNjg3zV0gXfKGk9S0UwcRB1sz170yrsI9em/Cf+qvLmtFsHT4WWVliAAsdD5CIfvd6pZ5ZIKr7ul/dRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V39rLmmu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eOJUIFnI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D9ECC433F1;
-	Mon,  8 Apr 2024 20:19:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V39rLmmu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E66C4C43601;
+	Mon,  8 Apr 2024 20:19:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712607578;
-	bh=pFGmdsyu0G75miHWTlrAL8FiH5Lj/bdC2ttLS+wFaGE=;
+	s=korg; t=1712607580;
+	bh=fInLOl6qcDECypg+QWTH0ulNOqnuYQ7PMOquaWu7Vvg=;
 	h=Date:To:From:Subject:From;
-	b=eOJUIFnIelj9695QuOUu104wXuItbveSXg3xCpm6RDfVF6QGKqt7xQ5zXWabZ9Fd1
-	 MjblETy3qiwHgSyRpR0Bl3pJ00YGheXeEDMm3ZagxH1LubCKoi6XUDyAOYOKVy4M4m
-	 q4IrXJTxEeQNLwE0R8rCx/eZSgK7GSUKZ7Xap+Xc=
-Date: Mon, 08 Apr 2024 13:19:37 -0700
+	b=V39rLmmuiFg+g+5Xkhyy8FasBiCoXEPNCXCuEfltGUNlp0QbBOksmU/DUKj9ELEvV
+	 Xk57qoINmYA99KpfHkNYTRcYzetXSYplEfFyz7JZW7oCpwFrXB2mYiODJsOHA0E35N
+	 6kM+DCAsEKZLgg+y70/CnOnXVDwls7sCV4voikfM=
+Date: Mon, 08 Apr 2024 13:19:39 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,glass.su@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-races-between-hole-punching-and-aiodio.patch added to mm-nonmm-unstable branch
-Message-Id: <20240408201938.0D9ECC433F1@smtp.kernel.org>
+Subject: + ocfs2-update-inode-fsync-transaction-id-in-ocfs2_unlink-and-ocfs2_link.patch added to mm-nonmm-unstable branch
+Message-Id: <20240408201939.E66C4C43601@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix races between hole punching and AIO+DIO
+     Subject: ocfs2: update inode fsync transaction id in ocfs2_unlink and ocfs2_link
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-races-between-hole-punching-and-aiodio.patch
+     ocfs2-update-inode-fsync-transaction-id-in-ocfs2_unlink-and-ocfs2_link.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-races-between-hole-punching-and-aiodio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-update-inode-fsync-transaction-id-in-ocfs2_unlink-and-ocfs2_link.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,71 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Su Yue <glass.su@suse.com>
-Subject: ocfs2: fix races between hole punching and AIO+DIO
-Date: Mon, 8 Apr 2024 16:20:39 +0800
+Subject: ocfs2: update inode fsync transaction id in ocfs2_unlink and ocfs2_link
+Date: Mon, 8 Apr 2024 16:20:40 +0800
 
-After commit "ocfs2: return real error code in ocfs2_dio_wr_get_block",
-fstests/generic/300 become from always failed to sometimes failed:
+transaction id should be updated in ocfs2_unlink and ocfs2_link. 
+Otherwise, inode link will be wrong after journal replay even fsync was
+called before power failure:
+=======================================================================
+$ touch testdir/bar
+$ ln testdir/bar testdir/bar_link
+$ fsync testdir/bar
+$ stat -c %h $SCRATCH_MNT/testdir/bar
+1
+$ stat -c %h $SCRATCH_MNT/testdir/bar
+1
+=======================================================================
 
-========================================================================
-[  473.293420 ] run fstests generic/300
-
-[  475.296983 ] JBD2: Ignoring recovery information on journal
-[  475.302473 ] ocfs2: Mounting device (253,1) on (node local, slot 0)
-with ordered data mode.
-[  494.290998 ] OCFS2: ERROR (device dm-1): ocfs2_change_extent_flag:
-Owner 5668 has an extent at cpos 78723 which can no longer be found
-[  494.291609 ] On-disk corruption discovered. Please run fsck.ocfs2
-once the filesystem is unmounted.
-[  494.292018 ] OCFS2: File system is now read-only.
-[  494.292224 ] (kworker/19:11,2628,19):ocfs2_mark_extent_written:5272
-ERROR: status = -30
-[  494.292602 ] (kworker/19:11,2628,19):ocfs2_dio_end_io_write:2374
-ERROR: status = -3
-fio: io_u error on file /mnt/scratch/racer: Read-only file system: write
-offset=460849152, buflen=131072
-=========================================================================
-
-In __blockdev_direct_IO, ocfs2_dio_wr_get_block is called to add unwritten
-extents to a list.  extents are also inserted into extent tree in
-ocfs2_write_begin_nolock.  Then another thread call fallocate to puch a
-hole at one of the unwritten extent.  The extent at cpos was removed by
-ocfs2_remove_extent().  At end io worker thread, ocfs2_search_extent_list
-found there is no such extent at the cpos.
-
-    T1                        T2                T3
-                              inode lock
-                                ...
-                                insert extents
-                                ...
-                              inode unlock
-ocfs2_fallocate
- __ocfs2_change_file_space
-  inode lock
-  lock ip_alloc_sem
-  ocfs2_remove_inode_range inode
-   ocfs2_remove_btree_range
-    ocfs2_remove_extent
-    ^---remove the extent at cpos 78723
-  ...
-  unlock ip_alloc_sem
-  inode unlock
-                                       ocfs2_dio_end_io
-                                        ocfs2_dio_end_io_write
-                                         lock ip_alloc_sem
-                                         ocfs2_mark_extent_written
-                                          ocfs2_change_extent_flag
-                                           ocfs2_search_extent_list
-                                           ^---failed to find extent
-                                          ...
-                                          unlock ip_alloc_sem
-
-In most filesystems, fallocate is not compatible with racing with AIO+DIO,
-so fix it by adding to wait for all dio before fallocate/punch_hole like
-ext4.
-
-Link: https://lkml.kernel.org/r/20240408082041.20925-3-glass.su@suse.com
-Fixes: b25801038da5 ("ocfs2: Support xfs style space reservation ioctls")
+Link: https://lkml.kernel.org/r/20240408082041.20925-4-glass.su@suse.com
+Fixes: ccd979bdbce9 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
 Signed-off-by: Su Yue <glass.su@suse.com>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Changwei Ge <gechangwei@live.cn>
@@ -136,20 +89,27 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    2 ++
+ fs/ocfs2/namei.c |    2 ++
  1 file changed, 2 insertions(+)
 
---- a/fs/ocfs2/file.c~ocfs2-fix-races-between-hole-punching-and-aiodio
-+++ a/fs/ocfs2/file.c
-@@ -1936,6 +1936,8 @@ static int __ocfs2_change_file_space(str
+--- a/fs/ocfs2/namei.c~ocfs2-update-inode-fsync-transaction-id-in-ocfs2_unlink-and-ocfs2_link
++++ a/fs/ocfs2/namei.c
+@@ -797,6 +797,7 @@ static int ocfs2_link(struct dentry *old
+ 	ocfs2_set_links_count(fe, inode->i_nlink);
+ 	fe->i_ctime = cpu_to_le64(inode_get_ctime_sec(inode));
+ 	fe->i_ctime_nsec = cpu_to_le32(inode_get_ctime_nsec(inode));
++	ocfs2_update_inode_fsync_trans(handle, inode, 0);
+ 	ocfs2_journal_dirty(handle, fe_bh);
  
- 	inode_lock(inode);
+ 	err = ocfs2_add_entry(handle, dentry, inode,
+@@ -993,6 +994,7 @@ static int ocfs2_unlink(struct inode *di
+ 		drop_nlink(inode);
+ 	drop_nlink(inode);
+ 	ocfs2_set_links_count(fe, inode->i_nlink);
++	ocfs2_update_inode_fsync_trans(handle, inode, 0);
+ 	ocfs2_journal_dirty(handle, fe_bh);
  
-+	/* Wait all existing dio workers, newcomers will block on i_rwsem */
-+	inode_dio_wait(inode);
- 	/*
- 	 * This prevents concurrent writes on other nodes
- 	 */
+ 	inode_set_mtime_to_ts(dir, inode_set_ctime_current(dir));
 _
 
 Patches currently in -mm which might be from glass.su@suse.com are
