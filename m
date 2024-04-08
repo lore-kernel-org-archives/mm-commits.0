@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D938C143C60;
-	Mon,  8 Apr 2024 17:48:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47B3C8662A
+	for <mm-commits@vger.kernel.org>; Mon,  8 Apr 2024 17:54:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712598520; cv=none; b=Azmq1VrHtlJVq/yB6Iai0b+abk9REtuay0XroMq0ZLpAgP/QDImUNuPIZ5ruyBfBPiNodW86NMpFMKg7KDGd7hU++28EtS6a7S5fnB5CexoVxA9shC/njLHZ3Z3wPLfat3GHlVozPOMGCoRntrlYWgrOq60Y7U4I6cbU8QN6nqk=
+	t=1712598860; cv=none; b=eETZr/QObPGk57I073quFfztv8SBktV4V1V22rATgV4yO7T5JVdN/80hqDqB6ITpD2VcvqAdAKvWZbgryg/67S9K883wcpXEhjri41QjckxfdGBB1QGuDgTT/H7AETDUIPdsLCQQOr/CtUeNO6hZD64e5kqaDXX7uaT7THD0fv4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712598520; c=relaxed/simple;
-	bh=fqz54rmuIE6mCMQlkOy2gdyljnN6Nro14MmFVNfiuB8=;
-	h=Date:To:From:Subject:Message-Id; b=Zx8+oHeUBuD6xjWp0VgZdy5yDCspEUuNKpuKaZ+ZI5tRgTCItURNVMIJjvArnkpowZi/oA3xL6lHqjRb6B/hjHWr6/80clVPBspE9tsTLSByqH2SyF67O+NWR6A6JVBEXVywlSWCiodNq4SS3J5HeMqzU9IDBzGB7CaWUlaKSdQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nnf79NCk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712598860; c=relaxed/simple;
+	bh=uKcJE1rNFSxTaDhDaZPwDbeOIn7MjfNcxRnaBMF6zHM=;
+	h=Date:To:From:Subject:Message-Id; b=MifsJL3Fhj/wmdVrMeRLjO7Oo38hUm0rfwSpCz7fpNCA3/FPnO1kG9kh+TDdJ/z1Jm6xS2BnIExYJT4TVix55Ii08QXx4EBK70pDt3NVXl3Cck/EKAO+gSEG8k8N8M7f4fa6kNPl0ex+tf84D3Kvk2Rx9PJzaWc7nMoWNYhf3vk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q4EaWoUm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nnf79NCk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4906FC433C7;
-	Mon,  8 Apr 2024 17:48:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q4EaWoUm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAEF0C433C7;
+	Mon,  8 Apr 2024 17:54:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712598519;
-	bh=fqz54rmuIE6mCMQlkOy2gdyljnN6Nro14MmFVNfiuB8=;
+	s=korg; t=1712598860;
+	bh=uKcJE1rNFSxTaDhDaZPwDbeOIn7MjfNcxRnaBMF6zHM=;
 	h=Date:To:From:Subject:From;
-	b=nnf79NCkEltSYRsqASHQmIpptUaM9B5POZTJQhsaRej9b6ijD+N0VmbDaINd4GWnn
-	 BSiRwBMe4fUXmZwbISdKKTaZXKmtP0G2HM5CGiil6gnsfGS1P9moLzSNCsz8oDSjX6
-	 tuXMeNdYqniDVvpfkYF8sVZj4GZiIB4MD4zVJd/o=
-Date: Mon, 08 Apr 2024 10:48:38 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,david@redhat.com,axelrasmussen@google.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=q4EaWoUmZfYHW8S0NCfDNVq3VTfpUkckHBCoMpdF3JeG9VM8j4qMLVYLgbeA0hajB
+	 oZszDQKznJ6nUr/dvkL02/oM48y3MGHCa0tig76YwMmKMgas2qNpIKYoU1tGwwd0ew
+	 h6H5+fBaCda0d/GTOpsg6TE18fU8qWd7sd3fvItM=
+Date: Mon, 08 Apr 2024 10:54:19 -0700
+To: mm-commits@vger.kernel.org,yujie.liu@intel.com,lkp@intel.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-userfaultfd-allow-hugetlb-change-protection-upon-poison-entry.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240408174839.4906FC433C7@smtp.kernel.org>
+Subject: + mm-add-per-order-mthp-anon_alloc-and-anon_alloc_fallback-counters-fix.patch added to mm-unstable branch
+Message-Id: <20240408175419.EAEF0C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/userfaultfd: Allow hugetlb change protection upon poison entry
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-userfaultfd-allow-hugetlb-change-protection-upon-poison-entry.patch
+     Subject: mm: fix powerpc build issue
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-per-order-mthp-anon_alloc-and-anon_alloc_fallback-counters-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-allow-hugetlb-change-protection-upon-poison-entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-per-order-mthp-anon_alloc-and-anon_alloc_fallback-counters-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,97 +58,98 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/userfaultfd: Allow hugetlb change protection upon poison entry
-Date: Fri, 5 Apr 2024 19:19:20 -0400
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: fix powerpc build issue
+Date: Sun, 7 Apr 2024 12:23:35 +1200
 
-After UFFDIO_POISON, there can be two kinds of hugetlb pte markers, either
-the POISON one or UFFD_WP one.
+On powerpc, PMD_ORDER is not a constant variable. We should transition
+to using alloc_percpu instead of a static percpu array.
 
-Allow change protection to run on a poisoned marker just like !hugetlb
-cases, ignoring the marker irrelevant of the permission.
-
-Here the two bits are mutual exclusive.  For example, when install a
-poisoned entry it must not be UFFD_WP already (by checking pte_none()
-before such install).  And it also means if UFFD_WP is set there must have
-no POISON bit set.  It makes sense because UFFD_WP is a bit to reflect
-permission, and permissions do not apply if the pte is poisoned and
-destined to sigbus.
-
-So here we simply check uffd_wp bit set first, do nothing otherwise.
-
-Attach the Fixes to UFFDIO_POISON work, as before that it should not be
-possible to have poison entry for hugetlb (e.g., hugetlb doesn't do swap,
-so no chance of swapin errors).
-
-Link: https://lkml.kernel.org/r/20240405231920.1772199-1-peterx@redhat.com
-Link: https://lore.kernel.org/r/000000000000920d5e0615602dd1@google.com
-Reported-by: syzbot+b07c8ac8eee3d4d8440f@syzkaller.appspotmail.com
-Fixes: fc71884a5f59 ("mm: userfaultfd: add new UFFDIO_POISON ioctl")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: <stable@vger.kernel.org>	[6.6+]
+Link: https://lkml.kernel.org/r/20240407042247.201412-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202404061754.n8jmZ6s3-lkp@intel.com/
+Tested-by: Yujie Liu <yujie.liu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ include/linux/huge_mm.h |    9 ++++-----
+ mm/huge_memory.c        |   12 ++++++++++--
+ 2 files changed, 14 insertions(+), 7 deletions(-)
 
---- a/mm/hugetlb.c~mm-userfaultfd-allow-hugetlb-change-protection-upon-poison-entry
-+++ a/mm/hugetlb.c
-@@ -7044,9 +7044,13 @@ long hugetlb_change_protection(struct vm
- 			if (!pte_same(pte, newpte))
- 				set_huge_pte_at(mm, address, ptep, newpte, psize);
- 		} else if (unlikely(is_pte_marker(pte))) {
--			/* No other markers apply for now. */
--			WARN_ON_ONCE(!pte_marker_uffd_wp(pte));
--			if (uffd_wp_resolve)
-+			/*
-+			 * Do nothing on a poison marker; page is
-+			 * corrupted, permissons do not apply.  Here
-+			 * pte_marker_uffd_wp()==true implies !poison
-+			 * because they're mutual exclusive.
-+			 */
-+			if (pte_marker_uffd_wp(pte) && uffd_wp_resolve)
- 				/* Safe to modify directly (non-present->none). */
- 				huge_pte_clear(mm, address, ptep, psize);
- 		} else if (!huge_pte_none(pte)) {
+--- a/include/linux/huge_mm.h~mm-add-per-order-mthp-anon_alloc-and-anon_alloc_fallback-counters-fix
++++ a/include/linux/huge_mm.h
+@@ -271,16 +271,15 @@ enum mthp_stat_item {
+ };
+ 
+ struct mthp_stat {
+-	unsigned long stats[PMD_ORDER + 1][__MTHP_STAT_COUNT];
++	unsigned long stats[0][__MTHP_STAT_COUNT];
+ };
+ 
+-DECLARE_PER_CPU(struct mthp_stat, mthp_stats);
++extern struct mthp_stat __percpu *mthp_stats;
+ 
+ static inline void count_mthp_stat(int order, enum mthp_stat_item item)
+ {
+-	if (unlikely(order > PMD_ORDER))
+-		return;
+-	this_cpu_inc(mthp_stats.stats[order][item]);
++	if (likely(order <= PMD_ORDER))
++		raw_cpu_ptr(mthp_stats)->stats[order][item]++;
+ }
+ 
+ #define transparent_hugepage_use_zero_page()				\
+--- a/mm/huge_memory.c~mm-add-per-order-mthp-anon_alloc-and-anon_alloc_fallback-counters-fix
++++ a/mm/huge_memory.c
+@@ -526,7 +526,7 @@ static const struct kobj_type thpsize_kt
+ 	.sysfs_ops = &kobj_sysfs_ops,
+ };
+ 
+-DEFINE_PER_CPU(struct mthp_stat, mthp_stats) = {{{0}}};
++struct mthp_stat __percpu *mthp_stats;
+ 
+ static unsigned long sum_mthp_stat(int order, enum mthp_stat_item item)
+ {
+@@ -534,7 +534,7 @@ static unsigned long sum_mthp_stat(int o
+ 	int cpu;
+ 
+ 	for_each_online_cpu(cpu) {
+-		struct mthp_stat *this = &per_cpu(mthp_stats, cpu);
++		struct mthp_stat *this = per_cpu_ptr(mthp_stats, cpu);
+ 
+ 		sum += this->stats[order][item];
+ 	}
+@@ -636,6 +636,13 @@ static int __init hugepage_init_sysfs(st
+ 		goto remove_hp_group;
+ 	}
+ 
++	mthp_stats = __alloc_percpu((PMD_ORDER + 1) * sizeof(mthp_stats->stats[0]),
++			sizeof(unsigned long));
++	if (!mthp_stats) {
++		err = -ENOMEM;
++		goto remove_hp_group;
++	}
++
+ 	orders = THP_ORDERS_ALL_ANON;
+ 	order = highest_order(orders);
+ 	while (orders) {
+@@ -673,6 +680,7 @@ static void __init hugepage_exit_sysfs(s
+ 	sysfs_remove_group(hugepage_kobj, &khugepaged_attr_group);
+ 	sysfs_remove_group(hugepage_kobj, &hugepage_attr_group);
+ 	kobject_put(hugepage_kobj);
++	free_percpu(mthp_stats);
+ }
+ #else
+ static inline int hugepage_init_sysfs(struct kobject **hugepage_kobj)
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mm-userfaultfd-allow-hugetlb-change-protection-upon-poison-entry.patch
-mm-hmm-process-pud-swap-entry-without-pud_huge.patch
-mm-gup-cache-p4d-in-follow_p4d_mask.patch
-mm-gup-check-p4d-presence-before-going-on.patch
-mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-arm-use-macros-to-define-pmd-pud-helpers.patch
-mm-arm-redefine-pmd_huge-with-pmd_leaf.patch
-mm-arm64-merge-pxd_huge-and-pxd_leaf-definitions.patch
-mm-powerpc-redefine-pxd_huge-with-pxd_leaf.patch
-mm-gup-merge-pxd-huge-mapping-checks.patch
-mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
-mm-treewide-remove-pxd_huge.patch
-mm-arm-remove-pmd_thp_or_huge.patch
-mm-document-pxd_leaf-api.patch
-selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation.patch
-selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation-fix.patch
-mm-kconfig-config_pgtable_has_huge_leaves.patch
-mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch
-mm-make-hpage_pxd_-macros-even-if-thp.patch
-mm-introduce-vma_pgtable_walk_beginend.patch
-mm-arch-provide-pud_pfn-fallback.patch
-mm-arch-provide-pud_pfn-fallback-fix.patch
-mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing.patch
-mm-gup-refactor-record_subpages-to-find-1st-small-page.patch
-mm-gup-handle-hugetlb-for-no_page_table.patch
-mm-gup-cache-pudp-in-follow_pud_mask.patch
-mm-gup-handle-huge-pud-for-follow_pud_mask.patch
-mm-gup-handle-huge-pmd-for-follow_pmd_mask.patch
-mm-gup-handle-huge-pmd-for-follow_pmd_mask-fix.patch
-mm-gup-handle-hugepd-for-follow_page.patch
-mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code.patch
-mm-allow-anon-exclusive-check-over-hugetlb-tail-pages.patch
+arm64-mm-swap-support-thp_swap-on-hardware-with-mte.patch
+mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio.patch
+mm-alloc_anon_folio-avoid-doing-vma_thp_gfp_mask-in-fallback-cases.patch
+mm-add-per-order-mthp-anon_alloc-and-anon_alloc_fallback-counters.patch
+mm-add-per-order-mthp-anon_alloc-and-anon_alloc_fallback-counters-fix.patch
+mm-add-per-order-mthp-anon_swpout-and-anon_swpout_fallback-counters.patch
 
