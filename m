@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2B3F1272C4
-	for <mm-commits@vger.kernel.org>; Mon,  8 Apr 2024 20:03:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 773BE146599;
+	Mon,  8 Apr 2024 20:06:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712606602; cv=none; b=jdCTDFe93NG1bLBHwJgJzux54+2iCdfiifgRbOTiJH1LuLeun8UcJ364qZtN58t3+W3klVx5rm5eMiXgNPVFDXEqDyyj2F48OD6RxEte1OAbaEmZAm7g/CUMB4QSGCw3UEk4L1VN0fIS5z4qZAmmN/an3sqpBRAzx11GUMbY7ps=
+	t=1712606789; cv=none; b=YRFdZ94CpfZhp4qLQVrbR9xP9l2JgaFErBHG/CmdRuTWpAJhAVJLISSoWdQOjhiYhYOQ6yYMD086yxUksYNff+r3so/gTMsgwWrsKjLoXffYU92W57O9r/zq2ZcAQlzKOAOba1GWLrB2n4A8Wj3hmUQtdrLD4UawbWAWoK8OIwI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712606602; c=relaxed/simple;
-	bh=zVRF7St6DBN9sb2v0No1Aa8DtrXDE3cn0p3Sc+xHQpA=;
-	h=Date:To:From:Subject:Message-Id; b=gsS/cNG7eLX3y3kFHHPMLwA5tL6TZC7kw58dCQqrvBhRYijuYBPenPloJb+JUEzfD2Wb8VtSnvJinMmyP3O0I1qLPcaBoqlBKC+ELX4y8zKoO0H3HTStef2D3KUk3NHrZE5PQc5+FNB/P8zvrlds55t0Z5Uch4KCy8C9JpLEyso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xirV6PMO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712606789; c=relaxed/simple;
+	bh=eFE2dH4ytMIV14GgPA1GBe0ikpGJetNo1z24JXkUMSY=;
+	h=Date:To:From:Subject:Message-Id; b=qVSXesdY16bH4d7dIIm/XuD3CsLCDXwj8orhICkNHUf+yZgR7bHzx6FnHnUw5BDjWZywHlguj2Hprw4uFvXqHi8EXGPggPyZrwImVRzJXQ4zmtUYei9Nu5vGH+BnaXFmjr7e8iKg5mBnPINVPbzm2kjjt3+FAi4zf+TQdZqX7i8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HdwKx4zN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xirV6PMO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 527B3C433C7;
-	Mon,  8 Apr 2024 20:03:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HdwKx4zN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06BD1C433C7;
+	Mon,  8 Apr 2024 20:06:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712606602;
-	bh=zVRF7St6DBN9sb2v0No1Aa8DtrXDE3cn0p3Sc+xHQpA=;
+	s=korg; t=1712606789;
+	bh=eFE2dH4ytMIV14GgPA1GBe0ikpGJetNo1z24JXkUMSY=;
 	h=Date:To:From:Subject:From;
-	b=xirV6PMOHdBzwJh8kJvd6VZnNy3EQtqc/8/MdiN7gxjkaMIQUWSH76ISAlpq0Z3Qk
-	 mCdD5vLNMOqzB/Rp2TqPYMZUnzJPwgeDlfEhrVoIB39sot/HBTBCEhTucsCq4VSW04
-	 Spc12X26MKK6jGnp2T/plXRXavMPpV2HQ7RwzSZg=
-Date: Mon, 08 Apr 2024 13:03:21 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,osalvador@suse.de,muchun.song@linux.dev,vishal.moola@gmail.com,akpm@linux-foundation.org
+	b=HdwKx4zNHOgyCsOQOoJzKWFQ5dgXsC9aLI5S3WDgCX5YOrLx3pWk9ZAa3a9OYnifh
+	 kqxFoRPCTfmLlrpGEn1NS/uSTBAxgpfAq6AzOO/WscA+kEPF39u/ksl/R0tvJ2L3lQ
+	 1vKFbztQW+iZRXvh6jt80lbvnJosVR5cnK0RLSnU=
+Date: Mon, 08 Apr 2024 13:06:28 -0700
+To: mm-commits@vger.kernel.org,tony.luck@intel.com,stable@vger.kernel.org,peterx@redhat.com,linmiaohe@huawei.com,david@redhat.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-convert-hugetlb_wp-to-use-struct-vm_fault-fix.patch added to mm-unstable branch
-Message-Id: <20240408200322.527B3C433C7@smtp.kernel.org>
+Subject: + mmswapops-update-check-in-is_pfn_swap_entry-for-hwpoison-entries.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240408200629.06BD1C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hugetlb: Simplify hugetlb_wp() arguments
-has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-convert-hugetlb_wp-to-use-struct-vm_fault-fix.patch
+     Subject: mm,swapops: update check in is_pfn_swap_entry for hwpoison entries
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mmswapops-update-check-in-is_pfn_swap_entry-for-hwpoison-entries.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-convert-hugetlb_wp-to-use-struct-vm_fault-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmswapops-update-check-in-is_pfn_swap_entry-for-hwpoison-entries.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,64 +58,145 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: hugetlb: Simplify hugetlb_wp() arguments
-Date: Mon, 8 Apr 2024 10:21:44 -0700
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,swapops: update check in is_pfn_swap_entry for hwpoison entries
+Date: Sun, 7 Apr 2024 15:05:37 +0200
 
-simplify the function arguments, per Oscar and Muchun.
+Tony reported that the Machine check recovery was broken in v6.9-rc1, as
+he was hitting a VM_BUG_ON when injecting uncorrectable memory errors to
+DRAM.
 
-Link: https://lkml.kernel.org/r/ZhQtoFNZBNwBCeXn@fedora
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Suggested-by: Muchun Song <muchun.song@linux.dev>
-Suggested-by: Oscar Salvador <osalvador@suse.de>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+After some more digging and debugging on his side, he realized that this
+went back to v6.1, with the introduction of 'commit 0d206b5d2e0d
+("mm/swap: add swp_offset_pfn() to fetch PFN from swap entry")'.  That
+commit, among other things, introduced swp_offset_pfn(), replacing
+hwpoison_entry_to_pfn() in its favour.
+
+The patch also introduced a VM_BUG_ON() check for is_pfn_swap_entry(), but
+is_pfn_swap_entry() never got updated to cover hwpoison entries, which
+means that we would hit the VM_BUG_ON whenever we would call
+swp_offset_pfn() for such entries on environments with CONFIG_DEBUG_VM
+set.  Fix this by updating the check to cover hwpoison entries as well,
+and update the comment while we are it.
+
+Link: https://lkml.kernel.org/r/20240407130537.16977-1-osalvador@suse.de
+Fixes: 0d206b5d2e0d ("mm/swap: add swp_offset_pfn() to fetch PFN from swap entry")
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Reported-by: Tony Luck <tony.luck@intel.com>
+Closes: https://lore.kernel.org/all/Zg8kLSl2yAlA3o5D@agluck-desk3/
+Tested-by: Tony Luck <tony.luck@intel.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: <stable@vger.kernel.org>	[6.1.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ include/linux/swapops.h |   65 +++++++++++++++++++-------------------
+ 1 file changed, 33 insertions(+), 32 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-convert-hugetlb_wp-to-use-struct-vm_fault-fix
-+++ a/mm/hugetlb.c
-@@ -5915,10 +5915,11 @@ static void unmap_ref_private(struct mm_
-  * cannot race with other handlers or page migration.
-  * Keep the pte_same checks anyway to make transition from the mutex easier.
+--- a/include/linux/swapops.h~mmswapops-update-check-in-is_pfn_swap_entry-for-hwpoison-entries
++++ a/include/linux/swapops.h
+@@ -390,6 +390,35 @@ static inline bool is_migration_entry_di
+ }
+ #endif	/* CONFIG_MIGRATION */
+ 
++#ifdef CONFIG_MEMORY_FAILURE
++
++/*
++ * Support for hardware poisoned pages
++ */
++static inline swp_entry_t make_hwpoison_entry(struct page *page)
++{
++	BUG_ON(!PageLocked(page));
++	return swp_entry(SWP_HWPOISON, page_to_pfn(page));
++}
++
++static inline int is_hwpoison_entry(swp_entry_t entry)
++{
++	return swp_type(entry) == SWP_HWPOISON;
++}
++
++#else
++
++static inline swp_entry_t make_hwpoison_entry(struct page *page)
++{
++	return swp_entry(0, 0);
++}
++
++static inline int is_hwpoison_entry(swp_entry_t swp)
++{
++	return 0;
++}
++#endif
++
+ typedef unsigned long pte_marker;
+ 
+ #define  PTE_MARKER_UFFD_WP			BIT(0)
+@@ -483,8 +512,9 @@ static inline struct folio *pfn_swap_ent
+ 
+ /*
+  * A pfn swap entry is a special type of swap entry that always has a pfn stored
+- * in the swap offset. They are used to represent unaddressable device memory
+- * and to restrict access to a page undergoing migration.
++ * in the swap offset. They can either be used to represent unaddressable device
++ * memory, to restrict access to a page undergoing migration or to represent a
++ * pfn which has been hwpoisoned and unmapped.
   */
--static vm_fault_t hugetlb_wp(struct mm_struct *mm, struct vm_area_struct *vma,
--		       struct folio *pagecache_folio,
-+static vm_fault_t hugetlb_wp(struct folio *pagecache_folio,
- 		       struct vm_fault *vmf)
+ static inline bool is_pfn_swap_entry(swp_entry_t entry)
  {
-+	struct vm_area_struct *vma = vmf->vma;
-+	struct mm_struct *mm = vma->vm_mm;
- 	const bool unshare = vmf->flags & FAULT_FLAG_UNSHARE;
- 	pte_t pte = huge_ptep_get(vmf->pte);
- 	struct hstate *h = hstate_vma(vma);
-@@ -6364,7 +6365,7 @@ static vm_fault_t hugetlb_no_page(struct
- 	hugetlb_count_add(pages_per_huge_page(h), mm);
- 	if ((vmf->flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
- 		/* Optimization, do the COW without a second fault */
--		ret = hugetlb_wp(mm, vma, folio, vmf);
-+		ret = hugetlb_wp(folio, vmf);
- 	}
+@@ -492,7 +522,7 @@ static inline bool is_pfn_swap_entry(swp
+ 	BUILD_BUG_ON(SWP_TYPE_SHIFT < SWP_PFN_BITS);
  
- 	spin_unlock(vmf->ptl);
-@@ -6577,7 +6578,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 	return is_migration_entry(entry) || is_device_private_entry(entry) ||
+-	       is_device_exclusive_entry(entry);
++	       is_device_exclusive_entry(entry) || is_hwpoison_entry(entry);
+ }
  
- 	if (flags & (FAULT_FLAG_WRITE|FAULT_FLAG_UNSHARE)) {
- 		if (!huge_pte_write(vmf.orig_pte)) {
--			ret = hugetlb_wp(mm, vma, pagecache_folio, &vmf);
-+			ret = hugetlb_wp(pagecache_folio, &vmf);
- 			goto out_put_page;
- 		} else if (likely(flags & FAULT_FLAG_WRITE)) {
- 			vmf.orig_pte = huge_pte_mkdirty(vmf.orig_pte);
+ struct page_vma_mapped_walk;
+@@ -561,35 +591,6 @@ static inline int is_pmd_migration_entry
+ }
+ #endif  /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
+ 
+-#ifdef CONFIG_MEMORY_FAILURE
+-
+-/*
+- * Support for hardware poisoned pages
+- */
+-static inline swp_entry_t make_hwpoison_entry(struct page *page)
+-{
+-	BUG_ON(!PageLocked(page));
+-	return swp_entry(SWP_HWPOISON, page_to_pfn(page));
+-}
+-
+-static inline int is_hwpoison_entry(swp_entry_t entry)
+-{
+-	return swp_type(entry) == SWP_HWPOISON;
+-}
+-
+-#else
+-
+-static inline swp_entry_t make_hwpoison_entry(struct page *page)
+-{
+-	return swp_entry(0, 0);
+-}
+-
+-static inline int is_hwpoison_entry(swp_entry_t swp)
+-{
+-	return 0;
+-}
+-#endif
+-
+ static inline int non_swap_entry(swp_entry_t entry)
+ {
+ 	return swp_type(entry) >= MAX_SWAPFILES;
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-hugetlb-convert-hugetlb_fault-to-use-struct-vm_fault.patch
-hugetlb-convert-hugetlb_no_page-to-use-struct-vm_fault.patch
-hugetlb-convert-hugetlb_no_page-to-use-struct-vm_fault-fix.patch
-hugetlb-convert-hugetlb_wp-to-use-struct-vm_fault.patch
-hugetlb-convert-hugetlb_wp-to-use-struct-vm_fault-fix.patch
+mmpage_owner-update-metadata-for-tail-pages.patch
+mmpage_owner-fix-refcount-imbalance.patch
+mmpage_owner-fix-accounting-of-pages-when-migrating.patch
+mmpage_owner-fix-printing-of-stack-records.patch
+mmswapops-update-check-in-is_pfn_swap_entry-for-hwpoison-entries.patch
 
