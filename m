@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B6C438DD6
-	for <mm-commits@vger.kernel.org>; Mon,  8 Apr 2024 20:19:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E056714659B;
+	Mon,  8 Apr 2024 20:19:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712607576; cv=none; b=s3IDs0dCuQ5cPMNKrTpJOMcLjesGteppvL/gIx7ihGbpAdGjZImwdqZx7dZLFfRdKIv6lc5fAkYUOj5kwvcJvga151USmPixSJiB5BJQe5/cFHA/pVr2M8F/HBhUbjmnqIC/G5LDtfIOaHsQAM1ZH467Vi484jJPM2A6yxIfkCA=
+	t=1712607579; cv=none; b=oHnifE9xX1feETewhECT1VoTblYPh7nHA5lln1c06pNjA5J/N926zzTf/i5GZSBM4/GB8j+9RiinMhRevxOKOIs2t5QxD2kDN7zSp0DVCHQX4omBTv1WE1H2+48hSAgu7TxVIXL14kjkBVctLPQqIiC9sw3xIAtJQ9p660n6yTU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712607576; c=relaxed/simple;
-	bh=FiSd7cCcXOEjVAV/LzWRdUAJdl0wLf+ZU6Y0eEYLl2w=;
-	h=Date:To:From:Subject:Message-Id; b=A6/esyuunUEpQS3GztTNy7Yx0Ttjp55AC+myH1SGRkFn2v9nTMlFU1P5k5diPlxKRi0CCw8+ceK+14L53ZekmDckx8YtkcPRtW2watoCGQq8QRa/OfvLEh8zPldiVZWbu+eAgDTaqkpasfDH6bC8+wLSGvlHlrQR9ijSrH9qU/g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RUr6xNtv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712607579; c=relaxed/simple;
+	bh=pFGmdsyu0G75miHWTlrAL8FiH5Lj/bdC2ttLS+wFaGE=;
+	h=Date:To:From:Subject:Message-Id; b=nPk9OY6oxwiIA3A7Nos1Hy0JclmQGPZ1b1ONVnejmTDMEDKnPwx26Yau+D8ozQM46zo7uiyFX8wvpYd/OzAO27o1VZqegn0v68/xd6iwCgJw9bFjMz1JMsIvBMssGFibxDcPh2t/hqUWWL0RP0c75v77trRlmcRtW5w0k6JME/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eOJUIFnI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RUr6xNtv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FAD1C433F1;
-	Mon,  8 Apr 2024 20:19:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eOJUIFnI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D9ECC433F1;
+	Mon,  8 Apr 2024 20:19:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712607576;
-	bh=FiSd7cCcXOEjVAV/LzWRdUAJdl0wLf+ZU6Y0eEYLl2w=;
+	s=korg; t=1712607578;
+	bh=pFGmdsyu0G75miHWTlrAL8FiH5Lj/bdC2ttLS+wFaGE=;
 	h=Date:To:From:Subject:From;
-	b=RUr6xNtvXzc2d8oPWqUBR2m6vri5uKSkFfa44ylF0PW6YJRfFnxM68ZBcyyguax09
-	 6soxMRcfS0V1NXFlLIuBbM7YpS2x9YU6TMkqpfNXkLYC9kEUy+sJ9YeGtAO/qYX5tN
-	 KP/SxMqctZc/cIEnVx/dYVWNcVASwfRuo1aPikVQ=
-Date: Mon, 08 Apr 2024 13:19:35 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,glass.su@suse.com,akpm@linux-foundation.org
+	b=eOJUIFnIelj9695QuOUu104wXuItbveSXg3xCpm6RDfVF6QGKqt7xQ5zXWabZ9Fd1
+	 MjblETy3qiwHgSyRpR0Bl3pJ00YGheXeEDMm3ZagxH1LubCKoi6XUDyAOYOKVy4M4m
+	 q4IrXJTxEeQNLwE0R8rCx/eZSgK7GSUKZ7Xap+Xc=
+Date: Mon, 08 Apr 2024 13:19:37 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,glass.su@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-return-real-error-code-in-ocfs2_dio_wr_get_block.patch added to mm-nonmm-unstable branch
-Message-Id: <20240408201936.0FAD1C433F1@smtp.kernel.org>
+Subject: + ocfs2-fix-races-between-hole-punching-and-aiodio.patch added to mm-nonmm-unstable branch
+Message-Id: <20240408201938.0D9ECC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: return real error code in ocfs2_dio_wr_get_block
+     Subject: ocfs2: fix races between hole punching and AIO+DIO
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-return-real-error-code-in-ocfs2_dio_wr_get_block.patch
+     ocfs2-fix-races-between-hole-punching-and-aiodio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-return-real-error-code-in-ocfs2_dio_wr_get_block.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-races-between-hole-punching-and-aiodio.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,49 +59,71 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Su Yue <glass.su@suse.com>
-Subject: ocfs2: return real error code in ocfs2_dio_wr_get_block
-Date: Mon, 8 Apr 2024 16:20:38 +0800
+Subject: ocfs2: fix races between hole punching and AIO+DIO
+Date: Mon, 8 Apr 2024 16:20:39 +0800
 
-Patch series "ocfs2 bugs fixes exposed by fstests", v3.
+After commit "ocfs2: return real error code in ocfs2_dio_wr_get_block",
+fstests/generic/300 become from always failed to sometimes failed:
 
-The patchset is to fix some wrong behavior of ocfs2 exposed by fstests.
+========================================================================
+[  473.293420 ] run fstests generic/300
 
-Patch 1 makes userspace happy when some error happens when doing direct
-io.  Before the patch, DIO always return -EIO in case of error.  After the
-patch, it returns real error code such like -ENOSPC, EDQUOT...
+[  475.296983 ] JBD2: Ignoring recovery information on journal
+[  475.302473 ] ocfs2: Mounting device (253,1) on (node local, slot 0)
+with ordered data mode.
+[  494.290998 ] OCFS2: ERROR (device dm-1): ocfs2_change_extent_flag:
+Owner 5668 has an extent at cpos 78723 which can no longer be found
+[  494.291609 ] On-disk corruption discovered. Please run fsck.ocfs2
+once the filesystem is unmounted.
+[  494.292018 ] OCFS2: File system is now read-only.
+[  494.292224 ] (kworker/19:11,2628,19):ocfs2_mark_extent_written:5272
+ERROR: status = -30
+[  494.292602 ] (kworker/19:11,2628,19):ocfs2_dio_end_io_write:2374
+ERROR: status = -3
+fio: io_u error on file /mnt/scratch/racer: Read-only file system: write
+offset=460849152, buflen=131072
+=========================================================================
 
-Patch 2 fixes an error case when doing AIO+DIO and hole punching at same
-file position in parallel.  generic/300
+In __blockdev_direct_IO, ocfs2_dio_wr_get_block is called to add unwritten
+extents to a list.  extents are also inserted into extent tree in
+ocfs2_write_begin_nolock.  Then another thread call fallocate to puch a
+hole at one of the unwritten extent.  The extent at cpos was removed by
+ocfs2_remove_extent().  At end io worker thread, ocfs2_search_extent_list
+found there is no such extent at the cpos.
 
-Patch 3 fixes inode link count mismatch after power failure.  Without the
-patch, inode link would be wrong even fync was called on the file. 
-tests/generic/040,041,104,107,336
+    T1                        T2                T3
+                              inode lock
+                                ...
+                                insert extents
+                                ...
+                              inode unlock
+ocfs2_fallocate
+ __ocfs2_change_file_space
+  inode lock
+  lock ip_alloc_sem
+  ocfs2_remove_inode_range inode
+   ocfs2_remove_btree_range
+    ocfs2_remove_extent
+    ^---remove the extent at cpos 78723
+  ...
+  unlock ip_alloc_sem
+  inode unlock
+                                       ocfs2_dio_end_io
+                                        ocfs2_dio_end_io_write
+                                         lock ip_alloc_sem
+                                         ocfs2_mark_extent_written
+                                          ocfs2_change_extent_flag
+                                           ocfs2_search_extent_list
+                                           ^---failed to find extent
+                                          ...
+                                          unlock ip_alloc_sem
 
-patch 4 fixes wrong atime with mount option realtime.  Without the patch,
-atime of new created file won't be updated in right time. 
-tests/generic/192
+In most filesystems, fallocate is not compatible with racing with AIO+DIO,
+so fix it by adding to wait for all dio before fallocate/punch_hole like
+ext4.
 
-For stable kernels, I added fixes to patch 2,3,4.  The patch 1 is not
-recommended to be backported since ocfs2_dio_wr_get_block calls too many
-functions.  It's diffcult to check every git history of ocfs2 for every
-LTS kernel.  
-
-
-This patch (of 4):
-
-ocfs2_dio_wr_get_block always returns -EIO in case of errors.  However,
-some programs expect right exit codes while doing dio.  For example, tools
-like fio treat -ENOSPC as expected code while doing stress jobs.  And
-quota tools expect -EDQUOT when disk quota exceeds.
-
--EIO is too strong return code in the dio path.  The caller of
-ocfs2_dio_wr_get_block is __blockdev_direct_IO which is widely used and it
-handles error codes well.  I have checked functions called by
-ocfs2_dio_wr_get_block and their return codes look good and clear.  So I
-think it's safe to let ocfs2_dio_wr_get_block return real error code.
-
-Link: https://lkml.kernel.org/r/20240408082041.20925-1-glass.su@suse.com
-Link: https://lkml.kernel.org/r/20240408082041.20925-2-glass.su@suse.com
+Link: https://lkml.kernel.org/r/20240408082041.20925-3-glass.su@suse.com
+Fixes: b25801038da5 ("ocfs2: Support xfs style space reservation ioctls")
 Signed-off-by: Su Yue <glass.su@suse.com>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Changwei Ge <gechangwei@live.cn>
@@ -110,23 +132,24 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Jun Piao <piaojun@huawei.com>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Mark Fasheh <mark@fasheh.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/ocfs2/file.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/fs/ocfs2/aops.c~ocfs2-return-real-error-code-in-ocfs2_dio_wr_get_block
-+++ a/fs/ocfs2/aops.c
-@@ -2283,8 +2283,6 @@ unlock:
- 	ocfs2_inode_unlock(inode, 1);
- 	brelse(di_bh);
- out:
--	if (ret < 0)
--		ret = -EIO;
- 	return ret;
- }
+--- a/fs/ocfs2/file.c~ocfs2-fix-races-between-hole-punching-and-aiodio
++++ a/fs/ocfs2/file.c
+@@ -1936,6 +1936,8 @@ static int __ocfs2_change_file_space(str
  
+ 	inode_lock(inode);
+ 
++	/* Wait all existing dio workers, newcomers will block on i_rwsem */
++	inode_dio_wait(inode);
+ 	/*
+ 	 * This prevents concurrent writes on other nodes
+ 	 */
 _
 
 Patches currently in -mm which might be from glass.su@suse.com are
