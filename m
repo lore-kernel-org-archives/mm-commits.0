@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF2E5156F5D
-	for <mm-commits@vger.kernel.org>; Tue,  9 Apr 2024 19:30:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 481EF158A0F
+	for <mm-commits@vger.kernel.org>; Tue,  9 Apr 2024 21:16:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712691035; cv=none; b=Vu2leb0iBO9hCYysrk4YrazbpdYr239s9RrCOmhlcE2AFvkzMASzI5PsPnauUAL8aq+pJtzjK7Cxz3wGBqGYPCQzlY9rHuKPlwqj9w7jCXuHjZTD8s2p/Bi3FyHFov8be8vmbOQwdDDrRiATZXioEwU//GIDEy5Aa2dA0q9ghyo=
+	t=1712697379; cv=none; b=R06GylhccM81yfmJuixsUzlae24Fl0BGTNEKa7/zdJI8r/p5Lo0K0nWknLZQeRhPv3cyNYRO5mtSRYZnzKwJTBt5tsTQoQGEWhGReFnfm95QGEw4sWTkaHyMDwe/A5k6I3bgGUdgNcTlJ3a3fqsiDVMt71KG0Kd+Kb3O210HXQs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712691035; c=relaxed/simple;
-	bh=E1fKzGlzsZuMh0H7HquqgS4kjxRoSwRV2NKNZ8TdgXA=;
-	h=Date:To:From:Subject:Message-Id; b=qcVgCR+ifwMZjQozAgBxolS5B1ucJP3+wBn7+lYbLt08+lj8QfTHVwZXrcu5KfNRXXTHRjqLCXe7m9ZGzcFvsAJOb2dTYlsspX3AqBfGymHInaKXnyqST+gWFOrI0nQnyNQxApdeCF8/LdVNbdEEKsPMWfbNDS9IdJolywLOfkM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bp10iNgK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712697379; c=relaxed/simple;
+	bh=72ygdK5lIh4IDUuCdPbeH0dy/aFzcGpxA2ua+uu9BxM=;
+	h=Date:To:From:Subject:Message-Id; b=skYxmFe1sJQFCQGlJJwCs4/Ot1SWd3DewVU+AdNrQ8o6yY5vIkeQ/bwCWnctMF2hrLppaXUck2gWxbgFwxwBVvNSo5Uz8P914w4YmKcmZy3tMFgi3jcruTWUunhsw78SVsrzKmG30Y2QhVrG4EoCyiNfVAoa+U2Qbluhiw73neA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KwfnWsgh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bp10iNgK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F3A6C433F1;
-	Tue,  9 Apr 2024 19:30:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KwfnWsgh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2C01C433C7;
+	Tue,  9 Apr 2024 21:16:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712691035;
-	bh=E1fKzGlzsZuMh0H7HquqgS4kjxRoSwRV2NKNZ8TdgXA=;
+	s=korg; t=1712697378;
+	bh=72ygdK5lIh4IDUuCdPbeH0dy/aFzcGpxA2ua+uu9BxM=;
 	h=Date:To:From:Subject:From;
-	b=bp10iNgKbPtFqWcDHfxxipvNlpQZmA3Go3OTUg7CLy9oscyRoOh2wC0U3ttAD31Yv
-	 jgA0SpnBte+srGgchqk260cnQijz5z3JwQ6BaXN464gNKTIHxRWsWtnrPLFyQ/6mO+
-	 8+4wMTUoha3GoXGQ5inoRRNY4JZWWGhgetBlmzXA=
-Date: Tue, 09 Apr 2024 12:30:34 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,hannes@cmpxchg.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=KwfnWsghfswcL55ZcSvNX4EnYmLhDvSrb058xMwqj18XcHn8XLWw5Snre/Ue3pqnz
+	 pKtDgi5oekiT+Iqk/Dje+Lu2HX/oqqpAOBAEUYp+4RUm1xCNuBy5JI/4qJ48FU3Qnv
+	 3gHqxYAposaa6X1DwyMu7M0Zs3BqJPC3pvAR83oo=
+Date: Tue, 09 Apr 2024 14:16:17 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,mhocko@suse.com,ioworker0@gmail.com,david@redhat.com,chrisl@kernel.org,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-consolidate-free-page-accounting-fix-3.patch added to mm-unstable branch
-Message-Id: <20240409193035.4F3A6C433F1@smtp.kernel.org>
+Subject: + mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache-fix.patch added to mm-unstable branch
+Message-Id: <20240409211618.A2C01C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: consolidate free page accounting fix 3
+     Subject: FIXUP: mm: swap: free_swap_and_cache_nr() as batched free_swap_and_cache()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-consolidate-free-page-accounting-fix-3.patch
+     mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-consolidate-free-page-accounting-fix-3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,66 +58,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: page_alloc: consolidate free page accounting fix 3
-Date: Tue, 9 Apr 2024 15:48:04 +0800
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: FIXUP: mm: swap: free_swap_and_cache_nr() as batched free_swap_and_cache()
+Date: Tue, 9 Apr 2024 12:18:40 +0100
 
-If the released page is captured by compaction, now the free page accounting
-is not correspondingly decreased, which can make the watermark checks false
-positive and result in depleted reserves etc. And I can see the false positive
-watermark checks in thpcompact benchmark, that led to a slight regression:
+Fix a build warning on parisc [1] due to their implementation of
+__swp_entry_to_pte() not correctly putting the macro args in parenthisis. 
+But it turns out that a bunch of other arches are also faulty in this
+regard.
 
-thpcompact Percentage Faults Huge
-                           k6.9-rc2-base        base + patch10 + 2 fixes
-Percentage huge-1        78.18 (   0.00%)       71.92 (  -8.01%)
-Percentage huge-3        86.70 (   0.00%)       86.07 (  -0.73%)
-Percentage huge-5        90.26 (   0.00%)       78.02 ( -13.57%)
-Percentage huge-7        92.34 (   0.00%)       78.67 ( -14.81%)
-Percentage huge-12       91.18 (   0.00%)       81.04 ( -11.12%)
-Percentage huge-18       89.00 (   0.00%)       79.57 ( -10.60%)
-Percentage huge-24       90.52 (   0.00%)       80.07 ( -11.54%)
-Percentage huge-30       94.44 (   0.00%)       96.28 (   1.95%)
-Percentage huge-32       93.09 (   0.00%)       99.39 (   6.77%)
+I'm also adding an extra statement to the documentation for
+pte_next_swp_offset() as suggested by David.
 
-After the fix, the regression is gone.
+[1] https://lore.kernel.org/all/202404091749.ScNPJ8j4-lkp@intel.com/
 
-Link: https://lkml.kernel.org/r/a2a48baca69f103aa431fd201f8a06e3b95e203d.1712648441.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20240409111840.3173122-1-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gao Xiang <xiang@kernel.org>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/internal.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-consolidate-free-page-accounting-fix-3
-+++ a/mm/page_alloc.c
-@@ -805,8 +805,10 @@ static inline void __free_one_page(struc
- 	while (order < MAX_PAGE_ORDER) {
- 		int buddy_mt = migratetype;
+--- a/mm/internal.h~mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache-fix
++++ a/mm/internal.h
+@@ -194,7 +194,8 @@ static inline int folio_pte_batch(struct
  
--		if (compaction_capture(capc, page, order, migratetype))
-+		if (compaction_capture(capc, page, order, migratetype)) {
-+			account_freepages(zone, -(1 << order), migratetype);
- 			return;
-+		}
+ /**
+  * pte_next_swp_offset - Increment the swap entry offset field of a swap pte.
+- * @pte: The initial pte state; is_swap_pte(pte) must be true.
++ * @pte: The initial pte state; is_swap_pte(pte) must be true and
++ *	 non_swap_entry() must be false.
+  *
+  * Increments the swap offset, while maintaining all other fields, including
+  * swap type, and any swp pte bits. The resulting pte is returned.
+@@ -203,7 +204,7 @@ static inline pte_t pte_next_swp_offset(
+ {
+ 	swp_entry_t entry = pte_to_swp_entry(pte);
+ 	pte_t new = __swp_entry_to_pte(__swp_entry(swp_type(entry),
+-						   swp_offset(entry) + 1));
++						   (swp_offset(entry) + 1)));
  
- 		buddy = find_buddy_page_pfn(page, pfn, order, &buddy_pfn);
- 		if (!buddy)
+ 	if (pte_swp_soft_dirty(pte))
+ 		new = pte_swp_mksoft_dirty(new);
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-mm-page_alloc-fix-freelist-movement-during-block-conversion-fix.patch
-mm-page_alloc-consolidate-free-page-accounting-fix-3.patch
-mm-record-the-migration-reason-for-struct-migration_target_control.patch
-mm-hugetlb-make-the-hugetlb-migration-strategy-consistent.patch
-docs-hugetlbpagerst-add-hugetlb-migration-description.patch
-mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch
-mm-support-multi-size-thp-numa-balancing.patch
-mm-support-multi-size-thp-numa-balancing-v3.patch
-mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics.patch
-mm-page_alloc-use-the-correct-thp-order-for-thp-pcp.patch
-mm-set-pageblock_order-to-hpage_pmd_order-in-case-with-config_hugetlb_page-but-thp-enabled.patch
+mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags.patch
+mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache.patch
+mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache-fix.patch
+mm-swap-simplify-struct-percpu_cluster.patch
+mm-swap-update-get_swap_pages-to-take-folio-order.patch
+mm-swap-allow-storage-of-all-mthp-orders.patch
+mm-vmscan-avoid-split-during-shrink_folio_list.patch
+mm-madvise-avoid-split-during-madv_pageout-and-madv_cold.patch
 
