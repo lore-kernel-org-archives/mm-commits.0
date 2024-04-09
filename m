@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E464038DC9
-	for <mm-commits@vger.kernel.org>; Tue,  9 Apr 2024 21:22:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBE78156F4E
+	for <mm-commits@vger.kernel.org>; Tue,  9 Apr 2024 21:36:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712697737; cv=none; b=oi73Cf4iXNKy99Qz+NiOHpPqogzdvU5Y/A52ulk69vkflWAIDZ4sZZuQ/KPMai7drM+MFSYmdHgFxHKUzK9SGdEyFqOtaAHIPPMhsFAtD6wL3pFGl9v3pVICf9NYZy+S/BaRoWwLIIubCOpCSB5qISRDwRn3AShusYQx1nMKOgo=
+	t=1712698565; cv=none; b=b8myD+2Mv0LcMQR+8ZLtBz2oGTUmXJVKHTt2FPWW5pXN18go1b+I8mXNmH5m9IUJeYsrhRrx7nNQ2iUlZUlrHx1x4VIqhTbI+z+vInBBY9QfDoZJOtKERGlNUg4qCQ3WfWbbEDabeRqDVPejD782YsS4P32okhftdz/MD8KpQGY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712697737; c=relaxed/simple;
-	bh=N6dV517Mmf9g0gZmYvX21erctyfM/Vk45Jana/iEe1k=;
-	h=Date:To:From:Subject:Message-Id; b=rdtwwM/ERy4mRbNXg5hzaDJ+n4bQGPqqa5H7qIVlxACORJamnIsizX3LjZbbGfSwPDLKa7wBgw6ZvZrvnP2b0r7wANnNU9xOSqdVOtE8gsBQWVhRv7DdVQKWtp1rtz5yH7GevoHZo8G9MNWujDNCrPlksZYvMkZ+93dqozwVr7E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OUHkCcnp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712698565; c=relaxed/simple;
+	bh=iDRcmQI+Ci6856fEieVHCfew7sBdYfLNJGXu56vcvE0=;
+	h=Date:To:From:Subject:Message-Id; b=g3ZiiMhia6u7TxzPP8i7TJheLUZG0KNS8jAQVAVT2KK3zqRSI++Z57rAZW/UJ5uWngg0mEt0lAcn6zZrACsGS97H8AogZJ5sUDLHr6JMMNaJof6bH8709D0n0nSgOyudUdQSwOlfsyj/cihggBEEHR2LKbDGIizA+ELN/hx9Pz0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UYQhAGAV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OUHkCcnp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62508C433C7;
-	Tue,  9 Apr 2024 21:22:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UYQhAGAV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51F58C433C7;
+	Tue,  9 Apr 2024 21:36:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712697736;
-	bh=N6dV517Mmf9g0gZmYvX21erctyfM/Vk45Jana/iEe1k=;
+	s=korg; t=1712698565;
+	bh=iDRcmQI+Ci6856fEieVHCfew7sBdYfLNJGXu56vcvE0=;
 	h=Date:To:From:Subject:From;
-	b=OUHkCcnpPIAiOy9Lg2DoekXBzJoj2OhWO1sKUUJ5hKYcIfbjqYOJAcUJfSJ3GTFGJ
-	 cGZVfjJ3+KVrj1LXW/y1EXn4x/8gPDvVQMJwN3KxChKTK5RKoPbNbrM+49MPFC61/X
-	 nSl0G+1Zs3b+9f7tJSIfniTjZJda0nv9Z7HIc+z8=
-Date: Tue, 09 Apr 2024 14:22:14 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,vbabka@suse.cz,osalvador@suse.de,akpm@linux-foundation.org
+	b=UYQhAGAVwqzKXtoZ6BiE0tFieBKFgKTGZRIq5HmMZnLSIruIeeDaiay7OfYZF9bYk
+	 J+v66lUGprvLN4oc+aWU2C7mRMeb87Xjm6DM4bjQvF3LIdZFTEg5bHunbOG5wNo2Vb
+	 EXrsw4OXZozDvXQsVQMsaSA4bbI4D1xg8KjIMD+s=
+Date: Tue, 09 Apr 2024 14:36:04 -0700
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,robert.moore@intel.com,rafael.j.wysocki@intel.com,nicolas@fjasle.eu,nathan@kernel.org,ming.m.lin@intel.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,masahiroy@kernel.org,lenb@kernel.org,ldm@flatcap.org,justinstitt@google.com,axboe@kernel.dk,astarikovskiy@suse.de,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmpage_owner-defer-enablement-of-static-branch.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240409212216.62508C433C7@smtp.kernel.org>
+Subject: + test_hexdump-avoid-string-truncation-warning.patch added to mm-nonmm-unstable branch
+Message-Id: <20240409213605.51F58C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,page_owner: defer enablement of static branch
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mmpage_owner-defer-enablement-of-static-branch.patch
+     Subject: test_hexdump: avoid string truncation warning
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     test_hexdump-avoid-string-truncation-warning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-defer-enablement-of-static-branch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/test_hexdump-avoid-string-truncation-warning.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,64 +58,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,page_owner: defer enablement of static branch
-Date: Tue, 9 Apr 2024 15:17:15 +0200
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: test_hexdump: avoid string truncation warning
+Date: Tue, 9 Apr 2024 16:00:54 +0200
 
-Kefeng Wang reported that he was seeing some memory leaks with kmemleak
-with page_owner enabled.
+gcc can warn when a string is too long to fit into the strncpy()
+destination buffer, as it is here depending on the function arguments:
 
-The reason is that we enable the page_owner_inited static branch and then
-proceed with the linking of stack_list struct to dummy_stack, which means
-that exists a race window between these two steps where we can have pages
-already being allocated calling add_stack_record_to_list(), allocating
-objects and linking them to stack_list, but then we set stack_list
-pointing to dummy_stack in init_page_owner.  Which means that the objects
-that have been allocated during that time window are unreferenced and
-lost.
+    inlined from 'test_hexdump_prepare_test.constprop' at /home/arnd/arm-soc/lib/test_hexdump.c:116:3:
+include/linux/fortify-string.h:108:33: error: '__builtin_strncpy' output truncated copying between 0 and 32 bytes from a string of length 32 [-Werror=stringop-truncation]
+  108 | #define __underlying_strncpy    __builtin_strncpy
+      |                                 ^
+include/linux/fortify-string.h:187:16: note: in expansion of macro '__underlying_strncpy'
+  187 |         return __underlying_strncpy(p, q, size);
+      |                ^~~~~~~~~~~~~~~~~~~~
 
-Fix this by deferring the enablement of the branch until we have properly
-set up the list.
+The intention here is to copy exactly 'l' bytes without any padding or
+NUL-termination, so the most logical change is to use memcpy(), just as
+a previous change adapted the other output from strncpy() to memcpy().
 
-Link: https://lkml.kernel.org/r/20240409131715.13632-1-osalvador@suse.de
-Fixes: 4bedfb314bdd ("mm,page_owner: maintain own list of stack_records structs")
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reported-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Closes: https://lore.kernel.org/linux-mm/74b147b0-718d-4d50-be75-d6afc801cd24@huawei.com/
-Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20240409140059.3806717-2-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Bob Moore <robert.moore@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Lin Ming <ming.m.lin@intel.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nicolas Schier <nicolas@fjasle.eu>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: "Richard Russon (FlatCap)" <ldm@flatcap.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    2 +-
+ lib/test_hexdump.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_owner.c~mmpage_owner-defer-enablement-of-static-branch
-+++ a/mm/page_owner.c
-@@ -118,7 +118,6 @@ static __init void init_page_owner(void)
- 	register_dummy_stack();
- 	register_failure_stack();
- 	register_early_stack();
--	static_branch_enable(&page_owner_inited);
- 	init_early_allocated_pages();
- 	/* Initialize dummy and failure stacks and link them to stack_list */
- 	dummy_stack.stack_record = __stack_depot_get_stack_record(dummy_handle);
-@@ -129,6 +128,7 @@ static __init void init_page_owner(void)
- 		refcount_set(&failure_stack.stack_record->count, 1);
- 	dummy_stack.next = &failure_stack;
- 	stack_list = &dummy_stack;
-+	static_branch_enable(&page_owner_inited);
- }
+--- a/lib/test_hexdump.c~test_hexdump-avoid-string-truncation-warning
++++ a/lib/test_hexdump.c
+@@ -113,7 +113,7 @@ static void __init test_hexdump_prepare_
+ 			*p++ = ' ';
+ 		} while (p < test + rs * 2 + rs / gs + 1);
  
- struct page_ext_operations page_owner_ops = {
+-		strncpy(p, data_a, l);
++		memcpy(p, data_a, l);
+ 		p += l;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mmpage_owner-update-metadata-for-tail-pages.patch
-mmpage_owner-fix-refcount-imbalance.patch
-mmpage_owner-fix-accounting-of-pages-when-migrating.patch
-mmpage_owner-fix-printing-of-stack-records.patch
-mmswapops-update-check-in-is_pfn_swap_entry-for-hwpoison-entries.patch
-mmpage_owner-defer-enablement-of-static-branch.patch
+fix-missing-vmalloch-includes-fix-5.patch
+kcov-avoid-clang-out-of-range-warning.patch
+test_hexdump-avoid-string-truncation-warning.patch
+block-partitions-ldm-convert-strncpy-to-strscpy.patch
+blktrace-convert-strncpy-to-strscpy_pad.patch
 
