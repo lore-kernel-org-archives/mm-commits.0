@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 700EF156F4E
-	for <mm-commits@vger.kernel.org>; Tue,  9 Apr 2024 21:36:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2D13158A3C;
+	Tue,  9 Apr 2024 21:44:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712698569; cv=none; b=qOHT9A2wR6e3seb4kOqrlwoYeX28KPWAAN9Y0SNp7YRlQvKdRjqYp/5NHvZ1C9svXMpZd6IQf58QJLS2gF2otB71IaMsaBmVhe+sKkh7jqOKNQrlhRwZWy0xCXE9eFsIgTQuns0iam3OEwr+Gtu17MkzZXZLHplFhkHmvIpvpN8=
+	t=1712699062; cv=none; b=nRIDsIOGvnKE5xrnzeDLaQONp1HxRAtvcg2gu1IceRZ0ICVhmFTyjDXld7ZmA+XpfeV0S40H/Gdcd04fAT7NmH+DBIfDUHoiRAVqMR/qOSzEOdDxCe9hAxYxjATBSku2cKRJsZ+/DxrYBlZsODs/6BUyPYAVqv/7yhZyQSUvOLk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712698569; c=relaxed/simple;
-	bh=R/VQTKkJRtIx+VT4eWdbHFjL7Bs06aVfUd4Wq7kwuL8=;
-	h=Date:To:From:Subject:Message-Id; b=r4b5IGPRbGHX8L5R7OK4E+O4fN80trhNtpeR0Ec6Am2nJKyyN6Oxi79QvwEhZsiden9V9bP8wW59sqnP792C5jKhf7kxOyR1eOfUGTHTkjKTFHzWD+9cuPQaGRz6M9xK9ZrA+DYe5ExY2RKZnfRJ4QxByTG7/wfN6DvIkG5DjJQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OmLV1NaG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712699062; c=relaxed/simple;
+	bh=WlgV8ZE83HkQBQ1grsjbK3R4bx/ooSuKTLkQQ6IS9lI=;
+	h=Date:To:From:Subject:Message-Id; b=d3P6olqOt61VyBIqtTSOTFQQm8PbEOJ+ys5ylJzJ87x4oLNI5YXjPKmwZhrmFKKG2fwmSpafSENTu1guRCqrvc2oKVaGObTowR2fMuabWhW3QB7Muw9/BoMowBHL0GMk7KdWvKApySs/Syi0QKRjSvH/26DEDMFepAEKVxCmMf4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UuoZFzbS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OmLV1NaG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 428B3C433F1;
-	Tue,  9 Apr 2024 21:36:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UuoZFzbS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E8ABC433C7;
+	Tue,  9 Apr 2024 21:44:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712698569;
-	bh=R/VQTKkJRtIx+VT4eWdbHFjL7Bs06aVfUd4Wq7kwuL8=;
+	s=korg; t=1712699062;
+	bh=WlgV8ZE83HkQBQ1grsjbK3R4bx/ooSuKTLkQQ6IS9lI=;
 	h=Date:To:From:Subject:From;
-	b=OmLV1NaGWAUBD/2fprAM342DwngnfigTA6Yq4Dl1Ij90rK8IByqkr/9s+3XXeMovP
-	 r771IsNJROSDJNJEq8joHoiKHxwYdpKCP8lBCgzftcmEIbhwg9SkL1lZWwQKQk3uEK
-	 YWXmkmQoXncNa09pI7ZomB/0iWI5mdvsgLTnTL0U=
-Date: Tue, 09 Apr 2024 14:36:08 -0700
-To: mm-commits@vger.kernel.org,rostedt@goodmis.org,robert.moore@intel.com,rafael.j.wysocki@intel.com,nicolas@fjasle.eu,nathan@kernel.org,ming.m.lin@intel.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,masahiroy@kernel.org,lenb@kernel.org,ldm@flatcap.org,justinstitt@google.com,axboe@kernel.dk,astarikovskiy@suse.de,arnd@arndb.de,akpm@linux-foundation.org
+	b=UuoZFzbSVXIulaUJ1nStgRG1bQNbVeHMcoup4OtVNPxo/J0a/lfTH1k9qdEl4xT3N
+	 67scRHYp1GSEyg7swReRADEea8ZACqv3IS+7fkishgQkC6mjz2yJXyqHBBsoAfHrhu
+	 4GbAfmnFWyTNGbi9YKthydCz0cCghTNU8DmzXHhA=
+Date: Tue, 09 Apr 2024 14:44:21 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,iii@linux.ibm.com,hughd@google.com,hca@linux.ibm.com,gor@linux.ibm.com,agordeev@linux.ibm.com,sumanthk@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + blktrace-convert-strncpy-to-strscpy_pad.patch added to mm-nonmm-unstable branch
-Message-Id: <20240409213609.428B3C433F1@smtp.kernel.org>
+Subject: + mm-shmem-inline-shmem_is_huge-for-disabled-transparent-hugepages.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240409214422.2E8ABC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: blktrace: convert strncpy() to strscpy_pad()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     blktrace-convert-strncpy-to-strscpy_pad.patch
+     Subject: mm/shmem: Inline shmem_is_huge() for disabled transparent hugepages
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-shmem-inline-shmem_is_huge-for-disabled-transparent-hugepages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/blktrace-convert-strncpy-to-strscpy_pad.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-inline-shmem_is_huge-for-disabled-transparent-hugepages.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,61 +58,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: blktrace: convert strncpy() to strscpy_pad()
-Date: Tue, 9 Apr 2024 16:00:57 +0200
+From: Sumanth Korikkar <sumanthk@linux.ibm.com>
+Subject: mm/shmem: Inline shmem_is_huge() for disabled transparent hugepages
+Date: Tue, 9 Apr 2024 17:54:07 +0200
 
-gcc-9 warns about a possibly non-terminated string copy:
+In order to  minimize code size (CONFIG_CC_OPTIMIZE_FOR_SIZE=y),
+compiler might choose to make a regular function call (out-of-line) for
+shmem_is_huge() instead of inlining it. When transparent hugepages are
+disabled (CONFIG_TRANSPARENT_HUGEPAGE=n), it can cause compilation
+error.
 
-kernel/trace/blktrace.c: In function 'do_blk_trace_setup':
-kernel/trace/blktrace.c:527:2: error: 'strncpy' specified bound 32 equals destination size [-Werror=stringop-truncation]
+mm/shmem.c: In function `shmem_getattr':
+./include/linux/huge_mm.h:383:27: note: in expansion of macro `BUILD_BUG'
+  383 | #define HPAGE_PMD_SIZE ({ BUILD_BUG(); 0; })
+      |                           ^~~~~~~~~
+mm/shmem.c:1148:33: note: in expansion of macro `HPAGE_PMD_SIZE'
+ 1148 |                 stat->blksize = HPAGE_PMD_SIZE;
 
-Newer versions are fine here because they see the following explicit
-nul-termination. Using strscpy_pad() avoids the warning and
-simplifies the code a little. The padding helps  give a clean
-buffer to userspace.
+To prevent the possible error, always inline shmem_is_huge() when
+transparent hugepages are disabled.
 
-Link: https://lkml.kernel.org/r/20240409140059.3806717-5-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Lin Ming <ming.m.lin@intel.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nicolas Schier <nicolas@fjasle.eu>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: "Richard Russon (FlatCap)" <ldm@flatcap.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Justin Stitt <justinstitt@google.com>
+Link: https://lkml.kernel.org/r/20240409155407.2322714-1-sumanthk@linux.ibm.com
+Signed-off-by: Sumanth Korikkar <sumanthk@linux.ibm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ilya Leoshkevich <iii@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/blktrace.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/shmem_fs.h |    9 +++++++++
+ mm/shmem.c               |    6 ------
+ 2 files changed, 9 insertions(+), 6 deletions(-)
 
---- a/kernel/trace/blktrace.c~blktrace-convert-strncpy-to-strscpy_pad
-+++ a/kernel/trace/blktrace.c
-@@ -524,8 +524,7 @@ static int do_blk_trace_setup(struct req
- 	if (!buts->buf_size || !buts->buf_nr)
- 		return -EINVAL;
+--- a/include/linux/shmem_fs.h~mm-shmem-inline-shmem_is_huge-for-disabled-transparent-hugepages
++++ a/include/linux/shmem_fs.h
+@@ -110,8 +110,17 @@ extern struct page *shmem_read_mapping_p
+ extern void shmem_truncate_range(struct inode *inode, loff_t start, loff_t end);
+ int shmem_unuse(unsigned int type);
  
--	strncpy(buts->name, name, BLKTRACE_BDEV_SIZE);
--	buts->name[BLKTRACE_BDEV_SIZE - 1] = '\0';
-+	strscpy_pad(buts->name, name, BLKTRACE_BDEV_SIZE);
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ extern bool shmem_is_huge(struct inode *inode, pgoff_t index, bool shmem_huge_force,
+ 			  struct mm_struct *mm, unsigned long vm_flags);
++#else
++static __always_inline bool shmem_is_huge(struct inode *inode, pgoff_t index, bool shmem_huge_force,
++					  struct mm_struct *mm, unsigned long vm_flags)
++{
++	return false;
++}
++#endif
++
+ #ifdef CONFIG_SHMEM
+ extern unsigned long shmem_swap_usage(struct vm_area_struct *vma);
+ #else
+--- a/mm/shmem.c~mm-shmem-inline-shmem_is_huge-for-disabled-transparent-hugepages
++++ a/mm/shmem.c
+@@ -748,12 +748,6 @@ static long shmem_unused_huge_count(stru
  
- 	/*
- 	 * some device names have larger paths - convert the slashes
+ #define shmem_huge SHMEM_HUGE_DENY
+ 
+-bool shmem_is_huge(struct inode *inode, pgoff_t index, bool shmem_huge_force,
+-		   struct mm_struct *mm, unsigned long vm_flags)
+-{
+-	return false;
+-}
+-
+ static unsigned long shmem_unused_huge_shrink(struct shmem_sb_info *sbinfo,
+ 		struct shrink_control *sc, unsigned long nr_to_split)
+ {
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from sumanthk@linux.ibm.com are
 
-fix-missing-vmalloch-includes-fix-5.patch
-kcov-avoid-clang-out-of-range-warning.patch
-test_hexdump-avoid-string-truncation-warning.patch
-block-partitions-ldm-convert-strncpy-to-strscpy.patch
-blktrace-convert-strncpy-to-strscpy_pad.patch
+mm-shmem-inline-shmem_is_huge-for-disabled-transparent-hugepages.patch
 
