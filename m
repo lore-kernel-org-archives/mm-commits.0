@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5624D1386C0;
-	Tue,  9 Apr 2024 19:20:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF2E5156F5D
+	for <mm-commits@vger.kernel.org>; Tue,  9 Apr 2024 19:30:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712690404; cv=none; b=l/W0zOvqLtS3jN25H4m4CITe8/2aDpZFxuYwKFEjLazmoTElibArZAQn5qvTUcy4obgmnI3PekeaE+Krq19d1VCR0GLJcpNkyabcoN7pUUrRGqSaHhaXCtLY/GSPOGY/LNTM8n+8YdfoZurCGfTdD9p5YhDzuN/5scimD6mRsV4=
+	t=1712691035; cv=none; b=Vu2leb0iBO9hCYysrk4YrazbpdYr239s9RrCOmhlcE2AFvkzMASzI5PsPnauUAL8aq+pJtzjK7Cxz3wGBqGYPCQzlY9rHuKPlwqj9w7jCXuHjZTD8s2p/Bi3FyHFov8be8vmbOQwdDDrRiATZXioEwU//GIDEy5Aa2dA0q9ghyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712690404; c=relaxed/simple;
-	bh=HTt+Pl8E3LeGv1J+tQ5NYlwq11WIQ4kjxMdnjuZFQzs=;
-	h=Date:To:From:Subject:Message-Id; b=UwaVRK29P+NRfTDqNj64qcYxLKWytuRPY1zxATKCXJ7KlTwp5BTAg9oLUfF54nvVW16c1rz+npT2TpJy4fB27Zokgn4hfu8Ol4DfQ5ZFeX1zYtn/r2R6FMnCnRKKjnYG7RAmX6/Mn8a5XptBs2D0auV0L/Y5RV3R6Ryf7rLHj+0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g8dvfkM5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712691035; c=relaxed/simple;
+	bh=E1fKzGlzsZuMh0H7HquqgS4kjxRoSwRV2NKNZ8TdgXA=;
+	h=Date:To:From:Subject:Message-Id; b=qcVgCR+ifwMZjQozAgBxolS5B1ucJP3+wBn7+lYbLt08+lj8QfTHVwZXrcu5KfNRXXTHRjqLCXe7m9ZGzcFvsAJOb2dTYlsspX3AqBfGymHInaKXnyqST+gWFOrI0nQnyNQxApdeCF8/LdVNbdEEKsPMWfbNDS9IdJolywLOfkM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bp10iNgK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g8dvfkM5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF6DDC433C7;
-	Tue,  9 Apr 2024 19:20:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bp10iNgK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F3A6C433F1;
+	Tue,  9 Apr 2024 19:30:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712690403;
-	bh=HTt+Pl8E3LeGv1J+tQ5NYlwq11WIQ4kjxMdnjuZFQzs=;
+	s=korg; t=1712691035;
+	bh=E1fKzGlzsZuMh0H7HquqgS4kjxRoSwRV2NKNZ8TdgXA=;
 	h=Date:To:From:Subject:From;
-	b=g8dvfkM5EXdCBKJGDtjcZT36peLWPjYiHCTfspfQgVxRUpYfZLZsIxyiidwEnfXbJ
-	 zSlif9zy7cUtxtj/R4zNBVSqMMH6wiaXv/J+TvgFqz7YWj9kq2ZAzhxownmfLXHXpd
-	 07vP/7hjRv11G6QFSlPlbyKX6eJ4jBN8QvPxqhyo=
-Date: Tue, 09 Apr 2024 12:20:03 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,jirislaby@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
+	b=bp10iNgKbPtFqWcDHfxxipvNlpQZmA3Go3OTUg7CLy9oscyRoOh2wC0U3ttAD31Yv
+	 jgA0SpnBte+srGgchqk260cnQijz5z3JwQ6BaXN464gNKTIHxRWsWtnrPLFyQ/6mO+
+	 8+4wMTUoha3GoXGQ5inoRRNY4JZWWGhgetBlmzXA=
+Date: Tue, 09 Apr 2024 12:30:34 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,hannes@cmpxchg.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec-fix-the-unexpected-kexec_dprintk-macro.patch added to mm-nonmm-unstable branch
-Message-Id: <20240409192003.BF6DDC433C7@smtp.kernel.org>
+Subject: + mm-page_alloc-consolidate-free-page-accounting-fix-3.patch added to mm-unstable branch
+Message-Id: <20240409193035.4F3A6C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kexec: fix the unexpected kexec_dprintk() macro
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kexec-fix-the-unexpected-kexec_dprintk-macro.patch
+     Subject: mm: page_alloc: consolidate free page accounting fix 3
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_alloc-consolidate-free-page-accounting-fix-3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-fix-the-unexpected-kexec_dprintk-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-consolidate-free-page-accounting-fix-3.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,76 +58,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: kexec: fix the unexpected kexec_dprintk() macro
-Date: Tue, 9 Apr 2024 12:22:38 +0800
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: page_alloc: consolidate free page accounting fix 3
+Date: Tue, 9 Apr 2024 15:48:04 +0800
 
-Jiri reported that the current kexec_dprintk() always prints out debugging
-message whenever kexec/kdmmp loading is triggered.  That is not wanted. 
-The debugging message is supposed to be printed out when 'kexec -s -d' is
-specified for kexec/kdump loading.
+If the released page is captured by compaction, now the free page accounting
+is not correspondingly decreased, which can make the watermark checks false
+positive and result in depleted reserves etc. And I can see the false positive
+watermark checks in thpcompact benchmark, that led to a slight regression:
 
-After investigating, the reason is the current kexec_dprintk() takes
-printk(KERN_INFO) or printk(KERN_DEBUG) depending on whether '-d' is
-specified.  However, distros usually have defaulg log level like below:
+thpcompact Percentage Faults Huge
+                           k6.9-rc2-base        base + patch10 + 2 fixes
+Percentage huge-1        78.18 (   0.00%)       71.92 (  -8.01%)
+Percentage huge-3        86.70 (   0.00%)       86.07 (  -0.73%)
+Percentage huge-5        90.26 (   0.00%)       78.02 ( -13.57%)
+Percentage huge-7        92.34 (   0.00%)       78.67 ( -14.81%)
+Percentage huge-12       91.18 (   0.00%)       81.04 ( -11.12%)
+Percentage huge-18       89.00 (   0.00%)       79.57 ( -10.60%)
+Percentage huge-24       90.52 (   0.00%)       80.07 ( -11.54%)
+Percentage huge-30       94.44 (   0.00%)       96.28 (   1.95%)
+Percentage huge-32       93.09 (   0.00%)       99.39 (   6.77%)
 
- [~]# cat /proc/sys/kernel/printk
- 7       4      1       7
+After the fix, the regression is gone.
 
-So, even though '-d' is not specified, printk(KERN_DEBUG) also always
-prints out.  I thought printk(KERN_DEBUG) is equal to pr_debug(), it's
-not.
-
-Fix it by changing to use pr_info() instead which are expected to work.
-
-Link: https://lkml.kernel.org/r/20240409042238.1240462-1-bhe@redhat.com
-Fixes: cbc2fe9d9cb2 ("kexec_file: add kexec_file flag to control debug printing")
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Reported-by: Jiri Slaby <jirislaby@kernel.org>
-Closes: https://lore.kernel.org/all/4c775fca-5def-4a2d-8437-7130b02722a2@kernel.org
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/a2a48baca69f103aa431fd201f8a06e3b95e203d.1712648441.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/include/linux/kexec.h~kexec-fix-the-unexpected-kexec_dprintk-macro
-+++ a/include/linux/kexec.h
-@@ -461,10 +461,8 @@ static inline void arch_kexec_pre_free_p
+--- a/mm/page_alloc.c~mm-page_alloc-consolidate-free-page-accounting-fix-3
++++ a/mm/page_alloc.c
+@@ -805,8 +805,10 @@ static inline void __free_one_page(struc
+ 	while (order < MAX_PAGE_ORDER) {
+ 		int buddy_mt = migratetype;
  
- extern bool kexec_file_dbg_print;
+-		if (compaction_capture(capc, page, order, migratetype))
++		if (compaction_capture(capc, page, order, migratetype)) {
++			account_freepages(zone, -(1 << order), migratetype);
+ 			return;
++		}
  
--#define kexec_dprintk(fmt, ...)					\
--	printk("%s" fmt,					\
--	       kexec_file_dbg_print ? KERN_INFO : KERN_DEBUG,	\
--	       ##__VA_ARGS__)
-+#define kexec_dprintk(fmt, arg...) \
-+        do { if (kexec_file_dbg_print) pr_info(fmt, ##arg); } while (0)
- 
- #else /* !CONFIG_KEXEC_CORE */
- struct pt_regs;
+ 		buddy = find_buddy_page_pfn(page, pfn, order, &buddy_pfn);
+ 		if (!buddy)
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-vmallocc-optimize-to-reduce-arguments-of-alloc_vmap_area.patch
-x86-remove-unneeded-memblock_find_dma_reserve.patch
-mm-mm_initc-remove-the-useless-dma_reserve.patch
-mm-mm_initc-add-new-function-calc_nr_all_pages.patch
-mm-mm_initc-remove-meaningless-calculation-of-zone-managed_pages-in-free_area_init_core.patch
-mm-mm_initc-remove-meaningless-calculation-of-zone-managed_pages-in-free_area_init_core-v3.patch
-mm-mm_initc-remove-unneeded-calc_memmap_size.patch
-mm-mm_initc-remove-arch_reserved_kernel_pages.patch
-mm-move-array-mem_section-init-code-out-of-memory_present.patch
-mm-init-remove-the-unnecessary-special-treatment-for-memory-less-node.patch
-mm-make-__absent_pages_in_range-as-static.patch
-mm-page_allocc-remove-unneeded-codes-in-numa-version-of-build_zonelists.patch
-mm-page_allocc-remove-unneeded-codes-in-numa-version-of-build_zonelists-v2.patch
-mm-mm_initc-remove-the-outdated-code-comment-above-deferred_grow_zone.patch
-mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone.patch
-mm-page_allocc-change-the-array-length-to-migrate_pcptypes.patch
-arch-loongarch-clean-up-the-left-code-and-kconfig-item-related-to-crash_core.patch
-documentation-kdump-clean-up-the-outdated-description.patch
-kexec-fix-the-unexpected-kexec_dprintk-macro.patch
+mm-page_alloc-fix-freelist-movement-during-block-conversion-fix.patch
+mm-page_alloc-consolidate-free-page-accounting-fix-3.patch
+mm-record-the-migration-reason-for-struct-migration_target_control.patch
+mm-hugetlb-make-the-hugetlb-migration-strategy-consistent.patch
+docs-hugetlbpagerst-add-hugetlb-migration-description.patch
+mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch
+mm-support-multi-size-thp-numa-balancing.patch
+mm-support-multi-size-thp-numa-balancing-v3.patch
+mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics.patch
+mm-page_alloc-use-the-correct-thp-order-for-thp-pcp.patch
+mm-set-pageblock_order-to-hpage_pmd_order-in-case-with-config_hugetlb_page-but-thp-enabled.patch
 
