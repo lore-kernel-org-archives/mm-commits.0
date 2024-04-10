@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76564181D17
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47197181BBC
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712782838; cv=none; b=h0O7iCcxB3/6f43wXsJ3K5gs1TYMx92LAXQofQ5GOyNQfd9WJ1B1NQxWabpBvixsh45xE5trbtijrU828MAAbQvwnT1e+zuuNf+KEQ68wpiuTX1unOXh3q+Y9iL4ANqmWsgDr4d+tYHSALit0mMncKBEEGHqRR8Cdrgh+OC83Ak=
+	t=1712782854; cv=none; b=Q35R28FK+3WKNfdG04PP2NoELs0N5j4v/ponhuN3DmUGbLBafG3A4816WxmPGuM5icRCw386xQueqiDgWL4cVZflEptwHFI+/ENcNcAyKqefIAN4ZBoiHLrIZFz1wYgd5A9Nl9V0IU8ZOYhUpQkEVNf7lgNBp9La2GVu0jldJtc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712782838; c=relaxed/simple;
-	bh=jdExepFCZnenhj/5IwXIZAbsyZKyTy5kBAI7FoZxcOU=;
-	h=Date:To:From:Subject:Message-Id; b=nvJ86svMEl52YTfMoiTDI9JEvnUWFj5WvOi8iMJnQMl86Ek0vGFxqDnE6mMWPZznKfKvNSMum5TgqjEncg3jCH+p7Z262cfMNShWX904vFO3bqzNZhsi56smZtgJe55Oz6tN0CBX8MAv17pgnT0/q/s0v5pmLvcyMhCpbzaf21U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1ufxANoM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712782854; c=relaxed/simple;
+	bh=FW3kPjx1teCN7F7c4u7urLXrYHhkwUHegxQKIhD/GK0=;
+	h=Date:To:From:Subject:Message-Id; b=kDe6qjpOFgFNUh8iXISAtXu6pwvuD3AT8LwZcwZ1j+uJZVsInqW/0+Tl8T1EMI/49sDGZBswzVo8oEzgTcuf6uEjw7hORMr+EpV0i7wxsCbm0K4cuim3ab2zf0vERymcFhcbVMHFp6Ktc4Yh+3k6LoK3CHBanuN3fRc61cWRrPc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ToGvE7Hi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1ufxANoM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF26FC433C7;
-	Wed, 10 Apr 2024 21:00:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ToGvE7Hi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11580C43390;
+	Wed, 10 Apr 2024 21:00:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712782838;
-	bh=jdExepFCZnenhj/5IwXIZAbsyZKyTy5kBAI7FoZxcOU=;
+	s=korg; t=1712782854;
+	bh=FW3kPjx1teCN7F7c4u7urLXrYHhkwUHegxQKIhD/GK0=;
 	h=Date:To:From:Subject:From;
-	b=1ufxANoMo1NyIWJLq4TjhJJy4/krwwMZ3R4DMJ8wDfYa7g3Ytjv8GUB9oxAqocUMp
-	 pA836iW6+ku5xVGR1meq6cWo/+WjH5LXTTQ4Z/S6AR/IgHhFGcw4u+QZ+H+KYr7MUW
-	 ej99aA5P2lNeKKA9k7zspwZqhwwLUW5tkiM+U3Pg=
-Date: Wed, 10 Apr 2024 14:00:37 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ysato@users.sourceforge.jp,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richardycc@google.com,peterx@redhat.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,linmiaohe@huawei.com,jcmvbkbc@gmail.com,hughd@google.com,glaubitz@physik.fu-berlin.de,fengwei.yin@intel.com,dalias@libc.org,corbet@lwn.net,chris@zankel.net,david@redhat.com,akpm@linux-foundation.org
+	b=ToGvE7HiYxbYGsg74256kYgjXgRJ/VSF21t4+ntk+hM7rJXjC8vwu5b091b/f8ctW
+	 5F35e74ff+aBv6MaBRFghJjH71YHxiMZMIXJ0SczwRjcu4Qwc5iY17zp25K/KYnWyP
+	 aH0OLsBG9o7m0Omh/LZc44kC2BoJbt5QTPgDuuc4=
+Date: Wed, 10 Apr 2024 14:00:53 -0700
+To: mm-commits@vger.kernel.org,yonghua.huang@intel.com,seanjc@google.com,pbonzini@redhat.com,mingo@redhat.com,hch@lst.de,hca@linux.ibm.com,gerald.schaefer@linux.ibm.com,fei1.li@intel.com,alex.williamson@redhat.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch added to mm-unstable branch
-Message-Id: <20240410210037.DF26FC433C7@smtp.kernel.org>
+Subject: + mm-follow_pte-improvements.patch added to mm-unstable branch
+Message-Id: <20240410210054.11580C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation/admin-guide/cgroup-v1/memory.rst: don't reference page_mapcount()
+     Subject: mm: follow_pte() improvements
 has been added to the -mm mm-unstable branch.  Its filename is
-     documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch
+     mm-follow_pte-improvements.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-follow_pte-improvements.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,48 +59,86 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: Documentation/admin-guide/cgroup-v1/memory.rst: don't reference page_mapcount()
-Date: Tue, 9 Apr 2024 21:23:01 +0200
+Subject: mm: follow_pte() improvements
+Date: Wed, 10 Apr 2024 17:55:27 +0200
 
-Let's stop talking about page_mapcount().
+follow_pte() is now our main function to lookup PTEs in VM_PFNMAP/VM_IO
+VMAs.  Let's perform some more sanity checks to make this exported
+function harder to abuse.
 
-Link: https://lkml.kernel.org/r/20240409192301.907377-19-david@redhat.com
+Further, extend the doc a bit, it still focuses on the KVM use case with
+MMU notifiers.  Drop the KVM+follow_pfn() comment, follow_pfn() is no
+more, and we have other users nowadays.
+
+Also extend the doc regarding refcounted pages and the interaction with
+MMU notifiers.
+
+KVM is one example that uses MMU notifiers and can deal with refcounted
+pages properly.  VFIO is one example that doesn't use MMU notifiers, and
+to prevent use-after-free, rejects refcounted pages: pfn_valid(pfn) &&
+!PageReserved(pfn_to_page(pfn)).  Protection changes are less of a concern
+for users like VFIO: the behavior is similar to longterm-pinning a page,
+and getting the PTE protection changed afterwards.
+
+The primary concern with refcounted pages is use-after-free, which callers
+should be aware of.
+
+Link: https://lkml.kernel.org/r/20240410155527.474777-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Richard Chang <richardycc@google.com>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Fei Li <fei1.li@intel.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Yonghua Huang <yonghua.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v1/memory.rst |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v1/memory.rst~documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount
-+++ a/Documentation/admin-guide/cgroup-v1/memory.rst
-@@ -802,8 +802,8 @@ a page or a swap can be moved only when
- |   | anonymous pages, file pages (and swaps) in the range mmapped by the task |
- |   | will be moved even if the task hasn't done page fault, i.e. they might   |
- |   | not be the task's "RSS", but other task's "RSS" that maps the same file. |
--|   | And mapcount of the page is ignored (the page can be moved even if       |
--|   | page_mapcount(page) > 1). You must enable Swap Extension (see 2.4) to    |
-+|   | The mapcount of the page is ignored (the page can be moved independent   |
-+|   | of the mapcount). You must enable Swap Extension (see 2.4) to            |
- |   | enable move of swap charges.                                             |
- +---+--------------------------------------------------------------------------+
+--- a/mm/memory.c~mm-follow_pte-improvements
++++ a/mm/memory.c
+@@ -5933,15 +5933,21 @@ int __pmd_alloc(struct mm_struct *mm, pu
+  *
+  * On a successful return, the pointer to the PTE is stored in @ptepp;
+  * the corresponding lock is taken and its location is stored in @ptlp.
+- * The contents of the PTE are only stable until @ptlp is released;
+- * any further use, if any, must be protected against invalidation
+- * with MMU notifiers.
++ *
++ * The contents of the PTE are only stable until @ptlp is released using
++ * pte_unmap_unlock(). This function will fail if the PTE is non-present.
++ * Present PTEs may include PTEs that map refcounted pages, such as
++ * anonymous folios in COW mappings.
++ *
++ * Callers must be careful when relying on PTE content after
++ * pte_unmap_unlock(). Especially if the PTE maps a refcounted page,
++ * callers must protect against invalidation with MMU notifiers; otherwise
++ * access to the PFN at a later point in time can trigger use-after-free.
+  *
+  * Only IO mappings and raw PFN mappings are allowed.  The mmap semaphore
+  * should be taken for read.
+  *
+- * KVM uses this function.  While it is arguably less bad than the historic
+- * ``follow_pfn``, it is not a good general-purpose API.
++ * This function must not be used to modify PTE content.
+  *
+  * Return: zero on success, -ve otherwise.
+  */
+@@ -5955,6 +5961,10 @@ int follow_pte(struct vm_area_struct *vm
+ 	pmd_t *pmd;
+ 	pte_t *ptep;
+ 
++	mmap_assert_locked(mm);
++	if (unlikely(address < vma->vm_start || address >= vma->vm_end))
++		goto out;
++
+ 	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
+ 		goto out;
  
 _
 
