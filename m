@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01BF0181BBC
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C258181BBC
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712782835; cv=none; b=eflbXCXMKcA+xk/Fv3X5kmeX5uQ2XEZl41RjZaE80Nc0XoYSq7QR92TWbZXoSTDqifVXNU/J64IcmXKl332PI83y3xxLr1bWAZ34q/Xu9uWL3m7zejEZabaEBNwiRnvUiYeWsjSbLUZo/50s1X53MVPmAZ8MN5+Sc7sQqmJgh1w=
+	t=1712782836; cv=none; b=I/iwDa4PoTJ8AC6ywGxf4QtBqZPu07aaP/OaK+AJ/ZuGPVfd6nu3fFmx9Frznef2opBJIRPaBSwwHewJFb3xcNd3yJwhEJqVXePz/ljdHgvjAKRnhnqAmz0OBvd6x89gBuUbZrjF+yGH03e8lF4UguQ9RH1gBHl/pLP7lRZydn0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712782835; c=relaxed/simple;
-	bh=CQ1EaGoVPBFs1UUBcK4EbRskUb1piUyE3IsaiFcK7P0=;
-	h=Date:To:From:Subject:Message-Id; b=bG4je6zeGpYVNxOkyrQtzdoKSMYpoSID/ebmD984epoP44Az/GiLeGQGBy5WficJ3mTTob0sFk3SZ8QqnMoQCX23X8+zyz6opxI+XGdpzawn4/9fYlQcvWrWGhgkx6Yk+z386brImiRp87u/Q84WFxYsv/bR4LgbxdQs5YNu7ik=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eKE5hVWz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712782836; c=relaxed/simple;
+	bh=Za5mrYu7s/sPTNkj0kuKLLIVHy5SWVmp7qkR6jRalOs=;
+	h=Date:To:From:Subject:Message-Id; b=arICnkgohaVpVpBaT2HN3bd2kDtuAcWhHdUqEGRSQwanJGblM69Pz+I/ba3mfPAakDirS3n0odfXAUQLU+Hx00FxUymE9gAOUm6HF8GoIIYMCusTYtWqSqw4K6gjiy8o1EhhczYigefIcMoTuQfu6hEzxEVFqzEiN++GVpv+NQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PcCuMbAG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eKE5hVWz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C20DCC433C7;
-	Wed, 10 Apr 2024 21:00:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PcCuMbAG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56F7EC433F1;
+	Wed, 10 Apr 2024 21:00:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712782834;
-	bh=CQ1EaGoVPBFs1UUBcK4EbRskUb1piUyE3IsaiFcK7P0=;
+	s=korg; t=1712782836;
+	bh=Za5mrYu7s/sPTNkj0kuKLLIVHy5SWVmp7qkR6jRalOs=;
 	h=Date:To:From:Subject:From;
-	b=eKE5hVWzQ6QrJccAMFwT5A/LN+H+HVNOSv39RwvYOf34DbBaV0jPR8lexmsMHIdPx
-	 ekTngvM5TLcKmGJGLt+3E/uLPMEIQid1wwVqqwGqz7aOVgi3xOB1fRL3aD1Cq/nkH4
-	 ccvgnr40Uk4DnwB4JwrhruiL6XCuJojJQ6d64YPE=
-Date: Wed, 10 Apr 2024 14:00:34 -0700
+	b=PcCuMbAGt35T1Fol3Em6s5c6i6a66N6qDh+i/DJ5UTCC7oxXTznEYVMciCIXakkr2
+	 C0BrOadCIFTMt05Usaq6/OQkQAWeaRErnSYMi6NiSrUQm7f6R652DdIgxmNVH6Chd+
+	 Wuj4dz2q5W8WiDDEM89YxSXENRs72bzbfa2P6vyk=
+Date: Wed, 10 Apr 2024 14:00:35 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ysato@users.sourceforge.jp,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richardycc@google.com,peterx@redhat.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,linmiaohe@huawei.com,jcmvbkbc@gmail.com,hughd@google.com,glaubitz@physik.fu-berlin.de,fengwei.yin@intel.com,dalias@libc.org,corbet@lwn.net,chris@zankel.net,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xtensa-mm-convert-check_tlb_entry-to-sanity-check-folios.patch added to mm-unstable branch
-Message-Id: <20240410210034.C20DCC433C7@smtp.kernel.org>
+Subject: + mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch added to mm-unstable branch
+Message-Id: <20240410210036.56F7EC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: xtensa/mm: convert check_tlb_entry() to sanity check folios
+     Subject: mm/debug: print only page mapcount (excluding folio entire mapcount) in __dump_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     xtensa-mm-convert-check_tlb_entry-to-sanity-check-folios.patch
+     mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xtensa-mm-convert-check_tlb_entry-to-sanity-check-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: xtensa/mm: convert check_tlb_entry() to sanity check folios
-Date: Tue, 9 Apr 2024 21:22:59 +0200
+Subject: mm/debug: print only page mapcount (excluding folio entire mapcount) in __dump_folio()
+Date: Tue, 9 Apr 2024 21:23:00 +0200
 
-We want to limit the use of page_mapcount() to the places where it is
-absolutely necessary.  So let's convert check_tlb_entry() to perform
-sanity checks on folios instead of pages.
+Let's simplify and only print the page mapcount: we already print the
+large folio mapcount and the entire folio mapcount for large folios
+separately; that should be sufficient to figure out what's happening.
 
-This essentially already happened: page_count() is mapped to
-folio_ref_count(), and page_mapped() to folio_mapped() internally. 
-However, we would have printed the page_mapount(), which does not really
-match what page_mapped() would have checked.
+While at it, print the page mapcount also if it had an underflow,
+filtering out only typed pages.
 
-Let's simply print the folio mapcount to avoid using page_mapcount().  For
-small folios there is no change.
-
-Link: https://lkml.kernel.org/r/20240409192301.907377-17-david@redhat.com
+Link: https://lkml.kernel.org/r/20240409192301.907377-18-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Hugh Dickins <hughd@google.com>
@@ -96,30 +91,29 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/mm/tlb.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/debug.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
---- a/arch/xtensa/mm/tlb.c~xtensa-mm-convert-check_tlb_entry-to-sanity-check-folios
-+++ a/arch/xtensa/mm/tlb.c
-@@ -256,12 +256,13 @@ static int check_tlb_entry(unsigned w, u
- 					dtlb ? 'D' : 'I', w, e, r0, r1, pte);
- 			if (pte == 0 || !pte_present(__pte(pte))) {
- 				struct page *p = pfn_to_page(r1 >> PAGE_SHIFT);
--				pr_err("page refcount: %d, mapcount: %d\n",
--						page_count(p),
--						page_mapcount(p));
--				if (!page_count(p))
-+				struct folio *f = page_folio(p);
-+
-+				pr_err("folio refcount: %d, mapcount: %d\n",
-+					folio_ref_count(f), folio_mapcount(f));
-+				if (!folio_ref_count(f))
- 					rc |= TLB_INSANE;
--				else if (page_mapcount(p))
-+				else if (folio_mapped(f))
- 					rc |= TLB_SUSPICIOUS;
- 			} else {
- 				rc |= TLB_INSANE;
+--- a/mm/debug.c~mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio
++++ a/mm/debug.c
+@@ -55,15 +55,10 @@ static void __dump_folio(struct folio *f
+ 		unsigned long pfn, unsigned long idx)
+ {
+ 	struct address_space *mapping = folio_mapping(folio);
+-	int mapcount = atomic_read(&page->_mapcount) + 1;
++	int mapcount = atomic_read(&page->_mapcount);
+ 	char *type = "";
+ 
+-	/* Open-code page_mapcount() to avoid looking up a stale folio */
+-	if (mapcount < 0)
+-		mapcount = 0;
+-	if (folio_test_large(folio))
+-		mapcount += folio_entire_mapcount(folio);
+-
++	mapcount = page_type_has_type(mapcount) ? 0 : mapcount + 1;
+ 	pr_warn("page: refcount:%d mapcount:%d mapping:%p index:%#lx pfn:%#lx\n",
+ 			folio_ref_count(folio), mapcount, mapping,
+ 			folio->index + idx, pfn);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
