@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97994181B96
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 20:17:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68E831DFC7;
+	Wed, 10 Apr 2024 20:20:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712780263; cv=none; b=UY+a3kygnlOifXas+oTRYtHcj+aHgsNaqBAwSzu6++aQdJlVqBX+hLE52m2Gm8Hb+NJrIVX75J8CllV6lq9kYRxutoGQBQlxSQHdz8Jr9GwkD+au3RGaNjHisyPUTO/VVAUqd5V38M1as7oQmRxQYsI4T+gtAo6N4cImJYr82Pk=
+	t=1712780459; cv=none; b=PB58VKs+MI8BBwOZi5dL9KsDUTe9M0FQbf0zat5e7BSoVQnGbU4VrnMKan6Ixut+BZvsj/FFNRD1ESTewj7tx7lZYtPcoK4Dd7pc2t4fAqwjry4eWXx9xr0qyzfadxDMRtA2gM9EfDwZnTntikNBfky4HLmNOEkCy1OhQziyNVU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712780263; c=relaxed/simple;
-	bh=N0V17G55fMcPhzzyPw7TWscPsxK76pCMnX9SoS07MCc=;
-	h=Date:To:From:Subject:Message-Id; b=XFWWW+JxUrj5pD5Cam1+DVVyVUybeD/CXDHXaEUwRWYZIm3DwT4M++2kECNTrpdUhPACjETTUSHmSKfsNrU8FXpOOEYxHpIvwoDNQBw5E3utopO8L3T8Hdh5+mKwcFmW/ySpowiHqpEBo0Kd3rIzz0KavkjcLnGIOY/PbDoTa7Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G5KT1AqF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712780459; c=relaxed/simple;
+	bh=x+u0sZaPD3FIAjuBF4ZC5Hl9+7I5kNg2LpJKIORwZWc=;
+	h=Date:To:From:Subject:Message-Id; b=Ne/zW67vscXOi4T2szCRdJ7bm9qyzyC0IFHQf5BSjRweBHDgWzWndXS6g1bj34TIkhpKAeSrkoGt0G8FN4cDHaDG/b2BlADScuDUFB+pjdSvE3OrZOcgQ+lMiClrRmR0WH+REGp6uF98qhs5670t211iq0ZJnmhmdD0NqbKen08=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JiMnAAqr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G5KT1AqF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6393AC433C7;
-	Wed, 10 Apr 2024 20:17:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JiMnAAqr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E5A4C433F1;
+	Wed, 10 Apr 2024 20:20:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712780263;
-	bh=N0V17G55fMcPhzzyPw7TWscPsxK76pCMnX9SoS07MCc=;
+	s=korg; t=1712780459;
+	bh=x+u0sZaPD3FIAjuBF4ZC5Hl9+7I5kNg2LpJKIORwZWc=;
 	h=Date:To:From:Subject:From;
-	b=G5KT1AqFctGqfSeakZZF41FSqVTlNzRAfJLFwRcdMFxosB4xAFWxdapxtkzdr/zIw
-	 hRQx9jOQ6OU6AnlJb1xxUin634+33HSNSYwVnRE3LK0xFw33AuoKYQFMW9PV7fcwiA
-	 DxI66IPl5pndVRI6rt1FlG8F/FQEC0Oj6FjA6EsU=
-Date: Wed, 10 Apr 2024 13:17:42 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,linux@armlinux.org.uk,catalin.marinas@arm.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=JiMnAAqrpEuGR0zVPmDsCtGNlSxUZ9btsaNvZt12an5Ief+ZlXFCtBwmFlUD34Ryf
+	 pEMo3nB92jSGB0HgEWhbtqYmVwUs9vVLUiPsah2/bwaBUKMojTg2rlnFmdhKv3UTU1
+	 Xm6aXouUbRmRmUng5wekEPnLVC/BWe7sgQLK1yNI=
+Date: Wed, 10 Apr 2024 13:20:58 -0700
+To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,willy@infradead.org,thorvald@google.com,tandersen@netflix.com,stable@vger.kernel.org,oleg@redhat.com,muchun.song@linux.dev,mjguzik@gmail.com,Liam.Howlett@oracle.com,kent.overstreet@linux.dev,jane.chu@oracle.com,hca@linux.ibm.com,brauner@kernel.org,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] arm-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch removed from -mm tree
-Message-Id: <20240410201743.6393AC433C7@smtp.kernel.org>
+Subject: + fork-defer-linking-file-vma-until-vma-is-fully-initialized.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240410202059.1E5A4C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,117 +34,136 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: arm: mm: drop VM_FAULT_BADMAP/VM_FAULT_BADACCESS
-has been removed from the -mm tree.  Its filename was
-     arm-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
+The patch titled
+     Subject: fork: defer linking file vma until vma is fully initialized
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     fork-defer-linking-file-vma-until-vma-is-fully-initialized.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fork-defer-linking-file-vma-until-vma-is-fully-initialized.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: arm: mm: drop VM_FAULT_BADMAP/VM_FAULT_BADACCESS
-Date: Sun, 7 Apr 2024 16:12:11 +0800
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: fork: defer linking file vma until vma is fully initialized
+Date: Wed, 10 Apr 2024 17:14:41 +0800
 
-If bad map or access, directly set si_code to SEGV_MAPRR or SEGV_ACCERR,
-also set fault to 0 and goto error handling, which make us to drop the
-arch's special vm fault reason.
+Thorvald reported a WARNING [1]. And the root cause is below race:
 
-Link: https://lkml.kernel.org/r/20240407081211.2292362-3-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Will Deacon <will@kernel.org>
+ CPU 1					CPU 2
+ fork					hugetlbfs_fallocate
+  dup_mmap				 hugetlbfs_punch_hole
+   i_mmap_lock_write(mapping);
+   vma_interval_tree_insert_after -- Child vma is visible through i_mmap tree.
+   i_mmap_unlock_write(mapping);
+   hugetlb_dup_vma_private -- Clear vma_lock outside i_mmap_rwsem!
+					 i_mmap_lock_write(mapping);
+   					 hugetlb_vmdelete_list
+					  vma_interval_tree_foreach
+					   hugetlb_vma_trylock_write -- Vma_lock is cleared.
+   tmp->vm_ops->open -- Alloc new vma_lock outside i_mmap_rwsem!
+					   hugetlb_vma_unlock_write -- Vma_lock is assigned!!!
+					 i_mmap_unlock_write(mapping);
+
+hugetlb_dup_vma_private() and hugetlb_vm_op_open() are called outside
+i_mmap_rwsem lock while vma lock can be used in the same time.  Fix this
+by deferring linking file vma until vma is fully initialized.  Those vmas
+should be initialized first before they can be used.
+
+Link: https://lkml.kernel.org/r/20240410091441.3539905-1-linmiaohe@huawei.com
+Fixes: 8d9bfb260814 ("hugetlb: add vma based lock for pmd sharing")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reported-by: Thorvald Natvig <thorvald@google.com>
+Closes: https://lore.kernel.org/linux-mm/20240129161735.6gmjsswx62o4pbja@revolver/T/ [1]
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: Tycho Andersen <tandersen@netflix.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/fault.c |   28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ kernel/fork.c |   33 +++++++++++++++++----------------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
 
---- a/arch/arm/mm/fault.c~arm-mm-drop-vm_fault_badmap-vm_fault_badaccess
-+++ a/arch/arm/mm/fault.c
-@@ -226,9 +226,6 @@ void do_bad_area(unsigned long addr, uns
- }
- 
- #ifdef CONFIG_MMU
--#define VM_FAULT_BADMAP		((__force vm_fault_t)0x010000)
--#define VM_FAULT_BADACCESS	((__force vm_fault_t)0x020000)
--
- static inline bool is_permission_fault(unsigned int fsr)
- {
- 	int fs = fsr_fs(fsr);
-@@ -295,7 +292,8 @@ do_page_fault(unsigned long addr, unsign
- 	if (!(vma->vm_flags & vm_flags)) {
- 		vma_end_read(vma);
- 		count_vm_vma_lock_event(VMA_LOCK_SUCCESS);
--		fault = VM_FAULT_BADACCESS;
-+		fault = 0;
-+		code = SEGV_ACCERR;
- 		goto bad_area;
- 	}
- 	fault = handle_mm_fault(vma, addr, flags | FAULT_FLAG_VMA_LOCK, regs);
-@@ -321,7 +319,8 @@ lock_mmap:
- retry:
- 	vma = lock_mm_and_find_vma(mm, addr, regs);
- 	if (unlikely(!vma)) {
--		fault = VM_FAULT_BADMAP;
-+		fault = 0;
-+		code = SEGV_MAPERR;
- 		goto bad_area;
- 	}
- 
-@@ -329,10 +328,13 @@ retry:
- 	 * ok, we have a good vm_area for this memory access, check the
- 	 * permissions on the VMA allow for the fault which occurred.
- 	 */
--	if (!(vma->vm_flags & vm_flags))
--		fault = VM_FAULT_BADACCESS;
--	else
--		fault = handle_mm_fault(vma, addr & PAGE_MASK, flags, regs);
-+	if (!(vma->vm_flags & vm_flags)) {
-+		fault = 0;
-+		code = SEGV_ACCERR;
-+		goto bad_area;
-+	}
+--- a/kernel/fork.c~fork-defer-linking-file-vma-until-vma-is-fully-initialized
++++ a/kernel/fork.c
+@@ -714,6 +714,23 @@ static __latent_entropy int dup_mmap(str
+ 		} else if (anon_vma_fork(tmp, mpnt))
+ 			goto fail_nomem_anon_vma_fork;
+ 		vm_flags_clear(tmp, VM_LOCKED_MASK);
++		/*
++		 * Copy/update hugetlb private vma information.
++		 */
++		if (is_vm_hugetlb_page(tmp))
++			hugetlb_dup_vma_private(tmp);
 +
-+	fault = handle_mm_fault(vma, addr & PAGE_MASK, flags, regs);
++		/*
++		 * Link the vma into the MT. After using __mt_dup(), memory
++		 * allocation is not necessary here, so it cannot fail.
++		 */
++		vma_iter_bulk_store(&vmi, tmp);
++
++		mm->map_count++;
++
++		if (tmp->vm_ops && tmp->vm_ops->open)
++			tmp->vm_ops->open(tmp);
++
+ 		file = tmp->vm_file;
+ 		if (file) {
+ 			struct address_space *mapping = file->f_mapping;
+@@ -730,25 +747,9 @@ static __latent_entropy int dup_mmap(str
+ 			i_mmap_unlock_write(mapping);
+ 		}
  
- 	/* If we need to retry but a fatal signal is pending, handle the
- 	 * signal first. We do not need to release the mmap_lock because
-@@ -358,10 +360,8 @@ retry:
- 	mmap_read_unlock(mm);
- done:
+-		/*
+-		 * Copy/update hugetlb private vma information.
+-		 */
+-		if (is_vm_hugetlb_page(tmp))
+-			hugetlb_dup_vma_private(tmp);
+-
+-		/*
+-		 * Link the vma into the MT. After using __mt_dup(), memory
+-		 * allocation is not necessary here, so it cannot fail.
+-		 */
+-		vma_iter_bulk_store(&vmi, tmp);
+-
+-		mm->map_count++;
+ 		if (!(tmp->vm_flags & VM_WIPEONFORK))
+ 			retval = copy_page_range(tmp, mpnt);
  
--	/*
--	 * Handle the "normal" case first - VM_FAULT_MAJOR
--	 */
--	if (likely(!(fault & (VM_FAULT_ERROR | VM_FAULT_BADMAP | VM_FAULT_BADACCESS))))
-+	/* Handle the "normal" case first */
-+	if (likely(!(fault & VM_FAULT_ERROR)))
- 		return 0;
- 
- bad_area:
-@@ -395,8 +395,6 @@ bad_area:
- 		 * isn't in our memory map..
- 		 */
- 		sig = SIGSEGV;
--		code = fault == VM_FAULT_BADACCESS ?
--			SEGV_ACCERR : SEGV_MAPERR;
- 	}
- 
- 	__do_user_fault(addr, fsr, sig, code, regs);
+-		if (tmp->vm_ops && tmp->vm_ops->open)
+-			tmp->vm_ops->open(tmp);
+-
+ 		if (retval) {
+ 			mpnt = vma_next(&vmi);
+ 			goto loop_out;
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-backing-dev-use-group-allocation-free-of-per-cpu-counters-api.patch
-mm-remove-__set_page_dirty_nobuffers.patch
-arm64-mm-cleanup-__do_page_fault.patch
-arm64-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
-arm-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
-powerpc-mm-accelerate-pagefault-when-badaccess.patch
-riscv-mm-accelerate-pagefault-when-badaccess.patch
-riscv-mm-accelerate-pagefault-when-badaccess-fix.patch
-s390-mm-accelerate-pagefault-when-badaccess.patch
-x86-mm-accelerate-pagefault-when-badaccess.patch
+mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled.patch
+fork-defer-linking-file-vma-until-vma-is-fully-initialized.patch
 
