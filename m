@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C94A9181D04
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 654D2181D04
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712782817; cv=none; b=Le2AselkDxkUDvEkZIT2+DgO+6UUvxTCM+uq0JgSfLKiRxKttYy4Gr3Vaalls9nx1/Qn8GBXaX8DSW1IF8A45advNfXJrmpvV2rPV5vNRDMTRUV4neqQjYjFLSNAlOPbEHi6kG+M2Et6GYrPWB2NbKO8OB7d7h+1DUfG4ed5apo=
+	t=1712782819; cv=none; b=r1VvNhorjrpNyP/radGhWBi/SDUtgU9UY18Fost1aE5JsFRq6cBypVOfUEOVMbP9fo55EZ4Nb1Fs0TinWIDjvcyJvyV9+shSqVMKKniWWzUdEQ0QIzjG9iParC7o8uPQZhqCVvxXOhhcpRgXUmWxrj5FGXhq2pbDQ/8YmUadlm0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712782817; c=relaxed/simple;
-	bh=WJeMltK+/5FgnlPoI9JATWWuuoCZnlFsEeYtVE7fVxA=;
-	h=Date:To:From:Subject:Message-Id; b=hSLTdQ3QZsynSLKGSc+YQkbxv1SNGf7VFSMzHJ72Uy2wekaAg6PMdQMUIcHBUedFKsWH0dxCrswcLIufpvu14TQZ+Gb9OQjkLyrTinBWzyBSmHXdjN96RRMHFh7X0QUCawMrO13heSlTk7wHOk3hEHsR6f+AaYIuTJYLYiZO2Sw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rw5qV8aw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712782819; c=relaxed/simple;
+	bh=q1szJLWT8XMIatWe5tQORLIO+W2SNLBg2mLK34O1Eos=;
+	h=Date:To:From:Subject:Message-Id; b=fNaHcSuWcdzbb1p4lELPIdL1FGJGYjWJmppO8+4qf4cFSxIyP8wLRM3XreiNZqkv0lFchqeF1/8FmJIxDO/LdqY406rDpnx9mMOYXluKYtJvqqc/wbq6QyuRp7MIB1P+41Q2hcHETnzqfQh/uFNiZ88wcMn5XTKTgxg8wCbtwqI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uv8Bak3r; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rw5qV8aw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A650C433F1;
-	Wed, 10 Apr 2024 21:00:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uv8Bak3r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E961C433F1;
+	Wed, 10 Apr 2024 21:00:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712782817;
-	bh=WJeMltK+/5FgnlPoI9JATWWuuoCZnlFsEeYtVE7fVxA=;
+	s=korg; t=1712782819;
+	bh=q1szJLWT8XMIatWe5tQORLIO+W2SNLBg2mLK34O1Eos=;
 	h=Date:To:From:Subject:From;
-	b=rw5qV8awm8lM15DD1JmE+KPRkG+jMzwaRK9NzdIG/yjU20tYPIQUaj2T/lv+MVrpO
-	 1nfas8VrfofhV+UCxhjvk03U7o5obU97sxod6jdXB/N+jRj9CwYYtzqym0EgE//cg3
-	 HxdXbroLrfMeRX+K+uAL1GL9ABglR0OkEB8iRNjU=
-Date: Wed, 10 Apr 2024 14:00:17 -0700
+	b=uv8Bak3rFmPW4w9dtC609WgZeSeAL/K4l9fpPykZBZhvRI5K7kWPt+DuH39EdjMz4
+	 PlN4Dx+mKXbQN03SRbbN50oRRYq2WJyL/jUehVYpXJKh1+yxPQrgDjiyjQaU8dEgoR
+	 +9aXZH0dymRi1kicfOq9NMUhe8P57I6F1CBZ+zfI=
+Date: Wed, 10 Apr 2024 14:00:18 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ysato@users.sourceforge.jp,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richardycc@google.com,peterx@redhat.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,linmiaohe@huawei.com,jcmvbkbc@gmail.com,hughd@google.com,glaubitz@physik.fu-berlin.de,fengwei.yin@intel.com,dalias@libc.org,corbet@lwn.net,chris@zankel.net,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-improve-folio_likely_mapped_shared-using-the-mapcount-of-large-folios.patch added to mm-unstable branch
-Message-Id: <20240410210017.9A650C433F1@smtp.kernel.org>
+Subject: + mm-make-folio_mapcount-return-0-for-small-typed-folios.patch added to mm-unstable branch
+Message-Id: <20240410210019.2E961C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: improve folio_likely_mapped_shared() using the mapcount of large folios
+     Subject: mm: make folio_mapcount() return 0 for small typed folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-improve-folio_likely_mapped_shared-using-the-mapcount-of-large-folios.patch
+     mm-make-folio_mapcount-return-0-for-small-typed-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-improve-folio_likely_mapped_shared-using-the-mapcount-of-large-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-folio_mapcount-return-0-for-small-typed-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: improve folio_likely_mapped_shared() using the mapcount of large folios
-Date: Tue, 9 Apr 2024 21:22:48 +0200
+Subject: mm: make folio_mapcount() return 0 for small typed folios
+Date: Tue, 9 Apr 2024 21:22:49 +0200
 
-We can now read the mapcount of large folios very efficiently.  Use it to
-improve our handling of partially-mappable folios, falling back to making
-a guess only in case the folio is not "obviously mapped shared".
+We already handle it properly for large folios.  Let's also return "0" for
+small typed folios, like page_mapcount() currently would.
 
-We can now better detect partially-mappable folios where the first page is
-not mapped as "mapped shared", reducing "false negatives"; but false
-negatives are still possible.
+Consequently, folio_mapcount() will never return negative values for typed
+folios, but may return negative values for underflows.
 
-While at it, fixup a wrong comment (false positive vs.  false negative)
-for KSM folios.
-
-Link: https://lkml.kernel.org/r/20240409192301.907377-6-david@redhat.com
+Link: https://lkml.kernel.org/r/20240409192301.907377-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Hugh Dickins <hughd@google.com>
@@ -95,44 +90,33 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ include/linux/mm.h |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-improve-folio_likely_mapped_shared-using-the-mapcount-of-large-folios
+--- a/include/linux/mm.h~mm-make-folio_mapcount-return-0-for-small-typed-folios
 +++ a/include/linux/mm.h
-@@ -2183,7 +2183,7 @@ static inline size_t folio_size(struct f
-  *       indicate "mapped shared" (false positive) when two VMAs in the same MM
-  *       cover the same file range.
-  *    #. For (small) KSM folios, the return value can wrongly indicate "mapped
-- *       shared" (false negative), when the folio is mapped multiple times into
-+ *       shared" (false positive), when the folio is mapped multiple times into
-  *       the same MM.
+@@ -1260,12 +1260,19 @@ static inline int folio_large_mapcount(c
+  * references the entire folio counts exactly once, even when such special
+  * page table entries are comprised of multiple ordinary page table entries.
   *
-  * Further, this function only considers current page table mappings that
-@@ -2200,7 +2200,22 @@ static inline size_t folio_size(struct f
++ * Will report 0 for pages which cannot be mapped into userspace, such as
++ * slab, page tables and similar.
++ *
+  * Return: The number of times this folio is mapped.
   */
- static inline bool folio_likely_mapped_shared(struct folio *folio)
+ static inline int folio_mapcount(const struct folio *folio)
  {
--	return page_mapcount(folio_page(folio, 0)) > 1;
-+	int mapcount = folio_mapcount(folio);
+-	if (likely(!folio_test_large(folio)))
+-		return atomic_read(&folio->_mapcount) + 1;
++	int mapcount;
 +
-+	/* Only partially-mappable folios require more care. */
-+	if (!folio_test_large(folio) || unlikely(folio_test_hugetlb(folio)))
-+		return mapcount > 1;
-+
-+	/* A single mapping implies "mapped exclusively". */
-+	if (mapcount <= 1)
-+		return false;
-+
-+	/* If any page is mapped more than once we treat it "mapped shared". */
-+	if (folio_entire_mapcount(folio) || mapcount > folio_nr_pages(folio))
-+		return true;
-+
-+	/* Let's guess based on the first subpage. */
-+	return atomic_read(&folio->_mapcount) > 0;
++	if (likely(!folio_test_large(folio))) {
++		mapcount = atomic_read(&folio->_mapcount);
++		return page_type_has_type(mapcount) ? 0 : mapcount + 1;
++	}
+ 	return folio_large_mapcount(folio);
  }
  
- #ifndef HAVE_ARCH_MAKE_PAGE_ACCESSIBLE
 _
 
 Patches currently in -mm which might be from david@redhat.com are
