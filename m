@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EF3417F38F
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 18:10:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3055431A60
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 20:13:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712772658; cv=none; b=STE8MXyamJ9pGmVqJ+V0t7wTG3a6uVwzTMJBNorfoqEvvlrapZoXdpbAaP0KemdLs49vxGbt5CPDaSrgX7Iz7ZYizNCXOw7nwiQUUKiNM68sr14Ny3pnWxjBI/2v2MZRkhT7t6uUoqe9gNcJML75817X9VQRceXbaYQVRrUx7rg=
+	t=1712779993; cv=none; b=oqGQ/shi+JyiS4NvSdqneZIssukqJ0AapzGOmmRp6v5i9dotpm0Wiq44y+/OUc4EmjFbBiDNptv9fBiUe+DcA7QQVjWqvTNgwWATToDZ0fR9IxkXRdJg/f2IZlzssYe37yOGMDOKRjaaNZ4vd7g0zzvDp5ilgUSf0T0zoTxyuEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712772658; c=relaxed/simple;
-	bh=zfIrFJpgqexLTh0x/MpCkMne9Ii+rCEr69BYD3qKOIk=;
-	h=Date:To:From:Subject:Message-Id; b=tebBFYsGNff69TwsslLmhfGtwusJEW1/TdPQghBIqr+FZDh6NO3Vig22BFwu0ugT0W6mhPyW4xDt8hhoSZIB8zF5wObe3DcQ7fMHPILBlxWQ3gvweuTVlRaXC3PSaNNFrCA7BNRe9WMzcAldU7VT+uAmNn/BLM5UzkT1ts45hDY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mwDSA4NZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712779993; c=relaxed/simple;
+	bh=OFC/eb3M0sfPintcctnqdEpb3RbDuy44I0o+kQjGHHo=;
+	h=Date:To:From:Subject:Message-Id; b=S9ox4iK1MXqPYxrms8Au2d/RyDQTRgOkVyXGAa6BTHpEqrTVlB0Wp7onpCDLKHeDXlO8he79xSiBshBZ1DCDLViU2oInxVQjZsKpsgqcpVVoYqQ7HgwmJZfm1X/MUPOl43zSyDFJhV6qaKcHRSiXT72cztbgHWp5VfINE6f8AbE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AVBuujSp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mwDSA4NZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9610AC433F1;
-	Wed, 10 Apr 2024 18:10:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AVBuujSp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DFA3C433F1;
+	Wed, 10 Apr 2024 20:13:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712772657;
-	bh=zfIrFJpgqexLTh0x/MpCkMne9Ii+rCEr69BYD3qKOIk=;
+	s=korg; t=1712779992;
+	bh=OFC/eb3M0sfPintcctnqdEpb3RbDuy44I0o+kQjGHHo=;
 	h=Date:To:From:Subject:From;
-	b=mwDSA4NZApKAjNwCpaXTit/nb9RNpIq1wypIU6IwPqJfjdGw9K/NBIewiG/c9HEBD
-	 i9bWYRnvKpqFYD9QfKdtWXaPeCmbXFi+LYoUAJu5OlME78QHSXEPEAvI+zx3u8MMvZ
-	 EToWFororXl6JswaaDpGO4G1hiOvq0xGiAG0IgLg=
-Date: Wed, 10 Apr 2024 11:10:57 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,lokeshgidra@google.com,Liam.Howlett@oracle.com,apopple@nvidia.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=AVBuujSpZGH2daFyLkgOgjiWXsX2QvPOMpDR1Oh3x7+v3vweLM6BBfZc6I3a0f8M0
+	 5T0coXyHctxJR3sbLc4QqDn/2TXkL5X4UyWRI5GKg+o3a+NuVoIUq9779Oo6QgFBpo
+	 rHFBGDjMoEIGkvn8TePmQkpNMl5mQqfTyw+3CYMA=
+Date: Wed, 10 Apr 2024 13:13:11 -0700
+To: mm-commits@vger.kernel.org,yonghua.huang@intel.com,seanjc@google.com,pbonzini@redhat.com,mingo@redhat.com,hch@lst.de,hca@linux.ibm.com,gerald.schaefer@linux.ibm.com,fei1.li@intel.com,alex.williamson@redhat.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-always-sanity-check-anon_vma-first-for-per-vma-locks.patch added to mm-unstable branch
-Message-Id: <20240410181057.9610AC433F1@smtp.kernel.org>
+Subject: + drivers-virt-acrn-fix-pfnmap-pte-checks-in-acrn_vm_ram_map.patch added to mm-unstable branch
+Message-Id: <20240410201312.8DFA3C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: Always sanity check anon_vma first for per-vma locks
+     Subject: drivers/virt/acrn: fix PFNMAP PTE checks in acrn_vm_ram_map()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-always-sanity-check-anon_vma-first-for-per-vma-locks.patch
+     drivers-virt-acrn-fix-pfnmap-pte-checks-in-acrn_vm_ram_map.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-always-sanity-check-anon_vma-first-for-per-vma-locks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-virt-acrn-fix-pfnmap-pte-checks-in-acrn_vm_ram_map.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,157 +58,210 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm: Always sanity check anon_vma first for per-vma locks
-Date: Wed, 10 Apr 2024 13:06:21 -0400
+From: David Hildenbrand <david@redhat.com>
+Subject: drivers/virt/acrn: fix PFNMAP PTE checks in acrn_vm_ram_map()
+Date: Wed, 10 Apr 2024 17:55:25 +0200
 
-anon_vma is a tricky object in the context of per-vma lock, because it's
-racy to modify it in that context and mmap lock is needed if it's not
-stable yet.
+Patch series "mm: follow_pte() improvements and acrn follow_pte() fixes".
 
-So far there are three places that sanity checks anon_vma for that:
+Patch #1 fixes a bunch of issues I spotted in the acrn driver.  It
+compiles, that's all I know.  I'll appreciate some review and testing from
+acrn folks.
 
-  - lock_vma_under_rcu(): this is the major entrance of per-vma lock, where
-    we have taken care of anon memory v.s. potential anon_vma allocations.
+Patch #2+#3 improve follow_pte(), passing a VMA instead of the MM, adding
+more sanity checks, and improving the documentation.  Gave it a quick test
+on x86-64 using VM_PAT that ends up using follow_pte().
 
-  - lock_vma(): even if it looks so generic as an API, it's only used in
-    userfaultfd context to leverage per-vma locks.  It does extra check
-    over MAP_PRIVATE file mappings for the same anon_vma issue.
 
-  - vmf_anon_prepare(): it works for private file mapping faults just like
-    what lock_vma() wanted to cover above.  One trivial difference is in
-    some extremely corner case, the fault handler will still allow per-vma
-    fault to happen, like a READ on a privately mapped file.
+This patch (of 3):
 
-The question is whether that's intended to make it as complicated.  Per my
-question in the thread, it is not intended, and Suren also seems to agree [1].
+We currently miss handling various cases, resulting in a dangerous
+follow_pte() (previously follow_pfn()) usage.
 
-So the trivial side effect of such patch is:
+(1) We're not checking PTE write permissions.
 
-  - We may do slightly better on the first WRITE of a private file mapping,
-  because we can retry earlier (in lock_vma_under_rcu(), rather than
-  vmf_anon_prepare() later).
+Maybe we should simply always require pte_write() like we do for
+pin_user_pages_fast(FOLL_WRITE)? Hard to tell, so let's check for
+ACRN_MEM_ACCESS_WRITE for now.
 
-  - We may always use mmap lock for the initial READs on a private file
-  mappings, while before this patch it _can_ (only when no WRITE ever
-  happened... but it doesn't make much sense for a MAP_PRIVATE..) do the
-  read fault with per-vma lock.
+(2) We're not rejecting refcounted pages.
 
-Then noted that right after any WRITE the anon_vma will be stablized, then
-there will be no difference.  And I believe that should be the majority
-cases too; I also did try to run a program, writting to MAP_PRIVATE file
-memory (that I pre-headed in the page cache) and I can hardly measure a
-difference in performance.
+As we are not using MMU notifiers, messing with refcounted pages is
+dangerous and can result in use-after-free. Let's make sure to reject them.
 
-Let's simply ignore all those trivial corner cases and unify the anon_vma
-check from three places into one.  I also didn't check the rest users of
-lock_vma_under_rcu(), where in a !fault context it could even fix something
-that used to race with private file mappings but I didn't check further.
+(3) We are only looking at the first PTE of a bigger range.
 
-I still left a WARN_ON_ONCE() in vmf_anon_prepare() to double check we're
-all good.
+We only lookup a single PTE, but memmap->len may span a larger area.
+Let's loop over all involved PTEs and make sure the PFN range is
+actually contiguous. Reject everything else: it couldn't have worked
+either way, and rather made use access PFNs we shouldn't be accessing.
 
-[1] https://lore.kernel.org/r/CAJuCfpGj5xk-NxSwW6Mt8NGZcV9N__8zVPMGXDPAYKMcN9=Oig@mail.gmail.com
-
-Link: https://lkml.kernel.org/r/20240410170621.2011171-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Link: https://lkml.kernel.org/r/20240410155527.474777-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20240410155527.474777-2-david@redhat.com
+Fixes: 8a6e85f75a83 ("virt: acrn: obtain pa from VMA with PFNMAP flag")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Fei Li <fei1.li@intel.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Yonghua Huang <yonghua.huang@intel.com>
+Cc: Sean Christopherson <seanjc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c      |   10 ++++------
- mm/userfaultfd.c |   13 ++-----------
- 2 files changed, 6 insertions(+), 17 deletions(-)
+ drivers/virt/acrn/mm.c |   63 +++++++++++++++++++++++++++++----------
+ 1 file changed, 47 insertions(+), 16 deletions(-)
 
---- a/mm/memory.c~mm-always-sanity-check-anon_vma-first-for-per-vma-locks
-+++ a/mm/memory.c
-@@ -3219,10 +3219,8 @@ vm_fault_t vmf_anon_prepare(struct vm_fa
- 
- 	if (likely(vma->anon_vma))
- 		return 0;
--	if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
--		vma_end_read(vma);
--		return VM_FAULT_RETRY;
--	}
-+	/* We shouldn't try a per-vma fault at all if anon_vma isn't solid */
-+	WARN_ON_ONCE(vmf->flags & FAULT_FLAG_VMA_LOCK);
- 	if (__anon_vma_prepare(vma))
- 		return VM_FAULT_OOM;
- 	return 0;
-@@ -5826,9 +5824,9 @@ retry:
- 	 * find_mergeable_anon_vma uses adjacent vmas which are not locked.
- 	 * This check must happen after vma_start_read(); otherwise, a
- 	 * concurrent mremap() with MREMAP_DONTUNMAP could dissociate the VMA
--	 * from its anon_vma.
-+	 * from its anon_vma.  This applies to both anon or private file maps.
- 	 */
--	if (unlikely(vma_is_anonymous(vma) && !vma->anon_vma))
-+	if (unlikely(!(vma->vm_flags & VM_SHARED) && !vma->anon_vma))
- 		goto inval_end_read;
- 
- 	/* Check since vm_start/vm_end might change before we lock the VMA */
---- a/mm/userfaultfd.c~mm-always-sanity-check-anon_vma-first-for-per-vma-locks
-+++ a/mm/userfaultfd.c
-@@ -72,17 +72,8 @@ static struct vm_area_struct *lock_vma(s
+--- a/drivers/virt/acrn/mm.c~drivers-virt-acrn-fix-pfnmap-pte-checks-in-acrn_vm_ram_map
++++ a/drivers/virt/acrn/mm.c
+@@ -156,23 +156,29 @@ int acrn_vm_memseg_unmap(struct acrn_vm
+ int acrn_vm_ram_map(struct acrn_vm *vm, struct acrn_vm_memmap *memmap)
+ {
+ 	struct vm_memory_region_batch *regions_info;
+-	int nr_pages, i = 0, order, nr_regions = 0;
++	int nr_pages, i, order, nr_regions = 0;
+ 	struct vm_memory_mapping *region_mapping;
+ 	struct vm_memory_region_op *vm_region;
+ 	struct page **pages = NULL, *page;
+ 	void *remap_vaddr;
+ 	int ret, pinned;
+ 	u64 user_vm_pa;
+-	unsigned long pfn;
  	struct vm_area_struct *vma;
  
- 	vma = lock_vma_under_rcu(mm, address);
--	if (vma) {
--		/*
--		 * lock_vma_under_rcu() only checks anon_vma for private
--		 * anonymous mappings. But we need to ensure it is assigned in
--		 * private file-backed vmas as well.
--		 */
--		if (!(vma->vm_flags & VM_SHARED) && unlikely(!vma->anon_vma))
--			vma_end_read(vma);
--		else
--			return vma;
--	}
-+	if (vma)
-+		return vma;
+ 	if (!vm || !memmap)
+ 		return -EINVAL;
  
- 	mmap_read_lock(mm);
- 	vma = find_vma_and_prepare_anon(mm, address);
++	/* Get the page number of the map region */
++	nr_pages = memmap->len >> PAGE_SHIFT;
++	if (!nr_pages)
++		return -EINVAL;
++
+ 	mmap_read_lock(current->mm);
+ 	vma = vma_lookup(current->mm, memmap->vma_base);
+ 	if (vma && ((vma->vm_flags & VM_PFNMAP) != 0)) {
++		unsigned long start_pfn, cur_pfn;
+ 		spinlock_t *ptl;
++		bool writable;
+ 		pte_t *ptep;
+ 
+ 		if ((memmap->vma_base + memmap->len) > vma->vm_end) {
+@@ -180,25 +186,53 @@ int acrn_vm_ram_map(struct acrn_vm *vm,
+ 			return -EINVAL;
+ 		}
+ 
+-		ret = follow_pte(vma->vm_mm, memmap->vma_base, &ptep, &ptl);
+-		if (ret < 0) {
+-			mmap_read_unlock(current->mm);
++		for (i = 0; i < nr_pages; i++) {
++			ret = follow_pte(vma->vm_mm,
++					 memmap->vma_base + i * PAGE_SIZE,
++					 &ptep, &ptl);
++			if (ret)
++				break;
++
++			cur_pfn = pte_pfn(ptep_get(ptep));
++			if (i == 0)
++				start_pfn = cur_pfn;
++			writable = !!pte_write(ptep_get(ptep));
++			pte_unmap_unlock(ptep, ptl);
++
++			/* Disallow write access if the PTE is not writable. */
++			if (!writable &&
++			    (memmap->attr & ACRN_MEM_ACCESS_WRITE)) {
++				ret = -EFAULT;
++				break;
++			}
++
++			/* Disallow refcounted pages. */
++			if (pfn_valid(cur_pfn) &&
++			    !PageReserved(pfn_to_page(cur_pfn))) {
++				ret = -EFAULT;
++				break;
++			}
++
++			/* Disallow non-contiguous ranges. */
++			if (cur_pfn != start_pfn + i) {
++				ret = -EINVAL;
++				break;
++			}
++		}
++		mmap_read_unlock(current->mm);
++
++		if (ret) {
+ 			dev_dbg(acrn_dev.this_device,
+ 				"Failed to lookup PFN at VMA:%pK.\n", (void *)memmap->vma_base);
+ 			return ret;
+ 		}
+-		pfn = pte_pfn(ptep_get(ptep));
+-		pte_unmap_unlock(ptep, ptl);
+-		mmap_read_unlock(current->mm);
+ 
+ 		return acrn_mm_region_add(vm, memmap->user_vm_pa,
+-			 PFN_PHYS(pfn), memmap->len,
++			 PFN_PHYS(start_pfn), memmap->len,
+ 			 ACRN_MEM_TYPE_WB, memmap->attr);
+ 	}
+ 	mmap_read_unlock(current->mm);
+ 
+-	/* Get the page number of the map region */
+-	nr_pages = memmap->len >> PAGE_SHIFT;
+ 	pages = vzalloc(array_size(nr_pages, sizeof(*pages)));
+ 	if (!pages)
+ 		return -ENOMEM;
+@@ -242,12 +276,11 @@ int acrn_vm_ram_map(struct acrn_vm *vm,
+ 	mutex_unlock(&vm->regions_mapping_lock);
+ 
+ 	/* Calculate count of vm_memory_region_op */
+-	while (i < nr_pages) {
++	for (i = 0; i < nr_pages; i += 1 << order) {
+ 		page = pages[i];
+ 		VM_BUG_ON_PAGE(PageTail(page), page);
+ 		order = compound_order(page);
+ 		nr_regions++;
+-		i += 1 << order;
+ 	}
+ 
+ 	/* Prepare the vm_memory_region_batch */
+@@ -264,8 +297,7 @@ int acrn_vm_ram_map(struct acrn_vm *vm,
+ 	regions_info->vmid = vm->vmid;
+ 	regions_info->regions_gpa = virt_to_phys(vm_region);
+ 	user_vm_pa = memmap->user_vm_pa;
+-	i = 0;
+-	while (i < nr_pages) {
++	for (i = 0; i < nr_pages; i += 1 << order) {
+ 		u32 region_size;
+ 
+ 		page = pages[i];
+@@ -281,7 +313,6 @@ int acrn_vm_ram_map(struct acrn_vm *vm,
+ 
+ 		vm_region++;
+ 		user_vm_pa += region_size;
+-		i += 1 << order;
+ 	}
+ 
+ 	/* Inform the ACRN Hypervisor to set up EPT mappings */
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-userfaultfd-allow-hugetlb-change-protection-upon-poison-entry.patch
-mm-hmm-process-pud-swap-entry-without-pud_huge.patch
-mm-gup-cache-p4d-in-follow_p4d_mask.patch
-mm-gup-check-p4d-presence-before-going-on.patch
-mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-arm-use-macros-to-define-pmd-pud-helpers.patch
-mm-arm-redefine-pmd_huge-with-pmd_leaf.patch
-mm-arm64-merge-pxd_huge-and-pxd_leaf-definitions.patch
-mm-powerpc-redefine-pxd_huge-with-pxd_leaf.patch
-mm-gup-merge-pxd-huge-mapping-checks.patch
-mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
-mm-treewide-remove-pxd_huge.patch
-mm-arm-remove-pmd_thp_or_huge.patch
-mm-document-pxd_leaf-api.patch
-selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation.patch
-selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation-fix.patch
-mm-kconfig-config_pgtable_has_huge_leaves.patch
-mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch
-mm-make-hpage_pxd_-macros-even-if-thp.patch
-mm-introduce-vma_pgtable_walk_beginend.patch
-mm-arch-provide-pud_pfn-fallback.patch
-mm-arch-provide-pud_pfn-fallback-fix.patch
-mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing.patch
-mm-gup-refactor-record_subpages-to-find-1st-small-page.patch
-mm-gup-handle-hugetlb-for-no_page_table.patch
-mm-gup-cache-pudp-in-follow_pud_mask.patch
-mm-gup-handle-huge-pud-for-follow_pud_mask.patch
-mm-gup-handle-huge-pmd-for-follow_pmd_mask.patch
-mm-gup-handle-huge-pmd-for-follow_pmd_mask-fix.patch
-mm-gup-handle-hugepd-for-follow_page.patch
-mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code.patch
-mm-allow-anon-exclusive-check-over-hugetlb-tail-pages.patch
-mm-always-sanity-check-anon_vma-first-for-per-vma-locks.patch
+mm-madvise-make-madv_populate_readwrite-handle-vm_fault_retry-properly.patch
+mm-madvise-dont-perform-madvise-vma-walk-for-madv_populate_readwrite.patch
+mm-userfaultfd-dont-place-zeropages-when-zeropages-are-disallowed.patch
+s390-mm-re-enable-the-shared-zeropage-for-pv-and-skeys-kvm-guests.patch
+mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared.patch
+mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared-fix.patch
+selftests-memfd_secret-add-vmsplice-test.patch
+mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed.patch
+mm-optimize-config_per_vma_lock-member-placement-in-vm_area_struct.patch
+mm-remove-prot-parameter-from-move_pte.patch
+mm-gup-consistently-name-gup-fast-functions.patch
+mm-treewide-rename-config_have_fast_gup-to-config_have_gup_fast.patch
+mm-use-gup-fast-instead-fast-gup-in-remaining-comments.patch
+drivers-virt-acrn-fix-pfnmap-pte-checks-in-acrn_vm_ram_map.patch
+mm-pass-vma-instead-of-mm-to-follow_pte.patch
+mm-follow_pte-improvements.patch
 
