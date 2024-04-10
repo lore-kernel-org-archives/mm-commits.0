@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 379981836C4
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DF78181BBC
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712782811; cv=none; b=C5H943jTb4wW34Tx/LmUwUAZBEA2S7HqjmNXR/oyyQRcsvewfMrL5v8cxs+vC1G2zkIrn7hDvaIpObqwfER3KS1Aj9hq/knAJqAvaN5+cdXsE4HrC8D3TUxszRHqEdfzH5hVGaTIlbWrK8n8b/psGR3UqS9LhdcgxqWjWfDQnXA=
+	t=1712782813; cv=none; b=juXbKWQHoEkn9Kelemuw6Db1VcHlmpJIZtWD8L0znlJqFJxq9ve5Z0HiGKKhYWxZpC+0+iaafM+Hx2rSpOlkxUfISU9WYReIXVsX57SO5/eO1JJb8H4y1WkVOs/AUJgKwDS2cESvpdxPtEsIN3tNCf08J480Tg6yDVEzUWr65ok=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712782811; c=relaxed/simple;
-	bh=s+NArnLAZ1FBBr4N5i6+T417LoeHPfLEcFJuV+EBG2o=;
-	h=Date:To:From:Subject:Message-Id; b=BfglU+ti8dLL8JgsdtzXXbIyZo/3ib5ZufdAw+WHUH0c5nhdvuml5iX/SfPQqkFntnZbswLmGuYfHP18oWLrX4n6AcgGXboUL2eY6B/dwsAvuxjh7PsNlmUjfhPVyCT9Ck9VMNdVN+skvN2f5qSwemumJM78rtEo6YzOotUCdIE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UhPtIYQ8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712782813; c=relaxed/simple;
+	bh=8MNOt3Il7QLmVRQo8gXNJr9nyh4t9lysQ4GuY8QT/Rg=;
+	h=Date:To:From:Subject:Message-Id; b=F3kxENglPtAlsxDCCRd7rMslMGKrpI47fEQZqelMLjSR5GTCAttQTy9QOtviuAJ7ATJlYDZGFoZAm1wbBRgPbkoyRW5u5ZCe9MiwXc2T7BW1ysT2a1qqLTZQAW6kvWwYtLe156kwcbldBIcMFmfVOCB5sb3lgUC0lLFw+pRg8Ig=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1poDy1kw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UhPtIYQ8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED5CAC43390;
-	Wed, 10 Apr 2024 21:00:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1poDy1kw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 874DBC433C7;
+	Wed, 10 Apr 2024 21:00:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712782811;
-	bh=s+NArnLAZ1FBBr4N5i6+T417LoeHPfLEcFJuV+EBG2o=;
+	s=korg; t=1712782812;
+	bh=8MNOt3Il7QLmVRQo8gXNJr9nyh4t9lysQ4GuY8QT/Rg=;
 	h=Date:To:From:Subject:From;
-	b=UhPtIYQ8mZ8KyW0n8PgFqZnSlWjE274tZ8EnBXEIZzu7gj2KQrwXkJCxUaVJRkHVo
-	 aGxKC1mMoMiWJqhna1u3F/bRT1x7cLdzdST9t6+OLVoWAjwaqKKQPEViHT2H4AxlC9
-	 cdy9SjTwt4q2IlfHDcewZZ1aNk2dkoEVZRvbge7E=
-Date: Wed, 10 Apr 2024 14:00:10 -0700
+	b=1poDy1kwn/S+2dTU0jgXFvGR0Zcq3E624HpoegjnM6IVVzkd3wpz2plJOlpDifGkX
+	 Q+XvHPHjR69gbToMiiJe90tX0469xOoVd9Zg9cBv9aVpEwv3uOHsmXjDxcsr4Cemo7
+	 Etqb/x7bAePAfiBrN+N6dhoLlJR7PuMcjEdC9p60=
+Date: Wed, 10 Apr 2024 14:00:11 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ysato@users.sourceforge.jp,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richardycc@google.com,peterx@redhat.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,linmiaohe@huawei.com,jcmvbkbc@gmail.com,hughd@google.com,glaubitz@physik.fu-berlin.de,fengwei.yin@intel.com,dalias@libc.org,corbet@lwn.net,chris@zankel.net,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte.patch added to mm-unstable branch
-Message-Id: <20240410210010.ED5CAC43390@smtp.kernel.org>
+Subject: + mm-rmap-add-fast-path-for-small-folios-when-adding-removing-duplicating.patch added to mm-unstable branch
+Message-Id: <20240410210012.874DBC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: always inline anon/file rmap duplication of a single PTE
+     Subject: mm/rmap: add fast-path for small folios when adding/removing/duplicating
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte.patch
+     mm-rmap-add-fast-path-for-small-folios-when-adding-removing-duplicating.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-add-fast-path-for-small-folios-when-adding-removing-duplicating.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: always inline anon/file rmap duplication of a single PTE
-Date: Tue, 9 Apr 2024 21:22:45 +0200
+Subject: mm/rmap: add fast-path for small folios when adding/removing/duplicating
+Date: Tue, 9 Apr 2024 21:22:46 +0200
 
-As we grow the code, the compiler might make stupid decisions and
-unnecessarily degrade fork() performance.  Let's make sure to always
-inline functions that operate on a single PTE so the compiler will always
-optimize out the loop and avoid a function call.
+Let's add a fast-path for small folios to all relevant rmap functions. 
+Note that only RMAP_LEVEL_PTE applies.
 
-This is a preparation for maintining a total mapcount for large folios.
+This is a preparation for tracking the mapcount of large folios in a
+single value.
 
-Link: https://lkml.kernel.org/r/20240409192301.907377-3-david@redhat.com
+Link: https://lkml.kernel.org/r/20240409192301.907377-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Hugh Dickins <hughd@google.com>
@@ -91,42 +90,89 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ include/linux/rmap.h |   13 +++++++++++++
+ mm/rmap.c            |   26 ++++++++++++++++----------
+ 2 files changed, 29 insertions(+), 10 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte
+--- a/include/linux/rmap.h~mm-rmap-add-fast-path-for-small-folios-when-adding-removing-duplicating
 +++ a/include/linux/rmap.h
-@@ -347,8 +347,12 @@ static inline void folio_dup_file_rmap_p
- {
- 	__folio_dup_file_rmap(folio, page, nr_pages, RMAP_LEVEL_PTE);
- }
--#define folio_dup_file_rmap_pte(folio, page) \
--	folio_dup_file_rmap_ptes(folio, page, 1)
-+
-+static __always_inline void folio_dup_file_rmap_pte(struct folio *folio,
-+		struct page *page)
-+{
-+	__folio_dup_file_rmap(folio, page, 1, RMAP_LEVEL_PTE);
-+}
+@@ -322,6 +322,11 @@ static __always_inline void __folio_dup_
  
- /**
-  * folio_dup_file_rmap_pmd - duplicate a PMD mapping of a page range of a folio
-@@ -448,8 +452,13 @@ static inline int folio_try_dup_anon_rma
- 	return __folio_try_dup_anon_rmap(folio, page, nr_pages, src_vma,
- 					 RMAP_LEVEL_PTE);
- }
--#define folio_try_dup_anon_rmap_pte(folio, page, vma) \
--	folio_try_dup_anon_rmap_ptes(folio, page, 1, vma)
+ 	switch (level) {
+ 	case RMAP_LEVEL_PTE:
++		if (!folio_test_large(folio)) {
++			atomic_inc(&page->_mapcount);
++			break;
++		}
 +
-+static __always_inline int folio_try_dup_anon_rmap_pte(struct folio *folio,
-+		struct page *page, struct vm_area_struct *src_vma)
-+{
-+	return __folio_try_dup_anon_rmap(folio, page, 1, src_vma,
-+					 RMAP_LEVEL_PTE);
-+}
+ 		do {
+ 			atomic_inc(&page->_mapcount);
+ 		} while (page++, --nr_pages > 0);
+@@ -405,6 +410,14 @@ static __always_inline int __folio_try_d
+ 				if (PageAnonExclusive(page + i))
+ 					return -EBUSY;
+ 		}
++
++		if (!folio_test_large(folio)) {
++			if (PageAnonExclusive(page))
++				ClearPageAnonExclusive(page);
++			atomic_inc(&page->_mapcount);
++			break;
++		}
++
+ 		do {
+ 			if (PageAnonExclusive(page))
+ 				ClearPageAnonExclusive(page);
+--- a/mm/rmap.c~mm-rmap-add-fast-path-for-small-folios-when-adding-removing-duplicating
++++ a/mm/rmap.c
+@@ -1172,15 +1172,18 @@ static __always_inline unsigned int __fo
  
- /**
-  * folio_try_dup_anon_rmap_pmd - try duplicating a PMD mapping of a page range
+ 	switch (level) {
+ 	case RMAP_LEVEL_PTE:
++		if (!folio_test_large(folio)) {
++			nr = atomic_inc_and_test(&page->_mapcount);
++			break;
++		}
++
+ 		do {
+ 			first = atomic_inc_and_test(&page->_mapcount);
+-			if (first && folio_test_large(folio)) {
++			if (first) {
+ 				first = atomic_inc_return_relaxed(mapped);
+-				first = (first < ENTIRELY_MAPPED);
++				if (first < ENTIRELY_MAPPED)
++					nr++;
+ 			}
+-
+-			if (first)
+-				nr++;
+ 		} while (page++, --nr_pages > 0);
+ 		break;
+ 	case RMAP_LEVEL_PMD:
+@@ -1514,15 +1517,18 @@ static __always_inline void __folio_remo
+ 
+ 	switch (level) {
+ 	case RMAP_LEVEL_PTE:
++		if (!folio_test_large(folio)) {
++			nr = atomic_add_negative(-1, &page->_mapcount);
++			break;
++		}
++
+ 		do {
+ 			last = atomic_add_negative(-1, &page->_mapcount);
+-			if (last && folio_test_large(folio)) {
++			if (last) {
+ 				last = atomic_dec_return_relaxed(mapped);
+-				last = (last < ENTIRELY_MAPPED);
++				if (last < ENTIRELY_MAPPED)
++					nr++;
+ 			}
+-
+-			if (last)
+-				nr++;
+ 		} while (page++, --nr_pages > 0);
+ 		break;
+ 	case RMAP_LEVEL_PMD:
 _
 
 Patches currently in -mm which might be from david@redhat.com are
