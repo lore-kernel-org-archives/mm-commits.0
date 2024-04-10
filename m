@@ -1,59 +1,98 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D0E2181B97
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 20:27:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1042F6110
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 20:33:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712780836; cv=none; b=JubuoJLYUGmJILYeNbzOTyAnxeuy4rV8A0AxSOiba8W69ZhkSRSiHm24PM5MOMQdsOnGLohYaBTjINThwkiF1tEOajluWXLIBpfiB0UCEfBFHeY7zLbyRAcTQSrZN1BvNcW1LBtnZNUCH6R824KrTYuDDc5E2Vo8kbTUj3CDTeM=
+	t=1712781187; cv=none; b=gb5SsC1YBZPB/H7H9sAQQnPxXcnOQ8CJEC5LPDQvjY2m2mmlBrFLJpLZgh50gFzSk9m9dRju8dG7i1FCPlWY0gtjw6W6JQsx9CQoasqP/WvowoomxtoDoahRjP7Ye+dx969JljMC5cB0b4muilveaFBSIUqOt2h81Ai6a19+Bn8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712780836; c=relaxed/simple;
-	bh=W5Mq4E7y5ZEpzAJrKO4VypPZUmD23hhViMFVbV9pjtE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Lq5PcfxWGOn0gM3j4FJIJI3AWhT+jpcYztmzSrCtmO1noy1c3ftrx7fyA5wPdkuXAwsKZ0WJFyreLmwS3mnFzAK7ghG/beIRzjFmNh6tNuWFOF8vw2IVHSn4YB/p3ce6WRRnNJsocfJX8NXH8Wb7MBJ/e9/AOPyOYqRpkoaCo7k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=esz52jVi; arc=none smtp.client-ip=90.155.50.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1712781187; c=relaxed/simple;
+	bh=VJp/ezb6uozBTKo8RZ6+du8alvVewtmnzq47SL/bFsE=;
+	h=Date:To:From:Subject:Message-Id; b=fBUlDEyj5AcDhp4to/cuP8z/iWWZHqf8W/OKtmcq9rvFjEVeyvmtyohMgKZv35HnYGNKTF0y1m71eU3/f22Gklha2wSVznFa0fETi7592Kx8rtuHLFkDrcHd1ldwPwC7okZTLKGdCXt7BWMv6AxXUm32+y4NWd3krx8h4vGqG4A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bno1Ga3k; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="esz52jVi"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=X3SUPvsTuygzkBXlA5a8YOn40Mfb6mKbj52GFlk+QT0=; b=esz52jVihGE6J6V/aSEgZmn1kC
-	+ETC2R3s0EKYbuL7UNGn5zP0rRu0SHZ2MPTsnuL1h5H+B3m5fyhJUGXNyBVYzhGFbu/JmzaPi0rVL
-	PLM7FNCIOND8nnGb9StUYypmMfA6z7llX4e3VM0sZIshpzFhasYziXTRaxZnTBuu/XBNZqN3TY82F
-	/Ori8TDgRvL3PH2zzSVfrbZF6LU/DD6Mj8nYIUvg1u2+Y8QuzteF/fr4npMGexUESd1CJhv6U3Ujn
-	SLFUz/ZPdSX6MVbkHMRpMJVWNfccBcBpMfL98FzVe3cSgnPB9YorulmI4Jotni+OfR2srHTHvgFRj
-	y8Wg9Umg==;
-Received: from willy by casper.infradead.org with local (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1rueXJ-00000005EIA-1hc1;
-	Wed, 10 Apr 2024 20:27:13 +0000
-Date: Wed, 10 Apr 2024 21:27:13 +0100
-From: Matthew Wilcox <willy@infradead.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, surenb@google.com, lokeshgidra@google.com,
-	Liam.Howlett@oracle.com, apopple@nvidia.com, peterx@redhat.com
-Subject: Re: + mm-always-sanity-check-anon_vma-first-for-per-vma-locks.patch
- added to mm-unstable branch
-Message-ID: <Zhb2IbDiIy2paMLV@casper.infradead.org>
-References: <20240410181057.9610AC433F1@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bno1Ga3k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8245EC433F1;
+	Wed, 10 Apr 2024 20:33:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1712781186;
+	bh=VJp/ezb6uozBTKo8RZ6+du8alvVewtmnzq47SL/bFsE=;
+	h=Date:To:From:Subject:From;
+	b=Bno1Ga3k0ft9xFqIdSXG2KgPxmfNhRHJ16dkdkygczOf286tNvJ1leY9XLVLDWPBt
+	 iGNy4cV5o0p5g5XPUOUNx9TG92Ax718qMaRlfZ+RyhAdzWPo6qvIYtCgYKZYiVaU6Z
+	 qkAze5F9X0B5vceeRayx2XrCVB8RQrEAr9dm4AlY=
+Date: Wed, 10 Apr 2024 13:33:05 -0700
+To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,yang.lee@linux.alibaba.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + nilfs2-add-kernel-doc-comments-to-nilfs_do_roll_forward.patch added to mm-nonmm-unstable branch
+Message-Id: <20240410203306.8245EC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240410181057.9610AC433F1@smtp.kernel.org>
 
-On Wed, Apr 10, 2024 at 11:10:57AM -0700, Andrew Morton wrote:
-> 
-> The patch titled
->      Subject: mm: Always sanity check anon_vma first for per-vma locks
-> has been added to the -mm mm-unstable branch.  Its filename is
->      mm-always-sanity-check-anon_vma-first-for-per-vma-locks.patch
 
-I just sent a review NAKing this patch.  Replying here to be sure you
-see the NAK.
+The patch titled
+     Subject: nilfs2: add kernel-doc comments to nilfs_do_roll_forward()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     nilfs2-add-kernel-doc-comments-to-nilfs_do_roll_forward.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-add-kernel-doc-comments-to-nilfs_do_roll_forward.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Yang Li <yang.lee@linux.alibaba.com>
+Subject: nilfs2: add kernel-doc comments to nilfs_do_roll_forward()
+Date: Wed, 10 Apr 2024 16:56:27 +0900
+
+Patch series "nilfs2: fix missing kernel-doc comments".
+
+This commit adds kernel-doc style comments with complete parameter
+descriptions for the function nilfs_do_roll_forward.
+
+Link: https://lkml.kernel.org/r/20240410075629.3441-1-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240410075629.3441-2-konishi.ryusuke@gmail.com
+Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/nilfs2/recovery.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/fs/nilfs2/recovery.c~nilfs2-add-kernel-doc-comments-to-nilfs_do_roll_forward
++++ a/fs/nilfs2/recovery.c
+@@ -563,6 +563,7 @@ static int nilfs_recover_dsync_blocks(st
+  * checkpoint
+  * @nilfs: nilfs object
+  * @sb: super block instance
++ * @root: NILFS root instance
+  * @ri: pointer to a nilfs_recovery_info
+  */
+ static int nilfs_do_roll_forward(struct the_nilfs *nilfs,
+_
+
+Patches currently in -mm which might be from yang.lee@linux.alibaba.com are
+
+fs-add-kernel-doc-comments-to-fat_parse_long.patch
+nilfs2-add-kernel-doc-comments-to-nilfs_do_roll_forward.patch
+nilfs2-add-kernel-doc-comments-to-nilfs_btree_convert_and_insert.patch
+nilfs2-add-kernel-doc-comments-to-nilfs_remove_all_gcinodes.patch
+
