@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1977181D0F
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 379981836C4
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712782810; cv=none; b=tn7JLfixjfkSyEtBsPSsfCfycw+BJUbJLi6CHZxdVgZHKUouA7DlPAeTnI7VCnWhr5wHzHtFhZJzPKePmCpTNtlCII10ChEBeMdE1EOXrHxZpfxOjqPINyhUHgEhq/ljbDNGmsIreVax9P8xUccrkxguOGboHlftViUxOorWyY4=
+	t=1712782811; cv=none; b=C5H943jTb4wW34Tx/LmUwUAZBEA2S7HqjmNXR/oyyQRcsvewfMrL5v8cxs+vC1G2zkIrn7hDvaIpObqwfER3KS1Aj9hq/knAJqAvaN5+cdXsE4HrC8D3TUxszRHqEdfzH5hVGaTIlbWrK8n8b/psGR3UqS9LhdcgxqWjWfDQnXA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712782810; c=relaxed/simple;
-	bh=ofgBzGeaNkONxtEJ+lIYbUig2FJVwOYVKxh0k17KvfM=;
-	h=Date:To:From:Subject:Message-Id; b=XA9tzn+V9F4wdE8B2pf1SwGUq5B9+Y/i7qYmejqR1MOD4XEYZUYdpK7lw2qQq/w/d9TjWU+yIgNSPYFIMpWWwOyh5tcjHL/hPl09G6bMrffEOFIYFffol2lT0vTj/2jDDRCvqCSLN8qJecVNZjRW/pwJBdDF6R/moHKwIufNNS8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fsYtFen4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712782811; c=relaxed/simple;
+	bh=s+NArnLAZ1FBBr4N5i6+T417LoeHPfLEcFJuV+EBG2o=;
+	h=Date:To:From:Subject:Message-Id; b=BfglU+ti8dLL8JgsdtzXXbIyZo/3ib5ZufdAw+WHUH0c5nhdvuml5iX/SfPQqkFntnZbswLmGuYfHP18oWLrX4n6AcgGXboUL2eY6B/dwsAvuxjh7PsNlmUjfhPVyCT9Ck9VMNdVN+skvN2f5qSwemumJM78rtEo6YzOotUCdIE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UhPtIYQ8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fsYtFen4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E1CDC433C7;
-	Wed, 10 Apr 2024 21:00:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UhPtIYQ8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED5CAC43390;
+	Wed, 10 Apr 2024 21:00:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712782809;
-	bh=ofgBzGeaNkONxtEJ+lIYbUig2FJVwOYVKxh0k17KvfM=;
+	s=korg; t=1712782811;
+	bh=s+NArnLAZ1FBBr4N5i6+T417LoeHPfLEcFJuV+EBG2o=;
 	h=Date:To:From:Subject:From;
-	b=fsYtFen4c690Vlj+liAlAkeyukbJs83+qSbnJVojBO0ATuqE2McHwEyy5OtHOgHd9
-	 j7lqa6RYfU6Dk/rkAaV4jI7Sni4knTd89q/Ip6pwhWstcC0DgZgTBWZCrQPkkT7duq
-	 CcqsYnZqkaG/8AuzeaS1T0dCOzNvIgnRfCzuE1sI=
-Date: Wed, 10 Apr 2024 14:00:08 -0700
+	b=UhPtIYQ8mZ8KyW0n8PgFqZnSlWjE274tZ8EnBXEIZzu7gj2KQrwXkJCxUaVJRkHVo
+	 aGxKC1mMoMiWJqhna1u3F/bRT1x7cLdzdST9t6+OLVoWAjwaqKKQPEViHT2H4AxlC9
+	 cdy9SjTwt4q2IlfHDcewZZ1aNk2dkoEVZRvbge7E=
+Date: Wed, 10 Apr 2024 14:00:10 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ysato@users.sourceforge.jp,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richardycc@google.com,peterx@redhat.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,linmiaohe@huawei.com,jcmvbkbc@gmail.com,hughd@google.com,glaubitz@physik.fu-berlin.de,fengwei.yin@intel.com,dalias@libc.org,corbet@lwn.net,chris@zankel.net,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-allow-for-detecting-underflows-with-page_mapcount-again.patch added to mm-unstable branch
-Message-Id: <20240410210009.6E1CDC433C7@smtp.kernel.org>
+Subject: + mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte.patch added to mm-unstable branch
+Message-Id: <20240410210010.ED5CAC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: allow for detecting underflows with page_mapcount() again
+     Subject: mm/rmap: always inline anon/file rmap duplication of a single PTE
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-allow-for-detecting-underflows-with-page_mapcount-again.patch
+     mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-allow-for-detecting-underflows-with-page_mapcount-again.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,97 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: allow for detecting underflows with page_mapcount() again
-Date: Tue, 9 Apr 2024 21:22:44 +0200
+Subject: mm/rmap: always inline anon/file rmap duplication of a single PTE
+Date: Tue, 9 Apr 2024 21:22:45 +0200
 
-Patch series "mm: mapcount for large folios + page_mapcount() cleanups".
+As we grow the code, the compiler might make stupid decisions and
+unnecessarily degrade fork() performance.  Let's make sure to always
+inline functions that operate on a single PTE so the compiler will always
+optimize out the loop and avoid a function call.
 
-This series tracks the mapcount of large folios in a single value, so it
-can be read efficiently and atomically, just like the mapcount of small
-folios.
+This is a preparation for maintining a total mapcount for large folios.
 
-folio_mapcount() is then used in a couple more places, most notably to
-reduce false negatives in folio_likely_mapped_shared(), and many users of
-page_mapcount() are cleaned up (that's maybe why you got CCed on the full
-series, sorry sh+xtensa folks!  :) ).
-
-The remaining s390x user and one KSM user of page_mapcount() are getting
-removed separately on the list right now.  I have patches to handle the
-other KSM one, the khugepaged one and the kpagecount one; as they are not
-as "obvious", I will send them out separately in the future.  Once that is
-all in place, I'm planning on moving page_mapcount() into
-fs/proc/task_mmu.c, the remaining user for the time being (and we can
-discuss at LSF/MM details on that :) ).
-
-I proposed the mapcount for large folios (previously called total
-mapcount) originally in part of [1] and I later included it in [2] where
-it is a requirement.  In the meantime, I changed the patch a bit so I
-dropped all RB's.  During the discussion of [1], Peter Xu correctly raised
-that this additional tracking might affect the performance when PMD->PTE
-remapping THPs.  In the meantime.  I addressed that by batching RMAP
-operations during fork(), unmap/zap and when PMD->PTE remapping THPs.
-
-Running some of my micro-benchmarks [3] (fork,munmap,cow-byte,remap) on 1
-GiB of memory backed by folios with the same order, I observe the
-following on an Intel(R) Xeon(R) Silver 4210R CPU @ 2.40GHz tuned for
-reproducible results as much as possible:
-
-Standard deviation is mostly < 1%, except for order-9, where it's < 2% for
-fork() and munmap().
-
-(1) Small folios are not affected (< 1%) in all 4 microbenchmarks.
-(2) Order-4 folios are not affected (< 1%) in all 4 microbenchmarks. A bit
-    weird comapred to the other orders ...
-(3) PMD->PTE remapping of order-9 THPs is not affected (< 1%)
-(4) COW-byte (COWing a single page by writing a single byte) is not
-    affected for any order (< 1 %). The page copy_fault overhead dominates
-    everything.
-(5) fork() is mostly not affected (< 1%), except order-2, where we have
-    a slowdown of ~4%. Already for order-3 folios, we're down to a slowdown
-    of < 1%.
-(6) munmap() sees a slowdown by < 3% for some orders (order-5,
-    order-6, order-9), but less for others (< 1% for order-4 and order-8,
-    < 2% for order-2, order-3, order-7).
-
-Especially the fork() and munmap() benchmark are sensitive to each added
-instruction and other system noise, so I suspect some of the change and
-observed weirdness (order-4) is due to code layout changes and other
-factors, but not really due to the added atomics.
-
-So in the common case where we can batch, the added atomics don't really
-make a big difference, especially in light of the recent improvements for
-large folios that we recently gained due to batching.  Surprisingly, for
-some cases where we cannot batch (e.g., COW), the added atomics don't seem
-to matter, because other overhead dominates.
-
-My fork and munmap micro-benchmarks don't cover cases where we cannot
-batch-process bigger parts of large folios.  As this is not the common
-case, I'm not worrying about that right now.
-
-Future work is batching RMAP operations during swapout and folio
-migration.
-
-[1] https://lore.kernel.org/all/20230809083256.699513-1-david@redhat.com/
-[2] https://lore.kernel.org/all/20231124132626.235350-1-david@redhat.com/
-[3] https://gitlab.com/davidhildenbrand/scratchspace/-/raw/main/pte-mapped-folio-benchmarks.c?ref_type=heads
-
-
-This patch (of 18):
-
-Commit 53277bcf126d ("mm: support page_mapcount() on page_has_type()
-pages") made it impossible to detect mapcount underflows by treating any
-negative raw mapcount value as a mapcount of 0.
-
-We perform such underflow checks in zap_present_folio_ptes() and
-zap_huge_pmd(), which would currently no longer trigger.
-
-Let's check against PAGE_MAPCOUNT_RESERVE instead by using
-page_type_has_type(), like page_has_type() would, so we can still catch
-some underflows.
-
-Link: https://lkml.kernel.org/r/20240409192301.907377-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20240409192301.907377-2-david@redhat.com
-Fixes: 53277bcf126d ("mm: support page_mapcount() on page_has_type() pages")
+Link: https://lkml.kernel.org/r/20240409192301.907377-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Hugh Dickins <hughd@google.com>
@@ -171,25 +91,42 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/rmap.h |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
---- a/include/linux/mm.h~mm-allow-for-detecting-underflows-with-page_mapcount-again
-+++ a/include/linux/mm.h
-@@ -1229,11 +1229,10 @@ static inline void page_mapcount_reset(s
-  */
- static inline int page_mapcount(struct page *page)
+--- a/include/linux/rmap.h~mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte
++++ a/include/linux/rmap.h
+@@ -347,8 +347,12 @@ static inline void folio_dup_file_rmap_p
  {
--	int mapcount = atomic_read(&page->_mapcount) + 1;
-+	int mapcount = atomic_read(&page->_mapcount);
+ 	__folio_dup_file_rmap(folio, page, nr_pages, RMAP_LEVEL_PTE);
+ }
+-#define folio_dup_file_rmap_pte(folio, page) \
+-	folio_dup_file_rmap_ptes(folio, page, 1)
++
++static __always_inline void folio_dup_file_rmap_pte(struct folio *folio,
++		struct page *page)
++{
++	__folio_dup_file_rmap(folio, page, 1, RMAP_LEVEL_PTE);
++}
  
- 	/* Handle page_has_type() pages */
--	if (mapcount < 0)
--		mapcount = 0;
-+	mapcount = page_type_has_type(mapcount) ? 0 : mapcount + 1;
- 	if (unlikely(PageCompound(page)))
- 		mapcount += folio_entire_mapcount(page_folio(page));
+ /**
+  * folio_dup_file_rmap_pmd - duplicate a PMD mapping of a page range of a folio
+@@ -448,8 +452,13 @@ static inline int folio_try_dup_anon_rma
+ 	return __folio_try_dup_anon_rmap(folio, page, nr_pages, src_vma,
+ 					 RMAP_LEVEL_PTE);
+ }
+-#define folio_try_dup_anon_rmap_pte(folio, page, vma) \
+-	folio_try_dup_anon_rmap_ptes(folio, page, 1, vma)
++
++static __always_inline int folio_try_dup_anon_rmap_pte(struct folio *folio,
++		struct page *page, struct vm_area_struct *src_vma)
++{
++	return __folio_try_dup_anon_rmap(folio, page, 1, src_vma,
++					 RMAP_LEVEL_PTE);
++}
  
+ /**
+  * folio_try_dup_anon_rmap_pmd - try duplicating a PMD mapping of a page range
 _
 
 Patches currently in -mm which might be from david@redhat.com are
