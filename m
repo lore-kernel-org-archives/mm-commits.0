@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9A241E877
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:52:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45E4F18410C
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:52:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712785963; cv=none; b=aCnFb42s6cs+fZMZmCMsm5GysUkBN61HglSWQt6mB2+7zIiEm0mbswHQu0Vwhp5eWk5mjoljd+VOgRNFTyXzCKeaJkxdhOr4QQEpoJOoDZmC8O9cTOEyAfz882AuLeCgrfoq4sPVxhM2VuzYyNXnAXXCC0tbY3iCNFZ0q8dxjj4=
+	t=1712785967; cv=none; b=CblijHLYrJoWhelsPvrfbtbZiiP+/H7c6uNNc8AtLhm/WxnRCQ5Ysxqyj5jN0AcKkzmPK3C9eM1rNa/Ocy/xqzJdkaG19ZnBoSRZNj+pr+SEQMORpnAKAeb7CqoWmg8wPhLnwR1BHzSv/A3ef02Pv7Vr4rAx5+ZW3yyNi5G55Pk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712785963; c=relaxed/simple;
-	bh=TzZ3a/EbU6QrY+GzO0tKHEqbggs+2g7cv0AJiWvoT5E=;
-	h=Date:To:From:Subject:Message-Id; b=GSFi83N8E0sDAniCM+A1L3D2YCP5eIbM4CHhVyygV9+dnC6w1/87NEPaWdI44BQaNGKcSP5+Eq2qhEI9oty1h+BpwG2rWewSho9sX4KqpHY/tP/0ct4tT4Kb5oNT5L4owFt8gFL/n8GMEY0WHaNkq6xkT3thmjPKcl7DjtSyEBY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zrPSj/Y/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712785967; c=relaxed/simple;
+	bh=ltXPcoRbt49oxF+nJ+uSHclW556T0TbAJh2hjlfraJ8=;
+	h=Date:To:From:Subject:Message-Id; b=bm9P8OSUIheaRIFbGjW9O4x7vn1JUkklhnqC7T5DTzxwXTkwvCAWzVnbPqddIYl19Qq+f3ggSX2eA+cWk78RupGrONDvYqtXpb0sfIcatVNVgS6b9fWtqHQD4f1S5gEyWP9QTW1YroUqq/rS2eFfo1PaFpFSWgp0Jnp8mAa6kuE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rCxocqJS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zrPSj/Y/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68E45C433C7;
-	Wed, 10 Apr 2024 21:52:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rCxocqJS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B11DDC433C7;
+	Wed, 10 Apr 2024 21:52:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712785963;
-	bh=TzZ3a/EbU6QrY+GzO0tKHEqbggs+2g7cv0AJiWvoT5E=;
+	s=korg; t=1712785965;
+	bh=ltXPcoRbt49oxF+nJ+uSHclW556T0TbAJh2hjlfraJ8=;
 	h=Date:To:From:Subject:From;
-	b=zrPSj/Y/K8ngUL+5EIF+1RKBP12vZcxLEp5eZy4/ddPUDmQueWZ2sBnrNSm+m0f8l
-	 ZSylnCfzQM92hQcQaTgj0F9AVld9UBXK2mHoFugKoXkoS1mYJq+zkKn88xGC1AXz4p
-	 0YZyjjh+ROKI6TAFFqkA0ekpkAJAo+GmgdWyhRnk=
-Date: Wed, 10 Apr 2024 14:52:42 -0700
+	b=rCxocqJSsLyPer8smtEOdqHD2JxvO547y7E+HjeaQhhK5sVCECIaUAWjM3BTUYc6R
+	 q7W7ammxnzocCXMtgP7KLEhb9W5fjzmLpPhQ9mItXIFk/bOsjdF2szn/gajej8/g6Q
+	 d2AfhlXyMf2+Mud6eolFZ6oYa/BN4PbfffBola8Q=
+Date: Wed, 10 Apr 2024 14:52:44 -0700
 To: mm-commits@vger.kernel.org,zokeefe@google.com,xiehuan09@gmail.com,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,shy828301@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,fengwei.yin@intel.com,david@redhat.com,21cnbao@gmail.com,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free.patch added to mm-unstable branch
-Message-Id: <20240410215243.68E45C433C7@smtp.kernel.org>
+Subject: + mm-arm64-override-mkold_clean_ptes-batch-helper.patch added to mm-unstable branch
+Message-Id: <20240410215245.B11DDC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: optimize lazyfreeing with mTHP in madvise_free
+     Subject: mm/arm64: override mkold_clean_ptes() batch helper
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free.patch
+     mm-arm64-override-mkold_clean_ptes-batch-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-arm64-override-mkold_clean_ptes-batch-helper.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,415 +59,143 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lance Yang <ioworker0@gmail.com>
-Subject: mm/madvise: optimize lazyfreeing with mTHP in madvise_free
-Date: Mon, 8 Apr 2024 12:24:36 +0800
+Subject: mm/arm64: override mkold_clean_ptes() batch helper
+Date: Mon, 8 Apr 2024 12:24:37 +0800
 
-Patch series "mm/madvise: enhance lazyfreeing with mTHP in madvise_free",
-v5.
+The per-pte get_and_clear/modify/set approach would result in
+unfolding/refolding for contpte mappings on arm64.  So we need to override
+mkold_clean_ptes() for arm64 to avoid it.
 
-This patchset adds support for lazyfreeing multi-size THP (mTHP) without
-needing to first split the large folio via split_folio().  However, we
-still need to split a large folio that is not fully mapped within the
-target range.
-
-If a large folio is locked or shared, or if we fail to split it, we just
-leave it in place and advance to the next PTE in the range.  But note that
-the behavior is changed; previously, any failure of this sort would cause
-the entire operation to give up.  As large folios become more common,
-sticking to the old way could result in wasted opportunities.
-
-Performance Testing
-===================
-
-On an Intel I5 CPU, lazyfreeing a 1GiB VMA backed by PTE-mapped folios of
-the same size results in the following runtimes for madvise(MADV_FREE) in
-seconds (shorter is better):
-
-Folio Size |   Old    |   New    | Change
-------------------------------------------
-      4KiB | 0.590251 | 0.590259 |    0%
-     16KiB | 2.990447 | 0.185655 |  -94%
-     32KiB | 2.547831 | 0.104870 |  -95%
-     64KiB | 2.457796 | 0.052812 |  -97%
-    128KiB | 2.281034 | 0.032777 |  -99%
-    256KiB | 2.230387 | 0.017496 |  -99%
-    512KiB | 2.189106 | 0.010781 |  -99%
-   1024KiB | 2.183949 | 0.007753 |  -99%
-   2048KiB | 0.002799 | 0.002804 |    0%
-
-
-This patch (of 2):
-
-This patch optimizes lazyfreeing with PTE-mapped mTHP[1] (Inspired by
-David Hildenbrand[2]).  We aim to avoid unnecessary folio splitting if the
-large folio is fully mapped within the target range.
-
-If a large folio is locked or shared, or if we fail to split it, we just
-leave it in place and advance to the next PTE in the range.  But note that
-the behavior is changed; previously, any failure of this sort would cause
-the entire operation to give up.  As large folios become more common,
-sticking to the old way could result in wasted opportunities.
-
-On an Intel I5 CPU, lazyfreeing a 1GiB VMA backed by PTE-mapped folios of
-the same size results in the following runtimes for madvise(MADV_FREE) in
-seconds (shorter is better):
-
-Folio Size |   Old    |   New    | Change
-------------------------------------------
-      4KiB | 0.590251 | 0.590259 |    0%
-     16KiB | 2.990447 | 0.185655 |  -94%
-     32KiB | 2.547831 | 0.104870 |  -95%
-     64KiB | 2.457796 | 0.052812 |  -97%
-    128KiB | 2.281034 | 0.032777 |  -99%
-    256KiB | 2.230387 | 0.017496 |  -99%
-    512KiB | 2.189106 | 0.010781 |  -99%
-   1024KiB | 2.183949 | 0.007753 |  -99%
-   2048KiB | 0.002799 | 0.002804 |    0%
-
-[1] https://lkml.kernel.org/r/20231207161211.2374093-5-ryan.roberts@arm.com
-[2] https://lore.kernel.org/linux-mm/20240214204435.167852-1-david@redhat.com
-
-Link: https://lkml.kernel.org/r/20240408042437.10951-1-ioworker0@gmail.com
-Link: https://lkml.kernel.org/r/20240408042437.10951-2-ioworker0@gmail.com
+Link: https://lkml.kernel.org/r/20240408042437.10951-3-ioworker0@gmail.com
+Suggested-by: David Hildenbrand <david@redhat.com>
+Suggested-by: Barry Song <21cnbao@gmail.com>
+Suggested-by: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Lance Yang <ioworker0@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Jeff Xie <xiehuan09@gmail.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Peter Xu <peterx@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Yang Shi <shy828301@gmail.com>
 Cc: Yin Fengwei <fengwei.yin@intel.com>
 Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Barry Song <21cnbao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |   34 ++++++++
- mm/internal.h           |   12 ++-
- mm/madvise.c            |  149 +++++++++++++++++++++-----------------
- mm/memory.c             |    4 -
- 4 files changed, 129 insertions(+), 70 deletions(-)
+ arch/arm64/include/asm/pgtable.h |   55 +++++++++++++++++++++++++++++
+ arch/arm64/mm/contpte.c          |   15 +++++++
+ 2 files changed, 70 insertions(+)
 
---- a/include/linux/pgtable.h~mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free
-+++ a/include/linux/pgtable.h
-@@ -489,6 +489,40 @@ static inline pte_t ptep_get_and_clear(s
+--- a/arch/arm64/include/asm/pgtable.h~mm-arm64-override-mkold_clean_ptes-batch-helper
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -1223,6 +1223,34 @@ static inline void __wrprotect_ptes(stru
+ 		__ptep_set_wrprotect(mm, address, ptep);
  }
- #endif
  
-+#ifndef mkold_clean_ptes
-+/**
-+ * mkold_clean_ptes - Mark PTEs that map consecutive pages of the same folio
-+ *		as old and clean.
-+ * @mm: Address space the pages are mapped into.
-+ * @addr: Address the first page is mapped at.
-+ * @ptep: Page table pointer for the first entry.
-+ * @nr: Number of entries to mark old and clean.
-+ *
-+ * May be overridden by the architecture; otherwise, implemented by
-+ * get_and_clear/modify/set for each pte in the range.
-+ *
-+ * Note that PTE bits in the PTE range besides the PFN can differ. For example,
-+ * some PTEs might be write-protected.
-+ *
-+ * Context: The caller holds the page table lock.  The PTEs map consecutive
-+ * pages that belong to the same folio.  The PTEs are all in the same PMD.
-+ */
++static inline void ___ptep_mkold_clean(struct mm_struct *mm, unsigned long addr,
++				       pte_t *ptep, pte_t pte)
++{
++	pte_t old_pte;
++
++	do {
++		old_pte = pte;
++		pte = pte_mkclean(pte_mkold(pte));
++		pte_val(pte) = cmpxchg_relaxed(&pte_val(*ptep),
++					       pte_val(old_pte), pte_val(pte));
++	} while (pte_val(pte) != pte_val(old_pte));
++}
++
++static inline void __ptep_mkold_clean(struct mm_struct *mm, unsigned long addr,
++				      pte_t *ptep)
++{
++	___ptep_mkold_clean(mm, addr, ptep, __ptep_get(ptep));
++}
++
++static inline void __mkold_clean_ptes(struct mm_struct *mm, unsigned long addr,
++				      pte_t *ptep, unsigned int nr)
++{
++	unsigned int i;
++
++	for (i = 0; i < nr; i++, addr += PAGE_SIZE, ptep++)
++		__ptep_mkold_clean(mm, addr, ptep);
++}
++
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ #define __HAVE_ARCH_PMDP_SET_WRPROTECT
+ static inline void pmdp_set_wrprotect(struct mm_struct *mm,
+@@ -1379,6 +1407,8 @@ extern void contpte_wrprotect_ptes(struc
+ extern int contpte_ptep_set_access_flags(struct vm_area_struct *vma,
+ 				unsigned long addr, pte_t *ptep,
+ 				pte_t entry, int dirty);
++extern void contpte_mkold_clean_ptes(struct mm_struct *mm, unsigned long addr,
++				pte_t *ptep, unsigned int nr);
+ 
+ static __always_inline void contpte_try_fold(struct mm_struct *mm,
+ 				unsigned long addr, pte_t *ptep, pte_t pte)
+@@ -1603,6 +1633,30 @@ static inline int ptep_set_access_flags(
+ 	return contpte_ptep_set_access_flags(vma, addr, ptep, entry, dirty);
+ }
+ 
++#define mkold_clean_ptes mkold_clean_ptes
 +static inline void mkold_clean_ptes(struct mm_struct *mm, unsigned long addr,
 +				    pte_t *ptep, unsigned int nr)
 +{
-+	pte_t pte;
++	if (likely(nr == 1)) {
++		/*
++		 * Optimization: mkold_clean_ptes() can only be called for present
++		 * ptes so we only need to check contig bit as condition for unfold,
++		 * and we can remove the contig bit from the pte we read to avoid
++		 * re-reading. This speeds up madvise(MADV_FREE) which is sensitive
++		 * for order-0 folios. Equivalent to contpte_try_unfold().
++		 */
++		pte_t orig_pte = __ptep_get(ptep);
 +
-+	for (;;) {
-+		pte = ptep_get_and_clear(mm, addr, ptep);
-+		set_pte_at(mm, addr, ptep, pte_mkclean(pte_mkold(pte)));
-+		if (--nr == 0)
-+			break;
-+		ptep++;
-+		addr += PAGE_SIZE;
++		if (unlikely(pte_cont(orig_pte))) {
++			__contpte_try_unfold(mm, addr, ptep, orig_pte);
++			orig_pte = pte_mknoncont(orig_pte);
++		}
++		___ptep_mkold_clean(mm, addr, ptep, orig_pte);
++	} else {
++		contpte_mkold_clean_ptes(mm, addr, ptep, nr);
 +	}
 +}
-+#endif
 +
- static inline void ptep_clear(struct mm_struct *mm, unsigned long addr,
- 			      pte_t *ptep)
- {
---- a/mm/internal.h~mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free
-+++ a/mm/internal.h
-@@ -134,6 +134,8 @@ static inline pte_t __pte_batch_clear_ig
-  *		  first one is writable.
-  * @any_young: Optional pointer to indicate whether any entry except the
-  *		  first one is young.
-+ * @any_dirty: Optional pointer to indicate whether any entry except the
-+ *		  first one is dirty.
-  *
-  * Detect a PTE batch: consecutive (present) PTEs that map consecutive
-  * pages of the same large folio.
-@@ -149,18 +151,20 @@ static inline pte_t __pte_batch_clear_ig
-  */
- static inline int folio_pte_batch(struct folio *folio, unsigned long addr,
- 		pte_t *start_ptep, pte_t pte, int max_nr, fpb_t flags,
--		bool *any_writable, bool *any_young)
-+		bool *any_writable, bool *any_young, bool *any_dirty)
- {
- 	unsigned long folio_end_pfn = folio_pfn(folio) + folio_nr_pages(folio);
- 	const pte_t *end_ptep = start_ptep + max_nr;
- 	pte_t expected_pte, *ptep;
--	bool writable, young;
-+	bool writable, young, dirty;
- 	int nr;
+ #else /* CONFIG_ARM64_CONTPTE */
  
- 	if (any_writable)
- 		*any_writable = false;
- 	if (any_young)
- 		*any_young = false;
-+	if (any_dirty)
-+		*any_dirty = false;
+ #define ptep_get				__ptep_get
+@@ -1622,6 +1676,7 @@ static inline int ptep_set_access_flags(
+ #define wrprotect_ptes				__wrprotect_ptes
+ #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
+ #define ptep_set_access_flags			__ptep_set_access_flags
++#define mkold_clean_ptes			__mkold_clean_ptes
  
- 	VM_WARN_ON_FOLIO(!pte_present(pte), folio);
- 	VM_WARN_ON_FOLIO(!folio_test_large(folio) || max_nr < 1, folio);
-@@ -176,6 +180,8 @@ static inline int folio_pte_batch(struct
- 			writable = !!pte_write(pte);
- 		if (any_young)
- 			young = !!pte_young(pte);
-+		if (any_dirty)
-+			dirty = !!pte_dirty(pte);
- 		pte = __pte_batch_clear_ignored(pte, flags);
+ #endif /* CONFIG_ARM64_CONTPTE */
  
- 		if (!pte_same(pte, expected_pte))
-@@ -193,6 +199,8 @@ static inline int folio_pte_batch(struct
- 			*any_writable |= writable;
- 		if (any_young)
- 			*any_young |= young;
-+		if (any_dirty)
-+			*any_dirty |= dirty;
- 
- 		nr = pte_batch_hint(ptep, pte);
- 		expected_pte = pte_advance_pfn(expected_pte, nr);
---- a/mm/madvise.c~mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free
-+++ a/mm/madvise.c
-@@ -321,6 +321,39 @@ static inline bool can_do_file_pageout(s
- 	       file_permission(vma->vm_file, MAY_WRITE) == 0;
+--- a/arch/arm64/mm/contpte.c~mm-arm64-override-mkold_clean_ptes-batch-helper
++++ a/arch/arm64/mm/contpte.c
+@@ -361,6 +361,21 @@ void contpte_wrprotect_ptes(struct mm_st
  }
+ EXPORT_SYMBOL_GPL(contpte_wrprotect_ptes);
  
-+static inline int madvise_folio_pte_batch(unsigned long addr, unsigned long end,
-+					  struct folio *folio, pte_t *ptep,
-+					  pte_t pte, bool *any_young,
-+					  bool *any_dirty)
++void contpte_mkold_clean_ptes(struct mm_struct *mm, unsigned long addr,
++			      pte_t *ptep, unsigned int nr)
 +{
-+	int max_nr = (end - addr) / PAGE_SIZE;
-+	const fpb_t fpb_flags = FPB_IGNORE_DIRTY | FPB_IGNORE_SOFT_DIRTY;
++	/*
++	 * If clearing the young and dirty bits for an entire contig range, we can
++	 * avoid unfolding. Just set old/clean and wait for the later mmu_gather
++	 * flush to invalidate the tlb. If it's a partial range though, we need to
++	 * unfold.
++	 */
 +
-+	return folio_pte_batch(folio, addr, ptep, pte, max_nr, fpb_flags, NULL,
-+			       any_young, any_dirty);
++	contpte_try_unfold_partial(mm, addr, ptep, nr);
++	__mkold_clean_ptes(mm, addr, ptep, nr);
 +}
++EXPORT_SYMBOL_GPL(contpte_mkold_clean_ptes);
 +
-+static inline bool madvise_pte_split_folio(struct mm_struct *mm, pmd_t *pmd,
-+					   unsigned long addr,
-+					   struct folio *folio, pte_t **pte,
-+					   spinlock_t **ptl)
-+{
-+	int err;
-+
-+	if (!folio_trylock(folio))
-+		return false;
-+
-+	folio_get(folio);
-+	pte_unmap_unlock(*pte, *ptl);
-+	err = split_folio(folio);
-+	folio_unlock(folio);
-+	folio_put(folio);
-+
-+	*pte = pte_offset_map_lock(mm, pmd, addr, ptl);
-+
-+	return err == 0;
-+}
-+
- static int madvise_cold_or_pageout_pte_range(pmd_t *pmd,
- 				unsigned long addr, unsigned long end,
- 				struct mm_walk *walk)
-@@ -456,41 +489,29 @@ restart:
- 		 * next pte in the range.
- 		 */
- 		if (folio_test_large(folio)) {
--			const fpb_t fpb_flags = FPB_IGNORE_DIRTY |
--						FPB_IGNORE_SOFT_DIRTY;
--			int max_nr = (end - addr) / PAGE_SIZE;
- 			bool any_young;
--
--			nr = folio_pte_batch(folio, addr, pte, ptent, max_nr,
--					     fpb_flags, NULL, &any_young);
--			if (any_young)
--				ptent = pte_mkyoung(ptent);
-+			nr = madvise_folio_pte_batch(addr, end, folio, pte,
-+						     ptent, &any_young, NULL);
- 
- 			if (nr < folio_nr_pages(folio)) {
--				int err;
--
- 				if (folio_likely_mapped_shared(folio))
- 					continue;
- 				if (pageout_anon_only_filter && !folio_test_anon(folio))
- 					continue;
--				if (!folio_trylock(folio))
--					continue;
--				folio_get(folio);
-+
- 				arch_leave_lazy_mmu_mode();
--				pte_unmap_unlock(start_pte, ptl);
--				start_pte = NULL;
--				err = split_folio(folio);
--				folio_unlock(folio);
--				folio_put(folio);
--				start_pte = pte =
--					pte_offset_map_lock(mm, pmd, addr, &ptl);
-+				if (madvise_pte_split_folio(mm, pmd, addr,
-+							    folio, &start_pte, &ptl))
-+					nr = 0;
- 				if (!start_pte)
- 					break;
-+				pte = start_pte;
- 				arch_enter_lazy_mmu_mode();
--				if (!err)
--					nr = 0;
- 				continue;
- 			}
-+
-+			if (any_young)
-+				ptent = pte_mkyoung(ptent);
- 		}
- 
- 		/*
-@@ -687,47 +708,54 @@ static int madvise_free_pte_range(pmd_t
- 			continue;
- 
- 		/*
--		 * If pmd isn't transhuge but the folio is large and
--		 * is owned by only this process, split it and
--		 * deactivate all pages.
-+		 * If we encounter a large folio, only split it if it is not
-+		 * fully mapped within the range we are operating on. Otherwise
-+		 * leave it as is so that it can be marked as lazyfree. If we
-+		 * fail to split a folio, leave it in place and advance to the
-+		 * next pte in the range.
- 		 */
- 		if (folio_test_large(folio)) {
--			int err;
-+			bool any_young, any_dirty;
-+			nr = madvise_folio_pte_batch(addr, end, folio, pte,
-+						     ptent, &any_young, &any_dirty);
- 
--			if (folio_likely_mapped_shared(folio))
--				break;
--			if (!folio_trylock(folio))
--				break;
--			folio_get(folio);
--			arch_leave_lazy_mmu_mode();
--			pte_unmap_unlock(start_pte, ptl);
--			start_pte = NULL;
--			err = split_folio(folio);
-+			if (nr < folio_nr_pages(folio)) {
-+				if (folio_likely_mapped_shared(folio))
-+					continue;
-+
-+				arch_leave_lazy_mmu_mode();
-+				if (madvise_pte_split_folio(mm, pmd, addr,
-+							    folio, &start_pte, &ptl))
-+					nr = 0;
-+				if (!start_pte)
-+					break;
-+				pte = start_pte;
-+				arch_enter_lazy_mmu_mode();
-+				continue;
-+			}
-+
-+			if (any_young)
-+				ptent = pte_mkyoung(ptent);
-+			if (any_dirty)
-+				ptent = pte_mkdirty(ptent);
-+		}
-+
-+		if (!folio_trylock(folio))
-+			continue;
-+		/*
-+		 * If we have a large folio at this point, we know it is fully mapped
-+		 * so if its mapcount is the same as its number of pages, it must be
-+		 * exclusive.
-+		 */
-+		if (folio_mapcount(folio) != folio_nr_pages(folio)) {
- 			folio_unlock(folio);
--			folio_put(folio);
--			if (err)
--				break;
--			start_pte = pte =
--				pte_offset_map_lock(mm, pmd, addr, &ptl);
--			if (!start_pte)
--				break;
--			arch_enter_lazy_mmu_mode();
--			pte--;
--			addr -= PAGE_SIZE;
- 			continue;
- 		}
-+		folio_unlock(folio);
- 
- 		if (folio_test_swapcache(folio) || folio_test_dirty(folio)) {
- 			if (!folio_trylock(folio))
- 				continue;
--			/*
--			 * If folio is shared with others, we mustn't clear
--			 * the folio's dirty flag.
--			 */
--			if (folio_mapcount(folio) != 1) {
--				folio_unlock(folio);
--				continue;
--			}
- 
- 			if (folio_test_swapcache(folio) &&
- 			    !folio_free_swap(folio)) {
-@@ -740,19 +768,8 @@ static int madvise_free_pte_range(pmd_t
- 		}
- 
- 		if (pte_young(ptent) || pte_dirty(ptent)) {
--			/*
--			 * Some of architecture(ex, PPC) don't update TLB
--			 * with set_pte_at and tlb_remove_tlb_entry so for
--			 * the portability, remap the pte with old|clean
--			 * after pte clearing.
--			 */
--			ptent = ptep_get_and_clear_full(mm, addr, pte,
--							tlb->fullmm);
--
--			ptent = pte_mkold(ptent);
--			ptent = pte_mkclean(ptent);
--			set_pte_at(mm, addr, pte, ptent);
--			tlb_remove_tlb_entry(tlb, pte, addr);
-+			mkold_clean_ptes(mm, addr, pte, nr);
-+			tlb_remove_tlb_entries(tlb, pte, nr, addr);
- 		}
- 		folio_mark_lazyfree(folio);
- 	}
---- a/mm/memory.c~mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free
-+++ a/mm/memory.c
-@@ -989,7 +989,7 @@ copy_present_ptes(struct vm_area_struct
- 			flags |= FPB_IGNORE_SOFT_DIRTY;
- 
- 		nr = folio_pte_batch(folio, addr, src_pte, pte, max_nr, flags,
--				     &any_writable, NULL);
-+				     &any_writable, NULL, NULL);
- 		folio_ref_add(folio, nr);
- 		if (folio_test_anon(folio)) {
- 			if (unlikely(folio_try_dup_anon_rmap_ptes(folio, page,
-@@ -1558,7 +1558,7 @@ static inline int zap_present_ptes(struc
- 	 */
- 	if (unlikely(folio_test_large(folio) && max_nr != 1)) {
- 		nr = folio_pte_batch(folio, addr, pte, ptent, max_nr, fpb_flags,
--				     NULL, NULL);
-+				     NULL, NULL, NULL);
- 
- 		zap_present_folio_ptes(tlb, vma, folio, page, pte, ptent, nr,
- 				       addr, details, rss, force_flush,
+ int contpte_ptep_set_access_flags(struct vm_area_struct *vma,
+ 					unsigned long addr, pte_t *ptep,
+ 					pte_t entry, int dirty)
 _
 
 Patches currently in -mm which might be from ioworker0@gmail.com are
