@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F40C7181D03
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72470181D08
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712782832; cv=none; b=qN5Ccdea4hJgvfuSFpquVV/PoEQgMAf2BxcvOACVUC0FIFXsKhh+zjjHg7ThVscDDTXPClpjkOiHrEVRxM5xCHvnQLq2ZP/vf2pkBByPua1pR7/flYpgR+BtTXwL4TvzHDlMYEkeGWJhJxaTRFZlcfjZkR1eCnvV0EnnF1+IlyA=
+	t=1712782833; cv=none; b=eqAqzN5/LT8DFKRSKMglIXCX3nm+4c6Ao2O23jLOTGSoh7jvDm7Nin8Y9cBxx5AUYXyXPbgBiQ3Vx8eF6JcWVqpL4Syu3myeqOJATzSFP04G4egrUrYaIZqH+9hQZ2kcDykqUJ6wyV/p7IdkqWT1mKbI7GbZ86ONm4v2dTk+gc8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712782832; c=relaxed/simple;
-	bh=xBdpObZi/2b1PI+KPWWL6OiCHofkiO4O4EDJ5u5gv0U=;
-	h=Date:To:From:Subject:Message-Id; b=exrkeQK0F6X20oxdJPPqXHKPOxyVDcr4SijUmCcY0/4cahSMJPuoRSSIpdwOf9yad1jlEpYV0eQ70n+Heoa4/BeeVzESqyBUMAiPVgbQpP/Of/QVSDSVQ0yncbpPqtxgPcXXMI6Yi94DkKnINBEfTlwwagO9gbr8zw6+skaLO+g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dZZsqpx8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712782833; c=relaxed/simple;
+	bh=vXgwzCCmg8xd82hz+likuBIYN2ulrCZkWztqS/NKies=;
+	h=Date:To:From:Subject:Message-Id; b=ijIA/mfyj3+7NSjbrD5G9SmTGGxdBGNKeQ4LKlbgTOukh5JRAw2bAmlw89mDfb4/SCJZUM6nAgyOB5w5YSqYyviSvcKz3/rDapCFk5GeTBLY1yiajpDZzww8V5CZieSucgv4MiidNbZ07dDihmJZijb4PfUOXLoR181rfpQ2jGk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0pXdzspB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dZZsqpx8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B491CC433F1;
-	Wed, 10 Apr 2024 21:00:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0pXdzspB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EFAFC433C7;
+	Wed, 10 Apr 2024 21:00:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712782831;
-	bh=xBdpObZi/2b1PI+KPWWL6OiCHofkiO4O4EDJ5u5gv0U=;
+	s=korg; t=1712782833;
+	bh=vXgwzCCmg8xd82hz+likuBIYN2ulrCZkWztqS/NKies=;
 	h=Date:To:From:Subject:From;
-	b=dZZsqpx8Fue3pfbXJBjZz6tRsJ7yFOln4AJ46oqXg68GDMiL52SSzfhHc8uVccHqs
-	 QQ4t3dR+84qAVEHiheKC34hwhjbLKz8pSsllbMHAUcYU+0UE5BOFokLcM0hQetgUP+
-	 M1ZtUYYFQ2MrmoMbiB31wb1k65XG/v5V0aQw1Cvk=
-Date: Wed, 10 Apr 2024 14:00:31 -0700
+	b=0pXdzspB4i2hBldGaxsPxxXsHsU3ga1ukIbyjOJp9lLHSUEh1dAOsDtOYBO1oN2uR
+	 +rqgeaR1X6H6XMcqu5N2ebYe+j7Zhah1n2yp/rGQ7Fd4bTvd7jEf4tZTwO7hfwk9YK
+	 l4sNnqTuq8Ti/8qPEgdOIDZjAJoifd7Jznwnotyk=
+Date: Wed, 10 Apr 2024 14:00:32 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ysato@users.sourceforge.jp,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richardycc@google.com,peterx@redhat.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,linmiaohe@huawei.com,jcmvbkbc@gmail.com,hughd@google.com,glaubitz@physik.fu-berlin.de,fengwei.yin@intel.com,dalias@libc.org,corbet@lwn.net,chris@zankel.net,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page.patch added to mm-unstable branch
-Message-Id: <20240410210031.B491CC433F1@smtp.kernel.org>
+Subject: + trace-events-page_ref-trace-the-raw-page-mapcount-value.patch added to mm-unstable branch
+Message-Id: <20240410210033.3EFAFC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/migrate_device: use folio_mapcount() in migrate_vma_check_page()
+     Subject: trace/events/page_ref: trace the raw page mapcount value
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page.patch
+     trace-events-page_ref-trace-the-raw-page-mapcount-value.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/trace-events-page_ref-trace-the-raw-page-mapcount-value.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/migrate_device: use folio_mapcount() in migrate_vma_check_page()
-Date: Tue, 9 Apr 2024 21:22:57 +0200
+Subject: trace/events/page_ref: trace the raw page mapcount value
+Date: Tue, 9 Apr 2024 21:22:58 +0200
 
 We want to limit the use of page_mapcount() to the places where it is
-absolutely necessary.  Let's convert migrate_vma_check_page() to work on a
-folio internally so we can remove the page_mapcount() usage.
+absolutely necessary.  We already trace raw page->refcount, raw
+page->flags and raw page->mapping, and don't involve any folios.  Let's
+also trace the raw mapcount value that does not consider the entire
+mapcount of large folios, and we don't add "1" to it.
 
-Note that we reject any large folios.
+When dealing with typed folios, this makes a lot more sense.  ...  and
+it's for debugging purposes only either way.
 
-There is a lot more folio conversion to be had, but that has to wait for
-another day.  No functional change intended.
-
-Link: https://lkml.kernel.org/r/20240409192301.907377-15-david@redhat.com
+Link: https://lkml.kernel.org/r/20240409192301.907377-16-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Hugh Dickins <hughd@google.com>
@@ -93,44 +93,29 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate_device.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ include/trace/events/page_ref.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/migrate_device.c~mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page
-+++ a/mm/migrate_device.c
-@@ -324,6 +324,8 @@ static void migrate_vma_collect(struct m
-  */
- static bool migrate_vma_check_page(struct page *page, struct page *fault_page)
- {
-+	struct folio *folio = page_folio(page);
-+
- 	/*
- 	 * One extra ref because caller holds an extra reference, either from
- 	 * isolate_lru_page() for a regular page, or migrate_vma_collect() for
-@@ -336,18 +338,18 @@ static bool migrate_vma_check_page(struc
- 	 * check them than regular pages, because they can be mapped with a pmd
- 	 * or with a pte (split pte mapping).
- 	 */
--	if (PageCompound(page))
-+	if (folio_test_large(folio))
- 		return false;
- 
- 	/* Page from ZONE_DEVICE have one extra reference */
--	if (is_zone_device_page(page))
-+	if (folio_is_zone_device(folio))
- 		extra++;
- 
- 	/* For file back page */
--	if (page_mapping(page))
--		extra += 1 + page_has_private(page);
-+	if (folio_mapping(folio))
-+		extra += 1 + folio_has_private(folio);
- 
--	if ((page_count(page) - extra) > page_mapcount(page))
-+	if ((folio_ref_count(folio) - extra) > folio_mapcount(folio))
- 		return false;
- 
- 	return true;
+--- a/include/trace/events/page_ref.h~trace-events-page_ref-trace-the-raw-page-mapcount-value
++++ a/include/trace/events/page_ref.h
+@@ -30,7 +30,7 @@ DECLARE_EVENT_CLASS(page_ref_mod_templat
+ 		__entry->pfn = page_to_pfn(page);
+ 		__entry->flags = page->flags;
+ 		__entry->count = page_ref_count(page);
+-		__entry->mapcount = page_mapcount(page);
++		__entry->mapcount = atomic_read(&page->_mapcount);
+ 		__entry->mapping = page->mapping;
+ 		__entry->mt = get_pageblock_migratetype(page);
+ 		__entry->val = v;
+@@ -79,7 +79,7 @@ DECLARE_EVENT_CLASS(page_ref_mod_and_tes
+ 		__entry->pfn = page_to_pfn(page);
+ 		__entry->flags = page->flags;
+ 		__entry->count = page_ref_count(page);
+-		__entry->mapcount = page_mapcount(page);
++		__entry->mapcount = atomic_read(&page->_mapcount);
+ 		__entry->mapping = page->mapping;
+ 		__entry->mt = get_pageblock_migratetype(page);
+ 		__entry->val = v;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
