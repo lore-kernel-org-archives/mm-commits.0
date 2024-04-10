@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B375E181D1F
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45E55181CFF
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712782824; cv=none; b=Eqmbm8rUmZsISxtTAFH7U6iUwMcAIKUOFy0VXze9WyI0cZv9+LBHawZ0rshRGeTIntpARzS/hpV6iCvVkBXks/U6jpLfR5TFMh/XmzmXNzTAOMu4tjOWsaHF2GZiyX/H/1ws9TwTflFETfNJ8RTsYBfkAK2IpWHwyLTeyf6uKH0=
+	t=1712782826; cv=none; b=OFop5c0XcK2SfN1Q1tHoQzEPg3jOAx/iCLC8gUzH/apGIv8bskA/0KLOoLBVE1nlT7aqB0MEkKpm4CeEbsupSzuPPrqobF4636HdR0uvC0dbpAjD4gz4nA1NUD6Uo0a5OQ6A+2h3M4XWXggtbtU1cHdKpgJRYu9ZDXs8PxB5UHI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712782824; c=relaxed/simple;
-	bh=axM8Og3/4T/R8it3UYvT2EoC8/SG9iv7TmG/oJAUKX0=;
-	h=Date:To:From:Subject:Message-Id; b=KahK08HPoErgxjFAYbefoPjIrqYnErLj0LaEYbQWthkFhqm1KkQFcs78ak1ZxP2YTCqhfamNPNiIT5PsDM1VTIrwtaTI3hLpSZfUdqQOOPkp721l0jHX0YWcxnz7gLnrFHK8Ozy1uz5zYCf8mIaWKs1Z0Y2147vgTeMVEAIOjLg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rXuOzrjP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712782826; c=relaxed/simple;
+	bh=yc3C8lRATEl/tgbxdjRkSZM7M4jPOOgp+c8xeenjNwY=;
+	h=Date:To:From:Subject:Message-Id; b=maujQuwbaPnIakaFumFAe0dM89Z04blKs7gxzX2zb6kDef2KWyJhG5nXqbVM020E12CAb3jlbhQw0v8DK8+weKco4niCZyRwV+h6CJ3Iwonto9PE3N7L8W3MZTtGtOYd06AESSaGnWKLAYCZshkE+0BD/ilulRBw6NblHf47KZg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k4d9k5rr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rXuOzrjP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 247C5C433C7;
-	Wed, 10 Apr 2024 21:00:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k4d9k5rr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B87FEC433C7;
+	Wed, 10 Apr 2024 21:00:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712782824;
-	bh=axM8Og3/4T/R8it3UYvT2EoC8/SG9iv7TmG/oJAUKX0=;
+	s=korg; t=1712782825;
+	bh=yc3C8lRATEl/tgbxdjRkSZM7M4jPOOgp+c8xeenjNwY=;
 	h=Date:To:From:Subject:From;
-	b=rXuOzrjPjsRShmsGoo+k22JYpMPqfnb/lBDijELRscMT+h/KXQNduItkltmYQHq7S
-	 RV0ZI6yxqDUSCT/bn4Ldd/+qzRd0SIuwR6SkAANptFc1qCh9TqJtbcMLvvjV5c8zE1
-	 Ds/JPNmG1rPWEVG68XkEwM645seiGL09iCNbt2lw=
-Date: Wed, 10 Apr 2024 14:00:23 -0700
+	b=k4d9k5rrgUOKOEyCVwJnF3jhipY4C3StAXLKbstJrmyZuRyBoVHJvJTrws3JwEGVr
+	 kAPLp8EuJHQAYotL3Yljx/g8H+l9VwBfRod6YTObV7oGj9W20bsUXXFfI1uRQXW/xU
+	 ht4hEk8TjothQKo7mHEqsk0H8az2yxKhkzyrY/8A=
+Date: Wed, 10 Apr 2024 14:00:25 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ysato@users.sourceforge.jp,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richardycc@google.com,peterx@redhat.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,linmiaohe@huawei.com,jcmvbkbc@gmail.com,hughd@google.com,glaubitz@physik.fu-berlin.de,fengwei.yin@intel.com,dalias@libc.org,corbet@lwn.net,chris@zankel.net,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-use-folio_mapcount-in-hwpoison_user_mappings.patch added to mm-unstable branch
-Message-Id: <20240410210024.247C5C433C7@smtp.kernel.org>
+Subject: + mm-page_alloc-use-folio_mapped-in-__alloc_contig_migrate_range.patch added to mm-unstable branch
+Message-Id: <20240410210025.B87FEC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: use folio_mapcount() in hwpoison_user_mappings()
+     Subject: mm/page_alloc: use folio_mapped() in __alloc_contig_migrate_range()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-use-folio_mapcount-in-hwpoison_user_mappings.patch
+     mm-page_alloc-use-folio_mapped-in-__alloc_contig_migrate_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-use-folio_mapcount-in-hwpoison_user_mappings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-use-folio_mapped-in-__alloc_contig_migrate_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,26 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory-failure: use folio_mapcount() in hwpoison_user_mappings()
-Date: Tue, 9 Apr 2024 21:22:52 +0200
+Subject: mm/page_alloc: use folio_mapped() in __alloc_contig_migrate_range()
+Date: Tue, 9 Apr 2024 21:22:53 +0200
 
 We want to limit the use of page_mapcount() to the places where it is
-absolutely necessary.  We can only unmap full folios; page_mapped(), which
-we check here, is translated to folio_mapped() -- based on
-folio_mapcount().  So let's print the folio mapcount instead.
+absolutely necessary.
 
-Link: https://lkml.kernel.org/r/20240409192301.907377-10-david@redhat.com
+For tracing purposes, we use page_mapcount() in
+__alloc_contig_migrate_range().  Adding that mapcount to total_mapped
+sounds strange: total_migrated and total_reclaimed would count each page
+only once, not multiple times.
+
+But then, isolate_migratepages_range() adds each folio only once to the
+list.  So for large folios, we would query the mapcount of the first page
+of the folio, which doesn't make too much sense for large folios.
+
+Let's simply use folio_mapped() * folio_nr_pages(), which makes more sense
+as nr_migratepages is also incremented by the number of pages in the folio
+in case of successful migration.
+
+Link: https://lkml.kernel.org/r/20240409192301.907377-11-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Hugh Dickins <hughd@google.com>
@@ -89,22 +100,26 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-use-folio_mapcount-in-hwpoison_user_mappings
-+++ a/mm/memory-failure.c
-@@ -1628,8 +1628,8 @@ static bool hwpoison_user_mappings(struc
+--- a/mm/page_alloc.c~mm-page_alloc-use-folio_mapped-in-__alloc_contig_migrate_range
++++ a/mm/page_alloc.c
+@@ -6355,8 +6355,12 @@ int __alloc_contig_migrate_range(struct
  
- 	unmap_success = !page_mapped(p);
- 	if (!unmap_success)
--		pr_err("%#lx: failed to unmap page (mapcount=%d)\n",
--		       pfn, page_mapcount(p));
-+		pr_err("%#lx: failed to unmap page (folio mapcount=%d)\n",
-+		       pfn, folio_mapcount(page_folio(p)));
+ 		if (trace_mm_alloc_contig_migrate_range_info_enabled()) {
+ 			total_reclaimed += nr_reclaimed;
+-			list_for_each_entry(page, &cc->migratepages, lru)
+-				total_mapped += page_mapcount(page);
++			list_for_each_entry(page, &cc->migratepages, lru) {
++				struct folio *folio = page_folio(page);
++
++				total_mapped += folio_mapped(folio) *
++						folio_nr_pages(folio);
++			}
+ 		}
  
- 	/*
- 	 * try_to_unmap() might put mlocked page in lru cache, so call
+ 		ret = migrate_pages(&cc->migratepages, alloc_migration_target,
 _
 
 Patches currently in -mm which might be from david@redhat.com are
