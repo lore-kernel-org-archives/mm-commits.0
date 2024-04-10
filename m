@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC097181D04
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A8C6181D17
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712782821; cv=none; b=kiJoufN2XncTBr2AGa1ZPap73g50udWDxnRzJjr6uK4VnC7+qs8gUZrc0koTQA/PqblMyJ46wXTOa3TDwYbh7TVZncGOp7+962xDY2Fo0gz5pUDBsj2wzZP76YYtZ3zO/JdK1ksFQCVLNatu6BRF01KsB9oWaXGZRL6/no/FMRE=
+	t=1712782823; cv=none; b=adxmCrmgy5fGnzTo86ZkoP942g7b80dlsYhPSxsp4gyZLojyTg0S53DnDE//E0LY3ZGM7qz/psoAnIlkQYZgHDs208UKSlFQCOg748Y1z00vnXxSsuPnRFJ/so9GmOLH2shd8nLpikQssM3a4TyUZixYCc/eTvUAhxRNkGSfcmA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712782821; c=relaxed/simple;
-	bh=sPBUD05bmcHFwxTN+un6uoKsDZ8+xr3xIdfn2gMYzEk=;
-	h=Date:To:From:Subject:Message-Id; b=cFFzop5y+OcGPRz29vo91I5v/HQNPU9k4bY4B104385WIPmogOgT3jki84I9+cUGGEEukdh2E/5drh9McYltfOeQ+IVKCE27rwB3dxm/msjzu/O+pwEwX1Spup3EczxEWZz+SMU454U3HCJhYMjAXwgEpTZeD+vXLXGN8x1yQzw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PuAA21RV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712782823; c=relaxed/simple;
+	bh=0vuFLXG4h3OBpPY+WYLiVcUoSUBzlbTbSw22yu6rvYs=;
+	h=Date:To:From:Subject:Message-Id; b=irR8xznJ18F4CZWnFOb2Z0+rf/TDvjmBXxFBvWoS77gu/CP/+xoOpx2ryWLYB7VX8CFJURMLxs5XXcXEvygkM0sGCZImwXKB1Jy6xqd6D26ohdKr2Y87vcnZANE7W3Rf+Igo9lYkF51JcqVHJMPA8jYCd5SbsKYX1WwHNlkjtWs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GuOH7Q46; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PuAA21RV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABDCAC433C7;
-	Wed, 10 Apr 2024 21:00:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GuOH7Q46"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78E10C433F1;
+	Wed, 10 Apr 2024 21:00:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712782820;
-	bh=sPBUD05bmcHFwxTN+un6uoKsDZ8+xr3xIdfn2gMYzEk=;
+	s=korg; t=1712782822;
+	bh=0vuFLXG4h3OBpPY+WYLiVcUoSUBzlbTbSw22yu6rvYs=;
 	h=Date:To:From:Subject:From;
-	b=PuAA21RVcLKA+3jCX89Ralc0C2xYLstt5duTyTzX3LOGDd7YeNQMLy8bU9nMAFeuy
-	 h6khQqvfuBP8BaEBeGvi2DmHY7p1Yc0OyJXVEdOytf0kD+3HQqvqYRvyR646tkMDme
-	 L9ADFPdQef7/J1xH9inrVNk7+s6+f8zR0nPm6F38=
-Date: Wed, 10 Apr 2024 14:00:20 -0700
+	b=GuOH7Q46ZqxAALO8Wcy2e8lrxgrOc4+nfxe9HjLaSdF6RWJOs8V60LwVKYHpEYBHk
+	 47sIROrbc4d+Ff/3URF3us7TK8eqCp7/kOvTTKn2S9MnsVqRIUnJ+ulpXQPA4AKgw7
+	 ASMN/acqfE4QrGD4pt/ZN9bFiVYhA8fKIbpV5udU=
+Date: Wed, 10 Apr 2024 14:00:21 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ysato@users.sourceforge.jp,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richardycc@google.com,peterx@redhat.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,linmiaohe@huawei.com,jcmvbkbc@gmail.com,hughd@google.com,glaubitz@physik.fu-berlin.de,fengwei.yin@intel.com,dalias@libc.org,corbet@lwn.net,chris@zankel.net,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-use-folio_mapcount-in-zap_present_folio_ptes.patch added to mm-unstable branch
-Message-Id: <20240410210020.ABDCAC433C7@smtp.kernel.org>
+Subject: + mm-huge_memory-use-folio_mapcount-in-zap_huge_pmd-sanity-check.patch added to mm-unstable branch
+Message-Id: <20240410210022.78E10C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory: use folio_mapcount() in zap_present_folio_ptes()
+     Subject: mm/huge_memory: use folio_mapcount() in zap_huge_pmd() sanity check
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-use-folio_mapcount-in-zap_present_folio_ptes.patch
+     mm-huge_memory-use-folio_mapcount-in-zap_huge_pmd-sanity-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-use-folio_mapcount-in-zap_present_folio_ptes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-use-folio_mapcount-in-zap_huge_pmd-sanity-check.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,25 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory: use folio_mapcount() in zap_present_folio_ptes()
-Date: Tue, 9 Apr 2024 21:22:50 +0200
+Subject: mm/huge_memory: use folio_mapcount() in zap_huge_pmd() sanity check
+Date: Tue, 9 Apr 2024 21:22:51 +0200
 
 We want to limit the use of page_mapcount() to the places where it is
-absolutely necessary.  In zap_present_folio_ptes(), let's simply check the
-folio mapcount().  If there is some issue, it will underflow at some point
-either way when unmapping.
+absolutely necessary.  Let's similarly check for folio_mapcount()
+underflows instead of page_mapcount() underflows like we do in
+zap_present_folio_ptes() now.
 
-As indicated already in commit 10ebac4f95e7 ("mm/memory: optimize
-unmap/zap with PTE-mapped THP"), we already documented "If we ever have a
-cheap folio_mapcount(), we might just want to check for underflows
-there.".
+Instead of the VM_BUG_ON(), we should actually be doing something like
+print_bad_pte().  For now, let's keep it simple and use WARN_ON_ONCE(),
+performing that check independently of DEBUG_VM.
 
-There is no change for small folios.  For large folios, we'll now catch
-more underflows when batch-unmapping, because instead of only testing the
-mapcount of the first subpage, we'll test if the folio mapcount
-underflows.
-
-Link: https://lkml.kernel.org/r/20240409192301.907377-8-david@redhat.com
+Link: https://lkml.kernel.org/r/20240409192301.907377-9-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Hugh Dickins <hughd@google.com>
@@ -99,21 +93,20 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-memory-use-folio_mapcount-in-zap_present_folio_ptes
-+++ a/mm/memory.c
-@@ -1502,8 +1502,7 @@ static __always_inline void zap_present_
- 	if (!delay_rmap) {
- 		folio_remove_rmap_ptes(folio, page, nr, vma);
+--- a/mm/huge_memory.c~mm-huge_memory-use-folio_mapcount-in-zap_huge_pmd-sanity-check
++++ a/mm/huge_memory.c
+@@ -1851,7 +1851,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
  
--		/* Only sanity-check the first page in a batch. */
--		if (unlikely(page_mapcount(page) < 0))
-+		if (unlikely(folio_mapcount(folio) < 0))
- 			print_bad_pte(vma, addr, ptent, page);
- 	}
- 
+ 			folio = page_folio(page);
+ 			folio_remove_rmap_pmd(folio, page, vma);
+-			VM_BUG_ON_PAGE(page_mapcount(page) < 0, page);
++			WARN_ON_ONCE(folio_mapcount(folio) < 0);
+ 			VM_BUG_ON_PAGE(!PageHead(page), page);
+ 		} else if (thp_migration_supported()) {
+ 			swp_entry_t entry;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
