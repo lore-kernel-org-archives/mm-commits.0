@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB4CB168DC
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 18:09:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EF3417F38F
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 18:10:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712772573; cv=none; b=Rdl8VPZxxcYxUKsRo+wQBmiD19u9ErfA1If9WUJyfdiUv++hd64WbWTUbOL7p3ydvZ76FeNOKj5Tk1pokeSrMGWorh8lIIgxfGKm/4p1DW7gEzaFFdbkU22kr0ZwWMvBaBUZIDtm4ZcEPI1Dc1extRdZg+j4V8sVYrfmvAsWS6I=
+	t=1712772658; cv=none; b=STE8MXyamJ9pGmVqJ+V0t7wTG3a6uVwzTMJBNorfoqEvvlrapZoXdpbAaP0KemdLs49vxGbt5CPDaSrgX7Iz7ZYizNCXOw7nwiQUUKiNM68sr14Ny3pnWxjBI/2v2MZRkhT7t6uUoqe9gNcJML75817X9VQRceXbaYQVRrUx7rg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712772573; c=relaxed/simple;
-	bh=QwtGzz2ta7kTrdDdLPHR04yifDPZ4v3+X58WCkYZqZw=;
-	h=Date:To:From:Subject:Message-Id; b=B2RO6QI01lYcjfPa8gEvFxdA3S41MMx5TS5rBFyQ/bNeKjPQLyr7Znsa87qYmO8/QfEdTvtXC3I3/a7k26W+DeZTemP86JzY1rL4R1Q7ceqqt+TSTXT5rvVQ7z4LJyl0qbiOVTkiZAJmjCIJTkDSt59iBuLRZZQRDabG9q68v8I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tKyVfdZ8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712772658; c=relaxed/simple;
+	bh=zfIrFJpgqexLTh0x/MpCkMne9Ii+rCEr69BYD3qKOIk=;
+	h=Date:To:From:Subject:Message-Id; b=tebBFYsGNff69TwsslLmhfGtwusJEW1/TdPQghBIqr+FZDh6NO3Vig22BFwu0ugT0W6mhPyW4xDt8hhoSZIB8zF5wObe3DcQ7fMHPILBlxWQ3gvweuTVlRaXC3PSaNNFrCA7BNRe9WMzcAldU7VT+uAmNn/BLM5UzkT1ts45hDY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mwDSA4NZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tKyVfdZ8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AEADC433F1;
-	Wed, 10 Apr 2024 18:09:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mwDSA4NZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9610AC433F1;
+	Wed, 10 Apr 2024 18:10:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712772573;
-	bh=QwtGzz2ta7kTrdDdLPHR04yifDPZ4v3+X58WCkYZqZw=;
+	s=korg; t=1712772657;
+	bh=zfIrFJpgqexLTh0x/MpCkMne9Ii+rCEr69BYD3qKOIk=;
 	h=Date:To:From:Subject:From;
-	b=tKyVfdZ8yzimogEywHFN53hEzlUcBC9pP9w36DD9xsN9r0y68PA+TovbWHclVYrfO
-	 wApqdXBGyw96OaMzbfc0TWYFq1b7ayy8UQk3jAKmHjFb3wRsAfi/3CtOlZjntu6JIn
-	 vBqxvQeA7fgcPK+66AfVKk0HWFu0cdFK7LQmc00c=
-Date: Wed, 10 Apr 2024 11:09:32 -0700
-To: mm-commits@vger.kernel.org,alexghiti@rivosinc.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=mwDSA4NZApKAjNwCpaXTit/nb9RNpIq1wypIU6IwPqJfjdGw9K/NBIewiG/c9HEBD
+	 i9bWYRnvKpqFYD9QfKdtWXaPeCmbXFi+LYoUAJu5OlME78QHSXEPEAvI+zx3u8MMvZ
+	 EToWFororXl6JswaaDpGO4G1hiOvq0xGiAG0IgLg=
+Date: Wed, 10 Apr 2024 11:10:57 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,lokeshgidra@google.com,Liam.Howlett@oracle.com,apopple@nvidia.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-mm-accelerate-pagefault-when-badaccess-fix.patch added to mm-unstable branch
-Message-Id: <20240410180933.5AEADC433F1@smtp.kernel.org>
+Subject: + mm-always-sanity-check-anon_vma-first-for-per-vma-locks.patch added to mm-unstable branch
+Message-Id: <20240410181057.9610AC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: riscv-mm-accelerate-pagefault-when-badaccess-fix
+     Subject: mm: Always sanity check anon_vma first for per-vma locks
 has been added to the -mm mm-unstable branch.  Its filename is
-     riscv-mm-accelerate-pagefault-when-badaccess-fix.patch
+     mm-always-sanity-check-anon_vma-first-for-per-vma-locks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-mm-accelerate-pagefault-when-badaccess-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-always-sanity-check-anon_vma-first-for-per-vma-locks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,49 +58,157 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: riscv-mm-accelerate-pagefault-when-badaccess-fix
-Date: Wed, 10 Apr 2024 16:07:41 +0800
+From: Peter Xu <peterx@redhat.com>
+Subject: mm: Always sanity check anon_vma first for per-vma locks
+Date: Wed, 10 Apr 2024 13:06:21 -0400
 
-use `cause' rather than SIGSEGV, per Alexandre
+anon_vma is a tricky object in the context of per-vma lock, because it's
+racy to modify it in that context and mmap lock is needed if it's not
+stable yet.
 
-Link: https://lkml.kernel.org/r/ac978061-ce1a-40a4-8b0a-61883b42bea7@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Alexandre Ghiti <alexghiti@rivosinc.com>
-Tested-by: Alexandre Ghiti <alexghiti@rivosinc.com>
+So far there are three places that sanity checks anon_vma for that:
+
+  - lock_vma_under_rcu(): this is the major entrance of per-vma lock, where
+    we have taken care of anon memory v.s. potential anon_vma allocations.
+
+  - lock_vma(): even if it looks so generic as an API, it's only used in
+    userfaultfd context to leverage per-vma locks.  It does extra check
+    over MAP_PRIVATE file mappings for the same anon_vma issue.
+
+  - vmf_anon_prepare(): it works for private file mapping faults just like
+    what lock_vma() wanted to cover above.  One trivial difference is in
+    some extremely corner case, the fault handler will still allow per-vma
+    fault to happen, like a READ on a privately mapped file.
+
+The question is whether that's intended to make it as complicated.  Per my
+question in the thread, it is not intended, and Suren also seems to agree [1].
+
+So the trivial side effect of such patch is:
+
+  - We may do slightly better on the first WRITE of a private file mapping,
+  because we can retry earlier (in lock_vma_under_rcu(), rather than
+  vmf_anon_prepare() later).
+
+  - We may always use mmap lock for the initial READs on a private file
+  mappings, while before this patch it _can_ (only when no WRITE ever
+  happened... but it doesn't make much sense for a MAP_PRIVATE..) do the
+  read fault with per-vma lock.
+
+Then noted that right after any WRITE the anon_vma will be stablized, then
+there will be no difference.  And I believe that should be the majority
+cases too; I also did try to run a program, writting to MAP_PRIVATE file
+memory (that I pre-headed in the page cache) and I can hardly measure a
+difference in performance.
+
+Let's simply ignore all those trivial corner cases and unify the anon_vma
+check from three places into one.  I also didn't check the rest users of
+lock_vma_under_rcu(), where in a !fault context it could even fix something
+that used to race with private file mappings but I didn't check further.
+
+I still left a WARN_ON_ONCE() in vmf_anon_prepare() to double check we're
+all good.
+
+[1] https://lore.kernel.org/r/CAJuCfpGj5xk-NxSwW6Mt8NGZcV9N__8zVPMGXDPAYKMcN9=Oig@mail.gmail.com
+
+Link: https://lkml.kernel.org/r/20240410170621.2011171-1-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/mm/fault.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory.c      |   10 ++++------
+ mm/userfaultfd.c |   13 ++-----------
+ 2 files changed, 6 insertions(+), 17 deletions(-)
 
---- a/arch/riscv/mm/fault.c~riscv-mm-accelerate-pagefault-when-badaccess-fix
-+++ a/arch/riscv/mm/fault.c
-@@ -293,8 +293,8 @@ void handle_page_fault(struct pt_regs *r
- 	if (unlikely(access_error(cause, vma))) {
- 		vma_end_read(vma);
- 		count_vm_vma_lock_event(VMA_LOCK_SUCCESS);
--		tsk->thread.bad_cause = SEGV_ACCERR;
--		bad_area_nosemaphore(regs, code, addr);
-+		tsk->thread.bad_cause = cause;
-+		bad_area_nosemaphore(regs, SEGV_ACCERR, addr);
- 		return;
- 	}
+--- a/mm/memory.c~mm-always-sanity-check-anon_vma-first-for-per-vma-locks
++++ a/mm/memory.c
+@@ -3219,10 +3219,8 @@ vm_fault_t vmf_anon_prepare(struct vm_fa
  
+ 	if (likely(vma->anon_vma))
+ 		return 0;
+-	if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
+-		vma_end_read(vma);
+-		return VM_FAULT_RETRY;
+-	}
++	/* We shouldn't try a per-vma fault at all if anon_vma isn't solid */
++	WARN_ON_ONCE(vmf->flags & FAULT_FLAG_VMA_LOCK);
+ 	if (__anon_vma_prepare(vma))
+ 		return VM_FAULT_OOM;
+ 	return 0;
+@@ -5826,9 +5824,9 @@ retry:
+ 	 * find_mergeable_anon_vma uses adjacent vmas which are not locked.
+ 	 * This check must happen after vma_start_read(); otherwise, a
+ 	 * concurrent mremap() with MREMAP_DONTUNMAP could dissociate the VMA
+-	 * from its anon_vma.
++	 * from its anon_vma.  This applies to both anon or private file maps.
+ 	 */
+-	if (unlikely(vma_is_anonymous(vma) && !vma->anon_vma))
++	if (unlikely(!(vma->vm_flags & VM_SHARED) && !vma->anon_vma))
+ 		goto inval_end_read;
+ 
+ 	/* Check since vm_start/vm_end might change before we lock the VMA */
+--- a/mm/userfaultfd.c~mm-always-sanity-check-anon_vma-first-for-per-vma-locks
++++ a/mm/userfaultfd.c
+@@ -72,17 +72,8 @@ static struct vm_area_struct *lock_vma(s
+ 	struct vm_area_struct *vma;
+ 
+ 	vma = lock_vma_under_rcu(mm, address);
+-	if (vma) {
+-		/*
+-		 * lock_vma_under_rcu() only checks anon_vma for private
+-		 * anonymous mappings. But we need to ensure it is assigned in
+-		 * private file-backed vmas as well.
+-		 */
+-		if (!(vma->vm_flags & VM_SHARED) && unlikely(!vma->anon_vma))
+-			vma_end_read(vma);
+-		else
+-			return vma;
+-	}
++	if (vma)
++		return vma;
+ 
+ 	mmap_read_lock(mm);
+ 	vma = find_vma_and_prepare_anon(mm, address);
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-backing-dev-use-group-allocation-free-of-per-cpu-counters-api.patch
-mm-remove-__set_page_dirty_nobuffers.patch
-arm64-mm-cleanup-__do_page_fault.patch
-arm64-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
-arm-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
-powerpc-mm-accelerate-pagefault-when-badaccess.patch
-riscv-mm-accelerate-pagefault-when-badaccess.patch
-riscv-mm-accelerate-pagefault-when-badaccess-fix.patch
-s390-mm-accelerate-pagefault-when-badaccess.patch
-x86-mm-accelerate-pagefault-when-badaccess.patch
-arm64-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
-arm-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
+mm-userfaultfd-allow-hugetlb-change-protection-upon-poison-entry.patch
+mm-hmm-process-pud-swap-entry-without-pud_huge.patch
+mm-gup-cache-p4d-in-follow_p4d_mask.patch
+mm-gup-check-p4d-presence-before-going-on.patch
+mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch
+mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
+mm-arm-use-macros-to-define-pmd-pud-helpers.patch
+mm-arm-redefine-pmd_huge-with-pmd_leaf.patch
+mm-arm64-merge-pxd_huge-and-pxd_leaf-definitions.patch
+mm-powerpc-redefine-pxd_huge-with-pxd_leaf.patch
+mm-gup-merge-pxd-huge-mapping-checks.patch
+mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
+mm-treewide-remove-pxd_huge.patch
+mm-arm-remove-pmd_thp_or_huge.patch
+mm-document-pxd_leaf-api.patch
+selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation.patch
+selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation-fix.patch
+mm-kconfig-config_pgtable_has_huge_leaves.patch
+mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch
+mm-make-hpage_pxd_-macros-even-if-thp.patch
+mm-introduce-vma_pgtable_walk_beginend.patch
+mm-arch-provide-pud_pfn-fallback.patch
+mm-arch-provide-pud_pfn-fallback-fix.patch
+mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing.patch
+mm-gup-refactor-record_subpages-to-find-1st-small-page.patch
+mm-gup-handle-hugetlb-for-no_page_table.patch
+mm-gup-cache-pudp-in-follow_pud_mask.patch
+mm-gup-handle-huge-pud-for-follow_pud_mask.patch
+mm-gup-handle-huge-pmd-for-follow_pmd_mask.patch
+mm-gup-handle-huge-pmd-for-follow_pmd_mask-fix.patch
+mm-gup-handle-hugepd-for-follow_page.patch
+mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code.patch
+mm-allow-anon-exclusive-check-over-hugetlb-tail-pages.patch
+mm-always-sanity-check-anon_vma-first-for-per-vma-locks.patch
 
