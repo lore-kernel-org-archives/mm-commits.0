@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C258181BBC
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76564181D17
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712782836; cv=none; b=I/iwDa4PoTJ8AC6ywGxf4QtBqZPu07aaP/OaK+AJ/ZuGPVfd6nu3fFmx9Frznef2opBJIRPaBSwwHewJFb3xcNd3yJwhEJqVXePz/ljdHgvjAKRnhnqAmz0OBvd6x89gBuUbZrjF+yGH03e8lF4UguQ9RH1gBHl/pLP7lRZydn0=
+	t=1712782838; cv=none; b=h0O7iCcxB3/6f43wXsJ3K5gs1TYMx92LAXQofQ5GOyNQfd9WJ1B1NQxWabpBvixsh45xE5trbtijrU828MAAbQvwnT1e+zuuNf+KEQ68wpiuTX1unOXh3q+Y9iL4ANqmWsgDr4d+tYHSALit0mMncKBEEGHqRR8Cdrgh+OC83Ak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712782836; c=relaxed/simple;
-	bh=Za5mrYu7s/sPTNkj0kuKLLIVHy5SWVmp7qkR6jRalOs=;
-	h=Date:To:From:Subject:Message-Id; b=arICnkgohaVpVpBaT2HN3bd2kDtuAcWhHdUqEGRSQwanJGblM69Pz+I/ba3mfPAakDirS3n0odfXAUQLU+Hx00FxUymE9gAOUm6HF8GoIIYMCusTYtWqSqw4K6gjiy8o1EhhczYigefIcMoTuQfu6hEzxEVFqzEiN++GVpv+NQY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PcCuMbAG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712782838; c=relaxed/simple;
+	bh=jdExepFCZnenhj/5IwXIZAbsyZKyTy5kBAI7FoZxcOU=;
+	h=Date:To:From:Subject:Message-Id; b=nvJ86svMEl52YTfMoiTDI9JEvnUWFj5WvOi8iMJnQMl86Ek0vGFxqDnE6mMWPZznKfKvNSMum5TgqjEncg3jCH+p7Z262cfMNShWX904vFO3bqzNZhsi56smZtgJe55Oz6tN0CBX8MAv17pgnT0/q/s0v5pmLvcyMhCpbzaf21U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1ufxANoM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PcCuMbAG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56F7EC433F1;
-	Wed, 10 Apr 2024 21:00:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1ufxANoM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF26FC433C7;
+	Wed, 10 Apr 2024 21:00:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712782836;
-	bh=Za5mrYu7s/sPTNkj0kuKLLIVHy5SWVmp7qkR6jRalOs=;
+	s=korg; t=1712782838;
+	bh=jdExepFCZnenhj/5IwXIZAbsyZKyTy5kBAI7FoZxcOU=;
 	h=Date:To:From:Subject:From;
-	b=PcCuMbAGt35T1Fol3Em6s5c6i6a66N6qDh+i/DJ5UTCC7oxXTznEYVMciCIXakkr2
-	 C0BrOadCIFTMt05Usaq6/OQkQAWeaRErnSYMi6NiSrUQm7f6R652DdIgxmNVH6Chd+
-	 Wuj4dz2q5W8WiDDEM89YxSXENRs72bzbfa2P6vyk=
-Date: Wed, 10 Apr 2024 14:00:35 -0700
+	b=1ufxANoMo1NyIWJLq4TjhJJy4/krwwMZ3R4DMJ8wDfYa7g3Ytjv8GUB9oxAqocUMp
+	 pA836iW6+ku5xVGR1meq6cWo/+WjH5LXTTQ4Z/S6AR/IgHhFGcw4u+QZ+H+KYr7MUW
+	 ej99aA5P2lNeKKA9k7zspwZqhwwLUW5tkiM+U3Pg=
+Date: Wed, 10 Apr 2024 14:00:37 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ysato@users.sourceforge.jp,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richardycc@google.com,peterx@redhat.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,linmiaohe@huawei.com,jcmvbkbc@gmail.com,hughd@google.com,glaubitz@physik.fu-berlin.de,fengwei.yin@intel.com,dalias@libc.org,corbet@lwn.net,chris@zankel.net,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch added to mm-unstable branch
-Message-Id: <20240410210036.56F7EC433F1@smtp.kernel.org>
+Subject: + documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch added to mm-unstable branch
+Message-Id: <20240410210037.DF26FC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/debug: print only page mapcount (excluding folio entire mapcount) in __dump_folio()
+     Subject: Documentation/admin-guide/cgroup-v1/memory.rst: don't reference page_mapcount()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch
+     documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/debug: print only page mapcount (excluding folio entire mapcount) in __dump_folio()
-Date: Tue, 9 Apr 2024 21:23:00 +0200
+Subject: Documentation/admin-guide/cgroup-v1/memory.rst: don't reference page_mapcount()
+Date: Tue, 9 Apr 2024 21:23:01 +0200
 
-Let's simplify and only print the page mapcount: we already print the
-large folio mapcount and the entire folio mapcount for large folios
-separately; that should be sufficient to figure out what's happening.
+Let's stop talking about page_mapcount().
 
-While at it, print the page mapcount also if it had an underflow,
-filtering out only typed pages.
-
-Link: https://lkml.kernel.org/r/20240409192301.907377-18-david@redhat.com
+Link: https://lkml.kernel.org/r/20240409192301.907377-19-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Hugh Dickins <hughd@google.com>
@@ -91,29 +86,22 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ Documentation/admin-guide/cgroup-v1/memory.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/debug.c~mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio
-+++ a/mm/debug.c
-@@ -55,15 +55,10 @@ static void __dump_folio(struct folio *f
- 		unsigned long pfn, unsigned long idx)
- {
- 	struct address_space *mapping = folio_mapping(folio);
--	int mapcount = atomic_read(&page->_mapcount) + 1;
-+	int mapcount = atomic_read(&page->_mapcount);
- 	char *type = "";
+--- a/Documentation/admin-guide/cgroup-v1/memory.rst~documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount
++++ a/Documentation/admin-guide/cgroup-v1/memory.rst
+@@ -802,8 +802,8 @@ a page or a swap can be moved only when
+ |   | anonymous pages, file pages (and swaps) in the range mmapped by the task |
+ |   | will be moved even if the task hasn't done page fault, i.e. they might   |
+ |   | not be the task's "RSS", but other task's "RSS" that maps the same file. |
+-|   | And mapcount of the page is ignored (the page can be moved even if       |
+-|   | page_mapcount(page) > 1). You must enable Swap Extension (see 2.4) to    |
++|   | The mapcount of the page is ignored (the page can be moved independent   |
++|   | of the mapcount). You must enable Swap Extension (see 2.4) to            |
+ |   | enable move of swap charges.                                             |
+ +---+--------------------------------------------------------------------------+
  
--	/* Open-code page_mapcount() to avoid looking up a stale folio */
--	if (mapcount < 0)
--		mapcount = 0;
--	if (folio_test_large(folio))
--		mapcount += folio_entire_mapcount(folio);
--
-+	mapcount = page_type_has_type(mapcount) ? 0 : mapcount + 1;
- 	pr_warn("page: refcount:%d mapcount:%d mapping:%p index:%#lx pfn:%#lx\n",
- 			folio_ref_count(folio), mapcount, mapping,
- 			folio->index + idx, pfn);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
