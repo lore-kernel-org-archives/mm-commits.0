@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE04C1836FB
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 732F4181D03
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712782829; cv=none; b=BHCsAtrQMUmuFZAklL9s8qS1s4OqDS5051GZ3BEBqPr3N1QcI9Ye+X3HZ25X45DYECDMEhlTpydSxPNwmqgdT/5pABr9g4jMMsulGjlmer1mikXh2GTqF9Jz4aCq1FbjmX2hkXD5lBkdHCHwEv3t5EoiIUBzrJwD7Y8N7Qok6lQ=
+	t=1712782830; cv=none; b=e7jawyqyn98xczL4g4dv1ZRYnWG7w8n3+ScwDsGmYeGxHTsjxKi7i2ALzm8j9ID1+0rC90s8K14DYFU51ShVcd0G7pUsaOP8Z75FCVZ3k9scUkYr1dTvcoCIOlDtra0ACsj/EG6UD80FjOJpESNHt48bIK1N9uFc28MeElTWPg0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712782829; c=relaxed/simple;
-	bh=VvzN958yPpTucxRyDiaJzy3DRmt7asFkcsPxoEqF4mg=;
-	h=Date:To:From:Subject:Message-Id; b=ogmbRa5TFk+Ujnv3DkXW75QIFAgHIpjCO5Zqqenm3OoqcuC4InRFONjzjXiaJvKZkvtz+IECOuLuo+eiZLathr2aLGvyDpQd+cCkuRZyyOIWBdp6fotp7J28HBIBztSPLamO/G9+vYeaz3fxsWR8akfmC5p5ePu5u9H5D1H8Xb0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ji30IB57; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712782830; c=relaxed/simple;
+	bh=PEt91x8npzeUQ+NEPshgYXmewXPbk+vnNShBTWWNg1I=;
+	h=Date:To:From:Subject:Message-Id; b=a6FPZbODWZL9arK6J3aUlx82VfiUHSQ37VDsyh4/5PleVblFtfGe+LIBE0MpKzjvDjMd3PbzZge/XwPlDXTuAzJqEQIfx7LaNUydPOkLCCOebbgBnPMKo3ne6VK2S+MfDuhn7dCE5N/3KG6cAkYEaDAd1ALjSY1bXKygnluviM4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=csqXrPHe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ji30IB57"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB59CC43394;
-	Wed, 10 Apr 2024 21:00:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="csqXrPHe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C692C433F1;
+	Wed, 10 Apr 2024 21:00:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712782828;
-	bh=VvzN958yPpTucxRyDiaJzy3DRmt7asFkcsPxoEqF4mg=;
+	s=korg; t=1712782830;
+	bh=PEt91x8npzeUQ+NEPshgYXmewXPbk+vnNShBTWWNg1I=;
 	h=Date:To:From:Subject:From;
-	b=ji30IB57GQ8l3KcWqhISxFzweDHDc2fO9uYKb4WOmEM051iQ9Ypqbjui5W1FOZWae
-	 4sUlgoOeGLyPo7pvK1w2gl1f935A67fMM1+st2e/qaHAQBB2gF1WKAzFyNh1ezWOHy
-	 /HAlWxb+tEMvMruQkO5yHW68itR/gCr1ATBQnNdE=
-Date: Wed, 10 Apr 2024 14:00:28 -0700
+	b=csqXrPHetgJmUxfZrt3dvpwxuJoHdOdjGVdH7n7c0W7CZwnlJkd/kNX/vBQNSDs9R
+	 9brvij3YZWhDAAznsVatuYfj0S3sKdG7MKuHRfTONbObBQI6rfhUSMTY3kA5J12H3U
+	 iDq1UQ9LScHoiJOzamIgph8SuMrZvN/cc3oLh5/A=
+Date: Wed, 10 Apr 2024 14:00:29 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ysato@users.sourceforge.jp,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richardycc@google.com,peterx@redhat.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,linmiaohe@huawei.com,jcmvbkbc@gmail.com,hughd@google.com,glaubitz@physik.fu-berlin.de,fengwei.yin@intel.com,dalias@libc.org,corbet@lwn.net,chris@zankel.net,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sh-mm-cache-use-folio_mapped-in-copy_from_user_page.patch added to mm-unstable branch
-Message-Id: <20240410210028.BB59CC43394@smtp.kernel.org>
+Subject: + mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio.patch added to mm-unstable branch
+Message-Id: <20240410210030.3C692C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sh/mm/cache: use folio_mapped() in copy_from_user_page()
+     Subject: mm/filemap: use folio_mapcount() in filemap_unaccount_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     sh-mm-cache-use-folio_mapped-in-copy_from_user_page.patch
+     mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-mm-cache-use-folio_mapped-in-copy_from_user_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: sh/mm/cache: use folio_mapped() in copy_from_user_page()
-Date: Tue, 9 Apr 2024 21:22:55 +0200
+Subject: mm/filemap: use folio_mapcount() in filemap_unaccount_folio()
+Date: Tue, 9 Apr 2024 21:22:56 +0200
 
 We want to limit the use of page_mapcount() to the places where it is
 absolutely necessary.
 
-We're already using folio_mapped in copy_user_highpage() and
-copy_to_user_page() for a similar purpose so ...  let's also simply use it
-for copy_from_user_page().
+Let's use folio_mapcount() instead of filemap_unaccount_folio().
 
-There is no change for small folios.  Likely we won't stumble over many
-large folios on sh in that code either way.
+No functional change intended, because we're only dealing with small
+folios.
 
-Link: https://lkml.kernel.org/r/20240409192301.907377-13-david@redhat.com
+Link: https://lkml.kernel.org/r/20240409192301.907377-14-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Hugh Dickins <hughd@google.com>
@@ -94,20 +92,20 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/cache.c |    2 +-
+ mm/filemap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/sh/mm/cache.c~sh-mm-cache-use-folio_mapped-in-copy_from_user_page
-+++ a/arch/sh/mm/cache.c
-@@ -84,7 +84,7 @@ void copy_from_user_page(struct vm_area_
- {
- 	struct folio *folio = page_folio(page);
+--- a/mm/filemap.c~mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio
++++ a/mm/filemap.c
+@@ -168,7 +168,7 @@ static void filemap_unaccount_folio(stru
+ 		add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
  
--	if (boot_cpu_data.dcache.n_aliases && page_mapcount(page) &&
-+	if (boot_cpu_data.dcache.n_aliases && folio_mapped(folio) &&
- 	    test_bit(PG_dcache_clean, &folio->flags)) {
- 		void *vfrom = kmap_coherent(page, vaddr) + (vaddr & ~PAGE_MASK);
- 		memcpy(dst, vfrom, len);
+ 		if (mapping_exiting(mapping) && !folio_test_large(folio)) {
+-			int mapcount = page_mapcount(&folio->page);
++			int mapcount = folio_mapcount(folio);
+ 
+ 			if (folio_ref_count(folio) >= mapcount + 2) {
+ 				/*
 _
 
 Patches currently in -mm which might be from david@redhat.com are
