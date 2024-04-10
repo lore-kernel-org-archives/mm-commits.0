@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 732F4181D03
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F40C7181D03
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:00:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712782830; cv=none; b=e7jawyqyn98xczL4g4dv1ZRYnWG7w8n3+ScwDsGmYeGxHTsjxKi7i2ALzm8j9ID1+0rC90s8K14DYFU51ShVcd0G7pUsaOP8Z75FCVZ3k9scUkYr1dTvcoCIOlDtra0ACsj/EG6UD80FjOJpESNHt48bIK1N9uFc28MeElTWPg0=
+	t=1712782832; cv=none; b=qN5Ccdea4hJgvfuSFpquVV/PoEQgMAf2BxcvOACVUC0FIFXsKhh+zjjHg7ThVscDDTXPClpjkOiHrEVRxM5xCHvnQLq2ZP/vf2pkBByPua1pR7/flYpgR+BtTXwL4TvzHDlMYEkeGWJhJxaTRFZlcfjZkR1eCnvV0EnnF1+IlyA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712782830; c=relaxed/simple;
-	bh=PEt91x8npzeUQ+NEPshgYXmewXPbk+vnNShBTWWNg1I=;
-	h=Date:To:From:Subject:Message-Id; b=a6FPZbODWZL9arK6J3aUlx82VfiUHSQ37VDsyh4/5PleVblFtfGe+LIBE0MpKzjvDjMd3PbzZge/XwPlDXTuAzJqEQIfx7LaNUydPOkLCCOebbgBnPMKo3ne6VK2S+MfDuhn7dCE5N/3KG6cAkYEaDAd1ALjSY1bXKygnluviM4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=csqXrPHe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712782832; c=relaxed/simple;
+	bh=xBdpObZi/2b1PI+KPWWL6OiCHofkiO4O4EDJ5u5gv0U=;
+	h=Date:To:From:Subject:Message-Id; b=exrkeQK0F6X20oxdJPPqXHKPOxyVDcr4SijUmCcY0/4cahSMJPuoRSSIpdwOf9yad1jlEpYV0eQ70n+Heoa4/BeeVzESqyBUMAiPVgbQpP/Of/QVSDSVQ0yncbpPqtxgPcXXMI6Yi94DkKnINBEfTlwwagO9gbr8zw6+skaLO+g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dZZsqpx8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="csqXrPHe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C692C433F1;
-	Wed, 10 Apr 2024 21:00:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dZZsqpx8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B491CC433F1;
+	Wed, 10 Apr 2024 21:00:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712782830;
-	bh=PEt91x8npzeUQ+NEPshgYXmewXPbk+vnNShBTWWNg1I=;
+	s=korg; t=1712782831;
+	bh=xBdpObZi/2b1PI+KPWWL6OiCHofkiO4O4EDJ5u5gv0U=;
 	h=Date:To:From:Subject:From;
-	b=csqXrPHetgJmUxfZrt3dvpwxuJoHdOdjGVdH7n7c0W7CZwnlJkd/kNX/vBQNSDs9R
-	 9brvij3YZWhDAAznsVatuYfj0S3sKdG7MKuHRfTONbObBQI6rfhUSMTY3kA5J12H3U
-	 iDq1UQ9LScHoiJOzamIgph8SuMrZvN/cc3oLh5/A=
-Date: Wed, 10 Apr 2024 14:00:29 -0700
+	b=dZZsqpx8Fue3pfbXJBjZz6tRsJ7yFOln4AJ46oqXg68GDMiL52SSzfhHc8uVccHqs
+	 QQ4t3dR+84qAVEHiheKC34hwhjbLKz8pSsllbMHAUcYU+0UE5BOFokLcM0hQetgUP+
+	 M1ZtUYYFQ2MrmoMbiB31wb1k65XG/v5V0aQw1Cvk=
+Date: Wed, 10 Apr 2024 14:00:31 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ysato@users.sourceforge.jp,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richardycc@google.com,peterx@redhat.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,linmiaohe@huawei.com,jcmvbkbc@gmail.com,hughd@google.com,glaubitz@physik.fu-berlin.de,fengwei.yin@intel.com,dalias@libc.org,corbet@lwn.net,chris@zankel.net,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio.patch added to mm-unstable branch
-Message-Id: <20240410210030.3C692C433F1@smtp.kernel.org>
+Subject: + mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page.patch added to mm-unstable branch
+Message-Id: <20240410210031.B491CC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/filemap: use folio_mapcount() in filemap_unaccount_folio()
+     Subject: mm/migrate_device: use folio_mapcount() in migrate_vma_check_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio.patch
+     mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/filemap: use folio_mapcount() in filemap_unaccount_folio()
-Date: Tue, 9 Apr 2024 21:22:56 +0200
+Subject: mm/migrate_device: use folio_mapcount() in migrate_vma_check_page()
+Date: Tue, 9 Apr 2024 21:22:57 +0200
 
 We want to limit the use of page_mapcount() to the places where it is
-absolutely necessary.
+absolutely necessary.  Let's convert migrate_vma_check_page() to work on a
+folio internally so we can remove the page_mapcount() usage.
 
-Let's use folio_mapcount() instead of filemap_unaccount_folio().
+Note that we reject any large folios.
 
-No functional change intended, because we're only dealing with small
-folios.
+There is a lot more folio conversion to be had, but that has to wait for
+another day.  No functional change intended.
 
-Link: https://lkml.kernel.org/r/20240409192301.907377-14-david@redhat.com
+Link: https://lkml.kernel.org/r/20240409192301.907377-15-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Hugh Dickins <hughd@google.com>
@@ -92,20 +93,44 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/migrate_device.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio
-+++ a/mm/filemap.c
-@@ -168,7 +168,7 @@ static void filemap_unaccount_folio(stru
- 		add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
+--- a/mm/migrate_device.c~mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page
++++ a/mm/migrate_device.c
+@@ -324,6 +324,8 @@ static void migrate_vma_collect(struct m
+  */
+ static bool migrate_vma_check_page(struct page *page, struct page *fault_page)
+ {
++	struct folio *folio = page_folio(page);
++
+ 	/*
+ 	 * One extra ref because caller holds an extra reference, either from
+ 	 * isolate_lru_page() for a regular page, or migrate_vma_collect() for
+@@ -336,18 +338,18 @@ static bool migrate_vma_check_page(struc
+ 	 * check them than regular pages, because they can be mapped with a pmd
+ 	 * or with a pte (split pte mapping).
+ 	 */
+-	if (PageCompound(page))
++	if (folio_test_large(folio))
+ 		return false;
  
- 		if (mapping_exiting(mapping) && !folio_test_large(folio)) {
--			int mapcount = page_mapcount(&folio->page);
-+			int mapcount = folio_mapcount(folio);
+ 	/* Page from ZONE_DEVICE have one extra reference */
+-	if (is_zone_device_page(page))
++	if (folio_is_zone_device(folio))
+ 		extra++;
  
- 			if (folio_ref_count(folio) >= mapcount + 2) {
- 				/*
+ 	/* For file back page */
+-	if (page_mapping(page))
+-		extra += 1 + page_has_private(page);
++	if (folio_mapping(folio))
++		extra += 1 + folio_has_private(folio);
+ 
+-	if ((page_count(page) - extra) > page_mapcount(page))
++	if ((folio_ref_count(folio) - extra) > folio_mapcount(folio))
+ 		return false;
+ 
+ 	return true;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
