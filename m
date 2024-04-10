@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C9F31E877
-	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:08:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8497F181BBF
+	for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2024 21:08:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712783331; cv=none; b=t/oTGFNqYlVSRyIx1JH+A4zkNrp3ZmUKwGy8wOjHaHwuHx0uEn5/nIM86xjePCcSy6TqMgHl5xWS6O+UvLYIswM/0qc3nNCJZfS0BRr8noxfEq9RN7QDpYLm6yKBd5ypGalvP57R0+ZlObHnPzKnEeOGZ3JZnAvBjJ/ryON70Uk=
+	t=1712783333; cv=none; b=TWSkAbtp2BUKpKgNrBDXtyobYZb/WrtEpsv+YOPrYWhbOmjHFZvRP9ao56F7XTS/U6zanLhcTefxx150AS0SW40my192QCWIQVCSEWpvzUHeJInJ2wuEyFpaR9uuRLhqTKCnxt/dkw5dbuAZ/NEN83txJlIjhphqhEa2yBuTS5g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712783331; c=relaxed/simple;
-	bh=8t8Jivesw6dMunC7q7/GedLaRBpelkMzkku33/wgwsY=;
-	h=Date:To:From:Subject:Message-Id; b=F9CfHIEvuNcv8S76uPbRVnteBSO8ZnDgrdBHwj/18y1MowEXKVZtTGefNiTki79fKToozzayergQZ7Qye/JRqHtXbsmt70SDNWFyEUknRyCKgC139rRO2x2um+J6oL1sIY5AD6BtRCKw1mUGhwsTk8HZiQ5/kPSDhEXrthLAdVs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mo9ZXhhK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712783333; c=relaxed/simple;
+	bh=ZEdbR6x4eb5iLrD2pNssYFqz1xKILvxZwv3fPKKq4R4=;
+	h=Date:To:From:Subject:Message-Id; b=LeJGwCOPr3OcUOhhsug9a3XggQT9IY/lnLI/Ur7Xnd81RB0IitMsdYInh8dyb7pNxMAFJjmITUblI+snM9YTUYuyXO6PxJ0kifLct3esLcnYLeyjrbJWMQ4tZ8Adnz29lVU6ldfkOJGyv0eRcZcDxKZD6WifnLMkXM5ErLsu4bM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XoqCvESJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mo9ZXhhK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05BC2C433C7;
-	Wed, 10 Apr 2024 21:08:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XoqCvESJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFA49C433C7;
+	Wed, 10 Apr 2024 21:08:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712783331;
-	bh=8t8Jivesw6dMunC7q7/GedLaRBpelkMzkku33/wgwsY=;
+	s=korg; t=1712783333;
+	bh=ZEdbR6x4eb5iLrD2pNssYFqz1xKILvxZwv3fPKKq4R4=;
 	h=Date:To:From:Subject:From;
-	b=Mo9ZXhhKBSTTMGfq0pbwR7lVn8mCv0lSNe7FRbNR7ORW+ilouz+siK6In028QZcX3
-	 L0+oF4LAjnbeSECWhpx48s7pR8N40hn2T592EFDREy4DylqxIadyNedVGYt9M8PbCC
-	 RCAHUFsTj8BkyxQwGtLg1CAxvUJ0E4gPigw8GXeI=
-Date: Wed, 10 Apr 2024 14:08:50 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yosryahmed@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,ryan.roberts@arm.com,kasong@tencent.com,hughd@google.com,hannes@cmpxchg.org,hanchuanhua@oppo.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=XoqCvESJ1A1fWEr2CP417+2FG87ME97Q/tmICzt/9XQ2Wh8uYlswMsA6lYOyo6JAA
+	 NZnYqb1iNOWxkocLmH9eiKZAP4n8vu+pGIfjrWAuKufe92U1FMQcCkJXi7j1MEtw3R
+	 2vMDBOnIMsqPoiMDUuFQPyA8WjTlFeqNAlJHBJU4=
+Date: Wed, 10 Apr 2024 14:08:52 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yosryahmed@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,v-songbaohua@oppo.com,ryan.roberts@arm.com,kasong@tencent.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,hanchuanhua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap_pte_batch-add-an-output-argument-to-reture-if-all-swap-entries-are-exclusive.patch added to mm-unstable branch
-Message-Id: <20240410210851.05BC2C433C7@smtp.kernel.org>
+Subject: + mm-swap-entirely-map-large-folios-found-in-swapcache.patch added to mm-unstable branch
+Message-Id: <20240410210852.DFA49C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: swap_pte_batch: add an output argument to reture if all swap entries are exclusive
+     Subject: mm: swap: entirely map large folios found in swapcache
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap_pte_batch-add-an-output-argument-to-reture-if-all-swap-entries-are-exclusive.patch
+     mm-swap-entirely-map-large-folios-found-in-swapcache.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap_pte_batch-add-an-output-argument-to-reture-if-all-swap-entries-are-exclusive.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-entirely-map-large-folios-found-in-swapcache.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,20 +58,22 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: swap_pte_batch: add an output argument to reture if all swap entries are exclusive
-Date: Tue, 9 Apr 2024 20:26:29 +1200
+From: Chuanhua Han <hanchuanhua@oppo.com>
+Subject: mm: swap: entirely map large folios found in swapcache
+Date: Tue, 9 Apr 2024 20:26:30 +1200
 
-Add a boolean argument named any_shared.  If any of the swap entries are
-non-exclusive, set any_shared to true.  The function do_swap_page() can
-then utilize this information to determine whether the entire large folio
-can be reused.
+When a large folio is found in the swapcache, the current implementation
+requires calling do_swap_page() nr_pages times, resulting in nr_pages page
+faults.  This patch opts to map the entire large folio at once to minimize
+page faults.  Additionally, redundant checks and early exits for ARM64 MTE
+restoring are removed.
 
-Link: https://lkml.kernel.org/r/20240409082631.187483-4-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240409082631.187483-5-21cnbao@gmail.com
+Signed-off-by: Chuanhua Han <hanchuanhua@oppo.com>
+Co-developed-by: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Barry Song <v-songbaohua@oppo.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Chris Li <chrisl@kernel.org>
-Cc: Chuanhua Han <hanchuanhua@oppo.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Gao Xiang <xiang@kernel.org>
 Cc: "Huang, Ying" <ying.huang@intel.com>
@@ -86,74 +88,144 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    9 ++++++++-
- mm/madvise.c  |    2 +-
- mm/memory.c   |    2 +-
- 3 files changed, 10 insertions(+), 3 deletions(-)
+ mm/memory.c |   64 ++++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 52 insertions(+), 12 deletions(-)
 
---- a/mm/internal.h~mm-swap_pte_batch-add-an-output-argument-to-reture-if-all-swap-entries-are-exclusive
-+++ a/mm/internal.h
-@@ -241,7 +241,8 @@ static inline pte_t pte_next_swp_offset(
-  *
-  * Return: the number of table entries in the batch.
-  */
--static inline int swap_pte_batch(pte_t *start_ptep, int max_nr, pte_t pte)
-+static inline int swap_pte_batch(pte_t *start_ptep, int max_nr, pte_t pte,
-+				bool *any_shared)
- {
- 	pte_t expected_pte = pte_next_swp_offset(pte);
- 	const pte_t *end_ptep = start_ptep + max_nr;
-@@ -251,12 +252,18 @@ static inline int swap_pte_batch(pte_t *
- 	VM_WARN_ON(!is_swap_pte(pte));
- 	VM_WARN_ON(non_swap_entry(pte_to_swp_entry(pte)));
- 
-+	if (any_shared)
-+		*any_shared |= !pte_swp_exclusive(pte);
-+
- 	while (ptep < end_ptep) {
- 		pte = ptep_get(ptep);
- 
- 		if (!pte_same(pte, expected_pte))
- 			break;
- 
-+		if (any_shared)
-+			*any_shared |= !pte_swp_exclusive(pte);
-+
- 		expected_pte = pte_next_swp_offset(expected_pte);
- 		ptep++;
- 	}
---- a/mm/madvise.c~mm-swap_pte_batch-add-an-output-argument-to-reture-if-all-swap-entries-are-exclusive
-+++ a/mm/madvise.c
-@@ -671,7 +671,7 @@ static int madvise_free_pte_range(pmd_t
- 			entry = pte_to_swp_entry(ptent);
- 			if (!non_swap_entry(entry)) {
- 				max_nr = (end - addr) / PAGE_SIZE;
--				nr = swap_pte_batch(pte, max_nr, ptent);
-+				nr = swap_pte_batch(pte, max_nr, ptent, NULL);
- 				nr_swap -= nr;
- 				free_swap_and_cache_nr(entry, nr);
- 				clear_not_present_full_ptes(mm, addr, pte, nr, tlb->fullmm);
---- a/mm/memory.c~mm-swap_pte_batch-add-an-output-argument-to-reture-if-all-swap-entries-are-exclusive
+--- a/mm/memory.c~mm-swap-entirely-map-large-folios-found-in-swapcache
 +++ a/mm/memory.c
-@@ -1637,7 +1637,7 @@ static unsigned long zap_pte_range(struc
- 			folio_put(folio);
- 		} else if (!non_swap_entry(entry)) {
- 			max_nr = (end - addr) / PAGE_SIZE;
--			nr = swap_pte_batch(pte, max_nr, ptent);
-+			nr = swap_pte_batch(pte, max_nr, ptent, NULL);
- 			/* Genuine swap entries, hence a private anon pages */
- 			if (!should_zap_cows(details))
- 				continue;
+@@ -3944,6 +3944,10 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	pte_t pte;
+ 	vm_fault_t ret = 0;
+ 	void *shadow = NULL;
++	int nr_pages = 1;
++	unsigned long start_address = vmf->address;
++	pte_t *start_pte = vmf->pte;
++	bool any_swap_shared = false;
+ 
+ 	if (!pte_unmap_same(vmf))
+ 		goto out;
+@@ -4134,6 +4138,35 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	 */
+ 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, vmf->address,
+ 			&vmf->ptl);
++
++	/* We hit large folios in swapcache */
++	if (start_pte && folio_test_large(folio) && folio_test_swapcache(folio)) {
++		int nr = folio_nr_pages(folio);
++		int idx = folio_page_idx(folio, page);
++		unsigned long folio_start = vmf->address - idx * PAGE_SIZE;
++		unsigned long folio_end = folio_start + nr * PAGE_SIZE;
++		pte_t *folio_ptep;
++		pte_t folio_pte;
++
++		if (unlikely(folio_start < max(vmf->address & PMD_MASK, vma->vm_start)))
++			goto check_pte;
++		if (unlikely(folio_end > pmd_addr_end(vmf->address, vma->vm_end)))
++			goto check_pte;
++
++		folio_ptep = vmf->pte - idx;
++		folio_pte = ptep_get(folio_ptep);
++		if (!is_swap_pte(folio_pte) || non_swap_entry(pte_to_swp_entry(folio_pte)) ||
++		    swap_pte_batch(folio_ptep, nr, folio_pte, &any_swap_shared) != nr)
++			goto check_pte;
++
++		start_address = folio_start;
++		start_pte = folio_ptep;
++		nr_pages = nr;
++		entry = folio->swap;
++		page = &folio->page;
++	}
++
++check_pte:
+ 	if (unlikely(!vmf->pte || !pte_same(ptep_get(vmf->pte), vmf->orig_pte)))
+ 		goto out_nomap;
+ 
+@@ -4187,6 +4220,10 @@ vm_fault_t do_swap_page(struct vm_fault
+ 			 */
+ 			exclusive = false;
+ 		}
++
++		/* Reuse the whole large folio iff all entries are exclusive */
++		if (nr_pages > 1 && any_swap_shared)
++			exclusive = false;
+ 	}
+ 
+ 	/*
+@@ -4201,12 +4238,14 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	 * We're already holding a reference on the page but haven't mapped it
+ 	 * yet.
+ 	 */
+-	swap_free(entry);
++	swap_free_nr(entry, nr_pages);
+ 	if (should_try_to_free_swap(folio, vma, vmf->flags))
+ 		folio_free_swap(folio);
+ 
+-	inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
+-	dec_mm_counter(vma->vm_mm, MM_SWAPENTS);
++	folio_ref_add(folio, nr_pages - 1);
++	add_mm_counter(vma->vm_mm, MM_ANONPAGES, nr_pages);
++	add_mm_counter(vma->vm_mm, MM_SWAPENTS, -nr_pages);
++
+ 	pte = mk_pte(page, vma->vm_page_prot);
+ 
+ 	/*
+@@ -4216,33 +4255,34 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	 * exclusivity.
+ 	 */
+ 	if (!folio_test_ksm(folio) &&
+-	    (exclusive || folio_ref_count(folio) == 1)) {
++	    (exclusive || (folio_ref_count(folio) == nr_pages &&
++			   folio_nr_pages(folio) == nr_pages))) {
+ 		if (vmf->flags & FAULT_FLAG_WRITE) {
+ 			pte = maybe_mkwrite(pte_mkdirty(pte), vma);
+ 			vmf->flags &= ~FAULT_FLAG_WRITE;
+ 		}
+ 		rmap_flags |= RMAP_EXCLUSIVE;
+ 	}
+-	flush_icache_page(vma, page);
++	flush_icache_pages(vma, page, nr_pages);
+ 	if (pte_swp_soft_dirty(vmf->orig_pte))
+ 		pte = pte_mksoft_dirty(pte);
+ 	if (pte_swp_uffd_wp(vmf->orig_pte))
+ 		pte = pte_mkuffd_wp(pte);
+-	vmf->orig_pte = pte;
+ 
+ 	/* ksm created a completely new copy */
+ 	if (unlikely(folio != swapcache && swapcache)) {
+-		folio_add_new_anon_rmap(folio, vma, vmf->address);
++		folio_add_new_anon_rmap(folio, vma, start_address);
+ 		folio_add_lru_vma(folio, vma);
+ 	} else {
+-		folio_add_anon_rmap_pte(folio, page, vma, vmf->address,
+-					rmap_flags);
++		folio_add_anon_rmap_ptes(folio, page, nr_pages, vma, start_address,
++					 rmap_flags);
+ 	}
+ 
+ 	VM_BUG_ON(!folio_test_anon(folio) ||
+ 			(pte_write(pte) && !PageAnonExclusive(page)));
+-	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
+-	arch_do_swap_page(vma->vm_mm, vma, vmf->address, pte, vmf->orig_pte);
++	set_ptes(vma->vm_mm, start_address, start_pte, pte, nr_pages);
++	vmf->orig_pte = ptep_get(vmf->pte);
++	arch_do_swap_page(vma->vm_mm, vma, start_address, pte, pte);
+ 
+ 	folio_unlock(folio);
+ 	if (folio != swapcache && swapcache) {
+@@ -4266,7 +4306,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	}
+ 
+ 	/* No need to invalidate - it was non-present before */
+-	update_mmu_cache_range(vmf, vma, vmf->address, vmf->pte, 1);
++	update_mmu_cache_range(vmf, vma, start_address, start_pte, nr_pages);
+ unlock:
+ 	if (vmf->pte)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from hanchuanhua@oppo.com are
 
-arm64-mm-swap-support-thp_swap-on-hardware-with-mte.patch
-mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio.patch
-mm-alloc_anon_folio-avoid-doing-vma_thp_gfp_mask-in-fallback-cases.patch
-mm-add-per-order-mthp-anon_alloc-and-anon_alloc_fallback-counters.patch
-mm-add-per-order-mthp-anon_alloc-and-anon_alloc_fallback-counters-fix.patch
-mm-add-per-order-mthp-anon_swpout-and-anon_swpout_fallback-counters.patch
-mm-swap_pte_batch-add-an-output-argument-to-reture-if-all-swap-entries-are-exclusive.patch
-mm-add-per-order-mthp-swpin_refault-counter.patch
+mm-swap-introduce-swap_free_nr-for-batched-swap_free.patch
+mm-swap-make-should_try_to_free_swap-support-large-folio.patch
+mm-swap-entirely-map-large-folios-found-in-swapcache.patch
 
