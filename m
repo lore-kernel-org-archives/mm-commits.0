@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4268D1754B
-	for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2024 20:47:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C10101754B
+	for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2024 20:47:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712868454; cv=none; b=YZzDGNvRnne2zV63uk6/ZHg222FLOxtZS8j7TdFUgO1eUo7vrfPpv3Nj0laGhLqv60xXHj+UxJyN+hmTsivnSAJaXuUssE52d2n0PuBKwDhihloJjSunvSQmXFaIH+X7jjhn6+ETh8FSKgGp/F4GKneBFxg7zCd73lhERku41Ss=
+	t=1712868455; cv=none; b=i2MS32lP0Q9EIqz33SbueCyLAmYS2QTK0vSGe6JvatiT+7wtQZBPYEFFoU0yqVw0jV8kHXnqsWP0fJi11Unt8Qfp7oArWp/z7IEHoEJRNilRNqA/DmCXXa9H26/laA1MYjF96PIQickX0gM68yu+Hxz2Xfo9QtPtJIu7/5K8Dac=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712868454; c=relaxed/simple;
-	bh=MuvnTQ7vyvuFYPTlT9FRi7vVsUXrBRPX2jcLGi5jc+Q=;
-	h=Date:To:From:Subject:Message-Id; b=TBCa5xgCRpPWImzO/KzXfonYFyPLdKQTO30ONRhg724t5cja670EzRMlm5zfC6+3Y1v6oA7pIdcaJM4ilQhy6aruz1T3Ph+zvnkh2SV+9awJzpwKYT7+39etHFI36m09/Gjjg31mIhrR8GOy4maCzgZe+OHNpU4nE8EBG7GAc74=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jK54OIZK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712868455; c=relaxed/simple;
+	bh=RZAoDNTAYiZp6jN8aqBo346xo4FsgeBQ/lLAQauHsh0=;
+	h=Date:To:From:Subject:Message-Id; b=bqMzqAuWnUTkcBzN8hIo7aDhTp6RCVJi5QGc6fQYpzfwY9zceUx1MoXtuC5Emrc5YrE4LqsNAbpafl3FQepS5E3QYSJMUowCDNDb8Idkel3llwqDO0KL/ICzewz/swK+/BBc8DeMQtcKXPI93Bw/wipcGnWD5uaoaLcPnUKADv0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SEnpzB2e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jK54OIZK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2F38C113CC;
-	Thu, 11 Apr 2024 20:47:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SEnpzB2e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 293BEC072AA;
+	Thu, 11 Apr 2024 20:47:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712868453;
-	bh=MuvnTQ7vyvuFYPTlT9FRi7vVsUXrBRPX2jcLGi5jc+Q=;
+	s=korg; t=1712868455;
+	bh=RZAoDNTAYiZp6jN8aqBo346xo4FsgeBQ/lLAQauHsh0=;
 	h=Date:To:From:Subject:From;
-	b=jK54OIZKCeLRPQBXPiA+xeAHjS2QH1IJndQfFlMuE9fGqVVo73wUkfwARHBuCBsXx
-	 Ulzoq0dTkUihGpcbeHQUkODuLCP97DUPg8ieyw+4r8JLOQ/mmjZyKIxzOZgLcgtUsL
-	 Rtby/+HNAnKOEmdGWPDwbb6lEJiz2YpqKyB6o/Kg=
-Date: Thu, 11 Apr 2024 13:47:33 -0700
+	b=SEnpzB2eveJkqvy3xbzb/zPDBDUpMiEA1/gwp8sapamDk1Cspr5Oe3vvBdAi8Ay1F
+	 QS00xQASo35SVTVd2ANtPbz9vw4bNQqwXQCQJ/tJFgjqUArbcaEK0zIJOiBdyhGjDs
+	 kUx8GmEEcVf3iMq7nj/BGkeFyxlJ78Sk1pOMYNUI=
+Date: Thu, 11 Apr 2024 13:47:34 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,izik.eidus@ravellosystems.com,hughd@google.com,david@redhat.com,chrisw@sous-sol.org,aarcange@redhat.com,alexs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-use-folio-in-remove_stable_node.patch added to mm-unstable branch
-Message-Id: <20240411204733.A2F38C113CC@smtp.kernel.org>
+Subject: + mm-ksm-use-folio-in-stable_node_dup.patch added to mm-unstable branch
+Message-Id: <20240411204735.293BEC072AA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/ksm: use folio in remove_stable_node
+     Subject: mm/ksm: use folio in stable_node_dup
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ksm-use-folio-in-remove_stable_node.patch
+     mm-ksm-use-folio-in-stable_node_dup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-use-folio-in-remove_stable_node.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-use-folio-in-stable_node_dup.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Alex Shi (tencent)" <alexs@kernel.org>
-Subject: mm/ksm: use folio in remove_stable_node
-Date: Thu, 11 Apr 2024 14:17:05 +0800
+Subject: mm/ksm: use folio in stable_node_dup
+Date: Thu, 11 Apr 2024 14:17:06 +0800
 
-Pages in stable tree are all single normal page, so uses ksm_get_folio()
-and folio_set_stable_node(), also saves 3 calls to compound_head().
+Use ksm_get_folio() and save 2 compound_head calls.
 
-Link: https://lkml.kernel.org/r/20240411061713.1847574-5-alexs@kernel.org
+Link: https://lkml.kernel.org/r/20240411061713.1847574-6-alexs@kernel.org
 Signed-off-by: Alex Shi (tencent) <alexs@kernel.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Izik Eidus <izik.eidus@ravellosystems.com>
@@ -76,60 +75,68 @@ Cc: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ mm/ksm.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-use-folio-in-remove_stable_node
+--- a/mm/ksm.c~mm-ksm-use-folio-in-stable_node_dup
 +++ a/mm/ksm.c
-@@ -1121,13 +1121,13 @@ static inline void folio_set_stable_node
-  */
- static int remove_stable_node(struct ksm_stable_node *stable_node)
+@@ -1638,7 +1638,7 @@ static struct page *stable_node_dup(stru
  {
--	struct page *page;
-+	struct folio *folio;
- 	int err;
+ 	struct ksm_stable_node *dup, *found = NULL, *stable_node = *_stable_node;
+ 	struct hlist_node *hlist_safe;
+-	struct page *_tree_page, *tree_page = NULL;
++	struct folio *folio, *tree_folio = NULL;
+ 	int nr = 0;
+ 	int found_rmap_hlist_len;
  
--	page = get_ksm_page(stable_node, GET_KSM_PAGE_LOCK);
--	if (!page) {
-+	folio = ksm_get_folio(stable_node, GET_KSM_PAGE_LOCK);
-+	if (!folio) {
- 		/*
--		 * get_ksm_page did remove_node_from_stable_tree itself.
-+		 * ksm_get_folio did remove_node_from_stable_tree itself.
+@@ -1657,24 +1657,24 @@ static struct page *stable_node_dup(stru
+ 		 * We must walk all stable_node_dup to prune the stale
+ 		 * stable nodes during lookup.
+ 		 *
+-		 * get_ksm_page can drop the nodes from the
++		 * ksm_get_folio can drop the nodes from the
+ 		 * stable_node->hlist if they point to freed pages
+ 		 * (that's why we do a _safe walk). The "dup"
+ 		 * stable_node parameter itself will be freed from
+ 		 * under us if it returns NULL.
  		 */
- 		return 0;
- 	}
-@@ -1138,22 +1138,22 @@ static int remove_stable_node(struct ksm
- 	 * merge_across_nodes/max_page_sharing be switched.
- 	 */
- 	err = -EBUSY;
--	if (!page_mapped(page)) {
-+	if (!folio_mapped(folio)) {
- 		/*
--		 * The stable node did not yet appear stale to get_ksm_page(),
--		 * since that allows for an unmapped ksm page to be recognized
-+		 * The stable node did not yet appear stale to ksm_get_folio(),
-+		 * since that allows for an unmapped ksm folio to be recognized
- 		 * right up until it is freed; but the node is safe to remove.
--		 * This page might be in an LRU cache waiting to be freed,
--		 * or it might be PageSwapCache (perhaps under writeback),
-+		 * This folio might be in an LRU cache waiting to be freed,
-+		 * or it might be in the swapcache (perhaps under writeback),
- 		 * or it might have been removed from swapcache a moment ago.
- 		 */
--		set_page_stable_node(page, NULL);
-+		folio_set_stable_node(folio, NULL);
- 		remove_node_from_stable_tree(stable_node);
- 		err = 0;
+-		_tree_page = get_ksm_page(dup, GET_KSM_PAGE_NOLOCK);
+-		if (!_tree_page)
++		folio = ksm_get_folio(dup, GET_KSM_PAGE_NOLOCK);
++		if (!folio)
+ 			continue;
+ 		nr += 1;
+ 		if (is_page_sharing_candidate(dup)) {
+ 			if (!found ||
+ 			    dup->rmap_hlist_len > found_rmap_hlist_len) {
+ 				if (found)
+-					put_page(tree_page);
++					folio_put(tree_folio);
+ 				found = dup;
+ 				found_rmap_hlist_len = found->rmap_hlist_len;
+-				tree_page = _tree_page;
++				tree_folio = folio;
+ 
+ 				/* skip put_page for found dup */
+ 				if (!prune_stale_stable_nodes)
+@@ -1682,7 +1682,7 @@ static struct page *stable_node_dup(stru
+ 				continue;
+ 			}
+ 		}
+-		put_page(_tree_page);
++		folio_put(folio);
  	}
  
--	unlock_page(page);
--	put_page(page);
-+	folio_unlock(folio);
-+	folio_put(folio);
- 	return err;
+ 	if (found) {
+@@ -1747,7 +1747,7 @@ static struct page *stable_node_dup(stru
+ 	}
+ 
+ 	*_stable_node_dup = found;
+-	return tree_page;
++	return &tree_folio->page;
  }
  
+ static struct ksm_stable_node *stable_node_dup_any(struct ksm_stable_node *stable_node,
 _
 
 Patches currently in -mm which might be from alexs@kernel.org are
