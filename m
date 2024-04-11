@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 317DE17BCC
-	for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2024 20:17:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4DA8524C
+	for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2024 20:33:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712866679; cv=none; b=X1DaW/dqGnqEwgd0zKHZPG/GSJ8G+uIS3aK/sSfEu1nHEm6YxyqIs1cVEO7gyZD/bf309zX0qCdgs+ystIZhwF7yB/OgA88g5rZR1vG8BRJKEQ6QHAhnBZ+FT4vkeXYwyS3Qp6AcC/Oq2X3vBUdHPQWAoc8L20RxBmKf9gBVQZs=
+	t=1712867599; cv=none; b=TdubkWKK3xD3zQMe6yIB1pbVazoDyyCS8YjUjrFb34hMQ0s24wt9qUweQ3VCNYZEru5kfSc2NCqfdatw0uuYOCKFooW34cIuytNNhl3+hhSV28Zuw7L1tmn0rPrh+MOxsuuYtSV6/hQI+1HF8kBsR4krEZEgxPAcepZe8JnoY+Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712866679; c=relaxed/simple;
-	bh=JxZXPTuMpajKYs/ASuBf6OXx0Kx0KdAuy+HaCK7h8Cg=;
-	h=Date:To:From:Subject:Message-Id; b=p6gzTRj9TR9YR3GAnk631kade1N7W2vRjaXqKsZlQNegpzIvWihsjl37cGIJX8NC+BYKg+VGBJZ815wbQu0edO5CGsB3L+iwAKLYbO+xzw8AxVKV0M+Q4OBcFH7MGf0ll6Ar5AQFdgCYA75k+fTRsu7nswD1KNJPtb4c/yFuhL4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ur7+AMIH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712867599; c=relaxed/simple;
+	bh=pMk0mRmvRleQKTsnOswhQHJhhyPSeENF9BHsmjCscLU=;
+	h=Date:To:From:Subject:Message-Id; b=mh4M6V0LR0Ee9C9nxHJ4hP4ZLaiF+UM1MbjUL1PybFjaLCDx80AywQkOqovEUI0sGoauc0gnkXVXnXUeEXq43ktez+N8sIUiObDqjZ5OO2itX2HFnVKviW4jFIeSW6o+hakDc6yS9njHzTVxJN7r+f7lIvFnCGNm+eWE5MS9CyM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ec/G7+GS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ur7+AMIH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC6ECC072AA;
-	Thu, 11 Apr 2024 20:17:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ec/G7+GS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11FF7C072AA;
+	Thu, 11 Apr 2024 20:33:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712866678;
-	bh=JxZXPTuMpajKYs/ASuBf6OXx0Kx0KdAuy+HaCK7h8Cg=;
+	s=korg; t=1712867599;
+	bh=pMk0mRmvRleQKTsnOswhQHJhhyPSeENF9BHsmjCscLU=;
 	h=Date:To:From:Subject:From;
-	b=ur7+AMIHkluLQ461EVlFqCGjzoVC9B80H5lM6x0qX5fDlNpm4OuRLuEwKMJztf996
-	 qdeVwCNrq9M7tgLKxHID5Ix5kgo5bwZAlII15+93G8MjI55FFhlRWX5dm8LTi0YuBu
-	 cpYIjsLGUtvuglcmYXbgL3PKwmljSxpfRbYFl8Ww=
-Date: Thu, 11 Apr 2024 13:17:58 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=ec/G7+GS+mmwNjjKEJ97BngshhTnwDGVc6BtSBWkZhiruuPcUgGLoXyH0LtugggF5
+	 55QHu104IAU6x7/P/SsTl7CjxkuEK+4l7wQJVij5TNejkQ5NNR1NWXJdoQF2MWUxjH
+	 4H6WcIJ2rmI3UFQqCoUh1l1oxDrG9VUtxDBCCj3Q=
+Date: Thu, 11 Apr 2024 13:33:18 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,lukas.bulwahn@redhat.com,kent.overstreet@linux.dev,lbulwahn@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm-mm-drop-vm_fault_badmap-vm_fault_badaccess-checkpatch-fixes.patch added to mm-unstable branch
-Message-Id: <20240411201758.AC6ECC072AA@smtp.kernel.org>
+Subject: + maintainers-add-entries-for-code-tagging-and-memory-allocation-profiling-fix.patch added to mm-unstable branch
+Message-Id: <20240411203319.11FF7C072AA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm-mm-drop-vm_fault_badmap-vm_fault_badaccess-checkpatch-fixes
+     Subject: MAINTAINERS: improve entries in CODE TAGGING and MEMORY ALLOCATION PROFILING
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm-mm-drop-vm_fault_badmap-vm_fault_badaccess-checkpatch-fixes.patch
+     maintainers-add-entries-for-code-tagging-and-memory-allocation-profiling-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-mm-drop-vm_fault_badmap-vm_fault_badaccess-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-entries-for-code-tagging-and-memory-allocation-profiling-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,61 +58,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arm-mm-drop-vm_fault_badmap-vm_fault_badaccess-checkpatch-fixes
-Date: Thu Apr 11 01:17:26 PM PDT 2024
+From: Lukas Bulwahn <lbulwahn@redhat.com>
+Subject: MAINTAINERS: improve entries in CODE TAGGING and MEMORY ALLOCATION PROFILING
+Date: Thu, 11 Apr 2024 08:47:17 +0200
 
-ERROR: code indent should use tabs where possible
-#86: FILE: arch/arm/mm/fault.c:368:
-+        code = SEGV_MAPERR;$
+Commit 5acf2502db99 ("MAINTAINERS: add entries for code tagging and memory
+allocation profiling") adds the two new sections CODE TAGGING and MEMORY
+ALLOCATION PROFILING.  The files in these sections however do not match
+with the files added in the corresponding patch series.
 
-WARNING: please, no spaces at the start of a line
-#86: FILE: arch/arm/mm/fault.c:368:
-+        code = SEGV_MAPERR;$
+Improve the two entries to refer to all files added with that series and
+drop the entries to non-existing files.
 
-total: 1 errors, 1 warnings, 68 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/arm-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Link: https://lkml.kernel.org/r/20240411064717.51140-1-lukas.bulwahn@redhat.com
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@redhat.com>
+Acked-by: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/fault.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/arch/arm/mm/fault.c~arm-mm-drop-vm_fault_badmap-vm_fault_badaccess-checkpatch-fixes
-+++ a/arch/arm/mm/fault.c
-@@ -365,7 +365,7 @@ done:
- 	if (likely(!(fault & VM_FAULT_ERROR)))
- 		return 0;
+--- a/MAINTAINERS~maintainers-add-entries-for-code-tagging-and-memory-allocation-profiling-fix
++++ a/MAINTAINERS
+@@ -5258,6 +5258,7 @@ CODE TAGGING
+ M:	Suren Baghdasaryan <surenb@google.com>
+ M:	Kent Overstreet <kent.overstreet@linux.dev>
+ S:	Maintained
++F:	include/asm-generic/codetag.lds.h
+ F:	include/linux/codetag.h
+ F:	lib/codetag.c
  
--        code = SEGV_MAPERR;
-+	code = SEGV_MAPERR;
- bad_area:
- 	/*
- 	 * If we are in kernel mode at this point, we
+@@ -14167,10 +14168,10 @@ M:	Suren Baghdasaryan <surenb@google.com
+ M:	Kent Overstreet <kent.overstreet@linux.dev>
+ L:	linux-mm@kvack.org
+ S:	Maintained
++F:	Documentation/mm/allocation-profiling.rst
+ F:	include/linux/alloc_tag.h
+-F:	include/linux/codetag_ctx.h
++F:	include/linux/pgalloc_tag.h
+ F:	lib/alloc_tag.c
+-F:	lib/pgalloc_tag.c
+ 
+ MEMORY CONTROLLER DRIVERS
+ M:	Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lbulwahn@redhat.com are
 
-mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries-fix.patch
-mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio-fix.patch
-sh-remove-use-of-pg_arch_1-on-individual-pages-fix.patch
-mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing-fix.patch
-mm-allow-anon-exclusive-check-over-hugetlb-tail-pages-fix.patch
-arm-mm-drop-vm_fault_badmap-vm_fault_badaccess-checkpatch-fixes.patch
-__mod_memcg_lruvec_state-enhance-diagnostics.patch
-__mod_memcg_lruvec_state-enhance-diagnostics-fix.patch
+maintainers-add-entries-for-code-tagging-and-memory-allocation-profiling-fix.patch
 
