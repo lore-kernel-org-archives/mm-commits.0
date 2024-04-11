@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99FA51754B
-	for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2024 20:47:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E583325575
+	for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2024 20:47:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712868458; cv=none; b=U5hOw/uH6N85cVyQ8YLbAw+CTP8QidzwMmfWodc80k31tkV7YsebGO6ckC+lLfsa/rmKMI8Kmfuasw14LrAlpVs7MZ3RjF9Wr08UIcAx8Z/nXwdZQxwzvoiU2actOhLAEnt03QSoxTlq54MM1S9oE+NHYmKcDggj2TdlrDWt/Qc=
+	t=1712868460; cv=none; b=oXlPOeMvvXZll9USZnkrlfqlhJtKueBqbVPT/oGqj6FS7Q8fy99/DMLxgHQxYUU0Tojz1JC54Yc81r1GxvcSgLaansPdWbYglPB6WXGQ6z1ajh67otsdldf2gEJILnvW6y35IiIhxEn2uUFHjkymUq5LaiZ9uwP+KuBOuStH+8k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712868458; c=relaxed/simple;
-	bh=LLgD9dZbvI18ewFQVRAhnsoPRMQB65eEFIni5BJf9Po=;
-	h=Date:To:From:Subject:Message-Id; b=umstdCU1ATnLabjvsQZIGgyO10E/+3Db6YMg7VSpU+fw+g1mBOkDviUcWv0K7OPX8IhOFBcBJ7JK7J0aU6SOUqIc/qcm13W/2EnkiElUBJ2sLzT/J4WNP16cqvrtAANYlkOVUei1KwDM8WRBIr5WR4CUpEcTLm09k2iNDaXNL+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KbqwWMuK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712868460; c=relaxed/simple;
+	bh=wD+En+IJOxqD0+WAQMer2k3D37YDpuwz3A2mC9XA5f4=;
+	h=Date:To:From:Subject:Message-Id; b=AMCymt5nS0iHkTF3lHuB1R2DhY9c/63uVzDclRNjdbWAuqjagSSDcVW5iTD7Ngq4VTXJgB/Gse1KbcjGkVt2KcxJeEakozdFZHyvK8FA9KgvNHoiNXInUwceCftEDW4dL1pJAdKks6KsbBvl3YFkHB70YszfowtqyVBbY3p9/W4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GhGeMT2h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KbqwWMuK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0627BC072AA;
-	Thu, 11 Apr 2024 20:47:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GhGeMT2h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71646C072AA;
+	Thu, 11 Apr 2024 20:47:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712868458;
-	bh=LLgD9dZbvI18ewFQVRAhnsoPRMQB65eEFIni5BJf9Po=;
+	s=korg; t=1712868459;
+	bh=wD+En+IJOxqD0+WAQMer2k3D37YDpuwz3A2mC9XA5f4=;
 	h=Date:To:From:Subject:From;
-	b=KbqwWMuKYFChmrzRRGSH2UkWkVmegugLulL4/UfQAbpjRYVRqafQNv7o+fSZwYDoh
-	 TX6xwB6TNmSxij5wepKYZzayETK+1Ww8reBodkhty8jVYicGts0UKp4hWTB2gwAlLm
-	 O6d7vII5co7vp6wJGddGkEmR2cg5PIJ2JOKdIQnU=
-Date: Thu, 11 Apr 2024 13:47:37 -0700
+	b=GhGeMT2hypnTJTBNJgk5KCORi+D4g1vp40KCGKVu7SAXolhIshLKcfAqH86Fgc67c
+	 cFD6O+AorBcHOwnEJoBy/b+59zxndkn1BGk0jaJzsPN5zfTMp4YQ/7aMsSd3GgNgG/
+	 1HTNdrIijW/bo0wYh4SD0HauSEPnDrEeIm1HzX98=
+Date: Thu, 11 Apr 2024 13:47:38 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,izik.eidus@ravellosystems.com,hughd@google.com,david@redhat.com,chrisw@sous-sol.org,aarcange@redhat.com,alexs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-use-folio-in-write_protect_page.patch added to mm-unstable branch
-Message-Id: <20240411204738.0627BC072AA@smtp.kernel.org>
+Subject: + mm-ksm-convert-chain-series-funcs-and-replace-get_ksm_page.patch added to mm-unstable branch
+Message-Id: <20240411204739.71646C072AA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/ksm: use folio in write_protect_page
+     Subject: mm/ksm: convert chain series funcs and replace get_ksm_page
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ksm-use-folio-in-write_protect_page.patch
+     mm-ksm-convert-chain-series-funcs-and-replace-get_ksm_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-use-folio-in-write_protect_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-convert-chain-series-funcs-and-replace-get_ksm_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,107 +59,405 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Alex Shi (tencent)" <alexs@kernel.org>
-Subject: mm/ksm: use folio in write_protect_page
-Date: Thu, 11 Apr 2024 14:17:08 +0800
+Subject: mm/ksm: convert chain series funcs and replace get_ksm_page
+Date: Thu, 11 Apr 2024 14:17:09 +0800
 
-Compound page is checked and skipped before write_protect_page() called,
-use folio to save a few compound_head checking.
+In ksm stable tree all page are single, let's convert them to use and
+folios as well as stable_tree_insert/stable_tree_search funcs.  And
+replace get_ksm_page() by ksm_get_folio() since there is no more needs.
 
-Link: https://lkml.kernel.org/r/20240411061713.1847574-8-alexs@kernel.org
+It could save a few compound_head calls.
+
+Link: https://lkml.kernel.org/r/20240411061713.1847574-9-alexs@kernel.org
 Signed-off-by: Alex Shi (tencent) <alexs@kernel.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Izik Eidus <izik.eidus@ravellosystems.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ mm/ksm.c     |  136 +++++++++++++++++++++++--------------------------
+ mm/migrate.c |    2 
+ 2 files changed, 66 insertions(+), 72 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-use-folio-in-write_protect_page
+--- a/mm/ksm.c~mm-ksm-convert-chain-series-funcs-and-replace-get_ksm_page
 +++ a/mm/ksm.c
-@@ -1289,23 +1289,24 @@ static u32 calc_checksum(struct page *pa
- 	return checksum;
+@@ -990,14 +990,6 @@ stale:
+ 	return NULL;
  }
  
--static int write_protect_page(struct vm_area_struct *vma, struct page *page,
-+static int write_protect_page(struct vm_area_struct *vma, struct folio *folio,
- 			      pte_t *orig_pte)
- {
- 	struct mm_struct *mm = vma->vm_mm;
--	DEFINE_PAGE_VMA_WALK(pvmw, page, vma, 0, 0);
-+	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, 0, 0);
- 	int swapped;
- 	int err = -EFAULT;
- 	struct mmu_notifier_range range;
- 	bool anon_exclusive;
- 	pte_t entry;
- 
--	pvmw.address = page_address_in_vma(page, vma);
-+	if (WARN_ON_ONCE(folio_test_large(folio)))
-+		return err;
-+
-+	pvmw.address = page_address_in_vma(&folio->page, vma);
- 	if (pvmw.address == -EFAULT)
- 		goto out;
- 
--	BUG_ON(PageTransCompound(page));
+-static struct page *get_ksm_page(struct ksm_stable_node *stable_node,
+-				 enum get_ksm_page_flags flags)
+-{
+-	struct folio *folio = ksm_get_folio(stable_node, flags);
 -
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm, pvmw.address,
- 				pvmw.address + PAGE_SIZE);
- 	mmu_notifier_invalidate_range_start(&range);
-@@ -1315,12 +1316,12 @@ static int write_protect_page(struct vm_
- 	if (WARN_ONCE(!pvmw.pte, "Unexpected PMD mapping?"))
- 		goto out_unlock;
+-	return &folio->page;
+-}
+-
+ /*
+  * Removing rmap_item from stable or unstable tree.
+  * This function will clean the information from the stable/unstable tree.
+@@ -1632,10 +1624,10 @@ bool is_page_sharing_candidate(struct ks
+ 	return __is_page_sharing_candidate(stable_node, 0);
+ }
  
--	anon_exclusive = PageAnonExclusive(page);
-+	anon_exclusive = PageAnonExclusive(&folio->page);
- 	entry = ptep_get(pvmw.pte);
- 	if (pte_write(entry) || pte_dirty(entry) ||
- 	    anon_exclusive || mm_tlb_flush_pending(mm)) {
--		swapped = PageSwapCache(page);
--		flush_cache_page(vma, pvmw.address, page_to_pfn(page));
-+		swapped = folio_test_swapcache(folio);
-+		flush_cache_page(vma, pvmw.address, folio_pfn(folio));
+-static struct page *stable_node_dup(struct ksm_stable_node **_stable_node_dup,
+-				    struct ksm_stable_node **_stable_node,
+-				    struct rb_root *root,
+-				    bool prune_stale_stable_nodes)
++static struct folio *stable_node_dup(struct ksm_stable_node **_stable_node_dup,
++				     struct ksm_stable_node **_stable_node,
++				     struct rb_root *root,
++				     bool prune_stale_stable_nodes)
+ {
+ 	struct ksm_stable_node *dup, *found = NULL, *stable_node = *_stable_node;
+ 	struct hlist_node *hlist_safe;
+@@ -1748,7 +1740,7 @@ static struct page *stable_node_dup(stru
+ 	}
+ 
+ 	*_stable_node_dup = found;
+-	return &tree_folio->page;
++	return tree_folio;
+ }
+ 
+ static struct ksm_stable_node *stable_node_dup_any(struct ksm_stable_node *stable_node,
+@@ -1765,7 +1757,7 @@ static struct ksm_stable_node *stable_no
+ }
+ 
+ /*
+- * Like for get_ksm_page, this function can free the *_stable_node and
++ * Like for ksm_get_folio, this function can free the *_stable_node and
+  * *_stable_node_dup if the returned tree_page is NULL.
+  *
+  * It can also free and overwrite *_stable_node with the found
+@@ -1778,16 +1770,16 @@ static struct ksm_stable_node *stable_no
+  * function and will be overwritten in all cases, the caller doesn't
+  * need to initialize it.
+  */
+-static struct page *__stable_node_chain(struct ksm_stable_node **_stable_node_dup,
+-					struct ksm_stable_node **_stable_node,
+-					struct rb_root *root,
+-					bool prune_stale_stable_nodes)
++static struct folio *__stable_node_chain(struct ksm_stable_node **_stable_node_dup,
++					 struct ksm_stable_node **_stable_node,
++					 struct rb_root *root,
++					 bool prune_stale_stable_nodes)
+ {
+ 	struct ksm_stable_node *stable_node = *_stable_node;
+ 	if (!is_stable_node_chain(stable_node)) {
+ 		if (is_page_sharing_candidate(stable_node)) {
+ 			*_stable_node_dup = stable_node;
+-			return get_ksm_page(stable_node, GET_KSM_PAGE_NOLOCK);
++			return ksm_get_folio(stable_node, GET_KSM_PAGE_NOLOCK);
+ 		}
  		/*
- 		 * Ok this is tricky, when get_user_pages_fast() run it doesn't
- 		 * take any lock, therefore the check that we are going to make
-@@ -1340,20 +1341,20 @@ static int write_protect_page(struct vm_
- 		 * Check that no O_DIRECT or similar I/O is in progress on the
- 		 * page
- 		 */
--		if (page_mapcount(page) + 1 + swapped != page_count(page)) {
-+		if (folio_mapcount(folio) + 1 + swapped != folio_ref_count(folio)) {
- 			set_pte_at(mm, pvmw.address, pvmw.pte, entry);
- 			goto out_unlock;
+ 		 * _stable_node_dup set to NULL means the stable_node
+@@ -1800,24 +1792,24 @@ static struct page *__stable_node_chain(
+ 			       prune_stale_stable_nodes);
+ }
+ 
+-static __always_inline struct page *chain_prune(struct ksm_stable_node **s_n_d,
+-						struct ksm_stable_node **s_n,
+-						struct rb_root *root)
++static __always_inline struct folio *chain_prune(struct ksm_stable_node **s_n_d,
++						 struct ksm_stable_node **s_n,
++						 struct rb_root *root)
+ {
+ 	return __stable_node_chain(s_n_d, s_n, root, true);
+ }
+ 
+-static __always_inline struct page *chain(struct ksm_stable_node **s_n_d,
+-					  struct ksm_stable_node *s_n,
+-					  struct rb_root *root)
++static __always_inline struct folio *chain(struct ksm_stable_node **s_n_d,
++					   struct ksm_stable_node *s_n,
++					   struct rb_root *root)
+ {
+ 	struct ksm_stable_node *old_stable_node = s_n;
+-	struct page *tree_page;
++	struct folio *tree_folio;
+ 
+-	tree_page = __stable_node_chain(s_n_d, &s_n, root, false);
++	tree_folio = __stable_node_chain(s_n_d, &s_n, root, false);
+ 	/* not pruning dups so s_n cannot have changed */
+ 	VM_BUG_ON(s_n != old_stable_node);
+-	return tree_page;
++	return tree_folio;
+ }
+ 
+ /*
+@@ -1837,28 +1829,30 @@ static struct page *stable_tree_search(s
+ 	struct rb_node *parent;
+ 	struct ksm_stable_node *stable_node, *stable_node_dup, *stable_node_any;
+ 	struct ksm_stable_node *page_node;
++	struct folio *folio;
+ 
+-	page_node = page_stable_node(page);
++	folio = page_folio(page);
++	page_node = folio_stable_node(folio);
+ 	if (page_node && page_node->head != &migrate_nodes) {
+ 		/* ksm page forked */
+-		get_page(page);
+-		return page;
++		folio_get(folio);
++		return &folio->page;
+ 	}
+ 
+-	nid = get_kpfn_nid(page_to_pfn(page));
++	nid = get_kpfn_nid(folio_pfn(folio));
+ 	root = root_stable_tree + nid;
+ again:
+ 	new = &root->rb_node;
+ 	parent = NULL;
+ 
+ 	while (*new) {
+-		struct page *tree_page;
++		struct folio *tree_folio;
+ 		int ret;
+ 
+ 		cond_resched();
+ 		stable_node = rb_entry(*new, struct ksm_stable_node, node);
+ 		stable_node_any = NULL;
+-		tree_page = chain_prune(&stable_node_dup, &stable_node,	root);
++		tree_folio = chain_prune(&stable_node_dup, &stable_node, root);
+ 		/*
+ 		 * NOTE: stable_node may have been freed by
+ 		 * chain_prune() if the returned stable_node_dup is
+@@ -1892,14 +1886,14 @@ again:
+ 			 * write protected at all times. Any will work
+ 			 * fine to continue the walk.
+ 			 */
+-			tree_page = get_ksm_page(stable_node_any,
+-						 GET_KSM_PAGE_NOLOCK);
++			tree_folio = ksm_get_folio(stable_node_any,
++						   GET_KSM_PAGE_NOLOCK);
  		}
- 
- 		/* See folio_try_share_anon_rmap_pte(): clear PTE first. */
- 		if (anon_exclusive &&
--		    folio_try_share_anon_rmap_pte(page_folio(page), page)) {
-+		    folio_try_share_anon_rmap_pte(folio, &folio->page)) {
- 			set_pte_at(mm, pvmw.address, pvmw.pte, entry);
- 			goto out_unlock;
- 		}
- 
- 		if (pte_dirty(entry))
--			set_page_dirty(page);
-+			folio_mark_dirty(folio);
- 		entry = pte_mkclean(entry);
- 
- 		if (pte_write(entry))
-@@ -1519,7 +1520,7 @@ static int try_to_merge_one_page(struct
- 	 * ptes are necessarily already write-protected.  But in either
- 	 * case, we need to lock and check page_count is not raised.
- 	 */
--	if (write_protect_page(vma, page, &orig_pte) == 0) {
-+	if (write_protect_page(vma, page_folio(page), &orig_pte) == 0) {
- 		if (!kpage) {
+ 		VM_BUG_ON(!stable_node_dup ^ !!stable_node_any);
+-		if (!tree_page) {
++		if (!tree_folio) {
  			/*
- 			 * While we hold page lock, upgrade page from
+ 			 * If we walked over a stale stable_node,
+-			 * get_ksm_page() will call rb_erase() and it
++			 * ksm_get_folio() will call rb_erase() and it
+ 			 * may rebalance the tree from under us. So
+ 			 * restart the search from scratch. Returning
+ 			 * NULL would be safe too, but we'd generate
+@@ -1909,8 +1903,8 @@ again:
+ 			goto again;
+ 		}
+ 
+-		ret = memcmp_pages(page, tree_page);
+-		put_page(tree_page);
++		ret = memcmp_pages(page, &tree_folio->page);
++		folio_put(tree_folio);
+ 
+ 		parent = *new;
+ 		if (ret < 0)
+@@ -1953,26 +1947,26 @@ again:
+ 			 * It would be more elegant to return stable_node
+ 			 * than kpage, but that involves more changes.
+ 			 */
+-			tree_page = get_ksm_page(stable_node_dup,
+-						 GET_KSM_PAGE_TRYLOCK);
++			tree_folio = ksm_get_folio(stable_node_dup,
++						   GET_KSM_PAGE_TRYLOCK);
+ 
+-			if (PTR_ERR(tree_page) == -EBUSY)
++			if (PTR_ERR(tree_folio) == -EBUSY)
+ 				return ERR_PTR(-EBUSY);
+ 
+-			if (unlikely(!tree_page))
++			if (unlikely(!tree_folio))
+ 				/*
+ 				 * The tree may have been rebalanced,
+ 				 * so re-evaluate parent and new.
+ 				 */
+ 				goto again;
+-			unlock_page(tree_page);
++			folio_unlock(tree_folio);
+ 
+ 			if (get_kpfn_nid(stable_node_dup->kpfn) !=
+ 			    NUMA(stable_node_dup->nid)) {
+-				put_page(tree_page);
++				folio_put(tree_folio);
+ 				goto replace;
+ 			}
+-			return tree_page;
++			return &tree_folio->page;
+ 		}
+ 	}
+ 
+@@ -1985,8 +1979,8 @@ again:
+ 	rb_insert_color(&page_node->node, root);
+ out:
+ 	if (is_page_sharing_candidate(page_node)) {
+-		get_page(page);
+-		return page;
++		folio_get(folio);
++		return &folio->page;
+ 	} else
+ 		return NULL;
+ 
+@@ -2011,12 +2005,12 @@ replace:
+ 					&page_node->node,
+ 					root);
+ 			if (is_page_sharing_candidate(page_node))
+-				get_page(page);
++				folio_get(folio);
+ 			else
+-				page = NULL;
++				folio = NULL;
+ 		} else {
+ 			rb_erase(&stable_node_dup->node, root);
+-			page = NULL;
++			folio = NULL;
+ 		}
+ 	} else {
+ 		VM_BUG_ON(!is_stable_node_chain(stable_node));
+@@ -2027,16 +2021,16 @@ replace:
+ 			DO_NUMA(page_node->nid = nid);
+ 			stable_node_chain_add_dup(page_node, stable_node);
+ 			if (is_page_sharing_candidate(page_node))
+-				get_page(page);
++				folio_get(folio);
+ 			else
+-				page = NULL;
++				folio = NULL;
+ 		} else {
+-			page = NULL;
++			folio = NULL;
+ 		}
+ 	}
+ 	stable_node_dup->head = &migrate_nodes;
+ 	list_add(&stable_node_dup->list, stable_node_dup->head);
+-	return page;
++	return &folio->page;
+ 
+ chain_append:
+ 	/* stable_node_dup could be null if it reached the limit */
+@@ -2079,7 +2073,7 @@ chain_append:
+  * This function returns the stable tree node just allocated on success,
+  * NULL otherwise.
+  */
+-static struct ksm_stable_node *stable_tree_insert(struct page *kpage)
++static struct ksm_stable_node *stable_tree_insert(struct folio *kfolio)
+ {
+ 	int nid;
+ 	unsigned long kpfn;
+@@ -2089,7 +2083,7 @@ static struct ksm_stable_node *stable_tr
+ 	struct ksm_stable_node *stable_node, *stable_node_dup, *stable_node_any;
+ 	bool need_chain = false;
+ 
+-	kpfn = page_to_pfn(kpage);
++	kpfn = folio_pfn(kfolio);
+ 	nid = get_kpfn_nid(kpfn);
+ 	root = root_stable_tree + nid;
+ again:
+@@ -2097,13 +2091,13 @@ again:
+ 	new = &root->rb_node;
+ 
+ 	while (*new) {
+-		struct page *tree_page;
++		struct folio *tree_folio;
+ 		int ret;
+ 
+ 		cond_resched();
+ 		stable_node = rb_entry(*new, struct ksm_stable_node, node);
+ 		stable_node_any = NULL;
+-		tree_page = chain(&stable_node_dup, stable_node, root);
++		tree_folio = chain(&stable_node_dup, stable_node, root);
+ 		if (!stable_node_dup) {
+ 			/*
+ 			 * Either all stable_node dups were full in
+@@ -2125,14 +2119,14 @@ again:
+ 			 * write protected at all times. Any will work
+ 			 * fine to continue the walk.
+ 			 */
+-			tree_page = get_ksm_page(stable_node_any,
+-						 GET_KSM_PAGE_NOLOCK);
++			tree_folio = ksm_get_folio(stable_node_any,
++						   GET_KSM_PAGE_NOLOCK);
+ 		}
+ 		VM_BUG_ON(!stable_node_dup ^ !!stable_node_any);
+-		if (!tree_page) {
++		if (!tree_folio) {
+ 			/*
+ 			 * If we walked over a stale stable_node,
+-			 * get_ksm_page() will call rb_erase() and it
++			 * ksm_get_folio() will call rb_erase() and it
+ 			 * may rebalance the tree from under us. So
+ 			 * restart the search from scratch. Returning
+ 			 * NULL would be safe too, but we'd generate
+@@ -2142,8 +2136,8 @@ again:
+ 			goto again;
+ 		}
+ 
+-		ret = memcmp_pages(kpage, tree_page);
+-		put_page(tree_page);
++		ret = memcmp_pages(&kfolio->page, &tree_folio->page);
++		folio_put(tree_folio);
+ 
+ 		parent = *new;
+ 		if (ret < 0)
+@@ -2162,7 +2156,7 @@ again:
+ 
+ 	INIT_HLIST_HEAD(&stable_node_dup->hlist);
+ 	stable_node_dup->kpfn = kpfn;
+-	set_page_stable_node(kpage, stable_node_dup);
++	folio_set_stable_node(kfolio, stable_node_dup);
+ 	stable_node_dup->rmap_hlist_len = 0;
+ 	DO_NUMA(stable_node_dup->nid = nid);
+ 	if (!need_chain) {
+@@ -2440,7 +2434,7 @@ static void cmp_and_merge_page(struct pa
+ 			 * node in the stable tree and add both rmap_items.
+ 			 */
+ 			lock_page(kpage);
+-			stable_node = stable_tree_insert(kpage);
++			stable_node = stable_tree_insert(page_folio(kpage));
+ 			if (stable_node) {
+ 				stable_tree_append(tree_rmap_item, stable_node,
+ 						   false);
+@@ -3244,7 +3238,7 @@ void folio_migrate_ksm(struct folio *new
+ 		/*
+ 		 * newfolio->mapping was set in advance; now we need smp_wmb()
+ 		 * to make sure that the new stable_node->kpfn is visible
+-		 * to get_ksm_page() before it can see that folio->mapping
++		 * to ksm_get_folio() before it can see that folio->mapping
+ 		 * has gone stale (or that folio_test_swapcache has been cleared).
+ 		 */
+ 		smp_wmb();
+@@ -3271,7 +3265,7 @@ static bool stable_node_dup_remove_range
+ 	if (stable_node->kpfn >= start_pfn &&
+ 	    stable_node->kpfn < end_pfn) {
+ 		/*
+-		 * Don't get_ksm_page, page has already gone:
++		 * Don't ksm_get_folio, page has already gone:
+ 		 * which is why we keep kpfn instead of page*
+ 		 */
+ 		remove_node_from_stable_tree(stable_node);
+@@ -3359,7 +3353,7 @@ static int ksm_memory_callback(struct no
+ 		 * Most of the work is done by page migration; but there might
+ 		 * be a few stable_nodes left over, still pointing to struct
+ 		 * pages which have been offlined: prune those from the tree,
+-		 * otherwise get_ksm_page() might later try to access a
++		 * otherwise ksm_get_folio() might later try to access a
+ 		 * non-existent struct page.
+ 		 */
+ 		ksm_check_stable_tree(mn->start_pfn,
+--- a/mm/migrate.c~mm-ksm-convert-chain-series-funcs-and-replace-get_ksm_page
++++ a/mm/migrate.c
+@@ -616,7 +616,7 @@ void folio_migrate_flags(struct folio *n
+ 	folio_migrate_ksm(newfolio, folio);
+ 	/*
+ 	 * Please do not reorder this without considering how mm/ksm.c's
+-	 * get_ksm_page() depends upon ksm_migrate_page() and PageSwapCache().
++	 * ksm_get_folio() depends upon ksm_migrate_page() and PageSwapCache().
+ 	 */
+ 	if (folio_test_swapcache(folio))
+ 		folio_clear_swapcache(folio);
 _
 
 Patches currently in -mm which might be from alexs@kernel.org are
