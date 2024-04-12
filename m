@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 825B622EE0;
-	Fri, 12 Apr 2024 21:07:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C1915478B;
+	Fri, 12 Apr 2024 22:10:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712956023; cv=none; b=nwSx6XLxSsJfvDDPVNebrR8cSrYptJo6WhCzMQpaRRNuaC4MmdeX7gHmevlk6Xq2ckajS0sbnFZcze17twaQ/PSli2Dd4xUSo/yUq9jRSmKM/UPyPHm4PbPfH+R12XsjqGI+Y/8ALScuzZ+4vm+lmLocH5SVPy6Ba+KnY+Zv3ZU=
+	t=1712959824; cv=none; b=b4lBWS2+XeDuvFLeuxoGmeypS3njOVtvzr3QrOg45sGQEBk/+gN3nZXBBYoVeCTEX1iVYhBtxNl9e/N2ZduqE1DjXAYWyfFKtBsiW3myh7IY3cjyQEm4cb0bMZoIcNPnUqnoE6tzyJZ004RDEWWMK6gVFaok1z54JzPhbhZl/2o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712956023; c=relaxed/simple;
-	bh=TrVRtQL5XvcfsmBWDYPf9U6S3WrO82Xflk08cB4VDXs=;
-	h=Date:To:From:Subject:Message-Id; b=QpT1zBo5jIkZ2Z6vVTVYg6N/22wr9zbEOwxINN9qHS8CcJw6uJFLbt7lEed8yzhZ1iak38BesHfpRs9LX0y3wjWeQfiBJbODH2fHa9knYpOySgIikgJh13jsOzR17b5PLoplpNZmk3ZHQjcTCZDzmRnws4nV01uEYLOteFI7bQw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cjCtmVxl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712959824; c=relaxed/simple;
+	bh=3l/4hTvGAjGjn9h5aRqsj4iwsws2FIlY5Mdh9FyeSGI=;
+	h=Date:To:From:Subject:Message-Id; b=cEnq2mWMxswNbRIRleb/hcPFto7QVnUQaWx0149F26FEq0PkP3au8b5raq44ZvUms/NFh16eaNzERNsSWvYVNoYbXCEckfIuADD+KJTesl4GNRyznO4y3VB9VuwIYzr98GFZlJZ3PXuLrlTenFDyrqZwuuf3vv3doRmeOZJMDO8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f8WH2Mya; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cjCtmVxl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D676EC113CC;
-	Fri, 12 Apr 2024 21:07:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f8WH2Mya"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC20DC113CC;
+	Fri, 12 Apr 2024 22:10:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712956022;
-	bh=TrVRtQL5XvcfsmBWDYPf9U6S3WrO82Xflk08cB4VDXs=;
+	s=korg; t=1712959823;
+	bh=3l/4hTvGAjGjn9h5aRqsj4iwsws2FIlY5Mdh9FyeSGI=;
 	h=Date:To:From:Subject:From;
-	b=cjCtmVxl2ZnJ7Iq+OjqA0BnYrKLzeO1kHi/L2SgGrJNPgjP4C87Hk68Jwi2eImI6U
-	 eiltDsKMnLkkI89hPqtjsloEsTrBjaRTn5p7YQI/myvXkipgoKoecfHLu/+NqGqlz9
-	 LCvO8tXOKJNSkDlEq27klEyq2wkFZTTe3+dGAKc4=
-Date: Fri, 12 Apr 2024 14:07:02 -0700
+	b=f8WH2MyawgtjhA8bg/4kMeW3JiquUqS8EbNxXY14wjvBmV36Ad/LissNa1av18R/0
+	 XH/FjtYo/3JWAmHb7WavoDR+K6Eb8TcsH6xkf7Szsdv+mmgqsEmomr9kAtd0M3LyvE
+	 iq0Cw8GW+HA4ZcgERzR71+der3RZJU1LBuDy/npk=
+Date: Fri, 12 Apr 2024 15:10:22 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@linux.ibm.com,mhiramat@kernel.org,qiang4.zhang@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240412210702.D676EC113CC@smtp.kernel.org>
+Subject: [to-be-updated] bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy.patch removed from -mm tree
+Message-Id: <20240412221023.BC20DC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,28 +34,12 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
+The quilt patch titled
      Subject: bootconfig: use memblock_free_late to free xbc memory to buddy
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Qiang Zhang <qiang4.zhang@intel.com>
@@ -140,5 +124,4 @@ _
 
 Patches currently in -mm which might be from qiang4.zhang@intel.com are
 
-bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy.patch
 
