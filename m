@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B77A8827
-	for <mm-commits@vger.kernel.org>; Fri, 12 Apr 2024 23:13:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 964A727442;
+	Fri, 12 Apr 2024 23:21:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712963632; cv=none; b=gmX+QUz4laSVq02dUbW55//uhYfTivL/vAi5d8JicmYHTp2f4G2np8d0ZitR6HpzM+Ls0/xCfP5Mpm8etGvo8R/AzNoSxk/eBbGDAhSB4BKef2V5d0PMjoQHR9m+11CKoAJO9oWIfUeVBeblso/W5OEMC0qDeTRzg7G16t3g1d0=
+	t=1712964082; cv=none; b=noXxRx3N7joEYCPp9nxHMMNwAPNHXMone57UHQBn9EjJL9q0pAUjt6QD569aJe73tmvjGEd3Xj72idWCJNDtfFG1bTGxNwXzOVLZFQ3U+M4WNtjrPkcSujrtCgww6O2hRizZKXOED392IohQ1EeSb4s3QYHSu+U9q7vepcrqOF0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712963632; c=relaxed/simple;
-	bh=NjrKEp9zHhgYAHFj3IrhMdfMu+sxuHHq8wRwIPIHmw4=;
-	h=Date:To:From:Subject:Message-Id; b=NVoLMCYdz8OjqJ2+hKT8j3W05paRrqIvAFpxk9+DSytTyGJYTBB/NzSyZn3F94kheub36uGmJV8V4fHBewhNEzO3w463YFr/MF8mltG0ozhBp83Hmr8zTo1woM1fFBx/nMALboJuHdjklhzLw0idDwVzYgDujfrWkWh7V49E4Vc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ExmElTbR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712964082; c=relaxed/simple;
+	bh=sI0/OsZ2FQB7zuUSJnWG2iFUvueFTFQT6NbEiqw/lkA=;
+	h=Date:To:From:Subject:Message-Id; b=UyB8MiGDOL8RhWBJYVNGDBQqwhbhsN+bcTrLZGEZkuGwGlBFX8bfm6e3j3m/LgsUHJGLVWs31xjS4AjDVt11k7Toq8eb4+Vtjxja8PdaOg/efs2wiZmOVGYjnyWXF/iwcqkSJGmIoUWYxv3jp4am6eklczBYmDx+Qt3Ye0VhYGQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uFL8KfTc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ExmElTbR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C077BC113CC;
-	Fri, 12 Apr 2024 23:13:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uFL8KfTc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 132D3C113CC;
+	Fri, 12 Apr 2024 23:21:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712963631;
-	bh=NjrKEp9zHhgYAHFj3IrhMdfMu+sxuHHq8wRwIPIHmw4=;
+	s=korg; t=1712964082;
+	bh=sI0/OsZ2FQB7zuUSJnWG2iFUvueFTFQT6NbEiqw/lkA=;
 	h=Date:To:From:Subject:From;
-	b=ExmElTbRaTjMarGQKu140tLHGjU1vqCDqQtm2L35WprouZ5kkHeKISaV+4cLS/+yI
-	 qYHWc3e1b6U/Rm6+/I28r7zpCt2hxuSLZZGcMapMobDBJPg/T8wi2Nc4YRXflqTrCN
-	 QZpEl1vB5dAsHPxbyAJAIc4b3ufecRzzt6Ht7dvY=
-Date: Fri, 12 Apr 2024 16:13:50 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,vbabka@suse.cz,ryan.roberts@arm.com,mgorman@techsingularity.net,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=uFL8KfTceVDYrXOO/Z0ZCcLYkWSquI6q1AamcNnn5tFFiT0V0FTAApmSe5aEjteNP
+	 V/0hmdRkALbksiB6fLFBkohVUyGgvDoGGykjMqkV7S80gqTVeHEmRe43g7MSh0m8L8
+	 kyxzGZn0r3OdkkC3rTR2jiJvHYtvGuuyk2uJi4zE=
+Date: Fri, 12 Apr 2024 16:21:21 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch added to mm-unstable branch
-Message-Id: <20240412231351.C077BC113CC@smtp.kernel.org>
+Subject: + mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled-v2.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240412232122.132D3C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: allowing mTHP compaction to capture the freed page directly
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch
+     Subject: mm/memory-failure: fix deadlock when hugetlb_optimize_vmemmap is enabled
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled-v2.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,77 +58,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: page_alloc: allowing mTHP compaction to capture the freed page directly
-Date: Fri, 12 Apr 2024 11:27:04 +0800
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/memory-failure: fix deadlock when hugetlb_optimize_vmemmap is enabled
+Date: Fri, 12 Apr 2024 10:57:54 +0800
 
-Currently, compaction_capture() does not allow lower-order allocations to
-directly capture the movable free pages, even though lower-order
-allocations might also be requesting movable pages, that can lead to more
-compaction scanning.  And, with the enablement of mTHP, such situations
-will become more common.
+extend comment per Oscar
 
-Thus allowing lower-order (mTHP) allocations of movable page types
-directly capture the movable free pages can avoid unnecessary compaction
-scanning, meanwhile that won't pollute the movable pageblock.  With
-testing 1M mTHP compaction, it can be seen that compaction scanning is
-significantly reduced.
-
-                                   mm-unstable       patched
-Ops Compaction pages isolated      116598741.00   120946702.00
-Ops Compaction migrate scanned    1764870054.00  1488621550.00
-Ops Compaction free scanned       7707879039.00  4986299318.00
-Ops Compact scan efficiency               22.90          29.85
-Ops Compaction cost                    73797.69       72933.48
-
-Link: https://lkml.kernel.org/r/8118a5d66a034736a48433beddaca60ed78577c4.1712892329.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20240412025754.1897615-1-linmiaohe@huawei.com
+Fixes: a6b40850c442 ("mm: hugetlb: replace hugetlb_free_vmemmap_enabled with a static_key")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Cc: <stable@vger.kernel.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly
-+++ a/mm/page_alloc.c
-@@ -595,12 +595,14 @@ compaction_capture(struct capture_contro
- 		return false;
- 
- 	/*
--	 * Do not let lower order allocations pollute a movable pageblock.
-+	 * Do not let lower order allocations pollute a movable pageblock
-+	 * unless compaction is also requesting movable pages.
- 	 * This might let an unmovable request use a reclaimable pageblock
- 	 * and vice-versa but no more than normal fallback logic which can
- 	 * have trouble finding a high-order free page.
+--- a/mm/memory-failure.c~mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled-v2
++++ a/mm/memory-failure.c
+@@ -159,6 +159,10 @@ static int __page_handle_poison(struct p
+ 	 * dissolve_free_huge_page() might hold cpu_hotplug_lock via static_key_slow_dec()
+ 	 * when hugetlb vmemmap optimization is enabled. This will break current lock
+ 	 * dependency chain and leads to deadlock.
++	 * Disabling pcp before dissolving the page was a deterministic approach because
++	 * we made sure that those pages cannot end up in any PCP list. Draining PCP lists
++	 * expels those pages to the buddy system, but nothing guarantees that those pages
++	 * do not get back to a PCP queue if we need to refill those.
  	 */
--	if (order < pageblock_order && migratetype == MIGRATE_MOVABLE)
-+	if (order < pageblock_order && migratetype == MIGRATE_MOVABLE &&
-+	    capc->cc->migratetype != MIGRATE_MOVABLE)
- 		return false;
- 
- 	capc->page = page;
+ 	ret = dissolve_free_huge_page(page);
+ 	if (!ret) {
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-page_alloc-fix-freelist-movement-during-block-conversion-fix.patch
-mm-page_alloc-consolidate-free-page-accounting-fix-3.patch
-mm-record-the-migration-reason-for-struct-migration_target_control.patch
-mm-hugetlb-make-the-hugetlb-migration-strategy-consistent.patch
-docs-hugetlbpagerst-add-hugetlb-migration-description.patch
-mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch
-mm-support-multi-size-thp-numa-balancing.patch
-mm-support-multi-size-thp-numa-balancing-v3.patch
-mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics.patch
-mm-page_alloc-use-the-correct-thp-order-for-thp-pcp.patch
-mm-set-pageblock_order-to-hpage_pmd_order-in-case-with-config_hugetlb_page-but-thp-enabled.patch
-mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch
+mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled.patch
+mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled-v2.patch
+fork-defer-linking-file-vma-until-vma-is-fully-initialized.patch
 
