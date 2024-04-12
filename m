@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E19F8827
-	for <mm-commits@vger.kernel.org>; Fri, 12 Apr 2024 23:11:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B77A8827
+	for <mm-commits@vger.kernel.org>; Fri, 12 Apr 2024 23:13:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712963488; cv=none; b=bTII4KWMMbGoq81Nw0SqLyQlevGlUhy9xEq8tqIO861jKX77x/RC0WdhsVZwTpjod8JuKzLq7kFSqRs2iZ7hCBLiJ/lbq/tVhoVjwC4aYc46K+fgYzrM9ox2GIKj7FjxsaRfQscHYVJx894sVPJOFwdEL8VXwU7sORWaOrm0pqg=
+	t=1712963632; cv=none; b=gmX+QUz4laSVq02dUbW55//uhYfTivL/vAi5d8JicmYHTp2f4G2np8d0ZitR6HpzM+Ls0/xCfP5Mpm8etGvo8R/AzNoSxk/eBbGDAhSB4BKef2V5d0PMjoQHR9m+11CKoAJO9oWIfUeVBeblso/W5OEMC0qDeTRzg7G16t3g1d0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712963488; c=relaxed/simple;
-	bh=xQROCu08rH0YQTWyAHVeJa49otNCBkNMLSn4Rbiy/YA=;
-	h=Date:To:From:Subject:Message-Id; b=sqKzu0Az2G0G0N3i5UfK6g0A3OZu/DFMx3alMZaz11cVOyKRxJc2lpnaPnj9Y8/yCjuLxKM3jTuLrlzbe0vnqXImwjf9E8cgVpXBT4fJRcEfCDWbXByK6AGqltgPPoh/ahckV7LIE4AKlCYrhOW/wloUM2aTDIlzqVMXJvPCyvI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SBuuDtzn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712963632; c=relaxed/simple;
+	bh=NjrKEp9zHhgYAHFj3IrhMdfMu+sxuHHq8wRwIPIHmw4=;
+	h=Date:To:From:Subject:Message-Id; b=NVoLMCYdz8OjqJ2+hKT8j3W05paRrqIvAFpxk9+DSytTyGJYTBB/NzSyZn3F94kheub36uGmJV8V4fHBewhNEzO3w463YFr/MF8mltG0ozhBp83Hmr8zTo1woM1fFBx/nMALboJuHdjklhzLw0idDwVzYgDujfrWkWh7V49E4Vc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ExmElTbR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SBuuDtzn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87AC7C113CC;
-	Fri, 12 Apr 2024 23:11:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ExmElTbR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C077BC113CC;
+	Fri, 12 Apr 2024 23:13:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712963487;
-	bh=xQROCu08rH0YQTWyAHVeJa49otNCBkNMLSn4Rbiy/YA=;
+	s=korg; t=1712963631;
+	bh=NjrKEp9zHhgYAHFj3IrhMdfMu+sxuHHq8wRwIPIHmw4=;
 	h=Date:To:From:Subject:From;
-	b=SBuuDtznaqmb8QwUGis43CwkpNHmGV8Ae7pYNHfx3OKMihDFHFfORYTBznovWRlmB
-	 zBbs3DkuZbwm+d+B2t68ByPcgYdKhbsIzDtEIc1qbmPSWv4UI8BsMl+8PFZ0XFCaR2
-	 m/jDgaQGiHJsM9Te2DV+J2m2Y0MXPXhR6Aj71nPQ=
-Date: Fri, 12 Apr 2024 16:11:26 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=ExmElTbRaTjMarGQKu140tLHGjU1vqCDqQtm2L35WprouZ5kkHeKISaV+4cLS/+yI
+	 qYHWc3e1b6U/Rm6+/I28r7zpCt2hxuSLZZGcMapMobDBJPg/T8wi2Nc4YRXflqTrCN
+	 QZpEl1vB5dAsHPxbyAJAIc4b3ufecRzzt6Ht7dvY=
+Date: Fri, 12 Apr 2024 16:13:50 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,vbabka@suse.cz,ryan.roberts@arm.com,mgorman@techsingularity.net,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-batch-mm-counter-updating-in-filemap_map_pages.patch added to mm-unstable branch
-Message-Id: <20240412231127.87AC7C113CC@smtp.kernel.org>
+Subject: + mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch added to mm-unstable branch
+Message-Id: <20240412231351.C077BC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: filemap: batch mm counter updating in filemap_map_pages()
+     Subject: mm: page_alloc: allowing mTHP compaction to capture the freed page directly
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-filemap-batch-mm-counter-updating-in-filemap_map_pages.patch
+     mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-batch-mm-counter-updating-in-filemap_map_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,128 +58,77 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: filemap: batch mm counter updating in filemap_map_pages()
-Date: Fri, 12 Apr 2024 14:47:51 +0800
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: page_alloc: allowing mTHP compaction to capture the freed page directly
+Date: Fri, 12 Apr 2024 11:27:04 +0800
 
-Like copy_pte_range()/zap_pte_range(), make mm counter batch updating in
-filemap_map_pages(), since folios type are same(MM_SHMEMPAGES or
-MM_FILEPAGES) in filemap_map_pages(), only check the first folio type is
-enough, the 'lat_pagefault -P 1 file' test from lmbench shows 12%
-improvement, and the percpu_counter_add_batch() is gone from perf flame
-graph.
+Currently, compaction_capture() does not allow lower-order allocations to
+directly capture the movable free pages, even though lower-order
+allocations might also be requesting movable pages, that can lead to more
+compaction scanning.  And, with the enablement of mTHP, such situations
+will become more common.
 
-Link: https://lkml.kernel.org/r/20240412064751.119015-3-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Thus allowing lower-order (mTHP) allocations of movable page types
+directly capture the movable free pages can avoid unnecessary compaction
+scanning, meanwhile that won't pollute the movable pageblock.  With
+testing 1M mTHP compaction, it can be seen that compaction scanning is
+significantly reduced.
+
+                                   mm-unstable       patched
+Ops Compaction pages isolated      116598741.00   120946702.00
+Ops Compaction migrate scanned    1764870054.00  1488621550.00
+Ops Compaction free scanned       7707879039.00  4986299318.00
+Ops Compact scan efficiency               22.90          29.85
+Ops Compaction cost                    73797.69       72933.48
+
+Link: https://lkml.kernel.org/r/8118a5d66a034736a48433beddaca60ed78577c4.1712892329.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ mm/page_alloc.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-batch-mm-counter-updating-in-filemap_map_pages
-+++ a/mm/filemap.c
-@@ -3505,7 +3505,7 @@ skip:
- static vm_fault_t filemap_map_folio_range(struct vm_fault *vmf,
- 			struct folio *folio, unsigned long start,
- 			unsigned long addr, unsigned int nr_pages,
--			unsigned int *mmap_miss)
-+			unsigned long *rss, unsigned int *mmap_miss)
- {
- 	vm_fault_t ret = 0;
- 	struct page *page = folio_page(folio, start);
-@@ -3539,8 +3539,7 @@ static vm_fault_t filemap_map_folio_rang
- skip:
- 		if (count) {
- 			set_pte_range(vmf, folio, page, count, addr);
--			add_mm_counter(vmf->vma->vm_mm, mm_counter_file(folio),
--				       count);
-+			*rss += count;
- 			folio_ref_add(folio, count);
- 			if (in_range(vmf->address, addr, count * PAGE_SIZE))
- 				ret = VM_FAULT_NOPAGE;
-@@ -3555,7 +3554,7 @@ skip:
+--- a/mm/page_alloc.c~mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly
++++ a/mm/page_alloc.c
+@@ -595,12 +595,14 @@ compaction_capture(struct capture_contro
+ 		return false;
  
- 	if (count) {
- 		set_pte_range(vmf, folio, page, count, addr);
--		add_mm_counter(vmf->vma->vm_mm, mm_counter_file(folio), count);
-+		*rss += count;
- 		folio_ref_add(folio, count);
- 		if (in_range(vmf->address, addr, count * PAGE_SIZE))
- 			ret = VM_FAULT_NOPAGE;
-@@ -3568,7 +3567,7 @@ skip:
+ 	/*
+-	 * Do not let lower order allocations pollute a movable pageblock.
++	 * Do not let lower order allocations pollute a movable pageblock
++	 * unless compaction is also requesting movable pages.
+ 	 * This might let an unmovable request use a reclaimable pageblock
+ 	 * and vice-versa but no more than normal fallback logic which can
+ 	 * have trouble finding a high-order free page.
+ 	 */
+-	if (order < pageblock_order && migratetype == MIGRATE_MOVABLE)
++	if (order < pageblock_order && migratetype == MIGRATE_MOVABLE &&
++	    capc->cc->migratetype != MIGRATE_MOVABLE)
+ 		return false;
  
- static vm_fault_t filemap_map_order0_folio(struct vm_fault *vmf,
- 		struct folio *folio, unsigned long addr,
--		unsigned int *mmap_miss)
-+		unsigned long *rss, unsigned int *mmap_miss)
- {
- 	vm_fault_t ret = 0;
- 	struct page *page = &folio->page;
-@@ -3592,7 +3591,7 @@ static vm_fault_t filemap_map_order0_fol
- 		ret = VM_FAULT_NOPAGE;
- 
- 	set_pte_range(vmf, folio, page, 1, addr);
--	add_mm_counter(vmf->vma->vm_mm, mm_counter_file(folio), 1);
-+	(*rss)++;
- 	folio_ref_inc(folio);
- 
- 	return ret;
-@@ -3609,7 +3608,8 @@ vm_fault_t filemap_map_pages(struct vm_f
- 	XA_STATE(xas, &mapping->i_pages, start_pgoff);
- 	struct folio *folio;
- 	vm_fault_t ret = 0;
--	unsigned int nr_pages = 0, mmap_miss = 0, mmap_miss_saved;
-+	unsigned long rss = 0;
-+	unsigned int nr_pages = 0, mmap_miss = 0, mmap_miss_saved, folio_type;
- 
- 	rcu_read_lock();
- 	folio = next_uptodate_folio(&xas, mapping, end_pgoff);
-@@ -3628,6 +3628,8 @@ vm_fault_t filemap_map_pages(struct vm_f
- 		folio_put(folio);
- 		goto out;
- 	}
-+
-+	folio_type = mm_counter_file(folio);
- 	do {
- 		unsigned long end;
- 
-@@ -3639,15 +3641,16 @@ vm_fault_t filemap_map_pages(struct vm_f
- 
- 		if (!folio_test_large(folio))
- 			ret |= filemap_map_order0_folio(vmf,
--					folio, addr, &mmap_miss);
-+					folio, addr, &rss, &mmap_miss);
- 		else
- 			ret |= filemap_map_folio_range(vmf, folio,
- 					xas.xa_index - folio->index, addr,
--					nr_pages, &mmap_miss);
-+					nr_pages, &rss, &mmap_miss);
- 
- 		folio_unlock(folio);
- 		folio_put(folio);
- 	} while ((folio = next_uptodate_folio(&xas, mapping, end_pgoff)) != NULL);
-+	add_mm_counter(vma->vm_mm, folio_type, rss);
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
- out:
- 	rcu_read_unlock();
+ 	capc->page = page;
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-backing-dev-use-group-allocation-free-of-per-cpu-counters-api.patch
-mm-remove-__set_page_dirty_nobuffers.patch
-arm64-mm-cleanup-__do_page_fault.patch
-arm64-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
-arm-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
-powerpc-mm-accelerate-pagefault-when-badaccess.patch
-riscv-mm-accelerate-pagefault-when-badaccess.patch
-riscv-mm-accelerate-pagefault-when-badaccess-fix.patch
-s390-mm-accelerate-pagefault-when-badaccess.patch
-x86-mm-accelerate-pagefault-when-badaccess.patch
-arm64-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
-arm-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
-mm-move-mm-counter-updating-out-of-set_pte_range.patch
-mm-filemap-batch-mm-counter-updating-in-filemap_map_pages.patch
+mm-page_alloc-fix-freelist-movement-during-block-conversion-fix.patch
+mm-page_alloc-consolidate-free-page-accounting-fix-3.patch
+mm-record-the-migration-reason-for-struct-migration_target_control.patch
+mm-hugetlb-make-the-hugetlb-migration-strategy-consistent.patch
+docs-hugetlbpagerst-add-hugetlb-migration-description.patch
+mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch
+mm-support-multi-size-thp-numa-balancing.patch
+mm-support-multi-size-thp-numa-balancing-v3.patch
+mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics.patch
+mm-page_alloc-use-the-correct-thp-order-for-thp-pcp.patch
+mm-set-pageblock_order-to-hpage_pmd_order-in-case-with-config_hugetlb_page-but-thp-enabled.patch
+mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch
 
