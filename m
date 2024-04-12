@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D2252C683
-	for <mm-commits@vger.kernel.org>; Fri, 12 Apr 2024 23:08:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E76B9152504
+	for <mm-commits@vger.kernel.org>; Fri, 12 Apr 2024 23:08:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712963296; cv=none; b=tJLjYDWw3mqJIpFioRuvhmOWbreI+UIqnQm7J/cjF2Lj3051Q3FOaODgJLyh2HKyChg/0lXYjSgytEkoXRhvGAQcCqQ4kLmYTn0+E/9j3tAHWtMaJR2UFM9SMixH2S8iCOdIHaIR0NNCYkAbwsw9MjoCR8Zds4UqteuYj2LFe0k=
+	t=1712963299; cv=none; b=eL4DXZoUcqGp1h2TCHpXeZV7s0Z3OcYzg7uRHarGMy4smWlsRYL+UO2i6EPpWDqvxU4+4l9TwWMYIh4gmdzYjK3Z+2A/Jrho+UZrItTARIC/AydI8X1zrcsqAf/+y8HPYADQ9Zlfw1SUR8KpseKRpQDtgMFO57+jqTFGlGMlZ30=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712963296; c=relaxed/simple;
-	bh=hJ0ZCoTTwzw8bepwDlnSYhVN0JYyYvURd3DWzSUatkQ=;
-	h=Date:To:From:Subject:Message-Id; b=U34FoWFBQ9A5cfFmANLLMD4ph4tuI3l4Gk7jtZLkBn0jCR6uZEGhCY+DPNk+KMcyOWXnBdDR0PbQuACvEM1hZXC2jxxJ8M7Ev/xNkqcn/70JZlJztG4gKvTQ72RPfLGQuIgRWc5/P7vNqJrvSzN+E31b6JvBGm5F8kkyf9jesCY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N5P9+tA+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712963299; c=relaxed/simple;
+	bh=8HlBqcF/fpVxVJRw8dzWnVuZ5cs6Wci36GdA68d5EGU=;
+	h=Date:To:From:Subject:Message-Id; b=sVuJw/Y9e/pIDjBXgBjQCBZRRqBR3lOL0WXNH3zcq22ZGXNY9hdfd3m91jCuEEROzTl0BmSKFUelWjyycNtqScDk9ES7gLQOwGl85HM51c8AdcjDv09/gze9J6tUsPWM3LzcyCU90kh/4h/zx6sYashDnOlW8URXh0vuXt9Re5I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u2gJ9Twc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N5P9+tA+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C835C113CC;
-	Fri, 12 Apr 2024 23:08:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u2gJ9Twc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C3F2C113CC;
+	Fri, 12 Apr 2024 23:08:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712963296;
-	bh=hJ0ZCoTTwzw8bepwDlnSYhVN0JYyYvURd3DWzSUatkQ=;
+	s=korg; t=1712963298;
+	bh=8HlBqcF/fpVxVJRw8dzWnVuZ5cs6Wci36GdA68d5EGU=;
 	h=Date:To:From:Subject:From;
-	b=N5P9+tA+zQEbdVHAvR16qnHz616xoWcUmKwlSBPmr0mmRMtrRAvAV36TKdb1MZNms
-	 iD8hIuq0LXSzL/lYWXo9iPKPXCu8I4OXtPPoR9dkKENREiailLUG5qesytah2QXjgd
-	 AAxCYVr1fkmmwtNvMTWGUBUK/Uk9IPsHhcStnJP4=
-Date: Fri, 12 Apr 2024 16:08:15 -0700
+	b=u2gJ9TwcBff7rNloPOuAH8h6LLtzfdMNdReVl10bEi648FAFRr6Qz332SFIbojRvb
+	 v3lIaYiatWTidOHg1caoeTguFEXivXBdGOfDCkFjtlRLnei0WqZBXdOyKWn3XBf1HU
+	 DHuG+2SfUGB++dAUXdzNK71YJQ0U4dWLjDX/S3kE=
+Date: Fri, 12 Apr 2024 16:08:17 -0700
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,willy@infradead.org,surenb@google.com,ryan.roberts@arm.com,peterx@redhat.com,kasong@tencent.com,david@redhat.com,corbet@lwn.net,chrisl@kernel.org,cerasuolodomenico@gmail.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-per-order-mthp-anon_swpout-and-anon_swpout_fallback-counters.patch added to mm-unstable branch
-Message-Id: <20240412230816.2C835C113CC@smtp.kernel.org>
+Subject: + mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi.patch added to mm-unstable branch
+Message-Id: <20240412230818.6C3F2C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add per-order mTHP anon_swpout and anon_swpout_fallback counters
+     Subject: mm: add docs for per-order mTHP counters and transhuge_page ABI
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-per-order-mthp-anon_swpout-and-anon_swpout_fallback-counters.patch
+     mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-per-order-mthp-anon_swpout-and-anon_swpout_fallback-counters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: add per-order mTHP anon_swpout and anon_swpout_fallback counters
-Date: Fri, 12 Apr 2024 23:48:56 +1200
+Subject: mm: add docs for per-order mTHP counters and transhuge_page ABI
+Date: Fri, 12 Apr 2024 23:48:57 +1200
 
-This helps to display the fragmentation situation of the swapfile, knowing
-the proportion of how much we haven't split large folios.  So far, we only
-support non-split swapout for anon memory, with the possibility of
-expanding to shmem in the future.  So, we add the "anon" prefix to the
-counter names.
+This patch includes documentation for mTHP counters and an ABI file for
+sys-kernel-mm-transparent-hugepage, which appears to have been missing for
+some time.
 
-Link: https://lkml.kernel.org/r/20240412114858.407208-3-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240412114858.407208-4-21cnbao@gmail.com
 Signed-off-by: Barry Song <v-songbaohua@oppo.com>
 Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Chris Li <chrisl@kernel.org>
@@ -85,70 +83,67 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 ++
- mm/huge_memory.c        |    4 ++++
- mm/page_io.c            |    1 +
- mm/vmscan.c             |    3 +++
- 4 files changed, 10 insertions(+)
+ Documentation/ABI/testing/sys-kernel-mm-transparent-hugepage |   17 ++++++
+ Documentation/admin-guide/mm/transhuge.rst                   |   28 ++++++++++
+ 2 files changed, 45 insertions(+)
 
---- a/include/linux/huge_mm.h~mm-add-per-order-mthp-anon_swpout-and-anon_swpout_fallback-counters
-+++ a/include/linux/huge_mm.h
-@@ -268,6 +268,8 @@ enum mthp_stat_item {
- 	MTHP_STAT_ANON_FAULT_ALLOC,
- 	MTHP_STAT_ANON_FAULT_FALLBACK,
- 	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
-+	MTHP_STAT_ANON_SWPOUT,
-+	MTHP_STAT_ANON_SWPOUT_FALLBACK,
- 	__MTHP_STAT_COUNT
- };
- 
---- a/mm/huge_memory.c~mm-add-per-order-mthp-anon_swpout-and-anon_swpout_fallback-counters
-+++ a/mm/huge_memory.c
-@@ -555,11 +555,15 @@ static struct kobj_attribute _name##_att
- DEFINE_MTHP_STAT_ATTR(anon_fault_alloc, MTHP_STAT_ANON_FAULT_ALLOC);
- DEFINE_MTHP_STAT_ATTR(anon_fault_fallback, MTHP_STAT_ANON_FAULT_FALLBACK);
- DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
-+DEFINE_MTHP_STAT_ATTR(anon_swpout, MTHP_STAT_ANON_SWPOUT);
-+DEFINE_MTHP_STAT_ATTR(anon_swpout_fallback, MTHP_STAT_ANON_SWPOUT_FALLBACK);
- 
- static struct attribute *stats_attrs[] = {
- 	&anon_fault_alloc_attr.attr,
- 	&anon_fault_fallback_attr.attr,
- 	&anon_fault_fallback_charge_attr.attr,
-+	&anon_swpout_attr.attr,
-+	&anon_swpout_fallback_attr.attr,
- 	NULL,
- };
- 
---- a/mm/page_io.c~mm-add-per-order-mthp-anon_swpout-and-anon_swpout_fallback-counters
-+++ a/mm/page_io.c
-@@ -217,6 +217,7 @@ static inline void count_swpout_vm_event
- 		count_memcg_folio_events(folio, THP_SWPOUT, 1);
- 		count_vm_event(THP_SWPOUT);
- 	}
-+	count_mthp_stat(folio_order(folio), MTHP_STAT_ANON_SWPOUT);
- #endif
- 	count_vm_events(PSWPOUT, folio_nr_pages(folio));
- }
---- a/mm/vmscan.c~mm-add-per-order-mthp-anon_swpout-and-anon_swpout_fallback-counters
-+++ a/mm/vmscan.c
-@@ -1214,6 +1214,8 @@ retry:
- 						goto activate_locked;
- 				}
- 				if (!add_to_swap(folio)) {
-+					int __maybe_unused order = folio_order(folio);
+--- /dev/null
++++ a/Documentation/ABI/testing/sys-kernel-mm-transparent-hugepage
+@@ -0,0 +1,17 @@
++What:		/sys/kernel/mm/transparent_hugepage/
++Date:		April 2024
++Contact:	Linux memory management mailing list <linux-mm@kvack.org>
++Description:
++		/sys/kernel/mm/transparent_hugepage/ contains a number of files and
++		subdirectories,
++			- defrag
++			- enabled
++			- hpage_pmd_size
++			- khugepaged
++			- shmem_enabled
++			- use_zero_page
++			- subdirectories of the form hugepages-<size>kB, where <size>
++			  is the page size of the hugepages supported by the kernel/CPU
++			  combination.
 +
- 					if (!folio_test_large(folio))
- 						goto activate_locked_split;
- 					/* Fallback to swap normal pages */
-@@ -1225,6 +1227,7 @@ retry:
- 							THP_SWPOUT_FALLBACK, 1);
- 						count_vm_event(THP_SWPOUT_FALLBACK);
- 					}
-+					count_mthp_stat(order, MTHP_STAT_ANON_SWPOUT_FALLBACK);
- #endif
- 					if (!add_to_swap(folio))
- 						goto activate_locked_split;
++		See Documentation/admin-guide/mm/transhuge.rst for details.
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -447,6 +447,34 @@ thp_swpout_fallback
+ 	Usually because failed to allocate some continuous swap space
+ 	for the huge page.
+ 
++In /sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/stats, There are
++also individual counters for each huge page size, which can be utilized to
++monitor the system's effectiveness in providing huge pages for usage. Each
++counter has its own corresponding file.
++
++anon_fault_alloc
++	is incremented every time a huge page is successfully
++	allocated and charged to handle a page fault.
++
++anon_fault_fallback
++	is incremented if a page fault fails to allocate or charge
++	a huge page and instead falls back to using huge pages with
++	lower orders or small pages.
++
++anon_fault_fallback_charge
++	is incremented if a page fault fails to charge a huge page and
++	instead falls back to using huge pages with lower orders or
++	small pages even though the allocation was successful.
++
++anon_swpout
++	is incremented every time a huge page is swapped out in one
++	piece without splitting.
++
++anon_swpout_fallback
++	is incremented if a huge page has to be split before swapout.
++	Usually because failed to allocate some continuous swap space
++	for the huge page.
++
+ As the system ages, allocating huge pages may be expensive as the
+ system uses memory compaction to copy data around memory to free a
+ huge page for use. There are some counters in ``/proc/vmstat`` to help
 _
 
 Patches currently in -mm which might be from v-songbaohua@oppo.com are
