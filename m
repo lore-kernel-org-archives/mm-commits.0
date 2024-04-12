@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C46968827
-	for <mm-commits@vger.kernel.org>; Fri, 12 Apr 2024 23:08:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69F568827
+	for <mm-commits@vger.kernel.org>; Fri, 12 Apr 2024 23:11:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712963301; cv=none; b=bYf5ukW6guZxYUtTRltWYMrWFz0s4nHJQQPkrq0xbjPt6cuxpe1CQoG9gT1d2vXWtXyk/SxvoEbfHLbN19wUw8Ezke5oiltMz9bLAopNfeVMkU+8n75J0Cru4UydeA34MYj7kwdHMGOVrPKCRqxW2XwM8Td+yT8cMZIcxr2RiM4=
+	t=1712963486; cv=none; b=mWHKCUaJIHXi4os3ZWO/FSmYPspRYOJvzhvkNDD9cTuHnpanNiDN+msBuk3EGiP4hkMdG7XXl5X968FJU9a19TwyMbX6+l30NEMkCMVc3VGLrPnp1VHe1jon/QjAOlYwZAUj3UHQ3bZJ24izWOZGOrAogJmtRK7v2cHUKvF+Lhc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712963301; c=relaxed/simple;
-	bh=BFxt4ZqFZKAVJCiKw04RLAd0Ilm/169qk8kPMR+k7hk=;
-	h=Date:To:From:Subject:Message-Id; b=j3V6q+GHT7u+xivBub/QLEuHq8YPJSrqkLlTvZlquoE11xLhNq9+4MIxRdsf2Yej3Z0iWAjg90FqJgSOTEoWEit7SLBXDef/zuEvsYQKpcqq1OhcUqccBwPrU5pEWJOKkKzClct8lEtmvEQ8aDUKzmMx2MQMsHcZ781K75aQEmw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dKjtrsIo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712963486; c=relaxed/simple;
+	bh=YYBx/aNL09tAzM0U8j1QRxm1RH/yiXVK6vmg/aH7NLE=;
+	h=Date:To:From:Subject:Message-Id; b=py4sUVpuRkde1vAr+PyCaXr+bbk4XE1b3GCsMWXCpuwm85ncnMx71jgYOsUklAd2fLiDcQvp9Et/d8BEgWUg3+La8bqR1LIwk36pviesM2hnacAt/kC7WBbddLJ4qsFY/Xk/IvjDcx3YRjzSu67sLgkMONy0r2w2IzCYnfe1q0k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fbzU68xk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dKjtrsIo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 334E5C113CC;
-	Fri, 12 Apr 2024 23:08:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fbzU68xk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAC38C113CC;
+	Fri, 12 Apr 2024 23:11:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712963300;
-	bh=BFxt4ZqFZKAVJCiKw04RLAd0Ilm/169qk8kPMR+k7hk=;
+	s=korg; t=1712963485;
+	bh=YYBx/aNL09tAzM0U8j1QRxm1RH/yiXVK6vmg/aH7NLE=;
 	h=Date:To:From:Subject:From;
-	b=dKjtrsIotp0JgjBJUy/W04LQdJIsnUh59HKEzxUzZGHBLcwUvASyrRyCc7rBpP5ov
-	 ia7MZoXPWhiFeCA+lCMZgg5tLXnLBfWmDE3j7phut0z4Ra3ZggPkMwz/TPk0/E2Pvc
-	 ZopX70zpAZiX2x7weLKzKY3JfOoDc8iPb4y1VrOk=
-Date: Fri, 12 Apr 2024 16:08:19 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,willy@infradead.org,surenb@google.com,ryan.roberts@arm.com,peterx@redhat.com,kasong@tencent.com,david@redhat.com,corbet@lwn.net,chrisl@kernel.org,cerasuolodomenico@gmail.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=fbzU68xkSZrBfSWV6hhdWGARyGJ2aMfC/BWmoHYVd8Dv47qUntdH0bH1idPWqfMoo
+	 3u7L01NJAvyTkfYHbshUMmzD2vpBy8M2TE0dJa+WungIUyGIdxgVY9XxlMuxMVfT/g
+	 tEadCWNJD1kST5Ne82TrzUaoTnuLcEnU1sB/uwCA=
+Date: Fri, 12 Apr 2024 16:11:25 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-correct-the-docs-for-thp_fault_alloc-and-thp_fault_fallback.patch added to mm-unstable branch
-Message-Id: <20240412230820.334E5C113CC@smtp.kernel.org>
+Subject: + mm-move-mm-counter-updating-out-of-set_pte_range.patch added to mm-unstable branch
+Message-Id: <20240412231125.CAC38C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: correct the docs for thp_fault_alloc and thp_fault_fallback
+     Subject: mm: move mm counter updating out of set_pte_range()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-correct-the-docs-for-thp_fault_alloc-and-thp_fault_fallback.patch
+     mm-move-mm-counter-updating-out-of-set_pte_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-correct-the-docs-for-thp_fault_alloc-and-thp_fault_fallback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-mm-counter-updating-out-of-set_pte_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,64 +58,115 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: correct the docs for thp_fault_alloc and thp_fault_fallback
-Date: Fri, 12 Apr 2024 23:48:58 +1200
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: move mm counter updating out of set_pte_range()
+Date: Fri, 12 Apr 2024 14:47:50 +0800
 
-The documentation does not align with the code.  In
-__do_huge_pmd_anonymous_page(), THP_FAULT_FALLBACK is incremented when
-mem_cgroup_charge() fails, despite the allocation succeeding, whereas
-THP_FAULT_ALLOC is only incremented after a successful charge.
+Patch series "mm: batch mm counter updating in filemap_map_pages()", v3.
 
-Link: https://lkml.kernel.org/r/20240412114858.407208-5-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Kairui Song <kasong@tencent.com>
+Let's batch mm counter updating to accelerate filemap_map_pages().
+
+
+This patch (of 2):
+
+In order to support batch mm counter updating in filemap_map_pages(), move
+mm counter updating out of set_pte_range(), the folios are file from
+filemap, and distinguish folios by vmf->flags and vma->vm_flags from
+another caller finish_fault().
+
+Link: https://lkml.kernel.org/r/20240412064751.119015-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240412064751.119015-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/filemap.c |    4 ++++
+ mm/memory.c  |    8 +++++---
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-correct-the-docs-for-thp_fault_alloc-and-thp_fault_fallback
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -369,7 +369,7 @@ monitor how successfully the system is p
+--- a/mm/filemap.c~mm-move-mm-counter-updating-out-of-set_pte_range
++++ a/mm/filemap.c
+@@ -3539,6 +3539,8 @@ static vm_fault_t filemap_map_folio_rang
+ skip:
+ 		if (count) {
+ 			set_pte_range(vmf, folio, page, count, addr);
++			add_mm_counter(vmf->vma->vm_mm, mm_counter_file(folio),
++				       count);
+ 			folio_ref_add(folio, count);
+ 			if (in_range(vmf->address, addr, count * PAGE_SIZE))
+ 				ret = VM_FAULT_NOPAGE;
+@@ -3553,6 +3555,7 @@ skip:
  
- thp_fault_alloc
- 	is incremented every time a huge page is successfully
--	allocated to handle a page fault.
-+	allocated and charged to handle a page fault.
+ 	if (count) {
+ 		set_pte_range(vmf, folio, page, count, addr);
++		add_mm_counter(vmf->vma->vm_mm, mm_counter_file(folio), count);
+ 		folio_ref_add(folio, count);
+ 		if (in_range(vmf->address, addr, count * PAGE_SIZE))
+ 			ret = VM_FAULT_NOPAGE;
+@@ -3589,6 +3592,7 @@ static vm_fault_t filemap_map_order0_fol
+ 		ret = VM_FAULT_NOPAGE;
  
- thp_collapse_alloc
- 	is incremented by khugepaged when it has found
-@@ -377,7 +377,7 @@ thp_collapse_alloc
- 	successfully allocated a new huge page to store the data.
+ 	set_pte_range(vmf, folio, page, 1, addr);
++	add_mm_counter(vmf->vma->vm_mm, mm_counter_file(folio), 1);
+ 	folio_ref_inc(folio);
  
- thp_fault_fallback
--	is incremented if a page fault fails to allocate
-+	is incremented if a page fault fails to allocate or charge
- 	a huge page and instead falls back to using small pages.
+ 	return ret;
+--- a/mm/memory.c~mm-move-mm-counter-updating-out-of-set_pte_range
++++ a/mm/memory.c
+@@ -4687,12 +4687,10 @@ void set_pte_range(struct vm_fault *vmf,
+ 		entry = pte_mkuffd_wp(entry);
+ 	/* copy-on-write page */
+ 	if (write && !(vma->vm_flags & VM_SHARED)) {
+-		add_mm_counter(vma->vm_mm, MM_ANONPAGES, nr);
+ 		VM_BUG_ON_FOLIO(nr != 1, folio);
+ 		folio_add_new_anon_rmap(folio, vma, addr);
+ 		folio_add_lru_vma(folio, vma);
+ 	} else {
+-		add_mm_counter(vma->vm_mm, mm_counter_file(folio), nr);
+ 		folio_add_file_rmap_ptes(folio, page, nr, vma);
+ 	}
+ 	set_ptes(vma->vm_mm, addr, vmf->pte, entry, nr);
+@@ -4729,9 +4727,11 @@ vm_fault_t finish_fault(struct vm_fault
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct page *page;
+ 	vm_fault_t ret;
++	bool is_cow = (vmf->flags & FAULT_FLAG_WRITE) &&
++		      !(vma->vm_flags & VM_SHARED);
  
- thp_fault_fallback_charge
+ 	/* Did we COW the page? */
+-	if ((vmf->flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED))
++	if (is_cow)
+ 		page = vmf->cow_page;
+ 	else
+ 		page = vmf->page;
+@@ -4767,8 +4767,10 @@ vm_fault_t finish_fault(struct vm_fault
+ 	/* Re-check under ptl */
+ 	if (likely(!vmf_pte_changed(vmf))) {
+ 		struct folio *folio = page_folio(page);
++		int type = is_cow ? MM_ANONPAGES : mm_counter_file(folio);
+ 
+ 		set_pte_range(vmf, folio, page, 1, vmf->address);
++		add_mm_counter(vma->vm_mm, type, 1);
+ 		ret = 0;
+ 	} else {
+ 		update_mmu_tlb(vma, vmf->address, vmf->pte);
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-arm64-mm-swap-support-thp_swap-on-hardware-with-mte.patch
-mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio.patch
-mm-alloc_anon_folio-avoid-doing-vma_thp_gfp_mask-in-fallback-cases.patch
-mm-add-per-order-mthp-anon_fault_alloc-and-anon_fault_fallback-counters.patch
-mm-add-per-order-mthp-anon_swpout-and-anon_swpout_fallback-counters.patch
-mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi.patch
-mm-correct-the-docs-for-thp_fault_alloc-and-thp_fault_fallback.patch
+mm-backing-dev-use-group-allocation-free-of-per-cpu-counters-api.patch
+mm-remove-__set_page_dirty_nobuffers.patch
+arm64-mm-cleanup-__do_page_fault.patch
+arm64-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
+arm-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
+powerpc-mm-accelerate-pagefault-when-badaccess.patch
+riscv-mm-accelerate-pagefault-when-badaccess.patch
+riscv-mm-accelerate-pagefault-when-badaccess-fix.patch
+s390-mm-accelerate-pagefault-when-badaccess.patch
+x86-mm-accelerate-pagefault-when-badaccess.patch
+arm64-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
+arm-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
+mm-move-mm-counter-updating-out-of-set_pte_range.patch
+mm-filemap-batch-mm-counter-updating-in-filemap_map_pages.patch
 
