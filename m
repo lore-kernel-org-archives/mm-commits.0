@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77BBEB656
-	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 19:20:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2016115686D
+	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 19:35:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713208846; cv=none; b=ukze0YkrLSjVE7p07SKx7i3vsLXVnDulWkX8M4rQpINL2VgCirjBqCpr34HOVf4UKvJRZIkowl4ySRmdp2OKJ3N6XFHWmTILhNLEB9RDXzIIVo0J/Y6jUBijHJtr/QGqL8EPiTKTA09hTdH5iKewP8ymGk+sTQurnyeUhBEAp8c=
+	t=1713209724; cv=none; b=N5rIqIHti7mprTn0xxg0I56wDkhIvzzV3buydXKwesh6emojnV7dGhj3DbVNCjPuta8mGvPUHJTvwsH4S2mepCzVDzO/jR36BxNXrw+ImL3EPFTjusapeNX9pWw0veYvhCWEZdawcruZOlU6WV/Nl6CEbNBGHqtPJ7WYzCZPFTY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713208846; c=relaxed/simple;
-	bh=msS4z3kUrd7W6T0ZXXemVTYiz0embZjxR2bW+D7Xz2g=;
-	h=Date:To:From:Subject:Message-Id; b=pfEhQ4uD6ls0CeK/DilQKtTHRuvK800J+fCj3Ccmaf6ziu1hRsjyiJ+4aBYN1vZiHoFqCHL19ykIFAF71IGuWA5C5pa8qhS7/cf+R9wUS/U5AEfnneNINAQkfFeTD8f1Ggzlqd6l9eSvCmbmEmwfLGjWTGmwoguMpofTbCBxS1w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jsCCNdsk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713209724; c=relaxed/simple;
+	bh=9RMqD4Q7NqmZdfYcSlfBx0S9llRKaOOQfADpeA9Hdoo=;
+	h=Date:To:From:Subject:Message-Id; b=UOpRX5lnf13ky7QqBmj4UVNYv0v3qVHVe2b2WuDTn1ZnJVMJ9qiT8hcFKP+JGmNPHaseMTizrXjM4TfN+S28QNFvpvJhKoiPT8oXxJsgiuWjfd+N+C8qOCPCXoYlJ9auGjHwY2fDVTK2lDZf8gOwk6rjmIbbSgctP6NnEwgfJzU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vX3d4I4Z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jsCCNdsk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22F91C2BD11;
-	Mon, 15 Apr 2024 19:20:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vX3d4I4Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B326C2BD11;
+	Mon, 15 Apr 2024 19:35:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713208846;
-	bh=msS4z3kUrd7W6T0ZXXemVTYiz0embZjxR2bW+D7Xz2g=;
+	s=korg; t=1713209723;
+	bh=9RMqD4Q7NqmZdfYcSlfBx0S9llRKaOOQfADpeA9Hdoo=;
 	h=Date:To:From:Subject:From;
-	b=jsCCNdskEEMYvMShRm3mBVX+FoCnX/H4QXgZZHXiTiI3BvP18U+WpvE3YahVxCliv
-	 /vvagHF/P8a9Tbu/+NYU2Lew0BWRymI3mKbD9vTs/DB0fkHGePhiJmke9OyAJlbdwK
-	 YfFMxmWISQ8otbN2k6+jpzTxQZBwTS71F4ofCh5A=
-Date: Mon, 15 Apr 2024 12:20:45 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,usama.anjum@collabora.com,torvalds@linux-foundation.org,surenb@google.com,sroettger@google.com,pedro.falcato@gmail.com,Liam.Howlett@oracle.com,keescook@chromium.org,jorgelo@chromium.org,jeffxu@google.com,jannh@google.com,groeck@chromium.org,gregkh@linuxfoundation.org,dave.hansen@intel.com,corbet@lwn.net,jeffxu@chromium.org,akpm@linux-foundation.org
+	b=vX3d4I4ZAKLWUm2fn0cQetrmJREsAllHi7svAFpCd3wkxZeej3K6i0doz1hTkOT0+
+	 w9g27IdetETj+YJFHDM6yDBf8LnU5lG409gmCkwQhAGsQnGuWQImaYK7tHWq2FUcBN
+	 203qkd9H67k07Bi+l9zKSNdKyCw1mFtUDgY0ULnM=
+Date: Mon, 15 Apr 2024 12:35:22 -0700
+To: mm-commits@vger.kernel.org,nicolas@fjasle.eu,nathan@kernel.org,masahiroy@kernel.org,keescook@chromium.org,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-mm-mseal-read-only-elf-memory-segment.patch added to mm-unstable branch
-Message-Id: <20240415192046.22F91C2BD11@smtp.kernel.org>
+Subject: + kbuild-turn-on-wextra-by-default.patch added to mm-nonmm-unstable branch
+Message-Id: <20240415193523.7B326C2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftest mm/mseal read-only elf memory segment
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftest-mm-mseal-read-only-elf-memory-segment.patch
+     Subject: kbuild: turn on -Wextra by default
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kbuild-turn-on-wextra-by-default.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-mseal-read-only-elf-memory-segment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kbuild-turn-on-wextra-by-default.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,247 +58,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jeff Xu <jeffxu@chromium.org>
-Subject: selftest mm/mseal read-only elf memory segment
-Date: Mon, 15 Apr 2024 16:35:24 +0000
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kbuild: turn on -Wextra by default
+Date: Mon, 15 Apr 2024 14:20:32 +0200
 
-Sealing read-only of elf mapping so it can't be changed by mprotect.
+Patch series "kbuild: enable more warnings by default", v3.
 
-Link: https://lkml.kernel.org/r/20240415163527.626541-6-jeffxu@chromium.org
-Signed-off-by: Jeff Xu <jeffxu@chromium.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Guenter Roeck <groeck@chromium.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jeff Xu <jeffxu@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+All the warning fixes I sent for these warnings have been merged into
+mainline or linux-next, so let's turn them on by default.
+
+
+This patch (of 6):
+
+The -Wextra option controls a number of different warnings that differ
+slightly by compiler version.  Some are useful in general, others are
+better left at W=1 or higher.  Based on earlier work, the ones that should
+be disabled by default are left for the higher warning levels already, and
+a lot of the useful ones have no remaining output when enabled.
+
+Move the -Wextra option up into the set of default-enabled warnings and
+just rely on the individual ones getting disabled as needed.
+
+The -Wunused warning was always grouped with this, so turn it on by
+default as well, except for the -Wunused-parameter warning that really has
+no value at all for the kernel since many interfaces have intentionally
+unused arguments.
+
+Link: https://lkml.kernel.org/r/20240415122037.1983124-1-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20240415122037.1983124-2-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Nathan Chancellor <nathan@kernel.org>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Pedro Falcato <pedro.falcato@gmail.com>
-Cc: Stephen Röttger <sroettger@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Nicolas Schier <nicolas@fjasle.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore |    1 
- tools/testing/selftests/mm/Makefile   |    1 
- tools/testing/selftests/mm/seal_elf.c |  183 ++++++++++++++++++++++++
- 3 files changed, 185 insertions(+)
+ scripts/Makefile.extrawarn |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftest-mm-mseal-read-only-elf-memory-segment
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -48,3 +48,4 @@ va_high_addr_switch
- hugetlb_fault_after_madv
- hugetlb_madv_vs_map
- mseal_test
-+seal_elf
---- a/tools/testing/selftests/mm/Makefile~selftest-mm-mseal-read-only-elf-memory-segment
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -60,6 +60,7 @@ TEST_GEN_FILES += mrelease_test
- TEST_GEN_FILES += mremap_dontunmap
- TEST_GEN_FILES += mremap_test
- TEST_GEN_FILES += mseal_test
-+TEST_GEN_FILES += seal_elf
- TEST_GEN_FILES += on-fault-limit
- TEST_GEN_FILES += pagemap_ioctl
- TEST_GEN_FILES += thuge-gen
---- /dev/null
-+++ a/tools/testing/selftests/mm/seal_elf.c
-@@ -0,0 +1,183 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#define _GNU_SOURCE
-+#include <sys/mman.h>
-+#include <stdint.h>
-+#include <unistd.h>
-+#include <string.h>
-+#include <sys/time.h>
-+#include <sys/resource.h>
-+#include <stdbool.h>
-+#include "../kselftest.h"
-+#include <syscall.h>
-+#include <errno.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <assert.h>
-+#include <fcntl.h>
-+#include <assert.h>
-+#include <sys/ioctl.h>
-+#include <sys/vfs.h>
-+#include <sys/stat.h>
+--- a/scripts/Makefile.extrawarn~kbuild-turn-on-wextra-by-default
++++ a/scripts/Makefile.extrawarn
+@@ -82,12 +82,14 @@ KBUILD_CFLAGS += $(call cc-option,-Werro
+ # Warn if there is an enum types mismatch
+ KBUILD_CFLAGS += $(call cc-option,-Wenum-conversion)
+ 
++KBUILD_CFLAGS += -Wextra
++KBUILD_CFLAGS += -Wunused
 +
-+/*
-+ * need those definition for manually build using gcc.
-+ * gcc -I ../../../../usr/include   -DDEBUG -O3  -DDEBUG -O3 seal_elf.c -o seal_elf
-+ */
-+#define FAIL_TEST_IF_FALSE(c) do {\
-+		if (!(c)) {\
-+			ksft_test_result_fail("%s, line:%d\n", __func__, __LINE__);\
-+			goto test_end;\
-+		} \
-+	} \
-+	while (0)
-+
-+#define SKIP_TEST_IF_FALSE(c) do {\
-+		if (!(c)) {\
-+			ksft_test_result_skip("%s, line:%d\n", __func__, __LINE__);\
-+			goto test_end;\
-+		} \
-+	} \
-+	while (0)
-+
-+
-+#define TEST_END_CHECK() {\
-+		ksft_test_result_pass("%s\n", __func__);\
-+		return;\
-+test_end:\
-+		return;\
-+}
-+
-+#ifndef u64
-+#define u64 unsigned long long
-+#endif
-+
-+/*
-+ * define sys_xyx to call syscall directly.
-+ */
-+static int sys_mseal(void *start, size_t len)
-+{
-+	int sret;
-+
-+	errno = 0;
-+	sret = syscall(__NR_mseal, start, len, 0);
-+	return sret;
-+}
-+
-+static void *sys_mmap(void *addr, unsigned long len, unsigned long prot,
-+	unsigned long flags, unsigned long fd, unsigned long offset)
-+{
-+	void *sret;
-+
-+	errno = 0;
-+	sret = (void *) syscall(__NR_mmap, addr, len, prot,
-+		flags, fd, offset);
-+	return sret;
-+}
-+
-+inline int sys_mprotect(void *ptr, size_t size, unsigned long prot)
-+{
-+	int sret;
-+
-+	errno = 0;
-+	sret = syscall(__NR_mprotect, ptr, size, prot);
-+	return sret;
-+}
-+
-+static bool seal_support(void)
-+{
-+	int ret;
-+	void *ptr;
-+	unsigned long page_size = getpagesize();
-+
-+	ptr = sys_mmap(NULL, page_size, PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-+	if (ptr == (void *) -1)
-+		return false;
-+
-+	ret = sys_mseal(ptr, page_size);
-+	if (ret < 0)
-+		return false;
-+
-+	return true;
-+}
-+
-+const char somestr[4096] = {"READONLY"};
-+
-+static void test_seal_elf(void)
-+{
-+	int ret;
-+	FILE *maps;
-+	char line[512];
-+	int size = 0;
-+	uintptr_t  addr_start, addr_end;
-+	char prot[5];
-+	char filename[256];
-+	unsigned long page_size = getpagesize();
-+	unsigned long long ptr = (unsigned long long) somestr;
-+	char *somestr2 = (char *)somestr;
-+
-+	/*
-+	 * Modify the protection of readonly somestr
-+	 */
-+	if (((unsigned long long)ptr % page_size) != 0)
-+		ptr = (unsigned long long)ptr & ~(page_size - 1);
-+
-+	ksft_print_msg("somestr = %s\n", somestr);
-+	ksft_print_msg("change protection to rw\n");
-+	ret = sys_mprotect((void *)ptr, page_size, PROT_READ|PROT_WRITE);
-+	FAIL_TEST_IF_FALSE(!ret);
-+	*somestr2 = 'A';
-+	ksft_print_msg("somestr is modified to: %s\n", somestr);
-+	ret = sys_mprotect((void *)ptr, page_size, PROT_READ);
-+	FAIL_TEST_IF_FALSE(!ret);
-+
-+	maps = fopen("/proc/self/maps", "r");
-+	FAIL_TEST_IF_FALSE(maps);
-+
-+	/*
-+	 * apply sealing to elf binary
-+	 */
-+	while (fgets(line, sizeof(line), maps)) {
-+		if (sscanf(line, "%lx-%lx %4s %*x %*x:%*x %*u %255[^\n]",
-+			&addr_start, &addr_end, &prot, &filename) == 4) {
-+			if (strlen(filename)) {
-+				/*
-+				 * seal the mapping if read only.
-+				 */
-+				if (strstr(prot, "r-")) {
-+					ret = sys_mseal((void *)addr_start, addr_end - addr_start);
-+					FAIL_TEST_IF_FALSE(!ret);
-+					ksft_print_msg("sealed: %lx-%lx %s %s\n",
-+						addr_start, addr_end, prot, filename);
-+					if ((uintptr_t) somestr >= addr_start &&
-+						(uintptr_t) somestr <= addr_end)
-+						ksft_print_msg("mapping for somestr found\n");
-+				}
-+			}
-+		}
-+	}
-+	fclose(maps);
-+
-+	ret = sys_mprotect((void *)ptr, page_size, PROT_READ | PROT_WRITE);
-+	FAIL_TEST_IF_FALSE(ret < 0);
-+	ksft_print_msg("somestr is sealed, mprotect is rejected\n");
-+
-+	TEST_END_CHECK();
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	bool test_seal = seal_support();
-+
-+	ksft_print_header();
-+	ksft_print_msg("pid=%d\n", getpid());
-+
-+	if (!test_seal)
-+		ksft_exit_skip("sealing not supported, check CONFIG_64BIT\n");
-+
-+	ksft_set_plan(1);
-+
-+	test_seal_elf();
-+
-+	ksft_finished();
-+	return 0;
-+}
+ #
+ # W=1 - warnings which may be relevant and do not occur too often
+ #
+ ifneq ($(findstring 1, $(KBUILD_EXTRA_WARN)),)
+ 
+-KBUILD_CFLAGS += -Wextra -Wunused -Wno-unused-parameter
+ KBUILD_CFLAGS += $(call cc-option, -Wrestrict)
+ KBUILD_CFLAGS += -Wmissing-format-attribute
+ KBUILD_CFLAGS += -Wold-style-definition
+@@ -190,6 +192,7 @@ else
+ 
+ # The following turn off the warnings enabled by -Wextra
+ KBUILD_CFLAGS += -Wno-sign-compare
++KBUILD_CFLAGS += -Wno-unused-parameter
+ 
+ endif
+ 
 _
 
-Patches currently in -mm which might be from jeffxu@chromium.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mseal-wire-up-mseal-syscall.patch
-mseal-add-mseal-syscall.patch
-selftest-mm-mseal-memory-sealing.patch
-mseal-add-documentation.patch
-selftest-mm-mseal-read-only-elf-memory-segment.patch
+fix-missing-vmalloch-includes-fix-5.patch
+kcov-avoid-clang-out-of-range-warning.patch
+test_hexdump-avoid-string-truncation-warning.patch
+block-partitions-ldm-convert-strncpy-to-strscpy.patch
+blktrace-convert-strncpy-to-strscpy_pad.patch
+kbuild-turn-on-wextra-by-default.patch
+kbuild-remove-redundant-extra-warning-flags.patch
+kbuild-turn-on-wrestrict-by-default.patch
+kbuild-enable-wformat-truncation-on-clang.patch
+kbuild-enable-wcast-function-type-strict-unconditionally.patch
+kbuild-enable-wstringop-truncation-globally.patch
 
