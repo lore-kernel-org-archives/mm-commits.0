@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 919B8156236
-	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 20:22:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50CAE156236
+	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 20:22:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713212525; cv=none; b=GOpBRdnNAotcbIk8CaZ03osZDdzGv16mPxHTXCfOXhMaQQl/+PT+jJjZS3/H5NkDtFwwNaxl4YTlCX5x9K8IjA7KRaM4WvN8W125hE6CtbKr58kvIKkFb1EvWhwbRu5ZYsH8pmCyxKEiPoC4UYs9AiP7NS1+IJXEBldeWJOL1vs=
+	t=1713212527; cv=none; b=hnCm3rNbKqh/FSHblOvbqHGvhiNiDhqaImYQnfFgiXWGOPzF2DXv8vLwiSEApDGgwDe853xhUMd7G8EiUMwnEKKzNGARThpzDUUdt7cw5Hc+FZydSolu5j/nL/KIsOUqhICtbZapBMBI7kcqDbytar/poCh1I+x/BDlznszAkjU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713212525; c=relaxed/simple;
-	bh=MDVQJXm6ODPdCUMhxUD1XTyxofKGqkbp7cZanq+anpQ=;
-	h=Date:To:From:Subject:Message-Id; b=fJqSGwmPztGjjSjweNYtlQ8wziUPxz1u7A8R/tD3GMhMR+ysXgGj0/9t6jAu93FpAQJQhE+fHwf1czrATtug1bEF9D7GDYo0R+Fvy1FtZ7jq6BBsK9H1UbKllxIllGuHt9llrRf1XLTYyxrzZz9fBrjzSMcxwfnNUsmjQ2Dv5Rs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JNa3RSFg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713212527; c=relaxed/simple;
+	bh=KZp/THrMbfTl72j0QSkoF17PPCkdQg9Jtls8golIpJQ=;
+	h=Date:To:From:Subject:Message-Id; b=t2TrVVCYZkUgYlnKIfsMRidss5g8SQldsd9ud5FFOeDnPYgTTCuJt1Xo5MH/yakMgjsZB9ZMAmTWRZvKIftQtvjIDg7wjIA/f3dsytkd2q/IJuYaXUcGku4v5uKoRwy67ROdZ3e1aNMKyTPUifBO5ccjQiwBkEN/SZQ0T0rJdas=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OlTxR0mJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JNa3RSFg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 016DDC2BD11;
-	Mon, 15 Apr 2024 20:22:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OlTxR0mJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE78DC2BD11;
+	Mon, 15 Apr 2024 20:22:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713212525;
-	bh=MDVQJXm6ODPdCUMhxUD1XTyxofKGqkbp7cZanq+anpQ=;
+	s=korg; t=1713212526;
+	bh=KZp/THrMbfTl72j0QSkoF17PPCkdQg9Jtls8golIpJQ=;
 	h=Date:To:From:Subject:From;
-	b=JNa3RSFgCNIArITuotDDqdjgu35k76wONojXmsO//Iz47sWWmcQnI3YM9BB1J/hhy
-	 ltbW/H2eNUtgQJD2ruK//4hp/cx4AHYm/a2m/zjk11887MlavbYJFth24qQQ6UMXDu
-	 4IqyFsaDQwTeklZIL9oVheRw3vyQiQvCXcd35iWA=
-Date: Mon, 15 Apr 2024 13:22:04 -0700
+	b=OlTxR0mJ1d66Hpo9SaTGWVMm+FkSsfb/6wnKNNw7tErGUivFxy/DwFg9NMzN0dF2p
+	 z/bMRVlq1DzP75CrJ9RLboZL+eWi8sP4weSpYRa0FTYsWidZjh6y0BMZOJ8SwSwZHe
+	 V37KHZ936up1EfOcm5u/7w4SV8m5Mb8uWd3/noMM=
+Date: Mon, 15 Apr 2024 13:22:06 -0700
 To: mm-commits@vger.kernel.org,nphamcs@gmail.com,mail@maciej.szmigiero.name,hannes@cmpxchg.org,chengming.zhou@linux.dev,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-always-shrink-in-zswap_store-if-zswap_pool_reached_full.patch added to mm-unstable branch
-Message-Id: <20240415202205.016DDC2BD11@smtp.kernel.org>
+Subject: + mm-zswap-refactor-limit-checking-from-zswap_store.patch added to mm-unstable branch
+Message-Id: <20240415202206.CE78DC2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: always shrink in zswap_store() if zswap_pool_reached_full
+     Subject: mm: zswap: refactor limit checking from zswap_store()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-always-shrink-in-zswap_store-if-zswap_pool_reached_full.patch
+     mm-zswap-refactor-limit-checking-from-zswap_store.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-always-shrink-in-zswap_store-if-zswap_pool_reached_full.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-refactor-limit-checking-from-zswap_store.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,95 +59,81 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zswap: always shrink in zswap_store() if zswap_pool_reached_full
-Date: Sat, 13 Apr 2024 02:24:04 +0000
+Subject: mm: zswap: refactor limit checking from zswap_store()
+Date: Sat, 13 Apr 2024 02:24:05 +0000
 
-Patch series "zswap same-filled and limit checking cleanups", v3.
+Refactor limit and acceptance threshold checking outside of zswap_store().
+This code will be moved around in a following patch, so it would be
+cleaner to move a function call around.
 
-Miscellaneous cleanups for limit checking and same-filled handling in the
-store path.  This series was broken out of the "zswap: store zero-filled
-pages more efficiently" series [1].  It contains the cleanups and drops
-the main functional changes.
-
-[1]https://lore.kernel.org/lkml/20240325235018.2028408-1-yosryahmed@google.com/
-
-
-This patch (of 4):
-
-The cleanup code in zswap_store() is not pretty, particularly the 'shrink'
-label at the bottom that ends up jumping between cleanup labels.
-
-Instead of having a dedicated label to shrink the pool, just use
-zswap_pool_reached_full directly to figure out if the pool needs
-shrinking.  zswap_pool_reached_full should be true if and only if the pool
-needs shrinking.
-
-The only caveat is that the value of zswap_pool_reached_full may be
-changed by concurrent zswap_store() calls between checking the limit and
-testing zswap_pool_reached_full in the cleanup code.  This is fine
-because:
-
-- If zswap_pool_reached_full was true during limit checking then became
-  false during the cleanup code, then someone else already took care of
-  shrinking the pool and there is no need to queue the worker. That
-  would be a good change.
-- If zswap_pool_reached_full was false during limit checking then became
-  true during the cleanup code, then someone else hit the limit
-  meanwhile. In this case, both threads will try to queue the worker,
-  but it never gets queued more than once anyway. Also, calling
-  queue_work() multiple times when the limit is hit could already happen
-  today, so this isn't a significant change in any way.
-
-Link: https://lkml.kernel.org/r/20240413022407.785696-1-yosryahmed@google.com
-Link: https://lkml.kernel.org/r/20240413022407.785696-2-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/20240413022407.785696-3-yosryahmed@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/zswap.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-always-shrink-in-zswap_store-if-zswap_pool_reached_full
+--- a/mm/zswap.c~mm-zswap-refactor-limit-checking-from-zswap_store
 +++ a/mm/zswap.c
-@@ -1429,12 +1429,12 @@ bool zswap_store(struct folio *folio)
- 	if (cur_pages >= max_pages) {
- 		zswap_pool_limit_hit++;
- 		zswap_pool_reached_full = true;
--		goto shrink;
-+		goto reject;
- 	}
- 
- 	if (zswap_pool_reached_full) {
- 		if (cur_pages > zswap_accept_thr_pages())
--			goto shrink;
-+			goto reject;
- 		else
- 			zswap_pool_reached_full = false;
- 	}
-@@ -1540,6 +1540,8 @@ freepage:
- 	zswap_entry_cache_free(entry);
- reject:
- 	obj_cgroup_put(objcg);
-+	if (zswap_pool_reached_full)
-+		queue_work(shrink_wq, &zswap_shrink_work);
- check_old:
- 	/*
- 	 * If the zswap store fails or zswap is disabled, we must invalidate the
-@@ -1550,10 +1552,6 @@ check_old:
- 	if (entry)
- 		zswap_entry_free(entry);
- 	return false;
--
--shrink:
--	queue_work(shrink_wq, &zswap_shrink_work);
--	goto reject;
+@@ -517,6 +517,21 @@ unsigned long zswap_total_pages(void)
+ 	return total;
  }
  
- bool zswap_load(struct folio *folio)
++static bool zswap_check_limits(void)
++{
++	unsigned long cur_pages = zswap_total_pages();
++	unsigned long max_pages = zswap_max_pages();
++
++	if (cur_pages >= max_pages) {
++		zswap_pool_limit_hit++;
++		zswap_pool_reached_full = true;
++	} else if (zswap_pool_reached_full &&
++		   cur_pages <= zswap_accept_thr_pages()) {
++			zswap_pool_reached_full = false;
++	}
++	return zswap_pool_reached_full;
++}
++
+ /*********************************
+ * param callbacks
+ **********************************/
+@@ -1399,7 +1414,6 @@ bool zswap_store(struct folio *folio)
+ 	struct zswap_entry *entry, *old;
+ 	struct obj_cgroup *objcg = NULL;
+ 	struct mem_cgroup *memcg = NULL;
+-	unsigned long max_pages, cur_pages;
+ 
+ 	VM_WARN_ON_ONCE(!folio_test_locked(folio));
+ 	VM_WARN_ON_ONCE(!folio_test_swapcache(folio));
+@@ -1422,22 +1436,8 @@ bool zswap_store(struct folio *folio)
+ 		mem_cgroup_put(memcg);
+ 	}
+ 
+-	/* Check global limits */
+-	cur_pages = zswap_total_pages();
+-	max_pages = zswap_max_pages();
+-
+-	if (cur_pages >= max_pages) {
+-		zswap_pool_limit_hit++;
+-		zswap_pool_reached_full = true;
++	if (zswap_check_limits())
+ 		goto reject;
+-	}
+-
+-	if (zswap_pool_reached_full) {
+-		if (cur_pages > zswap_accept_thr_pages())
+-			goto reject;
+-		else
+-			zswap_pool_reached_full = false;
+-	}
+ 
+ 	/* allocate entry */
+ 	entry = zswap_entry_cache_alloc(GFP_KERNEL, folio_nid(folio));
 _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
