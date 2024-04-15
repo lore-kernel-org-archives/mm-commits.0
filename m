@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEDBC219EA;
-	Mon, 15 Apr 2024 19:08:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E013E219EA
+	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 19:12:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713208123; cv=none; b=gYWsHFAKtYtLfRFscEVDc38TysVI7Tm3yXJcWGgUbUZeXxEAztLUDZcOMkVkCjkOhiDa9U5WxsRN2NZRs5ZDaw3jL++GnAcxPAejlZVYZBACbfMPTuIlkQlWvmkAzLElVJoCO/mCJgu8ODnR3vcPHs+Wd1RCJ+zAeCPKJo+DCAQ=
+	t=1713208349; cv=none; b=UALhJMBY//zsh+YN8jmFnFdeST4HMyQZw0UyF0/uL4KoKDMejUuUcPHTrJyr6y6W/PePxvL2qyoYYNfTMquK0UzTgpqhcG/2Im34parEjfX9CoKX3PDGSpYjm9EF0tU9sPIzkH10n0VYtn9d+Zmne+AHNs4KUoiSmMep8Lo+rfE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713208123; c=relaxed/simple;
-	bh=Omfyss0oSwl9blvF1ZPl+9UFJvBZWozOwVcDPAMj4Qs=;
-	h=Date:To:From:Subject:Message-Id; b=urRT770Jhop15VxAKKljESRl4rjw7sVyo/UCVdGsNk/tDv8q7myDOIIe7fucG7exlUouGJHJzL4kFdFkKrcFBLE5MxTUGB4lQCcaPn2XhdjvNj9lK9EIcLhdQZ/BIK7Xqc3IuNxRmE6nJWkt6ssFxD3C1b0dqCjNdjrREOfqZ4A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qOFAGav2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713208349; c=relaxed/simple;
+	bh=bntIzN1WT0TtvVxAS68fIZRgf0dJ8wsyjTI/jLnkLqU=;
+	h=Date:To:From:Subject:Message-Id; b=CiIkgHn3Aalh0/nCL5VcGuaFFeeNuZpWqaAlW8GHFn5mM5l/QozcICU/NdmRwoDaZlJT3tuBO4fRlPsMjz8F0X26cOCMoCxFbTdqT3NhuVCri74iYIjfLi2Bx95SG1P3028qv0wkPOGgmOb0nLqOdBZiYtTA07/cs6v14Qr16cw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nixo7PLi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qOFAGav2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63A2DC113CC;
-	Mon, 15 Apr 2024 19:08:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nixo7PLi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B208C113CC;
+	Mon, 15 Apr 2024 19:12:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713208122;
-	bh=Omfyss0oSwl9blvF1ZPl+9UFJvBZWozOwVcDPAMj4Qs=;
+	s=korg; t=1713208348;
+	bh=bntIzN1WT0TtvVxAS68fIZRgf0dJ8wsyjTI/jLnkLqU=;
 	h=Date:To:From:Subject:From;
-	b=qOFAGav2EGnl1z5XUqDv1XBtAOuPayWp11iJMPouNx3N0LCMgsHZurZGgfWlcQcG7
-	 2oOi0QDx9YhxW8fPXkSLqJ+KfFOGXFhhrZrWGSX36qRnevMNHIEtOdsExQSRZAqfbc
-	 6K1t0BkshYFkqfLREzovILEWoyZgXV0Wpn4/zgQM=
-Date: Mon, 15 Apr 2024 12:08:41 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,aha310510@gmail.com,akpm@linux-foundation.org
+	b=nixo7PLiWW184N4TmDwhBMQwJAa+9tnB+dkao0597u+FO2C0Y/5HouaXaPjgNwqnb
+	 elDZHToxW2on9CPSsgG7xMIyhRMpsv1mH+p7mKI4kQ1YGRiMF73E1wyN9XssOtdhXb
+	 TqqtjD6hmHBQqZlzzxFtS94+V8ndI/y7GPlnY0S8=
+Date: Mon, 15 Apr 2024 12:12:27 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-fix-oob-in-nilfs_set_de_type.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240415190842.63A2DC113CC@smtp.kernel.org>
+Subject: + mm-filemap-return-early-if-failed-to-allocate-memory-for-split.patch added to mm-unstable branch
+Message-Id: <20240415191228.7B208C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: fix OOB in nilfs_set_de_type
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nilfs2-fix-oob-in-nilfs_set_de_type.patch
+     Subject: mm/filemap: return early if failed to allocate memory for split
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-filemap-return-early-if-failed-to-allocate-memory-for-split.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-oob-in-nilfs_set_de_type.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-return-early-if-failed-to-allocate-memory-for-split.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,57 +58,115 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jeongjun Park <aha310510@gmail.com>
-Subject: nilfs2: fix OOB in nilfs_set_de_type
-Date: Tue, 16 Apr 2024 03:20:48 +0900
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/filemap: return early if failed to allocate memory for split
+Date: Tue, 16 Apr 2024 01:18:53 +0800
 
-The size of the nilfs_type_by_mode array in the fs/nilfs2/dir.c file is
-defined as "S_IFMT >> S_SHIFT", but the nilfs_set_de_type() function,
-which uses this array, specifies the index to read from the array in the
-same way as "(mode & S_IFMT) >> S_SHIFT".
+Patch series "mm/filemap: optimize folio adding and splitting", v3.
 
-static void nilfs_set_de_type(struct nilfs_dir_entry *de, struct inode
- *inode)
-{
-	umode_t mode = inode->i_mode;
+Currently, at least 3 tree walks are needed for filemap folio adding if
+the folio is previously evicted.  One for getting the order of current
+slot, one for ranged conflict check, and one for another order retrieving.
+If a split is needed, more walks are needed.
 
-	de->file_type = nilfs_type_by_mode[(mode & S_IFMT)>>S_SHIFT]; // oob
-}
+This series is trying to merge these walks, and speed up
+filemap_add_folio, I see a 7.5% - 12.5% performance gain for fio stress
+test.
 
-However, when the index is determined this way, an out-of-bounds (OOB)
-error occurs by referring to an index that is 1 larger than the array size
-when the condition "mode & S_IFMT == S_IFMT" is satisfied.  Therefore, a
-patch to resize the nilfs_type_by_mode array should be applied to prevent
-OOB errors.
+So instead of doing multiple tree walks, do one optimism range check with
+lock hold, and exit if raced with another insertion.  If a shadow exists,
+check it with a new xas_get_order helper before releasing the lock to
+avoid redundant tree walks for getting its order.
 
-Link: https://lkml.kernel.org/r/20240415182048.7144-1-konishi.ryusuke@gmail.com
-Reported-by: syzbot+2e22057de05b9f3b30d8@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=2e22057de05b9f3b30d8
-Fixes: 2ba466d74ed7 ("nilfs2: directory entry operations")
-Signed-off-by: Jeongjun Park <aha310510@gmail.com>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: <stable@vger.kernel.org>
+Drop the lock and do the allocation only if a split is needed.
+
+In the best case, it only need to walk the tree once.  If it needs to
+alloc and split, 3 walks are issued (One for first ranged conflict check
+and order retrieving, one for the second check after allocation, one for
+the insert after split).
+
+Testing with 4K pages, in an 8G cgroup, with 16G brd as block device:
+
+  echo 3 > /proc/sys/vm/drop_caches
+
+  fio -name=cached --numjobs=16 --filename=/mnt/test.img \
+    --buffered=1 --ioengine=mmap --rw=randread --time_based \
+    --ramp_time=30s --runtime=5m --group_reporting
+
+Before:
+bw (  MiB/s): min= 1027, max= 3520, per=100.00%, avg=2445.02, stdev=18.90, samples=8691
+iops        : min=263001, max=901288, avg=625924.36, stdev=4837.28, samples=8691
+
+After (+7.3%):
+bw (  MiB/s): min=  493, max= 3947, per=100.00%, avg=2625.56, stdev=25.74, samples=8651
+iops        : min=126454, max=1010681, avg=672142.61, stdev=6590.48, samples=8651
+
+Test result with THP (do a THP randread then switch to 4K page in hope it
+issues a lot of splitting):
+
+  echo 3 > /proc/sys/vm/drop_caches
+
+  fio -name=cached --numjobs=16 --filename=/mnt/test.img \
+      --buffered=1 --ioengine=mmap -thp=1 --readonly \
+      --rw=randread --time_based --ramp_time=30s --runtime=10m \
+      --group_reporting
+
+  fio -name=cached --numjobs=16 --filename=/mnt/test.img \
+      --buffered=1 --ioengine=mmap \
+      --rw=randread --time_based --runtime=5s --group_reporting
+
+Before:
+bw (  KiB/s): min= 4141, max=14202, per=100.00%, avg=7935.51, stdev=96.85, samples=18976
+iops        : min= 1029, max= 3548, avg=1979.52, stdev=24.23, samples=18976·
+
+READ: bw=4545B/s (4545B/s), 4545B/s-4545B/s (4545B/s-4545B/s), io=64.0KiB (65.5kB), run=14419-14419msec
+
+After (+10.4%):
+bw (  KiB/s): min= 4611, max=15370, per=100.00%, avg=8928.74, stdev=105.17, samples=19146
+iops        : min= 1151, max= 3842, avg=2231.27, stdev=26.29, samples=19146
+
+READ: bw=4635B/s (4635B/s), 4635B/s-4635B/s (4635B/s-4635B/s), io=64.0KiB (65.5kB), run=14137-14137msec
+
+The performance is better for both 4K (+7.5%) and THP (+12.5%) cached read.
+
+
+This patch (of 4):
+
+xas_split_alloc could fail with NOMEM, and in such case, it should abort
+early instead of keep going and fail the xas_split below.
+
+Link: https://lkml.kernel.org/r/20240415171857.19244-1-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20240415171857.19244-2-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Acked-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/dir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/filemap.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/fs/nilfs2/dir.c~nilfs2-fix-oob-in-nilfs_set_de_type
-+++ a/fs/nilfs2/dir.c
-@@ -240,7 +240,7 @@ nilfs_filetype_table[NILFS_FT_MAX] = {
+--- a/mm/filemap.c~mm-filemap-return-early-if-failed-to-allocate-memory-for-split
++++ a/mm/filemap.c
+@@ -880,9 +880,12 @@ noinline int __filemap_add_folio(struct
+ 		unsigned int order = xa_get_order(xas.xa, xas.xa_index);
+ 		void *entry, *old = NULL;
  
- #define S_SHIFT 12
- static unsigned char
--nilfs_type_by_mode[S_IFMT >> S_SHIFT] = {
-+nilfs_type_by_mode[(S_IFMT >> S_SHIFT) + 1] = {
- 	[S_IFREG >> S_SHIFT]	= NILFS_FT_REG_FILE,
- 	[S_IFDIR >> S_SHIFT]	= NILFS_FT_DIR,
- 	[S_IFCHR >> S_SHIFT]	= NILFS_FT_CHRDEV,
+-		if (order > folio_order(folio))
++		if (order > folio_order(folio)) {
+ 			xas_split_alloc(&xas, xa_load(xas.xa, xas.xa_index),
+ 					order, gfp);
++			if (xas_error(&xas))
++				goto error;
++		}
+ 		xas_lock_irq(&xas);
+ 		xas_for_each_conflict(&xas, entry) {
+ 			old = entry;
 _
 
-Patches currently in -mm which might be from aha310510@gmail.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-nilfs2-fix-oob-in-nilfs_set_de_type.patch
+mm-filemap-return-early-if-failed-to-allocate-memory-for-split.patch
+mm-filemap-clean-up-hugetlb-exclusion-code.patch
+lib-xarray-introduce-a-new-helper-xas_get_order.patch
+mm-filemap-optimize-filemap-folio-adding.patch
 
