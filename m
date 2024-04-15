@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD5B4156237
-	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 20:00:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EB4E811E7
+	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 20:06:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713211217; cv=none; b=i2APneKFrJyeZgcg/hOrySnietBkp4yayGOBeJilgfAhJ+Xeh2OJGY1Dv6ImV4t0AwLZnimBxjUV4TSTS2ITdj6C6lmTONgWXmiAZ6PHDgYzEgy4kLC9OLJYapwolXF+dEXEayKAzJt20Sqsryw8PYB2GGrB2iiTa3nVOuwCIRI=
+	t=1713211570; cv=none; b=Wn48uLrKEGi1OaQ4Lwc2B9wP4HrCdH8hwA8OSbU0YgxszrGhar5dRoMJwuTR6BappDqSAT7SpMPfnAglCwPHAujDUp6zffP0IYiUYcYAAMGEBzi9yG9jSbMYK12xkrDVmxRA/Ng/gDbiUYGYOb8EGRJidAxCSDIFsTRw3J1o7f8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713211217; c=relaxed/simple;
-	bh=QSKGMZfXdPDxYFHReqdpTcpuqXg/iNb1uO8TAAhrYTQ=;
-	h=Date:To:From:Subject:Message-Id; b=hHWxAOlqmItyDW/35DfShryLHynFC3bP4bf5jSxSRvyb8IeC0HdgSdtRfZRwzXtugCaiP8VRnSabvrtb6aW9JA+dhpPxmFMY4qmi7gU4jcRBT+N8+be2RIdkiheq7w9swP0oZw5Ig1y586cX9OIsdz7Qfxz0ey6dGJIDF6etvBQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NnA0Q66W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713211570; c=relaxed/simple;
+	bh=MPR2ygGiE8Zr0NzTy7W/33Zd40RpYMEdf/iDI9G0e+4=;
+	h=Date:To:From:Subject:Message-Id; b=TnnjIzPF2bcgDhR0GXXFImWmudU/XQWG5n4yEML/RgKAdYJQsFigGtf1BnpAIudUlEcoSBe5sBiyMfiFsUHirjdReyxcq7uHF46FyhT/vQ5usAQtqsZ6oxEuuKbicrGzMcvUs0qIO1OwXvSlwluBWETXW9mf36dJE9QUZqQS57c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IgUHQXxz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NnA0Q66W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A82BC113CC;
-	Mon, 15 Apr 2024 20:00:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IgUHQXxz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 125A4C113CC;
+	Mon, 15 Apr 2024 20:06:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713211217;
-	bh=QSKGMZfXdPDxYFHReqdpTcpuqXg/iNb1uO8TAAhrYTQ=;
+	s=korg; t=1713211569;
+	bh=MPR2ygGiE8Zr0NzTy7W/33Zd40RpYMEdf/iDI9G0e+4=;
 	h=Date:To:From:Subject:From;
-	b=NnA0Q66W3GGeL6oZA6V2Y+c9x/I80lGSt1YeaBjymc6nHJViRtUeuhgCI0b0HISJk
-	 9RcTvRt2kO0rBSwMU0cv88mKMe/wEX3mGwB7p3QEvMp/9/LfV/GgmqbOqh54urgPsr
-	 AQXSLa6+NDh5W++h1mFCW0JcG0EcU8bxlB7EZK0Y=
-Date: Mon, 15 Apr 2024 13:00:16 -0700
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=IgUHQXxzv42SzMFvMzvvnaUn3V3zRgwy3SKNJsaTWR63SjF/tH/l1nFQl0sgbU6eB
+	 SekXiqacN+5TWO/m0VLnotUFCKfziDs0BC1d3d7jPeeNrYBEqeJDRBuqVOToYswrXo
+	 MOwmrkKI4FPYcdK1VZGGbvbJe4bIPgBcVXXS8fi0=
+Date: Mon, 15 Apr 2024 13:06:08 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,peterx@redhat.com,lokeshgidra@google.com,david@redhat.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi-fix.patch added to mm-unstable branch
-Message-Id: <20240415200017.4A82BC113CC@smtp.kernel.org>
+Subject: + userfaultfd-remove-write_once-when-setting-folio-index-during-uffdio_move.patch added to mm-unstable branch
+Message-Id: <20240415200609.125A4C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sysfs-kernel-mm-transparent-hugepage: fix the name and unexpected indentation
+     Subject: userfaultfd: remove WRITE_ONCE when setting folio->index during UFFDIO_MOVE
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi-fix.patch
+     userfaultfd-remove-write_once-when-setting-folio-index-during-uffdio_move.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-remove-write_once-when-setting-folio-index-during-uffdio_move.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,71 +58,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: sysfs-kernel-mm-transparent-hugepage: fix the name and unexpected indentation
-Date: Mon, 15 Apr 2024 17:37:04 +1200
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: userfaultfd: remove WRITE_ONCE when setting folio->index during UFFDIO_MOVE
+Date: Sun, 14 Apr 2024 19:08:21 -0700
 
-Link: https://lkml.kernel.org/r/20240415054538.17071-1-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+When folio is moved with UFFDIO_MOVE it gets locked before the rmap and
+index are modified.  Due to the folio lock being already held,
+WRITE_ONCE() is not needed when setting the folio index.  Remove it.
+
+Link: https://lkml.kernel.org/r/20240415020821.1152951-1-surenb@google.com
+Reported-by: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sys-kernel-mm-transparent-hugepage   |   17 ---------
- Documentation/ABI/testing/sysfs-kernel-mm-transparent-hugepage |   18 ++++++++++
- 2 files changed, 18 insertions(+), 17 deletions(-)
+ mm/huge_memory.c |    2 +-
+ mm/userfaultfd.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-transparent-hugepage
-@@ -0,0 +1,18 @@
-+What:		/sys/kernel/mm/transparent_hugepage/
-+Date:		April 2024
-+Contact:	Linux memory management mailing list <linux-mm@kvack.org>
-+Description:
-+		/sys/kernel/mm/transparent_hugepage/ contains a number of files and
-+		subdirectories,
-+
-+			- defrag
-+			- enabled
-+			- hpage_pmd_size
-+			- khugepaged
-+			- shmem_enabled
-+			- use_zero_page
-+			- subdirectories of the form hugepages-<size>kB, where <size>
-+			  is the page size of the hugepages supported by the kernel/CPU
-+			  combination.
-+
-+		See Documentation/admin-guide/mm/transhuge.rst for details.
---- a/Documentation/ABI/testing/sys-kernel-mm-transparent-hugepage
-+++ /dev/null
-@@ -1,17 +0,0 @@
--What:		/sys/kernel/mm/transparent_hugepage/
--Date:		April 2024
--Contact:	Linux memory management mailing list <linux-mm@kvack.org>
--Description:
--		/sys/kernel/mm/transparent_hugepage/ contains a number of files and
--		subdirectories,
--			- defrag
--			- enabled
--			- hpage_pmd_size
--			- khugepaged
--			- shmem_enabled
--			- use_zero_page
--			- subdirectories of the form hugepages-<size>kB, where <size>
--			  is the page size of the hugepages supported by the kernel/CPU
--			  combination.
--
--		See Documentation/admin-guide/mm/transhuge.rst for details.
+--- a/mm/huge_memory.c~userfaultfd-remove-write_once-when-setting-folio-index-during-uffdio_move
++++ a/mm/huge_memory.c
+@@ -2200,7 +2200,7 @@ int move_pages_huge_pmd(struct mm_struct
+ 		}
+ 
+ 		folio_move_anon_rmap(src_folio, dst_vma);
+-		WRITE_ONCE(src_folio->index, linear_page_index(dst_vma, dst_addr));
++		src_folio->index = linear_page_index(dst_vma, dst_addr);
+ 
+ 		_dst_pmd = mk_huge_pmd(&src_folio->page, dst_vma->vm_page_prot);
+ 		/* Follow mremap() behavior and treat the entry dirty after the move */
+--- a/mm/userfaultfd.c~userfaultfd-remove-write_once-when-setting-folio-index-during-uffdio_move
++++ a/mm/userfaultfd.c
+@@ -1026,7 +1026,7 @@ static int move_present_pte(struct mm_st
+ 	}
+ 
+ 	folio_move_anon_rmap(src_folio, dst_vma);
+-	WRITE_ONCE(src_folio->index, linear_page_index(dst_vma, dst_addr));
++	src_folio->index = linear_page_index(dst_vma, dst_addr);
+ 
+ 	orig_dst_pte = mk_pte(&src_folio->page, dst_vma->vm_page_prot);
+ 	/* Follow mremap() behavior and treat the entry dirty after the move */
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-arm64-mm-swap-support-thp_swap-on-hardware-with-mte.patch
-mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio.patch
-mm-alloc_anon_folio-avoid-doing-vma_thp_gfp_mask-in-fallback-cases.patch
-mm-add-per-order-mthp-anon_fault_alloc-and-anon_fault_fallback-counters.patch
-mm-add-per-order-mthp-anon_swpout-and-anon_swpout_fallback-counters.patch
-mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi.patch
-mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi-fix.patch
-mm-correct-the-docs-for-thp_fault_alloc-and-thp_fault_fallback.patch
+fix-missing-vmalloch-includes-fix-2.patch
+fix-missing-vmalloch-includes-fix-6.patch
+mm-introduce-slabobj_ext-to-support-slab-object-extensions.patch
+mm-introduce-__gfp_no_obj_ext-flag-to-selectively-prevent-slabobj_ext-creation.patch
+mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation.patch
+slab-objext-introduce-objext_flags-as-extension-to-page_memcg_data_flags.patch
+lib-code-tagging-framework.patch
+lib-code-tagging-module-support.patch
+lib-prevent-module-unloading-if-memory-is-not-freed.patch
+lib-add-allocation-tagging-support-for-memory-allocation-profiling.patch
+lib-add-allocation-tagging-support-for-memory-allocation-profiling-fix.patch
+lib-add-allocation-tagging-support-for-memory-allocation-profiling-fix-2.patch
+lib-introduce-support-for-page-allocation-tagging.patch
+lib-introduce-early-boot-parameter-to-avoid-page_ext-memory-overhead.patch
+mm-percpu-increase-percpu_module_reserve-to-accommodate-allocation-tags.patch
+mm-percpu-increase-percpu_module_reserve-to-accommodate-allocation-tags-fix.patch
+change-alloc_pages-name-in-dma_map_ops-to-avoid-name-conflicts.patch
+mm-enable-page-allocation-tagging.patch
+mm-enable-page-allocation-tagging-fix.patch
+mm-create-new-codetag-references-during-page-splitting.patch
+mm-fix-non-compound-multi-order-memory-accounting-in-__free_pages.patch
+mm-page_ext-enable-early_page_ext-when-config_mem_alloc_profiling_debug=y.patch
+lib-add-codetag-reference-into-slabobj_ext.patch
+mm-slab-add-allocation-accounting-into-slab-allocation-and-free-paths.patch
+mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends.patch
+mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix.patch
+mempool-hook-up-to-memory-allocation-profiling-fix.patch
+mempool-hook-up-to-memory-allocation-profiling-fix-2.patch
+mm-percpu-enable-per-cpu-allocation-tagging.patch
+mm-percpu-enable-per-cpu-allocation-tagging-fix.patch
+mm-vmalloc-enable-memory-allocation-profiling-fix.patch
+mm-vmalloc-enable-memory-allocation-profiling-fix-2.patch
+rhashtable-plumb-through-alloc-tag-fix.patch
+lib-add-memory-allocations-report-in-show_mem.patch
+codetag-debug-skip-objext-checking-when-its-for-objext-itself.patch
+codetag-debug-mark-codetags-for-reserved-pages-as-empty.patch
+codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations.patch
+userfaultfd-remove-write_once-when-setting-folio-index-during-uffdio_move.patch
 
