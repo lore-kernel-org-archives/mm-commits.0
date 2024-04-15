@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9A0182D98
-	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 20:15:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 919B8156236
+	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 20:22:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713212155; cv=none; b=uf6zALfF/AyLeYfZ51sCiZr8xoBLAH2rszkqfAjONJOklydmKCvVc8m5CqG1gWwEUNvmTG482Z2zGzWa18qxQbSsHrkh8Sg/aLD7SWz5dkh33SgFK0I4YB7hCEphonks0k91u2nngAV6bD3OpsLQqxkve/6CintNbuGDydPu/oo=
+	t=1713212525; cv=none; b=GOpBRdnNAotcbIk8CaZ03osZDdzGv16mPxHTXCfOXhMaQQl/+PT+jJjZS3/H5NkDtFwwNaxl4YTlCX5x9K8IjA7KRaM4WvN8W125hE6CtbKr58kvIKkFb1EvWhwbRu5ZYsH8pmCyxKEiPoC4UYs9AiP7NS1+IJXEBldeWJOL1vs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713212155; c=relaxed/simple;
-	bh=/E/HYzWP9OYK71nB0+KH4fKM+QmAHmrdRouMmcLV8/o=;
-	h=Date:To:From:Subject:Message-Id; b=R2VTilNdoZj+NXI41DrfKSq4aKaf+PsTrGvbvqPjpDDUlrlkq9kz2VKZ/JHr2ExSDyZc08iL4w98wOWDH04Ycjil70J6LsJE1R7klSQ7JFaakWJllOI9nKbOGZth5ZaFnDJe32GAAYITzX+2MdZ+MyJEfZMVKMUeSY4bwPvdydY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BIvPg9F1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713212525; c=relaxed/simple;
+	bh=MDVQJXm6ODPdCUMhxUD1XTyxofKGqkbp7cZanq+anpQ=;
+	h=Date:To:From:Subject:Message-Id; b=fJqSGwmPztGjjSjweNYtlQ8wziUPxz1u7A8R/tD3GMhMR+ysXgGj0/9t6jAu93FpAQJQhE+fHwf1czrATtug1bEF9D7GDYo0R+Fvy1FtZ7jq6BBsK9H1UbKllxIllGuHt9llrRf1XLTYyxrzZz9fBrjzSMcxwfnNUsmjQ2Dv5Rs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JNa3RSFg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BIvPg9F1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F045C113CC;
-	Mon, 15 Apr 2024 20:15:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JNa3RSFg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 016DDC2BD11;
+	Mon, 15 Apr 2024 20:22:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713212155;
-	bh=/E/HYzWP9OYK71nB0+KH4fKM+QmAHmrdRouMmcLV8/o=;
+	s=korg; t=1713212525;
+	bh=MDVQJXm6ODPdCUMhxUD1XTyxofKGqkbp7cZanq+anpQ=;
 	h=Date:To:From:Subject:From;
-	b=BIvPg9F1aoi5izrWVbBwJwNPfSF7WQhqDQM2Fk59NaBd/WI2+ofG6tMV3+ekbFAJ+
-	 m8GPOcuNF2f0JLG0GDXDuHeLTYEG1flFX0CG6TW1upOcJqm4SWMse21Ws1IocBNGBv
-	 hi95P9850cEP13q0/fmduM8vMnWqKJtNKxJVQ+S8=
-Date: Mon, 15 Apr 2024 13:15:55 -0700
-To: mm-commits@vger.kernel.org,peda@axentia.se,gregkh@linuxfoundation.org,christophe.jaillet@wanadoo.fr,akpm@linux-foundation.org
+	b=JNa3RSFgCNIArITuotDDqdjgu35k76wONojXmsO//Iz47sWWmcQnI3YM9BB1J/hhy
+	 ltbW/H2eNUtgQJD2ruK//4hp/cx4AHYm/a2m/zjk11887MlavbYJFth24qQQ6UMXDu
+	 4IqyFsaDQwTeklZIL9oVheRw3vyQiQvCXcd35iWA=
+Date: Mon, 15 Apr 2024 13:22:04 -0700
+To: mm-commits@vger.kernel.org,nphamcs@gmail.com,mail@maciej.szmigiero.name,hannes@cmpxchg.org,chengming.zhou@linux.dev,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mux-remove-usage-of-the-deprecated-ida_simple_xx-api.patch added to mm-nonmm-unstable branch
-Message-Id: <20240415201555.9F045C113CC@smtp.kernel.org>
+Subject: + mm-zswap-always-shrink-in-zswap_store-if-zswap_pool_reached_full.patch added to mm-unstable branch
+Message-Id: <20240415202205.016DDC2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mux: remove usage of the deprecated ida_simple_xx() API
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mux-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
+     Subject: mm: zswap: always shrink in zswap_store() if zswap_pool_reached_full
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zswap-always-shrink-in-zswap_store-if-zswap_pool_reached_full.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mux-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-always-shrink-in-zswap_store-if-zswap_pool_reached_full.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,51 +58,107 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: mux: remove usage of the deprecated ida_simple_xx() API
-Date: Sun, 14 Apr 2024 12:12:52 +0200
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: zswap: always shrink in zswap_store() if zswap_pool_reached_full
+Date: Sat, 13 Apr 2024 02:24:04 +0000
 
-ida_alloc() and ida_free() should be preferred to the deprecated
-ida_simple_get() and ida_simple_remove().
+Patch series "zswap same-filled and limit checking cleanups", v3.
 
-This is less verbose.
+Miscellaneous cleanups for limit checking and same-filled handling in the
+store path.  This series was broken out of the "zswap: store zero-filled
+pages more efficiently" series [1].  It contains the cleanups and drops
+the main functional changes.
 
-Link: https://lkml.kernel.org/r/f82e013abe4c71f1c7d06819f96472f298acdcf3.1713089554.git.christophe.jaillet@wanadoo.fr
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Cc: Peter Rosin <peda@axentia.se>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+[1]https://lore.kernel.org/lkml/20240325235018.2028408-1-yosryahmed@google.com/
+
+
+This patch (of 4):
+
+The cleanup code in zswap_store() is not pretty, particularly the 'shrink'
+label at the bottom that ends up jumping between cleanup labels.
+
+Instead of having a dedicated label to shrink the pool, just use
+zswap_pool_reached_full directly to figure out if the pool needs
+shrinking.  zswap_pool_reached_full should be true if and only if the pool
+needs shrinking.
+
+The only caveat is that the value of zswap_pool_reached_full may be
+changed by concurrent zswap_store() calls between checking the limit and
+testing zswap_pool_reached_full in the cleanup code.  This is fine
+because:
+
+- If zswap_pool_reached_full was true during limit checking then became
+  false during the cleanup code, then someone else already took care of
+  shrinking the pool and there is no need to queue the worker. That
+  would be a good change.
+- If zswap_pool_reached_full was false during limit checking then became
+  true during the cleanup code, then someone else hit the limit
+  meanwhile. In this case, both threads will try to queue the worker,
+  but it never gets queued more than once anyway. Also, calling
+  queue_work() multiple times when the limit is hit could already happen
+  today, so this isn't a significant change in any way.
+
+Link: https://lkml.kernel.org/r/20240413022407.785696-1-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/20240413022407.785696-2-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mux/core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/zswap.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/drivers/mux/core.c~mux-remove-usage-of-the-deprecated-ida_simple_xx-api
-+++ a/drivers/mux/core.c
-@@ -64,7 +64,7 @@ static void mux_chip_release(struct devi
- {
- 	struct mux_chip *mux_chip = to_mux_chip(dev);
+--- a/mm/zswap.c~mm-zswap-always-shrink-in-zswap_store-if-zswap_pool_reached_full
++++ a/mm/zswap.c
+@@ -1429,12 +1429,12 @@ bool zswap_store(struct folio *folio)
+ 	if (cur_pages >= max_pages) {
+ 		zswap_pool_limit_hit++;
+ 		zswap_pool_reached_full = true;
+-		goto shrink;
++		goto reject;
+ 	}
  
--	ida_simple_remove(&mux_ida, mux_chip->id);
-+	ida_free(&mux_ida, mux_chip->id);
- 	kfree(mux_chip);
+ 	if (zswap_pool_reached_full) {
+ 		if (cur_pages > zswap_accept_thr_pages())
+-			goto shrink;
++			goto reject;
+ 		else
+ 			zswap_pool_reached_full = false;
+ 	}
+@@ -1540,6 +1540,8 @@ freepage:
+ 	zswap_entry_cache_free(entry);
+ reject:
+ 	obj_cgroup_put(objcg);
++	if (zswap_pool_reached_full)
++		queue_work(shrink_wq, &zswap_shrink_work);
+ check_old:
+ 	/*
+ 	 * If the zswap store fails or zswap is disabled, we must invalidate the
+@@ -1550,10 +1552,6 @@ check_old:
+ 	if (entry)
+ 		zswap_entry_free(entry);
+ 	return false;
+-
+-shrink:
+-	queue_work(shrink_wq, &zswap_shrink_work);
+-	goto reject;
  }
  
-@@ -111,7 +111,7 @@ struct mux_chip *mux_chip_alloc(struct d
- 	mux_chip->dev.of_node = dev->of_node;
- 	dev_set_drvdata(&mux_chip->dev, mux_chip);
- 
--	mux_chip->id = ida_simple_get(&mux_ida, 0, 0, GFP_KERNEL);
-+	mux_chip->id = ida_alloc(&mux_ida, GFP_KERNEL);
- 	if (mux_chip->id < 0) {
- 		int err = mux_chip->id;
- 
+ bool zswap_load(struct folio *folio)
 _
 
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-intel_th-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
-hid-sony-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
-pps-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
-mux-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
+mm-memcg-add-null-check-to-obj_cgroup_put.patch
+mm-zswap-remove-unnecessary-check-in-zswap_find_zpool.patch
+percpu-clean-up-all-mappings-when-pcpu_map_pages-fails.patch
+mm-zswap-remove-nr_zswap_stored-atomic.patch
+mm-zswap-always-shrink-in-zswap_store-if-zswap_pool_reached_full.patch
+mm-zswap-refactor-limit-checking-from-zswap_store.patch
+mm-zswap-move-more-same-filled-pages-checks-outside-of-zswap_store.patch
+mm-zswap-remove-same_filled-module-params.patch
+mm-zswap-remove-same_filled-module-params-fix.patch
 
