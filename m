@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 115E515686C
-	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 19:35:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD5B4156237
+	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 20:00:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713209733; cv=none; b=IKAEQF9a18DLBUEGdsqwENP4tXmjKURnGoKXPug/UKe3pkAOGfOLuTeNs2XttsYhEABuRZGIJTy1OZ03V0QFxkFrnVygcOXiuux93b+5b3fTWbH+u0/QyprodIClXt+KzDV0Viu1i+CPLyydIp48VdqqYFfsGwywBtptS0w9YU8=
+	t=1713211217; cv=none; b=i2APneKFrJyeZgcg/hOrySnietBkp4yayGOBeJilgfAhJ+Xeh2OJGY1Dv6ImV4t0AwLZnimBxjUV4TSTS2ITdj6C6lmTONgWXmiAZ6PHDgYzEgy4kLC9OLJYapwolXF+dEXEayKAzJt20Sqsryw8PYB2GGrB2iiTa3nVOuwCIRI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713209733; c=relaxed/simple;
-	bh=yF3TothgiL2VcSlWTqUKkXCmCOIkG/dzh4+WCMjpMpQ=;
-	h=Date:To:From:Subject:Message-Id; b=BbfCraZosOMXrKFAulucwbaN+FNPwotImy5gVLIyYXOZwxWSUfRe8T2aLv+XvZFJaACj/md2/o0Z6aHgJjXTrD9YvN9v+IfKy6QGd15QVF5at7yUXsYiuyI8+fXmm2OKOJsKDj0z1xYW1lduEDyZeR8AOR/9DoTUtSbkroexH1Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hZty+/fD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713211217; c=relaxed/simple;
+	bh=QSKGMZfXdPDxYFHReqdpTcpuqXg/iNb1uO8TAAhrYTQ=;
+	h=Date:To:From:Subject:Message-Id; b=hHWxAOlqmItyDW/35DfShryLHynFC3bP4bf5jSxSRvyb8IeC0HdgSdtRfZRwzXtugCaiP8VRnSabvrtb6aW9JA+dhpPxmFMY4qmi7gU4jcRBT+N8+be2RIdkiheq7w9swP0oZw5Ig1y586cX9OIsdz7Qfxz0ey6dGJIDF6etvBQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NnA0Q66W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hZty+/fD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61174C113CC;
-	Mon, 15 Apr 2024 19:35:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NnA0Q66W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A82BC113CC;
+	Mon, 15 Apr 2024 20:00:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713209732;
-	bh=yF3TothgiL2VcSlWTqUKkXCmCOIkG/dzh4+WCMjpMpQ=;
+	s=korg; t=1713211217;
+	bh=QSKGMZfXdPDxYFHReqdpTcpuqXg/iNb1uO8TAAhrYTQ=;
 	h=Date:To:From:Subject:From;
-	b=hZty+/fD1J3GEfGsvC0xCaxhr9JEJrtRhj2llaEdws4zeV5pt5ZwGPsY32MvjycU5
-	 RiooUZ8+6gbw9Fg2v4MKSl3Sj0oH39yUItSCiR35dQ6UqEhxFQXeAPjyOPG3leX9YJ
-	 /nABnjY56NGYP9VGYesESin+JOTcRA755X9+tf/M=
-Date: Mon, 15 Apr 2024 12:35:31 -0700
-To: mm-commits@vger.kernel.org,nicolas@fjasle.eu,nathan@kernel.org,masahiroy@kernel.org,keescook@chromium.org,arnd@arndb.de,akpm@linux-foundation.org
+	b=NnA0Q66W3GGeL6oZA6V2Y+c9x/I80lGSt1YeaBjymc6nHJViRtUeuhgCI0b0HISJk
+	 9RcTvRt2kO0rBSwMU0cv88mKMe/wEX3mGwB7p3QEvMp/9/LfV/GgmqbOqh54urgPsr
+	 AQXSLa6+NDh5W++h1mFCW0JcG0EcU8bxlB7EZK0Y=
+Date: Mon, 15 Apr 2024 13:00:16 -0700
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kbuild-enable-wstringop-truncation-globally.patch added to mm-nonmm-unstable branch
-Message-Id: <20240415193532.61174C113CC@smtp.kernel.org>
+Subject: + mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi-fix.patch added to mm-unstable branch
+Message-Id: <20240415200017.4A82BC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kbuild: enable -Wstringop-truncation globally
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kbuild-enable-wstringop-truncation-globally.patch
+     Subject: sysfs-kernel-mm-transparent-hugepage: fix the name and unexpected indentation
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kbuild-enable-wstringop-truncation-globally.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,48 +58,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kbuild: enable -Wstringop-truncation globally
-Date: Mon, 15 Apr 2024 14:20:37 +0200
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: sysfs-kernel-mm-transparent-hugepage: fix the name and unexpected indentation
+Date: Mon, 15 Apr 2024 17:37:04 +1200
 
-The remaining warnings of this type have been addressed, so it can now be
-enabled by default, rather than only for W=1.
-
-Link: https://lkml.kernel.org/r/20240415122037.1983124-7-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nicolas Schier <nicolas@fjasle.eu>
+Link: https://lkml.kernel.org/r/20240415054538.17071-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.extrawarn |    1 -
- 1 file changed, 1 deletion(-)
+ Documentation/ABI/testing/sys-kernel-mm-transparent-hugepage   |   17 ---------
+ Documentation/ABI/testing/sysfs-kernel-mm-transparent-hugepage |   18 ++++++++++
+ 2 files changed, 18 insertions(+), 17 deletions(-)
 
---- a/scripts/Makefile.extrawarn~kbuild-enable-wstringop-truncation-globally
-+++ a/scripts/Makefile.extrawarn
-@@ -108,7 +108,6 @@ else
- KBUILD_CFLAGS += $(call cc-disable-warning, format-overflow-non-kprintf)
- KBUILD_CFLAGS += $(call cc-disable-warning, format-truncation-non-kprintf)
- endif
--KBUILD_CFLAGS += $(call cc-disable-warning, stringop-truncation)
- 
- KBUILD_CFLAGS += -Wno-override-init # alias for -Wno-initializer-overrides in clang
- 
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-transparent-hugepage
+@@ -0,0 +1,18 @@
++What:		/sys/kernel/mm/transparent_hugepage/
++Date:		April 2024
++Contact:	Linux memory management mailing list <linux-mm@kvack.org>
++Description:
++		/sys/kernel/mm/transparent_hugepage/ contains a number of files and
++		subdirectories,
++
++			- defrag
++			- enabled
++			- hpage_pmd_size
++			- khugepaged
++			- shmem_enabled
++			- use_zero_page
++			- subdirectories of the form hugepages-<size>kB, where <size>
++			  is the page size of the hugepages supported by the kernel/CPU
++			  combination.
++
++		See Documentation/admin-guide/mm/transhuge.rst for details.
+--- a/Documentation/ABI/testing/sys-kernel-mm-transparent-hugepage
++++ /dev/null
+@@ -1,17 +0,0 @@
+-What:		/sys/kernel/mm/transparent_hugepage/
+-Date:		April 2024
+-Contact:	Linux memory management mailing list <linux-mm@kvack.org>
+-Description:
+-		/sys/kernel/mm/transparent_hugepage/ contains a number of files and
+-		subdirectories,
+-			- defrag
+-			- enabled
+-			- hpage_pmd_size
+-			- khugepaged
+-			- shmem_enabled
+-			- use_zero_page
+-			- subdirectories of the form hugepages-<size>kB, where <size>
+-			  is the page size of the hugepages supported by the kernel/CPU
+-			  combination.
+-
+-		See Documentation/admin-guide/mm/transhuge.rst for details.
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-fix-missing-vmalloch-includes-fix-5.patch
-kcov-avoid-clang-out-of-range-warning.patch
-test_hexdump-avoid-string-truncation-warning.patch
-block-partitions-ldm-convert-strncpy-to-strscpy.patch
-blktrace-convert-strncpy-to-strscpy_pad.patch
-kbuild-turn-on-wextra-by-default.patch
-kbuild-remove-redundant-extra-warning-flags.patch
-kbuild-turn-on-wrestrict-by-default.patch
-kbuild-enable-wformat-truncation-on-clang.patch
-kbuild-enable-wcast-function-type-strict-unconditionally.patch
-kbuild-enable-wstringop-truncation-globally.patch
+arm64-mm-swap-support-thp_swap-on-hardware-with-mte.patch
+mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio.patch
+mm-alloc_anon_folio-avoid-doing-vma_thp_gfp_mask-in-fallback-cases.patch
+mm-add-per-order-mthp-anon_fault_alloc-and-anon_fault_fallback-counters.patch
+mm-add-per-order-mthp-anon_swpout-and-anon_swpout_fallback-counters.patch
+mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi.patch
+mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi-fix.patch
+mm-correct-the-docs-for-thp_fault_alloc-and-thp_fault_fallback.patch
 
