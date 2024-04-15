@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F557156236
-	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 20:22:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2634B156236
+	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 20:22:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713212529; cv=none; b=Ex+k2Jq7GLFHNbMUD0diTbxrBz9qZxSBOFL5PVqRybnP0u4jCh4nXHugWBjxIJsqt25nsfVP0NyzTWZBVXMBSRjpjpVzu/ZMaH5btZuiDvywOAN04mFdcMljSWE831pMr5pjrb2txlG0foog+DZu5jgV2xkc+3Ic9sF2TvbP20A=
+	t=1713212531; cv=none; b=uDp6Ogm84Eiy0tbhoq6w0aZWzXWgESAISkRnT9n1cRwVe972r5/yRL+8dlr43vO9yMZQPU5GGWFkbIXOAR/NbvRNW3jh9VaywV/ZdjF+44IiXrYxjZdBgjDQTu5poGPvR7VR9tNdfTZvMbWcM8nobgs5SVzWXrWdrILROzvCMls=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713212529; c=relaxed/simple;
-	bh=u3KbzkQedL2y1+FzBnKwX1iBsYi8Q+c6IlPtK1PAqfY=;
-	h=Date:To:From:Subject:Message-Id; b=R96Azn/0V1eWQ/8Eqaxme+8+zJrZNvu0BXIdAvCbvApUCx0aEBKUdAFwG/WPakN+xVSueGRNxm5nTdcatrd8o5IING0MskuX4wHJZLk7bPFrpoSIbJXZNoHpkk34ANyvrGmqZN4goBiNM3uYycU3pDFOqMPyFf1KyMYOiQVEBY4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xr4lkDhv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713212531; c=relaxed/simple;
+	bh=hvJP4nr4hguA0J3BCPtU8SLg79Ynpya3ev80Uw9lZZ0=;
+	h=Date:To:From:Subject:Message-Id; b=cfTfsTmbLTSEF9D4eVtjDrM6xKF1j7ld+Y0NKjsrlgO210IZ4FcWEZDxJfEK3JsJ3GeztctqIPv4euzUc/Nv0YtrPmUTfatQn2zuGtyDr9SqUz1WeiVHc/6VF1+oJYjNio0HBm85GSTbVq0QGFThQhgx8+IxqXOpfnrU/pa4YoY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=14wTEDKB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xr4lkDhv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B682FC2BD11;
-	Mon, 15 Apr 2024 20:22:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="14wTEDKB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0249C2BD11;
+	Mon, 15 Apr 2024 20:22:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713212528;
-	bh=u3KbzkQedL2y1+FzBnKwX1iBsYi8Q+c6IlPtK1PAqfY=;
+	s=korg; t=1713212530;
+	bh=hvJP4nr4hguA0J3BCPtU8SLg79Ynpya3ev80Uw9lZZ0=;
 	h=Date:To:From:Subject:From;
-	b=xr4lkDhvA8TVTMmvf815VN5J3EbKOAFm2fR4x5babC1Hv4sRdhtLq74naJD8OAFeI
-	 9tO7gx5peBSQaRedZ+t3GuLvRMMObbQc6MpS7Qdh3OLVUrCMacgixvFkdHm3RFDR7Y
-	 zGJiy9UU9kIoCA9Jk8HZ1s/33CvoDXBenLlgL3SM=
-Date: Mon, 15 Apr 2024 13:22:08 -0700
+	b=14wTEDKBHmPPOJHPyIeRDYgNcX3pMv4M7iZMu/zZd522Zy67qN/iZK4ABJ8QwL/qn
+	 6513MU/+U17UopobBfCUpg8Lmevu9kWLDVrgaqpOEUUuhguovc/kSKauiFNGRzWgCU
+	 YIk922EMDb+XGOmOLXAocSjUe4slgRlmJ3hnzKU8=
+Date: Mon, 15 Apr 2024 13:22:10 -0700
 To: mm-commits@vger.kernel.org,nphamcs@gmail.com,mail@maciej.szmigiero.name,hannes@cmpxchg.org,chengming.zhou@linux.dev,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-move-more-same-filled-pages-checks-outside-of-zswap_store.patch added to mm-unstable branch
-Message-Id: <20240415202208.B682FC2BD11@smtp.kernel.org>
+Subject: + mm-zswap-remove-same_filled-module-params.patch added to mm-unstable branch
+Message-Id: <20240415202210.A0249C2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: move more same-filled pages checks outside of zswap_store()
+     Subject: mm: zswap: remove same_filled module params
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-move-more-same-filled-pages-checks-outside-of-zswap_store.patch
+     mm-zswap-remove-same_filled-module-params.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-move-more-same-filled-pages-checks-outside-of-zswap_store.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-remove-same_filled-module-params.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,132 +59,82 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zswap: move more same-filled pages checks outside of zswap_store()
-Date: Sat, 13 Apr 2024 02:24:06 +0000
+Subject: mm: zswap: remove same_filled module params
+Date: Sat, 13 Apr 2024 02:24:07 +0000
 
-Currently, zswap_store() checks zswap_same_filled_pages_enabled, kmaps the
-folio, then calls zswap_is_page_same_filled() to check the folio contents.
-Move this logic into zswap_is_page_same_filled() as well (and rename it
-to use 'folio' while we are at it).
+These knobs offer more fine-grained control to userspace than needed and
+directly expose/influence kernel implementation; remove them.
 
-This makes zswap_store() cleaner, and makes following changes to that
-logic contained within the helper.
+For disabling same_filled handling, there is no logical reason to refuse
+storing same-filled pages more efficiently and opt for compression. 
+Scanning pages for patterns may be an argument, but the page contents will
+be read into the CPU cache anyway during compression.  Also, removing the
+same_filled handling code does not move the needle significantly in terms
+of performance anyway [1].
 
-While we are at it:
-- Rename the insert_entry label to store_entry to match xa_store().
-- Add comment headers for same-filled functions and the main API
-  functions (load, store, invalidate, swapon, swapoff).
+For disabling non_same_filled handling, it was added when the compressed
+pages in zswap were not being properly charged to memcgs, as workloads
+could escape the accounting with compression [2].  This is no longer the
+case after commit f4840ccfca25 ("zswap: memcg accounting"), and using
+zswap without compression does not make much sense.
 
-No functional change intended.
+[1]https://lore.kernel.org/lkml/CAJD7tkaySFP2hBQw4pnZHJJwe3bMdjJ1t9VC2VJd=khn1_TXvA@mail.gmail.com/
+[2]https://lore.kernel.org/lkml/19d5cdee-2868-41bd-83d5-6da75d72e940@maciej.szmigiero.name/
 
-Link: https://lkml.kernel.org/r/20240413022407.785696-4-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/20240413022407.785696-5-yosryahmed@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Nhat Pham <nphamcs@gmail.com>
 Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   45 +++++++++++++++++++++++++--------------------
- 1 file changed, 25 insertions(+), 20 deletions(-)
+ mm/zswap.c |   19 -------------------
+ 1 file changed, 19 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-move-more-same-filled-pages-checks-outside-of-zswap_store
+--- a/mm/zswap.c~mm-zswap-remove-same_filled-module-params
 +++ a/mm/zswap.c
-@@ -1376,26 +1376,35 @@ resched:
- 	} while (zswap_total_pages() > thr);
- }
+@@ -123,19 +123,6 @@ static unsigned int zswap_accept_thr_per
+ module_param_named(accept_threshold_percent, zswap_accept_thr_percent,
+ 		   uint, 0644);
  
--static int zswap_is_page_same_filled(void *ptr, unsigned long *value)
-+/*********************************
-+* same-filled functions
-+**********************************/
-+static bool zswap_is_folio_same_filled(struct folio *folio, unsigned long *value)
- {
- 	unsigned long *page;
- 	unsigned long val;
+-/*
+- * Enable/disable handling same-value filled pages (enabled by default).
+- * If disabled every page is considered non-same-value filled.
+- */
+-static bool zswap_same_filled_pages_enabled = true;
+-module_param_named(same_filled_pages_enabled, zswap_same_filled_pages_enabled,
+-		   bool, 0644);
+-
+-/* Enable/disable handling non-same-value filled pages (enabled by default) */
+-static bool zswap_non_same_filled_pages_enabled = true;
+-module_param_named(non_same_filled_pages_enabled, zswap_non_same_filled_pages_enabled,
+-		   bool, 0644);
+-
+ /* Number of zpools in zswap_pool (empirically determined for scalability) */
+ #define ZSWAP_NR_ZPOOLS 32
+ 
+@@ -1386,9 +1373,6 @@ static bool zswap_is_folio_same_filled(s
  	unsigned int pos, last_pos = PAGE_SIZE / sizeof(*page) - 1;
-+	bool ret = false;
+ 	bool ret = false;
  
--	page = (unsigned long *)ptr;
-+	if (!zswap_same_filled_pages_enabled)
-+		return false;
-+
-+	page = kmap_local_folio(folio, 0);
+-	if (!zswap_same_filled_pages_enabled)
+-		return false;
+-
+ 	page = kmap_local_folio(folio, 0);
  	val = page[0];
  
- 	if (val != page[last_pos])
--		return 0;
-+		goto out;
- 
- 	for (pos = 1; pos < last_pos; pos++) {
- 		if (val != page[pos])
--			return 0;
-+			goto out;
+@@ -1466,9 +1450,6 @@ bool zswap_store(struct folio *folio)
+ 		goto store_entry;
  	}
  
- 	*value = val;
+-	if (!zswap_non_same_filled_pages_enabled)
+-		goto freepage;
 -
--	return 1;
-+	ret = true;
-+out:
-+	kunmap_local(page);
-+	return ret;
- }
- 
- static void zswap_fill_page(void *ptr, unsigned long value)
-@@ -1406,6 +1415,9 @@ static void zswap_fill_page(void *ptr, u
- 	memset_l(page, value, PAGE_SIZE / sizeof(unsigned long));
- }
- 
-+/*********************************
-+* main API
-+**********************************/
- bool zswap_store(struct folio *folio)
- {
- 	swp_entry_t swp = folio->swap;
-@@ -1414,6 +1426,7 @@ bool zswap_store(struct folio *folio)
- 	struct zswap_entry *entry, *old;
- 	struct obj_cgroup *objcg = NULL;
- 	struct mem_cgroup *memcg = NULL;
-+	unsigned long value;
- 
- 	VM_WARN_ON_ONCE(!folio_test_locked(folio));
- 	VM_WARN_ON_ONCE(!folio_test_swapcache(folio));
-@@ -1446,19 +1459,11 @@ bool zswap_store(struct folio *folio)
- 		goto reject;
- 	}
- 
--	if (zswap_same_filled_pages_enabled) {
--		unsigned long value;
--		u8 *src;
--
--		src = kmap_local_folio(folio, 0);
--		if (zswap_is_page_same_filled(src, &value)) {
--			kunmap_local(src);
--			entry->length = 0;
--			entry->value = value;
--			atomic_inc(&zswap_same_filled_pages);
--			goto insert_entry;
--		}
--		kunmap_local(src);
-+	if (zswap_is_folio_same_filled(folio, &value)) {
-+		entry->length = 0;
-+		entry->value = value;
-+		atomic_inc(&zswap_same_filled_pages);
-+		goto store_entry;
- 	}
- 
- 	if (!zswap_non_same_filled_pages_enabled)
-@@ -1481,7 +1486,7 @@ bool zswap_store(struct folio *folio)
- 	if (!zswap_compress(folio, entry))
- 		goto put_pool;
- 
--insert_entry:
-+store_entry:
- 	entry->swpentry = swp;
- 	entry->objcg = objcg;
- 
+ 	/* if entry is successfully added, it keeps the reference */
+ 	entry->pool = zswap_pool_current_get();
+ 	if (!entry->pool)
 _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
