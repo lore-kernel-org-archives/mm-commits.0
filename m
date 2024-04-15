@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03A2B27442
-	for <mm-commits@vger.kernel.org>; Fri, 12 Apr 2024 23:21:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEDBC219EA;
+	Mon, 15 Apr 2024 19:08:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712964084; cv=none; b=rrjJdMZeYFrx5csXxQ8+zpLzXkk+zFa0vza1SlUL6HuJAnxXIr3n2Mdub3FqrrtqDEJJRgMSDRbyzZZrnJj7bnqgi3rd8IR592ggsFIH6BfTxT9zc9u+N3V8UNLGyvHFoegh4TCgKWCmLwbLmofH5oqCBa16imFbFes6m9Tl44Y=
+	t=1713208123; cv=none; b=gYWsHFAKtYtLfRFscEVDc38TysVI7Tm3yXJcWGgUbUZeXxEAztLUDZcOMkVkCjkOhiDa9U5WxsRN2NZRs5ZDaw3jL++GnAcxPAejlZVYZBACbfMPTuIlkQlWvmkAzLElVJoCO/mCJgu8ODnR3vcPHs+Wd1RCJ+zAeCPKJo+DCAQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712964084; c=relaxed/simple;
-	bh=A8SKvsqswyQq6pgniimqgFXHGHfPunDoDez9+xGINeY=;
-	h=Date:To:From:Subject:Message-Id; b=pDsuUxvNEQQhGxy6dAhOR/xFP6jx8YTnfs0ViAH8zS+A4IYGLkySVtI6SpTQDk0d0N9980Cr+w7eGVM1lTfqij5+pOyX8PU9G+BO056xBfWzUwwReLcSAJPG7yNt4REP/5xKO3Q5l6m6iAy6OHf2t6S7z8nrxi4Hj4tROCPJI+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PBl3JgBq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713208123; c=relaxed/simple;
+	bh=Omfyss0oSwl9blvF1ZPl+9UFJvBZWozOwVcDPAMj4Qs=;
+	h=Date:To:From:Subject:Message-Id; b=urRT770Jhop15VxAKKljESRl4rjw7sVyo/UCVdGsNk/tDv8q7myDOIIe7fucG7exlUouGJHJzL4kFdFkKrcFBLE5MxTUGB4lQCcaPn2XhdjvNj9lK9EIcLhdQZ/BIK7Xqc3IuNxRmE6nJWkt6ssFxD3C1b0dqCjNdjrREOfqZ4A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qOFAGav2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PBl3JgBq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AA70C113CC;
-	Fri, 12 Apr 2024 23:21:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qOFAGav2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63A2DC113CC;
+	Mon, 15 Apr 2024 19:08:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1712964083;
-	bh=A8SKvsqswyQq6pgniimqgFXHGHfPunDoDez9+xGINeY=;
+	s=korg; t=1713208122;
+	bh=Omfyss0oSwl9blvF1ZPl+9UFJvBZWozOwVcDPAMj4Qs=;
 	h=Date:To:From:Subject:From;
-	b=PBl3JgBqOAvuLOgZwkeVct4k766yPR/kAvt8VVqU7MbDB38zDYOl4OLPH3eSRJvZy
-	 zDjaqvB+wl5Js2C9QaNuFGFhyum0gw2WInpOru3uweohaNJk2NgRBSwMsIK3RwW4di
-	 792aqP1AzRsXGOpoQpuZfCXHeDJXJyRBHzwwuYIA=
-Date: Fri, 12 Apr 2024 16:21:22 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=qOFAGav2EGnl1z5XUqDv1XBtAOuPayWp11iJMPouNx3N0LCMgsHZurZGgfWlcQcG7
+	 2oOi0QDx9YhxW8fPXkSLqJ+KfFOGXFhhrZrWGSX36qRnevMNHIEtOdsExQSRZAqfbc
+	 6K1t0BkshYFkqfLREzovILEWoyZgXV0Wpn4/zgQM=
+Date: Mon, 15 Apr 2024 12:08:41 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,aha310510@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled-v2-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240412232123.9AA70C113CC@smtp.kernel.org>
+Subject: + nilfs2-fix-oob-in-nilfs_set_de_type.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240415190842.63A2DC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled-v2-fix
+     Subject: nilfs2: fix OOB in nilfs_set_de_type
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled-v2-fix.patch
+     nilfs2-fix-oob-in-nilfs_set_de_type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled-v2-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-oob-in-nilfs_set_de_type.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,60 +58,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled-v2-fix
-Date: Fri Apr 12 04:18:11 PM PDT 2024
+From: Jeongjun Park <aha310510@gmail.com>
+Subject: nilfs2: fix OOB in nilfs_set_de_type
+Date: Tue, 16 Apr 2024 03:20:48 +0900
 
-reflow block comment
+The size of the nilfs_type_by_mode array in the fs/nilfs2/dir.c file is
+defined as "S_IFMT >> S_SHIFT", but the nilfs_set_de_type() function,
+which uses this array, specifies the index to read from the array in the
+same way as "(mode & S_IFMT) >> S_SHIFT".
 
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+static void nilfs_set_de_type(struct nilfs_dir_entry *de, struct inode
+ *inode)
+{
+	umode_t mode = inode->i_mode;
+
+	de->file_type = nilfs_type_by_mode[(mode & S_IFMT)>>S_SHIFT]; // oob
+}
+
+However, when the index is determined this way, an out-of-bounds (OOB)
+error occurs by referring to an index that is 1 larger than the array size
+when the condition "mode & S_IFMT == S_IFMT" is satisfied.  Therefore, a
+patch to resize the nilfs_type_by_mode array should be applied to prevent
+OOB errors.
+
+Link: https://lkml.kernel.org/r/20240415182048.7144-1-konishi.ryusuke@gmail.com
+Reported-by: syzbot+2e22057de05b9f3b30d8@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=2e22057de05b9f3b30d8
+Fixes: 2ba466d74ed7 ("nilfs2: directory entry operations")
+Signed-off-by: Jeongjun Park <aha310510@gmail.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ fs/nilfs2/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled-v2-fix
-+++ a/mm/memory-failure.c
-@@ -155,14 +155,16 @@ static int __page_handle_poison(struct p
- 	int ret;
+--- a/fs/nilfs2/dir.c~nilfs2-fix-oob-in-nilfs_set_de_type
++++ a/fs/nilfs2/dir.c
+@@ -240,7 +240,7 @@ nilfs_filetype_table[NILFS_FT_MAX] = {
  
- 	/*
--	 * zone_pcp_disable() can't be used here. It will hold pcp_batch_high_lock and
--	 * dissolve_free_huge_page() might hold cpu_hotplug_lock via static_key_slow_dec()
--	 * when hugetlb vmemmap optimization is enabled. This will break current lock
--	 * dependency chain and leads to deadlock.
--	 * Disabling pcp before dissolving the page was a deterministic approach because
--	 * we made sure that those pages cannot end up in any PCP list. Draining PCP lists
--	 * expels those pages to the buddy system, but nothing guarantees that those pages
--	 * do not get back to a PCP queue if we need to refill those.
-+	 * zone_pcp_disable() can't be used here. It will
-+	 * hold pcp_batch_high_lock and dissolve_free_huge_page() might hold
-+	 * cpu_hotplug_lock via static_key_slow_dec() when hugetlb vmemmap
-+	 * optimization is enabled. This will break current lock dependency
-+	 * chain and leads to deadlock.
-+	 * Disabling pcp before dissolving the page was a deterministic
-+	 * approach because we made sure that those pages cannot end up in any
-+	 * PCP list. Draining PCP lists expels those pages to the buddy system,
-+	 * but nothing guarantees that those pages do not get back to a PCP
-+	 * queue if we need to refill those.
- 	 */
- 	ret = dissolve_free_huge_page(page);
- 	if (!ret) {
+ #define S_SHIFT 12
+ static unsigned char
+-nilfs_type_by_mode[S_IFMT >> S_SHIFT] = {
++nilfs_type_by_mode[(S_IFMT >> S_SHIFT) + 1] = {
+ 	[S_IFREG >> S_SHIFT]	= NILFS_FT_REG_FILE,
+ 	[S_IFDIR >> S_SHIFT]	= NILFS_FT_DIR,
+ 	[S_IFCHR >> S_SHIFT]	= NILFS_FT_CHRDEV,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aha310510@gmail.com are
 
-mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled-v2-fix.patch
-selftests-harness-remove-use-of-line_max-fix.patch
-mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries-fix.patch
-mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio-fix.patch
-sh-remove-use-of-pg_arch_1-on-individual-pages-fix.patch
-mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing-fix.patch
-mm-allow-anon-exclusive-check-over-hugetlb-tail-pages-fix.patch
-arm-mm-drop-vm_fault_badmap-vm_fault_badaccess-checkpatch-fixes.patch
-__mod_memcg_lruvec_state-enhance-diagnostics.patch
-__mod_memcg_lruvec_state-enhance-diagnostics-fix.patch
+nilfs2-fix-oob-in-nilfs_set_de_type.patch
 
