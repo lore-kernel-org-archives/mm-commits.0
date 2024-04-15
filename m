@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EFC1155A32
-	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 19:12:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4E0EB656
+	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 19:20:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713208355; cv=none; b=GZSI2LjlwYnSWTojBAfLwPdtDuHsELad3aWC/BiiHixdsu9LPE9HDaUZmXZgSnKwTBxv8kztT3gByBQ7h9vl05PR8OqbepbBBytJr7kgjIKbIg86ZZg/meUQWseI3HMcpMYFgIAZaEJI+li9GxCtR+JBaxvGYrXsfe3Jzw1tWvk=
+	t=1713208823; cv=none; b=itvsfVnoA/t06DnS3oGmkRvRskXrIu7ggK0Pj5X1Tx2qgXpMyf3q+V43nr9J1k93o3aTIWSyt77HRDNaDjS48ei4ZIyxgovqQAupjM2KI6ngJJpltprTjCA6KT+WTIgGi45tgM0YAtHxMRuaYLtrl/+qksE5pwnRZB0p06qaO08=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713208355; c=relaxed/simple;
-	bh=82bQwxVgs+EIrq0MjXavuiY9h8dIjrhq7CHrrKJI/kQ=;
-	h=Date:To:From:Subject:Message-Id; b=nAzGpDWL2IHYlZnZBNURKFkNW786+u3gnW5lnBDNHd0dnNax5Psh90DOEULC0OgWEPlLPdFjSmVAXzWzT7jsEIgREvquculfZgJhE0d0cOENnmYv5yn4+e3PMMrZwa2fdppiYDEd1j6U9D7DCALLvk5NPnGGRuv3ATZ4CZ3GLJE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zDSya+00; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713208823; c=relaxed/simple;
+	bh=H3dC9zUpxOc+n7/+rc6gtmK7sLn0hk/lPXd88owe7Rw=;
+	h=Date:To:From:Subject:Message-Id; b=EpNraIPSLd9B7ihFBxguQF8HWpckxQtV6hALjmGoPY9olhpbd0NtajWiTTxHrr9VXLN9PuWa7S0qQikQQQw8UTVzAiWBTAFN7g0gYN1cT7la25GPnLb2JJ5QZ1smsb3eJ5YikTee2bb6l8sewBXMz8U7IKmY0eC8qKUqwPtR3eY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=putFkige; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zDSya+00"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 253C4C113CC;
-	Mon, 15 Apr 2024 19:12:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="putFkige"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44E30C2BD11;
+	Mon, 15 Apr 2024 19:20:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713208355;
-	bh=82bQwxVgs+EIrq0MjXavuiY9h8dIjrhq7CHrrKJI/kQ=;
+	s=korg; t=1713208823;
+	bh=H3dC9zUpxOc+n7/+rc6gtmK7sLn0hk/lPXd88owe7Rw=;
 	h=Date:To:From:Subject:From;
-	b=zDSya+00dwGjlFFZeiWoq+uNmrF4qIcGCqu0c+OeBuAfJLXJvdmmBrZOgXkY4Sx50
-	 WBETcuemg5ht+ljoP74hlBLRf99EGDPnNQKeaLkkQvvEeLOU08ywgInk+2WNiLyHXv
-	 Ll17lcGSnz7g+980Gg5WbKH+rlH0S8pCwvmQDRvI=
-Date: Mon, 15 Apr 2024 12:12:34 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=putFkige64ZcsmC002gg77pGb08ZvAuMR2vOWFTrGaO5UynxmiivCleQ7CuMKUKaK
+	 Y3tjqX5Xipss9xyM2TP5h9CB3sgeVNnhJyalG7oxySsUddWr21Pj6ei+bxZjrcFieD
+	 NV3RnjycCDeVdKlylCRfKPYpHxBsUIpid6I5/zuE=
+Date: Mon, 15 Apr 2024 12:20:22 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,usama.anjum@collabora.com,torvalds@linux-foundation.org,surenb@google.com,sroettger@google.com,pedro.falcato@gmail.com,Liam.Howlett@oracle.com,keescook@chromium.org,jorgelo@chromium.org,jeffxu@google.com,jannh@google.com,groeck@chromium.org,gregkh@linuxfoundation.org,dave.hansen@intel.com,corbet@lwn.net,jeffxu@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-optimize-filemap-folio-adding.patch added to mm-unstable branch
-Message-Id: <20240415191235.253C4C113CC@smtp.kernel.org>
+Subject: + mseal-wire-up-mseal-syscall.patch added to mm-unstable branch
+Message-Id: <20240415192023.44E30C2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/filemap: optimize filemap folio adding
+     Subject: mseal: wire up mseal syscall
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-filemap-optimize-filemap-folio-adding.patch
+     mseal-wire-up-mseal-syscall.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-optimize-filemap-folio-adding.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mseal-wire-up-mseal-syscall.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,262 +58,507 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/filemap: optimize filemap folio adding
-Date: Tue, 16 Apr 2024 01:18:56 +0800
+From: Jeff Xu <jeffxu@chromium.org>
+Subject: mseal: wire up mseal syscall
+Date: Mon, 15 Apr 2024 16:35:20 +0000
 
-Instead of doing multiple tree walks, do one optimism range check with
-lock hold, and exit if raced with another insertion.  If a shadow exists,
-check it with a new xas_get_order helper before releasing the lock to
-avoid redundant tree walks for getting its order.
+Patch series "Introduce mseal", v10.
 
-Drop the lock and do the allocation only if a split is needed.
+This patchset proposes a new mseal() syscall for the Linux kernel.
 
-In the best case, it only need to walk the tree once.  If it needs to
-alloc and split, 3 walks are issued (One for first ranged conflict check
-and order retrieving, one for the second check after allocation, one for
-the insert after split).
+In a nutshell, mseal() protects the VMAs of a given virtual memory range
+against modifications, such as changes to their permission bits.
 
-Testing with 4K pages, in an 8G cgroup, with 16G brd as block device:
+Modern CPUs support memory permissions, such as the read/write (RW) and
+no-execute (NX) bits.  Linux has supported NX since the release of kernel
+version 2.6.8 in August 2004 [1].  The memory permission feature improves
+the security stance on memory corruption bugs, as an attacker cannot
+simply write to arbitrary memory and point the code to it.  The memory
+must be marked with the X bit, or else an exception will occur. 
+Internally, the kernel maintains the memory permissions in a data
+structure called VMA (vm_area_struct).  mseal() additionally protects the
+VMA itself against modifications of the selected seal type.
 
-  echo 3 > /proc/sys/vm/drop_caches
+Memory sealing is useful to mitigate memory corruption issues where a
+corrupted pointer is passed to a memory management system.  For example,
+such an attacker primitive can break control-flow integrity guarantees
+since read-only memory that is supposed to be trusted can become writable
+or .text pages can get remapped.  Memory sealing can automatically be
+applied by the runtime loader to seal .text and .rodata pages and
+applications can additionally seal security critical data at runtime.  A
+similar feature already exists in the XNU kernel with the
+VM_FLAGS_PERMANENT [3] flag and on OpenBSD with the mimmutable syscall
+[4].  Also, Chrome wants to adopt this feature for their CFI work [2] and
+this patchset has been designed to be compatible with the Chrome use case.
 
-  fio -name=cached --numjobs=16 --filename=/mnt/test.img \
-    --buffered=1 --ioengine=mmap --rw=randread --time_based \
-    --ramp_time=30s --runtime=5m --group_reporting
+Two system calls are involved in sealing the map:  mmap() and mseal().
 
-Before:
-bw (  MiB/s): min= 1027, max= 3520, per=100.00%, avg=2445.02, stdev=18.90, samples=8691
-iops        : min=263001, max=901288, avg=625924.36, stdev=4837.28, samples=8691
+The new mseal() is an syscall on 64 bit CPU, and with following signature:
 
-After (+7.3%):
-bw (  MiB/s): min=  493, max= 3947, per=100.00%, avg=2625.56, stdev=25.74, samples=8651
-iops        : min=126454, max=1010681, avg=672142.61, stdev=6590.48, samples=8651
+int mseal(void addr, size_t len, unsigned long flags)
+addr/len: memory range.
+flags: reserved.
 
-Test result with THP (do a THP randread then switch to 4K page in hope it
-issues a lot of splitting):
+mseal() blocks following operations for the given memory range.
 
-  echo 3 > /proc/sys/vm/drop_caches
+1> Unmapping, moving to another location, and shrinking the size,
+   via munmap() and mremap(), can leave an empty space, therefore can
+   be replaced with a VMA with a new set of attributes.
 
-  fio -name=cached --numjobs=16 --filename=/mnt/test.img \
-      --buffered=1 --ioengine=mmap -thp=1 --readonly \
-      --rw=randread --time_based --ramp_time=30s --runtime=10m \
-      --group_reporting
+2> Moving or expanding a different VMA into the current location,
+   via mremap().
 
-  fio -name=cached --numjobs=16 --filename=/mnt/test.img \
-      --buffered=1 --ioengine=mmap \
-      --rw=randread --time_based --runtime=5s --group_reporting
+3> Modifying a VMA via mmap(MAP_FIXED).
 
-Before:
-bw (  KiB/s): min= 4141, max=14202, per=100.00%, avg=7935.51, stdev=96.85, samples=18976
-iops        : min= 1029, max= 3548, avg=1979.52, stdev=24.23, samples=18976·
+4> Size expansion, via mremap(), does not appear to pose any specific
+   risks to sealed VMAs. It is included anyway because the use case is
+   unclear. In any case, users can rely on merging to expand a sealed VMA.
 
-READ: bw=4545B/s (4545B/s), 4545B/s-4545B/s (4545B/s-4545B/s), io=64.0KiB (65.5kB), run=14419-14419msec
+5> mprotect() and pkey_mprotect().
 
-After (+12.5%):
-bw (  KiB/s): min= 4611, max=15370, per=100.00%, avg=8928.74, stdev=105.17, samples=19146
-iops        : min= 1151, max= 3842, avg=2231.27, stdev=26.29, samples=19146
+6> Some destructive madvice() behaviors (e.g. MADV_DONTNEED) for anonymous
+   memory, when users don't have write permission to the memory. Those
+   behaviors can alter region contents by discarding pages, effectively a
+   memset(0) for anonymous memory.
 
-READ: bw=4635B/s (4635B/s), 4635B/s-4635B/s (4635B/s-4635B/s), io=64.0KiB (65.5kB), run=14137-14137msec
+The idea that inspired this patch comes from Stephen Röttger’s work in
+V8 CFI [5].  Chrome browser in ChromeOS will be the first user of this
+API.
 
-The performance is better for both 4K (+7.5%) and THP (+12.5%) cached read.
+Indeed, the Chrome browser has very specific requirements for sealing,
+which are distinct from those of most applications.  For example, in the
+case of libc, sealing is only applied to read-only (RO) or read-execute
+(RX) memory segments (such as .text and .RELRO) to prevent them from
+becoming writable, the lifetime of those mappings are tied to the lifetime
+of the process.
 
-Link: https://lkml.kernel.org/r/20240415171857.19244-5-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
+Chrome wants to seal two large address space reservations that are managed
+by different allocators.  The memory is mapped RW- and RWX respectively
+but write access to it is restricted using pkeys (or in the future ARM
+permission overlay extensions).  The lifetime of those mappings are not
+tied to the lifetime of the process, therefore, while the memory is
+sealed, the allocators still need to free or discard the unused memory. 
+For example, with madvise(DONTNEED).
+
+However, always allowing madvise(DONTNEED) on this range poses a security
+risk.  For example if a jump instruction crosses a page boundary and the
+second page gets discarded, it will overwrite the target bytes with zeros
+and change the control flow.  Checking write-permission before the discard
+operation allows us to control when the operation is valid.  In this case,
+the madvise will only succeed if the executing thread has PKEY write
+permissions and PKRU changes are protected in software by control-flow
+integrity.
+
+Although the initial version of this patch series is targeting the Chrome
+browser as its first user, it became evident during upstream discussions
+that we would also want to ensure that the patch set eventually is a
+complete solution for memory sealing and compatible with other use cases. 
+The specific scenario currently in mind is glibc's use case of loading and
+sealing ELF executables.  To this end, Stephen is working on a change to
+glibc to add sealing support to the dynamic linker, which will seal all
+non-writable segments at startup.  Once this work is completed, all
+applications will be able to automatically benefit from these new
+protections.
+
+In closing, I would like to formally acknowledge the valuable
+contributions received during the RFC process, which were instrumental in
+shaping this patch:
+
+Jann Horn: raising awareness and providing valuable insights on the
+  destructive madvise operations.
+Liam R. Howlett: perf optimization.
+Linus Torvalds: assisting in defining system call signature and scope.
+Theo de Raadt: sharing the experiences and insight gained from
+  implementing mimmutable() in OpenBSD.
+
+MM perf benchmarks
+==================
+This patch adds a loop in the mprotect/munmap/madvise(DONTNEED) to
+check the VMAs’ sealing flag, so that no partial update can be made,
+when any segment within the given memory range is sealed.
+
+To measure the performance impact of this loop, two tests are developed.
+[8]
+
+The first is measuring the time taken for a particular system call,
+by using clock_gettime(CLOCK_MONOTONIC). The second is using
+PERF_COUNT_HW_REF_CPU_CYCLES (exclude user space). Both tests have
+similar results.
+
+The tests have roughly below sequence:
+for (i = 0; i < 1000, i++)
+    create 1000 mappings (1 page per VMA)
+    start the sampling
+    for (j = 0; j < 1000, j++)
+        mprotect one mapping
+    stop and save the sample
+    delete 1000 mappings
+calculates all samples.
+
+Below tests are performed on Intel(R) Pentium(R) Gold 7505 @ 2.00GHz,
+4G memory, Chromebook.
+
+Based on the latest upstream code:
+The first test (measuring time)
+syscall__	vmas	t	t_mseal	delta_ns	per_vma	%
+munmap__  	1	909	944	35	35	104%
+munmap__  	2	1398	1502	104	52	107%
+munmap__  	4	2444	2594	149	37	106%
+munmap__  	8	4029	4323	293	37	107%
+munmap__  	16	6647	6935	288	18	104%
+munmap__  	32	11811	12398	587	18	105%
+mprotect	1	439	465	26	26	106%
+mprotect	2	1659	1745	86	43	105%
+mprotect	4	3747	3889	142	36	104%
+mprotect	8	6755	6969	215	27	103%
+mprotect	16	13748	14144	396	25	103%
+mprotect	32	27827	28969	1142	36	104%
+madvise_	1	240	262	22	22	109%
+madvise_	2	366	442	76	38	121%
+madvise_	4	623	751	128	32	121%
+madvise_	8	1110	1324	215	27	119%
+madvise_	16	2127	2451	324	20	115%
+madvise_	32	4109	4642	534	17	113%
+
+The second test (measuring cpu cycle)
+syscall__	vmas	cpu	cmseal	delta_cpu	per_vma	%
+munmap__	1	1790	1890	100	100	106%
+munmap__	2	2819	3033	214	107	108%
+munmap__	4	4959	5271	312	78	106%
+munmap__	8	8262	8745	483	60	106%
+munmap__	16	13099	14116	1017	64	108%
+munmap__	32	23221	24785	1565	49	107%
+mprotect	1	906	967	62	62	107%
+mprotect	2	3019	3203	184	92	106%
+mprotect	4	6149	6569	420	105	107%
+mprotect	8	9978	10524	545	68	105%
+mprotect	16	20448	21427	979	61	105%
+mprotect	32	40972	42935	1963	61	105%
+madvise_	1	434	497	63	63	115%
+madvise_	2	752	899	147	74	120%
+madvise_	4	1313	1513	200	50	115%
+madvise_	8	2271	2627	356	44	116%
+madvise_	16	4312	4883	571	36	113%
+madvise_	32	8376	9319	943	29	111%
+
+Based on the result, for 6.8 kernel, sealing check adds
+20-40 nano seconds, or around 50-100 CPU cycles, per VMA.
+
+In addition, I applied the sealing to 5.10 kernel:
+The first test (measuring time)
+syscall__	vmas	t	tmseal	delta_ns	per_vma	%
+munmap__	1	357	390	33	33	109%
+munmap__	2	442	463	21	11	105%
+munmap__	4	614	634	20	5	103%
+munmap__	8	1017	1137	120	15	112%
+munmap__	16	1889	2153	263	16	114%
+munmap__	32	4109	4088	-21	-1	99%
+mprotect	1	235	227	-7	-7	97%
+mprotect	2	495	464	-30	-15	94%
+mprotect	4	741	764	24	6	103%
+mprotect	8	1434	1437	2	0	100%
+mprotect	16	2958	2991	33	2	101%
+mprotect	32	6431	6608	177	6	103%
+madvise_	1	191	208	16	16	109%
+madvise_	2	300	324	24	12	108%
+madvise_	4	450	473	23	6	105%
+madvise_	8	753	806	53	7	107%
+madvise_	16	1467	1592	125	8	108%
+madvise_	32	2795	3405	610	19	122%
+					
+The second test (measuring cpu cycle)
+syscall__	nbr_vma	cpu	cmseal	delta_cpu	per_vma	%
+munmap__	1	684	715	31	31	105%
+munmap__	2	861	898	38	19	104%
+munmap__	4	1183	1235	51	13	104%
+munmap__	8	1999	2045	46	6	102%
+munmap__	16	3839	3816	-23	-1	99%
+munmap__	32	7672	7887	216	7	103%
+mprotect	1	397	443	46	46	112%
+mprotect	2	738	788	50	25	107%
+mprotect	4	1221	1256	35	9	103%
+mprotect	8	2356	2429	72	9	103%
+mprotect	16	4961	4935	-26	-2	99%
+mprotect	32	9882	10172	291	9	103%
+madvise_	1	351	380	29	29	108%
+madvise_	2	565	615	49	25	109%
+madvise_	4	872	933	61	15	107%
+madvise_	8	1508	1640	132	16	109%
+madvise_	16	3078	3323	245	15	108%
+madvise_	32	5893	6704	811	25	114%
+
+For 5.10 kernel, sealing check adds 0-15 ns in time, or 10-30
+CPU cycles, there is even decrease in some cases.
+
+It might be interesting to compare 5.10 and 6.8 kernel
+The first test (measuring time)
+syscall__	vmas	t_5_10	t_6_8	delta_ns	per_vma	%
+munmap__	1	357	909	552	552	254%
+munmap__	2	442	1398	956	478	316%
+munmap__	4	614	2444	1830	458	398%
+munmap__	8	1017	4029	3012	377	396%
+munmap__	16	1889	6647	4758	297	352%
+munmap__	32	4109	11811	7702	241	287%
+mprotect	1	235	439	204	204	187%
+mprotect	2	495	1659	1164	582	335%
+mprotect	4	741	3747	3006	752	506%
+mprotect	8	1434	6755	5320	665	471%
+mprotect	16	2958	13748	10790	674	465%
+mprotect	32	6431	27827	21397	669	433%
+madvise_	1	191	240	49	49	125%
+madvise_	2	300	366	67	33	122%
+madvise_	4	450	623	173	43	138%
+madvise_	8	753	1110	357	45	147%
+madvise_	16	1467	2127	660	41	145%
+madvise_	32	2795	4109	1314	41	147%
+
+The second test (measuring cpu cycle)
+syscall__	vmas	cpu_5_10	c_6_8	delta_cpu	per_vma	%
+munmap__	1	684	1790	1106	1106	262%
+munmap__	2	861	2819	1958	979	327%
+munmap__	4	1183	4959	3776	944	419%
+munmap__	8	1999	8262	6263	783	413%
+munmap__	16	3839	13099	9260	579	341%
+munmap__	32	7672	23221	15549	486	303%
+mprotect	1	397	906	509	509	228%
+mprotect	2	738	3019	2281	1140	409%
+mprotect	4	1221	6149	4929	1232	504%
+mprotect	8	2356	9978	7622	953	423%
+mprotect	16	4961	20448	15487	968	412%
+mprotect	32	9882	40972	31091	972	415%
+madvise_	1	351	434	82	82	123%
+madvise_	2	565	752	186	93	133%
+madvise_	4	872	1313	442	110	151%
+madvise_	8	1508	2271	763	95	151%
+madvise_	16	3078	4312	1234	77	140%
+madvise_	32	5893	8376	2483	78	142%
+
+From 5.10 to 6.8
+munmap: added 250-550 ns in time, or 500-1100 in cpu cycle, per vma.
+mprotect: added 200-750 ns in time, or 500-1200 in cpu cycle, per vma.
+madvise: added 33-50 ns in time, or 70-110 in cpu cycle, per vma.
+
+In comparison to mseal, which adds 20-40 ns or 50-100 CPU cycles, the
+increase from 5.10 to 6.8 is significantly larger, approximately ten times
+greater for munmap and mprotect.
+
+When I discuss the mm performance with Brian Makin, an engineer who worked
+on performance, it was brought to my attention that such performance
+benchmarks, which measuring millions of mm syscall in a tight loop, may
+not accurately reflect real-world scenarios, such as that of a database
+service.  Also this is tested using a single HW and ChromeOS, the data
+from another HW or distribution might be different.  It might be best to
+take this data with a grain of salt.
+
+
+This patch (of 5):
+
+Wire up mseal syscall for all architectures.
+
+Link: https://lkml.kernel.org/r/20240415163527.626541-1-jeffxu@chromium.org
+Link: https://lkml.kernel.org/r/20240415163527.626541-2-jeffxu@chromium.org
+Signed-off-by: Jeff Xu <jeffxu@chromium.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Guenter Roeck <groeck@chromium.org>
+Cc: Jann Horn <jannh@google.com> [Bug #2]
+Cc: Jeff Xu <jeffxu@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Stephen Röttger <sroettger@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_xarray.c |   59 ++++++++++++++++++++++++++++++++++++++++++++
- mm/filemap.c      |   56 ++++++++++++++++++++++++++++++-----------
- 2 files changed, 100 insertions(+), 15 deletions(-)
+ arch/alpha/kernel/syscalls/syscall.tbl      |    1 +
+ arch/arm/tools/syscall.tbl                  |    1 +
+ arch/arm64/include/asm/unistd.h             |    2 +-
+ arch/arm64/include/asm/unistd32.h           |    2 ++
+ arch/m68k/kernel/syscalls/syscall.tbl       |    1 +
+ arch/microblaze/kernel/syscalls/syscall.tbl |    1 +
+ arch/mips/kernel/syscalls/syscall_n32.tbl   |    1 +
+ arch/mips/kernel/syscalls/syscall_n64.tbl   |    1 +
+ arch/mips/kernel/syscalls/syscall_o32.tbl   |    1 +
+ arch/parisc/kernel/syscalls/syscall.tbl     |    1 +
+ arch/powerpc/kernel/syscalls/syscall.tbl    |    1 +
+ arch/s390/kernel/syscalls/syscall.tbl       |    1 +
+ arch/sh/kernel/syscalls/syscall.tbl         |    1 +
+ arch/sparc/kernel/syscalls/syscall.tbl      |    1 +
+ arch/x86/entry/syscalls/syscall_32.tbl      |    1 +
+ arch/x86/entry/syscalls/syscall_64.tbl      |    1 +
+ arch/xtensa/kernel/syscalls/syscall.tbl     |    1 +
+ include/uapi/asm-generic/unistd.h           |    5 ++++-
+ kernel/sys_ni.c                             |    1 +
+ 19 files changed, 23 insertions(+), 2 deletions(-)
 
---- a/lib/test_xarray.c~mm-filemap-optimize-filemap-folio-adding
-+++ a/lib/test_xarray.c
-@@ -2017,6 +2017,64 @@ static noinline void check_xas_get_order
- 	}
- }
+--- a/arch/alpha/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/alpha/kernel/syscalls/syscall.tbl
+@@ -501,3 +501,4 @@
+ 569	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 570	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 571	common	lsm_list_modules		sys_lsm_list_modules
++572	common  mseal				sys_mseal
+--- a/arch/arm64/include/asm/unistd32.h~mseal-wire-up-mseal-syscall
++++ a/arch/arm64/include/asm/unistd32.h
+@@ -929,6 +929,8 @@ __SYSCALL(__NR_lsm_get_self_attr, sys_ls
+ __SYSCALL(__NR_lsm_set_self_attr, sys_lsm_set_self_attr)
+ #define __NR_lsm_list_modules 461
+ __SYSCALL(__NR_lsm_list_modules, sys_lsm_list_modules)
++#define __NR_mseal 462
++__SYSCALL(__NR_mseal, sys_mseal)
  
-+static noinline void check_xas_conflict_get_order(struct xarray *xa)
-+{
-+	XA_STATE(xas, xa, 0);
-+
-+	void *entry;
-+	int only_once;
-+	unsigned int max_order = IS_ENABLED(CONFIG_XARRAY_MULTI) ? 20 : 1;
-+	unsigned int order;
-+	unsigned long i, j, k;
-+
-+	for (order = 0; order < max_order; order++) {
-+		for (i = 0; i < 10; i++) {
-+			xas_set_order(&xas, i << order, order);
-+			do {
-+				xas_lock(&xas);
-+				xas_store(&xas, xa_mk_value(i));
-+				xas_unlock(&xas);
-+			} while (xas_nomem(&xas, GFP_KERNEL));
-+
-+			/*
-+			 * Ensure xas_get_order works with xas_for_each_conflict.
-+			 */
-+			j = i << order;
-+			for (k = 0; k < order; k++) {
-+				only_once = 0;
-+				xas_set_order(&xas, j + (1 << k), k);
-+				xas_lock(&xas);
-+				xas_for_each_conflict(&xas, entry) {
-+					XA_BUG_ON(xa, entry != xa_mk_value(i));
-+					XA_BUG_ON(xa, xas_get_order(&xas) != order);
-+					only_once++;
-+				}
-+				XA_BUG_ON(xa, only_once != 1);
-+				xas_unlock(&xas);
-+			}
-+
-+			if (order < max_order - 1) {
-+				only_once = 0;
-+				xas_set_order(&xas, (i & ~1UL) << order, order + 1);
-+				xas_lock(&xas);
-+				xas_for_each_conflict(&xas, entry) {
-+					XA_BUG_ON(xa, entry != xa_mk_value(i));
-+					XA_BUG_ON(xa, xas_get_order(&xas) != order);
-+					only_once++;
-+				}
-+				XA_BUG_ON(xa, only_once != 1);
-+				xas_unlock(&xas);
-+			}
-+
-+			xas_set_order(&xas, i << order, order);
-+			xas_lock(&xas);
-+			xas_store(&xas, NULL);
-+			xas_unlock(&xas);
-+		}
-+	}
-+}
-+
-+
- static noinline void check_destroy(struct xarray *xa)
- {
- 	unsigned long index;
-@@ -2069,6 +2127,7 @@ static int xarray_checks(void)
- 	check_multi_store_advanced(&array);
- 	check_get_order(&array);
- 	check_xas_get_order(&array);
-+	check_xas_conflict_get_order(&array);
- 	check_xa_alloc();
- 	check_find(&array);
- 	check_find_entry(&array);
---- a/mm/filemap.c~mm-filemap-optimize-filemap-folio-adding
-+++ a/mm/filemap.c
-@@ -852,7 +852,9 @@ noinline int __filemap_add_folio(struct
- 		struct folio *folio, pgoff_t index, gfp_t gfp, void **shadowp)
- {
- 	XA_STATE(xas, &mapping->i_pages, index);
--	bool huge = folio_test_hugetlb(folio);
-+	void *alloced_shadow = NULL;
-+	int alloced_order = 0;
-+	bool huge;
- 	long nr;
+ /*
+  * Please add new compat syscalls above this comment and update
+--- a/arch/arm64/include/asm/unistd.h~mseal-wire-up-mseal-syscall
++++ a/arch/arm64/include/asm/unistd.h
+@@ -39,7 +39,7 @@
+ #define __ARM_NR_compat_set_tls		(__ARM_NR_COMPAT_BASE + 5)
+ #define __ARM_NR_COMPAT_END		(__ARM_NR_COMPAT_BASE + 0x800)
  
- 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
-@@ -861,6 +863,7 @@ noinline int __filemap_add_folio(struct
+-#define __NR_compat_syscalls		462
++#define __NR_compat_syscalls		463
+ #endif
  
- 	VM_BUG_ON_FOLIO(index & (folio_nr_pages(folio) - 1), folio);
- 	xas_set_order(&xas, index, folio_order(folio));
-+	huge = folio_test_hugetlb(folio);
- 	nr = folio_nr_pages(folio);
+ #define __ARCH_WANT_SYS_CLONE
+--- a/arch/arm/tools/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/arm/tools/syscall.tbl
+@@ -475,3 +475,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal				sys_mseal
+--- a/arch/m68k/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/m68k/kernel/syscalls/syscall.tbl
+@@ -461,3 +461,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal				sys_mseal
+--- a/arch/microblaze/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/microblaze/kernel/syscalls/syscall.tbl
+@@ -467,3 +467,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal				sys_mseal
+--- a/arch/mips/kernel/syscalls/syscall_n32.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/mips/kernel/syscalls/syscall_n32.tbl
+@@ -400,3 +400,4 @@
+ 459	n32	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	n32	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	n32	lsm_list_modules		sys_lsm_list_modules
++462	n32	mseal				sys_mseal
+--- a/arch/mips/kernel/syscalls/syscall_n64.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/mips/kernel/syscalls/syscall_n64.tbl
+@@ -376,3 +376,4 @@
+ 459	n64	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	n64	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	n64	lsm_list_modules		sys_lsm_list_modules
++462	n64	mseal				sys_mseal
+--- a/arch/mips/kernel/syscalls/syscall_o32.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/mips/kernel/syscalls/syscall_o32.tbl
+@@ -449,3 +449,4 @@
+ 459	o32	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	o32	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	o32	lsm_list_modules		sys_lsm_list_modules
++462	o32	mseal				sys_mseal
+--- a/arch/parisc/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/parisc/kernel/syscalls/syscall.tbl
+@@ -460,3 +460,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal				sys_mseal
+--- a/arch/powerpc/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/powerpc/kernel/syscalls/syscall.tbl
+@@ -548,3 +548,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal				sys_mseal
+--- a/arch/s390/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/s390/kernel/syscalls/syscall.tbl
+@@ -464,3 +464,4 @@
+ 459  common	lsm_get_self_attr	sys_lsm_get_self_attr		sys_lsm_get_self_attr
+ 460  common	lsm_set_self_attr	sys_lsm_set_self_attr		sys_lsm_set_self_attr
+ 461  common	lsm_list_modules	sys_lsm_list_modules		sys_lsm_list_modules
++462  common	mseal			sys_mseal			sys_mseal
+--- a/arch/sh/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/sh/kernel/syscalls/syscall.tbl
+@@ -464,3 +464,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal				sys_mseal
+--- a/arch/sparc/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/sparc/kernel/syscalls/syscall.tbl
+@@ -507,3 +507,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal 				sys_mseal
+--- a/arch/x86/entry/syscalls/syscall_32.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/x86/entry/syscalls/syscall_32.tbl
+@@ -466,3 +466,4 @@
+ 459	i386	lsm_get_self_attr	sys_lsm_get_self_attr
+ 460	i386	lsm_set_self_attr	sys_lsm_set_self_attr
+ 461	i386	lsm_list_modules	sys_lsm_list_modules
++462	i386	mseal 			sys_mseal
+--- a/arch/x86/entry/syscalls/syscall_64.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -383,6 +383,7 @@
+ 459	common	lsm_get_self_attr	sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr	sys_lsm_set_self_attr
+ 461	common	lsm_list_modules	sys_lsm_list_modules
++462 	common  mseal			sys_mseal
  
- 	gfp &= GFP_RECLAIM_MASK;
-@@ -868,16 +871,10 @@ noinline int __filemap_add_folio(struct
- 	folio->mapping = mapping;
- 	folio->index = xas.xa_index;
+ #
+ # Due to a historical design error, certain syscalls are numbered differently
+--- a/arch/xtensa/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/xtensa/kernel/syscalls/syscall.tbl
+@@ -432,3 +432,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal 				sys_mseal
+--- a/include/uapi/asm-generic/unistd.h~mseal-wire-up-mseal-syscall
++++ a/include/uapi/asm-generic/unistd.h
+@@ -842,8 +842,11 @@ __SYSCALL(__NR_lsm_set_self_attr, sys_ls
+ #define __NR_lsm_list_modules 461
+ __SYSCALL(__NR_lsm_list_modules, sys_lsm_list_modules)
  
--	do {
--		unsigned int order = xa_get_order(xas.xa, xas.xa_index);
-+	for (;;) {
-+		int order = -1, split_order = 0;
- 		void *entry, *old = NULL;
- 
--		if (order > folio_order(folio)) {
--			xas_split_alloc(&xas, xa_load(xas.xa, xas.xa_index),
--					order, gfp);
--			if (xas_error(&xas))
--				goto error;
--		}
- 		xas_lock_irq(&xas);
- 		xas_for_each_conflict(&xas, entry) {
- 			old = entry;
-@@ -885,19 +882,33 @@ noinline int __filemap_add_folio(struct
- 				xas_set_err(&xas, -EEXIST);
- 				goto unlock;
- 			}
-+			/*
-+			 * If a larger entry exists,
-+			 * it will be the first and only entry iterated.
-+			 */
-+			if (order == -1)
-+				order = xas_get_order(&xas);
-+		}
++#define __NR_mseal 462
++__SYSCALL(__NR_mseal, sys_mseal)
 +
-+		/* entry may have changed before we re-acquire the lock */
-+		if (alloced_order && (old != alloced_shadow || order != alloced_order)) {
-+			xas_destroy(&xas);
-+			alloced_order = 0;
- 		}
+ #undef __NR_syscalls
+-#define __NR_syscalls 462
++#define __NR_syscalls 463
  
- 		if (old) {
--			if (shadowp)
--				*shadowp = old;
--			/* entry may have been split before we acquired lock */
--			order = xa_get_order(xas.xa, xas.xa_index);
--			if (order > folio_order(folio)) {
-+			if (order > 0 && order > folio_order(folio)) {
- 				/* How to handle large swap entries? */
- 				BUG_ON(shmem_mapping(mapping));
-+				if (!alloced_order) {
-+					split_order = order;
-+					goto unlock;
-+				}
- 				xas_split(&xas, old, order);
- 				xas_reset(&xas);
- 			}
-+			if (shadowp)
-+				*shadowp = old;
- 		}
+ /*
+  * 32 bit systems traditionally used different
+--- a/kernel/sys_ni.c~mseal-wire-up-mseal-syscall
++++ a/kernel/sys_ni.c
+@@ -196,6 +196,7 @@ COND_SYSCALL(migrate_pages);
+ COND_SYSCALL(move_pages);
+ COND_SYSCALL(set_mempolicy_home_node);
+ COND_SYSCALL(cachestat);
++COND_SYSCALL(mseal);
  
- 		xas_store(&xas, folio);
-@@ -913,9 +924,24 @@ noinline int __filemap_add_folio(struct
- 				__lruvec_stat_mod_folio(folio,
- 						NR_FILE_THPS, nr);
- 		}
-+
- unlock:
- 		xas_unlock_irq(&xas);
--	} while (xas_nomem(&xas, gfp));
-+
-+		/* split needed, alloc here and retry. */
-+		if (split_order) {
-+			xas_split_alloc(&xas, old, split_order, gfp);
-+			if (xas_error(&xas))
-+				goto error;
-+			alloced_shadow = old;
-+			alloced_order = split_order;
-+			xas_reset(&xas);
-+			continue;
-+		}
-+
-+		if (!xas_nomem(&xas, gfp))
-+			break;
-+	}
- 
- 	if (xas_error(&xas))
- 		goto error;
+ COND_SYSCALL(perf_event_open);
+ COND_SYSCALL(accept4);
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from jeffxu@chromium.org are
 
-mm-filemap-return-early-if-failed-to-allocate-memory-for-split.patch
-mm-filemap-clean-up-hugetlb-exclusion-code.patch
-lib-xarray-introduce-a-new-helper-xas_get_order.patch
-mm-filemap-optimize-filemap-folio-adding.patch
+mseal-wire-up-mseal-syscall.patch
+mseal-add-mseal-syscall.patch
+selftest-mm-mseal-memory-sealing.patch
+mseal-add-documentation.patch
+selftest-mm-mseal-read-only-elf-memory-segment.patch
 
