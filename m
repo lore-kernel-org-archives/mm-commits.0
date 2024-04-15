@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2634B156236
-	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 20:22:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EC4E156236
+	for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2024 20:22:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713212531; cv=none; b=uDp6Ogm84Eiy0tbhoq6w0aZWzXWgESAISkRnT9n1cRwVe972r5/yRL+8dlr43vO9yMZQPU5GGWFkbIXOAR/NbvRNW3jh9VaywV/ZdjF+44IiXrYxjZdBgjDQTu5poGPvR7VR9tNdfTZvMbWcM8nobgs5SVzWXrWdrILROzvCMls=
+	t=1713212532; cv=none; b=J2NkcT6jSHRpFGbvJzOkOPVGOLeE52DpHzyhfSFRikvu+hTq8P7OS0HeLyVTWpodfCqEJ/lTdap+LbsZczP/yTAqVTBXtAB2Obt0b4i9csiR5bKyVQlI3XkQtxWm3OyJYj6//F1Rc2i9/e6jfSdMnJ3EyNUsMqAJfmCj15m4B+Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713212531; c=relaxed/simple;
-	bh=hvJP4nr4hguA0J3BCPtU8SLg79Ynpya3ev80Uw9lZZ0=;
-	h=Date:To:From:Subject:Message-Id; b=cfTfsTmbLTSEF9D4eVtjDrM6xKF1j7ld+Y0NKjsrlgO210IZ4FcWEZDxJfEK3JsJ3GeztctqIPv4euzUc/Nv0YtrPmUTfatQn2zuGtyDr9SqUz1WeiVHc/6VF1+oJYjNio0HBm85GSTbVq0QGFThQhgx8+IxqXOpfnrU/pa4YoY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=14wTEDKB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713212532; c=relaxed/simple;
+	bh=jQ4tTV26pTNmCSGe/Goy3rvll33CWbg0Xm0sClrbeaU=;
+	h=Date:To:From:Subject:Message-Id; b=j5IVyh3c2TuxQbJf3xe4d7tAOH79EW0LSckboz2fPUbfehkq28t/UMZD0vjeu2nBQwDN6frTb7CuVPcN6NHRt6a4cUJYPoKewhz3ktkCXgTdvNBil7fmjGOOLsOA3KvCtgM5Jb+iOXQSg8mlmojL7JBcwFNiL+0Jsd1MYgft8Ms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SRIrFrH2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="14wTEDKB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0249C2BD11;
-	Mon, 15 Apr 2024 20:22:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SRIrFrH2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69A56C32781;
+	Mon, 15 Apr 2024 20:22:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713212530;
-	bh=hvJP4nr4hguA0J3BCPtU8SLg79Ynpya3ev80Uw9lZZ0=;
+	s=korg; t=1713212532;
+	bh=jQ4tTV26pTNmCSGe/Goy3rvll33CWbg0Xm0sClrbeaU=;
 	h=Date:To:From:Subject:From;
-	b=14wTEDKBHmPPOJHPyIeRDYgNcX3pMv4M7iZMu/zZd522Zy67qN/iZK4ABJ8QwL/qn
-	 6513MU/+U17UopobBfCUpg8Lmevu9kWLDVrgaqpOEUUuhguovc/kSKauiFNGRzWgCU
-	 YIk922EMDb+XGOmOLXAocSjUe4slgRlmJ3hnzKU8=
-Date: Mon, 15 Apr 2024 13:22:10 -0700
+	b=SRIrFrH2FIeZIN6CHnZmfvpLtAAtU7mERmK9zyuf8rYFaaGdT1uzkS/y2KItikGvT
+	 o12Re6sZbjEYriCfIFC37Egh/XIitFJM8fcOBlsKc/IBtS5dy2K13JSRXcagtpj37l
+	 VjFmkOR8RXW89vYykLzgsKEv1cVLbCm5a3W1SP2o=
+Date: Mon, 15 Apr 2024 13:22:11 -0700
 To: mm-commits@vger.kernel.org,nphamcs@gmail.com,mail@maciej.szmigiero.name,hannes@cmpxchg.org,chengming.zhou@linux.dev,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-remove-same_filled-module-params.patch added to mm-unstable branch
-Message-Id: <20240415202210.A0249C2BD11@smtp.kernel.org>
+Subject: + mm-zswap-remove-same_filled-module-params-fix.patch added to mm-unstable branch
+Message-Id: <20240415202212.69A56C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: remove same_filled module params
+     Subject: mm: zswap: remove same_filled_pages from docs
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-remove-same_filled-module-params.patch
+     mm-zswap-remove-same_filled-module-params-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-remove-same_filled-module-params.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-remove-same_filled-module-params-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,82 +59,81 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zswap: remove same_filled module params
-Date: Sat, 13 Apr 2024 02:24:07 +0000
+Subject: mm: zswap: remove same_filled_pages from docs
+Date: Sun, 14 Apr 2024 21:03:43 +0000
 
-These knobs offer more fine-grained control to userspace than needed and
-directly expose/influence kernel implementation; remove them.
+The module parameters are now removed, remove all references from kernel
+docs.
 
-For disabling same_filled handling, there is no logical reason to refuse
-storing same-filled pages more efficiently and opt for compression. 
-Scanning pages for patterns may be an argument, but the page contents will
-be read into the CPU cache anyway during compression.  Also, removing the
-same_filled handling code does not move the needle significantly in terms
-of performance anyway [1].
-
-For disabling non_same_filled handling, it was added when the compressed
-pages in zswap were not being properly charged to memcgs, as workloads
-could escape the accounting with compression [2].  This is no longer the
-case after commit f4840ccfca25 ("zswap: memcg accounting"), and using
-zswap without compression does not make much sense.
-
-[1]https://lore.kernel.org/lkml/CAJD7tkaySFP2hBQw4pnZHJJwe3bMdjJ1t9VC2VJd=khn1_TXvA@mail.gmail.com/
-[2]https://lore.kernel.org/lkml/19d5cdee-2868-41bd-83d5-6da75d72e940@maciej.szmigiero.name/
-
-Link: https://lkml.kernel.org/r/20240413022407.785696-5-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/ZhxFVggdyvCo79jc@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   19 -------------------
- 1 file changed, 19 deletions(-)
+ Documentation/admin-guide/mm/zswap.rst             |   29 -----------
+ Documentation/driver-api/crypto/iaa/iaa-crypto.rst |    2 
+ 2 files changed, 31 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-remove-same_filled-module-params
-+++ a/mm/zswap.c
-@@ -123,19 +123,6 @@ static unsigned int zswap_accept_thr_per
- module_param_named(accept_threshold_percent, zswap_accept_thr_percent,
- 		   uint, 0644);
+--- a/Documentation/admin-guide/mm/zswap.rst~mm-zswap-remove-same_filled-module-params-fix
++++ a/Documentation/admin-guide/mm/zswap.rst
+@@ -111,35 +111,6 @@ checked if it is a same-value filled pag
+ compressed length of the page is set to zero and the pattern or same-filled
+ value is stored.
  
--/*
-- * Enable/disable handling same-value filled pages (enabled by default).
-- * If disabled every page is considered non-same-value filled.
-- */
--static bool zswap_same_filled_pages_enabled = true;
--module_param_named(same_filled_pages_enabled, zswap_same_filled_pages_enabled,
--		   bool, 0644);
+-Same-value filled pages identification feature is enabled by default and can be
+-disabled at boot time by setting the ``same_filled_pages_enabled`` attribute
+-to 0, e.g. ``zswap.same_filled_pages_enabled=0``. It can also be enabled and
+-disabled at runtime using the sysfs ``same_filled_pages_enabled``
+-attribute, e.g.::
 -
--/* Enable/disable handling non-same-value filled pages (enabled by default) */
--static bool zswap_non_same_filled_pages_enabled = true;
--module_param_named(non_same_filled_pages_enabled, zswap_non_same_filled_pages_enabled,
--		   bool, 0644);
+-	echo 1 > /sys/module/zswap/parameters/same_filled_pages_enabled
 -
- /* Number of zpools in zswap_pool (empirically determined for scalability) */
- #define ZSWAP_NR_ZPOOLS 32
- 
-@@ -1386,9 +1373,6 @@ static bool zswap_is_folio_same_filled(s
- 	unsigned int pos, last_pos = PAGE_SIZE / sizeof(*page) - 1;
- 	bool ret = false;
- 
--	if (!zswap_same_filled_pages_enabled)
--		return false;
+-When zswap same-filled page identification is disabled at runtime, it will stop
+-checking for the same-value filled pages during store operation.
+-In other words, every page will be then considered non-same-value filled.
+-However, the existing pages which are marked as same-value filled pages remain
+-stored unchanged in zswap until they are either loaded or invalidated.
 -
- 	page = kmap_local_folio(folio, 0);
- 	val = page[0];
- 
-@@ -1466,9 +1450,6 @@ bool zswap_store(struct folio *folio)
- 		goto store_entry;
- 	}
- 
--	if (!zswap_non_same_filled_pages_enabled)
--		goto freepage;
+-In some circumstances it might be advantageous to make use of just the zswap
+-ability to efficiently store same-filled pages without enabling the whole
+-compressed page storage.
+-In this case the handling of non-same-value pages by zswap (enabled by default)
+-can be disabled by setting the ``non_same_filled_pages_enabled`` attribute
+-to 0, e.g. ``zswap.non_same_filled_pages_enabled=0``.
+-It can also be enabled and disabled at runtime using the sysfs
+-``non_same_filled_pages_enabled`` attribute, e.g.::
 -
- 	/* if entry is successfully added, it keeps the reference */
- 	entry->pool = zswap_pool_current_get();
- 	if (!entry->pool)
+-	echo 1 > /sys/module/zswap/parameters/non_same_filled_pages_enabled
+-
+-Disabling both ``zswap.same_filled_pages_enabled`` and
+-``zswap.non_same_filled_pages_enabled`` effectively disables accepting any new
+-pages by zswap.
+-
+ To prevent zswap from shrinking pool when zswap is full and there's a high
+ pressure on swap (this will result in flipping pages in and out zswap pool
+ without any real benefit but with a performance drop for the system), a
+--- a/Documentation/driver-api/crypto/iaa/iaa-crypto.rst~mm-zswap-remove-same_filled-module-params-fix
++++ a/Documentation/driver-api/crypto/iaa/iaa-crypto.rst
+@@ -457,7 +457,6 @@ Use the following commands to enable zsw
+   # echo deflate-iaa > /sys/module/zswap/parameters/compressor
+   # echo zsmalloc > /sys/module/zswap/parameters/zpool
+   # echo 1 > /sys/module/zswap/parameters/enabled
+-  # echo 0 > /sys/module/zswap/parameters/same_filled_pages_enabled
+   # echo 100 > /proc/sys/vm/swappiness
+   # echo never > /sys/kernel/mm/transparent_hugepage/enabled
+   # echo 1 > /proc/sys/vm/overcommit_memory
+@@ -599,7 +598,6 @@ the 'fixed' compression mode::
+   echo deflate-iaa > /sys/module/zswap/parameters/compressor
+   echo zsmalloc > /sys/module/zswap/parameters/zpool
+   echo 1 > /sys/module/zswap/parameters/enabled
+-  echo 0 > /sys/module/zswap/parameters/same_filled_pages_enabled
+ 
+   echo 100 > /proc/sys/vm/swappiness
+   echo never > /sys/kernel/mm/transparent_hugepage/enabled
 _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
