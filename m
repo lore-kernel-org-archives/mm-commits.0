@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4FBD137C49
-	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 19:21:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27CB32943C
+	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 19:36:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713295297; cv=none; b=TboJe72fhBurOprOte3h/DuGPySXs2JC2pxgNF9xgLlKj7PhmLbVMHuFdPkwezpGt5LjYtXzXYqrkne5GQEYu6exIHjVdCdwoAgexrZs11+hdZ+7A7AQBk8+wXhm4yJ4Ym+XwkZZUvABYbO7xE1IOtiqCmnCKjdsOOyP2Q2qqUo=
+	t=1713296214; cv=none; b=X6f2ELxVgjWy/ag9pmp2t+L7e2zhvAo9OUtEvvJMXKIIZhw3MFZMp9g7S1Ybc/Ahv//7C3qdnT5x71QOGQIAGeN4Ox+/b6EQh0vn++sekFdGqsJWYYYYLkzGcXIbmrzPcv734vvexjs/n1FdSaZutSgBNrqo/7Va8TZcjtd1UXg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713295297; c=relaxed/simple;
-	bh=2KtflPl+/v3w7uW2Hcif20Bw0w6Gz9Qd9EqNs6vYM1c=;
-	h=Date:To:From:Subject:Message-Id; b=E+S+m2K80H7+0k5zUFcsWTMgI83yZ5EkWErN916rJeDEnAFqj7Lu+/m4Jh1/4W49vnmMXeAPjTqUmW0xPFr5zB0Kj966/JqkPGO7mlELkSjLbx8NwGoBjyU4sSvlqBmZtULBG3j03mmLqWeQzUGlaCldUQQdJLVF2mFuRBQaVOk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FtotGCwQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713296214; c=relaxed/simple;
+	bh=9ekF5bwXjlEXOg5zbsZjP+UVpFm/GP9eCYq8djR0hJk=;
+	h=Date:To:From:Subject:Message-Id; b=XFpNzVePYMrg5kOdtTqIj/rs6i+urK2mIPO3hQLSn8X5QrNLfvq0dXiis1dhu+fNYQ67eyV9sK/PrpPptYz0NPpYQGXhx7A0j+XzShkGwrWLiOLlMHBs6SIaHzu8nUSotGzC2S507X01o3/CYyb1zpwF4Ib6zmGqJpK7Owp8hpw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kClf+obN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FtotGCwQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40449C113CE;
-	Tue, 16 Apr 2024 19:21:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kClf+obN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 999C6C113CE;
+	Tue, 16 Apr 2024 19:36:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713295297;
-	bh=2KtflPl+/v3w7uW2Hcif20Bw0w6Gz9Qd9EqNs6vYM1c=;
+	s=korg; t=1713296213;
+	bh=9ekF5bwXjlEXOg5zbsZjP+UVpFm/GP9eCYq8djR0hJk=;
 	h=Date:To:From:Subject:From;
-	b=FtotGCwQ6r/99A5k/EFyP36GSBEnJm44fgPSpecPOAH5N0s5y5yjwa/WK/r9eUsce
-	 kOrPY7g8YbwO4dv5/YbdK6M3ZBqxHUp0lW2shZACFj9JHUAQ586y+BdUV7T74F2OKd
-	 N1LKZnfFEHVdhBhHs+KmgWRILwy3JvMAj/EddIDs=
-Date: Tue, 16 Apr 2024 12:21:36 -0700
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,miguel.ojeda.sandonis@gmail.com,kernel@xen0n.name,chenhuacai@kernel.org,arnd@arndb.de,david@redhat.com,akpm@linux-foundation.org
+	b=kClf+obNScl81iWd1PNx+KtMePA7mPJrwxYz1lBNrybaP9UWpESJwJhGGAcbtNo2m
+	 jHtliTcn5U0BgLU5IAKxDobv7hQ28RT4D5x6FNm5yB4EPyOAinuhK9Up+Pxgq+zSVG
+	 8EvzctRHEfilht8rXQZF//x2/MUEkxCw1yOX4ud0=
+Date: Tue, 16 Apr 2024 12:36:53 -0700
+To: mm-commits@vger.kernel.org,yangyingliang@huawei.com,shuah@kernel.org,ndesaulniers@google.com,nathan@kernel.org,morbo@google.com,keescook@chromium.org,justinstitt@google.com,ebiederm@xmission.com,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] include-asm-generic-tlbh-629-10-error-parameter-ptep-set-but-not-used.patch removed from -mm tree
-Message-Id: <20240416192137.40449C113CE@smtp.kernel.org>
+Subject: + selftests-exec-make-binaries-position-independent.patch added to mm-nonmm-unstable branch
+Message-Id: <20240416193653.999C6C113CE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,89 +34,78 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: arch/loongarch/include/asm/tlb.h: remove __tlb_remove_tlb_entry()
-has been removed from the -mm tree.  Its filename was
-     include-asm-generic-tlbh-629-10-error-parameter-ptep-set-but-not-used.patch
+The patch titled
+     Subject: selftests: exec: make binaries position independent
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-exec-make-binaries-position-independent.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-exec-make-binaries-position-independent.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: arch/loongarch/include/asm/tlb.h: remove __tlb_remove_tlb_entry()
-Date: Tue, 16 Apr 2024 15:51:30 +0200
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: selftests: exec: make binaries position independent
+Date: Tue, 16 Apr 2024 20:28:29 +0500
 
-In preparation for enabling -Wextra, remove this and rely upon the
-asm-generic version.
+The -static overrides the -pie and binaries aren't position independent
+anymore.  Use -static-pie instead which would produce a static and
+position independent binary.  This has been caught by clang's warnings:
 
-Fixes this warning:
+  clang: warning: argument unused during compilation: '-pie'
+  [-Wunused-command-line-argument]
 
-    ./include/asm-generic/tlb.h:629:10: error: parameter 'ptep' set
-but not used [-Werror,-Wunused-but-set-parameter]
-      629 |                 pte_t *ptep, unsigned int nr, unsigned long address)
-          |                        ^
+Tested with both gcc and clang after this change.
 
-
-Link: https://lkml.kernel.org/r/c82af143-b620-44d9-8647-f52096b851ab@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reported-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Tested-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: WANG Xuerui <kernel@xen0n.name>
+Link: https://lkml.kernel.org/r/20240416152831.3199999-1-usama.anjum@collabora.com
+Fixes: 4d1cd3b2c5c1 ("tools/testing/selftests/exec: fix link error")
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Yang Yingliang <yangyingliang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/include/asm/tlb.h |    2 --
- 1 file changed, 2 deletions(-)
+ tools/testing/selftests/exec/Makefile |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/loongarch/include/asm/tlb.h~include-asm-generic-tlbh-629-10-error-parameter-ptep-set-but-not-used
-+++ a/arch/loongarch/include/asm/tlb.h
-@@ -132,8 +132,6 @@ static __always_inline void invtlb_all(u
- 		);
- }
- 
--#define __tlb_remove_tlb_entry(tlb, ptep, address) do { } while (0)
--
- static void tlb_flush(struct mmu_gather *tlb);
- 
- #define tlb_flush tlb_flush
+--- a/tools/testing/selftests/exec/Makefile~selftests-exec-make-binaries-position-independent
++++ a/tools/testing/selftests/exec/Makefile
+@@ -29,8 +29,8 @@ $(OUTPUT)/execveat.denatured: $(OUTPUT)/
+ 	cp $< $@
+ 	chmod -x $@
+ $(OUTPUT)/load_address_4096: load_address.c
+-	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x1000 -pie -static $< -o $@
++	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x1000 -static-pie $< -o $@
+ $(OUTPUT)/load_address_2097152: load_address.c
+-	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x200000 -pie -static $< -o $@
++	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x200000 -static-pie $< -o $@
+ $(OUTPUT)/load_address_16777216: load_address.c
+-	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x1000000 -pie -static $< -o $@
++	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x1000000 -static-pie $< -o $@
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
-mm-madvise-make-madv_populate_readwrite-handle-vm_fault_retry-properly.patch
-mm-madvise-dont-perform-madvise-vma-walk-for-madv_populate_readwrite.patch
-mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared.patch
-mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared-fix.patch
-selftests-memfd_secret-add-vmsplice-test.patch
-mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed.patch
-mm-optimize-config_per_vma_lock-member-placement-in-vm_area_struct.patch
-mm-remove-prot-parameter-from-move_pte.patch
-mm-gup-consistently-name-gup-fast-functions.patch
-mm-treewide-rename-config_have_fast_gup-to-config_have_gup_fast.patch
-mm-use-gup-fast-instead-fast-gup-in-remaining-comments.patch
-drivers-virt-acrn-fix-pfnmap-pte-checks-in-acrn_vm_ram_map.patch
-mm-pass-vma-instead-of-mm-to-follow_pte.patch
-mm-follow_pte-improvements.patch
-mm-allow-for-detecting-underflows-with-page_mapcount-again.patch
-mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte.patch
-mm-rmap-add-fast-path-for-small-folios-when-adding-removing-duplicating.patch
-mm-track-mapcount-of-large-folios-in-single-value.patch
-mm-improve-folio_likely_mapped_shared-using-the-mapcount-of-large-folios.patch
-mm-make-folio_mapcount-return-0-for-small-typed-folios.patch
-mm-memory-use-folio_mapcount-in-zap_present_folio_ptes.patch
-mm-huge_memory-use-folio_mapcount-in-zap_huge_pmd-sanity-check.patch
-mm-memory-failure-use-folio_mapcount-in-hwpoison_user_mappings.patch
-mm-page_alloc-use-folio_mapped-in-__alloc_contig_migrate_range.patch
-mm-migrate-use-folio_likely_mapped_shared-in-add_page_for_migration.patch
-sh-mm-cache-use-folio_mapped-in-copy_from_user_page.patch
-mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio.patch
-mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page.patch
-trace-events-page_ref-trace-the-raw-page-mapcount-value.patch
-xtensa-mm-convert-check_tlb_entry-to-sanity-check-folios.patch
-mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch
-documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch
-mm-ksm-rename-get_ksm_page_flags-to-ksm_get_folio_flags.patch
-loongarch-tlb-fix-error-parameter-ptep-set-but-not-used-due-to-__tlb_remove_tlb_entry.patch
+selftests-exec-make-binaries-position-independent.patch
 
