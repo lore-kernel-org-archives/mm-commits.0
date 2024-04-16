@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 160ED1CF8A
-	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 20:00:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 841121386D6
+	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 20:00:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713297624; cv=none; b=T30eBrjys1F0NeSapVshvW9egXpvXvPVsyTKA60MYH3T3NJ+7x4m6RaokpYDh818m+VYRy/yDfCiJ5X0EODQ47naJKv8uc4/4j7ELkDFSuEhZWHV8imPIjeqZ4T/eoV1GAOVLTENc3CAsOhZ5k4HzBIWM97gZiA/Jk0rfIuzfTs=
+	t=1713297626; cv=none; b=Slr/nIVhYxSr9OQoZNiFUJVpgx1qyr38LKQYWMxCr78/455DWMK4MLJRIGBi0zjPKHVFYSeiji0VtsJvlQ9t7xxDnrewkVGKVh0l32PtUqlsvz6sdXcpVJiSX/nOiOVziEbzLq5KUSqFGU8IsDk+9j4Krj5jyEEnTEI9hDUWxWA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713297624; c=relaxed/simple;
-	bh=U386HPPU4Fv6gpKBn1x0bWGug+4PFWW4+1+7U/h9Q4w=;
-	h=Date:To:From:Subject:Message-Id; b=GbMPi5/fbibrP6AJsQJgWDazajpzvadCtiJgoGYZwq5iZ4wSkLvlBCSYIyvxcmw3Uudi218T3WaAkna97NmdZ7p/18pIDjAIpNglNy9ECRDtJQwvnWmLTLZ6NpIEUt6uOCPH0YIrKWF04C8MMVcdGYttVZvnEOg6YjVckyBAFnI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FkcPWJrs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713297626; c=relaxed/simple;
+	bh=c3yXV9njZBw1l+b5SIZRIz/5GfHGSIP3ADdbNLL7VD4=;
+	h=Date:To:From:Subject:Message-Id; b=HxYF3veHGIYfN1Rr5oSqZ2YCA4iqaVk2fAksWcX0b3RbR3X2rM3kRGacp2n7m3C07OIp0rxHT1fq1hO/12uF+THe6bw44UbYCs94XcgZHa4yzDeQH5XbpTlT1PpkmI8csZQ+6BcVmYrb5ZA7GQJNNUmcQrgiEycEpCtGtnEm+Ww=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mHmC5q7M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FkcPWJrs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB991C113CE;
-	Tue, 16 Apr 2024 20:00:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mHmC5q7M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 146ECC113CE;
+	Tue, 16 Apr 2024 20:00:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713297623;
-	bh=U386HPPU4Fv6gpKBn1x0bWGug+4PFWW4+1+7U/h9Q4w=;
+	s=korg; t=1713297626;
+	bh=c3yXV9njZBw1l+b5SIZRIz/5GfHGSIP3ADdbNLL7VD4=;
 	h=Date:To:From:Subject:From;
-	b=FkcPWJrs/XhYgrsTyOU1E+6526/VGSvpRRJFpkrLpDbYRSAuYiCkzboJ3rWwoXg1K
-	 RwK04d+9B9C/fslJPKAEP/GQySZk/ouFTu9aqgNit5sO+SUSYGol1PdlRtcAQVJGWm
-	 jL7AplW6VHQRvsXVbKqfbLV0lIJsy8x4QTH2XZKQ=
-Date: Tue, 16 Apr 2024 13:00:23 -0700
+	b=mHmC5q7MCW8SfbMjRlQFe+ZYZmFlaS5+zpoqi4U3GZPAV5axpvJAI2CQA4XDHRTKa
+	 Gb+3RuuinKAnBIJtP7PnIjleqg4p6KBx0UPir/RSIMOk+nCZtXr6S28B9/3uFgM6XX
+	 fsEJVKDe6C+J1uD3eXVJGzwDJwpbsNUsPPuFZm4s=
+Date: Tue, 16 Apr 2024 13:00:25 -0700
 To: mm-commits@vger.kernel.org,p.raghav@samsung.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch added to mm-unstable branch
-Message-Id: <20240416200023.DB991C113CE@smtp.kernel.org>
+Subject: + buffer-add-kernel-doc-for-brelse-and-__brelse.patch added to mm-unstable branch
+Message-Id: <20240416200026.146ECC113CE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: buffer: fix __bread and __bread_gfp kernel-doc
+     Subject: buffer: add kernel-doc for brelse() and __brelse()
 has been added to the -mm mm-unstable branch.  Its filename is
-     buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch
+     buffer-add-kernel-doc-for-brelse-and-__brelse.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-add-kernel-doc-for-brelse-and-__brelse.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,104 +59,75 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: fix __bread and __bread_gfp kernel-doc
-Date: Tue, 16 Apr 2024 04:17:48 +0100
+Subject: buffer: add kernel-doc for brelse() and __brelse()
+Date: Tue, 16 Apr 2024 04:17:49 +0100
 
-The extra indentation confused the kernel-doc parser, so remove it.  Fix
-some other wording while I'm here, and advise the user they need to call
-brelse() on this buffer.
+Move the documentation for __brelse() to brelse(), format it as kernel-doc
+and update it from talking about pages to folios.
 
-__bread_gfp() isn't used directly by filesystems, but the other wrappers
-for it don't have documentation, so document it accordingly.
-
-Link: https://lkml.kernel.org/r/20240416031754.4076917-5-willy@infradead.org
-Co-developed-by: Pankaj Raghav <p.raghav@samsung.com>
-Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
+Link: https://lkml.kernel.org/r/20240416031754.4076917-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |   33 +++++++++++++++++++++------------
- include/linux/buffer_head.h |   22 +++++++++++++---------
- 2 files changed, 34 insertions(+), 21 deletions(-)
+ fs/buffer.c                 |   17 ++++++++---------
+ include/linux/buffer_head.h |   16 ++++++++++++++++
+ 2 files changed, 24 insertions(+), 9 deletions(-)
 
---- a/fs/buffer.c~buffer-fix-__bread-and-__bread_gfp-kernel-doc
+--- a/fs/buffer.c~buffer-add-kernel-doc-for-brelse-and-__brelse
 +++ a/fs/buffer.c
-@@ -1453,20 +1453,29 @@ void __breadahead(struct block_device *b
- EXPORT_SYMBOL(__breadahead);
+@@ -1226,17 +1226,16 @@ void mark_buffer_write_io_error(struct b
+ }
+ EXPORT_SYMBOL(mark_buffer_write_io_error);
  
- /**
-- *  __bread_gfp() - reads a specified block and returns the bh
-- *  @bdev: the block_device to read from
-- *  @block: number of block
-- *  @size: size (in bytes) to read
-- *  @gfp: page allocation flag
-+ * __bread_gfp() - Read a block.
-+ * @bdev: The block device to read from.
-+ * @block: Block number in units of block size.
-+ * @size: The block size of this device in bytes.
-+ * @gfp: Not page allocation flags; see below.
-  *
-- *  Reads a specified block, and returns buffer head that contains it.
-- *  The page cache can be allocated from non-movable area
-- *  not to prevent page migration if you set gfp to zero.
-- *  It returns NULL if the block was unreadable.
-+ * You are not expected to call this function.  You should use one of
-+ * sb_bread(), sb_bread_unmovable() or __bread().
+-/*
+- * Decrement a buffer_head's reference count.  If all buffers against a page
+- * have zero reference count, are clean and unlocked, and if the page is clean
+- * and unlocked then try_to_free_buffers() may strip the buffers from the page
+- * in preparation for freeing it (sometimes, rarely, buffers are removed from
+- * a page but it ends up not being freed, and buffers may later be reattached).
++/**
++ * __brelse - Release a buffer.
++ * @bh: The buffer to release.
 + *
-+ * Read a specified block, and return the buffer head that refers to it.
-+ * If @gfp is 0, the memory will be allocated using the block device's
-+ * default GFP flags.  If @gfp is __GFP_MOVABLE, the memory may be
-+ * allocated from a movable area.  Do not pass in a complete set of
-+ * GFP flags.
-+ *
-+ * The returned buffer head has its refcount increased.  The caller should
-+ * call brelse() when it has finished with the buffer.
-+ *
-+ * Context: May sleep waiting for I/O.
-+ * Return: NULL if the block was unreadable.
++ * This variant of brelse() can be called if @bh is guaranteed to not be NULL.
   */
--struct buffer_head *
--__bread_gfp(struct block_device *bdev, sector_t block,
--		   unsigned size, gfp_t gfp)
-+struct buffer_head *__bread_gfp(struct block_device *bdev, sector_t block,
-+		unsigned size, gfp_t gfp)
+-void __brelse(struct buffer_head * buf)
++void __brelse(struct buffer_head *bh)
  {
- 	struct buffer_head *bh;
- 
---- a/include/linux/buffer_head.h~buffer-fix-__bread-and-__bread_gfp-kernel-doc
+-	if (atomic_read(&buf->b_count)) {
+-		put_bh(buf);
++	if (atomic_read(&bh->b_count)) {
++		put_bh(bh);
+ 		return;
+ 	}
+ 	WARN(1, KERN_ERR "VFS: brelse: Trying to free free buffer\n");
+--- a/include/linux/buffer_head.h~buffer-add-kernel-doc-for-brelse-and-__brelse
 +++ a/include/linux/buffer_head.h
-@@ -437,17 +437,21 @@ static inline void bh_readahead_batch(in
+@@ -303,6 +303,22 @@ static inline void put_bh(struct buffer_
+         atomic_dec(&bh->b_count);
  }
  
- /**
-- *  __bread() - reads a specified block and returns the bh
-- *  @bdev: the block_device to read from
-- *  @block: number of block
-- *  @size: size (in bytes) to read
-+ * __bread() - Read a block.
-+ * @bdev: The block device to read from.
-+ * @block: Block number in units of block size.
-+ * @size: The block size of this device in bytes.
-  *
-- *  Reads a specified block, and returns buffer head that contains it.
-- *  The page cache is allocated from movable area so that it can be migrated.
-- *  It returns NULL if the block was unreadable.
-+ * Read a specified block, and return the buffer head that refers
-+ * to it.  The memory is allocated from the movable area so that it can
-+ * be migrated.  The returned buffer head has its refcount increased.
-+ * The caller should call brelse() when it has finished with the buffer.
++/**
++ * brelse - Release a buffer.
++ * @bh: The buffer to release.
 + *
-+ * Context: May sleep waiting for I/O.
-+ * Return: NULL if the block was unreadable.
-  */
--static inline struct buffer_head *
--__bread(struct block_device *bdev, sector_t block, unsigned size)
-+static inline struct buffer_head *__bread(struct block_device *bdev,
-+		sector_t block, unsigned size)
++ * Decrement a buffer_head's reference count.  If @bh is NULL, this
++ * function is a no-op.
++ *
++ * If all buffers on a folio have zero reference count, are clean
++ * and unlocked, and if the folio is unlocked and not under writeback
++ * then try_to_free_buffers() may strip the buffers from the folio in
++ * preparation for freeing it (sometimes, rarely, buffers are removed
++ * from a folio but it ends up not being freed, and buffers may later
++ * be reattached).
++ *
++ * Context: Any context.
++ */
+ static inline void brelse(struct buffer_head *bh)
  {
- 	return __bread_gfp(bdev, block, size, __GFP_MOVABLE);
- }
+ 	if (bh)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
