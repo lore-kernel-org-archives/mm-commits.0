@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90F9F1E511
-	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 22:40:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC3AF1384AD;
+	Tue, 16 Apr 2024 22:40:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713307235; cv=none; b=FeRdZRVJOX6HDCEIVTp1jMEMPrWB2FaoUjIJplDuNhO/3nACnOpkU9Jp9u46l5ZGdUu8mr5IM1FsBhsACTotJZdCZThFDbB6lDDnZzaXi5w5Fwx6YV8lxBAuyszUnW4U7B7fs4B3ePThvaeP+C725ZaeDpBpIy1syFNsC28l6E0=
+	t=1713307236; cv=none; b=tZ+B2a2oOoeVJRKDydf6sNo0YjXztK8nmP8u//gddWrI2yJkU2vctuNPOWdFH5i7b8mDYl5XT3YWWVD9RobJuzptNTD44vZef3RAQ07JryPBIfKnKZW0lxTDvrt9k0hl55blF95JwoEYGhObg3Mnf5CRzJLQ3FJ/MX7yoywYaTM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713307235; c=relaxed/simple;
-	bh=x9Z70U8W6m4ufThnX5sbH0To60CtoyKZdt+vaxRgWHc=;
-	h=Date:To:From:Subject:Message-Id; b=bVrJJm1S24SO9remXcY8d0dsptiXXPxca3ySDHKoFN9ektQtOepuLM3bAVCuI1K7ZI294FjPCULqX6vbbpN15vRe1L3y2v9gSexFRCmhMNxzbAXcrFv/VLUKtH6gKzq/xa4ppHzw3tR4l8NW6krsoeH4fmPHn+dzjvk6Bqawl4M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B+Tvyneb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713307236; c=relaxed/simple;
+	bh=gQV0H/+4hMv3qKKvIgPuZe8r0gEnMx7SC9eIfguRW3c=;
+	h=Date:To:From:Subject:Message-Id; b=ChikK6T8F8CoNYaB9tvqQ5gfQNKFLH+CdIpkJxRBkg90OAIZG8x5D1ihUWAAz+QWGPff8Kq6qfHZOxzAnc3iyVFFXLnrfYiFYyDEVgJfnxSrb8Jv7EzxbnugoIxmXXgi6JzBFPhVU+7lKRSZTqmrrF3SWcM3wIotn6sl/4pX8MA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XGTSRmQT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B+Tvyneb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 225C0C32783;
-	Tue, 16 Apr 2024 22:40:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XGTSRmQT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F28DC113CE;
+	Tue, 16 Apr 2024 22:40:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713307235;
-	bh=x9Z70U8W6m4ufThnX5sbH0To60CtoyKZdt+vaxRgWHc=;
+	s=korg; t=1713307236;
+	bh=gQV0H/+4hMv3qKKvIgPuZe8r0gEnMx7SC9eIfguRW3c=;
 	h=Date:To:From:Subject:From;
-	b=B+TvynebibRTPdU9EOu+HrrEgytldI+WmkL59kLvg6EPQ6L30dr8gAUPjMbx3EBF5
-	 o54DGKjjqOUDN+By7bxWsPph+9n+1csnzAQinFDxoXzRTGkm4Ktk/d45y6KBAxDTv+
-	 LLEFf8dhCF5jxchoZHvAS86B7P81SmfttguAih/0=
-Date: Tue, 16 Apr 2024 15:40:34 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,linmiaohe@huawei.com,nao.horiguchi@gmail.com,akpm@linux-foundation.org
+	b=XGTSRmQTyHsaoyAw9bmTPBuZuEuow9H6qW+QbPIsaWtky5akfLxCsweHi7sfp59bP
+	 4LEkbMS73cCx4yrXSFRhzF5WiDUNav3i73o+IgN70beYlXpUGRNgDOuNs5+EDwAXkb
+	 7c/yQbka42862Rvw5LvdWYKVAoou1ilo6HX9i7Zw=
+Date: Tue, 16 Apr 2024 15:40:36 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,aha310510@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-update-naoya-horiguchis-email-address.patch removed from -mm tree
-Message-Id: <20240416224035.225C0C32783@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-oob-in-nilfs_set_de_type.patch removed from -mm tree
+Message-Id: <20240416224036.8F28DC113CE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: update Naoya Horiguchi's email address
+     Subject: nilfs2: fix OOB in nilfs_set_de_type
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-naoya-horiguchis-email-address.patch
+     nilfs2-fix-oob-in-nilfs_set_de_type.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Subject: MAINTAINERS: update Naoya Horiguchi's email address
-Date: Sat, 13 Apr 2024 03:17:20 +0900
+From: Jeongjun Park <aha310510@gmail.com>
+Subject: nilfs2: fix OOB in nilfs_set_de_type
+Date: Tue, 16 Apr 2024 03:20:48 +0900
 
-My old NEC address has been removed, so update MAINTAINERS and .mailmap to
-map it to my gmail address.
+The size of the nilfs_type_by_mode array in the fs/nilfs2/dir.c file is
+defined as "S_IFMT >> S_SHIFT", but the nilfs_set_de_type() function,
+which uses this array, specifies the index to read from the array in the
+same way as "(mode & S_IFMT) >> S_SHIFT".
 
-Link: https://lkml.kernel.org/r/20240412181720.18452-1-nao.horiguchi@gmail.com
-Signed-off-by: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+static void nilfs_set_de_type(struct nilfs_dir_entry *de, struct inode
+ *inode)
+{
+	umode_t mode = inode->i_mode;
+
+	de->file_type = nilfs_type_by_mode[(mode & S_IFMT)>>S_SHIFT]; // oob
+}
+
+However, when the index is determined this way, an out-of-bounds (OOB)
+error occurs by referring to an index that is 1 larger than the array size
+when the condition "mode & S_IFMT == S_IFMT" is satisfied.  Therefore, a
+patch to resize the nilfs_type_by_mode array should be applied to prevent
+OOB errors.
+
+Link: https://lkml.kernel.org/r/20240415182048.7144-1-konishi.ryusuke@gmail.com
+Reported-by: syzbot+2e22057de05b9f3b30d8@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=2e22057de05b9f3b30d8
+Fixes: 2ba466d74ed7 ("nilfs2: directory entry operations")
+Signed-off-by: Jeongjun Park <aha310510@gmail.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap    |    3 ++-
- MAINTAINERS |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ fs/nilfs2/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/.mailmap~maintainers-update-naoya-horiguchis-email-address
-+++ a/.mailmap
-@@ -446,7 +446,8 @@ Mythri P K <mythripk@ti.com>
- Nadav Amit <nadav.amit@gmail.com> <namit@vmware.com>
- Nadav Amit <nadav.amit@gmail.com> <namit@cs.technion.ac.il>
- Nadia Yvette Chambers <nyc@holomorphy.com> William Lee Irwin III <wli@holomorphy.com>
--Naoya Horiguchi <naoya.horiguchi@nec.com> <n-horiguchi@ah.jp.nec.com>
-+Naoya Horiguchi <nao.horiguchi@gmail.com> <n-horiguchi@ah.jp.nec.com>
-+Naoya Horiguchi <nao.horiguchi@gmail.com> <naoya.horiguchi@nec.com>
- Nathan Chancellor <nathan@kernel.org> <natechancellor@gmail.com>
- Neeraj Upadhyay <quic_neeraju@quicinc.com> <neeraju@codeaurora.org>
- Neil Armstrong <neil.armstrong@linaro.org> <narmstrong@baylibre.com>
---- a/MAINTAINERS~maintainers-update-naoya-horiguchis-email-address
-+++ a/MAINTAINERS
-@@ -10024,7 +10024,7 @@ F:	drivers/media/platform/st/sti/hva
+--- a/fs/nilfs2/dir.c~nilfs2-fix-oob-in-nilfs_set_de_type
++++ a/fs/nilfs2/dir.c
+@@ -240,7 +240,7 @@ nilfs_filetype_table[NILFS_FT_MAX] = {
  
- HWPOISON MEMORY FAILURE HANDLING
- M:	Miaohe Lin <linmiaohe@huawei.com>
--R:	Naoya Horiguchi <naoya.horiguchi@nec.com>
-+R:	Naoya Horiguchi <nao.horiguchi@gmail.com>
- L:	linux-mm@kvack.org
- S:	Maintained
- F:	mm/hwpoison-inject.c
+ #define S_SHIFT 12
+ static unsigned char
+-nilfs_type_by_mode[S_IFMT >> S_SHIFT] = {
++nilfs_type_by_mode[(S_IFMT >> S_SHIFT) + 1] = {
+ 	[S_IFREG >> S_SHIFT]	= NILFS_FT_REG_FILE,
+ 	[S_IFDIR >> S_SHIFT]	= NILFS_FT_DIR,
+ 	[S_IFCHR >> S_SHIFT]	= NILFS_FT_CHRDEV,
 _
 
-Patches currently in -mm which might be from nao.horiguchi@gmail.com are
+Patches currently in -mm which might be from aha310510@gmail.com are
 
 
