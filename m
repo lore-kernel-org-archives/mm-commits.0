@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 163C81E876
-	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 19:55:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 559961386AC
+	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 19:56:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713297321; cv=none; b=FsVs7gouurkv80ZhoYxjHQaOpSyNiS3ZXh7c95dnn36eqJrKNlHlCEakdriKWm2zJufEV2PtlPHCreyYJVV4O/Eala2c5wMFZrEquYl6PU1THwxS6KuVE7z33UY4UCNyk9J8z5K2qekLq2odV21ZTyLmwoGYxygDJ4Q73tu+Zso=
+	t=1713297392; cv=none; b=m24/t3Mt9uoJDjfXqdbJjGZny6HEoL+QsTwN+jzQg6gHVCUGCDS8NpvdrirhyKaPLVvmV3qWTOkb3X5SGyEMF6FKbjSfXmWcUMH2hXF4IUv1Ll5Qr20FRgZv4Iwtr100me0Igt/FVdqM1Xq3lXNBz+QR8Q/JlfMMOv9FBWzMhYQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713297321; c=relaxed/simple;
-	bh=w17tctT4gefGqn6mulYTtPxNuqTpNBqgvHTQSH9dLXU=;
-	h=Date:To:From:Subject:Message-Id; b=JbGAJa/l3uO0c5bhal5kkPasrXGbquyKb3qbsjXegZm5jl6lioJq6BUUsYsFXbWTD+jGV7YgpFnhqTesqDy38+HSPbWri3uKnF+hqskYtHdL2ZEnV3bJmKjew8KseuUD3PBLpdgjVJj9wuUuTFNI/XjSfUgn0nk6lf7iUpxZbfo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MwEoSu1k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713297392; c=relaxed/simple;
+	bh=WSPRC0OyVKbzdaLVQ91taPtcEFBIVlVRer2tsLI+Cbw=;
+	h=Date:To:From:Subject:Message-Id; b=GY59garxEAiN9CFi2s/nINsfFc+WGkwj2o3mmPVSACyO5mmfBvfAghz/R1JmyBRznqQ8K/nhPGFL2pinotQfuURPINXjYgW/SvZmwPYeUYxWMLY405h7M2XW6mOJGp52JvYQwmoaojBHXbDE+Rjh1p/9bStrf8vFQVnb0yFEarc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LSOLTfWK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MwEoSu1k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E449C113CE;
-	Tue, 16 Apr 2024 19:55:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LSOLTfWK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2C93C32781;
+	Tue, 16 Apr 2024 19:56:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713297320;
-	bh=w17tctT4gefGqn6mulYTtPxNuqTpNBqgvHTQSH9dLXU=;
+	s=korg; t=1713297391;
+	bh=WSPRC0OyVKbzdaLVQ91taPtcEFBIVlVRer2tsLI+Cbw=;
 	h=Date:To:From:Subject:From;
-	b=MwEoSu1kGrGMwlgyQ+zbXyK6gbBYhpC8BT0DhmUGL/6bj+Zf3vGx6iL/phHf0/mfw
-	 yL+CxpCjweFySUbGYkuQYhNN3ZSNBaYwsVrds9PZt/i/c4hYiZf9NoXvGYlIFEv8T3
-	 SUYqcVJI2Q3+xNFVNoZqs42H6N5/dBS9hQl2y+Co=
-Date: Tue, 16 Apr 2024 12:55:19 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=LSOLTfWKBhlCSLsTjt1sSQsEebj/hubbDehXV1v0ODDkivWfnIvJ0PXYq6yIYYi90
+	 vTz35Qxy4iUD/+f2+jZBgY9bzOpEAkeppY4W14UvN8cmFxfukfJ+wNZQAu/X/aE6Jj
+	 SuY69ujRyJqn5PnwOAvOSaYyAtvkS9sz9ynC8Raw=
+Date: Tue, 16 Apr 2024 12:56:31 -0700
+To: mm-commits@vger.kernel.org,yi.zhang@huawei.com,yangerkun@huawei.com,willy@infradead.org,houtao1@huawei.com,leo.lilong@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-xarray-introduce-a-new-helper-xas_get_order-v4.patch added to mm-unstable branch
-Message-Id: <20240416195520.7E449C113CE@smtp.kernel.org>
+Subject: + xarray-inline-xas_descend-to-improve-performance.patch added to mm-unstable branch
+Message-Id: <20240416195631.D2C93C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/xarray: introduce a new helper xas_get_order
+     Subject: xarray: inline xas_descend to improve performance
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-xarray-introduce-a-new-helper-xas_get_order-v4.patch
+     xarray-inline-xas_descend-to-improve-performance.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-xarray-introduce-a-new-helper-xas_get_order-v4.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-inline-xas_descend-to-improve-performance.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,48 +58,72 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: lib/xarray: introduce a new helper xas_get_order
-Date: Tue, 16 Apr 2024 15:17:21 +0800
+From: Long Li <leo.lilong@huawei.com>
+Subject: xarray: inline xas_descend to improve performance
+Date: Tue, 16 Apr 2024 14:16:28 +0800
 
-simplify comment, sparse warning fix, per Matthew Wilcox
+The commit 63b1898fffcd ("XArray: Disallow sibling entries of nodes")
+modified the xas_descend function in such a way that it was no longer
+being compiled as an inline function, because it increased the size of
+xas_descend(), and the compiler no longer optimizes it as inline.  This
+had a negative impact on performance, xas_descend is called frequently to
+traverse downwards in the xarray tree, making it a hot function.
 
-Link: https://lkml.kernel.org/r/20240416071722.45997-4-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
+Inlining xas_descend has been shown to significantly improve performance
+by approximately 4.95% in the iozone write test.
+
+  Machine: Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz
+  #iozone i 0 -i 1 -s 64g -r 16m -f /test/tmptest
+
+Before this patch:
+
+       kB    reclen    write   rewrite     read    reread
+ 67108864     16384  2230080   3637689  6315197   5496027
+
+After this patch:
+
+       kB    reclen    write   rewrite     read    reread
+ 67108864     16384  2340360   3666175  6272401   5460782
+
+Percentage change:
+                       4.95%     0.78%   -0.68%    -0.64%
+
+This patch introduces inlining to the xas_descend function. While this
+change increases the size of lib/xarray.o, the performance gains in
+critical workloads make this an acceptable trade-off.
+
+Size comparison before and after patch:
+.text		.data		.bss		file
+0x3502		    0		   0		lib/xarray.o.before
+0x3602		    0		   0		lib/xarray.o.after
+
+Link: https://lkml.kernel.org/r/20240416061628.3768901-1-leo.lilong@huawei.com
+Signed-off-by: Long Li <leo.lilong@huawei.com>
+Cc: Hou Tao <houtao1@huawei.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: yangerkun <yangerkun@huawei.com>
+Cc: Zhang Yi <yi.zhang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xarray.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/xarray.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/xarray.c~lib-xarray-introduce-a-new-helper-xas_get_order-v4
+--- a/lib/xarray.c~xarray-inline-xas_descend-to-improve-performance
 +++ a/lib/xarray.c
-@@ -1750,7 +1750,7 @@ unlock:
- EXPORT_SYMBOL(xa_store_range);
+@@ -200,7 +200,8 @@ static void *xas_start(struct xa_state *
+ 	return entry;
+ }
  
- /**
-- * xas_get_order() - Get the order of an loaded entry after xas_load.
-+ * xas_get_order() - Get the order of an entry.
-  * @xas: XArray operation state.
-  *
-  * Called after xas_load, the xas should not be in an error state.
-@@ -1769,7 +1769,7 @@ int xas_get_order(struct xa_state *xas)
- 
- 		if (slot >= XA_CHUNK_SIZE)
- 			break;
--		if (!xa_is_sibling(xas->xa_node->slots[slot]))
-+		if (!xa_is_sibling(xa_entry(xas->xa, xas->xa_node, slot)))
- 			break;
- 		order++;
- 	}
+-static void *xas_descend(struct xa_state *xas, struct xa_node *node)
++static __always_inline void *xas_descend(struct xa_state *xas,
++					struct xa_node *node)
+ {
+ 	unsigned int offset = get_offset(xas->xa_index, node);
+ 	void *entry = xa_entry(xas->xa, node, offset);
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from leo.lilong@huawei.com are
 
-mm-filemap-return-early-if-failed-to-allocate-memory-for-split.patch
-mm-filemap-clean-up-hugetlb-exclusion-code.patch
-lib-xarray-introduce-a-new-helper-xas_get_order.patch
-lib-xarray-introduce-a-new-helper-xas_get_order-v4.patch
-mm-filemap-optimize-filemap-folio-adding.patch
+xarray-inline-xas_descend-to-improve-performance.patch
 
