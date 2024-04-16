@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EB581386D6
-	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 20:00:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A88BB1386AC
+	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 20:00:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713297628; cv=none; b=IIw3nzrJk9B7//wNqosMaC7s7qieOwcMtpXsOI/MMkNYzSjX+T2vhqC1nfs/O8unYQwCFj2UE2Ds3XjqkRvUYGX/ZTX9Md5KwF8T4nEi8p51k9BQKd3NgOMc+F0Iho0kzZ3xkatMcCe+oJib8YpCQ1qF5JWSjeXWtfzNII14o6w=
+	t=1713297631; cv=none; b=IUZ+ybezovD67/e/dRT6IqXeR51fjwX///JTJ57tqCuabhkhOPdZxCo67fNf9BfTBoYbsM/tEBHItuEIWrBTmCn0VfnDdUy+6qvk/JIMc5kFlUu6Z7OYgAnG/m/YpWzX+fC0azR+thG13HtCEFEuiBXJ4EMjg11gKsDXha/O4ns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713297628; c=relaxed/simple;
-	bh=+soYva6Rk8kEyBQarACujnVaQay9JXn3MDSvYA5GM3Y=;
-	h=Date:To:From:Subject:Message-Id; b=UJl6ZhTN7pcKeBqGpK5gCiYx3pUqN/wXkBFh+u073TCx5R5r2k75+3vZU3nG5ZRcVrVMfiYcFyxsgCNa2m9N2SlgWT76qruFqUHL9oCwmzSRGs77W9Q4Y8C/GF6LaSyVgAZorbYyjk/4Z0DZFlDqEJABHJXje6t9DjrvemuPju0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e9wROAy2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713297631; c=relaxed/simple;
+	bh=vWxCjFmSCzl2I24y+U15nhubhxxJTjhxaO2+C/5DrTo=;
+	h=Date:To:From:Subject:Message-Id; b=G8Lnmg5Li5zasAI4+mRboNXJi6F9Qd8TahomawSGHrJuhdn+PES3VtZ9V6/DCOO7UtLZ2pumf7u6Hzubs3lo2DufRJc0MHqZjWfneIJz1YKMwe6OSpPqbpd/GpGqIMxSmiuYSeKaIQP0f8UHmjw/dB+/qtTapvTnrsDZFH1kaXA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L4CaRYV6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e9wROAy2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43C7AC113CE;
-	Tue, 16 Apr 2024 20:00:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L4CaRYV6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DB99C113CE;
+	Tue, 16 Apr 2024 20:00:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713297628;
-	bh=+soYva6Rk8kEyBQarACujnVaQay9JXn3MDSvYA5GM3Y=;
+	s=korg; t=1713297630;
+	bh=vWxCjFmSCzl2I24y+U15nhubhxxJTjhxaO2+C/5DrTo=;
 	h=Date:To:From:Subject:From;
-	b=e9wROAy2VT08N4wh6iI0oFXtbgOgAYXeEkETRiMnJJkUrGLpFXtwrkwwN5PC3JKwa
-	 Zi8oOgkBhnIVvp9aAsYPzkzWnSDavqO6ZEaIaUlIRqd4jmzEwJOCnyQ58tDLzIYHH1
-	 bHA8c4V8KpldRGhPT9tuq53q/HPF5sG0ShoZZwQk=
-Date: Tue, 16 Apr 2024 13:00:27 -0700
+	b=L4CaRYV6DhkcvMkkajDI92W9lNtVR45DPT+0PRphrjB+8FqZWBrUXIJOGfGJWpGPw
+	 SMozPgefRyihx3Qj61rfhChJO506ryO5+27cgNO4VGMsXWSyEUC8yzPJgMihUU3tWS
+	 8SA1CFKlihd8N6+Xr66//6iGD6EtsCFzBJ5Obq2Y=
+Date: Tue, 16 Apr 2024 13:00:29 -0700
 To: mm-commits@vger.kernel.org,p.raghav@samsung.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + buffer-add-kernel-doc-for-bforget-and-__bforget.patch added to mm-unstable branch
-Message-Id: <20240416200028.43C7AC113CE@smtp.kernel.org>
+Subject: + buffer-improve-bdev_getblk-documentation.patch added to mm-unstable branch
+Message-Id: <20240416200030.5DB99C113CE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: buffer: add kernel-doc for bforget() and __bforget()
+     Subject: buffer: improve bdev_getblk documentation
 has been added to the -mm mm-unstable branch.  Its filename is
-     buffer-add-kernel-doc-for-bforget-and-__bforget.patch
+     buffer-improve-bdev_getblk-documentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-add-kernel-doc-for-bforget-and-__bforget.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-improve-bdev_getblk-documentation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,58 +59,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: add kernel-doc for bforget() and __bforget()
-Date: Tue, 16 Apr 2024 04:17:50 +0100
+Subject: buffer: improve bdev_getblk documentation
+Date: Tue, 16 Apr 2024 04:17:51 +0100
 
-Distinguish these functions from brelse() and __brelse().
+Add some more information about the state of the buffer_head returned.
 
-Link: https://lkml.kernel.org/r/20240416031754.4076917-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240416031754.4076917-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Pankaj Raghav <p.raghav@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |    9 ++++++---
- include/linux/buffer_head.h |   10 ++++++++++
- 2 files changed, 16 insertions(+), 3 deletions(-)
+ fs/buffer.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/fs/buffer.c~buffer-add-kernel-doc-for-bforget-and-__bforget
+--- a/fs/buffer.c~buffer-improve-bdev_getblk-documentation
 +++ a/fs/buffer.c
-@@ -1242,9 +1242,12 @@ void __brelse(struct buffer_head *bh)
- }
- EXPORT_SYMBOL(__brelse);
- 
--/*
-- * bforget() is like brelse(), except it discards any
-- * potentially dirty data.
-+/**
-+ * __bforget - Discard any dirty data in a buffer.
-+ * @bh: The buffer to forget.
+@@ -1424,6 +1424,11 @@ EXPORT_SYMBOL(__find_get_block);
+  * @size: The size of buffer_heads for this @bdev.
+  * @gfp: The memory allocation flags to use.
+  *
++ * The returned buffer head has its reference count incremented, but is
++ * not locked.  The caller should call brelse() when it has finished
++ * with the buffer.  The buffer may not be uptodate.  If needed, the
++ * caller can bring it uptodate either by reading it or overwriting it.
 + *
-+ * This variant of bforget() can be called if @bh is guaranteed to not
-+ * be NULL.
+  * Return: The buffer head, or NULL if memory could not be allocated.
   */
- void __bforget(struct buffer_head *bh)
- {
---- a/include/linux/buffer_head.h~buffer-add-kernel-doc-for-bforget-and-__bforget
-+++ a/include/linux/buffer_head.h
-@@ -325,6 +325,16 @@ static inline void brelse(struct buffer_
- 		__brelse(bh);
- }
- 
-+/**
-+ * bforget - Discard any dirty data in a buffer.
-+ * @bh: The buffer to forget.
-+ *
-+ * Call this function instead of brelse() if the data written to a buffer
-+ * no longer needs to be written back.  It will clear the buffer's dirty
-+ * flag so writeback of this buffer will be skipped.
-+ *
-+ * Context: Any context.
-+ */
- static inline void bforget(struct buffer_head *bh)
- {
- 	if (bh)
+ struct buffer_head *bdev_getblk(struct block_device *bdev, sector_t block,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
