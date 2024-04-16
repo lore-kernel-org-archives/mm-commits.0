@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35349137C23
-	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 18:50:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20FC5136E0A
+	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 18:53:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713293446; cv=none; b=dcc3XhwPKQE/oSbwym+LvUUJJ1hXZ7EdnTvIP1kqJaTvkrFzbVyjAqr2cHYtYasV+FCqm8SIwi2yKqAVjwK21lVF6mELLISDUa+Ar2ZFMfuu81OprYEl+j46T8Ek0hoZaVzxGa9eLO3ogURUlnxPEQArpyr6a70A4OsFj3NAtyk=
+	t=1713293599; cv=none; b=rf23/Ae00dsne3DaAg0Qf9KrgMqbd27jXW8tTu/pwBBmnScA0T+rG6EWlEVqYKz5Jp7boUwmP0t2PDyJFz1UW/FEmCMyRk/axwLgjZH4+6oV+8G+FIx4lfGNSW2xWzf5Zq9vPBxTuik84sKr06G+NUAg/wvvswq8BDmB3uaFNkU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713293446; c=relaxed/simple;
-	bh=ioCnEat9P/mSDKSO2U3a5wtN07h3JtzZu/G7hNiAsUQ=;
-	h=Date:To:From:Subject:Message-Id; b=ZyuRXApL8gnjLOPjZd5CdGJuMgr2ffKd6brlgxXLWlk7cPSFxd3MTeo4hEwRZsbPufW+VXiXL7odT5HI+iQwUllosytKf5e/ldq9b1t3B0ah6Va6cqg5uLbsWGdbA+jitT5MKQ/cufiG1sK7Vt9FfIOH1Mu4NHXMDMiGI3JYLBo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PLW+J+Dw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713293599; c=relaxed/simple;
+	bh=IIjfXBRz1wVYDf4tCGQ2Gmp8AxlSbA2X/yo6UcPiRpM=;
+	h=Date:To:From:Subject:Message-Id; b=tyURs+ZhQZExD60tAhdai5fz81vbU2Ab8qVUHkdOg7vfuxCzwhCKCk7QMQDslq+a+9IfYEZbaAxFWyhrRO/L3TvvuqrlNMafJUpm0Rrb/VZTqu0u2qreRmIxV9or/hwboYilph3fqgUeLkFnPBguLj5tBrfWX8sdJdRVjtGSTcs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2pCR+pHE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PLW+J+Dw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96E61C113CE;
-	Tue, 16 Apr 2024 18:50:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2pCR+pHE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E1AFC113CE;
+	Tue, 16 Apr 2024 18:53:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713293445;
-	bh=ioCnEat9P/mSDKSO2U3a5wtN07h3JtzZu/G7hNiAsUQ=;
+	s=korg; t=1713293598;
+	bh=IIjfXBRz1wVYDf4tCGQ2Gmp8AxlSbA2X/yo6UcPiRpM=;
 	h=Date:To:From:Subject:From;
-	b=PLW+J+DwpbuwN+5kYJE8TXgNC1NB4PbFpOOOt1Lc7oo11efd88MLSb8HLyFZkpYwZ
-	 IaOCJiIYVHCv1qg89+UIz9WmOMcuEy1p3GeUKKX0aN5hWOPYShtat10LZYNJJPnnl+
-	 8j7BmyFg9iq+IbcU5xOg2D9Re3sWIErJG8AmZ3GI=
-Date: Tue, 16 Apr 2024 11:50:45 -0700
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,qiang4.zhang@intel.com,mhiramat@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=2pCR+pHEH2IX4Es/UKnv3Qu2eAk3L/sDl+zZvQ8yu6gwCJbT8owqIGvQYatsDTHzB
+	 I4COnlgs7/53P1ZcWnPYB2DIPsOnhrXFC07UPfsjBgXTIhXdJYD6FTHLIXiWwTF7DZ
+	 hdFQQmtE7+BWT2UezO4a4tb1rrLbKfheOYWBYbwU=
+Date: Tue, 16 Apr 2024 11:53:18 -0700
+To: mm-commits@vger.kernel.org,jikos@kernel.org,gregkh@linuxfoundation.org,bentiss@kernel.org,christophe.jaillet@wanadoo.fr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240416185045.96E61C113CE@smtp.kernel.org>
+Subject: [merged] hid-sony-remove-usage-of-the-deprecated-ida_simple_xx-api.patch removed from -mm tree
+Message-Id: <20240416185318.8E1AFC113CE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,72 +34,60 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy-fix
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy-fix.patch
+The quilt patch titled
+     Subject: HID: sony: remove usage of the deprecated ida_simple_xx() API
+has been removed from the -mm tree.  Its filename was
+     hid-sony-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy-fix.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy-fix
-Date: Tue Apr 16 11:47:35 AM PDT 2024
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: HID: sony: remove usage of the deprecated ida_simple_xx() API
+Date: Sun, 14 Apr 2024 12:03:11 +0200
 
-fix kerneldoc
+ida_alloc() and ida_free() should be preferred to the deprecated
+ida_simple_get() and ida_simple_remove().
 
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Qiang Zhang <qiang4.zhang@intel.com>
+This is less verbose.
+
+Link: https://lkml.kernel.org/r/9b7684381f9d09a7cd5840caa2a160d7764d6403.1713088684.git.christophe.jaillet@wanadoo.fr
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Cc: Benjamin Tissoires <bentiss@kernel.org>
+Cc: Jiri Kosina <jikos@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bootconfig.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/hid/hid-sony.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/lib/bootconfig.c~bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy-fix
-+++ a/lib/bootconfig.c
-@@ -901,7 +901,8 @@ static int __init xbc_parse_tree(void)
+--- a/drivers/hid/hid-sony.c~hid-sony-remove-usage-of-the-deprecated-ida_simple_xx-api
++++ a/drivers/hid/hid-sony.c
+@@ -1844,8 +1844,7 @@ static int sony_set_device_id(struct son
+ 	 * All others are set to -1.
+ 	 */
+ 	if (sc->quirks & SIXAXIS_CONTROLLER) {
+-		ret = ida_simple_get(&sony_device_id_allocator, 0, 0,
+-					GFP_KERNEL);
++		ret = ida_alloc(&sony_device_id_allocator, GFP_KERNEL);
+ 		if (ret < 0) {
+ 			sc->device_id = -1;
+ 			return ret;
+@@ -1861,7 +1860,7 @@ static int sony_set_device_id(struct son
+ static void sony_release_device_id(struct sony_sc *sc)
+ {
+ 	if (sc->device_id >= 0) {
+-		ida_simple_remove(&sony_device_id_allocator, sc->device_id);
++		ida_free(&sony_device_id_allocator, sc->device_id);
+ 		sc->device_id = -1;
+ 	}
  }
- 
- /**
-- * xbc_exit() - Clean up all parsed bootconfig
-+ * _xbc_exit() - Clean up all parsed bootconfig
-+ * @early: in early xbc init error
-  *
-  * This clears all data structures of parsed bootconfig on memory.
-  * If you need to reuse xbc_init() with new boot config, you can
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
-mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled-v2-fix.patch
-bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy-fix.patch
-selftests-harness-remove-use-of-line_max-fix.patch
-selftests-harness-remove-use-of-line_max-fix-fix.patch
-mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries-fix.patch
-mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio-fix.patch
-sh-remove-use-of-pg_arch_1-on-individual-pages-fix.patch
-mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing-fix.patch
-mm-allow-anon-exclusive-check-over-hugetlb-tail-pages-fix.patch
-arm-mm-drop-vm_fault_badmap-vm_fault_badaccess-checkpatch-fixes.patch
-mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios-fix.patch
-__mod_memcg_lruvec_state-enhance-diagnostics.patch
-__mod_memcg_lruvec_state-enhance-diagnostics-fix.patch
+intel_th-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
+pps-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
+mux-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
 
