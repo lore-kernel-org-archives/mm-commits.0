@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 841121386D6
-	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 20:00:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EB581386D6
+	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 20:00:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713297626; cv=none; b=Slr/nIVhYxSr9OQoZNiFUJVpgx1qyr38LKQYWMxCr78/455DWMK4MLJRIGBi0zjPKHVFYSeiji0VtsJvlQ9t7xxDnrewkVGKVh0l32PtUqlsvz6sdXcpVJiSX/nOiOVziEbzLq5KUSqFGU8IsDk+9j4Krj5jyEEnTEI9hDUWxWA=
+	t=1713297628; cv=none; b=IIw3nzrJk9B7//wNqosMaC7s7qieOwcMtpXsOI/MMkNYzSjX+T2vhqC1nfs/O8unYQwCFj2UE2Ds3XjqkRvUYGX/ZTX9Md5KwF8T4nEi8p51k9BQKd3NgOMc+F0Iho0kzZ3xkatMcCe+oJib8YpCQ1qF5JWSjeXWtfzNII14o6w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713297626; c=relaxed/simple;
-	bh=c3yXV9njZBw1l+b5SIZRIz/5GfHGSIP3ADdbNLL7VD4=;
-	h=Date:To:From:Subject:Message-Id; b=HxYF3veHGIYfN1Rr5oSqZ2YCA4iqaVk2fAksWcX0b3RbR3X2rM3kRGacp2n7m3C07OIp0rxHT1fq1hO/12uF+THe6bw44UbYCs94XcgZHa4yzDeQH5XbpTlT1PpkmI8csZQ+6BcVmYrb5ZA7GQJNNUmcQrgiEycEpCtGtnEm+Ww=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mHmC5q7M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713297628; c=relaxed/simple;
+	bh=+soYva6Rk8kEyBQarACujnVaQay9JXn3MDSvYA5GM3Y=;
+	h=Date:To:From:Subject:Message-Id; b=UJl6ZhTN7pcKeBqGpK5gCiYx3pUqN/wXkBFh+u073TCx5R5r2k75+3vZU3nG5ZRcVrVMfiYcFyxsgCNa2m9N2SlgWT76qruFqUHL9oCwmzSRGs77W9Q4Y8C/GF6LaSyVgAZorbYyjk/4Z0DZFlDqEJABHJXje6t9DjrvemuPju0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e9wROAy2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mHmC5q7M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 146ECC113CE;
-	Tue, 16 Apr 2024 20:00:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e9wROAy2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43C7AC113CE;
+	Tue, 16 Apr 2024 20:00:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713297626;
-	bh=c3yXV9njZBw1l+b5SIZRIz/5GfHGSIP3ADdbNLL7VD4=;
+	s=korg; t=1713297628;
+	bh=+soYva6Rk8kEyBQarACujnVaQay9JXn3MDSvYA5GM3Y=;
 	h=Date:To:From:Subject:From;
-	b=mHmC5q7MCW8SfbMjRlQFe+ZYZmFlaS5+zpoqi4U3GZPAV5axpvJAI2CQA4XDHRTKa
-	 Gb+3RuuinKAnBIJtP7PnIjleqg4p6KBx0UPir/RSIMOk+nCZtXr6S28B9/3uFgM6XX
-	 fsEJVKDe6C+J1uD3eXVJGzwDJwpbsNUsPPuFZm4s=
-Date: Tue, 16 Apr 2024 13:00:25 -0700
+	b=e9wROAy2VT08N4wh6iI0oFXtbgOgAYXeEkETRiMnJJkUrGLpFXtwrkwwN5PC3JKwa
+	 Zi8oOgkBhnIVvp9aAsYPzkzWnSDavqO6ZEaIaUlIRqd4jmzEwJOCnyQ58tDLzIYHH1
+	 bHA8c4V8KpldRGhPT9tuq53q/HPF5sG0ShoZZwQk=
+Date: Tue, 16 Apr 2024 13:00:27 -0700
 To: mm-commits@vger.kernel.org,p.raghav@samsung.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + buffer-add-kernel-doc-for-brelse-and-__brelse.patch added to mm-unstable branch
-Message-Id: <20240416200026.146ECC113CE@smtp.kernel.org>
+Subject: + buffer-add-kernel-doc-for-bforget-and-__bforget.patch added to mm-unstable branch
+Message-Id: <20240416200028.43C7AC113CE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: buffer: add kernel-doc for brelse() and __brelse()
+     Subject: buffer: add kernel-doc for bforget() and __bforget()
 has been added to the -mm mm-unstable branch.  Its filename is
-     buffer-add-kernel-doc-for-brelse-and-__brelse.patch
+     buffer-add-kernel-doc-for-bforget-and-__bforget.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-add-kernel-doc-for-brelse-and-__brelse.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-add-kernel-doc-for-bforget-and-__bforget.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,73 +59,56 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: add kernel-doc for brelse() and __brelse()
-Date: Tue, 16 Apr 2024 04:17:49 +0100
+Subject: buffer: add kernel-doc for bforget() and __bforget()
+Date: Tue, 16 Apr 2024 04:17:50 +0100
 
-Move the documentation for __brelse() to brelse(), format it as kernel-doc
-and update it from talking about pages to folios.
+Distinguish these functions from brelse() and __brelse().
 
-Link: https://lkml.kernel.org/r/20240416031754.4076917-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240416031754.4076917-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Pankaj Raghav <p.raghav@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |   17 ++++++++---------
- include/linux/buffer_head.h |   16 ++++++++++++++++
- 2 files changed, 24 insertions(+), 9 deletions(-)
+ fs/buffer.c                 |    9 ++++++---
+ include/linux/buffer_head.h |   10 ++++++++++
+ 2 files changed, 16 insertions(+), 3 deletions(-)
 
---- a/fs/buffer.c~buffer-add-kernel-doc-for-brelse-and-__brelse
+--- a/fs/buffer.c~buffer-add-kernel-doc-for-bforget-and-__bforget
 +++ a/fs/buffer.c
-@@ -1226,17 +1226,16 @@ void mark_buffer_write_io_error(struct b
+@@ -1242,9 +1242,12 @@ void __brelse(struct buffer_head *bh)
  }
- EXPORT_SYMBOL(mark_buffer_write_io_error);
+ EXPORT_SYMBOL(__brelse);
  
 -/*
-- * Decrement a buffer_head's reference count.  If all buffers against a page
-- * have zero reference count, are clean and unlocked, and if the page is clean
-- * and unlocked then try_to_free_buffers() may strip the buffers from the page
-- * in preparation for freeing it (sometimes, rarely, buffers are removed from
-- * a page but it ends up not being freed, and buffers may later be reattached).
+- * bforget() is like brelse(), except it discards any
+- * potentially dirty data.
 +/**
-+ * __brelse - Release a buffer.
-+ * @bh: The buffer to release.
++ * __bforget - Discard any dirty data in a buffer.
++ * @bh: The buffer to forget.
 + *
-+ * This variant of brelse() can be called if @bh is guaranteed to not be NULL.
++ * This variant of bforget() can be called if @bh is guaranteed to not
++ * be NULL.
   */
--void __brelse(struct buffer_head * buf)
-+void __brelse(struct buffer_head *bh)
+ void __bforget(struct buffer_head *bh)
  {
--	if (atomic_read(&buf->b_count)) {
--		put_bh(buf);
-+	if (atomic_read(&bh->b_count)) {
-+		put_bh(bh);
- 		return;
- 	}
- 	WARN(1, KERN_ERR "VFS: brelse: Trying to free free buffer\n");
---- a/include/linux/buffer_head.h~buffer-add-kernel-doc-for-brelse-and-__brelse
+--- a/include/linux/buffer_head.h~buffer-add-kernel-doc-for-bforget-and-__bforget
 +++ a/include/linux/buffer_head.h
-@@ -303,6 +303,22 @@ static inline void put_bh(struct buffer_
-         atomic_dec(&bh->b_count);
+@@ -325,6 +325,16 @@ static inline void brelse(struct buffer_
+ 		__brelse(bh);
  }
  
 +/**
-+ * brelse - Release a buffer.
-+ * @bh: The buffer to release.
++ * bforget - Discard any dirty data in a buffer.
++ * @bh: The buffer to forget.
 + *
-+ * Decrement a buffer_head's reference count.  If @bh is NULL, this
-+ * function is a no-op.
-+ *
-+ * If all buffers on a folio have zero reference count, are clean
-+ * and unlocked, and if the folio is unlocked and not under writeback
-+ * then try_to_free_buffers() may strip the buffers from the folio in
-+ * preparation for freeing it (sometimes, rarely, buffers are removed
-+ * from a folio but it ends up not being freed, and buffers may later
-+ * be reattached).
++ * Call this function instead of brelse() if the data written to a buffer
++ * no longer needs to be written back.  It will clear the buffer's dirty
++ * flag so writeback of this buffer will be skipped.
 + *
 + * Context: Any context.
 + */
- static inline void brelse(struct buffer_head *bh)
+ static inline void bforget(struct buffer_head *bh)
  {
  	if (bh)
 _
