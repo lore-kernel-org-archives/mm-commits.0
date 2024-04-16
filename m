@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B05211CF8A
-	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 20:00:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BFBA1CF8A
+	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 20:00:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713297621; cv=none; b=LtnSPRdf3vWEolVYLp2fHc5YhYUbGAy+sgiOtZMNYS14+ZdYN84iruHXWy8Ogt/1x18o3TJ9DZ9ihjcqdwqUU9y9AgWCpGLNX/iPfyjAY7GuQPDVwgtRSnnIifKcNl0Bo1/LcJDQugHWyKepo1qhUWumlEwEYFhVbC4nivqldeI=
+	t=1713297622; cv=none; b=CMANVuXDjIq7xIcJekuiFTm2yH+P6el5WhfO1XGdbpE0hj0OwNrKUDkX8Q7oUef1YIVAaiaGqCsTUd8MGqkk9XB99ZMqh8hhiDqQhANeqkubX8p6b3gv7vP2dKDOq8UVhkljO5QrV0/34StgPckfrfMEjzs6CK52fbHrtTg+j6g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713297621; c=relaxed/simple;
-	bh=lsbKSRdHNrOcsC6+XFUZVS90NniwVgoMOVBtMNRIwaA=;
-	h=Date:To:From:Subject:Message-Id; b=QM0GoM1RtRG9W1KnJC7QDD1qKvOnsAHRryoQGY2pzJhkrvy+0j0YBspGK/nsjsj2IqlWFxb9evigxCHf8fBeywx6Fv00IFDnCfN2cTtVuh9rxP+wlvtB9Pd7iY4j3g04wYTUrkaInEkpo/eb2/+dt8jgxTclk/3y7cgmnEV1Gsg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ip6oPunC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713297622; c=relaxed/simple;
+	bh=gAD2sE0U7K/adjjAKGKUaoKqSny/tDBC2jZK5+9XEnk=;
+	h=Date:To:From:Subject:Message-Id; b=r4/3BPhO4esNHnSehZciH6ESejyjuU43eWXxqt7s5fJP4SbLHlOz+ZF6NpUa9dWV7v2i4QcyY1VwlldnvtOS57Bi9JEMuUe3NBDG4q9hz7vwMvnlueAJLH8e9fwXxmKbEIk34xTOjZOM8AFvDI9/9dyo1VkXLCtIpVQf9nNtNp0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ApckshxX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ip6oPunC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36159C113CE;
-	Tue, 16 Apr 2024 20:00:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ApckshxX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03831C113CE;
+	Tue, 16 Apr 2024 20:00:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713297620;
-	bh=lsbKSRdHNrOcsC6+XFUZVS90NniwVgoMOVBtMNRIwaA=;
+	s=korg; t=1713297622;
+	bh=gAD2sE0U7K/adjjAKGKUaoKqSny/tDBC2jZK5+9XEnk=;
 	h=Date:To:From:Subject:From;
-	b=ip6oPunCv/n4+X+0pBGgBLCpoXQpwsc71gabJbM6UzEV6ATl0sPw78CYfPo+Z7SWx
-	 qYzKcopB1nH9nF29j4IFEcbWbkoLYfm4NR5k4145ALbizb87GTKSXBj61rR2FewwiL
-	 vtLz39J8Og7G+SiL+3CUxoUXLjwAwItLBEONWEAI=
-Date: Tue, 16 Apr 2024 13:00:19 -0700
+	b=ApckshxXg1BAXXTJB7AT7GUmHUIJUrn4Ct8g7hTQRscHdVsSOFbzb9C1e4hANM5fm
+	 In+E9MW5NbYDTgAXCg5/miRKaOHSWct2CoXKkznj9XCcr7JOviGKBRVewsbCDLtGTe
+	 Z8VjoEBa6hTOVq4g2drKL72wYBTmlCFikL0lwz/g=
+Date: Tue, 16 Apr 2024 13:00:21 -0700
 To: mm-commits@vger.kernel.org,p.raghav@samsung.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + buffer-add-kernel-doc-for-block_dirty_folio.patch added to mm-unstable branch
-Message-Id: <20240416200020.36159C113CE@smtp.kernel.org>
+Subject: + buffer-add-kernel-doc-for-try_to_free_buffers.patch added to mm-unstable branch
+Message-Id: <20240416200022.03831C113CE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: buffer: add kernel-doc for block_dirty_folio()
+     Subject: buffer: add kernel-doc for try_to_free_buffers()
 has been added to the -mm mm-unstable branch.  Its filename is
-     buffer-add-kernel-doc-for-block_dirty_folio.patch
+     buffer-add-kernel-doc-for-try_to_free_buffers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-add-kernel-doc-for-block_dirty_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-add-kernel-doc-for-try_to_free_buffers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,82 +59,83 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: add kernel-doc for block_dirty_folio()
-Date: Tue, 16 Apr 2024 04:17:46 +0100
+Subject: buffer: add kernel-doc for try_to_free_buffers()
+Date: Tue, 16 Apr 2024 04:17:47 +0100
 
-Turn the excellent documentation for this function into kernel-doc. 
-Replace 'page' with 'folio' and make a few other minor updates.
+The documentation for this function has become separated from it over
+time; move it to the right place and turn it into kernel-doc.  Mild
+editing of the content to make it more about what the function does, and
+less about how it does it.
 
-Link: https://lkml.kernel.org/r/20240416031754.4076917-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240416031754.4076917-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Pankaj Raghav <p.raghav@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   49 ++++++++++++++++++++++++++++---------------------
- 1 file changed, 28 insertions(+), 21 deletions(-)
+ fs/buffer.c |   44 ++++++++++++++++++++++++--------------------
+ 1 file changed, 24 insertions(+), 20 deletions(-)
 
---- a/fs/buffer.c~buffer-add-kernel-doc-for-block_dirty_folio
+--- a/fs/buffer.c~buffer-add-kernel-doc-for-try_to_free_buffers
 +++ a/fs/buffer.c
-@@ -687,30 +687,37 @@ void mark_buffer_dirty_inode(struct buff
+@@ -2868,26 +2868,6 @@ int sync_dirty_buffer(struct buffer_head
  }
- EXPORT_SYMBOL(mark_buffer_dirty_inode);
+ EXPORT_SYMBOL(sync_dirty_buffer);
  
 -/*
-- * Add a page to the dirty page list.
-+/**
-+ * block_dirty_folio - Mark a folio as dirty.
-+ * @mapping: The address space containing this folio.
-+ * @folio: The folio to mark dirty.
-  *
-- * It is a sad fact of life that this function is called from several places
-- * deeply under spinlocking.  It may not sleep.
-+ * Filesystems which use buffer_heads can use this function as their
-+ * ->dirty_folio implementation.  Some filesystems need to do a little
-+ * work before calling this function.  Filesystems which do not use
-+ * buffer_heads should call filemap_dirty_folio() instead.
-  *
-- * If the page has buffers, the uptodate buffers are set dirty, to preserve
-- * dirty-state coherency between the page and the buffers.  It the page does
-- * not have buffers then when they are later attached they will all be set
-- * dirty.
+- * try_to_free_buffers() checks if all the buffers on this particular folio
+- * are unused, and releases them if so.
 - *
-- * The buffers are dirtied before the page is dirtied.  There's a small race
-- * window in which a writepage caller may see the page cleanness but not the
-- * buffer dirtiness.  That's fine.  If this code were to set the page dirty
-- * before the buffers, a concurrent writepage caller could clear the page dirty
-- * bit, see a bunch of clean buffers and we'd end up with dirty buffers/clean
-- * page on the dirty page list.
+- * Exclusion against try_to_free_buffers may be obtained by either
+- * locking the folio or by holding its mapping's i_private_lock.
 - *
-- * We use i_private_lock to lock against try_to_free_buffers while using the
-- * page's buffer list.  Also use this to protect against clean buffers being
-- * added to the page after it was set dirty.
-+ * If the folio has buffers, the uptodate buffers are set dirty, to
-+ * preserve dirty-state coherency between the folio and the buffers.
-+ * Buffers added to a dirty folio are created dirty.
-  *
-- * FIXME: may need to call ->reservepage here as well.  That's rather up to the
-- * address_space though.
-+ * The buffers are dirtied before the folio is dirtied.  There's a small
-+ * race window in which writeback may see the folio cleanness but not the
-+ * buffer dirtiness.  That's fine.  If this code were to set the folio
-+ * dirty before the buffers, writeback could clear the folio dirty flag,
-+ * see a bunch of clean buffers and we'd end up with dirty buffers/clean
-+ * folio on the dirty folio list.
-+ *
-+ * We use i_private_lock to lock against try_to_free_buffers() while
-+ * using the folio's buffer list.  This also prevents clean buffers
-+ * being added to the folio after it was set dirty.
-+ *
-+ * Context: May only be called from process context.  Does not sleep.
-+ * Caller must ensure that @folio cannot be truncated during this call,
-+ * typically by holding the folio lock or having a page in the folio
-+ * mapped and holding the page table lock.
-+ *
-+ * Return: True if the folio was dirtied; false if it was already dirtied.
-  */
- bool block_dirty_folio(struct address_space *mapping, struct folio *folio)
+- * If the folio is dirty but all the buffers are clean then we need to
+- * be sure to mark the folio clean as well.  This is because the folio
+- * may be against a block device, and a later reattachment of buffers
+- * to a dirty folio will set *all* buffers dirty.  Which would corrupt
+- * filesystem data on the same device.
+- *
+- * The same applies to regular filesystem folios: if all the buffers are
+- * clean then we set the folio clean and proceed.  To do that, we require
+- * total exclusion from block_dirty_folio().  That is obtained with
+- * i_private_lock.
+- *
+- * try_to_free_buffers() is non-blocking.
+- */
+ static inline int buffer_busy(struct buffer_head *bh)
  {
+ 	return atomic_read(&bh->b_count) |
+@@ -2921,6 +2901,30 @@ failed:
+ 	return false;
+ }
+ 
++/**
++ * try_to_free_buffers - Release buffers attached to this folio.
++ * @folio: The folio.
++ *
++ * If any buffers are in use (dirty, under writeback, elevated refcount),
++ * no buffers will be freed.
++ *
++ * If the folio is dirty but all the buffers are clean then we need to
++ * be sure to mark the folio clean as well.  This is because the folio
++ * may be against a block device, and a later reattachment of buffers
++ * to a dirty folio will set *all* buffers dirty.  Which would corrupt
++ * filesystem data on the same device.
++ *
++ * The same applies to regular filesystem folios: if all the buffers are
++ * clean then we set the folio clean and proceed.  To do that, we require
++ * total exclusion from block_dirty_folio().  That is obtained with
++ * i_private_lock.
++ *
++ * Exclusion against try_to_free_buffers may be obtained by either
++ * locking the folio or by holding its mapping's i_private_lock.
++ *
++ * Context: Process context.  @folio must be locked.  Will not sleep.
++ * Return: true if all buffers attached to this folio were freed.
++ */
+ bool try_to_free_buffers(struct folio *folio)
+ {
+ 	struct address_space * const mapping = folio->mapping;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
