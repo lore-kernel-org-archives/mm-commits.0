@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56F76148304
-	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 18:45:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35349137C23
+	for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2024 18:50:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713293120; cv=none; b=mD7XVNhsM8iQXp8zH3signN/jyFj5K8lljJqvP3IpSCrdg0YEH/mBODCKaBQKNWp0ZOMjxRmtiK6R0M9LELUwCu9pxoUPkvtLSKLd3yN68dtwF72zN/Fr5nrp5NtRvqH4mvB2rDcreFGDrTur3aHRoCRnop+N+SI6jahhapI4RE=
+	t=1713293446; cv=none; b=dcc3XhwPKQE/oSbwym+LvUUJJ1hXZ7EdnTvIP1kqJaTvkrFzbVyjAqr2cHYtYasV+FCqm8SIwi2yKqAVjwK21lVF6mELLISDUa+Ar2ZFMfuu81OprYEl+j46T8Ek0hoZaVzxGa9eLO3ogURUlnxPEQArpyr6a70A4OsFj3NAtyk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713293120; c=relaxed/simple;
-	bh=EljhDih2OBGz8LCF0RwfdcKOmNAU9727L5Wp6iXGP9Q=;
-	h=Date:To:From:Subject:Message-Id; b=qjjSZLuOmKmpmgA2RtbNl2AFusB8Qni21A6PDxyY+zEoLfJZhBj7f1EXtR7dqRRnd2ubmPEjuhwbK2+G2OBDx+MbwhIIasGcDtPwxutxyIFw7ywqkFnvEwdS7pCNu5oLCYJhwDEPa3ypXktgOMzdOCdhQ2qFDbAMw96xRO+059I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fVvmFgY6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713293446; c=relaxed/simple;
+	bh=ioCnEat9P/mSDKSO2U3a5wtN07h3JtzZu/G7hNiAsUQ=;
+	h=Date:To:From:Subject:Message-Id; b=ZyuRXApL8gnjLOPjZd5CdGJuMgr2ffKd6brlgxXLWlk7cPSFxd3MTeo4hEwRZsbPufW+VXiXL7odT5HI+iQwUllosytKf5e/ldq9b1t3B0ah6Va6cqg5uLbsWGdbA+jitT5MKQ/cufiG1sK7Vt9FfIOH1Mu4NHXMDMiGI3JYLBo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PLW+J+Dw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fVvmFgY6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D587EC2BD11;
-	Tue, 16 Apr 2024 18:45:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PLW+J+Dw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96E61C113CE;
+	Tue, 16 Apr 2024 18:50:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713293119;
-	bh=EljhDih2OBGz8LCF0RwfdcKOmNAU9727L5Wp6iXGP9Q=;
+	s=korg; t=1713293445;
+	bh=ioCnEat9P/mSDKSO2U3a5wtN07h3JtzZu/G7hNiAsUQ=;
 	h=Date:To:From:Subject:From;
-	b=fVvmFgY6QsKirmyABC5xVhOPXnHeuVBa1tG6XGEl6myTNh4d9FCOmvhH7l/72cidu
-	 r9jiOwXKAHdNZavxG7VeX9abnlWL7oHYanxneS3oJ+bwLnZaFo+72BBVdzH/l8LLQ7
-	 IHkxJRLwpC3xSoaOU6If/dDduBs06eyn1f4Hk9bc=
-Date: Tue, 16 Apr 2024 11:45:19 -0700
-To: mm-commits@vger.kernel.org,edliaw@google.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=PLW+J+DwpbuwN+5kYJE8TXgNC1NB4PbFpOOOt1Lc7oo11efd88MLSb8HLyFZkpYwZ
+	 IaOCJiIYVHCv1qg89+UIz9WmOMcuEy1p3GeUKKX0aN5hWOPYShtat10LZYNJJPnnl+
+	 8j7BmyFg9iq+IbcU5xOg2D9Re3sWIErJG8AmZ3GI=
+Date: Tue, 16 Apr 2024 11:50:45 -0700
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,qiang4.zhang@intel.com,mhiramat@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-harness-remove-use-of-line_max-fix-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240416184519.D587EC2BD11@smtp.kernel.org>
+Subject: + bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240416185045.96E61C113CE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests-harness-remove-use-of-line_max-fix-fix
+     Subject: bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy-fix
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-harness-remove-use-of-line_max-fix-fix.patch
+     bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-harness-remove-use-of-line_max-fix-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy-fix.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,40 +59,38 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: selftests-harness-remove-use-of-line_max-fix-fix
-Date: Tue Apr 16 11:39:55 AM PDT 2024
+Subject: bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy-fix
+Date: Tue Apr 16 11:47:35 AM PDT 2024
 
-check asprintf() return
+fix kerneldoc
 
-Cc: Edward Liaw <edliaw@google.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Qiang Zhang <qiang4.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kselftest_harness.h |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ lib/bootconfig.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/kselftest_harness.h~selftests-harness-remove-use-of-line_max-fix-fix
-+++ a/tools/testing/selftests/kselftest_harness.h
-@@ -1163,8 +1163,12 @@ void __run_test(struct __fixture_metadat
- 	t->trigger = 0;
- 	memset(t->results->reason, 0, sizeof(t->results->reason));
+--- a/lib/bootconfig.c~bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy-fix
++++ a/lib/bootconfig.c
+@@ -901,7 +901,8 @@ static int __init xbc_parse_tree(void)
+ }
  
--	asprintf(&test_name, "%s%s%s.%s", f->name,
--	         variant->name[0] ? "." : "", variant->name, t->name);
-+	if (asprintf(&test_name, "%s%s%s.%s", f->name,
-+		variant->name[0] ? "." : "", variant->name, t->name) == -1) {
-+		ksft_print_msg("ERROR ALLOCATING MEMORY\n");
-+		t->exit_code = KSFT_FAIL;
-+		_exit(t->exit_code);
-+	}
- 
- 	ksft_print_msg(" RUN           %s ...\n", test_name);
- 
+ /**
+- * xbc_exit() - Clean up all parsed bootconfig
++ * _xbc_exit() - Clean up all parsed bootconfig
++ * @early: in early xbc init error
+  *
+  * This clears all data structures of parsed bootconfig on memory.
+  * If you need to reuse xbc_init() with new boot config, you can
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-memory-failure-fix-deadlock-when-hugetlb_optimize_vmemmap-is-enabled-v2-fix.patch
+bootconfig-use-memblock_free_late-to-free-xbc-memory-to-buddy-fix.patch
 selftests-harness-remove-use-of-line_max-fix.patch
 selftests-harness-remove-use-of-line_max-fix-fix.patch
 mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries-fix.patch
