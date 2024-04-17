@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D102171A1;
-	Wed, 17 Apr 2024 21:40:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AD5E37714
+	for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2024 21:41:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713390056; cv=none; b=cj8Jvjo7kFgKHSLdfYx7AU0mbTkhFXWM15LXbhrrMhnUUMMVtW1SeikHhZ4luQatYq+HHTpuGaxy1ul2eO/xB7bAbXTY4SRtFl1cRapQlfgWGFzj6HLd5pbT7tpQ/iKcRu8+KonmWktjL9A1kaiSx+jfnZ9WONIU/zZ1LAElCRo=
+	t=1713390104; cv=none; b=HWATUfO9nn7pcG7qsGVI+UwCp1ewlyTx5qHfyCSmlCeIDlizWPe53KXvk7cCSVbkH+fGJBSEF3LiNTUR5bHSHt1MnEmIgobGQBO3jLgzc0VDiWJfu+MnxS56CgdTwtD6o6WxeRFHaHndQdG0vfaIZW2baRewSWv2ewHsTjPCEkQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713390056; c=relaxed/simple;
-	bh=UQQp7GOMr3HWLV341KAxVpmwdyLVo5Kvtj7+wCLeCa0=;
-	h=Date:To:From:Subject:Message-Id; b=VzfkoWjp3hFBacTSLdxpys/zlbXtE1rHlFdWCYBEfeyOIClBBa2kque+yDs3oiToRZLSaW5PsljNQdXMWwMAyD5l/UcGCILICawaqEgfKojjnAky8p6tbwJMvUdSDyPKlRfOiTMxn9fkq+45nSRNBCz2k9+6Fnlq/+srUVqjNNk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FMKTZvcc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713390104; c=relaxed/simple;
+	bh=sz+LQ65RKYqbfuriHfa70bMK7r25YwfXc8fGzlukCeI=;
+	h=Date:To:From:Subject:Message-Id; b=ulRC30bxdwTz3YAz54u7RNcc1Tpb5rQ36Sgcks9t+DFNVOOupbAImK8jyDtoyPbvucn7cUx3tz2cI15A3EOwEiPrE97WwH+EswxgmXNEYFGp/bY0RIWszMQMotmwhFwUFF83DTzofMsMgzRPx28Lo58HZ/fAewN6/AtYeHv4DaI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JDRiA/A5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FMKTZvcc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF967C072AA;
-	Wed, 17 Apr 2024 21:40:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JDRiA/A5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FC0FC072AA;
+	Wed, 17 Apr 2024 21:41:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713390055;
-	bh=UQQp7GOMr3HWLV341KAxVpmwdyLVo5Kvtj7+wCLeCa0=;
+	s=korg; t=1713390104;
+	bh=sz+LQ65RKYqbfuriHfa70bMK7r25YwfXc8fGzlukCeI=;
 	h=Date:To:From:Subject:From;
-	b=FMKTZvccK6KNMy5pR7CMxGTOHo/q7QYZ3dYEI8lcFJC+vLCiaEhxiBNMUwp8lqC1Q
-	 g1sTMV0HdoODTzlHVaVMPq/ng9g4oyGHE7xxQK3gqX7yoUUWJqcbTJuWbDJYfiwL0D
-	 cryxsKxQP+4CMN63zobe0FZeyjNvitc4ZM9HpIRU=
-Date: Wed, 17 Apr 2024 14:40:55 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,david@redhat.com,almasrymina@google.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=JDRiA/A5BJ6XiaBz9RPI8JYbFAmZwq7Izj1PJ8y8ghINPb6UOnkk19wvBUtn7txsQ
+	 2il91oA/GDgMgT0bu6w2ZZ3xaTrzMs4q9COKzl70g1PJNkao6RFFs33kkeVoGGxnAh
+	 8/K/laG+UzYZCGKRoOtuqYtRWYFqQ5owzsW/MG1E=
+Date: Wed, 17 Apr 2024 14:41:43 -0700
+To: mm-commits@vger.kernel.org,rientjes@google.com,muchun.song@linux.dev,david@redhat.com,almasrymina@google.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-missing-hugetlb_lock-for-resv-uncharge.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240417214055.CF967C072AA@smtp.kernel.org>
+Subject: + mm-hugetlb-assert-hugetlb_lock-in-__hugetlb_cgroup_commit_charge.patch added to mm-unstable branch
+Message-Id: <20240417214144.3FC0FC072AA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: fix missing hugetlb_lock for resv uncharge
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-fix-missing-hugetlb_lock-for-resv-uncharge.patch
+     Subject: mm/hugetlb: assert hugetlb_lock in __hugetlb_cgroup_commit_charge
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hugetlb-assert-hugetlb_lock-in-__hugetlb_cgroup_commit_charge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-missing-hugetlb_lock-for-resv-uncharge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-assert-hugetlb_lock-in-__hugetlb_cgroup_commit_charge.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,51 +59,36 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: fix missing hugetlb_lock for resv uncharge
-Date: Wed, 17 Apr 2024 17:18:35 -0400
+Subject: mm/hugetlb: assert hugetlb_lock in __hugetlb_cgroup_commit_charge
+Date: Wed, 17 Apr 2024 17:18:36 -0400
 
-There is a recent report on UFFDIO_COPY over hugetlb:
+This is similar to __hugetlb_cgroup_uncharge_folio() where it relies on
+holding hugetlb_lock.  Add the similar assertion like the other one, since
+it looks like such things may help some day.
 
-https://lore.kernel.org/all/000000000000ee06de0616177560@google.com/
-
-350:	lockdep_assert_held(&hugetlb_lock);
-
-Should be an issue in hugetlb but triggered in an userfault context, where
-it goes into the unlikely path where two threads modifying the resv map
-together.  Mike has a fix in that path for resv uncharge but it looks like
-the locking criteria was overlooked: hugetlb_cgroup_uncharge_folio_rsvd()
-will update the cgroup pointer, so it requires to be called with the lock
-held.
-
-Link: https://lkml.kernel.org/r/20240417211836.2742593-3-peterx@redhat.com
-Fixes: 79aa925bf239 ("hugetlb_cgroup: fix reservation accounting")
+Link: https://lkml.kernel.org/r/20240417211836.2742593-4-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: syzbot+4b8077a5fccc61c385a1@syzkaller.appspotmail.com
-Cc: Mina Almasry <almasrymina@google.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: <stable@vger.kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/hugetlb_cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-missing-hugetlb_lock-for-resv-uncharge
-+++ a/mm/hugetlb.c
-@@ -3268,9 +3268,12 @@ struct folio *alloc_hugetlb_folio(struct
- 
- 		rsv_adjust = hugepage_subpool_put_pages(spool, 1);
- 		hugetlb_acct_memory(h, -rsv_adjust);
--		if (deferred_reserve)
-+		if (deferred_reserve) {
-+			spin_lock_irq(&hugetlb_lock);
- 			hugetlb_cgroup_uncharge_folio_rsvd(hstate_index(h),
- 					pages_per_huge_page(h), folio);
-+			spin_unlock_irq(&hugetlb_lock);
-+		}
- 	}
- 
- 	if (!memcg_charge_ret)
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb-assert-hugetlb_lock-in-__hugetlb_cgroup_commit_charge
++++ a/mm/hugetlb_cgroup.c
+@@ -308,7 +308,7 @@ static void __hugetlb_cgroup_commit_char
+ {
+ 	if (hugetlb_cgroup_disabled() || !h_cg)
+ 		return;
+-
++	lockdep_assert_held(&hugetlb_lock);
+ 	__set_hugetlb_cgroup(folio, h_cg, rsvd);
+ 	if (!rsvd) {
+ 		unsigned long usage =
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
@@ -142,4 +127,5 @@ mm-gup-handle-huge-pmd-for-follow_pmd_mask-fix.patch
 mm-gup-handle-hugepd-for-follow_page.patch
 mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code.patch
 mm-allow-anon-exclusive-check-over-hugetlb-tail-pages.patch
+mm-hugetlb-assert-hugetlb_lock-in-__hugetlb_cgroup_commit_charge.patch
 
