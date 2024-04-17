@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ED27EAC8
-	for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2024 20:49:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62F7825761
+	for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2024 21:07:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713386990; cv=none; b=rgGq4LpA4CEnnlp3PkdjIhh3XCjq5GWzMBYIkQP6Cei/DPlAEl8uDUT1EeIDZLv7uudiVaHotazz2FJDrOdcKlt1Zuhu51qBVDr4TrMWpbj7V1siO1tShK2PKQAb37y7dTcadyvDL4OATIJHyLimFwp+aAOJOyLUtLbVxV6/0ss=
+	t=1713388057; cv=none; b=qmSE26ChckVnlDjljJ4k4m6ALqjdc9srwlRlzHu2yWP4+CfPV8Mm0N0AAxdJufSQJiw7fqT0PdNy3qvOhUS5QoGWWjc/V1IjRORV+McFN4K8VoGiLjeNqqz7zEtLDY6gczRitqF6BIeJaAspS5/gRbGhC/errGNHk9JRDVy9dJo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713386990; c=relaxed/simple;
-	bh=FQ3fjefFDy4o0vTzpTN6QxMmAlMG0mVS48kytpUUhiY=;
-	h=Date:To:From:Subject:Message-Id; b=hw7KK4/NLGAmIZ3mN/NR3DEh0z2kWf6iJ5SG4Fy7e1d0IRoiGO7sI7O9/XbeqUQb9tqWvzz25AOeWvBGWDeVSlYR4P7kWCHy7AXI946K/SwVuKA1pdHiDk1mYKVX4G7EHam5IG7mPMh2olHUCX4FhXp7chmmd05ZDbC+nelG0ZE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wrSTps+i; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713388057; c=relaxed/simple;
+	bh=8fkeHIk13ikw+DEmnGjsAujf4/HSEKF5aklyzO3Yfvk=;
+	h=Date:To:From:Subject:Message-Id; b=PxJLllcSl/2gqztjaEAyZ1R8R1wduKIreQZAZHCuBbvDAqYTg3sSmTSKJnmaD7WFeMhZ2HypSNqKwcGN87E9y7N7WOrk4UsM0hiTGS9NMBtsHzeoYCJKr7yWj0HAaUVDXMH3D11OX/3t8h+3oV0NoX5uJxBbzii1Qtl2qXb+eds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0O/qloCc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wrSTps+i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B077DC072AA;
-	Wed, 17 Apr 2024 20:49:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0O/qloCc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D10A0C072AA;
+	Wed, 17 Apr 2024 21:07:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713386989;
-	bh=FQ3fjefFDy4o0vTzpTN6QxMmAlMG0mVS48kytpUUhiY=;
+	s=korg; t=1713388056;
+	bh=8fkeHIk13ikw+DEmnGjsAujf4/HSEKF5aklyzO3Yfvk=;
 	h=Date:To:From:Subject:From;
-	b=wrSTps+iKbBfWQjrLz891RbtNHs2xMA09WLz6NDzY4xQ9tlQj815G3Sgb0EUi6cJ0
-	 c0WnJsIILIsHPktHeHSZyrK0h0n0V89qwBWb5PYXal+XeHjauU926xWGyRYVhB5Jhr
-	 PNkCNqlG8IRBSnvcdfOPQ5qjWl+LIjWKUfDPS0d0=
-Date: Wed, 17 Apr 2024 13:49:49 -0700
-To: mm-commits@vger.kernel.org,wad@chromium.org,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,ndesaulniers@google.com,nathan@kernel.org,morbo@google.com,luto@amacapital.net,keescook@chromium.org,justinstitt@google.com,edliaw@google.com,david@redhat.com,axelrasmussen@google.com,usama.anjum@collabora.com,akpm@linux-foundation.org
+	b=0O/qloCchR6TsCgisFzeMdPBwVvYhqGFhV7qC56VOQxAqyc9R333hjtWCYPXzGqzn
+	 RaewXaT1s8K1HzVBZwvx0JrqHSbq6QqfaMQMcStx33N86Ket3IIdB28kFEnv59M6bc
+	 4aHCBzkNJzLNTEXrmcQIHoHng0NvVWyslNJcSS+M=
+Date: Wed, 17 Apr 2024 14:07:36 -0700
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-harness-remove-use-of-line_max-fix-fix-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240417204949.B077DC072AA@smtp.kernel.org>
+Subject: + doc-split-bufferrst-out-of-api-summaryrst-fix.patch added to mm-unstable branch
+Message-Id: <20240417210736.D10A0C072AA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: mm: fix undeclared function error
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-harness-remove-use-of-line_max-fix-fix-fix.patch
+     Subject: doc-split-bufferrst-out-of-api-summaryrst-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     doc-split-bufferrst-out-of-api-summaryrst-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-harness-remove-use-of-line_max-fix-fix-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/doc-split-bufferrst-out-of-api-summaryrst-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,69 +58,112 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests: mm: fix undeclared function error
-Date: Wed, 17 Apr 2024 12:55:30 +0500
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: doc-split-bufferrst-out-of-api-summaryrst-fix
+Date: Wed, 17 Apr 2024 02:57:46 +0100
 
-Fix the error reported by clang:
+fix kerneldoc warning
 
-In file included from mdwe_test.c:17:
-./../kselftest_harness.h:1169:2: error: call to undeclared function
-'asprintf'; ISO C99 and later do not support implicit function
-declarations [-Wimplicit-function-declaration]
- 1169 |         asprintf(&test_name, "%s%s%s.%s", f->name,
-      |         ^
-1 warning generated.
+Documentation/filesystems/index.rst:50: WARNING: toctree contains reference to nonexisting document 'filesystems/buffer' 
 
-The gcc reports it as warning:
-
-In file included from mdwe_test.c:17:
-../kselftest_harness.h: In function `__run_test':
-../kselftest_harness.h:1169:9: warning: implicit declaration of function
-`asprintf'; did you mean `vsprintf'? [-Wimplicit-function-declaration]
- 1169 |         asprintf(&test_name, "%s%s%s.%s", f->name,
-      |         ^~~~~~~~
-      |         vsprintf
-
-Fix this by setting _GNU_SOURCE macro needed to get exposure to the
-asprintf().
-
-Link: https://lkml.kernel.org/r/20240417075530.3807625-1-usama.anjum@collabora.com
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Bill Wendling <morbo@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Edward Liaw <edliaw@google.com>
-Cc: Justin Stitt <justinstitt@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Will Drewry <wad@chromium.org>
+Link: https://lkml.kernel.org/r/20240417015933.453505-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mdwe_test.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/filesystems/buffer.rst |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/tools/testing/selftests/mm/mdwe_test.c~selftests-harness-remove-use-of-line_max-fix-fix-fix
-+++ a/tools/testing/selftests/mm/mdwe_test.c
-@@ -7,6 +7,7 @@
- #include <linux/mman.h>
- #include <linux/prctl.h>
- 
-+#define _GNU_SOURCE
- #include <stdio.h>
- #include <stdlib.h>
- #include <sys/auxv.h>
+--- /dev/null
++++ a/Documentation/filesystems/buffer.rst
+@@ -0,0 +1,13 @@
++Buffer Heads
++============
++
++Linux uses buffer heads to maintain state about individual filesystem blocks.
++Buffer heads are deprecated and new filesystems should use iomap instead.
++
++Functions
++---------
++
++.. kernel-doc:: include/linux/buffer_head.h
++.. kernel-doc:: fs/buffer.c
++   :export:
++
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-selftests-harness-remove-use-of-line_max-fix-fix-fix.patch
-selftests-mm-fix-unused-and-uninitialized-variable-warning.patch
-selftests-exec-make-binaries-position-independent.patch
+mm-always-initialise-folio-_deferred_list.patch
+mm-create-folio_flag_false-and-folio_type_ops-macros.patch
+mm-remove-folio_prep_large_rmappable.patch
+mm-support-page_mapcount-on-page_has_type-pages.patch
+mm-turn-folio_test_hugetlb-into-a-pagetype.patch
+mm-turn-folio_test_hugetlb-into-a-pagetype-fix.patch
+mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch
+mm-free-up-pg_slab.patch
+mm-free-up-pg_slab-fix.patch
+mm-improve-dumping-of-mapcount-and-page_type.patch
+hugetlb-remove-mention-of-destructors.patch
+sh-remove-use-of-pg_arch_1-on-individual-pages.patch
+xtensa-remove-uses-of-pg_arch_1-on-individual-pages.patch
+mm-make-page_ext_get-take-a-const-argument.patch
+mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument.patch
+mm-make-is_free_buddy_page-take-a-const-argument.patch
+mm-make-page_mapped-take-a-const-argument.patch
+mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
+mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix.patch
+slub-remove-use-of-page-flags.patch
+remove-references-to-page-flags-in-documentation.patch
+proc-rewrite-stable_page_flags.patch
+proc-rewrite-stable_page_flags-fix.patch
+proc-rewrite-stable_page_flags-fix-2.patch
+sparc-use-is_huge_zero_pmd.patch
+mm-add-is_huge_zero_folio.patch
+mm-add-pmd_folio.patch
+mm-convert-migrate_vma_collect_pmd-to-use-a-folio.patch
+mm-convert-huge_zero_page-to-huge_zero_folio.patch
+mm-convert-do_huge_pmd_anonymous_page-to-huge_zero_folio.patch
+dax-use-huge_zero_folio.patch
+mm-rename-mm_put_huge_zero_page-to-mm_put_huge_zero_folio.patch
+mm-use-rwsem-assertion-macros-for-mmap_lock.patch
+filemap-remove-__set_page_dirty.patch
+mm-correct-page_mapped_in_vma-for-large-folios.patch
+mm-remove-vma_address.patch
+mm-rename-vma_pgoff_address-back-to-vma_address.patch
+khugepaged-inline-hpage_collapse_alloc_folio.patch
+khugepaged-convert-alloc_charge_hpage-to-alloc_charge_folio.patch
+khugepaged-remove-hpage-from-collapse_huge_page.patch
+khugepaged-pass-a-folio-to-__collapse_huge_page_copy.patch
+khugepaged-remove-hpage-from-collapse_file.patch
+khugepaged-use-a-folio-throughout-collapse_file.patch
+khugepaged-use-a-folio-throughout-collapse_file-fix.patch
+khugepaged-use-a-folio-throughout-hpage_collapse_scan_file.patch
+proc-convert-clear_refs_pte_range-to-use-a-folio.patch
+proc-convert-smaps_account-to-use-a-folio.patch
+mm-remove-page_idle-and-page_young-wrappers.patch
+mm-generate-page_idle_flag-definitions.patch
+proc-convert-gather_stats-to-use-a-folio.patch
+proc-convert-smaps_page_accumulate-to-use-a-folio.patch
+proc-pass-a-folio-to-smaps_page_accumulate.patch
+proc-convert-smaps_pmd_entry-to-use-a-folio.patch
+mm-remove-struct-page-from-get_shadow_from_swap_cache.patch
+hugetlb-convert-alloc_buddy_hugetlb_folio-to-use-a-folio.patch
+mm-convert-pagecache_isize_extended-to-use-a-folio.patch
+mm-free-non-hugetlb-large-folios-in-a-batch.patch
+mm-combine-free_the_page-and-free_unref_page.patch
+mm-inline-destroy_large_folio-into-__folio_put_large.patch
+mm-combine-__folio_put_small-__folio_put_large-and-__folio_put.patch
+mm-convert-free_zone_device_page-to-free_zone_device_folio.patch
+doc-improve-the-description-of-__folio_mark_dirty.patch
+buffer-add-kernel-doc-for-block_dirty_folio.patch
+buffer-add-kernel-doc-for-try_to_free_buffers.patch
+buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch
+buffer-add-kernel-doc-for-brelse-and-__brelse.patch
+buffer-add-kernel-doc-for-bforget-and-__bforget.patch
+buffer-improve-bdev_getblk-documentation.patch
+doc-split-bufferrst-out-of-api-summaryrst.patch
+doc-split-bufferrst-out-of-api-summaryrst-fix.patch
 
