@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62F7825761
-	for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2024 21:07:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05F685F869
+	for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2024 21:16:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713388057; cv=none; b=qmSE26ChckVnlDjljJ4k4m6ALqjdc9srwlRlzHu2yWP4+CfPV8Mm0N0AAxdJufSQJiw7fqT0PdNy3qvOhUS5QoGWWjc/V1IjRORV+McFN4K8VoGiLjeNqqz7zEtLDY6gczRitqF6BIeJaAspS5/gRbGhC/errGNHk9JRDVy9dJo=
+	t=1713388599; cv=none; b=utueOv6gWXcQvQENZbhieVUCOGtETIo8HUZJlv0KeHSyjTy5WHliKgxRzj+96R48ciHg2YHkggKp/y9eLAspMuSYFZfK8Hr3aK3Dqf2i0QJrUJzbr7ZCn4ErtXyQa65+jV+PbJ95IZXIrKOp86g2Y9ADmkpB9E9r6PcNSW6/wPs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713388057; c=relaxed/simple;
-	bh=8fkeHIk13ikw+DEmnGjsAujf4/HSEKF5aklyzO3Yfvk=;
-	h=Date:To:From:Subject:Message-Id; b=PxJLllcSl/2gqztjaEAyZ1R8R1wduKIreQZAZHCuBbvDAqYTg3sSmTSKJnmaD7WFeMhZ2HypSNqKwcGN87E9y7N7WOrk4UsM0hiTGS9NMBtsHzeoYCJKr7yWj0HAaUVDXMH3D11OX/3t8h+3oV0NoX5uJxBbzii1Qtl2qXb+eds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0O/qloCc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713388599; c=relaxed/simple;
+	bh=S/dk8lSRR7lGgrVclOK0C3kAO6H6YGGnc0M0eNWpgBg=;
+	h=Date:To:From:Subject:Message-Id; b=R0N+lIwkKMSQU7yfvsqbpr78Ft/1olgPMgVQU96v1xSHzR9gYj2iAYxWlfAy/K160Ieuz5tcD629+k2+wqanhoodAaxLfDMujBfmBRvI3stqLjt9m8tp47usoDNBUeK6GKiCPr8v4/D2frtUMwPjSNaUQvR3LuXmltxpcu2fWhc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I6Gz+KZZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0O/qloCc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D10A0C072AA;
-	Wed, 17 Apr 2024 21:07:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I6Gz+KZZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 784F7C072AA;
+	Wed, 17 Apr 2024 21:16:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713388056;
-	bh=8fkeHIk13ikw+DEmnGjsAujf4/HSEKF5aklyzO3Yfvk=;
+	s=korg; t=1713388598;
+	bh=S/dk8lSRR7lGgrVclOK0C3kAO6H6YGGnc0M0eNWpgBg=;
 	h=Date:To:From:Subject:From;
-	b=0O/qloCchR6TsCgisFzeMdPBwVvYhqGFhV7qC56VOQxAqyc9R333hjtWCYPXzGqzn
-	 RaewXaT1s8K1HzVBZwvx0JrqHSbq6QqfaMQMcStx33N86Ket3IIdB28kFEnv59M6bc
-	 4aHCBzkNJzLNTEXrmcQIHoHng0NvVWyslNJcSS+M=
-Date: Wed, 17 Apr 2024 14:07:36 -0700
-To: mm-commits@vger.kernel.org,rdunlap@infradead.org,willy@infradead.org,akpm@linux-foundation.org
+	b=I6Gz+KZZL9/rIOlDtcllW9fEpWK/y8gaa/V1lfZkrkZBF50Cycc0qBjRdvlXSp9VT
+	 47XqPjUnjJJgvLR5w2HvMZC1uT28h5GRMzi/vLLpWQRa0/tM7xKseQ9cd2UVDCjGIZ
+	 V/87YF/ghGy9P1NxoaBaMEUtESyZaQeSWEXX/D10=
+Date: Wed, 17 Apr 2024 14:16:37 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,vitaly.wool@konsulko.com,sjenning@redhat.com,rjones@redhat.com,nphamcs@gmail.com,ddstreet@ieee.org,christian@heusel.eu,chengming.zhou@linux.dev,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + doc-split-bufferrst-out-of-api-summaryrst-fix.patch added to mm-unstable branch
-Message-Id: <20240417210736.D10A0C072AA@smtp.kernel.org>
+Subject: + null-pointer-dereference-while-shrinking-zswap.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240417211638.784F7C072AA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: doc-split-bufferrst-out-of-api-summaryrst-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     doc-split-bufferrst-out-of-api-summaryrst-fix.patch
+     Subject: Re: Null pointer dereference while shrinking zswap
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     null-pointer-dereference-while-shrinking-zswap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/doc-split-bufferrst-out-of-api-summaryrst-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/null-pointer-dereference-while-shrinking-zswap.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,112 +58,80 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: doc-split-bufferrst-out-of-api-summaryrst-fix
-Date: Wed, 17 Apr 2024 02:57:46 +0100
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: Re: Null pointer dereference while shrinking zswap
+Date: Wed, 17 Apr 2024 10:33:24 -0400
 
-fix kerneldoc warning
+temp version of this fix, for testing
 
-Documentation/filesystems/index.rst:50: WARNING: toctree contains reference to nonexisting document 'filesystems/buffer' 
-
-Link: https://lkml.kernel.org/r/20240417015933.453505-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Tested-by: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20240417143324.GA1055428@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Tested-by: Richard W.M. Jones <rjones@redhat.com>
+Tested-By: Christian Heusel <christian@heusel.eu>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/buffer.rst |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/zswap.c |   25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
---- /dev/null
-+++ a/Documentation/filesystems/buffer.rst
-@@ -0,0 +1,13 @@
-+Buffer Heads
-+============
-+
-+Linux uses buffer heads to maintain state about individual filesystem blocks.
-+Buffer heads are deprecated and new filesystems should use iomap instead.
-+
-+Functions
-+---------
-+
-+.. kernel-doc:: include/linux/buffer_head.h
-+.. kernel-doc:: fs/buffer.c
-+   :export:
-+
+--- a/mm/zswap.c~null-pointer-dereference-while-shrinking-zswap
++++ a/mm/zswap.c
+@@ -1331,15 +1331,22 @@ static unsigned long zswap_shrinker_coun
+ 	if (!gfp_has_io_fs(sc->gfp_mask))
+ 		return 0;
+ 
+-#ifdef CONFIG_MEMCG_KMEM
+-	mem_cgroup_flush_stats(memcg);
+-	nr_backing = memcg_page_state(memcg, MEMCG_ZSWAP_B) >> PAGE_SHIFT;
+-	nr_stored = memcg_page_state(memcg, MEMCG_ZSWAPPED);
+-#else
+-	/* use pool stats instead of memcg stats */
+-	nr_backing = zswap_pool_total_size >> PAGE_SHIFT;
+-	nr_stored = atomic_read(&zswap_nr_stored);
+-#endif
++	/*
++	 * For memcg, use the cgroup-wide ZSWAP stats since we don't
++	 * have them per-node and thus per-lruvec. Careful if memcg is
++	 * runtime-disabled: we can get sc->memcg == NULL, which is ok
++	 * for the lruvec, but not for memcg_page_state().
++	 *
++	 * Without memcg, use the zswap pool-wide metrics.
++	 */
++	if (!mem_cgroup_disabled()) {
++		mem_cgroup_flush_stats(memcg);
++		nr_backing = memcg_page_state(memcg, MEMCG_ZSWAP_B) >> PAGE_SHIFT;
++		nr_stored = memcg_page_state(memcg, MEMCG_ZSWAPPED);
++	} else {
++		nr_backing = zswap_pool_total_size >> PAGE_SHIFT;
++		nr_stored = atomic_read(&zswap_nr_stored);
++	}
+ 
+ 	if (!nr_stored)
+ 		return 0;
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-always-initialise-folio-_deferred_list.patch
-mm-create-folio_flag_false-and-folio_type_ops-macros.patch
-mm-remove-folio_prep_large_rmappable.patch
-mm-support-page_mapcount-on-page_has_type-pages.patch
-mm-turn-folio_test_hugetlb-into-a-pagetype.patch
-mm-turn-folio_test_hugetlb-into-a-pagetype-fix.patch
-mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch
-mm-free-up-pg_slab.patch
-mm-free-up-pg_slab-fix.patch
-mm-improve-dumping-of-mapcount-and-page_type.patch
-hugetlb-remove-mention-of-destructors.patch
-sh-remove-use-of-pg_arch_1-on-individual-pages.patch
-xtensa-remove-uses-of-pg_arch_1-on-individual-pages.patch
-mm-make-page_ext_get-take-a-const-argument.patch
-mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument.patch
-mm-make-is_free_buddy_page-take-a-const-argument.patch
-mm-make-page_mapped-take-a-const-argument.patch
-mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
-mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix.patch
-slub-remove-use-of-page-flags.patch
-remove-references-to-page-flags-in-documentation.patch
-proc-rewrite-stable_page_flags.patch
-proc-rewrite-stable_page_flags-fix.patch
-proc-rewrite-stable_page_flags-fix-2.patch
-sparc-use-is_huge_zero_pmd.patch
-mm-add-is_huge_zero_folio.patch
-mm-add-pmd_folio.patch
-mm-convert-migrate_vma_collect_pmd-to-use-a-folio.patch
-mm-convert-huge_zero_page-to-huge_zero_folio.patch
-mm-convert-do_huge_pmd_anonymous_page-to-huge_zero_folio.patch
-dax-use-huge_zero_folio.patch
-mm-rename-mm_put_huge_zero_page-to-mm_put_huge_zero_folio.patch
-mm-use-rwsem-assertion-macros-for-mmap_lock.patch
-filemap-remove-__set_page_dirty.patch
-mm-correct-page_mapped_in_vma-for-large-folios.patch
-mm-remove-vma_address.patch
-mm-rename-vma_pgoff_address-back-to-vma_address.patch
-khugepaged-inline-hpage_collapse_alloc_folio.patch
-khugepaged-convert-alloc_charge_hpage-to-alloc_charge_folio.patch
-khugepaged-remove-hpage-from-collapse_huge_page.patch
-khugepaged-pass-a-folio-to-__collapse_huge_page_copy.patch
-khugepaged-remove-hpage-from-collapse_file.patch
-khugepaged-use-a-folio-throughout-collapse_file.patch
-khugepaged-use-a-folio-throughout-collapse_file-fix.patch
-khugepaged-use-a-folio-throughout-hpage_collapse_scan_file.patch
-proc-convert-clear_refs_pte_range-to-use-a-folio.patch
-proc-convert-smaps_account-to-use-a-folio.patch
-mm-remove-page_idle-and-page_young-wrappers.patch
-mm-generate-page_idle_flag-definitions.patch
-proc-convert-gather_stats-to-use-a-folio.patch
-proc-convert-smaps_page_accumulate-to-use-a-folio.patch
-proc-pass-a-folio-to-smaps_page_accumulate.patch
-proc-convert-smaps_pmd_entry-to-use-a-folio.patch
-mm-remove-struct-page-from-get_shadow_from_swap_cache.patch
-hugetlb-convert-alloc_buddy_hugetlb_folio-to-use-a-folio.patch
-mm-convert-pagecache_isize_extended-to-use-a-folio.patch
-mm-free-non-hugetlb-large-folios-in-a-batch.patch
-mm-combine-free_the_page-and-free_unref_page.patch
-mm-inline-destroy_large_folio-into-__folio_put_large.patch
-mm-combine-__folio_put_small-__folio_put_large-and-__folio_put.patch
-mm-convert-free_zone_device_page-to-free_zone_device_folio.patch
-doc-improve-the-description-of-__folio_mark_dirty.patch
-buffer-add-kernel-doc-for-block_dirty_folio.patch
-buffer-add-kernel-doc-for-try_to_free_buffers.patch
-buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch
-buffer-add-kernel-doc-for-brelse-and-__brelse.patch
-buffer-add-kernel-doc-for-bforget-and-__bforget.patch
-buffer-improve-bdev_getblk-documentation.patch
-doc-split-bufferrst-out-of-api-summaryrst.patch
-doc-split-bufferrst-out-of-api-summaryrst-fix.patch
+null-pointer-dereference-while-shrinking-zswap.patch
+mm-zswap-optimize-zswap-pool-size-tracking.patch
+mm-zpool-return-pool-size-in-pages.patch
+mm-page_alloc-remove-pcppage-migratetype-caching.patch
+mm-page_alloc-optimize-free_unref_folios.patch
+mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch
+mm-page_alloc-move-free-pages-when-converting-block-during-isolation.patch
+mm-page_alloc-fix-move_freepages_block-range-error.patch
+mm-page_alloc-fix-freelist-movement-during-block-conversion.patch
+mm-page_alloc-close-migratetype-race-between-freeing-and-stealing.patch
+mm-page_isolation-prepare-for-hygienic-freelists.patch
+mm-page_isolation-prepare-for-hygienic-freelists-fix.patch
+mm-page_alloc-consolidate-free-page-accounting.patch
+mm-page_alloc-consolidate-free-page-accounting-fix.patch
+mm-page_alloc-consolidate-free-page-accounting-fix-2.patch
+mm-page_alloc-batch-vmstat-updates-in-expand.patch
 
