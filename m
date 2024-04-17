@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A37433AC01
-	for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2024 20:30:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 520013D966
+	for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2024 20:47:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713385847; cv=none; b=MTXuW0GCqQsAsIeum0f+OfU6dP6wzzRR2xDIIpWQicxgmxvOFLRbh6Ku2sCvBLZoKsLZ5f0YgnxfIoc6jerxbBtUxXjlHgufj+QIz9z0b4Hi3WqbzEnG0wU77OWGjTGulpyYIjpiFatGXjb6L2xnBdRk5E7TAnfTgIFAA9V3Q+0=
+	t=1713386866; cv=none; b=b4tHcq8fPPYevKbxNnWGlpEVj9J5KsmXEs3hCNjGKqnzz06iAJjUQHz+TNE72A5dHm+IfcR5DUxwEEF/EPy9C9DTustPCjOcc02L5vD5/ekyqhao1adk/sRb+MMQsHfPSchoFtRh0i1zGrSgSXenYwmdUEIMgMwK/od/HE1srss=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713385847; c=relaxed/simple;
-	bh=J7WzgHfQcSrCWM9wZSs4mbbtDU5pTKBmjBJVDer5eOA=;
-	h=Date:To:From:Subject:Message-Id; b=ZY2MSrl/XhrCuYvR+sPIbLlCCS28eZa+Ys6yCv/pbJk73EsxYYoz68A5Mo5NwlNAl3xp9HV9expMqExK5J/jAyiAqG8G2IJeBVuHUihpWdvrq/vDyVaoJ949zu7dQz370MVvs9HKtynhEnpaXn7pZxA2xkfqwBL4Ez5ThHHG3+s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zrzzCM6S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713386866; c=relaxed/simple;
+	bh=fFSI3t2rKBYoewwsu5v2E18OOgC1bouQKN/0eLH8uGw=;
+	h=Date:To:From:Subject:Message-Id; b=lVw1ZldFwmTVrRkmorC+KC1mmqZ+yKWEEwMtBiqydt1IvBhIbgZWNJcFxp5uxqKTRnEyaoJsxuN1dbXUbh/xQ0O+Q8LIFz3+bSLR4IBUByxoxLtH3rVn9uv3cgcXeIO9Y9WABbbHP13hH4+LUb4FZUzEayXLVBc5LAqYhD9ybjY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xzh4GJjv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zrzzCM6S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22CB5C072AA;
-	Wed, 17 Apr 2024 20:30:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xzh4GJjv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7D85C072AA;
+	Wed, 17 Apr 2024 20:47:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713385847;
-	bh=J7WzgHfQcSrCWM9wZSs4mbbtDU5pTKBmjBJVDer5eOA=;
+	s=korg; t=1713386865;
+	bh=fFSI3t2rKBYoewwsu5v2E18OOgC1bouQKN/0eLH8uGw=;
 	h=Date:To:From:Subject:From;
-	b=zrzzCM6S0unas61V/M3X1Kbj45pQaVd2315mTxnrO9xzL4Kb1SKVmTX4YyE4lyyc+
-	 hMt/jhLCjrGgzBuBr4EiiHu+YwMUwSttVo7kTBEyzATn0oor/WiHdRzIIx7cGdVC6J
-	 EF0Kjz1Dbq8zuYuosZyekKfdRWv1zzj6S0EES2mk=
-Date: Wed, 17 Apr 2024 13:30:46 -0700
-To: mm-commits@vger.kernel.org,pasha.tatashin@soleen.com,nadav.amit@gmail.com,david@redhat.com,axelrasmussen@google.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=xzh4GJjvw7HG++GF8PoBqTboyldp9yO63rnLX+DADDLHvvJWfagmZRJsUvmiYXREn
+	 ZPnG7lqoIc6Ny6mGnaXM3Na0Jh9fITlV2kAdQ/Hteum485xiTvdWY6zf3NEYIHQ8d0
+	 KLTvOSdngtLYvkpcjiRveBvt1OLKn+vAF6XCVaNM=
+Date: Wed, 17 Apr 2024 13:47:45 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-page_table_check-support-userfault-wr-protect-entries.patch removed from -mm tree
-Message-Id: <20240417203047.22CB5C072AA@smtp.kernel.org>
+Subject: + fs-proc-task_mmu-convert-pagemap_hugetlb_range-to-work-on-folios.patch added to mm-unstable branch
+Message-Id: <20240417204745.B7D85C072AA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,202 +34,120 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/page_table_check: support userfault wr-protect entries
-has been removed from the -mm tree.  Its filename was
-     mm-page_table_check-support-userfault-wr-protect-entries.patch
+The patch titled
+     Subject: fs/proc/task_mmu: convert pagemap_hugetlb_range() to work on folios
+has been added to the -mm mm-unstable branch.  Its filename is
+     fs-proc-task_mmu-convert-pagemap_hugetlb_range-to-work-on-folios.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-convert-pagemap_hugetlb_range-to-work-on-folios.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/page_table_check: support userfault wr-protect entries
-Date: Mon, 15 Apr 2024 16:52:59 -0400
+From: David Hildenbrand <david@redhat.com>
+Subject: fs/proc/task_mmu: convert pagemap_hugetlb_range() to work on folios
+Date: Wed, 17 Apr 2024 11:23:12 +0200
 
-Allow page_table_check hooks to check over userfaultfd wr-protect criteria
-upon pgtable updates.  The rule is no co-existence allowed for any
-writable flag against userfault wr-protect flag.
+Patch series "fs/proc/task_mmu: convert hugetlb functions to work on folis".
 
-This should be better than c2da319c2e, where we used to only sanitize such
-issues during a pgtable walk, but when hitting such issue we don't have a
-good chance to know where does that writable bit came from [1], so that
-even the pgtable walk exposes a kernel bug (which is still helpful on
-triaging) but not easy to track and debug.
+Let's convert two more functions, getting rid of two more page_mapcount()
+calls.
 
-Now we switch to track the source.  It's much easier too with the recent
-introduction of page table check.
 
-There are some limitations with using the page table check here for
-userfaultfd wr-protect purpose:
+This patch (of 2):
 
-  - It is only enabled with explicit enablement of page table check configs
-  and/or boot parameters, but should be good enough to track at least
-  syzbot issues, as syzbot should enable PAGE_TABLE_CHECK[_ENFORCED] for
-  x86 [1].  We used to have DEBUG_VM but it's now off for most distros,
-  while distros also normally not enable PAGE_TABLE_CHECK[_ENFORCED], which
-  is similar.
+Let's get rid of another page_mapcount() check and simply use
+folio_likely_mapped_shared(), which is precise for hugetlb folios.
 
-  - It conditionally works with the ptep_modify_prot API.  It will be
-  bypassed when e.g. XEN PV is enabled, however still work for most of the
-  rest scenarios, which should be the common cases so should be good
-  enough.
+While at it, also check for PMD table sharing, like we do in
+smaps_hugetlb_range().
 
-  - Hugetlb check is a bit hairy, as the page table check cannot identify
-  hugetlb pte or normal pte via trapping at set_pte_at(), because of the
-  current design where hugetlb maps every layers to pte_t... For example,
-  the default set_huge_pte_at() can invoke set_pte_at() directly and lose
-  the hugetlb context, treating it the same as a normal pte_t. So far it's
-  fine because we have huge_pte_uffd_wp() always equals to pte_uffd_wp() as
-  long as supported (x86 only).  It'll be a bigger problem when we'll
-  define _PAGE_UFFD_WP differently at various pgtable levels, because then
-  one huge_pte_uffd_wp() per-arch will stop making sense first.. as of now
-  we can leave this for later too.
+No functional change intended, except that we would now detect hugetlb
+folios shared via PMD table sharing correctly.
 
-This patch also removes commit c2da319c2e altogether, as we have something
-better now.
+Link: https://lkml.kernel.org/r/20240417092313.753919-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20240417092313.753919-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Muchun Song <muchun.song@linux.dev>
 
-[1] https://lore.kernel.org/all/000000000000dce0530615c89210@google.com/
-
-Link: https://lkml.kernel.org/r/20240415205259.2535077-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Nadav Amit <nadav.amit@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |   18 -----------------
- mm/page_table_check.c          |   32 ++++++++++++++++++++++++++++++-
- 2 files changed, 32 insertions(+), 18 deletions(-)
+ fs/proc/task_mmu.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/arch/x86/include/asm/pgtable.h~mm-page_table_check-support-userfault-wr-protect-entries
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -388,23 +388,7 @@ static inline pte_t pte_wrprotect(pte_t
- #ifdef CONFIG_HAVE_ARCH_USERFAULTFD_WP
- static inline int pte_uffd_wp(pte_t pte)
- {
--	bool wp = pte_flags(pte) & _PAGE_UFFD_WP;
--
--#ifdef CONFIG_DEBUG_VM
--	/*
--	 * Having write bit for wr-protect-marked present ptes is fatal,
--	 * because it means the uffd-wp bit will be ignored and write will
--	 * just go through.
--	 *
--	 * Use any chance of pgtable walking to verify this (e.g., when
--	 * page swapped out or being migrated for all purposes). It means
--	 * something is already wrong.  Tell the admin even before the
--	 * process crashes. We also nail it with wrong pgtable setup.
--	 */
--	WARN_ON_ONCE(wp && pte_write(pte));
--#endif
--
--	return wp;
-+	return pte_flags(pte) & _PAGE_UFFD_WP;
- }
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-convert-pagemap_hugetlb_range-to-work-on-folios
++++ a/fs/proc/task_mmu.c
+@@ -1578,12 +1578,13 @@ static int pagemap_hugetlb_range(pte_t *
  
- static inline pte_t pte_mkuffd_wp(pte_t pte)
---- a/mm/page_table_check.c~mm-page_table_check-support-userfault-wr-protect-entries
-+++ a/mm/page_table_check.c
-@@ -7,6 +7,8 @@
- #include <linux/kstrtox.h>
- #include <linux/mm.h>
- #include <linux/page_table_check.h>
-+#include <linux/swap.h>
-+#include <linux/swapops.h>
+ 	pte = huge_ptep_get(ptep);
+ 	if (pte_present(pte)) {
+-		struct page *page = pte_page(pte);
++		struct folio *folio = page_folio(pte_page(pte));
  
- #undef pr_fmt
- #define pr_fmt(fmt)	"page_table_check: " fmt
-@@ -182,6 +184,23 @@ void __page_table_check_pud_clear(struct
- }
- EXPORT_SYMBOL(__page_table_check_pud_clear);
+-		if (!PageAnon(page))
++		if (!folio_test_anon(folio))
+ 			flags |= PM_FILE;
  
-+/* Whether the swap entry cached writable information */
-+static inline bool swap_cached_writable(swp_entry_t entry)
-+{
-+	unsigned type = swp_type(entry);
-+
-+	return type == SWP_DEVICE_EXCLUSIVE_WRITE ||
-+	    type == SWP_MIGRATION_WRITE;
-+}
-+
-+static inline void __page_table_check_pte(pte_t pte)
-+{
-+	if (pte_present(pte) && pte_uffd_wp(pte))
-+		WARN_ON_ONCE(pte_write(pte));
-+	else if (is_swap_pte(pte) && pte_swp_uffd_wp(pte))
-+		WARN_ON_ONCE(swap_cached_writable(pte_to_swp_entry(pte)));
-+}
-+
- void __page_table_check_ptes_set(struct mm_struct *mm, pte_t *ptep, pte_t pte,
- 		unsigned int nr)
- {
-@@ -190,18 +209,29 @@ void __page_table_check_ptes_set(struct
- 	if (&init_mm == mm)
- 		return;
+-		if (page_mapcount(page) == 1)
++		if (!folio_likely_mapped_shared(folio) &&
++		    !hugetlb_pmd_shared(ptep))
+ 			flags |= PM_MMAP_EXCLUSIVE;
  
--	for (i = 0; i < nr; i++)
-+	for (i = 0; i < nr; i++) {
-+		__page_table_check_pte(pte);
- 		__page_table_check_pte_clear(mm, ptep_get(ptep + i));
-+	}
- 	if (pte_user_accessible_page(pte))
- 		page_table_check_set(pte_pfn(pte), nr, pte_write(pte));
- }
- EXPORT_SYMBOL(__page_table_check_ptes_set);
- 
-+static inline void __page_table_check_pmd(pmd_t pmd)
-+{
-+	if (pmd_present(pmd) && pmd_uffd_wp(pmd))
-+		WARN_ON_ONCE(pmd_write(pmd));
-+	else if (is_swap_pmd(pmd) && pmd_swp_uffd_wp(pmd))
-+		WARN_ON_ONCE(swap_cached_writable(pmd_to_swp_entry(pmd)));
-+}
-+
- void __page_table_check_pmd_set(struct mm_struct *mm, pmd_t *pmdp, pmd_t pmd)
- {
- 	if (&init_mm == mm)
- 		return;
- 
-+	__page_table_check_pmd(pmd);
- 	__page_table_check_pmd_clear(mm, *pmdp);
- 	if (pmd_user_accessible_page(pmd)) {
- 		page_table_check_set(pmd_pfn(pmd), PMD_SIZE >> PAGE_SHIFT,
+ 		if (huge_pte_uffd_wp(pte))
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-hmm-process-pud-swap-entry-without-pud_huge.patch
-mm-gup-cache-p4d-in-follow_p4d_mask.patch
-mm-gup-check-p4d-presence-before-going-on.patch
-mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-arm-use-macros-to-define-pmd-pud-helpers.patch
-mm-arm-redefine-pmd_huge-with-pmd_leaf.patch
-mm-arm64-merge-pxd_huge-and-pxd_leaf-definitions.patch
-mm-powerpc-redefine-pxd_huge-with-pxd_leaf.patch
-mm-gup-merge-pxd-huge-mapping-checks.patch
-mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
-mm-treewide-remove-pxd_huge.patch
-mm-arm-remove-pmd_thp_or_huge.patch
-mm-document-pxd_leaf-api.patch
-selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation.patch
-selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation-fix.patch
-mm-kconfig-config_pgtable_has_huge_leaves.patch
-mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch
-mm-make-hpage_pxd_-macros-even-if-thp.patch
-mm-introduce-vma_pgtable_walk_beginend.patch
-mm-arch-provide-pud_pfn-fallback.patch
-mm-arch-provide-pud_pfn-fallback-fix.patch
-mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing.patch
-mm-gup-refactor-record_subpages-to-find-1st-small-page.patch
-mm-gup-handle-hugetlb-for-no_page_table.patch
-mm-gup-cache-pudp-in-follow_pud_mask.patch
-mm-gup-handle-huge-pud-for-follow_pud_mask.patch
-mm-gup-handle-huge-pmd-for-follow_pmd_mask.patch
-mm-gup-handle-huge-pmd-for-follow_pmd_mask-fix.patch
-mm-gup-handle-hugepd-for-follow_page.patch
-mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code.patch
-mm-allow-anon-exclusive-check-over-hugetlb-tail-pages.patch
+mm-madvise-dont-perform-madvise-vma-walk-for-madv_populate_readwrite.patch
+mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared.patch
+mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared-fix.patch
+selftests-memfd_secret-add-vmsplice-test.patch
+mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed.patch
+mm-optimize-config_per_vma_lock-member-placement-in-vm_area_struct.patch
+mm-remove-prot-parameter-from-move_pte.patch
+mm-gup-consistently-name-gup-fast-functions.patch
+mm-treewide-rename-config_have_fast_gup-to-config_have_gup_fast.patch
+mm-use-gup-fast-instead-fast-gup-in-remaining-comments.patch
+drivers-virt-acrn-fix-pfnmap-pte-checks-in-acrn_vm_ram_map.patch
+mm-pass-vma-instead-of-mm-to-follow_pte.patch
+mm-follow_pte-improvements.patch
+mm-allow-for-detecting-underflows-with-page_mapcount-again.patch
+mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte.patch
+mm-rmap-add-fast-path-for-small-folios-when-adding-removing-duplicating.patch
+mm-track-mapcount-of-large-folios-in-single-value.patch
+mm-improve-folio_likely_mapped_shared-using-the-mapcount-of-large-folios.patch
+mm-make-folio_mapcount-return-0-for-small-typed-folios.patch
+mm-memory-use-folio_mapcount-in-zap_present_folio_ptes.patch
+mm-huge_memory-use-folio_mapcount-in-zap_huge_pmd-sanity-check.patch
+mm-memory-failure-use-folio_mapcount-in-hwpoison_user_mappings.patch
+mm-page_alloc-use-folio_mapped-in-__alloc_contig_migrate_range.patch
+mm-migrate-use-folio_likely_mapped_shared-in-add_page_for_migration.patch
+sh-mm-cache-use-folio_mapped-in-copy_from_user_page.patch
+mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio.patch
+mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page.patch
+trace-events-page_ref-trace-the-raw-page-mapcount-value.patch
+xtensa-mm-convert-check_tlb_entry-to-sanity-check-folios.patch
+mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch
+documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch
+mm-ksm-rename-get_ksm_page_flags-to-ksm_get_folio_flags.patch
+mm-ksm-remove-page_mapcount-usage-in-stable_tree_search.patch
+fs-proc-task_mmu-convert-pagemap_hugetlb_range-to-work-on-folios.patch
+fs-proc-task_mmu-convert-smaps_hugetlb_range-to-work-on-folios.patch
+loongarch-tlb-fix-error-parameter-ptep-set-but-not-used-due-to-__tlb_remove_tlb_entry.patch
 
