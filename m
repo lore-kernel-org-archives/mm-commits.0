@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0337118412C
-	for <mm-commits@vger.kernel.org>; Thu, 18 Apr 2024 19:49:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 305DF3D62;
+	Thu, 18 Apr 2024 20:03:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713469750; cv=none; b=CQIcyv977i2OBwAL/cxWuVG2MO3OssRbzaTLEvmPTAjC+cNX5ZvDo2fveUeY8nuPdgegztAyh5YaCUZw4nY6JamEvnYNGmkPXkhepOk5gGBjvJfnNf36pg5ncGEtpWzkm8RHk8RNftQTqfQ5ILocrox7fhc3DYC1E9BNLglpQeg=
+	t=1713470590; cv=none; b=eQLZ4A4FVM6s1tDVZLtkoLHMeXwTEedhvLBTeOQhlEFj7eWJn+3bBY25z18HwEV4ZkzQCWrN5SGNKEmGbwtmp0Tb2l1IrHA0Z/uQYf2U7uV50WAEKAQYtcUxcfkmb3ZvkVz6VrElhI1Z5NgWdcO+H03W2VcDr6ntCqPsOfj2w7g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713469750; c=relaxed/simple;
-	bh=aJl5oceZagccITdt0Fn+cbSYLI6L+uhW0FE0rm59FUY=;
-	h=Date:To:From:Subject:Message-Id; b=aUFZKE95UiRTP11PsxLgl2wq+TG9qlCf6B0HB2cqP4z0u5db64kUKsD7Lys8I+pB2IONN+RxdIc/vqbwtvsxHC+wxNaxzTGY/Nb5bM3XSVb4SjbFveNtRkAOS/aoB/Mqxj+rEJZcujgi2MyfEUuFtx8VUntQuhglBf2Tm24mXkg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s+vDv8gS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713470590; c=relaxed/simple;
+	bh=swxBHLx04q7zzE0dJIjK8VJkkGccJMLgfmxihuOcs6E=;
+	h=Date:To:From:Subject:Message-Id; b=aKomWoezSy8bL1I0J/tUoYb2Pq4SoZ9y+PsSMow6R4OzlJ1txCq2kk6v/pAV93tXGuGpzG8wMQ6bVK2LAuG0GkVuDk78wpW3mlSRpS9hbzN2eyK+oToA/OYGjWVCcnSYBmbCLb890yjP7BFmzpyUtW9TG+EgOPaPQZnyxRj8Fqc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vZU6Qzwa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s+vDv8gS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2104C116B1;
-	Thu, 18 Apr 2024 19:49:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vZU6Qzwa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A05A6C113CC;
+	Thu, 18 Apr 2024 20:03:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713469749;
-	bh=aJl5oceZagccITdt0Fn+cbSYLI6L+uhW0FE0rm59FUY=;
+	s=korg; t=1713470589;
+	bh=swxBHLx04q7zzE0dJIjK8VJkkGccJMLgfmxihuOcs6E=;
 	h=Date:To:From:Subject:From;
-	b=s+vDv8gSv/UixfvJ4xc3StWngsukep5aTmd4c/OqyE7hOUB2DPdURb/U+xTL8FspN
-	 A0F2TlW18XcC0+Z4PAEdw/SM0dxdYNSQGaOgiL6a5LXZe7IoXcfoMmyzXm6HJuT+Nz
-	 e95VYSJqgLKb69Gz+Dq9Ig33dEqyhmPLqQhOxH+8=
-Date: Thu, 18 Apr 2024 12:49:09 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,xiehuan09@gmail.com,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,shy828301@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,fengwei.yin@intel.com,david@redhat.com,21cnbao@gmail.com,ioworker0@gmail.com,akpm@linux-foundation.org
+	b=vZU6QzwaJIu3D6dVxVT4BW3IFkfkai+sUUKPiH1PMhPxlGQ/qxeJkANgfv93W5m4p
+	 FKtldM2CYrPdmqowJ+1oKSsz+lkhgVi8GkrM/C7GL02qtu/67+6bKjaolo0uNW6Bwo
+	 UB9jNmU+rlVIOr71t+MfMa1SBcCsAwnO3jrk0TUI=
+Date: Thu, 18 Apr 2024 13:03:09 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,tglx@linutronix.de,stable@vger.kernel.org,sfr@canb.auug.org.au,rppt@kernel.org,ndesaulniers@google.com,mingo@kernel.org,mcgrof@kernel.org,kjlx@templeofstupid.com,geert+renesas@glider.be,christophe.leroy@csgroup.eu,changbin.du@huawei.com,bjorn@kernel.org,arnd@arndb.de,adilger@dilger.ca,namcao@linutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free.patch added to mm-unstable branch
-Message-Id: <20240418194909.C2104C116B1@smtp.kernel.org>
+Subject: + init-fix-allocated-page-overlapping-with-ptr_err.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240418200309.A05A6C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: optimize lazyfreeing with mTHP in madvise_free
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free.patch
+     Subject: init: fix allocated page overlapping with PTR_ERR
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     init-fix-allocated-page-overlapping-with-ptr_err.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-fix-allocated-page-overlapping-with-ptr_err.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,183 +58,74 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lance Yang <ioworker0@gmail.com>
-Subject: mm/madvise: optimize lazyfreeing with mTHP in madvise_free
-Date: Thu, 18 Apr 2024 21:44:35 +0800
+From: Nam Cao <namcao@linutronix.de>
+Subject: init: fix allocated page overlapping with PTR_ERR
+Date: Thu, 18 Apr 2024 12:29:43 +0200
 
-This patch optimizes lazyfreeing with PTE-mapped mTHP[1] (Inspired by
-David Hildenbrand[2]).  We aim to avoid unnecessary folio splitting if the
-large folio is fully mapped within the target range.
+There is nothing preventing kernel memory allocators from allocating a
+page that overlaps with PTR_ERR(), except for architecture-specific code
+that setup memblock.
 
-If a large folio is locked or shared, or if we fail to split it, we just
-leave it in place and advance to the next PTE in the range.  But note that
-the behavior is changed; previously, any failure of this sort would cause
-the entire operation to give up.  As large folios become more common,
-sticking to the old way could result in wasted opportunities.
+It was discovered that RISCV architecture doesn't setup memblock corectly,
+leading to a page overlapping with PTR_ERR() being allocated, and
+subsequently crashing the kernel (link in Close: )
 
-On an Intel I5 CPU, lazyfreeing a 1GiB VMA backed by PTE-mapped folios of
-the same size results in the following runtimes for madvise(MADV_FREE) in
-seconds (shorter is better):
+The reported crash has nothing to do with PTR_ERR(): the last page (at
+address 0xfffff000) being allocated leads to an unexpected arithmetic
+overflow in ext4; but still, this page shouldn't be allocated in the first
+place.
 
-Folio Size |   Old    |   New    | Change
-------------------------------------------
-      4KiB | 0.590251 | 0.590259 |    0%
-     16KiB | 2.990447 | 0.185655 |  -94%
-     32KiB | 2.547831 | 0.104870 |  -95%
-     64KiB | 2.457796 | 0.052812 |  -97%
-    128KiB | 2.281034 | 0.032777 |  -99%
-    256KiB | 2.230387 | 0.017496 |  -99%
-    512KiB | 2.189106 | 0.010781 |  -99%
-   1024KiB | 2.183949 | 0.007753 |  -99%
-   2048KiB | 0.002799 | 0.002804 |    0%
+Because PTR_ERR() is an architecture-independent thing, we shouldn't ask
+every single architecture to set this up.  There may be other
+architectures beside RISCV that have the same problem.
 
-[1] https://lkml.kernel.org/r/20231207161211.2374093-5-ryan.roberts@arm.com
-[2] https://lore.kernel.org/linux-mm/20240214204435.167852-1-david@redhat.com
+Fix this once and for all by reserving the physical memory page that may
+be mapped to the last virtual memory page as part of low memory.
 
-Link: https://lkml.kernel.org/r/20240418134435.6092-5-ioworker0@gmail.com
-Signed-off-by: Lance Yang <ioworker0@gmail.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Jeff Xie <xiehuan09@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Unfortunately, this means if there is actual memory at this reserved
+location, that memory will become inaccessible.  However, if this page is
+not reserved, it can only be accessed as high memory, so this doesn't
+matter if high memory is not supported.  Even if high memory is supported,
+it is still only one page.
+
+Closes: https://lore.kernel.org/linux-riscv/878r1ibpdn.fsf@all.your.base.are.belong.to.us
+Link: https://lkml.kernel.org/r/20240418102943.180510-1-namcao@linutronix.de
+Signed-off-by: Nam Cao <namcao@linutronix.de>
+Reported-by: Björn Töpel <bjorn@kernel.org>
+Tested-by: Björn Töpel <bjorn@kernel.org>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Andreas Dilger <adilger@dilger.ca>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Changbin Du <changbin.du@huawei.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Krister Johansen <kjlx@templeofstupid.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   85 +++++++++++++++++++++++++------------------------
- 1 file changed, 44 insertions(+), 41 deletions(-)
+ init/main.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/madvise.c~mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free
-+++ a/mm/madvise.c
-@@ -643,6 +643,7 @@ static int madvise_free_pte_range(pmd_t
- 				unsigned long end, struct mm_walk *walk)
- 
- {
-+	const cydp_t cydp_flags = CYDP_CLEAR_YOUNG | CYDP_CLEAR_DIRTY;
- 	struct mmu_gather *tlb = walk->private;
- 	struct mm_struct *mm = tlb->mm;
- 	struct vm_area_struct *vma = walk->vma;
-@@ -697,44 +698,57 @@ static int madvise_free_pte_range(pmd_t
- 			continue;
- 
- 		/*
--		 * If pmd isn't transhuge but the folio is large and
--		 * is owned by only this process, split it and
--		 * deactivate all pages.
-+		 * If we encounter a large folio, only split it if it is not
-+		 * fully mapped within the range we are operating on. Otherwise
-+		 * leave it as is so that it can be marked as lazyfree. If we
-+		 * fail to split a folio, leave it in place and advance to the
-+		 * next pte in the range.
- 		 */
- 		if (folio_test_large(folio)) {
--			int err;
-+			bool any_young, any_dirty;
- 
--			if (folio_likely_mapped_shared(folio))
--				break;
--			if (!folio_trylock(folio))
--				break;
--			folio_get(folio);
--			arch_leave_lazy_mmu_mode();
--			pte_unmap_unlock(start_pte, ptl);
--			start_pte = NULL;
--			err = split_folio(folio);
--			folio_unlock(folio);
--			folio_put(folio);
--			if (err)
--				break;
--			start_pte = pte =
--				pte_offset_map_lock(mm, pmd, addr, &ptl);
--			if (!start_pte)
--				break;
--			arch_enter_lazy_mmu_mode();
--			pte--;
--			addr -= PAGE_SIZE;
--			continue;
-+			nr = madvise_folio_pte_batch(addr, end, folio, pte,
-+						     ptent, &any_young, &any_dirty);
-+
-+			if (nr < folio_nr_pages(folio)) {
-+				int err;
-+
-+				if (folio_likely_mapped_shared(folio))
-+					continue;
-+				if (!folio_trylock(folio))
-+					continue;
-+				folio_get(folio);
-+				arch_leave_lazy_mmu_mode();
-+				pte_unmap_unlock(start_pte, ptl);
-+				start_pte = NULL;
-+				err = split_folio(folio);
-+				folio_unlock(folio);
-+				folio_put(folio);
-+				pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
-+				start_pte = pte;
-+				if (!start_pte)
-+					break;
-+				arch_enter_lazy_mmu_mode();
-+				if (!err)
-+					nr = 0;
-+				continue;
-+			}
-+
-+			if (any_young)
-+				ptent = pte_mkyoung(ptent);
-+			if (any_dirty)
-+				ptent = pte_mkdirty(ptent);
- 		}
- 
- 		if (folio_test_swapcache(folio) || folio_test_dirty(folio)) {
- 			if (!folio_trylock(folio))
- 				continue;
- 			/*
--			 * If folio is shared with others, we mustn't clear
--			 * the folio's dirty flag.
-+			 * If we have a large folio at this point, we know it is
-+			 * fully mapped so if its mapcount is the same as its
-+			 * number of pages, it must be exclusive.
- 			 */
--			if (folio_mapcount(folio) != 1) {
-+			if (folio_mapcount(folio) != folio_nr_pages(folio)) {
- 				folio_unlock(folio);
- 				continue;
- 			}
-@@ -750,19 +764,8 @@ static int madvise_free_pte_range(pmd_t
- 		}
- 
- 		if (pte_young(ptent) || pte_dirty(ptent)) {
--			/*
--			 * Some of architecture(ex, PPC) don't update TLB
--			 * with set_pte_at and tlb_remove_tlb_entry so for
--			 * the portability, remap the pte with old|clean
--			 * after pte clearing.
--			 */
--			ptent = ptep_get_and_clear_full(mm, addr, pte,
--							tlb->fullmm);
--
--			ptent = pte_mkold(ptent);
--			ptent = pte_mkclean(ptent);
--			set_pte_at(mm, addr, pte, ptent);
--			tlb_remove_tlb_entry(tlb, pte, addr);
-+			clear_young_dirty_ptes(vma, addr, pte, nr, cydp_flags);
-+			tlb_remove_tlb_entries(tlb, pte, nr, addr);
- 		}
- 		folio_mark_lazyfree(folio);
- 	}
+--- a/init/main.c~init-fix-allocated-page-overlapping-with-ptr_err
++++ a/init/main.c
+@@ -900,6 +900,7 @@ void start_kernel(void)
+ 	page_address_init();
+ 	pr_notice("%s", linux_banner);
+ 	early_security_init();
++	memblock_reserve(__pa(-PAGE_SIZE), PAGE_SIZE); /* reserve last page for ERR_PTR */
+ 	setup_arch(&command_line);
+ 	setup_boot_config();
+ 	setup_command_line(command_line);
 _
 
-Patches currently in -mm which might be from ioworker0@gmail.com are
+Patches currently in -mm which might be from namcao@linutronix.de are
 
-mm-madvise-introduce-clear_young_dirty_ptes-batch-helper.patch
-mm-arm64-override-clear_young_dirty_ptes-batch-helper.patch
-mm-memory-add-any_dirty-optional-pointer-to-folio_pte_batch.patch
-mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free.patch
+init-fix-allocated-page-overlapping-with-ptr_err.patch
 
