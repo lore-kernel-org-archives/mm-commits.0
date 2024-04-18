@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D3FF1802C6
-	for <mm-commits@vger.kernel.org>; Thu, 18 Apr 2024 19:44:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4399919DF48
+	for <mm-commits@vger.kernel.org>; Thu, 18 Apr 2024 19:49:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713469475; cv=none; b=o2xgj7LWug45ZeiZeyklRwzrj7GdVayzjanwN1OX48HHVPeXDAG6XbivQWh0Q3Snfsjy4QRgqDd1lYt9w93IC/yR+jCc+c9l2seUcluMxnaBGIdcOeFtRRH1ygdLIJfxiRulpYJr228gIWzpIawTt5ywaInVv6AQXG0miwcAurI=
+	t=1713469744; cv=none; b=TZmFhERPytkjdytvU7gpGHcFWwgWfwK33ED7GVTdElgcEwtwSneM2bMULAR2YgEnuiy8OQ6+P0dsPyaGspDGD/HCJmZkbhXzobR+bL4e63C4HPIpoFQX0MN750/1MEAvohjdoeTN8WldlF68X2vzWNTvFo6SQQxYlxQh/pqTq2Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713469475; c=relaxed/simple;
-	bh=6DmsAFfSfICohmUE+VVzYhVXN8QLZ4+G4uPQ/MsCJ7w=;
-	h=Date:To:From:Subject:Message-Id; b=tAB2sNUDiu3Wc07/W8uq4BZh+qFnouWTd3uWtYxeuzxQl1S2dLy+oX5tngtBgfa/yFN3dgUA5DvbeaWq398X1ZA726vErh5Tw66RODCIszEmFTyz/YQg9mGICdzKVLodaRxkADgxxIEP51oABVwXH+jfBr1/O40h4Yto121yPIg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R7Z8MrrH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713469744; c=relaxed/simple;
+	bh=k+DCzAyryJbfhDRjyFEen5rQWrCPiquaSft4Md0FGJo=;
+	h=Date:To:From:Subject:Message-Id; b=HeqJINFX85gMTX0E5G5uMmgVdE3ChpAzpswxcucgvO5BKVhoJqRP4NEoAFGOaLxumhMvEhhS575hcScauU3ykUI0BcgnQ930sd/sf44VVYGWHYLQahS+7kH5TXmJqV0LQUmJqy7UD45IAcu+m0twl+JbqR5ge8RidZCi9TKRTA4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M22AVg21; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R7Z8MrrH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF790C113CC;
-	Thu, 18 Apr 2024 19:44:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M22AVg21"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B968DC116B1;
+	Thu, 18 Apr 2024 19:49:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713469474;
-	bh=6DmsAFfSfICohmUE+VVzYhVXN8QLZ4+G4uPQ/MsCJ7w=;
+	s=korg; t=1713469743;
+	bh=k+DCzAyryJbfhDRjyFEen5rQWrCPiquaSft4Md0FGJo=;
 	h=Date:To:From:Subject:From;
-	b=R7Z8MrrHFcXpo0mcqSna1LQzGXMFOlIyE+aFZlB0IgjaHez+ufFgtMopdcezXnTZ9
-	 /3s2PX09L+MxX32SM8tjgNM6UUbDYjdJqiNtaydAYMLUUH/KgeYPF9ETb5UVcBD19z
-	 ekXqFM4UB4/BrhO6bljOv0KkHRnm+E72OLyVRyV0=
-Date: Thu, 18 Apr 2024 12:44:34 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=M22AVg21fqpytI3WSwZ36eZmrADm5Wfa3xrXjsrsBLd/g80ICGcnplML1A+NbSGVc
+	 t/e4SbHtCicC7gkuMLYIBkuQKYlA4/nxU1oZEa6+1D9dFemioR5b3gqibCmo7Pa/Bn
+	 Z75c8GbhGsy+ZH230GK3f22j192+6rCslg2e9QuE=
+Date: Thu, 18 Apr 2024 12:49:03 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,xiehuan09@gmail.com,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,shy828301@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,fengwei.yin@intel.com,david@redhat.com,21cnbao@gmail.com,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapfile-check-usable-swap-device-in-__folio_throttle_swaprate.patch added to mm-unstable branch
-Message-Id: <20240418194434.CF790C113CC@smtp.kernel.org>
+Subject: + mm-madvise-introduce-clear_young_dirty_ptes-batch-helper.patch added to mm-unstable branch
+Message-Id: <20240418194903.B968DC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: swapfile: check usable swap device in __folio_throttle_swaprate()
+     Subject: mm/madvise: introduce clear_young_dirty_ptes() batch helper
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swapfile-check-usable-swap-device-in-__folio_throttle_swaprate.patch
+     mm-madvise-introduce-clear_young_dirty_ptes-batch-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-check-usable-swap-device-in-__folio_throttle_swaprate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-introduce-clear_young_dirty_ptes-batch-helper.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,80 +58,201 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: swapfile: check usable swap device in __folio_throttle_swaprate()
-Date: Thu, 18 Apr 2024 21:56:44 +0800
+From: Lance Yang <ioworker0@gmail.com>
+Subject: mm/madvise: introduce clear_young_dirty_ptes() batch helper
+Date: Thu, 18 Apr 2024 21:44:32 +0800
 
-Skip blk_cgroup_congested() if there is no usable swap device since no
-swapin/out will occur, Thereby avoid taking swap_lock.  The difference is
-shown below from perf date of CoW pagefault,
+Patch series "mm/madvise: enhance lazyfreeing with mTHP in madvise_free",
+v10.
 
- perf report -g -i perf.data.swapoff  | egrep "blk_cgroup_congested|__folio_throttle_swaprate"
-     1.01%     0.16%  page_fault2_pro  [kernel.kallsyms]      [k] __folio_throttle_swaprate
-     0.83%     0.80%  page_fault2_pro  [kernel.kallsyms]      [k] blk_cgroup_congested
+This patchset adds support for lazyfreeing multi-size THP (mTHP) without
+needing to first split the large folio via split_folio().  However, we
+still need to split a large folio that is not fully mapped within the
+target range.
 
- perf report -g -i perf.data.swapon   | egrep "blk_cgroup_congested|__folio_throttle_swaprate"
-     0.15%     0.15%  page_fault2_pro  [kernel.kallsyms]      [k] __folio_throttle_swaprate
+If a large folio is locked or shared, or if we fail to split it, we just
+leave it in place and advance to the next PTE in the range.  But note that
+the behavior is changed; previously, any failure of this sort would cause
+the entire operation to give up.  As large folios become more common,
+sticking to the old way could result in wasted opportunities.
 
-Link: https://lkml.kernel.org/r/20240418135644.2736748-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Tejun Heo <tj@kernel.org>
+Performance Testing
+===================
+
+On an Intel I5 CPU, lazyfreeing a 1GiB VMA backed by PTE-mapped folios of
+the same size results in the following runtimes for madvise(MADV_FREE) in
+seconds (shorter is better):
+
+Folio Size |   Old    |   New    | Change
+------------------------------------------
+      4KiB | 0.590251 | 0.590259 |    0%
+     16KiB | 2.990447 | 0.185655 |  -94%
+     32KiB | 2.547831 | 0.104870 |  -95%
+     64KiB | 2.457796 | 0.052812 |  -97%
+    128KiB | 2.281034 | 0.032777 |  -99%
+    256KiB | 2.230387 | 0.017496 |  -99%
+    512KiB | 2.189106 | 0.010781 |  -99%
+   1024KiB | 2.183949 | 0.007753 |  -99%
+   2048KiB | 0.002799 | 0.002804 |    0%
+
+
+This patch (of 4):
+
+This commit introduces clear_young_dirty_ptes() to replace mkold_ptes(). 
+By doing so, we can use the same function for both use cases
+(madvise_pageout and madvise_free), and it also provides the flexibility
+to only clear the dirty flag in the future if needed.
+
+Link: https://lkml.kernel.org/r/20240418134435.6092-1-ioworker0@gmail.com
+Link: https://lkml.kernel.org/r/20240418134435.6092-2-ioworker0@gmail.com
+Signed-off-by: Lance Yang <ioworker0@gmail.com>
+Suggested-by: Ryan Roberts <ryan.roberts@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Jeff Xie <xiehuan09@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ include/linux/mm_types.h |    9 ++++
+ include/linux/pgtable.h  |   74 ++++++++++++++++++++++---------------
+ mm/madvise.c             |    3 +
+ 3 files changed, 55 insertions(+), 31 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfile-check-usable-swap-device-in-__folio_throttle_swaprate
-+++ a/mm/swapfile.c
-@@ -2444,13 +2444,17 @@ static void reinsert_swap_info(struct sw
- 	spin_unlock(&swap_lock);
- }
+--- a/include/linux/mm_types.h~mm-madvise-introduce-clear_young_dirty_ptes-batch-helper
++++ a/include/linux/mm_types.h
+@@ -1368,6 +1368,15 @@ enum fault_flag {
  
-+static bool __has_usable_swap(void)
+ typedef unsigned int __bitwise zap_flags_t;
+ 
++/* Flags for clear_young_dirty_ptes(). */
++typedef int __bitwise cydp_t;
++
++/* Clear the access bit */
++#define CYDP_CLEAR_YOUNG		((__force cydp_t)BIT(0))
++
++/* Clear the dirty bit */
++#define CYDP_CLEAR_DIRTY		((__force cydp_t)BIT(1))
++
+ /*
+  * FOLL_PIN and FOLL_LONGTERM may be used in various combinations with each
+  * other. Here is what they mean, and how to use them:
+--- a/include/linux/pgtable.h~mm-madvise-introduce-clear_young_dirty_ptes-batch-helper
++++ a/include/linux/pgtable.h
+@@ -361,36 +361,6 @@ static inline int ptep_test_and_clear_yo
+ }
+ #endif
+ 
+-#ifndef mkold_ptes
+-/**
+- * mkold_ptes - Mark PTEs that map consecutive pages of the same folio as old.
+- * @vma: VMA the pages are mapped into.
+- * @addr: Address the first page is mapped at.
+- * @ptep: Page table pointer for the first entry.
+- * @nr: Number of entries to mark old.
+- *
+- * May be overridden by the architecture; otherwise, implemented as a simple
+- * loop over ptep_test_and_clear_young().
+- *
+- * Note that PTE bits in the PTE range besides the PFN can differ. For example,
+- * some PTEs might be write-protected.
+- *
+- * Context: The caller holds the page table lock.  The PTEs map consecutive
+- * pages that belong to the same folio.  The PTEs are all in the same PMD.
+- */
+-static inline void mkold_ptes(struct vm_area_struct *vma, unsigned long addr,
+-		pte_t *ptep, unsigned int nr)
+-{
+-	for (;;) {
+-		ptep_test_and_clear_young(vma, addr, ptep);
+-		if (--nr == 0)
+-			break;
+-		ptep++;
+-		addr += PAGE_SIZE;
+-	}
+-}
+-#endif
+-
+ #ifndef __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG)
+ static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
+@@ -489,6 +459,50 @@ static inline pte_t ptep_get_and_clear(s
+ }
+ #endif
+ 
++#ifndef clear_young_dirty_ptes
++/**
++ * clear_young_dirty_ptes - Mark PTEs that map consecutive pages of the
++ *		same folio as old/clean.
++ * @mm: Address space the pages are mapped into.
++ * @addr: Address the first page is mapped at.
++ * @ptep: Page table pointer for the first entry.
++ * @nr: Number of entries to mark old/clean.
++ * @flags: Flags to modify the PTE batch semantics.
++ *
++ * May be overridden by the architecture; otherwise, implemented by
++ * get_and_clear/modify/set for each pte in the range.
++ *
++ * Note that PTE bits in the PTE range besides the PFN can differ. For example,
++ * some PTEs might be write-protected.
++ *
++ * Context: The caller holds the page table lock.  The PTEs map consecutive
++ * pages that belong to the same folio.  The PTEs are all in the same PMD.
++ */
++static inline void clear_young_dirty_ptes(struct vm_area_struct *vma,
++					  unsigned long addr, pte_t *ptep,
++					  unsigned int nr, cydp_t flags)
 +{
-+	return !plist_head_empty(&swap_active_head);
++	pte_t pte;
++
++	for (;;) {
++		if (flags == CYDP_CLEAR_YOUNG)
++			ptep_test_and_clear_young(vma, addr, ptep);
++		else {
++			pte = ptep_get_and_clear(vma->vm_mm, addr, ptep);
++			if (flags & CYDP_CLEAR_YOUNG)
++				pte = pte_mkold(pte);
++			if (flags & CYDP_CLEAR_DIRTY)
++				pte = pte_mkclean(pte);
++			set_pte_at(vma->vm_mm, addr, ptep, pte);
++		}
++		if (--nr == 0)
++			break;
++		ptep++;
++		addr += PAGE_SIZE;
++	}
 +}
++#endif
 +
- bool has_usable_swap(void)
+ static inline void ptep_clear(struct mm_struct *mm, unsigned long addr,
+ 			      pte_t *ptep)
  {
--	bool ret = true;
-+	bool ret;
+--- a/mm/madvise.c~mm-madvise-introduce-clear_young_dirty_ptes-batch-helper
++++ a/mm/madvise.c
+@@ -507,7 +507,8 @@ restart:
+ 			continue;
  
- 	spin_lock(&swap_lock);
--	if (plist_head_empty(&swap_active_head))
--		ret = false;
-+	ret = __has_usable_swap();
- 	spin_unlock(&swap_lock);
- 	return ret;
- }
-@@ -3710,6 +3714,9 @@ void __folio_throttle_swaprate(struct fo
- 	if (!(gfp & __GFP_IO))
- 		return;
- 
-+	if (!__has_usable_swap())
-+		return;
-+
- 	if (!blk_cgroup_congested())
- 		return;
+ 		if (!pageout && pte_young(ptent)) {
+-			mkold_ptes(vma, addr, pte, nr);
++			clear_young_dirty_ptes(vma, addr, pte, nr,
++					       CYDP_CLEAR_YOUNG);
+ 			tlb_remove_tlb_entries(tlb, pte, nr, addr);
+ 		}
  
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from ioworker0@gmail.com are
 
-mm-backing-dev-use-group-allocation-free-of-per-cpu-counters-api.patch
-mm-remove-__set_page_dirty_nobuffers.patch
-arm64-mm-cleanup-__do_page_fault.patch
-arm64-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
-arm-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
-powerpc-mm-accelerate-pagefault-when-badaccess.patch
-riscv-mm-accelerate-pagefault-when-badaccess.patch
-riscv-mm-accelerate-pagefault-when-badaccess-fix.patch
-s390-mm-accelerate-pagefault-when-badaccess.patch
-x86-mm-accelerate-pagefault-when-badaccess.patch
-arm64-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
-arm-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
-mm-move-mm-counter-updating-out-of-set_pte_range.patch
-mm-filemap-batch-mm-counter-updating-in-filemap_map_pages.patch
-mm-swapfile-check-usable-swap-device-in-__folio_throttle_swaprate.patch
+mm-madvise-introduce-clear_young_dirty_ptes-batch-helper.patch
+mm-arm64-override-clear_young_dirty_ptes-batch-helper.patch
+mm-memory-add-any_dirty-optional-pointer-to-folio_pte_batch.patch
+mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free.patch
 
