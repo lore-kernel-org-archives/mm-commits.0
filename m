@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8AD917994D
-	for <mm-commits@vger.kernel.org>; Thu, 18 Apr 2024 18:08:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9129A4F8A3;
+	Thu, 18 Apr 2024 19:03:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713463714; cv=none; b=EaGakAxAM+ORM0fRBjl+EMIEuxxLCTDAxoM87rxG30ejjc+1PWTE90EcgkJ+52wo+c2A/ZaN/YnkKE0V190iik6E/3n2LwaentA5Bpu5cgw1PAiHuiJSVu4sYv9PoGr1omyL3bp5vPArfCsFrSf+cZTX+Cy4aqkmtHk7YAj1rQA=
+	t=1713467000; cv=none; b=IGxvbP1tJ98fsIq6gt9zdznVl5jo1qw6iEbgF+aP9685rnGxNVyIua2KmvQA1fUQ1JREEqbLtT09GS+DZxnBbLvSvhnrMCHgspDeOZb4/WZkXpQ93vczRjQFycMUTlcOQtZLuY5FzWkVvNlRFHFNcRNqpLtSto5fWlaHdjqEVSs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713463714; c=relaxed/simple;
-	bh=YcSSlIfwKgfJ4B7vdMRZo644btxErjgsNP+mpqwW4Gc=;
-	h=Date:To:From:Subject:Message-Id; b=LIMTcaTo2mox/hjn6EwRyEUcfYHEzxe6tCVNIljQDdDjhqY6vEW2hQznLhh6/1uhOub+8QBDe2xkLNPIFxrL1zUfbpttXmoVMLcwy+qJypkGXhw15rEEYfkfwj0xmtbS4tp4OgKP3pZ3wH612K7YubXbWbjPqzZ0q4IZAogAK3E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uXylEXpk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713467000; c=relaxed/simple;
+	bh=VZtGpaqMkzB76SNGwLTn/euqnQq0FB7DHkLA0nWRmK8=;
+	h=Date:To:From:Subject:Message-Id; b=Zxqw48H487KJT9ZD6xPjQzH5qeiJiD2Jkj71/eDY/L9rivMc++Vy9y/MUtoBN4mDM0Sxc/W30alKLW0wgAYyTiIZvn1JzwlYRW87tQoIEtiNRuR4/jtUa7g/dN1m1YXN2m1y9+1W+HBeAfVnOwhlG6PITiuXnuohBAV/mrZFw/w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XaOmHb6E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uXylEXpk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52089C113CC;
-	Thu, 18 Apr 2024 18:08:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XaOmHb6E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14DB9C113CC;
+	Thu, 18 Apr 2024 19:03:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713463713;
-	bh=YcSSlIfwKgfJ4B7vdMRZo644btxErjgsNP+mpqwW4Gc=;
+	s=korg; t=1713467000;
+	bh=VZtGpaqMkzB76SNGwLTn/euqnQq0FB7DHkLA0nWRmK8=;
 	h=Date:To:From:Subject:From;
-	b=uXylEXpkOsYWA3EqYPRi2aCV+ITf4T3052uZAh2W/6EnUCzXUYcKDyO21dzkXTfzk
-	 waFO7888VJ+hfpFwr/NUY0Ehaw+qEMZjJXndSRRgjo7xDvvmWfAtu0tWZLtIf0y97v
-	 1cRbDVhB550oLdK92QdU7rfmG2ZnqlSN9k+DoDMo=
-Date: Thu, 18 Apr 2024 11:08:32 -0700
-To: mm-commits@vger.kernel.org,kernel@xen0n.name,geert@linux-m68k.org,corbet@lwn.net,chenhuacai@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
+	b=XaOmHb6EaDMSsbSYy+b1mckBnnMJvcTguyD6l+5wpmYa+pjJJZWhADH/A1n6B0yBh
+	 lKe3gcmMnuLDvljBGb60otAowsohZdixp5XPEWdGmnwdPisGcI5jUOfBDLq4wA/sjz
+	 rwQVT/58o7f8d3FCGrc/4RVVYYdFZYW+8kp3CHKo=
+Date: Thu, 18 Apr 2024 12:03:19 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,vitaly.wool@konsulko.com,stable@vger.kernel.org,sjenning@redhat.com,rjones@redhat.com,nphamcs@gmail.com,ddstreet@ieee.org,christian@heusel.eu,chengming.zhou@linux.dev,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] arch-loongarch-clean-up-the-left-code-and-kconfig-item-related-to-crash_core.patch removed from -mm tree
-Message-Id: <20240418180833.52089C113CC@smtp.kernel.org>
+Subject: + mm-zswap-fix-shrinker-null-crash-with-cgroup_disable=memory.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240418190320.14DB9C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,112 +34,123 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: arch/loongarch: clean up the left code and Kconfig item related to CRASH_CORE
-has been removed from the -mm tree.  Its filename was
-     arch-loongarch-clean-up-the-left-code-and-kconfig-item-related-to-crash_core.patch
+The patch titled
+     Subject: mm: zswap: fix shrinker NULL crash with cgroup_disable=memory
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-zswap-fix-shrinker-null-crash-with-cgroup_disable=memory.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-shrinker-null-crash-with-cgroup_disable=memory.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: arch/loongarch: clean up the left code and Kconfig item related to CRASH_CORE
-Date: Fri, 29 Mar 2024 21:28:24 +0800
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: zswap: fix shrinker NULL crash with cgroup_disable=memory
+Date: Thu, 18 Apr 2024 08:26:28 -0400
 
-Patch series "crash: clean up outdated codes and doc related to
-CRASH_CORE".
+Christian reports a NULL deref in zswap that he bisected down to the zswap
+shrinker.  The issue also cropped up in the bug trackers of libguestfs [1]
+and the Red Hat bugzilla [2].
 
-As Geert pointed out that there are still left codes and doc related to
-CRASH_CORE in arch/loongarch and Documentation.  So make these two patches
-to clean them up.  Thanks to Geert.
+The problem is that when memcg is disabled with the boot time flag, the
+zswap shrinker might get called with sc->memcg == NULL.  This is okay in
+many places, like the lruvec operations.  But it crashes in
+memcg_page_state() - which is only used due to the non-node accounting of
+cgroup's the zswap memory to begin with.
 
+Nhat spotted that the memcg can be NULL in the memcg-disabled case, and I
+was then able to reproduce the crash locally as well.
 
-This patch (of 2):
+[1] https://github.com/libguestfs/libguestfs/issues/139
+[2] https://bugzilla.redhat.com/show_bug.cgi?id=2275252
 
-In commit 85fcde402db1 ("kexec: split crashkernel reservation code out
-from crash_core.c"), crashkernel reservation code is split out from
-crash_core.c, and add CRASH_RESERVE to control it.  And also rename each
-ARCH's <asm/crash_core.h> to <asm/crash_reserve.h> accordingly.
-
-But the relevant part in loongarch is missed. Do it now.
-
-Link: https://lkml.kernel.org/r/20240329132825.1102459-1-bhe@redhat.com
-Link: https://lkml.kernel.org/r/20240329132825.1102459-2-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: WANG Xuerui <kernel@xen0n.name>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: https://lkml.kernel.org/r/20240418124043.GC1055428@cmpxchg.org
+Link: https://lkml.kernel.org/r/20240417143324.GA1055428@cmpxchg.org
+Fixes: b5ba474f3f51 ("zswap: shrink zswap pool based on memory pressure")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Christian Heusel <christian@heusel.eu>
+Debugged-by: Nhat Pham <nphamcs@gmail.com>
+Suggested-by: Nhat Pham <nphamcs@gmail.com>
+Tested-by: Christian Heusel <christian@heusel.eu>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Richard W.M. Jones <rjones@redhat.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: <stable@vger.kernel.org>	[v6.8]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/Kconfig                     |    2 +-
- arch/loongarch/include/asm/crash_core.h    |   12 ------------
- arch/loongarch/include/asm/crash_reserve.h |   12 ++++++++++++
- 3 files changed, 13 insertions(+), 13 deletions(-)
+ mm/zswap.c |   25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
---- a/arch/loongarch/include/asm/crash_core.h
-+++ /dev/null
-@@ -1,12 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--#ifndef _LOONGARCH_CRASH_CORE_H
--#define _LOONGARCH_CRASH_CORE_H
--
--#define CRASH_ALIGN			SZ_2M
--
--#define CRASH_ADDR_LOW_MAX		SZ_4G
--#define CRASH_ADDR_HIGH_MAX		memblock_end_of_DRAM()
--
--extern phys_addr_t memblock_end_of_DRAM(void);
--
+--- a/mm/zswap.c~mm-zswap-fix-shrinker-null-crash-with-cgroup_disable=memory
++++ a/mm/zswap.c
+@@ -1331,15 +1331,22 @@ static unsigned long zswap_shrinker_coun
+ 	if (!gfp_has_io_fs(sc->gfp_mask))
+ 		return 0;
+ 
+-#ifdef CONFIG_MEMCG_KMEM
+-	mem_cgroup_flush_stats(memcg);
+-	nr_backing = memcg_page_state(memcg, MEMCG_ZSWAP_B) >> PAGE_SHIFT;
+-	nr_stored = memcg_page_state(memcg, MEMCG_ZSWAPPED);
+-#else
+-	/* use pool stats instead of memcg stats */
+-	nr_backing = zswap_pool_total_size >> PAGE_SHIFT;
+-	nr_stored = atomic_read(&zswap_nr_stored);
 -#endif
---- /dev/null
-+++ a/arch/loongarch/include/asm/crash_reserve.h
-@@ -0,0 +1,12 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+#ifndef _LOONGARCH_CRASH_RESERVE_H
-+#define _LOONGARCH_CRASH_RESERVE_H
-+
-+#define CRASH_ALIGN			SZ_2M
-+
-+#define CRASH_ADDR_LOW_MAX		SZ_4G
-+#define CRASH_ADDR_HIGH_MAX		memblock_end_of_DRAM()
-+
-+extern phys_addr_t memblock_end_of_DRAM(void);
-+
-+#endif
---- a/arch/loongarch/Kconfig~arch-loongarch-clean-up-the-left-code-and-kconfig-item-related-to-crash_core
-+++ a/arch/loongarch/Kconfig
-@@ -595,7 +595,7 @@ config ARCH_SELECTS_CRASH_DUMP
- 	select RELOCATABLE
++	/*
++	 * For memcg, use the cgroup-wide ZSWAP stats since we don't
++	 * have them per-node and thus per-lruvec. Careful if memcg is
++	 * runtime-disabled: we can get sc->memcg == NULL, which is ok
++	 * for the lruvec, but not for memcg_page_state().
++	 *
++	 * Without memcg, use the zswap pool-wide metrics.
++	 */
++	if (!mem_cgroup_disabled()) {
++		mem_cgroup_flush_stats(memcg);
++		nr_backing = memcg_page_state(memcg, MEMCG_ZSWAP_B) >> PAGE_SHIFT;
++		nr_stored = memcg_page_state(memcg, MEMCG_ZSWAPPED);
++	} else {
++		nr_backing = zswap_pool_total_size >> PAGE_SHIFT;
++		nr_stored = atomic_read(&zswap_nr_stored);
++	}
  
- config ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
--	def_bool CRASH_CORE
-+	def_bool CRASH_RESERVE
- 
- config RELOCATABLE
- 	bool "Relocatable kernel"
+ 	if (!nr_stored)
+ 		return 0;
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-vmallocc-optimize-to-reduce-arguments-of-alloc_vmap_area.patch
-x86-remove-unneeded-memblock_find_dma_reserve.patch
-mm-mm_initc-remove-the-useless-dma_reserve.patch
-mm-mm_initc-add-new-function-calc_nr_all_pages.patch
-mm-mm_initc-remove-meaningless-calculation-of-zone-managed_pages-in-free_area_init_core.patch
-mm-mm_initc-remove-meaningless-calculation-of-zone-managed_pages-in-free_area_init_core-v3.patch
-mm-mm_initc-remove-unneeded-calc_memmap_size.patch
-mm-mm_initc-remove-arch_reserved_kernel_pages.patch
-mm-move-array-mem_section-init-code-out-of-memory_present.patch
-mm-init-remove-the-unnecessary-special-treatment-for-memory-less-node.patch
-mm-init-remove-the-unnecessary-special-treatment-for-memory-less-node-v2.patch
-mm-make-__absent_pages_in_range-as-static.patch
-mm-page_allocc-remove-unneeded-codes-in-numa-version-of-build_zonelists.patch
-mm-page_allocc-remove-unneeded-codes-in-numa-version-of-build_zonelists-v2.patch
-mm-mm_initc-remove-the-outdated-code-comment-above-deferred_grow_zone.patch
-mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone.patch
-mm-page_allocc-change-the-array-length-to-migrate_pcptypes.patch
-documentation-kdump-clean-up-the-outdated-description.patch
-kexec-fix-the-unexpected-kexec_dprintk-macro.patch
+mm-zswap-fix-shrinker-null-crash-with-cgroup_disable=memory.patch
+mm-zswap-optimize-zswap-pool-size-tracking.patch
+mm-zpool-return-pool-size-in-pages.patch
+mm-page_alloc-remove-pcppage-migratetype-caching.patch
+mm-page_alloc-optimize-free_unref_folios.patch
+mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch
+mm-page_alloc-move-free-pages-when-converting-block-during-isolation.patch
+mm-page_alloc-fix-move_freepages_block-range-error.patch
+mm-page_alloc-fix-freelist-movement-during-block-conversion.patch
+mm-page_alloc-close-migratetype-race-between-freeing-and-stealing.patch
+mm-page_isolation-prepare-for-hygienic-freelists.patch
+mm-page_isolation-prepare-for-hygienic-freelists-fix.patch
+mm-page_alloc-consolidate-free-page-accounting.patch
+mm-page_alloc-consolidate-free-page-accounting-fix.patch
+mm-page_alloc-consolidate-free-page-accounting-fix-2.patch
+mm-page_alloc-batch-vmstat-updates-in-expand.patch
 
