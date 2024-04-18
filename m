@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 129F217335B
-	for <mm-commits@vger.kernel.org>; Thu, 18 Apr 2024 19:27:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 686D217BB31;
+	Thu, 18 Apr 2024 19:41:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713468439; cv=none; b=TzfOTVhrwXSErz55ZBVGPuhw50R2h2BzAXmN4tLbK8W+ryeSaDcOX/Pi1QtfEuTNqXpFWF9uDK6WtPokJncRIXiNbkGt8e6lXnVTYkURD4X9ItSfAVTY7r8p5EvDnt1Q1x0wE3CjxK6DHI49ZCcGUuon/zUozVnSEekvOY0zSTY=
+	t=1713469312; cv=none; b=Eud9IAlfQssAhpabEBSom7vrZWR3VKC2DRjdlKnnOKqmtau+BjLAF3D0gms5rprpj6TxI4SKS39lKt6SiQlOfAw/rXD5toN9jzhZW6DlJ8EgRaJzUSodj0rqDxELoL/mQNQ90ZLqEwv9wKuY/4y6ChhABoqJ36u4x43iTiw5knk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713468439; c=relaxed/simple;
-	bh=b40Kwu39GvXErFQfNQHp995uFmA1D1ZJA8TMU9PYEnA=;
-	h=Date:To:From:Subject:Message-Id; b=sgQS/ydV4QzTBYrQqbS4mxSXbnyILrd7Ec4JWcfl0naAQK+JOqjfJ5wfXBDAROc4i0H6FOFoXofHZVnZDQUd3vsD/h7eIidgU9Nb2V/Bglq63vqSgD27qENg6UbJPXcA/JjMXNDxsuzkADvBr26OzhE9fNE79os3zhznqkJFFjY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RMAppVE1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713469312; c=relaxed/simple;
+	bh=1hpmOWFqiinHrZUd1RpE6sss5QCdje/qU/VKjv8zLPA=;
+	h=Date:To:From:Subject:Message-Id; b=bNTupPXP7+0xHoHHJzHBNtbarIbHfJsJLOIFck1XKsLtfjxoNcpoYvodv8bg+tLM5f3vCZA20HliOF5p6c8DuC80rgUXdnSyihIw+kuMHlUr4RMDw/7NKfvhltanQibSAruwQMto/wsdY2rmzS/5wSCuL+PSxxIOimMfSga+Pqc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ypb4KmrU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RMAppVE1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A457C113CC;
-	Thu, 18 Apr 2024 19:27:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ypb4KmrU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB8A8C113CC;
+	Thu, 18 Apr 2024 19:41:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713468438;
-	bh=b40Kwu39GvXErFQfNQHp995uFmA1D1ZJA8TMU9PYEnA=;
+	s=korg; t=1713469312;
+	bh=1hpmOWFqiinHrZUd1RpE6sss5QCdje/qU/VKjv8zLPA=;
 	h=Date:To:From:Subject:From;
-	b=RMAppVE1NZSwh6CzIM1vo3aODFisYS5KF4SAjl3E7x0VEu2AEkqqoN93/WCRbn72O
-	 U/a6W8mLDvJF+2j+2463ka2B9x6ehZL9019HZlh292be4H6pgrC9AsaNesnU8AYhE3
-	 jWc0Y30KOjYZUcDq87IfIYSu1xR6QlCCizo6I/9I=
-Date: Thu, 18 Apr 2024 12:27:18 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,jhubbard@nvidia.com,david@redhat.com,akpm@linux-foundation.org
+	b=ypb4KmrUFKszI9hqBoWfRrhsWoAZttwuaxl3tPJv8vR2hDyyhneF2hN9BC7YYNVa7
+	 qMnt6jeJH/NRvMh9TrjeGOVX5aRIS4vNCMOGXMeKjs6+H36E4irhY3H8THPOMORxkT
+	 7F0hhMhERuaspJlg+PE6iKSMoUWnzzgLI5LJAlzE=
+Date: Thu, 18 Apr 2024 12:41:51 -0700
+To: mm-commits@vger.kernel.org,xiubli@redhat.com,stable@vger.kernel.org,hch@infradead.org,glider@google.com,david@fromorbit.com,damien.lemoal@opensource.wdc.com,ryabinin.a.a@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation.patch added to mm-unstable branch
-Message-Id: <20240418192718.9A457C113CC@smtp.kernel.org>
+Subject: + stackdepot-respect-__gfp_nolockdep-allocation-flag.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240418194151.EB8A8C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: improve split_huge_page_to_list_to_order() return value documentation
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation.patch
+     Subject: stackdepot: respect __GFP_NOLOCKDEP allocation flag
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     stackdepot-respect-__gfp_nolockdep-allocation-flag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/stackdepot-respect-__gfp_nolockdep-allocation-flag.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,95 +58,98 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/huge_memory: improve split_huge_page_to_list_to_order() return value documentation
-Date: Thu, 18 Apr 2024 17:18:34 +0200
+From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Subject: stackdepot: respect __GFP_NOLOCKDEP allocation flag
+Date: Thu, 18 Apr 2024 16:11:33 +0200
 
-The documentation is wrong and relying on it almost resulted in BUGs in
-new callers: we return -EAGAIN on unexpected folio references, not -EBUSY.
+If stack_depot_save_flags() allocates memory it always drops
+__GFP_NOLOCKDEP flag.  So when KASAN tries to track __GFP_NOLOCKDEP
+allocation we may end up with lockdep splat like bellow:
 
-Let's fix that and also document which other return values we can
-currently see and why they could happen.
+======================================================
+ WARNING: possible circular locking dependency detected
+ 6.9.0-rc3+ #49 Not tainted
+ ------------------------------------------------------
+ kswapd0/149 is trying to acquire lock:
+ ffff88811346a920
+(&xfs_nondir_ilock_class){++++}-{4:4}, at: xfs_reclaim_inode+0x3ac/0x590
+[xfs]
 
-Link: https://lkml.kernel.org/r/20240418151834.216557-1-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+ but task is already holding lock:
+ ffffffff8bb33100 (fs_reclaim){+.+.}-{0:0}, at:
+balance_pgdat+0x5d9/0xad0
+
+ which lock already depends on the new lock.
+
+ the existing dependency chain (in reverse order) is:
+ -> #1 (fs_reclaim){+.+.}-{0:0}:
+        __lock_acquire+0x7da/0x1030
+        lock_acquire+0x15d/0x400
+        fs_reclaim_acquire+0xb5/0x100
+ prepare_alloc_pages.constprop.0+0xc5/0x230
+        __alloc_pages+0x12a/0x3f0
+        alloc_pages_mpol+0x175/0x340
+        stack_depot_save_flags+0x4c5/0x510
+        kasan_save_stack+0x30/0x40
+        kasan_save_track+0x10/0x30
+        __kasan_slab_alloc+0x83/0x90
+        kmem_cache_alloc+0x15e/0x4a0
+        __alloc_object+0x35/0x370
+        __create_object+0x22/0x90
+ __kmalloc_node_track_caller+0x477/0x5b0
+        krealloc+0x5f/0x110
+        xfs_iext_insert_raw+0x4b2/0x6e0 [xfs]
+        xfs_iext_insert+0x2e/0x130 [xfs]
+        xfs_iread_bmbt_block+0x1a9/0x4d0 [xfs]
+        xfs_btree_visit_block+0xfb/0x290 [xfs]
+        xfs_btree_visit_blocks+0x215/0x2c0 [xfs]
+        xfs_iread_extents+0x1a2/0x2e0 [xfs]
+ xfs_buffered_write_iomap_begin+0x376/0x10a0 [xfs]
+        iomap_iter+0x1d1/0x2d0
+ iomap_file_buffered_write+0x120/0x1a0
+        xfs_file_buffered_write+0x128/0x4b0 [xfs]
+        vfs_write+0x675/0x890
+        ksys_write+0xc3/0x160
+        do_syscall_64+0x94/0x170
+ entry_SYSCALL_64_after_hwframe+0x71/0x79
+
+Always preserve __GFP_NOLOCKDEP to fix this.
+
+Link: https://lkml.kernel.org/r/20240418141133.22950-1-ryabinin.a.a@gmail.com
+Fixes: cd11016e5f52 ("mm, kasan: stackdepot implementation. Enable stackdepot for SLAB")
+Signed-off-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Reported-by: Xiubo Li <xiubli@redhat.com>
+Closes: https://lore.kernel.org/all/a0caa289-ca02-48eb-9bf2-d86fd47b71f4@redhat.com/
+Reported-by: Damien Le Moal <damien.lemoal@opensource.wdc.com>
+Closes: https://lore.kernel.org/all/f9ff999a-e170-b66b-7caf-293f2b147ac2@opensource.wdc.com/
+Suggested-by: Dave Chinner <david@fromorbit.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ lib/stackdepot.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation
-+++ a/mm/huge_memory.c
-@@ -2956,7 +2956,7 @@ bool can_split_folio(struct folio *folio
-  *
-  * 3) The folio must not be pinned. Any unexpected folio references, including
-  *    GUP pins, will result in the folio not getting split; instead, the caller
-- *    will receive an -EBUSY.
-+ *    will receive an -EAGAIN.
-  *
-  * 4) @new_order > 1, usually. Splitting to order-1 anonymous folios is not
-  *    supported for non-file-backed folios, because folio->_deferred_list, which
-@@ -2975,8 +2975,15 @@ bool can_split_folio(struct folio *folio
-  *
-  * Returns 0 if the huge page was split successfully.
-  *
-- * Returns -EBUSY if @page's folio is pinned, or if the anon_vma disappeared
-- * from under us.
-+ * Returns -EAGAIN if the folio has unexpected reference (e.g., GUP).
-+ *
-+ * Returns -EBUSY when trying to split the huge zeropage, if the folio is
-+ * under writeback, if fs-specific folio metadata cannot currently be
-+ * released, or if some unexpected race happened (e.g., anon VMA disappeared,
-+ * truncation).
-+ *
-+ * Returns -EINVAL when trying to split to an order that is incompatible
-+ * with the folio. Splitting to order 0 is compatible with all folios.
-  */
- int split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
- 				     unsigned int new_order)
+--- a/lib/stackdepot.c~stackdepot-respect-__gfp_nolockdep-allocation-flag
++++ a/lib/stackdepot.c
+@@ -627,10 +627,10 @@ depot_stack_handle_t stack_depot_save_fl
+ 		/*
+ 		 * Zero out zone modifiers, as we don't have specific zone
+ 		 * requirements. Keep the flags related to allocation in atomic
+-		 * contexts and I/O.
++		 * contexts, I/O, nolockdep.
+ 		 */
+ 		alloc_flags &= ~GFP_ZONEMASK;
+-		alloc_flags &= (GFP_ATOMIC | GFP_KERNEL);
++		alloc_flags &= (GFP_ATOMIC | GFP_KERNEL | __GFP_NOLOCKDEP);
+ 		alloc_flags |= __GFP_NOWARN;
+ 		page = alloc_pages(alloc_flags, DEPOT_POOL_ORDER);
+ 		if (page)
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from ryabinin.a.a@gmail.com are
 
-mm-madvise-dont-perform-madvise-vma-walk-for-madv_populate_readwrite.patch
-mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared.patch
-mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared-fix.patch
-selftests-memfd_secret-add-vmsplice-test.patch
-mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed.patch
-mm-optimize-config_per_vma_lock-member-placement-in-vm_area_struct.patch
-mm-remove-prot-parameter-from-move_pte.patch
-mm-gup-consistently-name-gup-fast-functions.patch
-mm-treewide-rename-config_have_fast_gup-to-config_have_gup_fast.patch
-mm-use-gup-fast-instead-fast-gup-in-remaining-comments.patch
-drivers-virt-acrn-fix-pfnmap-pte-checks-in-acrn_vm_ram_map.patch
-mm-pass-vma-instead-of-mm-to-follow_pte.patch
-mm-follow_pte-improvements.patch
-mm-allow-for-detecting-underflows-with-page_mapcount-again.patch
-mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte.patch
-mm-rmap-add-fast-path-for-small-folios-when-adding-removing-duplicating.patch
-mm-track-mapcount-of-large-folios-in-single-value.patch
-mm-improve-folio_likely_mapped_shared-using-the-mapcount-of-large-folios.patch
-mm-make-folio_mapcount-return-0-for-small-typed-folios.patch
-mm-memory-use-folio_mapcount-in-zap_present_folio_ptes.patch
-mm-huge_memory-use-folio_mapcount-in-zap_huge_pmd-sanity-check.patch
-mm-memory-failure-use-folio_mapcount-in-hwpoison_user_mappings.patch
-mm-page_alloc-use-folio_mapped-in-__alloc_contig_migrate_range.patch
-mm-migrate-use-folio_likely_mapped_shared-in-add_page_for_migration.patch
-sh-mm-cache-use-folio_mapped-in-copy_from_user_page.patch
-mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio.patch
-mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page.patch
-trace-events-page_ref-trace-the-raw-page-mapcount-value.patch
-xtensa-mm-convert-check_tlb_entry-to-sanity-check-folios.patch
-mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch
-documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch
-mm-ksm-rename-get_ksm_page_flags-to-ksm_get_folio_flags.patch
-mm-ksm-remove-page_mapcount-usage-in-stable_tree_search.patch
-fs-proc-task_mmu-convert-pagemap_hugetlb_range-to-work-on-folios.patch
-fs-proc-task_mmu-convert-smaps_hugetlb_range-to-work-on-folios.patch
-mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation.patch
-loongarch-tlb-fix-error-parameter-ptep-set-but-not-used-due-to-__tlb_remove_tlb_entry.patch
+stackdepot-respect-__gfp_nolockdep-allocation-flag.patch
 
