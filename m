@@ -1,140 +1,117 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E0AF4503A
-	for <mm-commits@vger.kernel.org>; Thu, 18 Apr 2024 20:27:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 773BF16ABFF;
+	Thu, 18 Apr 2024 21:43:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713472051; cv=none; b=ckX9dOS22oZnBQLWAuC15Juw3b6lE7q+VgDhbEdOJPUHFl/kjoHoikfoiizBUR93Z+gQ/MWXbBCHBgEGUC+Z0SqurlGeEZZiKdu1Pdk2NrXDEuSdAqUaQQFIc4JaRDJDvV3Eimup/2rbG0oXMGftbXogm8HHZCyLCyCEyxXqPJQ=
+	t=1713476621; cv=none; b=a5T0IjNN9UO+0T//g/gUW5nVyd8uKh4WDIbm3THVNu1UQinTMEq83nLuS62mPjtCrwMi4vqVgvHbqhTBQjXluBQL1Q/hvyD7FGaCbsmFfxjzQEv9zK2qalNGEjKR9NjUX0qDaBgZSP9vPofYWPAiLkm/qGNC2WydZIbV+r896jk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713472051; c=relaxed/simple;
-	bh=SBrkyYdHCiLUEW3GGR8Ppf9/AS9YJrIbr5pDSi90qJs=;
-	h=Date:To:From:Subject:Message-Id; b=r0Qr56bsd3TPO6Bw/9MfVJ63cbi8VRXrsD8c1sTFLtVZeiGRhDEyVfZ3IsUpYtsMFulrQcnJww43Ms8OGSYYuwXh/80DHsO9P7pQVlAj1En2naUe5bStHKn6v1aRO5nsneyhp0KSva3+gtjeaHqWdeBrgWK/+bia2LacX48uPB8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zAAYu2Od; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713476621; c=relaxed/simple;
+	bh=Fvbiac4KfAqz/lNisFNho+Dr/IVLQW3P80lxLzHqAIM=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=UK/mrikZEH6Xa84ElfDkcnWBRP57Ksa5SqjCXy+CCoRg5bTPP1oyuahK9FIKzh/EFQAErKfVJ5SMlHkBmoSbxPn0ERzyTUjSITe9EZHyBEYevOAkc1EHGHRWOyvWP/QiowKsO1w4CSLv/vDgnDIA8SLW8XRtM7DsxD4wsZVSbEk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BIBCbuqJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zAAYu2Od"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22998C113CC;
-	Thu, 18 Apr 2024 20:27:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BIBCbuqJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC07DC2BD11;
+	Thu, 18 Apr 2024 21:43:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713472050;
-	bh=SBrkyYdHCiLUEW3GGR8Ppf9/AS9YJrIbr5pDSi90qJs=;
-	h=Date:To:From:Subject:From;
-	b=zAAYu2OdqhmkTivgfiNugFTQeqDZ/BH6xuCIkzVDAO7OFjbPWIHNV2aHvmiLPUWRJ
-	 dN/araDkPatFC+AJv+VpH7KFMivS+3IgtSa3Kwx8Im2JoCKyIwqSWN72MkUFGOjzen
-	 5URDFblPR1YWYh7CQWOJroS3GW4Q8VUYxmFVofng=
-Date: Thu, 18 Apr 2024 13:27:29 -0700
-To: mm-commits@vger.kernel.org,jirislaby@kernel.org,dyoung@redhat.com,bhe@redhat.com,akpm@linux-foundation.org
+	s=korg; t=1713476620;
+	bh=Fvbiac4KfAqz/lNisFNho+Dr/IVLQW3P80lxLzHqAIM=;
+	h=Date:From:To:Cc:Subject:From;
+	b=BIBCbuqJm/BtpJc9YWjo0iLcow+B7KIGqI9ikDGop6yezeD/xVF/1iftgB2xMWXSe
+	 KbTW0ZGGzOMvb/+6BX2QNWCddqvtn0pfgWCM4di1/6MBBQHIBJHQzjN0Hjbzy6dqZJ
+	 8PMoMpiNDcFTExAZCVS4OYSdGhxcvD9zzWLo4NU8=
+Date: Thu, 18 Apr 2024 14:43:40 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + crash-add-prefix-for-crash-dumping-messages.patch added to mm-nonmm-unstable branch
-Message-Id: <20240418202730.22998C113CC@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.9-rc5
+Message-Id: <20240418144340.2f5d96a1c4e0a8fd2dc9cb66@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: crash: add prefix for crash dumping messages
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     crash-add-prefix-for-crash-dumping-messages.patch
+Linus, please merge this batch of MM and non-MM hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-add-prefix-for-crash-dumping-messages.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit 0bbac3facb5d6cc0171c45c9873a2dc96bea9680:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Linux 6.9-rc4 (2024-04-14 13:38:39 -0700)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-04-18-14-41
 
-------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: crash: add prefix for crash dumping messages
-Date: Thu, 18 Apr 2024 11:58:43 +0800
+for you to fetch changes up to c4a7dc9523b59b3e73fd522c73e95e072f876b16:
 
-Add pr_fmt() to kernel/crash_core.c to add the module name to debugging
-message printed as prefix.
+  nilfs2: fix OOB in nilfs_set_de_type (2024-04-16 15:39:52 -0700)
 
-And also add prefix 'crashkernel:' to two lines of message printing code
-in kernel/crash_reserve.c. In kernel/crash_reserve.c, almost all
-debugging messages have 'crashkernel:' prefix or there's keyword
-crashkernel at the beginning or in the middle, adding pr_fmt() makes it
-redundant.
+----------------------------------------------------------------
+15 hotfixes.  9 are cc:stable and the remainder address post-6.8 issues
+or aren't considered suitable for backporting.
 
-Link: https://lkml.kernel.org/r/20240418035843.1562887-1-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+There are a significant number of fixups for this cycle's page_owner
+changes (series "page_owner: print stacks and their outstanding
+allocations").  Apart from that, singleton changes all over, mainly in MM.
 
- kernel/crash_core.c    |    2 ++
- kernel/crash_reserve.c |    4 ++--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+----------------------------------------------------------------
+David Hildenbrand (1):
+      mm/madvise: make MADV_POPULATE_(READ|WRITE) handle VM_FAULT_RETRY properly
 
---- a/kernel/crash_core.c~crash-add-prefix-for-crash-dumping-messages
-+++ a/kernel/crash_core.c
-@@ -4,6 +4,8 @@
-  * Copyright (C) 2002-2004 Eric Biederman  <ebiederm@xmission.com>
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/buildid.h>
- #include <linux/init.h>
- #include <linux/utsname.h>
---- a/kernel/crash_reserve.c~crash-add-prefix-for-crash-dumping-messages
-+++ a/kernel/crash_reserve.c
-@@ -109,7 +109,7 @@ static int __init parse_crashkernel_mem(
- 
- 		size = memparse(cur, &tmp);
- 		if (cur == tmp) {
--			pr_warn("Memory value expected\n");
-+			pr_warn("crashkernel: Memory value expected\n");
- 			return -EINVAL;
- 		}
- 		cur = tmp;
-@@ -132,7 +132,7 @@ static int __init parse_crashkernel_mem(
- 			cur++;
- 			*crash_base = memparse(cur, &tmp);
- 			if (cur == tmp) {
--				pr_warn("Memory value expected after '@'\n");
-+				pr_warn("crahskernel: Memory value expected after '@'\n");
- 				return -EINVAL;
- 			}
- 		}
-_
+Jeongjun Park (1):
+      nilfs2: fix OOB in nilfs_set_de_type
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Lokesh Gidra (1):
+      userfaultfd: change src_folio after ensuring it's unpinned in UFFDIO_MOVE
 
-mm-vmallocc-optimize-to-reduce-arguments-of-alloc_vmap_area.patch
-x86-remove-unneeded-memblock_find_dma_reserve.patch
-mm-mm_initc-remove-the-useless-dma_reserve.patch
-mm-mm_initc-add-new-function-calc_nr_all_pages.patch
-mm-mm_initc-remove-meaningless-calculation-of-zone-managed_pages-in-free_area_init_core.patch
-mm-mm_initc-remove-meaningless-calculation-of-zone-managed_pages-in-free_area_init_core-v3.patch
-mm-mm_initc-remove-unneeded-calc_memmap_size.patch
-mm-mm_initc-remove-arch_reserved_kernel_pages.patch
-mm-move-array-mem_section-init-code-out-of-memory_present.patch
-mm-init-remove-the-unnecessary-special-treatment-for-memory-less-node.patch
-mm-init-remove-the-unnecessary-special-treatment-for-memory-less-node-v2.patch
-mm-make-__absent_pages_in_range-as-static.patch
-mm-page_allocc-remove-unneeded-codes-in-numa-version-of-build_zonelists.patch
-mm-page_allocc-remove-unneeded-codes-in-numa-version-of-build_zonelists-v2.patch
-mm-mm_initc-remove-the-outdated-code-comment-above-deferred_grow_zone.patch
-mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone.patch
-mm-page_allocc-change-the-array-length-to-migrate_pcptypes.patch
-documentation-kdump-clean-up-the-outdated-description.patch
-kexec-fix-the-unexpected-kexec_dprintk-macro.patch
-crash-add-prefix-for-crash-dumping-messages.patch
+Miaohe Lin (2):
+      mm/memory-failure: fix deadlock when hugetlb_optimize_vmemmap is enabled
+      fork: defer linking file vma until vma is fully initialized
+
+Naoya Horiguchi (1):
+      MAINTAINERS: update Naoya Horiguchi's email address
+
+Oscar Salvador (6):
+      mm,page_owner: update metadata for tail pages
+      mm,page_owner: fix refcount imbalance
+      mm,page_owner: fix accounting of pages when migrating
+      mm,page_owner: fix printing of stack records
+      mm,swapops: update check in is_pfn_swap_entry for hwpoison entries
+      mm,page_owner: defer enablement of static branch
+
+Peter Xu (1):
+      mm/userfaultfd: allow hugetlb change protection upon poison entry
+
+Phillip Lougher (1):
+      Squashfs: check the inode number is not the invalid value of zero
+
+Sumanth Korikkar (1):
+      mm/shmem: inline shmem_is_huge() for disabled transparent hugepages
+
+ .mailmap                        |   3 +-
+ Documentation/mm/page_owner.rst |  73 +++++++--------
+ MAINTAINERS                     |   2 +-
+ fs/nilfs2/dir.c                 |   2 +-
+ fs/squashfs/inode.c             |   5 +-
+ include/linux/shmem_fs.h        |   9 ++
+ include/linux/swapops.h         |  65 +++++++-------
+ kernel/fork.c                   |  33 +++----
+ mm/gup.c                        |  54 +++++++-----
+ mm/huge_memory.c                |   6 +-
+ mm/hugetlb.c                    |  10 ++-
+ mm/internal.h                   |  10 ++-
+ mm/madvise.c                    |  17 +---
+ mm/memory-failure.c             |  18 +++-
+ mm/page_owner.c                 | 190 +++++++++++++++++++++++-----------------
+ mm/shmem.c                      |   6 --
+ 16 files changed, 280 insertions(+), 223 deletions(-)
 
