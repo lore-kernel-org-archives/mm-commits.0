@@ -1,63 +1,179 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 268F113A3E0;
-	Fri, 19 Apr 2024 16:49:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57AAE10A3B
+	for <mm-commits@vger.kernel.org>; Fri, 19 Apr 2024 21:06:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713545384; cv=none; b=mHRTCSIFKLopozD6YrkSPT2U2KZmvFbLgBQYgoESrzDNSL3xE5TnpD8VWtiT4ljU83TEflMjdgDaY5d6fIyuun/vuQB1n5czu7iVVXkLUcs60BrffrmtZ83UlutMBbR/ALa9ZyZXBz6cghqhL1KYtaurj2tC5gQtc3wSx4W2EQI=
+	t=1713560785; cv=none; b=lcEpqEwFpzn4PIonBwBb+B5pbAGa+afu+PzrAA798eqv/pJsHTr/7YWa9s6I/7sCpzMoT7FtuJAJVApuPcq049VBQA93trKZIfJBODxGwjGfBctPh+WGkNPKiKdrd/pckM6XOngQDxPJx9Rl20QMnOkyjprzfr2M2GaFuHmFOWo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713545384; c=relaxed/simple;
-	bh=E79hZ2QghLLo5QrO4BmPDEtFN3OjS9FOE0wCUBix5g0=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=uVc14rXYfmTNKhPwF5Mf/Ra5fMDadyD8QWJriL92h4bKMjiPTBaIc+903AqzqBOpZyx87s6FpvtVhyQT1s/iAGzF8lVyHb769A3bckmxe7N90OJvt1Iyx5jAbWrs293+7JQUt7VO+heXgKSVAhTxLVNQ/mJFEVmMd4e1rua8YTk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ddLrNCwi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713560785; c=relaxed/simple;
+	bh=VWNvoVTFlu3tROCNri7xEgFSGKVQ+rLu3Ow1jWIKuVg=;
+	h=Date:To:From:Subject:Message-Id; b=X7WyxKCEbDnLX8TvMWctFu/HnC4GQJeKyxDRjJHcFhns0mfBTl46DkeuE8S3Lb3Pdt+QZ75SSNFMnExdnHdpj7ECVFiZIIqX8e4ross2NnJSbWPjEl56fwo9M6vunrcsA3UNXSRSoQT9bTefXSXNqbFQjpkly118oSPXm5RUlMU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WrHyFYtq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ddLrNCwi"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 094C1C4DDEA;
-	Fri, 19 Apr 2024 16:49:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1713545384;
-	bh=E79hZ2QghLLo5QrO4BmPDEtFN3OjS9FOE0wCUBix5g0=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=ddLrNCwiU3tOUt9/lsCx5513E7XV2jK6TlqfME5MczjToomGB/FfQRn2smCo8iRD5
-	 J/VseTkHzGjHtmXivf2FmtNrrz4X6SCL0seJBjv0RARGVaQMA+5XOCT8WDbzergYZK
-	 13upo2HUSciUig2pe/XyCJPLEaDQVN0jscJjvWCJgOcK1Q8H6zS7ojBdjOZT7tSrCI
-	 vFIj2bwCrQmkhqr9myzIUL4cN9xuUBKff5gzVHjfysNp7P7iBWPGVbIsULZjteWMVT
-	 pMezw52oXYmRLWtANXBNBAh6sgOmsWW4gnW0jPOAZIYNBfTb4m6Q+h2qsi6lk+ZwDv
-	 BqDyexy9sE91Q==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id F357AC433E9;
-	Fri, 19 Apr 2024 16:49:43 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 6.9-rc5
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20240418144340.2f5d96a1c4e0a8fd2dc9cb66@linux-foundation.org>
-References: <20240418144340.2f5d96a1c4e0a8fd2dc9cb66@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20240418144340.2f5d96a1c4e0a8fd2dc9cb66@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-04-18-14-41
-X-PR-Tracked-Commit-Id: c4a7dc9523b59b3e73fd522c73e95e072f876b16
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 54c23548e0f5609f55b353bcd3c1aa295852f383
-Message-Id: <171354538399.26173.7640383696126430263.pr-tracker-bot@kernel.org>
-Date: Fri, 19 Apr 2024 16:49:43 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WrHyFYtq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 957DCC072AA;
+	Fri, 19 Apr 2024 21:06:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1713560783;
+	bh=VWNvoVTFlu3tROCNri7xEgFSGKVQ+rLu3Ow1jWIKuVg=;
+	h=Date:To:From:Subject:From;
+	b=WrHyFYtqZlSUoxEZ13c328gV49VPVsir+TfjghQD9zPf1HqobMbz5aJ7BJLlN4Qgi
+	 VyBlHLFD5KbguSXf13YsD0qj2tje2ZThbxVXPzc2xbpwf1788biw2gH/jEcoXx93uE
+	 64Q9wN6D2EH6QxA0dBBpDPz6jRfT2QnSEhMjb9wo=
+Date: Fri, 19 Apr 2024 14:06:22 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,joey.gouly@arm.com,usama.anjum@collabora.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + selftests-mm-protection_keys-save-restore-nr_hugepages-value-from-launch-script.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240419210623.957DCC072AA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-The pull request you sent on Thu, 18 Apr 2024 14:43:40 -0700:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-04-18-14-41
+The patch titled
+     Subject: selftests: mm: protection_keys: save/restore nr_hugepages value from launch script
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-mm-protection_keys-save-restore-nr_hugepages-value-from-launch-script.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/54c23548e0f5609f55b353bcd3c1aa295852f383
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-protection_keys-save-restore-nr_hugepages-value-from-launch-script.patch
 
-Thank you!
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: selftests: mm: protection_keys: save/restore nr_hugepages value from launch script
+Date: Fri, 19 Apr 2024 16:50:27 +0500
+
+The save/restore of nr_hugepages was added to the test itself by using the
+atexit() functionality.  But it is broken as parent exits after creating
+child.  Hence calling the atexit() function early.  That's not it.  The
+child exits after creating its child and so on.
+
+The parent cannot wait to get the termination status for its children as
+it'll keep on holding the resources until the new pkey allocation fails. 
+It is impossible to wait for exits of all the grand and great grand
+children.  Hence the restoring of nr_hugepages value from parent is wrong.
+
+Let's save/restore the nr_hugepages settings in the launch script
+instead of doing it in the test.
+
+Link: https://lkml.kernel.org/r/20240419115027.3848958-1-usama.anjum@collabora.com
+Fixes: c52eb6db7b7d ("selftests: mm: restore settings from only parent process")
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Reported-by: Joey Gouly <joey.gouly@arm.com>
+Closes: https://lore.kernel.org/all/20240418125250.GA2941398@e124191.cambridge.arm.com
+Cc: Joey Gouly <joey.gouly@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/mm/protection_keys.c |   38 -----------------
+ tools/testing/selftests/mm/run_vmtests.sh    |    2 
+ 2 files changed, 2 insertions(+), 38 deletions(-)
+
+--- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-protection_keys-save-restore-nr_hugepages-value-from-launch-script
++++ a/tools/testing/selftests/mm/protection_keys.c
+@@ -54,7 +54,6 @@ int test_nr;
+ u64 shadow_pkey_reg;
+ int dprint_in_signal;
+ char dprint_in_signal_buffer[DPRINT_IN_SIGNAL_BUF_SIZE];
+-char buf[256];
+ 
+ void cat_into_file(char *str, char *file)
+ {
+@@ -1745,42 +1744,6 @@ void pkey_setup_shadow(void)
+ 	shadow_pkey_reg = __read_pkey_reg();
+ }
+ 
+-pid_t parent_pid;
+-
+-void restore_settings_atexit(void)
+-{
+-	if (parent_pid == getpid())
+-		cat_into_file(buf, "/proc/sys/vm/nr_hugepages");
+-}
+-
+-void save_settings(void)
+-{
+-	int fd;
+-	int err;
+-
+-	if (geteuid())
+-		return;
+-
+-	fd = open("/proc/sys/vm/nr_hugepages", O_RDONLY);
+-	if (fd < 0) {
+-		fprintf(stderr, "error opening\n");
+-		perror("error: ");
+-		exit(__LINE__);
+-	}
+-
+-	/* -1 to guarantee leaving the trailing \0 */
+-	err = read(fd, buf, sizeof(buf)-1);
+-	if (err < 0) {
+-		fprintf(stderr, "error reading\n");
+-		perror("error: ");
+-		exit(__LINE__);
+-	}
+-
+-	parent_pid = getpid();
+-	atexit(restore_settings_atexit);
+-	close(fd);
+-}
+-
+ int main(void)
+ {
+ 	int nr_iterations = 22;
+@@ -1788,7 +1751,6 @@ int main(void)
+ 
+ 	srand((unsigned int)time(NULL));
+ 
+-	save_settings();
+ 	setup_handlers();
+ 
+ 	printf("has pkeys: %d\n", pkeys_supported);
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-protection_keys-save-restore-nr_hugepages-value-from-launch-script
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -385,6 +385,7 @@ CATEGORY="ksm_numa" run_test ./ksm_tests
+ CATEGORY="ksm" run_test ./ksm_functional_tests
+ 
+ # protection_keys tests
++nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
+ if [ -x ./protection_keys_32 ]
+ then
+ 	CATEGORY="pkey" run_test ./protection_keys_32
+@@ -394,6 +395,7 @@ if [ -x ./protection_keys_64 ]
+ then
+ 	CATEGORY="pkey" run_test ./protection_keys_64
+ fi
++echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
+ 
+ if [ -x ./soft-dirty ]
+ then
+_
+
+Patches currently in -mm which might be from usama.anjum@collabora.com are
+
+selftests-harness-remove-use-of-line_max-fix-fix-fix.patch
+selftests-mm-fix-unused-and-uninitialized-variable-warning.patch
+selftests-mm-protection_keys-save-restore-nr_hugepages-value-from-launch-script.patch
+selftests-exec-make-binaries-position-independent.patch
+
