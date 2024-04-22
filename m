@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4D281552E4;
-	Mon, 22 Apr 2024 19:54:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65C1815532F
+	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 20:08:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713815643; cv=none; b=qcNGryXBbpgDGsfgavWTb/f5W92zp6gH53QW8yf9XUJVLtvJdWBCo0Ao0MUMTaezxnY82fQEXNYfOfqW+4VMU24vFAMpBMFOUTW9gIKYaquULukRwHjpv2YMuqz7ShDtCxmwDHyJXhbkp6HFsCId1mPwsZszheJh07LFHWP6fpE=
+	t=1713816527; cv=none; b=R+1FOjwN0ka/+x7eChWuygtJOKer0zd/UqQuYIk1cvF5tIlHlmzQ5bt+12/Acxg3YRdr07AcdlTTJ4y9hv8geQQPKQ7zgoT+8lYwPuOiZtPHKl528/Zi/qQtsZxHKWUWbYtLcOluaAxvOUZ3QUNT3RATE+L17/E6qSoCV6z+3Wk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713815643; c=relaxed/simple;
-	bh=CKovM99CpAea3dMheTJmg8+vR1Kanfw2KSJtSVkjRRc=;
-	h=Date:To:From:Subject:Message-Id; b=GAIPmawdQgx/Lj600T8g12tXRrIfr7xvf/8Ke5jmuBgLLU99RX2AAtgaVGmAAAtJ0q945hGlUVMPthHLIMkY//dgFeMf98iht5wwbdGRsL+3Xh9InW8gqzbwg/FvZrQCs523QRVw+gfputWJAl5i73M8xuBTnyEFh4sMRH5gxC0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B5b7UUYk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713816527; c=relaxed/simple;
+	bh=9e9v/SB/9E34I14+26GxWcxWhe7y61diqrYSZD1Loq0=;
+	h=Date:To:From:Subject:Message-Id; b=lCG4RyayQQuz6JGlVjGwK5uF4KU0Z1HNd8towceloiGh+RpK3+E5UrqBX1oRlItaC2Q243CUeRhbGUZsvhbmXCL5+fUPUJjLlR7Zt9nSB+d9bBCdNrYuZa28oGgq6A89sPTDWXAnWQJUJ/nAXpjFzu6r6dMInZex/5gWVVRsBV8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UHuFIAQ1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B5b7UUYk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A49EC116B1;
-	Mon, 22 Apr 2024 19:54:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UHuFIAQ1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D71CBC113CC;
+	Mon, 22 Apr 2024 20:08:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713815643;
-	bh=CKovM99CpAea3dMheTJmg8+vR1Kanfw2KSJtSVkjRRc=;
+	s=korg; t=1713816526;
+	bh=9e9v/SB/9E34I14+26GxWcxWhe7y61diqrYSZD1Loq0=;
 	h=Date:To:From:Subject:From;
-	b=B5b7UUYkrkBYUy5OnfGU7K0Y7PA9b0ucykEbzDCWzHfL38IS+hQTUHgtjZklgQf9x
-	 jkhAf+6eW74zr4GJmyROE+NjnKzz7LGLnuARDMw9OpKJESfQ57WmlPt6B2GvFmkIEJ
-	 eazpy/1LlVMKQ00WeSWG032ocnKS0bAJA7sfe8fU=
-Date: Mon, 22 Apr 2024 12:54:02 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,nadav.amit@gmail.com,david@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=UHuFIAQ108xYyGq3RewZKZ7m201/ytl31X6Y5kQT+JJWqcGSTP0pmEirSmv80Dy2r
+	 YljFrc2nc1CWxyIT1j7bTo8CHZvIe6Z/LViby+Naidh41I+F6e14B1Yf9QPf+sQEpO
+	 PrFJ5MLGzcYDpd0WLabh3Y4bxq7UUhvkM2ch56HM=
+Date: Mon, 22 Apr 2024 13:08:46 -0700
+To: mm-commits@vger.kernel.org,muchun.song@linux.dev,ioworker0@gmail.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-userfaultfd-reset-ptes-when-close-for-wr-protected-ones.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240422195403.4A49EC116B1@smtp.kernel.org>
+Subject: + mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics-v2.patch added to mm-unstable branch
+Message-Id: <20240422200846.D71CBC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/userfaultfd: reset ptes when close() for wr-protected ones
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-userfaultfd-reset-ptes-when-close-for-wr-protected-ones.patch
+     Subject: mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics-v2
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-reset-ptes-when-close-for-wr-protected-ones.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics-v2.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,81 +58,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/userfaultfd: reset ptes when close() for wr-protected ones
-Date: Mon, 22 Apr 2024 09:33:11 -0400
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics-v2
+Date: Mon, 22 Apr 2024 15:33:43 +0800
 
-Userfaultfd unregister includes a step to remove wr-protect bits from all
-the relevant pgtable entries, but that only covered an explicit
-UFFDIO_UNREGISTER ioctl, not a close() on the userfaultfd itself.  Cover
-that too.  This fixes a WARN trace.
+check the THP earlier in case the folio is split, per Lance
 
-Link: https://lore.kernel.org/all/000000000000ca4df20616a0fe16@google.com/
-Analyzed-by: David Hildenbrand <david@redhat.com>
-Link: https://lkml.kernel.org/r/20240422133311.2987675-1-peterx@redhat.com
-Reported-by: syzbot+d8426b591c36b21c750e@syzkaller.appspotmail.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/b99f8cb14bc85fdb6ab43721d1331cb5ebed2581.1713771041.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Lance Yang <ioworker0@gmail.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/huge_memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/userfaultfd.c~mm-userfaultfd-reset-ptes-when-close-for-wr-protected-ones
-+++ a/fs/userfaultfd.c
-@@ -895,6 +895,10 @@ static int userfaultfd_release(struct in
- 			prev = vma;
- 			continue;
- 		}
-+		/* Reset ptes for the whole vma range if wr-protected */
-+		if (userfaultfd_wp(vma))
-+			uffd_wp_range(vma, vma->vm_start,
-+				      vma->vm_end - vma->vm_start, false);
- 		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
- 		vma = vma_modify_flags_uffd(&vmi, prev, vma, vma->vm_start,
- 					    vma->vm_end, new_flags,
+--- a/mm/huge_memory.c~mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics-v2
++++ a/mm/huge_memory.c
+@@ -2934,6 +2934,7 @@ int split_huge_page_to_list_to_order(str
+ 	XA_STATE_ORDER(xas, &folio->mapping->i_pages, folio->index, new_order);
+ 	struct anon_vma *anon_vma = NULL;
+ 	struct address_space *mapping = NULL;
++	bool is_thp = folio_test_pmd_mappable(folio);
+ 	int extra_pins, ret;
+ 	pgoff_t end;
+ 	bool is_hzp;
+@@ -3112,7 +3113,7 @@ out_unlock:
+ 		i_mmap_unlock_read(mapping);
+ out:
+ 	xas_destroy(&xas);
+-	if (folio_test_pmd_mappable(folio))
++	if (is_thp)
+ 		count_vm_event(!ret ? THP_SPLIT_PAGE : THP_SPLIT_PAGE_FAILED);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-hugetlb-fix-missing-hugetlb_lock-for-resv-uncharge.patch
-mm-userfaultfd-reset-ptes-when-close-for-wr-protected-ones.patch
-mm-hmm-process-pud-swap-entry-without-pud_huge.patch
-mm-gup-cache-p4d-in-follow_p4d_mask.patch
-mm-gup-check-p4d-presence-before-going-on.patch
-mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-arm-use-macros-to-define-pmd-pud-helpers.patch
-mm-arm-redefine-pmd_huge-with-pmd_leaf.patch
-mm-arm64-merge-pxd_huge-and-pxd_leaf-definitions.patch
-mm-powerpc-redefine-pxd_huge-with-pxd_leaf.patch
-mm-gup-merge-pxd-huge-mapping-checks.patch
-mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
-mm-treewide-remove-pxd_huge.patch
-mm-arm-remove-pmd_thp_or_huge.patch
-mm-document-pxd_leaf-api.patch
-mm-always-initialise-folio-_deferred_list-fix.patch
-selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation.patch
-selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation-fix.patch
-mm-kconfig-config_pgtable_has_huge_leaves.patch
-mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch
-mm-make-hpage_pxd_-macros-even-if-thp.patch
-mm-introduce-vma_pgtable_walk_beginend.patch
-mm-arch-provide-pud_pfn-fallback.patch
-mm-arch-provide-pud_pfn-fallback-fix.patch
-mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing.patch
-mm-gup-refactor-record_subpages-to-find-1st-small-page.patch
-mm-gup-handle-hugetlb-for-no_page_table.patch
-mm-gup-cache-pudp-in-follow_pud_mask.patch
-mm-gup-handle-huge-pud-for-follow_pud_mask.patch
-mm-gup-handle-huge-pmd-for-follow_pmd_mask.patch
-mm-gup-handle-huge-pmd-for-follow_pmd_mask-fix.patch
-mm-gup-handle-hugepd-for-follow_page.patch
-mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code.patch
-mm-allow-anon-exclusive-check-over-hugetlb-tail-pages.patch
-mm-hugetlb-assert-hugetlb_lock-in-__hugetlb_cgroup_commit_charge.patch
-mm-page_table_check-support-userfault-wr-protect-entries.patch
+mm-page_alloc-fix-freelist-movement-during-block-conversion-fix.patch
+mm-page_alloc-consolidate-free-page-accounting-fix-3.patch
+mm-record-the-migration-reason-for-struct-migration_target_control.patch
+mm-hugetlb-make-the-hugetlb-migration-strategy-consistent.patch
+docs-hugetlbpagerst-add-hugetlb-migration-description.patch
+mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch
+mm-support-multi-size-thp-numa-balancing.patch
+mm-support-multi-size-thp-numa-balancing-v3.patch
+mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics.patch
+mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics-v2.patch
+mm-page_alloc-use-the-correct-thp-order-for-thp-pcp.patch
+mm-set-pageblock_order-to-hpage_pmd_order-in-case-with-config_hugetlb_page-but-thp-enabled.patch
+mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch
 
