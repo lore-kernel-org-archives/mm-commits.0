@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 165941CF9B
-	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 22:03:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A0D91D539;
+	Mon, 22 Apr 2024 22:05:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713823431; cv=none; b=PMuEq0q3rEpadUD3ixUEcnW+MGXrTuuaB8RHBMMRY2p1yrb0SFLnrp37IPRs4nmI36mKSH/fqqHIXyHtI2uLjFUZ/VU54ziKVJOUwvC1eWRh3vbJhe7P+NktRizSCZkybRzrURy/MllSTLmtgCXvrCvpDvxCm/oBtPdMFHhIfB0=
+	t=1713823543; cv=none; b=O4Nx8b51fJT17wf+BmeTVBVLw/PB2e96WP/EMPm0zjAEZGhjpNIR7vTj6hC4XqAb9FtRC0KoVzZMSVNcF0u/DuoF2gawj0uNC3vuRHx1RQ4Zz4g/YLE/hrtWnbov3a+JTgGzMKvqDzgPczNu8daWkGNSbUDXOncSyMEdzfVi9ps=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713823431; c=relaxed/simple;
-	bh=3XTL5Zi3x+p1XpKnE/1MQ7gV2zS1MfO2HOz8vkkzaoE=;
-	h=Date:To:From:Subject:Message-Id; b=XzvwDba4Dl9HiVU+p70e+SEVnksNMobxyIQLBVsy6YOgRr9E3mmbuxfuQjms1xe9rox1xqLQvX2qcWizx0XsqWyYmK86RUkNCVvlgQ1Do6pQjSaH51bcaeG9eAke+yrxZI1rWddMB40Y4PFBiXj7f8EA6mjuaXYbvKg5CxcOYx8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rkJefxH5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713823543; c=relaxed/simple;
+	bh=yPebEQYEnoVsGbtFMoZDWIqJM7l5KRSiuB1nY1R0K9Q=;
+	h=Date:To:From:Subject:Message-Id; b=HnZ7DnVsVJpi/Npz3Ne+ZKXcdWasVuox1fns0+CmwFEcckaSCFuLJWI8UTRBWEvGrBT6zlYokvs3F8mh5Inbu7ESL0ENoTXCre8bFpO9BYGs+DRP5i5N48rLG92SNZaH7kFVBYzHlAk/wyunuDhNOm0EyzTptUwvLFjdoswdUtE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mvgiLVBJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rkJefxH5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 751E8C113CC;
-	Mon, 22 Apr 2024 22:03:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mvgiLVBJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7040C113CC;
+	Mon, 22 Apr 2024 22:05:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713823430;
-	bh=3XTL5Zi3x+p1XpKnE/1MQ7gV2zS1MfO2HOz8vkkzaoE=;
+	s=korg; t=1713823543;
+	bh=yPebEQYEnoVsGbtFMoZDWIqJM7l5KRSiuB1nY1R0K9Q=;
 	h=Date:To:From:Subject:From;
-	b=rkJefxH5/ha1JerwcD0C8i8G1vauwxnc0HB8qzLQJwz3X/4E0tuRH1g2NM5qwUwez
-	 0Vb3K/q28jyijPbVpmZ3vluY5Mkrv2FJORIpxQhhDWKkHcCONfWNW8nZvI5IwJOQV8
-	 eQvfYtkcB9p4eyKyCigrqgkLczU3HG43TUqi04SA=
-Date: Mon, 22 Apr 2024 15:03:49 -0700
-To: mm-commits@vger.kernel.org,viro@ZenIV.linux.org.uk,keescook@chromium.org,jcmvbkbc@gmail.com,jack@suse.cz,ebiederm@xmission.com,brauner@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=mvgiLVBJooBoVc7xTxuyk9ik/XVjz8jw+JliRx5z3EwxF34QHykjadBrblS03tec6
+	 gzQp0q2jNL+gbDTtSBrXlBg7g7NBNaQcGml/jjxspc51Z310yhUoUYKxv0tadcVtRs
+	 jsHWWuYx++xjDKarZQ8K96uNnh6vD3O594HNS0lU=
+Date: Mon, 22 Apr 2024 15:05:42 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sidhartha.kumar@oracle.com,fleischermarius@gmail.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + binfmt_elf_fdpic-fix-proc-pid-auxv-checkpatch-fixes.patch added to mm-nonmm-unstable branch
-Message-Id: <20240422220350.751E8C113CC@smtp.kernel.org>
+Subject: + maple_tree-fix-mas_empty_area_rev-null-pointer-dereference.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240422220542.E7040C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: binfmt_elf_fdpic-fix-proc-pid-auxv-checkpatch-fixes
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     binfmt_elf_fdpic-fix-proc-pid-auxv-checkpatch-fixes.patch
+     Subject: maple_tree: fix mas_empty_area_rev() null pointer dereference
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maple_tree-fix-mas_empty_area_rev-null-pointer-dereference.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/binfmt_elf_fdpic-fix-proc-pid-auxv-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-mas_empty_area_rev-null-pointer-dereference.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,67 +58,69 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: binfmt_elf_fdpic-fix-proc-pid-auxv-checkpatch-fixes
-Date: Mon Apr 22 03:02:28 PM PDT 2024
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: maple_tree: fix mas_empty_area_rev() null pointer dereference
+Date: Mon, 22 Apr 2024 16:33:49 -0400
 
-WARNING: braces {} are not necessary for single statement blocks
-#122: FILE: fs/binfmt_elf_fdpic.c:651:
-+	if (bprm->have_execfd) {
-+		NEW_AUX_ENT(AT_EXECFD, bprm->execfd);
-+	}
+Currently the code calls mas_start() followed by mas_data_end() if the
+maple state is MA_START, but mas_start() may return with the maple state
+node == NULL.  This will lead to a null pointer dereference when checking
+information in the NULL node, which is done in mas_data_end().
 
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
+Avoid setting the offset if there is no node by waiting until after the
+maple state is checked for an empty or single entry state.
+
+A user could trigger the events to cause a kernel oops by unmapping all
+vmas to produce an empty maple tree, then mapping a vma that would cause
+the scenario described above.
+
+Link: https://lkml.kernel.org/r/20240422203349.2418465-1-Liam.Howlett@oracle.com
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: Marius Fleischer <fleischermarius@gmail.com>
+Closes: https://lore.kernel.org/lkml/CAJg=8jyuSxDL6XvqEXY_66M20psRK2J53oBTP+fjV5xpW2-R6w@mail.gmail.com/
+Link: https://lore.kernel.org/lkml/CAJg=8jyuSxDL6XvqEXY_66M20psRK2J53oBTP+fjV5xpW2-R6w@mail.gmail.com/
+Tested-by: Marius Fleischer <fleischermarius@gmail.com>
+Tested-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ lib/maple_tree.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-fix-proc-pid-auxv-checkpatch-fixes
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -640,17 +640,12 @@ static int create_elf_fdpic_tables(struc
- 	NEW_AUX_ENT(AT_EGID,	(elf_addr_t) from_kgid_munged(cred->user_ns, cred->egid));
- 	NEW_AUX_ENT(AT_SECURE,	bprm->secureexec);
- 	NEW_AUX_ENT(AT_EXECFN,	bprm->exec);
--	if (k_platform) {
--		NEW_AUX_ENT(AT_PLATFORM,
--			    (elf_addr_t)(unsigned long)u_platform);
+--- a/lib/maple_tree.c~maple_tree-fix-mas_empty_area_rev-null-pointer-dereference
++++ a/lib/maple_tree.c
+@@ -5109,18 +5109,18 @@ int mas_empty_area_rev(struct ma_state *
+ 	if (size == 0 || max - min < size - 1)
+ 		return -EINVAL;
+ 
+-	if (mas_is_start(mas)) {
++	if (mas_is_start(mas))
+ 		mas_start(mas);
+-		mas->offset = mas_data_end(mas);
+-	} else if (mas->offset >= 2) {
+-		mas->offset -= 2;
+-	} else if (!mas_rewind_node(mas)) {
++	else if ((mas->offset < 2) && (!mas_rewind_node(mas)))
+ 		return -EBUSY;
 -	}
--	if (k_base_platform) {
--		NEW_AUX_ENT(AT_BASE_PLATFORM,
--			    (elf_addr_t)(unsigned long)u_base_platform);
--	}
--	if (bprm->have_execfd) {
-+	if (k_platform)
-+		NEW_AUX_ENT(AT_PLATFORM, (elf_addr_t)(unsigned long)u_platform);
-+	if (k_base_platform)
-+		NEW_AUX_ENT(AT_BASE_PLATFORM, (elf_addr_t)(unsigned long)u_base_platform);
-+	if (bprm->have_execfd)
- 		NEW_AUX_ENT(AT_EXECFD, bprm->execfd);
--	}
- #undef NEW_AUX_ENT
- 	/* AT_NULL is zero; clear the rest too */
- 	memset(elf_info, 0, (char *)mm->saved_auxv +
+ 
+-	/* Empty set. */
+-	if (mas_is_none(mas) || mas_is_ptr(mas))
++	if (unlikely(mas_is_none(mas) || mas_is_ptr(mas)))
+ 		return mas_sparse_area(mas, min, max, size, false);
++	else if (mas->offset >= 2)
++		mas->offset -= 2;
++	else
++		mas->offset = mas_data_end(mas);
++
+ 
+ 	/* The start of the window can only be within these values. */
+ 	mas->index = min;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-selftests-harness-remove-use-of-line_max-fix.patch
-selftests-harness-remove-use-of-line_max-fix-fix.patch
-mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries-fix.patch
-mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio-fix.patch
-sh-remove-use-of-pg_arch_1-on-individual-pages-fix.patch
-mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing-fix.patch
-mm-allow-anon-exclusive-check-over-hugetlb-tail-pages-fix.patch
-arm-mm-drop-vm_fault_badmap-vm_fault_badaccess-checkpatch-fixes.patch
-mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios-fix.patch
-__mod_memcg_lruvec_state-enhance-diagnostics.patch
-__mod_memcg_lruvec_state-enhance-diagnostics-fix.patch
-binfmt_elf_fdpic-fix-proc-pid-auxv-checkpatch-fixes.patch
+maple_tree-fix-mas_empty_area_rev-null-pointer-dereference.patch
 
