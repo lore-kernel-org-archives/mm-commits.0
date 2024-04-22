@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BF3615532F
-	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 20:12:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 880C9154BF9
+	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 20:28:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713816720; cv=none; b=Xc0UIbLWTme0HcOmESz8aQU5EGu3g/xqE8FkI1AynjNGxnZXN/FqxSgWfzn6yqF64+htSi5wjEGQNwOSFg1IZ3fju08YeMCokwYjN66L2JVkpdC8SW1BtDuE1dUQ5UEdqDtaBRiLaGRhTawfMAvP5D5n4JlV37RMPzYcRzHdFQs=
+	t=1713817706; cv=none; b=KT583+z1JuXRMk271KQH2/leekfMLDpdZncNkBZXweKoz97I0EBTdoNpfcWVOagedfkrG7/ulUClGkhL12NQHwsasAdZdiibC4ji7+SL7ebnx2+d7HPNM8JYgFl6RNPTHLkkZx7ZmKC4LEveLhvqWWAJwbG3QK0BecxcydWHNKM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713816720; c=relaxed/simple;
-	bh=tGqUTAaA1UPWEnPznxh4AusuE/35hVf9Nl2cdZIrl08=;
-	h=Date:To:From:Subject:Message-Id; b=Y/g6n43ZBYS9wEdm8BuKRmlM0A5Wi54UuG1n5Gm6QYCasxowVbdatMH9cLUgzo/GnJc+nN0yk6C6wGg/p8fMUIxSqNv3O55GzprnlMm4QTtnufbor85T9w8S6A0JPVosrqwWSA+IIXnENQMo45XKfw5FvoLPzZdUMwIwf7LBaUw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lqk+C76T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713817706; c=relaxed/simple;
+	bh=4JmKUix47ZXl58aZIQjnXuhdCMQp0fh7I5Ap1ikaC0A=;
+	h=Date:To:From:Subject:Message-Id; b=GO2LtXhLwaGxL5lpjgQuPCnoN8bpqZYW7NlViTUzrugAA4ulkU4NRSGS4d94gZbmEGARZy+y/HlwTig6snu3Wc7Kzm6C1Au9L3bnm6oUH2/+KTt+CehzxCg9B9ZZKSb7+2p4+1p3CBGsGKCuUdTiwvftyzvJ4wRYaTeN6exIlqA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R2VUV7uR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lqk+C76T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 530BFC113CC;
-	Mon, 22 Apr 2024 20:12:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R2VUV7uR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE839C113CC;
+	Mon, 22 Apr 2024 20:28:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713816720;
-	bh=tGqUTAaA1UPWEnPznxh4AusuE/35hVf9Nl2cdZIrl08=;
+	s=korg; t=1713817706;
+	bh=4JmKUix47ZXl58aZIQjnXuhdCMQp0fh7I5Ap1ikaC0A=;
 	h=Date:To:From:Subject:From;
-	b=Lqk+C76TlM2F/T6caVqQfU8Uon2Kd2+5AeEOH+jL66IkK8BYANRzo+2x3JBYtYA9z
-	 5TZ8hR1fJkSYADWrUMegXvbi2zqScrTLdCANUyTuhMEkfgubEQtvx6fY1ln9z6k+1U
-	 qBhsVibaC7bKUZhBTKU3LMrzRKPEz8ZD+fUH5Zoo=
-Date: Mon, 22 Apr 2024 13:11:59 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=R2VUV7uRGZB/BZsWNkgXWOB9yGWj/LLP2gT7FMjU3JVkrXSVi36YPKXTyhk98/JEP
+	 VDCj6sOSy+jmlElJV765koooR/281X6MybTEyp27/J/CV/sD4oOa6Y8HnHPHutl5tD
+	 syNo90X5UpYvVX8jrJdFsRa97bfbZUbyrYy8PQGA=
+Date: Mon, 22 Apr 2024 13:28:25 -0700
+To: mm-commits@vger.kernel.org,tjmercier@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-check-userfaultfd_wp-in-vmf_orig_pte_uffd_wp.patch added to mm-unstable branch
-Message-Id: <20240422201200.530BFC113CC@smtp.kernel.org>
+Subject: + memcg-simple-cleanup-of-stats-update-functions.patch added to mm-unstable branch
+Message-Id: <20240422202825.EE839C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memory: check userfaultfd_wp() in vmf_orig_pte_uffd_wp()
+     Subject: memcg: simple cleanup of stats update functions
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-check-userfaultfd_wp-in-vmf_orig_pte_uffd_wp.patch
+     memcg-simple-cleanup-of-stats-update-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-check-userfaultfd_wp-in-vmf_orig_pte_uffd_wp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-simple-cleanup-of-stats-update-functions.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,108 +58,177 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory: check userfaultfd_wp() in vmf_orig_pte_uffd_wp()
-Date: Mon, 22 Apr 2024 11:00:39 +0800
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: simple cleanup of stats update functions
+Date: Sat, 20 Apr 2024 16:25:05 -0700
 
-Add userfaultfd_wp() check in vmf_orig_pte_uffd_wp() to avoid the
-unnecessary FAULT_FLAG_ORIG_PTE_VALID check/pte_marker_entry_uffd_wp() in
-most pagefault, note, the function vmf_orig_pte_uffd_wp() is not inlined
-in the two kernel versions, the difference is shown below,
+mod_memcg_lruvec_state() is never called from outside of memcontrol.c and
+with always irq disabled.  So, replace it with the irq disabled version
+and add an assert that irq is disabled in the caller.
 
-perf date,
+Similarly mod_objcg_state() is not called from outside of memcontrol.c, so
+simply make it static and change it's name to __mod_objcg_state().
 
-  perf report -i perf.data.before | grep vmf
-     0.17%     0.13%  lat_pagefault  [kernel.kallsyms]      [k] vmf_orig_pte_uffd_wp.part.0.isra.0
-  perf report -i perf.data.after  | grep vmf
-
-lat_pagefault -W 5 -N 5 /tmp/XXX
-  latency              before        after        diff
-  average(8 tests)     0.262675      0.2600375   -0.0026375
-
-Although it's a small, but the uffd_wp is a new feature than previous
-kernel, when the vma is not registered with UFFD_WP, let's avoid to
-execute the new logical, also adding __always_inline attribute to
-vmf_orig_pte_uffd_wp(), which make set_pte_range() only check VM_UFFD_WP
-flags without the function call.  In addition, directly call the
-vmf_orig_pte_uffd_wp() in do_anonymous_page() and set_pte_range() to save
-an uffd_wp variable.
-
-Link: https://lkml.kernel.org/r/20240422030039.3293568-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/20240420232505.2768428-1-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: T.J. Mercier <tjmercier@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/memcontrol.h |   17 -----------------
+ mm/memcontrol.c            |   31 +++++++++++++++----------------
+ mm/slab.h                  |    2 --
+ 3 files changed, 15 insertions(+), 35 deletions(-)
 
---- a/mm/memory.c~mm-memory-check-userfaultfd_wp-in-vmf_orig_pte_uffd_wp
-+++ a/mm/memory.c
-@@ -112,8 +112,10 @@ static bool vmf_pte_changed(struct vm_fa
-  * Return true if the original pte was a uffd-wp pte marker (so the pte was
-  * wr-protected).
-  */
--static bool vmf_orig_pte_uffd_wp(struct vm_fault *vmf)
-+static __always_inline bool vmf_orig_pte_uffd_wp(struct vm_fault *vmf)
- {
-+	if (!userfaultfd_wp(vmf->vma))
-+		return false;
- 	if (!(vmf->flags & FAULT_FLAG_ORIG_PTE_VALID))
- 		return false;
+--- a/include/linux/memcontrol.h~memcg-simple-cleanup-of-stats-update-functions
++++ a/include/linux/memcontrol.h
+@@ -1077,8 +1077,6 @@ static inline unsigned long lruvec_page_
+ void mem_cgroup_flush_stats(struct mem_cgroup *memcg);
+ void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg);
  
-@@ -4393,7 +4395,6 @@ fallback:
-  */
- static vm_fault_t do_anonymous_page(struct vm_fault *vmf)
- {
--	bool uffd_wp = vmf_orig_pte_uffd_wp(vmf);
- 	struct vm_area_struct *vma = vmf->vma;
- 	unsigned long addr = vmf->address;
- 	struct folio *folio;
-@@ -4493,7 +4494,7 @@ static vm_fault_t do_anonymous_page(stru
- 	folio_add_new_anon_rmap(folio, vma, addr);
- 	folio_add_lru_vma(folio, vma);
- setpte:
--	if (uffd_wp)
-+	if (vmf_orig_pte_uffd_wp(vmf))
- 		entry = pte_mkuffd_wp(entry);
- 	set_ptes(vma->vm_mm, addr, vmf->pte, entry, nr_pages);
+-void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
+-			      int val);
+ void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx, int val);
  
-@@ -4668,7 +4669,6 @@ void set_pte_range(struct vm_fault *vmf,
- 		struct page *page, unsigned int nr, unsigned long addr)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	bool uffd_wp = vmf_orig_pte_uffd_wp(vmf);
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 	bool prefault = in_range(vmf->address, addr, nr * PAGE_SIZE);
- 	pte_t entry;
-@@ -4683,7 +4683,7 @@ void set_pte_range(struct vm_fault *vmf,
+ static inline void mod_lruvec_kmem_state(void *p, enum node_stat_item idx,
+@@ -1091,16 +1089,6 @@ static inline void mod_lruvec_kmem_state
+ 	local_irq_restore(flags);
+ }
  
- 	if (write)
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
--	if (unlikely(uffd_wp))
-+	if (unlikely(vmf_orig_pte_uffd_wp(vmf)))
- 		entry = pte_mkuffd_wp(entry);
- 	/* copy-on-write page */
- 	if (write && !(vma->vm_flags & VM_SHARED)) {
+-static inline void mod_memcg_lruvec_state(struct lruvec *lruvec,
+-					  enum node_stat_item idx, int val)
+-{
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	__mod_memcg_lruvec_state(lruvec, idx, val);
+-	local_irq_restore(flags);
+-}
+-
+ void __count_memcg_events(struct mem_cgroup *memcg, enum vm_event_item idx,
+ 			  unsigned long count);
+ 
+@@ -1594,11 +1582,6 @@ static inline void mem_cgroup_flush_stat
+ {
+ }
+ 
+-static inline void __mod_memcg_lruvec_state(struct lruvec *lruvec,
+-					    enum node_stat_item idx, int val)
+-{
+-}
+-
+ static inline void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx,
+ 					   int val)
+ {
+--- a/mm/memcontrol.c~memcg-simple-cleanup-of-stats-update-functions
++++ a/mm/memcontrol.c
+@@ -836,8 +836,9 @@ static unsigned long memcg_page_state_lo
+ 	return x;
+ }
+ 
+-void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
+-			      int val)
++static void __mod_memcg_lruvec_state(struct lruvec *lruvec,
++				     enum node_stat_item idx,
++				     int val)
+ {
+ 	struct mem_cgroup_per_node *pn;
+ 	struct mem_cgroup *memcg;
+@@ -2978,21 +2979,19 @@ void mem_cgroup_commit_charge(struct fol
+ 
+ #ifdef CONFIG_MEMCG_KMEM
+ 
+-/*
+- * mod_objcg_mlstate() may be called with irq enabled, so
+- * mod_memcg_lruvec_state() should be used.
+- */
+-static inline void mod_objcg_mlstate(struct obj_cgroup *objcg,
+-				     struct pglist_data *pgdat,
+-				     enum node_stat_item idx, int nr)
++static inline void __mod_objcg_mlstate(struct obj_cgroup *objcg,
++				       struct pglist_data *pgdat,
++				       enum node_stat_item idx, int nr)
+ {
+ 	struct mem_cgroup *memcg;
+ 	struct lruvec *lruvec;
+ 
++	lockdep_assert_irqs_disabled();
++
+ 	rcu_read_lock();
+ 	memcg = obj_cgroup_memcg(objcg);
+ 	lruvec = mem_cgroup_lruvec(memcg, pgdat);
+-	mod_memcg_lruvec_state(lruvec, idx, nr);
++	__mod_memcg_lruvec_state(lruvec, idx, nr);
+ 	rcu_read_unlock();
+ }
+ 
+@@ -3312,7 +3311,7 @@ void __memcg_kmem_uncharge_page(struct p
+ 	obj_cgroup_put(objcg);
+ }
+ 
+-void mod_objcg_state(struct obj_cgroup *objcg, struct pglist_data *pgdat,
++static void mod_objcg_state(struct obj_cgroup *objcg, struct pglist_data *pgdat,
+ 		     enum node_stat_item idx, int nr)
+ {
+ 	struct memcg_stock_pcp *stock;
+@@ -3340,12 +3339,12 @@ void mod_objcg_state(struct obj_cgroup *
+ 		struct pglist_data *oldpg = stock->cached_pgdat;
+ 
+ 		if (stock->nr_slab_reclaimable_b) {
+-			mod_objcg_mlstate(objcg, oldpg, NR_SLAB_RECLAIMABLE_B,
++			__mod_objcg_mlstate(objcg, oldpg, NR_SLAB_RECLAIMABLE_B,
+ 					  stock->nr_slab_reclaimable_b);
+ 			stock->nr_slab_reclaimable_b = 0;
+ 		}
+ 		if (stock->nr_slab_unreclaimable_b) {
+-			mod_objcg_mlstate(objcg, oldpg, NR_SLAB_UNRECLAIMABLE_B,
++			__mod_objcg_mlstate(objcg, oldpg, NR_SLAB_UNRECLAIMABLE_B,
+ 					  stock->nr_slab_unreclaimable_b);
+ 			stock->nr_slab_unreclaimable_b = 0;
+ 		}
+@@ -3371,7 +3370,7 @@ void mod_objcg_state(struct obj_cgroup *
+ 		}
+ 	}
+ 	if (nr)
+-		mod_objcg_mlstate(objcg, pgdat, idx, nr);
++		__mod_objcg_mlstate(objcg, pgdat, idx, nr);
+ 
+ 	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
+ 	obj_cgroup_put(old);
+@@ -3437,13 +3436,13 @@ static struct obj_cgroup *drain_obj_stoc
+ 	 */
+ 	if (stock->nr_slab_reclaimable_b || stock->nr_slab_unreclaimable_b) {
+ 		if (stock->nr_slab_reclaimable_b) {
+-			mod_objcg_mlstate(old, stock->cached_pgdat,
++			__mod_objcg_mlstate(old, stock->cached_pgdat,
+ 					  NR_SLAB_RECLAIMABLE_B,
+ 					  stock->nr_slab_reclaimable_b);
+ 			stock->nr_slab_reclaimable_b = 0;
+ 		}
+ 		if (stock->nr_slab_unreclaimable_b) {
+-			mod_objcg_mlstate(old, stock->cached_pgdat,
++			__mod_objcg_mlstate(old, stock->cached_pgdat,
+ 					  NR_SLAB_UNRECLAIMABLE_B,
+ 					  stock->nr_slab_unreclaimable_b);
+ 			stock->nr_slab_unreclaimable_b = 0;
+--- a/mm/slab.h~memcg-simple-cleanup-of-stats-update-functions
++++ a/mm/slab.h
+@@ -581,8 +581,6 @@ bool __memcg_slab_post_alloc_hook(struct
+ 				  gfp_t flags, size_t size, void **p);
+ void __memcg_slab_free_hook(struct kmem_cache *s, struct slab *slab,
+ 			    void **p, int objects, struct slabobj_ext *obj_exts);
+-void mod_objcg_state(struct obj_cgroup *objcg, struct pglist_data *pgdat,
+-		     enum node_stat_item idx, int nr);
+ #endif
+ 
+ size_t __ksize(const void *objp);
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-backing-dev-use-group-allocation-free-of-per-cpu-counters-api.patch
-mm-remove-__set_page_dirty_nobuffers.patch
-arm64-mm-cleanup-__do_page_fault.patch
-arm64-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
-arm-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
-powerpc-mm-accelerate-pagefault-when-badaccess.patch
-riscv-mm-accelerate-pagefault-when-badaccess.patch
-riscv-mm-accelerate-pagefault-when-badaccess-fix.patch
-s390-mm-accelerate-pagefault-when-badaccess.patch
-x86-mm-accelerate-pagefault-when-badaccess.patch
-arm64-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
-arm-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
-mm-move-mm-counter-updating-out-of-set_pte_range.patch
-mm-filemap-batch-mm-counter-updating-in-filemap_map_pages.patch
-mm-swapfile-check-usable-swap-device-in-__folio_throttle_swaprate.patch
-mm-memory-check-userfaultfd_wp-in-vmf_orig_pte_uffd_wp.patch
+memcg-simple-cleanup-of-stats-update-functions.patch
 
