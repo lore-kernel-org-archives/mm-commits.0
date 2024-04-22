@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 880C9154BF9
-	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 20:28:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68A8F804
+	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 20:30:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713817706; cv=none; b=KT583+z1JuXRMk271KQH2/leekfMLDpdZncNkBZXweKoz97I0EBTdoNpfcWVOagedfkrG7/ulUClGkhL12NQHwsasAdZdiibC4ji7+SL7ebnx2+d7HPNM8JYgFl6RNPTHLkkZx7ZmKC4LEveLhvqWWAJwbG3QK0BecxcydWHNKM=
+	t=1713817852; cv=none; b=eJ2zJ9In7OXkAPKuaIXhQuH7bl7crHhBnbHfaQMTotHPZY+/rh/6NIVxgNCnQuB7bJvjRRPOczV2pWxeDuf3f+MaGxb2EzpCmyvEz8cJXEFcjBQK1f77KeDeQ6Ri9kCCQO0J9asPuPT4ehmfCB3F8nAR+eEwK+f4ICkc8P3/4y8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713817706; c=relaxed/simple;
-	bh=4JmKUix47ZXl58aZIQjnXuhdCMQp0fh7I5Ap1ikaC0A=;
-	h=Date:To:From:Subject:Message-Id; b=GO2LtXhLwaGxL5lpjgQuPCnoN8bpqZYW7NlViTUzrugAA4ulkU4NRSGS4d94gZbmEGARZy+y/HlwTig6snu3Wc7Kzm6C1Au9L3bnm6oUH2/+KTt+CehzxCg9B9ZZKSb7+2p4+1p3CBGsGKCuUdTiwvftyzvJ4wRYaTeN6exIlqA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R2VUV7uR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713817852; c=relaxed/simple;
+	bh=HSMBJuH8jP6vO7JICDx0xbifEl3t6vO/5bXY8Rir38A=;
+	h=Date:To:From:Subject:Message-Id; b=bVNbDMyYcGBd1g6hXsdC7Nx8N+pNhewzE7m6tfHO8dkuu16m2vMo9iYjBdCi7FXtpgKGu/5Hm1tLZWW0EwBlHf960VL0eQz0mwS/vvuKagGY65M+OT8n7ZdcCR0+t96A6nQOvW8sglnI12sgUXZT6riRnVa4HKmt11aMFTJavzo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=moXdGUWk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R2VUV7uR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE839C113CC;
-	Mon, 22 Apr 2024 20:28:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="moXdGUWk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4E1EC113CC;
+	Mon, 22 Apr 2024 20:30:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713817706;
-	bh=4JmKUix47ZXl58aZIQjnXuhdCMQp0fh7I5Ap1ikaC0A=;
+	s=korg; t=1713817851;
+	bh=HSMBJuH8jP6vO7JICDx0xbifEl3t6vO/5bXY8Rir38A=;
 	h=Date:To:From:Subject:From;
-	b=R2VUV7uRGZB/BZsWNkgXWOB9yGWj/LLP2gT7FMjU3JVkrXSVi36YPKXTyhk98/JEP
-	 VDCj6sOSy+jmlElJV765koooR/281X6MybTEyp27/J/CV/sD4oOa6Y8HnHPHutl5tD
-	 syNo90X5UpYvVX8jrJdFsRa97bfbZUbyrYy8PQGA=
-Date: Mon, 22 Apr 2024 13:28:25 -0700
-To: mm-commits@vger.kernel.org,tjmercier@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=moXdGUWkMBxkB42SmUZq3ZBZIQiJLcalfhzoQ+HNJDrtTeRwwhD+uLtRbYxDgYvp0
+	 1RiB3U5P4PgngMT9LxynDzlxym7sUTpg5fyaLFpfpLrKPsDDnxO8b8xrsCWnB4+NyY
+	 d/YiJM0LGvYPfQOh5nKvjkA9OkzajPF6+XlBPxOA=
+Date: Mon, 22 Apr 2024 13:30:50 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,jeffxu@google.com,javier.carrasco.cruz@gmail.com,amer.shanawany@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-simple-cleanup-of-stats-update-functions.patch added to mm-unstable branch
-Message-Id: <20240422202825.EE839C113CC@smtp.kernel.org>
+Subject: + selftest-mm-mseal-read-only-elf-memory-segment-fix-2.patch added to mm-unstable branch
+Message-Id: <20240422203051.D4E1EC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: simple cleanup of stats update functions
+     Subject: selftests: mm: fix linker error for inline function
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-simple-cleanup-of-stats-update-functions.patch
+     selftest-mm-mseal-read-only-elf-memory-segment-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-simple-cleanup-of-stats-update-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-mseal-read-only-elf-memory-segment-fix-2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,177 +58,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: simple cleanup of stats update functions
-Date: Sat, 20 Apr 2024 16:25:05 -0700
+From: Amer Al Shanawany <amer.shanawany@gmail.com>
+Subject: selftests: mm: fix linker error for inline function
+Date: Sat, 20 Apr 2024 22:23:46 +0200
 
-mod_memcg_lruvec_state() is never called from outside of memcontrol.c and
-with always irq disabled.  So, replace it with the irq disabled version
-and add an assert that irq is disabled in the caller.
+add 'static' keyword to 'sys_mprotect()' to link properly, otherwise the
+test won't build.
 
-Similarly mod_objcg_state() is not called from outside of memcontrol.c, so
-simply make it static and change it's name to __mod_objcg_state().
+gcc (Ubuntu 12.3.0-1ubuntu1~22.04) 12.3.0
 
-Link: https://lkml.kernel.org/r/20240420232505.2768428-1-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: T.J. Mercier <tjmercier@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+/usr/bin/ld: /tmp/cc7yeABp.o: in function `test_seal_elf':
+seal_elf.c:(.text+0x7af): undefined reference to `sys_mprotect'
+/usr/bin/ld: seal_elf.c:(.text+0x82c): undefined reference to
+`sys_mprotect'
+/usr/bin/ld: seal_elf.c:(.text+0xa4e): undefined reference to
+`sys_mprotect'
+
+Link: https://lkml.kernel.org/r/20240420202346.546444-1-amer.shanawany@gmail.com
+Signed-off-by: Amer Al Shanawany <amer.shanawany@gmail.com>
+Cc: Javier Carrasco <javier.carrasco.cruz@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Jeff Xu <jeffxu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   17 -----------------
- mm/memcontrol.c            |   31 +++++++++++++++----------------
- mm/slab.h                  |    2 --
- 3 files changed, 15 insertions(+), 35 deletions(-)
+ tools/testing/selftests/mm/seal_elf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/memcontrol.h~memcg-simple-cleanup-of-stats-update-functions
-+++ a/include/linux/memcontrol.h
-@@ -1077,8 +1077,6 @@ static inline unsigned long lruvec_page_
- void mem_cgroup_flush_stats(struct mem_cgroup *memcg);
- void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg);
- 
--void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
--			      int val);
- void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx, int val);
- 
- static inline void mod_lruvec_kmem_state(void *p, enum node_stat_item idx,
-@@ -1091,16 +1089,6 @@ static inline void mod_lruvec_kmem_state
- 	local_irq_restore(flags);
+--- a/tools/testing/selftests/mm/seal_elf.c~selftest-mm-mseal-read-only-elf-memory-segment-fix-2
++++ a/tools/testing/selftests/mm/seal_elf.c
+@@ -72,7 +72,7 @@ static void *sys_mmap(void *addr, unsign
+ 	return sret;
  }
  
--static inline void mod_memcg_lruvec_state(struct lruvec *lruvec,
--					  enum node_stat_item idx, int val)
--{
--	unsigned long flags;
--
--	local_irq_save(flags);
--	__mod_memcg_lruvec_state(lruvec, idx, val);
--	local_irq_restore(flags);
--}
--
- void __count_memcg_events(struct mem_cgroup *memcg, enum vm_event_item idx,
- 			  unsigned long count);
- 
-@@ -1594,11 +1582,6 @@ static inline void mem_cgroup_flush_stat
+-inline int sys_mprotect(void *ptr, size_t size, unsigned long prot)
++static inline int sys_mprotect(void *ptr, size_t size, unsigned long prot)
  {
- }
+ 	int sret;
  
--static inline void __mod_memcg_lruvec_state(struct lruvec *lruvec,
--					    enum node_stat_item idx, int val)
--{
--}
--
- static inline void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx,
- 					   int val)
- {
---- a/mm/memcontrol.c~memcg-simple-cleanup-of-stats-update-functions
-+++ a/mm/memcontrol.c
-@@ -836,8 +836,9 @@ static unsigned long memcg_page_state_lo
- 	return x;
- }
- 
--void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
--			      int val)
-+static void __mod_memcg_lruvec_state(struct lruvec *lruvec,
-+				     enum node_stat_item idx,
-+				     int val)
- {
- 	struct mem_cgroup_per_node *pn;
- 	struct mem_cgroup *memcg;
-@@ -2978,21 +2979,19 @@ void mem_cgroup_commit_charge(struct fol
- 
- #ifdef CONFIG_MEMCG_KMEM
- 
--/*
-- * mod_objcg_mlstate() may be called with irq enabled, so
-- * mod_memcg_lruvec_state() should be used.
-- */
--static inline void mod_objcg_mlstate(struct obj_cgroup *objcg,
--				     struct pglist_data *pgdat,
--				     enum node_stat_item idx, int nr)
-+static inline void __mod_objcg_mlstate(struct obj_cgroup *objcg,
-+				       struct pglist_data *pgdat,
-+				       enum node_stat_item idx, int nr)
- {
- 	struct mem_cgroup *memcg;
- 	struct lruvec *lruvec;
- 
-+	lockdep_assert_irqs_disabled();
-+
- 	rcu_read_lock();
- 	memcg = obj_cgroup_memcg(objcg);
- 	lruvec = mem_cgroup_lruvec(memcg, pgdat);
--	mod_memcg_lruvec_state(lruvec, idx, nr);
-+	__mod_memcg_lruvec_state(lruvec, idx, nr);
- 	rcu_read_unlock();
- }
- 
-@@ -3312,7 +3311,7 @@ void __memcg_kmem_uncharge_page(struct p
- 	obj_cgroup_put(objcg);
- }
- 
--void mod_objcg_state(struct obj_cgroup *objcg, struct pglist_data *pgdat,
-+static void mod_objcg_state(struct obj_cgroup *objcg, struct pglist_data *pgdat,
- 		     enum node_stat_item idx, int nr)
- {
- 	struct memcg_stock_pcp *stock;
-@@ -3340,12 +3339,12 @@ void mod_objcg_state(struct obj_cgroup *
- 		struct pglist_data *oldpg = stock->cached_pgdat;
- 
- 		if (stock->nr_slab_reclaimable_b) {
--			mod_objcg_mlstate(objcg, oldpg, NR_SLAB_RECLAIMABLE_B,
-+			__mod_objcg_mlstate(objcg, oldpg, NR_SLAB_RECLAIMABLE_B,
- 					  stock->nr_slab_reclaimable_b);
- 			stock->nr_slab_reclaimable_b = 0;
- 		}
- 		if (stock->nr_slab_unreclaimable_b) {
--			mod_objcg_mlstate(objcg, oldpg, NR_SLAB_UNRECLAIMABLE_B,
-+			__mod_objcg_mlstate(objcg, oldpg, NR_SLAB_UNRECLAIMABLE_B,
- 					  stock->nr_slab_unreclaimable_b);
- 			stock->nr_slab_unreclaimable_b = 0;
- 		}
-@@ -3371,7 +3370,7 @@ void mod_objcg_state(struct obj_cgroup *
- 		}
- 	}
- 	if (nr)
--		mod_objcg_mlstate(objcg, pgdat, idx, nr);
-+		__mod_objcg_mlstate(objcg, pgdat, idx, nr);
- 
- 	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
- 	obj_cgroup_put(old);
-@@ -3437,13 +3436,13 @@ static struct obj_cgroup *drain_obj_stoc
- 	 */
- 	if (stock->nr_slab_reclaimable_b || stock->nr_slab_unreclaimable_b) {
- 		if (stock->nr_slab_reclaimable_b) {
--			mod_objcg_mlstate(old, stock->cached_pgdat,
-+			__mod_objcg_mlstate(old, stock->cached_pgdat,
- 					  NR_SLAB_RECLAIMABLE_B,
- 					  stock->nr_slab_reclaimable_b);
- 			stock->nr_slab_reclaimable_b = 0;
- 		}
- 		if (stock->nr_slab_unreclaimable_b) {
--			mod_objcg_mlstate(old, stock->cached_pgdat,
-+			__mod_objcg_mlstate(old, stock->cached_pgdat,
- 					  NR_SLAB_UNRECLAIMABLE_B,
- 					  stock->nr_slab_unreclaimable_b);
- 			stock->nr_slab_unreclaimable_b = 0;
---- a/mm/slab.h~memcg-simple-cleanup-of-stats-update-functions
-+++ a/mm/slab.h
-@@ -581,8 +581,6 @@ bool __memcg_slab_post_alloc_hook(struct
- 				  gfp_t flags, size_t size, void **p);
- void __memcg_slab_free_hook(struct kmem_cache *s, struct slab *slab,
- 			    void **p, int objects, struct slabobj_ext *obj_exts);
--void mod_objcg_state(struct obj_cgroup *objcg, struct pglist_data *pgdat,
--		     enum node_stat_item idx, int nr);
- #endif
- 
- size_t __ksize(const void *objp);
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from amer.shanawany@gmail.com are
 
-memcg-simple-cleanup-of-stats-update-functions.patch
+selftest-mm-mseal-read-only-elf-memory-segment-fix-2.patch
 
