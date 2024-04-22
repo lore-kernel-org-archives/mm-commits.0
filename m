@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B575E154437
-	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 19:41:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4D281552E4;
+	Mon, 22 Apr 2024 19:54:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713814892; cv=none; b=T/0Sr2rsNFIM1ZSY+n64vaEEhXHtgz2BUGpCjwlZrQ27Cbl2q9J53H1wWm+8jvVtv2RGBG4H1IYr2J1Uiuw6uWElj9T2Q8WMLUHmjh0UTwSP7NZjfwK1+xgQRXZAsrqV06WOM7BbocRCkg++i2z+4TRE2wJ+hND7O35qTgmIe20=
+	t=1713815643; cv=none; b=qcNGryXBbpgDGsfgavWTb/f5W92zp6gH53QW8yf9XUJVLtvJdWBCo0Ao0MUMTaezxnY82fQEXNYfOfqW+4VMU24vFAMpBMFOUTW9gIKYaquULukRwHjpv2YMuqz7ShDtCxmwDHyJXhbkp6HFsCId1mPwsZszheJh07LFHWP6fpE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713814892; c=relaxed/simple;
-	bh=Ef2DCpthIAtQHIZwitz9KaagTqA+gtWlhZHgSX4qtJM=;
-	h=Date:To:From:Subject:Message-Id; b=F1Ulr2/2hPFEBDoibmndxaAC81sGOG4MnMRGG9ydsU424rhlfLMoYOt+sMWeDL8MhIcX0yg82nehLCOS8vy74PC9J8ZDqdE45iUfAo4Itmcb208N6i4L0jQYF3dMbttNdTfX8hPHcHHAqZmAcWXdFWC3h3UAOe0YJsVnaI6PnZ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wX6bSB4G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713815643; c=relaxed/simple;
+	bh=CKovM99CpAea3dMheTJmg8+vR1Kanfw2KSJtSVkjRRc=;
+	h=Date:To:From:Subject:Message-Id; b=GAIPmawdQgx/Lj600T8g12tXRrIfr7xvf/8Ke5jmuBgLLU99RX2AAtgaVGmAAAtJ0q945hGlUVMPthHLIMkY//dgFeMf98iht5wwbdGRsL+3Xh9InW8gqzbwg/FvZrQCs523QRVw+gfputWJAl5i73M8xuBTnyEFh4sMRH5gxC0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B5b7UUYk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wX6bSB4G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5244C113CC;
-	Mon, 22 Apr 2024 19:41:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B5b7UUYk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A49EC116B1;
+	Mon, 22 Apr 2024 19:54:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713814890;
-	bh=Ef2DCpthIAtQHIZwitz9KaagTqA+gtWlhZHgSX4qtJM=;
+	s=korg; t=1713815643;
+	bh=CKovM99CpAea3dMheTJmg8+vR1Kanfw2KSJtSVkjRRc=;
 	h=Date:To:From:Subject:From;
-	b=wX6bSB4Gs08MxdXHeAtP0Ciql6ejo9RnZKvxi+aWYuZelH+P7TOqNXiL2flFPLBC3
-	 0Lep0X6C6hU13vFNiGlEgDkX1g7vXjlecf6EwQPVb2cgjvT0SgWp3tqkfvwEaVf7qW
-	 mSTz0n0WqJjrjrx1CS6AhQAPrtRrq2BRMucprOtg=
-Date: Mon, 22 Apr 2024 12:41:30 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,tj@kernel.org,richard.weiyang@linux.alibaba.com,minchan@kernel.org,mhocko@suse.com,mgorman@techsingularity.net,jpoimboe@kernel.org,hannes@cmpxchg.org,david@redhat.com,dan.j.williams@intel.com,corbet@lwn.net,mcanal@igalia.com,akpm@linux-foundation.org
+	b=B5b7UUYkrkBYUy5OnfGU7K0Y7PA9b0ucykEbzDCWzHfL38IS+hQTUHgtjZklgQf9x
+	 jkhAf+6eW74zr4GJmyROE+NjnKzz7LGLnuARDMw9OpKJESfQ57WmlPt6B2GvFmkIEJ
+	 eazpy/1LlVMKQ00WeSWG032ocnKS0bAJA7sfe8fU=
+Date: Mon, 22 Apr 2024 12:54:02 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,nadav.amit@gmail.com,david@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-update-shuffle-documentation-to-match-its-current-state.patch added to mm-unstable branch
-Message-Id: <20240422194130.D5244C113CC@smtp.kernel.org>
+Subject: + mm-userfaultfd-reset-ptes-when-close-for-wr-protected-ones.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240422195403.4A49EC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: Update shuffle documentation to match its current state
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-update-shuffle-documentation-to-match-its-current-state.patch
+     Subject: mm/userfaultfd: reset ptes when close() for wr-protected ones
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-userfaultfd-reset-ptes-when-close-for-wr-protected-ones.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-update-shuffle-documentation-to-match-its-current-state.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-reset-ptes-when-close-for-wr-protected-ones.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,78 +58,81 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Maíra Canal <mcanal@igalia.com>
-Subject: mm: Update shuffle documentation to match its current state
-Date: Mon, 22 Apr 2024 11:18:40 -0300
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/userfaultfd: reset ptes when close() for wr-protected ones
+Date: Mon, 22 Apr 2024 09:33:11 -0400
 
-Commit 839195352d82 ("mm/shuffle: remove dynamic reconfiguration") removed
-the dynamic reconfiguration capabilities from the shuffle page allocator. 
-This means that, now, we don't have any perspective of an "autodetection
-of memory-side-cache" that triggers the enablement of the shuffle page
-allocator.
+Userfaultfd unregister includes a step to remove wr-protect bits from all
+the relevant pgtable entries, but that only covered an explicit
+UFFDIO_UNREGISTER ioctl, not a close() on the userfaultfd itself.  Cover
+that too.  This fixes a WARN trace.
 
-Therefore, let the documentation reflect that the only way to enable
-the shuffle page allocator is by setting `page_alloc.shuffle=1`.
-
-Link: https://lkml.kernel.org/r/20240422142007.1062231-1-mcanal@igalia.com
-Signed-off-by: Maíra Canal <mcanal@igalia.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Link: https://lore.kernel.org/all/000000000000ca4df20616a0fe16@google.com/
+Analyzed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20240422133311.2987675-1-peterx@redhat.com
+Reported-by: syzbot+d8426b591c36b21c750e@syzkaller.appspotmail.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |   10 ++++------
- mm/Kconfig                                      |    7 +++----
- 2 files changed, 7 insertions(+), 10 deletions(-)
+ fs/userfaultfd.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-update-shuffle-documentation-to-match-its-current-state
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -4176,13 +4176,11 @@
- 
- 	page_alloc.shuffle=
- 			[KNL] Boolean flag to control whether the page allocator
--			should randomize its free lists. The randomization may
--			be automatically enabled if the kernel detects it is
--			running on a platform with a direct-mapped memory-side
--			cache, and this parameter can be used to
--			override/disable that behavior. The state of the flag
--			can be read from sysfs at:
-+			should randomize its free lists. This parameter can be
-+			used to enable/disable page randomization. The state of
-+			the flag can be read from sysfs at:
- 			/sys/module/page_alloc/parameters/shuffle.
-+			This parameter is only available if CONFIG_SHUFFLE_PAGE_ALLOCATOR=y.
- 
- 	page_owner=	[KNL,EARLY] Boot-time page_owner enabling option.
- 			Storage of the information about who allocated
---- a/mm/Kconfig~mm-update-shuffle-documentation-to-match-its-current-state
-+++ a/mm/Kconfig
-@@ -333,10 +333,9 @@ config SHUFFLE_PAGE_ALLOCATOR
- 
- 	  While the randomization improves cache utilization it may
- 	  negatively impact workloads on platforms without a cache. For
--	  this reason, by default, the randomization is enabled only
--	  after runtime detection of a direct-mapped memory-side-cache.
--	  Otherwise, the randomization may be force enabled with the
--	  'page_alloc.shuffle' kernel command line parameter.
-+	  this reason, by default, the randomization is not enabled even
-+	  if SHUFFLE_PAGE_ALLOCATOR=y. The randomization may be force enabled
-+	  with the 'page_alloc.shuffle' kernel command line parameter.
- 
- 	  Say Y if unsure.
- 
+--- a/fs/userfaultfd.c~mm-userfaultfd-reset-ptes-when-close-for-wr-protected-ones
++++ a/fs/userfaultfd.c
+@@ -895,6 +895,10 @@ static int userfaultfd_release(struct in
+ 			prev = vma;
+ 			continue;
+ 		}
++		/* Reset ptes for the whole vma range if wr-protected */
++		if (userfaultfd_wp(vma))
++			uffd_wp_range(vma, vma->vm_start,
++				      vma->vm_end - vma->vm_start, false);
+ 		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
+ 		vma = vma_modify_flags_uffd(&vmi, prev, vma, vma->vm_start,
+ 					    vma->vm_end, new_flags,
 _
 
-Patches currently in -mm which might be from mcanal@igalia.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-update-shuffle-documentation-to-match-its-current-state.patch
+mm-hugetlb-fix-missing-hugetlb_lock-for-resv-uncharge.patch
+mm-userfaultfd-reset-ptes-when-close-for-wr-protected-ones.patch
+mm-hmm-process-pud-swap-entry-without-pud_huge.patch
+mm-gup-cache-p4d-in-follow_p4d_mask.patch
+mm-gup-check-p4d-presence-before-going-on.patch
+mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch
+mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
+mm-arm-use-macros-to-define-pmd-pud-helpers.patch
+mm-arm-redefine-pmd_huge-with-pmd_leaf.patch
+mm-arm64-merge-pxd_huge-and-pxd_leaf-definitions.patch
+mm-powerpc-redefine-pxd_huge-with-pxd_leaf.patch
+mm-gup-merge-pxd-huge-mapping-checks.patch
+mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
+mm-treewide-remove-pxd_huge.patch
+mm-arm-remove-pmd_thp_or_huge.patch
+mm-document-pxd_leaf-api.patch
+mm-always-initialise-folio-_deferred_list-fix.patch
+selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation.patch
+selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation-fix.patch
+mm-kconfig-config_pgtable_has_huge_leaves.patch
+mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch
+mm-make-hpage_pxd_-macros-even-if-thp.patch
+mm-introduce-vma_pgtable_walk_beginend.patch
+mm-arch-provide-pud_pfn-fallback.patch
+mm-arch-provide-pud_pfn-fallback-fix.patch
+mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing.patch
+mm-gup-refactor-record_subpages-to-find-1st-small-page.patch
+mm-gup-handle-hugetlb-for-no_page_table.patch
+mm-gup-cache-pudp-in-follow_pud_mask.patch
+mm-gup-handle-huge-pud-for-follow_pud_mask.patch
+mm-gup-handle-huge-pmd-for-follow_pmd_mask.patch
+mm-gup-handle-huge-pmd-for-follow_pmd_mask-fix.patch
+mm-gup-handle-hugepd-for-follow_page.patch
+mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code.patch
+mm-allow-anon-exclusive-check-over-hugetlb-tail-pages.patch
+mm-hugetlb-assert-hugetlb_lock-in-__hugetlb_cgroup_commit_charge.patch
+mm-page_table_check-support-userfault-wr-protect-entries.patch
 
