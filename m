@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1480155326
-	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 19:39:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B000155352
+	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 19:39:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713814750; cv=none; b=r4UqTY8FUG8wZqCO0TrKZUy0ysEOQAW3EiXduVm2BxsQnK65JDxulADtdFqLs3T5S2/O6kn8/Ip5oBBV4LoAEix4QwHrybcYM9fOofhyOh1KI9SOJhISpW57Yt70zGm1kgwbSEUkZSmoGQkBBFmMcuE8BbanJDb2MGH2HyK4WLw=
+	t=1713814752; cv=none; b=hdWLVTe4YaQWCvOPQOxt+bX/m4y4HLKA51M6jE5zYHe5HslsIU+cVhLYk0Fl/b7ENBfBK5effcAafbPoWfdPmbElXKftYGmmtABv99bN5vf5KbhpDXGqOTlFVTF25GoXi/B2nS4j6/jS3wrqD2YcTxQhB1rgMCduY1eELy9lj4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713814750; c=relaxed/simple;
-	bh=BWO7cfNuTdCHgch/bzvegHbNmsqYOETznLi+ioS69hE=;
-	h=Date:To:From:Subject:Message-Id; b=k9cerR5wfct7sAO53jFBRoaRuiLNx033s3pJLI2+k6Y9lZvktSqvCzLjsfWDRGAsEKLANZoTwIZzmBIKAVhUbgouWHXwRS3LczmNA5BMkwFr+YvTWpso7Okveh+5hPISS+lpKTbfgAMkFjTeS8SpMYlbAVNYZ8fTIrl9cBJObdo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ns1TFTMP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713814752; c=relaxed/simple;
+	bh=/Jp+I9OIUSpPqQh+6maA28/bmhNddZjsivdbg11tUHA=;
+	h=Date:To:From:Subject:Message-Id; b=bLd048Rlo8sBpNiCqfJClzz/GOzfrvB/AEtHLFPSWtrbwCB+wYEHRLTmQUS4SH9IkVf5Z12VNpiurwpt3wRp8Jg3tjkuajSfe/8VktjTUlbFYdGqlyTLTh8Ljm0ASI2gJeLKhjLctUQGj94E7+Alb4AyfhHc8zO4F50jtzDCwtc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oAJdzjBq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ns1TFTMP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2297CC113CC;
-	Mon, 22 Apr 2024 19:39:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oAJdzjBq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0258EC113CC;
+	Mon, 22 Apr 2024 19:39:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713814750;
-	bh=BWO7cfNuTdCHgch/bzvegHbNmsqYOETznLi+ioS69hE=;
+	s=korg; t=1713814752;
+	bh=/Jp+I9OIUSpPqQh+6maA28/bmhNddZjsivdbg11tUHA=;
 	h=Date:To:From:Subject:From;
-	b=ns1TFTMPymGmR6fWtz2zrleqOWQdap0nKJjTIy6eOZiT7TI2aMCzhSCzUlzIHp8Pm
-	 XPSqXieMcgcWsWLOgzrS2f0UMJBhbZE5niqzmUJJcHi4hUQwJbcvXfL0SFtfELsy0U
-	 HAkY+OIQUnBSL/1GFcU/TTDnHr3FkUyTuymB+D5I=
-Date: Mon, 22 Apr 2024 12:39:09 -0700
+	b=oAJdzjBqXbWjaIQG/pWUINIJl0N+y7Th4Kf6Mzyoeoue518i0ki2g0zr9yWuSrM9J
+	 XuY9nhQspdE8s0Iw9Rf4oFrksmeLovrWD8L/OTp3UG1JT4tr4DalI80KoX9yMqcxvj
+	 wxDpZTbzNGlRj1zTkWmOulLoZe+OCi1NO5253WtA=
+Date: Mon, 22 Apr 2024 12:39:11 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,mjguzik@gmail.com,jack@suse.cz,dsterba@suse.com,dhowells@redhat.com,bfoster@redhat.com,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + writeback-add-wb_monitorpy-script-to-monitor-writeback-info-on-bdi.patch added to mm-unstable branch
-Message-Id: <20240422193910.2297CC113CC@smtp.kernel.org>
+Subject: + writeback-rename-nr_reclaimable-to-nr_dirty-in-balance_dirty_pages.patch added to mm-unstable branch
+Message-Id: <20240422193912.0258EC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: writeback: add wb_monitor.py script to monitor writeback info on bdi
+     Subject: writeback: rename nr_reclaimable to nr_dirty in balance_dirty_pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     writeback-add-wb_monitorpy-script-to-monitor-writeback-info-on-bdi.patch
+     writeback-rename-nr_reclaimable-to-nr_dirty-in-balance_dirty_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-add-wb_monitorpy-script-to-monitor-writeback-info-on-bdi.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-rename-nr_reclaimable-to-nr_dirty-in-balance_dirty_pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,228 +59,60 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: writeback: add wb_monitor.py script to monitor writeback info on bdi
-Date: Tue, 23 Apr 2024 00:48:07 +0800
+Subject: writeback: rename nr_reclaimable to nr_dirty in balance_dirty_pages
+Date: Tue, 23 Apr 2024 00:48:08 +0800
 
-Add wb_monitor.py script to monitor writeback information on backing dev
-which makes it easier and more convenient to observe writeback behaviors
-of running system.
+Commit 8d92890bd6b85 ("mm/writeback: discard NR_UNSTABLE_NFS, use
+NR_WRITEBACK instead") removed NR_UNSTABLE_NFS and nr_reclaimable only
+contains dirty page now.  Rename nr_reclaimable to nr_dirty properly.
 
-The wb_monitor.py script is written based on wq_monitor.py.
-
-Following domain hierarchy is tested:
-                global domain (320G)
-                /                 \
-        cgroup domain1(10G)     cgroup domain2(10G)
-                |                 |
-bdi            wb1               wb2
-
-The wb_monitor.py script output is as following:
-./wb_monitor.py 252:16 -c
-                  writeback  reclaimable   dirtied   written    avg_bw
-252:16_1                  0            0         0         0    102400
-252:16_4284             672       820064   9230368   8410304    685612
-252:16_4325             896       819840  10491264   9671648    652348
-252:16                 1568      1639904  19721632  18081952   1440360
-
-                  writeback  reclaimable   dirtied   written    avg_bw
-252:16_1                  0            0         0         0    102400
-252:16_4284             672       820064   9230368   8410304    685612
-252:16_4325             896       819840  10491264   9671648    652348
-252:16                 1568      1639904  19721632  18081952   1440360
-...
-
-Link: https://lkml.kernel.org/r/20240422164808.13627-4-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20240422164808.13627-5-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Suggested-by: Tejun Heo <tj@kernel.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Acked-by: Tejun Heo <tj@kernel.org>
 Cc: Brian Foster <bfoster@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Mateusz Guzik <mjguzik@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/writeback/wb_monitor.py |  172 ++++++++++++++++++++++++++++++++
- 1 file changed, 172 insertions(+)
+ mm/page-writeback.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- /dev/null
-+++ a/tools/writeback/wb_monitor.py
-@@ -0,0 +1,172 @@
-+#!/usr/bin/env drgn
-+#
-+# Copyright (C) 2024 Kemeng Shi <shikemeng@huaweicloud.com>
-+# Copyright (C) 2024 Huawei Inc
-+
-+desc = """
-+This is a drgn script based on wq_monitor.py to monitor writeback info on
-+backing dev. For more info on drgn, visit https://github.com/osandov/drgn.
-+
-+  writeback(kB)     Amount of dirty pages are currently being written back to
-+                    disk.
-+
-+  reclaimable(kB)   Amount of pages are currently reclaimable.
-+
-+  dirtied(kB)       Amount of pages have been dirtied.
-+
-+  wrttien(kB)       Amount of dirty pages have been written back to disk.
-+
-+  avg_wb(kBps)      Smoothly estimated write bandwidth of writing dirty pages
-+                    back to disk.
-+"""
-+
-+import signal
-+import re
-+import time
-+import json
-+
-+import drgn
-+from drgn.helpers.linux.list import list_for_each_entry
-+
-+import argparse
-+parser = argparse.ArgumentParser(description=desc,
-+                                 formatter_class=argparse.RawTextHelpFormatter)
-+parser.add_argument('bdi', metavar='REGEX', nargs='*',
-+                    help='Target backing device name patterns (all if empty)')
-+parser.add_argument('-i', '--interval', metavar='SECS', type=float, default=1,
-+                    help='Monitoring interval (0 to print once and exit)')
-+parser.add_argument('-j', '--json', action='store_true',
-+                    help='Output in json')
-+parser.add_argument('-c', '--cgroup', action='store_true',
-+                    help='show writeback of bdi in cgroup')
-+args = parser.parse_args()
-+
-+bdi_list                = prog['bdi_list']
-+
-+WB_RECLAIMABLE          = prog['WB_RECLAIMABLE']
-+WB_WRITEBACK            = prog['WB_WRITEBACK']
-+WB_DIRTIED              = prog['WB_DIRTIED']
-+WB_WRITTEN              = prog['WB_WRITTEN']
-+NR_WB_STAT_ITEMS        = prog['NR_WB_STAT_ITEMS']
-+
-+PAGE_SHIFT              = prog['PAGE_SHIFT']
-+
-+def K(x):
-+    return x << (PAGE_SHIFT - 10)
-+
-+class Stats:
-+    def dict(self, now):
-+        return { 'timestamp'            : now,
-+                 'name'                 : self.name,
-+                 'writeback'            : self.stats[WB_WRITEBACK],
-+                 'reclaimable'          : self.stats[WB_RECLAIMABLE],
-+                 'dirtied'              : self.stats[WB_DIRTIED],
-+                 'written'              : self.stats[WB_WRITTEN],
-+                 'avg_wb'               : self.avg_bw, }
-+
-+    def table_header_str():
-+        return f'{"":>16} {"writeback":>10} {"reclaimable":>12} ' \
-+                f'{"dirtied":>9} {"written":>9} {"avg_bw":>9}'
-+
-+    def table_row_str(self):
-+        out = f'{self.name[-16:]:16} ' \
-+              f'{self.stats[WB_WRITEBACK]:10} ' \
-+              f'{self.stats[WB_RECLAIMABLE]:12} ' \
-+              f'{self.stats[WB_DIRTIED]:9} ' \
-+              f'{self.stats[WB_WRITTEN]:9} ' \
-+              f'{self.avg_bw:9} '
-+        return out
-+
-+    def show_header():
-+        if Stats.table_fmt:
-+            print()
-+            print(Stats.table_header_str())
-+
-+    def show_stats(self):
-+        if Stats.table_fmt:
-+            print(self.table_row_str())
-+        else:
-+            print(self.dict(Stats.now))
-+
-+class WbStats(Stats):
-+    def __init__(self, wb):
-+        bdi_name = wb.bdi.dev_name.string_().decode()
-+        # avoid to use bdi.wb.memcg_css which is only defined when
-+        # CONFIG_CGROUP_WRITEBACK is enabled
-+        if wb == wb.bdi.wb.address_of_():
-+            ino = "1"
-+        else:
-+            ino = str(wb.memcg_css.cgroup.kn.id.value_())
-+        self.name = bdi_name + '_' + ino
-+
-+        self.stats = [0] * NR_WB_STAT_ITEMS
-+        for i in range(NR_WB_STAT_ITEMS):
-+            if wb.stat[i].count >= 0:
-+                self.stats[i] = int(K(wb.stat[i].count))
-+            else:
-+                self.stats[i] = 0
-+
-+        self.avg_bw = int(K(wb.avg_write_bandwidth))
-+
-+class BdiStats(Stats):
-+    def __init__(self, bdi):
-+        self.name = bdi.dev_name.string_().decode()
-+        self.stats = [0] * NR_WB_STAT_ITEMS
-+        self.avg_bw = 0
-+
-+    def collectStats(self, wb_stats):
-+        for i in range(NR_WB_STAT_ITEMS):
-+            self.stats[i] += wb_stats.stats[i]
-+
-+        self.avg_bw += wb_stats.avg_bw
-+
-+exit_req = False
-+
-+def sigint_handler(signr, frame):
-+    global exit_req
-+    exit_req = True
-+
-+def main():
-+    # handle args
-+    Stats.table_fmt = not args.json
-+    interval = args.interval
-+    cgroup = args.cgroup
-+
-+    re_str = None
-+    if args.bdi:
-+        for r in args.bdi:
-+            if re_str is None:
-+                re_str = r
-+            else:
-+                re_str += '|' + r
-+
-+    filter_re = re.compile(re_str) if re_str else None
-+
-+    # monitoring loop
-+    signal.signal(signal.SIGINT, sigint_handler)
-+
-+    while not exit_req:
-+        Stats.now = time.time()
-+
-+        Stats.show_header()
-+        for bdi in list_for_each_entry('struct backing_dev_info', bdi_list.address_of_(), 'bdi_list'):
-+            bdi_stats = BdiStats(bdi)
-+            if filter_re and not filter_re.search(bdi_stats.name):
-+                continue
-+
-+            for wb in list_for_each_entry('struct bdi_writeback', bdi.wb_list.address_of_(), 'bdi_node'):
-+                wb_stats = WbStats(wb)
-+                bdi_stats.collectStats(wb_stats)
-+                if cgroup:
-+                    wb_stats.show_stats()
-+
-+            bdi_stats.show_stats()
-+            if cgroup and Stats.table_fmt:
-+                print()
-+
-+        if interval == 0:
-+            break
-+        time.sleep(interval)
-+
-+if __name__ == "__main__":
-+    main()
+--- a/mm/page-writeback.c~writeback-rename-nr_reclaimable-to-nr_dirty-in-balance_dirty_pages
++++ a/mm/page-writeback.c
+@@ -1694,7 +1694,7 @@ static int balance_dirty_pages(struct bd
+ 	struct dirty_throttle_control * const mdtc = mdtc_valid(&mdtc_stor) ?
+ 						     &mdtc_stor : NULL;
+ 	struct dirty_throttle_control *sdtc;
+-	unsigned long nr_reclaimable;	/* = file_dirty */
++	unsigned long nr_dirty;
+ 	long period;
+ 	long pause;
+ 	long max_pause;
+@@ -1715,9 +1715,9 @@ static int balance_dirty_pages(struct bd
+ 		unsigned long m_thresh = 0;
+ 		unsigned long m_bg_thresh = 0;
+ 
+-		nr_reclaimable = global_node_page_state(NR_FILE_DIRTY);
++		nr_dirty = global_node_page_state(NR_FILE_DIRTY);
+ 		gdtc->avail = global_dirtyable_memory();
+-		gdtc->dirty = nr_reclaimable + global_node_page_state(NR_WRITEBACK);
++		gdtc->dirty = nr_dirty + global_node_page_state(NR_WRITEBACK);
+ 
+ 		domain_dirty_limits(gdtc);
+ 
+@@ -1768,7 +1768,7 @@ static int balance_dirty_pages(struct bd
+ 		 * In normal mode, we start background writeout at the lower
+ 		 * background_thresh, to keep the amount of dirty memory low.
+ 		 */
+-		if (!laptop_mode && nr_reclaimable > gdtc->bg_thresh &&
++		if (!laptop_mode && nr_dirty > gdtc->bg_thresh &&
+ 		    !writeback_in_progress(wb))
+ 			wb_start_background_writeback(wb);
+ 
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
