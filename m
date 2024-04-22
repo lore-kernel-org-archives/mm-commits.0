@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68A8F804
-	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 20:30:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 285CF1804E
+	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 20:34:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713817852; cv=none; b=eJ2zJ9In7OXkAPKuaIXhQuH7bl7crHhBnbHfaQMTotHPZY+/rh/6NIVxgNCnQuB7bJvjRRPOczV2pWxeDuf3f+MaGxb2EzpCmyvEz8cJXEFcjBQK1f77KeDeQ6Ri9kCCQO0J9asPuPT4ehmfCB3F8nAR+eEwK+f4ICkc8P3/4y8=
+	t=1713818083; cv=none; b=cu1wEpDpLaChdREBzB+/l3wCO4/sHjDinF0UBKHxU8iZi3lBMmuUsY4L+dtqPAGfOHu5Q/JTyH/mUsnqWZJw2iKiFPI1DP9JEpnCA5skaR8Q3pNuFqJ6ZJAFuEH8SxYXTmq+zJp/uq5fx//JLwR3FDkJ6Ig4I5jWO0XeBhVnQYQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713817852; c=relaxed/simple;
-	bh=HSMBJuH8jP6vO7JICDx0xbifEl3t6vO/5bXY8Rir38A=;
-	h=Date:To:From:Subject:Message-Id; b=bVNbDMyYcGBd1g6hXsdC7Nx8N+pNhewzE7m6tfHO8dkuu16m2vMo9iYjBdCi7FXtpgKGu/5Hm1tLZWW0EwBlHf960VL0eQz0mwS/vvuKagGY65M+OT8n7ZdcCR0+t96A6nQOvW8sglnI12sgUXZT6riRnVa4HKmt11aMFTJavzo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=moXdGUWk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713818083; c=relaxed/simple;
+	bh=6WenMaJmSMJs3vlzoEt8InPsfwrn4Dx2clkBbZ21gss=;
+	h=Date:To:From:Subject:Message-Id; b=JEJZ9/JRO1UQe0qYPGLvf6bwr8aWZsvWyOUC1Qj1/Bf9fmi7FYE55a0HQ68OtFBwmvUeyTt2qj7JWaVg9rg9JfA0vkTnzDBNEffBxCosbDWBkBhdLWdJDO6z0FRHUBCtYfwiabZ6Yg84tNaChzWGztaDpvhL8LYSKsVwltDMxJ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yFu8OxPr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="moXdGUWk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4E1EC113CC;
-	Mon, 22 Apr 2024 20:30:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yFu8OxPr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1ED2C113CC;
+	Mon, 22 Apr 2024 20:34:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713817851;
-	bh=HSMBJuH8jP6vO7JICDx0xbifEl3t6vO/5bXY8Rir38A=;
+	s=korg; t=1713818082;
+	bh=6WenMaJmSMJs3vlzoEt8InPsfwrn4Dx2clkBbZ21gss=;
 	h=Date:To:From:Subject:From;
-	b=moXdGUWkMBxkB42SmUZq3ZBZIQiJLcalfhzoQ+HNJDrtTeRwwhD+uLtRbYxDgYvp0
-	 1RiB3U5P4PgngMT9LxynDzlxym7sUTpg5fyaLFpfpLrKPsDDnxO8b8xrsCWnB4+NyY
-	 d/YiJM0LGvYPfQOh5nKvjkA9OkzajPF6+XlBPxOA=
-Date: Mon, 22 Apr 2024 13:30:50 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,jeffxu@google.com,javier.carrasco.cruz@gmail.com,amer.shanawany@gmail.com,akpm@linux-foundation.org
+	b=yFu8OxPrbOsnYeY0GKjSX/amSNBKNuEb83j3RyKa9qNxTzGDPh0oysBsrJNuOHoe+
+	 6RUQQWmxxVhSjIjY0/kabiWaURAcofknoXtZjV6hJaVhx7QLyly0gwvEksIumVxksA
+	 q8YHpGB81f13Fkpz3btwq+qxH9Oe6xcbNlxn7XIo=
+Date: Mon, 22 Apr 2024 13:34:42 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,jhubbard@nvidia.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-mm-mseal-read-only-elf-memory-segment-fix-2.patch added to mm-unstable branch
-Message-Id: <20240422203051.D4E1EC113CC@smtp.kernel.org>
+Subject: + mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation-v2.patch added to mm-unstable branch
+Message-Id: <20240422203442.A1ED2C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: mm: fix linker error for inline function
+     Subject: mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation-v2
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftest-mm-mseal-read-only-elf-memory-segment-fix-2.patch
+     mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-mseal-read-only-elf-memory-segment-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation-v2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,47 +58,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Amer Al Shanawany <amer.shanawany@gmail.com>
-Subject: selftests: mm: fix linker error for inline function
-Date: Sat, 20 Apr 2024 22:23:46 +0200
+From: David Hildenbrand <david@redhat.com>
+Subject: mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation-v2
+Date: Mon, 22 Apr 2024 21:42:17 +0200
 
-add 'static' keyword to 'sys_mprotect()' to link properly, otherwise the
-test won't build.
+* Also document concurrent removal from the page cache (likely we should
+  return -EBUSY -- but likely it doesn't really matter).
 
-gcc (Ubuntu 12.3.0-1ubuntu1~22.04) 12.3.0
+* Reference fd4a7ac32918 in patch description
 
-/usr/bin/ld: /tmp/cc7yeABp.o: in function `test_seal_elf':
-seal_elf.c:(.text+0x7af): undefined reference to `sys_mprotect'
-/usr/bin/ld: seal_elf.c:(.text+0x82c): undefined reference to
-`sys_mprotect'
-/usr/bin/ld: seal_elf.c:(.text+0xa4e): undefined reference to
-`sys_mprotect'
+Link: https://lkml.kernel.org/r/20240422194217.442933-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 
-Link: https://lkml.kernel.org/r/20240420202346.546444-1-amer.shanawany@gmail.com
-Signed-off-by: Amer Al Shanawany <amer.shanawany@gmail.com>
-Cc: Javier Carrasco <javier.carrasco.cruz@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Jeff Xu <jeffxu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/seal_elf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/seal_elf.c~selftest-mm-mseal-read-only-elf-memory-segment-fix-2
-+++ a/tools/testing/selftests/mm/seal_elf.c
-@@ -72,7 +72,7 @@ static void *sys_mmap(void *addr, unsign
- 	return sret;
- }
- 
--inline int sys_mprotect(void *ptr, size_t size, unsigned long prot)
-+static inline int sys_mprotect(void *ptr, size_t size, unsigned long prot)
- {
- 	int sret;
- 
+--- a/mm/huge_memory.c~mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation-v2
++++ a/mm/huge_memory.c
+@@ -2975,7 +2975,8 @@ bool can_split_folio(struct folio *folio
+  *
+  * Returns 0 if the huge page was split successfully.
+  *
+- * Returns -EAGAIN if the folio has unexpected reference (e.g., GUP).
++ * Returns -EAGAIN if the folio has unexpected reference (e.g., GUP) or if
++ * the folio was concurrently removed from the page cache.
+  *
+  * Returns -EBUSY when trying to split the huge zeropage, if the folio is
+  * under writeback, if fs-specific folio metadata cannot currently be
 _
 
-Patches currently in -mm which might be from amer.shanawany@gmail.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-selftest-mm-mseal-read-only-elf-memory-segment-fix-2.patch
+mm-madvise-dont-perform-madvise-vma-walk-for-madv_populate_readwrite.patch
+mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared.patch
+mm-convert-folio_estimated_sharers-to-folio_likely_mapped_shared-fix.patch
+selftests-memfd_secret-add-vmsplice-test.patch
+mm-merge-folio_is_secretmem-and-folio_fast_pin_allowed-into-gup_fast_folio_allowed.patch
+mm-optimize-config_per_vma_lock-member-placement-in-vm_area_struct.patch
+mm-remove-prot-parameter-from-move_pte.patch
+mm-gup-consistently-name-gup-fast-functions.patch
+mm-treewide-rename-config_have_fast_gup-to-config_have_gup_fast.patch
+mm-use-gup-fast-instead-fast-gup-in-remaining-comments.patch
+drivers-virt-acrn-fix-pfnmap-pte-checks-in-acrn_vm_ram_map.patch
+mm-pass-vma-instead-of-mm-to-follow_pte.patch
+mm-follow_pte-improvements.patch
+mm-allow-for-detecting-underflows-with-page_mapcount-again.patch
+mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte.patch
+mm-rmap-add-fast-path-for-small-folios-when-adding-removing-duplicating.patch
+mm-track-mapcount-of-large-folios-in-single-value.patch
+mm-improve-folio_likely_mapped_shared-using-the-mapcount-of-large-folios.patch
+mm-make-folio_mapcount-return-0-for-small-typed-folios.patch
+mm-memory-use-folio_mapcount-in-zap_present_folio_ptes.patch
+mm-huge_memory-use-folio_mapcount-in-zap_huge_pmd-sanity-check.patch
+mm-memory-failure-use-folio_mapcount-in-hwpoison_user_mappings.patch
+mm-page_alloc-use-folio_mapped-in-__alloc_contig_migrate_range.patch
+mm-migrate-use-folio_likely_mapped_shared-in-add_page_for_migration.patch
+sh-mm-cache-use-folio_mapped-in-copy_from_user_page.patch
+mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio.patch
+mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page.patch
+trace-events-page_ref-trace-the-raw-page-mapcount-value.patch
+xtensa-mm-convert-check_tlb_entry-to-sanity-check-folios.patch
+mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch
+documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch
+mm-ksm-rename-get_ksm_page_flags-to-ksm_get_folio_flags.patch
+mm-ksm-remove-page_mapcount-usage-in-stable_tree_search.patch
+fs-proc-task_mmu-convert-pagemap_hugetlb_range-to-work-on-folios.patch
+fs-proc-task_mmu-convert-smaps_hugetlb_range-to-work-on-folios.patch
+mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation.patch
+mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation-v2.patch
+loongarch-tlb-fix-error-parameter-ptep-set-but-not-used-due-to-__tlb_remove_tlb_entry.patch
 
