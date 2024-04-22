@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B000155352
-	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 19:39:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B575E154437
+	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 19:41:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713814752; cv=none; b=hdWLVTe4YaQWCvOPQOxt+bX/m4y4HLKA51M6jE5zYHe5HslsIU+cVhLYk0Fl/b7ENBfBK5effcAafbPoWfdPmbElXKftYGmmtABv99bN5vf5KbhpDXGqOTlFVTF25GoXi/B2nS4j6/jS3wrqD2YcTxQhB1rgMCduY1eELy9lj4A=
+	t=1713814892; cv=none; b=T/0Sr2rsNFIM1ZSY+n64vaEEhXHtgz2BUGpCjwlZrQ27Cbl2q9J53H1wWm+8jvVtv2RGBG4H1IYr2J1Uiuw6uWElj9T2Q8WMLUHmjh0UTwSP7NZjfwK1+xgQRXZAsrqV06WOM7BbocRCkg++i2z+4TRE2wJ+hND7O35qTgmIe20=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713814752; c=relaxed/simple;
-	bh=/Jp+I9OIUSpPqQh+6maA28/bmhNddZjsivdbg11tUHA=;
-	h=Date:To:From:Subject:Message-Id; b=bLd048Rlo8sBpNiCqfJClzz/GOzfrvB/AEtHLFPSWtrbwCB+wYEHRLTmQUS4SH9IkVf5Z12VNpiurwpt3wRp8Jg3tjkuajSfe/8VktjTUlbFYdGqlyTLTh8Ljm0ASI2gJeLKhjLctUQGj94E7+Alb4AyfhHc8zO4F50jtzDCwtc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oAJdzjBq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713814892; c=relaxed/simple;
+	bh=Ef2DCpthIAtQHIZwitz9KaagTqA+gtWlhZHgSX4qtJM=;
+	h=Date:To:From:Subject:Message-Id; b=F1Ulr2/2hPFEBDoibmndxaAC81sGOG4MnMRGG9ydsU424rhlfLMoYOt+sMWeDL8MhIcX0yg82nehLCOS8vy74PC9J8ZDqdE45iUfAo4Itmcb208N6i4L0jQYF3dMbttNdTfX8hPHcHHAqZmAcWXdFWC3h3UAOe0YJsVnaI6PnZ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wX6bSB4G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oAJdzjBq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0258EC113CC;
-	Mon, 22 Apr 2024 19:39:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wX6bSB4G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5244C113CC;
+	Mon, 22 Apr 2024 19:41:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713814752;
-	bh=/Jp+I9OIUSpPqQh+6maA28/bmhNddZjsivdbg11tUHA=;
+	s=korg; t=1713814890;
+	bh=Ef2DCpthIAtQHIZwitz9KaagTqA+gtWlhZHgSX4qtJM=;
 	h=Date:To:From:Subject:From;
-	b=oAJdzjBqXbWjaIQG/pWUINIJl0N+y7Th4Kf6Mzyoeoue518i0ki2g0zr9yWuSrM9J
-	 XuY9nhQspdE8s0Iw9Rf4oFrksmeLovrWD8L/OTp3UG1JT4tr4DalI80KoX9yMqcxvj
-	 wxDpZTbzNGlRj1zTkWmOulLoZe+OCi1NO5253WtA=
-Date: Mon, 22 Apr 2024 12:39:11 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,mjguzik@gmail.com,jack@suse.cz,dsterba@suse.com,dhowells@redhat.com,bfoster@redhat.com,shikemeng@huaweicloud.com,akpm@linux-foundation.org
+	b=wX6bSB4Gs08MxdXHeAtP0Ciql6ejo9RnZKvxi+aWYuZelH+P7TOqNXiL2flFPLBC3
+	 0Lep0X6C6hU13vFNiGlEgDkX1g7vXjlecf6EwQPVb2cgjvT0SgWp3tqkfvwEaVf7qW
+	 mSTz0n0WqJjrjrx1CS6AhQAPrtRrq2BRMucprOtg=
+Date: Mon, 22 Apr 2024 12:41:30 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,tj@kernel.org,richard.weiyang@linux.alibaba.com,minchan@kernel.org,mhocko@suse.com,mgorman@techsingularity.net,jpoimboe@kernel.org,hannes@cmpxchg.org,david@redhat.com,dan.j.williams@intel.com,corbet@lwn.net,mcanal@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + writeback-rename-nr_reclaimable-to-nr_dirty-in-balance_dirty_pages.patch added to mm-unstable branch
-Message-Id: <20240422193912.0258EC113CC@smtp.kernel.org>
+Subject: + mm-update-shuffle-documentation-to-match-its-current-state.patch added to mm-unstable branch
+Message-Id: <20240422194130.D5244C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: writeback: rename nr_reclaimable to nr_dirty in balance_dirty_pages
+     Subject: mm: Update shuffle documentation to match its current state
 has been added to the -mm mm-unstable branch.  Its filename is
-     writeback-rename-nr_reclaimable-to-nr_dirty-in-balance_dirty_pages.patch
+     mm-update-shuffle-documentation-to-match-its-current-state.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-rename-nr_reclaimable-to-nr_dirty-in-balance_dirty_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-update-shuffle-documentation-to-match-its-current-state.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,67 +58,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: writeback: rename nr_reclaimable to nr_dirty in balance_dirty_pages
-Date: Tue, 23 Apr 2024 00:48:08 +0800
+From: Maíra Canal <mcanal@igalia.com>
+Subject: mm: Update shuffle documentation to match its current state
+Date: Mon, 22 Apr 2024 11:18:40 -0300
 
-Commit 8d92890bd6b85 ("mm/writeback: discard NR_UNSTABLE_NFS, use
-NR_WRITEBACK instead") removed NR_UNSTABLE_NFS and nr_reclaimable only
-contains dirty page now.  Rename nr_reclaimable to nr_dirty properly.
+Commit 839195352d82 ("mm/shuffle: remove dynamic reconfiguration") removed
+the dynamic reconfiguration capabilities from the shuffle page allocator. 
+This means that, now, we don't have any perspective of an "autodetection
+of memory-side-cache" that triggers the enablement of the shuffle page
+allocator.
 
-Link: https://lkml.kernel.org/r/20240422164808.13627-5-shikemeng@huaweicloud.com
-Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Brian Foster <bfoster@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Therefore, let the documentation reflect that the only way to enable
+the shuffle page allocator is by setting `page_alloc.shuffle=1`.
+
+Link: https://lkml.kernel.org/r/20240422142007.1062231-1-mcanal@igalia.com
+Signed-off-by: Maíra Canal <mcanal@igalia.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |   10 ++++------
+ mm/Kconfig                                      |    7 +++----
+ 2 files changed, 7 insertions(+), 10 deletions(-)
 
---- a/mm/page-writeback.c~writeback-rename-nr_reclaimable-to-nr_dirty-in-balance_dirty_pages
-+++ a/mm/page-writeback.c
-@@ -1694,7 +1694,7 @@ static int balance_dirty_pages(struct bd
- 	struct dirty_throttle_control * const mdtc = mdtc_valid(&mdtc_stor) ?
- 						     &mdtc_stor : NULL;
- 	struct dirty_throttle_control *sdtc;
--	unsigned long nr_reclaimable;	/* = file_dirty */
-+	unsigned long nr_dirty;
- 	long period;
- 	long pause;
- 	long max_pause;
-@@ -1715,9 +1715,9 @@ static int balance_dirty_pages(struct bd
- 		unsigned long m_thresh = 0;
- 		unsigned long m_bg_thresh = 0;
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-update-shuffle-documentation-to-match-its-current-state
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -4176,13 +4176,11 @@
  
--		nr_reclaimable = global_node_page_state(NR_FILE_DIRTY);
-+		nr_dirty = global_node_page_state(NR_FILE_DIRTY);
- 		gdtc->avail = global_dirtyable_memory();
--		gdtc->dirty = nr_reclaimable + global_node_page_state(NR_WRITEBACK);
-+		gdtc->dirty = nr_dirty + global_node_page_state(NR_WRITEBACK);
+ 	page_alloc.shuffle=
+ 			[KNL] Boolean flag to control whether the page allocator
+-			should randomize its free lists. The randomization may
+-			be automatically enabled if the kernel detects it is
+-			running on a platform with a direct-mapped memory-side
+-			cache, and this parameter can be used to
+-			override/disable that behavior. The state of the flag
+-			can be read from sysfs at:
++			should randomize its free lists. This parameter can be
++			used to enable/disable page randomization. The state of
++			the flag can be read from sysfs at:
+ 			/sys/module/page_alloc/parameters/shuffle.
++			This parameter is only available if CONFIG_SHUFFLE_PAGE_ALLOCATOR=y.
  
- 		domain_dirty_limits(gdtc);
+ 	page_owner=	[KNL,EARLY] Boot-time page_owner enabling option.
+ 			Storage of the information about who allocated
+--- a/mm/Kconfig~mm-update-shuffle-documentation-to-match-its-current-state
++++ a/mm/Kconfig
+@@ -333,10 +333,9 @@ config SHUFFLE_PAGE_ALLOCATOR
  
-@@ -1768,7 +1768,7 @@ static int balance_dirty_pages(struct bd
- 		 * In normal mode, we start background writeout at the lower
- 		 * background_thresh, to keep the amount of dirty memory low.
- 		 */
--		if (!laptop_mode && nr_reclaimable > gdtc->bg_thresh &&
-+		if (!laptop_mode && nr_dirty > gdtc->bg_thresh &&
- 		    !writeback_in_progress(wb))
- 			wb_start_background_writeback(wb);
+ 	  While the randomization improves cache utilization it may
+ 	  negatively impact workloads on platforms without a cache. For
+-	  this reason, by default, the randomization is enabled only
+-	  after runtime detection of a direct-mapped memory-side-cache.
+-	  Otherwise, the randomization may be force enabled with the
+-	  'page_alloc.shuffle' kernel command line parameter.
++	  this reason, by default, the randomization is not enabled even
++	  if SHUFFLE_PAGE_ALLOCATOR=y. The randomization may be force enabled
++	  with the 'page_alloc.shuffle' kernel command line parameter.
+ 
+ 	  Say Y if unsure.
  
 _
 
-Patches currently in -mm which might be from shikemeng@huaweicloud.com are
+Patches currently in -mm which might be from mcanal@igalia.com are
 
-writeback-collect-stats-of-all-wb-of-bdi-in-bdi_debug_stats_show.patch
-writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi.patch
-writeback-add-wb_monitorpy-script-to-monitor-writeback-info-on-bdi.patch
-writeback-rename-nr_reclaimable-to-nr_dirty-in-balance_dirty_pages.patch
+mm-update-shuffle-documentation-to-match-its-current-state.patch
 
