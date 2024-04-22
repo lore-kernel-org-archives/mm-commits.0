@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 759EB155326
-	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 19:39:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0EB415533C
+	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 19:39:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713814745; cv=none; b=FtZklFvPN5hFIZAAmWd0gtm8y7t3pj3uyoQukYPiXT24nbSeymbnP4e9vkt3oGa50yzv+gSAClVAGL9KcJDy8Xk9pKVWU7LNyv1ECJwuK1drcqMjcF3mlSETLO3pqpx7W59WFORS3P8GS50/dg0v0OQG/BCAjIRwkfJuaManVM0=
+	t=1713814747; cv=none; b=oJ5APZmXQcdPJEp26hoEztUGqiwcrOrr2izoCmAS6TCyLMUiysm4T4IMwLpE7TONmQj/uBKSgBQAeTG9UuLmLFrsHQ7XGAbc71iyre1VNm3x+KV/U86jkaDW583jtpkaIuNrCrtbBm9MVAW2ph8K0YxsERBMXnYPiHiGtAkw3GA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713814745; c=relaxed/simple;
-	bh=pR7SDB3P4WTXiQH+LxLT8dw5VTMpk8mYz9cIcaosS14=;
-	h=Date:To:From:Subject:Message-Id; b=OMEIgQX/2wa86Ypd9y+Vo+NYQP+e7i+CAe6rhDB+foZLgPBplU+pB08QjqIeXANNnvE6KMWM61q5Ff9lTC69zi/C1RHdstVmUsWi6KUYmRFPfTJ+vIdPYLa9qYbPPdrymxb9YlKJ4EIFztT7GwEpWJq0MElGdityawLdMgOKjb4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fvGbEchS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713814747; c=relaxed/simple;
+	bh=PA/uBAzKKHMrthRDzZ8zUk2eHYmgOhmJjhpfGRaazYU=;
+	h=Date:To:From:Subject:Message-Id; b=A8PQ6A4mvY7kdlq4me2ZGDGP1UqSJfou9Q9lwzPm7Kc5g4yUbOK5Zgz+5laIJwDPjw8AOH+N88BBtGAMq8eQ4S0RxZ8abag0dhtA22AN3L9138WRqb/ukEIPnaNfjCbU0Vf5eRceqnSxhTcsBDqltZhuqhEJY6X81SDVkW7uG+c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZZs36+hj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fvGbEchS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06867C113CC;
-	Mon, 22 Apr 2024 19:39:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZZs36+hj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48063C113CC;
+	Mon, 22 Apr 2024 19:39:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713814745;
-	bh=pR7SDB3P4WTXiQH+LxLT8dw5VTMpk8mYz9cIcaosS14=;
+	s=korg; t=1713814747;
+	bh=PA/uBAzKKHMrthRDzZ8zUk2eHYmgOhmJjhpfGRaazYU=;
 	h=Date:To:From:Subject:From;
-	b=fvGbEchSpzYlIPGSdvqA7EJN7RUiFZYmB15g9zOekpH4Bk3bHl8t7LEf/RbRNqHAR
-	 DGehWs4fOOE4zNHAQUptwFwEwTy1iU73fIgwDL4kMU3rlpga/M1HTSa8+NIMeDhSFv
-	 VRug/9afjgRG7ZgOqgef1LF1m6r+DYLV+MZ6G3oo=
-Date: Mon, 22 Apr 2024 12:39:04 -0700
+	b=ZZs36+hjxY5khLTUupK8/NiM/tAZk5nI3CuT2sAWTaTiDegQ5bf7ALPDZznJi9pJU
+	 jdr9ZWdCI1cZSN2suKJyVt8iPqvlZXU4QXpJ0peGuB7Z3XR8EorZ4sn6MORnCAPqFr
+	 U4QDXgZf5Dyd81BuNy+xHkRFp9NdSvfCAe5+TB8A=
+Date: Mon, 22 Apr 2024 12:39:06 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,mjguzik@gmail.com,jack@suse.cz,dsterba@suse.com,dhowells@redhat.com,bfoster@redhat.com,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + writeback-collect-stats-of-all-wb-of-bdi-in-bdi_debug_stats_show.patch added to mm-unstable branch
-Message-Id: <20240422193905.06867C113CC@smtp.kernel.org>
+Subject: + writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi.patch added to mm-unstable branch
+Message-Id: <20240422193907.48063C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: writeback: collect stats of all wb of bdi in bdi_debug_stats_show
+     Subject: writeback: support retrieving per group debug writeback stats of bdi
 has been added to the -mm mm-unstable branch.  Its filename is
-     writeback-collect-stats-of-all-wb-of-bdi-in-bdi_debug_stats_show.patch
+     writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-collect-stats-of-all-wb-of-bdi-in-bdi_debug_stats_show.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,11 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: writeback: collect stats of all wb of bdi in bdi_debug_stats_show
-Date: Tue, 23 Apr 2024 00:48:05 +0800
+Subject: writeback: support retrieving per group debug writeback stats of bdi
+Date: Tue, 23 Apr 2024 00:48:06 +0800
 
-Patch series "Improve visibility of writeback", v4.
-
-This series tries to improve visilibity of writeback.  Patch 1 make
-/sys/kernel/debug/bdi/xxx/stats show writeback info of whole bdi instead
-of only writeback info in root cgroup.  Patch 2 add a new debug file
-/sys/kernel/debug/bdi/xxx/wb_stats to show per wb writeback info.  Patch 3
-add wb_monitor.py to monitor basic writeback info of running system, more
-info could be added on demand.  Patch 4 is a random cleanup.  More details
-can be found in respective patches.  Thanks!
+Add /sys/kernel/debug/bdi/xxx/wb_stats to show per group writeback stats
+of bdi.
 
 Following domain hierarchy is tested:
                 global domain (320G)
@@ -78,23 +71,6 @@ Following domain hierarchy is tested:
         cgroup domain1(10G)     cgroup domain2(10G)
                 |                 |
 bdi            wb1               wb2
-
-/* all writeback info of bdi is successfully collected */
-cat stats
-BdiWriteback:             4704 kB
-BdiReclaimable:        1294496 kB
-BdiDirtyThresh:      204208088 kB
-DirtyThresh:         195259944 kB
-BackgroundThresh:     32503588 kB
-BdiDirtied:           48519296 kB
-BdiWritten:           47225696 kB
-BdiWriteBandwidth:     1173892 kBps
-b_dirty:                     1
-b_io:                        0
-b_more_io:                   1
-b_dirty_time:                0
-bdi_list:                    1
-state:                       1
 
 /* per wb writeback info of bdi is collected */
 cat /sys/kernel/debug/bdi/252:16/wb_stats
@@ -110,97 +86,32 @@ b_io:                       0
 b_more_io:                  0
 b_dirty_time:               0
 state:                      1
-
-WbCgIno:                 4208
-WbWriteback:            59808 kB
-WbReclaimable:         676480 kB
-WbDirtyThresh:        6004624 kB
-WbDirtied:           23348192 kB
-WbWritten:           22614592 kB
-WbWriteBandwidth:      593204 kBps
+WbCgIno:                 4094
+WbWriteback:            54432 kB
+WbReclaimable:         766080 kB
+WbDirtyThresh:        3094760 kB
+WbDirtied:            1656480 kB
+WbWritten:             837088 kB
+WbWriteBandwidth:      132772 kBps
 b_dirty:                    1
 b_io:                       1
 b_more_io:                  0
 b_dirty_time:               0
 state:                      7
-
-WbCgIno:                 4249
-WbWriteback:           144256 kB
-WbReclaimable:         432096 kB
-WbDirtyThresh:        6004344 kB
-WbDirtied:           25727744 kB
-WbWritten:           25154752 kB
-WbWriteBandwidth:      577904 kBps
+WbCgIno:                 4135
+WbWriteback:            15232 kB
+WbReclaimable:         786688 kB
+WbDirtyThresh:        2909984 kB
+WbDirtied:            1482656 kB
+WbWritten:             681408 kB
+WbWriteBandwidth:      124848 kBps
 b_dirty:                    0
 b_io:                       1
 b_more_io:                  0
 b_dirty_time:               0
 state:                      7
 
-The wb_monitor.py script output is as following:
-./wb_monitor.py 252:16 -c
-                  writeback  reclaimable   dirtied   written    avg_bw
-252:16_1                  0            0         0         0    102400
-252:16_4284             672       820064   9230368   8410304    685612
-252:16_4325             896       819840  10491264   9671648    652348
-252:16                 1568      1639904  19721632  18081952   1440360
-
-                  writeback  reclaimable   dirtied   written    avg_bw
-252:16_1                  0            0         0         0    102400
-252:16_4284             672       820064   9230368   8410304    685612
-252:16_4325             896       819840  10491264   9671648    652348
-252:16                 1568      1639904  19721632  18081952   1440360
-
-
-This patch (of 4):
-
-/sys/kernel/debug/bdi/xxx/stats is supposed to show writeback information
-of whole bdi, but only writeback information of bdi in root cgroup is
-collected.  So writeback information in non-root cgroup are missing now. 
-To be more specific, considering following case:
-
-/* create writeback cgroup */
-cd /sys/fs/cgroup
-echo "+memory +io" > cgroup.subtree_control
-mkdir group1
-cd group1
-echo $$ > cgroup.procs
-/* do writeback in cgroup */
-fio -name test -filename=/dev/vdb ...
-/* get writeback info of bdi */
-cat /sys/kernel/debug/bdi/xxx/stats
-The cat result unexpectedly implies that there is no writeback on target
-bdi.
-
-Fix this by collecting stats of all wb in bdi instead of only wb in
-root cgroup.
-
-Following domain hierarchy is tested:
-                global domain (320G)
-                /                 \
-        cgroup domain1(10G)     cgroup domain2(10G)
-                |                 |
-bdi            wb1               wb2
-
-/* all writeback info of bdi is successfully collected */
-cat stats
-BdiWriteback:             2912 kB
-BdiReclaimable:        1598464 kB
-BdiDirtyThresh:      167479028 kB
-DirtyThresh:         195038532 kB
-BackgroundThresh:     32466728 kB
-BdiDirtied:           19141696 kB
-BdiWritten:           17543456 kB
-BdiWriteBandwidth:     1136172 kBps
-b_dirty:                     2
-b_io:                        0
-b_more_io:                   1
-b_dirty_time:                0
-bdi_list:                    1
-state:                       1
-
-Link: https://lkml.kernel.org/r/20240422164808.13627-1-shikemeng@huaweicloud.com
-Link: https://lkml.kernel.org/r/20240422164808.13627-2-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20240422164808.13627-3-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
 Acked-by: Tejun Heo <tj@kernel.org>
 Cc: Brian Foster <bfoster@redhat.com>
@@ -212,142 +123,155 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |   96 ++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 73 insertions(+), 23 deletions(-)
+ include/linux/writeback.h |    1 
+ mm/backing-dev.c          |   78 +++++++++++++++++++++++++++++++++++-
+ mm/page-writeback.c       |   19 ++++++++
+ 3 files changed, 96 insertions(+), 2 deletions(-)
 
---- a/mm/backing-dev.c~writeback-collect-stats-of-all-wb-of-bdi-in-bdi_debug_stats_show
+--- a/include/linux/writeback.h~writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi
++++ a/include/linux/writeback.h
+@@ -355,6 +355,7 @@ int dirtytime_interval_handler(struct ct
+ 
+ void global_dirty_limits(unsigned long *pbackground, unsigned long *pdirty);
+ unsigned long wb_calc_thresh(struct bdi_writeback *wb, unsigned long thresh);
++unsigned long cgwb_calc_thresh(struct bdi_writeback *wb);
+ 
+ void wb_update_bandwidth(struct bdi_writeback *wb);
+ 
+--- a/mm/backing-dev.c~writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi
 +++ a/mm/backing-dev.c
-@@ -39,6 +39,19 @@ struct workqueue_struct *bdi_wq;
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
- 
-+struct wb_stats {
-+	unsigned long nr_dirty;
-+	unsigned long nr_io;
-+	unsigned long nr_more_io;
-+	unsigned long nr_dirty_time;
-+	unsigned long nr_writeback;
-+	unsigned long nr_reclaimable;
-+	unsigned long nr_dirtied;
-+	unsigned long nr_written;
-+	unsigned long dirty_thresh;
-+	unsigned long wb_thresh;
-+};
-+
- static struct dentry *bdi_debug_root;
- 
- static void bdi_debug_init(void)
-@@ -46,31 +59,68 @@ static void bdi_debug_init(void)
- 	bdi_debug_root = debugfs_create_dir("bdi", NULL);
+@@ -155,19 +155,93 @@ static int bdi_debug_stats_show(struct s
  }
+ DEFINE_SHOW_ATTRIBUTE(bdi_debug_stats);
  
--static int bdi_debug_stats_show(struct seq_file *m, void *v)
-+static void collect_wb_stats(struct wb_stats *stats,
-+			     struct bdi_writeback *wb)
- {
--	struct backing_dev_info *bdi = m->private;
--	struct bdi_writeback *wb = &bdi->wb;
--	unsigned long background_thresh;
--	unsigned long dirty_thresh;
--	unsigned long wb_thresh;
--	unsigned long nr_dirty, nr_io, nr_more_io, nr_dirty_time;
- 	struct inode *inode;
- 
--	nr_dirty = nr_io = nr_more_io = nr_dirty_time = 0;
- 	spin_lock(&wb->list_lock);
- 	list_for_each_entry(inode, &wb->b_dirty, i_io_list)
--		nr_dirty++;
-+		stats->nr_dirty++;
- 	list_for_each_entry(inode, &wb->b_io, i_io_list)
--		nr_io++;
-+		stats->nr_io++;
- 	list_for_each_entry(inode, &wb->b_more_io, i_io_list)
--		nr_more_io++;
-+		stats->nr_more_io++;
- 	list_for_each_entry(inode, &wb->b_dirty_time, i_io_list)
- 		if (inode->i_state & I_DIRTY_TIME)
--			nr_dirty_time++;
-+			stats->nr_dirty_time++;
- 	spin_unlock(&wb->list_lock);
- 
-+	stats->nr_writeback += wb_stat(wb, WB_WRITEBACK);
-+	stats->nr_reclaimable += wb_stat(wb, WB_RECLAIMABLE);
-+	stats->nr_dirtied += wb_stat(wb, WB_DIRTIED);
-+	stats->nr_written += wb_stat(wb, WB_WRITTEN);
-+	stats->wb_thresh += wb_calc_thresh(wb, stats->dirty_thresh);
-+}
-+
-+#ifdef CONFIG_CGROUP_WRITEBACK
-+static void bdi_collect_stats(struct backing_dev_info *bdi,
-+			      struct wb_stats *stats)
++static void wb_stats_show(struct seq_file *m, struct bdi_writeback *wb,
++			  struct wb_stats *stats)
 +{
-+	struct bdi_writeback *wb;
 +
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(wb, &bdi->wb_list, bdi_node) {
-+		if (!wb_tryget(wb))
-+			continue;
-+
-+		collect_wb_stats(stats, wb);
-+		wb_put(wb);
-+	}
-+	rcu_read_unlock();
++	seq_printf(m,
++		   "WbCgIno:           %10lu\n"
++		   "WbWriteback:       %10lu kB\n"
++		   "WbReclaimable:     %10lu kB\n"
++		   "WbDirtyThresh:     %10lu kB\n"
++		   "WbDirtied:         %10lu kB\n"
++		   "WbWritten:         %10lu kB\n"
++		   "WbWriteBandwidth:  %10lu kBps\n"
++		   "b_dirty:           %10lu\n"
++		   "b_io:              %10lu\n"
++		   "b_more_io:         %10lu\n"
++		   "b_dirty_time:      %10lu\n"
++		   "state:             %10lx\n\n",
++		   cgroup_ino(wb->memcg_css->cgroup),
++		   K(stats->nr_writeback),
++		   K(stats->nr_reclaimable),
++		   K(stats->wb_thresh),
++		   K(stats->nr_dirtied),
++		   K(stats->nr_written),
++		   K(wb->avg_write_bandwidth),
++		   stats->nr_dirty,
++		   stats->nr_io,
++		   stats->nr_more_io,
++		   stats->nr_dirty_time,
++		   wb->state);
 +}
-+#else
-+static void bdi_collect_stats(struct backing_dev_info *bdi,
-+			      struct wb_stats *stats)
-+{
-+	collect_wb_stats(stats, &bdi->wb);
-+}
-+#endif
 +
-+static int bdi_debug_stats_show(struct seq_file *m, void *v)
++static int cgwb_debug_stats_show(struct seq_file *m, void *v)
 +{
 +	struct backing_dev_info *bdi = m->private;
 +	unsigned long background_thresh;
 +	unsigned long dirty_thresh;
++	struct bdi_writeback *wb;
 +	struct wb_stats stats;
-+	unsigned long tot_bw;
 +
- 	global_dirty_limits(&background_thresh, &dirty_thresh);
--	wb_thresh = wb_calc_thresh(wb, dirty_thresh);
++	global_dirty_limits(&background_thresh, &dirty_thresh);
 +
-+	memset(&stats, 0, sizeof(stats));
-+	stats.dirty_thresh = dirty_thresh;
-+	bdi_collect_stats(bdi, &stats);
-+	tot_bw = atomic_long_read(&bdi->tot_write_bandwidth);
++	rcu_read_lock();
++	list_for_each_entry_rcu(wb, &bdi->wb_list, bdi_node) {
++		struct wb_stats stats = { .dirty_thresh = dirty_thresh };
++
++		if (!wb_tryget(wb))
++			continue;
++
++		collect_wb_stats(&stats, wb);
++
++		/*
++		 * Calculate thresh of wb in writeback cgroup which is min of
++		 * thresh in global domain and thresh in cgroup domain. Drop
++		 * rcu lock because cgwb_calc_thresh may sleep in
++		 * cgroup_rstat_flush. We can do so here because we have a ref.
++		 */
++		if (mem_cgroup_wb_domain(wb)) {
++			rcu_read_unlock();
++			stats.wb_thresh = min(stats.wb_thresh, cgwb_calc_thresh(wb));
++			rcu_read_lock();
++		}
++
++		wb_stats_show(m, wb, &stats);
++
++		wb_put(wb);
++	}
++	rcu_read_unlock();
++
++	return 0;
++}
++DEFINE_SHOW_ATTRIBUTE(cgwb_debug_stats);
++
+ static void bdi_debug_register(struct backing_dev_info *bdi, const char *name)
+ {
+ 	bdi->debug_dir = debugfs_create_dir(name, bdi_debug_root);
  
- 	seq_printf(m,
- 		   "BdiWriteback:       %10lu kB\n"
-@@ -87,18 +137,18 @@ static int bdi_debug_stats_show(struct s
- 		   "b_dirty_time:       %10lu\n"
- 		   "bdi_list:           %10u\n"
- 		   "state:              %10lx\n",
--		   (unsigned long) K(wb_stat(wb, WB_WRITEBACK)),
--		   (unsigned long) K(wb_stat(wb, WB_RECLAIMABLE)),
--		   K(wb_thresh),
-+		   K(stats.nr_writeback),
-+		   K(stats.nr_reclaimable),
-+		   K(stats.wb_thresh),
- 		   K(dirty_thresh),
- 		   K(background_thresh),
--		   (unsigned long) K(wb_stat(wb, WB_DIRTIED)),
--		   (unsigned long) K(wb_stat(wb, WB_WRITTEN)),
--		   (unsigned long) K(wb->write_bandwidth),
--		   nr_dirty,
--		   nr_io,
--		   nr_more_io,
--		   nr_dirty_time,
-+		   K(stats.nr_dirtied),
-+		   K(stats.nr_written),
-+		   K(tot_bw),
-+		   stats.nr_dirty,
-+		   stats.nr_io,
-+		   stats.nr_more_io,
-+		   stats.nr_dirty_time,
- 		   !list_empty(&bdi->bdi_list), bdi->wb.state);
+ 	debugfs_create_file("stats", 0444, bdi->debug_dir, bdi,
+ 			    &bdi_debug_stats_fops);
++	debugfs_create_file("wb_stats", 0444, bdi->debug_dir, bdi,
++			    &cgwb_debug_stats_fops);
+ }
  
- 	return 0;
+ static void bdi_debug_unregister(struct backing_dev_info *bdi)
+ {
+ 	debugfs_remove_recursive(bdi->debug_dir);
+ }
+-#else
++#else /* CONFIG_DEBUG_FS */
+ static inline void bdi_debug_init(void)
+ {
+ }
+@@ -178,7 +252,7 @@ static inline void bdi_debug_register(st
+ static inline void bdi_debug_unregister(struct backing_dev_info *bdi)
+ {
+ }
+-#endif
++#endif /* CONFIG_DEBUG_FS */
+ 
+ static ssize_t read_ahead_kb_store(struct device *dev,
+ 				  struct device_attribute *attr,
+--- a/mm/page-writeback.c~writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi
++++ a/mm/page-writeback.c
+@@ -892,6 +892,25 @@ unsigned long wb_calc_thresh(struct bdi_
+ 	return __wb_calc_thresh(&gdtc);
+ }
+ 
++unsigned long cgwb_calc_thresh(struct bdi_writeback *wb)
++{
++	struct dirty_throttle_control gdtc = { GDTC_INIT_NO_WB };
++	struct dirty_throttle_control mdtc = { MDTC_INIT(wb, &gdtc) };
++	unsigned long filepages = 0, headroom = 0, writeback = 0;
++
++	gdtc.avail = global_dirtyable_memory();
++	gdtc.dirty = global_node_page_state(NR_FILE_DIRTY) +
++		     global_node_page_state(NR_WRITEBACK);
++
++	mem_cgroup_wb_stats(wb, &filepages, &headroom,
++			    &mdtc.dirty, &writeback);
++	mdtc.dirty += writeback;
++	mdtc_calc_avail(&mdtc, filepages, headroom);
++	domain_dirty_limits(&mdtc);
++
++	return __wb_calc_thresh(&mdtc);
++}
++
+ /*
+  *                           setpoint - dirty 3
+  *        f(dirty) := 1.0 + (----------------)
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
