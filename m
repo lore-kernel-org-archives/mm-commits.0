@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65C1815532F
-	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 20:08:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5C06153BE4
+	for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2024 20:10:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713816527; cv=none; b=R+1FOjwN0ka/+x7eChWuygtJOKer0zd/UqQuYIk1cvF5tIlHlmzQ5bt+12/Acxg3YRdr07AcdlTTJ4y9hv8geQQPKQ7zgoT+8lYwPuOiZtPHKl528/Zi/qQtsZxHKWUWbYtLcOluaAxvOUZ3QUNT3RATE+L17/E6qSoCV6z+3Wk=
+	t=1713816635; cv=none; b=J/PJqNWpRtGlbtLW54j2Xrz/PnbPQDgk1TKk5goSEASVKZSc1zOsRqFFVlMLp/V0M8HvqjKyGAXgOh+8QEkAGs22KtsrMOBPzsmXd49cKuJAcV3XQajqCXogesinUfsqONiVIXLV/zrdabzhyp+uiPSDZ6XvyS7sziUog7Wx+y8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713816527; c=relaxed/simple;
-	bh=9e9v/SB/9E34I14+26GxWcxWhe7y61diqrYSZD1Loq0=;
-	h=Date:To:From:Subject:Message-Id; b=lCG4RyayQQuz6JGlVjGwK5uF4KU0Z1HNd8towceloiGh+RpK3+E5UrqBX1oRlItaC2Q243CUeRhbGUZsvhbmXCL5+fUPUJjLlR7Zt9nSB+d9bBCdNrYuZa28oGgq6A89sPTDWXAnWQJUJ/nAXpjFzu6r6dMInZex/5gWVVRsBV8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UHuFIAQ1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713816635; c=relaxed/simple;
+	bh=vX7TLLIxoLv07CPbNo5mIiW7BN3ZBVxjtgnIMF0Ld5M=;
+	h=Date:To:From:Subject:Message-Id; b=lDk4hJ9kL2310ghdzp1XXWfhkbkh1GFoGftDc2U4b5hb7HsYlIfaiJJyvEUhobXl9Jp94EsDXmfa7RYyeuka87+i838sUfm6cP5PwnXNiUdL/gEFdr2EDUFCRggpn5fAUZVqaY8+FTq7H0dLWi9l50bk2xuN3mAICPdJHwuiii0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wsLf/zVc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UHuFIAQ1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D71CBC113CC;
-	Mon, 22 Apr 2024 20:08:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wsLf/zVc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B8F4C113CC;
+	Mon, 22 Apr 2024 20:10:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713816526;
-	bh=9e9v/SB/9E34I14+26GxWcxWhe7y61diqrYSZD1Loq0=;
+	s=korg; t=1713816635;
+	bh=vX7TLLIxoLv07CPbNo5mIiW7BN3ZBVxjtgnIMF0Ld5M=;
 	h=Date:To:From:Subject:From;
-	b=UHuFIAQ108xYyGq3RewZKZ7m201/ytl31X6Y5kQT+JJWqcGSTP0pmEirSmv80Dy2r
-	 YljFrc2nc1CWxyIT1j7bTo8CHZvIe6Z/LViby+Naidh41I+F6e14B1Yf9QPf+sQEpO
-	 PrFJ5MLGzcYDpd0WLabh3Y4bxq7UUhvkM2ch56HM=
-Date: Mon, 22 Apr 2024 13:08:46 -0700
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,ioworker0@gmail.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=wsLf/zVcdDCf6VPrlH41/72WhWmyQq+ZOnJSyPjlDvV35dsUYVx5DPWHf1ZhHqDHK
+	 LivNylbEvAIsCK27TLJ0cWg0AbkT2iFu3NdRoLgjBOwPa8ywX+UQox4olafnBVpMCK
+	 b+lW4FLI4Dpnwace7JTXmnqIYMjb8dfwhKkBivfc=
+Date: Mon, 22 Apr 2024 13:10:34 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,xiehuan09@gmail.com,willy@infradead.org,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,shy828301@gmail.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,maskray@google.com,fengwei.yin@intel.com,david@redhat.com,21cnbao@gmail.com,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics-v2.patch added to mm-unstable branch
-Message-Id: <20240422200846.D71CBC113CC@smtp.kernel.org>
+Subject: + mm-vmscan-avoid-split-pmd-mapped-thp-during-shrink_folio_list.patch added to mm-unstable branch
+Message-Id: <20240422201035.4B8F4C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics-v2
+     Subject: mm/vmscan: avoid split PMD-mapped THP during shrink_folio_list()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics-v2.patch
+     mm-vmscan-avoid-split-pmd-mapped-thp-during-shrink_folio_list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-avoid-split-pmd-mapped-thp-during-shrink_folio_list.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,57 +58,213 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics-v2
-Date: Mon, 22 Apr 2024 15:33:43 +0800
+From: Lance Yang <ioworker0@gmail.com>
+Subject: mm/vmscan: avoid split PMD-mapped THP during shrink_folio_list()
+Date: Mon, 22 Apr 2024 13:52:13 +0800
 
-check the THP earlier in case the folio is split, per Lance
+When the user no longer requires the pages, they would use
+madvise(MADV_FREE) to mark the pages as lazy free.  IMO, they would not
+typically rewrite to the given range.
 
-Link: https://lkml.kernel.org/r/b99f8cb14bc85fdb6ab43721d1331cb5ebed2581.1713771041.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Lance Yang <ioworker0@gmail.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+At present, PMD-mapped THPs that are marked as lazyfree during
+shrink_folio_list() are unconditionally split, which may be unnecessary. 
+If the THP is clean, its PMD is also clean, and there are no unexpected
+references, then we can attempt to remove the PMD mapping from it.  This
+change will improve the efficiency of memory reclamation in this case.
+
+On an Intel i5 CPU, reclaiming 1GiB of PMD-mapped THPs using
+mem_cgroup_force_empty() results in the following runtimes in seconds
+(shorter is better):
+
+--------------------------------------------
+|     Old       |      New       |  Change  |
+--------------------------------------------
+|   0.683426    |    0.049197    |  -92.80% |
+--------------------------------------------
+
+Link: https://lkml.kernel.org/r/20240422055213.60231-1-ioworker0@gmail.com
+Signed-off-by: Lance Yang <ioworker0@gmail.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Fangrui Song <maskray@google.com>
+Cc: Jeff Xie <xiehuan09@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/huge_mm.h |    2 
+ include/linux/rmap.h    |    2 
+ mm/huge_memory.c        |   88 ++++++++++++++++++++++++++++++++++++++
+ mm/rmap.c               |    6 ++
+ mm/vmscan.c             |    7 +++
+ 5 files changed, 105 insertions(+)
 
---- a/mm/huge_memory.c~mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics-v2
+--- a/include/linux/huge_mm.h~mm-vmscan-avoid-split-pmd-mapped-thp-during-shrink_folio_list
++++ a/include/linux/huge_mm.h
+@@ -36,6 +36,8 @@ bool move_huge_pmd(struct vm_area_struct
+ int change_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
+ 		    pmd_t *pmd, unsigned long addr, pgprot_t newprot,
+ 		    unsigned long cp_flags);
++bool discard_trans_pmd(struct vm_area_struct *vma, unsigned long addr,
++		       struct folio *folio);
+ 
+ vm_fault_t vmf_insert_pfn_pmd(struct vm_fault *vmf, pfn_t pfn, bool write);
+ vm_fault_t vmf_insert_pfn_pud(struct vm_fault *vmf, pfn_t pfn, bool write);
+--- a/include/linux/rmap.h~mm-vmscan-avoid-split-pmd-mapped-thp-during-shrink_folio_list
++++ a/include/linux/rmap.h
+@@ -100,6 +100,8 @@ enum ttu_flags {
+ 					 * do a final flush if necessary */
+ 	TTU_RMAP_LOCKED		= 0x80,	/* do not grab rmap lock:
+ 					 * caller holds it */
++	TTU_LAZYFREE_THP	= 0x100, /* avoid splitting PMD-mapped THPs
++					  * that are marked as lazyfree. */
+ };
+ 
+ #ifdef CONFIG_MMU
+--- a/mm/huge_memory.c~mm-vmscan-avoid-split-pmd-mapped-thp-during-shrink_folio_list
 +++ a/mm/huge_memory.c
-@@ -2934,6 +2934,7 @@ int split_huge_page_to_list_to_order(str
- 	XA_STATE_ORDER(xas, &folio->mapping->i_pages, folio->index, new_order);
- 	struct anon_vma *anon_vma = NULL;
- 	struct address_space *mapping = NULL;
-+	bool is_thp = folio_test_pmd_mappable(folio);
- 	int extra_pins, ret;
- 	pgoff_t end;
- 	bool is_hzp;
-@@ -3112,7 +3113,7 @@ out_unlock:
- 		i_mmap_unlock_read(mapping);
- out:
- 	xas_destroy(&xas);
--	if (folio_test_pmd_mappable(folio))
-+	if (is_thp)
- 		count_vm_event(!ret ? THP_SPLIT_PAGE : THP_SPLIT_PAGE_FAILED);
- 	return ret;
+@@ -1810,6 +1810,94 @@ static inline void zap_deposited_table(s
+ 	mm_dec_nr_ptes(mm);
  }
+ 
++bool discard_trans_pmd(struct vm_area_struct *vma, unsigned long addr,
++		       struct folio *folio)
++{
++	struct mm_struct *mm = vma->vm_mm;
++	struct mmu_notifier_range range;
++	int ref_count, map_count;
++	struct mmu_gather tlb;
++	pmd_t *pmdp, orig_pmd;
++	struct page *page;
++	bool ret = false;
++	spinlock_t *ptl;
++
++	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
++	VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
++	VM_WARN_ON_FOLIO(folio_test_swapbacked(folio), folio);
++	VM_WARN_ON_FOLIO(!folio_test_pmd_mappable(folio), folio);
++
++	/* Perform best-effort early checks before acquiring the PMD lock */
++	if (folio_ref_count(folio) != folio_mapcount(folio) + 1 ||
++	    folio_test_dirty(folio))
++		return false;
++
++	pmdp = mm_find_pmd(mm, addr);
++	if (unlikely(!pmdp))
++		return false;
++	if (pmd_dirty(*pmdp))
++		return false;
++
++	tlb_gather_mmu(&tlb, mm);
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm,
++				addr & HPAGE_PMD_MASK,
++				(addr & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE);
++	mmu_notifier_invalidate_range_start(&range);
++
++	ptl = pmd_lock(mm, pmdp);
++	orig_pmd = *pmdp;
++	if (unlikely(!pmd_present(orig_pmd) || !pmd_trans_huge(orig_pmd)))
++		goto out;
++
++	page = pmd_page(orig_pmd);
++	if (unlikely(page_folio(page) != folio))
++		goto out;
++
++	orig_pmd = pmdp_huge_get_and_clear(mm, addr, pmdp);
++	tlb_remove_pmd_tlb_entry(&tlb, pmdp, addr);
++
++	/*
++	 * Syncing against concurrent GUP-fast:
++	 * - clear PMD; barrier; read refcount
++	 * - inc refcount; barrier; read PMD
++	 */
++	smp_mb();
++
++	ref_count = folio_ref_count(folio);
++	map_count = folio_mapcount(folio);
++
++	/*
++	 * Order reads for folio refcount and dirty flag
++	 * (see comments in __remove_mapping()).
++	 */
++	smp_rmb();
++
++	/*
++	 * If the PMD or folio is redirtied at this point, or if there are
++	 * unexpected references, we will give up to discard this folio
++	 * and remap it.
++	 *
++	 * The only folio refs must be one from isolation plus the rmap(s).
++	 */
++	if (ref_count != map_count + 1 || folio_test_dirty(folio) ||
++	    pmd_dirty(orig_pmd)) {
++		set_pmd_at(mm, addr, pmdp, orig_pmd);
++		goto out;
++	}
++
++	folio_remove_rmap_pmd(folio, page, vma);
++	zap_deposited_table(mm, pmdp);
++	add_mm_counter(mm, MM_ANONPAGES, -HPAGE_PMD_NR);
++	folio_put(folio);
++	ret = true;
++
++out:
++	spin_unlock(ptl);
++	mmu_notifier_invalidate_range_end(&range);
++
++	return ret;
++}
++
+ int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
+ 		 pmd_t *pmd, unsigned long addr)
+ {
+--- a/mm/rmap.c~mm-vmscan-avoid-split-pmd-mapped-thp-during-shrink_folio_list
++++ a/mm/rmap.c
+@@ -1631,6 +1631,12 @@ static bool try_to_unmap_one(struct foli
+ 	if (flags & TTU_SYNC)
+ 		pvmw.flags = PVMW_SYNC;
+ 
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	if (flags & TTU_LAZYFREE_THP)
++		if (discard_trans_pmd(vma, address, folio))
++			return true;
++#endif
++
+ 	if (flags & TTU_SPLIT_HUGE_PMD)
+ 		split_huge_pmd_address(vma, address, false, folio);
+ 
+--- a/mm/vmscan.c~mm-vmscan-avoid-split-pmd-mapped-thp-during-shrink_folio_list
++++ a/mm/vmscan.c
+@@ -1260,6 +1260,13 @@ retry:
+ 
+ 			if (folio_test_pmd_mappable(folio))
+ 				flags |= TTU_SPLIT_HUGE_PMD;
++
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++			if (folio_test_anon(folio) && !was_swapbacked &&
++			    (flags & TTU_SPLIT_HUGE_PMD))
++				flags |= TTU_LAZYFREE_THP;
++#endif
++
+ 			/*
+ 			 * Without TTU_SYNC, try_to_unmap will only begin to
+ 			 * hold PTL from the first present PTE within a large
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from ioworker0@gmail.com are
 
-mm-page_alloc-fix-freelist-movement-during-block-conversion-fix.patch
-mm-page_alloc-consolidate-free-page-accounting-fix-3.patch
-mm-record-the-migration-reason-for-struct-migration_target_control.patch
-mm-hugetlb-make-the-hugetlb-migration-strategy-consistent.patch
-docs-hugetlbpagerst-add-hugetlb-migration-description.patch
-mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch
-mm-support-multi-size-thp-numa-balancing.patch
-mm-support-multi-size-thp-numa-balancing-v3.patch
-mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics.patch
-mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics-v2.patch
-mm-page_alloc-use-the-correct-thp-order-for-thp-pcp.patch
-mm-set-pageblock_order-to-hpage_pmd_order-in-case-with-config_hugetlb_page-but-thp-enabled.patch
-mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch
+mm-madvise-introduce-clear_young_dirty_ptes-batch-helper.patch
+mm-arm64-override-clear_young_dirty_ptes-batch-helper.patch
+mm-memory-add-any_dirty-optional-pointer-to-folio_pte_batch.patch
+mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free.patch
+mm-vmscan-avoid-split-pmd-mapped-thp-during-shrink_folio_list.patch
 
