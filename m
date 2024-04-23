@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9236113D8B0
-	for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2024 17:26:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 293C3339A8
+	for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2024 18:10:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713893192; cv=none; b=d4njK95fjF1RWdv8lBsOyTTQuasj0+qCnjYfjasKtSzn+Tdjg7SIiXzrE+cf/38G/mQHI44rdP5I4DUv1lw9TEcks6uGpR/AhB5VmhDfZmxMUafp3Ft5aLzd8ccDWXJhR6QUS0CgBWQ3WjH9jwWHsRejWwBjOp3WXedc2e3yFU0=
+	t=1713895812; cv=none; b=E9BmhrQw88qKh2GOdOX8q6cScTvfBA9JKeVyfU0QOpyco3DMJZELYpR6qiY0kR6cyqCKRADsDGceNVPVl0xAjYKv5mHYMfNt7hmkob2Mxqa6dlyWt7LbA/1hXW2NHEuVZV2Ibs2wMllhMnx8TpoEho3rOtQQCLKSxR+BDWdwqXw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713893192; c=relaxed/simple;
-	bh=mpm8xUWCnD37eP9zbTuPvwdTcRlGWa80DhOs8q6Dj6k=;
-	h=Date:To:From:Subject:Message-Id; b=ZlKIciFER5j7wPGBhBslzBD5zUC6exQasdpK/Y6ewciEVETFkmzyn0uE3RV2suwaG0cboY/5UKBdTPDHed5tcA4ULBLlS0RVsjCseXqI5Bh4jk3XvSCBOSAr9V2uhcFqLmvzMEU+BNu7mWL/yvocZqBLcEomXDBpE65Y/bP2zF0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mioTgWST; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713895812; c=relaxed/simple;
+	bh=LQ0yMukNoYzLdd+2C7GUQQ2tIDUUEBCqg5VL/2fUE4Q=;
+	h=Date:To:From:Subject:Message-Id; b=E7A/9K0pHAvJP/04ctqdrcbne8ezhbIQsh1IdQ97SjgO+BqrxVrmzsxeoucHmvuUBDtqyYBHQ075m31dpwgfzBLWN/xjMzjFIOZRcgMdEmQk5BU6gz/QwWEvhCyGZ0vB96nQmFCdzWS98GmiE237p4XUWkaBC1SwxrQ8inwTgIc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AgY/ReC+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mioTgWST"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 277FFC116B1;
-	Tue, 23 Apr 2024 17:26:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AgY/ReC+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9C1CC116B1;
+	Tue, 23 Apr 2024 18:10:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713893192;
-	bh=mpm8xUWCnD37eP9zbTuPvwdTcRlGWa80DhOs8q6Dj6k=;
+	s=korg; t=1713895811;
+	bh=LQ0yMukNoYzLdd+2C7GUQQ2tIDUUEBCqg5VL/2fUE4Q=;
 	h=Date:To:From:Subject:From;
-	b=mioTgWSTOSY3HpMZDOyRx3q9UKAsHtQ5YtsG57YOAtaN2IjKFVzwSAjO1bZaF1eZS
-	 S2N7kWjeMzyale9I7I3n0lknSk5jfFbdicYDGTAy1yXdnDW5ct6sG9hb9ejdjL3+ax
-	 mE4cD0K+Y81WXEIdD+sDk8hQul44o/PjH5fGSX58=
-Date: Tue, 23 Apr 2024 10:26:31 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shikemeng@huaweicloud.com,sfr@canb.auug.org.au,akpm@linux-foundation.org
+	b=AgY/ReC+ZBcJrbGnTTM1qLHqL/YE1tuomkr1yjjt+qcv8UNqFtIWUFNSDwXri+Oi8
+	 HjjqcnF+NFG3HiWK4bJQl/mVsRIbnAufCkuHNgfbtk4B4nQ+Zi+xZTbqbA1Huy3Cub
+	 1yFe/K/KDSxba8OnyzF7MAHnJjHHz+dTlO+2tsIc=
+Date: Tue, 23 Apr 2024 11:10:11 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,linux@rasmusvillemoes.dk,hannes@cmpxchg.org,baolin.wang@linux.alibaba.com,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi-fix-2.patch added to mm-unstable branch
-Message-Id: <20240423172632.277FFC116B1@smtp.kernel.org>
+Subject: + mm-page_alloc-consolidate-free-page-accounting-fix-4.patch added to mm-unstable branch
+Message-Id: <20240423181011.A9C1CC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi-fix-2
+     Subject: mm: page_alloc: avoid defining unused function
 has been added to the -mm mm-unstable branch.  Its filename is
-     writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi-fix-2.patch
+     mm-page_alloc-consolidate-free-page-accounting-fix-4.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-consolidate-free-page-accounting-fix-4.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,45 +58,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi-fix-2
-Date: Tue, 23 Apr 2024 10:22:53 +1000
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: mm: page_alloc: avoid defining unused function
+Date: Tue, 23 Apr 2024 19:14:43 +0300
 
-fix build with CONFIG_CGROUP_WRITEBACK=n
+In some configurations I got mm/page_alloc.c:656:20: warning: unused
+function 'add_to_free_list' [-Wunused-function] Because the only user is
+guarded with a certain ifdeffery, do the same for add_to_free_list().
 
-mm/backing-dev.c: In function 'wb_stats_show':
-mm/backing-dev.c:175:33: error: 'struct bdi_writeback' has no member named =
-'memcg_css'
-  175 |                    cgroup_ino(wb->memcg_css->cgroup),
-      |                                 ^~
-
-Link: https://lkml.kernel.org/r/20240423102253.3675d0af@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20240423161506.2637177-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/page_alloc.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/backing-dev.c~writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi-fix-2
-+++ a/mm/backing-dev.c
-@@ -172,7 +172,11 @@ static void wb_stats_show(struct seq_fil
- 		   "b_more_io:         %10lu\n"
- 		   "b_dirty_time:      %10lu\n"
- 		   "state:             %10lx\n\n",
-+#ifdef CONFIG_CGROUP_WRITEBACK
- 		   cgroup_ino(wb->memcg_css->cgroup),
-+#else
-+		   (ino_t)0,
-+#endif
- 		   K(stats->nr_writeback),
- 		   K(stats->nr_reclaimable),
- 		   K(stats->wb_thresh),
+--- a/mm/page_alloc.c~mm-page_alloc-consolidate-free-page-accounting-fix-4
++++ a/mm/page_alloc.c
+@@ -673,14 +673,6 @@ static inline void __add_to_free_list(st
+ 	area->nr_free++;
+ }
+ 
+-static inline void add_to_free_list(struct page *page, struct zone *zone,
+-				    unsigned int order, int migratetype,
+-				    bool tail)
+-{
+-	__add_to_free_list(page, zone, order, migratetype, tail);
+-	account_freepages(zone, 1 << order, migratetype);
+-}
+-
+ /*
+  * Used for pages which are on another list. Move the pages to the tail
+  * of the list - so the moved pages won't immediately be considered for
+@@ -6770,6 +6762,14 @@ bool is_free_buddy_page(struct page *pag
+ EXPORT_SYMBOL(is_free_buddy_page);
+ 
+ #ifdef CONFIG_MEMORY_FAILURE
++static inline void add_to_free_list(struct page *page, struct zone *zone,
++				    unsigned int order, int migratetype,
++				    bool tail)
++{
++	__add_to_free_list(page, zone, order, migratetype, tail);
++	account_freepages(zone, 1 << order, migratetype);
++}
++
+ /*
+  * Break down a higher-order page in sub-pages, and keep our target out of
+  * buddy allocator.
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi-fix-2.patch
+mm-page_alloc-consolidate-free-page-accounting-fix-4.patch
+devres-switch-to-use-dev_err_probe-for-unification.patch
+devres-dont-use-proxy-headers.patch
 
