@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 584EF16F0C7
-	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 20:36:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6151415688E
+	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 20:38:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713990992; cv=none; b=BpanD4zTbuK/awktazl96ZZN6nfIFq7uBKUWfgDGPei8ZRvU7qr8fjdqgai5NJyEag+A/V8ZD8OvoW8L8wetVWpqtONydeqlQSm/rnL841H033ns507tyr4AXLPEgCFXjGL7klPy5MxF56NSbsVfL4WqTMsl45C2aSEnpZZKtcQ=
+	t=1713991087; cv=none; b=qjVJ34lU6bhL8rNJvH+xPae1UcuPGAfbLlqoT9UC9Dw63IXIrJ1/xxU9Q1JFOZvMXTQDndu5vpn+Rg9i3bzvO27mp1wajKev9kYprk1IuKOFv00SkH5Vdt2VAnaTkf2g8WK85Sh5vrJSfsqLH0pg5GEh3YSzLwuhXrEOVUfkf40=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713990992; c=relaxed/simple;
-	bh=rZzCb2FstcatrKopjkvGYCETCfZ/GrppgdJ3pRkGrCI=;
-	h=Date:To:From:Subject:Message-Id; b=XW+1pbriSZKpxHQKXSY05dAScRpozwjxS4PngEHgV7EpILLsVEuHQt/M4cj8GkBItysanZuOyfPJ42gSVglrCoxCAEHuG+UEZGFBDHzwIQOQq/NUUUT5m3EBfPmiYza2PIelxiLhw4of/t+W1FfqxoaIvZoy0cAuVSzcT4mNwbY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vhj0OrYv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713991087; c=relaxed/simple;
+	bh=yCC4yq3mysyzCD7zh0deaL6vGPRPPtAKXzcJllRPr0w=;
+	h=Date:To:From:Subject:Message-Id; b=UfMR41UsZy/jc4zmipEUaeQeyCwlJVCNf593Snmx3P4N2KZDWB3ged3BOVmZvJRZTuH75y5sPSrYwCZ+JB3HD2ADw/VL6N1QBn7/t1E9K/UFLjlJJoxvY4kqDW1mAA0Gp6cyob+OL/ddMGuebnVneiAjtXGIl/Tq+yulL8q3aP0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ISD+Fbwb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vhj0OrYv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8DB4C3277B;
-	Wed, 24 Apr 2024 20:36:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ISD+Fbwb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7341C113CD;
+	Wed, 24 Apr 2024 20:38:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713990992;
-	bh=rZzCb2FstcatrKopjkvGYCETCfZ/GrppgdJ3pRkGrCI=;
+	s=korg; t=1713991086;
+	bh=yCC4yq3mysyzCD7zh0deaL6vGPRPPtAKXzcJllRPr0w=;
 	h=Date:To:From:Subject:From;
-	b=Vhj0OrYv/Aso2yFzFFozpknXDeBG7E/jasDo8fRzF9V2suZWwnFEHhgw0Vlf2upgj
-	 /T2ZtYSMv0ys+C1deQts7PXEYdtVy9QSDfwudsLfGE001VRB1+r81C0XENpR0r1Kaf
-	 hbBO4uQqxuMjtg916mqmhSnIQ7vbjYCmWwXtkrtI=
-Date: Wed, 24 Apr 2024 13:36:31 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=ISD+FbwbQDGtI8uQPNK3vdG+/1XjBj8PjiBvgcuT8bApY3s9CQkmm03DuaIzeS6sL
+	 Hf+NcDjymAgzOwmCWkChmdnkyvG6RD7K9TAE2GdHzMnxBT+H3fyC7oDj9lF2d0it4U
+	 k3bNqpUEq/UkHYfUg1OOqVtpUsbyi1g56Rgs1H7A=
+Date: Wed, 24 Apr 2024 13:38:06 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,tj@kernel.org,richard.weiyang@linux.alibaba.com,minchan@kernel.org,mhocko@suse.com,mgorman@techsingularity.net,jpoimboe@kernel.org,hannes@cmpxchg.org,david@redhat.com,dan.j.williams@intel.com,corbet@lwn.net,mcanal@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-pagereferenced.patch added to mm-unstable branch
-Message-Id: <20240424203631.D8DB4C3277B@smtp.kernel.org>
+Subject: [merged] mm-update-shuffle-documentation-to-match-its-current-state.patch removed from -mm tree
+Message-Id: <20240424203806.D7341C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,139 +34,85 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: remove PageReferenced
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-pagereferenced.patch
+The quilt patch titled
+     Subject: mm: Update shuffle documentation to match its current state
+has been removed from the -mm tree.  Its filename was
+     mm-update-shuffle-documentation-to-match-its-current-state.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pagereferenced.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove PageReferenced
-Date: Wed, 24 Apr 2024 20:19:12 +0100
+From: Maíra Canal <mcanal@igalia.com>
+Subject: mm: Update shuffle documentation to match its current state
+Date: Mon, 22 Apr 2024 11:18:40 -0300
 
-All callers now use folio_*_referenced() so we can remove the
-PageReferenced family of functions.
+Commit 839195352d82 ("mm/shuffle: remove dynamic reconfiguration") removed
+the dynamic reconfiguration capabilities from the shuffle page allocator. 
+This means that, now, we don't have any perspective of an "autodetection
+of memory-side-cache" that triggers the enablement of the shuffle page
+allocator.
 
-Link: https://lkml.kernel.org/r/20240424191914.361554-8-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Therefore, let the documentation reflect that the only way to enable
+the shuffle page allocator is by setting `page_alloc.shuffle=1`.
+
+Link: https://lkml.kernel.org/r/20240422142007.1062231-1-mcanal@igalia.com
+Signed-off-by: Maíra Canal <mcanal@igalia.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |   10 ++++------
+ mm/Kconfig                                      |    7 +++----
+ 2 files changed, 7 insertions(+), 10 deletions(-)
 
---- a/include/linux/page-flags.h~mm-remove-pagereferenced
-+++ a/include/linux/page-flags.h
-@@ -512,9 +512,9 @@ static inline int TestClearPage##uname(s
- __PAGEFLAG(Locked, locked, PF_NO_TAIL)
- FOLIO_FLAG(waiters, FOLIO_HEAD_PAGE)
- PAGEFLAG(Error, error, PF_NO_TAIL) TESTCLEARFLAG(Error, error, PF_NO_TAIL)
--PAGEFLAG(Referenced, referenced, PF_HEAD)
--	TESTCLEARFLAG(Referenced, referenced, PF_HEAD)
--	__SETPAGEFLAG(Referenced, referenced, PF_HEAD)
-+FOLIO_FLAG(referenced, FOLIO_HEAD_PAGE)
-+	FOLIO_TEST_CLEAR_FLAG(referenced, FOLIO_HEAD_PAGE)
-+	__FOLIO_SET_FLAG(referenced, FOLIO_HEAD_PAGE)
- PAGEFLAG(Dirty, dirty, PF_HEAD) TESTSCFLAG(Dirty, dirty, PF_HEAD)
- 	__CLEARPAGEFLAG(Dirty, dirty, PF_HEAD)
- PAGEFLAG(LRU, lru, PF_HEAD) __CLEARPAGEFLAG(LRU, lru, PF_HEAD)
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-update-shuffle-documentation-to-match-its-current-state
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -4176,13 +4176,11 @@
+ 
+ 	page_alloc.shuffle=
+ 			[KNL] Boolean flag to control whether the page allocator
+-			should randomize its free lists. The randomization may
+-			be automatically enabled if the kernel detects it is
+-			running on a platform with a direct-mapped memory-side
+-			cache, and this parameter can be used to
+-			override/disable that behavior. The state of the flag
+-			can be read from sysfs at:
++			should randomize its free lists. This parameter can be
++			used to enable/disable page randomization. The state of
++			the flag can be read from sysfs at:
+ 			/sys/module/page_alloc/parameters/shuffle.
++			This parameter is only available if CONFIG_SHUFFLE_PAGE_ALLOCATOR=y.
+ 
+ 	page_owner=	[KNL,EARLY] Boot-time page_owner enabling option.
+ 			Storage of the information about who allocated
+--- a/mm/Kconfig~mm-update-shuffle-documentation-to-match-its-current-state
++++ a/mm/Kconfig
+@@ -333,10 +333,9 @@ config SHUFFLE_PAGE_ALLOCATOR
+ 
+ 	  While the randomization improves cache utilization it may
+ 	  negatively impact workloads on platforms without a cache. For
+-	  this reason, by default, the randomization is enabled only
+-	  after runtime detection of a direct-mapped memory-side-cache.
+-	  Otherwise, the randomization may be force enabled with the
+-	  'page_alloc.shuffle' kernel command line parameter.
++	  this reason, by default, the randomization is not enabled even
++	  if SHUFFLE_PAGE_ALLOCATOR=y. The randomization may be force enabled
++	  with the 'page_alloc.shuffle' kernel command line parameter.
+ 
+ 	  Say Y if unsure.
+ 
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from mcanal@igalia.com are
 
-mm-create-folio_flag_false-and-folio_type_ops-macros.patch
-mm-support-page_mapcount-on-page_has_type-pages.patch
-mm-turn-folio_test_hugetlb-into-a-pagetype.patch
-mm-turn-folio_test_hugetlb-into-a-pagetype-fix.patch
-mm-always-initialise-folio-_deferred_list.patch
-mm-remove-folio_prep_large_rmappable.patch
-mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch
-mm-free-up-pg_slab.patch
-mm-free-up-pg_slab-fix.patch
-mm-improve-dumping-of-mapcount-and-page_type.patch
-hugetlb-remove-mention-of-destructors.patch
-sh-remove-use-of-pg_arch_1-on-individual-pages.patch
-xtensa-remove-uses-of-pg_arch_1-on-individual-pages.patch
-mm-make-page_ext_get-take-a-const-argument.patch
-mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument.patch
-mm-make-is_free_buddy_page-take-a-const-argument.patch
-mm-make-page_mapped-take-a-const-argument.patch
-mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
-mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix.patch
-slub-remove-use-of-page-flags.patch
-remove-references-to-page-flags-in-documentation.patch
-proc-rewrite-stable_page_flags.patch
-proc-rewrite-stable_page_flags-fix.patch
-proc-rewrite-stable_page_flags-fix-2.patch
-sparc-use-is_huge_zero_pmd.patch
-mm-add-is_huge_zero_folio.patch
-mm-add-pmd_folio.patch
-mm-convert-migrate_vma_collect_pmd-to-use-a-folio.patch
-mm-convert-huge_zero_page-to-huge_zero_folio.patch
-mm-convert-do_huge_pmd_anonymous_page-to-huge_zero_folio.patch
-dax-use-huge_zero_folio.patch
-mm-rename-mm_put_huge_zero_page-to-mm_put_huge_zero_folio.patch
-mm-use-rwsem-assertion-macros-for-mmap_lock.patch
-filemap-remove-__set_page_dirty.patch
-mm-correct-page_mapped_in_vma-for-large-folios.patch
-mm-remove-vma_address.patch
-mm-rename-vma_pgoff_address-back-to-vma_address.patch
-khugepaged-inline-hpage_collapse_alloc_folio.patch
-khugepaged-convert-alloc_charge_hpage-to-alloc_charge_folio.patch
-khugepaged-remove-hpage-from-collapse_huge_page.patch
-khugepaged-pass-a-folio-to-__collapse_huge_page_copy.patch
-khugepaged-remove-hpage-from-collapse_file.patch
-khugepaged-use-a-folio-throughout-collapse_file.patch
-khugepaged-use-a-folio-throughout-collapse_file-fix.patch
-khugepaged-use-a-folio-throughout-hpage_collapse_scan_file.patch
-proc-convert-clear_refs_pte_range-to-use-a-folio.patch
-proc-convert-smaps_account-to-use-a-folio.patch
-mm-remove-page_idle-and-page_young-wrappers.patch
-mm-generate-page_idle_flag-definitions.patch
-proc-convert-gather_stats-to-use-a-folio.patch
-proc-convert-smaps_page_accumulate-to-use-a-folio.patch
-proc-pass-a-folio-to-smaps_page_accumulate.patch
-proc-convert-smaps_pmd_entry-to-use-a-folio.patch
-mm-remove-struct-page-from-get_shadow_from_swap_cache.patch
-hugetlb-convert-alloc_buddy_hugetlb_folio-to-use-a-folio.patch
-mm-convert-pagecache_isize_extended-to-use-a-folio.patch
-mm-free-non-hugetlb-large-folios-in-a-batch.patch
-mm-combine-free_the_page-and-free_unref_page.patch
-mm-inline-destroy_large_folio-into-__folio_put_large.patch
-mm-combine-__folio_put_small-__folio_put_large-and-__folio_put.patch
-mm-convert-free_zone_device_page-to-free_zone_device_folio.patch
-doc-improve-the-description-of-__folio_mark_dirty.patch
-buffer-add-kernel-doc-for-block_dirty_folio.patch
-buffer-add-kernel-doc-for-try_to_free_buffers.patch
-buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch
-buffer-add-kernel-doc-for-brelse-and-__brelse.patch
-buffer-add-kernel-doc-for-bforget-and-__bforget.patch
-buffer-improve-bdev_getblk-documentation.patch
-doc-split-bufferrst-out-of-api-summaryrst.patch
-doc-split-bufferrst-out-of-api-summaryrst-fix.patch
-mm-remove-page_cache_alloc.patch
-mm-remove-put_devmap_managed_page.patch
-mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs.patch
-mm-remove-page_ref_sub_return.patch
-gup-use-folios-for-gup_devmap.patch
-mm-add-kernel-doc-for-folio_mark_accessed.patch
-mm-remove-pagereferenced.patch
 
