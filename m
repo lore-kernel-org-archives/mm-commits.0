@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7905413C9DE
-	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 21:29:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFB8E13C9DE
+	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 21:29:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713994163; cv=none; b=Qm7QgHDMABBEEjronE5155fnvJh5xdnRErYeXqELs0m4Te3GscRM2zj/efiXTtMYnlBn5dFwBlnHzOaOAIrsXkxsorx+ZvtKF+VR2HLoZpf6+5l/ynJYcwvofKLw+PjZ8TJLKEQHmBSbnHJAIshXZgqhoptwOVsQDLYsVZ1jjTU=
+	t=1713994164; cv=none; b=lYzXnqjub2Mf7I1ZLy0MTH89HysRIkR3ZDyzizf0UowlmsP9yxJLRuPwU8IPxmz1lwGy383Wl62pU/Apk9MFvGgw9hKf2B+iUmTGkxbzgFdGkjzDI0KtT2foaIvJcZVIZrmo/Rw79MAae7Dl8N1m0SK6QPJ7q7BQRi0YmqpGtbc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713994163; c=relaxed/simple;
-	bh=wrD9coBgEe6gDGH8tzRO2xYMCxTCmOdy5Cuafj5Gkn8=;
-	h=Date:To:From:Subject:Message-Id; b=r89CDKIokEbbImb2P2UdbG95D45N/beWxDHUg+SbsDYnp7UMfwQO/M5sfFLvrYQrMscswXHlFgKsc8x4X3zSOi9IJ9n7jv5QUR1/vqBszRhijJSIi+9YIIuZL+bwtChLbliiCEskgL61/AvHYMhoo98gmrrZbh3+832CusNE7Yo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MWeYnsm3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713994164; c=relaxed/simple;
+	bh=nTNWK7kRbzlpfD/2q8EHXFU8dAOHrO4sLek0c0/man0=;
+	h=Date:To:From:Subject:Message-Id; b=aQQgCPdv6EI0YuctZGsvmGFQ3DoEUIMNYMos4Liq91q/bedJWLN8DQYkN9j9szwCk03iXQaVHeCNOKyzErAFkkogCzG5PsFatoqD0iY9aTANuW5Kk4UwxVfGXcP+QZ4nldFAe6h3qtj7peNAouRt1VKWHhZTP32DzNWYgnv+PeY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LvACNHi4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MWeYnsm3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3FCFC2BD11;
-	Wed, 24 Apr 2024 21:29:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LvACNHi4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EB6FC113CD;
+	Wed, 24 Apr 2024 21:29:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713994162;
-	bh=wrD9coBgEe6gDGH8tzRO2xYMCxTCmOdy5Cuafj5Gkn8=;
+	s=korg; t=1713994164;
+	bh=nTNWK7kRbzlpfD/2q8EHXFU8dAOHrO4sLek0c0/man0=;
 	h=Date:To:From:Subject:From;
-	b=MWeYnsm3gjuUTGR2aL4tsflgIn1HmWR9my/NG3UP0HFuExJHyWXZ2/X0IslN+efjU
-	 +Rn5xMo50Y6C7H+Hxj4g9hCvgNDq41diYdhfX90st1oVWNQEg7iN4vezSzkmfB9uq+
-	 4OJ7vxKUivqj8vrqrRGKM+lOqohnAoQiBV0MQjos=
-Date: Wed, 24 Apr 2024 14:29:22 -0700
+	b=LvACNHi4KhE+iPVfUPVmgqXuNjqgxNh0R/y5cx9Zvt79beatQddmn382+rWoNV1kW
+	 ue83M2xS6A7inF1bcIeFp0pGuBrje4aLgOyNsqLNB61YNjYWVeDaDwVJm0WCh5FX1c
+	 AxCGIVWKOrBG73+qvAuWBb1lgXnVUz6mGDTU53lA=
+Date: Wed, 24 Apr 2024 14:29:23 -0700
 To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,ebiggers@google.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fscrypt-convert-bh_get_inode_and_lblk_num-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20240424212922.C3FCFC2BD11@smtp.kernel.org>
+Subject: + f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20240424212924.4EB6FC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fscrypt: convert bh_get_inode_and_lblk_num to use a folio
+     Subject: f2fs: convert f2fs_clear_page_cache_dirty_tag to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     fscrypt-convert-bh_get_inode_and_lblk_num-to-use-a-folio.patch
+     f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fscrypt-convert-bh_get_inode_and_lblk_num-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,58 +59,38 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: fscrypt: convert bh_get_inode_and_lblk_num to use a folio
-Date: Tue, 23 Apr 2024 23:55:32 +0100
+Subject: f2fs: convert f2fs_clear_page_cache_dirty_tag to use a folio
+Date: Tue, 23 Apr 2024 23:55:33 +0100
 
-Patch series "Remove page_mapping()".
+Removes uses of page_mapping() and page_index().
 
-There are only a few users left.  Convert them all to either call
-folio_mapping() or just use folio->mapping directly.  
-
-
-This patch (of 6):
-
-Remove uses of page->index, page_mapping() and b_page.  Saves a call
-to compound_head().
-
-Link: https://lkml.kernel.org/r/20240423225552.4113447-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20240423225552.4113447-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240423225552.4113447-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Eric Biggers <ebiggers@google.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Eric Biggers <ebiggers@google.com>
 Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/crypto/inline_crypt.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/f2fs/data.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/fs/crypto/inline_crypt.c~fscrypt-convert-bh_get_inode_and_lblk_num-to-use-a-folio
-+++ a/fs/crypto/inline_crypt.c
-@@ -284,7 +284,7 @@ static bool bh_get_inode_and_lblk_num(co
- 				      const struct inode **inode_ret,
- 				      u64 *lblk_num_ret)
+--- a/fs/f2fs/data.c~f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio
++++ a/fs/f2fs/data.c
+@@ -4082,11 +4082,12 @@ const struct address_space_operations f2
+ 
+ void f2fs_clear_page_cache_dirty_tag(struct page *page)
  {
--	struct page *page = bh->b_page;
-+	struct folio *folio = bh->b_folio;
- 	const struct address_space *mapping;
- 	const struct inode *inode;
+-	struct address_space *mapping = page_mapping(page);
++	struct folio *folio = page_folio(page);
++	struct address_space *mapping = folio->mapping;
+ 	unsigned long flags;
  
-@@ -292,13 +292,13 @@ static bool bh_get_inode_and_lblk_num(co
- 	 * The ext4 journal (jbd2) can submit a buffer_head it directly created
- 	 * for a non-pagecache page.  fscrypt doesn't care about these.
- 	 */
--	mapping = page_mapping(page);
-+	mapping = folio_mapping(folio);
- 	if (!mapping)
- 		return false;
- 	inode = mapping->host;
- 
- 	*inode_ret = inode;
--	*lblk_num_ret = ((u64)page->index << (PAGE_SHIFT - inode->i_blkbits)) +
-+	*lblk_num_ret = ((u64)folio->index << (PAGE_SHIFT - inode->i_blkbits)) +
- 			(bh_offset(bh) >> inode->i_blkbits);
- 	return true;
+ 	xa_lock_irqsave(&mapping->i_pages, flags);
+-	__xa_clear_mark(&mapping->i_pages, page_index(page),
++	__xa_clear_mark(&mapping->i_pages, folio->index,
+ 						PAGECACHE_TAG_DIRTY);
+ 	xa_unlock_irqrestore(&mapping->i_pages, flags);
  }
 _
 
