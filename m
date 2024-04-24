@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D092113B5A6
-	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 21:12:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4A9D13B5A6
+	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 21:14:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713993130; cv=none; b=gw5F+IXHVuANbo0/REy1jNekdMf0ECGbb85eKwau15SqwC54gPYAShGl53Hh0/jK9mNfRaTG8EZ/RcVeziFcyEenGKI3d5W7bjysMMAzR5MoLWxPoPXVSlZd1dZXxA/uZS1UM6/5oWpAgZrUMy8akXNLjq+73/S0+amSRSyM78A=
+	t=1713993252; cv=none; b=e5EybCtb9Z15zrMdmBeaoV1oF8L/t2KoNKbKlh0vKpQx9rTbeWzp3vtguzOcRKUUOW7RO0AZhUD38JyzTOxu70coDWEPh4HlJIq56TzDD2LFiJgT7C+e6ZTDGOFk6Pucqt2JX3IGxYI2+Fh6NpTMoLa5F/zenIWTkG/YDftI6aw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713993130; c=relaxed/simple;
-	bh=L8V+m7eYmXWGtU1CetTYf0Ed/cb+IECdJmXICkYJhaI=;
-	h=Date:To:From:Subject:Message-Id; b=sUjMCwkQcKyttOMcqjVGDXGtKoi9lHSaMIhjWP1ewbJdjUvMraZSpb/4P+ZsfgMwnpj9p7CPX4RfVAXT5+CZLlYIx+khXT3QaATHGTPByazHasKY/+xy08dvAK33rHKkPhfoc/i7zPTI9IxtLvU93gn2gwcPk+XDPGOvd66PjTU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u41+6hyH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713993252; c=relaxed/simple;
+	bh=kzFOTT/cYI0QWgNa2oM7OsFEghgHxPiEoOXgNBACGs8=;
+	h=Date:To:From:Subject:Message-Id; b=RUhBNdxQwR42WkPO/X2HtRHjEc7q/n4gJiwrHCw4poXcPE+MK/oJejvbjCoEu580N/P1fMuhaO9+l7Kg5g4lL71BuAiqw/e6eFoi2ScJzVFFfLyhkG6IXZca36Zq4z5SvteWk5Xf3Bkiz5xYsL34XE3EXqDcLHx8wTku+GwxM+0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R3sRTWre; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u41+6hyH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 507B2C113CD;
-	Wed, 24 Apr 2024 21:12:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R3sRTWre"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40437C113CD;
+	Wed, 24 Apr 2024 21:14:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713993130;
-	bh=L8V+m7eYmXWGtU1CetTYf0Ed/cb+IECdJmXICkYJhaI=;
+	s=korg; t=1713993252;
+	bh=kzFOTT/cYI0QWgNa2oM7OsFEghgHxPiEoOXgNBACGs8=;
 	h=Date:To:From:Subject:From;
-	b=u41+6hyHf0ONv2dIBsOEXr1TOtGa7CcTkhq6Ac+7ZoUIgRFPffFaM0UvovraGhpoW
-	 TgVyY5P3hmlNa0nWpSLyTYBQO6fXLdngml8isT3D8XrQ0R/AIf+m6v0RbB3DaHep7N
-	 fuVUHPyH258940yiEaPwANFALCCsaV3klpTLUAs8=
-Date: Wed, 24 Apr 2024 14:12:09 -0700
+	b=R3sRTWretp+FWbxsUbmZn94TtKGdc8odGGeHqFblGIN8ELuBeYZbsl9RHRsT5GHjS
+	 l4jOUdo3UarDpV+TqBzDIcx0WPpTPlUqi3sY3r4s94mj4sYulorFaZ6nCs/KPXyWiA
+	 f/vYc7fngvISp6I8iKBe7gRh1XaizKjGZgQwdBIA=
+Date: Wed, 24 Apr 2024 14:14:11 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ysato@users.sourceforge.jp,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richardycc@google.com,peterx@redhat.com,naoya.horiguchi@nec.com,muchun.song@linux.dev,linmiaohe@huawei.com,jcmvbkbc@gmail.com,hughd@google.com,glaubitz@physik.fu-berlin.de,fengwei.yin@intel.com,dalias@libc.org,corbet@lwn.net,chris@zankel.net,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-folio_mapcount-return-0-for-small-typed-folios-fix.patch added to mm-unstable branch
-Message-Id: <20240424211210.507B2C113CD@smtp.kernel.org>
+Subject: + mm-allow-for-detecting-underflows-with-page_mapcount-again-fix.patch added to mm-unstable branch
+Message-Id: <20240424211412.40437C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-make-folio_mapcount-return-0-for-small-typed-folios-fix
+     Subject: mm-allow-for-detecting-underflows-with-page_mapcount-again-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-make-folio_mapcount-return-0-for-small-typed-folios-fix.patch
+     mm-allow-for-detecting-underflows-with-page_mapcount-again-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-folio_mapcount-return-0-for-small-typed-folios-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-allow-for-detecting-underflows-with-page_mapcount-again-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm-make-folio_mapcount-return-0-for-small-typed-folios-fix
-Date: Wed, 24 Apr 2024 10:56:17 +0200
+Subject: mm-allow-for-detecting-underflows-with-page_mapcount-again-fix
+Date: Wed, 24 Apr 2024 10:50:09 +0200
 
-Just like page_mapcount(), let's make folio_mapcount() slightly more
-efficient.
+Let's make page_mapcount() slighly more efficient by inlining the
+page_type_has_type() check.
 
-Link: https://lkml.kernel.org/r/c30fcda1-ed87-46f5-8297-cdedbddac009@redhat.com
+Link: https://lkml.kernel.org/r/1af4fd61-7926-47c8-be45-833c0dbec08b@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Hugh Dickins <hughd@google.com>
@@ -87,25 +87,25 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-make-folio_mapcount-return-0-for-small-typed-folios-fix
+--- a/include/linux/mm.h~mm-allow-for-detecting-underflows-with-page_mapcount-again-fix
 +++ a/include/linux/mm.h
-@@ -1270,8 +1270,11 @@ static inline int folio_mapcount(const s
- 	int mapcount;
+@@ -1229,10 +1229,11 @@ static inline void page_mapcount_reset(s
+  */
+ static inline int page_mapcount(struct page *page)
+ {
+-	int mapcount = atomic_read(&page->_mapcount);
++	int mapcount = atomic_read(&page->_mapcount) + 1;
  
- 	if (likely(!folio_test_large(folio))) {
--		mapcount = atomic_read(&folio->_mapcount);
--		return page_type_has_type(mapcount) ? 0 : mapcount + 1;
-+		mapcount = atomic_read(&folio->_mapcount) + 1;
-+		/* Handle page_has_type() pages */
-+		if (mapcount < PAGE_MAPCOUNT_RESERVE + 1)
-+			mapcount = 0;
-+		return mapcount;
- 	}
- 	return folio_large_mapcount(folio);
- }
+ 	/* Handle page_has_type() pages */
+-	mapcount = page_type_has_type(mapcount) ? 0 : mapcount + 1;
++	if (mapcount < PAGE_MAPCOUNT_RESERVE + 1)
++		mapcount = 0;
+ 	if (unlikely(PageCompound(page)))
+ 		mapcount += folio_entire_mapcount(page_folio(page));
+ 
 _
 
 Patches currently in -mm which might be from david@redhat.com are
@@ -124,6 +124,7 @@ drivers-virt-acrn-fix-pfnmap-pte-checks-in-acrn_vm_ram_map.patch
 mm-pass-vma-instead-of-mm-to-follow_pte.patch
 mm-follow_pte-improvements.patch
 mm-allow-for-detecting-underflows-with-page_mapcount-again.patch
+mm-allow-for-detecting-underflows-with-page_mapcount-again-fix.patch
 mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte.patch
 mm-rmap-add-fast-path-for-small-folios-when-adding-removing-duplicating.patch
 mm-track-mapcount-of-large-folios-in-single-value.patch
