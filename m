@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD6B2156898
-	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 20:36:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEF5B15697B
+	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 20:36:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713990982; cv=none; b=VO/SONsNgbATQTd496zOyjabA1RuNz+ZtQx/S6e2UrRcd3Cq5Mh8uAWRzX2iYQmCj1coHcFnJxElP8lqSoZeN4zHJIAz+4KbWaErSS9hQNF/GHLzpe5YeIGMtBb5IokR1QRSwQYQ9WPNDidjLwNAsz0bOczC1BCJpcg3zgefpZU=
+	t=1713990983; cv=none; b=grbFrBhix8XLjd90LrwmAxbmMUg3dHb65+VOer84o09eubDS0737PwZNNPE1zDD+7LYf7FpTEBUx9jp0xVbHfPIxdyDZxCXTL3Zz21dN41j+eu6LhPc5ClDJRR4uVF5/LJjKJVix0CHeCqSdXeYAktyHOt4r+H35rR/GCNbmgxU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713990982; c=relaxed/simple;
-	bh=gzIvr7xERwkCtEIqy0Au8CGi0eU9DLp1egqcjDW5ZqA=;
-	h=Date:To:From:Subject:Message-Id; b=TfElGdeAmpfGTgodFzhmzetckNY1aIyKNanUs0jSOC7H9il7BiJ2LvS9Ydn0HgumwtvDeD31gsoRiLjD5oMqt92uM8LZySVMg5j7OBLOSvTFplDnMxRi18ta7TkTgNR29c2oPMxnPSGXpVLHoXxNb6yBpZkIatwlR1sLnA7FC0k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zTslH5nx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713990983; c=relaxed/simple;
+	bh=c88ZrAun16f+fASy0YMo/f/wtspsVtieTsFJujcyZ8Y=;
+	h=Date:To:From:Subject:Message-Id; b=E7Hiwzq3BTtFHCTF8bWp/ut/oa6FiBwa6npQ2ZwDoKg+GElRMtJdjI5mkawEEqTzpAbuUDuzXrrGoXUzlgfvyH0mRBeQdQRNMj9J+2CNDqZclqMt3G1fxaF6oSiixdOUIFDN5l8A8hKTPLMQV1xFSAjN67PCDOV+Hhjijww+5FY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=py1HPOyi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zTslH5nx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59B98C113CD;
-	Wed, 24 Apr 2024 20:36:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="py1HPOyi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42149C3277B;
+	Wed, 24 Apr 2024 20:36:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713990981;
-	bh=gzIvr7xERwkCtEIqy0Au8CGi0eU9DLp1egqcjDW5ZqA=;
+	s=korg; t=1713990983;
+	bh=c88ZrAun16f+fASy0YMo/f/wtspsVtieTsFJujcyZ8Y=;
 	h=Date:To:From:Subject:From;
-	b=zTslH5nxqx93CKBIFTcbuGfUVCOv5xtE59NQVNdFhUdP+Y8kR3zNBZmgnxsH8sqaF
-	 8FBQ4Fdzgjh2XkASQcOm8HgQFVAydKmCPHtkPG0QzheN0mNkNBjqZ6OnF56TL63Yms
-	 eFqxC8sCB7hjQxODCA/kT7mz9o4K1sE91lK+P8PI=
-Date: Wed, 24 Apr 2024 13:36:20 -0700
+	b=py1HPOyimjJgBfqrcrNFMG6jOPscKUuJJaUne3V4QHIFPiwqVGe6UzMlpFAM8J78S
+	 9rdwtL7OKYlW5gfsbG+r9Q6Q+cY8U/yuOl4EG2ZXosLlWYze1AB69EKMeOpbnuew+/
+	 aC2aTlt4f5MwBLNTAFXv/a5ubhuCNgPV9VxQcDK8=
+Date: Wed, 24 Apr 2024 13:36:22 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-page_cache_alloc.patch added to mm-unstable branch
-Message-Id: <20240424203621.59B98C113CD@smtp.kernel.org>
+Subject: + mm-remove-put_devmap_managed_page.patch added to mm-unstable branch
+Message-Id: <20240424203623.42149C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove page_cache_alloc()
+     Subject: mm: remove put_devmap_managed_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-page_cache_alloc.patch
+     mm-remove-put_devmap_managed_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-page_cache_alloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-put_devmap_managed_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,41 +59,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove page_cache_alloc()
-Date: Wed, 24 Apr 2024 20:19:06 +0100
+Subject: mm: remove put_devmap_managed_page()
+Date: Wed, 24 Apr 2024 20:19:07 +0100
 
-Patch series "More folio compat code removal".
+It only has one caller; convert that caller to use
+put_devmap_managed_page_refs() instead.
 
-More code removal with bonus kernel-doc addition.
-
-
-This patch (of 7):
-
-All callers have now been converted to filemap_alloc_folio().
-
-Link: https://lkml.kernel.org/r/20240424191914.361554-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20240424191914.361554-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240424191914.361554-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    5 -----
- 1 file changed, 5 deletions(-)
+ include/linux/mm.h |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/include/linux/pagemap.h~mm-remove-page_cache_alloc
-+++ a/include/linux/pagemap.h
-@@ -558,11 +558,6 @@ static inline struct page *__page_cache_
- 	return &filemap_alloc_folio(gfp, 0)->page;
+--- a/include/linux/mm.h~mm-remove-put_devmap_managed_page
++++ a/include/linux/mm.h
+@@ -1453,11 +1453,6 @@ static inline bool put_devmap_managed_pa
  }
+ #endif /* CONFIG_ZONE_DEVICE && CONFIG_FS_DAX */
  
--static inline struct page *page_cache_alloc(struct address_space *x)
+-static inline bool put_devmap_managed_page(struct page *page)
 -{
--	return __page_cache_alloc(mapping_gfp_mask(x));
+-	return put_devmap_managed_page_refs(page, 1);
 -}
 -
- static inline gfp_t readahead_gfp_mask(struct address_space *x)
- {
- 	return mapping_gfp_mask(x) | __GFP_NORETRY | __GFP_NOWARN;
+ /* 127: arbitrary random number, small enough to assemble well */
+ #define folio_ref_zero_or_close_to_overflow(folio) \
+ 	((unsigned int) folio_ref_count(folio) + 127u <= 127u)
+@@ -1576,7 +1571,7 @@ static inline void put_page(struct page
+ 	 * For some devmap managed pages we need to catch refcount transition
+ 	 * from 2 to 1:
+ 	 */
+-	if (put_devmap_managed_page(&folio->page))
++	if (put_devmap_managed_page_refs(&folio->page, 1))
+ 		return;
+ 	folio_put(folio);
+ }
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
