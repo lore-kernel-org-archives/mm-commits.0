@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 610F613C9DE
-	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 21:29:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC79D13C9DE
+	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 21:29:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713994166; cv=none; b=qSpsNTuISZQ1NTFPj6Zk/o0EOCXCnv1jIjAczJW2C2SoHEDosOwoXqLPRTzmzW73Btz3+m/2tWlXMCbcyxz2gZuiObkw63nt+3bscA+r+p3FpyXFrXz9E/S4zGNYgGzYwI0exQI4WMs7LF7hjsrbweH2PNUPVxRGpnZckifl8GY=
+	t=1713994167; cv=none; b=JgyC2YdScEoECAt3y7VUcMvu66RzLzUGMh3iW+oj1mDFOQZZOer4hnFlBREjRHAfQqjlva+iKXu/rxKS1+ACGK4JtnvHE98T18SNFaFlzyWdUW6pzEYxONQIUAFhrYjjDoZcOoxdlrEGLGsEP66bt57DfDi1/PouBtzEhUGRmmk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713994166; c=relaxed/simple;
-	bh=Pb45XN6hATvG53+vXBOexjiBt8/+k84uVHlTOfUk3KA=;
-	h=Date:To:From:Subject:Message-Id; b=NJwgiyRThGyNrapAHhZ3B5pdOIU87KtWQ42V4QkxoiWmOK+y0ZodO3OwaPWRLYvrGm8jZTghsRQdvsjuC/CahTpCG2VVyFiUNjn3YPCKuC83/MZv6mCktqFARTXDEIhZYIrhRwz78wF+qHxMRkFvqskFhOvyQ3eFxlBLmBNAINU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JqZYQ7QT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713994167; c=relaxed/simple;
+	bh=8j4ggRRAM1AWQpBIcDP5i54hX7ayrwS65v2ok0r4tpg=;
+	h=Date:To:From:Subject:Message-Id; b=lLDSpPGgY94x1wKQbCmSZtH5cCNSJjW/3d+7yQwMW8mY3vsuJ+wbYE9sOX0O/blRSpesK5yUFFuZ++EF50bum1l8iZhvNzj0+F+yTTpmcXcs3+SG9fS0VYno0mwv3OfaZuUgFCdOriyEmEJA/1/yGHH+bYCABZWjjnYJwUWUb/Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AF0YLPU6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JqZYQ7QT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CED54C113CD;
-	Wed, 24 Apr 2024 21:29:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AF0YLPU6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 614E0C113CD;
+	Wed, 24 Apr 2024 21:29:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713994165;
-	bh=Pb45XN6hATvG53+vXBOexjiBt8/+k84uVHlTOfUk3KA=;
+	s=korg; t=1713994167;
+	bh=8j4ggRRAM1AWQpBIcDP5i54hX7ayrwS65v2ok0r4tpg=;
 	h=Date:To:From:Subject:From;
-	b=JqZYQ7QTwbaTJL4S4DedtXzgwn7tT/GubtUOLR36MoJztEIO5reOEL+VpXfqv9BZ6
-	 yDNH4u7NNmxmIh0sLd9oKY0sRK2DZrmEhhr/ob8TrR7DhuOMbbckJflUtKqlt2/eAP
-	 F3lRfdRegth0j9ufX9T+7nzskbVrR4I/VLIAjah8=
-Date: Wed, 24 Apr 2024 14:29:25 -0700
+	b=AF0YLPU6bFBODfmR+DnIAkvprr4jWaG+O54RjE/ynG517ASEQbifAGTJz8mNKYVQR
+	 5JowisfnjdSfrPhXxxSjWk4+kVsd82/RdRTm0gmt7raKu1shtA6QHyLjXq3ObO3nlJ
+	 1qVZ+ALU+rGw0E0mMEWMkJ4pHzKPqcjokGMYW7dw=
+Date: Wed, 24 Apr 2024 14:29:26 -0700
 To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,ebiggers@google.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memory-failure-remove-calls-to-page_mapping.patch added to mm-unstable branch
-Message-Id: <20240424212925.CED54C113CD@smtp.kernel.org>
+Subject: + migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch added to mm-unstable branch
+Message-Id: <20240424212927.614E0C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memory-failure: remove calls to page_mapping()
+     Subject: migrate: expand the use of folio in __migrate_device_pages()
 has been added to the -mm mm-unstable branch.  Its filename is
-     memory-failure-remove-calls-to-page_mapping.patch
+     migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-failure-remove-calls-to-page_mapping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,51 +59,64 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: memory-failure: remove calls to page_mapping()
-Date: Tue, 23 Apr 2024 23:55:34 +0100
+Subject: migrate: expand the use of folio in __migrate_device_pages()
+Date: Tue, 23 Apr 2024 23:55:35 +0100
 
-This is mostly just inlining page_mapping() into the two callers.
+Removes a few calls to compound_head() and a call to page_mapping().
 
-Link: https://lkml.kernel.org/r/20240423225552.4113447-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240423225552.4113447-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Eric Biggers <ebiggers@google.com>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/migrate_device.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
---- a/mm/memory-failure.c~memory-failure-remove-calls-to-page_mapping
-+++ a/mm/memory-failure.c
-@@ -216,6 +216,7 @@ EXPORT_SYMBOL_GPL(hwpoison_filter_flags_
+--- a/mm/migrate_device.c~migrate-expand-the-use-of-folio-in-__migrate_device_pages
++++ a/mm/migrate_device.c
+@@ -696,6 +696,7 @@ static void __migrate_device_pages(unsig
+ 		struct page *newpage = migrate_pfn_to_page(dst_pfns[i]);
+ 		struct page *page = migrate_pfn_to_page(src_pfns[i]);
+ 		struct address_space *mapping;
++		struct folio *folio;
+ 		int r;
  
- static int hwpoison_filter_dev(struct page *p)
- {
-+	struct folio *folio = page_folio(p);
- 	struct address_space *mapping;
- 	dev_t dev;
+ 		if (!newpage) {
+@@ -730,15 +731,12 @@ static void __migrate_device_pages(unsig
+ 			continue;
+ 		}
  
-@@ -223,7 +224,7 @@ static int hwpoison_filter_dev(struct pa
- 	    hwpoison_filter_dev_minor == ~0U)
- 		return 0;
+-		mapping = page_mapping(page);
++		folio = page_folio(page);
++		mapping = folio_mapping(folio);
  
--	mapping = page_mapping(p);
-+	mapping = folio_mapping(folio);
- 	if (mapping == NULL || mapping->host == NULL)
- 		return -EINVAL;
+ 		if (is_device_private_page(newpage) ||
+ 		    is_device_coherent_page(newpage)) {
+ 			if (mapping) {
+-				struct folio *folio;
+-
+-				folio = page_folio(page);
+-
+ 				/*
+ 				 * For now only support anonymous memory migrating to
+ 				 * device private or coherent memory.
+@@ -761,11 +759,10 @@ static void __migrate_device_pages(unsig
  
-@@ -1088,7 +1089,8 @@ out:
-  */
- static int me_pagecache_dirty(struct page_state *ps, struct page *p)
- {
--	struct address_space *mapping = page_mapping(p);
-+	struct folio *folio = page_folio(p);
-+	struct address_space *mapping = folio_mapping(folio);
- 
- 	SetPageError(p);
- 	/* TBD: print more information about the file. */
+ 		if (migrate && migrate->fault_page == page)
+ 			r = migrate_folio_extra(mapping, page_folio(newpage),
+-						page_folio(page),
+-						MIGRATE_SYNC_NO_COPY, 1);
++						folio, MIGRATE_SYNC_NO_COPY, 1);
+ 		else
+ 			r = migrate_folio(mapping, page_folio(newpage),
+-					page_folio(page), MIGRATE_SYNC_NO_COPY);
++					folio, MIGRATE_SYNC_NO_COPY);
+ 		if (r != MIGRATEPAGE_SUCCESS)
+ 			src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
