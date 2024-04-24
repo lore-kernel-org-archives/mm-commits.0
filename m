@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE57815688B
-	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 20:36:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2C73156999
+	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 20:36:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713990988; cv=none; b=GwdkQZ2RlT4hubZsZUdpukh7gHG72Ghr/bFfWS6WNMo58m2p5+WIDR+shouCIIjBMwMheAcBFusq2dSKW/FzABLxfj0uB1k1HQ6KUhL1fuKRlyln3YLvEa0xOxMO5bG8vx9TkqjAPT9zszLYyoMjUZITCHKXd3ystZJZ9ZxaGb0=
+	t=1713990990; cv=none; b=UhIaRjOm5y7MOHQgfZvLa+b30uNLKfQwd3d0hGRpO0UdVibYhqfSLUPdL2o9cZJ3zSHhDK8o2bmAQL+sCOvbFYUQGX4Jwn/L+j2X/QM4mHOTvKAZLhmavcgYJmxNNDsv7knFU2VarXAoWg7j5Gm0aA0nHCbd90wK128PmpQ5Q6I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713990988; c=relaxed/simple;
-	bh=FBhtqqK+Xbzg1fNMFRjvSTpsYsk6qX9YZwLi3jF+NGE=;
-	h=Date:To:From:Subject:Message-Id; b=tJeAXYZeMB7k8jwfFL82H7gH9JyGDNhfbUKealwzQnG5Pfrm9X15w/EC6k15ZwDj0fFZlki6AcDlEs61yGhtP5hc+swOUDycwv9v6b1Re5OBkgrGpv8ioXgQT+gdqx/2HN6qyu5F1pQfKLqVIK/hAZy9eM0G1Eq8frKUXBjl1ag=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ck5P5ocU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713990990; c=relaxed/simple;
+	bh=xOP4ZPuz6D4xCPwVmm4gkOLZ8QFrAoJY5LmoVQgafmk=;
+	h=Date:To:From:Subject:Message-Id; b=rTxJkagSDv2ixTs8JmsK/N2jASjg0QseoZm38GvwR7En5lFR6kBNNiU1f8WPSv5/ylkjBh9RpUPCmU9RAjF80INVQI+QVwXAtb7YKmdP5pLlJ3+KG8fTAKPzzUyXF0ga+WoMuVEWAwzQ+rflrpXGFPidYum1YHwiKB9dxH4Sd8Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F6T5Dvzd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ck5P5ocU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94DBFC4AF0A;
-	Wed, 24 Apr 2024 20:36:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F6T5Dvzd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CC05C2BD11;
+	Wed, 24 Apr 2024 20:36:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713990988;
-	bh=FBhtqqK+Xbzg1fNMFRjvSTpsYsk6qX9YZwLi3jF+NGE=;
+	s=korg; t=1713990990;
+	bh=xOP4ZPuz6D4xCPwVmm4gkOLZ8QFrAoJY5LmoVQgafmk=;
 	h=Date:To:From:Subject:From;
-	b=ck5P5ocU1mjaEiRym35UinMVyHStuHmCYCw9nc9hp47IANmI3LeQq3ldJ3IHeeeCN
-	 hJ5I2y/4+qxSoGqPyBAE6fY8vjH1bHNWPG8FLqZndh/oPGmkX8nSmkhy5XU2G22lef
-	 yjHo5FjiWg6vUxJ+Wa/RDdS2vEFBp/V/YmG8f45k=
-Date: Wed, 24 Apr 2024 13:36:27 -0700
+	b=F6T5Dvzd6NkBnyqFH43mANToGn/IrbigdPFLS6eeni8oZv44kGmen1xUBKlLyjjzo
+	 GQM3KWOY7qOWH8v8b6iE+W1XPc3VY45xU+F0jaO/Cju6/mGFI3rAJt52nOoyxePx5l
+	 33DXm0rJ1bZInT3zcp7eszdbxE2HPEgMNV4WcMv0=
+Date: Wed, 24 Apr 2024 13:36:29 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + gup-use-folios-for-gup_devmap.patch added to mm-unstable branch
-Message-Id: <20240424203628.94DBFC4AF0A@smtp.kernel.org>
+Subject: + mm-add-kernel-doc-for-folio_mark_accessed.patch added to mm-unstable branch
+Message-Id: <20240424203630.3CC05C2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: gup: use folios for gup_devmap
+     Subject: mm: add kernel-doc for folio_mark_accessed()
 has been added to the -mm mm-unstable branch.  Its filename is
-     gup-use-folios-for-gup_devmap.patch
+     mm-add-kernel-doc-for-folio_mark_accessed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gup-use-folios-for-gup_devmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-kernel-doc-for-folio_mark_accessed.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,66 +59,48 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: gup: use folios for gup_devmap
-Date: Wed, 24 Apr 2024 20:19:10 +0100
+Subject: mm: add kernel-doc for folio_mark_accessed()
+Date: Wed, 24 Apr 2024 20:19:11 +0100
 
-Use try_grab_folio() instead of try_grab_page() so we get the folio back
-that we calculated, and then use folio_set_referenced() instead of
-SetPageReferenced().  Correspondingly, use gup_put_folio() to put any
-unneeded references.
+Convert the existing documentation to kernel-doc and remove references to
+pages.
 
-Link: https://lkml.kernel.org/r/20240424191914.361554-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240424191914.361554-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ mm/swap.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
---- a/mm/gup.c~gup-use-folios-for-gup_devmap
-+++ a/mm/gup.c
-@@ -2877,13 +2877,10 @@ static void __maybe_unused gup_fast_undo
- 		unsigned int flags, struct page **pages)
- {
- 	while ((*nr) - nr_start) {
--		struct page *page = pages[--(*nr)];
-+		struct folio *folio = page_folio(pages[--(*nr)]);
- 
--		ClearPageReferenced(page);
--		if (flags & FOLL_PIN)
--			unpin_user_page(page);
--		else
--			put_page(page);
-+		folio_clear_referenced(folio);
-+		gup_put_folio(folio, 1, flags);
- 	}
+--- a/mm/swap.c~mm-add-kernel-doc-for-folio_mark_accessed
++++ a/mm/swap.c
+@@ -448,15 +448,18 @@ static void folio_inc_refs(struct folio
  }
+ #endif /* CONFIG_LRU_GEN */
  
-@@ -3024,6 +3021,7 @@ static int gup_fast_devmap_leaf(unsigned
- 	struct dev_pagemap *pgmap = NULL;
- 
- 	do {
-+		struct folio *folio;
- 		struct page *page = pfn_to_page(pfn);
- 
- 		pgmap = get_dev_pagemap(pfn, pgmap);
-@@ -3037,12 +3035,13 @@ static int gup_fast_devmap_leaf(unsigned
- 			break;
- 		}
- 
--		SetPageReferenced(page);
--		pages[*nr] = page;
--		if (unlikely(try_grab_page(page, flags))) {
-+		folio = try_grab_folio(page, 1, flags);
-+		if (!folio) {
- 			gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
- 			break;
- 		}
-+		folio_set_referenced(folio);
-+		pages[*nr] = page;
- 		(*nr)++;
- 		pfn++;
- 	} while (addr += PAGE_SIZE, addr != end);
+-/*
+- * Mark a page as having seen activity.
++/**
++ * folio_mark_accessed - Mark a folio as having seen activity.
++ * @folio: The folio to mark.
+  *
+- * inactive,unreferenced	->	inactive,referenced
+- * inactive,referenced		->	active,unreferenced
+- * active,unreferenced		->	active,referenced
++ * This function will perform one of the following transitions:
+  *
+- * When a newly allocated page is not yet visible, so safe for non-atomic ops,
+- * __SetPageReferenced(page) may be substituted for mark_page_accessed(page).
++ * * inactive,unreferenced	->	inactive,referenced
++ * * inactive,referenced	->	active,unreferenced
++ * * active,unreferenced	->	active,referenced
++ *
++ * When a newly allocated folio is not yet visible, so safe for non-atomic ops,
++ * __folio_set_referenced() may be substituted for folio_mark_accessed().
+  */
+ void folio_mark_accessed(struct folio *folio)
+ {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
