@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E83013C9DE
-	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 21:29:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD2AF13C9DE
+	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 21:29:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713994169; cv=none; b=IV9lQdY1iqYpBys6NeTWp12191+npqn40hmC6us619WuZbNAwpyKVHUrzTUT4mQ4ohJjoNa9bYcyGyR6ekqb4CUA0YMOrHPpum1pXndo02XgyFjygkehUETotqu0CmQjWPoYeMKbWXUPaN45Cq5N80VX9M2Z9a7Ep4LV22L1MJQ=
+	t=1713994170; cv=none; b=ELPfQ57C1OFNsbNFNApDKFKgnnlBcHd05Jlgvt6yNQP6jAQi/D30qRfPPUuoTj8pUCEnYZSkQkpDWX7mEDubBNVjTBEQiI8s1Xy8PMZBCIfh0w7AP3Tb0IDf1jtDoVa9wzC+Z3kTvB3p0iYvE2kfAII9n2KV0u8KytsQi5gRM9g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713994169; c=relaxed/simple;
-	bh=HkJr+qp95PQhqWGnAMunC46x3RY48GDIVNOvZZjvg2s=;
-	h=Date:To:From:Subject:Message-Id; b=gj1+1pO5FqZHfaB0yQASA6tABilu5AFpM4YDAR0BZnq5/rZJvRRqPakC0HjQjh2gu1+4ZQsqwrFJoc0CoOYgrdXc42tAy9CeR3tzKyW4g/SHKd+5V/4OCtw4qUNmmgCdz6ZgwQKiYmwQbZGvVuZQRIMIz+PStA1ZeruyVb7Uhvk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wNWzlmIM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713994170; c=relaxed/simple;
+	bh=0/SLr7Cp1I3oubMNXgGh1o9XM5Z2FpoVzETv6Zt+NV8=;
+	h=Date:To:From:Subject:Message-Id; b=JAUqqI9wBjbi0k+YxIGjHk3GWPdvclKWFsMimkJna0uMbVvSeBJjBfPB1eptz4fVJwXQocW9owkgDNBjwmM4b4v5+2iIPK2w2X2lyPS4AaEUVkt31uJFfjMnvDD8vHF1w0CuatqwwbAHzV5LcE3UvzmnlwsDr+uaI37E0wCI71g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kaXYGJwQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wNWzlmIM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1AA4C113CD;
-	Wed, 24 Apr 2024 21:29:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kaXYGJwQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CC52C113CD;
+	Wed, 24 Apr 2024 21:29:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713994169;
-	bh=HkJr+qp95PQhqWGnAMunC46x3RY48GDIVNOvZZjvg2s=;
+	s=korg; t=1713994170;
+	bh=0/SLr7Cp1I3oubMNXgGh1o9XM5Z2FpoVzETv6Zt+NV8=;
 	h=Date:To:From:Subject:From;
-	b=wNWzlmIMJNTrVzMaMZxv0gZ4r8UBJq3DswBohPm/TeJc/miGp0F957uGuk7DvnnE0
-	 qvRBdaMXfrGAsVNl1UQGBNN/V4VYPEQtnRrxyAWpbhH0GcnTE8ZN597tHL3LPzfRpq
-	 Imt92YK4gpH3zSOYwNO23Mw4DlQdvRZGPTHd9L8E=
-Date: Wed, 24 Apr 2024 14:29:28 -0700
+	b=kaXYGJwQvd/VK/jj65KV/qaRHvTtxGbIUckZf9CvVlbobfIPksyBMd2ydOzGdUukb
+	 WPiudM+CUYY3FHbZNXuqvuzNl1ZJekjQ4K4rM5gR97GqPCfD0NIlVFInwaFgtdKJoG
+	 OxAxAWsCZiaCcYoLiFqdqISyey4m2uNbtiKCdbu0=
+Date: Wed, 24 Apr 2024 14:29:29 -0700
 To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,ebiggers@google.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfault-expand-folio-use-in-mfill_atomic_install_pte.patch added to mm-unstable branch
-Message-Id: <20240424212928.F1AA4C113CD@smtp.kernel.org>
+Subject: + mm-remove-page_mapping.patch added to mm-unstable branch
+Message-Id: <20240424212930.8CC52C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: userfault; expand folio use in mfill_atomic_install_pte()
+     Subject: mm: remove page_mapping()
 has been added to the -mm mm-unstable branch.  Its filename is
-     userfault-expand-folio-use-in-mfill_atomic_install_pte.patch
+     mm-remove-page_mapping.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfault-expand-folio-use-in-mfill_atomic_install_pte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-page_mapping.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: userfault; expand folio use in mfill_atomic_install_pte()
-Date: Tue, 23 Apr 2024 23:55:36 +0100
+Subject: mm: remove page_mapping()
+Date: Tue, 23 Apr 2024 23:55:37 +0100
 
-Call page_folio() a little earlier so we can use folio_mapping()
-instead of page_mapping(), saving a call to compound_head().
+All callers are now converted, delete this compatibility wrapper.
 
-Link: https://lkml.kernel.org/r/20240423225552.4113447-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240423225552.4113447-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Eric Biggers <ebiggers@google.com>
@@ -73,31 +72,35 @@ Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/pagemap.h |    1 -
+ mm/folio-compat.c       |    6 ------
+ 2 files changed, 7 deletions(-)
 
---- a/mm/userfaultfd.c~userfault-expand-folio-use-in-mfill_atomic_install_pte
-+++ a/mm/userfaultfd.c
-@@ -180,9 +180,9 @@ int mfill_atomic_install_pte(pmd_t *dst_
- 	pte_t _dst_pte, *dst_pte;
- 	bool writable = dst_vma->vm_flags & VM_WRITE;
- 	bool vm_shared = dst_vma->vm_flags & VM_SHARED;
--	bool page_in_cache = page_mapping(page);
- 	spinlock_t *ptl;
--	struct folio *folio;
-+	struct folio *folio = page_folio(page);
-+	bool page_in_cache = folio_mapping(folio);
+--- a/include/linux/pagemap.h~mm-remove-page_mapping
++++ a/include/linux/pagemap.h
+@@ -399,7 +399,6 @@ static inline void filemap_nr_thps_dec(s
+ #endif
+ }
  
- 	_dst_pte = mk_pte(page, dst_vma->vm_page_prot);
- 	_dst_pte = pte_mkdirty(_dst_pte);
-@@ -212,7 +212,6 @@ int mfill_atomic_install_pte(pmd_t *dst_
- 	if (!pte_none_mostly(ptep_get(dst_pte)))
- 		goto out_unlock;
+-struct address_space *page_mapping(struct page *);
+ struct address_space *folio_mapping(struct folio *);
+ struct address_space *swapcache_mapping(struct folio *);
  
--	folio = page_folio(page);
- 	if (page_in_cache) {
- 		/* Usually, cache pages are already added to LRU */
- 		if (newly_allocated)
+--- a/mm/folio-compat.c~mm-remove-page_mapping
++++ a/mm/folio-compat.c
+@@ -10,12 +10,6 @@
+ #include <linux/swap.h>
+ #include "internal.h"
+ 
+-struct address_space *page_mapping(struct page *page)
+-{
+-	return folio_mapping(page_folio(page));
+-}
+-EXPORT_SYMBOL(page_mapping);
+-
+ void unlock_page(struct page *page)
+ {
+ 	return folio_unlock(page_folio(page));
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
