@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC79D13C9DE
-	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 21:29:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E83013C9DE
+	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 21:29:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713994167; cv=none; b=JgyC2YdScEoECAt3y7VUcMvu66RzLzUGMh3iW+oj1mDFOQZZOer4hnFlBREjRHAfQqjlva+iKXu/rxKS1+ACGK4JtnvHE98T18SNFaFlzyWdUW6pzEYxONQIUAFhrYjjDoZcOoxdlrEGLGsEP66bt57DfDi1/PouBtzEhUGRmmk=
+	t=1713994169; cv=none; b=IV9lQdY1iqYpBys6NeTWp12191+npqn40hmC6us619WuZbNAwpyKVHUrzTUT4mQ4ohJjoNa9bYcyGyR6ekqb4CUA0YMOrHPpum1pXndo02XgyFjygkehUETotqu0CmQjWPoYeMKbWXUPaN45Cq5N80VX9M2Z9a7Ep4LV22L1MJQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713994167; c=relaxed/simple;
-	bh=8j4ggRRAM1AWQpBIcDP5i54hX7ayrwS65v2ok0r4tpg=;
-	h=Date:To:From:Subject:Message-Id; b=lLDSpPGgY94x1wKQbCmSZtH5cCNSJjW/3d+7yQwMW8mY3vsuJ+wbYE9sOX0O/blRSpesK5yUFFuZ++EF50bum1l8iZhvNzj0+F+yTTpmcXcs3+SG9fS0VYno0mwv3OfaZuUgFCdOriyEmEJA/1/yGHH+bYCABZWjjnYJwUWUb/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AF0YLPU6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713994169; c=relaxed/simple;
+	bh=HkJr+qp95PQhqWGnAMunC46x3RY48GDIVNOvZZjvg2s=;
+	h=Date:To:From:Subject:Message-Id; b=gj1+1pO5FqZHfaB0yQASA6tABilu5AFpM4YDAR0BZnq5/rZJvRRqPakC0HjQjh2gu1+4ZQsqwrFJoc0CoOYgrdXc42tAy9CeR3tzKyW4g/SHKd+5V/4OCtw4qUNmmgCdz6ZgwQKiYmwQbZGvVuZQRIMIz+PStA1ZeruyVb7Uhvk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wNWzlmIM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AF0YLPU6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 614E0C113CD;
-	Wed, 24 Apr 2024 21:29:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wNWzlmIM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1AA4C113CD;
+	Wed, 24 Apr 2024 21:29:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713994167;
-	bh=8j4ggRRAM1AWQpBIcDP5i54hX7ayrwS65v2ok0r4tpg=;
+	s=korg; t=1713994169;
+	bh=HkJr+qp95PQhqWGnAMunC46x3RY48GDIVNOvZZjvg2s=;
 	h=Date:To:From:Subject:From;
-	b=AF0YLPU6bFBODfmR+DnIAkvprr4jWaG+O54RjE/ynG517ASEQbifAGTJz8mNKYVQR
-	 5JowisfnjdSfrPhXxxSjWk4+kVsd82/RdRTm0gmt7raKu1shtA6QHyLjXq3ObO3nlJ
-	 1qVZ+ALU+rGw0E0mMEWMkJ4pHzKPqcjokGMYW7dw=
-Date: Wed, 24 Apr 2024 14:29:26 -0700
+	b=wNWzlmIMJNTrVzMaMZxv0gZ4r8UBJq3DswBohPm/TeJc/miGp0F957uGuk7DvnnE0
+	 qvRBdaMXfrGAsVNl1UQGBNN/V4VYPEQtnRrxyAWpbhH0GcnTE8ZN597tHL3LPzfRpq
+	 Imt92YK4gpH3zSOYwNO23Mw4DlQdvRZGPTHd9L8E=
+Date: Wed, 24 Apr 2024 14:29:28 -0700
 To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,ebiggers@google.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch added to mm-unstable branch
-Message-Id: <20240424212927.614E0C113CD@smtp.kernel.org>
+Subject: + userfault-expand-folio-use-in-mfill_atomic_install_pte.patch added to mm-unstable branch
+Message-Id: <20240424212928.F1AA4C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: migrate: expand the use of folio in __migrate_device_pages()
+     Subject: userfault; expand folio use in mfill_atomic_install_pte()
 has been added to the -mm mm-unstable branch.  Its filename is
-     migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch
+     userfault-expand-folio-use-in-mfill_atomic_install_pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfault-expand-folio-use-in-mfill_atomic_install_pte.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: migrate: expand the use of folio in __migrate_device_pages()
-Date: Tue, 23 Apr 2024 23:55:35 +0100
+Subject: userfault; expand folio use in mfill_atomic_install_pte()
+Date: Tue, 23 Apr 2024 23:55:36 +0100
 
-Removes a few calls to compound_head() and a call to page_mapping().
+Call page_folio() a little earlier so we can use folio_mapping()
+instead of page_mapping(), saving a call to compound_head().
 
-Link: https://lkml.kernel.org/r/20240423225552.4113447-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240423225552.4113447-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Eric Biggers <ebiggers@google.com>
@@ -72,51 +73,31 @@ Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate_device.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ mm/userfaultfd.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/migrate_device.c~migrate-expand-the-use-of-folio-in-__migrate_device_pages
-+++ a/mm/migrate_device.c
-@@ -696,6 +696,7 @@ static void __migrate_device_pages(unsig
- 		struct page *newpage = migrate_pfn_to_page(dst_pfns[i]);
- 		struct page *page = migrate_pfn_to_page(src_pfns[i]);
- 		struct address_space *mapping;
-+		struct folio *folio;
- 		int r;
+--- a/mm/userfaultfd.c~userfault-expand-folio-use-in-mfill_atomic_install_pte
++++ a/mm/userfaultfd.c
+@@ -180,9 +180,9 @@ int mfill_atomic_install_pte(pmd_t *dst_
+ 	pte_t _dst_pte, *dst_pte;
+ 	bool writable = dst_vma->vm_flags & VM_WRITE;
+ 	bool vm_shared = dst_vma->vm_flags & VM_SHARED;
+-	bool page_in_cache = page_mapping(page);
+ 	spinlock_t *ptl;
+-	struct folio *folio;
++	struct folio *folio = page_folio(page);
++	bool page_in_cache = folio_mapping(folio);
  
- 		if (!newpage) {
-@@ -730,15 +731,12 @@ static void __migrate_device_pages(unsig
- 			continue;
- 		}
+ 	_dst_pte = mk_pte(page, dst_vma->vm_page_prot);
+ 	_dst_pte = pte_mkdirty(_dst_pte);
+@@ -212,7 +212,6 @@ int mfill_atomic_install_pte(pmd_t *dst_
+ 	if (!pte_none_mostly(ptep_get(dst_pte)))
+ 		goto out_unlock;
  
--		mapping = page_mapping(page);
-+		folio = page_folio(page);
-+		mapping = folio_mapping(folio);
- 
- 		if (is_device_private_page(newpage) ||
- 		    is_device_coherent_page(newpage)) {
- 			if (mapping) {
--				struct folio *folio;
--
--				folio = page_folio(page);
--
- 				/*
- 				 * For now only support anonymous memory migrating to
- 				 * device private or coherent memory.
-@@ -761,11 +759,10 @@ static void __migrate_device_pages(unsig
- 
- 		if (migrate && migrate->fault_page == page)
- 			r = migrate_folio_extra(mapping, page_folio(newpage),
--						page_folio(page),
--						MIGRATE_SYNC_NO_COPY, 1);
-+						folio, MIGRATE_SYNC_NO_COPY, 1);
- 		else
- 			r = migrate_folio(mapping, page_folio(newpage),
--					page_folio(page), MIGRATE_SYNC_NO_COPY);
-+					folio, MIGRATE_SYNC_NO_COPY);
- 		if (r != MIGRATEPAGE_SUCCESS)
- 			src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
- 	}
+-	folio = page_folio(page);
+ 	if (page_in_cache) {
+ 		/* Usually, cache pages are already added to LRU */
+ 		if (newly_allocated)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
