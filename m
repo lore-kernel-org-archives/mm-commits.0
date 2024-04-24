@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2C73156999
-	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 20:36:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 584EF16F0C7
+	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 20:36:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713990990; cv=none; b=UhIaRjOm5y7MOHQgfZvLa+b30uNLKfQwd3d0hGRpO0UdVibYhqfSLUPdL2o9cZJ3zSHhDK8o2bmAQL+sCOvbFYUQGX4Jwn/L+j2X/QM4mHOTvKAZLhmavcgYJmxNNDsv7knFU2VarXAoWg7j5Gm0aA0nHCbd90wK128PmpQ5Q6I=
+	t=1713990992; cv=none; b=BpanD4zTbuK/awktazl96ZZN6nfIFq7uBKUWfgDGPei8ZRvU7qr8fjdqgai5NJyEag+A/V8ZD8OvoW8L8wetVWpqtONydeqlQSm/rnL841H033ns507tyr4AXLPEgCFXjGL7klPy5MxF56NSbsVfL4WqTMsl45C2aSEnpZZKtcQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713990990; c=relaxed/simple;
-	bh=xOP4ZPuz6D4xCPwVmm4gkOLZ8QFrAoJY5LmoVQgafmk=;
-	h=Date:To:From:Subject:Message-Id; b=rTxJkagSDv2ixTs8JmsK/N2jASjg0QseoZm38GvwR7En5lFR6kBNNiU1f8WPSv5/ylkjBh9RpUPCmU9RAjF80INVQI+QVwXAtb7YKmdP5pLlJ3+KG8fTAKPzzUyXF0ga+WoMuVEWAwzQ+rflrpXGFPidYum1YHwiKB9dxH4Sd8Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F6T5Dvzd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713990992; c=relaxed/simple;
+	bh=rZzCb2FstcatrKopjkvGYCETCfZ/GrppgdJ3pRkGrCI=;
+	h=Date:To:From:Subject:Message-Id; b=XW+1pbriSZKpxHQKXSY05dAScRpozwjxS4PngEHgV7EpILLsVEuHQt/M4cj8GkBItysanZuOyfPJ42gSVglrCoxCAEHuG+UEZGFBDHzwIQOQq/NUUUT5m3EBfPmiYza2PIelxiLhw4of/t+W1FfqxoaIvZoy0cAuVSzcT4mNwbY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vhj0OrYv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F6T5Dvzd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CC05C2BD11;
-	Wed, 24 Apr 2024 20:36:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vhj0OrYv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8DB4C3277B;
+	Wed, 24 Apr 2024 20:36:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713990990;
-	bh=xOP4ZPuz6D4xCPwVmm4gkOLZ8QFrAoJY5LmoVQgafmk=;
+	s=korg; t=1713990992;
+	bh=rZzCb2FstcatrKopjkvGYCETCfZ/GrppgdJ3pRkGrCI=;
 	h=Date:To:From:Subject:From;
-	b=F6T5Dvzd6NkBnyqFH43mANToGn/IrbigdPFLS6eeni8oZv44kGmen1xUBKlLyjjzo
-	 GQM3KWOY7qOWH8v8b6iE+W1XPc3VY45xU+F0jaO/Cju6/mGFI3rAJt52nOoyxePx5l
-	 33DXm0rJ1bZInT3zcp7eszdbxE2HPEgMNV4WcMv0=
-Date: Wed, 24 Apr 2024 13:36:29 -0700
+	b=Vhj0OrYv/Aso2yFzFFozpknXDeBG7E/jasDo8fRzF9V2suZWwnFEHhgw0Vlf2upgj
+	 /T2ZtYSMv0ys+C1deQts7PXEYdtVy9QSDfwudsLfGE001VRB1+r81C0XENpR0r1Kaf
+	 hbBO4uQqxuMjtg916mqmhSnIQ7vbjYCmWwXtkrtI=
+Date: Wed, 24 Apr 2024 13:36:31 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-kernel-doc-for-folio_mark_accessed.patch added to mm-unstable branch
-Message-Id: <20240424203630.3CC05C2BD11@smtp.kernel.org>
+Subject: + mm-remove-pagereferenced.patch added to mm-unstable branch
+Message-Id: <20240424203631.D8DB4C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add kernel-doc for folio_mark_accessed()
+     Subject: mm: remove PageReferenced
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-kernel-doc-for-folio_mark_accessed.patch
+     mm-remove-pagereferenced.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-kernel-doc-for-folio_mark_accessed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pagereferenced.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,48 +59,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: add kernel-doc for folio_mark_accessed()
-Date: Wed, 24 Apr 2024 20:19:11 +0100
+Subject: mm: remove PageReferenced
+Date: Wed, 24 Apr 2024 20:19:12 +0100
 
-Convert the existing documentation to kernel-doc and remove references to
-pages.
+All callers now use folio_*_referenced() so we can remove the
+PageReferenced family of functions.
 
-Link: https://lkml.kernel.org/r/20240424191914.361554-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240424191914.361554-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ include/linux/page-flags.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/swap.c~mm-add-kernel-doc-for-folio_mark_accessed
-+++ a/mm/swap.c
-@@ -448,15 +448,18 @@ static void folio_inc_refs(struct folio
- }
- #endif /* CONFIG_LRU_GEN */
- 
--/*
-- * Mark a page as having seen activity.
-+/**
-+ * folio_mark_accessed - Mark a folio as having seen activity.
-+ * @folio: The folio to mark.
-  *
-- * inactive,unreferenced	->	inactive,referenced
-- * inactive,referenced		->	active,unreferenced
-- * active,unreferenced		->	active,referenced
-+ * This function will perform one of the following transitions:
-  *
-- * When a newly allocated page is not yet visible, so safe for non-atomic ops,
-- * __SetPageReferenced(page) may be substituted for mark_page_accessed(page).
-+ * * inactive,unreferenced	->	inactive,referenced
-+ * * inactive,referenced	->	active,unreferenced
-+ * * active,unreferenced	->	active,referenced
-+ *
-+ * When a newly allocated folio is not yet visible, so safe for non-atomic ops,
-+ * __folio_set_referenced() may be substituted for folio_mark_accessed().
-  */
- void folio_mark_accessed(struct folio *folio)
- {
+--- a/include/linux/page-flags.h~mm-remove-pagereferenced
++++ a/include/linux/page-flags.h
+@@ -512,9 +512,9 @@ static inline int TestClearPage##uname(s
+ __PAGEFLAG(Locked, locked, PF_NO_TAIL)
+ FOLIO_FLAG(waiters, FOLIO_HEAD_PAGE)
+ PAGEFLAG(Error, error, PF_NO_TAIL) TESTCLEARFLAG(Error, error, PF_NO_TAIL)
+-PAGEFLAG(Referenced, referenced, PF_HEAD)
+-	TESTCLEARFLAG(Referenced, referenced, PF_HEAD)
+-	__SETPAGEFLAG(Referenced, referenced, PF_HEAD)
++FOLIO_FLAG(referenced, FOLIO_HEAD_PAGE)
++	FOLIO_TEST_CLEAR_FLAG(referenced, FOLIO_HEAD_PAGE)
++	__FOLIO_SET_FLAG(referenced, FOLIO_HEAD_PAGE)
+ PAGEFLAG(Dirty, dirty, PF_HEAD) TESTSCFLAG(Dirty, dirty, PF_HEAD)
+ 	__CLEARPAGEFLAG(Dirty, dirty, PF_HEAD)
+ PAGEFLAG(LRU, lru, PF_HEAD) __CLEARPAGEFLAG(LRU, lru, PF_HEAD)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
