@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5D77143878
-	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 22:07:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15503745CB
+	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 22:08:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713996445; cv=none; b=i6QJ+48S+cBKi9tN4b/XJShElM9ZkhsWoFDy6iPegFrSVjJFkbuaOvOdjHHatOImf0RFJcekdHFCAfuTuITI0CYn3SatnFA2OYhby283XflHCoOBnfnEXOhkdxPx51ukeOaaAwIhOvVajV34Zy5tCRmoEnOkXoLYP6A1MvvLPM8=
+	t=1713996531; cv=none; b=XXiGBoXAAbWNwuYqeuF1w23nfQlp3LXkXFd0c1QbT4hyPDfmr77C41/dQg1YMuuA9xKKCHTNzeYI5lMeWydPAY8pGV6oRaW5kz8RSsSuql2Bc4oQiJe0mJuXWqJ2Dm6HtePQkIHZTgkrlnDqj3QfSFt1mRaICvbEiqUBqV6o/8o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713996445; c=relaxed/simple;
-	bh=cnhNojfLbTi4hBQuIV8U83VM142J3Qc+xA1qi+kE0LA=;
-	h=Date:To:From:Subject:Message-Id; b=pLCNDitbXx/8Yvelz46+AwmkzVPIq1qVY5SyorqEbkmGPHssbU6MqerooyMNmdzDDvIFTIQJZcPUG9PHhWf9fJlTd5Mqm0G7YevsLZIl7VGwtrhWFCoFL3msrv1FtxI9adJYCFFY/dH7uGOKggjHjXXJabVGALy1D9J48Jf6J20=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ni8FExKj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713996531; c=relaxed/simple;
+	bh=g5Pnot+0blAK3LpW2vylfV+deLeOETJYlXNjrX4QA4Q=;
+	h=Date:To:From:Subject:Message-Id; b=WOGouN3UftFjyVtAKg4QDM912pAX8Q/HmaF15VeWdfM+iQpyg7xK2FJ/gI3zHWamC8Z8MpJXxvl6ePLGlrrqs1Z8/nstM2aGzUV2ruhUgWXxEwuBDXm8uN6gmx3gOQJS09URtzNfHTESBDZ5X9Z7RXyLaLFEsHnwqeUxyxPY5pE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MHS0abnn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ni8FExKj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74EF3C113CD;
-	Wed, 24 Apr 2024 22:07:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MHS0abnn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91752C113CD;
+	Wed, 24 Apr 2024 22:08:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713996445;
-	bh=cnhNojfLbTi4hBQuIV8U83VM142J3Qc+xA1qi+kE0LA=;
+	s=korg; t=1713996530;
+	bh=g5Pnot+0blAK3LpW2vylfV+deLeOETJYlXNjrX4QA4Q=;
 	h=Date:To:From:Subject:From;
-	b=Ni8FExKjX4zjU+go1QLqcpL6qdsLJUFwOmWZybRl2Mx8Q9RaPmycafDDZd2HbXJX7
-	 vjRmkcY6CMOtILsAc5A5ds0h+kvlSSmtm6+3F3h1rKZNhj6zkpM12be1SMO8ot7PFg
-	 EQbvrsv6E3zju966DX8JVfoPFUJrIKW8v58h3pqk=
-Date: Wed, 24 Apr 2024 15:07:24 -0700
+	b=MHS0abnnTxGW2jlA/htj8KTbHPQ+vB9xWhotrslUs+LW7FD4HvocOdqAz6khmYorH
+	 CwUL0v89uEbU6dwXthdXFL30BN7S2ecn+uWOyCWwVC4Wo3iu/wVqRe5K3i4Hl6Ag1U
+	 ANYIRKGyAWAZzM6MgW/y5wsoxTX4mz4E9rsxDBac=
+Date: Wed, 24 Apr 2024 15:08:49 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,sj@kernel.org,sfr@canb.auug.org.au,mjguzik@gmail.com,jack@suse.cz,dsterba@suse.com,dhowells@redhat.com,bfoster@redhat.com,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi-fix.patch added to mm-unstable branch
-Message-Id: <20240424220725.74EF3C113CD@smtp.kernel.org>
+Subject: + writeback-add-wb_monitorpy-script-to-monitor-writeback-info-on-bdi.patch added to mm-unstable branch
+Message-Id: <20240424220850.91752C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: writeback: fix build problems of "writeback: support retrieving per group debug writeback stats of bdi"
+     Subject: writeback: add wb_monitor.py script to monitor writeback info on bdi
 has been added to the -mm mm-unstable branch.  Its filename is
-     writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi-fix.patch
+     writeback-add-wb_monitorpy-script-to-monitor-writeback-info-on-bdi.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-add-wb_monitorpy-script-to-monitor-writeback-info-on-bdi.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,83 +59,229 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: writeback: fix build problems of "writeback: support retrieving per group debug writeback stats of bdi"
-Date: Tue, 23 Apr 2024 11:46:41 +0800
+Subject: writeback: add wb_monitor.py script to monitor writeback info on bdi
+Date: Tue, 23 Apr 2024 11:46:42 +0800
 
-Fix two build problems:
-1. implicit declaration of function 'cgroup_ino'.
-2. unused variable 'stats'.
+Add wb_monitor.py script to monitor writeback information on backing dev
+which makes it easier and more convenient to observe writeback behaviors
+of running system.
 
-After this fix, No build problem is found when CGROUPS is disabled.
-The wb_stats could be successfully retrieved when CGROUP_WRITEBACK is
-disabled:
-cat wb_stats
-WbCgIno:                    1
-WbWriteback:                0 kB
-WbReclaimable:         685440 kB
-WbDirtyThresh:      195530960 kB
-WbDirtied:             691488 kB
-WbWritten:               6048 kB
-WbWriteBandwidth:      102400 kBps
-b_dirty:                    2
-b_io:                       0
-b_more_io:                  0
-b_dirty_time:               0
-state:                      5
+The wb_monitor.py script is written based on wq_monitor.py.
 
-cat wb_stats
-WbCgIno:                    1
-WbWriteback:                0 kB
-WbReclaimable:         818944 kB
-WbDirtyThresh:      195527484 kB
-WbDirtied:             824992 kB
-WbWritten:               6048 kB
-WbWriteBandwidth:      102400 kBps
-b_dirty:                    2
-b_io:                       0
-b_more_io:                  0
-b_dirty_time:               0
-state:                      5
+Following domain hierarchy is tested:
+                global domain (320G)
+                /                 \
+        cgroup domain1(10G)     cgroup domain2(10G)
+                |                 |
+bdi            wb1               wb2
 
-Link: https://lkml.kernel.org/r/20240423034643.141219-4-shikemeng@huaweicloud.com
+The wb_monitor.py script output is as following:
+./wb_monitor.py 252:16 -c
+                  writeback  reclaimable   dirtied   written    avg_bw
+252:16_1                  0            0         0         0    102400
+252:16_4284             672       820064   9230368   8410304    685612
+252:16_4325             896       819840  10491264   9671648    652348
+252:16                 1568      1639904  19721632  18081952   1440360
+
+                  writeback  reclaimable   dirtied   written    avg_bw
+252:16_1                  0            0         0         0    102400
+252:16_4284             672       820064   9230368   8410304    685612
+252:16_4325             896       819840  10491264   9671648    652348
+252:16                 1568      1639904  19721632  18081952   1440360
+...
+
+Link: https://lkml.kernel.org/r/20240423034643.141219-5-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Reported-by: SeongJae Park <sj@kernel.org>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au> 
+Suggested-by: Tejun Heo <tj@kernel.org>
 Cc: Brian Foster <bfoster@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Mateusz Guzik <mjguzik@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ tools/writeback/wb_monitor.py |  172 ++++++++++++++++++++++++++++++++
+ 1 file changed, 172 insertions(+)
 
---- a/mm/backing-dev.c~writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi-fix
-+++ a/mm/backing-dev.c
-@@ -172,7 +172,11 @@ static void wb_stats_show(struct seq_fil
- 		   "b_more_io:         %10lu\n"
- 		   "b_dirty_time:      %10lu\n"
- 		   "state:             %10lx\n\n",
-+#ifdef CONFIG_CGROUP_WRITEBACK
- 		   cgroup_ino(wb->memcg_css->cgroup),
-+#else
-+		   1ul,
-+#endif
- 		   K(stats->nr_writeback),
- 		   K(stats->nr_reclaimable),
- 		   K(stats->wb_thresh),
-@@ -192,7 +196,6 @@ static int cgwb_debug_stats_show(struct
- 	unsigned long background_thresh;
- 	unsigned long dirty_thresh;
- 	struct bdi_writeback *wb;
--	struct wb_stats stats;
- 
- 	global_dirty_limits(&background_thresh, &dirty_thresh);
- 
+--- /dev/null
++++ a/tools/writeback/wb_monitor.py
+@@ -0,0 +1,172 @@
++#!/usr/bin/env drgn
++#
++# Copyright (C) 2024 Kemeng Shi <shikemeng@huaweicloud.com>
++# Copyright (C) 2024 Huawei Inc
++
++desc = """
++This is a drgn script based on wq_monitor.py to monitor writeback info on
++backing dev. For more info on drgn, visit https://github.com/osandov/drgn.
++
++  writeback(kB)     Amount of dirty pages are currently being written back to
++                    disk.
++
++  reclaimable(kB)   Amount of pages are currently reclaimable.
++
++  dirtied(kB)       Amount of pages have been dirtied.
++
++  wrttien(kB)       Amount of dirty pages have been written back to disk.
++
++  avg_wb(kBps)      Smoothly estimated write bandwidth of writing dirty pages
++                    back to disk.
++"""
++
++import signal
++import re
++import time
++import json
++
++import drgn
++from drgn.helpers.linux.list import list_for_each_entry
++
++import argparse
++parser = argparse.ArgumentParser(description=desc,
++                                 formatter_class=argparse.RawTextHelpFormatter)
++parser.add_argument('bdi', metavar='REGEX', nargs='*',
++                    help='Target backing device name patterns (all if empty)')
++parser.add_argument('-i', '--interval', metavar='SECS', type=float, default=1,
++                    help='Monitoring interval (0 to print once and exit)')
++parser.add_argument('-j', '--json', action='store_true',
++                    help='Output in json')
++parser.add_argument('-c', '--cgroup', action='store_true',
++                    help='show writeback of bdi in cgroup')
++args = parser.parse_args()
++
++bdi_list                = prog['bdi_list']
++
++WB_RECLAIMABLE          = prog['WB_RECLAIMABLE']
++WB_WRITEBACK            = prog['WB_WRITEBACK']
++WB_DIRTIED              = prog['WB_DIRTIED']
++WB_WRITTEN              = prog['WB_WRITTEN']
++NR_WB_STAT_ITEMS        = prog['NR_WB_STAT_ITEMS']
++
++PAGE_SHIFT              = prog['PAGE_SHIFT']
++
++def K(x):
++    return x << (PAGE_SHIFT - 10)
++
++class Stats:
++    def dict(self, now):
++        return { 'timestamp'            : now,
++                 'name'                 : self.name,
++                 'writeback'            : self.stats[WB_WRITEBACK],
++                 'reclaimable'          : self.stats[WB_RECLAIMABLE],
++                 'dirtied'              : self.stats[WB_DIRTIED],
++                 'written'              : self.stats[WB_WRITTEN],
++                 'avg_wb'               : self.avg_bw, }
++
++    def table_header_str():
++        return f'{"":>16} {"writeback":>10} {"reclaimable":>12} ' \
++                f'{"dirtied":>9} {"written":>9} {"avg_bw":>9}'
++
++    def table_row_str(self):
++        out = f'{self.name[-16:]:16} ' \
++              f'{self.stats[WB_WRITEBACK]:10} ' \
++              f'{self.stats[WB_RECLAIMABLE]:12} ' \
++              f'{self.stats[WB_DIRTIED]:9} ' \
++              f'{self.stats[WB_WRITTEN]:9} ' \
++              f'{self.avg_bw:9} '
++        return out
++
++    def show_header():
++        if Stats.table_fmt:
++            print()
++            print(Stats.table_header_str())
++
++    def show_stats(self):
++        if Stats.table_fmt:
++            print(self.table_row_str())
++        else:
++            print(self.dict(Stats.now))
++
++class WbStats(Stats):
++    def __init__(self, wb):
++        bdi_name = wb.bdi.dev_name.string_().decode()
++        # avoid to use bdi.wb.memcg_css which is only defined when
++        # CONFIG_CGROUP_WRITEBACK is enabled
++        if wb == wb.bdi.wb.address_of_():
++            ino = "1"
++        else:
++            ino = str(wb.memcg_css.cgroup.kn.id.value_())
++        self.name = bdi_name + '_' + ino
++
++        self.stats = [0] * NR_WB_STAT_ITEMS
++        for i in range(NR_WB_STAT_ITEMS):
++            if wb.stat[i].count >= 0:
++                self.stats[i] = int(K(wb.stat[i].count))
++            else:
++                self.stats[i] = 0
++
++        self.avg_bw = int(K(wb.avg_write_bandwidth))
++
++class BdiStats(Stats):
++    def __init__(self, bdi):
++        self.name = bdi.dev_name.string_().decode()
++        self.stats = [0] * NR_WB_STAT_ITEMS
++        self.avg_bw = 0
++
++    def collectStats(self, wb_stats):
++        for i in range(NR_WB_STAT_ITEMS):
++            self.stats[i] += wb_stats.stats[i]
++
++        self.avg_bw += wb_stats.avg_bw
++
++exit_req = False
++
++def sigint_handler(signr, frame):
++    global exit_req
++    exit_req = True
++
++def main():
++    # handle args
++    Stats.table_fmt = not args.json
++    interval = args.interval
++    cgroup = args.cgroup
++
++    re_str = None
++    if args.bdi:
++        for r in args.bdi:
++            if re_str is None:
++                re_str = r
++            else:
++                re_str += '|' + r
++
++    filter_re = re.compile(re_str) if re_str else None
++
++    # monitoring loop
++    signal.signal(signal.SIGINT, sigint_handler)
++
++    while not exit_req:
++        Stats.now = time.time()
++
++        Stats.show_header()
++        for bdi in list_for_each_entry('struct backing_dev_info', bdi_list.address_of_(), 'bdi_list'):
++            bdi_stats = BdiStats(bdi)
++            if filter_re and not filter_re.search(bdi_stats.name):
++                continue
++
++            for wb in list_for_each_entry('struct bdi_writeback', bdi.wb_list.address_of_(), 'bdi_node'):
++                wb_stats = WbStats(wb)
++                bdi_stats.collectStats(wb_stats)
++                if cgroup:
++                    wb_stats.show_stats()
++
++            bdi_stats.show_stats()
++            if cgroup and Stats.table_fmt:
++                print()
++
++        if interval == 0:
++            break
++        time.sleep(interval)
++
++if __name__ == "__main__":
++    main()
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
