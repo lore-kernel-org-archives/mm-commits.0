@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFB8E13C9DE
-	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 21:29:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 610F613C9DE
+	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 21:29:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713994164; cv=none; b=lYzXnqjub2Mf7I1ZLy0MTH89HysRIkR3ZDyzizf0UowlmsP9yxJLRuPwU8IPxmz1lwGy383Wl62pU/Apk9MFvGgw9hKf2B+iUmTGkxbzgFdGkjzDI0KtT2foaIvJcZVIZrmo/Rw79MAae7Dl8N1m0SK6QPJ7q7BQRi0YmqpGtbc=
+	t=1713994166; cv=none; b=qSpsNTuISZQ1NTFPj6Zk/o0EOCXCnv1jIjAczJW2C2SoHEDosOwoXqLPRTzmzW73Btz3+m/2tWlXMCbcyxz2gZuiObkw63nt+3bscA+r+p3FpyXFrXz9E/S4zGNYgGzYwI0exQI4WMs7LF7hjsrbweH2PNUPVxRGpnZckifl8GY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713994164; c=relaxed/simple;
-	bh=nTNWK7kRbzlpfD/2q8EHXFU8dAOHrO4sLek0c0/man0=;
-	h=Date:To:From:Subject:Message-Id; b=aQQgCPdv6EI0YuctZGsvmGFQ3DoEUIMNYMos4Liq91q/bedJWLN8DQYkN9j9szwCk03iXQaVHeCNOKyzErAFkkogCzG5PsFatoqD0iY9aTANuW5Kk4UwxVfGXcP+QZ4nldFAe6h3qtj7peNAouRt1VKWHhZTP32DzNWYgnv+PeY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LvACNHi4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713994166; c=relaxed/simple;
+	bh=Pb45XN6hATvG53+vXBOexjiBt8/+k84uVHlTOfUk3KA=;
+	h=Date:To:From:Subject:Message-Id; b=NJwgiyRThGyNrapAHhZ3B5pdOIU87KtWQ42V4QkxoiWmOK+y0ZodO3OwaPWRLYvrGm8jZTghsRQdvsjuC/CahTpCG2VVyFiUNjn3YPCKuC83/MZv6mCktqFARTXDEIhZYIrhRwz78wF+qHxMRkFvqskFhOvyQ3eFxlBLmBNAINU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JqZYQ7QT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LvACNHi4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EB6FC113CD;
-	Wed, 24 Apr 2024 21:29:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JqZYQ7QT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CED54C113CD;
+	Wed, 24 Apr 2024 21:29:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713994164;
-	bh=nTNWK7kRbzlpfD/2q8EHXFU8dAOHrO4sLek0c0/man0=;
+	s=korg; t=1713994165;
+	bh=Pb45XN6hATvG53+vXBOexjiBt8/+k84uVHlTOfUk3KA=;
 	h=Date:To:From:Subject:From;
-	b=LvACNHi4KhE+iPVfUPVmgqXuNjqgxNh0R/y5cx9Zvt79beatQddmn382+rWoNV1kW
-	 ue83M2xS6A7inF1bcIeFp0pGuBrje4aLgOyNsqLNB61YNjYWVeDaDwVJm0WCh5FX1c
-	 AxCGIVWKOrBG73+qvAuWBb1lgXnVUz6mGDTU53lA=
-Date: Wed, 24 Apr 2024 14:29:23 -0700
+	b=JqZYQ7QTwbaTJL4S4DedtXzgwn7tT/GubtUOLR36MoJztEIO5reOEL+VpXfqv9BZ6
+	 yDNH4u7NNmxmIh0sLd9oKY0sRK2DZrmEhhr/ob8TrR7DhuOMbbckJflUtKqlt2/eAP
+	 F3lRfdRegth0j9ufX9T+7nzskbVrR4I/VLIAjah8=
+Date: Wed, 24 Apr 2024 14:29:25 -0700
 To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,ebiggers@google.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20240424212924.4EB6FC113CD@smtp.kernel.org>
+Subject: + memory-failure-remove-calls-to-page_mapping.patch added to mm-unstable branch
+Message-Id: <20240424212925.CED54C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: f2fs: convert f2fs_clear_page_cache_dirty_tag to use a folio
+     Subject: memory-failure: remove calls to page_mapping()
 has been added to the -mm mm-unstable branch.  Its filename is
-     f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio.patch
+     memory-failure-remove-calls-to-page_mapping.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-failure-remove-calls-to-page_mapping.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,39 +59,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: f2fs: convert f2fs_clear_page_cache_dirty_tag to use a folio
-Date: Tue, 23 Apr 2024 23:55:33 +0100
+Subject: memory-failure: remove calls to page_mapping()
+Date: Tue, 23 Apr 2024 23:55:34 +0100
 
-Removes uses of page_mapping() and page_index().
+This is mostly just inlining page_mapping() into the two callers.
 
-Link: https://lkml.kernel.org/r/20240423225552.4113447-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240423225552.4113447-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Eric Biggers <ebiggers@google.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/f2fs/data.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/fs/f2fs/data.c~f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio
-+++ a/fs/f2fs/data.c
-@@ -4082,11 +4082,12 @@ const struct address_space_operations f2
+--- a/mm/memory-failure.c~memory-failure-remove-calls-to-page_mapping
++++ a/mm/memory-failure.c
+@@ -216,6 +216,7 @@ EXPORT_SYMBOL_GPL(hwpoison_filter_flags_
  
- void f2fs_clear_page_cache_dirty_tag(struct page *page)
+ static int hwpoison_filter_dev(struct page *p)
  {
--	struct address_space *mapping = page_mapping(page);
-+	struct folio *folio = page_folio(page);
-+	struct address_space *mapping = folio->mapping;
- 	unsigned long flags;
++	struct folio *folio = page_folio(p);
+ 	struct address_space *mapping;
+ 	dev_t dev;
  
- 	xa_lock_irqsave(&mapping->i_pages, flags);
--	__xa_clear_mark(&mapping->i_pages, page_index(page),
-+	__xa_clear_mark(&mapping->i_pages, folio->index,
- 						PAGECACHE_TAG_DIRTY);
- 	xa_unlock_irqrestore(&mapping->i_pages, flags);
- }
+@@ -223,7 +224,7 @@ static int hwpoison_filter_dev(struct pa
+ 	    hwpoison_filter_dev_minor == ~0U)
+ 		return 0;
+ 
+-	mapping = page_mapping(p);
++	mapping = folio_mapping(folio);
+ 	if (mapping == NULL || mapping->host == NULL)
+ 		return -EINVAL;
+ 
+@@ -1088,7 +1089,8 @@ out:
+  */
+ static int me_pagecache_dirty(struct page_state *ps, struct page *p)
+ {
+-	struct address_space *mapping = page_mapping(p);
++	struct folio *folio = page_folio(p);
++	struct address_space *mapping = folio_mapping(folio);
+ 
+ 	SetPageError(p);
+ 	/* TBD: print more information about the file. */
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
