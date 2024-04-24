@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3CC6157460
-	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 21:41:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E04E2B9C9
+	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 21:55:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713994884; cv=none; b=jrGd1AnWKI0UwX0aqxremrTxqSqBPyO4+KFHZ2iN/72zoiuYyriNJoq7XmvK5O7fxnWdlF9mVf+KDKo9QfuxhPJtgk/9hbbBfvDipJkKekA8O4aYKZXbeMgas0C/RKbksJK3ZERHCKsyxawZgXu82CLMN1z5syZ62qkMWkJkBMs=
+	t=1713995732; cv=none; b=eM8sn+y+GXXi0CV6IvwdhFKVp4x7hSKWwoifcQ2lVlDh8OsdYhClCVrpJ/vQO5CnNyfK7YV7165+1vYz5DGoIDLdCpVIceLoc/EsMTi5Fafr/CRkaqVbX9gM9ppjXDmZZtMZpWjhTLlIFF3Rah9ubpIGvK/y5INWZn+nZuZ3IGM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713994884; c=relaxed/simple;
-	bh=rtHre1LYY3ou8F8A6X+0N1bb2qKlkjmuFMJGWs0k+Ko=;
-	h=Date:To:From:Subject:Message-Id; b=OEotn4QxtxJGOZrBwe4QyNxpmiWtwBtJgUCODwJYTXksAZ5HkBYxvPh+qDUACC7ZlWH/vZoSm7mB6CK19U8FudVvsEmV9fcCaF58YRW6836H41E+e46hhluM5krsNmRqTbgj08y/aE7nj3Xwk8UebMJ9uXMt6VHlO0cHQNcO+YI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hjRr22PC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713995732; c=relaxed/simple;
+	bh=lYa09eALFjIbAaZNy+No3tofeve2LRYb6XFhvyxZwU4=;
+	h=Date:To:From:Subject:Message-Id; b=cIG5vqlbTS3PEiEWK0SjowtZSalNzxv1EAw7T6Pzbd2kK4Nw62SYvKT9B4+euuRusCnWjalHplBLXnnv+QOyE3GaO1bi+kjhXiJX0qbGOobCY2aKxeYBzxO9SxP5A13p34+/10wBMEZxgTLg50eFyfrBofKPhBP7sfJ9KvyxB8M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Iy2Fq0nZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hjRr22PC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50F02C113CD;
-	Wed, 24 Apr 2024 21:41:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Iy2Fq0nZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5310C113CD;
+	Wed, 24 Apr 2024 21:55:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713994884;
-	bh=rtHre1LYY3ou8F8A6X+0N1bb2qKlkjmuFMJGWs0k+Ko=;
+	s=korg; t=1713995731;
+	bh=lYa09eALFjIbAaZNy+No3tofeve2LRYb6XFhvyxZwU4=;
 	h=Date:To:From:Subject:From;
-	b=hjRr22PC8F5nnYIVz9T4OH+Pncp5OxFtZMU7g0J/F2/R6NoUOhY8ko2qGiDZYbHYb
-	 6LflgzfdhxAMg1sqOAscjiJn9Tfr2LYeiLNDntNAoECmjKbgr8fntV41Qi961xTBnH
-	 9ePRvj4zC9h3fCxsMgJxTFIDu1zur2n4PCRAMQ3w=
-Date: Wed, 24 Apr 2024 14:41:23 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,usama.anjum@collabora.com,torvalds@linux-foundation.org,surenb@google.com,sroettger@google.com,shuah@kernel.org,pedro.falcato@gmail.com,Liam.Howlett@oracle.com,keescook@chromium.org,jorgelo@chromium.org,jeffxu@google.com,javier.carrasco.cruz@gmail.com,jannh@google.com,groeck@chromium.org,gregkh@linuxfoundation.org,dave.hansen@intel.com,corbet@lwn.net,amer.shanawany@gmail.com,jeffxu@chromium.org,akpm@linux-foundation.org
+	b=Iy2Fq0nZvdXLHYKKjc31zeFFjz37mvyChJJ1xQxxavDhFa2OFZ34g4EwV5zL848bv
+	 xLY1xR3/maxcJ9mUubBhQoMvHyCbi1+zd/0sPho9ahpBA3jMJXusnPhgIEdbV7cL4L
+	 eaKISNxA81ihrLhuyj2HptAByxbnz6LIvu/0bzSo=
+Date: Wed, 24 Apr 2024 14:55:30 -0700
+To: mm-commits@vger.kernel.org,wens@csie.org,stefani@seibold.net,sean.wang@mediatek.com,sean@mess.org,samuel@sholland.org,robh@kernel.org,patrice.chotard@foss.st.com,mchehab@kernel.org,matthias.bgg@gmail.com,jernej.skrabec@gmail.com,hverkuil-cisco@xs4all.nl,angelogioacchino.delregno@collabora.com,alain.volmat@foss.st.com,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mseal-add-mseal-syscall-fix.patch added to mm-unstable branch
-Message-Id: <20240424214124.50F02C113CD@smtp.kernel.org>
+Subject: + media-rc-add-missing-ioh.patch added to mm-nonmm-unstable branch
+Message-Id: <20240424215531.C5310C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mseal: add branch prediction hint
-has been added to the -mm mm-unstable branch.  Its filename is
-     mseal-add-mseal-syscall-fix.patch
+     Subject: media: rc: add missing io.h
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     media-rc-add-missing-ioh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mseal-add-mseal-syscall-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/media-rc-add-missing-ioh.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,144 +58,97 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jeff Xu <jeffxu@chromium.org>
-Subject: mseal: add branch prediction hint
-Date: Tue, 23 Apr 2024 19:28:25 +0000
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: media: rc: add missing io.h
+Date: Tue, 23 Apr 2024 22:23:08 +0300
 
-It is unlikely that application calls mm syscall, such as mprotect, on
-already sealed mappings, adding branch prediction hint.
+Patch series "kfifo: Clean up kfifo.h", v2.
 
-Link: https://lkml.kernel.org/r/20240423192825.1273679-2-jeffxu@chromium.org
-Signed-off-by: Jeff Xu <jeffxu@chromium.org>
-Suggested-by: Pedro Falcato <pedro.falcato@gmail.com>
-Cc: Amer Al Shanawany <amer.shanawany@gmail.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Guenter Roeck <groeck@chromium.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Javier Carrasco <javier.carrasco.cruz@gmail.com>
-Cc: Jeff Xu <jeffxu@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Stephen Röttger <sroettger@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+To reduce dependency hell a degree, clean up kfifo.h (mainly getting rid
+of kernel.h in the global header).  
+
+
+This patch (of 3):
+
+In many remote control drivers the io.h is implied by others.  This is not
+good as it prevents from cleanups done in other headers.  Add missing
+include.
+
+Link: https://lkml.kernel.org/r/20240423192529.3249134-1-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20240423192529.3249134-2-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Alain Volmat <alain.volmat@foss.st.com>
+Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Cc: Chen-Yu Tsai <wens@csie.org>
+Cc: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Cc: Jernej Skrabec <jernej.skrabec@gmail.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Patrice Chotard <patrice.chotard@foss.st.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Samuel Holland <samuel@sholland.org>
+Cc: Sean Wang <sean.wang@mediatek.com>
+Cc: Sean Young <sean@mess.org>
+Cc: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c  |    2 +-
- mm/mmap.c     |    4 ++--
- mm/mprotect.c |    2 +-
- mm/mremap.c   |    4 ++--
- mm/mseal.c    |    6 +++---
- 5 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/media/rc/mtk-cir.c   |    1 +
+ drivers/media/rc/serial_ir.c |    1 +
+ drivers/media/rc/st_rc.c     |    1 +
+ drivers/media/rc/sunxi-cir.c |    1 +
+ 4 files changed, 4 insertions(+)
 
---- a/mm/madvise.c~mseal-add-mseal-syscall-fix
-+++ a/mm/madvise.c
-@@ -1436,7 +1436,7 @@ int do_madvise(struct mm_struct *mm, uns
- 	 * Check if the address range is sealed for do_madvise().
- 	 * can_modify_mm_madv assumes we have acquired the lock on MM.
- 	 */
--	if (!can_modify_mm_madv(mm, start, end, behavior)) {
-+	if (unlikely(!can_modify_mm_madv(mm, start, end, behavior))) {
- 		error = -EPERM;
- 		goto out;
- 	}
---- a/mm/mmap.c~mseal-add-mseal-syscall-fix
-+++ a/mm/mmap.c
-@@ -2740,7 +2740,7 @@ int do_vmi_munmap(struct vma_iterator *v
- 	 * Prevent unmapping a sealed VMA.
- 	 * can_modify_mm assumes we have acquired the lock on MM.
- 	 */
--	if (!can_modify_mm(mm, start, end))
-+	if (unlikely(!can_modify_mm(mm, start, end)))
- 		return -EPERM;
+--- a/drivers/media/rc/mtk-cir.c~media-rc-add-missing-ioh
++++ a/drivers/media/rc/mtk-cir.c
+@@ -8,6 +8,7 @@
+ #include <linux/clk.h>
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
++#include <linux/io.h>
+ #include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/reset.h>
+--- a/drivers/media/rc/serial_ir.c~media-rc-add-missing-ioh
++++ a/drivers/media/rc/serial_ir.c
+@@ -18,6 +18,7 @@
+ #include <linux/module.h>
+ #include <linux/errno.h>
+ #include <linux/interrupt.h>
++#include <linux/io.h>
+ #include <linux/kernel.h>
+ #include <linux/serial_reg.h>
+ #include <linux/types.h>
+--- a/drivers/media/rc/st_rc.c~media-rc-add-missing-ioh
++++ a/drivers/media/rc/st_rc.c
+@@ -6,6 +6,7 @@
+ #include <linux/kernel.h>
+ #include <linux/clk.h>
+ #include <linux/interrupt.h>
++#include <linux/io.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/platform_device.h>
+--- a/drivers/media/rc/sunxi-cir.c~media-rc-add-missing-ioh
++++ a/drivers/media/rc/sunxi-cir.c
+@@ -12,6 +12,7 @@
  
- 	 /* arch_unmap() might do unmaps itself.  */
-@@ -3163,7 +3163,7 @@ int do_vma_munmap(struct vma_iterator *v
- 	 * Prevent unmapping a sealed VMA.
- 	 * can_modify_mm assumes we have acquired the lock on MM.
- 	 */
--	if (!can_modify_mm(mm, start, end))
-+	if (unlikely(!can_modify_mm(mm, start, end)))
- 		return -EPERM;
- 
- 	arch_unmap(mm, start, end);
---- a/mm/mprotect.c~mseal-add-mseal-syscall-fix
-+++ a/mm/mprotect.c
-@@ -749,7 +749,7 @@ static int do_mprotect_pkey(unsigned lon
- 	 * checking if memory is sealed.
- 	 * can_modify_mm assumes we have acquired the lock on MM.
- 	 */
--	if (!can_modify_mm(current->mm, start, end)) {
-+	if (unlikely(!can_modify_mm(current->mm, start, end))) {
- 		error = -EPERM;
- 		goto out;
- 	}
---- a/mm/mremap.c~mseal-add-mseal-syscall-fix
-+++ a/mm/mremap.c
-@@ -912,7 +912,7 @@ static unsigned long mremap_to(unsigned
- 	 *
- 	 * can_modify_mm assumes we have acquired the lock on MM.
- 	 */
--	if (!can_modify_mm(mm, addr, addr + old_len))
-+	if (unlikely(!can_modify_mm(mm, addr, addr + old_len)))
- 		return -EPERM;
- 
- 	if (flags & MREMAP_FIXED) {
-@@ -1087,7 +1087,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 	 * Place can_modify_mm here so we can keep the logic related to
- 	 * shrink/expand together.
- 	 */
--	if (!can_modify_mm(mm, addr, addr + old_len)) {
-+	if (unlikely(!can_modify_mm(mm, addr, addr + old_len))) {
- 		ret = -EPERM;
- 		goto out;
- 	}
---- a/mm/mseal.c~mseal-add-mseal-syscall-fix
-+++ a/mm/mseal.c
-@@ -32,7 +32,7 @@ static inline void set_vma_sealed(struct
-  */
- static bool can_modify_vma(struct vm_area_struct *vma)
- {
--	if (vma_is_sealed(vma))
-+	if (unlikely(vma_is_sealed(vma)))
- 		return false;
- 
- 	return true;
-@@ -75,7 +75,7 @@ bool can_modify_mm(struct mm_struct *mm,
- 
- 	/* going through each vma to check. */
- 	for_each_vma_range(vmi, vma, end) {
--		if (!can_modify_vma(vma))
-+		if (unlikely(!can_modify_vma(vma)))
- 			return false;
- 	}
- 
-@@ -100,7 +100,7 @@ bool can_modify_mm_madv(struct mm_struct
- 
- 	/* going through each vma to check. */
- 	for_each_vma_range(vmi, vma, end)
--		if (is_ro_anon(vma) && !can_modify_vma(vma))
-+		if (unlikely(is_ro_anon(vma) && !can_modify_vma(vma)))
- 			return false;
- 
- 	/* Allow by default. */
+ #include <linux/clk.h>
+ #include <linux/interrupt.h>
++#include <linux/io.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/platform_device.h>
 _
 
-Patches currently in -mm which might be from jeffxu@chromium.org are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-mseal-wire-up-mseal-syscall.patch
-mseal-add-mseal-syscall.patch
-mseal-add-mseal-syscall-fix.patch
-selftest-mm-mseal-memory-sealing.patch
-mseal-add-documentation.patch
-selftest-mm-mseal-read-only-elf-memory-segment.patch
-selftest-mm-mseal-read-only-elf-memory-segment-fix.patch
-selftest-mm-mseal-read-only-elf-memory-segment-fix-3.patch
+mm-page_alloc-consolidate-free-page-accounting-fix-4.patch
+xarray-use-bits_per_longs.patch
+xarray-dont-use-proxy-headers.patch
+devres-switch-to-use-dev_err_probe-for-unification.patch
+devres-dont-use-proxy-headers.patch
+media-rc-add-missing-ioh.patch
+media-stih-cec-add-missing-ioh.patch
+kfifo-dont-use-proxy-headers.patch
 
