@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEF5B15697B
-	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 20:36:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11E6D156C41
+	for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2024 20:36:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713990983; cv=none; b=grbFrBhix8XLjd90LrwmAxbmMUg3dHb65+VOer84o09eubDS0737PwZNNPE1zDD+7LYf7FpTEBUx9jp0xVbHfPIxdyDZxCXTL3Zz21dN41j+eu6LhPc5ClDJRR4uVF5/LJjKJVix0CHeCqSdXeYAktyHOt4r+H35rR/GCNbmgxU=
+	t=1713990985; cv=none; b=AA+Ih4QU95gOs1lnsZADWpV+5u08PZ8Hig3IzAs4ouHGyRgYqaB63TWr6dMAnDRoTHoUvTO9VipUrdItmquggI00roO8Yl+niTW+OhrOWfKY2AiGc/B9cRaMsZTLCvzMaJA1AZlbb3SPj4ECrkoScpzpX9ylDf6aYv8XDbT3fo0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713990983; c=relaxed/simple;
-	bh=c88ZrAun16f+fASy0YMo/f/wtspsVtieTsFJujcyZ8Y=;
-	h=Date:To:From:Subject:Message-Id; b=E7Hiwzq3BTtFHCTF8bWp/ut/oa6FiBwa6npQ2ZwDoKg+GElRMtJdjI5mkawEEqTzpAbuUDuzXrrGoXUzlgfvyH0mRBeQdQRNMj9J+2CNDqZclqMt3G1fxaF6oSiixdOUIFDN5l8A8hKTPLMQV1xFSAjN67PCDOV+Hhjijww+5FY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=py1HPOyi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713990985; c=relaxed/simple;
+	bh=ojvtbXpOEnDK976TVHgFHtFF0J79Xscgb0HrCchisLE=;
+	h=Date:To:From:Subject:Message-Id; b=PA95sjPuq06S3TsjO85lciI+DLGybtJlnb11Uq683HIEW9SM0YumhJN4lW6tYWb5+wegW9V+XIeQCCFGCozqFPl5k+gbSllwl+jHxXG1vzSfF68+tiIIzrt0tTJ/XzjhTul4h+oQIdPD0ujA5rM7pm6EOxXJNLQcqghc1BX5xEc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IXsrL9kg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="py1HPOyi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42149C3277B;
-	Wed, 24 Apr 2024 20:36:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IXsrL9kg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCE29C3277B;
+	Wed, 24 Apr 2024 20:36:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1713990983;
-	bh=c88ZrAun16f+fASy0YMo/f/wtspsVtieTsFJujcyZ8Y=;
+	s=korg; t=1713990984;
+	bh=ojvtbXpOEnDK976TVHgFHtFF0J79Xscgb0HrCchisLE=;
 	h=Date:To:From:Subject:From;
-	b=py1HPOyimjJgBfqrcrNFMG6jOPscKUuJJaUne3V4QHIFPiwqVGe6UzMlpFAM8J78S
-	 9rdwtL7OKYlW5gfsbG+r9Q6Q+cY8U/yuOl4EG2ZXosLlWYze1AB69EKMeOpbnuew+/
-	 aC2aTlt4f5MwBLNTAFXv/a5ubhuCNgPV9VxQcDK8=
-Date: Wed, 24 Apr 2024 13:36:22 -0700
+	b=IXsrL9kgW74IzNbVs09Yr/XLcw0wL22n1hQFUxarjDztfX7b/cesSqgSJfI138+DI
+	 Nf2kQY40lgauBhgSEHN6Yvz3+KB4CQ8KSXqge357l0hxuZ634zczmlVaejnSWsc+vr
+	 q4sCxS2dq+3ocHfjb8ykTb70tBzM8xtaF2zfEwpc=
+Date: Wed, 24 Apr 2024 13:36:24 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-put_devmap_managed_page.patch added to mm-unstable branch
-Message-Id: <20240424203623.42149C3277B@smtp.kernel.org>
+Subject: + mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs.patch added to mm-unstable branch
+Message-Id: <20240424203624.CCE29C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove put_devmap_managed_page()
+     Subject: mm: convert put_devmap_managed_page_refs() to put_devmap_managed_folio_refs()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-put_devmap_managed_page.patch
+     mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-put_devmap_managed_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,43 +59,124 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove put_devmap_managed_page()
-Date: Wed, 24 Apr 2024 20:19:07 +0100
+Subject: mm: convert put_devmap_managed_page_refs() to put_devmap_managed_folio_refs()
+Date: Wed, 24 Apr 2024 20:19:08 +0100
 
-It only has one caller; convert that caller to use
-put_devmap_managed_page_refs() instead.
+All callers have a folio so we can remove this use of
+page_ref_sub_return().
 
-Link: https://lkml.kernel.org/r/20240424191914.361554-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240424191914.361554-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ include/linux/mm.h |   12 ++++++------
+ mm/gup.c           |    6 +++---
+ mm/memremap.c      |   10 +++++-----
+ mm/swap.c          |    2 +-
+ 4 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/include/linux/mm.h~mm-remove-put_devmap_managed_page
+--- a/include/linux/mm.h~mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs
 +++ a/include/linux/mm.h
-@@ -1453,11 +1453,6 @@ static inline bool put_devmap_managed_pa
- }
- #endif /* CONFIG_ZONE_DEVICE && CONFIG_FS_DAX */
+@@ -1437,17 +1437,17 @@ vm_fault_t finish_fault(struct vm_fault
+ #if defined(CONFIG_ZONE_DEVICE) && defined(CONFIG_FS_DAX)
+ DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
  
--static inline bool put_devmap_managed_page(struct page *page)
--{
--	return put_devmap_managed_page_refs(page, 1);
--}
--
- /* 127: arbitrary random number, small enough to assemble well */
- #define folio_ref_zero_or_close_to_overflow(folio) \
- 	((unsigned int) folio_ref_count(folio) + 127u <= 127u)
-@@ -1576,7 +1571,7 @@ static inline void put_page(struct page
+-bool __put_devmap_managed_page_refs(struct page *page, int refs);
+-static inline bool put_devmap_managed_page_refs(struct page *page, int refs)
++bool __put_devmap_managed_folio_refs(struct folio *folio, int refs);
++static inline bool put_devmap_managed_folio_refs(struct folio *folio, int refs)
+ {
+ 	if (!static_branch_unlikely(&devmap_managed_key))
+ 		return false;
+-	if (!is_zone_device_page(page))
++	if (!folio_is_zone_device(folio))
+ 		return false;
+-	return __put_devmap_managed_page_refs(page, refs);
++	return __put_devmap_managed_folio_refs(folio, refs);
+ }
+ #else /* CONFIG_ZONE_DEVICE && CONFIG_FS_DAX */
+-static inline bool put_devmap_managed_page_refs(struct page *page, int refs)
++static inline bool put_devmap_managed_folio_refs(struct folio *folio, int refs)
+ {
+ 	return false;
+ }
+@@ -1571,7 +1571,7 @@ static inline void put_page(struct page
  	 * For some devmap managed pages we need to catch refcount transition
  	 * from 2 to 1:
  	 */
--	if (put_devmap_managed_page(&folio->page))
-+	if (put_devmap_managed_page_refs(&folio->page, 1))
+-	if (put_devmap_managed_page_refs(&folio->page, 1))
++	if (put_devmap_managed_folio_refs(folio, 1))
  		return;
  	folio_put(folio);
  }
+--- a/mm/gup.c~mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs
++++ a/mm/gup.c
+@@ -89,7 +89,7 @@ retry:
+ 	 * belongs to this folio.
+ 	 */
+ 	if (unlikely(page_folio(page) != folio)) {
+-		if (!put_devmap_managed_page_refs(&folio->page, refs))
++		if (!put_devmap_managed_folio_refs(folio, refs))
+ 			folio_put_refs(folio, refs);
+ 		goto retry;
+ 	}
+@@ -156,7 +156,7 @@ struct folio *try_grab_folio(struct page
+ 	 */
+ 	if (unlikely((flags & FOLL_LONGTERM) &&
+ 		     !folio_is_longterm_pinnable(folio))) {
+-		if (!put_devmap_managed_page_refs(&folio->page, refs))
++		if (!put_devmap_managed_folio_refs(folio, refs))
+ 			folio_put_refs(folio, refs);
+ 		return NULL;
+ 	}
+@@ -198,7 +198,7 @@ static void gup_put_folio(struct folio *
+ 			refs *= GUP_PIN_COUNTING_BIAS;
+ 	}
+ 
+-	if (!put_devmap_managed_page_refs(&folio->page, refs))
++	if (!put_devmap_managed_folio_refs(folio, refs))
+ 		folio_put_refs(folio, refs);
+ }
+ 
+--- a/mm/memremap.c~mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs
++++ a/mm/memremap.c
+@@ -512,9 +512,9 @@ void zone_device_page_init(struct page *
+ EXPORT_SYMBOL_GPL(zone_device_page_init);
+ 
+ #ifdef CONFIG_FS_DAX
+-bool __put_devmap_managed_page_refs(struct page *page, int refs)
++bool __put_devmap_managed_folio_refs(struct folio *folio, int refs)
+ {
+-	if (page->pgmap->type != MEMORY_DEVICE_FS_DAX)
++	if (folio->page.pgmap->type != MEMORY_DEVICE_FS_DAX)
+ 		return false;
+ 
+ 	/*
+@@ -522,9 +522,9 @@ bool __put_devmap_managed_page_refs(stru
+ 	 * refcount is 1, then the page is free and the refcount is
+ 	 * stable because nobody holds a reference on the page.
+ 	 */
+-	if (page_ref_sub_return(page, refs) == 1)
+-		wake_up_var(&page->_refcount);
++	if (folio_ref_sub_return(folio, refs) == 1)
++		wake_up_var(&folio->_refcount);
+ 	return true;
+ }
+-EXPORT_SYMBOL(__put_devmap_managed_page_refs);
++EXPORT_SYMBOL(__put_devmap_managed_folio_refs);
+ #endif /* CONFIG_FS_DAX */
+--- a/mm/swap.c~mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs
++++ a/mm/swap.c
+@@ -981,7 +981,7 @@ void folios_put_refs(struct folio_batch
+ 				unlock_page_lruvec_irqrestore(lruvec, flags);
+ 				lruvec = NULL;
+ 			}
+-			if (put_devmap_managed_page_refs(&folio->page, nr_refs))
++			if (put_devmap_managed_folio_refs(folio, nr_refs))
+ 				continue;
+ 			if (folio_ref_sub_and_test(folio, nr_refs))
+ 				free_zone_device_folio(folio);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
