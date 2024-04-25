@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D985814B077
-	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 17:21:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9341614BF87
+	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 17:25:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714065697; cv=none; b=m+2LaHtJg7vI2Sk/+hblkPRfn0FEjneJBQ7Zu7OpCdj5PBP7vPJbqSMkiN3TftbaW4TGVKclKKe+Z6jUWXGfP1Vl0AJ9WMFUJoZgaWf/fDnpyfzl3I12EHFTfd7Q5Ku1+YceCtnPUf/plyciTPNNnM2jZNaf4eL4CdN6lFHvE7U=
+	t=1714065917; cv=none; b=ufbiPSa1K3W68wzq0A4aDdey4yCMsRIJI+py9n2rbh59N1fcrG7girBVEpF4UIpQQYMg4NV24iqNHfoM3Hl5U2GKUCdue4FtyVimK8Uh2/jcabHIG3T2UiEJ3U6Ks0CdCyYYXUHFnMigXAG6XafNsTl4N8jzFSomHlIIiiAxOLo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714065697; c=relaxed/simple;
-	bh=A4dvd3/faeKQINO11XK5APR21o72NsWW/xbRr+61Uj4=;
-	h=Date:To:From:Subject:Message-Id; b=G0Q0/ofxty+xJe5Sk2Q4tZ8+nfTM9v8XJUCmU6pQNFwNrRo8KMOJlqmzfzJkPa3F0AJF3+TBLyPnYPxPuovGNLwtqtBBp9gXZe8U7S3xq94XwZRbdpPp8R4FErQAkxzEQ5RNhqGMQtNZZVroFiR3xu3rNBQXoRIVLtnhRNYO+bk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FYN/hPY9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714065917; c=relaxed/simple;
+	bh=P2WuHhEmSgeNa9IlcUjjPPjBpLUw7cSRhWYdR967/zo=;
+	h=Date:To:From:Subject:Message-Id; b=WAFANxzrCw5YSuKE80ZZJdtM9l/neEPjNhByjP+Hwwtb27qBrBsTa0QEe8RT78tP91DRiLGEujyJMdWLkabsbIczbt0Akh4cHG0SYVKPdZ18gQsKccaO8QnaUapl8H0Qvx3J4XbbN/fbISsqa+/t+QddtBktbYX7m0sM/TajCNA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C/TERWuY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FYN/hPY9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C9DAC113CC;
-	Thu, 25 Apr 2024 17:21:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C/TERWuY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05816C113CC;
+	Thu, 25 Apr 2024 17:25:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714065697;
-	bh=A4dvd3/faeKQINO11XK5APR21o72NsWW/xbRr+61Uj4=;
+	s=korg; t=1714065917;
+	bh=P2WuHhEmSgeNa9IlcUjjPPjBpLUw7cSRhWYdR967/zo=;
 	h=Date:To:From:Subject:From;
-	b=FYN/hPY9xTNpXA06rsZhW1MUxQFu1EVolcNAcGFjw1TmSJMwROEVAnV7bDZR/XVc1
-	 FElkB4CJ/MMpgjiuO0ogbh84yDddIW2gMfg306/ZIJJSnetRrHowGpz6tAcs6OF17q
-	 FoT7v6zBmyoloFbQqo1Cx4sJWDDDKr9GJ5BxHfl0=
-Date: Thu, 25 Apr 2024 10:21:37 -0700
-To: mm-commits@vger.kernel.org,palmer@rivosinc.com,Kuan-Ying.Lee@mediatek.com,kbingham@kernel.org,jan.kiszka@siemens.com,debug@rivosinc.com,ajones@ventanamicro.com,mail@florommel.de,akpm@linux-foundation.org
+	b=C/TERWuYPvKNlLr2pi6bWX+HmXHbI3eZFna4daRoWmbi8x3Wo/3dhPK/lGvGqPh8x
+	 HryR+nIM7BuUmGkeZL7vQilrroxCKHYGZ+s18Fe5kyjc2SelvQDOjVChD4nbf9F+d/
+	 3gg0eJB7/bSQbVWD8vpooHidn+7aolHUEIx8Pruw=
+Date: Thu, 25 Apr 2024 10:25:16 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,mszeredi@redhat.com,jack@suse.cz,hcochran@kernelspring.com,axboe@kernel.dk,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-fix-detection-of-current-cpu-in-kgdb.patch added to mm-nonmm-unstable branch
-Message-Id: <20240425172137.9C9DAC113CC@smtp.kernel.org>
+Subject: + mm-enable-__wb_calc_thresh-to-calculate-dirty-background-threshold.patch added to mm-unstable branch
+Message-Id: <20240425172517.05816C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/gdb: fix detection of current CPU in KGDB
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-fix-detection-of-current-cpu-in-kgdb.patch
+     Subject: mm: enable __wb_calc_thresh to calculate dirty background threshold
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-enable-__wb_calc_thresh-to-calculate-dirty-background-threshold.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-fix-detection-of-current-cpu-in-kgdb.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-enable-__wb_calc_thresh-to-calculate-dirty-background-threshold.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,58 +58,132 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Florian Rommel <mail@florommel.de>
-Subject: scripts/gdb: fix detection of current CPU in KGDB
-Date: Thu, 25 Apr 2024 17:35:01 +0200
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: mm: enable __wb_calc_thresh to calculate dirty background threshold
+Date: Thu, 25 Apr 2024 21:17:21 +0800
 
-Directly read the current CPU number from the kgdb_active variable.
+Patch series "Fix and cleanups to page-writeback", v2.
 
-Before, the active CPU was obtained through the current task, which
-required searching the task list for the pid of GDB's selected thread. 
-Obtaining the pid was buggy: GDB may use selected_thread().ptid[1] (LWPID)
-instead of .ptid[2] (TID) to store the threads pid; see
-https://sourceware.org/gdb/current/onlinedocs/gdb.html/Threads-In-Python.html
-As a result, the detection could return the wrong CPU number, leading to
-incorrect results for $lx_per_cpu and $lx_current.
+This series contains some random cleanups and a fix to correct calculation
+of wb's bg_thresh in cgroup domain.  More details can be found respective
+patches.
 
-As a side effect, the patch significantly speeds up $lx_per_cpu and
-$lx_current in KGDB by avoiding the task-list iteration.
 
-Link: https://lkml.kernel.org/r/20240425153501.749966-5-mail@florommel.de
-Signed-off-by: Florian Rommel <mail@florommel.de>
-Cc: Andrew Jones <ajones@ventanamicro.com>
-Cc: Deepak Gupta <debug@rivosinc.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Cc: Palmer Dabbelt <palmer@rivosinc.com>
+This patch (of 4):
+
+Originally, __wb_calc_thresh always calculate wb's share of dirty
+throttling threshold.  By getting thresh of wb_domain from caller,
+__wb_calc_thresh could be used for both dirty throttling and dirty
+background threshold.
+
+This is a preparation to correct threshold calculation of wb in cgroup.
+
+Link: https://lkml.kernel.org/r/20240425131724.36778-1-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20240425131724.36778-2-shikemeng@huaweicloud.com
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Howard Cochran <hcochran@kernelspring.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/cpus.py |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ mm/page-writeback.c |   33 ++++++++++++++++++---------------
+ 1 file changed, 18 insertions(+), 15 deletions(-)
 
---- a/scripts/gdb/linux/cpus.py~scripts-gdb-fix-detection-of-current-cpu-in-kgdb
-+++ a/scripts/gdb/linux/cpus.py
-@@ -26,11 +26,7 @@ def get_current_cpu():
-     if utils.get_gdbserver_type() == utils.GDBSERVER_QEMU:
-         return gdb.selected_thread().num - 1
-     elif utils.get_gdbserver_type() == utils.GDBSERVER_KGDB:
--        tid = gdb.selected_thread().ptid[2]
--        if tid > (0x100000000 - MAX_CPUS - 2):
--            return 0x100000000 - tid - 2
--        else:
--            return tasks.get_thread_info(tasks.get_task_by_pid(tid))['cpu']
-+        return gdb.parse_and_eval("kgdb_active.counter")
-     else:
-         raise gdb.GdbError("Sorry, obtaining the current CPU is not yet "
-                            "supported with this gdb server.")
+--- a/mm/page-writeback.c~mm-enable-__wb_calc_thresh-to-calculate-dirty-background-threshold
++++ a/mm/page-writeback.c
+@@ -838,13 +838,15 @@ static void mdtc_calc_avail(struct dirty
+ }
+ 
+ /**
+- * __wb_calc_thresh - @wb's share of dirty throttling threshold
++ * __wb_calc_thresh - @wb's share of dirty threshold
+  * @dtc: dirty_throttle_context of interest
++ * @thresh: dirty throttling or dirty background threshold of wb_domain in @dtc
+  *
+- * Note that balance_dirty_pages() will only seriously take it as a hard limit
+- * when sleeping max_pause per page is not enough to keep the dirty pages under
+- * control. For example, when the device is completely stalled due to some error
+- * conditions, or when there are 1000 dd tasks writing to a slow 10MB/s USB key.
++ * Note that balance_dirty_pages() will only seriously take dirty throttling
++ * threshold as a hard limit when sleeping max_pause per page is not enough
++ * to keep the dirty pages under control. For example, when the device is
++ * completely stalled due to some error conditions, or when there are 1000
++ * dd tasks writing to a slow 10MB/s USB key.
+  * In the other normal situations, it acts more gently by throttling the tasks
+  * more (rather than completely block them) when the wb dirty pages go high.
+  *
+@@ -855,19 +857,20 @@ static void mdtc_calc_avail(struct dirty
+  * The wb's share of dirty limit will be adapting to its throughput and
+  * bounded by the bdi->min_ratio and/or bdi->max_ratio parameters, if set.
+  *
+- * Return: @wb's dirty limit in pages. The term "dirty" in the context of
+- * dirty balancing includes all PG_dirty and PG_writeback pages.
++ * Return: @wb's dirty limit in pages. For dirty throttling limit, the term
++ * "dirty" in the context of dirty balancing includes all PG_dirty and
++ * PG_writeback pages.
+  */
+-static unsigned long __wb_calc_thresh(struct dirty_throttle_control *dtc)
++static unsigned long __wb_calc_thresh(struct dirty_throttle_control *dtc,
++				      unsigned long thresh)
+ {
+ 	struct wb_domain *dom = dtc_dom(dtc);
+-	unsigned long thresh = dtc->thresh;
+ 	u64 wb_thresh;
+ 	unsigned long numerator, denominator;
+ 	unsigned long wb_min_ratio, wb_max_ratio;
+ 
+ 	/*
+-	 * Calculate this BDI's share of the thresh ratio.
++	 * Calculate this wb's share of the thresh ratio.
+ 	 */
+ 	fprop_fraction_percpu(&dom->completions, dtc->wb_completions,
+ 			      &numerator, &denominator);
+@@ -887,9 +890,9 @@ static unsigned long __wb_calc_thresh(st
+ 
+ unsigned long wb_calc_thresh(struct bdi_writeback *wb, unsigned long thresh)
+ {
+-	struct dirty_throttle_control gdtc = { GDTC_INIT(wb),
+-					       .thresh = thresh };
+-	return __wb_calc_thresh(&gdtc);
++	struct dirty_throttle_control gdtc = { GDTC_INIT(wb) };
++
++	return __wb_calc_thresh(&gdtc, thresh);
+ }
+ 
+ unsigned long cgwb_calc_thresh(struct bdi_writeback *wb)
+@@ -908,7 +911,7 @@ unsigned long cgwb_calc_thresh(struct bd
+ 	mdtc_calc_avail(&mdtc, filepages, headroom);
+ 	domain_dirty_limits(&mdtc);
+ 
+-	return __wb_calc_thresh(&mdtc);
++	return __wb_calc_thresh(&mdtc, mdtc.thresh);
+ }
+ 
+ /*
+@@ -1655,7 +1658,7 @@ static inline void wb_dirty_limits(struc
+ 	 *   wb_position_ratio() will let the dirtier task progress
+ 	 *   at some rate <= (write_bw / 2) for bringing down wb_dirty.
+ 	 */
+-	dtc->wb_thresh = __wb_calc_thresh(dtc);
++	dtc->wb_thresh = __wb_calc_thresh(dtc, dtc->thresh);
+ 	dtc->wb_bg_thresh = dtc->thresh ?
+ 		div64_u64(dtc->wb_thresh * dtc->bg_thresh, dtc->thresh) : 0;
+ 
 _
 
-Patches currently in -mm which might be from mail@florommel.de are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
-scripts-gdb-fix-failing-kgdb-detection-during-probe.patch
-scripts-gdb-fix-parameter-handling-in-lx_per_cpu.patch
-scripts-gdb-make-get_thread_info-accept-pointers.patch
-scripts-gdb-fix-detection-of-current-cpu-in-kgdb.patch
+writeback-collect-stats-of-all-wb-of-bdi-in-bdi_debug_stats_show.patch
+writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi.patch
+writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi-fix.patch
+writeback-add-wb_monitorpy-script-to-monitor-writeback-info-on-bdi.patch
+writeback-rename-nr_reclaimable-to-nr_dirty-in-balance_dirty_pages.patch
+mm-enable-__wb_calc_thresh-to-calculate-dirty-background-threshold.patch
+mm-correct-calculation-of-wbs-bg_thresh-in-cgroup-domain.patch
+mm-call-__wb_calc_thresh-instead-of-wb_calc_thresh-in-wb_over_bg_thresh.patch
+mm-remove-stale-comment-__folio_mark_dirty.patch
 
