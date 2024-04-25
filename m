@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6F9F1C6A8;
-	Thu, 25 Apr 2024 02:35:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE88D12E61;
+	Thu, 25 Apr 2024 02:35:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714012518; cv=none; b=ZCm8LTCHDMBnJ3tGJFKRYiebyBfFA6lx5vKJmwK7/lwpW7Mf0+0huVp2TL5TlFBQighc/o3LPXlH3kpLQTbygdjlJzlZ5J6Zwly4CNMGOlGUboW+nAFokqijbYn0t4J1T3+Hpj/i7pC5qWbUwn1NVDbxhyVmg86K1WWtnD/2uj0=
+	t=1714012519; cv=none; b=qkYRP2S+jT1HgJK2NnGDpyO+VcmaKraMQaQL+QLGHkYuDOclQdwrQ8x+A4KkXybp5fOJF4TF37+ke9PUbu50cL9CIgTF63qoYwTtoKixBMQwmr8R+A2w2cuD2urLLBZHj3+equH5WMhha7aAdUku8OBVOd6NSqOjx4W6ZxX0XW8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714012518; c=relaxed/simple;
-	bh=3GgjsAWEvvzyaJsyxTN0iC1eGF055hM7Hh3uFw0xceM=;
-	h=Date:To:From:Subject:Message-Id; b=CibqAKn8seE8Kb110p4oDi9reDfDuJGrdkGm6wV9Bmu10f1jRpe0I+NVh13eN096edk/DS8B6KJIzFjBgipyOEaGmIqX0q6+fKDDYip1hmBSQ0ISj0mTI81GyNVuBjx18Tr7fC5dll46eW98KRQcnywiBhoYvxFbwwBGwHcryrs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PE9HzwaV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714012519; c=relaxed/simple;
+	bh=XkHbhEyVLWmwu2RFHTEc//TPbsOXxfhnz6241On3sBQ=;
+	h=Date:To:From:Subject:Message-Id; b=X1aSz5oo00ZvmYWgCYfs+6R90lHUkjbcPvavRpkeoEnweCy0HUPLCs4Pda2ZYrwtP75HDTmyFPAQl4w3JD10DGdNlq0Hv7j0wBlPTXnxGO+oEcVcJIINL3nsu7LXzQAXYhoO2JmKpuZPQLLvu5wsRJypDBzf0EPlYqG+5HBBT0E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qH2+W5NF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PE9HzwaV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DB52C2BD10;
-	Thu, 25 Apr 2024 02:35:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qH2+W5NF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 397E7C32782;
+	Thu, 25 Apr 2024 02:35:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714012518;
-	bh=3GgjsAWEvvzyaJsyxTN0iC1eGF055hM7Hh3uFw0xceM=;
+	s=korg; t=1714012519;
+	bh=XkHbhEyVLWmwu2RFHTEc//TPbsOXxfhnz6241On3sBQ=;
 	h=Date:To:From:Subject:From;
-	b=PE9HzwaVC6qzjL2wtJoc0kqLOLcwxCkdgqfwgVqLy28Xl8Wg0FLgAfkx+/T2lWJXi
-	 jGm7qrj4Bh6VC8CwKrn3ypjKtPr8MdZREpuS2tFDebPT7Kuvfn9cvJmImtnIMQFt3m
-	 OmH3sIHx+DHHJ91OCAZeJpJsnY49HzYma77LUuAw=
-Date: Wed, 24 Apr 2024 19:35:17 -0700
+	b=qH2+W5NFp5Fk9mfJS3q/YiMP5gq5BPqty3vVdL9+vKK4x9vp/V/3r6Y9xVCl46304
+	 yeIAiBdfhPt3U9B+GD7I4CISIxlNdCNJdgmKt26PKDYELHvfd6CR6BMDwubRo9gGce
+	 1BfHaWMl0pEefn+aaAeLhh1nx7bSQAE5TDmYydco=
+Date: Wed, 24 Apr 2024 19:35:18 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,linmiaohe@huawei.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-create-folio_flag_false-and-folio_type_ops-macros.patch removed from -mm tree
-Message-Id: <20240425023518.1DB52C2BD10@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-support-page_mapcount-on-page_has_type-pages.patch removed from -mm tree
+Message-Id: <20240425023519.397E7C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: create FOLIO_FLAG_FALSE and FOLIO_TYPE_OPS macros
+     Subject: mm: support page_mapcount() on page_has_type() pages
 has been removed from the -mm tree.  Its filename was
-     mm-create-folio_flag_false-and-folio_type_ops-macros.patch
+     mm-support-page_mapcount-on-page_has_type-pages.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: create FOLIO_FLAG_FALSE and FOLIO_TYPE_OPS macros
-Date: Thu, 21 Mar 2024 14:24:40 +0000
+Subject: mm: support page_mapcount() on page_has_type() pages
+Date: Thu, 21 Mar 2024 14:24:42 +0000
 
-Following the separation of FOLIO_FLAGS from PAGEFLAGS, separate
-FOLIO_FLAG_FALSE from PAGEFLAG_FALSE and FOLIO_TYPE_OPS from
-PAGE_TYPE_OPS.
+Return 0 for pages which can't be mapped.  This matches how page_mapped()
+works.  It is more convenient for users to not have to filter out these
+pages.
 
-Link: https://lkml.kernel.org/r/20240321142448.1645400-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240321142448.1645400-5-willy@infradead.org
 Fixes: 9c5ccf2db04b ("mm: remove HUGETLB_PAGE_DTOR")
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
@@ -63,125 +63,74 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   70 +++++++++++++++++++++++------------
- 1 file changed, 47 insertions(+), 23 deletions(-)
+ fs/proc/page.c             |    7 ++-----
+ include/linux/mm.h         |    8 +++++---
+ include/linux/page-flags.h |    4 ++--
+ 3 files changed, 9 insertions(+), 10 deletions(-)
 
---- a/include/linux/page-flags.h~mm-create-folio_flag_false-and-folio_type_ops-macros
+--- a/fs/proc/page.c~mm-support-page_mapcount-on-page_has_type-pages
++++ a/fs/proc/page.c
+@@ -67,7 +67,7 @@ static ssize_t kpagecount_read(struct fi
+ 		 */
+ 		ppage = pfn_to_online_page(pfn);
+ 
+-		if (!ppage || PageSlab(ppage) || page_has_type(ppage))
++		if (!ppage)
+ 			pcount = 0;
+ 		else
+ 			pcount = page_mapcount(ppage);
+@@ -124,11 +124,8 @@ u64 stable_page_flags(struct page *page)
+ 
+ 	/*
+ 	 * pseudo flags for the well known (anonymous) memory mapped pages
+-	 *
+-	 * Note that page->_mapcount is overloaded in SLAB, so the
+-	 * simple test in page_mapped() is not enough.
+ 	 */
+-	if (!PageSlab(page) && page_mapped(page))
++	if (page_mapped(page))
+ 		u |= 1 << KPF_MMAP;
+ 	if (PageAnon(page))
+ 		u |= 1 << KPF_ANON;
+--- a/include/linux/mm.h~mm-support-page_mapcount-on-page_has_type-pages
++++ a/include/linux/mm.h
+@@ -1223,14 +1223,16 @@ static inline void page_mapcount_reset(s
+  * a large folio, it includes the number of times this page is mapped
+  * as part of that folio.
+  *
+- * The result is undefined for pages which cannot be mapped into userspace.
+- * For example SLAB or special types of pages. See function page_has_type().
+- * They use this field in struct page differently.
++ * Will report 0 for pages which cannot be mapped into userspace, eg
++ * slab, page tables and similar.
+  */
+ static inline int page_mapcount(struct page *page)
+ {
+ 	int mapcount = atomic_read(&page->_mapcount) + 1;
+ 
++	/* Handle page_has_type() pages */
++	if (mapcount < 0)
++		mapcount = 0;
+ 	if (unlikely(PageCompound(page)))
+ 		mapcount += folio_entire_mapcount(page_folio(page));
+ 
+--- a/include/linux/page-flags.h~mm-support-page_mapcount-on-page_has_type-pages
 +++ a/include/linux/page-flags.h
-@@ -458,30 +458,51 @@ static __always_inline int TestClearPage
- 	TESTSETFLAG(uname, lname, policy)				\
- 	TESTCLEARFLAG(uname, lname, policy)
+@@ -971,12 +971,12 @@ static inline bool is_page_hwpoison(stru
+  * page_type may be used.  Because it is initialised to -1, we invert the
+  * sense of the bit, so __SetPageFoo *clears* the bit used for PageFoo, and
+  * __ClearPageFoo *sets* the bit used for PageFoo.  We reserve a few high and
+- * low bits so that an underflow or overflow of page_mapcount() won't be
++ * low bits so that an underflow or overflow of _mapcount won't be
+  * mistaken for a page type value.
+  */
  
-+#define FOLIO_TEST_FLAG_FALSE(name)					\
-+static inline bool folio_test_##name(const struct folio *folio)		\
-+{ return false; }
-+#define FOLIO_SET_FLAG_NOOP(name)					\
-+static inline void folio_set_##name(struct folio *folio) { }
-+#define FOLIO_CLEAR_FLAG_NOOP(name)					\
-+static inline void folio_clear_##name(struct folio *folio) { }
-+#define __FOLIO_SET_FLAG_NOOP(name)					\
-+static inline void __folio_set_##name(struct folio *folio) { }
-+#define __FOLIO_CLEAR_FLAG_NOOP(name)					\
-+static inline void __folio_clear_##name(struct folio *folio) { }
-+#define FOLIO_TEST_SET_FLAG_FALSE(name)					\
-+static inline bool folio_test_set_##name(struct folio *folio)		\
-+{ return false; }
-+#define FOLIO_TEST_CLEAR_FLAG_FALSE(name)				\
-+static inline bool folio_test_clear_##name(struct folio *folio)		\
-+{ return false; }
-+
-+#define FOLIO_FLAG_FALSE(name)						\
-+FOLIO_TEST_FLAG_FALSE(name)						\
-+FOLIO_SET_FLAG_NOOP(name)						\
-+FOLIO_CLEAR_FLAG_NOOP(name)
-+
- #define TESTPAGEFLAG_FALSE(uname, lname)				\
--static inline bool folio_test_##lname(const struct folio *folio) { return false; } \
-+FOLIO_TEST_FLAG_FALSE(lname)						\
- static inline int Page##uname(const struct page *page) { return 0; }
- 
- #define SETPAGEFLAG_NOOP(uname, lname)					\
--static inline void folio_set_##lname(struct folio *folio) { }		\
-+FOLIO_SET_FLAG_NOOP(lname)						\
- static inline void SetPage##uname(struct page *page) {  }
- 
- #define CLEARPAGEFLAG_NOOP(uname, lname)				\
--static inline void folio_clear_##lname(struct folio *folio) { }		\
-+FOLIO_CLEAR_FLAG_NOOP(lname)						\
- static inline void ClearPage##uname(struct page *page) {  }
- 
- #define __CLEARPAGEFLAG_NOOP(uname, lname)				\
--static inline void __folio_clear_##lname(struct folio *folio) { }	\
-+__FOLIO_CLEAR_FLAG_NOOP(lname)						\
- static inline void __ClearPage##uname(struct page *page) {  }
- 
- #define TESTSETFLAG_FALSE(uname, lname)					\
--static inline bool folio_test_set_##lname(struct folio *folio)		\
--{ return 0; }								\
-+FOLIO_TEST_SET_FLAG_FALSE(lname)					\
- static inline int TestSetPage##uname(struct page *page) { return 0; }
- 
- #define TESTCLEARFLAG_FALSE(uname, lname)				\
--static inline bool folio_test_clear_##lname(struct folio *folio)	\
--{ return 0; }								\
-+FOLIO_TEST_CLEAR_FLAG_FALSE(lname)					\
- static inline int TestClearPage##uname(struct page *page) { return 0; }
- 
- #define PAGEFLAG_FALSE(uname, lname) TESTPAGEFLAG_FALSE(uname, lname)	\
-@@ -977,35 +998,38 @@ static inline int page_has_type(const st
- 	return page_type_has_type(page->page_type);
- }
- 
-+#define FOLIO_TYPE_OPS(lname, fname)					\
-+static __always_inline bool folio_test_##fname(const struct folio *folio)\
-+{									\
-+	return folio_test_type(folio, PG_##lname);			\
-+}									\
-+static __always_inline void __folio_set_##fname(struct folio *folio)	\
-+{									\
-+	VM_BUG_ON_FOLIO(!folio_test_type(folio, 0), folio);		\
-+	folio->page.page_type &= ~PG_##lname;				\
-+}									\
-+static __always_inline void __folio_clear_##fname(struct folio *folio)	\
-+{									\
-+	VM_BUG_ON_FOLIO(!folio_test_##fname(folio), folio);		\
-+	folio->page.page_type |= PG_##lname;				\
-+}
-+
- #define PAGE_TYPE_OPS(uname, lname, fname)				\
-+FOLIO_TYPE_OPS(lname, fname)						\
- static __always_inline int Page##uname(const struct page *page)		\
- {									\
- 	return PageType(page, PG_##lname);				\
- }									\
--static __always_inline int folio_test_##fname(const struct folio *folio)\
--{									\
--	return folio_test_type(folio, PG_##lname);			\
--}									\
- static __always_inline void __SetPage##uname(struct page *page)		\
- {									\
- 	VM_BUG_ON_PAGE(!PageType(page, 0), page);			\
- 	page->page_type &= ~PG_##lname;					\
- }									\
--static __always_inline void __folio_set_##fname(struct folio *folio)	\
--{									\
--	VM_BUG_ON_FOLIO(!folio_test_type(folio, 0), folio);		\
--	folio->page.page_type &= ~PG_##lname;				\
--}									\
- static __always_inline void __ClearPage##uname(struct page *page)	\
- {									\
- 	VM_BUG_ON_PAGE(!Page##uname(page), page);			\
- 	page->page_type |= PG_##lname;					\
--}									\
--static __always_inline void __folio_clear_##fname(struct folio *folio)	\
--{									\
--	VM_BUG_ON_FOLIO(!folio_test_##fname(folio), folio);		\
--	folio->page.page_type |= PG_##lname;				\
--}									\
-+}
- 
- /*
-  * PageBuddy() indicates that the page is free and in the buddy system
+ #define PAGE_TYPE_BASE	0xf0000000
+-/* Reserve		0x0000007f to catch underflows of page_mapcount */
++/* Reserve		0x0000007f to catch underflows of _mapcount */
+ #define PAGE_MAPCOUNT_RESERVE	-128
+ #define PG_buddy	0x00000080
+ #define PG_offline	0x00000100
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
