@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92EB714EC42
-	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 17:47:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA9A42135A
+	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 19:31:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714067274; cv=none; b=m76MXKc17diajP5sDj7Sc6hbMYfBJY4aysObwYCk6hSlQlXRCWsc0y2ygbnWhV7/qGY7Ai4m3i2aFZvxTja44kfon7qvog1pDqxhqCxaDa0oEEidoCfR7vmU8CL3li5YdBTgQlskrj6zZhcXnx+E7Oh7XLh0+PUM2x8UCyxiz5Q=
+	t=1714073510; cv=none; b=k4tcs87Qe+Pv38GCD/EPFdvcxvhY0A5935UMBDMU2bqxx5Zlyv/B+XImotQnaerXXsRwqDlrnmcjNV/ADuOl1vC2hMG+sl+xNOoknI6YVZu/0nZJOLMT3eepy4qQmvINv5EMu8YvE7GxKPC7gD/BWpJwFLR8sQ2AEeMzAYvG61M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714067274; c=relaxed/simple;
-	bh=88RnhWE3AQqyQMm72Q/gNcMiJfCgAfbG7w2J4/C+BN0=;
-	h=Date:To:From:Subject:Message-Id; b=cTO9iqQn7b5rFdhAsMqEH9JTPhIvkDCPh58pUwQ6oSrxWcN/f0dxrHvU1MAQAG1R6ZCFF2THFgvWIfdnh1O+frtHcTk/Y8CN9wcwuiN040UN5yzMXbXJoElr6+rO22p1vh/CRCLqAdF4pWuiFqewoDyQFXL0rkk/LuDLHX9PzeA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=StJ6nLO3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714073510; c=relaxed/simple;
+	bh=rPzhtc8SWyfrE1gP+3SMbjfOFGJ7qocnPefg7Zm5ZFE=;
+	h=Date:To:From:Subject:Message-Id; b=SrTw/+8FRBMAYfh9LnVK15uMpk08vYYiC3hmqLpt95kye7d3px27wf5wK8gjCLdA6CGFu3kyQyesL7Z+3sAXuIn2hZAkW2u1/U8Vixm4ZXsTGiUS7gTPbcHLYVIpz5IcfRiiVPfTEAqY13p8fM8jvDRA6tSvQ0kfCltuRX2wkAE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ytsK1Vaj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="StJ6nLO3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 199E0C113CC;
-	Thu, 25 Apr 2024 17:47:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ytsK1Vaj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F234C113CC;
+	Thu, 25 Apr 2024 19:31:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714067274;
-	bh=88RnhWE3AQqyQMm72Q/gNcMiJfCgAfbG7w2J4/C+BN0=;
+	s=korg; t=1714073510;
+	bh=rPzhtc8SWyfrE1gP+3SMbjfOFGJ7qocnPefg7Zm5ZFE=;
 	h=Date:To:From:Subject:From;
-	b=StJ6nLO3DbEim7eg970U2xM0HiECdm+zqytmcSHCDszbl0fiv1A0eZb5rkq8pd5Fs
-	 BtyCkpuRehXekSmXqY6qdxMmpJrXcEULrWCO4zOCoVNu1zbB1aLmCtRRpLS514FNOA
-	 6xerWbWZrZll+NdFP3jWcaDnjRmlyDH4IxAhIYJ0=
-Date: Thu, 25 Apr 2024 10:47:53 -0700
-To: mm-commits@vger.kernel.org,zi.yan@cs.rutgers.edu,aneesh.kumar@kernel.org,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=ytsK1VajA00J2u/AXpdzK/QD8YM68URdipRrzcAVsP3alCm5pgNjOlgKa4JV4il10
+	 ZaAYp3l+QvVl2qvud61RY6Qch8HmjS8bj9mbGzKZYEfvDKlD/pWH3+dgf9onxT3vam
+	 dzW4mL11n9Y2rv1fME/6z51baxcJnAbSOHpr9Z7s=
+Date: Thu, 25 Apr 2024 12:31:49 -0700
+To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,sandeen@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-race-between-__split_huge_pmd_locked-and-gup-fast.patch added to mm-unstable branch
-Message-Id: <20240425174754.199E0C113CC@smtp.kernel.org>
+Subject: + nilfs2-convert-to-use-the-new-mount-api-v2.patch added to mm-nonmm-unstable branch
+Message-Id: <20240425193150.2F234C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix race between __split_huge_pmd_locked() and GUP-fast
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-race-between-__split_huge_pmd_locked-and-gup-fast.patch
+     Subject: nilfs2-convert-to-use-the-new-mount-api-v2
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     nilfs2-convert-to-use-the-new-mount-api-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-race-between-__split_huge_pmd_locked-and-gup-fast.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-to-use-the-new-mount-api-v2.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,99 +58,108 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: fix race between __split_huge_pmd_locked() and GUP-fast
-Date: Thu, 25 Apr 2024 18:07:04 +0100
+From: Eric Sandeen <sandeen@redhat.com>
+Subject: nilfs2-convert-to-use-the-new-mount-api-v2
+Date: Fri, 26 Apr 2024 04:05:26 +0900
 
-__split_huge_pmd_locked() can be called for a present THP, devmap or
-(non-present) migration entry.  It calls pmdp_invalidate() unconditionally
-on the pmdp and only determines if it is present or not based on the
-returned old pmd.  This is a problem for the migration entry case because
-pmd_mkinvalid(), called by pmdp_invalidate() must only be called for a
-present pmd.
+- fix UAF read for fc->root in put_fs_context() when call to
+  nilfs_reconfigure() from nilfs_get_tree() fails.
+- fix reference to uninitialized variable 's' in nilfs_get_tree().
+- fix duplicate inclusion of fs_context.h.
+- reflect function argument changes to kernel-doc comments.
 
-On arm64 at least, pmd_mkinvalid() will mark the pmd such that any future
-call to pmd_present() will return true.  And therefore any lockless
-pgtable walker could see the migration entry pmd in this state and start
-interpretting the fields as if it were present, leading to BadThings (TM).
-GUP-fast appears to be one such lockless pgtable walker.  I suspect the
-same is possible on other architectures.
-
-Fix this by only calling pmdp_invalidate() for a present pmd.  And for
-good measure let's add a warning to the generic implementation of
-pmdp_invalidate().  I've manually reviewed all other
-pmdp_invalidate[_ad]() call sites and believe all others to be conformant.
-
-This is a theoretical bug found during code review. I don't have any
-test case to trigger it in practice.
-
-Link: https://lkml.kernel.org/r/20240425170704.3379492-1-ryan.roberts@arm.com
-Fixes: 84c3fc4e9c56 ("mm: thp: check pmd migration entry in common path")
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
-Cc: Zi Yan <zi.yan@cs.rutgers.edu>
+[konishi.ryusuke: fixed missing SB_RDONLY flag repair, UAF read for
+ fc->root on error, reference to uninitialized variable, duplicate header
+ inclusion, and missing update of kernel-doc comments]
+Link: https://lkml.kernel.org/r/33d078a7-9072-4d8e-a3a9-dec23d4191da@redhat.com
+Link: https://lkml.kernel.org/r/20240425190526.10905-1-konishi.ryusuke@gmail.com
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c     |    5 +++--
- mm/pgtable-generic.c |    2 ++
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ fs/nilfs2/super.c     |   24 +++++++++++++++---------
+ fs/nilfs2/the_nilfs.c |    1 -
+ 2 files changed, 15 insertions(+), 10 deletions(-)
 
---- a/mm/huge_memory.c~mm-fix-race-between-__split_huge_pmd_locked-and-gup-fast
-+++ a/mm/huge_memory.c
-@@ -2533,12 +2533,12 @@ static void __split_huge_pmd_locked(stru
- 	 * for this pmd), then we flush the SMP TLB and finally we write the
- 	 * non-huge version of the pmd entry with pmd_populate.
- 	 */
--	old_pmd = pmdp_invalidate(vma, haddr, pmd);
+--- a/fs/nilfs2/super.c~nilfs2-convert-to-use-the-new-mount-api-v2
++++ a/fs/nilfs2/super.c
+@@ -29,14 +29,13 @@
+ #include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/blkdev.h>
+-#include <linux/fs_context.h>
+-#include <linux/fs_parser.h>
+ #include <linux/crc32.h>
+ #include <linux/vfs.h>
+ #include <linux/writeback.h>
+ #include <linux/seq_file.h>
+ #include <linux/mount.h>
+ #include <linux/fs_context.h>
++#include <linux/fs_parser.h>
+ #include "nilfs.h"
+ #include "export.h"
+ #include "mdt.h"
+@@ -1025,8 +1024,7 @@ int nilfs_checkpoint_is_mounted(struct s
+ /**
+  * nilfs_fill_super() - initialize a super block instance
+  * @sb: super_block
+- * @data: mount options
+- * @silent: silent mode flag
++ * @fc: filesystem context
+  *
+  * This function is called exclusively by nilfs->ns_mount_mutex.
+  * So, the recovery process is protected from other simultaneous mounts.
+@@ -1193,8 +1191,9 @@ nilfs_get_tree(struct fs_context *fc)
+ 	int err;
  
--	pmd_migration = is_pmd_migration_entry(old_pmd);
-+	pmd_migration = is_pmd_migration_entry(*pmd);
- 	if (unlikely(pmd_migration)) {
- 		swp_entry_t entry;
+ 	if (ctx->cno && !(fc->sb_flags & SB_RDONLY)) {
+-		nilfs_err(s, "invalid option \"cp=%llu\": read-only option is not specified",
+-			ctx->cno);
++		nilfs_err(NULL,
++			  "invalid option \"cp=%llu\": read-only option is not specified",
++			  ctx->cno);
+ 		return -EINVAL;
+ 	}
  
-+		old_pmd = *pmd;
- 		entry = pmd_to_swp_entry(old_pmd);
- 		page = pfn_swap_entry_to_page(entry);
- 		write = is_writable_migration_entry(entry);
-@@ -2549,6 +2549,7 @@ static void __split_huge_pmd_locked(stru
- 		soft_dirty = pmd_swp_soft_dirty(old_pmd);
- 		uffd_wp = pmd_swp_uffd_wp(old_pmd);
- 	} else {
-+		old_pmd = pmdp_invalidate(vma, haddr, pmd);
- 		page = pmd_page(old_pmd);
- 		folio = page_folio(page);
- 		if (pmd_dirty(old_pmd)) {
---- a/mm/pgtable-generic.c~mm-fix-race-between-__split_huge_pmd_locked-and-gup-fast
-+++ a/mm/pgtable-generic.c
-@@ -198,6 +198,7 @@ pgtable_t pgtable_trans_huge_withdraw(st
- pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
- 		     pmd_t *pmdp)
- {
-+	VM_WARN_ON(!pmd_present(*pmdp));
- 	pmd_t old = pmdp_establish(vma, address, pmdp, pmd_mkinvalid(*pmdp));
- 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
- 	return old;
-@@ -208,6 +209,7 @@ pmd_t pmdp_invalidate(struct vm_area_str
- pmd_t pmdp_invalidate_ad(struct vm_area_struct *vma, unsigned long address,
- 			 pmd_t *pmdp)
- {
-+	VM_WARN_ON(!pmd_present(*pmdp));
- 	return pmdp_invalidate(vma, address, pmdp);
- }
- #endif
+@@ -1225,13 +1224,20 @@ nilfs_get_tree(struct fs_context *fc)
+ 			}
+ 		} else {
+ 			/*
+-			 * Try remount to setup mount states if the current
++			 * Try reconfigure to setup mount states if the current
+ 			 * tree is not mounted and only snapshots use this sb.
++			 *
++			 * Since nilfs_reconfigure() requires fc->root to be
++			 * set, set it first and release it on failure.
+ 			 */
+-			fc->root = s->s_root;
++			fc->root = dget(s->s_root);
+ 			err = nilfs_reconfigure(fc);
+-			if (err)
++			if (err) {
++				dput(fc->root);
++				fc->root = NULL;  /* prevent double release */
+ 				goto failed_super;
++			}
++			return 0;
+ 		}
+ 	}
+ 
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-convert-to-use-the-new-mount-api-v2
++++ a/fs/nilfs2/the_nilfs.c
+@@ -659,7 +659,6 @@ static int nilfs_load_super_block(struct
+  * init_nilfs - initialize a NILFS instance.
+  * @nilfs: the_nilfs structure
+  * @sb: super block
+- * @data: mount options
+  *
+  * init_nilfs() performs common initialization per block device (e.g.
+  * reading the super block, getting disk layout information, initializing
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags.patch
-mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache.patch
-mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache-fix.patch
-mm-swap-simplify-struct-percpu_cluster.patch
-mm-swap-update-get_swap_pages-to-take-folio-order.patch
-mm-swap-allow-storage-of-all-mthp-orders.patch
-mm-vmscan-avoid-split-during-shrink_folio_list.patch
-mm-madvise-avoid-split-during-madv_pageout-and-madv_cold.patch
-selftests-mm-soft-dirty-should-fail-if-a-testcase-fails.patch
-mm-fix-race-between-__split_huge_pmd_locked-and-gup-fast.patch
+nilfs2-convert-to-use-the-new-mount-api.patch
+nilfs2-convert-to-use-the-new-mount-api-v2.patch
 
