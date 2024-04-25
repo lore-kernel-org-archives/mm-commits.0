@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F309A35
-	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 00:50:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31E5B185E
+	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 00:50:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714006207; cv=none; b=sb/Fb0OR9fi68d6NN0m96dUr0P0n/okdjimPMUKx+3+sYAyMiWa+IkKhe9QJjzJBJXHfqNyhnf/JTSZu51+6qIeSymP+8ONT55xsmyEqGj4ctj7e/pPMycplzRp/H0vMg0SJd5Dzb3d9hPEyJpAngxOYDQR9Rb5ofn6gOWSsNHs=
+	t=1714006209; cv=none; b=i78aPHG71DHI6oNBSjI8PmiS6Enx8F/yoyGNtoDpRQ+gW+9HnGRRUYyp35dcdBuL4bzfmnJGxQpN78Ey1PXtKhWlob9oAmUxvhLt69POPzzgwLg/eBuoO4WljAsPLvXVpluwwwVHa+8heem6ByOsRJboXu5j7vGA9B2zrCYmEKk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714006207; c=relaxed/simple;
-	bh=VqZ6Ahko1cbnv3a8+Lajthi+GdM+EaBZW/oS37gG5bc=;
-	h=Date:To:From:Subject:Message-Id; b=S4LzUrsSxf/jvHJlEjqyiqpRK/7Uzn6RJvrD1JxDns6Oej8KD4iFF8oTy8qiE26ZWR5tyyO+PH7DZkHJkkjckeW5fQmK0xxkb1jri7DQ0bTRgAWGrKVlMyhx7mGC3lB0FxfbFeDAy5lg9LWSw7WdlbniY93qRDwBkSWrcmMGzDY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r7VTaFeq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714006209; c=relaxed/simple;
+	bh=opBFkuF31OPzJXmlbuJ0r1YFJ2H6oXLqg7SA9nxRmCM=;
+	h=Date:To:From:Subject:Message-Id; b=jyB5vNSCBD8J2JKa9ULcGWnHSG8un5dFZfcc5Bod8HOPuOwafAyzaKvgMUiRA0Xoo3dYZBLN8C0J1tRE386lXJjkxntNtCbS92hoVXkVRPbe2r8oT9iyhRC1W0mzx2RPUE1C3dJiQz6SqmJS1+ay+X0k6v7/MnjRSjSYPApfk3g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vrAu/uN0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r7VTaFeq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D5E4C113CD;
-	Thu, 25 Apr 2024 00:50:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vrAu/uN0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC2A2C113CD;
+	Thu, 25 Apr 2024 00:50:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714006207;
-	bh=VqZ6Ahko1cbnv3a8+Lajthi+GdM+EaBZW/oS37gG5bc=;
+	s=korg; t=1714006209;
+	bh=opBFkuF31OPzJXmlbuJ0r1YFJ2H6oXLqg7SA9nxRmCM=;
 	h=Date:To:From:Subject:From;
-	b=r7VTaFeq991oRfzgWkeJ6VEjxdTR94oaY0PfT0wRhZrAR4mbUEE43fQ6yOVx0c/DM
-	 EOlo/wtgVlBZo4MwGkfXzgL2eV4BHLzzgQGY9gr+YtFlbOtqsPb839Z1J/jL5XTVmz
-	 OscVW/Tm/SbjvASffpIysFu4lBWWJsPi5Hp0HJbs=
-Date: Wed, 24 Apr 2024 17:50:06 -0700
+	b=vrAu/uN0rd4jgb0zGHqxl/SszWBWhmQAjhLjTpZ0hzhcszEWxiLm0FASB8YBcqjbz
+	 1D4AxyV50xeFqd40s85QjezElPYa2sy5i7tu7/8qjIt2HoifUO9sherCqhp0DrtryX
+	 pG3TVz7BUFxlnLTE0GWg7TwZrhz1SpQaYwjufOjA=
+Date: Wed, 24 Apr 2024 17:50:08 -0700
 To: mm-commits@vger.kernel.org,osalvador@suse.de,linmiaohe@huawei.com,jane.chu@oracle.com,dan.j.williams@intel.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-use-folio-functions-throughout-collect_procs.patch added to mm-unstable branch
-Message-Id: <20240425005007.5D5E4C113CD@smtp.kernel.org>
+Subject: + mm-memory-failure-pass-the-folio-to-collect_procs_ksm.patch added to mm-unstable branch
+Message-Id: <20240425005008.EC2A2C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: use folio functions throughout collect_procs()
+     Subject: mm/memory-failure: pass the folio to collect_procs_ksm()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-use-folio-functions-throughout-collect_procs.patch
+     mm-memory-failure-pass-the-folio-to-collect_procs_ksm.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-use-folio-functions-throughout-collect_procs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-pass-the-folio-to-collect_procs_ksm.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/memory-failure: use folio functions throughout collect_procs()
-Date: Fri, 12 Apr 2024 20:35:07 +0100
+Subject: mm/memory-failure: pass the folio to collect_procs_ksm()
+Date: Fri, 12 Apr 2024 20:35:08 +0100
 
-Saves a couple of calls to compound_head().
+We've already calculated it, so pass it in instead of recalculating it in
+collect_procs_ksm().
 
-Link: https://lkml.kernel.org/r/20240412193510.2356957-11-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240412193510.2356957-12-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Jane Chu <jane.chu@oracle.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -73,23 +74,73 @@ Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/ksm.h |   14 +++-----------
+ mm/ksm.c            |    5 ++---
+ mm/memory-failure.c |    2 +-
+ 3 files changed, 6 insertions(+), 15 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-use-folio-functions-throughout-collect_procs
-+++ a/mm/memory-failure.c
-@@ -728,9 +728,9 @@ static void collect_procs(struct folio *
+--- a/include/linux/ksm.h~mm-memory-failure-pass-the-folio-to-collect_procs_ksm
++++ a/include/linux/ksm.h
+@@ -81,15 +81,9 @@ struct folio *ksm_might_need_to_copy(str
+ 
+ void rmap_walk_ksm(struct folio *folio, struct rmap_walk_control *rwc);
+ void folio_migrate_ksm(struct folio *newfolio, struct folio *folio);
+-
+-#ifdef CONFIG_MEMORY_FAILURE
+-void collect_procs_ksm(struct page *page, struct list_head *to_kill,
+-		       int force_early);
+-#endif
+-
+-#ifdef CONFIG_PROC_FS
++void collect_procs_ksm(struct folio *folio, struct page *page,
++		struct list_head *to_kill, int force_early);
+ long ksm_process_profit(struct mm_struct *);
+-#endif /* CONFIG_PROC_FS */
+ 
+ #else  /* !CONFIG_KSM */
+ 
+@@ -120,12 +114,10 @@ static inline void ksm_might_unmap_zero_
  {
+ }
+ 
+-#ifdef CONFIG_MEMORY_FAILURE
+-static inline void collect_procs_ksm(struct page *page,
++static inline void collect_procs_ksm(struct folio *folio, struct page *page,
+ 				     struct list_head *to_kill, int force_early)
+ {
+ }
+-#endif
+ 
+ #ifdef CONFIG_MMU
+ static inline int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+--- a/mm/ksm.c~mm-memory-failure-pass-the-folio-to-collect_procs_ksm
++++ a/mm/ksm.c
+@@ -3178,12 +3178,11 @@ again:
+ /*
+  * Collect processes when the error hit an ksm page.
+  */
+-void collect_procs_ksm(struct page *page, struct list_head *to_kill,
+-		       int force_early)
++void collect_procs_ksm(struct folio *folio, struct page *page,
++		struct list_head *to_kill, int force_early)
+ {
+ 	struct ksm_stable_node *stable_node;
+ 	struct ksm_rmap_item *rmap_item;
+-	struct folio *folio = page_folio(page);
+ 	struct vm_area_struct *vma;
+ 	struct task_struct *tsk;
+ 
+--- a/mm/memory-failure.c~mm-memory-failure-pass-the-folio-to-collect_procs_ksm
++++ a/mm/memory-failure.c
+@@ -729,7 +729,7 @@ static void collect_procs(struct folio *
  	if (!folio->mapping)
  		return;
--	if (unlikely(PageKsm(page)))
-+	if (unlikely(folio_test_ksm(folio)))
- 		collect_procs_ksm(page, tokill, force_early);
--	else if (PageAnon(page))
-+	else if (folio_test_anon(folio))
+ 	if (unlikely(folio_test_ksm(folio)))
+-		collect_procs_ksm(page, tokill, force_early);
++		collect_procs_ksm(folio, page, tokill, force_early);
+ 	else if (folio_test_anon(folio))
  		collect_procs_anon(folio, page, tokill, force_early);
  	else
- 		collect_procs_file(folio, page, tokill, force_early);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
