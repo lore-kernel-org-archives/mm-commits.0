@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F073185E
-	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 00:50:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7E4717C9
+	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 00:50:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714006200; cv=none; b=VVivQiNPNdA86qS53hrY7EAGn1fLhCVitA07Tje9jdEYVz2x5vjy4A+En1Q6qBcwJwKQsrCvizgYGJ59mG2adrW3MgEpQBxl6PvYXDsffFAO04n56rAShoa0oRzvUPsqy+KgsO5dq21aCInWtWmXXL1oNdQb/jh3LlXOrDQkj+8=
+	t=1714006202; cv=none; b=B+paFyYO0yde2IQW1j1Z+Sv4dUl6S0XMpyk33vUYGVDQ52N3fPt2j81cs6Tl+qF7M8/iD6ycMcs7siRx4aeG+zkkmyfApqb3Io5b8TAI6YVDxFdB38ycsFa0k1hGEd/NZJ2Zbnv8b3MjpHZQP9LV8GK+P9nWjPdI+p5XO2u7VVY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714006200; c=relaxed/simple;
-	bh=A2taTXtAjEXZDY4MH7TYXSwWyXeF7o0Q5q97FEAKPsU=;
-	h=Date:To:From:Subject:Message-Id; b=m093t2bfNHmRtTKhoIKtzUuPzKPp9tMEZnvOf74qe/KvSv8ZwIXq2Uzn2W4tA1Z+W63Pcwg0HmFMmbv0KqNXo0qCYOsnXbV7rBWYUDGl19S2Vs0SrqBEgHcH0bo1f/ACau+Ffyr8RceArn3lzyJyQz9rvqeG/WwNzQVxR7yshMs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZONUclOM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714006202; c=relaxed/simple;
+	bh=xTVhkyLp7Rh5HLGf2eNE+iltg/tTaXfPsz2noM7JHJ4=;
+	h=Date:To:From:Subject:Message-Id; b=d5FH9JN4MyW/KpVt81QC3h7CU/z7M2X+2o+CcUSzrRMitRC71S5+OYPt72lkdvAcUzVc3/SsymGDt16Z7vR01H+qJFxIwMiJggTidvYiD5n4SE9XQ/m+tMvTO3fAIT8XQ1OpzS0cpCeShQzPoPiqppY3X8dAT7Rn495+lIXM4l8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yTE0fkfS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZONUclOM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51A90C113CD;
-	Thu, 25 Apr 2024 00:50:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yTE0fkfS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A07FC113CE;
+	Thu, 25 Apr 2024 00:50:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714006200;
-	bh=A2taTXtAjEXZDY4MH7TYXSwWyXeF7o0Q5q97FEAKPsU=;
+	s=korg; t=1714006202;
+	bh=xTVhkyLp7Rh5HLGf2eNE+iltg/tTaXfPsz2noM7JHJ4=;
 	h=Date:To:From:Subject:From;
-	b=ZONUclOMWDl7xpwK0/QibXGQD9jIVl3VlNITJzT6/kI5PxmbiDahdZA/Em5C3knou
-	 uPwy8HryVYLrvBnDdZ3+RkLGcUn07lPm+WwasJslYZas8lhNkMwXMVCC2aYWLntac9
-	 WIQDsVd+HE7/Aqqt+H74V27+ipj4Z8qOHZoxDFMc=
-Date: Wed, 24 Apr 2024 17:49:59 -0700
+	b=yTE0fkfSopmpMicQTiXFTvodzjB759wsGnNDqrHIiUKBdrFNUTMFmwd4Pxe8Sdavv
+	 mlimhfaxqoN2lOTORyYaQuEYYc5Qr0+IBbvH/yawmJG1mFpKDqTRD3ZcLxaXK5L0AF
+	 C3ymMjws9+HzvhBR3qVdvLiZvSFiU5KdleRFfbEQ=
+Date: Wed, 24 Apr 2024 17:50:01 -0700
 To: mm-commits@vger.kernel.org,osalvador@suse.de,linmiaohe@huawei.com,jane.chu@oracle.com,dan.j.williams@intel.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-hugetlb_page_mapping_lock_write-to-folio.patch added to mm-unstable branch
-Message-Id: <20240425005000.51A90C113CD@smtp.kernel.org>
+Subject: + mm-memory-failure-convert-memory_failure-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20240425005002.7A07FC113CE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: convert hugetlb_page_mapping_lock_write to folio
+     Subject: mm/memory-failure: convert memory_failure() to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-hugetlb_page_mapping_lock_write-to-folio.patch
+     mm-memory-failure-convert-memory_failure-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-hugetlb_page_mapping_lock_write-to-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-convert-memory_failure-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,91 +59,144 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert hugetlb_page_mapping_lock_write to folio
-Date: Fri, 12 Apr 2024 20:35:03 +0100
+Subject: mm/memory-failure: convert memory_failure() to use a folio
+Date: Fri, 12 Apr 2024 20:35:04 +0100
 
-The page is only used to get the mapping, so the folio will do just as
-well.  Both callers already have a folio available, so this saves a call
-to compound_head().
+Saves dozens of calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20240412193510.2356957-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240412193510.2356957-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Jane Chu  <jane.chu@oracle.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 +++---
- mm/hugetlb.c            |    6 +++---
- mm/memory-failure.c     |    2 +-
- mm/migrate.c            |    2 +-
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ mm/memory-failure.c |   40 +++++++++++++++++++++-------------------
+ 1 file changed, 21 insertions(+), 19 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-convert-hugetlb_page_mapping_lock_write-to-folio
-+++ a/include/linux/hugetlb.h
-@@ -178,7 +178,7 @@ bool hugetlbfs_pagecache_present(struct
- 				 struct vm_area_struct *vma,
- 				 unsigned long address);
- 
--struct address_space *hugetlb_page_mapping_lock_write(struct page *hpage);
-+struct address_space *hugetlb_folio_mapping_lock_write(struct folio *folio);
- 
- extern int sysctl_hugetlb_shm_group;
- extern struct list_head huge_boot_pages[MAX_NUMNODES];
-@@ -297,8 +297,8 @@ static inline unsigned long hugetlb_tota
- 	return 0;
- }
- 
--static inline struct address_space *hugetlb_page_mapping_lock_write(
--							struct page *hpage)
-+static inline struct address_space *hugetlb_folio_mapping_lock_write(
-+							struct folio *folio)
- {
- 	return NULL;
- }
---- a/mm/hugetlb.c~mm-convert-hugetlb_page_mapping_lock_write-to-folio
-+++ a/mm/hugetlb.c
-@@ -2155,13 +2155,13 @@ static bool prep_compound_gigantic_folio
- /*
-  * Find and lock address space (mapping) in write mode.
-  *
-- * Upon entry, the page is locked which means that page_mapping() is
-+ * Upon entry, the folio is locked which means that folio_mapping() is
-  * stable.  Due to locking order, we can only trylock_write.  If we can
-  * not get the lock, simply return NULL to caller.
-  */
--struct address_space *hugetlb_page_mapping_lock_write(struct page *hpage)
-+struct address_space *hugetlb_folio_mapping_lock_write(struct folio *folio)
- {
--	struct address_space *mapping = page_mapping(hpage);
-+	struct address_space *mapping = folio_mapping(folio);
- 
- 	if (!mapping)
- 		return mapping;
---- a/mm/memory-failure.c~mm-convert-hugetlb_page_mapping_lock_write-to-folio
+--- a/mm/memory-failure.c~mm-memory-failure-convert-memory_failure-to-use-a-folio
 +++ a/mm/memory-failure.c
-@@ -1624,7 +1624,7 @@ static bool hwpoison_user_mappings(struc
- 		 * TTU_RMAP_LOCKED to indicate we have taken the lock
- 		 * at this higher level.
- 		 */
--		mapping = hugetlb_page_mapping_lock_write(hpage);
-+		mapping = hugetlb_folio_mapping_lock_write(folio);
- 		if (mapping) {
- 			try_to_unmap(folio, ttu|TTU_RMAP_LOCKED);
- 			i_mmap_unlock_write(mapping);
---- a/mm/migrate.c~mm-convert-hugetlb_page_mapping_lock_write-to-folio
-+++ a/mm/migrate.c
-@@ -1425,7 +1425,7 @@ static int unmap_and_move_huge_page(new_
- 			 * semaphore in write mode here and set TTU_RMAP_LOCKED
- 			 * to let lower levels know we have taken the lock.
- 			 */
--			mapping = hugetlb_page_mapping_lock_write(&src->page);
-+			mapping = hugetlb_folio_mapping_lock_write(src);
- 			if (unlikely(!mapping))
- 				goto unlock_put_anon;
+@@ -2189,7 +2189,7 @@ out:
+ int memory_failure(unsigned long pfn, int flags)
+ {
+ 	struct page *p;
+-	struct page *hpage;
++	struct folio *folio;
+ 	struct dev_pagemap *pgmap;
+ 	int res = 0;
+ 	unsigned long page_flags;
+@@ -2277,8 +2277,8 @@ try_again:
+ 		}
+ 	}
  
+-	hpage = compound_head(p);
+-	if (PageTransHuge(hpage)) {
++	folio = page_folio(p);
++	if (folio_test_large(folio)) {
+ 		/*
+ 		 * The flag must be set after the refcount is bumped
+ 		 * otherwise it may race with THP split.
+@@ -2292,12 +2292,13 @@ try_again:
+ 		 * or unhandlable page.  The refcount is bumped iff the
+ 		 * page is a valid handlable page.
+ 		 */
+-		SetPageHasHWPoisoned(hpage);
++		folio_set_has_hwpoisoned(folio);
+ 		if (try_to_split_thp_page(p) < 0) {
+ 			res = action_result(pfn, MF_MSG_UNSPLIT_THP, MF_IGNORED);
+ 			goto unlock_mutex;
+ 		}
+ 		VM_BUG_ON_PAGE(!page_count(p), p);
++		folio = page_folio(p);
+ 	}
+ 
+ 	/*
+@@ -2308,9 +2309,9 @@ try_again:
+ 	 * The check (unnecessarily) ignores LRU pages being isolated and
+ 	 * walked by the page reclaim code, however that's not a big loss.
+ 	 */
+-	shake_page(p);
++	shake_folio(folio);
+ 
+-	lock_page(p);
++	folio_lock(folio);
+ 
+ 	/*
+ 	 * We're only intended to deal with the non-Compound page here.
+@@ -2318,11 +2319,11 @@ try_again:
+ 	 * race window. If this happens, we could try again to hopefully
+ 	 * handle the page next round.
+ 	 */
+-	if (PageCompound(p)) {
++	if (folio_test_large(folio)) {
+ 		if (retry) {
+ 			ClearPageHWPoison(p);
+-			unlock_page(p);
+-			put_page(p);
++			folio_unlock(folio);
++			folio_put(folio);
+ 			flags &= ~MF_COUNT_INCREASED;
+ 			retry = false;
+ 			goto try_again;
+@@ -2338,29 +2339,29 @@ try_again:
+ 	 * folio_remove_rmap_*() in try_to_unmap_one(). So to determine page
+ 	 * status correctly, we save a copy of the page flags at this time.
+ 	 */
+-	page_flags = p->flags;
++	page_flags = folio->flags;
+ 
+ 	if (hwpoison_filter(p)) {
+ 		ClearPageHWPoison(p);
+-		unlock_page(p);
+-		put_page(p);
++		folio_unlock(folio);
++		folio_put(folio);
+ 		res = -EOPNOTSUPP;
+ 		goto unlock_mutex;
+ 	}
+ 
+ 	/*
+-	 * __munlock_folio() may clear a writeback page's LRU flag without
+-	 * page_lock. We need wait writeback completion for this page or it
+-	 * may trigger vfs BUG while evict inode.
++	 * __munlock_folio() may clear a writeback folio's LRU flag without
++	 * the folio lock. We need to wait for writeback completion for this
++	 * folio or it may trigger a vfs BUG while evicting inode.
+ 	 */
+-	if (!PageLRU(p) && !PageWriteback(p))
++	if (!folio_test_lru(folio) && !folio_test_writeback(folio))
+ 		goto identify_page_state;
+ 
+ 	/*
+ 	 * It's very difficult to mess with pages currently under IO
+ 	 * and in many cases impossible, so we just avoid it here.
+ 	 */
+-	wait_on_page_writeback(p);
++	folio_wait_writeback(folio);
+ 
+ 	/*
+ 	 * Now take care of user space mappings.
+@@ -2374,7 +2375,8 @@ try_again:
+ 	/*
+ 	 * Torn down by someone else?
+ 	 */
+-	if (PageLRU(p) && !PageSwapCache(p) && p->mapping == NULL) {
++	if (folio_test_lru(folio) && !folio_test_swapcache(folio) &&
++	    folio->mapping == NULL) {
+ 		res = action_result(pfn, MF_MSG_TRUNCATED_LRU, MF_IGNORED);
+ 		goto unlock_page;
+ 	}
+@@ -2384,7 +2386,7 @@ identify_page_state:
+ 	mutex_unlock(&mf_mutex);
+ 	return res;
+ unlock_page:
+-	unlock_page(p);
++	folio_unlock(folio);
+ unlock_mutex:
+ 	mutex_unlock(&mf_mutex);
+ 	return res;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
