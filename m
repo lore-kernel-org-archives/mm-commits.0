@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A655D15250D
-	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 20:23:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86AD7152DE6;
+	Thu, 25 Apr 2024 20:31:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714076620; cv=none; b=tocvdFzlIv/H41lS66iTNNo99p2AkOlAZXNAi3HGGEWi2xcPZCEBieKr0JtNpmZ+NRonxnYl16yVE0LOe2Bcu455jeTiA52zjN/hkTvm1TXCyZVQLjDmWb9EZ66fEP7eeBLk9XBpgDjjbH7TQMvAfyPG8dHg0yFg1bwtrz0zAeQ=
+	t=1714077108; cv=none; b=pdILbiftXsXdbPtg0p23hYnV9tBm3lw+BP4fLDli20ViZKs1biTPMwQKciXsTZh9TJnn3vpZYJP+FneoJWFpvAAssSBbY8dNU+PZEDuLBLKiT8zUjCYDwc+DrrzApCSljDKNreniOJTh2KuXS27+Mj4OB6inOfnxjGhGAScka8U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714076620; c=relaxed/simple;
-	bh=FppnvpE3yjvAkghCg/UtV1WWkHewDz4UJrINBSmHGA0=;
-	h=Date:To:From:Subject:Message-Id; b=nrsPBuDo10VU3elYTrpDh6RaSDJVgpD570hondMUXBKzXXEEpN1DC1fQLLgvDtvUmJhNzS7ePSt6FLM4PNNlyRSsxhz50e/c/xCTT/72MomSAtM6yg5+T8FztRIB839OWHytg9MjgMaalZ82IJBLVOsFVkDhSVJsUrEbcZU8QuE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VrtgfQF3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714077108; c=relaxed/simple;
+	bh=Wt8IgxHYFqfRDRLjtQroy9iMu2/HAuvcxeZhMKnrdC4=;
+	h=Date:To:From:Subject:Message-Id; b=LlmWjlDsCsT6pDoHLYFdQHGnR9zfx2/TYwUT9mK3efGKAnDfBB/Yz2ZW8gKdsc+KVrvQxBXpBhU+TZKpAXekp2OQ+pB1P5jHbJQcCFIP0UNtVaH6xcdaoTbBERv83EL/mC/bzoCe08FNM7PeVv7OUscVN4ehHkCU9OyZI2aWiQE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wUKz8+xD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VrtgfQF3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 296FBC113CC;
-	Thu, 25 Apr 2024 20:23:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wUKz8+xD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E03D8C113CE;
+	Thu, 25 Apr 2024 20:31:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714076620;
-	bh=FppnvpE3yjvAkghCg/UtV1WWkHewDz4UJrINBSmHGA0=;
+	s=korg; t=1714077108;
+	bh=Wt8IgxHYFqfRDRLjtQroy9iMu2/HAuvcxeZhMKnrdC4=;
 	h=Date:To:From:Subject:From;
-	b=VrtgfQF3Wb6aXT7WUlQgmQb0tMZT//e1Fcch69bELEyj7USM6fxBwCygUbN++THpr
-	 fxQmrGJUXx6wXWz9tijm50cGbZ53HIcoI9QNbhJAQaLluzROzlsf3eTJfuUIsJNSev
-	 MzKeibl5sK576t3MWAhE8ICyuPA6PByDvYx2FlmE=
-Date: Thu, 25 Apr 2024 13:23:39 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,kent.overstreet@linux.dev,keescook@chromium.org,akpm@linux-foundation.org
+	b=wUKz8+xDIwy6oVqAr6WsqfBsNPcIxZxfKTnDh0bR0KfaNwJdicYY7wmJHOt4loFmz
+	 drrNBOS+UXd/TFrDy6W7Gc6xUntEF0emHapEZRj4/3kRrbMsmfoXAjW1GufXZSYQ0S
+	 Ub92+1qqdT+InT+ZuiNC5B81ji7l9xlhtuuDXm1c=
+Date: Thu, 25 Apr 2024 13:31:47 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ojeda@kernel.org,elver@google.com,dvyukov@google.com,glider@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-add-allocation-tagging-support-for-memory-allocation-profiling-fix-5.patch added to mm-unstable branch
-Message-Id: <20240425202340.296FBC113CC@smtp.kernel.org>
+Subject: + kmsan-compiler_types-declare-__no_sanitize_or_inline.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240425203147.E03D8C113CE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: Tighten file permissions on /proc/allocinfo
-has been added to the -mm mm-unstable branch.  Its filename is
-     lib-add-allocation-tagging-support-for-memory-allocation-profiling-fix-5.patch
+     Subject: kmsan: compiler_types: declare __no_sanitize_or_inline
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kmsan-compiler_types-declare-__no_sanitize_or_inline.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-add-allocation-tagging-support-for-memory-allocation-profiling-fix-5.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-compiler_types-declare-__no_sanitize_or_inline.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,40 +58,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: alloc_tag: Tighten file permissions on /proc/allocinfo
-Date: Thu, 25 Apr 2024 13:08:50 -0700
+From: Alexander Potapenko <glider@google.com>
+Subject: kmsan: compiler_types: declare __no_sanitize_or_inline
+Date: Thu, 25 Apr 2024 11:28:59 +0200
 
-The /proc/allocinfo file exposes a tremendous about of information about
-kernel build details, memory allocations (obviously), and potentially even
-image layout (due to ordering).  As this is intended to be consumed by
-system owners (like /proc/slabinfo), use the same file permissions as
-there: 0400.
+It turned out that KMSAN instruments READ_ONCE_NOCHECK(), resulting in
+false positive reports, because __no_sanitize_or_inline enforced inlining.
 
-Link: https://lkml.kernel.org/r/20240425200844.work.184-kees@kernel.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Properly declare __no_sanitize_or_inline under __SANITIZE_MEMORY__,
+so that it does not inline the annotated function.
+
+Link: https://lkml.kernel.org/r/20240425092859.3370297-1-glider@google.com
+Reported-by: syzbot+355c5bb8c1445c871ee8@syzkaller.appspotmail.com
+Link: https://lkml.kernel.org/r/000000000000826ac1061675b0e3@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/alloc_tag.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/compiler_types.h |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/lib/alloc_tag.c~lib-add-allocation-tagging-support-for-memory-allocation-profiling-fix-5
-+++ a/lib/alloc_tag.c
-@@ -90,7 +90,7 @@ static const struct seq_operations alloc
+--- a/include/linux/compiler_types.h~kmsan-compiler_types-declare-__no_sanitize_or_inline
++++ a/include/linux/compiler_types.h
+@@ -278,6 +278,17 @@ struct ftrace_likely_data {
+ # define __no_kcsan
+ #endif
  
- static void __init procfs_init(void)
- {
--	proc_create_seq("allocinfo", 0444, NULL, &allocinfo_seq_op);
-+	proc_create_seq("allocinfo", 0400, NULL, &allocinfo_seq_op);
- }
- 
- static bool alloc_tag_module_unload(struct codetag_type *cttype,
++#ifdef __SANITIZE_MEMORY__
++/*
++ * Similarly to KASAN and KCSAN, KMSAN loses function attributes of inlined
++ * functions, therefore disabling KMSAN checks also requires disabling inlining.
++ *
++ * __no_sanitize_or_inline effectively prevents KMSAN from reporting errors
++ * within the function and marks all its outputs as initialized.
++ */
++# define __no_sanitize_or_inline __no_kmsan_checks notrace __maybe_unused
++#endif
++
+ #ifndef __no_sanitize_or_inline
+ #define __no_sanitize_or_inline __always_inline
+ #endif
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from glider@google.com are
 
-lib-add-allocation-tagging-support-for-memory-allocation-profiling-fix-5.patch
+kmsan-compiler_types-declare-__no_sanitize_or_inline.patch
+mm-kmsan-implement-kmsan_memmove.patch
+instrumentedh-add-instrument_memcpy_before-instrument_memcpy_after.patch
+x86-call-instrumentation-hooks-from-copy_mcc.patch
 
