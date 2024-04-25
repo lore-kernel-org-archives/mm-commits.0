@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 418604C7B
-	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 00:50:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F309A35
+	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 00:50:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714006206; cv=none; b=k4XQpVH5A6d0q6ackgevM+GW+rSmV3Q9kThr1eUBllqf/EVN8amJ3oAPp2yLDFJN1s5Urxw14x4Nic/wnXWGQF7VVA4PRw0oBTeqIHbs8TmToMBANpDITYFu5bGJ3MPN/n7vqpT5KzanMM1PDhbK0cfwhBAMmQyMIiHIgA3QUDA=
+	t=1714006207; cv=none; b=sb/Fb0OR9fi68d6NN0m96dUr0P0n/okdjimPMUKx+3+sYAyMiWa+IkKhe9QJjzJBJXHfqNyhnf/JTSZu51+6qIeSymP+8ONT55xsmyEqGj4ctj7e/pPMycplzRp/H0vMg0SJd5Dzb3d9hPEyJpAngxOYDQR9Rb5ofn6gOWSsNHs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714006206; c=relaxed/simple;
-	bh=OwbxqRefOwd9nyIhBQz8n04nRKI3xG/MRGGsrDooEpg=;
-	h=Date:To:From:Subject:Message-Id; b=YlsBezzSWaWgXtczcMf1HQYdyeJqI7S8mR5XOpirbi3YexgMkMdmbDvz6sFTLkjyQpPs+O04vxctKp5lhrpvUmUUL4MMB/7vNnto/VJSngGchudxUR8/Uc2m3iwtMYLniqUbGefe/eYMA1pOT/TKJNmj+zoUfJlu2SUVDVNHC0Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t/6to4f+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714006207; c=relaxed/simple;
+	bh=VqZ6Ahko1cbnv3a8+Lajthi+GdM+EaBZW/oS37gG5bc=;
+	h=Date:To:From:Subject:Message-Id; b=S4LzUrsSxf/jvHJlEjqyiqpRK/7Uzn6RJvrD1JxDns6Oej8KD4iFF8oTy8qiE26ZWR5tyyO+PH7DZkHJkkjckeW5fQmK0xxkb1jri7DQ0bTRgAWGrKVlMyhx7mGC3lB0FxfbFeDAy5lg9LWSw7WdlbniY93qRDwBkSWrcmMGzDY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r7VTaFeq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t/6to4f+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD6F6C113CD;
-	Thu, 25 Apr 2024 00:50:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r7VTaFeq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D5E4C113CD;
+	Thu, 25 Apr 2024 00:50:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714006205;
-	bh=OwbxqRefOwd9nyIhBQz8n04nRKI3xG/MRGGsrDooEpg=;
+	s=korg; t=1714006207;
+	bh=VqZ6Ahko1cbnv3a8+Lajthi+GdM+EaBZW/oS37gG5bc=;
 	h=Date:To:From:Subject:From;
-	b=t/6to4f+2cAQK8YK5m5R22Gs5eia1QZvGBJEmQ1mBwCTL6llW6w9eOc+poaBqdksY
-	 h0VfOTbBLGH0ixVKkv76k6ORBKYB1li2NIUfOdRm12mIi3nN91ezN2ViKEseCcRKAd
-	 ZzystvQpmBTUunio5rIKKLRSF3VdIvlug3o1Zd8A=
-Date: Wed, 24 Apr 2024 17:50:05 -0700
+	b=r7VTaFeq991oRfzgWkeJ6VEjxdTR94oaY0PfT0wRhZrAR4mbUEE43fQ6yOVx0c/DM
+	 EOlo/wtgVlBZo4MwGkfXzgL2eV4BHLzzgQGY9gr+YtFlbOtqsPb839Z1J/jL5XTVmz
+	 OscVW/Tm/SbjvASffpIysFu4lBWWJsPi5Hp0HJbs=
+Date: Wed, 24 Apr 2024 17:50:06 -0700
 To: mm-commits@vger.kernel.org,osalvador@suse.de,linmiaohe@huawei.com,jane.chu@oracle.com,dan.j.williams@intel.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-add-some-folio-conversions-to-unpoison_memory.patch added to mm-unstable branch
-Message-Id: <20240425005005.BD6F6C113CD@smtp.kernel.org>
+Subject: + mm-memory-failure-use-folio-functions-throughout-collect_procs.patch added to mm-unstable branch
+Message-Id: <20240425005007.5D5E4C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: add some folio conversions to unpoison_memory
+     Subject: mm/memory-failure: use folio functions throughout collect_procs()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-add-some-folio-conversions-to-unpoison_memory.patch
+     mm-memory-failure-use-folio-functions-throughout-collect_procs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-add-some-folio-conversions-to-unpoison_memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-use-folio-functions-throughout-collect_procs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,55 +59,37 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/memory-failure: add some folio conversions to unpoison_memory
-Date: Fri, 12 Apr 2024 20:35:06 +0100
+Subject: mm/memory-failure: use folio functions throughout collect_procs()
+Date: Fri, 12 Apr 2024 20:35:07 +0100
 
-Some of these folio APIs didn't exist when the unpoison_memory()
-conversion was done originally.
+Saves a couple of calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20240412193510.2356957-10-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240412193510.2356957-11-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Jane Chu <jane.chu@oracle.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/memory-failure.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-add-some-folio-conversions-to-unpoison_memory
+--- a/mm/memory-failure.c~mm-memory-failure-use-folio-functions-throughout-collect_procs
 +++ a/mm/memory-failure.c
-@@ -2556,8 +2556,8 @@ int unpoison_memory(unsigned long pfn)
- 		goto unlock_mutex;
- 	}
- 
--	if (folio_test_slab(folio) || PageTable(&folio->page) ||
--	    folio_test_reserved(folio) || PageOffline(&folio->page))
-+	if (folio_test_slab(folio) || folio_test_pgtable(folio) ||
-+	    folio_test_reserved(folio) || folio_test_offline(folio))
- 		goto unlock_mutex;
- 
- 	/*
-@@ -2578,7 +2578,7 @@ int unpoison_memory(unsigned long pfn)
- 
- 	ghp = get_hwpoison_page(p, MF_UNPOISON);
- 	if (!ghp) {
--		if (PageHuge(p)) {
-+		if (folio_test_hugetlb(folio)) {
- 			huge = true;
- 			count = folio_free_raw_hwp(folio, false);
- 			if (count == 0)
-@@ -2594,7 +2594,7 @@ int unpoison_memory(unsigned long pfn)
- 					 pfn, &unpoison_rs);
- 		}
- 	} else {
--		if (PageHuge(p)) {
-+		if (folio_test_hugetlb(folio)) {
- 			huge = true;
- 			count = folio_free_raw_hwp(folio, false);
- 			if (count == 0) {
+@@ -728,9 +728,9 @@ static void collect_procs(struct folio *
+ {
+ 	if (!folio->mapping)
+ 		return;
+-	if (unlikely(PageKsm(page)))
++	if (unlikely(folio_test_ksm(folio)))
+ 		collect_procs_ksm(page, tokill, force_early);
+-	else if (PageAnon(page))
++	else if (folio_test_anon(folio))
+ 		collect_procs_anon(folio, page, tokill, force_early);
+ 	else
+ 		collect_procs_file(folio, page, tokill, force_early);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
