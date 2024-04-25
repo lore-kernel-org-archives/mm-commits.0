@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E758F17F8
-	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 00:49:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0B02210D
+	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 00:49:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714006193; cv=none; b=VKzMaWwl41lP56fthhmiSTBEKI7pV9rFCm/ngH1kKho9AyL9L3p9W8y4F4LOpxutetmKf6/vxyQy3ByzhqkWfBXWzfHyc82RjDEAvTKcUL57WcpirFlWmZ1NltKQqoPUQ9u/KFgD8jbfd7jiu0zvfzvociscW0CGPfeFNZHns90=
+	t=1714006197; cv=none; b=T5k0VcVS+pik4eZSPuzV/ZO6TwO/DS/Z1MmzNmr74+su0nKnAeB6xubts2hwHjGqOMj7fdU9nXUF/zStE39iLc2ieqs2wcbOCeIVIcokTSqXrNoBvoxcDw4ZCS1NicKLXE1UqfGrwKztBFNhu19WJDgjf5pWFemyJEzTpu+gixs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714006193; c=relaxed/simple;
-	bh=Ku5Nc4YDckEhB6eZ3kSf+AZPz+Rg6IriGFJ8q1OXk0c=;
-	h=Date:To:From:Subject:Message-Id; b=uN2JufnZ8m5cL8vYgoiZVaistGeSo/65b3+F2yvILVgdq75SdXRah4tcx3ZQftOtxQCieZLVWg0bkQtfUaeepidw528dWjFVTMaRVU8fALuslXtpxc5QRoBYZ3OCSQzmxfJS4KR7mdyvp9pMldDVWRpDTA717tMybrAiFbzFQhU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k7HmHBhh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714006197; c=relaxed/simple;
+	bh=k9Wx3EetV8PZgoGokS1rlEBfBo2+GV5TiGHn45wY50A=;
+	h=Date:To:From:Subject:Message-Id; b=d23a/dTyt0QIe8s0qqICF3TlC3kg2RXEWiLYXLKFbXiGDxsRaJQ9a/Ih1lzgqM5OX/O2gi/b8vUF5rf/VqvtRpVOMwoJLX3Ud1RumraPMsGG+8M7jpTQAsuGggWgdrA7dtBXZaN+nYDVMZuKik4fU1o62H9QPOxAxAI3nB+OUWM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1SC1maCo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k7HmHBhh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57810C113CD;
-	Thu, 25 Apr 2024 00:49:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1SC1maCo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D6B0C113CD;
+	Thu, 25 Apr 2024 00:49:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714006192;
-	bh=Ku5Nc4YDckEhB6eZ3kSf+AZPz+Rg6IriGFJ8q1OXk0c=;
+	s=korg; t=1714006196;
+	bh=k9Wx3EetV8PZgoGokS1rlEBfBo2+GV5TiGHn45wY50A=;
 	h=Date:To:From:Subject:From;
-	b=k7HmHBhh0rlRghvP8u6nBSmhyApEfzRvPo1l3cDlgVE3hT6LFuNTCsSWMABSIOh1R
-	 vQU3lt5B87c52vJ3yB5PLVjW0H3J3XySJAliRBmJQTurEIMwb8tb9j/zlkLLn8NWqN
-	 UoqW+iX6DkxXlCSCVsBKi3nQ5F6PxuJ4NL9aTzgk=
-Date: Wed, 24 Apr 2024 17:49:51 -0700
+	b=1SC1maCoOZc3mnpykuEVZq0o4S47g7/Sj1MIdYvADjPKxQl2HWg8r82ONBYccGiaj
+	 aDH8og4ZsHrXPgeVe31u8GfvHL31FerARqoqp2hbAeUSu93hy/wQGGoM7VqbKqGobD
+	 B4yruYHSYtmn1szNK4IFxN3ezJ03uiw/mHUdGXfQ=
+Date: Wed, 24 Apr 2024 17:49:53 -0700
 To: mm-commits@vger.kernel.org,osalvador@suse.de,linmiaohe@huawei.com,jane.chu@oracle.com,dan.j.williams@intel.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-return-the-address-from-page_mapped_in_vma.patch added to mm-unstable branch
-Message-Id: <20240425004952.57810C113CD@smtp.kernel.org>
+Subject: + mm-make-page_mapped_in_vma-conditional-on-config_memory_failure.patch added to mm-unstable branch
+Message-Id: <20240425004956.6D6B0C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: return the address from page_mapped_in_vma()
+     Subject: mm: make page_mapped_in_vma conditional on CONFIG_MEMORY_FAILURE
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-return-the-address-from-page_mapped_in_vma.patch
+     mm-make-page_mapped_in_vma-conditional-on-config_memory_failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-return-the-address-from-page_mapped_in_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-page_mapped_in_vma-conditional-on-config_memory_failure.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,141 +59,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: return the address from page_mapped_in_vma()
-Date: Fri, 12 Apr 2024 20:35:00 +0100
+Subject: mm: make page_mapped_in_vma conditional on CONFIG_MEMORY_FAILURE
+Date: Fri, 12 Apr 2024 20:35:01 +0100
 
-The only user of this function calls page_address_in_vma() immediately
-after page_mapped_in_vma() calculates it and uses it to return true/false.
-Return the address instead, allowing memory-failure to skip the call to
-page_address_in_vma().
+This function is only currently used by the memory-failure code, so we can
+omit it if we're not compiling in the memory-failure code.
 
-Link: https://lkml.kernel.org/r/20240412193510.2356957-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240412193510.2356957-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Suggested-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Jane Chu <jane.chu@oracle.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    2 +-
- mm/memory-failure.c  |   22 +++++++++++++---------
- mm/page_vma_mapped.c |   16 +++++++++-------
- 3 files changed, 23 insertions(+), 17 deletions(-)
+ mm/page_vma_mapped.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/rmap.h~mm-return-the-address-from-page_mapped_in_vma
-+++ a/include/linux/rmap.h
-@@ -732,7 +732,7 @@ int pfn_mkclean_range(unsigned long pfn,
- 
- void remove_migration_ptes(struct folio *src, struct folio *dst, bool locked);
- 
--int page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
-+unsigned long page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
- 
- /*
-  * rmap_walk_control: To control rmap traversing for specific needs
---- a/mm/memory-failure.c~mm-return-the-address-from-page_mapped_in_vma
-+++ a/mm/memory-failure.c
-@@ -473,10 +473,11 @@ static void __add_to_kill(struct task_st
- }
- 
- static void add_to_kill_anon_file(struct task_struct *tsk, struct page *p,
--				  struct vm_area_struct *vma,
--				  struct list_head *to_kill)
-+		struct vm_area_struct *vma, struct list_head *to_kill,
-+		unsigned long addr)
- {
--	unsigned long addr = page_address_in_vma(p, vma);
-+	if (addr == -EFAULT)
-+		return;
- 	__add_to_kill(tsk, p, vma, to_kill, addr);
- }
- 
-@@ -601,7 +602,6 @@ struct task_struct *task_early_kill(stru
- static void collect_procs_anon(struct folio *folio, struct page *page,
- 		struct list_head *to_kill, int force_early)
- {
--	struct vm_area_struct *vma;
- 	struct task_struct *tsk;
- 	struct anon_vma *av;
- 	pgoff_t pgoff;
-@@ -613,8 +613,10 @@ static void collect_procs_anon(struct fo
- 	pgoff = page_to_pgoff(page);
- 	rcu_read_lock();
- 	for_each_process(tsk) {
-+		struct vm_area_struct *vma;
- 		struct anon_vma_chain *vmac;
- 		struct task_struct *t = task_early_kill(tsk, force_early);
-+		unsigned long addr;
- 
- 		if (!t)
- 			continue;
-@@ -623,9 +625,8 @@ static void collect_procs_anon(struct fo
- 			vma = vmac->vma;
- 			if (vma->vm_mm != t->mm)
- 				continue;
--			if (!page_mapped_in_vma(page, vma))
--				continue;
--			add_to_kill_anon_file(t, page, vma, to_kill);
-+			addr = page_mapped_in_vma(page, vma);
-+			add_to_kill_anon_file(t, page, vma, to_kill, addr);
- 		}
- 	}
- 	rcu_read_unlock();
-@@ -648,6 +649,7 @@ static void collect_procs_file(struct fo
- 	pgoff = page_to_pgoff(page);
- 	for_each_process(tsk) {
- 		struct task_struct *t = task_early_kill(tsk, force_early);
-+		unsigned long addr;
- 
- 		if (!t)
- 			continue;
-@@ -660,8 +662,10 @@ static void collect_procs_file(struct fo
- 			 * Assume applications who requested early kill want
- 			 * to be informed of all such data corruptions.
- 			 */
--			if (vma->vm_mm == t->mm)
--				add_to_kill_anon_file(t, page, vma, to_kill);
-+			if (vma->vm_mm != t->mm)
-+				continue;
-+			addr = page_address_in_vma(page, vma);
-+			add_to_kill_anon_file(t, page, vma, to_kill, addr);
- 		}
- 	}
- 	rcu_read_unlock();
---- a/mm/page_vma_mapped.c~mm-return-the-address-from-page_mapped_in_vma
+--- a/mm/page_vma_mapped.c~mm-make-page_mapped_in_vma-conditional-on-config_memory_failure
 +++ a/mm/page_vma_mapped.c
-@@ -319,11 +319,12 @@ next_pte:
-  * @page: the page to test
-  * @vma: the VMA to test
-  *
-- * Returns 1 if the page is mapped into the page tables of the VMA, 0
-- * if the page is not mapped into the page tables of this VMA.  Only
-- * valid for normal file or anonymous VMAs.
-+ * Return: The address the page is mapped at if the page is in the range
-+ * covered by the VMA and present in the page table.  If the page is
-+ * outside the VMA or not present, returns -EFAULT.
-+ * Only valid for normal file or anonymous VMAs.
-  */
--int page_mapped_in_vma(struct page *page, struct vm_area_struct *vma)
-+unsigned long page_mapped_in_vma(struct page *page, struct vm_area_struct *vma)
- {
- 	struct folio *folio = page_folio(page);
- 	pgoff_t pgoff = folio->index + folio_page_idx(folio, page);
-@@ -336,9 +337,10 @@ int page_mapped_in_vma(struct page *page
- 
- 	pvmw.address = vma_address(vma, pgoff, 1);
- 	if (pvmw.address == -EFAULT)
--		return 0;
-+		goto out;
- 	if (!page_vma_mapped_walk(&pvmw))
--		return 0;
-+		return -EFAULT;
- 	page_vma_mapped_walk_done(&pvmw);
--	return 1;
-+out:
-+	return pvmw.address;
+@@ -314,6 +314,7 @@ next_pte:
+ 	return false;
  }
+ 
++#ifdef CONFIG_MEMORY_FAILURE
+ /**
+  * page_mapped_in_vma - check whether a page is really mapped in a VMA
+  * @page: the page to test
+@@ -344,3 +345,4 @@ unsigned long page_mapped_in_vma(struct
+ out:
+ 	return pvmw.address;
+ }
++#endif
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
