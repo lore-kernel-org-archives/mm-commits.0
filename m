@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE88D12E61;
-	Thu, 25 Apr 2024 02:35:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D221812E61;
+	Thu, 25 Apr 2024 02:35:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714012519; cv=none; b=qkYRP2S+jT1HgJK2NnGDpyO+VcmaKraMQaQL+QLGHkYuDOclQdwrQ8x+A4KkXybp5fOJF4TF37+ke9PUbu50cL9CIgTF63qoYwTtoKixBMQwmr8R+A2w2cuD2urLLBZHj3+equH5WMhha7aAdUku8OBVOd6NSqOjx4W6ZxX0XW8=
+	t=1714012520; cv=none; b=UuTkvlOFaAhPyjjikqjXG3VsEbMXyaQRp7N+BZe5nS0Tg3wJEXNe1r6Xu8F3+4VfBHT3N6Ej1QtGl7YjvBwdkHkW8emOBKrH+6bt5iQzNVVDJZApK+QDer/TZAwCMKcyvmPOMzUKzAsMcDuExWcaMiZ+/vLQdNuRpAE7JXx+Vjc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714012519; c=relaxed/simple;
-	bh=XkHbhEyVLWmwu2RFHTEc//TPbsOXxfhnz6241On3sBQ=;
-	h=Date:To:From:Subject:Message-Id; b=X1aSz5oo00ZvmYWgCYfs+6R90lHUkjbcPvavRpkeoEnweCy0HUPLCs4Pda2ZYrwtP75HDTmyFPAQl4w3JD10DGdNlq0Hv7j0wBlPTXnxGO+oEcVcJIINL3nsu7LXzQAXYhoO2JmKpuZPQLLvu5wsRJypDBzf0EPlYqG+5HBBT0E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qH2+W5NF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714012520; c=relaxed/simple;
+	bh=Rye7IcCubjpyfQewiuCTBFyKOFL+T13AeOlD2bST+w8=;
+	h=Date:To:From:Subject:Message-Id; b=C1/NcsHT0FKI6QWZTGLfbcP2JvgX9nabIqEOcxzyNoZpiXneuaj1ujkgSxOSH/YVO7xVDn2TmKvjyKbcT92eXdOaZMQHY7fBCbz1H7he/nvFF7zAUppmCZHmWiOgz7IyDcXSRDzPUX3rLXyWsjUa2t1xrIY5bNHxCQsCSiYlbqA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rgpb49mK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qH2+W5NF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 397E7C32782;
-	Thu, 25 Apr 2024 02:35:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rgpb49mK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FB5AC113CE;
+	Thu, 25 Apr 2024 02:35:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714012519;
-	bh=XkHbhEyVLWmwu2RFHTEc//TPbsOXxfhnz6241On3sBQ=;
+	s=korg; t=1714012520;
+	bh=Rye7IcCubjpyfQewiuCTBFyKOFL+T13AeOlD2bST+w8=;
 	h=Date:To:From:Subject:From;
-	b=qH2+W5NFp5Fk9mfJS3q/YiMP5gq5BPqty3vVdL9+vKK4x9vp/V/3r6Y9xVCl46304
-	 yeIAiBdfhPt3U9B+GD7I4CISIxlNdCNJdgmKt26PKDYELHvfd6CR6BMDwubRo9gGce
-	 1BfHaWMl0pEefn+aaAeLhh1nx7bSQAE5TDmYydco=
-Date: Wed, 24 Apr 2024 19:35:18 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,linmiaohe@huawei.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=rgpb49mKOFQfDnxeNyT0L0UXOS62vmK6FMAlqPfsbpMtb803w4jh1LQ4WuRuS/2Bu
+	 LSxgtn4da5wFWaQFlYiElZxRVoqhHlTXJiXpnleW57QxmOSWSJ475cGFqE1yi/jR4q
+	 SVJhz6Yjyq3CkD5H4Vd+0TLV2OAiiWwIAxvq++B8=
+Date: Wed, 24 Apr 2024 19:35:19 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,mcgrof@kernel.org,linmiaohe@huawei.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-support-page_mapcount-on-page_has_type-pages.patch removed from -mm tree
-Message-Id: <20240425023519.397E7C32782@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-turn-folio_test_hugetlb-into-a-pagetype.patch removed from -mm tree
+Message-Id: <20240425023520.5FB5AC113CE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: support page_mapcount() on page_has_type() pages
+     Subject: mm: turn folio_test_hugetlb into a PageType
 has been removed from the -mm tree.  Its filename was
-     mm-support-page_mapcount-on-page_has_type-pages.patch
+     mm-turn-folio_test_hugetlb-into-a-pagetype.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: support page_mapcount() on page_has_type() pages
-Date: Thu, 21 Mar 2024 14:24:42 +0000
+Subject: mm: turn folio_test_hugetlb into a PageType
+Date: Thu, 21 Mar 2024 14:24:43 +0000
 
-Return 0 for pages which can't be mapped.  This matches how page_mapped()
-works.  It is more convenient for users to not have to filter out these
-pages.
+The current folio_test_hugetlb() can be fooled by a concurrent folio split
+into returning true for a folio which has never belonged to hugetlbfs. 
+This can't happen if the caller holds a refcount on it, but we have a few
+places (memory-failure, compaction, procfs) which do not and should not
+take a speculative reference.
 
-Link: https://lkml.kernel.org/r/20240321142448.1645400-5-willy@infradead.org
+Since hugetlb pages do not use individual page mapcounts (they are always
+fully mapped and use the entire_mapcount field to record the number of
+mappings), the PageType field is available now that page_mapcount()
+ignores the value in this field.
+
+In compaction and with CONFIG_DEBUG_VM enabled, the current implementation
+can result in an oops, as reported by Luis. This happens since 9c5ccf2db04b
+("mm: remove HUGETLB_PAGE_DTOR") effectively added some VM_BUG_ON() checks
+in the PageHuge() testing path.
+
+[willy@infradead.org: update vmcoreinfo]
+  Link: https://lkml.kernel.org/r/ZgGZUvsdhaT1Va-T@casper.infradead.org
+Link: https://lkml.kernel.org/r/20240321142448.1645400-6-willy@infradead.org
 Fixes: 9c5ccf2db04b ("mm: remove HUGETLB_PAGE_DTOR")
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Luis Chamberlain <mcgrof@kernel.org>
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=218227
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
@@ -63,74 +79,204 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c             |    7 ++-----
- include/linux/mm.h         |    8 +++++---
- include/linux/page-flags.h |    4 ++--
- 3 files changed, 9 insertions(+), 10 deletions(-)
+ include/linux/page-flags.h     |   70 ++++++++++++++-----------------
+ include/trace/events/mmflags.h |    1 
+ kernel/vmcore_info.c           |    5 --
+ mm/hugetlb.c                   |   22 +--------
+ 4 files changed, 39 insertions(+), 59 deletions(-)
 
---- a/fs/proc/page.c~mm-support-page_mapcount-on-page_has_type-pages
-+++ a/fs/proc/page.c
-@@ -67,7 +67,7 @@ static ssize_t kpagecount_read(struct fi
- 		 */
- 		ppage = pfn_to_online_page(pfn);
- 
--		if (!ppage || PageSlab(ppage) || page_has_type(ppage))
-+		if (!ppage)
- 			pcount = 0;
- 		else
- 			pcount = page_mapcount(ppage);
-@@ -124,11 +124,8 @@ u64 stable_page_flags(struct page *page)
- 
- 	/*
- 	 * pseudo flags for the well known (anonymous) memory mapped pages
--	 *
--	 * Note that page->_mapcount is overloaded in SLAB, so the
--	 * simple test in page_mapped() is not enough.
- 	 */
--	if (!PageSlab(page) && page_mapped(page))
-+	if (page_mapped(page))
- 		u |= 1 << KPF_MMAP;
- 	if (PageAnon(page))
- 		u |= 1 << KPF_ANON;
---- a/include/linux/mm.h~mm-support-page_mapcount-on-page_has_type-pages
-+++ a/include/linux/mm.h
-@@ -1223,14 +1223,16 @@ static inline void page_mapcount_reset(s
-  * a large folio, it includes the number of times this page is mapped
-  * as part of that folio.
-  *
-- * The result is undefined for pages which cannot be mapped into userspace.
-- * For example SLAB or special types of pages. See function page_has_type().
-- * They use this field in struct page differently.
-+ * Will report 0 for pages which cannot be mapped into userspace, eg
-+ * slab, page tables and similar.
-  */
- static inline int page_mapcount(struct page *page)
- {
- 	int mapcount = atomic_read(&page->_mapcount) + 1;
- 
-+	/* Handle page_has_type() pages */
-+	if (mapcount < 0)
-+		mapcount = 0;
- 	if (unlikely(PageCompound(page)))
- 		mapcount += folio_entire_mapcount(page_folio(page));
- 
---- a/include/linux/page-flags.h~mm-support-page_mapcount-on-page_has_type-pages
+--- a/include/linux/page-flags.h~mm-turn-folio_test_hugetlb-into-a-pagetype
 +++ a/include/linux/page-flags.h
-@@ -971,12 +971,12 @@ static inline bool is_page_hwpoison(stru
+@@ -190,7 +190,6 @@ enum pageflags {
+ 
+ 	/* At least one page in this folio has the hwpoison flag set */
+ 	PG_has_hwpoisoned = PG_error,
+-	PG_hugetlb = PG_active,
+ 	PG_large_rmappable = PG_workingset, /* anon or file-backed */
+ };
+ 
+@@ -876,29 +875,6 @@ TESTPAGEFLAG_FALSE(LargeRmappable, large
+ 
+ #define PG_head_mask ((1UL << PG_head))
+ 
+-#ifdef CONFIG_HUGETLB_PAGE
+-int PageHuge(const struct page *page);
+-SETPAGEFLAG(HugeTLB, hugetlb, PF_SECOND)
+-CLEARPAGEFLAG(HugeTLB, hugetlb, PF_SECOND)
+-
+-/**
+- * folio_test_hugetlb - Determine if the folio belongs to hugetlbfs
+- * @folio: The folio to test.
+- *
+- * Context: Any context.  Caller should have a reference on the folio to
+- * prevent it from being turned into a tail page.
+- * Return: True for hugetlbfs folios, false for anon folios or folios
+- * belonging to other filesystems.
+- */
+-static inline bool folio_test_hugetlb(const struct folio *folio)
+-{
+-	return folio_test_large(folio) &&
+-		test_bit(PG_hugetlb, const_folio_flags(folio, 1));
+-}
+-#else
+-TESTPAGEFLAG_FALSE(Huge, hugetlb)
+-#endif
+-
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ /*
+  * PageHuge() only returns true for hugetlbfs pages, but not for
+@@ -955,18 +931,6 @@ PAGEFLAG_FALSE(HasHWPoisoned, has_hwpois
+ #endif
+ 
+ /*
+- * Check if a page is currently marked HWPoisoned. Note that this check is
+- * best effort only and inherently racy: there is no way to synchronize with
+- * failing hardware.
+- */
+-static inline bool is_page_hwpoison(struct page *page)
+-{
+-	if (PageHWPoison(page))
+-		return true;
+-	return PageHuge(page) && PageHWPoison(compound_head(page));
+-}
+-
+-/*
+  * For pages that are never mapped to userspace (and aren't PageSlab),
   * page_type may be used.  Because it is initialised to -1, we invert the
   * sense of the bit, so __SetPageFoo *clears* the bit used for PageFoo, and
-  * __ClearPageFoo *sets* the bit used for PageFoo.  We reserve a few high and
-- * low bits so that an underflow or overflow of page_mapcount() won't be
-+ * low bits so that an underflow or overflow of _mapcount won't be
-  * mistaken for a page type value.
-  */
- 
- #define PAGE_TYPE_BASE	0xf0000000
--/* Reserve		0x0000007f to catch underflows of page_mapcount */
-+/* Reserve		0x0000007f to catch underflows of _mapcount */
- #define PAGE_MAPCOUNT_RESERVE	-128
- #define PG_buddy	0x00000080
+@@ -982,6 +946,7 @@ static inline bool is_page_hwpoison(stru
  #define PG_offline	0x00000100
+ #define PG_table	0x00000200
+ #define PG_guard	0x00000400
++#define PG_hugetlb	0x00000800
+ 
+ #define PageType(page, flag)						\
+ 	((page->page_type & (PAGE_TYPE_BASE | flag)) == PAGE_TYPE_BASE)
+@@ -1076,6 +1041,37 @@ PAGE_TYPE_OPS(Table, table, pgtable)
+  */
+ PAGE_TYPE_OPS(Guard, guard, guard)
+ 
++#ifdef CONFIG_HUGETLB_PAGE
++FOLIO_TYPE_OPS(hugetlb, hugetlb)
++#else
++FOLIO_TEST_FLAG_FALSE(hugetlb)
++#endif
++
++/**
++ * PageHuge - Determine if the page belongs to hugetlbfs
++ * @page: The page to test.
++ *
++ * Context: Any context.
++ * Return: True for hugetlbfs pages, false for anon pages or pages
++ * belonging to other filesystems.
++ */
++static inline bool PageHuge(const struct page *page)
++{
++	return folio_test_hugetlb(page_folio(page));
++}
++
++/*
++ * Check if a page is currently marked HWPoisoned. Note that this check is
++ * best effort only and inherently racy: there is no way to synchronize with
++ * failing hardware.
++ */
++static inline bool is_page_hwpoison(struct page *page)
++{
++	if (PageHWPoison(page))
++		return true;
++	return PageHuge(page) && PageHWPoison(compound_head(page));
++}
++
+ extern bool is_free_buddy_page(struct page *page);
+ 
+ PAGEFLAG(Isolated, isolated, PF_ANY);
+@@ -1142,7 +1138,7 @@ static __always_inline void __ClearPageA
+  */
+ #define PAGE_FLAGS_SECOND						\
+ 	(0xffUL /* order */		| 1UL << PG_has_hwpoisoned |	\
+-	 1UL << PG_hugetlb		| 1UL << PG_large_rmappable)
++	 1UL << PG_large_rmappable)
+ 
+ #define PAGE_FLAGS_PRIVATE				\
+ 	(1UL << PG_private | 1UL << PG_private_2)
+--- a/include/trace/events/mmflags.h~mm-turn-folio_test_hugetlb-into-a-pagetype
++++ a/include/trace/events/mmflags.h
+@@ -135,6 +135,7 @@ IF_HAVE_PG_ARCH_X(arch_3)
+ #define DEF_PAGETYPE_NAME(_name) { PG_##_name, __stringify(_name) }
+ 
+ #define __def_pagetype_names						\
++	DEF_PAGETYPE_NAME(hugetlb),					\
+ 	DEF_PAGETYPE_NAME(offline),					\
+ 	DEF_PAGETYPE_NAME(guard),					\
+ 	DEF_PAGETYPE_NAME(table),					\
+--- a/kernel/vmcore_info.c~mm-turn-folio_test_hugetlb-into-a-pagetype
++++ a/kernel/vmcore_info.c
+@@ -205,11 +205,10 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_NUMBER(PG_head_mask);
+ #define PAGE_BUDDY_MAPCOUNT_VALUE	(~PG_buddy)
+ 	VMCOREINFO_NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE);
+-#ifdef CONFIG_HUGETLB_PAGE
+-	VMCOREINFO_NUMBER(PG_hugetlb);
++#define PAGE_HUGETLB_MAPCOUNT_VALUE	(~PG_hugetlb)
++	VMCOREINFO_NUMBER(PAGE_HUGETLB_MAPCOUNT_VALUE);
+ #define PAGE_OFFLINE_MAPCOUNT_VALUE	(~PG_offline)
+ 	VMCOREINFO_NUMBER(PAGE_OFFLINE_MAPCOUNT_VALUE);
+-#endif
+ 
+ #ifdef CONFIG_KALLSYMS
+ 	VMCOREINFO_SYMBOL(kallsyms_names);
+--- a/mm/hugetlb.c~mm-turn-folio_test_hugetlb-into-a-pagetype
++++ a/mm/hugetlb.c
+@@ -1624,7 +1624,7 @@ static inline void __clear_hugetlb_destr
+ {
+ 	lockdep_assert_held(&hugetlb_lock);
+ 
+-	folio_clear_hugetlb(folio);
++	__folio_clear_hugetlb(folio);
+ }
+ 
+ /*
+@@ -1711,7 +1711,7 @@ static void add_hugetlb_folio(struct hst
+ 		h->surplus_huge_pages_node[nid]++;
+ 	}
+ 
+-	folio_set_hugetlb(folio);
++	__folio_set_hugetlb(folio);
+ 	folio_change_private(folio, NULL);
+ 	/*
+ 	 * We have to set hugetlb_vmemmap_optimized again as above
+@@ -2049,7 +2049,7 @@ static void __prep_account_new_huge_page
+ 
+ static void init_new_hugetlb_folio(struct hstate *h, struct folio *folio)
+ {
+-	folio_set_hugetlb(folio);
++	__folio_set_hugetlb(folio);
+ 	INIT_LIST_HEAD(&folio->lru);
+ 	hugetlb_set_folio_subpool(folio, NULL);
+ 	set_hugetlb_cgroup(folio, NULL);
+@@ -2160,22 +2160,6 @@ static bool prep_compound_gigantic_folio
+ }
+ 
+ /*
+- * PageHuge() only returns true for hugetlbfs pages, but not for normal or
+- * transparent huge pages.  See the PageTransHuge() documentation for more
+- * details.
+- */
+-int PageHuge(const struct page *page)
+-{
+-	const struct folio *folio;
+-
+-	if (!PageCompound(page))
+-		return 0;
+-	folio = page_folio(page);
+-	return folio_test_hugetlb(folio);
+-}
+-EXPORT_SYMBOL_GPL(PageHuge);
+-
+-/*
+  * Find and lock address space (mapping) in write mode.
+  *
+  * Upon entry, the page is locked which means that page_mapping() is
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
