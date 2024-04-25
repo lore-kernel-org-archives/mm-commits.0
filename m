@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52DB315B3
-	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 00:50:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 418604C7B
+	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 00:50:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714006204; cv=none; b=JIuWEaeyGeKjr1iu5XaLGn4ClW+65iU5QHbhYBjTeqgbf9El1A3EijvPeUoo3Dz/g55FQWtEjd05/t2uoWqDZAgWAejZOJwSrY78pHLnxqPw1r4tKATv8I1pV/tHhUpA0+AI5a6R90HLgp4f+b3PKhzZHarR0GVbeOsVfCtNiSc=
+	t=1714006206; cv=none; b=k4XQpVH5A6d0q6ackgevM+GW+rSmV3Q9kThr1eUBllqf/EVN8amJ3oAPp2yLDFJN1s5Urxw14x4Nic/wnXWGQF7VVA4PRw0oBTeqIHbs8TmToMBANpDITYFu5bGJ3MPN/n7vqpT5KzanMM1PDhbK0cfwhBAMmQyMIiHIgA3QUDA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714006204; c=relaxed/simple;
-	bh=V5f13m1t4bK69rE7r6xBdttuTkZJ8EXv4hE7j5NboKw=;
-	h=Date:To:From:Subject:Message-Id; b=ldZmJcQ6pLWVBasMJE8l5cbmKXB8lJ06YYM6IzVRf0zm8vd3F/xUNuBlWrwep43EtN8ScYJYC3H5uOP+iLBsS6i1tiU6Dm75yNc6XrvESTVefbeHLtXJiyZoSF8XrzWO/DvB2Pu8FH3+tj0TvRret1X4zM2lzqZwZ/6s+m3QBnA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jvdJx1Yu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714006206; c=relaxed/simple;
+	bh=OwbxqRefOwd9nyIhBQz8n04nRKI3xG/MRGGsrDooEpg=;
+	h=Date:To:From:Subject:Message-Id; b=YlsBezzSWaWgXtczcMf1HQYdyeJqI7S8mR5XOpirbi3YexgMkMdmbDvz6sFTLkjyQpPs+O04vxctKp5lhrpvUmUUL4MMB/7vNnto/VJSngGchudxUR8/Uc2m3iwtMYLniqUbGefe/eYMA1pOT/TKJNmj+zoUfJlu2SUVDVNHC0Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t/6to4f+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jvdJx1Yu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EDF7C113CE;
-	Thu, 25 Apr 2024 00:50:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t/6to4f+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD6F6C113CD;
+	Thu, 25 Apr 2024 00:50:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714006204;
-	bh=V5f13m1t4bK69rE7r6xBdttuTkZJ8EXv4hE7j5NboKw=;
+	s=korg; t=1714006205;
+	bh=OwbxqRefOwd9nyIhBQz8n04nRKI3xG/MRGGsrDooEpg=;
 	h=Date:To:From:Subject:From;
-	b=jvdJx1YuBJjjxWFeK7Y6cCRWb+DZsJtLX/kmrX3a87iYteIXVQ/fXQSeBZCpH76MZ
-	 fj7Ig5v5O2mL5AbgOEg/aCAc4QipziIDCjt4nPWrIm7nXnpsoq/0cNrI1MuCiI6WeX
-	 KvThV4FemqNox7qctk1FaZn4e7qpYSAn9Lc4uzTs=
-Date: Wed, 24 Apr 2024 17:50:03 -0700
+	b=t/6to4f+2cAQK8YK5m5R22Gs5eia1QZvGBJEmQ1mBwCTL6llW6w9eOc+poaBqdksY
+	 h0VfOTbBLGH0ixVKkv76k6ORBKYB1li2NIUfOdRm12mIi3nN91ezN2ViKEseCcRKAd
+	 ZzystvQpmBTUunio5rIKKLRSF3VdIvlug3o1Zd8A=
+Date: Wed, 24 Apr 2024 17:50:05 -0700
 To: mm-commits@vger.kernel.org,osalvador@suse.de,linmiaohe@huawei.com,jane.chu@oracle.com,dan.j.williams@intel.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-convert-hwpoison_user_mappings-to-take-a-folio.patch added to mm-unstable branch
-Message-Id: <20240425005004.1EDF7C113CE@smtp.kernel.org>
+Subject: + mm-memory-failure-add-some-folio-conversions-to-unpoison_memory.patch added to mm-unstable branch
+Message-Id: <20240425005005.BD6F6C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: convert hwpoison_user_mappings to take a folio
+     Subject: mm/memory-failure: add some folio conversions to unpoison_memory
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-convert-hwpoison_user_mappings-to-take-a-folio.patch
+     mm-memory-failure-add-some-folio-conversions-to-unpoison_memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-convert-hwpoison_user_mappings-to-take-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-add-some-folio-conversions-to-unpoison_memory.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/memory-failure: convert hwpoison_user_mappings to take a folio
-Date: Fri, 12 Apr 2024 20:35:05 +0100
+Subject: mm/memory-failure: add some folio conversions to unpoison_memory
+Date: Fri, 12 Apr 2024 20:35:06 +0100
 
-Pass the folio from the callers, and use it throughout instead of hpage. 
-Saves dozens of calls to compound_head().
+Some of these folio APIs didn't exist when the unpoison_memory()
+conversion was done originally.
 
-Link: https://lkml.kernel.org/r/20240412193510.2356957-9-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240412193510.2356957-10-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Jane Chu <jane.chu@oracle.com>
@@ -74,103 +74,40 @@ Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ mm/memory-failure.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-convert-hwpoison_user_mappings-to-take-a-folio
+--- a/mm/memory-failure.c~mm-memory-failure-add-some-folio-conversions-to-unpoison_memory
 +++ a/mm/memory-failure.c
-@@ -1559,24 +1559,24 @@ static int get_hwpoison_page(struct page
-  * Do all that is necessary to remove user space mappings. Unmap
-  * the pages and send SIGBUS to the processes if the data was dirty.
-  */
--static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
--				  int flags, struct page *hpage)
-+static bool hwpoison_user_mappings(struct folio *folio, struct page *p,
-+		unsigned long pfn, int flags)
- {
--	struct folio *folio = page_folio(hpage);
- 	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_SYNC | TTU_HWPOISON;
- 	struct address_space *mapping;
- 	LIST_HEAD(tokill);
- 	bool unmap_success;
- 	int forcekill;
--	bool mlocked = PageMlocked(hpage);
-+	bool mlocked = folio_test_mlocked(folio);
+@@ -2556,8 +2556,8 @@ int unpoison_memory(unsigned long pfn)
+ 		goto unlock_mutex;
+ 	}
+ 
+-	if (folio_test_slab(folio) || PageTable(&folio->page) ||
+-	    folio_test_reserved(folio) || PageOffline(&folio->page))
++	if (folio_test_slab(folio) || folio_test_pgtable(folio) ||
++	    folio_test_reserved(folio) || folio_test_offline(folio))
+ 		goto unlock_mutex;
  
  	/*
- 	 * Here we are interested only in user-mapped pages, so skip any
- 	 * other types of pages.
- 	 */
--	if (PageReserved(p) || PageSlab(p) || PageTable(p) || PageOffline(p))
-+	if (folio_test_reserved(folio) || folio_test_slab(folio) ||
-+	    folio_test_pgtable(folio) || folio_test_offline(folio))
- 		return true;
--	if (!(PageLRU(hpage) || PageHuge(p)))
-+	if (!(folio_test_lru(folio) || folio_test_hugetlb(folio)))
- 		return true;
+@@ -2578,7 +2578,7 @@ int unpoison_memory(unsigned long pfn)
  
- 	/*
-@@ -1586,7 +1586,7 @@ static bool hwpoison_user_mappings(struc
- 	if (!page_mapped(p))
- 		return true;
- 
--	if (PageSwapCache(p)) {
-+	if (folio_test_swapcache(folio)) {
- 		pr_err("%#lx: keeping poisoned page in swap cache\n", pfn);
- 		ttu &= ~TTU_HWPOISON;
- 	}
-@@ -1597,11 +1597,11 @@ static bool hwpoison_user_mappings(struc
- 	 * XXX: the dirty test could be racy: set_page_dirty() may not always
- 	 * be called inside page lock (it's recommended but not enforced).
- 	 */
--	mapping = page_mapping(hpage);
--	if (!(flags & MF_MUST_KILL) && !PageDirty(hpage) && mapping &&
-+	mapping = folio_mapping(folio);
-+	if (!(flags & MF_MUST_KILL) && !folio_test_dirty(folio) && mapping &&
- 	    mapping_can_writeback(mapping)) {
--		if (page_mkclean(hpage)) {
--			SetPageDirty(hpage);
-+		if (folio_mkclean(folio)) {
-+			folio_set_dirty(folio);
- 		} else {
- 			ttu &= ~TTU_HWPOISON;
- 			pr_info("%#lx: corrupted page was clean: dropped without side effects\n",
-@@ -1616,7 +1616,7 @@ static bool hwpoison_user_mappings(struc
- 	 */
- 	collect_procs(folio, p, &tokill, flags & MF_ACTION_REQUIRED);
- 
--	if (PageHuge(hpage) && !PageAnon(hpage)) {
-+	if (folio_test_hugetlb(folio) && !folio_test_anon(folio)) {
- 		/*
- 		 * For hugetlb pages in shared mappings, try_to_unmap
- 		 * could potentially call huge_pmd_unshare.  Because of
-@@ -1656,7 +1656,7 @@ static bool hwpoison_user_mappings(struc
- 	 * use a more force-full uncatchable kill to prevent
- 	 * any accesses to the poisoned memory.
- 	 */
--	forcekill = PageDirty(hpage) || (flags & MF_MUST_KILL) ||
-+	forcekill = folio_test_dirty(folio) || (flags & MF_MUST_KILL) ||
- 		    !unmap_success;
- 	kill_procs(&tokill, forcekill, !unmap_success, pfn, flags);
- 
-@@ -2100,7 +2100,7 @@ retry:
- 
- 	page_flags = folio->flags;
- 
--	if (!hwpoison_user_mappings(p, pfn, flags, &folio->page)) {
-+	if (!hwpoison_user_mappings(folio, p, pfn, flags)) {
- 		folio_unlock(folio);
- 		return action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
- 	}
-@@ -2367,7 +2367,7 @@ try_again:
- 	 * Now take care of user space mappings.
- 	 * Abort on fail: __filemap_remove_folio() assumes unmapped page.
- 	 */
--	if (!hwpoison_user_mappings(p, pfn, flags, p)) {
-+	if (!hwpoison_user_mappings(folio, p, pfn, flags)) {
- 		res = action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
- 		goto unlock_page;
- 	}
+ 	ghp = get_hwpoison_page(p, MF_UNPOISON);
+ 	if (!ghp) {
+-		if (PageHuge(p)) {
++		if (folio_test_hugetlb(folio)) {
+ 			huge = true;
+ 			count = folio_free_raw_hwp(folio, false);
+ 			if (count == 0)
+@@ -2594,7 +2594,7 @@ int unpoison_memory(unsigned long pfn)
+ 					 pfn, &unpoison_rs);
+ 		}
+ 	} else {
+-		if (PageHuge(p)) {
++		if (folio_test_hugetlb(folio)) {
+ 			huge = true;
+ 			count = folio_free_raw_hwp(folio, false);
+ 			if (count == 0) {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
