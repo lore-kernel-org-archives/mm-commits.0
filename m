@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F1DA153597
-	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 21:12:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA302155A5B
+	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 23:50:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714079556; cv=none; b=rUYdqioKMwyQPK0us+C1hSdYkqdmle+O5C2ZJzI35ux5RiKnz/KPsMqQsw0Ewc4sQ8qjEm98fu5tz8tKB7+z43lwWIQpCnu4/kE+sEdmEYZmdZnzB5V9Aomfn9o+x1OBQJ2FGPSHE0VHLoAE281IBiSuA/x+dVWIuG9PSTtYYI4=
+	t=1714089011; cv=none; b=iLvxC7i6tNlWk7efZ93w3H4ys3TIHvuAmSioYvHrsZ87RT809d+m5tc21VTbrO8komq5Cwnl0ehuHxnkh6WZcHWydZyanLxc6UrA9qgQ1A22Qb+pM0JR3BYCi5Paj/j6yQJ8uLFwTbY+s25yzb8lEgqZfQ3io3AtLcVMnR50DWo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714079556; c=relaxed/simple;
-	bh=rQbvA32qYXgtPH/6I+CoQFtxx0EMKbbx52qvasODpK8=;
-	h=Date:To:From:Subject:Message-Id; b=la4hfdbH8qXAKgT8RtH5GEKilq55W9vVmPr1EkmjyGqYmINN02ToT/AFLGQOXUzPcVTTpxZ62+kmCxnk6OUttzdjhIyvk8raKl9OWcdUS2Wu6gRG3xlvpbDiA51KRUz71XY9BmDALkDFUcuVjuhZwqs0wUGLqF7F+rgal1Yrsb4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z5EI8MXL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714089011; c=relaxed/simple;
+	bh=qUg1qNcIgD195k0oo4mO+m59DonjQ+Dn7DZMS1XfAyY=;
+	h=Date:To:From:Subject:Message-Id; b=iCmNjvJNjXdLIDd7a6pFkMRyybUjLNCsl+J9/NcWSSFl9keIIRaEjp1e43DhYyacoqVXqsyeFJIe0cH4VmHWNrYwmDvUU+GbgQ/e+tieI2N/zO+wfH8COaDoKnmI0hj5ZcRML4FAbrTr9/a5lt/oICYQU3nox9rEw+vOvyQdgyY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nNqPTWdx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z5EI8MXL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E70C3C113CC;
-	Thu, 25 Apr 2024 21:12:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nNqPTWdx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DA07C113CC;
+	Thu, 25 Apr 2024 23:50:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714079556;
-	bh=rQbvA32qYXgtPH/6I+CoQFtxx0EMKbbx52qvasODpK8=;
+	s=korg; t=1714089011;
+	bh=qUg1qNcIgD195k0oo4mO+m59DonjQ+Dn7DZMS1XfAyY=;
 	h=Date:To:From:Subject:From;
-	b=Z5EI8MXL76Sq4dYmN95Rzh2NsLxeNJqspmD3OI7N1Ptqcaiudr2KjAk+pJVcK0TAg
-	 W9h10kUSXVpe4Y8l35pZoZ0IPOc44cAMs1g9mxt9ERfjNZWO+wR9v1ONBY9bQlPGqM
-	 JMf9dWK5lO++rGnCl53iU0+FkC6rrSpnpTJJA+kI=
-Date: Thu, 25 Apr 2024 14:12:35 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,kent.overstreet@linux.dev,keescook@chromium.org,akpm@linux-foundation.org
+	b=nNqPTWdxgaeXMoHBygzqX+jeE+QcdGmWgTDZi/1YqnEagjSNONc3/ztIc898M5ELN
+	 5r04tKLEWIrxh+f7fovw6a/Jl2qgax7WpsWvo9cVpO8WGIMmJv5p46Drm7Ig67NQta
+	 simDXnPa8WEJY57SwEhhcEkQt9NjkG4qgOmRL414=
+Date: Thu, 25 Apr 2024 16:50:10 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,kent.overstreet@linux.dev,iamjoonsoo.kim@lge.com,cl@linux.com,catalin.marinas@arm.com,42.hyeyoo@gmail.com,keescook@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-tighten-file-permissions-on-proc-allocinfo.patch added to mm-unstable branch
-Message-Id: <20240425211235.E70C3C113CC@smtp.kernel.org>
+Subject: + mm-slub-avoid-recursive-loop-with-kmemleak.patch added to mm-unstable branch
+Message-Id: <20240425235011.2DA07C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: Tighten file permissions on /proc/allocinfo
+     Subject: mm/slub: avoid recursive loop with kmemleak
 has been added to the -mm mm-unstable branch.  Its filename is
-     alloc_tag-tighten-file-permissions-on-proc-allocinfo.patch
+     mm-slub-avoid-recursive-loop-with-kmemleak.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-tighten-file-permissions-on-proc-allocinfo.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slub-avoid-recursive-loop-with-kmemleak.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,39 +59,69 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: alloc_tag: Tighten file permissions on /proc/allocinfo
-Date: Thu, 25 Apr 2024 13:08:50 -0700
+Subject: mm/slub: avoid recursive loop with kmemleak
+Date: Thu, 25 Apr 2024 13:55:23 -0700
 
-The /proc/allocinfo file exposes a tremendous about of information about
-kernel build details, memory allocations (obviously), and potentially even
-image layout (due to ordering).  As this is intended to be consumed by
-system owners (like /proc/slabinfo), use the same file permissions as
-there: 0400.
+The system will immediate fill up stack and crash when both
+CONFIG_DEBUG_KMEMLEAK and CONFIG_MEM_ALLOC_PROFILING are enabled.  Avoid
+allocation tagging of kmemleak caches, otherwise recursive allocation
+tracking occurs.
 
-Link: https://lkml.kernel.org/r/20240425200844.work.184-kees@kernel.org
+Link: https://lkml.kernel.org/r/20240425205516.work.220-kees@kernel.org
+Fixes: 279bb991b4d9 ("mm/slab: add allocation accounting into slab allocation and free paths")
 Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/alloc_tag.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kmemleak.c |    4 ++--
+ mm/slub.c     |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/lib/alloc_tag.c~alloc_tag-tighten-file-permissions-on-proc-allocinfo
-+++ a/lib/alloc_tag.c
-@@ -129,7 +129,7 @@ size_t alloc_tag_top_users(struct codeta
+--- a/mm/kmemleak.c~mm-slub-avoid-recursive-loop-with-kmemleak
++++ a/mm/kmemleak.c
+@@ -463,7 +463,7 @@ static struct kmemleak_object *mem_pool_
  
- static void __init procfs_init(void)
- {
--	proc_create_seq("allocinfo", 0444, NULL, &allocinfo_seq_op);
-+	proc_create_seq("allocinfo", 0400, NULL, &allocinfo_seq_op);
- }
+ 	/* try the slab allocator first */
+ 	if (object_cache) {
+-		object = kmem_cache_alloc(object_cache, gfp_kmemleak_mask(gfp));
++		object = kmem_cache_alloc_noprof(object_cache, gfp_kmemleak_mask(gfp));
+ 		if (object)
+ 			return object;
+ 	}
+@@ -947,7 +947,7 @@ static void add_scan_area(unsigned long
+ 	untagged_objp = (unsigned long)kasan_reset_tag((void *)object->pointer);
  
- static bool alloc_tag_module_unload(struct codetag_type *cttype,
+ 	if (scan_area_cache)
+-		area = kmem_cache_alloc(scan_area_cache, gfp_kmemleak_mask(gfp));
++		area = kmem_cache_alloc_noprof(scan_area_cache, gfp_kmemleak_mask(gfp));
+ 
+ 	raw_spin_lock_irqsave(&object->lock, flags);
+ 	if (!area) {
+--- a/mm/slub.c~mm-slub-avoid-recursive-loop-with-kmemleak
++++ a/mm/slub.c
+@@ -2018,7 +2018,7 @@ prepare_slab_obj_exts_hook(struct kmem_c
+ 	if (!p)
+ 		return NULL;
+ 
+-	if (s->flags & SLAB_NO_OBJ_EXT)
++	if (s->flags & (SLAB_NO_OBJ_EXT | SLAB_NOLEAKTRACE))
+ 		return NULL;
+ 
+ 	if (flags & __GFP_NO_OBJ_EXT)
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
 
 alloc_tag-tighten-file-permissions-on-proc-allocinfo.patch
+mm-slub-avoid-recursive-loop-with-kmemleak.patch
 
