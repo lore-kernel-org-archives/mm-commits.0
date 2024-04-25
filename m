@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DF7E14B077
-	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 17:21:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D985814B077
+	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 17:21:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714065696; cv=none; b=SJ1UtyirHk1rJmgCJOOWLHj2Uw4ElFIDzsfTOM3A8JLvDgNQajW+YONt5bXTOCp51cleH953Bh1MjSHbGnCwZ/nQkN7DWq3op0iqOv5NdAocX9QISI8hG5CJHBoDV6RlFjA0f8ipHr+bBHIvPZFbx3sBCE+EzTap/DO5cay9BDg=
+	t=1714065697; cv=none; b=m+2LaHtJg7vI2Sk/+hblkPRfn0FEjneJBQ7Zu7OpCdj5PBP7vPJbqSMkiN3TftbaW4TGVKclKKe+Z6jUWXGfP1Vl0AJ9WMFUJoZgaWf/fDnpyfzl3I12EHFTfd7Q5Ku1+YceCtnPUf/plyciTPNNnM2jZNaf4eL4CdN6lFHvE7U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714065696; c=relaxed/simple;
-	bh=nplv5u4G8DHdPrmLxyYJ3mS+3BU78KXkHrt0dKzOnpI=;
-	h=Date:To:From:Subject:Message-Id; b=Wcsu8dVia0rBvtWOOV6NCRuHpN6T6c11uLxh+zXXeXLHPzLYWpXJlbXPDimAEGt1x4N72XSOUvwI6n1dTZGxAttDHlWgBwSaQfreHqIYSAl6masLrohkePYklI0BS3i1FfUYc+R/lCEKlCbezBhlFBcOLxjftn//b6srvuHKH+4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pvADQUin; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714065697; c=relaxed/simple;
+	bh=A4dvd3/faeKQINO11XK5APR21o72NsWW/xbRr+61Uj4=;
+	h=Date:To:From:Subject:Message-Id; b=G0Q0/ofxty+xJe5Sk2Q4tZ8+nfTM9v8XJUCmU6pQNFwNrRo8KMOJlqmzfzJkPa3F0AJF3+TBLyPnYPxPuovGNLwtqtBBp9gXZe8U7S3xq94XwZRbdpPp8R4FErQAkxzEQ5RNhqGMQtNZZVroFiR3xu3rNBQXoRIVLtnhRNYO+bk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FYN/hPY9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pvADQUin"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB699C113CC;
-	Thu, 25 Apr 2024 17:21:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FYN/hPY9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C9DAC113CC;
+	Thu, 25 Apr 2024 17:21:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714065695;
-	bh=nplv5u4G8DHdPrmLxyYJ3mS+3BU78KXkHrt0dKzOnpI=;
+	s=korg; t=1714065697;
+	bh=A4dvd3/faeKQINO11XK5APR21o72NsWW/xbRr+61Uj4=;
 	h=Date:To:From:Subject:From;
-	b=pvADQUinF03oTRNa9WLY1k+vXfeuXFAN7lyg91RMw4RZlJOPs3Fvsr2uSIkumDq8t
-	 9FQbxy1de2Ql1gxYm5IFQKBu4KYP/mtsDuqr9i3Fh2iS04VwZw8mXONVD4RMCmEZdx
-	 TjvHiD+YQeRF9YrgNZq/TEu7GnnuRTGxNOtxb0/E=
-Date: Thu, 25 Apr 2024 10:21:35 -0700
+	b=FYN/hPY9xTNpXA06rsZhW1MUxQFu1EVolcNAcGFjw1TmSJMwROEVAnV7bDZR/XVc1
+	 FElkB4CJ/MMpgjiuO0ogbh84yDddIW2gMfg306/ZIJJSnetRrHowGpz6tAcs6OF17q
+	 FoT7v6zBmyoloFbQqo1Cx4sJWDDDKr9GJ5BxHfl0=
+Date: Thu, 25 Apr 2024 10:21:37 -0700
 To: mm-commits@vger.kernel.org,palmer@rivosinc.com,Kuan-Ying.Lee@mediatek.com,kbingham@kernel.org,jan.kiszka@siemens.com,debug@rivosinc.com,ajones@ventanamicro.com,mail@florommel.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-make-get_thread_info-accept-pointers.patch added to mm-nonmm-unstable branch
-Message-Id: <20240425172135.BB699C113CC@smtp.kernel.org>
+Subject: + scripts-gdb-fix-detection-of-current-cpu-in-kgdb.patch added to mm-nonmm-unstable branch
+Message-Id: <20240425172137.9C9DAC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/gdb: make get_thread_info accept pointers
+     Subject: scripts/gdb: fix detection of current CPU in KGDB
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-make-get_thread_info-accept-pointers.patch
+     scripts-gdb-fix-detection-of-current-cpu-in-kgdb.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-make-get_thread_info-accept-pointers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-fix-detection-of-current-cpu-in-kgdb.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,33 +59,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Florian Rommel <mail@florommel.de>
-Subject: scripts/gdb: make get_thread_info accept pointers
-Date: Thu, 25 Apr 2024 17:35:00 +0200
+Subject: scripts/gdb: fix detection of current CPU in KGDB
+Date: Thu, 25 Apr 2024 17:35:01 +0200
 
-get_thread_info ($lx_thread_info) only accepted a dereferenced task
-parameter.  Passing a pointer to a task_struct (like $lx_per_cpu does with
-KGDB) threw an exception.
+Directly read the current CPU number from the kgdb_active variable.
 
-With this patch, both (dereferenced values and pointers) are accepted.
+Before, the active CPU was obtained through the current task, which
+required searching the task list for the pid of GDB's selected thread. 
+Obtaining the pid was buggy: GDB may use selected_thread().ptid[1] (LWPID)
+instead of .ptid[2] (TID) to store the threads pid; see
+https://sourceware.org/gdb/current/onlinedocs/gdb.html/Threads-In-Python.html
+As a result, the detection could return the wrong CPU number, leading to
+incorrect results for $lx_per_cpu and $lx_current.
 
-Before (on x86, KGDB):
->>> p $lx_per_cpu(cpu_info)
-Traceback (most recent call last):
-  File "./scripts/gdb/linux/cpus.py", line 158, in invoke
-    return per_cpu(var_ptr, cpu)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "./scripts/gdb/linux/cpus.py", line 42, in per_cpu
-    cpu = get_current_cpu()
-          ^^^^^^^^^^^^^^^^^
-  File "./scripts/gdb/linux/cpus.py", line 33, in get_current_cpu
-    return tasks.get_thread_info(tasks.get_task_by_pid(tid))['cpu']
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "./scripts/gdb/linux/tasks.py", line 88, in get_thread_info
-    if task.type.fields()[0].type == thread_info_type.get_type():
-       ~~~~~~~~~~~~~~~~~~^^^
-IndexError: list index out of range
+As a side effect, the patch significantly speeds up $lx_per_cpu and
+$lx_current in KGDB by avoiding the task-list iteration.
 
-Link: https://lkml.kernel.org/r/20240425153501.749966-4-mail@florommel.de
+Link: https://lkml.kernel.org/r/20240425153501.749966-5-mail@florommel.de
 Signed-off-by: Florian Rommel <mail@florommel.de>
 Cc: Andrew Jones <ajones@ventanamicro.com>
 Cc: Deepak Gupta <debug@rivosinc.com>
@@ -96,20 +86,24 @@ Cc: Palmer Dabbelt <palmer@rivosinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/tasks.py |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/gdb/linux/cpus.py |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
---- a/scripts/gdb/linux/tasks.py~scripts-gdb-make-get_thread_info-accept-pointers
-+++ a/scripts/gdb/linux/tasks.py
-@@ -85,7 +85,7 @@ thread_info_type = utils.CachedType("str
- 
- def get_thread_info(task):
-     thread_info_ptr_type = thread_info_type.get_type().pointer()
--    if task.type.fields()[0].type == thread_info_type.get_type():
-+    if task_type.get_type().fields()[0].type == thread_info_type.get_type():
-         return task['thread_info']
-     thread_info = task['stack'].cast(thread_info_ptr_type)
-     return thread_info.dereference()
+--- a/scripts/gdb/linux/cpus.py~scripts-gdb-fix-detection-of-current-cpu-in-kgdb
++++ a/scripts/gdb/linux/cpus.py
+@@ -26,11 +26,7 @@ def get_current_cpu():
+     if utils.get_gdbserver_type() == utils.GDBSERVER_QEMU:
+         return gdb.selected_thread().num - 1
+     elif utils.get_gdbserver_type() == utils.GDBSERVER_KGDB:
+-        tid = gdb.selected_thread().ptid[2]
+-        if tid > (0x100000000 - MAX_CPUS - 2):
+-            return 0x100000000 - tid - 2
+-        else:
+-            return tasks.get_thread_info(tasks.get_task_by_pid(tid))['cpu']
++        return gdb.parse_and_eval("kgdb_active.counter")
+     else:
+         raise gdb.GdbError("Sorry, obtaining the current CPU is not yet "
+                            "supported with this gdb server.")
 _
 
 Patches currently in -mm which might be from mail@florommel.de are
