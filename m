@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61FEC4C62
-	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 00:49:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CB80A3F
+	for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2024 00:49:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714006189; cv=none; b=Wh1pqoSfDk31E+8WJOl40v+RBbsFGgIXWKvxDYTzcQ93rOh8o3P1Fb7jUZhIw4oXSBDOCy2zjU6sxl97IKMLoU/K7zg+8PERfHKb0hG/sO3O25xPFd2XZs6rfjzKrLN45WGwB/s6n+X/Vn3d6wFFoHQ6S8TEtCf5AcvEv0nY+RY=
+	t=1714006191; cv=none; b=HY5rkWcFzqJL1Gi3dFXTF6Ho9BRpizF+gAE0+urb7Vc9/SbexEePS6jrALcMnWgG/F0Xs5LrCrnvG76mUhVB+mL1giMukk11ExrvtPJqRbQUT2nEWP+nn4pVL326Bjf2tbehEuKKx8xzD8edyrQo0g4AuwezguuKlDfwCYBlhbg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714006189; c=relaxed/simple;
-	bh=wbUgwPjbkDY+OLknxhxipVpbstPS0+maRQ7Qdd9w1n4=;
-	h=Date:To:From:Subject:Message-Id; b=YqTFOVDX1Tx7m1x1PbpJY6VALsKszxKWt6t1ijlr3XbT9dSEYYzdGrv3hqnR2usujaPqA+vqwgSTSWRQRAePEVPJ2A/wg87MoxyWf7j60ISH0+7xbzHF1jmTwpT65lnkMF0xYBYvo1+1ikh7OnBYh91OHRu9kd7Os2s+xvl9Mss=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kN38+Iay; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714006191; c=relaxed/simple;
+	bh=9mgMNnkn/1kIcb+GKPVNhKLNxwj6Kikz3a2Jd3a4Yms=;
+	h=Date:To:From:Subject:Message-Id; b=NhHMH9Xlpb9IysiLEwhmP1P+gklKEJn9bpC0+dUYvk1z2z6KFSu3ZZy8sz6yE+b3k6VBU9M5NJBq1yHRaV49KUm5MrXpyE6Uj6tAkKyeojEZYfOJRTUwY9CYZBrEd78bQ8JknLrwfCIHGMPhsXYRnCM8J0nDo05zDKU2CQZbNJA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J1Z+G87L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kN38+Iay"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F35E1C113CD;
-	Thu, 25 Apr 2024 00:49:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J1Z+G87L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC323C113CD;
+	Thu, 25 Apr 2024 00:49:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714006189;
-	bh=wbUgwPjbkDY+OLknxhxipVpbstPS0+maRQ7Qdd9w1n4=;
+	s=korg; t=1714006190;
+	bh=9mgMNnkn/1kIcb+GKPVNhKLNxwj6Kikz3a2Jd3a4Yms=;
 	h=Date:To:From:Subject:From;
-	b=kN38+IayFWXTvRv1T49N75RVAvyD6KNcOgPYd+no23Fg/ZwQvwlWhCWuZA6VgZgae
-	 JSjh21IQLtNbs5NlkeSeXLJ5+4+mneVfNNMrXYSIgm6I0alo//4PmsuJ/kchK9bogg
-	 gu1FDC6qIv+jBzCIGGQSvogFMVBVb+AEyLFsto7A=
-Date: Wed, 24 Apr 2024 17:49:48 -0700
+	b=J1Z+G87LVW3zyKuDrfll5/B2AhXAw91++fDn7g97ovK3eLfV3XL88M8sK/WJyNRC2
+	 qupCf2ontPp090JMrX70Lt372jo23B8iFDld5rUmGUoLGP//SYUXAsQhMa/hIUZyUN
+	 9TUUoTmpC/nuyg90TwzjcSRF8VseR5SOv3GaWZcI=
+Date: Wed, 24 Apr 2024 17:49:49 -0700
 To: mm-commits@vger.kernel.org,osalvador@suse.de,linmiaohe@huawei.com,jane.chu@oracle.com,dan.j.williams@intel.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-remove-fsdax_pgoff-argument-from-__add_to_kill.patch added to mm-unstable branch
-Message-Id: <20240425004948.F35E1C113CD@smtp.kernel.org>
+Subject: + mm-memory-failure-pass-addr-to-__add_to_kill.patch added to mm-unstable branch
+Message-Id: <20240425004950.BC323C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: remove fsdax_pgoff argument from __add_to_kill
+     Subject: mm/memory-failure: pass addr to __add_to_kill()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-remove-fsdax_pgoff-argument-from-__add_to_kill.patch
+     mm-memory-failure-pass-addr-to-__add_to_kill.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-remove-fsdax_pgoff-argument-from-__add_to_kill.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-pass-addr-to-__add_to_kill.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,105 +59,53 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/memory-failure: remove fsdax_pgoff argument from __add_to_kill
-Date: Fri, 12 Apr 2024 20:34:58 +0100
+Subject: mm/memory-failure: pass addr to __add_to_kill()
+Date: Fri, 12 Apr 2024 20:34:59 +0100
 
-Patch series "Some cleanups for memory-failure", v3.
+Handle anon/file folios the same way as KSM & DAX folios by passing in the
+address.
 
-A lot of folio conversions, plus some other simplifications. 
-
-
-This patch (of 11):
-
-Unify the KSM and DAX codepaths by calculating the addr in
-add_to_kill_fsdax() instead of telling __add_to_kill() to calculate it.
-
-Link: https://lkml.kernel.org/r/20240412193510.2356957-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20240412193510.2356957-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240412193510.2356957-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Jane Chu <jane.chu@oracle.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   27 +++++++++------------------
- 1 file changed, 9 insertions(+), 18 deletions(-)
+ mm/memory-failure.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-remove-fsdax_pgoff-argument-from-__add_to_kill
+--- a/mm/memory-failure.c~mm-memory-failure-pass-addr-to-__add_to_kill
 +++ a/mm/memory-failure.c
-@@ -427,21 +427,13 @@ static unsigned long dev_pagemap_mapping
-  * not much we can do.	We just print a message and ignore otherwise.
-  */
- 
--#define FSDAX_INVALID_PGOFF ULONG_MAX
--
- /*
-  * Schedule a process for later kill.
-  * Uses GFP_ATOMIC allocations to avoid potential recursions in the VM.
-- *
-- * Note: @fsdax_pgoff is used only when @p is a fsdax page and a
-- * filesystem with a memory failure handler has claimed the
-- * memory_failure event. In all other cases, page->index and
-- * page->mapping are sufficient for mapping the page back to its
-- * corresponding user virtual address.
-  */
- static void __add_to_kill(struct task_struct *tsk, struct page *p,
- 			  struct vm_area_struct *vma, struct list_head *to_kill,
--			  unsigned long ksm_addr, pgoff_t fsdax_pgoff)
-+			  unsigned long addr)
- {
- 	struct to_kill *tk;
- 
-@@ -451,12 +443,10 @@ static void __add_to_kill(struct task_st
+@@ -443,7 +443,7 @@ static void __add_to_kill(struct task_st
  		return;
  	}
  
--	tk->addr = ksm_addr ? ksm_addr : page_address_in_vma(p, vma);
--	if (is_zone_device_page(p)) {
--		if (fsdax_pgoff != FSDAX_INVALID_PGOFF)
--			tk->addr = vma_address(vma, fsdax_pgoff, 1);
-+	tk->addr = addr ? addr : page_address_in_vma(p, vma);
-+	if (is_zone_device_page(p))
+-	tk->addr = addr ? addr : page_address_in_vma(p, vma);
++	tk->addr = addr;
+ 	if (is_zone_device_page(p))
  		tk->size_shift = dev_pagemap_mapping_shift(vma, tk->addr);
--	} else
-+	else
- 		tk->size_shift = page_shift(compound_head(p));
- 
- 	/*
-@@ -486,7 +476,7 @@ static void add_to_kill_anon_file(struct
+ 	else
+@@ -476,7 +476,8 @@ static void add_to_kill_anon_file(struct
  				  struct vm_area_struct *vma,
  				  struct list_head *to_kill)
  {
--	__add_to_kill(tsk, p, vma, to_kill, 0, FSDAX_INVALID_PGOFF);
-+	__add_to_kill(tsk, p, vma, to_kill, 0);
- }
- 
- #ifdef CONFIG_KSM
-@@ -504,10 +494,10 @@ static bool task_in_to_kill_list(struct
- }
- void add_to_kill_ksm(struct task_struct *tsk, struct page *p,
- 		     struct vm_area_struct *vma, struct list_head *to_kill,
--		     unsigned long ksm_addr)
-+		     unsigned long addr)
- {
- 	if (!task_in_to_kill_list(to_kill, tsk))
--		__add_to_kill(tsk, p, vma, to_kill, ksm_addr, FSDAX_INVALID_PGOFF);
-+		__add_to_kill(tsk, p, vma, to_kill, addr);
- }
- #endif
- /*
-@@ -681,7 +671,8 @@ static void add_to_kill_fsdax(struct tas
- 			      struct vm_area_struct *vma,
- 			      struct list_head *to_kill, pgoff_t pgoff)
- {
--	__add_to_kill(tsk, p, vma, to_kill, 0, pgoff);
-+	unsigned long addr = vma_address(vma, pgoff, 1);
+-	__add_to_kill(tsk, p, vma, to_kill, 0);
++	unsigned long addr = page_address_in_vma(p, vma);
 +	__add_to_kill(tsk, p, vma, to_kill, addr);
  }
  
- /*
+ #ifdef CONFIG_KSM
+@@ -492,6 +493,7 @@ static bool task_in_to_kill_list(struct
+ 
+ 	return false;
+ }
++
+ void add_to_kill_ksm(struct task_struct *tsk, struct page *p,
+ 		     struct vm_area_struct *vma, struct list_head *to_kill,
+ 		     unsigned long addr)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
