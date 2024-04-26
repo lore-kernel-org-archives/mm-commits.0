@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D6957F47D
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 856BF7EF0C
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104028; cv=none; b=R5VjoSKD3WQeO2Ta9Sa6bcyJIfkrMk6n40L1riJWkVErrqy+sOF6s+zleEP3FyxiR415lMOL3lEr1GK1KaYWH4vjfnUwtWff9S1dC0eTHBIhp4P6XteaZ6lVu9nAPlBlO0VkqMAZfjdhtV6563HRQSwV+r1FApUFOSTRQCFosmI=
+	t=1714104029; cv=none; b=E5iZrQA9aBx6uETOQmQU9RZSLU10fdkOyWLt/jMnaGce5cR4YhFfKeFfjJ5ql/I8cbrIh34jUUfrT8XW/lPdeGHDKaD7jobH3XJgyFLjGypaS4Js5zdV32cxplATjMczTaoKDdMhYKS/KEf83o89aIxKFNSkFC6GXdGfQ7S6eis=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104028; c=relaxed/simple;
-	bh=HBBvvESw+rQ8Krei2XHo8TtGX4Uqp1U6n3+9TsM7VWI=;
-	h=Date:To:From:Subject:Message-Id; b=GvpR+oBFwZgQbWR5ht3N3xaQcR3mH5EECCeLtUMkwerJLWR52KGjjLnld8yzaeIe+5Xw9eFg0vLl3HEG71OWk9UO2DyfoHHmcbtJYoMu3VP2ScFqeDyvDVgp0ZYvXQO1axyAE5V7FkyFcvb1DScsSZQ+cWqfhMAXD1p1MqOWB1o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a0oDD0PW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104029; c=relaxed/simple;
+	bh=aut2DL1NQFgnR2rRlUeQ50c2vlyg5ASMe88W+nuURbE=;
+	h=Date:To:From:Subject:Message-Id; b=kJsjgCrXJP8I78QgiL1/CEhlrG2jKZQoUnTLlClX2AGkS6iGhPl+DEAAffASzRnsfKijpMQkcV14EIygLYFpuc7vMA2tirL/FJZPxhw41EVSVTzNzEpS2Js7OtmuQ+ThdmFb3gLqHfD1jrEQQEWsD2QYEd9VubswBnSKepSj8Do=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lvAkVtst; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a0oDD0PW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5184AC3277B;
-	Fri, 26 Apr 2024 04:00:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lvAkVtst"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58FD0C113CD;
+	Fri, 26 Apr 2024 04:00:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104028;
-	bh=HBBvvESw+rQ8Krei2XHo8TtGX4Uqp1U6n3+9TsM7VWI=;
+	s=korg; t=1714104029;
+	bh=aut2DL1NQFgnR2rRlUeQ50c2vlyg5ASMe88W+nuURbE=;
 	h=Date:To:From:Subject:From;
-	b=a0oDD0PWQue+J7GJwCI4qdzuNjou/TuvntcqVjrDy3KmvzW7/u3LwQm8q57riLEz5
-	 zRmQsoz62j0x+kloqPC+2fCSaBtJIsSoBqKShKYwHGWeHb9n1MsluCNYqztnp4GN5v
-	 bUv+PRvDU3x8MaR9OnsB9aAM6JRhqYWIkTMS2PGE=
-Date: Thu, 25 Apr 2024 21:00:27 -0700
-To: mm-commits@vger.kernel.org,viro@ZenIV.linux.org.uk,torvalds@linux-foundation.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,muchun.song@linux.dev,mhocko@kernel.org,kees@kernel.org,jpoimboe@kernel.org,jlayton@kernel.org,jack@suse.cz,iamjoonsoo.kim@lge.com,hannes@cmpxchg.org,cl@linux.com,chuck.lever@oracle.com,chengming.zhou@linux.dev,brauner@kernel.org,42.hyeyoo@gmail.com,vbabka@suse.cz,akpm@linux-foundation.org
+	b=lvAkVtstuItu6Mzr4zw116bFLSJcmdlpwQgh410upglfx7GB2lkK7ioNRp3AMjCDQ
+	 DfZ+nR5wxsACz/I1lxCPUaI7ZAr04Jop34VvPQ5W/2opSlCAx8wPTYW/IM5f3+bFey
+	 EJVsk3T+BghC7uz2uvocubky98XUsL/GaF0+Rnnk=
+Date: Thu, 25 Apr 2024 21:00:28 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,mgorman@suse.de,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-slab-move-slab_memcg-hooks-to-mm-memcontrolc.patch removed from -mm tree
-Message-Id: <20240426040028.5184AC3277B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-move-array-mem_section-init-code-out-of-memory_present.patch removed from -mm tree
+Message-Id: <20240426040029.58FD0C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,317 +35,92 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, slab: move slab_memcg hooks to mm/memcontrol.c
+     Subject: mm: move array mem_section init code out of memory_present()
 has been removed from the -mm tree.  Its filename was
-     mm-slab-move-slab_memcg-hooks-to-mm-memcontrolc.patch
+     mm-move-array-mem_section-init-code-out-of-memory_present.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slab: move slab_memcg hooks to mm/memcontrol.c
-Date: Tue, 26 Mar 2024 11:37:39 +0100
+From: Baoquan He <bhe@redhat.com>
+Subject: mm: move array mem_section init code out of memory_present()
+Date: Tue, 26 Mar 2024 14:11:27 +0800
 
-The hooks make multiple calls to functions in mm/memcontrol.c, including
-to th current_obj_cgroup() marked __always_inline.  It might be faster to
-make a single call to the hook in mm/memcontrol.c instead.  The hooks also
-don't use almost anything from mm/slub.c.  obj_full_size() can move with
-the hooks and cache_vmstat_idx() to the internal mm/slab.h
+Patch series "mm/init: minor clean up and improvement".
 
-Link: https://lkml.kernel.org/r/20240326-slab-memcg-v3-2-d85d2563287a@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Chuck Lever <chuck.lever@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+These are all observed when going through code flow during mm init.
+
+
+This patch (of 7):
+
+When CONFIG_SPARSEMEM_EXTREME is enabled, mem_section need be initialized
+to point at a two-dimensional array, and its 1st dimension of length
+NR_SECTION_ROOTS will be dynamically allocated.  Once the allocation is
+done, it's available for all nodes.
+
+So take the 1st dimension of mem_section initialization out of
+memory_present()(), and put it into memblocks_present() which is a more
+appripriate place.
+
+Link: https://lkml.kernel.org/r/20240326061134.1055295-1-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20240326061134.1055295-2-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   90 ++++++++++++++++++++++++++++++++++++++++
- mm/slab.h       |   13 +++++
- mm/slub.c       |  103 ----------------------------------------------
- 3 files changed, 105 insertions(+), 101 deletions(-)
+ mm/sparse.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
---- a/mm/memcontrol.c~mm-slab-move-slab_memcg-hooks-to-mm-memcontrolc
-+++ a/mm/memcontrol.c
-@@ -3556,6 +3556,96 @@ void obj_cgroup_uncharge(struct obj_cgro
- 	refill_obj_stock(objcg, size, true);
- }
- 
-+static inline size_t obj_full_size(struct kmem_cache *s)
-+{
-+	/*
-+	 * For each accounted object there is an extra space which is used
-+	 * to store obj_cgroup membership. Charge it too.
-+	 */
-+	return s->size + sizeof(struct obj_cgroup *);
-+}
-+
-+bool __memcg_slab_post_alloc_hook(struct kmem_cache *s, struct list_lru *lru,
-+				  gfp_t flags, size_t size, void **p)
-+{
-+	struct obj_cgroup *objcg;
-+	struct slab *slab;
-+	unsigned long off;
-+	size_t i;
-+
-+	/*
-+	 * The obtained objcg pointer is safe to use within the current scope,
-+	 * defined by current task or set_active_memcg() pair.
-+	 * obj_cgroup_get() is used to get a permanent reference.
-+	 */
-+	objcg = current_obj_cgroup();
-+	if (!objcg)
-+		return true;
-+
-+	/*
-+	 * slab_alloc_node() avoids the NULL check, so we might be called with a
-+	 * single NULL object. kmem_cache_alloc_bulk() aborts if it can't fill
-+	 * the whole requested size.
-+	 * return success as there's nothing to free back
-+	 */
-+	if (unlikely(*p == NULL))
-+		return true;
-+
-+	flags &= gfp_allowed_mask;
-+
-+	if (lru) {
-+		int ret;
-+		struct mem_cgroup *memcg;
-+
-+		memcg = get_mem_cgroup_from_objcg(objcg);
-+		ret = memcg_list_lru_alloc(memcg, lru, flags);
-+		css_put(&memcg->css);
-+
-+		if (ret)
-+			return false;
-+	}
-+
-+	if (obj_cgroup_charge(objcg, flags, size * obj_full_size(s)))
-+		return false;
-+
-+	for (i = 0; i < size; i++) {
-+		slab = virt_to_slab(p[i]);
-+
-+		if (!slab_obj_exts(slab) &&
-+		    alloc_slab_obj_exts(slab, s, flags, false)) {
-+			obj_cgroup_uncharge(objcg, obj_full_size(s));
-+			continue;
-+		}
-+
-+		off = obj_to_index(s, slab, p[i]);
-+		obj_cgroup_get(objcg);
-+		slab_obj_exts(slab)[off].objcg = objcg;
-+		mod_objcg_state(objcg, slab_pgdat(slab),
-+				cache_vmstat_idx(s), obj_full_size(s));
-+	}
-+
-+	return true;
-+}
-+
-+void __memcg_slab_free_hook(struct kmem_cache *s, struct slab *slab,
-+			    void **p, int objects, struct slabobj_ext *obj_exts)
-+{
-+	for (int i = 0; i < objects; i++) {
-+		struct obj_cgroup *objcg;
-+		unsigned int off;
-+
-+		off = obj_to_index(s, slab, p[i]);
-+		objcg = obj_exts[off].objcg;
-+		if (!objcg)
-+			continue;
-+
-+		obj_exts[off].objcg = NULL;
-+		obj_cgroup_uncharge(objcg, obj_full_size(s));
-+		mod_objcg_state(objcg, slab_pgdat(slab), cache_vmstat_idx(s),
-+				-obj_full_size(s));
-+		obj_cgroup_put(objcg);
-+	}
-+}
- #endif /* CONFIG_MEMCG_KMEM */
- 
- /*
---- a/mm/slab.h~mm-slab-move-slab_memcg-hooks-to-mm-memcontrolc
-+++ a/mm/slab.h
-@@ -558,6 +558,9 @@ static inline struct slabobj_ext *slab_o
- 	return (struct slabobj_ext *)(obj_exts & ~OBJEXTS_FLAGS_MASK);
- }
- 
-+int alloc_slab_obj_exts(struct slab *slab, struct kmem_cache *s,
-+                        gfp_t gfp, bool new_slab);
-+
- #else /* CONFIG_SLAB_OBJ_EXT */
- 
- static inline struct slabobj_ext *slab_obj_exts(struct slab *slab)
-@@ -567,7 +570,17 @@ static inline struct slabobj_ext *slab_o
- 
- #endif /* CONFIG_SLAB_OBJ_EXT */
- 
-+static inline enum node_stat_item cache_vmstat_idx(struct kmem_cache *s)
-+{
-+	return (s->flags & SLAB_RECLAIM_ACCOUNT) ?
-+		NR_SLAB_RECLAIMABLE_B : NR_SLAB_UNRECLAIMABLE_B;
-+}
-+
- #ifdef CONFIG_MEMCG_KMEM
-+bool __memcg_slab_post_alloc_hook(struct kmem_cache *s, struct list_lru *lru,
-+				  gfp_t flags, size_t size, void **p);
-+void __memcg_slab_free_hook(struct kmem_cache *s, struct slab *slab,
-+			    void **p, int objects, struct slabobj_ext *obj_exts);
- void mod_objcg_state(struct obj_cgroup *objcg, struct pglist_data *pgdat,
- 		     enum node_stat_item idx, int nr);
- #endif
---- a/mm/slub.c~mm-slab-move-slab_memcg-hooks-to-mm-memcontrolc
-+++ a/mm/slub.c
-@@ -1859,12 +1859,6 @@ static bool freelist_corrupted(struct km
- #endif
- #endif /* CONFIG_SLUB_DEBUG */
- 
--static inline enum node_stat_item cache_vmstat_idx(struct kmem_cache *s)
--{
--	return (s->flags & SLAB_RECLAIM_ACCOUNT) ?
--		NR_SLAB_RECLAIMABLE_B : NR_SLAB_UNRECLAIMABLE_B;
--}
--
- #ifdef CONFIG_SLAB_OBJ_EXT
- 
- #ifdef CONFIG_MEM_ALLOC_PROFILING_DEBUG
-@@ -1923,8 +1917,8 @@ static inline void handle_failed_objexts
- #define OBJCGS_CLEAR_MASK	(__GFP_DMA | __GFP_RECLAIMABLE | \
- 				__GFP_ACCOUNT | __GFP_NOFAIL)
- 
--static int alloc_slab_obj_exts(struct slab *slab, struct kmem_cache *s,
--			       gfp_t gfp, bool new_slab)
-+int alloc_slab_obj_exts(struct slab *slab, struct kmem_cache *s,
-+		        gfp_t gfp, bool new_slab)
+--- a/mm/sparse.c~mm-move-array-mem_section-init-code-out-of-memory_present
++++ a/mm/sparse.c
+@@ -226,19 +226,6 @@ static void __init memory_present(int ni
  {
- 	unsigned int objects = objs_per_slab(s, slab);
- 	unsigned long new_exts;
-@@ -2083,78 +2077,6 @@ alloc_tagging_slab_free_hook(struct kmem
- #endif /* CONFIG_SLAB_OBJ_EXT */
+ 	unsigned long pfn;
  
- #ifdef CONFIG_MEMCG_KMEM
--static inline size_t obj_full_size(struct kmem_cache *s)
--{
--	/*
--	 * For each accounted object there is an extra space which is used
--	 * to store obj_cgroup membership. Charge it too.
--	 */
--	return s->size + sizeof(struct obj_cgroup *);
--}
+-#ifdef CONFIG_SPARSEMEM_EXTREME
+-	if (unlikely(!mem_section)) {
+-		unsigned long size, align;
 -
--static bool __memcg_slab_post_alloc_hook(struct kmem_cache *s,
--					 struct list_lru *lru,
--					 gfp_t flags, size_t size,
--					 void **p)
--{
--	struct obj_cgroup *objcg;
--	struct slab *slab;
--	unsigned long off;
--	size_t i;
--
--	/*
--	 * The obtained objcg pointer is safe to use within the current scope,
--	 * defined by current task or set_active_memcg() pair.
--	 * obj_cgroup_get() is used to get a permanent reference.
--	 */
--	objcg = current_obj_cgroup();
--	if (!objcg)
--		return true;
--
--	/*
--	 * slab_alloc_node() avoids the NULL check, so we might be called with a
--	 * single NULL object. kmem_cache_alloc_bulk() aborts if it can't fill
--	 * the whole requested size.
--	 * return success as there's nothing to free back
--	 */
--	if (unlikely(*p == NULL))
--		return true;
--
--	flags &= gfp_allowed_mask;
--
--	if (lru) {
--		int ret;
--		struct mem_cgroup *memcg;
--
--		memcg = get_mem_cgroup_from_objcg(objcg);
--		ret = memcg_list_lru_alloc(memcg, lru, flags);
--		css_put(&memcg->css);
--
--		if (ret)
--			return false;
+-		size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
+-		align = 1 << (INTERNODE_CACHE_SHIFT);
+-		mem_section = memblock_alloc(size, align);
+-		if (!mem_section)
+-			panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-			      __func__, size, align);
 -	}
+-#endif
 -
--	if (obj_cgroup_charge(objcg, flags, size * obj_full_size(s)))
--		return false;
--
--	for (i = 0; i < size; i++) {
--		slab = virt_to_slab(p[i]);
--
--		if (!slab_obj_exts(slab) &&
--		    alloc_slab_obj_exts(slab, s, flags, false)) {
--			obj_cgroup_uncharge(objcg, obj_full_size(s));
--			continue;
--		}
--
--		off = obj_to_index(s, slab, p[i]);
--		obj_cgroup_get(objcg);
--		slab_obj_exts(slab)[off].objcg = objcg;
--		mod_objcg_state(objcg, slab_pgdat(slab),
--				cache_vmstat_idx(s), obj_full_size(s));
--	}
--
--	return true;
--}
+ 	start &= PAGE_SECTION_MASK;
+ 	mminit_validate_memmodel_limits(&start, &end);
+ 	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION) {
+@@ -267,6 +254,19 @@ static void __init memblocks_present(voi
+ 	unsigned long start, end;
+ 	int i, nid;
  
- static void memcg_alloc_abort_single(struct kmem_cache *s, void *object);
- 
-@@ -2181,27 +2103,6 @@ bool memcg_slab_post_alloc_hook(struct k
- 	return false;
++#ifdef CONFIG_SPARSEMEM_EXTREME
++	if (unlikely(!mem_section)) {
++		unsigned long size, align;
++
++		size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
++		align = 1 << (INTERNODE_CACHE_SHIFT);
++		mem_section = memblock_alloc(size, align);
++		if (!mem_section)
++			panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
++			      __func__, size, align);
++	}
++#endif
++
+ 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, &nid)
+ 		memory_present(nid, start, end);
  }
- 
--static void __memcg_slab_free_hook(struct kmem_cache *s, struct slab *slab,
--				   void **p, int objects,
--				   struct slabobj_ext *obj_exts)
--{
--	for (int i = 0; i < objects; i++) {
--		struct obj_cgroup *objcg;
--		unsigned int off;
--
--		off = obj_to_index(s, slab, p[i]);
--		objcg = obj_exts[off].objcg;
--		if (!objcg)
--			continue;
--
--		obj_exts[off].objcg = NULL;
--		obj_cgroup_uncharge(objcg, obj_full_size(s));
--		mod_objcg_state(objcg, slab_pgdat(slab), cache_vmstat_idx(s),
--				-obj_full_size(s));
--		obj_cgroup_put(objcg);
--	}
--}
--
- static __fastpath_inline
- void memcg_slab_free_hook(struct kmem_cache *s, struct slab *slab, void **p,
- 			  int objects)
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from bhe@redhat.com are
 
+documentation-kdump-clean-up-the-outdated-description.patch
+kexec-fix-the-unexpected-kexec_dprintk-macro.patch
+crash-add-prefix-for-crash-dumping-messages.patch
 
