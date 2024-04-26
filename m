@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 969607C085
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:58:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC3507C085
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:58:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714103938; cv=none; b=JsqDz6+XmEZEVvnLc6IdnSJzRk2jP/X9Dd/+Z1IrV4D31UuHT2kYNcVOXgIQYywDVBtN29GMzoIpg6WLKDUsnea3ID9lK58VbbgzgWNYWca/Xw4jiizd9jCK+ebDtSw2TukmYDA5NYTaPCIn3TE0tNZWLi0LfxEOIvpdtKhKBO4=
+	t=1714103939; cv=none; b=nn5abNTE+eb0PBKK8PNzYtqOFnpIJTahA1++vZADbB2Y6mggSgTyPOqvOra/KGsaCKz6eKkbFOKuAkqCt9sU3+2dAY1hE5vtK8mBZDjYmTjywdx4Ct4DPrP//mG5pbQl3RW4FxKZdH0YrAzqyyEGuSTY59Wbbrx1SQeIClTDZFc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714103938; c=relaxed/simple;
-	bh=M6pyget1H1jFw7+H2ag28Bz5J+OyUICYVLKVtxUqrYE=;
-	h=Date:To:From:Subject:Message-Id; b=GfZSDdquHigHyi4b7b73O/MRPJ+IhEIFf3OXTSV4OQ2cuPmrFJebM0PJ8fspr5vTY+pfvbKndiJEaJdNE7YrN4QZG9pLI9GS3zyQwBGAD5cVX7p9yCc3xXm2lkR278YAahhtP+Obxg0f1ynsIjWImQE1r47MsfgOZqaDov/KBBI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AB1H084Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714103939; c=relaxed/simple;
+	bh=kWhgN5GKJuDxLpnwasbcvOX0FgXt9//oOogUFnAwofA=;
+	h=Date:To:From:Subject:Message-Id; b=tKclj2tix/kX3S/6BOOJl/wpMiyj6r6vUBR+nNBBMqW4sr8BqizlcldXn1XlYibZDlmmKJbhLoIzR/3WBLS6+KlhC1/r4eMrXfD3SyFIGdZvxgmPC0p32TjJ/nNcj/YFi317PzVgUMxcxJ3zX2LWX+9HJtTkhUovnwRHfUToabA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d5c0Sg0Q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AB1H084Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EC00C113CD;
-	Fri, 26 Apr 2024 03:58:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d5c0Sg0Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 805D3C113CD;
+	Fri, 26 Apr 2024 03:58:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714103938;
-	bh=M6pyget1H1jFw7+H2ag28Bz5J+OyUICYVLKVtxUqrYE=;
+	s=korg; t=1714103939;
+	bh=kWhgN5GKJuDxLpnwasbcvOX0FgXt9//oOogUFnAwofA=;
 	h=Date:To:From:Subject:From;
-	b=AB1H084QUpX2NfSqXcndd85Xb8GoAC0pC9NOWDOJuxx/jvKYlyy4HiW21E0dGXGAx
-	 Yfjb/wgtLS/Ox04KZbLnT88bgyQipCDPQfNvIQ2mHDqMYlj8UZ9DW9n+Wxe4X2ZPG7
-	 Ex0i3iQO8okp4UYtFp8H/AG9AlhrQR2tAkY2M4jE=
-Date: Thu, 25 Apr 2024 20:58:57 -0700
+	b=d5c0Sg0QCV8Fe4FVdlRVKQpPARmBeQm6AZv2+Lp3p9oY9qmFim0N9NhLlt4kZlf6b
+	 +w+Psh/AoLbn95SIduiXJ13d1uOqUTNDEUD9Sl72e2IYvmS81F2zz0ZpnHB9shCSiQ
+	 b/VqKJnrmVLT20Nkabgi2C+vuWYvz2HyRI6zD/No=
+Date: Thu, 25 Apr 2024 20:58:58 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,muchun.song@linux.dev,linmiaohe@huawei.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-folio_prep_large_rmappable.patch removed from -mm tree
-Message-Id: <20240426035858.6EC00C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch removed from -mm tree
+Message-Id: <20240426035859.805D3C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,110 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove folio_prep_large_rmappable()
+     Subject: mm: remove a call to compound_head() from is_page_hwpoison()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-folio_prep_large_rmappable.patch
+     mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove folio_prep_large_rmappable()
-Date: Thu, 21 Mar 2024 14:24:41 +0000
+Subject: mm: remove a call to compound_head() from is_page_hwpoison()
+Date: Thu, 21 Mar 2024 14:24:44 +0000
 
-Now that prep_compound_page() initialises folio->_deferred_list,
-folio_prep_large_rmappable()'s only purpose is to set the large_rmappable
-flag, so inline it into the two callers.  Take the opportunity to convert
-the large_rmappable definition from PAGEFLAG to FOLIO_FLAG and remove the
-existance of PageTestLargeRmappable and friends.
+We can call it only once instead of twice.
 
-Link: https://lkml.kernel.org/r/20240321142448.1645400-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240321142448.1645400-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h    |    3 ---
- include/linux/page-flags.h |    4 ++--
- mm/huge_memory.c           |    9 +--------
- mm/internal.h              |    3 ++-
- 4 files changed, 5 insertions(+), 14 deletions(-)
+ include/linux/page-flags.h |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-remove-folio_prep_large_rmappable
-+++ a/include/linux/huge_mm.h
-@@ -263,7 +263,6 @@ unsigned long thp_vma_allowable_orders(s
- unsigned long thp_get_unmapped_area(struct file *filp, unsigned long addr,
- 		unsigned long len, unsigned long pgoff, unsigned long flags);
- 
--void folio_prep_large_rmappable(struct folio *folio);
- bool can_split_folio(struct folio *folio, int *pextra_pins);
- int split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
- 		unsigned int new_order);
-@@ -411,8 +410,6 @@ static inline unsigned long thp_vma_allo
- 	return 0;
- }
- 
--static inline void folio_prep_large_rmappable(struct folio *folio) {}
--
- #define transparent_hugepage_flags 0UL
- 
- #define thp_get_unmapped_area	NULL
---- a/include/linux/page-flags.h~mm-remove-folio_prep_large_rmappable
+--- a/include/linux/page-flags.h~mm-remove-a-call-to-compound_head-from-is_page_hwpoison
 +++ a/include/linux/page-flags.h
-@@ -868,9 +868,9 @@ static inline void ClearPageCompound(str
- 	BUG_ON(!PageHead(page));
- 	ClearPageHead(page);
- }
--PAGEFLAG(LargeRmappable, large_rmappable, PF_SECOND)
-+FOLIO_FLAG(large_rmappable, FOLIO_SECOND_PAGE)
- #else
--TESTPAGEFLAG_FALSE(LargeRmappable, large_rmappable)
-+FOLIO_FLAG_FALSE(large_rmappable)
- #endif
- 
- #define PG_head_mask ((1UL << PG_head))
---- a/mm/huge_memory.c~mm-remove-folio_prep_large_rmappable
-+++ a/mm/huge_memory.c
-@@ -789,13 +789,6 @@ struct deferred_split *get_deferred_spli
- }
- #endif
- 
--void folio_prep_large_rmappable(struct folio *folio)
--{
--	if (!folio || !folio_test_large(folio))
--		return;
--	folio_set_large_rmappable(folio);
--}
--
- static inline bool is_transparent_hugepage(struct folio *folio)
+@@ -1065,11 +1065,14 @@ static inline bool PageHuge(const struct
+  * best effort only and inherently racy: there is no way to synchronize with
+  * failing hardware.
+  */
+-static inline bool is_page_hwpoison(struct page *page)
++static inline bool is_page_hwpoison(const struct page *page)
  {
- 	if (!folio_test_large(folio))
-@@ -2862,7 +2855,7 @@ static void __split_huge_page_tail(struc
- 	clear_compound_head(page_tail);
- 	if (new_order) {
- 		prep_compound_page(page_tail, new_order);
--		folio_prep_large_rmappable(new_folio);
-+		folio_set_large_rmappable(new_folio);
- 	}
- 
- 	/* Finally unfreeze refcount. Additional reference from page cache. */
---- a/mm/internal.h~mm-remove-folio_prep_large_rmappable
-+++ a/mm/internal.h
-@@ -513,7 +513,8 @@ static inline struct folio *page_rmappab
- {
- 	struct folio *folio = (struct folio *)page;
- 
--	folio_prep_large_rmappable(folio);
-+	if (folio && folio_test_large(folio))
-+		folio_set_large_rmappable(folio);
- 	return folio;
++	const struct folio *folio;
++
+ 	if (PageHWPoison(page))
+ 		return true;
+-	return PageHuge(page) && PageHWPoison(compound_head(page));
++	folio = page_folio(page);
++	return folio_test_hugetlb(folio) && PageHWPoison(&folio->page);
  }
  
+ extern bool is_free_buddy_page(struct page *page);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
