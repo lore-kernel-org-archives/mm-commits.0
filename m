@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82A6A7EEF8
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FA667E785
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104032; cv=none; b=BPeFn9zscgtsi9pJCNCH3r68bt9rbTmnNc4Y1uklKMzH1BlwA8tKe2wbWHkb3zo385nXGM6i3Dq66P8vL4Q8wN24yCMJh+jFXKCKbBsnwobmH9pVSrmef8rjbF0clqnOdGxylO1bb5RNC9AZ8zUu7A2VYQW0sThQmxRdveAlKCY=
+	t=1714104033; cv=none; b=PpRNo+0xhW4Dg9N95DRKEysgrM5NGH+m7Qf4be+PfqYhUo8AkXmf5MdJlVolqpOXoMSCPa5IG59tbL1gvHOFzLL4TCbKmnVsqhoX6Cg12eokCGMkz+qIhCsXy7Z/F0B1O5QIpZXmbX12kkoIYKze1i9gqDHTXx6IaVUjHG5Us1k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104032; c=relaxed/simple;
-	bh=FdQIl1Fq3cviJG+bohJWbEA+/BMaiIc3GuubAYys4JA=;
-	h=Date:To:From:Subject:Message-Id; b=cjijfgnEZ3LchUMLHlCqb01MLZCO05+RpCWd20DncsiN/r0D6vGQvROvVVNCEbGRVf9gP2sZI1Wrk5vxFJWsPDlW6qxrRaIXM1U1j5B02Vx6sAyeDfb+IiROb3NtaTYnm9BwREBtnN90/TWND8MUEHHDinZ3JkaU0YZch5Njwv0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E0rSWaos; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104033; c=relaxed/simple;
+	bh=eIJ0rfGefmrtvQNGDodxHbOCl2f7H5j+GvTVAIUbZs4=;
+	h=Date:To:From:Subject:Message-Id; b=cGMfa11Xvb36RvD9EmBIE8QaluEAojNr9CJ3wG1A0rBBK9t/SUiKyFiDKWcu8BoA/HddjDC9zrMKBo7bI0i5C+b3VDTrFK3H3cweo4r20o6GI6EO1wrBXxr0/3IQVImNdsclOgvg5Tyx0qnEGkucOj0T/XSIYu5UWmuqvRwGbKw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qZ0q/vtA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E0rSWaos"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 590A4C113CD;
-	Fri, 26 Apr 2024 04:00:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qZ0q/vtA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 643E2C2BD11;
+	Fri, 26 Apr 2024 04:00:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104032;
-	bh=FdQIl1Fq3cviJG+bohJWbEA+/BMaiIc3GuubAYys4JA=;
+	s=korg; t=1714104033;
+	bh=eIJ0rfGefmrtvQNGDodxHbOCl2f7H5j+GvTVAIUbZs4=;
 	h=Date:To:From:Subject:From;
-	b=E0rSWaosLQ8f/nf5iNHq1RYX/7ULcZwWL6D1ERG3519pOpUhFRkU4nr6zSxlxK1XK
-	 uxFqDwltG2HWjpfTY25XLgQYmiryLAlPCJSKYazcki0S2T2UQfvRn9S02684A2fHK0
-	 PW9pVr+RrgZ8243MgLUXGsFbgyGP5TrcUAs8yqrc=
-Date: Thu, 25 Apr 2024 21:00:31 -0700
+	b=qZ0q/vtAQSI3iXT4BF993dT0JXNv0gR9lei21bSNFpkWXR8exYojubu480pP3nEwe
+	 BiWXuocCsTButLoyI/FawgWygct+4NjARS9I7tQcYHLpNABdcpZjlrfFOoxdjh18sN
+	 8b+UDV4TnVcQ0vh4zPM4GFOXxSrd5cDDfw2BZ2sU=
+Date: Thu, 25 Apr 2024 21:00:32 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,mgorman@suse.de,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-make-__absent_pages_in_range-as-static.patch removed from -mm tree
-Message-Id: <20240426040032.590A4C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_allocc-remove-unneeded-codes-in-numa-version-of-build_zonelists.patch removed from -mm tree
+Message-Id: <20240426040033.643E2C2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,77 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: make __absent_pages_in_range() as static
+     Subject: mm/page_alloc.c: remove unneeded codes in !NUMA version of build_zonelists()
 has been removed from the -mm tree.  Its filename was
-     mm-make-__absent_pages_in_range-as-static.patch
+     mm-page_allocc-remove-unneeded-codes-in-numa-version-of-build_zonelists.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm: make __absent_pages_in_range() as static
-Date: Tue, 26 Mar 2024 14:11:29 +0800
+Subject: mm/page_alloc.c: remove unneeded codes in !NUMA version of build_zonelists()
+Date: Tue, 26 Mar 2024 14:11:30 +0800
 
-It's only called in mm/mm_init.c now.
+When CONFIG_NUMA=n, MAX_NUMNODES is always 1 because Kconfig item
+NODES_SHIFT depends on NUMA.  So in !NUMA version of build_zonelists(), no
+need to bother with the two for loop because code execution won't enter
+them ever.
 
-Link: https://lkml.kernel.org/r/20240326061134.1055295-4-bhe@redhat.com
+Here, remove those unneeded codes in !NUMA version of build_zonelists().
+
+[bhe@redhat.com: remove unused locals]
+  Link: https://lkml.kernel.org/r/ZgQL1WOf9K88nLpQ@MiWiFi-R3L-srv
+Link: https://lkml.kernel.org/r/20240326061134.1055295-5-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Mel Gorman <mgorman@suse.de>
+Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 --
- mm/mm_init.c       |    2 +-
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ mm/page_alloc.c |   24 ------------------------
+ 1 file changed, 24 deletions(-)
 
---- a/include/linux/mm.h~mm-make-__absent_pages_in_range-as-static
-+++ a/include/linux/mm.h
-@@ -3229,8 +3229,6 @@ static inline unsigned long get_num_phys
-  */
- void free_area_init(unsigned long *max_zone_pfn);
- unsigned long node_map_pfn_alignment(void);
--unsigned long __absent_pages_in_range(int nid, unsigned long start_pfn,
--						unsigned long end_pfn);
- extern unsigned long absent_pages_in_range(unsigned long start_pfn,
- 						unsigned long end_pfn);
- extern void get_pfn_range_for_nid(unsigned int nid,
---- a/mm/mm_init.c~mm-make-__absent_pages_in_range-as-static
-+++ a/mm/mm_init.c
-@@ -1144,7 +1144,7 @@ static void __init adjust_zone_range_for
-  * Return the number of holes in a range on a node. If nid is MAX_NUMNODES,
-  * then all holes in the requested range will be accounted for.
-  */
--unsigned long __init __absent_pages_in_range(int nid,
-+static unsigned long __init __absent_pages_in_range(int nid,
- 				unsigned long range_start_pfn,
- 				unsigned long range_end_pfn)
+--- a/mm/page_alloc.c~mm-page_allocc-remove-unneeded-codes-in-numa-version-of-build_zonelists
++++ a/mm/page_alloc.c
+@@ -5280,37 +5280,13 @@ static void setup_min_slab_ratio(void);
+ 
+ static void build_zonelists(pg_data_t *pgdat)
  {
+-	int node, local_node;
+ 	struct zoneref *zonerefs;
+ 	int nr_zones;
+ 
+-	local_node = pgdat->node_id;
+-
+ 	zonerefs = pgdat->node_zonelists[ZONELIST_FALLBACK]._zonerefs;
+ 	nr_zones = build_zonerefs_node(pgdat, zonerefs);
+ 	zonerefs += nr_zones;
+ 
+-	/*
+-	 * Now we build the zonelist so that it contains the zones
+-	 * of all the other nodes.
+-	 * We don't want to pressure a particular node, so when
+-	 * building the zones for node N, we make sure that the
+-	 * zones coming right after the local ones are those from
+-	 * node N+1 (modulo N)
+-	 */
+-	for (node = local_node + 1; node < MAX_NUMNODES; node++) {
+-		if (!node_online(node))
+-			continue;
+-		nr_zones = build_zonerefs_node(NODE_DATA(node), zonerefs);
+-		zonerefs += nr_zones;
+-	}
+-	for (node = 0; node < local_node; node++) {
+-		if (!node_online(node))
+-			continue;
+-		nr_zones = build_zonerefs_node(NODE_DATA(node), zonerefs);
+-		zonerefs += nr_zones;
+-	}
+-
+ 	zonerefs->zone = NULL;
+ 	zonerefs->zone_idx = 0;
+ }
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
