@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56CC476408
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:59:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55BEC7D3FE
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:59:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714103975; cv=none; b=TRBoMEXl0+QuTy1czsDPVgRAjP2py/OKOHsIOQqwPUTuEWyv8M6feXNZ2dBKfIZzfkB+n9c0d6vduQ+E2VPv00aPhDP4l7BSF+2LaC34Xr9YhcxVFz1A7YH+zpJxtuGYOaOJT0qfM8uJ+Wp91DibHXPLGFeRZaKSPC3C+fuLQqA=
+	t=1714103976; cv=none; b=lXiMwKsifnKtIiLAKKphRDEgnCy5MyHne+oSEgMG5ANEhJtC0fMx2PBD/ilSisSEpef7OPr3KfRmwa/M0YlkzaWKq73G4Tqr8lmoHnw0R/5P/udqYKtcevADoK7psuDG6Gw8IBnRiKLE+iwFUPcn3/YzNgIDMBLk81/iQN7MSts=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714103975; c=relaxed/simple;
-	bh=31F9Z12Z3S6/DNlFGVXHga33IVOGD7mhH9A9ThFp0Gk=;
-	h=Date:To:From:Subject:Message-Id; b=W7NQm8ZkMP2ljnaazmdz4J0hIjaCvv6j+gXSWufPM4E9+r9XBZIRuk86t4ov0+D/xBge78E6x0gsGHcbf2033yKikV97VOjYrT42WK60l9UUQgyxCBC7Xb9JOeU97F0G4feXl3Na0Rpf81xGo9gbi1fBd+KMqiHN1+Bx0rxxyog=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vr0CPazK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714103976; c=relaxed/simple;
+	bh=D8APo+L09Cs+/Jgs6hDeGYZBG76fFJ+Ir/7IuSDDBAg=;
+	h=Date:To:From:Subject:Message-Id; b=qpThD6NQEa5szvXorX6EF8zXBOFiu3OaA9FS9kMuLkCWsP/DJDLOxeN1cS820EdB8z/e7AiCo8D6XpWM0ueALmceaG0THcPzB5DYnAiEC1To/vx3m1POxuEbMVLZwee2HqendpRa+r4nEANfib64psv3R/BYDWiiD97ry7DD6Vo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KpdxrdtJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vr0CPazK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2ECCAC116B1;
-	Fri, 26 Apr 2024 03:59:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KpdxrdtJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B9CEC113CD;
+	Fri, 26 Apr 2024 03:59:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714103975;
-	bh=31F9Z12Z3S6/DNlFGVXHga33IVOGD7mhH9A9ThFp0Gk=;
+	s=korg; t=1714103976;
+	bh=D8APo+L09Cs+/Jgs6hDeGYZBG76fFJ+Ir/7IuSDDBAg=;
 	h=Date:To:From:Subject:From;
-	b=vr0CPazKFh4Q6G6PG8It1vn22UxkR5CMP6hSAoRpHYJ/fd+RDx7eRjtipMdrw7vE+
-	 u657lzCTHIcP7bZlW1bK23jggEURxYnrh3a0ZKEQvuCNMdlm8ktrSVjoitJvkBRo31
-	 bU3ecRkJsHZmK2QrAyMa3tfL6Tu5G2ZQP881QC3U=
-Date: Thu, 25 Apr 2024 20:59:34 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,linmiaohe@huawei.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=KpdxrdtJ63k7OHTNti4zFAiOaeycr/2izCh2PM8/xstwfxsuH7423RiETB4B6SFVV
+	 sujCRFr71aBea1AJOYoOCpIhOkT6qxnCmiZJA68ZkrnbiYCb9tDAaR6HUS8wdbOXVC
+	 HMtBOCGrLyDocAAQI5yIBDgAzeiAMM4zajH9QQTg=
+Date: Thu, 25 Apr 2024 20:59:35 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-hugetlbpagerst-add-hugetlb-migration-description.patch removed from -mm tree
-Message-Id: <20240426035935.2ECCAC116B1@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-parse-vma-range-in-one-go.patch removed from -mm tree
+Message-Id: <20240426035936.2B9CEC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,66 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: docs: hugetlbpage.rst: add hugetlb migration description
+     Subject: selftests/mm: parse VMA range in one go
 has been removed from the -mm tree.  Its filename was
-     docs-hugetlbpagerst-add-hugetlb-migration-description.patch
+     selftests-mm-parse-vma-range-in-one-go.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: docs: hugetlbpage.rst: add hugetlb migration description
-Date: Wed, 6 Mar 2024 18:13:28 +0800
+From: Dev Jain <dev.jain@arm.com>
+Subject: selftests/mm: parse VMA range in one go
+Date: Fri, 22 Mar 2024 17:35:51 +0530
 
-Add some description of the hugetlb migration strategy.
+Use sscanf() to directly parse the VMA range. No functional change is intended.
 
-Link: https://lkml.kernel.org/r/63fb16e7a4ebc5cb69ce655af86e29b2d8e9ba34.1709719720.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Link: https://lkml.kernel.org/r/20240322120551.818764-1-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/hugetlbpage.rst |    7 +++++++
- 1 file changed, 7 insertions(+)
+ tools/testing/selftests/mm/mlock2-tests.c |   15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
---- a/Documentation/admin-guide/mm/hugetlbpage.rst~docs-hugetlbpagerst-add-hugetlb-migration-description
-+++ a/Documentation/admin-guide/mm/hugetlbpage.rst
-@@ -376,6 +376,13 @@ Note that the number of overcommit and r
- as we don't know until fault time, when the faulting task's mempolicy is
- applied, from which node the huge page allocation will be attempted.
+--- a/tools/testing/selftests/mm/mlock2-tests.c~selftests-mm-parse-vma-range-in-one-go
++++ a/tools/testing/selftests/mm/mlock2-tests.c
+@@ -20,8 +20,6 @@ static int get_vm_area(unsigned long add
+ 	FILE *file;
+ 	int ret = 1;
+ 	char line[1024] = {0};
+-	char *end_addr;
+-	char *stop;
+ 	unsigned long start;
+ 	unsigned long end;
  
-+The hugetlb may be migrated between the per-node hugepages pool in the following
-+scenarios: memory offline, memory failure, longterm pinning, syscalls(mbind,
-+migrate_pages and move_pages), alloc_contig_range() and alloc_contig_pages().
-+Now only memory offline, memory failure and syscalls allow fallbacking to allocate
-+a new hugetlb on a different node if the current node is unable to allocate during
-+hugetlb migration, that means these 3 cases can break the per-node hugepages pool.
-+
- .. _using_huge_pages:
+@@ -37,21 +35,10 @@ static int get_vm_area(unsigned long add
+ 	memset(area, 0, sizeof(struct vm_boundaries));
  
- Using Huge Pages
+ 	while(fgets(line, 1024, file)) {
+-		end_addr = strchr(line, '-');
+-		if (!end_addr) {
++		if (sscanf(line, "%lx-%lx", &start, &end) != 2) {
+ 			ksft_print_msg("cannot parse /proc/self/maps\n");
+ 			goto out;
+ 		}
+-		*end_addr = '\0';
+-		end_addr++;
+-		stop = strchr(end_addr, ' ');
+-		if (!stop) {
+-			ksft_print_msg("cannot parse /proc/self/maps\n");
+-			goto out;
+-		}
+-
+-		sscanf(line, "%lx", &start);
+-		sscanf(end_addr, "%lx", &end);
+ 
+ 		if (start <= addr && end > addr) {
+ 			area->start = start;
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch
 
