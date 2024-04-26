@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15F3B811F7
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:07:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1A95811F7
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:07:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104456; cv=none; b=W3jUwf6OxCSsSAmMgeXDF5EKUj55g0CJQ/6aRjOI3rfzFcM/lsTdi0S1Re2HGIJzcJQqN6jw1eKLf3PlwyQKrNLddtpJWL0hhBYGEPCEvpn1u4d/K9RkNU7oTQ8ZKyg6SrQoDTh7CZedu/XQiN6NAqReBXqg1CbrnxhrgaYIO1A=
+	t=1714104457; cv=none; b=gXjxDshwyCMu1hypVvG7NqM3MYGITkOIJ3SH6zdpJ4WH7Qbwl1cW9fcY0YmVUozbzAxnwJ9fkhQ2M4soJw1+I6HE0aqq5xvTyw9Km3mzSTaXf45RkhNCLfb5sw7a0PsQMMbkW6MxASmkAqV+zf9rDWE28Do5xM58jefMtkKQF64=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104456; c=relaxed/simple;
-	bh=n/3LSRh+afFpExcMNR29GFHoTp18ZtMnsg2+UUNVH1o=;
-	h=Date:To:From:Subject:Message-Id; b=MuUmRExfRn5hIS1EyuOG9PO+U0UjLV9aiVIFm3xm0vdIr3N1IeDROjNKuQFHRwrcbY44cN/bNwyNxjCArTxRAHVbRHnMPUeQBb0H26L+ccs8cV6HCmUTQ0pV0fjJkQsS3I73/vOG56sQkmQ4P6eGtmvTQ+gTEktOqywfnBPvFKc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s5fYZ72u; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104457; c=relaxed/simple;
+	bh=rIJizTlxsDT+tI6DAik3h28iw+4PCLhpdahJGCHeNiM=;
+	h=Date:To:From:Subject:Message-Id; b=j/TaLrVZyfbXfvFk/tigH4tQWsGGFcMQg0drY9pMYTfh61Llg1GI+aT5g8piNqZY/GUtMU9/h9JS87sAO+rPGMEYmxNGhT/gHoJgxveP+33ln55Iri+uIUe4Mw+gzKikKY3O4s9Jgi3lykbFYEqDg72TM1LCUG/cM9xON8vPGic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0eGZmKPZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s5fYZ72u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C940C32782;
-	Fri, 26 Apr 2024 04:07:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0eGZmKPZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3B01C2BD11;
+	Fri, 26 Apr 2024 04:07:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104455;
-	bh=n/3LSRh+afFpExcMNR29GFHoTp18ZtMnsg2+UUNVH1o=;
+	s=korg; t=1714104456;
+	bh=rIJizTlxsDT+tI6DAik3h28iw+4PCLhpdahJGCHeNiM=;
 	h=Date:To:From:Subject:From;
-	b=s5fYZ72uLU2a4oVNRPQWyAy1QQ9RRgz2FlI81T3GB0lnWff1WYLwVr2Mz3EQ+yW5L
-	 fL0B3sGXqVlGZkbUcetiMfo4fVQa/QIMvibwE6qnTFVBOo5lV8BhuduyTz+gb/0YcP
-	 StXqrMvCj1Ei76ir8Oxjx0ImnJnLYBX/JXrPurWw=
-Date: Thu, 25 Apr 2024 21:07:35 -0700
-To: mm-commits@vger.kernel.org,mhiramat@kernel.org,linux@rasmusvillemoes.dk,akpm@linux-foundation.org
+	b=0eGZmKPZaeVN50fl4o0YSi0Eil2LYo8G1ysRdAu69ik/ii7i2HNEr/kTB+Uiro2Ol
+	 RDPc327/PUYSAI7bl1mynV3PLfHQsiY25nFitbYP39KfmNVI+4McT2T2tFaRUD+XhL
+	 0FgV91z2HPw/qbOLAA2bxQTP77sdv0gj7AApG3PM=
+Date: Thu, 25 Apr 2024 21:07:36 -0700
+To: mm-commits@vger.kernel.org,torvalds@linux-foundation.org,tglx@linutronix.de,penguin-kernel@I-love.SAKURA.ne.jp,elver@google.com,dvyukov@google.com,glider@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] bootconfig-do-not-put-quotes-on-cmdline-items-unless-necessary.patch removed from -mm tree
-Message-Id: <20240426040735.8C940C32782@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mm-kmsan-implement-kmsan_memmove.patch removed from -mm tree
+Message-Id: <20240426040736.A3B01C2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,93 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: bootconfig: do not put quotes on cmdline items unless necessary
+     Subject: mm: kmsan: implement kmsan_memmove()
 has been removed from the -mm tree.  Its filename was
-     bootconfig-do-not-put-quotes-on-cmdline-items-unless-necessary.patch
+     mm-kmsan-implement-kmsan_memmove.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: bootconfig: do not put quotes on cmdline items unless necessary
-Date: Wed, 20 Mar 2024 11:19:52 +0100
+From: Alexander Potapenko <glider@google.com>
+Subject: mm: kmsan: implement kmsan_memmove()
+Date: Wed, 20 Mar 2024 11:18:49 +0100
 
-When trying to migrate to using bootconfig to embed the kernel's and
-PID1's command line with the kernel image itself, and so allowing changing
-that without modifying the bootloader, I noticed that /proc/cmdline
-changed from e.g.
+Provide a hook that can be used by custom memcpy implementations to tell
+KMSAN that the metadata needs to be copied.  Without that, false positive
+reports are possible in the cases where KMSAN fails to intercept memory
+initialization.
 
-  console=ttymxc0,115200n8 cma=128M quiet -- --log-level=notice
-
-to
-
-  console="ttymxc0,115200n8" cma="128M" quiet -- --log-level="notice"
-
-The kernel parameters are parsed just fine, and the quotes are indeed
-stripped from the actual argv[] given to PID1.  However, the quoting
-doesn't really serve any purpose and looks excessive, and might confuse
-some (naive) userspace tool trying to parse /proc/cmdline.  So do not
-quote the value unless it contains whitespace.
-
-Link: https://lkml.kernel.org/r/20240320101952.62135-1-linux@rasmusvillemoes.dk
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Link: https://lore.kernel.org/all/3b7dbd88-0861-4638-b2d2-911c97a4cadf@I-love.SAKURA.ne.jp/
+Link: https://lkml.kernel.org/r/20240320101851.2589698-1-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Suggested-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ include/linux/kmsan-checks.h |   15 +++++++++++++++
+ mm/kmsan/hooks.c             |   11 +++++++++++
+ 2 files changed, 26 insertions(+)
 
---- a/init/main.c~bootconfig-do-not-put-quotes-on-cmdline-items-unless-necessary
-+++ a/init/main.c
-@@ -327,7 +327,7 @@ static int __init xbc_snprint_cmdline(ch
- {
- 	struct xbc_node *knode, *vnode;
- 	char *end = buf + size;
--	const char *val;
-+	const char *val, *q;
- 	int ret;
+--- a/include/linux/kmsan-checks.h~mm-kmsan-implement-kmsan_memmove
++++ a/include/linux/kmsan-checks.h
+@@ -61,6 +61,17 @@ void kmsan_check_memory(const void *addr
+ void kmsan_copy_to_user(void __user *to, const void *from, size_t to_copy,
+ 			size_t left);
  
- 	xbc_node_for_each_key_value(root, knode, val) {
-@@ -345,8 +345,14 @@ static int __init xbc_snprint_cmdline(ch
- 			continue;
- 		}
- 		xbc_array_for_each_value(vnode, val) {
--			ret = snprintf(buf, rest(buf, end), "%s=\"%s\" ",
--				       xbc_namebuf, val);
-+			/*
-+			 * For prettier and more readable /proc/cmdline, only
-+			 * quote the value when necessary, i.e. when it contains
-+			 * whitespace.
-+			 */
-+			q = strpbrk(val, " \t\r\n") ? "\"" : "";
-+			ret = snprintf(buf, rest(buf, end), "%s=%s%s%s ",
-+				       xbc_namebuf, q, val, q);
- 			if (ret < 0)
- 				return ret;
- 			buf += ret;
++/**
++ * kmsan_memmove() - Notify KMSAN about a data copy within kernel.
++ * @to:   destination address in the kernel.
++ * @from: source address in the kernel.
++ * @size: number of bytes to copy.
++ *
++ * Invoked after non-instrumented version (e.g. implemented using assembly
++ * code) of memmove()/memcpy() is called, in order to copy KMSAN's metadata.
++ */
++void kmsan_memmove(void *to, const void *from, size_t to_copy);
++
+ #else
+ 
+ static inline void kmsan_poison_memory(const void *address, size_t size,
+@@ -78,6 +89,10 @@ static inline void kmsan_copy_to_user(vo
+ {
+ }
+ 
++static inline void kmsan_memmove(void *to, const void *from, size_t to_copy)
++{
++}
++
+ #endif
+ 
+ #endif /* _LINUX_KMSAN_CHECKS_H */
+--- a/mm/kmsan/hooks.c~mm-kmsan-implement-kmsan_memmove
++++ a/mm/kmsan/hooks.c
+@@ -285,6 +285,17 @@ void kmsan_copy_to_user(void __user *to,
+ }
+ EXPORT_SYMBOL(kmsan_copy_to_user);
+ 
++void kmsan_memmove(void *to, const void *from, size_t size)
++{
++	if (!kmsan_enabled || kmsan_in_runtime())
++		return;
++
++	kmsan_enter_runtime();
++	kmsan_internal_memmove_metadata(to, (void *)from, size);
++	kmsan_leave_runtime();
++}
++EXPORT_SYMBOL(kmsan_memmove);
++
+ /* Helper function to check an URB. */
+ void kmsan_handle_urb(const struct urb *urb, bool is_out)
+ {
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from glider@google.com are
 
+kmsan-compiler_types-declare-__no_sanitize_or_inline.patch
 
