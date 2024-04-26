@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A688B76408
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:58:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD1507BB0F
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:58:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714103923; cv=none; b=m0hOh/E8PNR2VrJUlD6kkIXM5vFtNlHS1MbojylD0AiJHGt/1uf08HsF7E95aHarXQUC5pg2boxmo/l8AaKtAgVLLoKqQQK7wJmll/apRWMS9I4XD9idp/uTALBd9Ie4ypOTJL/+hSwSmeS3DhmDJARbNtPTbqciLO1p3jPiNQ0=
+	t=1714103924; cv=none; b=gSqsFVIX8c2JHtDNp7vCxZH3uq8zhEt7ZEmg0apVcb3c/t1JB1w/Cghwt7VCywK5tn+YluEsKUsheiKdZ/TrM84v3/JXW7nhkUd+0w3j/n7IS6cIWZGfuQZ+RCcQTLp7YKB18r9MLhRI+qgpb/Hk79GIhLwFiz1yx5CO4594hOk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714103923; c=relaxed/simple;
-	bh=s58vIUTf33C9zUPb414vskkS5ZZ5XrwmsQjWCUUxArA=;
-	h=Date:To:From:Subject:Message-Id; b=G0JPR4nk8lPEEDXx4dsJK3LPnQgVr4WudeFPGVAY/TAkCtDco1FHjPxoD6PXtCdwTg5c1lRE87uzQUZQoyCIVffpjl3b5XFbA8FNrbBb7Zxfna9g8K/Yf5/VcTMI8KcDrn4vGoCcLLq8nmV0gDfZzAWX86NH0I4PVtfqa8+CCgg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vWpsW/UR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714103924; c=relaxed/simple;
+	bh=eAOdiZIxXkxm4W2BMztfGEE8JtewJwbyxqka68rEpJQ=;
+	h=Date:To:From:Subject:Message-Id; b=Ztn8yvA97JZ+i/nbXmatHj+VTPtSspaYFDyx9vFzN2Rek7xD2Jj8sDtr3OqM2O00WuyA6sxdTYboy7OH+jsca7irnhTJw4kTZrqcpWeuWGBAIbExQHNB2iaW+9hzLXuj+h8a0NLClKl+zVZzZ8EQRswGxcvMdP2rZbvyCh4M1RU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZW0xSnMf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vWpsW/UR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AEBCC113CD;
-	Fri, 26 Apr 2024 03:58:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZW0xSnMf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B36A9C113CD;
+	Fri, 26 Apr 2024 03:58:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714103923;
-	bh=s58vIUTf33C9zUPb414vskkS5ZZ5XrwmsQjWCUUxArA=;
+	s=korg; t=1714103924;
+	bh=eAOdiZIxXkxm4W2BMztfGEE8JtewJwbyxqka68rEpJQ=;
 	h=Date:To:From:Subject:From;
-	b=vWpsW/URuMmM5l9s/yUaD9Ntbo+HrE2VNcQ3J+gIGxx+IZlz7i5NmHK+nlZQbCPu5
-	 NZQBzaHShO/RdG2nQ4ASC/I6K/O0Cwxy7j2D+AS8ELJpIG4YdOumLMSS0A4QYjYL0e
-	 /f0x+COepNKLOPB4QRwENX7IM1tegrETEGogCvM4=
-Date: Thu, 25 Apr 2024 20:58:42 -0700
+	b=ZW0xSnMfXnx1KL6nL2FHQBmQRLMSu9qLeOMpPg//nyD+WiNqZJEEJp5voAI/tRoXr
+	 h/PCY4kU8NvKGPVgiYCYP7l2YemF1yHgNnE1pLpo2/BcE1eMLjLUfYKpfxjgyXIcUl
+	 5DtImLSVVCcRQGGzBeK6gsL+daBKGHdG5POHvfK4=
+Date: Thu, 25 Apr 2024 20:58:44 -0700
 To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,peterz@infradead.org,pasha.tatashin@soleen.com,ojeda@kernel.org,kent.overstreet@linux.dev,keescook@chromium.org,gary@garyguo.net,dennis@kernel.org,cl@linux.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@samsung.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] lib-add-memory-allocations-report-in-show_mem.patch removed from -mm tree
-Message-Id: <20240426035843.7AEBCC113CD@smtp.kernel.org>
+Subject: [merged mm-stable] codetag-debug-skip-objext-checking-when-its-for-objext-itself.patch removed from -mm tree
+Message-Id: <20240426035844.B36A9C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib: add memory allocations report in show_mem()
+     Subject: codetag: debug: skip objext checking when it's for objext itself
 has been removed from the -mm tree.  Its filename was
-     lib-add-memory-allocations-report-in-show_mem.patch
+     codetag-debug-skip-objext-checking-when-its-for-objext-itself.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: lib: add memory allocations report in show_mem()
-Date: Thu, 21 Mar 2024 09:36:54 -0700
+Subject: codetag: debug: skip objext checking when it's for objext itself
+Date: Thu, 21 Mar 2024 09:36:55 -0700
 
-Include allocations in show_mem reports.
+objext objects are created with __GFP_NO_OBJ_EXT flag and therefore have
+no corresponding objext themselves (otherwise we would get an infinite
+recursion). When freeing these objects their codetag will be empty and
+when CONFIG_MEM_ALLOC_PROFILING_DEBUG is enabled this will lead to false
+warnings. Introduce CODETAG_EMPTY special codetag value to mark
+allocations which intentionally lack codetag to avoid these warnings.
+Set objext codetags to CODETAG_EMPTY before freeing to indicate that
+the codetag is expected to be empty.
 
-Link: https://lkml.kernel.org/r/20240321163705.3067592-33-surenb@google.com
-Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
+Link: https://lkml.kernel.org/r/20240321163705.3067592-34-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Tested-by: Kees Cook <keescook@chromium.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alex Gaynor <alex.gaynor@gmail.com>
@@ -64,140 +69,117 @@ Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Gary Guo <gary@garyguo.net>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Miguel Ojeda <ojeda@kernel.org>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wedson Almeida Filho <wedsonaf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/alloc_tag.h |    7 ++++++
- include/linux/codetag.h   |    1 
- lib/alloc_tag.c           |   38 ++++++++++++++++++++++++++++++++++++
- lib/codetag.c             |    5 ++++
- mm/show_mem.c             |   26 ++++++++++++++++++++++++
- 5 files changed, 77 insertions(+)
+ include/linux/alloc_tag.h |   26 ++++++++++++++++++++++++++
+ mm/slub.c                 |   33 +++++++++++++++++++++++++++++++++
+ 2 files changed, 59 insertions(+)
 
---- a/include/linux/alloc_tag.h~lib-add-memory-allocations-report-in-show_mem
+--- a/include/linux/alloc_tag.h~codetag-debug-skip-objext-checking-when-its-for-objext-itself
 +++ a/include/linux/alloc_tag.h
-@@ -31,6 +31,13 @@ struct alloc_tag {
+@@ -29,6 +29,27 @@ struct alloc_tag {
+ 	struct alloc_tag_counters __percpu	*counters;
+ } __aligned(8);
  
++#ifdef CONFIG_MEM_ALLOC_PROFILING_DEBUG
++
++#define CODETAG_EMPTY	((void *)1)
++
++static inline bool is_codetag_empty(union codetag_ref *ref)
++{
++	return ref->ct == CODETAG_EMPTY;
++}
++
++static inline void set_codetag_empty(union codetag_ref *ref)
++{
++	if (ref)
++		ref->ct = CODETAG_EMPTY;
++}
++
++#else /* CONFIG_MEM_ALLOC_PROFILING_DEBUG */
++
++static inline bool is_codetag_empty(union codetag_ref *ref) { return false; }
++
++#endif /* CONFIG_MEM_ALLOC_PROFILING_DEBUG */
++
  #ifdef CONFIG_MEM_ALLOC_PROFILING
  
-+struct codetag_bytes {
-+	struct codetag *ct;
-+	s64 bytes;
-+};
-+
-+size_t alloc_tag_top_users(struct codetag_bytes *tags, size_t count, bool can_sleep);
-+
- static inline struct alloc_tag *ct_to_alloc_tag(struct codetag *ct)
- {
- 	return container_of(ct, struct alloc_tag, ct);
---- a/include/linux/codetag.h~lib-add-memory-allocations-report-in-show_mem
-+++ a/include/linux/codetag.h
-@@ -61,6 +61,7 @@ struct codetag_iterator {
- }
+ struct codetag_bytes {
+@@ -151,6 +172,11 @@ static inline void alloc_tag_sub(union c
+ 	if (!ref || !ref->ct)
+ 		return;
  
- void codetag_lock_module_list(struct codetag_type *cttype, bool lock);
-+bool codetag_trylock_module_list(struct codetag_type *cttype);
- struct codetag_iterator codetag_get_ct_iter(struct codetag_type *cttype);
- struct codetag *codetag_next_ct(struct codetag_iterator *iter);
- 
---- a/lib/alloc_tag.c~lib-add-memory-allocations-report-in-show_mem
-+++ a/lib/alloc_tag.c
-@@ -89,6 +89,44 @@ static const struct seq_operations alloc
- 	.show	= allocinfo_show,
- };
- 
-+size_t alloc_tag_top_users(struct codetag_bytes *tags, size_t count, bool can_sleep)
-+{
-+	struct codetag_iterator iter;
-+	struct codetag *ct;
-+	struct codetag_bytes n;
-+	unsigned int i, nr = 0;
-+
-+	if (can_sleep)
-+		codetag_lock_module_list(alloc_tag_cttype, true);
-+	else if (!codetag_trylock_module_list(alloc_tag_cttype))
-+		return 0;
-+
-+	iter = codetag_get_ct_iter(alloc_tag_cttype);
-+	while ((ct = codetag_next_ct(&iter))) {
-+		struct alloc_tag_counters counter = alloc_tag_read(ct_to_alloc_tag(ct));
-+
-+		n.ct	= ct;
-+		n.bytes = counter.bytes;
-+
-+		for (i = 0; i < nr; i++)
-+			if (n.bytes > tags[i].bytes)
-+				break;
-+
-+		if (i < count) {
-+			nr -= nr == count;
-+			memmove(&tags[i + 1],
-+				&tags[i],
-+				sizeof(tags[0]) * (nr - i));
-+			nr++;
-+			tags[i] = n;
-+		}
++	if (is_codetag_empty(ref)) {
++		ref->ct = NULL;
++		return;
 +	}
 +
-+	codetag_lock_module_list(alloc_tag_cttype, false);
-+
-+	return nr;
-+}
-+
- static void __init procfs_init(void)
- {
- 	proc_create_seq("allocinfo", 0444, NULL, &allocinfo_seq_op);
---- a/lib/codetag.c~lib-add-memory-allocations-report-in-show_mem
-+++ a/lib/codetag.c
-@@ -36,6 +36,11 @@ void codetag_lock_module_list(struct cod
- 		up_read(&cttype->mod_lock);
- }
+ 	tag = ct_to_alloc_tag(ref->ct);
  
-+bool codetag_trylock_module_list(struct codetag_type *cttype)
+ 	this_cpu_sub(tag->counters->bytes, bytes);
+--- a/mm/slub.c~codetag-debug-skip-objext-checking-when-its-for-objext-itself
++++ a/mm/slub.c
+@@ -1873,6 +1873,30 @@ static inline enum node_stat_item cache_
+ 
+ #ifdef CONFIG_SLAB_OBJ_EXT
+ 
++#ifdef CONFIG_MEM_ALLOC_PROFILING_DEBUG
++
++static inline void mark_objexts_empty(struct slabobj_ext *obj_exts)
 +{
-+	return down_read_trylock(&cttype->mod_lock) != 0;
++	struct slabobj_ext *slab_exts;
++	struct slab *obj_exts_slab;
++
++	obj_exts_slab = virt_to_slab(obj_exts);
++	slab_exts = slab_obj_exts(obj_exts_slab);
++	if (slab_exts) {
++		unsigned int offs = obj_to_index(obj_exts_slab->slab_cache,
++						 obj_exts_slab, obj_exts);
++		/* codetag should be NULL */
++		WARN_ON(slab_exts[offs].ref.ct);
++		set_codetag_empty(&slab_exts[offs].ref);
++	}
 +}
 +
- struct codetag_iterator codetag_get_ct_iter(struct codetag_type *cttype)
- {
- 	struct codetag_iterator iter = {
---- a/mm/show_mem.c~lib-add-memory-allocations-report-in-show_mem
-+++ a/mm/show_mem.c
-@@ -423,4 +423,30 @@ void __show_mem(unsigned int filter, nod
- #ifdef CONFIG_MEMORY_FAILURE
- 	printk("%lu pages hwpoisoned\n", atomic_long_read(&num_poisoned_pages));
- #endif
-+#ifdef CONFIG_MEM_ALLOC_PROFILING
-+	{
-+		struct codetag_bytes tags[10];
-+		size_t i, nr;
++#else /* CONFIG_MEM_ALLOC_PROFILING_DEBUG */
 +
-+		nr = alloc_tag_top_users(tags, ARRAY_SIZE(tags), false);
-+		if (nr) {
-+			pr_notice("Memory allocations:\n");
-+			for (i = 0; i < nr; i++) {
-+				struct codetag *ct = tags[i].ct;
-+				struct alloc_tag *tag = ct_to_alloc_tag(ct);
-+				struct alloc_tag_counters counter = alloc_tag_read(tag);
++static inline void mark_objexts_empty(struct slabobj_ext *obj_exts) {}
 +
-+				/* Same as alloc_tag_to_text() but w/o intermediate buffer */
-+				if (ct->modname)
-+					pr_notice("%12lli %8llu %s:%u [%s] func:%s\n",
-+						  counter.bytes, counter.calls, ct->filename,
-+						  ct->lineno, ct->modname, ct->function);
-+				else
-+					pr_notice("%12lli %8llu %s:%u func:%s\n",
-+						  counter.bytes, counter.calls, ct->filename,
-+						  ct->lineno, ct->function);
-+			}
-+		}
-+	}
-+#endif
++#endif /* CONFIG_MEM_ALLOC_PROFILING_DEBUG */
++
+ /*
+  * The allocated objcg pointers array is not accounted directly.
+  * Moreover, it should not come from DMA buffer and is not readily
+@@ -1913,6 +1937,7 @@ static int alloc_slab_obj_exts(struct sl
+ 		 * assign slabobj_exts in parallel. In this case the existing
+ 		 * objcg vector should be reused.
+ 		 */
++		mark_objexts_empty(vec);
+ 		kfree(vec);
+ 		return 0;
+ 	}
+@@ -1929,6 +1954,14 @@ static inline void free_slab_obj_exts(st
+ 	if (!obj_exts)
+ 		return;
+ 
++	/*
++	 * obj_exts was created with __GFP_NO_OBJ_EXT flag, therefore its
++	 * corresponding extension will be NULL. alloc_tag_sub() will throw a
++	 * warning if slab has extensions but the extension of an object is
++	 * NULL, therefore replace NULL with CODETAG_EMPTY to indicate that
++	 * the extension for obj_exts is expected to be NULL.
++	 */
++	mark_objexts_empty(obj_exts);
+ 	kfree(obj_exts);
+ 	slab->obj_exts = 0;
  }
 _
 
