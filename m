@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FAF582495
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:08:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60ECC823DC
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:08:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104496; cv=none; b=QcccpDt9fFnJdkGrLljnO9Xs9UnqsHcmrB934LuMIOORmTv7DRD+YXwLYp5uTXfzGnZoyL/lMkP9t9hd63LjnvSyeqSQObw9wRV+YlE8AqAKsl7Pwtvdd/K2ZdmflK3UkUEIfupG1/z9PwNzRcm5PAFt5fzmQLIAhni8PsQ8HZY=
+	t=1714104497; cv=none; b=M3eLsTzhyXvKyRwkk5C0z1patn5OJ6933QvK6PJVU74e9jSucVsiDuvhZpsF2+y4umHjNNCP7JfE6SdVayKQQQC+8qg83bB0+pU4MZfZr8+KjvM+CIljP0dzf1kZWw5XxPcxznIZepgD9qFxrhaNp/Pn5rOsPTZLem4Ajd30eNc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104496; c=relaxed/simple;
-	bh=ILG97hy1tTzy9m8wI9L/9mEaWCnzWrc0g6io10OsYSo=;
-	h=Date:To:From:Subject:Message-Id; b=QPQ0fklu23Ob+9DGEuPs/ZNf4ZTPfr23GQtl1g6qXfwqohGLYUnJBzdr1RsCg3y/yZVSD+DlCxQwuj+JPkr4fyM8KsiVj7ndgROmgkYhSQZ0DfOhj4lmzD9TMBGun5zGKufMNd0Nek8pQdYHnh+Y5kElxXMT46RGcwWAZrgvwho=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LopbBw88; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104497; c=relaxed/simple;
+	bh=tuc9EPn7o/kbYRcvfRl6RI3jvJ5HUi2SIUEki9LYdn0=;
+	h=Date:To:From:Subject:Message-Id; b=p4aCsIQxGzXe0NyFaW4kVBai8rC28o4cnMZgTGQQhj7B40K9/Az7XPARu1/j5tzUC/rhh7B64NDeQx3X8S//WTVXRLZgbFcQyzRwPyxr87xN5b+uq+4LMZQE+AOfpYS8R7qOmq6Bx+WVS/Tuz/G0kKgi96hFqaNBYkR9plYzG5Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aY5miy4H; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LopbBw88"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29DFFC113CD;
-	Fri, 26 Apr 2024 04:08:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aY5miy4H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35239C116B1;
+	Fri, 26 Apr 2024 04:08:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104496;
-	bh=ILG97hy1tTzy9m8wI9L/9mEaWCnzWrc0g6io10OsYSo=;
+	s=korg; t=1714104497;
+	bh=tuc9EPn7o/kbYRcvfRl6RI3jvJ5HUi2SIUEki9LYdn0=;
 	h=Date:To:From:Subject:From;
-	b=LopbBw88dEHwGCd+e3c+D0uc6z7Ipca2WAZgTYNrmQZfttQddPvJuTL5MmM8ipJRZ
-	 ikeqNLPC6gJTS3OUpfmuwpTIn3iM3fE0bMZCnBiZovNENRry1vrdAxsvsdcDr6L0AQ
-	 hVeSIvRAXlTc5QG2jD2HLl7IAtYrjcuGhYCd0BZo=
-Date: Thu, 25 Apr 2024 21:08:15 -0700
-To: mm-commits@vger.kernel.org,gregkh@linuxfoundation.org,giometti@enneenne.com,christophe.jaillet@wanadoo.fr,akpm@linux-foundation.org
+	b=aY5miy4HMkxIdJYQU3KDMm29JHWnKEvFIaXbmUtrHYczIzCrZOuRTalr5s6rHBjMG
+	 P+9ftlVgOwBBrYyrktVBvqJakb7O+vycQcsLc7tKL3VsSc+inkzbvvTuBzrix7TUs7
+	 QL117Ir480jQCTTWYOq6UjMwXxSX4FoTCn6FRl5Q=
+Date: Thu, 25 Apr 2024 21:08:16 -0700
+To: mm-commits@vger.kernel.org,peda@axentia.se,gregkh@linuxfoundation.org,christophe.jaillet@wanadoo.fr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] pps-remove-usage-of-the-deprecated-ida_simple_xx-api.patch removed from -mm tree
-Message-Id: <20240426040816.29DFFC113CD@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mux-remove-usage-of-the-deprecated-ida_simple_xx-api.patch removed from -mm tree
+Message-Id: <20240426040817.35239C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: pps: remove usage of the deprecated ida_simple_xx() API
+     Subject: mux: remove usage of the deprecated ida_simple_xx() API
 has been removed from the -mm tree.  Its filename was
-     pps-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
+     mux-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: pps: remove usage of the deprecated ida_simple_xx() API
-Date: Sun, 14 Apr 2024 12:10:17 +0200
+Subject: mux: remove usage of the deprecated ida_simple_xx() API
+Date: Sun, 14 Apr 2024 12:12:52 +0200
 
 ida_alloc() and ida_free() should be preferred to the deprecated
 ida_simple_get() and ida_simple_remove().
 
 This is less verbose.
 
-Link: https://lkml.kernel.org/r/9f681747d446b874952a892491387d79ffe565a9.1713089394.git.christophe.jaillet@wanadoo.fr
+Link: https://lkml.kernel.org/r/f82e013abe4c71f1c7d06819f96472f298acdcf3.1713089554.git.christophe.jaillet@wanadoo.fr
 Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Cc: Rodolfo Giometti <giometti@enneenne.com>
+Cc: Peter Rosin <peda@axentia.se>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps_parport.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/mux/core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/pps/clients/pps_parport.c~pps-remove-usage-of-the-deprecated-ida_simple_xx-api
-+++ a/drivers/pps/clients/pps_parport.c
-@@ -148,7 +148,7 @@ static void parport_attach(struct parpor
- 		return;
- 	}
+--- a/drivers/mux/core.c~mux-remove-usage-of-the-deprecated-ida_simple_xx-api
++++ a/drivers/mux/core.c
+@@ -64,7 +64,7 @@ static void mux_chip_release(struct devi
+ {
+ 	struct mux_chip *mux_chip = to_mux_chip(dev);
  
--	index = ida_simple_get(&pps_client_index, 0, 0, GFP_KERNEL);
-+	index = ida_alloc(&pps_client_index, GFP_KERNEL);
- 	memset(&pps_client_cb, 0, sizeof(pps_client_cb));
- 	pps_client_cb.private = device;
- 	pps_client_cb.irq_func = parport_irq;
-@@ -188,7 +188,7 @@ err_release_dev:
- err_unregister_dev:
- 	parport_unregister_device(device->pardev);
- err_free:
--	ida_simple_remove(&pps_client_index, index);
-+	ida_free(&pps_client_index, index);
- 	kfree(device);
+-	ida_simple_remove(&mux_ida, mux_chip->id);
++	ida_free(&mux_ida, mux_chip->id);
+ 	kfree(mux_chip);
  }
  
-@@ -208,7 +208,7 @@ static void parport_detach(struct parpor
- 	pps_unregister_source(device->pps);
- 	parport_release(pardev);
- 	parport_unregister_device(pardev);
--	ida_simple_remove(&pps_client_index, device->index);
-+	ida_free(&pps_client_index, device->index);
- 	kfree(device);
- }
+@@ -111,7 +111,7 @@ struct mux_chip *mux_chip_alloc(struct d
+ 	mux_chip->dev.of_node = dev->of_node;
+ 	dev_set_drvdata(&mux_chip->dev, mux_chip);
+ 
+-	mux_chip->id = ida_simple_get(&mux_ida, 0, 0, GFP_KERNEL);
++	mux_chip->id = ida_alloc(&mux_ida, GFP_KERNEL);
+ 	if (mux_chip->id < 0) {
+ 		int err = mux_chip->id;
  
 _
 
