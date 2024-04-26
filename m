@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C5837EF06
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:01:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6C108061F
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:01:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104100; cv=none; b=f3Doxa8trafRrE8/bDwlmbOISVCCF35K964AvNEcCmIhP4uFX8fNWIqTuiecyYRDdtI8MBdk7UvZtURxXloBibHYo1CXn4AFPwZIcOsSCbiB35BuObqtXyUN69aF4KozlEYHkDN9/vGFGoXSZ0ysWuq6SLn6ACWqlR+om+0fCkI=
+	t=1714104102; cv=none; b=FOKYIdQMykmTnIEOLQtPcR1nTj/yGg2dQqZqpk5lx1XHlLdnUmHrAg3jx2107RU+WFN3l8cHeVj5wLqNAkn1DWERTdiedCd3Fo4kid1s0uDaND0vnztlUKryYQf8pr6/AisT+4/Una7JQkxuKR/O1mXtj63YLBAYB7Q2oBxcc8Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104100; c=relaxed/simple;
-	bh=QBUV66ugquRtHQx33acgRBnF3MD2MLCoMKOdphpkI4o=;
-	h=Date:To:From:Subject:Message-Id; b=mMibBmYWmbJa/XXnlmFIhjBsGl2GImCZw/MiLb81EXdSaIb2AMPzCuL/Zp9j+eRcEMK9WEFnb8GQ2gB27wd7JdazSWbV9Cud5ZxCSDnhg6zAV2Igp60iD4cYzYrXmNivYMeqhWXoM9EJGffoMzPWIj/3bF+NUr3fMqSKYx0kI08=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vS7F/wM7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104102; c=relaxed/simple;
+	bh=HozP++XZkiFswOZPkLMiF2wtBZzQv3jdEWYtlmjEEPM=;
+	h=Date:To:From:Subject:Message-Id; b=U+6jvX17201wuUA7jHB07lsB28ym1subeVsRYWWOHY0RTz+aYG7sy7SqAdcbmKz7wV/he21ZVfzVoNr702wPxeYs2R1khoR1A8nJOMbGswZ5LWIpWHYyxhyR5LQWO7X8noyBaZUZxTPOzzPyzw5YLItgT0Gq3C7Rp00N2vC5VJc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N0PshUXh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vS7F/wM7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72D0DC113CD;
-	Fri, 26 Apr 2024 04:01:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N0PshUXh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D49AC113CD;
+	Fri, 26 Apr 2024 04:01:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104100;
-	bh=QBUV66ugquRtHQx33acgRBnF3MD2MLCoMKOdphpkI4o=;
+	s=korg; t=1714104102;
+	bh=HozP++XZkiFswOZPkLMiF2wtBZzQv3jdEWYtlmjEEPM=;
 	h=Date:To:From:Subject:From;
-	b=vS7F/wM7Pt4fLX++5gSOq+eQHAqAlNZaF0D0OOFsQVg/qD7eLAYjLBlYTJe9w25rK
-	 I6mOEg9NDXLrZW48MzMIQ15RZSUQOGkK0+GrLnTsifGXHa2aPKCyQf/NARls0J73Qp
-	 5qvCia7fGQXnVrMLOcUO0sfC7OtIS8POWVE5u9Ks=
-Date: Thu, 25 Apr 2024 21:01:39 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,shr@devkernel.io,riel@surriel.com,hannes@cmpxchg.org,david@redhat.com,colin.i.king@gmail.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=N0PshUXhJNdv16g8fmis+nw/tmAnf2ErMzYs0t43cwv3JcGWpG40BRtQewFX4UCAo
+	 bHcqeAshf79Mz1UAWJZs0JoB81NWLISFNbsL6DT++NsA0QUC23SdGLfYu2NRlgc60k
+	 balJXlbHV/Tgd01vG/UMVVgLkHqVFYf+i1vkewHA=
+Date: Thu, 25 Apr 2024 21:01:41 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,keescook@chromium.org,yjnworkstation@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftest-mm-ksm_functional_tests-extend-test-case-for-ksm-fork-exec.patch removed from -mm tree
-Message-Id: <20240426040140.72D0DC113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-init_mlocked_on_free_v3.patch removed from -mm tree
+Message-Id: <20240426040142.7D49AC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,135 +35,239 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftest/mm: ksm_functional_tests: extend test case for ksm fork/exec
+     Subject: mm: init_mlocked_on_free_v3
 has been removed from the -mm tree.  Its filename was
-     selftest-mm-ksm_functional_tests-extend-test-case-for-ksm-fork-exec.patch
+     mm-init_mlocked_on_free_v3.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: selftest/mm: ksm_functional_tests: extend test case for ksm fork/exec
-Date: Thu, 28 Mar 2024 19:10:10 +0800
+From: York Jasper Niebuhr <yjnworkstation@gmail.com>
+Subject: mm: init_mlocked_on_free_v3
+Date: Fri, 29 Mar 2024 15:56:05 +0100
 
-This extends test_prctl_fork() and test_prctl_fork_exec() to make sure
-that deduplication really happens, instead of only testing the
-MMF_VM_MERGE_ANY flag is set.
+Implements the "init_mlocked_on_free" boot option. When this boot option
+is enabled, any mlock'ed pages are zeroed on free. If
+the pages are munlock'ed beforehand, no initialization takes place.
+This boot option is meant to combat the performance hit of
+"init_on_free" as reported in commit 6471384af2a6 ("mm: security:
+introduce init_on_alloc=1 and init_on_free=1 boot options"). With
+"init_mlocked_on_free=1" only relevant data is freed while everything
+else is left untouched by the kernel. Correspondingly, this patch
+introduces no performance hit for unmapping non-mlock'ed memory. The
+unmapping overhead for purely mlocked memory was measured to be
+approximately 13%. Realistically, most systems mlock only a fraction of
+the total memory so the real-world system overhead should be close to
+zero.
 
-[colin.i.king@gmail.com: fix spelling mistake in ksft_test_result_skip message]
-  Link: https://lkml.kernel.org/r/20240402081537.1365939-1-colin.i.king@gmail.com
-Link: https://lkml.kernel.org/r/20240328111010.1502191-4-tujinjiang@huawei.com
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Stefan Roesch <shr@devkernel.io>
+Optimally, userspace programs clear any key material or other
+confidential memory before exit and munlock the according memory
+regions. If a program crashes, userspace key managers fail to do this
+job. Accordingly, no munlock operations are performed so the data is
+caught and zeroed by the kernel. Should the program not crash, all
+memory will ideally be munlocked so no overhead is caused.
+
+CONFIG_INIT_MLOCKED_ON_FREE_DEFAULT_ON can be set to enable
+"init_mlocked_on_free" by default.
+
+Link: https://lkml.kernel.org/r/20240329145605.149917-1-yjnworkstation@gmail.com
+Signed-off-by: York Jasper Niebuhr <yjnworkstation@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: York Jasper Niebuhr <yjnworkstation@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_functional_tests.c |   49 +++++++++---
- 1 file changed, 38 insertions(+), 11 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    6 +
+ include/linux/mm.h                              |    9 ++
+ mm/internal.h                                   |    1 
+ mm/memory.c                                     |    6 +
+ mm/mm_init.c                                    |   43 +++++++++++---
+ mm/page_alloc.c                                 |    2 
+ security/Kconfig.hardening                      |   15 ++++
+ 7 files changed, 73 insertions(+), 9 deletions(-)
 
---- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftest-mm-ksm_functional_tests-extend-test-case-for-ksm-fork-exec
-+++ a/tools/testing/selftests/mm/ksm_functional_tests.c
-@@ -475,6 +475,36 @@ static void test_prctl(void)
- 	ksft_test_result_pass("Setting/clearing PR_SET_MEMORY_MERGE works\n");
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-init_mlocked_on_free_v3
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -2148,6 +2148,12 @@
+ 			Format: 0 | 1
+ 			Default set by CONFIG_INIT_ON_FREE_DEFAULT_ON.
+ 
++	init_mlocked_on_free=	[MM] Fill freed userspace memory with zeroes if
++				it was mlock'ed and not explicitly munlock'ed
++				afterwards.
++				Format: 0 | 1
++				Default set by CONFIG_INIT_MLOCKED_ON_FREE_DEFAULT_ON
++
+ 	init_pkru=	[X86] Specify the default memory protection keys rights
+ 			register contents for all processes.  0x55555554 by
+ 			default (disallow access to all but pkey 0).  Can
+--- a/include/linux/mm.h~mm-init_mlocked_on_free_v3
++++ a/include/linux/mm.h
+@@ -3762,7 +3762,14 @@ DECLARE_STATIC_KEY_MAYBE(CONFIG_INIT_ON_
+ static inline bool want_init_on_free(void)
+ {
+ 	return static_branch_maybe(CONFIG_INIT_ON_FREE_DEFAULT_ON,
+-				   &init_on_free);
++				&init_on_free);
++}
++
++DECLARE_STATIC_KEY_MAYBE(CONFIG_INIT_MLOCKED_ON_FREE_DEFAULT_ON, init_mlocked_on_free);
++static inline bool want_init_mlocked_on_free(void)
++{
++	return static_branch_maybe(CONFIG_INIT_MLOCKED_ON_FREE_DEFAULT_ON,
++				&init_mlocked_on_free);
  }
  
-+static int test_child_ksm(void)
-+{
-+	const unsigned int size = 2 * MiB;
-+	char *map;
-+
-+	/* Test if KSM is enabled for the process. */
-+	if (prctl(PR_GET_MEMORY_MERGE, 0, 0, 0, 0) != 1)
-+		return -1;
-+
-+	/* Test if merge could really happen. */
-+	map = __mmap_and_merge_range(0xcf, size, PROT_READ | PROT_WRITE, KSM_MERGE_NONE);
-+	if (map == MAP_MERGE_FAIL)
-+		return -2;
-+	else if (map == MAP_MERGE_SKIP)
-+		return -3;
-+
-+	munmap(map, size);
-+	return 0;
-+}
-+
-+static void test_child_ksm_err(int status)
-+{
-+	if (status == -1)
-+		ksft_test_result_fail("unexpected PR_GET_MEMORY_MERGE result in child\n");
-+	else if (status == -2)
-+		ksft_test_result_fail("Merge in child failed\n");
-+	else if (status == -3)
-+		ksft_test_result_skip("Merge in child skipped\n");
-+}
-+
- /* Verify that prctl ksm flag is inherited. */
- static void test_prctl_fork(void)
- {
-@@ -494,7 +524,7 @@ static void test_prctl_fork(void)
+ extern bool _debug_pagealloc_enabled_early;
+--- a/mm/internal.h~mm-init_mlocked_on_free_v3
++++ a/mm/internal.h
+@@ -506,6 +506,7 @@ extern void __putback_isolated_page(stru
+ extern void memblock_free_pages(struct page *page, unsigned long pfn,
+ 					unsigned int order);
+ extern void __free_pages_core(struct page *page, unsigned int order);
++extern void kernel_init_pages(struct page *page, int numpages);
  
- 	child_pid = fork();
- 	if (!child_pid) {
--		exit(prctl(PR_GET_MEMORY_MERGE, 0, 0, 0, 0));
-+		exit(test_child_ksm());
- 	} else if (child_pid < 0) {
- 		ksft_test_result_fail("fork() failed\n");
- 		return;
-@@ -503,8 +533,11 @@ static void test_prctl_fork(void)
- 	if (waitpid(child_pid, &status, 0) < 0) {
- 		ksft_test_result_fail("waitpid() failed\n");
- 		return;
--	} else if (WEXITSTATUS(status) != 1) {
--		ksft_test_result_fail("unexpected PR_GET_MEMORY_MERGE result in child\n");
+ /*
+  * This will have no effect, other than possibly generating a warning, if the
+--- a/mm/memory.c~mm-init_mlocked_on_free_v3
++++ a/mm/memory.c
+@@ -1506,6 +1506,12 @@ static __always_inline void zap_present_
+ 		if (unlikely(page_mapcount(page) < 0))
+ 			print_bad_pte(vma, addr, ptent, page);
+ 	}
++
++	if (want_init_mlocked_on_free() && folio_test_mlocked(folio) &&
++	    !delay_rmap && folio_test_anon(folio)) {
++		kernel_init_pages(page, folio_nr_pages(folio));
 +	}
 +
-+	status = WEXITSTATUS(status);
-+	if (status) {
-+		test_child_ksm_err(status);
- 		return;
+ 	if (unlikely(__tlb_remove_folio_pages(tlb, page, nr, delay_rmap))) {
+ 		*force_flush = true;
+ 		*force_break = true;
+--- a/mm/mm_init.c~mm-init_mlocked_on_free_v3
++++ a/mm/mm_init.c
+@@ -2522,6 +2522,9 @@ EXPORT_SYMBOL(init_on_alloc);
+ DEFINE_STATIC_KEY_MAYBE(CONFIG_INIT_ON_FREE_DEFAULT_ON, init_on_free);
+ EXPORT_SYMBOL(init_on_free);
+ 
++DEFINE_STATIC_KEY_MAYBE(CONFIG_INIT_MLOCKED_ON_FREE_DEFAULT_ON, init_mlocked_on_free);
++EXPORT_SYMBOL(init_mlocked_on_free);
++
+ static bool _init_on_alloc_enabled_early __read_mostly
+ 				= IS_ENABLED(CONFIG_INIT_ON_ALLOC_DEFAULT_ON);
+ static int __init early_init_on_alloc(char *buf)
+@@ -2539,6 +2542,14 @@ static int __init early_init_on_free(cha
+ }
+ early_param("init_on_free", early_init_on_free);
+ 
++static bool _init_mlocked_on_free_enabled_early __read_mostly
++				= IS_ENABLED(CONFIG_INIT_MLOCKED_ON_FREE_DEFAULT_ON);
++static int __init early_init_mlocked_on_free(char *buf)
++{
++	return kstrtobool(buf, &_init_mlocked_on_free_enabled_early);
++}
++early_param("init_mlocked_on_free", early_init_mlocked_on_free);
++
+ DEFINE_STATIC_KEY_MAYBE(CONFIG_DEBUG_VM, check_pages_enabled);
+ 
+ /*
+@@ -2566,12 +2577,21 @@ static void __init mem_debugging_and_har
+ 	}
+ #endif
+ 
+-	if ((_init_on_alloc_enabled_early || _init_on_free_enabled_early) &&
++	if ((_init_on_alloc_enabled_early || _init_on_free_enabled_early ||
++	    _init_mlocked_on_free_enabled_early) &&
+ 	    page_poisoning_requested) {
+ 		pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, "
+-			"will take precedence over init_on_alloc and init_on_free\n");
++			"will take precedence over init_on_alloc, init_on_free "
++			"and init_mlocked_on_free\n");
+ 		_init_on_alloc_enabled_early = false;
+ 		_init_on_free_enabled_early = false;
++		_init_mlocked_on_free_enabled_early = false;
++	}
++
++	if (_init_mlocked_on_free_enabled_early && _init_on_free_enabled_early) {
++		pr_info("mem auto-init: init_on_free is on, "
++			"will take precedence over init_mlocked_on_free\n");
++		_init_mlocked_on_free_enabled_early = false;
  	}
  
-@@ -516,12 +549,6 @@ static void test_prctl_fork(void)
- 	ksft_test_result_pass("PR_SET_MEMORY_MERGE value is inherited\n");
+ 	if (_init_on_alloc_enabled_early) {
+@@ -2588,9 +2608,17 @@ static void __init mem_debugging_and_har
+ 		static_branch_disable(&init_on_free);
+ 	}
+ 
+-	if (IS_ENABLED(CONFIG_KMSAN) &&
+-	    (_init_on_alloc_enabled_early || _init_on_free_enabled_early))
+-		pr_info("mem auto-init: please make sure init_on_alloc and init_on_free are disabled when running KMSAN\n");
++	if (_init_mlocked_on_free_enabled_early) {
++		want_check_pages = true;
++		static_branch_enable(&init_mlocked_on_free);
++	} else {
++		static_branch_disable(&init_mlocked_on_free);
++	}
++
++	if (IS_ENABLED(CONFIG_KMSAN) && (_init_on_alloc_enabled_early ||
++	    _init_on_free_enabled_early || _init_mlocked_on_free_enabled_early))
++		pr_info("mem auto-init: please make sure init_on_alloc, init_on_free and "
++			"init_mlocked_on_free are disabled when running KMSAN\n");
+ 
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ 	if (debug_pagealloc_enabled()) {
+@@ -2629,9 +2657,10 @@ static void __init report_meminit(void)
+ 	else
+ 		stack = "off";
+ 
+-	pr_info("mem auto-init: stack:%s, heap alloc:%s, heap free:%s\n",
++	pr_info("mem auto-init: stack:%s, heap alloc:%s, heap free:%s, mlocked free:%s\n",
+ 		stack, want_init_on_alloc(GFP_KERNEL) ? "on" : "off",
+-		want_init_on_free() ? "on" : "off");
++		want_init_on_free() ? "on" : "off",
++		want_init_mlocked_on_free() ? "on" : "off");
+ 	if (want_init_on_free())
+ 		pr_info("mem auto-init: clearing system memory may take some time...\n");
+ }
+--- a/mm/page_alloc.c~mm-init_mlocked_on_free_v3
++++ a/mm/page_alloc.c
+@@ -1032,7 +1032,7 @@ static inline bool should_skip_kasan_poi
+ 	return page_kasan_tag(page) == KASAN_TAG_KERNEL;
  }
  
--static int ksm_fork_exec_child(void)
--{
--	/* Test if KSM is enabled for the process. */
--	return prctl(PR_GET_MEMORY_MERGE, 0, 0, 0, 0) == 1;
--}
--
- static void test_prctl_fork_exec(void)
+-static void kernel_init_pages(struct page *page, int numpages)
++void kernel_init_pages(struct page *page, int numpages)
  {
- 	int ret, status;
-@@ -554,7 +581,7 @@ static void test_prctl_fork_exec(void)
- 		if (WIFEXITED(status)) {
- 			status = WEXITSTATUS(status);
- 			if (status) {
--				ksft_test_result_fail("KSM not enabled\n");
-+				test_child_ksm_err(status);
- 				return;
- 			}
- 		} else {
-@@ -635,7 +662,7 @@ int main(int argc, char **argv)
- 	int err;
+ 	int i;
  
- 	if (argc > 1 && !strcmp(argv[1], FORK_EXEC_CHILD_PRG_NAME)) {
--		exit(ksm_fork_exec_child() == 1 ? 0 : 1);
-+		exit(test_child_ksm());
- 	}
+--- a/security/Kconfig.hardening~mm-init_mlocked_on_free_v3
++++ a/security/Kconfig.hardening
+@@ -255,6 +255,21 @@ config INIT_ON_FREE_DEFAULT_ON
+ 	  touching "cold" memory areas. Most cases see 3-5% impact. Some
+ 	  synthetic workloads have measured as high as 8%.
  
- #ifdef __NR_userfaultfd
++config INIT_MLOCKED_ON_FREE_DEFAULT_ON
++	bool "Enable mlocked memory zeroing on free"
++	depends on !KMSAN
++	help
++	  This config has the effect of setting "init_mlocked_on_free=1"
++	  on the kernel command line. If it is enabled, all mlocked process
++	  memory is zeroed when freed. This restriction to mlocked memory
++	  improves performance over "init_on_free" but can still be used to
++	  protect confidential data like key material from content exposures
++	  to other processes, as well as live forensics and cold boot attacks.
++	  Any non-mlocked memory is not cleared before it is reassigned. This
++	  configuration can be overwritten by setting "init_mlocked_on_free=0"
++	  on the command line. The "init_on_free" boot option takes
++	  precedence over "init_mlocked_on_free".
++
+ config CC_HAS_ZERO_CALL_USED_REGS
+ 	def_bool $(cc-option,-fzero-call-used-regs=used-gpr)
+ 	# https://github.com/ClangBuiltLinux/linux/issues/1766
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from yjnworkstation@gmail.com are
 
 
