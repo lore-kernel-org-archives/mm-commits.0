@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 549C17FBC3
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 949737EF06
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104055; cv=none; b=JR4Z2Lgy/9J+mvdO8QnOjmLOQ969amiIi77exz2bjWrbX5dliMPaoQylUev1m2a199Y0Cp/P4yLhMXnKck2VJ8qKF81ZXrQI81K/3YEC42PZ4DsCgJw4zR2hcs4X+v1K+jmehxASy2Irp3OxDJ4G10ZK2lx1ed/rm5ecs4F4+HM=
+	t=1714104057; cv=none; b=aO2xOiF5fGlprvW6KcsOLdgakF7G1grVgpQ8Ma3Q5F4QZ+cRxyrlJDD9/FI1sEaP0S5YgF4tHKVv/QzHhXwIH7eu9XbSOcqRe8C81IkTEie2e0ow7mY56AiRQDbro0F3SyV0DUkuy724bgiFAdSgjJ21J8yV4wWC9Kb2OsIEVZY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104055; c=relaxed/simple;
-	bh=sDKl828js0Hu8rdsVYnTNdQRdBX0A2X3WtuQ8OZ+5W4=;
-	h=Date:To:From:Subject:Message-Id; b=LttnrBtN8vT0OzQtXtlMB0C5Nit9b5ACVYpXCPtH9mW4Gf9NZu3ccuaSK5NhvL972JpZ3nJtzAIW6WqZAPm2lAOERxFo5flG0quZwLRQlXHTzgTgJ2Rf3oqTgiYm9Gw7X2h0MZ10xtHIpgY1Wab9G8KxOcXSjE3vPhuqOrDxlCk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yheNryA4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104057; c=relaxed/simple;
+	bh=jnKvD7qxgXVXj7NUGi31yErhCgpglK+VZZTxuuA/V8c=;
+	h=Date:To:From:Subject:Message-Id; b=Mmg9/jEkgDNno2YQRbIeR6tqE5KzJ11ertcHKx3s+XVUANGoNYSmS8YXbyl1+dLYcxTxi+apfDxLkv1MLZBvGsk8qXT9yYTTbJ5RtJwSh22+mjeV+YL/3mW28CNdXgmcbM7whFoXLTFtfJPq64/8BbSuoTiPd7yS2TnUXS9CTnA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=frgLc03O; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yheNryA4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 248A9C113CD;
-	Fri, 26 Apr 2024 04:00:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="frgLc03O"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69428C113CD;
+	Fri, 26 Apr 2024 04:00:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104055;
-	bh=sDKl828js0Hu8rdsVYnTNdQRdBX0A2X3WtuQ8OZ+5W4=;
+	s=korg; t=1714104057;
+	bh=jnKvD7qxgXVXj7NUGi31yErhCgpglK+VZZTxuuA/V8c=;
 	h=Date:To:From:Subject:From;
-	b=yheNryA4bPv5GsLNUlloDe3lYEfAAgGugGEQlOmj6Tpo++//+2VoR+UygfaqkyVzP
-	 tCr79fi2AngrGgTj+riHjK8IKeo1JOxcJXeYAOFVdfzCsg0o9zlLaG7RNyIFEnC6uK
-	 0ucJjslMBpiwIH7gxtCumgCKrGoJtlnoaliUVYuM=
-Date: Thu, 25 Apr 2024 21:00:54 -0700
+	b=frgLc03OxZ/eC1yOv3ZaL8P/5/k3G9haggVdIN7SlcUrdXwKHmbI+8u7cvB7NH5DK
+	 pDFNGvioAKSv77Eoal+HXC7NKyr2J3JZ1LbrJOVemWHtw+A6NKvPETuBT3IxZa6xXH
+	 dXmrD/knzFZoHg8XXB3UqdqD1pSaiC0Eu0tcWGoo=
+Date: Thu, 25 Apr 2024 21:00:56 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,shy828301@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,muchun.song@linux.dev,mpe@ellerman.id.au,lstoakes@gmail.com,kirill@shutemov.name,jthoughton@google.com,jhubbard@nvidia.com,jgg@nvidia.com,hch@infradead.org,david@redhat.com,christophe.leroy@csgroup.eu,axelrasmussen@google.com,aneesh.kumar@kernel.org,andrew.jones@linux.dev,aarcange@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-arch-provide-pud_pfn-fallback.patch removed from -mm tree
-Message-Id: <20240426040055.248A9C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing.patch removed from -mm tree
+Message-Id: <20240426040057.69428C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,56 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/arch: provide pud_pfn() fallback
+     Subject: mm/gup: drop gup_fast_folio_allowed() in hugepd processing
 has been removed from the -mm tree.  Its filename was
-     mm-arch-provide-pud_pfn-fallback.patch
+     mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/arch: provide pud_pfn() fallback
-Date: Wed, 27 Mar 2024 11:23:24 -0400
+Subject: mm/gup: drop gup_fast_folio_allowed() in hugepd processing
+Date: Wed, 27 Mar 2024 11:23:25 -0400
 
-The comment in the code explains the reasons.  We took a different
-approach comparing to pmd_pfn() by providing a fallback function.
+Hugepd format for GUP is only used in PowerPC with hugetlbfs.  There are
+some kernel usage of hugepd (can refer to hugepd_populate_kernel() for
+PPC_8XX), however those pages are not candidates for GUP.
 
-Another option is to provide some lower level config options (compare to
-HUGETLB_PAGE or THP) to identify which layer an arch can support for such
-huge mappings.  However that can be an overkill.
+Commit a6e79df92e4a ("mm/gup: disallow FOLL_LONGTERM GUP-fast writing to
+file-backed mappings") added a check to fail gup-fast if there's potential
+risk of violating GUP over writeback file systems.  That should never
+apply to hugepd.  Considering that hugepd is an old format (and even
+software-only), there's no plan to extend hugepd into other file typed
+memories that is prone to the same issue.
 
-[peterx@redhat.com: fix loongson defconfig]
-  Link: https://lkml.kernel.org/r/20240403013249.1418299-4-peterx@redhat.com
-Link: https://lkml.kernel.org/r/20240327152332.950956-6-peterx@redhat.com
+Drop that check, not only because it'll never be true for hugepd per any
+known plan, but also it paves way for reusing the function outside
+fast-gup.
+
+To make sure we'll still remember this issue just in case hugepd will be
+extended to support non-hugetlbfs memories, add a rich comment above
+gup_huge_pd(), explaining the issue with proper references.
+
+[akpm@linux-foundation.org: fix comment, per David]
+Link: https://lkml.kernel.org/r/20240327152332.950956-7-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Tested-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrew Jones <andrew.jones@linux.dev>
 Cc: Aneesh Kumar K.V (IBM) <aneesh.kumar@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Christoph Hellwig <hch@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: James Houghton <jthoughton@google.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Rik van Riel <riel@surriel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -81,76 +92,38 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/include/asm/pgtable.h    |    1 +
- arch/s390/include/asm/pgtable.h     |    1 +
- arch/sparc/include/asm/pgtable_64.h |    1 +
- arch/x86/include/asm/pgtable.h      |    1 +
- include/linux/pgtable.h             |   14 ++++++++++++++
- 5 files changed, 18 insertions(+)
+ mm/gup.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
---- a/arch/riscv/include/asm/pgtable.h~mm-arch-provide-pud_pfn-fallback
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -648,6 +648,7 @@ static inline unsigned long pmd_pfn(pmd_
+--- a/mm/gup.c~mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing
++++ a/mm/gup.c
+@@ -2842,11 +2842,6 @@ static int gup_hugepte(pte_t *ptep, unsi
+ 		return 0;
+ 	}
  
- #define __pud_to_phys(pud)  (__page_val_to_pfn(pud_val(pud)) << PAGE_SHIFT)
- 
-+#define pud_pfn pud_pfn
- static inline unsigned long pud_pfn(pud_t pud)
- {
- 	return ((__pud_to_phys(pud) & PUD_MASK) >> PAGE_SHIFT);
---- a/arch/s390/include/asm/pgtable.h~mm-arch-provide-pud_pfn-fallback
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -1405,6 +1405,7 @@ static inline unsigned long pud_deref(pu
- 	return (unsigned long)__va(pud_val(pud) & origin_mask);
+-	if (!gup_fast_folio_allowed(folio, flags)) {
+-		gup_put_folio(folio, refs, flags);
+-		return 0;
+-	}
+-
+ 	if (!pte_write(pte) && gup_must_unshare(NULL, flags, &folio->page)) {
+ 		gup_put_folio(folio, refs, flags);
+ 		return 0;
+@@ -2857,6 +2852,14 @@ static int gup_hugepte(pte_t *ptep, unsi
+ 	return 1;
  }
  
-+#define pud_pfn pud_pfn
- static inline unsigned long pud_pfn(pud_t pud)
- {
- 	return __pa(pud_deref(pud)) >> PAGE_SHIFT;
---- a/arch/sparc/include/asm/pgtable_64.h~mm-arch-provide-pud_pfn-fallback
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -875,6 +875,7 @@ static inline bool pud_leaf(pud_t pud)
- 	return pte_val(pte) & _PAGE_PMD_HUGE;
- }
- 
-+#define pud_pfn pud_pfn
- static inline unsigned long pud_pfn(pud_t pud)
- {
- 	pte_t pte = __pte(pud_val(pud));
---- a/arch/x86/include/asm/pgtable.h~mm-arch-provide-pud_pfn-fallback
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -234,6 +234,7 @@ static inline unsigned long pmd_pfn(pmd_
- 	return (pfn & pmd_pfn_mask(pmd)) >> PAGE_SHIFT;
- }
- 
-+#define pud_pfn pud_pfn
- static inline unsigned long pud_pfn(pud_t pud)
- {
- 	phys_addr_t pfn = pud_val(pud);
---- a/include/linux/pgtable.h~mm-arch-provide-pud_pfn-fallback
-+++ a/include/linux/pgtable.h
-@@ -1820,6 +1820,20 @@ typedef unsigned int pgtbl_mod_mask;
- #endif
- 
- /*
-+ * We always define pmd_pfn for all archs as it's used in lots of generic
-+ * code.  Now it happens too for pud_pfn (and can happen for larger
-+ * mappings too in the future; we're not there yet).  Instead of defining
-+ * it for all archs (like pmd_pfn), provide a fallback.
-+ *
-+ * Note that returning 0 here means any arch that didn't define this can
-+ * get severely wrong when it hits a real pud leaf.  It's arch's
-+ * responsibility to properly define it when a huge pud is possible.
-+ */
-+#ifndef pud_pfn
-+#define pud_pfn(x) 0
-+#endif
-+
 +/*
-  * Some architectures have MMUs that are configurable or selectable at boot
-  * time. These lead to variable PTRS_PER_x. For statically allocated arrays it
-  * helps to have a static maximum value.
++ * NOTE: currently GUP for a hugepd is only possible on hugetlbfs file
++ * systems on Power, which does not have issue with folio writeback against
++ * GUP updates.  When hugepd will be extended to support non-hugetlbfs or
++ * even anonymous memory, we need to do extra check as what we do with most
++ * of the other folios. See writable_file_mapping_allowed() and
++ * gup_fast_folio_allowed() for more information.
++ */
+ static int gup_huge_pd(hugepd_t hugepd, unsigned long addr,
+ 		unsigned int pdshift, unsigned long end, unsigned int flags,
+ 		struct page **pages, int *nr)
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
