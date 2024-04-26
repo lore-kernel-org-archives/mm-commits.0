@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25B5C80607
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:01:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 634707EF06
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:01:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104096; cv=none; b=Uc7K0T7wQO3AyavxEqkyBZ+b9In5KzZVZ9exkZc1m23G3qIEEE0BUs3sUK2ir4yPqc+h1x7eWC8PpCXVuxzjoxhi/ctEpjzPSlRrEUqyxHURFEl0MFONdSvrrhvdqxOPV7UoJwXatU6oDy+7CPK4kzfHhr2oHzFj/Ljbb73CjDA=
+	t=1714104097; cv=none; b=I7pNqAWh4m9kUSIxMhE4LLqJlFF4wsc4zxRu7yaP1iwbaQkxVMF4Y7MT47YJ7j8ioEln/qS9G4sq0CQrS9m34lDbIiMJhXdSYLZcFC3c5EYZMQRomUMI3HUVQHq/3u73HGQlJdVFdWFzD6ib3DQURHY+chyYCNqxdwCadDE5sJw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104096; c=relaxed/simple;
-	bh=kaGrXWopVVDCuJq/+2THJtSKVSVqRhOQWQcbLpVlN78=;
-	h=Date:To:From:Subject:Message-Id; b=RPfE47Y6jgGtQpwCu1m7nRMSUFYzvnxw7VxJqEpU+dJt2/dINT9McF3aMalSFQDGA57kLQf2HfBJmra9F1V8epB+k2WoXzsl1SfJOf3ASEJqLDdnUBCsVeqfKARkDKLiXeOQhSD4eRqTKApNNmHgVbVewwXYA+apPuF8pea/okM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qoqvsu3S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104097; c=relaxed/simple;
+	bh=RXxNWmYP+bsTXesmx2GSMNk+Jbbh6leP3RMO7ckjUQI=;
+	h=Date:To:From:Subject:Message-Id; b=oupGDY+DZV9tRPhInKwhiv6Yz4eDJIF7kM4mAk4uhv0+Tg/PO1AVriWU2lnp+wTbIZNCaHXHFAzLzxuuDwiRmYiu+Cnu7ZIh92XAq/fv5s8suXhSjb1UkX0BMWmektPNv21A694/wwa1TT1zzrkGc5qbdyJMPnQurvK6clsJXvc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oh7YmDIa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qoqvsu3S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED011C113CD;
-	Fri, 26 Apr 2024 04:01:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oh7YmDIa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38C5BC113CD;
+	Fri, 26 Apr 2024 04:01:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104096;
-	bh=kaGrXWopVVDCuJq/+2THJtSKVSVqRhOQWQcbLpVlN78=;
+	s=korg; t=1714104097;
+	bh=RXxNWmYP+bsTXesmx2GSMNk+Jbbh6leP3RMO7ckjUQI=;
 	h=Date:To:From:Subject:From;
-	b=qoqvsu3SnP9Yvweaq1+MfGPoWuHahNZqP38S/8goeh+gPpPl7gPybRhKB21L3nmmt
-	 l8FG9TM5mbEcssf/JuThHWzs3wEooO5hqB7fqlDPDlQNI57JGOCtynRy4Vc/pAQn0Y
-	 UCgxH6vLTvYf/z7Ur2SBhQ6l/CAz49RYOJXoZ7vg=
-Date: Thu, 25 Apr 2024 21:01:35 -0700
+	b=Oh7YmDIaHcPxzNurBa7ZZlucWquBLKFTaKSZrkZe3mJySGCmnhbdM1JpbC8QEJKIk
+	 d8AagnheUlVSOoAlJh7I2rOXcEiMkHcAbbr7+eiDhIbpFNQOLy2Of0fjW4g/y/wAZW
+	 IOD2T6sFrhHFs1AM6Z1RcNzriy8NZj9lD61VTyeY=
+Date: Thu, 25 Apr 2024 21:01:36 -0700
 To: mm-commits@vger.kernel.org,tglx@linutronix.de,peterz@infradead.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,luto@kernel.org,Liam.Howlett@oracle.com,kirill.shutemov@linux.intel.com,keescook@chromium.org,James.Bottomley@HansenPartnership.com,hpa@zytor.com,guoren@kernel.org,deller@gmx.de,debug@rivosinc.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,broonie@kernel.org,bp@alien8.de,ast@kernel.org,aneesh.kumar@kernel.org,rick.p.edgecombe@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] x86-mm-care-about-shadow-stack-guard-gap-during-placement.patch removed from -mm tree
-Message-Id: <20240426040135.ED011C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-x86-add-placement-guard-gap-test-for-shstk.patch removed from -mm tree
+Message-Id: <20240426040137.38C5BC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,40 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86/mm: care about shadow stack guard gap during placement
+     Subject: selftests/x86: add placement guard gap test for shstk
 has been removed from the -mm tree.  Its filename was
-     x86-mm-care-about-shadow-stack-guard-gap-during-placement.patch
+     selftests-x86-add-placement-guard-gap-test-for-shstk.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Subject: x86/mm: care about shadow stack guard gap during placement
-Date: Mon, 25 Mar 2024 19:16:55 -0700
+Subject: selftests/x86: add placement guard gap test for shstk
+Date: Mon, 25 Mar 2024 19:16:56 -0700
 
-When memory is being placed, mmap() will take care to respect the guard
-gaps of certain types of memory (VM_SHADOWSTACK, VM_GROWSUP and
-VM_GROWSDOWN).  In order to ensure guard gaps between mappings, mmap()
-needs to consider two things:
+The existing shadow stack test for guard gaps just checks that new
+mappings are not placed in an existing mapping's guard gap.  Add one that
+checks that new mappings are not placed such that preexisting mappings are
+in the new mappings guard gap.
 
- 1. That the new mapping isn't placed in an any existing mappings guard
-    gaps.
- 2. That the new mapping isn't placed such that any existing mappings
-    are not in *its* guard gaps.
-
-The longstanding behavior of mmap() is to ensure 1, but not take any care
-around 2.  So for example, if there is a PAGE_SIZE free area, and a mmap()
-with a PAGE_SIZE size, and a type that has a guard gap is being placed,
-mmap() may place the shadow stack in the PAGE_SIZE free area.  Then the
-mapping that is supposed to have a guard gap will not have a gap to the
-adjacent VMA.
-
-Now that the vm_flags is passed into the arch get_unmapped_area()'s, and
-vm_unmapped_area() is ready to consider it, have VM_SHADOW_STACK's get
-guard gap consideration for scenario 2.
-
-Link: https://lkml.kernel.org/r/20240326021656.202649-14-rick.p.edgecombe@intel.com
+Link: https://lkml.kernel.org/r/20240326021656.202649-15-rick.p.edgecombe@intel.com
 Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -95,42 +79,104 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/sys_x86_64.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ tools/testing/selftests/x86/test_shadow_stack.c |   67 +++++++++++++-
+ 1 file changed, 63 insertions(+), 4 deletions(-)
 
---- a/arch/x86/kernel/sys_x86_64.c~x86-mm-care-about-shadow-stack-guard-gap-during-placement
-+++ a/arch/x86/kernel/sys_x86_64.c
-@@ -112,6 +112,14 @@ static void find_start_end(unsigned long
- 		*end = task_size_64bit(addr > DEFAULT_MAP_WINDOW);
+--- a/tools/testing/selftests/x86/test_shadow_stack.c~selftests-x86-add-placement-guard-gap-test-for-shstk
++++ a/tools/testing/selftests/x86/test_shadow_stack.c
+@@ -556,7 +556,7 @@ struct node {
+  *      looked at the shadow stack gaps.
+  *   5. See if it landed in the gap.
+  */
+-int test_guard_gap(void)
++int test_guard_gap_other_gaps(void)
+ {
+ 	void *free_area, *shstk, *test_map = (void *)0xFFFFFFFFFFFFFFFF;
+ 	struct node *head = NULL, *cur;
+@@ -593,11 +593,64 @@ int test_guard_gap(void)
+ 	if (shstk - test_map - PAGE_SIZE != PAGE_SIZE)
+ 		return 1;
+ 
+-	printf("[OK]\tGuard gap test\n");
++	printf("[OK]\tGuard gap test, other mapping's gaps\n");
+ 
+ 	return 0;
  }
  
-+static inline unsigned long stack_guard_placement(vm_flags_t vm_flags)
++/* Tests respecting the guard gap of the mapping getting placed */
++int test_guard_gap_new_mappings_gaps(void)
 +{
-+	if (vm_flags & VM_SHADOW_STACK)
-+		return PAGE_SIZE;
++	void *free_area, *shstk_start, *test_map = (void *)0xFFFFFFFFFFFFFFFF;
++	struct node *head = NULL, *cur;
++	int ret = 0;
 +
-+	return 0;
++	free_area = mmap(0, PAGE_SIZE * 4, PROT_READ | PROT_WRITE,
++			 MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	munmap(free_area, PAGE_SIZE * 4);
++
++	/* Test letting map_shadow_stack find a free space */
++	shstk_start = mmap(free_area, PAGE_SIZE, PROT_READ | PROT_WRITE,
++			   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	if (shstk_start == MAP_FAILED || shstk_start != free_area)
++		return 1;
++
++	while (test_map > shstk_start) {
++		test_map = (void *)syscall(__NR_map_shadow_stack, 0, PAGE_SIZE, 0);
++		if (test_map == MAP_FAILED) {
++			printf("[INFO]\tmap_shadow_stack MAP_FAILED\n");
++			ret = 1;
++			break;
++		}
++
++		cur = malloc(sizeof(*cur));
++		cur->mapping = test_map;
++
++		cur->next = head;
++		head = cur;
++
++		if (test_map == free_area + PAGE_SIZE) {
++			printf("[INFO]\tNew mapping has other mapping in guard gap!\n");
++			ret = 1;
++			break;
++		}
++	}
++
++	while (head) {
++		cur = head;
++		head = cur->next;
++		munmap(cur->mapping, PAGE_SIZE);
++		free(cur);
++	}
++
++	munmap(shstk_start, PAGE_SIZE);
++
++	if (!ret)
++		printf("[OK]\tGuard gap test, placement mapping's gaps\n");
++
++	return ret;
 +}
 +
- unsigned long
- arch_get_unmapped_area_vmflags(struct file *filp, unsigned long addr, unsigned long len,
- 		       unsigned long pgoff, unsigned long flags, vm_flags_t vm_flags)
-@@ -141,6 +149,7 @@ arch_get_unmapped_area_vmflags(struct fi
- 	info.low_limit = begin;
- 	info.high_limit = end;
- 	info.align_offset = pgoff << PAGE_SHIFT;
-+	info.start_gap = stack_guard_placement(vm_flags);
- 	if (filp) {
- 		info.align_mask = get_align_mask();
- 		info.align_offset += get_align_bits();
-@@ -190,6 +199,7 @@ get_unmapped_area:
- 		info.low_limit = PAGE_SIZE;
+ /*
+  * Too complicated to pull it out of the 32 bit header, but also get the
+  * 64 bit one needed above. Just define a copy here.
+@@ -850,9 +903,15 @@ int main(int argc, char *argv[])
+ 		goto out;
+ 	}
  
- 	info.high_limit = get_mmap_base(0);
-+	info.start_gap = stack_guard_placement(vm_flags);
+-	if (test_guard_gap()) {
++	if (test_guard_gap_other_gaps()) {
++		ret = 1;
++		printf("[FAIL]\tGuard gap test, other mappings' gaps\n");
++		goto out;
++	}
++
++	if (test_guard_gap_new_mappings_gaps()) {
+ 		ret = 1;
+-		printf("[FAIL]\tGuard gap test\n");
++		printf("[FAIL]\tGuard gap test, placement mapping's gaps\n");
+ 		goto out;
+ 	}
  
- 	/*
- 	 * If hint address is above DEFAULT_MAP_WINDOW, look for unmapped area
 _
 
 Patches currently in -mm which might be from rick.p.edgecombe@intel.com are
