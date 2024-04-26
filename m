@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2B3880BF8
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFEDF823B0
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104176; cv=none; b=TuKNwHIhYiQPXOsx0aQVGQLTa8qcXsGEW94331MJ5DxmhSOKXDL0TaPuKJw48XtNjPh3AQlhZTqxcX2e7rRmlhxpu3zTe2g85Kn+LlNEPpUNFyA5Kgm0ZDp5TfnqLhmLWqVYMcAenUFv39NCDLc+b4vvjEbxm4wuOcd4n91za68=
+	t=1714104177; cv=none; b=blmtih5fmwsw1rp3Hx4t9Abg5//B8iAKybmlmtZ1x3NTR+7CPFWLXHP7xPbpXTUWUxjUPvZMF0HWoAiDV7ZkJOdUPsBnqRrNr16GaazXTCjgMktntmlVXhBCEVfVhe+Z3ILAyYUiQXU75lNNBnRaxdFF/stNr4uGgOz9JjYOrW8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104176; c=relaxed/simple;
-	bh=OvOHNrxSGc6Y+y3eAwWlRKfnWLJ25hZHwUW28D9mgZ8=;
-	h=Date:To:From:Subject:Message-Id; b=lM67FlXyDNbRRfMYMqlIowbajrTRqxLmoigdDoMnFm8fZx1UTBflaK306EOekbPoQcaoNtCQwiPdhmkEVVASY6MMaxF7bhTYincOn+Jf4kv3mmu9dLWId9O3SqImnB+f4E8kIvAtJfx+TZF0VHfSUzstpdPizA88hDYMvJDgsa4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fvMtyXrB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104177; c=relaxed/simple;
+	bh=TXbKlwdiG0HlK5qlOi2PYf1D0z4ZYQCzlzuG+RV9fXU=;
+	h=Date:To:From:Subject:Message-Id; b=h8U7zBupc8AgMWUBYqEMr/eaLpMZIJLwhLeQYwjc+HQPyh0Elxa5sfKkLJAIPEP3V2ixwaTBfwJACAI2mtJ1KGW0Qw/eNpmarQo92HLEVPCQPIaCdfsMJg+0b1Ug1hY3gskklV9AOSS7N9mR4+Hbm0PZVT/IPtKrYQb9QgZaluU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AK/1Bb41; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fvMtyXrB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97834C116B1;
-	Fri, 26 Apr 2024 04:02:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AK/1Bb41"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94894C113CD;
+	Fri, 26 Apr 2024 04:02:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104176;
-	bh=OvOHNrxSGc6Y+y3eAwWlRKfnWLJ25hZHwUW28D9mgZ8=;
+	s=korg; t=1714104177;
+	bh=TXbKlwdiG0HlK5qlOi2PYf1D0z4ZYQCzlzuG+RV9fXU=;
 	h=Date:To:From:Subject:From;
-	b=fvMtyXrB3qzABSQNHs+Q0OUCgpgiKhkA8OlyijQYkEETgkdDF+sIYlx8WKgM82vCR
-	 vpBrg2z/hvn4/rpmA1VLESrLjHdoNpvXa9k5db/lG5oIm4pGqp0llekLDDK/4OVdpb
-	 SGsuOKadpYrpNQw+0efjvgDUQTbxZk/kRkN5/aUs=
-Date: Thu, 25 Apr 2024 21:02:56 -0700
+	b=AK/1Bb41YAazmINmLmZNWBylc0dP5FLLU2+EfvBpPKUr3ktESXe3aBnkAqJFsJOfM
+	 MnILTCDAY7MXlH1s+f5nwWajkvX8wQ1AicwVHod97S5PoIpRPYITUqyQ0WGNnDHrUA
+	 IJwYCbI+xuOmb+YQJqU3rhMasZT3ixt95VC4mrwU=
+Date: Thu, 25 Apr 2024 21:02:57 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-combine-__folio_put_small-__folio_put_large-and-__folio_put.patch removed from -mm tree
-Message-Id: <20240426040256.97834C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-free_zone_device_page-to-free_zone_device_folio.patch removed from -mm tree
+Message-Id: <20240426040257.94894C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,124 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: combine __folio_put_small, __folio_put_large and __folio_put
+     Subject: mm: convert free_zone_device_page to free_zone_device_folio
 has been removed from the -mm tree.  Its filename was
-     mm-combine-__folio_put_small-__folio_put_large-and-__folio_put.patch
+     mm-convert-free_zone_device_page-to-free_zone_device_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: combine __folio_put_small, __folio_put_large and __folio_put
-Date: Fri, 5 Apr 2024 16:32:26 +0100
+Subject: mm: convert free_zone_device_page to free_zone_device_folio
+Date: Fri, 5 Apr 2024 16:32:27 +0100
 
-It's now obvious that __folio_put_small() and __folio_put_large() do
-almost exactly the same thing.  Inline them both into __folio_put().
+Both callers already have a folio; pass it in and save a few calls to
+compound_head().
 
-Link: https://lkml.kernel.org/r/20240405153228.2563754-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240405153228.2563754-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   32 ++++++--------------------------
- 1 file changed, 6 insertions(+), 26 deletions(-)
+ mm/internal.h |    2 +-
+ mm/memremap.c |   30 ++++++++++++++++--------------
+ mm/swap.c     |    4 ++--
+ 3 files changed, 19 insertions(+), 17 deletions(-)
 
---- a/mm/swap.c~mm-combine-__folio_put_small-__folio_put_large-and-__folio_put
-+++ a/mm/swap.c
-@@ -112,42 +112,22 @@ static void page_cache_release(struct fo
- 		unlock_page_lruvec_irqrestore(lruvec, flags);
- }
+--- a/mm/internal.h~mm-convert-free_zone_device_page-to-free_zone_device_folio
++++ a/mm/internal.h
+@@ -1165,7 +1165,7 @@ void __vunmap_range_noflush(unsigned lon
+ int numa_migrate_prep(struct folio *folio, struct vm_fault *vmf,
+ 		      unsigned long addr, int page_nid, int *flags);
  
--static void __folio_put_small(struct folio *folio)
--{
--	page_cache_release(folio);
--	mem_cgroup_uncharge(folio);
--	free_unref_page(&folio->page, 0);
--}
--
--static void __folio_put_large(struct folio *folio)
-+void __folio_put(struct folio *folio)
+-void free_zone_device_page(struct page *page);
++void free_zone_device_folio(struct folio *folio);
+ int migrate_device_coherent_page(struct page *page);
+ 
+ /*
+--- a/mm/memremap.c~mm-convert-free_zone_device_page-to-free_zone_device_folio
++++ a/mm/memremap.c
+@@ -456,21 +456,23 @@ struct dev_pagemap *get_dev_pagemap(unsi
+ }
+ EXPORT_SYMBOL_GPL(get_dev_pagemap);
+ 
+-void free_zone_device_page(struct page *page)
++void free_zone_device_folio(struct folio *folio)
  {
--	/*
--	 * __page_cache_release() is supposed to be called for thp, not for
--	 * hugetlb. This is because hugetlb page does never have PageLRU set
--	 * (it's never listed to any LRU lists) and no memcg routines should
--	 * be called for hugetlb (it has a separate hugetlb_cgroup.)
--	 */
--	if (folio_test_hugetlb(folio)) {
-+	if (unlikely(folio_is_zone_device(folio))) {
-+		free_zone_device_page(&folio->page);
-+		return;
-+	} else if (folio_test_hugetlb(folio)) {
- 		free_huge_folio(folio);
+-	if (WARN_ON_ONCE(!page->pgmap->ops || !page->pgmap->ops->page_free))
++	if (WARN_ON_ONCE(!folio->page.pgmap->ops ||
++			!folio->page.pgmap->ops->page_free))
  		return;
- 	}
  
- 	page_cache_release(folio);
--	if (folio_test_large_rmappable(folio))
-+	if (folio_test_large(folio) && folio_test_large_rmappable(folio))
- 		folio_undo_large_rmappable(folio);
- 	mem_cgroup_uncharge(folio);
- 	free_unref_page(&folio->page, folio_order(folio));
+-	mem_cgroup_uncharge(page_folio(page));
++	mem_cgroup_uncharge(folio);
+ 
+ 	/*
+ 	 * Note: we don't expect anonymous compound pages yet. Once supported
+ 	 * and we could PTE-map them similar to THP, we'd have to clear
+ 	 * PG_anon_exclusive on all tail pages.
+ 	 */
+-	VM_BUG_ON_PAGE(PageAnon(page) && PageCompound(page), page);
+-	if (PageAnon(page))
+-		__ClearPageAnonExclusive(page);
++	if (folio_test_anon(folio)) {
++		VM_BUG_ON_FOLIO(folio_test_large(folio), folio);
++		__ClearPageAnonExclusive(folio_page(folio, 0));
++	}
+ 
+ 	/*
+ 	 * When a device managed page is freed, the folio->mapping field
+@@ -481,20 +483,20 @@ void free_zone_device_page(struct page *
+ 	 *
+ 	 * For other types of ZONE_DEVICE pages, migration is either
+ 	 * handled differently or not done at all, so there is no need
+-	 * to clear page->mapping.
++	 * to clear folio->mapping.
+ 	 */
+-	page->mapping = NULL;
+-	page->pgmap->ops->page_free(page);
++	folio->mapping = NULL;
++	folio->page.pgmap->ops->page_free(folio_page(folio, 0));
+ 
+-	if (page->pgmap->type != MEMORY_DEVICE_PRIVATE &&
+-	    page->pgmap->type != MEMORY_DEVICE_COHERENT)
++	if (folio->page.pgmap->type != MEMORY_DEVICE_PRIVATE &&
++	    folio->page.pgmap->type != MEMORY_DEVICE_COHERENT)
+ 		/*
+-		 * Reset the page count to 1 to prepare for handing out the page
++		 * Reset the refcount to 1 to prepare for handing out the page
+ 		 * again.
+ 		 */
+-		set_page_count(page, 1);
++		folio_set_count(folio, 1);
+ 	else
+-		put_dev_pagemap(page->pgmap);
++		put_dev_pagemap(folio->page.pgmap);
  }
--
--void __folio_put(struct folio *folio)
--{
--	if (unlikely(folio_is_zone_device(folio)))
--		free_zone_device_page(&folio->page);
--	else if (unlikely(folio_test_large(folio)))
--		__folio_put_large(folio);
--	else
--		__folio_put_small(folio);
--}
- EXPORT_SYMBOL(__folio_put);
  
- /**
+ void zone_device_page_init(struct page *page)
+--- a/mm/swap.c~mm-convert-free_zone_device_page-to-free_zone_device_folio
++++ a/mm/swap.c
+@@ -115,7 +115,7 @@ static void page_cache_release(struct fo
+ void __folio_put(struct folio *folio)
+ {
+ 	if (unlikely(folio_is_zone_device(folio))) {
+-		free_zone_device_page(&folio->page);
++		free_zone_device_folio(folio);
+ 		return;
+ 	} else if (folio_test_hugetlb(folio)) {
+ 		free_huge_folio(folio);
+@@ -983,7 +983,7 @@ void folios_put_refs(struct folio_batch
+ 			if (put_devmap_managed_page_refs(&folio->page, nr_refs))
+ 				continue;
+ 			if (folio_ref_sub_and_test(folio, nr_refs))
+-				free_zone_device_page(&folio->page);
++				free_zone_device_folio(folio);
+ 			continue;
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
