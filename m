@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1225BE47
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 18:34:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CB3BBA34
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 18:34:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714156473; cv=none; b=FgaRUFLBvEBZDlWS4/80Fy3EQj/ZmDOAl10i53ZGqUYSwSaOXp3TU5rEbMW2dcdHUM3bUCcS34c6SB+qLBaibLu+e2+70BueIwnsIbTK/0w9f79f8HqzMBecx8fozsX3VktVxxJOOFE7WNxq8xHC68/BGO+xp3Mk06Q04t+vIPI=
+	t=1714156475; cv=none; b=PzI8Gcm3AzYBOY6cDX8ehkreABE5npt6qMs983Y2O7/1EcSshrOJDlUw41IvEhEE4WlCcIW+DFdAVAHjs+dshRo0XWwHaaWH9YPbdj/7V0xBB4qYjFIkAYdMjtfZUSFMuel3CXRpYXpuHvjTnF0Tv7uFRAiMIEUP/KFGHiSW/Zk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714156473; c=relaxed/simple;
-	bh=pzcis/3cBxGhqtG2WGTf7EGtvxXwuUIdZ5N14Y4PvyE=;
-	h=Date:To:From:Subject:Message-Id; b=KWiBy7SpUctlueKU8iudDAEugUC6ORaG4uB7nGt7+d+3WOhHyvD4+z5SJonWn4yC3xsnoc8bF7XvRB8pcP2LT8CM9Y1W6ZdJ/0nyEFzjmf9qLpshtU3dMaklyCXt/H8cJkYG/nwqeZai6TRvCK1V7XDoxz6LMbN/yKu1Ro66GmI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kb8amc4f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714156475; c=relaxed/simple;
+	bh=TjoSCTiENS9rhsV9HOekgpBPrN42lyZlbzs7IAFnESQ=;
+	h=Date:To:From:Subject:Message-Id; b=PsTv/vE/R5rid944NMTfGRBj9dY9Fs3k5vp5Sb+1Y/CRlABdD3RfztHExs93Q+OJfR82QEItBWE/mONuHnJY5NelVrsCfc9/GH4Y74BAJ2huCm8+fADXU5vd6f/H46HWBtQlK/EEPkZWNjLLBWtrsHTh5b/jx03QxVC2TaYoTW0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eWJyNdVI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kb8amc4f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38057C113CE;
-	Fri, 26 Apr 2024 18:34:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eWJyNdVI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FFD7C113CD;
+	Fri, 26 Apr 2024 18:34:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714156473;
-	bh=pzcis/3cBxGhqtG2WGTf7EGtvxXwuUIdZ5N14Y4PvyE=;
+	s=korg; t=1714156475;
+	bh=TjoSCTiENS9rhsV9HOekgpBPrN42lyZlbzs7IAFnESQ=;
 	h=Date:To:From:Subject:From;
-	b=kb8amc4fg+LUw6+n8k7iI5fawVfOka9Ho8PbaLNxWEJZ5H6UZypTztGsFcX+sQatW
-	 Tmyl94WMPTwPxl0Oga7ICG5nKYKxe9IuwGZ7CFibVQ7XlgH387vUbaQ3fDpKarRyIz
-	 LG+mvwzjCDhlIs/kNxo3igLzhFAvnlUZmaDPLuYU=
-Date: Fri, 26 Apr 2024 11:34:32 -0700
+	b=eWJyNdVID3/3HpmV0NU1Hi52DGVK8UwTeYR/6350GQv3M/fBCTbLEjbZzgfofyIaA
+	 FvFBjEswNzqINe1pNeDAhqNcNc4DhTEBAZBYg0cIvUZhdE3/1NGOIfZhamNpt8h2iH
+	 vtH8Pmm87lec5tUQHp1QkG4MGMxtCXhAfv1ev+Z0=
+Date: Fri, 26 Apr 2024 11:34:34 -0700
 To: mm-commits@vger.kernel.org,surenb@google.com,jannh@google.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-some-minor-per-vma-lock-issues-in-userfaultfd.patch added to mm-unstable branch
-Message-Id: <20240426183433.38057C113CE@smtp.kernel.org>
+Subject: + mm-optimise-vmf_anon_prepare-for-vmas-without-an-anon_vma.patch added to mm-unstable branch
+Message-Id: <20240426183435.0FFD7C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix some minor per-VMA lock issues in userfaultfd
+     Subject: mm: optimise vmf_anon_prepare() for VMAs without an anon_vma
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-some-minor-per-vma-lock-issues-in-userfaultfd.patch
+     mm-optimise-vmf_anon_prepare-for-vmas-without-an-anon_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-some-minor-per-vma-lock-issues-in-userfaultfd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-optimise-vmf_anon_prepare-for-vmas-without-an-anon_vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,95 +59,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: fix some minor per-VMA lock issues in userfaultfd
-Date: Fri, 26 Apr 2024 15:45:02 +0100
+Subject: mm: optimise vmf_anon_prepare() for VMAs without an anon_vma
+Date: Fri, 26 Apr 2024 15:45:03 +0100
 
-Rename lock_vma() to uffd_lock_vma() because it really is uffd specific. 
-Remove comment referencing unlock_vma() which doesn't exist.  Fix the
-comment about lock_vma_under_rcu() which I just made incorrect.
+If the mmap_lock can be taken for read, we can call __anon_vma_prepare()
+while holding it, saving ourselves a trip back through the fault handler.
 
-Link: https://lkml.kernel.org/r/20240426144506.1290619-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240426144506.1290619-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Jann Horn <jannh@google.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ mm/memory.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/mm/userfaultfd.c~mm-fix-some-minor-per-vma-lock-issues-in-userfaultfd
-+++ a/mm/userfaultfd.c
-@@ -56,17 +56,16 @@ struct vm_area_struct *find_vma_and_prep
- 
- #ifdef CONFIG_PER_VMA_LOCK
- /*
-- * lock_vma() - Lookup and lock vma corresponding to @address.
-+ * uffd_lock_vma() - Lookup and lock vma corresponding to @address.
-  * @mm: mm to search vma in.
-  * @address: address that the vma should contain.
-  *
-- * Should be called without holding mmap_lock. vma should be unlocked after use
-- * with unlock_vma().
-+ * Should be called without holding mmap_lock.
-  *
-  * Return: A locked vma containing @address, -ENOENT if no vma is found, or
-  * -ENOMEM if anon_vma couldn't be allocated.
-  */
--static struct vm_area_struct *lock_vma(struct mm_struct *mm,
-+static struct vm_area_struct *uffd_lock_vma(struct mm_struct *mm,
- 				       unsigned long address)
+--- a/mm/memory.c~mm-optimise-vmf_anon_prepare-for-vmas-without-an-anon_vma
++++ a/mm/memory.c
+@@ -3232,16 +3232,21 @@ static inline vm_fault_t vmf_can_call_fa
+ vm_fault_t vmf_anon_prepare(struct vm_fault *vmf)
  {
- 	struct vm_area_struct *vma;
-@@ -74,9 +73,8 @@ static struct vm_area_struct *lock_vma(s
- 	vma = lock_vma_under_rcu(mm, address);
- 	if (vma) {
- 		/*
--		 * lock_vma_under_rcu() only checks anon_vma for private
--		 * anonymous mappings. But we need to ensure it is assigned in
--		 * private file-backed vmas as well.
-+		 * We know we're going to need to use anon_vma, so check
-+		 * that early.
- 		 */
- 		if (!(vma->vm_flags & VM_SHARED) && unlikely(!vma->anon_vma))
- 			vma_end_read(vma);
-@@ -107,7 +105,7 @@ static struct vm_area_struct *uffd_mfill
- {
- 	struct vm_area_struct *dst_vma;
+ 	struct vm_area_struct *vma = vmf->vma;
++	vm_fault_t ret = 0;
  
--	dst_vma = lock_vma(dst_mm, dst_start);
-+	dst_vma = uffd_lock_vma(dst_mm, dst_start);
- 	if (IS_ERR(dst_vma) || validate_dst_vma(dst_vma, dst_start + len))
- 		return dst_vma;
- 
-@@ -1401,7 +1399,7 @@ static int uffd_move_lock(struct mm_stru
- 	struct vm_area_struct *vma;
- 	int err;
- 
--	vma = lock_vma(mm, dst_start);
-+	vma = uffd_lock_vma(mm, dst_start);
- 	if (IS_ERR(vma))
- 		return PTR_ERR(vma);
- 
-@@ -1416,7 +1414,7 @@ static int uffd_move_lock(struct mm_stru
+ 	if (likely(vma->anon_vma))
+ 		return 0;
+ 	if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
+-		vma_end_read(vma);
+-		return VM_FAULT_RETRY;
++		if (!mmap_read_trylock(vma->vm_mm)) {
++			vma_end_read(vma);
++			return VM_FAULT_RETRY;
++		}
  	}
+ 	if (__anon_vma_prepare(vma))
+-		return VM_FAULT_OOM;
+-	return 0;
++		ret = VM_FAULT_OOM;
++	if (vmf->flags & FAULT_FLAG_VMA_LOCK)
++		mmap_read_unlock(vma->vm_mm);
++	return ret;
+ }
  
- 	/*
--	 * Using lock_vma() to get src_vma can lead to following deadlock:
-+	 * Using uffd_lock_vma() to get src_vma can lead to following deadlock:
- 	 *
- 	 * Thread1				Thread2
- 	 * -------				-------
-@@ -1438,7 +1436,7 @@ static int uffd_move_lock(struct mm_stru
- 	err = find_vmas_mm_locked(mm, dst_start, src_start, dst_vmap, src_vmap);
- 	if (!err) {
- 		/*
--		 * See comment in lock_vma() as to why not using
-+		 * See comment in uffd_lock_vma() as to why not using
- 		 * vma_start_read() here.
- 		 */
- 		down_read(&(*dst_vmap)->vm_lock->lock);
+ /*
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
