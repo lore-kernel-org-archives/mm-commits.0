@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA4F980C16
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D998E80C16
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104156; cv=none; b=mkWpRH6ZoGXcyQE0GwFl3hMM70rOXO/Vb07MmHBLNfciq2nVCsF4j74AtA09aSEYCYu6TUPLdDPmwSvFluzKxt6LFU2f8VNN+nA0ZG5dl/sTlQr8H5zJg4CrU9RRLlA47UjFHV5UbBI3RlDMAIgL+0fqhYGws72HLOt2Cog5AXA=
+	t=1714104157; cv=none; b=hjbU1HHdu/eMYm8Vz7VIQ7vn+fY96BgMbLQIgziLGw+DaACiyo7RVzMqpadzWZ8nnxn6oLL9F79XOYz7kVejhluHW6PgQiDQuGYCyq4D7SLgLRj4PP5nL/0Y0ZS5BYlKIpmw77+Qb8wOtX5AriA61PufqjYCrIdVVyayOTbuhmE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104156; c=relaxed/simple;
-	bh=zCNq37UXFWsbEGfAywxhAElHdGcuhXFp2ctkzDIw7+U=;
-	h=Date:To:From:Subject:Message-Id; b=h79xLeRBNoLJ4zMol+sB3FrUOLwtEB6kXQj+gVEimwYTHuJGpK0E8xr0SSoYG4hqsFR/zeNEkpy2ScbiExaZBA6o1O0YxYhaGnvQjBToeA/zWXZWnYsZ7/NkVWxb5bureTfivcF/U40QbHmvkWs7c7yUY3j+kjJ5xx/lBXy41o0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gSunbrwk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104157; c=relaxed/simple;
+	bh=Lm4/rA9SalX1xpIILP8VGTPgl/tPtiZJvdEXN16ve0I=;
+	h=Date:To:From:Subject:Message-Id; b=nZdKmyAnWoLGr2NayeeBuRonq2OqRqBoEP+E+Fwc9vaniuRkReUPVIgW2W6aV/7InB2PlmaOol8nAIP32FQjMav+2xXiK9zCbRnZzVK+cTHyuvKT/iG0ca9NzG54T0AdEaN97hOstfrp5hU92vS2ckfYI2lsrk/lkNsxW1kCWh8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ahyegOMZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gSunbrwk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90956C113CD;
-	Fri, 26 Apr 2024 04:02:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ahyegOMZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD82EC113CD;
+	Fri, 26 Apr 2024 04:02:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104156;
-	bh=zCNq37UXFWsbEGfAywxhAElHdGcuhXFp2ctkzDIw7+U=;
+	s=korg; t=1714104157;
+	bh=Lm4/rA9SalX1xpIILP8VGTPgl/tPtiZJvdEXN16ve0I=;
 	h=Date:To:From:Subject:From;
-	b=gSunbrwkRdSVJ8h7DaRExre6rnv/r1d9wvkQhHaVaQm+sqPkSEH21ZFk+frRAg6Aj
-	 7q0B0AgYhzDoNCqDwIBtlkT6XSgdSV6mXgeInqlqnW1oEbrEcLDmnfvBUSkH/FiKiH
-	 BlUxGkuX3GQ5D/bDbrrmjTYGVO4OZz/miEhNGg6w=
-Date: Thu, 25 Apr 2024 21:02:36 -0700
-To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,willy@infradead.org,akpm@linux-foundation.org
+	b=ahyegOMZuUOlYgIhT18VsaKvjZYjASHdc07aaI+OscZKwQHu9rLcbJQbKFDWVcPrf
+	 RQSG3U+KJCUTXWXhYLo9VZkf6LT9Z4uIV21tcE2IeXE1jCMnyXam+tu0PJTD8fM1wv
+	 d9LLONinZajI/to1LumYrZ7VCxVYqDpDDN6bXPKo=
+Date: Thu, 25 Apr 2024 21:02:37 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,jhubbard@nvidia.com,jgg@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hugetlb-convert-alloc_buddy_hugetlb_folio-to-use-a-folio.patch removed from -mm tree
-Message-Id: <20240426040236.90956C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup-consistently-name-gup-fast-functions.patch removed from -mm tree
+Message-Id: <20240426040237.AD82EC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,146 +35,660 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hugetlb: convert alloc_buddy_hugetlb_folio to use a folio
+     Subject: mm/gup: consistently name GUP-fast functions
 has been removed from the -mm tree.  Its filename was
-     hugetlb-convert-alloc_buddy_hugetlb_folio-to-use-a-folio.patch
+     mm-gup-consistently-name-gup-fast-functions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: hugetlb: convert alloc_buddy_hugetlb_folio to use a folio
-Date: Tue, 2 Apr 2024 21:06:54 +0100
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/gup: consistently name GUP-fast functions
+Date: Tue, 2 Apr 2024 14:55:14 +0200
 
-While this function returned a folio, it was still using __alloc_pages()
-and __free_pages().  Use __folio_alloc() and put_folio() instead.  This
-actually removes a call to compound_head(), but more importantly, it
-prepares us for the move to memdescs.
+Patch series "mm/gup: consistently call it GUP-fast".
 
-Link: https://lkml.kernel.org/r/20240402200656.913841-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Some cleanups around function names, comments and the config option of
+"GUP-fast" -- GUP without "lock" safety belts on.
+
+With this cleanup it's easy to judge which functions are GUP-fast
+specific.  We now consistently call it "GUP-fast", avoiding mixing it with
+"fast GUP", "lockless", or simply "gup" (which I always considered
+confusing in the ode).
+
+So the magic now happens in functions that contain "gup_fast", whereby
+gup_fast() is the entry point into that magic.  Comments consistently
+reference either "GUP-fast" or "gup_fast()".
+
+
+This patch (of 3):
+
+Let's consistently call the "fast-only" part of GUP "GUP-fast" and rename
+all relevant internal functions to start with "gup_fast", to make it
+clearer that this is not ordinary GUP.  The current mixture of "lockless",
+"gup" and "gup_fast" is confusing.
+
+Further, avoid the term "huge" when talking about a "leaf" -- for example,
+we nowadays check pmd_leaf() because pmd_huge() is gone.  For the
+"hugepd"/"hugepte" stuff, it's part of the name ("is_hugepd"), so that
+stays.
+
+What remains is the "external" interface:
+* get_user_pages_fast_only()
+* get_user_pages_fast()
+* pin_user_pages_fast()
+
+The high-level internal functions for GUP-fast (+slow fallback) are now:
+* internal_get_user_pages_fast() -> gup_fast_fallback()
+* lockless_pages_from_mm() -> gup_fast()
+
+The basic GUP-fast walker functions:
+* gup_pgd_range() -> gup_fast_pgd_range()
+* gup_p4d_range() -> gup_fast_p4d_range()
+* gup_pud_range() -> gup_fast_pud_range()
+* gup_pmd_range() -> gup_fast_pmd_range()
+* gup_pte_range() -> gup_fast_pte_range()
+* gup_huge_pgd()  -> gup_fast_pgd_leaf()
+* gup_huge_pud()  -> gup_fast_pud_leaf()
+* gup_huge_pmd()  -> gup_fast_pmd_leaf()
+
+The weird hugepd stuff:
+* gup_huge_pd() -> gup_fast_hugepd()
+* gup_hugepte() -> gup_fast_hugepte()
+
+The weird devmap stuff:
+* __gup_device_huge_pud() -> gup_fast_devmap_pud_leaf()
+* __gup_device_huge_pmd   -> gup_fast_devmap_pmd_leaf()
+* __gup_device_huge()     -> gup_fast_devmap_leaf()
+* undo_dev_pagemap()      -> gup_fast_undo_dev_pagemap()
+
+Helper functions:
+* unpin_user_pages_lockless() -> gup_fast_unpin_user_pages()
+* gup_fast_folio_allowed() is already properly named
+* gup_fast_permitted() is already properly named
+
+With "gup_fast()", we now even have a function that is referred to in
+comment in mm/mmu_gather.c.
+
+Link: https://lkml.kernel.org/r/20240402125516.223131-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20240402125516.223131-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   33 ++++++++++++++++-----------------
- 1 file changed, 16 insertions(+), 17 deletions(-)
+ mm/gup.c |  205 ++++++++++++++++++++++++++---------------------------
+ 1 file changed, 103 insertions(+), 102 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-convert-alloc_buddy_hugetlb_folio-to-use-a-folio
-+++ a/mm/hugetlb.c
-@@ -2177,13 +2177,13 @@ static struct folio *alloc_buddy_hugetlb
- 		nodemask_t *node_alloc_noretry)
+--- a/mm/gup.c~mm-gup-consistently-name-gup-fast-functions
++++ a/mm/gup.c
+@@ -440,7 +440,7 @@ void unpin_user_page_range_dirty_lock(st
+ }
+ EXPORT_SYMBOL(unpin_user_page_range_dirty_lock);
+ 
+-static void unpin_user_pages_lockless(struct page **pages, unsigned long npages)
++static void gup_fast_unpin_user_pages(struct page **pages, unsigned long npages)
  {
- 	int order = huge_page_order(h);
--	struct page *page;
-+	struct folio *folio;
- 	bool alloc_try_hard = true;
- 	bool retry = true;
- 
- 	/*
--	 * By default we always try hard to allocate the page with
--	 * __GFP_RETRY_MAYFAIL flag.  However, if we are allocating pages in
-+	 * By default we always try hard to allocate the folio with
-+	 * __GFP_RETRY_MAYFAIL flag.  However, if we are allocating folios in
- 	 * a loop (to adjust global huge page counts) and previous allocation
- 	 * failed, do not continue to try hard on the same node.  Use the
- 	 * node_alloc_noretry bitmap to manage this state information.
-@@ -2196,43 +2196,42 @@ static struct folio *alloc_buddy_hugetlb
- 	if (nid == NUMA_NO_NODE)
- 		nid = numa_mem_id();
- retry:
--	page = __alloc_pages(gfp_mask, order, nid, nmask);
-+	folio = __folio_alloc(gfp_mask, order, nid, nmask);
- 
--	/* Freeze head page */
--	if (page && !page_ref_freeze(page, 1)) {
--		__free_pages(page, order);
-+	if (folio && !folio_ref_freeze(folio, 1)) {
-+		folio_put(folio);
- 		if (retry) {	/* retry once */
- 			retry = false;
- 			goto retry;
- 		}
- 		/* WOW!  twice in a row. */
--		pr_warn("HugeTLB head page unexpected inflated ref count\n");
--		page = NULL;
-+		pr_warn("HugeTLB unexpected inflated folio ref count\n");
-+		folio = NULL;
- 	}
- 
- 	/*
--	 * If we did not specify __GFP_RETRY_MAYFAIL, but still got a page this
--	 * indicates an overall state change.  Clear bit so that we resume
--	 * normal 'try hard' allocations.
-+	 * If we did not specify __GFP_RETRY_MAYFAIL, but still got a
-+	 * folio this indicates an overall state change.  Clear bit so
-+	 * that we resume normal 'try hard' allocations.
- 	 */
--	if (node_alloc_noretry && page && !alloc_try_hard)
-+	if (node_alloc_noretry && folio && !alloc_try_hard)
- 		node_clear(nid, *node_alloc_noretry);
- 
- 	/*
--	 * If we tried hard to get a page but failed, set bit so that
-+	 * If we tried hard to get a folio but failed, set bit so that
- 	 * subsequent attempts will not try as hard until there is an
- 	 * overall state change.
- 	 */
--	if (node_alloc_noretry && !page && alloc_try_hard)
-+	if (node_alloc_noretry && !folio && alloc_try_hard)
- 		node_set(nid, *node_alloc_noretry);
- 
--	if (!page) {
-+	if (!folio) {
- 		__count_vm_event(HTLB_BUDDY_PGALLOC_FAIL);
- 		return NULL;
- 	}
- 
- 	__count_vm_event(HTLB_BUDDY_PGALLOC);
--	return page_folio(page);
-+	return folio;
+ 	unsigned long i;
+ 	struct folio *folio;
+@@ -525,9 +525,9 @@ static unsigned long hugepte_addr_end(un
+ 	return (__boundary - 1 < end - 1) ? __boundary : end;
  }
  
- static struct folio *__alloc_fresh_hugetlb_folio(struct hstate *h,
+-static int gup_hugepte(pte_t *ptep, unsigned long sz, unsigned long addr,
+-		       unsigned long end, unsigned int flags,
+-		       struct page **pages, int *nr)
++static int gup_fast_hugepte(pte_t *ptep, unsigned long sz, unsigned long addr,
++		unsigned long end, unsigned int flags, struct page **pages,
++		int *nr)
+ {
+ 	unsigned long pte_end;
+ 	struct page *page;
+@@ -577,7 +577,7 @@ static int gup_hugepte(pte_t *ptep, unsi
+  * of the other folios. See writable_file_mapping_allowed() and
+  * gup_fast_folio_allowed() for more information.
+  */
+-static int gup_huge_pd(hugepd_t hugepd, unsigned long addr,
++static int gup_fast_hugepd(hugepd_t hugepd, unsigned long addr,
+ 		unsigned int pdshift, unsigned long end, unsigned int flags,
+ 		struct page **pages, int *nr)
+ {
+@@ -588,7 +588,7 @@ static int gup_huge_pd(hugepd_t hugepd,
+ 	ptep = hugepte_offset(hugepd, addr, pdshift);
+ 	do {
+ 		next = hugepte_addr_end(addr, end, sz);
+-		if (!gup_hugepte(ptep, sz, addr, end, flags, pages, nr))
++		if (!gup_fast_hugepte(ptep, sz, addr, end, flags, pages, nr))
+ 			return 0;
+ 	} while (ptep++, addr = next, addr != end);
+ 
+@@ -613,8 +613,8 @@ static struct page *follow_hugepd(struct
+ 	h = hstate_vma(vma);
+ 	ptep = hugepte_offset(hugepd, addr, pdshift);
+ 	ptl = huge_pte_lock(h, vma->vm_mm, ptep);
+-	ret = gup_huge_pd(hugepd, addr, pdshift, addr + PAGE_SIZE,
+-			  flags, &page, &nr);
++	ret = gup_fast_hugepd(hugepd, addr, pdshift, addr + PAGE_SIZE,
++			      flags, &page, &nr);
+ 	spin_unlock(ptl);
+ 
+ 	if (ret) {
+@@ -626,7 +626,7 @@ static struct page *follow_hugepd(struct
+ 	return NULL;
+ }
+ #else /* CONFIG_ARCH_HAS_HUGEPD */
+-static inline int gup_huge_pd(hugepd_t hugepd, unsigned long addr,
++static inline int gup_fast_hugepd(hugepd_t hugepd, unsigned long addr,
+ 		unsigned int pdshift, unsigned long end, unsigned int flags,
+ 		struct page **pages, int *nr)
+ {
+@@ -2750,7 +2750,7 @@ long get_user_pages_unlocked(unsigned lo
+ EXPORT_SYMBOL(get_user_pages_unlocked);
+ 
+ /*
+- * Fast GUP
++ * GUP-fast
+  *
+  * get_user_pages_fast attempts to pin user pages by walking the page
+  * tables directly and avoids taking locks. Thus the walker needs to be
+@@ -2764,7 +2764,7 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
+  *
+  * Another way to achieve this is to batch up page table containing pages
+  * belonging to more than one mm_user, then rcu_sched a callback to free those
+- * pages. Disabling interrupts will allow the fast_gup walker to both block
++ * pages. Disabling interrupts will allow the gup_fast() walker to both block
+  * the rcu_sched callback, and an IPI that we broadcast for splitting THPs
+  * (which is a relatively rare event). The code below adopts this strategy.
+  *
+@@ -2873,9 +2873,8 @@ static bool gup_fast_folio_allowed(struc
+ 	return !reject_file_backed || shmem_mapping(mapping);
+ }
+ 
+-static void __maybe_unused undo_dev_pagemap(int *nr, int nr_start,
+-					    unsigned int flags,
+-					    struct page **pages)
++static void __maybe_unused gup_fast_undo_dev_pagemap(int *nr, int nr_start,
++		unsigned int flags, struct page **pages)
+ {
+ 	while ((*nr) - nr_start) {
+ 		struct page *page = pages[--(*nr)];
+@@ -2890,27 +2889,27 @@ static void __maybe_unused undo_dev_page
+ 
+ #ifdef CONFIG_ARCH_HAS_PTE_SPECIAL
+ /*
+- * Fast-gup relies on pte change detection to avoid concurrent pgtable
++ * GUP-fast relies on pte change detection to avoid concurrent pgtable
+  * operations.
+  *
+- * To pin the page, fast-gup needs to do below in order:
++ * To pin the page, GUP-fast needs to do below in order:
+  * (1) pin the page (by prefetching pte), then (2) check pte not changed.
+  *
+  * For the rest of pgtable operations where pgtable updates can be racy
+- * with fast-gup, we need to do (1) clear pte, then (2) check whether page
++ * with GUP-fast, we need to do (1) clear pte, then (2) check whether page
+  * is pinned.
+  *
+  * Above will work for all pte-level operations, including THP split.
+  *
+- * For THP collapse, it's a bit more complicated because fast-gup may be
++ * For THP collapse, it's a bit more complicated because GUP-fast may be
+  * walking a pgtable page that is being freed (pte is still valid but pmd
+  * can be cleared already).  To avoid race in such condition, we need to
+  * also check pmd here to make sure pmd doesn't change (corresponds to
+  * pmdp_collapse_flush() in the THP collapse code path).
+  */
+-static int gup_pte_range(pmd_t pmd, pmd_t *pmdp, unsigned long addr,
+-			 unsigned long end, unsigned int flags,
+-			 struct page **pages, int *nr)
++static int gup_fast_pte_range(pmd_t pmd, pmd_t *pmdp, unsigned long addr,
++		unsigned long end, unsigned int flags, struct page **pages,
++		int *nr)
+ {
+ 	struct dev_pagemap *pgmap = NULL;
+ 	int nr_start = *nr, ret = 0;
+@@ -2943,7 +2942,7 @@ static int gup_pte_range(pmd_t pmd, pmd_
+ 
+ 			pgmap = get_dev_pagemap(pte_pfn(pte), pgmap);
+ 			if (unlikely(!pgmap)) {
+-				undo_dev_pagemap(nr, nr_start, flags, pages);
++				gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
+ 				goto pte_unmap;
+ 			}
+ 		} else if (pte_special(pte))
+@@ -3007,20 +3006,19 @@ pte_unmap:
+  *
+  * For a futex to be placed on a THP tail page, get_futex_key requires a
+  * get_user_pages_fast_only implementation that can pin pages. Thus it's still
+- * useful to have gup_huge_pmd even if we can't operate on ptes.
++ * useful to have gup_fast_pmd_leaf even if we can't operate on ptes.
+  */
+-static int gup_pte_range(pmd_t pmd, pmd_t *pmdp, unsigned long addr,
+-			 unsigned long end, unsigned int flags,
+-			 struct page **pages, int *nr)
++static int gup_fast_pte_range(pmd_t pmd, pmd_t *pmdp, unsigned long addr,
++		unsigned long end, unsigned int flags, struct page **pages,
++		int *nr)
+ {
+ 	return 0;
+ }
+ #endif /* CONFIG_ARCH_HAS_PTE_SPECIAL */
+ 
+ #if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
+-static int __gup_device_huge(unsigned long pfn, unsigned long addr,
+-			     unsigned long end, unsigned int flags,
+-			     struct page **pages, int *nr)
++static int gup_fast_devmap_leaf(unsigned long pfn, unsigned long addr,
++	unsigned long end, unsigned int flags, struct page **pages, int *nr)
+ {
+ 	int nr_start = *nr;
+ 	struct dev_pagemap *pgmap = NULL;
+@@ -3030,19 +3028,19 @@ static int __gup_device_huge(unsigned lo
+ 
+ 		pgmap = get_dev_pagemap(pfn, pgmap);
+ 		if (unlikely(!pgmap)) {
+-			undo_dev_pagemap(nr, nr_start, flags, pages);
++			gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
+ 			break;
+ 		}
+ 
+ 		if (!(flags & FOLL_PCI_P2PDMA) && is_pci_p2pdma_page(page)) {
+-			undo_dev_pagemap(nr, nr_start, flags, pages);
++			gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
+ 			break;
+ 		}
+ 
+ 		SetPageReferenced(page);
+ 		pages[*nr] = page;
+ 		if (unlikely(try_grab_page(page, flags))) {
+-			undo_dev_pagemap(nr, nr_start, flags, pages);
++			gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
+ 			break;
+ 		}
+ 		(*nr)++;
+@@ -3053,62 +3051,62 @@ static int __gup_device_huge(unsigned lo
+ 	return addr == end;
+ }
+ 
+-static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+-				 unsigned long end, unsigned int flags,
+-				 struct page **pages, int *nr)
++static int gup_fast_devmap_pmd_leaf(pmd_t orig, pmd_t *pmdp, unsigned long addr,
++		unsigned long end, unsigned int flags, struct page **pages,
++		int *nr)
+ {
+ 	unsigned long fault_pfn;
+ 	int nr_start = *nr;
+ 
+ 	fault_pfn = pmd_pfn(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+-	if (!__gup_device_huge(fault_pfn, addr, end, flags, pages, nr))
++	if (!gup_fast_devmap_leaf(fault_pfn, addr, end, flags, pages, nr))
+ 		return 0;
+ 
+ 	if (unlikely(pmd_val(orig) != pmd_val(*pmdp))) {
+-		undo_dev_pagemap(nr, nr_start, flags, pages);
++		gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
+ 		return 0;
+ 	}
+ 	return 1;
+ }
+ 
+-static int __gup_device_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
+-				 unsigned long end, unsigned int flags,
+-				 struct page **pages, int *nr)
++static int gup_fast_devmap_pud_leaf(pud_t orig, pud_t *pudp, unsigned long addr,
++		unsigned long end, unsigned int flags, struct page **pages,
++		int *nr)
+ {
+ 	unsigned long fault_pfn;
+ 	int nr_start = *nr;
+ 
+ 	fault_pfn = pud_pfn(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+-	if (!__gup_device_huge(fault_pfn, addr, end, flags, pages, nr))
++	if (!gup_fast_devmap_leaf(fault_pfn, addr, end, flags, pages, nr))
+ 		return 0;
+ 
+ 	if (unlikely(pud_val(orig) != pud_val(*pudp))) {
+-		undo_dev_pagemap(nr, nr_start, flags, pages);
++		gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
+ 		return 0;
+ 	}
+ 	return 1;
+ }
+ #else
+-static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+-				 unsigned long end, unsigned int flags,
+-				 struct page **pages, int *nr)
++static int gup_fast_devmap_pmd_leaf(pmd_t orig, pmd_t *pmdp, unsigned long addr,
++		unsigned long end, unsigned int flags, struct page **pages,
++		int *nr)
+ {
+ 	BUILD_BUG();
+ 	return 0;
+ }
+ 
+-static int __gup_device_huge_pud(pud_t pud, pud_t *pudp, unsigned long addr,
+-				 unsigned long end, unsigned int flags,
+-				 struct page **pages, int *nr)
++static int gup_fast_devmap_pud_leaf(pud_t pud, pud_t *pudp, unsigned long addr,
++		unsigned long end, unsigned int flags, struct page **pages,
++		int *nr)
+ {
+ 	BUILD_BUG();
+ 	return 0;
+ }
+ #endif
+ 
+-static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+-			unsigned long end, unsigned int flags,
+-			struct page **pages, int *nr)
++static int gup_fast_pmd_leaf(pmd_t orig, pmd_t *pmdp, unsigned long addr,
++		unsigned long end, unsigned int flags, struct page **pages,
++		int *nr)
+ {
+ 	struct page *page;
+ 	struct folio *folio;
+@@ -3120,8 +3118,8 @@ static int gup_huge_pmd(pmd_t orig, pmd_
+ 	if (pmd_devmap(orig)) {
+ 		if (unlikely(flags & FOLL_LONGTERM))
+ 			return 0;
+-		return __gup_device_huge_pmd(orig, pmdp, addr, end, flags,
+-					     pages, nr);
++		return gup_fast_devmap_pmd_leaf(orig, pmdp, addr, end, flags,
++					        pages, nr);
+ 	}
+ 
+ 	page = pmd_page(orig);
+@@ -3150,9 +3148,9 @@ static int gup_huge_pmd(pmd_t orig, pmd_
+ 	return 1;
+ }
+ 
+-static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
+-			unsigned long end, unsigned int flags,
+-			struct page **pages, int *nr)
++static int gup_fast_pud_leaf(pud_t orig, pud_t *pudp, unsigned long addr,
++		unsigned long end, unsigned int flags, struct page **pages,
++		int *nr)
+ {
+ 	struct page *page;
+ 	struct folio *folio;
+@@ -3164,8 +3162,8 @@ static int gup_huge_pud(pud_t orig, pud_
+ 	if (pud_devmap(orig)) {
+ 		if (unlikely(flags & FOLL_LONGTERM))
+ 			return 0;
+-		return __gup_device_huge_pud(orig, pudp, addr, end, flags,
+-					     pages, nr);
++		return gup_fast_devmap_pud_leaf(orig, pudp, addr, end, flags,
++					        pages, nr);
+ 	}
+ 
+ 	page = pud_page(orig);
+@@ -3195,9 +3193,9 @@ static int gup_huge_pud(pud_t orig, pud_
+ 	return 1;
+ }
+ 
+-static int gup_huge_pgd(pgd_t orig, pgd_t *pgdp, unsigned long addr,
+-			unsigned long end, unsigned int flags,
+-			struct page **pages, int *nr)
++static int gup_fast_pgd_leaf(pgd_t orig, pgd_t *pgdp, unsigned long addr,
++		unsigned long end, unsigned int flags, struct page **pages,
++		int *nr)
+ {
+ 	int refs;
+ 	struct page *page;
+@@ -3235,8 +3233,9 @@ static int gup_huge_pgd(pgd_t orig, pgd_
+ 	return 1;
+ }
+ 
+-static int gup_pmd_range(pud_t *pudp, pud_t pud, unsigned long addr, unsigned long end,
+-		unsigned int flags, struct page **pages, int *nr)
++static int gup_fast_pmd_range(pud_t *pudp, pud_t pud, unsigned long addr,
++		unsigned long end, unsigned int flags, struct page **pages,
++		int *nr)
+ {
+ 	unsigned long next;
+ 	pmd_t *pmdp;
+@@ -3250,11 +3249,11 @@ static int gup_pmd_range(pud_t *pudp, pu
+ 			return 0;
+ 
+ 		if (unlikely(pmd_leaf(pmd))) {
+-			/* See gup_pte_range() */
++			/* See gup_fast_pte_range() */
+ 			if (pmd_protnone(pmd))
+ 				return 0;
+ 
+-			if (!gup_huge_pmd(pmd, pmdp, addr, next, flags,
++			if (!gup_fast_pmd_leaf(pmd, pmdp, addr, next, flags,
+ 				pages, nr))
+ 				return 0;
+ 
+@@ -3263,18 +3262,20 @@ static int gup_pmd_range(pud_t *pudp, pu
+ 			 * architecture have different format for hugetlbfs
+ 			 * pmd format and THP pmd format
+ 			 */
+-			if (!gup_huge_pd(__hugepd(pmd_val(pmd)), addr,
+-					 PMD_SHIFT, next, flags, pages, nr))
++			if (!gup_fast_hugepd(__hugepd(pmd_val(pmd)), addr,
++					     PMD_SHIFT, next, flags, pages, nr))
+ 				return 0;
+-		} else if (!gup_pte_range(pmd, pmdp, addr, next, flags, pages, nr))
++		} else if (!gup_fast_pte_range(pmd, pmdp, addr, next, flags,
++					       pages, nr))
+ 			return 0;
+ 	} while (pmdp++, addr = next, addr != end);
+ 
+ 	return 1;
+ }
+ 
+-static int gup_pud_range(p4d_t *p4dp, p4d_t p4d, unsigned long addr, unsigned long end,
+-			 unsigned int flags, struct page **pages, int *nr)
++static int gup_fast_pud_range(p4d_t *p4dp, p4d_t p4d, unsigned long addr,
++		unsigned long end, unsigned int flags, struct page **pages,
++		int *nr)
+ {
+ 	unsigned long next;
+ 	pud_t *pudp;
+@@ -3287,22 +3288,24 @@ static int gup_pud_range(p4d_t *p4dp, p4
+ 		if (unlikely(!pud_present(pud)))
+ 			return 0;
+ 		if (unlikely(pud_leaf(pud))) {
+-			if (!gup_huge_pud(pud, pudp, addr, next, flags,
+-					  pages, nr))
++			if (!gup_fast_pud_leaf(pud, pudp, addr, next, flags,
++					       pages, nr))
+ 				return 0;
+ 		} else if (unlikely(is_hugepd(__hugepd(pud_val(pud))))) {
+-			if (!gup_huge_pd(__hugepd(pud_val(pud)), addr,
+-					 PUD_SHIFT, next, flags, pages, nr))
++			if (!gup_fast_hugepd(__hugepd(pud_val(pud)), addr,
++					     PUD_SHIFT, next, flags, pages, nr))
+ 				return 0;
+-		} else if (!gup_pmd_range(pudp, pud, addr, next, flags, pages, nr))
++		} else if (!gup_fast_pmd_range(pudp, pud, addr, next, flags,
++					       pages, nr))
+ 			return 0;
+ 	} while (pudp++, addr = next, addr != end);
+ 
+ 	return 1;
+ }
+ 
+-static int gup_p4d_range(pgd_t *pgdp, pgd_t pgd, unsigned long addr, unsigned long end,
+-			 unsigned int flags, struct page **pages, int *nr)
++static int gup_fast_p4d_range(pgd_t *pgdp, pgd_t pgd, unsigned long addr,
++		unsigned long end, unsigned int flags, struct page **pages,
++		int *nr)
+ {
+ 	unsigned long next;
+ 	p4d_t *p4dp;
+@@ -3316,17 +3319,18 @@ static int gup_p4d_range(pgd_t *pgdp, pg
+ 			return 0;
+ 		BUILD_BUG_ON(p4d_leaf(p4d));
+ 		if (unlikely(is_hugepd(__hugepd(p4d_val(p4d))))) {
+-			if (!gup_huge_pd(__hugepd(p4d_val(p4d)), addr,
+-					 P4D_SHIFT, next, flags, pages, nr))
++			if (!gup_fast_hugepd(__hugepd(p4d_val(p4d)), addr,
++					     P4D_SHIFT, next, flags, pages, nr))
+ 				return 0;
+-		} else if (!gup_pud_range(p4dp, p4d, addr, next, flags, pages, nr))
++		} else if (!gup_fast_pud_range(p4dp, p4d, addr, next, flags,
++					       pages, nr))
+ 			return 0;
+ 	} while (p4dp++, addr = next, addr != end);
+ 
+ 	return 1;
+ }
+ 
+-static void gup_pgd_range(unsigned long addr, unsigned long end,
++static void gup_fast_pgd_range(unsigned long addr, unsigned long end,
+ 		unsigned int flags, struct page **pages, int *nr)
+ {
+ 	unsigned long next;
+@@ -3340,19 +3344,20 @@ static void gup_pgd_range(unsigned long
+ 		if (pgd_none(pgd))
+ 			return;
+ 		if (unlikely(pgd_leaf(pgd))) {
+-			if (!gup_huge_pgd(pgd, pgdp, addr, next, flags,
+-					  pages, nr))
++			if (!gup_fast_pgd_leaf(pgd, pgdp, addr, next, flags,
++					       pages, nr))
+ 				return;
+ 		} else if (unlikely(is_hugepd(__hugepd(pgd_val(pgd))))) {
+-			if (!gup_huge_pd(__hugepd(pgd_val(pgd)), addr,
+-					 PGDIR_SHIFT, next, flags, pages, nr))
++			if (!gup_fast_hugepd(__hugepd(pgd_val(pgd)), addr,
++					      PGDIR_SHIFT, next, flags, pages, nr))
+ 				return;
+-		} else if (!gup_p4d_range(pgdp, pgd, addr, next, flags, pages, nr))
++		} else if (!gup_fast_p4d_range(pgdp, pgd, addr, next, flags,
++					       pages, nr))
+ 			return;
+ 	} while (pgdp++, addr = next, addr != end);
+ }
+ #else
+-static inline void gup_pgd_range(unsigned long addr, unsigned long end,
++static inline void gup_fast_pgd_range(unsigned long addr, unsigned long end,
+ 		unsigned int flags, struct page **pages, int *nr)
+ {
+ }
+@@ -3369,10 +3374,8 @@ static bool gup_fast_permitted(unsigned
+ }
+ #endif
+ 
+-static unsigned long lockless_pages_from_mm(unsigned long start,
+-					    unsigned long end,
+-					    unsigned int gup_flags,
+-					    struct page **pages)
++static unsigned long gup_fast(unsigned long start, unsigned long end,
++		unsigned int gup_flags, struct page **pages)
+ {
+ 	unsigned long flags;
+ 	int nr_pinned = 0;
+@@ -3400,16 +3403,16 @@ static unsigned long lockless_pages_from
+ 	 * that come from THPs splitting.
+ 	 */
+ 	local_irq_save(flags);
+-	gup_pgd_range(start, end, gup_flags, pages, &nr_pinned);
++	gup_fast_pgd_range(start, end, gup_flags, pages, &nr_pinned);
+ 	local_irq_restore(flags);
+ 
+ 	/*
+ 	 * When pinning pages for DMA there could be a concurrent write protect
+-	 * from fork() via copy_page_range(), in this case always fail fast GUP.
++	 * from fork() via copy_page_range(), in this case always fail GUP-fast.
+ 	 */
+ 	if (gup_flags & FOLL_PIN) {
+ 		if (read_seqcount_retry(&current->mm->write_protect_seq, seq)) {
+-			unpin_user_pages_lockless(pages, nr_pinned);
++			gup_fast_unpin_user_pages(pages, nr_pinned);
+ 			return 0;
+ 		} else {
+ 			sanity_check_pinned_pages(pages, nr_pinned);
+@@ -3418,10 +3421,8 @@ static unsigned long lockless_pages_from
+ 	return nr_pinned;
+ }
+ 
+-static int internal_get_user_pages_fast(unsigned long start,
+-					unsigned long nr_pages,
+-					unsigned int gup_flags,
+-					struct page **pages)
++static int gup_fast_fallback(unsigned long start, unsigned long nr_pages,
++		unsigned int gup_flags, struct page **pages)
+ {
+ 	unsigned long len, end;
+ 	unsigned long nr_pinned;
+@@ -3449,7 +3450,7 @@ static int internal_get_user_pages_fast(
+ 	if (unlikely(!access_ok((void __user *)start, len)))
+ 		return -EFAULT;
+ 
+-	nr_pinned = lockless_pages_from_mm(start, end, gup_flags, pages);
++	nr_pinned = gup_fast(start, end, gup_flags, pages);
+ 	if (nr_pinned == nr_pages || gup_flags & FOLL_FAST_ONLY)
+ 		return nr_pinned;
+ 
+@@ -3503,7 +3504,7 @@ int get_user_pages_fast_only(unsigned lo
+ 			       FOLL_GET | FOLL_FAST_ONLY))
+ 		return -EINVAL;
+ 
+-	return internal_get_user_pages_fast(start, nr_pages, gup_flags, pages);
++	return gup_fast_fallback(start, nr_pages, gup_flags, pages);
+ }
+ EXPORT_SYMBOL_GPL(get_user_pages_fast_only);
+ 
+@@ -3534,7 +3535,7 @@ int get_user_pages_fast(unsigned long st
+ 	 */
+ 	if (!is_valid_gup_args(pages, NULL, &gup_flags, FOLL_GET))
+ 		return -EINVAL;
+-	return internal_get_user_pages_fast(start, nr_pages, gup_flags, pages);
++	return gup_fast_fallback(start, nr_pages, gup_flags, pages);
+ }
+ EXPORT_SYMBOL_GPL(get_user_pages_fast);
+ 
+@@ -3562,7 +3563,7 @@ int pin_user_pages_fast(unsigned long st
+ {
+ 	if (!is_valid_gup_args(pages, NULL, &gup_flags, FOLL_PIN))
+ 		return -EINVAL;
+-	return internal_get_user_pages_fast(start, nr_pages, gup_flags, pages);
++	return gup_fast_fallback(start, nr_pages, gup_flags, pages);
+ }
+ EXPORT_SYMBOL_GPL(pin_user_pages_fast);
+ 
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-doc-improve-the-description-of-__folio_mark_dirty.patch
-buffer-add-kernel-doc-for-block_dirty_folio.patch
-buffer-add-kernel-doc-for-try_to_free_buffers.patch
-buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch
-buffer-add-kernel-doc-for-brelse-and-__brelse.patch
-buffer-add-kernel-doc-for-bforget-and-__bforget.patch
-buffer-improve-bdev_getblk-documentation.patch
-doc-split-bufferrst-out-of-api-summaryrst.patch
-doc-split-bufferrst-out-of-api-summaryrst-fix.patch
-mm-memory-failure-remove-fsdax_pgoff-argument-from-__add_to_kill.patch
-mm-memory-failure-pass-addr-to-__add_to_kill.patch
-mm-return-the-address-from-page_mapped_in_vma.patch
-mm-make-page_mapped_in_vma-conditional-on-config_memory_failure.patch
-mm-memory-failure-convert-shake_page-to-shake_folio.patch
-mm-convert-hugetlb_page_mapping_lock_write-to-folio.patch
-mm-memory-failure-convert-memory_failure-to-use-a-folio.patch
-mm-memory-failure-convert-hwpoison_user_mappings-to-take-a-folio.patch
-mm-memory-failure-add-some-folio-conversions-to-unpoison_memory.patch
-mm-memory-failure-use-folio-functions-throughout-collect_procs.patch
-mm-memory-failure-pass-the-folio-to-collect_procs_ksm.patch
-fscrypt-convert-bh_get_inode_and_lblk_num-to-use-a-folio.patch
-f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio.patch
-memory-failure-remove-calls-to-page_mapping.patch
-migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch
-userfault-expand-folio-use-in-mfill_atomic_install_pte.patch
-mm-remove-page_mapping.patch
-mm-remove-page_cache_alloc.patch
-mm-remove-put_devmap_managed_page.patch
-mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs.patch
-mm-remove-page_ref_sub_return.patch
-gup-use-folios-for-gup_devmap.patch
-mm-add-kernel-doc-for-folio_mark_accessed.patch
-mm-remove-pagereferenced.patch
-mm-simplify-thp_vma_allowable_order.patch
+drivers-virt-acrn-fix-pfnmap-pte-checks-in-acrn_vm_ram_map.patch
+mm-pass-vma-instead-of-mm-to-follow_pte.patch
+mm-follow_pte-improvements.patch
+mm-allow-for-detecting-underflows-with-page_mapcount-again.patch
+mm-allow-for-detecting-underflows-with-page_mapcount-again-fix.patch
+mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte.patch
+mm-rmap-add-fast-path-for-small-folios-when-adding-removing-duplicating.patch
+mm-track-mapcount-of-large-folios-in-single-value.patch
+mm-improve-folio_likely_mapped_shared-using-the-mapcount-of-large-folios.patch
+mm-make-folio_mapcount-return-0-for-small-typed-folios.patch
+mm-make-folio_mapcount-return-0-for-small-typed-folios-fix.patch
+mm-memory-use-folio_mapcount-in-zap_present_folio_ptes.patch
+mm-huge_memory-use-folio_mapcount-in-zap_huge_pmd-sanity-check.patch
+mm-memory-failure-use-folio_mapcount-in-hwpoison_user_mappings.patch
+mm-page_alloc-use-folio_mapped-in-__alloc_contig_migrate_range.patch
+mm-migrate-use-folio_likely_mapped_shared-in-add_page_for_migration.patch
+sh-mm-cache-use-folio_mapped-in-copy_from_user_page.patch
+mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio.patch
+mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page.patch
+trace-events-page_ref-trace-the-raw-page-mapcount-value.patch
+xtensa-mm-convert-check_tlb_entry-to-sanity-check-folios.patch
+mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch
+documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch
+mm-ksm-rename-get_ksm_page_flags-to-ksm_get_folio_flags.patch
+mm-ksm-remove-page_mapcount-usage-in-stable_tree_search.patch
+fs-proc-task_mmu-convert-pagemap_hugetlb_range-to-work-on-folios.patch
+fs-proc-task_mmu-convert-smaps_hugetlb_range-to-work-on-folios.patch
+mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation.patch
+mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation-v2.patch
+mm-khugepaged-replace-page_mapcount-check-by-folio_likely_mapped_shared.patch
+loongarch-tlb-fix-error-parameter-ptep-set-but-not-used-due-to-__tlb_remove_tlb_entry.patch
 
