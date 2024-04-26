@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFEDF823B0
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7A9E80BF0
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104177; cv=none; b=blmtih5fmwsw1rp3Hx4t9Abg5//B8iAKybmlmtZ1x3NTR+7CPFWLXHP7xPbpXTUWUxjUPvZMF0HWoAiDV7ZkJOdUPsBnqRrNr16GaazXTCjgMktntmlVXhBCEVfVhe+Z3ILAyYUiQXU75lNNBnRaxdFF/stNr4uGgOz9JjYOrW8=
+	t=1714104178; cv=none; b=XhPR6dZoYbFO68nNllDpYqLeqKIBuwe+S9Cph5FjqHqu6j3drj+C4d3Su/x/+wP9omQC0hllf0tBzpcXVCofYoTSxNqlYZ7x78IMNNL7inY3oorUEom1GD87zqmVxKx0ZIOpTBEbOeVomMdCucRq52qC5ILczYjcha6Hc5xBlyY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104177; c=relaxed/simple;
-	bh=TXbKlwdiG0HlK5qlOi2PYf1D0z4ZYQCzlzuG+RV9fXU=;
-	h=Date:To:From:Subject:Message-Id; b=h8U7zBupc8AgMWUBYqEMr/eaLpMZIJLwhLeQYwjc+HQPyh0Elxa5sfKkLJAIPEP3V2ixwaTBfwJACAI2mtJ1KGW0Qw/eNpmarQo92HLEVPCQPIaCdfsMJg+0b1Ug1hY3gskklV9AOSS7N9mR4+Hbm0PZVT/IPtKrYQb9QgZaluU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AK/1Bb41; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104178; c=relaxed/simple;
+	bh=TkJzYlkJ8Wd2NfkfUyS2IPxi1KtRAdKGojrhO2bCwEc=;
+	h=Date:To:From:Subject:Message-Id; b=JwltFLBPzUlfpOaev5ahV5bz6yUL2sDIHfPE8+0z0kNUNemqtkJAi954Q9vv9y6pQ2tIsRFatb5inQdqM3LyhzlnpOKYVsaj8SxQLerwPurKBgxhQ4M2imnDacnvlJThOx7cp8wo8rmf+Wkc1gQ1CjiD3Sl3CrYDR6UXdDWQk20=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2WM0QDR9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AK/1Bb41"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94894C113CD;
-	Fri, 26 Apr 2024 04:02:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2WM0QDR9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD47FC113CD;
+	Fri, 26 Apr 2024 04:02:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104177;
-	bh=TXbKlwdiG0HlK5qlOi2PYf1D0z4ZYQCzlzuG+RV9fXU=;
+	s=korg; t=1714104178;
+	bh=TkJzYlkJ8Wd2NfkfUyS2IPxi1KtRAdKGojrhO2bCwEc=;
 	h=Date:To:From:Subject:From;
-	b=AK/1Bb41YAazmINmLmZNWBylc0dP5FLLU2+EfvBpPKUr3ktESXe3aBnkAqJFsJOfM
-	 MnILTCDAY7MXlH1s+f5nwWajkvX8wQ1AicwVHod97S5PoIpRPYITUqyQ0WGNnDHrUA
-	 IJwYCbI+xuOmb+YQJqU3rhMasZT3ixt95VC4mrwU=
-Date: Thu, 25 Apr 2024 21:02:57 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,akpm@linux-foundation.org
+	b=2WM0QDR9psEhpRDexTzzPZwN5l6e9pgdDBie/o/RLGCp5UFug7ga5rk4ny9hEjwXH
+	 aHv11T4YiA13Fzthmmfeoilj/eIluk0zNdmFuxt8FNHRIoX+8/hBbuFkU5HMusPh7x
+	 nL5YO6ao6Vkjihqm8nOEgrbHJhqdxrBIN8Gd4oIQ=
+Date: Thu, 25 Apr 2024 21:02:58 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,mgorman@techsingularity.net,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-convert-free_zone_device_page-to-free_zone_device_folio.patch removed from -mm tree
-Message-Id: <20240426040257.94894C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-set-pageblock_order-to-hpage_pmd_order-in-case-with-config_hugetlb_page-but-thp-enabled.patch removed from -mm tree
+Message-Id: <20240426040258.AD47FC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,160 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: convert free_zone_device_page to free_zone_device_folio
+     Subject: mm: set pageblock_order to HPAGE_PMD_ORDER in case with !CONFIG_HUGETLB_PAGE but THP enabled
 has been removed from the -mm tree.  Its filename was
-     mm-convert-free_zone_device_page-to-free_zone_device_folio.patch
+     mm-set-pageblock_order-to-hpage_pmd_order-in-case-with-config_hugetlb_page-but-thp-enabled.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert free_zone_device_page to free_zone_device_folio
-Date: Fri, 5 Apr 2024 16:32:27 +0100
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: set pageblock_order to HPAGE_PMD_ORDER in case with !CONFIG_HUGETLB_PAGE but THP enabled
+Date: Fri, 5 Apr 2024 20:24:16 +0800
 
-Both callers already have a folio; pass it in and save a few calls to
-compound_head().
+As Vlastimil suggested in previous discussion[1], it doesn't make sense to
+set pageblock_order as MAX_PAGE_ORDER when hugetlbfs is not enabled and
+THP is enabled.  Instead, it should be set to HPAGE_PMD_ORDER.
 
-Link: https://lkml.kernel.org/r/20240405153228.2563754-6-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+[1] https://lore.kernel.org/all/76457ec5-d789-449b-b8ca-dcb6ceb12445@suse.cz/
+Link: https://lkml.kernel.org/r/3d57d253070035bdc0f6d6e5681ce1ed0e1934f7.1712286863.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    2 +-
- mm/memremap.c |   30 ++++++++++++++++--------------
- mm/swap.c     |    4 ++--
- 3 files changed, 19 insertions(+), 17 deletions(-)
+ include/linux/pageblock-flags.h |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/mm/internal.h~mm-convert-free_zone_device_page-to-free_zone_device_folio
-+++ a/mm/internal.h
-@@ -1165,7 +1165,7 @@ void __vunmap_range_noflush(unsigned lon
- int numa_migrate_prep(struct folio *folio, struct vm_fault *vmf,
- 		      unsigned long addr, int page_nid, int *flags);
+--- a/include/linux/pageblock-flags.h~mm-set-pageblock_order-to-hpage_pmd_order-in-case-with-config_hugetlb_page-but-thp-enabled
++++ a/include/linux/pageblock-flags.h
+@@ -28,7 +28,7 @@ enum pageblock_bits {
+ 	NR_PAGEBLOCK_BITS
+ };
  
--void free_zone_device_page(struct page *page);
-+void free_zone_device_folio(struct folio *folio);
- int migrate_device_coherent_page(struct page *page);
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE)
  
- /*
---- a/mm/memremap.c~mm-convert-free_zone_device_page-to-free_zone_device_folio
-+++ a/mm/memremap.c
-@@ -456,21 +456,23 @@ struct dev_pagemap *get_dev_pagemap(unsi
- }
- EXPORT_SYMBOL_GPL(get_dev_pagemap);
+ #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
  
--void free_zone_device_page(struct page *page)
-+void free_zone_device_folio(struct folio *folio)
- {
--	if (WARN_ON_ONCE(!page->pgmap->ops || !page->pgmap->ops->page_free))
-+	if (WARN_ON_ONCE(!folio->page.pgmap->ops ||
-+			!folio->page.pgmap->ops->page_free))
- 		return;
+@@ -45,7 +45,11 @@ extern unsigned int pageblock_order;
  
--	mem_cgroup_uncharge(page_folio(page));
-+	mem_cgroup_uncharge(folio);
+ #endif /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
  
- 	/*
- 	 * Note: we don't expect anonymous compound pages yet. Once supported
- 	 * and we could PTE-map them similar to THP, we'd have to clear
- 	 * PG_anon_exclusive on all tail pages.
- 	 */
--	VM_BUG_ON_PAGE(PageAnon(page) && PageCompound(page), page);
--	if (PageAnon(page))
--		__ClearPageAnonExclusive(page);
-+	if (folio_test_anon(folio)) {
-+		VM_BUG_ON_FOLIO(folio_test_large(folio), folio);
-+		__ClearPageAnonExclusive(folio_page(folio, 0));
-+	}
+-#else /* CONFIG_HUGETLB_PAGE */
++#elif defined(CONFIG_TRANSPARENT_HUGEPAGE)
++
++#define pageblock_order		min_t(unsigned int, HPAGE_PMD_ORDER, MAX_PAGE_ORDER)
++
++#else /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- 	/*
- 	 * When a device managed page is freed, the folio->mapping field
-@@ -481,20 +483,20 @@ void free_zone_device_page(struct page *
- 	 *
- 	 * For other types of ZONE_DEVICE pages, migration is either
- 	 * handled differently or not done at all, so there is no need
--	 * to clear page->mapping.
-+	 * to clear folio->mapping.
- 	 */
--	page->mapping = NULL;
--	page->pgmap->ops->page_free(page);
-+	folio->mapping = NULL;
-+	folio->page.pgmap->ops->page_free(folio_page(folio, 0));
- 
--	if (page->pgmap->type != MEMORY_DEVICE_PRIVATE &&
--	    page->pgmap->type != MEMORY_DEVICE_COHERENT)
-+	if (folio->page.pgmap->type != MEMORY_DEVICE_PRIVATE &&
-+	    folio->page.pgmap->type != MEMORY_DEVICE_COHERENT)
- 		/*
--		 * Reset the page count to 1 to prepare for handing out the page
-+		 * Reset the refcount to 1 to prepare for handing out the page
- 		 * again.
- 		 */
--		set_page_count(page, 1);
-+		folio_set_count(folio, 1);
- 	else
--		put_dev_pagemap(page->pgmap);
-+		put_dev_pagemap(folio->page.pgmap);
- }
- 
- void zone_device_page_init(struct page *page)
---- a/mm/swap.c~mm-convert-free_zone_device_page-to-free_zone_device_folio
-+++ a/mm/swap.c
-@@ -115,7 +115,7 @@ static void page_cache_release(struct fo
- void __folio_put(struct folio *folio)
- {
- 	if (unlikely(folio_is_zone_device(folio))) {
--		free_zone_device_page(&folio->page);
-+		free_zone_device_folio(folio);
- 		return;
- 	} else if (folio_test_hugetlb(folio)) {
- 		free_huge_folio(folio);
-@@ -983,7 +983,7 @@ void folios_put_refs(struct folio_batch
- 			if (put_devmap_managed_page_refs(&folio->page, nr_refs))
- 				continue;
- 			if (folio_ref_sub_and_test(folio, nr_refs))
--				free_zone_device_page(&folio->page);
-+				free_zone_device_folio(folio);
- 			continue;
- 		}
- 
+ /* If huge pages are not used, group by MAX_ORDER_NR_PAGES */
+ #define pageblock_order		MAX_PAGE_ORDER
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-doc-improve-the-description-of-__folio_mark_dirty.patch
-buffer-add-kernel-doc-for-block_dirty_folio.patch
-buffer-add-kernel-doc-for-try_to_free_buffers.patch
-buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch
-buffer-add-kernel-doc-for-brelse-and-__brelse.patch
-buffer-add-kernel-doc-for-bforget-and-__bforget.patch
-buffer-improve-bdev_getblk-documentation.patch
-doc-split-bufferrst-out-of-api-summaryrst.patch
-doc-split-bufferrst-out-of-api-summaryrst-fix.patch
-mm-memory-failure-remove-fsdax_pgoff-argument-from-__add_to_kill.patch
-mm-memory-failure-pass-addr-to-__add_to_kill.patch
-mm-return-the-address-from-page_mapped_in_vma.patch
-mm-make-page_mapped_in_vma-conditional-on-config_memory_failure.patch
-mm-memory-failure-convert-shake_page-to-shake_folio.patch
-mm-convert-hugetlb_page_mapping_lock_write-to-folio.patch
-mm-memory-failure-convert-memory_failure-to-use-a-folio.patch
-mm-memory-failure-convert-hwpoison_user_mappings-to-take-a-folio.patch
-mm-memory-failure-add-some-folio-conversions-to-unpoison_memory.patch
-mm-memory-failure-use-folio-functions-throughout-collect_procs.patch
-mm-memory-failure-pass-the-folio-to-collect_procs_ksm.patch
-fscrypt-convert-bh_get_inode_and_lblk_num-to-use-a-folio.patch
-f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio.patch
-memory-failure-remove-calls-to-page_mapping.patch
-migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch
-userfault-expand-folio-use-in-mfill_atomic_install_pte.patch
-mm-remove-page_mapping.patch
-mm-remove-page_cache_alloc.patch
-mm-remove-put_devmap_managed_page.patch
-mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs.patch
-mm-remove-page_ref_sub_return.patch
-gup-use-folios-for-gup_devmap.patch
-mm-add-kernel-doc-for-folio_mark_accessed.patch
-mm-remove-pagereferenced.patch
-mm-simplify-thp_vma_allowable_order.patch
+mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch
 
