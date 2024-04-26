@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAE2278C90
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:57:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92E6578C7C
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:57:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714103875; cv=none; b=sfYnlKDB58xej1SJrycnBxB3rqj90V5++1ULwaRiYZifnvcFaKuOkOKlcRFl0Mjtuce74kPmXp79Frh1gDv4VOXeXEHpdmQMD8aM+/GhgzQoGL1t8+f+KsHpNAdGHkh3UoDQKzBD5kYRxuaC0IrokM8I//kyLwe/JcgHWUfD4fk=
+	t=1714103877; cv=none; b=RKaJNd7+dYA6OjzIeScaJceKEi4mFSc0OyH4/8FYxM+0HDJEw/vzXzD2i3p1scdeJSxkfiXVazC/DdW/LMsjSRDX1MXEXa4Jrpk3A7rVdD9ars+ddWBQueEqxRyAoQ74GM+38uBGQoarPSoUNg6lL/SZz0P31md0EYLk0e6Tpo4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714103875; c=relaxed/simple;
-	bh=uYSDo0DkSfRO4qWQaPw6O9D62xndjwzudYb1fHQ3vsc=;
-	h=Date:To:From:Subject:Message-Id; b=NumgPfCfmhH4hNOcH41PKuTvU2I88zpECk2HU4S+n6ZH02jOdLm/Q8mHmBsoS16V2BQ/AOqTRvE2pb6nXZtxEvbV/86pN4pqRql5oAuVPjBDE8QgA/gPMkt8pTKTIIR91gOcyy0Jx0TKMmJnoY5JvIjKmQ9glLkUTZV2tYz6m+0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RtsLqp0F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714103877; c=relaxed/simple;
+	bh=kV+6HWgleFappTorjaczFJotdNxTvnUYeXVpt06LRco=;
+	h=Date:To:From:Subject:Message-Id; b=pjEMdUeAOtU3utI3wptw91gQ8LFvmoCwN9vcTfu7hpCjZYknCGkmwGhMWaw1cX+vHdJvNzxo8dLuAscKO6PmAkM31S7XWAkb00ZTYrxSWu+kacqRFjVCpXxOsp8GqoXI4yXHms58KKV4CdCmdMOffUFd5rRCOokjk+2X233PAww=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Eb3bphFB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RtsLqp0F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 854E4C116B1;
-	Fri, 26 Apr 2024 03:57:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Eb3bphFB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07963C113CD;
+	Fri, 26 Apr 2024 03:57:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714103875;
-	bh=uYSDo0DkSfRO4qWQaPw6O9D62xndjwzudYb1fHQ3vsc=;
+	s=korg; t=1714103877;
+	bh=kV+6HWgleFappTorjaczFJotdNxTvnUYeXVpt06LRco=;
 	h=Date:To:From:Subject:From;
-	b=RtsLqp0FQSsAobek7YNVFirm1jKkADv8/sEEJ7j79VRPHrg2nHQfCiR3bBkRV2f77
-	 nNoO2QAju+NSzUyZZz7XKoOhYf5pyS+2BbUQqxslR7WuH6dGGJUioQlqcJcLD56f0v
-	 hwds/1m9rnEaERUvTEM0a+ypxf77ljqRGCswnJGU=
-Date: Thu, 25 Apr 2024 20:57:55 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,sfr@canb.auug.org.au,kent.overstreet@linux.dev,corbet@lwn.net,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=Eb3bphFBjQG2yqhZAQFxumPSqMbDm0hN2fGREpwo7HcKGbXGJYqXHzpkHTKVoAnYg
+	 5jitPQgA4/xB3sxqUfO4COoz6ATikZ5+0bsMIm6KmoWTth21Er9mFYKQzsQEGPq3p9
+	 9LBkrwKf4kLrwXCnGlQCJ9mgmX4CIYD2VEVxhpXY=
+Date: Thu, 25 Apr 2024 20:57:56 -0700
+To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,surenb@google.com,peterz@infradead.org,pasha.tatashin@soleen.com,ojeda@kernel.org,keescook@chromium.org,gary@garyguo.net,dennis@kernel.org,cl@linux.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,arnd@arndb.de,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@samsung.com,kent.overstreet@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] scripts-kernel-doc-drop-_noprof-on-function-prototypes.patch removed from -mm tree
-Message-Id: <20240426035755.854E4C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] fix-missing-vmalloch-includes.patch removed from -mm tree
+Message-Id: <20240426035757.07963C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,791 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scripts/kernel-doc: drop "_noprof" on function prototypes
+     Subject: fix missing vmalloc.h includes
 has been removed from the -mm tree.  Its filename was
-     scripts-kernel-doc-drop-_noprof-on-function-prototypes.patch
+     fix-missing-vmalloch-includes.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: scripts/kernel-doc: drop "_noprof" on function prototypes
-Date: Mon, 25 Mar 2024 22:41:49 -0700
+From: Kent Overstreet <kent.overstreet@linux.dev>
+Subject: fix missing vmalloc.h includes
+Date: Thu, 21 Mar 2024 09:36:23 -0700
 
-Memory profiling introduces macros as hooks for function-level allocation
-profiling[1].  Memory allocation functions that are profiled are named
-like xyz_alloc() for API access to the function.  xyz_alloc() then calls
-xyz_alloc_noprof() to do the allocation work.
+Patch series "Memory allocation profiling", v6.
 
-The kernel-doc comments for the memory allocation functions are introduced
-with the xyz_alloc() function names but the function implementations are
-the xyz_alloc_noprof() names.  This causes kernel-doc warnings for
-mismatched documentation and function prototype names.  By dropping the
-"_noprof" part of the function name, the kernel-doc function name matches
-the function prototype name, so the warnings are resolved.
+Overview:
+Low overhead [1] per-callsite memory allocation profiling. Not just for
+debug kernels, overhead low enough to be deployed in production.
 
-[1] https://lore.kernel.org/all/20240321163705.3067592-1-surenb@google.com/
+Example output:
+  root@moria-kvm:~# sort -rn /proc/allocinfo
+   127664128    31168 mm/page_ext.c:270 func:alloc_page_ext
+    56373248     4737 mm/slub.c:2259 func:alloc_slab_page
+    14880768     3633 mm/readahead.c:247 func:page_cache_ra_unbounded
+    14417920     3520 mm/mm_init.c:2530 func:alloc_large_system_hash
+    13377536      234 block/blk-mq.c:3421 func:blk_mq_alloc_rqs
+    11718656     2861 mm/filemap.c:1919 func:__filemap_get_folio
+     9192960     2800 kernel/fork.c:307 func:alloc_thread_stack_node
+     4206592        4 net/netfilter/nf_conntrack_core.c:2567 func:nf_ct_alloc_hashtable
+     4136960     1010 drivers/staging/ctagmod/ctagmod.c:20 [ctagmod] func:ctagmod_start
+     3940352      962 mm/memory.c:4214 func:alloc_anon_folio
+     2894464    22613 fs/kernfs/dir.c:615 func:__kernfs_new_node
+     ...
 
-Link: https://lkml.kernel.org/r/20240326054149.2121-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Closes: https://lore.kernel.org/all/20240325123603.1bdd6588@canb.auug.org.au/
-Tested-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Usage:
+kconfig options:
+ - CONFIG_MEM_ALLOC_PROFILING
+ - CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT
+ - CONFIG_MEM_ALLOC_PROFILING_DEBUG
+   adds warnings for allocations that weren't accounted because of a
+   missing annotation
+
+sysctl:
+  /proc/sys/vm/mem_profiling
+
+Runtime info:
+  /proc/allocinfo
+
+Notes:
+
+[1]: Overhead
+To measure the overhead we are comparing the following configurations:
+(1) Baseline with CONFIG_MEMCG_KMEM=n
+(2) Disabled by default (CONFIG_MEM_ALLOC_PROFILING=y &&
+    CONFIG_MEM_ALLOC_PROFILING_BY_DEFAULT=n)
+(3) Enabled by default (CONFIG_MEM_ALLOC_PROFILING=y &&
+    CONFIG_MEM_ALLOC_PROFILING_BY_DEFAULT=y)
+(4) Enabled at runtime (CONFIG_MEM_ALLOC_PROFILING=y &&
+    CONFIG_MEM_ALLOC_PROFILING_BY_DEFAULT=n && /proc/sys/vm/mem_profiling=1)
+(5) Baseline with CONFIG_MEMCG_KMEM=y && allocating with __GFP_ACCOUNT
+(6) Disabled by default (CONFIG_MEM_ALLOC_PROFILING=y &&
+    CONFIG_MEM_ALLOC_PROFILING_BY_DEFAULT=n)  && CONFIG_MEMCG_KMEM=y
+(7) Enabled by default (CONFIG_MEM_ALLOC_PROFILING=y &&
+    CONFIG_MEM_ALLOC_PROFILING_BY_DEFAULT=y) && CONFIG_MEMCG_KMEM=y
+
+Performance overhead:
+To evaluate performance we implemented an in-kernel test executing
+multiple get_free_page/free_page and kmalloc/kfree calls with allocation
+sizes growing from 8 to 240 bytes with CPU frequency set to max and CPU
+affinity set to a specific CPU to minimize the noise. Below are results
+from running the test on Ubuntu 22.04.2 LTS with 6.8.0-rc1 kernel on
+56 core Intel Xeon:
+
+                        kmalloc                 pgalloc
+(1 baseline)            6.764s                  16.902s
+(2 default disabled)    6.793s  (+0.43%)        17.007s (+0.62%)
+(3 default enabled)     7.197s  (+6.40%)        23.666s (+40.02%)
+(4 runtime enabled)     7.405s  (+9.48%)        23.901s (+41.41%)
+(5 memcg)               13.388s (+97.94%)       48.460s (+186.71%)
+(6 def disabled+memcg)  13.332s (+97.10%)       48.105s (+184.61%)
+(7 def enabled+memcg)   13.446s (+98.78%)       54.963s (+225.18%)
+
+Memory overhead:
+Kernel size:
+
+   text           data        bss         dec         diff
+(1) 26515311	      18890222    17018880    62424413
+(2) 26524728	      19423818    16740352    62688898    264485
+(3) 26524724	      19423818    16740352    62688894    264481
+(4) 26524728	      19423818    16740352    62688898    264485
+(5) 26541782	      18964374    16957440    62463596    39183
+
+Memory consumption on a 56 core Intel CPU with 125GB of memory:
+Code tags:           192 kB
+PageExts:         262144 kB (256MB)
+SlabExts:           9876 kB (9.6MB)
+PcpuExts:            512 kB (0.5MB)
+
+Total overhead is 0.2% of total memory.
+
+Benchmarks:
+
+Hackbench tests run 100 times:
+hackbench -s 512 -l 200 -g 15 -f 25 -P
+      baseline       disabled profiling           enabled profiling
+avg   0.3543         0.3559 (+0.0016)             0.3566 (+0.0023)
+stdev 0.0137         0.0188                       0.0077
+
+
+hackbench -l 10000
+      baseline       disabled profiling           enabled profiling
+avg   6.4218         6.4306 (+0.0088)             6.5077 (+0.0859)
+stdev 0.0933         0.0286                       0.0489
+
+stress-ng tests:
+stress-ng --class memory --seq 4 -t 60
+stress-ng --class cpu --seq 4 -t 60
+Results posted at: https://evilpiepirate.org/~kent/memalloc_prof_v4_stress-ng/
+
+[2] https://lore.kernel.org/all/20240306182440.2003814-1-surenb@google.com/
+
+
+This patch (of 37):
+
+The next patch drops vmalloc.h from a system header in order to fix a
+circular dependency; this adds it to all the files that were pulling it in
+implicitly.
+
+[kent.overstreet@linux.dev: fix arch/alpha/lib/memcpy.c]
+  Link: https://lkml.kernel.org/r/20240327002152.3339937-1-kent.overstreet@linux.dev
+[surenb@google.com: fix arch/x86/mm/numa_32.c]
+  Link: https://lkml.kernel.org/r/20240402180933.1663992-1-surenb@google.com
+[kent.overstreet@linux.dev: a few places were depending on sizes.h]
+  Link: https://lkml.kernel.org/r/20240404034744.1664840-1-kent.overstreet@linux.dev
+[arnd@arndb.de: fix mm/kasan/hw_tags.c]
+  Link: https://lkml.kernel.org/r/20240404124435.3121534-1-arnd@kernel.org
+[surenb@google.com: fix arc build]
+  Link: https://lkml.kernel.org/r/20240405225115.431056-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20240321163705.3067592-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20240321163705.3067592-2-surenb@google.com
+Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Tested-by: Kees Cook <keescook@chromium.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alex Gaynor <alex.gaynor@gmail.com>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Andreas Hindborg <a.hindborg@samsung.com>
+Cc: Benno Lossin <benno.lossin@proton.me>
+Cc: "Björn Roy Baron" <bjorn3_gh@protonmail.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Gary Guo <gary@garyguo.net>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wedson Almeida Filho <wedsonaf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    1 +
- 1 file changed, 1 insertion(+)
+ arch/alpha/lib/checksum.c                                 |    1 +
+ arch/alpha/lib/fpreg.c                                    |    1 +
+ arch/arc/include/asm/mmu-arcv2.h                          |    2 ++
+ arch/arm/kernel/irq.c                                     |    1 +
+ arch/arm/kernel/traps.c                                   |    1 +
+ arch/arm64/kernel/efi.c                                   |    1 +
+ arch/loongarch/include/asm/kfence.h                       |    1 +
+ arch/powerpc/kernel/iommu.c                               |    1 +
+ arch/powerpc/mm/mem.c                                     |    1 +
+ arch/riscv/kernel/elf_kexec.c                             |    1 +
+ arch/riscv/kernel/probes/kprobes.c                        |    1 +
+ arch/s390/kernel/cert_store.c                             |    1 +
+ arch/s390/kernel/ipl.c                                    |    1 +
+ arch/x86/include/asm/io.h                                 |    1 +
+ arch/x86/kernel/cpu/sgx/main.c                            |    1 +
+ arch/x86/kernel/irq_64.c                                  |    1 +
+ arch/x86/mm/fault.c                                       |    1 +
+ arch/x86/mm/numa_32.c                                     |    1 +
+ drivers/accel/ivpu/ivpu_mmu_context.c                     |    1 +
+ drivers/gpu/drm/gma500/mmu.c                              |    1 +
+ drivers/gpu/drm/i915/gem/i915_gem_pages.c                 |    1 +
+ drivers/gpu/drm/i915/gem/selftests/mock_dmabuf.c          |    1 +
+ drivers/gpu/drm/i915/gt/shmem_utils.c                     |    1 +
+ drivers/gpu/drm/i915/gvt/firmware.c                       |    1 +
+ drivers/gpu/drm/i915/gvt/gtt.c                            |    1 +
+ drivers/gpu/drm/i915/gvt/handlers.c                       |    1 +
+ drivers/gpu/drm/i915/gvt/mmio.c                           |    1 +
+ drivers/gpu/drm/i915/gvt/vgpu.c                           |    1 +
+ drivers/gpu/drm/i915/intel_gvt.c                          |    1 +
+ drivers/gpu/drm/imagination/pvr_vm_mips.c                 |    1 +
+ drivers/gpu/drm/mediatek/mtk_drm_gem.c                    |    1 +
+ drivers/gpu/drm/omapdrm/omap_gem.c                        |    1 +
+ drivers/gpu/drm/v3d/v3d_bo.c                              |    1 +
+ drivers/gpu/drm/vmwgfx/vmwgfx_binding.c                   |    1 +
+ drivers/gpu/drm/vmwgfx/vmwgfx_cmd.c                       |    1 +
+ drivers/gpu/drm/vmwgfx/vmwgfx_devcaps.c                   |    1 +
+ drivers/gpu/drm/vmwgfx/vmwgfx_drv.c                       |    1 +
+ drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c                   |    1 +
+ drivers/gpu/drm/vmwgfx/vmwgfx_ioctl.c                     |    1 +
+ drivers/gpu/drm/xen/xen_drm_front_gem.c                   |    1 +
+ drivers/hwtracing/coresight/coresight-trbe.c              |    1 +
+ drivers/net/ethernet/marvell/octeon_ep/octep_pfvf_mbox.c  |    1 +
+ drivers/net/ethernet/marvell/octeon_ep_vf/octep_vf_mbox.c |    1 +
+ drivers/net/ethernet/microsoft/mana/hw_channel.c          |    1 +
+ drivers/platform/x86/uv_sysfs.c                           |    1 +
+ drivers/scsi/mpi3mr/mpi3mr_transport.c                    |    2 ++
+ drivers/vfio/pci/pds/dirty.c                              |    1 +
+ drivers/virt/acrn/mm.c                                    |    1 +
+ drivers/virtio/virtio_mem.c                               |    1 +
+ include/asm-generic/io.h                                  |    1 +
+ include/linux/io.h                                        |    1 +
+ include/linux/pds/pds_common.h                            |    2 ++
+ include/rdma/rdmavt_qp.h                                  |    1 +
+ mm/debug_vm_pgtable.c                                     |    1 +
+ mm/kasan/hw_tags.c                                        |    1 +
+ sound/pci/hda/cs35l41_hda.c                               |    1 +
+ 56 files changed, 59 insertions(+)
 
---- a/scripts/kernel-doc~scripts-kernel-doc-drop-_noprof-on-function-prototypes
-+++ a/scripts/kernel-doc
-@@ -1723,6 +1723,7 @@ sub dump_function($$) {
-     $prototype =~ s/__must_check +//;
-     $prototype =~ s/__weak +//;
-     $prototype =~ s/__sched +//;
-+    $prototype =~ s/_noprof//;
-     $prototype =~ s/__printf\s*\(\s*\d*\s*,\s*\d*\s*\) +//;
-     $prototype =~ s/__(?:re)?alloc_size\s*\(\s*\d+\s*(?:,\s*\d+\s*)?\) +//;
-     $prototype =~ s/__diagnose_as\s*\(\s*\S+\s*(?:,\s*\d+\s*)*\) +//;
+--- a/arch/alpha/lib/checksum.c~fix-missing-vmalloch-includes
++++ a/arch/alpha/lib/checksum.c
+@@ -14,6 +14,7 @@
+ #include <linux/string.h>
+ 
+ #include <asm/byteorder.h>
++#include <asm/checksum.h>
+ 
+ static inline unsigned short from64to16(unsigned long x)
+ {
+--- a/arch/alpha/lib/fpreg.c~fix-missing-vmalloch-includes
++++ a/arch/alpha/lib/fpreg.c
+@@ -8,6 +8,7 @@
+ #include <linux/compiler.h>
+ #include <linux/export.h>
+ #include <linux/preempt.h>
++#include <asm/fpu.h>
+ #include <asm/thread_info.h>
+ 
+ #if defined(CONFIG_ALPHA_EV6) || defined(CONFIG_ALPHA_EV67)
+--- a/arch/arc/include/asm/mmu-arcv2.h~fix-missing-vmalloch-includes
++++ a/arch/arc/include/asm/mmu-arcv2.h
+@@ -9,6 +9,8 @@
+ #ifndef _ASM_ARC_MMU_ARCV2_H
+ #define _ASM_ARC_MMU_ARCV2_H
+ 
++#include <soc/arc/aux.h>
++
+ /*
+  * TLB Management regs
+  */
+--- a/arch/arm64/kernel/efi.c~fix-missing-vmalloch-includes
++++ a/arch/arm64/kernel/efi.c
+@@ -10,6 +10,7 @@
+ #include <linux/efi.h>
+ #include <linux/init.h>
+ #include <linux/screen_info.h>
++#include <linux/vmalloc.h>
+ 
+ #include <asm/efi.h>
+ #include <asm/stacktrace.h>
+--- a/arch/arm/kernel/irq.c~fix-missing-vmalloch-includes
++++ a/arch/arm/kernel/irq.c
+@@ -32,6 +32,7 @@
+ #include <linux/kallsyms.h>
+ #include <linux/proc_fs.h>
+ #include <linux/export.h>
++#include <linux/vmalloc.h>
+ 
+ #include <asm/hardware/cache-l2x0.h>
+ #include <asm/hardware/cache-uniphier.h>
+--- a/arch/arm/kernel/traps.c~fix-missing-vmalloch-includes
++++ a/arch/arm/kernel/traps.c
+@@ -26,6 +26,7 @@
+ #include <linux/sched/debug.h>
+ #include <linux/sched/task_stack.h>
+ #include <linux/irq.h>
++#include <linux/vmalloc.h>
+ 
+ #include <linux/atomic.h>
+ #include <asm/cacheflush.h>
+--- a/arch/loongarch/include/asm/kfence.h~fix-missing-vmalloch-includes
++++ a/arch/loongarch/include/asm/kfence.h
+@@ -10,6 +10,7 @@
+ #define _ASM_LOONGARCH_KFENCE_H
+ 
+ #include <linux/kfence.h>
++#include <linux/vmalloc.h>
+ #include <asm/pgtable.h>
+ #include <asm/tlb.h>
+ 
+--- a/arch/powerpc/kernel/iommu.c~fix-missing-vmalloch-includes
++++ a/arch/powerpc/kernel/iommu.c
+@@ -26,6 +26,7 @@
+ #include <linux/iommu.h>
+ #include <linux/sched.h>
+ #include <linux/debugfs.h>
++#include <linux/vmalloc.h>
+ #include <asm/io.h>
+ #include <asm/iommu.h>
+ #include <asm/pci-bridge.h>
+--- a/arch/powerpc/mm/mem.c~fix-missing-vmalloch-includes
++++ a/arch/powerpc/mm/mem.c
+@@ -16,6 +16,7 @@
+ #include <linux/highmem.h>
+ #include <linux/suspend.h>
+ #include <linux/dma-direct.h>
++#include <linux/vmalloc.h>
+ 
+ #include <asm/swiotlb.h>
+ #include <asm/machdep.h>
+--- a/arch/riscv/kernel/elf_kexec.c~fix-missing-vmalloch-includes
++++ a/arch/riscv/kernel/elf_kexec.c
+@@ -19,6 +19,7 @@
+ #include <linux/libfdt.h>
+ #include <linux/types.h>
+ #include <linux/memblock.h>
++#include <linux/vmalloc.h>
+ #include <asm/setup.h>
+ 
+ int arch_kimage_file_post_load_cleanup(struct kimage *image)
+--- a/arch/riscv/kernel/probes/kprobes.c~fix-missing-vmalloch-includes
++++ a/arch/riscv/kernel/probes/kprobes.c
+@@ -6,6 +6,7 @@
+ #include <linux/extable.h>
+ #include <linux/slab.h>
+ #include <linux/stop_machine.h>
++#include <linux/vmalloc.h>
+ #include <asm/ptrace.h>
+ #include <linux/uaccess.h>
+ #include <asm/sections.h>
+--- a/arch/s390/kernel/cert_store.c~fix-missing-vmalloch-includes
++++ a/arch/s390/kernel/cert_store.c
+@@ -21,6 +21,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/slab.h>
+ #include <linux/sysfs.h>
++#include <linux/vmalloc.h>
+ #include <crypto/sha2.h>
+ #include <keys/user-type.h>
+ #include <asm/debug.h>
+--- a/arch/s390/kernel/ipl.c~fix-missing-vmalloch-includes
++++ a/arch/s390/kernel/ipl.c
+@@ -20,6 +20,7 @@
+ #include <linux/gfp.h>
+ #include <linux/crash_dump.h>
+ #include <linux/debug_locks.h>
++#include <linux/vmalloc.h>
+ #include <asm/asm-extable.h>
+ #include <asm/diag.h>
+ #include <asm/ipl.h>
+--- a/arch/x86/include/asm/io.h~fix-missing-vmalloch-includes
++++ a/arch/x86/include/asm/io.h
+@@ -42,6 +42,7 @@
+ #include <asm/early_ioremap.h>
+ #include <asm/pgtable_types.h>
+ #include <asm/shared/io.h>
++#include <asm/special_insns.h>
+ 
+ #define build_mmio_read(name, size, type, reg, barrier) \
+ static inline type name(const volatile void __iomem *addr) \
+--- a/arch/x86/kernel/cpu/sgx/main.c~fix-missing-vmalloch-includes
++++ a/arch/x86/kernel/cpu/sgx/main.c
+@@ -13,6 +13,7 @@
+ #include <linux/sched/signal.h>
+ #include <linux/slab.h>
+ #include <linux/sysfs.h>
++#include <linux/vmalloc.h>
+ #include <asm/sgx.h>
+ #include "driver.h"
+ #include "encl.h"
+--- a/arch/x86/kernel/irq_64.c~fix-missing-vmalloch-includes
++++ a/arch/x86/kernel/irq_64.c
+@@ -18,6 +18,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/smp.h>
+ #include <linux/sched/task_stack.h>
++#include <linux/vmalloc.h>
+ 
+ #include <asm/cpu_entry_area.h>
+ #include <asm/softirq_stack.h>
+--- a/arch/x86/mm/fault.c~fix-missing-vmalloch-includes
++++ a/arch/x86/mm/fault.c
+@@ -20,6 +20,7 @@
+ #include <linux/efi.h>			/* efi_crash_gracefully_on_page_fault()*/
+ #include <linux/mm_types.h>
+ #include <linux/mm.h>			/* find_and_lock_vma() */
++#include <linux/vmalloc.h>
+ 
+ #include <asm/cpufeature.h>		/* boot_cpu_has, ...		*/
+ #include <asm/traps.h>			/* dotraplinkage, ...		*/
+--- a/arch/x86/mm/numa_32.c~fix-missing-vmalloch-includes
++++ a/arch/x86/mm/numa_32.c
+@@ -24,6 +24,7 @@
+ 
+ #include <linux/memblock.h>
+ #include <linux/init.h>
++#include <linux/vmalloc.h>
+ #include <asm/pgtable_areas.h>
+ 
+ #include "numa_internal.h"
+--- a/drivers/accel/ivpu/ivpu_mmu_context.c~fix-missing-vmalloch-includes
++++ a/drivers/accel/ivpu/ivpu_mmu_context.c
+@@ -6,6 +6,7 @@
+ #include <linux/bitfield.h>
+ #include <linux/highmem.h>
+ #include <linux/set_memory.h>
++#include <linux/vmalloc.h>
+ 
+ #include <drm/drm_cache.h>
+ 
+--- a/drivers/gpu/drm/gma500/mmu.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/gma500/mmu.c
+@@ -5,6 +5,7 @@
+  **************************************************************************/
+ 
+ #include <linux/highmem.h>
++#include <linux/vmalloc.h>
+ 
+ #include "mmu.h"
+ #include "psb_drv.h"
+--- a/drivers/gpu/drm/i915/gem/i915_gem_pages.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/i915/gem/i915_gem_pages.c
+@@ -5,6 +5,7 @@
+  */
+ 
+ #include <drm/drm_cache.h>
++#include <linux/vmalloc.h>
+ 
+ #include "gt/intel_gt.h"
+ #include "gt/intel_tlb.h"
+--- a/drivers/gpu/drm/i915/gem/selftests/mock_dmabuf.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/i915/gem/selftests/mock_dmabuf.c
+@@ -4,6 +4,7 @@
+  * Copyright © 2016 Intel Corporation
+  */
+ 
++#include <linux/vmalloc.h>
+ #include "mock_dmabuf.h"
+ 
+ static struct sg_table *mock_map_dma_buf(struct dma_buf_attachment *attachment,
+--- a/drivers/gpu/drm/i915/gt/shmem_utils.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/i915/gt/shmem_utils.c
+@@ -7,6 +7,7 @@
+ #include <linux/mm.h>
+ #include <linux/pagemap.h>
+ #include <linux/shmem_fs.h>
++#include <linux/vmalloc.h>
+ 
+ #include "i915_drv.h"
+ #include "gem/i915_gem_object.h"
+--- a/drivers/gpu/drm/i915/gvt/firmware.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/i915/gvt/firmware.c
+@@ -30,6 +30,7 @@
+ 
+ #include <linux/firmware.h>
+ #include <linux/crc32.h>
++#include <linux/vmalloc.h>
+ 
+ #include "i915_drv.h"
+ #include "gvt.h"
+--- a/drivers/gpu/drm/i915/gvt/gtt.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/i915/gvt/gtt.c
+@@ -39,6 +39,7 @@
+ #include "trace.h"
+ 
+ #include "gt/intel_gt_regs.h"
++#include <linux/vmalloc.h>
+ 
+ #if defined(VERBOSE_DEBUG)
+ #define gvt_vdbg_mm(fmt, args...) gvt_dbg_mm(fmt, ##args)
+--- a/drivers/gpu/drm/i915/gvt/handlers.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/i915/gvt/handlers.c
+@@ -52,6 +52,7 @@
+ #include "display/skl_watermark_regs.h"
+ #include "display/vlv_dsi_pll_regs.h"
+ #include "gt/intel_gt_regs.h"
++#include <linux/vmalloc.h>
+ 
+ /* XXX FIXME i915 has changed PP_XXX definition */
+ #define PCH_PP_STATUS  _MMIO(0xc7200)
+--- a/drivers/gpu/drm/i915/gvt/mmio.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/i915/gvt/mmio.c
+@@ -33,6 +33,7 @@
+  *
+  */
+ 
++#include <linux/vmalloc.h>
+ #include "i915_drv.h"
+ #include "i915_reg.h"
+ #include "gvt.h"
+--- a/drivers/gpu/drm/i915/gvt/vgpu.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/i915/gvt/vgpu.c
+@@ -34,6 +34,7 @@
+ #include "i915_drv.h"
+ #include "gvt.h"
+ #include "i915_pvinfo.h"
++#include <linux/vmalloc.h>
+ 
+ void populate_pvinfo_page(struct intel_vgpu *vgpu)
+ {
+--- a/drivers/gpu/drm/i915/intel_gvt.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/i915/intel_gvt.c
+@@ -28,6 +28,7 @@
+ #include "gt/intel_context.h"
+ #include "gt/intel_ring.h"
+ #include "gt/shmem_utils.h"
++#include <linux/vmalloc.h>
+ 
+ /**
+  * DOC: Intel GVT-g host support
+--- a/drivers/gpu/drm/imagination/pvr_vm_mips.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/imagination/pvr_vm_mips.c
+@@ -14,6 +14,7 @@
+ #include <linux/err.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
++#include <linux/vmalloc.h>
+ 
+ /**
+  * pvr_vm_mips_init() - Initialise MIPS FW pagetable
+--- a/drivers/gpu/drm/mediatek/mtk_drm_gem.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/mediatek/mtk_drm_gem.c
+@@ -4,6 +4,7 @@
+  */
+ 
+ #include <linux/dma-buf.h>
++#include <linux/vmalloc.h>
+ 
+ #include <drm/drm.h>
+ #include <drm/drm_device.h>
+--- a/drivers/gpu/drm/omapdrm/omap_gem.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/omapdrm/omap_gem.c
+@@ -9,6 +9,7 @@
+ #include <linux/shmem_fs.h>
+ #include <linux/spinlock.h>
+ #include <linux/pfn_t.h>
++#include <linux/vmalloc.h>
+ 
+ #include <drm/drm_prime.h>
+ #include <drm/drm_vma_manager.h>
+--- a/drivers/gpu/drm/v3d/v3d_bo.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/v3d/v3d_bo.c
+@@ -21,6 +21,7 @@
+ 
+ #include <linux/dma-buf.h>
+ #include <linux/pfn_t.h>
++#include <linux/vmalloc.h>
+ 
+ #include "v3d_drv.h"
+ #include "uapi/drm/v3d_drm.h"
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_binding.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_binding.c
+@@ -54,6 +54,7 @@
+ #include "vmwgfx_drv.h"
+ #include "vmwgfx_binding.h"
+ #include "device_include/svga3d_reg.h"
++#include <linux/vmalloc.h>
+ 
+ #define VMW_BINDING_RT_BIT     0
+ #define VMW_BINDING_PS_BIT     1
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_cmd.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_cmd.c
+@@ -31,6 +31,7 @@
+ #include <drm/ttm/ttm_placement.h>
+ 
+ #include <linux/sched/signal.h>
++#include <linux/vmalloc.h>
+ 
+ bool vmw_supports_3d(struct vmw_private *dev_priv)
+ {
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_devcaps.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_devcaps.c
+@@ -25,6 +25,7 @@
+  *
+  **************************************************************************/
+ 
++#include <linux/vmalloc.h>
+ #include "vmwgfx_devcaps.h"
+ 
+ #include "vmwgfx_drv.h"
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.c
+@@ -53,6 +53,7 @@
+ #include <linux/module.h>
+ #include <linux/pci.h>
+ #include <linux/version.h>
++#include <linux/vmalloc.h>
+ 
+ #define VMWGFX_DRIVER_DESC "Linux drm driver for VMware graphics devices"
+ 
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
+@@ -35,6 +35,7 @@
+ 
+ #include <linux/sync_file.h>
+ #include <linux/hashtable.h>
++#include <linux/vmalloc.h>
+ 
+ /*
+  * Helper macro to get dx_ctx_node if available otherwise print an error
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_ioctl.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_ioctl.c
+@@ -31,6 +31,7 @@
+ 
+ #include <drm/vmwgfx_drm.h>
+ #include <linux/pci.h>
++#include <linux/vmalloc.h>
+ 
+ int vmw_getparam_ioctl(struct drm_device *dev, void *data,
+ 		       struct drm_file *file_priv)
+--- a/drivers/gpu/drm/xen/xen_drm_front_gem.c~fix-missing-vmalloch-includes
++++ a/drivers/gpu/drm/xen/xen_drm_front_gem.c
+@@ -11,6 +11,7 @@
+ #include <linux/dma-buf.h>
+ #include <linux/scatterlist.h>
+ #include <linux/shmem_fs.h>
++#include <linux/vmalloc.h>
+ 
+ #include <drm/drm_gem.h>
+ #include <drm/drm_prime.h>
+--- a/drivers/hwtracing/coresight/coresight-trbe.c~fix-missing-vmalloch-includes
++++ a/drivers/hwtracing/coresight/coresight-trbe.c
+@@ -17,6 +17,7 @@
+ 
+ #include <asm/barrier.h>
+ #include <asm/cpufeature.h>
++#include <linux/vmalloc.h>
+ 
+ #include "coresight-self-hosted-trace.h"
+ #include "coresight-trbe.h"
+--- a/drivers/net/ethernet/marvell/octeon_ep/octep_pfvf_mbox.c~fix-missing-vmalloch-includes
++++ a/drivers/net/ethernet/marvell/octeon_ep/octep_pfvf_mbox.c
+@@ -15,6 +15,7 @@
+ #include <linux/io.h>
+ #include <linux/pci.h>
+ #include <linux/etherdevice.h>
++#include <linux/vmalloc.h>
+ 
+ #include "octep_config.h"
+ #include "octep_main.h"
+--- a/drivers/net/ethernet/marvell/octeon_ep_vf/octep_vf_mbox.c~fix-missing-vmalloch-includes
++++ a/drivers/net/ethernet/marvell/octeon_ep_vf/octep_vf_mbox.c
+@@ -7,6 +7,7 @@
+ #include <linux/types.h>
+ #include <linux/pci.h>
+ #include <linux/netdevice.h>
++#include <linux/vmalloc.h>
+ #include "octep_vf_config.h"
+ #include "octep_vf_main.h"
+ 
+--- a/drivers/net/ethernet/microsoft/mana/hw_channel.c~fix-missing-vmalloch-includes
++++ a/drivers/net/ethernet/microsoft/mana/hw_channel.c
+@@ -3,6 +3,7 @@
+ 
+ #include <net/mana/gdma.h>
+ #include <net/mana/hw_channel.h>
++#include <linux/vmalloc.h>
+ 
+ static int mana_hwc_get_msg_index(struct hw_channel_context *hwc, u16 *msg_id)
+ {
+--- a/drivers/platform/x86/uv_sysfs.c~fix-missing-vmalloch-includes
++++ a/drivers/platform/x86/uv_sysfs.c
+@@ -11,6 +11,7 @@
+ #include <linux/device.h>
+ #include <linux/slab.h>
+ #include <linux/kobject.h>
++#include <linux/vmalloc.h>
+ #include <asm/uv/bios.h>
+ #include <asm/uv/uv.h>
+ #include <asm/uv/uv_hub.h>
+--- a/drivers/scsi/mpi3mr/mpi3mr_transport.c~fix-missing-vmalloch-includes
++++ a/drivers/scsi/mpi3mr/mpi3mr_transport.c
+@@ -7,6 +7,8 @@
+  *
+  */
+ 
++#include <linux/vmalloc.h>
++
+ #include "mpi3mr.h"
+ 
+ /**
+--- a/drivers/vfio/pci/pds/dirty.c~fix-missing-vmalloch-includes
++++ a/drivers/vfio/pci/pds/dirty.c
+@@ -3,6 +3,7 @@
+ 
+ #include <linux/interval_tree.h>
+ #include <linux/vfio.h>
++#include <linux/vmalloc.h>
+ 
+ #include <linux/pds/pds_common.h>
+ #include <linux/pds/pds_core_if.h>
+--- a/drivers/virt/acrn/mm.c~fix-missing-vmalloch-includes
++++ a/drivers/virt/acrn/mm.c
+@@ -12,6 +12,7 @@
+ #include <linux/io.h>
+ #include <linux/mm.h>
+ #include <linux/slab.h>
++#include <linux/vmalloc.h>
+ 
+ #include "acrn_drv.h"
+ 
+--- a/drivers/virtio/virtio_mem.c~fix-missing-vmalloch-includes
++++ a/drivers/virtio/virtio_mem.c
+@@ -21,6 +21,7 @@
+ #include <linux/bitmap.h>
+ #include <linux/lockdep.h>
+ #include <linux/log2.h>
++#include <linux/vmalloc.h>
+ 
+ #include <acpi/acpi_numa.h>
+ 
+--- a/include/asm-generic/io.h~fix-missing-vmalloch-includes
++++ a/include/asm-generic/io.h
+@@ -9,6 +9,7 @@
+ 
+ #include <asm/page.h> /* I/O is all done through memory accesses */
+ #include <linux/string.h> /* for memset() and memcpy() */
++#include <linux/sizes.h>
+ #include <linux/types.h>
+ #include <linux/instruction_pointer.h>
+ 
+--- a/include/linux/io.h~fix-missing-vmalloch-includes
++++ a/include/linux/io.h
+@@ -6,6 +6,7 @@
+ #ifndef _LINUX_IO_H
+ #define _LINUX_IO_H
+ 
++#include <linux/sizes.h>
+ #include <linux/types.h>
+ #include <linux/init.h>
+ #include <linux/bug.h>
+--- a/include/linux/pds/pds_common.h~fix-missing-vmalloch-includes
++++ a/include/linux/pds/pds_common.h
+@@ -4,6 +4,8 @@
+ #ifndef _PDS_COMMON_H_
+ #define _PDS_COMMON_H_
+ 
++#include <linux/notifier.h>
++
+ #define PDS_CORE_DRV_NAME			"pds_core"
+ 
+ /* the device's internal addressing uses up to 52 bits */
+--- a/include/rdma/rdmavt_qp.h~fix-missing-vmalloch-includes
++++ a/include/rdma/rdmavt_qp.h
+@@ -11,6 +11,7 @@
+ #include <rdma/ib_verbs.h>
+ #include <rdma/rdmavt_cq.h>
+ #include <rdma/rvt-abi.h>
++#include <linux/vmalloc.h>
+ /*
+  * Atomic bit definitions for r_aflags.
+  */
+--- a/mm/debug_vm_pgtable.c~fix-missing-vmalloch-includes
++++ a/mm/debug_vm_pgtable.c
+@@ -30,6 +30,7 @@
+ #include <linux/start_kernel.h>
+ #include <linux/sched/mm.h>
+ #include <linux/io.h>
++#include <linux/vmalloc.h>
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/pgalloc.h>
+--- a/mm/kasan/hw_tags.c~fix-missing-vmalloch-includes
++++ a/mm/kasan/hw_tags.c
+@@ -16,6 +16,7 @@
+ #include <linux/static_key.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
++#include <linux/vmalloc.h>
+ 
+ #include "kasan.h"
+ 
+--- a/sound/pci/hda/cs35l41_hda.c~fix-missing-vmalloch-includes
++++ a/sound/pci/hda/cs35l41_hda.c
+@@ -13,6 +13,7 @@
+ #include <sound/soc.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/spi/spi.h>
++#include <linux/vmalloc.h>
+ #include "hda_local.h"
+ #include "hda_auto_parser.h"
+ #include "hda_jack.h"
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from kent.overstreet@linux.dev are
 
 
