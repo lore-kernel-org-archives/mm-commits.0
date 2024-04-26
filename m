@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05D38EBE
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:03:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7885E74E0C
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:03:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714100589; cv=none; b=lyxMKGDGBvVhynEXOar5UW8f3bwquGqrscfpsAxMBGgRCfLk37xCVwwz5abV8+QQbflxQUVSnkChK4ajnD0jak93SEvwo0oxH+nwvz6UO/KDqvz+0uqCJMvzr4unCYISL9smKmc7RRKBxkVIqc9OKy/H7jSk69K/HtSa/PYmijU=
+	t=1714100617; cv=none; b=kC9pUqIKtAFArTWyTNBUBjGVFG6XyCYOKmuMFDXUmFR+z98CQmY0PBST/v9xyh3Ha9DhiIT/u9XnotAlVHgApbkTZhjpkCoOFMrMKSLYHSkaYgJr0WiZ73vkgwGLwECqL8xJi2m2qIpAbC+lcF6Lbi01+XXpGNAsCVNumBex3m4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714100589; c=relaxed/simple;
-	bh=SXeTIufNkqjtuMBubRAkCEVLPnkp6tW8ZEQIN3nOSZE=;
-	h=Date:To:From:Subject:Message-Id; b=BFj02zV46j0mrniraQ8KM25TWTaoggML1D8cSumDk5ojOlgrVjMVxlG1iXP9QhoknGx1ZNy6gS+XTpi1Z0rErG7p1CEhS5fmzAcC/BSMCTDrFqpbSx/ToYencrwiplcBP3jccebtuLk/V+1LhTvRBd/pb0hTnDYw6l7RJgGDUN8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sPxWgzIn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714100617; c=relaxed/simple;
+	bh=rSEatG+BFiRYnP+KWh/IDuyGFXBecV722vnv5H0dyPY=;
+	h=Date:To:From:Subject:Message-Id; b=kgF57ZbGd4JnclwvK/uNC+87QxuqnBfdyZBDQLFPOtPLdtrbL2bW+2orCmXWtEDZxomoKUZsFGdRJWSvDbU+0511OqhJURvq7fqtFQOdPvBDqzMdpjMugQ4EsHP6h6ht2Dxe3dSupxzwDwrTlVouZuzVGJenhkOAYObdj1vCHWE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=As/S2R1z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sPxWgzIn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C91EC113CC;
-	Fri, 26 Apr 2024 03:03:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="As/S2R1z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4EE5C2BBFC;
+	Fri, 26 Apr 2024 03:03:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714100588;
-	bh=SXeTIufNkqjtuMBubRAkCEVLPnkp6tW8ZEQIN3nOSZE=;
+	s=korg; t=1714100616;
+	bh=rSEatG+BFiRYnP+KWh/IDuyGFXBecV722vnv5H0dyPY=;
 	h=Date:To:From:Subject:From;
-	b=sPxWgzInwqpNHOtv7CwNekpvRMgKX6oRUVbfVZPu6R61kO0+HXNhVU09nd/t1kdFo
-	 glV5Z3wgvcgE+Q4VmGmQ1TkLKR7a0SCz+Nzji2BTxNEBqaZN+WzGbSug1cbZckkkxx
-	 X3+Kd00HHVo+PsjrzZuKntJuPaClYDTPZJ2I0Fl0=
-Date: Thu, 25 Apr 2024 20:03:07 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=As/S2R1ztgd7CdJFCKw/taNJlMjvGjeyWkhnG5A9Kswn3MftuEv8ieQHiR1aK0TUT
+	 4zUtL10PA7jCx56vX683vUzT+DsThtzEZH2uqAXjsDa+w/YS/nFk//TPrwQliJPJ9e
+	 UfZFpKu0COOjZH29uKviT49Of9osMsSBCMI3ObV0=
+Date: Thu, 25 Apr 2024 20:03:36 -0700
+To: mm-commits@vger.kernel.org,aneesh.kumar@kernel.org,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries-fix.patch removed from -mm tree
-Message-Id: <20240426030308.5C91EC113CC@smtp.kernel.org>
+Subject: [folded-merged] mm-mempolicy-use-numa_node_id-instead-of-cpu_to_node-v3.patch removed from -mm tree
+Message-Id: <20240426030336.D4EE5C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries-fix
+     Subject: mm-mempolicy-use-numa_node_id-instead-of-cpu_to_node-v3
 has been removed from the -mm tree.  Its filename was
-     mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries-fix.patch
+     mm-mempolicy-use-numa_node_id-instead-of-cpu_to_node-v3.patch
 
-This patch was dropped because it was folded into mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
+This patch was dropped because it was folded into mm-mempolicy-use-numa_node_id-instead-of-cpu_to_node.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries-fix
-Date: Tue Mar 19 02:14:43 PM PDT 2024
+From: Donet Tom <donettom@linux.ibm.com>
+Subject: mm-mempolicy-use-numa_node_id-instead-of-cpu_to_node-v3
+Date: Thu, 21 Mar 2024 06:29:50 -0500
 
-s/;;/;/, per Muchun
+add "* @vmf: structure describing the fault" comment for mpol_misplaced()
+to fix the warning.  
 
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/d8b993ea9dccfac0bc3ed61d3a81f4ac5f376e46.1711002865.git.donettom@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V (IBM) <aneesh.kumar@kernel.org>
+Signed-off-by: Donet Tom <donettom@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/mm/hugetlbpage.c |    2 +-
+ mm/mempolicy.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/sparc/mm/hugetlbpage.c~mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries-fix
-+++ a/arch/sparc/mm/hugetlbpage.c
-@@ -409,7 +409,7 @@ pte_t huge_ptep_get_and_clear(struct mm_
- 
- int pmd_huge(pmd_t pmd)
- {
--	return pmd_leaf(pmd);;
-+	return pmd_leaf(pmd);
- }
- 
- int pud_huge(pud_t pud)
+--- a/mm/mempolicy.c~mm-mempolicy-use-numa_node_id-instead-of-cpu_to_node-v3
++++ a/mm/mempolicy.c
+@@ -2718,7 +2718,7 @@ static void sp_free(struct sp_node *n)
+  * mpol_misplaced - check whether current folio node is valid in policy
+  *
+  * @folio: folio to be checked
+- * @vma: vm area where folio mapped
++ * @vmf: structure describing the fault
+  * @addr: virtual address in @vma for shared policy lookup and interleave policy
+  *
+  * Lookup current policy node id for vma,addr and "compare to" folio's
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from donettom@linux.ibm.com are
 
-mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-hold-ptl-from-the-first-pte-while-reclaiming-a-large-folio-fix.patch
-sh-remove-use-of-pg_arch_1-on-individual-pages-fix.patch
-mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing-fix.patch
-mm-allow-anon-exclusive-check-over-hugetlb-tail-pages-fix.patch
-arm-mm-drop-vm_fault_badmap-vm_fault_badaccess-checkpatch-fixes.patch
-mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios-fix.patch
-__mod_memcg_lruvec_state-enhance-diagnostics.patch
-__mod_memcg_lruvec_state-enhance-diagnostics-fix.patch
-binfmt_elf_fdpic-fix-proc-pid-auxv-checkpatch-fixes.patch
+mm-mempolicy-use-numa_node_id-instead-of-cpu_to_node.patch
+mm-numa_balancing-allow-migrate-on-protnone-reference-with-mpol_preferred_many-policy.patch
 
