@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DF7D7EF0C
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CE907EEE3
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104017; cv=none; b=NpW1pQ2v1WeGARLi5xXgbovOvX4FC7G9/LuDbnCf13bngA5I8tc3APV/i3XiD+EB0Ip1+qXUbHDehlPQMk2DIV5dz27F1rg2XDjYpJ96jeIbXg/pFvgPS4m2YdEcgONQmzgGj8fly14SxVfebkVs5KOFw+Q7qVa2ns+zGPYv94A=
+	t=1714104018; cv=none; b=ZphpbRQhIc7gviy7y0hGc6feroU8UtvbDal226LAQLJQJjE8oWBFkzz8R8y6uRLwhULBVIqNPBw6oJ5fAieZ3k5vm1rfcqTLpIXuY4ufHuIA0qu5uWUheGcxn+bwz3/Yzx2DwZPZGRz9gQAJeb47lrVqNIE9KbYL+W4ptvG9C0o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104017; c=relaxed/simple;
-	bh=iUEhsdG1HmB54okL4xcxHWxXf7A546MedYhKpsfJzVM=;
-	h=Date:To:From:Subject:Message-Id; b=AigwsMC23tOsA8jFJeXt8mKyeuAW0fPinzZb0PuBoD/VJhR5+zcVCmX4fsM2sCQ6Gufw1dyq7LWevIOOJ/rGM8n2zWPNaM+pgKAIae5aQxwdvcz2QxC4L+aEJXVv2+49KFYt329ZKt+S/aoRi7Z/po/DV5K5aA/jZrZQoWxeryU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sfNhRU7R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104018; c=relaxed/simple;
+	bh=uZEFjw4tUUaXNxf6cL9n5yV+QtzQFgjNqbORn+0/CHw=;
+	h=Date:To:From:Subject:Message-Id; b=sSBmiyRimOjhkFL3fEH88FBoREbPw7usAXJ+RScNZfNbYAiUkKP1Ph0EW0PM0TT8vxXahfUIv1DVRtJk8efwq747ITxVERIrI5YK3xn+98w81O2C9k0kQo2MjwYpEPLlS+BmTFRHNgoO/LtMjY/FS2I5WxjgCB1D0nd2HkuJueE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dVb96hRt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sfNhRU7R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35AF2C113CD;
-	Fri, 26 Apr 2024 04:00:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dVb96hRt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31C8BC113CD;
+	Fri, 26 Apr 2024 04:00:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104017;
-	bh=iUEhsdG1HmB54okL4xcxHWxXf7A546MedYhKpsfJzVM=;
+	s=korg; t=1714104018;
+	bh=uZEFjw4tUUaXNxf6cL9n5yV+QtzQFgjNqbORn+0/CHw=;
 	h=Date:To:From:Subject:From;
-	b=sfNhRU7Rc7NtSOXLEQoHrF/LFLzz0Uhv+ZBbZq73Bs2J2XED2965AOfN7vyGzqEnF
-	 uvXpajmZldjC1Zv7fCt4N+YhzbKuV70ZN7n9NJB5KBy2wU3w5Josy6rdTKeYrFxlTP
-	 pf9Tgh93bsn5adWJo5cQkPvLWR684BEXHYTdTco0=
-Date: Thu, 25 Apr 2024 21:00:16 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=dVb96hRtM+9qcNDrQGdVhZzKjia25GlXS8jLkjyqystApTVUMpkCIUZQ4pnUFvNsz
+	 Rd/+313VKWCKDsSG78a1kfWLbsA7ClX9AfNc7uKn1QA62Z3ZkWxAuJHaEYaf1zOBFr
+	 qR98acyumSaN8pAjWZJcTTEqxFT3hPKOWNkkc8NE=
+Date: Thu, 25 Apr 2024 21:00:17 -0700
+To: mm-commits@vger.kernel.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-make-is_free_buddy_page-take-a-const-argument.patch removed from -mm tree
-Message-Id: <20240426040017.35AF2C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-make-page_mapped-take-a-const-argument.patch removed from -mm tree
+Message-Id: <20240426040018.31C8BC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,64 +35,128 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: make is_free_buddy_page() take a const argument
+     Subject: mm: make page_mapped() take a const argument
 has been removed from the -mm tree.  Its filename was
-     mm-make-is_free_buddy_page-take-a-const-argument.patch
+     mm-make-page_mapped-take-a-const-argument.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: make is_free_buddy_page() take a const argument
-Date: Tue, 26 Mar 2024 17:10:27 +0000
+Subject: mm: make page_mapped() take a const argument
+Date: Tue, 26 Mar 2024 17:10:28 +0000
 
-This function does not modify its argument; let the callers know that so
-they can make better optimisation decisions.
+None of the functions called by page_mapped() modify the page or folio, so
+mark them all as const.
 
-Link: https://lkml.kernel.org/r/20240326171045.410737-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240326171045.410737-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    2 +-
- mm/page_alloc.c            |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ include/linux/mm.h |   12 ++++++------
+ mm/internal.h      |    7 ++++---
+ mm/rmap.c          |    2 +-
+ 3 files changed, 11 insertions(+), 10 deletions(-)
 
---- a/include/linux/page-flags.h~mm-make-is_free_buddy_page-take-a-const-argument
-+++ a/include/linux/page-flags.h
-@@ -1088,7 +1088,7 @@ static inline bool is_page_hwpoison(cons
- 	return folio_test_hugetlb(folio) && PageHWPoison(&folio->page);
+--- a/include/linux/mm.h~mm-make-page_mapped-take-a-const-argument
++++ a/include/linux/mm.h
+@@ -1200,7 +1200,7 @@ static inline int is_vmalloc_or_module_a
+  * debugging purposes - it does not include PTE-mapped sub-pages; look
+  * at folio_mapcount() or page_mapcount() instead.
+  */
+-static inline int folio_entire_mapcount(struct folio *folio)
++static inline int folio_entire_mapcount(const struct folio *folio)
+ {
+ 	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
+ 	return atomic_read(&folio->_entire_mapcount) + 1;
+@@ -1240,7 +1240,7 @@ static inline int page_mapcount(struct p
+ 	return mapcount;
  }
  
--extern bool is_free_buddy_page(struct page *page);
-+bool is_free_buddy_page(const struct page *page);
+-int folio_total_mapcount(struct folio *folio);
++int folio_total_mapcount(const struct folio *folio);
  
- PAGEFLAG(Isolated, isolated, PF_ANY);
- 
---- a/mm/page_alloc.c~mm-make-is_free_buddy_page-take-a-const-argument
-+++ a/mm/page_alloc.c
-@@ -6745,16 +6745,16 @@ void __offline_isolated_pages(unsigned l
- /*
-  * This function returns a stable result only if called under zone lock.
+ /**
+  * folio_mapcount() - Calculate the number of mappings of this folio.
+@@ -1253,14 +1253,14 @@ int folio_total_mapcount(struct folio *f
+  *
+  * Return: The number of times this folio is mapped.
   */
--bool is_free_buddy_page(struct page *page)
-+bool is_free_buddy_page(const struct page *page)
+-static inline int folio_mapcount(struct folio *folio)
++static inline int folio_mapcount(const struct folio *folio)
  {
- 	unsigned long pfn = page_to_pfn(page);
- 	unsigned int order;
+ 	if (likely(!folio_test_large(folio)))
+ 		return atomic_read(&folio->_mapcount) + 1;
+ 	return folio_total_mapcount(folio);
+ }
  
- 	for (order = 0; order < NR_PAGE_ORDERS; order++) {
--		struct page *page_head = page - (pfn & ((1 << order) - 1));
-+		const struct page *head = page - (pfn & ((1 << order) - 1));
+-static inline bool folio_large_is_mapped(struct folio *folio)
++static inline bool folio_large_is_mapped(const struct folio *folio)
+ {
+ 	/*
+ 	 * Reading _entire_mapcount below could be omitted if hugetlb
+@@ -1288,7 +1288,7 @@ static inline bool folio_mapped(struct f
+  * For compound page it returns true if any sub-page of compound page is mapped,
+  * even if this particular sub-page is not itself mapped by any PTE or PMD.
+  */
+-static inline bool page_mapped(struct page *page)
++static inline bool page_mapped(const struct page *page)
+ {
+ 	if (likely(!PageCompound(page)))
+ 		return atomic_read(&page->_mapcount) >= 0;
+@@ -2070,7 +2070,7 @@ static inline void set_page_links(struct
+  *
+  * Return: A positive power of two.
+  */
+-static inline long folio_nr_pages(struct folio *folio)
++static inline long folio_nr_pages(const struct folio *folio)
+ {
+ 	if (!folio_test_large(folio))
+ 		return 1;
+--- a/mm/internal.h~mm-make-page_mapped-take-a-const-argument
++++ a/mm/internal.h
+@@ -71,7 +71,7 @@ void page_writeback_init(void);
+  * How many individual pages have an elevated _mapcount.  Excludes
+  * the folio's entire_mapcount.
+  */
+-static inline int folio_nr_pages_mapped(struct folio *folio)
++static inline int folio_nr_pages_mapped(const struct folio *folio)
+ {
+ 	return atomic_read(&folio->_nr_pages_mapped) & FOLIO_PAGES_MAPPED;
+ }
+@@ -81,7 +81,8 @@ static inline int folio_nr_pages_mapped(
+  * folio. We cannot rely on folio->swap as there is no guarantee that it has
+  * been initialized. Used for calling arch_swap_restore()
+  */
+-static inline swp_entry_t folio_swap(swp_entry_t entry, struct folio *folio)
++static inline swp_entry_t folio_swap(swp_entry_t entry,
++		const struct folio *folio)
+ {
+ 	swp_entry_t swap = {
+ 		.val = ALIGN_DOWN(entry.val, folio_nr_pages(folio)),
+@@ -90,7 +91,7 @@ static inline swp_entry_t folio_swap(swp
+ 	return swap;
+ }
  
--		if (PageBuddy(page_head) &&
--		    buddy_order_unsafe(page_head) >= order)
-+		if (PageBuddy(head) &&
-+		    buddy_order_unsafe(head) >= order)
- 			break;
- 	}
+-static inline void *folio_raw_mapping(struct folio *folio)
++static inline void *folio_raw_mapping(const struct folio *folio)
+ {
+ 	unsigned long mapping = (unsigned long)folio->mapping;
  
+--- a/mm/rmap.c~mm-make-page_mapped-take-a-const-argument
++++ a/mm/rmap.c
+@@ -1134,7 +1134,7 @@ int pfn_mkclean_range(unsigned long pfn,
+ 	return page_vma_mkclean_one(&pvmw);
+ }
+ 
+-int folio_total_mapcount(struct folio *folio)
++int folio_total_mapcount(const struct folio *folio)
+ {
+ 	int mapcount = folio_entire_mapcount(folio);
+ 	int nr_pages;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
