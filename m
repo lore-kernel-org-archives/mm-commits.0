@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D30A7E112
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:59:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CFCD7E58C
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:59:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714103998; cv=none; b=izienuNpyazLPOOnl9avjP1FDQhsjooJIFgkblusiP5boCaGdLWUntvqZkZOFNhtgNBE40tlr5B59lrBO1e9ur8ZdFFwT7GJdhH1FzWP7N+G5QbBnS2LyNN0OF4Abi7NxD5J6RdHUkfhMPx2h9/Og4310mkJbuiFexdAOv6O5JE=
+	t=1714103999; cv=none; b=o83k+HknAQuLQXnp3lBQmVmx7gS0EDqmbv+hCXczVghHFG/gPD+9/iefs/4yKcv5qcF4Vmx5EyyZGc4RPFJLlY2pB2x9TVxStqz9w2SPD5USnUC6bM0ZJdenLo7i8T+AtBvxdjfSXKiN6e5rLTIhOV6oGraIU0pk/yJ6xnn82SU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714103998; c=relaxed/simple;
-	bh=SLLrBgNgpC9qbjtRp/s37veOaVZT/Mg6N4DjSjnm7Ko=;
-	h=Date:To:From:Subject:Message-Id; b=m233CT5Di6pHrKd5vyVu7c8wweHRQ+yu9VQrqWKkrgSiFJKVzTGzJeVteCnfClmOW+zMEWThKDtdOwnUj2vq0m+9dK0ucWQbncGL192ruBee+o1yCma4rfMYjg8QPsYdWKW5pmjZB2BK01YcfRUWtOvycO1dKc6gxoCdq5hLwLQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j/mZHrnl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714103999; c=relaxed/simple;
+	bh=cyJCVwk2+/PFyFGCvALTTKMOZ3UZPaj/sDZu2rv8CMg=;
+	h=Date:To:From:Subject:Message-Id; b=QiaH365SzzNTCGMsehlRC5zaotSya427QgJIDctNYXYJ9PL+kiftUrgV1beGTLZAGZjlfitnYPOcMZDA0mLjRdj1Ls5FBYUfYlTVF3jLWkhrKwc/vB78wq05AirhH0C7SqNZsalEMqFvmREYEFrVTzoklNzz6uuht0Nlbg7JLO4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DJ5Ec2jD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j/mZHrnl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01F28C113CD;
-	Fri, 26 Apr 2024 03:59:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DJ5Ec2jD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14F98C116B1;
+	Fri, 26 Apr 2024 03:59:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714103998;
-	bh=SLLrBgNgpC9qbjtRp/s37veOaVZT/Mg6N4DjSjnm7Ko=;
+	s=korg; t=1714103999;
+	bh=cyJCVwk2+/PFyFGCvALTTKMOZ3UZPaj/sDZu2rv8CMg=;
 	h=Date:To:From:Subject:From;
-	b=j/mZHrnlU2/A83xLKm9X+0xuhqrWztGDo4ehflMwmtKlSpuuLjWLjgt6WirTSWsvq
-	 FIKUcUuThLDkp6513s3uhANMNUealuyXtY2VhSbbtMSr+W5XLZdNPobqXiQOS/4gcL
-	 f8Db9ChJysx6OeBLiJjnnfFOmovFYj/dkMVmyNEU=
-Date: Thu, 25 Apr 2024 20:59:57 -0700
+	b=DJ5Ec2jD2cI5yRhhj0kzzS19TaYSwTbvc2ZBlkd8SI2eJO+1VWopyDMgsJ3XvuJ8q
+	 nilrmKCSVpBY7Z/TKqq8A31XNk064AGyhfGY/OTtLh2JLDRQS0q7K4aRf2Ydod8G/m
+	 jOOtBLjCZdHXF81Be4HotuXC0NinM2x6mCSafvAI=
+Date: Thu, 25 Apr 2024 20:59:58 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mm_initc-add-new-function-calc_nr_all_pages.patch removed from -mm tree
-Message-Id: <20240426035958.01F28C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mm_initc-remove-meaningless-calculation-of-zone-managed_pages-in-free_area_init_core.patch removed from -mm tree
+Message-Id: <20240426035959.14F98C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,68 +35,135 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mm_init.c: add new function calc_nr_all_pages()
+     Subject: mm/mm_init.c: remove meaningless calculation of zone->managed_pages in free_area_init_core()
 has been removed from the -mm tree.  Its filename was
-     mm-mm_initc-add-new-function-calc_nr_all_pages.patch
+     mm-mm_initc-remove-meaningless-calculation-of-zone-managed_pages-in-free_area_init_core.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/mm_init.c: add new function calc_nr_all_pages()
-Date: Mon, 25 Mar 2024 22:56:43 +0800
+Subject: mm/mm_init.c: remove meaningless calculation of zone->managed_pages in free_area_init_core()
+Date: Mon, 25 Mar 2024 22:56:44 +0800
 
-This is a preparation to calculate nr_kernel_pages and nr_all_pages, both
-of which will be used later in alloc_large_system_hash().
+Currently, in free_area_init_core(), when initialize zone's field, a rough
+value is set to zone->managed_pages.  That value is calculated by
+(zone->present_pages - memmap_pages).
 
-nr_all_pages counts up all free but not reserved memory in memblock
-allocator, including HIGHMEM memory.  While nr_kernel_pages counts up all
-free but not reserved low memory in memblock allocator, excluding HIGHMEM
-memory.
+In the meantime, add the value to nr_all_pages and nr_kernel_pages which
+represent all free pages of system (only low memory or including HIGHMEM
+memory separately).  Both of them are gonna be used in
+alloc_large_system_hash().
 
-Link: https://lkml.kernel.org/r/20240325145646.1044760-4-bhe@redhat.com
+However, the rough calculation and setting of zone->managed_pages is
+meaningless because
+  a) memmap pages are allocated on units of node in sparse_init() or
+     alloc_node_mem_map(pgdat); The simple (zone->present_pages -
+     memmap_pages) is too rough to make sense for zone;
+  b) the set zone->managed_pages will be zeroed out and reset with
+     acutal value in mem_init() via memblock_free_all(). Before the
+     resetting, no buddy allocation request is issued.
+
+Here, remove the meaningless and complicated calculation of
+(zone->present_pages - memmap_pages), directly set zone->managed_pages as
+zone->present_pages for now.  It will be adjusted in mem_init().
+
+And also remove the assignment of nr_all_pages and nr_kernel_pages in
+free_area_init_core().  Instead, call the newly added
+calc_nr_kernel_pages() to count up all free but not reserved memory in
+memblock and assign to nr_all_pages and nr_kernel_pages.  The counting
+excludes memmap_pages, and other kernel used data, which is more accurate
+than old way and simpler, and can also cover the ppc required
+arch_reserved_kernel_pages() case.
+
+And also clean up the outdated code comment above free_area_init_core(). 
+And free_area_init_core() is easy to understand now, no need to add words
+to explain.
+
+[bhe@redhat.com: initialize zone->managed_pages as zone->present_pages for now]
+  Link: https://lkml.kernel.org/r/ZgU0bsJ2FEjykvju@MiWiFi-R3L-srv
+Link: https://lkml.kernel.org/r/20240325145646.1044760-5-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ mm/mm_init.c |   46 +++++-----------------------------------------
+ 1 file changed, 5 insertions(+), 41 deletions(-)
 
---- a/mm/mm_init.c~mm-mm_initc-add-new-function-calc_nr_all_pages
+--- a/mm/mm_init.c~mm-mm_initc-remove-meaningless-calculation-of-zone-managed_pages-in-free_area_init_core
 +++ a/mm/mm_init.c
-@@ -1265,6 +1265,30 @@ static void __init reset_memoryless_node
- 	pr_debug("On node %d totalpages: 0\n", pgdat->node_id);
+@@ -1566,15 +1566,6 @@ void __ref free_area_init_core_hotplug(s
  }
+ #endif
  
-+static void __init calc_nr_kernel_pages(void)
-+{
-+	unsigned long start_pfn, end_pfn;
-+	phys_addr_t start_addr, end_addr;
-+	u64 u;
-+#ifdef CONFIG_HIGHMEM
-+	unsigned long high_zone_low = arch_zone_lowest_possible_pfn[ZONE_HIGHMEM];
-+#endif
-+
-+	for_each_free_mem_range(u, NUMA_NO_NODE, MEMBLOCK_NONE, &start_addr, &end_addr, NULL) {
-+		start_pfn = PFN_UP(start_addr);
-+		end_pfn   = PFN_DOWN(end_addr);
-+
-+		if (start_pfn < end_pfn) {
-+			nr_all_pages += end_pfn - start_pfn;
-+#ifdef CONFIG_HIGHMEM
-+			start_pfn = clamp(start_pfn, 0, high_zone_low);
-+			end_pfn = clamp(end_pfn, 0, high_zone_low);
-+#endif
-+			nr_kernel_pages += end_pfn - start_pfn;
-+		}
-+	}
-+}
-+
- static void __init calculate_node_totalpages(struct pglist_data *pgdat,
- 						unsigned long node_start_pfn,
- 						unsigned long node_end_pfn)
+-/*
+- * Set up the zone data structures:
+- *   - mark all pages reserved
+- *   - mark all memory queues empty
+- *   - clear the memory bitmaps
+- *
+- * NOTE: pgdat should get zeroed by caller.
+- * NOTE: this function is only called during early init.
+- */
+ static void __init free_area_init_core(struct pglist_data *pgdat)
+ {
+ 	enum zone_type j;
+@@ -1585,41 +1576,13 @@ static void __init free_area_init_core(s
+ 
+ 	for (j = 0; j < MAX_NR_ZONES; j++) {
+ 		struct zone *zone = pgdat->node_zones + j;
+-		unsigned long size, freesize, memmap_pages;
+-
+-		size = zone->spanned_pages;
+-		freesize = zone->present_pages;
+-
+-		/*
+-		 * Adjust freesize so that it accounts for how much memory
+-		 * is used by this zone for memmap. This affects the watermark
+-		 * and per-cpu initialisations
+-		 */
+-		memmap_pages = calc_memmap_size(size, freesize);
+-		if (!is_highmem_idx(j)) {
+-			if (freesize >= memmap_pages) {
+-				freesize -= memmap_pages;
+-				if (memmap_pages)
+-					pr_debug("  %s zone: %lu pages used for memmap\n",
+-						 zone_names[j], memmap_pages);
+-			} else
+-				pr_warn("  %s zone: %lu memmap pages exceeds freesize %lu\n",
+-					zone_names[j], memmap_pages, freesize);
+-		}
+-
+-		if (!is_highmem_idx(j))
+-			nr_kernel_pages += freesize;
+-		/* Charge for highmem memmap if there are enough kernel pages */
+-		else if (nr_kernel_pages > memmap_pages * 2)
+-			nr_kernel_pages -= memmap_pages;
+-		nr_all_pages += freesize;
++		unsigned long size = zone->spanned_pages;
+ 
+ 		/*
+-		 * Set an approximate value for lowmem here, it will be adjusted
+-		 * when the bootmem allocator frees pages into the buddy system.
+-		 * And all highmem pages will be managed by the buddy system.
++		 * Initialize zone->managed_pages as 0 , it will be reset
++		 * when memblock allocator frees pages into buddy system.
+ 		 */
+-		zone_init_internals(zone, j, nid, freesize);
++		zone_init_internals(zone, j, nid, zone->present_pages);
+ 
+ 		if (!size)
+ 			continue;
+@@ -1916,6 +1879,7 @@ void __init free_area_init(unsigned long
+ 		check_for_memory(pgdat);
+ 	}
+ 
++	calc_nr_kernel_pages();
+ 	memmap_init();
+ 
+ 	/* disable hash distribution for systems with a single node */
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
