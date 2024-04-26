@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCEA87EF06
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E555E7EF06
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104037; cv=none; b=XFc0Tw6nVnpaHlRTNGDyhYSSCmJc6Qp4CwgNASJb+FnAHRCQS1yaFC160s1nICgNDRRzwEXsPwhFUuplxq3JUP40w+gTKuDiwlVaj7AGmIKBwhOZg3ptwUhjoKOLCCCUjJuKdngheOP2OE5WRyNcmnrwf7YFLThdpOsmt+20qOM=
+	t=1714104039; cv=none; b=UlPK43q4m2YXqgYhv1YKM1uZY4FGZByTT9Opl6DGJV4KPmbX4hOb0Ibhze/fGwtPRq6EIHww6TEX/v4Fv1aaR4L4SoTWpZjtiXnSz8umH6geG8FQvzkK1hHy5iktwi4ZkUzYRjGl2OuWbY+mnr65OfwSpoiOF+A1iG20wj0c4r0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104037; c=relaxed/simple;
-	bh=A9PgzLPGu7IIGjcqteEhyzUH5MhxCPX3f3O9/1zVOFQ=;
-	h=Date:To:From:Subject:Message-Id; b=FOK+iouwZqBnk49CO3S89YKN5C1W40xIyFEorgLf68PFzAYSpWvSsuptZas33KN7rh0+gfVXpANdXKoDSWLDjL2B6VaEhAZlLrkRq8Z596r3wkFcP9yDFN8/q78CNF1W1WwFAkMPP0A0LpcRY+nNnlnTxNB3i4T7CQLA9CBmnDY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0XcAbK7G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104039; c=relaxed/simple;
+	bh=Om8L7DFpqydJTtubvmLwIkRDUf682VcGRqHN0RW7Z48=;
+	h=Date:To:From:Subject:Message-Id; b=a4pA0hUfxlt0K5dWbZVXuUtF9n12BCwnLGRIKnxgfhpANVd4ULqxoLTe8/6IvGlWLT98RhQl4a9Ol2WscimRf8ubqhMHJXjhUdvcW/7kDmUtvez9+NFgnoFPveSj3RT/YcOwmS4aQwHV80Lc5QDu19kvuVmWDYahm29P91hwIG8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q5uWAod+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0XcAbK7G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1EA2C113CD;
-	Fri, 26 Apr 2024 04:00:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q5uWAod+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAF3EC113CD;
+	Fri, 26 Apr 2024 04:00:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104037;
-	bh=A9PgzLPGu7IIGjcqteEhyzUH5MhxCPX3f3O9/1zVOFQ=;
+	s=korg; t=1714104038;
+	bh=Om8L7DFpqydJTtubvmLwIkRDUf682VcGRqHN0RW7Z48=;
 	h=Date:To:From:Subject:From;
-	b=0XcAbK7GPDLiYu6MBkqL8KqHzMfAd0YNlIBUYDm/Hyi2gVTLxQyQCCynZrRZLTDM4
-	 oANVBxX0BRhTh09eFH5wZKzJwnuBtAr1eWWRlHaw1i0n1H2ibQUSrZiMSYLvVwHDyE
-	 fE3Qd50HsBcSDi8+niqIHHMVHaxOlWYhj5zHZFqM=
-Date: Thu, 25 Apr 2024 21:00:37 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,mgorman@suse.de,bhe@redhat.com,akpm@linux-foundation.org
+	b=q5uWAod+SE2mg57SBNGHeXaayOTd1uHVP/4gC81q4bNwx/ppCXWWHxmUZkZnduMtX
+	 bj2xuJ+4wXqhNXYgQkEOu/B6GvgYh6sp9B2BOFbBZEmiBwoeihrU7AYPalrAWnIoPn
+	 +YLobKiL+Tj8LucglT9bifOL5YVvaAUtU+z7Pl90=
+Date: Thu, 25 Apr 2024 21:00:38 -0700
+To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,willy@infradead.org,v-songbaohua@oppo.com,nphamcs@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_allocc-change-the-array-length-to-migrate_pcptypes.patch removed from -mm tree
-Message-Id: <20240426040037.A1EA2C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] zswap-replace-rb-tree-with-xarray.patch removed from -mm tree
+Message-Id: <20240426040038.BAF3EC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,424 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc.c: change the array-length to MIGRATE_PCPTYPES
+     Subject: zswap: replace RB tree with xarray
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-change-the-array-length-to-migrate_pcptypes.patch
+     zswap-replace-rb-tree-with-xarray.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm/page_alloc.c: change the array-length to MIGRATE_PCPTYPES
-Date: Tue, 26 Mar 2024 14:11:33 +0800
+From: Chris Li <chrisl@kernel.org>
+Subject: zswap: replace RB tree with xarray
+Date: Tue, 26 Mar 2024 11:35:43 -0700
 
-Earlier, in commit 1dd214b8f21c ("mm: page_alloc: avoid merging
-non-fallbackable pageblocks with others"), migrate type MIGRATE_CMA and
-MIGRATE_ISOLATE are removed from fallbacks list since they are never used.
+Very deep RB tree requires rebalance at times.  That contributes to the
+zswap fault latencies.  Xarray does not need to perform tree rebalance. 
+Replacing RB tree to xarray can have some small performance gain.
 
-Later on, in commit ("aa02d3c174ab mm/page_alloc: reduce fallbacks to
-(MIGRATE_PCPTYPES - 1)"), the array column size is reduced to
-'MIGRATE_PCPTYPES - 1'. In fact, the array row size need be reduced to
-MIGRATE_PCPTYPES too since it's only covering rows of the number
-MIGRATE_PCPTYPES. Even though the current code has handled cases
-when the migratetype is CMA, HIGHATOMIC and MEMORY_ISOLATION, making
-the row size right is still good to avoid future error and confusion.
+One small difference is that xarray insert might fail with ENOMEM, while
+RB tree insert does not allocate additional memory.
 
-Link: https://lkml.kernel.org/r/20240326061134.1055295-8-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
+The zswap_entry size will reduce a bit due to removing the RB node, which
+has two pointers and a color field.  Xarray store the pointer in the
+xarray tree rather than the zswap_entry.  Every entry has one pointer from
+the xarray tree.  Overall, switching to xarray should save some memory, if
+the swap entries are densely packed.
+
+Notice the zswap_rb_search and zswap_rb_insert often followed by
+zswap_rb_erase.  Use xa_erase and xa_store directly.  That saves one tree
+lookup as well.
+
+Remove zswap_invalidate_entry due to no need to call zswap_rb_erase any
+more.  Use zswap_free_entry instead.
+
+The "struct zswap_tree" has been replaced by "struct xarray".  The tree
+spin lock has transferred to the xarray lock.
+
+Run the kernel build testing 5 times for each version, averages:
+(memory.max=2GB, zswap shrinker and writeback enabled, one 50GB swapfile,
+24 HT core, 32 jobs)
+
+           mm-unstable-4aaccadb5c04     xarray v9
+user       3548.902 			3534.375
+sys        522.232                      520.976
+real       202.796                      200.864
+
+[chrisl@kernel.org: restore original comment "erase" to "invalidate"]
+  Link: https://lkml.kernel.org/r/20240326-zswap-xarray-v10-1-bf698417c968@kernel.org
+Link: https://lkml.kernel.org/r/20240326-zswap-xarray-v9-1-d2891a65dfc7@kernel.org
+Signed-off-by: Chris Li <chrisl@kernel.org>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zswap.c |  183 +++++++++++++++------------------------------------
+ 1 file changed, 57 insertions(+), 126 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_allocc-change-the-array-length-to-migrate_pcptypes
-+++ a/mm/page_alloc.c
-@@ -1542,7 +1542,7 @@ struct page *__rmqueue_smallest(struct z
+--- a/mm/zswap.c~zswap-replace-rb-tree-with-xarray
++++ a/mm/zswap.c
+@@ -20,7 +20,6 @@
+ #include <linux/spinlock.h>
+ #include <linux/types.h>
+ #include <linux/atomic.h>
+-#include <linux/rbtree.h>
+ #include <linux/swap.h>
+ #include <linux/crypto.h>
+ #include <linux/scatterlist.h>
+@@ -194,7 +193,6 @@ static struct shrinker *zswap_shrinker;
+  * This structure contains the metadata for tracking a single compressed
+  * page within zswap.
   *
-  * The other migratetypes do not have fallbacks.
+- * rbnode - links the entry into red-black tree for the appropriate swap type
+  * swpentry - associated swap entry, the offset indexes into the red-black tree
+  * length - the length in bytes of the compressed page data.  Needed during
+  *          decompression. For a same value filled page length is 0, and both
+@@ -206,7 +204,6 @@ static struct shrinker *zswap_shrinker;
+  * lru - handle to the pool's lru used to evict pages.
   */
--static int fallbacks[MIGRATE_TYPES][MIGRATE_PCPTYPES - 1] = {
-+static int fallbacks[MIGRATE_PCPTYPES][MIGRATE_PCPTYPES - 1] = {
- 	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE   },
- 	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE },
- 	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE   },
+ struct zswap_entry {
+-	struct rb_node rbnode;
+ 	swp_entry_t swpentry;
+ 	unsigned int length;
+ 	struct zswap_pool *pool;
+@@ -218,12 +215,7 @@ struct zswap_entry {
+ 	struct list_head lru;
+ };
+ 
+-struct zswap_tree {
+-	struct rb_root rbroot;
+-	spinlock_t lock;
+-};
+-
+-static struct zswap_tree *zswap_trees[MAX_SWAPFILES];
++static struct xarray *zswap_trees[MAX_SWAPFILES];
+ static unsigned int nr_zswap_trees[MAX_SWAPFILES];
+ 
+ /* RCU-protected iteration */
+@@ -251,7 +243,7 @@ static bool zswap_has_pool;
+ * helpers and fwd declarations
+ **********************************/
+ 
+-static inline struct zswap_tree *swap_zswap_tree(swp_entry_t swp)
++static inline struct xarray *swap_zswap_tree(swp_entry_t swp)
+ {
+ 	return &zswap_trees[swp_type(swp)][swp_offset(swp)
+ 		>> SWAP_ADDRESS_SPACE_SHIFT];
+@@ -791,63 +783,6 @@ void zswap_memcg_offline_cleanup(struct
+ }
+ 
+ /*********************************
+-* rbtree functions
+-**********************************/
+-static struct zswap_entry *zswap_rb_search(struct rb_root *root, pgoff_t offset)
+-{
+-	struct rb_node *node = root->rb_node;
+-	struct zswap_entry *entry;
+-	pgoff_t entry_offset;
+-
+-	while (node) {
+-		entry = rb_entry(node, struct zswap_entry, rbnode);
+-		entry_offset = swp_offset(entry->swpentry);
+-		if (entry_offset > offset)
+-			node = node->rb_left;
+-		else if (entry_offset < offset)
+-			node = node->rb_right;
+-		else
+-			return entry;
+-	}
+-	return NULL;
+-}
+-
+-/*
+- * In the case that a entry with the same offset is found, a pointer to
+- * the existing entry is stored in dupentry and the function returns -EEXIST
+- */
+-static int zswap_rb_insert(struct rb_root *root, struct zswap_entry *entry,
+-			struct zswap_entry **dupentry)
+-{
+-	struct rb_node **link = &root->rb_node, *parent = NULL;
+-	struct zswap_entry *myentry;
+-	pgoff_t myentry_offset, entry_offset = swp_offset(entry->swpentry);
+-
+-	while (*link) {
+-		parent = *link;
+-		myentry = rb_entry(parent, struct zswap_entry, rbnode);
+-		myentry_offset = swp_offset(myentry->swpentry);
+-		if (myentry_offset > entry_offset)
+-			link = &(*link)->rb_left;
+-		else if (myentry_offset < entry_offset)
+-			link = &(*link)->rb_right;
+-		else {
+-			*dupentry = myentry;
+-			return -EEXIST;
+-		}
+-	}
+-	rb_link_node(&entry->rbnode, parent, link);
+-	rb_insert_color(&entry->rbnode, root);
+-	return 0;
+-}
+-
+-static void zswap_rb_erase(struct rb_root *root, struct zswap_entry *entry)
+-{
+-	rb_erase(&entry->rbnode, root);
+-	RB_CLEAR_NODE(&entry->rbnode);
+-}
+-
+-/*********************************
+ * zswap entry functions
+ **********************************/
+ static struct kmem_cache *zswap_entry_cache;
+@@ -858,7 +793,6 @@ static struct zswap_entry *zswap_entry_c
+ 	entry = kmem_cache_alloc_node(zswap_entry_cache, gfp, nid);
+ 	if (!entry)
+ 		return NULL;
+-	RB_CLEAR_NODE(&entry->rbnode);
+ 	return entry;
+ }
+ 
+@@ -893,17 +827,6 @@ static void zswap_entry_free(struct zswa
+ 	atomic_dec(&zswap_stored_pages);
+ }
+ 
+-/*
+- * The caller hold the tree lock and search the entry from the tree,
+- * so it must be on the tree, remove it from the tree and free it.
+- */
+-static void zswap_invalidate_entry(struct zswap_tree *tree,
+-				   struct zswap_entry *entry)
+-{
+-	zswap_rb_erase(&tree->rbroot, entry);
+-	zswap_entry_free(entry);
+-}
+-
+ /*********************************
+ * compressed storage functions
+ **********************************/
+@@ -1103,7 +1026,8 @@ static void zswap_decompress(struct zswa
+ static int zswap_writeback_entry(struct zswap_entry *entry,
+ 				 swp_entry_t swpentry)
+ {
+-	struct zswap_tree *tree;
++	struct xarray *tree;
++	pgoff_t offset = swp_offset(swpentry);
+ 	struct folio *folio;
+ 	struct mempolicy *mpol;
+ 	bool folio_was_allocated;
+@@ -1140,19 +1064,13 @@ static int zswap_writeback_entry(struct
+ 	 * be dereferenced.
+ 	 */
+ 	tree = swap_zswap_tree(swpentry);
+-	spin_lock(&tree->lock);
+-	if (zswap_rb_search(&tree->rbroot, swp_offset(swpentry)) != entry) {
+-		spin_unlock(&tree->lock);
++	if (entry != xa_cmpxchg(tree, offset, entry, NULL, GFP_KERNEL)) {
+ 		delete_from_swap_cache(folio);
+ 		folio_unlock(folio);
+ 		folio_put(folio);
+ 		return -ENOMEM;
+ 	}
+ 
+-	/* Safe to deref entry after the entry is verified above. */
+-	zswap_rb_erase(&tree->rbroot, entry);
+-	spin_unlock(&tree->lock);
+-
+ 	zswap_decompress(entry, &folio->page);
+ 
+ 	count_vm_event(ZSWPWB);
+@@ -1484,8 +1402,8 @@ bool zswap_store(struct folio *folio)
+ {
+ 	swp_entry_t swp = folio->swap;
+ 	pgoff_t offset = swp_offset(swp);
+-	struct zswap_tree *tree = swap_zswap_tree(swp);
+-	struct zswap_entry *entry, *dupentry;
++	struct xarray *tree = swap_zswap_tree(swp);
++	struct zswap_entry *entry, *old;
+ 	struct obj_cgroup *objcg = NULL;
+ 	struct mem_cgroup *memcg = NULL;
+ 	unsigned long max_pages, cur_pages;
+@@ -1573,27 +1491,43 @@ bool zswap_store(struct folio *folio)
+ insert_entry:
+ 	entry->swpentry = swp;
+ 	entry->objcg = objcg;
++
++	old = xa_store(tree, offset, entry, GFP_KERNEL);
++	if (xa_is_err(old)) {
++		int err = xa_err(old);
++
++		WARN_ONCE(err != -ENOMEM, "unexpected xarray error: %d\n", err);
++		zswap_reject_alloc_fail++;
++		goto store_failed;
++	}
++
++	/*
++	 * We may have had an existing entry that became stale when
++	 * the folio was redirtied and now the new version is being
++	 * swapped out. Get rid of the old.
++	 */
++	if (old)
++		zswap_entry_free(old);
++
+ 	if (objcg) {
+ 		obj_cgroup_charge_zswap(objcg, entry->length);
+-		/* Account before objcg ref is moved to tree */
+ 		count_objcg_event(objcg, ZSWPOUT);
+ 	}
+ 
+-	/* map */
+-	spin_lock(&tree->lock);
+ 	/*
+-	 * The folio may have been dirtied again, invalidate the
+-	 * possibly stale entry before inserting the new entry.
++	 * We finish initializing the entry while it's already in xarray.
++	 * This is safe because:
++	 *
++	 * 1. Concurrent stores and invalidations are excluded by folio lock.
++	 *
++	 * 2. Writeback is excluded by the entry not being on the LRU yet.
++	 *    The publishing order matters to prevent writeback from seeing
++	 *    an incoherent entry.
+ 	 */
+-	if (zswap_rb_insert(&tree->rbroot, entry, &dupentry) == -EEXIST) {
+-		zswap_invalidate_entry(tree, dupentry);
+-		WARN_ON(zswap_rb_insert(&tree->rbroot, entry, &dupentry));
+-	}
+ 	if (entry->length) {
+ 		INIT_LIST_HEAD(&entry->lru);
+ 		zswap_lru_add(&zswap_list_lru, entry);
+ 	}
+-	spin_unlock(&tree->lock);
+ 
+ 	/* update stats */
+ 	atomic_inc(&zswap_stored_pages);
+@@ -1601,8 +1535,14 @@ insert_entry:
+ 
+ 	return true;
+ 
++store_failed:
++	if (!entry->length)
++		atomic_dec(&zswap_same_filled_pages);
++	else {
++		zpool_free(zswap_find_zpool(entry), entry->handle);
+ put_pool:
+-	zswap_pool_put(entry->pool);
++		zswap_pool_put(entry->pool);
++	}
+ freepage:
+ 	zswap_entry_cache_free(entry);
+ reject:
+@@ -1613,11 +1553,9 @@ check_old:
+ 	 * possibly stale entry which was previously stored at this offset.
+ 	 * Otherwise, writeback could overwrite the new data in the swapfile.
+ 	 */
+-	spin_lock(&tree->lock);
+-	entry = zswap_rb_search(&tree->rbroot, offset);
++	entry = xa_erase(tree, offset);
+ 	if (entry)
+-		zswap_invalidate_entry(tree, entry);
+-	spin_unlock(&tree->lock);
++		zswap_entry_free(entry);
+ 	return false;
+ 
+ shrink:
+@@ -1631,18 +1569,12 @@ bool zswap_load(struct folio *folio)
+ 	pgoff_t offset = swp_offset(swp);
+ 	struct page *page = &folio->page;
+ 	bool swapcache = folio_test_swapcache(folio);
+-	struct zswap_tree *tree = swap_zswap_tree(swp);
++	struct xarray *tree = swap_zswap_tree(swp);
+ 	struct zswap_entry *entry;
+ 	u8 *dst;
+ 
+ 	VM_WARN_ON_ONCE(!folio_test_locked(folio));
+ 
+-	spin_lock(&tree->lock);
+-	entry = zswap_rb_search(&tree->rbroot, offset);
+-	if (!entry) {
+-		spin_unlock(&tree->lock);
+-		return false;
+-	}
+ 	/*
+ 	 * When reading into the swapcache, invalidate our entry. The
+ 	 * swapcache can be the authoritative owner of the page and
+@@ -1656,8 +1588,12 @@ bool zswap_load(struct folio *folio)
+ 	 * the fault fails. We remain the primary owner of the entry.)
+ 	 */
+ 	if (swapcache)
+-		zswap_rb_erase(&tree->rbroot, entry);
+-	spin_unlock(&tree->lock);
++		entry = xa_erase(tree, offset);
++	else
++		entry = xa_load(tree, offset);
++
++	if (!entry)
++		return false;
+ 
+ 	if (entry->length)
+ 		zswap_decompress(entry, page);
+@@ -1682,19 +1618,17 @@ bool zswap_load(struct folio *folio)
+ void zswap_invalidate(swp_entry_t swp)
+ {
+ 	pgoff_t offset = swp_offset(swp);
+-	struct zswap_tree *tree = swap_zswap_tree(swp);
++	struct xarray *tree = swap_zswap_tree(swp);
+ 	struct zswap_entry *entry;
+ 
+-	spin_lock(&tree->lock);
+-	entry = zswap_rb_search(&tree->rbroot, offset);
++	entry = xa_erase(tree, offset);
+ 	if (entry)
+-		zswap_invalidate_entry(tree, entry);
+-	spin_unlock(&tree->lock);
++		zswap_entry_free(entry);
+ }
+ 
+ int zswap_swapon(int type, unsigned long nr_pages)
+ {
+-	struct zswap_tree *trees, *tree;
++	struct xarray *trees, *tree;
+ 	unsigned int nr, i;
+ 
+ 	nr = DIV_ROUND_UP(nr_pages, SWAP_ADDRESS_SPACE_PAGES);
+@@ -1704,11 +1638,8 @@ int zswap_swapon(int type, unsigned long
+ 		return -ENOMEM;
+ 	}
+ 
+-	for (i = 0; i < nr; i++) {
+-		tree = trees + i;
+-		tree->rbroot = RB_ROOT;
+-		spin_lock_init(&tree->lock);
+-	}
++	for (i = 0; i < nr; i++)
++		xa_init(trees + i);
+ 
+ 	nr_zswap_trees[type] = nr;
+ 	zswap_trees[type] = trees;
+@@ -1717,7 +1648,7 @@ int zswap_swapon(int type, unsigned long
+ 
+ void zswap_swapoff(int type)
+ {
+-	struct zswap_tree *trees = zswap_trees[type];
++	struct xarray *trees = zswap_trees[type];
+ 	unsigned int i;
+ 
+ 	if (!trees)
+@@ -1725,7 +1656,7 @@ void zswap_swapoff(int type)
+ 
+ 	/* try_to_unuse() invalidated all the entries already */
+ 	for (i = 0; i < nr_zswap_trees[type]; i++)
+-		WARN_ON_ONCE(!RB_EMPTY_ROOT(&trees[i].rbroot));
++		WARN_ON_ONCE(!xa_empty(trees + i));
+ 
+ 	kvfree(trees);
+ 	nr_zswap_trees[type] = 0;
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from chrisl@kernel.org are
 
-documentation-kdump-clean-up-the-outdated-description.patch
-kexec-fix-the-unexpected-kexec_dprintk-macro.patch
-crash-add-prefix-for-crash-dumping-messages.patch
 
