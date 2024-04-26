@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 663082CA2
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:10:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68A28EBE
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:10:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714101002; cv=none; b=WaKwKwp9nifINIS3wVE3Ja9/W32r9mk9rZNZ6dGyILW88aT8rg1LsNSnKzH2hWZ6sG/pipXyRCEx0IqZmk/pfxhQ/xVH/9O5v3F2806i5WbUvWLUCha4H5pWrCYUARCkV5uo++L1ZG/LNYlSERfGEn6e+tn6fCLvQMG1mW/FNQU=
+	t=1714101031; cv=none; b=OAm0uhnuCb5x+h8yRRw/uN1qhOATiDvP4xmY7w6rVTdXfu5Abk+sCqAr0rX8RSIbxbX9Mp447HM/ZkY8D07ycxrAsd8ATMe4lo6mZ45niwbPqcEDqlPCdW5+YydWsOhSFa0h/rF9Ib3nEwOrmcWrvv9sy0IdwK6y36jCsF5n73w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714101002; c=relaxed/simple;
-	bh=EmI+a2CRdGw2fLxRPV6WMutHEZNFIoa+UyMFVH1kTo0=;
-	h=Date:To:From:Subject:Message-Id; b=kJpNQRPSgvyRrBpJU/ESIUUUEZJEwg3nQHuLtYrHerMvN/fyCfMOYwxTUu47NG1jncXEpIR/2yPlSjFtpk2gyhG1bXSk6+JoL/Vr+f5CqI+95fn7m64Q7W6KQj7nSoGh/AgHWPHXjgVpThASDvIy9gVvwK7xit6xkEHHuA8087E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VY8QKuJV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714101031; c=relaxed/simple;
+	bh=Mj6/QVxfeU896fFQ0XIFos0uG9tW7RIwKEQfWdSLUro=;
+	h=Date:To:From:Subject:Message-Id; b=AkeFxd2cBN7U4VZIbwp+qe2cThQumA/Pts6/mwE7JAg9ALCmoqSX1/kipkeBCHCa08QPrjYt1Gjx9/2o0wi0m1zwsz5g9dk7G+1GDcYVrlNcEaqRdPPzIq2W9zm2QLcFu76VtbPyFLdkvwISbwTfAKIOp2RUQuKPjvFs9KFDx5s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MFj9NaMR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VY8QKuJV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3538C113CC;
-	Fri, 26 Apr 2024 03:10:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MFj9NaMR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27ECDC113CC;
+	Fri, 26 Apr 2024 03:10:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714101001;
-	bh=EmI+a2CRdGw2fLxRPV6WMutHEZNFIoa+UyMFVH1kTo0=;
+	s=korg; t=1714101030;
+	bh=Mj6/QVxfeU896fFQ0XIFos0uG9tW7RIwKEQfWdSLUro=;
 	h=Date:To:From:Subject:From;
-	b=VY8QKuJVkkRMOvLm/JBVeZ6h/WWMlZhH5ETKZ5pQHRLV8hgoh9E0nuqR3SfskudIy
-	 ySyLNoL7D1X1e0pvajurQxbAL82drXouE+zqXskBktQFYWGVd88csYzzEGZzHxULUP
-	 ceva6LOlV2KzewhZiYt9523uAcni1Fyze9g1R8xk=
-Date: Thu, 25 Apr 2024 20:10:01 -0700
-To: mm-commits@vger.kernel.org,klarasmodin@gmail.com,kent.overstreet@linux.dev,surenb@google.com,akpm@linux-foundation.org
+	b=MFj9NaMRFwuHoSpghX7jGazo3729OuPn8oVVUvJnswifb9/6Sg3lDjeHNY8EyBLcQ
+	 rOCXlyg9LDgeL/RPArr23Bbj+H8a6sfuJb/z6lnNmzS+UjtcunTw8oP1d9J0H20Pka
+	 AI3DHf06LO1amFH4f1r5STfr+MKYrpLlzoN3RLfE=
+Date: Thu, 25 Apr 2024 20:10:29 -0700
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,kent.overstreet@linux.dev,keescook@chromium.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-percpu-increase-percpu_module_reserve-to-accommodate-allocation-tags-fix.patch removed from -mm tree
-Message-Id: <20240426031001.D3538C113CC@smtp.kernel.org>
+Subject: [folded-merged] mm-enable-page-allocation-tagging-fix.patch removed from -mm tree
+Message-Id: <20240426031030.27ECDC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,100 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fixup! increase PERCPU_MODULE_RESERVE to accommodate allocation tags
+     Subject: Documentation: mm: undo _noprof additions in the documentation
 has been removed from the -mm tree.  Its filename was
-     mm-percpu-increase-percpu_module_reserve-to-accommodate-allocation-tags-fix.patch
+     mm-enable-page-allocation-tagging-fix.patch
 
-This patch was dropped because it was folded into mm-percpu-increase-percpu_module_reserve-to-accommodate-allocation-tags.patch
+This patch was dropped because it was folded into mm-enable-page-allocation-tagging.patch
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: fixup! increase PERCPU_MODULE_RESERVE to accommodate allocation tags
-Date: Sat, 6 Apr 2024 14:40:43 -0700
+Subject: Documentation: mm: undo _noprof additions in the documentation
+Date: Tue, 26 Mar 2024 16:14:48 -0700
 
-The increase of per-cpu reserved area for modules was not enough to
-accommodate all allocation tags in certain use cases.  Increase some more
-to fix the issue.
+With kernel-doc script change to handle xyz_noprof() names, the previous
+documentation changes and not needed anymore.
 
-Link: https://lkml.kernel.org/r/20240406214044.1114406-1-surenb@google.com
-Fixes: a11cb5c8e248 ("mm: percpu: increase PERCPU_MODULE_RESERVE to accommodate allocation tags")
+Link: https://lkml.kernel.org/r/20240326231453.1206227-3-surenb@google.com
+Fixes: 6522e08ac1c6 ("mm: enable page allocation tagging")
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: Klara Modin <klarasmodin@gmail.com>
-Tested-by: Klara Modin <klarasmodin@gmail.com>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Kees Cook <keescook@chromium.org>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mempolicy.c  |    6 +++---
+ mm/page_alloc.c |    8 ++++----
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/include/linux/percpu.h~mm-percpu-increase-percpu_module_reserve-to-accommodate-allocation-tags-fix
-+++ a/include/linux/percpu.h
-@@ -15,7 +15,7 @@
- /* enough to cover all DEFINE_PER_CPUs in modules */
- #ifdef CONFIG_MODULES
- #ifdef CONFIG_MEM_ALLOC_PROFILING
--#define PERCPU_MODULE_RESERVE		(8 << 12)
-+#define PERCPU_MODULE_RESERVE		(8 << 13)
- #else
- #define PERCPU_MODULE_RESERVE		(8 << 10)
- #endif
+--- a/mm/mempolicy.c~mm-enable-page-allocation-tagging-fix
++++ a/mm/mempolicy.c
+@@ -2209,7 +2209,7 @@ static struct page *alloc_pages_preferre
+ }
+ 
+ /**
+- * alloc_pages_mpol_noprof - Allocate pages according to NUMA mempolicy.
++ * alloc_pages_mpol - Allocate pages according to NUMA mempolicy.
+  * @gfp: GFP flags.
+  * @order: Order of the page allocation.
+  * @pol: Pointer to the NUMA mempolicy.
+@@ -2278,7 +2278,7 @@ struct page *alloc_pages_mpol_noprof(gfp
+ }
+ 
+ /**
+- * vma_alloc_folio_noprof - Allocate a folio for a VMA.
++ * vma_alloc_folio - Allocate a folio for a VMA.
+  * @gfp: GFP flags.
+  * @order: Order of the folio.
+  * @vma: Pointer to VMA.
+@@ -2309,7 +2309,7 @@ struct folio *vma_alloc_folio_noprof(gfp
+ EXPORT_SYMBOL(vma_alloc_folio_noprof);
+ 
+ /**
+- * alloc_pages_noprof - Allocate pages.
++ * alloc_pages - Allocate pages.
+  * @gfp: GFP flags.
+  * @order: Power of two of number of pages to allocate.
+  *
+--- a/mm/page_alloc.c~mm-enable-page-allocation-tagging-fix
++++ a/mm/page_alloc.c
+@@ -4839,7 +4839,7 @@ static void *make_alloc_exact(unsigned l
+ }
+ 
+ /**
+- * alloc_pages_exact_noprof - allocate an exact number physically-contiguous pages.
++ * alloc_pages_exact - allocate an exact number physically-contiguous pages.
+  * @size: the number of bytes to allocate
+  * @gfp_mask: GFP flags for the allocation, must not contain __GFP_COMP
+  *
+@@ -4867,7 +4867,7 @@ void *alloc_pages_exact_noprof(size_t si
+ EXPORT_SYMBOL(alloc_pages_exact_noprof);
+ 
+ /**
+- * alloc_pages_exact_nid_noprof - allocate an exact number of physically-contiguous
++ * alloc_pages_exact_nid - allocate an exact number of physically-contiguous
+  *			   pages on a node.
+  * @nid: the preferred node ID where memory should be allocated
+  * @size: the number of bytes to allocate
+@@ -6323,7 +6323,7 @@ int __alloc_contig_migrate_range(struct
+ }
+ 
+ /**
+- * alloc_contig_range_noprof() -- tries to allocate given range of pages
++ * alloc_contig_range() -- tries to allocate given range of pages
+  * @start:	start PFN to allocate
+  * @end:	one-past-the-last PFN to allocate
+  * @migratetype:	migratetype of the underlying pageblocks (either
+@@ -6510,7 +6510,7 @@ static bool zone_spans_last_pfn(const st
+ }
+ 
+ /**
+- * alloc_contig_pages_noprof() -- tries to find and allocate contiguous range of pages
++ * alloc_contig_pages() -- tries to find and allocate contiguous range of pages
+  * @nr_pages:	Number of contiguous pages to allocate
+  * @gfp_mask:	GFP mask to limit search and used during compaction
+  * @nid:	Target node
 _
 
 Patches currently in -mm which might be from surenb@google.com are
@@ -90,7 +146,6 @@ lib-introduce-early-boot-parameter-to-avoid-page_ext-memory-overhead.patch
 mm-percpu-increase-percpu_module_reserve-to-accommodate-allocation-tags.patch
 change-alloc_pages-name-in-dma_map_ops-to-avoid-name-conflicts.patch
 mm-enable-page-allocation-tagging.patch
-mm-enable-page-allocation-tagging-fix.patch
 mm-create-new-codetag-references-during-page-splitting.patch
 mm-fix-non-compound-multi-order-memory-accounting-in-__free_pages.patch
 mm-page_ext-enable-early_page_ext-when-config_mem_alloc_profiling_debug=y.patch
