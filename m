@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 789367F7C1
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:01:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B8597EF06
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:01:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104098; cv=none; b=Sqam2vAVSMSkqLUxSammSynRuJOwWWsVKW7KKsm5T4k/gzdSjfYSw/I5k7U5+7Bh/pUZODdZCkRwL8B5cg5vv6HObikfmlV7OhZ5BqLHwrFvKhd5R6x6XCe2AGaQfF7H0hxATYWpUMQVfylKbA9DNoAGTsVAMtQoBu4oSO/RppY=
+	t=1714104099; cv=none; b=MRDss4C7qaPj9K5+dWCaZdClRyFO9d2ms5vP2lBODKw2LkSTL4Mwi4UdCUobWBWfGOGJe8rtVMfIxjYwBf68gd+OHAANWUNsTbbf1hAt+MMpGjDKajHPmV6ckrHUVq6peM8yjF7D3phxnAzIgR+EYJPMqlLET4flU7XS+qcNALs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104098; c=relaxed/simple;
-	bh=BALGHje9H7mPkPjlkzjAtcWtqVAg2j3mOwgbSOqnBM0=;
-	h=Date:To:From:Subject:Message-Id; b=saihJhwabl5OfoNXeiGLgn5dky1pDJw6aPBf/D1LtxnoQTJQd1PMA+CeSSz/Qnba8T/NXG0YXMW3P4MXuxZSlIDIZ+MoA72fVdwUfL53rDFGPhmBCMK3yLhHUqKYN52QATFZO8NFHvs/fF4ciZH7qZME/fs5yhKb6gMSe3h/af8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wXlmKOtb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104099; c=relaxed/simple;
+	bh=IKnZpjedvGO2HXAdrMYBFJlk3T14g2BNmCLfbO9IyhE=;
+	h=Date:To:From:Subject:Message-Id; b=CTP1+6HKyp2TmtqvOczuVzOfW1+yYS+09obyNLRlimAUndhxjl0Rs2BTnJ5uQBtHr168us99x4Q2CmGPg5SERvNLHhN/m29QxWmSq5gJULzxkEQHm/+BApXVYeYfiZfOafwhez7pw3wItGwo66rBq5VF6Fk9l1jCk0guubs6+FU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JhDBziEe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wXlmKOtb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50B76C113CD;
-	Fri, 26 Apr 2024 04:01:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JhDBziEe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62730C113CD;
+	Fri, 26 Apr 2024 04:01:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104098;
-	bh=BALGHje9H7mPkPjlkzjAtcWtqVAg2j3mOwgbSOqnBM0=;
+	s=korg; t=1714104099;
+	bh=IKnZpjedvGO2HXAdrMYBFJlk3T14g2BNmCLfbO9IyhE=;
 	h=Date:To:From:Subject:From;
-	b=wXlmKOtb7lnR8kq+Y/UFZWPd0+qA8gUw06TawMiYnIRDOY/WFBD+evGafV7Fqt0W2
-	 10T1rosKJt/TK9GKSiXPNh2c2rXoqUzx/y9cLT89oqc7tZZLnguBQZgWugPM6TSPRM
-	 ZGksBcxc3ZEk96MFOkQ3V4PasVqDEnj/FcotK588=
-Date: Thu, 25 Apr 2024 21:01:37 -0700
+	b=JhDBziEeAf60sLnFioY9zSHe7MeDylmAvzgekcxIbrV8IMdLbw47e6/PKwZMMuFL1
+	 t6bROhPL/8iYpEmYFupwrJNpVNm9iL5mZkgjykAKE8SiPHcPQ/oql8yxBhas7zW70a
+	 wsQHu7lD6JBZcLMlLEwWgkRckurkIp/oNMQwinhs=
+Date: Thu, 25 Apr 2024 21:01:38 -0700
 To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,shr@devkernel.io,riel@surriel.com,hannes@cmpxchg.org,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-ksm-fix-ksm-exec-support-for-prctl.patch removed from -mm tree
-Message-Id: <20240426040138.50B76C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] selftest-mm-ksm_functional_tests-refactor-mmap_and_merge_range.patch removed from -mm tree
+Message-Id: <20240426040139.62730C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,38 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/ksm: fix ksm exec support for prctl
+     Subject: selftest/mm: ksm_functional_tests: refactor mmap_and_merge_range()
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-fix-ksm-exec-support-for-prctl.patch
+     selftest-mm-ksm_functional_tests-refactor-mmap_and_merge_range.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/ksm: fix ksm exec support for prctl
-Date: Thu, 28 Mar 2024 19:10:08 +0800
+Subject: selftest/mm: ksm_functional_tests: refactor mmap_and_merge_range()
+Date: Thu, 28 Mar 2024 19:10:09 +0800
 
-Patch series "mm/ksm: fix ksm exec support for prctl", v4.
+In order to extend test_prctl_fork() and test_prctl_fork_exec() to make
+sure that deduplication really happens, mmap_and_merge_range() needs to be
+refactored.
 
-commit 3c6f33b7273a ("mm/ksm: support fork/exec for prctl") inherits
-MMF_VM_MERGE_ANY flag when a task calls execve().  However, it doesn't
-create the mm_slot, so ksmd will not try to scan this task.  The first
-patch fixes the issue.
+Firstly, mmap_and_merge_range() will be called with no need to call enable
+KSM by madvise or prctl.  So, switch the 'bool use_prctl' parameter to
+enum ksm_merge_mode.
 
-The second patch refactors to prepare for the third patch.  The third
-patch extends the selftests of ksm to verfity the deduplication really
-happens after fork/exec inherits ths KSM setting.
+Secondly, mmap_and_merge_range() will be called in child process in the
+two testcases, it isn't appropriate to call ksft_test_result_{fail, skip},
+because the global variables ksft_{fail, skip} aren't consistent with the
+parent process.  Thus, convert calls of ksft_test_result_{fail, skip} to
+ksft_print_msg(), return differrent error according to the two cases, and
+rename mmap_and_merge_range() to __mmap_and_merge_range().  For existing
+callers, introduce new mmap_and_merge_range() to handle different return
+values of __mmap_and_merge_range().
 
-
-This patch (of 3):
-
-commit 3c6f33b7273a ("mm/ksm: support fork/exec for prctl") inherits
-MMF_VM_MERGE_ANY flag when a task calls execve().  Howerver, it doesn't
-create the mm_slot, so ksmd will not try to scan this task.
-
-To fix it, allocate and add the mm_slot to ksm_mm_head in __bprm_mm_init()
-when the mm has MMF_VM_MERGE_ANY flag.
-
-Link: https://lkml.kernel.org/r/20240328111010.1502191-1-tujinjiang@huawei.com
-Link: https://lkml.kernel.org/r/20240328111010.1502191-2-tujinjiang@huawei.com
-Fixes: 3c6f33b7273a ("mm/ksm: support fork/exec for prctl")
+Link: https://lkml.kernel.org/r/20240328111010.1502191-3-tujinjiang@huawei.com
 Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
@@ -81,73 +76,204 @@ Cc: Stefan Roesch <shr@devkernel.io>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c           |   11 +++++++++++
- include/linux/ksm.h |   13 +++++++++++++
- 2 files changed, 24 insertions(+)
+ tools/testing/selftests/mm/ksm_functional_tests.c |   86 ++++++++----
+ 1 file changed, 61 insertions(+), 25 deletions(-)
 
---- a/fs/exec.c~mm-ksm-fix-ksm-exec-support-for-prctl
-+++ a/fs/exec.c
-@@ -67,6 +67,7 @@
- #include <linux/time_namespace.h>
- #include <linux/user_events.h>
- #include <linux/rseq.h>
-+#include <linux/ksm.h>
+--- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftest-mm-ksm_functional_tests-refactor-mmap_and_merge_range
++++ a/tools/testing/selftests/mm/ksm_functional_tests.c
+@@ -28,6 +28,15 @@
+ #define MiB (1024 * KiB)
+ #define FORK_EXEC_CHILD_PRG_NAME "ksm_fork_exec_child"
  
- #include <linux/uaccess.h>
- #include <asm/mmu_context.h>
-@@ -268,6 +269,14 @@ static int __bprm_mm_init(struct linux_b
++#define MAP_MERGE_FAIL ((void *)-1)
++#define MAP_MERGE_SKIP ((void *)-2)
++
++enum ksm_merge_mode {
++	KSM_MERGE_PRCTL,
++	KSM_MERGE_MADVISE,
++	KSM_MERGE_NONE, /* PRCTL already set */
++};
++
+ static int mem_fd;
+ static int ksm_fd;
+ static int ksm_full_scans_fd;
+@@ -146,33 +155,34 @@ static int ksm_unmerge(void)
+ 	return 0;
+ }
+ 
+-static char *mmap_and_merge_range(char val, unsigned long size, int prot,
+-				  bool use_prctl)
++static char *__mmap_and_merge_range(char val, unsigned long size, int prot,
++				  enum ksm_merge_mode mode)
+ {
+ 	char *map;
++	char *err_map = MAP_MERGE_FAIL;
+ 	int ret;
+ 
+ 	/* Stabilize accounting by disabling KSM completely. */
+ 	if (ksm_unmerge()) {
+-		ksft_test_result_fail("Disabling (unmerging) KSM failed\n");
+-		return MAP_FAILED;
++		ksft_print_msg("Disabling (unmerging) KSM failed\n");
++		return err_map;
  	}
  
- 	/*
-+	 * Need to be called with mmap write lock
-+	 * held, to avoid race with ksmd.
-+	 */
-+	err = ksm_execve(mm);
-+	if (err)
-+		goto err_ksm;
-+
-+	/*
- 	 * Place the stack at the largest stack address the architecture
- 	 * supports. Later, we'll move this to an appropriate place. We don't
- 	 * use STACK_TOP because that can depend on attributes which aren't
-@@ -288,6 +297,8 @@ static int __bprm_mm_init(struct linux_b
- 	bprm->p = vma->vm_end - sizeof(void *);
- 	return 0;
- err:
-+	ksm_exit(mm);
-+err_ksm:
- 	mmap_write_unlock(mm);
- err_free:
- 	bprm->vma = NULL;
---- a/include/linux/ksm.h~mm-ksm-fix-ksm-exec-support-for-prctl
-+++ a/include/linux/ksm.h
-@@ -59,6 +59,14 @@ static inline int ksm_fork(struct mm_str
- 	return 0;
- }
+ 	if (get_my_merging_pages() > 0) {
+-		ksft_test_result_fail("Still pages merged\n");
+-		return MAP_FAILED;
++		ksft_print_msg("Still pages merged\n");
++		return err_map;
+ 	}
  
-+static inline int ksm_execve(struct mm_struct *mm)
-+{
-+	if (test_bit(MMF_VM_MERGE_ANY, &mm->flags))
-+		return __ksm_enter(mm);
-+
-+	return 0;
+ 	map = mmap(NULL, size, PROT_READ|PROT_WRITE,
+ 		   MAP_PRIVATE|MAP_ANON, -1, 0);
+ 	if (map == MAP_FAILED) {
+-		ksft_test_result_fail("mmap() failed\n");
+-		return MAP_FAILED;
++		ksft_print_msg("mmap() failed\n");
++		return err_map;
+ 	}
+ 
+ 	/* Don't use THP. Ignore if THP are not around on a kernel. */
+ 	if (madvise(map, size, MADV_NOHUGEPAGE) && errno != EINVAL) {
+-		ksft_test_result_fail("MADV_NOHUGEPAGE failed\n");
++		ksft_print_msg("MADV_NOHUGEPAGE failed\n");
+ 		goto unmap;
+ 	}
+ 
+@@ -180,27 +190,36 @@ static char *mmap_and_merge_range(char v
+ 	memset(map, val, size);
+ 
+ 	if (mprotect(map, size, prot)) {
+-		ksft_test_result_skip("mprotect() failed\n");
++		ksft_print_msg("mprotect() failed\n");
++		err_map = MAP_MERGE_SKIP;
+ 		goto unmap;
+ 	}
+ 
+-	if (use_prctl) {
++	switch (mode) {
++	case KSM_MERGE_PRCTL:
+ 		ret = prctl(PR_SET_MEMORY_MERGE, 1, 0, 0, 0);
+ 		if (ret < 0 && errno == EINVAL) {
+-			ksft_test_result_skip("PR_SET_MEMORY_MERGE not supported\n");
++			ksft_print_msg("PR_SET_MEMORY_MERGE not supported\n");
++			err_map = MAP_MERGE_SKIP;
+ 			goto unmap;
+ 		} else if (ret) {
+-			ksft_test_result_fail("PR_SET_MEMORY_MERGE=1 failed\n");
++			ksft_print_msg("PR_SET_MEMORY_MERGE=1 failed\n");
+ 			goto unmap;
+ 		}
+-	} else if (madvise(map, size, MADV_MERGEABLE)) {
+-		ksft_test_result_fail("MADV_MERGEABLE failed\n");
+-		goto unmap;
++		break;
++	case KSM_MERGE_MADVISE:
++		if (madvise(map, size, MADV_MERGEABLE)) {
++			ksft_print_msg("MADV_MERGEABLE failed\n");
++			goto unmap;
++		}
++		break;
++	case KSM_MERGE_NONE:
++		break;
+ 	}
+ 
+ 	/* Run KSM to trigger merging and wait. */
+ 	if (ksm_merge()) {
+-		ksft_test_result_fail("Running KSM failed\n");
++		ksft_print_msg("Running KSM failed\n");
+ 		goto unmap;
+ 	}
+ 
+@@ -209,14 +228,31 @@ static char *mmap_and_merge_range(char v
+ 	 * accounted differently (depending on kernel support).
+ 	 */
+ 	if (val && !get_my_merging_pages()) {
+-		ksft_test_result_fail("No pages got merged\n");
++		ksft_print_msg("No pages got merged\n");
+ 		goto unmap;
+ 	}
+ 
+ 	return map;
+ unmap:
+ 	munmap(map, size);
+-	return MAP_FAILED;
++	return err_map;
 +}
 +
- static inline void ksm_exit(struct mm_struct *mm)
- {
- 	if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
-@@ -106,6 +114,11 @@ static inline int ksm_fork(struct mm_str
- {
- 	return 0;
- }
-+
-+static inline int ksm_execve(struct mm_struct *mm)
++static char *mmap_and_merge_range(char val, unsigned long size, int prot,
++				  enum ksm_merge_mode mode)
 +{
-+	return 0;
-+}
++	char *map;
++	char *ret = MAP_FAILED;
++
++	map = __mmap_and_merge_range(val, size, prot, mode);
++	if (map == MAP_MERGE_FAIL)
++		ksft_test_result_fail("Merging memory failed");
++	else if (map == MAP_MERGE_SKIP)
++		ksft_test_result_skip("Merging memory skipped");
++	else
++		ret = map;
++
++	return ret;
+ }
  
- static inline void ksm_exit(struct mm_struct *mm)
- {
+ static void test_unmerge(void)
+@@ -226,7 +262,7 @@ static void test_unmerge(void)
+ 
+ 	ksft_print_msg("[RUN] %s\n", __func__);
+ 
+-	map = mmap_and_merge_range(0xcf, size, PROT_READ | PROT_WRITE, false);
++	map = mmap_and_merge_range(0xcf, size, PROT_READ | PROT_WRITE, KSM_MERGE_MADVISE);
+ 	if (map == MAP_FAILED)
+ 		return;
+ 
+@@ -264,7 +300,7 @@ static void test_unmerge_zero_pages(void
+ 	}
+ 
+ 	/* Let KSM deduplicate zero pages. */
+-	map = mmap_and_merge_range(0x00, size, PROT_READ | PROT_WRITE, false);
++	map = mmap_and_merge_range(0x00, size, PROT_READ | PROT_WRITE, KSM_MERGE_MADVISE);
+ 	if (map == MAP_FAILED)
+ 		return;
+ 
+@@ -312,7 +348,7 @@ static void test_unmerge_discarded(void)
+ 
+ 	ksft_print_msg("[RUN] %s\n", __func__);
+ 
+-	map = mmap_and_merge_range(0xcf, size, PROT_READ | PROT_WRITE, false);
++	map = mmap_and_merge_range(0xcf, size, PROT_READ | PROT_WRITE, KSM_MERGE_MADVISE);
+ 	if (map == MAP_FAILED)
+ 		return;
+ 
+@@ -344,7 +380,7 @@ static void test_unmerge_uffd_wp(void)
+ 
+ 	ksft_print_msg("[RUN] %s\n", __func__);
+ 
+-	map = mmap_and_merge_range(0xcf, size, PROT_READ | PROT_WRITE, false);
++	map = mmap_and_merge_range(0xcf, size, PROT_READ | PROT_WRITE, KSM_MERGE_MADVISE);
+ 	if (map == MAP_FAILED)
+ 		return;
+ 
+@@ -545,7 +581,7 @@ static void test_prctl_unmerge(void)
+ 
+ 	ksft_print_msg("[RUN] %s\n", __func__);
+ 
+-	map = mmap_and_merge_range(0xcf, size, PROT_READ | PROT_WRITE, true);
++	map = mmap_and_merge_range(0xcf, size, PROT_READ | PROT_WRITE, KSM_MERGE_PRCTL);
+ 	if (map == MAP_FAILED)
+ 		return;
+ 
+@@ -568,7 +604,7 @@ static void test_prot_none(void)
+ 
+ 	ksft_print_msg("[RUN] %s\n", __func__);
+ 
+-	map = mmap_and_merge_range(0x11, size, PROT_NONE, false);
++	map = mmap_and_merge_range(0x11, size, PROT_NONE, KSM_MERGE_MADVISE);
+ 	if (map == MAP_FAILED)
+ 		goto unmap;
+ 
 _
 
 Patches currently in -mm which might be from tujinjiang@huawei.com are
