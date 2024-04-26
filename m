@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C150811E2
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58BBC80C14
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104165; cv=none; b=V3ZTHqAE45dqipinloSaU2MGzDSnIHmJCzoT36fIqncv00t/AAaVT9VWjTMHU/6Fynbk6919NHn0Npwov8NkshWsqFHLmET+DkTaD6PNeybOvicefmP4Le6v8w+hruU/z42wGXZJ//4oBTsrr8dROSd5dmGXhdk1FouK+i+N/dE=
+	t=1714104167; cv=none; b=Dju2Fcp82wBkIk42SJXQUEvzp3PooOfb16BA+lrQcy0f0AA3MrWjcQEJH+S9ni3NGU16gwQzrs40jKjKfmsYIqzlPYvb2aGri5GaJ22pwUMBXlyFTrM/hCNoK+2vu2PXojRemEfWVa3TpyMhzEo2/+i1DIq0a9mZXm9749Xw6bc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104165; c=relaxed/simple;
-	bh=3VFbWZJQFZUbqFZjQImwNZ9Vwjvbm2pD78FsvESWGjE=;
-	h=Date:To:From:Subject:Message-Id; b=M/cF7b76Yg2IDfiaC8hYDvKtnLXnTBVOiqFLxdrbPOZ3auDI6AnV7kCAeSOrVgx6yL6SSZ4GRj06KvffT2P0RLGqByGh7xxZj+OJCtH6UqhV2mFjkZtd3EwFnqV6bHBfs83cK1KiGvRMuwgWt5P2w06sfGQuYht1KBbXQNu/z4s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=njYSVa+m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104167; c=relaxed/simple;
+	bh=szJ495uMT/lrQGxb2Z8bW8LPa5WvdPG427pMNKIXmuw=;
+	h=Date:To:From:Subject:Message-Id; b=iD8BAVXbXp/qQ1z6hpoc1LlIjjE65WjyKN39w/cIvU6xkBgQ1mzeRu6DCIWGEOYw3uKdKPqs2IL0uPhGbpZsjcOw4vZ4SVDUHG9tZ3OLvhjARNwIEdRraTag0svUxXoeQYoAi6p/E4n3+7I0OHDnYT8oIxU5pgf3H5G/rP5vsOw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mygHW6FY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="njYSVa+m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00725C113CD;
-	Fri, 26 Apr 2024 04:02:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mygHW6FY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24641C113CD;
+	Fri, 26 Apr 2024 04:02:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104165;
-	bh=3VFbWZJQFZUbqFZjQImwNZ9Vwjvbm2pD78FsvESWGjE=;
+	s=korg; t=1714104167;
+	bh=szJ495uMT/lrQGxb2Z8bW8LPa5WvdPG427pMNKIXmuw=;
 	h=Date:To:From:Subject:From;
-	b=njYSVa+mjuKqQA35kVi++b4K1YgCViFVLTcN5vOryGGZf6YOWtGoSLc1sVcM6daol
-	 PXl7byhKM418idFtlhWQLC4fkVhIr9uyvlBXYMB/z9RpsCn+L6MqHti9SjdounLdE3
-	 APTVoapO+5YPPJlTrAA52+ar3IrFMeqJN6bPJoAM=
-Date: Thu, 25 Apr 2024 21:02:44 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,osalvador@suse.de,muchun.song@linux.dev,vishal.moola@gmail.com,akpm@linux-foundation.org
+	b=mygHW6FYYRfbHAaOSZ8+l+aEsZip1wwwmcNpn1/5iDqoYxKjsBPhxFXTDAvIvoeL/
+	 EK6TmGRed1TP3XrNKGGoSmqp7pZdruGoJP5G0DU8dTO5MiI8dha2qLSgrVugAY1dgL
+	 y0EFQ61Li/bdGkkuqBbBUX2W7/oevM7ypSqwGbR0=
+Date: Thu, 25 Apr 2024 21:02:46 -0700
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,surenb@google.com,shuah@kernel.org,peterz@infradead.org,peterx@redhat.com,david@redhat.com,broonie@kernel.org,axelrasmussen@google.com,aarcange@redhat.com,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hugetlb-convert-hugetlb_wp-to-use-struct-vm_fault.patch removed from -mm tree
-Message-Id: <20240426040245.00725C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-break-the-dependency-upon-local-header-files.patch removed from -mm tree
+Message-Id: <20240426040247.24641C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,205 +35,104 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hugetlb: convert hugetlb_wp() to use struct vm_fault
+     Subject: selftests: break the dependency upon local header files
 has been removed from the -mm tree.  Its filename was
-     hugetlb-convert-hugetlb_wp-to-use-struct-vm_fault.patch
+     selftests-break-the-dependency-upon-local-header-files.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: hugetlb: convert hugetlb_wp() to use struct vm_fault
-Date: Mon, 1 Apr 2024 13:26:51 -0700
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests: break the dependency upon local header files
+Date: Wed, 27 Mar 2024 20:34:17 -0700
 
-hugetlb_wp() can use the struct vm_fault passed in from hugetlb_fault().
-This alleviates the stack by consolidating 5 variables into a single
-struct.
+Patch series "Fix selftests/mm build without requiring "make headers"".
 
-[vishal.moola@gmail.com: simplify hugetlb_wp() arguments]
-  Link: https://lkml.kernel.org/r/ZhQtoFNZBNwBCeXn@fedora
-Link: https://lkml.kernel.org/r/20240401202651.31440-4-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+As mentioned in each patch, this implements the solution that we discussed
+in December 2023, in [1].  This turned out to be very clean and easy.  It
+should also be quite easy to maintain.
+
+This should also make Peter Zijlstra happy, because it directly addresses
+the root cause of his "NAK NAK NAK" reply [2].  :)
+
+[1] https://lore.kernel.org/all/783a4178-1dec-4e30-989a-5174b8176b09@redhat.com/
+[2] https://lore.kernel.org/lkml/20231103121652.GA6217@noisy.programming.kicks-ass.net/
+
+
+This patch (of 2):
+
+Use tools/include/uapi/ files instead.  These are obtained by taking a
+snapshot: run "make headers" at the top level, then copy the desired
+header file into the appropriate subdir in tools/uapi/.
+
+This was discussed and solved in [1].
+
+However, even before copying any additional files there, there are already
+quite a few in tools/include/uapi already.  And these will immediately fix
+a number of selftests/mm build failures.
+
+So this patch:
+
+a) Adds TOOLS_INCLUDES to selftests/lib.mk, so that all selftests can
+   immediately and easily include the snapshotted header files.
+
+b) Uses $(TOOLS_INCLUDES) in the selftests/mm build.  On today's Arch
+   Linux, this already fixes all build errors except for a few
+   userfaultfd.h (those will be addressed in a subsequent patch).
+
+[1] https://lore.kernel.org/all/783a4178-1dec-4e30-989a-5174b8176b09@redhat.com/
+
+Link: https://lkml.kernel.org/r/20240328033418.203790-1-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20240328033418.203790-2-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   64 ++++++++++++++++++++++++-------------------------
- 1 file changed, 32 insertions(+), 32 deletions(-)
+ tools/testing/selftests/lib.mk      |    9 +++++++++
+ tools/testing/selftests/mm/Makefile |    2 +-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~hugetlb-convert-hugetlb_wp-to-use-struct-vm_fault
-+++ a/mm/hugetlb.c
-@@ -5918,19 +5918,18 @@ static void unmap_ref_private(struct mm_
-  * cannot race with other handlers or page migration.
-  * Keep the pte_same checks anyway to make transition from the mutex easier.
-  */
--static vm_fault_t hugetlb_wp(struct mm_struct *mm, struct vm_area_struct *vma,
--		       unsigned long address, pte_t *ptep, unsigned int flags,
--		       struct folio *pagecache_folio, spinlock_t *ptl,
-+static vm_fault_t hugetlb_wp(struct folio *pagecache_folio,
- 		       struct vm_fault *vmf)
- {
--	const bool unshare = flags & FAULT_FLAG_UNSHARE;
--	pte_t pte = huge_ptep_get(ptep);
-+	struct vm_area_struct *vma = vmf->vma;
-+	struct mm_struct *mm = vma->vm_mm;
-+	const bool unshare = vmf->flags & FAULT_FLAG_UNSHARE;
-+	pte_t pte = huge_ptep_get(vmf->pte);
- 	struct hstate *h = hstate_vma(vma);
- 	struct folio *old_folio;
- 	struct folio *new_folio;
- 	int outside_reserve = 0;
- 	vm_fault_t ret = 0;
--	unsigned long haddr = address & huge_page_mask(h);
- 	struct mmu_notifier_range range;
+--- a/tools/testing/selftests/lib.mk~selftests-break-the-dependency-upon-local-header-files
++++ a/tools/testing/selftests/lib.mk
+@@ -48,6 +48,15 @@ ifeq ($(KHDR_INCLUDES),)
+ KHDR_INCLUDES := -isystem $(top_srcdir)/usr/include
+ endif
  
- 	/*
-@@ -5953,7 +5952,7 @@ static vm_fault_t hugetlb_wp(struct mm_s
++# In order to use newer items that haven't yet been added to the user's system
++# header files, add $(TOOLS_INCLUDES) to the compiler invocation in each
++# each selftest.
++# You may need to add files to that location, or to refresh an existing file. In
++# order to do that, run "make headers" from $(top_srcdir), then copy the
++# header file that you want from $(top_srcdir)/usr/include/... , to the matching
++# subdir in $(TOOLS_INCLUDE).
++TOOLS_INCLUDES := -isystem $(top_srcdir)/tools/include/uapi
++
+ # The following are built by lib.mk common compile rules.
+ # TEST_CUSTOM_PROGS should be used by tests that require
+ # custom build rule and prevent common build rule use.
+--- a/tools/testing/selftests/mm/Makefile~selftests-break-the-dependency-upon-local-header-files
++++ a/tools/testing/selftests/mm/Makefile
+@@ -32,7 +32,7 @@ endif
+ # LDLIBS.
+ MAKEFLAGS += --no-builtin-rules
  
- 	/* Let's take out MAP_SHARED mappings first. */
- 	if (vma->vm_flags & VM_MAYSHARE) {
--		set_huge_ptep_writable(vma, haddr, ptep);
-+		set_huge_ptep_writable(vma, vmf->address, vmf->pte);
- 		return 0;
- 	}
+-CFLAGS = -Wall -I $(top_srcdir) $(EXTRA_CFLAGS) $(KHDR_INCLUDES)
++CFLAGS = -Wall -I $(top_srcdir) $(EXTRA_CFLAGS) $(KHDR_INCLUDES) $(TOOLS_INCLUDES)
+ LDLIBS = -lrt -lpthread -lm
  
-@@ -5972,7 +5971,7 @@ retry_avoidcopy:
- 			SetPageAnonExclusive(&old_folio->page);
- 		}
- 		if (likely(!unshare))
--			set_huge_ptep_writable(vma, haddr, ptep);
-+			set_huge_ptep_writable(vma, vmf->address, vmf->pte);
- 
- 		delayacct_wpcopy_end();
- 		return 0;
-@@ -5999,8 +5998,8 @@ retry_avoidcopy:
- 	 * Drop page table lock as buddy allocator may be called. It will
- 	 * be acquired again before returning to the caller, as expected.
- 	 */
--	spin_unlock(ptl);
--	new_folio = alloc_hugetlb_folio(vma, haddr, outside_reserve);
-+	spin_unlock(vmf->ptl);
-+	new_folio = alloc_hugetlb_folio(vma, vmf->address, outside_reserve);
- 
- 	if (IS_ERR(new_folio)) {
- 		/*
-@@ -6025,19 +6024,21 @@ retry_avoidcopy:
- 			 *
- 			 * Reacquire both after unmap operation.
- 			 */
--			idx = vma_hugecache_offset(h, vma, haddr);
-+			idx = vma_hugecache_offset(h, vma, vmf->address);
- 			hash = hugetlb_fault_mutex_hash(mapping, idx);
- 			hugetlb_vma_unlock_read(vma);
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 
--			unmap_ref_private(mm, vma, &old_folio->page, haddr);
-+			unmap_ref_private(mm, vma, &old_folio->page,
-+					vmf->address);
- 
- 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
- 			hugetlb_vma_lock_read(vma);
--			spin_lock(ptl);
--			ptep = hugetlb_walk(vma, haddr, huge_page_size(h));
--			if (likely(ptep &&
--				   pte_same(huge_ptep_get(ptep), pte)))
-+			spin_lock(vmf->ptl);
-+			vmf->pte = hugetlb_walk(vma, vmf->address,
-+					huge_page_size(h));
-+			if (likely(vmf->pte &&
-+				   pte_same(huge_ptep_get(vmf->pte), pte)))
- 				goto retry_avoidcopy;
- 			/*
- 			 * race occurs while re-acquiring page table
-@@ -6059,37 +6060,38 @@ retry_avoidcopy:
- 	if (unlikely(ret))
- 		goto out_release_all;
- 
--	if (copy_user_large_folio(new_folio, old_folio, address, vma)) {
-+	if (copy_user_large_folio(new_folio, old_folio, vmf->real_address, vma)) {
- 		ret = VM_FAULT_HWPOISON_LARGE;
- 		goto out_release_all;
- 	}
- 	__folio_mark_uptodate(new_folio);
- 
--	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm, haddr,
--				haddr + huge_page_size(h));
-+	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm, vmf->address,
-+				vmf->address + huge_page_size(h));
- 	mmu_notifier_invalidate_range_start(&range);
- 
- 	/*
- 	 * Retake the page table lock to check for racing updates
- 	 * before the page tables are altered
- 	 */
--	spin_lock(ptl);
--	ptep = hugetlb_walk(vma, haddr, huge_page_size(h));
--	if (likely(ptep && pte_same(huge_ptep_get(ptep), pte))) {
-+	spin_lock(vmf->ptl);
-+	vmf->pte = hugetlb_walk(vma, vmf->address, huge_page_size(h));
-+	if (likely(vmf->pte && pte_same(huge_ptep_get(vmf->pte), pte))) {
- 		pte_t newpte = make_huge_pte(vma, &new_folio->page, !unshare);
- 
- 		/* Break COW or unshare */
--		huge_ptep_clear_flush(vma, haddr, ptep);
-+		huge_ptep_clear_flush(vma, vmf->address, vmf->pte);
- 		hugetlb_remove_rmap(old_folio);
--		hugetlb_add_new_anon_rmap(new_folio, vma, haddr);
-+		hugetlb_add_new_anon_rmap(new_folio, vma, vmf->address);
- 		if (huge_pte_uffd_wp(pte))
- 			newpte = huge_pte_mkuffd_wp(newpte);
--		set_huge_pte_at(mm, haddr, ptep, newpte, huge_page_size(h));
-+		set_huge_pte_at(mm, vmf->address, vmf->pte, newpte,
-+				huge_page_size(h));
- 		folio_set_hugetlb_migratable(new_folio);
- 		/* Make the old page be freed below */
- 		new_folio = old_folio;
- 	}
--	spin_unlock(ptl);
-+	spin_unlock(vmf->ptl);
- 	mmu_notifier_invalidate_range_end(&range);
- out_release_all:
- 	/*
-@@ -6097,12 +6099,12 @@ out_release_all:
- 	 * unshare)
- 	 */
- 	if (new_folio != old_folio)
--		restore_reserve_on_error(h, vma, haddr, new_folio);
-+		restore_reserve_on_error(h, vma, vmf->address, new_folio);
- 	folio_put(new_folio);
- out_release_old:
- 	folio_put(old_folio);
- 
--	spin_lock(ptl); /* Caller expects lock to be held */
-+	spin_lock(vmf->ptl); /* Caller expects lock to be held */
- 
- 	delayacct_wpcopy_end();
- 	return ret;
-@@ -6369,8 +6371,7 @@ static vm_fault_t hugetlb_no_page(struct
- 	hugetlb_count_add(pages_per_huge_page(h), mm);
- 	if ((vmf->flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
- 		/* Optimization, do the COW without a second fault */
--		ret = hugetlb_wp(mm, vma, vmf->real_address, vmf->pte,
--				vmf->flags, folio, vmf->ptl, vmf);
-+		ret = hugetlb_wp(folio, vmf);
- 	}
- 
- 	spin_unlock(vmf->ptl);
-@@ -6583,8 +6584,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 
- 	if (flags & (FAULT_FLAG_WRITE|FAULT_FLAG_UNSHARE)) {
- 		if (!huge_pte_write(vmf.orig_pte)) {
--			ret = hugetlb_wp(mm, vma, address, vmf.pte, flags,
--					 pagecache_folio, vmf.ptl, &vmf);
-+			ret = hugetlb_wp(pagecache_folio, &vmf);
- 			goto out_put_page;
- 		} else if (likely(flags & FAULT_FLAG_WRITE)) {
- 			vmf.orig_pte = huge_pte_mkdirty(vmf.orig_pte);
+ TEST_GEN_FILES = cow
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
 
