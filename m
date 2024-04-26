@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4535A2374E
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 19:08:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 077773FD4
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 19:13:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714158538; cv=none; b=QdavL0utWHVTUgz+7wGuV3lMg6cd4q2OZSTWkWxCIALx96rq8HM0RTImJBDk1m7cyiHoGu5yCbxYVFbM/xS093eo4IwDrS4ZClwTsBLZVMf45tbuyAuJjYg/6PDd/n3zxIfk0o+VV2BiAuES31WiZWq+nMB23VwQ0l2Q7I7zrmQ=
+	t=1714158790; cv=none; b=Bd09ZvHePkEb2AOoJSrvILpKk0q6FPCL1VwnGtS3ZRWKwAu9M15AAntULAULHUtdRTFSBB38Ci4znn6Owl+t62t44vFJEaGZvaDvgzIBJSFCU+z2GowGn5FlgEC+Ay8esc1OmEF3dl1Odj+DRX8SRTgo6F7RIBgCn2hvVGIRPNM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714158538; c=relaxed/simple;
-	bh=prdTvq+aVIAkMiSdZfWLekE+RRR83kt2JxCEVfJ+YgI=;
-	h=Date:To:From:Subject:Message-Id; b=pSK++ajAJh86S54Wb0CMjC5QItI8Y3XK6J7xYeQNm9S8YiaXiHLJez1By/GabtkccheLl3AsYiPQzQNNzd8Jii5u0tLWrar5LdYr/QJ+o7sGGe38bX3sfcrg2+CFLECpQ2XvP886S0T0TzPIFKRwqB1mNWKSBBF+RhehkHcqius=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W+9ecnS/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714158790; c=relaxed/simple;
+	bh=aUYs9USPzXfPbM7HWFQxUTklEj1GKi6n0ejuWGRNj0s=;
+	h=Date:To:From:Subject:Message-Id; b=I4jDYWRfzutcdlbYPxOIsC1VaSNtRoZZVey4N5Lml9fpavzLHAFTXpSGSAtHyyTtDDVtNvc1zoJ9j1Xhndzi4bPClifIHfgXgszPHDv7H4NCPLGfy5sdkfStWLA7JFv7zvJMYieAV1X4C/I9GbAQwLCLMROxQJGDchxYUfmCja0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vd8WM8/q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W+9ecnS/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB28FC2BD10;
-	Fri, 26 Apr 2024 19:08:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vd8WM8/q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBB9FC113CD;
+	Fri, 26 Apr 2024 19:13:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714158537;
-	bh=prdTvq+aVIAkMiSdZfWLekE+RRR83kt2JxCEVfJ+YgI=;
+	s=korg; t=1714158789;
+	bh=aUYs9USPzXfPbM7HWFQxUTklEj1GKi6n0ejuWGRNj0s=;
 	h=Date:To:From:Subject:From;
-	b=W+9ecnS/RABgRF5nAe/rRINO8GUTM+qA+FfDNlVouh+BR+yFZwyH2Ir9aBF5/c0sZ
-	 1UX3BnNRiXy8Nx3861zd+K4r8dhHL7SptQFw6y22iClZg0CNq94JfFjk917sXTU/qS
-	 58ir+p06R9zkioYfzPjn6kEg/ZShjjLSEPBdA4Tc=
-Date: Fri, 26 Apr 2024 12:08:57 -0700
-To: mm-commits@vger.kernel.org,yury.norov@gmail.com,jserv@ccns.ncku.edu.tw,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=vd8WM8/qsipqe24lZvWbuoDwChG1uSxATnFl68SC/KtRdLC6RhkS1n5ZMp8wR51aY
+	 AgWYyr+kkCNtfJMEn3QDuYxtaQKhRNbY3dcQN1hj3wTXOgMwYm+2tk/YIw24DnIP6J
+	 d0CTgbD8BO2VxqgPDn1fB99vvGSeBDnXzqkw6HVU=
+Date: Fri, 26 Apr 2024 12:13:08 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,lstoakes@gmail.com,hch@lst.de,baohua@kernel.org,hailong.liu@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + bitops-optimize-fns-for-improved-performance.patch added to mm-nonmm-unstable branch
-Message-Id: <20240426190857.BB28FC2BD10@smtp.kernel.org>
+Subject: + mm-vmalloc-fix-return-value-of-vb_alloc-if-size-is-0.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240426191308.DBB9FC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: bitops: optimize fns() for improved performance
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     bitops-optimize-fns-for-improved-performance.patch
+     Subject: mm/vmalloc: fix return value of vb_alloc if size is 0
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-vmalloc-fix-return-value-of-vb_alloc-if-size-is-0.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bitops-optimize-fns-for-improved-performance.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-fix-return-value-of-vb_alloc-if-size-is-0.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,133 +58,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: bitops: optimize fns() for improved performance
-Date: Fri, 26 Apr 2024 11:51:52 +0800
+From: "Hailong.Liu" <hailong.liu@oppo.com>
+Subject: mm/vmalloc: fix return value of vb_alloc if size is 0
+Date: Fri, 26 Apr 2024 10:41:49 +0800
 
-The current fns() repeatedly uses __ffs() to find the index of the least
-significant bit and then clears the corresponding bit using __clear_bit().
-The method for clearing the least significant bit can be optimized by
-using word &= word - 1 instead.
+vm_map_ram() uses IS_ERR() to validate the return value of vb_alloc().  If
+vm_map_ram(page, 0, 0) is executed, vb_alloc(0, GFP_KERNEL) would return
+NULL.  In such a case, IS_ERR() cannot handle the return value and lead to
+kernel panic by vmap_pages_range_noflush() at last.  To resolve this
+issue, return ERR_PTR(-EINVAL) if the size is 0.
 
-Typically, the execution time of one __ffs() plus one __clear_bit() is
-longer than that of a bitwise AND operation and a subtraction.  To improve
-performance, the loop for clearing the least significant bit has been
-replaced with word &= word - 1, followed by a single __ffs() operation to
-obtain the answer.  This change reduces the number of __ffs() iterations
-from n to just one, enhancing overall performance.
-
-The following microbenchmark data, conducted on my x86-64 machine, shows
-the execution time (in microseconds) required for 1000000 test data
-generated by get_random_u64() and executed by fns() under different values
-of n:
-
-+-----+---------------+---------------+
-|  n  |   time_old    |   time_new    |
-+-----+---------------+---------------+
-|  0  |     29194     |     25878     |
-|  1  |     25510     |     25497     |
-|  2  |     27836     |     25721     |
-|  3  |     30140     |     25673     |
-|  4  |     32569     |     25426     |
-|  5  |     34792     |     25690     |
-|  6  |     37117     |     25651     |
-|  7  |     39742     |     25383     |
-|  8  |     42360     |     25657     |
-|  9  |     44672     |     25897     |
-| 10  |     47237     |     25819     |
-| 11  |     49884     |     26530     |
-| 12  |     51864     |     26647     |
-| 13  |     54265     |     28915     |
-| 14  |     56440     |     28373     |
-| 15  |     58839     |     28616     |
-| 16  |     62383     |     29128     |
-| 17  |     64257     |     30041     |
-| 18  |     66805     |     29773     |
-| 19  |     69368     |     33203     |
-| 20  |     72942     |     33688     |
-| 21  |     77006     |     34518     |
-| 22  |     80926     |     34298     |
-| 23  |     85723     |     35586     |
-| 24  |     90324     |     36376     |
-| 25  |     95992     |     37465     |
-| 26  |    101101     |     37599     |
-| 27  |    106520     |     37466     |
-| 28  |    113287     |     38163     |
-| 29  |    120552     |     38810     |
-| 30  |    128040     |     39373     |
-| 31  |    135624     |     40500     |
-| 32  |    142580     |     40343     |
-| 33  |    148915     |     40460     |
-| 34  |    154005     |     41294     |
-| 35  |    157996     |     41730     |
-| 36  |    160806     |     41523     |
-| 37  |    162975     |     42088     |
-| 38  |    163426     |     41530     |
-| 39  |    164872     |     41789     |
-| 40  |    164477     |     42505     |
-| 41  |    164758     |     41879     |
-| 42  |    164182     |     41415     |
-| 43  |    164842     |     42119     |
-| 44  |    164881     |     42297     |
-| 45  |    164870     |     42145     |
-| 46  |    164673     |     42066     |
-| 47  |    164616     |     42051     |
-| 48  |    165055     |     41902     |
-| 49  |    164847     |     41862     |
-| 50  |    165171     |     41960     |
-| 51  |    164851     |     42089     |
-| 52  |    164763     |     41717     |
-| 53  |    164635     |     42154     |
-| 54  |    164757     |     41983     |
-| 55  |    165095     |     41419     |
-| 56  |    164641     |     42381     |
-| 57  |    164601     |     41654     |
-| 58  |    164864     |     41834     |
-| 59  |    164594     |     41920     |
-| 60  |    165207     |     42020     |
-| 61  |    165056     |     41185     |
-| 62  |    165160     |     41722     |
-| 63  |    164923     |     41702     |
-| 64  |    164777     |     41880     |
-+-----+---------------+---------------+
-
-Link: https://lkml.kernel.org/r/20240426035152.956702-1-visitorckw@gmail.com
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: Yury Norov <yury.norov@gmail.com>
+Link: https://lkml.kernel.org/r/20240426024149.21176-1-hailong.liu@oppo.com
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Signed-off-by: Hailong.Liu <hailong.liu@oppo.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/bitops.h~bitops-optimize-fns-for-improved-performance
-+++ a/include/linux/bitops.h
-@@ -254,16 +254,12 @@ static inline unsigned long __ffs64(u64
-  */
- static inline unsigned long fns(unsigned long word, unsigned int n)
- {
--	unsigned int bit;
-+	unsigned int i;
+--- a/mm/vmalloc.c~mm-vmalloc-fix-return-value-of-vb_alloc-if-size-is-0
++++ a/mm/vmalloc.c
+@@ -2710,7 +2710,7 @@ static void *vb_alloc(unsigned long size
+ 		 * get_order(0) returns funny result. Just warn and terminate
+ 		 * early.
+ 		 */
+-		return NULL;
++		return ERR_PTR(-EINVAL);
+ 	}
+ 	order = get_order(size);
  
--	while (word) {
--		bit = __ffs(word);
--		if (n-- == 0)
--			return bit;
--		__clear_bit(bit, &word);
--	}
-+	for (i = 0; word && i < n; i++)
-+		word &= word - 1;
- 
--	return BITS_PER_LONG;
-+	return word ? __ffs(word) : BITS_PER_LONG;
- }
- 
- /**
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from hailong.liu@oppo.com are
 
-bitops-optimize-fns-for-improved-performance.patch
+mm-vmalloc-fix-return-value-of-vb_alloc-if-size-is-0.patch
 
