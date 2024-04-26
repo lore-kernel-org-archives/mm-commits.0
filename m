@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D60D880631
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E3EF80BF7
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104126; cv=none; b=cZNWWYHjphL6rpulVt9uHjRAcLkFzJ1X3NX2+xPglrq8UVGKRenqVXXs5lqHrqaMbHXTvToApSFJNptRfAEEGDrLZpLjzDR69nZWVC8IeK6HpSoG82KgS4BZkMhbBSOeEIIDlXohCe9vLPEXwYw4oYEKNPEF3gupwc+1htwsVLQ=
+	t=1714104128; cv=none; b=E8YZz3t5T9wUZA/wDzY33Fk0AQ2dHar0dZUr9oUXomNCVs9TN57ttA64h4TtWNS71Uc0ZShOqN24Q126t7o1inKNzr6+0b2NmgBQ1xbjqluWrGxKNIyq5UMc1yPlyFMD8FW5e8roUhAftiSSTD9bzziMYBfBFfbhWu8n0lIhpSk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104126; c=relaxed/simple;
-	bh=N03fcKD0MGmd0Jv3uSE4mYKHua8kg5DBwka/d6QgyRA=;
-	h=Date:To:From:Subject:Message-Id; b=aqAuaWuSuSny5lEeA4J6DhoMkjwgviTD15/P+eFqY7SN+jZOGUA4i4ZKL0VeDZQs1RgSTKz+HCQ5RXMnPv1YuGt3OHf28nF/ZMhuIHwQafxfDfOHtbVPu+RIJ8mJNytAuvJPVGrOgs/3Rrq0sgPhUw9xMiJGCe2BAtj2eFjfXQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i/Im3UUy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104128; c=relaxed/simple;
+	bh=DC3Hp67Lk8KL/N60fxNCDcUKyDMht13Ju8947T26SSQ=;
+	h=Date:To:From:Subject:Message-Id; b=mZx8x/Evn4oTGt57LxqniF5pt5Ve/d5qwvp4jojxVb3Q9HL93OPx6LXCDP/SfwY0n24agy4YdmQbv0QgByBkxcajA2N266Vkzor+SiKTFW8PEgoMzglZNAKlHMTs/i3O6zK9Q/TJQLMS4Cxh45qICv+QYt+Hv0TGLwzHvPpr+/I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lUOYliWZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i/Im3UUy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4C69C113CD;
-	Fri, 26 Apr 2024 04:02:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lUOYliWZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A25B6C113CD;
+	Fri, 26 Apr 2024 04:02:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104126;
-	bh=N03fcKD0MGmd0Jv3uSE4mYKHua8kg5DBwka/d6QgyRA=;
+	s=korg; t=1714104127;
+	bh=DC3Hp67Lk8KL/N60fxNCDcUKyDMht13Ju8947T26SSQ=;
 	h=Date:To:From:Subject:From;
-	b=i/Im3UUy90ZeVX3mB4jqev860gVaq9QhXUmpg31AtjCWjwjPePD/aMofRIOTq0/zB
-	 z3wFGYrsELkRHMSb2ZEjd6ihPMrqNbCAboJM1kTj5hHt8Aw/GqX+c38vT7Sga6pE3c
-	 3zelDJSSVcHW4yD+mmfPMQdQBGWvftMfIpx/FoGk=
-Date: Thu, 25 Apr 2024 21:02:06 -0700
+	b=lUOYliWZkp9ncaUmgv9Ck28v7wGkkHIDTpF5T5aM8j8eIOxy7Z5wYXOHiOgh0izFn
+	 MViyhVGJbHwLcigG76dV/DQv8LSnB2FjQkOAYnD0hZPduDMjSjCsgcS0l2y71r7gGE
+	 xye2364wV+6vcwNIqc1qFi5KJTVYQ+aXvA1SZ+48=
+Date: Thu, 25 Apr 2024 21:02:07 -0700
 To: mm-commits@vger.kernel.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] proc-convert-clear_refs_pte_range-to-use-a-folio.patch removed from -mm tree
-Message-Id: <20240426040206.A4C69C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] proc-convert-smaps_account-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20240426040207.A25B6C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,86 +35,83 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: proc: convert clear_refs_pte_range to use a folio
+     Subject: proc: convert smaps_account() to use a folio
 has been removed from the -mm tree.  Its filename was
-     proc-convert-clear_refs_pte_range-to-use-a-folio.patch
+     proc-convert-smaps_account-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: proc: convert clear_refs_pte_range to use a folio
-Date: Tue, 2 Apr 2024 21:12:48 +0100
+Subject: proc: convert smaps_account() to use a folio
+Date: Tue, 2 Apr 2024 21:12:49 +0100
 
-Patch series "Remove page_idle and page_young wrappers".
+Replace seven calls to compound_head() with one.
 
-There are only a couple of places left using the page wrappers for idle &
-young tracking.  Convert the two users in proc and then we can remove the
-wrappers.  That enables the further simplification of autogenerating the
-definitions when CONFIG_PAGE_IDLE_FLAG is disabled.  
-
-
-This patch (of 4):
-
-Replaces four calls to compound_head() with two.
-
-Link: https://lkml.kernel.org/r/20240402201252.917342-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20240402201252.917342-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240402201252.917342-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ fs/proc/task_mmu.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/fs/proc/task_mmu.c~proc-convert-clear_refs_pte_range-to-use-a-folio
+--- a/fs/proc/task_mmu.c~proc-convert-smaps_account-to-use-a-folio
 +++ a/fs/proc/task_mmu.c
-@@ -1161,7 +1161,7 @@ static int clear_refs_pte_range(pmd_t *p
- 	struct vm_area_struct *vma = walk->vma;
- 	pte_t *pte, ptent;
- 	spinlock_t *ptl;
--	struct page *page;
-+	struct folio *folio;
+@@ -444,6 +444,7 @@ static void smaps_account(struct mem_siz
+ 		bool compound, bool young, bool dirty, bool locked,
+ 		bool migration)
+ {
++	struct folio *folio = page_folio(page);
+ 	int i, nr = compound ? compound_nr(page) : 1;
+ 	unsigned long size = nr * PAGE_SIZE;
  
- 	ptl = pmd_trans_huge_lock(pmd, vma);
- 	if (ptl) {
-@@ -1173,12 +1173,12 @@ static int clear_refs_pte_range(pmd_t *p
- 		if (!pmd_present(*pmd))
- 			goto out;
- 
--		page = pmd_page(*pmd);
-+		folio = pmd_folio(*pmd);
- 
- 		/* Clear accessed and referenced bits. */
- 		pmdp_test_and_clear_young(vma, addr, pmd);
--		test_and_clear_page_young(page);
--		ClearPageReferenced(page);
-+		folio_test_clear_young(folio);
-+		folio_clear_referenced(folio);
- out:
- 		spin_unlock(ptl);
- 		return 0;
-@@ -1200,14 +1200,14 @@ out:
- 		if (!pte_present(ptent))
- 			continue;
- 
--		page = vm_normal_page(vma, addr, ptent);
--		if (!page)
-+		folio = vm_normal_folio(vma, addr, ptent);
-+		if (!folio)
- 			continue;
- 
- 		/* Clear accessed and referenced bits. */
- 		ptep_test_and_clear_young(vma, addr, pte);
--		test_and_clear_page_young(page);
--		ClearPageReferenced(page);
-+		folio_test_clear_young(folio);
-+		folio_clear_referenced(folio);
+@@ -451,27 +452,28 @@ static void smaps_account(struct mem_siz
+ 	 * First accumulate quantities that depend only on |size| and the type
+ 	 * of the compound page.
+ 	 */
+-	if (PageAnon(page)) {
++	if (folio_test_anon(folio)) {
+ 		mss->anonymous += size;
+-		if (!PageSwapBacked(page) && !dirty && !PageDirty(page))
++		if (!folio_test_swapbacked(folio) && !dirty &&
++		    !folio_test_dirty(folio))
+ 			mss->lazyfree += size;
  	}
- 	pte_unmap_unlock(pte - 1, ptl);
- 	cond_resched();
+ 
+-	if (PageKsm(page))
++	if (folio_test_ksm(folio))
+ 		mss->ksm += size;
+ 
+ 	mss->resident += size;
+ 	/* Accumulate the size in pages that have been accessed. */
+-	if (young || page_is_young(page) || PageReferenced(page))
++	if (young || folio_test_young(folio) || folio_test_referenced(folio))
+ 		mss->referenced += size;
+ 
+ 	/*
+ 	 * Then accumulate quantities that may depend on sharing, or that may
+ 	 * differ page-by-page.
+ 	 *
+-	 * page_count(page) == 1 guarantees the page is mapped exactly once.
++	 * refcount == 1 guarantees the page is mapped exactly once.
+ 	 * If any subpage of the compound page mapped with PTE it would elevate
+-	 * page_count().
++	 * the refcount.
+ 	 *
+ 	 * The page_mapcount() is called to get a snapshot of the mapcount.
+ 	 * Without holding the page lock this snapshot can be slightly wrong as
+@@ -480,7 +482,7 @@ static void smaps_account(struct mem_siz
+ 	 * especially for migration entries.  Treat regular migration entries
+ 	 * as mapcount == 1.
+ 	 */
+-	if ((page_count(page) == 1) || migration) {
++	if ((folio_ref_count(folio) == 1) || migration) {
+ 		smaps_page_accumulate(mss, page, size, size << PSS_SHIFT, dirty,
+ 			locked, true);
+ 		return;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
