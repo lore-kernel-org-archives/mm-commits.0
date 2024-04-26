@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28F902F36
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:15:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C73D08473
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:16:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714101340; cv=none; b=aBiVClNNXaSuV5G8O7fpVanokE9K0J+7hlgfSQkhbtPOyb3/ixCLD07tYJTng0TUmfNuAx34opTfZ0rYlELy2m4N4J+1Jy7lduI5wKm+hXxBaNXHKJMVGytH9/QKtfzJNasVoZ8wsaPdBw7lRFftciydFEYxTWi6LTPjNOIs8rw=
+	t=1714101394; cv=none; b=NrOnkbYs6i44KGD5yxXpSf/jcECgtAELHJJZ3WFT4fKhqv75sDYbAi/KO6afVi63/iV1bU1HC0j3yHaFE4D1qNri++A/tM8iq9gCSbbLiqvgpuYZhBbIOCeLDenkfEmwPxAXKWHYVQEFNUhvdooAZ5iHsALruMypP9qWBQwWOUM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714101340; c=relaxed/simple;
-	bh=QGLChc9OH8AoKZUQmjAmzlMVNb7FI86CoqZlPdWjLxg=;
-	h=Date:To:From:Subject:Message-Id; b=ji7doMq0FsRElnjZKSHQZA9pza1JOui01P6ImZm90e1P6SHN2JsLj+tfvsium+QBRwmT6pPdJQLJVvVD3KLfcQL4Q/ny53ZwCL17NDd4o6QyTqRmC0VlNfyZBZq18cE+1Ruhf0Pfx6w6Iz587mvbK3JNmogGHgdHtZyiFqOFYu4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jhmUnitC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714101394; c=relaxed/simple;
+	bh=U+TkqUO8trAUWk168nxcLWE3ALseEbUS3QYtQ/LFrv0=;
+	h=Date:To:From:Subject:Message-Id; b=dtQh/yIPlJBPGhiQeNOOlrbLmFuTLJc3u1iqYSjvt9Qz9ACAz/vAJ4AmDUEuhBJ0NHhZVhXpQG2TZKoD6a4w6pP74iIcHgtRsllJBe1J8bXJU4nsHgVOfHLtmO+TL4T/lDfEu3EVcMPg/X8ayUlk+W0IKefrjCPtUPAGsdQ2bC8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lOLlsAHk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jhmUnitC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A453BC113CD;
-	Fri, 26 Apr 2024 03:15:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lOLlsAHk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97365C113CD;
+	Fri, 26 Apr 2024 03:16:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714101339;
-	bh=QGLChc9OH8AoKZUQmjAmzlMVNb7FI86CoqZlPdWjLxg=;
+	s=korg; t=1714101394;
+	bh=U+TkqUO8trAUWk168nxcLWE3ALseEbUS3QYtQ/LFrv0=;
 	h=Date:To:From:Subject:From;
-	b=jhmUnitCXd3FUTQy7ndBcCj0xk42GkTljeEGof+g4rgS9AsIzvdMU5w9Myy8kuZxz
-	 PPDnqF2S0oIwIuSvyDyEZ0hxzcRqCcmzty3T8+fvijGOkGn2OtDv0JQrow14Hqavnx
-	 G+xZp1Ce6T+QtPHxCLyn7coabZukdk3YCEgCsHvs=
-Date: Thu, 25 Apr 2024 20:15:39 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,osalvador@suse.de,muchun.song@linux.dev,linmiaohe@huawei.com,david@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=lOLlsAHkjiwH/4GzcoWs78/IqkzOxCq0MWAgo2XfVnvaNc00PUIB6k5jtHrp9rPJ4
+	 dKW0e2dYPOBkMvTDcU5MfAdhQeCM3mECIOBOIU9EidggrBW+ewb3eDRaEsudysN7dm
+	 bTHnQkKF6Sy4WrHcVEtoHb6bvClw9TVDltu9IpUw=
+Date: Thu, 25 Apr 2024 20:16:34 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,muchun.song@linux.dev,linmiaohe@huawei.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-always-initialise-folio-_deferred_list-fix.patch removed from -mm tree
-Message-Id: <20240426031539.A453BC113CD@smtp.kernel.org>
+Subject: [folded-merged] mm-free-up-pg_slab-fix.patch removed from -mm tree
+Message-Id: <20240426031634.97365C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fixup! mm: always initialise folio->_deferred_list
+     Subject: mm-free-up-pg_slab-fix
 has been removed from the -mm tree.  Its filename was
-     mm-always-initialise-folio-_deferred_list-fix.patch
+     mm-free-up-pg_slab-fix.patch
 
-This patch was dropped because it was folded into mm-always-initialise-folio-_deferred_list.patch
+This patch was dropped because it was folded into mm-free-up-pg_slab.patch
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: fixup! mm: always initialise folio->_deferred_list
-Date: Wed, 17 Apr 2024 17:18:34 -0400
+From: Matthew Wilcox <willy@infradead.org>
+Subject: mm-free-up-pg_slab-fix
+Date: Mon, 25 Mar 2024 15:19:20 +0000
 
-Current mm-unstable will hit this when running test_hugetlb_memcg.  This
-fixes the crash for me.
+update vmcoreinfo
 
-Link: https://lkml.kernel.org/r/20240417211836.2742593-2-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/ZgGV-O8WYQ_83kxp@casper.infradead.org
+Signed-off-by: Matthew Wilcox <willy@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
@@ -60,58 +58,113 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/vmcore_info.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-always-initialise-folio-_deferred_list-fix
-+++ a/mm/memcontrol.c
-@@ -7401,6 +7401,7 @@ static void uncharge_folio(struct folio
- 
- 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
- 	VM_BUG_ON_FOLIO(folio_order(folio) > 1 &&
-+			!folio_test_hugetlb(folio) &&
- 			!list_empty(&folio->_deferred_list), folio);
- 
- 	/*
+--- a/kernel/vmcore_info.c~mm-free-up-pg_slab-fix
++++ a/kernel/vmcore_info.c
+@@ -198,7 +198,8 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_NUMBER(PG_private);
+ 	VMCOREINFO_NUMBER(PG_swapcache);
+ 	VMCOREINFO_NUMBER(PG_swapbacked);
+-	VMCOREINFO_NUMBER(PG_slab);
++#define PAGE_SLAB_MAPCOUNT_VALUE	(~PG_slab)
++	VMCOREINFO_NUMBER(PAGE_SLAB_MAPCOUNT_VALUE);
+ #ifdef CONFIG_MEMORY_FAILURE
+ 	VMCOREINFO_NUMBER(PG_hwpoison);
+ #endif
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-userfaultfd-reset-ptes-when-close-for-wr-protected-ones.patch
-mm-hmm-process-pud-swap-entry-without-pud_huge.patch
-mm-gup-cache-p4d-in-follow_p4d_mask.patch
-mm-gup-check-p4d-presence-before-going-on.patch
-mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
-mm-arm-use-macros-to-define-pmd-pud-helpers.patch
-mm-arm-redefine-pmd_huge-with-pmd_leaf.patch
-mm-arm64-merge-pxd_huge-and-pxd_leaf-definitions.patch
-mm-powerpc-redefine-pxd_huge-with-pxd_leaf.patch
-mm-gup-merge-pxd-huge-mapping-checks.patch
-mm-treewide-replace-pxd_huge-with-pxd_leaf.patch
-mm-treewide-remove-pxd_huge.patch
-mm-arm-remove-pmd_thp_or_huge.patch
-mm-document-pxd_leaf-api.patch
 mm-always-initialise-folio-_deferred_list.patch
-selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation.patch
-selftests-mm-run_vmtestssh-fix-hugetlb-mem-size-calculation-fix.patch
-mm-kconfig-config_pgtable_has_huge_leaves.patch
-mm-hugetlb-declare-hugetlbfs_pagecache_present-non-static.patch
-mm-make-hpage_pxd_-macros-even-if-thp.patch
-mm-introduce-vma_pgtable_walk_beginend.patch
-mm-arch-provide-pud_pfn-fallback.patch
-mm-arch-provide-pud_pfn-fallback-fix.patch
-mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing.patch
-mm-gup-refactor-record_subpages-to-find-1st-small-page.patch
-mm-gup-handle-hugetlb-for-no_page_table.patch
-mm-gup-cache-pudp-in-follow_pud_mask.patch
-mm-gup-handle-huge-pud-for-follow_pud_mask.patch
-mm-gup-handle-huge-pmd-for-follow_pmd_mask.patch
-mm-gup-handle-huge-pmd-for-follow_pmd_mask-fix.patch
-mm-gup-handle-hugepd-for-follow_page.patch
-mm-gup-handle-hugetlb-in-the-generic-follow_page_mask-code.patch
-mm-allow-anon-exclusive-check-over-hugetlb-tail-pages.patch
-mm-free-non-hugetlb-large-folios-in-a-batch-fix.patch
-mm-hugetlb-assert-hugetlb_lock-in-__hugetlb_cgroup_commit_charge.patch
-mm-page_table_check-support-userfault-wr-protect-entries.patch
+mm-remove-folio_prep_large_rmappable.patch
+mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch
+mm-free-up-pg_slab.patch
+mm-improve-dumping-of-mapcount-and-page_type.patch
+hugetlb-remove-mention-of-destructors.patch
+sh-remove-use-of-pg_arch_1-on-individual-pages.patch
+xtensa-remove-uses-of-pg_arch_1-on-individual-pages.patch
+mm-make-page_ext_get-take-a-const-argument.patch
+mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument.patch
+mm-make-is_free_buddy_page-take-a-const-argument.patch
+mm-make-page_mapped-take-a-const-argument.patch
+mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
+mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix.patch
+slub-remove-use-of-page-flags.patch
+remove-references-to-page-flags-in-documentation.patch
+proc-rewrite-stable_page_flags.patch
+proc-rewrite-stable_page_flags-fix.patch
+proc-rewrite-stable_page_flags-fix-2.patch
+sparc-use-is_huge_zero_pmd.patch
+mm-add-is_huge_zero_folio.patch
+mm-add-pmd_folio.patch
+mm-convert-migrate_vma_collect_pmd-to-use-a-folio.patch
+mm-convert-huge_zero_page-to-huge_zero_folio.patch
+mm-convert-do_huge_pmd_anonymous_page-to-huge_zero_folio.patch
+dax-use-huge_zero_folio.patch
+mm-rename-mm_put_huge_zero_page-to-mm_put_huge_zero_folio.patch
+mm-use-rwsem-assertion-macros-for-mmap_lock.patch
+filemap-remove-__set_page_dirty.patch
+mm-correct-page_mapped_in_vma-for-large-folios.patch
+mm-remove-vma_address.patch
+mm-rename-vma_pgoff_address-back-to-vma_address.patch
+khugepaged-inline-hpage_collapse_alloc_folio.patch
+khugepaged-convert-alloc_charge_hpage-to-alloc_charge_folio.patch
+khugepaged-remove-hpage-from-collapse_huge_page.patch
+khugepaged-pass-a-folio-to-__collapse_huge_page_copy.patch
+khugepaged-remove-hpage-from-collapse_file.patch
+khugepaged-use-a-folio-throughout-collapse_file.patch
+khugepaged-use-a-folio-throughout-collapse_file-fix.patch
+khugepaged-use-a-folio-throughout-hpage_collapse_scan_file.patch
+proc-convert-clear_refs_pte_range-to-use-a-folio.patch
+proc-convert-smaps_account-to-use-a-folio.patch
+mm-remove-page_idle-and-page_young-wrappers.patch
+mm-generate-page_idle_flag-definitions.patch
+proc-convert-gather_stats-to-use-a-folio.patch
+proc-convert-smaps_page_accumulate-to-use-a-folio.patch
+proc-pass-a-folio-to-smaps_page_accumulate.patch
+proc-convert-smaps_pmd_entry-to-use-a-folio.patch
+mm-remove-struct-page-from-get_shadow_from_swap_cache.patch
+hugetlb-convert-alloc_buddy_hugetlb_folio-to-use-a-folio.patch
+mm-convert-pagecache_isize_extended-to-use-a-folio.patch
+mm-free-non-hugetlb-large-folios-in-a-batch.patch
+mm-combine-free_the_page-and-free_unref_page.patch
+mm-inline-destroy_large_folio-into-__folio_put_large.patch
+mm-combine-__folio_put_small-__folio_put_large-and-__folio_put.patch
+mm-convert-free_zone_device_page-to-free_zone_device_folio.patch
+doc-improve-the-description-of-__folio_mark_dirty.patch
+buffer-add-kernel-doc-for-block_dirty_folio.patch
+buffer-add-kernel-doc-for-try_to_free_buffers.patch
+buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch
+buffer-add-kernel-doc-for-brelse-and-__brelse.patch
+buffer-add-kernel-doc-for-bforget-and-__bforget.patch
+buffer-improve-bdev_getblk-documentation.patch
+doc-split-bufferrst-out-of-api-summaryrst.patch
+doc-split-bufferrst-out-of-api-summaryrst-fix.patch
+mm-memory-failure-remove-fsdax_pgoff-argument-from-__add_to_kill.patch
+mm-memory-failure-pass-addr-to-__add_to_kill.patch
+mm-return-the-address-from-page_mapped_in_vma.patch
+mm-make-page_mapped_in_vma-conditional-on-config_memory_failure.patch
+mm-memory-failure-convert-shake_page-to-shake_folio.patch
+mm-convert-hugetlb_page_mapping_lock_write-to-folio.patch
+mm-memory-failure-convert-memory_failure-to-use-a-folio.patch
+mm-memory-failure-convert-hwpoison_user_mappings-to-take-a-folio.patch
+mm-memory-failure-add-some-folio-conversions-to-unpoison_memory.patch
+mm-memory-failure-use-folio-functions-throughout-collect_procs.patch
+mm-memory-failure-pass-the-folio-to-collect_procs_ksm.patch
+fscrypt-convert-bh_get_inode_and_lblk_num-to-use-a-folio.patch
+f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio.patch
+memory-failure-remove-calls-to-page_mapping.patch
+migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch
+userfault-expand-folio-use-in-mfill_atomic_install_pte.patch
+mm-remove-page_mapping.patch
+mm-remove-page_cache_alloc.patch
+mm-remove-put_devmap_managed_page.patch
+mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs.patch
+mm-remove-page_ref_sub_return.patch
+gup-use-folios-for-gup_devmap.patch
+mm-add-kernel-doc-for-folio_mark_accessed.patch
+mm-remove-pagereferenced.patch
+mm-simplify-thp_vma_allowable_order.patch
 
