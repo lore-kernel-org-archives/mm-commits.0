@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A81D780C0C
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2D8A80C0C
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104171; cv=none; b=S9GHfU3jTX7N7rGJ2lJPhgfKo+5TlcXsCiFXnF7x32fGQvlceO6qvVVH8fYyiDlBiY80Q0h26wl+HmIn99KM3ot58GFmX0u3df2BXxGdANBpKoeD6bJdcCmIoKR2MYYyxNtJ4+ib9Fi/61f1qve1/sFQf0olgjvHniYLUfVtc/A=
+	t=1714104172; cv=none; b=nPbT16LkTLeuqZNAkcJilPe1rcC6dZ3UHArviOWxv64Wt7/Xwq+ymRVr9Ii2urJaqIL9W9M9orAfAmY1tfJVGvaLKELIXnxabk4ZhERpRmJVi7IPBFqN0RpZWLpQGrEJO1x8kAhE3ZOXWhpKaqa4XVGk/sXRzEYUfHBnxVClHvo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104171; c=relaxed/simple;
-	bh=vFhfz98XnSUg6U8rcMHz+n3DIZP98vvcntfcu8zOm3U=;
-	h=Date:To:From:Subject:Message-Id; b=QvcSk2KqrakZiD7kwR58GRyKKfXTH7i2HFaLGRL/jwEhaur/K8vTOxePoE1LMaahvl4ItotEEM0paQXPpsuQqYHiH1me1rEMp5OkVLbUEzl10lurhL2fc6OvLmWUUCcmGQUkGXDd1OoCfLTYVNHyv1S4BBJPPUJMBNaEHKchSxw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PNjuyLZC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104172; c=relaxed/simple;
+	bh=VdpLJhqD6Uh8dHxC04/jcBfic6LWo7UEp1jouNeR7Cw=;
+	h=Date:To:From:Subject:Message-Id; b=YX5GoK5rttrpv4P001PflHbfFg9xicghOnhg3+jGuhtduf35g77PsfQZgZ17Otx/I5Nv3cVTioW7RMXG0bamvvw7+4aIluyItOGb/13PcRJimsHZlwaBYPBXwe99faUnOj9bHimrLT3rQO0Bnsk22pwh60cOtjh/YIlK7WoCwBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ILs3cZ+3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PNjuyLZC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80695C113CD;
-	Fri, 26 Apr 2024 04:02:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ILs3cZ+3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87F12C113CD;
+	Fri, 26 Apr 2024 04:02:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104171;
-	bh=vFhfz98XnSUg6U8rcMHz+n3DIZP98vvcntfcu8zOm3U=;
+	s=korg; t=1714104172;
+	bh=VdpLJhqD6Uh8dHxC04/jcBfic6LWo7UEp1jouNeR7Cw=;
 	h=Date:To:From:Subject:From;
-	b=PNjuyLZC0pEjojud1g+Pxp6neLKoggBsR/8dB+yxHiubszjXlklrlrT1Z8V4cM09i
-	 iCqhlzdK7MRUeWODpxVAgpAfzb+/4omjbN07UnOW5oztFM18EFGC9yIZrSJY97gCUW
-	 RTDomm5zkFFfEllQ42Fw46q8qqVF3Zyo1cP0LUTc=
-Date: Thu, 25 Apr 2024 21:02:51 -0700
-To: mm-commits@vger.kernel.org,p.raghav@samsung.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=ILs3cZ+3DN739FH2k7gZA4ixuJO5UnG7Vvk1knsr2Ht3iVDZvlNyLLvtcsHZWgfmQ
+	 S7f3u/1NTHB/RQPiOqUD963OT7Anuqfe6KhrApznO9azX/ofexpPb3k5eIjsghyuJK
+	 ZScUtT+rZwmCL62fXlvToinBbpEv9spIknLcoByo=
+Date: Thu, 25 Apr 2024 21:02:52 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,peterx@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-convert-pagecache_isize_extended-to-use-a-folio.patch removed from -mm tree
-Message-Id: <20240426040251.80695C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-free-non-hugetlb-large-folios-in-a-batch.patch removed from -mm tree
+Message-Id: <20240426040252.87F12C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,98 +35,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: convert pagecache_isize_extended to use a folio
+     Subject: mm: free non-hugetlb large folios in a batch
 has been removed from the -mm tree.  Its filename was
-     mm-convert-pagecache_isize_extended-to-use-a-folio.patch
+     mm-free-non-hugetlb-large-folios-in-a-batch.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert pagecache_isize_extended to use a folio
-Date: Fri, 5 Apr 2024 19:00:36 +0100
+Subject: mm: free non-hugetlb large folios in a batch
+Date: Fri, 5 Apr 2024 16:32:23 +0100
 
-Remove four hidden calls to compound_head().  Also exit early if the
-filesystem block size is >= PAGE_SIZE instead of just equal to PAGE_SIZE.
+Patch series "Clean up __folio_put()".
 
-Link: https://lkml.kernel.org/r/20240405180038.2618624-1-willy@infradead.org
+With all the changes over the last few years, __folio_put_small and
+__folio_put_large have become almost identical to each other ...  except
+you can't tell because they're spread over two files.  Rearrange it all so
+that you can tell, and then inline them both into __folio_put().
+
+
+This patch (of 5):
+
+free_unref_folios() can now handle non-hugetlb large folios, so keep
+normal large folios in the batch.  hugetlb folios still need to be handled
+specially.
+
+[peterx@redhat.com: fix panic]
+  Link: https://lkml.kernel.org/r/ZikjPB0Dt5HA8-uL@x1n
+Link: https://lkml.kernel.org/r/20240405153228.2563754-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240405153228.2563754-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Pankaj Raghav <p.raghav@samsung.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   36 +++++++++++++++++-------------------
- 1 file changed, 17 insertions(+), 19 deletions(-)
+ mm/swap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/truncate.c~mm-convert-pagecache_isize_extended-to-use-a-folio
-+++ a/mm/truncate.c
-@@ -764,15 +764,15 @@ EXPORT_SYMBOL(truncate_setsize);
-  * @from:	original inode size
-  * @to:		new inode size
-  *
-- * Handle extension of inode size either caused by extending truncate or by
-- * write starting after current i_size. We mark the page straddling current
-- * i_size RO so that page_mkwrite() is called on the nearest write access to
-- * the page.  This way filesystem can be sure that page_mkwrite() is called on
-- * the page before user writes to the page via mmap after the i_size has been
-- * changed.
-+ * Handle extension of inode size either caused by extending truncate or
-+ * by write starting after current i_size.  We mark the page straddling
-+ * current i_size RO so that page_mkwrite() is called on the first
-+ * write access to the page.  The filesystem will update its per-block
-+ * information before user writes to the page via mmap after the i_size
-+ * has been changed.
-  *
-  * The function must be called after i_size is updated so that page fault
-- * coming after we unlock the page will already see the new i_size.
-+ * coming after we unlock the folio will already see the new i_size.
-  * The function must be called while we still hold i_rwsem - this not only
-  * makes sure i_size is stable but also that userspace cannot observe new
-  * i_size value before we are prepared to store mmap writes at new inode size.
-@@ -781,31 +781,29 @@ void pagecache_isize_extended(struct ino
- {
- 	int bsize = i_blocksize(inode);
- 	loff_t rounded_from;
--	struct page *page;
--	pgoff_t index;
-+	struct folio *folio;
- 
- 	WARN_ON(to > inode->i_size);
- 
--	if (from >= to || bsize == PAGE_SIZE)
-+	if (from >= to || bsize >= PAGE_SIZE)
- 		return;
- 	/* Page straddling @from will not have any hole block created? */
- 	rounded_from = round_up(from, bsize);
- 	if (to <= rounded_from || !(rounded_from & (PAGE_SIZE - 1)))
- 		return;
- 
--	index = from >> PAGE_SHIFT;
--	page = find_lock_page(inode->i_mapping, index);
--	/* Page not cached? Nothing to do */
--	if (!page)
-+	folio = filemap_lock_folio(inode->i_mapping, from / PAGE_SIZE);
-+	/* Folio not cached? Nothing to do */
-+	if (IS_ERR(folio))
- 		return;
- 	/*
--	 * See clear_page_dirty_for_io() for details why set_page_dirty()
-+	 * See folio_clear_dirty_for_io() for details why folio_mark_dirty()
- 	 * is needed.
- 	 */
--	if (page_mkclean(page))
--		set_page_dirty(page);
--	unlock_page(page);
--	put_page(page);
-+	if (folio_mkclean(folio))
-+		folio_mark_dirty(folio);
-+	folio_unlock(folio);
-+	folio_put(folio);
- }
- EXPORT_SYMBOL(pagecache_isize_extended);
- 
+--- a/mm/swap.c~mm-free-non-hugetlb-large-folios-in-a-batch
++++ a/mm/swap.c
+@@ -158,8 +158,8 @@ void put_pages_list(struct list_head *pa
+ 	list_for_each_entry_safe(folio, next, pages, lru) {
+ 		if (!folio_put_testzero(folio))
+ 			continue;
+-		if (folio_test_large(folio)) {
+-			__folio_put_large(folio);
++		if (folio_test_hugetlb(folio)) {
++			free_huge_folio(folio);
+ 			continue;
+ 		}
+ 		/* LRU flag must be clear because it's passed using the lru */
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
