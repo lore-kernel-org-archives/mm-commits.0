@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E02757604D
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 111397604D
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104006; cv=none; b=I2w9K5H0lQJn+KVj3jUYuXVAiiPd9wdXUphof8sEeOlzYSOdig0Gnv89ZE5FzbkwQqiY7LKCL+iDTmSLAyOiH70LeiIYX2EKOLR/uiyThc9Jzokrqw/UtnK2P7fw8x6N4XxcYrbAek/l/w9EgwTULEtpUdVbFVQXV4lEeGCsh3Q=
+	t=1714104007; cv=none; b=D8zYVUTAc232exLJ6lxsMmfOPnnPIcF6dN4EkFtUP86UTwrWtoDdSFCHY1rbK6+U/UHEIpHTZK25iFqaYbmmU4zdEb9E4HPrZrCKs5AzKZ8y/1z5pzvepg3+pCG8LnDYhxtWjx077hlZGQtgZ6KUz82MgHV0PKL0v+bAXFV5R/U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104006; c=relaxed/simple;
-	bh=/2hvDmMaVeDYXiefuvooNIW1TSW7LekhyVOPSfTgIvc=;
-	h=Date:To:From:Subject:Message-Id; b=tvoftvjTDgbkABXEt+7f0xwPOAJtuWvyCRlZwG7RgOMatvNgDnHtzdUh38tuhMwerX8GUUh//Clio02bJPB54DGHPwJ28nPe5TyxGdh5HgZatRvG/6Vo4ZM15erI70NsvNyLzyNFd6EAU4gsFbkmScZ4ZKZDZZ/lb5btTJlvXC8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JVVt2/QP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104007; c=relaxed/simple;
+	bh=2g/kGiIEchL5tDcDM7b9yGCSTFTETocCBaXuBCiroC0=;
+	h=Date:To:From:Subject:Message-Id; b=BeLUczKs0uhF71MqO46KK4rwzihp1OswP2GBzD+VxQw/IH8AHB1MNyB/Z95KTzLv2SCNsZum/kPmi1ZWV9L6FFZ59AGaHKSLRsj5zF5TOPl+OZZ0RbGlfrnbZXtLVMRpG6W8xuQTC8nLZJlqPTIMT5vM3ZOyf3wkOEEG/SV9oT0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WAp+TQ50; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JVVt2/QP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B44EAC113CD;
-	Fri, 26 Apr 2024 04:00:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WAp+TQ50"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDA7DC113CD;
+	Fri, 26 Apr 2024 04:00:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104005;
-	bh=/2hvDmMaVeDYXiefuvooNIW1TSW7LekhyVOPSfTgIvc=;
+	s=korg; t=1714104006;
+	bh=2g/kGiIEchL5tDcDM7b9yGCSTFTETocCBaXuBCiroC0=;
 	h=Date:To:From:Subject:From;
-	b=JVVt2/QPax23JdCVNUO6tCoYO0u6HAp9PdS3iSowMJZ9zjoeGPcA8nPQSjESHHikU
-	 2Z5mJ6oNypLHEnxUIH5Sza7xAkAnHDHPkbZNkr9IRyHyLntaFF0MzoDBvqzhkVa6w4
-	 LYeM/ROz/rb5XnYEHIj64XJ9pcITg9Y+Hp+SWVMY=
-Date: Thu, 25 Apr 2024 21:00:05 -0700
-To: mm-commits@vger.kernel.org,dennis@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=WAp+TQ50XSZDnzMaX/pqXrJzwWCkDdV8yPBqlIJuOEGtLZxgCvA0bbBjh5p3uMWnD
+	 VEkI+xk7TTiiFIuB6ZPJSlHVXwlbQ/h2O4/yEHShnspid7COTWOjmvrQYNadmPFEFV
+	 XXWObmyPyt27jJGBhi4xnZNpQCIDxpvY0gj9UhcE=
+Date: Thu, 25 Apr 2024 21:00:06 -0700
+To: mm-commits@vger.kernel.org,peterz@infradead.org,mingo@kernel.org,luto@kernel.org,fei1.li@intel.com,david@redhat.com,dave.hansen@linux.intel.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-backing-dev-use-group-allocation-free-of-per-cpu-counters-api.patch removed from -mm tree
-Message-Id: <20240426040005.B44EAC113CD@smtp.kernel.org>
+Subject: [merged mm-stable] virt-acrn-stop-using-follow_pfn.patch removed from -mm tree
+Message-Id: <20240426040006.CDA7DC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,86 +35,77 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: backing-dev: use group allocation/free of per-cpu counters API
+     Subject: virt: acrn: stop using follow_pfn
 has been removed from the -mm tree.  Its filename was
-     mm-backing-dev-use-group-allocation-free-of-per-cpu-counters-api.patch
+     virt-acrn-stop-using-follow_pfn.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: backing-dev: use group allocation/free of per-cpu counters API
-Date: Mon, 25 Mar 2024 11:56:35 +0800
+From: Christoph Hellwig <hch@lst.de>
+Subject: virt: acrn: stop using follow_pfn
+Date: Mon, 25 Mar 2024 07:45:40 +0800
 
-Use group allocation/free of per-cpu counters api to accelerate
-wb_init/exit() and simplify code.
+Patch series "remove follow_pfn".
 
-Link: https://lkml.kernel.org/r/20240325035635.49342-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Dennis Zhou <dennis@kernel.org>
+This series open codes follow_pfn in the only remaining caller, although
+the code there remains questionable.  It then also moves follow_phys into
+the only user and simplifies it a bit.
+
+
+This patch (of 3):
+
+Switch from follow_pfn to follow_pte so that we can get rid of follow_pfn.
+Note that this doesn't fix any of the pre-existing raciness and lack of
+permission checking in the code.
+
+Link: https://lkml.kernel.org/r/20240324234542.2038726-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20240324234542.2038726-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Fei Li <fei1.li@intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |   23 +++++------------------
- 1 file changed, 5 insertions(+), 18 deletions(-)
+ drivers/virt/acrn/mm.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/mm/backing-dev.c~mm-backing-dev-use-group-allocation-free-of-per-cpu-counters-api
-+++ a/mm/backing-dev.c
-@@ -388,7 +388,7 @@ static void wb_update_bandwidth_workfn(s
- static int wb_init(struct bdi_writeback *wb, struct backing_dev_info *bdi,
- 		   gfp_t gfp)
- {
--	int i, err;
-+	int err;
+--- a/drivers/virt/acrn/mm.c~virt-acrn-stop-using-follow_pfn
++++ a/drivers/virt/acrn/mm.c
+@@ -172,18 +172,24 @@ int acrn_vm_ram_map(struct acrn_vm *vm,
+ 	mmap_read_lock(current->mm);
+ 	vma = vma_lookup(current->mm, memmap->vma_base);
+ 	if (vma && ((vma->vm_flags & VM_PFNMAP) != 0)) {
++		spinlock_t *ptl;
++		pte_t *ptep;
++
+ 		if ((memmap->vma_base + memmap->len) > vma->vm_end) {
+ 			mmap_read_unlock(current->mm);
+ 			return -EINVAL;
+ 		}
  
- 	memset(wb, 0, sizeof(*wb));
+-		ret = follow_pfn(vma, memmap->vma_base, &pfn);
+-		mmap_read_unlock(current->mm);
++		ret = follow_pte(vma->vm_mm, memmap->vma_base, &ptep, &ptl);
+ 		if (ret < 0) {
++			mmap_read_unlock(current->mm);
+ 			dev_dbg(acrn_dev.this_device,
+ 				"Failed to lookup PFN at VMA:%pK.\n", (void *)memmap->vma_base);
+ 			return ret;
+ 		}
++		pfn = pte_pfn(ptep_get(ptep));
++		pte_unmap_unlock(ptep, ptl);
++		mmap_read_unlock(current->mm);
  
-@@ -416,18 +416,10 @@ static int wb_init(struct bdi_writeback
- 	if (err)
- 		return err;
- 
--	for (i = 0; i < NR_WB_STAT_ITEMS; i++) {
--		err = percpu_counter_init(&wb->stat[i], 0, gfp);
--		if (err)
--			goto out_destroy_stat;
--	}
--
--	return 0;
-+	err = percpu_counter_init_many(wb->stat, 0, gfp, NR_WB_STAT_ITEMS);
-+	if (err)
-+		fprop_local_destroy_percpu(&wb->completions);
- 
--out_destroy_stat:
--	while (i--)
--		percpu_counter_destroy(&wb->stat[i]);
--	fprop_local_destroy_percpu(&wb->completions);
- 	return err;
- }
- 
-@@ -460,13 +452,8 @@ static void wb_shutdown(struct bdi_write
- 
- static void wb_exit(struct bdi_writeback *wb)
- {
--	int i;
--
- 	WARN_ON(delayed_work_pending(&wb->dwork));
--
--	for (i = 0; i < NR_WB_STAT_ITEMS; i++)
--		percpu_counter_destroy(&wb->stat[i]);
--
-+	percpu_counter_destroy_many(wb->stat, NR_WB_STAT_ITEMS);
- 	fprop_local_destroy_percpu(&wb->completions);
- }
- 
+ 		return acrn_mm_region_add(vm, memmap->user_vm_pa,
+ 			 PFN_PHYS(pfn), memmap->len,
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-arm64-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
-arm-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
-mm-move-mm-counter-updating-out-of-set_pte_range.patch
-mm-filemap-batch-mm-counter-updating-in-filemap_map_pages.patch
-mm-swapfile-check-usable-swap-device-in-__folio_throttle_swaprate.patch
-mm-memory-check-userfaultfd_wp-in-vmf_orig_pte_uffd_wp.patch
 
