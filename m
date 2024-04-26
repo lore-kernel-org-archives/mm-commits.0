@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDF028062B
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B65DF80C16
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104154; cv=none; b=l9EjwnEEyWxjCidksDn16e02m+BzilxxnFBl4gUWOqOrgmK2TuYDLzWgzDqcHYihzg+VmnnsQFHAygvGm+jb9ci5mBcbbFjhzBtoOJEMtGE7l29ztwbPaSWKxUWx7ApiPcKa/FS3ee18BSATCYqitQO8QTRSHXD2lDjSPsF1t8k=
+	t=1714104155; cv=none; b=L9G+5zSFqXEKxrZsOp9HMEHXn8y9aUUySn/s0WwBfXhgrZs1Rj9jdftlt0SIeBgUE9Mvu9+X1tl3nQXIIa71owimllfvF8fX9ES4TraLGxmxdq60xHAcXyBBPYZDB3SXmkkwmK7dPCdKx6YSj0yA4Gzm++XZjOXZcJo2BrdwkCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104154; c=relaxed/simple;
-	bh=EpY8CKZu3tXNvGMJ852M1i8M1L1aA4EaElIWgmRqwq8=;
-	h=Date:To:From:Subject:Message-Id; b=gDB0cdMnIP1tiMfRLVs0A9sUOZInbyoGb3PT4FtGdxWCYtXNL/ngQBoCi0qyGqBjP6+1C1wD1QndtIybKUGpE8tXHbhrP1JsTundx0UKlV0CV1nMhDkAdjgV0nUNylvNQ9kqlBXK5+OjOfL9boP4ScoejThSE+FeUJgsKno9ayk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DSTMG0li; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104155; c=relaxed/simple;
+	bh=k5vpokQNDbyKZqW349/CG57XkJCKS6bF5iFdGGcxhyo=;
+	h=Date:To:From:Subject:Message-Id; b=WpNyG8xRhgQfbUTYdCrKgbZIHUmCxeMVzWsukwUgMFRCkvo+RY7RMzxOTB9vlCBa0YEXU6a/tuxHc0bQTg2w4zk50yRjW1fQ8C94P+/KIVLy3opaKpjPi5lhuCceD5fxpSf+DfPIYRzb34Nl172xoATuxiIzzOpKfpeXG/O5Zuo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZQAu1Mgh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DSTMG0li"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89C55C32781;
-	Fri, 26 Apr 2024 04:02:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZQAu1Mgh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B252C116B1;
+	Fri, 26 Apr 2024 04:02:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104154;
-	bh=EpY8CKZu3tXNvGMJ852M1i8M1L1aA4EaElIWgmRqwq8=;
+	s=korg; t=1714104155;
+	bh=k5vpokQNDbyKZqW349/CG57XkJCKS6bF5iFdGGcxhyo=;
 	h=Date:To:From:Subject:From;
-	b=DSTMG0liXBPbIIsB733jIsMl9ZRda8kvAQmy6gFOJh4d7lyuXOrmh/v+epnfBBfft
-	 1Tb91zt0vp1Md+YqzyGSn3Jgd9ntfLg6MkhljYAt4wJf6W4NDzo0Mqpltja9rbYKxh
-	 ogIjhg+acpVVV3GVemMW9dbpoa2y23cRf2FVx3ds=
-Date: Thu, 25 Apr 2024 21:02:34 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,surenb@google.com,peterz@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,luto@kernel.org,linux@armlinux.org.uk,gerald.schaefer@linux.ibm.com,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,aou@eecs.berkeley.edu,agordeev@linux.ibm.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=ZQAu1MghVJ1bdrxxcujeaOMmlxLxVcnMNbLkh/FeSOz6oWvZ3htMwwlbtoFAc4m0F
+	 56W6XPuZhxZ5wHlzK2fpkUXBuXCRGarCjB0mBYYJlkmBs4XtTil0lBW+6q0JQoudwF
+	 A9gBoTBDONSWlqbraajyqJi38sLXXF51WfwMzNT0=
+Date: Thu, 25 Apr 2024 21:02:35 -0700
+To: mm-commits@vger.kernel.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] x86-mm-accelerate-pagefault-when-badaccess.patch removed from -mm tree
-Message-Id: <20240426040234.89C55C32781@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-struct-page-from-get_shadow_from_swap_cache.patch removed from -mm tree
+Message-Id: <20240426040235.8B252C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,122 +35,84 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86: mm: accelerate pagefault when badaccess
+     Subject: mm: remove struct page from get_shadow_from_swap_cache
 has been removed from the -mm tree.  Its filename was
-     x86-mm-accelerate-pagefault-when-badaccess.patch
+     mm-remove-struct-page-from-get_shadow_from_swap_cache.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: x86: mm: accelerate pagefault when badaccess
-Date: Wed, 3 Apr 2024 16:38:05 +0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: remove struct page from get_shadow_from_swap_cache
+Date: Tue, 2 Apr 2024 21:16:57 +0100
 
-The access_error() of vma is already checked under per-VMA lock, if it is
-a bad access, directly handle error, no need to retry with mmap_lock
-again.  In order to release the correct lock, pass the mm_struct into
-bad_area_access_error().  If mm is NULL, release vma lock, or release
-mmap_lock.  Since the page faut is handled under per-VMA lock, count it as
-a vma lock event with VMA_LOCK_SUCCESS.
+We don't actually use any parts of struct page; all we do is check the
+value of the pointer.  So give the pointer the appropriate name & type.
 
-Link: https://lkml.kernel.org/r/20240403083805.1818160-8-wangkefeng.wang@huawei.com
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20240402201659.918308-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/fault.c |   23 ++++++++++++++---------
- 1 file changed, 14 insertions(+), 9 deletions(-)
+ mm/swap_state.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/x86/mm/fault.c~x86-mm-accelerate-pagefault-when-badaccess
-+++ a/arch/x86/mm/fault.c
-@@ -866,14 +866,17 @@ bad_area_nosemaphore(struct pt_regs *reg
- 
- static void
- __bad_area(struct pt_regs *regs, unsigned long error_code,
--	   unsigned long address, u32 pkey, int si_code)
-+	   unsigned long address, struct mm_struct *mm,
-+	   struct vm_area_struct *vma, u32 pkey, int si_code)
+--- a/mm/swap_state.c~mm-remove-struct-page-from-get_shadow_from_swap_cache
++++ a/mm/swap_state.c
+@@ -73,11 +73,11 @@ void *get_shadow_from_swap_cache(swp_ent
  {
--	struct mm_struct *mm = current->mm;
- 	/*
- 	 * Something tried to access memory that isn't in our memory map..
- 	 * Fix it, but check if it's kernel or user first..
- 	 */
--	mmap_read_unlock(mm);
-+	if (mm)
-+		mmap_read_unlock(mm);
-+	else
-+		vma_end_read(vma);
+ 	struct address_space *address_space = swap_address_space(entry);
+ 	pgoff_t idx = swp_offset(entry);
+-	struct page *page;
++	void *shadow;
  
- 	__bad_area_nosemaphore(regs, error_code, address, pkey, si_code);
+-	page = xa_load(&address_space->i_pages, idx);
+-	if (xa_is_value(page))
+-		return page;
++	shadow = xa_load(&address_space->i_pages, idx);
++	if (xa_is_value(shadow))
++		return shadow;
+ 	return NULL;
  }
-@@ -897,7 +900,8 @@ static inline bool bad_area_access_from_
- 
- static noinline void
- bad_area_access_error(struct pt_regs *regs, unsigned long error_code,
--		      unsigned long address, struct vm_area_struct *vma)
-+		      unsigned long address, struct mm_struct *mm,
-+		      struct vm_area_struct *vma)
- {
- 	/*
- 	 * This OSPKE check is not strictly necessary at runtime.
-@@ -927,9 +931,9 @@ bad_area_access_error(struct pt_regs *re
- 		 */
- 		u32 pkey = vma_pkey(vma);
- 
--		__bad_area(regs, error_code, address, pkey, SEGV_PKUERR);
-+		__bad_area(regs, error_code, address, mm, vma, pkey, SEGV_PKUERR);
- 	} else {
--		__bad_area(regs, error_code, address, 0, SEGV_ACCERR);
-+		__bad_area(regs, error_code, address, mm, vma, 0, SEGV_ACCERR);
- 	}
- }
- 
-@@ -1357,8 +1361,9 @@ void do_user_addr_fault(struct pt_regs *
- 		goto lock_mmap;
- 
- 	if (unlikely(access_error(error_code, vma))) {
--		vma_end_read(vma);
--		goto lock_mmap;
-+		bad_area_access_error(regs, error_code, address, NULL, vma);
-+		count_vm_vma_lock_event(VMA_LOCK_SUCCESS);
-+		return;
- 	}
- 	fault = handle_mm_fault(vma, address, flags | FAULT_FLAG_VMA_LOCK, regs);
- 	if (!(fault & (VM_FAULT_RETRY | VM_FAULT_COMPLETED)))
-@@ -1394,7 +1399,7 @@ retry:
- 	 * we can handle it..
- 	 */
- 	if (unlikely(access_error(error_code, vma))) {
--		bad_area_access_error(regs, error_code, address, vma);
-+		bad_area_access_error(regs, error_code, address, mm, vma);
- 		return;
- 	}
  
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-arm64-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
-arm-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
-mm-move-mm-counter-updating-out-of-set_pte_range.patch
-mm-filemap-batch-mm-counter-updating-in-filemap_map_pages.patch
-mm-swapfile-check-usable-swap-device-in-__folio_throttle_swaprate.patch
-mm-memory-check-userfaultfd_wp-in-vmf_orig_pte_uffd_wp.patch
+doc-improve-the-description-of-__folio_mark_dirty.patch
+buffer-add-kernel-doc-for-block_dirty_folio.patch
+buffer-add-kernel-doc-for-try_to_free_buffers.patch
+buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch
+buffer-add-kernel-doc-for-brelse-and-__brelse.patch
+buffer-add-kernel-doc-for-bforget-and-__bforget.patch
+buffer-improve-bdev_getblk-documentation.patch
+doc-split-bufferrst-out-of-api-summaryrst.patch
+doc-split-bufferrst-out-of-api-summaryrst-fix.patch
+mm-memory-failure-remove-fsdax_pgoff-argument-from-__add_to_kill.patch
+mm-memory-failure-pass-addr-to-__add_to_kill.patch
+mm-return-the-address-from-page_mapped_in_vma.patch
+mm-make-page_mapped_in_vma-conditional-on-config_memory_failure.patch
+mm-memory-failure-convert-shake_page-to-shake_folio.patch
+mm-convert-hugetlb_page_mapping_lock_write-to-folio.patch
+mm-memory-failure-convert-memory_failure-to-use-a-folio.patch
+mm-memory-failure-convert-hwpoison_user_mappings-to-take-a-folio.patch
+mm-memory-failure-add-some-folio-conversions-to-unpoison_memory.patch
+mm-memory-failure-use-folio-functions-throughout-collect_procs.patch
+mm-memory-failure-pass-the-folio-to-collect_procs_ksm.patch
+fscrypt-convert-bh_get_inode_and_lblk_num-to-use-a-folio.patch
+f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio.patch
+memory-failure-remove-calls-to-page_mapping.patch
+migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch
+userfault-expand-folio-use-in-mfill_atomic_install_pte.patch
+mm-remove-page_mapping.patch
+mm-remove-page_cache_alloc.patch
+mm-remove-put_devmap_managed_page.patch
+mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs.patch
+mm-remove-page_ref_sub_return.patch
+gup-use-folios-for-gup_devmap.patch
+mm-add-kernel-doc-for-folio_mark_accessed.patch
+mm-remove-pagereferenced.patch
+mm-simplify-thp_vma_allowable_order.patch
 
