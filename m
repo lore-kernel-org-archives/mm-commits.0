@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7885E74E0C
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:03:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88AE975816
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:05:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714100617; cv=none; b=kC9pUqIKtAFArTWyTNBUBjGVFG6XyCYOKmuMFDXUmFR+z98CQmY0PBST/v9xyh3Ha9DhiIT/u9XnotAlVHgApbkTZhjpkCoOFMrMKSLYHSkaYgJr0WiZ73vkgwGLwECqL8xJi2m2qIpAbC+lcF6Lbi01+XXpGNAsCVNumBex3m4=
+	t=1714100703; cv=none; b=hsORjwI7TFoxIVwOnpqCA9DQmCn9I2dZV/p4yflABMNBq+UgKCFoNs2PX2tP3VKkO+rse3uLFkbpdBzb0ESPRyMo8XZCq1j/+Scfpagzegm9OA4p3CALcDJEu3FVxvD39CCQmYUpAQvOZ+vzvoQ8pXpMx+utZsR4yYABj0jEf08=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714100617; c=relaxed/simple;
-	bh=rSEatG+BFiRYnP+KWh/IDuyGFXBecV722vnv5H0dyPY=;
-	h=Date:To:From:Subject:Message-Id; b=kgF57ZbGd4JnclwvK/uNC+87QxuqnBfdyZBDQLFPOtPLdtrbL2bW+2orCmXWtEDZxomoKUZsFGdRJWSvDbU+0511OqhJURvq7fqtFQOdPvBDqzMdpjMugQ4EsHP6h6ht2Dxe3dSupxzwDwrTlVouZuzVGJenhkOAYObdj1vCHWE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=As/S2R1z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714100703; c=relaxed/simple;
+	bh=Fa6z0X9kVMjeF8HeLVwhUKt1YLerCwp4p4V2g3dGWXU=;
+	h=Date:To:From:Subject:Message-Id; b=U1uhQzIW8UmerGIsp6slhV5nS2WbjGahqsOVCgM0y8NYLvz5qenLDqMwptitSNWc0x4fSt2U1QIbyfTLH6JNBzYbyTg6v7OPQFkS2oSMEes7G7aK84A6x1qTXAmSzvWZ4Yt8u4ePb61sAqyeIHkEJr2rXsMEMY9VQ6hRVWj2BFs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gNO/Wlwd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="As/S2R1z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4EE5C2BBFC;
-	Fri, 26 Apr 2024 03:03:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gNO/Wlwd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2FABC113CC;
+	Fri, 26 Apr 2024 03:05:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714100616;
-	bh=rSEatG+BFiRYnP+KWh/IDuyGFXBecV722vnv5H0dyPY=;
+	s=korg; t=1714100703;
+	bh=Fa6z0X9kVMjeF8HeLVwhUKt1YLerCwp4p4V2g3dGWXU=;
 	h=Date:To:From:Subject:From;
-	b=As/S2R1ztgd7CdJFCKw/taNJlMjvGjeyWkhnG5A9Kswn3MftuEv8ieQHiR1aK0TUT
-	 4zUtL10PA7jCx56vX683vUzT+DsThtzEZH2uqAXjsDa+w/YS/nFk//TPrwQliJPJ9e
-	 UfZFpKu0COOjZH29uKviT49Of9osMsSBCMI3ObV0=
-Date: Thu, 25 Apr 2024 20:03:36 -0700
-To: mm-commits@vger.kernel.org,aneesh.kumar@kernel.org,donettom@linux.ibm.com,akpm@linux-foundation.org
+	b=gNO/WlwdKL0sO2gWSPZ+a0Bu8sypqG5vavNr6R+C7xh0/6G/Wt+zin9v8nOF+Uc/X
+	 HEVtimajPNSbj0lj7HM+VIBatS1/dxr8vKgbrLdqRBnpq4r+HtKkNNjtwWSY8oSjIR
+	 XZNtmIU0ac2b7wRb0BxbJNx/k44zvkw66MORf1ac=
+Date: Thu, 25 Apr 2024 20:05:02 -0700
+To: mm-commits@vger.kernel.org,kent.overstreet@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-mempolicy-use-numa_node_id-instead-of-cpu_to_node-v3.patch removed from -mm tree
-Message-Id: <20240426030336.D4EE5C2BBFC@smtp.kernel.org>
+Subject: [folded-merged] fix-missing-vmalloch-includes-fix.patch removed from -mm tree
+Message-Id: <20240426030502.F2FABC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,56 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-mempolicy-use-numa_node_id-instead-of-cpu_to_node-v3
+     Subject: fixup! fix missing vmalloc.h includes
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-use-numa_node_id-instead-of-cpu_to_node-v3.patch
+     fix-missing-vmalloch-includes-fix.patch
 
-This patch was dropped because it was folded into mm-mempolicy-use-numa_node_id-instead-of-cpu_to_node.patch
+This patch was dropped because it was folded into fix-missing-vmalloch-includes.patch
 
 ------------------------------------------------------
-From: Donet Tom <donettom@linux.ibm.com>
-Subject: mm-mempolicy-use-numa_node_id-instead-of-cpu_to_node-v3
-Date: Thu, 21 Mar 2024 06:29:50 -0500
+From: Kent Overstreet <kent.overstreet@linux.dev>
+Subject: fixup! fix missing vmalloc.h includes
+Date: Tue, 26 Mar 2024 20:21:52 -0400
 
-add "* @vmf: structure describing the fault" comment for mpol_misplaced()
-to fix the warning.  
+The previous patch added string.h to arch/alpha/lib/memcpy.c to fix a
+warning about a missing forward declaration - but this breaks with -
+presumably - some fortify source shenanigans that redefine memcpy as a
+macro.
 
-Link: https://lkml.kernel.org/r/d8b993ea9dccfac0bc3ed61d3a81f4ac5f376e46.1711002865.git.donettom@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V (IBM) <aneesh.kumar@kernel.org>
-Signed-off-by: Donet Tom <donettom@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20240327002152.3339937-1-kent.overstreet@linux.dev
+Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/alpha/lib/memcpy.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-use-numa_node_id-instead-of-cpu_to_node-v3
-+++ a/mm/mempolicy.c
-@@ -2718,7 +2718,7 @@ static void sp_free(struct sp_node *n)
-  * mpol_misplaced - check whether current folio node is valid in policy
-  *
-  * @folio: folio to be checked
-- * @vma: vm area where folio mapped
-+ * @vmf: structure describing the fault
-  * @addr: virtual address in @vma for shared policy lookup and interleave policy
-  *
-  * Lookup current policy node id for vma,addr and "compare to" folio's
+--- a/arch/alpha/lib/memcpy.c~fix-missing-vmalloch-includes-fix
++++ a/arch/alpha/lib/memcpy.c
+@@ -18,7 +18,6 @@
+ 
+ #include <linux/types.h>
+ #include <linux/export.h>
+-#include <linux/string.h>
+ 
+ /*
+  * This should be done in one go with ldq_u*2/mask/stq_u. Do it
 _
 
-Patches currently in -mm which might be from donettom@linux.ibm.com are
+Patches currently in -mm which might be from kent.overstreet@linux.dev are
 
-mm-mempolicy-use-numa_node_id-instead-of-cpu_to_node.patch
-mm-numa_balancing-allow-migrate-on-protnone-reference-with-mpol_preferred_many-policy.patch
+fix-missing-vmalloch-includes.patch
+fix-missing-vmalloch-includes-fix-4.patch
+asm-generic-ioh-kill-vmalloch-dependency.patch
+mm-slub-mark-slab_free_freelist_hook-__always_inline.patch
+scripts-kallysms-always-include-__start-and-__stop-symbols.patch
+fs-convert-alloc_inode_sb-to-a-macro.patch
+rust-add-a-rust-helper-for-krealloc.patch
+mempool-hook-up-to-memory-allocation-profiling.patch
+mm-percpu-introduce-pcpuobj_ext.patch
+mm-percpu-add-codetag-reference-into-pcpuobj_ext.patch
+mm-vmalloc-enable-memory-allocation-profiling.patch
+rhashtable-plumb-through-alloc-tag.patch
+maintainers-add-entries-for-code-tagging-and-memory-allocation-profiling.patch
+memprofiling-documentation.patch
 
