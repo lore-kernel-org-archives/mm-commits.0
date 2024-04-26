@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC3507C085
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:58:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B45E27C085
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:59:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714103939; cv=none; b=nn5abNTE+eb0PBKK8PNzYtqOFnpIJTahA1++vZADbB2Y6mggSgTyPOqvOra/KGsaCKz6eKkbFOKuAkqCt9sU3+2dAY1hE5vtK8mBZDjYmTjywdx4Ct4DPrP//mG5pbQl3RW4FxKZdH0YrAzqyyEGuSTY59Wbbrx1SQeIClTDZFc=
+	t=1714103940; cv=none; b=dkvjIPyG698bzYDV9Iz5CM+qmQXM5RKRxJzcqUAGbwYUDKpnzejHFXmlMwbxIX8sZRKbghais/i8yiKsJrDudwnpg7fmLznOIpjxN8jJb4h3sjPp4NuA+Uog1VprY3eX7aaJH7+tWhiOioY1sjWJzkXJIqbh08+W4maBeJPruU0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714103939; c=relaxed/simple;
-	bh=kWhgN5GKJuDxLpnwasbcvOX0FgXt9//oOogUFnAwofA=;
-	h=Date:To:From:Subject:Message-Id; b=tKclj2tix/kX3S/6BOOJl/wpMiyj6r6vUBR+nNBBMqW4sr8BqizlcldXn1XlYibZDlmmKJbhLoIzR/3WBLS6+KlhC1/r4eMrXfD3SyFIGdZvxgmPC0p32TjJ/nNcj/YFi317PzVgUMxcxJ3zX2LWX+9HJtTkhUovnwRHfUToabA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d5c0Sg0Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714103940; c=relaxed/simple;
+	bh=v8ZvL18W6R/UC00/qMfZS8GL4bRIYUAhYvRYR6F2ZBo=;
+	h=Date:To:From:Subject:Message-Id; b=SQij+qo8zKreaFk9Ja2gR5hFV5Q4THmtz7PSHoP/2cd1gUh7gdq5mHw0CFo69AbrECRbTSIlvga/no9rj6/WRYm0nGDsrNm0735nr+sEQPOeBaq5G0DJlCkl37wK/KuYnacJEAUJ6Hl3MQjVGQZOVqQHcPnV1c1tI4l084wAwrM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uCIMJRcQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d5c0Sg0Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 805D3C113CD;
-	Fri, 26 Apr 2024 03:58:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uCIMJRcQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B188C113CD;
+	Fri, 26 Apr 2024 03:59:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714103939;
-	bh=kWhgN5GKJuDxLpnwasbcvOX0FgXt9//oOogUFnAwofA=;
+	s=korg; t=1714103940;
+	bh=v8ZvL18W6R/UC00/qMfZS8GL4bRIYUAhYvRYR6F2ZBo=;
 	h=Date:To:From:Subject:From;
-	b=d5c0Sg0QCV8Fe4FVdlRVKQpPARmBeQm6AZv2+Lp3p9oY9qmFim0N9NhLlt4kZlf6b
-	 +w+Psh/AoLbn95SIduiXJ13d1uOqUTNDEUD9Sl72e2IYvmS81F2zz0ZpnHB9shCSiQ
-	 b/VqKJnrmVLT20Nkabgi2C+vuWYvz2HyRI6zD/No=
-Date: Thu, 25 Apr 2024 20:58:58 -0700
+	b=uCIMJRcQC8ZT8NyF7dm2BlnwSTkNEWVyVMg7/30nJhVupFBG/WscZzDTELIdEnYp8
+	 fO4uehoaFWd+yL41UmKxDRB0LVB40cbYYyBZfQaJOP50ObbxKhtcv4bL5IQKgJeOez
+	 kyCnSosmW0ppTi1YVCNCRfMzqghJ6ghcEqHrsO24=
+Date: Thu, 25 Apr 2024 20:59:00 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,muchun.song@linux.dev,linmiaohe@huawei.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch removed from -mm tree
-Message-Id: <20240426035859.805D3C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-free-up-pg_slab.patch removed from -mm tree
+Message-Id: <20240426035900.8B188C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,182 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove a call to compound_head() from is_page_hwpoison()
+     Subject: mm: free up PG_slab
 has been removed from the -mm tree.  Its filename was
-     mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch
+     mm-free-up-pg_slab.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove a call to compound_head() from is_page_hwpoison()
-Date: Thu, 21 Mar 2024 14:24:44 +0000
+Subject: mm: free up PG_slab
+Date: Thu, 21 Mar 2024 14:24:45 +0000
 
-We can call it only once instead of twice.
+Reclaim the Slab page flag by using a spare bit in PageType.  We are
+perennially short of page flags for various purposes, and now that the
+original SLAB allocator has been retired, SLUB does not use the
+mapcount/page_type field.  This lets us remove a number of special cases
+for ignoring mapcount on Slab pages.
 
-Link: https://lkml.kernel.org/r/20240321142448.1645400-7-willy@infradead.org
+[willy@infradead.org: update vmcoreinfo]
+  Link: https://lkml.kernel.org/r/ZgGV-O8WYQ_83kxp@casper.infradead.org
+Link: https://lkml.kernel.org/r/20240321142448.1645400-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/page-flags.h     |   21 +++++++++++++++++----
+ include/trace/events/mmflags.h |    2 +-
+ kernel/vmcore_info.c           |    3 ++-
+ mm/memory-failure.c            |    9 ---------
+ mm/slab.h                      |    2 +-
+ 5 files changed, 21 insertions(+), 16 deletions(-)
 
---- a/include/linux/page-flags.h~mm-remove-a-call-to-compound_head-from-is_page_hwpoison
+--- a/include/linux/page-flags.h~mm-free-up-pg_slab
 +++ a/include/linux/page-flags.h
-@@ -1065,11 +1065,14 @@ static inline bool PageHuge(const struct
-  * best effort only and inherently racy: there is no way to synchronize with
-  * failing hardware.
-  */
--static inline bool is_page_hwpoison(struct page *page)
-+static inline bool is_page_hwpoison(const struct page *page)
- {
-+	const struct folio *folio;
-+
- 	if (PageHWPoison(page))
- 		return true;
--	return PageHuge(page) && PageHWPoison(compound_head(page));
-+	folio = page_folio(page);
-+	return folio_test_hugetlb(folio) && PageHWPoison(&folio->page);
- }
+@@ -109,7 +109,6 @@ enum pageflags {
+ 	PG_active,
+ 	PG_workingset,
+ 	PG_error,
+-	PG_slab,
+ 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
+ 	PG_arch_1,
+ 	PG_reserved,
+@@ -524,7 +523,6 @@ PAGEFLAG(Active, active, PF_HEAD) __CLEA
+ 	TESTCLEARFLAG(Active, active, PF_HEAD)
+ PAGEFLAG(Workingset, workingset, PF_HEAD)
+ 	TESTCLEARFLAG(Workingset, workingset, PF_HEAD)
+-__PAGEFLAG(Slab, slab, PF_NO_TAIL)
+ PAGEFLAG(Checked, checked, PF_NO_COMPOUND)	   /* Used by some filesystems */
  
- extern bool is_free_buddy_page(struct page *page);
+ /* Xen */
+@@ -931,7 +929,7 @@ PAGEFLAG_FALSE(HasHWPoisoned, has_hwpois
+ #endif
+ 
+ /*
+- * For pages that are never mapped to userspace (and aren't PageSlab),
++ * For pages that are never mapped to userspace,
+  * page_type may be used.  Because it is initialised to -1, we invert the
+  * sense of the bit, so __SetPageFoo *clears* the bit used for PageFoo, and
+  * __ClearPageFoo *sets* the bit used for PageFoo.  We reserve a few high and
+@@ -947,6 +945,7 @@ PAGEFLAG_FALSE(HasHWPoisoned, has_hwpois
+ #define PG_table	0x00000200
+ #define PG_guard	0x00000400
+ #define PG_hugetlb	0x00000800
++#define PG_slab		0x00001000
+ 
+ #define PageType(page, flag)						\
+ 	((page->page_type & (PAGE_TYPE_BASE | flag)) == PAGE_TYPE_BASE)
+@@ -1041,6 +1040,20 @@ PAGE_TYPE_OPS(Table, table, pgtable)
+  */
+ PAGE_TYPE_OPS(Guard, guard, guard)
+ 
++FOLIO_TYPE_OPS(slab, slab)
++
++/**
++ * PageSlab - Determine if the page belongs to the slab allocator
++ * @page: The page to test.
++ *
++ * Context: Any context.
++ * Return: True for slab pages, false for any other kind of page.
++ */
++static inline bool PageSlab(const struct page *page)
++{
++	return folio_test_slab(page_folio(page));
++}
++
+ #ifdef CONFIG_HUGETLB_PAGE
+ FOLIO_TYPE_OPS(hugetlb, hugetlb)
+ #else
+@@ -1121,7 +1134,7 @@ static __always_inline void __ClearPageA
+ 	(1UL << PG_lru		| 1UL << PG_locked	|	\
+ 	 1UL << PG_private	| 1UL << PG_private_2	|	\
+ 	 1UL << PG_writeback	| 1UL << PG_reserved	|	\
+-	 1UL << PG_slab		| 1UL << PG_active 	|	\
++	 1UL << PG_active 	|				\
+ 	 1UL << PG_unevictable	| __PG_MLOCKED | LRU_GEN_MASK)
+ 
+ /*
+--- a/include/trace/events/mmflags.h~mm-free-up-pg_slab
++++ a/include/trace/events/mmflags.h
+@@ -107,7 +107,6 @@
+ 	DEF_PAGEFLAG_NAME(lru),						\
+ 	DEF_PAGEFLAG_NAME(active),					\
+ 	DEF_PAGEFLAG_NAME(workingset),					\
+-	DEF_PAGEFLAG_NAME(slab),					\
+ 	DEF_PAGEFLAG_NAME(owner_priv_1),				\
+ 	DEF_PAGEFLAG_NAME(arch_1),					\
+ 	DEF_PAGEFLAG_NAME(reserved),					\
+@@ -135,6 +134,7 @@ IF_HAVE_PG_ARCH_X(arch_3)
+ #define DEF_PAGETYPE_NAME(_name) { PG_##_name, __stringify(_name) }
+ 
+ #define __def_pagetype_names						\
++	DEF_PAGETYPE_NAME(slab),					\
+ 	DEF_PAGETYPE_NAME(hugetlb),					\
+ 	DEF_PAGETYPE_NAME(offline),					\
+ 	DEF_PAGETYPE_NAME(guard),					\
+--- a/kernel/vmcore_info.c~mm-free-up-pg_slab
++++ a/kernel/vmcore_info.c
+@@ -198,7 +198,8 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_NUMBER(PG_private);
+ 	VMCOREINFO_NUMBER(PG_swapcache);
+ 	VMCOREINFO_NUMBER(PG_swapbacked);
+-	VMCOREINFO_NUMBER(PG_slab);
++#define PAGE_SLAB_MAPCOUNT_VALUE	(~PG_slab)
++	VMCOREINFO_NUMBER(PAGE_SLAB_MAPCOUNT_VALUE);
+ #ifdef CONFIG_MEMORY_FAILURE
+ 	VMCOREINFO_NUMBER(PG_hwpoison);
+ #endif
+--- a/mm/memory-failure.c~mm-free-up-pg_slab
++++ a/mm/memory-failure.c
+@@ -1251,7 +1251,6 @@ static int me_huge_page(struct page_stat
+ #define mlock		(1UL << PG_mlocked)
+ #define lru		(1UL << PG_lru)
+ #define head		(1UL << PG_head)
+-#define slab		(1UL << PG_slab)
+ #define reserved	(1UL << PG_reserved)
+ 
+ static struct page_state error_states[] = {
+@@ -1261,13 +1260,6 @@ static struct page_state error_states[]
+ 	 * PG_buddy pages only make a small fraction of all free pages.
+ 	 */
+ 
+-	/*
+-	 * Could in theory check if slab page is free or if we can drop
+-	 * currently unused objects without touching them. But just
+-	 * treat it as standard kernel for now.
+-	 */
+-	{ slab,		slab,		MF_MSG_SLAB,	me_kernel },
+-
+ 	{ head,		head,		MF_MSG_HUGE,		me_huge_page },
+ 
+ 	{ sc|dirty,	sc|dirty,	MF_MSG_DIRTY_SWAPCACHE,	me_swapcache_dirty },
+@@ -1294,7 +1286,6 @@ static struct page_state error_states[]
+ #undef mlock
+ #undef lru
+ #undef head
+-#undef slab
+ #undef reserved
+ 
+ static void update_per_node_mf_stats(unsigned long pfn,
+--- a/mm/slab.h~mm-free-up-pg_slab
++++ a/mm/slab.h
+@@ -84,8 +84,8 @@ struct slab {
+ 		};
+ 		struct rcu_head rcu_head;
+ 	};
+-	unsigned int __unused;
+ 
++	unsigned int __page_type;
+ 	atomic_t __page_refcount;
+ #ifdef CONFIG_SLAB_OBJ_EXT
+ 	unsigned long obj_exts;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
