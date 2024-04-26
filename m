@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D572EBE
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:05:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBF6633EA
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:08:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714100708; cv=none; b=u+VLDYo+hWMo99tiQY2iIhYD95mklLzUp55KDNmMWTgjGxPVmZ+a/gceWMuyuUoo2cG/LCbrpkTeoiRwUbT5Ciwnw1WTtYe1k64Dy6GBuJIuPMLBY5Y39qnbiAXyXHx74nOuxJbmjY2IVsCqfM2xU1Q8cHUzt+9jCe5NklR4jI4=
+	t=1714100885; cv=none; b=VDxG/nHjR+cLunTSDGv+PfJNqJ1Ug3uriyPH/5Xjppolca3R0F9E92YLsBC9yBG24jSJ9LZ3x7yKQPNHjTljzO9IkvABQQu1dCO3s0JwiYfM7MRh2ttavjBuVOpYdJ5k+i3FA+aprVCeHWzpjoWfFvHNnewPrODABTw6LySIx68=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714100708; c=relaxed/simple;
-	bh=0MsLtTR6Va78D64uroNQ5IiapnyVw1so62EaEkQFwdw=;
-	h=Date:To:From:Subject:Message-Id; b=ehAwe/Q5duwU9SH0fNDhbWl5MPytWRg7CxquLRHFSnfGFuFUdRlv9lPJI6rsHuFqcyddGjGRh4C2LOzGRLc2IbEiWi8W0lJwrGmQOWKs/G7FZ5hPQnqS4QEEWiEbvJmEly3tS9jxS2knp2LYZHEDDaYpmurauYBBsgEHxtv96tg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BCRhbeKE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714100885; c=relaxed/simple;
+	bh=SE6B+FxYVDzK6f3/YlxUEags+B8gT5qQjaZVPUq0XSA=;
+	h=Date:To:From:Subject:Message-Id; b=lKezb6Ir75GXP+dCiCqqJRRWrBmFZyfK7aiZQw5jEK2yxS0LjekPlpo3maZSmK3p7ViMN1a+mfjofR/GCGn6yoRPFr0KIn/4EV5kU9+xlTW/3PkKtrkFvR2ZK1TIQ3IxrtjHoNyCi4Pz0x0Im4rdSCc5eYDDrMFxsmhdO+E/Jzg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xmm1RLZa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BCRhbeKE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E87A3C113CC;
-	Fri, 26 Apr 2024 03:05:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xmm1RLZa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 616E1C113CC;
+	Fri, 26 Apr 2024 03:08:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714100708;
-	bh=0MsLtTR6Va78D64uroNQ5IiapnyVw1so62EaEkQFwdw=;
+	s=korg; t=1714100885;
+	bh=SE6B+FxYVDzK6f3/YlxUEags+B8gT5qQjaZVPUq0XSA=;
 	h=Date:To:From:Subject:From;
-	b=BCRhbeKEFnMb0DMRSvYWeU+H2qPLGJn//qBJb5RCToW/iY5m7qEXJJ915+9twgX5E
-	 1IN73uPvlhLHL4+vo5Qfi9gS06q5CyM5UL4f5qtCUG5Z6DYOgq/L6OmCHXJoqAvDVm
-	 B2ErpDoUkyixUTEyy6nZBXOmv3dgWaE3/XptozsY=
-Date: Thu, 25 Apr 2024 20:05:07 -0700
-To: mm-commits@vger.kernel.org,pasha.tatashin@soleen.com,lkp@intel.com,kent.overstreet@linux.dev,surenb@google.com,akpm@linux-foundation.org
+	b=xmm1RLZacFLvAMtF3MDZXO91GSkALUDnpgCbz26GLaY0U7C45TZcAOtAUvuPD3oE/
+	 PvLEpLz7a2QhbfRunwJJdjGKRBliC77D60kflaBzXfYgYs9ON3a5oJ/ewgsCq01BX4
+	 C8gY1IU7EDKVG/KrA9xaezIm4BAWeFSMqKjy+NIY=
+Date: Thu, 25 Apr 2024 20:07:59 -0700
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,rdunlap@infradead.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] fix-missing-vmalloch-includes-fix-6.patch removed from -mm tree
-Message-Id: <20240426030507.E87A3C113CC@smtp.kernel.org>
+Subject: [folded-merged] lib-add-allocation-tagging-support-for-memory-allocation-profiling-fix.patch removed from -mm tree
+Message-Id: <20240426030805.616E1C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,45 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fixup! fix missing vmalloc.h includes
+     Subject: Documentation: fs/proc: fix allocinfo title
 has been removed from the -mm tree.  Its filename was
-     fix-missing-vmalloch-includes-fix-6.patch
+     lib-add-allocation-tagging-support-for-memory-allocation-profiling-fix.patch
 
-This patch was dropped because it was folded into fix-missing-vmalloch-includes.patch
+This patch was dropped because it was folded into lib-add-allocation-tagging-support-for-memory-allocation-profiling.patch
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: fixup! fix missing vmalloc.h includes
-Date: Fri, 5 Apr 2024 15:51:15 -0700
+Subject: Documentation: fs/proc: fix allocinfo title
+Date: Tue, 26 Mar 2024 00:38:13 -0700
 
-fix arc build
+Fix "Title underline too short." warning in the documentation.
 
-Link: https://lkml.kernel.org/r/20240405225115.431056-1-surenb@google.com
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202404050828.5pKgmCLu-lkp@intel.com/
+Link: https://lkml.kernel.org/r/20240326073813.727090-1-surenb@google.com
+Fixes: d08b311b6d49 ("lib: add allocation tagging support for memory allocation profiling")
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/mmu-arcv2.h |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/filesystems/proc.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arc/include/asm/mmu-arcv2.h~fix-missing-vmalloch-includes-fix-6
-+++ a/arch/arc/include/asm/mmu-arcv2.h
-@@ -9,6 +9,8 @@
- #ifndef _ASM_ARC_MMU_ARCV2_H
- #define _ASM_ARC_MMU_ARCV2_H
+--- a/Documentation/filesystems/proc.rst~lib-add-allocation-tagging-support-for-memory-allocation-profiling-fix
++++ a/Documentation/filesystems/proc.rst
+@@ -955,7 +955,7 @@ reclaimed to achieve this.
  
-+#include <soc/arc/aux.h>
-+
- /*
-  * TLB Management regs
-  */
+ 
+ allocinfo
+-~~~~~~~
++~~~~~~~~~
+ 
+ Provides information about memory allocations at all locations in the code
+ base. Each allocation in the code is identified by its source file, line
 _
 
 Patches currently in -mm which might be from surenb@google.com are
 
-fix-missing-vmalloch-includes.patch
 mm-introduce-slabobj_ext-to-support-slab-object-extensions.patch
 mm-introduce-__gfp_no_obj_ext-flag-to-selectively-prevent-slabobj_ext-creation.patch
 mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation.patch
@@ -85,7 +82,6 @@ lib-code-tagging-framework.patch
 lib-code-tagging-module-support.patch
 lib-prevent-module-unloading-if-memory-is-not-freed.patch
 lib-add-allocation-tagging-support-for-memory-allocation-profiling.patch
-lib-add-allocation-tagging-support-for-memory-allocation-profiling-fix.patch
 lib-add-allocation-tagging-support-for-memory-allocation-profiling-fix-2.patch
 lib-add-allocation-tagging-support-for-memory-allocation-profiling-fix-4.patch
 lib-introduce-support-for-page-allocation-tagging.patch
