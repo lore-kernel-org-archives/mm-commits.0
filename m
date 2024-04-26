@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBCE32F36
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:19:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D152D2F36
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:19:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714101560; cv=none; b=SSQ/l85DbJna0q7Wk/jZFDgZZSipCIujmOW1TFjWp+HswLtPslaQydKrEHrErKAid2yilspiG7ZVCiZrCAaqqtwufIIT4UR6q6JIHJZts3dkwnQrN7rUuSN2o8HZYQj3Y/Va8p5c6V7NEFJ9dXqNP1+M1V08JZaG+7drXccoZNM=
+	t=1714101560; cv=none; b=J09zAEHPGtsOTe8TWsMnSVjpAO8RzuTNnkjZmmLqHyRiJPbg+VaToGnGLTehs5qDeXoCzGk4XsdvJgwbRmOYBMgeYtkWfI3EN4EL72f5zcebxguuLiNJpVfelg0/wUm0OGLxd94AM7uzNGm/Ok4blY5kHGz46L6yhom/ziRw4I4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1714101560; c=relaxed/simple;
-	bh=puipuRgFVUiAgOsMOebY5447KWPA5RGj+J7WW1QOFvs=;
-	h=Date:To:From:Subject:Message-Id; b=DolBSSs70u7qGEkWc7jcQVdGIqmyFV/PiaR15sOfXGDpRp008hF52tprJVRoHtt411XC9BsQ5+TlOxtnWUPpsGiwNRo8PvHjXUK5Dg4LD4CoSURtrx54TJBuM2R0FzSsz6p0whaUtwianNAEvalAQxm98Zy0CXD27O3eCH9IJQw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e7hjMK4U; arc=none smtp.client-ip=10.30.226.201
+	bh=t98vXLeLR4hjvOaHw+NSOJjnlKw+DZaiKfS/4qsFeJA=;
+	h=Date:To:From:Subject:Message-Id; b=sUagb6s0ND5GkhR+uoumSHSa1fKH6rfq64qKBdvIAe5QALeKSkvDBEAF0esV/uFo999Bn1phdmbloz7QUK6qxxeTZR9s+4zVg4TT82jTNWXknZ6ZxR8ab2g3MzTQXDDc1z3jjJWiHBM8lh3Zq/LoRJSAs8PUCCAZZmsp53n+R/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LORgHdww; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e7hjMK4U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79F3CC113CD;
-	Fri, 26 Apr 2024 03:19:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LORgHdww"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4819C113CD;
+	Fri, 26 Apr 2024 03:19:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714101559;
-	bh=puipuRgFVUiAgOsMOebY5447KWPA5RGj+J7WW1QOFvs=;
+	s=korg; t=1714101560;
+	bh=t98vXLeLR4hjvOaHw+NSOJjnlKw+DZaiKfS/4qsFeJA=;
 	h=Date:To:From:Subject:From;
-	b=e7hjMK4UTBF27mjepRwB2loT8bVyJ/197qjRuyOYw0eYk5Hzqny7zAlC6jLP/EgCI
-	 l/bPsuZfjD6MvzNhaD2IoWxgGV/xLpvJ95w1hpAJDdNTewOERoM9UoMU2YWcX8Ez78
-	 5QmpngKCqULFH8sAbb++zJiQrD9BJf7Q0SmvaD0Q=
-Date: Thu, 25 Apr 2024 20:19:18 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,vbabka@suse.cz,mgorman@techsingularity.net,david@redhat.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=LORgHdwwAlQRP6Xptfg0dnBcLyKQh0PG+OrjbPJ1G6KRKAxyP6YZnEIwEbKeLKvKr
+	 xbG2vJ37gCBlj+plXL365OVUwLM++p/MIJB7rsAM6px4H/IRuV4J5cKj12swTvdNLB
+	 qszk/29JmKq7HXA2K1af3FzW5dcMSpEBy1WVCjXo=
+Date: Thu, 25 Apr 2024 20:19:20 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,hannes@cmpxchg.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-page_alloc-consolidate-free-page-accounting-fix-2.patch removed from -mm tree
-Message-Id: <20240426031919.79F3CC113CD@smtp.kernel.org>
+Subject: [folded-merged] mm-page_alloc-consolidate-free-page-accounting-fix-3.patch removed from -mm tree
+Message-Id: <20240426031920.A4819C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,115 +35,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: consolidate free page accounting fix 2
+     Subject: mm: page_alloc: consolidate free page accounting fix 3
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-consolidate-free-page-accounting-fix-2.patch
+     mm-page_alloc-consolidate-free-page-accounting-fix-3.patch
 
 This patch was dropped because it was folded into mm-page_alloc-consolidate-free-page-accounting.patch
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: consolidate free page accounting fix 2
-Date: Wed, 27 Mar 2024 12:28:41 -0400
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: page_alloc: consolidate free page accounting fix 3
+Date: Tue, 9 Apr 2024 15:48:04 +0800
 
-remove unused page parameter from account_freepages()
+If the released page is captured by compaction, now the free page accounting
+is not correspondingly decreased, which can make the watermark checks false
+positive and result in depleted reserves etc. And I can see the false positive
+watermark checks in thpcompact benchmark, that led to a slight regression:
 
-Link: https://lkml.kernel.org/r/20240327185831.GB7597@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+thpcompact Percentage Faults Huge
+                           k6.9-rc2-base        base + patch10 + 2 fixes
+Percentage huge-1        78.18 (   0.00%)       71.92 (  -8.01%)
+Percentage huge-3        86.70 (   0.00%)       86.07 (  -0.73%)
+Percentage huge-5        90.26 (   0.00%)       78.02 ( -13.57%)
+Percentage huge-7        92.34 (   0.00%)       78.67 ( -14.81%)
+Percentage huge-12       91.18 (   0.00%)       81.04 ( -11.12%)
+Percentage huge-18       89.00 (   0.00%)       79.57 ( -10.60%)
+Percentage huge-24       90.52 (   0.00%)       80.07 ( -11.54%)
+Percentage huge-30       94.44 (   0.00%)       96.28 (   1.95%)
+Percentage huge-32       93.09 (   0.00%)       99.39 (   6.77%)
+
+After the fix, the regression is gone.
+
+Link: https://lkml.kernel.org/r/a2a48baca69f103aa431fd201f8a06e3b95e203d.1712648441.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/page_alloc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-consolidate-free-page-accounting-fix-2
+--- a/mm/page_alloc.c~mm-page_alloc-consolidate-free-page-accounting-fix-3
 +++ a/mm/page_alloc.c
-@@ -643,8 +643,8 @@ compaction_capture(struct capture_contro
- }
- #endif /* CONFIG_COMPACTION */
- 
--static inline void account_freepages(struct page *page, struct zone *zone,
--				     int nr_pages, int migratetype)
-+static inline void account_freepages(struct zone *zone, int nr_pages,
-+				     int migratetype)
- {
- 	if (is_migrate_isolate(migratetype))
- 		return;
-@@ -678,7 +678,7 @@ static inline void add_to_free_list(stru
- 				    bool tail)
- {
- 	__add_to_free_list(page, zone, order, migratetype, tail);
--	account_freepages(page, zone, 1 << order, migratetype);
-+	account_freepages(zone, 1 << order, migratetype);
- }
- 
- /*
-@@ -698,8 +698,8 @@ static inline void move_to_free_list(str
- 
- 	list_move_tail(&page->buddy_list, &area->free_list[new_mt]);
- 
--	account_freepages(page, zone, -(1 << order), old_mt);
--	account_freepages(page, zone, 1 << order, new_mt);
-+	account_freepages(zone, -(1 << order), old_mt);
-+	account_freepages(zone, 1 << order, new_mt);
- }
- 
- static inline void __del_page_from_free_list(struct page *page, struct zone *zone,
-@@ -723,7 +723,7 @@ static inline void del_page_from_free_li
- 					   unsigned int order, int migratetype)
- {
- 	__del_page_from_free_list(page, zone, order, migratetype);
--	account_freepages(page, zone, -(1 << order), migratetype);
-+	account_freepages(zone, -(1 << order), migratetype);
- }
- 
- static inline struct page *get_page_from_free_area(struct free_area *area,
-@@ -800,7 +800,7 @@ static inline void __free_one_page(struc
- 	VM_BUG_ON_PAGE(pfn & ((1 << order) - 1), page);
- 	VM_BUG_ON_PAGE(bad_range(zone, page), page);
- 
--	account_freepages(page, zone, 1 << order, migratetype);
-+	account_freepages(zone, 1 << order, migratetype);
- 
+@@ -805,8 +805,10 @@ static inline void __free_one_page(struc
  	while (order < MAX_PAGE_ORDER) {
  		int buddy_mt = migratetype;
-@@ -6931,7 +6931,7 @@ static bool try_to_accept_memory_one(str
- 	list_del(&page->lru);
- 	last = list_empty(&zone->unaccepted_pages);
  
--	account_freepages(page, zone, -MAX_ORDER_NR_PAGES, MIGRATE_MOVABLE);
-+	account_freepages(zone, -MAX_ORDER_NR_PAGES, MIGRATE_MOVABLE);
- 	__mod_zone_page_state(zone, NR_UNACCEPTED, -MAX_ORDER_NR_PAGES);
- 	spin_unlock_irqrestore(&zone->lock, flags);
+-		if (compaction_capture(capc, page, order, migratetype))
++		if (compaction_capture(capc, page, order, migratetype)) {
++			account_freepages(zone, -(1 << order), migratetype);
+ 			return;
++		}
  
-@@ -6983,7 +6983,7 @@ static bool __free_unaccepted(struct pag
- 	spin_lock_irqsave(&zone->lock, flags);
- 	first = list_empty(&zone->unaccepted_pages);
- 	list_add_tail(&page->lru, &zone->unaccepted_pages);
--	account_freepages(page, zone, MAX_ORDER_NR_PAGES, MIGRATE_MOVABLE);
-+	account_freepages(zone, MAX_ORDER_NR_PAGES, MIGRATE_MOVABLE);
- 	__mod_zone_page_state(zone, NR_UNACCEPTED, MAX_ORDER_NR_PAGES);
- 	spin_unlock_irqrestore(&zone->lock, flags);
- 
+ 		buddy = find_buddy_page_pfn(page, pfn, order, &buddy_pfn);
+ 		if (!buddy)
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-zswap-optimize-zswap-pool-size-tracking.patch
-mm-zpool-return-pool-size-in-pages.patch
-mm-page_alloc-remove-pcppage-migratetype-caching.patch
-mm-page_alloc-optimize-free_unref_folios.patch
-mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch
-mm-page_alloc-move-free-pages-when-converting-block-during-isolation.patch
-mm-page_alloc-fix-move_freepages_block-range-error.patch
-mm-page_alloc-fix-freelist-movement-during-block-conversion.patch
-mm-page_alloc-close-migratetype-race-between-freeing-and-stealing.patch
-mm-page_isolation-prepare-for-hygienic-freelists.patch
 mm-page_alloc-consolidate-free-page-accounting.patch
-mm-page_alloc-batch-vmstat-updates-in-expand.patch
+mm-record-the-migration-reason-for-struct-migration_target_control.patch
+mm-hugetlb-make-the-hugetlb-migration-strategy-consistent.patch
+docs-hugetlbpagerst-add-hugetlb-migration-description.patch
+mm-factor-out-the-numa-mapping-rebuilding-into-a-new-helper.patch
+mm-support-multi-size-thp-numa-balancing.patch
+mm-support-multi-size-thp-numa-balancing-v3.patch
+mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics.patch
+mm-huge_memory-add-the-missing-folio_test_pmd_mappable-for-thp-split-statistics-v2.patch
+mm-page_alloc-use-the-correct-thp-order-for-thp-pcp.patch
+mm-set-pageblock_order-to-hpage_pmd_order-in-case-with-config_hugetlb_page-but-thp-enabled.patch
+mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch
 
