@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F57E757F8
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:24:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0660757F8
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:25:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714101888; cv=none; b=VtQ5rCmLgkuAsucJlTEVdvXIzUz9a4M7woU4zO1wAY7EloYGsf2D+q3IgAuNXArDRLbq/YJjP+0GUBN7pjKjuu1XfsrHi/dCiq63r8Neh9Q9JSfOs1XhpbhBqqd+mRa1ORt/ILtzREE4efKf/uas+RX6e+Zv4dHnGSbA8GQVhbc=
+	t=1714101913; cv=none; b=gDUaxNXBmhWj1UnCTtBGRuIjfDE+R9z4TmlTnmsn2Ps0zZAVqM8uOdsiRs6Orc/UWusVFYxodSzxrW0GetqIUYMtaydbdpKLWEtezlZ/eAtabTJKIBGoIF8dVewzfJ7FLV89+57PN6z+muuu/7NU96FBPJLZlfQoeltp/lzxvPs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714101888; c=relaxed/simple;
-	bh=R52UKPOtiOfiynDMbn3Z/q1bC0uRI92KQuxUKqCLLM0=;
-	h=Date:To:From:Subject:Message-Id; b=hIvJP+eXGy638o0ABd+4HCr3Ixtovek/TN0BC04bFiSD+UmMc/tabk3M4CunZoS6tX6PCRxqHZMEYpkF58uLKLvH0bDkWeqnAJLTzyhDBdXH90rUx3Y7qSvJvS2ELZqEnUG5mTDyiAZdzgEYMf/QewuOA9XxsGG4Ss5BdkmUFDQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W8f7gXL5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714101913; c=relaxed/simple;
+	bh=I5uyBHih3msLSrJ74jGtic1/GsckbYbMQYetEmPX94o=;
+	h=Date:To:From:Subject:Message-Id; b=raeXdFjX4RI/xUHP+4wpeoxxRdGvmZSLlIAf8f5Cv5R3QFBXsJoHcQIeDP+YnIQ6YvoWbiF/YUD2T63Fye0Qa92wFBkS4FNO37Mk3MXRDKZnanoLbi/npGeEbFNunBOUXWd7OEPq00ugb19W/adOriSIYvnq/COgfL6eoqHWTJw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xgvH01z+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W8f7gXL5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14256C113CD;
-	Fri, 26 Apr 2024 03:24:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xgvH01z+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73629C113CD;
+	Fri, 26 Apr 2024 03:25:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714101888;
-	bh=R52UKPOtiOfiynDMbn3Z/q1bC0uRI92KQuxUKqCLLM0=;
+	s=korg; t=1714101913;
+	bh=I5uyBHih3msLSrJ74jGtic1/GsckbYbMQYetEmPX94o=;
 	h=Date:To:From:Subject:From;
-	b=W8f7gXL5VVgZuMfm9RUqmyGL3gsbhhQUQCYuwcl64DlYSS+vzo3JR+r3kguHQXG+R
-	 7NikVJCRyNpaENUimiQhHMOKmUO9VkWnwW2NUxAQ5b/i/Hho+h8PY+8tAggRpJBG4X
-	 4qwzn+FdMAJwfiOehSq9oLeVZP4ctcovP6scN+SE=
-Date: Thu, 25 Apr 2024 20:24:47 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,naresh.kamboju@linaro.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=xgvH01z+mx0PpMMaJ260ig/9xwY8LgewIzEfqTYVSUxP433k7Y6w/xSp9eOLRNz36
+	 PgthXJnLW5Do0qHuHX3Kfpc4b9uHiD/meNukcPGtd2O/EQ8G9SCiU9geZ+ikG9nwj1
+	 KVwFW/8ZnjqsHd/3453IkIsqrE4R/vh2lQWFaBM0=
+Date: Thu, 25 Apr 2024 20:25:12 -0700
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] sh-remove-use-of-pg_arch_1-on-individual-pages-fix.patch removed from -mm tree
-Message-Id: <20240426032448.14256C113CD@smtp.kernel.org>
+Subject: [folded-merged] mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix.patch removed from -mm tree
+Message-Id: <20240426032513.73629C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,130 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: sh-remove-use-of-pg_arch_1-on-individual-pages-fix
+     Subject: mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix
 has been removed from the -mm tree.  Its filename was
-     sh-remove-use-of-pg_arch_1-on-individual-pages-fix.patch
+     mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix.patch
 
-This patch was dropped because it was folded into sh-remove-use-of-pg_arch_1-on-individual-pages.patch
+This patch was dropped because it was folded into mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sh-remove-use-of-pg_arch_1-on-individual-pages-fix
-Date: Thu Mar 28 11:44:56 AM PDT 2024
+From: Matthew Wilcox <willy@infradead.org>
+Subject: mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix
+Date: Wed, 27 Mar 2024 14:37:40 +0000
 
-fix folio_flags call
+fix arm64 build
 
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Link: https://lkml.kernel.org/r/ZgQvNKGdlDkwhQEX@casper.infradead.org
+Signed-off-by: Matthew Wilcox <willy@infradead.org>
+Reported-by: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/cache-sh4.c |    2 +-
+ include/linux/hugetlb.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/sh/mm/cache-sh4.c~sh-remove-use-of-pg_arch_1-on-individual-pages-fix
-+++ a/arch/sh/mm/cache-sh4.c
-@@ -247,7 +247,7 @@ static void sh4_flush_cache_page(void *a
- 		 * another ASID than the current one.
- 		 */
- 		map_coherent = (current_cpu_data.dcache.n_aliases &&
--			test_bit(PG_dcache_clean, folio_flags(folio)) &&
-+			test_bit(PG_dcache_clean, folio_flags(folio, 0)) &&
- 			page_mapped(page));
- 		if (map_coherent)
- 			vaddr = kmap_coherent(page, address);
+--- a/include/linux/hugetlb.h~mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix
++++ a/include/linux/hugetlb.h
+@@ -836,7 +836,7 @@ static inline int is_hugepage_only_range
+ #define is_hugepage_only_range is_hugepage_only_range
+ #endif
+ 
+-#ifndef arch_clear_hugepage_flags
++#ifndef arch_clear_hugetlb_flags
+ static inline void arch_clear_hugetlb_flags(struct folio *folio) { }
+ #define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
+mm-always-initialise-folio-_deferred_list.patch
+mm-remove-folio_prep_large_rmappable.patch
+mm-remove-a-call-to-compound_head-from-is_page_hwpoison.patch
+mm-free-up-pg_slab.patch
+mm-improve-dumping-of-mapcount-and-page_type.patch
+hugetlb-remove-mention-of-destructors.patch
 sh-remove-use-of-pg_arch_1-on-individual-pages.patch
-mm-gup-drop-folio_fast_pin_allowed-in-hugepd-processing-fix.patch
-mm-allow-anon-exclusive-check-over-hugetlb-tail-pages-fix.patch
-arm-mm-drop-vm_fault_badmap-vm_fault_badaccess-checkpatch-fixes.patch
-mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios-fix.patch
-__mod_memcg_lruvec_state-enhance-diagnostics.patch
-__mod_memcg_lruvec_state-enhance-diagnostics-fix.patch
-binfmt_elf_fdpic-fix-proc-pid-auxv-checkpatch-fixes.patch
+xtensa-remove-uses-of-pg_arch_1-on-individual-pages.patch
+mm-make-page_ext_get-take-a-const-argument.patch
+mm-make-folio_test_idle-and-folio_test_young-take-a-const-argument.patch
+mm-make-is_free_buddy_page-take-a-const-argument.patch
+mm-make-page_mapped-take-a-const-argument.patch
+mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
+slub-remove-use-of-page-flags.patch
+remove-references-to-page-flags-in-documentation.patch
+proc-rewrite-stable_page_flags.patch
+proc-rewrite-stable_page_flags-fix.patch
+proc-rewrite-stable_page_flags-fix-2.patch
+sparc-use-is_huge_zero_pmd.patch
+mm-add-is_huge_zero_folio.patch
+mm-add-pmd_folio.patch
+mm-convert-migrate_vma_collect_pmd-to-use-a-folio.patch
+mm-convert-huge_zero_page-to-huge_zero_folio.patch
+mm-convert-do_huge_pmd_anonymous_page-to-huge_zero_folio.patch
+dax-use-huge_zero_folio.patch
+mm-rename-mm_put_huge_zero_page-to-mm_put_huge_zero_folio.patch
+mm-use-rwsem-assertion-macros-for-mmap_lock.patch
+filemap-remove-__set_page_dirty.patch
+mm-correct-page_mapped_in_vma-for-large-folios.patch
+mm-remove-vma_address.patch
+mm-rename-vma_pgoff_address-back-to-vma_address.patch
+khugepaged-inline-hpage_collapse_alloc_folio.patch
+khugepaged-convert-alloc_charge_hpage-to-alloc_charge_folio.patch
+khugepaged-remove-hpage-from-collapse_huge_page.patch
+khugepaged-pass-a-folio-to-__collapse_huge_page_copy.patch
+khugepaged-remove-hpage-from-collapse_file.patch
+khugepaged-use-a-folio-throughout-collapse_file.patch
+khugepaged-use-a-folio-throughout-collapse_file-fix.patch
+khugepaged-use-a-folio-throughout-hpage_collapse_scan_file.patch
+proc-convert-clear_refs_pte_range-to-use-a-folio.patch
+proc-convert-smaps_account-to-use-a-folio.patch
+mm-remove-page_idle-and-page_young-wrappers.patch
+mm-generate-page_idle_flag-definitions.patch
+proc-convert-gather_stats-to-use-a-folio.patch
+proc-convert-smaps_page_accumulate-to-use-a-folio.patch
+proc-pass-a-folio-to-smaps_page_accumulate.patch
+proc-convert-smaps_pmd_entry-to-use-a-folio.patch
+mm-remove-struct-page-from-get_shadow_from_swap_cache.patch
+hugetlb-convert-alloc_buddy_hugetlb_folio-to-use-a-folio.patch
+mm-convert-pagecache_isize_extended-to-use-a-folio.patch
+mm-free-non-hugetlb-large-folios-in-a-batch.patch
+mm-combine-free_the_page-and-free_unref_page.patch
+mm-inline-destroy_large_folio-into-__folio_put_large.patch
+mm-combine-__folio_put_small-__folio_put_large-and-__folio_put.patch
+mm-convert-free_zone_device_page-to-free_zone_device_folio.patch
+doc-improve-the-description-of-__folio_mark_dirty.patch
+buffer-add-kernel-doc-for-block_dirty_folio.patch
+buffer-add-kernel-doc-for-try_to_free_buffers.patch
+buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch
+buffer-add-kernel-doc-for-brelse-and-__brelse.patch
+buffer-add-kernel-doc-for-bforget-and-__bforget.patch
+buffer-improve-bdev_getblk-documentation.patch
+doc-split-bufferrst-out-of-api-summaryrst.patch
+doc-split-bufferrst-out-of-api-summaryrst-fix.patch
+mm-memory-failure-remove-fsdax_pgoff-argument-from-__add_to_kill.patch
+mm-memory-failure-pass-addr-to-__add_to_kill.patch
+mm-return-the-address-from-page_mapped_in_vma.patch
+mm-make-page_mapped_in_vma-conditional-on-config_memory_failure.patch
+mm-memory-failure-convert-shake_page-to-shake_folio.patch
+mm-convert-hugetlb_page_mapping_lock_write-to-folio.patch
+mm-memory-failure-convert-memory_failure-to-use-a-folio.patch
+mm-memory-failure-convert-hwpoison_user_mappings-to-take-a-folio.patch
+mm-memory-failure-add-some-folio-conversions-to-unpoison_memory.patch
+mm-memory-failure-use-folio-functions-throughout-collect_procs.patch
+mm-memory-failure-pass-the-folio-to-collect_procs_ksm.patch
+fscrypt-convert-bh_get_inode_and_lblk_num-to-use-a-folio.patch
+f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio.patch
+memory-failure-remove-calls-to-page_mapping.patch
+migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch
+userfault-expand-folio-use-in-mfill_atomic_install_pte.patch
+mm-remove-page_mapping.patch
+mm-remove-page_cache_alloc.patch
+mm-remove-put_devmap_managed_page.patch
+mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs.patch
+mm-remove-page_ref_sub_return.patch
+gup-use-folios-for-gup_devmap.patch
+mm-add-kernel-doc-for-folio_mark_accessed.patch
+mm-remove-pagereferenced.patch
+mm-simplify-thp_vma_allowable_order.patch
 
