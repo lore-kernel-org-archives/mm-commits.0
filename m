@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EA9F224C9
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 22:17:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05B33224C9
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 22:17:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714169864; cv=none; b=lvfb74ygPmLd6IvtNomP0R1GIoMLq57e09oLzasBN/HvRXHi35yO8saM83Bqs46mMEpFMvtNXEeBoCk++o3jYqYMCDCV8xnns1WUx4ym7VFwoE5YrmczekXx6NMBh8qoLtTEYEpYdHmI/8JOT7lPMqaYSF4dodj0zY0BCZ+yA48=
+	t=1714169866; cv=none; b=Mt7ykNyKC25yVJXvqhT5pYLi0ll5gDKRhsgcSVD2X9jgMvtQIniFAIpfedAF23QjVKntvuGD/xpbN9u7vPQypVBWwEQb02RSxqWRUpUFARQg1MFHle1aMAydaikIizzUPujCuZXkqLt8noXIT+kDJIduQuxG4qs1jVPhGk0++iU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714169864; c=relaxed/simple;
-	bh=p/YUokrFBUWozwrZ8fjGOmK6jmDSDLXSbPQb1s11sTs=;
-	h=Date:To:From:Subject:Message-Id; b=NOAo4nmePm9OhvavM1bAFg7w+JKzouZrnyI+z8PDVJat/mUQ+rAdI2IO5cMhaDa2ifIVbmV8lOV07UebZ8nLSbuVxueXIDGUD3WazEIm3I2vSXt7c+MwfWlEAHej1ydmp8ngI6T+mV03nG35PXj3B56dIA0D0dcvrsF/KGW9CQA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m+P7mTII; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714169866; c=relaxed/simple;
+	bh=ng4fLsORXJwLmPfw389cuxY840q2AonxCcbiyFkLPqI=;
+	h=Date:To:From:Subject:Message-Id; b=W8fuTkfSfKYwpEnI4aS7WAJmJ4vJOCVcJupPQZlMaHmMnUXowt347eObf7BElfjUZkDvbdCFG1hdZkvwDcvBsybf6ZinzDrhnGyP8aNpfa1QlsEPD09bNz5v1VgvtgCZfr1/XCS+FYUHKzHsjOYqOVs64xAvAOxYRhUy4jYM9QU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uM2voa/V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m+P7mTII"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C427EC113CD;
-	Fri, 26 Apr 2024 22:17:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uM2voa/V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87C04C113CD;
+	Fri, 26 Apr 2024 22:17:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714169863;
-	bh=p/YUokrFBUWozwrZ8fjGOmK6jmDSDLXSbPQb1s11sTs=;
+	s=korg; t=1714169865;
+	bh=ng4fLsORXJwLmPfw389cuxY840q2AonxCcbiyFkLPqI=;
 	h=Date:To:From:Subject:From;
-	b=m+P7mTIIjoPr8ZeczAqGuzgmXzEgHmoq506l85eIRdP34seX8vHtc76Lpu/oquzHD
-	 ooW6A8qKRzdPeey2zxLYBiGHrYXOqZrtA25i6ErcFeH/JqOUUVAHGugAJvoZiSd7ZK
-	 WMRxz126o/h7rfqT7NKLNp0AVzycND662g4xczuQ=
-Date: Fri, 26 Apr 2024 15:17:43 -0700
+	b=uM2voa/VPa9ipELT5RNkvZy99GCBvnD/gMJvyv4nmPLveI/aH53Nf4Vopunn+0oxR
+	 IbIe0hIOIwsE8y0UAgpuIFweFzVDhOhDBYqixKFhV1dH45aKykCLrA/8wgHwhkqiWW
+	 uTJPfIbX/89ISPyB5zecJlLjI6CCcrt+o/rdwm9g=
+Date: Fri, 26 Apr 2024 15:17:45 -0700
 To: mm-commits@vger.kernel.org,honggyu.kim@sk.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-paddr-implement-damos-filter-type-young.patch added to mm-unstable branch
-Message-Id: <20240426221743.C427EC113CD@smtp.kernel.org>
+Subject: + docs-mm-damon-design-document-young-page-type-damos-filter.patch added to mm-unstable branch
+Message-Id: <20240426221745.87C04C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/paddr: implement DAMOS filter type YOUNG
+     Subject: Docs/mm/damon/design: document 'young page' type DAMOS filter
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-paddr-implement-damos-filter-type-young.patch
+     docs-mm-damon-design-document-young-page-type-damos-filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-implement-damos-filter-type-young.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-young-page-type-damos-filter.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,37 +59,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/paddr: implement DAMOS filter type YOUNG
-Date: Fri, 26 Apr 2024 12:52:43 -0700
+Subject: Docs/mm/damon/design: document 'young page' type DAMOS filter
+Date: Fri, 26 Apr 2024 12:52:44 -0700
 
-DAMOS filter of type YOUNG is defined, but not yet implemented by any
-DAMON operations set.  Add the implementation on 'paddr', the DAMON
-operations set for the physical address space.
+Update DAMON design document for the newly added DAMOS filter type, 'young
+page'.
 
-Link: https://lkml.kernel.org/r/20240426195247.100306-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240426195247.100306-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Tested-by: Honggyu Kim <honggyu.kim@sk.com>
+Cc: Honggyu Kim <honggyu.kim@sk.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ Documentation/mm/damon/design.rst |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-implement-damos-filter-type-young
-+++ a/mm/damon/paddr.c
-@@ -214,6 +214,11 @@ static bool __damos_pa_filter_out(struct
- 			matched = filter->memcg_id == mem_cgroup_id(memcg);
- 		rcu_read_unlock();
- 		break;
-+	case DAMOS_FILTER_TYPE_YOUNG:
-+		matched = damon_folio_young(folio);
-+		if (matched)
-+			damon_folio_mkold(folio);
-+		break;
- 	default:
- 		break;
- 	}
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-young-page-type-damos-filter
++++ a/Documentation/mm/damon/design.rst
+@@ -461,15 +461,17 @@ number of filters for each scheme.  Each
+ memory, and whether it should exclude the memory of the type (filter-out), or
+ all except the memory of the type (filter-in).
+ 
+-Currently, anonymous page, memory cgroup, address range, and DAMON monitoring
+-target type filters are supported by the feature.  Some filter target types
+-require additional arguments.  The memory cgroup filter type asks users to
+-specify the file path of the memory cgroup for the filter.  The address range
+-type asks the start and end addresses of the range.  The DAMON monitoring
+-target type asks the index of the target from the context's monitoring targets
+-list.  Hence, users can apply specific schemes to only anonymous pages,
+-non-anonymous pages, pages of specific cgroups, all pages excluding those of
+-specific cgroups, pages in specific address range, pages in specific DAMON
++Currently, anonymous page, memory cgroup, young page, address range, and DAMON
++monitoring target type filters are supported by the feature.  Some filter
++target types require additional arguments.  The memory cgroup filter type asks
++users to specify the file path of the memory cgroup for the filter.  The
++address range type asks the start and end addresses of the range.  The DAMON
++monitoring target type asks the index of the target from the context's
++monitoring targets list.  Hence, users can apply specific schemes to only
++anonymous pages, non-anonymous pages, pages of specific cgroups, all pages
++excluding those of specific cgroups, pages that not accessed after the last
++access check from the scheme, pages that accessed after the last access check
++from the scheme, pages in specific address range, pages in specific DAMON
+ monitoring targets, and any combination of those.
+ 
+ To handle filters efficiently, the address range and DAMON monitoring target
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
