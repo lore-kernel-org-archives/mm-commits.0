@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43FC7811E7
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39F418062B
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104135; cv=none; b=cJRfue/1ttCAPxvPuWv2BnOMgEVh5EpDtl3qbXTiEN1YVcNuZSbI6AxrVjAF1rqfqx2s6INYSJAKJwRhDFDtmg6fbexORidQ6DmYcz6G/8oyYDZoEUFtCZq3T/c2RXU7WdPWswGAmit7z8xOI+rE9IxQesPIg0FsxwwY361OSEk=
+	t=1714104136; cv=none; b=LIFls3y1ga85OlUZajRpaYcJxlvWsF+zZhJ4moiP68lozONCU2AsqkcDrmOStYKJ7MwI4VrSatnd3mmsg+F4rGJjenesq1bAy2rnfs22Rq5REjrjZbhwtDEN/epl0gCcD/Amfp2AqqALPXW3BwT3X2eeM1hRAWrr+weSe5NXXAc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104135; c=relaxed/simple;
-	bh=Z3rFXqz674dGrAnQ6BfExnuE0ng4dz18o97BLcAPSSo=;
-	h=Date:To:From:Subject:Message-Id; b=e+aOv6IQoV9boIGUwz75gHw4O+qSNrCLL/+ZAR+RA9LKtxwacvvwRBdTMtrpcszWe5iwbCXHmj+dy38KVI9Jdq545DwqAl7gfC1hA5Ov3TP1/lWdgErPre1LkIC1eHKJnd+HXS9vMyq2yaR2PXbwae9grRXMA4tah/mSCtCqZ38=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m8kF9v6A; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104136; c=relaxed/simple;
+	bh=+SgM/kBhDMDd/lMKOL4qdk9xGivLqo6CRZk0WDddvCw=;
+	h=Date:To:From:Subject:Message-Id; b=gmNEJXD0A6VMfy+mixp84rZJ2076jpI2hueS6gbOgSBX1lb7VTFUJHlR1f2eqGL80rwj0DCUPE9khonuRcDi3T9Yq6WvIyhFx5J8G4MZl5ctjus/eW5bHaj6lsHpnGuAocgNzZmpkE7plg4/3QfFCr4XNt8gbuJiffiLeNvQVTQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SyUj4Gkn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m8kF9v6A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C38B1C116B1;
-	Fri, 26 Apr 2024 04:02:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SyUj4Gkn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 106DDC113CD;
+	Fri, 26 Apr 2024 04:02:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104134;
-	bh=Z3rFXqz674dGrAnQ6BfExnuE0ng4dz18o97BLcAPSSo=;
+	s=korg; t=1714104136;
+	bh=+SgM/kBhDMDd/lMKOL4qdk9xGivLqo6CRZk0WDddvCw=;
 	h=Date:To:From:Subject:From;
-	b=m8kF9v6AKI+BWxQYohBWu3SIG0FH918YcuJBnKpSwM7bJ1S06t+mmGI/jid4WUzi3
-	 rBDYQdlOlBdXuAL28aOFLe+jUHrKNE7Ul8iXPicx3LvZ/bTeRXSKw1Ws+OTeRKmAyb
-	 p1fWhIxk3DXggFOHRdLRI1ex0XqmMFno0HiAt88s=
-Date: Thu, 25 Apr 2024 21:02:14 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,mgorman@techsingularity.net,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=SyUj4GknaBijtgNP7Tbk99QzyHlPGIBDxyf/Eo11h5bp3Rjex6SxIINQzbtt1Q33W
+	 meBpHBkmjW/G0ESanWAPJ3iAGDHImwnfgu4753vdA+ywqAoRDuQokBdblLQpL9lG7V
+	 AXfe3eZqqpUXONCTgt3tQoV2ZRl8wbmE7fxb05ws=
+Date: Thu, 25 Apr 2024 21:02:15 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,mhocko@suse.com,ioworker0@gmail.com,david@redhat.com,chrisl@kernel.org,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-use-the-correct-thp-order-for-thp-pcp.patch removed from -mm tree
-Message-Id: <20240426040214.C38B1C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags.patch removed from -mm tree
+Message-Id: <20240426040216.106DDC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,288 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: use the correct THP order for THP PCP
+     Subject: mm: swap: remove CLUSTER_FLAG_HUGE from swap_cluster_info:flags
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-use-the-correct-thp-order-for-thp-pcp.patch
+     mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: page_alloc: use the correct THP order for THP PCP
-Date: Wed, 3 Apr 2024 21:47:21 +0800
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: swap: remove CLUSTER_FLAG_HUGE from swap_cluster_info:flags
+Date: Mon, 8 Apr 2024 19:39:40 +0100
 
-Commit 44042b449872 ("mm/page_alloc: allow high-order pages to be stored
-on the per-cpu lists") extends the PCP allocator to store THP pages, and
-it determines whether to cache THP pages in PCP by comparing with
-pageblock_order.  But the pageblock_order is not always equal to THP
-order.  It might also be MAX_PAGE_ORDER, which could prevent PCP from
-caching THP pages.
+Patch series "Swap-out mTHP without splitting", v7.
 
-Therefore, using HPAGE_PMD_ORDER instead to determine the need for caching
-THP for PCP will fix this issue
+This series adds support for swapping out multi-size THP (mTHP) without
+needing to first split the large folio via
+split_huge_page_to_list_to_order().  It closely follows the approach
+already used to swap-out PMD-sized THP.
 
-Link: https://lkml.kernel.org/r/a25c9e14cd03907d5978b60546a69e6aa3fc2a7d.1712151833.git.baolin.wang@linux.alibaba.com
-Fixes: 44042b449872 ("mm/page_alloc: allow high-order pages to be stored on the per-cpu lists")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Reviewed-by: Barry Song <baohua@kernel.org>
+There are a couple of reasons for swapping out mTHP without splitting:
+
+  - Performance: It is expensive to split a large folio and under
+    extreme memory pressure some workloads regressed performance when
+    using 64K mTHP vs 4K small folios because of this extra cost in the
+    swap-out path.  This series not only eliminates the regression but
+    makes it faster to swap out 64K mTHP vs 4K small folios.
+
+  - Memory fragmentation avoidance: If we can avoid splitting a large
+    folio memory is less likely to become fragmented, making it easier to
+    re-allocate a large folio in future.
+
+  - Performance: Enables a separate series [7] to swap-in whole mTHPs,
+    which means we won't lose the TLB-efficiency benefits of mTHP once the
+    memory has been through a swap cycle.
+
+I've done what I thought was the smallest change possible, and as a
+result, this approach is only employed when the swap is backed by a
+non-rotating block device (just as PMD-sized THP is supported today). 
+Discussion against the RFC concluded that this is sufficient.
+
+
+Performance Testing
+===================
+
+I've run some swap performance tests on Ampere Altra VM (arm64) with 8
+CPUs.  The VM is set up with a 35G block ram device as the swap device and
+the test is run from inside a memcg limited to 40G memory.  I've then run
+`usemem` from vm-scalability with 70 processes, each allocating and
+writing 1G of memory.  I've repeated everything 6 times and taken the mean
+performance improvement relative to 4K page baseline:
+
+| alloc size |                baseline |           + this series |
+|            | mm-unstable (~v6.9-rc1) |                         |
+|:-----------|------------------------:|------------------------:|
+| 4K Page    |                    0.0% |                    1.3% |
+| 64K THP    |                  -13.6% |                   46.3% |
+| 2M THP     |                   91.4% |                   89.6% |
+
+So with this change, the 64K swap performance goes from a 14% regression to a
+46% improvement. While 2M shows a small regression I'm confident that this is
+just noise.
+
+[1] https://lore.kernel.org/linux-mm/20231010142111.3997780-1-ryan.roberts@arm.com/
+[2] https://lore.kernel.org/linux-mm/20231017161302.2518826-1-ryan.roberts@arm.com/
+[3] https://lore.kernel.org/linux-mm/20231025144546.577640-1-ryan.roberts@arm.com/
+[4] https://lore.kernel.org/linux-mm/20240311150058.1122862-1-ryan.roberts@arm.com/
+[5] https://lore.kernel.org/linux-mm/20240327144537.4165578-1-ryan.roberts@arm.com/
+[6] https://lore.kernel.org/linux-mm/20240403114032.1162100-1-ryan.roberts@arm.com/
+[7] https://lore.kernel.org/linux-mm/20240304081348.197341-1-21cnbao@gmail.com/
+[8] https://lore.kernel.org/linux-mm/CAGsJ_4yMOow27WDvN2q=E4HAtDd2PJ=OQ5Pj9DG+6FLWwNuXUw@mail.gmail.com/
+[9] https://lore.kernel.org/linux-mm/579d5127-c763-4001-9625-4563a9316ac3@redhat.com/
+
+
+This patch (of 7):
+
+As preparation for supporting small-sized THP in the swap-out path,
+without first needing to split to order-0, Remove the CLUSTER_FLAG_HUGE,
+which, when present, always implies PMD-sized THP, which is the same as
+the cluster size.
+
+The only use of the flag was to determine whether a swap entry refers to a
+single page or a PMD-sized THP in swap_page_trans_huge_swapped().  Instead
+of relying on the flag, we now pass in order, which originates from the
+folio's order.  This allows the logic to work for folios of any order.
+
+The one snag is that one of the swap_page_trans_huge_swapped() call sites
+does not have the folio.  But it was only being called there to shortcut a
+call __try_to_reclaim_swap() in some cases.  __try_to_reclaim_swap() gets
+the folio and (via some other functions) calls
+swap_page_trans_huge_swapped().  So I've removed the problematic call site
+and believe the new logic should be functionally equivalent.
+
+That said, removing the fast path means that we will take a reference and
+trylock a large folio much more often, which we would like to avoid.  The
+next patch will solve this.
+
+Removing CLUSTER_FLAG_HUGE also means we can remove split_swap_cluster()
+which used to be called during folio splitting, since
+split_swap_cluster()'s only job was to remove the flag.
+
+Link: https://lkml.kernel.org/r/20240408183946.2991168-1-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20240408183946.2991168-2-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Chris Li <chrisl@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Gao Xiang <xiang@kernel.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/swap.h |   10 --------
+ mm/huge_memory.c     |    3 --
+ mm/swapfile.c        |   47 ++++++-----------------------------------
+ 3 files changed, 8 insertions(+), 52 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-use-the-correct-thp-order-for-thp-pcp
-+++ a/mm/page_alloc.c
-@@ -506,7 +506,7 @@ static inline unsigned int order_to_pind
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	if (order > PAGE_ALLOC_COSTLY_ORDER) {
--		VM_BUG_ON(order != pageblock_order);
-+		VM_BUG_ON(order != HPAGE_PMD_ORDER);
- 		return NR_LOWORDER_PCP_LISTS;
- 	}
- #else
-@@ -522,7 +522,7 @@ static inline int pindex_to_order(unsign
+--- a/include/linux/swap.h~mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags
++++ a/include/linux/swap.h
+@@ -259,7 +259,6 @@ struct swap_cluster_info {
+ };
+ #define CLUSTER_FLAG_FREE 1 /* This cluster is free */
+ #define CLUSTER_FLAG_NEXT_NULL 2 /* This cluster has no next cluster */
+-#define CLUSTER_FLAG_HUGE 4 /* This cluster is backing a transparent huge page */
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	if (pindex == NR_LOWORDER_PCP_LISTS)
--		order = pageblock_order;
-+		order = HPAGE_PMD_ORDER;
- #else
- 	VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
- #endif
-@@ -535,7 +535,7 @@ static inline bool pcp_allowed_order(uns
- 	if (order <= PAGE_ALLOC_COSTLY_ORDER)
- 		return true;
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	if (order == pageblock_order)
-+	if (order == HPAGE_PMD_ORDER)
- 		return true;
- #endif
- 	return false;
+ /*
+  * We assign a cluster to each CPU, so each CPU can allocate swap entry from
+@@ -587,15 +586,6 @@ static inline int add_swap_extent(struct
+ }
+ #endif /* CONFIG_SWAP */
+ 
+-#ifdef CONFIG_THP_SWAP
+-extern int split_swap_cluster(swp_entry_t entry);
+-#else
+-static inline int split_swap_cluster(swp_entry_t entry)
+-{
+-	return 0;
+-}
+-#endif
+-
+ #ifdef CONFIG_MEMCG
+ static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
+ {
+--- a/mm/huge_memory.c~mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags
++++ a/mm/huge_memory.c
+@@ -2844,9 +2844,6 @@ static void __split_huge_page(struct pag
+ 		shmem_uncharge(folio->mapping->host, nr_dropped);
+ 	remap_page(folio, nr);
+ 
+-	if (folio_test_swapcache(folio))
+-		split_swap_cluster(folio->swap);
+-
+ 	/*
+ 	 * set page to its compound_head when split to non order-0 pages, so
+ 	 * we can skip unlocking it below, since PG_locked is transferred to
+--- a/mm/swapfile.c~mm-swap-remove-cluster_flag_huge-from-swap_cluster_info-flags
++++ a/mm/swapfile.c
+@@ -343,18 +343,6 @@ static inline void cluster_set_null(stru
+ 	info->data = 0;
+ }
+ 
+-static inline bool cluster_is_huge(struct swap_cluster_info *info)
+-{
+-	if (IS_ENABLED(CONFIG_THP_SWAP))
+-		return info->flags & CLUSTER_FLAG_HUGE;
+-	return false;
+-}
+-
+-static inline void cluster_clear_huge(struct swap_cluster_info *info)
+-{
+-	info->flags &= ~CLUSTER_FLAG_HUGE;
+-}
+-
+ static inline struct swap_cluster_info *lock_cluster(struct swap_info_struct *si,
+ 						     unsigned long offset)
+ {
+@@ -1027,7 +1015,7 @@ static int swap_alloc_cluster(struct swa
+ 	offset = idx * SWAPFILE_CLUSTER;
+ 	ci = lock_cluster(si, offset);
+ 	alloc_cluster(si, idx);
+-	cluster_set_count_flag(ci, SWAPFILE_CLUSTER, CLUSTER_FLAG_HUGE);
++	cluster_set_count(ci, SWAPFILE_CLUSTER);
+ 
+ 	memset(si->swap_map + offset, SWAP_HAS_CACHE, SWAPFILE_CLUSTER);
+ 	unlock_cluster(ci);
+@@ -1365,7 +1353,6 @@ void put_swap_folio(struct folio *folio,
+ 
+ 	ci = lock_cluster_or_swap_info(si, offset);
+ 	if (size == SWAPFILE_CLUSTER) {
+-		VM_BUG_ON(!cluster_is_huge(ci));
+ 		map = si->swap_map + offset;
+ 		for (i = 0; i < SWAPFILE_CLUSTER; i++) {
+ 			val = map[i];
+@@ -1373,7 +1360,6 @@ void put_swap_folio(struct folio *folio,
+ 			if (val == SWAP_HAS_CACHE)
+ 				free_entries++;
+ 		}
+-		cluster_clear_huge(ci);
+ 		if (free_entries == SWAPFILE_CLUSTER) {
+ 			unlock_cluster_or_swap_info(si, ci);
+ 			spin_lock(&si->lock);
+@@ -1395,23 +1381,6 @@ void put_swap_folio(struct folio *folio,
+ 	unlock_cluster_or_swap_info(si, ci);
+ }
+ 
+-#ifdef CONFIG_THP_SWAP
+-int split_swap_cluster(swp_entry_t entry)
+-{
+-	struct swap_info_struct *si;
+-	struct swap_cluster_info *ci;
+-	unsigned long offset = swp_offset(entry);
+-
+-	si = _swap_info_get(entry);
+-	if (!si)
+-		return -EBUSY;
+-	ci = lock_cluster(si, offset);
+-	cluster_clear_huge(ci);
+-	unlock_cluster(ci);
+-	return 0;
+-}
+-#endif
+-
+ static int swp_entry_cmp(const void *ent1, const void *ent2)
+ {
+ 	const swp_entry_t *e1 = ent1, *e2 = ent2;
+@@ -1519,22 +1488,23 @@ out:
+ }
+ 
+ static bool swap_page_trans_huge_swapped(struct swap_info_struct *si,
+-					 swp_entry_t entry)
++					 swp_entry_t entry, int order)
+ {
+ 	struct swap_cluster_info *ci;
+ 	unsigned char *map = si->swap_map;
++	unsigned int nr_pages = 1 << order;
+ 	unsigned long roffset = swp_offset(entry);
+-	unsigned long offset = round_down(roffset, SWAPFILE_CLUSTER);
++	unsigned long offset = round_down(roffset, nr_pages);
+ 	int i;
+ 	bool ret = false;
+ 
+ 	ci = lock_cluster_or_swap_info(si, offset);
+-	if (!ci || !cluster_is_huge(ci)) {
++	if (!ci || nr_pages == 1) {
+ 		if (swap_count(map[roffset]))
+ 			ret = true;
+ 		goto unlock_out;
+ 	}
+-	for (i = 0; i < SWAPFILE_CLUSTER; i++) {
++	for (i = 0; i < nr_pages; i++) {
+ 		if (swap_count(map[offset + i])) {
+ 			ret = true;
+ 			break;
+@@ -1556,7 +1526,7 @@ static bool folio_swapped(struct folio *
+ 	if (!IS_ENABLED(CONFIG_THP_SWAP) || likely(!folio_test_large(folio)))
+ 		return swap_swapcount(si, entry) != 0;
+ 
+-	return swap_page_trans_huge_swapped(si, entry);
++	return swap_page_trans_huge_swapped(si, entry, folio_order(folio));
+ }
+ 
+ /**
+@@ -1622,8 +1592,7 @@ int free_swap_and_cache(swp_entry_t entr
+ 		}
+ 
+ 		count = __swap_entry_free(p, entry);
+-		if (count == SWAP_HAS_CACHE &&
+-		    !swap_page_trans_huge_swapped(p, entry))
++		if (count == SWAP_HAS_CACHE)
+ 			__try_to_reclaim_swap(p, swp_offset(entry),
+ 					      TTRS_UNMAPPED | TTRS_FULL);
+ 		put_swap_device(p);
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch
+selftests-mm-soft-dirty-should-fail-if-a-testcase-fails.patch
+mm-fix-race-between-__split_huge_pmd_locked-and-gup-fast.patch
 
