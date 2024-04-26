@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 119247E0F1
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:59:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3394D7604D
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:59:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714103972; cv=none; b=LyvohgVUOVdn8MwGnoR/74z50wba8YTcrUXcU6ftkVOiul/XjXokCaqglYB3vo5It8FMIUZjjYimXhQeFhWcwmkqswmM3l3ShnyGA06YnSMyZJgAGZcjir/QoS7nz6++qgX4SfPSfg5X0PScNf3mJQdTkF6G8dgveMkFUqQ4Hig=
+	t=1714103973; cv=none; b=Zw6tW4aiTcUJae6goMVZylXLukQXUKq4HlTkNclaZvuNIuRw+OSEEcZ/7IS42pgBIQuek8EOAvI3BfFqwz3OUFRgNXfMSaoMD+0QXCFTV/2/sOZTFog211XGOBBjZDtEGGtuqddBCtvMZvqDxFJu3M6Qo2cRdqIjroa4ewkaRKE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714103972; c=relaxed/simple;
-	bh=8ps5lpPOZgD+Y9/ZmjwRR5/Y4gTRMWGQgpL2RQ9lwOg=;
-	h=Date:To:From:Subject:Message-Id; b=YWmZ3Krpr01jsarLdgQb5/pV5+eZ1KP/71dBY18DtWC1/ympekFbB5zt7r1LJsebGnVctoueZVSYU4QG7MgibrAiccvuc+lJ+MSbCn3b/I360SAeDO85gbGooqgg5EA8mntxJtwBVdbrtBvHhKtN9tCugFjz1KHzR8rMzGgqGSI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jp8Zzy7f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714103973; c=relaxed/simple;
+	bh=wPG3xF2S5Bzo9P25k4sOXcI7Lf42BHbM1Qk7Yt2etA0=;
+	h=Date:To:From:Subject:Message-Id; b=bL4It5QBifrZJOUBGXITBVNvqaJ6oCBj+clfZKBVrqAqvzzrO5hChMhTPemJPSEzPCzZDCXHGGIgrJqaVPG1VPxDzJ+Y3RTT0IHKOsZAaYmCJkQVeomPk6JB0jHZ/vaFqQ9iBl7Uv0qOs8aCIIfljR2xP2s4hCi1bzVL5Roe5Ws=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zscV0SDf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jp8Zzy7f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC775C113CD;
-	Fri, 26 Apr 2024 03:59:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zscV0SDf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07DFFC116B1;
+	Fri, 26 Apr 2024 03:59:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714103971;
-	bh=8ps5lpPOZgD+Y9/ZmjwRR5/Y4gTRMWGQgpL2RQ9lwOg=;
+	s=korg; t=1714103973;
+	bh=wPG3xF2S5Bzo9P25k4sOXcI7Lf42BHbM1Qk7Yt2etA0=;
 	h=Date:To:From:Subject:From;
-	b=Jp8Zzy7fQkdb4Iki0O99eM2Hxfjy5GRuNoY3vQNixPbSiyUXAhfbiJ1oQALS0J2rY
-	 20Rh7pcQPizWFpVxMuPhDjy4ZZw3T1aBvog+zNZjqSIBD00h6kymFnjxh8ZJNT/akA
-	 hqSMQ5szNsoLxXkiUHLd6gEedXB6a3W192tFwj8c=
-Date: Thu, 25 Apr 2024 20:59:31 -0700
-To: mm-commits@vger.kernel.org,wangyang.guo@intel.com,urezki@gmail.com,tim.c.chen@linux.intel.com,tim.c.chen@intel.com,lstoakes@gmail.com,hch@infradead.org,colin.king@intel.com,bhe@redhat.com,rulin.huang@intel.com,akpm@linux-foundation.org
+	b=zscV0SDfWTT3D0pHMMg273JHyh3wqF0nRF+BaPqDMtA7QfGerS3ymWfC0vQz5itst
+	 9QfswP+Dm66qL/MS1mvRea3E9bS8b1QDBhpPJqdFjVjVpqt1VJeYw4Gk8yjAQLHQud
+	 z1j2R91E7IxiKnydmxpVlTgjIgHMlaWuP8076o3Y=
+Date: Thu, 25 Apr 2024 20:59:32 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,linmiaohe@huawei.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmalloc-eliminated-the-lock-contention-from-twice-to-once.patch removed from -mm tree
-Message-Id: <20240426035931.DC775C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-record-the-migration-reason-for-struct-migration_target_control.patch removed from -mm tree
+Message-Id: <20240426035933.07DFFC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,168 +35,149 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: eliminated the lock contention from twice to once
+     Subject: mm: record the migration reason for struct migration_target_control
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-eliminated-the-lock-contention-from-twice-to-once.patch
+     mm-record-the-migration-reason-for-struct-migration_target_control.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: rulinhuang <rulin.huang@intel.com>
-Subject: mm/vmalloc: eliminated the lock contention from twice to once
-Date: Wed, 6 Mar 2024 21:14:40 -0500
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: record the migration reason for struct migration_target_control
+Date: Wed, 6 Mar 2024 18:13:26 +0800
 
-When allocating a new memory area where the mapping address range is
-known, it is observed that the vmap_node->busy.lock is acquired twice.
+Patch series "make the hugetlb migration strategy consistent", v2.
 
-The first acquisition occurs in the alloc_vmap_area() function when
-inserting the vm area into the vm mapping red-black tree.  The second
-acquisition occurs in the setup_vmalloc_vm() function when updating the
-properties of the vm, such as flags and address, etc.
+As discussed in previous thread [1], there is an inconsistency when
+handling hugetlb migration.  When handling the migration of freed hugetlb,
+it prevents fallback to other NUMA nodes in
+alloc_and_dissolve_hugetlb_folio().  However, when dealing with in-use
+hugetlb, it allows fallback to other NUMA nodes in
+alloc_hugetlb_folio_nodemask(), which can break the per-node hugetlb pool
+and might result in unexpected failures when node bound workloads doesn't
+get what is asssumed available.
 
-Combine these two operations together in alloc_vmap_area(), which improves
-scalability when the vmap_node->busy.lock is contended.  By doing so, the
-need to acquire the lock twice can also be eliminated to once.
+This patchset tries to make the hugetlb migration strategy more clear
+and consistent. Please find details in each patch.
 
-With the above change, tested on intel sapphire rapids platform(224 vcpu),
-a 4% performance improvement is gained on
-stress-ng/pthread(https://github.com/ColinIanKing/stress-ng), which is the
-stress test of thread creations.
+[1]
+https://lore.kernel.org/all/6f26ce22d2fcd523418a085f2c588fe0776d46e7.1706794035.git.baolin.wang@linux.alibaba.com/
 
-Link: https://lkml.kernel.org/r/20240307021440.64967-1-rulin.huang@intel.com
-Co-developed-by: "Chen, Tim C" <tim.c.chen@intel.com>
-Signed-off-by: "Chen, Tim C" <tim.c.chen@intel.com>
-Co-developed-by: "King, Colin" <colin.king@intel.com>
-Signed-off-by: "King, Colin" <colin.king@intel.com>
-Signed-off-by: rulinhuang <rulin.huang@intel.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Wangyang Guo <wangyang.guo@intel.com>
+
+This patch (of 2):
+
+To support different hugetlb allocation strategies during hugetlb
+migration based on various migration reasons, record the migration reason
+in the migration_target_control structure as a preparation.
+
+Link: https://lkml.kernel.org/r/cover.1709719720.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/7b95d4981e07211f57139fc5b1f7ce91b920cee4.1709719720.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   50 +++++++++++++++++++++----------------------------
- 1 file changed, 22 insertions(+), 28 deletions(-)
+ mm/gup.c            |    1 +
+ mm/internal.h       |    1 +
+ mm/memory-failure.c |    1 +
+ mm/memory_hotplug.c |    1 +
+ mm/mempolicy.c      |    1 +
+ mm/migrate.c        |    1 +
+ mm/page_alloc.c     |    1 +
+ mm/vmscan.c         |    3 ++-
+ 8 files changed, 9 insertions(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-eliminated-the-lock-contention-from-twice-to-once
-+++ a/mm/vmalloc.c
-@@ -1926,15 +1926,26 @@ node_alloc(unsigned long size, unsigned
- 	return va;
- }
+--- a/mm/gup.c~mm-record-the-migration-reason-for-struct-migration_target_control
++++ a/mm/gup.c
+@@ -2145,6 +2145,7 @@ static int migrate_longterm_unpinnable_p
+ 		struct migration_target_control mtc = {
+ 			.nid = NUMA_NO_NODE,
+ 			.gfp_mask = GFP_USER | __GFP_NOWARN,
++			.reason = MR_LONGTERM_PIN,
+ 		};
  
-+static inline void setup_vmalloc_vm(struct vm_struct *vm,
-+	struct vmap_area *va, unsigned long flags, const void *caller)
-+{
-+	vm->flags = flags;
-+	vm->addr = (void *)va->va_start;
-+	vm->size = va->va_end - va->va_start;
-+	vm->caller = caller;
-+	va->vm = vm;
-+}
-+
+ 		if (migrate_pages(movable_page_list, alloc_migration_target,
+--- a/mm/internal.h~mm-record-the-migration-reason-for-struct-migration_target_control
++++ a/mm/internal.h
+@@ -1045,6 +1045,7 @@ struct migration_target_control {
+ 	int nid;		/* preferred node id */
+ 	nodemask_t *nmask;
+ 	gfp_t gfp_mask;
++	enum migrate_reason reason;
+ };
+ 
  /*
-  * Allocate a region of KVA of the specified size and alignment, within the
-- * vstart and vend.
-+ * vstart and vend. If vm is passed in, the two will also be bound.
-  */
- static struct vmap_area *alloc_vmap_area(unsigned long size,
- 				unsigned long align,
- 				unsigned long vstart, unsigned long vend,
- 				int node, gfp_t gfp_mask,
--				unsigned long va_flags)
-+				unsigned long va_flags, struct vm_struct *vm,
-+				unsigned long flags, const void *caller)
- {
- 	struct vmap_node *vn;
- 	struct vmap_area *va;
-@@ -1997,6 +2008,9 @@ retry:
- 	va->vm = NULL;
- 	va->flags = (va_flags | vn_id);
+--- a/mm/memory-failure.c~mm-record-the-migration-reason-for-struct-migration_target_control
++++ a/mm/memory-failure.c
+@@ -2669,6 +2669,7 @@ static int soft_offline_in_use_page(stru
+ 	struct migration_target_control mtc = {
+ 		.nid = NUMA_NO_NODE,
+ 		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
++		.reason = MR_MEMORY_FAILURE,
+ 	};
  
-+	if (vm)
-+		setup_vmalloc_vm(vm, va, flags, caller);
-+
- 	vn = addr_to_node(va->va_start);
+ 	if (!huge && folio_test_large(folio)) {
+--- a/mm/memory_hotplug.c~mm-record-the-migration-reason-for-struct-migration_target_control
++++ a/mm/memory_hotplug.c
+@@ -1841,6 +1841,7 @@ static void do_migrate_range(unsigned lo
+ 		struct migration_target_control mtc = {
+ 			.nmask = &nmask,
+ 			.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
++			.reason = MR_MEMORY_HOTPLUG,
+ 		};
+ 		int ret;
  
- 	spin_lock(&vn->busy.lock);
-@@ -2574,7 +2588,8 @@ static void *new_vmap_block(unsigned int
- 	va = alloc_vmap_area(VMAP_BLOCK_SIZE, VMAP_BLOCK_SIZE,
- 					VMALLOC_START, VMALLOC_END,
- 					node, gfp_mask,
--					VMAP_RAM|VMAP_BLOCK);
-+					VMAP_RAM|VMAP_BLOCK, NULL,
-+					0, NULL);
- 	if (IS_ERR(va)) {
- 		kfree(vb);
- 		return ERR_CAST(va);
-@@ -2931,7 +2946,8 @@ void *vm_map_ram(struct page **pages, un
- 		struct vmap_area *va;
- 		va = alloc_vmap_area(size, PAGE_SIZE,
- 				VMALLOC_START, VMALLOC_END,
--				node, GFP_KERNEL, VMAP_RAM);
-+				node, GFP_KERNEL, VMAP_RAM,
-+				NULL, 0, NULL);
- 		if (IS_ERR(va))
- 			return NULL;
+--- a/mm/mempolicy.c~mm-record-the-migration-reason-for-struct-migration_target_control
++++ a/mm/mempolicy.c
+@@ -1070,6 +1070,7 @@ static long migrate_to_node(struct mm_st
+ 	struct migration_target_control mtc = {
+ 		.nid = dest,
+ 		.gfp_mask = GFP_HIGHUSER_MOVABLE | __GFP_THISNODE,
++		.reason = MR_SYSCALL,
+ 	};
  
-@@ -3034,26 +3050,6 @@ void __init vm_area_register_early(struc
- 	kasan_populate_early_vm_area_shadow(vm->addr, vm->size);
- }
+ 	nodes_clear(nmask);
+--- a/mm/migrate.c~mm-record-the-migration-reason-for-struct-migration_target_control
++++ a/mm/migrate.c
+@@ -2060,6 +2060,7 @@ static int do_move_pages_to_node(struct
+ 	struct migration_target_control mtc = {
+ 		.nid = node,
+ 		.gfp_mask = GFP_HIGHUSER_MOVABLE | __GFP_THISNODE,
++		.reason = MR_SYSCALL,
+ 	};
  
--static inline void setup_vmalloc_vm_locked(struct vm_struct *vm,
--	struct vmap_area *va, unsigned long flags, const void *caller)
--{
--	vm->flags = flags;
--	vm->addr = (void *)va->va_start;
--	vm->size = va->va_end - va->va_start;
--	vm->caller = caller;
--	va->vm = vm;
--}
--
--static void setup_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
--			      unsigned long flags, const void *caller)
--{
--	struct vmap_node *vn = addr_to_node(va->va_start);
--
--	spin_lock(&vn->busy.lock);
--	setup_vmalloc_vm_locked(vm, va, flags, caller);
--	spin_unlock(&vn->busy.lock);
--}
--
- static void clear_vm_uninitialized_flag(struct vm_struct *vm)
- {
- 	/*
-@@ -3090,14 +3086,12 @@ static struct vm_struct *__get_vm_area_n
- 	if (!(flags & VM_NO_GUARD))
- 		size += PAGE_SIZE;
+ 	err = migrate_pages(pagelist, alloc_migration_target, NULL,
+--- a/mm/page_alloc.c~mm-record-the-migration-reason-for-struct-migration_target_control
++++ a/mm/page_alloc.c
+@@ -6351,6 +6351,7 @@ int __alloc_contig_migrate_range(struct
+ 	struct migration_target_control mtc = {
+ 		.nid = zone_to_nid(cc->zone),
+ 		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
++		.reason = MR_CONTIG_RANGE,
+ 	};
+ 	struct page *page;
+ 	unsigned long total_mapped = 0;
+--- a/mm/vmscan.c~mm-record-the-migration-reason-for-struct-migration_target_control
++++ a/mm/vmscan.c
+@@ -967,7 +967,8 @@ static unsigned int demote_folio_list(st
+ 		.gfp_mask = (GFP_HIGHUSER_MOVABLE & ~__GFP_RECLAIM) | __GFP_NOWARN |
+ 			__GFP_NOMEMALLOC | GFP_NOWAIT,
+ 		.nid = target_nid,
+-		.nmask = &allowed_mask
++		.nmask = &allowed_mask,
++		.reason = MR_DEMOTION,
+ 	};
  
--	va = alloc_vmap_area(size, align, start, end, node, gfp_mask, 0);
-+	va = alloc_vmap_area(size, align, start, end, node, gfp_mask, 0, area, flags, caller);
- 	if (IS_ERR(va)) {
- 		kfree(area);
- 		return NULL;
- 	}
- 
--	setup_vmalloc_vm(area, va, flags, caller);
--
- 	/*
- 	 * Mark pages for non-VM_ALLOC mappings as accessible. Do it now as a
- 	 * best-effort approach, as they can be mapped outside of vmalloc code.
-@@ -4672,7 +4666,7 @@ retry:
- 
- 		spin_lock(&vn->busy.lock);
- 		insert_vmap_area(vas[area], &vn->busy.root, &vn->busy.head);
--		setup_vmalloc_vm_locked(vms[area], vas[area], VM_ALLOC,
-+		setup_vmalloc_vm(vms[area], vas[area], VM_ALLOC,
- 				 pcpu_get_vm_areas);
- 		spin_unlock(&vn->busy.lock);
- 	}
+ 	if (list_empty(demote_folios))
 _
 
-Patches currently in -mm which might be from rulin.huang@intel.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
+mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch
 
