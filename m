@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10E9280BF7
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFFEE80BF8
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104130; cv=none; b=FSKcPEYqaCi9irBOGXaMRW69D3kBJgLToZlf2PKxo/MYUy3qL0g7T7fYndGmgHdPZQK5081C4ny6hN4PPRZLf7e9xBeicnOjYA8aevylMlNa1YNy6NAO4T0/CxYK72lgzSM3B27zHifEPpuFBXlv0BFktp3L4tPyxaohICnNtR8=
+	t=1714104131; cv=none; b=iMUA4lBxhPP0nWiq/SdNNajB7KDp1MJ+IJWoXZ5b3bBxbrZPKHeh++sjchA0GfWezcNZvuV7gLgH72cXeDtg96R7ordO4lX7/W/9wI58NF62kI9Ad4AZy+nsdqE2df/klKwzTt12hx+U15g8bcZilla6gCOZwSOjLbXNDmpwuxA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104130; c=relaxed/simple;
-	bh=oMDSS/+OmtkvrnR2ZWlLy2Nn7N25BBOvtcDh7dIMTOA=;
-	h=Date:To:From:Subject:Message-Id; b=IecDfuR5XgzgZvlk6e+CS2ZPqbo6OoHQFwlIf9rlFbPWXunMlRsDF+GlppXlGpwnFVHsF1WyyLbZPn674p1s6BKT42puuz4nVc1cCXC5ECJ5TZxedYpLF/WfujxfcwlhYsSYRdrDNRxVvQw0Ro8m7cd/Gyx9Z6Wu8tB6XIu/n+s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LcnHFS5Y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104131; c=relaxed/simple;
+	bh=adIgyPhR5eVHm6xV3R7LABjNiIMWwS+EgOZtDaA9ynw=;
+	h=Date:To:From:Subject:Message-Id; b=Ud4a6ftGbOVq+VeMlRr9+5OaSD3iwl4llBOgTGgptjh3v5P66BnjRB36bRut8iEjR0VQqq1FDOomkMMVVzrJ6TPN8qMeesRR+OrnkVI5oQDr6vzhqVHUdM0+9Od+NVacNtKDGF9/ZSFI5aJGQNwS6/LF7TYgX9czlGkMkkIKqcE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nldt+mmz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LcnHFS5Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5063C2BD11;
-	Fri, 26 Apr 2024 04:02:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nldt+mmz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC3CAC113CD;
+	Fri, 26 Apr 2024 04:02:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104129;
-	bh=oMDSS/+OmtkvrnR2ZWlLy2Nn7N25BBOvtcDh7dIMTOA=;
+	s=korg; t=1714104130;
+	bh=adIgyPhR5eVHm6xV3R7LABjNiIMWwS+EgOZtDaA9ynw=;
 	h=Date:To:From:Subject:From;
-	b=LcnHFS5YJH2zfrQiwqkDEK8p/IcRN8MjJx3MWZc+PnQZnqza9Qm43J24cP/J3nDPs
-	 0H6boHLk2iId39CdHK7gDCdFj/CglEud/arKurqvvyhhEm/ziazjzGGD+ZSD9G30pF
-	 Hpour4S2jWeS9SZMIs1doZ0jWJanUIhzChYpxm5k=
-Date: Thu, 25 Apr 2024 21:02:09 -0700
-To: mm-commits@vger.kernel.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=Nldt+mmzbsZWnFJbTPVMCXxE5hO8JklclmrIT+19u7IORGzJUHnYNnuDsS2bBR1jB
+	 0IctIJoejh5FKMvccRoT4OQunUPrNeqKy//3KzzU3iNBiu9ZonuJoUETzOrPB6OSXz
+	 TqK1pn5m506U+D7dCv6fzrTjaGtLECmasEoRPsfk=
+Date: Thu, 25 Apr 2024 21:02:10 -0700
+To: mm-commits@vger.kernel.org,brauner@kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-generate-page_idle_flag-definitions.patch removed from -mm tree
-Message-Id: <20240426040209.A5063C2BD11@smtp.kernel.org>
+Subject: [merged mm-stable] proc-convert-gather_stats-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20240426040210.AC3CAC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,105 +35,84 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: generate PAGE_IDLE_FLAG definitions
+     Subject: proc: convert gather_stats to use a folio
 has been removed from the -mm tree.  Its filename was
-     mm-generate-page_idle_flag-definitions.patch
+     proc-convert-gather_stats-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: generate PAGE_IDLE_FLAG definitions
-Date: Tue, 2 Apr 2024 21:12:51 +0100
+Subject: proc: convert gather_stats to use a folio
+Date: Wed, 3 Apr 2024 18:14:52 +0100
 
-If CONFIG_PAGE_IDLE_FLAG is not set, we can use FOLIO_FLAG_FALSE() to
-generate these definitions.
+Patch series "Use folio APIs in procfs".
 
-Link: https://lkml.kernel.org/r/20240402201252.917342-5-willy@infradead.org
+We're down to very few users of the PageFoo macros, with proc being a
+major user.
+
+After this patchset and another patchset I have for khugepaged, we can get
+rid of PageActive, PageReadahead and PageSwapBacked.  This patchset has
+the usual advantages in its own right of removing hidden calls to
+compound_head().  We have the page table lock, so the mapcount & refcount
+are stable and there can't be any races with folios suddenly becoming tail
+pages.
+
+
+This patch (of 4):
+
+Replaces six calls to compound_head() with one.  Shrinks the function from
+5054 bytes to 1756 bytes in an allmodconfig build.
+
+Link: https://lkml.kernel.org/r/20240403171456.1445117-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240403171456.1445117-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    9 +++++++-
- include/linux/page_idle.h  |   37 +----------------------------------
- 2 files changed, 10 insertions(+), 36 deletions(-)
+ fs/proc/task_mmu.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/include/linux/page-flags.h~mm-generate-page_idle_flag-definitions
-+++ a/include/linux/page-flags.h
-@@ -626,12 +626,19 @@ PAGEFLAG_FALSE(HWPoison, hwpoison)
- #define __PG_HWPOISON 0
- #endif
+--- a/fs/proc/task_mmu.c~proc-convert-gather_stats-to-use-a-folio
++++ a/fs/proc/task_mmu.c
+@@ -2549,28 +2549,29 @@ struct numa_maps_private {
+ static void gather_stats(struct page *page, struct numa_maps *md, int pte_dirty,
+ 			unsigned long nr_pages)
+ {
++	struct folio *folio = page_folio(page);
+ 	int count = page_mapcount(page);
  
--#if defined(CONFIG_PAGE_IDLE_FLAG) && defined(CONFIG_64BIT)
-+#ifdef CONFIG_PAGE_IDLE_FLAG
-+#ifdef CONFIG_64BIT
- FOLIO_TEST_FLAG(young, FOLIO_HEAD_PAGE)
- FOLIO_SET_FLAG(young, FOLIO_HEAD_PAGE)
- FOLIO_TEST_CLEAR_FLAG(young, FOLIO_HEAD_PAGE)
- FOLIO_FLAG(idle, FOLIO_HEAD_PAGE)
- #endif
-+/* See page_idle.h for !64BIT workaround */
-+#else /* !CONFIG_PAGE_IDLE_FLAG */
-+FOLIO_FLAG_FALSE(young)
-+FOLIO_TEST_CLEAR_FLAG_FALSE(young)
-+FOLIO_FLAG_FALSE(idle)
-+#endif
+ 	md->pages += nr_pages;
+-	if (pte_dirty || PageDirty(page))
++	if (pte_dirty || folio_test_dirty(folio))
+ 		md->dirty += nr_pages;
  
- /*
-  * PageReported() is used to track reported free pages within the Buddy
---- a/include/linux/page_idle.h~mm-generate-page_idle_flag-definitions
-+++ a/include/linux/page_idle.h
-@@ -6,9 +6,7 @@
- #include <linux/page-flags.h>
- #include <linux/page_ext.h>
+-	if (PageSwapCache(page))
++	if (folio_test_swapcache(folio))
+ 		md->swapcache += nr_pages;
  
--#ifdef CONFIG_PAGE_IDLE_FLAG
--
--#ifndef CONFIG_64BIT
-+#if defined(CONFIG_PAGE_IDLE_FLAG) && !defined(CONFIG_64BIT)
- /*
-  * If there is not enough space to store Idle and Young bits in page flags, use
-  * page ext flags instead.
-@@ -87,36 +85,5 @@ static inline void folio_clear_idle(stru
- 	clear_bit(PAGE_EXT_IDLE, &page_ext->flags);
- 	page_ext_put(page_ext);
+-	if (PageActive(page) || PageUnevictable(page))
++	if (folio_test_active(folio) || folio_test_unevictable(folio))
+ 		md->active += nr_pages;
+ 
+-	if (PageWriteback(page))
++	if (folio_test_writeback(folio))
+ 		md->writeback += nr_pages;
+ 
+-	if (PageAnon(page))
++	if (folio_test_anon(folio))
+ 		md->anon += nr_pages;
+ 
+ 	if (count > md->mapcount_max)
+ 		md->mapcount_max = count;
+ 
+-	md->node[page_to_nid(page)] += nr_pages;
++	md->node[folio_nid(folio)] += nr_pages;
  }
--#endif /* !CONFIG_64BIT */
--
--#else /* !CONFIG_PAGE_IDLE_FLAG */
--
--static inline bool folio_test_young(const struct folio *folio)
--{
--	return false;
--}
--
--static inline void folio_set_young(struct folio *folio)
--{
--}
--
--static inline bool folio_test_clear_young(struct folio *folio)
--{
--	return false;
--}
--
--static inline bool folio_test_idle(const struct folio *folio)
--{
--	return false;
--}
--
--static inline void folio_set_idle(struct folio *folio)
--{
--}
--
--static inline void folio_clear_idle(struct folio *folio)
--{
--}
--
--#endif /* CONFIG_PAGE_IDLE_FLAG */
-+#endif /* CONFIG_PAGE_IDLE_FLAG && !64BIT */
- #endif /* _LINUX_MM_PAGE_IDLE_H */
+ 
+ static struct page *can_gather_numa_stats(pte_t pte, struct vm_area_struct *vma,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
