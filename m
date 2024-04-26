@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE527811F7
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:07:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2A5E811F7
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:07:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104453; cv=none; b=FSpPP708gKBaYPDs4hRR4uAgFWveX67RQXzZh81Bg5W5Q6XF1qmDBQ4Z6bZhvIY1cbdXPNDj56GF4YjEoqXtd9zEFWEudwjiHpHJpz122/syQSAG8YGPdW0aUjaqVB7PHzdz8ZlOOy+Toh9ZGn149wo882zdVe01I+zq02k3UcM=
+	t=1714104454; cv=none; b=ejDteUk27ztUq1GL1VW3iPBr+QKbvEDcRNkoXpkI3yTqmiHjuaZDrzhlUdW+plMnRRX3gdcpJ8kjVxRtQYWn8tjPJGrU3tU0dxS9wGoJ5S/YfRSdX5JejyqBzDgGQucYG7e1mjsi1XQtzG5Vun/TqTRDrpl3+xat+CAHxDpHIfw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104453; c=relaxed/simple;
-	bh=vvF6CLKh3SSHb271mF9BHWHadv/Zy+J6t27G1ZjLwL8=;
-	h=Date:To:From:Subject:Message-Id; b=Ig5M7s6YJ2/nPHV5eniLjZrKWO7jUQQY30PSmsmIuqSyRibmilr9lmpchBeO96K40cVoNdp9vIFXqmodIB6SbD+vVCXzvmy3Se4lbc1bLIwVvXDHlWCh6nUrVe+dfOa5Cff6tdLvHFsf2b75+1yvFfkUiNLw9A72VFUwfiAD+eA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RMZAVbJk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104454; c=relaxed/simple;
+	bh=+1JYyhrUK6F0F6PbUsB+7eehFX6Kk/kuB2ci8O2Trvk=;
+	h=Date:To:From:Subject:Message-Id; b=XptxB/sG9uyLqk3ttE1yJP2PsRymH/XqG2cEotAC3UBME7J+BYqVGlEpETvN7XpjwnPK0Cl7GhcwY9KM9N5VLw9RRoCFIvWmhZDkKpKpqjGhfaHkfTQL2m+Qyqc07aWmSOWUIzSjZ5gOGEZYg5iAOrO0h2Wv707RGfa/FDaEr9Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zj5tkNcu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RMZAVbJk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3302CC116B1;
-	Fri, 26 Apr 2024 04:07:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zj5tkNcu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 448FAC2BD11;
+	Fri, 26 Apr 2024 04:07:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104453;
-	bh=vvF6CLKh3SSHb271mF9BHWHadv/Zy+J6t27G1ZjLwL8=;
+	s=korg; t=1714104454;
+	bh=+1JYyhrUK6F0F6PbUsB+7eehFX6Kk/kuB2ci8O2Trvk=;
 	h=Date:To:From:Subject:From;
-	b=RMZAVbJkcp+F8qBT/aDU+WcDi3c63iKEOlt8mK/dlIYr6ficexFDCO5otshwBY0Ur
-	 /ch47k7VYHNAAHGzaqmu1/xCSjn8k8DqkcyNI80c0gEWsRWu9NqjzGg1Kts9OZZrgh
-	 Ly0reSb4iiWI2Jvre4Vka36iGQ1Uv2v2rZqlwLIw=
-Date: Thu, 25 Apr 2024 21:07:32 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,glass.su@suse.com,akpm@linux-foundation.org
+	b=Zj5tkNcuuTDuAJxt2nVZHEe3XJccuFB6t4K3SHOXQoqoly+TA2haaeNmNi1uK2o+z
+	 +7hkJANeGdxFaqPb3oB3qM/DcDD9mgHcg6BHBlvTxA+aDw88QCmEUyfJyVDvuk28mp
+	 YBGvc+yKviOWX+oOuOwSYLnvIqBIXQ36mjqH6SOw=
+Date: Thu, 25 Apr 2024 21:07:33 -0700
+To: mm-commits@vger.kernel.org,nicolas@fjasle.eu,masahiroy@kernel.org,u.kleine-koenig@pengutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-update-inode-ctime-in-ocfs2_fileattr_set.patch removed from -mm tree
-Message-Id: <20240426040733.3302CC116B1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-build_oid_registry-dont-mention-the-full-path-of-the-script-in-output.patch removed from -mm tree
+Message-Id: <20240426040734.448FAC2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: update inode ctime in ocfs2_fileattr_set
+     Subject: lib/build_OID_registry: don't mention the full path of the script in output
 has been removed from the -mm tree.  Its filename was
-     ocfs2-update-inode-ctime-in-ocfs2_fileattr_set.patch
+     lib-build_oid_registry-dont-mention-the-full-path-of-the-script-in-output.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Su Yue <glass.su@suse.com>
-Subject: ocfs2: update inode ctime in ocfs2_fileattr_set
-Date: Mon, 18 Mar 2024 19:56:09 +0800
+From: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Subject: lib/build_OID_registry: don't mention the full path of the script in output
+Date: Wed, 13 Mar 2024 22:19:56 +0100
 
-inode ctime should be updated if ocfs2_fileattr_set is called.
+This change strips the full path of the script generating
+lib/oid_registry_data.c to just lib/build_OID_registry.  The motivation
+for this change is Yocto emitting a build warning
 
-Link: https://lkml.kernel.org/r/20240318115609.3194-1-l@damenly.org
-Signed-off-by: Su Yue <glass.su@suse.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+	File /usr/src/debug/linux-lxatac/6.7-r0/lib/oid_registry_data.c in package linux-lxatac-src contains reference to TMPDIR [buildpaths]
+
+So this change brings us one step closer to make the build result
+reproducible independent of the build path.
+
+Link: https://lkml.kernel.org/r/20240313211957.884561-2-u.kleine-koenig@pengutronix.de
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Reviewed-by: Nicolas Schier <nicolas@fjasle.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ioctl.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/build_OID_registry |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/fs/ocfs2/ioctl.c~ocfs2-update-inode-ctime-in-ocfs2_fileattr_set
-+++ a/fs/ocfs2/ioctl.c
-@@ -125,6 +125,7 @@ int ocfs2_fileattr_set(struct mnt_idmap
+--- a/lib/build_OID_registry~lib-build_oid_registry-dont-mention-the-full-path-of-the-script-in-output
++++ a/lib/build_OID_registry
+@@ -8,6 +8,7 @@
+ #
  
- 	ocfs2_inode->ip_attr = flags;
- 	ocfs2_set_inode_flags(inode);
-+	inode_set_ctime_current(inode);
+ use strict;
++use Cwd qw(abs_path);
  
- 	status = ocfs2_mark_inode_dirty(handle, inode, bh);
- 	if (status < 0)
+ my @names = ();
+ my @oids = ();
+@@ -17,6 +18,8 @@ if ($#ARGV != 1) {
+     exit(2);
+ }
+ 
++my $abs_srctree = abs_path($ENV{'srctree'});
++
+ #
+ # Open the file to read from
+ #
+@@ -35,7 +38,7 @@ close IN_FILE || die;
+ #
+ open C_FILE, ">$ARGV[1]" or die;
+ print C_FILE "/*\n";
+-print C_FILE " * Automatically generated by ", $0, ".  Do not edit\n";
++print C_FILE " * Automatically generated by ", $0 =~ s#^\Q$abs_srctree/\E##r, ".  Do not edit\n";
+ print C_FILE " */\n";
+ 
+ #
 _
 
-Patches currently in -mm which might be from glass.su@suse.com are
+Patches currently in -mm which might be from u.kleine-koenig@pengutronix.de are
 
 
