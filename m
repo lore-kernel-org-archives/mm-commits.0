@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F16678C83
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:57:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F26F278C83
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:57:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714103851; cv=none; b=Y3BBX3lRXb99jOtRUhrhdwXjXlsHMD/4bZm+l0JAS77wTECcpC0foglnI2kbLAu/NDXhZInEYnkqmxo9ni8V/i8FoNDaCIZ1HmO1BbSOHcbDxQCPrJRTyfYBdMQk//rJLz9muu96GduN9nloINtj4obw8OBVUVEnVRr8s0qUBpg=
+	t=1714103853; cv=none; b=j75FI6nj9ab5m5yF6fagPC0WvlEDXZqawj9U0NdyKlv/Hb7dmy4PSsv0hixJKlzYOlHwQ/dLGPGiYBSaeyCiuL/wpsd0egg0qPClX+iy8+FwF+Vw0DQfoKXVWa3R76Pg3/ks0szx5E/BHhlIGrD/qWesrtKJjKmjnM0rYv3ZB9s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714103851; c=relaxed/simple;
-	bh=gQznR5s7Z3MmP7lm8mQzZJIEObXHZy7ILJJuWDbHr+I=;
-	h=Date:To:From:Subject:Message-Id; b=gO/lPtv6TQQZ7pqGg7rYO/Qhdr/P/e7mTsDaZpNEPmsOGL+e9X3Ioapq7GnwPe4HtocKGSFFeh79e0m15yi94XgSQSY/tOElsJauWFroqNep/858P33yQ2N5DSfrJKNs/vpQHf89uTjQ9GITIi0xKvEy5uTMR0RdNc8TSyZQwyw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ujMEIt79; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714103853; c=relaxed/simple;
+	bh=EM6rVU/Um3l4yhvkklv1fZ5pUROv2iIqXnJXS9dDmZM=;
+	h=Date:To:From:Subject:Message-Id; b=XbYNhGpdijvI5iLOvKM+P3XEPQZECqYz5NJ08KhqJrEJoptkQiDMIkqtq+g3MJWR56AWmqCBrhwqwTsqTl+y1VAMS706ywwPZRKnhMSP5gznxGV4rV6jop3tzkNbqRQnY6NYZeqsDlVHFuh4a9cEI++9QgS42/u0ylGj+1WOncQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ORgy4O+9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ujMEIt79"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08724C113CD;
-	Fri, 26 Apr 2024 03:57:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ORgy4O+9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71640C113CD;
+	Fri, 26 Apr 2024 03:57:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714103851;
-	bh=gQznR5s7Z3MmP7lm8mQzZJIEObXHZy7ILJJuWDbHr+I=;
+	s=korg; t=1714103852;
+	bh=EM6rVU/Um3l4yhvkklv1fZ5pUROv2iIqXnJXS9dDmZM=;
 	h=Date:To:From:Subject:From;
-	b=ujMEIt79MZIiP3F7z0Q6FtwFAFArFrmS2/YzLXnxBuZ951z0D0XEPe30O9RoxFW4i
-	 ox5JgwVsqCDGQYwWtX4r6ivbdHZBr4tSuEVonAKwFoeFERXLo5bcYFp81LCG1wmihi
-	 yAGXVJiP/xPOSYTC4A2+YuIyjMU0VNOacKi65P2o=
-Date: Thu, 25 Apr 2024 20:57:30 -0700
+	b=ORgy4O+9smuVAkxK4OzmFDWAj6D8fdFiXEhHP+XdnuqY/ztX/Om3i2NOJDXWWZ5IM
+	 mhmUPlzVQvd0+l2HyFyY1prObyWnLJildowWqr1KrkN/afXd21cgcLt2qrPGwarsFe
+	 gpmMnN8bFW4eIPTQG9XKw8joCXbeZwK1lnw52lqs=
+Date: Thu, 25 Apr 2024 20:57:31 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,tglx@linutronix.de,shawnguo@kernel.org,rppt@kernel.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,nao.horiguchi@gmail.com,muchun.song@linux.dev,msalter@redhat.com,mpe@ellerman.id.au,mingo@redhat.com,l.stach@pengutronix.de,linux@armlinux.org.uk,krzysztof.kozlowski@linaro.org,konrad.dybcio@linaro.org,jgg@nvidia.com,festevam@denx.de,davem@davemloft.net,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,apopple@nvidia.com,aneesh.kumar@kernel.org,andreas@gaisler.com,andersson@kernel.org,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch removed from -mm tree
-Message-Id: <20240426035731.08724C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch removed from -mm tree
+Message-Id: <20240426035732.71640C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,82 +35,38 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/x86: change pXd_huge() behavior to exclude swap entries
+     Subject: mm/sparc: change pXd_huge() behavior to exclude swap entries
 has been removed from the -mm tree.  Its filename was
-     mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries.patch
+     mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/x86: change pXd_huge() behavior to exclude swap entries
-Date: Mon, 18 Mar 2024 16:03:54 -0400
+Subject: mm/sparc: change pXd_huge() behavior to exclude swap entries
+Date: Mon, 18 Mar 2024 16:03:55 -0400
 
-This patch partly reverts below commits:
+Please refer to the previous patch on the reasoning for x86.  Now sparc is
+the only architecture that will allow swap entries to be reported as
+pXd_huge().  After this patch, all architectures should forbid swap
+entries in pXd_huge().
 
-3a194f3f8ad0 ("mm/hugetlb: make pud_huge() and follow_huge_pud() aware of non-present pud entry")
-cbef8478bee5 ("mm/hugetlb: pmd_huge() returns true for non-present hugepage")
-
-Right now, pXd_huge() definition across kernel is unclear. We have two
-groups that think differently on swap entries:
-
-  - x86/sparc:     Allow pXd_huge() to accept swap entries
-  - all the rest:  Doesn't allow pXd_huge() to accept swap entries
-
-This is so confusing.  Since the sparc helpers seem to be added in 2016,
-which is after x86's (2015), so sparc could have followed a trend.  x86
-proposed such swap handling in 2015 to resolve hugetlb swap entries hit in
-GUP, but now GUP guards swap entries with !pXd_present() in all layers so
-we should be safe.
-
-We should define this API properly, one way or another, rather than keep
-them defined differently across archs.
-
-Gut feeling tells me that pXd_huge() shouldn't include swap entries, and it
-turns out that I am not the only one thinking so, the question was raised
-when the current pmd_huge() for x86 was proposed by Ville Syrjälä:
-
-https://lore.kernel.org/all/Y2WQ7I4LXh8iUIRd@intel.com/
-
-  I might also be missing something obvious, but why is it even necessary
-  to treat PRESENT==0+PSE==0 as a huge entry?
-
-It is also questioned when Jason Gunthorpe reviewed the other patchset on
-swap entry handlings:
-
-https://lore.kernel.org/all/20240221125753.GQ13330@nvidia.com/
-
-Revert its meaning back to original.  It shouldn't have any functional
-change as we should be ready with guards on !pXd_present() explicitly
-everywhere.
-
-Note that I also dropped the "#if CONFIG_PGTABLE_LEVELS > 2", it was there
-probably because it was breaking things when 3a194f3f8ad0 was proposed,
-according to the report here:
-
-https://lore.kernel.org/all/Y2LYXItKQyaJTv8j@intel.com/
-
-Now we shouldn't need that.
-
-Instead of reverting to _PAGE_PSE raw check, leverage pXd_leaf().
-
-Link: https://lkml.kernel.org/r/20240318200404.448346-5-peterx@redhat.com
+[akpm@linux-foundation.org: s/;;/;/, per Muchun]
+Link: https://lkml.kernel.org/r/20240318200404.448346-6-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Cc: David S. Miller <davem@davemloft.net>
 Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Bjorn Andersson <andersson@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David S. Miller <davem@davemloft.net>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Fabio Estevam <festevam@denx.de>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Konrad Dybcio <konrad.dybcio@linaro.org>
 Cc: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
@@ -120,53 +76,38 @@ Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: Shawn Guo <shawnguo@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/hugetlbpage.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ arch/sparc/mm/hugetlbpage.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/arch/x86/mm/hugetlbpage.c~mm-x86-change-pxd_huge-behavior-to-exclude-swap-entries
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -20,29 +20,19 @@
- #include <asm/elf.h>
+--- a/arch/sparc/mm/hugetlbpage.c~mm-sparc-change-pxd_huge-behavior-to-exclude-swap-entries
++++ a/arch/sparc/mm/hugetlbpage.c
+@@ -409,14 +409,12 @@ pte_t huge_ptep_get_and_clear(struct mm_
  
- /*
-- * pmd_huge() returns 1 if @pmd is hugetlb related entry, that is normal
-- * hugetlb entry or non-present (migration or hwpoisoned) hugetlb entry.
-- * Otherwise, returns 0.
-+ * pmd_huge() returns 1 if @pmd is hugetlb related entry.
-  */
  int pmd_huge(pmd_t pmd)
  {
 -	return !pmd_none(pmd) &&
--		(pmd_val(pmd) & (_PAGE_PRESENT|_PAGE_PSE)) != _PAGE_PRESENT;
+-		(pmd_val(pmd) & (_PAGE_VALID|_PAGE_PMD_HUGE)) != _PAGE_VALID;
 +	return pmd_leaf(pmd);
  }
  
- /*
-- * pud_huge() returns 1 if @pud is hugetlb related entry, that is normal
-- * hugetlb entry or non-present (migration or hwpoisoned) hugetlb entry.
-- * Otherwise, returns 0.
-+ * pud_huge() returns 1 if @pud is hugetlb related entry.
-  */
  int pud_huge(pud_t pud)
  {
--#if CONFIG_PGTABLE_LEVELS > 2
 -	return !pud_none(pud) &&
--		(pud_val(pud) & (_PAGE_PRESENT|_PAGE_PSE)) != _PAGE_PRESENT;
--#else
--	return 0;
--#endif
+-		(pud_val(pud) & (_PAGE_VALID|_PAGE_PUD_HUGE)) != _PAGE_VALID;
 +	return pud_leaf(pud);
  }
  
- #ifdef CONFIG_HUGETLB_PAGE
+ static void hugetlb_free_pte_range(struct mmu_gather *tlb, pmd_t *pmd,
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
