@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 387297EF06
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:01:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEA2A7EF06
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:01:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104075; cv=none; b=fIm5SSqN3pOX2hxwFs5elMv471D+ErGdHM+rReM3PLJsUfd3yDOZ+onuCJU0PIMtJKKrQfNTHv3GSdaH5dI3U9S73I6FnRyAEuzoH/OUPP2GL57NMQ+9SBX0rGwrSkWSh224P7JXEu1HKOj1YwKY3sTdVjA7j8WNAi3wbkV5exU=
+	t=1714104077; cv=none; b=DRzKdUOerdvcuDUmTH3Le1haQ6eMATM6WxjBgJs5InB3OJLLEC3/TuHCr61cRz5mf5ZbSwvj79ZdlxxMj7gPrEFrHGc8saaFpN5PIJQCfMHgBnrrDYX6CHa6Je+V1hHMJPGCA/jCSAUchG4kmgtHq6omxYT5ZAvW1AWo3wOpoxs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104075; c=relaxed/simple;
-	bh=nKWYwKE5c0C+7B0XJUx06185InsWqq0fWsEv4E5lZcs=;
-	h=Date:To:From:Subject:Message-Id; b=axU5tZ6e+rWBDcSgMqY3PulzC8b4bY14RD/go1dUQorWJHwYRl6JQQU9KhY8zwJWjj+rmG7FoIteOR+9ZD0raQhCZ6Xgk3fJ6HAqLEOk139IuynoOqgAh74A72kIplKJ3YKjZocq2DXrBaxKhP27fnuPdmLldyaEtu8KuQU+eVk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g5ZK/VX6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104077; c=relaxed/simple;
+	bh=FKIEmfRU78vJ+bTbSaUw5+zteUQwlMxR5h/wKxL1DSs=;
+	h=Date:To:From:Subject:Message-Id; b=bkbgS+rNoUAMc+uzLl85ZR87QU8iD/rKGisOF2m4KHgfAoHYVJyDq28WoWTi9qbvYEecprX+7VQ10UTbZXc8rznRBf2wJssSHgvPCk5ZMs9KIAR8ut2NYa6LdaTh2/bfIJjF6zwrs4H2/KQaKq7VfCzjcAEVZA42Od/0KryFJtI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nuVFkpNk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g5ZK/VX6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DDDCC113CD;
-	Fri, 26 Apr 2024 04:01:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nuVFkpNk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A91EEC113CD;
+	Fri, 26 Apr 2024 04:01:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104075;
-	bh=nKWYwKE5c0C+7B0XJUx06185InsWqq0fWsEv4E5lZcs=;
+	s=korg; t=1714104076;
+	bh=FKIEmfRU78vJ+bTbSaUw5+zteUQwlMxR5h/wKxL1DSs=;
 	h=Date:To:From:Subject:From;
-	b=g5ZK/VX6KQ3LSaK3faeAUu4YY0PokUnYEheTCHHhC+MxrrECSF7AG1g8N3CY+/5Ye
-	 RvaoYuxfS4Y01jP/js/49W0liA8YIsbLccYFkWveZSZAXUy7cC6S+dgjys8oWtjCK0
-	 APOErd7AgpBkPfMoxFGzOQimyOeLsq4hPexZAzBk=
-Date: Thu, 25 Apr 2024 21:01:14 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,david@redhat.com,akpm@linux-foundation.org
+	b=nuVFkpNkkmxNbrpRj78YrPj6c3Od7jLQ2ww16sLWh2p5z1S5UP38736s/TBpaFODN
+	 fzcTPMEUyeUtxjsOlboqpY0RSYuyICuPvBngSuNY/qdbvJHslBe2PaIWLwC6JaykI5
+	 kDPvnSDAMyOeEJV3AcPePnq/rbfm13+42Wl6sb7A=
+Date: Thu, 25 Apr 2024 21:01:15 -0700
+To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,davem@davemloft.net,andreas@gaisler.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-optimize-config_per_vma_lock-member-placement-in-vm_area_struct.patch removed from -mm tree
-Message-Id: <20240426040115.0DDDCC113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-prot-parameter-from-move_pte.patch removed from -mm tree
+Message-Id: <20240426040116.A91EEC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: optimize CONFIG_PER_VMA_LOCK member placement in vm_area_struct
+     Subject: mm: remove "prot" parameter from move_pte()
 has been removed from the -mm tree.  Its filename was
-     mm-optimize-config_per_vma_lock-member-placement-in-vm_area_struct.patch
+     mm-remove-prot-parameter-from-move_pte.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: optimize CONFIG_PER_VMA_LOCK member placement in vm_area_struct
-Date: Wed, 27 Mar 2024 15:35:48 +0100
+Subject: mm: remove "prot" parameter from move_pte()
+Date: Wed, 27 Mar 2024 15:33:01 +0100
 
-Currently, we end up wasting some memory in each vm_area_struct. Pahole
-states that:
-	[...]
-	int                        vm_lock_seq;          /*    40     4 */
+The "prot" parameter is unused, and using it instead of what's stored in
+that particular PTE would very likely be wrong.  Let's simply remove it.
 
-	/* XXX 4 bytes hole, try to pack */
-
-	struct vma_lock *          vm_lock;              /*    48     8 */
-	bool                       detached;             /*    56     1 */
-
-	/* XXX 7 bytes hole, try to pack */
-	[...]
-
-Let's reduce the holes and memory wastage by moving the bool:
-	[...]
-	bool                       detached;             /*    40     1 */
-
-	/* XXX 3 bytes hole, try to pack */
-
-	int                        vm_lock_seq;          /*    44     4 */
-	struct vma_lock *          vm_lock;              /*    48     8 */
-	[...]
-
-Effectively shrinking the vm_area_struct with CONFIG_PER_VMA_LOCK by
-8 byte.
-
-Likely, we could place "detached" in the lowest bit of vm_lock, but at
-least on 64bit that won't really make a difference, so keep it simple.
-
-Link: https://lkml.kernel.org/r/20240327143548.744070-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20240327143301.741807-1-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Andreas Larsson <andreas@gaisler.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h |    2 +-
+ include/linux/pgtable.h             |    2 +-
+ mm/mremap.c                         |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm_types.h~mm-optimize-config_per_vma_lock-member-placement-in-vm_area_struct
-+++ a/include/linux/mm_types.h
-@@ -671,6 +671,9 @@ struct vm_area_struct {
- 	};
+--- a/arch/sparc/include/asm/pgtable_64.h~mm-remove-prot-parameter-from-move_pte
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -957,7 +957,7 @@ static inline void set_ptes(struct mm_st
  
- #ifdef CONFIG_PER_VMA_LOCK
-+	/* Flag to indicate areas detached from the mm->mm_mt tree */
-+	bool detached;
-+
- 	/*
- 	 * Can only be written (using WRITE_ONCE()) while holding both:
- 	 *  - mmap_lock (in write mode)
-@@ -687,9 +690,6 @@ struct vm_area_struct {
- 	 */
- 	int vm_lock_seq;
- 	struct vma_lock *vm_lock;
--
--	/* Flag to indicate areas detached from the mm->mm_mt tree */
--	bool detached;
+ #ifdef DCACHE_ALIASING_POSSIBLE
+ #define __HAVE_ARCH_MOVE_PTE
+-#define move_pte(pte, prot, old_addr, new_addr)				\
++#define move_pte(pte, old_addr, new_addr)				\
+ ({									\
+ 	pte_t newpte = (pte);						\
+ 	if (tlb_type != hypervisor && pte_present(pte)) {		\
+--- a/include/linux/pgtable.h~mm-remove-prot-parameter-from-move_pte
++++ a/include/linux/pgtable.h
+@@ -1079,7 +1079,7 @@ static inline void arch_swap_restore(swp
  #endif
  
- 	/*
+ #ifndef __HAVE_ARCH_MOVE_PTE
+-#define move_pte(pte, prot, old_addr, new_addr)	(pte)
++#define move_pte(pte, old_addr, new_addr)	(pte)
+ #endif
+ 
+ #ifndef pte_accessible
+--- a/mm/mremap.c~mm-remove-prot-parameter-from-move_pte
++++ a/mm/mremap.c
+@@ -205,7 +205,7 @@ static int move_ptes(struct vm_area_stru
+ 		 */
+ 		if (pte_present(pte))
+ 			force_flush = true;
+-		pte = move_pte(pte, new_vma->vm_page_prot, old_addr, new_addr);
++		pte = move_pte(pte, old_addr, new_addr);
+ 		pte = move_soft_dirty_pte(pte);
+ 		set_pte_at(mm, new_addr, new_pte, pte);
+ 	}
 _
 
 Patches currently in -mm which might be from david@redhat.com are
