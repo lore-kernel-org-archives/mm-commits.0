@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C65188120A
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:08:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2F2982491
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:08:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104490; cv=none; b=tuC4evMyxqR9nUDCvs0kVA6De3sQ0RydX73DZkprukWh3yt3aMmHvKTxnF2A88+vxHuKjV2Hc2ckFTfyuS1v08s7Xn5kNbR1nYCY9JBxwYAxadrMvIYWVEOIC6F/I8Dk90xUogiPmBaeeNTTrVsW6Fk1Vh7r75+XntTGSXodsVs=
+	t=1714104492; cv=none; b=YmJBdGqymSDZZC3cT1s14Hu7j1tPPzj4BU17a6fUQpfe1hfFBPciqVcf84VRhQfuYN2Igggf9v06gTrA2hb5d9I43zwSEYhzhzyAaWBx2lgmZOMZmCQshKfWOZ4odXbX/8BJu8FGaUCxqiwy9udptKMI8s4Ents5iRqPI745rDY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104490; c=relaxed/simple;
-	bh=4MiQYnvZ50P8tBvCRDBFzYetw6qPuzfLNtuGxjA8lCM=;
-	h=Date:To:From:Subject:Message-Id; b=Mp14ZGuAlINcCM8OzWw6ysknRsCC5cMlZ88p/IQzoKe9qgzKpsIox/U3drxROVP59me4aATYBDv0KgydSNwrv+VMceQQSm6nRFRQDXtDdNW6rMAg/YtAG10zbpgSd91/r0ZcNy81HY7ixq8MCJHE21jSY5ejFZhrjP/CneR31G4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gaYl3K92; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104492; c=relaxed/simple;
+	bh=XuLIxj/LUSCiMse9RdTUZ5ar6PcCYzXL2WGgtgpSuik=;
+	h=Date:To:From:Subject:Message-Id; b=L5x/XcF124n7gFRIYWkc8K22rErPD41bTAbHVyjgsJxirHxpPg2aXByCjJzS5ePRG1SjIcvZ+heBVjKDoBClRwDW0tlBQGtPtDiK4xKmIPjfY4FiG6f+cwOM5nj7ST3UHtyYfZ37YBlhm/4N4PYOjgRtpL+h6nbuJXLf15FBISs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aJbcaBWc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gaYl3K92"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CEA9C113CD;
-	Fri, 26 Apr 2024 04:08:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aJbcaBWc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7F2BC113CD;
+	Fri, 26 Apr 2024 04:08:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104490;
-	bh=4MiQYnvZ50P8tBvCRDBFzYetw6qPuzfLNtuGxjA8lCM=;
+	s=korg; t=1714104491;
+	bh=XuLIxj/LUSCiMse9RdTUZ5ar6PcCYzXL2WGgtgpSuik=;
 	h=Date:To:From:Subject:From;
-	b=gaYl3K92vQu5BvktlxElXVCwLJRQxIh6Dqg5wDB9lrCS8jgb4jHXbOtfS86vi5PvB
-	 8kaqQT3+SeUfZSoGacAafReBpamrflXORIlgKVwfYOBHvu+3Y5Z/4ij2KIRM8rtsfW
-	 ZfO1/ZtZ9uy5J1BTY3/ESNrhXw/n1CEFEPnhRkjE=
-Date: Thu, 25 Apr 2024 21:08:10 -0700
-To: mm-commits@vger.kernel.org,ojeda@kernel.org,nathan@kernel.org,miguel.ojeda.sandonis@gmail.com,kernel@xen0n.name,chenhuacai@kernel.org,arnd@arndb.de,david@redhat.com,akpm@linux-foundation.org
+	b=aJbcaBWcmSb/AJYSgiA0RpgkLnAWQJ7QRvTEYGxiXZ5lULqDAg/pT+yEnKFLGq7YE
+	 f2cp+/QzxmKqXB1l8+y2WtHsRnLbTvgRp3xMo6dGdbZpc7qzbYI2VWaDK8Lqq+eNme
+	 327jtgmDZs1ZSxfmc52Vv2SU5wlRqKW7AimrPiMM=
+Date: Thu, 25 Apr 2024 21:08:11 -0700
+To: mm-commits@vger.kernel.org,wintera@linux.ibm.com,twinkler@linux.ibm.com,svens@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,borntraeger@linux.ibm.com,arnd@arndb.de,agordeev@linux.ibm.com,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] loongarch-tlb-fix-error-parameter-ptep-set-but-not-used-due-to-__tlb_remove_tlb_entry.patch removed from -mm tree
-Message-Id: <20240426040810.9CEA9C113CD@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] s390-vmlogrdr-remove-function-pointer-cast.patch removed from -mm tree
+Message-Id: <20240426040811.C7F2BC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,87 +35,87 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: LoongArch/tlb: fix "error: parameter 'ptep' set but not used" due to __tlb_remove_tlb_entry()
+     Subject: s390/vmlogrdr: remove function pointer cast
 has been removed from the -mm tree.  Its filename was
-     loongarch-tlb-fix-error-parameter-ptep-set-but-not-used-due-to-__tlb_remove_tlb_entry.patch
+     s390-vmlogrdr-remove-function-pointer-cast.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: LoongArch/tlb: fix "error: parameter 'ptep' set but not used" due to __tlb_remove_tlb_entry()
-Date: Tue, 16 Apr 2024 16:49:26 +0200
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: s390/vmlogrdr: remove function pointer cast
+Date: Wed, 17 Apr 2024 11:24:35 -0700
 
-With LLVM=1 and W=1 we get:
+Patch series "drivers/s390: Fix instances of -Wcast-function-type-strict".
 
-  ./include/asm-generic/tlb.h:629:10: error: parameter 'ptep' set
-  but not used [-Werror,-Wunused-but-set-parameter]
+This series resolves the instances of -Wcast-function-type-strict that
+show up in my s390 builds on -next, which has this warning enabled by
+default.
 
-We fixed a similar issue via Arnd in the introducing commit, missed the
-loongarch variant. Turns out, there is no need for loongarch to have a
-custom variant, so let's just drop it and rely on the asm-generic one.
 
-Link: https://lkml.kernel.org/r/20240416144926.599101-1-david@redhat.com
-Fixes: 4d5bf0b6183f ("mm/mmu_gather: add tlb_remove_tlb_entries()")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reported-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Closes: https://lkml.kernel.org/r/CANiq72mQh3O9S4umbvrKBgMMorty48UMwS01U22FR0mRyd3cyQ@mail.gmail.com
-Tested-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Miguel Ojeda <ojeda@kernel.org>
-Tested-by: Miguel Ojeda <ojeda@kernel.org>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: WANG Xuerui <kernel@xen0n.name>
-Cc: Nathan Chancellor <nathan@kernel.org>
+This patch (of 3):
+
+Clang warns (or errors with CONFIG_WERROR) after enabling
+-Wcast-function-type-strict by default:
+
+  drivers/s390/char/vmlogrdr.c:746:18: error: cast from 'void (*)(const void *)' to 'void (*)(struct device *)' converts to incompatible function type [-Werror,-Wcast-function-type-strict]
+    746 |                 dev->release = (void (*)(struct device *))kfree;
+        |                                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  1 error generated.
+
+Add a standalone function to fix the warning properly, which addresses
+the root of the warning that these casts are not safe for kCFI. The
+comment is not really relevant after this change, so remove it.
+
+Link: https://lkml.kernel.org/r/20240417-s390-drivers-fix-cast-function-type-v1-0-fd048c9903b0@kernel.org
+Link: https://lkml.kernel.org/r/20240417-s390-drivers-fix-cast-function-type-v1-1-fd048c9903b0@kernel.org
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexandra Winter <wintera@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Thorsten Winkler <twinkler@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/include/asm/tlb.h |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/s390/char/vmlogrdr.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
---- a/arch/loongarch/include/asm/tlb.h~loongarch-tlb-fix-error-parameter-ptep-set-but-not-used-due-to-__tlb_remove_tlb_entry
-+++ a/arch/loongarch/include/asm/tlb.h
-@@ -132,8 +132,6 @@ static __always_inline void invtlb_all(u
- 		);
+--- a/drivers/s390/char/vmlogrdr.c~s390-vmlogrdr-remove-function-pointer-cast
++++ a/drivers/s390/char/vmlogrdr.c
+@@ -722,6 +722,10 @@ static void vmlogrdr_unregister_driver(v
+ 	iucv_unregister(&vmlogrdr_iucv_handler, 1);
  }
  
--#define __tlb_remove_tlb_entry(tlb, ptep, address) do { } while (0)
--
- static void tlb_flush(struct mmu_gather *tlb);
++static void vmlogrdr_free_dev(struct device *dev)
++{
++	kfree(dev);
++}
  
- #define tlb_flush tlb_flush
+ static int vmlogrdr_register_device(struct vmlogrdr_priv_t *priv)
+ {
+@@ -736,14 +740,7 @@ static int vmlogrdr_register_device(stru
+ 		dev->driver = &vmlogrdr_driver;
+ 		dev->groups = vmlogrdr_attr_groups;
+ 		dev_set_drvdata(dev, priv);
+-		/*
+-		 * The release function could be called after the
+-		 * module has been unloaded. It's _only_ task is to
+-		 * free the struct. Therefore, we specify kfree()
+-		 * directly here. (Probably a little bit obfuscating
+-		 * but legitime ...).
+-		 */
+-		dev->release = (void (*)(struct device *))kfree;
++		dev->release = vmlogrdr_free_dev;
+ 	} else
+ 		return -ENOMEM;
+ 	ret = device_register(dev);
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from nathan@kernel.org are
 
-drivers-virt-acrn-fix-pfnmap-pte-checks-in-acrn_vm_ram_map.patch
-mm-pass-vma-instead-of-mm-to-follow_pte.patch
-mm-follow_pte-improvements.patch
-mm-allow-for-detecting-underflows-with-page_mapcount-again.patch
-mm-allow-for-detecting-underflows-with-page_mapcount-again-fix.patch
-mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte.patch
-mm-rmap-add-fast-path-for-small-folios-when-adding-removing-duplicating.patch
-mm-track-mapcount-of-large-folios-in-single-value.patch
-mm-improve-folio_likely_mapped_shared-using-the-mapcount-of-large-folios.patch
-mm-make-folio_mapcount-return-0-for-small-typed-folios.patch
-mm-make-folio_mapcount-return-0-for-small-typed-folios-fix.patch
-mm-memory-use-folio_mapcount-in-zap_present_folio_ptes.patch
-mm-huge_memory-use-folio_mapcount-in-zap_huge_pmd-sanity-check.patch
-mm-memory-failure-use-folio_mapcount-in-hwpoison_user_mappings.patch
-mm-page_alloc-use-folio_mapped-in-__alloc_contig_migrate_range.patch
-mm-migrate-use-folio_likely_mapped_shared-in-add_page_for_migration.patch
-sh-mm-cache-use-folio_mapped-in-copy_from_user_page.patch
-mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio.patch
-mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page.patch
-trace-events-page_ref-trace-the-raw-page-mapcount-value.patch
-xtensa-mm-convert-check_tlb_entry-to-sanity-check-folios.patch
-mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch
-documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch
-mm-ksm-rename-get_ksm_page_flags-to-ksm_get_folio_flags.patch
-mm-ksm-remove-page_mapcount-usage-in-stable_tree_search.patch
-fs-proc-task_mmu-convert-pagemap_hugetlb_range-to-work-on-folios.patch
-fs-proc-task_mmu-convert-smaps_hugetlb_range-to-work-on-folios.patch
-mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation.patch
-mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation-v2.patch
-mm-khugepaged-replace-page_mapcount-check-by-folio_likely_mapped_shared.patch
 
