@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00019EBE
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:11:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 118F074E3D
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:11:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714101064; cv=none; b=F49wZRq4CEtVpBC2UBgu6MxMKU4Zw89SVbLSnkEwO4lInVWMJIbMfIYPfbQQH217aEAhUDrBOSCOfBf7urE0dvO/dFokaEpVWE+MwDZNsXtdvpaEMg/BTCvugL7QgYTKSE3yVe/M+JLdLtkCW8ozPevP3n8MHtL/V622tqSrrWM=
+	t=1714101064; cv=none; b=U3TGoT4Oc9SnnVEArMA+ldVDRNavG8Keb2vg5+VLgB9pk9/X6lq/B36A8cHziTqvj/C4pD0+QEsaweVCfW/5fSg4GjAIhRvjwZGzWTIxgpwhK5zioomuj8rh9xVoDBfmvB+B7Kcla9jtGUsE3FCoTXEtN4M+YsoZMMQCXNzIPnA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1714101064; c=relaxed/simple;
-	bh=noy2N/YhpusKGTff3B3VkuqjIbghSsJahNfSblofwN4=;
-	h=Date:To:From:Subject:Message-Id; b=lCTuAlBNuI9CfK9jGHJjQKOU+8S2YfRr5BcHps6NGhg65bLv8sWA5e5zYQ738Gb0lkOo380OxtJ06tNewpJJTjqv88yCAlOb4I7OUb88cU3a4cUSnDErRCdCkRSry+zFBYzrPxHP4LwTukZnFET87IgRy+b+v81T2Iyrf1eD3eA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C7+2SZfs; arc=none smtp.client-ip=10.30.226.201
+	bh=9qUQ7QVcBYOr/7WIlKnUsdDCct8nsVegcKfyZIzZZT4=;
+	h=Date:To:From:Subject:Message-Id; b=syECcMDksHM/Xh59Kal+FWkgWU1Hj9pfxM6jEG1h0sycljxgzq3yUfDLPDZzVuZGu/sj2+/WP903I97Upd8/YTGAcFi1ySqN/jIvre2NYOdqBgRSKSBgWeRFUeLQetuyYLFa4lqg3MeMP+7SkpSRDzsFItpRc3hkuBznLqtJOgk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cMAg4uvG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C7+2SZfs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61BADC113CC;
-	Fri, 26 Apr 2024 03:11:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cMAg4uvG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94BB4C2BBFC;
+	Fri, 26 Apr 2024 03:11:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714101062;
-	bh=noy2N/YhpusKGTff3B3VkuqjIbghSsJahNfSblofwN4=;
+	s=korg; t=1714101063;
+	bh=9qUQ7QVcBYOr/7WIlKnUsdDCct8nsVegcKfyZIzZZT4=;
 	h=Date:To:From:Subject:From;
-	b=C7+2SZfsTjUPVzyscHWBlacEoftGuc+dDUl8jEhBOXQl/hdcYnyXGkqatUDajUx9+
-	 IVWfi86QavJlZ7SQeIl8uSdx+VLyF6JU5pa8thzVJOrPB96P3bvfJZ8dyp/lQj/Fso
-	 jIdL0XSea1XEXAqO4FEWjVQ2+tsfKjclyynzheLk=
-Date: Thu, 25 Apr 2024 20:11:01 -0700
-To: mm-commits@vger.kernel.org,rdunlap@infradead.org,kent.overstreet@linux.dev,keescook@chromium.org,surenb@google.com,akpm@linux-foundation.org
+	b=cMAg4uvGLc1VqE5zzworyKkRBVDAMZUlSar+uSOH49Z+k2rVvwGJ/LliHUTeiQLgd
+	 oa5fSB+bxDO4BGamC1Gf7Nc6bckXY0pv1C0OYboqgfwWlJ2l+mifL/IUj/nsfZ6NyK
+	 1W9czJ7bWPqaIGJaYGgBHPybOQmnl0wWZmfyRQbM=
+Date: Thu, 25 Apr 2024 20:11:03 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sfr@canb.auug.org.au,kent.overstreet@linux.dev,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix.patch removed from -mm tree
-Message-Id: <20240426031102.61BADC113CC@smtp.kernel.org>
+Subject: [folded-merged] mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix-2.patch removed from -mm tree
+Message-Id: <20240426031103.94BB4C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,98 +35,56 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Documentation: mm/slab: undo _noprof additions in the documentation
+     Subject: mm/slab: fix kcalloc() kernel-doc warnings
 has been removed from the -mm tree.  Its filename was
-     mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix.patch
+     mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix-2.patch
 
 This patch was dropped because it was folded into mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends.patch
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: Documentation: mm/slab: undo _noprof additions in the documentation
-Date: Tue, 26 Mar 2024 16:14:52 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm/slab: fix kcalloc() kernel-doc warnings
+Date: Tue, 26 Mar 2024 21:46:49 -0700
 
-With kernel-doc script change to handle xyz_noprof() names, the previous
-documentation changes and not needed anymore.
+Fix the parameter names for kcalloc() in slab.h to prevent kernel-doc
+warnings:
 
-Link: https://lkml.kernel.org/r/20240326231453.1206227-7-surenb@google.com
+include/linux/slab.h:730: warning: Function parameter or struct member '_n' not described in 'kcalloc'
+include/linux/slab.h:730: warning: Function parameter or struct member '_size' not described in 'kcalloc'
+include/linux/slab.h:730: warning: Function parameter or struct member '_flags' not described in 'kcalloc'
+include/linux/slab.h:730: warning: Excess function parameter 'n' description in 'kcalloc'
+include/linux/slab.h:730: warning: Excess function parameter 'size' description in 'kcalloc'
+include/linux/slab.h:730: warning: Excess function parameter 'flags' description in 'kcalloc'
+
+Link: https://lkml.kernel.org/r/20240327044649.9199-1-rdunlap@infradead.org
 Fixes: bc7b83f5e4bf ("mm/slab: enable slab allocation tagging for kmalloc and friends")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Tested-by: Randy Dunlap <rdunlap@infradead.org>
-Tested-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lore.kernel.org/linux-next/20240325123603.1bdd6588@canb.auug.org.au/
+Tested-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- mm/util.c |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/slab.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slub.c~mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix
-+++ a/mm/slub.c
-@@ -4026,7 +4026,7 @@ void *kmem_cache_alloc_lru_noprof(struct
- EXPORT_SYMBOL(kmem_cache_alloc_lru_noprof);
+--- a/include/linux/slab.h~mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix-2
++++ a/include/linux/slab.h
+@@ -727,7 +727,7 @@ static inline __realloc_size(2, 3) void
+  * @size: element size.
+  * @flags: the type of memory to allocate (see kmalloc).
+  */
+-#define kcalloc(_n, _size, _flags)		kmalloc_array(_n, _size, (_flags) | __GFP_ZERO)
++#define kcalloc(n, size, flags)		kmalloc_array(n, size, (flags) | __GFP_ZERO)
  
- /**
-- * kmem_cache_alloc_node_noprof - Allocate an object on the specified node
-+ * kmem_cache_alloc_node - Allocate an object on the specified node
-  * @s: The cache to allocate from.
-  * @gfpflags: See kmalloc().
-  * @node: node number of the target node.
---- a/mm/util.c~mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends-fix
-+++ a/mm/util.c
-@@ -115,7 +115,7 @@ char *kstrndup(const char *s, size_t max
- EXPORT_SYMBOL(kstrndup);
- 
- /**
-- * kmemdup_noprof - duplicate region of memory
-+ * kmemdup - duplicate region of memory
-  *
-  * @src: memory region to duplicate
-  * @len: memory region length
-@@ -594,7 +594,7 @@ unsigned long vm_mmap(struct file *file,
- EXPORT_SYMBOL(vm_mmap);
- 
- /**
-- * kvmalloc_node_noprof - attempt to allocate physically contiguous memory, but upon
-+ * kvmalloc_node - attempt to allocate physically contiguous memory, but upon
-  * failure, fall back to non-contiguous (vmalloc) allocation.
-  * @size: size of the request.
-  * @flags: gfp mask for the allocation - must be compatible (superset) with GFP_KERNEL.
+ void *kmalloc_node_track_caller_noprof(size_t size, gfp_t flags, int node,
+ 				  unsigned long caller) __alloc_size(1);
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-introduce-slabobj_ext-to-support-slab-object-extensions.patch
-mm-introduce-__gfp_no_obj_ext-flag-to-selectively-prevent-slabobj_ext-creation.patch
-mm-slab-introduce-slab_no_obj_ext-to-avoid-obj_ext-creation.patch
-slab-objext-introduce-objext_flags-as-extension-to-page_memcg_data_flags.patch
-lib-code-tagging-framework.patch
-lib-code-tagging-module-support.patch
-lib-prevent-module-unloading-if-memory-is-not-freed.patch
-lib-add-allocation-tagging-support-for-memory-allocation-profiling.patch
-lib-introduce-support-for-page-allocation-tagging.patch
-lib-introduce-early-boot-parameter-to-avoid-page_ext-memory-overhead.patch
-mm-percpu-increase-percpu_module_reserve-to-accommodate-allocation-tags.patch
-change-alloc_pages-name-in-dma_map_ops-to-avoid-name-conflicts.patch
-mm-enable-page-allocation-tagging.patch
-mm-create-new-codetag-references-during-page-splitting.patch
-mm-fix-non-compound-multi-order-memory-accounting-in-__free_pages.patch
-mm-page_ext-enable-early_page_ext-when-config_mem_alloc_profiling_debug=y.patch
-lib-add-codetag-reference-into-slabobj_ext.patch
-mm-slab-add-allocation-accounting-into-slab-allocation-and-free-paths.patch
+scripts-kernel-doc-drop-_noprof-on-function-prototypes.patch
 mm-slab-enable-slab-allocation-tagging-for-kmalloc-and-friends.patch
-mempool-hook-up-to-memory-allocation-profiling-fix.patch
-mempool-hook-up-to-memory-allocation-profiling-fix-2.patch
-mm-percpu-enable-per-cpu-allocation-tagging.patch
-mm-percpu-enable-per-cpu-allocation-tagging-fix.patch
-mm-vmalloc-enable-memory-allocation-profiling-fix.patch
-mm-vmalloc-enable-memory-allocation-profiling-fix-2.patch
-rhashtable-plumb-through-alloc-tag-fix.patch
-lib-add-memory-allocations-report-in-show_mem.patch
-codetag-debug-skip-objext-checking-when-its-for-objext-itself.patch
-codetag-debug-mark-codetags-for-reserved-pages-as-empty.patch
-codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations.patch
-mm-change-inlined-allocation-helpers-to-account-at-the-call-site.patch
-userfaultfd-remove-write_once-when-setting-folio-index-during-uffdio_move.patch
 
