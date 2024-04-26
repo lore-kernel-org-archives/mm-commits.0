@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23B427F7FC
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22C4380055
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104045; cv=none; b=LzKswNqnkjt+Y2ohPgqEF1wmyRwt07lfd5A32NwJNYqs49RP6ad9QbTqTG6Pu1xImIzUTwT8CorpYYhRanphHqyV1xjkqGQZ33DmjSIpznnwq/0cxuUah6s5tWe6ha2J0ab6XNlQDmNrF96gosCCHt3h6NUcZoijBSwVm5tZEFg=
+	t=1714104046; cv=none; b=BhNzObCozI32ZilEKx/gyA4tTFjDuBPfuDhvQj7lSzBK7JtaWrPEWp0pLDSjzzWiVwLzceMSKj4YyB7by3b1KGzNl3D9JTxaKW4xLkM1FNbvoDe9aDwzvzPnH6/uQMP3j+T9ZBq0NGheYUBZQERieB1PmoVoVN/iGxu2Yh5q8Vg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104045; c=relaxed/simple;
-	bh=1HelJZW6p2gRc2XJRefG8sEBXnJ/ztvgxoDrpzDckGE=;
-	h=Date:To:From:Subject:Message-Id; b=rVVvJOEq/on/0i326mwLYW28SuGG4x8+S8/R5wjSY8OjTxZ3Cw4WGi0dKiHintC05yOOCwmRBT3mNCjw7q20S0ApmtH3VhH1wVNuGn4baG6s/Vh699d0b/tMmEgQm8pMofma6A1aRqt/tSYCJqKnEiyzGQxisx0UI1h8Bk8mog8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t2hqqvEm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104046; c=relaxed/simple;
+	bh=c2yhXjeoPK/3TarKcbDe1GBTqLHXjlW90GwPOfIFF7M=;
+	h=Date:To:From:Subject:Message-Id; b=Ec221NZrmyMqrCOvlYIjkzmgigOhWDmo4t/u9L/OsrnQ0T0J1ZLlV3uH1PC38XdWbPBXdCvb/F6xZmsC5KfDOnsoUReQlorHnomCiAA3Je1ZaL5PO+O6t4eQ9ns60W/iVbjbIG1tvsz4nIu7HIc3zf+HXsRMRAZNyzQ9DCoF3s0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CVP6hHpY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t2hqqvEm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE4A2C113CD;
-	Fri, 26 Apr 2024 04:00:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CVP6hHpY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB8BAC116B1;
+	Fri, 26 Apr 2024 04:00:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104045;
-	bh=1HelJZW6p2gRc2XJRefG8sEBXnJ/ztvgxoDrpzDckGE=;
+	s=korg; t=1714104046;
+	bh=c2yhXjeoPK/3TarKcbDe1GBTqLHXjlW90GwPOfIFF7M=;
 	h=Date:To:From:Subject:From;
-	b=t2hqqvEmgTTIRpgY2dElkWyzqcpiOK3qPnXVV7sUHfurLkR1m5W9j3htrK61dv8U2
-	 emy2eVZZc/DbBJ+xaVWNV5C999mfiHAukrUy7WT1cpCBhwoMZuHSSXy+uF0tiJFprz
-	 RHoRm239FyItxNXHm/Wk1oV/HLkkNyqY5gESGxeI=
-Date: Thu, 25 Apr 2024 21:00:44 -0700
+	b=CVP6hHpYHnQhPmEYfxdiFz+B5BVL9ZvWZe8IUUZweEceZaRA1soAaF/DshQ4eKQd+
+	 IN9KPkD3yCWqq2X/Ya8tvCULn2oHpOdeyNxLWYt57nZm2WLoW62ZP1l7ucd9AYdhTP
+	 vPF/ucDiLpT85nvI5U7d9hCphXYLlJmGHDehThYQ=
+Date: Thu, 25 Apr 2024 21:00:45 -0700
 To: mm-commits@vger.kernel.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-convert-huge_zero_page-to-huge_zero_folio.patch removed from -mm tree
-Message-Id: <20240426040044.EE4A2C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-do_huge_pmd_anonymous_page-to-huge_zero_folio.patch removed from -mm tree
+Message-Id: <20240426040045.EB8BAC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,168 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: convert huge_zero_page to huge_zero_folio
+     Subject: mm: convert do_huge_pmd_anonymous_page to huge_zero_folio
 has been removed from the -mm tree.  Its filename was
-     mm-convert-huge_zero_page-to-huge_zero_folio.patch
+     mm-convert-do_huge_pmd_anonymous_page-to-huge_zero_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert huge_zero_page to huge_zero_folio
-Date: Tue, 26 Mar 2024 20:28:25 +0000
+Subject: mm: convert do_huge_pmd_anonymous_page to huge_zero_folio
+Date: Tue, 26 Mar 2024 20:28:26 +0000
 
-With all callers of is_huge_zero_page() converted, we can now switch the
-huge_zero_page itself from being a compound page to a folio.
+Use folios more widely.
 
-Link: https://lkml.kernel.org/r/20240326202833.523759-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240326202833.523759-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   21 ++++++++-------------
- mm/huge_memory.c        |   28 ++++++++++++++--------------
- 2 files changed, 22 insertions(+), 27 deletions(-)
+ mm/huge_memory.c |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-convert-huge_zero_page-to-huge_zero_folio
-+++ a/include/linux/huge_mm.h
-@@ -348,17 +348,12 @@ struct page *follow_devmap_pud(struct vm
- 
- vm_fault_t do_huge_pmd_numa_page(struct vm_fault *vmf);
- 
--extern struct page *huge_zero_page;
-+extern struct folio *huge_zero_folio;
- extern unsigned long huge_zero_pfn;
- 
--static inline bool is_huge_zero_page(const struct page *page)
--{
--	return READ_ONCE(huge_zero_page) == page;
--}
--
- static inline bool is_huge_zero_folio(const struct folio *folio)
- {
--	return READ_ONCE(huge_zero_page) == &folio->page;
-+	return READ_ONCE(huge_zero_folio) == folio;
- }
- 
- static inline bool is_huge_zero_pmd(pmd_t pmd)
-@@ -371,9 +366,14 @@ static inline bool is_huge_zero_pud(pud_
- 	return false;
- }
- 
--struct page *mm_get_huge_zero_page(struct mm_struct *mm);
-+struct folio *mm_get_huge_zero_folio(struct mm_struct *mm);
- void mm_put_huge_zero_page(struct mm_struct *mm);
- 
-+static inline struct page *mm_get_huge_zero_page(struct mm_struct *mm)
-+{
-+	return &mm_get_huge_zero_folio(mm)->page;
-+}
-+
- #define mk_huge_pmd(page, prot) pmd_mkhuge(mk_pmd(page, prot))
- 
- static inline bool thp_migration_supported(void)
-@@ -485,11 +485,6 @@ static inline vm_fault_t do_huge_pmd_num
- 	return 0;
- }
- 
--static inline bool is_huge_zero_page(const struct page *page)
--{
--	return false;
--}
--
- static inline bool is_huge_zero_folio(const struct folio *folio)
- {
- 	return false;
---- a/mm/huge_memory.c~mm-convert-huge_zero_page-to-huge_zero_folio
+--- a/mm/huge_memory.c~mm-convert-do_huge_pmd_anonymous_page-to-huge_zero_folio
 +++ a/mm/huge_memory.c
-@@ -74,7 +74,7 @@ static unsigned long deferred_split_scan
- 					 struct shrink_control *sc);
- 
- static atomic_t huge_zero_refcount;
--struct page *huge_zero_page __read_mostly;
-+struct folio *huge_zero_folio __read_mostly;
- unsigned long huge_zero_pfn __read_mostly = ~0UL;
- unsigned long huge_anon_orders_always __read_mostly;
- unsigned long huge_anon_orders_madvise __read_mostly;
-@@ -192,24 +192,24 @@ unsigned long __thp_vma_allowable_orders
- 
- static bool get_huge_zero_page(void)
- {
--	struct page *zero_page;
-+	struct folio *zero_folio;
- retry:
- 	if (likely(atomic_inc_not_zero(&huge_zero_refcount)))
- 		return true;
- 
--	zero_page = alloc_pages((GFP_TRANSHUGE | __GFP_ZERO) & ~__GFP_MOVABLE,
-+	zero_folio = folio_alloc((GFP_TRANSHUGE | __GFP_ZERO) & ~__GFP_MOVABLE,
- 			HPAGE_PMD_ORDER);
--	if (!zero_page) {
-+	if (!zero_folio) {
- 		count_vm_event(THP_ZERO_PAGE_ALLOC_FAILED);
- 		return false;
- 	}
- 	preempt_disable();
--	if (cmpxchg(&huge_zero_page, NULL, zero_page)) {
-+	if (cmpxchg(&huge_zero_folio, NULL, zero_folio)) {
- 		preempt_enable();
--		__free_pages(zero_page, compound_order(zero_page));
-+		folio_put(zero_folio);
- 		goto retry;
- 	}
--	WRITE_ONCE(huge_zero_pfn, page_to_pfn(zero_page));
-+	WRITE_ONCE(huge_zero_pfn, folio_pfn(zero_folio));
- 
- 	/* We take additional reference here. It will be put back by shrinker */
- 	atomic_set(&huge_zero_refcount, 2);
-@@ -227,10 +227,10 @@ static void put_huge_zero_page(void)
- 	BUG_ON(atomic_dec_and_test(&huge_zero_refcount));
+@@ -971,14 +971,14 @@ gfp_t vma_thp_gfp_mask(struct vm_area_st
  }
  
--struct page *mm_get_huge_zero_page(struct mm_struct *mm)
-+struct folio *mm_get_huge_zero_folio(struct mm_struct *mm)
+ /* Caller must hold page table lock. */
+-static void set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
++static void set_huge_zero_folio(pgtable_t pgtable, struct mm_struct *mm,
+ 		struct vm_area_struct *vma, unsigned long haddr, pmd_t *pmd,
+-		struct page *zero_page)
++		struct folio *zero_folio)
  {
- 	if (test_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
--		return READ_ONCE(huge_zero_page);
-+		return READ_ONCE(huge_zero_folio);
- 
- 	if (!get_huge_zero_page())
- 		return NULL;
-@@ -238,7 +238,7 @@ struct page *mm_get_huge_zero_page(struc
- 	if (test_and_set_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
- 		put_huge_zero_page();
- 
--	return READ_ONCE(huge_zero_page);
-+	return READ_ONCE(huge_zero_folio);
- }
- 
- void mm_put_huge_zero_page(struct mm_struct *mm)
-@@ -258,10 +258,10 @@ static unsigned long shrink_huge_zero_pa
- 				       struct shrink_control *sc)
- {
- 	if (atomic_cmpxchg(&huge_zero_refcount, 1, 0) == 1) {
--		struct page *zero_page = xchg(&huge_zero_page, NULL);
--		BUG_ON(zero_page == NULL);
-+		struct folio *zero_folio = xchg(&huge_zero_folio, NULL);
-+		BUG_ON(zero_folio == NULL);
- 		WRITE_ONCE(huge_zero_pfn, ~0UL);
--		__free_pages(zero_page, compound_order(zero_page));
-+		folio_put(zero_folio);
- 		return HPAGE_PMD_NR;
- 	}
- 
-@@ -1340,7 +1340,7 @@ int copy_huge_pmd(struct mm_struct *dst_
- 		 * since we already have a zero page to copy. It just takes a
- 		 * reference.
+ 	pmd_t entry;
+ 	if (!pmd_none(*pmd))
+ 		return;
+-	entry = mk_pmd(zero_page, vma->vm_page_prot);
++	entry = mk_pmd(&zero_folio->page, vma->vm_page_prot);
+ 	entry = pmd_mkhuge(entry);
+ 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
+ 	set_pmd_at(mm, haddr, pmd, entry);
+@@ -1002,13 +1002,14 @@ vm_fault_t do_huge_pmd_anonymous_page(st
+ 			!mm_forbids_zeropage(vma->vm_mm) &&
+ 			transparent_hugepage_use_zero_page()) {
+ 		pgtable_t pgtable;
+-		struct page *zero_page;
++		struct folio *zero_folio;
+ 		vm_fault_t ret;
++
+ 		pgtable = pte_alloc_one(vma->vm_mm);
+ 		if (unlikely(!pgtable))
+ 			return VM_FAULT_OOM;
+-		zero_page = mm_get_huge_zero_page(vma->vm_mm);
+-		if (unlikely(!zero_page)) {
++		zero_folio = mm_get_huge_zero_folio(vma->vm_mm);
++		if (unlikely(!zero_folio)) {
+ 			pte_free(vma->vm_mm, pgtable);
+ 			count_vm_event(THP_FAULT_FALLBACK);
+ 			return VM_FAULT_FALLBACK;
+@@ -1026,8 +1027,8 @@ vm_fault_t do_huge_pmd_anonymous_page(st
+ 				ret = handle_userfault(vmf, VM_UFFD_MISSING);
+ 				VM_BUG_ON(ret & VM_FAULT_FALLBACK);
+ 			} else {
+-				set_huge_zero_page(pgtable, vma->vm_mm, vma,
+-						   haddr, vmf->pmd, zero_page);
++				set_huge_zero_folio(pgtable, vma->vm_mm, vma,
++						   haddr, vmf->pmd, zero_folio);
+ 				update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
+ 				spin_unlock(vmf->ptl);
+ 			}
+@@ -1336,9 +1337,9 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 	 */
+ 	if (is_huge_zero_pmd(pmd)) {
+ 		/*
+-		 * get_huge_zero_page() will never allocate a new page here,
+-		 * since we already have a zero page to copy. It just takes a
+-		 * reference.
++		 * mm_get_huge_zero_folio() will never allocate a new
++		 * folio here, since we already have a zero page to
++		 * copy. It just takes a reference.
  		 */
--		mm_get_huge_zero_page(dst_mm);
-+		mm_get_huge_zero_folio(dst_mm);
+ 		mm_get_huge_zero_folio(dst_mm);
  		goto out_zero_page;
- 	}
- 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
