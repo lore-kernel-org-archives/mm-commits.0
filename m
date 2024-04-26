@@ -1,112 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4B8F21101;
-	Fri, 26 Apr 2024 20:37:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99ABD2C1AC;
+	Fri, 26 Apr 2024 20:52:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714163834; cv=none; b=BHoU4mpFKKxwGOgaUN1Ez1nhND2De3Nls/qAjG+yU+B1M46L5jInWRDPIUfX6vvEXnvBx1buoAxXS+pt6rqqG9+v0oDCFQLm0QEImpkU4LDtseHoDC+syVICGePq/m2KAxKn1TozQEPciY856tufWyUn8rAeH+c/+AaVUzuu1vw=
+	t=1714164771; cv=none; b=C8SNyfAmmoEkURQmq8X0W1VdCh721DGP4PR1sTUYKwGPs0Jvb/YCXjel+tiugLyBmgcP1s4Qvi2GleiD+fQy3EAvoQYFd5UWj6+2UmLXvr6ZABmGP5fSWY5H4x1dSKxAZrWpgkSOx0UEwYBYI7zvaLhO8QxYWwC9HbJ/6KqyW4c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714163834; c=relaxed/simple;
-	bh=hLa3hegnZIajE1XtRggryRHtZSjgap9uo7nPNwl2HjE=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=VLQEwjTt0aDu/ASKAthFewf3RJu1z46ud3I64SPU4aNFVgk7rbNlGepV1ScWDsvrmcMoGAw8LKSOOZ3Mq6aUmnsBdWL/6QrTNRMOzUV82IKnLgj+smT6N/xF3Vrujg4MpJlqzNjy4y5Pzg3zkTD3JvQCkfSrsDqcV+a1HJMdd4w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XthiEkqp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714164771; c=relaxed/simple;
+	bh=nNme6+G28RKhaZ5Az8i2eftMHNNZcfGylVkzHPSMbuI=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=ISuzlc/P4ziyMu+gNZQ6bQxdpdTxYvIMQdZfhsqt6fhgGqRgGW0KUkKV6HaX9Y2PAlCFTb6PJb3wy5xh9Hjt+LrqKPWJk5okBky8eu54/++jub3kH9LpfC+9vDHWVJsevg01aEFhJH1FoanW/Uok3N0m4CV+F6uEPGJ5PjevyuE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WmvKcM9L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XthiEkqp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1526DC113CD;
-	Fri, 26 Apr 2024 20:37:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714163834;
-	bh=hLa3hegnZIajE1XtRggryRHtZSjgap9uo7nPNwl2HjE=;
-	h=Date:From:To:Cc:Subject:From;
-	b=XthiEkqp0wgvUfDwvjY6zS1TyOZboFXXi5UKXfe4csqz8XilGvMCHhyeR3Rz1dtmK
-	 fYP6gJFmIORFDvsdcw5V+5QFqJ2tYdd1UCqhBiu3zf7VwJyDH9/PnThJivoT27o8pj
-	 FbcPp+fiEEDoaHjhWzSjtGq56BD2dxuMo+IJ7xwk=
-Date: Fri, 26 Apr 2024 13:37:13 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.9-rc6
-Message-Id: <20240426133713.02b077b1ddbf56bb81989f34@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WmvKcM9L"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 6F104C2BD10;
+	Fri, 26 Apr 2024 20:52:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1714164771;
+	bh=nNme6+G28RKhaZ5Az8i2eftMHNNZcfGylVkzHPSMbuI=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=WmvKcM9LpmQUwsvgaisLUCd/UW6+dNnUZStI17e8HwgI5WU6rdZeggoQO4DEihfM4
+	 BYDg6F3JN3P2iFo6Er2OY0fBbfVoFdIEflCNoYbEynisb5n3VySiTB2+du+oFWq+Kt
+	 B7opoO5vKHITrodPFedPT3B6Dr7hB5ttlKL7BM1hBpgWEO0W2gtX03/9+/hQVXuKN+
+	 AFLsNRONiKaNvySBhAfygc/by7fKLRi2bKuqpQ7o3pLlk7SvGdIhAhOs14WDWkRuJk
+	 0bJ/IhbObGFOqZFR2LrqFhRPLaGmPqUvAm81LcZj/gZht+chQsiPNHyAiFd/3JVebh
+	 gvJfA1IRuwxbA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 64B90DF3C9C;
+	Fri, 26 Apr 2024 20:52:51 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.9-rc6
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20240426133713.02b077b1ddbf56bb81989f34@linux-foundation.org>
+References: <20240426133713.02b077b1ddbf56bb81989f34@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-mm.kvack.org>
+X-PR-Tracked-Message-Id: <20240426133713.02b077b1ddbf56bb81989f34@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-04-26-13-30
+X-PR-Tracked-Commit-Id: 52ccdde16b6540abe43b6f8d8e1e1ec90b0983af
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: e6ebf01172185d74237193ca7bb6bdfc39f3eaeb
+Message-Id: <171416477140.3172.16607791024188967577.pr-tracker-bot@kernel.org>
+Date: Fri, 26 Apr 2024 20:52:51 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
+The pull request you sent on Fri, 26 Apr 2024 13:37:13 -0700:
 
-Linus, pleae merge this batch of hotfixes.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-04-26-13-30
 
-There is one trivial conflict in
-tools/testing/selftests/kselftest_harness.h - purely a textual thing.
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/e6ebf01172185d74237193ca7bb6bdfc39f3eaeb
 
-Thanks.
+Thank you!
 
-
-The following changes since commit c4a7dc9523b59b3e73fd522c73e95e072f876b16:
-
-  nilfs2: fix OOB in nilfs_set_de_type (2024-04-16 15:39:52 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-04-26-13-30
-
-for you to fetch changes up to 52ccdde16b6540abe43b6f8d8e1e1ec90b0983af:
-
-  mm/hugetlb: fix DEBUG_LOCKS_WARN_ON(1) when dissolve_free_hugetlb_folio() (2024-04-25 10:07:27 -0700)
-
-----------------------------------------------------------------
-11 hotfixes.  8 are cc:stable and the remaining 3 (nice ratio!) address
-post-6.8 issues or aren't considered suitable for backporting.
-
-All except one of these are for MM.  I see no particular theme - it's
-singletons all over.
-
-----------------------------------------------------------------
-Andrey Ryabinin (1):
-      stackdepot: respect __GFP_NOLOCKDEP allocation flag
-
-Edward Liaw (1):
-      selftests/harness: remove use of LINE_MAX
-
-Johannes Weiner (1):
-      mm: zswap: fix shrinker NULL crash with cgroup_disable=memory
-
-Matthew Wilcox (Oracle) (3):
-      mm: create FOLIO_FLAG_FALSE and FOLIO_TYPE_OPS macros
-      mm: support page_mapcount() on page_has_type() pages
-      mm: turn folio_test_hugetlb into a PageType
-
-Miaohe Lin (1):
-      mm/hugetlb: fix DEBUG_LOCKS_WARN_ON(1) when dissolve_free_hugetlb_folio()
-
-Muhammad Usama Anjum (2):
-      selftests: mm: fix unused and uninitialized variable warning
-      selftests: mm: protection_keys: save/restore nr_hugepages value from launch script
-
-Peter Xu (1):
-      mm/hugetlb: fix missing hugetlb_lock for resv uncharge
-
-Vishal Moola (Oracle) (1):
-      hugetlb: check for anon_vma prior to folio allocation
-
- fs/proc/page.c                                    |   7 +-
- include/linux/mm.h                                |   8 +-
- include/linux/page-flags.h                        | 144 ++++++++++++----------
- include/trace/events/mmflags.h                    |   1 +
- kernel/vmcore_info.c                              |   5 +-
- lib/stackdepot.c                                  |   4 +-
- mm/hugetlb.c                                      |  40 +++---
- mm/zswap.c                                        |  25 ++--
- tools/testing/selftests/kselftest_harness.h       |  12 +-
- tools/testing/selftests/mm/mdwe_test.c            |   1 +
- tools/testing/selftests/mm/protection_keys.c      |  38 ------
- tools/testing/selftests/mm/run_vmtests.sh         |   2 +
- tools/testing/selftests/mm/split_huge_page_test.c |   2 +-
- 13 files changed, 137 insertions(+), 152 deletions(-)
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
