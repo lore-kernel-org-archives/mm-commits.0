@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 985178062B
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46A838061B
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104137; cv=none; b=DeH0tjXhyOMX1ZKa2JNarv/HkXAsD8nuGarUgBuVefPflbhQq+VOSvd+Qik4I+/yZj6sDwbdB9/6tclgDXyyrtCo41UdCchg/6VgwiH3ux979JolqJbfU8Yp6QMnhZZjUBZOfYykTfesw8VnvB7oxH37PwDthjXJUiUd5oIjisw=
+	t=1714104140; cv=none; b=jcPkGovxQv6BkJWAsIuutU0Kem07rM73J2nV9mc0wnVVQeacAnayqBC76VovSdAHcQ1I24/0vvphEeXe7Sk4aV3FKEOpqwpNvihZZORyUn4dYbcw8D+1JBpMnWCAOrvF5FY8P5SWcM5OecECYIX4mQc9epJ++9n7YaU02A5BreQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104137; c=relaxed/simple;
-	bh=LCYQFuLZYjnxwropydkRoy8q1SaUtDdZM5tYwQwhrA8=;
-	h=Date:To:From:Subject:Message-Id; b=X0FdlXvYH4LNgprJjaDV4y4QfNEd+c3/UAzMZx1tcbI+nW56ZtDPNcqIDgbkE3gJsB9FadfX1KZbbi7c0LWZjO+usM1HizkNyNvJbrnOPSYsgpp3m8jUR5jLF88FlPBb8Y8GkMorgknTRQQ7kXHkXN6tQIcP1RnyzWeyup135bo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F5Rk2hG7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104140; c=relaxed/simple;
+	bh=umjNJxDUCB+JWpq2GULtpC5FjlCAMJHIRh0p2BFHhNA=;
+	h=Date:To:From:Subject:Message-Id; b=gEyDfGUOJgiofjpzyq4pkcmBx4vl44gW0EJl2flCAAGXgPkQTXLiY0gMkrYOs0PGnnsKjgtRyDcTeCXVqTfZnrhr3gu0A5AXOCgPBnvvKsoE+kFAxP3g/TpIIJk7CkUh78VHHxOgUmyMiM75irgJ+bMSIOFd5oiJ5iURVIOa/w4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jx1WxB1a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F5Rk2hG7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C4F9C116B1;
-	Fri, 26 Apr 2024 04:02:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jx1WxB1a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C993EC113CD;
+	Fri, 26 Apr 2024 04:02:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104137;
-	bh=LCYQFuLZYjnxwropydkRoy8q1SaUtDdZM5tYwQwhrA8=;
+	s=korg; t=1714104139;
+	bh=umjNJxDUCB+JWpq2GULtpC5FjlCAMJHIRh0p2BFHhNA=;
 	h=Date:To:From:Subject:From;
-	b=F5Rk2hG7LcR4tOx2nNSMO3VCVqzIOFEKyuVq8vlqIPUVk+rGa/ixfshld/KEy1xBn
-	 cTcKr1Cnpz9KFiyc86dsqLcXf3kpdCUCldysA7Vif3zOSwc5cO24WlCPtGC7FT+6iL
-	 ro1h8PPJfgZ3aDO+FnnKWscyVmsKv8OW4JBUW3WQ=
-Date: Thu, 25 Apr 2024 21:02:16 -0700
+	b=jx1WxB1aaO01TYDw2oAoy7D4jXUef5nHsbCZueAGO2JCDtJkb6lK1gUyms2wEL90E
+	 0edcdBqxv2qS3rGhcXI/P4bpe/OnUjYRQqjhendIDDN41FriSHvlujEEeyLg12zYHq
+	 77944/05VWkanNHHAMDIwkhGtlOUHbadRKfbli6E=
+Date: Thu, 25 Apr 2024 21:02:19 -0700
 To: mm-commits@vger.kernel.org,yuzhao@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,mhocko@suse.com,ioworker0@gmail.com,david@redhat.com,chrisl@kernel.org,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache.patch removed from -mm tree
-Message-Id: <20240426040217.6C4F9C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-simplify-struct-percpu_cluster.patch removed from -mm tree
+Message-Id: <20240426040219.C993EC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: swap: free_swap_and_cache_nr() as batched free_swap_and_cache()
+     Subject: mm: swap: simplify struct percpu_cluster
 has been removed from the -mm tree.  Its filename was
-     mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache.patch
+     mm-swap-simplify-struct-percpu_cluster.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: swap: free_swap_and_cache_nr() as batched free_swap_and_cache()
-Date: Mon, 8 Apr 2024 19:39:41 +0100
+Subject: mm: swap: simplify struct percpu_cluster
+Date: Mon, 8 Apr 2024 19:39:42 +0100
 
-Now that we no longer have a convenient flag in the cluster to determine
-if a folio is large, free_swap_and_cache() will take a reference and lock
-a large folio much more often, which could lead to contention and (e.g.)
-failure to split large folios, etc.
+struct percpu_cluster stores the index of cpu's current cluster and the
+offset of the next entry that will be allocated for the cpu.  These two
+pieces of information are redundant because the cluster index is just
+(offset / SWAPFILE_CLUSTER).  The only reason for explicitly keeping the
+cluster index is because the structure used for it also has a flag to
+indicate "no cluster".  However this data structure also contains a spin
+lock, which is never used in this context, as a side effect the code
+copies the spinlock_t structure, which is questionable coding practice in
+my view.
 
-Let's solve that problem by batch freeing swap and cache with a new
-function, free_swap_and_cache_nr(), to free a contiguous range of swap
-entries together.  This allows us to first drop a reference to each swap
-slot before we try to release the cache folio.  This means we only try to
-release the folio once, only taking the reference and lock once - much
-better than the previous 512 times for the 2M THP case.
+So let's clean this up and store only the next offset, and use a sentinal
+value (SWAP_NEXT_INVALID) to indicate "no cluster".  SWAP_NEXT_INVALID is
+chosen to be 0, because 0 will never be seen legitimately; The first page
+in the swap file is the swap header, which is always marked bad to prevent
+it from being allocated as an entry.  This also prevents the cluster to
+which it belongs being marked free, so it will never appear on the free
+list.
 
-Contiguous swap entries are gathered in zap_pte_range() and
-madvise_free_pte_range() in a similar way to how present ptes are already
-gathered in zap_pte_range().
+This change saves 16 bytes per cpu.  And given we are shortly going to
+extend this mechanism to be per-cpu-AND-per-order, we will end up saving
+16 * 9 = 144 bytes per cpu, which adds up if you have 256 cpus in the
+system.
 
-While we are at it, let's simplify by converting the return type of both
-functions to void.  The return value was used only by zap_pte_range() to
-print a bad pte, and was ignored by everyone else, so the extra reporting
-wasn't exactly guaranteed.  We will still get the warning with most of the
-information from get_swap_device().  With the batch version, we wouldn't
-know which pte was bad anyway so could print the wrong one.
-
-[ryan.roberts@arm.com: fix a build warning on parisc]
-  Link: https://lkml.kernel.org/r/20240409111840.3173122-1-ryan.roberts@arm.com
-Link: https://lkml.kernel.org/r/20240408183946.2991168-3-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20240408183946.2991168-4-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Barry Song <21cnbao@gmail.com>
 Cc: Barry Song <v-songbaohua@oppo.com>
 Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Gao Xiang <xiang@kernel.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Lance Yang <ioworker0@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -89,370 +87,101 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |   29 +++++++++++
- include/linux/swap.h    |   12 +++-
- mm/internal.h           |   64 +++++++++++++++++++++++++
- mm/madvise.c            |   12 +++-
- mm/memory.c             |   13 ++---
- mm/swapfile.c           |   97 ++++++++++++++++++++++++++++++--------
- 6 files changed, 196 insertions(+), 31 deletions(-)
+ include/linux/swap.h |    9 ++++++++-
+ mm/swapfile.c        |   22 +++++++++++-----------
+ 2 files changed, 19 insertions(+), 12 deletions(-)
 
---- a/include/linux/pgtable.h~mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache
-+++ a/include/linux/pgtable.h
-@@ -708,6 +708,35 @@ static inline void pte_clear_not_present
- }
- #endif
- 
-+#ifndef clear_not_present_full_ptes
-+/**
-+ * clear_not_present_full_ptes - Clear multiple not present PTEs which are
-+ *				 consecutive in the pgtable.
-+ * @mm: Address space the ptes represent.
-+ * @addr: Address of the first pte.
-+ * @ptep: Page table pointer for the first entry.
-+ * @nr: Number of entries to clear.
-+ * @full: Whether we are clearing a full mm.
-+ *
-+ * May be overridden by the architecture; otherwise, implemented as a simple
-+ * loop over pte_clear_not_present_full().
-+ *
-+ * Context: The caller holds the page table lock.  The PTEs are all not present.
-+ * The PTEs are all in the same PMD.
-+ */
-+static inline void clear_not_present_full_ptes(struct mm_struct *mm,
-+		unsigned long addr, pte_t *ptep, unsigned int nr, int full)
-+{
-+	for (;;) {
-+		pte_clear_not_present_full(mm, addr, ptep, full);
-+		if (--nr == 0)
-+			break;
-+		ptep++;
-+		addr += PAGE_SIZE;
-+	}
-+}
-+#endif
-+
- #ifndef __HAVE_ARCH_PTEP_CLEAR_FLUSH
- extern pte_t ptep_clear_flush(struct vm_area_struct *vma,
- 			      unsigned long address,
---- a/include/linux/swap.h~mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache
+--- a/include/linux/swap.h~mm-swap-simplify-struct-percpu_cluster
 +++ a/include/linux/swap.h
-@@ -468,7 +468,7 @@ extern int swap_duplicate(swp_entry_t);
- extern int swapcache_prepare(swp_entry_t);
- extern void swap_free(swp_entry_t);
- extern void swapcache_free_entries(swp_entry_t *entries, int n);
--extern int free_swap_and_cache(swp_entry_t);
-+extern void free_swap_and_cache_nr(swp_entry_t entry, int nr);
- int swap_type_of(dev_t device, sector_t offset);
- int find_first_swap(dev_t *device);
- extern unsigned int count_swap_pages(int, int);
-@@ -517,8 +517,9 @@ static inline void put_swap_device(struc
- #define free_pages_and_swap_cache(pages, nr) \
- 	release_pages((pages), (nr));
+@@ -261,12 +261,19 @@ struct swap_cluster_info {
+ #define CLUSTER_FLAG_NEXT_NULL 2 /* This cluster has no next cluster */
  
--/* used to sanity check ptes in zap_pte_range when CONFIG_SWAP=0 */
--#define free_swap_and_cache(e) is_pfn_swap_entry(e)
-+static inline void free_swap_and_cache_nr(swp_entry_t entry, int nr)
-+{
-+}
- 
- static inline void free_swap_cache(struct folio *folio)
- {
-@@ -586,6 +587,11 @@ static inline int add_swap_extent(struct
- }
- #endif /* CONFIG_SWAP */
- 
-+static inline void free_swap_and_cache(swp_entry_t entry)
-+{
-+	free_swap_and_cache_nr(entry, 1);
-+}
-+
- #ifdef CONFIG_MEMCG
- static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
- {
---- a/mm/internal.h~mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache
-+++ a/mm/internal.h
-@@ -11,6 +11,8 @@
- #include <linux/mm.h>
- #include <linux/pagemap.h>
- #include <linux/rmap.h>
-+#include <linux/swap.h>
-+#include <linux/swapops.h>
- #include <linux/tracepoint-defs.h>
- 
- struct folio_batch;
-@@ -189,6 +191,68 @@ static inline int folio_pte_batch(struct
- 
- 	return min(ptep - start_ptep, max_nr);
- }
-+
-+/**
-+ * pte_next_swp_offset - Increment the swap entry offset field of a swap pte.
-+ * @pte: The initial pte state; is_swap_pte(pte) must be true and
-+ *	 non_swap_entry() must be false.
-+ *
-+ * Increments the swap offset, while maintaining all other fields, including
-+ * swap type, and any swp pte bits. The resulting pte is returned.
+ /*
++ * The first page in the swap file is the swap header, which is always marked
++ * bad to prevent it from being allocated as an entry. This also prevents the
++ * cluster to which it belongs being marked free. Therefore 0 is safe to use as
++ * a sentinel to indicate next is not valid in percpu_cluster.
 + */
-+static inline pte_t pte_next_swp_offset(pte_t pte)
-+{
-+	swp_entry_t entry = pte_to_swp_entry(pte);
-+	pte_t new = __swp_entry_to_pte(__swp_entry(swp_type(entry),
-+						   (swp_offset(entry) + 1)));
++#define SWAP_NEXT_INVALID	0
 +
-+	if (pte_swp_soft_dirty(pte))
-+		new = pte_swp_mksoft_dirty(new);
-+	if (pte_swp_exclusive(pte))
-+		new = pte_swp_mkexclusive(new);
-+	if (pte_swp_uffd_wp(pte))
-+		new = pte_swp_mkuffd_wp(new);
-+
-+	return new;
-+}
-+
-+/**
-+ * swap_pte_batch - detect a PTE batch for a set of contiguous swap entries
-+ * @start_ptep: Page table pointer for the first entry.
-+ * @max_nr: The maximum number of table entries to consider.
-+ * @pte: Page table entry for the first entry.
-+ *
-+ * Detect a batch of contiguous swap entries: consecutive (non-present) PTEs
-+ * containing swap entries all with consecutive offsets and targeting the same
-+ * swap type, all with matching swp pte bits.
-+ *
-+ * max_nr must be at least one and must be limited by the caller so scanning
-+ * cannot exceed a single page table.
-+ *
-+ * Return: the number of table entries in the batch.
-+ */
-+static inline int swap_pte_batch(pte_t *start_ptep, int max_nr, pte_t pte)
-+{
-+	pte_t expected_pte = pte_next_swp_offset(pte);
-+	const pte_t *end_ptep = start_ptep + max_nr;
-+	pte_t *ptep = start_ptep + 1;
-+
-+	VM_WARN_ON(max_nr < 1);
-+	VM_WARN_ON(!is_swap_pte(pte));
-+	VM_WARN_ON(non_swap_entry(pte_to_swp_entry(pte)));
-+
-+	while (ptep < end_ptep) {
-+		pte = ptep_get(ptep);
-+
-+		if (!pte_same(pte, expected_pte))
-+			break;
-+
-+		expected_pte = pte_next_swp_offset(expected_pte);
-+		ptep++;
-+	}
-+
-+	return ptep - start_ptep;
-+}
- #endif /* CONFIG_MMU */
- 
- void __acct_reclaim_writeback(pg_data_t *pgdat, struct folio *folio,
---- a/mm/madvise.c~mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache
-+++ a/mm/madvise.c
-@@ -628,6 +628,7 @@ static int madvise_free_pte_range(pmd_t
- 	struct folio *folio;
- 	int nr_swap = 0;
- 	unsigned long next;
-+	int nr, max_nr;
- 
- 	next = pmd_addr_end(addr, end);
- 	if (pmd_trans_huge(*pmd))
-@@ -640,7 +641,8 @@ static int madvise_free_pte_range(pmd_t
- 		return 0;
- 	flush_tlb_batched_pending(mm);
- 	arch_enter_lazy_mmu_mode();
--	for (; addr != end; pte++, addr += PAGE_SIZE) {
-+	for (; addr != end; pte += nr, addr += PAGE_SIZE * nr) {
-+		nr = 1;
- 		ptent = ptep_get(pte);
- 
- 		if (pte_none(ptent))
-@@ -655,9 +657,11 @@ static int madvise_free_pte_range(pmd_t
- 
- 			entry = pte_to_swp_entry(ptent);
- 			if (!non_swap_entry(entry)) {
--				nr_swap--;
--				free_swap_and_cache(entry);
--				pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
-+				max_nr = (end - addr) / PAGE_SIZE;
-+				nr = swap_pte_batch(pte, max_nr, ptent);
-+				nr_swap -= nr;
-+				free_swap_and_cache_nr(entry, nr);
-+				clear_not_present_full_ptes(mm, addr, pte, nr, tlb->fullmm);
- 			} else if (is_hwpoison_entry(entry) ||
- 				   is_poisoned_swp_entry(entry)) {
- 				pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
---- a/mm/memory.c~mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache
-+++ a/mm/memory.c
-@@ -1637,12 +1637,13 @@ static unsigned long zap_pte_range(struc
- 				folio_remove_rmap_pte(folio, page, vma);
- 			folio_put(folio);
- 		} else if (!non_swap_entry(entry)) {
--			/* Genuine swap entry, hence a private anon page */
-+			max_nr = (end - addr) / PAGE_SIZE;
-+			nr = swap_pte_batch(pte, max_nr, ptent);
-+			/* Genuine swap entries, hence a private anon pages */
- 			if (!should_zap_cows(details))
- 				continue;
--			rss[MM_SWAPENTS]--;
--			if (unlikely(!free_swap_and_cache(entry)))
--				print_bad_pte(vma, addr, ptent, NULL);
-+			rss[MM_SWAPENTS] -= nr;
-+			free_swap_and_cache_nr(entry, nr);
- 		} else if (is_migration_entry(entry)) {
- 			folio = pfn_swap_entry_folio(entry);
- 			if (!should_zap_folio(details, folio))
-@@ -1665,8 +1666,8 @@ static unsigned long zap_pte_range(struc
- 			pr_alert("unrecognized swap entry 0x%lx\n", entry.val);
- 			WARN_ON_ONCE(1);
- 		}
--		pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
--		zap_install_uffd_wp_if_needed(vma, addr, pte, 1, details, ptent);
-+		clear_not_present_full_ptes(mm, addr, pte, nr, tlb->fullmm);
-+		zap_install_uffd_wp_if_needed(vma, addr, pte, nr, details, ptent);
- 	} while (pte += nr, addr += PAGE_SIZE * nr, addr != end);
- 
- 	add_mm_rss_vec(mm, rss);
---- a/mm/swapfile.c~mm-swap-free_swap_and_cache_nr-as-batched-free_swap_and_cache
-+++ a/mm/swapfile.c
-@@ -130,7 +130,11 @@ static inline unsigned char swap_count(u
- /* Reclaim the swap entry if swap is getting full*/
- #define TTRS_FULL		0x4
- 
--/* returns 1 if swap entry is freed */
 +/*
-+ * returns number of pages in the folio that backs the swap entry. If positive,
-+ * the folio was reclaimed. If negative, the folio was not reclaimed. If 0, no
-+ * folio was associated with the swap entry.
-+ */
- static int __try_to_reclaim_swap(struct swap_info_struct *si,
- 				 unsigned long offset, unsigned long flags)
- {
-@@ -155,6 +159,7 @@ static int __try_to_reclaim_swap(struct
- 			ret = folio_free_swap(folio);
- 		folio_unlock(folio);
- 	}
-+	ret = ret ? folio_nr_pages(folio) : -folio_nr_pages(folio);
- 	folio_put(folio);
- 	return ret;
- }
-@@ -895,7 +900,7 @@ checks:
- 		swap_was_freed = __try_to_reclaim_swap(si, offset, TTRS_ANYWAY);
- 		spin_lock(&si->lock);
- 		/* entry was freed successfully, try to use this again */
--		if (swap_was_freed)
-+		if (swap_was_freed > 0)
- 			goto checks;
- 		goto scan; /* check next one */
- 	}
-@@ -1572,32 +1577,88 @@ bool folio_free_swap(struct folio *folio
+  * We assign a cluster to each CPU, so each CPU can allocate swap entry from
+  * its own cluster and swapout sequentially. The purpose is to optimize swapout
+  * throughput.
+  */
+ struct percpu_cluster {
+-	struct swap_cluster_info index; /* Current cluster index */
+ 	unsigned int next; /* Likely next allocation offset */
+ };
+ 
+--- a/mm/swapfile.c~mm-swap-simplify-struct-percpu_cluster
++++ a/mm/swapfile.c
+@@ -609,7 +609,7 @@ scan_swap_map_ssd_cluster_conflict(struc
+ 		return false;
+ 
+ 	percpu_cluster = this_cpu_ptr(si->percpu_cluster);
+-	cluster_set_null(&percpu_cluster->index);
++	percpu_cluster->next = SWAP_NEXT_INVALID;
  	return true;
  }
  
--/*
-- * Free the swap entry like above, but also try to
-- * free the page cache entry if it is the last user.
-+/**
-+ * free_swap_and_cache_nr() - Release reference on range of swap entries and
-+ *                            reclaim their cache if no more references remain.
-+ * @entry: First entry of range.
-+ * @nr: Number of entries in range.
-+ *
-+ * For each swap entry in the contiguous range, release a reference. If any swap
-+ * entries become free, try to reclaim their underlying folios, if present. The
-+ * offset range is defined by [entry.offset, entry.offset + nr).
-  */
--int free_swap_and_cache(swp_entry_t entry)
-+void free_swap_and_cache_nr(swp_entry_t entry, int nr)
+@@ -622,14 +622,14 @@ static bool scan_swap_map_try_ssd_cluste
  {
--	struct swap_info_struct *p;
-+	const unsigned long start_offset = swp_offset(entry);
-+	const unsigned long end_offset = start_offset + nr;
-+	unsigned int type = swp_type(entry);
-+	struct swap_info_struct *si;
-+	bool any_only_cache = false;
-+	unsigned long offset;
- 	unsigned char count;
+ 	struct percpu_cluster *cluster;
+ 	struct swap_cluster_info *ci;
+-	unsigned long tmp, max;
++	unsigned int tmp, max;
  
- 	if (non_swap_entry(entry))
--		return 1;
-+		return;
-+
-+	si = get_swap_device(entry);
-+	if (!si)
-+		return;
-+
-+	if (WARN_ON(end_offset > si->max))
-+		goto out;
- 
--	p = get_swap_device(entry);
--	if (p) {
--		if (WARN_ON(data_race(!p->swap_map[swp_offset(entry)]))) {
--			put_swap_device(p);
--			return 0;
-+	/*
-+	 * First free all entries in the range.
-+	 */
-+	for (offset = start_offset; offset < end_offset; offset++) {
-+		if (data_race(si->swap_map[offset])) {
-+			count = __swap_entry_free(si, swp_entry(type, offset));
-+			if (count == SWAP_HAS_CACHE)
-+				any_only_cache = true;
-+		} else {
-+			WARN_ON_ONCE(1);
- 		}
-+	}
-+
-+	/*
-+	 * Short-circuit the below loop if none of the entries had their
-+	 * reference drop to zero.
-+	 */
-+	if (!any_only_cache)
-+		goto out;
- 
--		count = __swap_entry_free(p, entry);
--		if (count == SWAP_HAS_CACHE)
--			__try_to_reclaim_swap(p, swp_offset(entry),
-+	/*
-+	 * Now go back over the range trying to reclaim the swap cache. This is
-+	 * more efficient for large folios because we will only try to reclaim
-+	 * the swap once per folio in the common case. If we do
-+	 * __swap_entry_free() and __try_to_reclaim_swap() in the same loop, the
-+	 * latter will get a reference and lock the folio for every individual
-+	 * page but will only succeed once the swap slot for every subpage is
-+	 * zero.
-+	 */
-+	for (offset = start_offset; offset < end_offset; offset += nr) {
-+		nr = 1;
-+		if (READ_ONCE(si->swap_map[offset]) == SWAP_HAS_CACHE) {
-+			/*
-+			 * Folios are always naturally aligned in swap so
-+			 * advance forward to the next boundary. Zero means no
-+			 * folio was found for the swap entry, so advance by 1
-+			 * in this case. Negative value means folio was found
-+			 * but could not be reclaimed. Here we can still advance
-+			 * to the next boundary.
-+			 */
-+			nr = __try_to_reclaim_swap(si, offset,
- 					      TTRS_UNMAPPED | TTRS_FULL);
--		put_swap_device(p);
-+			if (nr == 0)
-+				nr = 1;
-+			else if (nr < 0)
-+				nr = -nr;
-+			nr = ALIGN(offset + 1, nr) - offset;
-+		}
+ new_cluster:
+ 	cluster = this_cpu_ptr(si->percpu_cluster);
+-	if (cluster_is_null(&cluster->index)) {
++	tmp = cluster->next;
++	if (tmp == SWAP_NEXT_INVALID) {
+ 		if (!cluster_list_empty(&si->free_clusters)) {
+-			cluster->index = si->free_clusters.head;
+-			cluster->next = cluster_next(&cluster->index) *
++			tmp = cluster_next(&si->free_clusters.head) *
+ 					SWAPFILE_CLUSTER;
+ 		} else if (!cluster_list_empty(&si->discard_clusters)) {
+ 			/*
+@@ -649,9 +649,7 @@ new_cluster:
+ 	 * Other CPUs can use our cluster if they can't find a free cluster,
+ 	 * check if there is still free entry in the cluster
+ 	 */
+-	tmp = cluster->next;
+-	max = min_t(unsigned long, si->max,
+-		    (cluster_next(&cluster->index) + 1) * SWAPFILE_CLUSTER);
++	max = min_t(unsigned long, si->max, ALIGN(tmp + 1, SWAPFILE_CLUSTER));
+ 	if (tmp < max) {
+ 		ci = lock_cluster(si, tmp);
+ 		while (tmp < max) {
+@@ -662,12 +660,13 @@ new_cluster:
+ 		unlock_cluster(ci);
  	}
--	return p != NULL;
-+
-+out:
-+	put_swap_device(si);
+ 	if (tmp >= max) {
+-		cluster_set_null(&cluster->index);
++		cluster->next = SWAP_NEXT_INVALID;
+ 		goto new_cluster;
+ 	}
+-	cluster->next = tmp + 1;
+ 	*offset = tmp;
+ 	*scan_base = tmp;
++	tmp += 1;
++	cluster->next = tmp < max ? tmp : SWAP_NEXT_INVALID;
+ 	return true;
  }
  
- #ifdef CONFIG_HIBERNATION
+@@ -3163,8 +3162,9 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		}
+ 		for_each_possible_cpu(cpu) {
+ 			struct percpu_cluster *cluster;
++
+ 			cluster = per_cpu_ptr(p->percpu_cluster, cpu);
+-			cluster_set_null(&cluster->index);
++			cluster->next = SWAP_NEXT_INVALID;
+ 		}
+ 	} else {
+ 		atomic_inc(&nr_rotate_swap);
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
