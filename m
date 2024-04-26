@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60ECC823DC
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:08:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88AA3823DC
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:08:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104497; cv=none; b=M3eLsTzhyXvKyRwkk5C0z1patn5OJ6933QvK6PJVU74e9jSucVsiDuvhZpsF2+y4umHjNNCP7JfE6SdVayKQQQC+8qg83bB0+pU4MZfZr8+KjvM+CIljP0dzf1kZWw5XxPcxznIZepgD9qFxrhaNp/Pn5rOsPTZLem4Ajd30eNc=
+	t=1714104498; cv=none; b=OIYtZ0F1eyz8/Mr8ZCPVDFDUlOzwaTG7TE/xaezYMaqVheknGjKmpjIgK4a5/lcY3cDTw1Vc2MRbXPGxqOAG+dyfYOgnet1GuvnvhC2ddG+5Mgwh3hyms+8HBZyuKqMRcpyXiqcqpY4fruBfg2jtb4JrE4McEE4nFiVTvh7Nrbo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104497; c=relaxed/simple;
-	bh=tuc9EPn7o/kbYRcvfRl6RI3jvJ5HUi2SIUEki9LYdn0=;
-	h=Date:To:From:Subject:Message-Id; b=p4aCsIQxGzXe0NyFaW4kVBai8rC28o4cnMZgTGQQhj7B40K9/Az7XPARu1/j5tzUC/rhh7B64NDeQx3X8S//WTVXRLZgbFcQyzRwPyxr87xN5b+uq+4LMZQE+AOfpYS8R7qOmq6Bx+WVS/Tuz/G0kKgi96hFqaNBYkR9plYzG5Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aY5miy4H; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104498; c=relaxed/simple;
+	bh=baPrmFgRpRs3MHXuXKF4ndqqhdQfcGnkfOiibRa9v38=;
+	h=Date:To:From:Subject:Message-Id; b=dxkW+NDkKgxwuTbh9oOmVtKU4nPXUP1JvyUDdNKYop+avIvcHOz7YKZAEZAWWuujoDQIvc3zNH5CIM5NNKhnUCzGHEKe/OOZHlhT//uZ+mEsN0fsFcCDTSAHZMW3U4t72L6Z6jwoLS3W2UjuvHPYhSYw/fE2zNHYiSnTTIPugtY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=moggCb4X; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aY5miy4H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35239C116B1;
-	Fri, 26 Apr 2024 04:08:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="moggCb4X"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C4A8C113CD;
+	Fri, 26 Apr 2024 04:08:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104497;
-	bh=tuc9EPn7o/kbYRcvfRl6RI3jvJ5HUi2SIUEki9LYdn0=;
+	s=korg; t=1714104498;
+	bh=baPrmFgRpRs3MHXuXKF4ndqqhdQfcGnkfOiibRa9v38=;
 	h=Date:To:From:Subject:From;
-	b=aY5miy4HMkxIdJYQU3KDMm29JHWnKEvFIaXbmUtrHYczIzCrZOuRTalr5s6rHBjMG
-	 P+9ftlVgOwBBrYyrktVBvqJakb7O+vycQcsLc7tKL3VsSc+inkzbvvTuBzrix7TUs7
-	 QL117Ir480jQCTTWYOq6UjMwXxSX4FoTCn6FRl5Q=
-Date: Thu, 25 Apr 2024 21:08:16 -0700
-To: mm-commits@vger.kernel.org,peda@axentia.se,gregkh@linuxfoundation.org,christophe.jaillet@wanadoo.fr,akpm@linux-foundation.org
+	b=moggCb4XIInyGSa9Sq2UC0xBdwjee/DRZIIJaZbc9rEpvsVqzbk6FCS/48Lop6gTe
+	 ipHWveRSdycog8EIZidTsdpsYWfSaTZ0aBnwOYGcQFXo7TEiF5r8nMPvYjFwxdtjtq
+	 7rLOywSp+mfUAdMsZm4urVVsaqGZQ3VaROebBI4M=
+Date: Thu, 25 Apr 2024 21:08:17 -0700
+To: mm-commits@vger.kernel.org,yangyingliang@huawei.com,shuah@kernel.org,ndesaulniers@google.com,nathan@kernel.org,morbo@google.com,keescook@chromium.org,justinstitt@google.com,ebiederm@xmission.com,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mux-remove-usage-of-the-deprecated-ida_simple_xx-api.patch removed from -mm tree
-Message-Id: <20240426040817.35239C116B1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] selftests-exec-make-binaries-position-independent.patch removed from -mm tree
+Message-Id: <20240426040818.5C4A8C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mux: remove usage of the deprecated ida_simple_xx() API
+     Subject: selftests: exec: make binaries position independent
 has been removed from the -mm tree.  Its filename was
-     mux-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
+     selftests-exec-make-binaries-position-independent.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: mux: remove usage of the deprecated ida_simple_xx() API
-Date: Sun, 14 Apr 2024 12:12:52 +0200
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: selftests: exec: make binaries position independent
+Date: Tue, 16 Apr 2024 20:28:29 +0500
 
-ida_alloc() and ida_free() should be preferred to the deprecated
-ida_simple_get() and ida_simple_remove().
+The -static overrides the -pie and binaries aren't position independent
+anymore.  Use -static-pie instead which would produce a static and
+position independent binary.  This has been caught by clang's warnings:
 
-This is less verbose.
+  clang: warning: argument unused during compilation: '-pie'
+  [-Wunused-command-line-argument]
 
-Link: https://lkml.kernel.org/r/f82e013abe4c71f1c7d06819f96472f298acdcf3.1713089554.git.christophe.jaillet@wanadoo.fr
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Cc: Peter Rosin <peda@axentia.se>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Tested with both gcc and clang after this change.
+
+Link: https://lkml.kernel.org/r/20240416152831.3199999-1-usama.anjum@collabora.com
+Fixes: 4d1cd3b2c5c1 ("tools/testing/selftests/exec: fix link error")
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Yang Yingliang <yangyingliang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mux/core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/exec/Makefile |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/drivers/mux/core.c~mux-remove-usage-of-the-deprecated-ida_simple_xx-api
-+++ a/drivers/mux/core.c
-@@ -64,7 +64,7 @@ static void mux_chip_release(struct devi
- {
- 	struct mux_chip *mux_chip = to_mux_chip(dev);
- 
--	ida_simple_remove(&mux_ida, mux_chip->id);
-+	ida_free(&mux_ida, mux_chip->id);
- 	kfree(mux_chip);
- }
- 
-@@ -111,7 +111,7 @@ struct mux_chip *mux_chip_alloc(struct d
- 	mux_chip->dev.of_node = dev->of_node;
- 	dev_set_drvdata(&mux_chip->dev, mux_chip);
- 
--	mux_chip->id = ida_simple_get(&mux_ida, 0, 0, GFP_KERNEL);
-+	mux_chip->id = ida_alloc(&mux_ida, GFP_KERNEL);
- 	if (mux_chip->id < 0) {
- 		int err = mux_chip->id;
- 
+--- a/tools/testing/selftests/exec/Makefile~selftests-exec-make-binaries-position-independent
++++ a/tools/testing/selftests/exec/Makefile
+@@ -29,8 +29,8 @@ $(OUTPUT)/execveat.denatured: $(OUTPUT)/
+ 	cp $< $@
+ 	chmod -x $@
+ $(OUTPUT)/load_address_4096: load_address.c
+-	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x1000 -pie -static $< -o $@
++	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x1000 -static-pie $< -o $@
+ $(OUTPUT)/load_address_2097152: load_address.c
+-	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x200000 -pie -static $< -o $@
++	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x200000 -static-pie $< -o $@
+ $(OUTPUT)/load_address_16777216: load_address.c
+-	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x1000000 -pie -static $< -o $@
++	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x1000000 -static-pie $< -o $@
 _
 
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
 
