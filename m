@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 306AE8002A
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:01:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8613A8002A
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:01:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104092; cv=none; b=Nm37ptNWv7SevDXZW0pjRwJQHNeIWdP7m9Sab/768FOP2srmL6hN4oz4rErOvDr9YNMBNzrI/VgkJPaekGyYMEuhmiq4yFkpLgqS1gTkn+CW5paQ3E5+ri99xknKcBPgIY2TSwxtUdpTPsiU9G8xaCCj/yEki2ux2ej0GTtQULM=
+	t=1714104093; cv=none; b=FvUeDjh4YxPaFEutQlzpDyT/hSfPblZoyFiN5pLA19pPgjnqECZ6T6BgffFnAL2FGsoEe/FLLVhn9gLBQe8Vpuoz/uqn73yQBg2O5e7pt61T6fRpF+d9QC9aQ9ejTBnmtA5SB6lVWcM0jBWNsXmE/A1eYP7Zx3e77rDyxYOhSRo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104092; c=relaxed/simple;
-	bh=kykfbXq9xe/E01SyomUJ/cvRu38dycFDSwYYCfh/vrI=;
-	h=Date:To:From:Subject:Message-Id; b=RIVUx1tftxX8rp19fHam7iKTy9nVaymTRnrREDBWWNZpSSrI7HNkQ0lum2xxhS1ntY6XS44T0TkhgnG0pM6vLfHv3L8plQ3Q/oyKdcPrwW1dbmbktTCH8EHXyVm+Wc+fiFEZZvtEBCMkHZlJOj5sCudZPCwtIBNeUaroo68dcPk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d2uCYDSO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104093; c=relaxed/simple;
+	bh=4Lpbk4s7UMMNqzr7bRvMXqfAqitbUtC9eRocNR4wIeI=;
+	h=Date:To:From:Subject:Message-Id; b=KxF4jWR9tIeflca7C95zPrQxH/WrCDrxl1NrbEoACZcbBj/TWU7KwfMjVkLrW5vnMYICjXG0wHP8M0fw/pA/Mu/aOzYUJz4lD79qVEvMWGekKZVJXsski+s7QFtlzyy06z3l8LXo0umrYjGtAH7OhYWpJA8gagey2n8dlqkGDXg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lN6nDgaM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d2uCYDSO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02F5BC113CD;
-	Fri, 26 Apr 2024 04:01:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lN6nDgaM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5ABECC113CD;
+	Fri, 26 Apr 2024 04:01:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104092;
-	bh=kykfbXq9xe/E01SyomUJ/cvRu38dycFDSwYYCfh/vrI=;
+	s=korg; t=1714104093;
+	bh=4Lpbk4s7UMMNqzr7bRvMXqfAqitbUtC9eRocNR4wIeI=;
 	h=Date:To:From:Subject:From;
-	b=d2uCYDSOOFQFnBBniT6EDPEvWH3Pt27EiO4scGuQuCE8ntHVRj+1+4avgUAjvwF5v
-	 Nsu/Leppv5gEg2eRESNCm9mAG+dwJKS5PcnxghI4jqApmeD+SrQVE+OgHeOuyfrzdd
-	 KMztXLx5PmGtKoyK8P6tCSI1+GKSekTShA8vwu2w=
-Date: Thu, 25 Apr 2024 21:01:31 -0700
+	b=lN6nDgaM2z27zkgYzwYfV2YqyoG5Ysw1MAWSvyUsh02XF8MdGy7xObLac75jfn4Sz
+	 pd7Vj6OBTKCKH64RFGlzZW/Zc1Y/7nun6p3wc+uVcYN0CcJtMpdKpWpJRYJz/U8V9Y
+	 k2dugz76v8sII0HCuz2coEfdFSv8XMv+CM++ru0A=
+Date: Thu, 25 Apr 2024 21:01:32 -0700
 To: mm-commits@vger.kernel.org,tglx@linutronix.de,peterz@infradead.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,luto@kernel.org,Liam.Howlett@oracle.com,kirill.shutemov@linux.intel.com,keescook@chromium.org,James.Bottomley@HansenPartnership.com,hpa@zytor.com,guoren@kernel.org,deller@gmx.de,debug@rivosinc.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,broonie@kernel.org,bp@alien8.de,ast@kernel.org,aneesh.kumar@kernel.org,rick.p.edgecombe@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] treewide-use-initializer-for-struct-vm_unmapped_area_info.patch removed from -mm tree
-Message-Id: <20240426040132.02F5BC113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-take-placement-mappings-gap-into-account.patch removed from -mm tree
+Message-Id: <20240426040133.5ABECC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: treewide: use initializer for struct vm_unmapped_area_info
+     Subject: mm: take placement mappings gap into account
 has been removed from the -mm tree.  Its filename was
-     treewide-use-initializer-for-struct-vm_unmapped_area_info.patch
+     mm-take-placement-mappings-gap-into-account.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Subject: treewide: use initializer for struct vm_unmapped_area_info
-Date: Mon, 25 Mar 2024 19:16:52 -0700
+Subject: mm: take placement mappings gap into account
+Date: Mon, 25 Mar 2024 19:16:53 -0700
 
-Future changes will need to add a new member to struct
-vm_unmapped_area_info.  This would cause trouble for any call site that
-doesn't initialize the struct.  Currently every caller sets each member
-manually, so if new ones are added they will be uninitialized and the core
-code parsing the struct will see garbage in the new member.
+When memory is being placed, mmap() will take care to respect the guard
+gaps of certain types of memory (VM_SHADOWSTACK, VM_GROWSUP and
+VM_GROWSDOWN).  In order to ensure guard gaps between mappings, mmap()
+needs to consider two things:
 
-It could be possible to initialize the new member manually to 0 at each
-call site.  This and a couple other options were discussed.  Having some
-struct vm_unmapped_area_info instances not zero initialized will put those
-sites at risk of feeding garbage into vm_unmapped_area(), if the
-convention is to zero initialize the struct and any new field addition
-missed a call site that initializes each field manually.  So it is useful
-to do things similar across the kernel.
+ 1. That the new mapping isn't placed in an any existing mappings guard
+    gaps.
+ 2. That the new mapping isn't placed such that any existing mappings
+    are not in *its* guard gaps.
 
-The consensus (see links) was that in general the best way to accomplish
-taking into account both code cleanliness and minimizing the chance of
-introducing bugs, was to do C99 static initialization.  As in: struct
-vm_unmapped_area_info info = {};
+The longstanding behavior of mmap() is to ensure 1, but not take any care
+around 2.  So for example, if there is a PAGE_SIZE free area, and a mmap()
+with a PAGE_SIZE size, and a type that has a guard gap is being placed,
+mmap() may place the shadow stack in the PAGE_SIZE free area.  Then the
+mapping that is supposed to have a guard gap will not have a gap to the
+adjacent VMA.
 
-With this method of initialization, the whole struct will be zero
-initialized, and any statements setting fields to zero will be unneeded. 
-The change should not leave cleanup at the call sides.
+For MAP_GROWSDOWN/VM_GROWSDOWN and MAP_GROWSUP/VM_GROWSUP this has not
+been a problem in practice because applications place these kinds of
+mappings very early, when there is not many mappings to find a space
+between.  But for shadow stacks, they may be placed throughout the
+lifetime of the application.
 
-While iterating though the possible solutions a few archs kindly acked
-other variations that still zero initialized the struct.  These sites have
-been modified in previous changes using the pattern acked by the
-respective arch.
+Use the start_gap field to find a space that includes the guard gap for
+the new mapping.  Take care to not interfere with the alignment.
 
-So to be reduce the chance of bugs via uninitialized fields, perform a
-tree wide change using the consensus for the best general way to do this
-change.  Use C99 static initializing to zero the struct and remove and
-statements that simply set members to zero.
-
-Link: https://lkml.kernel.org/r/20240326021656.202649-11-rick.p.edgecombe@intel.com
-Link: https://lore.kernel.org/lkml/202402280912.33AEE7A9CF@keescook/#t
-Link: https://lore.kernel.org/lkml/j7bfvig3gew3qruouxrh7z7ehjjafrgkbcmg6tcghhfh3rhmzi@wzlcoecgy5rs/
-Link: https://lore.kernel.org/lkml/ec3e377a-c0a0-4dd3-9cb9-96517e54d17e@csgroup.eu/
+Link: https://lkml.kernel.org/r/20240326021656.202649-12-rick.p.edgecombe@intel.com
 Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Deepak Gupta <debug@rivosinc.com>
@@ -99,6 +88,7 @@ Cc: Helge Deller <deller@gmx.de>
 Cc: H. Peter Anvin (Intel) <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Mark Brown <broonie@kernel.org>
@@ -110,460 +100,55 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/osf_sys.c      |    5 +----
- arch/arc/mm/mmap.c               |    4 +---
- arch/arm/mm/mmap.c               |    5 ++---
- arch/loongarch/mm/mmap.c         |    3 +--
- arch/mips/mm/mmap.c              |    3 +--
- arch/s390/mm/hugetlbpage.c       |    7 ++-----
- arch/s390/mm/mmap.c              |    5 ++---
- arch/sh/mm/mmap.c                |    5 ++---
- arch/sparc/kernel/sys_sparc_32.c |    3 +--
- arch/sparc/kernel/sys_sparc_64.c |    5 ++---
- arch/sparc/mm/hugetlbpage.c      |    7 ++-----
- arch/x86/kernel/sys_x86_64.c     |    7 ++-----
- arch/x86/mm/hugetlbpage.c        |    7 ++-----
- fs/hugetlbfs/inode.c             |    7 ++-----
- mm/mmap.c                        |    9 ++-------
- 15 files changed, 25 insertions(+), 57 deletions(-)
+ include/linux/mm.h |    1 +
+ mm/mmap.c          |   12 +++++++++---
+ 2 files changed, 10 insertions(+), 3 deletions(-)
 
---- a/arch/alpha/kernel/osf_sys.c~treewide-use-initializer-for-struct-vm_unmapped_area_info
-+++ a/arch/alpha/kernel/osf_sys.c
-@@ -1218,14 +1218,11 @@ static unsigned long
- arch_get_unmapped_area_1(unsigned long addr, unsigned long len,
- 		         unsigned long limit)
- {
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
+--- a/include/linux/mm.h~mm-take-placement-mappings-gap-into-account
++++ a/include/linux/mm.h
+@@ -3468,6 +3468,7 @@ struct vm_unmapped_area_info {
+ 	unsigned long high_limit;
+ 	unsigned long align_mask;
+ 	unsigned long align_offset;
++	unsigned long start_gap;
+ };
  
--	info.flags = 0;
- 	info.length = len;
- 	info.low_limit = addr;
- 	info.high_limit = limit;
--	info.align_mask = 0;
--	info.align_offset = 0;
- 	return vm_unmapped_area(&info);
- }
- 
---- a/arch/arc/mm/mmap.c~treewide-use-initializer-for-struct-vm_unmapped_area_info
-+++ a/arch/arc/mm/mmap.c
-@@ -27,7 +27,7 @@ arch_get_unmapped_area(struct file *filp
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	/*
- 	 * We enforce the MAP_FIXED case.
-@@ -51,11 +51,9 @@ arch_get_unmapped_area(struct file *filp
- 			return addr;
- 	}
- 
--	info.flags = 0;
- 	info.length = len;
- 	info.low_limit = mm->mmap_base;
- 	info.high_limit = TASK_SIZE;
--	info.align_mask = 0;
- 	info.align_offset = pgoff << PAGE_SHIFT;
- 	return vm_unmapped_area(&info);
- }
---- a/arch/arm/mm/mmap.c~treewide-use-initializer-for-struct-vm_unmapped_area_info
-+++ a/arch/arm/mm/mmap.c
-@@ -34,7 +34,7 @@ arch_get_unmapped_area(struct file *filp
- 	struct vm_area_struct *vma;
- 	int do_align = 0;
- 	int aliasing = cache_is_vipt_aliasing();
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	/*
- 	 * We only need to do colour alignment if either the I or D
-@@ -68,7 +68,6 @@ arch_get_unmapped_area(struct file *filp
- 			return addr;
- 	}
- 
--	info.flags = 0;
- 	info.length = len;
- 	info.low_limit = mm->mmap_base;
- 	info.high_limit = TASK_SIZE;
-@@ -87,7 +86,7 @@ arch_get_unmapped_area_topdown(struct fi
- 	unsigned long addr = addr0;
- 	int do_align = 0;
- 	int aliasing = cache_is_vipt_aliasing();
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	/*
- 	 * We only need to do colour alignment if either the I or D
---- a/arch/loongarch/mm/mmap.c~treewide-use-initializer-for-struct-vm_unmapped_area_info
-+++ a/arch/loongarch/mm/mmap.c
-@@ -25,7 +25,7 @@ static unsigned long arch_get_unmapped_a
- 	struct vm_area_struct *vma;
- 	unsigned long addr = addr0;
- 	int do_color_align;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	if (unlikely(len > TASK_SIZE))
- 		return -ENOMEM;
-@@ -83,7 +83,6 @@ static unsigned long arch_get_unmapped_a
- 		 */
- 	}
- 
--	info.flags = 0;
- 	info.low_limit = mm->mmap_base;
- 	info.high_limit = TASK_SIZE;
- 	return vm_unmapped_area(&info);
---- a/arch/mips/mm/mmap.c~treewide-use-initializer-for-struct-vm_unmapped_area_info
-+++ a/arch/mips/mm/mmap.c
-@@ -34,7 +34,7 @@ static unsigned long arch_get_unmapped_a
- 	struct vm_area_struct *vma;
- 	unsigned long addr = addr0;
- 	int do_color_align;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	if (unlikely(len > TASK_SIZE))
- 		return -ENOMEM;
-@@ -92,7 +92,6 @@ static unsigned long arch_get_unmapped_a
- 		 */
- 	}
- 
--	info.flags = 0;
- 	info.low_limit = mm->mmap_base;
- 	info.high_limit = TASK_SIZE;
- 	return vm_unmapped_area(&info);
---- a/arch/s390/mm/hugetlbpage.c~treewide-use-initializer-for-struct-vm_unmapped_area_info
-+++ a/arch/s390/mm/hugetlbpage.c
-@@ -248,14 +248,12 @@ static unsigned long hugetlb_get_unmappe
- 		unsigned long pgoff, unsigned long flags)
- {
- 	struct hstate *h = hstate_file(file);
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
--	info.flags = 0;
- 	info.length = len;
- 	info.low_limit = current->mm->mmap_base;
- 	info.high_limit = TASK_SIZE;
- 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
--	info.align_offset = 0;
- 	return vm_unmapped_area(&info);
- }
- 
-@@ -264,7 +262,7 @@ static unsigned long hugetlb_get_unmappe
- 		unsigned long pgoff, unsigned long flags)
- {
- 	struct hstate *h = hstate_file(file);
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 	unsigned long addr;
- 
- 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
-@@ -272,7 +270,6 @@ static unsigned long hugetlb_get_unmappe
- 	info.low_limit = PAGE_SIZE;
- 	info.high_limit = current->mm->mmap_base;
- 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
--	info.align_offset = 0;
- 	addr = vm_unmapped_area(&info);
- 
- 	/*
---- a/arch/s390/mm/mmap.c~treewide-use-initializer-for-struct-vm_unmapped_area_info
-+++ a/arch/s390/mm/mmap.c
-@@ -86,7 +86,7 @@ unsigned long arch_get_unmapped_area(str
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	if (len > TASK_SIZE - mmap_min_addr)
- 		return -ENOMEM;
-@@ -102,7 +102,6 @@ unsigned long arch_get_unmapped_area(str
- 			goto check_asce_limit;
- 	}
- 
--	info.flags = 0;
- 	info.length = len;
- 	info.low_limit = mm->mmap_base;
- 	info.high_limit = TASK_SIZE;
-@@ -122,7 +121,7 @@ unsigned long arch_get_unmapped_area_top
- {
- 	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	/* requested length too big for entire address space */
- 	if (len > TASK_SIZE - mmap_min_addr)
---- a/arch/sh/mm/mmap.c~treewide-use-initializer-for-struct-vm_unmapped_area_info
-+++ a/arch/sh/mm/mmap.c
-@@ -57,7 +57,7 @@ unsigned long arch_get_unmapped_area(str
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
- 	int do_colour_align;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	if (flags & MAP_FIXED) {
- 		/* We do not accept a shared mapping if it would violate
-@@ -88,7 +88,6 @@ unsigned long arch_get_unmapped_area(str
- 			return addr;
- 	}
- 
--	info.flags = 0;
- 	info.length = len;
- 	info.low_limit = TASK_UNMAPPED_BASE;
- 	info.high_limit = TASK_SIZE;
-@@ -106,7 +105,7 @@ arch_get_unmapped_area_topdown(struct fi
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr = addr0;
- 	int do_colour_align;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	if (flags & MAP_FIXED) {
- 		/* We do not accept a shared mapping if it would violate
---- a/arch/sparc/kernel/sys_sparc_32.c~treewide-use-initializer-for-struct-vm_unmapped_area_info
-+++ a/arch/sparc/kernel/sys_sparc_32.c
-@@ -41,7 +41,7 @@ SYSCALL_DEFINE0(getpagesize)
- 
- unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsigned long len, unsigned long pgoff, unsigned long flags)
- {
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	if (flags & MAP_FIXED) {
- 		/* We do not accept a shared mapping if it would violate
-@@ -59,7 +59,6 @@ unsigned long arch_get_unmapped_area(str
- 	if (!addr)
- 		addr = TASK_UNMAPPED_BASE;
- 
--	info.flags = 0;
- 	info.length = len;
- 	info.low_limit = addr;
- 	info.high_limit = TASK_SIZE;
---- a/arch/sparc/kernel/sys_sparc_64.c~treewide-use-initializer-for-struct-vm_unmapped_area_info
-+++ a/arch/sparc/kernel/sys_sparc_64.c
-@@ -93,7 +93,7 @@ unsigned long arch_get_unmapped_area(str
- 	struct vm_area_struct * vma;
- 	unsigned long task_size = TASK_SIZE;
- 	int do_color_align;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	if (flags & MAP_FIXED) {
- 		/* We do not accept a shared mapping if it would violate
-@@ -126,7 +126,6 @@ unsigned long arch_get_unmapped_area(str
- 			return addr;
- 	}
- 
--	info.flags = 0;
- 	info.length = len;
- 	info.low_limit = TASK_UNMAPPED_BASE;
- 	info.high_limit = min(task_size, VA_EXCLUDE_START);
-@@ -154,7 +153,7 @@ arch_get_unmapped_area_topdown(struct fi
- 	unsigned long task_size = STACK_TOP32;
- 	unsigned long addr = addr0;
- 	int do_color_align;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	/* This should only ever run for 32-bit processes.  */
- 	BUG_ON(!test_thread_flag(TIF_32BIT));
---- a/arch/sparc/mm/hugetlbpage.c~treewide-use-initializer-for-struct-vm_unmapped_area_info
-+++ a/arch/sparc/mm/hugetlbpage.c
-@@ -31,17 +31,15 @@ static unsigned long hugetlb_get_unmappe
- {
- 	struct hstate *h = hstate_file(filp);
- 	unsigned long task_size = TASK_SIZE;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	if (test_thread_flag(TIF_32BIT))
- 		task_size = STACK_TOP32;
- 
--	info.flags = 0;
- 	info.length = len;
- 	info.low_limit = TASK_UNMAPPED_BASE;
- 	info.high_limit = min(task_size, VA_EXCLUDE_START);
- 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
--	info.align_offset = 0;
- 	addr = vm_unmapped_area(&info);
- 
- 	if ((addr & ~PAGE_MASK) && task_size > VA_EXCLUDE_END) {
-@@ -63,7 +61,7 @@ hugetlb_get_unmapped_area_topdown(struct
- 	struct hstate *h = hstate_file(filp);
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr = addr0;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	/* This should only ever run for 32-bit processes.  */
- 	BUG_ON(!test_thread_flag(TIF_32BIT));
-@@ -73,7 +71,6 @@ hugetlb_get_unmapped_area_topdown(struct
- 	info.low_limit = PAGE_SIZE;
- 	info.high_limit = mm->mmap_base;
- 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
--	info.align_offset = 0;
- 	addr = vm_unmapped_area(&info);
- 
- 	/*
---- a/arch/x86/kernel/sys_x86_64.c~treewide-use-initializer-for-struct-vm_unmapped_area_info
-+++ a/arch/x86/kernel/sys_x86_64.c
-@@ -118,7 +118,7 @@ arch_get_unmapped_area(struct file *filp
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 	unsigned long begin, end;
- 
- 	if (flags & MAP_FIXED)
-@@ -137,11 +137,9 @@ arch_get_unmapped_area(struct file *filp
- 			return addr;
- 	}
- 
--	info.flags = 0;
- 	info.length = len;
- 	info.low_limit = begin;
- 	info.high_limit = end;
--	info.align_mask = 0;
- 	info.align_offset = pgoff << PAGE_SHIFT;
- 	if (filp) {
- 		info.align_mask = get_align_mask();
-@@ -158,7 +156,7 @@ arch_get_unmapped_area_topdown(struct fi
- 	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr = addr0;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	/* requested length too big for entire address space */
- 	if (len > TASK_SIZE)
-@@ -203,7 +201,6 @@ get_unmapped_area:
- 	if (addr > DEFAULT_MAP_WINDOW && !in_32bit_syscall())
- 		info.high_limit += TASK_SIZE_MAX - DEFAULT_MAP_WINDOW;
- 
--	info.align_mask = 0;
- 	info.align_offset = pgoff << PAGE_SHIFT;
- 	if (filp) {
- 		info.align_mask = get_align_mask();
---- a/arch/x86/mm/hugetlbpage.c~treewide-use-initializer-for-struct-vm_unmapped_area_info
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -25,9 +25,8 @@ static unsigned long hugetlb_get_unmappe
- 		unsigned long pgoff, unsigned long flags)
- {
- 	struct hstate *h = hstate_file(file);
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
--	info.flags = 0;
- 	info.length = len;
- 	info.low_limit = get_mmap_base(1);
- 
-@@ -39,7 +38,6 @@ static unsigned long hugetlb_get_unmappe
- 		task_size_32bit() : task_size_64bit(addr > DEFAULT_MAP_WINDOW);
- 
- 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
--	info.align_offset = 0;
- 	return vm_unmapped_area(&info);
- }
- 
-@@ -48,7 +46,7 @@ static unsigned long hugetlb_get_unmappe
- 		unsigned long pgoff, unsigned long flags)
- {
- 	struct hstate *h = hstate_file(file);
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
- 	info.length = len;
-@@ -63,7 +61,6 @@ static unsigned long hugetlb_get_unmappe
- 		info.high_limit += TASK_SIZE_MAX - DEFAULT_MAP_WINDOW;
- 
- 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
--	info.align_offset = 0;
- 	addr = vm_unmapped_area(&info);
- 
- 	/*
---- a/fs/hugetlbfs/inode.c~treewide-use-initializer-for-struct-vm_unmapped_area_info
-+++ a/fs/hugetlbfs/inode.c
-@@ -176,14 +176,12 @@ hugetlb_get_unmapped_area_bottomup(struc
- 		unsigned long len, unsigned long pgoff, unsigned long flags)
- {
- 	struct hstate *h = hstate_file(file);
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
--	info.flags = 0;
- 	info.length = len;
- 	info.low_limit = current->mm->mmap_base;
- 	info.high_limit = arch_get_mmap_end(addr, len, flags);
- 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
--	info.align_offset = 0;
- 	return vm_unmapped_area(&info);
- }
- 
-@@ -192,14 +190,13 @@ hugetlb_get_unmapped_area_topdown(struct
- 		unsigned long len, unsigned long pgoff, unsigned long flags)
- {
- 	struct hstate *h = hstate_file(file);
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 
- 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
- 	info.length = len;
- 	info.low_limit = PAGE_SIZE;
- 	info.high_limit = arch_get_mmap_base(addr, current->mm->mmap_base);
- 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
--	info.align_offset = 0;
- 	addr = vm_unmapped_area(&info);
- 
- 	/*
---- a/mm/mmap.c~treewide-use-initializer-for-struct-vm_unmapped_area_info
+ extern unsigned long vm_unmapped_area(struct vm_unmapped_area_info *info);
+--- a/mm/mmap.c~mm-take-placement-mappings-gap-into-account
 +++ a/mm/mmap.c
-@@ -1704,7 +1704,7 @@ generic_get_unmapped_area(struct file *f
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma, *prev;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 	const unsigned long mmap_end = arch_get_mmap_end(addr, len, flags);
+@@ -1579,7 +1579,7 @@ static unsigned long unmapped_area(struc
+ 	VMA_ITERATOR(vmi, current->mm, 0);
  
- 	if (len > mmap_end - mmap_min_addr)
-@@ -1722,12 +1722,9 @@ generic_get_unmapped_area(struct file *f
- 			return addr;
- 	}
+ 	/* Adjust search length to account for worst case alignment overhead */
+-	length = info->length + info->align_mask;
++	length = info->length + info->align_mask + info->start_gap;
+ 	if (length < info->length)
+ 		return -ENOMEM;
  
--	info.flags = 0;
- 	info.length = len;
- 	info.low_limit = mm->mmap_base;
- 	info.high_limit = mmap_end;
--	info.align_mask = 0;
--	info.align_offset = 0;
- 	return vm_unmapped_area(&info);
- }
+@@ -1591,7 +1591,13 @@ retry:
+ 	if (vma_iter_area_lowest(&vmi, low_limit, high_limit, length))
+ 		return -ENOMEM;
  
-@@ -1752,7 +1749,7 @@ generic_get_unmapped_area_topdown(struct
- {
- 	struct vm_area_struct *vma, *prev;
- 	struct mm_struct *mm = current->mm;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {};
- 	const unsigned long mmap_end = arch_get_mmap_end(addr, len, flags);
+-	gap = vma_iter_addr(&vmi);
++	/*
++	 * Adjust for the gap first so it doesn't interfere with the
++	 * later alignment. The first step is the minimum needed to
++	 * fulill the start gap, the next steps is the minimum to align
++	 * that. It is the minimum needed to fulill both.
++	 */
++	gap = vma_iter_addr(&vmi) + info->start_gap;
+ 	gap += (info->align_offset - gap) & info->align_mask;
+ 	tmp = vma_next(&vmi);
+ 	if (tmp && (tmp->vm_flags & VM_STARTGAP_FLAGS)) { /* Avoid prev check if possible */
+@@ -1630,7 +1636,7 @@ static unsigned long unmapped_area_topdo
+ 	VMA_ITERATOR(vmi, current->mm, 0);
  
- 	/* requested length too big for entire address space */
-@@ -1776,8 +1773,6 @@ generic_get_unmapped_area_topdown(struct
- 	info.length = len;
- 	info.low_limit = PAGE_SIZE;
- 	info.high_limit = arch_get_mmap_base(addr, mm->mmap_base);
--	info.align_mask = 0;
--	info.align_offset = 0;
- 	addr = vm_unmapped_area(&info);
+ 	/* Adjust search length to account for worst case alignment overhead */
+-	length = info->length + info->align_mask;
++	length = info->length + info->align_mask + info->start_gap;
+ 	if (length < info->length)
+ 		return -ENOMEM;
  
- 	/*
 _
 
 Patches currently in -mm which might be from rick.p.edgecombe@intel.com are
