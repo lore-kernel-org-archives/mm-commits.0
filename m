@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 702647603F
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:57:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1E2A7603F
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:57:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714103844; cv=none; b=MqMPd6wA+vh0RqVfoDwfT26Gt6Ajz++gUuyGi/Ggh5JNiOAsFGbyUdl1lZzixssq6JvVzAqHYBUPuQCkrTaXlIAomOr4spPHuw6lPiBOknoLYfmebYquKE2MjKTxGvyFZrSpHHkOOAvpR8hoKkd4nr4yu54bCkeZqZQwzc8YdnI=
+	t=1714103846; cv=none; b=bjG7r44VKhyMTnIyWCu8urdXckKlOC8TmbeFrpZ3ABq8xwcEUTYhEpnMQVgaIUkGCWe2qZw8SRn27lrGZy8xpozu4L8MAkn600jkukJza/5eIEgloc2pD2Prco0RFNvdcnjCFKEmuRDFXDSrkq1+ptptbvVxhha9ah2D+lNcza0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714103844; c=relaxed/simple;
-	bh=HZuhabUb1mnIMePBlpm8wibCq6OhT8a5pLtc4fDs7HE=;
-	h=Date:To:From:Subject:Message-Id; b=KqLXSyfi1XBKYWLgymaWIwFFdku+3Az0WsR1CaH3CtnQmA/sEpF3+K8vZgZp9ql0+1leZg+XIaoPz5CC2dAw5tVRxlnS8oDfHYyz9JQHre3UkGtxGZSnOOu1qEl/QNLrn/h+Fx/e22MS0z6kNYr3zZdxYPa+FjfIt+vA7hUC6xM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jLcPFR7F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714103846; c=relaxed/simple;
+	bh=1SkkPh5Vz71VClMlJidgYWL1oS+PciiZu6x3J3jHyVQ=;
+	h=Date:To:From:Subject:Message-Id; b=mJ93v79xXvUhDuCiJeYgE4rOVR+K/1RyiDXbLdZkNb78Dc9ifecMbpZdpML9tlev/5HkBdVkOqa9eR1bewQ02rJgGcUaZamfFWaBzAbE/MLXYpDIpWYjkVuEC9HTuF+bFiypdnOrNC/YZLNagkIx1WemqU3Rr2g1jdhq9+NKDE0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hVxf9pNd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jLcPFR7F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8867C113CD;
-	Fri, 26 Apr 2024 03:57:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hVxf9pNd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6346BC113CD;
+	Fri, 26 Apr 2024 03:57:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714103844;
-	bh=HZuhabUb1mnIMePBlpm8wibCq6OhT8a5pLtc4fDs7HE=;
+	s=korg; t=1714103845;
+	bh=1SkkPh5Vz71VClMlJidgYWL1oS+PciiZu6x3J3jHyVQ=;
 	h=Date:To:From:Subject:From;
-	b=jLcPFR7Fr/1bHRNRTiinvhEKFTKXiz2PP19amHeifLCQ4fnGRk6mpEiBK1sL2fJxU
-	 jvBmRPJy+U5OaqMehfA6QXReHpZ2ThWsUM8CWGAgFqw72tg0xcsfu2oXX2FdDVCTSh
-	 A3vwthM1BZ9rJR9IY5xzsLtKql0rX6x+PpKDXGiw=
-Date: Thu, 25 Apr 2024 20:57:23 -0700
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,shuah@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=hVxf9pNdkpib37eLeuR6D7pRwGKXPeE6w/kRIzJnER41Y1RR6syYrg7f8ypTAokhv
+	 eBUX108/gsW5nSQXSotNCb878GTDAYW772gvaBULChqQ9CTU7zfb18HxeUcgmOG1As
+	 HvNj72HcoHxT5v7danjA0LxIfi/DRx3s2RbWpAIM=
+Date: Thu, 25 Apr 2024 20:57:24 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,tglx@linutronix.de,shawnguo@kernel.org,rppt@kernel.org,peterx@redhat.com,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,nao.horiguchi@gmail.com,muchun.song@linux.dev,msalter@redhat.com,mpe@ellerman.id.au,mingo@redhat.com,linux@armlinux.org.uk,krzysztof.kozlowski@linaro.org,konrad.dybcio@linaro.org,jgg@nvidia.com,festevam@denx.de,davem@davemloft.net,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,apopple@nvidia.com,aneesh.kumar@kernel.org,andreas@gaisler.com,andersson@kernel.org,l.stach@pengutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-virtual_address_range-switch-to-ksft_exit_fail_msg.patch removed from -mm tree
-Message-Id: <20240426035723.E8867C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-control-latency-caused-by-zone-pcp-draining.patch removed from -mm tree
+Message-Id: <20240426035725.6346BC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,124 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: virtual_address_range: Switch to ksft_exit_fail_msg
+     Subject: mm: page_alloc: control latency caused by zone PCP draining
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-virtual_address_range-switch-to-ksft_exit_fail_msg.patch
+     mm-page_alloc-control-latency-caused-by-zone-pcp-draining.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: selftests/mm: virtual_address_range: Switch to ksft_exit_fail_msg
-Date: Thu, 14 Mar 2024 17:52:50 +0530
+From: Lucas Stach <l.stach@pengutronix.de>
+Subject: mm: page_alloc: control latency caused by zone PCP draining
+Date: Mon, 18 Mar 2024 21:07:36 +0100
 
-mmap() must not succeed in validate_lower_address_hint(), for if it does,
-it is a bug in mmap() itself.  Reflect this behaviour with
-ksft_exit_fail_msg().  While at it, do some formatting changes.
+Patch series "mm/treewide: Remove pXd_huge() API", v2.
 
-Link: https://lkml.kernel.org/r/20240314122250.68534-1-dev.jain@arm.com
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+In previous work [1], we removed the pXd_large() API, which is arch
+specific.  This patchset further removes the hugetlb pXd_huge() API.
+
+Hugetlb was never special on creating huge mappings when compared with
+other huge mappings.  Having a standalone API just to detect such pgtable
+entries is more or less redundant, especially after the pXd_leaf() API set
+is introduced with/without CONFIG_HUGETLB_PAGE.
+
+When looking at this problem, a few issues are also exposed that we don't
+have a clear definition of the *_huge() variance API.  This patchset
+started by cleaning these issues first, then replace all *_huge() users to
+use *_leaf(), then drop all *_huge() code.
+
+On x86/sparc, swap entries will be reported "true" in pXd_huge(), while
+for all the rest archs they're reported "false" instead.  This part is
+done in patch 1-5, in which I suspect patch 1 can be seen as a bug fix,
+but I'll leave that to hmm experts to decide.
+
+Besides, there are three archs (arm, arm64, powerpc) that have slightly
+different definitions between the *_huge() v.s.  *_leaf() variances.  I
+tackled them separately so that it'll be easier for arch experts to chim
+in when necessary.  This part is done in patch 6-9.
+
+The final patches 10-14 do the rest on the final removal, since *_leaf()
+will be the ultimate API in the future, and we seem to have quite some
+confusions on how *_huge() APIs can be defined, provide a rich comment for
+*_leaf() API set to define them properly to avoid future misuse, and
+hopefully that'll also help new archs to start support huge mappings and
+avoid traps (like either swap entries, or PROT_NONE entry checks).
+
+[1] https://lore.kernel.org/r/20240305043750.93762-1-peterx@redhat.com
+
+
+This patch (of 14):
+
+When the complete PCP is drained a much larger number of pages than the
+usual batch size might be freed at once, causing large IRQ and preemption
+latency spikes, as they are all freed while holding the pcp and zone
+spinlocks.
+
+To avoid those latency spikes, limit the number of pages freed in a single
+bulk operation to common batch limits.
+
+Link: https://lkml.kernel.org/r/20240318200404.448346-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240318200736.2835502-1-l.stach@pengutronix.de
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Bjorn Andersson <andersson@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Fabio Estevam <festevam@denx.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Konrad Dybcio <konrad.dybcio@linaro.org>
+Cc: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Shawn Guo <shawnguo@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/virtual_address_range.c |   12 ++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-virtual_address_range-switch-to-ksft_exit_fail_msg
-+++ a/tools/testing/selftests/mm/virtual_address_range.c
-@@ -85,7 +85,7 @@ static int validate_lower_address_hint(v
- 	char *ptr;
+--- a/mm/page_alloc.c~mm-page_alloc-control-latency-caused-by-zone-pcp-draining
++++ a/mm/page_alloc.c
+@@ -2216,12 +2216,15 @@ void drain_zone_pages(struct zone *zone,
+  */
+ static void drain_pages_zone(unsigned int cpu, struct zone *zone)
+ {
+-	struct per_cpu_pages *pcp;
++	struct per_cpu_pages *pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
++	int count = READ_ONCE(pcp->count);
++
++	while (count) {
++		int to_drain = min(count, pcp->batch << CONFIG_PCP_BATCH_SCALE_MAX);
++		count -= to_drain;
  
- 	ptr = mmap((void *) (1UL << 45), MAP_CHUNK_SIZE, PROT_READ |
--			PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+		   PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
- 
- 	if (ptr == MAP_FAILED)
- 		return 0;
-@@ -105,13 +105,11 @@ int main(int argc, char *argv[])
- 
- 	for (i = 0; i < NR_CHUNKS_LOW; i++) {
- 		ptr[i] = mmap(NULL, MAP_CHUNK_SIZE, PROT_READ | PROT_WRITE,
--					MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+			      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
- 
- 		if (ptr[i] == MAP_FAILED) {
--			if (validate_lower_address_hint()) {
--				ksft_test_result_skip("Memory constraint not fulfilled\n");
--				ksft_finished();
--			}
-+			if (validate_lower_address_hint())
-+				ksft_exit_fail_msg("mmap unexpectedly succeeded with hint\n");
- 			break;
- 		}
- 
-@@ -127,7 +125,7 @@ int main(int argc, char *argv[])
- 	for (i = 0; i < NR_CHUNKS_HIGH; i++) {
- 		hint = hind_addr();
- 		hptr[i] = mmap(hint, MAP_CHUNK_SIZE, PROT_READ | PROT_WRITE,
--					MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+			       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
- 
- 		if (hptr[i] == MAP_FAILED)
- 			break;
+-	pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
+-	if (pcp->count) {
+ 		spin_lock(&pcp->lock);
+-		free_pcppages_bulk(zone, pcp->count, pcp, 0);
++		free_pcppages_bulk(zone, to_drain, pcp, 0);
+ 		spin_unlock(&pcp->lock);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from l.stach@pengutronix.de are
 
 
