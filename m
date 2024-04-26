@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CE907EEE3
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B41E7EF1B
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104018; cv=none; b=ZphpbRQhIc7gviy7y0hGc6feroU8UtvbDal226LAQLJQJjE8oWBFkzz8R8y6uRLwhULBVIqNPBw6oJ5fAieZ3k5vm1rfcqTLpIXuY4ufHuIA0qu5uWUheGcxn+bwz3/Yzx2DwZPZGRz9gQAJeb47lrVqNIE9KbYL+W4ptvG9C0o=
+	t=1714104019; cv=none; b=RvaRc8jCMqPsIpOkIqGniIkqSryEyeDA7PqDSJVusNZqlpzZnKQ5o55gnaHvI2qVtLEC/1XemgFtO73sOGYy84zp/JGDE6oZKI0JyJnCZwvPFU5xIPbj6waXCaRLBM45Qg+Wsi/Ca6h3WtQgyD4JubaALlzyloL1pGK8tyHeEHo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104018; c=relaxed/simple;
-	bh=uZEFjw4tUUaXNxf6cL9n5yV+QtzQFgjNqbORn+0/CHw=;
-	h=Date:To:From:Subject:Message-Id; b=sSBmiyRimOjhkFL3fEH88FBoREbPw7usAXJ+RScNZfNbYAiUkKP1Ph0EW0PM0TT8vxXahfUIv1DVRtJk8efwq747ITxVERIrI5YK3xn+98w81O2C9k0kQo2MjwYpEPLlS+BmTFRHNgoO/LtMjY/FS2I5WxjgCB1D0nd2HkuJueE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dVb96hRt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104019; c=relaxed/simple;
+	bh=DW6ZXc86chK7ZqBwwsG/MNSp8NIuAlkMUYCiCJOuX5k=;
+	h=Date:To:From:Subject:Message-Id; b=idNKGCcH9leWPpUaO/dF35REBfY/ZbtKJ4bNK8TbzeZokW+RCbnT4llgCDb3+HmROZm3J6U1Kv7N1Ss5KKdRDioOyO5L8cEPrlu21/Fvoh4PDagMwojhdUyJfzAh5dUoKh/l92+LWInuwyvGasjpuSNcX/1Dx7zv4K9gHlEK6v0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gr/nFiOX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dVb96hRt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31C8BC113CD;
-	Fri, 26 Apr 2024 04:00:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gr/nFiOX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F53EC116B1;
+	Fri, 26 Apr 2024 04:00:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104018;
-	bh=uZEFjw4tUUaXNxf6cL9n5yV+QtzQFgjNqbORn+0/CHw=;
+	s=korg; t=1714104019;
+	bh=DW6ZXc86chK7ZqBwwsG/MNSp8NIuAlkMUYCiCJOuX5k=;
 	h=Date:To:From:Subject:From;
-	b=dVb96hRtM+9qcNDrQGdVhZzKjia25GlXS8jLkjyqystApTVUMpkCIUZQ4pnUFvNsz
-	 Rd/+313VKWCKDsSG78a1kfWLbsA7ClX9AfNc7uKn1QA62Z3ZkWxAuJHaEYaf1zOBFr
-	 qR98acyumSaN8pAjWZJcTTEqxFT3hPKOWNkkc8NE=
-Date: Thu, 25 Apr 2024 21:00:17 -0700
+	b=gr/nFiOXPje8oLOKR8XeUD48m0AdvoUalGlX3EzdUWilHz/KsQsF9car0KYmuUoHd
+	 H3a4V3SCxaCOtcSu3+TJm6w61U9rBO9YluxDKldJtNISzD8YsYk59/hWjkIKSwuEwl
+	 BzF5+Olyu0wUZXjwvfGJAyJWat4FZJU2EOz59BZo=
+Date: Thu, 25 Apr 2024 21:00:18 -0700
 To: mm-commits@vger.kernel.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-make-page_mapped-take-a-const-argument.patch removed from -mm tree
-Message-Id: <20240426040018.31C8BC113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch removed from -mm tree
+Message-Id: <20240426040019.2F53EC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,128 +35,159 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: make page_mapped() take a const argument
+     Subject: mm: convert arch_clear_hugepage_flags to take a folio
 has been removed from the -mm tree.  Its filename was
-     mm-make-page_mapped-take-a-const-argument.patch
+     mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: make page_mapped() take a const argument
-Date: Tue, 26 Mar 2024 17:10:28 +0000
+Subject: mm: convert arch_clear_hugepage_flags to take a folio
+Date: Tue, 26 Mar 2024 17:10:29 +0000
 
-None of the functions called by page_mapped() modify the page or folio, so
-mark them all as const.
+All implementations that aren't no-ops just set a bit in the flags, and we
+want to use the folio flags rather than the page flags for that.  Rename
+it to arch_clear_hugetlb_flags() while we're touching it so nobody thinks
+it's used for THP.
 
-Link: https://lkml.kernel.org/r/20240326171045.410737-7-willy@infradead.org
+[willy@infradead.org: fix arm64 build]
+  Link: https://lkml.kernel.org/r/ZgQvNKGdlDkwhQEX@casper.infradead.org
+Link: https://lkml.kernel.org/r/20240326171045.410737-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   12 ++++++------
- mm/internal.h      |    7 ++++---
- mm/rmap.c          |    2 +-
- 3 files changed, 11 insertions(+), 10 deletions(-)
+ arch/arm/include/asm/hugetlb.h   |    6 +++---
+ arch/arm64/include/asm/hugetlb.h |    6 +++---
+ arch/riscv/include/asm/hugetlb.h |    6 +++---
+ arch/s390/include/asm/hugetlb.h  |    6 +++---
+ arch/sh/include/asm/hugetlb.h    |    6 +++---
+ include/linux/hugetlb.h          |    6 +++---
+ mm/hugetlb.c                     |    4 ++--
+ 7 files changed, 20 insertions(+), 20 deletions(-)
 
---- a/include/linux/mm.h~mm-make-page_mapped-take-a-const-argument
-+++ a/include/linux/mm.h
-@@ -1200,7 +1200,7 @@ static inline int is_vmalloc_or_module_a
-  * debugging purposes - it does not include PTE-mapped sub-pages; look
-  * at folio_mapcount() or page_mapcount() instead.
-  */
--static inline int folio_entire_mapcount(struct folio *folio)
-+static inline int folio_entire_mapcount(const struct folio *folio)
+--- a/arch/arm64/include/asm/hugetlb.h~mm-convert-arch_clear_hugepage_flags-to-take-a-folio
++++ a/arch/arm64/include/asm/hugetlb.h
+@@ -18,11 +18,11 @@
+ extern bool arch_hugetlb_migration_supported(struct hstate *h);
+ #endif
+ 
+-static inline void arch_clear_hugepage_flags(struct page *page)
++static inline void arch_clear_hugetlb_flags(struct folio *folio)
  {
- 	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
- 	return atomic_read(&folio->_entire_mapcount) + 1;
-@@ -1240,7 +1240,7 @@ static inline int page_mapcount(struct p
- 	return mapcount;
+-	clear_bit(PG_dcache_clean, &page->flags);
++	clear_bit(PG_dcache_clean, &folio->flags);
+ }
+-#define arch_clear_hugepage_flags arch_clear_hugepage_flags
++#define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
+ 
+ pte_t arch_make_huge_pte(pte_t entry, unsigned int shift, vm_flags_t flags);
+ #define arch_make_huge_pte arch_make_huge_pte
+--- a/arch/arm/include/asm/hugetlb.h~mm-convert-arch_clear_hugepage_flags-to-take-a-folio
++++ a/arch/arm/include/asm/hugetlb.h
+@@ -15,10 +15,10 @@
+ #include <asm/hugetlb-3level.h>
+ #include <asm-generic/hugetlb.h>
+ 
+-static inline void arch_clear_hugepage_flags(struct page *page)
++static inline void arch_clear_hugetlb_flags(struct folio *folio)
+ {
+-	clear_bit(PG_dcache_clean, &page->flags);
++	clear_bit(PG_dcache_clean, &folio->flags);
+ }
+-#define arch_clear_hugepage_flags arch_clear_hugepage_flags
++#define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
+ 
+ #endif /* _ASM_ARM_HUGETLB_H */
+--- a/arch/riscv/include/asm/hugetlb.h~mm-convert-arch_clear_hugepage_flags-to-take-a-folio
++++ a/arch/riscv/include/asm/hugetlb.h
+@@ -5,11 +5,11 @@
+ #include <asm/cacheflush.h>
+ #include <asm/page.h>
+ 
+-static inline void arch_clear_hugepage_flags(struct page *page)
++static inline void arch_clear_hugetlb_flags(struct folio *folio)
+ {
+-	clear_bit(PG_dcache_clean, &page->flags);
++	clear_bit(PG_dcache_clean, &folio->flags);
+ }
+-#define arch_clear_hugepage_flags arch_clear_hugepage_flags
++#define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
+ 
+ #ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
+ bool arch_hugetlb_migration_supported(struct hstate *h);
+--- a/arch/s390/include/asm/hugetlb.h~mm-convert-arch_clear_hugepage_flags-to-take-a-folio
++++ a/arch/s390/include/asm/hugetlb.h
+@@ -39,11 +39,11 @@ static inline int prepare_hugepage_range
+ 	return 0;
  }
  
--int folio_total_mapcount(struct folio *folio);
-+int folio_total_mapcount(const struct folio *folio);
- 
- /**
-  * folio_mapcount() - Calculate the number of mappings of this folio.
-@@ -1253,14 +1253,14 @@ int folio_total_mapcount(struct folio *f
-  *
-  * Return: The number of times this folio is mapped.
-  */
--static inline int folio_mapcount(struct folio *folio)
-+static inline int folio_mapcount(const struct folio *folio)
+-static inline void arch_clear_hugepage_flags(struct page *page)
++static inline void arch_clear_hugetlb_flags(struct folio *folio)
  {
- 	if (likely(!folio_test_large(folio)))
- 		return atomic_read(&folio->_mapcount) + 1;
- 	return folio_total_mapcount(folio);
+-	clear_bit(PG_arch_1, &page->flags);
++	clear_bit(PG_arch_1, &folio->flags);
+ }
+-#define arch_clear_hugepage_flags arch_clear_hugepage_flags
++#define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
+ 
+ static inline void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
+ 				  pte_t *ptep, unsigned long sz)
+--- a/arch/sh/include/asm/hugetlb.h~mm-convert-arch_clear_hugepage_flags-to-take-a-folio
++++ a/arch/sh/include/asm/hugetlb.h
+@@ -27,11 +27,11 @@ static inline pte_t huge_ptep_clear_flus
+ 	return *ptep;
  }
  
--static inline bool folio_large_is_mapped(struct folio *folio)
-+static inline bool folio_large_is_mapped(const struct folio *folio)
+-static inline void arch_clear_hugepage_flags(struct page *page)
++static inline void arch_clear_hugetlb_flags(struct folio *folio)
  {
- 	/*
- 	 * Reading _entire_mapcount below could be omitted if hugetlb
-@@ -1288,7 +1288,7 @@ static inline bool folio_mapped(struct f
-  * For compound page it returns true if any sub-page of compound page is mapped,
-  * even if this particular sub-page is not itself mapped by any PTE or PMD.
-  */
--static inline bool page_mapped(struct page *page)
-+static inline bool page_mapped(const struct page *page)
- {
- 	if (likely(!PageCompound(page)))
- 		return atomic_read(&page->_mapcount) >= 0;
-@@ -2070,7 +2070,7 @@ static inline void set_page_links(struct
-  *
-  * Return: A positive power of two.
-  */
--static inline long folio_nr_pages(struct folio *folio)
-+static inline long folio_nr_pages(const struct folio *folio)
- {
- 	if (!folio_test_large(folio))
- 		return 1;
---- a/mm/internal.h~mm-make-page_mapped-take-a-const-argument
-+++ a/mm/internal.h
-@@ -71,7 +71,7 @@ void page_writeback_init(void);
-  * How many individual pages have an elevated _mapcount.  Excludes
-  * the folio's entire_mapcount.
-  */
--static inline int folio_nr_pages_mapped(struct folio *folio)
-+static inline int folio_nr_pages_mapped(const struct folio *folio)
- {
- 	return atomic_read(&folio->_nr_pages_mapped) & FOLIO_PAGES_MAPPED;
+-	clear_bit(PG_dcache_clean, &page->flags);
++	clear_bit(PG_dcache_clean, &folio->flags);
  }
-@@ -81,7 +81,8 @@ static inline int folio_nr_pages_mapped(
-  * folio. We cannot rely on folio->swap as there is no guarantee that it has
-  * been initialized. Used for calling arch_swap_restore()
-  */
--static inline swp_entry_t folio_swap(swp_entry_t entry, struct folio *folio)
-+static inline swp_entry_t folio_swap(swp_entry_t entry,
-+		const struct folio *folio)
- {
- 	swp_entry_t swap = {
- 		.val = ALIGN_DOWN(entry.val, folio_nr_pages(folio)),
-@@ -90,7 +91,7 @@ static inline swp_entry_t folio_swap(swp
- 	return swap;
+-#define arch_clear_hugepage_flags arch_clear_hugepage_flags
++#define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
+ 
+ #include <asm-generic/hugetlb.h>
+ 
+--- a/include/linux/hugetlb.h~mm-convert-arch_clear_hugepage_flags-to-take-a-folio
++++ a/include/linux/hugetlb.h
+@@ -836,9 +836,9 @@ static inline int is_hugepage_only_range
+ #define is_hugepage_only_range is_hugepage_only_range
+ #endif
+ 
+-#ifndef arch_clear_hugepage_flags
+-static inline void arch_clear_hugepage_flags(struct page *page) { }
+-#define arch_clear_hugepage_flags arch_clear_hugepage_flags
++#ifndef arch_clear_hugetlb_flags
++static inline void arch_clear_hugetlb_flags(struct folio *folio) { }
++#define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
+ #endif
+ 
+ #ifndef arch_make_huge_pte
+--- a/mm/hugetlb.c~mm-convert-arch_clear_hugepage_flags-to-take-a-folio
++++ a/mm/hugetlb.c
+@@ -1726,7 +1726,7 @@ static void add_hugetlb_folio(struct hst
+ 		 */
+ 		return;
+ 
+-	arch_clear_hugepage_flags(&folio->page);
++	arch_clear_hugetlb_flags(folio);
+ 	enqueue_hugetlb_folio(h, folio);
  }
  
--static inline void *folio_raw_mapping(struct folio *folio)
-+static inline void *folio_raw_mapping(const struct folio *folio)
- {
- 	unsigned long mapping = (unsigned long)folio->mapping;
- 
---- a/mm/rmap.c~mm-make-page_mapped-take-a-const-argument
-+++ a/mm/rmap.c
-@@ -1134,7 +1134,7 @@ int pfn_mkclean_range(unsigned long pfn,
- 	return page_vma_mkclean_one(&pvmw);
- }
- 
--int folio_total_mapcount(struct folio *folio)
-+int folio_total_mapcount(const struct folio *folio)
- {
- 	int mapcount = folio_entire_mapcount(folio);
- 	int nr_pages;
+@@ -2024,7 +2024,7 @@ void free_huge_folio(struct folio *folio
+ 		spin_unlock_irqrestore(&hugetlb_lock, flags);
+ 		update_and_free_hugetlb_folio(h, folio, true);
+ 	} else {
+-		arch_clear_hugepage_flags(&folio->page);
++		arch_clear_hugetlb_flags(folio);
+ 		enqueue_hugetlb_folio(h, folio);
+ 		spin_unlock_irqrestore(&hugetlb_lock, flags);
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
