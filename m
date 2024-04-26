@@ -1,63 +1,191 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99ABD2C1AC;
-	Fri, 26 Apr 2024 20:52:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D1652BB16
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 22:17:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714164771; cv=none; b=C8SNyfAmmoEkURQmq8X0W1VdCh721DGP4PR1sTUYKwGPs0Jvb/YCXjel+tiugLyBmgcP1s4Qvi2GleiD+fQy3EAvoQYFd5UWj6+2UmLXvr6ZABmGP5fSWY5H4x1dSKxAZrWpgkSOx0UEwYBYI7zvaLhO8QxYWwC9HbJ/6KqyW4c=
+	t=1714169858; cv=none; b=b4rwd0F0bKzIpUPB+46TYuH15XXMfDgBD5lftzRGLSd8yH8A+mweJAK9ZHKEwNQhdxVar0GkUIf/adB+hnMSbCcQ++yb1RtIyqwOfkzRw39uaqwUdslk2Ke68xoWapcnzIKR7A5eKP5G0C9dzjoBVfofPm+Hd14w2ZMDVxwaFoA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714164771; c=relaxed/simple;
-	bh=nNme6+G28RKhaZ5Az8i2eftMHNNZcfGylVkzHPSMbuI=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=ISuzlc/P4ziyMu+gNZQ6bQxdpdTxYvIMQdZfhsqt6fhgGqRgGW0KUkKV6HaX9Y2PAlCFTb6PJb3wy5xh9Hjt+LrqKPWJk5okBky8eu54/++jub3kH9LpfC+9vDHWVJsevg01aEFhJH1FoanW/Uok3N0m4CV+F6uEPGJ5PjevyuE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WmvKcM9L; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714169858; c=relaxed/simple;
+	bh=5ASOgrRaubp60mO9SHBDQlHSHeXJ9eDYZ3VIE2r8Rsk=;
+	h=Date:To:From:Subject:Message-Id; b=NxWUHidtDcFNwKiwLeNv4vbX7umCy8nSHU4aToOp0jyMwqzgozcnISNmRRbPdBiJ2hWTcUxqrIsDwD0oNXG+BLL5hhx/D60/3KhAe55sc+zkZ2cf4/j5PWGoVSN2IDLi6PveqGkvtStzhfwa89k3BB09SzT3AH72YowBxNQ5Bgk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S6ynOcoe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WmvKcM9L"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 6F104C2BD10;
-	Fri, 26 Apr 2024 20:52:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1714164771;
-	bh=nNme6+G28RKhaZ5Az8i2eftMHNNZcfGylVkzHPSMbuI=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=WmvKcM9LpmQUwsvgaisLUCd/UW6+dNnUZStI17e8HwgI5WU6rdZeggoQO4DEihfM4
-	 BYDg6F3JN3P2iFo6Er2OY0fBbfVoFdIEflCNoYbEynisb5n3VySiTB2+du+oFWq+Kt
-	 B7opoO5vKHITrodPFedPT3B6Dr7hB5ttlKL7BM1hBpgWEO0W2gtX03/9+/hQVXuKN+
-	 AFLsNRONiKaNvySBhAfygc/by7fKLRi2bKuqpQ7o3pLlk7SvGdIhAhOs14WDWkRuJk
-	 0bJ/IhbObGFOqZFR2LrqFhRPLaGmPqUvAm81LcZj/gZht+chQsiPNHyAiFd/3JVebh
-	 gvJfA1IRuwxbA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 64B90DF3C9C;
-	Fri, 26 Apr 2024 20:52:51 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 6.9-rc6
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20240426133713.02b077b1ddbf56bb81989f34@linux-foundation.org>
-References: <20240426133713.02b077b1ddbf56bb81989f34@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-mm.kvack.org>
-X-PR-Tracked-Message-Id: <20240426133713.02b077b1ddbf56bb81989f34@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-04-26-13-30
-X-PR-Tracked-Commit-Id: 52ccdde16b6540abe43b6f8d8e1e1ec90b0983af
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: e6ebf01172185d74237193ca7bb6bdfc39f3eaeb
-Message-Id: <171416477140.3172.16607791024188967577.pr-tracker-bot@kernel.org>
-Date: Fri, 26 Apr 2024 20:52:51 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S6ynOcoe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F29CCC113CD;
+	Fri, 26 Apr 2024 22:17:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1714169858;
+	bh=5ASOgrRaubp60mO9SHBDQlHSHeXJ9eDYZ3VIE2r8Rsk=;
+	h=Date:To:From:Subject:From;
+	b=S6ynOcoe3WV7HhXAsrlKRk1FNzxOuabQjY4OH2cFdOy4AIDu8qOqktaRQyWwxLWWD
+	 Mg32ixX/W369RNdgU+VqJtfu8Loox2mJJNonoqAOf8NNVYmSAtEvbrG5ujYzuEWltI
+	 7h4PPv1vAjig6LAdjtROuJM4rfwvAPwjMkHY4Aes=
+Date: Fri, 26 Apr 2024 15:17:37 -0700
+To: mm-commits@vger.kernel.org,honggyu.kim@sk.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-damon-paddr-implement-damon_folio_young.patch added to mm-unstable branch
+Message-Id: <20240426221737.F29CCC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-The pull request you sent on Fri, 26 Apr 2024 13:37:13 -0700:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-04-26-13-30
+The patch titled
+     Subject: mm/damon/paddr: implement damon_folio_young()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-paddr-implement-damon_folio_young.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/e6ebf01172185d74237193ca7bb6bdfc39f3eaeb
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-implement-damon_folio_young.patch
 
-Thank you!
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/paddr: implement damon_folio_young()
+Date: Fri, 26 Apr 2024 12:52:40 -0700
+
+Patch series "mm/damon: add a DAMOS filter type for page granularity
+access recheck".
+
+DAMON provides its best-effort accuracy-overhead tradeoff under the
+user-defined ranges of acceptable level of the monitoring accuracy and
+overhead.  A recent discussion for tiered memory management support from
+DAMON[1] concluded that finding memory regions of specific access pattern
+with low overhead despite of low accuracy via DAMON first, and then double
+checking the access of the region again in a finer (e.g., page)
+granularity could be a useful strategy for some DAMOS schemes.
+
+Add a new type of DAMOS filter, namely 'young' for such a case.  It checks
+each page of DAMOS target region is accessed since the last check, and
+filters it out or in if 'matching' parameter is 'true' or 'false',
+respectively.
+
+Because this is a filter type that applied in page granularity, the
+support depends on DAMON operations set, similar to 'anon' and 'memcg'
+DAMOS filter types.  Implement the support on the DAMON operations set for
+the physical address space, 'paddr', since one of the expected usages[1]
+is based on the physical address space.
+
+[1] https://lore.kernel.org/r/20240227235121.153277-1-sj@kernel.org
+
+
+This patch (of 7):
+
+damon_pa_young() receives physical address, get the folio covering the
+address, and show if the folio is accessed since the last check.  A
+following commit will reuse the internal logic for checking access to a
+given folio.  To avoid duplication of the code, split the internal logic. 
+Also, change the rmap walker function's name from __damon_pa_young() to
+damon_folio_young_one(), following the change of the caller's name and the
+naming rule that more commonly used by other rmap walkers.
+
+Link: https://lkml.kernel.org/r/20240426195247.100306-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240426195247.100306-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Tested-by: Honggyu Kim <honggyu.kim@sk.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/damon/paddr.c |   32 +++++++++++++++++++-------------
+ 1 file changed, 19 insertions(+), 13 deletions(-)
+
+--- a/mm/damon/paddr.c~mm-damon-paddr-implement-damon_folio_young
++++ a/mm/damon/paddr.c
+@@ -79,8 +79,8 @@ static void damon_pa_prepare_access_chec
+ 	}
+ }
+ 
+-static bool __damon_pa_young(struct folio *folio, struct vm_area_struct *vma,
+-		unsigned long addr, void *arg)
++static bool damon_folio_young_one(struct folio *folio,
++		struct vm_area_struct *vma, unsigned long addr, void *arg)
+ {
+ 	bool *accessed = arg;
+ 	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, addr, 0);
+@@ -111,38 +111,44 @@ static bool __damon_pa_young(struct foli
+ 	return *accessed == false;
+ }
+ 
+-static bool damon_pa_young(unsigned long paddr, unsigned long *folio_sz)
++static bool damon_folio_young(struct folio *folio)
+ {
+-	struct folio *folio = damon_get_folio(PHYS_PFN(paddr));
+ 	bool accessed = false;
+ 	struct rmap_walk_control rwc = {
+ 		.arg = &accessed,
+-		.rmap_one = __damon_pa_young,
++		.rmap_one = damon_folio_young_one,
+ 		.anon_lock = folio_lock_anon_vma_read,
+ 	};
+ 	bool need_lock;
+ 
+-	if (!folio)
+-		return false;
+-
+ 	if (!folio_mapped(folio) || !folio_raw_mapping(folio)) {
+ 		if (folio_test_idle(folio))
+-			accessed = false;
++			return false;
+ 		else
+-			accessed = true;
+-		goto out;
++			return true;
+ 	}
+ 
+ 	need_lock = !folio_test_anon(folio) || folio_test_ksm(folio);
+ 	if (need_lock && !folio_trylock(folio))
+-		goto out;
++		return false;
+ 
+ 	rmap_walk(folio, &rwc);
+ 
+ 	if (need_lock)
+ 		folio_unlock(folio);
+ 
+-out:
++	return accessed;
++}
++
++static bool damon_pa_young(unsigned long paddr, unsigned long *folio_sz)
++{
++	struct folio *folio = damon_get_folio(PHYS_PFN(paddr));
++	bool accessed;
++
++	if (!folio)
++		return false;
++
++	accessed = damon_folio_young(folio);
+ 	*folio_sz = folio_size(folio);
+ 	folio_put(folio);
+ 	return accessed;
+_
+
+Patches currently in -mm which might be from sj@kernel.org are
+
+mm-damon-paddr-implement-damon_folio_young.patch
+mm-damon-paddr-implement-damon_folio_mkold.patch
+mm-damon-add-damos-filter-type-young.patch
+mm-damon-paddr-implement-damos-filter-type-young.patch
+docs-mm-damon-design-document-young-page-type-damos-filter.patch
+docs-admin-guide-mm-damon-usage-update-for-young-page-type-damos-filter.patch
+docs-abi-damon-update-for-youg-page-type-damos-filter.patch
+
