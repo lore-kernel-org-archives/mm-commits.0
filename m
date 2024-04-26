@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7A9E80BF0
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91A49811F7
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:07:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104178; cv=none; b=XhPR6dZoYbFO68nNllDpYqLeqKIBuwe+S9Cph5FjqHqu6j3drj+C4d3Su/x/+wP9omQC0hllf0tBzpcXVCofYoTSxNqlYZ7x78IMNNL7inY3oorUEom1GD87zqmVxKx0ZIOpTBEbOeVomMdCucRq52qC5ILczYjcha6Hc5xBlyY=
+	t=1714104452; cv=none; b=PfQItAzefuaB75yaogrp96RDDKlgszbTtile/C1vo7mExvF4FdjJ9L+5EIEIdttkuds0pj1Qpm1wZnRKoVo7RZKpI/DwWqTJUar5nP0daodthVSXn9TTRZpF0/pduPcC+ZCUAz86hPH1A3wqll7ZAb1CSL/D2Z9t3LxT/e37xG4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104178; c=relaxed/simple;
-	bh=TkJzYlkJ8Wd2NfkfUyS2IPxi1KtRAdKGojrhO2bCwEc=;
-	h=Date:To:From:Subject:Message-Id; b=JwltFLBPzUlfpOaev5ahV5bz6yUL2sDIHfPE8+0z0kNUNemqtkJAi954Q9vv9y6pQ2tIsRFatb5inQdqM3LyhzlnpOKYVsaj8SxQLerwPurKBgxhQ4M2imnDacnvlJThOx7cp8wo8rmf+Wkc1gQ1CjiD3Sl3CrYDR6UXdDWQk20=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2WM0QDR9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104452; c=relaxed/simple;
+	bh=fAu3I/xkFe6aEbhu7njzwrzuBhA7//ZUKCNUYJEXols=;
+	h=Date:To:From:Subject:Message-Id; b=s9BZiWi/EN48jhwHRFLFbP6Z5LmzaSkCHj6f7xcK6puBTVWgBdtmxCJ+GcCtS6RpdPx9Z6gOPatizwUCfZrWIOXfdhW2WeNh/XkAdzzY7hBlpBJOvuB6ZQBEoVMA5YCd/0+Pze5qgEcV3yAhVw5RGeR7ctQVvNgt6ZIlZtwg84E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kNKa2cS4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2WM0QDR9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD47FC113CD;
-	Fri, 26 Apr 2024 04:02:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kNKa2cS4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C958C113CD;
+	Fri, 26 Apr 2024 04:07:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104178;
-	bh=TkJzYlkJ8Wd2NfkfUyS2IPxi1KtRAdKGojrhO2bCwEc=;
+	s=korg; t=1714104452;
+	bh=fAu3I/xkFe6aEbhu7njzwrzuBhA7//ZUKCNUYJEXols=;
 	h=Date:To:From:Subject:From;
-	b=2WM0QDR9psEhpRDexTzzPZwN5l6e9pgdDBie/o/RLGCp5UFug7ga5rk4ny9hEjwXH
-	 aHv11T4YiA13Fzthmmfeoilj/eIluk0zNdmFuxt8FNHRIoX+8/hBbuFkU5HMusPh7x
-	 nL5YO6ao6Vkjihqm8nOEgrbHJhqdxrBIN8Gd4oIQ=
-Date: Thu, 25 Apr 2024 21:02:58 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,mgorman@techsingularity.net,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=kNKa2cS4YWLRFtDNnCAkQTxT8ahTgAHmhmSmeUbItl61mp02CFc4eDny2VSsOyAEF
+	 ypNf+1kCVzPEMGtQ9NxLIyAB+8EqjEDhvYsKny6M4QfKa4GPlg8558TPeQmQAIVq6P
+	 ysHX65octF4UTHiBfnwsFYdQovdgcWsX9ok1+1LY=
+Date: Thu, 25 Apr 2024 21:07:31 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,ghe@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-set-pageblock_order-to-hpage_pmd_order-in-case-with-config_hugetlb_page-but-thp-enabled.patch removed from -mm tree
-Message-Id: <20240426040258.AD47FC113CD@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-correctly-use-ocfs2_find_next_zero_bit.patch removed from -mm tree
+Message-Id: <20240426040732.1C958C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,109 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: set pageblock_order to HPAGE_PMD_ORDER in case with !CONFIG_HUGETLB_PAGE but THP enabled
+     Subject: ocfs2: correctly use ocfs2_find_next_zero_bit()
 has been removed from the -mm tree.  Its filename was
-     mm-set-pageblock_order-to-hpage_pmd_order-in-case-with-config_hugetlb_page-but-thp-enabled.patch
+     ocfs2-correctly-use-ocfs2_find_next_zero_bit.patch
 
-This patch was dropped because it was merged into the mm-stable branch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: set pageblock_order to HPAGE_PMD_ORDER in case with !CONFIG_HUGETLB_PAGE but THP enabled
-Date: Fri, 5 Apr 2024 20:24:16 +0800
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: correctly use ocfs2_find_next_zero_bit()
+Date: Thu, 14 Mar 2024 10:17:13 +0800
 
-As Vlastimil suggested in previous discussion[1], it doesn't make sense to
-set pageblock_order as MAX_PAGE_ORDER when hugetlbfs is not enabled and
-THP is enabled.  Instead, it should be set to HPAGE_PMD_ORDER.
+If no bits are zero, ocfs2_find_next_zero_bit() will return max size, so
+check the return value with -1 is meaningless.  Correct this usage and
+cleanup the code.
 
-[1] https://lore.kernel.org/all/76457ec5-d789-449b-b8ca-dcb6ceb12445@suse.cz/
-Link: https://lkml.kernel.org/r/3d57d253070035bdc0f6d6e5681ce1ed0e1934f7.1712286863.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: https://lkml.kernel.org/r/20240314021713.240796-1-joseph.qi@linux.alibaba.com
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Heming Zhao <heming.zhao@suse.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pageblock-flags.h |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/ocfs2/localalloc.c   |   19 ++++++-------------
+ fs/ocfs2/reservations.c |    2 +-
+ fs/ocfs2/suballoc.c     |    6 ++----
+ 3 files changed, 9 insertions(+), 18 deletions(-)
 
---- a/include/linux/pageblock-flags.h~mm-set-pageblock_order-to-hpage_pmd_order-in-case-with-config_hugetlb_page-but-thp-enabled
-+++ a/include/linux/pageblock-flags.h
-@@ -28,7 +28,7 @@ enum pageblock_bits {
- 	NR_PAGEBLOCK_BITS
- };
+--- a/fs/ocfs2/localalloc.c~ocfs2-correctly-use-ocfs2_find_next_zero_bit
++++ a/fs/ocfs2/localalloc.c
+@@ -863,14 +863,8 @@ static int ocfs2_local_alloc_find_clear_
  
--#ifdef CONFIG_HUGETLB_PAGE
-+#if defined(CONFIG_HUGETLB_PAGE)
+ 	numfound = bitoff = startoff = 0;
+ 	left = le32_to_cpu(alloc->id1.bitmap1.i_total);
+-	while ((bitoff = ocfs2_find_next_zero_bit(bitmap, left, startoff)) != -1) {
+-		if (bitoff == left) {
+-			/* mlog(0, "bitoff (%d) == left", bitoff); */
+-			break;
+-		}
+-		/* mlog(0, "Found a zero: bitoff = %d, startoff = %d, "
+-		   "numfound = %d\n", bitoff, startoff, numfound);*/
+-
++	while ((bitoff = ocfs2_find_next_zero_bit(bitmap, left, startoff)) <
++	       left) {
+ 		/* Ok, we found a zero bit... is it contig. or do we
+ 		 * start over?*/
+ 		if (bitoff == startoff) {
+@@ -976,9 +970,9 @@ static int ocfs2_sync_local_to_main(stru
+ 	start = count = 0;
+ 	left = le32_to_cpu(alloc->id1.bitmap1.i_total);
  
- #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
- 
-@@ -45,7 +45,11 @@ extern unsigned int pageblock_order;
- 
- #endif /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
- 
--#else /* CONFIG_HUGETLB_PAGE */
-+#elif defined(CONFIG_TRANSPARENT_HUGEPAGE)
+-	while ((bit_off = ocfs2_find_next_zero_bit(bitmap, left, start))
+-	       != -1) {
+-		if ((bit_off < left) && (bit_off == start)) {
++	while ((bit_off = ocfs2_find_next_zero_bit(bitmap, left, start)) <
++	       left) {
++		if (bit_off == start) {
+ 			count++;
+ 			start++;
+ 			continue;
+@@ -1002,8 +996,7 @@ static int ocfs2_sync_local_to_main(stru
+ 				goto bail;
+ 			}
+ 		}
+-		if (bit_off >= left)
+-			break;
 +
-+#define pageblock_order		min_t(unsigned int, HPAGE_PMD_ORDER, MAX_PAGE_ORDER)
-+
-+#else /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 		count = 1;
+ 		start = bit_off + 1;
+ 	}
+--- a/fs/ocfs2/reservations.c~ocfs2-correctly-use-ocfs2_find_next_zero_bit
++++ a/fs/ocfs2/reservations.c
+@@ -414,7 +414,7 @@ static int ocfs2_resmap_find_free_bits(s
  
- /* If huge pages are not used, group by MAX_ORDER_NR_PAGES */
- #define pageblock_order		MAX_PAGE_ORDER
+ 	start = search_start;
+ 	while ((offset = ocfs2_find_next_zero_bit(bitmap, resmap->m_bitmap_len,
+-						 start)) != -1) {
++					start)) < resmap->m_bitmap_len) {
+ 		/* Search reached end of the region */
+ 		if (offset >= (search_start + search_len))
+ 			break;
+--- a/fs/ocfs2/suballoc.c~ocfs2-correctly-use-ocfs2_find_next_zero_bit
++++ a/fs/ocfs2/suballoc.c
+@@ -1290,10 +1290,8 @@ static int ocfs2_block_group_find_clear_
+ 	found = start = best_offset = best_size = 0;
+ 	bitmap = bg->bg_bitmap;
+ 
+-	while((offset = ocfs2_find_next_zero_bit(bitmap, total_bits, start)) != -1) {
+-		if (offset == total_bits)
+-			break;
+-
++	while ((offset = ocfs2_find_next_zero_bit(bitmap, total_bits, start)) <
++	       total_bits) {
+ 		if (!ocfs2_test_bg_bit_allocatable(bg_bh, offset)) {
+ 			/* We found a zero, but we can't use it as it
+ 			 * hasn't been put to disk yet! */
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-mm-page_alloc-allowing-mthp-compaction-to-capture-the-freed-page-directly.patch
 
