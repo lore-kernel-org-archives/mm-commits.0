@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 453557FBB2
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:01:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D8CD7F465
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:01:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104071; cv=none; b=talybfl2Br5C4Df/fXrrZVk6JVeedaeFhPMDUrzx7yt5qWlUq/vKH9z/BQ7aCNPBaWmSqowTLeKUDZT+rqIGAGJM004bpS92FiHnHRqzLkhbku4DmgWJBYKVDG8YSjQvf9r7ZbWjrIvgYh9nNtNVo3oFmhOGvxsp6weRoJas1w4=
+	t=1714104073; cv=none; b=tcABGb0ctSyar+wAfcLy04k5EJL8AHRDcNcB3W/4QqeNZXOGWex0Xq4gjgB0HQZyq10Y9hP6NLxtP4HcEbBTe3DUR4Ri5D5re1Z6dHcq2bB/V498YWs2n4Z4YtLVcjpUsDjZ6J5m+bs0awoBPw62MMIhTJvoYoFHq+9r9kdGDyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104071; c=relaxed/simple;
-	bh=Z06H0X32YFJgmZDFXUYyzkvrntxCdFze8FtMozSgpuI=;
-	h=Date:To:From:Subject:Message-Id; b=KFochWTxSSM/jSaqCyvSIr4ts9ogFI+O2s/SWch2sNsa7qJ1FZ2YHOwq9I76ePR8lo6IoCq04+53/dRvRV/OH8FTKfbzFsxXvAIAVdakyi6L9ltYDKdaVaUD3xD9HMd+wxksdUixMcTL6ykK1hWtFdq4A5lQ6hi65TALpTKmoFc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DbW6AoU5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104073; c=relaxed/simple;
+	bh=vLnQtyaxPj+zvbfDvxxu0rUtBEETRQV+2aCZGPABd00=;
+	h=Date:To:From:Subject:Message-Id; b=reID/K50PocZ/AgMnzNYLA5ssM1pzWvnQA4QSpgCjhkNvlXksVHCxIH+o6PloiTDYpampbfbFzzCE/KHU18jaaolpJgpdm5c8ZRAGSQpW1t/3aqmNQsSm7WL9f2wLsEMkqBs8naVhxM3NY6BhI3CjUamV4F2PRsja4Egu86Yz4s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oJMKFl9n; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DbW6AoU5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C591C113CD;
-	Fri, 26 Apr 2024 04:01:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oJMKFl9n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06246C113CD;
+	Fri, 26 Apr 2024 04:01:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104071;
-	bh=Z06H0X32YFJgmZDFXUYyzkvrntxCdFze8FtMozSgpuI=;
+	s=korg; t=1714104073;
+	bh=vLnQtyaxPj+zvbfDvxxu0rUtBEETRQV+2aCZGPABd00=;
 	h=Date:To:From:Subject:From;
-	b=DbW6AoU5L2Cdub7tHuNXcIE5Ukf8cv5EWwyz3fD7fSLglBZ1JaDA0RIzYlwaa+xZx
-	 M8BFcQczTYz3KD8Wpb94fRHO1kkXKX9uAsxpFJlxAYhIx0/K+NSGL+A/X+5fVXlTjg
-	 ziMqYbjQ41keF9/m9WYP+UBbbDJDJjzMWycZhyUY=
-Date: Thu, 25 Apr 2024 21:01:10 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,ryan.roberts@arm.com,nathan@kernel.org,kernel@xen0n.name,jgg@nvidia.com,david@redhat.com,chenhuacai@kernel.org,peterx@redhat.com,akpm@linux-foundation.org
+	b=oJMKFl9n6a63I0SZGZWJzE+5kJqSmsA5jOcP0zi6JAzl8jGve7jj0wXHNBsCMgZil
+	 8y+dvR0gI29LMdSgARDKAluL+HJoHVRvzQawXO8wuTWFZiusyf2aQ5gdhFZJo+wx40
+	 2BVZ6vTulUBkBuzmBz3LkAPW7Eqpvcl40t+NfM9Y=
+Date: Thu, 25 Apr 2024 21:01:12 -0700
+To: mm-commits@vger.kernel.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-allow-anon-exclusive-check-over-hugetlb-tail-pages.patch removed from -mm tree
-Message-Id: <20240426040111.1C591C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-use-rwsem-assertion-macros-for-mmap_lock.patch removed from -mm tree
+Message-Id: <20240426040113.06246C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,91 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: allow anon exclusive check over hugetlb tail pages
+     Subject: mm: use rwsem assertion macros for mmap_lock
 has been removed from the -mm tree.  Its filename was
-     mm-allow-anon-exclusive-check-over-hugetlb-tail-pages.patch
+     mm-use-rwsem-assertion-macros-for-mmap_lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm: allow anon exclusive check over hugetlb tail pages
-Date: Tue, 2 Apr 2024 21:32:47 -0400
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: use rwsem assertion macros for mmap_lock
+Date: Wed, 27 Mar 2024 19:06:59 +0000
 
-PageAnonExclusive() used to forbid tail pages for hugetlbfs, as that used
-to be called mostly in hugetlb specific paths and the head page was
-guaranteed.
+This slightly strengthens our write assertion when lockdep is disabled. 
+It also downgrades us from BUG_ON to WARN_ON, but I think that's an
+improvement.  I don't think dumping the mm_struct was all that valuable;
+the call chain is what's important.
 
-As we move forward towards merging hugetlb paths into generic mm, we may
-start to pass in tail hugetlb pages (when with cont-pte/cont-pmd huge
-pages) for such check.  Allow it to properly fetch the head, in which case
-the anon-exclusiveness of the head will always represents the tail page.
-
-There's already a sign of it when we look at the GUP-fast which already
-contain the hugetlb processing altogether: we used to have a specific
-commit 5805192c7b72 ("mm/gup: handle cont-PTE hugetlb pages correctly in
-gup_must_unshare() via GUP-fast") covering that area.  Now with this more
-generic change, that can also go away.
-
-[akpm@linux-foundation.org: simplify PageAnonExclusive(), per Matthew]
-  Link: https://lkml.kernel.org/r/Zg3u5Sh9EbbYPhaI@casper.infradead.org
-Link: https://lkml.kernel.org/r/20240403013249.1418299-2-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: WANG Xuerui <kernel@xen0n.name>
+Link: https://lkml.kernel.org/r/20240327190701.1082560-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    7 ++++++-
- mm/internal.h              |   10 ----------
- 2 files changed, 6 insertions(+), 11 deletions(-)
+ include/linux/mmap_lock.h |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/include/linux/page-flags.h~mm-allow-anon-exclusive-check-over-hugetlb-tail-pages
-+++ a/include/linux/page-flags.h
-@@ -1095,7 +1095,12 @@ PAGEFLAG(Isolated, isolated, PF_ANY);
- static __always_inline int PageAnonExclusive(const struct page *page)
+--- a/include/linux/mmap_lock.h~mm-use-rwsem-assertion-macros-for-mmap_lock
++++ a/include/linux/mmap_lock.h
+@@ -60,16 +60,14 @@ static inline void __mmap_lock_trace_rel
+ 
+ #endif /* CONFIG_TRACING */
+ 
+-static inline void mmap_assert_locked(struct mm_struct *mm)
++static inline void mmap_assert_locked(const struct mm_struct *mm)
  {
- 	VM_BUG_ON_PGFLAGS(!PageAnon(page), page);
--	VM_BUG_ON_PGFLAGS(PageHuge(page) && !PageHead(page), page);
-+	/*
-+	 * HugeTLB stores this information on the head page; THP keeps it per
-+	 * page
-+	 */
-+	if (PageHuge(page))
-+		page = compound_head(page);
- 	return test_bit(PG_anon_exclusive, &PF_ANY(page, 1)->flags);
+-	lockdep_assert_held(&mm->mmap_lock);
+-	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_lock), mm);
++	rwsem_assert_held(&mm->mmap_lock);
  }
  
---- a/mm/internal.h~mm-allow-anon-exclusive-check-over-hugetlb-tail-pages
-+++ a/mm/internal.h
-@@ -1204,16 +1204,6 @@ static inline bool gup_must_unshare(stru
- 		smp_rmb();
+-static inline void mmap_assert_write_locked(struct mm_struct *mm)
++static inline void mmap_assert_write_locked(const struct mm_struct *mm)
+ {
+-	lockdep_assert_held_write(&mm->mmap_lock);
+-	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_lock), mm);
++	rwsem_assert_held_write(&mm->mmap_lock);
+ }
  
- 	/*
--	 * During GUP-fast we might not get called on the head page for a
--	 * hugetlb page that is mapped using cont-PTE, because GUP-fast does
--	 * not work with the abstracted hugetlb PTEs that always point at the
--	 * head page. For hugetlb, PageAnonExclusive only applies on the head
--	 * page (as it cannot be partially COW-shared), so lookup the head page.
--	 */
--	if (unlikely(!PageHead(page) && PageHuge(page)))
--		page = compound_head(page);
--
--	/*
- 	 * Note that PageKsm() pages cannot be exclusive, and consequently,
- 	 * cannot get pinned.
- 	 */
+ #ifdef CONFIG_PER_VMA_LOCK
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-userfaultfd-reset-ptes-when-close-for-wr-protected-ones.patch
-mm-hugetlb-assert-hugetlb_lock-in-__hugetlb_cgroup_commit_charge.patch
-mm-page_table_check-support-userfault-wr-protect-entries.patch
+doc-improve-the-description-of-__folio_mark_dirty.patch
+buffer-add-kernel-doc-for-block_dirty_folio.patch
+buffer-add-kernel-doc-for-try_to_free_buffers.patch
+buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch
+buffer-add-kernel-doc-for-brelse-and-__brelse.patch
+buffer-add-kernel-doc-for-bforget-and-__bforget.patch
+buffer-improve-bdev_getblk-documentation.patch
+doc-split-bufferrst-out-of-api-summaryrst.patch
+doc-split-bufferrst-out-of-api-summaryrst-fix.patch
+mm-memory-failure-remove-fsdax_pgoff-argument-from-__add_to_kill.patch
+mm-memory-failure-pass-addr-to-__add_to_kill.patch
+mm-return-the-address-from-page_mapped_in_vma.patch
+mm-make-page_mapped_in_vma-conditional-on-config_memory_failure.patch
+mm-memory-failure-convert-shake_page-to-shake_folio.patch
+mm-convert-hugetlb_page_mapping_lock_write-to-folio.patch
+mm-memory-failure-convert-memory_failure-to-use-a-folio.patch
+mm-memory-failure-convert-hwpoison_user_mappings-to-take-a-folio.patch
+mm-memory-failure-add-some-folio-conversions-to-unpoison_memory.patch
+mm-memory-failure-use-folio-functions-throughout-collect_procs.patch
+mm-memory-failure-pass-the-folio-to-collect_procs_ksm.patch
+fscrypt-convert-bh_get_inode_and_lblk_num-to-use-a-folio.patch
+f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio.patch
+memory-failure-remove-calls-to-page_mapping.patch
+migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch
+userfault-expand-folio-use-in-mfill_atomic_install_pte.patch
+mm-remove-page_mapping.patch
+mm-remove-page_cache_alloc.patch
+mm-remove-put_devmap_managed_page.patch
+mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs.patch
+mm-remove-page_ref_sub_return.patch
+gup-use-folios-for-gup_devmap.patch
+mm-add-kernel-doc-for-folio_mark_accessed.patch
+mm-remove-pagereferenced.patch
+mm-simplify-thp_vma_allowable_order.patch
 
