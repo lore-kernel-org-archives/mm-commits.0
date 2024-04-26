@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E90D7D3FA
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7013A7EF10
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104014; cv=none; b=CMMdzcoP8hQTohRX9nZ4RoEOlTAKF/Jz51ggRBIEQjMyP/ClqMfiPalDoh7br2sOa7ateOx2RNBimjyGwHcENNMzQm2ZE9BX6YGcl4qCMVusITDxLIpJRTkde3wva1coR66H/PGMtdDqj0kRW2FQZ2gaczuFOgxe+XLe7aDuUu0=
+	t=1714104015; cv=none; b=aBNq+jPaRSeuyxpGOzljEisVxbycWqrrzjjSBNy7/46jO96coNfNow0+dNjKthTGPyAEXXkzKfj3hEGGLo/dMec9temhZ5r68IoIQsNCPwiESSix1doWbo+fT9LR0g10qcME20g0gYwFQxHU+t0BTGygkfYkhQdAtycw8qHjSFY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104014; c=relaxed/simple;
-	bh=vmNwDb1N/ttYpG3IzrOI+ukRQrKMG/EMByOjm7MInEk=;
-	h=Date:To:From:Subject:Message-Id; b=UdW4g3Jwriv3I8ohKwo4TK7uWkbT/PqApKYO3aeUrP6Tsg4nn6cugy9GYvZkK4jj9sJqAo5xkNLldJVnZqNI9p/2+fTZsDNV8aHnmc+1IxbzWzV+YDH65RW77HT6Z6wPc+fA3micvUazJYWkDsWBClPvGA51jGJ2C3svNMVrkbA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KwDimg/6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104015; c=relaxed/simple;
+	bh=jR65tVouNiP1m4srBx5LA+0m7nK9g38t+xW09DJzdR8=;
+	h=Date:To:From:Subject:Message-Id; b=LErsOJ+PkpmFS0/rjQyTvfXkM2OZCFLzblRMOW4bpatbWo7iSHx1FgrUNuYm4rQrJtz9tPTMutNjBDy9AkD7MhBs+toOIh1FrnA70CFYyWtaF1v98KYJv0iMlMoDuVk4Fg8q9sxtRyI2p2jZ5myDklnKkhY2uwsZcJ8d1DHqSnQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IWEjzlVi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KwDimg/6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44C56C116B1;
-	Fri, 26 Apr 2024 04:00:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IWEjzlVi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 435D8C116B1;
+	Fri, 26 Apr 2024 04:00:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104014;
-	bh=vmNwDb1N/ttYpG3IzrOI+ukRQrKMG/EMByOjm7MInEk=;
+	s=korg; t=1714104015;
+	bh=jR65tVouNiP1m4srBx5LA+0m7nK9g38t+xW09DJzdR8=;
 	h=Date:To:From:Subject:From;
-	b=KwDimg/6M2BYOZbfcmfcMw37JFTfuwiVOiJtzKosEaK7rqwSMG+HiaSCCswu6UWFe
-	 OhGiXHN5HNGUScZ/7CKqGiSqixTlM6Oisd+T864Iq8N6kAwzY0JM3MbUlxp79vr7Vq
-	 x3/cV+bRv3qiPMRS3lnAbHeEWGthocdLqm8CkcPc=
-Date: Thu, 25 Apr 2024 21:00:13 -0700
-To: mm-commits@vger.kernel.org,svetly.todorov@memverge.com,willy@infradead.org,akpm@linux-foundation.org
+	b=IWEjzlVibKTnN2tmugemMAYzCz0KATCNgvdZE2D/o/12TF6vT5IjxPE+wUg46TthH
+	 lroeflPIHquIlNx8+s1SQnOz+kjuie+srzBNkIkyjpby3StOYFSeLPgMxzQ+xPdx7o
+	 PomAisGpXpekiJqr4zjHZ9Fe+yEfpHyp2HwfFF1U=
+Date: Thu, 25 Apr 2024 21:00:14 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] xtensa-remove-uses-of-pg_arch_1-on-individual-pages.patch removed from -mm tree
-Message-Id: <20240426040014.44C56C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-make-page_ext_get-take-a-const-argument.patch removed from -mm tree
+Message-Id: <20240426040015.435D8C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xtensa: remove uses of PG_arch_1 on individual pages
+     Subject: mm: make page_ext_get() take a const argument
 has been removed from the -mm tree.  Its filename was
-     xtensa-remove-uses-of-pg_arch_1-on-individual-pages.patch
+     mm-make-page_ext_get-take-a-const-argument.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: xtensa: remove uses of PG_arch_1 on individual pages
-Date: Tue, 26 Mar 2024 17:10:24 +0000
+Subject: mm: make page_ext_get() take a const argument
+Date: Tue, 26 Mar 2024 17:10:25 +0000
 
-Since switching to the new page table range API, we disregard the
-PG_arch_1 (aka dcache dirty) flag on tail pages, and only pay attention to
-it on the folio.  Fix these two missed spots where we were setting it on
-arbitrary pages.
+In order to constify other functions, we need page_ext_get() to be const. 
+This is no problem as lookup_page_ext() already takes a const argument.
 
-Link: https://lkml.kernel.org/r/20240326171045.410737-3-willy@infradead.org
-Reported-by: Svetly Todorov <svetly.todorov@memverge.com>
+Link: https://lkml.kernel.org/r/20240326171045.410737-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Svetly Todorov <svetly.todorov@memverge.com>	[xtensa]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/mm/cache.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/page_ext.h    |    4 ++--
+ include/linux/pgalloc_tag.h |    2 --
+ mm/page_ext.c               |    2 +-
+ 3 files changed, 3 insertions(+), 5 deletions(-)
 
---- a/arch/xtensa/mm/cache.c~xtensa-remove-uses-of-pg_arch_1-on-individual-pages
-+++ a/arch/xtensa/mm/cache.c
-@@ -87,12 +87,13 @@ static inline void *coherent_kvaddr(stru
- 
- void clear_user_highpage(struct page *page, unsigned long vaddr)
- {
-+	struct folio *folio = page_folio(page);
- 	unsigned long paddr;
- 	void *kvaddr = coherent_kvaddr(page, TLBTEMP_BASE_1, vaddr, &paddr);
- 
- 	preempt_disable();
- 	kmap_invalidate_coherent(page, vaddr);
--	set_bit(PG_arch_1, &page->flags);
-+	set_bit(PG_arch_1, folio_flags(folio, 0));
- 	clear_page_alias(kvaddr, paddr);
- 	preempt_enable();
+--- a/include/linux/page_ext.h~mm-make-page_ext_get-take-a-const-argument
++++ a/include/linux/page_ext.h
+@@ -77,7 +77,7 @@ static inline void page_ext_init(void)
  }
-@@ -101,6 +102,7 @@ EXPORT_SYMBOL(clear_user_highpage);
- void copy_user_highpage(struct page *dst, struct page *src,
- 			unsigned long vaddr, struct vm_area_struct *vma)
- {
-+	struct folio *folio = page_folio(dst);
- 	unsigned long dst_paddr, src_paddr;
- 	void *dst_vaddr = coherent_kvaddr(dst, TLBTEMP_BASE_1, vaddr,
- 					  &dst_paddr);
-@@ -109,7 +111,7 @@ void copy_user_highpage(struct page *dst
+ #endif
  
- 	preempt_disable();
- 	kmap_invalidate_coherent(dst, vaddr);
--	set_bit(PG_arch_1, &dst->flags);
-+	set_bit(PG_arch_1, folio_flags(folio, 0));
- 	copy_page_alias(dst_vaddr, src_vaddr, dst_paddr, src_paddr);
- 	preempt_enable();
+-extern struct page_ext *page_ext_get(struct page *page);
++extern struct page_ext *page_ext_get(const struct page *page);
+ extern void page_ext_put(struct page_ext *page_ext);
+ 
+ static inline void *page_ext_data(struct page_ext *page_ext,
+@@ -117,7 +117,7 @@ static inline void page_ext_init_flatmem
+ {
  }
+ 
+-static inline struct page_ext *page_ext_get(struct page *page)
++static inline struct page_ext *page_ext_get(const struct page *page)
+ {
+ 	return NULL;
+ }
+--- a/include/linux/pgalloc_tag.h~mm-make-page_ext_get-take-a-const-argument
++++ a/include/linux/pgalloc_tag.h
+@@ -12,8 +12,6 @@
+ #include <linux/page_ext.h>
+ 
+ extern struct page_ext_operations page_alloc_tagging_ops;
+-extern struct page_ext *page_ext_get(struct page *page);
+-extern void page_ext_put(struct page_ext *page_ext);
+ 
+ static inline union codetag_ref *codetag_ref_from_page_ext(struct page_ext *page_ext)
+ {
+--- a/mm/page_ext.c~mm-make-page_ext_get-take-a-const-argument
++++ a/mm/page_ext.c
+@@ -514,7 +514,7 @@ void __meminit pgdat_page_ext_init(struc
+  * Context: Any context.  Caller may not sleep until they have called
+  * page_ext_put().
+  */
+-struct page_ext *page_ext_get(struct page *page)
++struct page_ext *page_ext_get(const struct page *page)
+ {
+ 	struct page_ext *page_ext;
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
