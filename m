@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 287732F36
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:19:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 252A58494
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:21:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714101562; cv=none; b=MyXmShpqj5m+xcPFqLjB/h7f63tHmGcL5zOPWnGE6FEvctEwlW2SJ+Jb9m6Pa9soKHTCAVk7O9zysrlsHtpvAVNqB62poHKfYaexhkVY7tFoHDu0lxiOXpIJXybSZGZR4CoBIqRUZ1e+O8Qy97UszORuZmz75adLwwmxHV7SBpc=
+	t=1714101682; cv=none; b=kJR73xdSNjlbkp06+zL/7CggkvojUYMvn1zM1c6jCAquCak7qW7SOEj7gEtXS5eUq23ABlLTzqGRNVb4N/y1DzLIIRp+rywZncTwYM93BQDEk6Og1k7+TvKpsDhir3zVt6ZVWL0Hf9iLquM1O4jp+QuBjJizcKEvjWRZcaMhh7g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714101562; c=relaxed/simple;
-	bh=RAYdhZdbk8xMdOc+FG+JmhCxBLF1orZ0aPVdoA64nC4=;
-	h=Date:To:From:Subject:Message-Id; b=KFjInBmO4hF4ac3S09e2fqL+TWuVXZcBWtN6ZRZNu0P38iM4ZZkbtVJetlEAuv12p8k9witHrm7+xTVeBu4ydDFVhI1u7BYfgO82Pt+O/R5C29S3WEKGGMcmU1C1x9CdY7k6DPN4yb9/TmTVriEhbpYuJskJUq0NAEMej/nCGc4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HxQRaqJ3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714101682; c=relaxed/simple;
+	bh=phcnORNHz0ykICAOAyxXYjlM1QRsE7DOcOBCuU7WqS0=;
+	h=Date:To:From:Subject:Message-Id; b=Xc85QNngxvgWRWi7M7dH7FmlInzlp4fLy2X54KuqFJTaAY1rO/CMON69AFPlswAUUzJR1f+3H0ij0PlvCq4WwQbiW0pelfo2q7gh68jGEEbUx/WgvAkG47DJzGjaumidD4iVOObtWNyfi8GLb9ZJ8tY7hS1w3zw+Ob/uXpivoM8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hjewM2Gx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HxQRaqJ3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5F7CC116B1;
-	Fri, 26 Apr 2024 03:19:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hjewM2Gx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6AB2C113CD;
+	Fri, 26 Apr 2024 03:21:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714101561;
-	bh=RAYdhZdbk8xMdOc+FG+JmhCxBLF1orZ0aPVdoA64nC4=;
+	s=korg; t=1714101682;
+	bh=phcnORNHz0ykICAOAyxXYjlM1QRsE7DOcOBCuU7WqS0=;
 	h=Date:To:From:Subject:From;
-	b=HxQRaqJ3H/+pGEXb70E9W35Ug25OYEJjNUOiqVFmkwhkH7QnJIWnmLkrthXZ1wNTF
-	 Momy8zyJe+i2WQeQkp5LenBL44/ILYn1lv7jcRpVAU3Zup8UjueIEz8jYRX7DxqIL5
-	 fbBQF2v2eqmO60vl7oSLHSm90Gj2hmmjhQLM1ozE=
-Date: Thu, 25 Apr 2024 20:19:21 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,linux@rasmusvillemoes.dk,linmiaohe@huawei.com,hannes@cmpxchg.org,baolin.wang@linux.alibaba.com,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
+	b=hjewM2GxWDHlrQF1XkIlA98mOdlkYJmzQKLrHIckBWBPFACQUH7drUkyLapBaIHbJ
+	 lThLfoMTAmYGvWjnsIQ8JQRxo6Sg0NvbgPN0DpFpY69VtBN7DYDoxfeMQrtB6du9Fo
+	 9TXwu9tmGCrZESaI8ShimZMKeTd264NBnELrLs2Q=
+Date: Thu, 25 Apr 2024 20:21:21 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@ZenIV.linux.org.uk,tujinjiang@huawei.com,jack@suse.cz,brauner@kernel.org,liushixin2@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-page_alloc-consolidate-free-page-accounting-fix-4.patch removed from -mm tree
-Message-Id: <20240426031921.D5F7CC116B1@smtp.kernel.org>
+Subject: [folded-merged] mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags-fix.patch removed from -mm tree
+Message-Id: <20240426032121.E6AB2C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,76 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: avoid defining unused function
+     Subject: mm/filemap: don't decrease mmap_miss when folio has workingset flag
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-consolidate-free-page-accounting-fix-4.patch
+     mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags-fix.patch
 
-This patch was dropped because it was folded into mm-page_alloc-consolidate-free-page-accounting.patch
+This patch was dropped because it was folded into mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags.patch
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: mm: page_alloc: avoid defining unused function
-Date: Tue, 23 Apr 2024 19:14:43 +0300
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: mm/filemap: don't decrease mmap_miss when folio has workingset flag
+Date: Tue, 26 Mar 2024 14:50:26 +0800
 
-In some configurations I got mm/page_alloc.c:656:20: warning: unused
-function 'add_to_free_list' [-Wunused-function] Because the only user is
-guarded with a certain ifdeffery, do the same for add_to_free_list().
+add comments
 
-Link: https://lkml.kernel.org/r/20240423161506.2637177-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Link: https://lkml.kernel.org/r/20240326065026.1910584-1-liushixin2@huawei.com
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jinjiang Tu <tujinjiang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/filemap.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-consolidate-free-page-accounting-fix-4
-+++ a/mm/page_alloc.c
-@@ -673,14 +673,6 @@ static inline void __add_to_free_list(st
- 	area->nr_free++;
- }
+--- a/mm/filemap.c~mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags-fix
++++ a/mm/filemap.c
+@@ -3492,6 +3492,13 @@ static vm_fault_t filemap_map_folio_rang
+ 		if (PageHWPoison(page + count))
+ 			goto skip;
  
--static inline void add_to_free_list(struct page *page, struct zone *zone,
--				    unsigned int order, int migratetype,
--				    bool tail)
--{
--	__add_to_free_list(page, zone, order, migratetype, tail);
--	account_freepages(zone, 1 << order, migratetype);
--}
--
- /*
-  * Used for pages which are on another list. Move the pages to the tail
-  * of the list - so the moved pages won't immediately be considered for
-@@ -6770,6 +6762,14 @@ bool is_free_buddy_page(struct page *pag
- EXPORT_SYMBOL(is_free_buddy_page);
++		/*
++		 * If there are too many folios that are recently evicted
++		 * in a file, they will probably continue to be evicted.
++		 * In such situation, read-ahead is only a waste of IO.
++		 * Don't decrease mmap_miss in this scenario to make sure
++		 * we can stop read-ahead.
++		 */
+ 		if (!folio_test_workingset(folio))
+ 			(*mmap_miss)++;
  
- #ifdef CONFIG_MEMORY_FAILURE
-+static inline void add_to_free_list(struct page *page, struct zone *zone,
-+				    unsigned int order, int migratetype,
-+				    bool tail)
-+{
-+	__add_to_free_list(page, zone, order, migratetype, tail);
-+	account_freepages(zone, 1 << order, migratetype);
-+}
-+
- /*
-  * Break down a higher-order page in sub-pages, and keep our target out of
-  * buddy allocator.
+@@ -3542,6 +3549,7 @@ static vm_fault_t filemap_map_order0_fol
+ 	if (PageHWPoison(page))
+ 		return ret;
+ 
++	/* See comment of filemap_map_folio_range() */
+ 	if (!folio_test_workingset(folio))
+ 		(*mmap_miss)++;
+ 
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
-mm-page_alloc-consolidate-free-page-accounting.patch
-xarray-use-bits_per_longs.patch
-xarray-dont-use-proxy-headers.patch
-devres-switch-to-use-dev_err_probe-for-unification.patch
-devres-dont-use-proxy-headers.patch
-media-rc-add-missing-ioh.patch
-media-stih-cec-add-missing-ioh.patch
-kfifo-dont-use-proxy-headers.patch
+mm-readahead-break-read-ahead-loop-if-filemap_add_folio-return-enomem.patch
+mm-readahead-dont-decrease-mmap_miss-when-folio-has-workingset-flags.patch
 
