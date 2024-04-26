@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B41E7EF1B
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A8457F462
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:00:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104019; cv=none; b=RvaRc8jCMqPsIpOkIqGniIkqSryEyeDA7PqDSJVusNZqlpzZnKQ5o55gnaHvI2qVtLEC/1XemgFtO73sOGYy84zp/JGDE6oZKI0JyJnCZwvPFU5xIPbj6waXCaRLBM45Qg+Wsi/Ca6h3WtQgyD4JubaALlzyloL1pGK8tyHeEHo=
+	t=1714104021; cv=none; b=RI7EiJ/l5zRwQx6fStPp4o+XERFk68T70H3/K6TWO6FEvIQc5ENTOUeOuk4+GNqM5hXrnyXM9CZe7eOF1MT92OxFFrmDuFqjhxjuE3luLAO4XkN7T8D0zOGqIz49qxpKfZJrMTjtvvo7DmXejWJpzpZxbB4InCDEyXyrQNYDhs4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104019; c=relaxed/simple;
-	bh=DW6ZXc86chK7ZqBwwsG/MNSp8NIuAlkMUYCiCJOuX5k=;
-	h=Date:To:From:Subject:Message-Id; b=idNKGCcH9leWPpUaO/dF35REBfY/ZbtKJ4bNK8TbzeZokW+RCbnT4llgCDb3+HmROZm3J6U1Kv7N1Ss5KKdRDioOyO5L8cEPrlu21/Fvoh4PDagMwojhdUyJfzAh5dUoKh/l92+LWInuwyvGasjpuSNcX/1Dx7zv4K9gHlEK6v0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gr/nFiOX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104021; c=relaxed/simple;
+	bh=1lAvTLtLFqEGALvQBL6K2sVO6qbEBT4LV7WJENfTWDs=;
+	h=Date:To:From:Subject:Message-Id; b=MXhbfVkLcseDbiLFqT8Rd26DthQCUJpmxc9ZksCpqX0frwo+QCBvrM09gEbI9gqVejvfUgreHN2CMwIWnJnKL7cZmdyhwkrHtCbI3OLXmR0wBW7GoEiNNYaqXX6ls1CiW8/Y9DsERa1EOvPRWHZ/mO/2yEixQQUrki//3d2vxfQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q9FEqev3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gr/nFiOX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F53EC116B1;
-	Fri, 26 Apr 2024 04:00:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q9FEqev3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C37AC113CD;
+	Fri, 26 Apr 2024 04:00:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104019;
-	bh=DW6ZXc86chK7ZqBwwsG/MNSp8NIuAlkMUYCiCJOuX5k=;
+	s=korg; t=1714104021;
+	bh=1lAvTLtLFqEGALvQBL6K2sVO6qbEBT4LV7WJENfTWDs=;
 	h=Date:To:From:Subject:From;
-	b=gr/nFiOXPje8oLOKR8XeUD48m0AdvoUalGlX3EzdUWilHz/KsQsF9car0KYmuUoHd
-	 H3a4V3SCxaCOtcSu3+TJm6w61U9rBO9YluxDKldJtNISzD8YsYk59/hWjkIKSwuEwl
-	 BzF5+Olyu0wUZXjwvfGJAyJWat4FZJU2EOz59BZo=
-Date: Thu, 25 Apr 2024 21:00:18 -0700
-To: mm-commits@vger.kernel.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=Q9FEqev3PuJvkBJVMC7uC5Z11h3/iFfTjXyi0Q68+YJDE0TTMp5ZZPgXXghFjjES8
+	 gliStDIYHlrsc7JUE1ncCIY5OOibzenJcU1Kq05QfwF+TZ2xnCuzTS1xsitgGVDz3r
+	 aoKl6H03pYI5BijkVFmAGcdRboIlcWy1Cfk9U6Oc=
+Date: Thu, 25 Apr 2024 21:00:20 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch removed from -mm tree
-Message-Id: <20240426040019.2F53EC116B1@smtp.kernel.org>
+Subject: [merged mm-stable] slub-remove-use-of-page-flags.patch removed from -mm tree
+Message-Id: <20240426040021.1C37AC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,159 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: convert arch_clear_hugepage_flags to take a folio
+     Subject: slub: remove use of page->flags
 has been removed from the -mm tree.  Its filename was
-     mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
+     slub-remove-use-of-page-flags.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert arch_clear_hugepage_flags to take a folio
-Date: Tue, 26 Mar 2024 17:10:29 +0000
+Subject: slub: remove use of page->flags
+Date: Tue, 26 Mar 2024 17:10:30 +0000
 
-All implementations that aren't no-ops just set a bit in the flags, and we
-want to use the folio flags rather than the page flags for that.  Rename
-it to arch_clear_hugetlb_flags() while we're touching it so nobody thinks
-it's used for THP.
+Use slub->__page_flags instead.  We can also remove the assertion that
+it's not a tail page as struct slab never points to a tail page.
 
-[willy@infradead.org: fix arm64 build]
-  Link: https://lkml.kernel.org/r/ZgQvNKGdlDkwhQEX@casper.infradead.org
-Link: https://lkml.kernel.org/r/20240326171045.410737-8-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240326171045.410737-9-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/hugetlb.h   |    6 +++---
- arch/arm64/include/asm/hugetlb.h |    6 +++---
- arch/riscv/include/asm/hugetlb.h |    6 +++---
- arch/s390/include/asm/hugetlb.h  |    6 +++---
- arch/sh/include/asm/hugetlb.h    |    6 +++---
- include/linux/hugetlb.h          |    6 +++---
- mm/hugetlb.c                     |    4 ++--
- 7 files changed, 20 insertions(+), 20 deletions(-)
+ mm/slub.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
---- a/arch/arm64/include/asm/hugetlb.h~mm-convert-arch_clear_hugepage_flags-to-take-a-folio
-+++ a/arch/arm64/include/asm/hugetlb.h
-@@ -18,11 +18,11 @@
- extern bool arch_hugetlb_migration_supported(struct hstate *h);
- #endif
- 
--static inline void arch_clear_hugepage_flags(struct page *page)
-+static inline void arch_clear_hugetlb_flags(struct folio *folio)
+--- a/mm/slub.c~slub-remove-use-of-page-flags
++++ a/mm/slub.c
+@@ -616,18 +616,12 @@ slub_set_cpu_partial(struct kmem_cache *
+  */
+ static __always_inline void slab_lock(struct slab *slab)
  {
--	clear_bit(PG_dcache_clean, &page->flags);
-+	clear_bit(PG_dcache_clean, &folio->flags);
+-	struct page *page = slab_page(slab);
+-
+-	VM_BUG_ON_PAGE(PageTail(page), page);
+-	bit_spin_lock(PG_locked, &page->flags);
++	bit_spin_lock(PG_locked, &slab->__page_flags);
  }
--#define arch_clear_hugepage_flags arch_clear_hugepage_flags
-+#define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
  
- pte_t arch_make_huge_pte(pte_t entry, unsigned int shift, vm_flags_t flags);
- #define arch_make_huge_pte arch_make_huge_pte
---- a/arch/arm/include/asm/hugetlb.h~mm-convert-arch_clear_hugepage_flags-to-take-a-folio
-+++ a/arch/arm/include/asm/hugetlb.h
-@@ -15,10 +15,10 @@
- #include <asm/hugetlb-3level.h>
- #include <asm-generic/hugetlb.h>
- 
--static inline void arch_clear_hugepage_flags(struct page *page)
-+static inline void arch_clear_hugetlb_flags(struct folio *folio)
+ static __always_inline void slab_unlock(struct slab *slab)
  {
--	clear_bit(PG_dcache_clean, &page->flags);
-+	clear_bit(PG_dcache_clean, &folio->flags);
- }
--#define arch_clear_hugepage_flags arch_clear_hugepage_flags
-+#define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
- 
- #endif /* _ASM_ARM_HUGETLB_H */
---- a/arch/riscv/include/asm/hugetlb.h~mm-convert-arch_clear_hugepage_flags-to-take-a-folio
-+++ a/arch/riscv/include/asm/hugetlb.h
-@@ -5,11 +5,11 @@
- #include <asm/cacheflush.h>
- #include <asm/page.h>
- 
--static inline void arch_clear_hugepage_flags(struct page *page)
-+static inline void arch_clear_hugetlb_flags(struct folio *folio)
- {
--	clear_bit(PG_dcache_clean, &page->flags);
-+	clear_bit(PG_dcache_clean, &folio->flags);
- }
--#define arch_clear_hugepage_flags arch_clear_hugepage_flags
-+#define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
- 
- #ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
- bool arch_hugetlb_migration_supported(struct hstate *h);
---- a/arch/s390/include/asm/hugetlb.h~mm-convert-arch_clear_hugepage_flags-to-take-a-folio
-+++ a/arch/s390/include/asm/hugetlb.h
-@@ -39,11 +39,11 @@ static inline int prepare_hugepage_range
- 	return 0;
+-	struct page *page = slab_page(slab);
+-
+-	VM_BUG_ON_PAGE(PageTail(page), page);
+-	bit_spin_unlock(PG_locked, &page->flags);
++	bit_spin_unlock(PG_locked, &slab->__page_flags);
  }
  
--static inline void arch_clear_hugepage_flags(struct page *page)
-+static inline void arch_clear_hugetlb_flags(struct folio *folio)
- {
--	clear_bit(PG_arch_1, &page->flags);
-+	clear_bit(PG_arch_1, &folio->flags);
- }
--#define arch_clear_hugepage_flags arch_clear_hugepage_flags
-+#define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
- 
- static inline void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
- 				  pte_t *ptep, unsigned long sz)
---- a/arch/sh/include/asm/hugetlb.h~mm-convert-arch_clear_hugepage_flags-to-take-a-folio
-+++ a/arch/sh/include/asm/hugetlb.h
-@@ -27,11 +27,11 @@ static inline pte_t huge_ptep_clear_flus
- 	return *ptep;
- }
- 
--static inline void arch_clear_hugepage_flags(struct page *page)
-+static inline void arch_clear_hugetlb_flags(struct folio *folio)
- {
--	clear_bit(PG_dcache_clean, &page->flags);
-+	clear_bit(PG_dcache_clean, &folio->flags);
- }
--#define arch_clear_hugepage_flags arch_clear_hugepage_flags
-+#define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
- 
- #include <asm-generic/hugetlb.h>
- 
---- a/include/linux/hugetlb.h~mm-convert-arch_clear_hugepage_flags-to-take-a-folio
-+++ a/include/linux/hugetlb.h
-@@ -836,9 +836,9 @@ static inline int is_hugepage_only_range
- #define is_hugepage_only_range is_hugepage_only_range
- #endif
- 
--#ifndef arch_clear_hugepage_flags
--static inline void arch_clear_hugepage_flags(struct page *page) { }
--#define arch_clear_hugepage_flags arch_clear_hugepage_flags
-+#ifndef arch_clear_hugetlb_flags
-+static inline void arch_clear_hugetlb_flags(struct folio *folio) { }
-+#define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
- #endif
- 
- #ifndef arch_make_huge_pte
---- a/mm/hugetlb.c~mm-convert-arch_clear_hugepage_flags-to-take-a-folio
-+++ a/mm/hugetlb.c
-@@ -1726,7 +1726,7 @@ static void add_hugetlb_folio(struct hst
- 		 */
- 		return;
- 
--	arch_clear_hugepage_flags(&folio->page);
-+	arch_clear_hugetlb_flags(folio);
- 	enqueue_hugetlb_folio(h, folio);
- }
- 
-@@ -2024,7 +2024,7 @@ void free_huge_folio(struct folio *folio
- 		spin_unlock_irqrestore(&hugetlb_lock, flags);
- 		update_and_free_hugetlb_folio(h, folio, true);
- 	} else {
--		arch_clear_hugepage_flags(&folio->page);
-+		arch_clear_hugetlb_flags(folio);
- 		enqueue_hugetlb_folio(h, folio);
- 		spin_unlock_irqrestore(&hugetlb_lock, flags);
- 	}
+ static inline bool
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
