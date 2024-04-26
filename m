@@ -1,187 +1,56 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8B221635DD
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 17:50:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC9EB16D307
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 18:21:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714153826; cv=none; b=hBmWKv/I4voD1LVbvi2NFxhXV6R444U0zhes3ETBgX7xwGEHwlTGZEv0iRVe8yNvWVkQawKNtcpCc34VKrBhr3kfEEVDTW1aBv7p4ZkJ21SGCeTmJbnXOudtOCzZC1Pl8eJU2gjO9bl0ca0wNicVlO4OAZu0ql0rYKaL2NM5gwo=
+	t=1714155680; cv=none; b=qvbUmMPT7/2QOATwdjCgTs1uewck7KVuhfJg9k91sxDjEAWEt3WDpKsyTw+It5imyFlcx8ObNovcY+xx2XSCqkUU2Lv2oyBLbBosg87Z7CgMSeHTysxXvThi9mOHMaVLxT/R2XLFbL5GqrP/gU4vVVzSskNbOnR0yF+EncypvjU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714153826; c=relaxed/simple;
-	bh=YqLFVv2KRLQmnasOwmWagJ7SYjbqSQQnMIiNbe8u+OQ=;
-	h=Date:To:From:Subject:Message-Id; b=QIfS1uL9Z14xLuKcWVKi8OBfhsK3LYvH4HkT9/LelqaIcSlG8lP3L2Gp0Kn1JB+cn+68fvTI1vZZyOP9+YSILrrVaLmQho+jaemIAYJqmCWssB76nVRGnznS7h0puqt0EZN2R6WL/vx/RPQrOIuFBy674mBwGvTqkY1M35Gf/Xs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nqLX9zJw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714155680; c=relaxed/simple;
+	bh=MK1t4K60jOapiUlungJvWGjqk1078mSvH9XoQjiL/Zo=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=ilQ0fkMV/J3mJXKkA8TOSIKpq1HxJjvdRvKcg/619kSVWhIuNtd9uciu3S+pAEnysB/SZihgsshr4KWY9ErwrOlI+Go5U6ksKtVHmIjpa5sDzRxK6sSxgao1vNCplyLUGgZmSsmoZgoZU98m14sZYuriWkJV2Y0RGcOSqirvAWM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pp6KtVjl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nqLX9zJw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D556C113CD;
-	Fri, 26 Apr 2024 17:50:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pp6KtVjl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F246BC113CD;
+	Fri, 26 Apr 2024 18:21:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714153824;
-	bh=YqLFVv2KRLQmnasOwmWagJ7SYjbqSQQnMIiNbe8u+OQ=;
-	h=Date:To:From:Subject:From;
-	b=nqLX9zJwheXTDGY2FVjwCwEEwYWV1DZ4mc7HHFp768iMwA/UPn3YcTiyv8UgSBU0r
-	 mxVLa6gpJMcH0G/XNQcMb/wajHw+hma8GmIu+P5DKpGK9eKPXIjcSjxAelnqWAKnug
-	 G6PTUwrVVc7wefZ9uxMDCqgl6ZivZrMSPZagci6M=
-Date: Fri, 26 Apr 2024 10:50:23 -0700
-To: mm-commits@vger.kernel.org,viro@ZenIV.linux.org.uk,keescook@chromium.org,jack@suse.cz,ebiederm@xmission.com,brauner@kernel.org,jcmvbkbc@gmail.com,akpm@linux-foundation.org
+	s=korg; t=1714155679;
+	bh=MK1t4K60jOapiUlungJvWGjqk1078mSvH9XoQjiL/Zo=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=Pp6KtVjl1Scr38065ISEQF8EiJZTKh/LeRTI+fPDIlow0CStoWe0w+Hep4kwk7vYm
+	 4+2FELZYKLDB4+qyFI9tiTehcD1Exyg4CiGF8kX6crlRgfjjAQB+wCHXUZ/Fk/YW6k
+	 q1hO2J7AHsmGWMdPCRtBenaBkmWG0Vp0g95EgjNE=
+Date: Fri, 26 Apr 2024 11:21:18 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] binfmt_elf_fdpic-fix-proc-pid-auxv.patch removed from -mm tree
-Message-Id: <20240426175024.6D556C113CD@smtp.kernel.org>
+To: Heiko Carstens <hca@linux.ibm.com>
+Cc: mm-commits@vger.kernel.org, wintera@linux.ibm.com,
+ twinkler@linux.ibm.com, svens@linux.ibm.com, gor@linux.ibm.com,
+ borntraeger@linux.ibm.com, arnd@arndb.de, agordeev@linux.ibm.com,
+ nathan@kernel.org
+Subject: Re: [merged mm-nonmm-stable]
+ s390-netiucv-remove-function-pointer-cast.patch removed from -mm tree
+Message-Id: <20240426112118.7d5283428eb07389fc6539cf@linux-foundation.org>
+In-Reply-To: <20240426081005.8950-C-hca@linux.ibm.com>
+References: <20240426040814.160C2C113CD@smtp.kernel.org>
+	<20240426081005.8950-C-hca@linux.ibm.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Fri, 26 Apr 2024 10:10:05 +0200 Heiko Carstens <hca@linux.ibm.com> wrote:
 
-The quilt patch titled
-     Subject: binfmt_elf_fdpic: fix /proc/<pid>/auxv
-has been removed from the -mm tree.  Its filename was
-     binfmt_elf_fdpic-fix-proc-pid-auxv.patch
+> >  drivers/s390/net/netiucv.c |   14 ++++++--------
+> >  1 file changed, 6 insertions(+), 8 deletions(-)
+> 
+> And this one should be dropped as well.
 
-This patch was dropped because it was merged into mainline or a subsystem tree
-
-------------------------------------------------------
-From: Max Filippov <jcmvbkbc@gmail.com>
-Subject: binfmt_elf_fdpic: fix /proc/<pid>/auxv
-Date: Fri, 22 Mar 2024 12:54:18 -0700
-
-Althought FDPIC linux kernel provides /proc/<pid>/auxv files they are
-empty because there's no code that initializes mm->saved_auxv in the FDPIC
-ELF loader.
-
-Synchronize FDPIC ELF aux vector setup with ELF.  Replace entry-by-entry
-aux vector copying to userspace with initialization of mm->saved_auxv
-first and then copying it to userspace as a whole.
-
-[akpm@linux-foundation.org: coding-style cleanups]
-Link: https://lkml.kernel.org/r/20240322195418.2160164-1-jcmvbkbc@gmail.com
-Signed-off-by: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Kees Cook <keescook@chromium.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/binfmt_elf_fdpic.c |   85 +++++++++++++++++-----------------------
- 1 file changed, 38 insertions(+), 47 deletions(-)
-
---- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-fix-proc-pid-auxv
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -505,8 +505,9 @@ static int create_elf_fdpic_tables(struc
- 	char *k_platform, *k_base_platform;
- 	char __user *u_platform, *u_base_platform, *p;
- 	int loop;
--	int nr;	/* reset for each csp adjustment */
- 	unsigned long flags = 0;
-+	int ei_index;
-+	elf_addr_t *elf_info;
- 
- #ifdef CONFIG_MMU
- 	/* In some cases (e.g. Hyper-Threading), we want to avoid L1 evictions
-@@ -601,44 +602,24 @@ static int create_elf_fdpic_tables(struc
- 	csp -= sp & 15UL;
- 	sp -= sp & 15UL;
- 
--	/* put the ELF interpreter info on the stack */
--#define NEW_AUX_ENT(id, val)						\
--	do {								\
--		struct { unsigned long _id, _val; } __user *ent, v;	\
--									\
--		ent = (void __user *) csp;				\
--		v._id = (id);						\
--		v._val = (val);						\
--		if (copy_to_user(ent + nr, &v, sizeof(v)))		\
--			return -EFAULT;					\
--		nr++;							\
-+	/* Create the ELF interpreter info */
-+	elf_info = (elf_addr_t *)mm->saved_auxv;
-+	/* update AT_VECTOR_SIZE_BASE if the number of NEW_AUX_ENT() changes */
-+#define NEW_AUX_ENT(id, val) \
-+	do { \
-+		*elf_info++ = id; \
-+		*elf_info++ = val; \
- 	} while (0)
- 
--	nr = 0;
--	csp -= 2 * sizeof(unsigned long);
--	NEW_AUX_ENT(AT_NULL, 0);
--	if (k_platform) {
--		nr = 0;
--		csp -= 2 * sizeof(unsigned long);
--		NEW_AUX_ENT(AT_PLATFORM,
--			    (elf_addr_t) (unsigned long) u_platform);
--	}
--
--	if (k_base_platform) {
--		nr = 0;
--		csp -= 2 * sizeof(unsigned long);
--		NEW_AUX_ENT(AT_BASE_PLATFORM,
--			    (elf_addr_t) (unsigned long) u_base_platform);
--	}
--
--	if (bprm->have_execfd) {
--		nr = 0;
--		csp -= 2 * sizeof(unsigned long);
--		NEW_AUX_ENT(AT_EXECFD, bprm->execfd);
--	}
--
--	nr = 0;
--	csp -= DLINFO_ITEMS * 2 * sizeof(unsigned long);
-+#ifdef ARCH_DLINFO
-+	/*
-+	 * ARCH_DLINFO must come first so PPC can do its special alignment of
-+	 * AUXV.
-+	 * update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT() in
-+	 * ARCH_DLINFO changes
-+	 */
-+	ARCH_DLINFO;
-+#endif
- 	NEW_AUX_ENT(AT_HWCAP,	ELF_HWCAP);
- #ifdef ELF_HWCAP2
- 	NEW_AUX_ENT(AT_HWCAP2,	ELF_HWCAP2);
-@@ -659,17 +640,27 @@ static int create_elf_fdpic_tables(struc
- 	NEW_AUX_ENT(AT_EGID,	(elf_addr_t) from_kgid_munged(cred->user_ns, cred->egid));
- 	NEW_AUX_ENT(AT_SECURE,	bprm->secureexec);
- 	NEW_AUX_ENT(AT_EXECFN,	bprm->exec);
--
--#ifdef ARCH_DLINFO
--	nr = 0;
--	csp -= AT_VECTOR_SIZE_ARCH * 2 * sizeof(unsigned long);
--
--	/* ARCH_DLINFO must come last so platform specific code can enforce
--	 * special alignment requirements on the AUXV if necessary (eg. PPC).
--	 */
--	ARCH_DLINFO;
--#endif
-+	if (k_platform)
-+		NEW_AUX_ENT(AT_PLATFORM, (elf_addr_t)(unsigned long)u_platform);
-+	if (k_base_platform)
-+		NEW_AUX_ENT(AT_BASE_PLATFORM, (elf_addr_t)(unsigned long)u_base_platform);
-+	if (bprm->have_execfd)
-+		NEW_AUX_ENT(AT_EXECFD, bprm->execfd);
- #undef NEW_AUX_ENT
-+	/* AT_NULL is zero; clear the rest too */
-+	memset(elf_info, 0, (char *)mm->saved_auxv +
-+	       sizeof(mm->saved_auxv) - (char *)elf_info);
-+
-+	/* And advance past the AT_NULL entry.  */
-+	elf_info += 2;
-+
-+	ei_index = elf_info - (elf_addr_t *)mm->saved_auxv;
-+	csp -= ei_index * sizeof(elf_addr_t);
-+
-+	/* Put the elf_info on the stack in the right place.  */
-+	if (copy_to_user((void __user *)csp, mm->saved_auxv,
-+			 ei_index * sizeof(elf_addr_t)))
-+		return -EFAULT;
- 
- 	/* allocate room for argv[] and envv[] */
- 	csp -= (bprm->envc + 1) * sizeof(elf_caddr_t);
-_
-
-Patches currently in -mm which might be from jcmvbkbc@gmail.com are
-
-
+Thanks, I dropped all three.
