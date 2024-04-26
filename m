@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D06B7A724
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:58:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26C227A140
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:58:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714103901; cv=none; b=nfreG2dosQZFcDi/klL04xBiVj+s2XOUbPJn5RQ1LyV/lQTmaY+QD3V8BbBxXi0dIPo55c7Gkop7s383Y5a0qFnt7OFc1nEls5gadGYLlxGD3SocvqiQd5q03ROKQR4n0TqE9JMZt8n8bf0SsbRezkqIQE1NXs7y4mvEkW/rhSs=
+	t=1714103903; cv=none; b=iQDWRiJzFHmCKJGiI8/ucDWIkWDg0haBVmqqWJVco4iYp7x7CAig5sAFmnXPi1huaqxbf4fIYIEO9ho8DiCu2Pqtjdg/rYxkAnfjXx0iI+34Rxxh5p0kH82oHlq6ywxq8gxCbe0AKoPFgUmF7ppXCL49D+WcI4CPGRNdUePkA/E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714103901; c=relaxed/simple;
-	bh=bI5a9I88ay9bUjEQraWE/2tDaDdkXxkaHAMRFlExz7g=;
-	h=Date:To:From:Subject:Message-Id; b=LVxU4YWnlYV1dX1CbsccyUYK+x+aPsgaDmvW4OlcbyZhlLCcJ9nFmjjzaNXEX+Xri+brim/hJBFj3VEZ/DpGIGeJR+R/078PARAwuTSMkHQ6nD3DuLECAdJHCBZoVTPr6Q0XDnIJqifLlJPTZJtPIUEJxvd2yXJbWu/mAk+bz/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RRsAcOc/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714103903; c=relaxed/simple;
+	bh=OMOt4JbizltKyQcVT259ww9IM0DGWCaF3PZ0Y6s67YE=;
+	h=Date:To:From:Subject:Message-Id; b=qQvBq9WUjzy3lLe5IT5008A56tRUPv/L2RusEXmyoNBF11qeorjcfWQTNl/a2lBKMi1eVTpRjyofHSRmBVdrTrKBsmX3SZdeClVBA0wRH7+xO48Q5FMiqfHzZD6G+UugjeKB+ZWw/ed6DuEd57cC1fWj4M2R7ru/ND4dr3cJzDo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZnzFteyT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RRsAcOc/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D04E7C116B1;
-	Fri, 26 Apr 2024 03:58:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZnzFteyT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC52EC113CD;
+	Fri, 26 Apr 2024 03:58:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714103900;
-	bh=bI5a9I88ay9bUjEQraWE/2tDaDdkXxkaHAMRFlExz7g=;
+	s=korg; t=1714103903;
+	bh=OMOt4JbizltKyQcVT259ww9IM0DGWCaF3PZ0Y6s67YE=;
 	h=Date:To:From:Subject:From;
-	b=RRsAcOc/ArHP8XT9KmWK+e3DP9NwKZvpA1aTM3LpiOrqDp+EBYgdA4LTz9pGVmgiZ
-	 LHoK/OLX0SUsAFONBBljPoK1IRUoG/Q58rKZSMYdwALrpPwto2v8+Gq+rcAlgt6IBQ
-	 9ALXhVK1bRDbOZWgZb65k2Tj63l8LMl8NN77BQtY=
-Date: Thu, 25 Apr 2024 20:58:20 -0700
+	b=ZnzFteyTk8C7Yb55+9AKo+VrBl4TgEuRAIyXaFELku8dMBwawfBI6PpVKiP0vgooC
+	 +PcCz3a0GUsgvgE2gG6S6ME79pgY0TXriJpaqrglww7FcB27+rFLlAPd1/wlgHVqlV
+	 0o0FAZwodcXlOp8aK1VbO1nW6I0SiR2uZyYjiycE=
+Date: Thu, 25 Apr 2024 20:58:22 -0700
 To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,peterz@infradead.org,pasha.tatashin@soleen.com,ojeda@kernel.org,kent.overstreet@linux.dev,keescook@chromium.org,gary@garyguo.net,dennis@kernel.org,cl@linux.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@samsung.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-enable-page-allocation-tagging.patch removed from -mm tree
-Message-Id: <20240426035820.D04E7C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-create-new-codetag-references-during-page-splitting.patch removed from -mm tree
+Message-Id: <20240426035822.EC52EC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: enable page allocation tagging
+     Subject: mm: create new codetag references during page splitting
 has been removed from the -mm tree.  Its filename was
-     mm-enable-page-allocation-tagging.patch
+     mm-create-new-codetag-references-during-page-splitting.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: enable page allocation tagging
-Date: Thu, 21 Mar 2024 09:36:40 -0700
+Subject: mm: create new codetag references during page splitting
+Date: Thu, 21 Mar 2024 09:36:41 -0700
 
-Redefine page allocators to record allocation tags upon their invocation. 
-Instrument post_alloc_hook and free_pages_prepare to modify current
-allocation tag.
+When a high-order page is split into smaller ones, each newly split page
+should get its codetag.  After the split each split page will be
+referencing the original codetag.  The codetag's "bytes" counter remains
+the same because the amount of allocated memory has not changed, however
+the "calls" counter gets increased to keep the counter correct when these
+individual pages get freed.
 
-[surenb@google.com: undo _noprof additions in the documentation]
-  Link: https://lkml.kernel.org/r/20240326231453.1206227-3-surenb@google.com
-Link: https://lkml.kernel.org/r/20240321163705.3067592-19-surenb@google.com
+Link: https://lkml.kernel.org/r/20240321163705.3067592-20-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Co-developed-by: Kent Overstreet <kent.overstreet@linux.dev>
-Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
-Reviewed-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Tested-by: Kees Cook <keescook@chromium.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alex Gaynor <alex.gaynor@gmail.com>
@@ -69,652 +68,119 @@ Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Gary Guo <gary@garyguo.net>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Miguel Ojeda <ojeda@kernel.org>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wedson Almeida Filho <wedsonaf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/alloc_tag.h |   14 ++++
- include/linux/gfp.h       |  126 ++++++++++++++++++++++--------------
- include/linux/pagemap.h   |    9 +-
- mm/compaction.c           |    7 +-
- mm/filemap.c              |    6 -
- mm/mempolicy.c            |   46 ++++++-------
- mm/page_alloc.c           |   52 +++++++-------
- 7 files changed, 157 insertions(+), 103 deletions(-)
+ include/linux/alloc_tag.h   |    9 +++++++++
+ include/linux/pgalloc_tag.h |   30 ++++++++++++++++++++++++++++++
+ mm/huge_memory.c            |    2 ++
+ mm/page_alloc.c             |    2 ++
+ 4 files changed, 43 insertions(+)
 
---- a/include/linux/alloc_tag.h~mm-enable-page-allocation-tagging
+--- a/include/linux/alloc_tag.h~mm-create-new-codetag-references-during-page-splitting
 +++ a/include/linux/alloc_tag.h
-@@ -153,4 +153,18 @@ static inline void alloc_tag_sub(union c
+@@ -117,6 +117,15 @@ static inline void __alloc_tag_ref_set(u
+ 	this_cpu_inc(tag->counters->calls);
+ }
+ 
++static inline void alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
++{
++	alloc_tag_add_check(ref, tag);
++	if (!ref || !tag)
++		return;
++
++	__alloc_tag_ref_set(ref, tag);
++}
++
+ static inline void alloc_tag_add(union codetag_ref *ref, struct alloc_tag *tag, size_t bytes)
+ {
+ 	alloc_tag_add_check(ref, tag);
+--- a/include/linux/pgalloc_tag.h~mm-create-new-codetag-references-during-page-splitting
++++ a/include/linux/pgalloc_tag.h
+@@ -67,11 +67,41 @@ static inline void pgalloc_tag_sub(struc
+ 	}
+ }
+ 
++static inline void pgalloc_tag_split(struct page *page, unsigned int nr)
++{
++	int i;
++	struct page_ext *page_ext;
++	union codetag_ref *ref;
++	struct alloc_tag *tag;
++
++	if (!mem_alloc_profiling_enabled())
++		return;
++
++	page_ext = page_ext_get(page);
++	if (unlikely(!page_ext))
++		return;
++
++	ref = codetag_ref_from_page_ext(page_ext);
++	if (!ref->ct)
++		goto out;
++
++	tag = ct_to_alloc_tag(ref->ct);
++	page_ext = page_ext_next(page_ext);
++	for (i = 1; i < nr; i++) {
++		/* Set new reference to point to the original tag */
++		alloc_tag_ref_set(codetag_ref_from_page_ext(page_ext), tag);
++		page_ext = page_ext_next(page_ext);
++	}
++out:
++	page_ext_put(page_ext);
++}
++
+ #else /* CONFIG_MEM_ALLOC_PROFILING */
+ 
+ static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
+ 				   unsigned int nr) {}
+ static inline void pgalloc_tag_sub(struct page *page, unsigned int nr) {}
++static inline void pgalloc_tag_split(struct page *page, unsigned int nr) {}
  
  #endif /* CONFIG_MEM_ALLOC_PROFILING */
  
-+#define alloc_hooks_tag(_tag, _do_alloc)				\
-+({									\
-+	struct alloc_tag * __maybe_unused _old = alloc_tag_save(_tag);	\
-+	typeof(_do_alloc) _res = _do_alloc;				\
-+	alloc_tag_restore(_tag, _old);					\
-+	_res;								\
-+})
-+
-+#define alloc_hooks(_do_alloc)						\
-+({									\
-+	DEFINE_ALLOC_TAG(_alloc_tag);					\
-+	alloc_hooks_tag(&_alloc_tag, _do_alloc);			\
-+})
-+
- #endif /* _LINUX_ALLOC_TAG_H */
---- a/include/linux/gfp.h~mm-enable-page-allocation-tagging
-+++ a/include/linux/gfp.h
-@@ -6,6 +6,8 @@
+--- a/mm/huge_memory.c~mm-create-new-codetag-references-during-page-splitting
++++ a/mm/huge_memory.c
+@@ -38,6 +38,7 @@
+ #include <linux/sched/sysctl.h>
+ #include <linux/memory-tiers.h>
+ #include <linux/compat.h>
++#include <linux/pgalloc_tag.h>
  
- #include <linux/mmzone.h>
- #include <linux/topology.h>
-+#include <linux/alloc_tag.h>
-+#include <linux/sched.h>
+ #include <asm/tlb.h>
+ #include <asm/pgalloc.h>
+@@ -2946,6 +2947,7 @@ static void __split_huge_page(struct pag
+ 	/* Caller disabled irqs, so they are still disabled here */
  
- struct vm_area_struct;
- struct mempolicy;
-@@ -175,42 +177,46 @@ static inline void arch_free_page(struct
- static inline void arch_alloc_page(struct page *page, int order) { }
- #endif
+ 	split_page_owner(head, order, new_order);
++	pgalloc_tag_split(head, 1 << order);
  
--struct page *__alloc_pages(gfp_t gfp, unsigned int order, int preferred_nid,
-+struct page *__alloc_pages_noprof(gfp_t gfp, unsigned int order, int preferred_nid,
- 		nodemask_t *nodemask);
--struct folio *__folio_alloc(gfp_t gfp, unsigned int order, int preferred_nid,
-+#define __alloc_pages(...)			alloc_hooks(__alloc_pages_noprof(__VA_ARGS__))
-+
-+struct folio *__folio_alloc_noprof(gfp_t gfp, unsigned int order, int preferred_nid,
- 		nodemask_t *nodemask);
-+#define __folio_alloc(...)			alloc_hooks(__folio_alloc_noprof(__VA_ARGS__))
- 
--unsigned long __alloc_pages_bulk(gfp_t gfp, int preferred_nid,
-+unsigned long alloc_pages_bulk_noprof(gfp_t gfp, int preferred_nid,
- 				nodemask_t *nodemask, int nr_pages,
- 				struct list_head *page_list,
- 				struct page **page_array);
-+#define __alloc_pages_bulk(...)			alloc_hooks(alloc_pages_bulk_noprof(__VA_ARGS__))
- 
--unsigned long alloc_pages_bulk_array_mempolicy(gfp_t gfp,
-+unsigned long alloc_pages_bulk_array_mempolicy_noprof(gfp_t gfp,
- 				unsigned long nr_pages,
- 				struct page **page_array);
-+#define  alloc_pages_bulk_array_mempolicy(...)				\
-+	alloc_hooks(alloc_pages_bulk_array_mempolicy_noprof(__VA_ARGS__))
- 
- /* Bulk allocate order-0 pages */
--static inline unsigned long
--alloc_pages_bulk_list(gfp_t gfp, unsigned long nr_pages, struct list_head *list)
--{
--	return __alloc_pages_bulk(gfp, numa_mem_id(), NULL, nr_pages, list, NULL);
--}
-+#define alloc_pages_bulk_list(_gfp, _nr_pages, _list)			\
-+	__alloc_pages_bulk(_gfp, numa_mem_id(), NULL, _nr_pages, _list, NULL)
- 
--static inline unsigned long
--alloc_pages_bulk_array(gfp_t gfp, unsigned long nr_pages, struct page **page_array)
--{
--	return __alloc_pages_bulk(gfp, numa_mem_id(), NULL, nr_pages, NULL, page_array);
--}
-+#define alloc_pages_bulk_array(_gfp, _nr_pages, _page_array)		\
-+	__alloc_pages_bulk(_gfp, numa_mem_id(), NULL, _nr_pages, NULL, _page_array)
- 
- static inline unsigned long
--alloc_pages_bulk_array_node(gfp_t gfp, int nid, unsigned long nr_pages, struct page **page_array)
-+alloc_pages_bulk_array_node_noprof(gfp_t gfp, int nid, unsigned long nr_pages,
-+				   struct page **page_array)
- {
- 	if (nid == NUMA_NO_NODE)
- 		nid = numa_mem_id();
- 
--	return __alloc_pages_bulk(gfp, nid, NULL, nr_pages, NULL, page_array);
-+	return alloc_pages_bulk_noprof(gfp, nid, NULL, nr_pages, NULL, page_array);
- }
- 
-+#define alloc_pages_bulk_array_node(...)				\
-+	alloc_hooks(alloc_pages_bulk_array_node_noprof(__VA_ARGS__))
-+
- static inline void warn_if_node_offline(int this_node, gfp_t gfp_mask)
- {
- 	gfp_t warn_gfp = gfp_mask & (__GFP_THISNODE|__GFP_NOWARN);
-@@ -230,82 +236,104 @@ static inline void warn_if_node_offline(
-  * online. For more general interface, see alloc_pages_node().
-  */
- static inline struct page *
--__alloc_pages_node(int nid, gfp_t gfp_mask, unsigned int order)
-+__alloc_pages_node_noprof(int nid, gfp_t gfp_mask, unsigned int order)
- {
- 	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
- 	warn_if_node_offline(nid, gfp_mask);
- 
--	return __alloc_pages(gfp_mask, order, nid, NULL);
-+	return __alloc_pages_noprof(gfp_mask, order, nid, NULL);
- }
- 
-+#define  __alloc_pages_node(...)		alloc_hooks(__alloc_pages_node_noprof(__VA_ARGS__))
-+
- static inline
--struct folio *__folio_alloc_node(gfp_t gfp, unsigned int order, int nid)
-+struct folio *__folio_alloc_node_noprof(gfp_t gfp, unsigned int order, int nid)
- {
- 	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
- 	warn_if_node_offline(nid, gfp);
- 
--	return __folio_alloc(gfp, order, nid, NULL);
-+	return __folio_alloc_noprof(gfp, order, nid, NULL);
- }
- 
-+#define  __folio_alloc_node(...)		alloc_hooks(__folio_alloc_node_noprof(__VA_ARGS__))
-+
- /*
-  * Allocate pages, preferring the node given as nid. When nid == NUMA_NO_NODE,
-  * prefer the current CPU's closest node. Otherwise node must be valid and
-  * online.
-  */
--static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
--						unsigned int order)
-+static inline struct page *alloc_pages_node_noprof(int nid, gfp_t gfp_mask,
-+						   unsigned int order)
- {
- 	if (nid == NUMA_NO_NODE)
- 		nid = numa_mem_id();
- 
--	return __alloc_pages_node(nid, gfp_mask, order);
-+	return __alloc_pages_node_noprof(nid, gfp_mask, order);
- }
- 
-+#define  alloc_pages_node(...)			alloc_hooks(alloc_pages_node_noprof(__VA_ARGS__))
-+
- #ifdef CONFIG_NUMA
--struct page *alloc_pages(gfp_t gfp, unsigned int order);
--struct page *alloc_pages_mpol(gfp_t gfp, unsigned int order,
-+struct page *alloc_pages_noprof(gfp_t gfp, unsigned int order);
-+struct page *alloc_pages_mpol_noprof(gfp_t gfp, unsigned int order,
- 		struct mempolicy *mpol, pgoff_t ilx, int nid);
--struct folio *folio_alloc(gfp_t gfp, unsigned int order);
--struct folio *vma_alloc_folio(gfp_t gfp, int order, struct vm_area_struct *vma,
-+struct folio *folio_alloc_noprof(gfp_t gfp, unsigned int order);
-+struct folio *vma_alloc_folio_noprof(gfp_t gfp, int order, struct vm_area_struct *vma,
- 		unsigned long addr, bool hugepage);
- #else
--static inline struct page *alloc_pages(gfp_t gfp_mask, unsigned int order)
-+static inline struct page *alloc_pages_noprof(gfp_t gfp_mask, unsigned int order)
- {
--	return alloc_pages_node(numa_node_id(), gfp_mask, order);
-+	return alloc_pages_node_noprof(numa_node_id(), gfp_mask, order);
- }
--static inline struct page *alloc_pages_mpol(gfp_t gfp, unsigned int order,
-+static inline struct page *alloc_pages_mpol_noprof(gfp_t gfp, unsigned int order,
- 		struct mempolicy *mpol, pgoff_t ilx, int nid)
- {
--	return alloc_pages(gfp, order);
-+	return alloc_pages_noprof(gfp, order);
- }
--static inline struct folio *folio_alloc(gfp_t gfp, unsigned int order)
-+static inline struct folio *folio_alloc_noprof(gfp_t gfp, unsigned int order)
- {
- 	return __folio_alloc_node(gfp, order, numa_node_id());
- }
--#define vma_alloc_folio(gfp, order, vma, addr, hugepage)		\
--	folio_alloc(gfp, order)
-+#define vma_alloc_folio_noprof(gfp, order, vma, addr, hugepage)		\
-+	folio_alloc_noprof(gfp, order)
- #endif
-+
-+#define alloc_pages(...)			alloc_hooks(alloc_pages_noprof(__VA_ARGS__))
-+#define alloc_pages_mpol(...)			alloc_hooks(alloc_pages_mpol_noprof(__VA_ARGS__))
-+#define folio_alloc(...)			alloc_hooks(folio_alloc_noprof(__VA_ARGS__))
-+#define vma_alloc_folio(...)			alloc_hooks(vma_alloc_folio_noprof(__VA_ARGS__))
-+
- #define alloc_page(gfp_mask) alloc_pages(gfp_mask, 0)
--static inline struct page *alloc_page_vma(gfp_t gfp,
-+
-+static inline struct page *alloc_page_vma_noprof(gfp_t gfp,
- 		struct vm_area_struct *vma, unsigned long addr)
- {
--	struct folio *folio = vma_alloc_folio(gfp, 0, vma, addr, false);
-+	struct folio *folio = vma_alloc_folio_noprof(gfp, 0, vma, addr, false);
- 
- 	return &folio->page;
- }
-+#define alloc_page_vma(...)			alloc_hooks(alloc_page_vma_noprof(__VA_ARGS__))
-+
-+extern unsigned long get_free_pages_noprof(gfp_t gfp_mask, unsigned int order);
-+#define __get_free_pages(...)			alloc_hooks(get_free_pages_noprof(__VA_ARGS__))
- 
--extern unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order);
--extern unsigned long get_zeroed_page(gfp_t gfp_mask);
-+extern unsigned long get_zeroed_page_noprof(gfp_t gfp_mask);
-+#define get_zeroed_page(...)			alloc_hooks(get_zeroed_page_noprof(__VA_ARGS__))
-+
-+void *alloc_pages_exact_noprof(size_t size, gfp_t gfp_mask) __alloc_size(1);
-+#define alloc_pages_exact(...)			alloc_hooks(alloc_pages_exact_noprof(__VA_ARGS__))
- 
--void *alloc_pages_exact(size_t size, gfp_t gfp_mask) __alloc_size(1);
- void free_pages_exact(void *virt, size_t size);
--__meminit void *alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask) __alloc_size(2);
- 
--#define __get_free_page(gfp_mask) \
--		__get_free_pages((gfp_mask), 0)
-+__meminit void *alloc_pages_exact_nid_noprof(int nid, size_t size, gfp_t gfp_mask) __alloc_size(2);
-+#define alloc_pages_exact_nid(...)					\
-+	alloc_hooks(alloc_pages_exact_nid_noprof(__VA_ARGS__))
-+
-+#define __get_free_page(gfp_mask)					\
-+	__get_free_pages((gfp_mask), 0)
- 
--#define __get_dma_pages(gfp_mask, order) \
--		__get_free_pages((gfp_mask) | GFP_DMA, (order))
-+#define __get_dma_pages(gfp_mask, order)				\
-+	__get_free_pages((gfp_mask) | GFP_DMA, (order))
- 
- extern void __free_pages(struct page *page, unsigned int order);
- extern void free_pages(unsigned long addr, unsigned int order);
-@@ -374,10 +402,14 @@ extern gfp_t vma_thp_gfp_mask(struct vm_
- 
- #ifdef CONFIG_CONTIG_ALLOC
- /* The below functions must be run on a range from a single zone. */
--extern int alloc_contig_range(unsigned long start, unsigned long end,
-+extern int alloc_contig_range_noprof(unsigned long start, unsigned long end,
- 			      unsigned migratetype, gfp_t gfp_mask);
--extern struct page *alloc_contig_pages(unsigned long nr_pages, gfp_t gfp_mask,
--				       int nid, nodemask_t *nodemask);
-+#define alloc_contig_range(...)			alloc_hooks(alloc_contig_range_noprof(__VA_ARGS__))
-+
-+extern struct page *alloc_contig_pages_noprof(unsigned long nr_pages, gfp_t gfp_mask,
-+					      int nid, nodemask_t *nodemask);
-+#define alloc_contig_pages(...)			alloc_hooks(alloc_contig_pages_noprof(__VA_ARGS__))
-+
- #endif
- void free_contig_range(unsigned long pfn, unsigned long nr_pages);
- 
---- a/include/linux/pagemap.h~mm-enable-page-allocation-tagging
-+++ a/include/linux/pagemap.h
-@@ -542,14 +542,17 @@ static inline void *detach_page_private(
- #endif
- 
- #ifdef CONFIG_NUMA
--struct folio *filemap_alloc_folio(gfp_t gfp, unsigned int order);
-+struct folio *filemap_alloc_folio_noprof(gfp_t gfp, unsigned int order);
- #else
--static inline struct folio *filemap_alloc_folio(gfp_t gfp, unsigned int order)
-+static inline struct folio *filemap_alloc_folio_noprof(gfp_t gfp, unsigned int order)
- {
--	return folio_alloc(gfp, order);
-+	return folio_alloc_noprof(gfp, order);
- }
- #endif
- 
-+#define filemap_alloc_folio(...)				\
-+	alloc_hooks(filemap_alloc_folio_noprof(__VA_ARGS__))
-+
- static inline struct page *__page_cache_alloc(gfp_t gfp)
- {
- 	return &filemap_alloc_folio(gfp, 0)->page;
---- a/mm/compaction.c~mm-enable-page-allocation-tagging
-+++ a/mm/compaction.c
-@@ -1851,7 +1851,7 @@ static void isolate_freepages(struct com
-  * This is a migrate-callback that "allocates" freepages by taking pages
-  * from the isolated freelists in the block we are migrating to.
-  */
--static struct folio *compaction_alloc(struct folio *src, unsigned long data)
-+static struct folio *compaction_alloc_noprof(struct folio *src, unsigned long data)
- {
- 	struct compact_control *cc = (struct compact_control *)data;
- 	struct folio *dst;
-@@ -1898,6 +1898,11 @@ again:
- 	return page_rmappable_folio(&dst->page);
- }
- 
-+static struct folio *compaction_alloc(struct folio *src, unsigned long data)
-+{
-+	return alloc_hooks(compaction_alloc_noprof(src, data));
-+}
-+
- /*
-  * This is a migrate-callback that "frees" freepages back to the isolated
-  * freelist.  All pages on the freelist are from the same zone, so there is no
---- a/mm/filemap.c~mm-enable-page-allocation-tagging
-+++ a/mm/filemap.c
-@@ -966,7 +966,7 @@ int filemap_add_folio(struct address_spa
- EXPORT_SYMBOL_GPL(filemap_add_folio);
- 
- #ifdef CONFIG_NUMA
--struct folio *filemap_alloc_folio(gfp_t gfp, unsigned int order)
-+struct folio *filemap_alloc_folio_noprof(gfp_t gfp, unsigned int order)
- {
- 	int n;
- 	struct folio *folio;
-@@ -981,9 +981,9 @@ struct folio *filemap_alloc_folio(gfp_t
- 
- 		return folio;
- 	}
--	return folio_alloc(gfp, order);
-+	return folio_alloc_noprof(gfp, order);
- }
--EXPORT_SYMBOL(filemap_alloc_folio);
-+EXPORT_SYMBOL(filemap_alloc_folio_noprof);
- #endif
- 
- /*
---- a/mm/mempolicy.c~mm-enable-page-allocation-tagging
-+++ a/mm/mempolicy.c
-@@ -2201,9 +2201,9 @@ static struct page *alloc_pages_preferre
- 	 */
- 	preferred_gfp = gfp | __GFP_NOWARN;
- 	preferred_gfp &= ~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL);
--	page = __alloc_pages(preferred_gfp, order, nid, nodemask);
-+	page = __alloc_pages_noprof(preferred_gfp, order, nid, nodemask);
- 	if (!page)
--		page = __alloc_pages(gfp, order, nid, NULL);
-+		page = __alloc_pages_noprof(gfp, order, nid, NULL);
- 
- 	return page;
- }
-@@ -2218,7 +2218,7 @@ static struct page *alloc_pages_preferre
-  *
-  * Return: The page on success or NULL if allocation fails.
-  */
--struct page *alloc_pages_mpol(gfp_t gfp, unsigned int order,
-+struct page *alloc_pages_mpol_noprof(gfp_t gfp, unsigned int order,
- 		struct mempolicy *pol, pgoff_t ilx, int nid)
- {
- 	nodemask_t *nodemask;
-@@ -2249,7 +2249,7 @@ struct page *alloc_pages_mpol(gfp_t gfp,
- 			 * First, try to allocate THP only on local node, but
- 			 * don't reclaim unnecessarily, just compact.
- 			 */
--			page = __alloc_pages_node(nid,
-+			page = __alloc_pages_node_noprof(nid,
- 				gfp | __GFP_THISNODE | __GFP_NORETRY, order);
- 			if (page || !(gfp & __GFP_DIRECT_RECLAIM))
- 				return page;
-@@ -2262,7 +2262,7 @@ struct page *alloc_pages_mpol(gfp_t gfp,
- 		}
- 	}
- 
--	page = __alloc_pages(gfp, order, nid, nodemask);
-+	page = __alloc_pages_noprof(gfp, order, nid, nodemask);
- 
- 	if (unlikely(pol->mode == MPOL_INTERLEAVE) && page) {
- 		/* skip NUMA_INTERLEAVE_HIT update if numa stats is disabled */
-@@ -2293,7 +2293,7 @@ struct page *alloc_pages_mpol(gfp_t gfp,
-  *
-  * Return: The folio on success or NULL if allocation fails.
-  */
--struct folio *vma_alloc_folio(gfp_t gfp, int order, struct vm_area_struct *vma,
-+struct folio *vma_alloc_folio_noprof(gfp_t gfp, int order, struct vm_area_struct *vma,
- 		unsigned long addr, bool hugepage)
- {
- 	struct mempolicy *pol;
-@@ -2301,12 +2301,12 @@ struct folio *vma_alloc_folio(gfp_t gfp,
- 	struct page *page;
- 
- 	pol = get_vma_policy(vma, addr, order, &ilx);
--	page = alloc_pages_mpol(gfp | __GFP_COMP, order,
--				pol, ilx, numa_node_id());
-+	page = alloc_pages_mpol_noprof(gfp | __GFP_COMP, order,
-+				       pol, ilx, numa_node_id());
- 	mpol_cond_put(pol);
- 	return page_rmappable_folio(page);
- }
--EXPORT_SYMBOL(vma_alloc_folio);
-+EXPORT_SYMBOL(vma_alloc_folio_noprof);
- 
- /**
-  * alloc_pages - Allocate pages.
-@@ -2322,7 +2322,7 @@ EXPORT_SYMBOL(vma_alloc_folio);
-  * flags are used.
-  * Return: The page on success or NULL if allocation fails.
-  */
--struct page *alloc_pages(gfp_t gfp, unsigned int order)
-+struct page *alloc_pages_noprof(gfp_t gfp, unsigned int order)
- {
- 	struct mempolicy *pol = &default_policy;
- 
-@@ -2333,16 +2333,16 @@ struct page *alloc_pages(gfp_t gfp, unsi
- 	if (!in_interrupt() && !(gfp & __GFP_THISNODE))
- 		pol = get_task_policy(current);
- 
--	return alloc_pages_mpol(gfp, order,
--				pol, NO_INTERLEAVE_INDEX, numa_node_id());
-+	return alloc_pages_mpol_noprof(gfp, order, pol, NO_INTERLEAVE_INDEX,
-+				       numa_node_id());
- }
--EXPORT_SYMBOL(alloc_pages);
-+EXPORT_SYMBOL(alloc_pages_noprof);
- 
--struct folio *folio_alloc(gfp_t gfp, unsigned int order)
-+struct folio *folio_alloc_noprof(gfp_t gfp, unsigned int order)
- {
--	return page_rmappable_folio(alloc_pages(gfp | __GFP_COMP, order));
-+	return page_rmappable_folio(alloc_pages_noprof(gfp | __GFP_COMP, order));
- }
--EXPORT_SYMBOL(folio_alloc);
-+EXPORT_SYMBOL(folio_alloc_noprof);
- 
- static unsigned long alloc_pages_bulk_array_interleave(gfp_t gfp,
- 		struct mempolicy *pol, unsigned long nr_pages,
-@@ -2361,13 +2361,13 @@ static unsigned long alloc_pages_bulk_ar
- 
- 	for (i = 0; i < nodes; i++) {
- 		if (delta) {
--			nr_allocated = __alloc_pages_bulk(gfp,
-+			nr_allocated = alloc_pages_bulk_noprof(gfp,
- 					interleave_nodes(pol), NULL,
- 					nr_pages_per_node + 1, NULL,
- 					page_array);
- 			delta--;
- 		} else {
--			nr_allocated = __alloc_pages_bulk(gfp,
-+			nr_allocated = alloc_pages_bulk_noprof(gfp,
- 					interleave_nodes(pol), NULL,
- 					nr_pages_per_node, NULL, page_array);
- 		}
-@@ -2504,11 +2504,11 @@ static unsigned long alloc_pages_bulk_ar
- 	preferred_gfp = gfp | __GFP_NOWARN;
- 	preferred_gfp &= ~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL);
- 
--	nr_allocated  = __alloc_pages_bulk(preferred_gfp, nid, &pol->nodes,
-+	nr_allocated  = alloc_pages_bulk_noprof(preferred_gfp, nid, &pol->nodes,
- 					   nr_pages, NULL, page_array);
- 
- 	if (nr_allocated < nr_pages)
--		nr_allocated += __alloc_pages_bulk(gfp, numa_node_id(), NULL,
-+		nr_allocated += alloc_pages_bulk_noprof(gfp, numa_node_id(), NULL,
- 				nr_pages - nr_allocated, NULL,
- 				page_array + nr_allocated);
- 	return nr_allocated;
-@@ -2520,7 +2520,7 @@ static unsigned long alloc_pages_bulk_ar
-  * It can accelerate memory allocation especially interleaving
-  * allocate memory.
-  */
--unsigned long alloc_pages_bulk_array_mempolicy(gfp_t gfp,
-+unsigned long alloc_pages_bulk_array_mempolicy_noprof(gfp_t gfp,
- 		unsigned long nr_pages, struct page **page_array)
- {
- 	struct mempolicy *pol = &default_policy;
-@@ -2544,8 +2544,8 @@ unsigned long alloc_pages_bulk_array_mem
- 
- 	nid = numa_node_id();
- 	nodemask = policy_nodemask(gfp, pol, NO_INTERLEAVE_INDEX, &nid);
--	return __alloc_pages_bulk(gfp, nid, nodemask,
--				  nr_pages, NULL, page_array);
-+	return alloc_pages_bulk_noprof(gfp, nid, nodemask,
-+				       nr_pages, NULL, page_array);
- }
- 
- int vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst)
---- a/mm/page_alloc.c~mm-enable-page-allocation-tagging
+ 	/* See comment in __split_huge_page_tail() */
+ 	if (folio_test_anon(folio)) {
+--- a/mm/page_alloc.c~mm-create-new-codetag-references-during-page-splitting
 +++ a/mm/page_alloc.c
-@@ -4391,7 +4391,7 @@ static inline bool prepare_alloc_pages(g
-  *
-  * Returns the number of pages on the list or array.
-  */
--unsigned long __alloc_pages_bulk(gfp_t gfp, int preferred_nid,
-+unsigned long alloc_pages_bulk_noprof(gfp_t gfp, int preferred_nid,
- 			nodemask_t *nodemask, int nr_pages,
- 			struct list_head *page_list,
- 			struct page **page_array)
-@@ -4527,7 +4527,7 @@ failed_irq:
- 	pcp_trylock_finish(UP_flags);
- 
- failed:
--	page = __alloc_pages(gfp, 0, preferred_nid, nodemask);
-+	page = __alloc_pages_noprof(gfp, 0, preferred_nid, nodemask);
- 	if (page) {
- 		if (page_list)
- 			list_add(&page->lru, page_list);
-@@ -4538,13 +4538,13 @@ failed:
- 
- 	goto out;
+@@ -2630,6 +2630,7 @@ void split_page(struct page *page, unsig
+ 	for (i = 1; i < (1 << order); i++)
+ 		set_page_refcounted(page + i);
+ 	split_page_owner(page, order, 0);
++	pgalloc_tag_split(page, 1 << order);
+ 	split_page_memcg(page, order, 0);
  }
--EXPORT_SYMBOL_GPL(__alloc_pages_bulk);
-+EXPORT_SYMBOL_GPL(alloc_pages_bulk_noprof);
+ EXPORT_SYMBOL_GPL(split_page);
+@@ -4827,6 +4828,7 @@ static void *make_alloc_exact(unsigned l
+ 		struct page *last = page + nr;
  
- /*
-  * This is the 'heart' of the zoned buddy allocator.
-  */
--struct page *__alloc_pages(gfp_t gfp, unsigned int order, int preferred_nid,
--							nodemask_t *nodemask)
-+struct page *__alloc_pages_noprof(gfp_t gfp, unsigned int order,
-+				      int preferred_nid, nodemask_t *nodemask)
- {
- 	struct page *page;
- 	unsigned int alloc_flags = ALLOC_WMARK_LOW;
-@@ -4606,38 +4606,38 @@ out:
- 
- 	return page;
- }
--EXPORT_SYMBOL(__alloc_pages);
-+EXPORT_SYMBOL(__alloc_pages_noprof);
- 
--struct folio *__folio_alloc(gfp_t gfp, unsigned int order, int preferred_nid,
-+struct folio *__folio_alloc_noprof(gfp_t gfp, unsigned int order, int preferred_nid,
- 		nodemask_t *nodemask)
- {
--	struct page *page = __alloc_pages(gfp | __GFP_COMP, order,
-+	struct page *page = __alloc_pages_noprof(gfp | __GFP_COMP, order,
- 					preferred_nid, nodemask);
- 	return page_rmappable_folio(page);
- }
--EXPORT_SYMBOL(__folio_alloc);
-+EXPORT_SYMBOL(__folio_alloc_noprof);
- 
- /*
-  * Common helper functions. Never use with __GFP_HIGHMEM because the returned
-  * address cannot represent highmem pages. Use alloc_pages and then kmap if
-  * you need to access high mem.
-  */
--unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order)
-+unsigned long get_free_pages_noprof(gfp_t gfp_mask, unsigned int order)
- {
- 	struct page *page;
- 
--	page = alloc_pages(gfp_mask & ~__GFP_HIGHMEM, order);
-+	page = alloc_pages_noprof(gfp_mask & ~__GFP_HIGHMEM, order);
- 	if (!page)
- 		return 0;
- 	return (unsigned long) page_address(page);
- }
--EXPORT_SYMBOL(__get_free_pages);
-+EXPORT_SYMBOL(get_free_pages_noprof);
- 
--unsigned long get_zeroed_page(gfp_t gfp_mask)
-+unsigned long get_zeroed_page_noprof(gfp_t gfp_mask)
- {
--	return __get_free_page(gfp_mask | __GFP_ZERO);
-+	return get_free_pages_noprof(gfp_mask | __GFP_ZERO, 0);
- }
--EXPORT_SYMBOL(get_zeroed_page);
-+EXPORT_SYMBOL(get_zeroed_page_noprof);
- 
- /**
-  * __free_pages - Free pages allocated with alloc_pages().
-@@ -4853,7 +4853,7 @@ static void *make_alloc_exact(unsigned l
-  *
-  * Return: pointer to the allocated area or %NULL in case of error.
-  */
--void *alloc_pages_exact(size_t size, gfp_t gfp_mask)
-+void *alloc_pages_exact_noprof(size_t size, gfp_t gfp_mask)
- {
- 	unsigned int order = get_order(size);
- 	unsigned long addr;
-@@ -4861,10 +4861,10 @@ void *alloc_pages_exact(size_t size, gfp
- 	if (WARN_ON_ONCE(gfp_mask & (__GFP_COMP | __GFP_HIGHMEM)))
- 		gfp_mask &= ~(__GFP_COMP | __GFP_HIGHMEM);
- 
--	addr = __get_free_pages(gfp_mask, order);
-+	addr = get_free_pages_noprof(gfp_mask, order);
- 	return make_alloc_exact(addr, order, size);
- }
--EXPORT_SYMBOL(alloc_pages_exact);
-+EXPORT_SYMBOL(alloc_pages_exact_noprof);
- 
- /**
-  * alloc_pages_exact_nid - allocate an exact number of physically-contiguous
-@@ -4878,7 +4878,7 @@ EXPORT_SYMBOL(alloc_pages_exact);
-  *
-  * Return: pointer to the allocated area or %NULL in case of error.
-  */
--void * __meminit alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask)
-+void * __meminit alloc_pages_exact_nid_noprof(int nid, size_t size, gfp_t gfp_mask)
- {
- 	unsigned int order = get_order(size);
- 	struct page *p;
-@@ -4886,7 +4886,7 @@ void * __meminit alloc_pages_exact_nid(i
- 	if (WARN_ON_ONCE(gfp_mask & (__GFP_COMP | __GFP_HIGHMEM)))
- 		gfp_mask &= ~(__GFP_COMP | __GFP_HIGHMEM);
- 
--	p = alloc_pages_node(nid, gfp_mask, order);
-+	p = alloc_pages_node_noprof(nid, gfp_mask, order);
- 	if (!p)
- 		return NULL;
- 	return make_alloc_exact((unsigned long)page_address(p), order, size);
-@@ -6343,7 +6343,7 @@ int __alloc_contig_migrate_range(struct
-  * pages which PFN is in [start, end) are allocated for the caller and
-  * need to be freed with free_contig_range().
-  */
--int alloc_contig_range(unsigned long start, unsigned long end,
-+int alloc_contig_range_noprof(unsigned long start, unsigned long end,
- 		       unsigned migratetype, gfp_t gfp_mask)
- {
- 	unsigned long outer_start, outer_end;
-@@ -6467,15 +6467,15 @@ done:
- 	undo_isolate_page_range(start, end, migratetype);
- 	return ret;
- }
--EXPORT_SYMBOL(alloc_contig_range);
-+EXPORT_SYMBOL(alloc_contig_range_noprof);
- 
- static int __alloc_contig_pages(unsigned long start_pfn,
- 				unsigned long nr_pages, gfp_t gfp_mask)
- {
- 	unsigned long end_pfn = start_pfn + nr_pages;
- 
--	return alloc_contig_range(start_pfn, end_pfn, MIGRATE_MOVABLE,
--				  gfp_mask);
-+	return alloc_contig_range_noprof(start_pfn, end_pfn, MIGRATE_MOVABLE,
-+				   gfp_mask);
- }
- 
- static bool pfn_range_valid_contig(struct zone *z, unsigned long start_pfn,
-@@ -6530,8 +6530,8 @@ static bool zone_spans_last_pfn(const st
-  *
-  * Return: pointer to contiguous pages on success, or NULL if not successful.
-  */
--struct page *alloc_contig_pages(unsigned long nr_pages, gfp_t gfp_mask,
--				int nid, nodemask_t *nodemask)
-+struct page *alloc_contig_pages_noprof(unsigned long nr_pages, gfp_t gfp_mask,
-+				 int nid, nodemask_t *nodemask)
- {
- 	unsigned long ret, pfn, flags;
- 	struct zonelist *zonelist;
+ 		split_page_owner(page, order, 0);
++		pgalloc_tag_split(page, 1 << order);
+ 		split_page_memcg(page, order, 0);
+ 		while (page < --last)
+ 			set_page_refcounted(last);
 _
 
 Patches currently in -mm which might be from surenb@google.com are
