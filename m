@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 038CF7604D
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:47:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71E5276F17
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:48:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714103249; cv=none; b=JGeNbJzFszJvZXyqwT8eDcVWfJpYl6UmRvrWdNC0kJR2XM+5vF1BkElSyHQ2VRzkCO9h4lifxdb6Vt8+2uSV4o/LTlRdPNHBn9STdChnojceMSneOCdhE947akEHqM4pm9fKHt9muk7uzF8Uxngk9vT+l6Hzv/kWfIv/qPXVA78=
+	t=1714103335; cv=none; b=qYCoCIWxbdnJwrCrfXHHgrP/kBylu+i6sFjoQ7tjXplxhCVq6mO44oXF8SJiHl9984YXxQRIXOKnH6QKS2+LHLKzihNe0UycUF4ilSQig8YAgWhabKP/toe+YKqpWlbXAEBis8bKGap/vShiBuT3HCB3aHNSZnX7P1w032Ufm5c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714103249; c=relaxed/simple;
-	bh=MHdey7xLLKdNY/WsZ7ipOuZ8rtFyZzBIrM3v1NyTtEA=;
-	h=Date:To:From:Subject:Message-Id; b=kc6AKq4/jtYWr911O4okJwnQeTuHdD7Pu+K8hw0/pmZaM38jY+VDDcyIF/dESIEFGq0Bqlt7RljZZP3sQeCYIrKUPS50cLqBTwKJ8Yyz4Cl6IiatoIf7q+cza2vFRyM39oS/UaX+pIHNGqReY/OtFY+gybx/3VRVIAGT2T6nHvU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A5/8IT6I; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714103335; c=relaxed/simple;
+	bh=OJMqZtrHRPYCsQ4j9ioFiVztfzxheQ7r6s0naJtD18g=;
+	h=Date:To:From:Subject:Message-Id; b=LEE1kOg/+OY6xjv+uVOxksgY78w/jI5NoYyTIIt3UAjjftJ4uXZd+u+HD6NjaT1QWcomHPZTBCWO1fySMoU8c4nN04mLjUqmUHNxIqvHLti8tD2vFwQ8vSmJkATf3nHdth9Er8qtcV9zd0dASURBHldHbSbEghN9bwJiRXHGS4E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yq1+3keC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A5/8IT6I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75F5CC113CD;
-	Fri, 26 Apr 2024 03:47:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yq1+3keC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A828C113CD;
+	Fri, 26 Apr 2024 03:48:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714103248;
-	bh=MHdey7xLLKdNY/WsZ7ipOuZ8rtFyZzBIrM3v1NyTtEA=;
+	s=korg; t=1714103335;
+	bh=OJMqZtrHRPYCsQ4j9ioFiVztfzxheQ7r6s0naJtD18g=;
 	h=Date:To:From:Subject:From;
-	b=A5/8IT6I5ZE/2wwub1u+qFQ4NDMxmzEhwNo/3Lnpy3Q7Do7cnJgRJ7fekjqFztsZQ
-	 Sz9FPyX8U+jF4fxtyYSQK1h8mzB9yP/XeV/5ktgd7LUyTTDnYN73t6KpWksAqND+ik
-	 qJnB0vQ793v5IPlB6/fOxoTSfVjlo5IiLpQGRYQA=
-Date: Thu, 25 Apr 2024 20:47:27 -0700
-To: mm-commits@vger.kernel.org,alexghiti@rivosinc.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=Yq1+3keCzFWT+nYBFGU27PXWqSscHOctp5fT4wID53KJGHKM5ZXvHQNCjMC1YL9YH
+	 OpP6dc03/YbPq1GfV/5YOsIUTMx4DSZsRhxpuFbPdZQduTpUmqkHRseGgGlISYDa/3
+	 L5cFFFe6rggzqjCkE9Oqf0Ak1gWvxY1sh+YZJte8=
+Date: Thu, 25 Apr 2024 20:48:54 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,osalvador@suse.de,muchun.song@linux.dev,vishal.moola@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] riscv-mm-accelerate-pagefault-when-badaccess-fix.patch removed from -mm tree
-Message-Id: <20240426034728.75F5CC113CD@smtp.kernel.org>
+Subject: [folded-merged] hugetlb-convert-hugetlb_no_page-to-use-struct-vm_fault-fix.patch removed from -mm tree
+Message-Id: <20240426034855.0A828C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: riscv-mm-accelerate-pagefault-when-badaccess-fix
+     Subject: hugetlb: simplify hugetlb_no_page() arguments
 has been removed from the -mm tree.  Its filename was
-     riscv-mm-accelerate-pagefault-when-badaccess-fix.patch
+     hugetlb-convert-hugetlb_no_page-to-use-struct-vm_fault-fix.patch
 
-This patch was dropped because it was folded into riscv-mm-accelerate-pagefault-when-badaccess.patch
+This patch was dropped because it was folded into hugetlb-convert-hugetlb_no_page-to-use-struct-vm_fault.patch
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: riscv-mm-accelerate-pagefault-when-badaccess-fix
-Date: Wed, 10 Apr 2024 16:07:41 +0800
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: hugetlb: simplify hugetlb_no_page() arguments
+Date: Mon, 8 Apr 2024 10:17:54 -0700
 
-use `cause' rather than SIGSEGV, per Alexandre
+To simplify the function arguments, as suggested by Oscar and Muchun.
 
-Link: https://lkml.kernel.org/r/ac978061-ce1a-40a4-8b0a-61883b42bea7@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Alexandre Ghiti <alexghiti@rivosinc.com>
-Tested-by: Alexandre Ghiti <alexghiti@rivosinc.com>
+Link: https://lkml.kernel.org/r/ZhQtN8y5zud8iI1u@fedora
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Suggested-by: Muchun Song <muchun.song@linux.dev>
+Suggested-by: Oscar Salvador <osalvador@suse.de>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/mm/fault.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/riscv/mm/fault.c~riscv-mm-accelerate-pagefault-when-badaccess-fix
-+++ a/arch/riscv/mm/fault.c
-@@ -293,8 +293,8 @@ void handle_page_fault(struct pt_regs *r
- 	if (unlikely(access_error(cause, vma))) {
- 		vma_end_read(vma);
- 		count_vm_vma_lock_event(VMA_LOCK_SUCCESS);
--		tsk->thread.bad_cause = SEGV_ACCERR;
--		bad_area_nosemaphore(regs, code, addr);
-+		tsk->thread.bad_cause = cause;
-+		bad_area_nosemaphore(regs, SEGV_ACCERR, addr);
- 		return;
+--- a/mm/hugetlb.c~hugetlb-convert-hugetlb_no_page-to-use-struct-vm_fault-fix
++++ a/mm/hugetlb.c
+@@ -6188,11 +6188,11 @@ static bool hugetlb_pte_stable(struct hs
+ 	return same;
+ }
+ 
+-static vm_fault_t hugetlb_no_page(struct mm_struct *mm,
+-			struct vm_area_struct *vma,
+-			struct address_space *mapping,
++static vm_fault_t hugetlb_no_page(struct address_space *mapping,
+ 			struct vm_fault *vmf)
+ {
++	struct vm_area_struct *vma = vmf->vma;
++	struct mm_struct *mm = vma->vm_mm;
+ 	struct hstate *h = hstate_vma(vma);
+ 	vm_fault_t ret = VM_FAULT_SIGBUS;
+ 	int anon_rmap = 0;
+@@ -6489,7 +6489,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 		 * hugetlb_no_page will drop vma lock and hugetlb fault
+ 		 * mutex internally, which make us return immediately.
+ 		 */
+-		return hugetlb_no_page(mm, vma, mapping, &vmf);
++		return hugetlb_no_page(mapping, &vmf);
  	}
  
+ 	ret = 0;
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
-mm-backing-dev-use-group-allocation-free-of-per-cpu-counters-api.patch
-mm-remove-__set_page_dirty_nobuffers.patch
-arm64-mm-cleanup-__do_page_fault.patch
-arm64-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
-arm-mm-accelerate-pagefault-when-vm_fault_badaccess.patch
-powerpc-mm-accelerate-pagefault-when-badaccess.patch
-riscv-mm-accelerate-pagefault-when-badaccess.patch
-s390-mm-accelerate-pagefault-when-badaccess.patch
-x86-mm-accelerate-pagefault-when-badaccess.patch
-arm64-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
-arm-mm-drop-vm_fault_badmap-vm_fault_badaccess.patch
-mm-move-mm-counter-updating-out-of-set_pte_range.patch
-mm-filemap-batch-mm-counter-updating-in-filemap_map_pages.patch
-mm-swapfile-check-usable-swap-device-in-__folio_throttle_swaprate.patch
-mm-memory-check-userfaultfd_wp-in-vmf_orig_pte_uffd_wp.patch
+hugetlb-convert-hugetlb_fault-to-use-struct-vm_fault.patch
+hugetlb-convert-hugetlb_no_page-to-use-struct-vm_fault.patch
+hugetlb-convert-hugetlb_wp-to-use-struct-vm_fault.patch
+hugetlb-convert-hugetlb_wp-to-use-struct-vm_fault-fix.patch
 
