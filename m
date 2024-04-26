@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4E178061B
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB4BB8061B
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104121; cv=none; b=m3wfOc0FSPFTOJaH1/eZk/Bq/El+YEll6xjBzn2NBI4B466d1iitv2LOaN3QcArfHXAJ16t5LeHQ/tmSLsJygq13W+ESqta3fwSrWT+y9h1eXzLpkwnClFWNIquL3HA9ovWlPA04Cl+UZTU8Oa6BTAS7l/rUhQculWuCgZyxiwE=
+	t=1714104122; cv=none; b=Jacu3rOjkNFA/pbYPFcswUBmOps7DXqLrLp8RY6MKC9SDEowOqaN/pL5WKf/8393XllVNktSyBf1jYlGqBeCzbcVMWZ75Yxwrtz29hdY7eh6kX6mQ7KiOtOrISRRycVj2IZFmg1EgcwM0VNdMP/HHZ1ksoEAXjNs/MlGAYdDK2k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104121; c=relaxed/simple;
-	bh=Fybl+FMxTx2Ad5oLDnhbDOIcmzwI/WwUMneEm4FHQ2Y=;
-	h=Date:To:From:Subject:Message-Id; b=Su/SEbGnpVyYS6FrkDuDKHTiVKGmotmdbFgz0npDVyAltoiBPEvwp3MX8SDaHVL7xBFQ3SfwOJhiJnC7pv8VtiofTdLiop+3azmG8L6nfigAj6MKbLchFAcHINIhbkBSs5TmmTfhOldsCpxlVaYrTnuO6vm6a/pjfeMaQUxbNS0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EcSRiBxM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104122; c=relaxed/simple;
+	bh=rIDkwadC5XhjWntJqid90FpXvz8ctKAuN27oH5nzOKc=;
+	h=Date:To:From:Subject:Message-Id; b=geTKJyWPOV5TixxmbZjknkeO9y4+sSkKVLIqMhcsdTU96ToA9edCjfc7gg9QDkIB0eCL+v2FoBwTwaxCbwePUIvo5SFUAc36l17tTs3PZCTBO33ZdQhQd6IkFptdHakTXM/Ykgy633F+FrCujk1bSFzFSsTjdIMmi19RqYHibug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IJcUgbXo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EcSRiBxM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7A68C116B1;
-	Fri, 26 Apr 2024 04:02:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IJcUgbXo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1E95C116B1;
+	Fri, 26 Apr 2024 04:02:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104121;
-	bh=Fybl+FMxTx2Ad5oLDnhbDOIcmzwI/WwUMneEm4FHQ2Y=;
+	s=korg; t=1714104122;
+	bh=rIDkwadC5XhjWntJqid90FpXvz8ctKAuN27oH5nzOKc=;
 	h=Date:To:From:Subject:From;
-	b=EcSRiBxM2YXmYCIdSIL+zgjmng+/5Npj8yriQnu6ZD8/utPVGbBVN/YjLo80c9O7e
-	 LRmnPDxpsNZ6i/momwTmWysocIYMftFPM06Tijt9Wpi6KdZwUnRV1OEt/9a6A49JJY
-	 4UrStnHW2EJGQ3IJ1YJ/kBKmCYZBlEbN/DmzQri8=
-Date: Thu, 25 Apr 2024 21:02:01 -0700
+	b=IJcUgbXoEf+gpydQj3SjjjYbVHmrS6coD+ruPsqK1V7cN4yz2FJhGoCtLHwtYHWA3
+	 V71iXPcMQhKrNaPpPLDcbDXAN8Wb7ahnU1MIQI1nX63r0QmQcQlSOAWPczbiLtgzdT
+	 8o/HvDOHjgpFq43t6z79Y+fjsjd02Tkcnlrvsf6A=
+Date: Thu, 25 Apr 2024 21:02:02 -0700
 To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] khugepaged-pass-a-folio-to-__collapse_huge_page_copy.patch removed from -mm tree
-Message-Id: <20240426040201.A7A68C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] khugepaged-remove-hpage-from-collapse_file.patch removed from -mm tree
+Message-Id: <20240426040202.A1E95C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,98 +35,220 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: khugepaged: pass a folio to __collapse_huge_page_copy()
+     Subject: khugepaged: remove hpage from collapse_file()
 has been removed from the -mm tree.  Its filename was
-     khugepaged-pass-a-folio-to-__collapse_huge_page_copy.patch
+     khugepaged-remove-hpage-from-collapse_file.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: khugepaged: pass a folio to __collapse_huge_page_copy()
-Date: Wed, 3 Apr 2024 18:18:33 +0100
+Subject: khugepaged: remove hpage from collapse_file()
+Date: Wed, 3 Apr 2024 18:18:34 +0100
 
-Simplify the body of __collapse_huge_page_copy() while I'm looking at
-it.
+Use new_folio throughout where we had been using hpage.
 
-Link: https://lkml.kernel.org/r/20240403171838.1445826-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240403171838.1445826-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   36 ++++++++++++++++--------------------
- 1 file changed, 16 insertions(+), 20 deletions(-)
+ include/trace/events/huge_memory.h |    6 +-
+ mm/khugepaged.c                    |   77 +++++++++++++--------------
+ 2 files changed, 42 insertions(+), 41 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-pass-a-folio-to-__collapse_huge_page_copy
+--- a/include/trace/events/huge_memory.h~khugepaged-remove-hpage-from-collapse_file
++++ a/include/trace/events/huge_memory.h
+@@ -207,10 +207,10 @@ TRACE_EVENT(mm_khugepaged_scan_file,
+ );
+ 
+ TRACE_EVENT(mm_khugepaged_collapse_file,
+-	TP_PROTO(struct mm_struct *mm, struct page *hpage, pgoff_t index,
++	TP_PROTO(struct mm_struct *mm, struct folio *new_folio, pgoff_t index,
+ 			bool is_shmem, unsigned long addr, struct file *file,
+ 			int nr, int result),
+-	TP_ARGS(mm, hpage, index, addr, is_shmem, file, nr, result),
++	TP_ARGS(mm, new_folio, index, addr, is_shmem, file, nr, result),
+ 	TP_STRUCT__entry(
+ 		__field(struct mm_struct *, mm)
+ 		__field(unsigned long, hpfn)
+@@ -224,7 +224,7 @@ TRACE_EVENT(mm_khugepaged_collapse_file,
+ 
+ 	TP_fast_assign(
+ 		__entry->mm = mm;
+-		__entry->hpfn = hpage ? page_to_pfn(hpage) : -1;
++		__entry->hpfn = new_folio ? folio_pfn(new_folio) : -1;
+ 		__entry->index = index;
+ 		__entry->addr = addr;
+ 		__entry->is_shmem = is_shmem;
+--- a/mm/khugepaged.c~khugepaged-remove-hpage-from-collapse_file
 +++ a/mm/khugepaged.c
-@@ -767,7 +767,7 @@ static void __collapse_huge_page_copy_fa
-  * Returns SCAN_SUCCEED if copying succeeds, otherwise returns SCAN_COPY_MC.
-  *
-  * @pte: starting of the PTEs to copy from
-- * @page: the new hugepage to copy contents to
-+ * @folio: the new hugepage to copy contents to
-  * @pmd: pointer to the new hugepage's PMD
-  * @orig_pmd: the original raw pages' PMD
-  * @vma: the original raw pages' virtual memory area
-@@ -775,33 +775,29 @@ static void __collapse_huge_page_copy_fa
-  * @ptl: lock on raw pages' PTEs
-  * @compound_pagelist: list that stores compound pages
-  */
--static int __collapse_huge_page_copy(pte_t *pte,
--				     struct page *page,
--				     pmd_t *pmd,
--				     pmd_t orig_pmd,
--				     struct vm_area_struct *vma,
--				     unsigned long address,
--				     spinlock_t *ptl,
--				     struct list_head *compound_pagelist)
--{
--	struct page *src_page;
--	pte_t *_pte;
--	pte_t pteval;
--	unsigned long _address;
-+static int __collapse_huge_page_copy(pte_t *pte, struct folio *folio,
-+		pmd_t *pmd, pmd_t orig_pmd, struct vm_area_struct *vma,
-+		unsigned long address, spinlock_t *ptl,
-+		struct list_head *compound_pagelist)
-+{
-+	unsigned int i;
- 	int result = SCAN_SUCCEED;
+@@ -1780,30 +1780,27 @@ static int collapse_file(struct mm_struc
+ 			 struct collapse_control *cc)
+ {
+ 	struct address_space *mapping = file->f_mapping;
+-	struct page *hpage;
+ 	struct page *page;
+-	struct page *tmp;
++	struct page *tmp, *dst;
+ 	struct folio *folio, *new_folio;
+ 	pgoff_t index = 0, end = start + HPAGE_PMD_NR;
+ 	LIST_HEAD(pagelist);
+ 	XA_STATE_ORDER(xas, &mapping->i_pages, start, HPAGE_PMD_ORDER);
+ 	int nr_none = 0, result = SCAN_SUCCEED;
+ 	bool is_shmem = shmem_file(file);
+-	int nr = 0;
+ 
+ 	VM_BUG_ON(!IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && !is_shmem);
+ 	VM_BUG_ON(start & (HPAGE_PMD_NR - 1));
+ 
+ 	result = alloc_charge_folio(&new_folio, mm, cc);
+-	hpage = &new_folio->page;
+ 	if (result != SCAN_SUCCEED)
+ 		goto out;
+ 
+-	__SetPageLocked(hpage);
++	__folio_set_locked(new_folio);
+ 	if (is_shmem)
+-		__SetPageSwapBacked(hpage);
+-	hpage->index = start;
+-	hpage->mapping = mapping;
++		__folio_set_swapbacked(new_folio);
++	new_folio->index = start;
++	new_folio->mapping = mapping;
  
  	/*
- 	 * Copying pages' contents is subject to memory poison at any iteration.
+ 	 * Ensure we have slots for all the pages in the range.  This is
+@@ -2036,20 +2033,24 @@ xa_unlocked:
+ 	 * The old pages are locked, so they won't change anymore.
  	 */
--	for (_pte = pte, _address = address; _pte < pte + HPAGE_PMD_NR;
--	     _pte++, page++, _address += PAGE_SIZE) {
--		pteval = ptep_get(_pte);
-+	for (i = 0; i < HPAGE_PMD_NR; i++) {
-+		pte_t pteval = ptep_get(pte + i);
-+		struct page *page = folio_page(folio, i);
-+		unsigned long src_addr = address + i * PAGE_SIZE;
-+		struct page *src_page;
-+
- 		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
--			clear_user_highpage(page, _address);
-+			clear_user_highpage(page, src_addr);
- 			continue;
+ 	index = start;
++	dst = folio_page(new_folio, 0);
+ 	list_for_each_entry(page, &pagelist, lru) {
+ 		while (index < page->index) {
+-			clear_highpage(hpage + (index % HPAGE_PMD_NR));
++			clear_highpage(dst);
+ 			index++;
++			dst++;
  		}
- 		src_page = pte_page(pteval);
--		if (copy_mc_user_highpage(page, src_page, _address, vma) > 0) {
-+		if (copy_mc_user_highpage(page, src_page, src_addr, vma) > 0) {
+-		if (copy_mc_highpage(hpage + (page->index % HPAGE_PMD_NR), page) > 0) {
++		if (copy_mc_highpage(dst, page) > 0) {
  			result = SCAN_COPY_MC;
- 			break;
+ 			goto rollback;
  		}
-@@ -1196,7 +1192,7 @@ static int collapse_huge_page(struct mm_
- 	 */
- 	anon_vma_unlock_write(vma->anon_vma);
+ 		index++;
++		dst++;
+ 	}
+ 	while (index < end) {
+-		clear_highpage(hpage + (index % HPAGE_PMD_NR));
++		clear_highpage(dst);
+ 		index++;
++		dst++;
+ 	}
  
--	result = __collapse_huge_page_copy(pte, &folio->page, pmd, _pmd,
-+	result = __collapse_huge_page_copy(pte, folio, pmd, _pmd,
- 					   vma, address, pte_ptl,
- 					   &compound_pagelist);
- 	pte_unmap(pte);
+ 	if (nr_none) {
+@@ -2077,16 +2078,17 @@ xa_unlocked:
+ 		}
+ 
+ 		/*
+-		 * If userspace observed a missing page in a VMA with a MODE_MISSING
+-		 * userfaultfd, then it might expect a UFFD_EVENT_PAGEFAULT for that
+-		 * page. If so, we need to roll back to avoid suppressing such an
+-		 * event. Since wp/minor userfaultfds don't give userspace any
+-		 * guarantees that the kernel doesn't fill a missing page with a zero
+-		 * page, so they don't matter here.
++		 * If userspace observed a missing page in a VMA with
++		 * a MODE_MISSING userfaultfd, then it might expect a
++		 * UFFD_EVENT_PAGEFAULT for that page. If so, we need to
++		 * roll back to avoid suppressing such an event. Since
++		 * wp/minor userfaultfds don't give userspace any
++		 * guarantees that the kernel doesn't fill a missing
++		 * page with a zero page, so they don't matter here.
+ 		 *
+-		 * Any userfaultfds registered after this point will not be able to
+-		 * observe any missing pages due to the previously inserted retry
+-		 * entries.
++		 * Any userfaultfds registered after this point will
++		 * not be able to observe any missing pages due to the
++		 * previously inserted retry entries.
+ 		 */
+ 		vma_interval_tree_foreach(vma, &mapping->i_mmap, start, end) {
+ 			if (userfaultfd_missing(vma)) {
+@@ -2111,33 +2113,32 @@ immap_locked:
+ 		xas_lock_irq(&xas);
+ 	}
+ 
+-	folio = page_folio(hpage);
+-	nr = folio_nr_pages(folio);
+ 	if (is_shmem)
+-		__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, nr);
++		__lruvec_stat_mod_folio(new_folio, NR_SHMEM_THPS, HPAGE_PMD_NR);
+ 	else
+-		__lruvec_stat_mod_folio(folio, NR_FILE_THPS, nr);
++		__lruvec_stat_mod_folio(new_folio, NR_FILE_THPS, HPAGE_PMD_NR);
+ 
+ 	if (nr_none) {
+-		__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr_none);
++		__lruvec_stat_mod_folio(new_folio, NR_FILE_PAGES, nr_none);
+ 		/* nr_none is always 0 for non-shmem. */
+-		__lruvec_stat_mod_folio(folio, NR_SHMEM, nr_none);
++		__lruvec_stat_mod_folio(new_folio, NR_SHMEM, nr_none);
+ 	}
+ 
+ 	/*
+-	 * Mark hpage as uptodate before inserting it into the page cache so
+-	 * that it isn't mistaken for an fallocated but unwritten page.
++	 * Mark new_folio as uptodate before inserting it into the
++	 * page cache so that it isn't mistaken for an fallocated but
++	 * unwritten page.
+ 	 */
+-	folio_mark_uptodate(folio);
+-	folio_ref_add(folio, HPAGE_PMD_NR - 1);
++	folio_mark_uptodate(new_folio);
++	folio_ref_add(new_folio, HPAGE_PMD_NR - 1);
+ 
+ 	if (is_shmem)
+-		folio_mark_dirty(folio);
+-	folio_add_lru(folio);
++		folio_mark_dirty(new_folio);
++	folio_add_lru(new_folio);
+ 
+ 	/* Join all the small entries into a single multi-index entry. */
+ 	xas_set_order(&xas, start, HPAGE_PMD_ORDER);
+-	xas_store(&xas, folio);
++	xas_store(&xas, new_folio);
+ 	WARN_ON_ONCE(xas_error(&xas));
+ 	xas_unlock_irq(&xas);
+ 
+@@ -2148,7 +2149,7 @@ immap_locked:
+ 	retract_page_tables(mapping, start);
+ 	if (cc && !cc->is_khugepaged)
+ 		result = SCAN_PTE_MAPPED_HUGEPAGE;
+-	folio_unlock(folio);
++	folio_unlock(new_folio);
+ 
+ 	/*
+ 	 * The collapse has succeeded, so free the old pages.
+@@ -2193,13 +2194,13 @@ rollback:
+ 		smp_mb();
+ 	}
+ 
+-	hpage->mapping = NULL;
++	new_folio->mapping = NULL;
+ 
+-	unlock_page(hpage);
+-	put_page(hpage);
++	folio_unlock(new_folio);
++	folio_put(new_folio);
+ out:
+ 	VM_BUG_ON(!list_empty(&pagelist));
+-	trace_mm_khugepaged_collapse_file(mm, hpage, index, is_shmem, addr, file, nr, result);
++	trace_mm_khugepaged_collapse_file(mm, new_folio, index, is_shmem, addr, file, HPAGE_PMD_NR, result);
+ 	return result;
+ }
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
