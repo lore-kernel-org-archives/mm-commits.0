@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B65DF80C16
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA4F980C16
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:02:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104155; cv=none; b=L9G+5zSFqXEKxrZsOp9HMEHXn8y9aUUySn/s0WwBfXhgrZs1Rj9jdftlt0SIeBgUE9Mvu9+X1tl3nQXIIa71owimllfvF8fX9ES4TraLGxmxdq60xHAcXyBBPYZDB3SXmkkwmK7dPCdKx6YSj0yA4Gzm++XZjOXZcJo2BrdwkCo=
+	t=1714104156; cv=none; b=mkWpRH6ZoGXcyQE0GwFl3hMM70rOXO/Vb07MmHBLNfciq2nVCsF4j74AtA09aSEYCYu6TUPLdDPmwSvFluzKxt6LFU2f8VNN+nA0ZG5dl/sTlQr8H5zJg4CrU9RRLlA47UjFHV5UbBI3RlDMAIgL+0fqhYGws72HLOt2Cog5AXA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104155; c=relaxed/simple;
-	bh=k5vpokQNDbyKZqW349/CG57XkJCKS6bF5iFdGGcxhyo=;
-	h=Date:To:From:Subject:Message-Id; b=WpNyG8xRhgQfbUTYdCrKgbZIHUmCxeMVzWsukwUgMFRCkvo+RY7RMzxOTB9vlCBa0YEXU6a/tuxHc0bQTg2w4zk50yRjW1fQ8C94P+/KIVLy3opaKpjPi5lhuCceD5fxpSf+DfPIYRzb34Nl172xoATuxiIzzOpKfpeXG/O5Zuo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZQAu1Mgh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104156; c=relaxed/simple;
+	bh=zCNq37UXFWsbEGfAywxhAElHdGcuhXFp2ctkzDIw7+U=;
+	h=Date:To:From:Subject:Message-Id; b=h79xLeRBNoLJ4zMol+sB3FrUOLwtEB6kXQj+gVEimwYTHuJGpK0E8xr0SSoYG4hqsFR/zeNEkpy2ScbiExaZBA6o1O0YxYhaGnvQjBToeA/zWXZWnYsZ7/NkVWxb5bureTfivcF/U40QbHmvkWs7c7yUY3j+kjJ5xx/lBXy41o0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gSunbrwk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZQAu1Mgh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B252C116B1;
-	Fri, 26 Apr 2024 04:02:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gSunbrwk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90956C113CD;
+	Fri, 26 Apr 2024 04:02:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104155;
-	bh=k5vpokQNDbyKZqW349/CG57XkJCKS6bF5iFdGGcxhyo=;
+	s=korg; t=1714104156;
+	bh=zCNq37UXFWsbEGfAywxhAElHdGcuhXFp2ctkzDIw7+U=;
 	h=Date:To:From:Subject:From;
-	b=ZQAu1MghVJ1bdrxxcujeaOMmlxLxVcnMNbLkh/FeSOz6oWvZ3htMwwlbtoFAc4m0F
-	 56W6XPuZhxZ5wHlzK2fpkUXBuXCRGarCjB0mBYYJlkmBs4XtTil0lBW+6q0JQoudwF
-	 A9gBoTBDONSWlqbraajyqJi38sLXXF51WfwMzNT0=
-Date: Thu, 25 Apr 2024 21:02:35 -0700
-To: mm-commits@vger.kernel.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=gSunbrwkRdSVJ8h7DaRExre6rnv/r1d9wvkQhHaVaQm+sqPkSEH21ZFk+frRAg6Aj
+	 7q0B0AgYhzDoNCqDwIBtlkT6XSgdSV6mXgeInqlqnW1oEbrEcLDmnfvBUSkH/FiKiH
+	 BlUxGkuX3GQ5D/bDbrrmjTYGVO4OZz/miEhNGg6w=
+Date: Thu, 25 Apr 2024 21:02:36 -0700
+To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-struct-page-from-get_shadow_from_swap_cache.patch removed from -mm tree
-Message-Id: <20240426040235.8B252C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] hugetlb-convert-alloc_buddy_hugetlb_folio-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20240426040236.90956C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,110 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove struct page from get_shadow_from_swap_cache
+     Subject: hugetlb: convert alloc_buddy_hugetlb_folio to use a folio
 has been removed from the -mm tree.  Its filename was
-     mm-remove-struct-page-from-get_shadow_from_swap_cache.patch
+     hugetlb-convert-alloc_buddy_hugetlb_folio-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove struct page from get_shadow_from_swap_cache
-Date: Tue, 2 Apr 2024 21:16:57 +0100
+Subject: hugetlb: convert alloc_buddy_hugetlb_folio to use a folio
+Date: Tue, 2 Apr 2024 21:06:54 +0100
 
-We don't actually use any parts of struct page; all we do is check the
-value of the pointer.  So give the pointer the appropriate name & type.
+While this function returned a folio, it was still using __alloc_pages()
+and __free_pages().  Use __folio_alloc() and put_folio() instead.  This
+actually removes a call to compound_head(), but more importantly, it
+prepares us for the move to memdescs.
 
-Link: https://lkml.kernel.org/r/20240402201659.918308-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240402200656.913841-1-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |   33 ++++++++++++++++-----------------
+ 1 file changed, 16 insertions(+), 17 deletions(-)
 
---- a/mm/swap_state.c~mm-remove-struct-page-from-get_shadow_from_swap_cache
-+++ a/mm/swap_state.c
-@@ -73,11 +73,11 @@ void *get_shadow_from_swap_cache(swp_ent
+--- a/mm/hugetlb.c~hugetlb-convert-alloc_buddy_hugetlb_folio-to-use-a-folio
++++ a/mm/hugetlb.c
+@@ -2177,13 +2177,13 @@ static struct folio *alloc_buddy_hugetlb
+ 		nodemask_t *node_alloc_noretry)
  {
- 	struct address_space *address_space = swap_address_space(entry);
- 	pgoff_t idx = swp_offset(entry);
+ 	int order = huge_page_order(h);
 -	struct page *page;
-+	void *shadow;
++	struct folio *folio;
+ 	bool alloc_try_hard = true;
+ 	bool retry = true;
  
--	page = xa_load(&address_space->i_pages, idx);
--	if (xa_is_value(page))
--		return page;
-+	shadow = xa_load(&address_space->i_pages, idx);
-+	if (xa_is_value(shadow))
-+		return shadow;
- 	return NULL;
+ 	/*
+-	 * By default we always try hard to allocate the page with
+-	 * __GFP_RETRY_MAYFAIL flag.  However, if we are allocating pages in
++	 * By default we always try hard to allocate the folio with
++	 * __GFP_RETRY_MAYFAIL flag.  However, if we are allocating folios in
+ 	 * a loop (to adjust global huge page counts) and previous allocation
+ 	 * failed, do not continue to try hard on the same node.  Use the
+ 	 * node_alloc_noretry bitmap to manage this state information.
+@@ -2196,43 +2196,42 @@ static struct folio *alloc_buddy_hugetlb
+ 	if (nid == NUMA_NO_NODE)
+ 		nid = numa_mem_id();
+ retry:
+-	page = __alloc_pages(gfp_mask, order, nid, nmask);
++	folio = __folio_alloc(gfp_mask, order, nid, nmask);
+ 
+-	/* Freeze head page */
+-	if (page && !page_ref_freeze(page, 1)) {
+-		__free_pages(page, order);
++	if (folio && !folio_ref_freeze(folio, 1)) {
++		folio_put(folio);
+ 		if (retry) {	/* retry once */
+ 			retry = false;
+ 			goto retry;
+ 		}
+ 		/* WOW!  twice in a row. */
+-		pr_warn("HugeTLB head page unexpected inflated ref count\n");
+-		page = NULL;
++		pr_warn("HugeTLB unexpected inflated folio ref count\n");
++		folio = NULL;
+ 	}
+ 
+ 	/*
+-	 * If we did not specify __GFP_RETRY_MAYFAIL, but still got a page this
+-	 * indicates an overall state change.  Clear bit so that we resume
+-	 * normal 'try hard' allocations.
++	 * If we did not specify __GFP_RETRY_MAYFAIL, but still got a
++	 * folio this indicates an overall state change.  Clear bit so
++	 * that we resume normal 'try hard' allocations.
+ 	 */
+-	if (node_alloc_noretry && page && !alloc_try_hard)
++	if (node_alloc_noretry && folio && !alloc_try_hard)
+ 		node_clear(nid, *node_alloc_noretry);
+ 
+ 	/*
+-	 * If we tried hard to get a page but failed, set bit so that
++	 * If we tried hard to get a folio but failed, set bit so that
+ 	 * subsequent attempts will not try as hard until there is an
+ 	 * overall state change.
+ 	 */
+-	if (node_alloc_noretry && !page && alloc_try_hard)
++	if (node_alloc_noretry && !folio && alloc_try_hard)
+ 		node_set(nid, *node_alloc_noretry);
+ 
+-	if (!page) {
++	if (!folio) {
+ 		__count_vm_event(HTLB_BUDDY_PGALLOC_FAIL);
+ 		return NULL;
+ 	}
+ 
+ 	__count_vm_event(HTLB_BUDDY_PGALLOC);
+-	return page_folio(page);
++	return folio;
  }
  
+ static struct folio *__alloc_fresh_hugetlb_folio(struct hstate *h,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
