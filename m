@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB9487604D
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:59:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC2BD7604D
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:59:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714103970; cv=none; b=UDMXOwOikGBEYPJKqONkyKIO8iY2yste3TG/z/1UbM9zIYx5MU6Nx/bWsU91myGoDl0XSAcjSfTHIK6c9gX/hIap4C6D/xYJYMApCpiHOYdzLVOuYFAQ0dEOXRBfd2Z6qvpbOVU/Wxbnq64/CNt7aasjuLWXv7dYblcEyjAEifQ=
+	t=1714103971; cv=none; b=GhaHVomH/pUNROxDpJsqhQlmpxrf2QtnTMchGAuIgYwvyfocvychcrXUUjqxsZ3ijm3c4JBxHGBxstrm1USvLZwZU+KrsEktmX1sC8bP+jku8NsKzsQJiDvIoR1te81mMeOc6jxFxy6VeW15tZSFYG1hE2o+9vFoP0i1mFSOFj4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714103970; c=relaxed/simple;
-	bh=fKymid9KxDg0V1y7umBy6apkxTQLk2GKWUMSjP8T/8s=;
-	h=Date:To:From:Subject:Message-Id; b=k2hNmyN9xEz988iz0FVDXNIZgMiUol72rRs/akgdZw09OXEaWJganXQE6DwBXPrRwfqi70DQ9pLO/xqkRKLCIw7tviBEhPV6Btrw+URT1UiwSOcMzgBuI4E/8pVJ33Cme66Z3f2IViL5utTJZaKTsOjqVQ24eGdSWCUITHc5CFM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dc3SodIo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714103971; c=relaxed/simple;
+	bh=LNa2jZcJCZHW34il4Hbd5eDB1XMp85MMKUYUp453V1A=;
+	h=Date:To:From:Subject:Message-Id; b=MQC+lYcp8/TwuzbYcQP6guptANyVKRK0BErni/avVZ0/9H0rEjcsjnQ5Tj7XhP5tCJrwJiOdBZd016s5lc5Ch0GUDutdcz/qOTL66aigpTfv0MIzAjuvLlUU9/6iHGWdYflYGwDVUoU+FtvRKgFLtZiZSelyhrTv+pyzY7HvAbs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YZ/+kBe6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dc3SodIo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2408C113CD;
-	Fri, 26 Apr 2024 03:59:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YZ/+kBe6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1D37C116B1;
+	Fri, 26 Apr 2024 03:59:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714103969;
-	bh=fKymid9KxDg0V1y7umBy6apkxTQLk2GKWUMSjP8T/8s=;
+	s=korg; t=1714103970;
+	bh=LNa2jZcJCZHW34il4Hbd5eDB1XMp85MMKUYUp453V1A=;
 	h=Date:To:From:Subject:From;
-	b=dc3SodIoj3q1YaKrg9xYm1479oBKbXudwmmz0lHUvS131iWWGkn4FSevnlOy0pZpz
-	 gcgfmj9LzYEqKgWT7haGLXVVhDlXCDqiiWJtyjep6EN6qB4Vlh/L2WzNVQjLQoesig
-	 l/fyEoP9fGaUqRkO7N1fA0t1lfuqgcd0RqNKoaLo=
-Date: Thu, 25 Apr 2024 20:59:29 -0700
+	b=YZ/+kBe6N6wUmqhcXEvrOA12JY1iLHkBbNXQdie5FGmSQeUty5mKFrm1D0ElFbb4T
+	 0LzppfyT15Le1ZvTd4eTm9VtmTLU1KB9kyx6ng5KZHYUJDjWYsfnml2ereraKOVGy5
+	 /L47Ya0vrL6H2FqwFVgrlwqKZa7fYj/5NdWhKYME=
+Date: Thu, 25 Apr 2024 20:59:30 -0700
 To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kmemleak-compact-kmemleak_object-further.patch removed from -mm tree
-Message-Id: <20240426035929.C2408C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmemleak-disable-kasan-instrumentation-in-kmemleak.patch removed from -mm tree
+Message-Id: <20240426035930.C1D37C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/kmemleak: compact kmemleak_object further
+     Subject: mm/kmemleak: disable KASAN instrumentation in kmemleak
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-compact-kmemleak_object-further.patch
+     mm-kmemleak-disable-kasan-instrumentation-in-kmemleak.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Waiman Long <longman@redhat.com>
-Subject: mm/kmemleak: compact kmemleak_object further
-Date: Thu, 7 Mar 2024 14:05:47 -0500
+Subject: mm/kmemleak: disable KASAN instrumentation in kmemleak
+Date: Thu, 7 Mar 2024 14:05:48 -0500
 
-Patch series "mm/kmemleak: Minor cleanup & performance tuning".
+Kmemleak ia a memory leak checker.  KASAN is also a memory checker but it
+focuses more on finding out-of-bounds and use-after-free bugs.  Since
+kmemleak is inherently slow especially on systems with large number of
+CPUs, adding KASAN instrumentation will make it slower even more.  As
+kmemleak is not for production use, the utility of enabling KASAN there is
+questionable.
 
-This series contains 2 simple cleanup patches to slightly reduce memory
-and performance overhead.
+This patch disables KASAN instrumentation for configurations that enable
+both of them to slightly reduce performance overhead.
 
-
-This patch (of 2):
-
-With commit 56a61617dd22 ("mm: use stack_depot for recording kmemleak's
-backtrace"), the size of kmemleak_object has been reduced by 128 bytes for
-64-bit arches.  The replacement "depot_stack_handle_t trace_handle" is
-actually just 4 bytes long leaving a hole of 4 bytes.  By moving up
-trace_handle to another existing 4-byte hold, we can save 8 more bytes
-from kmemleak_object reducing its overall size from 248 to 240 bytes.
-
-Link: https://lkml.kernel.org/r/20240307190548.963626-1-longman@redhat.com
-Link: https://lkml.kernel.org/r/20240307190548.963626-2-longman@redhat.com
+Link: https://lkml.kernel.org/r/20240307190548.963626-3-longman@redhat.com
 Signed-off-by: Waiman Long <longman@redhat.com>
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/kmemleak.c~mm-kmemleak-compact-kmemleak_object-further
-+++ a/mm/kmemleak.c
-@@ -158,9 +158,9 @@ struct kmemleak_object {
- 	int count;
- 	/* checksum for detecting modified objects */
- 	u32 checksum;
-+	depot_stack_handle_t trace_handle;
- 	/* memory ranges to be scanned inside an object (empty for all) */
- 	struct hlist_head area_list;
--	depot_stack_handle_t trace_handle;
- 	unsigned long jiffies;		/* creation timestamp */
- 	pid_t pid;			/* pid of the current task */
- 	char comm[TASK_COMM_LEN];	/* executable name */
+--- a/mm/Makefile~mm-kmemleak-disable-kasan-instrumentation-in-kmemleak
++++ a/mm/Makefile
+@@ -5,6 +5,7 @@
+ 
+ KASAN_SANITIZE_slab_common.o := n
+ KASAN_SANITIZE_slub.o := n
++KASAN_SANITIZE_kmemleak.o := n
+ KCSAN_SANITIZE_kmemleak.o := n
+ 
+ # These produce frequent data race reports: most of them are due to races on
 _
 
 Patches currently in -mm which might be from longman@redhat.com are
