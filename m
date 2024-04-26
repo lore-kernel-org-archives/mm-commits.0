@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0660757F8
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:25:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B53362BAE2
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:25:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714101913; cv=none; b=gDUaxNXBmhWj1UnCTtBGRuIjfDE+R9z4TmlTnmsn2Ps0zZAVqM8uOdsiRs6Orc/UWusVFYxodSzxrW0GetqIUYMtaydbdpKLWEtezlZ/eAtabTJKIBGoIF8dVewzfJ7FLV89+57PN6z+muuu/7NU96FBPJLZlfQoeltp/lzxvPs=
+	t=1714101940; cv=none; b=A5ymGorrXQdEKTsX5RMIaoFiZSUwIFOpQF8OMU+Kf66DA5OBpiMIYQILS+CNQwfU5GNP3lIqQ1XGSf+lRepZ9WUww/JRKhk+9H3tapYrubY1AVudPv80D+KphQDQPOlpKcCvA0CV6JEhV2ZN0u84xsJSV5DQFSkI7qfKSDezKJI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714101913; c=relaxed/simple;
-	bh=I5uyBHih3msLSrJ74jGtic1/GsckbYbMQYetEmPX94o=;
-	h=Date:To:From:Subject:Message-Id; b=raeXdFjX4RI/xUHP+4wpeoxxRdGvmZSLlIAf8f5Cv5R3QFBXsJoHcQIeDP+YnIQ6YvoWbiF/YUD2T63Fye0Qa92wFBkS4FNO37Mk3MXRDKZnanoLbi/npGeEbFNunBOUXWd7OEPq00ugb19W/adOriSIYvnq/COgfL6eoqHWTJw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xgvH01z+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714101940; c=relaxed/simple;
+	bh=mrcufhBcPemIxWT5hcMddzYIFjn1lR8ndNFo/75RRxk=;
+	h=Date:To:From:Subject:Message-Id; b=Zj6nFx/iIqfa4eJuuCxM63Xca6HUOmb7RsO5ylXSSX+4Vo5MG2Bk3n+XonKmomUXcfQJJ+pD+cVM9+ycu9jdPCBMPyjkPgBZ3J0pa+hxhV9bteMx9tFLr6G4ALNNyFfyofvCt243j1R4jnQXfckgTO2kRGC9rTkZhlo2FyAHf3U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T0/sC9vB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xgvH01z+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73629C113CD;
-	Fri, 26 Apr 2024 03:25:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T0/sC9vB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47EDEC113CD;
+	Fri, 26 Apr 2024 03:25:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714101913;
-	bh=I5uyBHih3msLSrJ74jGtic1/GsckbYbMQYetEmPX94o=;
+	s=korg; t=1714101940;
+	bh=mrcufhBcPemIxWT5hcMddzYIFjn1lR8ndNFo/75RRxk=;
 	h=Date:To:From:Subject:From;
-	b=xgvH01z+mx0PpMMaJ260ig/9xwY8LgewIzEfqTYVSUxP433k7Y6w/xSp9eOLRNz36
-	 PgthXJnLW5Do0qHuHX3Kfpc4b9uHiD/meNukcPGtd2O/EQ8G9SCiU9geZ+ikG9nwj1
-	 KVwFW/8ZnjqsHd/3453IkIsqrE4R/vh2lQWFaBM0=
-Date: Thu, 25 Apr 2024 20:25:12 -0700
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,willy@infradead.org,akpm@linux-foundation.org
+	b=T0/sC9vBk0rZM4TgyfdXyuwHkgpO84ukgmAvqYxVrVMUMlHJgfa3CsJiW0jQWxNDO
+	 wR4qTegoz+4Z4yw3nYI9TpKGqS/wmc575f7F0KnLZ48DsD/5T44mrM8m4ffaqoF8nf
+	 6qDLx3sTmoaG+YZrYYddXqtbe9bVu/GSUf6PUFmc=
+Date: Thu, 25 Apr 2024 20:25:39 -0700
+To: mm-commits@vger.kernel.org,dan.carpenter@linaro.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix.patch removed from -mm tree
-Message-Id: <20240426032513.73629C113CD@smtp.kernel.org>
+Subject: [folded-merged] proc-rewrite-stable_page_flags-fix.patch removed from -mm tree
+Message-Id: <20240426032540.47EDEC113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,39 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix
+     Subject: proc-rewrite-stable_page_flags-fix
 has been removed from the -mm tree.  Its filename was
-     mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix.patch
+     proc-rewrite-stable_page_flags-fix.patch
 
-This patch was dropped because it was folded into mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
+This patch was dropped because it was folded into proc-rewrite-stable_page_flags.patch
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix
-Date: Wed, 27 Mar 2024 14:37:40 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: proc-rewrite-stable_page_flags-fix
+Date: Wed, 3 Apr 2024 18:31:11 +0100
 
-fix arm64 build
+Dan reported I'd messed up some bits vs masks here:
+https://lore.kernel.org/linux-fsdevel/1a6dc6a5-b5b6-494c-b94b-f6655da51bb9@moroto.mountain/T/#u
 
-Link: https://lkml.kernel.org/r/ZgQvNKGdlDkwhQEX@casper.infradead.org
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
-Reported-by: Ryan Roberts <ryan.roberts@arm.com>
+Link: https://lkml.kernel.org/r/20240403173112.1450721-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Dan Carpenter <dan.carpenter@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/page.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-convert-arch_clear_hugepage_flags-to-take-a-folio-fix
-+++ a/include/linux/hugetlb.h
-@@ -836,7 +836,7 @@ static inline int is_hugepage_only_range
- #define is_hugepage_only_range is_hugepage_only_range
- #endif
+--- a/fs/proc/page.c~proc-rewrite-stable_page_flags-fix
++++ a/fs/proc/page.c
+@@ -153,7 +153,7 @@ u64 stable_page_flags(const struct page
+ 	 * to make sure a given page is a thp, not a non-huge compound page.
+ 	 */
+ 	else if (folio_test_large(folio)) {
+-		if ((k & PG_lru) || is_anon)
++		if ((k & (1 << PG_lru)) || is_anon)
+ 			u |= 1 << KPF_THP;
+ 		else if (is_huge_zero_page(&folio->page)) {
+ 			u |= 1 << KPF_ZERO_PAGE;
+@@ -204,7 +204,7 @@ u64 stable_page_flags(const struct page
+ 	u |= kpf_copy_bit(k, KPF_MLOCKED,	PG_mlocked);
  
--#ifndef arch_clear_hugepage_flags
-+#ifndef arch_clear_hugetlb_flags
- static inline void arch_clear_hugetlb_flags(struct folio *folio) { }
- #define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
- #endif
+ #ifdef CONFIG_MEMORY_FAILURE
+-	if (u & KPF_HUGE)
++	if (u & (1 << KPF_HUGE))
+ 		u |= kpf_copy_bit(k, KPF_HWPOISON,	PG_hwpoison);
+ 	else
+ 		u |= kpf_copy_bit(page->flags, KPF_HWPOISON,	PG_hwpoison);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -88,7 +98,6 @@ mm-convert-arch_clear_hugepage_flags-to-take-a-folio.patch
 slub-remove-use-of-page-flags.patch
 remove-references-to-page-flags-in-documentation.patch
 proc-rewrite-stable_page_flags.patch
-proc-rewrite-stable_page_flags-fix.patch
 proc-rewrite-stable_page_flags-fix-2.patch
 sparc-use-is_huge_zero_pmd.patch
 mm-add-is_huge_zero_folio.patch
