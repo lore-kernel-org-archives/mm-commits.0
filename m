@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA5937D06E
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:59:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 362557604D
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:59:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714103992; cv=none; b=ScbsU/bE2SC1mf14CjAiT9kfEb6zeul2vTVFyp+4FTw9daf8jGamtVWpOAuq0jvY0vR3KoLB5MoCVj9eKrJ8P37XGawXpSKCufvH7MkIQOpFjBYXbqAILlBseEyYBt7RF/aK54AsKJSCtRdNwwj8ZlSW/wXLXmcLofEHYC7n2no=
+	t=1714103994; cv=none; b=Og9qoL8Bkf0o9N5vjjQPJ2r/xKGdeoU0cxrecYogGDDRu6HRrSYQBKqhcCJITWHxEs61mvfIfRwqmbAaN1ZqSQdVVk3y0GXkK43MhH6IgheJzq9SB3VDfUgvmGgVgYGfPn5XU68F4onHHg2bG9EeZk1csv77pPdXX5RFV8A3ovg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714103992; c=relaxed/simple;
-	bh=D8MzRYrPdQsh+rlbRKKXs+eTOYxbYvCigdx1V0k9Vtk=;
-	h=Date:To:From:Subject:Message-Id; b=TGBmKq5Zus4RghXl/Ksy8afSgTiC8zonUeR4HK/5UlaEXCHWMwB7ywGaO59mnZotlcNVq6bbmckMz9f6XZSsDQDVu70TVsJwIRJu6+EumFqvPLDYSR2bc8emd8xCgWyEto8OLTC5SqSEtlm9I/9lDCm6AbIMSHN7etzmjaE0xlE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=etL+YB5d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714103994; c=relaxed/simple;
+	bh=MrcIRz/aqRg5T8XuXkSpZpTC+qD2rFNSLeh7+T3L1tU=;
+	h=Date:To:From:Subject:Message-Id; b=F3d2yYYKfTQu+yMahRzZSeBz3vaUrBFnKQqKv9z2VItgVYJVrN4kAUjx5uXstFeAJ5GPi2okhoM7GCSSqM1fMciDisIyMglMrvVP8LTkuxhc/boKyXXiqkoU+9i+vvmYj4+k3q6r8PqTdOwUH62eK4P8RJxf058Z2qhRBKJ9Nfw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WjSjMldl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="etL+YB5d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0A70C116B1;
-	Fri, 26 Apr 2024 03:59:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WjSjMldl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C3C9C113CD;
+	Fri, 26 Apr 2024 03:59:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714103991;
-	bh=D8MzRYrPdQsh+rlbRKKXs+eTOYxbYvCigdx1V0k9Vtk=;
+	s=korg; t=1714103994;
+	bh=MrcIRz/aqRg5T8XuXkSpZpTC+qD2rFNSLeh7+T3L1tU=;
 	h=Date:To:From:Subject:From;
-	b=etL+YB5d9xz9cgxU45mS8Hy67TlWRX7OPAXmRjtPU59Tk15dNT8aPI9J9dMNw1SU7
-	 giZGhMtiNZo1/GNOBpQW/diRDzIrVybx/e3d8/c3rwpizQVcMwQrRkz5AayzU8j88l
-	 K1SavOm2Ixp1upIu6vj0M8JadJ4+LT/x5uA5AaLo=
-Date: Thu, 25 Apr 2024 20:59:51 -0700
+	b=WjSjMldlidQfi6zb6RN5ZgwADOSvpD+u2rCsjxfUWbUA/8lxA4mMklFoefiQRwDfo
+	 2U4W6humti0KisyGrZceqA6eaIxLUgvuUY7o7ZDYMAjIUwC027AFoBxd7Ao7kVt5uM
+	 c7sFccFdGaCVABBwqqy0SvgAwsk0gZqnCXP1/0d0=
+Date: Thu, 25 Apr 2024 20:59:53 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] lib-xarray-introduce-a-new-helper-xas_get_order.patch removed from -mm tree
-Message-Id: <20240426035951.C0A70C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-filemap-optimize-filemap-folio-adding.patch removed from -mm tree
+Message-Id: <20240426035954.0C3C9C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,99 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/xarray: introduce a new helper xas_get_order
+     Subject: mm/filemap: optimize filemap folio adding
 has been removed from the -mm tree.  Its filename was
-     lib-xarray-introduce-a-new-helper-xas_get_order.patch
+     mm-filemap-optimize-filemap-folio-adding.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: lib/xarray: introduce a new helper xas_get_order
-Date: Tue, 16 Apr 2024 01:18:55 +0800
+Subject: mm/filemap: optimize filemap folio adding
+Date: Tue, 16 Apr 2024 01:18:56 +0800
 
-It can be used after xas_load to check the order of loaded entries. 
-Compared to xa_get_order, it saves an XA_STATE and avoid a rewalk.
+Instead of doing multiple tree walks, do one optimism range check with
+lock hold, and exit if raced with another insertion.  If a shadow exists,
+check it with a new xas_get_order helper before releasing the lock to
+avoid redundant tree walks for getting its order.
 
-Added new test for xas_get_order, to make the test work, we have to export
-xas_get_order with EXPORT_SYMBOL_GPL.
+Drop the lock and do the allocation only if a split is needed.
 
-Also fix a sparse warning by checking the slot value with xa_entry instead
-of accessing it directly, as suggested by Matthew Wilcox.
+In the best case, it only need to walk the tree once.  If it needs to
+alloc and split, 3 walks are issued (One for first ranged conflict check
+and order retrieving, one for the second check after allocation, one for
+the insert after split).
 
-[kasong@tencent.com: simplify comment, sparse warning fix, per Matthew Wilcox]
-  Link: https://lkml.kernel.org/r/20240416071722.45997-4-ryncsn@gmail.com
-Link: https://lkml.kernel.org/r/20240415171857.19244-4-ryncsn@gmail.com
+Testing with 4K pages, in an 8G cgroup, with 16G brd as block device:
+
+  echo 3 > /proc/sys/vm/drop_caches
+
+  fio -name=cached --numjobs=16 --filename=/mnt/test.img \
+    --buffered=1 --ioengine=mmap --rw=randread --time_based \
+    --ramp_time=30s --runtime=5m --group_reporting
+
+Before:
+bw (  MiB/s): min= 1027, max= 3520, per=100.00%, avg=2445.02, stdev=18.90, samples=8691
+iops        : min=263001, max=901288, avg=625924.36, stdev=4837.28, samples=8691
+
+After (+7.3%):
+bw (  MiB/s): min=  493, max= 3947, per=100.00%, avg=2625.56, stdev=25.74, samples=8651
+iops        : min=126454, max=1010681, avg=672142.61, stdev=6590.48, samples=8651
+
+Test result with THP (do a THP randread then switch to 4K page in hope it
+issues a lot of splitting):
+
+  echo 3 > /proc/sys/vm/drop_caches
+
+  fio -name=cached --numjobs=16 --filename=/mnt/test.img \
+      --buffered=1 --ioengine=mmap -thp=1 --readonly \
+      --rw=randread --time_based --ramp_time=30s --runtime=10m \
+      --group_reporting
+
+  fio -name=cached --numjobs=16 --filename=/mnt/test.img \
+      --buffered=1 --ioengine=mmap \
+      --rw=randread --time_based --runtime=5s --group_reporting
+
+Before:
+bw (  KiB/s): min= 4141, max=14202, per=100.00%, avg=7935.51, stdev=96.85, samples=18976
+iops        : min= 1029, max= 3548, avg=1979.52, stdev=24.23, samples=18976·
+
+READ: bw=4545B/s (4545B/s), 4545B/s-4545B/s (4545B/s-4545B/s), io=64.0KiB (65.5kB), run=14419-14419msec
+
+After (+12.5%):
+bw (  KiB/s): min= 4611, max=15370, per=100.00%, avg=8928.74, stdev=105.17, samples=19146
+iops        : min= 1151, max= 3842, avg=2231.27, stdev=26.29, samples=19146
+
+READ: bw=4635B/s (4635B/s), 4635B/s-4635B/s (4635B/s-4635B/s), io=64.0KiB (65.5kB), run=14137-14137msec
+
+The performance is better for both 4K (+7.5%) and THP (+12.5%) cached read.
+
+Link: https://lkml.kernel.org/r/20240415171857.19244-5-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/xarray.h |    6 ++++
- lib/test_xarray.c      |   34 +++++++++++++++++++++++++++
- lib/xarray.c           |   49 ++++++++++++++++++++++++---------------
- 3 files changed, 71 insertions(+), 18 deletions(-)
+ lib/test_xarray.c |   59 ++++++++++++++++++++++++++++++++++++++++++++
+ mm/filemap.c      |   56 ++++++++++++++++++++++++++++++-----------
+ 2 files changed, 100 insertions(+), 15 deletions(-)
 
---- a/include/linux/xarray.h~lib-xarray-introduce-a-new-helper-xas_get_order
-+++ a/include/linux/xarray.h
-@@ -1548,6 +1548,7 @@ void xas_create_range(struct xa_state *)
- 
- #ifdef CONFIG_XARRAY_MULTI
- int xa_get_order(struct xarray *, unsigned long index);
-+int xas_get_order(struct xa_state *xas);
- void xas_split(struct xa_state *, void *entry, unsigned int order);
- void xas_split_alloc(struct xa_state *, void *entry, unsigned int order, gfp_t);
- #else
-@@ -1555,6 +1556,11 @@ static inline int xa_get_order(struct xa
- {
- 	return 0;
- }
-+
-+static inline int xas_get_order(struct xa_state *xas)
-+{
-+	return 0;
-+}
- 
- static inline void xas_split(struct xa_state *xas, void *entry,
- 		unsigned int order)
---- a/lib/test_xarray.c~lib-xarray-introduce-a-new-helper-xas_get_order
+--- a/lib/test_xarray.c~mm-filemap-optimize-filemap-folio-adding
 +++ a/lib/test_xarray.c
-@@ -1984,6 +1984,39 @@ static noinline void check_get_order(str
+@@ -2017,6 +2017,64 @@ static noinline void check_xas_get_order
  	}
  }
  
-+static noinline void check_xas_get_order(struct xarray *xa)
++static noinline void check_xas_conflict_get_order(struct xarray *xa)
 +{
 +	XA_STATE(xas, xa, 0);
 +
++	void *entry;
++	int only_once;
 +	unsigned int max_order = IS_ENABLED(CONFIG_XARRAY_MULTI) ? 20 : 1;
 +	unsigned int order;
-+	unsigned long i, j;
++	unsigned long i, j, k;
 +
 +	for (order = 0; order < max_order; order++) {
 +		for (i = 0; i < 10; i++) {
@@ -114,106 +138,161 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +				xas_unlock(&xas);
 +			} while (xas_nomem(&xas, GFP_KERNEL));
 +
-+			for (j = i << order; j < (i + 1) << order; j++) {
-+				xas_set_order(&xas, j, 0);
-+				rcu_read_lock();
-+				xas_load(&xas);
-+				XA_BUG_ON(xa, xas_get_order(&xas) != order);
-+				rcu_read_unlock();
++			/*
++			 * Ensure xas_get_order works with xas_for_each_conflict.
++			 */
++			j = i << order;
++			for (k = 0; k < order; k++) {
++				only_once = 0;
++				xas_set_order(&xas, j + (1 << k), k);
++				xas_lock(&xas);
++				xas_for_each_conflict(&xas, entry) {
++					XA_BUG_ON(xa, entry != xa_mk_value(i));
++					XA_BUG_ON(xa, xas_get_order(&xas) != order);
++					only_once++;
++				}
++				XA_BUG_ON(xa, only_once != 1);
++				xas_unlock(&xas);
 +			}
 +
-+			xas_lock(&xas);
++			if (order < max_order - 1) {
++				only_once = 0;
++				xas_set_order(&xas, (i & ~1UL) << order, order + 1);
++				xas_lock(&xas);
++				xas_for_each_conflict(&xas, entry) {
++					XA_BUG_ON(xa, entry != xa_mk_value(i));
++					XA_BUG_ON(xa, xas_get_order(&xas) != order);
++					only_once++;
++				}
++				XA_BUG_ON(xa, only_once != 1);
++				xas_unlock(&xas);
++			}
++
 +			xas_set_order(&xas, i << order, order);
++			xas_lock(&xas);
 +			xas_store(&xas, NULL);
 +			xas_unlock(&xas);
 +		}
 +	}
 +}
 +
++
  static noinline void check_destroy(struct xarray *xa)
  {
  	unsigned long index;
-@@ -2035,6 +2068,7 @@ static int xarray_checks(void)
- 	check_multi_store(&array);
+@@ -2069,6 +2127,7 @@ static int xarray_checks(void)
  	check_multi_store_advanced(&array);
  	check_get_order(&array);
-+	check_xas_get_order(&array);
+ 	check_xas_get_order(&array);
++	check_xas_conflict_get_order(&array);
  	check_xa_alloc();
  	check_find(&array);
  	check_find_entry(&array);
---- a/lib/xarray.c~lib-xarray-introduce-a-new-helper-xas_get_order
-+++ a/lib/xarray.c
-@@ -1750,39 +1750,52 @@ unlock:
- EXPORT_SYMBOL(xa_store_range);
- 
- /**
-- * xa_get_order() - Get the order of an entry.
-- * @xa: XArray.
-- * @index: Index of the entry.
-+ * xas_get_order() - Get the order of an entry.
-+ * @xas: XArray operation state.
-+ *
-+ * Called after xas_load, the xas should not be in an error state.
-  *
-  * Return: A number between 0 and 63 indicating the order of the entry.
-  */
--int xa_get_order(struct xarray *xa, unsigned long index)
-+int xas_get_order(struct xa_state *xas)
+--- a/mm/filemap.c~mm-filemap-optimize-filemap-folio-adding
++++ a/mm/filemap.c
+@@ -852,7 +852,9 @@ noinline int __filemap_add_folio(struct
+ 		struct folio *folio, pgoff_t index, gfp_t gfp, void **shadowp)
  {
--	XA_STATE(xas, xa, index);
--	void *entry;
- 	int order = 0;
+ 	XA_STATE(xas, &mapping->i_pages, index);
+-	bool huge = folio_test_hugetlb(folio);
++	void *alloced_shadow = NULL;
++	int alloced_order = 0;
++	bool huge;
+ 	long nr;
  
--	rcu_read_lock();
--	entry = xas_load(&xas);
--
--	if (!entry)
--		goto unlock;
--
--	if (!xas.xa_node)
--		goto unlock;
-+	if (!xas->xa_node)
-+		return 0;
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+@@ -861,6 +863,7 @@ noinline int __filemap_add_folio(struct
  
- 	for (;;) {
--		unsigned int slot = xas.xa_offset + (1 << order);
-+		unsigned int slot = xas->xa_offset + (1 << order);
+ 	VM_BUG_ON_FOLIO(index & (folio_nr_pages(folio) - 1), folio);
+ 	xas_set_order(&xas, index, folio_order(folio));
++	huge = folio_test_hugetlb(folio);
+ 	nr = folio_nr_pages(folio);
  
- 		if (slot >= XA_CHUNK_SIZE)
- 			break;
--		if (!xa_is_sibling(xas.xa_node->slots[slot]))
-+		if (!xa_is_sibling(xa_entry(xas->xa, xas->xa_node, slot)))
- 			break;
- 		order++;
- 	}
+ 	gfp &= GFP_RECLAIM_MASK;
+@@ -868,16 +871,10 @@ noinline int __filemap_add_folio(struct
+ 	folio->mapping = mapping;
+ 	folio->index = xas.xa_index;
  
--	order += xas.xa_node->shift;
--unlock:
-+	order += xas->xa_node->shift;
-+	return order;
-+}
-+EXPORT_SYMBOL_GPL(xas_get_order);
+-	do {
+-		unsigned int order = xa_get_order(xas.xa, xas.xa_index);
++	for (;;) {
++		int order = -1, split_order = 0;
+ 		void *entry, *old = NULL;
+ 
+-		if (order > folio_order(folio)) {
+-			xas_split_alloc(&xas, xa_load(xas.xa, xas.xa_index),
+-					order, gfp);
+-			if (xas_error(&xas))
+-				goto error;
+-		}
+ 		xas_lock_irq(&xas);
+ 		xas_for_each_conflict(&xas, entry) {
+ 			old = entry;
+@@ -885,19 +882,33 @@ noinline int __filemap_add_folio(struct
+ 				xas_set_err(&xas, -EEXIST);
+ 				goto unlock;
+ 			}
++			/*
++			 * If a larger entry exists,
++			 * it will be the first and only entry iterated.
++			 */
++			if (order == -1)
++				order = xas_get_order(&xas);
++		}
 +
-+/**
-+ * xa_get_order() - Get the order of an entry.
-+ * @xa: XArray.
-+ * @index: Index of the entry.
-+ *
-+ * Return: A number between 0 and 63 indicating the order of the entry.
-+ */
-+int xa_get_order(struct xarray *xa, unsigned long index)
-+{
-+	XA_STATE(xas, xa, index);
-+	int order = 0;
-+	void *entry;
-+
-+	rcu_read_lock();
-+	entry = xas_load(&xas);
-+	if (entry)
-+		order = xas_get_order(&xas);
- 	rcu_read_unlock();
++		/* entry may have changed before we re-acquire the lock */
++		if (alloced_order && (old != alloced_shadow || order != alloced_order)) {
++			xas_destroy(&xas);
++			alloced_order = 0;
+ 		}
  
- 	return order;
+ 		if (old) {
+-			if (shadowp)
+-				*shadowp = old;
+-			/* entry may have been split before we acquired lock */
+-			order = xa_get_order(xas.xa, xas.xa_index);
+-			if (order > folio_order(folio)) {
++			if (order > 0 && order > folio_order(folio)) {
+ 				/* How to handle large swap entries? */
+ 				BUG_ON(shmem_mapping(mapping));
++				if (!alloced_order) {
++					split_order = order;
++					goto unlock;
++				}
+ 				xas_split(&xas, old, order);
+ 				xas_reset(&xas);
+ 			}
++			if (shadowp)
++				*shadowp = old;
+ 		}
+ 
+ 		xas_store(&xas, folio);
+@@ -913,9 +924,24 @@ noinline int __filemap_add_folio(struct
+ 				__lruvec_stat_mod_folio(folio,
+ 						NR_FILE_THPS, nr);
+ 		}
++
+ unlock:
+ 		xas_unlock_irq(&xas);
+-	} while (xas_nomem(&xas, gfp));
++
++		/* split needed, alloc here and retry. */
++		if (split_order) {
++			xas_split_alloc(&xas, old, split_order, gfp);
++			if (xas_error(&xas))
++				goto error;
++			alloced_shadow = old;
++			alloced_order = split_order;
++			xas_reset(&xas);
++			continue;
++		}
++
++		if (!xas_nomem(&xas, gfp))
++			break;
++	}
+ 
+ 	if (xas_error(&xas))
+ 		goto error;
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
