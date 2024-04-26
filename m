@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A88B8763F8;
-	Fri, 26 Apr 2024 04:08:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20F93763F8
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 04:08:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714104482; cv=none; b=nqyjGGfYDxszLhaIltTPy9jMjFOe0r/93tpZ0clCDfiH74MSPKJX4ooFTLaQzcYYN555YuIS0Yl0+EBOiDSIa0hXcTTs6ehDBuWfiGS3oosVjSAxnDndOHv0rTmxPRj0VadqjStKrqLw62K5YJvqiZir3Q/A1hQkZAg7jQdXY+s=
+	t=1714104484; cv=none; b=XokZ7yGpXx51/gb8KurWIAmwzvwH4HrqfbnTyqZFSSTQcOhkViuquIDUbBHhcoY94gmlj7jz18KnjXM2npNwTNP/hmP/PyzwmuVn//bi7n3fBFpwyPBBrrqXjKfu4CnRMBvtROo4N3AWiO1kGbhHuFLa5wdl2WgLcyFcGKIYA5s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714104482; c=relaxed/simple;
-	bh=yrzFl0lxWb3DG04pxPxw2mWTQ4M43sxM5VXhky+dEd0=;
-	h=Date:To:From:Subject:Message-Id; b=JkXquyVojGbx/mc/rK8e1SNG1V9jTkAM3qLP6g9eamJX/usaZFgb588T2zDK+ZJS66FDVnLHnhpBCMRhYlCAZJQ7NjZ188YcPuUosUakEBFAWfG0lD8F3SwBNrxSZNF255xW1T0TVqjaN531JZLRr6ubGQhb1yZ4gqUQwuFDyjw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oKU01lRf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714104484; c=relaxed/simple;
+	bh=z+Oak+NoawaaVDNNYf9JBlqebFGUgvRZ/UdZcnIi69Q=;
+	h=Date:To:From:Subject:Message-Id; b=iN3bhE04gSCtadzTwxl/i35LlkeF1hhida/PgJNUEJXoUXjFK0TYXME9ClWfhah5wN7w3qMjbWCywoOoIW7tV07o2ZT6yT7cfbyofT9qaXEduTg6XUosiqAK0WXo7bokgEpU5yUeVPo/GT6BK9ZW+v86wQ/L0zc2D/LEchP1hdQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pxCcS1oO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oKU01lRf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D396C113CD;
-	Fri, 26 Apr 2024 04:08:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pxCcS1oO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7B28C113CD;
+	Fri, 26 Apr 2024 04:08:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714104482;
-	bh=yrzFl0lxWb3DG04pxPxw2mWTQ4M43sxM5VXhky+dEd0=;
+	s=korg; t=1714104484;
+	bh=z+Oak+NoawaaVDNNYf9JBlqebFGUgvRZ/UdZcnIi69Q=;
 	h=Date:To:From:Subject:From;
-	b=oKU01lRfFMopYPbkCEd8HZpakJdv0gNCKIdvzq4rSwSfOYyk10ZjngMkUtvmffTjB
-	 Xsky8lKLtWL+rzluQmZnzc8JQNm606xNrMoKuWvlcl5ybvryHDRhmToFwp+vZDgszQ
-	 q7Xfd4cDDaFrBu653vdUN6sPkyKMdQs8M7wzQtAc=
-Date: Thu, 25 Apr 2024 21:08:02 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,glass.su@suse.com,akpm@linux-foundation.org
+	b=pxCcS1oO9FbivIQYp7CR3ZrhE3e0rUEhdorDz7EweIpmW6p81LVl44lpTxavMeNfO
+	 kCMP0NT663+34/2MJF3yDCvQ9zI7ED6OwpO2xGYWw10PtlM/shT3vhGqMr6A1JTSdq
+	 yEjGFDHxMYfM0/DKLmAR3E7pb0hoy8C82Iwt8rTY=
+Date: Thu, 25 Apr 2024 21:08:03 -0700
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,robert.moore@intel.com,rafael.j.wysocki@intel.com,nicolas@fjasle.eu,nathan@kernel.org,ming.m.lin@intel.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,masahiroy@kernel.org,lenb@kernel.org,ldm@flatcap.org,justinstitt@google.com,axboe@kernel.dk,astarikovskiy@suse.de,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-use-coarse-time-for-new-created-files.patch removed from -mm tree
-Message-Id: <20240426040802.7D396C113CD@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] test_hexdump-avoid-string-truncation-warning.patch removed from -mm tree
+Message-Id: <20240426040803.E7B28C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,98 +35,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: use coarse time for new created files
+     Subject: test_hexdump: avoid string truncation warning
 has been removed from the -mm tree.  Its filename was
-     ocfs2-use-coarse-time-for-new-created-files.patch
+     test_hexdump-avoid-string-truncation-warning.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Su Yue <glass.su@suse.com>
-Subject: ocfs2: use coarse time for new created files
-Date: Mon, 8 Apr 2024 16:20:41 +0800
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: test_hexdump: avoid string truncation warning
+Date: Tue, 9 Apr 2024 16:00:54 +0200
 
-The default atime related mount option is '-o realtime' which means file
-atime should be updated if atime <= ctime or atime <= mtime.  atime should
-be updated in the following scenario, but it is not:
-==========================================================
-$ rm /mnt/testfile;
-$ echo test > /mnt/testfile
-$ stat -c "%X %Y %Z" /mnt/testfile
-1711881646 1711881646 1711881646
-$ sleep 5
-$ cat /mnt/testfile > /dev/null
-$ stat -c "%X %Y %Z" /mnt/testfile
-1711881646 1711881646 1711881646
-==========================================================
+gcc can warn when a string is too long to fit into the strncpy()
+destination buffer, as it is here depending on the function arguments:
 
-And the reason the atime in the test is not updated is that ocfs2 calls
-ktime_get_real_ts64() in __ocfs2_mknod_locked during file creation.  Then
-inode_set_ctime_current() is called in inode_set_ctime_current() calls
-ktime_get_coarse_real_ts64() to get current time.
+    inlined from 'test_hexdump_prepare_test.constprop' at /home/arnd/arm-soc/lib/test_hexdump.c:116:3:
+include/linux/fortify-string.h:108:33: error: '__builtin_strncpy' output truncated copying between 0 and 32 bytes from a string of length 32 [-Werror=stringop-truncation]
+  108 | #define __underlying_strncpy    __builtin_strncpy
+      |                                 ^
+include/linux/fortify-string.h:187:16: note: in expansion of macro '__underlying_strncpy'
+  187 |         return __underlying_strncpy(p, q, size);
+      |                ^~~~~~~~~~~~~~~~~~~~
 
-ktime_get_real_ts64() is more accurate than ktime_get_coarse_real_ts64(). 
-In my test box, I saw ctime set by ktime_get_coarse_real_ts64() is less
-than ktime_get_real_ts64() even ctime is set later.  The ctime of the new
-inode is smaller than atime.
+The intention here is to copy exactly 'l' bytes without any padding or
+NUL-termination, so the most logical change is to use memcpy(), just as
+a previous change adapted the other output from strncpy() to memcpy().
 
-The call trace is like:
-
-ocfs2_create
-  ocfs2_mknod
-    __ocfs2_mknod_locked
-    ....
-
-      ktime_get_real_ts64 <------- set atime,ctime,mtime, more accurate
-      ocfs2_populate_inode
-    ...
-    ocfs2_init_acl
-      ocfs2_acl_set_mode
-        inode_set_ctime_current
-          current_time
-            ktime_get_coarse_real_ts64 <-------less accurate
-
-ocfs2_file_read_iter
-  ocfs2_inode_lock_atime
-    ocfs2_should_update_atime
-      atime <= ctime ? <-------- false, ctime < atime due to accuracy
-
-So here call ktime_get_coarse_real_ts64 to set inode time coarser while
-creating new files.  It may lower the accuracy of file times.  But it's
-not a big deal since we already use coarse time in other places like
-ocfs2_update_inode_atime and inode_set_ctime_current.
-
-Link: https://lkml.kernel.org/r/20240408082041.20925-5-glass.su@suse.com
-Fixes: c62c38f6b91b ("ocfs2: replace CURRENT_TIME macro")
-Signed-off-by: Su Yue <glass.su@suse.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240409140059.3806717-2-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Justin Stitt <justinstitt@google.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Bob Moore <robert.moore@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Lin Ming <ming.m.lin@intel.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nicolas Schier <nicolas@fjasle.eu>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: "Richard Russon (FlatCap)" <ldm@flatcap.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    2 +-
+ lib/test_hexdump.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/namei.c~ocfs2-use-coarse-time-for-new-created-files
-+++ a/fs/ocfs2/namei.c
-@@ -566,7 +566,7 @@ static int __ocfs2_mknod_locked(struct i
- 	fe->i_last_eb_blk = 0;
- 	strcpy(fe->i_signature, OCFS2_INODE_SIGNATURE);
- 	fe->i_flags |= cpu_to_le32(OCFS2_VALID_FL);
--	ktime_get_real_ts64(&ts);
-+	ktime_get_coarse_real_ts64(&ts);
- 	fe->i_atime = fe->i_ctime = fe->i_mtime =
- 		cpu_to_le64(ts.tv_sec);
- 	fe->i_mtime_nsec = fe->i_ctime_nsec = fe->i_atime_nsec =
+--- a/lib/test_hexdump.c~test_hexdump-avoid-string-truncation-warning
++++ a/lib/test_hexdump.c
+@@ -113,7 +113,7 @@ static void __init test_hexdump_prepare_
+ 			*p++ = ' ';
+ 		} while (p < test + rs * 2 + rs / gs + 1);
+ 
+-		strncpy(p, data_a, l);
++		memcpy(p, data_a, l);
+ 		p += l;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from glass.su@suse.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+kbuild-turn-on-wextra-by-default.patch
+kbuild-remove-redundant-extra-warning-flags.patch
+kbuild-turn-on-wrestrict-by-default.patch
+kbuild-enable-wformat-truncation-on-clang.patch
+kbuild-enable-wcast-function-type-strict-unconditionally.patch
 
