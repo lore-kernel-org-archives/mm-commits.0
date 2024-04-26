@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EF247BB0F
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:58:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6652376408
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:58:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714103926; cv=none; b=TMvLgRkNQDBZoxmsXmKdRL5xboe3j3aVebn/ZZexSvy5N18oiKhUErepfhLCUKwzEUTRWo/PsE2vY8LoQL0cH23Up8TsKNEwW8MEI63g6DW1lmZlBzWOCHhoBddE5+irJjKZ7gj0PtBOpdcNyzN/1XLeI2iZbjwzN5FK0wtIaiw=
+	t=1714103927; cv=none; b=YBo1tBXakqeSzPT45Mbk82IyfCECI6IBxeDQRpJ20QezKinb2+sMxkIm1tophXQaoCMDda72ikp/BOfsz+f6dPe/e49v4+iKfva3BSC3jRgiy0TgR0KD40fnoPw1rZbwCkbhDKOaPPzYEQGmjQ4dt6MFq2+FWH03LhWopsKnjD0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714103926; c=relaxed/simple;
-	bh=t76f0aQ3XI2tnPxnRloOuBIXN59wJStr6GbdLsBw8Gg=;
-	h=Date:To:From:Subject:Message-Id; b=l/Q4wprtICL//XMadyNj0HcnMXH5BPr3F0H8mPSJ3aF5tGAIfma348J6rLJN9X9YMax2wQd91yc2jeCd9iJNHV1kGBEor+3je0k84emrk1wbwfX+rPJ6hN8owdlt1ves8WhY+c8o5Jd9U63ARvKcbI07CBv5E19QZaPv8jsHiIE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CqLZfhaE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714103927; c=relaxed/simple;
+	bh=3YZ8agb3HvPehC1pwIQgiRYJI2MACXC6rCMFNFCzJgk=;
+	h=Date:To:From:Subject:Message-Id; b=oViMLEN5Ayol6Pi5LkpAmFUtg7BVbXONx8mYHJmHuhg14W4nHC4r7h5R2CU14Yana5H0lARI15geLVRzEWpAtWhqs892nNGvIP2DGtU1jjMDlSXEMR2EuwAXM6yIy2Zdvxg0a5LMrrk4iiFmH6q7zSY++iAE9Zusi3Ua8/5wTcs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bvv1AyeM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CqLZfhaE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E83B4C113CD;
-	Fri, 26 Apr 2024 03:58:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bvv1AyeM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34CB0C113CD;
+	Fri, 26 Apr 2024 03:58:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714103926;
-	bh=t76f0aQ3XI2tnPxnRloOuBIXN59wJStr6GbdLsBw8Gg=;
+	s=korg; t=1714103927;
+	bh=3YZ8agb3HvPehC1pwIQgiRYJI2MACXC6rCMFNFCzJgk=;
 	h=Date:To:From:Subject:From;
-	b=CqLZfhaEO/aJvWumw4NJtnxAMZF3WsY00vsYz0EZOr0QqjqO6GwCYl/jhT1bg60jR
-	 gd61CS9I4HnkyEhk4ZkDcnUeF06PUA8hwycShPOvij6IW8pj2DsOshsPEEPrNdZD3A
-	 UUJ5owR3AFwtHBUlZ8grwZGQ+RtKjQAEoroJC6ek=
-Date: Thu, 25 Apr 2024 20:58:45 -0700
+	b=bvv1AyeMHslaNBnnyW8rg7SWjSLMZMZ9tNziMPu24m40kwsaapyUXFXTugnEhRk3u
+	 Qbya+hsooMU34Q6HKx0d7TX/jqwIXWXXDg89lXWSI85/Xjf6yGa1PWtBuofvJKfU8r
+	 sWzAkdqg70dJPFJXcvHCoguSQUV8u8Q4ZAvsT3ZU=
+Date: Thu, 25 Apr 2024 20:58:46 -0700
 To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,peterz@infradead.org,pasha.tatashin@soleen.com,ojeda@kernel.org,kent.overstreet@linux.dev,keescook@chromium.org,gary@garyguo.net,dennis@kernel.org,cl@linux.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@samsung.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] codetag-debug-mark-codetags-for-reserved-pages-as-empty.patch removed from -mm tree
-Message-Id: <20240426035845.E83B4C113CD@smtp.kernel.org>
+Subject: [merged mm-stable] codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations.patch removed from -mm tree
+Message-Id: <20240426035847.34CB0C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: codetag: debug: mark codetags for reserved pages as empty
+     Subject: codetag: debug: introduce OBJEXTS_ALLOC_FAIL to mark failed slab_ext allocations
 has been removed from the -mm tree.  Its filename was
-     codetag-debug-mark-codetags-for-reserved-pages-as-empty.patch
+     codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: codetag: debug: mark codetags for reserved pages as empty
-Date: Thu, 21 Mar 2024 09:36:56 -0700
+Subject: codetag: debug: introduce OBJEXTS_ALLOC_FAIL to mark failed slab_ext allocations
+Date: Thu, 21 Mar 2024 09:36:57 -0700
 
-To avoid debug warnings while freeing reserved pages which were not
-allocated with usual allocators, mark their codetags as empty before
-freeing.
+If slabobj_ext vector allocation for a slab object fails and later on it
+succeeds for another object in the same slab, the slabobj_ext for the
+original object will be NULL and will be flagged in case when
+CONFIG_MEM_ALLOC_PROFILING_DEBUG is enabled.
 
-Link: https://lkml.kernel.org/r/20240321163705.3067592-35-surenb@google.com
+Mark failed slabobj_ext vector allocations using a new objext_flags flag
+stored in the lower bits of slab->obj_exts.  When new allocation succeeds
+it marks all tag references in the same slabobj_ext vector as empty to
+avoid warnings implemented by CONFIG_MEM_ALLOC_PROFILING_DEBUG checks.
+
+Link: https://lkml.kernel.org/r/20240321163705.3067592-36-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
 Tested-by: Kees Cook <keescook@chromium.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alex Gaynor <alex.gaynor@gmail.com>
@@ -75,86 +80,105 @@ Cc: Wedson Almeida Filho <wedsonaf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/alloc_tag.h   |    1 +
- include/linux/mm.h          |    9 +++++++++
- include/linux/pgalloc_tag.h |    2 ++
- mm/mm_init.c                |   12 +++++++++++-
- 4 files changed, 23 insertions(+), 1 deletion(-)
+ include/linux/memcontrol.h |    4 ++-
+ mm/slub.c                  |   46 +++++++++++++++++++++++++++++------
+ 2 files changed, 42 insertions(+), 8 deletions(-)
 
---- a/include/linux/alloc_tag.h~codetag-debug-mark-codetags-for-reserved-pages-as-empty
-+++ a/include/linux/alloc_tag.h
-@@ -47,6 +47,7 @@ static inline void set_codetag_empty(uni
+--- a/include/linux/memcontrol.h~codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations
++++ a/include/linux/memcontrol.h
+@@ -366,8 +366,10 @@ enum page_memcg_data_flags {
+ #endif /* CONFIG_MEMCG */
+ 
+ enum objext_flags {
++	/* slabobj_ext vector failed to allocate */
++	OBJEXTS_ALLOC_FAIL = __FIRST_OBJEXT_FLAG,
+ 	/* the next bit after the last actual flag */
+-	__NR_OBJEXTS_FLAGS  = __FIRST_OBJEXT_FLAG,
++	__NR_OBJEXTS_FLAGS  = (__FIRST_OBJEXT_FLAG << 1),
+ };
+ 
+ #define OBJEXTS_FLAGS_MASK (__NR_OBJEXTS_FLAGS - 1)
+--- a/mm/slub.c~codetag-debug-introduce-objexts_alloc_fail-to-mark-failed-slab_ext-allocations
++++ a/mm/slub.c
+@@ -1891,9 +1891,33 @@ static inline void mark_objexts_empty(st
+ 	}
+ }
+ 
++static inline void mark_failed_objexts_alloc(struct slab *slab)
++{
++	slab->obj_exts = OBJEXTS_ALLOC_FAIL;
++}
++
++static inline void handle_failed_objexts_alloc(unsigned long obj_exts,
++			struct slabobj_ext *vec, unsigned int objects)
++{
++	/*
++	 * If vector previously failed to allocate then we have live
++	 * objects with no tag reference. Mark all references in this
++	 * vector as empty to avoid warnings later on.
++	 */
++	if (obj_exts & OBJEXTS_ALLOC_FAIL) {
++		unsigned int i;
++
++		for (i = 0; i < objects; i++)
++			set_codetag_empty(&vec[i].ref);
++	}
++}
++
  #else /* CONFIG_MEM_ALLOC_PROFILING_DEBUG */
  
- static inline bool is_codetag_empty(union codetag_ref *ref) { return false; }
-+static inline void set_codetag_empty(union codetag_ref *ref) {}
+ static inline void mark_objexts_empty(struct slabobj_ext *obj_exts) {}
++static inline void mark_failed_objexts_alloc(struct slab *slab) {}
++static inline void handle_failed_objexts_alloc(unsigned long obj_exts,
++			struct slabobj_ext *vec, unsigned int objects) {}
  
  #endif /* CONFIG_MEM_ALLOC_PROFILING_DEBUG */
  
---- a/include/linux/mm.h~codetag-debug-mark-codetags-for-reserved-pages-as-empty
-+++ a/include/linux/mm.h
-@@ -5,6 +5,7 @@
- #include <linux/errno.h>
- #include <linux/mmdebug.h>
- #include <linux/gfp.h>
-+#include <linux/pgalloc_tag.h>
- #include <linux/bug.h>
- #include <linux/list.h>
- #include <linux/mmzone.h>
-@@ -3134,6 +3135,14 @@ extern void reserve_bootmem_region(phys_
- /* Free the reserved page into the buddy system, so it gets managed. */
- static inline void free_reserved_page(struct page *page)
+@@ -1909,29 +1933,37 @@ static int alloc_slab_obj_exts(struct sl
+ 			       gfp_t gfp, bool new_slab)
  {
-+	if (mem_alloc_profiling_enabled()) {
-+		union codetag_ref *ref = get_page_tag_ref(page);
+ 	unsigned int objects = objs_per_slab(s, slab);
+-	unsigned long obj_exts;
+-	void *vec;
++	unsigned long new_exts;
++	unsigned long old_exts;
++	struct slabobj_ext *vec;
+ 
+ 	gfp &= ~OBJCGS_CLEAR_MASK;
+ 	/* Prevent recursive extension vector allocation */
+ 	gfp |= __GFP_NO_OBJ_EXT;
+ 	vec = kcalloc_node(objects, sizeof(struct slabobj_ext), gfp,
+ 			   slab_nid(slab));
+-	if (!vec)
++	if (!vec) {
++		/* Mark vectors which failed to allocate */
++		if (new_slab)
++			mark_failed_objexts_alloc(slab);
 +
-+		if (ref) {
-+			set_codetag_empty(ref);
-+			put_page_tag_ref(ref);
-+		}
+ 		return -ENOMEM;
 +	}
- 	ClearPageReserved(page);
- 	init_page_count(page);
- 	__free_page(page);
---- a/include/linux/pgalloc_tag.h~codetag-debug-mark-codetags-for-reserved-pages-as-empty
-+++ a/include/linux/pgalloc_tag.h
-@@ -120,6 +120,8 @@ static inline void pgalloc_tag_sub_pages
  
- #else /* CONFIG_MEM_ALLOC_PROFILING */
- 
-+static inline union codetag_ref *get_page_tag_ref(struct page *page) { return NULL; }
-+static inline void put_page_tag_ref(union codetag_ref *ref) {}
- static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
- 				   unsigned int nr) {}
- static inline void pgalloc_tag_sub(struct page *page, unsigned int nr) {}
---- a/mm/mm_init.c~codetag-debug-mark-codetags-for-reserved-pages-as-empty
-+++ a/mm/mm_init.c
-@@ -2567,7 +2567,6 @@ void __init set_dma_reserve(unsigned lon
- void __init memblock_free_pages(struct page *page, unsigned long pfn,
- 							unsigned int order)
- {
--
- 	if (IS_ENABLED(CONFIG_DEFERRED_STRUCT_PAGE_INIT)) {
- 		int nid = early_pfn_to_nid(pfn);
- 
-@@ -2579,6 +2578,17 @@ void __init memblock_free_pages(struct p
- 		/* KMSAN will take care of these pages. */
- 		return;
- 	}
-+
-+	/* pages were reserved and not allocated */
-+	if (mem_alloc_profiling_enabled()) {
-+		union codetag_ref *ref = get_page_tag_ref(page);
-+
-+		if (ref) {
-+			set_codetag_empty(ref);
-+			put_page_tag_ref(ref);
-+		}
-+	}
-+
- 	__free_pages_core(page, order);
- }
- 
+-	obj_exts = (unsigned long)vec;
++	new_exts = (unsigned long)vec;
+ #ifdef CONFIG_MEMCG
+-	obj_exts |= MEMCG_DATA_OBJEXTS;
++	new_exts |= MEMCG_DATA_OBJEXTS;
+ #endif
++	old_exts = slab->obj_exts;
++	handle_failed_objexts_alloc(old_exts, vec, objects);
+ 	if (new_slab) {
+ 		/*
+ 		 * If the slab is brand new and nobody can yet access its
+ 		 * obj_exts, no synchronization is required and obj_exts can
+ 		 * be simply assigned.
+ 		 */
+-		slab->obj_exts = obj_exts;
+-	} else if (cmpxchg(&slab->obj_exts, 0, obj_exts)) {
++		slab->obj_exts = new_exts;
++	} else if (cmpxchg(&slab->obj_exts, old_exts, new_exts) != old_exts) {
+ 		/*
+ 		 * If the slab is already in use, somebody can allocate and
+ 		 * assign slabobj_exts in parallel. In this case the existing
 _
 
 Patches currently in -mm which might be from surenb@google.com are
