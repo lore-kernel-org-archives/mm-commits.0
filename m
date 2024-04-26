@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E57E7604D
-	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:59:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56CC476408
+	for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2024 03:59:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714103974; cv=none; b=Io1DWYctQ0vUo+gG6fDm8O+WSjSh4s/Up7BM88J9wAbYZ4g4uinbXm6rEQYDGYczMqofCVcikBCby8y79F8pU1ge4p5bUHXPU+Kgslya07+GAlr31rF5FAKke8ONZzHjVkErPd0ESZs9DeiB6hmuWPYXji0iCjq58UrmGhQgvOk=
+	t=1714103975; cv=none; b=TRBoMEXl0+QuTy1czsDPVgRAjP2py/OKOHsIOQqwPUTuEWyv8M6feXNZ2dBKfIZzfkB+n9c0d6vduQ+E2VPv00aPhDP4l7BSF+2LaC34Xr9YhcxVFz1A7YH+zpJxtuGYOaOJT0qfM8uJ+Wp91DibHXPLGFeRZaKSPC3C+fuLQqA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714103974; c=relaxed/simple;
-	bh=z2Tc/RY7yQMCqLmkAar0sdXkJ+zIaNpCoPqsOn/xcLk=;
-	h=Date:To:From:Subject:Message-Id; b=n66zXkXvZEnbaHvKYlpjAsUth0/XMrEFKj59RXk2wNarTksyDwgsP8bgih6YpENtuxFnXshO0IX8ExVbPjjksBNY+3wKSpKJng6OuXAH28jF/BLoSK7JpQaxHgQxplP3MhVf231n75bGOZmPjBnqlN+fZPqHANR6zJPy1H5aRTo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RVch6SXS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714103975; c=relaxed/simple;
+	bh=31F9Z12Z3S6/DNlFGVXHga33IVOGD7mhH9A9ThFp0Gk=;
+	h=Date:To:From:Subject:Message-Id; b=W7NQm8ZkMP2ljnaazmdz4J0hIjaCvv6j+gXSWufPM4E9+r9XBZIRuk86t4ov0+D/xBge78E6x0gsGHcbf2033yKikV97VOjYrT42WK60l9UUQgyxCBC7Xb9JOeU97F0G4feXl3Na0Rpf81xGo9gbi1fBd+KMqiHN1+Bx0rxxyog=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vr0CPazK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RVch6SXS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 246EDC113CD;
-	Fri, 26 Apr 2024 03:59:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vr0CPazK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2ECCAC116B1;
+	Fri, 26 Apr 2024 03:59:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714103974;
-	bh=z2Tc/RY7yQMCqLmkAar0sdXkJ+zIaNpCoPqsOn/xcLk=;
+	s=korg; t=1714103975;
+	bh=31F9Z12Z3S6/DNlFGVXHga33IVOGD7mhH9A9ThFp0Gk=;
 	h=Date:To:From:Subject:From;
-	b=RVch6SXStfoY8ntqjQ+kyJYtJ9OIiRAGLv3eFJIiwqHre2YCaEUKhIvmDcdiOZhPk
-	 RGX9id2EYggCrvmpnYv5TP5517r/73jvF927TQhU0NDp2FU+qEZ+QQodQaYzx7J1ss
-	 GQISC5ZF+D8vKbrlKtYeJPxFAYO55HXz4e0h0yzg=
-Date: Thu, 25 Apr 2024 20:59:33 -0700
+	b=vr0CPazKFh4Q6G6PG8It1vn22UxkR5CMP6hSAoRpHYJ/fd+RDx7eRjtipMdrw7vE+
+	 u657lzCTHIcP7bZlW1bK23jggEURxYnrh3a0ZKEQvuCNMdlm8ktrSVjoitJvkBRo31
+	 bU3ecRkJsHZmK2QrAyMa3tfL6Tu5G2ZQP881QC3U=
+Date: Thu, 25 Apr 2024 20:59:34 -0700
 To: mm-commits@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,linmiaohe@huawei.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-make-the-hugetlb-migration-strategy-consistent.patch removed from -mm tree
-Message-Id: <20240426035934.246EDC113CD@smtp.kernel.org>
+Subject: [merged mm-stable] docs-hugetlbpagerst-add-hugetlb-migration-description.patch removed from -mm tree
+Message-Id: <20240426035935.2ECCAC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,205 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: hugetlb: make the hugetlb migration strategy consistent
+     Subject: docs: hugetlbpage.rst: add hugetlb migration description
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-make-the-hugetlb-migration-strategy-consistent.patch
+     docs-hugetlbpagerst-add-hugetlb-migration-description.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: hugetlb: make the hugetlb migration strategy consistent
-Date: Wed, 6 Mar 2024 18:13:27 +0800
+Subject: docs: hugetlbpage.rst: add hugetlb migration description
+Date: Wed, 6 Mar 2024 18:13:28 +0800
 
-As discussed in previous thread [1], there is an inconsistency when
-handing hugetlb migration.  When handling the migration of freed hugetlb,
-it prevents fallback to other NUMA nodes in
-alloc_and_dissolve_hugetlb_folio().  However, when dealing with in-use
-hugetlb, it allows fallback to other NUMA nodes in
-alloc_hugetlb_folio_nodemask(), which can break the per-node hugetlb pool
-and might result in unexpected failures when node bound workloads doesn't
-get what is asssumed available.
+Add some description of the hugetlb migration strategy.
 
-To make hugetlb migration strategy more clear, we should list all the scenarios
-of hugetlb migration and analyze whether allocation fallback is permitted:
-
-1) Memory offline: will call dissolve_free_huge_pages() to free the
-   freed hugetlb, and call do_migrate_range() to migrate the in-use
-   hugetlb.  Both can break the per-node hugetlb pool, but as this is an
-   explicit offlining operation, no better choice.  So should allow the
-   hugetlb allocation fallback.
-
-2) Memory failure: same as memory offline.  Should allow fallback to a
-   different node might be the only option to handle it, otherwise the
-   impact of poisoned memory can be amplified.
-
-3) Longterm pinning: will call migrate_longterm_unpinnable_pages() to
-   migrate in-use and not-longterm-pinnable hugetlb, which can break the
-   per-node pool.  But we should fail to longterm pinning if can not
-   allocate on current node to avoid breaking the per-node pool.
-
-4) Syscalls (mbind, migrate_pages, move_pages): these are explicit
-   users operation to move pages to other nodes, so fallback to other
-   nodes should not be prohibited.
-
-5) alloc_contig_range: used by CMA allocation and virtio-mem
-   fake-offline to allocate given range of pages.  Now the freed hugetlb
-   migration is not allowed to fallback, to keep consistency, the in-use
-   hugetlb migration should be also not allowed to fallback.
-
-6) alloc_contig_pages: used by kfence, pgtable_debug etc.  The strategy
-   should be consistent with that of alloc_contig_range().
-
-Based on the analysis of the various scenarios above, introducing a new
-helper to determine whether fallback is permitted according to the
-migration reason..
-
-[1] https://lore.kernel.org/all/6f26ce22d2fcd523418a085f2c588fe0776d46e7.1706794035.git.baolin.wang@linux.alibaba.com/
-Link: https://lkml.kernel.org/r/3519fcd41522817307a05b40fb551e2e17e68101.1709719720.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/63fb16e7a4ebc5cb69ce655af86e29b2d8e9ba34.1709719720.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   35 +++++++++++++++++++++++++++++++++--
- mm/hugetlb.c            |   14 ++++++++++++--
- mm/mempolicy.c          |    3 ++-
- mm/migrate.c            |    3 ++-
- 4 files changed, 49 insertions(+), 6 deletions(-)
+ Documentation/admin-guide/mm/hugetlbpage.rst |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-make-the-hugetlb-migration-strategy-consistent
-+++ a/include/linux/hugetlb.h
-@@ -723,7 +723,8 @@ int isolate_or_dissolve_huge_page(struct
- struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
- 				unsigned long addr, int avoid_reserve);
- struct folio *alloc_hugetlb_folio_nodemask(struct hstate *h, int preferred_nid,
--				nodemask_t *nmask, gfp_t gfp_mask);
-+				nodemask_t *nmask, gfp_t gfp_mask,
-+				bool allow_alloc_fallback);
- int hugetlb_add_to_page_cache(struct folio *folio, struct address_space *mapping,
- 			pgoff_t idx);
- void restore_reserve_on_error(struct hstate *h, struct vm_area_struct *vma,
-@@ -946,6 +947,30 @@ static inline gfp_t htlb_modify_alloc_ma
- 	return modified_mask;
- }
+--- a/Documentation/admin-guide/mm/hugetlbpage.rst~docs-hugetlbpagerst-add-hugetlb-migration-description
++++ a/Documentation/admin-guide/mm/hugetlbpage.rst
+@@ -376,6 +376,13 @@ Note that the number of overcommit and r
+ as we don't know until fault time, when the faulting task's mempolicy is
+ applied, from which node the huge page allocation will be attempted.
  
-+static inline bool htlb_allow_alloc_fallback(int reason)
-+{
-+	bool allowed_fallback = false;
++The hugetlb may be migrated between the per-node hugepages pool in the following
++scenarios: memory offline, memory failure, longterm pinning, syscalls(mbind,
++migrate_pages and move_pages), alloc_contig_range() and alloc_contig_pages().
++Now only memory offline, memory failure and syscalls allow fallbacking to allocate
++a new hugetlb on a different node if the current node is unable to allocate during
++hugetlb migration, that means these 3 cases can break the per-node hugepages pool.
 +
-+	/*
-+	 * Note: the memory offline, memory failure and migration syscalls will
-+	 * be allowed to fallback to other nodes due to lack of a better chioce,
-+	 * that might break the per-node hugetlb pool. While other cases will
-+	 * set the __GFP_THISNODE to avoid breaking the per-node hugetlb pool.
-+	 */
-+	switch (reason) {
-+	case MR_MEMORY_HOTPLUG:
-+	case MR_MEMORY_FAILURE:
-+	case MR_SYSCALL:
-+	case MR_MEMPOLICY_MBIND:
-+		allowed_fallback = true;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return allowed_fallback;
-+}
-+
- static inline spinlock_t *huge_pte_lockptr(struct hstate *h,
- 					   struct mm_struct *mm, pte_t *pte)
- {
-@@ -1041,7 +1066,8 @@ static inline struct folio *alloc_hugetl
+ .. _using_huge_pages:
  
- static inline struct folio *
- alloc_hugetlb_folio_nodemask(struct hstate *h, int preferred_nid,
--			nodemask_t *nmask, gfp_t gfp_mask)
-+			nodemask_t *nmask, gfp_t gfp_mask,
-+			bool allow_alloc_fallback)
- {
- 	return NULL;
- }
-@@ -1157,6 +1183,11 @@ static inline gfp_t htlb_modify_alloc_ma
- 	return 0;
- }
- 
-+static inline bool htlb_allow_alloc_fallback(int reason)
-+{
-+	return false;
-+}
-+
- static inline spinlock_t *huge_pte_lockptr(struct hstate *h,
- 					   struct mm_struct *mm, pte_t *pte)
- {
---- a/mm/hugetlb.c~mm-hugetlb-make-the-hugetlb-migration-strategy-consistent
-+++ a/mm/hugetlb.c
-@@ -2598,7 +2598,7 @@ struct folio *alloc_buddy_hugetlb_folio_
- 
- /* folio migration callback function */
- struct folio *alloc_hugetlb_folio_nodemask(struct hstate *h, int preferred_nid,
--		nodemask_t *nmask, gfp_t gfp_mask)
-+		nodemask_t *nmask, gfp_t gfp_mask, bool allow_alloc_fallback)
- {
- 	spin_lock_irq(&hugetlb_lock);
- 	if (available_huge_pages(h)) {
-@@ -2613,6 +2613,10 @@ struct folio *alloc_hugetlb_folio_nodema
- 	}
- 	spin_unlock_irq(&hugetlb_lock);
- 
-+	/* We cannot fallback to other nodes, as we could break the per-node pool. */
-+	if (!allow_alloc_fallback)
-+		gfp_mask |= __GFP_THISNODE;
-+
- 	return alloc_migrate_hugetlb_folio(h, gfp_mask, preferred_nid, nmask);
- }
- 
-@@ -6636,7 +6640,13 @@ static struct folio *alloc_hugetlb_folio
- 
- 	gfp_mask = htlb_alloc_mask(h);
- 	node = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
--	folio = alloc_hugetlb_folio_nodemask(h, node, nodemask, gfp_mask);
-+	/*
-+	 * This is used to allocate a temporary hugetlb to hold the copied
-+	 * content, which will then be copied again to the final hugetlb
-+	 * consuming a reservation. Set the alloc_fallback to false to indicate
-+	 * that breaking the per-node hugetlb pool is not allowed in this case.
-+	 */
-+	folio = alloc_hugetlb_folio_nodemask(h, node, nodemask, gfp_mask, false);
- 	mpol_cond_put(mpol);
- 
- 	return folio;
---- a/mm/mempolicy.c~mm-hugetlb-make-the-hugetlb-migration-strategy-consistent
-+++ a/mm/mempolicy.c
-@@ -1228,7 +1228,8 @@ static struct folio *alloc_migration_tar
- 		h = folio_hstate(src);
- 		gfp = htlb_alloc_mask(h);
- 		nodemask = policy_nodemask(gfp, pol, ilx, &nid);
--		return alloc_hugetlb_folio_nodemask(h, nid, nodemask, gfp);
-+		return alloc_hugetlb_folio_nodemask(h, nid, nodemask, gfp,
-+				htlb_allow_alloc_fallback(MR_MEMPOLICY_MBIND));
- 	}
- 
- 	if (folio_test_large(src))
---- a/mm/migrate.c~mm-hugetlb-make-the-hugetlb-migration-strategy-consistent
-+++ a/mm/migrate.c
-@@ -2022,7 +2022,8 @@ struct folio *alloc_migration_target(str
- 
- 		gfp_mask = htlb_modify_alloc_mask(h, gfp_mask);
- 		return alloc_hugetlb_folio_nodemask(h, nid,
--						mtc->nmask, gfp_mask);
-+						mtc->nmask, gfp_mask,
-+						htlb_allow_alloc_fallback(mtc->reason));
- 	}
- 
- 	if (folio_test_large(src)) {
+ Using Huge Pages
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
