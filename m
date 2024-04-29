@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A38851E495
-	for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2024 16:30:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3E483201
+	for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2024 16:30:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714408246; cv=none; b=Jbu2TQD838vCtjd3tDLm1czoQ01fLR7PgGBjqS9FT0bzceD9DQrzRKCCYkTKeqMhKEFSvvydd6nW1Vj1+E+LsXu0DfbaVaTtctvb3wST6vHX1gvdf3vuywlYhuHrNglH5IM6u8o1mkNnrton8Ky2SItvyo50eifQ8efC5l7SOmI=
+	t=1714408249; cv=none; b=FY9L6JlIqr54BsyTtpe0wFJKO2fLpVCH1EMRYj1vw8iOlUS+JizNcW1J0IzutimgBw5dTsvdQl9JPN8DhppXR3awmhslNrgFteD2c36eqnDq4/vmUl51mRtI7rQLkhRfy88uFqzjeHnPrvGyesHDI2WzhJo7qRzUu+Im527neGo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714408246; c=relaxed/simple;
-	bh=61BQNuwFhQlXXVDy0JN/86aELUMAgi1RC9XhAztXhkE=;
-	h=Date:To:From:Subject:Message-Id; b=Whi9DWO1VHZRZFrYjAsT0IYAG69GhJHCoCP4CdLTK4YuPguMibt6V5l3RMgNwA9OXOZ6HUyUrdhsJaURgxcGkc8sy/V6//qCEUs8fh1ukHDs9pk9NreRDqfE7/QTGl74bp3ddoRY8jRiB7rAE/zWoccj5iOBryF0aDbzp1M56IU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W/ZGfMpf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714408249; c=relaxed/simple;
+	bh=YXMtqDICismin81B2n5A7mIkCxQc2YyE1ALk8AWMnOI=;
+	h=Date:To:From:Subject:Message-Id; b=oBQZ0wQohaJ4bjz/BsADpdo+mNkaqihnM3jQ5Z+ToVTd6dgQi0ZYsySe8jhu+cyrz8rXeaBgkTwO2tfAhFLBsy19kl10OSr4Fr7SA2Uq3xGriDTXQV9Omh+6dUFRMJAwKsaWrhU0nEk8UEOct4I7hhYcfyQfBUOY82PX0CcS4AA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1zvwftXC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W/ZGfMpf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E51A1C113CD;
-	Mon, 29 Apr 2024 16:30:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1zvwftXC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E45A2C113CD;
+	Mon, 29 Apr 2024 16:30:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714408246;
-	bh=61BQNuwFhQlXXVDy0JN/86aELUMAgi1RC9XhAztXhkE=;
+	s=korg; t=1714408249;
+	bh=YXMtqDICismin81B2n5A7mIkCxQc2YyE1ALk8AWMnOI=;
 	h=Date:To:From:Subject:From;
-	b=W/ZGfMpf6IrjRl87fFhWhAjVS4vCdtExuXermSVZC24bMGfg9G9onf/mJ+CO1wqAQ
-	 p8yDn9meLjI/22BUl0AJxGE8dQLWE8c/LxELpODf0ScIFwpZmoEHRZc+4etAWQm4vH
-	 7Z8aX7GyGeJTf3s3Oxv51V6Y9s+8NMV2JjvVfj68=
-Date: Mon, 29 Apr 2024 09:30:44 -0700
+	b=1zvwftXCkwXE0+OfnqF0iTFxlLY9IltswQtGo83C2IiJpiyY7iawoN87pysBNLmqs
+	 01W/XGJ9wSaVlEaBxV+1bbHW/szPT6zKaLji/7lksbmEtV8IEHThPFdIiwMLKioMr7
+	 EZyf70Sr8ig5aK8AaxknBm4NOoaCFOis4SkH0UMY=
+Date: Mon, 29 Apr 2024 09:30:47 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,izik.eidus@ravellosystems.com,david@redhat.com,alexs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-rename-variable-mm_slot-to-ksm_slot-in-unmerge_and_remove_all_rmap_items.patch added to mm-unstable branch
-Message-Id: <20240429163045.E51A1C113CD@smtp.kernel.org>
+Subject: + mm-ksm-rename-mm_slot_cache-to-ksm_slot_cache.patch added to mm-unstable branch
+Message-Id: <20240429163048.E45A2C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/ksm: rename variable mm_slot to ksm_slot in unmerge_and_remove_all_rmap_items
+     Subject: mm/ksm: rename mm_slot_cache to ksm_slot_cache
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ksm-rename-variable-mm_slot-to-ksm_slot-in-unmerge_and_remove_all_rmap_items.patch
+     mm-ksm-rename-mm_slot_cache-to-ksm_slot_cache.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-rename-variable-mm_slot-to-ksm_slot-in-unmerge_and_remove_all_rmap_items.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-rename-mm_slot_cache-to-ksm_slot_cache.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Alex Shi (tencent)" <alexs@kernel.org>
-Subject: mm/ksm: rename variable mm_slot to ksm_slot in unmerge_and_remove_all_rmap_items
-Date: Sun, 28 Apr 2024 18:06:16 +0800
+Subject: mm/ksm: rename mm_slot_cache to ksm_slot_cache
+Date: Sun, 28 Apr 2024 18:06:17 +0800
 
 To distinguish ksm_mm_slot and mm_slot for better code readability, rename
-ksm_mm_slot variable as ksm_slot in function
-unmerge_and_remove_all_rmap_items.  No function changes.
+mm_slot_cache as ksm_slot_cache.  No function change.
 
-Link: https://lkml.kernel.org/r/20240428100619.3332036-2-alexs@kernel.org
+Link: https://lkml.kernel.org/r/20240428100619.3332036-3-alexs@kernel.org
 Signed-off-by: Alex Shi (tencent) <alexs@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Izik Eidus <izik.eidus@ravellosystems.com>
@@ -74,61 +73,80 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ mm/ksm.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-rename-variable-mm_slot-to-ksm_slot-in-unmerge_and_remove_all_rmap_items
+--- a/mm/ksm.c~mm-ksm-rename-mm_slot_cache-to-ksm_slot_cache
 +++ a/mm/ksm.c
-@@ -1196,7 +1196,7 @@ static int remove_all_stable_nodes(void)
+@@ -247,7 +247,7 @@ static struct ksm_scan ksm_scan = {
  
- static int unmerge_and_remove_all_rmap_items(void)
+ static struct kmem_cache *rmap_item_cache;
+ static struct kmem_cache *stable_node_cache;
+-static struct kmem_cache *mm_slot_cache;
++static struct kmem_cache *ksm_slot_cache;
+ 
+ /* Default number of pages to scan per batch */
+ #define DEFAULT_PAGES_TO_SCAN 100
+@@ -502,8 +502,8 @@ static int __init ksm_slab_init(void)
+ 	if (!stable_node_cache)
+ 		goto out_free1;
+ 
+-	mm_slot_cache = KSM_KMEM_CACHE(ksm_mm_slot, 0);
+-	if (!mm_slot_cache)
++	ksm_slot_cache = KSM_KMEM_CACHE(ksm_mm_slot, 0);
++	if (!ksm_slot_cache)
+ 		goto out_free2;
+ 
+ 	return 0;
+@@ -518,10 +518,10 @@ out:
+ 
+ static void __init ksm_slab_free(void)
  {
--	struct ksm_mm_slot *mm_slot;
-+	struct ksm_mm_slot *ksm_slot;
- 	struct mm_slot *slot;
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
-@@ -1208,11 +1208,11 @@ static int unmerge_and_remove_all_rmap_i
- 	ksm_scan.ksm_slot = mm_slot_entry(slot, struct ksm_mm_slot, slot);
- 	spin_unlock(&ksm_mmlist_lock);
+-	kmem_cache_destroy(mm_slot_cache);
++	kmem_cache_destroy(ksm_slot_cache);
+ 	kmem_cache_destroy(stable_node_cache);
+ 	kmem_cache_destroy(rmap_item_cache);
+-	mm_slot_cache = NULL;
++	ksm_slot_cache = NULL;
+ }
  
--	for (mm_slot = ksm_scan.ksm_slot; mm_slot != &ksm_mm_head;
--	     mm_slot = ksm_scan.ksm_slot) {
--		VMA_ITERATOR(vmi, mm_slot->slot.mm, 0);
-+	for (ksm_slot = ksm_scan.ksm_slot; ksm_slot != &ksm_mm_head;
-+	     ksm_slot = ksm_scan.ksm_slot) {
-+		VMA_ITERATOR(vmi, ksm_slot->slot.mm, 0);
- 
--		mm = mm_slot->slot.mm;
-+		mm = ksm_slot->slot.mm;
- 		mmap_read_lock(mm);
- 
- 		/*
-@@ -1232,19 +1232,19 @@ static int unmerge_and_remove_all_rmap_i
- 		}
- 
- mm_exiting:
--		remove_trailing_rmap_items(&mm_slot->rmap_list);
-+		remove_trailing_rmap_items(&ksm_slot->rmap_list);
- 		mmap_read_unlock(mm);
- 
- 		spin_lock(&ksm_mmlist_lock);
--		slot = list_entry(mm_slot->slot.mm_node.next,
-+		slot = list_entry(ksm_slot->slot.mm_node.next,
- 				  struct mm_slot, mm_node);
- 		ksm_scan.ksm_slot = mm_slot_entry(slot, struct ksm_mm_slot, slot);
- 		if (ksm_test_exit(mm)) {
--			hash_del(&mm_slot->slot.hash);
--			list_del(&mm_slot->slot.mm_node);
-+			hash_del(&ksm_slot->slot.hash);
-+			list_del(&ksm_slot->slot.mm_node);
+ static __always_inline bool is_stable_node_chain(struct ksm_stable_node *chain)
+@@ -1244,7 +1244,7 @@ mm_exiting:
+ 			list_del(&ksm_slot->slot.mm_node);
  			spin_unlock(&ksm_mmlist_lock);
  
--			mm_slot_free(mm_slot_cache, mm_slot);
-+			mm_slot_free(mm_slot_cache, ksm_slot);
+-			mm_slot_free(mm_slot_cache, ksm_slot);
++			mm_slot_free(ksm_slot_cache, ksm_slot);
  			clear_bit(MMF_VM_MERGEABLE, &mm->flags);
  			clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
  			mmdrop(mm);
+@@ -2716,7 +2716,7 @@ no_vmas:
+ 		list_del(&ksm_slot->slot.mm_node);
+ 		spin_unlock(&ksm_mmlist_lock);
+ 
+-		mm_slot_free(mm_slot_cache, ksm_slot);
++		mm_slot_free(ksm_slot_cache, ksm_slot);
+ 		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
+ 		clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
+ 		mmap_read_unlock(mm);
+@@ -2975,7 +2975,7 @@ int __ksm_enter(struct mm_struct *mm)
+ 	struct mm_slot *slot;
+ 	int needs_wakeup;
+ 
+-	ksm_slot = mm_slot_alloc(mm_slot_cache);
++	ksm_slot = mm_slot_alloc(ksm_slot_cache);
+ 	if (!ksm_slot)
+ 		return -ENOMEM;
+ 
+@@ -3043,7 +3043,7 @@ void __ksm_exit(struct mm_struct *mm)
+ 	spin_unlock(&ksm_mmlist_lock);
+ 
+ 	if (easy_to_free) {
+-		mm_slot_free(mm_slot_cache, ksm_slot);
++		mm_slot_free(ksm_slot_cache, ksm_slot);
+ 		clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
+ 		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
+ 		mmdrop(mm);
 _
 
 Patches currently in -mm which might be from alexs@kernel.org are
