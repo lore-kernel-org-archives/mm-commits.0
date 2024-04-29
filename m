@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E50CA74400;
-	Mon, 29 Apr 2024 16:01:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74FFC839EB
+	for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2024 16:05:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714406469; cv=none; b=XQU4t06UHMjo+Uw+EeJvROEofBAoejKG5yDg9LMxW0Uo7UI4T/8MMGtttxeiPWhg3AUQjQudd4+YSau/lVYPQpdeFzdpdFcagCKIE6IynObb3gFke9965J1EXOrxVLYDBQbrmICvMoW36INgxh+Fvp8iTxEw5RdY2ZrTsnRlr9w=
+	t=1714406751; cv=none; b=A/rCX0/svm7olrtqEDNDP6Tmp7iHqWSI/qE2oiM4BYh6N9BfF4Q36PKGQMz1gOwJDILIiUv2L4cesGgAhX1ZjfOLSUxXaBNO3CnkPMZnSjxJky53Pp5f0Onwt7LD9/kBm8FOfgAeJoWz2NYVxKF8bu8O30wHUJjjO/2fXRgXVzs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714406469; c=relaxed/simple;
-	bh=lxDQhsRt5QjuY4+saXq3yCpJ6Jud3UILT4+yC+cLByM=;
-	h=Date:To:From:Subject:Message-Id; b=dsUg0HvVk3iXY/xM8eTlApGGYsxFcbFeLMCVFNESOfUirwI599FkwdRaLw6B86+8fK0qn+s7fz6Q8TmjJjhQnLDmPHlNrVcbzHihGzIEOnWsCyhMckbre3CYsJ4ofyjoz69oPS5pIk1HrOE6gNIzsSR+UhAroJklPpBSZAee8Vk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dN4lJy6b; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714406751; c=relaxed/simple;
+	bh=6Bu80/fi+ITTaViEW+w4WFUJoSSdrbQbP1G32ZDAono=;
+	h=Date:To:From:Subject:Message-Id; b=gLF58F7C23MGqsObODFr/xMbOsgYZLye/uhL5XnqpghlkrslkdInlWDbLYNFdzLD3URZRO2n8cmNTTCH07bqvM8W66NfvsR3l7Fykve1lpDVJt92SPoBzl+B6u2sklH2j7f6S6QbDkI8x5LuuBsNkSp7CC+V+jlAtz7NztB3liQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=osIwDtqT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dN4lJy6b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56B55C113CD;
-	Mon, 29 Apr 2024 16:01:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="osIwDtqT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15BB8C113CD;
+	Mon, 29 Apr 2024 16:05:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714406468;
-	bh=lxDQhsRt5QjuY4+saXq3yCpJ6Jud3UILT4+yC+cLByM=;
+	s=korg; t=1714406751;
+	bh=6Bu80/fi+ITTaViEW+w4WFUJoSSdrbQbP1G32ZDAono=;
 	h=Date:To:From:Subject:From;
-	b=dN4lJy6bdbqDoXeH5+9KKTJIcoqXFnJMDEQ4K3Zf2s64huxGHIsuFSgUZPzosiDTX
-	 +88FtElUbo1jC51YjkDpOvGdzfN5N1tOAZQJLu7yLNaMTgO+Yidj73JDVKlLjzkHk+
-	 4OF9epO7gqMl/a3fL6Nf2y6RVuS+yHtkEI4MGpek=
-Date: Mon, 29 Apr 2024 09:01:06 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,riel@surriel.com,peterz@infradead.org,m.novosyolov@rosalinux.ru,mingo@kernel.org,mgorman@techsingularity.net,i.gaptrakhmanov@rosalinux.ru,willy@infradead.org,akpm@linux-foundation.org
+	b=osIwDtqTDQSgLKc2a0WGIVj2TGS8DrNEEI6Ymn6SL3fwod1cXVkx01ERCaDQRt4AW
+	 3ie/zq0aLuIEJ2WXckwejek6O4ITqViSHOeR6gCV3DtzBWMCVKIkjTTPFDRF7+Eh6f
+	 ZDQZVRsiwmuobeZL0lAjfCJ/Cy4n3QXyKcvsLSrI=
+Date: Mon, 29 Apr 2024 09:05:49 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,xiehuan09@gmail.com,willy@infradead.org,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,shy828301@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,maskray@google.com,fengwei.yin@intel.com,david@redhat.com,21cnbao@gmail.com,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + bounds-use-the-right-number-of-bits-for-power-of-two-config_nr_cpus.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240429160108.56B55C113CD@smtp.kernel.org>
+Subject: + mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch added to mm-unstable branch
+Message-Id: <20240429160551.15BB8C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: bounds: use the right number of bits for power-of-two CONFIG_NR_CPUS
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     bounds-use-the-right-number-of-bits-for-power-of-two-config_nr_cpus.patch
+     Subject: mm/rmap: remove duplicated exit code in pagewalk loop
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bounds-use-the-right-number-of-bits-for-power-of-two-config_nr_cpus.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,85 +58,176 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: bounds: use the right number of bits for power-of-two CONFIG_NR_CPUS
-Date: Mon, 29 Apr 2024 15:47:51 +0100
+From: Lance Yang <ioworker0@gmail.com>
+Subject: mm/rmap: remove duplicated exit code in pagewalk loop
+Date: Mon, 29 Apr 2024 21:23:06 +0800
 
-bits_per() rounds up to the next power of two when passed a power of two. 
-This causes crashes on some machines and configurations.
+Patch series "Reclaim lazyfree THP without splitting", v3.
 
-Link: https://lkml.kernel.org/r/20240429144807.3012361-1-willy@infradead.org
-Fixes: f2d5dcb48f7b (bounds: support non-power-of-two CONFIG_NR_CPUS)
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: Михаил Новоселов <m.novosyolov@rosalinux.ru>
-Tested-by: Ильфат Гаптрахманов <i.gaptrakhmanov@rosalinux.ru>
-Link: https://gitlab.freedesktop.org/drm/amd/-/issues/3347
-Link: https://lore.kernel.org/all/1c978cf1-2934-4e66-e4b3-e81b04cb3571@rosalinux.ru/
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: <stable@vger.kernel.org>
+This series adds support for reclaiming PMD-mapped THP marked as lazyfree
+without needing to first split the large folio via
+split_huge_pmd_address().
+
+When the user no longer requires the pages, they would use
+madvise(MADV_FREE) to mark the pages as lazy free.  Subsequently, they
+typically would not re-write to that memory again.
+
+During memory reclaim, if we detect that the large folio and its PMD are
+both still marked as clean and there are no unexpected references(such as
+GUP), so we can just discard the memory lazily, improving the efficiency
+of memory reclamation in this case.
+
+Performance Testing
+===================
+
+On an Intel i5 CPU, reclaiming 1GiB of lazyfree THPs using
+mem_cgroup_force_empty() results in the following runtimes in seconds
+(shorter is better):
+
+--------------------------------------------
+|     Old       |      New       |  Change  |
+--------------------------------------------
+|   0.683426    |    0.049197    |  -92.80% |
+--------------------------------------------
+
+
+This patch (of 3):
+
+Introduce the labels walk_done and walk_done_err as exit points to
+eliminate duplicated exit code in the pagewalk loop.
+
+Link: https://lkml.kernel.org/r/20240429132308.38794-1-ioworker0@gmail.com
+Link: https://lkml.kernel.org/r/20240429132308.38794-2-ioworker0@gmail.com
+Signed-off-by: Lance Yang <ioworker0@gmail.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Fangrui Song <maskray@google.com>
+Cc: Jeff Xie <xiehuan09@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/bounds.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/rmap.c |   40 +++++++++++++++-------------------------
+ 1 file changed, 15 insertions(+), 25 deletions(-)
 
---- a/kernel/bounds.c~bounds-use-the-right-number-of-bits-for-power-of-two-config_nr_cpus
-+++ a/kernel/bounds.c
-@@ -19,7 +19,7 @@ int main(void)
- 	DEFINE(NR_PAGEFLAGS, __NR_PAGEFLAGS);
- 	DEFINE(MAX_NR_ZONES, __MAX_NR_ZONES);
- #ifdef CONFIG_SMP
--	DEFINE(NR_CPUS_BITS, bits_per(CONFIG_NR_CPUS));
-+	DEFINE(NR_CPUS_BITS, bits_per(CONFIG_NR_CPUS - 1));
- #endif
- 	DEFINE(SPINLOCK_SIZE, sizeof(spinlock_t));
- #ifdef CONFIG_LRU_GEN
+--- a/mm/rmap.c~mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop
++++ a/mm/rmap.c
+@@ -1675,9 +1675,7 @@ static bool try_to_unmap_one(struct foli
+ 			/* Restore the mlock which got missed */
+ 			if (!folio_test_large(folio))
+ 				mlock_vma_folio(folio, vma);
+-			page_vma_mapped_walk_done(&pvmw);
+-			ret = false;
+-			break;
++			goto walk_done_err;
+ 		}
+ 
+ 		pfn = pte_pfn(ptep_get(pvmw.pte));
+@@ -1715,11 +1713,8 @@ static bool try_to_unmap_one(struct foli
+ 			 */
+ 			if (!anon) {
+ 				VM_BUG_ON(!(flags & TTU_RMAP_LOCKED));
+-				if (!hugetlb_vma_trylock_write(vma)) {
+-					page_vma_mapped_walk_done(&pvmw);
+-					ret = false;
+-					break;
+-				}
++				if (!hugetlb_vma_trylock_write(vma))
++					goto walk_done_err;
+ 				if (huge_pmd_unshare(mm, vma, address, pvmw.pte)) {
+ 					hugetlb_vma_unlock_write(vma);
+ 					flush_tlb_range(vma,
+@@ -1734,8 +1729,7 @@ static bool try_to_unmap_one(struct foli
+ 					 * actual page and drop map count
+ 					 * to zero.
+ 					 */
+-					page_vma_mapped_walk_done(&pvmw);
+-					break;
++					goto walk_done;
+ 				}
+ 				hugetlb_vma_unlock_write(vma);
+ 			}
+@@ -1807,9 +1801,7 @@ static bool try_to_unmap_one(struct foli
+ 			if (unlikely(folio_test_swapbacked(folio) !=
+ 					folio_test_swapcache(folio))) {
+ 				WARN_ON_ONCE(1);
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				goto walk_done_err;
+ 			}
+ 
+ 			/* MADV_FREE page check */
+@@ -1848,23 +1840,17 @@ static bool try_to_unmap_one(struct foli
+ 				 */
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+ 				folio_set_swapbacked(folio);
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				goto walk_done_err;
+ 			}
+ 
+ 			if (swap_duplicate(entry) < 0) {
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				goto walk_done_err;
+ 			}
+ 			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
+ 				swap_free(entry);
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				goto walk_done_err;
+ 			}
+ 
+ 			/* See folio_try_share_anon_rmap(): clear PTE first. */
+@@ -1872,9 +1858,7 @@ static bool try_to_unmap_one(struct foli
+ 			    folio_try_share_anon_rmap_pte(folio, subpage)) {
+ 				swap_free(entry);
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				goto walk_done_err;
+ 			}
+ 			if (list_empty(&mm->mmlist)) {
+ 				spin_lock(&mmlist_lock);
+@@ -1914,6 +1898,12 @@ discard:
+ 		if (vma->vm_flags & VM_LOCKED)
+ 			mlock_drain_local();
+ 		folio_put(folio);
++		continue;
++walk_done_err:
++		ret = false;
++walk_done:
++		page_vma_mapped_walk_done(&pvmw);
++		break;
+ 	}
+ 
+ 	mmu_notifier_invalidate_range_end(&range);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from ioworker0@gmail.com are
 
-bounds-use-the-right-number-of-bits-for-power-of-two-config_nr_cpus.patch
-doc-improve-the-description-of-__folio_mark_dirty.patch
-buffer-add-kernel-doc-for-block_dirty_folio.patch
-buffer-add-kernel-doc-for-try_to_free_buffers.patch
-buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch
-buffer-add-kernel-doc-for-brelse-and-__brelse.patch
-buffer-add-kernel-doc-for-bforget-and-__bforget.patch
-buffer-improve-bdev_getblk-documentation.patch
-doc-split-bufferrst-out-of-api-summaryrst.patch
-doc-split-bufferrst-out-of-api-summaryrst-fix.patch
-mm-memory-failure-remove-fsdax_pgoff-argument-from-__add_to_kill.patch
-mm-memory-failure-pass-addr-to-__add_to_kill.patch
-mm-return-the-address-from-page_mapped_in_vma.patch
-mm-make-page_mapped_in_vma-conditional-on-config_memory_failure.patch
-mm-memory-failure-convert-shake_page-to-shake_folio.patch
-mm-convert-hugetlb_page_mapping_lock_write-to-folio.patch
-mm-memory-failure-convert-memory_failure-to-use-a-folio.patch
-mm-memory-failure-convert-hwpoison_user_mappings-to-take-a-folio.patch
-mm-memory-failure-add-some-folio-conversions-to-unpoison_memory.patch
-mm-memory-failure-use-folio-functions-throughout-collect_procs.patch
-mm-memory-failure-pass-the-folio-to-collect_procs_ksm.patch
-fscrypt-convert-bh_get_inode_and_lblk_num-to-use-a-folio.patch
-f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio.patch
-memory-failure-remove-calls-to-page_mapping.patch
-migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch
-userfault-expand-folio-use-in-mfill_atomic_install_pte.patch
-mm-remove-page_mapping.patch
-mm-remove-page_cache_alloc.patch
-mm-remove-put_devmap_managed_page.patch
-mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs.patch
-mm-remove-page_ref_sub_return.patch
-gup-use-folios-for-gup_devmap.patch
-mm-add-kernel-doc-for-folio_mark_accessed.patch
-mm-remove-pagereferenced.patch
-mm-simplify-thp_vma_allowable_order.patch
-mm-assert-the-mmap_lock-is-held-in-__anon_vma_prepare.patch
-mm-delay-the-check-for-a-null-anon_vma.patch
-mm-fix-some-minor-per-vma-lock-issues-in-userfaultfd.patch
-mm-optimise-vmf_anon_prepare-for-vmas-without-an-anon_vma.patch
-squashfs-convert-squashfs_symlink_read_folio-to-use-folio-apis.patch
-squashfs-remove-calls-to-set-the-folio-error-flag.patch
+mm-madvise-introduce-clear_young_dirty_ptes-batch-helper.patch
+mm-arm64-override-clear_young_dirty_ptes-batch-helper.patch
+mm-memory-add-any_dirty-optional-pointer-to-folio_pte_batch.patch
+mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free.patch
+mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch
+mm-rmap-integrate-pmd-mapped-folio-splitting-into-pagewalk-loop.patch
+mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list.patch
 
