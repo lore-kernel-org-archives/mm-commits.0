@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC9D614A8D;
-	Mon, 29 Apr 2024 16:10:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6340839FD
+	for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2024 16:13:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714407052; cv=none; b=JLrMxbFZmOMYsQVQdmkDTxzU9LvCeTGFioQBjrs4MDceDAiiM2rB6zUriXb1/0O3BDlPKtGh8lRMs6la/JFOM0RxryriZs0czE7MQgmeO5g589pptkLcvWrCIanpx6/3qDRaxo9P+fcFNWvvTOPZWp9EbIF+20i7X3WygfollHo=
+	t=1714407226; cv=none; b=kXcgUpgqTEKsTsohm2XNdgThtCXZqvRHvqbhlgFTIj9GCWeBLTtZLRYrZI1cyb7PA2NOWlL2YltnCBY3In6qAue5HSu3yc9mdRFF3/+noa8aAl+KGOVMp4iJane8rbFx6svbIz8Bduk75ep2uyb9G1uRNYeAE5d5csNw5aYbKsQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714407052; c=relaxed/simple;
-	bh=+49JafRNLR0YbNyyfR5+QT7Xh40cqEpM8mjCJBjvD+c=;
-	h=Date:To:From:Subject:Message-Id; b=n1/adTb2uB9y48sIQS9NGFjOi4modsfY27AVc737mcKhfD6tSes/HdAKeCZ3w7mwUXVAYbieIdNjw5wsB2ssQ7OS9TCa8046TBSMNVMjQyBh4M7ckYqnKXEWvjVCNKgDYDOeQT4PJpl8EbRKV+HSr3CdX+XupvzOEw6jJkvM/yw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lNFDt+zG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714407226; c=relaxed/simple;
+	bh=Weho3ETAh2l55nyX2LlFPZYlrxDxFaSZ5vqFhLTC0iE=;
+	h=Date:To:From:Subject:Message-Id; b=cU79DODUoHch26OLYh4C2L3aixerCGBYbU14z2/GfTamxW3HxLwsZzKyXMyKJ48xp56C52+0h66katuRpMn2T3FxqtB6Qj7PP0VNK9QHflchpNcc8h+7a1E05b32mZJPGzQfUX+n5S5bax+LBKmGXpxa8sxH7hKAfWAy3Xfe7yU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gFLNSqyz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lNFDt+zG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34802C113CD;
-	Mon, 29 Apr 2024 16:10:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gFLNSqyz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE0B7C113CD;
+	Mon, 29 Apr 2024 16:13:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714407051;
-	bh=+49JafRNLR0YbNyyfR5+QT7Xh40cqEpM8mjCJBjvD+c=;
+	s=korg; t=1714407226;
+	bh=Weho3ETAh2l55nyX2LlFPZYlrxDxFaSZ5vqFhLTC0iE=;
 	h=Date:To:From:Subject:From;
-	b=lNFDt+zGx+62tLZXtk7O7y5GJcXuFUIRXnKdKnH2iCeOvQ2I5CErgp26xB2tM4cUS
-	 oGYV6vnBG6P+xQYEVjvvIGFf59NiSSiysCEzV9BbmqqAbW0mNOuO3bOrhnpy6/nX5D
-	 9m5V6IYVbFa47fc3KCsCtzV8q9pse3ZE0PT54Ndk=
-Date: Mon, 29 Apr 2024 09:10:49 -0700
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,stable@vger.kernel.org,peterx@redhat.com,david@redhat.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=gFLNSqyztij5fRTJR0Oznpcg5fvTv5UjlMgtSgesQBw6K1B9WlkZF04hDOmgwwpGi
+	 0NisX7jux4oBOCqd20VsVvDiaKkO556OaP50yKjnLPRATntSxrPcm5+ibogMREhuiJ
+	 hrccgO3IYbosZIyaK+FJTDPIUDU6hwjL3qx9jTmo=
+Date: Mon, 29 Apr 2024 09:13:44 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,elver@google.com,djwong@kernel.org,david@fromorbit.com,andreyknvl@gmail.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-task_mmu-fix-loss-of-young-dirty-bits-during-pagemap-scan.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240429161051.34802C113CD@smtp.kernel.org>
+Subject: + mmpage_owner-dont-remove-__gfp_nolockdep-in-add_stack_record_to_list.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240429161345.EE0B7C113CD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: fix loss of young/dirty bits during pagemap scan
+     Subject: mm,page_owner: don't remove __GFP_NOLOCKDEP in add_stack_record_to_list
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-proc-task_mmu-fix-loss-of-young-dirty-bits-during-pagemap-scan.patch
+     mmpage_owner-dont-remove-__gfp_nolockdep-in-add_stack_record_to_list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-fix-loss-of-young-dirty-bits-during-pagemap-scan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-dont-remove-__gfp_nolockdep-in-add_stack_record_to_list.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,57 +58,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: fs/proc/task_mmu: fix loss of young/dirty bits during pagemap scan
-Date: Mon, 29 Apr 2024 12:40:17 +0100
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm,page_owner: don't remove __GFP_NOLOCKDEP in add_stack_record_to_list
+Date: Mon, 29 Apr 2024 10:28:28 +0200
 
-make_uffd_wp_pte() was previously doing:
+Otherwise we'll generate false lockdep positives.
 
-  pte = ptep_get(ptep);
-  ptep_modify_prot_start(ptep);
-  pte = pte_mkuffd_wp(pte);
-  ptep_modify_prot_commit(ptep, pte);
-
-But if another thread accessed or dirtied the pte between the first 2
-calls, this could lead to loss of that information.  Since
-ptep_modify_prot_start() gets and clears atomically, the following is the
-correct pattern and prevents any possible race.  Any access after the
-first call would see an invalid pte and cause a fault:
-
-  pte = ptep_modify_prot_start(ptep);
-  pte = pte_mkuffd_wp(pte);
-  ptep_modify_prot_commit(ptep, pte);
-
-Link: https://lkml.kernel.org/r/20240429114017.182570-1-ryan.roberts@arm.com
-Fixes: 52526ca7fdb9 ("fs/proc/task_mmu: implement IOCTL to get and optionally clear info about PTEs")
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240429082828.1615986-1-hch@lst.de
+Fixes: 217b2119b9e2 ("mm,page_owner: implement the tracking of the stacks count")
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
+ mm/page_owner.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-fix-loss-of-young-dirty-bits-during-pagemap-scan
-+++ a/fs/proc/task_mmu.c
-@@ -1825,7 +1825,7 @@ static void make_uffd_wp_pte(struct vm_a
- 		pte_t old_pte;
+--- a/mm/page_owner.c~mmpage_owner-dont-remove-__gfp_nolockdep-in-add_stack_record_to_list
++++ a/mm/page_owner.c
+@@ -170,7 +170,7 @@ static void add_stack_record_to_list(str
  
- 		old_pte = ptep_modify_prot_start(vma, addr, pte);
--		ptent = pte_mkuffd_wp(ptent);
-+		ptent = pte_mkuffd_wp(old_pte);
- 		ptep_modify_prot_commit(vma, addr, pte, old_pte, ptent);
- 	} else if (is_swap_pte(ptent)) {
- 		ptent = pte_swp_mkuffd_wp(ptent);
+ 	/* Filter gfp_mask the same way stackdepot does, for consistency */
+ 	gfp_mask &= ~GFP_ZONEMASK;
+-	gfp_mask &= (GFP_ATOMIC | GFP_KERNEL);
++	gfp_mask &= (GFP_ATOMIC | GFP_KERNEL | __GFP_NOLOCKDEP);
+ 	gfp_mask |= __GFP_NOWARN;
+ 
+ 	set_current_in_page_owner();
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-fs-proc-task_mmu-fix-loss-of-young-dirty-bits-during-pagemap-scan.patch
-fs-proc-task_mmu-fix-uffd-wp-confusion-in-pagemap_scan_pmd_entry.patch
-selftests-mm-soft-dirty-should-fail-if-a-testcase-fails.patch
-mm-fix-race-between-__split_huge_pmd_locked-and-gup-fast.patch
+mmpage_owner-dont-remove-__gfp_nolockdep-in-add_stack_record_to_list.patch
 
