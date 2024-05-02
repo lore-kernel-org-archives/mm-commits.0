@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E59F16FF38
-	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 16:51:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4FDB28FC
+	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 17:07:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714668696; cv=none; b=u7yAUuXCGTvXPuP0g3zYHQnxh+qsxyvqwUjqYULBKcmES1BXaQ7HAuthtGrYIEitBnwkN8UJkKjCsyUvOekZawu9qacPZ+jtzVAqyRysJLn8rTwWrafLVdfX5eRH9UBfXGpR2z9F1UDo1+8Y2qREkw0PKbcP0XNJRg8cj/VMHTQ=
+	t=1714669675; cv=none; b=KVJNRYA7hyEYHq2d6mvFiwcj+phbxQ5Wh8O+LnG9uM0H9GFcOuyMdjIblsut9TtRDkYVi2wgajixKr03MIjaiGAXBZ3XBW87Sm28HzjGlAfuhjrCEcU3mHhQNXCoUARkMdppO+ivYnGkvU58nI80I8s3LIqeKz6b3odb8POxlQw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714668696; c=relaxed/simple;
-	bh=ibs1vWNeKtIhGuZydDFC5AgDUXMGDBqZ2OknN8prWEk=;
-	h=Date:To:From:Subject:Message-Id; b=jp9MvSlD/eanE8p8Hi+FSkTVrq4TZS8TukXQF6ScodaHyTcb2FnEhGcpt2sCt2Eu8YgdGyQdK97tPc2SqRjZ9c/aREnpYPyoKI96s9e7V9yMbGDNG6IME4HnW0vKuTepsAV73+SQydeqTWFPbn0JensusyLdPY/K8RtIjuj+rxQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Eyofd233; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714669675; c=relaxed/simple;
+	bh=GXivTwBaxx5HkbQEdSeu450Z4wtqjWXGmPsVkmzgtPY=;
+	h=Date:To:From:Subject:Message-Id; b=D03LUnAZKFJ8Wtl9fl6uwyLjaLtHlRrgWmFUHPuk/I+7dX44C/rJ/Zo4dguOACPBYCIX338l2ASiSgl7pdVYILGnzqF4xTOtu3Jpql9oB+Vs4ZXeLcK6ZMCIllU1yf0FFtOi1woTXnyTWmme4Nnnl5hI8iQqgdM0S6PYFCAPLRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G3PEzFlA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Eyofd233"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 729BDC113CC;
-	Thu,  2 May 2024 16:51:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G3PEzFlA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 213ABC113CC;
+	Thu,  2 May 2024 17:07:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714668695;
-	bh=ibs1vWNeKtIhGuZydDFC5AgDUXMGDBqZ2OknN8prWEk=;
+	s=korg; t=1714669675;
+	bh=GXivTwBaxx5HkbQEdSeu450Z4wtqjWXGmPsVkmzgtPY=;
 	h=Date:To:From:Subject:From;
-	b=Eyofd233gZ2kazH8rbPlduE8hBRko2hZK6Z7XI3Whd3W8mN0y8UAwRcDThQ16hplZ
-	 WD3EceMtAdKHktuIqbRIIeV10ekxPdV0nbnwNMZfDvCPOWGvGmeoukzxXoWFuvUNHZ
-	 iF0unkUkZBgKABcVawqFa8XrsS5EEV2uOIc8r5ac=
-Date: Thu, 02 May 2024 09:51:34 -0700
-To: mm-commits@vger.kernel.org,peterz@infradead.org,song@kernel.org,akpm@linux-foundation.org
+	b=G3PEzFlANIfQUpTXC+icegdx0zOlmhGUdnSHRzINK+gSO0cA9dNbRWXI2REdKHtJ9
+	 8URSPCZieqvwChuL4vfF25eFMVI5HlYxU4jU7zKgKqrEvMIAHbsEBefpOzJHJtFefh
+	 Lw9owjBX8XgANJdVApHWKPgVJDYGyOM22C0spkHA=
+Date: Thu, 02 May 2024 10:07:53 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,hch@lst.de,elver@google.com,andreyknvl@gmail.com,dchinner@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-allow-nmi-watchdog-to-use-raw-perf-event.patch added to mm-nonmm-unstable branch
-Message-Id: <20240502165135.729BDC113CC@smtp.kernel.org>
+Subject: + mm-lift-gfp_kmemleak_mask-to-gfph.patch added to mm-unstable branch
+Message-Id: <20240502170755.213ABC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: watchdog: allow nmi watchdog to use raw perf event
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-allow-nmi-watchdog-to-use-raw-perf-event.patch
+     Subject: mm: lift gfp_kmemleak_mask() to gfp.h
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-lift-gfp_kmemleak_mask-to-gfph.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-allow-nmi-watchdog-to-use-raw-perf-event.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-lift-gfp_kmemleak_mask-to-gfph.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,148 +58,161 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Song Liu <song@kernel.org>
-Subject: watchdog: allow nmi watchdog to use raw perf event
-Date: Mon, 29 Apr 2024 23:02:36 -0700
+From: Dave Chinner <dchinner@redhat.com>
+Subject: mm: lift gfp_kmemleak_mask() to gfp.h
+Date: Tue, 30 Apr 2024 15:28:23 +1000
 
-NMI watchdog permanently consumes one hardware counters per CPU on the
-system.  For systems that use many hardware counters, this causes more
-aggressive time multiplexing of perf events.
+Patch series "mm: fix nested allocation context filtering".
 
-OTOH, some CPUs (mostly Intel) support "ref-cycles" event, which is rarely
-used.  Add kernel cmdline arg nmi_watchdog=rNNN to configure the watchdog
-to use raw event.  For example, on Intel CPUs, we can use "r300" to
-configure the watchdog to use ref-cycles event.
+This patchset is the followup to the comment I made earlier today:
 
-If the raw event does not work, fall back to use "cycles".
+https://lore.kernel.org/linux-xfs/ZjAyIWUzDipofHFJ@dread.disaster.area/
 
-Link: https://lkml.kernel.org/r/20240430060236.1878002-2-song@kernel.org
-Signed-off-by: Song Liu <song@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Tl;dr: Memory allocations that are done inside the public memory
+allocation API need to obey the reclaim recursion constraints placed on
+the allocation by the original caller, including the "don't track
+recursion for this allocation" case defined by __GFP_NOLOCKDEP.
+
+These nested allocations are generally in debug code that is tracking
+something about the allocation (kmemleak, KASAN, etc) and so are
+allocating private kernel objects that only that debug system will use.
+
+Neither the page-owner code nor the stack depot code get this right.  They
+also also clear GFP_ZONEMASK as a separate operation, which is completely
+redundant because the constraint filter applied immediately after
+guarantees that GFP_ZONEMASK bits are cleared.
+
+kmemleak gets this filtering right.  It preserves the allocation
+constraints for deadlock prevention and clears all other context flags
+whilst also ensuring that the nested allocation will fail quickly,
+silently and without depleting emergency kernel reserves if there is no
+memory available.
+
+This can be made much more robust, immune to whack-a-mole games and the
+code greatly simplified by lifting gfp_kmemleak_mask() to
+include/linux/gfp.h and using that everywhere.  Also document it so that
+there is no excuse for not knowing about it when writing new debug code
+that nests allocations.
+
+Tested with lockdep, KASAN + page_owner=on and kmemleak=on over multiple
+fstests runs with XFS.
+
+
+This patch (of 3):
+
+Any "internal" nested allocation done from within an allocation context
+needs to obey the high level allocation gfp_mask constraints.  This is
+necessary for debug code like KASAN, kmemleak, lockdep, etc that allocate
+memory for saving stack traces and other information during memory
+allocation.  If they don't obey things like __GFP_NOLOCKDEP or
+__GFP_NOWARN, they produce false positive failure detections.
+
+kmemleak gets this right by using gfp_kmemleak_mask() to pass through the
+relevant context flags to the nested allocation to ensure that the
+allocation follows the constraints of the caller context.
+
+KASAN recently was foudn to be missing __GFP_NOLOCKDEP due to stack depot
+allocations, and even more recently the page owner tracking code was also
+found to be missing __GFP_NOLOCKDEP support.
+
+We also don't wan't want KASAN or lockdep to drive the system into OOM
+kill territory by exhausting emergency reserves.  This is something that
+kmemleak also gets right by adding (__GFP_NORETRY | __GFP_NOMEMALLOC |
+__GFP_NOWARN) to the allocation mask.
+
+Hence it is clear that we need to define a common nested allocation filter
+mask for these sorts of third party nested allocations used in debug code.
+So to start this process, lift gfp_kmemleak_mask() to gfp.h and rename it
+to gfp_nested_mask(), and convert the kmemleak callers to use it.
+
+Link: https://lkml.kernel.org/r/20240430054604.4169568-1-david@fromorbit.com
+Link: https://lkml.kernel.org/r/20240430054604.4169568-2-david@fromorbit.com
+Signed-off-by: Dave Chinner <dchinner@redhat.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    5 -
- include/linux/nmi.h                             |    2 
- kernel/watchdog.c                               |    2 
- kernel/watchdog_perf.c                          |   44 ++++++++++++++
- 4 files changed, 51 insertions(+), 2 deletions(-)
+ include/linux/gfp.h |   25 +++++++++++++++++++++++++
+ mm/kmemleak.c       |   12 ++++--------
+ 2 files changed, 29 insertions(+), 8 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~watchdog-allow-nmi-watchdog-to-use-raw-perf-event
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -3779,10 +3779,12 @@
- 			Format: [state][,regs][,debounce][,die]
- 
- 	nmi_watchdog=	[KNL,BUGS=X86] Debugging features for SMP kernels
--			Format: [panic,][nopanic,][num]
-+			Format: [panic,][nopanic,][rNNN,][num]
- 			Valid num: 0 or 1
- 			0 - turn hardlockup detector in nmi_watchdog off
- 			1 - turn hardlockup detector in nmi_watchdog on
-+			rNNN - configure the watchdog with raw perf event 0xNNN
-+
- 			When panic is specified, panic when an NMI watchdog
- 			timeout occurs (or 'nopanic' to not panic on an NMI
- 			watchdog, if CONFIG_BOOTPARAM_HARDLOCKUP_PANIC is set)
-@@ -7470,4 +7472,3 @@
- 				memory, and other data can't be written using
- 				xmon commands.
- 			off	xmon is disabled.
--
---- a/include/linux/nmi.h~watchdog-allow-nmi-watchdog-to-use-raw-perf-event
-+++ a/include/linux/nmi.h
-@@ -105,10 +105,12 @@ void watchdog_hardlockup_check(unsigned
- extern void hardlockup_detector_perf_stop(void);
- extern void hardlockup_detector_perf_restart(void);
- extern void hardlockup_detector_perf_cleanup(void);
-+extern void hardlockup_config_perf_event(const char *str);
- #else
- static inline void hardlockup_detector_perf_stop(void) { }
- static inline void hardlockup_detector_perf_restart(void) { }
- static inline void hardlockup_detector_perf_cleanup(void) { }
-+static inline void hardlockup_config_perf_event(const char *str) { }
- #endif
- 
- void watchdog_hardlockup_stop(void);
---- a/kernel/watchdog.c~watchdog-allow-nmi-watchdog-to-use-raw-perf-event
-+++ a/kernel/watchdog.c
-@@ -80,6 +80,8 @@ next:
- 		watchdog_hardlockup_user_enabled = 0;
- 	else if (!strncmp(str, "1", 1))
- 		watchdog_hardlockup_user_enabled = 1;
-+	else if (!strncmp(str, "r", 1))
-+		hardlockup_config_perf_event(str + 1);
- 	while (*(str++)) {
- 		if (*str == ',') {
- 			str++;
---- a/kernel/watchdog_perf.c~watchdog-allow-nmi-watchdog-to-use-raw-perf-event
-+++ a/kernel/watchdog_perf.c
-@@ -90,6 +90,14 @@ static struct perf_event_attr wd_hw_attr
- 	.disabled	= 1,
- };
- 
-+static struct perf_event_attr fallback_wd_hw_attr = {
-+	.type		= PERF_TYPE_HARDWARE,
-+	.config		= PERF_COUNT_HW_CPU_CYCLES,
-+	.size		= sizeof(struct perf_event_attr),
-+	.pinned		= 1,
-+	.disabled	= 1,
-+};
-+
- /* Callback function for perf event subsystem */
- static void watchdog_overflow_callback(struct perf_event *event,
- 				       struct perf_sample_data *data,
-@@ -123,6 +131,13 @@ static int hardlockup_detector_event_cre
- 	evt = perf_event_create_kernel_counter(wd_attr, cpu, NULL,
- 					       watchdog_overflow_callback, NULL);
- 	if (IS_ERR(evt)) {
-+		wd_attr = &fallback_wd_hw_attr;
-+		wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
-+		evt = perf_event_create_kernel_counter(wd_attr, cpu, NULL,
-+						       watchdog_overflow_callback, NULL);
-+	}
-+
-+	if (IS_ERR(evt)) {
- 		pr_debug("Perf event create on CPU %d failed with %ld\n", cpu,
- 			 PTR_ERR(evt));
- 		return PTR_ERR(evt);
-@@ -259,3 +274,32 @@ int __init watchdog_hardlockup_probe(voi
- 	}
- 	return ret;
+--- a/include/linux/gfp.h~mm-lift-gfp_kmemleak_mask-to-gfph
++++ a/include/linux/gfp.h
+@@ -157,6 +157,31 @@ static inline int gfp_zonelist(gfp_t fla
  }
-+
-+/**
-+ * hardlockup_config_perf_event - Overwrite config of wd_hw_attr.
+ 
+ /*
++ * gfp flag masking for nested internal allocations.
++ *
++ * For code that needs to do allocations inside the public allocation API (e.g.
++ * memory allocation tracking code) the allocations need to obey the caller
++ * allocation context constrains to prevent allocation context mismatches (e.g.
++ * GFP_KERNEL allocations in GFP_NOFS contexts) from potential deadlock
++ * situations.
++ *
++ * It is also assumed that these nested allocations are for internal kernel
++ * object storage purposes only and are not going to be used for DMA, etc. Hence
++ * we strip out all the zone information and leave just the context information
++ * intact.
++ *
++ * Further, internal allocations must fail before the higher level allocation
++ * can fail, so we must make them fail faster and fail silently. We also don't
++ * want them to deplete emergency reserves.  Hence nested allocations must be
++ * prepared for these allocations to fail.
 + */
-+void __init hardlockup_config_perf_event(const char *str)
++static inline gfp_t gfp_nested_mask(gfp_t flags)
 +{
-+	u64 config;
-+	char buf[24];
-+	char *comma = strchr(str, ',');
-+
-+	if (!comma) {
-+		if (kstrtoull(str, 16, &config))
-+			return;
-+	} else {
-+		unsigned int len = comma - str;
-+
-+		if (len >= sizeof(buf))
-+			return;
-+
-+		if (strscpy(buf, str, sizeof(buf)) < 0)
-+			return;
-+		buf[len] = 0;
-+		if (kstrtoull(buf, 16, &config))
-+			return;
-+	}
-+
-+	wd_hw_attr.type = PERF_TYPE_RAW;
-+	wd_hw_attr.config = config;
++	return ((flags & (GFP_KERNEL | GFP_ATOMIC | __GFP_NOLOCKDEP)) |
++		(__GFP_NORETRY | __GFP_NOMEMALLOC | __GFP_NOWARN));
 +}
++
++/*
+  * We get the zone list from the current node and the gfp_mask.
+  * This zone list contains a maximum of MAX_NUMNODES*MAX_NR_ZONES zones.
+  * There are two zonelists per node, one for all zones with memory and
+--- a/mm/kmemleak.c~mm-lift-gfp_kmemleak_mask-to-gfph
++++ a/mm/kmemleak.c
+@@ -114,12 +114,6 @@
+ 
+ #define BYTES_PER_POINTER	sizeof(void *)
+ 
+-/* GFP bitmask for kmemleak internal allocations */
+-#define gfp_kmemleak_mask(gfp)	(((gfp) & (GFP_KERNEL | GFP_ATOMIC | \
+-					   __GFP_NOLOCKDEP)) | \
+-				 __GFP_NORETRY | __GFP_NOMEMALLOC | \
+-				 __GFP_NOWARN)
+-
+ /* scanning area inside a memory block */
+ struct kmemleak_scan_area {
+ 	struct hlist_node node;
+@@ -463,7 +457,8 @@ static struct kmemleak_object *mem_pool_
+ 
+ 	/* try the slab allocator first */
+ 	if (object_cache) {
+-		object = kmem_cache_alloc_noprof(object_cache, gfp_kmemleak_mask(gfp));
++		object = kmem_cache_alloc_noprof(object_cache,
++						 gfp_nested_mask(gfp));
+ 		if (object)
+ 			return object;
+ 	}
+@@ -947,7 +942,8 @@ static void add_scan_area(unsigned long
+ 	untagged_objp = (unsigned long)kasan_reset_tag((void *)object->pointer);
+ 
+ 	if (scan_area_cache)
+-		area = kmem_cache_alloc_noprof(scan_area_cache, gfp_kmemleak_mask(gfp));
++		area = kmem_cache_alloc_noprof(scan_area_cache,
++					       gfp_nested_mask(gfp));
+ 
+ 	raw_spin_lock_irqsave(&object->lock, flags);
+ 	if (!area) {
 _
 
-Patches currently in -mm which might be from song@kernel.org are
+Patches currently in -mm which might be from dchinner@redhat.com are
 
-watchdog-handle-comma-separated-nmi_watchdog-command-line.patch
-watchdog-allow-nmi-watchdog-to-use-raw-perf-event.patch
+mm-lift-gfp_kmemleak_mask-to-gfph.patch
+stackdepot-use-gfp_nested_mask-instead-of-open-coded-masking.patch
 
