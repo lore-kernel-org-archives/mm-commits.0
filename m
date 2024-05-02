@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 958BC15DBA2
-	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 16:29:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E61515D5B8
+	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 16:29:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714667351; cv=none; b=umfb0GuyjoadkqF0FJ/XlEJd2OlCjPh52QQRc00x5Y1MazdbDsR7Q7leTkdf/I9Dut5ABFK6joCvZFMXm+XpJ3Gj93QNF8Vz1hv/KJj8CzlYmg0C3U1Ej43ORqkaZeCxL/NG887k4qQd95NHiMNOx3hcKqZ+B10Q44ucNAm/TRk=
+	t=1714667354; cv=none; b=He/Ve6FtdNwPcEEutheUOREYhydozw/a7GC2lCcFg24by52xXunsgaT9wMnvMBS7zYI3nd1Nupw//Losbo8BUHyaMMaHdtb44HLaSNHLHqvT12y7zBtavs0v2SzgjGiHRrDOeIFZ+6zn2AdfTbpEBMtuYKpeL5sP4KLIwqZ2OxA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714667351; c=relaxed/simple;
-	bh=x8ZB4GQFuXua4qgUeaMPJffJFT+3kwt+rWdxIMOxwVk=;
-	h=Date:To:From:Subject:Message-Id; b=c8hoawEo4Fi0E3peMdWBKy2UGHuYzedQQeDsPRi6FkndLcYJnd6B5DUtZaU6DCQ4N2i+PwF4kM6JT5Rd+skLV4PJ8L319cZhyXmmRc2Gcvj7DPzUmViHaNmS2Vjko4K4+S1ObCWmbnAqx3fovE36l/8yTunwOPeCKCWkF/0kOnM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lhZWCREn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714667354; c=relaxed/simple;
+	bh=qu7M138pt30LWwtE8KsEb3iM0BBHiQhMQSDORcSMyes=;
+	h=Date:To:From:Subject:Message-Id; b=Ymxhvw+9WQpHSfJzoT+9ghSnxQhBASXp0eN37jozVfWjbKxvcgj51LE8Y4gwtSoVN55cHM1s1IZlVs3fPiIxD2xYgRpJCpgKM7nj4IRgFFPE+ykijz0ZhOwOSmunjeh30G1sUN4giMhdM4io0Dfc7FVHKWtlaR1/QgBaIxGtvSM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jdHRZ2wW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lhZWCREn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D534BC113CC;
-	Thu,  2 May 2024 16:29:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jdHRZ2wW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DC14C113CC;
+	Thu,  2 May 2024 16:29:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714667351;
-	bh=x8ZB4GQFuXua4qgUeaMPJffJFT+3kwt+rWdxIMOxwVk=;
+	s=korg; t=1714667353;
+	bh=qu7M138pt30LWwtE8KsEb3iM0BBHiQhMQSDORcSMyes=;
 	h=Date:To:From:Subject:From;
-	b=lhZWCREns/gp3+lSO5NxnAduFZRdmqPhhKXt63iIENbie3swrzUbMPUB0LbMnZpbZ
-	 fpOKvdfwJpD1IBNPq8QAiQYXpnohUemwlQLKqCzMbAn3cZi351JyBxvQKkCew+YByE
-	 2C5sHRsFaz0rGwmRoGyYfZBkS/PMCH/yfjW3Mtl0=
-Date: Thu, 02 May 2024 09:29:09 -0700
+	b=jdHRZ2wWBZesX0x6W8ZcYF4D2QDZxKJ2PwSigXGVIZjim7KGbQgocnHilV2BbfWcz
+	 0psWbHm5NEOdf14JQe5CRACQzyy7LCJlGL8XF3bEU4fdMURvUX9EwgFxaYghPoN6GW
+	 AnbljrWc/yNeyZCPbOcxyk9aQ78K0VKhTkI4PuZU=
+Date: Thu, 02 May 2024 09:29:12 -0700
 To: mm-commits@vger.kernel.org,dave.jiang@intel.com,dan.j.williams@intel.com,alison.schofield@intel.com,vishal.l.verma@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + dax-busc-dont-use-down_write_killable-for-non-user-processes.patch added to mm-unstable branch
-Message-Id: <20240502162910.D534BC113CC@smtp.kernel.org>
+Subject: + dax-busc-use-the-right-locking-mode-read-vs-write-in-size_show.patch added to mm-unstable branch
+Message-Id: <20240502162913.6DC14C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: dax/bus.c: don't use down_write_killable for non-user processes
+     Subject: dax/bus.c: use the right locking mode (read vs write) in size_show
 has been added to the -mm mm-unstable branch.  Its filename is
-     dax-busc-dont-use-down_write_killable-for-non-user-processes.patch
+     dax-busc-use-the-right-locking-mode-read-vs-write-in-size_show.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dax-busc-dont-use-down_write_killable-for-non-user-processes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dax-busc-use-the-right-locking-mode-read-vs-write-in-size_show.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,41 +59,41 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: dax/bus.c: don't use down_write_killable for non-user processes
-Date: Tue, 30 Apr 2024 11:44:25 -0600
+Subject: dax/bus.c: use the right locking mode (read vs write) in size_show
+Date: Tue, 30 Apr 2024 11:44:26 -0600
 
-Change an instance of down_write_killable() to a simple down_write() where
-there is no user process that might want to interrupt the operation.
+In size_show(), the dax_dev_rwsem only needs a read lock, but was
+acquiring a write lock.  Change it to down_read_interruptible() so it
+doesn't unnecessarily hold a write lock.
 
-Link: https://lkml.kernel.org/r/20240430-vv-dax_abi_fixes-v3-3-e3dcd755774c@intel.com
+Link: https://lkml.kernel.org/r/20240430-vv-dax_abi_fixes-v3-4-e3dcd755774c@intel.com
 Fixes: c05ae9d85b47 ("dax/bus.c: replace driver-core lock usage by a local rwsem")
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Reported-by: Dan Williams <dan.j.williams@intel.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Alison Schofield <alison.schofield@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/bus.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/dax/bus.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/dax/bus.c~dax-busc-dont-use-down_write_killable-for-non-user-processes
+--- a/drivers/dax/bus.c~dax-busc-use-the-right-locking-mode-read-vs-write-in-size_show
 +++ a/drivers/dax/bus.c
-@@ -1540,12 +1540,8 @@ err_id:
- struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data)
- {
- 	struct dev_dax *dev_dax;
--	int rc;
--
--	rc = down_write_killable(&dax_region_rwsem);
--	if (rc)
--		return ERR_PTR(rc);
+@@ -937,11 +937,11 @@ static ssize_t size_show(struct device *
+ 	unsigned long long size;
+ 	int rc;
  
-+	down_write(&dax_region_rwsem);
- 	dev_dax = __devm_create_dev_dax(data);
- 	up_write(&dax_region_rwsem);
+-	rc = down_write_killable(&dax_dev_rwsem);
++	rc = down_read_interruptible(&dax_dev_rwsem);
+ 	if (rc)
+ 		return rc;
+ 	size = dev_dax_size(dev_dax);
+-	up_write(&dax_dev_rwsem);
++	up_read(&dax_dev_rwsem);
  
+ 	return sysfs_emit(buf, "%llu\n", size);
+ }
 _
 
 Patches currently in -mm which might be from vishal.l.verma@intel.com are
