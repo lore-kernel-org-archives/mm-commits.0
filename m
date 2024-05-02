@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FE4415B984
-	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 15:36:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F83015B13D
+	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 15:36:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714664167; cv=none; b=ukORT5R3lI6x0kID4UJoI/wOfbz3wyjHuGWKnlkgKHuRMiHWpj1zXAXLDW+JgRXq7z9D6ATQKHpyLp7JkSqr4QVhYFvqdfMAuHg/9EKJrAtST1e+osyT5TxPLSnld26uvm6LIlh4YFDin9PNqKGPlEFfLzD5ejO9cT+GHjtGadc=
+	t=1714664170; cv=none; b=iUGxAM/r5RcgMLeCk3PJKXemxxMLnfVBra7G7/d0T0V5+VeZ27YU0t7LFHCGJiyWfASSpGfrjyX0En/LI2tDSUhapbBeiTXMK4KzrEtFYmuuEYCxPKZQIA/cGRZ+kWseRgvpWY/dU/QFUwt54NP+cVAsfSgCeRZWCSXOKdeHeVc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714664167; c=relaxed/simple;
-	bh=xW5BgkUw7d/exCPwIPhIAFnhHPygcC0uqZ3djD3rj5M=;
-	h=Date:To:From:Subject:Message-Id; b=ZIyDL7XvJqkorw1FZb6m+f49QVsBH6xMHOIFsWhIqnLFpc+eBc9eVHt3uwXo81utITw6t5cRwvfEW2/8eemDmLwjN5VLRq4JJB59JYsW8ZOYN1VfY1DYtG6Ae4Rycqi92p5/QqUYPeQ7yLHzzC9ES1D9qlil76KzmcWwRz5rv3U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=07P9X1tu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714664170; c=relaxed/simple;
+	bh=2O2jjVthi2/UDqYafxRc1+qxpDDKPB4SpbMatbovy5g=;
+	h=Date:To:From:Subject:Message-Id; b=QX3Dd9+txVuhBMA6pMXubOm8sfLhIhtkfh9cb+TMpN/vVeqCgdJj/DlqqemLzcLTWNZvGo9FArUUmSMoD9wliPKY51dWKoZ4A9CgswCU9FzpoLOG5f5yjoi4+UZBJLfkLGRnt97RQhMdV+gbF2FuOjvZ/bf+8MytFP7XIMaotSs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rdVSo5dP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="07P9X1tu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C555EC4AF14;
-	Thu,  2 May 2024 15:36:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rdVSo5dP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D681C113CC;
+	Thu,  2 May 2024 15:36:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714664167;
-	bh=xW5BgkUw7d/exCPwIPhIAFnhHPygcC0uqZ3djD3rj5M=;
+	s=korg; t=1714664170;
+	bh=2O2jjVthi2/UDqYafxRc1+qxpDDKPB4SpbMatbovy5g=;
 	h=Date:To:From:Subject:From;
-	b=07P9X1tuOuHLYRMpbwXcKNJM8Gxj3BtFHk18Lm4XT4oN/+ukhRDPWMyeqaopj6LK8
-	 aYtHJALtksO48afmgVrewPKn70ztpd8pB8aPeAGmV1VqgUMiLkhnm3dqw0T2S+eegB
-	 aS+lAqGR9hWII3AY63FglHGaXRu42JtyMir1HWfI=
-Date: Thu, 02 May 2024 08:36:05 -0700
+	b=rdVSo5dPRaS2Vdr2mdl/r0xO4WINX3blLswBBifOW5it+ddPWUA2QJRcSoG01B0aX
+	 k6jYYguwCXUrp2o9Hgsz+4jqD3fS/g2nIcCbN5P2OG5ghfYj2qX9qdA03LXHEBTAhb
+	 EVSXHAaVmBYSTvOTn/ZDPKXMfdcLa5avdd97eojc=
+Date: Thu, 02 May 2024 08:36:08 -0700
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,tjmercier@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-warn-for-unexpected-events-and-stats.patch added to mm-unstable branch
-Message-Id: <20240502153606.C555EC4AF14@smtp.kernel.org>
+Subject: + memcg-use-proper-type-for-mod_memcg_state.patch added to mm-unstable branch
+Message-Id: <20240502153610.2D681C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: warn for unexpected events and stats
+     Subject: memcg: use proper type for mod_memcg_state
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-warn-for-unexpected-events-and-stats.patch
+     memcg-use-proper-type-for-mod_memcg_state.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-warn-for-unexpected-events-and-stats.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-use-proper-type-for-mod_memcg_state.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,143 +59,95 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: warn for unexpected events and stats
-Date: Wed, 1 May 2024 10:26:16 -0700
+Subject: memcg: use proper type for mod_memcg_state
+Date: Wed, 1 May 2024 10:26:17 -0700
 
-To reduce memory usage by the memcg events and stats, the kernel uses
-indirection table and only allocate stats and events which are being used
-by the memcg code.  To make this more robust, let's add warnings where
-unexpected stats and events indexes are used.
+The memcg stats update functions can take arbitrary integer but the only
+input which make sense is enum memcg_stat_item and we don't want these
+functions to be called with arbitrary integer, so replace the parameter
+type with enum memcg_stat_item and compiler will be able to warn if memcg
+stat update functions are called with incorrect index value.
 
-Link: https://lkml.kernel.org/r/20240501172617.678560-8-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20240501172617.678560-9-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: T.J. Mercier <tjmercier@google.com>
 Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: T.J. Mercier <tjmercier@google.com>
 Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   39 +++++++++++++++++++++++----------------
- 1 file changed, 23 insertions(+), 16 deletions(-)
+ include/linux/memcontrol.h |   13 +++++++------
+ mm/memcontrol.c            |    3 ++-
+ 2 files changed, 9 insertions(+), 7 deletions(-)
 
---- a/mm/memcontrol.c~memcg-warn-for-unexpected-events-and-stats
-+++ a/mm/memcontrol.c
-@@ -670,7 +670,7 @@ unsigned long lruvec_page_state(struct l
- 		return node_page_state(lruvec_pgdat(lruvec), idx);
+--- a/include/linux/memcontrol.h~memcg-use-proper-type-for-mod_memcg_state
++++ a/include/linux/memcontrol.h
+@@ -974,7 +974,8 @@ void mem_cgroup_print_oom_group(struct m
+ void folio_memcg_lock(struct folio *folio);
+ void folio_memcg_unlock(struct folio *folio);
  
- 	i = memcg_stats_index(idx);
--	if (i < 0)
-+	if (WARN_ONCE(i < 0, "%s: missing stat item %d\n", __func__, idx))
- 		return 0;
+-void __mod_memcg_state(struct mem_cgroup *memcg, int idx, int val);
++void __mod_memcg_state(struct mem_cgroup *memcg, enum memcg_stat_item idx,
++		       int val);
  
- 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
-@@ -686,14 +686,14 @@ unsigned long lruvec_page_state_local(st
- 				      enum node_stat_item idx)
+ /* try to stablize folio_memcg() for all the pages in a memcg */
+ static inline bool mem_cgroup_trylock_pages(struct mem_cgroup *memcg)
+@@ -995,7 +996,7 @@ static inline void mem_cgroup_unlock_pag
+ 
+ /* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void mod_memcg_state(struct mem_cgroup *memcg,
+-				   int idx, int val)
++				   enum memcg_stat_item idx, int val)
  {
- 	struct mem_cgroup_per_node *pn;
--	long x = 0;
-+	long x;
- 	int i;
+ 	unsigned long flags;
  
- 	if (mem_cgroup_disabled())
- 		return node_page_state(lruvec_pgdat(lruvec), idx);
+@@ -1005,7 +1006,7 @@ static inline void mod_memcg_state(struc
+ }
  
- 	i = memcg_stats_index(idx);
--	if (i < 0)
-+	if (WARN_ONCE(i < 0, "%s: missing stat item %d\n", __func__, idx))
- 		return 0;
- 
- 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
-@@ -922,7 +922,7 @@ unsigned long memcg_page_state(struct me
- 	long x;
- 	int i = memcg_stats_index(idx);
- 
--	if (i < 0)
-+	if (WARN_ONCE(i < 0, "%s: missing stat item %d\n", __func__, idx))
- 		return 0;
- 
- 	x = READ_ONCE(memcg->vmstats->state[i]);
-@@ -959,7 +959,10 @@ void __mod_memcg_state(struct mem_cgroup
+ static inline void mod_memcg_page_state(struct page *page,
+-					int idx, int val)
++					enum memcg_stat_item idx, int val)
  {
- 	int i = memcg_stats_index(idx);
- 
--	if (mem_cgroup_disabled() || i < 0)
-+	if (mem_cgroup_disabled())
-+		return;
-+
-+	if (WARN_ONCE(i < 0, "%s: missing stat item %d\n", __func__, idx))
- 		return;
- 
- 	__this_cpu_add(memcg->vmstats_percpu->state[i], val);
-@@ -972,7 +975,7 @@ static unsigned long memcg_page_state_lo
- 	long x;
- 	int i = memcg_stats_index(idx);
- 
--	if (i < 0)
-+	if (WARN_ONCE(i < 0, "%s: missing stat item %d\n", __func__, idx))
- 		return 0;
- 
- 	x = READ_ONCE(memcg->vmstats->state_local[i]);
-@@ -991,7 +994,7 @@ static void __mod_memcg_lruvec_state(str
  	struct mem_cgroup *memcg;
+ 
+@@ -1491,19 +1492,19 @@ static inline void mem_cgroup_print_oom_
+ }
+ 
+ static inline void __mod_memcg_state(struct mem_cgroup *memcg,
+-				     int idx,
++				     enum memcg_stat_item idx,
+ 				     int nr)
+ {
+ }
+ 
+ static inline void mod_memcg_state(struct mem_cgroup *memcg,
+-				   int idx,
++				   enum memcg_stat_item idx,
+ 				   int nr)
+ {
+ }
+ 
+ static inline void mod_memcg_page_state(struct page *page,
+-					int idx, int val)
++					enum memcg_stat_item idx, int val)
+ {
+ }
+ 
+--- a/mm/memcontrol.c~memcg-use-proper-type-for-mod_memcg_state
++++ a/mm/memcontrol.c
+@@ -955,7 +955,8 @@ static int memcg_state_val_in_pages(int
+  * @idx: the stat item - can be enum memcg_stat_item or enum node_stat_item
+  * @val: delta to add to the counter, can be negative
+  */
+-void __mod_memcg_state(struct mem_cgroup *memcg, int idx, int val)
++void __mod_memcg_state(struct mem_cgroup *memcg, enum memcg_stat_item idx,
++		       int val)
+ {
  	int i = memcg_stats_index(idx);
  
--	if (i < 0)
-+	if (WARN_ONCE(i < 0, "%s: missing stat item %d\n", __func__, idx))
- 		return;
- 
- 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
-@@ -1102,34 +1105,38 @@ void __mod_lruvec_kmem_state(void *p, en
- void __count_memcg_events(struct mem_cgroup *memcg, enum vm_event_item idx,
- 			  unsigned long count)
- {
--	int index = memcg_events_index(idx);
-+	int i = memcg_events_index(idx);
- 
--	if (mem_cgroup_disabled() || index < 0)
-+	if (mem_cgroup_disabled())
-+		return;
-+
-+	if (WARN_ONCE(i < 0, "%s: missing stat item %d\n", __func__, idx))
- 		return;
- 
- 	memcg_stats_lock();
--	__this_cpu_add(memcg->vmstats_percpu->events[index], count);
-+	__this_cpu_add(memcg->vmstats_percpu->events[i], count);
- 	memcg_rstat_updated(memcg, count);
- 	memcg_stats_unlock();
- }
- 
- static unsigned long memcg_events(struct mem_cgroup *memcg, int event)
- {
--	int index = memcg_events_index(event);
-+	int i = memcg_events_index(event);
- 
--	if (index < 0)
-+	if (WARN_ONCE(i < 0, "%s: missing stat item %d\n", __func__, event))
- 		return 0;
--	return READ_ONCE(memcg->vmstats->events[index]);
-+
-+	return READ_ONCE(memcg->vmstats->events[i]);
- }
- 
- static unsigned long memcg_events_local(struct mem_cgroup *memcg, int event)
- {
--	int index = memcg_events_index(event);
-+	int i = memcg_events_index(event);
- 
--	if (index < 0)
-+	if (WARN_ONCE(i < 0, "%s: missing stat item %d\n", __func__, event))
- 		return 0;
- 
--	return READ_ONCE(memcg->vmstats->events_local[index]);
-+	return READ_ONCE(memcg->vmstats->events_local[i]);
- }
- 
- static void mem_cgroup_charge_statistics(struct mem_cgroup *memcg,
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
