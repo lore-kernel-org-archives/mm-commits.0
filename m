@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96CA415E5A9
-	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 16:44:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 714D2153571
+	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 16:47:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714668248; cv=none; b=KhkeilbDX8HUH/mOti6vfVKi6yUioxJTBqT29xqx4ujvbQZMznH5g2a4OEnuxEVrV3nGniox7UANU0wRI+UNrw7YtFuI8TkAmwy5uZHLGP9KrULlKm2DLk2ycqk1tGuYHv2yfukwY9AuEL0cr+vpxgnoCCJDsI7Drr01/0x1Mqk=
+	t=1714668435; cv=none; b=bFIrwraruKvJtlkLMy7XxDQawvCh8LMedJLUA3F8fSz0unYfB0L493kqxNZbZE4ONJNCrr5Aiai0GwBSVCzCTQk6qkOxJb9YHj0x+HdBrPZWcFy5INDvO1tzVUGJsSLigJW4TYGeiVdOvSONdakUF72vzwesTV1NmlCWeXEoN+M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714668248; c=relaxed/simple;
-	bh=5j9sWFaVj3PD/Zs+odwSZ18G43A5EU+ljzgwTdinn58=;
-	h=Date:To:From:Subject:Message-Id; b=BGtruwOT/+LoWDdFER9lGFK/lCf2fdoK0tXVNw4OWNpxpHetJP0HvhHnMi4g4IENhmDyYJCvYwFXcFOFyp+EBs6dK97GcmIKNhGDc2QG0tuQXr9ECSOFvfDr7NoG+eM2xI9OAnzfpGEeA4CjYyxXNfriTvoTB0ZX+n602GFpcAY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c70rNzKa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714668435; c=relaxed/simple;
+	bh=woQ+ebHpMHY3oS8cZa5Trq4W4Bl4WaADuem6TN7DBOQ=;
+	h=Date:To:From:Subject:Message-Id; b=ncokQeDJomHPBzOdd4sFIvQhU3yqgDLHLQvyu5gHbU8Nl9YflVdWl2jN6V0GICjFze6TBvJj3jShyLAIUqxldxOOrS1ALq53L7SCumSvKx+p9/TAPJ+UQLZ4FI7s+AlswXiQW6DeA7fUkjRtUxzNqw/biPk87xUDPavwq69cdsI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F9Mt0nTE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c70rNzKa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D912DC113CC;
-	Thu,  2 May 2024 16:44:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F9Mt0nTE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6B43C113CC;
+	Thu,  2 May 2024 16:47:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714668248;
-	bh=5j9sWFaVj3PD/Zs+odwSZ18G43A5EU+ljzgwTdinn58=;
+	s=korg; t=1714668435;
+	bh=woQ+ebHpMHY3oS8cZa5Trq4W4Bl4WaADuem6TN7DBOQ=;
 	h=Date:To:From:Subject:From;
-	b=c70rNzKaXPT/0OCc3gaWplARwEKyUBMpexM0TPvHPVrygoaPo5CTvHXzrH67fWxJn
-	 aaDaU4S9CoRm2/kemgxjf5CmmqPd0Y3WAKcYq+zg2xZztn+CbexVaYcKl2q/q0ee+a
-	 43wTF4g6kRWUB2goUxU54g/uGApuQy8Y3Z0M09cw=
-Date: Thu, 02 May 2024 09:44:06 -0700
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,lstoakes@gmail.com,jhubbard@nvidia.com,jgg@nvidia.com,david@redhat.com,christophe.leroy@csgroup.eu,aneesh.kumar@kernel.org,peterx@redhat.com,akpm@linux-foundation.org
+	b=F9Mt0nTElOBhNybskuYHfcYDD/SKKwZ6OelutSsMMF+yyrdxmY+t7n9xbbwkLAWJ9
+	 FSzJu1Pr+0pP5CL/JHnqsA9XSlkC/5v20B7bb/38qHurGGeJSZsyVK35N4ruVvCQ6v
+	 OEf/cF1mMkPYVyvF0M+941zs8wT8rNDhtSoFMjms=
+Date: Thu, 02 May 2024 09:47:13 -0700
+To: mm-commits@vger.kernel.org,lkp@intel.com,bvanassche@acm.org,axboe@kernel.dk,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-fix-hugepd-handling-in-hugetlb-rework.patch added to mm-unstable branch
-Message-Id: <20240502164407.D912DC113CC@smtp.kernel.org>
+Subject: + nilfs2-use-integer-type-instead-of-enum-req_op-for-event-tracing-header.patch added to mm-nonmm-unstable branch
+Message-Id: <20240502164714.D6B43C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: fix hugepd handling in hugetlb rework
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-fix-hugepd-handling-in-hugetlb-rework.patch
+     Subject: nilfs2: use integer type instead of enum req_op for event tracing header
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     nilfs2-use-integer-type-instead-of-enum-req_op-for-event-tracing-header.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-fix-hugepd-handling-in-hugetlb-rework.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-use-integer-type-instead-of-enum-req_op-for-event-tracing-header.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,196 +58,90 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/gup: fix hugepd handling in hugetlb rework
-Date: Tue, 30 Apr 2024 09:13:03 -0400
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: use integer type instead of enum req_op for event tracing header
+Date: Tue, 30 Apr 2024 17:00:18 +0900
 
-Commit a12083d721d7 added hugepd handling for gup-slow, reusing gup-fast
-functions.  follow_hugepd() correctly took the vma pointer in, however
-didn't pass it over into the lower functions, which was overlooked.
+Patch series "nilfs2: reduce build warnings with "make C=1""
 
-The issue is gup_fast_hugepte() uses the vma pointer to make the correct
-decision on whether an unshare is needed for a FOLL_PIN|FOLL_LONGTERM. 
-Now without vma ponter it will constantly return "true" (needs an unshare)
-for a page cache, even though in the SHARED case it will be wrong to
-unshare.
+These two are cleanups that eliminate the warnings output by sparse (not
+including common one related to refcount_dec_and_lock).  Neither is a
+bugfix.  
 
-The other problem is, even if an unshare is needed, it now returns 0
-rather than -EMLINK, which will not trigger a follow up FAULT_FLAG_UNSHARE
-fault.  That will need to be fixed too when the unshare is wanted.
 
-gup_longterm test didn't expose this issue in the past because it didn't
-yet test R/O unshare in this case, another separate patch will enable that
-in future tests.
+This patch (of 2):
 
-Fix it by passing vma correctly to the bottom, rename gup_fast_hugepte()
-back to gup_hugepte() as it is shared between the fast/slow paths, and
-also allow -EMLINK to be returned properly by gup_hugepte() even though
-gup-fast will take it the same as zero.
+The sparse check with "make C=1" outputs warnings regarding references to
+the header file "include/trace/events/nilfs2.h" for event tracing:
 
-Link: https://lkml.kernel.org/r/20240430131303.264331-1-peterx@redhat.com
-Fixes: a12083d721d7 ("mm/gup: handle hugepd for follow_page()")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+ fs/nilfs2/segment.c: note: in included file (through
+   include/trace/trace_events.h, include/trace/define_trace.h,
+   include/trace/events/nilfs2.h):
+ ./include/trace/events/nilfs2.h:191:1: warning: cast to restricted
+   blk_opf_t
+ ./include/trace/events/nilfs2.h:191:1: warning: restricted blk_opf_t
+   degrades to integer
+ ./include/trace/events/nilfs2.h:191:1: warning: restricted blk_opf_t
+   degrades to integer
+
+Fix this issue by reverting the type of the parameter related to the bio
+operation mode in the event tracing definition from "enum req_op" to
+"int".
+
+In order to prevent sparse warnings on the caller side (where
+trace_nilfs2_mdt_submit_block() is used), also add a typecast to an
+argument passed to the tracepoint.
+
+Link: https://lkml.kernel.org/r/20240430080019.4242-1-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240430080019.4242-2-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202401092241.I4mm9OWl-lkp@intel.com/
+Fixes: ed4512590bd5 ("fs/nilfs2: Use the enum req_op and blk_opf_t types")
+Cc: Bart Van Assche <bvanassche@acm.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   64 ++++++++++++++++++++++++++++++++---------------------
- 1 file changed, 39 insertions(+), 25 deletions(-)
+ fs/nilfs2/mdt.c               |    2 +-
+ include/trace/events/nilfs2.h |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/gup.c~mm-gup-fix-hugepd-handling-in-hugetlb-rework
-+++ a/mm/gup.c
-@@ -525,9 +525,17 @@ static unsigned long hugepte_addr_end(un
- 	return (__boundary - 1 < end - 1) ? __boundary : end;
- }
+--- a/fs/nilfs2/mdt.c~nilfs2-use-integer-type-instead-of-enum-req_op-for-event-tracing-header
++++ a/fs/nilfs2/mdt.c
+@@ -152,7 +152,7 @@ nilfs_mdt_submit_block(struct inode *ino
+ 	ret = 0;
  
--static int gup_fast_hugepte(pte_t *ptep, unsigned long sz, unsigned long addr,
--		unsigned long end, unsigned int flags, struct page **pages,
--		int *nr)
-+/*
-+ * Returns 1 if succeeded, 0 if failed, -EMLINK if unshare needed.
-+ *
-+ * NOTE: for the same entry, gup-fast and gup-slow can return different
-+ * results (0 v.s. -EMLINK) depending on whether vma is available.  This is
-+ * the expected behavior, where we simply want gup-fast to fallback to
-+ * gup-slow to take the vma reference first.
-+ */
-+static int gup_hugepte(struct vm_area_struct *vma, pte_t *ptep, unsigned long sz,
-+		       unsigned long addr, unsigned long end, unsigned int flags,
-+		       struct page **pages, int *nr)
- {
- 	unsigned long pte_end;
- 	struct page *page;
-@@ -559,9 +567,9 @@ static int gup_fast_hugepte(pte_t *ptep,
- 		return 0;
- 	}
+ 	trace_nilfs2_mdt_submit_block(inode, inode->i_ino, blkoff,
+-				      opf & REQ_OP_MASK);
++				      (__force int)(opf & REQ_OP_MASK));
+  out:
+ 	get_bh(bh);
+ 	*out_bh = bh;
+--- a/include/trace/events/nilfs2.h~nilfs2-use-integer-type-instead-of-enum-req_op-for-event-tracing-header
++++ a/include/trace/events/nilfs2.h
+@@ -192,7 +192,7 @@ TRACE_EVENT(nilfs2_mdt_submit_block,
+ 	    TP_PROTO(struct inode *inode,
+ 		     unsigned long ino,
+ 		     unsigned long blkoff,
+-		     enum req_op mode),
++		     int mode),
  
--	if (!pte_write(pte) && gup_must_unshare(NULL, flags, &folio->page)) {
-+	if (!pte_write(pte) && gup_must_unshare(vma, flags, &folio->page)) {
- 		gup_put_folio(folio, refs, flags);
--		return 0;
-+		return -EMLINK;
- 	}
+ 	    TP_ARGS(inode, ino, blkoff, mode),
  
- 	*nr += refs;
-@@ -577,19 +585,22 @@ static int gup_fast_hugepte(pte_t *ptep,
-  * of the other folios. See writable_file_mapping_allowed() and
-  * gup_fast_folio_allowed() for more information.
-  */
--static int gup_fast_hugepd(hugepd_t hugepd, unsigned long addr,
--		unsigned int pdshift, unsigned long end, unsigned int flags,
--		struct page **pages, int *nr)
-+static int gup_hugepd(struct vm_area_struct *vma, hugepd_t hugepd,
-+		      unsigned long addr, unsigned int pdshift,
-+		      unsigned long end, unsigned int flags,
-+		      struct page **pages, int *nr)
- {
- 	pte_t *ptep;
- 	unsigned long sz = 1UL << hugepd_shift(hugepd);
- 	unsigned long next;
-+	int ret;
+@@ -200,7 +200,7 @@ TRACE_EVENT(nilfs2_mdt_submit_block,
+ 		    __field(struct inode *, inode)
+ 		    __field(unsigned long, ino)
+ 		    __field(unsigned long, blkoff)
+-		    __field(enum req_op, mode)
++		    __field(int, mode)
+ 	    ),
  
- 	ptep = hugepte_offset(hugepd, addr, pdshift);
- 	do {
- 		next = hugepte_addr_end(addr, end, sz);
--		if (!gup_fast_hugepte(ptep, sz, addr, end, flags, pages, nr))
--			return 0;
-+		ret = gup_hugepte(vma, ptep, sz, addr, end, flags, pages, nr);
-+		if (ret != 1)
-+			return ret;
- 	} while (ptep++, addr = next, addr != end);
- 
- 	return 1;
-@@ -613,22 +624,25 @@ static struct page *follow_hugepd(struct
- 	h = hstate_vma(vma);
- 	ptep = hugepte_offset(hugepd, addr, pdshift);
- 	ptl = huge_pte_lock(h, vma->vm_mm, ptep);
--	ret = gup_fast_hugepd(hugepd, addr, pdshift, addr + PAGE_SIZE,
--			      flags, &page, &nr);
-+	ret = gup_hugepd(vma, hugepd, addr, pdshift, addr + PAGE_SIZE,
-+			 flags, &page, &nr);
- 	spin_unlock(ptl);
- 
--	if (ret) {
-+	if (ret == 1) {
-+		/* GUP succeeded */
- 		WARN_ON_ONCE(nr != 1);
- 		ctx->page_mask = (1U << huge_page_order(h)) - 1;
- 		return page;
- 	}
- 
--	return NULL;
-+	/* ret can be either 0 (translates to NULL) or negative */
-+	return ERR_PTR(ret);
- }
- #else /* CONFIG_ARCH_HAS_HUGEPD */
--static inline int gup_fast_hugepd(hugepd_t hugepd, unsigned long addr,
--		unsigned int pdshift, unsigned long end, unsigned int flags,
--		struct page **pages, int *nr)
-+static inline int gup_hugepd(struct vm_area_struct *vma, hugepd_t hugepd,
-+			     unsigned long addr, unsigned int pdshift,
-+			     unsigned long end, unsigned int flags,
-+			     struct page **pages, int *nr)
- {
- 	return 0;
- }
-@@ -3261,8 +3275,8 @@ static int gup_fast_pmd_range(pud_t *pud
- 			 * architecture have different format for hugetlbfs
- 			 * pmd format and THP pmd format
- 			 */
--			if (!gup_fast_hugepd(__hugepd(pmd_val(pmd)), addr,
--					     PMD_SHIFT, next, flags, pages, nr))
-+			if (gup_hugepd(NULL, __hugepd(pmd_val(pmd)), addr,
-+				       PMD_SHIFT, next, flags, pages, nr) != 1)
- 				return 0;
- 		} else if (!gup_fast_pte_range(pmd, pmdp, addr, next, flags,
- 					       pages, nr))
-@@ -3291,8 +3305,8 @@ static int gup_fast_pud_range(p4d_t *p4d
- 					       pages, nr))
- 				return 0;
- 		} else if (unlikely(is_hugepd(__hugepd(pud_val(pud))))) {
--			if (!gup_fast_hugepd(__hugepd(pud_val(pud)), addr,
--					     PUD_SHIFT, next, flags, pages, nr))
-+			if (gup_hugepd(NULL, __hugepd(pud_val(pud)), addr,
-+				       PUD_SHIFT, next, flags, pages, nr) != 1)
- 				return 0;
- 		} else if (!gup_fast_pmd_range(pudp, pud, addr, next, flags,
- 					       pages, nr))
-@@ -3318,8 +3332,8 @@ static int gup_fast_p4d_range(pgd_t *pgd
- 			return 0;
- 		BUILD_BUG_ON(p4d_leaf(p4d));
- 		if (unlikely(is_hugepd(__hugepd(p4d_val(p4d))))) {
--			if (!gup_fast_hugepd(__hugepd(p4d_val(p4d)), addr,
--					     P4D_SHIFT, next, flags, pages, nr))
-+			if (gup_hugepd(NULL, __hugepd(p4d_val(p4d)), addr,
-+				       P4D_SHIFT, next, flags, pages, nr) != 1)
- 				return 0;
- 		} else if (!gup_fast_pud_range(p4dp, p4d, addr, next, flags,
- 					       pages, nr))
-@@ -3347,8 +3361,8 @@ static void gup_fast_pgd_range(unsigned
- 					       pages, nr))
- 				return;
- 		} else if (unlikely(is_hugepd(__hugepd(pgd_val(pgd))))) {
--			if (!gup_fast_hugepd(__hugepd(pgd_val(pgd)), addr,
--					      PGDIR_SHIFT, next, flags, pages, nr))
-+			if (gup_hugepd(NULL, __hugepd(pgd_val(pgd)), addr,
-+				       PGDIR_SHIFT, next, flags, pages, nr) != 1)
- 				return;
- 		} else if (!gup_fast_p4d_range(pgdp, pgd, addr, next, flags,
- 					       pages, nr))
+ 	    TP_fast_assign(
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-mm-userfaultfd-reset-ptes-when-close-for-wr-protected-ones.patch
-mm-hugetlb-assert-hugetlb_lock-in-__hugetlb_cgroup_commit_charge.patch
-mm-page_table_check-support-userfault-wr-protect-entries.patch
-mm-gup-fix-hugepd-handling-in-hugetlb-rework.patch
+nilfs2-use-integer-type-instead-of-enum-req_op-for-event-tracing-header.patch
+nilfs2-make-superblock-data-array-index-computation-sparse-friendly.patch
 
