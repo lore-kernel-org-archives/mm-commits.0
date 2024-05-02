@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 714D2153571
-	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 16:47:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BEF115E80E
+	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 16:47:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714668435; cv=none; b=bFIrwraruKvJtlkLMy7XxDQawvCh8LMedJLUA3F8fSz0unYfB0L493kqxNZbZE4ONJNCrr5Aiai0GwBSVCzCTQk6qkOxJb9YHj0x+HdBrPZWcFy5INDvO1tzVUGJsSLigJW4TYGeiVdOvSONdakUF72vzwesTV1NmlCWeXEoN+M=
+	t=1714668438; cv=none; b=m16yyu2Sa0ARBeQSfSoT9oo4riFRunPBA8CsUqav+9sYutlewA/2goMtfGAEUk/eKiXWMAW484Z13KxhSN2PSS+4LShN62Jw0Njvp1gDGuoUB0KBYu5UukEODheTuqZJ0uUJZlAigpZPj2eCnmfwwOBPoP+pL/nIl+3mSpuKJqo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714668435; c=relaxed/simple;
-	bh=woQ+ebHpMHY3oS8cZa5Trq4W4Bl4WaADuem6TN7DBOQ=;
-	h=Date:To:From:Subject:Message-Id; b=ncokQeDJomHPBzOdd4sFIvQhU3yqgDLHLQvyu5gHbU8Nl9YflVdWl2jN6V0GICjFze6TBvJj3jShyLAIUqxldxOOrS1ALq53L7SCumSvKx+p9/TAPJ+UQLZ4FI7s+AlswXiQW6DeA7fUkjRtUxzNqw/biPk87xUDPavwq69cdsI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F9Mt0nTE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714668438; c=relaxed/simple;
+	bh=/Pm870PYAgGTPWl+grNF1QoSC0Yg+LML1KLJHu6ijFQ=;
+	h=Date:To:From:Subject:Message-Id; b=tOAhhCYj658n1fNlljPoXXtkbhRQl5vCeZzl7YQf2xRwo7bXq7sujnedFlMW5/sY4AcI+j1odXsHs12UgkdEbRtCV8upRqhzzgu+JMdRFzdxR1US/jY8xisYmVEHuCoUUVYXRxBVyp6RBPOeW6LKz00fHUKF2Lf5fl8AgY5hZSE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DL9k/pJq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F9Mt0nTE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6B43C113CC;
-	Thu,  2 May 2024 16:47:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DL9k/pJq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B180BC113CC;
+	Thu,  2 May 2024 16:47:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714668435;
-	bh=woQ+ebHpMHY3oS8cZa5Trq4W4Bl4WaADuem6TN7DBOQ=;
+	s=korg; t=1714668437;
+	bh=/Pm870PYAgGTPWl+grNF1QoSC0Yg+LML1KLJHu6ijFQ=;
 	h=Date:To:From:Subject:From;
-	b=F9Mt0nTElOBhNybskuYHfcYDD/SKKwZ6OelutSsMMF+yyrdxmY+t7n9xbbwkLAWJ9
-	 FSzJu1Pr+0pP5CL/JHnqsA9XSlkC/5v20B7bb/38qHurGGeJSZsyVK35N4ruVvCQ6v
-	 OEf/cF1mMkPYVyvF0M+941zs8wT8rNDhtSoFMjms=
-Date: Thu, 02 May 2024 09:47:13 -0700
+	b=DL9k/pJqP4WkkFPh3geN8uYaqoEyBHzDpvZxD2+LcRfi1d423LZ/Qn2Gc6ebeRAbI
+	 FVp1V9s3b1HkgiJ4y6V3PApzJn9TqYFEsuhe8NxozZkT5Dj8+jYvc5bFWXkJ68Nkmk
+	 f+7JzHvZmjvar9I7OH2lBpNpKSCtEWUd7LcIC5C8=
+Date: Thu, 02 May 2024 09:47:16 -0700
 To: mm-commits@vger.kernel.org,lkp@intel.com,bvanassche@acm.org,axboe@kernel.dk,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-use-integer-type-instead-of-enum-req_op-for-event-tracing-header.patch added to mm-nonmm-unstable branch
-Message-Id: <20240502164714.D6B43C113CC@smtp.kernel.org>
+Subject: + nilfs2-make-superblock-data-array-index-computation-sparse-friendly.patch added to mm-nonmm-unstable branch
+Message-Id: <20240502164717.B180BC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: use integer type instead of enum req_op for event tracing header
+     Subject: nilfs2: make superblock data array index computation sparse friendly
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-use-integer-type-instead-of-enum-req_op-for-event-tracing-header.patch
+     nilfs2-make-superblock-data-array-index-computation-sparse-friendly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-use-integer-type-instead-of-enum-req_op-for-event-tracing-header.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-make-superblock-data-array-index-computation-sparse-friendly.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,85 +59,68 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: use integer type instead of enum req_op for event tracing header
-Date: Tue, 30 Apr 2024 17:00:18 +0900
+Subject: nilfs2: make superblock data array index computation sparse friendly
+Date: Tue, 30 Apr 2024 17:00:19 +0900
 
-Patch series "nilfs2: reduce build warnings with "make C=1""
+Upon running sparse, "warning: dubious: x & !y" is output at an array
+index calculation within nilfs_load_super_block().
 
-These two are cleanups that eliminate the warnings output by sparse (not
-including common one related to refcount_dec_and_lock).  Neither is a
-bugfix.  
+The calculation is not wrong, but to eliminate the sparse warning, replace
+it with an equivalent calculation.
 
+Also, add a comment to make it easier to understand what the unintuitive
+array index calculation is doing and whether it's correct.
 
-This patch (of 2):
-
-The sparse check with "make C=1" outputs warnings regarding references to
-the header file "include/trace/events/nilfs2.h" for event tracing:
-
- fs/nilfs2/segment.c: note: in included file (through
-   include/trace/trace_events.h, include/trace/define_trace.h,
-   include/trace/events/nilfs2.h):
- ./include/trace/events/nilfs2.h:191:1: warning: cast to restricted
-   blk_opf_t
- ./include/trace/events/nilfs2.h:191:1: warning: restricted blk_opf_t
-   degrades to integer
- ./include/trace/events/nilfs2.h:191:1: warning: restricted blk_opf_t
-   degrades to integer
-
-Fix this issue by reverting the type of the parameter related to the bio
-operation mode in the event tracing definition from "enum req_op" to
-"int".
-
-In order to prevent sparse warnings on the caller side (where
-trace_nilfs2_mdt_submit_block() is used), also add a typecast to an
-argument passed to the tracepoint.
-
-Link: https://lkml.kernel.org/r/20240430080019.4242-1-konishi.ryusuke@gmail.com
-Link: https://lkml.kernel.org/r/20240430080019.4242-2-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240430080019.4242-3-konishi.ryusuke@gmail.com
+Fixes: e339ad31f599 ("nilfs2: introduce secondary super block")
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202401092241.I4mm9OWl-lkp@intel.com/
-Fixes: ed4512590bd5 ("fs/nilfs2: Use the enum req_op and blk_opf_t types")
 Cc: Bart Van Assche <bvanassche@acm.org>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/mdt.c               |    2 +-
- include/trace/events/nilfs2.h |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ fs/nilfs2/the_nilfs.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
---- a/fs/nilfs2/mdt.c~nilfs2-use-integer-type-instead-of-enum-req_op-for-event-tracing-header
-+++ a/fs/nilfs2/mdt.c
-@@ -152,7 +152,7 @@ nilfs_mdt_submit_block(struct inode *ino
- 	ret = 0;
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-make-superblock-data-array-index-computation-sparse-friendly
++++ a/fs/nilfs2/the_nilfs.c
+@@ -592,7 +592,7 @@ static int nilfs_load_super_block(struct
+ 	struct nilfs_super_block **sbp = nilfs->ns_sbp;
+ 	struct buffer_head **sbh = nilfs->ns_sbh;
+ 	u64 sb2off, devsize = bdev_nr_bytes(nilfs->ns_bdev);
+-	int valid[2], swp = 0;
++	int valid[2], swp = 0, older;
  
- 	trace_nilfs2_mdt_submit_block(inode, inode->i_ino, blkoff,
--				      opf & REQ_OP_MASK);
-+				      (__force int)(opf & REQ_OP_MASK));
-  out:
- 	get_bh(bh);
- 	*out_bh = bh;
---- a/include/trace/events/nilfs2.h~nilfs2-use-integer-type-instead-of-enum-req_op-for-event-tracing-header
-+++ a/include/trace/events/nilfs2.h
-@@ -192,7 +192,7 @@ TRACE_EVENT(nilfs2_mdt_submit_block,
- 	    TP_PROTO(struct inode *inode,
- 		     unsigned long ino,
- 		     unsigned long blkoff,
--		     enum req_op mode),
-+		     int mode),
+ 	if (devsize < NILFS_SEG_MIN_BLOCKS * NILFS_MIN_BLOCK_SIZE + 4096) {
+ 		nilfs_err(sb, "device size too small");
+@@ -648,9 +648,25 @@ static int nilfs_load_super_block(struct
+ 	if (swp)
+ 		nilfs_swap_super_block(nilfs);
  
- 	    TP_ARGS(inode, ino, blkoff, mode),
- 
-@@ -200,7 +200,7 @@ TRACE_EVENT(nilfs2_mdt_submit_block,
- 		    __field(struct inode *, inode)
- 		    __field(unsigned long, ino)
- 		    __field(unsigned long, blkoff)
--		    __field(enum req_op, mode)
-+		    __field(int, mode)
- 	    ),
- 
- 	    TP_fast_assign(
++	/*
++	 * Calculate the array index of the older superblock data.
++	 * If one has been dropped, set index 0 pointing to the remaining one,
++	 * otherwise set index 1 pointing to the old one (including if both
++	 * are the same).
++	 *
++	 *  Divided case             valid[0]  valid[1]  swp  ->  older
++	 *  -------------------------------------------------------------
++	 *  Both SBs are invalid        0         0       N/A (Error)
++	 *  SB1 is invalid              0         1       1         0
++	 *  SB2 is invalid              1         0       0         0
++	 *  SB2 is newer                1         1       1         0
++	 *  SB2 is older or the same    1         1       0         1
++	 */
++	older = valid[1] ^ swp;
++
+ 	nilfs->ns_sbwcount = 0;
+ 	nilfs->ns_sbwtime = le64_to_cpu(sbp[0]->s_wtime);
+-	nilfs->ns_prot_seq = le64_to_cpu(sbp[valid[1] & !swp]->s_last_seq);
++	nilfs->ns_prot_seq = le64_to_cpu(sbp[older]->s_last_seq);
+ 	*sbpp = sbp[0];
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
