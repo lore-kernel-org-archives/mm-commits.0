@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4632F15AACC
-	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 15:30:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCC6A42078
+	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 15:35:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714663845; cv=none; b=bTxEivf8W9PEa0H20992Ojb+zEKuIsBis8QQNeLX+9LaNLEbdAZg9kIoHkaFpGFsIOzIj6qinw5JkhK5w0dApz89DhMPX+hw84HKtEeWfjKtx6JNAkkrrgnCuzHxvboRWjyjHcKuFGymMD8CwWiE1Tmuny/mpbX4N1ZuGcM07UU=
+	t=1714664150; cv=none; b=FijaFsN9FQsCIOZc9PRWY1NcAdxZqBtg5hS5DwzP53LgMXUDziP+DV0IEjqWx+inNVjO3c9sEFeiUJHDLCkgHD39CFLQ+RLtFK1rwdwN4bo40rFEYgqGTPuUYaZwYJdYhH3gciwA9mmE+/8chTGv2lEKe397qJIZ2mSuwKpzvX8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714663845; c=relaxed/simple;
-	bh=yHc2xU8U+7CMPr5esWuCDdnWJ8NE7iXylQNxm+hpKLE=;
-	h=Date:To:From:Subject:Message-Id; b=hzJJDPatZXltvYISsxBX7plENJlOESg39fVTUB98a220GR8M11DevtozMuimcyGrMbJV0doVMTb38Kj4cMUSpdDu0cc8QKIbuAINu3hk1JqbxJ2n4SHhhZwRLO96gJU6uxNNoSOqpmxrvdoEozFCsaRiPUyjWR1yEGp0JSRqkTg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KEPkUC9o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714664150; c=relaxed/simple;
+	bh=21LZLDGlp/y7vOtp4262+xKtW9DyFN5dWTYeelvEJ1o=;
+	h=Date:To:From:Subject:Message-Id; b=MQtHiBCFakD+7VXeu5+4NoflaiHvaTwXJ6KTa7bPuRzqAMyi7hHkjdEIF7BPg5+eJMP4cptuZhSzIHHPPjmbiWzADz475nVKz341FYnF7Ej4fAU7ewz59lL/qoberQWWb2PUqVn4glBSsaqm3Rb5FrotxSUNjmWfj29+wXh3vP8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=meqk5PRP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KEPkUC9o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C85AAC113CC;
-	Thu,  2 May 2024 15:30:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="meqk5PRP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0334AC113CC;
+	Thu,  2 May 2024 15:35:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714663845;
-	bh=yHc2xU8U+7CMPr5esWuCDdnWJ8NE7iXylQNxm+hpKLE=;
+	s=korg; t=1714664150;
+	bh=21LZLDGlp/y7vOtp4262+xKtW9DyFN5dWTYeelvEJ1o=;
 	h=Date:To:From:Subject:From;
-	b=KEPkUC9oH2fwLOSwl1BhIzB9hyyIcxz2ZKevpZhL0o7BuKMME9yXIgvroO2XQnyd0
-	 vMjq7VDcjSM2FGoxiVS2WhD0xNYfz/5Eg1ExHteuAXcdiX8jUARwrlgaCxHaS8lCpO
-	 LRKwI+D+2Gex/sHgJoEk3sZOxPCH8m6by44MIIp4=
-Date: Thu, 02 May 2024 08:30:43 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,jeffxu@google.com,gthelen@google.com,cyphar@cyphar.com,sauravshah.31@gmail.com,akpm@linux-foundation.org
+	b=meqk5PRP97zryvaqgE2a1esFhFvO71Jh784Dq5gyjqarlsNP6+tCpdigLo+0fNq14
+	 /M6G/ycNMdjXWqSSQofBB/XYLUCRv32ZAbPLL03ie0c56GmpR393Z0sm72wjs6TL1I
+	 7k3uV50TNJuc25Ml7L78spqGiKdxYtpcmgU8mtTw=
+Date: Thu, 02 May 2024 08:35:48 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,tjmercier@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-memfd-fix-spelling-mistakes.patch added to mm-unstable branch
-Message-Id: <20240502153044.C85AAC113CC@smtp.kernel.org>
+Subject: + memcg-reduce-memory-size-of-mem_cgroup_events_index.patch added to mm-unstable branch
+Message-Id: <20240502153550.0334AC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/memfd: fix spelling mistakes
+     Subject: memcg: reduce memory size of mem_cgroup_events_index
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-memfd-fix-spelling-mistakes.patch
+     memcg-reduce-memory-size-of-mem_cgroup_events_index.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-memfd-fix-spelling-mistakes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-reduce-memory-size-of-mem_cgroup_events_index.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,50 +58,77 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Saurav Shah <sauravshah.31@gmail.com>
-Subject: selftests/memfd: fix spelling mistakes
-Date: Thu, 2 May 2024 04:43:17 +0530
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: reduce memory size of mem_cgroup_events_index
+Date: Wed, 1 May 2024 10:26:10 -0700
 
-Fix spelling mistakes in the comments.
+Patch series "memcg: reduce memory consumption by memcg stats", v4.
 
-Link: https://lkml.kernel.org/r/20240501231317.24648-1-sauravshah.31@gmail.com
-Signed-off-by: Saurav Shah <sauravshah.31@gmail.com>
-Cc: Aleksa Sarai <cyphar@cyphar.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Jeff Xu <jeffxu@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Most of the memory overhead of a memcg object is due to memcg stats
+maintained by the kernel.  Since stats updates happen in performance
+critical codepaths, the stats are maintained per-cpu and numa specific
+stats are maintained per-node * per-cpu.  This drastically increase the
+overhead on large machines i.e.  large of CPUs and multiple numa nodes. 
+This patch series tries to reduce the overhead by at least not allocating
+the memory for stats which are not memcg specific.  
+
+
+This patch (of 8):
+
+mem_cgroup_events_index is a translation table to get the right index of
+the memcg relevant entry for the general vm_event_item.  At the moment, it
+is defined as integer array.  However on a typical system the max entry of
+vm_event_item (NR_VM_EVENT_ITEMS) is 113, so we don't need to use int as
+storage type of the array.  For now just use int8_t as type and add a
+BUILD_BUG_ON().
+
+Another benefit of this change is that the translation table fits in 2
+cachelines while previously it would require 8 cachelines (assuming 64
+bytes cacheline).
+
+Link: https://lkml.kernel.org/r/20240501172617.678560-1-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20240501172617.678560-2-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: T.J. Mercier <tjmercier@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/memfd/fuse_test.c  |    2 +-
- tools/testing/selftests/memfd/memfd_test.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/memfd/fuse_test.c~selftests-memfd-fix-spelling-mistakes
-+++ a/tools/testing/selftests/memfd/fuse_test.c
-@@ -306,7 +306,7 @@ int main(int argc, char **argv)
- 	 * then the kernel did a page-replacement or canceled the read() (or
- 	 * whatever magic it did..). In that case, the memfd object is still
- 	 * all zero.
--	 * In case the memfd-object was *not* sealed, the read() was successfull
-+	 * In case the memfd-object was *not* sealed, the read() was successful
- 	 * and the memfd object must *not* be all zero.
- 	 * Note that in real scenarios, there might be a mixture of both, but
- 	 * in this test-cases, we have explicit 200ms delays which should be
---- a/tools/testing/selftests/memfd/memfd_test.c~selftests-memfd-fix-spelling-mistakes
-+++ a/tools/testing/selftests/memfd/memfd_test.c
-@@ -1528,7 +1528,7 @@ static void test_share_open(char *banner
+--- a/mm/memcontrol.c~memcg-reduce-memory-size-of-mem_cgroup_events_index
++++ a/mm/memcontrol.c
+@@ -606,11 +606,13 @@ static const unsigned int memcg_vm_event
+ };
  
- /*
-  * Test sharing via fork()
-- * Test whether seal-modifications work as expected with forked childs.
-+ * Test whether seal-modifications work as expected with forked children.
-  */
- static void test_share_fork(char *banner, char *b_suffix)
+ #define NR_MEMCG_EVENTS ARRAY_SIZE(memcg_vm_event_stat)
+-static int mem_cgroup_events_index[NR_VM_EVENT_ITEMS] __read_mostly;
++static int8_t mem_cgroup_events_index[NR_VM_EVENT_ITEMS] __read_mostly;
+ 
+ static void init_memcg_events(void)
  {
+-	int i;
++	int8_t i;
++
++	BUILD_BUG_ON(NR_VM_EVENT_ITEMS >= S8_MAX);
+ 
+ 	for (i = 0; i < NR_MEMCG_EVENTS; ++i)
+ 		mem_cgroup_events_index[memcg_vm_event_stat[i]] = i + 1;
 _
 
-Patches currently in -mm which might be from sauravshah.31@gmail.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-selftests-memfd-fix-spelling-mistakes.patch
+memcg-simple-cleanup-of-stats-update-functions.patch
+memcg-reduce-memory-size-of-mem_cgroup_events_index.patch
+memcg-dynamically-allocate-lruvec_stats.patch
+memcg-reduce-memory-for-the-lruvec-and-memcg-stats.patch
+memcg-cleanup-__mod_memcg_lruvec_state.patch
+mm-cleanup-workingset_nodes-in-workingset.patch
+memcg-warn-for-unexpected-events-and-stats.patch
+memcg-use-proper-type-for-mod_memcg_state.patch
 
