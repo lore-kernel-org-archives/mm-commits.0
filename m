@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 089AE16F91E
-	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 17:14:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 962F916F915
+	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 17:14:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714670042; cv=none; b=CwqtIMDOfVQzjYsL+nZEViH0g/V/wH2QfqnplSuNU2NvcC8yCmH8GCWGRTxXpCRsauF4VnTqzhxDKFSCFeliomg5Exf6ebzYLv7vxD08r737qlyeDsZ9gybwaju3Kl17VygzHzhEQ2g9AApns1TXtyXfsUGnKW2ZJjPWIUL2DcQ=
+	t=1714670045; cv=none; b=QyYyCGWTibYrSeRGQNNtrJEL/xGQIeybF0ULwCKXqfJ74NiFfhLiEgxFYq5UVxi9Aq6WnLod5igPnDaO2AjQMU6R6VQRuhrkEEwJiysZRX6EMwfP9qIPkjLOT8M9Izbic9G41koUmj6OzyMP2ytKDObFQmutFzO20CGO4JdE9aQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714670042; c=relaxed/simple;
-	bh=VwZcLZm21g6ZgGbbp49GipZirT0AJFkmyYyqlwPKTMw=;
-	h=Date:To:From:Subject:Message-Id; b=P5m0Fg7FYV8I15UE3vu6grM2cxabNmKmtq6TlI80vcXfJlDksMhDVfzu8eytUGH+/J+D/Ueq4c0lQxLeYDTUU7Pqiaz4YThA6iGlFp1WvxNMg8k7Wge4ctwyDn+nCmHdAPuKbtIasSUwTfe5iDyNoLP3VFHsX2l9jt13+zIvnS4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jCdmCHvD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714670045; c=relaxed/simple;
+	bh=rdVU+8SkPDSk/KwvuWXkO/cfar6lldgp42afu4np0p4=;
+	h=Date:To:From:Subject:Message-Id; b=LyrpMg1gT0XsWjww6NPW389UNfFwHoifQgYtbBAxAn7q0SBM5sDodjEZ0NecQdmaCJUZR+e1Sm9JzTDXiSWyO5ZMtgb5Z7BArTGVaKQpOc2109nCzUT+k0VB9uW92X/N3vImzjo7Wz3CZj7rNNAQXslUXg1/xud7TkTBQXYNYdU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yqM6Sr/s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jCdmCHvD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A56C4C113CC;
-	Thu,  2 May 2024 17:14:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yqM6Sr/s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBBEFC113CC;
+	Thu,  2 May 2024 17:14:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714670041;
-	bh=VwZcLZm21g6ZgGbbp49GipZirT0AJFkmyYyqlwPKTMw=;
+	s=korg; t=1714670045;
+	bh=rdVU+8SkPDSk/KwvuWXkO/cfar6lldgp42afu4np0p4=;
 	h=Date:To:From:Subject:From;
-	b=jCdmCHvDYqIusIs6Lek+DkBGnwHBXRgficigdHZ8JqLUBRWOmxuekbhOjyMtDObHD
-	 cvcnn1hQE/xPVJr/TpXGrYrTLEeD9fGIQuLTEby2p6JarWcA84F6JGvxDqWdMk09/f
-	 W6q9xbwWLjRl5g1r6cLi7BbD/R3ApWWPO4iVmPeE=
-Date: Thu, 02 May 2024 10:14:00 -0700
+	b=yqM6Sr/sEUIR9g/f4tMbN8u7J6coDYVee6EtdwLqOBeEDoFB/MM26oYypI6seHZbO
+	 GmWf+lTUnT0rVnnCM831Ef3SBs9dNV9LjORfWy/tI8QiM68GTYTqzBOKfNVV/JiP9f
+	 hDBlOE/9Me0UDLXpuSVzWoLWDPikATTq4176lSWo=
+Date: Thu, 02 May 2024 10:14:03 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-remove-ignore_references-argument-of-reclaim_pages.patch added to mm-unstable branch
-Message-Id: <20240502171401.A56C4C113CC@smtp.kernel.org>
+Subject: + mm-vmscan-remove-ignore_references-argument-of-reclaim_folio_list.patch added to mm-unstable branch
+Message-Id: <20240502171404.EBBEFC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: remove ignore_references argument of reclaim_pages()
+     Subject: mm/vmscan: remove ignore_references argument of reclaim_folio_list()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-remove-ignore_references-argument-of-reclaim_pages.patch
+     mm-vmscan-remove-ignore_references-argument-of-reclaim_folio_list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-remove-ignore_references-argument-of-reclaim_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-remove-ignore_references-argument-of-reclaim_folio_list.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,88 +59,54 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/vmscan: remove ignore_references argument of reclaim_pages()
-Date: Mon, 29 Apr 2024 15:44:50 -0700
+Subject: mm/vmscan: remove ignore_references argument of reclaim_folio_list()
+Date: Mon, 29 Apr 2024 15:44:51 -0700
 
-All reclaim_pages() callers are setting 'ignore_references' parameter
-'true'.  In other words, the parameter is not really being used.  Remove
-the argument to make it simple.
+All reclaim_folio_list() callers are passing 'true' for
+'ignore_references' parameter.  In other words, the parameter is not
+really being used.  Simplify the code by removing the parameter.
 
-Link: https://lkml.kernel.org/r/20240429224451.67081-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240429224451.67081-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |    2 +-
- mm/internal.h    |    2 +-
- mm/madvise.c     |    4 ++--
- mm/vmscan.c      |    6 +++---
- 4 files changed, 7 insertions(+), 7 deletions(-)
+ mm/vmscan.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/mm/damon/paddr.c~mm-vmscan-remove-ignore_references-argument-of-reclaim_pages
-+++ a/mm/damon/paddr.c
-@@ -283,7 +283,7 @@ put_folio:
- 	}
- 	if (install_young_filter)
- 		damos_destroy_filter(filter);
--	applied = reclaim_pages(&folio_list, true);
-+	applied = reclaim_pages(&folio_list);
- 	cond_resched();
- 	return applied * PAGE_SIZE;
- }
---- a/mm/internal.h~mm-vmscan-remove-ignore_references-argument-of-reclaim_pages
-+++ a/mm/internal.h
-@@ -1052,7 +1052,7 @@ extern unsigned long  __must_check vm_mm
-         unsigned long, unsigned long);
- 
- extern void set_pageblock_order(void);
--unsigned long reclaim_pages(struct list_head *folio_list, bool ignore_references);
-+unsigned long reclaim_pages(struct list_head *folio_list);
- unsigned int reclaim_clean_pages_from_list(struct zone *zone,
- 					    struct list_head *folio_list);
- /* The ALLOC_WMARK bits are used as an index to zone->watermark */
---- a/mm/madvise.c~mm-vmscan-remove-ignore_references-argument-of-reclaim_pages
-+++ a/mm/madvise.c
-@@ -423,7 +423,7 @@ static int madvise_cold_or_pageout_pte_r
- huge_unlock:
- 		spin_unlock(ptl);
- 		if (pageout)
--			reclaim_pages(&folio_list, true);
-+			reclaim_pages(&folio_list);
- 		return 0;
- 	}
- 
-@@ -547,7 +547,7 @@ restart:
- 		pte_unmap_unlock(start_pte, ptl);
- 	}
- 	if (pageout)
--		reclaim_pages(&folio_list, true);
-+		reclaim_pages(&folio_list);
- 	cond_resched();
- 
- 	return 0;
---- a/mm/vmscan.c~mm-vmscan-remove-ignore_references-argument-of-reclaim_pages
+--- a/mm/vmscan.c~mm-vmscan-remove-ignore_references-argument-of-reclaim_folio_list
 +++ a/mm/vmscan.c
-@@ -2133,7 +2133,7 @@ static unsigned int reclaim_folio_list(s
- 	return nr_reclaimed;
+@@ -2109,8 +2109,7 @@ static void shrink_active_list(unsigned
  }
  
--unsigned long reclaim_pages(struct list_head *folio_list, bool ignore_references)
-+unsigned long reclaim_pages(struct list_head *folio_list)
+ static unsigned int reclaim_folio_list(struct list_head *folio_list,
+-				      struct pglist_data *pgdat,
+-				      bool ignore_references)
++				      struct pglist_data *pgdat)
  {
- 	int nid;
- 	unsigned int nr_reclaimed = 0;
-@@ -2156,11 +2156,11 @@ unsigned long reclaim_pages(struct list_
+ 	struct reclaim_stat dummy_stat;
+ 	unsigned int nr_reclaimed;
+@@ -2123,7 +2122,7 @@ static unsigned int reclaim_folio_list(s
+ 		.no_demotion = 1,
+ 	};
+ 
+-	nr_reclaimed = shrink_folio_list(folio_list, pgdat, &sc, &dummy_stat, ignore_references);
++	nr_reclaimed = shrink_folio_list(folio_list, pgdat, &sc, &dummy_stat, true);
+ 	while (!list_empty(folio_list)) {
+ 		folio = lru_to_folio(folio_list);
+ 		list_del(&folio->lru);
+@@ -2155,12 +2154,11 @@ unsigned long reclaim_pages(struct list_
+ 			continue;
  		}
  
- 		nr_reclaimed += reclaim_folio_list(&node_folio_list, NODE_DATA(nid),
--						   ignore_references);
-+						   true);
+-		nr_reclaimed += reclaim_folio_list(&node_folio_list, NODE_DATA(nid),
+-						   true);
++		nr_reclaimed += reclaim_folio_list(&node_folio_list, NODE_DATA(nid));
  		nid = folio_nid(lru_to_folio(folio_list));
  	} while (!list_empty(folio_list));
  
--	nr_reclaimed += reclaim_folio_list(&node_folio_list, NODE_DATA(nid), ignore_references);
-+	nr_reclaimed += reclaim_folio_list(&node_folio_list, NODE_DATA(nid), true);
+-	nr_reclaimed += reclaim_folio_list(&node_folio_list, NODE_DATA(nid), true);
++	nr_reclaimed += reclaim_folio_list(&node_folio_list, NODE_DATA(nid));
  
  	memalloc_noreclaim_restore(noreclaim_flag);
  
