@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D71161E894
-	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 16:40:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96CA415E5A9
+	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 16:44:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714668014; cv=none; b=jstC5M3g184/9+X0Yt7y0WzP17jeWg3kq7UmlSkN3hrnRo0b2tj7OA1zlS6g4fwyXQ+ItGtRysR0sBO+SaWidcLSZK7TWD5cV4ZlTTVrJpCoJ04h1TVY15i/AFFEfhW4uqDEPBu3657gn6qPCk+VpOs0ND8YE6oO6zqIApmlzoM=
+	t=1714668248; cv=none; b=KhkeilbDX8HUH/mOti6vfVKi6yUioxJTBqT29xqx4ujvbQZMznH5g2a4OEnuxEVrV3nGniox7UANU0wRI+UNrw7YtFuI8TkAmwy5uZHLGP9KrULlKm2DLk2ycqk1tGuYHv2yfukwY9AuEL0cr+vpxgnoCCJDsI7Drr01/0x1Mqk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714668014; c=relaxed/simple;
-	bh=nx4ufn7XuMCrGVQFrpdNcx3Xk+b/gcG7Losb6SqBv+8=;
-	h=Date:To:From:Subject:Message-Id; b=V3O4rW+0gSTjNP+LYTJNUjBxt1ByCrBJPW1hNp3jHBNzvJodEADs5qKaCGmjhjYA2th4QYHAYsY+jKIrUagVVXZSv2epTPKOPglC/9b7AxLEd5NjzrjxGYcHLGjLXCLpH85Uz5psenCUsxyribbRD6AmbgjgD8o3ldcOZ64WZdA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nMD2BvIF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714668248; c=relaxed/simple;
+	bh=5j9sWFaVj3PD/Zs+odwSZ18G43A5EU+ljzgwTdinn58=;
+	h=Date:To:From:Subject:Message-Id; b=BGtruwOT/+LoWDdFER9lGFK/lCf2fdoK0tXVNw4OWNpxpHetJP0HvhHnMi4g4IENhmDyYJCvYwFXcFOFyp+EBs6dK97GcmIKNhGDc2QG0tuQXr9ECSOFvfDr7NoG+eM2xI9OAnzfpGEeA4CjYyxXNfriTvoTB0ZX+n602GFpcAY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c70rNzKa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nMD2BvIF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D436C113CC;
-	Thu,  2 May 2024 16:40:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c70rNzKa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D912DC113CC;
+	Thu,  2 May 2024 16:44:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714668014;
-	bh=nx4ufn7XuMCrGVQFrpdNcx3Xk+b/gcG7Losb6SqBv+8=;
+	s=korg; t=1714668248;
+	bh=5j9sWFaVj3PD/Zs+odwSZ18G43A5EU+ljzgwTdinn58=;
 	h=Date:To:From:Subject:From;
-	b=nMD2BvIFa9eUskdwbCqpP7lacCW0FUllcwxZ7byQCBTpxxeUnTy9+cAO1cow9yqvh
-	 MKX1VnGnDOti3jzdeEZ2VfcugNA250xENVu5YxSVsGJJwDm2A7wEqa8bsufdxgtnLw
-	 1JhqpO2UBz5pyHKVZOmzNmwf2M2CiHwp8EQ8STgU=
-Date: Thu, 02 May 2024 09:40:12 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,peterx@redhat.com,david@redhat.com,akpm@linux-foundation.org
+	b=c70rNzKaXPT/0OCc3gaWplARwEKyUBMpexM0TPvHPVrygoaPo5CTvHXzrH67fWxJn
+	 aaDaU4S9CoRm2/kemgxjf5CmmqPd0Y3WAKcYq+zg2xZztn+CbexVaYcKl2q/q0ee+a
+	 43wTF4g6kRWUB2goUxU54g/uGApuQy8Y3Z0M09cw=
+Date: Thu, 02 May 2024 09:44:06 -0700
+To: mm-commits@vger.kernel.org,muchun.song@linux.dev,lstoakes@gmail.com,jhubbard@nvidia.com,jgg@nvidia.com,david@redhat.com,christophe.leroy@csgroup.eu,aneesh.kumar@kernel.org,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-gup_longterm-test-unsharing-logic-when-r-o-pinning.patch added to mm-unstable branch
-Message-Id: <20240502164014.1D436C113CC@smtp.kernel.org>
+Subject: + mm-gup-fix-hugepd-handling-in-hugetlb-rework.patch added to mm-unstable branch
+Message-Id: <20240502164407.D912DC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: mm: gup_longterm: test unsharing logic when R/O pinning
+     Subject: mm/gup: fix hugepd handling in hugetlb rework
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-gup_longterm-test-unsharing-logic-when-r-o-pinning.patch
+     mm-gup-fix-hugepd-handling-in-hugetlb-rework.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-gup_longterm-test-unsharing-logic-when-r-o-pinning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-fix-hugepd-handling-in-hugetlb-rework.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,110 +58,196 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: selftests: mm: gup_longterm: test unsharing logic when R/O pinning
-Date: Tue, 30 Apr 2024 15:15:08 +0200
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/gup: fix hugepd handling in hugetlb rework
+Date: Tue, 30 Apr 2024 09:13:03 -0400
 
-In our FOLL_LONGTERM tests, we prefault the page tables for the GUP-fast
-test cases to be able to find a PTE and exercise the "longterm pinning
-allowed" logic on the GUP-fast path where possible.
+Commit a12083d721d7 added hugepd handling for gup-slow, reusing gup-fast
+functions.  follow_hugepd() correctly took the vma pointer in, however
+didn't pass it over into the lower functions, which was overlooked.
 
-For now, we always prefault the page tables writable, resulting in PTEs
-that are writable.
+The issue is gup_fast_hugepte() uses the vma pointer to make the correct
+decision on whether an unshare is needed for a FOLL_PIN|FOLL_LONGTERM. 
+Now without vma ponter it will constantly return "true" (needs an unshare)
+for a page cache, even though in the SHARED case it will be wrong to
+unshare.
 
-Let's cover more cases to also test if our unsharing logic works as
-expected (and is able to make progress when there is nothing to unshare)
-by mprotect'ing the range R/O when R/O-pinning, so we don't get PTEs that
-are writable.
+The other problem is, even if an unshare is needed, it now returns 0
+rather than -EMLINK, which will not trigger a follow up FAULT_FLAG_UNSHARE
+fault.  That will need to be fixed too when the unshare is wanted.
 
-This change would have found an issue introduced by commit a12083d721d7
-("mm/gup: handle hugepd for follow_page()"), whereby R/O pinning was not
-able to make progress in all cases, because unsharing logic was not
-provided with the VMA to decide at some point that long-term R/O pinning a
-!anon page is fine.
+gup_longterm test didn't expose this issue in the past because it didn't
+yet test R/O unshare in this case, another separate patch will enable that
+in future tests.
 
-Link: https://lkml.kernel.org/r/20240430131508.86924-1-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Fix it by passing vma correctly to the bottom, rename gup_fast_hugepte()
+back to gup_hugepte() as it is shared between the fast/slow paths, and
+also allow -EMLINK to be returned properly by gup_hugepte() even though
+gup-fast will take it the same as zero.
+
+Link: https://lkml.kernel.org/r/20240430131303.264331-1-peterx@redhat.com
+Fixes: a12083d721d7 ("mm/gup: handle hugepd for follow_page()")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/gup_longterm.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ mm/gup.c |   64 ++++++++++++++++++++++++++++++++---------------------
+ 1 file changed, 39 insertions(+), 25 deletions(-)
 
---- a/tools/testing/selftests/mm/gup_longterm.c~selftests-mm-gup_longterm-test-unsharing-logic-when-r-o-pinning
-+++ a/tools/testing/selftests/mm/gup_longterm.c
-@@ -118,15 +118,22 @@ static void do_test(int fd, size_t size,
- 		return;
- 	}
- 
--	/*
--	 * Fault in the page writable such that GUP-fast can eventually pin
--	 * it immediately.
--	 */
-+	/* Fault in the page such that GUP-fast can pin it directly. */
- 	memset(mem, 0, size);
- 
- 	switch (type) {
- 	case TEST_TYPE_RO:
- 	case TEST_TYPE_RO_FAST:
-+		/*
-+		 * Cover more cases regarding unsharing decisions when
-+		 * long-term R/O pinning by mapping the page R/O.
-+		 */
-+		ret = mprotect(mem, size, PROT_READ);
-+		if (ret) {
-+			ksft_test_result_fail("mprotect() failed\n");
-+			goto munmap;
-+		}
-+		/* FALLTHROUGH */
- 	case TEST_TYPE_RW:
- 	case TEST_TYPE_RW_FAST: {
- 		struct pin_longterm_test args;
-@@ -228,6 +235,7 @@ static void do_test(int fd, size_t size,
- 		assert(false);
- 	}
- 
-+munmap:
- 	munmap(mem, size);
+--- a/mm/gup.c~mm-gup-fix-hugepd-handling-in-hugetlb-rework
++++ a/mm/gup.c
+@@ -525,9 +525,17 @@ static unsigned long hugepte_addr_end(un
+ 	return (__boundary - 1 < end - 1) ? __boundary : end;
  }
  
+-static int gup_fast_hugepte(pte_t *ptep, unsigned long sz, unsigned long addr,
+-		unsigned long end, unsigned int flags, struct page **pages,
+-		int *nr)
++/*
++ * Returns 1 if succeeded, 0 if failed, -EMLINK if unshare needed.
++ *
++ * NOTE: for the same entry, gup-fast and gup-slow can return different
++ * results (0 v.s. -EMLINK) depending on whether vma is available.  This is
++ * the expected behavior, where we simply want gup-fast to fallback to
++ * gup-slow to take the vma reference first.
++ */
++static int gup_hugepte(struct vm_area_struct *vma, pte_t *ptep, unsigned long sz,
++		       unsigned long addr, unsigned long end, unsigned int flags,
++		       struct page **pages, int *nr)
+ {
+ 	unsigned long pte_end;
+ 	struct page *page;
+@@ -559,9 +567,9 @@ static int gup_fast_hugepte(pte_t *ptep,
+ 		return 0;
+ 	}
+ 
+-	if (!pte_write(pte) && gup_must_unshare(NULL, flags, &folio->page)) {
++	if (!pte_write(pte) && gup_must_unshare(vma, flags, &folio->page)) {
+ 		gup_put_folio(folio, refs, flags);
+-		return 0;
++		return -EMLINK;
+ 	}
+ 
+ 	*nr += refs;
+@@ -577,19 +585,22 @@ static int gup_fast_hugepte(pte_t *ptep,
+  * of the other folios. See writable_file_mapping_allowed() and
+  * gup_fast_folio_allowed() for more information.
+  */
+-static int gup_fast_hugepd(hugepd_t hugepd, unsigned long addr,
+-		unsigned int pdshift, unsigned long end, unsigned int flags,
+-		struct page **pages, int *nr)
++static int gup_hugepd(struct vm_area_struct *vma, hugepd_t hugepd,
++		      unsigned long addr, unsigned int pdshift,
++		      unsigned long end, unsigned int flags,
++		      struct page **pages, int *nr)
+ {
+ 	pte_t *ptep;
+ 	unsigned long sz = 1UL << hugepd_shift(hugepd);
+ 	unsigned long next;
++	int ret;
+ 
+ 	ptep = hugepte_offset(hugepd, addr, pdshift);
+ 	do {
+ 		next = hugepte_addr_end(addr, end, sz);
+-		if (!gup_fast_hugepte(ptep, sz, addr, end, flags, pages, nr))
+-			return 0;
++		ret = gup_hugepte(vma, ptep, sz, addr, end, flags, pages, nr);
++		if (ret != 1)
++			return ret;
+ 	} while (ptep++, addr = next, addr != end);
+ 
+ 	return 1;
+@@ -613,22 +624,25 @@ static struct page *follow_hugepd(struct
+ 	h = hstate_vma(vma);
+ 	ptep = hugepte_offset(hugepd, addr, pdshift);
+ 	ptl = huge_pte_lock(h, vma->vm_mm, ptep);
+-	ret = gup_fast_hugepd(hugepd, addr, pdshift, addr + PAGE_SIZE,
+-			      flags, &page, &nr);
++	ret = gup_hugepd(vma, hugepd, addr, pdshift, addr + PAGE_SIZE,
++			 flags, &page, &nr);
+ 	spin_unlock(ptl);
+ 
+-	if (ret) {
++	if (ret == 1) {
++		/* GUP succeeded */
+ 		WARN_ON_ONCE(nr != 1);
+ 		ctx->page_mask = (1U << huge_page_order(h)) - 1;
+ 		return page;
+ 	}
+ 
+-	return NULL;
++	/* ret can be either 0 (translates to NULL) or negative */
++	return ERR_PTR(ret);
+ }
+ #else /* CONFIG_ARCH_HAS_HUGEPD */
+-static inline int gup_fast_hugepd(hugepd_t hugepd, unsigned long addr,
+-		unsigned int pdshift, unsigned long end, unsigned int flags,
+-		struct page **pages, int *nr)
++static inline int gup_hugepd(struct vm_area_struct *vma, hugepd_t hugepd,
++			     unsigned long addr, unsigned int pdshift,
++			     unsigned long end, unsigned int flags,
++			     struct page **pages, int *nr)
+ {
+ 	return 0;
+ }
+@@ -3261,8 +3275,8 @@ static int gup_fast_pmd_range(pud_t *pud
+ 			 * architecture have different format for hugetlbfs
+ 			 * pmd format and THP pmd format
+ 			 */
+-			if (!gup_fast_hugepd(__hugepd(pmd_val(pmd)), addr,
+-					     PMD_SHIFT, next, flags, pages, nr))
++			if (gup_hugepd(NULL, __hugepd(pmd_val(pmd)), addr,
++				       PMD_SHIFT, next, flags, pages, nr) != 1)
+ 				return 0;
+ 		} else if (!gup_fast_pte_range(pmd, pmdp, addr, next, flags,
+ 					       pages, nr))
+@@ -3291,8 +3305,8 @@ static int gup_fast_pud_range(p4d_t *p4d
+ 					       pages, nr))
+ 				return 0;
+ 		} else if (unlikely(is_hugepd(__hugepd(pud_val(pud))))) {
+-			if (!gup_fast_hugepd(__hugepd(pud_val(pud)), addr,
+-					     PUD_SHIFT, next, flags, pages, nr))
++			if (gup_hugepd(NULL, __hugepd(pud_val(pud)), addr,
++				       PUD_SHIFT, next, flags, pages, nr) != 1)
+ 				return 0;
+ 		} else if (!gup_fast_pmd_range(pudp, pud, addr, next, flags,
+ 					       pages, nr))
+@@ -3318,8 +3332,8 @@ static int gup_fast_p4d_range(pgd_t *pgd
+ 			return 0;
+ 		BUILD_BUG_ON(p4d_leaf(p4d));
+ 		if (unlikely(is_hugepd(__hugepd(p4d_val(p4d))))) {
+-			if (!gup_fast_hugepd(__hugepd(p4d_val(p4d)), addr,
+-					     P4D_SHIFT, next, flags, pages, nr))
++			if (gup_hugepd(NULL, __hugepd(p4d_val(p4d)), addr,
++				       P4D_SHIFT, next, flags, pages, nr) != 1)
+ 				return 0;
+ 		} else if (!gup_fast_pud_range(p4dp, p4d, addr, next, flags,
+ 					       pages, nr))
+@@ -3347,8 +3361,8 @@ static void gup_fast_pgd_range(unsigned
+ 					       pages, nr))
+ 				return;
+ 		} else if (unlikely(is_hugepd(__hugepd(pgd_val(pgd))))) {
+-			if (!gup_fast_hugepd(__hugepd(pgd_val(pgd)), addr,
+-					      PGDIR_SHIFT, next, flags, pages, nr))
++			if (gup_hugepd(NULL, __hugepd(pgd_val(pgd)), addr,
++				       PGDIR_SHIFT, next, flags, pages, nr) != 1)
+ 				return;
+ 		} else if (!gup_fast_p4d_range(pgdp, pgd, addr, next, flags,
+ 					       pages, nr))
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-drivers-virt-acrn-fix-pfnmap-pte-checks-in-acrn_vm_ram_map.patch
-mm-pass-vma-instead-of-mm-to-follow_pte.patch
-mm-follow_pte-improvements.patch
-mm-allow-for-detecting-underflows-with-page_mapcount-again.patch
-mm-allow-for-detecting-underflows-with-page_mapcount-again-fix.patch
-mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte.patch
-mm-rmap-add-fast-path-for-small-folios-when-adding-removing-duplicating.patch
-mm-track-mapcount-of-large-folios-in-single-value.patch
-mm-improve-folio_likely_mapped_shared-using-the-mapcount-of-large-folios.patch
-mm-make-folio_mapcount-return-0-for-small-typed-folios.patch
-mm-make-folio_mapcount-return-0-for-small-typed-folios-fix.patch
-mm-memory-use-folio_mapcount-in-zap_present_folio_ptes.patch
-mm-huge_memory-use-folio_mapcount-in-zap_huge_pmd-sanity-check.patch
-mm-memory-failure-use-folio_mapcount-in-hwpoison_user_mappings.patch
-mm-page_alloc-use-folio_mapped-in-__alloc_contig_migrate_range.patch
-mm-migrate-use-folio_likely_mapped_shared-in-add_page_for_migration.patch
-sh-mm-cache-use-folio_mapped-in-copy_from_user_page.patch
-mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio.patch
-mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page.patch
-trace-events-page_ref-trace-the-raw-page-mapcount-value.patch
-xtensa-mm-convert-check_tlb_entry-to-sanity-check-folios.patch
-mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch
-documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch
-mm-ksm-rename-get_ksm_page_flags-to-ksm_get_folio_flags.patch
-mm-ksm-remove-page_mapcount-usage-in-stable_tree_search.patch
-fs-proc-task_mmu-convert-pagemap_hugetlb_range-to-work-on-folios.patch
-fs-proc-task_mmu-convert-smaps_hugetlb_range-to-work-on-folios.patch
-mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation.patch
-mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation-v2.patch
-mm-khugepaged-replace-page_mapcount-check-by-folio_likely_mapped_shared.patch
-selftests-mm-cow-flag-vmsplice-hugetlb-tests-as-xfail.patch
-mm-hugetlb-document-why-hugetlb-uses-folio_mapcount-for-cow-reuse-decisions.patch
-selftests-mm-gup_longterm-test-unsharing-logic-when-r-o-pinning.patch
+mm-userfaultfd-reset-ptes-when-close-for-wr-protected-ones.patch
+mm-hugetlb-assert-hugetlb_lock-in-__hugetlb_cgroup_commit_charge.patch
+mm-page_table_check-support-userfault-wr-protect-entries.patch
+mm-gup-fix-hugepd-handling-in-hugetlb-rework.patch
 
