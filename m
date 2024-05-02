@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 962F916F915
-	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 17:14:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 076C615E7F4
+	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 17:14:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714670045; cv=none; b=QyYyCGWTibYrSeRGQNNtrJEL/xGQIeybF0ULwCKXqfJ74NiFfhLiEgxFYq5UVxi9Aq6WnLod5igPnDaO2AjQMU6R6VQRuhrkEEwJiysZRX6EMwfP9qIPkjLOT8M9Izbic9G41koUmj6OzyMP2ytKDObFQmutFzO20CGO4JdE9aQ=
+	t=1714670084; cv=none; b=EbpAG0/tJo/IP/I5geDOiTL0d1fx59hRKH31KrX8p1hKOgIul7hsIpbXzVpuIXekcuzJDvAuPtJBC9d4uS8CdY0Dy3MvkNRT4F0/Lnva3symyR9uglYitDEd5brXlvfnb61LRDcVDCJ4+N/Vi14v0jzzFG5rd8qOUx9TTVple3E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714670045; c=relaxed/simple;
-	bh=rdVU+8SkPDSk/KwvuWXkO/cfar6lldgp42afu4np0p4=;
-	h=Date:To:From:Subject:Message-Id; b=LyrpMg1gT0XsWjww6NPW389UNfFwHoifQgYtbBAxAn7q0SBM5sDodjEZ0NecQdmaCJUZR+e1Sm9JzTDXiSWyO5ZMtgb5Z7BArTGVaKQpOc2109nCzUT+k0VB9uW92X/N3vImzjo7Wz3CZj7rNNAQXslUXg1/xud7TkTBQXYNYdU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yqM6Sr/s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714670084; c=relaxed/simple;
+	bh=mzHG/FLzpR9NKuqh6EGKK5Df7zWgVz2qpdH7gEc5vOA=;
+	h=Date:To:From:Subject:Message-Id; b=lcjDYSLFKDi1F4krbAiDvedS99mOFf5zxbI7m0X8e36pjk7JZFTTD42j5KMBPS898SEdCgz+p/fSIlxwxtFLXqlNCkdPCEPyQg0haaJaG4mMngxqrvt1s4szzQilHORhGHJM7MzE+YSwTVVlsO4AJiDNUISLVmy8vwDn5TXNsLI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z9lLhPfe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yqM6Sr/s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBBEFC113CC;
-	Thu,  2 May 2024 17:14:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z9lLhPfe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A5F1C113CC;
+	Thu,  2 May 2024 17:14:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714670045;
-	bh=rdVU+8SkPDSk/KwvuWXkO/cfar6lldgp42afu4np0p4=;
+	s=korg; t=1714670083;
+	bh=mzHG/FLzpR9NKuqh6EGKK5Df7zWgVz2qpdH7gEc5vOA=;
 	h=Date:To:From:Subject:From;
-	b=yqM6Sr/sEUIR9g/f4tMbN8u7J6coDYVee6EtdwLqOBeEDoFB/MM26oYypI6seHZbO
-	 GmWf+lTUnT0rVnnCM831Ef3SBs9dNV9LjORfWy/tI8QiM68GTYTqzBOKfNVV/JiP9f
-	 hDBlOE/9Me0UDLXpuSVzWoLWDPikATTq4176lSWo=
-Date: Thu, 02 May 2024 10:14:03 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=Z9lLhPfeHTf6rWaBtDYdoN5iFNnL47SM18QBuugh8JXEf/jgf4LYsYFrBN7p/26fi
+	 pWdRpaUgjK1EWNewvkst6fJoCwMNXqP084A8iD9PJ0WhnLkUR/NGIsGrrWNJiZGRiN
+	 /sFgtp+uEGs6SCnl4Ux18w6+7zlWNXKwY4dS5SXo=
+Date: Thu, 02 May 2024 10:14:42 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-remove-ignore_references-argument-of-reclaim_folio_list.patch added to mm-unstable branch
-Message-Id: <20240502171404.EBBEFC113CC@smtp.kernel.org>
+Subject: + thp-remove-hpage_pmd_order-minimum-assertion.patch added to mm-unstable branch
+Message-Id: <20240502171443.8A5F1C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: remove ignore_references argument of reclaim_folio_list()
+     Subject: thp: remove HPAGE_PMD_ORDER minimum assertion
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-remove-ignore_references-argument-of-reclaim_folio_list.patch
+     thp-remove-hpage_pmd_order-minimum-assertion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-remove-ignore_references-argument-of-reclaim_folio_list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/thp-remove-hpage_pmd_order-minimum-assertion.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,71 +58,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/vmscan: remove ignore_references argument of reclaim_folio_list()
-Date: Mon, 29 Apr 2024 15:44:51 -0700
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: thp: remove HPAGE_PMD_ORDER minimum assertion
+Date: Mon, 29 Apr 2024 20:00:55 +0100
 
-All reclaim_folio_list() callers are passing 'true' for
-'ignore_references' parameter.  In other words, the parameter is not
-really being used.  Simplify the code by removing the parameter.
+We now handle order-1 folios correctly, so we don't need this assertion
+any more.
 
-Link: https://lkml.kernel.org/r/20240429224451.67081-5-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20240429190114.3126789-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/huge_memory.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-remove-ignore_references-argument-of-reclaim_folio_list
-+++ a/mm/vmscan.c
-@@ -2109,8 +2109,7 @@ static void shrink_active_list(unsigned
- }
+--- a/mm/huge_memory.c~thp-remove-hpage_pmd_order-minimum-assertion
++++ a/mm/huge_memory.c
+@@ -740,11 +740,6 @@ static int __init hugepage_init(void)
+ 	 * hugepages can't be allocated by the buddy allocator
+ 	 */
+ 	MAYBE_BUILD_BUG_ON(HPAGE_PMD_ORDER > MAX_PAGE_ORDER);
+-	/*
+-	 * we use page->mapping and page->index in second tail page
+-	 * as list_head: assuming THP order >= 2
+-	 */
+-	MAYBE_BUILD_BUG_ON(HPAGE_PMD_ORDER < 2);
  
- static unsigned int reclaim_folio_list(struct list_head *folio_list,
--				      struct pglist_data *pgdat,
--				      bool ignore_references)
-+				      struct pglist_data *pgdat)
- {
- 	struct reclaim_stat dummy_stat;
- 	unsigned int nr_reclaimed;
-@@ -2123,7 +2122,7 @@ static unsigned int reclaim_folio_list(s
- 		.no_demotion = 1,
- 	};
- 
--	nr_reclaimed = shrink_folio_list(folio_list, pgdat, &sc, &dummy_stat, ignore_references);
-+	nr_reclaimed = shrink_folio_list(folio_list, pgdat, &sc, &dummy_stat, true);
- 	while (!list_empty(folio_list)) {
- 		folio = lru_to_folio(folio_list);
- 		list_del(&folio->lru);
-@@ -2155,12 +2154,11 @@ unsigned long reclaim_pages(struct list_
- 			continue;
- 		}
- 
--		nr_reclaimed += reclaim_folio_list(&node_folio_list, NODE_DATA(nid),
--						   true);
-+		nr_reclaimed += reclaim_folio_list(&node_folio_list, NODE_DATA(nid));
- 		nid = folio_nid(lru_to_folio(folio_list));
- 	} while (!list_empty(folio_list));
- 
--	nr_reclaimed += reclaim_folio_list(&node_folio_list, NODE_DATA(nid), true);
-+	nr_reclaimed += reclaim_folio_list(&node_folio_list, NODE_DATA(nid));
- 
- 	memalloc_noreclaim_restore(noreclaim_flag);
- 
+ 	err = hugepage_init_sysfs(&hugepage_kobj);
+ 	if (err)
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-damon-paddr-implement-damon_folio_young.patch
-mm-damon-paddr-implement-damon_folio_mkold.patch
-mm-damon-add-damos-filter-type-young.patch
-mm-damon-paddr-implement-damos-filter-type-young.patch
-docs-mm-damon-design-document-young-page-type-damos-filter.patch
-docs-admin-guide-mm-damon-usage-update-for-young-page-type-damos-filter.patch
-docs-abi-damon-update-for-youg-page-type-damos-filter.patch
-mm-damon-paddr-avoid-unnecessary-page-level-access-check-for-pageout-damos-action.patch
-mm-damon-paddr-do-page-level-access-check-for-pageout-damos-action-on-its-own.patch
-mm-vmscan-remove-ignore_references-argument-of-reclaim_pages.patch
-mm-vmscan-remove-ignore_references-argument-of-reclaim_folio_list.patch
+xarray-set-the-marks-correctly-when-splitting-an-entry.patch
+doc-improve-the-description-of-__folio_mark_dirty.patch
+buffer-add-kernel-doc-for-block_dirty_folio.patch
+buffer-add-kernel-doc-for-try_to_free_buffers.patch
+buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch
+buffer-add-kernel-doc-for-brelse-and-__brelse.patch
+buffer-add-kernel-doc-for-bforget-and-__bforget.patch
+buffer-improve-bdev_getblk-documentation.patch
+doc-split-bufferrst-out-of-api-summaryrst.patch
+doc-split-bufferrst-out-of-api-summaryrst-fix.patch
+mm-memory-failure-remove-fsdax_pgoff-argument-from-__add_to_kill.patch
+mm-memory-failure-pass-addr-to-__add_to_kill.patch
+mm-return-the-address-from-page_mapped_in_vma.patch
+mm-make-page_mapped_in_vma-conditional-on-config_memory_failure.patch
+mm-memory-failure-convert-shake_page-to-shake_folio.patch
+mm-convert-hugetlb_page_mapping_lock_write-to-folio.patch
+mm-memory-failure-convert-memory_failure-to-use-a-folio.patch
+mm-memory-failure-convert-hwpoison_user_mappings-to-take-a-folio.patch
+mm-memory-failure-add-some-folio-conversions-to-unpoison_memory.patch
+mm-memory-failure-use-folio-functions-throughout-collect_procs.patch
+mm-memory-failure-pass-the-folio-to-collect_procs_ksm.patch
+fscrypt-convert-bh_get_inode_and_lblk_num-to-use-a-folio.patch
+f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio.patch
+memory-failure-remove-calls-to-page_mapping.patch
+migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch
+userfault-expand-folio-use-in-mfill_atomic_install_pte.patch
+mm-remove-page_cache_alloc.patch
+mm-remove-put_devmap_managed_page.patch
+mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs.patch
+mm-remove-page_ref_sub_return.patch
+gup-use-folios-for-gup_devmap.patch
+mm-add-kernel-doc-for-folio_mark_accessed.patch
+mm-remove-pagereferenced.patch
+mm-simplify-thp_vma_allowable_order.patch
+mm-assert-the-mmap_lock-is-held-in-__anon_vma_prepare.patch
+mm-delay-the-check-for-a-null-anon_vma.patch
+mm-fix-some-minor-per-vma-lock-issues-in-userfaultfd.patch
+mm-optimise-vmf_anon_prepare-for-vmas-without-an-anon_vma.patch
+thp-remove-hpage_pmd_order-minimum-assertion.patch
+squashfs-convert-squashfs_symlink_read_folio-to-use-folio-apis.patch
+squashfs-remove-calls-to-set-the-folio-error-flag.patch
+nilfs2-remove-calls-to-folio_set_error-and-folio_clear_error.patch
 
