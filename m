@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B522015B988
-	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 16:05:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E530F15359A
+	for <mm-commits@vger.kernel.org>; Thu,  2 May 2024 16:11:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714665926; cv=none; b=Ogpi+eOmuA83JvDOq1IEPnZMkaCWvL+X28CqGkWmyuLlVxHOD8TBTFCW+zrKkGkvA1oZrDUqR8D2dAQPwFuTwkgOxIA/qf7zhz35P0b2R2pTFkSzY9Oz3peRClgjhbCUPl8yLWcQmhJbHTYKHFxYe1M5J5d7fjZbucDSvRkhmx8=
+	t=1714666309; cv=none; b=pRHySO/aixevRl4a9RKV6ABCzYybLHRYlrDHTHleL5FjC+88Qc5bHPQ/qiH+95dgHCV4uCyrslrO+D4IcxIexRPvxdEQd3esCbr85V2bIk7MbxhwPQbMuqvF/7FJoKQrCf8LqNDykWqiQhvGsW4ebCp/c3+NjXrqmjgUdyX0mcc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714665926; c=relaxed/simple;
-	bh=1ZyybaQUgfzTGZct1GJF/rJOtEmeuZqwxpqlfajsUX0=;
-	h=Date:To:From:Subject:Message-Id; b=kS4P9/DW2Llz73AOK4mZIueHZXI5rap5u2eODeOGiXASeX/dYPgzrNqPLwrRGAUKn821dw0b43tzvFK/Bx9JUVZmh84CDn7nyG250w3VUTvyVfe/6QOjr2EwVkRQwa+x5UuHKUhDKvIH2tNzP1SnNI04BNQ2aGftc3F2IkyQXFA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HLZhEufI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714666309; c=relaxed/simple;
+	bh=ZBcXTXTu7Mx6RVyvq2SYSZrDnEeVKgr3v9wQ6uXshR8=;
+	h=Date:To:From:Subject:Message-Id; b=Wb7dlY//XaxTmeIFSia6nBRbRORvCOf//EAVRqivPAGsH7z/fJ+Wn0zgJ7pc3+SuTJuzwKjC+TxVS9wTvfIUM371FaVITHHgUV6izbP7+ugQS/bbxPCAhtfUtBeXa8TcKJQO/7N0nes+PqTFwUxadXVFnwa91hbCkYphI8EKUf4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=deVQDLuV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HLZhEufI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A93CC113CC;
-	Thu,  2 May 2024 16:05:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="deVQDLuV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53BDFC113CC;
+	Thu,  2 May 2024 16:11:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714665926;
-	bh=1ZyybaQUgfzTGZct1GJF/rJOtEmeuZqwxpqlfajsUX0=;
+	s=korg; t=1714666308;
+	bh=ZBcXTXTu7Mx6RVyvq2SYSZrDnEeVKgr3v9wQ6uXshR8=;
 	h=Date:To:From:Subject:From;
-	b=HLZhEufIAhLA4+hYP+3qsNzNewga99YZ5wCJJUF0UL1r8JuOm3JjW/4GNBDzPMjC7
-	 ZtBnwD8bxFoLVl41ZHUIf8nVd1WDf/apGhQKYs5OF+qx4tNWxt+qY6BJaTX9WBHMJw
-	 A2ZsWNpM9Qy6ntBA4N5CGqsk0ECZv84iImWsXOS8=
-Date: Thu, 02 May 2024 09:05:24 -0700
-To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,leitao@debian.org,akpm@linux-foundation.org
+	b=deVQDLuVhhVWt0gfgNXvIWmLw0dQvRmRPTI3DsjbI1nP9+0yzKTVA7I+lKT97y1Q3
+	 VPWynHV7gXeJx97NojFGdpFF41zEpb1jCtDWbOz+CqCub4T+D62QiVkFJMB+B//Lrt
+	 Tu+83b/uS3+UuRNHrxofMw9AZf69Epc5sP/hwQVU=
+Date: Thu, 02 May 2024 09:11:46 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,xiehuan09@gmail.com,willy@infradead.org,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,sj@kernel.org,shy828301@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,maskray@google.com,fengwei.yin@intel.com,david@redhat.com,21cnbao@gmail.com,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-use-read_once-write_once-to-access-stock-nr_pages.patch added to mm-unstable branch
-Message-Id: <20240502160526.1A93CC113CC@smtp.kernel.org>
+Subject: + mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch added to mm-unstable branch
+Message-Id: <20240502161148.53BDFC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcg: use READ_ONCE()/WRITE_ONCE() to access stock->nr_pages
+     Subject: mm/rmap: remove duplicated exit code in pagewalk loop
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-use-read_once-write_once-to-access-stock-nr_pages.patch
+     mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-use-read_once-write_once-to-access-stock-nr_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,142 +58,177 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm: memcg: use READ_ONCE()/WRITE_ONCE() to access stock->nr_pages
-Date: Wed, 1 May 2024 02:54:20 -0700
+From: Lance Yang <ioworker0@gmail.com>
+Subject: mm/rmap: remove duplicated exit code in pagewalk loop
+Date: Wed, 1 May 2024 12:26:58 +0800
 
-A memcg pointer in the per-cpu stock can be accessed by drain_all_stock()
-and consume_stock() in parallel, causing a potential race.
+Patch series "Reclaim lazyfree THP without splitting", v4.
 
-KCSAN shows this data-race clearly in the splat below:
+This series adds support for reclaiming PMD-mapped THP marked as lazyfree
+without needing to first split the large folio via
+split_huge_pmd_address().
 
-	BUG: KCSAN: data-race in drain_all_stock.part.0 / try_charge_memcg
+When the user no longer requires the pages, they would use
+madvise(MADV_FREE) to mark the pages as lazy free.  Subsequently, they
+typically would not re-write to that memory again.
 
-	write to 0xffff88903f8b0788 of 4 bytes by task 35901 on cpu 2:
-	try_charge_memcg (mm/memcontrol.c:2323 mm/memcontrol.c:2746)
-	__mem_cgroup_charge (mm/memcontrol.c:7287 mm/memcontrol.c:7301)
-	do_anonymous_page (mm/memory.c:1054 mm/memory.c:4375 mm/memory.c:4433)
-	__handle_mm_fault (mm/memory.c:3878 mm/memory.c:5300 mm/memory.c:5441)
-	handle_mm_fault (mm/memory.c:5606)
-	do_user_addr_fault (arch/x86/mm/fault.c:1363)
-	exc_page_fault (./arch/x86/include/asm/irqflags.h:37
-		        ./arch/x86/include/asm/irqflags.h:72
-			arch/x86/mm/fault.c:1513
-			arch/x86/mm/fault.c:1563)
-	asm_exc_page_fault (./arch/x86/include/asm/idtentry.h:623)
+During memory reclaim, if we detect that the large folio and its PMD are
+both still marked as clean and there are no unexpected references(such as
+GUP), so we can just discard the memory lazily, improving the efficiency
+of memory reclamation in this case.
 
-	read to 0xffff88903f8b0788 of 4 bytes by task 287 on cpu 27:
-	drain_all_stock.part.0 (mm/memcontrol.c:2433)
-	mem_cgroup_css_offline (mm/memcontrol.c:5398 mm/memcontrol.c:5687)
-	css_killed_work_fn (kernel/cgroup/cgroup.c:5521 kernel/cgroup/cgroup.c:5794)
-	process_one_work (kernel/workqueue.c:3254)
-	worker_thread (kernel/workqueue.c:3329 kernel/workqueue.c:3416)
-	kthread (kernel/kthread.c:388)
-	ret_from_fork (arch/x86/kernel/process.c:147)
-	ret_from_fork_asm (arch/x86/entry/entry_64.S:257)
+Performance Testing
+===================
 
-	value changed: 0x00000014 -> 0x00000013
+On an Intel i5 CPU, reclaiming 1GiB of lazyfree THPs using
+mem_cgroup_force_empty() results in the following runtimes in seconds
+(shorter is better):
 
-This happens because drain_all_stock() is reading stock->nr_pages, while
-consume_stock() might be updating the same address, causing a potential
-data-race.
+--------------------------------------------
+|     Old       |      New       |  Change  |
+--------------------------------------------
+|   0.683426    |    0.049197    |  -92.80% |
+--------------------------------------------
 
-Make the shared addresses bulletproof regarding to reads and writes,
-similarly to what stock->cached_objcg and stock->cached.
-Annotate all accesses to stock->nr_pages with READ_ONCE()/WRITE_ONCE().
 
-Link: https://lkml.kernel.org/r/20240501095420.679208-1-leitao@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+This patch (of 3):
+
+Introduce the labels walk_done and walk_done_err as exit points to
+eliminate duplicated exit code in the pagewalk loop.
+
+Link: https://lkml.kernel.org/r/20240501042700.83974-1-ioworker0@gmail.com
+Link: https://lkml.kernel.org/r/20240501042700.83974-2-ioworker0@gmail.com
+Signed-off-by: Lance Yang <ioworker0@gmail.com>
+Tested-by: SeongJae Park <sj@kernel.org>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Fangrui Song <maskray@google.com>
+Cc: Jeff Xie <xiehuan09@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ mm/rmap.c |   40 +++++++++++++++-------------------------
+ 1 file changed, 15 insertions(+), 25 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-use-read_once-write_once-to-access-stock-nr_pages
-+++ a/mm/memcontrol.c
-@@ -2468,6 +2468,7 @@ static void memcg_account_kmem(struct me
- static bool consume_stock(struct mem_cgroup *memcg, unsigned int nr_pages)
- {
- 	struct memcg_stock_pcp *stock;
-+	unsigned int stock_pages;
- 	unsigned long flags;
- 	bool ret = false;
+--- a/mm/rmap.c~mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop
++++ a/mm/rmap.c
+@@ -1676,9 +1676,7 @@ static bool try_to_unmap_one(struct foli
+ 			/* Restore the mlock which got missed */
+ 			if (!folio_test_large(folio))
+ 				mlock_vma_folio(folio, vma);
+-			page_vma_mapped_walk_done(&pvmw);
+-			ret = false;
+-			break;
++			goto walk_done_err;
+ 		}
  
-@@ -2477,8 +2478,9 @@ static bool consume_stock(struct mem_cgr
- 	local_lock_irqsave(&memcg_stock.stock_lock, flags);
+ 		pfn = pte_pfn(ptep_get(pvmw.pte));
+@@ -1716,11 +1714,8 @@ static bool try_to_unmap_one(struct foli
+ 			 */
+ 			if (!anon) {
+ 				VM_BUG_ON(!(flags & TTU_RMAP_LOCKED));
+-				if (!hugetlb_vma_trylock_write(vma)) {
+-					page_vma_mapped_walk_done(&pvmw);
+-					ret = false;
+-					break;
+-				}
++				if (!hugetlb_vma_trylock_write(vma))
++					goto walk_done_err;
+ 				if (huge_pmd_unshare(mm, vma, address, pvmw.pte)) {
+ 					hugetlb_vma_unlock_write(vma);
+ 					flush_tlb_range(vma,
+@@ -1735,8 +1730,7 @@ static bool try_to_unmap_one(struct foli
+ 					 * actual page and drop map count
+ 					 * to zero.
+ 					 */
+-					page_vma_mapped_walk_done(&pvmw);
+-					break;
++					goto walk_done;
+ 				}
+ 				hugetlb_vma_unlock_write(vma);
+ 			}
+@@ -1808,9 +1802,7 @@ static bool try_to_unmap_one(struct foli
+ 			if (unlikely(folio_test_swapbacked(folio) !=
+ 					folio_test_swapcache(folio))) {
+ 				WARN_ON_ONCE(1);
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				goto walk_done_err;
+ 			}
  
- 	stock = this_cpu_ptr(&memcg_stock);
--	if (memcg == READ_ONCE(stock->cached) && stock->nr_pages >= nr_pages) {
--		stock->nr_pages -= nr_pages;
-+	stock_pages = READ_ONCE(stock->nr_pages);
-+	if (memcg == READ_ONCE(stock->cached) && stock_pages >= nr_pages) {
-+		WRITE_ONCE(stock->nr_pages, stock_pages - nr_pages);
- 		ret = true;
+ 			/* MADV_FREE page check */
+@@ -1849,23 +1841,17 @@ static bool try_to_unmap_one(struct foli
+ 				 */
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+ 				folio_set_swapbacked(folio);
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				goto walk_done_err;
+ 			}
+ 
+ 			if (swap_duplicate(entry) < 0) {
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				goto walk_done_err;
+ 			}
+ 			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
+ 				swap_free(entry);
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				goto walk_done_err;
+ 			}
+ 
+ 			/* See folio_try_share_anon_rmap(): clear PTE first. */
+@@ -1873,9 +1859,7 @@ static bool try_to_unmap_one(struct foli
+ 			    folio_try_share_anon_rmap_pte(folio, subpage)) {
+ 				swap_free(entry);
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				goto walk_done_err;
+ 			}
+ 			if (list_empty(&mm->mmlist)) {
+ 				spin_lock(&mmlist_lock);
+@@ -1915,6 +1899,12 @@ discard:
+ 		if (vma->vm_flags & VM_LOCKED)
+ 			mlock_drain_local();
+ 		folio_put(folio);
++		continue;
++walk_done_err:
++		ret = false;
++walk_done:
++		page_vma_mapped_walk_done(&pvmw);
++		break;
  	}
  
-@@ -2492,16 +2494,18 @@ static bool consume_stock(struct mem_cgr
-  */
- static void drain_stock(struct memcg_stock_pcp *stock)
- {
-+	unsigned int stock_pages = READ_ONCE(stock->nr_pages);
- 	struct mem_cgroup *old = READ_ONCE(stock->cached);
- 
- 	if (!old)
- 		return;
- 
--	if (stock->nr_pages) {
--		page_counter_uncharge(&old->memory, stock->nr_pages);
-+	if (stock_pages) {
-+		page_counter_uncharge(&old->memory, stock_pages);
- 		if (do_memsw_account())
--			page_counter_uncharge(&old->memsw, stock->nr_pages);
--		stock->nr_pages = 0;
-+			page_counter_uncharge(&old->memsw, stock_pages);
-+
-+		WRITE_ONCE(stock->nr_pages, 0);
- 	}
- 
- 	css_put(&old->css);
-@@ -2537,6 +2541,7 @@ static void drain_local_stock(struct wor
- static void __refill_stock(struct mem_cgroup *memcg, unsigned int nr_pages)
- {
- 	struct memcg_stock_pcp *stock;
-+	unsigned int stock_pages;
- 
- 	stock = this_cpu_ptr(&memcg_stock);
- 	if (READ_ONCE(stock->cached) != memcg) { /* reset if necessary */
-@@ -2544,9 +2549,10 @@ static void __refill_stock(struct mem_cg
- 		css_get(&memcg->css);
- 		WRITE_ONCE(stock->cached, memcg);
- 	}
--	stock->nr_pages += nr_pages;
-+	stock_pages = READ_ONCE(stock->nr_pages) + nr_pages;
-+	WRITE_ONCE(stock->nr_pages, stock_pages);
- 
--	if (stock->nr_pages > MEMCG_CHARGE_BATCH)
-+	if (stock_pages > MEMCG_CHARGE_BATCH)
- 		drain_stock(stock);
- }
- 
-@@ -2585,7 +2591,7 @@ static void drain_all_stock(struct mem_c
- 
- 		rcu_read_lock();
- 		memcg = READ_ONCE(stock->cached);
--		if (memcg && stock->nr_pages &&
-+		if (memcg && READ_ONCE(stock->nr_pages) &&
- 		    mem_cgroup_is_descendant(memcg, root_memcg))
- 			flush = true;
- 		else if (obj_stock_flush_required(stock, root_memcg))
+ 	mmu_notifier_invalidate_range_end(&range);
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from ioworker0@gmail.com are
 
-memcg-fix-data-race-kcsan-bug-in-rstats.patch
-mm-memcg-use-read_once-write_once-to-access-stock-nr_pages.patch
+mm-madvise-introduce-clear_young_dirty_ptes-batch-helper.patch
+mm-arm64-override-clear_young_dirty_ptes-batch-helper.patch
+mm-memory-add-any_dirty-optional-pointer-to-folio_pte_batch.patch
+mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free.patch
+mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch
+mm-rmap-integrate-pmd-mapped-folio-splitting-into-pagewalk-loop.patch
+mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list.patch
 
