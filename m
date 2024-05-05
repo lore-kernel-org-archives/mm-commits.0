@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42B047580E
-	for <mm-commits@vger.kernel.org>; Sun,  5 May 2024 21:01:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 227947580E
+	for <mm-commits@vger.kernel.org>; Sun,  5 May 2024 21:01:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714942890; cv=none; b=rzC5b78r2kBLLRGKKvd9XKXWiJB3WC/9+Xlzsu2M4w7Q+phl7N4LqGv2Z7kkOCzUmenuNXY6vtDJuH0WQf609ziT1vIdj1jS+7ggySE9Xu0ERUJDV+aHc/0pTRHcffzQggU3PxtptX6zgi9F5ebiBSFuVIDO1tq9dUyZDYJY9Go=
+	t=1714942891; cv=none; b=pckqdwQKIZtF2JWpEqCJX5N33dJs3fq3sq8qzIIsBkKs20QSxVEJJlLhXnZtXl0EMBcRiZJrTF7wX5SkHzCb1cRgwVFNqtqVKb8OHuCSN8ks0esW/jXwgpBs97j8KrECabCTnP/ALdVVL1EZSMz7lM8PdlV4GWyDDs/Sg/EpcaU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714942890; c=relaxed/simple;
-	bh=iSObSk26QZ8pGkw3Vi0tL/W5Sq8noN8koN3W3a4ERnk=;
-	h=Date:To:From:Subject:Message-Id; b=HYzieqQnl8a3attAo+hzPVUNtbEQJHZqj4vsdgglAKsSiyb0qMvthP3e4qoUqVV4ZGP2mOUfyHnUhpune2mUf/X7M8Kxl1BMkGBY3mrFzvbhmoaV+S4vKz2pFg5i1HlFlklP3fXAMp6AZojSGLX1flqliU1mAkDm1cUR80d9LvM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tGIP0rYF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714942891; c=relaxed/simple;
+	bh=lsI25GkPiJ4FnZ/Yxb309IF8BZdVDLhISbdxjO3JvJU=;
+	h=Date:To:From:Subject:Message-Id; b=HBXBm8ZLIz/Gn9NQu/tAS3WiJ/GmxVOR32AOLmoCnS5oQnogsl4sWJTvS82kUe94mAU3BQ2gWtZr011UMt7kNi0joZLj0zZ6aM7jM1ABquSZ8bnGz0q0QbGlujXeosgBz3Op75UlcK2NlU1rinR0UNTAHeuqDf8oJqgDtezT/Ew=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1Kwnu5FF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tGIP0rYF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15868C113CC;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1Kwnu5FF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5D0FC116B1;
 	Sun,  5 May 2024 21:01:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714942890;
-	bh=iSObSk26QZ8pGkw3Vi0tL/W5Sq8noN8koN3W3a4ERnk=;
+	s=korg; t=1714942891;
+	bh=lsI25GkPiJ4FnZ/Yxb309IF8BZdVDLhISbdxjO3JvJU=;
 	h=Date:To:From:Subject:From;
-	b=tGIP0rYFsgn7M+RbEQ9XSYj2tgJ6pb/auJrkXH9t61yukqHJ1JW+vaqgVvpWnptgj
-	 vbNiqWscs0xXSblxSuWHmZhvAMDKa4e1tCubBbT2tv6fLSRYcKirer4arXlSAaAZAu
-	 /XCBsCGK2mWsjeOk5SvCyH3qy7zgZq99oqJz2dvA=
-Date: Sun, 05 May 2024 14:01:29 -0700
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,jeffxu@chromium.org,akpm@linux-foundation.org
+	b=1Kwnu5FFG9H1oODCjwtBEcbtx8eeuKkfwIYCQmHPa2FR4mJwh2omyKfS+tMbjTozD
+	 LGgtd0ROW3cCoAo8+jl5aElTPWMPsdPkPe+KIMsostnlGS/WXRqRcztVsASfjqkdvS
+	 wpUsYU1//n0QBzehFvGfQdsvFWr0jiCAJys8h/44=
+Date: Sun, 05 May 2024 14:01:30 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-mm-mseal-read-only-elf-memory-segment-fix-4.patch added to mm-unstable branch
-Message-Id: <20240505210130.15868C113CC@smtp.kernel.org>
+Subject: + selftests-cgroup-remove-redundant-addition-of-memory-controller.patch added to mm-unstable branch
+Message-Id: <20240505210130.E5D0FC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftest mm/mseal: fix arm build
+     Subject: selftests: cgroup: remove redundant enabling of memory controller
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftest-mm-mseal-read-only-elf-memory-segment-fix-4.patch
+     selftests-cgroup-remove-redundant-addition-of-memory-controller.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-mseal-read-only-elf-memory-segment-fix-4.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cgroup-remove-redundant-addition-of-memory-controller.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,52 +58,39 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jeff Xu <jeffxu@chromium.org>
-Subject: selftest mm/mseal: fix arm build
-Date: Thu, 2 May 2024 22:53:31 +0000
+From: Usama Arif <usamaarif642@gmail.com>
+Subject: selftests: cgroup: remove redundant enabling of memory controller
+Date: Thu, 2 May 2024 21:04:26 +0100
 
-Add include linux/mman.h to fix arm build.  Fix a typo.
+Memory controller is already enabled in main which invokes the test, hence
+this does not need to be done in test_no_kmem_bypass.
 
-Link: https://lkml.kernel.org/r/20240502225331.3806279-2-jeffxu@chromium.org
-Signed-off-by: Jeff Xu <jeffxu@chromium.org>
-Suggested-by: Ryan Roberts <ryan.roberts@arm.com>
-Tested-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com> 
+Link: https://lkml.kernel.org/r/20240502200529.4193651-2-usamaarif642@gmail.com
+Signed-off-by: Usama Arif <usamaarif642@gmail.com>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mseal_test.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ tools/testing/selftests/cgroup/test_zswap.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/tools/testing/selftests/mm/mseal_test.c~selftest-mm-mseal-read-only-elf-memory-segment-fix-4
-+++ a/tools/testing/selftests/mm/mseal_test.c
-@@ -1,5 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0
- #define _GNU_SOURCE
-+#include <linux/mman.h>
- #include <sys/mman.h>
- #include <stdint.h>
- #include <unistd.h>
-@@ -29,7 +30,7 @@
- # define PKEY_DISABLE_WRITE     0x2
- #endif
+--- a/tools/testing/selftests/cgroup/test_zswap.c~selftests-cgroup-remove-redundant-addition-of-memory-controller
++++ a/tools/testing/selftests/cgroup/test_zswap.c
+@@ -364,8 +364,6 @@ static int test_no_kmem_bypass(const cha
+ 	trigger_allocation_size = sys_info.totalram / 20;
  
--#ifndef PKEY_BITS_PER_KEY
-+#ifndef PKEY_BITS_PER_PKEY
- #define PKEY_BITS_PER_PKEY      2
- #endif
- 
+ 	/* Set up test memcg */
+-	if (cg_write(root, "cgroup.subtree_control", "+memory"))
+-		goto out;
+ 	test_group = cg_name(root, "kmem_bypass_test");
+ 	if (!test_group)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from jeffxu@chromium.org are
+Patches currently in -mm which might be from usamaarif642@gmail.com are
 
-mseal-wire-up-mseal-syscall.patch
-mseal-add-mseal-syscall.patch
-mseal-add-mseal-syscall-fix.patch
-selftest-mm-mseal-memory-sealing.patch
-mseal-add-documentation.patch
-selftest-mm-mseal-read-only-elf-memory-segment.patch
-selftest-mm-mseal-read-only-elf-memory-segment-fix.patch
-selftest-mm-mseal-read-only-elf-memory-segment-fix-3.patch
-selftest-mm-mseal-read-only-elf-memory-segment-fix-4.patch
+selftests-cgroup-remove-redundant-addition-of-memory-controller.patch
 
