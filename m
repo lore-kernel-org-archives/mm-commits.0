@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE8987580E
-	for <mm-commits@vger.kernel.org>; Sun,  5 May 2024 21:01:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAD6A7580E
+	for <mm-commits@vger.kernel.org>; Sun,  5 May 2024 21:01:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714942886; cv=none; b=bLOOfXD07gcWcbgI28uJk+VXJhZqUeRh3dqDfo41u6xRtXlJvxGP4WXBFFo3cCNVMXRo/WFPkD32hDSXjkNyhX/E/8B5mCvlj7yctmtp0cbbYuvhESmXqUEU1plJA8x70sFWvDuC4stml5QKYChhCdPWenfps/m9ruRqUfkrM20=
+	t=1714942887; cv=none; b=DHcYs15mDCtH45t0Mjo/ioH7eg1F0jMpmOt5gfzjbkuf97EQMy8XPJHextKUrOMrMDzh9rANC5VOuf/NMxYHPvUPw0nXDi3Cs5NyJSFnbO0RIEu99ptdcviPWMQ/xKB1HBL2H5wyJsvLStMj4Mgg/E4JBkrLfetKoLwglJvS6NU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714942886; c=relaxed/simple;
-	bh=fsGFUxxrZ3vecHtIBjN3MvHHAFSPpNP8s6yYTUHccoc=;
-	h=Date:To:From:Subject:Message-Id; b=XO73MUquNb1O+eS9NQGOdgNYwK/DwemQ1a9+d9vXe+gieYK9nTWsrk2scG+IHqK5h07c72JeKRWL2ZnES1/pg02geb2Wg0SbfyIebd9DjrB5kymiRL6tjb5Zyc1HMzmbFwNOwNoy+GpuqKbU/3fXkvryI9JaHvsuuDbhsJrzxYo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SkoxZRa7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714942887; c=relaxed/simple;
+	bh=MjWfdg+mZvWo6CHVPX8JBkcrVbknpTf8pAeIWAEojcU=;
+	h=Date:To:From:Subject:Message-Id; b=XmP/1YteGDlt+3at9KKlRALt13iWh2Bw+7+zl66ycuyifsZe82K0qinBoHmtFYGE98z96WNV1feLz5QTVi+psl9WUgxGRDK4y9fWMluKf9rjA+XC80Z4Ndm2NZqqvVuXBfM+qwTk9oQPvySELmL03mFyj4douISUP8E0olyEXzA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q2kajzR7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SkoxZRa7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9027BC116B1;
-	Sun,  5 May 2024 21:01:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q2kajzR7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A360C113CC;
+	Sun,  5 May 2024 21:01:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714942886;
-	bh=fsGFUxxrZ3vecHtIBjN3MvHHAFSPpNP8s6yYTUHccoc=;
+	s=korg; t=1714942887;
+	bh=MjWfdg+mZvWo6CHVPX8JBkcrVbknpTf8pAeIWAEojcU=;
 	h=Date:To:From:Subject:From;
-	b=SkoxZRa7kYw4wf5Lq1CxnIQsjYbsNulGB4G8de8KmbLWtTe5KS5XXavyUmkmSg66v
-	 LL8f13wUqBECAjVZD/frLKC/E1GNsuKY10xuRhHEnMY4TPz/n45OOp1Wt4b29Dl29Q
-	 OC4WDLfNmuy/jBzYyAcF5PbLg5BKa5yRSCpIPFr4=
+	b=q2kajzR7e5lXTuFQbpp1AorM6tuGq9EITXVsbQSe8bF/Z6v1j8OL8LGOimBjzbfLu
+	 6LcLQj0pmzrLejLep5lgpFVcL9zma/Tu3t5n8KHGoLYxUKprBqxW8PwWVc6pde4T4N
+	 smrRMCrXHOeWPvJJ+OsMUXw9blDWF76Gf3VUExx8=
 Date: Sun, 05 May 2024 14:01:26 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-maintainer-profile-change-the-maintainers-timezone-from-pst-to-pt.patch added to mm-unstable branch
-Message-Id: <20240505210126.9027BC116B1@smtp.kernel.org>
+Subject: + docs-mm-damon-maintainer-profile-allow-posting-patches-based-on-damon-next-tree.patch added to mm-unstable branch
+Message-Id: <20240505210127.6A360C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/maintainer-profile: change the maintainer's timezone from PST to PT
+     Subject: Docs/mm/damon/maintainer-profile: allow posting patches based on damon/next tree
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-maintainer-profile-change-the-maintainers-timezone-from-pst-to-pt.patch
+     docs-mm-damon-maintainer-profile-allow-posting-patches-based-on-damon-next-tree.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-change-the-maintainers-timezone-from-pst-to-pt.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-allow-posting-patches-based-on-damon-next-tree.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,37 +59,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/maintainer-profile: change the maintainer's timezone from PST to PT
-Date: Fri, 3 May 2024 11:03:17 -0700
+Subject: Docs/mm/damon/maintainer-profile: allow posting patches based on damon/next tree
+Date: Fri, 3 May 2024 11:03:18 -0700
 
-The document says the maintainer is working on only PST.  The maintainer
-respects daylight saving system, though.  Update the time zone to PT.
+The document mentions any patches for review should based on mm-unstable
+instead of damon/next.  It should be the recommended process, but
+sometimes patches based on damon/next could be posted for some reasons. 
+Actually, the DAMON-based tiered memory management patchset[1] was written
+on top of 'young page' DAMOS filter patchset, which was in damon/next tree
+as of the writing.
 
-Link: https://lkml.kernel.org/r/20240503180318.72798-10-sj@kernel.org
+Allow such case and just ask such things to be clearly specified.
+
+[1] https://lore.kernel.org/20240405060858.2818-1-honggyu.kim@sk.com
+
+Link: https://lkml.kernel.org/r/20240503180318.72798-11-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/maintainer-profile.rst |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/mm/damon/maintainer-profile.rst |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-change-the-maintainers-timezone-from-pst-to-pt
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-allow-posting-patches-based-on-damon-next-tree
 +++ a/Documentation/mm/damon/maintainer-profile.rst
-@@ -48,9 +48,9 @@ Review cadence
- --------------
+@@ -20,9 +20,10 @@ management subsystem maintainer.  After
+ be queued in mm-stable [3]_ , and finally pull-requested to the mainline by the
+ memory management subsystem maintainer.
  
- The DAMON maintainer does the work on the usual work hour (09:00 to 17:00,
--Mon-Fri) in PST.  The response to patches will occasionally be slow.  Do not
--hesitate to send a ping if you have not heard back within a week of sending a
--patch.
-+Mon-Fri) in PT (Pacific Time).  The response to patches will occasionally be
-+slow.  Do not hesitate to send a ping if you have not heard back within a week
-+of sending a patch.
+-Note again the patches for review should be made against the mm-unstable
+-tree [1]_ whenever possible.  damon/next is only for preview of others' works
+-in progress.
++Note again the patches for mm-unstable tree [1]_ are queued by the memory
++management subsystem maintainer.  If the patches requires some patches in
++damon/next tree [2]_ which not yet merged in mm-unstable, please make sure the
++requirement is clearly specified.
  
- 
- .. [1] https://git.kernel.org/akpm/mm/h/mm-unstable
+ Submit checklist addendum
+ -------------------------
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
