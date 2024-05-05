@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3D7E7604F
-	for <mm-commits@vger.kernel.org>; Sun,  5 May 2024 21:01:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B5727604F
+	for <mm-commits@vger.kernel.org>; Sun,  5 May 2024 21:01:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714942879; cv=none; b=cmv7jE+fTlLbFI2g0m8dTkYQNrGycq8bxC1RCNBI49EwnFaXcV7InTf35n+t+ThEMFNaEr+p464fw0HZ0xe7J5kEmrpsYWSdSnjdOhwBvihx1QKk+wkSxXnmsNVXIn7ofrPDcuzwOtKnHOMvtO4RD7LbeTZ8ns/DHmfXlCBo5lo=
+	t=1714942880; cv=none; b=G9/HvHnAdJjIO66qjEf5CWyUKgPFPoqbnyfacRoaiZKuZ7iGSBXkMJ0b59CMsH7L7NPf+hfuvJ8H9iwmZyDRZ7zA797rdoEptYVcWuPt+xkWZ96a/BGgE9fQ2+uXIF+FglnDSpYYvooD8rBYrrFTvddFykxelsCUIyGVurUzFoo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714942879; c=relaxed/simple;
-	bh=RAJGovtfUIQBXt+SJS1wP9Sg+EkRBc57A+9WUOyGOLk=;
-	h=Date:To:From:Subject:Message-Id; b=n7beywUHS0Gh4lur0EALpRpSGlOiyCxvcSOZgS+ZBFxcBcHITw7XT6ES6BHNzu8Fc7vFSC9deo0x3FJNTLvPcMM0aZMIUoICZ1SBbwqFpDsRcUvX7dq6GhdntKd8SS548GuNNd+d45Hx2TSj8fVCItYwK6hBIkcUTVv5A7lAk2A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JEwZ7Vl3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714942880; c=relaxed/simple;
+	bh=4AtROHZ7Id/b3ivUN5+IVPOzAM4F+isU/LUEuLOXRD0=;
+	h=Date:To:From:Subject:Message-Id; b=dKqtromd7j5Uug4OVNrdpAvxqCZ52z4x7yjmVogYYSqSTL52DWC7D9aRbDTfJ1OG7pPoLukdRUn1Enpy1IieO+OMKguhH+dH6x7b95wESR9cbe5CRsYbFbU3pcaY4/SR52YTfC/6OgvjowqZwd5QvTvxYOtkUsSmBHrku1ujX14=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i4W2Sl3m; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JEwZ7Vl3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BE7AC116B1;
-	Sun,  5 May 2024 21:01:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i4W2Sl3m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E71FC113CC;
+	Sun,  5 May 2024 21:01:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714942879;
-	bh=RAJGovtfUIQBXt+SJS1wP9Sg+EkRBc57A+9WUOyGOLk=;
+	s=korg; t=1714942880;
+	bh=4AtROHZ7Id/b3ivUN5+IVPOzAM4F+isU/LUEuLOXRD0=;
 	h=Date:To:From:Subject:From;
-	b=JEwZ7Vl3MXMsQf7RtNpsRxjZqfM0g1p3VlwhBQlEe9PgrUIzZdFTfhGgL9WATfFG4
-	 zHcc4NObXPL4Cj6+2X2syh3It4V7fwDn07U3XWYwjGj22UXPGoosGzOoEcDW6yxnwx
-	 UGvQZiBAyt9UhCrLH5q1NXLrga9ep58V8VXe/ziQ=
-Date: Sun, 05 May 2024 14:01:18 -0700
+	b=i4W2Sl3mj62ryKtgGg31MXRkCB+KciQvHmdPJPHeU1EaagCFt2wqqwapkpWvutVQx
+	 +YmsbIccy3VXx2sOybbeU9K2s3DGBQQD5c/gICoUIedRN7J3Bf0PTHXdymlejXeMj/
+	 cceex+oe9yNZty/heyslYjAxISxl2FkE9axoRoJs=
+Date: Sun, 05 May 2024 14:01:19 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-initialize-esz_bp-from-damos_quota_init_priv.patch added to mm-unstable branch
-Message-Id: <20240505210119.3BE7AC116B1@smtp.kernel.org>
+Subject: + selftests-damon-_damon_sysfs-check-errors-from-nr_schemes-file-reads.patch added to mm-unstable branch
+Message-Id: <20240505210120.1E71FC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: initialize ->esz_bp from damos_quota_init_priv()
+     Subject: selftests/damon/_damon_sysfs: check errors from nr_schemes file reads
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-initialize-esz_bp-from-damos_quota_init_priv.patch
+     selftests-damon-_damon_sysfs-check-errors-from-nr_schemes-file-reads.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-initialize-esz_bp-from-damos_quota_init_priv.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfs-check-errors-from-nr_schemes-file-reads.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,48 +59,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: initialize ->esz_bp from damos_quota_init_priv()
-Date: Fri, 3 May 2024 11:03:09 -0700
+Subject: selftests/damon/_damon_sysfs: check errors from nr_schemes file reads
+Date: Fri, 3 May 2024 11:03:10 -0700
 
-Patch series "mm/damon: misc fixes and improvements".
+DAMON context staging method in _damon_sysfs.py is not checking the
+returned error from nr_schemes file read.  Check it.
 
-Add miscelleneous and non-urgent fixes and improvements for DAMON code,
-selftests, and documents.
-
-
-This patch (of 10):
-
-damos_quota_init_priv() function should initialize all private fields of
-struct damos_quota.  However, it is not initializing ->esz_bp field.  This
-could result in use of uninitialized variable from
-damon_feed_loop_next_input() function.  There is no such issue at the
-moment because every caller of the function is passing damos_quota object
-that already having the field zero value.  But we cannot guarantee the
-future, and the function is not doing what it is promising.  A bug is a
-bug.  This fix is for preventing possible future issues.
-
-Link: https://lkml.kernel.org/r/20240503180318.72798-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20240503180318.72798-2-sj@kernel.org
-Fixes: 9294a037c015 ("mm/damon/core: implement goal-oriented feedback-driven quota auto-tuning")
+Link: https://lkml.kernel.org/r/20240503180318.72798-3-sj@kernel.org
+Fixes: f5f0e5a2bef9 ("selftests/damon/_damon_sysfs: implement kdamonds start function")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/damon/_damon_sysfs.py |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-initialize-esz_bp-from-damos_quota_init_priv
-+++ a/mm/damon/core.c
-@@ -346,6 +346,7 @@ static struct damos_quota *damos_quota_i
- 	quota->charged_from = 0;
- 	quota->charge_target_from = NULL;
- 	quota->charge_addr_from = 0;
-+	quota->esz_bp = 0;
- 	return quota;
- }
- 
+--- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-check-errors-from-nr_schemes-file-reads
++++ a/tools/testing/selftests/damon/_damon_sysfs.py
+@@ -341,6 +341,8 @@ class DamonCtx:
+         nr_schemes_file = os.path.join(
+                 self.sysfs_dir(), 'schemes', 'nr_schemes')
+         content, err = read_file(nr_schemes_file)
++        if err is not None:
++            return err
+         if int(content) != len(self.schemes):
+             err = write_file(nr_schemes_file, '%d' % len(self.schemes))
+             if err != None:
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
