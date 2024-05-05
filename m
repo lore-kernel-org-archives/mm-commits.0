@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD9F97580E
-	for <mm-commits@vger.kernel.org>; Sun,  5 May 2024 21:01:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B246B76036
+	for <mm-commits@vger.kernel.org>; Sun,  5 May 2024 21:01:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714942877; cv=none; b=WrONLk66nhRYYkTX0c6/Ac0g9uDUYtHD5W0O0KbEmdn0xPq6kWEBThKTcZWPjwqc5c37fVM4ZmpETIkzQV4WhWIsR3mnpTefv6IOEf7ZtbNqwVU1TlOPN0G9T21wU/o24AVBSGrniDz80vL7OetMrKM2LfsndnBTkzD1rI5Cdf8=
+	t=1714942878; cv=none; b=T8ocJs2axXwYGDiepBLAub3qJ0tYW5BGV7dEozaklQPgFVcD+y6Sc1DalMyX5IuYZmo2GD7kedGF/fNVULWaAFasD4dbURDgmyMIg7uhUU6Z35yLOwzjAJkEVq9Y402vagi7FF4a7zDLG5Bw3XoOblBtCCQNTrkYWEh1QcDJ+y0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714942877; c=relaxed/simple;
-	bh=P6ex3S5ASAkk69rPr8/ZonVVxi1xwd6xaSMIqTFHg+0=;
-	h=Date:To:From:Subject:Message-Id; b=trqgPBpNjGFVYMocXIFScrQ65pfHQzmoIIZdRrI+2kxE4xjxUemPNovsZx581NxhpIW+M/i0//ZpScowsOYkQrCSoxyc8MbtHMksfkNttK/1cydNKcu97fYdZ87PEbfz6k5B7pBu0AASZ9KTE+pJot/Xj4ik3lie2nVo/R07zP8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AYk1SJP7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714942878; c=relaxed/simple;
+	bh=TqwirhasMoVT8koULD6gYpLC86YZXRSlFz1+BcRztWk=;
+	h=Date:To:From:Subject:Message-Id; b=lzKiQDizZo2mxKKixGMN26e2bIsuOrkFKZUurgGJNTmn38R/vpfGr5hyRhuF4WPYe6mmEUDCciBg38AbgzHkfZFywCcwL2MfRwSbDwCeNlKHg0Y7ayN/ly7c/fA9dP5JhGFXuu1oO4Q9A1rjKUJYidruGxbbbf8+88bUgF7HbNI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pQQv7Lc/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AYk1SJP7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57852C113CC;
-	Sun,  5 May 2024 21:01:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pQQv7Lc/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B62FC113CC;
+	Sun,  5 May 2024 21:01:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714942877;
-	bh=P6ex3S5ASAkk69rPr8/ZonVVxi1xwd6xaSMIqTFHg+0=;
+	s=korg; t=1714942878;
+	bh=TqwirhasMoVT8koULD6gYpLC86YZXRSlFz1+BcRztWk=;
 	h=Date:To:From:Subject:From;
-	b=AYk1SJP7upiUbZ741Q+a6sWzxvPZxcs8Lvj2kU4/vpxDPbi3ui/YvZE58E/kb57+u
-	 nXAIyNjjqwsZrSyeErmJ/A9Ot7fV8pKkb5FKE6n58Wqzh/jh7KMN3/MZRkMPyv29Hl
-	 JLvLb7N/vPneC9I6WHcf21rOglZ6fIlNRjxBl/ok=
-Date: Sun, 05 May 2024 14:01:16 -0700
+	b=pQQv7Lc/RE6wRiqJcElxfNLug1cBUs3cqKBTk93T65uPIqcel8UkIONgffjhZ7TcG
+	 VFqazo4WIRKhJ+D8fmyqitTJ5SMg4UdT7KlK3/T3kVWpWg3s3ETZnjkKZKpyn07Lxp
+	 ETynE1c5BQ9p+3vqIRMmZFDeD2LEWr32tSikF6lU=
+Date: Sun, 05 May 2024 14:01:17 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-_damon_sysfs-support-quota-goals.patch added to mm-unstable branch
-Message-Id: <20240505210117.57852C113CC@smtp.kernel.org>
+Subject: + selftests-damon-add-a-test-for-damos-quota-goal.patch added to mm-unstable branch
+Message-Id: <20240505210118.3B62FC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/_damon_sysfs: support quota goals
+     Subject: selftests/damon: add a test for DAMOS quota goal
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-damon-_damon_sysfs-support-quota-goals.patch
+     selftests-damon-add-a-test-for-damos-quota-goal.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfs-support-quota-goals.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-add-a-test-for-damos-quota-goal.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,147 +59,114 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/_damon_sysfs: support quota goals
-Date: Thu, 2 May 2024 10:27:17 -0700
+Subject: selftests/damon: add a test for DAMOS quota goal
+Date: Thu, 2 May 2024 10:27:18 -0700
 
-Patch series "selftests/damon: add DAMOS quota goal test".
+Add a selftest for DAMOS quota goal.  It tests the feature by setting a
+user_input metric based goal, change the current feedback, and check if
+the effective quota size is increased and decreased as expected.
 
-Extend DAMON selftest-purpose sysfs wrapper to support DAMOS quota goal,
-and implement a simple selftest for the feature using it.
-
-
-This patch (of 2):
-
-The DAMON sysfs test purpose wrapper, _damon_sysfs.py, is not supporting
-quota goals.  Implement the support for testing the feature.  The test
-will be implemented and added by the following commit.
-
-Link: https://lkml.kernel.org/r/20240502172718.74166-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20240502172718.74166-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240502172718.74166-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/_damon_sysfs.py |   84 +++++++++++++++-
- 1 file changed, 83 insertions(+), 1 deletion(-)
+ tools/testing/selftests/damon/Makefile            |    2 
+ tools/testing/selftests/damon/damos_quota_goal.py |   77 ++++++++++++
+ 2 files changed, 78 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-support-quota-goals
-+++ a/tools/testing/selftests/damon/_damon_sysfs.py
-@@ -70,16 +70,56 @@ class DamosAccessPattern:
-         if err != None:
-             return err
- 
-+qgoal_metric_user_input = 'user_input'
-+qgoal_metric_some_mem_psi_us = 'some_mem_psi_us'
-+qgoal_metrics = [qgoal_metric_user_input, qgoal_metric_some_mem_psi_us]
+--- /dev/null
++++ a/tools/testing/selftests/damon/damos_quota_goal.py
+@@ -0,0 +1,77 @@
++#!/usr/bin/env python3
++# SPDX-License-Identifier: GPL-2.0
 +
-+class DamosQuotaGoal:
-+    metric = None
-+    target_value = None
-+    current_value = None
-+    effective_bytes = None
-+    quota = None            # owner quota
-+    idx = None
++import subprocess
++import time
 +
-+    def __init__(self, metric, target_value=10000, current_value=0):
-+        self.metric = metric
-+        self.target_value = target_value
-+        self.current_value = current_value
++import _damon_sysfs
 +
-+    def sysfs_dir(self):
-+        return os.path.join(self.quota.sysfs_dir(), 'goals', '%d' % self.idx)
++def main():
++    # access two 10 MiB memory regions, 2 second per each
++    sz_region = 10 * 1024 * 1024
++    proc = subprocess.Popen(['./access_memory', '2', '%d' % sz_region, '2000'])
 +
-+    def stage(self):
-+        err = write_file(os.path.join(self.sysfs_dir(), 'target_metric'),
-+                         self.metric)
++    goal = _damon_sysfs.DamosQuotaGoal(
++            metric=_damon_sysfs.qgoal_metric_user_input, target_value=10000)
++    kdamonds = _damon_sysfs.Kdamonds([_damon_sysfs.Kdamond(
++            contexts=[_damon_sysfs.DamonCtx(
++                ops='vaddr',
++                targets=[_damon_sysfs.DamonTarget(pid=proc.pid)],
++                schemes=[_damon_sysfs.Damos(
++                    action='stat',
++                    quota=_damon_sysfs.DamosQuota(
++                        goals=[goal], reset_interval_ms=100),
++                    )] # schemes
++                )] # contexts
++            )]) # kdamonds
++
++    err = kdamonds.start()
++    if err != None:
++        print('kdamond start failed: %s' % err)
++        exit(1)
++
++    score_values_to_test = [0, 15000, 5000, 18000]
++    while proc.poll() == None:
++        if len(score_values_to_test) == 0:
++            time.sleep(0.1)
++            continue
++
++        goal.current_value = score_values_to_test.pop(0)
++        expect_increase = goal.current_value < goal.target_value
++
++        err = kdamonds.kdamonds[0].commit_schemes_quota_goals()
 +        if err is not None:
-+            return err
-+        err = write_file(os.path.join(self.sysfs_dir(), 'target_value'),
-+                         self.target_value)
-+        if err is not None:
-+            return err
-+        err = write_file(os.path.join(self.sysfs_dir(), 'current_value'),
-+                         self.current_value)
-+        if err is not None:
-+            return err
-+        return None
++            print('commit_schemes_quota_goals failed: %s' % err)
++            exit(1)
 +
- class DamosQuota:
-     sz = None                   # size quota, in bytes
-     ms = None                   # time quota
-+    goals = None                # quota goals
-     reset_interval_ms = None    # quota reset interval
-     scheme = None               # owner scheme
- 
--    def __init__(self, sz=0, ms=0, reset_interval_ms=0):
-+    def __init__(self, sz=0, ms=0, goals=None, reset_interval_ms=0):
-         self.sz = sz
-         self.ms = ms
-         self.reset_interval_ms = reset_interval_ms
-+        self.goals = goals if goals is not None else []
-+        for idx, goal in enumerate(self.goals):
-+            goal.idx = idx
-+            goal.quota = self
- 
-     def sysfs_dir(self):
-         return os.path.join(self.scheme.sysfs_dir(), 'quotas')
-@@ -96,6 +136,20 @@ class DamosQuota:
-         if err != None:
-             return err
- 
-+        nr_goals_file = os.path.join(self.sysfs_dir(), 'goals', 'nr_goals')
-+        content, err = read_file(nr_goals_file)
++        err = kdamonds.kdamonds[0].update_schemes_effective_quotas()
 +        if err is not None:
-+            return err
-+        if int(content) != len(self.goals):
-+            err = write_file(nr_goals_file, len(self.goals))
-+            if err is not None:
-+                return err
-+        for goal in self.goals:
-+            err = goal.stage()
-+            if err is not None:
-+                return err
-+        return None
++            print('before-update_schemes_effective_quotas failed: %s' % err)
++            exit(1)
++        last_effective_bytes = goal.effective_bytes
 +
- class DamosStats:
-     nr_tried = None
-     sz_tried = None
-@@ -361,6 +415,34 @@ class Kdamond:
-                     stat_values.append(int(content))
-                 scheme.stats = DamosStats(*stat_values)
- 
-+    def update_schemes_effective_quotas(self):
-+        err = write_file(os.path.join(self.sysfs_dir(), 'state'),
-+                         'update_schemes_effective_quotas')
++        time.sleep(0.5)
++
++        err = kdamonds.kdamonds[0].update_schemes_effective_quotas()
 +        if err is not None:
-+            return err
-+        for context in self.contexts:
-+            for scheme in context.schemes:
-+                for goal in scheme.quota.goals:
-+                    content, err = read_file(
-+                            os.path.join(scheme.quota.sysfs_dir(),
-+                                         'effective_bytes'))
-+                    if err is not None:
-+                        return err
-+                    goal.effective_bytes = int(content)
-+        return None
++            print('after-update_schemes_effective_quotas failed: %s' % err)
++            exit(1)
 +
-+    def commit_schemes_quota_goals(self):
-+        for context in self.contexts:
-+            for scheme in context.schemes:
-+                for goal in scheme.quota.goals:
-+                    err = goal.stage()
-+                    if err is not None:
-+                        print('commit_schemes_quota_goals failed stagign: %s'%
-+                              err)
-+                        exit(1)
-+        return write_file(os.path.join(self.sysfs_dir(), 'state'),
-+                         'commit_schemes_quota_goals')
++        print('score: %s, effective quota: %d -> %d (%.3fx)' % (
++            goal.current_value, last_effective_bytes, goal.effective_bytes,
++            goal.effective_bytes / last_effective_bytes
++            if last_effective_bytes != 0 else -1.0))
 +
- class Kdamonds:
-     kdamonds = []
++        if last_effective_bytes == goal.effective_bytes:
++            print('efective bytes not changed: %d' % goal.effective_bytes)
++            exit(1)
++
++        increased = last_effective_bytes < goal.effective_bytes
++        if expect_increase != increased:
++            print('expectation of increase (%s) != increased (%s)' %
++                  (expect_increase, increased))
++            exit(1)
++        last_effective_bytes = goal.effective_bytes
++
++if __name__ == '__main__':
++    main()
+--- a/tools/testing/selftests/damon/Makefile~selftests-damon-add-a-test-for-damos-quota-goal
++++ a/tools/testing/selftests/damon/Makefile
+@@ -16,7 +16,7 @@ TEST_PROGS += debugfs_target_ids_pid_lea
+ TEST_PROGS += sysfs.sh sysfs_update_removed_scheme_dir.sh
+ TEST_PROGS += sysfs_update_schemes_tried_regions_hang.py
+ TEST_PROGS += sysfs_update_schemes_tried_regions_wss_estimation.py
+-TEST_PROGS += damos_quota.py damos_apply_interval.py
++TEST_PROGS += damos_quota.py damos_quota_goal.py damos_apply_interval.py
+ TEST_PROGS += reclaim.sh lru_sort.sh
  
+ include ../lib.mk
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
