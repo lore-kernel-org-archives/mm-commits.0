@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7EE77580E
-	for <mm-commits@vger.kernel.org>; Sun,  5 May 2024 21:01:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD9F97580E
+	for <mm-commits@vger.kernel.org>; Sun,  5 May 2024 21:01:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714942876; cv=none; b=PTGBZgBLjZqXsjuN/QS74IZpfEQWyOsKVR/XEJgeGla5MXjF5fkJnXCFfNT475Y5L2pdBLUCRp+NB7kRLsKtNf3gb6RfOAwFueriy+s616jmz5eJfCVzEj189RVBf8ziOx9AiynkwZJ12Tg7VGtSFfLI6UXOZkX669CAhb9MrzI=
+	t=1714942877; cv=none; b=WrONLk66nhRYYkTX0c6/Ac0g9uDUYtHD5W0O0KbEmdn0xPq6kWEBThKTcZWPjwqc5c37fVM4ZmpETIkzQV4WhWIsR3mnpTefv6IOEf7ZtbNqwVU1TlOPN0G9T21wU/o24AVBSGrniDz80vL7OetMrKM2LfsndnBTkzD1rI5Cdf8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714942876; c=relaxed/simple;
-	bh=CZrzlEot8xjPx4/O1isRzGnPInsuG06bjRdRDn3SiEE=;
-	h=Date:To:From:Subject:Message-Id; b=AZ1J2lRDrRH2JEiarUUyL5Ge9/aoAv3TxG/qyPRAxKOOLaALu6jR0kmNBkzSLtJwq9GZHC4PLwVSX9unn6Rhf+LWcIJRQOyit+xqpOi0iIiZ6VGBde+hdeLXRMl4M9Gave7W8Ib7epn9eCAUJCxXX8zrAFmFdm9Wk/EbiO8qSJA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vJhMeRuz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714942877; c=relaxed/simple;
+	bh=P6ex3S5ASAkk69rPr8/ZonVVxi1xwd6xaSMIqTFHg+0=;
+	h=Date:To:From:Subject:Message-Id; b=trqgPBpNjGFVYMocXIFScrQ65pfHQzmoIIZdRrI+2kxE4xjxUemPNovsZx581NxhpIW+M/i0//ZpScowsOYkQrCSoxyc8MbtHMksfkNttK/1cydNKcu97fYdZ87PEbfz6k5B7pBu0AASZ9KTE+pJot/Xj4ik3lie2nVo/R07zP8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AYk1SJP7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vJhMeRuz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 427D8C113CC;
-	Sun,  5 May 2024 21:01:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AYk1SJP7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57852C113CC;
+	Sun,  5 May 2024 21:01:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714942876;
-	bh=CZrzlEot8xjPx4/O1isRzGnPInsuG06bjRdRDn3SiEE=;
+	s=korg; t=1714942877;
+	bh=P6ex3S5ASAkk69rPr8/ZonVVxi1xwd6xaSMIqTFHg+0=;
 	h=Date:To:From:Subject:From;
-	b=vJhMeRuzi2J681yQCLgXq4dSWGZiVxs/XBzmOeIuTofGIu+7K56aRFY+ulkZ5Jjyq
-	 800TkA0ID+hpSB44AEzfCX07Tm3KutQIoEDGl7mIX4MyKEGn565VtWlPNkOtbRp8NC
-	 MZkRZPs+wyKmtDXuhxu2hdXAjA9AkWzumiJVcACs=
-Date: Sun, 05 May 2024 14:01:15 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,song@kernel.org,peterz@infradead.org,lkp@intel.com,konishi.ryusuke@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=AYk1SJP7upiUbZ741Q+a6sWzxvPZxcs8Lvj2kU4/vpxDPbi3ui/YvZE58E/kb57+u
+	 nXAIyNjjqwsZrSyeErmJ/A9Ot7fV8pKkb5FKE6n58Wqzh/jh7KMN3/MZRkMPyv29Hl
+	 JLvLb7N/vPneC9I6WHcf21rOglZ6fIlNRjxBl/ok=
+Date: Sun, 05 May 2024 14:01:16 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-allow-nmi-watchdog-to-use-raw-perf-event-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20240505210116.427D8C113CC@smtp.kernel.org>
+Subject: + selftests-damon-_damon_sysfs-support-quota-goals.patch added to mm-unstable branch
+Message-Id: <20240505210117.57852C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: watchdog-allow-nmi-watchdog-to-use-raw-perf-event-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-allow-nmi-watchdog-to-use-raw-perf-event-fix.patch
+     Subject: selftests/damon/_damon_sysfs: support quota goals
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-damon-_damon_sysfs-support-quota-goals.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-allow-nmi-watchdog-to-use-raw-perf-event-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfs-support-quota-goals.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,43 +58,173 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: watchdog-allow-nmi-watchdog-to-use-raw-perf-event-fix
-Date: Sat May  4 03:39:48 PM PDT 2024
+From: SeongJae Park <sj@kernel.org>
+Subject: selftests/damon/_damon_sysfs: support quota goals
+Date: Thu, 2 May 2024 10:27:17 -0700
 
-fix kerneldoc
+Patch series "selftests/damon: add DAMOS quota goal test".
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202405040851.2EgypmL1-lkp@intel.com/ 
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Song Liu <song@kernel.org>
+Extend DAMON selftest-purpose sysfs wrapper to support DAMOS quota goal,
+and implement a simple selftest for the feature using it.
+
+
+This patch (of 2):
+
+The DAMON sysfs test purpose wrapper, _damon_sysfs.py, is not supporting
+quota goals.  Implement the support for testing the feature.  The test
+will be implemented and added by the following commit.
+
+Link: https://lkml.kernel.org/r/20240502172718.74166-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240502172718.74166-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog_perf.c |    2 ++
- 1 file changed, 2 insertions(+)
+ tools/testing/selftests/damon/_damon_sysfs.py |   84 +++++++++++++++-
+ 1 file changed, 83 insertions(+), 1 deletion(-)
 
---- a/kernel/watchdog_perf.c~watchdog-allow-nmi-watchdog-to-use-raw-perf-event-fix
-+++ a/kernel/watchdog_perf.c
-@@ -277,6 +277,8 @@ int __init watchdog_hardlockup_probe(voi
+--- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-support-quota-goals
++++ a/tools/testing/selftests/damon/_damon_sysfs.py
+@@ -70,16 +70,56 @@ class DamosAccessPattern:
+         if err != None:
+             return err
  
- /**
-  * hardlockup_config_perf_event - Overwrite config of wd_hw_attr.
-+ *
-+ * @str: number which identifies the raw perf event to use
-  */
- void __init hardlockup_config_perf_event(const char *str)
- {
++qgoal_metric_user_input = 'user_input'
++qgoal_metric_some_mem_psi_us = 'some_mem_psi_us'
++qgoal_metrics = [qgoal_metric_user_input, qgoal_metric_some_mem_psi_us]
++
++class DamosQuotaGoal:
++    metric = None
++    target_value = None
++    current_value = None
++    effective_bytes = None
++    quota = None            # owner quota
++    idx = None
++
++    def __init__(self, metric, target_value=10000, current_value=0):
++        self.metric = metric
++        self.target_value = target_value
++        self.current_value = current_value
++
++    def sysfs_dir(self):
++        return os.path.join(self.quota.sysfs_dir(), 'goals', '%d' % self.idx)
++
++    def stage(self):
++        err = write_file(os.path.join(self.sysfs_dir(), 'target_metric'),
++                         self.metric)
++        if err is not None:
++            return err
++        err = write_file(os.path.join(self.sysfs_dir(), 'target_value'),
++                         self.target_value)
++        if err is not None:
++            return err
++        err = write_file(os.path.join(self.sysfs_dir(), 'current_value'),
++                         self.current_value)
++        if err is not None:
++            return err
++        return None
++
+ class DamosQuota:
+     sz = None                   # size quota, in bytes
+     ms = None                   # time quota
++    goals = None                # quota goals
+     reset_interval_ms = None    # quota reset interval
+     scheme = None               # owner scheme
+ 
+-    def __init__(self, sz=0, ms=0, reset_interval_ms=0):
++    def __init__(self, sz=0, ms=0, goals=None, reset_interval_ms=0):
+         self.sz = sz
+         self.ms = ms
+         self.reset_interval_ms = reset_interval_ms
++        self.goals = goals if goals is not None else []
++        for idx, goal in enumerate(self.goals):
++            goal.idx = idx
++            goal.quota = self
+ 
+     def sysfs_dir(self):
+         return os.path.join(self.scheme.sysfs_dir(), 'quotas')
+@@ -96,6 +136,20 @@ class DamosQuota:
+         if err != None:
+             return err
+ 
++        nr_goals_file = os.path.join(self.sysfs_dir(), 'goals', 'nr_goals')
++        content, err = read_file(nr_goals_file)
++        if err is not None:
++            return err
++        if int(content) != len(self.goals):
++            err = write_file(nr_goals_file, len(self.goals))
++            if err is not None:
++                return err
++        for goal in self.goals:
++            err = goal.stage()
++            if err is not None:
++                return err
++        return None
++
+ class DamosStats:
+     nr_tried = None
+     sz_tried = None
+@@ -361,6 +415,34 @@ class Kdamond:
+                     stat_values.append(int(content))
+                 scheme.stats = DamosStats(*stat_values)
+ 
++    def update_schemes_effective_quotas(self):
++        err = write_file(os.path.join(self.sysfs_dir(), 'state'),
++                         'update_schemes_effective_quotas')
++        if err is not None:
++            return err
++        for context in self.contexts:
++            for scheme in context.schemes:
++                for goal in scheme.quota.goals:
++                    content, err = read_file(
++                            os.path.join(scheme.quota.sysfs_dir(),
++                                         'effective_bytes'))
++                    if err is not None:
++                        return err
++                    goal.effective_bytes = int(content)
++        return None
++
++    def commit_schemes_quota_goals(self):
++        for context in self.contexts:
++            for scheme in context.schemes:
++                for goal in scheme.quota.goals:
++                    err = goal.stage()
++                    if err is not None:
++                        print('commit_schemes_quota_goals failed stagign: %s'%
++                              err)
++                        exit(1)
++        return write_file(os.path.join(self.sysfs_dir(), 'state'),
++                         'commit_schemes_quota_goals')
++
+ class Kdamonds:
+     kdamonds = []
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-arm-mm-drop-vm_fault_badmap-vm_fault_badaccess-checkpatch-fixes.patch
-mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios-fix.patch
-doc-split-bufferrst-out-of-api-summaryrst-fix-fix.patch
-mm-memory-failure-send-sigbus-in-the-event-of-thp-split-fail-fix.patch
-__mod_memcg_lruvec_state-enhance-diagnostics.patch
-__mod_memcg_lruvec_state-enhance-diagnostics-fix.patch
-watchdog-allow-nmi-watchdog-to-use-raw-perf-event-fix.patch
-kernel-watchdog_perfc-tidy-up-kerneldoc.patch
+mm-damon-paddr-implement-damon_folio_young.patch
+mm-damon-paddr-implement-damon_folio_mkold.patch
+mm-damon-add-damos-filter-type-young.patch
+mm-damon-paddr-implement-damos-filter-type-young.patch
+docs-mm-damon-design-document-young-page-type-damos-filter.patch
+docs-admin-guide-mm-damon-usage-update-for-young-page-type-damos-filter.patch
+docs-abi-damon-update-for-youg-page-type-damos-filter.patch
+mm-damon-paddr-avoid-unnecessary-page-level-access-check-for-pageout-damos-action.patch
+mm-damon-paddr-do-page-level-access-check-for-pageout-damos-action-on-its-own.patch
+mm-vmscan-remove-ignore_references-argument-of-reclaim_pages.patch
+mm-vmscan-remove-ignore_references-argument-of-reclaim_folio_list.patch
+selftests-damon-_damon_sysfs-support-quota-goals.patch
+selftests-damon-add-a-test-for-damos-quota-goal.patch
+mm-damon-core-initialize-esz_bp-from-damos_quota_init_priv.patch
+selftests-damon-_damon_sysfs-check-errors-from-nr_schemes-file-reads.patch
+selftests-damon-_damon_sysfs-find-sysfs-mount-point-from-proc-mounts.patch
+selftests-damon-_damon_sysfs-use-is-instead-of-==-for-none.patch
+selftests-damon-classify-tests-for-functionalities-and-regressions.patch
+docs-admin-guide-mm-damon-usage-fix-wrong-example-of-damos-filter-matching-sysfs-file.patch
+docs-admin-guide-mm-damon-usage-fix-wrong-schemes-effective-quota-update-command.patch
+docs-mm-damon-design-use-a-list-for-supported-filters.patch
+docs-mm-damon-maintainer-profile-change-the-maintainers-timezone-from-pst-to-pt.patch
+docs-mm-damon-maintainer-profile-allow-posting-patches-based-on-damon-next-tree.patch
 
