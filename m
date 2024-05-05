@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B5727604F
-	for <mm-commits@vger.kernel.org>; Sun,  5 May 2024 21:01:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37A5675818
+	for <mm-commits@vger.kernel.org>; Sun,  5 May 2024 21:01:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714942880; cv=none; b=G9/HvHnAdJjIO66qjEf5CWyUKgPFPoqbnyfacRoaiZKuZ7iGSBXkMJ0b59CMsH7L7NPf+hfuvJ8H9iwmZyDRZ7zA797rdoEptYVcWuPt+xkWZ96a/BGgE9fQ2+uXIF+FglnDSpYYvooD8rBYrrFTvddFykxelsCUIyGVurUzFoo=
+	t=1714942881; cv=none; b=jzSuQS1S59S/EGeN3VF2NfjEL9G2wEmonUCVqDDLnZRTuPtoEAR4ZpRdbs6An5IixcPjo6Q4v2XcngmJXwph/YRvYV2x6g2J4Qvs5qQI2UbZSqUgWJiQFmQnErBDhCfuv5tR1fXmF4To0hY0X94VsaMCBVLld/2rcp7VkxRIbU4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714942880; c=relaxed/simple;
-	bh=4AtROHZ7Id/b3ivUN5+IVPOzAM4F+isU/LUEuLOXRD0=;
-	h=Date:To:From:Subject:Message-Id; b=dKqtromd7j5Uug4OVNrdpAvxqCZ52z4x7yjmVogYYSqSTL52DWC7D9aRbDTfJ1OG7pPoLukdRUn1Enpy1IieO+OMKguhH+dH6x7b95wESR9cbe5CRsYbFbU3pcaY4/SR52YTfC/6OgvjowqZwd5QvTvxYOtkUsSmBHrku1ujX14=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i4W2Sl3m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714942881; c=relaxed/simple;
+	bh=g8vyXn30/issdzFYlp0/fJ3cVq7Xb4ut7nsqoJn6YaI=;
+	h=Date:To:From:Subject:Message-Id; b=mc2rxMyOtTuPguxABJYucpn1N4AsPMBTqIWJMkedg+Y9RlOgFLBj+GZSVFfhsro1kyj31bZw0QS+KSEPCNvyDj1CIpz1MXPNrggqjlRIkcuu/+RZqE4egM/8mYcBX9eMdLc/SItNKq/R7Lp320UsaucgmPvTaDbfyWmhpZm5jzE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qUjScJQR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i4W2Sl3m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E71FC113CC;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qUjScJQR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0000FC113CC;
 	Sun,  5 May 2024 21:01:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714942880;
-	bh=4AtROHZ7Id/b3ivUN5+IVPOzAM4F+isU/LUEuLOXRD0=;
+	s=korg; t=1714942881;
+	bh=g8vyXn30/issdzFYlp0/fJ3cVq7Xb4ut7nsqoJn6YaI=;
 	h=Date:To:From:Subject:From;
-	b=i4W2Sl3mj62ryKtgGg31MXRkCB+KciQvHmdPJPHeU1EaagCFt2wqqwapkpWvutVQx
-	 +YmsbIccy3VXx2sOybbeU9K2s3DGBQQD5c/gICoUIedRN7J3Bf0PTHXdymlejXeMj/
-	 cceex+oe9yNZty/heyslYjAxISxl2FkE9axoRoJs=
-Date: Sun, 05 May 2024 14:01:19 -0700
+	b=qUjScJQRcaQhfq5dZauoOxp4OReP8kbVj0s78EVXoeKO8mily/s0Xo1uvIXGimHXR
+	 QQ6ZKyI1OYRk9cKUjDqTwm4dmtq0VYN50hp1yTC8UhauRkKJ1rNPeGQB65XPbQOFyY
+	 yft8JZQjjdXR+KRPvLInQz8qlGmtAcPY7Xk+urhQ=
+Date: Sun, 05 May 2024 14:01:20 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-_damon_sysfs-check-errors-from-nr_schemes-file-reads.patch added to mm-unstable branch
-Message-Id: <20240505210120.1E71FC113CC@smtp.kernel.org>
+Subject: + selftests-damon-_damon_sysfs-find-sysfs-mount-point-from-proc-mounts.patch added to mm-unstable branch
+Message-Id: <20240505210121.0000FC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/_damon_sysfs: check errors from nr_schemes file reads
+     Subject: selftests/damon/_damon_sysfs: find sysfs mount point from /proc/mounts
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-damon-_damon_sysfs-check-errors-from-nr_schemes-file-reads.patch
+     selftests-damon-_damon_sysfs-find-sysfs-mount-point-from-proc-mounts.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfs-check-errors-from-nr_schemes-file-reads.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfs-find-sysfs-mount-point-from-proc-mounts.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,34 +59,44 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/_damon_sysfs: check errors from nr_schemes file reads
-Date: Fri, 3 May 2024 11:03:10 -0700
+Subject: selftests/damon/_damon_sysfs: find sysfs mount point from /proc/mounts
+Date: Fri, 3 May 2024 11:03:11 -0700
 
-DAMON context staging method in _damon_sysfs.py is not checking the
-returned error from nr_schemes file read.  Check it.
+_damon_sysfs.py assumes sysfs is mounted at /sys.  In some systems, that
+might not be true.  Find the mount point from /proc/mounts file content.
 
-Link: https://lkml.kernel.org/r/20240503180318.72798-3-sj@kernel.org
-Fixes: f5f0e5a2bef9 ("selftests/damon/_damon_sysfs: implement kdamonds start function")
+Link: https://lkml.kernel.org/r/20240503180318.72798-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/_damon_sysfs.py |    2 ++
- 1 file changed, 2 insertions(+)
+ tools/testing/selftests/damon/_damon_sysfs.py |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-check-errors-from-nr_schemes-file-reads
+--- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-find-sysfs-mount-point-from-proc-mounts
 +++ a/tools/testing/selftests/damon/_damon_sysfs.py
-@@ -341,6 +341,8 @@ class DamonCtx:
-         nr_schemes_file = os.path.join(
-                 self.sysfs_dir(), 'schemes', 'nr_schemes')
-         content, err = read_file(nr_schemes_file)
-+        if err is not None:
-+            return err
-         if int(content) != len(self.schemes):
-             err = write_file(nr_schemes_file, '%d' % len(self.schemes))
-             if err != None:
+@@ -2,7 +2,18 @@
+ 
+ import os
+ 
+-sysfs_root = '/sys/kernel/mm/damon/admin'
++ksft_skip=4
++
++sysfs_root = None
++with open('/proc/mounts', 'r') as f:
++    for line in f:
++        dev_name, mount_point, dev_fs = line.split()[:3]
++        if dev_fs == 'sysfs':
++            sysfs_root = '%s/kernel/mm/damon/admin' % mount_point
++            break
++if sysfs_root is None:
++    print('Seems sysfs not mounted?')
++    exit(ksft_skip)
+ 
+ def write_file(path, string):
+     "Returns error string if failed, or None otherwise"
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
