@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5730D75818
-	for <mm-commits@vger.kernel.org>; Sun,  5 May 2024 21:01:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E90E275818;
+	Sun,  5 May 2024 21:01:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714942883; cv=none; b=HHS89GBTlyGMfHg/lLvkkCWfMiXWOv9Tm2FhryJ6CxHUqQeYyWq+cNRJG2UrpfjtijXpxIxMiNdXwiInXA8R7BE7BM/YU7jlJGREobsysYj/mgRWkXBrONonhz1xVJnfKA+Zt24LKjtPpGrkCBXdKFIiDfmXnURS/Qq/tgddwhA=
+	t=1714942884; cv=none; b=ecZZgW76nTKZM3xgH/KizkKLwctDaIzh45Svt4iEnSpFJ6t6Q6bRh1leCKLRWNOwsEDLvmn6zd6VZ22Z1JKm3dzKUY7tEzDxt0WOJjESTRWTgU3DrV2MNWA/t8jkgPVvtutVCnvsW0s9CyE5VcbXwArA3A7RyNTFhnhoPvJTsUg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714942883; c=relaxed/simple;
-	bh=hWGmBA4Ks/IHqUoWDlgPC48Lp02aXE8iFuWcde9p+js=;
-	h=Date:To:From:Subject:Message-Id; b=MZj3KYOlAa3+KfWOLtExMmCKCvJke2BbCnznZDsSMoXdI/N0JPZrlaepR8brxDBZPeBsE1eZ/iRBH+3idEumAlJgEm6EoqmM+z9jeiiz2nPRnujPW7yIlfoqpAp3JjUcsVIphZMm2mhiXN5m96DJSS54EMVbpIMlQKsDvW2boEQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WG3JglBz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714942884; c=relaxed/simple;
+	bh=8e1RpfK47ikZQpKEZw8JcRNaSCFH6oazqpXfZ0qNmBM=;
+	h=Date:To:From:Subject:Message-Id; b=A3fZviXvYWhSvdU8L8r7qToP5XrdbaFg1qn/HEpNcHGwv3a37fV8Hd4ocbI9XXXPuSbj8/pQ7TE0YKZoVpgbZ99YUBcE2SiOXRNBAotpt0kM5WVoosy8QgTW921ZnTeJV+477YoHIyARDTIlOFpVGBVbUwQbEZrLeSJeAhYaNoc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ClAg436e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WG3JglBz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C465DC113CC;
-	Sun,  5 May 2024 21:01:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ClAg436e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0239C113CC;
+	Sun,  5 May 2024 21:01:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714942882;
-	bh=hWGmBA4Ks/IHqUoWDlgPC48Lp02aXE8iFuWcde9p+js=;
+	s=korg; t=1714942883;
+	bh=8e1RpfK47ikZQpKEZw8JcRNaSCFH6oazqpXfZ0qNmBM=;
 	h=Date:To:From:Subject:From;
-	b=WG3JglBz3VWmko9Sy/DhJX3uQeXINr90BA+n2oV2kVRZgIvdEqtYsQ48GrH/5hb/V
-	 uofKJ1InlD2iPFsvpR0nXtTQvavA5IAL+/eOfQ0qBCRTYmQYmifdQ7gKplRBb/8VL1
-	 OkpMkokXD1f/SVT8PFKbbNEAWkFLBizY6rrCbIi8=
-Date: Sun, 05 May 2024 14:01:22 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+	b=ClAg436e873iUa85NiTvYGS9HQh53WuxJxpSjHkYWQc4QrRO7YwJ4vGR/sqlep8vz
+	 Rk/p1RrnkyEwg6ZeAY3bSwLR1AwuI/h0HBFCUDBiweAJEFm07W1Xi2A7Y/jxrdt562
+	 i7jsHmoBy4ISmViJQwq4ZO1Fx+BNRd0hAdsJ27pA=
+Date: Sun, 05 May 2024 14:01:23 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-classify-tests-for-functionalities-and-regressions.patch added to mm-unstable branch
-Message-Id: <20240505210122.C465DC113CC@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-fix-wrong-example-of-damos-filter-matching-sysfs-file.patch added to mm-unstable branch
+Message-Id: <20240505210123.B0239C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon: classify tests for functionalities and regressions
+     Subject: Docs/admin-guide/mm/damon/usage: fix wrong example of DAMOS filter matching sysfs file
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-damon-classify-tests-for-functionalities-and-regressions.patch
+     docs-admin-guide-mm-damon-usage-fix-wrong-example-of-damos-filter-matching-sysfs-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-classify-tests-for-functionalities-and-regressions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-fix-wrong-example-of-damos-filter-matching-sysfs-file.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,54 +59,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon: classify tests for functionalities and regressions
-Date: Fri, 3 May 2024 11:03:13 -0700
+Subject: Docs/admin-guide/mm/damon/usage: fix wrong example of DAMOS filter matching sysfs file
+Date: Fri, 3 May 2024 11:03:14 -0700
 
-DAMON selftests can be classified into two categories: functionalities and
-regressions.  Functionality tests are for checking if the function is
-working as specified, while the regression tests are basically reproducers
-of previously reported and fixed bugs.  The tests of the categories are
-mixed in the selftests Makefile.  Separate those for easier understanding
-of the types of tests.
+The example usage of DAMOS filter sysfs files, specifically the part of
+'matching' file writing for memcg type filter, is wrong.  The intention is
+to exclude pages of a memcg that already getting enough care from a given
+scheme, but the example is setting the filter to apply the scheme to only
+the pages of the memcg.  Fix it.
 
-Link: https://lkml.kernel.org/r/20240503180318.72798-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240503180318.72798-7-sj@kernel.org
+Fixes: 9b7f9322a530 ("Docs/admin-guide/mm/damon/usage: document DAMOS filters of sysfs")
+Closes: https://lore.kernel.org/r/20240317191358.97578-1-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[6.3.x]
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ Documentation/admin-guide/mm/damon/usage.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/damon/Makefile~selftests-damon-classify-tests-for-functionalities-and-regressions
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -7,16 +7,21 @@ TEST_GEN_FILES += debugfs_target_ids_pid
- TEST_GEN_FILES += access_memory
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-fix-wrong-example-of-damos-filter-matching-sysfs-file
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -434,7 +434,7 @@ pages of all memory cgroups except ``/ha
+     # # further filter out all cgroups except one at '/having_care_already'
+     echo memcg > 1/type
+     echo /having_care_already > 1/memcg_path
+-    echo N > 1/matching
++    echo Y > 1/matching
  
- TEST_FILES = _chk_dependency.sh _debugfs_common.sh
-+
-+# functionality tests
- TEST_PROGS = debugfs_attrs.sh debugfs_schemes.sh debugfs_target_ids.sh
-+TEST_PROGS += sysfs.sh
-+TEST_PROGS += sysfs_update_schemes_tried_regions_wss_estimation.py
-+TEST_PROGS += damos_quota.py damos_quota_goal.py damos_apply_interval.py
-+TEST_PROGS += reclaim.sh lru_sort.sh
-+
-+# regression tests (reproducers of previously found bugs)
- TEST_PROGS += debugfs_empty_targets.sh debugfs_huge_count_read_write.sh
- TEST_PROGS += debugfs_duplicate_context_creation.sh
- TEST_PROGS += debugfs_rm_non_contexts.sh
- TEST_PROGS += debugfs_target_ids_read_before_terminate_race.sh
- TEST_PROGS += debugfs_target_ids_pid_leak.sh
--TEST_PROGS += sysfs.sh sysfs_update_removed_scheme_dir.sh
-+TEST_PROGS += sysfs_update_removed_scheme_dir.sh
- TEST_PROGS += sysfs_update_schemes_tried_regions_hang.py
--TEST_PROGS += sysfs_update_schemes_tried_regions_wss_estimation.py
--TEST_PROGS += damos_quota.py damos_quota_goal.py damos_apply_interval.py
--TEST_PROGS += reclaim.sh lru_sort.sh
- 
- include ../lib.mk
+ Note that ``anon`` and ``memcg`` filters are currently supported only when
+ ``paddr`` :ref:`implementation <sysfs_context>` is being used.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
