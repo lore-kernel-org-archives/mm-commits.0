@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 890017580E
-	for <mm-commits@vger.kernel.org>; Sun,  5 May 2024 21:01:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42B047580E
+	for <mm-commits@vger.kernel.org>; Sun,  5 May 2024 21:01:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714942889; cv=none; b=N0ArRb0RUmSG4lJni8rt+SiQglTeO3JGAxQI5LHje57uB45wgPnR03bdO8isU8pdVqvpXN6end5ctf7YYYy+VN9HWGbB+wgjqGmdSksW3zEnIpIWGFJg4bKBF5K9RUzqcY1ruRfgJxj30ND7iBuWbF3ePQswGiP20U6B75MLmNg=
+	t=1714942890; cv=none; b=rzC5b78r2kBLLRGKKvd9XKXWiJB3WC/9+Xlzsu2M4w7Q+phl7N4LqGv2Z7kkOCzUmenuNXY6vtDJuH0WQf609ziT1vIdj1jS+7ggySE9Xu0ERUJDV+aHc/0pTRHcffzQggU3PxtptX6zgi9F5ebiBSFuVIDO1tq9dUyZDYJY9Go=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714942889; c=relaxed/simple;
-	bh=vvfMv3Ezizz8NFUZkqOxcHpRvLgBjrodRmhbHIED+TE=;
-	h=Date:To:From:Subject:Message-Id; b=J810AyXxBnvXtiwTq/P2jD9yAY0EaNOK2xvE6z8aEBYwjuTKzYBLkNU8QIpZAV8Rgrs2YFmROjm8uxZpytgO5EBJu4nsILulNVccUd/IC69M9Ay2SdcuCfZ8t2LkYvp3HUNZUpAG+0/4N1zYF+/hvbBiBDe6sL1b+rN5ERfYbOo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O8TtjL1z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714942890; c=relaxed/simple;
+	bh=iSObSk26QZ8pGkw3Vi0tL/W5Sq8noN8koN3W3a4ERnk=;
+	h=Date:To:From:Subject:Message-Id; b=HYzieqQnl8a3attAo+hzPVUNtbEQJHZqj4vsdgglAKsSiyb0qMvthP3e4qoUqVV4ZGP2mOUfyHnUhpune2mUf/X7M8Kxl1BMkGBY3mrFzvbhmoaV+S4vKz2pFg5i1HlFlklP3fXAMp6AZojSGLX1flqliU1mAkDm1cUR80d9LvM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tGIP0rYF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O8TtjL1z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36F6BC113CC;
-	Sun,  5 May 2024 21:01:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tGIP0rYF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15868C113CC;
+	Sun,  5 May 2024 21:01:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714942889;
-	bh=vvfMv3Ezizz8NFUZkqOxcHpRvLgBjrodRmhbHIED+TE=;
+	s=korg; t=1714942890;
+	bh=iSObSk26QZ8pGkw3Vi0tL/W5Sq8noN8koN3W3a4ERnk=;
 	h=Date:To:From:Subject:From;
-	b=O8TtjL1zWiVqolYK/jsp7bcYeanXSyo1LDrrNreRFtY5SmyzWa2JgBGEnQEDGiN9o
-	 WSzlL7oQfgrHRfUtKyUhCnd3dv4Yusjwobm2NcKg2A4yLje7fzFVxssXoUrv9WMl3Z
-	 Zls4LNS3bcdKaPNtFV2AA9vUayuqiaegWjLWRuxk=
-Date: Sun, 05 May 2024 14:01:28 -0700
-To: mm-commits@vger.kernel.org,conor@kernel.org,john.g.garry@oracle.com,akpm@linux-foundation.org
+	b=tGIP0rYFsgn7M+RbEQ9XSYj2tgJ6pb/auJrkXH9t61yukqHJ1JW+vaqgVvpWnptgj
+	 vbNiqWscs0xXSblxSuWHmZhvAMDKa4e1tCubBbT2tv6fLSRYcKirer4arXlSAaAZAu
+	 /XCBsCGK2mWsjeOk5SvCyH3qy7zgZq99oqJz2dvA=
+Date: Sun, 05 May 2024 14:01:29 -0700
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,jeffxu@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-add-entry-for-john-garry.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240505210129.36F6BC113CC@smtp.kernel.org>
+Subject: + selftest-mm-mseal-read-only-elf-memory-segment-fix-4.patch added to mm-unstable branch
+Message-Id: <20240505210130.15868C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap: add entry for John Garry
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-add-entry-for-john-garry.patch
+     Subject: selftest mm/mseal: fix arm build
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftest-mm-mseal-read-only-elf-memory-segment-fix-4.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-entry-for-john-garry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-mseal-read-only-elf-memory-segment-fix-4.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,35 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: John Garry <john.g.garry@oracle.com>
-Subject: mailmap: add entry for John Garry
-Date: Fri, 3 May 2024 08:57:36 +0000
+From: Jeff Xu <jeffxu@chromium.org>
+Subject: selftest mm/mseal: fix arm build
+Date: Thu, 2 May 2024 22:53:31 +0000
 
-get_maintainers.pl sometimes suggests my name and old e-mail address, so
-update .mailmap to point to my current e-mail address.
+Add include linux/mman.h to fix arm build.  Fix a typo.
 
-Link: https://lkml.kernel.org/r/20240503085736.3354268-1-john.g.garry@oracle.com
-Signed-off-by: John Garry <john.g.garry@oracle.com>
-Reported-by: Conor Dooley <conor@kernel.org>
+Link: https://lkml.kernel.org/r/20240502225331.3806279-2-jeffxu@chromium.org
+Signed-off-by: Jeff Xu <jeffxu@chromium.org>
+Suggested-by: Ryan Roberts <ryan.roberts@arm.com>
+Tested-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com> 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/mm/mseal_test.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/.mailmap~mailmap-add-entry-for-john-garry
-+++ a/.mailmap
-@@ -292,6 +292,7 @@ Johan Hovold <johan@kernel.org> <jhovold
- Johan Hovold <johan@kernel.org> <johan@hovoldconsulting.com>
- John Crispin <john@phrozen.org> <blogic@openwrt.org>
- John Fastabend <john.fastabend@gmail.com> <john.r.fastabend@intel.com>
-+John Garry <john.g.garry@oracle.com> <john.garry@huawei.com>
- John Keeping <john@keeping.me.uk> <john@metanate.com>
- John Moon <john@jmoon.dev> <quic_johmoo@quicinc.com>
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+--- a/tools/testing/selftests/mm/mseal_test.c~selftest-mm-mseal-read-only-elf-memory-segment-fix-4
++++ a/tools/testing/selftests/mm/mseal_test.c
+@@ -1,5 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #define _GNU_SOURCE
++#include <linux/mman.h>
+ #include <sys/mman.h>
+ #include <stdint.h>
+ #include <unistd.h>
+@@ -29,7 +30,7 @@
+ # define PKEY_DISABLE_WRITE     0x2
+ #endif
+ 
+-#ifndef PKEY_BITS_PER_KEY
++#ifndef PKEY_BITS_PER_PKEY
+ #define PKEY_BITS_PER_PKEY      2
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from john.g.garry@oracle.com are
+Patches currently in -mm which might be from jeffxu@chromium.org are
 
-mailmap-add-entry-for-john-garry.patch
+mseal-wire-up-mseal-syscall.patch
+mseal-add-mseal-syscall.patch
+mseal-add-mseal-syscall-fix.patch
+selftest-mm-mseal-memory-sealing.patch
+mseal-add-documentation.patch
+selftest-mm-mseal-read-only-elf-memory-segment.patch
+selftest-mm-mseal-read-only-elf-memory-segment-fix.patch
+selftest-mm-mseal-read-only-elf-memory-segment-fix-3.patch
+selftest-mm-mseal-read-only-elf-memory-segment-fix-4.patch
 
