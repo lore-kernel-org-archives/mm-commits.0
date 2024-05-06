@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04A873A1B6
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:59:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10F3F3A1B9
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:59:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957165; cv=none; b=NKz2pbt/ndWsUZ9+llky/wetxwU1ND7aESXRzR5+0jA9QmQp3xzXcoRvxYXnO9W+vrGovzY8YZ/uVLw9A2a/VyUgFDksZZqM8CORbtysSdlYpReiVwxjf8fJhsOrprNDkk9/pUXR7xM6QHPfgT8cf+geJiQKmE9rKUBHu/Vvh6U=
+	t=1714957166; cv=none; b=sGwWXrQ7sX0WUaiIqxXQrrInTSezb0/78CnZhkB4gWMYnm3EsA/CL51hcWEy2PC0/I/ul2lve3FF6kxlr173tyxj25R4PsODadgR5emP/rxt1fcB9gkr6FWdS/SYA0dYkJDsHCSF8+5JWhaebrdBbC4WbqZSKH7BNSXcneobGHA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957165; c=relaxed/simple;
-	bh=YWpZZnO0YG3Bm/dJ+GfgmLiqDlcrIxSKYS8iD1DQZWA=;
-	h=Date:To:From:Subject:Message-Id; b=mxp+KtfjPOjR6lKOmP0nzcBQtlu64WxdK67RNQzdwbM9ZjZaUwGIwfco3FfvYIVfNS47eljtX4xO2lXjxZlNu4ONQTOHf6BDJl6kPwEzUgUMQUshBVVjnoq8DcVE3XXaUggVkOUhQiZPJZc+BNGy7PJHObLvH/gXYOzEESRYqGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p3iKEHui; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957166; c=relaxed/simple;
+	bh=mbfE0/0KFL3LjeaafAw0jghEUiv1WgFyRks0ag/QyUg=;
+	h=Date:To:From:Subject:Message-Id; b=bHNogu3+ms9WWS1Q2zxs+X/9sEmYTPsqKvYfm/d3lr8YlRQKIlJWzzuqhV9g6pCj2aTQg11xe+10GajDx+Mf/teMv7deKcE6QdGc0k4HctYTWwUZkGgqKHZlhGuSBR8xSZ8P6Vlmr5lHApG+0ba6U8oDFTZMha/Ht5eps7KLngM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N3WZ4cMI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p3iKEHui"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFA6EC113CC;
-	Mon,  6 May 2024 00:59:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N3WZ4cMI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCC3EC116B1;
+	Mon,  6 May 2024 00:59:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957164;
-	bh=YWpZZnO0YG3Bm/dJ+GfgmLiqDlcrIxSKYS8iD1DQZWA=;
+	s=korg; t=1714957166;
+	bh=mbfE0/0KFL3LjeaafAw0jghEUiv1WgFyRks0ag/QyUg=;
 	h=Date:To:From:Subject:From;
-	b=p3iKEHuibpVczUmzkCwm8lAFpAzBFEUfWnSiR34qyv1qFtlLeIk/2mHQM7BjtuDSi
-	 rUddjt5nJu1mTLJAC0dmhb6gr4ZXTlxAkfFcMQaSs7aPAFqeoSFQ54EDswk9RqpWRz
-	 SoPnRxoYCrxTd0jANuvsGfUcRYu8ZdnNbkmVtcyY=
-Date: Sun, 05 May 2024 17:59:24 -0700
-To: mm-commits@vger.kernel.org,dave.jiang@intel.com,dan.j.williams@intel.com,alison.schofield@intel.com,vishal.l.verma@intel.com,akpm@linux-foundation.org
+	b=N3WZ4cMIJgLbDZVSRQ9Zx7Rd36LZUmcBttATD9BeCsmoVEzUSyIO+cHuqlBgiats8
+	 eiwV/YMmrk/vHwD0An2I5kosEVZlxbfpBEN5MlDuPjC4aZz09qkVF8n4rHuwMLaiqE
+	 6cfc9VcFP7na1zs0r5lsNNX+CfUueQB19RmsC5U0=
+Date: Sun, 05 May 2024 17:59:25 -0700
+To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,david@redhat.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] dax-busc-use-the-right-locking-mode-read-vs-write-in-size_show.patch removed from -mm tree
-Message-Id: <20240506005924.CFA6EC113CC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-align-cma-on-allocation-order-not-demotion-order.patch removed from -mm tree
+Message-Id: <20240506005925.DCC3EC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: dax/bus.c: use the right locking mode (read vs write) in size_show
+     Subject: mm/hugetlb: align cma on allocation order, not demotion order
 has been removed from the -mm tree.  Its filename was
-     dax-busc-use-the-right-locking-mode-read-vs-write-in-size_show.patch
+     mm-hugetlb-align-cma-on-allocation-order-not-demotion-order.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: dax/bus.c: use the right locking mode (read vs write) in size_show
-Date: Tue, 30 Apr 2024 11:44:26 -0600
+From: Frank van der Linden <fvdl@google.com>
+Subject: mm/hugetlb: align cma on allocation order, not demotion order
+Date: Tue, 30 Apr 2024 16:14:37 +0000
 
-In size_show(), the dax_dev_rwsem only needs a read lock, but was
-acquiring a write lock.  Change it to down_read_interruptible() so it
-doesn't unnecessarily hold a write lock.
+Align the CMA area for hugetlb gigantic pages to their size, not the size
+that they can be demoted to.  Otherwise there might be misaligned sections
+at the start and end of the CMA area that will never be used for hugetlb
+page allocations.
 
-Link: https://lkml.kernel.org/r/20240430-vv-dax_abi_fixes-v3-4-e3dcd755774c@intel.com
-Fixes: c05ae9d85b47 ("dax/bus.c: replace driver-core lock usage by a local rwsem")
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
+Link: https://lkml.kernel.org/r/20240430161437.2100295-1-fvdl@google.com
+Fixes: a01f43901cfb ("hugetlb: be sure to free demoted CMA pages to CMA")
+Signed-off-by: Frank van der Linden <fvdl@google.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/bus.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/dax/bus.c~dax-busc-use-the-right-locking-mode-read-vs-write-in-size_show
-+++ a/drivers/dax/bus.c
-@@ -937,11 +937,11 @@ static ssize_t size_show(struct device *
- 	unsigned long long size;
- 	int rc;
- 
--	rc = down_write_killable(&dax_dev_rwsem);
-+	rc = down_read_interruptible(&dax_dev_rwsem);
- 	if (rc)
- 		return rc;
- 	size = dev_dax_size(dev_dax);
--	up_write(&dax_dev_rwsem);
-+	up_read(&dax_dev_rwsem);
- 
- 	return sysfs_emit(buf, "%llu\n", size);
- }
+--- a/mm/hugetlb.c~mm-hugetlb-align-cma-on-allocation-order-not-demotion-order
++++ a/mm/hugetlb.c
+@@ -7800,7 +7800,7 @@ void __init hugetlb_cma_reserve(int orde
+ 		 * huge page demotion.
+ 		 */
+ 		res = cma_declare_contiguous_nid(0, size, 0,
+-					PAGE_SIZE << HUGETLB_PAGE_ORDER,
++					PAGE_SIZE << order,
+ 					HUGETLB_PAGE_ORDER, false, name,
+ 					&hugetlb_cma[nid], nid);
+ 		if (res) {
 _
 
-Patches currently in -mm which might be from vishal.l.verma@intel.com are
+Patches currently in -mm which might be from fvdl@google.com are
 
 
