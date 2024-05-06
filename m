@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7EC45250;
-	Mon,  6 May 2024 00:28:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB19E63A9;
+	Mon,  6 May 2024 00:28:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714955331; cv=none; b=oj/z7XmIRuzpAh3HjZKMPLbdVlodIYEe+5ZG+rZnfrWyyAvUEm44DOcDB+fmCmfaP5FaKfJ5Y+reF1cXEJjo0P+bLJ+Ez58YSSnCulhsX/7Ufyu2GPuQsFFv/sLG+sbpApxP6o/Ro+DR2Yq5MkOJlMlocttDt6E3J6uMwYFb5u8=
+	t=1714955333; cv=none; b=qYhatX7pwns/PDwcwKeC4JLR0w3d6C5V2iGNkmDf9xyT4KgqBIiJVj3nyoGd6lsubfPQfcevUQHaDLHOJ3F/2ip5oGsjp5ENBBww4n7bOpVOXqyT7iP8mGwlF0SU+hsKk25KAvQW2BvVbDFegdyXdzUk63ZUT3EeHkvJJSqeAx0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714955331; c=relaxed/simple;
-	bh=z4D3EWwSw0nb9bCGZiCBKNDVSTNeZ5mzAhFlrAvOJYs=;
-	h=Date:To:From:Subject:Message-Id; b=Vl28pEMWzcO2Ymnrv6aCnUOHBa9s9ipcr/Oq4rkbAlzvi4pZaQBaLp15X9oIMxbpLsDtGFvjrmD4AiP6Lec1mz8X5opBcGcKFr8etvh33CNQ5I1V0TDBFodveeYMSllubpR8JbI6EH0LP8cI0Ww8B9VHrVxoBY0QY5QtTMb4pCM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a/rNehg4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714955333; c=relaxed/simple;
+	bh=KXngUfJs0V7NMa+eja4yavbvwn7lF6m4cNk/uXBNqOw=;
+	h=Date:To:From:Subject:Message-Id; b=pJRGaK5Y3EFjWfkHu1Ozn0jqvyAKSjZeRfzzekj+gM8hCpjXh+zX/H1Tfgv+m357UFD/MKXMwTrjk20UJ9CNa1dIcBISNmCPsVqwnirC5UC7rp7/qZY/9otDnUFEecd7lwWBT1ikZFBnss0GxS7OUHTO+7XLMCkyFL6IC2GxGms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JvGJ8zsl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a/rNehg4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 925E9C113CC;
-	Mon,  6 May 2024 00:28:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JvGJ8zsl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFE56C113CC;
+	Mon,  6 May 2024 00:28:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714955331;
-	bh=z4D3EWwSw0nb9bCGZiCBKNDVSTNeZ5mzAhFlrAvOJYs=;
+	s=korg; t=1714955332;
+	bh=KXngUfJs0V7NMa+eja4yavbvwn7lF6m4cNk/uXBNqOw=;
 	h=Date:To:From:Subject:From;
-	b=a/rNehg4HXgCSiGqxJg6mkLvEdG4D2Va9NLMGNUE77TawyVr71aeacSjWOOUZ29aJ
-	 99ieMJ3pBFgYqDSSjWcfKtSsHbq8YFEUoixZufim2ZvPc/oeXRfGx92qQHsK4fAuXZ
-	 3DEyeMFFoFJ4HiuTsIxqJB2Nl8b+FXZ45IAeAHpA=
-Date: Sun, 05 May 2024 17:28:51 -0700
+	b=JvGJ8zsloKK2QsdPWI0KEKVcs6ZOEOu0Zs00Mm6J7QWxde9RCcwR7mld25X+votxe
+	 zmdwDdIB7mcSnwUEd6I4+d8H6dG/CO4WgjaCsM42LQTdPzbk0NugURSr9ATDwwkKmL
+	 VKqz6DZX1oyb5BJAZLjAf7D+3LqoSnIiiXaDaf/Q=
+Date: Sun, 05 May 2024 17:28:52 -0700
 To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,stable@vger.kernel.org,peterx@redhat.com,david@redhat.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] fs-proc-task_mmu-fix-loss-of-young-dirty-bits-during-pagemap-scan.patch removed from -mm tree
-Message-Id: <20240506002851.925E9C113CC@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] fs-proc-task_mmu-fix-uffd-wp-confusion-in-pagemap_scan_pmd_entry.patch removed from -mm tree
+Message-Id: <20240506002852.AFE56C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,119 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fs/proc/task_mmu: fix loss of young/dirty bits during pagemap scan
+     Subject: fs/proc/task_mmu: fix uffd-wp confusion in pagemap_scan_pmd_entry()
 has been removed from the -mm tree.  Its filename was
-     fs-proc-task_mmu-fix-loss-of-young-dirty-bits-during-pagemap-scan.patch
+     fs-proc-task_mmu-fix-uffd-wp-confusion-in-pagemap_scan_pmd_entry.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: fs/proc/task_mmu: fix loss of young/dirty bits during pagemap scan
-Date: Mon, 29 Apr 2024 12:40:17 +0100
+Subject: fs/proc/task_mmu: fix uffd-wp confusion in pagemap_scan_pmd_entry()
+Date: Mon, 29 Apr 2024 12:41:04 +0100
 
-make_uffd_wp_pte() was previously doing:
+pagemap_scan_pmd_entry() checks if uffd-wp is set on each pte to avoid
+unnecessary if set.  However it was previously checking with
+`pte_uffd_wp(ptep_get(pte))` without first confirming that the pte was
+present.  It is only valid to call pte_uffd_wp() for present ptes.  For
+swap ptes, pte_swp_uffd_wp() must be called because the uffd-wp bit may be
+kept in a different position, depending on the arch.
 
-  pte = ptep_get(ptep);
-  ptep_modify_prot_start(ptep);
-  pte = pte_mkuffd_wp(pte);
-  ptep_modify_prot_commit(ptep, pte);
+This was leading to test failures in the pagemap_ioctl mm selftest, when
+bringing up uffd-wp support on arm64 due to incorrectly interpretting the
+uffd-wp status of migration entries.
 
-But if another thread accessed or dirtied the pte between the first 2
-calls, this could lead to loss of that information.  Since
-ptep_modify_prot_start() gets and clears atomically, the following is the
-correct pattern and prevents any possible race.  Any access after the
-first call would see an invalid pte and cause a fault:
+Let's fix this by using the correct check based on pte_present().  While
+we are at it, let's pass the pte to make_uffd_wp_pte() to avoid the
+pointless extra ptep_get() which can't be optimized out due to READ_ONCE()
+on many arches.
 
-  pte = ptep_modify_prot_start(ptep);
-  pte = pte_mkuffd_wp(pte);
-  ptep_modify_prot_commit(ptep, pte);
-
-Link: https://lkml.kernel.org/r/20240429114017.182570-1-ryan.roberts@arm.com
-Fixes: 52526ca7fdb9 ("fs/proc/task_mmu: implement IOCTL to get and optionally clear info about PTEs")
+Link: https://lkml.kernel.org/r/20240429114104.182890-1-ryan.roberts@arm.com
+Fixes: 12f6b01a0bcb ("fs/proc/task_mmu: add fast paths to get/clear PAGE_IS_WRITTEN flag")
+Closes: https://lore.kernel.org/linux-arm-kernel/ZiuyGXt0XWwRgFh9@x1n/
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Tested-by: Muhammad Usama Anjum <usama.anjum@collabora.com> 
 Cc: Peter Xu <peterx@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-fix-loss-of-young-dirty-bits-during-pagemap-scan
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-fix-uffd-wp-confusion-in-pagemap_scan_pmd_entry
 +++ a/fs/proc/task_mmu.c
-@@ -1825,7 +1825,7 @@ static void make_uffd_wp_pte(struct vm_a
+@@ -1817,10 +1817,8 @@ static unsigned long pagemap_page_catego
+ }
+ 
+ static void make_uffd_wp_pte(struct vm_area_struct *vma,
+-			     unsigned long addr, pte_t *pte)
++			     unsigned long addr, pte_t *pte, pte_t ptent)
+ {
+-	pte_t ptent = ptep_get(pte);
+-
+ 	if (pte_present(ptent)) {
  		pte_t old_pte;
  
- 		old_pte = ptep_modify_prot_start(vma, addr, pte);
--		ptent = pte_mkuffd_wp(ptent);
-+		ptent = pte_mkuffd_wp(old_pte);
- 		ptep_modify_prot_commit(vma, addr, pte, old_pte, ptent);
- 	} else if (is_swap_pte(ptent)) {
- 		ptent = pte_swp_mkuffd_wp(ptent);
+@@ -2175,9 +2173,12 @@ static int pagemap_scan_pmd_entry(pmd_t
+ 	if ((p->arg.flags & PM_SCAN_WP_MATCHING) && !p->vec_out) {
+ 		/* Fast path for performing exclusive WP */
+ 		for (addr = start; addr != end; pte++, addr += PAGE_SIZE) {
+-			if (pte_uffd_wp(ptep_get(pte)))
++			pte_t ptent = ptep_get(pte);
++
++			if ((pte_present(ptent) && pte_uffd_wp(ptent)) ||
++			    pte_swp_uffd_wp_any(ptent))
+ 				continue;
+-			make_uffd_wp_pte(vma, addr, pte);
++			make_uffd_wp_pte(vma, addr, pte, ptent);
+ 			if (!flush_end)
+ 				start = addr;
+ 			flush_end = addr + PAGE_SIZE;
+@@ -2190,8 +2191,10 @@ static int pagemap_scan_pmd_entry(pmd_t
+ 	    p->arg.return_mask == PAGE_IS_WRITTEN) {
+ 		for (addr = start; addr < end; pte++, addr += PAGE_SIZE) {
+ 			unsigned long next = addr + PAGE_SIZE;
++			pte_t ptent = ptep_get(pte);
+ 
+-			if (pte_uffd_wp(ptep_get(pte)))
++			if ((pte_present(ptent) && pte_uffd_wp(ptent)) ||
++			    pte_swp_uffd_wp_any(ptent))
+ 				continue;
+ 			ret = pagemap_scan_output(p->cur_vma_category | PAGE_IS_WRITTEN,
+ 						  p, addr, &next);
+@@ -2199,7 +2202,7 @@ static int pagemap_scan_pmd_entry(pmd_t
+ 				break;
+ 			if (~p->arg.flags & PM_SCAN_WP_MATCHING)
+ 				continue;
+-			make_uffd_wp_pte(vma, addr, pte);
++			make_uffd_wp_pte(vma, addr, pte, ptent);
+ 			if (!flush_end)
+ 				start = addr;
+ 			flush_end = next;
+@@ -2208,8 +2211,9 @@ static int pagemap_scan_pmd_entry(pmd_t
+ 	}
+ 
+ 	for (addr = start; addr != end; pte++, addr += PAGE_SIZE) {
++		pte_t ptent = ptep_get(pte);
+ 		unsigned long categories = p->cur_vma_category |
+-					   pagemap_page_category(p, vma, addr, ptep_get(pte));
++					   pagemap_page_category(p, vma, addr, ptent);
+ 		unsigned long next = addr + PAGE_SIZE;
+ 
+ 		if (!pagemap_scan_is_interesting_page(categories, p))
+@@ -2224,7 +2228,7 @@ static int pagemap_scan_pmd_entry(pmd_t
+ 		if (~categories & PAGE_IS_WRITTEN)
+ 			continue;
+ 
+-		make_uffd_wp_pte(vma, addr, pte);
++		make_uffd_wp_pte(vma, addr, pte, ptent);
+ 		if (!flush_end)
+ 			start = addr;
+ 		flush_end = next;
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
