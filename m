@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E57232207A
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:57:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B4A32207A
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:57:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957055; cv=none; b=qS/wNxQ4jTJg3fiRv+QbVFIgvvRuqJjzatcTJ/Q7kjdewHWbizicm/CBWgWOYD63HOWBMPDxIyo05vXno0FYFYSLsQhNoxu3HovwwFzBeEZn8a96d7Nz42os+e8+dG9wSgNfkpzjRn+w1zIcnS4iNu6ttqAq5wBMxV4Qm+pG3Cs=
+	t=1714957056; cv=none; b=cPl6L06WAWh9YuK5pD8LMMSiuKezO/pcFi+5lafAfTfQ8jCSRbjYTNX/RWiVcaFeoB38wJZd290MFhiX0SfnN9/QEh8m+B3BGvpor6EYGiYu/S8CNzIBxw+MxodH3Qm4JMo1b9htqw5GK/G3t7J03yR1Swpvu+7e9cr3pff6tlU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957055; c=relaxed/simple;
-	bh=jCBlCYavEl8YF01xDnO+5cL/hwVqafYBrbb39sTQ6vo=;
-	h=Date:To:From:Subject:Message-Id; b=QknBoGp+9dfcV0gsITKTyHstsDPBaOiv/aXoUzw+YEE8pYkmr+eXbGIYq4kG6yaSdcX4U9iHd3Mlm820A9Lt1Ao45SR8o5fPzA5DjktWntJREavIjd+7Fm0+A2JBj2uXpAho6QgunOJv+8dhQRPLXDJRiVVcFKedqZXDI3bk+Ao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zQ6WFzVI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957056; c=relaxed/simple;
+	bh=iTgbutXZsrfC60RFcf9wdeFXVGJ7UFrDp2UAsbTeDJQ=;
+	h=Date:To:From:Subject:Message-Id; b=MXKqDnh3ImPRuDYaq0IxHjdq8d+VKewSqyjz6YK4d5raTYEjxYuuyfz+61SnOpIW2KmvdE3WpyY4MRIpqU+mumv6dvaExzmkqrPkEp/FoVxAUr+lAbXbfpIMTRVi0mKeLJspNnLEok3VS7XVlZzojcwPukqa7eIxiqgQ4nlOdWA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zaqvmQr/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zQ6WFzVI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B23FFC113CC;
-	Mon,  6 May 2024 00:57:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zaqvmQr/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E96C7C113CC;
+	Mon,  6 May 2024 00:57:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957054;
-	bh=jCBlCYavEl8YF01xDnO+5cL/hwVqafYBrbb39sTQ6vo=;
+	s=korg; t=1714957056;
+	bh=iTgbutXZsrfC60RFcf9wdeFXVGJ7UFrDp2UAsbTeDJQ=;
 	h=Date:To:From:Subject:From;
-	b=zQ6WFzVIfcU8kcMDH72EqrF6wPcxJSoHcUliCA6w1MGcDHpTca/0zHwZVE8HDv52/
-	 0RwRmWeyM2LwvTBvYWHKtkDEKpfVyTmNITRG8AXArDAmMfJe73Fu9BUZNB95ycaQ2t
-	 7V0pVaWLmru5y32y0xdbe6oxO1YA7OxQDNwITZAk=
-Date: Sun, 05 May 2024 17:57:34 -0700
-To: mm-commits@vger.kernel.org,yi.zhang@huawei.com,yangerkun@huawei.com,willy@infradead.org,houtao1@huawei.com,leo.lilong@huawei.com,akpm@linux-foundation.org
+	b=zaqvmQr/OhZfp7K5zFhAXJg5MG0nv2ohpFdiWr6ure7SJc2nKw1UOdVAVP/whk1NJ
+	 OWAl1ewEw0jWcJlPHEVGQJ+1t8tZIYdsYUtkzfx/gwqH511mptW4wFILgXje66Ey7A
+	 7SqMTXGO33xjPTTv2GajKCxD5OU/BXMVfELyrCcE=
+Date: Sun, 05 May 2024 17:57:35 -0700
+To: mm-commits@vger.kernel.org,p.raghav@samsung.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] xarray-inline-xas_descend-to-improve-performance.patch removed from -mm tree
-Message-Id: <20240506005734.B23FFC113CC@smtp.kernel.org>
+Subject: [merged mm-stable] doc-improve-the-description-of-__folio_mark_dirty.patch removed from -mm tree
+Message-Id: <20240506005735.E96C7C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xarray: inline xas_descend to improve performance
+     Subject: doc: improve the description of __folio_mark_dirty
 has been removed from the -mm tree.  Its filename was
-     xarray-inline-xas_descend-to-improve-performance.patch
+     doc-improve-the-description-of-__folio_mark_dirty.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Long Li <leo.lilong@huawei.com>
-Subject: xarray: inline xas_descend to improve performance
-Date: Tue, 16 Apr 2024 14:16:28 +0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: doc: improve the description of __folio_mark_dirty
+Date: Tue, 16 Apr 2024 04:17:45 +0100
 
-The commit 63b1898fffcd ("XArray: Disallow sibling entries of nodes")
-modified the xas_descend function in such a way that it was no longer
-being compiled as an inline function, because it increased the size of
-xas_descend(), and the compiler no longer optimizes it as inline.  This
-had a negative impact on performance, xas_descend is called frequently to
-traverse downwards in the xarray tree, making it a hot function.
+Patch series "Improve buffer head documentation", v3.
 
-Inlining xas_descend has been shown to significantly improve performance
-by approximately 4.95% in the iozone write test.
+Turn buffer head documentation into its own document, and make many
+general improvements to the docs.  Obviously there is much more that could
+be done.  Tested with make htmldocs.
 
-  Machine: Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz
-  #iozone i 0 -i 1 -s 64g -r 16m -f /test/tmptest
 
-Before this patch:
+This patch (of 8):
 
-       kB    reclen    write   rewrite     read    reread
- 67108864     16384  2230080   3637689  6315197   5496027
+I've learned why it's safe to call __folio_mark_dirty() from
+mark_buffer_dirty() without holding the folio lock, so update the
+description to explain why.
 
-After this patch:
-
-       kB    reclen    write   rewrite     read    reread
- 67108864     16384  2340360   3666175  6272401   5460782
-
-Percentage change:
-                       4.95%     0.78%   -0.68%    -0.64%
-
-This patch introduces inlining to the xas_descend function. While this
-change increases the size of lib/xarray.o, the performance gains in
-critical workloads make this an acceptable trade-off.
-
-Size comparison before and after patch:
-.text		.data		.bss		file
-0x3502		    0		   0		lib/xarray.o.before
-0x3602		    0		   0		lib/xarray.o.after
-
-Link: https://lkml.kernel.org/r/20240416061628.3768901-1-leo.lilong@huawei.com
-Signed-off-by: Long Li <leo.lilong@huawei.com>
-Cc: Hou Tao <houtao1@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: yangerkun <yangerkun@huawei.com>
-Cc: Zhang Yi <yi.zhang@huawei.com>
+Link: https://lkml.kernel.org/r/20240416031754.4076917-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240416031754.4076917-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xarray.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page-writeback.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/lib/xarray.c~xarray-inline-xas_descend-to-improve-performance
-+++ a/lib/xarray.c
-@@ -200,7 +200,8 @@ static void *xas_start(struct xa_state *
- 	return entry;
- }
- 
--static void *xas_descend(struct xa_state *xas, struct xa_node *node)
-+static __always_inline void *xas_descend(struct xa_state *xas,
-+					struct xa_node *node)
- {
- 	unsigned int offset = get_offset(xas->xa_index, node);
- 	void *entry = xa_entry(xas->xa, node, offset);
+--- a/mm/page-writeback.c~doc-improve-the-description-of-__folio_mark_dirty
++++ a/mm/page-writeback.c
+@@ -2705,11 +2705,15 @@ void folio_account_cleaned(struct folio
+  * If warn is true, then emit a warning if the folio is not uptodate and has
+  * not been truncated.
+  *
+- * The caller must hold folio_memcg_lock().  Most callers have the folio
+- * locked.  A few have the folio blocked from truncation through other
+- * means (eg zap_vma_pages() has it mapped and is holding the page table
+- * lock).  This can also be called from mark_buffer_dirty(), which I
+- * cannot prove is always protected against truncate.
++ * The caller must hold folio_memcg_lock().  It is the caller's
++ * responsibility to prevent the folio from being truncated while
++ * this function is in progress, although it may have been truncated
++ * before this function is called.  Most callers have the folio locked.
++ * A few have the folio blocked from truncation through other means (e.g.
++ * zap_vma_pages() has it mapped and is holding the page table lock).
++ * When called from mark_buffer_dirty(), the filesystem should hold a
++ * reference to the buffer_head that is being marked dirty, which causes
++ * try_to_free_buffers() to fail.
+  */
+ void __folio_mark_dirty(struct folio *folio, struct address_space *mapping,
+ 			     int warn)
 _
 
-Patches currently in -mm which might be from leo.lilong@huawei.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
+squashfs-convert-squashfs_symlink_read_folio-to-use-folio-apis.patch
+squashfs-remove-calls-to-set-the-folio-error-flag.patch
+nilfs2-remove-calls-to-folio_set_error-and-folio_clear_error.patch
 
