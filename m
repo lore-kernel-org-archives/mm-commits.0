@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDF516FBF
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:42:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D1166138
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:43:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714956149; cv=none; b=JlLU/YKkUt81qcelN4HnOn9Lo2iQGKsVD2WlI+WbKOmDAEb2ccSxgk9jVRGRbaY35qNBqpTJ7pxH9vGDHzHwTyYHn70Pu/GnYqTj/UcyAitamdwGlrienenjxlySPaSwV0yS4T5htVsi9y4JscH+aGlxwZ+Yj9pPZ2qzgWC85mY=
+	t=1714956194; cv=none; b=EIHsNScuQBWlquabcZIlhBkMowplxueJfRzMr/6hVxKB0KL+Qwlp//gG1HskObS1MoFxEIoAPa050Xqyz8ydOJAIVITdihiIIBH/9PnQv0LavshqMhDqnlD2YNnF2bpEuXLK6EXn2tNkmzyufB2XRjw7kH2pO34AzBWBx4eI/zE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714956149; c=relaxed/simple;
-	bh=maQWuhW5Dbl7pRkFVGNgg84KDPuHdZlZIL8/qnN2Y0Y=;
-	h=Date:To:From:Subject:Message-Id; b=l6pe7x31mHKuCTg/3+fBGym5ow2QOdyeXasNt5E3n0/XjWYjdKtTYFKHAldI5LwZISmIEyzUS8TUJm0Af6LbWhj1nOBJHb97B/r0LRb+ll+W0y/qK4oDlFDINC3vxokRZi8UoUMob/eJSPsUdp1KVts3H3bHTjQmmCi9vADXjUg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y8ToqOyN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714956194; c=relaxed/simple;
+	bh=dMVZ/r7CA2DsBRO7+cgQgOao9dllXNNpIfJnR3yjoKo=;
+	h=Date:To:From:Subject:Message-Id; b=dj/n5wFxDGzMYP3kg4EJ3JAneVSkySId4O2VHDs02Tip/g2L4b22Qm+7IAX4QzOZ7lqWy8aGdvKsB6nPda50tTfy+OmNoHS+J9eWaBA3cZLxm8xS+7ifmDzG1lUj/wD6Jz1gEEf4yV+CPrzDdLiZl9/0qadoae2E//7UvdOnAWw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2Pa6v+a+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y8ToqOyN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C0B5C116B1;
-	Mon,  6 May 2024 00:42:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2Pa6v+a+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1151BC4DDE0;
+	Mon,  6 May 2024 00:43:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714956149;
-	bh=maQWuhW5Dbl7pRkFVGNgg84KDPuHdZlZIL8/qnN2Y0Y=;
+	s=korg; t=1714956194;
+	bh=dMVZ/r7CA2DsBRO7+cgQgOao9dllXNNpIfJnR3yjoKo=;
 	h=Date:To:From:Subject:From;
-	b=Y8ToqOyNRS9xmfP8RheA+R+nHzEUksaWr/8yIZMVSDn3Rr6YLtP3uIgB4FI/TN1H5
-	 3g7CVUueed6632+9XC4CTcyHi4Jzr7rg6WDhNuGSp389SMo02xBQfOCf14bdzppnjg
-	 1+nzeuFUx1pfuWZPbXyYaSFzD/IPisBJkiIEaAzE=
-Date: Sun, 05 May 2024 17:42:28 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,osalvador@suse.de,muchun.song@linux.dev,linmiaohe@huawei.com,jane.chu@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
+	b=2Pa6v+a+WoWFoCh+oNPEGtpJPrDP5tsRfUNTQN8EYV1klV5ObS5Mm3w09k9MWRNzC
+	 psj4N/akHhk1SlbDdVfwiPK1DXdKQcq8hzbMsqq6zcYwJpLOBj9GlyxhBEzgm8Y3rM
+	 GjxZisGRLPdpRdWRMzJcdUE3GkTnONPSu38jHL1g=
+Date: Sun, 05 May 2024 17:43:13 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,linmiaohe@huawei.com,jane.chu@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-hugetlb-convert-dissolve_free_huge_pages-to-folios-v2.patch removed from -mm tree
-Message-Id: <20240506004229.4C0B5C116B1@smtp.kernel.org>
+Subject: [folded-merged] mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios-fix.patch removed from -mm tree
+Message-Id: <20240506004314.1151BC4DDE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: convert dissolve_free_huge_pages() to folios
+     Subject: mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios-fix
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-convert-dissolve_free_huge_pages-to-folios-v2.patch
+     mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios-fix.patch
 
-This patch was dropped because it was folded into mm-hugetlb-convert-dissolve_free_huge_pages-to-folios.patch
+This patch was dropped because it was folded into mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios.patch
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugetlb: convert dissolve_free_huge_pages() to folios
-Date: Fri, 12 Apr 2024 11:21:38 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios-fix
+Date: Mon Apr 15 01:28:36 PM PDT 2024
 
-Change additional comments which reference hugepages to hugetlb folios per
-Miaohe Lin.  
+remove unneeded `extern'
 
-Link: https://lkml.kernel.org/r/20240412182139.120871-1-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: Jane Chu <jane.chu@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c        |    4 ++--
- mm/memory-failure.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/hugetlb.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-convert-dissolve_free_huge_pages-to-folios-v2
-+++ a/mm/hugetlb.c
-@@ -2378,7 +2378,7 @@ static struct folio *remove_pool_hugetlb
+--- a/include/linux/hugetlb.h~mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios-fix
++++ a/include/linux/hugetlb.h
+@@ -862,7 +862,7 @@ static inline int hstate_index(struct hs
+ }
  
- /*
-  * Dissolve a given free hugetlb folio into free buddy pages. This function
-- * does nothing for in-use hugepages and non-hugepages.
-+ * does nothing for in-use hugetlb folios and non-hugetlb folios.
-  * This function returns values like below:
-  *
-  *  -ENOMEM: failed to allocate vmemmap pages to free the freed hugepages
-@@ -2470,7 +2470,7 @@ out:
-  * Note that this will dissolve a free gigantic hugepage completely, if any
-  * part of it lies within the given range.
-  * Also note that if dissolve_free_hugetlb_folio() returns with an error, all
-- * free hugepages that were dissolved before that error are lost.
-+ * free hugetlb folios that were dissolved before that error are lost.
-  */
- int dissolve_free_huge_pages(unsigned long start_pfn, unsigned long end_pfn)
- {
---- a/mm/memory-failure.c~mm-hugetlb-convert-dissolve_free_huge_pages-to-folios-v2
-+++ a/mm/memory-failure.c
-@@ -178,8 +178,8 @@ static bool page_handle_poison(struct pa
- {
- 	if (hugepage_or_freepage) {
- 		/*
--		 * Doing this check for free pages is also fine since dissolve_free_huge_page
--		 * returns 0 for non-hugetlb pages as well.
-+		 * Doing this check for free pages is also fine since
-+		 * dissolve_free_hugetlb_folio() returns 0 for non-hugetlb folios as well.
- 		 */
- 		if (__page_handle_poison(page) <= 0)
- 			/*
+ int dissolve_free_hugetlb_folio(struct folio *folio);
+-extern int dissolve_free_hugetlb_folios(unsigned long start_pfn,
++int dissolve_free_hugetlb_folios(unsigned long start_pfn,
+ 				    unsigned long end_pfn);
+ 
+ #ifdef CONFIG_MEMORY_FAILURE
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-convert-dissolve_free_huge_pages-to-folios.patch
 mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios.patch
+doc-split-bufferrst-out-of-api-summaryrst-fix-fix.patch
+mm-memory-failure-send-sigbus-in-the-event-of-thp-split-fail-fix.patch
+__mod_memcg_lruvec_state-enhance-diagnostics.patch
+__mod_memcg_lruvec_state-enhance-diagnostics-fix.patch
+watchdog-allow-nmi-watchdog-to-use-raw-perf-event-fix.patch
+kernel-watchdog_perfc-tidy-up-kerneldoc.patch
 
