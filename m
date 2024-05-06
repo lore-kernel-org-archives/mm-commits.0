@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E28925757
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:58:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E41F25757
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:58:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957097; cv=none; b=TIQY/ec+oaLQrIxNTgqgMz8BpnJFNTPrGpySM/eGur+Nu1csnKz6UiH3kZ8xGYgcUPkMnSVL/C1OaBkwPcbk0uM8FcAAozPI+FrqCie7L7bLLnX+MpoE3jirdrt8ZOCNztz8PRgObQfs/8WMHQpccFAdnJPpoUEr7DvAA7QxIno=
+	t=1714957098; cv=none; b=MiZcu8eyQJqJJvKb+P4yPz3Kyc+osnUGd5Sexm/FiEcIztHwuNVHzajkJkSf/YQtv07gHlgjju2zuOjfKmyUF9AFD3AWCNb+LYPzib+aSMZCvbU0neOC2cpcUF1KL9+UYTCrRAWXPmlH+1mJoLX75flD0NDNbSsdY48nsyzNeSI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957097; c=relaxed/simple;
-	bh=xcwGpFr/SrhPGdXfjartY0luY7MUS4i94AMRKZ8d984=;
-	h=Date:To:From:Subject:Message-Id; b=i1VKDU0kECEIg1LL2fVvTtFSIb4mJ38i25d/Eg9pS+s/2ix33DfE/WtxVGeqUw+qA3oRu8rO2oBjFAQieFDTgK1YWbL6XIZ33DuygbW6zCqO+0tIqTMu2YN+eS04qiVH/LtEE8RBPlCvJ/1Rty4ffSFusSB4ONMmNYiJRR0FZaA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=meM88L99; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957098; c=relaxed/simple;
+	bh=YBj0hU/7QuDrhTcpZCUx252ze85qbohb5XVYsGMT0nw=;
+	h=Date:To:From:Subject:Message-Id; b=OJvb3HbBPcyN1QlsRtxDeCqlMVuMYMsgcBzAVia8dFTYlqN5OF91kWL1z+SDEbNRqPWxk9G7oMnrQzlSq4uLx/kNCGKXk6S3xqhENRcSxmhUAhUENE6tOwnrvE0c9RTgylw7GzKrEMPG+sLA8xxS6Ss1R7HmQKOpRs7wPfbxY+g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B/V/FyNa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="meM88L99"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74E73C113CC;
-	Mon,  6 May 2024 00:58:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B/V/FyNa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77D6EC113CC;
+	Mon,  6 May 2024 00:58:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957097;
-	bh=xcwGpFr/SrhPGdXfjartY0luY7MUS4i94AMRKZ8d984=;
+	s=korg; t=1714957098;
+	bh=YBj0hU/7QuDrhTcpZCUx252ze85qbohb5XVYsGMT0nw=;
 	h=Date:To:From:Subject:From;
-	b=meM88L998chy3BvCYw8Qp/VV7nMMxu6s3s+LRTOYanzgCUQ2OBuQURpJ0MiddkjsS
-	 znJb6WInw1HLiJSxqH0UJG7NUYaGvKGm/qnkZVeTp+5hECHKSO/0gF/ssxD9b7Ed72
-	 ujKDaPV2QjYsCM97d5QuZSR2r/oxqTq/fPzaFOSA=
-Date: Sun, 05 May 2024 17:58:16 -0700
-To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,linmiaohe@huawei.com,ebiggers@google.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=B/V/FyNakKTZV2jGWTmVbrhc1iqPcrP74U8w7DWWMfDejbf1yihrW/CHGIIt/3L0f
+	 gFH6twsDCoay/BhcqJPTgdnObkhR2ytqFnNYD97yZI/7Luhbz5PvZRytZA55xox1tw
+	 O0Kq6OPczTOsRKMgPRwlaBE3B7lD2Z9nJYiQoKMQ=
+Date: Sun, 05 May 2024 17:58:18 -0700
+To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,ebiggers@google.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memory-failure-remove-calls-to-page_mapping.patch removed from -mm tree
-Message-Id: <20240506005817.74E73C113CC@smtp.kernel.org>
+Subject: [merged mm-stable] migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch removed from -mm tree
+Message-Id: <20240506005818.77D6EC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memory-failure: remove calls to page_mapping()
+     Subject: migrate: expand the use of folio in __migrate_device_pages()
 has been removed from the -mm tree.  Its filename was
-     memory-failure-remove-calls-to-page_mapping.patch
+     migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: memory-failure: remove calls to page_mapping()
-Date: Tue, 23 Apr 2024 23:55:34 +0100
+Subject: migrate: expand the use of folio in __migrate_device_pages()
+Date: Tue, 23 Apr 2024 23:55:35 +0100
 
-This is mostly just inlining page_mapping() into the two callers.
+Removes a few calls to compound_head() and a call to page_mapping().
 
-Link: https://lkml.kernel.org/r/20240423225552.4113447-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240423225552.4113447-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Eric Biggers <ebiggers@google.com>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/migrate_device.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
---- a/mm/memory-failure.c~memory-failure-remove-calls-to-page_mapping
-+++ a/mm/memory-failure.c
-@@ -216,6 +216,7 @@ EXPORT_SYMBOL_GPL(hwpoison_filter_flags_
+--- a/mm/migrate_device.c~migrate-expand-the-use-of-folio-in-__migrate_device_pages
++++ a/mm/migrate_device.c
+@@ -696,6 +696,7 @@ static void __migrate_device_pages(unsig
+ 		struct page *newpage = migrate_pfn_to_page(dst_pfns[i]);
+ 		struct page *page = migrate_pfn_to_page(src_pfns[i]);
+ 		struct address_space *mapping;
++		struct folio *folio;
+ 		int r;
  
- static int hwpoison_filter_dev(struct page *p)
- {
-+	struct folio *folio = page_folio(p);
- 	struct address_space *mapping;
- 	dev_t dev;
+ 		if (!newpage) {
+@@ -730,15 +731,12 @@ static void __migrate_device_pages(unsig
+ 			continue;
+ 		}
  
-@@ -223,7 +224,7 @@ static int hwpoison_filter_dev(struct pa
- 	    hwpoison_filter_dev_minor == ~0U)
- 		return 0;
+-		mapping = page_mapping(page);
++		folio = page_folio(page);
++		mapping = folio_mapping(folio);
  
--	mapping = page_mapping(p);
-+	mapping = folio_mapping(folio);
- 	if (mapping == NULL || mapping->host == NULL)
- 		return -EINVAL;
+ 		if (is_device_private_page(newpage) ||
+ 		    is_device_coherent_page(newpage)) {
+ 			if (mapping) {
+-				struct folio *folio;
+-
+-				folio = page_folio(page);
+-
+ 				/*
+ 				 * For now only support anonymous memory migrating to
+ 				 * device private or coherent memory.
+@@ -761,11 +759,10 @@ static void __migrate_device_pages(unsig
  
-@@ -1090,7 +1091,8 @@ out:
-  */
- static int me_pagecache_dirty(struct page_state *ps, struct page *p)
- {
--	struct address_space *mapping = page_mapping(p);
-+	struct folio *folio = page_folio(p);
-+	struct address_space *mapping = folio_mapping(folio);
- 
- 	SetPageError(p);
- 	/* TBD: print more information about the file. */
+ 		if (migrate && migrate->fault_page == page)
+ 			r = migrate_folio_extra(mapping, page_folio(newpage),
+-						page_folio(page),
+-						MIGRATE_SYNC_NO_COPY, 1);
++						folio, MIGRATE_SYNC_NO_COPY, 1);
+ 		else
+ 			r = migrate_folio(mapping, page_folio(newpage),
+-					page_folio(page), MIGRATE_SYNC_NO_COPY);
++					folio, MIGRATE_SYNC_NO_COPY);
+ 		if (r != MIGRATEPAGE_SUCCESS)
+ 			src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
