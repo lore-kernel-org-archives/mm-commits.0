@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A26B05250
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:28:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7EC45250;
+	Mon,  6 May 2024 00:28:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714955330; cv=none; b=TAF/ZWpKaAe9ika97Qk2CA57xdinYweCPE5TLYU/5QkENxm7uek9JzbgVEgjHzFqsYeyNBzC6CgfGKwcyxhZ2d/gy8jTdg5W7hKYuPa9lnuCgypFiI2UGBNuWmD2FUoN6xoEgP7L3gja/KrgurEBzQcm9aTRGJiDjcSa6RmgiI0=
+	t=1714955331; cv=none; b=oj/z7XmIRuzpAh3HjZKMPLbdVlodIYEe+5ZG+rZnfrWyyAvUEm44DOcDB+fmCmfaP5FaKfJ5Y+reF1cXEJjo0P+bLJ+Ez58YSSnCulhsX/7Ufyu2GPuQsFFv/sLG+sbpApxP6o/Ro+DR2Yq5MkOJlMlocttDt6E3J6uMwYFb5u8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714955330; c=relaxed/simple;
-	bh=IhkFotdn2zPkBDFha9DcsjAmKR8EEHaQkSvcXMPXLJ8=;
-	h=Date:To:From:Subject:Message-Id; b=Ng1UWFWwIT4Gxa+ZoQTTSi2t0kU0cLZice6YQQcnt0cPM9ZV8JtH6MjJAnOJSt0a0ap6701qxyCvep5990/AbelmXZk8zsRvkMfY/nRhTVQx2N3n6yA1gaokWIlyFiaJzZJ4KVfJCYUOiw0VBcyNNShNghgLk/vkcs4yJ8Y7au4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qQY+Aa9k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714955331; c=relaxed/simple;
+	bh=z4D3EWwSw0nb9bCGZiCBKNDVSTNeZ5mzAhFlrAvOJYs=;
+	h=Date:To:From:Subject:Message-Id; b=Vl28pEMWzcO2Ymnrv6aCnUOHBa9s9ipcr/Oq4rkbAlzvi4pZaQBaLp15X9oIMxbpLsDtGFvjrmD4AiP6Lec1mz8X5opBcGcKFr8etvh33CNQ5I1V0TDBFodveeYMSllubpR8JbI6EH0LP8cI0Ww8B9VHrVxoBY0QY5QtTMb4pCM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a/rNehg4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qQY+Aa9k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70510C4AF18;
-	Mon,  6 May 2024 00:28:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a/rNehg4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 925E9C113CC;
+	Mon,  6 May 2024 00:28:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714955330;
-	bh=IhkFotdn2zPkBDFha9DcsjAmKR8EEHaQkSvcXMPXLJ8=;
+	s=korg; t=1714955331;
+	bh=z4D3EWwSw0nb9bCGZiCBKNDVSTNeZ5mzAhFlrAvOJYs=;
 	h=Date:To:From:Subject:From;
-	b=qQY+Aa9k9nmZ0pDwgzHirkSNT81M5LprHYvszZ1NgXpNNiN5TYulZISErPeHO9J3L
-	 GzlRCVvUTi3dS7yMEkCgPQwIz1oUfoodG+GfPobF8gKquyQDyQRmQ3K3JjkK1EUCQx
-	 a884NRF7caq95/i7tF0Y0wg0InRhmy1ISktvL2Jc=
-Date: Sun, 05 May 2024 17:28:49 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,lstoakes@gmail.com,hch@lst.de,baohua@kernel.org,hailong.liu@oppo.com,akpm@linux-foundation.org
+	b=a/rNehg4HXgCSiGqxJg6mkLvEdG4D2Va9NLMGNUE77TawyVr71aeacSjWOOUZ29aJ
+	 99ieMJ3pBFgYqDSSjWcfKtSsHbq8YFEUoixZufim2ZvPc/oeXRfGx92qQHsK4fAuXZ
+	 3DEyeMFFoFJ4HiuTsIxqJB2Nl8b+FXZ45IAeAHpA=
+Date: Sun, 05 May 2024 17:28:51 -0700
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,stable@vger.kernel.org,peterx@redhat.com,david@redhat.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-vmalloc-fix-return-value-of-vb_alloc-if-size-is-0.patch removed from -mm tree
-Message-Id: <20240506002850.70510C4AF18@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] fs-proc-task_mmu-fix-loss-of-young-dirty-bits-during-pagemap-scan.patch removed from -mm tree
+Message-Id: <20240506002851.925E9C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: fix return value of vb_alloc if size is 0
+     Subject: fs/proc/task_mmu: fix loss of young/dirty bits during pagemap scan
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-fix-return-value-of-vb_alloc-if-size-is-0.patch
+     fs-proc-task_mmu-fix-loss-of-young-dirty-bits-during-pagemap-scan.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Hailong.Liu" <hailong.liu@oppo.com>
-Subject: mm/vmalloc: fix return value of vb_alloc if size is 0
-Date: Fri, 26 Apr 2024 10:41:49 +0800
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: fs/proc/task_mmu: fix loss of young/dirty bits during pagemap scan
+Date: Mon, 29 Apr 2024 12:40:17 +0100
 
-vm_map_ram() uses IS_ERR() to validate the return value of vb_alloc().  If
-vm_map_ram(page, 0, 0) is executed, vb_alloc(0, GFP_KERNEL) would return
-NULL.  In such a case, IS_ERR() cannot handle the return value and lead to
-kernel panic by vmap_pages_range_noflush() at last.  To resolve this
-issue, return ERR_PTR(-EINVAL) if the size is 0.
+make_uffd_wp_pte() was previously doing:
 
-Link: https://lkml.kernel.org/r/20240426024149.21176-1-hailong.liu@oppo.com
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Signed-off-by: Hailong.Liu <hailong.liu@oppo.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+  pte = ptep_get(ptep);
+  ptep_modify_prot_start(ptep);
+  pte = pte_mkuffd_wp(pte);
+  ptep_modify_prot_commit(ptep, pte);
+
+But if another thread accessed or dirtied the pte between the first 2
+calls, this could lead to loss of that information.  Since
+ptep_modify_prot_start() gets and clears atomically, the following is the
+correct pattern and prevents any possible race.  Any access after the
+first call would see an invalid pte and cause a fault:
+
+  pte = ptep_modify_prot_start(ptep);
+  pte = pte_mkuffd_wp(pte);
+  ptep_modify_prot_commit(ptep, pte);
+
+Link: https://lkml.kernel.org/r/20240429114017.182570-1-ryan.roberts@arm.com
+Fixes: 52526ca7fdb9 ("fs/proc/task_mmu: implement IOCTL to get and optionally clear info about PTEs")
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
+ fs/proc/task_mmu.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-fix-return-value-of-vb_alloc-if-size-is-0
-+++ a/mm/vmalloc.c
-@@ -2710,7 +2710,7 @@ static void *vb_alloc(unsigned long size
- 		 * get_order(0) returns funny result. Just warn and terminate
- 		 * early.
- 		 */
--		return NULL;
-+		return ERR_PTR(-EINVAL);
- 	}
- 	order = get_order(size);
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-fix-loss-of-young-dirty-bits-during-pagemap-scan
++++ a/fs/proc/task_mmu.c
+@@ -1825,7 +1825,7 @@ static void make_uffd_wp_pte(struct vm_a
+ 		pte_t old_pte;
  
+ 		old_pte = ptep_modify_prot_start(vma, addr, pte);
+-		ptent = pte_mkuffd_wp(ptent);
++		ptent = pte_mkuffd_wp(old_pte);
+ 		ptep_modify_prot_commit(vma, addr, pte, old_pte, ptent);
+ 	} else if (is_swap_pte(ptent)) {
+ 		ptent = pte_swp_mkuffd_wp(ptent);
 _
 
-Patches currently in -mm which might be from hailong.liu@oppo.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
+selftests-mm-soft-dirty-should-fail-if-a-testcase-fails.patch
+mm-debug_vm_pgtable-test-pmd_leaf-behavior-with-pmd_mkinvalid.patch
+mm-fix-race-between-__split_huge_pmd_locked-and-gup-fast.patch
 
