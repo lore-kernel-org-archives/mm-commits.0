@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FE5A25757
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:57:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E111225757
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:57:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957077; cv=none; b=hbKlQudRfiIFOz1BKIHaA90ngM8IjzOPW8X5xo2xEBN00FHoNZcswXTMRap7inFlp1kLpI+OHHWOs51NuUC5Un8yFAZvD4X/z6EeJ6gm4BhawKkB4PpjYzbuPnd4PWL5DDvLrkgFsj1125HR+ozSDTQkXI4PIXMq0wD23h7ygVc=
+	t=1714957079; cv=none; b=T6oQQK+KKeQ4HQiOjOMv0X/vnKETSpbPgg9Yu2EoZNRXfhmNI2lKizCIJTgb4/wGRGboiWCqQT+OQosV86FjXTUojAje56L2vmAmCCN942TNEIUgFWsyBH+58wxS/qL2I3MzYKKYoZo63drB5QMDllEQdHJ3z/pKKKSfZQ+TZGY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957077; c=relaxed/simple;
-	bh=ElnDa+ICkGVlgxlZNB/SPtY2XSpUUev/8/vlR+22y6M=;
-	h=Date:To:From:Subject:Message-Id; b=IiiP0Jc6UjZcHLTfOgk5y74GIxUxGRLgQa93TL6+ZVleoyJkP4FDHwMKLEcynPjdCss9dsCC/fh6631Mb8b5njkFB1fAERqCG0EUB6/ofrtz+v0/WfWgt5/dR50CWYWbKskOOAijduW7BPLM3Y4fLlfCxTrVVVu9gAkiRTluxco=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NhjQ323A; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957079; c=relaxed/simple;
+	bh=7tbo/O7SH3Xz8UbvapPIyO/tw2HIg1TwqNCnrz659zg=;
+	h=Date:To:From:Subject:Message-Id; b=KhSH9mhZT6k+y/JTNqLl9QdqkJzBMPDkO2KZLxNemJPiTQpk32h8Mcl042oujzo5CbMJRlJ8Kk93/Yyus/dIHX5bWZ6JW7QZSxz51k7I+LFBLM/l1eKrsNmJNrysaoyjZDkDfciQdIfA3/jICybukKL8Qt4jNZ/dP5tmczcrr4U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LiXfu13U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NhjQ323A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7819CC113CC;
-	Mon,  6 May 2024 00:57:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LiXfu13U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B80C0C113CC;
+	Mon,  6 May 2024 00:57:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957077;
-	bh=ElnDa+ICkGVlgxlZNB/SPtY2XSpUUev/8/vlR+22y6M=;
+	s=korg; t=1714957078;
+	bh=7tbo/O7SH3Xz8UbvapPIyO/tw2HIg1TwqNCnrz659zg=;
 	h=Date:To:From:Subject:From;
-	b=NhjQ323AaEwjMwJ8w7K8JECwgPwtwPFl2zoJ/Bar6VfD4I20baRSE4iKaU4c+2V1t
-	 ecJ+nyD6vfjMC8llXk9MU4VTiW8LOZ6EXwoQacnm/kWEIb4WoRYMXt6O9ii+zH0iwv
-	 I4ro194x3fidrIHRDSXt2HY7N9Vy/ovUz0BYpX6U=
-Date: Sun, 05 May 2024 17:57:56 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,xiehuan09@gmail.com,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,shy828301@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,fengwei.yin@intel.com,david@redhat.com,21cnbao@gmail.com,ioworker0@gmail.com,akpm@linux-foundation.org
+	b=LiXfu13UIdY1653VLtcU7aRH0RUWHVIIKfbGgxtdumsadzlJlXLHcrf1LqJ9urOvr
+	 rMnhCapRr/XueSDRiWTn50fn/vCgc8qw2V/aBTyvfT3Rt38pMcgXu1+81sMv2SCJbw
+	 3MDDl5sQbsvhXj54Svtydlc2krMT0U/haPKO+AfY=
+Date: Sun, 05 May 2024 17:57:58 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,lrh2000@pku.edu.cn,josef@toxicpanda.com,david@redhat.com,gehao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free.patch removed from -mm tree
-Message-Id: <20240506005757.7819CC113CC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page-flags-make-pageuptodate-return-bool.patch removed from -mm tree
+Message-Id: <20240506005758.B80C0C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,187 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/madvise: optimize lazyfreeing with mTHP in madvise_free
+     Subject: mm/page-flags: make PageUptodate return bool
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free.patch
+     mm-page-flags-make-pageuptodate-return-bool.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lance Yang <ioworker0@gmail.com>
-Subject: mm/madvise: optimize lazyfreeing with mTHP in madvise_free
-Date: Thu, 18 Apr 2024 21:44:35 +0800
+From: Hao Ge <gehao@kylinos.cn>
+Subject: mm/page-flags: make PageUptodate return bool
+Date: Mon, 22 Apr 2024 11:27:25 +0800
 
-This patch optimizes lazyfreeing with PTE-mapped mTHP[1] (Inspired by
-David Hildenbrand[2]).  We aim to avoid unnecessary folio splitting if the
-large folio is fully mapped within the target range.
+Make PageUptodate return bool to align the return values of
+folio_test_uptodate function
 
-If a large folio is locked or shared, or if we fail to split it, we just
-leave it in place and advance to the next PTE in the range.  But note that
-the behavior is changed; previously, any failure of this sort would cause
-the entire operation to give up.  As large folios become more common,
-sticking to the old way could result in wasted opportunities.
-
-On an Intel I5 CPU, lazyfreeing a 1GiB VMA backed by PTE-mapped folios of
-the same size results in the following runtimes for madvise(MADV_FREE) in
-seconds (shorter is better):
-
-Folio Size |   Old    |   New    | Change
-------------------------------------------
-      4KiB | 0.590251 | 0.590259 |    0%
-     16KiB | 2.990447 | 0.185655 |  -94%
-     32KiB | 2.547831 | 0.104870 |  -95%
-     64KiB | 2.457796 | 0.052812 |  -97%
-    128KiB | 2.281034 | 0.032777 |  -99%
-    256KiB | 2.230387 | 0.017496 |  -99%
-    512KiB | 2.189106 | 0.010781 |  -99%
-   1024KiB | 2.183949 | 0.007753 |  -99%
-   2048KiB | 0.002799 | 0.002804 |    0%
-
-[1] https://lkml.kernel.org/r/20231207161211.2374093-5-ryan.roberts@arm.com
-[2] https://lore.kernel.org/linux-mm/20240214204435.167852-1-david@redhat.com
-
-Link: https://lkml.kernel.org/r/20240418134435.6092-5-ioworker0@gmail.com
-Signed-off-by: Lance Yang <ioworker0@gmail.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Jeff Xie <xiehuan09@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Link: https://lkml.kernel.org/r/20240422032725.41452-1-gehao@kylinos.cn
+Signed-off-by: Hao Ge <gehao@kylinos.cn>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ruihan Li <lrh2000@pku.edu.cn>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   85 +++++++++++++++++++++++++------------------------
- 1 file changed, 44 insertions(+), 41 deletions(-)
+ include/linux/page-flags.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/madvise.c~mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free
-+++ a/mm/madvise.c
-@@ -643,6 +643,7 @@ static int madvise_free_pte_range(pmd_t
- 				unsigned long end, struct mm_walk *walk)
+--- a/include/linux/page-flags.h~mm-page-flags-make-pageuptodate-return-bool
++++ a/include/linux/page-flags.h
+@@ -789,7 +789,7 @@ static inline bool folio_test_uptodate(c
+ 	return ret;
+ }
  
+-static inline int PageUptodate(const struct page *page)
++static inline bool PageUptodate(const struct page *page)
  {
-+	const cydp_t cydp_flags = CYDP_CLEAR_YOUNG | CYDP_CLEAR_DIRTY;
- 	struct mmu_gather *tlb = walk->private;
- 	struct mm_struct *mm = tlb->mm;
- 	struct vm_area_struct *vma = walk->vma;
-@@ -697,44 +698,57 @@ static int madvise_free_pte_range(pmd_t
- 			continue;
- 
- 		/*
--		 * If pmd isn't transhuge but the folio is large and
--		 * is owned by only this process, split it and
--		 * deactivate all pages.
-+		 * If we encounter a large folio, only split it if it is not
-+		 * fully mapped within the range we are operating on. Otherwise
-+		 * leave it as is so that it can be marked as lazyfree. If we
-+		 * fail to split a folio, leave it in place and advance to the
-+		 * next pte in the range.
- 		 */
- 		if (folio_test_large(folio)) {
--			int err;
-+			bool any_young, any_dirty;
- 
--			if (folio_likely_mapped_shared(folio))
--				break;
--			if (!folio_trylock(folio))
--				break;
--			folio_get(folio);
--			arch_leave_lazy_mmu_mode();
--			pte_unmap_unlock(start_pte, ptl);
--			start_pte = NULL;
--			err = split_folio(folio);
--			folio_unlock(folio);
--			folio_put(folio);
--			if (err)
--				break;
--			start_pte = pte =
--				pte_offset_map_lock(mm, pmd, addr, &ptl);
--			if (!start_pte)
--				break;
--			arch_enter_lazy_mmu_mode();
--			pte--;
--			addr -= PAGE_SIZE;
--			continue;
-+			nr = madvise_folio_pte_batch(addr, end, folio, pte,
-+						     ptent, &any_young, &any_dirty);
-+
-+			if (nr < folio_nr_pages(folio)) {
-+				int err;
-+
-+				if (folio_likely_mapped_shared(folio))
-+					continue;
-+				if (!folio_trylock(folio))
-+					continue;
-+				folio_get(folio);
-+				arch_leave_lazy_mmu_mode();
-+				pte_unmap_unlock(start_pte, ptl);
-+				start_pte = NULL;
-+				err = split_folio(folio);
-+				folio_unlock(folio);
-+				folio_put(folio);
-+				pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
-+				start_pte = pte;
-+				if (!start_pte)
-+					break;
-+				arch_enter_lazy_mmu_mode();
-+				if (!err)
-+					nr = 0;
-+				continue;
-+			}
-+
-+			if (any_young)
-+				ptent = pte_mkyoung(ptent);
-+			if (any_dirty)
-+				ptent = pte_mkdirty(ptent);
- 		}
- 
- 		if (folio_test_swapcache(folio) || folio_test_dirty(folio)) {
- 			if (!folio_trylock(folio))
- 				continue;
- 			/*
--			 * If folio is shared with others, we mustn't clear
--			 * the folio's dirty flag.
-+			 * If we have a large folio at this point, we know it is
-+			 * fully mapped so if its mapcount is the same as its
-+			 * number of pages, it must be exclusive.
- 			 */
--			if (folio_mapcount(folio) != 1) {
-+			if (folio_mapcount(folio) != folio_nr_pages(folio)) {
- 				folio_unlock(folio);
- 				continue;
- 			}
-@@ -750,19 +764,8 @@ static int madvise_free_pte_range(pmd_t
- 		}
- 
- 		if (pte_young(ptent) || pte_dirty(ptent)) {
--			/*
--			 * Some of architecture(ex, PPC) don't update TLB
--			 * with set_pte_at and tlb_remove_tlb_entry so for
--			 * the portability, remap the pte with old|clean
--			 * after pte clearing.
--			 */
--			ptent = ptep_get_and_clear_full(mm, addr, pte,
--							tlb->fullmm);
--
--			ptent = pte_mkold(ptent);
--			ptent = pte_mkclean(ptent);
--			set_pte_at(mm, addr, pte, ptent);
--			tlb_remove_tlb_entry(tlb, pte, addr);
-+			clear_young_dirty_ptes(vma, addr, pte, nr, cydp_flags);
-+			tlb_remove_tlb_entries(tlb, pte, nr, addr);
- 		}
- 		folio_mark_lazyfree(folio);
- 	}
+ 	return folio_test_uptodate(page_folio(page));
+ }
 _
 
-Patches currently in -mm which might be from ioworker0@gmail.com are
+Patches currently in -mm which might be from gehao@kylinos.cn are
 
 
