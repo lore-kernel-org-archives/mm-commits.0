@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 337592CA5
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 01:14:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1534E2CA5
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 01:14:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714958097; cv=none; b=G6WclBC6Uw9RowbUW/IHnBgogVJBEQOqhlVeKPbRqNZmrR2c2t90XJ+FOmlbBj/GIm3WEvCoreRHNg+eK95d/4+TOROxeZ5e1w/GEdsv6WTpiWB4ChNHUiPRpBxqI9mQI1e5iLNOd7OWIInpluM2WSbdebowRRoOB017DFLDc3w=
+	t=1714958099; cv=none; b=coe4U26qZZYIZL3QTscuxPPgp7alzhFrYpGP5i7wVGLuhZDp7NXz0DL4daTKHOle2rMgcq/n96hiy3ozmUHOD+kvZ28Ju51+FeBYJGB6TzSXwVKbiRw/7NumLqYV5o0olHArqKPDkYz/QcdXAMTyAXf3JZICFAsiaAqg6UOCd4U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714958097; c=relaxed/simple;
-	bh=sLuMTnCgqf/a8512+/CVWkPMe4REUixwxPWw1d6mbnY=;
-	h=Date:To:From:Subject:Message-Id; b=NiiIZGVGwth2ptWjjY8HKfbwFkCdcjwIfcrI2oLxXycIMo7pCaLnoYFgL04+YXSkHyeGRH7I0Px//5TOU2OhB0VwRTlhG6+a01eyL/PWJY8cxxs0aWxiO+N6fNi7h6IEM3MpkhPBTlQdqevF0mzMQ6i9H8nTtMAnKtWgLVBgRDM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zuz/cdKH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714958099; c=relaxed/simple;
+	bh=cC6atPey8tey35JIe7QmYyZGY27mWNus8vp6j5haJLM=;
+	h=Date:To:From:Subject:Message-Id; b=O+o7dOtizeqNKWo7q/Byn+Z5+tb8KIZ1M6oHB3pJKX95YU0SyYC1CjPsVMmdZOp5KhTPeLdOkKY10wRpaX3kxNOCDrPOQosCHOWqFp1b40PA3V8DPzdk4nbeA4XtiLtIMEmPO38jluk74u/OloWddWdjYxobg56vjy6LrxOEJRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TYqk7Nwt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zuz/cdKH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8DABC113CC;
-	Mon,  6 May 2024 01:14:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TYqk7Nwt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6E0FC116B1;
+	Mon,  6 May 2024 01:14:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714958096;
-	bh=sLuMTnCgqf/a8512+/CVWkPMe4REUixwxPWw1d6mbnY=;
+	s=korg; t=1714958098;
+	bh=cC6atPey8tey35JIe7QmYyZGY27mWNus8vp6j5haJLM=;
 	h=Date:To:From:Subject:From;
-	b=Zuz/cdKHaRlAZjphTwNxyqhqlhgzK97XEEFn9nzxlnMSeeZhRjVNswYd3ENYKqDr7
-	 1Zqle2HoI665e1mi8ECLrqghxREu25iM+dVdvAsIv3/Rz4gR8fx29elwLGg8CFVQ2j
-	 jphXn8y4IkqD29Bsvcp3kTQodLCgPPKq1J6w5vRU=
-Date: Sun, 05 May 2024 18:14:56 -0700
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,sandeen@redhat.com,akpm@linux-foundation.org
+	b=TYqk7NwtJRYXqjfMc6VbwmX/5SEWs/F9rE7TO7qWbgzVAM2WmLRzOydy8rDdY+Eku
+	 21oL2vToXwRzqO/pVoDOGY92K4AbG589jBuEkXEXQhhwr9+4yOt4sgqGqPRAwit7ez
+	 TnZwez67MKqjV9rUuiRtlHtq8jML7WNUTlCEs6ao=
+Date: Sun, 05 May 2024 18:14:58 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,ghe@suse.com,gechangwei@live.cn,dan.carpenter@linaro.org,colin.i.king@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-convert-to-use-the-new-mount-api.patch removed from -mm tree
-Message-Id: <20240506011456.B8DABC113CC@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-remove-redundant-assignment-to-variable-status.patch removed from -mm tree
+Message-Id: <20240506011458.C6E0FC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,667 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: convert to use the new mount API
+     Subject: ocfs2: remove redundant assignment to variable status
 has been removed from the -mm tree.  Its filename was
-     nilfs2-convert-to-use-the-new-mount-api.patch
+     ocfs2-remove-redundant-assignment-to-variable-status.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Eric Sandeen <sandeen@redhat.com>
-Subject: nilfs2: convert to use the new mount API
-Date: Thu, 25 Apr 2024 03:27:16 +0900
+From: Colin Ian King <colin.i.king@gmail.com>
+Subject: ocfs2: remove redundant assignment to variable status
+Date: Tue, 23 Apr 2024 23:30:18 +0100
 
-Convert nilfs2 to use the new mount API.
+Variable status is being assigned and error code that is never read, it is
+being assigned inside of a do-while loop.  The assignment is redundant and
+can be removed.
 
-[sandeen@redhat.com: v2]
-Link: https://lkml.kernel.org/r/33d078a7-9072-4d8e-a3a9-dec23d4191da@redhat.com
-Link: https://lkml.kernel.org/r/20240425190526.10905-1-konishi.ryusuke@gmail.com
-[konishi.ryusuke: fixed missing SB_RDONLY flag repair in nilfs_reconfigure]
-Link: https://lkml.kernel.org/r/33d078a7-9072-4d8e-a3a9-dec23d4191da@redhat.com
-Link: https://lkml.kernel.org/r/20240424182716.6024-1-konishi.ryusuke@gmail.com
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cleans up clang scan build warning:
+fs/ocfs2/dlm/dlmdomain.c:1530:2: warning: Value stored to 'status' is never
+read [deadcode.DeadStores]
+
+Link: https://lkml.kernel.org/r/20240423223018.1573213-1-colin.i.king@gmail.com
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Dan Carpenter <dan.carpenter@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/nilfs.h     |    4 
- fs/nilfs2/super.c     |  388 +++++++++++++++++-----------------------
- fs/nilfs2/the_nilfs.c |    5 
- fs/nilfs2/the_nilfs.h |    6 
- 4 files changed, 174 insertions(+), 229 deletions(-)
+ fs/ocfs2/dlm/dlmdomain.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/fs/nilfs2/nilfs.h~nilfs2-convert-to-use-the-new-mount-api
-+++ a/fs/nilfs2/nilfs.h
-@@ -335,8 +335,8 @@ void __nilfs_error(struct super_block *s
- 
- extern struct nilfs_super_block *
- nilfs_read_super_block(struct super_block *, u64, int, struct buffer_head **);
--extern int nilfs_store_magic_and_option(struct super_block *,
--					struct nilfs_super_block *, char *);
-+extern int nilfs_store_magic(struct super_block *sb,
-+			     struct nilfs_super_block *sbp);
- extern int nilfs_check_feature_compatibility(struct super_block *,
- 					     struct nilfs_super_block *);
- extern void nilfs_set_log_cursor(struct nilfs_super_block *,
---- a/fs/nilfs2/super.c~nilfs2-convert-to-use-the-new-mount-api
-+++ a/fs/nilfs2/super.c
-@@ -29,13 +29,13 @@
- #include <linux/slab.h>
- #include <linux/init.h>
- #include <linux/blkdev.h>
--#include <linux/parser.h>
- #include <linux/crc32.h>
- #include <linux/vfs.h>
- #include <linux/writeback.h>
- #include <linux/seq_file.h>
- #include <linux/mount.h>
- #include <linux/fs_context.h>
-+#include <linux/fs_parser.h>
- #include "nilfs.h"
- #include "export.h"
- #include "mdt.h"
-@@ -61,7 +61,6 @@ struct kmem_cache *nilfs_segbuf_cachep;
- struct kmem_cache *nilfs_btree_path_cache;
- 
- static int nilfs_setup_super(struct super_block *sb, int is_mount);
--static int nilfs_remount(struct super_block *sb, int *flags, char *data);
- 
- void __nilfs_msg(struct super_block *sb, const char *fmt, ...)
+--- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-remove-redundant-assignment-to-variable-status
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -1527,7 +1527,6 @@ static void dlm_send_join_asserts(struct
  {
-@@ -702,105 +701,98 @@ static const struct super_operations nil
- 	.freeze_fs	= nilfs_freeze,
- 	.unfreeze_fs	= nilfs_unfreeze,
- 	.statfs         = nilfs_statfs,
--	.remount_fs     = nilfs_remount,
- 	.show_options = nilfs_show_options
- };
+ 	int status, node, live;
  
- enum {
--	Opt_err_cont, Opt_err_panic, Opt_err_ro,
--	Opt_barrier, Opt_nobarrier, Opt_snapshot, Opt_order, Opt_norecovery,
--	Opt_discard, Opt_nodiscard, Opt_err,
-+	Opt_err, Opt_barrier, Opt_snapshot, Opt_order, Opt_norecovery,
-+	Opt_discard,
- };
- 
--static match_table_t tokens = {
--	{Opt_err_cont, "errors=continue"},
--	{Opt_err_panic, "errors=panic"},
--	{Opt_err_ro, "errors=remount-ro"},
--	{Opt_barrier, "barrier"},
--	{Opt_nobarrier, "nobarrier"},
--	{Opt_snapshot, "cp=%u"},
--	{Opt_order, "order=%s"},
--	{Opt_norecovery, "norecovery"},
--	{Opt_discard, "discard"},
--	{Opt_nodiscard, "nodiscard"},
--	{Opt_err, NULL}
-+static const struct constant_table nilfs_param_err[] = {
-+	{"continue",	NILFS_MOUNT_ERRORS_CONT},
-+	{"panic",	NILFS_MOUNT_ERRORS_PANIC},
-+	{"remount-ro",	NILFS_MOUNT_ERRORS_RO},
-+	{}
- };
- 
--static int parse_options(char *options, struct super_block *sb, int is_remount)
--{
--	struct the_nilfs *nilfs = sb->s_fs_info;
--	char *p;
--	substring_t args[MAX_OPT_ARGS];
--
--	if (!options)
--		return 1;
--
--	while ((p = strsep(&options, ",")) != NULL) {
--		int token;
-+static const struct fs_parameter_spec nilfs_param_spec[] = {
-+	fsparam_enum	("errors", Opt_err, nilfs_param_err),
-+	fsparam_flag_no	("barrier", Opt_barrier),
-+	fsparam_u64	("cp", Opt_snapshot),
-+	fsparam_string	("order", Opt_order),
-+	fsparam_flag	("norecovery", Opt_norecovery),
-+	fsparam_flag_no	("discard", Opt_discard),
-+	{}
-+};
- 
--		if (!*p)
--			continue;
-+struct nilfs_fs_context {
-+	unsigned long ns_mount_opt;
-+	__u64 cno;
-+};
- 
--		token = match_token(p, tokens, args);
--		switch (token) {
--		case Opt_barrier:
--			nilfs_set_opt(nilfs, BARRIER);
--			break;
--		case Opt_nobarrier:
-+static int nilfs_parse_param(struct fs_context *fc, struct fs_parameter *param)
-+{
-+	struct nilfs_fs_context *nilfs = fc->fs_private;
-+	int is_remount = fc->purpose == FS_CONTEXT_FOR_RECONFIGURE;
-+	struct fs_parse_result result;
-+	int opt;
-+
-+	opt = fs_parse(fc, nilfs_param_spec, param, &result);
-+	if (opt < 0)
-+		return opt;
-+
-+	switch (opt) {
-+	case Opt_barrier:
-+		if (result.negated)
- 			nilfs_clear_opt(nilfs, BARRIER);
--			break;
--		case Opt_order:
--			if (strcmp(args[0].from, "relaxed") == 0)
--				/* Ordered data semantics */
--				nilfs_clear_opt(nilfs, STRICT_ORDER);
--			else if (strcmp(args[0].from, "strict") == 0)
--				/* Strict in-order semantics */
--				nilfs_set_opt(nilfs, STRICT_ORDER);
--			else
--				return 0;
--			break;
--		case Opt_err_panic:
--			nilfs_write_opt(nilfs, ERROR_MODE, ERRORS_PANIC);
--			break;
--		case Opt_err_ro:
--			nilfs_write_opt(nilfs, ERROR_MODE, ERRORS_RO);
--			break;
--		case Opt_err_cont:
--			nilfs_write_opt(nilfs, ERROR_MODE, ERRORS_CONT);
--			break;
--		case Opt_snapshot:
--			if (is_remount) {
--				nilfs_err(sb,
--					  "\"%s\" option is invalid for remount",
--					  p);
--				return 0;
--			}
--			break;
--		case Opt_norecovery:
--			nilfs_set_opt(nilfs, NORECOVERY);
--			break;
--		case Opt_discard:
--			nilfs_set_opt(nilfs, DISCARD);
--			break;
--		case Opt_nodiscard:
--			nilfs_clear_opt(nilfs, DISCARD);
--			break;
--		default:
--			nilfs_err(sb, "unrecognized mount option \"%s\"", p);
--			return 0;
-+		else
-+			nilfs_set_opt(nilfs, BARRIER);
-+		break;
-+	case Opt_order:
-+		if (strcmp(param->string, "relaxed") == 0)
-+			/* Ordered data semantics */
-+			nilfs_clear_opt(nilfs, STRICT_ORDER);
-+		else if (strcmp(param->string, "strict") == 0)
-+			/* Strict in-order semantics */
-+			nilfs_set_opt(nilfs, STRICT_ORDER);
-+		else
-+			return -EINVAL;
-+		break;
-+	case Opt_err:
-+		nilfs->ns_mount_opt &= ~NILFS_MOUNT_ERROR_MODE;
-+		nilfs->ns_mount_opt |= result.uint_32;
-+		break;
-+	case Opt_snapshot:
-+		if (is_remount) {
-+			struct super_block *sb = fc->root->d_sb;
-+
-+			nilfs_err(sb,
-+				  "\"%s\" option is invalid for remount",
-+				  param->key);
-+			return -EINVAL;
-+		}
-+		if (result.uint_64 == 0) {
-+			nilfs_err(NULL,
-+				  "invalid option \"cp=0\": invalid checkpoint number 0");
-+			return -EINVAL;
- 		}
-+		nilfs->cno = result.uint_64;
-+		break;
-+	case Opt_norecovery:
-+		nilfs_set_opt(nilfs, NORECOVERY);
-+		break;
-+	case Opt_discard:
-+		if (result.negated)
-+			nilfs_clear_opt(nilfs, DISCARD);
-+		else
-+			nilfs_set_opt(nilfs, DISCARD);
-+		break;
-+	default:
-+		return -EINVAL;
- 	}
--	return 1;
--}
--
--static inline void
--nilfs_set_default_options(struct super_block *sb,
--			  struct nilfs_super_block *sbp)
--{
--	struct the_nilfs *nilfs = sb->s_fs_info;
- 
--	nilfs->ns_mount_opt =
--		NILFS_MOUNT_ERRORS_RO | NILFS_MOUNT_BARRIER;
-+	return 0;
- }
- 
- static int nilfs_setup_super(struct super_block *sb, int is_mount)
-@@ -857,9 +849,8 @@ struct nilfs_super_block *nilfs_read_sup
- 	return (struct nilfs_super_block *)((char *)(*pbh)->b_data + offset);
- }
- 
--int nilfs_store_magic_and_option(struct super_block *sb,
--				 struct nilfs_super_block *sbp,
--				 char *data)
-+int nilfs_store_magic(struct super_block *sb,
-+		      struct nilfs_super_block *sbp)
- {
- 	struct the_nilfs *nilfs = sb->s_fs_info;
- 
-@@ -870,14 +861,12 @@ int nilfs_store_magic_and_option(struct
- 	sb->s_flags |= SB_NOATIME;
- #endif
- 
--	nilfs_set_default_options(sb, sbp);
--
- 	nilfs->ns_resuid = le16_to_cpu(sbp->s_def_resuid);
- 	nilfs->ns_resgid = le16_to_cpu(sbp->s_def_resgid);
- 	nilfs->ns_interval = le32_to_cpu(sbp->s_c_interval);
- 	nilfs->ns_watermark = le32_to_cpu(sbp->s_c_block_max);
- 
--	return !parse_options(data, sb, 0) ? -EINVAL : 0;
-+	return 0;
- }
- 
- int nilfs_check_feature_compatibility(struct super_block *sb,
-@@ -1035,17 +1024,17 @@ int nilfs_checkpoint_is_mounted(struct s
- /**
-  * nilfs_fill_super() - initialize a super block instance
-  * @sb: super_block
-- * @data: mount options
-- * @silent: silent mode flag
-+ * @fc: filesystem context
-  *
-  * This function is called exclusively by nilfs->ns_mount_mutex.
-  * So, the recovery process is protected from other simultaneous mounts.
-  */
- static int
--nilfs_fill_super(struct super_block *sb, void *data, int silent)
-+nilfs_fill_super(struct super_block *sb, struct fs_context *fc)
- {
- 	struct the_nilfs *nilfs;
- 	struct nilfs_root *fsroot;
-+	struct nilfs_fs_context *ctx = fc->fs_private;
- 	__u64 cno;
- 	int err;
- 
-@@ -1055,10 +1044,13 @@ nilfs_fill_super(struct super_block *sb,
- 
- 	sb->s_fs_info = nilfs;
- 
--	err = init_nilfs(nilfs, sb, (char *)data);
-+	err = init_nilfs(nilfs, sb);
- 	if (err)
- 		goto failed_nilfs;
- 
-+	/* Copy in parsed mount options */
-+	nilfs->ns_mount_opt = ctx->ns_mount_opt;
-+
- 	sb->s_op = &nilfs_sops;
- 	sb->s_export_op = &nilfs_export_ops;
- 	sb->s_root = NULL;
-@@ -1117,34 +1109,25 @@ nilfs_fill_super(struct super_block *sb,
- 	return err;
- }
- 
--static int nilfs_remount(struct super_block *sb, int *flags, char *data)
-+static int nilfs_reconfigure(struct fs_context *fc)
- {
-+	struct nilfs_fs_context *ctx = fc->fs_private;
-+	struct super_block *sb = fc->root->d_sb;
- 	struct the_nilfs *nilfs = sb->s_fs_info;
--	unsigned long old_sb_flags;
--	unsigned long old_mount_opt;
- 	int err;
- 
- 	sync_filesystem(sb);
--	old_sb_flags = sb->s_flags;
--	old_mount_opt = nilfs->ns_mount_opt;
--
--	if (!parse_options(data, sb, 1)) {
--		err = -EINVAL;
--		goto restore_opts;
--	}
--	sb->s_flags = (sb->s_flags & ~SB_POSIXACL);
- 
- 	err = -EINVAL;
- 
- 	if (!nilfs_valid_fs(nilfs)) {
- 		nilfs_warn(sb,
- 			   "couldn't remount because the filesystem is in an incomplete recovery state");
--		goto restore_opts;
-+		goto ignore_opts;
- 	}
--
--	if ((bool)(*flags & SB_RDONLY) == sb_rdonly(sb))
-+	if ((bool)(fc->sb_flags & SB_RDONLY) == sb_rdonly(sb))
- 		goto out;
--	if (*flags & SB_RDONLY) {
-+	if (fc->sb_flags & SB_RDONLY) {
- 		sb->s_flags |= SB_RDONLY;
- 
- 		/*
-@@ -1172,138 +1155,67 @@ static int nilfs_remount(struct super_bl
- 				   "couldn't remount RDWR because of unsupported optional features (%llx)",
- 				   (unsigned long long)features);
- 			err = -EROFS;
--			goto restore_opts;
-+			goto ignore_opts;
- 		}
- 
- 		sb->s_flags &= ~SB_RDONLY;
- 
- 		root = NILFS_I(d_inode(sb->s_root))->i_root;
- 		err = nilfs_attach_log_writer(sb, root);
--		if (err)
--			goto restore_opts;
-+		if (err) {
-+			sb->s_flags |= SB_RDONLY;
-+			goto ignore_opts;
-+		}
- 
- 		down_write(&nilfs->ns_sem);
- 		nilfs_setup_super(sb, true);
- 		up_write(&nilfs->ns_sem);
- 	}
-  out:
--	return 0;
--
-- restore_opts:
--	sb->s_flags = old_sb_flags;
--	nilfs->ns_mount_opt = old_mount_opt;
--	return err;
--}
--
--struct nilfs_super_data {
--	__u64 cno;
--	int flags;
--};
--
--static int nilfs_parse_snapshot_option(const char *option,
--				       const substring_t *arg,
--				       struct nilfs_super_data *sd)
--{
--	unsigned long long val;
--	const char *msg = NULL;
--	int err;
--
--	if (!(sd->flags & SB_RDONLY)) {
--		msg = "read-only option is not specified";
--		goto parse_error;
--	}
--
--	err = kstrtoull(arg->from, 0, &val);
--	if (err) {
--		if (err == -ERANGE)
--			msg = "too large checkpoint number";
--		else
--			msg = "malformed argument";
--		goto parse_error;
--	} else if (val == 0) {
--		msg = "invalid checkpoint number 0";
--		goto parse_error;
--	}
--	sd->cno = val;
--	return 0;
--
--parse_error:
--	nilfs_err(NULL, "invalid option \"%s\": %s", option, msg);
--	return 1;
--}
--
--/**
-- * nilfs_identify - pre-read mount options needed to identify mount instance
-- * @data: mount options
-- * @sd: nilfs_super_data
-- */
--static int nilfs_identify(char *data, struct nilfs_super_data *sd)
--{
--	char *p, *options = data;
--	substring_t args[MAX_OPT_ARGS];
--	int token;
--	int ret = 0;
--
--	do {
--		p = strsep(&options, ",");
--		if (p != NULL && *p) {
--			token = match_token(p, tokens, args);
--			if (token == Opt_snapshot)
--				ret = nilfs_parse_snapshot_option(p, &args[0],
--								  sd);
--		}
--		if (!options)
--			break;
--		BUG_ON(options == data);
--		*(options - 1) = ',';
--	} while (!ret);
--	return ret;
--}
-+	sb->s_flags = (sb->s_flags & ~SB_POSIXACL);
-+	/* Copy over parsed remount options */
-+	nilfs->ns_mount_opt = ctx->ns_mount_opt;
- 
--static int nilfs_set_bdev_super(struct super_block *s, void *data)
--{
--	s->s_dev = *(dev_t *)data;
- 	return 0;
--}
- 
--static int nilfs_test_bdev_super(struct super_block *s, void *data)
--{
--	return !(s->s_iflags & SB_I_RETIRED) && s->s_dev == *(dev_t *)data;
-+ ignore_opts:
-+	return err;
- }
- 
--static struct dentry *
--nilfs_mount(struct file_system_type *fs_type, int flags,
--	     const char *dev_name, void *data)
-+static int
-+nilfs_get_tree(struct fs_context *fc)
- {
--	struct nilfs_super_data sd = { .flags = flags };
-+	struct nilfs_fs_context *ctx = fc->fs_private;
- 	struct super_block *s;
- 	dev_t dev;
- 	int err;
- 
--	if (nilfs_identify(data, &sd))
--		return ERR_PTR(-EINVAL);
-+	if (ctx->cno && !(fc->sb_flags & SB_RDONLY)) {
-+		nilfs_err(NULL,
-+			  "invalid option \"cp=%llu\": read-only option is not specified",
-+			  ctx->cno);
-+		return -EINVAL;
-+	}
- 
--	err = lookup_bdev(dev_name, &dev);
-+	err = lookup_bdev(fc->source, &dev);
- 	if (err)
--		return ERR_PTR(err);
-+		return err;
- 
--	s = sget(fs_type, nilfs_test_bdev_super, nilfs_set_bdev_super, flags,
--		 &dev);
-+	s = sget_dev(fc, dev);
- 	if (IS_ERR(s))
--		return ERR_CAST(s);
-+		return PTR_ERR(s);
- 
- 	if (!s->s_root) {
--		err = setup_bdev_super(s, flags, NULL);
-+		err = setup_bdev_super(s, fc->sb_flags, fc);
- 		if (!err)
--			err = nilfs_fill_super(s, data,
--					       flags & SB_SILENT ? 1 : 0);
-+			err = nilfs_fill_super(s, fc);
- 		if (err)
- 			goto failed_super;
- 
- 		s->s_flags |= SB_ACTIVE;
--	} else if (!sd.cno) {
-+	} else if (!ctx->cno) {
- 		if (nilfs_tree_is_busy(s->s_root)) {
--			if ((flags ^ s->s_flags) & SB_RDONLY) {
-+			if ((fc->sb_flags ^ s->s_flags) & SB_RDONLY) {
- 				nilfs_err(s,
- 					  "the device already has a %s mount.",
- 					  sb_rdonly(s) ? "read-only" : "read/write");
-@@ -1312,37 +1224,75 @@ nilfs_mount(struct file_system_type *fs_
- 			}
- 		} else {
- 			/*
--			 * Try remount to setup mount states if the current
-+			 * Try reconfigure to setup mount states if the current
- 			 * tree is not mounted and only snapshots use this sb.
-+			 *
-+			 * Since nilfs_reconfigure() requires fc->root to be
-+			 * set, set it first and release it on failure.
- 			 */
--			err = nilfs_remount(s, &flags, data);
--			if (err)
-+			fc->root = dget(s->s_root);
-+			err = nilfs_reconfigure(fc);
-+			if (err) {
-+				dput(fc->root);
-+				fc->root = NULL;  /* prevent double release */
- 				goto failed_super;
-+			}
-+			return 0;
- 		}
- 	}
- 
--	if (sd.cno) {
-+	if (ctx->cno) {
- 		struct dentry *root_dentry;
- 
--		err = nilfs_attach_snapshot(s, sd.cno, &root_dentry);
-+		err = nilfs_attach_snapshot(s, ctx->cno, &root_dentry);
- 		if (err)
- 			goto failed_super;
--		return root_dentry;
-+		fc->root = root_dentry;
-+		return 0;
- 	}
- 
--	return dget(s->s_root);
-+	fc->root = dget(s->s_root);
-+	return 0;
- 
-  failed_super:
- 	deactivate_locked_super(s);
--	return ERR_PTR(err);
-+	return err;
-+}
-+
-+static void nilfs_free_fc(struct fs_context *fc)
-+{
-+	kfree(fc->fs_private);
-+}
-+
-+static const struct fs_context_operations nilfs_context_ops = {
-+	.parse_param	= nilfs_parse_param,
-+	.get_tree	= nilfs_get_tree,
-+	.reconfigure	= nilfs_reconfigure,
-+	.free		= nilfs_free_fc,
-+};
-+
-+static int nilfs_init_fs_context(struct fs_context *fc)
-+{
-+	struct nilfs_fs_context *ctx;
-+
-+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-+	if (!ctx)
-+		return -ENOMEM;
-+
-+	ctx->ns_mount_opt = NILFS_MOUNT_ERRORS_RO | NILFS_MOUNT_BARRIER;
-+	fc->fs_private = ctx;
-+	fc->ops = &nilfs_context_ops;
-+
-+	return 0;
- }
- 
- struct file_system_type nilfs_fs_type = {
- 	.owner    = THIS_MODULE,
- 	.name     = "nilfs2",
--	.mount    = nilfs_mount,
- 	.kill_sb  = kill_block_super,
- 	.fs_flags = FS_REQUIRES_DEV,
-+	.init_fs_context = nilfs_init_fs_context,
-+	.parameters = nilfs_param_spec,
- };
- MODULE_ALIAS_FS("nilfs2");
- 
---- a/fs/nilfs2/the_nilfs.c~nilfs2-convert-to-use-the-new-mount-api
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -659,7 +659,6 @@ static int nilfs_load_super_block(struct
-  * init_nilfs - initialize a NILFS instance.
-  * @nilfs: the_nilfs structure
-  * @sb: super block
-- * @data: mount options
-  *
-  * init_nilfs() performs common initialization per block device (e.g.
-  * reading the super block, getting disk layout information, initializing
-@@ -668,7 +667,7 @@ static int nilfs_load_super_block(struct
-  * Return Value: On success, 0 is returned. On error, a negative error
-  * code is returned.
-  */
--int init_nilfs(struct the_nilfs *nilfs, struct super_block *sb, char *data)
-+int init_nilfs(struct the_nilfs *nilfs, struct super_block *sb)
- {
- 	struct nilfs_super_block *sbp;
- 	int blocksize;
-@@ -686,7 +685,7 @@ int init_nilfs(struct the_nilfs *nilfs,
- 	if (err)
- 		goto out;
- 
--	err = nilfs_store_magic_and_option(sb, sbp, data);
-+	err = nilfs_store_magic(sb, sbp);
- 	if (err)
- 		goto failed_sbh;
- 
---- a/fs/nilfs2/the_nilfs.h~nilfs2-convert-to-use-the-new-mount-api
-+++ a/fs/nilfs2/the_nilfs.h
-@@ -219,10 +219,6 @@ THE_NILFS_FNS(PURGING, purging)
- #define nilfs_set_opt(nilfs, opt)  \
- 	((nilfs)->ns_mount_opt |= NILFS_MOUNT_##opt)
- #define nilfs_test_opt(nilfs, opt) ((nilfs)->ns_mount_opt & NILFS_MOUNT_##opt)
--#define nilfs_write_opt(nilfs, mask, opt)				\
--	((nilfs)->ns_mount_opt =					\
--		(((nilfs)->ns_mount_opt & ~NILFS_MOUNT_##mask) |	\
--		 NILFS_MOUNT_##opt))					\
- 
- /**
-  * struct nilfs_root - nilfs root object
-@@ -276,7 +272,7 @@ static inline int nilfs_sb_will_flip(str
- void nilfs_set_last_segment(struct the_nilfs *, sector_t, u64, __u64);
- struct the_nilfs *alloc_nilfs(struct super_block *sb);
- void destroy_nilfs(struct the_nilfs *nilfs);
--int init_nilfs(struct the_nilfs *nilfs, struct super_block *sb, char *data);
-+int init_nilfs(struct the_nilfs *nilfs, struct super_block *sb);
- int load_nilfs(struct the_nilfs *nilfs, struct super_block *sb);
- unsigned long nilfs_nrsvsegs(struct the_nilfs *nilfs, unsigned long nsegs);
- void nilfs_set_nsegments(struct the_nilfs *nilfs, unsigned long nsegs);
+-	status = 0;
+ 	node = -1;
+ 	while ((node = find_next_bit(node_map, O2NM_MAX_NODES,
+ 				     node + 1)) < O2NM_MAX_NODES) {
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from colin.i.king@gmail.com are
 
 
