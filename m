@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F5C93236
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:28:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AE51320B
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:28:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714955334; cv=none; b=sC1JgbRZ7PC4XnuxYBEAu9byvQNBnzm6Gfnry8s4VkrIv8YB8Q8asUAAlXB3s0gTI86ERVcJxL5uXTTME53urkgtS6O05YP1iHVoeTBIWfaHtJ6mXgJyQjmIC0amUpkGTkAPDVMWGkrDA0l5NKenFR628Oycs6aW1KzMGYE5mWk=
+	t=1714955335; cv=none; b=lNacdCmbeax1ZXX6fubebgjH5lWheqQRiM/ZrLoiMqD6LjtGl8ljEg2L9R4H9HuL0dvKoByotuEcRT/b+GJQb5AA23MLyqpJXW0TsJqESVbXvTX1r0kt7416OC+A6Te2mnqZuPPqjwqp9fzsxeM4B8eEg5I0Dupmj4oCmEe5Eeg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714955334; c=relaxed/simple;
-	bh=Gy95jyKm9ycki4tRcjCoi5PAG5D3gOakU8ReA8T09dw=;
-	h=Date:To:From:Subject:Message-Id; b=rfWbsA7joqZiI4xfkNJBGcSUotpweC8ibRp3YkN9wjFrRvh9x1wRmPdZrP/9FEBGT4+4cakF0AGkgP0zDJcT/Am5oX6pYngANhtFIGwo9sH/M6juMqRrqw88+1Ii19phC7oEJNl7RNrgLMXp5fl9B9iB8V8sMQt1UNej7+6tvhM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MkPJlc04; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714955335; c=relaxed/simple;
+	bh=D/ftbAv3ce3TyoZkx32jEmrDpLMZPYiFMy/AgCP0hZI=;
+	h=Date:To:From:Subject:Message-Id; b=NR6Fu5g5xKGDEy7BeIKIulUvyvDRLbI0pBHMBCtSpnuyw+qlSzf8ZkpwKNDvjcPsjbdW83xJIWKtPXOXHZrWhroqIXafS6IpdPXn5xt1cNAv1136cH2ztwQnyqnaRXY3GaJB80foXkC2u4687w+5pAGjPt9ZDduNAi4KmD33OIU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Khkkeb6E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MkPJlc04"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7A77C113CC;
-	Mon,  6 May 2024 00:28:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Khkkeb6E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 205CAC113CC;
+	Mon,  6 May 2024 00:28:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714955333;
-	bh=Gy95jyKm9ycki4tRcjCoi5PAG5D3gOakU8ReA8T09dw=;
+	s=korg; t=1714955335;
+	bh=D/ftbAv3ce3TyoZkx32jEmrDpLMZPYiFMy/AgCP0hZI=;
 	h=Date:To:From:Subject:From;
-	b=MkPJlc046p0sVBwjm6abSCyz2nVwl/YrqNvOjPqSvvnzdWk4tlnZBrhCF1yCs4La7
-	 uuRZhlcwNrWcVsPPqj5W0oChVH1u2ncwWerJribnh7zJcivwAkwVr+qYOLtNY8myVT
-	 B9dS/vJMhPM27qAt1QBRWfMMGIe4IiPmmSvdWlqw=
-Date: Sun, 05 May 2024 17:28:53 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,elver@google.com,djwong@kernel.org,david@fromorbit.com,andreyknvl@gmail.com,hch@lst.de,akpm@linux-foundation.org
+	b=Khkkeb6EGyfgg7ZOQilHgpYesnpwDN2hQL4BnHI/sTyL8Scvj1/vOXrvGUmkHiDzA
+	 jkcd6Pe6gNYPKZ45LcZTw49Vjlei3QvpKZkLwy76DDSUwwHecZC2HF3tUSIyR8UcRt
+	 APchKZYsfkNhYYkaTcsH8PsPkqGDFQhR692EWNZ0=
+Date: Sun, 05 May 2024 17:28:54 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,usama.anjum@collabora.com,tglx@linutronix.de,skhan@linuxfoundation.org,luto@kernel.org,keescook@chromium.org,broonie@kernel.org,yangtiezhu@loongson.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mmpage_owner-dont-remove-__gfp_nolockdep-in-add_stack_record_to_list.patch removed from -mm tree
-Message-Id: <20240506002853.D7A77C113CC@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-vdso-fix-building-errors-on-loongarch.patch removed from -mm tree
+Message-Id: <20240506002855.205CAC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm,page_owner: don't remove __GFP_NOLOCKDEP in add_stack_record_to_list
+     Subject: selftests/vDSO: fix building errors on LoongArch
 has been removed from the -mm tree.  Its filename was
-     mmpage_owner-dont-remove-__gfp_nolockdep-in-add_stack_record_to_list.patch
+     selftests-vdso-fix-building-errors-on-loongarch.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm,page_owner: don't remove __GFP_NOLOCKDEP in add_stack_record_to_list
-Date: Mon, 29 Apr 2024 10:28:28 +0200
+From: Tiezhu Yang <yangtiezhu@loongson.cn>
+Subject: selftests/vDSO: fix building errors on LoongArch
+Date: Sun, 28 Apr 2024 11:05:29 +0800
 
-Otherwise we'll generate false lockdep positives.
+Patch series "selftests/vDSO: Fix errors on LoongArch", v4.
 
-Link: https://lkml.kernel.org/r/20240429082828.1615986-1-hch@lst.de
-Fixes: 217b2119b9e2 ("mm,page_owner: implement the tracking of the stacks count")
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Marco Elver <elver@google.com>
+
+This patch (of 2):
+
+There exist the following errors when build vDSO selftests on LoongArch:
+
+  # make headers && cd tools/testing/selftests/vDSO && make
+  ...
+  error: 'VDSO_VERSION' undeclared (first use in this function)
+  ...
+  error: 'VDSO_NAMES' undeclared (first use in this function)
+
+We can see the following code in arch/loongarch/vdso/vdso.lds.S:
+
+VERSION
+{
+        LINUX_5.10 {
+        global:
+                __vdso_getcpu;
+                __vdso_clock_getres;
+                __vdso_clock_gettime;
+                __vdso_gettimeofday;
+                __vdso_rt_sigreturn;
+        local: *;
+        };
+}
+
+so VDSO_VERSION should be 6 and VDSO_NAMES should be 1 for LoongArch,
+add them to fix the building errors on LoongArch.
+
+Link: https://lkml.kernel.org/r/20240428030530.24399-1-yangtiezhu@loongson.cn
+Link: https://lkml.kernel.org/r/20240428030530.24399-2-yangtiezhu@loongson.cn
+Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/vDSO/vdso_config.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/page_owner.c~mmpage_owner-dont-remove-__gfp_nolockdep-in-add_stack_record_to_list
-+++ a/mm/page_owner.c
-@@ -170,7 +170,7 @@ static void add_stack_record_to_list(str
+--- a/tools/testing/selftests/vDSO/vdso_config.h~selftests-vdso-fix-building-errors-on-loongarch
++++ a/tools/testing/selftests/vDSO/vdso_config.h
+@@ -53,15 +53,19 @@
+ #if __riscv_xlen == 32
+ #define VDSO_32BIT		1
+ #endif
++#elif defined(__loongarch__)
++#define VDSO_VERSION		6
++#define VDSO_NAMES		1
+ #endif
  
- 	/* Filter gfp_mask the same way stackdepot does, for consistency */
- 	gfp_mask &= ~GFP_ZONEMASK;
--	gfp_mask &= (GFP_ATOMIC | GFP_KERNEL);
-+	gfp_mask &= (GFP_ATOMIC | GFP_KERNEL | __GFP_NOLOCKDEP);
- 	gfp_mask |= __GFP_NOWARN;
+-static const char *versions[6] = {
++static const char *versions[7] = {
+ 	"LINUX_2.6",
+ 	"LINUX_2.6.15",
+ 	"LINUX_2.6.29",
+ 	"LINUX_2.6.39",
+ 	"LINUX_4",
+ 	"LINUX_4.15",
++	"LINUX_5.10"
+ };
  
- 	set_current_in_page_owner();
+ static const char *names[2][6] = {
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from yangtiezhu@loongson.cn are
 
 
