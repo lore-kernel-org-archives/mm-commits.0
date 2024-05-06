@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF61D156F46;
-	Mon,  6 May 2024 20:00:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E874C15B136
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 20:30:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715025643; cv=none; b=KJaHxrgZOSLh8+b/Z3qxZID/CwgnITR7qbNNVSrPx1wqNuMLlNekuRJfohTI5CrfDVfjUTOTsWCezENJ4NogyS/hA5wOlTDjKHX7V3C2KusTTkeOR8EMgzpwj4ik38vRWwzz9H9D/tHeaONKS5kwnf6KgDPE3kFxKHzO68oTyNM=
+	t=1715027408; cv=none; b=vGjy0sUQFXFOMLAdjCAFHf+jX9VtR13WB/91U/SWJp6CzCeOBNOr+rLWCuIgMgHWpCDOozwItjDrArZo7BWGUk/lPLcCa9rZQQCV9PRa19Eeluur+d1l9hVMn930XIgbFtJImL63aPAGbv5yBjWnA4M4wyUVthyGwX4BtFGZqsY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715025643; c=relaxed/simple;
-	bh=nxl+HbLeufFyqJp8F0cYUEGsWlhTMbaM9hgpZ4FAAOI=;
-	h=Date:To:From:Subject:Message-Id; b=K1FeiJw71VUslIyqhSSxh8EyBa+WKqaIEi1hdr1308P3fzgQka3M8mnMH4St4YIE22e3PNidgXqayBGGdP16LW5nRr6x/oBmjIIxGXufG3mv3vbVQtvAF7WzBShxYgnRbvbeT5d+8MSWWrXRjb3YQ4LsIXX0pkyRuDQ2Nfslt+A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gHEcAyqG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1715027408; c=relaxed/simple;
+	bh=bbYiChKpJYNYRgYh+VbMf80txzXP6T7437Yi2/keMn0=;
+	h=Date:To:From:Subject:Message-Id; b=gwBTLTfc6RsZUO6+3uQbZUk2IK38nWUt6KZs3hF9/XwMgoJbOEPNjshaVQc7LyOoIpfw19r/DRJlP/sQJRdbueaONQFWNyllwS1cw+KjbYHJl7bDrVZSik/+72rvLKzd1Gz/E8sCTmRdzbuxp0wY2yeXwhTlHMY9YzdCn6gAqbI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V+EQ9M2U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gHEcAyqG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B3C2C116B1;
-	Mon,  6 May 2024 20:00:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V+EQ9M2U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62421C116B1;
+	Mon,  6 May 2024 20:30:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1715025642;
-	bh=nxl+HbLeufFyqJp8F0cYUEGsWlhTMbaM9hgpZ4FAAOI=;
+	s=korg; t=1715027407;
+	bh=bbYiChKpJYNYRgYh+VbMf80txzXP6T7437Yi2/keMn0=;
 	h=Date:To:From:Subject:From;
-	b=gHEcAyqG/QdrPBSwB59DgyirI7aIsN/VnMDJLYakKYANDYc6Ax7e0BNC+nty+UvDA
-	 VV9mo3UETS7QdYVOmc2Yc2/BF5FbVnL3Mqq61TYwYFR6zxqosppkYaEUpozosGOV7q
-	 cDv2ndRVrHo06h6OISCYT8TNpnjs4A4uZDQAh4g8=
-Date: Mon, 06 May 2024 13:00:41 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,broonie@kernel.org,mpe@ellerman.id.au,akpm@linux-foundation.org
+	b=V+EQ9M2UR4URF3CxSqm9O6WiH2oku/RojN1sz467vc4rZLyXDXVCq06I0fYTpp5Td
+	 i27WvnxDl1cjUrcU0cqB2pmIXrpbi24iKTtXChMNUYOXu4d1ydrZ/gKSLbFl7cfZZW
+	 Y50DLV/Q9vHy6CYfBroic/ZeSmXXncHSiUeB2qbg=
+Date: Mon, 06 May 2024 13:30:06 -0700
+To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-powerpc-arch-check.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240506200042.4B3C2C116B1@smtp.kernel.org>
+Subject: + mailmap-add-entry-for-barry-song.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240506203007.62421C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix powerpc ARCH check
+     Subject: mailmap: add entry for Barry Song
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mm-fix-powerpc-arch-check.patch
+     mailmap-add-entry-for-barry-song.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-powerpc-arch-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-entry-for-barry-song.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,67 +58,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Michael Ellerman <mpe@ellerman.id.au>
-Subject: selftests/mm: fix powerpc ARCH check
-Date: Mon, 6 May 2024 21:58:25 +1000
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mailmap: add entry for Barry Song
+Date: Mon, 6 May 2024 16:20:09 +1200
 
-In commit 0518dbe97fe6 ("selftests/mm: fix cross compilation with LLVM")
-the logic to detect the machine architecture in the Makefile was changed
-to use ARCH, and only fallback to uname -m if ARCH is unset.  However the
-tests of ARCH were not updated to account for the fact that ARCH is
-"powerpc" for powerpc builds, not "ppc64".
+Include a .mailmap entry to synchronize with both my past and current
+emails.  Among them, three business mailboxes are dead.
 
-Fix it by changing the checks to look for "powerpc", and change the
-uname -m logic to convert "ppc64.*" into "powerpc".
-
-With that fixed the following tests now build for powerpc again:
- * protection_keys
- * va_high_addr_switch
- * virtual_address_range
- * write_to_hugetlbfs
-
-Link: https://lkml.kernel.org/r/20240506115825.66415-1-mpe@ellerman.id.au
-Fixes: 0518dbe97fe6 ("selftests/mm: fix cross compilation with LLVM")
-Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: <stable@vger.kernel.org>	[6.4+]
+Link: https://lkml.kernel.org/r/20240506042009.10854-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ .mailmap |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-fix-powerpc-arch-check
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -12,7 +12,7 @@ uname_M := $(shell uname -m 2>/dev/null
- else
- uname_M := $(shell echo $(CROSS_COMPILE) | grep -o '^[a-z0-9]\+')
- endif
--ARCH ?= $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/' -e 's/ppc64.*/ppc64/')
-+ARCH ?= $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/' -e 's/ppc64.*/powerpc/')
- endif
- 
- # Without this, failed build products remain, with up-to-date timestamps,
-@@ -98,13 +98,13 @@ TEST_GEN_FILES += $(BINARIES_64)
- endif
- else
- 
--ifneq (,$(findstring $(ARCH),ppc64))
-+ifneq (,$(findstring $(ARCH),powerpc))
- TEST_GEN_FILES += protection_keys
- endif
- 
- endif
- 
--ifneq (,$(filter $(ARCH),arm64 ia64 mips64 parisc64 ppc64 riscv64 s390x sparc64 x86_64))
-+ifneq (,$(filter $(ARCH),arm64 ia64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64))
- TEST_GEN_FILES += va_high_addr_switch
- TEST_GEN_FILES += virtual_address_range
- TEST_GEN_FILES += write_to_hugetlbfs
+--- a/.mailmap~mailmap-add-entry-for-barry-song
++++ a/.mailmap
+@@ -87,6 +87,11 @@ Baolin Wang <baolin.wang@linux.alibaba.c
+ Baolin Wang <baolin.wang@linux.alibaba.com> <baolin.wang@spreadtrum.com>
+ Baolin Wang <baolin.wang@linux.alibaba.com> <baolin.wang@unisoc.com>
+ Baolin Wang <baolin.wang@linux.alibaba.com> <baolin.wang7@gmail.com>
++Barry Song <baohua@kernel.org> <21cnbao@gmail.com>
++Barry Song <baohua@kernel.org> <v-songbaohua@oppo.com>
++Barry Song <baohua@kernel.org> <song.bao.hua@hisilicon.com>
++Barry Song <baohua@kernel.org> <Baohua.Song@csr.com>
++Barry Song <baohua@kernel.org> <barry.song@analog.com>
+ Bart Van Assche <bvanassche@acm.org> <bart.vanassche@sandisk.com>
+ Bart Van Assche <bvanassche@acm.org> <bart.vanassche@wdc.com>
+ Bartosz Golaszewski <brgl@bgdev.pl> <bgolaszewski@baylibre.com>
 _
 
-Patches currently in -mm which might be from mpe@ellerman.id.au are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-selftests-mm-fix-powerpc-arch-check.patch
-drm-amd-display-only-use-hard-float-not-altivec-on-powerpc.patch
+mailmap-add-entry-for-barry-song.patch
 
