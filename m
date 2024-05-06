@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1534E2CA5
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 01:14:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 233752CA5
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 01:15:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714958099; cv=none; b=coe4U26qZZYIZL3QTscuxPPgp7alzhFrYpGP5i7wVGLuhZDp7NXz0DL4daTKHOle2rMgcq/n96hiy3ozmUHOD+kvZ28Ju51+FeBYJGB6TzSXwVKbiRw/7NumLqYV5o0olHArqKPDkYz/QcdXAMTyAXf3JZICFAsiaAqg6UOCd4U=
+	t=1714958100; cv=none; b=ZzLG7WqZcmtJqE+D/NVVqS93PrbTCucf/gxT+b20omOZZ/UxH8KpMh6pwkjPrGhd5dXMWMLi23ic2E2o47bwg4PnDanrutzNZtJedMD8/JxTzzIYTYV9dOQJL5H9DGJvSyNWflhp0x+KtFxV0CSsoiwapZGXQD6gErqnAfUksgw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714958099; c=relaxed/simple;
-	bh=cC6atPey8tey35JIe7QmYyZGY27mWNus8vp6j5haJLM=;
-	h=Date:To:From:Subject:Message-Id; b=O+o7dOtizeqNKWo7q/Byn+Z5+tb8KIZ1M6oHB3pJKX95YU0SyYC1CjPsVMmdZOp5KhTPeLdOkKY10wRpaX3kxNOCDrPOQosCHOWqFp1b40PA3V8DPzdk4nbeA4XtiLtIMEmPO38jluk74u/OloWddWdjYxobg56vjy6LrxOEJRk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TYqk7Nwt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714958100; c=relaxed/simple;
+	bh=fnZT0gB1EATlBatm/hofQrs0S+ca+KxyvyAEPQNtBB8=;
+	h=Date:To:From:Subject:Message-Id; b=K2f2v9xgsBJdFJq7jZBGFdjqEDQ+I0YSO7F0F9Gz24p1akHvsjtkSoa4n5fHa5SmQqyLu67mZcEH+rpYPiZiZnFWeyqMJYBZP7ebCcALwZilDNw1hsWzp4nyZsm3Z2nCYQm0QExGQdYSH2pmvjibTxvGLI7AbX9xyTSa+Ry+RGU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BYwur/U3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TYqk7Nwt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6E0FC116B1;
-	Mon,  6 May 2024 01:14:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BYwur/U3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E19DAC4AF18;
+	Mon,  6 May 2024 01:14:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714958098;
-	bh=cC6atPey8tey35JIe7QmYyZGY27mWNus8vp6j5haJLM=;
+	s=korg; t=1714958100;
+	bh=fnZT0gB1EATlBatm/hofQrs0S+ca+KxyvyAEPQNtBB8=;
 	h=Date:To:From:Subject:From;
-	b=TYqk7NwtJRYXqjfMc6VbwmX/5SEWs/F9rE7TO7qWbgzVAM2WmLRzOydy8rDdY+Eku
-	 21oL2vToXwRzqO/pVoDOGY92K4AbG589jBuEkXEXQhhwr9+4yOt4sgqGqPRAwit7ez
-	 TnZwez67MKqjV9rUuiRtlHtq8jML7WNUTlCEs6ao=
-Date: Sun, 05 May 2024 18:14:58 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,ghe@suse.com,gechangwei@live.cn,dan.carpenter@linaro.org,colin.i.king@gmail.com,akpm@linux-foundation.org
+	b=BYwur/U3B/UQRwzDXUhvPD0Y2s7JysKL+wayLANqIKhtzbtvgQoxlflexTBq5kdX7
+	 VDXqSRm7SfWHKb7Mq1B0fEsBsFRTY3yGID5JH/iTOVqZL9Krty1VPu5J4BD/Gtt+LM
+	 njYSb0DqECG+sdbg6aGjOS70q09ljsJKYIqf4M18=
+Date: Sun, 05 May 2024 18:14:59 -0700
+To: mm-commits@vger.kernel.org,namhyung@kernel.org,kan.liang@linux.intel.com,jolsa@kernel.org,irogers@google.com,goldstein.w.n@gmail.com,adrian.hunter@intel.com,acme@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-remove-redundant-assignment-to-variable-status.patch removed from -mm tree
-Message-Id: <20240506011458.C6E0FC116B1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] tools-lib-rbtree-pick-some-improvements-from-the-kernel-rbtree-code.patch removed from -mm tree
+Message-Id: <20240506011459.E19DAC4AF18@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: remove redundant assignment to variable status
+     Subject: tools lib rbtree: pick some improvements from the kernel rbtree code
 has been removed from the -mm tree.  Its filename was
-     ocfs2-remove-redundant-assignment-to-variable-status.patch
+     tools-lib-rbtree-pick-some-improvements-from-the-kernel-rbtree-code.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Colin Ian King <colin.i.king@gmail.com>
-Subject: ocfs2: remove redundant assignment to variable status
-Date: Tue, 23 Apr 2024 23:30:18 +0100
+From: Arnaldo Carvalho de Melo <acme@redhat.com>
+Subject: tools lib rbtree: pick some improvements from the kernel rbtree code
+Date: Tue, 23 Apr 2024 17:27:57 -0300
 
-Variable status is being assigned and error code that is never read, it is
-being assigned inside of a do-while loop.  The assignment is redundant and
-can be removed.
+The tools/lib/rbtree.c code came from the kernel.  Remove the
+EXPORT_SYMBOL() that make sense only there.  Unfortunately it is not being
+checked with tools/perf/check_headers.sh.  Will try to remedy this.  Until
+then pick the improvements from:
 
-Cleans up clang scan build warning:
-fs/ocfs2/dlm/dlmdomain.c:1530:2: warning: Value stored to 'status' is never
-read [deadcode.DeadStores]
+  b0687c1119b4e8c8 ("lib/rbtree: use '+' instead of '|' for setting color.")
 
-Link: https://lkml.kernel.org/r/20240423223018.1573213-1-colin.i.king@gmail.com
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Dan Carpenter <dan.carpenter@linaro.org>
+That I noticed by doing:
+
+  diff -u tools/lib/rbtree.c lib/rbtree.c
+  diff -u tools/include/linux/rbtree_augmented.h include/linux/rbtree_augmented.h
+
+There is one other cases, but lets pick it in separate patches.
+
+Link: https://lkml.kernel.org/r/ZigZzeFoukzRKG1Q@x1
+Signed-off-by: Arnaldo Carvalho de Melo <acme@redhat.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Kan Liang <kan.liang@linux.intel.com>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Noah Goldstein <goldstein.w.n@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmdomain.c |    1 -
- 1 file changed, 1 deletion(-)
+ tools/include/linux/rbtree_augmented.h |    4 ++--
+ tools/lib/rbtree.c                     |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-remove-redundant-assignment-to-variable-status
-+++ a/fs/ocfs2/dlm/dlmdomain.c
-@@ -1527,7 +1527,6 @@ static void dlm_send_join_asserts(struct
- {
- 	int status, node, live;
+--- a/tools/include/linux/rbtree_augmented.h~tools-lib-rbtree-pick-some-improvements-from-the-kernel-rbtree-code
++++ a/tools/include/linux/rbtree_augmented.h
+@@ -158,13 +158,13 @@ RB_DECLARE_CALLBACKS(RBSTATIC, RBNAME,
  
--	status = 0;
- 	node = -1;
- 	while ((node = find_next_bit(node_map, O2NM_MAX_NODES,
- 				     node + 1)) < O2NM_MAX_NODES) {
+ static inline void rb_set_parent(struct rb_node *rb, struct rb_node *p)
+ {
+-	rb->__rb_parent_color = rb_color(rb) | (unsigned long)p;
++	rb->__rb_parent_color = rb_color(rb) + (unsigned long)p;
+ }
+ 
+ static inline void rb_set_parent_color(struct rb_node *rb,
+ 				       struct rb_node *p, int color)
+ {
+-	rb->__rb_parent_color = (unsigned long)p | color;
++	rb->__rb_parent_color = (unsigned long)p + color;
+ }
+ 
+ static inline void
+--- a/tools/lib/rbtree.c~tools-lib-rbtree-pick-some-improvements-from-the-kernel-rbtree-code
++++ a/tools/lib/rbtree.c
+@@ -58,7 +58,7 @@
+ 
+ static inline void rb_set_black(struct rb_node *rb)
+ {
+-	rb->__rb_parent_color |= RB_BLACK;
++	rb->__rb_parent_color += RB_BLACK;
+ }
+ 
+ static inline struct rb_node *rb_red_parent(struct rb_node *red)
 _
 
-Patches currently in -mm which might be from colin.i.king@gmail.com are
+Patches currently in -mm which might be from acme@redhat.com are
 
 
