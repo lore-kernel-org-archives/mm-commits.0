@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B082F2575F
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:57:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C674F2770E
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:57:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957068; cv=none; b=Jgp7g77boJCKjgOnIs0x8c00WtEaxgshyMw+zVf3Zi6rRChVvBSoBKGc2Bv0YwHbBRWxg/yNPISLO2LgVXALoLCijUo83DwM3RmUl9XJ0n4XUFKHXkLiRo4SxvSK7MbMztpiWpZazUnAuRCOuW7MJ8gVpB+gLIg9te+u78yKqno=
+	t=1714957069; cv=none; b=jy5Z9gRUXiRbOXrUMX4pL14cfJcU8XT1F72WRWfHRuFs2AdJqrkVi3PP0jhJZf8sG9qj65sQQpzqxJaQ4b5jJT/Nh2TjGfKZRedIQcZpWN5teFSftT/bVlDkcU0uLAaThe4rFC8oj4iHeW51aLjEMOm5IOuwivB5u+JoXDcYb3Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957068; c=relaxed/simple;
-	bh=tSh62n60zlD3jhxfyrV81ktvXFt9zxuJtK7p7fDrJnQ=;
-	h=Date:To:From:Subject:Message-Id; b=smEfCGO0DjET9NTwwTp1ea0rPHng/SGL4e0BzStO4+d/K/wlUYz+25nV4PL59syCx5ta5X/wyGiHdnrfvxWgdxUhCTkJSdVBtkrS6IN9Lsufj3RmCmXe3rCgXuE8dpfBN5daj/SZyddYMZR/Xw9i4FkGbgOWeYS95KxTv2FZ7S4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hNDJ844V; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957069; c=relaxed/simple;
+	bh=vsKFhCiAEOoE1YWMbjdfNusW9oxzYLih4DMCJcs21aY=;
+	h=Date:To:From:Subject:Message-Id; b=h3lDRPyuLeipHIWGMwZwC8aKys6HuiLtmDi7BJuMcYhd9J4vZ9w6IKw7nWOTLImG04EVaYcoHNI3vC13tBgyG3aBELVegfhWq1xkzgI4sQqrCd+xeZwo+BNEVkywOahG/fok4RPtHqHEAasoPpx6ZPEi5oQrtC43fR/Htaz55oM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tltu/Jcj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hNDJ844V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 811EFC113CC;
-	Mon,  6 May 2024 00:57:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tltu/Jcj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A8BDC113CC;
+	Mon,  6 May 2024 00:57:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957068;
-	bh=tSh62n60zlD3jhxfyrV81ktvXFt9zxuJtK7p7fDrJnQ=;
+	s=korg; t=1714957069;
+	bh=vsKFhCiAEOoE1YWMbjdfNusW9oxzYLih4DMCJcs21aY=;
 	h=Date:To:From:Subject:From;
-	b=hNDJ844VP+/HoNgRAPapyc05qonGeGZeB81VuBuJZ3M46tvmEVpbKVof7/pEu0+PB
-	 r2WkDUC4OM2iRG3ALMhINSpUBQ8Ny3zm9QJBKog8moV4P07jWq1CG0tN6RZneFQL9h
-	 iU2KA92/E22ktIh0q2nZ+XOfwME0nPD8+OXUYlpI=
-Date: Sun, 05 May 2024 17:57:48 -0700
-To: mm-commits@vger.kernel.org,rientjes@google.com,muchun.song@linux.dev,david@redhat.com,almasrymina@google.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=tltu/Jcjs9fc7SzruOX4f2v7GLY2R+DErchED9DrETCPs0DlSD+/WzBFguKL5a4Qk
+	 Jytk6Z4E7kgouaEKQ/H0k05M7E1in93iyXXYxz4mjg5QPr1oPULRsdgGxD0b9wCkP7
+	 XjJMOMGT0tWMoJvZNV/A1OMAMnCm6wozqY0faIvQ=
+Date: Sun, 05 May 2024 17:57:49 -0700
+To: mm-commits@vger.kernel.org,pasha.tatashin@soleen.com,nadav.amit@gmail.com,david@redhat.com,axelrasmussen@google.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-assert-hugetlb_lock-in-__hugetlb_cgroup_commit_charge.patch removed from -mm tree
-Message-Id: <20240506005748.811EFC113CC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_table_check-support-userfault-wr-protect-entries.patch removed from -mm tree
+Message-Id: <20240506005749.9A8BDC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,193 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: assert hugetlb_lock in __hugetlb_cgroup_commit_charge
+     Subject: mm/page_table_check: support userfault wr-protect entries
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-assert-hugetlb_lock-in-__hugetlb_cgroup_commit_charge.patch
+     mm-page_table_check-support-userfault-wr-protect-entries.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: assert hugetlb_lock in __hugetlb_cgroup_commit_charge
-Date: Wed, 17 Apr 2024 17:18:36 -0400
+Subject: mm/page_table_check: support userfault wr-protect entries
+Date: Wed, 17 Apr 2024 17:25:49 -0400
 
-This is similar to __hugetlb_cgroup_uncharge_folio() where it relies on
-holding hugetlb_lock.  Add the similar assertion like the other one, since
-it looks like such things may help some day.
+Allow page_table_check hooks to check over userfaultfd wr-protect criteria
+upon pgtable updates.  The rule is no co-existance allowed for any
+writable flag against userfault wr-protect flag.
 
-Link: https://lkml.kernel.org/r/20240417211836.2742593-4-peterx@redhat.com
+This should be better than c2da319c2e, where we used to only sanitize such
+issues during a pgtable walk, but when hitting such issue we don't have a
+good chance to know where does that writable bit came from [1], so that
+even the pgtable walk exposes a kernel bug (which is still helpful on
+triaging) but not easy to track and debug.
+
+Now we switch to track the source.  It's much easier too with the recent
+introduction of page table check.
+
+There are some limitations with using the page table check here for
+userfaultfd wr-protect purpose:
+
+  - It is only enabled with explicit enablement of page table check configs
+  and/or boot parameters, but should be good enough to track at least
+  syzbot issues, as syzbot should enable PAGE_TABLE_CHECK[_ENFORCED] for
+  x86 [1].  We used to have DEBUG_VM but it's now off for most distros,
+  while distros also normally not enable PAGE_TABLE_CHECK[_ENFORCED], which
+  is similar.
+
+  - It conditionally works with the ptep_modify_prot API.  It will be
+  bypassed when e.g. XEN PV is enabled, however still work for most of the
+  rest scenarios, which should be the common cases so should be good
+  enough.
+
+  - Hugetlb check is a bit hairy, as the page table check cannot identify
+  hugetlb pte or normal pte via trapping at set_pte_at(), because of the
+  current design where hugetlb maps every layers to pte_t... For example,
+  the default set_huge_pte_at() can invoke set_pte_at() directly and lose
+  the hugetlb context, treating it the same as a normal pte_t. So far it's
+  fine because we have huge_pte_uffd_wp() always equals to pte_uffd_wp() as
+  long as supported (x86 only).  It'll be a bigger problem when we'll
+  define _PAGE_UFFD_WP differently at various pgtable levels, because then
+  one huge_pte_uffd_wp() per-arch will stop making sense first.. as of now
+  we can leave this for later too.
+
+This patch also removes commit c2da319c2e altogether, as we have something
+better now.
+
+[1] https://lore.kernel.org/all/000000000000dce0530615c89210@google.com/
+
+Link: https://lkml.kernel.org/r/20240417212549.2766883-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Mina Almasry <almasrymina@google.com>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nadav Amit <nadav.amit@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/mm/page_table_check.rst |    9 ++++++-
+ arch/x86/include/asm/pgtable.h        |   18 --------------
+ mm/page_table_check.c                 |   30 ++++++++++++++++++++++++
+ 3 files changed, 39 insertions(+), 18 deletions(-)
 
---- a/mm/hugetlb_cgroup.c~mm-hugetlb-assert-hugetlb_lock-in-__hugetlb_cgroup_commit_charge
-+++ a/mm/hugetlb_cgroup.c
-@@ -308,7 +308,7 @@ static void __hugetlb_cgroup_commit_char
+--- a/arch/x86/include/asm/pgtable.h~mm-page_table_check-support-userfault-wr-protect-entries
++++ a/arch/x86/include/asm/pgtable.h
+@@ -388,23 +388,7 @@ static inline pte_t pte_wrprotect(pte_t
+ #ifdef CONFIG_HAVE_ARCH_USERFAULTFD_WP
+ static inline int pte_uffd_wp(pte_t pte)
  {
- 	if (hugetlb_cgroup_disabled() || !h_cg)
- 		return;
+-	bool wp = pte_flags(pte) & _PAGE_UFFD_WP;
 -
-+	lockdep_assert_held(&hugetlb_lock);
- 	__set_hugetlb_cgroup(folio, h_cg, rsvd);
- 	if (!rsvd) {
- 		unsigned long usage =
+-#ifdef CONFIG_DEBUG_VM
+-	/*
+-	 * Having write bit for wr-protect-marked present ptes is fatal,
+-	 * because it means the uffd-wp bit will be ignored and write will
+-	 * just go through.
+-	 *
+-	 * Use any chance of pgtable walking to verify this (e.g., when
+-	 * page swapped out or being migrated for all purposes). It means
+-	 * something is already wrong.  Tell the admin even before the
+-	 * process crashes. We also nail it with wrong pgtable setup.
+-	 */
+-	WARN_ON_ONCE(wp && pte_write(pte));
+-#endif
+-
+-	return wp;
++	return pte_flags(pte) & _PAGE_UFFD_WP;
+ }
+ 
+ static inline pte_t pte_mkuffd_wp(pte_t pte)
+--- a/Documentation/mm/page_table_check.rst~mm-page_table_check-support-userfault-wr-protect-entries
++++ a/Documentation/mm/page_table_check.rst
+@@ -14,7 +14,7 @@ Page table check performs extra verifica
+ accessible from the userspace by getting their page table entries (PTEs PMDs
+ etc.) added into the table.
+ 
+-In case of detected corruption, the kernel is crashed. There is a small
++In case of most detected corruption, the kernel is crashed. There is a small
+ performance and memory overhead associated with the page table check. Therefore,
+ it is disabled by default, but can be optionally enabled on systems where the
+ extra hardening outweighs the performance costs. Also, because page table check
+@@ -22,6 +22,13 @@ is synchronous, it can help with debuggi
+ by crashing kernel at the time wrong mapping occurs instead of later which is
+ often the case with memory corruptions bugs.
+ 
++It can also be used to do page table entry checks over various flags, dump
++warnings when illegal combinations of entry flags are detected.  Currently,
++userfaultfd is the only user of such to sanity check wr-protect bit against
++any writable flags.  Illegal flag combinations will not directly cause data
++corruption in this case immediately, but that will cause read-only data to
++be writable, leading to corrupt when the page content is later modified.
++
+ Double mapping detection logic
+ ==============================
+ 
+--- a/mm/page_table_check.c~mm-page_table_check-support-userfault-wr-protect-entries
++++ a/mm/page_table_check.c
+@@ -7,6 +7,8 @@
+ #include <linux/kstrtox.h>
+ #include <linux/mm.h>
+ #include <linux/page_table_check.h>
++#include <linux/swap.h>
++#include <linux/swapops.h>
+ 
+ #undef pr_fmt
+ #define pr_fmt(fmt)	"page_table_check: " fmt
+@@ -182,6 +184,22 @@ void __page_table_check_pud_clear(struct
+ }
+ EXPORT_SYMBOL(__page_table_check_pud_clear);
+ 
++/* Whether the swap entry cached writable information */
++static inline bool swap_cached_writable(swp_entry_t entry)
++{
++	return is_writable_device_exclusive_entry(entry) ||
++	    is_writable_device_private_entry(entry) ||
++	    is_writable_migration_entry(entry);
++}
++
++static inline void page_table_check_pte_flags(pte_t pte)
++{
++	if (pte_present(pte) && pte_uffd_wp(pte))
++		WARN_ON_ONCE(pte_write(pte));
++	else if (is_swap_pte(pte) && pte_swp_uffd_wp(pte))
++		WARN_ON_ONCE(swap_cached_writable(pte_to_swp_entry(pte)));
++}
++
+ void __page_table_check_ptes_set(struct mm_struct *mm, pte_t *ptep, pte_t pte,
+ 		unsigned int nr)
+ {
+@@ -190,6 +208,8 @@ void __page_table_check_ptes_set(struct
+ 	if (&init_mm == mm)
+ 		return;
+ 
++	page_table_check_pte_flags(pte);
++
+ 	for (i = 0; i < nr; i++)
+ 		__page_table_check_pte_clear(mm, ptep_get(ptep + i));
+ 	if (pte_user_accessible_page(pte))
+@@ -197,11 +217,21 @@ void __page_table_check_ptes_set(struct
+ }
+ EXPORT_SYMBOL(__page_table_check_ptes_set);
+ 
++static inline void page_table_check_pmd_flags(pmd_t pmd)
++{
++	if (pmd_present(pmd) && pmd_uffd_wp(pmd))
++		WARN_ON_ONCE(pmd_write(pmd));
++	else if (is_swap_pmd(pmd) && pmd_swp_uffd_wp(pmd))
++		WARN_ON_ONCE(swap_cached_writable(pmd_to_swp_entry(pmd)));
++}
++
+ void __page_table_check_pmd_set(struct mm_struct *mm, pmd_t *pmdp, pmd_t pmd)
+ {
+ 	if (&init_mm == mm)
+ 		return;
+ 
++	page_table_check_pmd_flags(pmd);
++
+ 	__page_table_check_pmd_clear(mm, *pmdp);
+ 	if (pmd_user_accessible_page(pmd)) {
+ 		page_table_check_set(pmd_pfn(pmd), PMD_SIZE >> PAGE_SHIFT,
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
