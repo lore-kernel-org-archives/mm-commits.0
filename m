@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7AB92CA5
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 01:15:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFA532CA5
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 01:15:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714958105; cv=none; b=PcAVRnVyh3WB+6ZsyB20rR/e0V3OqJ6xHbiGnM61AuFNoODPSrEchUlhWyqw8CvewrIlx8GUfFRQVG+TESmUxOJ/KcfXTl7avKXWzTEYdhK3n48C6FB8m+PCVdXfptSymFy1SFuLN0Nv7qwoj0AKvfZsUP8GET139DZI/3TkWjU=
+	t=1714958106; cv=none; b=mR9KOaa2i4HCjdEUE6D3l5DX+aTWEuSTEK4ykNZmYpn864wSUvlknKctpYhwjedUigeuJ/rRWYRIpLKkTLqki9TY7HkoB6wAPqWe1rsFDa8MUx2xEv9SCS2t4kgWjtmvfwRI+RaGEzuAqc4L2EIkiAFIQJuNBIC35Y3Mi8+I4pg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714958105; c=relaxed/simple;
-	bh=PJsaIDgSX5D4XqS8wq2cqeMwL19iljHLvC03uB8V9iY=;
-	h=Date:To:From:Subject:Message-Id; b=aME9R/okZCa7dqcR3SdnQ3VdZvH+btxQVnvkQMWhQwH3yMs0FA71SaVDKty0X1G8c+G+I/+8kZ1UstW69M9EXYSsDBRfAVuJOC0myE6uObqnsMFcod1dmH7L3tnV6VU29im+KOaY19Su5IOEb2+do8Pfn3jBSEx4XySMLtVVbsg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZKeoU9Xd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714958106; c=relaxed/simple;
+	bh=4Noc0nvhxdP9mt0JQsjgYpxO3acYkjjMgl04HubeFAk=;
+	h=Date:To:From:Subject:Message-Id; b=P8Ey3HHRLKJoUIC7W9Hob45GfUivVhBmODTrx+BEVQkhGt6C9+ZA6pWuWYX9iE+dOY+nc2sNaqvbzvTOqlPdGYlLVO392fV2OWXZcIjtv3OWk9d9N0BLYq7j0KAXcdS1FlqqyfQ9gMZBULSON64H/KFTnrfbTNcLUcF+C7PqbUU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N8INywQr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZKeoU9Xd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72E9DC113CC;
-	Mon,  6 May 2024 01:15:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N8INywQr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 834B4C116B1;
+	Mon,  6 May 2024 01:15:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714958105;
-	bh=PJsaIDgSX5D4XqS8wq2cqeMwL19iljHLvC03uB8V9iY=;
+	s=korg; t=1714958106;
+	bh=4Noc0nvhxdP9mt0JQsjgYpxO3acYkjjMgl04HubeFAk=;
 	h=Date:To:From:Subject:From;
-	b=ZKeoU9XdmdwcRqQiE86x7klzi8mW3kWAPvZbruaMAnu98FpDBTotNzYv/aQIiXnly
-	 2c1EUMI/SkJ9NGNBLODglnKrdS/V1if9ftnHh+VQ7Gn5INxd3AOU4oArIgTyUM9tQt
-	 vpn8hZTCgIWD8uNbR1AqV7Rrbf4q5c9HDOvXJBEA=
-Date: Sun, 05 May 2024 18:15:04 -0700
+	b=N8INywQrJDjTqMb7dPgUFYqHcG9rNOFf17z2C70WohqXagJADUsKG3nKKNTPIEbI8
+	 roa4NNToVQSRpvecJmX/+AURf3Zs0kb1tNPooftiKBKSOEh1NpjQOw+aF3NnrzX+P8
+	 hXopNEpOxCQuth409VYOA+SO836MIcVH7zp2shio=
+Date: Sun, 05 May 2024 18:15:06 -0700
 To: mm-commits@vger.kernel.org,palmer@rivosinc.com,Kuan-Ying.Lee@mediatek.com,kbingham@kernel.org,jan.kiszka@siemens.com,debug@rivosinc.com,ajones@ventanamicro.com,mail@florommel.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-gdb-fix-failing-kgdb-detection-during-probe.patch removed from -mm tree
-Message-Id: <20240506011505.72E9DC113CC@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-gdb-fix-parameter-handling-in-lx_per_cpu.patch removed from -mm tree
+Message-Id: <20240506011506.834B4C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scripts/gdb: fix failing KGDB detection during probe
+     Subject: scripts/gdb: fix parameter handling in $lx_per_cpu
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-fix-failing-kgdb-detection-during-probe.patch
+     scripts-gdb-fix-parameter-handling-in-lx_per_cpu.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Florian Rommel <mail@florommel.de>
-Subject: scripts/gdb: fix failing KGDB detection during probe
-Date: Thu, 25 Apr 2024 17:34:58 +0200
+Subject: scripts/gdb: fix parameter handling in $lx_per_cpu
+Date: Thu, 25 Apr 2024 17:34:59 +0200
 
-Patch series "scripts/gdb: Fixes for $lx_current and $lx_per_cpu".
+Before, the script tried to get the address by constructing a pointer to
+the parameter (by name).  However, since GDB now passes the parameter as a
+GdbValue, we cannot get its name.  Instead, we retrieve the address
+through GdbValue's address attribute.
 
-This series fixes several bugs in the GDB scripts related to the
-$lx_current and $lx_per_cpu functions.  The changes were tested with GDB
-10, 11, 12, 13, and 14.
+Before:
+>>> p $lx_per_cpu(cpu_info)
+Traceback (most recent call last):
+  File "./scripts/gdb/linux/cpus.py", line 152, in invoke
+    var_ptr = gdb.parse_and_eval("&" + var_name.string())
+                                       ^^^^^^^^^^^^^^^^^
+gdb.error: Trying to read string with inappropriate type `struct cpuinfo_x86'.
 
-Patch 1 fixes false-negative results when probing for KGDB
-
-Patch 2 fixes the $lx_per_cpu function, which is currently non-functional
-in QEMU-GDB and KGDB.
-
-Patch 3 fixes an additional bug in $lx_per_cpu that occurs with KGDB.
-
-Patch 4 fixes the incorrect detection of the current CPU number in KGDB,
-which silently breaks $lx_per_cpu and $lx_current.
-
-
-This patch (of 4):
-
-The KGDB probe function sometimes failed to detect KGDB for SMP machines
-as it assumed that task 2 (kthreadd) is running on CPU 0, which is not
-necessarily the case.  Now, the detection is agnostic to kthreadd's CPU.
-
-Link: https://lkml.kernel.org/r/20240425153501.749966-1-mail@florommel.de
-Link: https://lkml.kernel.org/r/20240425153501.749966-2-mail@florommel.de
+Link: https://lkml.kernel.org/r/20240425153501.749966-3-mail@florommel.de
 Signed-off-by: Florian Rommel <mail@florommel.de>
 Cc: Andrew Jones <ajones@ventanamicro.com>
 Cc: Deepak Gupta <debug@rivosinc.com>
@@ -82,20 +71,23 @@ Cc: Palmer Dabbelt <palmer@rivosinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/utils.py |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/gdb/linux/cpus.py |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/scripts/gdb/linux/utils.py~scripts-gdb-fix-failing-kgdb-detection-during-probe
-+++ a/scripts/gdb/linux/utils.py
-@@ -196,7 +196,7 @@ def get_gdbserver_type():
-     def probe_kgdb():
-         try:
-             thread_info = gdb.execute("info thread 2", to_string=True)
--            return "shadowCPU0" in thread_info
-+            return "shadowCPU" in thread_info
-         except gdb.error:
-             return False
+--- a/scripts/gdb/linux/cpus.py~scripts-gdb-fix-parameter-handling-in-lx_per_cpu
++++ a/scripts/gdb/linux/cpus.py
+@@ -152,9 +152,8 @@ Note that VAR has to be quoted as string
+     def __init__(self):
+         super(PerCpu, self).__init__("lx_per_cpu")
  
+-    def invoke(self, var_name, cpu=-1):
+-        var_ptr = gdb.parse_and_eval("&" + var_name.string())
+-        return per_cpu(var_ptr, cpu)
++    def invoke(self, var, cpu=-1):
++        return per_cpu(var.address, cpu)
+ 
+ 
+ PerCpu()
 _
 
 Patches currently in -mm which might be from mail@florommel.de are
