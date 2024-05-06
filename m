@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D1166138
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:43:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ACCA63CB
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:43:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714956194; cv=none; b=EIHsNScuQBWlquabcZIlhBkMowplxueJfRzMr/6hVxKB0KL+Qwlp//gG1HskObS1MoFxEIoAPa050Xqyz8ydOJAIVITdihiIIBH/9PnQv0LavshqMhDqnlD2YNnF2bpEuXLK6EXn2tNkmzyufB2XRjw7kH2pO34AzBWBx4eI/zE=
+	t=1714956220; cv=none; b=cghLTXx0D8Hfi8RTBEnqbxSlwvXNoXQfG2V0FTuTWuZWmkSEuCtGwuMyzWtKe6qznXtIdsljD5W0SIU820dtdRJT/qUa1WkGJWTcyW0SOkKqgT/ZLCvdy2V0hHhVLmmUBjGkoVmaUUUvqA2Pzl5qssFrmqRhAEim5x6WL4bF7iE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714956194; c=relaxed/simple;
-	bh=dMVZ/r7CA2DsBRO7+cgQgOao9dllXNNpIfJnR3yjoKo=;
-	h=Date:To:From:Subject:Message-Id; b=dj/n5wFxDGzMYP3kg4EJ3JAneVSkySId4O2VHDs02Tip/g2L4b22Qm+7IAX4QzOZ7lqWy8aGdvKsB6nPda50tTfy+OmNoHS+J9eWaBA3cZLxm8xS+7ifmDzG1lUj/wD6Jz1gEEf4yV+CPrzDdLiZl9/0qadoae2E//7UvdOnAWw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2Pa6v+a+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714956220; c=relaxed/simple;
+	bh=HcpK1cxZPYoNl9hTn3pThD1Re8rVf8ilfgJugeJhBg0=;
+	h=Date:To:From:Subject:Message-Id; b=PDF504hIuNOW3CqkgAZAoGkLjsd2sILdDYIjMWDi+MACFMQBvpvXebwDB+WP+OVJBKAGER9FvLPkwV58TdhWbZHeYL9HDcXWCbGnIpEak+nWcC6TjnI5SG86NxXv6cvGdkQCuNSXfTHQzgCeIB7hsgXHofHj71mJJOxd/67uu7E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A/GI1gnL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2Pa6v+a+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1151BC4DDE0;
-	Mon,  6 May 2024 00:43:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A/GI1gnL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE6BEC113CC;
+	Mon,  6 May 2024 00:43:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714956194;
-	bh=dMVZ/r7CA2DsBRO7+cgQgOao9dllXNNpIfJnR3yjoKo=;
+	s=korg; t=1714956219;
+	bh=HcpK1cxZPYoNl9hTn3pThD1Re8rVf8ilfgJugeJhBg0=;
 	h=Date:To:From:Subject:From;
-	b=2Pa6v+a+WoWFoCh+oNPEGtpJPrDP5tsRfUNTQN8EYV1klV5ObS5Mm3w09k9MWRNzC
-	 psj4N/akHhk1SlbDdVfwiPK1DXdKQcq8hzbMsqq6zcYwJpLOBj9GlyxhBEzgm8Y3rM
-	 GjxZisGRLPdpRdWRMzJcdUE3GkTnONPSu38jHL1g=
-Date: Sun, 05 May 2024 17:43:13 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,linmiaohe@huawei.com,jane.chu@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=A/GI1gnLlixtsthVBjlWZFgo0SV4yKb2HvS4dwgagy78AML0xQZIGruhay6uhA0Tc
+	 ln9H/6mQnD5A1KGcdkZRWLp2d5aw7QnB3WdS+/1NEjFG+Yvxckb2En3lYDO87diU93
+	 rPP1VsJGTKnAMNQL5+R2YsToU77Z3kNIsnvtvSIM=
+Date: Sun, 05 May 2024 17:43:39 -0700
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios-fix.patch removed from -mm tree
-Message-Id: <20240506004314.1151BC4DDE0@smtp.kernel.org>
+Subject: [folded-merged] mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi-fix.patch removed from -mm tree
+Message-Id: <20240506004339.AE6BEC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios-fix
+     Subject: sysfs-kernel-mm-transparent-hugepage: fix the name and unexpected indentation
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios-fix.patch
+     mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi-fix.patch
 
-This patch was dropped because it was folded into mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios.patch
+This patch was dropped because it was folded into mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios-fix
-Date: Mon Apr 15 01:28:36 PM PDT 2024
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: sysfs-kernel-mm-transparent-hugepage: fix the name and unexpected indentation
+Date: Mon, 15 Apr 2024 17:37:04 +1200
 
-remove unneeded `extern'
-
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Link: https://lkml.kernel.org/r/20240415054538.17071-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/ABI/testing/sys-kernel-mm-transparent-hugepage   |   17 ---------
+ Documentation/ABI/testing/sysfs-kernel-mm-transparent-hugepage |   18 ++++++++++
+ 2 files changed, 18 insertions(+), 17 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios-fix
-+++ a/include/linux/hugetlb.h
-@@ -862,7 +862,7 @@ static inline int hstate_index(struct hs
- }
- 
- int dissolve_free_hugetlb_folio(struct folio *folio);
--extern int dissolve_free_hugetlb_folios(unsigned long start_pfn,
-+int dissolve_free_hugetlb_folios(unsigned long start_pfn,
- 				    unsigned long end_pfn);
- 
- #ifdef CONFIG_MEMORY_FAILURE
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-transparent-hugepage
+@@ -0,0 +1,18 @@
++What:		/sys/kernel/mm/transparent_hugepage/
++Date:		April 2024
++Contact:	Linux memory management mailing list <linux-mm@kvack.org>
++Description:
++		/sys/kernel/mm/transparent_hugepage/ contains a number of files and
++		subdirectories,
++
++			- defrag
++			- enabled
++			- hpage_pmd_size
++			- khugepaged
++			- shmem_enabled
++			- use_zero_page
++			- subdirectories of the form hugepages-<size>kB, where <size>
++			  is the page size of the hugepages supported by the kernel/CPU
++			  combination.
++
++		See Documentation/admin-guide/mm/transhuge.rst for details.
+--- a/Documentation/ABI/testing/sys-kernel-mm-transparent-hugepage
++++ /dev/null
+@@ -1,17 +0,0 @@
+-What:		/sys/kernel/mm/transparent_hugepage/
+-Date:		April 2024
+-Contact:	Linux memory management mailing list <linux-mm@kvack.org>
+-Description:
+-		/sys/kernel/mm/transparent_hugepage/ contains a number of files and
+-		subdirectories,
+-			- defrag
+-			- enabled
+-			- hpage_pmd_size
+-			- khugepaged
+-			- shmem_enabled
+-			- use_zero_page
+-			- subdirectories of the form hugepages-<size>kB, where <size>
+-			  is the page size of the hugepages supported by the kernel/CPU
+-			  combination.
+-
+-		See Documentation/admin-guide/mm/transhuge.rst for details.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mm-hugetlb-rename-dissolve_free_huge_pages-to-dissolve_free_hugetlb_folios.patch
-doc-split-bufferrst-out-of-api-summaryrst-fix-fix.patch
-mm-memory-failure-send-sigbus-in-the-event-of-thp-split-fail-fix.patch
-__mod_memcg_lruvec_state-enhance-diagnostics.patch
-__mod_memcg_lruvec_state-enhance-diagnostics-fix.patch
-watchdog-allow-nmi-watchdog-to-use-raw-perf-event-fix.patch
-kernel-watchdog_perfc-tidy-up-kerneldoc.patch
+mm-add-per-order-mthp-anon_fault_alloc-and-anon_fault_fallback-counters.patch
+mm-add-per-order-mthp-anon_swpout-and-anon_swpout_fallback-counters.patch
+mm-add-docs-for-per-order-mthp-counters-and-transhuge_page-abi.patch
+mm-correct-the-docs-for-thp_fault_alloc-and-thp_fault_fallback.patch
 
