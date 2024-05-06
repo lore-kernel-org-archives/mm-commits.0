@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA14D38DE0
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:58:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C56D238F98
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:58:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957135; cv=none; b=DV+hMaCkj01TwqV9+WxEuLmJEywVkEF9tfH1qSp9F+r0r4n79PkFOZrgVP5sdEXhLzCm6KweWobyK3QEq6TGAcbGkyHcqjYP4JXre5sUaCACgw8yt/eT2p5048jqDzDaReae9tcUdsyWQl/cxONcbNG+OOjPHk4sCOrJt3CxC14=
+	t=1714957136; cv=none; b=iyeMtIVe6qbdX5KZASz/BOcFMcCSjCMPZ4xeh4u1DYAgayn8CJlDZ+efefSSLcb2etMKwEESoOg9gtXASicBj7lsiHMgJGfNxREjWGf2iBWcSE9Np+gFlZV311sAGHIdi+SvI22bB0jKagrsHC4PHzIT+I60jHLvDUcqw1oZLe4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957135; c=relaxed/simple;
-	bh=nfCMdRCG2m7Km5hs4Y5Y+L7WupmHQlXkY/pIefNOP+E=;
-	h=Date:To:From:Subject:Message-Id; b=nbPewP6u3nvrgzkSj+2rnkanBuM2fNQ+72m6hG+hpYFRoe3Zx46zivf2q/pN4bGa5ORupNk3uIae/bPvv0Dnr/wEnT3Qz2caf1D0SN80UPMHq2kR/OS/wV3MdzTVa5CMvGkTe9HFHK7DtwTNP5Aj53qkcDWL+qKmofTk1IloH7o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CC7LSi3y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957136; c=relaxed/simple;
+	bh=MCUUBIAnnNcMgnLyPQeW+RxKKVwqFR3AgFgxsiN9DFc=;
+	h=Date:To:From:Subject:Message-Id; b=dl6izFQ8m2LxyWk9MSK22HsD2Fz3O6+jsH72ZEcfEZUq+Ia0ZLx2MHYiVmfBlZMXLqmnb5uyB6wPrwUxvYAkiTW1Sc+tKarygXIkLADlKcLXJDPeBnd+DR7Vjy4ioMzkgGdv1GtnDzspwT4SIEudXQqMBbEBlsKo7oaLVd6xCcc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lXL1k9QH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CC7LSi3y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81166C113CC;
-	Mon,  6 May 2024 00:58:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lXL1k9QH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EFAEC113CC;
+	Mon,  6 May 2024 00:58:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957135;
-	bh=nfCMdRCG2m7Km5hs4Y5Y+L7WupmHQlXkY/pIefNOP+E=;
+	s=korg; t=1714957136;
+	bh=MCUUBIAnnNcMgnLyPQeW+RxKKVwqFR3AgFgxsiN9DFc=;
 	h=Date:To:From:Subject:From;
-	b=CC7LSi3yyldVDzYqVyg7+w2Bd0oJYsimiN7+4P6ZG5L5JkgFnv9qb3DFlQyISkdCK
-	 l1pWDl7Edj1mteceFZsh0uYV0pGx49Rdb5Q2fzIHbnOgi1kO6Xt8j0063ssciMjviN
-	 Mn8FBS/RZYRnEfFMN0/SiEeIA1JzqYqhw26RSIlM=
-Date: Sun, 05 May 2024 17:58:55 -0700
-To: mm-commits@vger.kernel.org,honggyu.kim@sk.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+	b=lXL1k9QHDlu4wcPIEI01azaLvStpQ7nVlUUsODHsGEdaWfybyC/aGRFkM85Q5Arbl
+	 GeAXe6nYYTg46p7NOiIV+7NOXRX3pFOtlTQz+4ED0VoGa2+IEQIEZkyGwXbw3QhOGn
+	 9nhgo9JTR+kksnWE+aMXTvbBvz+5WlEZFZjPcehg=
+Date: Sun, 05 May 2024 17:58:56 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,ioworker0@gmail.com,david@redhat.com,baohua@kernel.org,agordeev@linux.ibm.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-abi-damon-update-for-youg-page-type-damos-filter.patch removed from -mm tree
-Message-Id: <20240506005855.81166C113CC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-do-not-add-fully-unmapped-large-folio-to-deferred-split-list-v6.patch removed from -mm tree
+Message-Id: <20240506005856.9EFAEC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,115 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/ABI/damon: update for 'youg page' type DAMOS filter
+     Subject: mm/rmap: do not add fully unmapped large folio to deferred split list
 has been removed from the -mm tree.  Its filename was
-     docs-abi-damon-update-for-youg-page-type-damos-filter.patch
+     mm-rmap-do-not-add-fully-unmapped-large-folio-to-deferred-split-list-v6.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/ABI/damon: update for 'youg page' type DAMOS filter
-Date: Fri, 26 Apr 2024 12:52:46 -0700
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/rmap: do not add fully unmapped large folio to deferred split list
+Date: Thu, 2 May 2024 09:28:51 -0400
 
-Update DAMON ABI document for the newly added DAMO filter type, 'young
-page'.
+In __folio_remove_rmap(), a large folio is added to deferred split list if
+any page in a folio loses its final mapping.  But it is possible that the
+folio is fully unmapped and adding it to deferred split list is
+unnecessary.
 
-Link: https://lkml.kernel.org/r/20240426195247.100306-8-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+For PMD-mapped THPs, that was not really an issue, because removing the
+last PMD mapping in the absence of PTE mappings would not have added the
+folio to the deferred split queue.
+
+However, for PTE-mapped THPs, which are now more prominent due to mTHP,
+they are always added to the deferred split queue.  One side effect is
+that the THP_DEFERRED_SPLIT_PAGE stat for a PTE-mapped folio can be
+unintentionally increased, making it look like there are many partially
+mapped folios -- although the whole folio is fully unmapped stepwise.
+
+Core-mm now tries batch-unmapping consecutive PTEs of PTE-mapped THPs
+where possible starting from commit b06dc281aa99 ("mm/rmap: introduce
+folio_remove_rmap_[pte|ptes|pmd]()").  When it happens, a whole PTE-mapped
+folio is unmapped in one go and can avoid being added to deferred split
+list, reducing the THP_DEFERRED_SPLIT_PAGE noise.  But there will still be
+noise when we cannot batch-unmap a complete PTE-mapped folio in one go --
+or where this type of batching is not implemented yet, e.g., migration.
+
+To avoid the unnecessary addition, folio->_nr_pages_mapped is checked to
+tell if the whole folio is unmapped.  If the folio is already on deferred
+split list, it will be skipped, too.
+
+Note: commit 98046944a159 ("mm: huge_memory: add the missing
+folio_test_pmd_mappable() for THP split statistics") tried to exclude mTHP
+deferred split stats from THP_DEFERRED_SPLIT_PAGE, but it does not fix the
+above issue.  A fully unmapped PTE-mapped order-9 THP was still added to
+deferred split list and counted as THP_DEFERRED_SPLIT_PAGE, since nr is
+512 (non zero), level is RMAP_LEVEL_PTE, and inside deferred_split_folio()
+the order-9 folio is folio_test_pmd_mappable().
+
+Link: https://lkml.kernel.org/r/20240502132852.862138-1-zi.yan@sent.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Lance Yang <ioworker0@gmail.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/rmap.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-update-for-youg-page-type-damos-filter
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -314,9 +314,9 @@ Date:		Dec 2022
- Contact:	SeongJae Park <sj@kernel.org>
- Description:	Writing to and reading from this file sets and gets the type of
- 		the memory of the interest.  'anon' for anonymous pages,
--		'memcg' for specific memory cgroup, 'addr' for address range
--		(an open-ended interval), or 'target' for DAMON monitoring
--		target can be written and read.
-+		'memcg' for specific memory cgroup, 'young' for young pages,
-+		'addr' for address range (an open-ended interval), or 'target'
-+		for DAMON monitoring target can be written and read.
+--- a/mm/rmap.c~mm-rmap-do-not-add-fully-unmapped-large-folio-to-deferred-split-list-v6
++++ a/mm/rmap.c
+@@ -1494,6 +1494,7 @@ static __always_inline void __folio_remo
+ {
+ 	atomic_t *mapped = &folio->_nr_pages_mapped;
+ 	int last, nr = 0, nr_pmdmapped = 0;
++	bool partially_mapped = false;
+ 	enum node_stat_item idx;
  
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/memcg_path
- Date:		Dec 2022
+ 	__folio_rmap_sanity_checks(folio, page, nr_pages, level);
+@@ -1514,6 +1515,8 @@ static __always_inline void __folio_remo
+ 					nr++;
+ 			}
+ 		} while (page++, --nr_pages > 0);
++
++		partially_mapped = nr && atomic_read(mapped);
+ 		break;
+ 	case RMAP_LEVEL_PMD:
+ 		atomic_dec(&folio->_large_mapcount);
+@@ -1531,6 +1534,8 @@ static __always_inline void __folio_remo
+ 				nr = 0;
+ 			}
+ 		}
++
++		partially_mapped = nr < nr_pmdmapped;
+ 		break;
+ 	}
+ 
+@@ -1551,10 +1556,12 @@ static __always_inline void __folio_remo
+ 		 * Queue anon large folio for deferred split if at least one
+ 		 * page of the folio is unmapped and at least one page
+ 		 * is still mapped.
++		 *
++		 * Check partially_mapped first to ensure it is a large folio.
+ 		 */
+-		if (folio_test_large(folio) && folio_test_anon(folio))
+-			if (level == RMAP_LEVEL_PTE || nr < nr_pmdmapped)
+-				deferred_split_folio(folio);
++		if (folio_test_anon(folio) && partially_mapped &&
++		    list_empty(&folio->_deferred_list))
++			deferred_split_folio(folio);
+ 	}
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-selftests-damon-_damon_sysfs-support-quota-goals.patch
-selftests-damon-add-a-test-for-damos-quota-goal.patch
-mm-damon-core-initialize-esz_bp-from-damos_quota_init_priv.patch
-selftests-damon-_damon_sysfs-check-errors-from-nr_schemes-file-reads.patch
-selftests-damon-_damon_sysfs-find-sysfs-mount-point-from-proc-mounts.patch
-selftests-damon-_damon_sysfs-use-is-instead-of-==-for-none.patch
-selftests-damon-classify-tests-for-functionalities-and-regressions.patch
-docs-admin-guide-mm-damon-usage-fix-wrong-example-of-damos-filter-matching-sysfs-file.patch
-docs-admin-guide-mm-damon-usage-fix-wrong-schemes-effective-quota-update-command.patch
-docs-mm-damon-design-use-a-list-for-supported-filters.patch
-docs-mm-damon-maintainer-profile-change-the-maintainers-timezone-from-pst-to-pt.patch
-docs-mm-damon-maintainer-profile-allow-posting-patches-based-on-damon-next-tree.patch
 
