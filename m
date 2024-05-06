@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2980D13AF2
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:56:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62D5813AF2
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:56:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957016; cv=none; b=Z/Yc5rkRfKBXF+HX6e6MtD5e5IonUDEIMTXbbKETgBa6LSQuOljjPV7WqQc1pC8+UWqWPoCbBmsy6egvB+iML0FSeYwCk7OKgB0ZA6EXMjrmflAF2aWFmWbNI1pX0Oo65RC08fFOihHZKWlOoZoP2V3SD22RG4WXJ3jOwkqwtS4=
+	t=1714957017; cv=none; b=nkp2J3hx14SjK2SEyFDNKrExW22rIxsFjS+ZT7d9+d+773vk1aAxwy1JojbA82PZ15Na2koEO8mSnz0gRjz/CiRR/vCGv85BQeLeCJ6k/2J/+prgsvRP5zZiQdiS8PFCPW5gDYrXAVC2ccFCxR1XQEy0ilCML991tuIoybWua2Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957016; c=relaxed/simple;
-	bh=1acyU8Ts628xy2jFd7WkhcpG/VYwqx1CIyrEmbwhPMY=;
-	h=Date:To:From:Subject:Message-Id; b=b5HKZ1VTzqqEWxT/MYFUXLb1qCmIm5WPY4K3LwMbmT0YAqL0FiXJbm8e68ZH0DXAn8T1T4+NGvXskQv7eO2Q6jwPDoyiDhvO/wa1KcgfR6cbuDQfN83SVOVPJ8G5QNa4uDRDiMg6vLBafyHabJaficetmHfZvciLJNSLT74ko54=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RLPfIJai; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957017; c=relaxed/simple;
+	bh=pWlx/NmtapAuloSFbfeP5GyqeY2ZytAkwZ+MSTULu7U=;
+	h=Date:To:From:Subject:Message-Id; b=gi9z7IvzeWsmHxb3htBgbJ2w+D85FpncI8ZEdF9EBYn0sQTvpHGg1msaXmrskUT3rsGsnrrtnlXBG63/mq5aiBiVSK3jP9IDsQK4h0DX45mLmgaCT8SHujNYoh8Dv3N/KQ06xrMfR9bclf+XwVZWIu4DGbMg0Mun53v5chaMYiA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XtKmuQ7x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RLPfIJai"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1533C113CC;
-	Mon,  6 May 2024 00:56:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XtKmuQ7x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3133BC113CC;
+	Mon,  6 May 2024 00:56:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957016;
-	bh=1acyU8Ts628xy2jFd7WkhcpG/VYwqx1CIyrEmbwhPMY=;
+	s=korg; t=1714957017;
+	bh=pWlx/NmtapAuloSFbfeP5GyqeY2ZytAkwZ+MSTULu7U=;
 	h=Date:To:From:Subject:From;
-	b=RLPfIJaiQ1STuVdUmlVgHeigD8yiHbYNhEKI1VDcgnAJ7DaPCROWLKnK1GscueYRh
-	 vnNbk1mJ09Qwk0zlZWydDpzzpKg1RR1Fz95N4yXFRQ7j6yr5qLYr11l+hSHqQCY1jf
-	 G2ew6IBZDW6WgqFSsZJ6tIytTAInA2ScaJPSfC+0=
-Date: Sun, 05 May 2024 17:56:55 -0700
+	b=XtKmuQ7xHmiPkm3CK7CraOqFxdTQKR8SwCePdgsZH0TJfFls2NIJdznAe4X4siFl5
+	 ohH76hOjCJ7EwIYmlDEXbRM6Z2ft0tjTPjskU+JfV+XpvBf9ldkPMNjNUG8qJlAxqF
+	 9l434n4GlI+PhvHI3HioXRJ3YVzFybj/08ua1rCI=
+Date: Sun, 05 May 2024 17:56:56 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ysato@users.sourceforge.jp,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richardycc@google.com,peterx@redhat.com,nao.horiguchi@gmail.com,muchun.song@linux.dev,linmiaohe@huawei.com,jcmvbkbc@gmail.com,hughd@google.com,glaubitz@physik.fu-berlin.de,fengwei.yin@intel.com,dalias@libc.org,corbet@lwn.net,chris@zankel.net,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch removed from -mm tree
-Message-Id: <20240506005655.F1533C113CC@smtp.kernel.org>
+Subject: [merged mm-stable] documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch removed from -mm tree
+Message-Id: <20240506005657.3133BC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/debug: print only page mapcount (excluding folio entire mapcount) in __dump_folio()
+     Subject: Documentation/admin-guide/cgroup-v1/memory.rst: don't reference page_mapcount()
 has been removed from the -mm tree.  Its filename was
-     mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch
+     documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/debug: print only page mapcount (excluding folio entire mapcount) in __dump_folio()
-Date: Tue, 9 Apr 2024 21:23:00 +0200
+Subject: Documentation/admin-guide/cgroup-v1/memory.rst: don't reference page_mapcount()
+Date: Tue, 9 Apr 2024 21:23:01 +0200
 
-Let's simplify and only print the page mapcount: we already print the
-large folio mapcount and the entire folio mapcount for large folios
-separately; that should be sufficient to figure out what's happening.
+Let's stop talking about page_mapcount().
 
-While at it, print the page mapcount also if it had an underflow,
-filtering out only typed pages.
-
-Link: https://lkml.kernel.org/r/20240409192301.907377-18-david@redhat.com
+Link: https://lkml.kernel.org/r/20240409192301.907377-19-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Hugh Dickins <hughd@google.com>
@@ -76,29 +71,22 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ Documentation/admin-guide/cgroup-v1/memory.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/debug.c~mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio
-+++ a/mm/debug.c
-@@ -55,15 +55,10 @@ static void __dump_folio(struct folio *f
- 		unsigned long pfn, unsigned long idx)
- {
- 	struct address_space *mapping = folio_mapping(folio);
--	int mapcount = atomic_read(&page->_mapcount) + 1;
-+	int mapcount = atomic_read(&page->_mapcount);
- 	char *type = "";
+--- a/Documentation/admin-guide/cgroup-v1/memory.rst~documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount
++++ a/Documentation/admin-guide/cgroup-v1/memory.rst
+@@ -802,8 +802,8 @@ a page or a swap can be moved only when
+ |   | anonymous pages, file pages (and swaps) in the range mmapped by the task |
+ |   | will be moved even if the task hasn't done page fault, i.e. they might   |
+ |   | not be the task's "RSS", but other task's "RSS" that maps the same file. |
+-|   | And mapcount of the page is ignored (the page can be moved even if       |
+-|   | page_mapcount(page) > 1). You must enable Swap Extension (see 2.4) to    |
++|   | The mapcount of the page is ignored (the page can be moved independent   |
++|   | of the mapcount). You must enable Swap Extension (see 2.4) to            |
+ |   | enable move of swap charges.                                             |
+ +---+--------------------------------------------------------------------------+
  
--	/* Open-code page_mapcount() to avoid looking up a stale folio */
--	if (mapcount < 0)
--		mapcount = 0;
--	if (folio_test_large(folio))
--		mapcount += folio_entire_mapcount(folio);
--
-+	mapcount = page_type_has_type(mapcount) ? 0 : mapcount + 1;
- 	pr_warn("page: refcount:%d mapcount:%d mapping:%p index:%#lx pfn:%#lx\n",
- 			folio_ref_count(folio), mapcount, mapping,
- 			folio->index + idx, pfn);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
