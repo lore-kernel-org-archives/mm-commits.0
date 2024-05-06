@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9424C22089
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:57:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1D1D22089
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:57:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957065; cv=none; b=HQBKBeaZsiZ4pojiktyNWNPAO4OEgnmYrcYnW3sJGp92unvpvqWkNGu8BgukSmUATCITDjdcvr3VmCgNE078XzW418eTOYah/6SXAdnOY0gCkeFk1meyjz/k2iTLG12quIccckXp2eWE2jkCEcgpiaiHT4mn70Z9W+xx0B+SbHU=
+	t=1714957066; cv=none; b=GD+QixrEhZnwSglnZUpuz15hXGeF0cTp7gRaFhQ103l+s+5ee5l8A70dP/fWApseT0uIrDWxCRTHPMcSQIbvWkuSIcdWndpLve4Ht6JW4KEt1ws7cX70ndSGPDoZELMkCQzXi6w/msAC98CIrNapYG2v+z8Ah/reGomAY2EBglE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957065; c=relaxed/simple;
-	bh=IkgPUAIqiiPIzof4yjzKUoKJ2yyG8IWrPq6OWYVtZ3A=;
-	h=Date:To:From:Subject:Message-Id; b=tsUrRWcTt3WRdfptC1pJgcx1z85HWctXfaazo3syGNtpvEeKD+584cHdCO9zQnqaAVRbgbHOX8F7OnDh3/n7Fdi7aWsVsQWu9qIIVB2uswGWKEqmfusI7q1btfihsb6Us+JSxAARcYgPD33MV/B3T2h5Ga37JqYvCQi7Z2If8Gc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LCBTl90r; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957066; c=relaxed/simple;
+	bh=HtHBcYzdf9aO/3j/Ye4zoZBA3pT4YByYAEO7d0f/yqI=;
+	h=Date:To:From:Subject:Message-Id; b=tvfQFK4fDbqJB3CXqyhGW+KwMTJYmuPi8ShSN/gc517svKY5Pvg5jDCPPowewHUcvfKVlwZwJRUpWlUz59Mz/FVuLeVSn7kO4PANWlaiHJdMhP9QCky4FgluR9UDiW74GVgKcraI5Y/uLttysvWUmZYnBoXo6xHyQHDVCziTDHs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B5yoVwWB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LCBTl90r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67975C113CC;
-	Mon,  6 May 2024 00:57:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B5yoVwWB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 781E4C116B1;
+	Mon,  6 May 2024 00:57:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957065;
-	bh=IkgPUAIqiiPIzof4yjzKUoKJ2yyG8IWrPq6OWYVtZ3A=;
+	s=korg; t=1714957066;
+	bh=HtHBcYzdf9aO/3j/Ye4zoZBA3pT4YByYAEO7d0f/yqI=;
 	h=Date:To:From:Subject:From;
-	b=LCBTl90ra3gIdihgcqVBOarrTb7btNZJvl+wq5kr1XN1yoYR4R904ba7yNQaAp5xj
-	 Lp/XR7+uljlrUwO/4IzswV/jbMymW4KGfNGv0jQ7EBQVVWBXFJEZkkt/u+Cm+75MgJ
-	 aCjWm6r0NJAqjIQ6Zq4LyQTns4XyiJVkaNwTDbk4=
-Date: Sun, 05 May 2024 17:57:44 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,osalvador@suse.de,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=B5yoVwWBk/8zkCXS292UM5v6uBvFfJuUlBI3dn8mwd+mRcDfLk3ppNcKzr2nSnbc+
+	 4144w/CSp/m4+RhKGhKRMCVZJZxsfVMJy2u8zuPHGOENiApuVD5DuiimTO1G4iEcBa
+	 qLVQYXGKcpCoCKCA6ROnux2gQ79CUeF1xme5XvGY=
+Date: Sun, 05 May 2024 17:57:45 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-sparse-guard-the-size-of-mem_section-is-power-of-2.patch removed from -mm tree
-Message-Id: <20240506005745.67975C113CC@smtp.kernel.org>
+Subject: [merged mm-stable] fs-proc-task_mmu-convert-pagemap_hugetlb_range-to-work-on-folios.patch removed from -mm tree
+Message-Id: <20240506005746.781E4C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/sparse: guard the size of mem_section is power of 2
+     Subject: fs/proc/task_mmu: convert pagemap_hugetlb_range() to work on folios
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-guard-the-size-of-mem_section-is-power-of-2.patch
+     fs-proc-task_mmu-convert-pagemap_hugetlb_range-to-work-on-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/sparse: guard the size of mem_section is power of 2
-Date: Tue, 16 Apr 2024 01:25:59 +0000
+From: David Hildenbrand <david@redhat.com>
+Subject: fs/proc/task_mmu: convert pagemap_hugetlb_range() to work on folios
+Date: Wed, 17 Apr 2024 11:23:12 +0200
 
-We usually have this check, while commit 2a3cb8baef71 ("mm/sparse: delete
-old sparse_init and enable new one") missed to take it.
+Patch series "fs/proc/task_mmu: convert hugetlb functions to work on folis".
 
-Link: https://lkml.kernel.org/r/20240416012559.4536-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Let's convert two more functions, getting rid of two more page_mapcount()
+calls.
+
+
+This patch (of 2):
+
+Let's get rid of another page_mapcount() check and simply use
+folio_likely_mapped_shared(), which is precise for hugetlb folios.
+
+While at it, also check for PMD table sharing, like we do in
+smaps_hugetlb_range().
+
+No functional change intended, except that we would now detect hugetlb
+folios shared via PMD table sharing correctly.
+
+Link: https://lkml.kernel.org/r/20240417092313.753919-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20240417092313.753919-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/proc/task_mmu.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/sparse.c~mm-sparse-guard-the-size-of-mem_section-is-power-of-2
-+++ a/mm/sparse.c
-@@ -560,6 +560,8 @@ void __init sparse_init(void)
- 	unsigned long pnum_end, pnum_begin, map_count = 1;
- 	int nid_begin;
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-convert-pagemap_hugetlb_range-to-work-on-folios
++++ a/fs/proc/task_mmu.c
+@@ -1578,12 +1578,13 @@ static int pagemap_hugetlb_range(pte_t *
  
-+	/* see include/linux/mmzone.h 'struct mem_section' definition */
-+	BUILD_BUG_ON(!is_power_of_2(sizeof(struct mem_section)));
- 	memblocks_present();
+ 	pte = huge_ptep_get(ptep);
+ 	if (pte_present(pte)) {
+-		struct page *page = pte_page(pte);
++		struct folio *folio = page_folio(pte_page(pte));
  
- 	pnum_begin = first_present_section_nr();
+-		if (!PageAnon(page))
++		if (!folio_test_anon(folio))
+ 			flags |= PM_FILE;
+ 
+-		if (page_mapcount(page) == 1)
++		if (!folio_likely_mapped_shared(folio) &&
++		    !hugetlb_pmd_shared(ptep))
+ 			flags |= PM_MMAP_EXCLUSIVE;
+ 
+ 		if (huge_pte_uffd_wp(pte))
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from david@redhat.com are
 
 
