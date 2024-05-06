@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76D8A38F91
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:59:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 979193A1CD
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:59:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957160; cv=none; b=DSsmrknDa3qUW0FXvdeu1Aupq3ragjvQ7RhxIptg7TIsMNxRzA2aMwiIHBiL0X7Ocg/owwYBIGfTff2A737FjcigzPEvQScYUAnsagtHmfDpwiUq9v+gJQQKNSCzJck7S/1Q0sHwcogdMwJgGwgKCuYRUinQKR6LtASftdhDszU=
+	t=1714957161; cv=none; b=TRbQtsKlhCgGuzu1K4LYLZiLre2hcwxfjPOKo361wephtelh6TfFzDfuJtjL9X2pS3xa1sBVnFHyvhtrt9dw0dfSzYYNluEZ0bud8he4rHIpz6d2rL77ihR3KVzERALsy+gKD7ZUZRkyy6Pn6LELg2FIuF+SL7mqj255b6yB2i8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957160; c=relaxed/simple;
-	bh=DHBo49tbEqItK6dEO28bhWVvVeUF3XXk0HAfc2eJAH4=;
-	h=Date:To:From:Subject:Message-Id; b=dKsRttIaOjeF5+Fwc6asBSAdRwcIMsGoQHtY72NorJWpitqhqr+X3S3hhapoyIzXA8nvYWaOa89x5D/CFUzaZxdorRJvPgODT7yxsJbWzIa+O8lTbygV4cPYeCfIG4xpB65WZLQgah1i5fpHDoW427/eP+xCNBje1Xjwo4OoCyg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fadFwlTV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957161; c=relaxed/simple;
+	bh=p6ACCzh0H/BsdvVWH1Foh6OR45gQkWn87dpCoaq1vgs=;
+	h=Date:To:From:Subject:Message-Id; b=Q2Qe1Awu4Owd5PHtl/CXb4Ip9g6pYoHTNN+QmqCTr6T10kQ8ngDkW/Palj30aTCDpLk34I/3sdCcOns1g5spt5+m+EiWlAX/foYWOURwwflQ/EIO1E4uQwpgGB6YpTPudy6geZr+JPTjP8zQQuCBQDF21j6vhXg1yZFySwi7uZE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qltHFm69; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fadFwlTV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4ECEDC113CC;
-	Mon,  6 May 2024 00:59:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qltHFm69"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E24CC113CC;
+	Mon,  6 May 2024 00:59:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957160;
-	bh=DHBo49tbEqItK6dEO28bhWVvVeUF3XXk0HAfc2eJAH4=;
+	s=korg; t=1714957161;
+	bh=p6ACCzh0H/BsdvVWH1Foh6OR45gQkWn87dpCoaq1vgs=;
 	h=Date:To:From:Subject:From;
-	b=fadFwlTVJEjmX+Km9+AHi4yCAFc5GK+9WEC/kZ+XyLZYx5KlkgeNYMN2bA8njyc4k
-	 Vgcngts5yMCNXdl2v4OrD/jY8ranLRtRMizu7sUtD2eZxXOx40kyB+5tmwnGJ7vzPZ
-	 IPxq+EFhxECbhkqW5E9q55AV+HH2IJpN9r2mz2rI=
-Date: Sun, 05 May 2024 17:59:19 -0700
-To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,leitao@debian.org,akpm@linux-foundation.org
+	b=qltHFm69ljhDAi5xgoBeD8w9T/5Igh9UK4k0jqTtFytlDP+Fl13BGMTLwo1QbRN7B
+	 HA9WIA33CQl57RH2GGjwggR3CV6cQHeEerqoyvDhCYUdcC80n0JfnB7iJYoaqAPIyx
+	 z6m4Xc0uXW0tE4k4gbaI0YyFUOIyQsZ4r2LcvpXY=
+Date: Sun, 05 May 2024 17:59:20 -0700
+To: mm-commits@vger.kernel.org,dave.jiang@intel.com,dan.j.williams@intel.com,alison.schofield@intel.com,vishal.l.verma@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-use-read_once-write_once-to-access-stock-nr_pages.patch removed from -mm tree
-Message-Id: <20240506005920.4ECEDC113CC@smtp.kernel.org>
+Subject: [merged mm-stable] dax-busc-replace-warn_on_once-with-lockdep-asserts.patch removed from -mm tree
+Message-Id: <20240506005921.6E24CC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,149 +35,127 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcg: use READ_ONCE()/WRITE_ONCE() to access stock->nr_pages
+     Subject: dax/bus.c: replace WARN_ON_ONCE() with lockdep asserts
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-use-read_once-write_once-to-access-stock-nr_pages.patch
+     dax-busc-replace-warn_on_once-with-lockdep-asserts.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm: memcg: use READ_ONCE()/WRITE_ONCE() to access stock->nr_pages
-Date: Wed, 1 May 2024 02:54:20 -0700
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: dax/bus.c: replace WARN_ON_ONCE() with lockdep asserts
+Date: Tue, 30 Apr 2024 11:44:23 -0600
 
-A memcg pointer in the per-cpu stock can be accessed by
-drain_all_stock() and consume_stock() in parallel, causing a potential
-race, which is believed to e harmless.
+Patch series "dax/bus.c: Fixups for dax-bus locking", v3.
 
-KCSAN shows this data-race clearly in the splat below:
+Commit Fixes: c05ae9d85b47 ("dax/bus.c: replace driver-core lock usage by
+a local rwsem") introduced a few problems that this series aims to fix. 
+Add back device_lock() where it was correctly used (during device
+manipulation operations), remove conditional locking in
+unregister_dax_dev() and unregister_dax_mapping(), use non-interruptible
+versions of rwsem locks when not called from a user process, and fix up a
+write vs.  read usage of an rwsem.
 
-	BUG: KCSAN: data-race in drain_all_stock.part.0 / try_charge_memcg
 
-	write to 0xffff88903f8b0788 of 4 bytes by task 35901 on cpu 2:
-	try_charge_memcg (mm/memcontrol.c:2323 mm/memcontrol.c:2746)
-	__mem_cgroup_charge (mm/memcontrol.c:7287 mm/memcontrol.c:7301)
-	do_anonymous_page (mm/memory.c:1054 mm/memory.c:4375 mm/memory.c:4433)
-	__handle_mm_fault (mm/memory.c:3878 mm/memory.c:5300 mm/memory.c:5441)
-	handle_mm_fault (mm/memory.c:5606)
-	do_user_addr_fault (arch/x86/mm/fault.c:1363)
-	exc_page_fault (./arch/x86/include/asm/irqflags.h:37
-		        ./arch/x86/include/asm/irqflags.h:72
-			arch/x86/mm/fault.c:1513
-			arch/x86/mm/fault.c:1563)
-	asm_exc_page_fault (./arch/x86/include/asm/idtentry.h:623)
+This patch (of 4):
 
-	read to 0xffff88903f8b0788 of 4 bytes by task 287 on cpu 27:
-	drain_all_stock.part.0 (mm/memcontrol.c:2433)
-	mem_cgroup_css_offline (mm/memcontrol.c:5398 mm/memcontrol.c:5687)
-	css_killed_work_fn (kernel/cgroup/cgroup.c:5521 kernel/cgroup/cgroup.c:5794)
-	process_one_work (kernel/workqueue.c:3254)
-	worker_thread (kernel/workqueue.c:3329 kernel/workqueue.c:3416)
-	kthread (kernel/kthread.c:388)
-	ret_from_fork (arch/x86/kernel/process.c:147)
-	ret_from_fork_asm (arch/x86/entry/entry_64.S:257)
+In [1], Dan points out that all of the WARN_ON_ONCE() usage in the
+referenced patch should be replaced with lockdep_assert_held, or
+lockdep_held_assert_write().  Replace these as appropriate.
 
-	value changed: 0x00000014 -> 0x00000013
-
-This happens because drain_all_stock() is reading stock->nr_pages, while
-consume_stock() might be updating the same address, causing a potential
-data-race.
-
-Make the shared addresses bulletproof regarding to reads and writes,
-similarly to what stock->cached_objcg and stock->cached.
-Annotate all accesses to stock->nr_pages with READ_ONCE()/WRITE_ONCE().
-
-Link: https://lkml.kernel.org/r/20240501095420.679208-1-leitao@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20240430-vv-dax_abi_fixes-v3-0-e3dcd755774c@intel.com
+Link: https://lore.kernel.org/r/65f0b5ef41817_aa222941a@dwillia2-mobl3.amr.corp.intel.com.notmuch [1]
+Link: https://lkml.kernel.org/r/20240430-vv-dax_abi_fixes-v3-1-e3dcd755774c@intel.com
+Fixes: c05ae9d85b47 ("dax/bus.c: replace driver-core lock usage by a local rwsem")
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Reported-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Alison Schofield <alison.schofield@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ drivers/dax/bus.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-use-read_once-write_once-to-access-stock-nr_pages
-+++ a/mm/memcontrol.c
-@@ -2468,6 +2468,7 @@ static void memcg_account_kmem(struct me
- static bool consume_stock(struct mem_cgroup *memcg, unsigned int nr_pages)
- {
- 	struct memcg_stock_pcp *stock;
-+	unsigned int stock_pages;
- 	unsigned long flags;
- 	bool ret = false;
+--- a/drivers/dax/bus.c~dax-busc-replace-warn_on_once-with-lockdep-asserts
++++ a/drivers/dax/bus.c
+@@ -192,7 +192,7 @@ static u64 dev_dax_size(struct dev_dax *
+ 	u64 size = 0;
+ 	int i;
  
-@@ -2477,8 +2478,9 @@ static bool consume_stock(struct mem_cgr
- 	local_lock_irqsave(&memcg_stock.stock_lock, flags);
+-	WARN_ON_ONCE(!rwsem_is_locked(&dax_dev_rwsem));
++	lockdep_assert_held(&dax_dev_rwsem);
  
- 	stock = this_cpu_ptr(&memcg_stock);
--	if (memcg == READ_ONCE(stock->cached) && stock->nr_pages >= nr_pages) {
--		stock->nr_pages -= nr_pages;
-+	stock_pages = READ_ONCE(stock->nr_pages);
-+	if (memcg == READ_ONCE(stock->cached) && stock_pages >= nr_pages) {
-+		WRITE_ONCE(stock->nr_pages, stock_pages - nr_pages);
- 		ret = true;
- 	}
+ 	for (i = 0; i < dev_dax->nr_range; i++)
+ 		size += range_len(&dev_dax->ranges[i].range);
+@@ -302,7 +302,7 @@ static unsigned long long dax_region_ava
+ 	resource_size_t size = resource_size(&dax_region->res);
+ 	struct resource *res;
  
-@@ -2492,16 +2494,18 @@ static bool consume_stock(struct mem_cgr
-  */
- static void drain_stock(struct memcg_stock_pcp *stock)
- {
-+	unsigned int stock_pages = READ_ONCE(stock->nr_pages);
- 	struct mem_cgroup *old = READ_ONCE(stock->cached);
+-	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
++	lockdep_assert_held(&dax_region_rwsem);
  
- 	if (!old)
- 		return;
+ 	for_each_dax_region_resource(dax_region, res)
+ 		size -= resource_size(res);
+@@ -447,7 +447,7 @@ static void trim_dev_dax_range(struct de
+ 	struct range *range = &dev_dax->ranges[i].range;
+ 	struct dax_region *dax_region = dev_dax->region;
  
--	if (stock->nr_pages) {
--		page_counter_uncharge(&old->memory, stock->nr_pages);
-+	if (stock_pages) {
-+		page_counter_uncharge(&old->memory, stock_pages);
- 		if (do_memsw_account())
--			page_counter_uncharge(&old->memsw, stock->nr_pages);
--		stock->nr_pages = 0;
-+			page_counter_uncharge(&old->memsw, stock_pages);
-+
-+		WRITE_ONCE(stock->nr_pages, 0);
- 	}
+-	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
++	lockdep_assert_held_write(&dax_region_rwsem);
+ 	dev_dbg(&dev_dax->dev, "delete range[%d]: %#llx:%#llx\n", i,
+ 		(unsigned long long)range->start,
+ 		(unsigned long long)range->end);
+@@ -507,7 +507,7 @@ static int __free_dev_dax_id(struct dev_
+ 	struct dax_region *dax_region;
+ 	int rc = dev_dax->id;
  
- 	css_put(&old->css);
-@@ -2537,6 +2541,7 @@ static void drain_local_stock(struct wor
- static void __refill_stock(struct mem_cgroup *memcg, unsigned int nr_pages)
- {
- 	struct memcg_stock_pcp *stock;
-+	unsigned int stock_pages;
+-	WARN_ON_ONCE(!rwsem_is_locked(&dax_dev_rwsem));
++	lockdep_assert_held_write(&dax_dev_rwsem);
  
- 	stock = this_cpu_ptr(&memcg_stock);
- 	if (READ_ONCE(stock->cached) != memcg) { /* reset if necessary */
-@@ -2544,9 +2549,10 @@ static void __refill_stock(struct mem_cg
- 		css_get(&memcg->css);
- 		WRITE_ONCE(stock->cached, memcg);
- 	}
--	stock->nr_pages += nr_pages;
-+	stock_pages = READ_ONCE(stock->nr_pages) + nr_pages;
-+	WRITE_ONCE(stock->nr_pages, stock_pages);
+ 	if (!dev_dax->dyn_id || dev_dax->id < 0)
+ 		return -1;
+@@ -713,7 +713,7 @@ static void __unregister_dax_mapping(voi
  
--	if (stock->nr_pages > MEMCG_CHARGE_BATCH)
-+	if (stock_pages > MEMCG_CHARGE_BATCH)
- 		drain_stock(stock);
- }
+ 	dev_dbg(dev, "%s\n", __func__);
  
-@@ -2585,7 +2591,7 @@ static void drain_all_stock(struct mem_c
+-	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
++	lockdep_assert_held_write(&dax_region_rwsem);
  
- 		rcu_read_lock();
- 		memcg = READ_ONCE(stock->cached);
--		if (memcg && stock->nr_pages &&
-+		if (memcg && READ_ONCE(stock->nr_pages) &&
- 		    mem_cgroup_is_descendant(memcg, root_memcg))
- 			flush = true;
- 		else if (obj_stock_flush_required(stock, root_memcg))
+ 	dev_dax->ranges[mapping->range_id].mapping = NULL;
+ 	mapping->range_id = -1;
+@@ -830,7 +830,7 @@ static int devm_register_dax_mapping(str
+ 	struct device *dev;
+ 	int rc;
+ 
+-	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
++	lockdep_assert_held_write(&dax_region_rwsem);
+ 
+ 	if (dev_WARN_ONCE(&dev_dax->dev, !dax_region->dev->driver,
+ 				"region disabled\n"))
+@@ -876,7 +876,7 @@ static int alloc_dev_dax_range(struct de
+ 	struct resource *alloc;
+ 	int i, rc;
+ 
+-	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
++	lockdep_assert_held_write(&dax_region_rwsem);
+ 
+ 	/* handle the seed alloc special case */
+ 	if (!size) {
+@@ -935,7 +935,7 @@ static int adjust_dev_dax_range(struct d
+ 	struct device *dev = &dev_dax->dev;
+ 	int rc;
+ 
+-	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
++	lockdep_assert_held_write(&dax_region_rwsem);
+ 
+ 	if (dev_WARN_ONCE(dev, !size, "deletion is handled by dev_dax_shrink\n"))
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from vishal.l.verma@intel.com are
 
 
