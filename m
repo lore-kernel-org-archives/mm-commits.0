@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB0B010A0E
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:56:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE0D110A0E
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:56:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957013; cv=none; b=bi3B0S1qwlMjwQo5x2iemMw8/hHlZCUAj3Jlg50mDXNpUxN1nRSKTQOoYgquK/cUTfSsKPANjmRQ8AO1mQVbojrI/qVhuf5U/OuS7QO9PTiD71HDETc170AQVPP9gcDP3sqsHtUDJxykoGzFuy7E4ZHeDwfM47nyYkDvahC3zyE=
+	t=1714957015; cv=none; b=d51x/vU0fFZUr7Ha+ofwLA53VEpJXTZm6NOopOlALATCo7SGvotY3OIbiF1oQUmC8SKRcPxWTzJtx2c1LAjnAkDS5MDJBG1hge8PCeRpOzBzuzIhpfma1Qff9dU0JBocGk56ZVEcRVwE6lKzsvC5TW1XA+aeET3ZPdKN5SbzKgs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957013; c=relaxed/simple;
-	bh=NlbvndzFyeNgrpSYJtP7ADd3WQThlgTRdA1DLZxLQFM=;
-	h=Date:To:From:Subject:Message-Id; b=U5NQx+a6Zf4tSg3Qj1ASZ7L6SJFwLs+Qkbeg3f7QQaOaEyTT6vEp3Azp2GtLWp4GwpSZDhaD8egSmIfjcRjiJsYjeOJ+SeCAV3+zq3IoCAoocb+5B61Ya6xBhiX75Y9RN3FUaUyFsNNkZbdwfpXF74p+IjWbXaqVUgFY4QpVH3I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z60DdpD2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957015; c=relaxed/simple;
+	bh=tihDpQ2bGel0R+4gs/+cTsB2SU/H5i11DQZnu9cAhCM=;
+	h=Date:To:From:Subject:Message-Id; b=q7S95cpFVXF1EowRxNeii8xC76idspEiD2odK/UMLnsY2pBv5oy7CQh49qglNPBslj7lK7fPzys8PlDyo5WP26DNdLQa8ZrGq/SjwkG3vZzb75QEY8sdkIYxUvfv33YvCyKpqLoqMOLIXww4lVPvms816UX4l/mW+Tz57tbNk2w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KuTWEl15; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z60DdpD2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91063C113CC;
-	Mon,  6 May 2024 00:56:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KuTWEl15"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C35D0C116B1;
+	Mon,  6 May 2024 00:56:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957013;
-	bh=NlbvndzFyeNgrpSYJtP7ADd3WQThlgTRdA1DLZxLQFM=;
+	s=korg; t=1714957014;
+	bh=tihDpQ2bGel0R+4gs/+cTsB2SU/H5i11DQZnu9cAhCM=;
 	h=Date:To:From:Subject:From;
-	b=z60DdpD2amvl8gbyniiYaWt3JSoSsGo3hqsdFOE99r92lB3aPbxBg2Sg7YrW5Vm+N
-	 8oG35hdy1T9PiMiqGWG71mVr7UQ53JfNydTXEZQvTpL6QeYmss04FucXv0YWqVMTcZ
-	 +CRBAO1yEX8jSVITvV40AGxh3cs8ZSOCro0iY/oY=
-Date: Sun, 05 May 2024 17:56:53 -0700
+	b=KuTWEl15s00CaKuuZIxebvVevFHaHYu+Gln4o19emlahv/CR3sSQ+xX2FfRlx7BZZ
+	 i5AZjTl3qBdhXofDuWKijom2ytgXazCQkRBYZIYGeRZAEG1SWTM6mDnshubNAzNfnt
+	 gkHtZSk8iFQZJ6Ta5FFg/KOrKa39gOYAPqksW2Fo=
+Date: Sun, 05 May 2024 17:56:54 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ysato@users.sourceforge.jp,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richardycc@google.com,peterx@redhat.com,nao.horiguchi@gmail.com,muchun.song@linux.dev,linmiaohe@huawei.com,jcmvbkbc@gmail.com,hughd@google.com,glaubitz@physik.fu-berlin.de,fengwei.yin@intel.com,dalias@libc.org,corbet@lwn.net,chris@zankel.net,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] trace-events-page_ref-trace-the-raw-page-mapcount-value.patch removed from -mm tree
-Message-Id: <20240506005653.91063C113CC@smtp.kernel.org>
+Subject: [merged mm-stable] xtensa-mm-convert-check_tlb_entry-to-sanity-check-folios.patch removed from -mm tree
+Message-Id: <20240506005654.C35D0C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: trace/events/page_ref: trace the raw page mapcount value
+     Subject: xtensa/mm: convert check_tlb_entry() to sanity check folios
 has been removed from the -mm tree.  Its filename was
-     trace-events-page_ref-trace-the-raw-page-mapcount-value.patch
+     xtensa-mm-convert-check_tlb_entry-to-sanity-check-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: trace/events/page_ref: trace the raw page mapcount value
-Date: Tue, 9 Apr 2024 21:22:58 +0200
+Subject: xtensa/mm: convert check_tlb_entry() to sanity check folios
+Date: Tue, 9 Apr 2024 21:22:59 +0200
 
 We want to limit the use of page_mapcount() to the places where it is
-absolutely necessary.  We already trace raw page->refcount, raw
-page->flags and raw page->mapping, and don't involve any folios.  Let's
-also trace the raw mapcount value that does not consider the entire
-mapcount of large folios, and we don't add "1" to it.
+absolutely necessary.  So let's convert check_tlb_entry() to perform
+sanity checks on folios instead of pages.
 
-When dealing with typed folios, this makes a lot more sense.  ...  and
-it's for debugging purposes only either way.
+This essentially already happened: page_count() is mapped to
+folio_ref_count(), and page_mapped() to folio_mapped() internally. 
+However, we would have printed the page_mapount(), which does not really
+match what page_mapped() would have checked.
 
-Link: https://lkml.kernel.org/r/20240409192301.907377-16-david@redhat.com
+Let's simply print the folio mapcount to avoid using page_mapcount().  For
+small folios there is no change.
+
+Link: https://lkml.kernel.org/r/20240409192301.907377-17-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Hugh Dickins <hughd@google.com>
@@ -78,29 +81,30 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/page_ref.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/xtensa/mm/tlb.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/include/trace/events/page_ref.h~trace-events-page_ref-trace-the-raw-page-mapcount-value
-+++ a/include/trace/events/page_ref.h
-@@ -30,7 +30,7 @@ DECLARE_EVENT_CLASS(page_ref_mod_templat
- 		__entry->pfn = page_to_pfn(page);
- 		__entry->flags = page->flags;
- 		__entry->count = page_ref_count(page);
--		__entry->mapcount = page_mapcount(page);
-+		__entry->mapcount = atomic_read(&page->_mapcount);
- 		__entry->mapping = page->mapping;
- 		__entry->mt = get_pageblock_migratetype(page);
- 		__entry->val = v;
-@@ -79,7 +79,7 @@ DECLARE_EVENT_CLASS(page_ref_mod_and_tes
- 		__entry->pfn = page_to_pfn(page);
- 		__entry->flags = page->flags;
- 		__entry->count = page_ref_count(page);
--		__entry->mapcount = page_mapcount(page);
-+		__entry->mapcount = atomic_read(&page->_mapcount);
- 		__entry->mapping = page->mapping;
- 		__entry->mt = get_pageblock_migratetype(page);
- 		__entry->val = v;
+--- a/arch/xtensa/mm/tlb.c~xtensa-mm-convert-check_tlb_entry-to-sanity-check-folios
++++ a/arch/xtensa/mm/tlb.c
+@@ -256,12 +256,13 @@ static int check_tlb_entry(unsigned w, u
+ 					dtlb ? 'D' : 'I', w, e, r0, r1, pte);
+ 			if (pte == 0 || !pte_present(__pte(pte))) {
+ 				struct page *p = pfn_to_page(r1 >> PAGE_SHIFT);
+-				pr_err("page refcount: %d, mapcount: %d\n",
+-						page_count(p),
+-						page_mapcount(p));
+-				if (!page_count(p))
++				struct folio *f = page_folio(p);
++
++				pr_err("folio refcount: %d, mapcount: %d\n",
++					folio_ref_count(f), folio_mapcount(f));
++				if (!folio_ref_count(f))
+ 					rc |= TLB_INSANE;
+-				else if (page_mapcount(p))
++				else if (folio_mapped(f))
+ 					rc |= TLB_SUSPICIOUS;
+ 			} else {
+ 				rc |= TLB_INSANE;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
