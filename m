@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9480199BC
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:57:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 015A0199BC
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:57:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957024; cv=none; b=kGziIBNHyhjAdSwxc+/CEKPUHO51eyLt6TK7GxAMEWZkpldW6Fyi/3oVC1b+JYa28w8FGU53JE3Iu8rt2mzNLiVyqBSsAJ9xWHchQvo1hBk9oTifyWJuXbcFlvvpRN/GSmjKYxlbHJUEOGx1vy1/Q8BENjP79VvCfdjln07OOMc=
+	t=1714957025; cv=none; b=PAmSucdQ1kzNgoQtoZtrjz57w3i7T0HnFRmaW19fNhkGOLdC3Ec/7g6rGXCZW0Ad8HyVKXqdoI/Oj+bc41Z/Ylf2KDB+JYbJuGbFCNTuamkFG8JerXVWSPU1iJ5r76MDs3w5uo8W6sD9TQFm0+39Wcem5pPc5Ggg212oZy5K8K4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957024; c=relaxed/simple;
-	bh=r+XwSENKcUL2WLeU/hY0F0ZHilvgs9b+iV2KV7zkt80=;
-	h=Date:To:From:Subject:Message-Id; b=T/zOj+L9oYoiRioEeJoyCQXnRHk23WNQIlb/1Y6GyxbqvdeVKRIkuE/spg+D2p/WPvw9k2YFmxVd+zXj44JNh4z85h0ZNW2ApMDgurKRik1PCPwESYMjcivn3ERknZcpm0UxKH+B+iyDFuGm2/WP68zquXogoVsbTLBdBOooZuE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZpvC0Md0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957025; c=relaxed/simple;
+	bh=flrqXO9MJ2fJKmq2bUisYKZv4XrQKBKBYQvH2ZfDH1c=;
+	h=Date:To:From:Subject:Message-Id; b=oB6CUoPcrp3Mjfo5xbSrPNkTv+O2Twat3ilcOpQfaTXyob1LhqtNdnKB+Lsl+kbDVpktu3CxczFSHH/A+m332amGa3b384fVrd7Q3jAYj9pvLMcfaMfLOFyjsl8FakmeycGnJGWjGY39/8RVX5vwir4XivAgZ5nVHNhsAFr/rEI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JuKrf56T; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZpvC0Md0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDFAEC116B1;
-	Mon,  6 May 2024 00:57:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JuKrf56T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9EEBC113CC;
+	Mon,  6 May 2024 00:57:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957023;
-	bh=r+XwSENKcUL2WLeU/hY0F0ZHilvgs9b+iV2KV7zkt80=;
+	s=korg; t=1714957024;
+	bh=flrqXO9MJ2fJKmq2bUisYKZv4XrQKBKBYQvH2ZfDH1c=;
 	h=Date:To:From:Subject:From;
-	b=ZpvC0Md0DXqpuAYxluq95qNpOKefXAFIsgz3vB7+kPowjBSDpMPSFgJMrWlpzVCVq
-	 ADR3DS/EmMAiMs9tkLJrMvQqwtlmCS7ge6QsAbPu4dKqDmpAlqa4jt0M95B/CcD01O
-	 5qZJ5eykokRmi2ewqQNmLFYYPdg7lmWz8HfoP8zI=
-Date: Sun, 05 May 2024 17:57:03 -0700
+	b=JuKrf56TDVEH2kcC3+UowCX/1oyZKZEV6WdTfTQCSoA20AvmaDX8ksxZIYI3kbM2D
+	 OXMShmJvWxonav0EGdSS7DcL+qPhY4dns0kemtlLVEkKMJCQ6osdwnBzbvGcDHJmgb
+	 WbdWbhg8i21qEs2ToI27B7D86DWxpg3/qeloYktI=
+Date: Sun, 05 May 2024 17:57:04 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,izik.eidus@ravellosystems.com,hughd@google.com,david@redhat.com,chrisw@sous-sol.org,aarcange@redhat.com,alexs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-ksm-add-folio_set_stable_node.patch removed from -mm tree
-Message-Id: <20240506005703.BDFAEC116B1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-ksm-use-folio-in-remove_stable_node.patch removed from -mm tree
+Message-Id: <20240506005704.C9EEBC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/ksm: add folio_set_stable_node
+     Subject: mm/ksm: use folio in remove_stable_node
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-add-folio_set_stable_node.patch
+     mm-ksm-use-folio-in-remove_stable_node.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Alex Shi (tencent)" <alexs@kernel.org>
-Subject: mm/ksm: add folio_set_stable_node
-Date: Thu, 11 Apr 2024 14:17:04 +0800
+Subject: mm/ksm: use folio in remove_stable_node
+Date: Thu, 11 Apr 2024 14:17:05 +0800
 
-Turn set_page_stable_node() into a wrapper folio_set_stable_node, and then
-use it to replace the former.  we will merge them together after all place
-converted to folio.
+Pages in stable tree are all single normal page, so uses ksm_get_folio()
+and folio_set_stable_node(), also saves 3 calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20240411061713.1847574-4-alexs@kernel.org
+Link: https://lkml.kernel.org/r/20240411061713.1847574-5-alexs@kernel.org
 Signed-off-by: Alex Shi (tencent) <alexs@kernel.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Izik Eidus <izik.eidus@ravellosystems.com>
@@ -62,33 +61,60 @@ Cc: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/ksm.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-add-folio_set_stable_node
+--- a/mm/ksm.c~mm-ksm-use-folio-in-remove_stable_node
 +++ a/mm/ksm.c
-@@ -1109,6 +1109,12 @@ static inline void set_page_stable_node(
- 	page->mapping = (void *)((unsigned long)stable_node | PAGE_MAPPING_KSM);
+@@ -1121,13 +1121,13 @@ static inline void folio_set_stable_node
+  */
+ static int remove_stable_node(struct ksm_stable_node *stable_node)
+ {
+-	struct page *page;
++	struct folio *folio;
+ 	int err;
+ 
+-	page = get_ksm_page(stable_node, GET_KSM_PAGE_LOCK);
+-	if (!page) {
++	folio = ksm_get_folio(stable_node, GET_KSM_PAGE_LOCK);
++	if (!folio) {
+ 		/*
+-		 * get_ksm_page did remove_node_from_stable_tree itself.
++		 * ksm_get_folio did remove_node_from_stable_tree itself.
+ 		 */
+ 		return 0;
+ 	}
+@@ -1138,22 +1138,22 @@ static int remove_stable_node(struct ksm
+ 	 * merge_across_nodes/max_page_sharing be switched.
+ 	 */
+ 	err = -EBUSY;
+-	if (!page_mapped(page)) {
++	if (!folio_mapped(folio)) {
+ 		/*
+-		 * The stable node did not yet appear stale to get_ksm_page(),
+-		 * since that allows for an unmapped ksm page to be recognized
++		 * The stable node did not yet appear stale to ksm_get_folio(),
++		 * since that allows for an unmapped ksm folio to be recognized
+ 		 * right up until it is freed; but the node is safe to remove.
+-		 * This page might be in an LRU cache waiting to be freed,
+-		 * or it might be PageSwapCache (perhaps under writeback),
++		 * This folio might be in an LRU cache waiting to be freed,
++		 * or it might be in the swapcache (perhaps under writeback),
+ 		 * or it might have been removed from swapcache a moment ago.
+ 		 */
+-		set_page_stable_node(page, NULL);
++		folio_set_stable_node(folio, NULL);
+ 		remove_node_from_stable_tree(stable_node);
+ 		err = 0;
+ 	}
+ 
+-	unlock_page(page);
+-	put_page(page);
++	folio_unlock(folio);
++	folio_put(folio);
+ 	return err;
  }
  
-+static inline void folio_set_stable_node(struct folio *folio,
-+					 struct ksm_stable_node *stable_node)
-+{
-+	set_page_stable_node(&folio->page, stable_node);
-+}
-+
- #ifdef CONFIG_SYSFS
- /*
-  * Only called through the sysfs control interface:
-@@ -3241,7 +3247,7 @@ void folio_migrate_ksm(struct folio *new
- 		 * has gone stale (or that folio_test_swapcache has been cleared).
- 		 */
- 		smp_wmb();
--		set_page_stable_node(&folio->page, NULL);
-+		folio_set_stable_node(folio, NULL);
- 	}
- }
- #endif /* CONFIG_MIGRATION */
 _
 
 Patches currently in -mm which might be from alexs@kernel.org are
