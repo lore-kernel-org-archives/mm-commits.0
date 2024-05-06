@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E41F25757
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:58:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD4C122089
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:58:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957098; cv=none; b=MiZcu8eyQJqJJvKb+P4yPz3Kyc+osnUGd5Sexm/FiEcIztHwuNVHzajkJkSf/YQtv07gHlgjju2zuOjfKmyUF9AFD3AWCNb+LYPzib+aSMZCvbU0neOC2cpcUF1KL9+UYTCrRAWXPmlH+1mJoLX75flD0NDNbSsdY48nsyzNeSI=
+	t=1714957099; cv=none; b=FZ8MM03xZ2KwoQ2vkXGYnlcRYw9KiHLXFMpX8SMlEMTecT1dUaBNuMUlhcJJbgKYHRnH7FPaAKriE1I/mAb80NecPMKbvgbth7Hbb0gOp4IvwzFtLaMR4qJOH+xgGq13IFJ6LFYLevc2tlFYLgiQK6qPEWkITuVmVRMjZ/hqA9k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957098; c=relaxed/simple;
-	bh=YBj0hU/7QuDrhTcpZCUx252ze85qbohb5XVYsGMT0nw=;
-	h=Date:To:From:Subject:Message-Id; b=OJvb3HbBPcyN1QlsRtxDeCqlMVuMYMsgcBzAVia8dFTYlqN5OF91kWL1z+SDEbNRqPWxk9G7oMnrQzlSq4uLx/kNCGKXk6S3xqhENRcSxmhUAhUENE6tOwnrvE0c9RTgylw7GzKrEMPG+sLA8xxS6Ss1R7HmQKOpRs7wPfbxY+g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B/V/FyNa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957099; c=relaxed/simple;
+	bh=Uq512wrLiXCMm+WxPn3TMcCqLmY0pq0EVJdOPmyo/iA=;
+	h=Date:To:From:Subject:Message-Id; b=eNd5IX2aGAKAJPlRW0wchaYiPgZe6ZG3ljBEvgw9WNKE8HeIYKVFC6229/V2qwReoPfTwm1/zRQiR+4g7R6e9MrBJOQ+Em5jyOmoxSSDE3crfo9T4hmXNLu33ZsnRs9LGhUv3xlifO/BDIPHRbk7JK60edkVrr8LjdkHd/6QQdQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=du5VifOH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B/V/FyNa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77D6EC113CC;
-	Mon,  6 May 2024 00:58:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="du5VifOH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B421C116B1;
+	Mon,  6 May 2024 00:58:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957098;
-	bh=YBj0hU/7QuDrhTcpZCUx252ze85qbohb5XVYsGMT0nw=;
+	s=korg; t=1714957099;
+	bh=Uq512wrLiXCMm+WxPn3TMcCqLmY0pq0EVJdOPmyo/iA=;
 	h=Date:To:From:Subject:From;
-	b=B/V/FyNakKTZV2jGWTmVbrhc1iqPcrP74U8w7DWWMfDejbf1yihrW/CHGIIt/3L0f
-	 gFH6twsDCoay/BhcqJPTgdnObkhR2ytqFnNYD97yZI/7Luhbz5PvZRytZA55xox1tw
-	 O0Kq6OPczTOsRKMgPRwlaBE3B7lD2Z9nJYiQoKMQ=
-Date: Sun, 05 May 2024 17:58:18 -0700
+	b=du5VifOHwc/kEr+AUo+u25J2BtFt2u0i6H21ETzkSPgMhZfB8UW71rsQKX0rVs3M6
+	 G58OUXQpW6ZUdgK7r2sMkphWqrOmEadIEiOnl4bisn/x/78/VRyf2Tx0zkYAXjYbPB
+	 eTznNsDgsnd05bNJmXOcPPAcY+sDsaSEJdNJeDZA=
+Date: Sun, 05 May 2024 17:58:19 -0700
 To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,ebiggers@google.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch removed from -mm tree
-Message-Id: <20240506005818.77D6EC113CC@smtp.kernel.org>
+Subject: [merged mm-stable] userfault-expand-folio-use-in-mfill_atomic_install_pte.patch removed from -mm tree
+Message-Id: <20240506005819.7B421C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: migrate: expand the use of folio in __migrate_device_pages()
+     Subject: userfault; expand folio use in mfill_atomic_install_pte()
 has been removed from the -mm tree.  Its filename was
-     migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch
+     userfault-expand-folio-use-in-mfill_atomic_install_pte.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: migrate: expand the use of folio in __migrate_device_pages()
-Date: Tue, 23 Apr 2024 23:55:35 +0100
+Subject: userfault; expand folio use in mfill_atomic_install_pte()
+Date: Tue, 23 Apr 2024 23:55:36 +0100
 
-Removes a few calls to compound_head() and a call to page_mapping().
+Call page_folio() a little earlier so we can use folio_mapping()
+instead of page_mapping(), saving a call to compound_head().
 
-Link: https://lkml.kernel.org/r/20240423225552.4113447-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240423225552.4113447-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Eric Biggers <ebiggers@google.com>
@@ -57,51 +58,31 @@ Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate_device.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ mm/userfaultfd.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/migrate_device.c~migrate-expand-the-use-of-folio-in-__migrate_device_pages
-+++ a/mm/migrate_device.c
-@@ -696,6 +696,7 @@ static void __migrate_device_pages(unsig
- 		struct page *newpage = migrate_pfn_to_page(dst_pfns[i]);
- 		struct page *page = migrate_pfn_to_page(src_pfns[i]);
- 		struct address_space *mapping;
-+		struct folio *folio;
- 		int r;
+--- a/mm/userfaultfd.c~userfault-expand-folio-use-in-mfill_atomic_install_pte
++++ a/mm/userfaultfd.c
+@@ -180,9 +180,9 @@ int mfill_atomic_install_pte(pmd_t *dst_
+ 	pte_t _dst_pte, *dst_pte;
+ 	bool writable = dst_vma->vm_flags & VM_WRITE;
+ 	bool vm_shared = dst_vma->vm_flags & VM_SHARED;
+-	bool page_in_cache = page_mapping(page);
+ 	spinlock_t *ptl;
+-	struct folio *folio;
++	struct folio *folio = page_folio(page);
++	bool page_in_cache = folio_mapping(folio);
  
- 		if (!newpage) {
-@@ -730,15 +731,12 @@ static void __migrate_device_pages(unsig
- 			continue;
- 		}
+ 	_dst_pte = mk_pte(page, dst_vma->vm_page_prot);
+ 	_dst_pte = pte_mkdirty(_dst_pte);
+@@ -212,7 +212,6 @@ int mfill_atomic_install_pte(pmd_t *dst_
+ 	if (!pte_none_mostly(ptep_get(dst_pte)))
+ 		goto out_unlock;
  
--		mapping = page_mapping(page);
-+		folio = page_folio(page);
-+		mapping = folio_mapping(folio);
- 
- 		if (is_device_private_page(newpage) ||
- 		    is_device_coherent_page(newpage)) {
- 			if (mapping) {
--				struct folio *folio;
--
--				folio = page_folio(page);
--
- 				/*
- 				 * For now only support anonymous memory migrating to
- 				 * device private or coherent memory.
-@@ -761,11 +759,10 @@ static void __migrate_device_pages(unsig
- 
- 		if (migrate && migrate->fault_page == page)
- 			r = migrate_folio_extra(mapping, page_folio(newpage),
--						page_folio(page),
--						MIGRATE_SYNC_NO_COPY, 1);
-+						folio, MIGRATE_SYNC_NO_COPY, 1);
- 		else
- 			r = migrate_folio(mapping, page_folio(newpage),
--					page_folio(page), MIGRATE_SYNC_NO_COPY);
-+					folio, MIGRATE_SYNC_NO_COPY);
- 		if (r != MIGRATEPAGE_SUCCESS)
- 			src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
- 	}
+-	folio = page_folio(page);
+ 	if (page_in_cache) {
+ 		/* Usually, cache pages are already added to LRU */
+ 		if (newly_allocated)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
