@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 883535CB0
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:56:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA4F15CB0
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:56:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714956985; cv=none; b=NBv+wSbMRHW2fh/7ENbeDGlJ+K/Q/YxmjzmDPeZfjckEF2fIoFxgYB5oepZyzGvXv6RnZaG2qXyQiY7zbKDRqP2rN22bHJ+AqCB9kwH27Y5Qfro8yKwe328YYqz77+cZTfSrr1/Z82cjeoNi5GAJS0mZPlz5g1r5ro506o0kxKo=
+	t=1714956986; cv=none; b=mpDa2A2cRoJCMcAxGw80PYyKxjv5xTSfYlUY79+vPvcqtHbUX2ti7ZbCaM5zLk8Kdu0MP2d2X8Wm3SI9OGs7LEB8/GoYcorT9deG18qPQ1JPoJGqEQ/BDkTcXtboccW5mAYrCQ9zNIVSrrkRj6jtpxd0DgAZ5SgRA13GlxjgJFE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714956985; c=relaxed/simple;
-	bh=ZGg0wt/aZP+HiK6/9JLIrH5E3ETgQBjAk+O1Hlz1ufs=;
-	h=Date:To:From:Subject:Message-Id; b=tB+2UCbFrKdIInKpEbCyCY6rtuL+SB9TwgH28sCxhaOPlqXIoPdtrgmK0RpPxSTb1e3uVi1oEq8wQE0Qa9SxdQTbwpiyOqIqBarbiISwvvYwEUvQ3Vc0szO+MBGNrYnsjoYmHwiBXLr0IvNeIyw1RDO8JiUOFaAsLiPsq/Y9dZ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gTSX/PVO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714956986; c=relaxed/simple;
+	bh=yBW/N4rKF+biZcry/2uSi4KKPJDhOvqPSQ61w7RsEug=;
+	h=Date:To:From:Subject:Message-Id; b=U52Gwf8Si6aeSmiwwOM0QOVJ2Tg8UCgcywMsXkieoHG4WvSrHLehVLVRDqxhoxpiD33lFD+jVcOx+V58+mY74D+KSxogeeNkx2L9ewKdTPbuOLJMt/gUwHQIMh8CCV4FDQciH8wAdlnBnUPJJ3VTfRu7ll5qezgymxi48kTGX70=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tErTdTdm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gTSX/PVO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E31F9C116B1;
-	Mon,  6 May 2024 00:56:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tErTdTdm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32AF7C113CC;
+	Mon,  6 May 2024 00:56:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714956985;
-	bh=ZGg0wt/aZP+HiK6/9JLIrH5E3ETgQBjAk+O1Hlz1ufs=;
+	s=korg; t=1714956986;
+	bh=yBW/N4rKF+biZcry/2uSi4KKPJDhOvqPSQ61w7RsEug=;
 	h=Date:To:From:Subject:From;
-	b=gTSX/PVONH8q9BhJZ8y2EH8uZrrjFrOhgO3wUfBtYTd5Jpp+716Uagz1LXPyrg68F
-	 shOdZfGqvLO8amtQLBIUPhO1MiPU9RZZ493LH8HUD7awrwH2ly+gTNWwemBmUXTcvZ
-	 He5qiAQp70UmwKYY/dMzi5xF+ug9eZHJxyPOZSDE=
-Date: Sun, 05 May 2024 17:56:24 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,vishal.l.verma@intel.com,tj@kernel.org,sj@kernel.org,ravis.opensrc@micron.com,mhocko@suse.com,Jonathan.Cameron@huawie.com,Jonathan.Cameron@huawei.com,hao.xiang@bytedance.com,gourry.memverge@gmail.com,dave.jiang@intel.com,dan.j.williams@intel.com,apopple@nvidia.com,aneesh.kumar@linux.ibm.com,horenchuang@bytedance.com,akpm@linux-foundation.org
+	b=tErTdTdmHxti3zbvmGeRfg5rbG1lrp4UaqdY7EsCvqawhJQxvNrhmEtyvGM3DX8D6
+	 WHY0IpSezkzMSXI/Ubub6gXxviYjVJMCVuQhI9sBWM5GAjJauQg+/xH2saYhX0htCt
+	 PEjzRajULdnDVhytz5BbdKaXtc67oGCbPHmf5KmQ=
+Date: Sun, 05 May 2024 17:56:25 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,lstoakes@gmail.com,Liam.Howlett@oracle.com,gehao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memory-tier-create-cpuless-memory-tiers-after-obtaining-hmat-info.patch removed from -mm tree
-Message-Id: <20240506005624.E31F9C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mmap-make-vma_wants_writenotify-return-bool.patch removed from -mm tree
+Message-Id: <20240506005626.32AF7C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,271 +35,87 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memory tier: create CPUless memory tiers after obtaining HMAT info
+     Subject: mm/mmap: make vma_wants_writenotify return bool
 has been removed from the -mm tree.  Its filename was
-     memory-tier-create-cpuless-memory-tiers-after-obtaining-hmat-info.patch
+     mm-mmap-make-vma_wants_writenotify-return-bool.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com>
-Subject: memory tier: create CPUless memory tiers after obtaining HMAT info
-Date: Fri, 5 Apr 2024 00:07:06 +0000
+From: Hao Ge <gehao@kylinos.cn>
+Subject: mm/mmap: make vma_wants_writenotify return bool
+Date: Sun, 7 Apr 2024 14:26:53 +0800
 
-The current implementation treats emulated memory devices, such as CXL1.1
-type3 memory, as normal DRAM when they are emulated as normal memory
-(E820_TYPE_RAM).  However, these emulated devices have different
-characteristics than traditional DRAM, making it important to distinguish
-them.  Thus, we modify the tiered memory initialization process to
-introduce a delay specifically for CPUless NUMA nodes.  This delay ensures
-that the memory tier initialization for these nodes is deferred until HMAT
-information is obtained during the boot process.  Finally, demotion tables
-are recalculated at the end.
+vma_wants_writenotify() should return bool, so change it.
 
-* late_initcall(memory_tier_late_init);
-  Some device drivers may have initialized memory tiers between
-  `memory_tier_init()` and `memory_tier_late_init()`, potentially bringing
-  online memory nodes and configuring memory tiers.  They should be
-  excluded in the late init.
-
-* Handle cases where there is no HMAT when creating memory tiers
-  There is a scenario where a CPUless node does not provide HMAT
-  information.  If no HMAT is specified, it falls back to using the
-  default DRAM tier.
-
-* Introduce another new lock `default_dram_perf_lock` for adist
-  calculation In the current implementation, iterating through CPUlist
-  nodes requires holding the `memory_tier_lock`.  However,
-  `mt_calc_adistance()` will end up trying to acquire the same lock,
-  leading to a potential deadlock.  Therefore, we propose introducing a
-  standalone `default_dram_perf_lock` to protect `default_dram_perf_*`. 
-  This approach not only avoids deadlock but also prevents holding a large
-  lock simultaneously.
-
-* Upgrade `set_node_memory_tier` to support additional cases, including
-  default DRAM, late CPUless, and hot-plugged initializations.  To cover
-  hot-plugged memory nodes, `mt_calc_adistance()` and
-  `mt_find_alloc_memory_type()` are moved into `set_node_memory_tier()` to
-  handle cases where memtype is not initialized and where HMAT information
-  is available.
-
-* Introduce `default_memory_types` for those memory types that are not
-  initialized by device drivers.  Because late initialized memory and
-  default DRAM memory need to be managed, a default memory type is created
-  for storing all memory types that are not initialized by device drivers
-  and as a fallback.
-
-Link: https://lkml.kernel.org/r/20240405000707.2670063-3-horenchuang@bytedance.com
-Signed-off-by: Ho-Ren (Jack) Chuang <horenchuang@bytedance.com>
-Signed-off-by: Hao Xiang <hao.xiang@bytedance.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Gregory Price <gourry.memverge@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Ravi Jonnalagadda <ravis.opensrc@micron.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawie.com>
+Link: https://lkml.kernel.org/r/20240407062653.803142-1-gehao@kylinos.cn
+Signed-off-by: Hao Ge <gehao@kylinos.cn>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-tiers.c |   94 ++++++++++++++++++++++++++++++++------------
- 1 file changed, 70 insertions(+), 24 deletions(-)
+ include/linux/mm.h |    2 +-
+ mm/mmap.c          |   12 ++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/memory-tiers.c~memory-tier-create-cpuless-memory-tiers-after-obtaining-hmat-info
-+++ a/mm/memory-tiers.c
-@@ -36,6 +36,11 @@ struct node_memory_type_map {
+--- a/include/linux/mm.h~mm-mmap-make-vma_wants_writenotify-return-bool
++++ a/include/linux/mm.h
+@@ -2575,7 +2575,7 @@ extern unsigned long move_page_tables(st
+ 					    MM_CP_UFFD_WP_RESOLVE)
  
- static DEFINE_MUTEX(memory_tier_lock);
- static LIST_HEAD(memory_tiers);
-+/*
-+ * The list is used to store all memory types that are not created
-+ * by a device driver.
-+ */
-+static LIST_HEAD(default_memory_types);
- static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
- struct memory_dev_type *default_dram_type;
- 
-@@ -108,6 +113,8 @@ static struct demotion_nodes *node_demot
- 
- static BLOCKING_NOTIFIER_HEAD(mt_adistance_algorithms);
- 
-+/* The lock is used to protect `default_dram_perf*` info and nid. */
-+static DEFINE_MUTEX(default_dram_perf_lock);
- static bool default_dram_perf_error;
- static struct access_coordinate default_dram_perf;
- static int default_dram_perf_ref_nid = NUMA_NO_NODE;
-@@ -505,7 +512,8 @@ static inline void __init_node_memory_ty
- static struct memory_tier *set_node_memory_tier(int node)
+ bool vma_needs_dirty_tracking(struct vm_area_struct *vma);
+-int vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot);
++bool vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot);
+ static inline bool vma_wants_manual_pte_write_upgrade(struct vm_area_struct *vma)
  {
- 	struct memory_tier *memtier;
--	struct memory_dev_type *memtype;
-+	struct memory_dev_type *memtype = default_dram_type;
-+	int adist = MEMTIER_ADISTANCE_DRAM;
- 	pg_data_t *pgdat = NODE_DATA(node);
- 
- 
-@@ -514,7 +522,16 @@ static struct memory_tier *set_node_memo
- 	if (!node_state(node, N_MEMORY))
- 		return ERR_PTR(-EINVAL);
- 
--	__init_node_memory_type(node, default_dram_type);
-+	mt_calc_adistance(node, &adist);
-+	if (!node_memory_types[node].memtype) {
-+		memtype = mt_find_alloc_memory_type(adist, &default_memory_types);
-+		if (IS_ERR(memtype)) {
-+			memtype = default_dram_type;
-+			pr_info("Failed to allocate a memory type. Fall back.\n");
-+		}
-+	}
-+
-+	__init_node_memory_type(node, memtype);
- 
- 	memtype = node_memory_types[node].memtype;
- 	node_set(node, memtype->nodes);
-@@ -652,6 +669,35 @@ void mt_put_memory_types(struct list_hea
- }
- EXPORT_SYMBOL_GPL(mt_put_memory_types);
- 
-+/*
-+ * This is invoked via `late_initcall()` to initialize memory tiers for
-+ * CPU-less memory nodes after driver initialization, which is
-+ * expected to provide `adistance` algorithms.
-+ */
-+static int __init memory_tier_late_init(void)
-+{
-+	int nid;
-+
-+	guard(mutex)(&memory_tier_lock);
-+	for_each_node_state(nid, N_MEMORY) {
-+		/*
-+		 * Some device drivers may have initialized memory tiers
-+		 * between `memory_tier_init()` and `memory_tier_late_init()`,
-+		 * potentially bringing online memory nodes and
-+		 * configuring memory tiers. Exclude them here.
-+		 */
-+		if (node_memory_types[nid].memtype)
-+			continue;
-+
-+		set_node_memory_tier(nid);
-+	}
-+
-+	establish_demotion_targets();
-+
-+	return 0;
-+}
-+late_initcall(memory_tier_late_init);
-+
- static void dump_hmem_attrs(struct access_coordinate *coord, const char *prefix)
+ 	/*
+--- a/mm/mmap.c~mm-mmap-make-vma_wants_writenotify-return-bool
++++ a/mm/mmap.c
+@@ -1514,32 +1514,32 @@ bool vma_needs_dirty_tracking(struct vm_
+  * to the private version (using protection_map[] without the
+  * VM_SHARED bit).
+  */
+-int vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot)
++bool vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot)
  {
- 	pr_info(
-@@ -663,25 +709,19 @@ static void dump_hmem_attrs(struct acces
- int mt_set_default_dram_perf(int nid, struct access_coordinate *perf,
- 			     const char *source)
- {
--	int rc = 0;
--
--	mutex_lock(&memory_tier_lock);
--	if (default_dram_perf_error) {
--		rc = -EIO;
--		goto out;
--	}
-+	guard(mutex)(&default_dram_perf_lock);
-+	if (default_dram_perf_error)
-+		return -EIO;
+ 	/* If it was private or non-writable, the write bit is already clear */
+ 	if (!vma_is_shared_writable(vma))
+-		return 0;
++		return false;
  
- 	if (perf->read_latency + perf->write_latency == 0 ||
--	    perf->read_bandwidth + perf->write_bandwidth == 0) {
--		rc = -EINVAL;
--		goto out;
--	}
-+	    perf->read_bandwidth + perf->write_bandwidth == 0)
-+		return -EINVAL;
+ 	/* The backer wishes to know when pages are first written to? */
+ 	if (vm_ops_needs_writenotify(vma->vm_ops))
+-		return 1;
++		return true;
  
- 	if (default_dram_perf_ref_nid == NUMA_NO_NODE) {
- 		default_dram_perf = *perf;
- 		default_dram_perf_ref_nid = nid;
- 		default_dram_perf_ref_source = kstrdup(source, GFP_KERNEL);
--		goto out;
-+		return 0;
- 	}
+ 	/* The open routine did something to the protections that pgprot_modify
+ 	 * won't preserve? */
+ 	if (pgprot_val(vm_page_prot) !=
+ 	    pgprot_val(vm_pgprot_modify(vm_page_prot, vma->vm_flags)))
+-		return 0;
++		return false;
  
  	/*
-@@ -709,27 +749,25 @@ int mt_set_default_dram_perf(int nid, st
- 		pr_info(
- "  disable default DRAM node performance based abstract distance algorithm.\n");
- 		default_dram_perf_error = true;
--		rc = -EINVAL;
-+		return -EINVAL;
- 	}
- 
--out:
--	mutex_unlock(&memory_tier_lock);
--	return rc;
-+	return 0;
- }
- 
- int mt_perf_to_adistance(struct access_coordinate *perf, int *adist)
- {
-+	guard(mutex)(&default_dram_perf_lock);
- 	if (default_dram_perf_error)
- 		return -EIO;
- 
--	if (default_dram_perf_ref_nid == NUMA_NO_NODE)
--		return -ENOENT;
--
- 	if (perf->read_latency + perf->write_latency == 0 ||
- 	    perf->read_bandwidth + perf->write_bandwidth == 0)
- 		return -EINVAL;
- 
--	mutex_lock(&memory_tier_lock);
-+	if (default_dram_perf_ref_nid == NUMA_NO_NODE)
-+		return -ENOENT;
-+
- 	/*
- 	 * The abstract distance of a memory node is in direct proportion to
- 	 * its memory latency (read + write) and inversely proportional to its
-@@ -742,7 +780,6 @@ int mt_perf_to_adistance(struct access_c
- 		(default_dram_perf.read_latency + default_dram_perf.write_latency) *
- 		(default_dram_perf.read_bandwidth + default_dram_perf.write_bandwidth) /
- 		(perf->read_bandwidth + perf->write_bandwidth);
--	mutex_unlock(&memory_tier_lock);
- 
- 	return 0;
- }
-@@ -855,7 +892,8 @@ static int __init memory_tier_init(void)
- 	 * For now we can have 4 faster memory tiers with smaller adistance
- 	 * than default DRAM tier.
+ 	 * Do we need to track softdirty? hugetlb does not support softdirty
+ 	 * tracking yet.
  	 */
--	default_dram_type = alloc_memory_type(MEMTIER_ADISTANCE_DRAM);
-+	default_dram_type = mt_find_alloc_memory_type(MEMTIER_ADISTANCE_DRAM,
-+						      &default_memory_types);
- 	if (IS_ERR(default_dram_type))
- 		panic("%s() failed to allocate default DRAM tier\n", __func__);
+ 	if (vma_soft_dirty_enabled(vma) && !is_vm_hugetlb_page(vma))
+-		return 1;
++		return true;
  
-@@ -865,6 +903,14 @@ static int __init memory_tier_init(void)
- 	 * types assigned.
- 	 */
- 	for_each_node_state(node, N_MEMORY) {
-+		if (!node_state(node, N_CPU))
-+			/*
-+			 * Defer memory tier initialization on
-+			 * CPUless numa nodes. These will be initialized
-+			 * after firmware and devices are initialized.
-+			 */
-+			continue;
-+
- 		memtier = set_node_memory_tier(node);
- 		if (IS_ERR(memtier))
- 			/*
+ 	/* Do we need write faults for uffd-wp tracking? */
+ 	if (userfaultfd_wp(vma))
+-		return 1;
++		return true;
+ 
+ 	/* Can the mapping track the dirty pages? */
+ 	return vma_fs_can_writeback(vma);
 _
 
-Patches currently in -mm which might be from horenchuang@bytedance.com are
+Patches currently in -mm which might be from gehao@kylinos.cn are
 
 
