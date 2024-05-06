@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DD9763D5
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:56:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3072263D5
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:56:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957002; cv=none; b=F3JPO+qOeO2h5Rfps/SRlx6Zu0HMdZOQOKDL2aJlS9k350kazC+WERNl2Z1lSMAl/CGRIU2Q97JiIVbb2xE+WvVuQARxhKUARkb3vAwJDJr5brzopDIJgkJZgU6SkFkKMP+u4iGtHLxmXTvh7rdjPVOBAEHkQGk6RT+J7fMRLGY=
+	t=1714957004; cv=none; b=m4iZn0GuxB0yzqxuY+MjYYL9zmyl/dutuKUIQfxtkDoXISskgKJ/e+UlGckk0dIrigkBZS7XyTczH/eD4fAjnl/2W8alry/3JVu4EdM25maUy+dUH0E0sBlKn4C05xRrV6CVgHGJS1nL6/OvUDuSReBZjVer92wPwOUKb86rQPA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957002; c=relaxed/simple;
-	bh=7eodsEc/3OS4ywdSrBHmjY7XW5TZ0gwrYtl3lOQrSCY=;
-	h=Date:To:From:Subject:Message-Id; b=C1rZFw5RsiBMlUKDk1zyXFP1+76uAMrnK453Cxl2xJDWsQ0mKK6bcJ14ZbvSvf6vBRsqg4hvP3ejV+1lNShQC2PCcF9O6VhEyDml3S0UpFl9MZ8dHd/yP821ubKmUJsG9X1ACk0wx5WjtG3UsKqXlJMKRAGnlLCpCrGrV8dIpXI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hfhCkk5f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957004; c=relaxed/simple;
+	bh=6uwL7poJMbkY1/5mxWbw0ql5d07vDVeI8xZJhStincA=;
+	h=Date:To:From:Subject:Message-Id; b=YGwRu0Gr7ZnViLPiUg0bjd4V2TDEbA4zHdhqTkstkgR0w61EhagPPgYpypANl1vGwsKSMTpEvcO+4XawsDagul9rPfubs6ZEpp53UWASYcQtjj1/q003Y6rUZFL1fNl32NhubkTJNU53yAiFw8AtkmWpdZRLZs2K6AwSfzaUp+8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UkgD/Uf7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hfhCkk5f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD799C113CC;
-	Mon,  6 May 2024 00:56:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UkgD/Uf7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB72BC113CC;
+	Mon,  6 May 2024 00:56:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957002;
-	bh=7eodsEc/3OS4ywdSrBHmjY7XW5TZ0gwrYtl3lOQrSCY=;
+	s=korg; t=1714957004;
+	bh=6uwL7poJMbkY1/5mxWbw0ql5d07vDVeI8xZJhStincA=;
 	h=Date:To:From:Subject:From;
-	b=hfhCkk5faiQ3hljPSS//g09WqVQnxaM6U2HrXrKdrbPksL00TMdu4XhR3rylco4k0
-	 hkGGHB+IlgwohvSq8AzTSZs5rONVtYkLcfZRj2iMRU2YYVYwsqCThoLxD96N67o7mB
-	 ZmyLED7pQ9+bPIuHCNbWN2IGRgg3D9aZ3J8Pi2II=
-Date: Sun, 05 May 2024 17:56:41 -0700
+	b=UkgD/Uf7FwGS/iGSJyBBlYD1c3KWsxEAhVvU/bq9OOayr+5Oxb7UD+ucwi2/lXech
+	 SNWllijyraK8aPxv6mLDuDlZn7G8Z+OPPpFRyeHs8daDH3rhX4B3RnwyOH915DyoFs
+	 M3XziRmylmOXEtsWTo9qzIzYMkRGTdFi1lh9dmrQ=
+Date: Sun, 05 May 2024 17:56:43 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ysato@users.sourceforge.jp,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richardycc@google.com,peterx@redhat.com,nao.horiguchi@gmail.com,muchun.song@linux.dev,linmiaohe@huawei.com,jcmvbkbc@gmail.com,hughd@google.com,glaubitz@physik.fu-berlin.de,fengwei.yin@intel.com,dalias@libc.org,corbet@lwn.net,chris@zankel.net,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-make-folio_mapcount-return-0-for-small-typed-folios.patch removed from -mm tree
-Message-Id: <20240506005641.DD799C113CC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-use-folio_mapcount-in-zap_present_folio_ptes.patch removed from -mm tree
+Message-Id: <20240506005643.EB72BC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,34 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: make folio_mapcount() return 0 for small typed folios
+     Subject: mm/memory: use folio_mapcount() in zap_present_folio_ptes()
 has been removed from the -mm tree.  Its filename was
-     mm-make-folio_mapcount-return-0-for-small-typed-folios.patch
+     mm-memory-use-folio_mapcount-in-zap_present_folio_ptes.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: make folio_mapcount() return 0 for small typed folios
-Date: Tue, 9 Apr 2024 21:22:49 +0200
+Subject: mm/memory: use folio_mapcount() in zap_present_folio_ptes()
+Date: Tue, 9 Apr 2024 21:22:50 +0200
 
-We already handle it properly for large folios.  Let's also return "0" for
-small typed folios, like page_mapcount() currently would.
+We want to limit the use of page_mapcount() to the places where it is
+absolutely necessary.  In zap_present_folio_ptes(), let's simply check the
+folio mapcount().  If there is some issue, it will underflow at some point
+either way when unmapping.
 
-Consequently, folio_mapcount() will never return negative values for typed
-folios, but may return negative values for underflows.
+As indicated already in commit 10ebac4f95e7 ("mm/memory: optimize
+unmap/zap with PTE-mapped THP"), we already documented "If we ever have a
+cheap folio_mapcount(), we might just want to check for underflows
+there.".
 
-[david@redhat.com: make folio_mapcount() slightly more efficient]
-  Link: https://lkml.kernel.org/r/c30fcda1-ed87-46f5-8297-cdedbddac009@redhat.com
-Link: https://lkml.kernel.org/r/20240409192301.907377-7-david@redhat.com
+There is no change for small folios.  For large folios, we'll now catch
+more underflows when batch-unmapping, because instead of only testing the
+mapcount of the first subpage, we'll test if the folio mapcount
+underflows.
+
+Link: https://lkml.kernel.org/r/20240409192301.907377-8-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Hugh Dickins <hughd@google.com>
@@ -77,35 +84,20 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ mm/memory.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-make-folio_mapcount-return-0-for-small-typed-folios
-+++ a/include/linux/mm.h
-@@ -1261,12 +1261,22 @@ static inline int folio_large_mapcount(c
-  * references the entire folio counts exactly once, even when such special
-  * page table entries are comprised of multiple ordinary page table entries.
-  *
-+ * Will report 0 for pages which cannot be mapped into userspace, such as
-+ * slab, page tables and similar.
-+ *
-  * Return: The number of times this folio is mapped.
-  */
- static inline int folio_mapcount(const struct folio *folio)
- {
--	if (likely(!folio_test_large(folio)))
--		return atomic_read(&folio->_mapcount) + 1;
-+	int mapcount;
-+
-+	if (likely(!folio_test_large(folio))) {
-+		mapcount = atomic_read(&folio->_mapcount) + 1;
-+		/* Handle page_has_type() pages */
-+		if (mapcount < PAGE_MAPCOUNT_RESERVE + 1)
-+			mapcount = 0;
-+		return mapcount;
-+	}
- 	return folio_large_mapcount(folio);
- }
+--- a/mm/memory.c~mm-memory-use-folio_mapcount-in-zap_present_folio_ptes
++++ a/mm/memory.c
+@@ -1502,8 +1502,7 @@ static __always_inline void zap_present_
+ 	if (!delay_rmap) {
+ 		folio_remove_rmap_ptes(folio, page, nr, vma);
+ 
+-		/* Only sanity-check the first page in a batch. */
+-		if (unlikely(page_mapcount(page) < 0))
++		if (unlikely(folio_mapcount(folio) < 0))
+ 			print_bad_pte(vma, addr, ptent, page);
+ 	}
  
 _
 
