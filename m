@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CF4E2207A
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:57:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86DA12207A
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:57:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957058; cv=none; b=TNxsM1p4pWXPgayTBeNBXzOLdkbX5MHUrQ3GXtzCNrgYx5Zc+GBOuyDusE8rEmcbV/yz61KKJn0R+H5bT3Bh5Qq/F+KYjEG8xr0qxoEF/onA/meNUNUAwvK5/rDa0Hlpu5Ul7pLBL30jgdkC/B1d5pMjiBE3Q50fE+KE3SThfpM=
+	t=1714957059; cv=none; b=cy4z2vEoP9FRwu8P8X4pjdoEhZlShVF1cv598qKy9eHXv1mgk2VDniD5mW+hZSbbQhlUja8jm3jV2KAcpSeDjH2qJT1npsiloS3PdnN7fHknELHgsoKo2dODFgOE0zH/qRf5rJZuWuWicqSc/ida/e74mbFKCEzoaIQR/MsVg3s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957058; c=relaxed/simple;
-	bh=7TjLkVpCVr5nSD4e8VCdCVOYtEAKGwoV3zFLSiWOBaQ=;
-	h=Date:To:From:Subject:Message-Id; b=kcc6lojQ/HFHckK9RnEzfk5n/c5Qbj6C/ei8KmHmYZHTR2NxOMAgh1P0U00ftZ8QQRGpM2nNnZaKNG+5RPILyr3Z2ZmB0AnYisnTiCIdY04KfOXQmkbxgDiolHrLqxfnRFG8b9M2ZVWT8uAb2ia/DSzlr1d9fnW5c/KjbfC1QpQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dhdnriAk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957059; c=relaxed/simple;
+	bh=mHHxUE5FE8jMD3BFCgJeSvBt+8xiBALLozVIJvERj4s=;
+	h=Date:To:From:Subject:Message-Id; b=Iy7d8IsgENeS6Kzpi5GAkpGu7kHzLyUAMSIKgUzd6p+4w1Q+6V9m3YL7QAnQuAlevwM7Zp8wzjOz3WNsYgTCyoARMmBaxy1Miby5wt7IEHxC1sWgT6R6hjXEs6W5cjRC/ffwLE6tIdbuiomdqhgo1veF4YWKIsNKd3vz5Z+W4Yg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JFXe0DGQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dhdnriAk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A511C116B1;
-	Mon,  6 May 2024 00:57:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JFXe0DGQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E1E3C113CC;
+	Mon,  6 May 2024 00:57:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957058;
-	bh=7TjLkVpCVr5nSD4e8VCdCVOYtEAKGwoV3zFLSiWOBaQ=;
+	s=korg; t=1714957059;
+	bh=mHHxUE5FE8jMD3BFCgJeSvBt+8xiBALLozVIJvERj4s=;
 	h=Date:To:From:Subject:From;
-	b=dhdnriAkJrU9jcG+Oo6t8E+EUHAg0rBLLr3JEyNjeKNsksbEYx76JERauFj4k+rZA
-	 oz03LqIEJs+Eo9JSmqgbO01wM/hOWFbRL/Vj0WtihpF4XO8M0QOuNP2/ci7LtWmt/D
-	 z6GbMle5wPhMdT3O4cQPrmW9ln18yF+EejEK843g=
-Date: Sun, 05 May 2024 17:57:37 -0700
+	b=JFXe0DGQS/vA2mpIrI3MgbvpUzioR9RXwAILkUsn0lxPKsDNiH9sZZqhkI7bNqcmh
+	 KPwE7amX+ejrmP+awnogZRCZhmRztT85XqmoeKYddkRy9W85K2gYiw8LhkW6NOVU/7
+	 HOaS8/l1xh9MQLG2HeWsaLpPq7iM7iBGmwJblp6k=
+Date: Sun, 05 May 2024 17:57:38 -0700
 To: mm-commits@vger.kernel.org,rdunlap@infradead.org,p.raghav@samsung.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] buffer-add-kernel-doc-for-try_to_free_buffers.patch removed from -mm tree
-Message-Id: <20240506005738.0A511C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch removed from -mm tree
+Message-Id: <20240506005739.0E1E3C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,93 +35,114 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: buffer: add kernel-doc for try_to_free_buffers()
+     Subject: buffer: fix __bread and __bread_gfp kernel-doc
 has been removed from the -mm tree.  Its filename was
-     buffer-add-kernel-doc-for-try_to_free_buffers.patch
+     buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: add kernel-doc for try_to_free_buffers()
-Date: Tue, 16 Apr 2024 04:17:47 +0100
+Subject: buffer: fix __bread and __bread_gfp kernel-doc
+Date: Tue, 16 Apr 2024 04:17:48 +0100
 
-The documentation for this function has become separated from it over
-time; move it to the right place and turn it into kernel-doc.  Mild
-editing of the content to make it more about what the function does, and
-less about how it does it.
+The extra indentation confused the kernel-doc parser, so remove it.  Fix
+some other wording while I'm here, and advise the user they need to call
+brelse() on this buffer.
 
-Link: https://lkml.kernel.org/r/20240416031754.4076917-4-willy@infradead.org
+__bread_gfp() isn't used directly by filesystems, but the other wrappers
+for it don't have documentation, so document it accordingly.
+
+Link: https://lkml.kernel.org/r/20240416031754.4076917-5-willy@infradead.org
+Co-developed-by: Pankaj Raghav <p.raghav@samsung.com>
+Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Pankaj Raghav <p.raghav@samsung.com>
 Tested-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   44 ++++++++++++++++++++++++--------------------
- 1 file changed, 24 insertions(+), 20 deletions(-)
+ fs/buffer.c                 |   33 +++++++++++++++++++++------------
+ include/linux/buffer_head.h |   22 +++++++++++++---------
+ 2 files changed, 34 insertions(+), 21 deletions(-)
 
---- a/fs/buffer.c~buffer-add-kernel-doc-for-try_to_free_buffers
+--- a/fs/buffer.c~buffer-fix-__bread-and-__bread_gfp-kernel-doc
 +++ a/fs/buffer.c
-@@ -2868,26 +2868,6 @@ int sync_dirty_buffer(struct buffer_head
- }
- EXPORT_SYMBOL(sync_dirty_buffer);
+@@ -1453,20 +1453,29 @@ void __breadahead(struct block_device *b
+ EXPORT_SYMBOL(__breadahead);
  
--/*
-- * try_to_free_buffers() checks if all the buffers on this particular folio
-- * are unused, and releases them if so.
-- *
-- * Exclusion against try_to_free_buffers may be obtained by either
-- * locking the folio or by holding its mapping's i_private_lock.
-- *
-- * If the folio is dirty but all the buffers are clean then we need to
-- * be sure to mark the folio clean as well.  This is because the folio
-- * may be against a block device, and a later reattachment of buffers
-- * to a dirty folio will set *all* buffers dirty.  Which would corrupt
-- * filesystem data on the same device.
-- *
-- * The same applies to regular filesystem folios: if all the buffers are
-- * clean then we set the folio clean and proceed.  To do that, we require
-- * total exclusion from block_dirty_folio().  That is obtained with
-- * i_private_lock.
-- *
-- * try_to_free_buffers() is non-blocking.
-- */
- static inline int buffer_busy(struct buffer_head *bh)
+ /**
+- *  __bread_gfp() - reads a specified block and returns the bh
+- *  @bdev: the block_device to read from
+- *  @block: number of block
+- *  @size: size (in bytes) to read
+- *  @gfp: page allocation flag
++ * __bread_gfp() - Read a block.
++ * @bdev: The block device to read from.
++ * @block: Block number in units of block size.
++ * @size: The block size of this device in bytes.
++ * @gfp: Not page allocation flags; see below.
+  *
+- *  Reads a specified block, and returns buffer head that contains it.
+- *  The page cache can be allocated from non-movable area
+- *  not to prevent page migration if you set gfp to zero.
+- *  It returns NULL if the block was unreadable.
++ * You are not expected to call this function.  You should use one of
++ * sb_bread(), sb_bread_unmovable() or __bread().
++ *
++ * Read a specified block, and return the buffer head that refers to it.
++ * If @gfp is 0, the memory will be allocated using the block device's
++ * default GFP flags.  If @gfp is __GFP_MOVABLE, the memory may be
++ * allocated from a movable area.  Do not pass in a complete set of
++ * GFP flags.
++ *
++ * The returned buffer head has its refcount increased.  The caller should
++ * call brelse() when it has finished with the buffer.
++ *
++ * Context: May sleep waiting for I/O.
++ * Return: NULL if the block was unreadable.
+  */
+-struct buffer_head *
+-__bread_gfp(struct block_device *bdev, sector_t block,
+-		   unsigned size, gfp_t gfp)
++struct buffer_head *__bread_gfp(struct block_device *bdev, sector_t block,
++		unsigned size, gfp_t gfp)
  {
- 	return atomic_read(&bh->b_count) |
-@@ -2921,6 +2901,30 @@ failed:
- 	return false;
+ 	struct buffer_head *bh;
+ 
+--- a/include/linux/buffer_head.h~buffer-fix-__bread-and-__bread_gfp-kernel-doc
++++ a/include/linux/buffer_head.h
+@@ -437,17 +437,21 @@ static inline void bh_readahead_batch(in
  }
  
-+/**
-+ * try_to_free_buffers - Release buffers attached to this folio.
-+ * @folio: The folio.
+ /**
+- *  __bread() - reads a specified block and returns the bh
+- *  @bdev: the block_device to read from
+- *  @block: number of block
+- *  @size: size (in bytes) to read
++ * __bread() - Read a block.
++ * @bdev: The block device to read from.
++ * @block: Block number in units of block size.
++ * @size: The block size of this device in bytes.
+  *
+- *  Reads a specified block, and returns buffer head that contains it.
+- *  The page cache is allocated from movable area so that it can be migrated.
+- *  It returns NULL if the block was unreadable.
++ * Read a specified block, and return the buffer head that refers
++ * to it.  The memory is allocated from the movable area so that it can
++ * be migrated.  The returned buffer head has its refcount increased.
++ * The caller should call brelse() when it has finished with the buffer.
 + *
-+ * If any buffers are in use (dirty, under writeback, elevated refcount),
-+ * no buffers will be freed.
-+ *
-+ * If the folio is dirty but all the buffers are clean then we need to
-+ * be sure to mark the folio clean as well.  This is because the folio
-+ * may be against a block device, and a later reattachment of buffers
-+ * to a dirty folio will set *all* buffers dirty.  Which would corrupt
-+ * filesystem data on the same device.
-+ *
-+ * The same applies to regular filesystem folios: if all the buffers are
-+ * clean then we set the folio clean and proceed.  To do that, we require
-+ * total exclusion from block_dirty_folio().  That is obtained with
-+ * i_private_lock.
-+ *
-+ * Exclusion against try_to_free_buffers may be obtained by either
-+ * locking the folio or by holding its mapping's i_private_lock.
-+ *
-+ * Context: Process context.  @folio must be locked.  Will not sleep.
-+ * Return: true if all buffers attached to this folio were freed.
-+ */
- bool try_to_free_buffers(struct folio *folio)
++ * Context: May sleep waiting for I/O.
++ * Return: NULL if the block was unreadable.
+  */
+-static inline struct buffer_head *
+-__bread(struct block_device *bdev, sector_t block, unsigned size)
++static inline struct buffer_head *__bread(struct block_device *bdev,
++		sector_t block, unsigned size)
  {
- 	struct address_space * const mapping = folio->mapping;
+ 	return __bread_gfp(bdev, block, size, __GFP_MOVABLE);
+ }
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
