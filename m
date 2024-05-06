@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C56D238F98
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:58:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C037938F96
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:58:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957136; cv=none; b=iyeMtIVe6qbdX5KZASz/BOcFMcCSjCMPZ4xeh4u1DYAgayn8CJlDZ+efefSSLcb2etMKwEESoOg9gtXASicBj7lsiHMgJGfNxREjWGf2iBWcSE9Np+gFlZV311sAGHIdi+SvI22bB0jKagrsHC4PHzIT+I60jHLvDUcqw1oZLe4=
+	t=1714957137; cv=none; b=byHArewGspThjEvmuQjj1EVw1TVKvwPT+eiYiie1oZHTNGx1iDByh4yBXVtXb75DakTLots9c1X+qsUxXL+s6pVuQ7kuEKB7KthWx9JBz3a2kzFoM/k3z3ZtJUdfcXCdgYaRmtPsJkI4c2zK2RYol7SxyooVRxP306lprmOTH3M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957136; c=relaxed/simple;
-	bh=MCUUBIAnnNcMgnLyPQeW+RxKKVwqFR3AgFgxsiN9DFc=;
-	h=Date:To:From:Subject:Message-Id; b=dl6izFQ8m2LxyWk9MSK22HsD2Fz3O6+jsH72ZEcfEZUq+Ia0ZLx2MHYiVmfBlZMXLqmnb5uyB6wPrwUxvYAkiTW1Sc+tKarygXIkLADlKcLXJDPeBnd+DR7Vjy4ioMzkgGdv1GtnDzspwT4SIEudXQqMBbEBlsKo7oaLVd6xCcc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lXL1k9QH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957137; c=relaxed/simple;
+	bh=M+ZzpHJsNyPT3M/FfsMIRdRGBLnn93Vctcpq7OvDY0U=;
+	h=Date:To:From:Subject:Message-Id; b=NA7m6ur6EUZuF6Q0BJaKLbcCMnDBc25RN7lWwcIshIAidyo5qEc9r6GaZaXEaYUKPm8CHiLSiSHSPFnqj6vkuU2H+MWLsBwmblFj/+S1bFBHXqhxGeym/DEJ67PnLhj/gPVu4fD+tWgPFBJ5XRl4cHZwz1YNQEDB2c2ylZsYBds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dmZA9d8k; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lXL1k9QH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EFAEC113CC;
-	Mon,  6 May 2024 00:58:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dmZA9d8k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 984E9C116B1;
+	Mon,  6 May 2024 00:58:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957136;
-	bh=MCUUBIAnnNcMgnLyPQeW+RxKKVwqFR3AgFgxsiN9DFc=;
+	s=korg; t=1714957137;
+	bh=M+ZzpHJsNyPT3M/FfsMIRdRGBLnn93Vctcpq7OvDY0U=;
 	h=Date:To:From:Subject:From;
-	b=lXL1k9QHDlu4wcPIEI01azaLvStpQ7nVlUUsODHsGEdaWfybyC/aGRFkM85Q5Arbl
-	 GeAXe6nYYTg46p7NOiIV+7NOXRX3pFOtlTQz+4ED0VoGa2+IEQIEZkyGwXbw3QhOGn
-	 9nhgo9JTR+kksnWE+aMXTvbBvz+5WlEZFZjPcehg=
-Date: Sun, 05 May 2024 17:58:56 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,ioworker0@gmail.com,david@redhat.com,baohua@kernel.org,agordeev@linux.ibm.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=dmZA9d8kFbFML6FNUz1c83N46zLSx6r/0ir3lL5cvlN3+BVmCQsNQ59mZvKZ6pkE6
+	 wMArgOjnOZ9fWdH8rlA3tdst8r/J6oTH7WBNyiznrT4aMyzCOcqy6jEh/NB7V3McfC
+	 sn2bWa0qljXUTaHGQ/eplyCq37gi1LcjfY8TT1vA=
+Date: Sun, 05 May 2024 17:58:57 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,gehao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rmap-do-not-add-fully-unmapped-large-folio-to-deferred-split-list-v6.patch removed from -mm tree
-Message-Id: <20240506005856.9EFAEC113CC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pagemap-make-trylock_page-return-bool.patch removed from -mm tree
+Message-Id: <20240506005857.984E9C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,115 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/rmap: do not add fully unmapped large folio to deferred split list
+     Subject: mm/pagemap: make trylock_page return bool
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-do-not-add-fully-unmapped-large-folio-to-deferred-split-list-v6.patch
+     mm-pagemap-make-trylock_page-return-bool.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/rmap: do not add fully unmapped large folio to deferred split list
-Date: Thu, 2 May 2024 09:28:51 -0400
+From: Hao Ge <gehao@kylinos.cn>
+Subject: mm/pagemap: make trylock_page return bool
+Date: Sun, 28 Apr 2024 09:47:11 +0800
 
-In __folio_remove_rmap(), a large folio is added to deferred split list if
-any page in a folio loses its final mapping.  But it is possible that the
-folio is fully unmapped and adding it to deferred split list is
-unnecessary.
+Make trylock_page return bool to align the return values of folio_trylock
+function and it also corresponds to its comment.
 
-For PMD-mapped THPs, that was not really an issue, because removing the
-last PMD mapping in the absence of PTE mappings would not have added the
-folio to the deferred split queue.
-
-However, for PTE-mapped THPs, which are now more prominent due to mTHP,
-they are always added to the deferred split queue.  One side effect is
-that the THP_DEFERRED_SPLIT_PAGE stat for a PTE-mapped folio can be
-unintentionally increased, making it look like there are many partially
-mapped folios -- although the whole folio is fully unmapped stepwise.
-
-Core-mm now tries batch-unmapping consecutive PTEs of PTE-mapped THPs
-where possible starting from commit b06dc281aa99 ("mm/rmap: introduce
-folio_remove_rmap_[pte|ptes|pmd]()").  When it happens, a whole PTE-mapped
-folio is unmapped in one go and can avoid being added to deferred split
-list, reducing the THP_DEFERRED_SPLIT_PAGE noise.  But there will still be
-noise when we cannot batch-unmap a complete PTE-mapped folio in one go --
-or where this type of batching is not implemented yet, e.g., migration.
-
-To avoid the unnecessary addition, folio->_nr_pages_mapped is checked to
-tell if the whole folio is unmapped.  If the folio is already on deferred
-split list, it will be skipped, too.
-
-Note: commit 98046944a159 ("mm: huge_memory: add the missing
-folio_test_pmd_mappable() for THP split statistics") tried to exclude mTHP
-deferred split stats from THP_DEFERRED_SPLIT_PAGE, but it does not fix the
-above issue.  A fully unmapped PTE-mapped order-9 THP was still added to
-deferred split list and counted as THP_DEFERRED_SPLIT_PAGE, since nr is
-512 (non zero), level is RMAP_LEVEL_PTE, and inside deferred_split_folio()
-the order-9 folio is folio_test_pmd_mappable().
-
-Link: https://lkml.kernel.org/r/20240502132852.862138-1-zi.yan@sent.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Lance Yang <ioworker0@gmail.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20240428014711.11169-1-gehao@kylinos.cn
+Signed-off-by: Hao Ge <gehao@kylinos.cn>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ include/linux/pagemap.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/rmap.c~mm-rmap-do-not-add-fully-unmapped-large-folio-to-deferred-split-list-v6
-+++ a/mm/rmap.c
-@@ -1494,6 +1494,7 @@ static __always_inline void __folio_remo
+--- a/include/linux/pagemap.h~mm-pagemap-make-trylock_page-return-bool
++++ a/include/linux/pagemap.h
+@@ -1012,7 +1012,7 @@ static inline bool folio_trylock(struct
+ /*
+  * Return true if the page was successfully locked
+  */
+-static inline int trylock_page(struct page *page)
++static inline bool trylock_page(struct page *page)
  {
- 	atomic_t *mapped = &folio->_nr_pages_mapped;
- 	int last, nr = 0, nr_pmdmapped = 0;
-+	bool partially_mapped = false;
- 	enum node_stat_item idx;
- 
- 	__folio_rmap_sanity_checks(folio, page, nr_pages, level);
-@@ -1514,6 +1515,8 @@ static __always_inline void __folio_remo
- 					nr++;
- 			}
- 		} while (page++, --nr_pages > 0);
-+
-+		partially_mapped = nr && atomic_read(mapped);
- 		break;
- 	case RMAP_LEVEL_PMD:
- 		atomic_dec(&folio->_large_mapcount);
-@@ -1531,6 +1534,8 @@ static __always_inline void __folio_remo
- 				nr = 0;
- 			}
- 		}
-+
-+		partially_mapped = nr < nr_pmdmapped;
- 		break;
- 	}
- 
-@@ -1551,10 +1556,12 @@ static __always_inline void __folio_remo
- 		 * Queue anon large folio for deferred split if at least one
- 		 * page of the folio is unmapped and at least one page
- 		 * is still mapped.
-+		 *
-+		 * Check partially_mapped first to ensure it is a large folio.
- 		 */
--		if (folio_test_large(folio) && folio_test_anon(folio))
--			if (level == RMAP_LEVEL_PTE || nr < nr_pmdmapped)
--				deferred_split_folio(folio);
-+		if (folio_test_anon(folio) && partially_mapped &&
-+		    list_empty(&folio->_deferred_list))
-+			deferred_split_folio(folio);
- 	}
- 
- 	/*
+ 	return folio_trylock(page_folio(page));
+ }
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from gehao@kylinos.cn are
 
 
