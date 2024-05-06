@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDC0F38F91
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 01:15:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E40F03B79F
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 01:15:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714958109; cv=none; b=rl0/7Q5Nhpc5THk8fROdGqfk7K75FB54k/TiRgHB9KZkFVpJnCRnStpN7jW4vv+rQF3LArfg9AhlZZ/lfTpAtRtn1XPAFss4mv87jDOhRZN8ZEvjOVM2Liu01ZM0TuoFQ1rx8+g+RlzoeD4UvkaokjgUL18ojtuU1ISb6CFjd64=
+	t=1714958111; cv=none; b=tH4p43EqIzGhi3k4j41RiIgY+4junfOt5g12GS0FzQwNqdd8J8EcPEd5y5PeMpEZ71CHhLvyv5SNxwWOclNUb2Lh1ds80pmZ9EllxW/eSBCxVYkqWk58Y2RHIEqBJF32prpUr5Mt8uLBoYXebOyRcq4zSdUYyop7dP0Nt7O4s0g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714958109; c=relaxed/simple;
-	bh=VKww8agtG7Ql5wVBbFKigRwdMtJl6W+RcqSEI00d/Uk=;
-	h=Date:To:From:Subject:Message-Id; b=mRy4Jry35RP7yn+D3bc6IgDtQgnXZQbJa37dQye5XsPPqbuprA+ovwKnY+0hDB3t2NFq8FfA/lDr5CoZ41wRQI7D9J3I1WLs56nPdIIn5YUSdr3lzSpKv0NMjFz7FSF8mbbf/JwIAU2mfGMTsMGhF302tlAJN3OctRhNAn9sSiA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iVkVhXrh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714958111; c=relaxed/simple;
+	bh=B3po5PFqS6A/wt2nsvqBF22X3Im1UdGXOXUUT8UFWh0=;
+	h=Date:To:From:Subject:Message-Id; b=rgkkxz4izL/u1t3mdO+OaD8CFStzKt9thr5xWKARiYt7arRaHHoGm0N1ZHZydpdAbeU35OfJpPsy3+4wb+0SKASI18AKKKlWopf7iSQpmg78f3XWdatYFJ1Fd+IEtIXpSpD0Z68FZ6IU0eF3R88HJKVjMky8jQ2p2EEzendLGPY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1E7bDLGc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iVkVhXrh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC3B0C116B1;
-	Mon,  6 May 2024 01:15:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1E7bDLGc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B151DC113CC;
+	Mon,  6 May 2024 01:15:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714958109;
-	bh=VKww8agtG7Ql5wVBbFKigRwdMtJl6W+RcqSEI00d/Uk=;
+	s=korg; t=1714958110;
+	bh=B3po5PFqS6A/wt2nsvqBF22X3Im1UdGXOXUUT8UFWh0=;
 	h=Date:To:From:Subject:From;
-	b=iVkVhXrhKzSZ1AXmDyddKUIkaDNXRqmb7lXZqKECNurcW9fvSOd/BB40NqEg3bc2j
-	 Irr5GEl9e17jtBvwTFhhKuBXBzEPhTefK/6kQIpDPgofXLgfFKR+touUd0BRqzFC6o
-	 jwY6plVYAtTlwftWNQAYYDTsM5HsDCNIlXtncTb4=
-Date: Sun, 05 May 2024 18:15:09 -0700
+	b=1E7bDLGchNc/fHmA2MN/7bxoV3uQ/OOW7UGO7ebIK2Ih6gLLKOODwfN5TAKJjUilf
+	 Akke7thqVHAe+qt8y8IohPIq6mstnrgYFkIc3aWUOfBkCLlbITHL34F6s0QHVNIp8H
+	 srGKAgWhU4oOBtWhFn5GOlY/zbXJGXOiEWfTr0fA=
+Date: Sun, 05 May 2024 18:15:10 -0700
 To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] squashfs-convert-squashfs_symlink_read_folio-to-use-folio-apis.patch removed from -mm tree
-Message-Id: <20240506011509.AC3B0C116B1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] squashfs-remove-calls-to-set-the-folio-error-flag.patch removed from -mm tree
+Message-Id: <20240506011510.B151DC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,116 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: squashfs: convert squashfs_symlink_read_folio to use folio APIs
+     Subject: squashfs: remove calls to set the folio error flag
 has been removed from the -mm tree.  Its filename was
-     squashfs-convert-squashfs_symlink_read_folio-to-use-folio-apis.patch
+     squashfs-remove-calls-to-set-the-folio-error-flag.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: squashfs: convert squashfs_symlink_read_folio to use folio APIs
-Date: Sat, 20 Apr 2024 03:50:17 +0100
+Subject: squashfs: remove calls to set the folio error flag
+Date: Sat, 20 Apr 2024 03:50:18 +0100
 
-Remove use of page APIs, return the errno instead of 0, switch from
-kmap_atomic to kmap_local and use folio_end_read() to unify the two exit
-paths.
+Nobody checks the error flag on squashfs folios, so stop setting it.
 
-Link: https://lkml.kernel.org/r/20240420025029.2166544-23-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240420025029.2166544-24-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Tested-by: Phillip Lougher <phillip@squashfs.org.uk>
 Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/symlink.c |   35 ++++++++++++++++-------------------
- 1 file changed, 16 insertions(+), 19 deletions(-)
+ fs/squashfs/file.c        |    6 +-----
+ fs/squashfs/file_direct.c |    3 +--
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
---- a/fs/squashfs/symlink.c~squashfs-convert-squashfs_symlink_read_folio-to-use-folio-apis
-+++ a/fs/squashfs/symlink.c
-@@ -32,20 +32,19 @@
- 
- static int squashfs_symlink_read_folio(struct file *file, struct folio *folio)
- {
--	struct page *page = &folio->page;
--	struct inode *inode = page->mapping->host;
-+	struct inode *inode = folio->mapping->host;
- 	struct super_block *sb = inode->i_sb;
- 	struct squashfs_sb_info *msblk = sb->s_fs_info;
--	int index = page->index << PAGE_SHIFT;
-+	int index = folio_pos(folio);
- 	u64 block = squashfs_i(inode)->start;
- 	int offset = squashfs_i(inode)->offset;
- 	int length = min_t(int, i_size_read(inode) - index, PAGE_SIZE);
--	int bytes, copied;
-+	int bytes, copied, error;
- 	void *pageaddr;
- 	struct squashfs_cache_entry *entry;
- 
- 	TRACE("Entered squashfs_symlink_readpage, page index %ld, start block "
--			"%llx, offset %x\n", page->index, block, offset);
-+			"%llx, offset %x\n", folio->index, block, offset);
- 
- 	/*
- 	 * Skip index bytes into symlink metadata.
-@@ -57,14 +56,15 @@ static int squashfs_symlink_read_folio(s
- 			ERROR("Unable to read symlink [%llx:%x]\n",
- 				squashfs_i(inode)->start,
- 				squashfs_i(inode)->offset);
--			goto error_out;
-+			error = bytes;
-+			goto out;
- 		}
- 	}
- 
- 	/*
- 	 * Read length bytes from symlink metadata.  Squashfs_read_metadata
- 	 * is not used here because it can sleep and we want to use
--	 * kmap_atomic to map the page.  Instead call the underlying
-+	 * kmap_local to map the folio.  Instead call the underlying
- 	 * squashfs_cache_get routine.  As length bytes may overlap metadata
- 	 * blocks, we may need to call squashfs_cache_get multiple times.
- 	 */
-@@ -75,29 +75,26 @@ static int squashfs_symlink_read_folio(s
- 				squashfs_i(inode)->start,
- 				squashfs_i(inode)->offset);
- 			squashfs_cache_put(entry);
--			goto error_out;
-+			error = entry->error;
-+			goto out;
- 		}
- 
--		pageaddr = kmap_atomic(page);
-+		pageaddr = kmap_local_folio(folio, 0);
- 		copied = squashfs_copy_data(pageaddr + bytes, entry, offset,
- 								length - bytes);
- 		if (copied == length - bytes)
- 			memset(pageaddr + length, 0, PAGE_SIZE - length);
- 		else
- 			block = entry->next_index;
--		kunmap_atomic(pageaddr);
-+		kunmap_local(pageaddr);
- 		squashfs_cache_put(entry);
- 	}
- 
--	flush_dcache_page(page);
--	SetPageUptodate(page);
--	unlock_page(page);
--	return 0;
--
--error_out:
--	SetPageError(page);
--	unlock_page(page);
--	return 0;
-+	flush_dcache_folio(folio);
-+	error = 0;
-+out:
-+	folio_end_read(folio, error == 0);
-+	return error;
+--- a/fs/squashfs/file.c~squashfs-remove-calls-to-set-the-folio-error-flag
++++ a/fs/squashfs/file.c
+@@ -375,8 +375,6 @@ void squashfs_fill_page(struct page *pag
+ 	flush_dcache_page(page);
+ 	if (copied == avail)
+ 		SetPageUptodate(page);
+-	else
+-		SetPageError(page);
  }
  
+ /* Copy data into page cache  */
+@@ -471,7 +469,7 @@ static int squashfs_read_folio(struct fi
  
+ 		res = read_blocklist(inode, index, &block);
+ 		if (res < 0)
+-			goto error_out;
++			goto out;
+ 
+ 		if (res == 0)
+ 			res = squashfs_readpage_sparse(page, expected);
+@@ -483,8 +481,6 @@ static int squashfs_read_folio(struct fi
+ 	if (!res)
+ 		return 0;
+ 
+-error_out:
+-	SetPageError(page);
+ out:
+ 	pageaddr = kmap_atomic(page);
+ 	memset(pageaddr, 0, PAGE_SIZE);
+--- a/fs/squashfs/file_direct.c~squashfs-remove-calls-to-set-the-folio-error-flag
++++ a/fs/squashfs/file_direct.c
+@@ -106,14 +106,13 @@ int squashfs_readpage_block(struct page
+ 	return 0;
+ 
+ mark_errored:
+-	/* Decompression failed, mark pages as errored.  Target_page is
++	/* Decompression failed.  Target_page is
+ 	 * dealt with by the caller
+ 	 */
+ 	for (i = 0; i < pages; i++) {
+ 		if (page[i] == NULL || page[i] == target_page)
+ 			continue;
+ 		flush_dcache_page(page[i]);
+-		SetPageError(page[i]);
+ 		unlock_page(page[i]);
+ 		put_page(page[i]);
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
