@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D1B225757
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:57:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A08D25757
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:57:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714957075; cv=none; b=SGJu77lf02XQR41AnDBq8Zp2XForvB/VY32L+nQi4Q5gjZbC21ZDuMISLm71XRPHFwmN3PrxwGXQ1gHl92b1c6U/R4WwNUbl2RzOPtxp4eHs00tBoutqLHBkKhkFpf8/vf4/QZMxWfQgGdKFRQ4IapVkTF4zRqhAxHxdXufdgWE=
+	t=1714957076; cv=none; b=q/7drb0UirdbTiZ+po99R3fDQYX4lZrW/wfasy3tncMRW1OfOlqoBoRSURpFRSvHfHHe0cENmtiMgnecis66S5oCg3sNTGiRkHJPEVXZa5kYinKdwcFzn7CMU4cre7ybbWz6UbMte8s+JAh6UHde60+Ae2fuKbS6itKR5Gw2caI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714957075; c=relaxed/simple;
-	bh=pUWIzmTZtd3vQIKoAf4WWpoAcF9qmehym7UOdFq5GSw=;
-	h=Date:To:From:Subject:Message-Id; b=KL34526UXmuKGiqK/Dq9WHuuGyLr47idzcdXYkhSEvFzVCX8WhxFcc/+NnTF+fdThRSCP83NiaqoCpvp2hAYZ5z+9LtwFUMN/lZYq1FSCHtiqyR82PghDV7Y3Qlz4BN0YM/I78NF/M0O1nn3mWRXfVgxpPYQojk1A0iUWjhK3FM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FrgE1k8d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714957076; c=relaxed/simple;
+	bh=trEIIeEaBkKOKTb4si6Q3yqIFszs8LX6Z8H+DZ853cM=;
+	h=Date:To:From:Subject:Message-Id; b=ez0lBntgWaCjSbtg9k84PE/q/yjztNUmHnaUiecY4hVrh2HBrU9vvYYadj4xn3t2iXCGeW+QR8idQ0sad7H/Dqt0qiF+T87a5WuXGezIvEyEcVPTVqA6Wfd1/f7t8yoYsWLsUHzWrLaQ9yIm7yBN2dYzq0WFTh0I2mVt/u0ViBY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L5Fn1rg4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FrgE1k8d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25062C113CC;
-	Mon,  6 May 2024 00:57:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L5Fn1rg4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FB61C113CC;
+	Mon,  6 May 2024 00:57:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714957075;
-	bh=pUWIzmTZtd3vQIKoAf4WWpoAcF9qmehym7UOdFq5GSw=;
+	s=korg; t=1714957076;
+	bh=trEIIeEaBkKOKTb4si6Q3yqIFszs8LX6Z8H+DZ853cM=;
 	h=Date:To:From:Subject:From;
-	b=FrgE1k8dZYZ00bZC6FWiojEENPshH/2H+FBAa5EJA2asRQzWSG0STWbekF+1VCeJs
-	 unRV8RpEKD0jyQAHJfsVVrYcU88GOs9AqEBU6arbwanjqIFTV6DVekQgSjNuu8vuqO
-	 6m4aEUBVRB9hF8lKrlP/vy+VaYMFFU41o/sGF/6o=
-Date: Sun, 05 May 2024 17:57:54 -0700
+	b=L5Fn1rg4Qv4OXJiMJcpkg/ZVHi6VJEKGpFjGZpUlb6JQznocJ+lR8na6eoUWQIpwS
+	 IstZXSu8EQOZ/1TMDBWo1g4kpshPWtwPXvXymj8J2zS6XrcUxsx6L9DxyUQAjHtmD2
+	 EQhStBAlkwxYIlqaUX2+bTgICx5kIq+SF9U9+U5M=
+Date: Sun, 05 May 2024 17:57:55 -0700
 To: mm-commits@vger.kernel.org,zokeefe@google.com,xiehuan09@gmail.com,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,shy828301@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,fengwei.yin@intel.com,david@redhat.com,21cnbao@gmail.com,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-arm64-override-clear_young_dirty_ptes-batch-helper.patch removed from -mm tree
-Message-Id: <20240506005755.25062C113CC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-add-any_dirty-optional-pointer-to-folio_pte_batch.patch removed from -mm tree
+Message-Id: <20240506005756.4FB61C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,167 +35,155 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/arm64: override clear_young_dirty_ptes() batch helper
+     Subject: mm/memory: add any_dirty optional pointer to folio_pte_batch()
 has been removed from the -mm tree.  Its filename was
-     mm-arm64-override-clear_young_dirty_ptes-batch-helper.patch
+     mm-memory-add-any_dirty-optional-pointer-to-folio_pte_batch.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lance Yang <ioworker0@gmail.com>
-Subject: mm/arm64: override clear_young_dirty_ptes() batch helper
-Date: Thu, 18 Apr 2024 21:44:33 +0800
+Subject: mm/memory: add any_dirty optional pointer to folio_pte_batch()
+Date: Thu, 18 Apr 2024 21:44:34 +0800
 
-The per-pte get_and_clear/modify/set approach would result in
-unfolding/refolding for contpte mappings on arm64.  So we need to override
-clear_young_dirty_ptes() for arm64 to avoid it.
+This commit adds the any_dirty pointer as an optional parameter to
+folio_pte_batch() function.  By using both the any_young and any_dirty
+pointers, madvise_free can make smarter decisions about whether to clear
+the PTEs when marking large folios as lazyfree.
 
-Link: https://lkml.kernel.org/r/20240418134435.6092-3-ioworker0@gmail.com
+Link: https://lkml.kernel.org/r/20240418134435.6092-4-ioworker0@gmail.com
 Signed-off-by: Lance Yang <ioworker0@gmail.com>
-Suggested-by: Barry Song <21cnbao@gmail.com>
-Suggested-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Barry Song <21cnbao@gmail.com>
 Cc: Jeff Xie <xiehuan09@gmail.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Yang Shi <shy828301@gmail.com>
 Cc: Yin Fengwei <fengwei.yin@intel.com>
 Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |   55 +++++++++++++++++++++++++++++
- arch/arm64/mm/contpte.c          |   29 +++++++++++++++
- 2 files changed, 84 insertions(+)
+ mm/internal.h |   12 ++++++++++--
+ mm/madvise.c  |   19 ++++++++++++++-----
+ mm/memory.c   |    4 ++--
+ 3 files changed, 26 insertions(+), 9 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-arm64-override-clear_young_dirty_ptes-batch-helper
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -1223,6 +1223,46 @@ static inline void __wrprotect_ptes(stru
- 		__ptep_set_wrprotect(mm, address, ptep);
+--- a/mm/internal.h~mm-memory-add-any_dirty-optional-pointer-to-folio_pte_batch
++++ a/mm/internal.h
+@@ -134,6 +134,8 @@ static inline pte_t __pte_batch_clear_ig
+  *		  first one is writable.
+  * @any_young: Optional pointer to indicate whether any entry except the
+  *		  first one is young.
++ * @any_dirty: Optional pointer to indicate whether any entry except the
++ *		  first one is dirty.
+  *
+  * Detect a PTE batch: consecutive (present) PTEs that map consecutive
+  * pages of the same large folio.
+@@ -149,18 +151,20 @@ static inline pte_t __pte_batch_clear_ig
+  */
+ static inline int folio_pte_batch(struct folio *folio, unsigned long addr,
+ 		pte_t *start_ptep, pte_t pte, int max_nr, fpb_t flags,
+-		bool *any_writable, bool *any_young)
++		bool *any_writable, bool *any_young, bool *any_dirty)
+ {
+ 	unsigned long folio_end_pfn = folio_pfn(folio) + folio_nr_pages(folio);
+ 	const pte_t *end_ptep = start_ptep + max_nr;
+ 	pte_t expected_pte, *ptep;
+-	bool writable, young;
++	bool writable, young, dirty;
+ 	int nr;
+ 
+ 	if (any_writable)
+ 		*any_writable = false;
+ 	if (any_young)
+ 		*any_young = false;
++	if (any_dirty)
++		*any_dirty = false;
+ 
+ 	VM_WARN_ON_FOLIO(!pte_present(pte), folio);
+ 	VM_WARN_ON_FOLIO(!folio_test_large(folio) || max_nr < 1, folio);
+@@ -176,6 +180,8 @@ static inline int folio_pte_batch(struct
+ 			writable = !!pte_write(pte);
+ 		if (any_young)
+ 			young = !!pte_young(pte);
++		if (any_dirty)
++			dirty = !!pte_dirty(pte);
+ 		pte = __pte_batch_clear_ignored(pte, flags);
+ 
+ 		if (!pte_same(pte, expected_pte))
+@@ -193,6 +199,8 @@ static inline int folio_pte_batch(struct
+ 			*any_writable |= writable;
+ 		if (any_young)
+ 			*any_young |= young;
++		if (any_dirty)
++			*any_dirty |= dirty;
+ 
+ 		nr = pte_batch_hint(ptep, pte);
+ 		expected_pte = pte_advance_pfn(expected_pte, nr);
+--- a/mm/madvise.c~mm-memory-add-any_dirty-optional-pointer-to-folio_pte_batch
++++ a/mm/madvise.c
+@@ -321,6 +321,18 @@ static inline bool can_do_file_pageout(s
+ 	       file_permission(vma->vm_file, MAY_WRITE) == 0;
  }
  
-+static inline void __clear_young_dirty_pte(struct vm_area_struct *vma,
-+					   unsigned long addr, pte_t *ptep,
-+					   pte_t pte, cydp_t flags)
++static inline int madvise_folio_pte_batch(unsigned long addr, unsigned long end,
++					  struct folio *folio, pte_t *ptep,
++					  pte_t pte, bool *any_young,
++					  bool *any_dirty)
 +{
-+	pte_t old_pte;
++	const fpb_t fpb_flags = FPB_IGNORE_DIRTY | FPB_IGNORE_SOFT_DIRTY;
++	int max_nr = (end - addr) / PAGE_SIZE;
 +
-+	do {
-+		old_pte = pte;
-+
-+		if (flags & CYDP_CLEAR_YOUNG)
-+			pte = pte_mkold(pte);
-+		if (flags & CYDP_CLEAR_DIRTY)
-+			pte = pte_mkclean(pte);
-+
-+		pte_val(pte) = cmpxchg_relaxed(&pte_val(*ptep),
-+					       pte_val(old_pte), pte_val(pte));
-+	} while (pte_val(pte) != pte_val(old_pte));
++	return folio_pte_batch(folio, addr, ptep, pte, max_nr, fpb_flags, NULL,
++			       any_young, any_dirty);
 +}
 +
-+static inline void __clear_young_dirty_ptes(struct vm_area_struct *vma,
-+					    unsigned long addr, pte_t *ptep,
-+					    unsigned int nr, cydp_t flags)
-+{
-+	pte_t pte;
-+
-+	for (;;) {
-+		pte = __ptep_get(ptep);
-+
-+		if (flags == (CYDP_CLEAR_YOUNG | CYDP_CLEAR_DIRTY))
-+			__set_pte(ptep, pte_mkclean(pte_mkold(pte)));
-+		else
-+			__clear_young_dirty_pte(vma, addr, ptep, pte, flags);
-+
-+		if (--nr == 0)
-+			break;
-+		ptep++;
-+		addr += PAGE_SIZE;
-+	}
-+}
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- #define __HAVE_ARCH_PMDP_SET_WRPROTECT
- static inline void pmdp_set_wrprotect(struct mm_struct *mm,
-@@ -1379,6 +1419,9 @@ extern void contpte_wrprotect_ptes(struc
- extern int contpte_ptep_set_access_flags(struct vm_area_struct *vma,
- 				unsigned long addr, pte_t *ptep,
- 				pte_t entry, int dirty);
-+extern void contpte_clear_young_dirty_ptes(struct vm_area_struct *vma,
-+				unsigned long addr, pte_t *ptep,
-+				unsigned int nr, cydp_t flags);
+ static int madvise_cold_or_pageout_pte_range(pmd_t *pmd,
+ 				unsigned long addr, unsigned long end,
+ 				struct mm_walk *walk)
+@@ -456,13 +468,10 @@ restart:
+ 		 * next pte in the range.
+ 		 */
+ 		if (folio_test_large(folio)) {
+-			const fpb_t fpb_flags = FPB_IGNORE_DIRTY |
+-						FPB_IGNORE_SOFT_DIRTY;
+-			int max_nr = (end - addr) / PAGE_SIZE;
+ 			bool any_young;
  
- static __always_inline void contpte_try_fold(struct mm_struct *mm,
- 				unsigned long addr, pte_t *ptep, pte_t pte)
-@@ -1603,6 +1646,17 @@ static inline int ptep_set_access_flags(
- 	return contpte_ptep_set_access_flags(vma, addr, ptep, entry, dirty);
- }
+-			nr = folio_pte_batch(folio, addr, pte, ptent, max_nr,
+-					     fpb_flags, NULL, &any_young);
++			nr = madvise_folio_pte_batch(addr, end, folio, pte,
++						     ptent, &any_young, NULL);
+ 			if (any_young)
+ 				ptent = pte_mkyoung(ptent);
  
-+#define clear_young_dirty_ptes clear_young_dirty_ptes
-+static inline void clear_young_dirty_ptes(struct vm_area_struct *vma,
-+					  unsigned long addr, pte_t *ptep,
-+					  unsigned int nr, cydp_t flags)
-+{
-+	if (likely(nr == 1 && !pte_cont(__ptep_get(ptep))))
-+		__clear_young_dirty_ptes(vma, addr, ptep, nr, flags);
-+	else
-+		contpte_clear_young_dirty_ptes(vma, addr, ptep, nr, flags);
-+}
-+
- #else /* CONFIG_ARM64_CONTPTE */
+--- a/mm/memory.c~mm-memory-add-any_dirty-optional-pointer-to-folio_pte_batch
++++ a/mm/memory.c
+@@ -989,7 +989,7 @@ copy_present_ptes(struct vm_area_struct
+ 			flags |= FPB_IGNORE_SOFT_DIRTY;
  
- #define ptep_get				__ptep_get
-@@ -1622,6 +1676,7 @@ static inline int ptep_set_access_flags(
- #define wrprotect_ptes				__wrprotect_ptes
- #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
- #define ptep_set_access_flags			__ptep_set_access_flags
-+#define clear_young_dirty_ptes			__clear_young_dirty_ptes
+ 		nr = folio_pte_batch(folio, addr, src_pte, pte, max_nr, flags,
+-				     &any_writable, NULL);
++				     &any_writable, NULL, NULL);
+ 		folio_ref_add(folio, nr);
+ 		if (folio_test_anon(folio)) {
+ 			if (unlikely(folio_try_dup_anon_rmap_ptes(folio, page,
+@@ -1558,7 +1558,7 @@ static inline int zap_present_ptes(struc
+ 	 */
+ 	if (unlikely(folio_test_large(folio) && max_nr != 1)) {
+ 		nr = folio_pte_batch(folio, addr, pte, ptent, max_nr, fpb_flags,
+-				     NULL, NULL);
++				     NULL, NULL, NULL);
  
- #endif /* CONFIG_ARM64_CONTPTE */
- 
---- a/arch/arm64/mm/contpte.c~mm-arm64-override-clear_young_dirty_ptes-batch-helper
-+++ a/arch/arm64/mm/contpte.c
-@@ -361,6 +361,35 @@ void contpte_wrprotect_ptes(struct mm_st
- }
- EXPORT_SYMBOL_GPL(contpte_wrprotect_ptes);
- 
-+void contpte_clear_young_dirty_ptes(struct vm_area_struct *vma,
-+				    unsigned long addr, pte_t *ptep,
-+				    unsigned int nr, cydp_t flags)
-+{
-+	/*
-+	 * We can safely clear access/dirty without needing to unfold from
-+	 * the architectures perspective, even when contpte is set. If the
-+	 * range starts or ends midway through a contpte block, we can just
-+	 * expand to include the full contpte block. While this is not
-+	 * exactly what the core-mm asked for, it tracks access/dirty per
-+	 * folio, not per page. And since we only create a contpte block
-+	 * when it is covered by a single folio, we can get away with
-+	 * clearing access/dirty for the whole block.
-+	 */
-+	unsigned long start = addr;
-+	unsigned long end = start + nr;
-+
-+	if (pte_cont(__ptep_get(ptep + nr - 1)))
-+		end = ALIGN(end, CONT_PTE_SIZE);
-+
-+	if (pte_cont(__ptep_get(ptep))) {
-+		start = ALIGN_DOWN(start, CONT_PTE_SIZE);
-+		ptep = contpte_align_down(ptep);
-+	}
-+
-+	__clear_young_dirty_ptes(vma, start, ptep, end - start, flags);
-+}
-+EXPORT_SYMBOL_GPL(contpte_clear_young_dirty_ptes);
-+
- int contpte_ptep_set_access_flags(struct vm_area_struct *vma,
- 					unsigned long addr, pte_t *ptep,
- 					pte_t entry, int dirty)
+ 		zap_present_folio_ptes(tlb, vma, folio, page, pte, ptent, nr,
+ 				       addr, details, rss, force_flush,
 _
 
 Patches currently in -mm which might be from ioworker0@gmail.com are
