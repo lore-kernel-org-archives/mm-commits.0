@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DA2A6116
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:44:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D14C76116
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:44:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714956259; cv=none; b=ZSzO3m2wMndfGFNXPGc0Ol8zwI+SEH0TFgH7Dmwrttg22ALBYR1ThOV+gftdaHH6GiuoBIOzxl75qpHCfMCermBF2nFqbkIem7d1bX6udvg8afjxL/xl07YlMleyn6yBkkhJYsc4A2WnbEkGItQFQgyNlp/rRNSTGENVFwJpmY8=
+	t=1714956293; cv=none; b=edszemWmbdBDLe+dmJiIupQ84kV5ZxZ+iver1V+s473VYsT/2gMUTOKDDIBEXLKacseHeR4rQsy1qLyo8klC1Uj8vr1cor5RBpbBAf1pnxK2VjIn4V2AMJPFuL1pXFhnSz01m2+ft0mjneuF3OJ7Ev9Pc/pE0d3MUJRFmYMxGCQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714956259; c=relaxed/simple;
-	bh=GBd0kTlfb2pvMARvm/VXwpJAhbMrebnhIvnXnaXt7jg=;
-	h=Date:To:From:Subject:Message-Id; b=F1o4hxW9+kx3i2PjBG9J5BTrJ9wQxbv2U7oemA67qvhLTF4q5pMftnt4YIkNa0uMF84w3snSw1rBVQQMzXczO4JuWwcoM7+z55v2GSUsPxfzfmQetDy00opq4eqr5lwijtmQFoMlBEWje36a1BoxqzmCKV6ayxSfe5VGYXvRSq8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hNxto0hv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714956293; c=relaxed/simple;
+	bh=Nb03CTk3hy3fnyHDq8MzppEMkeT/L8BtG08QltPpMI4=;
+	h=Date:To:From:Subject:Message-Id; b=NdgDCQFGNtkLeHz+jR11WUsPTkmTnrQpMP+0o6kJh4DsOMDK0h13zsv2uRGWqOoK00eRDWufDIJvlEKMgpRTM7v6INjcGFbpSx7qoX7iqx69cbEVNL+TulL0VLv9QYWqTlRYicUIWzgfhC+fm+RSTSy9hDoISnhL4aQed3EGz94=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vr8Xa8lm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hNxto0hv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED363C113CC;
-	Mon,  6 May 2024 00:44:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vr8Xa8lm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54A50C113CC;
+	Mon,  6 May 2024 00:44:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714956259;
-	bh=GBd0kTlfb2pvMARvm/VXwpJAhbMrebnhIvnXnaXt7jg=;
+	s=korg; t=1714956293;
+	bh=Nb03CTk3hy3fnyHDq8MzppEMkeT/L8BtG08QltPpMI4=;
 	h=Date:To:From:Subject:From;
-	b=hNxto0hv7dfZ6ZPDeJClikbSSASlOGmpRaC1pfeYm35k3V26ifC0zyPJzSrvlmZgK
-	 8d4xzkU68vFo+b6PDgtkfljJgC3Wo3fYQLLN6OlT8y99REre/F575MCT5hESqwnEVF
-	 2yyqPjJ5iug9Z+ek70DJiVef92YBUnJ2AAx4qWow=
-Date: Sun, 05 May 2024 17:44:18 -0700
-To: mm-commits@vger.kernel.org,nphamcs@gmail.com,mail@maciej.szmigiero.name,hannes@cmpxchg.org,chengming.zhou@linux.dev,yosryahmed@google.com,akpm@linux-foundation.org
+	b=Vr8Xa8lmFXKfdf3t5JP68OEMJu/TUoki+YFnHBt2QZ48ivE8prntW1DVQOLqLdaQi
+	 KkxBO1KWJ87NozsTv42g6i6wW+i+Dq+4xBzyXxtgchEhKN4V1DOfeaszo/elRv0UED
+	 IZTISpPufj1oP6V5n7hFscHL7A4z3jFe5B3cM2fs=
+Date: Sun, 05 May 2024 17:44:52 -0700
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-zswap-remove-same_filled-module-params-fix.patch removed from -mm tree
-Message-Id: <20240506004418.ED363C113CC@smtp.kernel.org>
+Subject: [folded-merged] doc-split-bufferrst-out-of-api-summaryrst-fix.patch removed from -mm tree
+Message-Id: <20240506004453.54A50C113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,95 +35,89 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: zswap: remove same_filled_pages from docs
+     Subject: doc-split-bufferrst-out-of-api-summaryrst-fix
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-remove-same_filled-module-params-fix.patch
+     doc-split-bufferrst-out-of-api-summaryrst-fix.patch
 
-This patch was dropped because it was folded into mm-zswap-remove-same_filled-module-params.patch
+This patch was dropped because it was folded into doc-split-bufferrst-out-of-api-summaryrst.patch
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zswap: remove same_filled_pages from docs
-Date: Sun, 14 Apr 2024 21:03:43 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: doc-split-bufferrst-out-of-api-summaryrst-fix
+Date: Wed, 17 Apr 2024 02:57:46 +0100
 
-The module parameters are now removed, remove all references from kernel
-docs.
+fix kerneldoc warning
 
-Link: https://lkml.kernel.org/r/ZhxFVggdyvCo79jc@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Documentation/filesystems/index.rst:50: WARNING: toctree contains reference to nonexisting document 'filesystems/buffer' 
+
+Link: https://lkml.kernel.org/r/20240417015933.453505-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/zswap.rst             |   29 -----------
- Documentation/driver-api/crypto/iaa/iaa-crypto.rst |    2 
- 2 files changed, 31 deletions(-)
+ Documentation/filesystems/buffer.rst |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/Documentation/admin-guide/mm/zswap.rst~mm-zswap-remove-same_filled-module-params-fix
-+++ a/Documentation/admin-guide/mm/zswap.rst
-@@ -111,35 +111,6 @@ checked if it is a same-value filled pag
- compressed length of the page is set to zero and the pattern or same-filled
- value is stored.
- 
--Same-value filled pages identification feature is enabled by default and can be
--disabled at boot time by setting the ``same_filled_pages_enabled`` attribute
--to 0, e.g. ``zswap.same_filled_pages_enabled=0``. It can also be enabled and
--disabled at runtime using the sysfs ``same_filled_pages_enabled``
--attribute, e.g.::
--
--	echo 1 > /sys/module/zswap/parameters/same_filled_pages_enabled
--
--When zswap same-filled page identification is disabled at runtime, it will stop
--checking for the same-value filled pages during store operation.
--In other words, every page will be then considered non-same-value filled.
--However, the existing pages which are marked as same-value filled pages remain
--stored unchanged in zswap until they are either loaded or invalidated.
--
--In some circumstances it might be advantageous to make use of just the zswap
--ability to efficiently store same-filled pages without enabling the whole
--compressed page storage.
--In this case the handling of non-same-value pages by zswap (enabled by default)
--can be disabled by setting the ``non_same_filled_pages_enabled`` attribute
--to 0, e.g. ``zswap.non_same_filled_pages_enabled=0``.
--It can also be enabled and disabled at runtime using the sysfs
--``non_same_filled_pages_enabled`` attribute, e.g.::
--
--	echo 1 > /sys/module/zswap/parameters/non_same_filled_pages_enabled
--
--Disabling both ``zswap.same_filled_pages_enabled`` and
--``zswap.non_same_filled_pages_enabled`` effectively disables accepting any new
--pages by zswap.
--
- To prevent zswap from shrinking pool when zswap is full and there's a high
- pressure on swap (this will result in flipping pages in and out zswap pool
- without any real benefit but with a performance drop for the system), a
---- a/Documentation/driver-api/crypto/iaa/iaa-crypto.rst~mm-zswap-remove-same_filled-module-params-fix
-+++ a/Documentation/driver-api/crypto/iaa/iaa-crypto.rst
-@@ -457,7 +457,6 @@ Use the following commands to enable zsw
-   # echo deflate-iaa > /sys/module/zswap/parameters/compressor
-   # echo zsmalloc > /sys/module/zswap/parameters/zpool
-   # echo 1 > /sys/module/zswap/parameters/enabled
--  # echo 0 > /sys/module/zswap/parameters/same_filled_pages_enabled
-   # echo 100 > /proc/sys/vm/swappiness
-   # echo never > /sys/kernel/mm/transparent_hugepage/enabled
-   # echo 1 > /proc/sys/vm/overcommit_memory
-@@ -599,7 +598,6 @@ the 'fixed' compression mode::
-   echo deflate-iaa > /sys/module/zswap/parameters/compressor
-   echo zsmalloc > /sys/module/zswap/parameters/zpool
-   echo 1 > /sys/module/zswap/parameters/enabled
--  echo 0 > /sys/module/zswap/parameters/same_filled_pages_enabled
- 
-   echo 100 > /proc/sys/vm/swappiness
-   echo never > /sys/kernel/mm/transparent_hugepage/enabled
+--- /dev/null
++++ a/Documentation/filesystems/buffer.rst
+@@ -0,0 +1,13 @@
++Buffer Heads
++============
++
++Linux uses buffer heads to maintain state about individual filesystem blocks.
++Buffer heads are deprecated and new filesystems should use iomap instead.
++
++Functions
++---------
++
++.. kernel-doc:: include/linux/buffer_head.h
++.. kernel-doc:: fs/buffer.c
++   :export:
++
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-zswap-always-shrink-in-zswap_store-if-zswap_pool_reached_full.patch
-mm-zswap-refactor-limit-checking-from-zswap_store.patch
-mm-zswap-move-more-same-filled-pages-checks-outside-of-zswap_store.patch
-mm-zswap-remove-same_filled-module-params.patch
+doc-improve-the-description-of-__folio_mark_dirty.patch
+buffer-add-kernel-doc-for-block_dirty_folio.patch
+buffer-add-kernel-doc-for-try_to_free_buffers.patch
+buffer-fix-__bread-and-__bread_gfp-kernel-doc.patch
+buffer-add-kernel-doc-for-brelse-and-__brelse.patch
+buffer-add-kernel-doc-for-bforget-and-__bforget.patch
+buffer-improve-bdev_getblk-documentation.patch
+doc-split-bufferrst-out-of-api-summaryrst.patch
+mm-memory-failure-remove-fsdax_pgoff-argument-from-__add_to_kill.patch
+mm-memory-failure-pass-addr-to-__add_to_kill.patch
+mm-return-the-address-from-page_mapped_in_vma.patch
+mm-make-page_mapped_in_vma-conditional-on-config_memory_failure.patch
+mm-memory-failure-convert-shake_page-to-shake_folio.patch
+mm-convert-hugetlb_page_mapping_lock_write-to-folio.patch
+mm-memory-failure-convert-memory_failure-to-use-a-folio.patch
+mm-memory-failure-convert-hwpoison_user_mappings-to-take-a-folio.patch
+mm-memory-failure-add-some-folio-conversions-to-unpoison_memory.patch
+mm-memory-failure-use-folio-functions-throughout-collect_procs.patch
+mm-memory-failure-pass-the-folio-to-collect_procs_ksm.patch
+fscrypt-convert-bh_get_inode_and_lblk_num-to-use-a-folio.patch
+f2fs-convert-f2fs_clear_page_cache_dirty_tag-to-use-a-folio.patch
+memory-failure-remove-calls-to-page_mapping.patch
+migrate-expand-the-use-of-folio-in-__migrate_device_pages.patch
+userfault-expand-folio-use-in-mfill_atomic_install_pte.patch
+mm-remove-page_cache_alloc.patch
+mm-remove-put_devmap_managed_page.patch
+mm-convert-put_devmap_managed_page_refs-to-put_devmap_managed_folio_refs.patch
+mm-remove-page_ref_sub_return.patch
+gup-use-folios-for-gup_devmap.patch
+mm-add-kernel-doc-for-folio_mark_accessed.patch
+mm-remove-pagereferenced.patch
+mm-simplify-thp_vma_allowable_order.patch
+mm-assert-the-mmap_lock-is-held-in-__anon_vma_prepare.patch
+mm-delay-the-check-for-a-null-anon_vma.patch
+mm-fix-some-minor-per-vma-lock-issues-in-userfaultfd.patch
+mm-optimise-vmf_anon_prepare-for-vmas-without-an-anon_vma.patch
+thp-remove-hpage_pmd_order-minimum-assertion.patch
+squashfs-convert-squashfs_symlink_read_folio-to-use-folio-apis.patch
+squashfs-remove-calls-to-set-the-folio-error-flag.patch
+nilfs2-remove-calls-to-folio_set_error-and-folio_clear_error.patch
 
