@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 151DD28EB
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:45:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45C6628EB
+	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 00:46:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714956335; cv=none; b=l8b/QEPXSTXuA68X/c5A+N5fRxIhqlcx3oYIaqq1cTW5Ux+cHEr3nhHNEcbuAPyUIqsnP2zuPu5nmwlVF7R//rFk3tmIQUff6skVfjEz2diuT2jtS2c3n3R7oqox+2hvpXD3WMN9wk50ZsdKPxht1uCGVm9zO5/HJejUDXR+NGM=
+	t=1714956383; cv=none; b=A+pdPvqWJWHhtLNF2b6GXO15pZJvD9KDlgJluAESDOSjaRF2kyzb2wwCrEMClZfpTIkg1WVQ5D26AJ0jA9bcCUHoNNdqZYPUCuiJthcjHjhwkGYRm6mh9PA76+1OyY3kqBjTiCdCaAHbizO2dRBPmYpFSIh2giG9CHxIS4tqhHc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714956335; c=relaxed/simple;
-	bh=HAj68pfIIguJFnX4MfnVNV3C0SxU8B5N420TdWK/pEA=;
-	h=Date:To:From:Subject:Message-Id; b=ES3KvV99MGZJIi+U36zzQyP5zEuRzlt0FDDl2jPfmWH2H7eCq/7RVTX0i/kt76Z83gC/PE+ujeseH6J/p3WNHpNrfpZXcDZHUSH+hPexwdt+9GTmU0z5tbH3pNx6m1zPJtMntOQWLulMpPRmQ20mKSuX7LkWQLuuHm3xZ1GFL4s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UHiVLWhJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714956383; c=relaxed/simple;
+	bh=KMnnHaaUnZVhXDifawJ6qV9aaGRA2RtTJ3lbp1zlrec=;
+	h=Date:To:From:Subject:Message-Id; b=N0Z3f2Z/MHi5Pkh0Bv6b3TDHg5oZKOo4mk1LUZxsVCBMUSgXsJHVVjMKrbDAwAomONNG3MFzauaWYtcZ8jImli/OlTniWCHcU7S3lwjrXxh9JtIrDaBx/cZpXjOaiJlITzvoozp2mFtCEbQMQkM8OxcgV/k+c9ee9o70ZuNSd78=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oPZ4C5Se; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UHiVLWhJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79C25C113CC;
-	Mon,  6 May 2024 00:45:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oPZ4C5Se"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B870FC113CC;
+	Mon,  6 May 2024 00:46:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1714956334;
-	bh=HAj68pfIIguJFnX4MfnVNV3C0SxU8B5N420TdWK/pEA=;
+	s=korg; t=1714956382;
+	bh=KMnnHaaUnZVhXDifawJ6qV9aaGRA2RtTJ3lbp1zlrec=;
 	h=Date:To:From:Subject:From;
-	b=UHiVLWhJR8f5WhcA6s2usD+RF/+wUJmf9pTU8zAI8R6BoSIxm6WLecKSDNCqVJlJx
-	 tVEs5RhI36be0lDq3sbOFT2/5hEeo8ma9zBVfs5I0peJwC4JG+r4DTS/di+SCRtUmd
-	 90mmS7TuUoXtb0vuMNhFxKqtCpb4rf5iklEITJoQ=
-Date: Sun, 05 May 2024 17:45:33 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,jhubbard@nvidia.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,david@redhat.com,akpm@linux-foundation.org
+	b=oPZ4C5SeYRew8DeRLrQ9bmd3pTobdwzkciBTP1+0HgfEbXLsY2HRfWoQF4NkSzGqo
+	 CIIbigMVdyAOWaT2jH/JdqIQY8WX5mN6CJgqYPdOEv0NFvPcpr4gT/FZc/9C+TRMHu
+	 s46M63mNbth0y/+Zvqc8J577CJ7TeJgHPPGAIHo0=
+Date: Sun, 05 May 2024 17:46:22 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,sj@kernel.org,sfr@canb.auug.org.au,mjguzik@gmail.com,jack@suse.cz,dsterba@suse.com,dhowells@redhat.com,bfoster@redhat.com,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation-v2.patch removed from -mm tree
-Message-Id: <20240506004534.79C25C113CC@smtp.kernel.org>
+Subject: [folded-merged] writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi-fix.patch removed from -mm tree
+Message-Id: <20240506004622.B870FC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,101 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation-v2
+     Subject: writeback: fix build problems of "writeback: support retrieving per group debug writeback stats of bdi"
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation-v2.patch
+     writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi-fix.patch
 
-This patch was dropped because it was folded into mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation.patch
+This patch was dropped because it was folded into writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi.patch
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation-v2
-Date: Mon, 22 Apr 2024 21:42:17 +0200
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: writeback: fix build problems of "writeback: support retrieving per group debug writeback stats of bdi"
+Date: Tue, 23 Apr 2024 11:46:41 +0800
 
-* Also document concurrent removal from the page cache (likely we should
-  return -EBUSY -- but likely it doesn't really matter).
+Fix two build problems:
+1. implicit declaration of function 'cgroup_ino'.
+2. unused variable 'stats'.
 
-* Reference fd4a7ac32918 in patch description
+After this fix, No build problem is found when CGROUPS is disabled.
+The wb_stats could be successfully retrieved when CGROUP_WRITEBACK is
+disabled:
+cat wb_stats
+WbCgIno:                    1
+WbWriteback:                0 kB
+WbReclaimable:         685440 kB
+WbDirtyThresh:      195530960 kB
+WbDirtied:             691488 kB
+WbWritten:               6048 kB
+WbWriteBandwidth:      102400 kBps
+b_dirty:                    2
+b_io:                       0
+b_more_io:                  0
+b_dirty_time:               0
+state:                      5
 
-Link: https://lkml.kernel.org/r/20240422194217.442933-1-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+cat wb_stats
+WbCgIno:                    1
+WbWriteback:                0 kB
+WbReclaimable:         818944 kB
+WbDirtyThresh:      195527484 kB
+WbDirtied:             824992 kB
+WbWritten:               6048 kB
+WbWriteBandwidth:      102400 kBps
+b_dirty:                    2
+b_io:                       0
+b_more_io:                  0
+b_dirty_time:               0
+state:                      5
+
+Link: https://lkml.kernel.org/r/20240423034643.141219-4-shikemeng@huaweicloud.com
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Reported-by: SeongJae Park <sj@kernel.org>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au> 
+Cc: Brian Foster <bfoster@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/backing-dev.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation-v2
-+++ a/mm/huge_memory.c
-@@ -2975,7 +2975,8 @@ bool can_split_folio(struct folio *folio
-  *
-  * Returns 0 if the huge page was split successfully.
-  *
-- * Returns -EAGAIN if the folio has unexpected reference (e.g., GUP).
-+ * Returns -EAGAIN if the folio has unexpected reference (e.g., GUP) or if
-+ * the folio was concurrently removed from the page cache.
-  *
-  * Returns -EBUSY when trying to split the huge zeropage, if the folio is
-  * under writeback, if fs-specific folio metadata cannot currently be
+--- a/mm/backing-dev.c~writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi-fix
++++ a/mm/backing-dev.c
+@@ -172,7 +172,11 @@ static void wb_stats_show(struct seq_fil
+ 		   "b_more_io:         %10lu\n"
+ 		   "b_dirty_time:      %10lu\n"
+ 		   "state:             %10lx\n\n",
++#ifdef CONFIG_CGROUP_WRITEBACK
+ 		   cgroup_ino(wb->memcg_css->cgroup),
++#else
++		   1ul,
++#endif
+ 		   K(stats->nr_writeback),
+ 		   K(stats->nr_reclaimable),
+ 		   K(stats->wb_thresh),
+@@ -192,7 +196,6 @@ static int cgwb_debug_stats_show(struct
+ 	unsigned long background_thresh;
+ 	unsigned long dirty_thresh;
+ 	struct bdi_writeback *wb;
+-	struct wb_stats stats;
+ 
+ 	global_dirty_limits(&background_thresh, &dirty_thresh);
+ 
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
-drivers-virt-acrn-fix-pfnmap-pte-checks-in-acrn_vm_ram_map.patch
-mm-pass-vma-instead-of-mm-to-follow_pte.patch
-mm-follow_pte-improvements.patch
-mm-allow-for-detecting-underflows-with-page_mapcount-again.patch
-mm-rmap-always-inline-anon-file-rmap-duplication-of-a-single-pte.patch
-mm-rmap-add-fast-path-for-small-folios-when-adding-removing-duplicating.patch
-mm-track-mapcount-of-large-folios-in-single-value.patch
-mm-improve-folio_likely_mapped_shared-using-the-mapcount-of-large-folios.patch
-mm-make-folio_mapcount-return-0-for-small-typed-folios.patch
-mm-memory-use-folio_mapcount-in-zap_present_folio_ptes.patch
-mm-huge_memory-use-folio_mapcount-in-zap_huge_pmd-sanity-check.patch
-mm-memory-failure-use-folio_mapcount-in-hwpoison_user_mappings.patch
-mm-page_alloc-use-folio_mapped-in-__alloc_contig_migrate_range.patch
-mm-migrate-use-folio_likely_mapped_shared-in-add_page_for_migration.patch
-sh-mm-cache-use-folio_mapped-in-copy_from_user_page.patch
-mm-filemap-use-folio_mapcount-in-filemap_unaccount_folio.patch
-mm-migrate_device-use-folio_mapcount-in-migrate_vma_check_page.patch
-trace-events-page_ref-trace-the-raw-page-mapcount-value.patch
-xtensa-mm-convert-check_tlb_entry-to-sanity-check-folios.patch
-mm-debug-print-only-page-mapcount-excluding-folio-entire-mapcount-in-__dump_folio.patch
-documentation-admin-guide-cgroup-v1-memoryrst-dont-reference-page_mapcount.patch
-mm-ksm-rename-get_ksm_page_flags-to-ksm_get_folio_flags.patch
-mm-ksm-remove-page_mapcount-usage-in-stable_tree_search.patch
-fs-proc-task_mmu-convert-pagemap_hugetlb_range-to-work-on-folios.patch
-fs-proc-task_mmu-convert-smaps_hugetlb_range-to-work-on-folios.patch
-mm-huge_memory-improve-split_huge_page_to_list_to_order-return-value-documentation.patch
-mm-khugepaged-replace-page_mapcount-check-by-folio_likely_mapped_shared.patch
-selftests-mm-cow-flag-vmsplice-hugetlb-tests-as-xfail.patch
-mm-hugetlb-document-why-hugetlb-uses-folio_mapcount-for-cow-reuse-decisions.patch
-selftests-mm-gup_longterm-test-unsharing-logic-when-r-o-pinning.patch
+writeback-collect-stats-of-all-wb-of-bdi-in-bdi_debug_stats_show.patch
+writeback-support-retrieving-per-group-debug-writeback-stats-of-bdi.patch
+writeback-add-wb_monitorpy-script-to-monitor-writeback-info-on-bdi.patch
+writeback-rename-nr_reclaimable-to-nr_dirty-in-balance_dirty_pages.patch
+mm-enable-__wb_calc_thresh-to-calculate-dirty-background-threshold.patch
+mm-correct-calculation-of-wbs-bg_thresh-in-cgroup-domain.patch
+mm-call-__wb_calc_thresh-instead-of-wb_calc_thresh-in-wb_over_bg_thresh.patch
+mm-remove-stale-comment-__folio_mark_dirty.patch
 
