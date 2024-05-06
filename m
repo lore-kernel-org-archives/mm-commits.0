@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ACD815ADAC
-	for <mm-commits@vger.kernel.org>; Mon,  6 May 2024 19:56:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF61D156F46;
+	Mon,  6 May 2024 20:00:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715025382; cv=none; b=PPrN8ooXR29Cs1S30dAAcl4JxVO4gmCqdXbHQSN/YhtMpIeeDE5wi3Et+MFYCpOL4lT/clJrOgBdBdMOCSiObeMZJ1NXMOrGkRpQN8LbR5eszwzyulC2UWLXZeU63a8PX+IjoI/ugptSyJncl1Aq7RGsP06C/FdtwVyb7NvDPCM=
+	t=1715025643; cv=none; b=KJaHxrgZOSLh8+b/Z3qxZID/CwgnITR7qbNNVSrPx1wqNuMLlNekuRJfohTI5CrfDVfjUTOTsWCezENJ4NogyS/hA5wOlTDjKHX7V3C2KusTTkeOR8EMgzpwj4ik38vRWwzz9H9D/tHeaONKS5kwnf6KgDPE3kFxKHzO68oTyNM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715025382; c=relaxed/simple;
-	bh=Kh5A+97gYKe1bImSE0TvHZR+62L/FRQe8X62Ae/oZuU=;
-	h=Date:To:From:Subject:Message-Id; b=okUYwePBamlHRusOontMazFec1Pix3QlLyhIKN/PMkFVVmAhLH70KTWa+5WkQPb70u8lCmvCmTPy2voX/638bXSUyR/tWFoCkH9MdzNOSOY4tMCxfbW9b1dOJgUXBAnAfSWxpGjx0Gz130F17rNHz3M+KqOI369+qgjt4swmdH8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OUprVtxR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1715025643; c=relaxed/simple;
+	bh=nxl+HbLeufFyqJp8F0cYUEGsWlhTMbaM9hgpZ4FAAOI=;
+	h=Date:To:From:Subject:Message-Id; b=K1FeiJw71VUslIyqhSSxh8EyBa+WKqaIEi1hdr1308P3fzgQka3M8mnMH4St4YIE22e3PNidgXqayBGGdP16LW5nRr6x/oBmjIIxGXufG3mv3vbVQtvAF7WzBShxYgnRbvbeT5d+8MSWWrXRjb3YQ4LsIXX0pkyRuDQ2Nfslt+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gHEcAyqG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OUprVtxR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D40EDC116B1;
-	Mon,  6 May 2024 19:56:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gHEcAyqG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B3C2C116B1;
+	Mon,  6 May 2024 20:00:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1715025381;
-	bh=Kh5A+97gYKe1bImSE0TvHZR+62L/FRQe8X62Ae/oZuU=;
+	s=korg; t=1715025642;
+	bh=nxl+HbLeufFyqJp8F0cYUEGsWlhTMbaM9hgpZ4FAAOI=;
 	h=Date:To:From:Subject:From;
-	b=OUprVtxRc/EEwzjInkNjLgUe3X9s2xanMSx/j5yIuHolw11sBkuOLCSBNpDH5Jtsq
-	 7K/UMLzCgJ4wIdnYq+YpU4CAGFXjIO87AB+ZNaeQtJMwWWG/mFDBvWYPVTjFNtY8xO
-	 DOK42fVaFTObTKNT34GQQ2LAWudHGjIfIganlK50=
-Date: Mon, 06 May 2024 12:56:21 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,yorha.op@gmail.com,akpm@linux-foundation.org
+	b=gHEcAyqG/QdrPBSwB59DgyirI7aIsN/VnMDJLYakKYANDYc6Ax7e0BNC+nty+UvDA
+	 VV9mo3UETS7QdYVOmc2Yc2/BF5FbVnL3Mqq61TYwYFR6zxqosppkYaEUpozosGOV7q
+	 cDv2ndRVrHo06h6OISCYT8TNpnjs4A4uZDQAh4g8=
+Date: Mon, 06 May 2024 13:00:41 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,broonie@kernel.org,mpe@ellerman.id.au,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-fix-return-value-from-damos_wmark_metric_value.patch added to mm-unstable branch
-Message-Id: <20240506195621.D40EDC116B1@smtp.kernel.org>
+Subject: + selftests-mm-fix-powerpc-arch-check.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240506200042.4B3C2C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: fix return value from damos_wmark_metric_value
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-fix-return-value-from-damos_wmark_metric_value.patch
+     Subject: selftests/mm: fix powerpc ARCH check
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-mm-fix-powerpc-arch-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-fix-return-value-from-damos_wmark_metric_value.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-powerpc-arch-check.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,60 +58,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alex Rusuf <yorha.op@gmail.com>
-Subject: mm/damon/core: fix return value from damos_wmark_metric_value
-Date: Mon, 6 May 2024 11:02:38 -0700
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: selftests/mm: fix powerpc ARCH check
+Date: Mon, 6 May 2024 21:58:25 +1000
 
-damos_wmark_metric_value's return value is 'unsigned long', so returning
--EINVAL as 'unsigned long' may turn out to be very different from the
-expected one (using 2's complement) and treat as usual matric's value. 
-So, fix that, checking if returned value is not 0.
+In commit 0518dbe97fe6 ("selftests/mm: fix cross compilation with LLVM")
+the logic to detect the machine architecture in the Makefile was changed
+to use ARCH, and only fallback to uname -m if ARCH is unset.  However the
+tests of ARCH were not updated to account for the fact that ARCH is
+"powerpc" for powerpc builds, not "ppc64".
 
-Link: https://lkml.kernel.org/r/20240506180238.53842-1-sj@kernel.org
-Fixes: ee801b7dd782 ("mm/damon/schemes: activate schemes based on a watermarks mechanism")
-Signed-off-by: Alex Rusuf <yorha.op@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Fix it by changing the checks to look for "powerpc", and change the
+uname -m logic to convert "ppc64.*" into "powerpc".
+
+With that fixed the following tests now build for powerpc again:
+ * protection_keys
+ * va_high_addr_switch
+ * virtual_address_range
+ * write_to_hugetlbfs
+
+Link: https://lkml.kernel.org/r/20240506115825.66415-1-mpe@ellerman.id.au
+Fixes: 0518dbe97fe6 ("selftests/mm: fix cross compilation with LLVM")
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: <stable@vger.kernel.org>	[6.4+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/Makefile |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-fix-return-value-from-damos_wmark_metric_value
-+++ a/mm/damon/core.c
-@@ -1481,12 +1481,14 @@ static bool kdamond_need_stop(struct dam
- 	return true;
- }
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-fix-powerpc-arch-check
++++ a/tools/testing/selftests/mm/Makefile
+@@ -12,7 +12,7 @@ uname_M := $(shell uname -m 2>/dev/null
+ else
+ uname_M := $(shell echo $(CROSS_COMPILE) | grep -o '^[a-z0-9]\+')
+ endif
+-ARCH ?= $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/' -e 's/ppc64.*/ppc64/')
++ARCH ?= $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/' -e 's/ppc64.*/powerpc/')
+ endif
  
--static unsigned long damos_wmark_metric_value(enum damos_wmark_metric metric)
-+static int damos_get_wmark_metric_value(enum damos_wmark_metric metric,
-+					unsigned long *metric_value)
- {
- 	switch (metric) {
- 	case DAMOS_WMARK_FREE_MEM_RATE:
--		return global_zone_page_state(NR_FREE_PAGES) * 1000 /
-+		*metric_value = global_zone_page_state(NR_FREE_PAGES) * 1000 /
- 		       totalram_pages();
-+		return 0;
- 	default:
- 		break;
- 	}
-@@ -1501,10 +1503,9 @@ static unsigned long damos_wmark_wait_us
- {
- 	unsigned long metric;
+ # Without this, failed build products remain, with up-to-date timestamps,
+@@ -98,13 +98,13 @@ TEST_GEN_FILES += $(BINARIES_64)
+ endif
+ else
  
--	if (scheme->wmarks.metric == DAMOS_WMARK_NONE)
-+	if (damos_get_wmark_metric_value(scheme->wmarks.metric, &metric))
- 		return 0;
+-ifneq (,$(findstring $(ARCH),ppc64))
++ifneq (,$(findstring $(ARCH),powerpc))
+ TEST_GEN_FILES += protection_keys
+ endif
  
--	metric = damos_wmark_metric_value(scheme->wmarks.metric);
- 	/* higher than high watermark or lower than low watermark */
- 	if (metric > scheme->wmarks.high || scheme->wmarks.low > metric) {
- 		if (scheme->wmarks.activated)
+ endif
+ 
+-ifneq (,$(filter $(ARCH),arm64 ia64 mips64 parisc64 ppc64 riscv64 s390x sparc64 x86_64))
++ifneq (,$(filter $(ARCH),arm64 ia64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64))
+ TEST_GEN_FILES += va_high_addr_switch
+ TEST_GEN_FILES += virtual_address_range
+ TEST_GEN_FILES += write_to_hugetlbfs
 _
 
-Patches currently in -mm which might be from yorha.op@gmail.com are
+Patches currently in -mm which might be from mpe@ellerman.id.au are
 
-mm-damon-core-fix-return-value-from-damos_wmark_metric_value.patch
+selftests-mm-fix-powerpc-arch-check.patch
+drm-amd-display-only-use-hard-float-not-altivec-on-powerpc.patch
 
