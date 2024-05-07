@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C01317BA1
-	for <mm-commits@vger.kernel.org>; Tue,  7 May 2024 16:54:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A137416C6AF
+	for <mm-commits@vger.kernel.org>; Tue,  7 May 2024 17:24:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715100875; cv=none; b=VyJS4K74wmiG5SVTKB8z1LDW0p9oN3C2AnmMGDUUv8yXUndx8uikeP0aCf9yeRsd7PqEn/9K/hFpZeQA0FsmQnSTctJ4U8ReSIdfbPRjsp7MGCmz+8d8q8SuKioRQ6VYicbqj64ZMEGxkqybMyJXYiJID/AOgyzXnZfaEuNUGco=
+	t=1715102668; cv=none; b=ctUBjy84dObvUeRTigmh5DO5z4Lel3gTIA9DI/ra2C8jXPRCFd/wVejD4ufsoFaEia+HUssx1zkYEtugQc2trV5rrNyT1yNUI2o6VcQnPFor8Bs3kj+1mL4N1k2pHX5RmSdH6FYFzbx7oi3RAd3Bm5CJGLop5+CBQsN72XrAbcI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715100875; c=relaxed/simple;
-	bh=ZmseIOAZOved8WrcZeN3rI8TJMC1D8KAop4WubCwb5A=;
-	h=Date:To:From:Subject:Message-Id; b=lVxHwP3uW8RXUF1L41fn/9ZuSU6/NcNeDkU5xWhOS/D7a1Ti0Z7iKg+l1Au2UBcy3MncrLN2thhQr1BcA0dQuak/mSFvrDs22rDt8v3ujdXzCS/p6sj+8+Zb1pKqG9RApZpcP612BcRSXcVKS4C+XuOerPjiu0nDX0hWk+b+QHw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XarR6C3Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1715102668; c=relaxed/simple;
+	bh=vk8qddotg4WiTKkNZWxn7dBrDuf5F1vj5rdLr4KKXQw=;
+	h=Date:To:From:Subject:Message-Id; b=FIkepYYksCM5DpgPKTGPXHstEilX/7Ax2MPWJKUpdQuvFhxa3Ct5e1WbbE9mdTOZXEhFd16oi+Ecw0O38YLzP527lNdl5FIt7E5vpbx5BpdkvPal95bNzCwAZjKvXy4nviZhPHXMIBBC/GqnNoRsL9Q3YOOHNdvFvOh9P9npKPw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZrdXWuRn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XarR6C3Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE92BC2BBFC;
-	Tue,  7 May 2024 16:54:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZrdXWuRn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EC98C4AF18;
+	Tue,  7 May 2024 17:24:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1715100874;
-	bh=ZmseIOAZOved8WrcZeN3rI8TJMC1D8KAop4WubCwb5A=;
+	s=korg; t=1715102668;
+	bh=vk8qddotg4WiTKkNZWxn7dBrDuf5F1vj5rdLr4KKXQw=;
 	h=Date:To:From:Subject:From;
-	b=XarR6C3QbNi99p2PC3ECGMXaQKVBT5bqU/Eu+OUKIChnaWobZYUsCSv3T+F1/bhnC
-	 npsfSv4jf1GWxz8kB+ddMrCy8sB+g4tawh2R2eOZaPqyHtyAwfzWSC2mfxYI+/maVh
-	 CGi92032d2womvtOf5DvU6RK3rogFZn5UXVuQx10=
-Date: Tue, 07 May 2024 09:54:34 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,usamaarif642@gmail.com,akpm@linux-foundation.org
+	b=ZrdXWuRnmfYqUK6nkx4ipkO1s2q67gfLtXe5cZdaniMTF+B6m+00TMbUvVlBZHqZ/
+	 DJ3wL1AZWxjKRKfnRpEtQJalooohAybIxGGXBR3NwKSDZUDTzkFJSXGMgVS44qFiw2
+	 iSfF2PuS5iJ/AuY9/s6Sb30+8BhwVvSqMCiuW/EI=
+Date: Tue, 07 May 2024 10:24:27 -0700
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,quic_jjohnson@quicinc.com,mac.xxn@outlook.com,lukas.bulwahn@gmail.com,linux@roeck-us.net,joe@perches.com,jcmvbkbc@gmail.com,herbert@gondor.apana.org.au,dwaipayanray1@gmail.com,corbet@lwn.net,chris@zankel.net,chenhuacai@loongson.cn,charlemagnelasse@gmail.com,broonie@kernel.org,apw@canonical.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-cgroup-add-tests-to-verify-the-zswap-writeback-path.patch added to mm-unstable branch
-Message-Id: <20240507165434.CE92BC2BBFC@smtp.kernel.org>
+Subject: + documentation-coding-style-ask-function-like-macros-to-evaluate-parameters.patch added to mm-nonmm-unstable branch
+Message-Id: <20240507172428.1EC98C4AF18@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: cgroup: add tests to verify the zswap writeback path
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-cgroup-add-tests-to-verify-the-zswap-writeback-path.patch
+     Subject: Documentation: coding-style: ask function-like macros to evaluate parameters
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     documentation-coding-style-ask-function-like-macros-to-evaluate-parameters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cgroup-add-tests-to-verify-the-zswap-writeback-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-coding-style-ask-function-like-macros-to-evaluate-parameters.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,201 +58,115 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Usama Arif <usamaarif642@gmail.com>
-Subject: selftests: cgroup: add tests to verify the zswap writeback path
-Date: Tue, 7 May 2024 11:14:42 +0100
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: Documentation: coding-style: ask function-like macros to evaluate parameters
+Date: Tue, 7 May 2024 15:27:56 +1200
 
-Initate writeback with the below steps and check using
-memory.stat.zswpwb if zswap writeback occurred:
-1. Allocate memory.
-2. Reclaim memory equal to the amount that was allocated in step 1.
-   This will move it into zswap.
-3. Save current zswap usage.
-4. Move the memory allocated in step 1 back in from zswap.
-5. Set zswap.max to half the amount that was recorded in step 3.
-6. Attempt to reclaim memory equal to the amount that was allocated,
-   this will either trigger writeback if its enabled, or reclamation
-   will fail if writeback is disabled as there isn't enough zswap
-   space.
+Patch series "codingstyle: avoid unused parameters for a function-like
+macro", v7.
 
-Link: https://lkml.kernel.org/r/20240507101443.720190-1-usamaarif642@gmail.com
-Signed-off-by: Usama Arif <usamaarif642@gmail.com>
-Suggested-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+A function-like macro could result in build warnings such as "unused
+variable." This patchset updates the guidance to recommend always using a
+static inline function instead and also provides checkpatch support for
+this new rule.
+
+
+This patch (of 2):
+
+Recent commit 77292bb8ca69c80 ("crypto: scomp - remove memcpy if
+sg_nents is 1 and pages are lowmem") leads to warnings on xtensa
+and loongarch,
+   In file included from crypto/scompress.c:12:
+   include/crypto/scatterwalk.h: In function 'scatterwalk_pagedone':
+   include/crypto/scatterwalk.h:76:30: warning: variable 'page' set but not used [-Wunused-but-set-variable]
+      76 |                 struct page *page;
+         |                              ^~~~
+   crypto/scompress.c: In function 'scomp_acomp_comp_decomp':
+>> crypto/scompress.c:174:38: warning: unused variable 'dst_page' [-Wunused-variable]
+     174 |                         struct page *dst_page = sg_page(req->dst);
+         |
+
+The reason is that flush_dcache_page() is implemented as a noop
+macro on these platforms as below,
+
+ #define flush_dcache_page(page) do { } while (0)
+
+The driver code, for itself, seems be quite innocent and placing
+maybe_unused seems pointless,
+
+ struct page *dst_page = sg_page(req->dst);
+
+ for (i = 0; i < nr_pages; i++)
+ 	flush_dcache_page(dst_page + i);
+
+And it should be independent of architectural implementation
+differences.
+
+Let's provide guidance on coding style for requesting parameter
+evaluation or proposing the migration to a static inline
+function.
+
+Link: https://lkml.kernel.org/r/20240507032757.146386-1-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240507032757.146386-2-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Suggested-by: Max Filippov <jcmvbkbc@gmail.com>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Huacai Chen <chenhuacai@loongson.cn>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Xining Xu <mac.xxn@outlook.com>
+Cc: Charlemagne Lasse <charlemagnelasse@gmail.com>
+Cc: Jeff Johnson <quic_jjohnson@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_zswap.c |  138 +++++++++++++++++-
- 1 file changed, 137 insertions(+), 1 deletion(-)
+ Documentation/process/coding-style.rst |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
---- a/tools/testing/selftests/cgroup/test_zswap.c~selftests-cgroup-add-tests-to-verify-the-zswap-writeback-path
-+++ a/tools/testing/selftests/cgroup/test_zswap.c
-@@ -50,7 +50,7 @@ static int get_zswap_stored_pages(size_t
- 	return read_int("/sys/kernel/debug/zswap/stored_pages", value);
- }
+--- a/Documentation/process/coding-style.rst~documentation-coding-style-ask-function-like-macros-to-evaluate-parameters
++++ a/Documentation/process/coding-style.rst
+@@ -827,6 +827,29 @@ Macros with multiple statements should b
+ 				do_this(b, c);		\
+ 		} while (0)
  
--static int get_cg_wb_count(const char *cg)
-+static long get_cg_wb_count(const char *cg)
- {
- 	return cg_read_key_long(cg, "memory.stat", "zswpwb");
- }
-@@ -249,6 +249,140 @@ out:
- }
- 
- /*
-+ * Attempt writeback with the following steps:
-+ * 1. Allocate memory.
-+ * 2. Reclaim memory equal to the amount that was allocated in step 1.
-+      This will move it into zswap.
-+ * 3. Save current zswap usage.
-+ * 4. Move the memory allocated in step 1 back in from zswap.
-+ * 5. Set zswap.max to half the amount that was recorded in step 3.
-+ * 6. Attempt to reclaim memory equal to the amount that was allocated,
-+      this will either trigger writeback if its enabled, or reclamation
-+      will fail if writeback is disabled as there isn't enough zswap space.
-+ */
-+static int attempt_writeback(const char *cgroup, void *arg)
-+{
-+	long pagesize = sysconf(_SC_PAGESIZE);
-+	char *test_group = arg;
-+	size_t memsize = MB(4);
-+	long zswap_usage;
-+	bool wb_enabled;
-+	int ret = -1;
-+	char memval;
-+	char *mem;
++Function-like macros with unused parameters should be replaced by static
++inline functions to avoid the issue of unused variables:
 +
-+	wb_enabled = cg_read_long(test_group, "memory.zswap.writeback");
-+	mem = (char *)malloc(memsize);
-+	if (!mem)
-+		return ret;
++.. code-block:: c
++
++	static inline void fun(struct foo *foo)
++	{
++	}
++
++Due to historical practices, many files still employ the "cast to (void)"
++approach to evaluate parameters. However, this method is not advisable.
++Inline functions address the issue of "expression with side effects
++evaluated more than once", circumvent unused-variable problems, and
++are generally better documented than macros for some reason.
++
++.. code-block:: c
 +
 +	/*
-+	 * Fill half of each page with increasing data, and keep other
-+	 * half empty, this will result in data that is still compressible
-+	 * and ends up in zswap, with material zswap usage.
++	 * Avoid doing this whenever possible and instead opt for static
++	 * inline functions
 +	 */
-+	for (int i = 0; i < memsize; i += pagesize) {
-+		memval = 1;
-+		for (int j = i; j < i + pagesize/2; j++) {
-+			/* Overflow of memval is ok, will check with same values later */
-+			mem[j] = memval++;
-+		}
-+	}
++	#define macrofun(foo) do { (void) (foo); } while (0)
 +
-+	/* Try and reclaim allocated memory */
-+	if (cg_write(test_group, "memory.reclaim", "4M")) {
-+		ksft_print_msg("Failed to reclaim all of the requested memory\n");
-+		goto out;
-+	}
-+
-+	zswap_usage = cg_read_long(test_group, "memory.zswap.current");
-+
-+	/* zswpin */
-+	for (int i = 0; i < memsize; i += pagesize) {
-+		memval = 1;
-+		for (int j = i; j < i + pagesize/2; j++) {
-+			if (mem[j] != memval++) {
-+				ksft_print_msg("invalid memory\n");
-+				goto out;
-+			}
-+		}
-+	}
-+
-+	if (cg_write_numeric(test_group, "memory.zswap.max", zswap_usage/2))
-+		goto out;
-+
-+	/*
-+	 * If writeback is enabled, trying to reclaim memory now will trigger a
-+	 * writeback as zswap.max is half of what was needed when reclaim ran the first time.
-+	 * If writeback is disabled, memory reclaim will fail as zswap is limited and
-+	 * it can't writeback to swap.
-+	 */
-+	ret = cg_write(test_group, "memory.reclaim", "4M");
-+	if (!wb_enabled) {
-+		if (ret == -EAGAIN)
-+			ret = 0;
-+		else
-+			ret = -1;
-+	}
-+
-+out:
-+	free(mem);
-+	return ret;
-+}
-+
-+/* Test to verify the zswap writeback path */
-+static int test_zswap_writeback(const char *root, bool wb)
-+{
-+	long zswpwb_before, zswpwb_after;
-+	int ret = KSFT_FAIL;
-+	char *test_group;
-+
-+	test_group = cg_name(root, "zswap_writeback_test");
-+	if (!test_group)
-+		goto out;
-+	if (cg_create(test_group))
-+		goto out;
-+	if (cg_write(test_group, "memory.zswap.writeback", wb ? "1" : "0"))
-+		goto out;
-+
-+	zswpwb_before = get_cg_wb_count(test_group);
-+	if (zswpwb_before != 0) {
-+		ksft_print_msg("failed to get zswpwb_before\n");
-+		goto out;
-+	}
-+
-+	if (cg_run(test_group, attempt_writeback, (void *) test_group))
-+		goto out;
-+
-+	/* Verify that zswap writeback occurred only if writeback was enabled */
-+	zswpwb_after = get_cg_wb_count(test_group);
-+	if (wb && zswpwb_after <= zswpwb_before) {
-+		ksft_print_msg("zswpwb_after <= zswpwb_before\n");
-+		goto out;
-+	} else if (!wb && zswpwb_after) {
-+		ksft_print_msg("zswpwb_after != zswpwb_before\n");
-+		goto out;
-+	}
-+
-+	ret = KSFT_PASS;
-+
-+out:
-+	cg_destroy(test_group);
-+	free(test_group);
-+	return ret;
-+}
-+
-+static int test_zswap_writeback_enabled(const char *root)
-+{
-+	return test_zswap_writeback(root, true);
-+}
-+
-+static int test_zswap_writeback_disabled(const char *root)
-+{
-+	return test_zswap_writeback(root, false);
-+}
-+
-+/*
-  * When trying to store a memcg page in zswap, if the memcg hits its memory
-  * limit in zswap, writeback should affect only the zswapped pages of that
-  * memcg.
-@@ -423,6 +557,8 @@ struct zswap_test {
- 	T(test_zswap_usage),
- 	T(test_swapin_nozswap),
- 	T(test_zswapin),
-+	T(test_zswap_writeback_enabled),
-+	T(test_zswap_writeback_disabled),
- 	T(test_no_kmem_bypass),
- 	T(test_no_invasive_cgroup_shrink),
- };
+ Things to avoid when using macros:
+ 
+ 1) macros that affect control flow:
 _
 
-Patches currently in -mm which might be from usamaarif642@gmail.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-selftests-cgroup-remove-redundant-addition-of-memory-controller.patch
-selftests-cgroup-add-tests-to-verify-the-zswap-writeback-path.patch
+mailmap-add-entry-for-barry-song.patch
+documentation-coding-style-ask-function-like-macros-to-evaluate-parameters.patch
 
