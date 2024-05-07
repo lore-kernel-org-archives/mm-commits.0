@@ -1,73 +1,121 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86E1B16D4F5
-	for <mm-commits@vger.kernel.org>; Tue,  7 May 2024 15:55:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6DD416D4DF
+	for <mm-commits@vger.kernel.org>; Tue,  7 May 2024 16:02:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715097328; cv=none; b=gwU6Np0RBWdJbMtmZcMUz2Mib/6vuy4tJvHIAINkM3BhOAokmRfWIW1BUtP1Y4OHk7Tj37Y1QxkRRprJR8nUxos73EN7kFeFDcQ+vKjT1cHqevt0+DHzvO35VUE6wj8BLwjfFM2+eibGyYj/nJxiH7xuBLnA9Ijeh6Z1v/ThpvU=
+	t=1715097768; cv=none; b=ovgNV0H4g2fhugrzipideSijeXKranhRrEgYj33t1rQFmvXKXocyqjCuQ3QBxaF94+YBxNei4cGRUH1ijkbPGdQKeWVgJw500urUg5yTqSIWScQQDKRtUte53A7xldVJ2UlO0pV3GdMcFs4M+GHnfKeue6pUg0hiNW1YMre2LOQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715097328; c=relaxed/simple;
-	bh=vOhJWwOJBvEBn6uUK/f6Na8jJhJNShP4YqVjgcd1Y6U=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=dz62G5TYmxHzQeljOqSR7gCLn1+joGyfC/McUetQEEpWdVS2w/RDYulo8BgG3QJF7jY/pKnpWStfjQunl6rm562nEPZ3O26qJOCkr/OtqlpgbMBlC+8v0M889o2ZFpbT9bbs6wmCTt8V5aFlI2yopkN6MLe6NSrrYclBe5l/rOQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KmUrFuaP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1715097768; c=relaxed/simple;
+	bh=Vv3TgcRqryRMcipQS5eVvoTo/CPbDp3lY4bOLdp54hI=;
+	h=Date:To:From:Subject:Message-Id; b=cZL+qeKYPRpWYkOwaZjyVGSdWUyj2Y9p2FsyWLCYezzuGlE0a6QntGyaXsyt+aK/dltoqr+dob9583KA4kEz9dtl5WyVzIHN2Xn1dOXKvKQkQuhhjFWIWvZKNDFWEaa1RXmkJtFQKhv95Rr7V9p4d2kHY+hbbNFd1qIvv/V0m5U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R1uTBRDH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KmUrFuaP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 727CCC2BBFC;
-	Tue,  7 May 2024 15:55:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R1uTBRDH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CE64C2BBFC;
+	Tue,  7 May 2024 16:02:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1715097328;
-	bh=vOhJWwOJBvEBn6uUK/f6Na8jJhJNShP4YqVjgcd1Y6U=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=KmUrFuaPVDxiviNntVSqL0zuz+XtspjF3ioz/gUOgjCGs6JwPgED8GERfsvDbe8FI
-	 8BXFt00VbgkyJTTDbJuMpTCRmWa215gOhxebJMjBSL9OOQ1yGj/qCJmrqljVk2Lzqh
-	 axjDLMDs1t5ghczte0iNtZOhepSC/bs5Nkj3Bv/Y=
-Date: Tue, 7 May 2024 08:55:26 -0700
+	s=korg; t=1715097768;
+	bh=Vv3TgcRqryRMcipQS5eVvoTo/CPbDp3lY4bOLdp54hI=;
+	h=Date:To:From:Subject:From;
+	b=R1uTBRDHyFT2Fo2DCLDKRg7A/R6dtAPp7HL0KLrv3mUzrvXBc3r18KYlmWxpO9dOY
+	 KAZKyRReLxXXzrLfzCD0Ycl16nK3Prp4XURQ6PmFn+pwEfs6PBT44bhJGZKBeHXbjl
+	 ppdsq8NLAJP1X2UEmjrj86GzteEMeHeJFblF9MZw=
+Date: Tue, 07 May 2024 09:02:47 -0700
+To: mm-commits@vger.kernel.org,torvalds@linux-foundation.org,lkp@intel.com,linux@rasmusvillemoes.dk,konishi.ryusuke@gmail.com,bvanassche@acm.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: David Hildenbrand <david@redhat.com>
-Cc: mm-commits@vger.kernel.org, zokeefe@google.com, xiehuan09@gmail.com,
- wangkefeng.wang@huawei.com, songmuchun@bytedance.com, shy828301@gmail.com,
- ryan.roberts@arm.com, peterx@redhat.com, minchan@kernel.org,
- mhocko@suse.com, fengwei.yin@intel.com, 21cnbao@gmail.com,
- ioworker0@gmail.com
-Subject: Re: [merged mm-stable]
- mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free.patch removed
- from -mm tree
-Message-Id: <20240507085526.5f4ea12e85e637dbc8e2e9df@linux-foundation.org>
-In-Reply-To: <4e4a03e7-9c2e-4e23-8e76-3b2feae4ccb4@redhat.com>
-References: <20240506005757.7819CC113CC@smtp.kernel.org>
-	<4e4a03e7-9c2e-4e23-8e76-3b2feae4ccb4@redhat.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + nilfs2-use-__field_struct-for-a-bitwise-field.patch added to mm-nonmm-unstable branch
+Message-Id: <20240507160248.4CE64C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Tue, 7 May 2024 10:15:24 +0200 David Hildenbrand <david@redhat.com> wrote:
 
-> On 06.05.24 02:57, Andrew Morton wrote:
-> > 
-> > The quilt patch titled
-> >       Subject: mm/madvise: optimize lazyfreeing with mTHP in madvise_free
-> > has been removed from the -mm tree.  Its filename was
-> >       mm-madvise-optimize-lazyfreeing-with-mthp-in-madvise_free.patch
-> > 
-> > This patch was dropped because it was merged into the mm-stable branch
-> > of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> > 
-> 
-> Andrew,
-> 
-> this series was moved to mm-stable a bit too fast for my taste.
+The patch titled
+     Subject: nilfs2: use __field_struct() for a bitwise field
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     nilfs2-use-__field_struct-for-a-bitwise-field.patch
 
-It was nearly three weeks.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-use-__field_struct-for-a-bitwise-field.patch
 
-> Review is still going on, can we still remove that from mm-stable?
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-I can rebase if needed.  Is there a reason to do so?  Nothing that
-can't be fixed up with followup patches?
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: nilfs2: use __field_struct() for a bitwise field
+Date: Tue, 7 May 2024 23:24:54 +0900
+
+As one can see in include/trace/stages/stage4_event_fields.h, the
+implementation of __field() uses the is_signed_type() macro.  As one can
+see in commit dcf8e5633e2e ("tracing: Define the is_signed_type() macro
+once"), there has been an attempt to not make is_signed_type() trigger
+sparse warnings for bitwise types.  Despite that change, sparse complains
+when passing a bitwise type to is_signed_type().  It is not clear to me
+why.
+
+Follow the example of <trace/events/initcall.h> and suppress the following
+sparse warnings by changing __field() into __field_struct():
+
+ fs/nilfs2/segment.c: note: in included file (through
+   include/trace/trace_events.h, include/trace/define_trace.h,
+   include/trace/events/nilfs2.h):
+ ./include/trace/events/nilfs2.h:191:1: warning: cast to restricted
+   blk_opf_t
+ ./include/trace/events/nilfs2.h:191:1: warning: restricted blk_opf_t
+   degrades to integer
+ ./include/trace/events/nilfs2.h:191:1: warning: restricted blk_opf_t
+   degrades to integer
+
+Link: https://lkml.kernel.org/r/20240507142454.3344-1-konishi.ryusuke@gmail.com
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202401092241.I4mm9OWl-lkp@intel.com/
+Reported-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Closes: https://lore.kernel.org/all/20240430080019.4242-2-konishi.ryusuke@gmail.com/
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/trace/events/nilfs2.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+--- a/include/trace/events/nilfs2.h~nilfs2-use-__field_struct-for-a-bitwise-field
++++ a/include/trace/events/nilfs2.h
+@@ -200,7 +200,11 @@ TRACE_EVENT(nilfs2_mdt_submit_block,
+ 		    __field(struct inode *, inode)
+ 		    __field(unsigned long, ino)
+ 		    __field(unsigned long, blkoff)
+-		    __field(enum req_op, mode)
++		    /*
++		     * Use field_struct() to avoid is_signed_type() on the
++		     * bitwise type enum req_op.
++		     */
++		    __field_struct(enum req_op, mode)
+ 	    ),
+ 
+ 	    TP_fast_assign(
+_
+
+Patches currently in -mm which might be from bvanassche@acm.org are
+
+nilfs2-use-__field_struct-for-a-bitwise-field.patch
+
