@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0035A79F2
-	for <mm-commits@vger.kernel.org>; Thu,  9 May 2024 18:31:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA5C279F2
+	for <mm-commits@vger.kernel.org>; Thu,  9 May 2024 18:31:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715279488; cv=none; b=mxUsN23ZaPubtSDSohpH+nkzSs46MCq7kzQ9sIE0v4dlu5cKE8TNcG32mmP+ly8vkwFbjGzmRjEZsfxqcMj+ef5+AGkJI7uN0Z+tDAqI7sb81pNUyHmT7Czi1wrp1Set3PQ7jIa11aPvbGBpgtM/rdsjhYjRoHEtUT/3/9x8oNI=
+	t=1715279489; cv=none; b=Lv22+oQtD/ZbBiNGR6dnv8SV7nCkY+1uZ/X3AXhWJ7atl53Kioutu5f+Txsx9obRqD2c52iORemFlETiFRhUWLF1htkz/N3eEicmy+DsKxGMzBY17N5Js0a1nLsAYN3fImmA6vUsXcIEIDkRKEhptYcLOTXRsHGrhEYbirlDl0w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715279488; c=relaxed/simple;
-	bh=1WvF6q8M5VcxqtCFtT7EAiM5vQlo8n8fbWWYcp4jIDo=;
-	h=Date:To:From:Subject:Message-Id; b=WvMd08BXeFM9XOnQKJJtLcob1ElKExGxEVWouY6mnJH6lKPpgZFBPib/7vjR4Sxg0D10cir8OVcOcswA7mnt+8gOVjR3rWzNJMOqt3ec3nl8efP7l/cVI5/ShferAqfASfflL0Ej+imKb2AQs0tG4P8ADA/2lAmpZ6GtmNMiVmo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n4Yb5Gjy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1715279489; c=relaxed/simple;
+	bh=+EUPR2pB1/6G+Fjpqe7GD0y/Fg8n3qNbyn8ckX6LsoI=;
+	h=Date:To:From:Subject:Message-Id; b=T+ljon3kNstYqBrDICdx9Y7GSWzgf6LIi9CQ0J7kFiS28R04Q5eaY2hLE3WsCFnLQux1IVe1XiDNBmNbxed7hjOwFz0mqe/ZQ4N+njEeno+sKKVe0v1EXseXDqlCH8BOtRmThFzrXJdAcWG9P3IawYncUljePMVeEZEf9ydVMkk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VqBijfht; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n4Yb5Gjy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E3AFC116B1;
-	Thu,  9 May 2024 18:31:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VqBijfht"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27AFBC116B1;
+	Thu,  9 May 2024 18:31:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1715279487;
-	bh=1WvF6q8M5VcxqtCFtT7EAiM5vQlo8n8fbWWYcp4jIDo=;
+	s=korg; t=1715279489;
+	bh=+EUPR2pB1/6G+Fjpqe7GD0y/Fg8n3qNbyn8ckX6LsoI=;
 	h=Date:To:From:Subject:From;
-	b=n4Yb5GjyyV1LtjvZXVKdHmiAQ0LDlOglslah0iDhVq7s1pPIuU9iqOj6SgkVJ4zCn
-	 5lTBqGjJzKKwRXTXme2tBUkAWNwxnFHZutlbmp1LjW0r4tjI6Mm15m2wgZes7orfLQ
-	 MVYBQes+iCgcjEkV+iKMDc9kVKpqc4lTIRJK3iao=
-Date: Thu, 09 May 2024 11:31:26 -0700
+	b=VqBijfhtBbWH/OquDwG9L3da7IvLz5e01aBTI9WSyxf5lGrEbzCu3p8VtpqAPXeP8
+	 yTSCL3cci/GB+U/E5JWn9g6Z4DWNUPIxBmneX3WhnprYHKLLqK4/rZQmG5HPjjzlP7
+	 EDpEUNjrJdBqLwMVsCfX7uk2biwtyOj+48aVzhzU=
+Date: Thu, 09 May 2024 11:31:28 -0700
 To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,liushixin2@huawei.com,axelrasmussen@google.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_fault.patch added to mm-unstable branch
-Message-Id: <20240509183127.7E3AFC116B1@smtp.kernel.org>
+Subject: + mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_wp.patch added to mm-unstable branch
+Message-Id: <20240509183129.27AFBC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: add missing VM_FAULT_SET_HINDEX in hugetlb_fault
+     Subject: mm/hugetlb: add missing VM_FAULT_SET_HINDEX in hugetlb_wp
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_fault.patch
+     mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_wp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_fault.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_wp.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,32 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm/hugetlb: add missing VM_FAULT_SET_HINDEX in hugetlb_fault
-Date: Thu, 9 May 2024 12:01:47 +0200
+Subject: mm/hugetlb: add missing VM_FAULT_SET_HINDEX in hugetlb_wp
+Date: Thu, 9 May 2024 12:01:48 +0200
 
-Patch series "Minor fixups for hugetlb fault path".
+commit 1cb9dc4b475c ("mm: hwpoison: support recovery from HugePage
+copy-on-write faults") added support to use the mc variants when coping
+hugetlb pages on CoW faults.
 
-This series contains a couple of fixups for hugetlb_fault and hugetlb_wp
-respectively, where a VM_FAULT_SET_HINDEX call was missing.
+Add the missing VM_FAULT_SET_HINDEX, so the right si_addr_lsb will be
+passed to userspace to report the extension of the faulty area.
 
-I did not bother with a Fixes tag because the missing piece here is that
-we will not report to userspace the right extension of the faulty area by
-adjusting struct kernel_siginfo.si_addr_lsb, but I do not consider that to
-be a big issue because I assume that userspace already knows the size of
-the mapping anyway.
-
-
-This patch (of 2):
-
-commit af19487f00f3 ("mm: make PTE_MARKER_SWAPIN_ERROR more general")
-added the code to handle pte_markers in hugetlb faulting path.  In case of
-an UFFD_POISON event, a PTE_MARKER_POISONED will be created and we will
-return VM_FAULT_HWPOISON_LARGE upon detecting that in the fault path.  Add
-the missing VM_FAULT_SET_HINDEX, so the right si_addr_lsb will be passed
-to userspace to report the extension of the faulty area.
-
-Link: https://lkml.kernel.org/r/20240509100148.22384-1-osalvador@suse.de
-Link: https://lkml.kernel.org/r/20240509100148.22384-2-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20240509100148.22384-3-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Acked-by: Peter Xu <peterx@redhat.com>
 Acked-by: Axel Rasmussen <axelrasmussen@google.com>
@@ -93,21 +78,20 @@ Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_fault
+--- a/mm/hugetlb.c~mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_wp
 +++ a/mm/hugetlb.c
-@@ -6485,7 +6485,8 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 				pte_marker_get(pte_to_swp_entry(vmf.orig_pte));
+@@ -6067,7 +6067,7 @@ retry_avoidcopy:
+ 		goto out_release_all;
  
- 			if (marker & PTE_MARKER_POISONED) {
--				ret = VM_FAULT_HWPOISON_LARGE;
-+				ret = VM_FAULT_HWPOISON_LARGE |
-+				      VM_FAULT_SET_HINDEX(hstate_index(h));
- 				goto out_mutex;
- 			}
- 		}
+ 	if (copy_user_large_folio(new_folio, old_folio, vmf->real_address, vma)) {
+-		ret = VM_FAULT_HWPOISON_LARGE;
++		ret = VM_FAULT_HWPOISON_LARGE | VM_FAULT_SET_HINDEX(hstate_index(h));
+ 		goto out_release_all;
+ 	}
+ 	__folio_mark_uptodate(new_folio);
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
