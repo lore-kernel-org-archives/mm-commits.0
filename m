@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6003977108
-	for <mm-commits@vger.kernel.org>; Thu,  9 May 2024 18:54:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6485D77108
+	for <mm-commits@vger.kernel.org>; Thu,  9 May 2024 18:54:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715280879; cv=none; b=aNo43Qk3QIsAYmGHHyp1Z7cbskSRdM6HOQKCeeE9RHoWH6jgcxGt4LjJWIPGl+SEhAC9hoYbZ2OBKOpqN3zu6T+YcYys6TOB9c7oNEwDFlPkuH8+djPEoiUZdf4O1MImw0qtCphvCqtEnsjlZLPBcnBq3Gf0CYhzFn+7r77esjc=
+	t=1715280881; cv=none; b=enI2Xglkd7lsIaVE5UzxgJX3QhQqivB/48kxPn83DSu5ZQiThSO+1UWwRwJkkvlNkXDv279HLfcrCpTypiyrtOx04ukcRNIAUzWMrN3NOSuAmJoATqAACvTKtGNSnTxxN4zFrN3LoNSCxvzkdgPbJw/FH3DPeZZvZ5vWdCiIgDc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715280879; c=relaxed/simple;
-	bh=3PgLAQQTApT7bpWprye4UeBI5y+MecIPcGnC4zvYpt8=;
-	h=Date:To:From:Subject:Message-Id; b=nOt098ZNJGlTUhZq3hsBxNY3Y3sZIrrt4tO1hXFNCEGGWJprVgvEYMD36TIoewcB2wMY2FI4V0rTZRnpo1AX/MZHka2bgxKCdmqouZXGFNe04WKf5erpedWPRICsiO5KcXgNZlq1faizJHvS2J8mPJdP5nvSXQWotIeETTzSg+U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iIALMJ8X; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1715280881; c=relaxed/simple;
+	bh=R5RRkYgo6KYYC8ZO4z+mtrp7Mlbtsa+ISGnoX7IOgdc=;
+	h=Date:To:From:Subject:Message-Id; b=XVNuQC9SHWFzQ04BiYAGkLjBHVct9/hlAFqC15op42yxg0YS6uJ3oYA5VEeiC4PSdePVXKeXdlZJBrrOvSXAacO7jnpey/hN8p+MBNpuGijsxL36FY3jamEeGhkiCKtV7fAIQzGeGRrIoLDgNw88hMmbjq4XU+Q7AACbfHXMdQg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RcmQ9V6p; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iIALMJ8X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4231C116B1;
-	Thu,  9 May 2024 18:54:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RcmQ9V6p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C10DAC116B1;
+	Thu,  9 May 2024 18:54:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1715280879;
-	bh=3PgLAQQTApT7bpWprye4UeBI5y+MecIPcGnC4zvYpt8=;
+	s=korg; t=1715280880;
+	bh=R5RRkYgo6KYYC8ZO4z+mtrp7Mlbtsa+ISGnoX7IOgdc=;
 	h=Date:To:From:Subject:From;
-	b=iIALMJ8XvWlrQBXx4rsvO7Y/U89ZIugtRIOd4CSM+jOsEdKe7Oi46ZB1064wqMthx
-	 z5XmAXnp5hNQOdK3WlwUZlJbfLjBiMntnQUG8PQvpfD3J6bauWteBJkHgEqn0bMBrK
-	 Nz1Ibg9V7HMCVBhjldJEj6k2SocWvh43S0/BjvYU=
-Date: Thu, 09 May 2024 11:54:38 -0700
+	b=RcmQ9V6pzAM34B8UK7eEkWZSrnqEwe5en8j94ub758XjcB3ZPFJEZhHN7dDSzBqUR
+	 gLx91gXt1cnJBTTVQ2uKDZqAQHwT9NFlD2A2IKbrGIDMnGNYHIolWGziv8sLX+Bye+
+	 xwb9pcmNurpnfLboBjoRo/YgRg+s3iNC1UsuAi6A=
+Date: Thu, 09 May 2024 11:54:40 -0700
 To: mm-commits@vger.kernel.org,tiwai@suse.com,shuah@kernel.org,seanjc@google.com,perex@perex.cz,pbonzini@redhat.com,pabeni@redhat.com,kuba@kernel.org,jarkko@kernel.org,ivan.orlov0322@gmail.com,edumazet@google.com,edliaw@google.com,davem@davemloft.net,dave.hansen@linux.intel.com,broonie@kernel.org,bongsu.jeon@samsung.com,alexandre.belloni@bootlin.com,tao1.su@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-selftests-harness-remove-use-of-line_max.patch added to mm-nonmm-unstable branch
-Message-Id: <20240509185438.D4231C116B1@smtp.kernel.org>
+Subject: + selftests-harness-use-1024-in-place-of-line_max.patch added to mm-nonmm-unstable branch
+Message-Id: <20240509185440.C10DAC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "selftests/harness: remove use of LINE_MAX"
+     Subject: selftests/harness: use 1024 in place of LINE_MAX
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     revert-selftests-harness-remove-use-of-line_max.patch
+     selftests-harness-use-1024-in-place-of-line_max.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-selftests-harness-remove-use-of-line_max.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-harness-use-1024-in-place-of-line_max.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,43 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Tao Su <tao1.su@linux.intel.com>
-Subject: Revert "selftests/harness: remove use of LINE_MAX"
-Date: Thu, 9 May 2024 13:31:12 +0800
+Subject: selftests/harness: use 1024 in place of LINE_MAX
+Date: Thu, 9 May 2024 13:31:13 +0800
 
-Patch series "Selftests: Fix compilation warnings due to missing
-_GNU_SOURCE definition", v2.
+Android was seeing a compilation error because its C library does not
+define LINE_MAX.  Since LINE_MAX is only used to determine the size of
+test_name[] and 1024 should be enough for the test name, use 1024 instead
+of LINE_MAX.
 
-Since kselftest_harness.h introduces asprintf()[1], many selftests have
-compilation warnings or errors due to missing _GNU_SOURCE definitions.
-
-The issue stems from a lack of a LINE_MAX definition in Android (see
-commit 38c957f07038), which is the reason why asprintf() was introduced. 
-We tried adding _GNU_SOURCE definitions to more selftests to fix, but
-asprintf() may continue to cause problems, and since it is quite late in
-the 6.9 cycle, we would like to revert 809216233555 first to provide
-testing for forks[2].
-
-[1] https://lore.kernel.org/all/20240411231954.62156-1-edliaw@google.com
-[2] https://lore.kernel.org/linux-kselftest/ZjuA3aY_iHkjP7bQ@google.com
-
-
-This patch (of 2):
-
-This reverts commit 8092162335554c8ef5e7f50eff68aa9cfbdbf865.
-
-asprintf() is declared in stdio.h when defining _GNU_SOURCE, but stdio.h
-is so common that many files don't define _GNU_SOURCE before including
-stdio.h, and defining _GNU_SOURCE after including stdio.h will no longer
-take effect, which causes warnings or even errors during compilation in
-many selftests.
-
-Revert 'commit 809216233555 ("selftests/harness: remove use of LINE_MAX")'
-as that came in quite late in the 6.9 cycle.
-
-Link: https://lkml.kernel.org/r/20240509053113.43462-1-tao1.su@linux.intel.com
-Link: https://lore.kernel.org/linux-kselftest/ZjuA3aY_iHkjP7bQ@google.com/
-Link: https://lkml.kernel.org/r/20240509053113.43462-2-tao1.su@linux.intel.com
-Fixes: 809216233555 ("selftests/harness: remove use of LINE_MAX")
+Link: https://lkml.kernel.org/r/20240509053113.43462-3-tao1.su@linux.intel.com
+Fixes: 38c957f07038 ("selftests: kselftest_harness: generate test name once")
 Signed-off-by: Tao Su <tao1.su@linux.intel.com>
 Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
 Cc: Bongsu Jeon <bongsu.jeon@samsung.com>
@@ -116,62 +89,28 @@ Cc: Takashi Iwai <tiwai@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kselftest_harness.h |   12 ++++--------
- tools/testing/selftests/mm/mdwe_test.c      |    1 -
- 2 files changed, 4 insertions(+), 9 deletions(-)
+ tools/testing/selftests/kselftest_harness.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/tools/testing/selftests/kselftest_harness.h~revert-selftests-harness-remove-use-of-line_max
+--- a/tools/testing/selftests/kselftest_harness.h~selftests-harness-use-1024-in-place-of-line_max
 +++ a/tools/testing/selftests/kselftest_harness.h
-@@ -56,6 +56,7 @@
+@@ -56,7 +56,6 @@
  #include <asm/types.h>
  #include <ctype.h>
  #include <errno.h>
-+#include <limits.h>
+-#include <limits.h>
  #include <stdbool.h>
  #include <stdint.h>
  #include <stdio.h>
-@@ -1155,7 +1156,7 @@ void __run_test(struct __fixture_metadat
+@@ -1156,7 +1155,7 @@ void __run_test(struct __fixture_metadat
  		struct __test_metadata *t)
  {
  	struct __test_xfail *xfail;
--	char *test_name;
-+	char test_name[LINE_MAX];
+-	char test_name[LINE_MAX];
++	char test_name[1024];
  	const char *diagnostic;
  
  	/* reset test struct */
-@@ -1163,12 +1164,8 @@ void __run_test(struct __fixture_metadat
- 	t->trigger = 0;
- 	memset(t->results->reason, 0, sizeof(t->results->reason));
- 
--	if (asprintf(&test_name, "%s%s%s.%s", f->name,
--		variant->name[0] ? "." : "", variant->name, t->name) == -1) {
--		ksft_print_msg("ERROR ALLOCATING MEMORY\n");
--		t->exit_code = KSFT_FAIL;
--		_exit(t->exit_code);
--	}
-+	snprintf(test_name, sizeof(test_name), "%s%s%s.%s",
-+		 f->name, variant->name[0] ? "." : "", variant->name, t->name);
- 
- 	ksft_print_msg(" RUN           %s ...\n", test_name);
- 
-@@ -1206,7 +1203,6 @@ void __run_test(struct __fixture_metadat
- 
- 	ksft_test_result_code(t->exit_code, test_name,
- 			      diagnostic ? "%s" : "", diagnostic);
--	free(test_name);
- }
- 
- static int test_harness_run(int argc, char **argv)
---- a/tools/testing/selftests/mm/mdwe_test.c~revert-selftests-harness-remove-use-of-line_max
-+++ a/tools/testing/selftests/mm/mdwe_test.c
-@@ -7,7 +7,6 @@
- #include <linux/mman.h>
- #include <linux/prctl.h>
- 
--#define _GNU_SOURCE
- #include <stdio.h>
- #include <stdlib.h>
- #include <sys/auxv.h>
 _
 
 Patches currently in -mm which might be from tao1.su@linux.intel.com are
