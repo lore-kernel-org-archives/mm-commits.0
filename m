@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AA887D41F;
-	Thu,  9 May 2024 18:27:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0035A79F2
+	for <mm-commits@vger.kernel.org>; Thu,  9 May 2024 18:31:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715279268; cv=none; b=W/67wXJVM6YQg+jILkgC6A6iI0y8ZBmZcdluJDAiV2Hqr3yHneAn+T7HLqWBskFleE6TXixgAptlgfEgsyZBIJXIQ8mr/yacNclVrOnptQSLgrg83utj4QaEauo80Een00FLUHR3x/hTrA+okPMIJk/ARq2Cr7JWX6YdRqiJZOc=
+	t=1715279488; cv=none; b=mxUsN23ZaPubtSDSohpH+nkzSs46MCq7kzQ9sIE0v4dlu5cKE8TNcG32mmP+ly8vkwFbjGzmRjEZsfxqcMj+ef5+AGkJI7uN0Z+tDAqI7sb81pNUyHmT7Czi1wrp1Set3PQ7jIa11aPvbGBpgtM/rdsjhYjRoHEtUT/3/9x8oNI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715279268; c=relaxed/simple;
-	bh=RwF9Ky79Nr0kK/vewzqtG7SJuC3KEaUY7spiwqX/PhE=;
-	h=Date:To:From:Subject:Message-Id; b=TV+0xOI9uzUkgI2as58JnnCbiMzSB0DrD+uriwid3DZ+0dprqUoCs1HgJ0Bb+YO/ihjzDomkdzfY4yz5VYgXJNpQ139YzTFUa4b9GKD7Czt2aKDx4JT1te4xjQ2Z1CBPoxNORHFI8Y+Mh9wyKWLcfQGwjy0sfHg93Hl8gPBTSjg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rucfJYQa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1715279488; c=relaxed/simple;
+	bh=1WvF6q8M5VcxqtCFtT7EAiM5vQlo8n8fbWWYcp4jIDo=;
+	h=Date:To:From:Subject:Message-Id; b=WvMd08BXeFM9XOnQKJJtLcob1ElKExGxEVWouY6mnJH6lKPpgZFBPib/7vjR4Sxg0D10cir8OVcOcswA7mnt+8gOVjR3rWzNJMOqt3ec3nl8efP7l/cVI5/ShferAqfASfflL0Ej+imKb2AQs0tG4P8ADA/2lAmpZ6GtmNMiVmo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n4Yb5Gjy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rucfJYQa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4414C116B1;
-	Thu,  9 May 2024 18:27:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n4Yb5Gjy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E3AFC116B1;
+	Thu,  9 May 2024 18:31:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1715279267;
-	bh=RwF9Ky79Nr0kK/vewzqtG7SJuC3KEaUY7spiwqX/PhE=;
+	s=korg; t=1715279487;
+	bh=1WvF6q8M5VcxqtCFtT7EAiM5vQlo8n8fbWWYcp4jIDo=;
 	h=Date:To:From:Subject:From;
-	b=rucfJYQai7p8l16LB+HRJKLIq0lS4Y/03B+lJypCXdGLYVt6fzpSahRxoS9nSrg66
-	 t9sBBxOXeK7MgIxhOwPqz0/snlNQRBkwa+II7LbxZh6vnKfMVFYPU+ftiWzaRfE259
-	 26VBZQ1qmr2W/W25ywOiW1XFKIlI1HWPaHrESsTQ=
-Date: Thu, 09 May 2024 11:27:46 -0700
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,stable@vger.kernel.org,dyoung@redhat.com,bhe@redhat.com,riel@surriel.com,akpm@linux-foundation.org
+	b=n4Yb5GjyyV1LtjvZXVKdHmiAQ0LDlOglslah0iDhVq7s1pPIuU9iqOj6SgkVJ4zCn
+	 5lTBqGjJzKKwRXTXme2tBUkAWNwxnFHZutlbmp1LjW0r4tjI6Mm15m2wgZes7orfLQ
+	 MVYBQes+iCgcjEkV+iKMDc9kVKpqc4lTIRJK3iao=
+Date: Thu, 09 May 2024 11:31:26 -0700
+To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,liushixin2@huawei.com,axelrasmussen@google.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-fix-softlockup-in-__read_vmcore.patch added to mm-nonmm-unstable branch
-Message-Id: <20240509182747.B4414C116B1@smtp.kernel.org>
+Subject: + mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_fault.patch added to mm-unstable branch
+Message-Id: <20240509183127.7E3AFC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc: fix softlockup in __read_vmcore
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fs-proc-fix-softlockup-in-__read_vmcore.patch
+     Subject: mm/hugetlb: add missing VM_FAULT_SET_HINDEX in hugetlb_fault
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_fault.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-fix-softlockup-in-__read_vmcore.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_fault.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,46 +58,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: fs/proc: fix softlockup in __read_vmcore
-Date: Tue, 7 May 2024 09:18:58 -0400
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm/hugetlb: add missing VM_FAULT_SET_HINDEX in hugetlb_fault
+Date: Thu, 9 May 2024 12:01:47 +0200
 
-While taking a kernel core dump with makedumpfile on a larger system,
-softlockup messages often appear.
+Patch series "Minor fixups for hugetlb fault path".
 
-While softlockup warnings can be harmless, they can also interfere with
-things like RCU freeing memory, which can be problematic when the kdump
-kexec image is configured with as little memory as possible.
+This series contains a couple of fixups for hugetlb_fault and hugetlb_wp
+respectively, where a VM_FAULT_SET_HINDEX call was missing.
 
-Avoid the softlockup, and give things like work items and RCU a chance to
-do their thing during __read_vmcore by adding a cond_resched.
+I did not bother with a Fixes tag because the missing piece here is that
+we will not report to userspace the right extension of the faulty area by
+adjusting struct kernel_siginfo.si_addr_lsb, but I do not consider that to
+be a big issue because I assume that userspace already knows the size of
+the mapping anyway.
 
-Link: https://lkml.kernel.org/r/20240507091858.36ff767f@imladris.surriel.com
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: <stable@vger.kernel.org>
+
+This patch (of 2):
+
+commit af19487f00f3 ("mm: make PTE_MARKER_SWAPIN_ERROR more general")
+added the code to handle pte_markers in hugetlb faulting path.  In case of
+an UFFD_POISON event, a PTE_MARKER_POISONED will be created and we will
+return VM_FAULT_HWPOISON_LARGE upon detecting that in the fault path.  Add
+the missing VM_FAULT_SET_HINDEX, so the right si_addr_lsb will be passed
+to userspace to report the extension of the faulty area.
+
+Link: https://lkml.kernel.org/r/20240509100148.22384-1-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20240509100148.22384-2-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Peter Xu <peterx@redhat.com>
+Acked-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Liu Shixin <liushixin2@huawei.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/hugetlb.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/proc/vmcore.c~fs-proc-fix-softlockup-in-__read_vmcore
-+++ a/fs/proc/vmcore.c
-@@ -383,6 +383,8 @@ static ssize_t __read_vmcore(struct iov_
- 		/* leave now if filled buffer already */
- 		if (!iov_iter_count(iter))
- 			return acc;
-+
-+		cond_resched();
- 	}
+--- a/mm/hugetlb.c~mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_fault
++++ a/mm/hugetlb.c
+@@ -6485,7 +6485,8 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 				pte_marker_get(pte_to_swp_entry(vmf.orig_pte));
  
- 	list_for_each_entry(m, &vmcore_list, list) {
+ 			if (marker & PTE_MARKER_POISONED) {
+-				ret = VM_FAULT_HWPOISON_LARGE;
++				ret = VM_FAULT_HWPOISON_LARGE |
++				      VM_FAULT_SET_HINDEX(hstate_index(h));
+ 				goto out_mutex;
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-fs-proc-fix-softlockup-in-__read_vmcore.patch
+mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_fault.patch
+mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_wp.patch
 
