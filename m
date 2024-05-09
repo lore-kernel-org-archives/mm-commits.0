@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6485D77108
-	for <mm-commits@vger.kernel.org>; Thu,  9 May 2024 18:54:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 561703D3AC
+	for <mm-commits@vger.kernel.org>; Thu,  9 May 2024 18:56:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715280881; cv=none; b=enI2Xglkd7lsIaVE5UzxgJX3QhQqivB/48kxPn83DSu5ZQiThSO+1UWwRwJkkvlNkXDv279HLfcrCpTypiyrtOx04ukcRNIAUzWMrN3NOSuAmJoATqAACvTKtGNSnTxxN4zFrN3LoNSCxvzkdgPbJw/FH3DPeZZvZ5vWdCiIgDc=
+	t=1715280981; cv=none; b=BLNtwhclcVC5Mt4GT4RIshxnKHjxsXtqFJF8AENaBjwzFiGSwaCGX7Lm8qegsAQQ2y91Y0AYcG2KzK4YMnjyicGfQ1NgtyxqF0LuAuPGTojL+g5wQcb37Mn/p9ieFDZSMaW+4/7xaIu/KcwIGAFLf7+oNLr0ROEbrgeJ/x7WmHM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715280881; c=relaxed/simple;
-	bh=R5RRkYgo6KYYC8ZO4z+mtrp7Mlbtsa+ISGnoX7IOgdc=;
-	h=Date:To:From:Subject:Message-Id; b=XVNuQC9SHWFzQ04BiYAGkLjBHVct9/hlAFqC15op42yxg0YS6uJ3oYA5VEeiC4PSdePVXKeXdlZJBrrOvSXAacO7jnpey/hN8p+MBNpuGijsxL36FY3jamEeGhkiCKtV7fAIQzGeGRrIoLDgNw88hMmbjq4XU+Q7AACbfHXMdQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RcmQ9V6p; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1715280981; c=relaxed/simple;
+	bh=qwrtyH8g981FGvw8w/PeeuMTeug6/vt5ANXELLI25ws=;
+	h=Date:To:From:Subject:Message-Id; b=XwOAbO0ecpqryuQOLGpFfOPLzJwmYhCZNtI7k94Iw950ktBuS6QmAuDSwZu4OTqpbZEsAAWzPGREx+4pI59rbbptIzdQv7u6m/R0NdmqWpkSOBIE8cIlU9Ij5zswAeh7KrYD9Fv9nRmrpxJJrgJY2FFNfRVzyt2oFq6VFXte+Ks=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qGC/UxCc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RcmQ9V6p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C10DAC116B1;
-	Thu,  9 May 2024 18:54:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qGC/UxCc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADFEFC116B1;
+	Thu,  9 May 2024 18:56:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1715280880;
-	bh=R5RRkYgo6KYYC8ZO4z+mtrp7Mlbtsa+ISGnoX7IOgdc=;
+	s=korg; t=1715280980;
+	bh=qwrtyH8g981FGvw8w/PeeuMTeug6/vt5ANXELLI25ws=;
 	h=Date:To:From:Subject:From;
-	b=RcmQ9V6pzAM34B8UK7eEkWZSrnqEwe5en8j94ub758XjcB3ZPFJEZhHN7dDSzBqUR
-	 gLx91gXt1cnJBTTVQ2uKDZqAQHwT9NFlD2A2IKbrGIDMnGNYHIolWGziv8sLX+Bye+
-	 xwb9pcmNurpnfLboBjoRo/YgRg+s3iNC1UsuAi6A=
-Date: Thu, 09 May 2024 11:54:40 -0700
-To: mm-commits@vger.kernel.org,tiwai@suse.com,shuah@kernel.org,seanjc@google.com,perex@perex.cz,pbonzini@redhat.com,pabeni@redhat.com,kuba@kernel.org,jarkko@kernel.org,ivan.orlov0322@gmail.com,edumazet@google.com,edliaw@google.com,davem@davemloft.net,dave.hansen@linux.intel.com,broonie@kernel.org,bongsu.jeon@samsung.com,alexandre.belloni@bootlin.com,tao1.su@linux.intel.com,akpm@linux-foundation.org
+	b=qGC/UxCccoGFHnYlYS1cHppnvkm9H15sClS7vtEUxXeOOqppndhM5g8Hp1h2OHcV5
+	 +NHMJjQLoBrYmExDccnTPMZeD2dG2VH5wWNt0vbm0Zq4cdEiMQoqxNjrFPOD2W+0LR
+	 N+V/Vl9F2ISxoAybOuAW/bkPjVYrUhFx30kfZtkM=
+Date: Thu, 09 May 2024 11:56:20 -0700
+To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,songmuchun@bytedance.com,shakeelb@google.com,rostedt@goodmis.org,roman.gushchin@linux.dev,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,juri.lelli@redhat.com,hannes@cmpxchg.org,dietmar.eggemann@arm.com,bsegall@google.com,bristot@redhat.com,xiujianfeng@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-harness-use-1024-in-place-of-line_max.patch added to mm-nonmm-unstable branch
-Message-Id: <20240509185440.C10DAC116B1@smtp.kernel.org>
+Subject: + memcg-oom-cleanup-unused-memcg_oom_gfp_mask-and-memcg_oom_order.patch added to mm-unstable branch
+Message-Id: <20240509185620.ADFEFC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/harness: use 1024 in place of LINE_MAX
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-harness-use-1024-in-place-of-line_max.patch
+     Subject: memcg, oom: cleanup unused memcg_oom_gfp_mask and memcg_oom_order
+has been added to the -mm mm-unstable branch.  Its filename is
+     memcg-oom-cleanup-unused-memcg_oom_gfp_mask-and-memcg_oom_order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-harness-use-1024-in-place-of-line_max.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-oom-cleanup-unused-memcg_oom_gfp_mask-and-memcg_oom_order.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,63 +58,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tao Su <tao1.su@linux.intel.com>
-Subject: selftests/harness: use 1024 in place of LINE_MAX
-Date: Thu, 9 May 2024 13:31:13 +0800
+From: Xiu Jianfeng <xiujianfeng@huawei.com>
+Subject: memcg, oom: cleanup unused memcg_oom_gfp_mask and memcg_oom_order
+Date: Thu, 9 May 2024 03:26:28 +0000
 
-Android was seeing a compilation error because its C library does not
-define LINE_MAX.  Since LINE_MAX is only used to determine the size of
-test_name[] and 1024 should be enough for the test name, use 1024 instead
-of LINE_MAX.
+Since commit 857f21397f71 ("memcg, oom: remove unnecessary check in
+mem_cgroup_oom_synchronize()"), memcg_oom_gfp_mask and memcg_oom_order are
+no longer used any more.
 
-Link: https://lkml.kernel.org/r/20240509053113.43462-3-tao1.su@linux.intel.com
-Fixes: 38c957f07038 ("selftests: kselftest_harness: generate test name once")
-Signed-off-by: Tao Su <tao1.su@linux.intel.com>
-Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
-Cc: Bongsu Jeon <bongsu.jeon@samsung.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Edward Liaw <edliaw@google.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Ivan Orlov <ivan.orlov0322@gmail.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Takashi Iwai <tiwai@suse.com>
+Link: https://lkml.kernel.org/r/20240509032628.1217652-1-xiujianfeng@huawei.com
+Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Benjamin Segall <bsegall@google.com>
+Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kselftest_harness.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/sched.h |    2 --
+ mm/memcontrol.c       |    2 --
+ 2 files changed, 4 deletions(-)
 
---- a/tools/testing/selftests/kselftest_harness.h~selftests-harness-use-1024-in-place-of-line_max
-+++ a/tools/testing/selftests/kselftest_harness.h
-@@ -56,7 +56,6 @@
- #include <asm/types.h>
- #include <ctype.h>
- #include <errno.h>
--#include <limits.h>
- #include <stdbool.h>
- #include <stdint.h>
- #include <stdio.h>
-@@ -1156,7 +1155,7 @@ void __run_test(struct __fixture_metadat
- 		struct __test_metadata *t)
- {
- 	struct __test_xfail *xfail;
--	char test_name[LINE_MAX];
-+	char test_name[1024];
- 	const char *diagnostic;
+--- a/include/linux/sched.h~memcg-oom-cleanup-unused-memcg_oom_gfp_mask-and-memcg_oom_order
++++ a/include/linux/sched.h
+@@ -1448,8 +1448,6 @@ struct task_struct {
  
- 	/* reset test struct */
+ #ifdef CONFIG_MEMCG
+ 	struct mem_cgroup		*memcg_in_oom;
+-	gfp_t				memcg_oom_gfp_mask;
+-	int				memcg_oom_order;
+ 
+ 	/* Number of pages to reclaim on returning to userland: */
+ 	unsigned int			memcg_nr_pages_over_high;
+--- a/mm/memcontrol.c~memcg-oom-cleanup-unused-memcg_oom_gfp_mask-and-memcg_oom_order
++++ a/mm/memcontrol.c
+@@ -2188,8 +2188,6 @@ static bool mem_cgroup_oom(struct mem_cg
+ 		if (current->in_user_fault) {
+ 			css_get(&memcg->css);
+ 			current->memcg_in_oom = memcg;
+-			current->memcg_oom_gfp_mask = mask;
+-			current->memcg_oom_order = order;
+ 		}
+ 		return false;
+ 	}
 _
 
-Patches currently in -mm which might be from tao1.su@linux.intel.com are
+Patches currently in -mm which might be from xiujianfeng@huawei.com are
 
-revert-selftests-harness-remove-use-of-line_max.patch
-selftests-harness-use-1024-in-place-of-line_max.patch
+mm-memcg-make-alloc_mem_cgroup_per_node_info-return-bool.patch
+memcg-oom-cleanup-unused-memcg_oom_gfp_mask-and-memcg_oom_order.patch
 
