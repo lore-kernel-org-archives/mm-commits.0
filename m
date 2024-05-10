@@ -1,83 +1,63 @@
-Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9887680028
-	for <mm-commits@vger.kernel.org>; Fri, 10 May 2024 21:00:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8727913C917;
+	Fri, 10 May 2024 21:39:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715374847; cv=none; b=IEMfKcHJAnpyii0BYfCXvzA35b7LEOn5z47Td2n5jebnR/huyv93cBxcIm+2qF2IqC4Xcqq+Cyl0pp3cLLXZw0ebucWYM15uBH89E5yKnQtkPqHPiip7koCSKJoPlDTacQ/0pbBNGTShtmhBw/L24rIaqAQQl/eJ7kk7MMdQZEs=
+	t=1715377154; cv=none; b=I0sYEuO4gqI1V8I7AeiF4S1pd+gK7eCLdwg0Yevy4CDsPPJtHwvOBWx2P+MQo+OHF+Jx4nGRnL/VxfqF3nFSjuivVJlF8hOUGxqGGSa/mfaanbNsySNIKI64zB3dhCHcwAbbKvis73MVm9hCfuDFOQpbUF3md62sVUZRtlUAfXA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715374847; c=relaxed/simple;
-	bh=+v2CyGWre7FViv2q+gWskzmC08UpI0br+uxEzFMUgiY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=WnXkukmLnkKkVz1YZ0T3afPxrIO3x7eosVxZRvAMN9fuswg5BMOd0t5Brb8jFeS9LP4wIJ4lYMjnwA83xy+gyRy2uXtEePHklGcG4V4z4OS5tvBsPvAF8lTk3ceSF31OJpg8sBGKXZttMCUg4BC6TNtORX1/BYm+kqzU+mae8H0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c9yA3GnN; arc=none smtp.client-ip=209.85.218.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	s=arc-20240116; t=1715377154; c=relaxed/simple;
+	bh=eQbK4t7LZ4AmfufELJBTSU2juM59XYEa7CN1Mh1aJBU=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=ZulKnIXFP2hQcZEXC7vkSAGA/VdCpZVEp1v5NbluiKGXB4KRrVCQxC+2d9CE8HZcdqGRvF2eSpQyJwo7gISZaUNev6d5pEU7YL4a6ePq/pFsFRwxwhT16V/XEk+07wAUdVBfG4AnZfCoFJXXCK7F80IMBq2TdG2anNJLnKyFWvs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BeBK2XsV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c9yA3GnN"
-Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-a59b49162aeso601746566b.3
-        for <mm-commits@vger.kernel.org>; Fri, 10 May 2024 14:00:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1715374844; x=1715979644; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=2DUX1DFhjN4Cse0eC9UIMDH8SiM6U9i/F0JxyDME3sQ=;
-        b=c9yA3GnNdYquBNcglY0x7x2/A3ixBhvRPQU8Y6hxc6Oe8Qys7iO2/WEcshggttusuh
-         ND4f6utC67soJoospycQAUv1mitxuZdlHGBtdaWGjT9DrEH1tL9TRYKfSnGQ3B2mrwJy
-         PBcmphnjSgDmkeeTIH2bw79s6tOjYzUc9A0xE=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1715374844; x=1715979644;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=2DUX1DFhjN4Cse0eC9UIMDH8SiM6U9i/F0JxyDME3sQ=;
-        b=Hzw9RCc/eEEa8UjuZ0YQ+n3eUL/GDySmZ6nZYEY1M4tU6q8mzzdVBkcH1ZPSGjDuvR
-         JmENzT7gd+4al33SS08N+t9bZX6Iezq50JCLwo/ZKQfTOwlkHVNHtn1CWUvgTzBfaHjx
-         QBpTrPyllIFS522aTd4tW+I+xBlbD28Ew6rBzarE8hI4t1Mfmvi5HiGQar2Khhz08gi3
-         FXZk1WDuz7tzKIrbHNK+khEGKK30Z62wSxpiCD6lJNI9v9RN15BpmmHfzt51QmPg8GaP
-         QxlknZ4eUIS0HJTlhzIVfQveRZTgW1YWYyp/CKj/dCGRCD+sxBF9YzvOXTlpGq0wgHqj
-         AnZw==
-X-Forwarded-Encrypted: i=1; AJvYcCXwqcWlulGPNBQGPaGENJhLPvjI+cVvG8uZB3lHXKuPpHS+qVovoZ7WY1sl7OxFSof/E+TBkxCF5xX99WtK+i85jUXmyJON/WX6yA==
-X-Gm-Message-State: AOJu0Yz2xfpQnIq7qwS9tVOMBLC7IO5TxZwag1Ak29CEw/c/+RbT7J0N
-	rq+kXU4VtSi3GPXwPQuQuiAkNBCeIXIIfaGc27PlJEtqivlC71JytvbYJOLSKFadsvVbFquFlZ5
-	u33E=
-X-Google-Smtp-Source: AGHT+IEnZssCaFn25OxWOwcohufXA8wRHXHxrM3P5KmjOS3hLxzBeTyv/Pzyy3A8DCEP3MvYFkAJgw==
-X-Received: by 2002:a50:d650:0:b0:572:78df:c606 with SMTP id 4fb4d7f45d1cf-5734d67ef03mr2581940a12.26.1715374843606;
-        Fri, 10 May 2024 14:00:43 -0700 (PDT)
-Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com. [209.85.218.42])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5733c2c7e25sm2208913a12.61.2024.05.10.14.00.42
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 10 May 2024 14:00:42 -0700 (PDT)
-Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-a59c0a6415fso708527266b.1
-        for <mm-commits@vger.kernel.org>; Fri, 10 May 2024 14:00:42 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCVPiY+4xsblztk1wCADavvUmD6nwjTnoWCluWiPlHEgT7YpC16AigHHqGLa6jsdfsLEPEfKk5b8/VCQNyh92V7erU45151nPXWhBQ==
-X-Received: by 2002:a17:906:9982:b0:a59:bacc:b086 with SMTP id
- a640c23a62f3a-a5a2d641841mr239515866b.50.1715374842012; Fri, 10 May 2024
- 14:00:42 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BeBK2XsV"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 6898AC32782;
+	Fri, 10 May 2024 21:39:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1715377154;
+	bh=eQbK4t7LZ4AmfufELJBTSU2juM59XYEa7CN1Mh1aJBU=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=BeBK2XsV4+dlGMgnzEqNxxpHpGxEsjSn9dwBUuQEf1SJyNEGsxRnRYvYy3t41TsNX
+	 Ul0zgLooQZoKFF8FaXA9KyPcvyW/gPOxEVERuM4U5cyy4CWrbhYVw6fJoe6CCpfDYV
+	 vSPa6MYSYL9wBNYVXw4dej59CEg9LG04cjNExkox9lmyj80KrYoS7dEg5pgzp20vNp
+	 Lo2gKXQdek+v+YVHfHL2J5Y6Tb5ecMFQQhMZ0blDskFdTSOnuhhVwW9s4UL3y7HtBt
+	 YcBCIxPQuatIkuWTdaL6e/4bjyliaxxHNXvhCD5or1nfu1JJbl1bFgoISnrXYKRORR
+	 +YRL7ourBXooA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 5CA3FE7C112;
+	Fri, 10 May 2024 21:39:14 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.10
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20240510131743.cf12a22295edd6ae4c175d5b@linux-foundation.org>
+References: <20240510131743.cf12a22295edd6ae4c175d5b@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20240510131743.cf12a22295edd6ae4c175d5b@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-05-10-13-14
+X-PR-Tracked-Commit-Id: 672614a3ed24150f39752365c57a85fca1bd0017
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: c22c3e0753807feee1391a22228b0d5e6ba39b74
+Message-Id: <171537715436.8717.12103384516961795701.pr-tracker-bot@kernel.org>
+Date: Fri, 10 May 2024 21:39:14 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20240510131743.cf12a22295edd6ae4c175d5b@linux-foundation.org>
-In-Reply-To: <20240510131743.cf12a22295edd6ae4c175d5b@linux-foundation.org>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Fri, 10 May 2024 14:00:25 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wjeV5w3=K_r5+ypeB6_JWKiN7CuiReTn+6BMTyXvXZ2pw@mail.gmail.com>
-Message-ID: <CAHk-=wjeV5w3=K_r5+ypeB6_JWKiN7CuiReTn+6BMTyXvXZ2pw@mail.gmail.com>
-Subject: Re: [GIT PULL] hotfixes for 6.10
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
 
-On Fri, 10 May 2024 at 13:17, Andrew Morton <akpm@linux-foundation.org> wrote:
->
-> 18 hotfixes, 7 of which are cc:stable.
+The pull request you sent on Fri, 10 May 2024 13:17:43 -0700:
 
-I assume the subject line is wrong, and you meant 6.9.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-05-10-13-14
 
-              Linus
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/c22c3e0753807feee1391a22228b0d5e6ba39b74
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
