@@ -1,55 +1,185 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1971933CFC;
-	Sat, 11 May 2024 03:16:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC3FE1CAAD
+	for <mm-commits@vger.kernel.org>; Sat, 11 May 2024 21:49:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715397405; cv=none; b=JiudZ0I1d/oFmhEP7M7jEfSxMMjKFflryRsMhxP9sz1envBCA/AL2d0roc4ks51Jfo2rx1TH+JCY2zHudE0g0sHLpP6BuuCJzzjjww1iwLgH62ly9cG4d98KN+wUat6h/okp3l8WJQDSNHiitO69yc7T11Xm7gAJcYr0zT7Did4=
+	t=1715464156; cv=none; b=t4KHTRNByMPv0oMZU8d50NS+SIJisR11WJYBQZI5OUma/1XkIgV1DACVh4h8M2F/Xv9sevJ3ZAe/uoihAFvyAcz6MYbRIpgAKNZUGbY+bQircFkoobMjWz23K47cbEvdjYyOEdpBLGplLoqI/2F7T/HdcL0O/O6arU80h+WUA74=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715397405; c=relaxed/simple;
-	bh=1BXT9vTuEvaytkfKIN6MzsxTRNizyIlG33pfoih61aI=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=oa3XWN/P2gbutrTUXNHeG569HteprUzhl/4g5M01zfJfQkfte8kqmZPuybMSLPzZDMkTsY2Z8O7aav5hq1MQPkbUHaDcMJKcOacgQNMMwsDigtcvMsdmuGcEwtmGGQQ3kKYKpd98v1qOjAtGRJ91e4Mu77zzhErCIMEumIwuGXw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pWjDuvX1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1715464156; c=relaxed/simple;
+	bh=4y28shCKA6c0cta2kdMjr4CPeRVzLLhOMPYoszlFzP0=;
+	h=Date:To:From:Subject:Message-Id; b=CLynvcMGEMXqnkCqQwTdebWSpUrMty6yM/r7dGz2CJoby09lTAbZ/i5Dugxx9qrX73Adc72BTxRQTxtiXmDRyOMl4/K+5T8/nTQc8N9d9hfBOuqPO/175VmdbyaxAHLplwn4f8m4NsFBtpj0TiTyvbqtfxHSlSImHx4lDfkSSXE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KTzc2qtT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pWjDuvX1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A075EC113CC;
-	Sat, 11 May 2024 03:16:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KTzc2qtT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79A5AC32781;
+	Sat, 11 May 2024 21:49:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1715397404;
-	bh=1BXT9vTuEvaytkfKIN6MzsxTRNizyIlG33pfoih61aI=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=pWjDuvX1d8wSDdk68ADsNmAGfVT1jeuQXoLMDPUPM5jyv9uuhFmZ2WOc4R/VneWaA
-	 +AZaOf+qoYNV2KHUZ1aJcm7FYOYkmT8L7bkF2IFpJrGrQi0B3+XOng8udzzbGqEPyz
-	 eMxPQ7s8Qil9zbUx/LjDBLe19YRp64cwO1xXHimQ=
-Date: Fri, 10 May 2024 20:16:44 -0700
+	s=korg; t=1715464155;
+	bh=4y28shCKA6c0cta2kdMjr4CPeRVzLLhOMPYoszlFzP0=;
+	h=Date:To:From:Subject:From;
+	b=KTzc2qtTVeDpNp/VG0gw3S6KXVjSkXgj4f41JzilNH5Y+vNNxVlujEcL1IZ1sMS2D
+	 t4T1+PNKftN7DjrQ24nBuHOndlP1QsEnOzUyaP5zgsoBXQsJWrWUJdLpFcrw7V4BP4
+	 KhcOcEFvPphvuKfM4C8qdLPQLDcsqgNVbVlidWkc=
+Date: Sat, 11 May 2024 14:49:14 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,usama.anjum@collabora.com,torvalds@linux-foundation.org,surenb@google.com,sroettger@google.com,shuah@kernel.org,pedro.falcato@gmail.com,Liam.Howlett@oracle.com,keescook@chromium.org,jorgelo@chromium.org,jeffxu@google.com,javier.carrasco.cruz@gmail.com,jannh@google.com,groeck@chromium.org,gregkh@linuxfoundation.org,dave.hansen@intel.com,corbet@lwn.net,amer.shanawany@gmail.com,jeffxu@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: Re: [GIT PULL] hotfixes for 6.10
-Message-Id: <20240510201644.758feb6938755225fea226da@linux-foundation.org>
-In-Reply-To: <CAHk-=wjeV5w3=K_r5+ypeB6_JWKiN7CuiReTn+6BMTyXvXZ2pw@mail.gmail.com>
-References: <20240510131743.cf12a22295edd6ae4c175d5b@linux-foundation.org>
-	<CAHk-=wjeV5w3=K_r5+ypeB6_JWKiN7CuiReTn+6BMTyXvXZ2pw@mail.gmail.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: [folded-merged] mseal-add-mseal-syscall-fix.patch removed from -mm tree
+Message-Id: <20240511214915.79A5AC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Fri, 10 May 2024 14:00:25 -0700 Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> On Fri, 10 May 2024 at 13:17, Andrew Morton <akpm@linux-foundation.org> wrote:
-> >
-> > 18 hotfixes, 7 of which are cc:stable.
-> 
-> I assume the subject line is wrong, and you meant 6.9.
-> 
+The quilt patch titled
+     Subject: mseal: add branch prediction hint
+has been removed from the -mm tree.  Its filename was
+     mseal-add-mseal-syscall-fix.patch
 
-yup, thanks.  I've always had problems with that.
+This patch was dropped because it was folded into mseal-add-mseal-syscall.patch
+
+------------------------------------------------------
+From: Jeff Xu <jeffxu@chromium.org>
+Subject: mseal: add branch prediction hint
+Date: Tue, 23 Apr 2024 19:28:25 +0000
+
+It is unlikely that application calls mm syscall, such as mprotect, on
+already sealed mappings, adding branch prediction hint.
+
+Link: https://lkml.kernel.org/r/20240423192825.1273679-2-jeffxu@chromium.org
+Signed-off-by: Jeff Xu <jeffxu@chromium.org>
+Suggested-by: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Amer Al Shanawany <amer.shanawany@gmail.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Guenter Roeck <groeck@chromium.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Javier Carrasco <javier.carrasco.cruz@gmail.com>
+Cc: Jeff Xu <jeffxu@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Stephen Röttger <sroettger@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/madvise.c  |    2 +-
+ mm/mmap.c     |    4 ++--
+ mm/mprotect.c |    2 +-
+ mm/mremap.c   |    4 ++--
+ mm/mseal.c    |    6 +++---
+ 5 files changed, 9 insertions(+), 9 deletions(-)
+
+--- a/mm/madvise.c~mseal-add-mseal-syscall-fix
++++ a/mm/madvise.c
+@@ -1449,7 +1449,7 @@ int do_madvise(struct mm_struct *mm, uns
+ 	 * Check if the address range is sealed for do_madvise().
+ 	 * can_modify_mm_madv assumes we have acquired the lock on MM.
+ 	 */
+-	if (!can_modify_mm_madv(mm, start, end, behavior)) {
++	if (unlikely(!can_modify_mm_madv(mm, start, end, behavior))) {
+ 		error = -EPERM;
+ 		goto out;
+ 	}
+--- a/mm/mmap.c~mseal-add-mseal-syscall-fix
++++ a/mm/mmap.c
+@@ -2740,7 +2740,7 @@ int do_vmi_munmap(struct vma_iterator *v
+ 	 * Prevent unmapping a sealed VMA.
+ 	 * can_modify_mm assumes we have acquired the lock on MM.
+ 	 */
+-	if (!can_modify_mm(mm, start, end))
++	if (unlikely(!can_modify_mm(mm, start, end)))
+ 		return -EPERM;
+ 
+ 	 /* arch_unmap() might do unmaps itself.  */
+@@ -3163,7 +3163,7 @@ int do_vma_munmap(struct vma_iterator *v
+ 	 * Prevent unmapping a sealed VMA.
+ 	 * can_modify_mm assumes we have acquired the lock on MM.
+ 	 */
+-	if (!can_modify_mm(mm, start, end))
++	if (unlikely(!can_modify_mm(mm, start, end)))
+ 		return -EPERM;
+ 
+ 	arch_unmap(mm, start, end);
+--- a/mm/mprotect.c~mseal-add-mseal-syscall-fix
++++ a/mm/mprotect.c
+@@ -749,7 +749,7 @@ static int do_mprotect_pkey(unsigned lon
+ 	 * checking if memory is sealed.
+ 	 * can_modify_mm assumes we have acquired the lock on MM.
+ 	 */
+-	if (!can_modify_mm(current->mm, start, end)) {
++	if (unlikely(!can_modify_mm(current->mm, start, end))) {
+ 		error = -EPERM;
+ 		goto out;
+ 	}
+--- a/mm/mremap.c~mseal-add-mseal-syscall-fix
++++ a/mm/mremap.c
+@@ -912,7 +912,7 @@ static unsigned long mremap_to(unsigned
+ 	 *
+ 	 * can_modify_mm assumes we have acquired the lock on MM.
+ 	 */
+-	if (!can_modify_mm(mm, addr, addr + old_len))
++	if (unlikely(!can_modify_mm(mm, addr, addr + old_len)))
+ 		return -EPERM;
+ 
+ 	if (flags & MREMAP_FIXED) {
+@@ -1087,7 +1087,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 	 * Place can_modify_mm here so we can keep the logic related to
+ 	 * shrink/expand together.
+ 	 */
+-	if (!can_modify_mm(mm, addr, addr + old_len)) {
++	if (unlikely(!can_modify_mm(mm, addr, addr + old_len))) {
+ 		ret = -EPERM;
+ 		goto out;
+ 	}
+--- a/mm/mseal.c~mseal-add-mseal-syscall-fix
++++ a/mm/mseal.c
+@@ -32,7 +32,7 @@ static inline void set_vma_sealed(struct
+  */
+ static bool can_modify_vma(struct vm_area_struct *vma)
+ {
+-	if (vma_is_sealed(vma))
++	if (unlikely(vma_is_sealed(vma)))
+ 		return false;
+ 
+ 	return true;
+@@ -75,7 +75,7 @@ bool can_modify_mm(struct mm_struct *mm,
+ 
+ 	/* going through each vma to check. */
+ 	for_each_vma_range(vmi, vma, end) {
+-		if (!can_modify_vma(vma))
++		if (unlikely(!can_modify_vma(vma)))
+ 			return false;
+ 	}
+ 
+@@ -100,7 +100,7 @@ bool can_modify_mm_madv(struct mm_struct
+ 
+ 	/* going through each vma to check. */
+ 	for_each_vma_range(vmi, vma, end)
+-		if (is_ro_anon(vma) && !can_modify_vma(vma))
++		if (unlikely(is_ro_anon(vma) && !can_modify_vma(vma)))
+ 			return false;
+ 
+ 	/* Allow by default. */
+_
+
+Patches currently in -mm which might be from jeffxu@chromium.org are
+
+mseal-wire-up-mseal-syscall.patch
+mseal-add-mseal-syscall.patch
+selftest-mm-mseal-memory-sealing.patch
+mseal-add-documentation.patch
+selftest-mm-mseal-read-only-elf-memory-segment.patch
+selftest-mm-mseal-read-only-elf-memory-segment-fix.patch
+selftest-mm-mseal-read-only-elf-memory-segment-fix-3.patch
+selftest-mm-mseal-read-only-elf-memory-segment-fix-4.patch
+
