@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A836219F6
-	for <mm-commits@vger.kernel.org>; Sat, 11 May 2024 22:42:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B638200C7
+	for <mm-commits@vger.kernel.org>; Sat, 11 May 2024 22:47:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715467347; cv=none; b=IJLRCgZ2rlxF1b5apo9B1Y4F8gpdBP5H+uaIC9azJeLKXlcCBh50XcreFAYTcq83JYkFEnObi0WJxZdxfxUse3B4g3IzdmNaYTq+tz/VdxnfE7/39ATBbDVPOAhTguzQ2nSm8QE0fAaydSGEwFMEwcpkoi81NXT8VytFZqtL/Qo=
+	t=1715467655; cv=none; b=sWRyD6IzZoicYfROinLTLXm8RPiyxZXeH8AGPbaxpDyI1/0x8a2RtkJn3OvwshDerbNtroyHSGrefkvNpwtdilVPI40GMql1dfZJPzNMSfsZHYjM6uMO3UvHCuJmQYmUYMDjItWKnpPhcncwHGuARgx/FXGAQglICsmxv6opxa8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715467347; c=relaxed/simple;
-	bh=3xutJpGHICFK5EWfqfXK/Lg85KXfK3GnBTNHyahPmsc=;
-	h=Date:To:From:Subject:Message-Id; b=cNXWcp74nKoHvV8QVmn566PZIpi71Rygj4FN8r3bxZ50+okLeS66EnR+jXlsL/2UfWeL8tfKXLCiSc3RqhidbMpqgDoLcOrK2lre5zwwhBnjw3ZAVsljE9u0aLDCsPzbJRc4VI/DWTG9kDzGp8cONUPPyrAA8wv5vf22245JiAs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xq4sFpJR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1715467655; c=relaxed/simple;
+	bh=1hQrXNtSwktv09P3aWm1u1VPh4fhXK285CBOXvyVFaA=;
+	h=Date:To:From:Subject:Message-Id; b=lJxcMMVNywyKGb2sXYkFTnbtaGuiyuvdHOoBe1pUwmDTS+er70m6zfLE0OcDxnmCHz4A1C+PP5BkChqiJfADrFRX2GvKeOuJRUV/+n/jw8cEQtewKZuHD4ByWJ3xrvg8MuQpLefU4eC8cMfZH8jxBhxQQBuqTc7eLdnnA2QvISE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J8v6uROz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xq4sFpJR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB812C2BBFC;
-	Sat, 11 May 2024 22:42:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J8v6uROz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44203C2BBFC;
+	Sat, 11 May 2024 22:47:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1715467346;
-	bh=3xutJpGHICFK5EWfqfXK/Lg85KXfK3GnBTNHyahPmsc=;
+	s=korg; t=1715467655;
+	bh=1hQrXNtSwktv09P3aWm1u1VPh4fhXK285CBOXvyVFaA=;
 	h=Date:To:From:Subject:From;
-	b=xq4sFpJRts4iZ5WcdpRiQmyeqs6GWIMVrZMeWKJTOm/kLYArVtDoOM80hee6hRxSL
-	 +7WEjZ12c4QtZLiAHEmLf/ukZm17NfcQWHs/MaEpmm5Qz8wzrjtJtWjkqL681PGvqW
-	 DvYC/6RDncCjmVwGUyxOt79JFnP7PwpFDuj61F3Y=
-Date: Sat, 11 May 2024 15:42:26 -0700
-To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,rostedt@goodmis.org,roman.gushchin@linux.dev,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,juri.lelli@redhat.com,hannes@cmpxchg.org,dietmar.eggemann@arm.com,bsegall@google.com,bristot@redhat.com,xiujianfeng@huawei.com,akpm@linux-foundation.org
+	b=J8v6uROzTARn15JZFgS7YTAQDSy+9TTsNjbzzpgCJZgCiXOyaIXPowt52+RTvqFVF
+	 KobL17k1+WG6qhoc1OwfcE+IWKokUJc48ylIX8gHM1TFNzN1jt+s+yA9EOy79bshAG
+	 Lm2jD1mfLYImEwQDkCnJIwfLqcPhS6UrS+P7FJrQ=
+Date: Sat, 11 May 2024 15:47:34 -0700
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,sj@kernel.org,shuah@kernel.org,ryan.roberts@arm.com,kernel@valentinobst.de,david@redhat.com,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-oom-cleanup-unused-memcg_oom_gfp_mask-and-memcg_oom_order.patch removed from -mm tree
-Message-Id: <20240511224226.DB812C2BBFC@smtp.kernel.org>
+Subject: [to-be-updated] selftests-mqueue-fix-5-warnings-about-signed-unsigned-mismatches.patch removed from -mm tree
+Message-Id: <20240511224735.44203C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg, oom: cleanup unused memcg_oom_gfp_mask and memcg_oom_order
+     Subject: selftests/mqueue: fix 5 warnings about signed/unsigned mismatches
 has been removed from the -mm tree.  Its filename was
-     memcg-oom-cleanup-unused-memcg_oom_gfp_mask-and-memcg_oom_order.patch
+     selftests-mqueue-fix-5-warnings-about-signed-unsigned-mismatches.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Xiu Jianfeng <xiujianfeng@huawei.com>
-Subject: memcg, oom: cleanup unused memcg_oom_gfp_mask and memcg_oom_order
-Date: Thu, 9 May 2024 03:26:28 +0000
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/mqueue: fix 5 warnings about signed/unsigned mismatches
+Date: Sun, 5 May 2024 15:13:59 -0700
 
-Since commit 857f21397f71 ("memcg, oom: remove unnecessary check in
-mem_cgroup_oom_synchronize()"), memcg_oom_gfp_mask and memcg_oom_order are
-no longer used any more.
+When building with clang, via:
 
-Link: https://lkml.kernel.org/r/20240509032628.1217652-1-xiujianfeng@huawei.com
-Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Benjamin Segall <bsegall@google.com>
-Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
+    make LLVM=1 -C tools/testing/selftest
+
+...clang warns about several cases of using a signed integer for the
+priority argument to mq_receive(3), which expects an unsigned int.
+
+Fix this by declaring the type as unsigned int in all cases.
+
+Link: https://lkml.kernel.org/r/20240505221359.65258-1-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Valentin Obst <kernel@valentinobst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 --
- mm/memcontrol.c       |    2 --
- 2 files changed, 4 deletions(-)
+ tools/testing/selftests/mqueue/mq_perf_tests.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/include/linux/sched.h~memcg-oom-cleanup-unused-memcg_oom_gfp_mask-and-memcg_oom_order
-+++ a/include/linux/sched.h
-@@ -1448,8 +1448,6 @@ struct task_struct {
+--- a/tools/testing/selftests/mqueue/mq_perf_tests.c~selftests-mqueue-fix-5-warnings-about-signed-unsigned-mismatches
++++ a/tools/testing/selftests/mqueue/mq_perf_tests.c
+@@ -323,7 +323,8 @@ void *fake_cont_thread(void *arg)
+ void *cont_thread(void *arg)
+ {
+ 	char buff[MSG_SIZE];
+-	int i, priority;
++	int i;
++	unsigned int priority;
  
- #ifdef CONFIG_MEMCG
- 	struct mem_cgroup		*memcg_in_oom;
--	gfp_t				memcg_oom_gfp_mask;
--	int				memcg_oom_order;
- 
- 	/* Number of pages to reclaim on returning to userland: */
- 	unsigned int			memcg_nr_pages_over_high;
---- a/mm/memcontrol.c~memcg-oom-cleanup-unused-memcg_oom_gfp_mask-and-memcg_oom_order
-+++ a/mm/memcontrol.c
-@@ -2188,8 +2188,6 @@ static bool mem_cgroup_oom(struct mem_cg
- 		if (current->in_user_fault) {
- 			css_get(&memcg->css);
- 			current->memcg_in_oom = memcg;
--			current->memcg_oom_gfp_mask = mask;
--			current->memcg_oom_order = order;
- 		}
- 		return false;
- 	}
+ 	for (i = 0; i < num_cpus_to_pin; i++)
+ 		if (cpu_threads[i] == pthread_self())
+@@ -425,7 +426,8 @@ struct test test2[] = {
+ void *perf_test_thread(void *arg)
+ {
+ 	char buff[MSG_SIZE];
+-	int prio_out, prio_in;
++	int prio_out;
++	unsigned int prio_in;
+ 	int i;
+ 	clockid_t clock;
+ 	pthread_t *t;
 _
 
-Patches currently in -mm which might be from xiujianfeng@huawei.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
 
