@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F20491F5F6
-	for <mm-commits@vger.kernel.org>; Sat, 11 May 2024 22:42:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A836219F6
+	for <mm-commits@vger.kernel.org>; Sat, 11 May 2024 22:42:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715467346; cv=none; b=SGpBsmyMaqfmQEaM9fsfjNcuyTD7pcM/KercGo7UZAMHx9+/t8ICfbqTCKeiVjsZkgQMcMC6LP1Yf6YaUg8Q7QPdeuNm1L8Mu03hQjjuJfPfo13qLzY+CSSZlxcBZtrSr4sFtC9djXwBJUmynY/Bdq9or54gQs1Tq5epXULY9M0=
+	t=1715467347; cv=none; b=IJLRCgZ2rlxF1b5apo9B1Y4F8gpdBP5H+uaIC9azJeLKXlcCBh50XcreFAYTcq83JYkFEnObi0WJxZdxfxUse3B4g3IzdmNaYTq+tz/VdxnfE7/39ATBbDVPOAhTguzQ2nSm8QE0fAaydSGEwFMEwcpkoi81NXT8VytFZqtL/Qo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715467346; c=relaxed/simple;
-	bh=ntsCQOtfmmcB+nPLegkKg5Rl4Kz6zmniGANBiQ5GB4w=;
-	h=Date:To:From:Subject:Message-Id; b=YGIO0s4TXyEgELcBAScuwRBbjw+b9mdjaTEEJhqIypRhJ1iK6FxRndAodH+cAdtlMvSCU3F5XOVyHDTVWXL6J+V0jywLK+S6LKWjHhHcQR9LTyVX0BUpt4v9dqRRho9Ui7yi4UDgOCmqWL1ZXd38Lo4vRLS+Nz4RVuaYJHE7JTI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tkr4CvP+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1715467347; c=relaxed/simple;
+	bh=3xutJpGHICFK5EWfqfXK/Lg85KXfK3GnBTNHyahPmsc=;
+	h=Date:To:From:Subject:Message-Id; b=cNXWcp74nKoHvV8QVmn566PZIpi71Rygj4FN8r3bxZ50+okLeS66EnR+jXlsL/2UfWeL8tfKXLCiSc3RqhidbMpqgDoLcOrK2lre5zwwhBnjw3ZAVsljE9u0aLDCsPzbJRc4VI/DWTG9kDzGp8cONUPPyrAA8wv5vf22245JiAs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xq4sFpJR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tkr4CvP+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B98CAC32782;
-	Sat, 11 May 2024 22:42:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xq4sFpJR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB812C2BBFC;
+	Sat, 11 May 2024 22:42:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1715467345;
-	bh=ntsCQOtfmmcB+nPLegkKg5Rl4Kz6zmniGANBiQ5GB4w=;
+	s=korg; t=1715467346;
+	bh=3xutJpGHICFK5EWfqfXK/Lg85KXfK3GnBTNHyahPmsc=;
 	h=Date:To:From:Subject:From;
-	b=tkr4CvP+J7RiWr45p0XNa17vEBhuljpFYc2D26aKx+QnUhnJvf72MIbptA1hke0Mi
-	 tqhXqTGu0Ar9de+uusjR/6ZNykT7qHSv7E9O3rrSTsAFh9eQ3uMv36R1CX5OkCs86I
-	 wb9cOQLdMYFPKLj7vQKNNfQ0XspaSUT8oE/s1JLk=
-Date: Sat, 11 May 2024 15:42:25 -0700
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,shuah@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=xq4sFpJRts4iZ5WcdpRiQmyeqs6GWIMVrZMeWKJTOm/kLYArVtDoOM80hee6hRxSL
+	 +7WEjZ12c4QtZLiAHEmLf/ukZm17NfcQWHs/MaEpmm5Qz8wzrjtJtWjkqL681PGvqW
+	 DvYC/6RDncCjmVwGUyxOt79JFnP7PwpFDuj61F3Y=
+Date: Sat, 11 May 2024 15:42:26 -0700
+To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,rostedt@goodmis.org,roman.gushchin@linux.dev,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,juri.lelli@redhat.com,hannes@cmpxchg.org,dietmar.eggemann@arm.com,bsegall@google.com,bristot@redhat.com,xiujianfeng@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-hugetlb_madv_vs_map-avoid-test-skipping-by-querying-hugepage-size-at-runtime.patch removed from -mm tree
-Message-Id: <20240511224225.B98CAC32782@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-oom-cleanup-unused-memcg_oom_gfp_mask-and-memcg_oom_order.patch removed from -mm tree
+Message-Id: <20240511224226.DB812C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,100 +35,70 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: hugetlb_madv_vs_map: avoid test skipping by querying hugepage size at runtime
+     Subject: memcg, oom: cleanup unused memcg_oom_gfp_mask and memcg_oom_order
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-hugetlb_madv_vs_map-avoid-test-skipping-by-querying-hugepage-size-at-runtime.patch
+     memcg-oom-cleanup-unused-memcg_oom_gfp_mask-and-memcg_oom_order.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: selftests/mm: hugetlb_madv_vs_map: avoid test skipping by querying hugepage size at runtime
-Date: Thu, 9 May 2024 15:24:47 +0530
+From: Xiu Jianfeng <xiujianfeng@huawei.com>
+Subject: memcg, oom: cleanup unused memcg_oom_gfp_mask and memcg_oom_order
+Date: Thu, 9 May 2024 03:26:28 +0000
 
-Currently, the size used in mmap() is statically defined, leading to
-skipping of the test on a hugepage size other than 2 MB, since munmap()
-won't free the hugepage for a size greater than 2 MB.  Hence, query the
-size at runtime.
+Since commit 857f21397f71 ("memcg, oom: remove unnecessary check in
+mem_cgroup_oom_synchronize()"), memcg_oom_gfp_mask and memcg_oom_order are
+no longer used any more.
 
-Also, there is no reason why a hugepage allocation should fail, since we
-are using a simple mmap() using MAP_HUGETLB; hence, instead of skipping
-the test, make it fail.
-
-Link: https://lkml.kernel.org/r/20240509095447.3791573-1-dev.jain@arm.com
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20240509032628.1217652-1-xiujianfeng@huawei.com
+Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Benjamin Segall <bsegall@google.com>
+Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb_madv_vs_map.c |   16 +++++++------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ include/linux/sched.h |    2 --
+ mm/memcontrol.c       |    2 --
+ 2 files changed, 4 deletions(-)
 
---- a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c~selftests-mm-hugetlb_madv_vs_map-avoid-test-skipping-by-querying-hugepage-size-at-runtime
-+++ a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c
-@@ -27,9 +27,9 @@
- #include "vm_util.h"
- #include "../kselftest.h"
+--- a/include/linux/sched.h~memcg-oom-cleanup-unused-memcg_oom_gfp_mask-and-memcg_oom_order
++++ a/include/linux/sched.h
+@@ -1448,8 +1448,6 @@ struct task_struct {
  
--#define MMAP_SIZE (1 << 21)
- #define INLOOP_ITER 100
+ #ifdef CONFIG_MEMCG
+ 	struct mem_cgroup		*memcg_in_oom;
+-	gfp_t				memcg_oom_gfp_mask;
+-	int				memcg_oom_order;
  
-+size_t mmap_size;
- char *huge_ptr;
- 
- /* Touch the memory while it is being madvised() */
-@@ -44,7 +44,7 @@ void *touch(void *unused)
- void *madv(void *unused)
- {
- 	for (int i = 0; i < INLOOP_ITER; i++)
--		madvise(huge_ptr, MMAP_SIZE, MADV_DONTNEED);
-+		madvise(huge_ptr, mmap_size, MADV_DONTNEED);
- 
- 	return NULL;
- }
-@@ -59,7 +59,7 @@ void *map_extra(void *unused)
- 	void *ptr;
- 
- 	for (int i = 0; i < INLOOP_ITER; i++) {
--		ptr = mmap(NULL, MMAP_SIZE, PROT_READ | PROT_WRITE,
-+		ptr = mmap(NULL, mmap_size, PROT_READ | PROT_WRITE,
- 			   MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
- 			   -1, 0);
- 
-@@ -93,14 +93,16 @@ int main(void)
- 			       free_hugepages);
- 	}
- 
-+	mmap_size = default_huge_page_size();
-+
- 	while (max--) {
--		huge_ptr = mmap(NULL, MMAP_SIZE, PROT_READ | PROT_WRITE,
-+		huge_ptr = mmap(NULL, mmap_size, PROT_READ | PROT_WRITE,
- 				MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
- 				-1, 0);
- 
- 		if ((unsigned long)huge_ptr == -1) {
--			ksft_exit_skip("Failed to allocated huge page\n");
--			return KSFT_SKIP;
-+			ksft_test_result_fail("Failed to allocate huge page\n");
-+			return KSFT_FAIL;
+ 	/* Number of pages to reclaim on returning to userland: */
+ 	unsigned int			memcg_nr_pages_over_high;
+--- a/mm/memcontrol.c~memcg-oom-cleanup-unused-memcg_oom_gfp_mask-and-memcg_oom_order
++++ a/mm/memcontrol.c
+@@ -2188,8 +2188,6 @@ static bool mem_cgroup_oom(struct mem_cg
+ 		if (current->in_user_fault) {
+ 			css_get(&memcg->css);
+ 			current->memcg_in_oom = memcg;
+-			current->memcg_oom_gfp_mask = mask;
+-			current->memcg_oom_order = order;
  		}
- 
- 		pthread_create(&thread1, NULL, madv, NULL);
-@@ -117,7 +119,7 @@ int main(void)
- 		}
- 
- 		/* Unmap and restart */
--		munmap(huge_ptr, MMAP_SIZE);
-+		munmap(huge_ptr, mmap_size);
+ 		return false;
  	}
- 
- 	return KSFT_PASS;
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from xiujianfeng@huawei.com are
 
 
