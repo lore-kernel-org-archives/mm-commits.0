@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2841C1F5F6
-	for <mm-commits@vger.kernel.org>; Sat, 11 May 2024 22:42:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F20491F5F6
+	for <mm-commits@vger.kernel.org>; Sat, 11 May 2024 22:42:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715467345; cv=none; b=H7qN0+12btZuXWlWt6BCTx3mKyd/rrd1sWEDATugEJa1akfF3OvL08T1JjFfpoDO9JVFwXF9oStNBqBH/9dFx8G86JRPyJbAsuXpI758fpGyUw3SEkJK0qNrTyhUjn4VM3rTnYxMapIEBjxlCN5XL/4ypqyrnhbEgmG3HWArR5M=
+	t=1715467346; cv=none; b=SGpBsmyMaqfmQEaM9fsfjNcuyTD7pcM/KercGo7UZAMHx9+/t8ICfbqTCKeiVjsZkgQMcMC6LP1Yf6YaUg8Q7QPdeuNm1L8Mu03hQjjuJfPfo13qLzY+CSSZlxcBZtrSr4sFtC9djXwBJUmynY/Bdq9or54gQs1Tq5epXULY9M0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715467345; c=relaxed/simple;
-	bh=P5VkUV5OiA2rLPDmuIYBko+giomb8Z5bpk3hVQmLj8c=;
-	h=Date:To:From:Subject:Message-Id; b=q+JSc7t9oXnkDE+AGt49NPeOnIhK5v3cG41a33fhQG3zDxRMSQ9EhwMpRvE+F8Z0G3IqFbKkf07Dv9uTYDUoXpdmRuvWYDA4XQ3jqoI/LmhPBAsXNtIGnPtQQ+Xd3Q8CVtM7lvOYcU4j9MHj/d12TtDJhYCqvXBzgHrZHTXSm90=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZoniIJ1p; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1715467346; c=relaxed/simple;
+	bh=ntsCQOtfmmcB+nPLegkKg5Rl4Kz6zmniGANBiQ5GB4w=;
+	h=Date:To:From:Subject:Message-Id; b=YGIO0s4TXyEgELcBAScuwRBbjw+b9mdjaTEEJhqIypRhJ1iK6FxRndAodH+cAdtlMvSCU3F5XOVyHDTVWXL6J+V0jywLK+S6LKWjHhHcQR9LTyVX0BUpt4v9dqRRho9Ui7yi4UDgOCmqWL1ZXd38Lo4vRLS+Nz4RVuaYJHE7JTI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tkr4CvP+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZoniIJ1p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD968C32781;
-	Sat, 11 May 2024 22:42:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tkr4CvP+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B98CAC32782;
+	Sat, 11 May 2024 22:42:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1715467344;
-	bh=P5VkUV5OiA2rLPDmuIYBko+giomb8Z5bpk3hVQmLj8c=;
+	s=korg; t=1715467345;
+	bh=ntsCQOtfmmcB+nPLegkKg5Rl4Kz6zmniGANBiQ5GB4w=;
 	h=Date:To:From:Subject:From;
-	b=ZoniIJ1pinsjusenxFD3iPCYVpSL4w2P0V2M6ZI/bhDv52j+Z/GVN9coBtAizyZe5
-	 vXHJ+g29BZQhRcSuR1dO28AGLacwjNJXQoqsAmDUoMAdG8Xi7g+8FvVNYsMzdmyEyg
-	 fIX/TbA26TiwKH4kEENKxt4WXCkmzbr3otw3cXN4=
-Date: Sat, 11 May 2024 15:42:24 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,liushixin2@huawei.com,axelrasmussen@google.com,osalvador@suse.de,akpm@linux-foundation.org
+	b=tkr4CvP+J7RiWr45p0XNa17vEBhuljpFYc2D26aKx+QnUhnJvf72MIbptA1hke0Mi
+	 tqhXqTGu0Ar9de+uusjR/6ZNykT7qHSv7E9O3rrSTsAFh9eQ3uMv36R1CX5OkCs86I
+	 wb9cOQLdMYFPKLj7vQKNNfQ0XspaSUT8oE/s1JLk=
+Date: Sat, 11 May 2024 15:42:25 -0700
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,shuah@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_wp.patch removed from -mm tree
-Message-Id: <20240511224224.AD968C32781@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-hugetlb_madv_vs_map-avoid-test-skipping-by-querying-hugepage-size-at-runtime.patch removed from -mm tree
+Message-Id: <20240511224225.B98CAC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,100 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: add missing VM_FAULT_SET_HINDEX in hugetlb_wp
+     Subject: selftests/mm: hugetlb_madv_vs_map: avoid test skipping by querying hugepage size at runtime
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_wp.patch
+     selftests-mm-hugetlb_madv_vs_map-avoid-test-skipping-by-querying-hugepage-size-at-runtime.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm/hugetlb: add missing VM_FAULT_SET_HINDEX in hugetlb_wp
-Date: Thu, 9 May 2024 12:01:48 +0200
+From: Dev Jain <dev.jain@arm.com>
+Subject: selftests/mm: hugetlb_madv_vs_map: avoid test skipping by querying hugepage size at runtime
+Date: Thu, 9 May 2024 15:24:47 +0530
 
-commit 1cb9dc4b475c ("mm: hwpoison: support recovery from HugePage
-copy-on-write faults") added support to use the mc variants when coping
-hugetlb pages on CoW faults.
+Currently, the size used in mmap() is statically defined, leading to
+skipping of the test on a hugepage size other than 2 MB, since munmap()
+won't free the hugepage for a size greater than 2 MB.  Hence, query the
+size at runtime.
 
-Add the missing VM_FAULT_SET_HINDEX, so the right si_addr_lsb will be
-passed to userspace to report the extension of the faulty area.
+Also, there is no reason why a hugepage allocation should fail, since we
+are using a simple mmap() using MAP_HUGETLB; hence, instead of skipping
+the test, make it fail.
 
-Link: https://lkml.kernel.org/r/20240509100148.22384-3-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Peter Xu <peterx@redhat.com>
-Acked-by: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Liu Shixin <liushixin2@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20240509095447.3791573-1-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/hugetlb_madv_vs_map.c |   16 +++++++------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-add-missing-vm_fault_set_hindex-in-hugetlb_wp
-+++ a/mm/hugetlb.c
-@@ -6067,7 +6067,7 @@ retry_avoidcopy:
- 		goto out_release_all;
+--- a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c~selftests-mm-hugetlb_madv_vs_map-avoid-test-skipping-by-querying-hugepage-size-at-runtime
++++ a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c
+@@ -27,9 +27,9 @@
+ #include "vm_util.h"
+ #include "../kselftest.h"
  
- 	if (copy_user_large_folio(new_folio, old_folio, vmf->real_address, vma)) {
--		ret = VM_FAULT_HWPOISON_LARGE;
-+		ret = VM_FAULT_HWPOISON_LARGE | VM_FAULT_SET_HINDEX(hstate_index(h));
- 		goto out_release_all;
+-#define MMAP_SIZE (1 << 21)
+ #define INLOOP_ITER 100
+ 
++size_t mmap_size;
+ char *huge_ptr;
+ 
+ /* Touch the memory while it is being madvised() */
+@@ -44,7 +44,7 @@ void *touch(void *unused)
+ void *madv(void *unused)
+ {
+ 	for (int i = 0; i < INLOOP_ITER; i++)
+-		madvise(huge_ptr, MMAP_SIZE, MADV_DONTNEED);
++		madvise(huge_ptr, mmap_size, MADV_DONTNEED);
+ 
+ 	return NULL;
+ }
+@@ -59,7 +59,7 @@ void *map_extra(void *unused)
+ 	void *ptr;
+ 
+ 	for (int i = 0; i < INLOOP_ITER; i++) {
+-		ptr = mmap(NULL, MMAP_SIZE, PROT_READ | PROT_WRITE,
++		ptr = mmap(NULL, mmap_size, PROT_READ | PROT_WRITE,
+ 			   MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
+ 			   -1, 0);
+ 
+@@ -93,14 +93,16 @@ int main(void)
+ 			       free_hugepages);
  	}
- 	__folio_mark_uptodate(new_folio);
+ 
++	mmap_size = default_huge_page_size();
++
+ 	while (max--) {
+-		huge_ptr = mmap(NULL, MMAP_SIZE, PROT_READ | PROT_WRITE,
++		huge_ptr = mmap(NULL, mmap_size, PROT_READ | PROT_WRITE,
+ 				MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
+ 				-1, 0);
+ 
+ 		if ((unsigned long)huge_ptr == -1) {
+-			ksft_exit_skip("Failed to allocated huge page\n");
+-			return KSFT_SKIP;
++			ksft_test_result_fail("Failed to allocate huge page\n");
++			return KSFT_FAIL;
+ 		}
+ 
+ 		pthread_create(&thread1, NULL, madv, NULL);
+@@ -117,7 +119,7 @@ int main(void)
+ 		}
+ 
+ 		/* Unmap and restart */
+-		munmap(huge_ptr, MMAP_SIZE);
++		munmap(huge_ptr, mmap_size);
+ 	}
+ 
+ 	return KSFT_PASS;
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
 
