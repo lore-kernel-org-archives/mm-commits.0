@@ -1,112 +1,132 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lj1-f170.google.com (mail-lj1-f170.google.com [209.85.208.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0BB045038;
-	Sun, 19 May 2024 18:36:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EC016CDCA
+	for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 18:57:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716143800; cv=none; b=V4aPB6CDG76dVVQQAuoC533URUVn33BVHy1RSHHzGhp/J2FE4DMAhANKANwmFvT8xzFyviEFFBCSmHegsNaMyfmj4mENeTJPT9wqgSDeB3Dyu/kXGNwY/bR8ycy+k2miZfCw2Owlprllj22AJfk9cxga6Jn54jdDP+oqwnnP4yc=
+	t=1716145038; cv=none; b=RUq9nMndTFfNVG028m/iPak3imKXJ/geg5CHlJsp3fZnXVNavRK1Btmx8rgYFBCSDwMKJuFB8OZaTn1TaqyB++kVdsetPdDec4WV/0buTaDKx8u+RHVJrrEpfyLEdwmQTyVdkkOF0cRJRbQKsaORjSYcsSW5kTvrGFozhXSPNzg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716143800; c=relaxed/simple;
-	bh=UUhwXxqUPl7s1YkfVggMn/rNgFKLSx/iqaAxFo+gv7w=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=oos0A+CEhoHlKluqSyczOHi+cnxwsvuOWc3S21D+DhJ6qRoutalVvi1KSEZ3kCLFkacAvcbDR1vXqKfD+pZYvU6iY8gKKG4Km9hoQcKvz2bbOGhJJqjAxmttk+sFRGCmhRqcu7m6uRHTbvBcAgdqz0g8fM2OoEVFBQehW7qYh7M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CpFm2ZzT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716145038; c=relaxed/simple;
+	bh=HCDGXHWYGuug0vB2TJuSEuYHOYHvebMr845YY7RWV9w=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=FarDUV0CAznRNneeneSvjG2yClhMfBp0mUxIyXi3+C9Wm1kNm1Oe1e15v/uw0OSjN+99kqar3Ho/rtAQ6tHbkbHK1aseKBUOa59R5pfH5qb+AvSOyviXzUXXMhtoxlNUUTVUkN7Ff7gxeG8N/k6qNyaA+4kEWLXfbb+t52mZO/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linuxfoundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=g4bJwjuN; arc=none smtp.client-ip=209.85.208.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linuxfoundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CpFm2ZzT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29884C32781;
-	Sun, 19 May 2024 18:36:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716143800;
-	bh=UUhwXxqUPl7s1YkfVggMn/rNgFKLSx/iqaAxFo+gv7w=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=CpFm2ZzTjT7bt9pUpITHxMxR/vtK7evZs57rWz3tBtSlm/XOEFX3G9m1K6CGPK+kv
-	 1FoUOPWtfpQWYJY+33Zak7EMr76YRoJl/9/PXFfU+OvzXBuqc0uGOpScWZVZDwvIP/
-	 d94OEdp8flElEddq31aS8tKpn+K3F8NFhhSU2orc=
-Date: Sun, 19 May 2024 11:36:39 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linuxfoundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: Re: [GIT PULL] MM updates for 6.10-rc1
-Message-Id: <20240519113639.db3fe5f80d25be4e7666751e@linux-foundation.org>
-In-Reply-To: <CAHk-=whEAquncw0wb59-XVAHmVh4CWSfwuWh4bTJjJzvx0=PzQ@mail.gmail.com>
-References: <20240517192239.9285edd85f8ef893bb508a61@linux-foundation.org>
-	<CAHk-=whEAquncw0wb59-XVAHmVh4CWSfwuWh4bTJjJzvx0=PzQ@mail.gmail.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="g4bJwjuN"
+Received: by mail-lj1-f170.google.com with SMTP id 38308e7fff4ca-2e538a264e0so46113101fa.1
+        for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 11:57:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linuxfoundation.org; s=google; t=1716145034; x=1716749834; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=iY9tQ/lw2tptEzAdBZnuUzlK61qi/54gCaWIsbKgyvQ=;
+        b=g4bJwjuNFJYggPHc/tnVDnRyOSAQd6kmv3lOrR9uWycyVyM2R/2vjwaEBlWmK74/pT
+         ozZTma1BomNUJXfUkj9L9Apbitg5bD5RsyIbCME0WCjj0vFWo2Qme1Usq6heznj6h6eH
+         2/6xid94L887c1rJ5Ihs/Lxf4/iIpBbuckltM=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1716145034; x=1716749834;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=iY9tQ/lw2tptEzAdBZnuUzlK61qi/54gCaWIsbKgyvQ=;
+        b=D0fV0PJjqq/r29M702GyXeHtZTmaoarDk8taOdf9CEirT40BOeuZNLrdYDpBtktV+m
+         tAQnycARnGRXwkOYNJ/5JFEEVQprYCVCLGU97A3qpUZw5JxuT3ImltuBaJkX80LoBkUe
+         JU4TDTeERP9gL8mjcWwgVVJyE4gpjmGFB/h36s7EQUH1oOMUXkgEUxHjRtKwV1VVlQ7y
+         pvXfsTCifVy5F3ceg3dD48LW/2U8KpGGQTiYxyx36Tsgbt4gjvKZueE3Fwbt2AgHbWMa
+         p4BzLuvqsMb2Z0YzQQNUFnYLVxCVrDPvoLFArW+1bqOxPNGsGmnrdrflT+WPw+KpixN8
+         uQFQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXZrHN9FD+PgF769eOT4ENJtsdVUDZlczLiKPY56Fa78m/uZtl8xFbJwXi87s+IeQeLrR9lmfU68ea3pXkoUu5YsrOfkYlx71629A==
+X-Gm-Message-State: AOJu0YyBPmaIRDJuMhn+Nuqua+NxAuzxsrDUH3Gy4TFv6GDeCofyI8IM
+	ggylXnTOSaHmamp+zde+Lei/CwodtyKWtJJT4Rm6EMP8j9WAO+ytjpWZbS/rSHwHfWtEUaU6oSO
+	06/Tm8g==
+X-Google-Smtp-Source: AGHT+IEmlMjl9Qrn4dWxHC4JkHDJX3nxoVtOIpgLSkXMuGWl/4ch0u2X/iv06PbTmwuJ50s9jNGHhA==
+X-Received: by 2002:a2e:7d09:0:b0:2e2:1647:f671 with SMTP id 38308e7fff4ca-2e5205c817emr230464271fa.47.1716145034177;
+        Sun, 19 May 2024 11:57:14 -0700 (PDT)
+Received: from mail-lf1-f43.google.com (mail-lf1-f43.google.com. [209.85.167.43])
+        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-2e4d0ef22a7sm31296161fa.69.2024.05.19.11.57.13
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 19 May 2024 11:57:13 -0700 (PDT)
+Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5238b7d0494so2769176e87.3
+        for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 11:57:13 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCV3C47+jDA0q7c+fpcRUK3XePJj54CDO7OxKQdP/ZVw2+gRi769+WNw5li4vc3YyZjuNYYeQy3e8a8OHfeIw9Y2URzzB9tafyntcQ==
+X-Received: by 2002:a05:6512:3b0d:b0:521:5583:483c with SMTP id
+ 2adb3069b0e04-5221016b3e6mr28495387e87.54.1716145033039; Sun, 19 May 2024
+ 11:57:13 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+References: <20240517192239.9285edd85f8ef893bb508a61@linux-foundation.org>
+ <CAHk-=whEAquncw0wb59-XVAHmVh4CWSfwuWh4bTJjJzvx0=PzQ@mail.gmail.com> <20240519113639.db3fe5f80d25be4e7666751e@linux-foundation.org>
+In-Reply-To: <20240519113639.db3fe5f80d25be4e7666751e@linux-foundation.org>
+From: Linus Torvalds <torvalds@linuxfoundation.org>
+Date: Sun, 19 May 2024 11:56:56 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wiy+25i1VZhDaV-b_m4aXGNELuVok9Prv4=oYqiun--rg@mail.gmail.com>
+Message-ID: <CAHk-=wiy+25i1VZhDaV-b_m4aXGNELuVok9Prv4=oYqiun--rg@mail.gmail.com>
+Subject: Re: [GIT PULL] MM updates for 6.10-rc1
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Sun, 19 May 2024 08:32:44 -0700 Linus Torvalds <torvalds@linuxfoundation.org> wrote:
+On Sun, 19 May 2024 at 11:36, Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> This is me advancing the master branch once per week until we hit -rc4.
 
-> On Fri, 17 May 2024 at 19:22, Andrew Morton <akpm@linux-foundation.org> wrote:
-> >
-> > include/linux/slab.h
-> >         https://lkml.kernel.org/r/20240429114302.7af809e8@canb.auug.org.au
-> 
-> This is not only a merge conflict, your tree is actively buggy.
-> 
-> You have introduced changes like this:
-> 
->   -static inline __alloc_size(1, 2) void *kvcalloc(size_t n, size_t
-> size, gfp_t flags)
->   -{
->   - return kvmalloc_array(n, size, flags | __GFP_ZERO);
->   -}
->   +#define kvcalloc(_n, _size, _flags) kvmalloc_array(_n, _size,
-> _flags|__GFP_ZERO)
-> 
-> and that's just completely wrong. Note the "_flags|__GFP_ZERO": yes,
-> the bitwise or is fairly low down in the operator precedence rules,
-> and it probably work sin practice because most cases will just pass in
-> a simple expression for the flags, but it's still *horribly* wrong.
-> 
-> I'm going to take this pull and fix up the cases I find, but I'm not
-> happy with this kind of trivial C preprocessor misuse.
+Yeah. You really shouldn't do that with a merge commit.
 
-Thanks, I've asked Suren and Kent to check it all over.
+If what you want to do is just advance the master branch, you should
+just rebase on top (if rebasing is what you want to do).
 
-> I also note that you have *SEVEN* pointless merges that have no
-> explanation for them. I'm happy that you use git, but that means that
-> you also need to either
-> 
->  (a) not do merges at all and treat it as a patch queue
-> 
->  (b) do merges _properly_ and not throw them around like some madman
-> 
-> And doing them properly means not only writing good commit messages,
-> but actually having good reasons for them. As it is, we have
-> 
->   5d1bc760583f ("merge mm-hotfixes-stable into mm-nonmm-stable to pick
-> up needed changes")
->   640958fde130 ("Merge branch 'master' into mm-stable")
->   4e2e36129225 ("Merge branch 'master' into mm-stable")
->   1dd4505cf4c8 ("Merge branch 'master' into mm-stable")
->   71919308943d ("Merge branch 'master' into mm-stable")
->   b228ab57e51b ("Merge branch 'master' into mm-stable")
->   5e2806112864 ("Merge branch 'master' into mm-stable")
+Instead you seem to merge _and_ then rebase. So you do the worst of both worlds.
 
-This is me advancing the master branch once per week until we hit -rc4.
+You don't get the history cleanup of rebasing, and you don't get the
+history preservation of merging. You do both, and it's wrong.
 
-I don't understand why these merges were visible to this pull.  I sent:
+> I don't understand why these merges were visible to this pull.  I sent:
+>
+> : The following changes since commit 5d1bc760583f225032f91bd88853f4c26acaf4e0:
 
-: The following changes since commit 5d1bc760583f225032f91bd88853f4c26acaf4e0:
-: 
-:   merge mm-hotfixes-stable into mm-nonmm-stable to pick up needed changes (2024-04-25 20:54:12 -0700)
-: 
-: are available in the Git repository at:
-: 
-:   git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2024-05-17-19-19
-: 
-: for you to fetch changes up to 76edc534cc289308130272a2ac28694fc9b72a03:
-: 
-:   memcg, oom: cleanup unused memcg_oom_gfp_mask and memcg_oom_order (2024-05-11 15:41:37 -0700)
-: 
+No. That is NOT how git works.
 
-This has worked OK before,
+You claiming to send only the changes after a commit doesn't magically
+make the history that precedes that commit go away.
+
+With git, when you send a branch, you send the WHOLE HISTORY. That is
+fundamentally how git works. You trying to change the "from this
+commit forwards" doesn't actually change anything at all, it only
+changes the wording in the pull request itself.
+
+You can't just do a pull request and try to say "only send changes
+since this commit".
+
+Git is *not* the broken sh*t that you have used before that is just a
+queue of patches. Every single commit carries the whole history that
+leads up to it.
+
+And that is fundamental (and is fundamentally why patch-queue based
+stuff is broken garbage), because proper history is what makes merging
+work and scale. It's pretty much what makes git not CVS, or the horror
+that is darcs and "patch algebra".
+
+So when you do a pull request, the whole history is always visible.
+You can't make it not visible.
+
+> This has worked OK before,
+
+Your previous histories haven't had those broken merges in them, so
+your previous pulls haven't had them either.
+
+I don't know what you have changed in your setup, but your "advance
+the master branch once per week" process is completely broken.
+
+The problem isn't the pull request. The source of the problem is
+something in your "advance" scripting.
+
+               Linus
