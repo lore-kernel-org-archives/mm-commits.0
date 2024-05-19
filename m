@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBF3671B24
-	for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 21:37:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCBCF71757
+	for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 21:42:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716154654; cv=none; b=AkYKLB5Iah5XnjkcwZvsnHEMPYNeXw1Lajqq0TYaikDQgd+rdemXd76dcWaRQFgdNV092NxJTo9PlsX6DCWiwscfFGtKHXqNorNC40UlfXS+pLO4JB4oLctLsvqzmIfX32ZQ/rhduPo4n/GV/wj94w2o7+Rgx3MxKEF3qfKXDZQ=
+	t=1716154943; cv=none; b=aF6HhBpgp14lvmRDjFQsNcvElALl8NqXQF7XTSFAslFAn+eGHVo2WxlxHzLkOa1R7qWtVmWJu8do0zzESEwt0EJYG1sOjfO6ZzHTFvfsoFuTOATc1foDopW98L4Bv/UaFgnzz3ZEO0CJYdmfDNx7CapYZSvEzEX6NceOpTXac1M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716154654; c=relaxed/simple;
-	bh=PE14vmaeCFEKZ4rWSmI1wk3ARw3KQHN8dG88SoJFOKE=;
-	h=Date:To:From:Subject:Message-Id; b=VfLick6rxmbbYJdmVkSqzOzAMNWXNKHBnsVt0egicaNeKxu5QmHHwyO0kDYORCH07oX/Dvx+sPx8gSW9fgRcCkeYqe0A20hnhR1UBv4i5hj3iaJPlG1zuIlyDc4bSBikvM8oEuZ7l0C4pUFLoxdHT5J3AIrSSfsD2MxcHen67qc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IBhw/ADH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716154943; c=relaxed/simple;
+	bh=tD3tHjIZWW14zXqwXgG0JVfTmlJFSM15njyloBFO6kM=;
+	h=Date:To:From:Subject:Message-Id; b=cIGooEUu1RmOrzvBP+7IT0zvLFJnSmizXgHD7eJIq9HozMa1/YTMPh4XOqM/lFSPbmKdRV2aoWJe+2FJkTViz+HjPIjytQihApy6Rr2Ln3JAuleiY/q9r7D7IZQjR7H2AR2OlmiznpxoNZXd6+isGeHcZF0D3CvK8r7JgvHrcOc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kcNffm7a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IBhw/ADH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 999B4C32781;
-	Sun, 19 May 2024 21:37:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kcNffm7a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DB04C32786;
+	Sun, 19 May 2024 21:42:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716154654;
-	bh=PE14vmaeCFEKZ4rWSmI1wk3ARw3KQHN8dG88SoJFOKE=;
+	s=korg; t=1716154943;
+	bh=tD3tHjIZWW14zXqwXgG0JVfTmlJFSM15njyloBFO6kM=;
 	h=Date:To:From:Subject:From;
-	b=IBhw/ADHkx+dz3c8CCy7X779LxVQzHQvqg4DbE5f2KYXWs2sUfqvVxC9yAjuDphkI
-	 D/5Ju/Ev3WpCshQgFVxDJb5uRlEfbay+El4iqPALLrgR6AliCy+71JviH321iSwFkW
-	 lJIOzKwjR+aXL8cGJH5X84hMEUFi61NzHoQ3JaEI=
-Date: Sun, 19 May 2024 14:37:34 -0700
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=kcNffm7aXonv8HBFw1RO19twREMDl5jOGgIsXUYLn7e9X/yFkSgeyONx4hWr0ZE6I
+	 oEh6gjCxPY9OUmaQOVJ8Yhli0DiHKQsGc6Y+rrxw1F09U2CH+ek7gvu63vcXL34aVp
+	 MZNQooNa/GObEjYlEXn9ONd8JPe+asAZYADL9j5g=
+Date: Sun, 19 May 2024 14:42:22 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,hch@lst.de,elver@google.com,andreyknvl@gmail.com,dchinner@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-make-block-erasure-safe-in-nilfs_finish_roll_forward.patch removed from -mm tree
-Message-Id: <20240519213734.999B4C32781@smtp.kernel.org>
+Subject: [merged mm-stable] mm-lift-gfp_kmemleak_mask-to-gfph.patch removed from -mm tree
+Message-Id: <20240519214223.2DB04C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,167 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: make block erasure safe in nilfs_finish_roll_forward()
+     Subject: mm: lift gfp_kmemleak_mask() to gfp.h
 has been removed from the -mm tree.  Its filename was
-     nilfs2-make-block-erasure-safe-in-nilfs_finish_roll_forward.patch
+     mm-lift-gfp_kmemleak_mask-to-gfph.patch
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
+This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: make block erasure safe in nilfs_finish_roll_forward()
-Date: Sat, 11 May 2024 09:29:42 +0900
+From: Dave Chinner <dchinner@redhat.com>
+Subject: mm: lift gfp_kmemleak_mask() to gfp.h
+Date: Tue, 30 Apr 2024 15:28:23 +1000
 
-The implementation of writing a zero-fill block in
-nilfs_finish_roll_forward() is not safe.  The buffer is being cleared
-without acquiring a lock or setting the uptodate flag, so theoretically,
-between the time the buffer's data is cleared and the time it is written
-back to the block device using sync_dirty_buffer(), that zero data can be
-undone by concurrent block device reads.
+Patch series "mm: fix nested allocation context filtering".
 
-Since this buffer points to a location that has been read from disk once,
-the uptodate flag will most likely remain, but since it was obtained with
-__getblk(), that is not guaranteed.  In other words, this is exceptional,
-and this function itself is not normally called (only once when mounting
-after a specific pattern of unclean shutdown), so it is highly unlikely
-that this will actually cause a problem.
+This patchset is the followup to the comment I made earlier today:
 
-Anyway, eliminate this potential race issue by protecting the clearing of
-buffer data with a buffer lock and setting the buffer's uptodate flag
-within the protected section.
+https://lore.kernel.org/linux-xfs/ZjAyIWUzDipofHFJ@dread.disaster.area/
 
-Link: https://lkml.kernel.org/r/20240511002942.9608-1-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Tl;dr: Memory allocations that are done inside the public memory
+allocation API need to obey the reclaim recursion constraints placed on
+the allocation by the original caller, including the "don't track
+recursion for this allocation" case defined by __GFP_NOLOCKDEP.
+
+These nested allocations are generally in debug code that is tracking
+something about the allocation (kmemleak, KASAN, etc) and so are
+allocating private kernel objects that only that debug system will use.
+
+Neither the page-owner code nor the stack depot code get this right.  They
+also also clear GFP_ZONEMASK as a separate operation, which is completely
+redundant because the constraint filter applied immediately after
+guarantees that GFP_ZONEMASK bits are cleared.
+
+kmemleak gets this filtering right.  It preserves the allocation
+constraints for deadlock prevention and clears all other context flags
+whilst also ensuring that the nested allocation will fail quickly,
+silently and without depleting emergency kernel reserves if there is no
+memory available.
+
+This can be made much more robust, immune to whack-a-mole games and the
+code greatly simplified by lifting gfp_kmemleak_mask() to
+include/linux/gfp.h and using that everywhere.  Also document it so that
+there is no excuse for not knowing about it when writing new debug code
+that nests allocations.
+
+Tested with lockdep, KASAN + page_owner=on and kmemleak=on over multiple
+fstests runs with XFS.
+
+
+This patch (of 3):
+
+Any "internal" nested allocation done from within an allocation context
+needs to obey the high level allocation gfp_mask constraints.  This is
+necessary for debug code like KASAN, kmemleak, lockdep, etc that allocate
+memory for saving stack traces and other information during memory
+allocation.  If they don't obey things like __GFP_NOLOCKDEP or
+__GFP_NOWARN, they produce false positive failure detections.
+
+kmemleak gets this right by using gfp_kmemleak_mask() to pass through the
+relevant context flags to the nested allocation to ensure that the
+allocation follows the constraints of the caller context.
+
+KASAN recently was foudn to be missing __GFP_NOLOCKDEP due to stack depot
+allocations, and even more recently the page owner tracking code was also
+found to be missing __GFP_NOLOCKDEP support.
+
+We also don't wan't want KASAN or lockdep to drive the system into OOM
+kill territory by exhausting emergency reserves.  This is something that
+kmemleak also gets right by adding (__GFP_NORETRY | __GFP_NOMEMALLOC |
+__GFP_NOWARN) to the allocation mask.
+
+Hence it is clear that we need to define a common nested allocation filter
+mask for these sorts of third party nested allocations used in debug code.
+So to start this process, lift gfp_kmemleak_mask() to gfp.h and rename it
+to gfp_nested_mask(), and convert the kmemleak callers to use it.
+
+Link: https://lkml.kernel.org/r/20240430054604.4169568-1-david@fromorbit.com
+Link: https://lkml.kernel.org/r/20240430054604.4169568-2-david@fromorbit.com
+Signed-off-by: Dave Chinner <dchinner@redhat.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/recovery.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/gfp.h |   25 +++++++++++++++++++++++++
+ mm/kmemleak.c       |   12 ++++--------
+ 2 files changed, 29 insertions(+), 8 deletions(-)
 
---- a/fs/nilfs2/recovery.c~nilfs2-make-block-erasure-safe-in-nilfs_finish_roll_forward
-+++ a/fs/nilfs2/recovery.c
-@@ -702,8 +702,12 @@ static void nilfs_finish_roll_forward(st
- 	if (WARN_ON(!bh))
- 		return;  /* should never happen */
+--- a/include/linux/gfp.h~mm-lift-gfp_kmemleak_mask-to-gfph
++++ a/include/linux/gfp.h
+@@ -157,6 +157,31 @@ static inline int gfp_zonelist(gfp_t fla
+ }
  
-+	lock_buffer(bh);
- 	memset(bh->b_data, 0, bh->b_size);
-+	set_buffer_uptodate(bh);
- 	set_buffer_dirty(bh);
-+	unlock_buffer(bh);
+ /*
++ * gfp flag masking for nested internal allocations.
++ *
++ * For code that needs to do allocations inside the public allocation API (e.g.
++ * memory allocation tracking code) the allocations need to obey the caller
++ * allocation context constrains to prevent allocation context mismatches (e.g.
++ * GFP_KERNEL allocations in GFP_NOFS contexts) from potential deadlock
++ * situations.
++ *
++ * It is also assumed that these nested allocations are for internal kernel
++ * object storage purposes only and are not going to be used for DMA, etc. Hence
++ * we strip out all the zone information and leave just the context information
++ * intact.
++ *
++ * Further, internal allocations must fail before the higher level allocation
++ * can fail, so we must make them fail faster and fail silently. We also don't
++ * want them to deplete emergency reserves.  Hence nested allocations must be
++ * prepared for these allocations to fail.
++ */
++static inline gfp_t gfp_nested_mask(gfp_t flags)
++{
++	return ((flags & (GFP_KERNEL | GFP_ATOMIC | __GFP_NOLOCKDEP)) |
++		(__GFP_NORETRY | __GFP_NOMEMALLOC | __GFP_NOWARN));
++}
 +
- 	err = sync_dirty_buffer(bh);
- 	if (unlikely(err))
- 		nilfs_warn(nilfs->ns_sb,
++/*
+  * We get the zone list from the current node and the gfp_mask.
+  * This zone list contains a maximum of MAX_NUMNODES*MAX_NR_ZONES zones.
+  * There are two zonelists per node, one for all zones with memory and
+--- a/mm/kmemleak.c~mm-lift-gfp_kmemleak_mask-to-gfph
++++ a/mm/kmemleak.c
+@@ -114,12 +114,6 @@
+ 
+ #define BYTES_PER_POINTER	sizeof(void *)
+ 
+-/* GFP bitmask for kmemleak internal allocations */
+-#define gfp_kmemleak_mask(gfp)	(((gfp) & (GFP_KERNEL | GFP_ATOMIC | \
+-					   __GFP_NOLOCKDEP)) | \
+-				 __GFP_NORETRY | __GFP_NOMEMALLOC | \
+-				 __GFP_NOWARN)
+-
+ /* scanning area inside a memory block */
+ struct kmemleak_scan_area {
+ 	struct hlist_node node;
+@@ -463,7 +457,8 @@ static struct kmemleak_object *mem_pool_
+ 
+ 	/* try the slab allocator first */
+ 	if (object_cache) {
+-		object = kmem_cache_alloc_noprof(object_cache, gfp_kmemleak_mask(gfp));
++		object = kmem_cache_alloc_noprof(object_cache,
++						 gfp_nested_mask(gfp));
+ 		if (object)
+ 			return object;
+ 	}
+@@ -947,7 +942,8 @@ static void add_scan_area(unsigned long
+ 	untagged_objp = (unsigned long)kasan_reset_tag((void *)object->pointer);
+ 
+ 	if (scan_area_cache)
+-		area = kmem_cache_alloc_noprof(scan_area_cache, gfp_kmemleak_mask(gfp));
++		area = kmem_cache_alloc_noprof(scan_area_cache,
++					       gfp_nested_mask(gfp));
+ 
+ 	raw_spin_lock_irqsave(&object->lock, flags);
+ 	if (!area) {
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from dchinner@redhat.com are
 
 
