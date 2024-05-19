@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38FB323BB
-	for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 21:34:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F2A54F5FB
+	for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 21:37:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716154457; cv=none; b=RbkDFrxx+V8racTnP+KEXxjFHOfEzK3hlCE4ww47enCCkhOGH3Y+giJOOmF1zfqCByiXtF1D1v/xjpM1PCDpD2S0M112GJtZVeNYCvbSIjpw3dUDGhKSzncOB/YAHhv6ElxxYgWmlNkGLjUexe9oPD65ou9fNZXW0adU+OffjeI=
+	t=1716154621; cv=none; b=dMQH/2ELdnqtu792mVQdga66KF1no6j3eh1vEDtRibiOjnGbsuUwFVXw7ztB+LGXU4EqB6Rxn3GauviHOrAFJIUAuPxqxslLDSzOhsyY4rKFJxdtwnZe0g2G/M9dcJ3hKHdjKDYgIBhziAla28+gQYDCDayic4FgCMwXVHKMczc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716154457; c=relaxed/simple;
-	bh=pxGBvU0TKcbZcX6KZdmgSD0buqVtruNug7QQQzSitkk=;
-	h=Date:To:From:Subject:Message-Id; b=WkBOqhbB3pcCPmzhScluj0bjf1cpJj6Bxz7VVNlfzFYvRnZ/Reev+s7PPfPVbn23nUmNbBh8MzFanzr7uYHUrkQ7fww2WIEwReTnxcYuBe6UO4p3BIsDKmpbOZQSuV7eWL4iNXykXY6sZdnCX1783Wf9qMa+OvSRCRRY8g8VOgg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1iJ6SmB5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716154621; c=relaxed/simple;
+	bh=IbJtsrYQk8ruCU+Y+qIOYidx24mNswJzMoFphdT0sVI=;
+	h=Date:To:From:Subject:Message-Id; b=jGoyHvSiztVhsKjEXSXWIFXC3MAoFg/rCxP2paK3F4ZVloJ3Xa7UU452bTdRfrBXTVFpLQfyjhfXImUNSW+87AeD1whfBOMtp+eVF60E2slDkK7xDwV/jbqvVHG/TngR4EAyB2MOCNpZJNA9LivPdIE7QEBZ8D9gPdSXFF8kMs0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ggRmi1zg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1iJ6SmB5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EC5AC32781;
-	Sun, 19 May 2024 21:34:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ggRmi1zg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24F67C32781;
+	Sun, 19 May 2024 21:37:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716154456;
-	bh=pxGBvU0TKcbZcX6KZdmgSD0buqVtruNug7QQQzSitkk=;
+	s=korg; t=1716154621;
+	bh=IbJtsrYQk8ruCU+Y+qIOYidx24mNswJzMoFphdT0sVI=;
 	h=Date:To:From:Subject:From;
-	b=1iJ6SmB5lqBcIxvSqnIVg4VYdgDqJJ0mfsBq20LlO2PFkXAIV8RjMOyKUA64ve56x
-	 UWcyb2E4HUFS8+r+zv/b+YXlsJ0dQ5MwShiQAu4Tzg5P41qwh2BbXC3GRrEJP3dYJm
-	 aNehhOyKbTcU18L8wpzhgiheEPZzn03uOEXjcxDM=
-Date: Sun, 19 May 2024 14:34:16 -0700
-To: mm-commits@vger.kernel.org,thiago.bauermann@linaro.org,lkp@intel.com,ardb@kernel.org,samuel.holland@sifive.com,akpm@linux-foundation.org
+	b=ggRmi1zg9uUMBOXNXp093FXC7TrUT72uXGFbcpKpfGXdLmyEa2Uf7JRVrPKtHUeDl
+	 sV8LxjHKnCZaMf+RExVEJz4hL+8TCY+qoQM8um07XX5PDrumDISH4KY3HqJKzvYtIl
+	 tEbX5lLhC2gjpv4eqLU+mNZYuP6Xe7w+dY7VZh1Q=
+Date: Sun, 19 May 2024 14:37:00 -0700
+To: mm-commits@vger.kernel.org,nicolas@fjasle.eu,nathan@kernel.org,masahiroy@kernel.org,keescook@chromium.org,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] arm-implement-arch_has_kernel_fpu_support-fix.patch removed from -mm tree
-Message-Id: <20240519213416.9EC5AC32781@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kbuild-turn-on-wextra-by-default.patch removed from -mm tree
+Message-Id: <20240519213701.24F67C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,81 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ARM: do not select ARCH_HAS_KERNEL_FPU_SUPPORT
+     Subject: kbuild: turn on -Wextra by default
 has been removed from the -mm tree.  Its filename was
-     arm-implement-arch_has_kernel_fpu_support-fix.patch
+     kbuild-turn-on-wextra-by-default.patch
 
-This patch was dropped because it was folded into arm-implement-arch_has_kernel_fpu_support.patch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Samuel Holland <samuel.holland@sifive.com>
-Subject: ARM: do not select ARCH_HAS_KERNEL_FPU_SUPPORT
-Date: Wed, 8 May 2024 18:37:10 -0700
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kbuild: turn on -Wextra by default
+Date: Mon, 15 Apr 2024 14:20:32 +0200
 
-On 32-bit ARM, conversions between `double` and `long long` require
-runtime library support.  Since the kernel does not currently provide this
-library support, the amdgpu driver fails to build:
+Patch series "kbuild: enable more warnings by default", v3.
 
-  ERROR: modpost: "__aeabi_l2d" [drivers/gpu/drm/amd/amdgpu/amdgpu.ko] undefined!
-  ERROR: modpost: "__aeabi_d2ulz" [drivers/gpu/drm/amd/amdgpu/amdgpu.ko] undefined!
+All the warning fixes I sent for these warnings have been merged into
+mainline or linux-next, so let's turn them on by default.
 
-As Arnd reports, there are likely no 32-bit ARM platforms which can use
-the amdgpu driver anyway, due to lack of features like 64-bit prefetchable
-BARs.  Since amdgpu is currently the only real user of
-ARCH_HAS_KERNEL_FPU_SUPPORT, drop support for this option instead of
-bothering to implement the library functions.
 
-Link: https://lkml.kernel.org/r/20240509013727.648600-1-samuel.holland@sifive.com
-Fixes: 12624fe2d707 ("ARM: implement ARCH_HAS_KERNEL_FPU_SUPPORT")
-Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
-Reported-by: Thiago Jung Bauermann <thiago.bauermann@linaro.org>
-Closes: https://lore.kernel.org/lkml/87wmp4oo3y.fsf@linaro.org/
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202404042327.jRpt81kP-lkp@intel.com/
-Suggested-by: Ard Biesheuvel <ardb@kernel.org>
+This patch (of 6):
+
+The -Wextra option controls a number of different warnings that differ
+slightly by compiler version.  Some are useful in general, others are
+better left at W=1 or higher.  Based on earlier work, the ones that should
+be disabled by default are left for the higher warning levels already, and
+a lot of the useful ones have no remaining output when enabled.
+
+Move the -Wextra option up into the set of default-enabled warnings and
+just rely on the individual ones getting disabled as needed.
+
+The -Wunused warning was always grouped with this, so turn it on by
+default as well, except for the -Wunused-parameter warning that really has
+no value at all for the kernel since many interfaces have intentionally
+unused arguments.
+
+Link: https://lkml.kernel.org/r/20240415122037.1983124-1-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20240415122037.1983124-2-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Nathan Chancellor <nathan@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Nicolas Schier <nicolas@fjasle.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
+ scripts/Makefile.extrawarn |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/arch/arm/Kconfig~arm-implement-arch_has_kernel_fpu_support-fix
-+++ a/arch/arm/Kconfig
-@@ -15,7 +15,6 @@ config ARM
- 	select ARCH_HAS_FORTIFY_SOURCE
- 	select ARCH_HAS_KEEPINITRD
- 	select ARCH_HAS_KCOV
--	select ARCH_HAS_KERNEL_FPU_SUPPORT if KERNEL_MODE_NEON
- 	select ARCH_HAS_MEMBARRIER_SYNC_CORE
- 	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
- 	select ARCH_HAS_PTE_SPECIAL if ARM_LPAE
+--- a/scripts/Makefile.extrawarn~kbuild-turn-on-wextra-by-default
++++ a/scripts/Makefile.extrawarn
+@@ -82,12 +82,14 @@ KBUILD_CFLAGS += $(call cc-option,-Werro
+ # Warn if there is an enum types mismatch
+ KBUILD_CFLAGS += $(call cc-option,-Wenum-conversion)
+ 
++KBUILD_CFLAGS += -Wextra
++KBUILD_CFLAGS += -Wunused
++
+ #
+ # W=1 - warnings which may be relevant and do not occur too often
+ #
+ ifneq ($(findstring 1, $(KBUILD_EXTRA_WARN)),)
+ 
+-KBUILD_CFLAGS += -Wextra -Wunused -Wno-unused-parameter
+ KBUILD_CFLAGS += $(call cc-option, -Wrestrict)
+ KBUILD_CFLAGS += -Wmissing-format-attribute
+ KBUILD_CFLAGS += -Wold-style-definition
+@@ -190,6 +192,7 @@ else
+ 
+ # The following turn off the warnings enabled by -Wextra
+ KBUILD_CFLAGS += -Wno-sign-compare
++KBUILD_CFLAGS += -Wno-unused-parameter
+ 
+ endif
+ 
 _
 
-Patches currently in -mm which might be from samuel.holland@sifive.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-x86-fpu-fix-asm-fpu-typesh-include-guard.patch
-arch-add-arch_has_kernel_fpu_support.patch
-arm-implement-arch_has_kernel_fpu_support.patch
-arm-crypto-use-cc_flags_fpu-for-neon-cflags.patch
-arm64-implement-arch_has_kernel_fpu_support.patch
-arm64-crypto-use-cc_flags_fpu-for-neon-cflags.patch
-lib-raid6-use-cc_flags_fpu-for-neon-cflags.patch
-loongarch-implement-arch_has_kernel_fpu_support.patch
-powerpc-implement-arch_has_kernel_fpu_support.patch
-x86-implement-arch_has_kernel_fpu_support.patch
-riscv-add-support-for-kernel-mode-fpu.patch
-drm-amd-display-use-arch_has_kernel_fpu_support.patch
-selftests-fpu-move-fp-code-to-a-separate-translation-unit.patch
-selftests-fpu-allow-building-on-other-architectures.patch
 
