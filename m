@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBC5E1094E
-	for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 21:37:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FB1D1094E
+	for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 21:37:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716154649; cv=none; b=c5NFkpuvuFTnRz+5T9aCd/Op4U7QFDeqUbrj20l7jN1+/euPoS7hYMO9PXM5sHs/yGpPc4UUiLT0ho6iOS23Q/RVpRYuLcyTN3iSD/Tudi3h2Ru59CVfePo0/2r1nWvMCgCPt1Bev6fQU5jLGwT9CN/1q9yo8hItj8HN6TtKoRA=
+	t=1716154652; cv=none; b=Kufl1+Z5zna4J2jP8+U0llyuGlkjOgzN5jaMeFMY9t/1pa7SFAXQBgmN69v2ttToK6s58t18xXf5u9w22O1qA844H1uqeIXtc3GYEFgyPQaLjLWNwPJk2HCRpq1X2noWwxNijA2a6Z/nUMrcPptpXpz6QZBlzLundC91GEtrgrk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716154649; c=relaxed/simple;
-	bh=BqAwtxOmxQrlSE0HL1NfLoftqZjRdhDqj6GZFQgn0S0=;
-	h=Date:To:From:Subject:Message-Id; b=UHibEzVyxwe6e//Hxz5ldnGAl0eMB56G5MTjnFvkR7YkAT/FKLytugsNRTTxsrLEP/F8pMNitpJHd5l7JOE4zMz2PIsi8l704irDplsx4/gIR52OQWL80r4qv/wgLU/vcMcJeMQUhRWk5jE0mi2ZBlHT6dgqCkr9P9zkZbL8npc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bvyelvg8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716154652; c=relaxed/simple;
+	bh=qnXF042hsMI64TFPIQCM7NhjbhSHOm5I6+TTMFNJ1xI=;
+	h=Date:To:From:Subject:Message-Id; b=a53AxNBIGYPRKf6ty8rYrfRcwODpYd1WrbaYzBOJT5Q0ThhJ8Jxzb/SICGQmBZNCL9PDDqMUBTynvUh28+y1n2OEJjQReEVqTBkDBycxAnuplV4A0DdvVStL1znuSYMKsRkEArBLMJaOniolzzQuLLjbZGFpvq5eMN07GfdG0N8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aMBdZwpx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bvyelvg8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96DCAC32781;
-	Sun, 19 May 2024 21:37:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aMBdZwpx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D150C32781;
+	Sun, 19 May 2024 21:37:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716154649;
-	bh=BqAwtxOmxQrlSE0HL1NfLoftqZjRdhDqj6GZFQgn0S0=;
+	s=korg; t=1716154651;
+	bh=qnXF042hsMI64TFPIQCM7NhjbhSHOm5I6+TTMFNJ1xI=;
 	h=Date:To:From:Subject:From;
-	b=Bvyelvg8gh7vo+N1khOClXo3tu74P6i1DeYVHgWw5nJ09a/qaoME2ROps4d/67er2
-	 FUFwIWSMAzgNtsZzbP4mQ8lUnPMcsMIIKOlrH1BrubXVS9b83fdqiaVUHZ2Q811Zch
-	 KAjMq4pGL+IRP3N0djMumv3NbJWLBbVSUMU+A5JU=
-Date: Sun, 19 May 2024 14:37:29 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,palmer@rivosinc.com,nicolas@fjasle.eu,nathan@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,masahiroy@kernel.org,linux@armlinux.org.uk,hch@lst.de,git@xen0n.name,dave.hansen@linux.intel.com,corbet@lwn.net,christian.koenig@amd.com,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,alexander.deucher@amd.com,samuel.holland@sifive.com,akpm@linux-foundation.org
+	b=aMBdZwpxDZXA8HCgyXCiG/PRK8c7FRFMWe/HftsFr3xnn55xexh/FfZaOgx2n+ifA
+	 lNBPWCGBgcV91CeKqb3WK9MfnQdJBf3teO1GiwPJOpQvO/JYZGdSu60hQyrFp3MYuh
+	 j9cuKCAhuxuvuOy1smoPmwifjJXDPUlWIg4K9zI0=
+Date: Sun, 19 May 2024 14:37:30 -0700
+To: mm-commits@vger.kernel.org,tiwai@suse.com,shuah@kernel.org,seanjc@google.com,perex@perex.cz,pbonzini@redhat.com,pabeni@redhat.com,kuba@kernel.org,jarkko@kernel.org,ivan.orlov0322@gmail.com,horms@kernel.org,edumazet@google.com,edliaw@google.com,davem@davemloft.net,dave.hansen@linux.intel.com,broonie@kernel.org,bongsu.jeon@samsung.com,alexandre.belloni@bootlin.com,tao1.su@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] selftests-fpu-allow-building-on-other-architectures.patch removed from -mm tree
-Message-Id: <20240519213729.96DCAC32781@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] revert-selftests-harness-remove-use-of-line_max.patch removed from -mm tree
+Message-Id: <20240519213731.7D150C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,119 +35,131 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/fpu: allow building on other architectures
+     Subject: Revert "selftests/harness: remove use of LINE_MAX"
 has been removed from the -mm tree.  Its filename was
-     selftests-fpu-allow-building-on-other-architectures.patch
+     revert-selftests-harness-remove-use-of-line_max.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Samuel Holland <samuel.holland@sifive.com>
-Subject: selftests/fpu: allow building on other architectures
-Date: Fri, 29 Mar 2024 00:18:30 -0700
+From: Tao Su <tao1.su@linux.intel.com>
+Subject: Revert "selftests/harness: remove use of LINE_MAX"
+Date: Thu, 9 May 2024 13:31:12 +0800
 
-Now that ARCH_HAS_KERNEL_FPU_SUPPORT provides a common way to compile and
-run floating-point code, this test is no longer x86-specific.
+Patch series "Selftests: Fix compilation warnings due to missing
+_GNU_SOURCE definition", v2.
 
-Link: https://lkml.kernel.org/r/20240329072441.591471-16-samuel.holland@sifive.com
-Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Christian König <christian.koenig@amd.com> 
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Since kselftest_harness.h introduces asprintf()[1], many selftests have
+compilation warnings or errors due to missing _GNU_SOURCE definitions.
+
+The issue stems from a lack of a LINE_MAX definition in Android (see
+commit 38c957f07038), which is the reason why asprintf() was introduced. 
+We tried adding _GNU_SOURCE definitions to more selftests to fix, but
+asprintf() may continue to cause problems, and since it is quite late in
+the 6.9 cycle, we would like to revert 809216233555 first to provide
+testing for forks[2].
+
+[1] https://lore.kernel.org/all/20240411231954.62156-1-edliaw@google.com
+[2] https://lore.kernel.org/linux-kselftest/ZjuA3aY_iHkjP7bQ@google.com
+
+
+This patch (of 2):
+
+This reverts commit 8092162335554c8ef5e7f50eff68aa9cfbdbf865.
+
+asprintf() is declared in stdio.h when defining _GNU_SOURCE, but stdio.h
+is so common that many files don't define _GNU_SOURCE before including
+stdio.h, and defining _GNU_SOURCE after including stdio.h will no longer
+take effect, which causes warnings or even errors during compilation in
+many selftests.
+
+Revert 'commit 809216233555 ("selftests/harness: remove use of LINE_MAX")'
+as that came in quite late in the 6.9 cycle.
+
+Link: https://lkml.kernel.org/r/20240509053113.43462-1-tao1.su@linux.intel.com
+Link: https://lore.kernel.org/linux-kselftest/ZjuA3aY_iHkjP7bQ@google.com/
+Link: https://lkml.kernel.org/r/20240509053113.43462-2-tao1.su@linux.intel.com
+Fixes: 809216233555 ("selftests/harness: remove use of LINE_MAX")
+Signed-off-by: Tao Su <tao1.su@linux.intel.com>
+Reviewed-by: Simon Horman <horms@kernel.org>
+Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
+Cc: Bongsu Jeon <bongsu.jeon@samsung.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nicolas Schier <nicolas@fjasle.eu>
-Cc: Palmer Dabbelt <palmer@rivosinc.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: WANG Xuerui <git@xen0n.name>
-Cc: Will Deacon <will@kernel.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Edward Liaw <edliaw@google.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Ivan Orlov <ivan.orlov0322@gmail.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Jarkko Sakkinen <jarkko@kernel.org>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Takashi Iwai <tiwai@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug   |    2 +-
- lib/Makefile        |   25 ++-----------------------
- lib/test_fpu_glue.c |    5 ++++-
- 3 files changed, 7 insertions(+), 25 deletions(-)
+ tools/testing/selftests/kselftest_harness.h |   12 ++++--------
+ tools/testing/selftests/mm/mdwe_test.c      |    1 -
+ 2 files changed, 4 insertions(+), 9 deletions(-)
 
---- a/lib/Kconfig.debug~selftests-fpu-allow-building-on-other-architectures
-+++ a/lib/Kconfig.debug
-@@ -2926,7 +2926,7 @@ config TEST_FREE_PAGES
- 
- config TEST_FPU
- 	tristate "Test floating point operations in kernel space"
--	depends on X86 && !KCOV_INSTRUMENT_ALL
-+	depends on ARCH_HAS_KERNEL_FPU_SUPPORT && !KCOV_INSTRUMENT_ALL
- 	help
- 	  Enable this option to add /sys/kernel/debug/selftest_helpers/test_fpu
- 	  which will trigger a sequence of floating point operations. This is used
---- a/lib/Makefile~selftests-fpu-allow-building-on-other-architectures
-+++ a/lib/Makefile
-@@ -110,31 +110,10 @@ CFLAGS_test_fprobe.o += $(CC_FLAGS_FTRAC
- obj-$(CONFIG_FPROBE_SANITY_TEST) += test_fprobe.o
- obj-$(CONFIG_TEST_OBJPOOL) += test_objpool.o
- 
--#
--# CFLAGS for compiling floating point code inside the kernel. x86/Makefile turns
--# off the generation of FPU/SSE* instructions for kernel proper but FPU_FLAGS
--# get appended last to CFLAGS and thus override those previous compiler options.
--#
--FPU_CFLAGS := -msse -msse2
--ifdef CONFIG_CC_IS_GCC
--# Stack alignment mismatch, proceed with caution.
--# GCC < 7.1 cannot compile code using `double` and -mpreferred-stack-boundary=3
--# (8B stack alignment).
--# See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53383
--#
--# The "-msse" in the first argument is there so that the
--# -mpreferred-stack-boundary=3 build error:
--#
--#  -mpreferred-stack-boundary=3 is not between 4 and 12
--#
--# can be triggered. Otherwise gcc doesn't complain.
--FPU_CFLAGS += -mhard-float
--FPU_CFLAGS += $(call cc-option,-msse -mpreferred-stack-boundary=3,-mpreferred-stack-boundary=4)
--endif
--
- obj-$(CONFIG_TEST_FPU) += test_fpu.o
- test_fpu-y := test_fpu_glue.o test_fpu_impl.o
--CFLAGS_test_fpu_impl.o += $(FPU_CFLAGS)
-+CFLAGS_test_fpu_impl.o += $(CC_FLAGS_FPU)
-+CFLAGS_REMOVE_test_fpu_impl.o += $(CC_FLAGS_NO_FPU)
- 
- # Some KUnit files (hooks.o) need to be built-in even when KUnit is a module,
- # so we can't just use obj-$(CONFIG_KUNIT).
---- a/lib/test_fpu_glue.c~selftests-fpu-allow-building-on-other-architectures
-+++ a/lib/test_fpu_glue.c
-@@ -17,7 +17,7 @@
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/debugfs.h>
--#include <asm/fpu/api.h>
-+#include <linux/fpu.h>
- 
- #include "test_fpu.h"
- 
-@@ -38,6 +38,9 @@ static struct dentry *selftest_dir;
- 
- static int __init test_fpu_init(void)
+--- a/tools/testing/selftests/kselftest_harness.h~revert-selftests-harness-remove-use-of-line_max
++++ a/tools/testing/selftests/kselftest_harness.h
+@@ -56,6 +56,7 @@ static_assert(0, "kselftest harness requ
+ #include <asm/types.h>
+ #include <ctype.h>
+ #include <errno.h>
++#include <limits.h>
+ #include <stdbool.h>
+ #include <stdint.h>
+ #include <stdio.h>
+@@ -1216,7 +1217,7 @@ void __run_test(struct __fixture_metadat
+ 		struct __test_metadata *t)
  {
-+	if (!kernel_fpu_available())
-+		return -EINVAL;
-+
- 	selftest_dir = debugfs_create_dir("selftest_helpers", NULL);
- 	if (!selftest_dir)
- 		return -ENOMEM;
+ 	struct __test_xfail *xfail;
+-	char *test_name;
++	char test_name[LINE_MAX];
+ 	const char *diagnostic;
+ 
+ 	/* reset test struct */
+@@ -1227,12 +1228,8 @@ void __run_test(struct __fixture_metadat
+ 	memset(t->env, 0, sizeof(t->env));
+ 	memset(t->results->reason, 0, sizeof(t->results->reason));
+ 
+-	if (asprintf(&test_name, "%s%s%s.%s", f->name,
+-		variant->name[0] ? "." : "", variant->name, t->name) == -1) {
+-		ksft_print_msg("ERROR ALLOCATING MEMORY\n");
+-		t->exit_code = KSFT_FAIL;
+-		_exit(t->exit_code);
+-	}
++	snprintf(test_name, sizeof(test_name), "%s%s%s.%s",
++		 f->name, variant->name[0] ? "." : "", variant->name, t->name);
+ 
+ 	ksft_print_msg(" RUN           %s ...\n", test_name);
+ 
+@@ -1270,7 +1267,6 @@ void __run_test(struct __fixture_metadat
+ 
+ 	ksft_test_result_code(t->exit_code, test_name,
+ 			      diagnostic ? "%s" : NULL, diagnostic);
+-	free(test_name);
+ }
+ 
+ static int test_harness_run(int argc, char **argv)
+--- a/tools/testing/selftests/mm/mdwe_test.c~revert-selftests-harness-remove-use-of-line_max
++++ a/tools/testing/selftests/mm/mdwe_test.c
+@@ -7,7 +7,6 @@
+ #include <linux/mman.h>
+ #include <linux/prctl.h>
+ 
+-#define _GNU_SOURCE
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <sys/auxv.h>
 _
 
-Patches currently in -mm which might be from samuel.holland@sifive.com are
+Patches currently in -mm which might be from tao1.su@linux.intel.com are
 
 
