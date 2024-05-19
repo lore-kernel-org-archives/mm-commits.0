@@ -1,63 +1,75 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out-173.mta0.migadu.com (out-173.mta0.migadu.com [91.218.175.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B052F26AEC;
-	Sun, 19 May 2024 16:49:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A27CD2E3E4
+	for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 18:02:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716137380; cv=none; b=pGLDk8+zB9aGtN2suqOq5VKmqlBXT2Dky1nbhJ9l6pSi0f2PEwcv/iq94agrtPI8PVgHVkZu+6PNYVvKkMpRxFi9WDIRRRs0eUivCZJKAwHYynkdzPlJ70CMOE9ZI5CiDl+8Dqe3TwOKUp7GJyEq+AnjIGZXe39b6bSBelGD0vg=
+	t=1716141768; cv=none; b=escXIQjAUMVqToQt/M2JkE/dmMO6yL+XZ1q6w6Y5oEN1VYonwfn7lj9vkhw3DSuN4cD+E39mmaYZsJsXkSLyfEW8VmO8V5uSdrC2c2+EAv8ss49wbG77VvG7mQTWnlZXRfE/oFv2Vs29TfE6bH5Kr0CN04fTHNXjGN0h94SPKX4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716137380; c=relaxed/simple;
-	bh=ZdL1P3gDLeD7UcWsgjDS5BynTw8GaFR9nqjQy4PwtOk=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=cllfyz9IZ2923jvexQp813bqIceyWuk6WdsezGLh7DgOPPPwsseOHBsS7qqneSKztSoU/y0CnQVh1obXg72ZhA9pNbLBB+XTfHans6UGORwS33O+3lOjDD/UPffzt1ARgg9KjD4QocafdqPBnNCief7toqMdgOEr3GAVRVskR7U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=vBhFY90R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716141768; c=relaxed/simple;
+	bh=kEhtOaLdgy5lPNGHbBfdDuHmO9QXnSuQyV86uRAAzR8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=SQUweyboiaqbSRwBFg0/Cqpur3SCE8sxQDbXvJ9Dp+/KFWhVjoCPqAcXCzX0y1GOmm+/8Hz/txDxjU0rPT8JZQntMaDAxj3jjJyyOR1i7afU4xH8ODwm49NRTdLUmctsdY6FsE32W4wTUYMTGXmkLugbmsxwLWWqkO5MwQKab5E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=bSKda03q; arc=none smtp.client-ip=91.218.175.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="vBhFY90R"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 40046C32781;
-	Sun, 19 May 2024 16:49:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1716137380;
-	bh=ZdL1P3gDLeD7UcWsgjDS5BynTw8GaFR9nqjQy4PwtOk=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=vBhFY90RT1qs+GUnN+yjijJYE7ctYfW3txPoLG3J5MvPyhrEOWxKB7SQxgNHCi+iZ
-	 RYZOevU7n1wBSxC9uCUi8yd4E6BA0jfvVwWcbupC4d0DVUG3K4s7JF98T73/uIpl3u
-	 6OSpvh42DDOjm8vaN9MzH7RD+p+xK5fAjIRJ0ByGrW6pO+4Qxy5tglCh6HhcDnym7N
-	 +WVDw8/Ja+wllbCc0IG6gMJ1NiJVFIUZV4OaN/VYQPsGxt63nXyuapsQSFxU63jtZi
-	 1wUjaNUnwBNErrS3C2q3k9DoNezW/Nnf58az/t6LgAKFFMH64snUFddcGmW8RrDB4z
-	 TGIzs3nnQV6HA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 38F28C54BB2;
-	Sun, 19 May 2024 16:49:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="bSKda03q"
+X-Envelope-To: torvalds@linuxfoundation.org
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1716141764;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=QxWT6yFeaOauY+SRIXUcV0VmlDaq8Ucmr4A+eczzPDg=;
+	b=bSKda03qak4LPyrSaarBvNgu2qR0QRx7q9MRbSwN1KXH34CJsWxmxrsM5RozDdhMWkehGl
+	XHkq7D91uA9QZMvOdEmokZbyZg/noDv1jvmKlVvE4UWW5XQy5Y8OJ0IaTrJuGiSteBhTGP
+	6g+X6WWkr9DcLPVc7pyPSJMYpViBMeE=
+X-Envelope-To: akpm@linux-foundation.org
+X-Envelope-To: linux-mm@kvack.org
+X-Envelope-To: mm-commits@vger.kernel.org
+X-Envelope-To: linux-kernel@vger.kernel.org
+Date: Sun, 19 May 2024 14:02:41 -0400
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Kent Overstreet <kent.overstreet@linux.dev>
+To: Linus Torvalds <torvalds@linuxfoundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, 
+	mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Subject: Re: [GIT PULL] MM updates for 6.10-rc1
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20240517192239.9285edd85f8ef893bb508a61@linux-foundation.org>
+Message-ID: <5qcafqbnrox7r5m4kghgykahtp2pusmhwfxqzrmhgvavxxsdux@ao2tce7nppey>
 References: <20240517192239.9285edd85f8ef893bb508a61@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-mm.kvack.org>
-X-PR-Tracked-Message-Id: <20240517192239.9285edd85f8ef893bb508a61@linux-foundation.org>
-X-PR-Tracked-Remote: https://lkml.kernel.org/r/20240412120421.27d86c34@canb.auug.org.au io_uring/io_uring.c
-X-PR-Tracked-Commit-Id: 76edc534cc289308130272a2ac28694fc9b72a03
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 61307b7be41a1f1039d1d1368810a1d92cb97b44
-Message-Id: <171613738022.16746.1562405680951035145.pr-tracker-bot@kernel.org>
-Date: Sun, 19 May 2024 16:49:40 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linuxfoundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+ <CAHk-=whEAquncw0wb59-XVAHmVh4CWSfwuWh4bTJjJzvx0=PzQ@mail.gmail.com>
+ <CAHk-=whSiUg7dggHaBLULuF6_GB6NORLDByog0p=Qo+0ewmZSA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHk-=whSiUg7dggHaBLULuF6_GB6NORLDByog0p=Qo+0ewmZSA@mail.gmail.com>
+X-Migadu-Flow: FLOW_OUT
 
-The pull request you sent on Fri, 17 May 2024 19:22:39 -0700:
+On Sun, May 19, 2024 at 09:48:49AM -0700, Linus Torvalds wrote:
+> On Sun, 19 May 2024 at 08:32, Linus Torvalds
+> <torvalds@linuxfoundation.org> wrote:
+> >
+> > I'm going to take this pull and fix up the cases I find, but I'm not
+> > happy with this kind of trivial C preprocessor misuse.
+> 
+> I did some other maco handling cleanup too and tried to regularize
+> some of this all, and it seems to work for me. But somebody should
+> double-check, and it's possible these patterns should all be
+> regularized further with a few helper macros for the whole "add
+> __GFP_ZERO to argument list" or similar.
 
-> https://lkml.kernel.org/r/20240412120421.27d86c34@canb.auug.org.au io_uring/io_uring.c
+I just double checked slab.h, gfp.h and percpu.h, and scanned through
+the diff vs. 6.9 for include/linux/ - looks like you got everything.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/61307b7be41a1f1039d1d1368810a1d92cb97b44
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+I think we can slim down the API surface of slab.h some more too, we're
+now exposing three different ways of saying "trace/track this allocation
+here": _trace, _track_caller and _noprof vs. normal; I think after a
+cycle we can see if the old variants are still needed or can be
+consolidated somehow.
