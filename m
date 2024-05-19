@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E78F6CDBA
-	for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 21:37:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 734506CDBA
+	for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 21:37:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716154647; cv=none; b=kwgDFXfQQDFzs3fLbYC9wvCravNgv6k925YnmECnGeami5W6XxzC+967oqo/6w//yZUr8MvTzQ4e/Mo3qbODwXosC9VLW4wGTvdGiJbn7d/sjpKFkq39kkBUSpR9nzbHPLGC0Zh1aNqp24eETwC25Y3jUodJk8lqtjE3TK/V+C4=
+	t=1716154648; cv=none; b=VDI0vDD73t4X3qrcazwbe/6Og37YZ75BRxsCfwYDqXWLkS92a2KviZnol0nC7vG2Iz6ak8+afXjKitEzmcoH+kW5eZLXFH/J5sUtomd4LgjjQo8rIQ8OIw/g9gtEOb4H3n4WARDtZkms9J53eivZT7Gqb+UONx/G0rdjhlP56Qw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716154647; c=relaxed/simple;
-	bh=d9ZYUDy8tc/YMZlFw4ESU3g6xeGJu6439CvqnjcJMD8=;
-	h=Date:To:From:Subject:Message-Id; b=rKHeeclE4gJsak1B9U60P8u5p/vW9aBBJ/caPDy6qCkD2h6Tmhd6bYe5A6gMdQylBdsoaWYNVZox00RLvKwOyi9a+vbksK1yAllPmz5FaVUrWd9JZNMJ19/MsHVF4hT/GvkkYGGX85cGLShDOltt3UpZuIaVnEMWLA0KGYZFRLM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y8cvQx7F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716154648; c=relaxed/simple;
+	bh=9ZuLPHJpk+360pdsN3iEzZzFEgPBSf3ioy6dScryfG8=;
+	h=Date:To:From:Subject:Message-Id; b=lhCC0Cix1/pMsAIKn0xm1P8IOCgAgOp3np9teT8B6I+Di+v16mQU8Vxx6UVeUWjYtWuD+kle+vn6Ps0Zu4Ocm1Jy0Dh8RWoZ+FQxnHMR/ddPah09ocLa16b0eKMvV52bMzSredyJnqKSjql22Cc9jXYlm0rJGw5wYOd2UtWlQYU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M7hcmZ2N; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y8cvQx7F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE4D6C32781;
-	Sun, 19 May 2024 21:37:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M7hcmZ2N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36301C32781;
+	Sun, 19 May 2024 21:37:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716154646;
-	bh=d9ZYUDy8tc/YMZlFw4ESU3g6xeGJu6439CvqnjcJMD8=;
+	s=korg; t=1716154648;
+	bh=9ZuLPHJpk+360pdsN3iEzZzFEgPBSf3ioy6dScryfG8=;
 	h=Date:To:From:Subject:From;
-	b=Y8cvQx7FyQUBqKkscfEmC7tBcH36a9LmlvRUH5Vm7gZXDBvP4pLXiLkUL7ptCi10F
-	 5Gh0wPR0/OSuaIBhygkj7Pfl3/wXIFnygjSr1LxOJkLzbmlKMLE6XWXGnL4EpIF+1X
-	 zPWGFMywa3PdVZfa8TvIMI/MczY+XLnQg4CSKBAw=
-Date: Sun, 19 May 2024 14:37:26 -0700
+	b=M7hcmZ2N1JZT+SOVYrgv2qEavqaC2+tcayICy+auxN2KBvmzO4wyLSsJ4f+LOk9B0
+	 qkKL3zmM+cTmuEhAr6Ln+XT7U/cA4L/GD6fB/LCkdS6w75DX62/NcbBDfNrSRbCouz
+	 mfsHwri4bNcBspOEtYuROhtuWFkjRna0lw7giyIE=
+Date: Sun, 19 May 2024 14:37:27 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,palmer@rivosinc.com,nicolas@fjasle.eu,nathan@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,masahiroy@kernel.org,linux@armlinux.org.uk,hch@lst.de,git@xen0n.name,dave.hansen@linux.intel.com,corbet@lwn.net,christian.koenig@amd.com,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,alexander.deucher@amd.com,samuel.holland@sifive.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] drm-amd-display-use-arch_has_kernel_fpu_support.patch removed from -mm tree
-Message-Id: <20240519213726.CE4D6C32781@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] selftests-fpu-move-fp-code-to-a-separate-translation-unit.patch removed from -mm tree
+Message-Id: <20240519213728.36301C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: drm/amd/display: use ARCH_HAS_KERNEL_FPU_SUPPORT
+     Subject: selftests/fpu: move FP code to a separate translation unit
 has been removed from the -mm tree.  Its filename was
-     drm-amd-display-use-arch_has_kernel_fpu_support.patch
+     selftests-fpu-move-fp-code-to-a-separate-translation-unit.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Samuel Holland <samuel.holland@sifive.com>
-Subject: drm/amd/display: use ARCH_HAS_KERNEL_FPU_SUPPORT
-Date: Fri, 29 Mar 2024 00:18:28 -0700
+Subject: selftests/fpu: move FP code to a separate translation unit
+Date: Fri, 29 Mar 2024 00:18:29 -0700
 
-Now that all previously-supported architectures select
-ARCH_HAS_KERNEL_FPU_SUPPORT, this code can depend on that symbol instead
-of the existing list of architectures.  It can also take advantage of the
-common kernel-mode FPU API and method of adjusting CFLAGS.
+This ensures no compiler-generated floating-point code can appear outside
+kernel_fpu_{begin,end}() sections, and some architectures enforce this
+separation.
 
-Link: https://lkml.kernel.org/r/20240329072441.591471-14-samuel.holland@sifive.com
+Link: https://lkml.kernel.org/r/20240329072441.591471-15-samuel.holland@sifive.com
 Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
-Acked-by: Alex Deucher <alexander.deucher@amd.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Christian König <christian.koenig@amd.com> 
+Cc: Alex Deucher <alexander.deucher@amd.com>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
@@ -75,166 +74,230 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/display/Kconfig            |    2 
- drivers/gpu/drm/amd/display/amdgpu_dm/dc_fpu.c |   27 -----------
- drivers/gpu/drm/amd/display/dc/dml/Makefile    |   36 ---------------
- drivers/gpu/drm/amd/display/dc/dml2/Makefile   |   36 ---------------
- 4 files changed, 7 insertions(+), 94 deletions(-)
+ lib/Makefile        |    3 -
+ lib/test_fpu.c      |   89 ------------------------------------------
+ lib/test_fpu.h      |    8 +++
+ lib/test_fpu_glue.c |   59 +++++++++++++++++++++++++++
+ lib/test_fpu_impl.c |   37 +++++++++++++++++
+ 5 files changed, 106 insertions(+), 90 deletions(-)
 
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/dc_fpu.c~drm-amd-display-use-arch_has_kernel_fpu_support
-+++ a/drivers/gpu/drm/amd/display/amdgpu_dm/dc_fpu.c
-@@ -26,16 +26,7 @@
+--- a/lib/Makefile~selftests-fpu-move-fp-code-to-a-separate-translation-unit
++++ a/lib/Makefile
+@@ -133,7 +133,8 @@ FPU_CFLAGS += $(call cc-option,-msse -mp
+ endif
  
- #include "dc_trace.h"
+ obj-$(CONFIG_TEST_FPU) += test_fpu.o
+-CFLAGS_test_fpu.o += $(FPU_CFLAGS)
++test_fpu-y := test_fpu_glue.o test_fpu_impl.o
++CFLAGS_test_fpu_impl.o += $(FPU_CFLAGS)
  
--#if defined(CONFIG_X86)
+ # Some KUnit files (hooks.o) need to be built-in even when KUnit is a module,
+ # so we can't just use obj-$(CONFIG_KUNIT).
+--- a/lib/test_fpu.c
++++ /dev/null
+@@ -1,89 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0+
+-/*
+- * Test cases for using floating point operations inside a kernel module.
+- *
+- * This tests kernel_fpu_begin() and kernel_fpu_end() functions, especially
+- * when userland has modified the floating point control registers. The kernel
+- * state might depend on the state set by the userland thread that was active
+- * before a syscall.
+- *
+- * To facilitate the test, this module registers file
+- * /sys/kernel/debug/selftest_helpers/test_fpu, which when read causes a
+- * sequence of floating point operations. If the operations fail, either the
+- * read returns error status or the kernel crashes.
+- * If the operations succeed, the read returns "1\n".
+- */
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/debugfs.h>
 -#include <asm/fpu/api.h>
--#elif defined(CONFIG_PPC64)
--#include <asm/switch_to.h>
--#include <asm/cputable.h>
--#elif defined(CONFIG_ARM64)
--#include <asm/neon.h>
--#elif defined(CONFIG_LOONGARCH)
--#include <asm/fpu.h>
--#endif
-+#include <linux/fpu.h>
- 
- /**
-  * DOC: DC FPU manipulation overview
-@@ -87,16 +78,9 @@ void dc_fpu_begin(const char *function_n
- 	WARN_ON_ONCE(!in_task());
- 	preempt_disable();
- 	depth = __this_cpu_inc_return(fpu_recursion_depth);
 -
- 	if (depth == 1) {
--#if defined(CONFIG_X86) || defined(CONFIG_LOONGARCH)
-+		BUG_ON(!kernel_fpu_available());
- 		kernel_fpu_begin();
--#elif defined(CONFIG_PPC64)
--		if (!cpu_has_feature(CPU_FTR_FPU_UNAVAILABLE))
--			enable_kernel_fp();
--#elif defined(CONFIG_ARM64)
--		kernel_neon_begin();
--#endif
- 	}
- 
- 	TRACE_DCN_FPU(true, function_name, line, depth);
-@@ -118,14 +102,7 @@ void dc_fpu_end(const char *function_nam
- 
- 	depth = __this_cpu_dec_return(fpu_recursion_depth);
- 	if (depth == 0) {
--#if defined(CONFIG_X86) || defined(CONFIG_LOONGARCH)
- 		kernel_fpu_end();
--#elif defined(CONFIG_PPC64)
--		if (!cpu_has_feature(CPU_FTR_FPU_UNAVAILABLE))
--			disable_kernel_fp();
--#elif defined(CONFIG_ARM64)
--		kernel_neon_end();
--#endif
- 	} else {
- 		WARN_ON_ONCE(depth < 0);
- 	}
---- a/drivers/gpu/drm/amd/display/dc/dml2/Makefile~drm-amd-display-use-arch_has_kernel_fpu_support
-+++ a/drivers/gpu/drm/amd/display/dc/dml2/Makefile
-@@ -24,40 +24,8 @@
- #
- # Makefile for dml2.
- 
--ifdef CONFIG_X86
--dml2_ccflags-$(CONFIG_CC_IS_GCC) := -mhard-float
--dml2_ccflags := $(dml2_ccflags-y) -msse
--endif
+-static int test_fpu(void)
+-{
+-	/*
+-	 * This sequence of operations tests that rounding mode is
+-	 * to nearest and that denormal numbers are supported.
+-	 * Volatile variables are used to avoid compiler optimizing
+-	 * the calculations away.
+-	 */
+-	volatile double a, b, c, d, e, f, g;
 -
--ifdef CONFIG_PPC64
--dml2_ccflags := -mhard-float
--endif
+-	a = 4.0;
+-	b = 1e-15;
+-	c = 1e-310;
 -
--ifdef CONFIG_ARM64
--dml2_rcflags := -mgeneral-regs-only
--endif
+-	/* Sets precision flag */
+-	d = a + b;
 -
--ifdef CONFIG_LOONGARCH
--dml2_ccflags := -mfpu=64
--dml2_rcflags := -msoft-float
--endif
+-	/* Result depends on rounding mode */
+-	e = a + b / 2;
 -
--ifdef CONFIG_CC_IS_GCC
--ifeq ($(call cc-ifversion, -lt, 0701, y), y)
--IS_OLD_GCC = 1
--endif
--endif
+-	/* Denormal and very large values */
+-	f = b / c;
 -
--ifdef CONFIG_X86
--ifdef IS_OLD_GCC
--# Stack alignment mismatch, proceed with caution.
--# GCC < 7.1 cannot compile code using `double` and -mpreferred-stack-boundary=3
--# (8B stack alignment).
--dml2_ccflags += -mpreferred-stack-boundary=4
--else
--dml2_ccflags += -msse2
--endif
--endif
-+dml2_ccflags := $(CC_FLAGS_FPU)
-+dml2_rcflags := $(CC_FLAGS_NO_FPU)
- 
- ifneq ($(CONFIG_FRAME_WARN),0)
- ifeq ($(filter y,$(CONFIG_KASAN)$(CONFIG_KCSAN)),y)
---- a/drivers/gpu/drm/amd/display/dc/dml/Makefile~drm-amd-display-use-arch_has_kernel_fpu_support
-+++ a/drivers/gpu/drm/amd/display/dc/dml/Makefile
-@@ -25,40 +25,8 @@
- # It provides the general basic services required by other DAL
- # subcomponents.
- 
--ifdef CONFIG_X86
--dml_ccflags-$(CONFIG_CC_IS_GCC) := -mhard-float
--dml_ccflags := $(dml_ccflags-y) -msse
--endif
+-	/* Depends on denormal support */
+-	g = a + c * f;
 -
--ifdef CONFIG_PPC64
--dml_ccflags := -mhard-float
--endif
+-	if (d > a && e > a && g > a)
+-		return 0;
+-	else
+-		return -EINVAL;
+-}
 -
--ifdef CONFIG_ARM64
--dml_rcflags := -mgeneral-regs-only
--endif
+-static int test_fpu_get(void *data, u64 *val)
+-{
+-	int status = -EINVAL;
 -
--ifdef CONFIG_LOONGARCH
--dml_ccflags := -mfpu=64
--dml_rcflags := -msoft-float
--endif
+-	kernel_fpu_begin();
+-	status = test_fpu();
+-	kernel_fpu_end();
 -
--ifdef CONFIG_CC_IS_GCC
--ifneq ($(call gcc-min-version, 70100),y)
--IS_OLD_GCC = 1
--endif
--endif
+-	*val = 1;
+-	return status;
+-}
 -
--ifdef CONFIG_X86
--ifdef IS_OLD_GCC
--# Stack alignment mismatch, proceed with caution.
--# GCC < 7.1 cannot compile code using `double` and -mpreferred-stack-boundary=3
--# (8B stack alignment).
--dml_ccflags += -mpreferred-stack-boundary=4
--else
--dml_ccflags += -msse2
--endif
--endif
-+dml_ccflags := $(CC_FLAGS_FPU)
-+dml_rcflags := $(CC_FLAGS_NO_FPU)
- 
- ifneq ($(CONFIG_FRAME_WARN),0)
- ifeq ($(filter y,$(CONFIG_KASAN)$(CONFIG_KCSAN)),y)
---- a/drivers/gpu/drm/amd/display/Kconfig~drm-amd-display-use-arch_has_kernel_fpu_support
-+++ a/drivers/gpu/drm/amd/display/Kconfig
-@@ -8,7 +8,7 @@ config DRM_AMD_DC
- 	depends on BROKEN || !CC_IS_CLANG || ARM64 || RISCV || SPARC64 || X86_64
- 	select SND_HDA_COMPONENT if SND_HDA_CORE
- 	# !CC_IS_CLANG: https://github.com/ClangBuiltLinux/linux/issues/1752
--	select DRM_AMD_DC_FP if (X86 || LOONGARCH || (PPC64 && ALTIVEC) || (ARM64 && KERNEL_MODE_NEON && !CC_IS_CLANG))
-+	select DRM_AMD_DC_FP if ARCH_HAS_KERNEL_FPU_SUPPORT && (!ARM64 || !CC_IS_CLANG)
- 	help
- 	  Choose this option if you want to use the new display engine
- 	  support for AMDGPU. This adds required support for Vega and
+-DEFINE_DEBUGFS_ATTRIBUTE(test_fpu_fops, test_fpu_get, NULL, "%lld\n");
+-static struct dentry *selftest_dir;
+-
+-static int __init test_fpu_init(void)
+-{
+-	selftest_dir = debugfs_create_dir("selftest_helpers", NULL);
+-	if (!selftest_dir)
+-		return -ENOMEM;
+-
+-	debugfs_create_file_unsafe("test_fpu", 0444, selftest_dir, NULL,
+-				   &test_fpu_fops);
+-
+-	return 0;
+-}
+-
+-static void __exit test_fpu_exit(void)
+-{
+-	debugfs_remove(selftest_dir);
+-}
+-
+-module_init(test_fpu_init);
+-module_exit(test_fpu_exit);
+-
+-MODULE_LICENSE("GPL");
+--- /dev/null
++++ a/lib/test_fpu_glue.c
+@@ -0,0 +1,59 @@
++// SPDX-License-Identifier: GPL-2.0+
++/*
++ * Test cases for using floating point operations inside a kernel module.
++ *
++ * This tests kernel_fpu_begin() and kernel_fpu_end() functions, especially
++ * when userland has modified the floating point control registers. The kernel
++ * state might depend on the state set by the userland thread that was active
++ * before a syscall.
++ *
++ * To facilitate the test, this module registers file
++ * /sys/kernel/debug/selftest_helpers/test_fpu, which when read causes a
++ * sequence of floating point operations. If the operations fail, either the
++ * read returns error status or the kernel crashes.
++ * If the operations succeed, the read returns "1\n".
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/debugfs.h>
++#include <asm/fpu/api.h>
++
++#include "test_fpu.h"
++
++static int test_fpu_get(void *data, u64 *val)
++{
++	int status = -EINVAL;
++
++	kernel_fpu_begin();
++	status = test_fpu();
++	kernel_fpu_end();
++
++	*val = 1;
++	return status;
++}
++
++DEFINE_DEBUGFS_ATTRIBUTE(test_fpu_fops, test_fpu_get, NULL, "%lld\n");
++static struct dentry *selftest_dir;
++
++static int __init test_fpu_init(void)
++{
++	selftest_dir = debugfs_create_dir("selftest_helpers", NULL);
++	if (!selftest_dir)
++		return -ENOMEM;
++
++	debugfs_create_file_unsafe("test_fpu", 0444, selftest_dir, NULL,
++				   &test_fpu_fops);
++
++	return 0;
++}
++
++static void __exit test_fpu_exit(void)
++{
++	debugfs_remove(selftest_dir);
++}
++
++module_init(test_fpu_init);
++module_exit(test_fpu_exit);
++
++MODULE_LICENSE("GPL");
+--- /dev/null
++++ a/lib/test_fpu.h
+@@ -0,0 +1,8 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
++
++#ifndef _LIB_TEST_FPU_H
++#define _LIB_TEST_FPU_H
++
++int test_fpu(void);
++
++#endif
+--- /dev/null
++++ a/lib/test_fpu_impl.c
+@@ -0,0 +1,37 @@
++// SPDX-License-Identifier: GPL-2.0+
++
++#include <linux/errno.h>
++
++#include "test_fpu.h"
++
++int test_fpu(void)
++{
++	/*
++	 * This sequence of operations tests that rounding mode is
++	 * to nearest and that denormal numbers are supported.
++	 * Volatile variables are used to avoid compiler optimizing
++	 * the calculations away.
++	 */
++	volatile double a, b, c, d, e, f, g;
++
++	a = 4.0;
++	b = 1e-15;
++	c = 1e-310;
++
++	/* Sets precision flag */
++	d = a + b;
++
++	/* Result depends on rounding mode */
++	e = a + b / 2;
++
++	/* Denormal and very large values */
++	f = b / c;
++
++	/* Depends on denormal support */
++	g = a + c * f;
++
++	if (d > a && e > a && g > a)
++		return 0;
++	else
++		return -EINVAL;
++}
 _
 
 Patches currently in -mm which might be from samuel.holland@sifive.com are
