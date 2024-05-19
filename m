@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF063335C7;
-	Sun, 19 May 2024 23:38:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56A46335C7
+	for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 23:40:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716161909; cv=none; b=HejTgoMAO6DpGnPwdQY4zP5QuY7iSkFW9GhKvmtRA/0Ybs/aPQ5e4a3yibO4xZrhdPomHGLqgUYyPLmpVoXWstJcBxz2RdY7GTVvOU+PmVI+QQZ5CTnSirlnLkR6cb0eSHvg2tFNy7FHmpdIMUOFiGUvbOeux8Gl3vdU8KpJtrs=
+	t=1716162016; cv=none; b=ntJSKETacZUHTolakJVz9g87Chzm5PX7lOx0ezFFn1B3ntlc3Ppi2MD2D7HA7aS+NJai0stZTbTSJ74ae7Yo12bujTM3OZRd2gx5CQT0+ZEaYoeMGAjqZUvsRTSMHwfAPPv1DMknLI4yzYYyQINM2EkOIyB3BrZKVPPbkZmg9vY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716161909; c=relaxed/simple;
-	bh=pGDiMU3VLjKvOuPmkbe0yr6cavGUkz5eEdtWWP+UlP0=;
-	h=Date:To:From:Subject:Message-Id; b=OJlnmyKUm0n/+YFSL9Ui6MjcqDp2WHuVPQyAadkK4m+wrJ/PoeXmBgeKp5UTIU9vmu9NZQEO174P5FmVDzP2GHidecQ5/j4tOJ4Tqafg3sbzmwb9jy80sWHucY10+Zu9J2FYQ2/ogEeduOCk9gUDwxs4yMlkh6oM/+8GbIhYqcI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wWo2Qz0P; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716162016; c=relaxed/simple;
+	bh=Enj4x818OJQOU+shpc1/kGfHDmHLEplAI3yRBoCLAxQ=;
+	h=Date:To:From:Subject:Message-Id; b=niaHA9acUN8J6GC4yb11Uo+ZbaGbRWI5YFjdPI+6JFx26rn4qNhSh9gGozWQwRjnl35Rnam8I3nxyY0DMEgrWDWUYvaOpZXHNJRL7FQgi+ueKHIjvtChedSh8LTwYkTbQhzt48TwmD8hncSwzBP9iRpsV7swK9/3uGmdlEAbhjs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wXk359JT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wWo2Qz0P"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15A52C32781;
-	Sun, 19 May 2024 23:38:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wXk359JT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFF93C32781;
+	Sun, 19 May 2024 23:40:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716161909;
-	bh=pGDiMU3VLjKvOuPmkbe0yr6cavGUkz5eEdtWWP+UlP0=;
+	s=korg; t=1716162015;
+	bh=Enj4x818OJQOU+shpc1/kGfHDmHLEplAI3yRBoCLAxQ=;
 	h=Date:To:From:Subject:From;
-	b=wWo2Qz0Pk8PXW+Ui5hQo3q3AaRHO1Oq2Xa/993017Gn+lKeCz13hoXvopsdwQkfzp
-	 s6rUoSEXJq207kRlTdaGxKfcvilF1Qe1nF043lIq2XdhECg2ax4jE57+10M3fjHnyT
-	 WZEYAAg3Kj74E6GhHDVdNp9hrinFrqynB3BpqFTA=
-Date: Sun, 19 May 2024 16:38:28 -0700
-To: mm-commits@vger.kernel.org,xuyu@linux.alibaba.com,stable@vger.kernel.org,shy828301@gmail.com,osalvador@suse.de,nao.horiguchi@gmail.com,david@redhat.com,anshuman.khandual@arm.com,linmiaohe@huawei.com,akpm@linux-foundation.org
+	b=wXk359JTtmS6rVrW3pN/Idx2+z6CBlaJHHD4aBc8W6y8H3ppJg1NdUwaiqlW4xWZe
+	 sdMER/LJ5wnLuWxYdofz283l72mcXtP9geeS4IdzJnJtGG22UEitvvQ48Fcn5o8s/Y
+	 KcMxQ334f5z8mKOH/9EFo2/7j041Rtj1J1XGZZ/s=
+Date: Sun, 19 May 2024 16:40:15 -0700
+To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,sidhartha.kumar@oracle.com,peterx@redhat.com,muchun.song@linux.dev,anshuman.khandual@arm.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-dont-unpoison-huge_zero_folio.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240519233829.15A52C32781@smtp.kernel.org>
+Subject: + mm-hugetlb-drop-node_alloc_noretry-from-alloc_fresh_hugetlb_folio.patch added to mm-unstable branch
+Message-Id: <20240519234015.BFF93C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: don't unpoison huge_zero_folio
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-huge_memory-dont-unpoison-huge_zero_folio.patch
+     Subject: mm/hugetlb: drop node_alloc_noretry from alloc_fresh_hugetlb_folio
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hugetlb-drop-node_alloc_noretry-from-alloc_fresh_hugetlb_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-dont-unpoison-huge_zero_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-drop-node_alloc_noretry-from-alloc_fresh_hugetlb_folio.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,93 +58,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory: don't unpoison huge_zero_folio
-Date: Thu, 16 May 2024 20:26:08 +0800
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm/hugetlb: drop node_alloc_noretry from alloc_fresh_hugetlb_folio
+Date: Thu, 16 May 2024 10:10:35 +0200
 
-When I did memory failure tests recently, below panic occurs:
+Since commit d67e32f26713 ("hugetlb: restructure pool allocations"), the
+parameter node_alloc_noretry from alloc_fresh_hugetlb_folio() is not used,
+so drop it.
 
- kernel BUG at include/linux/mm.h:1135!
- invalid opcode: 0000 [#1] PREEMPT SMP NOPTI
- CPU: 9 PID: 137 Comm: kswapd1 Not tainted 6.9.0-rc4-00491-gd5ce28f156fe-dirty #14
- RIP: 0010:shrink_huge_zero_page_scan+0x168/0x1a0
- RSP: 0018:ffff9933c6c57bd0 EFLAGS: 00000246
- RAX: 000000000000003e RBX: 0000000000000000 RCX: ffff88f61fc5c9c8
- RDX: 0000000000000000 RSI: 0000000000000027 RDI: ffff88f61fc5c9c0
- RBP: ffffcd7c446b0000 R08: ffffffff9a9405f0 R09: 0000000000005492
- R10: 00000000000030ea R11: ffffffff9a9405f0 R12: 0000000000000000
- R13: 0000000000000000 R14: 0000000000000000 R15: ffff88e703c4ac00
- FS:  0000000000000000(0000) GS:ffff88f61fc40000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 000055f4da6e9878 CR3: 0000000c71048000 CR4: 00000000000006f0
- Call Trace:
-  <TASK>
-  do_shrink_slab+0x14f/0x6a0
-  shrink_slab+0xca/0x8c0
-  shrink_node+0x2d0/0x7d0
-  balance_pgdat+0x33a/0x720
-  kswapd+0x1f3/0x410
-  kthread+0xd5/0x100
-  ret_from_fork+0x2f/0x50
-  ret_from_fork_asm+0x1a/0x30
-  </TASK>
- Modules linked in: mce_inject hwpoison_inject
- ---[ end trace 0000000000000000 ]---
- RIP: 0010:shrink_huge_zero_page_scan+0x168/0x1a0
- RSP: 0018:ffff9933c6c57bd0 EFLAGS: 00000246
- RAX: 000000000000003e RBX: 0000000000000000 RCX: ffff88f61fc5c9c8
- RDX: 0000000000000000 RSI: 0000000000000027 RDI: ffff88f61fc5c9c0
- RBP: ffffcd7c446b0000 R08: ffffffff9a9405f0 R09: 0000000000005492
- R10: 00000000000030ea R11: ffffffff9a9405f0 R12: 0000000000000000
- R13: 0000000000000000 R14: 0000000000000000 R15: ffff88e703c4ac00
- FS:  0000000000000000(0000) GS:ffff88f61fc40000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 000055f4da6e9878 CR3: 0000000c71048000 CR4: 00000000000006f0
-
-The root cause is that HWPoison flag will be set for huge_zero_folio
-without increasing the folio refcnt.  But then unpoison_memory() will
-decrease the folio refcnt unexpectedly as it appears like a successfully
-hwpoisoned folio leading to VM_BUG_ON_PAGE(page_ref_count(page) == 0) when
-releasing huge_zero_folio.
-
-Skip unpoisoning huge_zero_folio in unpoison_memory() to fix this issue. 
-We're not prepared to unpoison huge_zero_folio yet.
-
-Link: https://lkml.kernel.org/r/20240516122608.22610-1-linmiaohe@huawei.com
-Fixes: 478d134e9506 ("mm/huge_memory: do not overkill when splitting huge_zero_page")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/20240516081035.5651-1-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Xu Yu <xuyu@linux.alibaba.com>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/hugetlb.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
---- a/mm/memory-failure.c~mm-huge_memory-dont-unpoison-huge_zero_folio
-+++ a/mm/memory-failure.c
-@@ -2546,6 +2546,13 @@ int unpoison_memory(unsigned long pfn)
- 		goto unlock_mutex;
- 	}
+--- a/mm/hugetlb.c~mm-hugetlb-drop-node_alloc_noretry-from-alloc_fresh_hugetlb_folio
++++ a/mm/hugetlb.c
+@@ -2289,13 +2289,11 @@ static struct folio *only_alloc_fresh_hu
+  * pages is zero.
+  */
+ static struct folio *alloc_fresh_hugetlb_folio(struct hstate *h,
+-		gfp_t gfp_mask, int nid, nodemask_t *nmask,
+-		nodemask_t *node_alloc_noretry)
++		gfp_t gfp_mask, int nid, nodemask_t *nmask)
+ {
+ 	struct folio *folio;
  
-+	if (is_huge_zero_folio(folio)) {
-+		unpoison_pr_info("Unpoison: huge zero page is not supported %#lx\n",
-+				 pfn, &unpoison_rs);
-+		ret = -EOPNOTSUPP;
-+		goto unlock_mutex;
-+	}
-+
- 	if (!PageHWPoison(p)) {
- 		unpoison_pr_info("Unpoison: Page was already unpoisoned %#lx\n",
- 				 pfn, &unpoison_rs);
+-	folio = __alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask,
+-						node_alloc_noretry);
++	folio = __alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
+ 	if (!folio)
+ 		return NULL;
+ 
+@@ -2513,7 +2511,7 @@ static struct folio *alloc_surplus_huget
+ 		goto out_unlock;
+ 	spin_unlock_irq(&hugetlb_lock);
+ 
+-	folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
++	folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask);
+ 	if (!folio)
+ 		return NULL;
+ 
+@@ -2549,7 +2547,7 @@ static struct folio *alloc_migrate_huget
+ 	if (hstate_is_gigantic(h))
+ 		return NULL;
+ 
+-	folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
++	folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask);
+ 	if (!folio)
+ 		return NULL;
+ 
+@@ -3474,7 +3472,7 @@ static void __init hugetlb_hstate_alloc_
+ 			gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
+ 
+ 			folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid,
+-					&node_states[N_MEMORY], NULL);
++					&node_states[N_MEMORY]);
+ 			if (!folio)
+ 				break;
+ 			free_huge_folio(folio); /* free it into the hugepage allocator */
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-mm-huge_memory-dont-unpoison-huge_zero_folio.patch
+mm-hugetlb-drop-node_alloc_noretry-from-alloc_fresh_hugetlb_folio.patch
 
