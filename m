@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F2A54F5FB
-	for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 21:37:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA6E24F5FB
+	for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 21:37:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716154621; cv=none; b=dMQH/2ELdnqtu792mVQdga66KF1no6j3eh1vEDtRibiOjnGbsuUwFVXw7ztB+LGXU4EqB6Rxn3GauviHOrAFJIUAuPxqxslLDSzOhsyY4rKFJxdtwnZe0g2G/M9dcJ3hKHdjKDYgIBhziAla28+gQYDCDayic4FgCMwXVHKMczc=
+	t=1716154622; cv=none; b=LVZCwAi+ENQRXIftbNgstXaWUjwiYt8YhB3bVsRITRm0JBRBfMX8jl/U4z0ZN4tV84Trc45j3azKjNqV2nsEyf/Tqjp61JcYdoP7PUARAMIMbngvhtl/7zaw0TtbMU8r24rsAIV3dFRxMCBresoe7te1p4+yWXrhQxQPkKamIQw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716154621; c=relaxed/simple;
-	bh=IbJtsrYQk8ruCU+Y+qIOYidx24mNswJzMoFphdT0sVI=;
-	h=Date:To:From:Subject:Message-Id; b=jGoyHvSiztVhsKjEXSXWIFXC3MAoFg/rCxP2paK3F4ZVloJ3Xa7UU452bTdRfrBXTVFpLQfyjhfXImUNSW+87AeD1whfBOMtp+eVF60E2slDkK7xDwV/jbqvVHG/TngR4EAyB2MOCNpZJNA9LivPdIE7QEBZ8D9gPdSXFF8kMs0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ggRmi1zg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716154622; c=relaxed/simple;
+	bh=mpbx6hHVcMdXVUcXndjVfwDANdfnMo+vfET8TkTeQaE=;
+	h=Date:To:From:Subject:Message-Id; b=arwXTWxSJlxGvO648qr30tTjytbKxdxMPxB5i+rf0Nb63cvZFPMtydDQQrD6V4Vk6hxKcuYJP6pDmig56F4zABUN7xhuqlJKePDPuQ13skP2up01GbM0uFu5xExYJmpy2oGD/8HdBDYdhMWT2vxF5BgmqKUNiYXBmh2O23jZ1s8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eooJEI0a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ggRmi1zg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24F67C32781;
-	Sun, 19 May 2024 21:37:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eooJEI0a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D2B8C32781;
+	Sun, 19 May 2024 21:37:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716154621;
-	bh=IbJtsrYQk8ruCU+Y+qIOYidx24mNswJzMoFphdT0sVI=;
+	s=korg; t=1716154622;
+	bh=mpbx6hHVcMdXVUcXndjVfwDANdfnMo+vfET8TkTeQaE=;
 	h=Date:To:From:Subject:From;
-	b=ggRmi1zg9uUMBOXNXp093FXC7TrUT72uXGFbcpKpfGXdLmyEa2Uf7JRVrPKtHUeDl
-	 sV8LxjHKnCZaMf+RExVEJz4hL+8TCY+qoQM8um07XX5PDrumDISH4KY3HqJKzvYtIl
-	 tEbX5lLhC2gjpv4eqLU+mNZYuP6Xe7w+dY7VZh1Q=
-Date: Sun, 19 May 2024 14:37:00 -0700
+	b=eooJEI0avSUEINbhrpSD9XEj9l6ONTHI7wiRiMxQkXtwDEMsvzk5d+H6t62O9QPZ0
+	 NwXz1js6vlyYpR9zjCArSrriKVj1rQ8JYZk0uoLgOTKRAgCDdB+qluUrC/y+aIYwCW
+	 q+ikmCzEn8BIP+vrW9j1ZPd+FmTBKPcCFnujvV6s=
+Date: Sun, 19 May 2024 14:37:01 -0700
 To: mm-commits@vger.kernel.org,nicolas@fjasle.eu,nathan@kernel.org,masahiroy@kernel.org,keescook@chromium.org,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kbuild-turn-on-wextra-by-default.patch removed from -mm tree
-Message-Id: <20240519213701.24F67C32781@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kbuild-remove-redundant-extra-warning-flags.patch removed from -mm tree
+Message-Id: <20240519213702.3D2B8C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,80 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kbuild: turn on -Wextra by default
+     Subject: kbuild: remove redundant extra warning flags
 has been removed from the -mm tree.  Its filename was
-     kbuild-turn-on-wextra-by-default.patch
+     kbuild-remove-redundant-extra-warning-flags.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: kbuild: turn on -Wextra by default
-Date: Mon, 15 Apr 2024 14:20:32 +0200
+Subject: kbuild: remove redundant extra warning flags
+Date: Mon, 15 Apr 2024 14:20:33 +0200
 
-Patch series "kbuild: enable more warnings by default", v3.
+There is no point in turning individual options off and then on again, or
+vice versa, as the last one always wins.  Now that -Wextra always gets
+passed first, remove all the redundant lines about warnings that are
+implied by either -Wall or -Wextra, and keep only the last one that
+disables it in some configurations.
 
-All the warning fixes I sent for these warnings have been merged into
-mainline or linux-next, so let's turn them on by default.
+This should not have any effect but keep the Makefile more readable and
+the command line shorter.
 
-
-This patch (of 6):
-
-The -Wextra option controls a number of different warnings that differ
-slightly by compiler version.  Some are useful in general, others are
-better left at W=1 or higher.  Based on earlier work, the ones that should
-be disabled by default are left for the higher warning levels already, and
-a lot of the useful ones have no remaining output when enabled.
-
-Move the -Wextra option up into the set of default-enabled warnings and
-just rely on the individual ones getting disabled as needed.
-
-The -Wunused warning was always grouped with this, so turn it on by
-default as well, except for the -Wunused-parameter warning that really has
-no value at all for the kernel since many interfaces have intentionally
-unused arguments.
-
-Link: https://lkml.kernel.org/r/20240415122037.1983124-1-arnd@kernel.org
-Link: https://lkml.kernel.org/r/20240415122037.1983124-2-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20240415122037.1983124-3-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Nathan Chancellor <nathan@kernel.org>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Nicolas Schier <nicolas@fjasle.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.extrawarn |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ scripts/Makefile.extrawarn |   15 ---------------
+ 1 file changed, 15 deletions(-)
 
---- a/scripts/Makefile.extrawarn~kbuild-turn-on-wextra-by-default
+--- a/scripts/Makefile.extrawarn~kbuild-remove-redundant-extra-warning-flags
 +++ a/scripts/Makefile.extrawarn
-@@ -82,12 +82,14 @@ KBUILD_CFLAGS += $(call cc-option,-Werro
- # Warn if there is an enum types mismatch
- KBUILD_CFLAGS += $(call cc-option,-Wenum-conversion)
+@@ -37,11 +37,6 @@ else
+ KBUILD_CFLAGS += -Wno-main
+ endif
  
-+KBUILD_CFLAGS += -Wextra
-+KBUILD_CFLAGS += -Wunused
-+
- #
- # W=1 - warnings which may be relevant and do not occur too often
+-# These warnings generated too much noise in a regular build.
+-# Use make W=1 to enable them (see scripts/Makefile.extrawarn)
+-KBUILD_CFLAGS += $(call cc-disable-warning, unused-but-set-variable)
+-KBUILD_CFLAGS += $(call cc-disable-warning, unused-const-variable)
+-
+ # These result in bogus false positives
+ KBUILD_CFLAGS += $(call cc-disable-warning, dangling-pointer)
+ 
+@@ -90,16 +85,9 @@ KBUILD_CFLAGS += -Wunused
  #
  ifneq ($(findstring 1, $(KBUILD_EXTRA_WARN)),)
  
--KBUILD_CFLAGS += -Wextra -Wunused -Wno-unused-parameter
- KBUILD_CFLAGS += $(call cc-option, -Wrestrict)
+-KBUILD_CFLAGS += $(call cc-option, -Wrestrict)
  KBUILD_CFLAGS += -Wmissing-format-attribute
- KBUILD_CFLAGS += -Wold-style-definition
-@@ -190,6 +192,7 @@ else
+-KBUILD_CFLAGS += -Wold-style-definition
+ KBUILD_CFLAGS += -Wmissing-include-dirs
+-KBUILD_CFLAGS += $(call cc-option, -Wunused-but-set-variable)
+ KBUILD_CFLAGS += $(call cc-option, -Wunused-const-variable)
+-KBUILD_CFLAGS += $(call cc-option, -Wpacked-not-aligned)
+-KBUILD_CFLAGS += $(call cc-option, -Wformat-overflow)
+-KBUILD_CFLAGS += $(call cc-option, -Wformat-truncation)
+-KBUILD_CFLAGS += $(call cc-option, -Wstringop-truncation)
  
- # The following turn off the warnings enabled by -Wextra
- KBUILD_CFLAGS += -Wno-sign-compare
-+KBUILD_CFLAGS += -Wno-unused-parameter
+ KBUILD_CPPFLAGS += -Wundef
+ KBUILD_CPPFLAGS += -DKBUILD_EXTRA_WARN1
+@@ -150,9 +138,6 @@ ifneq ($(findstring 2, $(KBUILD_EXTRA_WA
+ KBUILD_CFLAGS += -Wdisabled-optimization
+ KBUILD_CFLAGS += -Wshadow
+ KBUILD_CFLAGS += $(call cc-option, -Wlogical-op)
+-KBUILD_CFLAGS += -Wmissing-field-initializers
+-KBUILD_CFLAGS += -Wtype-limits
+-KBUILD_CFLAGS += $(call cc-option, -Wmaybe-uninitialized)
+ KBUILD_CFLAGS += $(call cc-option, -Wunused-macros)
  
- endif
- 
+ KBUILD_CPPFLAGS += -DKBUILD_EXTRA_WARN2
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
