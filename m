@@ -1,98 +1,144 @@
-Received: from mail-yw1-f181.google.com (mail-yw1-f181.google.com [209.85.128.181])
+Received: from mail-lj1-f169.google.com (mail-lj1-f169.google.com [209.85.208.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD4804CB28
-	for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 14:20:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E4E01DFEB
+	for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 15:33:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716128435; cv=none; b=ZUo1LegPeCfLL0L7bWxPSqDWK2qRRj6jAtET1NDDVjS8CZ1+HmN/c1ERC8wRRlBCXxz5luSDZmxUy2d0lBHOKEgXk4xGJc5mqRorY0ZohP+MI3pgk3/YcFVcDcTaqRMcSR1WGFS3xnags0uuX4zMmCK0z8i3ZgsX0upY++K4BUs=
+	t=1716132786; cv=none; b=Vv1THRhbdQF7TlogNYH8kVd7jS1AToBOa0pA7Uy/CpT3bLePKJKddZGocqVob75xMm8xS76oCP939aM1DxEzR3SK4TFCXsPyPoHz3T7w4LBzJKOttapc8vDrUdJxvm6zgiVbN227WcW6NB3AKMuPyMRX8Qtv08+aALvGNNuQE/I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716128435; c=relaxed/simple;
-	bh=HDSrJ2IOowjwO2fOM8lB78qfntp1wsgsAM1/IMgRg5Y=;
+	s=arc-20240116; t=1716132786; c=relaxed/simple;
+	bh=W1zr+c9KPmDePWUwRbBn2agwLQGITDaLC8ySFgxeN5E=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=qV3eDGvVMrs4Irk+5xRwNPC8NYyczRsxvD7Nu/09ks8jWlDGNVyfW2dPAclVsJ3kSAnwn/iCMNiB5jp2kX6hBe5Pd7q7NHVxCwq0MLZIY/bB80pZnf7w54O3qq8+FWf16WqAiix/xmF6fo5FloJ4VM0rcHzhYTsSMKaN1bUccdA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=DraRiJpy; arc=none smtp.client-ip=209.85.128.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	 To:Cc:Content-Type; b=CPX4lr/bnpXpMIdCxZSHe4l5KUBlcjM0ZhfuxoyEGnFVpT7KkP6t8aaXp4QcBaAN44QyG7TaJz+lsz16vwZFTkzt60m+U95/qVbPyYJqdo/5yZRq4V6kM5G8h0wi0X3FcSWfW6ICzWhDbQvZ6x+YRya7X4gBrkt96mSvQXy1teM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linuxfoundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=fr1q0gqS; arc=none smtp.client-ip=209.85.208.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linuxfoundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="DraRiJpy"
-Received: by mail-yw1-f181.google.com with SMTP id 00721157ae682-61e01d5ea74so16847197b3.2
-        for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 07:20:33 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="fr1q0gqS"
+Received: by mail-lj1-f169.google.com with SMTP id 38308e7fff4ca-2e428242a38so47430391fa.2
+        for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 08:33:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1716128433; x=1716733233; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=nHPt9kY8ZvJVhbmzwFV5BXMi5lSr+EBmXBs6ZAvcZAo=;
-        b=DraRiJpyeoVKhKxVBY3lCIVh9TBBq6Inm5GA1z+M5PvY5njowJwhLOPBmZbeH2mkdf
-         QBNt9ZbwCtEl3A1K2l9S+/n9UCvzlHn5yNI5UayXPijmXqjyDrA35XcgDiiVG0G3n+bR
-         sK+l1p0UYVvly/GNTFFsSBxYocqbkWbdmObMfWdaftghN/zGsG3X/jOvbpi6Jjea5Q3i
-         Ysiv4DqfWY10TK0ze1IscT7ZCoVjS5VjwQuNCWKqKIRhLEDrHQP5Vdxn7xb387gQa0Ef
-         PtH0yDFOIpnKD4Fxuk1rm8Fq5wgDez8Qogx4SPeDgQ4s0JMj1EpdGZWd5+dj00CUS7IG
-         XvwQ==
+        d=linuxfoundation.org; s=google; t=1716132782; x=1716737582; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=MDJiaiU5rkttwfgCtw/KvgAida8xU4nH18aWOxHr77A=;
+        b=fr1q0gqSLreOjDw5XCyHdcGtGbhgQ9H0WGB3OXtweItSLgkwbNRBZOYfat145YIvjI
+         U5oqMZhn4ElQKSXOmsPGDiYctdmOpIB9TFvHd+mf17y0l0JDHwgcwmk0Bpf+muYjiEBK
+         0z7xmzo6Byy+aMQCyc71oxErMW6e2EvQmR35k=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716128433; x=1716733233;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=nHPt9kY8ZvJVhbmzwFV5BXMi5lSr+EBmXBs6ZAvcZAo=;
-        b=o40h2NCvxEfz2tou4rFgewDnEBnYwE3W9E/segSu0BCGXU3RDtbx4sfsK+MhIhkJOC
-         +Tn5KYQUdBQCD1oJpZnwOgWBFAzkI7K1bOLOntpPxhrb130n6DMF1NdVsvyznxXRH1CE
-         147HLM1FrkQSyIDNLy98dbCMMiUikYh8FP2yBwbNoX8FBgyrZmRGInDBLA743GviUGm7
-         EfcjWVlkO8Ibc7hdNhl/6xAoVm3oh2B0o8kN3/K0Scy0NjmDXVgDzyCgwIonY9kSKEjo
-         7k0ecjSpgrRtkf4DobEaFPftS2wa/e/UU8TigrnPfdods957/E5O3JY8vnKQ+ajUtZHz
-         +YGw==
-X-Forwarded-Encrypted: i=1; AJvYcCU0H5Qgo0s6Dpy5I9fPnqoz8kVNS1YHu7VJ8DyLu/Boa7IdLNsreqraYCRrnm2FwZDhLXO+kzSV9/7RCnb+d1xTTQa/5vqMa7CTpQ==
-X-Gm-Message-State: AOJu0YyLkgENlyvEyGA7O2p3J54fOCXTBuaFQcbpgTZ8hapgaGOG4FoR
-	etkcVF9xbQvHbGu5BLXltuvMsPuFNw27rArerKmclgsBuucTjGJWwDqsyyKC7a6Ak/6qCwuxz7E
-	lNCF4FSh0T8D5Bq3MfUVoHq9Ix7eE8pg9Oqc8
-X-Google-Smtp-Source: AGHT+IF7ijZKXFPpkytHHcCrHz20wDDoOyWabtpJMM9cSAMjCIwDBuPFoDdsoRHnP9XZeG4M0VpoxZQSMqEL5cdAVm8=
-X-Received: by 2002:a25:84c4:0:b0:df3:88ee:799c with SMTP id
- 3f1490d57ef6-df388ee85a4mr11697100276.7.1716128432623; Sun, 19 May 2024
- 07:20:32 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1716132782; x=1716737582;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=MDJiaiU5rkttwfgCtw/KvgAida8xU4nH18aWOxHr77A=;
+        b=CzICVFjhqM/4JSUkmPgT67Hk/74LyEMNrEPhQPDFAi9AjElKwhLtEF2iIh/lssLWHY
+         tXH+E7z453YhLeVN7wq+NJMFxwV+6+v8j8qDUwjEa+hE8WHTQXUGUUm2LHiuZU76+3kg
+         VaqijlkoWz5fZHaKBX7yE91+PEry3Q5AemR2peYCfppbdHOUy/Ytkw8qC6LZy1YEHisl
+         j1r6jR+E4g5Vs36PxsdL4gXYTbpnkTS5MuusgsO+jjsvrgHvkhr7EX6G9nFNQizHgBpK
+         mQWMp/YRF+sQkRF4mLQi35Y0ASOB5q4+JUkl6sIYv6YYRz77tgNZz3HJ+eBImguOI/xE
+         VkUg==
+X-Forwarded-Encrypted: i=1; AJvYcCVEyz6fILm39l92CkJP1O8E3+fGGGkReE/Z+y/UD5IjuvwXzWW1LIRgTd4zJJu8H574RxPpkpx4ZOfaKxQ7Jsig85mnvrJ9w9FOvQ==
+X-Gm-Message-State: AOJu0YzXFBIdaycVTum16LHxT0uUKeFpTeSLjMLLGHES20gRbeD2GMsg
+	TuF+zYSwmYbcnAUtDmJcAGINgIOENHEfb2tREo+k/hvqsazj2hWmO/VEBwpGQ5Ih/NPO4QnRCJ5
+	DIUUI5A==
+X-Google-Smtp-Source: AGHT+IH3iKRtoaJ6DdhhCmBooGApowhKvkTRjEvpuTIHp6WN04uKFAzpONTjJpI80hJ2pwTUZ98A+A==
+X-Received: by 2002:a05:651c:149:b0:2e2:9842:a9d3 with SMTP id 38308e7fff4ca-2e52039dc3emr219772521fa.46.1716132782049;
+        Sun, 19 May 2024 08:33:02 -0700 (PDT)
+Received: from mail-lf1-f54.google.com (mail-lf1-f54.google.com. [209.85.167.54])
+        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-2e4d162005bsm31144091fa.113.2024.05.19.08.33.01
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 19 May 2024 08:33:01 -0700 (PDT)
+Received: by mail-lf1-f54.google.com with SMTP id 2adb3069b0e04-51fdc9af005so4093223e87.3
+        for <mm-commits@vger.kernel.org>; Sun, 19 May 2024 08:33:01 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCXkXV06Xl0IePkP0B0tw34KETPFNZwQnc0i88kff/5nkjIjlCe05FHkuv73VFqhdOZy/s/oejD/NcnNotaZCsxNvCJ9Z8Xpi/9gGw==
+X-Received: by 2002:a05:6512:444:b0:51f:3e0c:ace3 with SMTP id
+ 2adb3069b0e04-5220fd7c6bdmr22793661e87.16.1716132780601; Sun, 19 May 2024
+ 08:33:00 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240514202009.2FA52C2BD10@smtp.kernel.org> <5c047df0-266e-420f-9bcc-fdec16c9b16b@suse.cz>
- <20240518225655.728977c51f94812804cb85c2@linux-foundation.org>
-In-Reply-To: <20240518225655.728977c51f94812804cb85c2@linux-foundation.org>
-From: Suren Baghdasaryan <surenb@google.com>
-Date: Sun, 19 May 2024 07:20:19 -0700
-Message-ID: <CAJuCfpE9XhDf2h1YZBz9M4LyRFKeQOrOuP3i6rJjEoMhngYRdQ@mail.gmail.com>
-Subject: Re: + lib-add-version-into-proc-allocinfo-output.patch added to
- mm-unstable branch
+References: <20240517192239.9285edd85f8ef893bb508a61@linux-foundation.org>
+In-Reply-To: <20240517192239.9285edd85f8ef893bb508a61@linux-foundation.org>
+From: Linus Torvalds <torvalds@linuxfoundation.org>
+Date: Sun, 19 May 2024 08:32:44 -0700
+X-Gmail-Original-Message-ID: <CAHk-=whEAquncw0wb59-XVAHmVh4CWSfwuWh4bTJjJzvx0=PzQ@mail.gmail.com>
+Message-ID: <CAHk-=whEAquncw0wb59-XVAHmVh4CWSfwuWh4bTJjJzvx0=PzQ@mail.gmail.com>
+Subject: Re: [GIT PULL] MM updates for 6.10-rc1
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, 
-	kent.overstreet@linux.dev, keescook@chromium.org
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Sat, May 18, 2024 at 10:57=E2=80=AFPM Andrew Morton
-<akpm@linux-foundation.org> wrote:
+On Fri, 17 May 2024 at 19:22, Andrew Morton <akpm@linux-foundation.org> wrote:
 >
-> On Sat, 18 May 2024 23:03:52 +0200 Vlastimil Babka <vbabka@suse.cz> wrote=
-:
->
-> > On 5/14/24 10:20 PM, Andrew Morton wrote:
-> > > The patch titled
-> > >      Subject: lib: add version into /proc/allocinfo output
-> > > has been added to the -mm mm-unstable branch.  Its filename is
-> >
-> > Hi, I don't know how mm-unstable/mm-hotfixes-unstable is handled during=
- and
-> > right after the merge window, so maybe it's already the plan, but wante=
-d to
-> > note that for this patch to set the userspace ABI with versioning right
-> > away, it should go in before 5.10 is released, and maybe even in the me=
-rge
-> > window itself so the version line is already there at 5.10-rc1.
->
-> I assume you mean 6.10.
->
-> Yes, I'll either build a little mm-stable for -rc1 or I'll add it to
-> hotfixes for 6.10-rcX.
+> include/linux/slab.h
+>         https://lkml.kernel.org/r/20240429114302.7af809e8@canb.auug.org.au
 
-Perfect! Thank you folks!
+This is not only a merge conflict, your tree is actively buggy.
+
+You have introduced changes like this:
+
+  -static inline __alloc_size(1, 2) void *kvcalloc(size_t n, size_t
+size, gfp_t flags)
+  -{
+  - return kvmalloc_array(n, size, flags | __GFP_ZERO);
+  -}
+  +#define kvcalloc(_n, _size, _flags) kvmalloc_array(_n, _size,
+_flags|__GFP_ZERO)
+
+and that's just completely wrong. Note the "_flags|__GFP_ZERO": yes,
+the bitwise or is fairly low down in the operator precedence rules,
+and it probably work sin practice because most cases will just pass in
+a simple expression for the flags, but it's still *horribly* wrong.
+
+I'm going to take this pull and fix up the cases I find, but I'm not
+happy with this kind of trivial C preprocessor misuse.
+
+I also note that you have *SEVEN* pointless merges that have no
+explanation for them. I'm happy that you use git, but that means that
+you also need to either
+
+ (a) not do merges at all and treat it as a patch queue
+
+ (b) do merges _properly_ and not throw them around like some madman
+
+And doing them properly means not only writing good commit messages,
+but actually having good reasons for them. As it is, we have
+
+  5d1bc760583f ("merge mm-hotfixes-stable into mm-nonmm-stable to pick
+up needed changes")
+  640958fde130 ("Merge branch 'master' into mm-stable")
+  4e2e36129225 ("Merge branch 'master' into mm-stable")
+  1dd4505cf4c8 ("Merge branch 'master' into mm-stable")
+  71919308943d ("Merge branch 'master' into mm-stable")
+  b228ab57e51b ("Merge branch 'master' into mm-stable")
+  5e2806112864 ("Merge branch 'master' into mm-stable")
+
+and those one-liners are all the explanation there are for the merges,
+and NONE OF THOSE MERGES ARE VALID IN THE FIRST PLACE!
+
+They shouldn't have been merges! You literally have no new code on the
+other side. You should have just fast-forwarded to the new state,
+since your side didn't contain anything relevant any more.
+
+So the merges are doubly wrong. They have no explanation, but part of
+the reason that they have no explanation is probably exactly the fact
+that there *IS* no explanation for them.
+
+There is one fundamental rule of merges: if you can't explain why
+you'd need to merge, DON'T DO IT.
+
+There are lots of smaller rules too. See
+
+    Documentation/maintainer/rebasing-and-merging.rst
+
+for at least some of them.
+
+                 Linus
+
+          Linus
