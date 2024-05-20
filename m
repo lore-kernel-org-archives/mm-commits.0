@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D77327E9
-	for <mm-commits@vger.kernel.org>; Mon, 20 May 2024 00:12:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34D27632
+	for <mm-commits@vger.kernel.org>; Mon, 20 May 2024 00:14:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716163966; cv=none; b=kQqyqRuY0dqCedvlhSp/7RSbGhTiMNi8o7mHmnEOV3T7Sy11oZwYu+/slq8uTooLj/Sf6TjdGqDN57lPrRRLj/1kev87/avBuKKbTV6/PNNk+XsEGB6llT+5/jk27gvnw/lhiWIVIAhoP1I2o/5J/EuNA2rZN+ARjzzaMxYOXCU=
+	t=1716164070; cv=none; b=aTr5yzqUGyEo2qNwNnn+L8lUA0ZYdrbVulEdwsDdtNn6+aNmA7IZ0EWHFxLPY2ZixR75ZbW0uIgNl3UEZ8r0UNXV5L9jUmeXk90cKEg22f4OFIqPq2ce1CMEKdCL3QilGE2pOpb5KZx/mn4Zs6jHbkNEwcpthYQy8ddvZWtDwBg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716163966; c=relaxed/simple;
-	bh=0kby449tvgT9W0IPHtwb2M+23oyeH2jwEmVoaFQpD5Q=;
-	h=Date:To:From:Subject:Message-Id; b=TZT9wbfyOtMAjz3KPCed6Kr76leSfPIupbZoFdyIv0+u55XVwOxFTtt+EsOTsRRnhwM9zwIK3XqvmCVtcpWvJ1p0L+b+Fhxb9dqzx/MZ3usrwKFCZfVz6wezDckXSHSAEbzeLa2YMIj1FPWvnRSxllemIuVbRrEJF9hGVKuMsrU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EKvNj5pe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716164070; c=relaxed/simple;
+	bh=WW8cnfxH3zdJBWEiffBC/Eby2rOA9gbSL8GYYW5eKmo=;
+	h=Date:To:From:Subject:Message-Id; b=Y00C2ydb1pEizaBWJUO3kmkF1UjU2ZAB5kYBKC6whOdhb5mH/mzdE4Ed4x4eZXcFRjG/5qq2Xfx2loUhO09snzBNDD0+uX8ACUCXMGA4faQEGnyl/3iTodzn4EV5CVys7nheJRbSH/+32sQIWh6u6AY0mrAMg7teRhLTTppFilo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nhjNuIrz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EKvNj5pe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E2A5C32781;
-	Mon, 20 May 2024 00:12:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nhjNuIrz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99587C32781;
+	Mon, 20 May 2024 00:14:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716163966;
-	bh=0kby449tvgT9W0IPHtwb2M+23oyeH2jwEmVoaFQpD5Q=;
+	s=korg; t=1716164069;
+	bh=WW8cnfxH3zdJBWEiffBC/Eby2rOA9gbSL8GYYW5eKmo=;
 	h=Date:To:From:Subject:From;
-	b=EKvNj5perIO9l6eLaPr74Rem0FnTWn4SaGFwvPmxU8fwVo5KyPf3+n3Rju5GwILgN
-	 qJZzT73+U6H3IvwGFYOqBZXjtjDOlK+B4+K+aDCUI6e8g5MullVNEiTXaqAvk4lqW9
-	 SZEuwkxmvPomrpMVjm8jvN14GQA05n5kXkyhltn0=
-Date: Sun, 19 May 2024 17:12:45 -0700
-To: mm-commits@vger.kernel.org,quic_tdas@quicinc.com,quic_jkona@quicinc.com,quic_imrashai@quicinc.com,quic_ajipan@quicinc.com,konrad.dybcio@linaro.org,andersson@kernel.org,quic_skakitap@quicinc.com,akpm@linux-foundation.org
+	b=nhjNuIrz9hcrSQPrPgaIc13jTArMU8AvEZk9182dc8V9K1LDQKYWhv5kQcnQzLs5c
+	 TXxsxhbQc2NydUtMB9Joe9hvkq/l5Pa6rGoCJ8GEOMkaLXrbDnmaEshEJZ3WUtrfqU
+	 jcyWqeV6J4p8UE1dks2Cgk51Ov75WrKF+GvgIYMw=
+Date: Sun, 19 May 2024 17:14:29 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,willy@infradead.org,shy828301@gmail.com,lu.zhongjun@zte.com.cn,david@redhat.com,ran.xiaokai@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-update-email-address-for-satya-priya.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240520001246.4E2A5C32781@smtp.kernel.org>
+Subject: + mm-huge_memory-mark-racy-access-onhuge_anon_orders_always.patch added to mm-unstable branch
+Message-Id: <20240520001429.99587C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap: update email address for Satya Priya
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-update-email-address-for-satya-priya.patch
+     Subject: mm/huge_memory: mark racy access onhuge_anon_orders_always
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-huge_memory-mark-racy-access-onhuge_anon_orders_always.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-email-address-for-satya-priya.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-mark-racy-access-onhuge_anon_orders_always.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,41 +58,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Satya Priya Kakitapalli <quic_skakitap@quicinc.com>
-Subject: mailmap: update email address for Satya Priya
-Date: Wed, 15 May 2024 11:34:50 +0530
+From: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Subject: mm/huge_memory: mark racy access onhuge_anon_orders_always
+Date: Wed, 15 May 2024 10:47:54 +0800 (CST)
 
-Update mailmap with my latest email ID, quic_c_skakit@quicinc.com
-is no longer active.
+huge_anon_orders_always is accessed lockless, it is better to use the
+READ_ONCE() wrapper.  This is not fixing any visible bug, hopefully this
+can cease some KCSAN complains in the future.  Also do that for
+huge_anon_orders_madvise.
 
-Link: https://lkml.kernel.org/r/20240515-mailmap-update-v1-1-df4853f757a3@quicinc.com
-Signed-off-by: Satya Priya Kakitapalli <quic_skakitap@quicinc.com>
-Cc: Ajit Pandey <quic_ajipan@quicinc.com>
-Cc: Bjorn Andersson <andersson@kernel.org>
-Cc: Imran Shaik <quic_imrashai@quicinc.com>
-Cc: Jagadeesh Kona <quic_jkona@quicinc.com>
-Cc: Konrad Dybcio <konrad.dybcio@linaro.org>
-Cc: Taniya Das <quic_tdas@quicinc.com>
+Link: https://lkml.kernel.org/r/20240515104754889HqrahFPePOIE1UlANHVAh@zte.com.cn
+Signed-off-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Lu Zhongjun <lu.zhongjun@zte.com.cn>
+Reviewed-by: xu xin <xu.xin16@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/huge_mm.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/.mailmap~mailmap-update-email-address-for-satya-priya
-+++ a/.mailmap
-@@ -572,7 +572,7 @@ Sarangdhar Joshi <spjoshi@codeaurora.org
- Sascha Hauer <s.hauer@pengutronix.de>
- Sahitya Tummala <quic_stummala@quicinc.com> <stummala@codeaurora.org>
- Sathishkumar Muruganandam <quic_murugana@quicinc.com> <murugana@codeaurora.org>
--Satya Priya <quic_c_skakit@quicinc.com> <skakit@codeaurora.org>
-+Satya Priya <quic_skakitap@quicinc.com> <quic_c_skakit@quicinc.com> <skakit@codeaurora.org>
- S.Çağlar Onur <caglar@pardus.org.tr>
- Sayali Lokhande <quic_sayalil@quicinc.com> <sayalil@codeaurora.org>
- Sean Christopherson <seanjc@google.com> <sean.j.christopherson@intel.com>
+--- a/include/linux/huge_mm.h~mm-huge_memory-mark-racy-access-onhuge_anon_orders_always
++++ a/include/linux/huge_mm.h
+@@ -134,8 +134,8 @@ static inline bool hugepage_flags_enable
+ 	 * So we don't need to look at huge_anon_orders_inherit.
+ 	 */
+ 	return hugepage_global_enabled() ||
+-	       huge_anon_orders_always ||
+-	       huge_anon_orders_madvise;
++	       READ_ONCE(huge_anon_orders_always) ||
++	       READ_ONCE(huge_anon_orders_madvise);
+ }
+ 
+ static inline int highest_order(unsigned long orders)
 _
 
-Patches currently in -mm which might be from quic_skakitap@quicinc.com are
+Patches currently in -mm which might be from ran.xiaokai@zte.com.cn are
 
-mailmap-update-email-address-for-satya-priya.patch
+mm-huge_memory-mark-racy-access-onhuge_anon_orders_always.patch
 
