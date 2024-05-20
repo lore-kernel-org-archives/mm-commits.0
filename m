@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C4283FEC
-	for <mm-commits@vger.kernel.org>; Mon, 20 May 2024 00:23:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E519B367
+	for <mm-commits@vger.kernel.org>; Mon, 20 May 2024 00:23:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716164618; cv=none; b=gS02F0wgVxblx/zc36bPr6/OmhMBfa4TMOkV2fYYon9aruBWYiJDO+t3WHBBcmItKajr0LSjWVLGRqLmeL62y1oQe2T3nr0ENoTu7W6vfDaBBZxISidlw7fbEL3Dqiw1QoGRzHBtnmeAk1/eJgrv3f7bITOtJ9C8W2T9JXDNbLw=
+	t=1716164620; cv=none; b=pequ2kV/q9ds4LeEyJBK5lna7XnJRF3LCtY7F6e6daA/IfMUjUFAubIpyzgw0iz1jcq6PFOOTLFHTKUnHIq64mRZ1vLKBDYbKT4BxufED2oxh1ljfBUEoXFGdGurNzneLxomn22rZvFqKzvPRCvhUqo7pwyu6ohK7STNHnZfrPA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716164618; c=relaxed/simple;
-	bh=Diox3WRnx/VmguFkDsndbzgqHN74FbwA2zucTZ1DNnA=;
-	h=Date:To:From:Subject:Message-Id; b=CBpqFDw79P6NZLQ0xOZwldLbSkncaMLvgFZbpLqUML7yFhSidwV87d68ckbeUlBOpsk+DUkk3S8lz6+qE0WK9394XhYrtdTlALtjIVGaDSo3mbunS/Fdff7t1AQbsiqnc+1kHpj07y3GpP4qy8jEZqqWqlYPq+lEg6+Z/kTH9e8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vvj+zqDV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716164620; c=relaxed/simple;
+	bh=thjGQOcJ7yj0xttCMD+CBy60f3RK3KYFQodj9sIXnKg=;
+	h=Date:To:From:Subject:Message-Id; b=gtVpbrijYupiGZI5ybM+8pdaXl5hSnqSPF42vmce26wGnq/6tyt2CQDm24kiwKrsHDfF3QMHv8Dt6IQ3TBjfaiioXgVsTlB3fHHeifqXUDYEAUsgxVY+3OtNdaFppQrYAI4j/FICBqXlMQF8eANOy81B3+nHFMWQDWge4bRKbtk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bf6IVRZc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vvj+zqDV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA9D2C32781;
-	Mon, 20 May 2024 00:23:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bf6IVRZc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFA0CC32781;
+	Mon, 20 May 2024 00:23:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716164618;
-	bh=Diox3WRnx/VmguFkDsndbzgqHN74FbwA2zucTZ1DNnA=;
+	s=korg; t=1716164619;
+	bh=thjGQOcJ7yj0xttCMD+CBy60f3RK3KYFQodj9sIXnKg=;
 	h=Date:To:From:Subject:From;
-	b=vvj+zqDVqgsuEOlanZ4uIogBaie9qF85dXmTRGZC/sLY/qdnsOiwwFx7/QfjzeCBE
-	 WYqDFX85GD+IADWvTfC6xZliZyjIKokthuddWQJuOI+jdbG+eGaIMdVuwtTRd+FGdA
-	 I2n/f9Cg3/FtV+Ed+3yD9hOV1674dyTK3TUOhBzk=
-Date: Sun, 19 May 2024 17:23:37 -0700
+	b=Bf6IVRZcY1+7JZ7FvUoQBjGJ38638YpAlU+YcfTr87g5wjouMj5WAMMiliiCDqbfH
+	 1+EphRV0DP9WWFZqbcjxrNeRjn7xNRwkrrHFj0nXzl1/FTL6tUlppxuzwhaTd2NVRQ
+	 1zlFBac/J7YYDFLiqgcA0tDPB3QIIjRJ5xeJvuzM=
+Date: Sun, 19 May 2024 17:23:39 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + writeback-factor-out-wb_dirty_exceeded-to-remove-repeated-code.patch added to mm-unstable branch
-Message-Id: <20240520002337.EA9D2C32781@smtp.kernel.org>
+Subject: + writeback-factor-out-balance_wb_limits-to-remove-repeated-code.patch added to mm-unstable branch
+Message-Id: <20240520002339.AFA0CC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: writeback: factor out wb_dirty_exceeded to remove repeated code
+     Subject: writeback: factor out balance_wb_limits to remove repeated code
 has been added to the -mm mm-unstable branch.  Its filename is
-     writeback-factor-out-wb_dirty_exceeded-to-remove-repeated-code.patch
+     writeback-factor-out-balance_wb_limits-to-remove-repeated-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-factor-out-wb_dirty_exceeded-to-remove-repeated-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-factor-out-balance_wb_limits-to-remove-repeated-code.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,85 +59,69 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: writeback: factor out wb_dirty_exceeded to remove repeated code
-Date: Tue, 14 May 2024 20:52:53 +0800
+Subject: writeback: factor out balance_wb_limits to remove repeated code
+Date: Tue, 14 May 2024 20:52:54 +0800
 
-Factor out wb_dirty_exceeded to remove repeated code
+Factor out balance_wb_limits to remove repeated code
 
-Link: https://lkml.kernel.org/r/20240514125254.142203-8-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20240514125254.142203-9-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ mm/page-writeback.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
---- a/mm/page-writeback.c~writeback-factor-out-wb_dirty_exceeded-to-remove-repeated-code
+--- a/mm/page-writeback.c~writeback-factor-out-balance_wb_limits-to-remove-repeated-code
 +++ a/mm/page-writeback.c
-@@ -140,6 +140,7 @@ struct dirty_throttle_control {
- 
- 	unsigned long		pos_ratio;
- 	bool			freerun;
-+	bool			dirty_exceeded;
- };
- 
- /*
-@@ -1775,6 +1776,13 @@ static void wb_dirty_freerun(struct dirt
- 		       dirty_freerun_ceiling(dtc->wb_thresh, dtc->wb_bg_thresh);
+@@ -1783,6 +1783,17 @@ static inline void wb_dirty_exceeded(str
+ 		((dtc->dirty > dtc->thresh) || strictlimit);
  }
  
-+static inline void wb_dirty_exceeded(struct dirty_throttle_control *dtc,
-+				     bool strictlimit)
++static void balance_wb_limits(struct dirty_throttle_control *dtc,
++			      bool strictlimit)
 +{
-+	dtc->dirty_exceeded = (dtc->wb_dirty > dtc->wb_thresh) &&
-+		((dtc->dirty > dtc->thresh) || strictlimit);
++	wb_dirty_freerun(dtc, strictlimit);
++	if (dtc->freerun)
++		return;
++
++	wb_dirty_exceeded(dtc, strictlimit);
++	wb_position_ratio(dtc);
 +}
 +
  /*
   * balance_dirty_pages() must be called by processes which are generating dirty
   * data.  It looks at the number of dirty pages in the machine and will force
-@@ -1797,7 +1805,6 @@ static int balance_dirty_pages(struct bd
- 	long max_pause;
- 	long min_pause;
- 	int nr_dirtied_pause;
--	bool dirty_exceeded = false;
- 	unsigned long task_ratelimit;
- 	unsigned long dirty_ratelimit;
- 	struct backing_dev_info *bdi = wb->bdi;
-@@ -1866,9 +1873,7 @@ free_running:
+@@ -1869,12 +1880,9 @@ free_running:
+ 		 * Calculate global domain's pos_ratio and select the
+ 		 * global dtc by default.
+ 		 */
+-		wb_dirty_freerun(gdtc, strictlimit);
++		balance_wb_limits(gdtc, strictlimit);
  		if (gdtc->freerun)
  			goto free_running;
- 
--		dirty_exceeded = (gdtc->wb_dirty > gdtc->wb_thresh) &&
--			((gdtc->dirty > gdtc->thresh) || strictlimit);
 -
-+		wb_dirty_exceeded(gdtc, strictlimit);
- 		wb_position_ratio(gdtc);
+-		wb_dirty_exceeded(gdtc, strictlimit);
+-		wb_position_ratio(gdtc);
  		sdtc = gdtc;
  
-@@ -1883,17 +1888,14 @@ free_running:
+ 		if (mdtc) {
+@@ -1884,12 +1892,9 @@ free_running:
+ 			 * both global and memcg domains.  Choose the one
+ 			 * w/ lower pos_ratio.
+ 			 */
+-			wb_dirty_freerun(mdtc, strictlimit);
++			balance_wb_limits(mdtc, strictlimit);
  			if (mdtc->freerun)
  				goto free_running;
- 
--			dirty_exceeded |= (mdtc->wb_dirty > mdtc->wb_thresh) &&
--				((mdtc->dirty > mdtc->thresh) || strictlimit);
 -
-+			wb_dirty_exceeded(mdtc, strictlimit);
- 			wb_position_ratio(mdtc);
+-			wb_dirty_exceeded(mdtc, strictlimit);
+-			wb_position_ratio(mdtc);
  			if (mdtc->pos_ratio < gdtc->pos_ratio)
  				sdtc = mdtc;
  		}
- 
--		if (dirty_exceeded != wb->dirty_exceeded)
--			wb->dirty_exceeded = dirty_exceeded;
--
-+		wb->dirty_exceeded = gdtc->dirty_exceeded ||
-+				     (mdtc && mdtc->dirty_exceeded);
- 		if (time_is_before_jiffies(READ_ONCE(wb->bw_time_stamp) +
- 					   BANDWIDTH_INTERVAL))
- 			__wb_update_bandwidth(gdtc, mdtc, true);
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
