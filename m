@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61670A48
-	for <mm-commits@vger.kernel.org>; Mon, 20 May 2024 00:19:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B88B0ECF
+	for <mm-commits@vger.kernel.org>; Mon, 20 May 2024 00:23:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716164353; cv=none; b=mAXRX3AhuxefVDdcG4WhQLO78Kvy1Jsph2HIbqnfXn3iRLNGflyQWJ3Gg5ASAwXB7gLPYTk1KxfCVAKn0hrD5IeQ7vSGkGAbKFFs+51fNWgLyKJTfheYvIofcodTgv4o6qP1yT4iFuTUxHdOMGMXtb9U23tgWsYwzCSvleXZru8=
+	t=1716164607; cv=none; b=hJAl0AsCjNsw4HK6VCwLIW2By2JMuoIkcH6LAAhCqJqTdiGoGMNWZkCBv353te4RIr0zWevnTr78mGuA1cy8GtI+9MQD6FFL+BOfM9e2jMb1b1aExbF6Z59SW4yGIRjlHBq1qe6o5ux5xg9mqMGe7GU0CwKGwungyX2N0jQ1Nps=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716164353; c=relaxed/simple;
-	bh=ukzNoL3CWRo09xpS2Q8cPohFx2aY9tq8pUtPVusy47Q=;
-	h=Date:To:From:Subject:Message-Id; b=lMUETwYTvOH08qNQkOMVhxx7D64p9SZ1syF64IyTkJ7sJdF7/1AzGjarDOgo7vjHAQ4hQjJK46BzWPRBrbS0zJjssYk8CwItUL2g7R6u8iaTFups69d0k+UXcBPYwBHpaQ9C/gjA8l/4MBJKfnSLe1ghnQ7bq0LBija+E5wKIgo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y7ydKZ2o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716164607; c=relaxed/simple;
+	bh=fJizTAd376S/Ahq8MGdOTC9pYcRhvo4cwxO21S+yG+0=;
+	h=Date:To:From:Subject:Message-Id; b=tUDkQa18ibmnY7xSk6jG+FWzTn9qFNgZk2WkWyFSIUNdBMDQZYbJtnLxad5r5HREny1bL1hhTPc9OSJCoEp6oFp8/7ABW0OQfMNWhRzIZO+hYWzNx7I5iF4uVXIF5p2/aC5NrjbwSRJvYOSv3TUiX32HTmKoJWAhOfVhVawRhBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hww0Gi87; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y7ydKZ2o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3217C32781;
-	Mon, 20 May 2024 00:19:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hww0Gi87"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18713C32781;
+	Mon, 20 May 2024 00:23:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716164352;
-	bh=ukzNoL3CWRo09xpS2Q8cPohFx2aY9tq8pUtPVusy47Q=;
+	s=korg; t=1716164607;
+	bh=fJizTAd376S/Ahq8MGdOTC9pYcRhvo4cwxO21S+yG+0=;
 	h=Date:To:From:Subject:From;
-	b=Y7ydKZ2oUswqwAMXgPSbE9Mn4e3R1d+33cu29bfDDX5CnQ5OP+sDRnkflkM9Ccs7O
-	 idab0BGqofZWcyuxW7aRtYr/f7f2CF5NCQ9zXTijLIKXe5YSr2Xya+fSOqJWZzKpRJ
-	 BzTQCvMPXydELBOK1MzCNsPd449WP7dOn5kl8RuI=
-Date: Sun, 19 May 2024 17:19:12 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,riel@surriel.com,mhocko@kernel.org,kernel-team@fb.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=Hww0Gi87GQls7xIUES6gbYazCUHXy+Gj5j0mwpT5wL0ee7Gt6h3lzfqhmesq7wlft
+	 bERfCJgrlm5bvnb8i0tLMCsawuztrdxP5+eYmjnk9kVGrAKDZ/an/dubWk1xjCo3Nv
+	 We3aOriuRbl+k9HlnQme/kRY2kLO9J57PuED1TUA=
+Date: Sun, 19 May 2024 17:23:26 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-restore-incremental-cgroup-iteration.patch added to mm-unstable branch
-Message-Id: <20240520001912.D3217C32781@smtp.kernel.org>
+Subject: + writeback-factor-out-wb_bg_dirty_limits-to-remove-repeated-code.patch added to mm-unstable branch
+Message-Id: <20240520002327.18713C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmscan: restore incremental cgroup iteration
+     Subject: writeback: factor out wb_bg_dirty_limits to remove repeated code
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-restore-incremental-cgroup-iteration.patch
+     writeback-factor-out-wb_bg_dirty_limits-to-remove-repeated-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-restore-incremental-cgroup-iteration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-factor-out-wb_bg_dirty_limits-to-remove-repeated-code.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,141 +58,146 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: restore incremental cgroup iteration
-Date: Tue, 14 May 2024 16:26:41 -0400
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: writeback: factor out wb_bg_dirty_limits to remove repeated code
+Date: Tue, 14 May 2024 20:52:47 +0800
 
-Currently, reclaim always walks the entire cgroup tree in order to ensure
-fairness between groups.  While overreclaim is limited in shrink_lruvec(),
-many of our systems have a sizable number of active groups, and an even
-bigger number of idle cgroups with cache left behind by previous jobs; the
-mere act of walking all these cgroups can impose significant latency on
-direct reclaimers.
+Patch series "Add helper functions to remove repeated code and improve
+readability of cgroup writeback", v2.
 
-In the past, we've used a save-and-restore iterator that enabled
-incremental tree walks over multiple reclaim invocations.  This ensured
-fairness, while keeping the work of individual reclaimers small.
+This series adds a lot of helpers to remove repeated code between domain
+and wb; dirty limit and dirty background; global domain and wb domain. 
+The helpers also improve readability.  More details can be found in the
+respective patches.
 
-However, in edge cases with a lot of reclaim concurrency, individual
-reclaimers would sometimes not see enough of the cgroup tree to make
-forward progress and (prematurely) declare OOM.  Consequently we switched
-to comprehensive walks in 1ba6fc9af35b ("mm: vmscan: do not share cgroup
-iteration between reclaimers").
+A simple domain hierarchy is tested:
+global domain (> 20G)
+	|
+cgroup domain1(10G)
+	|
+	wb1
+	|
+	fio
 
-To address the latency problem without bringing back the premature OOM
-issue, reinstate the shared iteration, but with a restart condition to do
-the full walk in the OOM case - similar to what we do for memory.low
-enforcement and active page protection.
+Test steps:
+/* make it easy to observe */
+echo 300000 > /proc/sys/vm/dirty_expire_centisecs
+echo 3000 > /proc/sys/vm/dirty_writeback_centisecs
 
-In the worst case, we do one more full tree walk before declaring
-OOM. But the vast majority of direct reclaim scans can then finish
-much quicker, while fairness across the tree is maintained:
+/* create cgroup domain */
+cd /sys/fs/cgroup
+echo "+memory +io" > cgroup.subtree_control
+mkdir group1
+cd group1
+echo 10G > memory.high
+echo 10G > memory.max
+echo $$ > cgroup.procs
+mkfs.ext4 -F /dev/vdb
+mount /dev/vdb /bdi1/
 
-- Before this patch, we observed that direct reclaim always takes more
-  than 100us and most direct reclaim time is spent in reclaim cycles
-  lasting between 1ms and 1 second. Almost 40% of direct reclaim time
-  was spent on reclaim cycles exceeding 100ms.
+/* run fio to generate dirty pages */
+fio -name test -filename=/bdi1/file -size=xxx -ioengine=libaio -bs=4K \
+-iodepth=1 -rw=write -direct=0 --time_based -runtime=600 -invalidate=0
 
-- With this patch, almost all page reclaim cycles last less than 10ms,
-  and a good amount of direct page reclaim finishes in under 100us. No
-  page reclaim cycles lasting over 100ms were observed anymore.
+When fio size is 1G, the wb is in freerun state and dirty pages are only
+written back when dirty inode is expired after 30 seconds.  When fio size
+is 2G, the dirty pages keep being written back and bandwidth of fio is
+limited.
 
-The shared iterator state is maintaned inside the target cgroup, so
-fair and incremental walks are performed during both global reclaim
-and cgroup limit reclaim of complex subtrees.
 
-Link: https://lkml.kernel.org/r/20240514202641.2821494-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Reported-by: Rik van Riel <riel@surriel.com>
-Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Facebook Kernel Team <kernel-team@fb.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
+This patch (of 8):
+
+Similar to wb_dirty_limits which calculates dirty and thresh of wb,
+wb_bg_dirty_limits calculates background dirty and background thresh of
+wb.  With wb_bg_dirty_limits, we could remove repeated code in
+wb_over_bg_thresh.
+
+Link: https://lkml.kernel.org/r/20240514125254.142203-1-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20240514125254.142203-2-shikemeng@huaweicloud.com
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   42 ++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 40 insertions(+), 2 deletions(-)
+ mm/page-writeback.c |   35 +++++++++++++++++++----------------
+ 1 file changed, 19 insertions(+), 16 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-restore-incremental-cgroup-iteration
-+++ a/mm/vmscan.c
-@@ -128,6 +128,9 @@ struct scan_control {
- 	unsigned int memcg_low_reclaim:1;
- 	unsigned int memcg_low_skipped:1;
- 
-+	/* Shared cgroup tree walk failed, rescan the whole tree */
-+	unsigned int memcg_full_walk:1;
-+
- 	unsigned int hibernation_mode:1;
- 
- 	/* One of the zones is ready for compaction */
-@@ -5845,9 +5848,25 @@ static inline bool should_continue_recla
- static void shrink_node_memcgs(pg_data_t *pgdat, struct scan_control *sc)
- {
- 	struct mem_cgroup *target_memcg = sc->target_mem_cgroup;
-+	struct mem_cgroup_reclaim_cookie reclaim = {
-+		.pgdat = pgdat,
-+	};
-+	struct mem_cgroup_reclaim_cookie *partial = &reclaim;
- 	struct mem_cgroup *memcg;
- 
--	memcg = mem_cgroup_iter(target_memcg, NULL, NULL);
-+	/*
-+	 * In most cases, direct reclaimers can do partial walks
-+	 * through the cgroup tree, using an iterator state that
-+	 * persists across invocations. This strikes a balance between
-+	 * fairness and allocation latency.
-+	 *
-+	 * For kswapd, reliable forward progress is more important
-+	 * than a quick return to idle. Always do full walks.
-+	 */
-+	if (current_is_kswapd() || sc->memcg_full_walk)
-+		partial = NULL;
-+
-+	memcg = mem_cgroup_iter(target_memcg, NULL, partial);
- 	do {
- 		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
- 		unsigned long reclaimed;
-@@ -5897,7 +5916,12 @@ static void shrink_node_memcgs(pg_data_t
- 				   sc->nr_scanned - scanned,
- 				   sc->nr_reclaimed - reclaimed);
- 
--	} while ((memcg = mem_cgroup_iter(target_memcg, memcg, NULL)));
-+		/* If partial walks are allowed, bail once goal is reached */
-+		if (partial && sc->nr_reclaimed >= sc->nr_to_reclaim) {
-+			mem_cgroup_iter_break(target_memcg, memcg);
-+			break;
-+		}
-+	} while ((memcg = mem_cgroup_iter(target_memcg, memcg, partial)));
+--- a/mm/page-writeback.c~writeback-factor-out-wb_bg_dirty_limits-to-remove-repeated-code
++++ a/mm/page-writeback.c
+@@ -2087,6 +2087,21 @@ void balance_dirty_pages_ratelimited(str
  }
+ EXPORT_SYMBOL(balance_dirty_pages_ratelimited);
  
- static void shrink_node(pg_data_t *pgdat, struct scan_control *sc)
-@@ -6271,6 +6295,20 @@ retry:
- 		return 1;
++/*
++ * Similar to wb_dirty_limits, wb_bg_dirty_limits also calculates dirty
++ * and thresh, but it's for background writeback.
++ */
++static void wb_bg_dirty_limits(struct dirty_throttle_control *dtc)
++{
++	struct bdi_writeback *wb = dtc->wb;
++
++	dtc->wb_bg_thresh = __wb_calc_thresh(dtc, dtc->bg_thresh);
++	if (dtc->wb_bg_thresh < 2 * wb_stat_error())
++		dtc->wb_dirty = wb_stat_sum(wb, WB_RECLAIMABLE);
++	else
++		dtc->wb_dirty = wb_stat(wb, WB_RECLAIMABLE);
++}
++
+ /**
+  * wb_over_bg_thresh - does @wb need to be written back?
+  * @wb: bdi_writeback of interest
+@@ -2103,8 +2118,6 @@ bool wb_over_bg_thresh(struct bdi_writeb
+ 	struct dirty_throttle_control * const gdtc = &gdtc_stor;
+ 	struct dirty_throttle_control * const mdtc = mdtc_valid(&mdtc_stor) ?
+ 						     &mdtc_stor : NULL;
+-	unsigned long reclaimable;
+-	unsigned long thresh;
  
  	/*
-+	 * In most cases, direct reclaimers can do partial walks
-+	 * through the cgroup tree to meet the reclaim goal while
-+	 * keeping latency low. Since the iterator state is shared
-+	 * among all direct reclaim invocations (to retain fairness
-+	 * among cgroups), though, high concurrency can result in
-+	 * individual threads not seeing enough cgroups to make
-+	 * meaningful forward progress. Avoid false OOMs in this case.
-+	 */
-+	if (!sc->memcg_full_walk) {
-+		sc->memcg_full_walk = 1;
-+		goto retry;
-+	}
-+
-+	/*
- 	 * We make inactive:active ratio decisions based on the node's
- 	 * composition of memory, but a restrictive reclaim_idx or a
- 	 * memory.low cgroup setting can exempt large amounts of
+ 	 * Similar to balance_dirty_pages() but ignores pages being written
+@@ -2117,13 +2130,8 @@ bool wb_over_bg_thresh(struct bdi_writeb
+ 	if (gdtc->dirty > gdtc->bg_thresh)
+ 		return true;
+ 
+-	thresh = __wb_calc_thresh(gdtc, gdtc->bg_thresh);
+-	if (thresh < 2 * wb_stat_error())
+-		reclaimable = wb_stat_sum(wb, WB_RECLAIMABLE);
+-	else
+-		reclaimable = wb_stat(wb, WB_RECLAIMABLE);
+-
+-	if (reclaimable > thresh)
++	wb_bg_dirty_limits(gdtc);
++	if (gdtc->wb_dirty > gdtc->wb_bg_thresh)
+ 		return true;
+ 
+ 	if (mdtc) {
+@@ -2137,13 +2145,8 @@ bool wb_over_bg_thresh(struct bdi_writeb
+ 		if (mdtc->dirty > mdtc->bg_thresh)
+ 			return true;
+ 
+-		thresh = __wb_calc_thresh(mdtc, mdtc->bg_thresh);
+-		if (thresh < 2 * wb_stat_error())
+-			reclaimable = wb_stat_sum(wb, WB_RECLAIMABLE);
+-		else
+-			reclaimable = wb_stat(wb, WB_RECLAIMABLE);
+-
+-		if (reclaimable > thresh)
++		wb_bg_dirty_limits(mdtc);
++		if (mdtc->wb_dirty > mdtc->wb_bg_thresh)
+ 			return true;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
-mm-vmscan-restore-incremental-cgroup-iteration.patch
+writeback-factor-out-wb_bg_dirty_limits-to-remove-repeated-code.patch
+writeback-add-general-function-domain_dirty_avail-to-calculate-dirty-and-avail-of-domain.patch
+writeback-factor-out-domain_over_bg_thresh-to-remove-repeated-code.patch
+writeback-factor-out-code-of-freerun-to-remove-repeated-code.patch
+writeback-factor-out-wb_dirty_freerun-to-remove-more-repeated-freerun-code.patch
+writeback-factor-out-balance_domain_limits-to-remove-repeated-code.patch
+writeback-factor-out-wb_dirty_exceeded-to-remove-repeated-code.patch
+writeback-factor-out-balance_wb_limits-to-remove-repeated-code.patch
 
