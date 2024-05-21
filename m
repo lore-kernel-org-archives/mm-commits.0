@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DCA646521
-	for <mm-commits@vger.kernel.org>; Tue, 21 May 2024 21:25:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BA9A487B0;
+	Tue, 21 May 2024 21:57:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716326722; cv=none; b=q5m5Ni3P3wEqPnkMVBUhUXPF3/T28IKj+DbXNd58oQdKzgLVd7QTk8tqn4Ng1W9S1BdFMz9occtH/fDe3382FZ7q6613ktJZCJDSb2ngg7A3L83Zt1kgLJt0U9dvl/B/qHSjCBrUjgMJUyTEhXeq3ce8WKD1YCVe3Z1/b5R/um0=
+	t=1716328658; cv=none; b=kwQc+MTwJli2vkVdxf0uCxyww9GX4pPpnDKcxDvK3qhz3cGzj01u7nuHw+YoyYyqlrQfnGjPZiKUJ0nMDU7c6k4nln7umkRlWIpYO+8SKARTxVc/FovgaAskWNbR9ELKT2KCB+DoSLIct/BzeV8woByPFpXtA+o2bKqt5ViFLCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716326722; c=relaxed/simple;
-	bh=YZJOYhkwJeRKpi0wlVptCotzLsUAeP1homNrGyLIj7w=;
-	h=Date:To:From:Subject:Message-Id; b=etQ/1nWPLXeAWuyMsqcygOIO7NTZzmGxtZYC1BIdTlBuow4W1eJNEj+AnNYqvPg5oI36lZjz+uttfKVttcJaQQJnRYTDWxRLghK+bZHOZe4TIs54XtLYmy8Z/2YtHSM3okjouheWeY4gSe30gG2dFH/pDdJ2sDCFt6OC/yOvsbU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IR41gkLu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716328658; c=relaxed/simple;
+	bh=l6aSStInt3U4W1dCE94AGPD9Iz22I3wUKWrERv/ERqQ=;
+	h=Date:To:From:Subject:Message-Id; b=kwYJTLDNKENpzLfM+n3KFbAtd3HV1qDdA4FHmNq5VOSRyl4M7rn82ROk21ybBFZEtlTRfaB9uFslv8lDQo5Md3E8uF9z0bTCq26jIP82UYfmzYSiPYBt/hoyNophJp99w1tWfoQMswYvXcGGNGfRHRAIC4jtCjFIwaib5m9TEaM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HXpLWei8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IR41gkLu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09574C2BD11;
-	Tue, 21 May 2024 21:25:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HXpLWei8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72F1DC2BD11;
+	Tue, 21 May 2024 21:57:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716326722;
-	bh=YZJOYhkwJeRKpi0wlVptCotzLsUAeP1homNrGyLIj7w=;
+	s=korg; t=1716328657;
+	bh=l6aSStInt3U4W1dCE94AGPD9Iz22I3wUKWrERv/ERqQ=;
 	h=Date:To:From:Subject:From;
-	b=IR41gkLuwy4KQqWSrNDppsYIzAZYFrDfxHTr4KGGgoBLoYkcDJkyyUidHC73TklAZ
-	 beaMOjWbw7iRDyll61OEyTQdqO0Bq3sL9QJB6GQSz0flfW/tcaugTSh9Zwb3SxmDq7
-	 RaqyQiZzavPKS/smK7JlkuydQ5b3AMPw+TGK3qFI=
-Date: Tue, 21 May 2024 14:25:21 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ioworker0@gmail.com,hannes@cmpxchg.org,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=HXpLWei8hqdq372wS/zOewNHSPZavF44kf9jNXstAS7NwPKNxRWFK0ns41cOFSED2
+	 DxuYujL6fo/rr26uQhxbAexbWfOL+pQXE7g9XHcd9XOrLBCvS7/hkKE+ZvaqYNNyuZ
+	 M5KsUx7R1L7l/hApv4BOu7wIuqoNge+9x3AgiFV0=
+Date: Tue, 21 May 2024 14:57:36 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sjayaram@akamai.com,shuah@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-refactor-folio_undo_large_rmappable.patch added to mm-unstable branch
-Message-Id: <20240521212522.09574C2BD11@smtp.kernel.org>
+Subject: + selftests-mm-compaction_test-fix-bogus-test-success-on-aarch64.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240521215737.72F1DC2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: refactor folio_undo_large_rmappable()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-refactor-folio_undo_large_rmappable.patch
+     Subject: selftests/mm: compaction_test: fix bogus test success on Aarch64
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-mm-compaction_test-fix-bogus-test-success-on-aarch64.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-refactor-folio_undo_large_rmappable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-compaction_test-fix-bogus-test-success-on-aarch64.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,174 +58,111 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: refactor folio_undo_large_rmappable()
-Date: Tue, 21 May 2024 21:03:15 +0800
+From: Dev Jain <dev.jain@arm.com>
+Subject: selftests/mm: compaction_test: fix bogus test success on Aarch64
+Date: Tue, 21 May 2024 13:13:56 +0530
 
-Folios of order <= 1 are not in deferred list, the check of order is added
-into folio_undo_large_rmappable() from commit 8897277acfef ("mm: support
-order-1 folios in the page cache"), but there is a repeated check for
-small folio (order 0) during each call of the
-folio_undo_large_rmappable(), so only keep folio_order() check inside the
-function.
+Patch series "Fixes for compaction_test", v2.
 
-In addition, move all the checks into header file to save a function call
-for non-large-rmappable or empty deferred_list folio.
+The compaction_test memory selftest introduces fragmentation in memory
+and then tries to allocate as many hugepages as possible. This series
+addresses some problems.
 
-Link: https://lkml.kernel.org/r/20240521130315.46072-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+On Aarch64, if nr_hugepages == 0, then the test trivially succeeds since
+compaction_index becomes 0, which is less than 3, due to no division by
+zero exception being raised. We fix that by checking for division by
+zero.
+
+Secondly, correctly set the number of hugepages to zero before trying
+to set a large number of them.
+
+Now, consider a situation in which, at the start of the test, a non-zero
+number of hugepages have been already set (while running the entire
+selftests/mm suite, or manually by the admin). The test operates on 80%
+of memory to avoid OOM-killer invocation, and because some memory is
+already blocked by hugepages, it would increase the chance of OOM-killing.
+Also, since mem_free used in check_compaction() is the value before we
+set nr_hugepages to zero, the chance that the compaction_index will
+be small is very high if the preset nr_hugepages was high, leading to a
+bogus test success.
+
+
+This patch (of 3):
+
+Currently, if at runtime we are not able to allocate a huge page, the test
+will trivially pass on Aarch64 due to no exception being raised on
+division by zero while computing compaction_index.  Fix that by checking
+for nr_hugepages == 0.  Anyways, in general, avoid a division by zero by
+exiting the program beforehand.  While at it, fix a typo, and handle the
+case where the number of hugepages may overflow an integer.
+
+Link: https://lkml.kernel.org/r/20240521074358.675031-1-dev.jain@arm.com
+Link: https://lkml.kernel.org/r/20240521074358.675031-2-dev.jain@arm.com
+Fixes: bd67d5c15cc1 ("Test compaction of mlocked memory")
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Sri Jayaramappa <sjayaram@akamai.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   13 +------------
- mm/internal.h    |   17 ++++++++++++++++-
- mm/memcontrol.c  |    3 +--
- mm/page_alloc.c  |    3 +--
- mm/swap.c        |    8 ++------
- mm/vmscan.c      |    8 ++------
- 6 files changed, 23 insertions(+), 29 deletions(-)
+ tools/testing/selftests/mm/compaction_test.c |   20 +++++++++++------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
---- a/mm/huge_memory.c~mm-refactor-folio_undo_large_rmappable
-+++ a/mm/huge_memory.c
-@@ -3182,22 +3182,11 @@ out:
- 	return ret;
+--- a/tools/testing/selftests/mm/compaction_test.c~selftests-mm-compaction_test-fix-bogus-test-success-on-aarch64
++++ a/tools/testing/selftests/mm/compaction_test.c
+@@ -82,12 +82,13 @@ int prereq(void)
+ 	return -1;
  }
  
--void folio_undo_large_rmappable(struct folio *folio)
-+void __folio_undo_large_rmappable(struct folio *folio)
+-int check_compaction(unsigned long mem_free, unsigned int hugepage_size)
++int check_compaction(unsigned long mem_free, unsigned long hugepage_size)
  {
- 	struct deferred_split *ds_queue;
- 	unsigned long flags;
++	unsigned long nr_hugepages_ul;
+ 	int fd, ret = -1;
+ 	int compaction_index = 0;
+-	char initial_nr_hugepages[10] = {0};
+-	char nr_hugepages[10] = {0};
++	char initial_nr_hugepages[20] = {0};
++	char nr_hugepages[20] = {0};
  
--	if (folio_order(folio) <= 1)
--		return;
--
--	/*
--	 * At this point, there is no one trying to add the folio to
--	 * deferred_list. If folio is not in deferred_list, it's safe
--	 * to check without acquiring the split_queue_lock.
--	 */
--	if (data_race(list_empty(&folio->_deferred_list)))
--		return;
--
- 	ds_queue = get_deferred_split_queue(folio);
- 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
- 	if (!list_empty(&folio->_deferred_list)) {
---- a/mm/internal.h~mm-refactor-folio_undo_large_rmappable
-+++ a/mm/internal.h
-@@ -605,7 +605,22 @@ static inline void folio_set_order(struc
- #endif
- }
+ 	/* We want to test with 80% of available memory. Else, OOM killer comes
+ 	   in to play */
+@@ -134,7 +135,12 @@ int check_compaction(unsigned long mem_f
  
--void folio_undo_large_rmappable(struct folio *folio);
-+void __folio_undo_large_rmappable(struct folio *folio);
-+static inline void folio_undo_large_rmappable(struct folio *folio)
-+{
-+	if (folio_order(folio) <= 1 || !folio_test_large_rmappable(folio))
-+		return;
-+
-+	/*
-+	 * At this point, there is no one trying to add the folio to
-+	 * deferred_list. If folio is not in deferred_list, it's safe
-+	 * to check without acquiring the split_queue_lock.
-+	 */
-+	if (data_race(list_empty(&folio->_deferred_list)))
-+		return;
-+
-+	__folio_undo_large_rmappable(folio);
-+}
+ 	/* We should have been able to request at least 1/3 rd of the memory in
+ 	   huge pages */
+-	compaction_index = mem_free/(atoi(nr_hugepages) * hugepage_size);
++	nr_hugepages_ul = strtoul(nr_hugepages, NULL, 10);
++	if (!nr_hugepages_ul) {
++		ksft_print_msg("ERROR: No memory is available as huge pages\n");
++		goto close_fd;
++	}
++	compaction_index = mem_free/(nr_hugepages_ul * hugepage_size);
  
- static inline struct folio *page_rmappable_folio(struct page *page)
- {
---- a/mm/memcontrol.c~mm-refactor-folio_undo_large_rmappable
-+++ a/mm/memcontrol.c
-@@ -7835,8 +7835,7 @@ void mem_cgroup_migrate(struct folio *ol
- 	 * In addition, the old folio is about to be freed after migration, so
- 	 * removing from the split queue a bit earlier seems reasonable.
- 	 */
--	if (folio_test_large(old) && folio_test_large_rmappable(old))
--		folio_undo_large_rmappable(old);
-+	folio_undo_large_rmappable(old);
- 	old->memcg_data = 0;
- }
+ 	lseek(fd, 0, SEEK_SET);
  
---- a/mm/page_alloc.c~mm-refactor-folio_undo_large_rmappable
-+++ a/mm/page_alloc.c
-@@ -2609,8 +2609,7 @@ void free_unref_folios(struct folio_batc
- 		unsigned long pfn = folio_pfn(folio);
- 		unsigned int order = folio_order(folio);
- 
--		if (order > 0 && folio_test_large_rmappable(folio))
--			folio_undo_large_rmappable(folio);
-+		folio_undo_large_rmappable(folio);
- 		if (!free_pages_prepare(&folio->page, order))
- 			continue;
- 		/*
---- a/mm/swap.c~mm-refactor-folio_undo_large_rmappable
-+++ a/mm/swap.c
-@@ -123,8 +123,7 @@ void __folio_put(struct folio *folio)
+@@ -145,11 +151,11 @@ int check_compaction(unsigned long mem_f
+ 		goto close_fd;
  	}
  
- 	page_cache_release(folio);
--	if (folio_test_large(folio) && folio_test_large_rmappable(folio))
--		folio_undo_large_rmappable(folio);
-+	folio_undo_large_rmappable(folio);
- 	mem_cgroup_uncharge(folio);
- 	free_unref_page(&folio->page, folio_order(folio));
- }
-@@ -1002,10 +1001,7 @@ void folios_put_refs(struct folio_batch
- 			free_huge_folio(folio);
- 			continue;
- 		}
--		if (folio_test_large(folio) &&
--		    folio_test_large_rmappable(folio))
--			folio_undo_large_rmappable(folio);
--
-+		folio_undo_large_rmappable(folio);
- 		__page_cache_release(folio, &lruvec, &flags);
+-	ksft_print_msg("Number of huge pages allocated = %d\n",
+-		       atoi(nr_hugepages));
++	ksft_print_msg("Number of huge pages allocated = %lu\n",
++		       nr_hugepages_ul);
  
- 		if (j != i)
---- a/mm/vmscan.c~mm-refactor-folio_undo_large_rmappable
-+++ a/mm/vmscan.c
-@@ -1440,9 +1440,7 @@ free_it:
- 		 */
- 		nr_reclaimed += nr_pages;
- 
--		if (folio_test_large(folio) &&
--		    folio_test_large_rmappable(folio))
--			folio_undo_large_rmappable(folio);
-+		folio_undo_large_rmappable(folio);
- 		if (folio_batch_add(&free_folios, folio) == 0) {
- 			mem_cgroup_uncharge_folios(&free_folios);
- 			try_to_unmap_flush();
-@@ -1849,9 +1847,7 @@ static unsigned int move_folios_to_lru(s
- 		if (unlikely(folio_put_testzero(folio))) {
- 			__folio_clear_lru_flags(folio);
- 
--			if (folio_test_large(folio) &&
--			    folio_test_large_rmappable(folio))
--				folio_undo_large_rmappable(folio);
-+			folio_undo_large_rmappable(folio);
- 			if (folio_batch_add(&free_folios, folio) == 0) {
- 				spin_unlock_irq(&lruvec->lru_lock);
- 				mem_cgroup_uncharge_folios(&free_folios);
+ 	if (compaction_index > 3) {
+-		ksft_print_msg("ERROR: Less that 1/%d of memory is available\n"
++		ksft_print_msg("ERROR: Less than 1/%d of memory is available\n"
+ 			       "as huge pages\n", compaction_index);
+ 		goto close_fd;
+ 	}
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-add-folio_alloc_mpol.patch
-mm-mempolicy-use-folio_alloc_mpol_noprof-in-vma_alloc_folio_noprof.patch
-mm-mempolicy-use-folio_alloc_mpol-in-alloc_migration_target_by_mpol.patch
-mm-shmem-use-folio_alloc_mpol-in-shmem_alloc_folio.patch
-mm-memcontrol-remove-page_memcg.patch
-mm-refactor-folio_undo_large_rmappable.patch
+selftests-mm-compaction_test-fix-bogus-test-success-on-aarch64.patch
+selftests-mm-compaction_test-fix-incorrect-write-of-zero-to-nr_hugepages.patch
+selftests-mm-compaction_test-fix-bogus-test-success-and-reduce-probability-of-oom-killer-invocation.patch
 
