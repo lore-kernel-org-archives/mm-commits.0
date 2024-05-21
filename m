@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D3621494A0
-	for <mm-commits@vger.kernel.org>; Tue, 21 May 2024 19:58:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C07646521
+	for <mm-commits@vger.kernel.org>; Tue, 21 May 2024 21:24:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716321500; cv=none; b=VB8UEVwVXv2tr7th2X6Ke7xhaTh/RRsNzbaTwbw7hcrDmi6gY4p2HSBQrPgTzCsQymwkJjHCkMAKuDhNhIylRcygTdtqMtVvg3qTsIPc/L6R0GUGAydx2NJLnDGDExqhBt6W2d5JY7LlFpyNNgQKYJwHIAM3hT7htsIFbZrd/fU=
+	t=1716326647; cv=none; b=VVotKQmthg/5mA0ZEXM//o2fAjc5g1OQ4/3fd36V9SF/yPmlOrVMZxEP06p3o7o3sbGnDGhRAFzAGYJT4mLtNsJb7K+b8AggWmbdcXk8SPLpdP69J3oAaUA1ewtgIaqUeKn4ZlzFliL6YS8nHVQL46G3qlBe6JJLKpdhmtDAeMI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716321500; c=relaxed/simple;
-	bh=a/SJpHXO33+sdnol3XljiZbCdrUu5+OK4W7tXiOKGvs=;
-	h=Date:To:From:Subject:Message-Id; b=LGJdbJ3CdTzh6OLEgPQv1TMe2l6bV9S9a0C4vXUGVpHq6InNAX2WRO3Ys0QOEmfg+zSQFERbffvxgErqsCMwd+FPEYpIZ6EE2qASoTA5mmakJ/4lUfxGj0F9ekXxDZssmoKOStTGrheejfldgotivpAcFuujEWhPRz97LZnwhQA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JnNueMMz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716326647; c=relaxed/simple;
+	bh=/aCTDG41DvdfljIaLHOSXAPdEqUGW8h2J7piCa/jeno=;
+	h=Date:To:From:Subject:Message-Id; b=N1NHyzL9o2IEF0ApnLfBlkhVhxINnho3pJsrznZ1/l3KWahlseC9s2yzM1Oxot4wX5d0Blt+dULBRCrFeuGzGZFK2JWdsLrdD0weLyLBcRWJ+V4LslQYkjeTzi7S/h8ZNUv03A75p/HC4QLqkh4fDp6KBJ4uLGQOfVX+O9mBpY8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bj7S2PKo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JnNueMMz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4125C2BD11;
-	Tue, 21 May 2024 19:58:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bj7S2PKo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 083E0C2BD11;
+	Tue, 21 May 2024 21:24:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716321499;
-	bh=a/SJpHXO33+sdnol3XljiZbCdrUu5+OK4W7tXiOKGvs=;
+	s=korg; t=1716326647;
+	bh=/aCTDG41DvdfljIaLHOSXAPdEqUGW8h2J7piCa/jeno=;
 	h=Date:To:From:Subject:From;
-	b=JnNueMMzAwp6/fh5zJWtOvg8CrRPMXwZF7uiID5OXNYwFadnc7ERKAcHGOcqwQOfi
-	 p0XI+WVg3plD6KLwYaI+wpWLoCOVd4nd4dXz0m/QGuOJHx+a6UwYcwJSpec5TJp6tL
-	 18edCeWlijQFT868j7Z87suxIDtkpGsTvWBO2mr8=
-Date: Tue, 21 May 2024 12:58:19 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,xiubli@redhat.com,willy@infradead.org,v-songbaohua@oppo.com,trond.myklebust@hammerspace.com,ryan.roberts@arm.com,neilb@suse.de,minchan@kernel.org,marc.dionne@auristor.com,konishi.ryusuke@gmail.com,jlayton@kernel.org,jaegeuk@kernel.org,idryomov@gmail.com,hughd@google.com,dhowells@redhat.com,david@redhat.com,chrisl@kernel.org,chao@kernel.org,anna@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=bj7S2PKosGnwM+gUgp/dhquOe1VeS3zxmnKrITAa7uHeem6lJHsX+avWn8uFFKyPf
+	 bpAaDxl8CppsGQa/C290O5XrN6WxUhjcwWZOYiwXCeGs13EycDJ+x0cB5WGXXuwMUo
+	 0HPW0ey0eo2znNLyKb250Hd8VrbdL/bVfRkK4iTk=
+Date: Tue, 21 May 2024 14:24:06 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-reduce-swap-cache-search-space.patch added to mm-unstable branch
-Message-Id: <20240521195819.B4125C2BD11@smtp.kernel.org>
+Subject: + mm-memcontrol-remove-page_memcg.patch added to mm-unstable branch
+Message-Id: <20240521212407.083E0C2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swap: reduce swap cache search space
+     Subject: mm: memcontrol: remove page_memcg()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-reduce-swap-cache-search-space.patch
+     mm-memcontrol-remove-page_memcg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-reduce-swap-cache-search-space.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-remove-page_memcg.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,284 +58,90 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/swap: reduce swap cache search space
-Date: Wed, 22 May 2024 01:58:53 +0800
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: memcontrol: remove page_memcg()
+Date: Tue, 21 May 2024 21:15:56 +0800
 
-Currently we use one swap_address_space for every 64M chunk to reduce lock
-contention, this is like having a set of smaller swap files inside one
-swap device.  But when doing swap cache look up or insert, we are still
-using the offset of the whole large swap device.  This is OK for
-correctness, as the offset (key) is unique.
+The page_memcg() only called by mod_memcg_page_state(), so squash it to
+cleanup page_memcg().
 
-But Xarray is specially optimized for small indexes, it creates the radix
-tree levels lazily to be just enough to fit the largest key stored in one
-Xarray.  So we are wasting tree nodes unnecessarily.
-
-For 64M chunk it should only take at most 3 levels to contain everything. 
-But if we are using the offset from the whole swap device, the offset
-(key) value will be way beyond 64M, and so will the tree level.
-
-Optimize this by using a new helper swap_cache_index to get a swap entry's
-unique offset in its own 64M swap_address_space.
-
-I see a ~1% performance gain in benchmark and actual workload with high
-memory pressure.
-
-Test with `time memhog 128G` inside a 8G memcg using 128G swap (ramdisk
-with SWP_SYNCHRONOUS_IO dropped, tested 3 times, results are stable.  The
-test result is similar but the improvement is smaller if
-SWP_SYNCHRONOUS_IO is enabled, as swap out path can never skip swap
-cache):
-
-Before:
-6.07user 250.74system 4:17.26elapsed 99%CPU (0avgtext+0avgdata 8373376maxresident)k
-0inputs+0outputs (55major+33555018minor)pagefaults 0swaps
-
-After (1.8% faster):
-6.08user 246.09system 4:12.58elapsed 99%CPU (0avgtext+0avgdata 8373248maxresident)k
-0inputs+0outputs (54major+33555027minor)pagefaults 0swaps
-
-Similar result with MySQL and sysbench using swap:
-Before:
-94055.61 qps
-
-After (0.8% faster):
-94834.91 qps
-
-Radix tree slab usage is also very slightly lower.
-
-Link: https://lkml.kernel.org/r/20240521175854.96038-12-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Anna Schumaker <anna@kernel.org>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Marc Dionne <marc.dionne@auristor.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: NeilBrown <neilb@suse.de>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-Cc: Xiubo Li <xiubli@redhat.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Link: https://lkml.kernel.org/r/20240521131556.142176-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- mm/memcontrol.c  |    2 +-
- mm/mincore.c     |    2 +-
- mm/shmem.c       |    2 +-
- mm/swap.h        |   15 +++++++++++++++
- mm/swap_state.c  |   17 +++++++++--------
- mm/swapfile.c    |    6 +++---
- 7 files changed, 31 insertions(+), 15 deletions(-)
+ include/linux/memcontrol.h |   14 ++------------
+ mm/memcontrol.c            |    2 +-
+ 2 files changed, 3 insertions(+), 13 deletions(-)
 
---- a/mm/huge_memory.c~mm-swap-reduce-swap-cache-search-space
-+++ a/mm/huge_memory.c
-@@ -2838,7 +2838,7 @@ static void __split_huge_page(struct pag
- 	split_page_memcg(head, order, new_order);
- 
- 	if (folio_test_anon(folio) && folio_test_swapcache(folio)) {
--		offset = swp_offset(folio->swap);
-+		offset = swap_cache_index(folio->swap);
- 		swap_cache = swap_address_space(folio->swap);
- 		xa_lock(&swap_cache->i_pages);
- 	}
---- a/mm/memcontrol.c~mm-swap-reduce-swap-cache-search-space
-+++ a/mm/memcontrol.c
-@@ -6148,7 +6148,7 @@ static struct page *mc_handle_swap_pte(s
- 	 * Because swap_cache_get_folio() updates some statistics counter,
- 	 * we call find_get_page() with swapper_space directly.
- 	 */
--	page = find_get_page(swap_address_space(ent), swp_offset(ent));
-+	page = find_get_page(swap_address_space(ent), swap_cache_index(ent));
- 	entry->val = ent.val;
- 
- 	return page;
---- a/mm/mincore.c~mm-swap-reduce-swap-cache-search-space
-+++ a/mm/mincore.c
-@@ -139,7 +139,7 @@ static int mincore_pte_range(pmd_t *pmd,
- 			} else {
- #ifdef CONFIG_SWAP
- 				*vec = mincore_page(swap_address_space(entry),
--						    swp_offset(entry));
-+						    swap_cache_index(entry));
- #else
- 				WARN_ON(1);
- 				*vec = 1;
---- a/mm/shmem.c~mm-swap-reduce-swap-cache-search-space
-+++ a/mm/shmem.c
-@@ -1742,7 +1742,7 @@ static int shmem_replace_folio(struct fo
- 
- 	old = *foliop;
- 	entry = old->swap;
--	swap_index = swp_offset(entry);
-+	swap_index = swap_cache_index(entry);
- 	swap_mapping = swap_address_space(entry);
- 
- 	/*
---- a/mm/swapfile.c~mm-swap-reduce-swap-cache-search-space
-+++ a/mm/swapfile.c
-@@ -142,7 +142,7 @@ static int __try_to_reclaim_swap(struct
- 	struct folio *folio;
- 	int ret = 0;
- 
--	folio = filemap_get_folio(swap_address_space(entry), offset);
-+	folio = filemap_get_folio(swap_address_space(entry), swap_cache_index(entry));
- 	if (IS_ERR(folio))
- 		return 0;
- 	/*
-@@ -2158,7 +2158,7 @@ retry:
- 	       (i = find_next_to_unuse(si, i)) != 0) {
- 
- 		entry = swp_entry(type, i);
--		folio = filemap_get_folio(swap_address_space(entry), i);
-+		folio = filemap_get_folio(swap_address_space(entry), swap_cache_index(entry));
- 		if (IS_ERR(folio))
- 			continue;
- 
-@@ -3476,7 +3476,7 @@ EXPORT_SYMBOL_GPL(swapcache_mapping);
- 
- pgoff_t __folio_swap_cache_index(struct folio *folio)
- {
--	return swp_offset(folio->swap);
-+	return swap_cache_index(folio->swap);
- }
- EXPORT_SYMBOL_GPL(__folio_swap_cache_index);
- 
---- a/mm/swap.h~mm-swap-reduce-swap-cache-search-space
-+++ a/mm/swap.h
-@@ -27,6 +27,7 @@ void __swap_writepage(struct folio *foli
- /* One swap address space for each 64M swap space */
- #define SWAP_ADDRESS_SPACE_SHIFT	14
- #define SWAP_ADDRESS_SPACE_PAGES	(1 << SWAP_ADDRESS_SPACE_SHIFT)
-+#define SWAP_ADDRESS_SPACE_MASK		(SWAP_ADDRESS_SPACE_PAGES - 1)
- extern struct address_space *swapper_spaces[];
- #define swap_address_space(entry)			    \
- 	(&swapper_spaces[swp_type(entry)][swp_offset(entry) \
-@@ -40,6 +41,15 @@ static inline loff_t swap_dev_pos(swp_en
- 	return ((loff_t)swp_offset(entry)) << PAGE_SHIFT;
+--- a/include/linux/memcontrol.h~mm-memcontrol-remove-page_memcg
++++ a/include/linux/memcontrol.h
+@@ -443,11 +443,6 @@ static inline struct mem_cgroup *folio_m
+ 	return __folio_memcg(folio);
  }
  
-+/*
-+ * Return the swap cache index of the swap entry.
-+ */
-+static inline pgoff_t swap_cache_index(swp_entry_t entry)
-+{
-+	BUILD_BUG_ON((SWP_OFFSET_MASK | SWAP_ADDRESS_SPACE_MASK) != SWP_OFFSET_MASK);
-+	return swp_offset(entry) & SWAP_ADDRESS_SPACE_MASK;
-+}
-+
- void show_swap_cache_info(void);
- bool add_to_swap(struct folio *folio);
- void *get_shadow_from_swap_cache(swp_entry_t entry);
-@@ -86,6 +96,11 @@ static inline struct address_space *swap
+-static inline struct mem_cgroup *page_memcg(struct page *page)
+-{
+-	return folio_memcg(page_folio(page));
+-}
+-
+ /**
+  * folio_memcg_rcu - Locklessly get the memory cgroup associated with a folio.
+  * @folio: Pointer to the folio.
+@@ -1014,7 +1009,7 @@ static inline void mod_memcg_page_state(
+ 		return;
+ 
+ 	rcu_read_lock();
+-	memcg = page_memcg(page);
++	memcg = folio_memcg(page_folio(page));
+ 	if (memcg)
+ 		mod_memcg_state(memcg, idx, val);
+ 	rcu_read_unlock();
+@@ -1133,11 +1128,6 @@ static inline struct mem_cgroup *folio_m
  	return NULL;
  }
  
-+static inline pgoff_t swap_cache_index(swp_entry_t entry)
-+{
-+	return 0;
-+}
-+
- static inline void show_swap_cache_info(void)
+-static inline struct mem_cgroup *page_memcg(struct page *page)
+-{
+-	return NULL;
+-}
+-
+ static inline struct mem_cgroup *folio_memcg_rcu(struct folio *folio)
  {
+ 	WARN_ON_ONCE(!rcu_read_lock_held());
+@@ -1636,7 +1626,7 @@ static inline void unlock_page_lruvec_ir
+ 	spin_unlock_irqrestore(&lruvec->lru_lock, flags);
  }
---- a/mm/swap_state.c~mm-swap-reduce-swap-cache-search-space
-+++ a/mm/swap_state.c
-@@ -72,7 +72,7 @@ void show_swap_cache_info(void)
- void *get_shadow_from_swap_cache(swp_entry_t entry)
+ 
+-/* Test requires a stable page->memcg binding, see page_memcg() */
++/* Test requires a stable page->memcg binding, see folio_memcg() */
+ static inline bool folio_matches_lruvec(struct folio *folio,
+ 		struct lruvec *lruvec)
  {
- 	struct address_space *address_space = swap_address_space(entry);
--	pgoff_t idx = swp_offset(entry);
-+	pgoff_t idx = swap_cache_index(entry);
- 	void *shadow;
+--- a/mm/memcontrol.c~mm-memcontrol-remove-page_memcg
++++ a/mm/memcontrol.c
+@@ -3809,7 +3809,7 @@ void __memcg_slab_free_hook(struct kmem_
+ #endif /* CONFIG_MEMCG_KMEM */
  
- 	shadow = xa_load(&address_space->i_pages, idx);
-@@ -89,7 +89,7 @@ int add_to_swap_cache(struct folio *foli
- 			gfp_t gfp, void **shadowp)
+ /*
+- * Because page_memcg(head) is not set on tails, set it now.
++ * Because folio_memcg(head) is not set on tails, set it now.
+  */
+ void split_page_memcg(struct page *head, int old_order, int new_order)
  {
- 	struct address_space *address_space = swap_address_space(entry);
--	pgoff_t idx = swp_offset(entry);
-+	pgoff_t idx = swap_cache_index(entry);
- 	XA_STATE_ORDER(xas, &address_space->i_pages, idx, folio_order(folio));
- 	unsigned long i, nr = folio_nr_pages(folio);
- 	void *old;
-@@ -144,7 +144,7 @@ void __delete_from_swap_cache(struct fol
- 	struct address_space *address_space = swap_address_space(entry);
- 	int i;
- 	long nr = folio_nr_pages(folio);
--	pgoff_t idx = swp_offset(entry);
-+	pgoff_t idx = swap_cache_index(entry);
- 	XA_STATE(xas, &address_space->i_pages, idx);
- 
- 	xas_set_update(&xas, workingset_update_node);
-@@ -253,13 +253,14 @@ void clear_shadow_from_swap_cache(int ty
- 
- 	for (;;) {
- 		swp_entry_t entry = swp_entry(type, curr);
-+		unsigned long index = curr & SWAP_ADDRESS_SPACE_MASK;
- 		struct address_space *address_space = swap_address_space(entry);
--		XA_STATE(xas, &address_space->i_pages, curr);
-+		XA_STATE(xas, &address_space->i_pages, index);
- 
- 		xas_set_update(&xas, workingset_update_node);
- 
- 		xa_lock_irq(&address_space->i_pages);
--		xas_for_each(&xas, old, end) {
-+		xas_for_each(&xas, old, min(index + (end - curr), SWAP_ADDRESS_SPACE_PAGES)) {
- 			if (!xa_is_value(old))
- 				continue;
- 			xas_store(&xas, NULL);
-@@ -350,7 +351,7 @@ struct folio *swap_cache_get_folio(swp_e
- {
- 	struct folio *folio;
- 
--	folio = filemap_get_folio(swap_address_space(entry), swp_offset(entry));
-+	folio = filemap_get_folio(swap_address_space(entry), swap_cache_index(entry));
- 	if (!IS_ERR(folio)) {
- 		bool vma_ra = swap_use_vma_readahead();
- 		bool readahead;
-@@ -420,7 +421,7 @@ struct folio *filemap_get_incore_folio(s
- 	si = get_swap_device(swp);
- 	if (!si)
- 		return ERR_PTR(-ENOENT);
--	index = swp_offset(swp);
-+	index = swap_cache_index(swp);
- 	folio = filemap_get_folio(swap_address_space(swp), index);
- 	put_swap_device(si);
- 	return folio;
-@@ -447,7 +448,7 @@ struct folio *__read_swap_cache_async(sw
- 		 * that would confuse statistics.
- 		 */
- 		folio = filemap_get_folio(swap_address_space(entry),
--						swp_offset(entry));
-+					  swap_cache_index(entry));
- 		if (!IS_ERR(folio))
- 			goto got_folio;
- 
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-f2fs-drop-usage-of-page_index.patch
-nilfs2-drop-usage-of-page_index.patch
-ceph-drop-usage-of-page_index.patch
-nfs-remove-nfs_page_lengthg-and-usage-of-page_index.patch
-afs-drop-usage-of-folio_file_pos.patch
-netfs-drop-usage-of-folio_file_pos.patch
-nfs-drop-usage-of-folio_file_pos.patch
-mm-swap-get-the-swap-device-offset-directly.patch
-mm-remove-page_file_offset-and-folio_file_pos.patch
-mm-drop-page_index-and-simplify-folio_index.patch
-mm-swap-reduce-swap-cache-search-space.patch
+mm-add-folio_alloc_mpol.patch
+mm-mempolicy-use-folio_alloc_mpol_noprof-in-vma_alloc_folio_noprof.patch
+mm-mempolicy-use-folio_alloc_mpol-in-alloc_migration_target_by_mpol.patch
+mm-shmem-use-folio_alloc_mpol-in-shmem_alloc_folio.patch
+mm-memcontrol-remove-page_memcg.patch
 
