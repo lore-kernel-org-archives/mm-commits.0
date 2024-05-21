@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A2651494C0
-	for <mm-commits@vger.kernel.org>; Tue, 21 May 2024 19:58:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8F611494C0
+	for <mm-commits@vger.kernel.org>; Tue, 21 May 2024 19:58:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716321483; cv=none; b=laf2/3kpn5E8oTJyzqSCjqBS2Cxzs1Y+q9mr9EZnZkE7sOqM8uWGvypYh33rc5glNwR4x2HvDm87SH0aYt8Gh6VqAPuRH4wJ6zvWjtfg2aIECVlIuyPO8Ey/sVt7/fRnlWmsLuQdqDqFHoaJO41dswhI/mphjmqpaSAPyAzW6VI=
+	t=1716321484; cv=none; b=eRv/rgaSBJhtUgCVFz2nbnLXo7OaMQJLj4xABXnOv1ITA0Sa8OV7kZQPpfH/9X9FqdCc0xv2vtJqHwO8+qMU7uQ9U+FkrUIXMX7ocnMQy3021e0N17wFo/OjSltxOoLZFXJoFwV8Ysr5KY9uTqq9bDTjSwTY0EIl0ICSljMx/OU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716321483; c=relaxed/simple;
-	bh=OoRJJyVxfQ1amaFjH5qEqzbONV1uy/PRNzPGK5jwlJI=;
-	h=Date:To:From:Subject:Message-Id; b=GupHT0oBz3SGH3JWF2k0AHsxNicb57OHUq7fWAbaWogCjXSaS67OMZGv3HZ/f22Xt5MZkHMGEMcs4Po2nNlVH8rSX4sayTU65sYMAgeg0LkC0f6xuf+5MALu/ijtJQfTmztAxQb3qwhtagXWKpzYTkSQDtaLB+zLX6BRvt7bmcw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sGPoX5pn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716321484; c=relaxed/simple;
+	bh=NjtadhBJIcjlaoHjWRpYx/8RiCe6VwQiLO0+nk0KjOI=;
+	h=Date:To:From:Subject:Message-Id; b=oRjL03qN0BWyrhk9uXNa/iUMygJCn9XbudJZA0GB8Xo9p9i88pRRGkNolp4foboPiEgTAag50nJ6cGenuJieNyOPdTO7IVf8XOkrqcJcSmV1ciemcIt/PK2+D0ZYnW/GhttARRAcKAK2PtGvu2jz8y7Aw+1NcbqK8AnXWeDeSpI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XWMtBroF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sGPoX5pn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B069CC2BD11;
-	Tue, 21 May 2024 19:58:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XWMtBroF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8AEDC2BD11;
+	Tue, 21 May 2024 19:58:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716321482;
-	bh=OoRJJyVxfQ1amaFjH5qEqzbONV1uy/PRNzPGK5jwlJI=;
+	s=korg; t=1716321484;
+	bh=NjtadhBJIcjlaoHjWRpYx/8RiCe6VwQiLO0+nk0KjOI=;
 	h=Date:To:From:Subject:From;
-	b=sGPoX5pnbOHu7tfmwywGJufKedaeZQh1ZXI4c7n/urz93MxKgkCy9xMxMU7RS+lMZ
-	 IPJtLc3pMkySIVPDiu8wRBCnnfslgl9sfaI+silByoPr044wY1hdXOxjY7w0xQPbCK
-	 ky5cJM6b/AmKBQ9ohCzE9NujjWoyAdraxTNzbW90=
-Date: Tue, 21 May 2024 12:58:02 -0700
+	b=XWMtBroFi2kztkBtXdPqkKyOqwHPQ3h5hKqd/WxdWyFknCHVHgloxRx8lXCxfqd4r
+	 ptgyCa/40DVjfUiKkLaDpp8sH4mWN06rKFKJNUsJXrFIPoqZeNWK1KCmq6w3JoKF0G
+	 7CEQesrOfNx3ITk5JXDAQ4HEYPZbGyap5MzgqQrE=
+Date: Tue, 21 May 2024 12:58:04 -0700
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,xiubli@redhat.com,willy@infradead.org,v-songbaohua@oppo.com,trond.myklebust@hammerspace.com,ryan.roberts@arm.com,neilb@suse.de,minchan@kernel.org,marc.dionne@auristor.com,konishi.ryusuke@gmail.com,jlayton@kernel.org,jaegeuk@kernel.org,idryomov@gmail.com,hughd@google.com,dhowells@redhat.com,david@redhat.com,chrisl@kernel.org,chao@kernel.org,anna@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nfs-remove-nfs_page_lengthg-and-usage-of-page_index.patch added to mm-unstable branch
-Message-Id: <20240521195802.B069CC2BD11@smtp.kernel.org>
+Subject: + afs-drop-usage-of-folio_file_pos.patch added to mm-unstable branch
+Message-Id: <20240521195804.A8AEDC2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: NFS: remove nfs_page_lengthg and usage of page_index
+     Subject: afs: drop usage of folio_file_pos
 has been added to the -mm mm-unstable branch.  Its filename is
-     nfs-remove-nfs_page_lengthg-and-usage-of-page_index.patch
+     afs-drop-usage-of-folio_file_pos.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nfs-remove-nfs_page_lengthg-and-usage-of-page_index.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/afs-drop-usage-of-folio_file_pos.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,69 +59,86 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: NFS: remove nfs_page_lengthg and usage of page_index
-Date: Wed, 22 May 2024 01:58:46 +0800
+Subject: afs: drop usage of folio_file_pos
+Date: Wed, 22 May 2024 01:58:47 +0800
 
-This function is no longer used after commit 4fa7a717b432 ("NFS: Fix up
-nfs_vm_page_mkwrite() for folios"), all users have been converted to use
-folio instead, just delete it to remove usage of page_index.
+folio_file_pos is only needed for mixed usage of page cache and swap
+cache, for pure page cache usage, the caller can just use folio_pos
+instead.
 
-Link: https://lkml.kernel.org/r/20240521175854.96038-5-ryncsn@gmail.com
+It can't be a swap cache page here.  Swap mapping may only call into fs
+through swap_rw and that is not supported for afs.  So just drop it and
+use folio_pos instead.
+
+Link: https://lkml.kernel.org/r/20240521175854.96038-6-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Marc Dionne <marc.dionne@auristor.com>
 Cc: Anna Schumaker <anna@kernel.org>
 Cc: Barry Song <v-songbaohua@oppo.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Ilya Dryomov <idryomov@gmail.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Marc Dionne <marc.dionne@auristor.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: NeilBrown <neilb@suse.de>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Xiubo Li <xiubli@redhat.com>
 Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/internal.h |   19 -------------------
- 1 file changed, 19 deletions(-)
+ fs/afs/dir.c      |    6 +++---
+ fs/afs/dir_edit.c |    4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/fs/nfs/internal.h~nfs-remove-nfs_page_lengthg-and-usage-of-page_index
-+++ a/fs/nfs/internal.h
-@@ -793,25 +793,6 @@ static inline void nfs_folio_mark_unstab
- /*
-  * Determine the number of bytes of data the page contains
-  */
--static inline
--unsigned int nfs_page_length(struct page *page)
--{
--	loff_t i_size = i_size_read(page_file_mapping(page)->host);
--
--	if (i_size > 0) {
--		pgoff_t index = page_index(page);
--		pgoff_t end_index = (i_size - 1) >> PAGE_SHIFT;
--		if (index < end_index)
--			return PAGE_SIZE;
--		if (index == end_index)
--			return ((i_size - 1) & ~PAGE_MASK) + 1;
--	}
--	return 0;
--}
--
--/*
-- * Determine the number of bytes of data the page contains
-- */
- static inline size_t nfs_folio_length(struct folio *folio)
- {
- 	loff_t i_size = i_size_read(folio_file_mapping(folio)->host);
+--- a/fs/afs/dir.c~afs-drop-usage-of-folio_file_pos
++++ a/fs/afs/dir.c
+@@ -533,14 +533,14 @@ static int afs_dir_iterate(struct inode
+ 			break;
+ 		}
+ 
+-		offset = round_down(ctx->pos, sizeof(*dblock)) - folio_file_pos(folio);
++		offset = round_down(ctx->pos, sizeof(*dblock)) - folio_pos(folio);
+ 		size = min_t(loff_t, folio_size(folio),
+-			     req->actual_len - folio_file_pos(folio));
++			     req->actual_len - folio_pos(folio));
+ 
+ 		do {
+ 			dblock = kmap_local_folio(folio, offset);
+ 			ret = afs_dir_iterate_block(dvnode, ctx, dblock,
+-						    folio_file_pos(folio) + offset);
++						    folio_pos(folio) + offset);
+ 			kunmap_local(dblock);
+ 			if (ret != 1)
+ 				goto out;
+--- a/fs/afs/dir_edit.c~afs-drop-usage-of-folio_file_pos
++++ a/fs/afs/dir_edit.c
+@@ -256,7 +256,7 @@ void afs_edit_dir_add(struct afs_vnode *
+ 			folio = folio0;
+ 		}
+ 
+-		block = kmap_local_folio(folio, b * AFS_DIR_BLOCK_SIZE - folio_file_pos(folio));
++		block = kmap_local_folio(folio, b * AFS_DIR_BLOCK_SIZE - folio_pos(folio));
+ 
+ 		/* Abandon the edit if we got a callback break. */
+ 		if (!test_bit(AFS_VNODE_DIR_VALID, &vnode->flags))
+@@ -417,7 +417,7 @@ void afs_edit_dir_remove(struct afs_vnod
+ 			folio = folio0;
+ 		}
+ 
+-		block = kmap_local_folio(folio, b * AFS_DIR_BLOCK_SIZE - folio_file_pos(folio));
++		block = kmap_local_folio(folio, b * AFS_DIR_BLOCK_SIZE - folio_pos(folio));
+ 
+ 		/* Abandon the edit if we got a callback break. */
+ 		if (!test_bit(AFS_VNODE_DIR_VALID, &vnode->flags))
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
