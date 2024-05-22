@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF03A142910
-	for <mm-commits@vger.kernel.org>; Wed, 22 May 2024 22:32:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EEC4142910
+	for <mm-commits@vger.kernel.org>; Wed, 22 May 2024 22:32:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716417127; cv=none; b=hHW+wK78cMkaEfbi7FNjdKQJgibD61XeyWOK6aRaKaIuXHRZ+68u4qvFgvpmy3OK37qmm3R1HibrR72EumOVWYqCDT+e4UxsD15Lo7h59DqljSvUAAEoMUvnKhc6ivfqKPwNExbnHg2QEz2pSXmfDvYT2hVkCV5Ak8Op+Tkg/kU=
+	t=1716417129; cv=none; b=EYaAeEGmEjk+Cr/o0xiatFHi7dX2kTRHSkUpHLML0x2wauynAgm9N8zSNpntoXcdKeE+fUMbDHYVojUHe2LJu/fDhsJTLWNjsA8P8xXpjzzjmIlJ9zv2hrt1u4sQESMviKGYll132DOhUyUJ2bt6p5mfHqR3le+/i41hwTt4wOQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716417127; c=relaxed/simple;
-	bh=gOCqkkASyXjVmQiaIFvvE0JVuaRo5kBZiCc8oyyalW0=;
-	h=Date:To:From:Subject:Message-Id; b=F14JgyzmXLEuFvmWEiDjCtFIgwEs0+5e63VLEssk3V0rcEcKRs6T8o41ftp4nISRXeQj7rGl3mqgQKsPF8QHkaiodRgnT9t+706EwYO6SNbHxwyybsEadURxcE8sKtXJPgua69Fz/i1AtvpmIreqbLqKU1Muv54K1+4yZUN1W7A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kx/bYbyr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716417129; c=relaxed/simple;
+	bh=nUYYYrALOXeF8uBzXqHslrHEQ0IEdh4DWJEZXamE5Wk=;
+	h=Date:To:From:Subject:Message-Id; b=hVQES4I/zKTg8zsUQz34Xy3Pjuo9IYnFwKgbR1yzeroBER3FP+OaLvoYuGhvfy0eEh0hbJ1qkTFQ3oEdQad8j/r7PE8lWNIH0sUOrRHCJWF5XaC2srOt/l4Somht+Tzm1L6JyxKFjZ4oZeg5eRC4og9gzYbGhJ4v5MR4p6WU/F4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SM/OOHPd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kx/bYbyr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8324DC2BBFC;
-	Wed, 22 May 2024 22:32:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SM/OOHPd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6C77C2BBFC;
+	Wed, 22 May 2024 22:32:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716417127;
-	bh=gOCqkkASyXjVmQiaIFvvE0JVuaRo5kBZiCc8oyyalW0=;
+	s=korg; t=1716417129;
+	bh=nUYYYrALOXeF8uBzXqHslrHEQ0IEdh4DWJEZXamE5Wk=;
 	h=Date:To:From:Subject:From;
-	b=Kx/bYbyr5g58sEbUhQYthvCvKeyQTVr3kG1U2y9uq6F852x8wor3CDTycjYFCHxsu
-	 9ksvTqtxVM2P8fVeoaeMDjG1O2eHuDG+anlakJsExNmK8CDhuziPv+dqkgXLDy8oUD
-	 hC0g5jMjtuQkR1JEVAmfZfgSmBrhJgFd6eBFbZjA=
-Date: Wed, 22 May 2024 15:32:06 -0700
+	b=SM/OOHPdGlWrgn2XXQlKS3N/WaDVyqWwhjCKKH+jHXAKkCn5yEnX6xe01TB+Oi0xk
+	 RIu29Zq/ftIjf4lpOVL2cLWbS56l88xmn8AmRVz/CfKaWCxaDhTEjrOS2lMH/t5Qjl
+	 ih3JgL1+GuENafwGuv+Mtzpue7qL0kaJNy/Hx5/0=
+Date: Wed, 22 May 2024 15:32:08 -0700
 To: mm-commits@vger.kernel.org,terrelln@fb.com,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-support-compression-level-comp-config.patch added to mm-unstable branch
-Message-Id: <20240522223207.8324DC2BBFC@smtp.kernel.org>
+Subject: + zram-add-support-for-dict-comp-config.patch added to mm-unstable branch
+Message-Id: <20240522223208.E6C77C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: support compression level comp config
+     Subject: zram: add support for dict comp config
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-support-compression-level-comp-config.patch
+     zram-add-support-for-dict-comp-config.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-support-compression-level-comp-config.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-support-for-dict-comp-config.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,104 +59,141 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: support compression level comp config
-Date: Wed, 15 May 2024 16:12:49 +0900
+Subject: zram: add support for dict comp config
+Date: Wed, 15 May 2024 16:12:50 +0900
 
-Add support for compression level level=N comp configuration to
-comp_algorithm and recomp_algorithm knobs.
+Handle dict=path param so that we can read a pre-trained compression
+algorithm dictionary which we then pass to the backend configuration.
 
-Note that zram cannot verify ranges, it's a task of corresponding backends
-to make sure that level makes sense.
-
-Link: https://lkml.kernel.org/r/20240515071645.1788128-13-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20240515071645.1788128-14-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nick Terrell <terrelln@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   30 ++++++++++++++++++++++++++++--
- 1 file changed, 28 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |   54 +++++++++++++++++++++++++-------
+ 1 file changed, 43 insertions(+), 11 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-support-compression-level-comp-config
+--- a/drivers/block/zram/zram_drv.c~zram-add-support-for-dict-comp-config
 +++ a/drivers/block/zram/zram_drv.c
-@@ -998,6 +998,12 @@ static int __comp_algorithm_store(struct
+@@ -33,6 +33,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/cpuhotplug.h>
+ #include <linux/part_stat.h>
++#include <linux/kernel_read_file.h>
+ 
+ #include "zram_drv.h"
+ 
+@@ -998,9 +999,35 @@ static int __comp_algorithm_store(struct
  	return 0;
  }
  
-+static int comp_config_store(struct zram *zram, u32 prio, s32 level)
-+{
-+	zram->configs[prio].level = level;
-+	return 0;
+-static int comp_config_store(struct zram *zram, u32 prio, s32 level)
++static void __reset_comp_config(struct zram *zram, u32 prio)
+ {
++	struct zcomp_config *config = &zram->configs[prio];
++
++	vfree(config->dict);
++	config->level = ZCOMP_CONFIG_NO_LEVEL;
++	config->dict_sz = 0;
++	config->dict = NULL;
 +}
 +
- static ssize_t comp_algorithm_show(struct device *dev,
- 				   struct device_attribute *attr,
- 				   char *buf)
-@@ -1015,6 +1021,7 @@ static ssize_t comp_algorithm_store(stru
- 	struct zram *zram = dev_to_zram(dev);
- 	char *args, *param, *val;
- 	char *alg = NULL;
-+	s32 level = ZCOMP_CONFIG_NO_LEVEL;
- 	int ret;
- 
- 	args = skip_spaces(buf);
-@@ -1034,12 +1041,21 @@ static ssize_t comp_algorithm_store(stru
- 			alg = val;
- 			continue;
- 		}
++static int comp_config_store(struct zram *zram, u32 prio, s32 level,
++			     const char *dict_path)
++{
++	ssize_t sz = 0;
 +
-+		if (!strcmp(param, "level")) {
-+			ret = kstrtoint(val, 10, &level);
-+			if (ret)
-+				return ret;
-+			continue;
-+		}
- 	}
- 
- 	if (!alg)
- 		return -EINVAL;
- 
--	ret = __comp_algorithm_store(zram, ZRAM_PRIMARY_COMP, alg);
-+	ret = comp_config_store(zram, ZRAM_PRIMARY_COMP, level);
-+	if (!ret)
-+		ret = __comp_algorithm_store(zram, ZRAM_PRIMARY_COMP, alg);
- 	return ret ? ret : len;
++	__reset_comp_config(zram, prio);
++
++	if (dict_path) {
++		sz = kernel_read_file_from_path(dict_path, 0,
++						&zram->configs[prio].dict,
++						INT_MAX,
++						NULL,
++						READING_POLICY);
++		if (sz < 0)
++			return -EINVAL;
++	}
++
+ 	zram->configs[prio].level = level;
++	zram->configs[prio].dict_sz = sz;
+ 	return 0;
  }
  
-@@ -1072,6 +1088,7 @@ static ssize_t recomp_algorithm_store(st
- 	int prio = ZRAM_SECONDARY_COMP;
+@@ -1020,7 +1047,7 @@ static ssize_t comp_algorithm_store(stru
+ {
+ 	struct zram *zram = dev_to_zram(dev);
  	char *args, *param, *val;
- 	char *alg = NULL;
-+	s32 level = ZCOMP_CONFIG_NO_LEVEL;
+-	char *alg = NULL;
++	char *alg = NULL, *dict_path = NULL;
+ 	s32 level = ZCOMP_CONFIG_NO_LEVEL;
  	int ret;
  
- 	args = skip_spaces(buf);
-@@ -1092,6 +1109,13 @@ static ssize_t recomp_algorithm_store(st
+@@ -1048,12 +1075,17 @@ static ssize_t comp_algorithm_store(stru
  				return ret;
  			continue;
  		}
 +
-+		if (!strcmp(param, "level")) {
-+			ret = kstrtoint(val, 10, &level);
-+			if (ret)
-+				return ret;
++		if (!strcmp(param, "dict")) {
++			dict_path = val;
 +			continue;
 +		}
  	}
  
  	if (!alg)
-@@ -1100,7 +1124,9 @@ static ssize_t recomp_algorithm_store(st
+ 		return -EINVAL;
+ 
+-	ret = comp_config_store(zram, ZRAM_PRIMARY_COMP, level);
++	ret = comp_config_store(zram, ZRAM_PRIMARY_COMP, level, dict_path);
+ 	if (!ret)
+ 		ret = __comp_algorithm_store(zram, ZRAM_PRIMARY_COMP, alg);
+ 	return ret ? ret : len;
+@@ -1087,7 +1119,7 @@ static ssize_t recomp_algorithm_store(st
+ 	struct zram *zram = dev_to_zram(dev);
+ 	int prio = ZRAM_SECONDARY_COMP;
+ 	char *args, *param, *val;
+-	char *alg = NULL;
++	char *alg = NULL, *dict_path = NULL;
+ 	s32 level = ZCOMP_CONFIG_NO_LEVEL;
+ 	int ret;
+ 
+@@ -1116,6 +1148,11 @@ static ssize_t recomp_algorithm_store(st
+ 				return ret;
+ 			continue;
+ 		}
++
++		if (!strcmp(param, "dict")) {
++			dict_path = val;
++			continue;
++		}
+ 	}
+ 
+ 	if (!alg)
+@@ -1124,7 +1161,7 @@ static ssize_t recomp_algorithm_store(st
  	if (prio < ZRAM_SECONDARY_COMP || prio >= ZRAM_MAX_COMPS)
  		return -EINVAL;
  
--	ret = __comp_algorithm_store(zram, prio, alg);
-+	ret = comp_config_store(zram, prio, level);
-+	if (!ret)
-+		ret = __comp_algorithm_store(zram, prio, alg);
+-	ret = comp_config_store(zram, prio, level);
++	ret = comp_config_store(zram, prio, level, dict_path);
+ 	if (!ret)
+ 		ret = __comp_algorithm_store(zram, prio, alg);
  	return ret ? ret : len;
+@@ -2034,12 +2071,7 @@ static void zram_reset_comp_configs(stru
+ 	u32 prio;
+ 
+ 	for (prio = 0; prio < ZRAM_MAX_COMPS; prio++) {
+-		struct zcomp_config *config = &zram->configs[prio];
+-
+-		vfree(config->dict);
+-		config->level = ZCOMP_CONFIG_NO_LEVEL;
+-		config->dict_sz = 0;
+-		config->dict = NULL;
++		__reset_comp_config(zram, prio);
+ 	}
  }
- #endif
+ 
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
