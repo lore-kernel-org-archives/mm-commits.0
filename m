@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EEC4142910
-	for <mm-commits@vger.kernel.org>; Wed, 22 May 2024 22:32:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4448142910
+	for <mm-commits@vger.kernel.org>; Wed, 22 May 2024 22:32:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716417129; cv=none; b=EYaAeEGmEjk+Cr/o0xiatFHi7dX2kTRHSkUpHLML0x2wauynAgm9N8zSNpntoXcdKeE+fUMbDHYVojUHe2LJu/fDhsJTLWNjsA8P8xXpjzzjmIlJ9zv2hrt1u4sQESMviKGYll132DOhUyUJ2bt6p5mfHqR3le+/i41hwTt4wOQ=
+	t=1716417130; cv=none; b=pCTZYIqCjDCrH04yHhfYT+nFtHB4NNsT4oMDXkbNYJH79LCBZOAcXsMCmdlj+e0wUgQjl0zimvhDUrFoy2bc9sZ7j7lSAIrIiyOJ1jdNdy+RuzewNDcSDiHwbtm2/HxU7e8ALvvv9hLeFBSXse1E7NceehewAC6a+VvBIHx/KZ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716417129; c=relaxed/simple;
-	bh=nUYYYrALOXeF8uBzXqHslrHEQ0IEdh4DWJEZXamE5Wk=;
-	h=Date:To:From:Subject:Message-Id; b=hVQES4I/zKTg8zsUQz34Xy3Pjuo9IYnFwKgbR1yzeroBER3FP+OaLvoYuGhvfy0eEh0hbJ1qkTFQ3oEdQad8j/r7PE8lWNIH0sUOrRHCJWF5XaC2srOt/l4Somht+Tzm1L6JyxKFjZ4oZeg5eRC4og9gzYbGhJ4v5MR4p6WU/F4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SM/OOHPd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716417130; c=relaxed/simple;
+	bh=Fjd7d9X5vT+B2s0MTqr3JkA+1HSDNPFkyjhl4SCDXDY=;
+	h=Date:To:From:Subject:Message-Id; b=TGKYLG+cPwTnvxhe+icvjS9Fm7IRSKyyxwmFiZLb6b4VXiUdLx3HmZ6IJNLxCofLfz6un4Ktbh9NX8rrhJWHhX84Q73RpSMDLwqD1lF5++1+6XAjHo1KC53GFClEewJja22vsdx5Aw6RmK46jwKD61VolAHJ5Vw7dExsTbm6qPE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HjJAXQ4M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SM/OOHPd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6C77C2BBFC;
-	Wed, 22 May 2024 22:32:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HjJAXQ4M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59BEAC2BBFC;
+	Wed, 22 May 2024 22:32:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716417129;
-	bh=nUYYYrALOXeF8uBzXqHslrHEQ0IEdh4DWJEZXamE5Wk=;
+	s=korg; t=1716417130;
+	bh=Fjd7d9X5vT+B2s0MTqr3JkA+1HSDNPFkyjhl4SCDXDY=;
 	h=Date:To:From:Subject:From;
-	b=SM/OOHPdGlWrgn2XXQlKS3N/WaDVyqWwhjCKKH+jHXAKkCn5yEnX6xe01TB+Oi0xk
-	 RIu29Zq/ftIjf4lpOVL2cLWbS56l88xmn8AmRVz/CfKaWCxaDhTEjrOS2lMH/t5Qjl
-	 ih3JgL1+GuENafwGuv+Mtzpue7qL0kaJNy/Hx5/0=
-Date: Wed, 22 May 2024 15:32:08 -0700
+	b=HjJAXQ4M8xHHYhZcuqXdjS622MVf81QfVFQgvX0aoRcdQK7Xf5GnUUQVrATt6Wfai
+	 Sj5YHD/gS2u8emaLOdXjIlz2KDoX1SsruUehBsw+VmZdemhry1NscsP9a0HvPiReML
+	 LtvhlyXQ+6UCKAQ2BcYNa/2KI2nWmPvbcj9XLQ9I=
+Date: Wed, 22 May 2024 15:32:09 -0700
 To: mm-commits@vger.kernel.org,terrelln@fb.com,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-add-support-for-dict-comp-config.patch added to mm-unstable branch
-Message-Id: <20240522223208.E6C77C2BBFC@smtp.kernel.org>
+Subject: + lib-zstd-export-api-needed-for-dictionary-support.patch added to mm-unstable branch
+Message-Id: <20240522223210.59BEAC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: add support for dict comp config
+     Subject: lib/zstd: export API needed for dictionary support
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-add-support-for-dict-comp-config.patch
+     lib-zstd-export-api-needed-for-dictionary-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-support-for-dict-comp-config.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-zstd-export-api-needed-for-dictionary-support.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,141 +59,355 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: add support for dict comp config
-Date: Wed, 15 May 2024 16:12:50 +0900
+Subject: lib/zstd: export API needed for dictionary support
+Date: Wed, 15 May 2024 16:12:51 +0900
 
-Handle dict=path param so that we can read a pre-trained compression
-algorithm dictionary which we then pass to the backend configuration.
+We need to export a number of API functions that enable advanced zstd
+usage - C/D dictionaries, dictionaries sharing between contexts, etc.
 
-Link: https://lkml.kernel.org/r/20240515071645.1788128-14-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20240515071645.1788128-15-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nick Terrell <terrelln@fb.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   54 +++++++++++++++++++++++++-------
- 1 file changed, 43 insertions(+), 11 deletions(-)
+ include/linux/zstd.h              |  165 ++++++++++++++++++++++++++++
+ lib/zstd/zstd_compress_module.c   |   52 ++++++++
+ lib/zstd/zstd_decompress_module.c |   38 ++++++
+ 3 files changed, 255 insertions(+)
 
---- a/drivers/block/zram/zram_drv.c~zram-add-support-for-dict-comp-config
-+++ a/drivers/block/zram/zram_drv.c
-@@ -33,6 +33,7 @@
- #include <linux/debugfs.h>
- #include <linux/cpuhotplug.h>
- #include <linux/part_stat.h>
-+#include <linux/kernel_read_file.h>
+--- a/include/linux/zstd.h~lib-zstd-export-api-needed-for-dictionary-support
++++ a/include/linux/zstd.h
+@@ -77,6 +77,30 @@ int zstd_min_clevel(void);
+  */
+ int zstd_max_clevel(void);
  
- #include "zram_drv.h"
++/**
++ * zstd_default_clevel() - default compression level
++ *
++ * Return: Default compression level.
++ */
++int zstd_default_clevel(void);
++
++/**
++ * struct zstd_custom_mem - custom memory allocation
++ */
++typedef ZSTD_customMem zstd_custom_mem;
++
++/**
++ * struct zstd_dict_load_method - Dictionary load method.
++ * See zstd_lib.h.
++ */
++typedef ZSTD_dictLoadMethod_e zstd_dict_load_method;
++
++/**
++ * struct zstd_dict_content_type - Dictionary context type.
++ * See zstd_lib.h.
++ */
++typedef ZSTD_dictContentType_e zstd_dict_content_type;
++
+ /* ======   Parameter Selection   ====== */
  
-@@ -998,9 +999,35 @@ static int __comp_algorithm_store(struct
- 	return 0;
+ /**
+@@ -136,6 +160,19 @@ typedef ZSTD_parameters zstd_parameters;
+ zstd_parameters zstd_get_params(int level,
+ 	unsigned long long estimated_src_size);
+ 
++
++/**
++ * zstd_get_cparams() - returns zstd_compression_parameters for selected level
++ * @level:              The compression level
++ * @estimated_src_size: The estimated source size to compress or 0
++ *                      if unknown.
++ * @dict_size:          Dictionary size.
++ *
++ * Return:              The selected zstd_compression_parameters.
++ */
++zstd_compression_parameters zstd_get_cparams(int level,
++	unsigned long long estimated_src_size, size_t dict_size);
++
+ /* ======   Single-pass Compression   ====== */
+ 
+ typedef ZSTD_CCtx zstd_cctx;
+@@ -180,6 +217,70 @@ zstd_cctx *zstd_init_cctx(void *workspac
+ size_t zstd_compress_cctx(zstd_cctx *cctx, void *dst, size_t dst_capacity,
+ 	const void *src, size_t src_size, const zstd_parameters *parameters);
+ 
++/**
++ * zstd_create_cctx_advanced() - Create compression context
++ * @custom_mem:   Custom allocator.
++ *
++ * Return:        NULL on error, pointer to compression context otherwise.
++ */
++zstd_cctx *zstd_create_cctx_advanced(zstd_custom_mem custom_mem);
++
++/**
++ * zstd_free_cctx() - Free compression context
++ * @cdict:        Pointer to compression context.
++ *
++ * Return:        Always 0.
++ */
++size_t zstd_free_cctx(zstd_cctx* cctx);
++
++/**
++ * struct zstd_cdict - Compression dictionary.
++ * See zstd_lib.h.
++ */
++typedef ZSTD_CDict zstd_cdict;
++
++/**
++ * zstd_create_cdict_advanced() - Create compression dictionary
++ * @dict:              Pointer to dictionary buffer.
++ * @dict_size:         Size of the dictionary buffer.
++ * @dict_load_method:  Dictionary load method.
++ * @dict_content_type: Dictionary content type.
++ * @custom_mem:        Memory allocator.
++ *
++ * Return:             NULL on error, pointer to compression dictionary
++ *                     otherwise.
++ */
++zstd_cdict *zstd_create_cdict_advanced(const void *dict, size_t dict_size,
++				       zstd_dict_load_method dict_load_method,
++				       zstd_dict_content_type dict_content_type,
++				       zstd_compression_parameters cparams,
++				       zstd_custom_mem custom_mem);
++
++/**
++ * zstd_free_cdict() - Free compression dictionary
++ * @cdict:        Pointer to compression dictionary.
++ *
++ * Return:        Always 0.
++ */
++size_t zstd_free_cdict(zstd_cdict* cdict);
++
++/**
++ * zstd_compress_using_cdict() - compress src into dst using a dictionary
++ * @cctx:         The context. Must have been initialized with zstd_init_cctx().
++ * @dst:          The buffer to compress src into.
++ * @dst_capacity: The size of the destination buffer. May be any size, but
++ *                ZSTD_compressBound(srcSize) is guaranteed to be large enough.
++ * @src:          The data to compress.
++ * @src_size:     The size of the data to compress.
++ * @cdict:        The dictionary to be used.
++ *
++ * Return:        The compressed size or an error, which can be checked using
++ *                zstd_is_error().
++ */
++size_t zstd_compress_using_cdict(zstd_cctx *cctx, void *dst,
++	size_t dst_capacity, const void *src, size_t src_size,
++	const zstd_cdict *cdict);
++
+ /* ======   Single-pass Decompression   ====== */
+ 
+ typedef ZSTD_DCtx zstd_dctx;
+@@ -220,6 +321,70 @@ zstd_dctx *zstd_init_dctx(void *workspac
+ size_t zstd_decompress_dctx(zstd_dctx *dctx, void *dst, size_t dst_capacity,
+ 	const void *src, size_t src_size);
+ 
++/**
++ * struct zstd_ddict - Decompression dictionary.
++ * See zstd_lib.h.
++ */
++typedef ZSTD_DDict zstd_ddict;
++
++/**
++ * zstd_create_ddict_advanced() - Create decompression dictionary
++ * @dict:              Pointer to dictionary buffer.
++ * @dict_size:         Size of the dictionary buffer.
++ * @dict_load_method:  Dictionary load method.
++ * @dict_content_type: Dictionary content type.
++ * @custom_mem:        Memory allocator.
++ *
++ * Return:             NULL on error, pointer to decompression dictionary
++ *                     otherwise.
++ */
++zstd_ddict *zstd_create_ddict_advanced(const void *dict, size_t dict_size,
++				       zstd_dict_load_method dict_load_method,
++				       zstd_dict_content_type dict_content_type,
++				       zstd_custom_mem custom_mem);
++/**
++ * zstd_free_ddict() - Free decompression dictionary
++ * @dict:         Pointer to the dictionary.
++ *
++ * Return:        Always 0.
++ */
++size_t zstd_free_ddict(zstd_ddict *ddict);
++
++/**
++ * zstd_create_dctx_advanced() - Create decompression context
++ * @custom_mem:   Custom allocator.
++ *
++ * Return:        NULL on error, pointer to decompression context otherwise.
++ */
++zstd_dctx *zstd_create_dctx_advanced(zstd_custom_mem custom_mem);
++
++/**
++ * zstd_free_dctx() -- Free decompression context
++ * @dctx:         Pointer to decompression context.
++ * Return:        Always 0.
++ */
++size_t zstd_free_dctx(zstd_dctx *dctx);
++
++/**
++ * zstd_decompress_using_ddict() - decompress src into dst using a dictionary
++ * @dctx:         The decompression context.
++ * @dst:          The buffer to decompress src into.
++ * @dst_capacity: The size of the destination buffer. Must be at least as large
++ *                as the decompressed size. If the caller cannot upper bound the
++ *                decompressed size, then it's better to use the streaming API.
++ * @src:          The zstd compressed data to decompress. Multiple concatenated
++ *                frames and skippable frames are allowed.
++ * @src_size:     The exact size of the data to decompress.
++ * @ddict:        The dictionary to be used.
++ *
++ * Return:        The decompressed size or an error, which can be checked using
++ *                zstd_is_error().
++ */
++size_t zstd_decompress_using_ddict(zstd_dctx *dctx,
++	void *dst, size_t dst_capacity, const void *src, size_t src_size,
++	const zstd_ddict *ddict);
++
++
+ /* ======   Streaming Buffers   ====== */
+ 
+ /**
+--- a/lib/zstd/zstd_compress_module.c~lib-zstd-export-api-needed-for-dictionary-support
++++ a/lib/zstd/zstd_compress_module.c
+@@ -66,6 +66,12 @@ int zstd_max_clevel(void)
  }
+ EXPORT_SYMBOL(zstd_max_clevel);
  
--static int comp_config_store(struct zram *zram, u32 prio, s32 level)
-+static void __reset_comp_config(struct zram *zram, u32 prio)
- {
-+	struct zcomp_config *config = &zram->configs[prio];
-+
-+	vfree(config->dict);
-+	config->level = ZCOMP_CONFIG_NO_LEVEL;
-+	config->dict_sz = 0;
-+	config->dict = NULL;
-+}
-+
-+static int comp_config_store(struct zram *zram, u32 prio, s32 level,
-+			     const char *dict_path)
++int zstd_default_clevel(void)
 +{
-+	ssize_t sz = 0;
++	return ZSTD_defaultCLevel();
++}
++EXPORT_SYMBOL(zstd_default_clevel);
 +
-+	__reset_comp_config(zram, prio);
-+
-+	if (dict_path) {
-+		sz = kernel_read_file_from_path(dict_path, 0,
-+						&zram->configs[prio].dict,
-+						INT_MAX,
-+						NULL,
-+						READING_POLICY);
-+		if (sz < 0)
-+			return -EINVAL;
-+	}
-+
- 	zram->configs[prio].level = level;
-+	zram->configs[prio].dict_sz = sz;
- 	return 0;
- }
- 
-@@ -1020,7 +1047,7 @@ static ssize_t comp_algorithm_store(stru
+ size_t zstd_compress_bound(size_t src_size)
  {
- 	struct zram *zram = dev_to_zram(dev);
- 	char *args, *param, *val;
--	char *alg = NULL;
-+	char *alg = NULL, *dict_path = NULL;
- 	s32 level = ZCOMP_CONFIG_NO_LEVEL;
- 	int ret;
- 
-@@ -1048,12 +1075,17 @@ static ssize_t comp_algorithm_store(stru
- 				return ret;
- 			continue;
- 		}
-+
-+		if (!strcmp(param, "dict")) {
-+			dict_path = val;
-+			continue;
-+		}
- 	}
- 
- 	if (!alg)
- 		return -EINVAL;
- 
--	ret = comp_config_store(zram, ZRAM_PRIMARY_COMP, level);
-+	ret = comp_config_store(zram, ZRAM_PRIMARY_COMP, level, dict_path);
- 	if (!ret)
- 		ret = __comp_algorithm_store(zram, ZRAM_PRIMARY_COMP, alg);
- 	return ret ? ret : len;
-@@ -1087,7 +1119,7 @@ static ssize_t recomp_algorithm_store(st
- 	struct zram *zram = dev_to_zram(dev);
- 	int prio = ZRAM_SECONDARY_COMP;
- 	char *args, *param, *val;
--	char *alg = NULL;
-+	char *alg = NULL, *dict_path = NULL;
- 	s32 level = ZCOMP_CONFIG_NO_LEVEL;
- 	int ret;
- 
-@@ -1116,6 +1148,11 @@ static ssize_t recomp_algorithm_store(st
- 				return ret;
- 			continue;
- 		}
-+
-+		if (!strcmp(param, "dict")) {
-+			dict_path = val;
-+			continue;
-+		}
- 	}
- 
- 	if (!alg)
-@@ -1124,7 +1161,7 @@ static ssize_t recomp_algorithm_store(st
- 	if (prio < ZRAM_SECONDARY_COMP || prio >= ZRAM_MAX_COMPS)
- 		return -EINVAL;
- 
--	ret = comp_config_store(zram, prio, level);
-+	ret = comp_config_store(zram, prio, level, dict_path);
- 	if (!ret)
- 		ret = __comp_algorithm_store(zram, prio, alg);
- 	return ret ? ret : len;
-@@ -2034,12 +2071,7 @@ static void zram_reset_comp_configs(stru
- 	u32 prio;
- 
- 	for (prio = 0; prio < ZRAM_MAX_COMPS; prio++) {
--		struct zcomp_config *config = &zram->configs[prio];
--
--		vfree(config->dict);
--		config->level = ZCOMP_CONFIG_NO_LEVEL;
--		config->dict_sz = 0;
--		config->dict = NULL;
-+		__reset_comp_config(zram, prio);
- 	}
+ 	return ZSTD_compressBound(src_size);
+@@ -79,6 +85,13 @@ zstd_parameters zstd_get_params(int leve
  }
+ EXPORT_SYMBOL(zstd_get_params);
  
++zstd_compression_parameters zstd_get_cparams(int level,
++	unsigned long long estimated_src_size, size_t dict_size)
++{
++	return ZSTD_getCParams(level, estimated_src_size, dict_size);
++}
++EXPORT_SYMBOL(zstd_get_cparams);
++
+ size_t zstd_cctx_workspace_bound(const zstd_compression_parameters *cparams)
+ {
+ 	return ZSTD_estimateCCtxSize_usingCParams(*cparams);
+@@ -93,6 +106,36 @@ zstd_cctx *zstd_init_cctx(void *workspac
+ }
+ EXPORT_SYMBOL(zstd_init_cctx);
+ 
++zstd_cctx *zstd_create_cctx_advanced(zstd_custom_mem custom_mem)
++{
++	return ZSTD_createCCtx_advanced(custom_mem);
++}
++EXPORT_SYMBOL(zstd_create_cctx_advanced);
++
++size_t zstd_free_cctx(zstd_cctx *cctx)
++{
++	return ZSTD_freeCCtx(cctx);
++}
++EXPORT_SYMBOL(zstd_free_cctx);
++
++zstd_cdict *zstd_create_cdict_advanced(const void *dict, size_t dict_size,
++				       zstd_dict_load_method dict_load_method,
++				       zstd_dict_content_type dict_content_type,
++				       zstd_compression_parameters cparams,
++				       zstd_custom_mem custom_mem)
++{
++	return ZSTD_createCDict_advanced(dict, dict_size, dict_load_method,
++					 dict_content_type, cparams,
++					 custom_mem);
++}
++EXPORT_SYMBOL(zstd_create_cdict_advanced);
++
++size_t zstd_free_cdict(zstd_cdict *cdict)
++{
++	return ZSTD_freeCDict(cdict);
++}
++EXPORT_SYMBOL(zstd_free_cdict);
++
+ size_t zstd_compress_cctx(zstd_cctx *cctx, void *dst, size_t dst_capacity,
+ 	const void *src, size_t src_size, const zstd_parameters *parameters)
+ {
+@@ -101,6 +144,15 @@ size_t zstd_compress_cctx(zstd_cctx *cct
+ }
+ EXPORT_SYMBOL(zstd_compress_cctx);
+ 
++size_t zstd_compress_using_cdict(zstd_cctx *cctx, void *dst,
++	size_t dst_capacity, const void *src, size_t src_size,
++	const ZSTD_CDict *cdict)
++{
++	return ZSTD_compress_usingCDict(cctx, dst, dst_capacity,
++					src, src_size, cdict);
++}
++EXPORT_SYMBOL(zstd_compress_using_cdict);
++
+ size_t zstd_cstream_workspace_bound(const zstd_compression_parameters *cparams)
+ {
+ 	return ZSTD_estimateCStreamSize_usingCParams(*cparams);
+--- a/lib/zstd/zstd_decompress_module.c~lib-zstd-export-api-needed-for-dictionary-support
++++ a/lib/zstd/zstd_decompress_module.c
+@@ -44,6 +44,35 @@ size_t zstd_dctx_workspace_bound(void)
+ }
+ EXPORT_SYMBOL(zstd_dctx_workspace_bound);
+ 
++zstd_dctx *zstd_create_dctx_advanced(zstd_custom_mem custom_mem)
++{
++	return ZSTD_createDCtx_advanced(custom_mem);
++}
++EXPORT_SYMBOL(zstd_create_dctx_advanced);
++
++size_t zstd_free_dctx(zstd_dctx *dctx)
++{
++	return ZSTD_freeDCtx(dctx);
++}
++EXPORT_SYMBOL(zstd_free_dctx);
++
++zstd_ddict *zstd_create_ddict_advanced(const void *dict, size_t dict_size,
++                                      zstd_dict_load_method dict_load_method,
++                                      zstd_dict_content_type dict_content_type,
++                                      zstd_custom_mem custom_mem)
++{
++	return ZSTD_createDDict_advanced(dict, dict_size, dict_load_method,
++					 dict_content_type, custom_mem);
++
++}
++EXPORT_SYMBOL(zstd_create_ddict_advanced);
++
++size_t zstd_free_ddict(zstd_ddict *ddict)
++{
++	return ZSTD_freeDDict(ddict);
++}
++EXPORT_SYMBOL(zstd_free_ddict);
++
+ zstd_dctx *zstd_init_dctx(void *workspace, size_t workspace_size)
+ {
+ 	if (workspace == NULL)
+@@ -59,6 +88,15 @@ size_t zstd_decompress_dctx(zstd_dctx *d
+ }
+ EXPORT_SYMBOL(zstd_decompress_dctx);
+ 
++size_t zstd_decompress_using_ddict(zstd_dctx *dctx,
++	void *dst, size_t dst_capacity, const void* src, size_t src_size,
++	const zstd_ddict* ddict)
++{
++	return ZSTD_decompress_usingDDict(dctx, dst, dst_capacity, src,
++					  src_size, ddict);
++}
++EXPORT_SYMBOL(zstd_decompress_using_ddict);
++
+ size_t zstd_dstream_workspace_bound(size_t max_window_size)
+ {
+ 	return ZSTD_estimateDStreamSize(max_window_size);
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
