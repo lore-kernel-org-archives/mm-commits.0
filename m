@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0B751487C5
-	for <mm-commits@vger.kernel.org>; Wed, 22 May 2024 22:32:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF95B43147
+	for <mm-commits@vger.kernel.org>; Wed, 22 May 2024 22:46:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716417143; cv=none; b=RkKu7FJhtX44xdbgrSeNrNI4WF7nondjN+f1R0gZ0xVe2cn008Mhi3ciCGiwuFOwrREG803rJmJZPyYGoyX0q1O2xzFQfDck2Y9EwCOMIV01DS0bjlgZ5sL1FAI6vma6NXfj8oPCpgY+fcmgL1jX/Tga4GCflyqEDotjZOnhxX4=
+	t=1716417977; cv=none; b=loYfKeyiRXGRvsBvl1nYTsCYDqQvU8Sz5NuBDtc/TAyUNhTS/HlUevmoSLtsz1UOeqo/j+ur/VC8A5V80wWgIqYnJbV9ggGv3hMkoBzxMV7K/k5AjwNHcwb6O5jSRJ7aJ1F3hToDOWoT9nC8Y+6NmbQuZaC2w7FJg8M4GUAhCSY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716417143; c=relaxed/simple;
-	bh=nlk1C5OrbbR/zu+w1TJlYJoFloHlY5ccUnLkbmHgkK0=;
-	h=Date:To:From:Subject:Message-Id; b=fp+Oi8IFs+7omM4PBJAZWJSmof30yr/SgaMrUv+eJWlSvUGCv+Y6xDZOuIwphRaLySzjIfmbMCSq/okT0E2dqmtwnNyK4NAv9JNKc1Pyu1zEz0aHSUtlRHFOl4wBb2EHJAaovl7zaX88UF4OvZkuogfrGrpUdnO1ntuWnllJXc0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U2nOFnUa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716417977; c=relaxed/simple;
+	bh=QsWWCIFC8P8GuOmXI2l3Qk3RmIqTnxPnOVdcIfKgqq8=;
+	h=Date:To:From:Subject:Message-Id; b=e2CaDJTFxhtJzTtR9++C5TajfLEhtMTk9bhe0GqlMlBvyLgeGI942kVqeEqmd2WZ0rqRfMzY5dBNscAZeeXsQpMipAJiCNPhew776HLDkGSrN7yHzBdok1kOR6g4RZouO9d+o8xhY2kchu38DF7w3hpmaaA+fmBk5N/RTwSOV6g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qve5YhHs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U2nOFnUa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72B79C2BBFC;
-	Wed, 22 May 2024 22:32:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qve5YhHs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E7A1C3277B;
+	Wed, 22 May 2024 22:46:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716417143;
-	bh=nlk1C5OrbbR/zu+w1TJlYJoFloHlY5ccUnLkbmHgkK0=;
+	s=korg; t=1716417976;
+	bh=QsWWCIFC8P8GuOmXI2l3Qk3RmIqTnxPnOVdcIfKgqq8=;
 	h=Date:To:From:Subject:From;
-	b=U2nOFnUaBUSdJmdShgDXl8arZWA2JL94kNJYMmIVbThXYMYzN0dQcRnj2j96XZtbk
-	 X7+bwbMhxo5tXBltp33/HA2HN5FwtWR2zxuBuyR6pO4zoh5ZZ+sH+4STE8S3Cquiu7
-	 5zv6OuYR+ImkBgzL2eJVLowxQgAljBMhJAsVjw90=
-Date: Wed, 22 May 2024 15:32:22 -0700
-To: mm-commits@vger.kernel.org,terrelln@fb.com,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=qve5YhHs1TLLOfri34f4tbTnkOcVw9Rgc2KwBwtA7aHgkP3kgf0Pcul2Gcs+k5Ne5
+	 qzIC5EvIC78zyzJB+CdnNVSzg6tIWlnrB7291pK72BuetlnFwqg6Olv/d3OB1S2hTZ
+	 +7PShG8tkrWaRCsRlXrGSEv9BbIGRwjtTylP1xvY=
+Date: Wed, 22 May 2024 15:46:15 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,rppt@kernel.org,peterz@infradead.org,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,luto@kernel.org,hpa@zytor.com,dave.hansen@linux.intel.com,bp@alien8.de,bhe@redhat.com,echanude@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-zram-add-documentation-for-algorithm-parameters.patch added to mm-unstable branch
-Message-Id: <20240522223223.72B79C2BBFC@smtp.kernel.org>
+Subject: + mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads.patch added to mm-unstable branch
+Message-Id: <20240522224616.4E7A1C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation/zram: add documentation for algorithm parameters
+     Subject: mm/mm_init: use node's number of cpus in deferred_page_init_max_threads
 has been added to the -mm mm-unstable branch.  Its filename is
-     documentation-zram-add-documentation-for-algorithm-parameters.patch
+     mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-zram-add-documentation-for-algorithm-parameters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,100 +58,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: Documentation/zram: add documentation for algorithm parameters
-Date: Wed, 15 May 2024 16:12:58 +0900
+From: Eric Chanudet <echanude@redhat.com>
+Subject: mm/mm_init: use node's number of cpus in deferred_page_init_max_threads
+Date: Wed, 22 May 2024 16:38:01 -0400
 
-Document brief description of compression algorithms' parameters:
-compression level and pre-trained dictionary.
+x86_64 is already using the node's cpu as maximum threads.  Make that the
+default for all archs setting DEFERRED_STRUCT_PAGE_INIT.
 
-Link: https://lkml.kernel.org/r/20240515071645.1788128-22-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nick Terrell <terrelln@fb.com>
+This returns to the behavior prior making the function arch-specific with
+commit ecd096506922 ("mm: make deferred init's max threads
+arch-specific").
+
+Setting DEFERRED_STRUCT_PAGE_INIT and testing on a few arm64 platforms
+shows faster deferred_init_memmap completions:
+
+|         | x13s        | SA8775p-ride | Ampere R137-P31 | Ampere HR330 |
+|         | Metal, 32GB | VM, 36GB     | VM, 58GB        | Metal, 128GB |
+|         | 8cpus       | 8cpus        | 8cpus           | 32cpus       |
+|---------|-------------|--------------|-----------------|--------------|
+| threads |  ms     (%) | ms       (%) |  ms         (%) |  ms      (%) |
+|---------|-------------|--------------|-----------------|--------------|
+| 1       | 108    (0%) | 72      (0%) | 224        (0%) | 324     (0%) |
+| cpus    |  24  (-77%) | 36    (-50%) |  40      (-82%) |  56   (-82%) |
+
+Link: https://lkml.kernel.org/r/20240522203758.626932-4-echanude@redhat.com
+Signed-off-by: Eric Chanudet <echanude@redhat.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |   38 +++++++++++++-----
- 1 file changed, 29 insertions(+), 9 deletions(-)
+ arch/x86/mm/init_64.c |   12 ------------
+ mm/mm_init.c          |    2 +-
+ 2 files changed, 1 insertion(+), 13 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~documentation-zram-add-documentation-for-algorithm-parameters
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -102,15 +102,26 @@ Examples::
- 	#select lzo compression algorithm
- 	echo lzo > /sys/block/zram0/comp_algorithm
+--- a/arch/x86/mm/init_64.c~mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads
++++ a/arch/x86/mm/init_64.c
+@@ -1354,18 +1354,6 @@ void __init mem_init(void)
+ 	preallocate_vmalloc_pages();
+ }
  
--For the time being, the `comp_algorithm` content does not necessarily
--show every compression algorithm supported by the kernel. We keep this
--list primarily to simplify device configuration and one can configure
--a new device with a compression algorithm that is not listed in
--`comp_algorithm`. The thing is that, internally, ZRAM uses Crypto API
--and, if some of the algorithms were built as modules, it's impossible
--to list all of them using, for instance, /proc/crypto or any other
--method. This, however, has an advantage of permitting the usage of
--custom crypto compression modules (implementing S/W or H/W compression).
-+For the time being, the `comp_algorithm` content shows only compression
-+algorithms that are supported by zram.
-+
-+It is also possible to pass algorithm specific configuration parameters::
-+
-+	#set compression level to 8
-+	echo "zstd level=8" > /sys/block/zram0/comp_algorithm
-+
-+Note that `comp_algorithm` also supports `algo=name` format::
-+
-+	#set compression level to 8
-+	echo "algo=zstd level=8" > /sys/block/zram0/comp_algorithm
-+
-+Certain compression algorithms support pre-trained dictionaries, which
-+significantly change algorithms' characteristics. In order to configure
-+compression algorithm to use external pre-trained dictionary, pass full
-+path to the dictionary along with other parameters::
-+
-+	#pass path to pre-trained dictionary
-+	echo "algo=zstd dict=/etc/dictioary" > /sys/block/zram0/comp_algorithm
+-#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+-int __init deferred_page_init_max_threads(const struct cpumask *node_cpumask)
+-{
+-	/*
+-	 * More CPUs always led to greater speedups on tested systems, up to
+-	 * all the nodes' CPUs.  Use all since the system is otherwise idle
+-	 * now.
+-	 */
+-	return max_t(int, cpumask_weight(node_cpumask), 1);
+-}
+-#endif
+-
+ int kernel_set_to_readonly;
  
- 4) Set Disksize
- ===============
-@@ -442,6 +453,15 @@ configuration:::
- 	#select deflate recompression algorithm, priority 2
- 	echo "algo=deflate priority=2" > /sys/block/zramX/recomp_algorithm
+ void mark_rodata_ro(void)
+--- a/mm/mm_init.c~mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads
++++ a/mm/mm_init.c
+@@ -2126,7 +2126,7 @@ deferred_init_memmap_chunk(unsigned long
+ __weak int __init
+ deferred_page_init_max_threads(const struct cpumask *node_cpumask)
+ {
+-	return 1;
++	return max_t(int, cpumask_weight(node_cpumask), 1);
+ }
  
-+The `recomp_algorithm` also supports algorithm configuration parameters, e.g.
-+compression level and pre-trained dircionary::
-+
-+	#pass compression level
-+	echo "algo=zstd level=8" > /sys/block/zramX/recomp_algorithm
-+
-+	#pass path to pre-trained dictionary
-+	echo "algo=zstd dict=/etc/dictioary" > /sys/block/zramX/recomp_algorithm
-+
- Another device attribute that CONFIG_ZRAM_MULTI_COMP enables is recompress,
- which controls recompression.
- 
+ /* Initialise remaining memory on a node */
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from echanude@redhat.com are
 
-zram-move-from-crypto-api-to-custom-comp-backends-api.patch
-zram-add-lzo-and-lzorle-compression-backends-support.patch
-zram-add-lz4-compression-backend-support.patch
-zram-add-lz4hc-compression-backend-support.patch
-zram-add-zstd-compression-backend-support.patch
-zram-pass-estimated-src-size-hint-to-zstd.patch
-zram-add-zlib-compression-backend-support.patch
-zram-add-842-compression-backend-support.patch
-zram-check-that-backends-array-has-at-least-one-backend.patch
-zram-introduce-zcomp_config-structure.patch
-zram-extend-comp_algorithm-attr-write-handling.patch
-zram-support-compression-level-comp-config.patch
-zram-add-support-for-dict-comp-config.patch
-lib-zstd-export-api-needed-for-dictionary-support.patch
-zram-add-dictionary-support-to-zstd-backend.patch
-zram-add-config-init-release-backend-callbacks.patch
-zram-share-dictionaries-between-per-cpu-contexts.patch
-zram-add-dictionary-support-to-lz4.patch
-lib-lz4hc-export-lz4_resetstreamhc-symbol.patch
-zram-add-dictionary-support-to-lz4hc.patch
-documentation-zram-add-documentation-for-algorithm-parameters.patch
+mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads.patch
 
