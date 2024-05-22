@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87379145B2E
-	for <mm-commits@vger.kernel.org>; Wed, 22 May 2024 17:47:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21BAD57C8E
+	for <mm-commits@vger.kernel.org>; Wed, 22 May 2024 17:54:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716400055; cv=none; b=aiGkgwH4/4p6M9HolQueH33RZbakt4sOSFnZx3biMVtH3NltX0UWSHfSSYPNnHEAendYO3tkCfxbXf/GL/sGmKdgnOIlVTyTcsbzYj6TOIHMXRaYvz971xR5G22BAXw36hRZ+aOQNTXuUHCvvpHP0E8ACwxrU+b4DLwmiq8EYw0=
+	t=1716400488; cv=none; b=r1j0ZlVLKOAYqlO47/nTd4h+shdtlpTxjUmczcfmi38KsD5N4NuqG4oI7RX7csTy17twRjRy4bKsgsjyGhwpokaR92g4kKfjUl99+js/vMEKwNnxC57OOKTxRy1oBS7Qr+17xyLNuGCazVdiTTzR7EeaMtKtM8Qekeg4rDfYWo8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716400055; c=relaxed/simple;
-	bh=MFQWcBlT+nD2Or9QjVSmXSeKctOHYsyfN/jAm4lYafY=;
-	h=Date:To:From:Subject:Message-Id; b=gM60P8J72yNZWBVPBVDje0/PmWvp9rs7sc+j0pQaaiP0X+9PN25YNYXTBw2ICf2yqzpNlSNLCq3lbR2lA7Cn2Ehyx7HPS7eiRdhrmA383at4zWCRQlgPBUAOgCpML5l3xy5u19hB58YTAwvtdr4ZZOJ4gRTdOnOXqQabJvY2YTY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TU7BZWFg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716400488; c=relaxed/simple;
+	bh=qCnTmzkT0MfepyXPdk7FevFB8c7QCZRZedsksbGc8L8=;
+	h=Date:To:From:Subject:Message-Id; b=BGoHQBV0ZGjYvzUffp86yJ/2rK3Qoin3y1AHq4kemMHJZ3asb2QYe36xfzJlCsus3uBSc12p63YpN7XAqGRhwzgZ2S9+uyk/n9iNXzT7ntdwPkIdDvqScrQyU18nR3RMIzYxyOrsZ09usFr7b5JnsZmo9W5EGKDVH/yu6BIBnQA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=axQeT5pQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TU7BZWFg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13E57C32789;
-	Wed, 22 May 2024 17:47:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="axQeT5pQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FFF7C2BBFC;
+	Wed, 22 May 2024 17:54:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716400055;
-	bh=MFQWcBlT+nD2Or9QjVSmXSeKctOHYsyfN/jAm4lYafY=;
+	s=korg; t=1716400487;
+	bh=qCnTmzkT0MfepyXPdk7FevFB8c7QCZRZedsksbGc8L8=;
 	h=Date:To:From:Subject:From;
-	b=TU7BZWFg4nfHb0OYCu/UzWXXqbhyHCqkhWPIXV6vD9dbnn3MvyDTgliYQfO1oZpsA
-	 sSd9sEFQMwBtbdhnqPkm4gRZ7AT1XtybcRDEZAo01HIL3EzzXDGhzX+UpT95tEYrlg
-	 UJ8VpZ2VDBmPkfHdJ5SJ3nZqlDqwIRjxHf+ny2oM=
-Date: Wed, 22 May 2024 10:47:34 -0700
-To: mm-commits@vger.kernel.org,vdonnefort@google.com,dan.j.williams@intel.com,david@redhat.com,akpm@linux-foundation.org
+	b=axQeT5pQWUQfKan4NuyHKiifWF9K6N2NQJFwkmEwQR4O/l3L/WWZTw3FCmLaxhPSd
+	 o4L8ir0dplDDlhMMnl/qzM62DN+xKsCXFHm2SC1jB/+SGkh5O+GxgecQNuwZkDpPWf
+	 qMxe1+mk6E1hxgm10qEbB+i7aPE/XyELBQrIz2O4=
+Date: Wed, 22 May 2024 10:54:46 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,kirill.shutemov@linux.intel.com,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-sanity-check-that-zeropages-are-not-passed-to-rmap.patch added to mm-unstable branch
-Message-Id: <20240522174735.13E57C32789@smtp.kernel.org>
+Subject: + selftests-mm-va_high_addr_switch-reduce-test-noise.patch added to mm-unstable branch
+Message-Id: <20240522175447.7FFF7C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: sanity check that zeropages are not passed to RMAP
+     Subject: selftests/mm: va_high_addr_switch: reduce test noise
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-sanity-check-that-zeropages-are-not-passed-to-rmap.patch
+     selftests-mm-va_high_addr_switch-reduce-test-noise.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-sanity-check-that-zeropages-are-not-passed-to-rmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-va_high_addr_switch-reduce-test-noise.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,43 +58,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: sanity check that zeropages are not passed to RMAP
-Date: Wed, 22 May 2024 14:57:13 +0200
+From: Dev Jain <dev.jain@arm.com>
+Subject: selftests/mm: va_high_addr_switch: reduce test noise
+Date: Wed, 22 May 2024 12:34:34 +0530
 
-Using insert_page() we might have previously ended up passing the zeropage
-into rmap code.  Make sure that won't happen again.
+Patch series "Restructure va_high_addr_switch".
 
-Note that we won't check the huge zeropage for now, which might still end
-up in RMAP code.
+The va_high_addr_switch memory selftest tests out some corner cases
+related to allocation and page/hugepage faulting around the switch
+boundary.  Currently, the page size and hugepage size have been statically
+defined.  Post FEAT_LPA2, the Aarch64 Linux kernel adds support for 4k and
+16k translation granules on higher addresses; we restructure the test to
+support the same.  In addition, we avoid invocation of the binary twice,
+in the shell script, to reduce test noise.
 
-Link: https://lkml.kernel.org/r/20240522125713.775114-4-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vincent Donnefort <vdonnefort@google.com>
+
+This patch (of 2):
+
+When invoking the binary with "--run-hugetlb" flag, the testcases
+involving the base page are anyways going to be run.  Therefore, remove
+duplication by invoking the binary only once.
+
+Link: https://lkml.kernel.org/r/20240522070435.773918-1-dev.jain@arm.com
+Link: https://lkml.kernel.org/r/20240522070435.773918-2-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    3 +++
- 1 file changed, 3 insertions(+)
+ tools/testing/selftests/mm/va_high_addr_switch.sh |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-sanity-check-that-zeropages-are-not-passed-to-rmap
-+++ a/include/linux/rmap.h
-@@ -200,6 +200,9 @@ static inline void __folio_rmap_sanity_c
- 	/* hugetlb folios are handled separately. */
- 	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
+--- a/tools/testing/selftests/mm/va_high_addr_switch.sh~selftests-mm-va_high_addr_switch-reduce-test-noise
++++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
+@@ -57,8 +57,4 @@ check_test_requirements()
+ }
  
-+	/* When (un)mapping zeropages, we should never touch ref+mapcount. */
-+	VM_WARN_ON_FOLIO(is_zero_folio(folio), folio);
-+
- 	/*
- 	 * TODO: we get driver-allocated folios that have nothing to do with
- 	 * the rmap using vm_insert_page(); therefore, we cannot assume that
+ check_test_requirements
+-./va_high_addr_switch
+-
+-# In order to run hugetlb testcases, "--run-hugetlb" must be appended
+-# to the binary.
+ ./va_high_addr_switch --run-hugetlb
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-memory-move-page_count-check-into-validate_page_before_insert.patch
-mm-memory-cleanly-support-zeropage-in-vm_insert_page-vm_map_pages-and-vmf_insert_mixed.patch
-mm-rmap-sanity-check-that-zeropages-are-not-passed-to-rmap.patch
+selftests-mm-compaction_test-fix-bogus-test-success-on-aarch64.patch
+selftests-mm-compaction_test-fix-incorrect-write-of-zero-to-nr_hugepages.patch
+selftests-mm-compaction_test-fix-bogus-test-success-and-reduce-probability-of-oom-killer-invocation.patch
+selftests-mm-va_high_addr_switch-reduce-test-noise.patch
+selftests-mm-va_high_addr_switch-dynamically-initialize-testcases-to-enable-lpa2-testing.patch
 
