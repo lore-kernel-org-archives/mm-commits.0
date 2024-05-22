@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C062E142910
-	for <mm-commits@vger.kernel.org>; Wed, 22 May 2024 22:32:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB5101487C5
+	for <mm-commits@vger.kernel.org>; Wed, 22 May 2024 22:32:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716417132; cv=none; b=K3jvQB5oH98tLhqJGqd40NE2EiDP17MlyBftXRUZGR/fW1s4qU0f481ec9iOXyNQtGyuAZy+NcZ7pX7nQkza82ePqYp6coqVDWva6BnKGW0IO67pROcmd9JE77JOdftm2XaOiCrORgTWOfivUdlJzHEKJZ0qdkJmBY4pGm0NVDA=
+	t=1716417134; cv=none; b=OzC93z+ok83a0l3OAqgH286XeKNJAzhv524sDP08mg2rLhh+qiVtwKCQ5eC7ylZ3yR0cDKV0/OIDj3quAYnXXgwE0qAZ5TGMNnATULamogv0wnzOwSCPv8ucqq+6iHaVEHx0u9YfIgT1XawF4uOlZk+epUvH1hGHZ0FePN0BdkA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716417132; c=relaxed/simple;
-	bh=DciYd2eVnLWYQzE2A7AjhtGQ302cOxF/I0hVNk9jxYc=;
-	h=Date:To:From:Subject:Message-Id; b=n15l8n6VZJQdPSUHbPPQUJrX0R4kXagInoI/fYj5RyQA04aIzHMPVbsJYTpn3WndIYFD1hlGbUy+Sklky5cpi8Xy9A0GuOg6ztBvWnlOijuTH8hhR91QpKRWFEsCHN0y8Q1E9JfeTxn2y0D5oLIIgM1Fy6GKCVgBvnc5yHAkX/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LNkoLQ1P; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716417134; c=relaxed/simple;
+	bh=8Lic/zJjHl7TVHIbF7i8VFq3fEfH3fMHtvwVWuKKZl4=;
+	h=Date:To:From:Subject:Message-Id; b=t046LoZyH4+34CK/7fS+fLsHJZxNW9Y7dsE0KMLmmN16gReeeyct8ENnTt1r0DDYWCzyQ6APwHThButpvcmofew1O1ZGVh0JJQWNxJ7HZOKGHfZU4yk4YBeMXF2c0AEsAU+CIDCL72juLPeJKm6YK8i2c5hpFBvaIMRHDiRutII=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tDaBYN0s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LNkoLQ1P"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91C27C2BBFC;
-	Wed, 22 May 2024 22:32:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tDaBYN0s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5188BC3277B;
+	Wed, 22 May 2024 22:32:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716417132;
-	bh=DciYd2eVnLWYQzE2A7AjhtGQ302cOxF/I0hVNk9jxYc=;
+	s=korg; t=1716417134;
+	bh=8Lic/zJjHl7TVHIbF7i8VFq3fEfH3fMHtvwVWuKKZl4=;
 	h=Date:To:From:Subject:From;
-	b=LNkoLQ1PTuFGY285WoxFs2tR0h+dLnSp0TZZibFIGNXNN7HimiQTFaee7IVw/x1Ko
-	 pId/ZuH504ZXwhyIG07Mm05T9+y+EETP1PmoW5VHtzNl/uaaTH+vs4KSugka13igNO
-	 +HxFnt5b4nP9q8HaxzNdMv8okwq1uf5tbCvAVFck=
-Date: Wed, 22 May 2024 15:32:11 -0700
+	b=tDaBYN0sc+hamPYukvOzCB0bfXOUtndN11ZWPLzIOwJljtmJcXYSDC9uwbR1f5sI/
+	 7CwJZ+nbGcNv8NCu4TkEdjzBX+zVU90+GxMSCru7bj77SqfJQPn4hbSo3YUh589v7s
+	 QTLW41gtk1365n9IbfCVTDfgaaPTj0aJ814QaXYU=
+Date: Wed, 22 May 2024 15:32:13 -0700
 To: mm-commits@vger.kernel.org,terrelln@fb.com,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-add-dictionary-support-to-zstd-backend.patch added to mm-unstable branch
-Message-Id: <20240522223212.91C27C2BBFC@smtp.kernel.org>
+Subject: + zram-add-config-init-release-backend-callbacks.patch added to mm-unstable branch
+Message-Id: <20240522223214.5188BC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: add dictionary support to zstd backend
+     Subject: zram: add config init/release backend callbacks
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-add-dictionary-support-to-zstd-backend.patch
+     zram-add-config-init-release-backend-callbacks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-dictionary-support-to-zstd-backend.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-config-init-release-backend-callbacks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,213 +59,339 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: add dictionary support to zstd backend
-Date: Wed, 15 May 2024 16:12:52 +0900
+Subject: zram: add config init/release backend callbacks
+Date: Wed, 15 May 2024 16:12:53 +0900
 
-This adds support for pre-trained zstd dictionaries [1] Dictionary is
-loaded once (per-config) and then loaded to Cctx and Dctx by reference, so
-we don't allocate extra memory.
+Some backends can create a backend-specific private data for comp config,
+e.g.  parse a dictionary and use it to init all of the ctx-s later on. 
+Introduce two zcomp_config callbacks to create and destroy per-config
+backend private data.  This is also the place where config can be
+validated.
 
-Regarding GFP_ATOMIC in Cctx customAlloc(), we probably would want to do
-something about it.  Either make sure that we always (somehow) fully setup
-all Cctx contexts from non-atomic context before we attempt to use them,
-come up with some sort of custom allocator or stop calling
-zcomp_compress() from atomic context.
-
-TEST
-====
-
-- default zstd
-
-/sys/block/zram0/mm_stat
-1750315008 504602831 514256896        0 514256896        1        0    34204    34204
-
-- zstd level=7 dict=/etc/dictionary
-
-/sys/block/zram0/mm_stat
-1750310912 432540606 441712640        0 441712640        1        0    34187    34187
-
-[1] https://github.com/facebook/zstd/blob/dev/programs/zstd.1.md#dictionary-builder
-
-Link: https://lkml.kernel.org/r/20240515071645.1788128-16-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20240515071645.1788128-17-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nick Terrell <terrelln@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/backend_zstd.c |  126 ++++++++++++++++++++++------
- 1 file changed, 101 insertions(+), 25 deletions(-)
+ drivers/block/zram/backend_842.c     |   11 +++++++++++
+ drivers/block/zram/backend_deflate.c |   20 +++++++++++++++-----
+ drivers/block/zram/backend_lz4.c     |   20 +++++++++++++++-----
+ drivers/block/zram/backend_lz4hc.c   |   20 +++++++++++++++-----
+ drivers/block/zram/backend_lzo.c     |   11 +++++++++++
+ drivers/block/zram/backend_lzorle.c  |   11 +++++++++++
+ drivers/block/zram/backend_zstd.c    |   20 +++++++++++++++-----
+ drivers/block/zram/zcomp.c           |    6 ++++++
+ drivers/block/zram/zcomp.h           |    4 ++++
+ drivers/block/zram/zram_drv.c        |    3 +++
+ 10 files changed, 106 insertions(+), 20 deletions(-)
 
---- a/drivers/block/zram/backend_zstd.c~zram-add-dictionary-support-to-zstd-backend
-+++ a/drivers/block/zram/backend_zstd.c
-@@ -12,23 +12,52 @@ struct zstd_ctx {
- 	zstd_dctx *dctx;
- 	void *cctx_mem;
- 	void *dctx_mem;
-+	zstd_custom_mem ctx_mem;
-+	zstd_cdict *cdict;
-+	zstd_ddict *ddict;
+--- a/drivers/block/zram/backend_842.c~zram-add-config-init-release-backend-callbacks
++++ a/drivers/block/zram/backend_842.c
+@@ -11,6 +11,15 @@ struct sw842_ctx {
+ 	void *mem;
+ };
+ 
++static int init_config_842(struct zcomp_config *config)
++{
++	return 0;
++}
++
++static void release_config_842(struct zcomp_config *config)
++{
++}
++
+ static void destroy_842(void *ctx)
+ {
+ 	struct sw842_ctx *zctx = ctx;
+@@ -64,5 +73,7 @@ struct zcomp_backend backend_842 = {
+ 	.decompress	= decompress_842,
+ 	.create_ctx	= create_842,
+ 	.destroy_ctx	= destroy_842,
++	.init_config	= init_config_842,
++	.release_config	= release_config_842,
+ 	.name		= "842",
+ };
+--- a/drivers/block/zram/backend_deflate.c~zram-add-config-init-release-backend-callbacks
++++ a/drivers/block/zram/backend_deflate.c
+@@ -17,6 +17,18 @@ struct deflate_ctx {
  	s32 level;
  };
  
-+/*
-+ * Cctx allocator.customAlloc() can be called from zcomp_compress() under
-+ * local-lock (per-CPU compression stream), in which case we must use
-+ * GFP_ATOMIC.
-+ */
-+static void *zstd_ctx_alloc(void *opaque, size_t size)
++static int deflate_init_config(struct zcomp_config *config)
 +{
-+	if (!preemptible())
-+		return kvzalloc(size, GFP_ATOMIC);
++	if (config->level == ZCOMP_CONFIG_NO_LEVEL)
++		config->level = Z_DEFAULT_COMPRESSION;
 +
-+	return kvzalloc(size, GFP_KERNEL);
++	return 0;
 +}
 +
-+static void zstd_ctx_free(void *opaque, void *address)
++static void deflate_release_config(struct zcomp_config *config)
 +{
-+	kvfree(address);
++}
++
+ static void deflate_destroy(void *ctx)
+ {
+ 	struct deflate_ctx *zctx = ctx;
+@@ -42,11 +54,7 @@ static void *deflate_create(struct zcomp
+ 	if (!ctx)
+ 		return NULL;
+ 
+-	if (config->level != ZCOMP_CONFIG_NO_LEVEL)
+-		ctx->level = config->level;
+-	else
+-		ctx->level = Z_DEFAULT_COMPRESSION;
+-
++	ctx->level = config->level;
+ 	sz = zlib_deflate_workspacesize(-DEFLATE_DEF_WINBITS, MAX_MEM_LEVEL);
+ 	ctx->cctx.workspace = vzalloc(sz);
+ 	if (!ctx->cctx.workspace)
+@@ -129,5 +137,7 @@ struct zcomp_backend backend_deflate = {
+ 	.decompress	= deflate_decompress,
+ 	.create_ctx	= deflate_create,
+ 	.destroy_ctx	= deflate_destroy,
++	.init_config	= deflate_init_config,
++	.release_config	= deflate_release_config,
+ 	.name		= "deflate",
+ };
+--- a/drivers/block/zram/backend_lz4.c~zram-add-config-init-release-backend-callbacks
++++ a/drivers/block/zram/backend_lz4.c
+@@ -10,6 +10,18 @@ struct lz4_ctx {
+ 	s32 level;
+ };
+ 
++static int lz4_init_config(struct zcomp_config *config)
++{
++	if (config->level == ZCOMP_CONFIG_NO_LEVEL)
++		config->level = LZ4_ACCELERATION_DEFAULT;
++
++	return 0;
++}
++
++static void lz4_release_config(struct zcomp_config *config)
++{
++}
++
+ static void lz4_destroy(void *ctx)
+ {
+ 	struct lz4_ctx *zctx = ctx;
+@@ -26,11 +38,7 @@ static void *lz4_create(struct zcomp_con
+ 	if (!ctx)
+ 		return NULL;
+ 
+-	if (config->level != ZCOMP_CONFIG_NO_LEVEL)
+-		ctx->level = config->level;
+-	else
+-		ctx->level = LZ4_ACCELERATION_DEFAULT;
+-
++	ctx->level = config->level;
+ 	ctx->mem = vmalloc(LZ4_MEM_COMPRESS);
+ 	if (!ctx->mem)
+ 		goto error;
+@@ -72,5 +80,7 @@ struct zcomp_backend backend_lz4 = {
+ 	.decompress	= lz4_decompress,
+ 	.create_ctx	= lz4_create,
+ 	.destroy_ctx	= lz4_destroy,
++	.init_config	= lz4_init_config,
++	.release_config	= lz4_release_config,
+ 	.name		= "lz4",
+ };
+--- a/drivers/block/zram/backend_lz4hc.c~zram-add-config-init-release-backend-callbacks
++++ a/drivers/block/zram/backend_lz4hc.c
+@@ -10,6 +10,18 @@ struct lz4hc_ctx {
+ 	s32 level;
+ };
+ 
++static int lz4hc_init_config(struct zcomp_config *config)
++{
++	if (config->level == ZCOMP_CONFIG_NO_LEVEL)
++		config->level = LZ4HC_DEFAULT_CLEVEL;
++
++	return 0;
++}
++
++static void lz4hc_release_config(struct zcomp_config *config)
++{
++}
++
+ static void lz4hc_destroy(void *ctx)
+ {
+ 	struct lz4hc_ctx *zctx = ctx;
+@@ -26,11 +38,7 @@ static void *lz4hc_create(struct zcomp_c
+ 	if (!ctx)
+ 		return NULL;
+ 
+-	if (config->level != ZCOMP_CONFIG_NO_LEVEL)
+-		ctx->level = config->level;
+-	else
+-		ctx->level = LZ4HC_DEFAULT_CLEVEL;
+-
++	ctx->level = config->level;
+ 	ctx->mem = vmalloc(LZ4HC_MEM_COMPRESS);
+ 	if (!ctx->mem)
+ 		goto error;
+@@ -72,5 +80,7 @@ struct zcomp_backend backend_lz4hc = {
+ 	.decompress	= lz4hc_decompress,
+ 	.create_ctx	= lz4hc_create,
+ 	.destroy_ctx	= lz4hc_destroy,
++	.init_config	= lz4hc_init_config,
++	.release_config	= lz4hc_release_config,
+ 	.name		= "lz4hc",
+ };
+--- a/drivers/block/zram/backend_lzo.c~zram-add-config-init-release-backend-callbacks
++++ a/drivers/block/zram/backend_lzo.c
+@@ -6,6 +6,15 @@
+ 
+ #include "backend_lzo.h"
+ 
++static int lzo_init_config(struct zcomp_config *config)
++{
++	return 0;
++}
++
++static void lzo_release_config(struct zcomp_config *config)
++{
++}
++
+ static void *lzo_create(struct zcomp_config *config)
+ {
+ 	return kzalloc(LZO1X_MEM_COMPRESS, GFP_KERNEL);
+@@ -40,5 +49,7 @@ struct zcomp_backend backend_lzo = {
+ 	.decompress	= lzo_decompress,
+ 	.create_ctx	= lzo_create,
+ 	.destroy_ctx	= lzo_destroy,
++	.init_config	= lzo_init_config,
++	.release_config	= lzo_release_config,
+ 	.name		= "lzo",
+ };
+--- a/drivers/block/zram/backend_lzorle.c~zram-add-config-init-release-backend-callbacks
++++ a/drivers/block/zram/backend_lzorle.c
+@@ -6,6 +6,15 @@
+ 
+ #include "backend_lzorle.h"
+ 
++static int lzorle_init_config(struct zcomp_config *config)
++{
++	return 0;
++}
++
++static void lzorle_release_config(struct zcomp_config *config)
++{
++}
++
+ static void *lzorle_create(struct zcomp_config *config)
+ {
+ 	return kzalloc(LZO1X_MEM_COMPRESS, GFP_KERNEL);
+@@ -40,5 +49,7 @@ struct zcomp_backend backend_lzorle = {
+ 	.decompress	= lzorle_decompress,
+ 	.create_ctx	= lzorle_create,
+ 	.destroy_ctx	= lzorle_destroy,
++	.init_config	= lzorle_init_config,
++	.release_config	= lzorle_release_config,
+ 	.name		= "lzo-rle",
+ };
+--- a/drivers/block/zram/backend_zstd.c~zram-add-config-init-release-backend-callbacks
++++ a/drivers/block/zram/backend_zstd.c
+@@ -36,6 +36,18 @@ static void zstd_ctx_free(void *opaque,
+ 	kvfree(address);
+ }
+ 
++static int zstd_init_config(struct zcomp_config *config)
++{
++	if (config->level == ZCOMP_CONFIG_NO_LEVEL)
++		config->level = zstd_default_clevel();
++
++	return 0;
++}
++
++static void zstd_release_config(struct zcomp_config *config)
++{
 +}
 +
  static void zstd_destroy(void *ctx)
  {
  	struct zstd_ctx *zctx = ctx;
+@@ -63,11 +75,7 @@ static void *zstd_create(struct zcomp_co
+ 	if (!ctx)
+ 		return NULL;
  
--	vfree(zctx->cctx_mem);
--	vfree(zctx->dctx_mem);
-+	if (zctx->cctx_mem)
-+		vfree(zctx->cctx_mem);
-+	else
-+		zstd_free_cctx(zctx->cctx);
+-	if (config->level != ZCOMP_CONFIG_NO_LEVEL)
+-		ctx->level = config->level;
+-	else
+-		ctx->level = zstd_default_clevel();
+-
++	ctx->level = config->level;
+ 	ctx->ctx_mem.customAlloc = zstd_ctx_alloc;
+ 	ctx->ctx_mem.customFree = zstd_ctx_free;
+ 
+@@ -173,5 +181,7 @@ struct zcomp_backend backend_zstd = {
+ 	.decompress	= zstd_decompress,
+ 	.create_ctx	= zstd_create,
+ 	.destroy_ctx	= zstd_destroy,
++	.init_config	= zstd_init_config,
++	.release_config	= zstd_release_config,
+ 	.name		= "zstd",
+ };
+--- a/drivers/block/zram/zcomp.c~zram-add-config-init-release-backend-callbacks
++++ a/drivers/block/zram/zcomp.c
+@@ -187,18 +187,24 @@ static int zcomp_init(struct zcomp *comp
+ 	if (!comp->stream)
+ 		return -ENOMEM;
+ 
++	ret = comp->backend->init_config(comp->config);
++	if (ret)
++		goto cleanup;
 +
-+	if (zctx->dctx_mem)
-+		vfree(zctx->dctx_mem);
-+	else
-+		zstd_free_dctx(zctx->dctx);
-+
-+	zstd_free_cdict(zctx->cdict);
-+	zstd_free_ddict(zctx->ddict);
- 	kfree(zctx);
+ 	ret = cpuhp_state_add_instance(CPUHP_ZCOMP_PREPARE, &comp->node);
+ 	if (ret < 0)
+ 		goto cleanup;
+ 	return 0;
+ 
+ cleanup:
++	comp->backend->release_config(comp->config);
+ 	free_percpu(comp->stream);
+ 	return ret;
  }
  
- static void *zstd_create(struct zcomp_config *config)
+ void zcomp_destroy(struct zcomp *comp)
  {
--	zstd_parameters params;
- 	struct zstd_ctx *ctx;
--	size_t sz;
++	comp->backend->release_config(comp->config);
+ 	cpuhp_state_remove_instance(CPUHP_ZCOMP_PREPARE, &comp->node);
+ 	free_percpu(comp->stream);
+ 	kfree(comp);
+--- a/drivers/block/zram/zcomp.h~zram-add-config-init-release-backend-callbacks
++++ a/drivers/block/zram/zcomp.h
+@@ -22,6 +22,7 @@ struct zcomp_config {
+ 	s32 level;
+ 	size_t dict_sz;
+ 	void *dict;
++	void *private;
+ };
  
- 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
- 	if (!ctx)
-@@ -39,24 +68,62 @@ static void *zstd_create(struct zcomp_co
- 	else
- 		ctx->level = zstd_default_clevel();
+ struct zcomp_backend {
+@@ -34,6 +35,9 @@ struct zcomp_backend {
+ 	void *(*create_ctx)(struct zcomp_config *config);
+ 	void (*destroy_ctx)(void *ctx);
  
--	params = zstd_get_params(ctx->level, PAGE_SIZE);
--	sz = zstd_cctx_workspace_bound(&params.cParams);
--	ctx->cctx_mem = vzalloc(sz);
--	if (!ctx->cctx_mem)
--		goto error;
--
--	ctx->cctx = zstd_init_cctx(ctx->cctx_mem, sz);
--	if (!ctx->cctx)
--		goto error;
--
--	sz = zstd_dctx_workspace_bound();
--	ctx->dctx_mem = vzalloc(sz);
--	if (!ctx->dctx_mem)
--		goto error;
--
--	ctx->dctx = zstd_init_dctx(ctx->dctx_mem, sz);
--	if (!ctx->dctx)
--		goto error;
-+	ctx->ctx_mem.customAlloc = zstd_ctx_alloc;
-+	ctx->ctx_mem.customFree = zstd_ctx_free;
++	int (*init_config)(struct zcomp_config *config);
++	void (*release_config)(struct zcomp_config *config);
 +
-+	if (config->dict_sz == 0) {
-+		zstd_parameters params;
-+		size_t sz;
-+
-+		params = zstd_get_params(ctx->level, PAGE_SIZE);
-+		sz = zstd_cctx_workspace_bound(&params.cParams);
-+		ctx->cctx_mem = vzalloc(sz);
-+		if (!ctx->cctx_mem)
-+			goto error;
-+
-+		ctx->cctx = zstd_init_cctx(ctx->cctx_mem, sz);
-+		if (!ctx->cctx)
-+			goto error;
-+
-+		sz = zstd_dctx_workspace_bound();
-+		ctx->dctx_mem = vzalloc(sz);
-+		if (!ctx->dctx_mem)
-+			goto error;
-+
-+		ctx->dctx = zstd_init_dctx(ctx->dctx_mem, sz);
-+		if (!ctx->dctx)
-+			goto error;
-+	} else {
-+		zstd_compression_parameters params;
-+
-+		ctx->cctx = zstd_create_cctx_advanced(ctx->ctx_mem);
-+		if (!ctx->cctx)
-+			goto error;
-+
-+		ctx->dctx = zstd_create_dctx_advanced(ctx->ctx_mem);
-+		if (!ctx->dctx)
-+			goto error;
-+
-+		params = zstd_get_cparams(ctx->level, PAGE_SIZE,
-+					  config->dict_sz);
-+
-+		ctx->cdict = zstd_create_cdict_advanced(config->dict,
-+							config->dict_sz,
-+							ZSTD_dlm_byRef,
-+							ZSTD_dct_auto,
-+							params,
-+							ctx->ctx_mem);
-+		if (!ctx->cdict)
-+			goto error;
-+
-+		ctx->ddict = zstd_create_ddict_advanced(config->dict,
-+							config->dict_sz,
-+							ZSTD_dlm_byRef,
-+							ZSTD_dct_auto,
-+							ctx->ctx_mem);
-+		if (!ctx->ddict)
-+			goto error;
-+	}
+ 	const char *name;
+ };
  
- 	return ctx;
+--- a/drivers/block/zram/zram_drv.c~zram-add-config-init-release-backend-callbacks
++++ a/drivers/block/zram/zram_drv.c
+@@ -1003,6 +1003,9 @@ static void __reset_comp_config(struct z
+ {
+ 	struct zcomp_config *config = &zram->configs[prio];
  
-@@ -72,8 +139,12 @@ static int zstd_compress(void *ctx, cons
- 	const zstd_parameters params = zstd_get_params(zctx->level, PAGE_SIZE);
- 	size_t ret;
- 
--	ret = zstd_compress_cctx(zctx->cctx, dst, *dst_len,
--				 src, PAGE_SIZE, &params);
-+	if (!zctx->cdict)
-+		ret = zstd_compress_cctx(zctx->cctx, dst, *dst_len,
-+					 src, PAGE_SIZE, &params);
-+	else
-+		ret = zstd_compress_using_cdict(zctx->cctx, dst, *dst_len,
-+						src, PAGE_SIZE, zctx->cdict);
- 	if (zstd_is_error(ret))
- 		return -EINVAL;
- 	*dst_len = ret;
-@@ -86,7 +157,12 @@ static int zstd_decompress(void *ctx, co
- 	struct zstd_ctx *zctx = ctx;
- 	size_t ret;
- 
--	ret = zstd_decompress_dctx(zctx->dctx, dst, PAGE_SIZE, src, src_len);
-+	if (!zctx->ddict)
-+		ret = zstd_decompress_dctx(zctx->dctx, dst, PAGE_SIZE,
-+					   src, src_len);
-+	else
-+		ret = zstd_decompress_using_ddict(zctx->dctx, dst, PAGE_SIZE,
-+						  src, src_len, zctx->ddict);
- 	if (zstd_is_error(ret))
- 		return -EINVAL;
- 	return 0;
++	/* config->private should be freed by the backend */
++	WARN_ON_ONCE(config->private);
++
+ 	vfree(config->dict);
+ 	config->level = ZCOMP_CONFIG_NO_LEVEL;
+ 	config->dict_sz = 0;
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
