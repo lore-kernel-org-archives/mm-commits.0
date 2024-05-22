@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A5E71487C5
-	for <mm-commits@vger.kernel.org>; Wed, 22 May 2024 22:32:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0B751487C5
+	for <mm-commits@vger.kernel.org>; Wed, 22 May 2024 22:32:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716417142; cv=none; b=OlPU+geD4HWvqiDS7xDZwKaDyTZbU+tJI4AGv+owvZ7c0fkEuqrP6GGB83HroEHOzNE6MeFMvxrRpPeoqVIRt7BNUoIdS8xc8h2SvJElw0Zk84Uziut4OubAVxd0L3m6tfL1ruLkLQog4YF+ZWOaewu0mgMEIIqPP+MtRNoyPmQ=
+	t=1716417143; cv=none; b=RkKu7FJhtX44xdbgrSeNrNI4WF7nondjN+f1R0gZ0xVe2cn008Mhi3ciCGiwuFOwrREG803rJmJZPyYGoyX0q1O2xzFQfDck2Y9EwCOMIV01DS0bjlgZ5sL1FAI6vma6NXfj8oPCpgY+fcmgL1jX/Tga4GCflyqEDotjZOnhxX4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716417142; c=relaxed/simple;
-	bh=wT1Mts0rv5f3qPBtu470A5jbERt0P63BaHaRoZA3RiA=;
-	h=Date:To:From:Subject:Message-Id; b=YC2ssNeSjrraS3HDw9uEeeV9hiteC0v1d3dh63UzXu7b8QTnsj4EjA5wFIWtEaY2nLThz7Nx60wDnO1/iNMDDdXiHliQxdNGd6w/9NuDJuShXxmi+8U16VNkzR7LOw4412p9ObNr5u1ltJc0gwYOd8nhE5rbm5kEoQKx4RR8o1Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EGgYqtSa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716417143; c=relaxed/simple;
+	bh=nlk1C5OrbbR/zu+w1TJlYJoFloHlY5ccUnLkbmHgkK0=;
+	h=Date:To:From:Subject:Message-Id; b=fp+Oi8IFs+7omM4PBJAZWJSmof30yr/SgaMrUv+eJWlSvUGCv+Y6xDZOuIwphRaLySzjIfmbMCSq/okT0E2dqmtwnNyK4NAv9JNKc1Pyu1zEz0aHSUtlRHFOl4wBb2EHJAaovl7zaX88UF4OvZkuogfrGrpUdnO1ntuWnllJXc0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U2nOFnUa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EGgYqtSa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2B4EC2BBFC;
-	Wed, 22 May 2024 22:32:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U2nOFnUa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72B79C2BBFC;
+	Wed, 22 May 2024 22:32:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716417142;
-	bh=wT1Mts0rv5f3qPBtu470A5jbERt0P63BaHaRoZA3RiA=;
+	s=korg; t=1716417143;
+	bh=nlk1C5OrbbR/zu+w1TJlYJoFloHlY5ccUnLkbmHgkK0=;
 	h=Date:To:From:Subject:From;
-	b=EGgYqtSaAquhMjtz3x0g83oI1p0t2Ea9T08pp7WTXwdH4YDj+1tcDUyC3Vhk4xMDn
-	 rZYi7FN2owwokssmlzUiz541BlmxFeTkl8x8F9PAeYLZnGLNfVUrw4fupDtpSLjsR/
-	 al0bGTYSDqQzRleiOdr24EWFeCLeIxmPuDTFawPo=
-Date: Wed, 22 May 2024 15:32:21 -0700
+	b=U2nOFnUaBUSdJmdShgDXl8arZWA2JL94kNJYMmIVbThXYMYzN0dQcRnj2j96XZtbk
+	 X7+bwbMhxo5tXBltp33/HA2HN5FwtWR2zxuBuyR6pO4zoh5ZZ+sH+4STE8S3Cquiu7
+	 5zv6OuYR+ImkBgzL2eJVLowxQgAljBMhJAsVjw90=
+Date: Wed, 22 May 2024 15:32:22 -0700
 To: mm-commits@vger.kernel.org,terrelln@fb.com,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-add-dictionary-support-to-lz4hc.patch added to mm-unstable branch
-Message-Id: <20240522223221.E2B4EC2BBFC@smtp.kernel.org>
+Subject: + documentation-zram-add-documentation-for-algorithm-parameters.patch added to mm-unstable branch
+Message-Id: <20240522223223.72B79C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: add dictionary support to lz4hc
+     Subject: Documentation/zram: add documentation for algorithm parameters
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-add-dictionary-support-to-lz4hc.patch
+     documentation-zram-add-documentation-for-algorithm-parameters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-dictionary-support-to-lz4hc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-zram-add-documentation-for-algorithm-parameters.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,132 +59,76 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: add dictionary support to lz4hc
-Date: Wed, 15 May 2024 16:12:57 +0900
+Subject: Documentation/zram: add documentation for algorithm parameters
+Date: Wed, 15 May 2024 16:12:58 +0900
 
-Support pre-trained dictionary param.  Just like lz4, lz4hc doesn't
-mandate specific format of the dictionary and zstd --train can be used to
-train a dictionary for lz4, according to [1].
+Document brief description of compression algorithms' parameters:
+compression level and pre-trained dictionary.
 
-TEST
-====
-
-- default lz4hc
-
-/sys/block/zram0/mm_stat
-1750315008 609010918 621006848        0 621006848        2        0    34288    34288
-
-- lz4hc dict=/etc/dictionary
-
-/sys/block/zram0/mm_stat
-1750319104 499629401 509485056        0 509485056        1        0    34288    34288
-
-[1] https://github.com/lz4/lz4/issues/557
-
-Link: https://lkml.kernel.org/r/20240515071645.1788128-21-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20240515071645.1788128-22-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nick Terrell <terrelln@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/backend_lz4hc.c |   54 ++++++++++++++++++++++++---
- 1 file changed, 48 insertions(+), 6 deletions(-)
+ Documentation/admin-guide/blockdev/zram.rst |   38 +++++++++++++-----
+ 1 file changed, 29 insertions(+), 9 deletions(-)
 
---- a/drivers/block/zram/backend_lz4hc.c~zram-add-dictionary-support-to-lz4hc
-+++ a/drivers/block/zram/backend_lz4hc.c
-@@ -8,6 +8,12 @@
- struct lz4hc_ctx {
- 	void *mem;
- 	s32 level;
-+	LZ4_streamDecode_t *dstrm;
-+	LZ4_streamHC_t *cstrm;
+--- a/Documentation/admin-guide/blockdev/zram.rst~documentation-zram-add-documentation-for-algorithm-parameters
++++ a/Documentation/admin-guide/blockdev/zram.rst
+@@ -102,15 +102,26 @@ Examples::
+ 	#select lzo compression algorithm
+ 	echo lzo > /sys/block/zram0/comp_algorithm
+ 
+-For the time being, the `comp_algorithm` content does not necessarily
+-show every compression algorithm supported by the kernel. We keep this
+-list primarily to simplify device configuration and one can configure
+-a new device with a compression algorithm that is not listed in
+-`comp_algorithm`. The thing is that, internally, ZRAM uses Crypto API
+-and, if some of the algorithms were built as modules, it's impossible
+-to list all of them using, for instance, /proc/crypto or any other
+-method. This, however, has an advantage of permitting the usage of
+-custom crypto compression modules (implementing S/W or H/W compression).
++For the time being, the `comp_algorithm` content shows only compression
++algorithms that are supported by zram.
 +
-+	/* Shared between C/D streams */
-+	void *dict;
-+	size_t dict_sz;
- };
- 
- static int lz4hc_init_config(struct zcomp_config *config)
-@@ -26,6 +32,8 @@ static void lz4hc_destroy(void *ctx)
- {
- 	struct lz4hc_ctx *zctx = ctx;
- 
-+	kfree(zctx->dstrm);
-+	kfree(zctx->cstrm);
- 	vfree(zctx->mem);
- 	kfree(zctx);
- }
-@@ -39,9 +47,22 @@ static void *lz4hc_create(struct zcomp_c
- 		return NULL;
- 
- 	ctx->level = config->level;
--	ctx->mem = vmalloc(LZ4HC_MEM_COMPRESS);
--	if (!ctx->mem)
--		goto error;
-+	if (!config->dict) {
-+		ctx->mem = vmalloc(LZ4HC_MEM_COMPRESS);
-+		if (!ctx->mem)
-+			goto error;
-+	} else {
-+		ctx->dstrm = kzalloc(sizeof(*ctx->dstrm), GFP_KERNEL);
-+		if (!ctx->dstrm)
-+			goto error;
++It is also possible to pass algorithm specific configuration parameters::
 +
-+		ctx->cstrm = kzalloc(sizeof(*ctx->cstrm), GFP_KERNEL);
-+		if (!ctx->cstrm)
-+			goto error;
++	#set compression level to 8
++	echo "zstd level=8" > /sys/block/zram0/comp_algorithm
 +
-+		ctx->dict = config->dict;
-+		ctx->dict_sz = config->dict_sz;
-+	}
++Note that `comp_algorithm` also supports `algo=name` format::
++
++	#set compression level to 8
++	echo "algo=zstd level=8" > /sys/block/zram0/comp_algorithm
++
++Certain compression algorithms support pre-trained dictionaries, which
++significantly change algorithms' characteristics. In order to configure
++compression algorithm to use external pre-trained dictionary, pass full
++path to the dictionary along with other parameters::
++
++	#pass path to pre-trained dictionary
++	echo "algo=zstd dict=/etc/dictioary" > /sys/block/zram0/comp_algorithm
  
- 	return ctx;
- error:
-@@ -55,8 +76,18 @@ static int lz4hc_compress(void *ctx, con
- 	struct lz4hc_ctx *zctx = ctx;
- 	int ret;
+ 4) Set Disksize
+ ===============
+@@ -442,6 +453,15 @@ configuration:::
+ 	#select deflate recompression algorithm, priority 2
+ 	echo "algo=deflate priority=2" > /sys/block/zramX/recomp_algorithm
  
--	ret = LZ4_compress_HC(src, dst, PAGE_SIZE, *dst_len,
--			      zctx->level, zctx->mem);
-+	if (!zctx->cstrm) {
-+		ret = LZ4_compress_HC(src, dst, PAGE_SIZE, *dst_len,
-+				      zctx->level, zctx->mem);
-+	} else {
-+		/* Cstrm needs to be reset */
-+		LZ4_resetStreamHC(zctx->cstrm, zctx->level);
-+		ret = LZ4_loadDictHC(zctx->cstrm, zctx->dict, zctx->dict_sz);
-+		if (ret != zctx->dict_sz)
-+			return -EINVAL;
-+		ret = LZ4_compress_HC_continue(zctx->cstrm, src, dst,
-+					       PAGE_SIZE, *dst_len);
-+	}
- 	if (!ret)
- 		return -EINVAL;
- 	*dst_len = ret;
-@@ -66,10 +97,21 @@ static int lz4hc_compress(void *ctx, con
- static int lz4hc_decompress(void *ctx, const unsigned char *src,
- 			    size_t src_len, unsigned char *dst)
- {
-+	struct lz4hc_ctx *zctx = ctx;
- 	int dst_len = PAGE_SIZE;
- 	int ret;
++The `recomp_algorithm` also supports algorithm configuration parameters, e.g.
++compression level and pre-trained dircionary::
++
++	#pass compression level
++	echo "algo=zstd level=8" > /sys/block/zramX/recomp_algorithm
++
++	#pass path to pre-trained dictionary
++	echo "algo=zstd dict=/etc/dictioary" > /sys/block/zramX/recomp_algorithm
++
+ Another device attribute that CONFIG_ZRAM_MULTI_COMP enables is recompress,
+ which controls recompression.
  
--	ret = LZ4_decompress_safe(src, dst, src_len, dst_len);
-+	if (!zctx->dstrm) {
-+		ret = LZ4_decompress_safe(src, dst, src_len, dst_len);
-+	} else {
-+		/* Dstrm needs to be reset */
-+		ret = LZ4_setStreamDecode(zctx->dstrm, zctx->dict,
-+					  zctx->dict_sz);
-+		if (!ret)
-+			return -EINVAL;
-+		ret = LZ4_decompress_safe_continue(zctx->dstrm, src, dst,
-+						   src_len, dst_len);
-+	}
- 	if (ret < 0)
- 		return -EINVAL;
- 	return 0;
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
