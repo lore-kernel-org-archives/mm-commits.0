@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7697782863;
-	Thu, 23 May 2024 19:09:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D850682D64;
+	Thu, 23 May 2024 19:14:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716491353; cv=none; b=bb+eFyDsDZRdlSMdpqZUE+YbJ3TdkcgT7m7ZtQdDL+jtjHAQwva4iP5vwSZa60Q0jnn/dlEsZqB8Eup4GXEwmp4CfacostSodeopkjSIoSqYQaSqeU0asOy7VYBw0+niZ3RnWmapAsmqC1T3p56utnAJVpnoprpbLC9Ki312nUs=
+	t=1716491645; cv=none; b=j6PKkpNeZRBv46xH9ktyGnXRlhlUFfBTxkfK+klHYmbINlq3cHbLHxwQyFV/43QF/6rbLIJfNU+uWp91Mms5Ii69leJT+mLQawFNUi6dewuRbhDVA7y86mq7pNmvBtI8rBUfyc6SPaD19dw3OIUa3HZDzrv4GVDXQAyVBgDjcIw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716491353; c=relaxed/simple;
-	bh=jfJN8CyrGg8m8dFp3JsV6CcFPRAizVlmVhEksESWCWE=;
-	h=Date:To:From:Subject:Message-Id; b=Crmvt6xxW/4QAx3mK7pPjnsf1TeJaMpYjuvbZazd25eax3ibddSXGLDv3ifEH2nu4NNA+HJxYBsQKq3l+JEoRUSy+AzK8YjfSZQvki9LTSs+mQtA6z47FxCY8gsd8hJAbRAeMy8SoRhk4XLZjm4UKNn1c/teIszb5z3nVvRI0fc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YxvLlH4t; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716491645; c=relaxed/simple;
+	bh=rIwffAsp4BxzpZk80EFk6wCoBRirhS5q2UtE9B6Cr94=;
+	h=Date:To:From:Subject:Message-Id; b=Q2TAiDqvXzk4LPHatAIzgbEHaU9mHzNlh1pZI4rdhmLBIiT09DP2AmFkvb/V8Nd6nh/wJogDtfaF5oQEQiHd5zxqkK/67Giep1MKYUTc4Uzixu1MG/5ds6c4fZ7+Lr+lNDPngoRSLCbMVuqTYsAEfoWiiZJe4FRkud1AfF6y7l0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GSqiWFWf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YxvLlH4t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBA6FC2BD10;
-	Thu, 23 May 2024 19:09:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GSqiWFWf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2711C2BD10;
+	Thu, 23 May 2024 19:14:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716491353;
-	bh=jfJN8CyrGg8m8dFp3JsV6CcFPRAizVlmVhEksESWCWE=;
+	s=korg; t=1716491645;
+	bh=rIwffAsp4BxzpZk80EFk6wCoBRirhS5q2UtE9B6Cr94=;
 	h=Date:To:From:Subject:From;
-	b=YxvLlH4t8Pr5wpKDTRyHTllIaVJme/VGI+02zpBjfWg+sZS5Ia7rb8A9KunFyswuW
-	 M2mMLbgPSaE3j7yglH85M/5jzqUbe5c/zM/U9nkDr6qE4DSnyFVvyB+9Rwr+2/d70l
-	 9SdHjguvkmw/SKEQKhJu1kZYMmii0IzVtdSh7nwc=
-Date: Thu, 23 May 2024 12:09:12 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,nao.horiguchi@gmail.com,linmiaohe@huawei.com,akpm@linux-foundation.org
+	b=GSqiWFWfdbXEYxYPoeG4wCPH656bNJxGEtspyeihYz7suV4ZqWTU8ymS5Rzeeo0Jk
+	 OIVhJtqa6nBSKyhY9Jenl/Azv/eiBhpHqeli/W7V7C2H9Pvzhv5l3gYpIM3ki6pd6U
+	 DUffV9yIOR9vzRVk3IqVc1FtfbqRtmInqoxpbe+U=
+Date: Thu, 23 May 2024 12:14:05 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tonyb@cybernetics.com,stable@vger.kernel.org,songmuchun@bytedance.com,shuah@kernel.org,rppt@kernel.org,ritesh.list@gmail.com,david@redhat.com,axboe@kernel.dk,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-fix-handling-of-dissolved-but-not-taken-off-from-buddy-pages.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240523190912.EBA6FC2BD10@smtp.kernel.org>
+Subject: + selftest-mm-test-if-hugepage-does-not-get-leaked-during-__bio_release_pages.patch added to mm-unstable branch
+Message-Id: <20240523191405.A2711C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: fix handling of dissolved but not taken off from buddy pages
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memory-failure-fix-handling-of-dissolved-but-not-taken-off-from-buddy-pages.patch
+     Subject: selftest: mm: Test if hugepage does not get leaked during __bio_release_pages()
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftest-mm-test-if-hugepage-does-not-get-leaked-during-__bio_release_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-fix-handling-of-dissolved-but-not-taken-off-from-buddy-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-test-if-hugepage-does-not-get-leaked-during-__bio_release_pages.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,146 +58,219 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory-failure: fix handling of dissolved but not taken off from buddy pages
-Date: Thu, 23 May 2024 15:12:17 +0800
+From: Donet Tom <donettom@linux.ibm.com>
+Subject: selftest: mm: Test if hugepage does not get leaked during __bio_release_pages()
+Date: Thu, 23 May 2024 01:39:05 -0500
 
-When I did memory failure tests recently, below panic occurs:
+Commit 1b151e2435fc ("block: Remove special-casing of compound pages")
+caused a change in behaviour when releasing the pages if the buffer does
+not start at the beginning of the page.  This was because the calculation
+of the number of pages to release was incorrect.  This was fixed by commit
+38b43539d64b ("block: Fix page refcounts for unaligned buffers in
+__bio_release_pages()").
 
-page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x8cee00
-flags: 0x6fffe0000000000(node=1|zone=2|lastcpupid=0x7fff)
-raw: 06fffe0000000000 dead000000000100 dead000000000122 0000000000000000
-raw: 0000000000000000 0000000000000009 00000000ffffffff 0000000000000000
-page dumped because: VM_BUG_ON_PAGE(!PageBuddy(page))
-------------[ cut here ]------------
-kernel BUG at include/linux/page-flags.h:1009!
-invalid opcode: 0000 [#1] PREEMPT SMP NOPTI
-RIP: 0010:__del_page_from_free_list+0x151/0x180
-RSP: 0018:ffffa49c90437998 EFLAGS: 00000046
-RAX: 0000000000000035 RBX: 0000000000000009 RCX: ffff8dd8dfd1c9c8
-RDX: 0000000000000000 RSI: 0000000000000027 RDI: ffff8dd8dfd1c9c0
-RBP: ffffd901233b8000 R08: ffffffffab5511f8 R09: 0000000000008c69
-R10: 0000000000003c15 R11: ffffffffab5511f8 R12: ffff8dd8fffc0c80
-R13: 0000000000000001 R14: ffff8dd8fffc0c80 R15: 0000000000000009
-FS:  00007ff916304740(0000) GS:ffff8dd8dfd00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 000055eae50124c8 CR3: 00000008479e0000 CR4: 00000000000006f0
-Call Trace:
- <TASK>
- __rmqueue_pcplist+0x23b/0x520
- get_page_from_freelist+0x26b/0xe40
- __alloc_pages_noprof+0x113/0x1120
- __folio_alloc_noprof+0x11/0xb0
- alloc_buddy_hugetlb_folio.isra.0+0x5a/0x130
- __alloc_fresh_hugetlb_folio+0xe7/0x140
- alloc_pool_huge_folio+0x68/0x100
- set_max_huge_pages+0x13d/0x340
- hugetlb_sysctl_handler_common+0xe8/0x110
- proc_sys_call_handler+0x194/0x280
- vfs_write+0x387/0x550
- ksys_write+0x64/0xe0
- do_syscall_64+0xc2/0x1d0
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7ff916114887
-RSP: 002b:00007ffec8a2fd78 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 000055eae500e350 RCX: 00007ff916114887
-RDX: 0000000000000004 RSI: 000055eae500e390 RDI: 0000000000000003
-RBP: 000055eae50104c0 R08: 0000000000000000 R09: 000055eae50104c0
-R10: 0000000000000077 R11: 0000000000000246 R12: 0000000000000004
-R13: 0000000000000004 R14: 00007ff916216b80 R15: 00007ff916216a00
- </TASK>
-Modules linked in: mce_inject hwpoison_inject
----[ end trace 0000000000000000 ]---
+We pin the user buffer during direct I/O writes.  If this buffer is a
+hugepage, bio_release_page() will unpin it and decrement all references
+and pin counts at ->bi_end_io.  However, if any references to the hugepage
+remain post-I/O, the hugepage will not be freed upon unmap, leading to a
+memory leak.
 
-And before the panic, there had an warning about bad page state:
+This patch verifies that a hugepage, used as a user buffer for DIO
+operations, is correctly freed upon unmapping, regardless of whether the
+offsets are aligned or unaligned w.r.t page boundary.
 
-BUG: Bad page state in process page-types  pfn:8cee00
-page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x8cee00
-flags: 0x6fffe0000000000(node=1|zone=2|lastcpupid=0x7fff)
-page_type: 0xffffff7f(buddy)
-raw: 06fffe0000000000 ffffd901241c0008 ffffd901240f8008 0000000000000000
-raw: 0000000000000000 0000000000000009 00000000ffffff7f 0000000000000000
-page dumped because: nonzero mapcount
-Modules linked in: mce_inject hwpoison_inject
-CPU: 8 PID: 154211 Comm: page-types Not tainted 6.9.0-rc4-00499-g5544ec3178e2-dirty #22
-Call Trace:
- <TASK>
- dump_stack_lvl+0x83/0xa0
- bad_page+0x63/0xf0
- free_unref_page+0x36e/0x5c0
- unpoison_memory+0x50b/0x630
- simple_attr_write_xsigned.constprop.0.isra.0+0xb3/0x110
- debugfs_attr_write+0x42/0x60
- full_proxy_write+0x5b/0x80
- vfs_write+0xcd/0x550
- ksys_write+0x64/0xe0
- do_syscall_64+0xc2/0x1d0
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f189a514887
-RSP: 002b:00007ffdcd899718 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f189a514887
-RDX: 0000000000000009 RSI: 00007ffdcd899730 RDI: 0000000000000003
-RBP: 00007ffdcd8997a0 R08: 0000000000000000 R09: 00007ffdcd8994b2
-R10: 0000000000000000 R11: 0000000000000246 R12: 00007ffdcda199a8
-R13: 0000000000404af1 R14: 000000000040ad78 R15: 00007f189a7a5040
- </TASK>
+Test Result  Fail Scenario (Without the fix)
+--------------------------------------------------------
+[]# ./hugetlb_dio
+TAP version 13
+1..4
+No. Free pages before allocation : 7
+No. Free pages after munmap : 7
+ok 1 : Huge pages freed successfully !
+No. Free pages before allocation : 7
+No. Free pages after munmap : 7
+ok 2 : Huge pages freed successfully !
+No. Free pages before allocation : 7
+No. Free pages after munmap : 7
+ok 3 : Huge pages freed successfully !
+No. Free pages before allocation : 7
+No. Free pages after munmap : 6
+not ok 4 : Huge pages not freed!
+Totals: pass:3 fail:1 xfail:0 xpass:0 skip:0 error:0
 
-The root cause should be the below race:
+Test Result  PASS Scenario (With the fix)
+---------------------------------------------------------
+[]#./hugetlb_dio
+TAP version 13
+1..4
+No. Free pages before allocation : 7
+No. Free pages after munmap : 7
+ok 1 : Huge pages freed successfully !
+No. Free pages before allocation : 7
+No. Free pages after munmap : 7
+ok 2 : Huge pages freed successfully !
+No. Free pages before allocation : 7
+No. Free pages after munmap : 7
+ok 3 : Huge pages freed successfully !
+No. Free pages before allocation : 7
+No. Free pages after munmap : 7
+ok 4 : Huge pages freed successfully !
+Totals: pass:4 fail:0 xfail:0 xpass:0 skip:0 error:0
 
- memory_failure
-  try_memory_failure_hugetlb
-   me_huge_page
-    __page_handle_poison
-     dissolve_free_hugetlb_folio
-     drain_all_pages -- Buddy page can be isolated e.g. for compaction.
-     take_page_off_buddy -- Failed as page is not in the buddy list.
-	     -- Page can be putback into buddy after compaction.
-    page_ref_inc -- Leads to buddy page with refcnt = 1.
-
-Then unpoison_memory() can unpoison the page and send the buddy page back
-into buddy list again leading to the above bad page state warning.  And
-bad_page() will call page_mapcount_reset() to remove PageBuddy from buddy
-page leading to later VM_BUG_ON_PAGE(!PageBuddy(page)) when trying to
-allocate this page.
-
-Fix this issue by only treating __page_handle_poison() as successful when
-it returns 1.
-
-Link: https://lkml.kernel.org/r/20240523071217.1696196-1-linmiaohe@huawei.com
-Fixes: ceaf8fbea79a ("mm, hwpoison: skip raw hwpoison page in freeing 1GB hugepage")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Link: https://lkml.kernel.org/r/20240523063905.3173-1-donettom@linux.ibm.com
+Fixes: 38b43539d64b ("block: Fix page refcounts for unaligned buffers in __bio_release_pages()")
+Signed-off-by: Donet Tom <donettom@linux.ibm.com>
+Signed-off-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tony Battersby <tonyb@cybernetics.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/Makefile      |    1 
+ tools/testing/selftests/mm/hugetlb_dio.c |  118 +++++++++++++++++++++
+ 2 files changed, 119 insertions(+)
 
---- a/mm/memory-failure.c~mm-memory-failure-fix-handling-of-dissolved-but-not-taken-off-from-buddy-pages
-+++ a/mm/memory-failure.c
-@@ -1221,7 +1221,7 @@ static int me_huge_page(struct page_stat
- 		 * subpages.
- 		 */
- 		folio_put(folio);
--		if (__page_handle_poison(p) >= 0) {
-+		if (__page_handle_poison(p) > 0) {
- 			page_ref_inc(p);
- 			res = MF_RECOVERED;
- 		} else {
-@@ -2091,7 +2091,7 @@ retry:
- 	 */
- 	if (res == 0) {
- 		folio_unlock(folio);
--		if (__page_handle_poison(p) >= 0) {
-+		if (__page_handle_poison(p) > 0) {
- 			page_ref_inc(p);
- 			res = MF_RECOVERED;
- 		} else {
+--- /dev/null
++++ a/tools/testing/selftests/mm/hugetlb_dio.c
+@@ -0,0 +1,118 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * This program tests for hugepage leaks after DIO writes to a file using a
++ * hugepage as the user buffer. During DIO, the user buffer is pinned and
++ * should be properly unpinned upon completion. This patch verifies that the
++ * kernel correctly unpins the buffer at DIO completion for both aligned and
++ * unaligned user buffer offsets (w.r.t page boundary), ensuring the hugepage
++ * is freed upon unmapping.
++ */
++
++#define _GNU_SOURCE
++#include <stdio.h>
++#include <sys/stat.h>
++#include <stdlib.h>
++#include <fcntl.h>
++#include <stdint.h>
++#include <unistd.h>
++#include <string.h>
++#include <sys/mman.h>
++#include "vm_util.h"
++#include "../kselftest.h"
++
++void run_dio_using_hugetlb(unsigned int start_off, unsigned int end_off)
++{
++	int fd;
++	char *buffer =  NULL;
++	char *orig_buffer = NULL;
++	size_t h_pagesize = 0;
++	size_t writesize;
++	int free_hpage_b = 0;
++	int free_hpage_a = 0;
++
++	writesize = end_off - start_off;
++
++	/* Get the default huge page size */
++	h_pagesize = default_huge_page_size();
++	if (!h_pagesize)
++		ksft_exit_fail_msg("Unable to determine huge page size\n");
++
++	/* Open the file to DIO */
++	fd = open("/tmp", O_TMPFILE | O_RDWR | O_DIRECT);
++	if (fd < 0)
++		ksft_exit_fail_msg("Error opening file");
++
++	/* Get the free huge pages before allocation */
++	free_hpage_b = get_free_hugepages();
++	if (free_hpage_b == 0) {
++		close(fd);
++		ksft_exit_skip("No free hugepage, exiting!\n");
++	}
++
++	/* Allocate a hugetlb page */
++	orig_buffer = mmap(NULL, h_pagesize, PROT_READ | PROT_WRITE, MAP_PRIVATE
++			| MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
++	if (orig_buffer == MAP_FAILED) {
++		close(fd);
++		ksft_exit_fail_msg("Error mapping memory");
++	}
++	buffer = orig_buffer;
++	buffer += start_off;
++
++	memset(buffer, 'A', writesize);
++
++	/* Write the buffer to the file */
++	if (write(fd, buffer, writesize) != (writesize)) {
++		munmap(orig_buffer, h_pagesize);
++		close(fd);
++		ksft_exit_fail_msg("Error writing to file");
++	}
++
++	/* unmap the huge page */
++	munmap(orig_buffer, h_pagesize);
++	close(fd);
++
++	/* Get the free huge pages after unmap*/
++	free_hpage_a = get_free_hugepages();
++
++	/*
++	 * If the no. of free hugepages before allocation and after unmap does
++	 * not match - that means there could still be a page which is pinned.
++	 */
++	if (free_hpage_a != free_hpage_b) {
++		printf("No. Free pages before allocation : %d\n", free_hpage_b);
++		printf("No. Free pages after munmap : %d\n", free_hpage_a);
++		ksft_test_result_fail(": Huge pages not freed!\n");
++	} else {
++		printf("No. Free pages before allocation : %d\n", free_hpage_b);
++		printf("No. Free pages after munmap : %d\n", free_hpage_a);
++		ksft_test_result_pass(": Huge pages freed successfully !\n");
++	}
++}
++
++int main(void)
++{
++	size_t pagesize = 0;
++
++	ksft_print_header();
++	ksft_set_plan(4);
++
++	/* Get base page size */
++	pagesize  = psize();
++
++	/* start and end is aligned to pagesize */
++	run_dio_using_hugetlb(0, (pagesize * 3));
++
++	/* start is aligned but end is not aligned */
++	run_dio_using_hugetlb(0, (pagesize * 3) - (pagesize / 2));
++
++	/* start is unaligned and end is aligned */
++	run_dio_using_hugetlb(pagesize / 2, (pagesize * 3));
++
++	/* both start and end are unaligned */
++	run_dio_using_hugetlb(pagesize / 2, (pagesize * 3) + (pagesize / 2));
++
++	ksft_finished();
++	return 0;
++}
++
+--- a/tools/testing/selftests/mm/Makefile~selftest-mm-test-if-hugepage-does-not-get-leaked-during-__bio_release_pages
++++ a/tools/testing/selftests/mm/Makefile
+@@ -71,6 +71,7 @@ TEST_GEN_FILES += ksm_functional_tests
+ TEST_GEN_FILES += mdwe_test
+ TEST_GEN_FILES += hugetlb_fault_after_madv
+ TEST_GEN_FILES += hugetlb_madv_vs_map
++TEST_GEN_FILES += hugetlb_dio
+ 
+ ifneq ($(ARCH),arm64)
+ TEST_GEN_FILES += soft-dirty
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from donettom@linux.ibm.com are
 
-mm-huge_memory-dont-unpoison-huge_zero_folio.patch
-mm-memory-failure-fix-handling-of-dissolved-but-not-taken-off-from-buddy-pages.patch
+selftest-mm-test-if-hugepage-does-not-get-leaked-during-__bio_release_pages.patch
 
