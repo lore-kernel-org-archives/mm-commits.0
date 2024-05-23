@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3824928F5
-	for <mm-commits@vger.kernel.org>; Thu, 23 May 2024 19:40:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0974C535D4
+	for <mm-commits@vger.kernel.org>; Thu, 23 May 2024 20:10:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716493222; cv=none; b=AYQs2qXz5nNivun8RXd4dsZhqt53ohCMocEg843jDs73FfNvc5jP+MVPzXBo3mmSZcGpOzPisO/a+snV2rTkpLl9H5RzRP2SkE/CXeYdxfmGjz6wmnh/g4bfN55vydaTm3q96J99PalOgyDn3N4/DmYHZxV6aNO+5fLYSO4Rark=
+	t=1716495034; cv=none; b=F/7t8j/sbiFxs2LE5xJ0OAeBL7gutW0Y5Sv0o8XomvwLUUc4GLljszsotoJPAaBqG9j9geW8InPj8OKJGz7S6KBYlqAMTCJQCFQ56jxs2ZtaoWsujdweL1xe5eG+oz6RRPgZQ6v59S8qkLvNld7HZt7uYUvvwdEORaPgC+Ko3Ww=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716493222; c=relaxed/simple;
-	bh=nCVCq3KMt1p+++3fOEqP5QzqM00+hk4nRjWrOFKickQ=;
-	h=Date:To:From:Subject:Message-Id; b=Z4eBSjd2f8p9IU29hzSWR/jIR7dCXfvVd9b8ZNVjw01GVo3bkCxNQHLmrPGcv+fmHLicTz+7E/9aL8dv3UkxCWFyNPDHEJGBvGqSEzGC/dTaJTOI6TWjXTTUAzUp4DYe3aQWpvb23rG8/kHCOzrw5xVVDXflF9lmnnslcFk7V8k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZFbLGN//; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716495034; c=relaxed/simple;
+	bh=7NoO5qDXo0d3ZNV8iIKq9BNGX/acE5SNqskiwJrqI98=;
+	h=Date:To:From:Subject:Message-Id; b=DQaNPEgNQJCdx6F2JiIjvJrXK0YWRKVg4WGUdEbnh417nG5KPonUZi+4yCsvyHBcmN4xYKEeYq8NAgJLDFrNLwJH7e6jNbHZHTiK7EFOSV/Q7kQfwctrNl2XzuGs2s8syG7y3c6geJS11VVhKe6dxaI5JBgDfO4hga1Po0IxQBM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dEO7xn9E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZFbLGN//"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF145C2BD10;
-	Thu, 23 May 2024 19:40:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dEO7xn9E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B246C2BD10;
+	Thu, 23 May 2024 20:10:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716493221;
-	bh=nCVCq3KMt1p+++3fOEqP5QzqM00+hk4nRjWrOFKickQ=;
+	s=korg; t=1716495033;
+	bh=7NoO5qDXo0d3ZNV8iIKq9BNGX/acE5SNqskiwJrqI98=;
 	h=Date:To:From:Subject:From;
-	b=ZFbLGN//sWuaMLVBR4HVs6d7GIzYNBJ+pFkeT3O9/Wh511Qa51+lIaLXm3Yk34qJp
-	 aOlyEjbYgI80t96xq/CnpufqhmeIJXqQqW0vHIcqY3BhcCiE6vpN82hr2bc/65W1YJ
-	 iqB8JqvMY2TdgOCcN3Id0tddu2ETGRHLW4DqZ9ho=
-Date: Thu, 23 May 2024 12:40:21 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,ryan.roberts@arm.com,ioworker0@gmail.com,david@redhat.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=dEO7xn9EcXuqi5S34m1AMY9F4zeM5Sic+6Z7csIS44YdVcYaTA/EaEIDNb7Fsvf2r
+	 hvsRMBZ8Im3jqX5lZfA4I5TeILHHuR1kjPlxfR+mdNuBNzxnvfJIoqqXkCgQOoeYXA
+	 Ps/Jeiraq3a1pIFj4v2X6bO9DaMwcSLubhlwwccg=
+Date: Thu, 23 May 2024 13:10:32 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,ryan.roberts@arm.com,ruansy.fnst@fujitsu.com,nao.horiguchi@gmail.com,linmiaohe@huawei.com,jiaqiyan@google.com,liyifei28@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-drop-the-anon_-prefix-for-swap-out-mthp-counters.patch added to mm-unstable branch
-Message-Id: <20240523194021.CF145C2BD10@smtp.kernel.org>
+Subject: + mm-memory-failure-use-helper-llist_for_each_entry.patch added to mm-unstable branch
+Message-Id: <20240523201033.8B246C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: drop the 'anon_' prefix for swap-out mTHP counters
+     Subject: mm/memory-failure: use helper llist_for_each_entry()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-drop-the-anon_-prefix-for-swap-out-mthp-counters.patch
+     mm-memory-failure-use-helper-llist_for_each_entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-drop-the-anon_-prefix-for-swap-out-mthp-counters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-use-helper-llist_for_each_entry.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,110 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: drop the 'anon_' prefix for swap-out mTHP counters
-Date: Thu, 23 May 2024 10:36:39 +0800
+From: Yifei Li <liyifei28@huawei.com>
+Subject: mm/memory-failure: use helper llist_for_each_entry()
+Date: Mon, 13 May 2024 15:58:30 +0800
 
-The mTHP swap related counters: 'anon_swpout' and 'anon_swpout_fallback'
-are confusing with an 'anon_' prefix, since the shmem can swap out
-non-anonymous pages.  So drop the 'anon_' prefix to keep consistent with
-the old swap counter names.
+Change the llist_for_each_entry_safe function to the llist_for_each_entry
+function and delete the next variable.  Because the linked list is not
+modified,the llist_for_each_entry_safe function is not required.  No
+functional changes are intended.
 
-Link: https://lkml.kernel.org/r/7a8989c13299920d7589007a30065c3e2c19f0e0.1716431702.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Suggested-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Lance Yang <ioworker0@gmail.com>
+Link: https://lkml.kernel.org/r/20240513075830.2611-1-liyifei28@huawei.com
+Signed-off-by: Yifei Li <liyifei28@huawei.com>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    4 ++--
- include/linux/huge_mm.h                    |    4 ++--
- mm/huge_memory.c                           |    8 ++++----
- mm/page_io.c                               |    2 +-
- mm/vmscan.c                                |    2 +-
- 5 files changed, 10 insertions(+), 10 deletions(-)
+ mm/memory-failure.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-drop-the-anon_-prefix-for-swap-out-mthp-counters
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -467,11 +467,11 @@ anon_fault_fallback_charge
- 	instead falls back to using huge pages with lower orders or
- 	small pages even though the allocation was successful.
+--- a/mm/memory-failure.c~mm-memory-failure-use-helper-llist_for_each_entry
++++ a/mm/memory-failure.c
+@@ -1935,7 +1935,7 @@ static int folio_set_hugetlb_hwpoison(st
+ {
+ 	struct llist_head *head;
+ 	struct raw_hwp_page *raw_hwp;
+-	struct raw_hwp_page *p, *next;
++	struct raw_hwp_page *p;
+ 	int ret = folio_test_set_hwpoison(folio) ? -EHWPOISON : 0;
  
--anon_swpout
-+swpout
- 	is incremented every time a huge page is swapped out in one
- 	piece without splitting.
- 
--anon_swpout_fallback
-+swpout_fallback
- 	is incremented if a huge page has to be split before swapout.
- 	Usually because failed to allocate some continuous swap space
- 	for the huge page.
---- a/include/linux/huge_mm.h~mm-drop-the-anon_-prefix-for-swap-out-mthp-counters
-+++ a/include/linux/huge_mm.h
-@@ -269,8 +269,8 @@ enum mthp_stat_item {
- 	MTHP_STAT_ANON_FAULT_ALLOC,
- 	MTHP_STAT_ANON_FAULT_FALLBACK,
- 	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
--	MTHP_STAT_ANON_SWPOUT,
--	MTHP_STAT_ANON_SWPOUT_FALLBACK,
-+	MTHP_STAT_SWPOUT,
-+	MTHP_STAT_SWPOUT_FALLBACK,
- 	__MTHP_STAT_COUNT
- };
- 
---- a/mm/huge_memory.c~mm-drop-the-anon_-prefix-for-swap-out-mthp-counters
-+++ a/mm/huge_memory.c
-@@ -558,15 +558,15 @@ static struct kobj_attribute _name##_att
- DEFINE_MTHP_STAT_ATTR(anon_fault_alloc, MTHP_STAT_ANON_FAULT_ALLOC);
- DEFINE_MTHP_STAT_ATTR(anon_fault_fallback, MTHP_STAT_ANON_FAULT_FALLBACK);
- DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
--DEFINE_MTHP_STAT_ATTR(anon_swpout, MTHP_STAT_ANON_SWPOUT);
--DEFINE_MTHP_STAT_ATTR(anon_swpout_fallback, MTHP_STAT_ANON_SWPOUT_FALLBACK);
-+DEFINE_MTHP_STAT_ATTR(swpout, MTHP_STAT_SWPOUT);
-+DEFINE_MTHP_STAT_ATTR(swpout_fallback, MTHP_STAT_SWPOUT_FALLBACK);
- 
- static struct attribute *stats_attrs[] = {
- 	&anon_fault_alloc_attr.attr,
- 	&anon_fault_fallback_attr.attr,
- 	&anon_fault_fallback_charge_attr.attr,
--	&anon_swpout_attr.attr,
--	&anon_swpout_fallback_attr.attr,
-+	&swpout_attr.attr,
-+	&swpout_fallback_attr.attr,
- 	NULL,
- };
- 
---- a/mm/page_io.c~mm-drop-the-anon_-prefix-for-swap-out-mthp-counters
-+++ a/mm/page_io.c
-@@ -217,7 +217,7 @@ static inline void count_swpout_vm_event
- 		count_memcg_folio_events(folio, THP_SWPOUT, 1);
- 		count_vm_event(THP_SWPOUT);
+ 	/*
+@@ -1946,7 +1946,7 @@ static int folio_set_hugetlb_hwpoison(st
+ 	if (folio_test_hugetlb_raw_hwp_unreliable(folio))
+ 		return -EHWPOISON;
+ 	head = raw_hwp_list_head(folio);
+-	llist_for_each_entry_safe(p, next, head->first, node) {
++	llist_for_each_entry(p, head->first, node) {
+ 		if (p->page == page)
+ 			return -EHWPOISON;
  	}
--	count_mthp_stat(folio_order(folio), MTHP_STAT_ANON_SWPOUT);
-+	count_mthp_stat(folio_order(folio), MTHP_STAT_SWPOUT);
- #endif
- 	count_vm_events(PSWPOUT, folio_nr_pages(folio));
- }
---- a/mm/vmscan.c~mm-drop-the-anon_-prefix-for-swap-out-mthp-counters
-+++ a/mm/vmscan.c
-@@ -1230,7 +1230,7 @@ retry:
- 							THP_SWPOUT_FALLBACK, 1);
- 						count_vm_event(THP_SWPOUT_FALLBACK);
- 					}
--					count_mthp_stat(order, MTHP_STAT_ANON_SWPOUT_FALLBACK);
-+					count_mthp_stat(order, MTHP_STAT_SWPOUT_FALLBACK);
- #endif
- 					if (!add_to_swap(folio))
- 						goto activate_locked_split;
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from liyifei28@huawei.com are
 
-mm-drop-the-anon_-prefix-for-swap-out-mthp-counters.patch
+mm-memory-failure-use-helper-llist_for_each_entry.patch
 
