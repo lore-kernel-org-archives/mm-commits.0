@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF8186FE16
-	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 20:26:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CA0439ADB
+	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 20:26:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716582383; cv=none; b=NfAuTRXXHlZ02LawqeXwnFi4zw9LWkhveVdSXOxS0kLb86FtgnapjFlxVU/WWo7Wt0FrNH8bAYyd8eixb/FeTTKl6kB72GcInj+z1H0orMY9asmORM92tDD8q8clruXXAWIphjKRfK4T9Dnke6QK6znG+YbOC2V0/VFYLT5uBww=
+	t=1716582384; cv=none; b=meTirD99x2ummnWX1pIgPJfS5FKqd2OGn9+MQZZ3Z7wwFPXTCe+O0S48fPrQFTUvHUvy5JX1pbGy4mHN53fiNgZUL9eF7vNyNcD+K5fVEyt3UTDI/3AIgO39qTpiCGUrTSCmMIrazW27xXe9k0z/Bh4DrCSKpV772+cg7RxBs8o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716582383; c=relaxed/simple;
-	bh=/cYSbIRhqSPCaRmkkxe7lAeHsTUlBWrmXL1MAbwmHTY=;
-	h=Date:To:From:Subject:Message-Id; b=sHf3DYil8FR7mCHjRJcLlQ6rboYMckSfxlIzJ2nLAsdG/TtEFgi00OVg2u8Hhwtw5VOawWD3Yndkg415Nsg1l/zGFuGzOtCm6mtgpxe6V6QPvXNQpm4zc2HB7pGs3dy3eQoNIALfp1r0VaGF1X2nbw3MScmbjjk/QrfNBXlmbzg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HObogKAw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716582384; c=relaxed/simple;
+	bh=MKit0C5q+Fw9yKnM8fdZSBbDOHU5vqSUmFucvuEwQPQ=;
+	h=Date:To:From:Subject:Message-Id; b=muJ61rePB+ouQMrpyqbrphpujlWtak7SBdxtsrThykhILYtyMv4UNd1WSrrXwYvYe2hoKy9xUO+lQm/8hwmQ2y2r2QSRbzC/DH1VeyMCit58CLAdR8/T+AoaUxvG8yiDw8Byfya1dvDLMolbJC9+/IN70ZtuHw2PF6deekushH4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LlsGzqun; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HObogKAw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F702C2BBFC;
-	Fri, 24 May 2024 20:26:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LlsGzqun"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AE6CC2BBFC;
+	Fri, 24 May 2024 20:26:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716582382;
-	bh=/cYSbIRhqSPCaRmkkxe7lAeHsTUlBWrmXL1MAbwmHTY=;
+	s=korg; t=1716582384;
+	bh=MKit0C5q+Fw9yKnM8fdZSBbDOHU5vqSUmFucvuEwQPQ=;
 	h=Date:To:From:Subject:From;
-	b=HObogKAwWYlu01jlTo2KXvP7wBVjOMRggSKfF0RKO85DayJbuR8A6MHfz3q0D6R5s
-	 8dmQx1W3T7OLBn2f7yb250CCvG42M7flPUg8enc3KHdwIHU4DG9wIonyfypLcKJvsH
-	 DXacwmWPdZ9wU2CPvtOAkc+HMGg51pyEYk4oyC3E=
-Date: Fri, 24 May 2024 13:26:21 -0700
+	b=LlsGzqunMYxe2fNmZnNuZzbNmvGqrgJeLs2fT/1QEJMuIGh/zyBUYyL5GSxNavdG2
+	 /X/EPa+0Ms9WoNKjOf42iBD0+wCM8qL/d/Fhlhn8x+I7smQ9rBN6dt4uUDBeNjILZc
+	 6+WNZ4ZcXU4bS20nX/SJJ5gCZJ8VthI0U5+H4uDY=
+Date: Fri, 24 May 2024 13:26:23 -0700
 To: mm-commits@vger.kernel.org,quic_eberman@quicinc.com,quic_bjorande@quicinc.com,cmllamas@google.com,xndchn@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-decode_stacktracesh-wrap-nm-with-util_prefix-and-util_suffix.patch added to mm-nonmm-unstable branch
-Message-Id: <20240524202622.6F702C2BBFC@smtp.kernel.org>
+Subject: + scripts-decode_stacktracesh-better-support-to-arm32-module-stack-trace.patch added to mm-nonmm-unstable branch
+Message-Id: <20240524202624.2AE6CC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/decode_stacktrace.sh: wrap nm with UTIL_PREFIX and UTIL_SUFFIX
+     Subject: scripts/decode_stacktrace.sh: better support to ARM32 module stack trace
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-decode_stacktracesh-wrap-nm-with-util_prefix-and-util_suffix.patch
+     scripts-decode_stacktracesh-better-support-to-arm32-module-stack-trace.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-decode_stacktracesh-wrap-nm-with-util_prefix-and-util_suffix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-decode_stacktracesh-better-support-to-arm32-module-stack-trace.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,48 +59,41 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Xiong Nandi <xndchn@gmail.com>
-Subject: scripts/decode_stacktrace.sh: wrap nm with UTIL_PREFIX and UTIL_SUFFIX
-Date: Fri, 24 May 2024 12:25:59 +0800
+Subject: scripts/decode_stacktrace.sh: better support to ARM32 module stack trace
+Date: Fri, 24 May 2024 12:26:00 +0800
 
-Patch series "scripts/decode_stacktrace.sh: better support to ARM32".
+Sometimes there are special characters around module names in stack
+traces, such as ARM32 with BACKTRACE_VERBOSE in "(%pS)" format, such as:
+[<806e4845>] (dump_stack_lvl) from [<7f806013>] (hello_init+0x13/0x1000
+[test])
 
+In this case, $module will be "[test])", the trace can be decoded by
+stripping the right parenthesis first: (dump_stack_lvl) from hello_init
+(/foo/test.c:10) test.
 
-This patch (of 2):
-
-Since System.map is generated by cross-compile nm tool, we should use it here
-too. Otherwise host nm may not recognize ARM Thumb-2 instruction address well.
-
-Link: https://lkml.kernel.org/r/20240524042600.14738-1-xndchn@gmail.com
-Link: https://lkml.kernel.org/r/20240524042600.14738-2-xndchn@gmail.com
+Link: https://lkml.kernel.org/r/20240524042600.14738-3-xndchn@gmail.com
 Signed-off-by: Xiong Nandi <xndchn@gmail.com>
-Reviewed-by: Elliot Berman <quic_eberman@quicinc.com>
+Suggested-by: Elliot Berman <quic_eberman@quicinc.com>
 Cc: Bjorn Andersson <quic_bjorande@quicinc.com>
 Cc: Carlos Llamas <cmllamas@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/decode_stacktrace.sh |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-wrap-nm-with-util_prefix-and-util_suffix
+--- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-better-support-to-arm32-module-stack-trace
 +++ a/scripts/decode_stacktrace.sh
-@@ -30,6 +30,7 @@ fi
+@@ -283,6 +283,9 @@ handle_line() {
  
- READELF=${UTIL_PREFIX}readelf${UTIL_SUFFIX}
- ADDR2LINE=${UTIL_PREFIX}addr2line${UTIL_SUFFIX}
-+NM=${UTIL_PREFIX}nm${UTIL_SUFFIX}
- 
- if [[ $1 == "-r" ]] ; then
- 	vmlinux=""
-@@ -158,7 +159,7 @@ parse_symbol() {
- 	if [[ $aarray_support == true && "${cache[$module,$name]+isset}" == "isset" ]]; then
- 		local base_addr=${cache[$module,$name]}
- 	else
--		local base_addr=$(nm "$objfile" 2>/dev/null | awk '$3 == "'$name'" && ($2 == "t" || $2 == "T") {print $1; exit}')
-+		local base_addr=$(${NM} "$objfile" 2>/dev/null | awk '$3 == "'$name'" && ($2 == "t" || $2 == "T") {print $1; exit}')
- 		if [[ $base_addr == "" ]] ; then
- 			# address not found
- 			return
+ 	if [[ ${words[$last]} =~ \[([^]]+)\] ]]; then
+ 		module=${words[$last]}
++		# some traces format is "(%pS)", which like "(foo+0x0/0x1 [bar])"
++		# so $module may like "[bar])". Strip the right parenthesis firstly
++		module=${module%\)}
+ 		module=${module#\[}
+ 		module=${module%\]}
+ 		modbuildid=${module#* }
 _
 
 Patches currently in -mm which might be from xndchn@gmail.com are
