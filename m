@@ -1,141 +1,107 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1869623776
-	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 03:00:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A6E73EA64;
+	Fri, 24 May 2024 18:51:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716519609; cv=none; b=bDmMBS6vqPDxXVq95EqEq/t+9Ss6LgxRic5HETyqPP3HMu0gjwO6N/43YieoRCOksXXQHOWF4I6aLfSdnswCThZYdl20Midi6f3B9LSkaU1wfs8QTTnG+BE986566ZHn5meV9qujRm9SM0v94NKENa6P1GAsLZBl2kafafjS4+g=
+	t=1716576696; cv=none; b=caSejmjxA3xz5Cc601vTEBndPEGnKYuBnmWQSM0CBjjpYIuFHf4CR9f2A9Ix1+H9gqASeEKKXFVD8vJ/sHod8bQgyEzKNPBI0m6S9wraXXOTxAbV+Z1/Fasr9/8XwlB9BWWqgo5wfpdS/DfQ7GJ0dz0t6KixL2eKjs5IyWQ5yQQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716519609; c=relaxed/simple;
-	bh=r6fBk9y/KrPYDMWWeyl4tPdIM0PgnBZj7lqpXOOBKjw=;
-	h=Date:To:From:Subject:Message-Id; b=FPTzqUG2Hzl5i+58qfsB4v3xgOK8Ci+RlY4G1wdd5XHoXzvBRth9yKrD1DgKncYKwaaGb5PYsgrI7/90kfgHZ7HX9NK3EA74ki2sVWNoJfg/rX4LtIqaRqTnOwcQsdml7+2s8QUA6igMVzwEVozKyvS1ncE/o8mH7Zh4R0NXk20=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X6RwRglw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716576696; c=relaxed/simple;
+	bh=LMF9gkUgHj1akckbBYnGykASAD6kVjbsT7sG7bX3nE4=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=NEmO1H0e02fgPOFkKNh6EKmyRcSYhPAHdUf0eOft22BDgBfFltXKZ6XffdaKp9V2oNjBrABmwG3B8IJ/U68J26BndPXxh1nIQn8BwJtu4DT9AGRNgQHuGMFtMI7Fcj8IfmHfpEcmZDwTHdWXdTLI38+H3KKF9oLkLv7uS27+E00=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v0ZDJDFo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X6RwRglw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78A1AC2BD10;
-	Fri, 24 May 2024 03:00:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v0ZDJDFo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3290DC2BBFC;
+	Fri, 24 May 2024 18:51:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716519608;
-	bh=r6fBk9y/KrPYDMWWeyl4tPdIM0PgnBZj7lqpXOOBKjw=;
-	h=Date:To:From:Subject:From;
-	b=X6RwRglwAp3iLolyuDl03Na4RWbHujNK1UspsG6nj0XXoV2Rn+uH0fOvAHZJiuKy7
-	 WUOdROv08G/onxpoO5O6oQKd1YwfJy6euQv81SprRCassl5toFfLyeeMKAO5Mm9x14
-	 JYo0//KZ/B2wnQHR4le4BFU9fZEw7krhsflhfcmY=
-Date: Thu, 23 May 2024 20:00:07 -0700
-To: mm-commits@vger.kernel.org,yoann.congal@smile.fr,vincent.guittot@linaro.org,rdunlap@infradead.org,pmladek@suse.com,nphamcs@gmail.com,masahiroy@kernel.org,gustavoars@kernel.org,davem@davemloft.net,arnd@arndb.de,aleksander.lobakin@intel.com,yury.norov@gmail.com,akpm@linux-foundation.org
+	s=korg; t=1716576696;
+	bh=LMF9gkUgHj1akckbBYnGykASAD6kVjbsT7sG7bX3nE4=;
+	h=Date:From:To:Cc:Subject:From;
+	b=v0ZDJDFokhg5Y1Da+53pmWUPHBl53thb8uo3wp/9W0jDlrEVTjKZXPE7rd09wJtDX
+	 gfL6iuCIZfbefowsxPyeH7MUZgah0zVaOauf9dCnx17BWKrhw8Is5cZeBTMluz3Ttz
+	 x9NL+f5tIhQUIs5Esa1VdtWmms4iIuoerSE+9gL8=
+Date: Fri, 24 May 2024 11:51:35 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + gcc-disable-warray-bounds-for-gcc-9.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240524030008.78A1AC2BD10@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] final MM update for 6.10-rc1
+Message-Id: <20240524115135.3b6fd971bdb3e538e1873632@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: gcc: disable '-Warray-bounds' for gcc-9
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     gcc-disable-warray-bounds-for-gcc-9.patch
+Linus, please merge Jeff's mseal() syscall patchset, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gcc-disable-warray-bounds-for-gcc-9.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit c760b3725e52403dc1b28644fb09c47a83cacea6:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Merge tag 'mm-nonmm-stable-2024-05-22-17-30' of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm (2024-05-22 18:59:29 -0700)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2024-05-24-11-49
 
-------------------------------------------------------
-From: Yury Norov <yury.norov@gmail.com>
-Subject: gcc: disable '-Warray-bounds' for gcc-9
-Date: Wed, 22 May 2024 15:58:30 -0700
+for you to fetch changes up to a52b4f11a2e17109c4b9f7df4ff19215b1752efc:
 
-'-Warray-bounds' is already disabled for gcc-10+.  Now that we've merged
-bitmap_{read,write), I see the following error when building the kernel
-with gcc-9.4 (Ubuntu 20.04.4 LTS) for x86_64 allmodconfig:
+  selftest mm/mseal read-only elf memory segment (2024-05-23 19:40:27 -0700)
 
-drivers/pinctrl/pinctrl-cy8c95x0.c: In function `cy8c95x0_read_regs_mask.isra.0':
-include/linux/bitmap.h:756:18: error: array subscript [1, 288230376151711744] is outside array bounds of `long unsigned int[1]' [-Werror=array-bounds]
-  756 |  value_high = map[index + 1] & BITMAP_LAST_WORD_MASK(start + nbits);
-      |               ~~~^~~~~~~~~~~
+----------------------------------------------------------------
+Jeff Xu's implementation of the mseal() syscall.
 
-The immediate reason is that the commit b44759705f7d ("bitmap: make
-bitmap_{get,set}_value8() use bitmap_{read,write}()") switched the
-bitmap_get_value8() to an alias of bitmap_read(); the same for 'set'.
+----------------------------------------------------------------
+Jeff Xu (5):
+      mseal: wire up mseal syscall
+      mseal: add mseal syscall
+      selftest mm/mseal memory sealing
+      mseal: add documentation
+      selftest mm/mseal read-only elf memory segment
 
-Now; the code that triggers Warray-bounds, calls the function like this:
-
-  #define MAX_BANK 8
-  #define BANK_SZ 8
-  #define MAX_LINE        (MAX_BANK * BANK_SZ)
-  DECLARE_BITMAP(tval, MAX_LINE); // 64-bit map: unsigned long tval[1]
-
-  read_val |= bitmap_get_value8(tval, i * BANK_SZ) & ~bits;
-
-bitmap_read() is implemented such that it may conditionally dereference a
-pointer beyond the boundary like this:
-
-	unsigned long offset = start % BITS_PER_LONG;
-        unsigned long space = BITS_PER_LONG - offset;
-
-        if (space >= nbits)
-                return (map[index] >> offset) & BITMAP_LAST_WORD_MASK(nbits);
-
-        value_low = map[index] & BITMAP_FIRST_WORD_MASK(start);
-        value_high = map[index + 1] & BITMAP_LAST_WORD_MASK(start + nbits);
-        return (value_low >> offset) | (value_high << space);
-
-In case of bitmap_get_value8(), it's impossible to violate the boundary
-because 'space >= nbits' is never the true for byte-aligned 8-bit access. 
-So, this is clearly a false-positive.
-
-The same type of false-positives break my allmodconfig build in many
-places.  gcc-8, is clear, however.
-
-Link: https://lkml.kernel.org/r/20240522225830.1201778-1-yury.norov@gmail.com
-Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Cc: Alexander Lobakin <aleksander.lobakin@intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Yoann Congal <yoann.congal@smile.fr>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- init/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/init/Kconfig~gcc-disable-warray-bounds-for-gcc-9
-+++ a/init/Kconfig
-@@ -883,7 +883,7 @@ config GCC10_NO_ARRAY_BOUNDS
- 
- config CC_NO_ARRAY_BOUNDS
- 	bool
--	default y if CC_IS_GCC && GCC_VERSION >= 100000 && GCC10_NO_ARRAY_BOUNDS
-+	default y if CC_IS_GCC && GCC_VERSION >= 90000 && GCC10_NO_ARRAY_BOUNDS
- 
- # Currently, disable -Wstringop-overflow for GCC globally.
- config GCC_NO_STRINGOP_OVERFLOW
-_
-
-Patches currently in -mm which might be from yury.norov@gmail.com are
-
-gcc-disable-warray-bounds-for-gcc-9.patch
+ Documentation/userspace-api/index.rst       |    1 +
+ Documentation/userspace-api/mseal.rst       |  199 +++
+ arch/alpha/kernel/syscalls/syscall.tbl      |    1 +
+ arch/arm/tools/syscall.tbl                  |    1 +
+ arch/arm64/include/asm/unistd.h             |    2 +-
+ arch/arm64/include/asm/unistd32.h           |    2 +
+ arch/m68k/kernel/syscalls/syscall.tbl       |    1 +
+ arch/microblaze/kernel/syscalls/syscall.tbl |    1 +
+ arch/mips/kernel/syscalls/syscall_n32.tbl   |    1 +
+ arch/mips/kernel/syscalls/syscall_n64.tbl   |    1 +
+ arch/mips/kernel/syscalls/syscall_o32.tbl   |    1 +
+ arch/parisc/kernel/syscalls/syscall.tbl     |    1 +
+ arch/powerpc/kernel/syscalls/syscall.tbl    |    1 +
+ arch/s390/kernel/syscalls/syscall.tbl       |    1 +
+ arch/sh/kernel/syscalls/syscall.tbl         |    1 +
+ arch/sparc/kernel/syscalls/syscall.tbl      |    1 +
+ arch/x86/entry/syscalls/syscall_32.tbl      |    1 +
+ arch/x86/entry/syscalls/syscall_64.tbl      |    1 +
+ arch/xtensa/kernel/syscalls/syscall.tbl     |    1 +
+ include/linux/syscalls.h                    |    1 +
+ include/uapi/asm-generic/unistd.h           |    5 +-
+ kernel/sys_ni.c                             |    1 +
+ mm/Makefile                                 |    4 +
+ mm/internal.h                               |   37 +
+ mm/madvise.c                                |   12 +
+ mm/mmap.c                                   |   31 +-
+ mm/mprotect.c                               |   10 +
+ mm/mremap.c                                 |   31 +
+ mm/mseal.c                                  |  307 +++++
+ tools/testing/selftests/mm/.gitignore       |    2 +
+ tools/testing/selftests/mm/Makefile         |    2 +
+ tools/testing/selftests/mm/mseal_test.c     | 1894 +++++++++++++++++++++++++++
+ tools/testing/selftests/mm/seal_elf.c       |  179 +++
+ 33 files changed, 2732 insertions(+), 3 deletions(-)
+ create mode 100644 Documentation/userspace-api/mseal.rst
+ create mode 100644 mm/mseal.c
+ create mode 100644 tools/testing/selftests/mm/mseal_test.c
+ create mode 100644 tools/testing/selftests/mm/seal_elf.c
 
