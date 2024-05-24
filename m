@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADAFC39ADB
-	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 20:29:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6ABAE39ADB
+	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 20:29:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716582571; cv=none; b=dTUw5+09YKK0Ye5iznGbbZ3tN2q/wQADjHbGwmO5ylzdGfpEs6b4GfLwNKxYzWHFZRQJvZgoGNoeEpuOkBN8YUJH7rXBobdDUMpsJNm2DqShZoRWM4XubT9APxCXTcq6C/12Fs9g407/pFpXr4tw3w3t22JK1m4NdYEn3+ha1LI=
+	t=1716582572; cv=none; b=Q64Lya76Z9Kn+qZT1WAAxf7AAXp4zDp1PbB9uVRsCh2jRf30GPkXo6lR8/8DYiPdVSsgivq6Bq0P+oQtVnd+FceLZ7o6pqRlpqZ0p0luPt7FuPCiYcRu8vGluZNRTfgjMhoRs1BdjL4lMljxbCFh60ReuGMxGZJjrGrciX9aBYg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716582571; c=relaxed/simple;
-	bh=yhuJC3CedW22FArnj1jC1V8vfvKKOGG+V2yos2g4RiU=;
-	h=Date:To:From:Subject:Message-Id; b=KrdZp/xEmI9EDN4wah2huGUEgWy85e9U4XluRpBEZDE8I61p7N17Y9PAjNDkv8BmC8Gqhkgf2FzueRDdDLDKMoI3axTso7J/e68JfzsAm74hkz5UHcYGIMz54KSmf3nD5WkjsHnaEt/E9qUxieElXxn/JwWCwpMx9PFwrVXCQ7w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VjTNAPFR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716582572; c=relaxed/simple;
+	bh=msIxGfcvq5qx4ig5a9S1mYVBhOTTc8FO6d+ug9uwxbk=;
+	h=Date:To:From:Subject:Message-Id; b=LGz/HxZgsn0HcWNHN6gl8VOOHQoaNfpkKldgrDPo6DwSVekjqRf9VeCDnX8+cJy62hAMB2/KWpzdEdD4j1ovcyhbz+sITWxsy/xRVG6i81sSmKy2ryZ53FA67MxemZjVRX7GyFGH7HDMBxfbD8ujKMP9XPyJZggIjzJFmQOPvR0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GS7fsELk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VjTNAPFR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66DCAC2BBFC;
-	Fri, 24 May 2024 20:29:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GS7fsELk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34ECBC2BBFC;
+	Fri, 24 May 2024 20:29:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716582570;
-	bh=yhuJC3CedW22FArnj1jC1V8vfvKKOGG+V2yos2g4RiU=;
+	s=korg; t=1716582572;
+	bh=msIxGfcvq5qx4ig5a9S1mYVBhOTTc8FO6d+ug9uwxbk=;
 	h=Date:To:From:Subject:From;
-	b=VjTNAPFRA23saY+6+5yQMhof8o8bUMnuFSm6K3MQBanIw/XivpDVJz9y4h+SoGBU3
-	 LVIxWG/9L+2CP9UT9Xbo2oXrJW3vJZeYt12GIFH+IF2S0VEfHWzjPwkoVHz7G4qM9X
-	 EzZFi97LBxghpwUbN7jSocEvMHE1Os64cJu1+01c=
-Date: Fri, 24 May 2024 13:29:29 -0700
+	b=GS7fsELkuzNVcQCAbe0/Ik3z7S9z6yaSMfJ7cq50DJHAn8/T372u9ghferZUJfI8V
+	 XxRNAPlSpzSXX6V3gNJvNNiH51z7geePv2ryq75RuAUCNZpqPUxOB+o32YMtBXsia2
+	 iSDDtUEu9jiisXrGxUNhaNQvPgwy7qY9919ovNCg=
+Date: Fri, 24 May 2024 13:29:31 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-use-sg_set_folio-in-zswap_compress-decompress.patch added to mm-unstable branch
-Message-Id: <20240524202930.66DCAC2BBFC@smtp.kernel.org>
+Subject: + mm-zswap-use-kmap_local_folio-in-zswap_load.patch added to mm-unstable branch
+Message-Id: <20240524202932.34ECBC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: use sg_set_folio() in zswap_{compress/decompress}()
+     Subject: mm :zswap: use kmap_local_folio() in zswap_load()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-use-sg_set_folio-in-zswap_compress-decompress.patch
+     mm-zswap-use-kmap_local_folio-in-zswap_load.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-use-sg_set_folio-in-zswap_compress-decompress.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-use-kmap_local_folio-in-zswap_load.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zswap: use sg_set_folio() in zswap_{compress/decompress}()
-Date: Fri, 24 May 2024 03:38:16 +0000
+Subject: mm :zswap: use kmap_local_folio() in zswap_load()
+Date: Fri, 24 May 2024 03:38:17 +0000
 
-Patch series "mm: zswap: trivial folio conversions".
+Eliminate the last explicit 'struct page' reference in mm/zswap.c.
 
-Some trivial folio conversions in zswap code.
-
-
-This patch (of 3):
-
-sg_set_folio() is equivalent to sg_set_page() for order-0 folios, which
-are the only ones supported by zswap. Now zswap_decompress() can take in
-a folio directly.
-
-Link: https://lkml.kernel.org/r/20240524033819.1953587-1-yosryahmed@google.com
-Link: https://lkml.kernel.org/r/20240524033819.1953587-2-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/20240524033819.1953587-3-yosryahmed@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -83,56 +73,28 @@ Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/zswap.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-use-sg_set_folio-in-zswap_compress-decompress
+--- a/mm/zswap.c~mm-zswap-use-kmap_local_folio-in-zswap_load
 +++ a/mm/zswap.c
-@@ -917,7 +917,7 @@ static bool zswap_compress(struct folio
- 
- 	dst = acomp_ctx->buffer;
- 	sg_init_table(&input, 1);
--	sg_set_page(&input, &folio->page, PAGE_SIZE, 0);
-+	sg_set_folio(&input, folio, PAGE_SIZE, 0);
- 
- 	/*
- 	 * We need PAGE_SIZE * 2 here since there maybe over-compression case,
-@@ -971,7 +971,7 @@ unlock:
- 	return comp_ret == 0 && alloc_ret == 0;
- }
- 
--static void zswap_decompress(struct zswap_entry *entry, struct page *page)
-+static void zswap_decompress(struct zswap_entry *entry, struct folio *folio)
+@@ -1551,7 +1551,6 @@ bool zswap_load(struct folio *folio)
  {
- 	struct zpool *zpool = zswap_find_zpool(entry);
- 	struct scatterlist input, output;
-@@ -1000,7 +1000,7 @@ static void zswap_decompress(struct zswa
- 
- 	sg_init_one(&input, src, entry->length);
- 	sg_init_table(&output, 1);
--	sg_set_page(&output, page, PAGE_SIZE, 0);
-+	sg_set_folio(&output, folio, PAGE_SIZE, 0);
- 	acomp_request_set_params(acomp_ctx->req, &input, &output, entry->length, PAGE_SIZE);
- 	BUG_ON(crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait));
- 	BUG_ON(acomp_ctx->req->dlen != PAGE_SIZE);
-@@ -1073,7 +1073,7 @@ static int zswap_writeback_entry(struct
- 		return -ENOMEM;
- 	}
- 
--	zswap_decompress(entry, &folio->page);
-+	zswap_decompress(entry, folio);
- 
- 	count_vm_event(ZSWPWB);
- 	if (entry->objcg)
-@@ -1580,7 +1580,7 @@ bool zswap_load(struct folio *folio)
- 		return false;
- 
+ 	swp_entry_t swp = folio->swap;
+ 	pgoff_t offset = swp_offset(swp);
+-	struct page *page = &folio->page;
+ 	bool swapcache = folio_test_swapcache(folio);
+ 	struct xarray *tree = swap_zswap_tree(swp);
+ 	struct zswap_entry *entry;
+@@ -1582,7 +1581,7 @@ bool zswap_load(struct folio *folio)
  	if (entry->length)
--		zswap_decompress(entry, page);
-+		zswap_decompress(entry, folio);
+ 		zswap_decompress(entry, folio);
  	else {
- 		dst = kmap_local_page(page);
+-		dst = kmap_local_page(page);
++		dst = kmap_local_folio(folio, 0);
  		zswap_fill_page(dst, entry->value);
+ 		kunmap_local(dst);
+ 	}
 _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
