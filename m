@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 758694084D;
-	Fri, 24 May 2024 18:55:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8620840861;
+	Fri, 24 May 2024 18:55:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716576954; cv=none; b=OiAULsFYVeTB/x/aEwJgh9GTJhE4BpObM3aiG5K1eEt4h7+Ehihh8nyDX3BZHkaCLSIT0Is33IS3mmP3ZxURN/4j6tKaL83JfNJxAEGQ9hgc+OWxkQFr3WvZeOzasYMR9zhJH8Jp9LRp4l4w5A1mz+acHpKRqIeJaoEUNg1hwJc=
+	t=1716576955; cv=none; b=PNsIXbLMBhCmwyubjGf3OIrUlMVkUO563Uen+shSnB579zT0VktvEnpeaTdnGHvGevnQjo3tqreIERVOW6RdLlHM/+nIxQ+A5LQQn395k1iJzMBjieuS4a2p/5rOK3aOBQqvqWV+0G7E7vwygG2tG3ZcPFp8Jo672c4LZSdDxXs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716576954; c=relaxed/simple;
-	bh=hQJn8Y4FCA0jD7MuoZaF/U0aDfhtr1pbu8zYVh1swXg=;
-	h=Date:To:From:Subject:Message-Id; b=ZwwsXBRzscSdMvLhUxmCfoUuXkyWBhM3vmcaFycJ+E/8QZZXg2A6bjXFZh1h//QjHqY4blRepUJUa4+Rc25c6qQPWIgpeKDOVNrF8rzDknBnAbFqngCg/G7lScldp3vs9FgTyVGmtBQZkSj4yXjfb1gru4CfIRdZm0UMp9maoWU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IgadjU++; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716576955; c=relaxed/simple;
+	bh=tKE3st4xotQlWA9peJNnfcdXeE/TkNjJegwrifCxIfk=;
+	h=Date:To:From:Subject:Message-Id; b=oOW76mQLOWafzUFzdvwWMrGqR9P+C/sUjvOr2DteVn8ZocKNkqhcqIAl7Cquz5kEVdPnsFDI6aZhhwJiQgPHFLGhDPHf+Ykdruwx3gKqTwFgetpV4FxEkuPUOjbCu42xOjtkhQdZkirqQwmtsj138Mzol8Og5oEUkRcuR7VvNPo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kz30vKO0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IgadjU++"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48252C32782;
-	Fri, 24 May 2024 18:55:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kz30vKO0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A757C2BBFC;
+	Fri, 24 May 2024 18:55:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716576954;
-	bh=hQJn8Y4FCA0jD7MuoZaF/U0aDfhtr1pbu8zYVh1swXg=;
+	s=korg; t=1716576955;
+	bh=tKE3st4xotQlWA9peJNnfcdXeE/TkNjJegwrifCxIfk=;
 	h=Date:To:From:Subject:From;
-	b=IgadjU++q4IvF0MYDPK1oRYGGYl/PcZsLf/66jYMZJ3/LBF2zcavDfep8UcsHYJTp
-	 nqj5hDi2fM0n58L6ljyj3+N69OnO5tpxekI1/AITcc1xszkULW0gsdtEvtD1s0SCmB
-	 5CCUuSqvLm3s1CYgj02kgvx1/RgJZ+nDi0Z0qskw=
-Date: Fri, 24 May 2024 11:55:53 -0700
+	b=kz30vKO01acafe36Sm4vinNLXIP+LRXeCgmW/aJw8f5D117peWuaNDZdVPpXp135W
+	 vAnnTdhhxxPZ/gY6m62YCIEQNIPObJ08ahE2fRbNBQZdctFdDoe70R5iPCiBUcO/pc
+	 D+WNbvmiJGaI/hExMRyOC1O5c0gA2sBrly87lMgc=
+Date: Fri, 24 May 2024 11:55:54 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sjb7183@psu.edu,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-fix-use-after-free-of-timer-for-log-writer-thread.patch removed from -mm tree
-Message-Id: <20240524185554.48252C32782@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-unexpected-freezing-of-nilfs_segctor_sync.patch removed from -mm tree
+Message-Id: <20240524185555.5A757C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,131 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: fix use-after-free of timer for log writer thread
+     Subject: nilfs2: fix unexpected freezing of nilfs_segctor_sync()
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-use-after-free-of-timer-for-log-writer-thread.patch
+     nilfs2-fix-unexpected-freezing-of-nilfs_segctor_sync.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix use-after-free of timer for log writer thread
-Date: Mon, 20 May 2024 22:26:19 +0900
+Subject: nilfs2: fix unexpected freezing of nilfs_segctor_sync()
+Date: Mon, 20 May 2024 22:26:20 +0900
 
-Patch series "nilfs2: fix log writer related issues".
+A potential and reproducible race issue has been identified where
+nilfs_segctor_sync() would block even after the log writer thread writes a
+checkpoint, unless there is an interrupt or other trigger to resume log
+writing.
 
-This bug fix series covers three nilfs2 log writer-related issues,
-including a timer use-after-free issue and potential deadlock issue on
-unmount, and a potential freeze issue in event synchronization found
-during their analysis.  Details are described in each commit log.
+This turned out to be because, depending on the execution timing of the
+log writer thread running in parallel, the log writer thread may skip
+responding to nilfs_segctor_sync(), which causes a call to schedule()
+waiting for completion within nilfs_segctor_sync() to lose the opportunity
+to wake up.
 
+The reason why waking up the task waiting in nilfs_segctor_sync() may be
+skipped is that updating the request generation issued using a shared
+sequence counter and adding an wait queue entry to the request wait queue
+to the log writer, are not done atomically.  There is a possibility that
+log writing and request completion notification by nilfs_segctor_wakeup()
+may occur between the two operations, and in that case, the wait queue
+entry is not yet visible to nilfs_segctor_wakeup() and the wake-up of
+nilfs_segctor_sync() will be carried over until the next request occurs.
 
-This patch (of 3):
+Fix this issue by performing these two operations simultaneously within
+the lock section of sc_state_lock.  Also, following the memory barrier
+guidelines for event waiting loops, move the call to set_current_state()
+in the same location into the event waiting loop to ensure that a memory
+barrier is inserted just before the event condition determination.
 
-A use-after-free issue has been reported regarding the timer sc_timer on
-the nilfs_sc_info structure.
-
-The problem is that even though it is used to wake up a sleeping log
-writer thread, sc_timer is not shut down until the nilfs_sc_info structure
-is about to be freed, and is used regardless of the thread's lifetime.
-
-Fix this issue by limiting the use of sc_timer only while the log writer
-thread is alive.
-
-Link: https://lkml.kernel.org/r/20240520132621.4054-1-konishi.ryusuke@gmail.com
-Link: https://lkml.kernel.org/r/20240520132621.4054-2-konishi.ryusuke@gmail.com
-Fixes: fdce895ea5dd ("nilfs2: change sc_timer from a pointer to an embedded one in struct nilfs_sc_info")
+Link: https://lkml.kernel.org/r/20240520132621.4054-3-konishi.ryusuke@gmail.com
+Fixes: 9ff05123e3bf ("nilfs2: segment constructor")
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: "Bai, Shuangpeng" <sjb7183@psu.edu>
-Closes: https://groups.google.com/g/syzkaller/c/MK_LYqtt8ko/m/8rgdWeseAwAJ
 Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Cc: <stable@vger.kernel.org>
+Cc: "Bai, Shuangpeng" <sjb7183@psu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |   25 +++++++++++++++++++------
- 1 file changed, 19 insertions(+), 6 deletions(-)
+ fs/nilfs2/segment.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
---- a/fs/nilfs2/segment.c~nilfs2-fix-use-after-free-of-timer-for-log-writer-thread
+--- a/fs/nilfs2/segment.c~nilfs2-fix-unexpected-freezing-of-nilfs_segctor_sync
 +++ a/fs/nilfs2/segment.c
-@@ -2118,8 +2118,10 @@ static void nilfs_segctor_start_timer(st
- {
- 	spin_lock(&sci->sc_state_lock);
- 	if (!(sci->sc_state & NILFS_SEGCTOR_COMMIT)) {
--		sci->sc_timer.expires = jiffies + sci->sc_interval;
--		add_timer(&sci->sc_timer);
-+		if (sci->sc_task) {
-+			sci->sc_timer.expires = jiffies + sci->sc_interval;
-+			add_timer(&sci->sc_timer);
-+		}
- 		sci->sc_state |= NILFS_SEGCTOR_COMMIT;
- 	}
- 	spin_unlock(&sci->sc_state_lock);
-@@ -2320,10 +2322,21 @@ int nilfs_construct_dsync_segment(struct
-  */
- static void nilfs_segctor_accept(struct nilfs_sc_info *sci)
- {
-+	bool thread_is_alive;
-+
- 	spin_lock(&sci->sc_state_lock);
- 	sci->sc_seq_accepted = sci->sc_seq_request;
-+	thread_is_alive = (bool)sci->sc_task;
- 	spin_unlock(&sci->sc_state_lock);
--	del_timer_sync(&sci->sc_timer);
+@@ -2168,19 +2168,28 @@ static int nilfs_segctor_sync(struct nil
+ 	struct nilfs_segctor_wait_request wait_req;
+ 	int err = 0;
+ 
+-	spin_lock(&sci->sc_state_lock);
+ 	init_wait(&wait_req.wq);
+ 	wait_req.err = 0;
+ 	atomic_set(&wait_req.done, 0);
++	init_waitqueue_entry(&wait_req.wq, current);
 +
 +	/*
-+	 * This function does not race with the log writer thread's
-+	 * termination.  Therefore, deleting sc_timer, which should not be
-+	 * done after the log writer thread exits, can be done safely outside
-+	 * the area protected by sc_state_lock.
++	 * To prevent a race issue where completion notifications from the
++	 * log writer thread are missed, increment the request sequence count
++	 * "sc_seq_request" and insert a wait queue entry using the current
++	 * sequence number into the "sc_wait_request" queue at the same time
++	 * within the lock section of "sc_state_lock".
 +	 */
-+	if (thread_is_alive)
-+		del_timer_sync(&sci->sc_timer);
- }
- 
- /**
-@@ -2349,7 +2362,7 @@ static void nilfs_segctor_notify(struct
- 			sci->sc_flush_request &= ~FLUSH_DAT_BIT;
- 
- 		/* re-enable timer if checkpoint creation was not done */
--		if ((sci->sc_state & NILFS_SEGCTOR_COMMIT) &&
-+		if ((sci->sc_state & NILFS_SEGCTOR_COMMIT) && sci->sc_task &&
- 		    time_before(jiffies, sci->sc_timer.expires))
- 			add_timer(&sci->sc_timer);
- 	}
-@@ -2539,6 +2552,7 @@ static int nilfs_segctor_thread(void *ar
- 	int timeout = 0;
- 
- 	sci->sc_timer_task = current;
-+	timer_setup(&sci->sc_timer, nilfs_construction_timeout, 0);
- 
- 	/* start sync. */
- 	sci->sc_task = current;
-@@ -2606,6 +2620,7 @@ static int nilfs_segctor_thread(void *ar
-  end_thread:
- 	/* end sync. */
- 	sci->sc_task = NULL;
-+	timer_shutdown_sync(&sci->sc_timer);
- 	wake_up(&sci->sc_wait_task); /* for nilfs_segctor_kill_thread() */
++	spin_lock(&sci->sc_state_lock);
+ 	wait_req.seq = ++sci->sc_seq_request;
++	add_wait_queue(&sci->sc_wait_request, &wait_req.wq);
  	spin_unlock(&sci->sc_state_lock);
- 	return 0;
-@@ -2669,7 +2684,6 @@ static struct nilfs_sc_info *nilfs_segct
- 	INIT_LIST_HEAD(&sci->sc_gc_inodes);
- 	INIT_LIST_HEAD(&sci->sc_iput_queue);
- 	INIT_WORK(&sci->sc_iput_work, nilfs_iput_work_func);
--	timer_setup(&sci->sc_timer, nilfs_construction_timeout, 0);
  
- 	sci->sc_interval = HZ * NILFS_SC_DEFAULT_TIMEOUT;
- 	sci->sc_mjcp_freq = HZ * NILFS_SC_DEFAULT_SR_FREQ;
-@@ -2748,7 +2762,6 @@ static void nilfs_segctor_destroy(struct
+-	init_waitqueue_entry(&wait_req.wq, current);
+-	add_wait_queue(&sci->sc_wait_request, &wait_req.wq);
+-	set_current_state(TASK_INTERRUPTIBLE);
+ 	wake_up(&sci->sc_wait_daemon);
  
- 	down_write(&nilfs->ns_segctor_sem);
- 
--	timer_shutdown_sync(&sci->sc_timer);
- 	kfree(sci);
- }
- 
+ 	for (;;) {
++		set_current_state(TASK_INTERRUPTIBLE);
++
+ 		if (atomic_read(&wait_req.done)) {
+ 			err = wait_req.err;
+ 			break;
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
