@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CA8521103
-	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 02:40:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC63023D2
+	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 02:45:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716518455; cv=none; b=fslCrg8JUlT7YOzAkIJQLolcM/CGmccEHK+jl35qt7TZ7qL9NfNMQOdcXV/oTNQGtFbxvQtv/tV7rJskQjI3STfD8ZJOT3c3anXjgQHGupA6e6ris5AgvRo/+Nhe4Z5jXbr5ADXosy1T1uef/ah9WH0g59ofLXwMyVjaRWWgy3M=
+	t=1716518758; cv=none; b=FQV68n67lSSdjF/DVRoi36u0aBXCBoCnFvUzDLT62oL/h1fuPXKe9AHYLgwf1JOXKJ6qX87z+QD1w7NyosMe786iR1+9bj6fC4+wNsTpSD+6S/gYXCrRHBv3YdzHbvLiyH3/H8izV3B8M5efGu2VGuvvB1JI5fku3zHeKmD/2mA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716518455; c=relaxed/simple;
-	bh=iZHwx5AbH6Txc3tokRZB+BtJmVci7SVzmMbQGVg8j3U=;
-	h=Date:To:From:Subject:Message-Id; b=FeB5pU04AL+RIXEvFQUCQpFmWIfdKoXNfcUjI3RAbSnal0WOBw42LfBF8LXzTfS59xp5GTyqf5QhcciIRbQNHaocSZplF3DLDWYaZphU93lioJFFgpyMfgOtK86A912hRvzAgJM/+l3chPNTZ8QyVPmuBnu/JDpGa8kpSXGEzyw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xsh0wxBS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716518758; c=relaxed/simple;
+	bh=XlnOodpGrQrA7tfbTVu1+vIG4/4CPi02SW7JiJfekCc=;
+	h=Date:To:From:Subject:Message-Id; b=G8Ad7ftK38SqXsexbaVq4YVBtIGnDAP6XuDa6wzdz7JueaMaDeBH/LwdKJ3IJ/1bRgnogyQlbsNBCOnhorlUHO58KXwbzdMgwzoYjE3zjHyVTrnT/Zm5kBcE1EOJWiC1Qf04aHjGuPOkz4yP5T1OhwvcZ5M9WWG4MVlYgBlgU3s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C/zz7HbY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xsh0wxBS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69308C2BD10;
-	Fri, 24 May 2024 02:40:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C/zz7HbY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7368BC2BD10;
+	Fri, 24 May 2024 02:45:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716518454;
-	bh=iZHwx5AbH6Txc3tokRZB+BtJmVci7SVzmMbQGVg8j3U=;
+	s=korg; t=1716518758;
+	bh=XlnOodpGrQrA7tfbTVu1+vIG4/4CPi02SW7JiJfekCc=;
 	h=Date:To:From:Subject:From;
-	b=Xsh0wxBSGhbjHVZe936HFylLfVSsVBl4F7uSuNpBVdV5gXUZRoZETzIpR9naX9lQ2
-	 MSCJ2i4HyQ89eTMR0m3JuxvecEeIc/qbEUggt/v9H9I1teWvl9Kbp03kjvNz10zTrb
-	 65H3qlVed2uGEfYFs5pEVMKQDvZJNbyyqJj3DpTg=
-Date: Thu, 23 May 2024 19:40:53 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,usama.anjum@collabora.com,torvalds@linux-foundation.org,surenb@google.com,sroettger@google.com,shuah@kernel.org,pedro.falcato@gmail.com,Liam.Howlett@oracle.com,keescook@chromium.org,jorgelo@chromium.org,jeffxu@google.com,javier.carrasco.cruz@gmail.com,jannh@google.com,groeck@chromium.org,gregkh@linuxfoundation.org,dave.hansen@intel.com,corbet@lwn.net,amer.shanawany@gmail.com,jeffxu@chromium.org,akpm@linux-foundation.org
+	b=C/zz7HbYm5uSu9UvVPiOBRvTrbgfZXeSqHGnyoGq6Spcmhr8HTtVoZyjhNPwc/kMK
+	 Adra78Vuho3y4hwsUKvVfSqGo6XiuiAEXpn95nfF0MdYIe+64Qd6UIUHe/6T+A4Tk5
+	 wpDAEDxRo5Dl2JrrcX4puw/O5ZoeTlfgfpr62g5k=
+Date: Thu, 23 May 2024 19:45:57 -0700
+To: mm-commits@vger.kernel.org,yujie.liu@intel.com,lkp@intel.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftest-mm-mseal-read-only-elf-memory-segment.patch removed from -mm tree
-Message-Id: <20240524024054.69308C2BD10@smtp.kernel.org>
+Subject: + mm-huge_mm-fix-undefined-reference-to-mthp_stats-for-config_sysfs=n.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240524024558.7368BC2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,775 +34,91 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: selftest mm/mseal read-only elf memory segment
-has been removed from the -mm tree.  Its filename was
-     selftest-mm-mseal-read-only-elf-memory-segment.patch
+The patch titled
+     Subject: mm: huge_mm: fix undefined reference to `mthp_stats' for CONFIG_SYSFS=n
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-huge_mm-fix-undefined-reference-to-mthp_stats-for-config_sysfs=n.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_mm-fix-undefined-reference-to-mthp_stats-for-config_sysfs=n.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jeff Xu <jeffxu@chromium.org>
-Subject: selftest mm/mseal read-only elf memory segment
-Date: Mon, 15 Apr 2024 16:35:24 +0000
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: huge_mm: fix undefined reference to `mthp_stats' for CONFIG_SYSFS=n
+Date: Fri, 24 May 2024 08:50:48 +1200
 
-Sealing read-only of elf mapping so it can't be changed by mprotect.
+if CONFIG_SYSFS is not enabled in config, we get the below error,
 
-[jeffxu@chromium.org: style change]
-  Link: https://lkml.kernel.org/r/20240416220944.2481203-2-jeffxu@chromium.org
-[amer.shanawany@gmail.com: fix linker error for inline function]
-  Link: https://lkml.kernel.org/r/20240420202346.546444-1-amer.shanawany@gmail.com
-[jeffxu@chromium.org: fix compile warning]
-  Link: https://lkml.kernel.org/r/20240420003515.345982-2-jeffxu@chromium.org
-[jeffxu@chromium.org: fix arm build]
-  Link: https://lkml.kernel.org/r/20240502225331.3806279-2-jeffxu@chromium.org
-Link: https://lkml.kernel.org/r/20240415163527.626541-6-jeffxu@chromium.org
-Signed-off-by: Jeff Xu <jeffxu@chromium.org>
-Signed-off-by: Amer Al Shanawany <amer.shanawany@gmail.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Guenter Roeck <groeck@chromium.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jeff Xu <jeffxu@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Pedro Falcato <pedro.falcato@gmail.com>
-Cc: Stephen Röttger <sroettger@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Amer Al Shanawany <amer.shanawany@gmail.com>
-Cc: Javier Carrasco <javier.carrasco.cruz@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
+All errors (new ones prefixed by >>):
+
+   s390-linux-ld: mm/memory.o: in function `count_mthp_stat':
+>> include/linux/huge_mm.h:285:(.text+0x191c): undefined reference to `mthp_stats'
+   s390-linux-ld: mm/huge_memory.o:(.rodata+0x10): undefined reference to `mthp_stats'
+
+vim +285 include/linux/huge_mm.h
+
+   279
+   280  static inline void count_mthp_stat(int order, enum mthp_stat_item item)
+   281  {
+   282          if (order <= 0 || order > PMD_ORDER)
+   283                  return;
+   284
+ > 285          this_cpu_inc(mthp_stats.stats[order][item]);
+   286  }
+   287
+
+Link: https://lkml.kernel.org/r/20240523210045.40444-1-21cnbao@gmail.com
+Fixes: ec33687c6749 ("mm: add per-order mTHP anon_fault_alloc and anon_fault_fallback counters")
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202405231728.tCAogiSI-lkp@intel.com/
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Tested-by: Yujie Liu <yujie.liu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore   |    1 
- tools/testing/selftests/mm/Makefile     |    1 
- tools/testing/selftests/mm/mseal_test.c |  130 +++++++++++----
- tools/testing/selftests/mm/seal_elf.c   |  179 ++++++++++++++++++++++
- 4 files changed, 275 insertions(+), 36 deletions(-)
+ include/linux/huge_mm.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/tools/testing/selftests/mm/.gitignore~selftest-mm-mseal-read-only-elf-memory-segment
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -48,3 +48,4 @@ va_high_addr_switch
- hugetlb_fault_after_madv
- hugetlb_madv_vs_map
- mseal_test
-+seal_elf
---- a/tools/testing/selftests/mm/Makefile~selftest-mm-mseal-read-only-elf-memory-segment
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -60,6 +60,7 @@ TEST_GEN_FILES += mrelease_test
- TEST_GEN_FILES += mremap_dontunmap
- TEST_GEN_FILES += mremap_test
- TEST_GEN_FILES += mseal_test
-+TEST_GEN_FILES += seal_elf
- TEST_GEN_FILES += on-fault-limit
- TEST_GEN_FILES += pagemap_ioctl
- TEST_GEN_FILES += thuge-gen
---- a/tools/testing/selftests/mm/mseal_test.c~selftest-mm-mseal-read-only-elf-memory-segment
-+++ a/tools/testing/selftests/mm/mseal_test.c
-@@ -1,5 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0
- #define _GNU_SOURCE
-+#include <linux/mman.h>
- #include <sys/mman.h>
- #include <stdint.h>
- #include <unistd.h>
-@@ -12,9 +13,7 @@
- #include <errno.h>
- #include <stdio.h>
- #include <stdlib.h>
--#include <assert.h>
- #include <fcntl.h>
--#include <assert.h>
- #include <sys/ioctl.h>
- #include <sys/vfs.h>
- #include <sys/stat.h>
-@@ -31,7 +30,7 @@
- # define PKEY_DISABLE_WRITE     0x2
- #endif
+--- a/include/linux/huge_mm.h~mm-huge_mm-fix-undefined-reference-to-mthp_stats-for-config_sysfs=n
++++ a/include/linux/huge_mm.h
+@@ -278,6 +278,7 @@ struct mthp_stat {
+ 	unsigned long stats[ilog2(MAX_PTRS_PER_PTE) + 1][__MTHP_STAT_COUNT];
+ };
  
--#ifndef PKEY_BITS_PER_KEY
-+#ifndef PKEY_BITS_PER_PKEY
- #define PKEY_BITS_PER_PKEY      2
- #endif
++#ifdef CONFIG_SYSFS
+ DECLARE_PER_CPU(struct mthp_stat, mthp_stats);
  
-@@ -81,7 +80,7 @@ static unsigned long get_vma_size(void *
- 		return 0;
+ static inline void count_mthp_stat(int order, enum mthp_stat_item item)
+@@ -287,6 +288,11 @@ static inline void count_mthp_stat(int o
  
- 	while (fgets(line, sizeof(line), maps)) {
--		if (sscanf(line, "%lx-%lx %4s", &addr_start, &addr_end, &protstr) == 3) {
-+		if (sscanf(line, "%lx-%lx %4s", &addr_start, &addr_end, protstr) == 3) {
- 			if (addr_start == (uintptr_t) addr) {
- 				size = addr_end - addr_start;
- 				if (protstr[0] == 'r')
-@@ -189,7 +188,6 @@ static void __write_pkey_reg(u64 pkey_re
- 
- 	asm volatile(".byte 0x0f,0x01,0xef\n\t"
- 			: : "a" (eax), "c" (ecx), "d" (edx));
--	assert(pkey_reg == __read_pkey_reg());
- #endif
+ 	this_cpu_inc(mthp_stats.stats[order][item]);
  }
- 
-@@ -211,10 +209,8 @@ static u64 set_pkey_bits(u64 reg, int pk
- 
- static void set_pkey(int pkey, unsigned long pkey_value)
- {
--	unsigned long mask = (PKEY_DISABLE_ACCESS | PKEY_DISABLE_WRITE);
- 	u64 new_pkey_reg;
- 
--	assert(!(pkey_value & ~mask));
- 	new_pkey_reg = set_pkey_bits(__read_pkey_reg(), pkey, pkey_value);
- 	__write_pkey_reg(new_pkey_reg);
- }
-@@ -224,7 +220,6 @@ static void setup_single_address(int siz
- 	void *ptr;
- 
- 	ptr = sys_mmap(NULL, size, PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
--	assert(ptr != (void *)-1);
- 	*ptrOut = ptr;
- }
- 
-@@ -234,24 +229,21 @@ static void setup_single_address_rw(int
- 	unsigned long mapflags = MAP_ANONYMOUS | MAP_PRIVATE;
- 
- 	ptr = sys_mmap(NULL, size, PROT_READ | PROT_WRITE, mapflags, -1, 0);
--	assert(ptr != (void *)-1);
- 	*ptrOut = ptr;
- }
- 
--static void clean_single_address(void *ptr, int size)
-+static int clean_single_address(void *ptr, int size)
- {
- 	int ret;
--
- 	ret = munmap(ptr, size);
--	assert(!ret);
-+	return ret;
- }
- 
--static void seal_single_address(void *ptr, int size)
-+static int seal_single_address(void *ptr, int size)
- {
- 	int ret;
--
- 	ret = sys_mseal(ptr, size);
--	assert(!ret);
-+	return ret;
- }
- 
- bool seal_support(void)
-@@ -290,6 +282,7 @@ static void test_seal_addseal(void)
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	ret = sys_mseal(ptr, size);
- 	FAIL_TEST_IF_FALSE(!ret);
-@@ -305,6 +298,7 @@ static void test_seal_unmapped_start(voi
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	/* munmap 2 pages from ptr. */
- 	ret = sys_munmap(ptr, 2 * page_size);
-@@ -332,6 +326,7 @@ static void test_seal_unmapped_middle(vo
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	/* munmap 2 pages from ptr + page. */
- 	ret = sys_munmap(ptr + page_size, 2 * page_size);
-@@ -363,6 +358,7 @@ static void test_seal_unmapped_end(void)
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	/* unmap last 2 pages. */
- 	ret = sys_munmap(ptr + 2 * page_size, 2 * page_size);
-@@ -391,6 +387,7 @@ static void test_seal_multiple_vmas(void
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	/* use mprotect to split the vma into 3. */
- 	ret = sys_mprotect(ptr + page_size, 2 * page_size,
-@@ -421,6 +418,7 @@ static void test_seal_split_start(void)
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	/* use mprotect to split at middle */
- 	ret = sys_mprotect(ptr, 2 * page_size, PROT_READ | PROT_WRITE);
-@@ -445,6 +443,7 @@ static void test_seal_split_end(void)
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	/* use mprotect to split at middle */
- 	ret = sys_mprotect(ptr, 2 * page_size, PROT_READ | PROT_WRITE);
-@@ -469,7 +468,9 @@ static void test_seal_invalid_input(void
- 	int ret;
- 
- 	setup_single_address(8 * page_size, &ptr);
--	clean_single_address(ptr + 4 * page_size, 4 * page_size);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	ret = clean_single_address(ptr + 4 * page_size, 4 * page_size);
-+	FAIL_TEST_IF_FALSE(!ret);
- 
- 	/* invalid flag */
- 	ret = syscall(__NR_mseal, ptr, size, 0x20);
-@@ -502,6 +503,7 @@ static void test_seal_zero_length(void)
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	ret = sys_mprotect(ptr, 0, PROT_READ | PROT_WRITE);
- 	FAIL_TEST_IF_FALSE(!ret);
-@@ -551,6 +553,7 @@ static void test_seal_twice(void)
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	ret = sys_mseal(ptr, size);
- 	FAIL_TEST_IF_FALSE(!ret);
-@@ -570,9 +573,12 @@ static void test_seal_mprotect(bool seal
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
--	if (seal)
--		seal_single_address(ptr, size);
-+	if (seal) {
-+		ret = seal_single_address(ptr, size);
-+		FAIL_TEST_IF_FALSE(!ret);
-+	}
- 
- 	ret = sys_mprotect(ptr, size, PROT_READ | PROT_WRITE);
- 	if (seal)
-@@ -591,9 +597,12 @@ static void test_seal_start_mprotect(boo
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
--	if (seal)
--		seal_single_address(ptr, page_size);
-+	if (seal) {
-+		ret = seal_single_address(ptr, page_size);
-+		FAIL_TEST_IF_FALSE(!ret);
-+	}
- 
- 	/* the first page is sealed. */
- 	ret = sys_mprotect(ptr, page_size, PROT_READ | PROT_WRITE);
-@@ -618,9 +627,12 @@ static void test_seal_end_mprotect(bool
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
--	if (seal)
--		seal_single_address(ptr + page_size, 3 * page_size);
-+	if (seal) {
-+		ret = seal_single_address(ptr + page_size, 3 * page_size);
-+		FAIL_TEST_IF_FALSE(!ret);
-+	}
- 
- 	/* first page is not sealed */
- 	ret = sys_mprotect(ptr, page_size, PROT_READ | PROT_WRITE);
-@@ -645,9 +657,12 @@ static void test_seal_mprotect_unalign_l
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
--	if (seal)
--		seal_single_address(ptr, page_size * 2 - 1);
-+	if (seal) {
-+		ret = seal_single_address(ptr, page_size * 2 - 1);
-+		FAIL_TEST_IF_FALSE(!ret);
-+	}
- 
- 	/* 2 pages are sealed. */
- 	ret = sys_mprotect(ptr, page_size * 2, PROT_READ | PROT_WRITE);
-@@ -671,8 +686,11 @@ static void test_seal_mprotect_unalign_l
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	if (seal)
--		seal_single_address(ptr, page_size * 2 + 1);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	if (seal) {
-+		ret =  seal_single_address(ptr, page_size * 2 + 1);
-+		FAIL_TEST_IF_FALSE(!ret);
-+	}
- 
- 	/* 3 pages are sealed. */
- 	ret = sys_mprotect(ptr, page_size * 3, PROT_READ | PROT_WRITE);
-@@ -696,13 +714,16 @@ static void test_seal_mprotect_two_vma(b
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	/* use mprotect to split */
- 	ret = sys_mprotect(ptr, page_size * 2, PROT_READ | PROT_WRITE);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
--	if (seal)
--		seal_single_address(ptr, page_size * 4);
-+	if (seal) {
-+		ret = seal_single_address(ptr, page_size * 4);
-+		FAIL_TEST_IF_FALSE(!ret);
-+	}
- 
- 	ret = sys_mprotect(ptr, page_size * 2, PROT_READ | PROT_WRITE);
- 	if (seal)
-@@ -728,14 +749,17 @@ static void test_seal_mprotect_two_vma_w
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	/* use mprotect to split as two vma. */
- 	ret = sys_mprotect(ptr, page_size * 2, PROT_READ | PROT_WRITE);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
- 	/* mseal can apply across 2 vma, also split them. */
--	if (seal)
--		seal_single_address(ptr + page_size, page_size * 2);
-+	if (seal) {
-+		ret = seal_single_address(ptr + page_size, page_size * 2);
-+		FAIL_TEST_IF_FALSE(!ret);
-+	}
- 
- 	/* the first page is not sealed. */
- 	ret = sys_mprotect(ptr, page_size, PROT_READ | PROT_WRITE);
-@@ -772,10 +796,13 @@ static void test_seal_mprotect_partial_m
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	/* seal one page. */
--	if (seal)
--		seal_single_address(ptr, page_size);
-+	if (seal) {
-+		ret = seal_single_address(ptr, page_size);
-+		FAIL_TEST_IF_FALSE(!ret);
-+	}
- 
- 	/* mprotect first 2 page will fail, since the first page are sealed. */
- 	ret = sys_mprotect(ptr, 2 * page_size, PROT_READ | PROT_WRITE);
-@@ -795,6 +822,7 @@ static void test_seal_mprotect_two_vma_w
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	/* use mprotect to split. */
- 	ret = sys_mprotect(ptr, page_size, PROT_READ | PROT_WRITE);
-@@ -837,6 +865,7 @@ static void test_seal_mprotect_split(boo
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	/* use mprotect to split. */
- 	ret = sys_mprotect(ptr, page_size, PROT_READ | PROT_WRITE);
-@@ -873,6 +902,7 @@ static void test_seal_mprotect_merge(boo
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	/* use mprotect to split one page. */
- 	ret = sys_mprotect(ptr, page_size, PROT_READ | PROT_WRITE);
-@@ -906,6 +936,7 @@ static void test_seal_munmap(bool seal)
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -936,6 +967,7 @@ static void test_seal_munmap_two_vma(boo
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	/* use mprotect to split */
- 	ret = sys_mprotect(ptr, page_size * 2, PROT_READ | PROT_WRITE);
-@@ -976,6 +1008,7 @@ static void test_seal_munmap_vma_with_ga
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	ret = sys_munmap(ptr + page_size, page_size * 2);
- 	FAIL_TEST_IF_FALSE(!ret);
-@@ -1007,6 +1040,7 @@ static void test_munmap_start_freed(bool
- 	int prot;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	/* unmap the first page. */
- 	ret = sys_munmap(ptr, page_size);
-@@ -1045,6 +1079,8 @@ static void test_munmap_end_freed(bool s
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+
- 	/* unmap last page. */
- 	ret = sys_munmap(ptr + page_size * 3, page_size);
- 	FAIL_TEST_IF_FALSE(!ret);
-@@ -1074,6 +1110,8 @@ static void test_munmap_middle_freed(boo
- 	int prot;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+
- 	/* unmap 2 pages in the middle. */
- 	ret = sys_munmap(ptr + page_size, page_size * 2);
- 	FAIL_TEST_IF_FALSE(!ret);
-@@ -1116,6 +1154,7 @@ static void test_seal_mremap_shrink(bool
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1144,6 +1183,7 @@ static void test_seal_mremap_expand(bool
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 	/* ummap last 2 pages. */
- 	ret = sys_munmap(ptr + 2 * page_size, 2 * page_size);
- 	FAIL_TEST_IF_FALSE(!ret);
-@@ -1175,8 +1215,11 @@ static void test_seal_mremap_move(bool s
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 	setup_single_address(size, &newPtr);
--	clean_single_address(newPtr, size);
-+	FAIL_TEST_IF_FALSE(newPtr != (void *)-1);
-+	ret = clean_single_address(newPtr, size);
-+	FAIL_TEST_IF_FALSE(!ret);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1205,6 +1248,7 @@ static void test_seal_mmap_overwrite_pro
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1232,6 +1276,7 @@ static void test_seal_mmap_expand(bool s
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 	/* ummap last 4 pages. */
- 	ret = sys_munmap(ptr + 8 * page_size, 4 * page_size);
- 	FAIL_TEST_IF_FALSE(!ret);
-@@ -1262,6 +1307,7 @@ static void test_seal_mmap_shrink(bool s
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1290,7 +1336,9 @@ static void test_seal_mremap_shrink_fixe
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 	setup_single_address(size, &newAddr);
-+	FAIL_TEST_IF_FALSE(newAddr != (void *)-1);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1319,7 +1367,9 @@ static void test_seal_mremap_expand_fixe
- 	void *ret2;
- 
- 	setup_single_address(page_size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 	setup_single_address(size, &newAddr);
-+	FAIL_TEST_IF_FALSE(newAddr != (void *)-1);
- 
- 	if (seal) {
- 		ret = sys_mseal(newAddr, size);
-@@ -1348,7 +1398,9 @@ static void test_seal_mremap_move_fixed(
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 	setup_single_address(size, &newAddr);
-+	FAIL_TEST_IF_FALSE(newAddr != (void *)-1);
- 
- 	if (seal) {
- 		ret = sys_mseal(newAddr, size);
-@@ -1375,6 +1427,7 @@ static void test_seal_mremap_move_fixed_
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1406,6 +1459,7 @@ static void test_seal_mremap_move_dontun
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1434,6 +1488,7 @@ static void test_seal_mremap_move_dontun
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1469,6 +1524,7 @@ static void test_seal_merge_and_split(vo
- 
- 	/* (24 RO) */
- 	setup_single_address(24 * page_size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	/* use mprotect(NONE) to set out boundary */
- 	/* (1 NONE) (22 RO) (1 NONE) */
-@@ -1700,9 +1756,12 @@ static void test_seal_discard_ro_anon(bo
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
--	if (seal)
--		seal_single_address(ptr, size);
-+	if (seal) {
-+		ret = seal_single_address(ptr, size);
-+		FAIL_TEST_IF_FALSE(!ret);
-+	}
- 
- 	ret = sys_madvise(ptr, size, MADV_DONTNEED);
- 	if (seal)
-@@ -1832,5 +1891,4 @@ int main(int argc, char **argv)
- 	test_seal_discard_ro_anon_on_pkey(true);
- 
- 	ksft_finished();
--	return 0;
- }
---- /dev/null
-+++ a/tools/testing/selftests/mm/seal_elf.c
-@@ -0,0 +1,179 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#define _GNU_SOURCE
-+#include <sys/mman.h>
-+#include <stdint.h>
-+#include <unistd.h>
-+#include <string.h>
-+#include <sys/time.h>
-+#include <sys/resource.h>
-+#include <stdbool.h>
-+#include "../kselftest.h"
-+#include <syscall.h>
-+#include <errno.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <fcntl.h>
-+#include <sys/ioctl.h>
-+#include <sys/vfs.h>
-+#include <sys/stat.h>
-+
-+/*
-+ * need those definition for manually build using gcc.
-+ * gcc -I ../../../../usr/include   -DDEBUG -O3  -DDEBUG -O3 seal_elf.c -o seal_elf
-+ */
-+#define FAIL_TEST_IF_FALSE(c) do {\
-+		if (!(c)) {\
-+			ksft_test_result_fail("%s, line:%d\n", __func__, __LINE__);\
-+			goto test_end;\
-+		} \
-+	} \
-+	while (0)
-+
-+#define SKIP_TEST_IF_FALSE(c) do {\
-+		if (!(c)) {\
-+			ksft_test_result_skip("%s, line:%d\n", __func__, __LINE__);\
-+			goto test_end;\
-+		} \
-+	} \
-+	while (0)
-+
-+
-+#define TEST_END_CHECK() {\
-+		ksft_test_result_pass("%s\n", __func__);\
-+		return;\
-+test_end:\
-+		return;\
++#else
++static inline void count_mthp_stat(int order, enum mthp_stat_item item)
++{
 +}
-+
-+#ifndef u64
-+#define u64 unsigned long long
 +#endif
-+
-+/*
-+ * define sys_xyx to call syscall directly.
-+ */
-+static int sys_mseal(void *start, size_t len)
-+{
-+	int sret;
-+
-+	errno = 0;
-+	sret = syscall(__NR_mseal, start, len, 0);
-+	return sret;
-+}
-+
-+static void *sys_mmap(void *addr, unsigned long len, unsigned long prot,
-+	unsigned long flags, unsigned long fd, unsigned long offset)
-+{
-+	void *sret;
-+
-+	errno = 0;
-+	sret = (void *) syscall(__NR_mmap, addr, len, prot,
-+		flags, fd, offset);
-+	return sret;
-+}
-+
-+static inline int sys_mprotect(void *ptr, size_t size, unsigned long prot)
-+{
-+	int sret;
-+
-+	errno = 0;
-+	sret = syscall(__NR_mprotect, ptr, size, prot);
-+	return sret;
-+}
-+
-+static bool seal_support(void)
-+{
-+	int ret;
-+	void *ptr;
-+	unsigned long page_size = getpagesize();
-+
-+	ptr = sys_mmap(NULL, page_size, PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-+	if (ptr == (void *) -1)
-+		return false;
-+
-+	ret = sys_mseal(ptr, page_size);
-+	if (ret < 0)
-+		return false;
-+
-+	return true;
-+}
-+
-+const char somestr[4096] = {"READONLY"};
-+
-+static void test_seal_elf(void)
-+{
-+	int ret;
-+	FILE *maps;
-+	char line[512];
-+	uintptr_t  addr_start, addr_end;
-+	char prot[5];
-+	char filename[256];
-+	unsigned long page_size = getpagesize();
-+	unsigned long long ptr = (unsigned long long) somestr;
-+	char *somestr2 = (char *)somestr;
-+
-+	/*
-+	 * Modify the protection of readonly somestr
-+	 */
-+	if (((unsigned long long)ptr % page_size) != 0)
-+		ptr = (unsigned long long)ptr & ~(page_size - 1);
-+
-+	ksft_print_msg("somestr = %s\n", somestr);
-+	ksft_print_msg("change protection to rw\n");
-+	ret = sys_mprotect((void *)ptr, page_size, PROT_READ|PROT_WRITE);
-+	FAIL_TEST_IF_FALSE(!ret);
-+	*somestr2 = 'A';
-+	ksft_print_msg("somestr is modified to: %s\n", somestr);
-+	ret = sys_mprotect((void *)ptr, page_size, PROT_READ);
-+	FAIL_TEST_IF_FALSE(!ret);
-+
-+	maps = fopen("/proc/self/maps", "r");
-+	FAIL_TEST_IF_FALSE(maps);
-+
-+	/*
-+	 * apply sealing to elf binary
-+	 */
-+	while (fgets(line, sizeof(line), maps)) {
-+		if (sscanf(line, "%lx-%lx %4s %*x %*x:%*x %*u %255[^\n]",
-+			&addr_start, &addr_end, prot, filename) == 4) {
-+			if (strlen(filename)) {
-+				/*
-+				 * seal the mapping if read only.
-+				 */
-+				if (strstr(prot, "r-")) {
-+					ret = sys_mseal((void *)addr_start, addr_end - addr_start);
-+					FAIL_TEST_IF_FALSE(!ret);
-+					ksft_print_msg("sealed: %lx-%lx %s %s\n",
-+						addr_start, addr_end, prot, filename);
-+					if ((uintptr_t) somestr >= addr_start &&
-+						(uintptr_t) somestr <= addr_end)
-+						ksft_print_msg("mapping for somestr found\n");
-+				}
-+			}
-+		}
-+	}
-+	fclose(maps);
-+
-+	ret = sys_mprotect((void *)ptr, page_size, PROT_READ | PROT_WRITE);
-+	FAIL_TEST_IF_FALSE(ret < 0);
-+	ksft_print_msg("somestr is sealed, mprotect is rejected\n");
-+
-+	TEST_END_CHECK();
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	bool test_seal = seal_support();
-+
-+	ksft_print_header();
-+	ksft_print_msg("pid=%d\n", getpid());
-+
-+	if (!test_seal)
-+		ksft_exit_skip("sealing not supported, check CONFIG_64BIT\n");
-+
-+	ksft_set_plan(1);
-+
-+	test_seal_elf();
-+
-+	ksft_finished();
-+}
+ 
+ #define transparent_hugepage_use_zero_page()				\
+ 	(transparent_hugepage_flags &					\
 _
 
-Patches currently in -mm which might be from jeffxu@chromium.org are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
+mm-huge_mm-fix-undefined-reference-to-mthp_stats-for-config_sysfs=n.patch
 
