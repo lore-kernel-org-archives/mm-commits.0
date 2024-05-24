@@ -1,80 +1,551 @@
-Received: from out30-101.freemail.mail.aliyun.com (out30-101.freemail.mail.aliyun.com [115.124.30.101])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4612C4430
-	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 01:12:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.101
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30A2D1E884
+	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 02:40:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716513155; cv=none; b=Mzh2MvFdQBH3FoFoFech7/7VPNSTEmWESBP+1yFiAaByMHkkJBsn829+ytfgy0mQzkVGHx1LJHPwXblCKHVCflnAJHowTwyVf5lCTdXn28vu29MHhwCAViOokb3TdJHhWJSHZ41WxIx5LO0N2FwdNo+BkrAkN5vYJ3odeCWaO4o=
+	t=1716518449; cv=none; b=VBFclkx3h3u5xLmSAoha3kmZbsI2jnjlXNkPYH5WORsrNBgf//6Fk1RpAxTQk3C+QWX7Knxd9jFgWFmd80pNc1+dkd64ZON81NM+Vdjl+KtXgf7OUdU0eJ2jDw9tu0pSxTf8+Bdgqf8BG2Z+zTuwTS6QbWqUqXBgYTIvpRcW6dc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716513155; c=relaxed/simple;
-	bh=HEiAjZXs30txuZEmMpKJPrMt8RyfQ9FTL/siQaTHUf0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Cfhp7vZaagExYXlJSZKcOX9XWu4A7rLZ0QFToMovrEzROAGQw8mLfl3vTi+vGSj2L3CJimvlUg6gW1CI1iUrky+O/cCtTaMBlgvwasJRCiqDxJWO18bA7K3a+kvyYGNHld9VqKfDCyVj/37uMVX0MWK6lmcHIzmHHAp0EMBcDeQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=sU2/FLAq; arc=none smtp.client-ip=115.124.30.101
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1716518449; c=relaxed/simple;
+	bh=GO7e18esRpJn7gke6V8n41j14bG/9fiUT1Yob/ahm14=;
+	h=Date:To:From:Subject:Message-Id; b=r4lbDXkGKpGD+Qa0kXQY4YRKBcqT2LHXIRrzix0ncTUAwMD5hqNDBeMh6P46y1JSo3kdaI6aElm1iHajJmRpyAk9KTVhmDDm/TfeuiZ6pJMqOVNyaQa7zie8eY60S0n7OzWY0srRqI3qWjBfmPZRK1POHpjrm8lijMb+EePuj/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sk/Z0onc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="sU2/FLAq"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1716513148; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=x4m59I74BL2aMprBx9xU+duv7FOSt4M4dNAu+wUASTY=;
-	b=sU2/FLAq6ERlULJ7J0pZBZFYw0XORB5INekXrjVV2keW4EmzeI/oSjkSrOdLs4sLyd8fmR0OJolOof/qetA2wx+yv4y3IkBisbOSTJMInWWZIbHRZLbVSzI1Cw1yIHNc+HybioF/Ark9+QrSkCQwy4f75cU/DwA6CwnT4cS8Nek=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R181e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033022160150;MF=baolin.wang@linux.alibaba.com;NM=1;PH=DS;RN=9;SR=0;TI=SMTPD_---0W74Bf0h_1716513146;
-Received: from 30.97.56.65(mailfrom:baolin.wang@linux.alibaba.com fp:SMTPD_---0W74Bf0h_1716513146)
-          by smtp.aliyun-inc.com;
-          Fri, 24 May 2024 09:12:28 +0800
-Message-ID: <e984fd19-f355-4716-af85-5e5275550e87@linux.alibaba.com>
-Date: Fri, 24 May 2024 09:12:26 +0800
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sk/Z0onc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D84CC2BD10;
+	Fri, 24 May 2024 02:40:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1716518448;
+	bh=GO7e18esRpJn7gke6V8n41j14bG/9fiUT1Yob/ahm14=;
+	h=Date:To:From:Subject:From;
+	b=sk/Z0onchbGxItftmJk58hLSVbgENWU4bOvo8EmyX4x8gkQR9FmItA89BiIidFH4h
+	 p/hu8FIeRHP2K8c7jcUYhTh2nKYFQkh++LbvOGINVL4YF7lJEo+7iROp+DKhoVMl8S
+	 Pk8Pxx9KV2mawBMsD3YQvu7W4ByF3Yfi7XzD8rT0=
+Date: Thu, 23 May 2024 19:40:47 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,usama.anjum@collabora.com,torvalds@linux-foundation.org,surenb@google.com,sroettger@google.com,shuah@kernel.org,pedro.falcato@gmail.com,Liam.Howlett@oracle.com,keescook@chromium.org,jorgelo@chromium.org,jeffxu@google.com,javier.carrasco.cruz@gmail.com,jannh@google.com,groeck@chromium.org,gregkh@linuxfoundation.org,dave.hansen@intel.com,corbet@lwn.net,amer.shanawany@gmail.com,jeffxu@chromium.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [merged mm-stable] mseal-wire-up-mseal-syscall.patch removed from -mm tree
+Message-Id: <20240524024048.8D84CC2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: + mm-drop-the-anon_-prefix-for-swap-out-mthp-counters.patch added
- to mm-unstable branch
-To: Andrew Morton <akpm@linux-foundation.org>, Barry Song <baohua@kernel.org>
-Cc: mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
- willy@infradead.org, ryan.roberts@arm.com, ioworker0@gmail.com,
- david@redhat.com
-References: <20240523194021.CF145C2BD10@smtp.kernel.org>
- <CAGsJ_4z_FiDM8v8h8gbfmr5ooU8Dw6TyQrG3MXRUdOzQfmrjhg@mail.gmail.com>
- <20240523165005.3b1569628569060cfba211f4@linux-foundation.org>
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-In-Reply-To: <20240523165005.3b1569628569060cfba211f4@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
 
 
+The quilt patch titled
+     Subject: mseal: wire up mseal syscall
+has been removed from the -mm tree.  Its filename was
+     mseal-wire-up-mseal-syscall.patch
 
-On 2024/5/24 07:50, Andrew Morton wrote:
-> On Fri, 24 May 2024 10:55:17 +1200 Barry Song <baohua@kernel.org> wrote:
-> 
->> On Fri, May 24, 2024 at 7:40 AM Andrew Morton <akpm@linux-foundation.org> wrote:
->>>
->>>
->>> The patch titled
->>>       Subject: mm: drop the 'anon_' prefix for swap-out mTHP counters
->>> has been added to the -mm mm-unstable branch.  Its filename is
->>>       mm-drop-the-anon_-prefix-for-swap-out-mthp-counters.patch
->>
->> Hi Andrew,
->>
->> Baolin is aiming to implement this rename for version 6.10.
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Thanks for reminding.
+------------------------------------------------------
+From: Jeff Xu <jeffxu@chromium.org>
+Subject: mseal: wire up mseal syscall
+Date: Mon, 15 Apr 2024 16:35:20 +0000
 
-> 
-> No probs, I kinda missed that in the changelog.
-> 
-> Things like this should have a Fixes: so that anyone who backports the
-> original feature patch knows to grab this as well.  Please?
+Patch series "Introduce mseal", v10.
 
-Sure, the fixes tag should be:
-Fixes: d0f048ac39f6 ("mm: add per-order mTHP anon_swpout and 
-anon_swpout_fallback counters")
-Fixes: 42248b9d34ea ("mm: add docs for per-order mTHP counters and 
-transhuge_page ABI")
+This patchset proposes a new mseal() syscall for the Linux kernel.
+
+In a nutshell, mseal() protects the VMAs of a given virtual memory range
+against modifications, such as changes to their permission bits.
+
+Modern CPUs support memory permissions, such as the read/write (RW) and
+no-execute (NX) bits.  Linux has supported NX since the release of kernel
+version 2.6.8 in August 2004 [1].  The memory permission feature improves
+the security stance on memory corruption bugs, as an attacker cannot
+simply write to arbitrary memory and point the code to it.  The memory
+must be marked with the X bit, or else an exception will occur. 
+Internally, the kernel maintains the memory permissions in a data
+structure called VMA (vm_area_struct).  mseal() additionally protects the
+VMA itself against modifications of the selected seal type.
+
+Memory sealing is useful to mitigate memory corruption issues where a
+corrupted pointer is passed to a memory management system.  For example,
+such an attacker primitive can break control-flow integrity guarantees
+since read-only memory that is supposed to be trusted can become writable
+or .text pages can get remapped.  Memory sealing can automatically be
+applied by the runtime loader to seal .text and .rodata pages and
+applications can additionally seal security critical data at runtime.  A
+similar feature already exists in the XNU kernel with the
+VM_FLAGS_PERMANENT [3] flag and on OpenBSD with the mimmutable syscall
+[4].  Also, Chrome wants to adopt this feature for their CFI work [2] and
+this patchset has been designed to be compatible with the Chrome use case.
+
+Two system calls are involved in sealing the map:  mmap() and mseal().
+
+The new mseal() is an syscall on 64 bit CPU, and with following signature:
+
+int mseal(void addr, size_t len, unsigned long flags)
+addr/len: memory range.
+flags: reserved.
+
+mseal() blocks following operations for the given memory range.
+
+1> Unmapping, moving to another location, and shrinking the size,
+   via munmap() and mremap(), can leave an empty space, therefore can
+   be replaced with a VMA with a new set of attributes.
+
+2> Moving or expanding a different VMA into the current location,
+   via mremap().
+
+3> Modifying a VMA via mmap(MAP_FIXED).
+
+4> Size expansion, via mremap(), does not appear to pose any specific
+   risks to sealed VMAs. It is included anyway because the use case is
+   unclear. In any case, users can rely on merging to expand a sealed VMA.
+
+5> mprotect() and pkey_mprotect().
+
+6> Some destructive madvice() behaviors (e.g. MADV_DONTNEED) for anonymous
+   memory, when users don't have write permission to the memory. Those
+   behaviors can alter region contents by discarding pages, effectively a
+   memset(0) for anonymous memory.
+
+The idea that inspired this patch comes from Stephen Röttger’s work in
+V8 CFI [5].  Chrome browser in ChromeOS will be the first user of this
+API.
+
+Indeed, the Chrome browser has very specific requirements for sealing,
+which are distinct from those of most applications.  For example, in the
+case of libc, sealing is only applied to read-only (RO) or read-execute
+(RX) memory segments (such as .text and .RELRO) to prevent them from
+becoming writable, the lifetime of those mappings are tied to the lifetime
+of the process.
+
+Chrome wants to seal two large address space reservations that are managed
+by different allocators.  The memory is mapped RW- and RWX respectively
+but write access to it is restricted using pkeys (or in the future ARM
+permission overlay extensions).  The lifetime of those mappings are not
+tied to the lifetime of the process, therefore, while the memory is
+sealed, the allocators still need to free or discard the unused memory. 
+For example, with madvise(DONTNEED).
+
+However, always allowing madvise(DONTNEED) on this range poses a security
+risk.  For example if a jump instruction crosses a page boundary and the
+second page gets discarded, it will overwrite the target bytes with zeros
+and change the control flow.  Checking write-permission before the discard
+operation allows us to control when the operation is valid.  In this case,
+the madvise will only succeed if the executing thread has PKEY write
+permissions and PKRU changes are protected in software by control-flow
+integrity.
+
+Although the initial version of this patch series is targeting the Chrome
+browser as its first user, it became evident during upstream discussions
+that we would also want to ensure that the patch set eventually is a
+complete solution for memory sealing and compatible with other use cases. 
+The specific scenario currently in mind is glibc's use case of loading and
+sealing ELF executables.  To this end, Stephen is working on a change to
+glibc to add sealing support to the dynamic linker, which will seal all
+non-writable segments at startup.  Once this work is completed, all
+applications will be able to automatically benefit from these new
+protections.
+
+In closing, I would like to formally acknowledge the valuable
+contributions received during the RFC process, which were instrumental in
+shaping this patch:
+
+Jann Horn: raising awareness and providing valuable insights on the
+  destructive madvise operations.
+Liam R. Howlett: perf optimization.
+Linus Torvalds: assisting in defining system call signature and scope.
+Theo de Raadt: sharing the experiences and insight gained from
+  implementing mimmutable() in OpenBSD.
+
+MM perf benchmarks
+==================
+This patch adds a loop in the mprotect/munmap/madvise(DONTNEED) to
+check the VMAs’ sealing flag, so that no partial update can be made,
+when any segment within the given memory range is sealed.
+
+To measure the performance impact of this loop, two tests are developed.
+[8]
+
+The first is measuring the time taken for a particular system call,
+by using clock_gettime(CLOCK_MONOTONIC). The second is using
+PERF_COUNT_HW_REF_CPU_CYCLES (exclude user space). Both tests have
+similar results.
+
+The tests have roughly below sequence:
+for (i = 0; i < 1000, i++)
+    create 1000 mappings (1 page per VMA)
+    start the sampling
+    for (j = 0; j < 1000, j++)
+        mprotect one mapping
+    stop and save the sample
+    delete 1000 mappings
+calculates all samples.
+
+Below tests are performed on Intel(R) Pentium(R) Gold 7505 @ 2.00GHz,
+4G memory, Chromebook.
+
+Based on the latest upstream code:
+The first test (measuring time)
+syscall__	vmas	t	t_mseal	delta_ns	per_vma	%
+munmap__  	1	909	944	35	35	104%
+munmap__  	2	1398	1502	104	52	107%
+munmap__  	4	2444	2594	149	37	106%
+munmap__  	8	4029	4323	293	37	107%
+munmap__  	16	6647	6935	288	18	104%
+munmap__  	32	11811	12398	587	18	105%
+mprotect	1	439	465	26	26	106%
+mprotect	2	1659	1745	86	43	105%
+mprotect	4	3747	3889	142	36	104%
+mprotect	8	6755	6969	215	27	103%
+mprotect	16	13748	14144	396	25	103%
+mprotect	32	27827	28969	1142	36	104%
+madvise_	1	240	262	22	22	109%
+madvise_	2	366	442	76	38	121%
+madvise_	4	623	751	128	32	121%
+madvise_	8	1110	1324	215	27	119%
+madvise_	16	2127	2451	324	20	115%
+madvise_	32	4109	4642	534	17	113%
+
+The second test (measuring cpu cycle)
+syscall__	vmas	cpu	cmseal	delta_cpu	per_vma	%
+munmap__	1	1790	1890	100	100	106%
+munmap__	2	2819	3033	214	107	108%
+munmap__	4	4959	5271	312	78	106%
+munmap__	8	8262	8745	483	60	106%
+munmap__	16	13099	14116	1017	64	108%
+munmap__	32	23221	24785	1565	49	107%
+mprotect	1	906	967	62	62	107%
+mprotect	2	3019	3203	184	92	106%
+mprotect	4	6149	6569	420	105	107%
+mprotect	8	9978	10524	545	68	105%
+mprotect	16	20448	21427	979	61	105%
+mprotect	32	40972	42935	1963	61	105%
+madvise_	1	434	497	63	63	115%
+madvise_	2	752	899	147	74	120%
+madvise_	4	1313	1513	200	50	115%
+madvise_	8	2271	2627	356	44	116%
+madvise_	16	4312	4883	571	36	113%
+madvise_	32	8376	9319	943	29	111%
+
+Based on the result, for 6.8 kernel, sealing check adds
+20-40 nano seconds, or around 50-100 CPU cycles, per VMA.
+
+In addition, I applied the sealing to 5.10 kernel:
+The first test (measuring time)
+syscall__	vmas	t	tmseal	delta_ns	per_vma	%
+munmap__	1	357	390	33	33	109%
+munmap__	2	442	463	21	11	105%
+munmap__	4	614	634	20	5	103%
+munmap__	8	1017	1137	120	15	112%
+munmap__	16	1889	2153	263	16	114%
+munmap__	32	4109	4088	-21	-1	99%
+mprotect	1	235	227	-7	-7	97%
+mprotect	2	495	464	-30	-15	94%
+mprotect	4	741	764	24	6	103%
+mprotect	8	1434	1437	2	0	100%
+mprotect	16	2958	2991	33	2	101%
+mprotect	32	6431	6608	177	6	103%
+madvise_	1	191	208	16	16	109%
+madvise_	2	300	324	24	12	108%
+madvise_	4	450	473	23	6	105%
+madvise_	8	753	806	53	7	107%
+madvise_	16	1467	1592	125	8	108%
+madvise_	32	2795	3405	610	19	122%
+					
+The second test (measuring cpu cycle)
+syscall__	nbr_vma	cpu	cmseal	delta_cpu	per_vma	%
+munmap__	1	684	715	31	31	105%
+munmap__	2	861	898	38	19	104%
+munmap__	4	1183	1235	51	13	104%
+munmap__	8	1999	2045	46	6	102%
+munmap__	16	3839	3816	-23	-1	99%
+munmap__	32	7672	7887	216	7	103%
+mprotect	1	397	443	46	46	112%
+mprotect	2	738	788	50	25	107%
+mprotect	4	1221	1256	35	9	103%
+mprotect	8	2356	2429	72	9	103%
+mprotect	16	4961	4935	-26	-2	99%
+mprotect	32	9882	10172	291	9	103%
+madvise_	1	351	380	29	29	108%
+madvise_	2	565	615	49	25	109%
+madvise_	4	872	933	61	15	107%
+madvise_	8	1508	1640	132	16	109%
+madvise_	16	3078	3323	245	15	108%
+madvise_	32	5893	6704	811	25	114%
+
+For 5.10 kernel, sealing check adds 0-15 ns in time, or 10-30
+CPU cycles, there is even decrease in some cases.
+
+It might be interesting to compare 5.10 and 6.8 kernel
+The first test (measuring time)
+syscall__	vmas	t_5_10	t_6_8	delta_ns	per_vma	%
+munmap__	1	357	909	552	552	254%
+munmap__	2	442	1398	956	478	316%
+munmap__	4	614	2444	1830	458	398%
+munmap__	8	1017	4029	3012	377	396%
+munmap__	16	1889	6647	4758	297	352%
+munmap__	32	4109	11811	7702	241	287%
+mprotect	1	235	439	204	204	187%
+mprotect	2	495	1659	1164	582	335%
+mprotect	4	741	3747	3006	752	506%
+mprotect	8	1434	6755	5320	665	471%
+mprotect	16	2958	13748	10790	674	465%
+mprotect	32	6431	27827	21397	669	433%
+madvise_	1	191	240	49	49	125%
+madvise_	2	300	366	67	33	122%
+madvise_	4	450	623	173	43	138%
+madvise_	8	753	1110	357	45	147%
+madvise_	16	1467	2127	660	41	145%
+madvise_	32	2795	4109	1314	41	147%
+
+The second test (measuring cpu cycle)
+syscall__	vmas	cpu_5_10	c_6_8	delta_cpu	per_vma	%
+munmap__	1	684	1790	1106	1106	262%
+munmap__	2	861	2819	1958	979	327%
+munmap__	4	1183	4959	3776	944	419%
+munmap__	8	1999	8262	6263	783	413%
+munmap__	16	3839	13099	9260	579	341%
+munmap__	32	7672	23221	15549	486	303%
+mprotect	1	397	906	509	509	228%
+mprotect	2	738	3019	2281	1140	409%
+mprotect	4	1221	6149	4929	1232	504%
+mprotect	8	2356	9978	7622	953	423%
+mprotect	16	4961	20448	15487	968	412%
+mprotect	32	9882	40972	31091	972	415%
+madvise_	1	351	434	82	82	123%
+madvise_	2	565	752	186	93	133%
+madvise_	4	872	1313	442	110	151%
+madvise_	8	1508	2271	763	95	151%
+madvise_	16	3078	4312	1234	77	140%
+madvise_	32	5893	8376	2483	78	142%
+
+From 5.10 to 6.8
+munmap: added 250-550 ns in time, or 500-1100 in cpu cycle, per vma.
+mprotect: added 200-750 ns in time, or 500-1200 in cpu cycle, per vma.
+madvise: added 33-50 ns in time, or 70-110 in cpu cycle, per vma.
+
+In comparison to mseal, which adds 20-40 ns or 50-100 CPU cycles, the
+increase from 5.10 to 6.8 is significantly larger, approximately ten times
+greater for munmap and mprotect.
+
+When I discuss the mm performance with Brian Makin, an engineer who worked
+on performance, it was brought to my attention that such performance
+benchmarks, which measuring millions of mm syscall in a tight loop, may
+not accurately reflect real-world scenarios, such as that of a database
+service.  Also this is tested using a single HW and ChromeOS, the data
+from another HW or distribution might be different.  It might be best to
+take this data with a grain of salt.
+
+
+This patch (of 5):
+
+Wire up mseal syscall for all architectures.
+
+Link: https://lkml.kernel.org/r/20240415163527.626541-1-jeffxu@chromium.org
+Link: https://lkml.kernel.org/r/20240415163527.626541-2-jeffxu@chromium.org
+Signed-off-by: Jeff Xu <jeffxu@chromium.org>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Guenter Roeck <groeck@chromium.org>
+Cc: Jann Horn <jannh@google.com> [Bug #2]
+Cc: Jeff Xu <jeffxu@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Stephen Röttger <sroettger@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Amer Al Shanawany <amer.shanawany@gmail.com>
+Cc: Javier Carrasco <javier.carrasco.cruz@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/alpha/kernel/syscalls/syscall.tbl      |    1 +
+ arch/arm/tools/syscall.tbl                  |    1 +
+ arch/arm64/include/asm/unistd.h             |    2 +-
+ arch/arm64/include/asm/unistd32.h           |    2 ++
+ arch/m68k/kernel/syscalls/syscall.tbl       |    1 +
+ arch/microblaze/kernel/syscalls/syscall.tbl |    1 +
+ arch/mips/kernel/syscalls/syscall_n32.tbl   |    1 +
+ arch/mips/kernel/syscalls/syscall_n64.tbl   |    1 +
+ arch/mips/kernel/syscalls/syscall_o32.tbl   |    1 +
+ arch/parisc/kernel/syscalls/syscall.tbl     |    1 +
+ arch/powerpc/kernel/syscalls/syscall.tbl    |    1 +
+ arch/s390/kernel/syscalls/syscall.tbl       |    1 +
+ arch/sh/kernel/syscalls/syscall.tbl         |    1 +
+ arch/sparc/kernel/syscalls/syscall.tbl      |    1 +
+ arch/x86/entry/syscalls/syscall_32.tbl      |    1 +
+ arch/x86/entry/syscalls/syscall_64.tbl      |    1 +
+ arch/xtensa/kernel/syscalls/syscall.tbl     |    1 +
+ include/uapi/asm-generic/unistd.h           |    5 ++++-
+ kernel/sys_ni.c                             |    1 +
+ 19 files changed, 23 insertions(+), 2 deletions(-)
+
+--- a/arch/alpha/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/alpha/kernel/syscalls/syscall.tbl
+@@ -501,3 +501,4 @@
+ 569	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 570	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 571	common	lsm_list_modules		sys_lsm_list_modules
++572	common  mseal				sys_mseal
+--- a/arch/arm64/include/asm/unistd32.h~mseal-wire-up-mseal-syscall
++++ a/arch/arm64/include/asm/unistd32.h
+@@ -929,6 +929,8 @@ __SYSCALL(__NR_lsm_get_self_attr, sys_ls
+ __SYSCALL(__NR_lsm_set_self_attr, sys_lsm_set_self_attr)
+ #define __NR_lsm_list_modules 461
+ __SYSCALL(__NR_lsm_list_modules, sys_lsm_list_modules)
++#define __NR_mseal 462
++__SYSCALL(__NR_mseal, sys_mseal)
+ 
+ /*
+  * Please add new compat syscalls above this comment and update
+--- a/arch/arm64/include/asm/unistd.h~mseal-wire-up-mseal-syscall
++++ a/arch/arm64/include/asm/unistd.h
+@@ -39,7 +39,7 @@
+ #define __ARM_NR_compat_set_tls		(__ARM_NR_COMPAT_BASE + 5)
+ #define __ARM_NR_COMPAT_END		(__ARM_NR_COMPAT_BASE + 0x800)
+ 
+-#define __NR_compat_syscalls		462
++#define __NR_compat_syscalls		463
+ #endif
+ 
+ #define __ARCH_WANT_SYS_CLONE
+--- a/arch/arm/tools/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/arm/tools/syscall.tbl
+@@ -475,3 +475,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal				sys_mseal
+--- a/arch/m68k/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/m68k/kernel/syscalls/syscall.tbl
+@@ -461,3 +461,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal				sys_mseal
+--- a/arch/microblaze/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/microblaze/kernel/syscalls/syscall.tbl
+@@ -467,3 +467,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal				sys_mseal
+--- a/arch/mips/kernel/syscalls/syscall_n32.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/mips/kernel/syscalls/syscall_n32.tbl
+@@ -400,3 +400,4 @@
+ 459	n32	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	n32	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	n32	lsm_list_modules		sys_lsm_list_modules
++462	n32	mseal				sys_mseal
+--- a/arch/mips/kernel/syscalls/syscall_n64.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/mips/kernel/syscalls/syscall_n64.tbl
+@@ -376,3 +376,4 @@
+ 459	n64	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	n64	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	n64	lsm_list_modules		sys_lsm_list_modules
++462	n64	mseal				sys_mseal
+--- a/arch/mips/kernel/syscalls/syscall_o32.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/mips/kernel/syscalls/syscall_o32.tbl
+@@ -449,3 +449,4 @@
+ 459	o32	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	o32	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	o32	lsm_list_modules		sys_lsm_list_modules
++462	o32	mseal				sys_mseal
+--- a/arch/parisc/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/parisc/kernel/syscalls/syscall.tbl
+@@ -460,3 +460,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal				sys_mseal
+--- a/arch/powerpc/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/powerpc/kernel/syscalls/syscall.tbl
+@@ -548,3 +548,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal				sys_mseal
+--- a/arch/s390/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/s390/kernel/syscalls/syscall.tbl
+@@ -464,3 +464,4 @@
+ 459  common	lsm_get_self_attr	sys_lsm_get_self_attr		sys_lsm_get_self_attr
+ 460  common	lsm_set_self_attr	sys_lsm_set_self_attr		sys_lsm_set_self_attr
+ 461  common	lsm_list_modules	sys_lsm_list_modules		sys_lsm_list_modules
++462  common	mseal			sys_mseal			sys_mseal
+--- a/arch/sh/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/sh/kernel/syscalls/syscall.tbl
+@@ -464,3 +464,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal				sys_mseal
+--- a/arch/sparc/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/sparc/kernel/syscalls/syscall.tbl
+@@ -507,3 +507,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal 				sys_mseal
+--- a/arch/x86/entry/syscalls/syscall_32.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/x86/entry/syscalls/syscall_32.tbl
+@@ -466,3 +466,4 @@
+ 459	i386	lsm_get_self_attr	sys_lsm_get_self_attr
+ 460	i386	lsm_set_self_attr	sys_lsm_set_self_attr
+ 461	i386	lsm_list_modules	sys_lsm_list_modules
++462	i386	mseal 			sys_mseal
+--- a/arch/x86/entry/syscalls/syscall_64.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -383,6 +383,7 @@
+ 459	common	lsm_get_self_attr	sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr	sys_lsm_set_self_attr
+ 461	common	lsm_list_modules	sys_lsm_list_modules
++462 	common  mseal			sys_mseal
+ 
+ #
+ # Due to a historical design error, certain syscalls are numbered differently
+--- a/arch/xtensa/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
++++ a/arch/xtensa/kernel/syscalls/syscall.tbl
+@@ -432,3 +432,4 @@
+ 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
+ 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
+ 461	common	lsm_list_modules		sys_lsm_list_modules
++462	common	mseal 				sys_mseal
+--- a/include/uapi/asm-generic/unistd.h~mseal-wire-up-mseal-syscall
++++ a/include/uapi/asm-generic/unistd.h
+@@ -842,8 +842,11 @@ __SYSCALL(__NR_lsm_set_self_attr, sys_ls
+ #define __NR_lsm_list_modules 461
+ __SYSCALL(__NR_lsm_list_modules, sys_lsm_list_modules)
+ 
++#define __NR_mseal 462
++__SYSCALL(__NR_mseal, sys_mseal)
++
+ #undef __NR_syscalls
+-#define __NR_syscalls 462
++#define __NR_syscalls 463
+ 
+ /*
+  * 32 bit systems traditionally used different
+--- a/kernel/sys_ni.c~mseal-wire-up-mseal-syscall
++++ a/kernel/sys_ni.c
+@@ -196,6 +196,7 @@ COND_SYSCALL(migrate_pages);
+ COND_SYSCALL(move_pages);
+ COND_SYSCALL(set_mempolicy_home_node);
+ COND_SYSCALL(cachestat);
++COND_SYSCALL(mseal);
+ 
+ COND_SYSCALL(perf_event_open);
+ COND_SYSCALL(accept4);
+_
+
+Patches currently in -mm which might be from jeffxu@chromium.org are
+
+mseal-add-mseal-syscall.patch
+selftest-mm-mseal-memory-sealing.patch
+mseal-add-documentation.patch
+selftest-mm-mseal-read-only-elf-memory-segment.patch
+
