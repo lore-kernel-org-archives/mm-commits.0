@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F38E641C76;
-	Fri, 24 May 2024 18:55:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 207DE4084E;
+	Fri, 24 May 2024 18:55:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716576957; cv=none; b=C/9XpInd+8S9yQVKSUj5qN7SnZ302IsHtrIh6KYvAfx+End0GnqVjH5G/Pq2Y3MgI6TTm2Q5kvwr+RYXRdjcWyMvtutkXyQ67K5F6eTBhtwv0SmnY38JhZmah7gXt8jEvFor0tSM6edYwWeYNiKYqH3pkQSJ6ZUXUZyXF6r6L0g=
+	t=1716576958; cv=none; b=qCocf7xus6JP4PtVV1iHTFDUT8F6b6xVSnKIEqlUhtB1bN7VP8cDJLa6OYGBzxGX1QbgNSW2CTxgaK4ijjlo40YStK3wWQIAjiLQxsklKxR8OLr5bEPVv/3TlBS/ziXRjCr/+R2ErIBU/bhIUwYh9GN/Ve/O0jyIPQH7+IQ8bR4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716576957; c=relaxed/simple;
-	bh=YzLaJ0iMmmUvgOgOJn6peoHdRWTb2pH+XkvrahDGkLQ=;
-	h=Date:To:From:Subject:Message-Id; b=VDqd3JbdDUpve/5FY84sRUVexzu8/PKQuN7HXet6KQxKUzgfj+rsV4SWzLZtj/ivaxkQYCTuvZAnd113e0obuCVIS5LO0d/S4aVT3rn8kOopiS8/4f9rYGnTAZJ2mMi72jwc0jZ53RZeWMd2Rx4wib+2gT78rP0MjwqqRU+HF9M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xHlUqxth; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716576958; c=relaxed/simple;
+	bh=Cm94E5G/wfKQ5FPV7DKbiuWHRiQNdZYNcfhurXD1zZ8=;
+	h=Date:To:From:Subject:Message-Id; b=UvcpnVuQRQM0zOYc5K08Fp6Zf1ZxJ2iU09qCqy8HCgVZDr20YuxzqIFEgQ9YKw1e476zj8kVTBL0R2A9W1w66OKdpFFUFZnAbI6jxPl3sc1k+qTWRTgtDh0CtD3OVk92p1WZonjcguoLpu62Wp1aLl/+GUh/y2pD0bTUO4UfaC8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iSCCFP/8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xHlUqxth"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70AD5C2BBFC;
-	Fri, 24 May 2024 18:55:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iSCCFP/8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 862E3C2BD11;
+	Fri, 24 May 2024 18:55:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716576956;
-	bh=YzLaJ0iMmmUvgOgOJn6peoHdRWTb2pH+XkvrahDGkLQ=;
+	s=korg; t=1716576957;
+	bh=Cm94E5G/wfKQ5FPV7DKbiuWHRiQNdZYNcfhurXD1zZ8=;
 	h=Date:To:From:Subject:From;
-	b=xHlUqxthyZoSZGcP1JGoVb5e0DBrz3CLbt31rrEJTzVCrc1iCeTekf7Lgy20PKPGz
-	 FZn46vMd51m1nh8fbNsADqFtoEaYM/ND9wt8fVE7ofpazZgU62kywndTcaIv2j6jkn
-	 OKLXdXYny8XG2Aju3KYd651IwzTOSagArOqp7r7I=
-Date: Fri, 24 May 2024 11:55:55 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sjb7183@psu.edu,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=iSCCFP/8jYwx8usfvzQ/+suzGYXDc2wkpQdTf5AsI+XGgUEkoxdxUmWCAI1s0C472
+	 O0a+zIrgmKXGnSgLxwIng2ef+Pkl40uln08+CExGlqBf03ZaixHONjDjefQlIp7nuX
+	 xe+DC9MQBQ1tZTrAeEvv20PmlFyvpLhaHFQlhgYI=
+Date: Fri, 24 May 2024 11:55:57 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,mkhalfella@purestorage.com,david@redhat.com,yzhong@purestorage.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-fix-potential-hang-in-nilfs_detach_log_writer.patch removed from -mm tree
-Message-Id: <20240524185556.70AD5C2BBFC@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-proc-pid-smaps_rollup-avoid-skipping-vma-after-getting-mmap_lock-again.patch removed from -mm tree
+Message-Id: <20240524185557.862E3C2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,121 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: fix potential hang in nilfs_detach_log_writer()
+     Subject: mm: /proc/pid/smaps_rollup: avoid skipping vma after getting mmap_lock again
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-potential-hang-in-nilfs_detach_log_writer.patch
+     mm-proc-pid-smaps_rollup-avoid-skipping-vma-after-getting-mmap_lock-again.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix potential hang in nilfs_detach_log_writer()
-Date: Mon, 20 May 2024 22:26:21 +0900
+From: Yuanyuan Zhong <yzhong@purestorage.com>
+Subject: mm: /proc/pid/smaps_rollup: avoid skipping vma after getting mmap_lock again
+Date: Thu, 23 May 2024 12:35:31 -0600
 
-Syzbot has reported a potential hang in nilfs_detach_log_writer() called
-during nilfs2 unmount.
+After switching smaps_rollup to use VMA iterator, searching for next entry
+is part of the condition expression of the do-while loop.  So the current
+VMA needs to be addressed before the continue statement.
 
-Analysis revealed that this is because nilfs_segctor_sync(), which
-synchronizes with the log writer thread, can be called after
-nilfs_segctor_destroy() terminates that thread, as shown in the call trace
-below:
+Otherwise, with some VMAs skipped, userspace observed memory
+consumption from /proc/pid/smaps_rollup will be smaller than the sum of
+the corresponding fields from /proc/pid/smaps.
 
-nilfs_detach_log_writer
-  nilfs_segctor_destroy
-    nilfs_segctor_kill_thread  --> Shut down log writer thread
-    flush_work
-      nilfs_iput_work_func
-        nilfs_dispose_list
-          iput
-            nilfs_evict_inode
-              nilfs_transaction_commit
-                nilfs_construct_segment (if inode needs sync)
-                  nilfs_segctor_sync  --> Attempt to synchronize with
-                                          log writer thread
-                           *** DEADLOCK ***
-
-Fix this issue by changing nilfs_segctor_sync() so that the log writer
-thread returns normally without synchronizing after it terminates, and by
-forcing tasks that are already waiting to complete once after the thread
-terminates.
-
-The skipped inode metadata flushout will then be processed together in the
-subsequent cleanup work in nilfs_segctor_destroy().
-
-Link: https://lkml.kernel.org/r/20240520132621.4054-4-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+e3973c409251e136fdd0@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=e3973c409251e136fdd0
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Link: https://lkml.kernel.org/r/20240523183531.2535436-1-yzhong@purestorage.com
+Fixes: c4c84f06285e ("fs/proc/task_mmu: stop using linked list and highest_vm_end")
+Signed-off-by: Yuanyuan Zhong <yzhong@purestorage.com>
+Reviewed-by: Mohamed Khalfella <mkhalfella@purestorage.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: <stable@vger.kernel.org>
-Cc: "Bai, Shuangpeng" <sjb7183@psu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |   21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
+ fs/proc/task_mmu.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/fs/nilfs2/segment.c~nilfs2-fix-potential-hang-in-nilfs_detach_log_writer
-+++ a/fs/nilfs2/segment.c
-@@ -2190,6 +2190,14 @@ static int nilfs_segctor_sync(struct nil
- 	for (;;) {
- 		set_current_state(TASK_INTERRUPTIBLE);
+--- a/fs/proc/task_mmu.c~mm-proc-pid-smaps_rollup-avoid-skipping-vma-after-getting-mmap_lock-again
++++ a/fs/proc/task_mmu.c
+@@ -970,12 +970,17 @@ static int show_smaps_rollup(struct seq_
+ 				break;
  
-+		/*
-+		 * Synchronize only while the log writer thread is alive.
-+		 * Leave flushing out after the log writer thread exits to
-+		 * the cleanup work in nilfs_segctor_destroy().
-+		 */
-+		if (!sci->sc_task)
-+			break;
-+
- 		if (atomic_read(&wait_req.done)) {
- 			err = wait_req.err;
- 			break;
-@@ -2205,7 +2213,7 @@ static int nilfs_segctor_sync(struct nil
- 	return err;
- }
+ 			/* Case 1 and 2 above */
+-			if (vma->vm_start >= last_vma_end)
++			if (vma->vm_start >= last_vma_end) {
++				smap_gather_stats(vma, &mss, 0);
++				last_vma_end = vma->vm_end;
+ 				continue;
++			}
  
--static void nilfs_segctor_wakeup(struct nilfs_sc_info *sci, int err)
-+static void nilfs_segctor_wakeup(struct nilfs_sc_info *sci, int err, bool force)
- {
- 	struct nilfs_segctor_wait_request *wrq, *n;
- 	unsigned long flags;
-@@ -2213,7 +2221,7 @@ static void nilfs_segctor_wakeup(struct
- 	spin_lock_irqsave(&sci->sc_wait_request.lock, flags);
- 	list_for_each_entry_safe(wrq, n, &sci->sc_wait_request.head, wq.entry) {
- 		if (!atomic_read(&wrq->done) &&
--		    nilfs_cnt32_ge(sci->sc_seq_done, wrq->seq)) {
-+		    (force || nilfs_cnt32_ge(sci->sc_seq_done, wrq->seq))) {
- 			wrq->err = err;
- 			atomic_set(&wrq->done, 1);
+ 			/* Case 4 above */
+-			if (vma->vm_end > last_vma_end)
++			if (vma->vm_end > last_vma_end) {
+ 				smap_gather_stats(vma, &mss, last_vma_end);
++				last_vma_end = vma->vm_end;
++			}
  		}
-@@ -2362,7 +2370,7 @@ static void nilfs_segctor_notify(struct
- 	if (mode == SC_LSEG_SR) {
- 		sci->sc_state &= ~NILFS_SEGCTOR_COMMIT;
- 		sci->sc_seq_done = sci->sc_seq_accepted;
--		nilfs_segctor_wakeup(sci, err);
-+		nilfs_segctor_wakeup(sci, err, false);
- 		sci->sc_flush_request = 0;
- 	} else {
- 		if (mode == SC_FLUSH_FILE)
-@@ -2746,6 +2754,13 @@ static void nilfs_segctor_destroy(struct
- 		|| sci->sc_seq_request != sci->sc_seq_done);
- 	spin_unlock(&sci->sc_state_lock);
- 
-+	/*
-+	 * Forcibly wake up tasks waiting in nilfs_segctor_sync(), which can
-+	 * be called from delayed iput() via nilfs_evict_inode() and can race
-+	 * with the above log writer thread termination.
-+	 */
-+	nilfs_segctor_wakeup(sci, 0, true);
-+
- 	if (flush_work(&sci->sc_iput_work))
- 		flag = true;
+ 	} for_each_vma(vmi, vma);
  
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from yzhong@purestorage.com are
 
 
