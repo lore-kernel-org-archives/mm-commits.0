@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30A2D1E884
-	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 02:40:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 932B31E884
+	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 02:40:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716518449; cv=none; b=VBFclkx3h3u5xLmSAoha3kmZbsI2jnjlXNkPYH5WORsrNBgf//6Fk1RpAxTQk3C+QWX7Knxd9jFgWFmd80pNc1+dkd64ZON81NM+Vdjl+KtXgf7OUdU0eJ2jDw9tu0pSxTf8+Bdgqf8BG2Z+zTuwTS6QbWqUqXBgYTIvpRcW6dc=
+	t=1716518450; cv=none; b=UejmJtcGiRWSqiIfIplGrQoBzCwEm6IXosz+0N2/fh8BsxAMLgw+bLRqsVkCtDOQ00SBSss/5ZEImZO8vAjFw/6oQso6fEFYbDZwbeM3OaT2Kk55SrL+jtDBk4EK1dW7vM46BfOyCiVJOWdDyrubDoZ3jd9MO7ovcDoHG1y7hNA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716518449; c=relaxed/simple;
-	bh=GO7e18esRpJn7gke6V8n41j14bG/9fiUT1Yob/ahm14=;
-	h=Date:To:From:Subject:Message-Id; b=r4lbDXkGKpGD+Qa0kXQY4YRKBcqT2LHXIRrzix0ncTUAwMD5hqNDBeMh6P46y1JSo3kdaI6aElm1iHajJmRpyAk9KTVhmDDm/TfeuiZ6pJMqOVNyaQa7zie8eY60S0n7OzWY0srRqI3qWjBfmPZRK1POHpjrm8lijMb+EePuj/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sk/Z0onc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716518450; c=relaxed/simple;
+	bh=bR/PMjV29OhP5QL62RTyDIJdeJLVSxKMFnLapqFHjqo=;
+	h=Date:To:From:Subject:Message-Id; b=C86ED9xTGKS5YzMtz2zctoiaZLgl3Znk291PyKvCeeb8TPSi5WOk5D/8Tg/sxyI58qbJqdFsTerzCb91LG2i5inHKXNoRE7jqO48giI8krtokBBXJiAFw8WwHo4yFK4zb44F7rv8K+8beSqrbNdf/VkxBkyuASiVC9bpn+Us5l4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tm9EHVUr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sk/Z0onc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D84CC2BD10;
-	Fri, 24 May 2024 02:40:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tm9EHVUr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0ED76C2BD10;
+	Fri, 24 May 2024 02:40:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716518448;
-	bh=GO7e18esRpJn7gke6V8n41j14bG/9fiUT1Yob/ahm14=;
+	s=korg; t=1716518450;
+	bh=bR/PMjV29OhP5QL62RTyDIJdeJLVSxKMFnLapqFHjqo=;
 	h=Date:To:From:Subject:From;
-	b=sk/Z0onchbGxItftmJk58hLSVbgENWU4bOvo8EmyX4x8gkQR9FmItA89BiIidFH4h
-	 p/hu8FIeRHP2K8c7jcUYhTh2nKYFQkh++LbvOGINVL4YF7lJEo+7iROp+DKhoVMl8S
-	 Pk8Pxx9KV2mawBMsD3YQvu7W4ByF3Yfi7XzD8rT0=
-Date: Thu, 23 May 2024 19:40:47 -0700
+	b=tm9EHVUrqKAZKU7f+cQbxdkpuyvLgrpXbNgm9vbdiPRlXWgx11/9GXZmz+zHILEUh
+	 8SByu2xcJjpJoQiocWxdN/EM24WHnb4Xcgdj8cirgj8Sczaah+vrNy6nDIV7y+sYQH
+	 3AG8HjPkcxCvzxwDPLM5g2Vornntd+irkXQIIvdI=
+Date: Thu, 23 May 2024 19:40:49 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,usama.anjum@collabora.com,torvalds@linux-foundation.org,surenb@google.com,sroettger@google.com,shuah@kernel.org,pedro.falcato@gmail.com,Liam.Howlett@oracle.com,keescook@chromium.org,jorgelo@chromium.org,jeffxu@google.com,javier.carrasco.cruz@gmail.com,jannh@google.com,groeck@chromium.org,gregkh@linuxfoundation.org,dave.hansen@intel.com,corbet@lwn.net,amer.shanawany@gmail.com,jeffxu@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mseal-wire-up-mseal-syscall.patch removed from -mm tree
-Message-Id: <20240524024048.8D84CC2BD10@smtp.kernel.org>
+Subject: [merged mm-stable] mseal-add-mseal-syscall.patch removed from -mm tree
+Message-Id: <20240524024050.0ED76C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,17 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mseal: wire up mseal syscall
+     Subject: mseal: add mseal syscall
 has been removed from the -mm tree.  Its filename was
-     mseal-wire-up-mseal-syscall.patch
+     mseal-add-mseal-syscall.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Jeff Xu <jeffxu@chromium.org>
-Subject: mseal: wire up mseal syscall
-Date: Mon, 15 Apr 2024 16:35:20 +0000
-
-Patch series "Introduce mseal", v10.
-
-This patchset proposes a new mseal() syscall for the Linux kernel.
-
-In a nutshell, mseal() protects the VMAs of a given virtual memory range
-against modifications, such as changes to their permission bits.
-
-Modern CPUs support memory permissions, such as the read/write (RW) and
-no-execute (NX) bits.  Linux has supported NX since the release of kernel
-version 2.6.8 in August 2004 [1].  The memory permission feature improves
-the security stance on memory corruption bugs, as an attacker cannot
-simply write to arbitrary memory and point the code to it.  The memory
-must be marked with the X bit, or else an exception will occur. 
-Internally, the kernel maintains the memory permissions in a data
-structure called VMA (vm_area_struct).  mseal() additionally protects the
-VMA itself against modifications of the selected seal type.
-
-Memory sealing is useful to mitigate memory corruption issues where a
-corrupted pointer is passed to a memory management system.  For example,
-such an attacker primitive can break control-flow integrity guarantees
-since read-only memory that is supposed to be trusted can become writable
-or .text pages can get remapped.  Memory sealing can automatically be
-applied by the runtime loader to seal .text and .rodata pages and
-applications can additionally seal security critical data at runtime.  A
-similar feature already exists in the XNU kernel with the
-VM_FLAGS_PERMANENT [3] flag and on OpenBSD with the mimmutable syscall
-[4].  Also, Chrome wants to adopt this feature for their CFI work [2] and
-this patchset has been designed to be compatible with the Chrome use case.
-
-Two system calls are involved in sealing the map:  mmap() and mseal().
+Subject: mseal: add mseal syscall
+Date: Mon, 15 Apr 2024 16:35:21 +0000
 
 The new mseal() is an syscall on 64 bit CPU, and with following signature:
 
@@ -106,249 +75,29 @@ mseal() blocks following operations for the given memory range.
    behaviors can alter region contents by discarding pages, effectively a
    memset(0) for anonymous memory.
 
-The idea that inspired this patch comes from Stephen Röttger’s work in
-V8 CFI [5].  Chrome browser in ChromeOS will be the first user of this
-API.
-
-Indeed, the Chrome browser has very specific requirements for sealing,
-which are distinct from those of most applications.  For example, in the
-case of libc, sealing is only applied to read-only (RO) or read-execute
-(RX) memory segments (such as .text and .RELRO) to prevent them from
-becoming writable, the lifetime of those mappings are tied to the lifetime
-of the process.
-
-Chrome wants to seal two large address space reservations that are managed
-by different allocators.  The memory is mapped RW- and RWX respectively
-but write access to it is restricted using pkeys (or in the future ARM
-permission overlay extensions).  The lifetime of those mappings are not
-tied to the lifetime of the process, therefore, while the memory is
-sealed, the allocators still need to free or discard the unused memory. 
-For example, with madvise(DONTNEED).
-
-However, always allowing madvise(DONTNEED) on this range poses a security
-risk.  For example if a jump instruction crosses a page boundary and the
-second page gets discarded, it will overwrite the target bytes with zeros
-and change the control flow.  Checking write-permission before the discard
-operation allows us to control when the operation is valid.  In this case,
-the madvise will only succeed if the executing thread has PKEY write
-permissions and PKRU changes are protected in software by control-flow
-integrity.
-
-Although the initial version of this patch series is targeting the Chrome
-browser as its first user, it became evident during upstream discussions
-that we would also want to ensure that the patch set eventually is a
-complete solution for memory sealing and compatible with other use cases. 
-The specific scenario currently in mind is glibc's use case of loading and
-sealing ELF executables.  To this end, Stephen is working on a change to
-glibc to add sealing support to the dynamic linker, which will seal all
-non-writable segments at startup.  Once this work is completed, all
-applications will be able to automatically benefit from these new
-protections.
-
-In closing, I would like to formally acknowledge the valuable
-contributions received during the RFC process, which were instrumental in
-shaping this patch:
+Following input during RFC are incooperated into this patch:
 
 Jann Horn: raising awareness and providing valuable insights on the
-  destructive madvise operations.
-Liam R. Howlett: perf optimization.
+destructive madvise operations.
 Linus Torvalds: assisting in defining system call signature and scope.
+Liam R. Howlett: perf optimization.
 Theo de Raadt: sharing the experiences and insight gained from
   implementing mimmutable() in OpenBSD.
 
-MM perf benchmarks
-==================
-This patch adds a loop in the mprotect/munmap/madvise(DONTNEED) to
-check the VMAs’ sealing flag, so that no partial update can be made,
-when any segment within the given memory range is sealed.
+Finally, the idea that inspired this patch comes from Stephen Röttger's
+work in Chrome V8 CFI.
 
-To measure the performance impact of this loop, two tests are developed.
-[8]
-
-The first is measuring the time taken for a particular system call,
-by using clock_gettime(CLOCK_MONOTONIC). The second is using
-PERF_COUNT_HW_REF_CPU_CYCLES (exclude user space). Both tests have
-similar results.
-
-The tests have roughly below sequence:
-for (i = 0; i < 1000, i++)
-    create 1000 mappings (1 page per VMA)
-    start the sampling
-    for (j = 0; j < 1000, j++)
-        mprotect one mapping
-    stop and save the sample
-    delete 1000 mappings
-calculates all samples.
-
-Below tests are performed on Intel(R) Pentium(R) Gold 7505 @ 2.00GHz,
-4G memory, Chromebook.
-
-Based on the latest upstream code:
-The first test (measuring time)
-syscall__	vmas	t	t_mseal	delta_ns	per_vma	%
-munmap__  	1	909	944	35	35	104%
-munmap__  	2	1398	1502	104	52	107%
-munmap__  	4	2444	2594	149	37	106%
-munmap__  	8	4029	4323	293	37	107%
-munmap__  	16	6647	6935	288	18	104%
-munmap__  	32	11811	12398	587	18	105%
-mprotect	1	439	465	26	26	106%
-mprotect	2	1659	1745	86	43	105%
-mprotect	4	3747	3889	142	36	104%
-mprotect	8	6755	6969	215	27	103%
-mprotect	16	13748	14144	396	25	103%
-mprotect	32	27827	28969	1142	36	104%
-madvise_	1	240	262	22	22	109%
-madvise_	2	366	442	76	38	121%
-madvise_	4	623	751	128	32	121%
-madvise_	8	1110	1324	215	27	119%
-madvise_	16	2127	2451	324	20	115%
-madvise_	32	4109	4642	534	17	113%
-
-The second test (measuring cpu cycle)
-syscall__	vmas	cpu	cmseal	delta_cpu	per_vma	%
-munmap__	1	1790	1890	100	100	106%
-munmap__	2	2819	3033	214	107	108%
-munmap__	4	4959	5271	312	78	106%
-munmap__	8	8262	8745	483	60	106%
-munmap__	16	13099	14116	1017	64	108%
-munmap__	32	23221	24785	1565	49	107%
-mprotect	1	906	967	62	62	107%
-mprotect	2	3019	3203	184	92	106%
-mprotect	4	6149	6569	420	105	107%
-mprotect	8	9978	10524	545	68	105%
-mprotect	16	20448	21427	979	61	105%
-mprotect	32	40972	42935	1963	61	105%
-madvise_	1	434	497	63	63	115%
-madvise_	2	752	899	147	74	120%
-madvise_	4	1313	1513	200	50	115%
-madvise_	8	2271	2627	356	44	116%
-madvise_	16	4312	4883	571	36	113%
-madvise_	32	8376	9319	943	29	111%
-
-Based on the result, for 6.8 kernel, sealing check adds
-20-40 nano seconds, or around 50-100 CPU cycles, per VMA.
-
-In addition, I applied the sealing to 5.10 kernel:
-The first test (measuring time)
-syscall__	vmas	t	tmseal	delta_ns	per_vma	%
-munmap__	1	357	390	33	33	109%
-munmap__	2	442	463	21	11	105%
-munmap__	4	614	634	20	5	103%
-munmap__	8	1017	1137	120	15	112%
-munmap__	16	1889	2153	263	16	114%
-munmap__	32	4109	4088	-21	-1	99%
-mprotect	1	235	227	-7	-7	97%
-mprotect	2	495	464	-30	-15	94%
-mprotect	4	741	764	24	6	103%
-mprotect	8	1434	1437	2	0	100%
-mprotect	16	2958	2991	33	2	101%
-mprotect	32	6431	6608	177	6	103%
-madvise_	1	191	208	16	16	109%
-madvise_	2	300	324	24	12	108%
-madvise_	4	450	473	23	6	105%
-madvise_	8	753	806	53	7	107%
-madvise_	16	1467	1592	125	8	108%
-madvise_	32	2795	3405	610	19	122%
-					
-The second test (measuring cpu cycle)
-syscall__	nbr_vma	cpu	cmseal	delta_cpu	per_vma	%
-munmap__	1	684	715	31	31	105%
-munmap__	2	861	898	38	19	104%
-munmap__	4	1183	1235	51	13	104%
-munmap__	8	1999	2045	46	6	102%
-munmap__	16	3839	3816	-23	-1	99%
-munmap__	32	7672	7887	216	7	103%
-mprotect	1	397	443	46	46	112%
-mprotect	2	738	788	50	25	107%
-mprotect	4	1221	1256	35	9	103%
-mprotect	8	2356	2429	72	9	103%
-mprotect	16	4961	4935	-26	-2	99%
-mprotect	32	9882	10172	291	9	103%
-madvise_	1	351	380	29	29	108%
-madvise_	2	565	615	49	25	109%
-madvise_	4	872	933	61	15	107%
-madvise_	8	1508	1640	132	16	109%
-madvise_	16	3078	3323	245	15	108%
-madvise_	32	5893	6704	811	25	114%
-
-For 5.10 kernel, sealing check adds 0-15 ns in time, or 10-30
-CPU cycles, there is even decrease in some cases.
-
-It might be interesting to compare 5.10 and 6.8 kernel
-The first test (measuring time)
-syscall__	vmas	t_5_10	t_6_8	delta_ns	per_vma	%
-munmap__	1	357	909	552	552	254%
-munmap__	2	442	1398	956	478	316%
-munmap__	4	614	2444	1830	458	398%
-munmap__	8	1017	4029	3012	377	396%
-munmap__	16	1889	6647	4758	297	352%
-munmap__	32	4109	11811	7702	241	287%
-mprotect	1	235	439	204	204	187%
-mprotect	2	495	1659	1164	582	335%
-mprotect	4	741	3747	3006	752	506%
-mprotect	8	1434	6755	5320	665	471%
-mprotect	16	2958	13748	10790	674	465%
-mprotect	32	6431	27827	21397	669	433%
-madvise_	1	191	240	49	49	125%
-madvise_	2	300	366	67	33	122%
-madvise_	4	450	623	173	43	138%
-madvise_	8	753	1110	357	45	147%
-madvise_	16	1467	2127	660	41	145%
-madvise_	32	2795	4109	1314	41	147%
-
-The second test (measuring cpu cycle)
-syscall__	vmas	cpu_5_10	c_6_8	delta_cpu	per_vma	%
-munmap__	1	684	1790	1106	1106	262%
-munmap__	2	861	2819	1958	979	327%
-munmap__	4	1183	4959	3776	944	419%
-munmap__	8	1999	8262	6263	783	413%
-munmap__	16	3839	13099	9260	579	341%
-munmap__	32	7672	23221	15549	486	303%
-mprotect	1	397	906	509	509	228%
-mprotect	2	738	3019	2281	1140	409%
-mprotect	4	1221	6149	4929	1232	504%
-mprotect	8	2356	9978	7622	953	423%
-mprotect	16	4961	20448	15487	968	412%
-mprotect	32	9882	40972	31091	972	415%
-madvise_	1	351	434	82	82	123%
-madvise_	2	565	752	186	93	133%
-madvise_	4	872	1313	442	110	151%
-madvise_	8	1508	2271	763	95	151%
-madvise_	16	3078	4312	1234	77	140%
-madvise_	32	5893	8376	2483	78	142%
-
-From 5.10 to 6.8
-munmap: added 250-550 ns in time, or 500-1100 in cpu cycle, per vma.
-mprotect: added 200-750 ns in time, or 500-1200 in cpu cycle, per vma.
-madvise: added 33-50 ns in time, or 70-110 in cpu cycle, per vma.
-
-In comparison to mseal, which adds 20-40 ns or 50-100 CPU cycles, the
-increase from 5.10 to 6.8 is significantly larger, approximately ten times
-greater for munmap and mprotect.
-
-When I discuss the mm performance with Brian Makin, an engineer who worked
-on performance, it was brought to my attention that such performance
-benchmarks, which measuring millions of mm syscall in a tight loop, may
-not accurately reflect real-world scenarios, such as that of a database
-service.  Also this is tested using a single HW and ChromeOS, the data
-from another HW or distribution might be different.  It might be best to
-take this data with a grain of salt.
-
-
-This patch (of 5):
-
-Wire up mseal syscall for all architectures.
-
-Link: https://lkml.kernel.org/r/20240415163527.626541-1-jeffxu@chromium.org
-Link: https://lkml.kernel.org/r/20240415163527.626541-2-jeffxu@chromium.org
+[jeffxu@chromium.org: add branch prediction hint, per Pedro]
+  Link: https://lkml.kernel.org/r/20240423192825.1273679-2-jeffxu@chromium.org
+Link: https://lkml.kernel.org/r/20240415163527.626541-3-jeffxu@chromium.org
 Signed-off-by: Jeff Xu <jeffxu@chromium.org>
 Reviewed-by: Kees Cook <keescook@chromium.org>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Guenter Roeck <groeck@chromium.org>
-Cc: Jann Horn <jannh@google.com> [Bug #2]
+Cc: Jann Horn <jannh@google.com>
 Cc: Jeff Xu <jeffxu@google.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
@@ -364,187 +113,569 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/syscalls/syscall.tbl      |    1 +
- arch/arm/tools/syscall.tbl                  |    1 +
- arch/arm64/include/asm/unistd.h             |    2 +-
- arch/arm64/include/asm/unistd32.h           |    2 ++
- arch/m68k/kernel/syscalls/syscall.tbl       |    1 +
- arch/microblaze/kernel/syscalls/syscall.tbl |    1 +
- arch/mips/kernel/syscalls/syscall_n32.tbl   |    1 +
- arch/mips/kernel/syscalls/syscall_n64.tbl   |    1 +
- arch/mips/kernel/syscalls/syscall_o32.tbl   |    1 +
- arch/parisc/kernel/syscalls/syscall.tbl     |    1 +
- arch/powerpc/kernel/syscalls/syscall.tbl    |    1 +
- arch/s390/kernel/syscalls/syscall.tbl       |    1 +
- arch/sh/kernel/syscalls/syscall.tbl         |    1 +
- arch/sparc/kernel/syscalls/syscall.tbl      |    1 +
- arch/x86/entry/syscalls/syscall_32.tbl      |    1 +
- arch/x86/entry/syscalls/syscall_64.tbl      |    1 +
- arch/xtensa/kernel/syscalls/syscall.tbl     |    1 +
- include/uapi/asm-generic/unistd.h           |    5 ++++-
- kernel/sys_ni.c                             |    1 +
- 19 files changed, 23 insertions(+), 2 deletions(-)
+ include/linux/syscalls.h |    1 
+ mm/Makefile              |    4 
+ mm/internal.h            |   37 ++++
+ mm/madvise.c             |   12 +
+ mm/mmap.c                |   31 +++
+ mm/mprotect.c            |   10 +
+ mm/mremap.c              |   31 +++
+ mm/mseal.c               |  307 +++++++++++++++++++++++++++++++++++++
+ 8 files changed, 432 insertions(+), 1 deletion(-)
 
---- a/arch/alpha/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
-+++ a/arch/alpha/kernel/syscalls/syscall.tbl
-@@ -501,3 +501,4 @@
- 569	common	lsm_get_self_attr		sys_lsm_get_self_attr
- 570	common	lsm_set_self_attr		sys_lsm_set_self_attr
- 571	common	lsm_list_modules		sys_lsm_list_modules
-+572	common  mseal				sys_mseal
---- a/arch/arm64/include/asm/unistd32.h~mseal-wire-up-mseal-syscall
-+++ a/arch/arm64/include/asm/unistd32.h
-@@ -929,6 +929,8 @@ __SYSCALL(__NR_lsm_get_self_attr, sys_ls
- __SYSCALL(__NR_lsm_set_self_attr, sys_lsm_set_self_attr)
- #define __NR_lsm_list_modules 461
- __SYSCALL(__NR_lsm_list_modules, sys_lsm_list_modules)
-+#define __NR_mseal 462
-+__SYSCALL(__NR_mseal, sys_mseal)
+--- a/include/linux/syscalls.h~mseal-add-mseal-syscall
++++ a/include/linux/syscalls.h
+@@ -821,6 +821,7 @@ asmlinkage long sys_process_mrelease(int
+ asmlinkage long sys_remap_file_pages(unsigned long start, unsigned long size,
+ 			unsigned long prot, unsigned long pgoff,
+ 			unsigned long flags);
++asmlinkage long sys_mseal(unsigned long start, size_t len, unsigned long flags);
+ asmlinkage long sys_mbind(unsigned long start, unsigned long len,
+ 				unsigned long mode,
+ 				const unsigned long __user *nmask,
+--- a/mm/internal.h~mseal-add-mseal-syscall
++++ a/mm/internal.h
+@@ -1435,6 +1435,43 @@ void __meminit __init_single_page(struct
+ unsigned long shrink_slab(gfp_t gfp_mask, int nid, struct mem_cgroup *memcg,
+ 			  int priority);
  
- /*
-  * Please add new compat syscalls above this comment and update
---- a/arch/arm64/include/asm/unistd.h~mseal-wire-up-mseal-syscall
-+++ a/arch/arm64/include/asm/unistd.h
-@@ -39,7 +39,7 @@
- #define __ARM_NR_compat_set_tls		(__ARM_NR_COMPAT_BASE + 5)
- #define __ARM_NR_COMPAT_END		(__ARM_NR_COMPAT_BASE + 0x800)
- 
--#define __NR_compat_syscalls		462
-+#define __NR_compat_syscalls		463
- #endif
- 
- #define __ARCH_WANT_SYS_CLONE
---- a/arch/arm/tools/syscall.tbl~mseal-wire-up-mseal-syscall
-+++ a/arch/arm/tools/syscall.tbl
-@@ -475,3 +475,4 @@
- 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
- 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
- 461	common	lsm_list_modules		sys_lsm_list_modules
-+462	common	mseal				sys_mseal
---- a/arch/m68k/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
-+++ a/arch/m68k/kernel/syscalls/syscall.tbl
-@@ -461,3 +461,4 @@
- 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
- 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
- 461	common	lsm_list_modules		sys_lsm_list_modules
-+462	common	mseal				sys_mseal
---- a/arch/microblaze/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
-+++ a/arch/microblaze/kernel/syscalls/syscall.tbl
-@@ -467,3 +467,4 @@
- 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
- 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
- 461	common	lsm_list_modules		sys_lsm_list_modules
-+462	common	mseal				sys_mseal
---- a/arch/mips/kernel/syscalls/syscall_n32.tbl~mseal-wire-up-mseal-syscall
-+++ a/arch/mips/kernel/syscalls/syscall_n32.tbl
-@@ -400,3 +400,4 @@
- 459	n32	lsm_get_self_attr		sys_lsm_get_self_attr
- 460	n32	lsm_set_self_attr		sys_lsm_set_self_attr
- 461	n32	lsm_list_modules		sys_lsm_list_modules
-+462	n32	mseal				sys_mseal
---- a/arch/mips/kernel/syscalls/syscall_n64.tbl~mseal-wire-up-mseal-syscall
-+++ a/arch/mips/kernel/syscalls/syscall_n64.tbl
-@@ -376,3 +376,4 @@
- 459	n64	lsm_get_self_attr		sys_lsm_get_self_attr
- 460	n64	lsm_set_self_attr		sys_lsm_set_self_attr
- 461	n64	lsm_list_modules		sys_lsm_list_modules
-+462	n64	mseal				sys_mseal
---- a/arch/mips/kernel/syscalls/syscall_o32.tbl~mseal-wire-up-mseal-syscall
-+++ a/arch/mips/kernel/syscalls/syscall_o32.tbl
-@@ -449,3 +449,4 @@
- 459	o32	lsm_get_self_attr		sys_lsm_get_self_attr
- 460	o32	lsm_set_self_attr		sys_lsm_set_self_attr
- 461	o32	lsm_list_modules		sys_lsm_list_modules
-+462	o32	mseal				sys_mseal
---- a/arch/parisc/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
-+++ a/arch/parisc/kernel/syscalls/syscall.tbl
-@@ -460,3 +460,4 @@
- 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
- 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
- 461	common	lsm_list_modules		sys_lsm_list_modules
-+462	common	mseal				sys_mseal
---- a/arch/powerpc/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
-+++ a/arch/powerpc/kernel/syscalls/syscall.tbl
-@@ -548,3 +548,4 @@
- 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
- 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
- 461	common	lsm_list_modules		sys_lsm_list_modules
-+462	common	mseal				sys_mseal
---- a/arch/s390/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
-+++ a/arch/s390/kernel/syscalls/syscall.tbl
-@@ -464,3 +464,4 @@
- 459  common	lsm_get_self_attr	sys_lsm_get_self_attr		sys_lsm_get_self_attr
- 460  common	lsm_set_self_attr	sys_lsm_set_self_attr		sys_lsm_set_self_attr
- 461  common	lsm_list_modules	sys_lsm_list_modules		sys_lsm_list_modules
-+462  common	mseal			sys_mseal			sys_mseal
---- a/arch/sh/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
-+++ a/arch/sh/kernel/syscalls/syscall.tbl
-@@ -464,3 +464,4 @@
- 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
- 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
- 461	common	lsm_list_modules		sys_lsm_list_modules
-+462	common	mseal				sys_mseal
---- a/arch/sparc/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
-+++ a/arch/sparc/kernel/syscalls/syscall.tbl
-@@ -507,3 +507,4 @@
- 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
- 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
- 461	common	lsm_list_modules		sys_lsm_list_modules
-+462	common	mseal 				sys_mseal
---- a/arch/x86/entry/syscalls/syscall_32.tbl~mseal-wire-up-mseal-syscall
-+++ a/arch/x86/entry/syscalls/syscall_32.tbl
-@@ -466,3 +466,4 @@
- 459	i386	lsm_get_self_attr	sys_lsm_get_self_attr
- 460	i386	lsm_set_self_attr	sys_lsm_set_self_attr
- 461	i386	lsm_list_modules	sys_lsm_list_modules
-+462	i386	mseal 			sys_mseal
---- a/arch/x86/entry/syscalls/syscall_64.tbl~mseal-wire-up-mseal-syscall
-+++ a/arch/x86/entry/syscalls/syscall_64.tbl
-@@ -383,6 +383,7 @@
- 459	common	lsm_get_self_attr	sys_lsm_get_self_attr
- 460	common	lsm_set_self_attr	sys_lsm_set_self_attr
- 461	common	lsm_list_modules	sys_lsm_list_modules
-+462 	common  mseal			sys_mseal
- 
- #
- # Due to a historical design error, certain syscalls are numbered differently
---- a/arch/xtensa/kernel/syscalls/syscall.tbl~mseal-wire-up-mseal-syscall
-+++ a/arch/xtensa/kernel/syscalls/syscall.tbl
-@@ -432,3 +432,4 @@
- 459	common	lsm_get_self_attr		sys_lsm_get_self_attr
- 460	common	lsm_set_self_attr		sys_lsm_set_self_attr
- 461	common	lsm_list_modules		sys_lsm_list_modules
-+462	common	mseal 				sys_mseal
---- a/include/uapi/asm-generic/unistd.h~mseal-wire-up-mseal-syscall
-+++ a/include/uapi/asm-generic/unistd.h
-@@ -842,8 +842,11 @@ __SYSCALL(__NR_lsm_set_self_attr, sys_ls
- #define __NR_lsm_list_modules 461
- __SYSCALL(__NR_lsm_list_modules, sys_lsm_list_modules)
- 
-+#define __NR_mseal 462
-+__SYSCALL(__NR_mseal, sys_mseal)
++#ifdef CONFIG_64BIT
++/* VM is sealed, in vm_flags */
++#define VM_SEALED	_BITUL(63)
++#endif
 +
- #undef __NR_syscalls
--#define __NR_syscalls 462
-+#define __NR_syscalls 463
++#ifdef CONFIG_64BIT
++static inline int can_do_mseal(unsigned long flags)
++{
++	if (flags)
++		return -EINVAL;
++
++	return 0;
++}
++
++bool can_modify_mm(struct mm_struct *mm, unsigned long start,
++		unsigned long end);
++bool can_modify_mm_madv(struct mm_struct *mm, unsigned long start,
++		unsigned long end, int behavior);
++#else
++static inline int can_do_mseal(unsigned long flags)
++{
++	return -EPERM;
++}
++
++static inline bool can_modify_mm(struct mm_struct *mm, unsigned long start,
++		unsigned long end)
++{
++	return true;
++}
++
++static inline bool can_modify_mm_madv(struct mm_struct *mm, unsigned long start,
++		unsigned long end, int behavior)
++{
++	return true;
++}
++#endif
++
+ #ifdef CONFIG_SHRINKER_DEBUG
+ static inline __printf(2, 0) int shrinker_debugfs_name_alloc(
+ 			struct shrinker *shrinker, const char *fmt, va_list ap)
+--- a/mm/madvise.c~mseal-add-mseal-syscall
++++ a/mm/madvise.c
+@@ -1401,6 +1401,7 @@ int madvise_set_anon_name(struct mm_stru
+  *  -EIO    - an I/O error occurred while paging in data.
+  *  -EBADF  - map exists, but area maps something that isn't a file.
+  *  -EAGAIN - a kernel resource was temporarily unavailable.
++ *  -EPERM  - memory is sealed.
+  */
+ int do_madvise(struct mm_struct *mm, unsigned long start, size_t len_in, int behavior)
+ {
+@@ -1444,6 +1445,15 @@ int do_madvise(struct mm_struct *mm, uns
+ 	start = untagged_addr_remote(mm, start);
+ 	end = start + len;
  
- /*
-  * 32 bit systems traditionally used different
---- a/kernel/sys_ni.c~mseal-wire-up-mseal-syscall
-+++ a/kernel/sys_ni.c
-@@ -196,6 +196,7 @@ COND_SYSCALL(migrate_pages);
- COND_SYSCALL(move_pages);
- COND_SYSCALL(set_mempolicy_home_node);
- COND_SYSCALL(cachestat);
-+COND_SYSCALL(mseal);
++	/*
++	 * Check if the address range is sealed for do_madvise().
++	 * can_modify_mm_madv assumes we have acquired the lock on MM.
++	 */
++	if (unlikely(!can_modify_mm_madv(mm, start, end, behavior))) {
++		error = -EPERM;
++		goto out;
++	}
++
+ 	blk_start_plug(&plug);
+ 	switch (behavior) {
+ 	case MADV_POPULATE_READ:
+@@ -1456,6 +1466,8 @@ int do_madvise(struct mm_struct *mm, uns
+ 		break;
+ 	}
+ 	blk_finish_plug(&plug);
++
++out:
+ 	if (write)
+ 		mmap_write_unlock(mm);
+ 	else
+--- a/mm/Makefile~mseal-add-mseal-syscall
++++ a/mm/Makefile
+@@ -43,6 +43,10 @@ ifdef CONFIG_CROSS_MEMORY_ATTACH
+ mmu-$(CONFIG_MMU)	+= process_vm_access.o
+ endif
  
- COND_SYSCALL(perf_event_open);
- COND_SYSCALL(accept4);
++ifdef CONFIG_64BIT
++mmu-$(CONFIG_MMU)	+= mseal.o
++endif
++
+ obj-y			:= filemap.o mempool.o oom_kill.o fadvise.o \
+ 			   maccess.o page-writeback.o folio-compat.o \
+ 			   readahead.o swap.o truncate.o vmscan.o shrinker.o \
+--- a/mm/mmap.c~mseal-add-mseal-syscall
++++ a/mm/mmap.c
+@@ -1255,6 +1255,16 @@ unsigned long do_mmap(struct file *file,
+ 	if (mm->map_count > sysctl_max_map_count)
+ 		return -ENOMEM;
+ 
++	/*
++	 * addr is returned from get_unmapped_area,
++	 * There are two cases:
++	 * 1> MAP_FIXED == false
++	 *	unallocated memory, no need to check sealing.
++	 * 1> MAP_FIXED == true
++	 *	sealing is checked inside mmap_region when
++	 *	do_vmi_munmap is called.
++	 */
++
+ 	if (prot == PROT_EXEC) {
+ 		pkey = execute_only_pkey(mm);
+ 		if (pkey < 0)
+@@ -2727,6 +2737,14 @@ int do_vmi_munmap(struct vma_iterator *v
+ 	if (end == start)
+ 		return -EINVAL;
+ 
++	/*
++	 * Check if memory is sealed before arch_unmap.
++	 * Prevent unmapping a sealed VMA.
++	 * can_modify_mm assumes we have acquired the lock on MM.
++	 */
++	if (unlikely(!can_modify_mm(mm, start, end)))
++		return -EPERM;
++
+ 	 /* arch_unmap() might do unmaps itself.  */
+ 	arch_unmap(mm, start, end);
+ 
+@@ -2789,7 +2807,10 @@ unsigned long mmap_region(struct file *f
+ 	}
+ 
+ 	/* Unmap any existing mapping in the area */
+-	if (do_vmi_munmap(&vmi, mm, addr, len, uf, false))
++	error = do_vmi_munmap(&vmi, mm, addr, len, uf, false);
++	if (error == -EPERM)
++		return error;
++	else if (error)
+ 		return -ENOMEM;
+ 
+ 	/*
+@@ -3139,6 +3160,14 @@ int do_vma_munmap(struct vma_iterator *v
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 
++	/*
++	 * Check if memory is sealed before arch_unmap.
++	 * Prevent unmapping a sealed VMA.
++	 * can_modify_mm assumes we have acquired the lock on MM.
++	 */
++	if (unlikely(!can_modify_mm(mm, start, end)))
++		return -EPERM;
++
+ 	arch_unmap(mm, start, end);
+ 	return do_vmi_align_munmap(vmi, vma, mm, start, end, uf, unlock);
+ }
+--- a/mm/mprotect.c~mseal-add-mseal-syscall
++++ a/mm/mprotect.c
+@@ -32,6 +32,7 @@
+ #include <linux/sched/sysctl.h>
+ #include <linux/userfaultfd_k.h>
+ #include <linux/memory-tiers.h>
++#include <uapi/linux/mman.h>
+ #include <asm/cacheflush.h>
+ #include <asm/mmu_context.h>
+ #include <asm/tlbflush.h>
+@@ -744,6 +745,15 @@ static int do_mprotect_pkey(unsigned lon
+ 		}
+ 	}
+ 
++	/*
++	 * checking if memory is sealed.
++	 * can_modify_mm assumes we have acquired the lock on MM.
++	 */
++	if (unlikely(!can_modify_mm(current->mm, start, end))) {
++		error = -EPERM;
++		goto out;
++	}
++
+ 	prev = vma_prev(&vmi);
+ 	if (start > vma->vm_start)
+ 		prev = vma;
+--- a/mm/mremap.c~mseal-add-mseal-syscall
++++ a/mm/mremap.c
+@@ -902,7 +902,25 @@ static unsigned long mremap_to(unsigned
+ 	if ((mm->map_count + 2) >= sysctl_max_map_count - 3)
+ 		return -ENOMEM;
+ 
++	/*
++	 * In mremap_to().
++	 * Move a VMA to another location, check if src addr is sealed.
++	 *
++	 * Place can_modify_mm here because mremap_to()
++	 * does its own checking for address range, and we only
++	 * check the sealing after passing those checks.
++	 *
++	 * can_modify_mm assumes we have acquired the lock on MM.
++	 */
++	if (unlikely(!can_modify_mm(mm, addr, addr + old_len)))
++		return -EPERM;
++
+ 	if (flags & MREMAP_FIXED) {
++		/*
++		 * In mremap_to().
++		 * VMA is moved to dst address, and munmap dst first.
++		 * do_munmap will check if dst is sealed.
++		 */
+ 		ret = do_munmap(mm, new_addr, new_len, uf_unmap_early);
+ 		if (ret)
+ 			goto out;
+@@ -1061,6 +1079,19 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 		goto out;
+ 	}
+ 
++	/*
++	 * Below is shrink/expand case (not mremap_to())
++	 * Check if src address is sealed, if so, reject.
++	 * In other words, prevent shrinking or expanding a sealed VMA.
++	 *
++	 * Place can_modify_mm here so we can keep the logic related to
++	 * shrink/expand together.
++	 */
++	if (unlikely(!can_modify_mm(mm, addr, addr + old_len))) {
++		ret = -EPERM;
++		goto out;
++	}
++
+ 	/*
+ 	 * Always allow a shrinking remap: that just unmaps
+ 	 * the unnecessary pages..
+--- /dev/null
++++ a/mm/mseal.c
+@@ -0,0 +1,307 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ *  Implement mseal() syscall.
++ *
++ *  Copyright (c) 2023,2024 Google, Inc.
++ *
++ *  Author: Jeff Xu <jeffxu@chromium.org>
++ */
++
++#include <linux/mempolicy.h>
++#include <linux/mman.h>
++#include <linux/mm.h>
++#include <linux/mm_inline.h>
++#include <linux/mmu_context.h>
++#include <linux/syscalls.h>
++#include <linux/sched.h>
++#include "internal.h"
++
++static inline bool vma_is_sealed(struct vm_area_struct *vma)
++{
++	return (vma->vm_flags & VM_SEALED);
++}
++
++static inline void set_vma_sealed(struct vm_area_struct *vma)
++{
++	vm_flags_set(vma, VM_SEALED);
++}
++
++/*
++ * check if a vma is sealed for modification.
++ * return true, if modification is allowed.
++ */
++static bool can_modify_vma(struct vm_area_struct *vma)
++{
++	if (unlikely(vma_is_sealed(vma)))
++		return false;
++
++	return true;
++}
++
++static bool is_madv_discard(int behavior)
++{
++	return	behavior &
++		(MADV_FREE | MADV_DONTNEED | MADV_DONTNEED_LOCKED |
++		 MADV_REMOVE | MADV_DONTFORK | MADV_WIPEONFORK);
++}
++
++static bool is_ro_anon(struct vm_area_struct *vma)
++{
++	/* check anonymous mapping. */
++	if (vma->vm_file || vma->vm_flags & VM_SHARED)
++		return false;
++
++	/*
++	 * check for non-writable:
++	 * PROT=RO or PKRU is not writeable.
++	 */
++	if (!(vma->vm_flags & VM_WRITE) ||
++		!arch_vma_access_permitted(vma, true, false, false))
++		return true;
++
++	return false;
++}
++
++/*
++ * Check if the vmas of a memory range are allowed to be modified.
++ * the memory ranger can have a gap (unallocated memory).
++ * return true, if it is allowed.
++ */
++bool can_modify_mm(struct mm_struct *mm, unsigned long start, unsigned long end)
++{
++	struct vm_area_struct *vma;
++
++	VMA_ITERATOR(vmi, mm, start);
++
++	/* going through each vma to check. */
++	for_each_vma_range(vmi, vma, end) {
++		if (unlikely(!can_modify_vma(vma)))
++			return false;
++	}
++
++	/* Allow by default. */
++	return true;
++}
++
++/*
++ * Check if the vmas of a memory range are allowed to be modified by madvise.
++ * the memory ranger can have a gap (unallocated memory).
++ * return true, if it is allowed.
++ */
++bool can_modify_mm_madv(struct mm_struct *mm, unsigned long start, unsigned long end,
++		int behavior)
++{
++	struct vm_area_struct *vma;
++
++	VMA_ITERATOR(vmi, mm, start);
++
++	if (!is_madv_discard(behavior))
++		return true;
++
++	/* going through each vma to check. */
++	for_each_vma_range(vmi, vma, end)
++		if (unlikely(is_ro_anon(vma) && !can_modify_vma(vma)))
++			return false;
++
++	/* Allow by default. */
++	return true;
++}
++
++static int mseal_fixup(struct vma_iterator *vmi, struct vm_area_struct *vma,
++		struct vm_area_struct **prev, unsigned long start,
++		unsigned long end, vm_flags_t newflags)
++{
++	int ret = 0;
++	vm_flags_t oldflags = vma->vm_flags;
++
++	if (newflags == oldflags)
++		goto out;
++
++	vma = vma_modify_flags(vmi, *prev, vma, start, end, newflags);
++	if (IS_ERR(vma)) {
++		ret = PTR_ERR(vma);
++		goto out;
++	}
++
++	set_vma_sealed(vma);
++out:
++	*prev = vma;
++	return ret;
++}
++
++/*
++ * Check for do_mseal:
++ * 1> start is part of a valid vma.
++ * 2> end is part of a valid vma.
++ * 3> No gap (unallocated address) between start and end.
++ * 4> map is sealable.
++ */
++static int check_mm_seal(unsigned long start, unsigned long end)
++{
++	struct vm_area_struct *vma;
++	unsigned long nstart = start;
++
++	VMA_ITERATOR(vmi, current->mm, start);
++
++	/* going through each vma to check. */
++	for_each_vma_range(vmi, vma, end) {
++		if (vma->vm_start > nstart)
++			/* unallocated memory found. */
++			return -ENOMEM;
++
++		if (vma->vm_end >= end)
++			return 0;
++
++		nstart = vma->vm_end;
++	}
++
++	return -ENOMEM;
++}
++
++/*
++ * Apply sealing.
++ */
++static int apply_mm_seal(unsigned long start, unsigned long end)
++{
++	unsigned long nstart;
++	struct vm_area_struct *vma, *prev;
++
++	VMA_ITERATOR(vmi, current->mm, start);
++
++	vma = vma_iter_load(&vmi);
++	/*
++	 * Note: check_mm_seal should already checked ENOMEM case.
++	 * so vma should not be null, same for the other ENOMEM cases.
++	 */
++	prev = vma_prev(&vmi);
++	if (start > vma->vm_start)
++		prev = vma;
++
++	nstart = start;
++	for_each_vma_range(vmi, vma, end) {
++		int error;
++		unsigned long tmp;
++		vm_flags_t newflags;
++
++		newflags = vma->vm_flags | VM_SEALED;
++		tmp = vma->vm_end;
++		if (tmp > end)
++			tmp = end;
++		error = mseal_fixup(&vmi, vma, &prev, nstart, tmp, newflags);
++		if (error)
++			return error;
++		nstart = vma_iter_end(&vmi);
++	}
++
++	return 0;
++}
++
++/*
++ * mseal(2) seals the VM's meta data from
++ * selected syscalls.
++ *
++ * addr/len: VM address range.
++ *
++ *  The address range by addr/len must meet:
++ *   start (addr) must be in a valid VMA.
++ *   end (addr + len) must be in a valid VMA.
++ *   no gap (unallocated memory) between start and end.
++ *   start (addr) must be page aligned.
++ *
++ *  len: len will be page aligned implicitly.
++ *
++ *   Below VMA operations are blocked after sealing.
++ *   1> Unmapping, moving to another location, and shrinking
++ *	the size, via munmap() and mremap(), can leave an empty
++ *	space, therefore can be replaced with a VMA with a new
++ *	set of attributes.
++ *   2> Moving or expanding a different vma into the current location,
++ *	via mremap().
++ *   3> Modifying a VMA via mmap(MAP_FIXED).
++ *   4> Size expansion, via mremap(), does not appear to pose any
++ *	specific risks to sealed VMAs. It is included anyway because
++ *	the use case is unclear. In any case, users can rely on
++ *	merging to expand a sealed VMA.
++ *   5> mprotect and pkey_mprotect.
++ *   6> Some destructive madvice() behavior (e.g. MADV_DONTNEED)
++ *      for anonymous memory, when users don't have write permission to the
++ *	memory. Those behaviors can alter region contents by discarding pages,
++ *	effectively a memset(0) for anonymous memory.
++ *
++ *  flags: reserved.
++ *
++ * return values:
++ *  zero: success.
++ *  -EINVAL:
++ *   invalid input flags.
++ *   start address is not page aligned.
++ *   Address arange (start + len) overflow.
++ *  -ENOMEM:
++ *   addr is not a valid address (not allocated).
++ *   end (start + len) is not a valid address.
++ *   a gap (unallocated memory) between start and end.
++ *  -EPERM:
++ *  - In 32 bit architecture, sealing is not supported.
++ * Note:
++ *  user can call mseal(2) multiple times, adding a seal on an
++ *  already sealed memory is a no-action (no error).
++ *
++ *  unseal() is not supported.
++ */
++static int do_mseal(unsigned long start, size_t len_in, unsigned long flags)
++{
++	size_t len;
++	int ret = 0;
++	unsigned long end;
++	struct mm_struct *mm = current->mm;
++
++	ret = can_do_mseal(flags);
++	if (ret)
++		return ret;
++
++	start = untagged_addr(start);
++	if (!PAGE_ALIGNED(start))
++		return -EINVAL;
++
++	len = PAGE_ALIGN(len_in);
++	/* Check to see whether len was rounded up from small -ve to zero. */
++	if (len_in && !len)
++		return -EINVAL;
++
++	end = start + len;
++	if (end < start)
++		return -EINVAL;
++
++	if (end == start)
++		return 0;
++
++	if (mmap_write_lock_killable(mm))
++		return -EINTR;
++
++	/*
++	 * First pass, this helps to avoid
++	 * partial sealing in case of error in input address range,
++	 * e.g. ENOMEM error.
++	 */
++	ret = check_mm_seal(start, end);
++	if (ret)
++		goto out;
++
++	/*
++	 * Second pass, this should success, unless there are errors
++	 * from vma_modify_flags, e.g. merge/split error, or process
++	 * reaching the max supported VMAs, however, those cases shall
++	 * be rare.
++	 */
++	ret = apply_mm_seal(start, end);
++
++out:
++	mmap_write_unlock(current->mm);
++	return ret;
++}
++
++SYSCALL_DEFINE3(mseal, unsigned long, start, size_t, len, unsigned long,
++		flags)
++{
++	return do_mseal(start, len, flags);
++}
 _
 
 Patches currently in -mm which might be from jeffxu@chromium.org are
 
-mseal-add-mseal-syscall.patch
 selftest-mm-mseal-memory-sealing.patch
 mseal-add-documentation.patch
 selftest-mm-mseal-read-only-elf-memory-segment.patch
