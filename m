@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 534E3381C6
-	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 19:04:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BE7F381C6
+	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 19:10:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716577489; cv=none; b=FoBJR00sYJmdC/sVaOLy5JwmRLYrJ3ZyegwA8kd+lhnhMugO0xYz3dFL4rB6wJ2oFurdysEtc9ZfVMCLRVrl42OmumULf7W7KLHpuuoc8yBTzqdNePjDidaK5rCsbmEZWpLo0zTRCb6YWIITIiBOvjyZY5Ky2/uwVzPE4lZh1zQ=
+	t=1716577855; cv=none; b=Kl+LZKeRP72qSbjF8gKvvVNGso1QPRRUJaIZ9kzFBJHa6glmxWdRfFVYnZouIYERmhdvmBKhVspRJA+WNKit4itu0bEZ7mjNe98tTUBW1GdHKgzufOmF5asbB+RX6E3cpZBYPHfdGJPuyJg7MUI4MKpCBFd09i5z8PQq5dWl9SI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716577489; c=relaxed/simple;
-	bh=IXje7JLxEza1J4kMxJmpt+P3BiepPpBW2/zVAZZrhsc=;
-	h=Date:To:From:Subject:Message-Id; b=dwHjJbWjEQ11up6aJnesdH4kPEpliOYUqPYRv/Mm1YXF5jcuyGL+BabEySEGXjPEmVHA24j82Oc9xanmdk6JrKnJP2F716D8d5nkYsr39Qo7DYqTwxLT6xotBS2CQ3z3Rro5jbCDyOa8yQIcr6/4SRjLgrxvDYYWYLEHuR0LIxY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Rekksu6G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716577855; c=relaxed/simple;
+	bh=E7JHZCWDYi7iFsmqV3y12esvdSltqucRRmgHNW2uqSk=;
+	h=Date:To:From:Subject:Message-Id; b=svCb7UwReLbRSlpyVR3bjuCz0y6LoAcoTAsjyZDh8VbKlKeKs4niPyqbyQYrnu6pgXSYqRpOdVb8ron4XFV6pKZZZ7in+iLAFhNXsJrAYAUMZwz03HRTHeXonk2JEwDzWHR4gEpw5C1H4ivMKEw2JKs4vjPSqj1f/3eBETA8mr4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SlsZgPXx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rekksu6G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C229FC2BBFC;
-	Fri, 24 May 2024 19:04:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SlsZgPXx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60D9CC2BBFC;
+	Fri, 24 May 2024 19:10:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716577488;
-	bh=IXje7JLxEza1J4kMxJmpt+P3BiepPpBW2/zVAZZrhsc=;
+	s=korg; t=1716577854;
+	bh=E7JHZCWDYi7iFsmqV3y12esvdSltqucRRmgHNW2uqSk=;
 	h=Date:To:From:Subject:From;
-	b=Rekksu6GyUgw9YfBa1mlgdhtcqN6Jlh8VnJbNa+oLv91TOTK1Sz+DCxueKwqgrC/W
-	 LDb9u/cx6ExuDYzfvXkhd3tD627yP27Q0XHuwA0gCxG9DhukWLrpAvnxrScy2N7Ckw
-	 rGPLeNrXgfJGMwO0xrPWgvwkmKeXdrTSd/24HI4Y=
-Date: Fri, 24 May 2024 12:04:48 -0700
-To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,ebiggers@google.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=SlsZgPXxBnd7r7rDare1tzX5r1vq403EWQCH9i6gtBNryBnq11I1AddJIXXwOPefq
+	 25dm05i1xt7s9D+SGAfMde54YKZy35aIzLYsPeiSo+VpMsfygqogVMtRd2P2zOsJS0
+	 bdA5qVcky04gLuzOuSMUk+RK1dNCkiOhLQJDue8g=
+Date: Fri, 24 May 2024 12:10:53 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,xiehuan09@gmail.com,will@kernel.org,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,shy828301@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,ioworker0@gmail.com,fengwei.yin@intel.com,david@redhat.com,chrisl@kernel.org,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-page_mapping.patch added to mm-unstable branch
-Message-Id: <20240524190448.C229FC2BBFC@smtp.kernel.org>
+Subject: + mm-arm64-fix-the-out-of-bounds-issue-in-contpte_clear_young_dirty_ptes.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240524191054.60D9CC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove page_mapping()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-page_mapping.patch
+     Subject: mm: arm64: Fix the out-of-bounds issue in contpte_clear_young_dirty_ptes
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-arm64-fix-the-out-of-bounds-issue-in-contpte_clear_young_dirty_ptes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-page_mapping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-arm64-fix-the-out-of-bounds-issue-in-contpte_clear_young_dirty_ptes.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,157 +58,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove page_mapping()
-Date: Fri, 24 May 2024 19:18:10 +0100
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: arm64: Fix the out-of-bounds issue in contpte_clear_young_dirty_ptes
+Date: Fri, 24 May 2024 12:54:44 +1200
 
-All callers are now converted, delete this compatibility wrapper.  Also
-fix up some comments which referred to page_mapping.
+We are passing a huge nr to __clear_young_dirty_ptes() right now.  While
+we should pass the number of pages, we are actually passing CONT_PTE_SIZE.
+This is causing lots of crashes of MADV_FREE, panic oops could vary
+everytime.
 
-Link: https://lkml.kernel.org/r/20240423225552.4113447-7-willy@infradead.org
-Link: https://lkml.kernel.org/r/20240524181813.698813-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Eric Biggers <ebiggers@google.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Link: https://lkml.kernel.org/r/20240524005444.135417-1-21cnbao@gmail.com
+Fixes: 89e86854fb0a ("mm/arm64: override clear_young_dirty_ptes() batch helper")
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Lance Yang <ioworker0@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Chris Li <chrisl@kernel.org>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Jeff Xie <xiehuan09@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/cacheflush.h   |    2 +-
- arch/arm64/include/asm/cacheflush.h |    2 +-
- arch/mips/mm/cache.c                |    2 +-
- arch/sparc/mm/init_64.c             |    2 +-
- include/linux/buffer_head.h         |    2 +-
- include/linux/page-flags.h          |   23 ++++++++++++-----------
- include/linux/pagemap.h             |    1 -
- mm/folio-compat.c                   |    6 ------
- 8 files changed, 17 insertions(+), 23 deletions(-)
+ arch/arm64/mm/contpte.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/arm64/include/asm/cacheflush.h~mm-remove-page_mapping
-+++ a/arch/arm64/include/asm/cacheflush.h
-@@ -117,7 +117,7 @@ extern void copy_to_user_page(struct vm_
-  * flush_dcache_folio is used when the kernel has written to the page
-  * cache page at virtual address page->virtual.
-  *
-- * If this page isn't mapped (ie, page_mapping == NULL), or it might
-+ * If this page isn't mapped (ie, folio_mapping == NULL), or it might
-  * have userspace mappings, then we _must_ always clean + invalidate
-  * the dcache entries associated with the kernel mapping.
-  *
---- a/arch/arm/include/asm/cacheflush.h~mm-remove-page_mapping
-+++ a/arch/arm/include/asm/cacheflush.h
-@@ -283,7 +283,7 @@ void flush_cache_pages(struct vm_area_st
-  * flush_dcache_page is used when the kernel has written to the page
-  * cache page at virtual address page->virtual.
-  *
-- * If this page isn't mapped (ie, page_mapping == NULL), or it might
-+ * If this page isn't mapped (ie, folio_mapping == NULL), or it might
-  * have userspace mappings, then we _must_ always clean + invalidate
-  * the dcache entries associated with the kernel mapping.
-  *
---- a/arch/mips/mm/cache.c~mm-remove-page_mapping
-+++ a/arch/mips/mm/cache.c
-@@ -112,7 +112,7 @@ void __flush_dcache_pages(struct page *p
+--- a/arch/arm64/mm/contpte.c~mm-arm64-fix-the-out-of-bounds-issue-in-contpte_clear_young_dirty_ptes
++++ a/arch/arm64/mm/contpte.c
+@@ -376,7 +376,7 @@ void contpte_clear_young_dirty_ptes(stru
+ 	 * clearing access/dirty for the whole block.
+ 	 */
+ 	unsigned long start = addr;
+-	unsigned long end = start + nr;
++	unsigned long end = start + nr * PAGE_SIZE;
+ 
+ 	if (pte_cont(__ptep_get(ptep + nr - 1)))
+ 		end = ALIGN(end, CONT_PTE_SIZE);
+@@ -386,7 +386,7 @@ void contpte_clear_young_dirty_ptes(stru
+ 		ptep = contpte_align_down(ptep);
  	}
  
- 	/*
--	 * We could delay the flush for the !page_mapping case too.  But that
-+	 * We could delay the flush for the !folio_mapping case too.  But that
- 	 * case is for exec env/arg pages and those are %99 certainly going to
- 	 * get faulted into the tlb (and thus flushed) anyways.
- 	 */
---- a/arch/sparc/mm/init_64.c~mm-remove-page_mapping
-+++ a/arch/sparc/mm/init_64.c
-@@ -490,7 +490,7 @@ void flush_dcache_folio(struct folio *fo
- 		}
- 		set_dcache_dirty(folio, this_cpu);
- 	} else {
--		/* We could delay the flush for the !page_mapping
-+		/* We could delay the flush for the !folio_mapping
- 		 * case too.  But that case is for exec env/arg
- 		 * pages and those are %99 certainly going to get
- 		 * faulted into the tlb (and thus flushed) anyways.
---- a/include/linux/buffer_head.h~mm-remove-page_mapping
-+++ a/include/linux/buffer_head.h
-@@ -53,7 +53,7 @@ typedef void (bh_end_io_t)(struct buffer
-  * filesystem and block layers.  Nowadays the basic I/O unit
-  * is the bio, and buffer_heads are used for extracting block
-  * mappings (via a get_block_t call), for tracking state within
-- * a page (via a page_mapping) and for wrapping bio submission
-+ * a folio (via a folio_mapping) and for wrapping bio submission
-  * for backward compatibility reasons (e.g. submit_bh).
-  */
- struct buffer_head {
---- a/include/linux/page-flags.h~mm-remove-page_mapping
-+++ a/include/linux/page-flags.h
-@@ -655,27 +655,28 @@ PAGEFLAG_FALSE(VmemmapSelfHosted, vmemma
- #endif
- 
- /*
-- * On an anonymous page mapped into a user virtual memory area,
-- * page->mapping points to its anon_vma, not to a struct address_space;
-+ * On an anonymous folio mapped into a user virtual memory area,
-+ * folio->mapping points to its anon_vma, not to a struct address_space;
-  * with the PAGE_MAPPING_ANON bit set to distinguish it.  See rmap.h.
-  *
-  * On an anonymous page in a VM_MERGEABLE area, if CONFIG_KSM is enabled,
-  * the PAGE_MAPPING_MOVABLE bit may be set along with the PAGE_MAPPING_ANON
-- * bit; and then page->mapping points, not to an anon_vma, but to a private
-+ * bit; and then folio->mapping points, not to an anon_vma, but to a private
-  * structure which KSM associates with that merged page.  See ksm.h.
-  *
-  * PAGE_MAPPING_KSM without PAGE_MAPPING_ANON is used for non-lru movable
-- * page and then page->mapping points to a struct movable_operations.
-+ * page and then folio->mapping points to a struct movable_operations.
-  *
-- * Please note that, confusingly, "page_mapping" refers to the inode
-- * address_space which maps the page from disk; whereas "page_mapped"
-- * refers to user virtual address space into which the page is mapped.
-+ * Please note that, confusingly, "folio_mapping" refers to the inode
-+ * address_space which maps the folio from disk; whereas "folio_mapped"
-+ * refers to user virtual address space into which the folio is mapped.
-  *
-  * For slab pages, since slab reuses the bits in struct page to store its
-- * internal states, the page->mapping does not exist as such, nor do these
-- * flags below.  So in order to avoid testing non-existent bits, please
-- * make sure that PageSlab(page) actually evaluates to false before calling
-- * the following functions (e.g., PageAnon).  See mm/slab.h.
-+ * internal states, the folio->mapping does not exist as such, nor do
-+ * these flags below.  So in order to avoid testing non-existent bits,
-+ * please make sure that folio_test_slab(folio) actually evaluates to
-+ * false before calling the following functions (e.g., folio_test_anon).
-+ * See mm/slab.h.
-  */
- #define PAGE_MAPPING_ANON	0x1
- #define PAGE_MAPPING_MOVABLE	0x2
---- a/include/linux/pagemap.h~mm-remove-page_mapping
-+++ a/include/linux/pagemap.h
-@@ -401,7 +401,6 @@ static inline void filemap_nr_thps_dec(s
- #endif
+-	__clear_young_dirty_ptes(vma, start, ptep, end - start, flags);
++	__clear_young_dirty_ptes(vma, start, ptep, (end - start) / PAGE_SIZE, flags);
  }
+ EXPORT_SYMBOL_GPL(contpte_clear_young_dirty_ptes);
  
--struct address_space *page_mapping(struct page *);
- struct address_space *folio_mapping(struct folio *);
- struct address_space *swapcache_mapping(struct folio *);
- 
---- a/mm/folio-compat.c~mm-remove-page_mapping
-+++ a/mm/folio-compat.c
-@@ -10,12 +10,6 @@
- #include <linux/swap.h>
- #include "internal.h"
- 
--struct address_space *page_mapping(struct page *page)
--{
--	return folio_mapping(page_folio(page));
--}
--EXPORT_SYMBOL(page_mapping);
--
- void unlock_page(struct page *page)
- {
- 	return folio_unlock(page_folio(page));
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mm-remove-page_mapping.patch
+mm-huge_mm-fix-undefined-reference-to-mthp_stats-for-config_sysfs=n.patch
+mm-arm64-fix-the-out-of-bounds-issue-in-contpte_clear_young_dirty_ptes.patch
 
