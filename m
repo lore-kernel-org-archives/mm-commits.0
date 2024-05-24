@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BE7F381C6
-	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 19:10:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79F772C1A2
+	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 19:30:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716577855; cv=none; b=Kl+LZKeRP72qSbjF8gKvvVNGso1QPRRUJaIZ9kzFBJHa6glmxWdRfFVYnZouIYERmhdvmBKhVspRJA+WNKit4itu0bEZ7mjNe98tTUBW1GdHKgzufOmF5asbB+RX6E3cpZBYPHfdGJPuyJg7MUI4MKpCBFd09i5z8PQq5dWl9SI=
+	t=1716579020; cv=none; b=nqxyXR4D5hFFnZmzEGdN9rO+GxTKAqAxCvqd0poPpBTTodvmI5TBEorvfHq7RmOT7MFeVtZWOceHTdlIsyI+IEMwiujYgomRmu0eGFr3vEpS5wj/GS3rZxZswWpxgxxpa2mCIXtpnBqle1PHmUMcS/oxKerN7Z6XYKPnfcsMpjY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716577855; c=relaxed/simple;
-	bh=E7JHZCWDYi7iFsmqV3y12esvdSltqucRRmgHNW2uqSk=;
-	h=Date:To:From:Subject:Message-Id; b=svCb7UwReLbRSlpyVR3bjuCz0y6LoAcoTAsjyZDh8VbKlKeKs4niPyqbyQYrnu6pgXSYqRpOdVb8ron4XFV6pKZZZ7in+iLAFhNXsJrAYAUMZwz03HRTHeXonk2JEwDzWHR4gEpw5C1H4ivMKEw2JKs4vjPSqj1f/3eBETA8mr4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SlsZgPXx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716579020; c=relaxed/simple;
+	bh=PxI+GzRv7QgilrRhWu4zIhr+cVSKQE/ediojIXL5pSQ=;
+	h=Date:To:From:Subject:Message-Id; b=jeJZxdUr7GwIfbcH6V0+Juu+bYKr3Ejb9y16W0IwrZ3lyXF3K768mX2zy5mRyZ8wECvQNzJ7OUBb9sHqYvgqXVeIp9Nfqe5QaORzORUed6iXl/5RzIjhrcTIP86iBIhi5C0wz02TAeGACMBeWUcuy3+BOi0Krk6xZw10QcBeXwo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0wNRcC63; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SlsZgPXx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60D9CC2BBFC;
-	Fri, 24 May 2024 19:10:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0wNRcC63"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEDEFC2BBFC;
+	Fri, 24 May 2024 19:30:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716577854;
-	bh=E7JHZCWDYi7iFsmqV3y12esvdSltqucRRmgHNW2uqSk=;
+	s=korg; t=1716579020;
+	bh=PxI+GzRv7QgilrRhWu4zIhr+cVSKQE/ediojIXL5pSQ=;
 	h=Date:To:From:Subject:From;
-	b=SlsZgPXxBnd7r7rDare1tzX5r1vq403EWQCH9i6gtBNryBnq11I1AddJIXXwOPefq
-	 25dm05i1xt7s9D+SGAfMde54YKZy35aIzLYsPeiSo+VpMsfygqogVMtRd2P2zOsJS0
-	 bdA5qVcky04gLuzOuSMUk+RK1dNCkiOhLQJDue8g=
-Date: Fri, 24 May 2024 12:10:53 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,xiehuan09@gmail.com,will@kernel.org,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,shy828301@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,ioworker0@gmail.com,fengwei.yin@intel.com,david@redhat.com,chrisl@kernel.org,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=0wNRcC63okVp+ymHOknzUiQjO8JKrLVgVbdVVIyZR7+yqUxM5JoaTwGKFh8XJTrO6
+	 9fXWAcLurZWHO9XeGTxvXxS32Ti5GSOugekIwY37zkKGdWvP3ghhr/NydOOq9TWpqK
+	 WNh5OJe53kMmUvnviZT7bZTke84NRRxjU2HgF8gg=
+Date: Fri, 24 May 2024 12:30:19 -0700
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,peterz@infradead.org,namhyung@kernel.org,msakai@redhat.com,mingo@redhat.com,mark.rutland@arm.com,kent.overstreet@linux.dev,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,irogers@google.com,colyli@suse.de,bfoster@redhat.com,bagasdotme@gmail.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-arm64-fix-the-out-of-bounds-issue-in-contpte_clear_young_dirty_ptes.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240524191054.60D9CC2BBFC@smtp.kernel.org>
+Subject: + perf-core-fix-several-typos.patch added to mm-nonmm-unstable branch
+Message-Id: <20240524193019.DEDEFC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: arm64: Fix the out-of-bounds issue in contpte_clear_young_dirty_ptes
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-arm64-fix-the-out-of-bounds-issue-in-contpte_clear_young_dirty_ptes.patch
+     Subject: perf/core: fix several typos
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     perf-core-fix-several-typos.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-arm64-fix-the-out-of-bounds-issue-in-contpte_clear_young_dirty_ptes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/perf-core-fix-several-typos.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,65 +58,106 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: arm64: Fix the out-of-bounds issue in contpte_clear_young_dirty_ptes
-Date: Fri, 24 May 2024 12:54:44 +1200
+From: Kuan-Wei Chiu <visitorckw@gmail.com>
+Subject: perf/core: fix several typos
+Date: Fri, 24 May 2024 23:29:43 +0800
 
-We are passing a huge nr to __clear_young_dirty_ptes() right now.  While
-we should pass the number of pages, we are actually passing CONT_PTE_SIZE.
-This is causing lots of crashes of MADV_FREE, panic oops could vary
-everytime.
+Patch series "treewide: Refactor heap related implementation", v6.
 
-Link: https://lkml.kernel.org/r/20240524005444.135417-1-21cnbao@gmail.com
-Fixes: 89e86854fb0a ("mm/arm64: override clear_young_dirty_ptes() batch helper")
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Lance Yang <ioworker0@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Chris Li <chrisl@kernel.org>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Jeff Xie <xiehuan09@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+This patch series focuses on several adjustments related to heap
+implementation.  Firstly, a type-safe interface has been added to the
+min_heap, along with the introduction of several new functions to enhance
+its functionality.  Additionally, the heap implementation for bcache and
+bcachefs has been replaced with the generic min_heap implementation from
+include/linux.  Furthermore, several typos have been corrected.
+
+Previous discussion with Kent Overstreet:
+https://lkml.kernel.org/ioyfizrzq7w7mjrqcadtzsfgpuntowtjdw5pgn4qhvsdp4mqqg@nrlek5vmisbu
+
+
+This patch (of 16):
+
+Replace 'artifically' with 'artificially'.
+Replace 'irrespecive' with 'irrespective'.
+Replace 'futher' with 'further'.
+Replace 'sufficent' with 'sufficient'.
+
+Link: https://lkml.kernel.org/r/20240524152958.919343-1-visitorckw@gmail.com
+Link: https://lkml.kernel.org/r/20240524152958.919343-2-visitorckw@gmail.com
+Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Reviewed-by: Ian Rogers <irogers@google.com>
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Brian Foster <bfoster@redhat.com>
+Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Cc: Coly Li <colyli@suse.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Matthew Sakai <msakai@redhat.com>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/contpte.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/events/core.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/arm64/mm/contpte.c~mm-arm64-fix-the-out-of-bounds-issue-in-contpte_clear_young_dirty_ptes
-+++ a/arch/arm64/mm/contpte.c
-@@ -376,7 +376,7 @@ void contpte_clear_young_dirty_ptes(stru
- 	 * clearing access/dirty for the whole block.
+--- a/kernel/events/core.c~perf-core-fix-several-typos
++++ a/kernel/events/core.c
+@@ -534,7 +534,7 @@ void perf_sample_event_took(u64 sample_l
+ 	__this_cpu_write(running_sample_length, running_len);
+ 
+ 	/*
+-	 * Note: this will be biased artifically low until we have
++	 * Note: this will be biased artificially low until we have
+ 	 * seen NR_ACCUMULATED_SAMPLES. Doing it this way keeps us
+ 	 * from having to maintain a count.
  	 */
- 	unsigned long start = addr;
--	unsigned long end = start + nr;
-+	unsigned long end = start + nr * PAGE_SIZE;
+@@ -596,10 +596,10 @@ static inline u64 perf_event_clock(struc
+  *
+  * Event groups make things a little more complicated, but not terribly so. The
+  * rules for a group are that if the group leader is OFF the entire group is
+- * OFF, irrespecive of what the group member states are. This results in
++ * OFF, irrespective of what the group member states are. This results in
+  * __perf_effective_state().
+  *
+- * A futher ramification is that when a group leader flips between OFF and
++ * A further ramification is that when a group leader flips between OFF and
+  * !OFF, we need to update all group member times.
+  *
+  *
+@@ -891,7 +891,7 @@ static int perf_cgroup_ensure_storage(st
+ 	int cpu, heap_size, ret = 0;
  
- 	if (pte_cont(__ptep_get(ptep + nr - 1)))
- 		end = ALIGN(end, CONT_PTE_SIZE);
-@@ -386,7 +386,7 @@ void contpte_clear_young_dirty_ptes(stru
- 		ptep = contpte_align_down(ptep);
- 	}
- 
--	__clear_young_dirty_ptes(vma, start, ptep, end - start, flags);
-+	__clear_young_dirty_ptes(vma, start, ptep, (end - start) / PAGE_SIZE, flags);
- }
- EXPORT_SYMBOL_GPL(contpte_clear_young_dirty_ptes);
- 
+ 	/*
+-	 * Allow storage to have sufficent space for an iterator for each
++	 * Allow storage to have sufficient space for an iterator for each
+ 	 * possibly nested cgroup plus an iterator for events with no cgroup.
+ 	 */
+ 	for (heap_size = 1; css; css = css->parent)
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from visitorckw@gmail.com are
 
-mm-huge_mm-fix-undefined-reference-to-mthp_stats-for-config_sysfs=n.patch
-mm-arm64-fix-the-out-of-bounds-issue-in-contpte_clear_young_dirty_ptes.patch
+perf-core-fix-several-typos.patch
+bcache-fix-typo.patch
+bcachefs-fix-typo.patch
+lib-min_heap-add-type-safe-interface.patch
+lib-min_heap-add-min_heap_init.patch
+lib-min_heap-add-min_heap_peek.patch
+lib-min_heap-add-min_heap_full.patch
+lib-min_heap-add-args-for-min_heap_callbacks.patch
+lib-min_heap-add-min_heap_sift_up.patch
+lib-min_heap-add-min_heap_del.patch
+lib-min_heap-update-min_heap_push-and-min_heap_pop-to-return-bool-values.patch
+lib-min_heap-rename-min_heapify-to-min_heap_sift_down.patch
+lib-min_heap-update-min_heap_push-to-use-min_heap_sift_up.patch
+lib-test_min_heap-add-test-for-heap_del.patch
+bcache-remove-heap-related-macros-and-switch-to-generic-min_heap.patch
+bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap.patch
 
