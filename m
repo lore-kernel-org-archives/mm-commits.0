@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CA0439ADB
-	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 20:26:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADAFC39ADB
+	for <mm-commits@vger.kernel.org>; Fri, 24 May 2024 20:29:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716582384; cv=none; b=meTirD99x2ummnWX1pIgPJfS5FKqd2OGn9+MQZZ3Z7wwFPXTCe+O0S48fPrQFTUvHUvy5JX1pbGy4mHN53fiNgZUL9eF7vNyNcD+K5fVEyt3UTDI/3AIgO39qTpiCGUrTSCmMIrazW27xXe9k0z/Bh4DrCSKpV772+cg7RxBs8o=
+	t=1716582571; cv=none; b=dTUw5+09YKK0Ye5iznGbbZ3tN2q/wQADjHbGwmO5ylzdGfpEs6b4GfLwNKxYzWHFZRQJvZgoGNoeEpuOkBN8YUJH7rXBobdDUMpsJNm2DqShZoRWM4XubT9APxCXTcq6C/12Fs9g407/pFpXr4tw3w3t22JK1m4NdYEn3+ha1LI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716582384; c=relaxed/simple;
-	bh=MKit0C5q+Fw9yKnM8fdZSBbDOHU5vqSUmFucvuEwQPQ=;
-	h=Date:To:From:Subject:Message-Id; b=muJ61rePB+ouQMrpyqbrphpujlWtak7SBdxtsrThykhILYtyMv4UNd1WSrrXwYvYe2hoKy9xUO+lQm/8hwmQ2y2r2QSRbzC/DH1VeyMCit58CLAdR8/T+AoaUxvG8yiDw8Byfya1dvDLMolbJC9+/IN70ZtuHw2PF6deekushH4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LlsGzqun; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716582571; c=relaxed/simple;
+	bh=yhuJC3CedW22FArnj1jC1V8vfvKKOGG+V2yos2g4RiU=;
+	h=Date:To:From:Subject:Message-Id; b=KrdZp/xEmI9EDN4wah2huGUEgWy85e9U4XluRpBEZDE8I61p7N17Y9PAjNDkv8BmC8Gqhkgf2FzueRDdDLDKMoI3axTso7J/e68JfzsAm74hkz5UHcYGIMz54KSmf3nD5WkjsHnaEt/E9qUxieElXxn/JwWCwpMx9PFwrVXCQ7w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VjTNAPFR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LlsGzqun"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AE6CC2BBFC;
-	Fri, 24 May 2024 20:26:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VjTNAPFR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66DCAC2BBFC;
+	Fri, 24 May 2024 20:29:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716582384;
-	bh=MKit0C5q+Fw9yKnM8fdZSBbDOHU5vqSUmFucvuEwQPQ=;
+	s=korg; t=1716582570;
+	bh=yhuJC3CedW22FArnj1jC1V8vfvKKOGG+V2yos2g4RiU=;
 	h=Date:To:From:Subject:From;
-	b=LlsGzqunMYxe2fNmZnNuZzbNmvGqrgJeLs2fT/1QEJMuIGh/zyBUYyL5GSxNavdG2
-	 /X/EPa+0Ms9WoNKjOf42iBD0+wCM8qL/d/Fhlhn8x+I7smQ9rBN6dt4uUDBeNjILZc
-	 6+WNZ4ZcXU4bS20nX/SJJ5gCZJ8VthI0U5+H4uDY=
-Date: Fri, 24 May 2024 13:26:23 -0700
-To: mm-commits@vger.kernel.org,quic_eberman@quicinc.com,quic_bjorande@quicinc.com,cmllamas@google.com,xndchn@gmail.com,akpm@linux-foundation.org
+	b=VjTNAPFRA23saY+6+5yQMhof8o8bUMnuFSm6K3MQBanIw/XivpDVJz9y4h+SoGBU3
+	 LVIxWG/9L+2CP9UT9Xbo2oXrJW3vJZeYt12GIFH+IF2S0VEfHWzjPwkoVHz7G4qM9X
+	 EzZFi97LBxghpwUbN7jSocEvMHE1Os64cJu1+01c=
+Date: Fri, 24 May 2024 13:29:29 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-decode_stacktracesh-better-support-to-arm32-module-stack-trace.patch added to mm-nonmm-unstable branch
-Message-Id: <20240524202624.2AE6CC2BBFC@smtp.kernel.org>
+Subject: + mm-zswap-use-sg_set_folio-in-zswap_compress-decompress.patch added to mm-unstable branch
+Message-Id: <20240524202930.66DCAC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/decode_stacktrace.sh: better support to ARM32 module stack trace
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-decode_stacktracesh-better-support-to-arm32-module-stack-trace.patch
+     Subject: mm: zswap: use sg_set_folio() in zswap_{compress/decompress}()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zswap-use-sg_set_folio-in-zswap_compress-decompress.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-decode_stacktracesh-better-support-to-arm32-module-stack-trace.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-use-sg_set_folio-in-zswap_compress-decompress.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,46 +58,86 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xiong Nandi <xndchn@gmail.com>
-Subject: scripts/decode_stacktrace.sh: better support to ARM32 module stack trace
-Date: Fri, 24 May 2024 12:26:00 +0800
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: zswap: use sg_set_folio() in zswap_{compress/decompress}()
+Date: Fri, 24 May 2024 03:38:16 +0000
 
-Sometimes there are special characters around module names in stack
-traces, such as ARM32 with BACKTRACE_VERBOSE in "(%pS)" format, such as:
-[<806e4845>] (dump_stack_lvl) from [<7f806013>] (hello_init+0x13/0x1000
-[test])
+Patch series "mm: zswap: trivial folio conversions".
 
-In this case, $module will be "[test])", the trace can be decoded by
-stripping the right parenthesis first: (dump_stack_lvl) from hello_init
-(/foo/test.c:10) test.
+Some trivial folio conversions in zswap code.
 
-Link: https://lkml.kernel.org/r/20240524042600.14738-3-xndchn@gmail.com
-Signed-off-by: Xiong Nandi <xndchn@gmail.com>
-Suggested-by: Elliot Berman <quic_eberman@quicinc.com>
-Cc: Bjorn Andersson <quic_bjorande@quicinc.com>
-Cc: Carlos Llamas <cmllamas@google.com>
+
+This patch (of 3):
+
+sg_set_folio() is equivalent to sg_set_page() for order-0 folios, which
+are the only ones supported by zswap. Now zswap_decompress() can take in
+a folio directly.
+
+Link: https://lkml.kernel.org/r/20240524033819.1953587-1-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/20240524033819.1953587-2-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/zswap.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-better-support-to-arm32-module-stack-trace
-+++ a/scripts/decode_stacktrace.sh
-@@ -283,6 +283,9 @@ handle_line() {
+--- a/mm/zswap.c~mm-zswap-use-sg_set_folio-in-zswap_compress-decompress
++++ a/mm/zswap.c
+@@ -917,7 +917,7 @@ static bool zswap_compress(struct folio
  
- 	if [[ ${words[$last]} =~ \[([^]]+)\] ]]; then
- 		module=${words[$last]}
-+		# some traces format is "(%pS)", which like "(foo+0x0/0x1 [bar])"
-+		# so $module may like "[bar])". Strip the right parenthesis firstly
-+		module=${module%\)}
- 		module=${module#\[}
- 		module=${module%\]}
- 		modbuildid=${module#* }
+ 	dst = acomp_ctx->buffer;
+ 	sg_init_table(&input, 1);
+-	sg_set_page(&input, &folio->page, PAGE_SIZE, 0);
++	sg_set_folio(&input, folio, PAGE_SIZE, 0);
+ 
+ 	/*
+ 	 * We need PAGE_SIZE * 2 here since there maybe over-compression case,
+@@ -971,7 +971,7 @@ unlock:
+ 	return comp_ret == 0 && alloc_ret == 0;
+ }
+ 
+-static void zswap_decompress(struct zswap_entry *entry, struct page *page)
++static void zswap_decompress(struct zswap_entry *entry, struct folio *folio)
+ {
+ 	struct zpool *zpool = zswap_find_zpool(entry);
+ 	struct scatterlist input, output;
+@@ -1000,7 +1000,7 @@ static void zswap_decompress(struct zswa
+ 
+ 	sg_init_one(&input, src, entry->length);
+ 	sg_init_table(&output, 1);
+-	sg_set_page(&output, page, PAGE_SIZE, 0);
++	sg_set_folio(&output, folio, PAGE_SIZE, 0);
+ 	acomp_request_set_params(acomp_ctx->req, &input, &output, entry->length, PAGE_SIZE);
+ 	BUG_ON(crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait));
+ 	BUG_ON(acomp_ctx->req->dlen != PAGE_SIZE);
+@@ -1073,7 +1073,7 @@ static int zswap_writeback_entry(struct
+ 		return -ENOMEM;
+ 	}
+ 
+-	zswap_decompress(entry, &folio->page);
++	zswap_decompress(entry, folio);
+ 
+ 	count_vm_event(ZSWPWB);
+ 	if (entry->objcg)
+@@ -1580,7 +1580,7 @@ bool zswap_load(struct folio *folio)
+ 		return false;
+ 
+ 	if (entry->length)
+-		zswap_decompress(entry, page);
++		zswap_decompress(entry, folio);
+ 	else {
+ 		dst = kmap_local_page(page);
+ 		zswap_fill_page(dst, entry->value);
 _
 
-Patches currently in -mm which might be from xndchn@gmail.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-scripts-decode_stacktracesh-wrap-nm-with-util_prefix-and-util_suffix.patch
-scripts-decode_stacktracesh-better-support-to-arm32-module-stack-trace.patch
+mm-zswap-use-sg_set_folio-in-zswap_compress-decompress.patch
+mm-zswap-use-kmap_local_folio-in-zswap_load.patch
+mm-zswap-make-same_filled-functions-folio-friendly.patch
 
