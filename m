@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27AF138384
-	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 19:00:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD7E8172BC4
+	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 19:03:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716922858; cv=none; b=tDc+CUS1uhsK41WmQ6qxzyaJVdrpEx7blYeV5BKzvsLD1znc5YslFSU7pybxI9BUcFmVBqBF/fG3fEhYqIz7D4qOBsm7rCHI+BIP63oQVtQQq62RuF3WBJEJZeTRu/+x6BBsM8CKOyYccDZ8BlH4GX8VN8UFT0zKPlAZJRNWvuE=
+	t=1716923020; cv=none; b=JWE4WZX1KEh4BljwxBGzI6aMadwh8/BJW/n6Hv76QlR8ZjSk0hCLgdjvnP6+lX0s7wC0JA1Mxku1JPtdK9kWoDu3TyIfTV7gKBKv41+Mmhj0o3v4WBEMQKmoGrUsDQDUB/SDfKFv0iMBzoRrLaRujvtMNetGQyMfxliidOGuwwc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716922858; c=relaxed/simple;
-	bh=9GJrHyRI3JF1Vlvq+Y+qgKaLGgdj/japN3FfEAeLXvo=;
-	h=Date:To:From:Subject:Message-Id; b=EOXAzv6hsE2NjH3V6/PR++kfligI7rjTBT2osnbLVPbMx9usZ+oNgFZpeOoIz0RBhoLcKTqLPeSoZSv5t8ZQvw1i053iwA+jRMQzJp0WzlhfVqQnK5UsQBjn2NDn3ufpLNesXceGbZTY8iJOSS5PiacUJADKrk3BXUXY54RmYkw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lk/IPa3R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716923020; c=relaxed/simple;
+	bh=acb1bRztSDRjxaeoU7NYDxwrmkGZHfex0BCiiohMcuw=;
+	h=Date:To:From:Subject:Message-Id; b=tOIBwroZ0R6Y1j3XjDcGh1xnky4OG9HlSyClwOOiA4U836xKqBaqExll5vLgmHvaOAQtCpfeaU7tA+DllG8hiyzZFLTABE7ZvFCAVcRzIH1aw8ZLMgSEIRCqaNJiya6+/L9BNXhu43YXC3etxql9YQPoKH9mxI1GkJ3mj4BG9wA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MAOI0y69; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lk/IPa3R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A650FC3277B;
-	Tue, 28 May 2024 19:00:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MAOI0y69"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70B67C3277B;
+	Tue, 28 May 2024 19:03:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716922857;
-	bh=9GJrHyRI3JF1Vlvq+Y+qgKaLGgdj/japN3FfEAeLXvo=;
+	s=korg; t=1716923020;
+	bh=acb1bRztSDRjxaeoU7NYDxwrmkGZHfex0BCiiohMcuw=;
 	h=Date:To:From:Subject:From;
-	b=lk/IPa3RC1e3p4VQ2UBWz07l2jCgkJf6jTVym94UuebD1sdInxtS4l+kIywAvdvWO
-	 PbzRZt0gipR8+L46WZd0TbI/VwS4mxvzU9NArM5JONHZ1AMVSdDLotwmTQPcj0xnay
-	 1o2xzd+2WFnkeWxbJFoocs7N2N7GQe1KbnjzqoNM=
-Date: Tue, 28 May 2024 12:00:57 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,roman.gushchin@linux.dev,oliver.sang@intel.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,fengwei.yin@intel.com,feng.tang@intel.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=MAOI0y69EJVxxQbCTSpkFKLDw2xxneE7zWAhjIocWGFW3YohHnBFpuUqrZEaaHQ2j
+	 3gMIqA1Q1PbAUh5fseU6FxSO8v2pjs7nc7klA1nyiw/iHw/oALV2V7ngaPTX5IRVnU
+	 hk9IGqi5uq1VPwJraYLANTWP5F3p/+VKtSPRl2Cc=
+Date: Tue, 28 May 2024 12:03:39 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,mcgrof@kernel.org,daniel@iogearbox.net,cong.wang@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-rearrange-fields-of-mem_cgroup_per_node.patch added to mm-unstable branch
-Message-Id: <20240528190057.A650FC3277B@smtp.kernel.org>
+Subject: + vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240528190340.70B67C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: rearrange fields of mem_cgroup_per_node
-has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-rearrange-fields-of-mem_cgroup_per_node.patch
+     Subject: vmalloc: check CONFIG_EXECMEM in is_vmalloc_or_module_addr()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-rearrange-fields-of-mem_cgroup_per_node.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,114 +58,134 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: rearrange fields of mem_cgroup_per_node
-Date: Tue, 28 May 2024 09:40:50 -0700
+From: Cong Wang <cong.wang@bytedance.com>
+Subject: vmalloc: check CONFIG_EXECMEM in is_vmalloc_or_module_addr()
+Date: Tue, 28 May 2024 09:08:38 -0700
 
-Kernel test robot reported [1] performance regression for will-it-scale
-test suite's page_fault2 test case for the commit 70a64b7919cb ("memcg:
-dynamically allocate lruvec_stats").  After inspection it seems like the
-commit has unintentionally introduced false cache sharing.
+After commit 2c9e5d4a0082 ("bpf: remove CONFIG_BPF_JIT dependency on
+CONFIG_MODULES of") CONFIG_BPF_JIT does not depend on CONFIG_MODULES any
+more and bpf jit also uses the [MODULES_VADDR, MODULES_END] memory region.
+But is_vmalloc_or_module_addr() still checks CONFIG_MODULES, which then
+returns false for a bpf jit memory region when CONFIG_MODULES is not
+defined.  It leads to the following kernel BUG:
 
-After the commit the fields of mem_cgroup_per_node which get read on the
-performance critical path share the cacheline with the fields which get
-updated often on LRU page allocations or deallocations.  This has caused
-contention on that cacheline and the workloads which manipulates a lot of
-LRU pages are regressed as reported by the test report.
+[    1.567023] ------------[ cut here ]------------
+[    1.567883] kernel BUG at mm/vmalloc.c:745!
+[    1.568477] Oops: invalid opcode: 0000 [#1] PREEMPT SMP KASAN NOPTI
+[    1.569367] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 6.9.0+ #448
+[    1.570247] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.15.0-1 04/01/2014
+[    1.570786] RIP: 0010:vmalloc_to_page+0x48/0x1ec
+[    1.570786] Code: 0f 00 00 e8 eb 1a 05 00 b8 37 00 00 00 48 ba fe ff ff ff ff 1f 00 00 4c 03 25 76 49 c6 02 48 c1 e0 28 48 01 e8 48 39 d0 76 02 <0f> 0b 4c 89 e7 e8 bf 1a 05 00 49 8b 04 24 48 a9 9f ff ff ff 0f 84
+[    1.570786] RSP: 0018:ffff888007787960 EFLAGS: 00010212
+[    1.570786] RAX: 000036ffa0000000 RBX: 0000000000000640 RCX: ffffffff8147e93c
+[    1.570786] RDX: 00001ffffffffffe RSI: dffffc0000000000 RDI: ffffffff840e32c8
+[    1.570786] RBP: ffffffffa0000000 R08: 0000000000000000 R09: 0000000000000000
+[    1.570786] R10: ffff888007787a88 R11: ffffffff8475d8e7 R12: ffffffff83e80ff8
+[    1.570786] R13: 0000000000000640 R14: 0000000000000640 R15: 0000000000000640
+[    1.570786] FS:  0000000000000000(0000) GS:ffff88806cc00000(0000) knlGS:0000000000000000
+[    1.570786] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    1.570786] CR2: ffff888006a01000 CR3: 0000000003e80000 CR4: 0000000000350ef0
+[    1.570786] Call Trace:
+[    1.570786]  <TASK>
+[    1.570786]  ? __die_body+0x1b/0x58
+[    1.570786]  ? die+0x31/0x4b
+[    1.570786]  ? do_trap+0x9d/0x138
+[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
+[    1.570786]  ? do_error_trap+0xcd/0x102
+[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
+[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
+[    1.570786]  ? handle_invalid_op+0x2f/0x38
+[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
+[    1.570786]  ? exc_invalid_op+0x2b/0x41
+[    1.570786]  ? asm_exc_invalid_op+0x16/0x20
+[    1.570786]  ? vmalloc_to_page+0x26/0x1ec
+[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
+[    1.570786]  __text_poke+0xb6/0x458
+[    1.570786]  ? __pfx_text_poke_memcpy+0x10/0x10
+[    1.570786]  ? __pfx___mutex_lock+0x10/0x10
+[    1.570786]  ? __pfx___text_poke+0x10/0x10
+[    1.570786]  ? __pfx_get_random_u32+0x10/0x10
+[    1.570786]  ? srso_return_thunk+0x5/0x5f
+[    1.570786]  text_poke_copy_locked+0x70/0x84
+[    1.570786]  text_poke_copy+0x32/0x4f
+[    1.570786]  bpf_arch_text_copy+0xf/0x27
+[    1.570786]  bpf_jit_binary_pack_finalize+0x26/0x5a
+[    1.570786]  bpf_int_jit_compile+0x576/0x8ad
+[    1.570786]  ? __pfx_bpf_int_jit_compile+0x10/0x10
+[    1.570786]  ? srso_return_thunk+0x5/0x5f
+[    1.570786]  ? __kmalloc_node_track_caller+0x2b5/0x2e0
+[    1.570786]  bpf_prog_select_runtime+0x7c/0x199
+[    1.570786]  bpf_prepare_filter+0x1e9/0x25b
+[    1.570786]  ? __pfx_bpf_prepare_filter+0x10/0x10
+[    1.570786]  ? srso_return_thunk+0x5/0x5f
+[    1.570786]  ? _find_next_bit+0x29/0x7e
+[    1.570786]  bpf_prog_create+0xb8/0xe0
+[    1.570786]  ptp_classifier_init+0x75/0xa1
+[    1.570786]  ? __pfx_ptp_classifier_init+0x10/0x10
+[    1.570786]  ? srso_return_thunk+0x5/0x5f
+[    1.570786]  ? register_pernet_subsys+0x36/0x42
+[    1.570786]  ? srso_return_thunk+0x5/0x5f
+[    1.570786]  sock_init+0x99/0xa3
+[    1.570786]  ? __pfx_sock_init+0x10/0x10
+[    1.570786]  do_one_initcall+0x104/0x2c4
+[    1.570786]  ? __pfx_do_one_initcall+0x10/0x10
+[    1.570786]  ? parameq+0x25/0x2d
+[    1.570786]  ? rcu_is_watching+0x1c/0x3c
+[    1.570786]  ? trace_kmalloc+0x81/0xb2
+[    1.570786]  ? srso_return_thunk+0x5/0x5f
+[    1.570786]  ? __kmalloc+0x29c/0x2c7
+[    1.570786]  ? srso_return_thunk+0x5/0x5f
+[    1.570786]  do_initcalls+0xf9/0x123
+[    1.570786]  kernel_init_freeable+0x24f/0x289
+[    1.570786]  ? __pfx_kernel_init+0x10/0x10
+[    1.570786]  kernel_init+0x19/0x13a
+[    1.570786]  ret_from_fork+0x24/0x41
+[    1.570786]  ? __pfx_kernel_init+0x10/0x10
+[    1.570786]  ret_from_fork_asm+0x1a/0x30
+[    1.570786]  </TASK>
+[    1.570819] ---[ end trace 0000000000000000 ]---
+[    1.571463] RIP: 0010:vmalloc_to_page+0x48/0x1ec
+[    1.572111] Code: 0f 00 00 e8 eb 1a 05 00 b8 37 00 00 00 48 ba fe ff ff ff ff 1f 00 00 4c 03 25 76 49 c6 02 48 c1 e0 28 48 01 e8 48 39 d0 76 02 <0f> 0b 4c 89 e7 e8 bf 1a 05 00 49 8b 04 24 48 a9 9f ff ff ff 0f 84
+[    1.574632] RSP: 0018:ffff888007787960 EFLAGS: 00010212
+[    1.575129] RAX: 000036ffa0000000 RBX: 0000000000000640 RCX: ffffffff8147e93c
+[    1.576097] RDX: 00001ffffffffffe RSI: dffffc0000000000 RDI: ffffffff840e32c8
+[    1.577084] RBP: ffffffffa0000000 R08: 0000000000000000 R09: 0000000000000000
+[    1.578077] R10: ffff888007787a88 R11: ffffffff8475d8e7 R12: ffffffff83e80ff8
+[    1.578810] R13: 0000000000000640 R14: 0000000000000640 R15: 0000000000000640
+[    1.579823] FS:  0000000000000000(0000) GS:ffff88806cc00000(0000) knlGS:0000000000000000
+[    1.580992] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    1.581869] CR2: ffff888006a01000 CR3: 0000000003e80000 CR4: 0000000000350ef0
+[    1.582800] Kernel panic - not syncing: Fatal exception
+[    1.583765] ---[ end Kernel panic - not syncing: Fatal exception ]---
 
-The solution is to rearrange the fields of mem_cgroup_per_node such that
-the false sharing is eliminated.  Let's move all the read only pointers at
-the start of the struct, followed by memcg-v1 only fields and at the end
-fields which get updated often.
+Fix this by checking CONFIG_EXECMEM instead.
 
-Experiment setup: Ran fallocate1, fallocate2, page_fault1, page_fault2 and
-page_fault3 from the will-it-scale test suite inside a three level memcg
-with /tmp mounted as tmpfs on two different machines, one a single numa
-node and the other one, two node machine.
-
- $ ./[testcase]_processes -t $NR_CPUS -s 50
-
-Results for single node, 52 CPU machine:
-
-Testcase        base        with-patch
-
-fallocate1      1031081     1431291  (38.80 %)
-fallocate2      1029993     1421421  (38.00 %)
-page_fault1     2269440     3405788  (50.07 %)
-page_fault2     2375799     3572868  (50.30 %)
-page_fault3     28641143    28673950 ( 0.11 %)
-
-Results for dual node, 80 CPU machine:
-
-Testcase        base        with-patch
-
-fallocate1      2976288     3641185  (22.33 %)
-fallocate2      2979366     3638181  (22.11 %)
-page_fault1     6221790     7748245  (24.53 %)
-page_fault2     6482854     7847698  (21.05 %)
-page_fault3     28804324    28991870 ( 0.65 %)
-
-Link: https://lkml.kernel.org/r/20240528164050.2625718-1-shakeel.butt@linux.dev
-Fixes: 70a64b7919cb ("memcg: dynamically allocate lruvec_stats")
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
+Link: https://lkml.kernel.org/r/20240528160838.102223-1-xiyou.wangcong@gmail.com
+Fixes: 2c9e5d4a0082 ("bpf: remove CONFIG_BPF_JIT dependency on CONFIG_MODULES of")
+Signed-off-by: Cong Wang <cong.wang@bytedance.com>
+Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/memcontrol.h~memcg-rearrange-fields-of-mem_cgroup_per_node
-+++ a/include/linux/memcontrol.h
-@@ -96,23 +96,29 @@ struct mem_cgroup_reclaim_iter {
-  * per-node information in memory controller.
-  */
- struct mem_cgroup_per_node {
--	struct lruvec		lruvec;
-+	/* Keep the read-only fields at the start */
-+	struct mem_cgroup	*memcg;		/* Back pointer, we cannot */
-+						/* use container_of	   */
- 
- 	struct lruvec_stats_percpu __percpu	*lruvec_stats_percpu;
- 	struct lruvec_stats			*lruvec_stats;
--
--	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
--
--	struct mem_cgroup_reclaim_iter	iter;
--
- 	struct shrinker_info __rcu	*shrinker_info;
- 
-+	/*
-+	 * Memcg-v1 only stuff in middle as buffer between read mostly fields
-+	 * and update often fields to avoid false sharing. Once v1 stuff is
-+	 * moved in a separate struct, an explicit padding is needed.
-+	 */
-+
- 	struct rb_node		tree_node;	/* RB tree node */
- 	unsigned long		usage_in_excess;/* Set to the value by which */
- 						/* the soft limit is exceeded*/
- 	bool			on_tree;
--	struct mem_cgroup	*memcg;		/* Back pointer, we cannot */
--						/* use container_of	   */
-+
-+	/* Fields which get updated often at the end. */
-+	struct lruvec		lruvec;
-+	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
-+	struct mem_cgroup_reclaim_iter	iter;
- };
- 
- struct mem_cgroup_threshold {
+--- a/mm/vmalloc.c~vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr
++++ a/mm/vmalloc.c
+@@ -722,7 +722,7 @@ int is_vmalloc_or_module_addr(const void
+ 	 * and fall back on vmalloc() if that fails. Others
+ 	 * just put it in the vmalloc space.
+ 	 */
+-#if defined(CONFIG_MODULES) && defined(MODULES_VADDR)
++#if defined(CONFIG_EXECMEM) && defined(MODULES_VADDR)
+ 	unsigned long addr = (unsigned long)kasan_reset_tag(x);
+ 	if (addr >= MODULES_VADDR && addr < MODULES_END)
+ 		return 1;
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from cong.wang@bytedance.com are
 
-memcg-rearrange-fields-of-mem_cgroup_per_node.patch
+vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr.patch
 
