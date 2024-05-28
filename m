@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A2EA13541F
-	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 21:32:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A53017B4E7
+	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 21:44:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716931969; cv=none; b=L0BOv7soUJbdrFieF9y69CZWfXVgzwRfO8zJf6xTklUmSvlg52D7dVpql0MtAXAEgyr9Jq4ZCHDZLMv622pOd2IVkni3x3AXDgWWjFwtflNNP2drqcCBM69IfB8qjBbkS+j+coFqqLFTWvvcEwm3p4gXrMtauE/4W/6Sqr3B9hQ=
+	t=1716932661; cv=none; b=EHLbeM9ehpLNsmCI+fNSIrq6dmmBpDQ01EZrAZz9qHDV49zDMjFHi03TcAlITGNJdZJakO9tiPt3OBw5Ot14zhbl7aI6GzqHDi0k53cSsPaXa43p/TBMTBgLKmN7aUIbXsA30hxJuYu/AdqfEMNUYen4gwxaChr2qynipaQ86N8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716931969; c=relaxed/simple;
-	bh=LKwrfr7YOkrht7p5ByqEAr1ygk9tRtgPAXulMXhSoKE=;
-	h=Date:To:From:Subject:Message-Id; b=RMPd5LTJrEXFYz2t+cICNvgjNSVBv2v/opG3h9qGMslfu4glaxt0aU5WDsoBEEP/3W9j7zqeL4oI3ejVcDaSxGV5fu/JV+uHyERfDjiuggZI6XjWpb3gfbMII3oTpAM4vtdnJ+y6KT5MO60xKlnG9jI729+Sp3uFMt344Dlh9BI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GPCWS1Jn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716932661; c=relaxed/simple;
+	bh=QF9mjKpTUkQhuQCdNR9tZ06LEeCcnZMevj9qWPSIKTY=;
+	h=Date:To:From:Subject:Message-Id; b=WBCTo6twkZge9D6owVvj8atc90eFzFrgBUdmQK5rOenlBOi7UnxVFSCkmDH2xYwXGvVdsff5DXXYUAvpQBqcJefkO5Reg1OyO1eGg+rSjEdMnqeM0NtdcQbxsSJWLDui+sfZet2EDFlQp1T9bicApBaq1p7aIYIV27E+/flqups=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MEcTgucl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GPCWS1Jn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BD70C3277B;
-	Tue, 28 May 2024 21:32:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MEcTgucl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BC26C3277B;
+	Tue, 28 May 2024 21:44:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716931968;
-	bh=LKwrfr7YOkrht7p5ByqEAr1ygk9tRtgPAXulMXhSoKE=;
+	s=korg; t=1716932661;
+	bh=QF9mjKpTUkQhuQCdNR9tZ06LEeCcnZMevj9qWPSIKTY=;
 	h=Date:To:From:Subject:From;
-	b=GPCWS1JnSJip1xAo/gqtAeMc/4LMcvyj1edRqIP+4AMRMYuyNrIMkABbuSUjI+XyN
-	 gBv59KRCAt4gVrO1Klop0DwH/4iMxfFLWspHe/C+tTF/krNoiMAl/wDH3wh8VFH9gt
-	 1QMuWSzrMxkY2kRA/n5GPHoIufQMj2Fxyv8ug8zI=
-Date: Tue, 28 May 2024 14:32:47 -0700
-To: mm-commits@vger.kernel.org,peterz@infradead.org,namhyung@kernel.org,mingo@redhat.com,mark.rutland@arm.com,kan.liang@linux.intel.com,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,irogers@google.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=MEcTgucl9VvOnsRoMNAXhiKf7iHp/CV89ma0le7geOfXCRuAnUHW8ESc9zHhZJWJ4
+	 gtBp4pd+gakVsDJutcm+mdytBfadmpu8zBjk/VwcuAcy2RcCRY78gl/2XTerN+lMwI
+	 HcJpV6T0P3BDZYKjqVAHtzLzxGANl+CoIyiuQtBE=
+Date: Tue, 28 May 2024 14:44:20 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,oalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,jane.chu@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-lib-list_sort-remove-redundant-code-for-cond_resched-handling.patch added to mm-nonmm-unstable branch
-Message-Id: <20240528213248.8BD70C3277B@smtp.kernel.org>
+Subject: + mm-memory-failure-try-to-send-sigbus-even-if-unmap-failed.patch added to mm-unstable branch
+Message-Id: <20240528214421.1BC26C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/lib/list_sort: remove redundant code for cond_resched handling
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     tools-lib-list_sort-remove-redundant-code-for-cond_resched-handling.patch
+     Subject: mm/memory-failure: try to send SIGBUS even if unmap failed
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memory-failure-try-to-send-sigbus-even-if-unmap-failed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-lib-list_sort-remove-redundant-code-for-cond_resched-handling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-try-to-send-sigbus-even-if-unmap-failed.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,91 +58,107 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: tools/lib/list_sort: remove redundant code for cond_resched handling
-Date: Sun, 26 May 2024 07:02:06 +0800
+From: Jane Chu <jane.chu@oracle.com>
+Subject: mm/memory-failure: try to send SIGBUS even if unmap failed
+Date: Fri, 24 May 2024 15:53:02 -0600
 
-Since cond_resched() is not called in userspace, remove the redundant code
-in userspace's list_sort() implementation.  This change eliminates the
-unused 'count' variable and the associated logic for invoking cmp()
-periodically, which was intended to trigger cond_resched() in kernel
-space.
+Patch series "Enhance soft hwpoison handling and injection", v4.
 
-The removed code includes:
-- Declaration and increment of the 'count' variable.
-- Conditional invocation of cmp() based on 'count'.
+This series is aimed at the following enhancements:
 
-This cleanup simplifies merge_final(), avoids unnecessary overhead, and
-has no impact on the functionality of list_sort() in userspace.
+- Let one hwpoison injector, that is, madvise(MADV_HWPOISON) to behave
+  more like as if a real UE occurred.  Because the other two injectors
+  such as hwpoison-inject and the 'einj' on x86 can't, and it seems to me
+  we need a better simulation to real UE scenario.
+- For years, if the kernel is unable to unmap a hwpoisoned page, it send
+  a SIGKILL instead of SIGBUS to prevent user process from potentially
+  accessing the page again.  But in doing so, the user process also lose
+  important information: vaddr, for recovery.  Fortunately, the kernel
+  already has code to kill process re-accessing a hwpoisoned page, so
+  remove the '!unmap_success' check.
+- Right now, if a thp page under GUP longterm pin is hwpoisoned, and
+  kernel cannot split the thp page, memory-failure simply ignores the UE
+  and returns.  That's not ideal, it could deliver a SIGBUS with useful
+  information for userspace recovery.
 
-Link: https://lkml.kernel.org/r/20240525230206.1077536-1-visitorckw@gmail.com
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Kan Liang <kan.liang@linux.intel.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+
+This patch (of 5):
+
+For years when it comes down to kill a process due to hwpoison, a SIGBUS
+is delivered only if unmap has been successful.  Otherwise, a SIGKILL is
+delivered.  And the reason for that is to prevent the involved process
+from accessing the hwpoisoned page again.
+
+Since then a lot has changed, a hwpoisoned page is marked and upon being
+re-accessed, the memory-failure handler invokes kill_accessing_process()
+to kill the process immediately.  So let's take out the '!unmap_success'
+factor and try to deliver SIGBUS if possible.
+
+Link: https://lkml.kernel.org/r/20240524215306.2705454-1-jane.chu@oracle.com
+Link: https://lkml.kernel.org/r/20240524215306.2705454-2-jane.chu@oracle.com
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Oscar Salvador <oalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/lib/list_sort.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ mm/memory-failure.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
---- a/tools/lib/list_sort.c~tools-lib-list_sort-remove-redundant-code-for-cond_resched-handling
-+++ a/tools/lib/list_sort.c
-@@ -52,7 +52,6 @@ static void merge_final(void *priv, list
- 			struct list_head *a, struct list_head *b)
+--- a/mm/memory-failure.c~mm-memory-failure-try-to-send-sigbus-even-if-unmap-failed
++++ a/mm/memory-failure.c
+@@ -514,22 +514,15 @@ void add_to_kill_ksm(struct task_struct
+  *
+  * Only do anything when FORCEKILL is set, otherwise just free the
+  * list (this is used for clean pages which do not need killing)
+- * Also when FAIL is set do a force kill because something went
+- * wrong earlier.
+  */
+-static void kill_procs(struct list_head *to_kill, int forcekill, bool fail,
++static void kill_procs(struct list_head *to_kill, int forcekill,
+ 		unsigned long pfn, int flags)
  {
- 	struct list_head *tail = head;
--	u8 count = 0;
+ 	struct to_kill *tk, *next;
  
- 	for (;;) {
- 		/* if equal, take 'a' -- important for sort stability */
-@@ -78,15 +77,6 @@ static void merge_final(void *priv, list
- 	/* Finish linking remainder of list b on to tail */
- 	tail->next = b;
- 	do {
--		/*
--		 * If the merge is highly unbalanced (e.g. the input is
--		 * already sorted), this loop may run many iterations.
--		 * Continue callbacks to the client even though no
--		 * element comparison is needed, so the client's cmp()
--		 * routine can invoke cond_resched() periodically.
--		 */
--		if (unlikely(!++count))
--			cmp(priv, b, b);
- 		b->prev = tail;
- 		tail = b;
- 		b = b->next;
+ 	list_for_each_entry_safe(tk, next, to_kill, nd) {
+ 		if (forcekill) {
+-			/*
+-			 * In case something went wrong with munmapping
+-			 * make sure the process doesn't catch the
+-			 * signal and then access the memory. Just kill it.
+-			 */
+-			if (fail || tk->addr == -EFAULT) {
++			if (tk->addr == -EFAULT) {
+ 				pr_err("%#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
+ 				       pfn, tk->tsk->comm, tk->tsk->pid);
+ 				do_send_sig_info(SIGKILL, SEND_SIG_PRIV,
+@@ -1660,7 +1653,7 @@ static bool hwpoison_user_mappings(struc
+ 	 */
+ 	forcekill = folio_test_dirty(folio) || (flags & MF_MUST_KILL) ||
+ 		    !unmap_success;
+-	kill_procs(&tokill, forcekill, !unmap_success, pfn, flags);
++	kill_procs(&tokill, forcekill, pfn, flags);
+ 
+ 	return unmap_success;
+ }
+@@ -1724,7 +1717,7 @@ static void unmap_and_kill(struct list_h
+ 		unmap_mapping_range(mapping, start, size, 0);
+ 	}
+ 
+-	kill_procs(to_kill, flags & MF_MUST_KILL, false, pfn, flags);
++	kill_procs(to_kill, flags & MF_MUST_KILL, pfn, flags);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from jane.chu@oracle.com are
 
-perf-core-fix-several-typos.patch
-bcache-fix-typo.patch
-bcachefs-fix-typo.patch
-lib-min_heap-add-type-safe-interface.patch
-lib-min_heap-add-min_heap_init.patch
-lib-min_heap-add-min_heap_peek.patch
-lib-min_heap-add-min_heap_full.patch
-lib-min_heap-add-args-for-min_heap_callbacks.patch
-lib-min_heap-add-min_heap_sift_up.patch
-lib-min_heap-add-min_heap_del.patch
-lib-min_heap-update-min_heap_push-and-min_heap_pop-to-return-bool-values.patch
-lib-min_heap-rename-min_heapify-to-min_heap_sift_down.patch
-lib-min_heap-update-min_heap_push-to-use-min_heap_sift_up.patch
-lib-test_min_heap-add-test-for-heap_del.patch
-bcache-remove-heap-related-macros-and-switch-to-generic-min_heap.patch
-bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap.patch
-lib-sort-remove-unused-pr_fmt-macro.patch
-lib-sort-fix-outdated-comment-regarding-glibc-qsort.patch
-lib-sort-optimize-heapsort-for-handling-final-2-or-3-elements.patch
-lib-test_sort-add-a-testcase-to-ensure-code-coverage.patch
-tools-lib-list_sort-remove-redundant-code-for-cond_resched-handling.patch
+mm-memory-failure-try-to-send-sigbus-even-if-unmap-failed.patch
+mm-madvise-add-mf_action_required-to-madvisemadv_hwpoison.patch
+mm-memory-failure-improve-memory-failure-action_result-messages.patch
+mm-memory-failure-move-hwpoison_filter-higher-up.patch
+mm-memory-failure-send-sigbus-in-the-event-of-thp-split-fail.patch
 
