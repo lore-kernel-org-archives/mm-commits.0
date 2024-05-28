@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D283171E59
-	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 19:10:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C56CA17839F
+	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 19:42:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716923406; cv=none; b=HReRuoXQ4qI3a0BY7elwG/NjHowoXyV72Pxt1QqIZOA5LTbr+vOncRj7NiKyTDBb/0JofzeVfR3bUluNTsNqk9pyRCwfYgJd18rz3TNJvUZb9eWqwKt2yuJ9D3jzO3YG3QnzGtST9yyqjnccIkZQR/y6otK5DK2T4mAGsKmIpfA=
+	t=1716925332; cv=none; b=rfLiWsNhDAfDxI93xjPGEoyadjqzZClpVhZyW/oRbqftx1LlHGLJw3+lSww6JgmDlp/Rn5Cogao+jiTUu6pnJ+ZPDE0eHN6Mnxbm6ZxlZafFDpbNFU9xnWerzZokmjzmvJ30MuPzz+naUqNRu1rCyNLhwFhYB4ZOtxCJOGk1BDQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716923406; c=relaxed/simple;
-	bh=6Q7lrGNnO+L98LPU422ZztQSTu6T/nRdo9oT0gGYbGo=;
-	h=Date:To:From:Subject:Message-Id; b=DsT79bpZoobSkgN7MKr2Vd6hJOqjjxrQtdWnH8I+AFuUZ3WEhAXv8UxmPDlD98vGz8UHQhGBvClL8gF5Ik/vAsqa2eXwWbBu2+o4g2M0hXdO9RagChfMa0Z1WD1maKnXmt4jLGBW3/C7aZXcxw5Z1OhXQRaEKSg669CwSK/YDew=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LPhlhF32; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716925332; c=relaxed/simple;
+	bh=2klv4MRLJKiHx5lb5O1/HCiI4aKYLx8w/Al5u8OkPIE=;
+	h=Date:To:From:Subject:Message-Id; b=AAZ6Au39eAvrUJMsf9N7GkwfSRIRG2K5DYXeegi35hRqvkqPNOocSMOZWLtNiG+PBvxWfJtXsj94jA1yy2dfqRtaS49ClQTrmT0c6T6JVi1HByJCRUWnHeWYb4jizVgR//LgeWo2ga291ADjYfTQVapnUubsjOLsW9Q/SSEBHYk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IUEIwHDJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LPhlhF32"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D77CBC32781;
-	Tue, 28 May 2024 19:10:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IUEIwHDJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56EA1C3277B;
+	Tue, 28 May 2024 19:42:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716923405;
-	bh=6Q7lrGNnO+L98LPU422ZztQSTu6T/nRdo9oT0gGYbGo=;
+	s=korg; t=1716925332;
+	bh=2klv4MRLJKiHx5lb5O1/HCiI4aKYLx8w/Al5u8OkPIE=;
 	h=Date:To:From:Subject:From;
-	b=LPhlhF32/1eBM5j8cgJJ3Pm1lc4ez6+oBzq9rWFFNSIuVqp+GKr5ZUqaBFsllU53M
-	 T7IUFwnhK1N48pzl7eUt4BIQbT+6fP5Z0IgHgTE3sOtzPZRdovqKOZukzIEi7SbcUS
-	 PXaYnhONVq1EbauafEbNM1iTUkvWTu2ifKiiQcRE=
-Date: Tue, 28 May 2024 12:10:05 -0700
-To: mm-commits@vger.kernel.org,vivek.kasireddy@intel.com,sumit.semwal@linaro.org,kraxel@redhat.com,david@redhat.com,christian.koenig@amd.com,airlied@redhat.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=IUEIwHDJ+Gec+19/f15/HZBYBdFgQGuKOIDDKiVhlX4pyM7edP6RjtLJiA60fKWwf
+	 e0dcydXsIz9h/D1DDTbAgSkk++0NJLDFU7998AJFI2bANokHD5eSzulFJpZPQRfamJ
+	 UMcJd4KnrPhGLDaVwJ3nVozdoghn6QMnrbTyaQqE=
+Date: Tue, 28 May 2024 12:42:11 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,rppt@kernel.org,peterz@infradead.org,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,luto@kernel.org,hpa@zytor.com,dave.hansen@linux.intel.com,bp@alien8.de,bhe@redhat.com,echanude@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + udmabuf-use-vmf_insert_pfn-and-vm_pfnmap-for-handling-mmap-fix.patch added to mm-unstable branch
-Message-Id: <20240528191005.D77CBC32781@smtp.kernel.org>
+Subject: + mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads-v3.patch added to mm-unstable branch
+Message-Id: <20240528194212.56EA1C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: udmabuf: add CONFIG_MMU dependency
+     Subject: mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads-v3
 has been added to the -mm mm-unstable branch.  Its filename is
-     udmabuf-use-vmf_insert_pfn-and-vm_pfnmap-for-handling-mmap-fix.patch
+     mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads-v3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/udmabuf-use-vmf_insert_pfn-and-vm_pfnmap-for-handling-mmap-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads-v3.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,43 +58,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: udmabuf: add CONFIG_MMU dependency
-Date: Tue, 28 May 2024 15:31:31 +0200
+From: Eric Chanudet <echanude@redhat.com>
+Subject: mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads-v3
+Date: Tue, 28 May 2024 14:54:58 -0400
 
-There is no !CONFIG_MMU version of vmf_insert_pfn():
+ - deferred_page_init_max_threads returns unsigned and use max instead
+   of max_t.
+ - Make deferred_page_init_max_threads static since there are no more
+   override.
 
-arm-linux-gnueabi-ld: drivers/dma-buf/udmabuf.o: in function `udmabuf_vm_fault':
-udmabuf.c:(.text+0xaa): undefined reference to `vmf_insert_pfn'
-
-Link: https://lkml.kernel.org/r/20240528133138.2237237-1-arnd@kernel.org
-Fixes: f7254e043ff1 ("udmabuf: use vmf_insert_pfn and VM_PFNMAP for handling mmap")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Link: https://lkml.kernel.org/r/20240528185455.643227-4-echanude@redhat.com
+Signed-off-by: Eric Chanudet <echanude@redhat.com>
+Tested-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma-buf/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/memblock.h |    2 --
+ mm/mm_init.c             |    5 ++---
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
---- a/drivers/dma-buf/Kconfig~udmabuf-use-vmf_insert_pfn-and-vm_pfnmap-for-handling-mmap-fix
-+++ a/drivers/dma-buf/Kconfig
-@@ -35,6 +35,7 @@ config UDMABUF
- 	default n
- 	depends on DMA_SHARED_BUFFER
- 	depends on MEMFD_CREATE || COMPILE_TEST
-+	depends on MMU
- 	help
- 	  A driver to let userspace turn memfd regions into dma-bufs.
- 	  Qemu can use this to create host dmabufs for guest framebuffers.
+--- a/include/linux/memblock.h~mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads-v3
++++ a/include/linux/memblock.h
+@@ -335,8 +335,6 @@ void __next_mem_pfn_range_in_zone(u64 *i
+ 	for (; i != U64_MAX;					  \
+ 	     __next_mem_pfn_range_in_zone(&i, zone, p_start, p_end))
+ 
+-int __init deferred_page_init_max_threads(const struct cpumask *node_cpumask);
+-
+ #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
+ 
+ /**
+--- a/mm/mm_init.c~mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads-v3
++++ a/mm/mm_init.c
+@@ -2122,11 +2122,10 @@ deferred_init_memmap_chunk(unsigned long
+ 	}
+ }
+ 
+-/* An arch may override for more concurrency. */
+-__weak int __init
++static unsigned int __init
+ deferred_page_init_max_threads(const struct cpumask *node_cpumask)
+ {
+-	return max_t(int, cpumask_weight(node_cpumask), 1);
++	return max(cpumask_weight(node_cpumask), 1U);
+ }
+ 
+ /* Initialise remaining memory on a node */
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from echanude@redhat.com are
 
-udmabuf-use-vmf_insert_pfn-and-vm_pfnmap-for-handling-mmap-fix.patch
+mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads.patch
+mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads-v3.patch
 
