@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A53017B4E7
-	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 21:44:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 785F517B4E7
+	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 21:44:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716932661; cv=none; b=EHLbeM9ehpLNsmCI+fNSIrq6dmmBpDQ01EZrAZz9qHDV49zDMjFHi03TcAlITGNJdZJakO9tiPt3OBw5Ot14zhbl7aI6GzqHDi0k53cSsPaXa43p/TBMTBgLKmN7aUIbXsA30hxJuYu/AdqfEMNUYen4gwxaChr2qynipaQ86N8=
+	t=1716932663; cv=none; b=XD30LnzeWnGcBesqg34iRLBJTD0vy/Wn90dtqU00cWnai+Jl4K8k1deOOaKGddfafgN/MtnXX+uRR4ug/CTR5iZUK/k7GZD+6MELyz/ZIYYPwNd8w1Ww8jJRWqSHU5u6+1CH/c+aP1PSXmpUzxtmtHrCmyj00rasNcy33axVeQA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716932661; c=relaxed/simple;
-	bh=QF9mjKpTUkQhuQCdNR9tZ06LEeCcnZMevj9qWPSIKTY=;
-	h=Date:To:From:Subject:Message-Id; b=WBCTo6twkZge9D6owVvj8atc90eFzFrgBUdmQK5rOenlBOi7UnxVFSCkmDH2xYwXGvVdsff5DXXYUAvpQBqcJefkO5Reg1OyO1eGg+rSjEdMnqeM0NtdcQbxsSJWLDui+sfZet2EDFlQp1T9bicApBaq1p7aIYIV27E+/flqups=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MEcTgucl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716932663; c=relaxed/simple;
+	bh=iP67S0lK+l+T+Ezkp5rfMoc+qkVj8pbJD9O62gf5lgk=;
+	h=Date:To:From:Subject:Message-Id; b=eu5ocXX9d07CeAFI93gXWwub6w/b4AogsKN9y9f+/ixVSsQIHNvmI1vUjjnv0qv8fLsCijyAQWeA/bKY5fIad6UPLGhy15A36qxnZy2KTdRWElT4edG/j9kPMD5JEfKkgYH6vTuGHgqlmqaOU3nNlhCMbgXlzuh6JNWPBO4wM24=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v1pUsdEO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MEcTgucl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BC26C3277B;
-	Tue, 28 May 2024 21:44:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v1pUsdEO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E898BC4AF07;
+	Tue, 28 May 2024 21:44:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716932661;
-	bh=QF9mjKpTUkQhuQCdNR9tZ06LEeCcnZMevj9qWPSIKTY=;
+	s=korg; t=1716932663;
+	bh=iP67S0lK+l+T+Ezkp5rfMoc+qkVj8pbJD9O62gf5lgk=;
 	h=Date:To:From:Subject:From;
-	b=MEcTgucl9VvOnsRoMNAXhiKf7iHp/CV89ma0le7geOfXCRuAnUHW8ESc9zHhZJWJ4
-	 gtBp4pd+gakVsDJutcm+mdytBfadmpu8zBjk/VwcuAcy2RcCRY78gl/2XTerN+lMwI
-	 HcJpV6T0P3BDZYKjqVAHtzLzxGANl+CoIyiuQtBE=
-Date: Tue, 28 May 2024 14:44:20 -0700
+	b=v1pUsdEO91+lSorhk0TvyzpeUWGEiWKkjHMNrO5DFyIf/BGGGLScouxbnSDohWQJp
+	 xiFvYJdULxiR+wIEobtuyLmiKHpCUEr2l+xI6JnYwD5WN3wLnldFtNT5aG5ZV5KdWu
+	 SJJgENFQt+1JTos/Ppx9ASGdusxrN2FI1FARnRew=
+Date: Tue, 28 May 2024 14:44:22 -0700
 To: mm-commits@vger.kernel.org,osalvador@suse.de,oalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,jane.chu@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-try-to-send-sigbus-even-if-unmap-failed.patch added to mm-unstable branch
-Message-Id: <20240528214421.1BC26C3277B@smtp.kernel.org>
+Subject: + mm-madvise-add-mf_action_required-to-madvisemadv_hwpoison.patch added to mm-unstable branch
+Message-Id: <20240528214422.E898BC4AF07@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: try to send SIGBUS even if unmap failed
+     Subject: mm/madvise: add MF_ACTION_REQUIRED to madvise(MADV_HWPOISON)
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-try-to-send-sigbus-even-if-unmap-failed.patch
+     mm-madvise-add-mf_action_required-to-madvisemadv_hwpoison.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-try-to-send-sigbus-even-if-unmap-failed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-add-mf_action_required-to-madvisemadv_hwpoison.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,99 +59,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jane Chu <jane.chu@oracle.com>
-Subject: mm/memory-failure: try to send SIGBUS even if unmap failed
-Date: Fri, 24 May 2024 15:53:02 -0600
+Subject: mm/madvise: add MF_ACTION_REQUIRED to madvise(MADV_HWPOISON)
+Date: Fri, 24 May 2024 15:53:03 -0600
 
-Patch series "Enhance soft hwpoison handling and injection", v4.
+The soft hwpoison injector via madvise(MADV_HWPOISON) operates in a
+synchrous way in a sense, the injector is also a process under test, and
+should it have the poisoned page mapped in its address space, it should
+get killed as much as in a real UE situation.  Doing so align with what
+the madvise(2) man page says: " "This operation may result in the calling
+process receiving a SIGBUS and the page being unmapped."
 
-This series is aimed at the following enhancements:
-
-- Let one hwpoison injector, that is, madvise(MADV_HWPOISON) to behave
-  more like as if a real UE occurred.  Because the other two injectors
-  such as hwpoison-inject and the 'einj' on x86 can't, and it seems to me
-  we need a better simulation to real UE scenario.
-- For years, if the kernel is unable to unmap a hwpoisoned page, it send
-  a SIGKILL instead of SIGBUS to prevent user process from potentially
-  accessing the page again.  But in doing so, the user process also lose
-  important information: vaddr, for recovery.  Fortunately, the kernel
-  already has code to kill process re-accessing a hwpoisoned page, so
-  remove the '!unmap_success' check.
-- Right now, if a thp page under GUP longterm pin is hwpoisoned, and
-  kernel cannot split the thp page, memory-failure simply ignores the UE
-  and returns.  That's not ideal, it could deliver a SIGBUS with useful
-  information for userspace recovery.
-
-
-This patch (of 5):
-
-For years when it comes down to kill a process due to hwpoison, a SIGBUS
-is delivered only if unmap has been successful.  Otherwise, a SIGKILL is
-delivered.  And the reason for that is to prevent the involved process
-from accessing the hwpoisoned page again.
-
-Since then a lot has changed, a hwpoisoned page is marked and upon being
-re-accessed, the memory-failure handler invokes kill_accessing_process()
-to kill the process immediately.  So let's take out the '!unmap_success'
-factor and try to deliver SIGBUS if possible.
-
-Link: https://lkml.kernel.org/r/20240524215306.2705454-1-jane.chu@oracle.com
-Link: https://lkml.kernel.org/r/20240524215306.2705454-2-jane.chu@oracle.com
+Link: https://lkml.kernel.org/r/20240524215306.2705454-3-jane.chu@oracle.com
 Signed-off-by: Jane Chu <jane.chu@oracle.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Oscar Salvador <oalvador@suse.de>
 Acked-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <oalvador@suse.de>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ mm/madvise.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-try-to-send-sigbus-even-if-unmap-failed
-+++ a/mm/memory-failure.c
-@@ -514,22 +514,15 @@ void add_to_kill_ksm(struct task_struct
-  *
-  * Only do anything when FORCEKILL is set, otherwise just free the
-  * list (this is used for clean pages which do not need killing)
-- * Also when FAIL is set do a force kill because something went
-- * wrong earlier.
-  */
--static void kill_procs(struct list_head *to_kill, int forcekill, bool fail,
-+static void kill_procs(struct list_head *to_kill, int forcekill,
- 		unsigned long pfn, int flags)
- {
- 	struct to_kill *tk, *next;
- 
- 	list_for_each_entry_safe(tk, next, to_kill, nd) {
- 		if (forcekill) {
--			/*
--			 * In case something went wrong with munmapping
--			 * make sure the process doesn't catch the
--			 * signal and then access the memory. Just kill it.
--			 */
--			if (fail || tk->addr == -EFAULT) {
-+			if (tk->addr == -EFAULT) {
- 				pr_err("%#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
- 				       pfn, tk->tsk->comm, tk->tsk->pid);
- 				do_send_sig_info(SIGKILL, SEND_SIG_PRIV,
-@@ -1660,7 +1653,7 @@ static bool hwpoison_user_mappings(struc
- 	 */
- 	forcekill = folio_test_dirty(folio) || (flags & MF_MUST_KILL) ||
- 		    !unmap_success;
--	kill_procs(&tokill, forcekill, !unmap_success, pfn, flags);
-+	kill_procs(&tokill, forcekill, pfn, flags);
- 
- 	return unmap_success;
- }
-@@ -1724,7 +1717,7 @@ static void unmap_and_kill(struct list_h
- 		unmap_mapping_range(mapping, start, size, 0);
- 	}
- 
--	kill_procs(to_kill, flags & MF_MUST_KILL, false, pfn, flags);
-+	kill_procs(to_kill, flags & MF_MUST_KILL, pfn, flags);
- }
- 
- /*
+--- a/mm/madvise.c~mm-madvise-add-mf_action_required-to-madvisemadv_hwpoison
++++ a/mm/madvise.c
+@@ -1147,7 +1147,7 @@ static int madvise_inject_error(int beha
+ 		} else {
+ 			pr_info("Injecting memory failure for pfn %#lx at process virtual address %#lx\n",
+ 				 pfn, start);
+-			ret = memory_failure(pfn, MF_COUNT_INCREASED | MF_SW_SIMULATED);
++			ret = memory_failure(pfn, MF_ACTION_REQUIRED | MF_COUNT_INCREASED | MF_SW_SIMULATED);
+ 			if (ret == -EOPNOTSUPP)
+ 				ret = 0;
+ 		}
 _
 
 Patches currently in -mm which might be from jane.chu@oracle.com are
