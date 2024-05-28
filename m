@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FE541791EB
-	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 20:42:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17E2F1791EB
+	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 20:42:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716928920; cv=none; b=Eyit70Tp1mrjQLvitjMZccg2GF26zzx3+FUfOn3EeZJeYN406iQskso6P4abURPhZjoQG5ksD/qWF8EH49972IFoWeKtk44eE+QPNn0I6eZufm1aBW7W4u/27XkFlAV8ACjQn6TsGJ22X/dGNNq/oHoSy/G9STbNcDiGpiXWeB8=
+	t=1716928922; cv=none; b=cCC00QJR5pT+7hcLA8WCcEuJguci+MEsPC8CUmUfn1E4PcosI8biAt+5oqykMNUTOY5GVJwuk2xnZSjpeo4n2bImYSi6/a5aG2abzdMvdt+0dkD62YuIzypivd248pxCGVEWVLi2Ey/UHJaohh0gmnyWDz2G+pp2BdT4OM71wjk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716928920; c=relaxed/simple;
-	bh=v4YtCYvvE+f8UmD0UAGv7K95kEzARToCJ7Rm7p9ky3s=;
-	h=Date:To:From:Subject:Message-Id; b=I7Qzugw51cnxrNSqVUkChR2IazaGvWyBnyre5Jfd4cRgraKRZ6a2TyyBnUyazzTbTFnBy+HbwCYmXwudpwlnTqB+QYwM6JfJMr3xBMtWEIKx++P9fohAFfYHZWq/yFMWbYO3weqVi044PH0dT6DbE8UY4lgKbPnHhyYVgjvCqOM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I9ItiNWl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716928922; c=relaxed/simple;
+	bh=rZRAtaXyQLAGveaqdldzRVsqehpPsYjpDyinOWa9bMk=;
+	h=Date:To:From:Subject:Message-Id; b=k5MWKvdJLgM6ivx/TlXQ0PvO62eqb/1K2/L3GvcktFpIZbB5M5Tom7NoR+yD0bAn/YAXtKmpzynp+Z60JCxk0ExM8Am+iQg7SmUKCzZI9RY+sK0SNdwG8/gnEk/flSrFpHpN+kjQVCMuESXM3pVhXhRwx+YwMfFiOHCMEyGouaM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q4G9iJwe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I9ItiNWl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB15FC3277B;
-	Tue, 28 May 2024 20:41:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q4G9iJwe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E2EEC3277B;
+	Tue, 28 May 2024 20:42:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716928920;
-	bh=v4YtCYvvE+f8UmD0UAGv7K95kEzARToCJ7Rm7p9ky3s=;
+	s=korg; t=1716928921;
+	bh=rZRAtaXyQLAGveaqdldzRVsqehpPsYjpDyinOWa9bMk=;
 	h=Date:To:From:Subject:From;
-	b=I9ItiNWlbfHSZHuPabVFmH6lUglWvukYFYl5PerTldfnwI4GfQrXa7UZ+ueB5NKFP
-	 L71gTFrq/n/ICeJI1AxBNbA/bPt+vsbKbC9sDG+Qj5Ox8OaUFVZgnwofdGevieNyvJ
-	 nhTeCadczPw2cz9me0D2c8Cp7YiLhEnKUJ4MF4P8=
-Date: Tue, 28 May 2024 13:41:59 -0700
+	b=Q4G9iJwek3I1kbskEcSWGGN5i72JBLDiGtXleZlJV+GqGruUdxhDnqz17iY0AEym6
+	 rAQO3YgjRPFtxsEto/6SaDgmTFkOsU3eABpX1JC11+0DF2dNllOz0f9p2lTntGSNHF
+	 tiidEB5yHPEgATU68oZPSl/ruHLvMH35VgYRzZZA=
+Date: Tue, 28 May 2024 13:42:01 -0700
 To: mm-commits@vger.kernel.org,jserv@ccns.ncku.edu.tw,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-sort-remove-unused-pr_fmt-macro.patch added to mm-nonmm-unstable branch
-Message-Id: <20240528204159.EB15FC3277B@smtp.kernel.org>
+Subject: + lib-sort-fix-outdated-comment-regarding-glibc-qsort.patch added to mm-nonmm-unstable branch
+Message-Id: <20240528204201.9E2EEC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/sort: remove unused pr_fmt macro
+     Subject: lib/sort: fix outdated comment regarding glibc qsort()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-sort-remove-unused-pr_fmt-macro.patch
+     lib-sort-fix-outdated-comment-regarding-glibc-qsort.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-sort-remove-unused-pr_fmt-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-sort-fix-outdated-comment-regarding-glibc-qsort.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,44 +59,38 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: lib/sort: remove unused pr_fmt macro
-Date: Tue, 28 May 2024 04:30:08 +0800
+Subject: lib/sort: fix outdated comment regarding glibc qsort()
+Date: Tue, 28 May 2024 04:30:09 +0800
 
-Patch series "lib/sort: Optimizations and cleanups".
+The existing comment in lib/sort refers to glibc qsort() using quicksort. 
+However, glibc qsort() no longer uses quicksort; it now uses mergesort and
+falls back to heapsort if memory allocation for mergesort fails.  This
+makes the comment outdated and incorrect.
 
-This patch series optimizes the handling of the last 2 or 3 elements in
-lib/sort and adds a testcase in lib/test_sort to maintain 100% code
-coverage reflecting this change.  Additionally, it corrects outdated
-descriptions regarding glibc qsort() and removes the unused pr_fmt macro.
+Update the comment to refer to quicksort in general rather than glibc's
+implementation to provide accurate information about the comparisons and
+trade-offs without implying an outdated implementation.
 
-
-This patch (of 4):
-
-The pr_fmt macro is defined but not used in lib/sort.c.  Since there are
-no pr_* functions printing any messages, the pr_fmt macro is redundant and
-can be safely removed.
-
-Link: https://lkml.kernel.org/r/20240527203011.1644280-1-visitorckw@gmail.com
-Link: https://lkml.kernel.org/r/20240527203011.1644280-2-visitorckw@gmail.com
+Link: https://lkml.kernel.org/r/20240527203011.1644280-3-visitorckw@gmail.com
 Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
 Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/sort.c |    2 --
- 1 file changed, 2 deletions(-)
+ lib/sort.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/sort.c~lib-sort-remove-unused-pr_fmt-macro
+--- a/lib/sort.c~lib-sort-fix-outdated-comment-regarding-glibc-qsort
 +++ a/lib/sort.c
-@@ -10,8 +10,6 @@
+@@ -5,7 +5,7 @@
+  * This performs n*log2(n) + 0.37*n + o(n) comparisons on average,
+  * and 1.5*n*log2(n) + O(n) in the (very contrived) worst case.
+  *
+- * Glibc qsort() manages n*log2(n) - 1.26*n for random inputs (1.63*n
++ * Quicksort manages n*log2(n) - 1.26*n for random inputs (1.63*n
+  * better) at the expense of stack usage and much larger code to avoid
   * quicksort's O(n^2) worst case.
   */
- 
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
- #include <linux/types.h>
- #include <linux/export.h>
- #include <linux/sort.h>
 _
 
 Patches currently in -mm which might be from visitorckw@gmail.com are
