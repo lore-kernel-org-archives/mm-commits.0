@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBC36487A7
-	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 19:07:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D283171E59
+	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 19:10:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716923263; cv=none; b=La54M5uz+wgt0dLFmE+JXdNI7WUtDG2tB2hmVkpNNAg/1j3gmk6GqQ8p/CVpQ6HNGs/T7fhtqB9AeRi7lgQF2/oWE8Yc1WbGiJ+0q6PP50tMKF6vAp71TB5PJBLhB8naAvCotqHw9TQN1K4WI16UlBHyuEYg57xl5VJLE0I30K0=
+	t=1716923406; cv=none; b=HReRuoXQ4qI3a0BY7elwG/NjHowoXyV72Pxt1QqIZOA5LTbr+vOncRj7NiKyTDBb/0JofzeVfR3bUluNTsNqk9pyRCwfYgJd18rz3TNJvUZb9eWqwKt2yuJ9D3jzO3YG3QnzGtST9yyqjnccIkZQR/y6otK5DK2T4mAGsKmIpfA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716923263; c=relaxed/simple;
-	bh=Uh9IQ4yB/7Ln9/r7KBD/zuldh9X4AKVC8QuGBZckvmM=;
-	h=Date:To:From:Subject:Message-Id; b=F0XRWTTeJiPW1eVedrhKZWhuKxiGlSCaR8I1FXMFlriWYuvRePhqAcVtifK4yOWMd1bRVDBDxCVT//GQ6c2eA5GtT5bV2BIJxEXMxxX64q2ffdwD2o4uXl1CoYLrYMJJdF7eAO1BMoePYlJSFnK4DyGqYOlD+LtXAyCXLgKAJDc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MSyupaGO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716923406; c=relaxed/simple;
+	bh=6Q7lrGNnO+L98LPU422ZztQSTu6T/nRdo9oT0gGYbGo=;
+	h=Date:To:From:Subject:Message-Id; b=DsT79bpZoobSkgN7MKr2Vd6hJOqjjxrQtdWnH8I+AFuUZ3WEhAXv8UxmPDlD98vGz8UHQhGBvClL8gF5Ik/vAsqa2eXwWbBu2+o4g2M0hXdO9RagChfMa0Z1WD1maKnXmt4jLGBW3/C7aZXcxw5Z1OhXQRaEKSg669CwSK/YDew=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LPhlhF32; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MSyupaGO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39D25C3277B;
-	Tue, 28 May 2024 19:07:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LPhlhF32"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D77CBC32781;
+	Tue, 28 May 2024 19:10:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716923263;
-	bh=Uh9IQ4yB/7Ln9/r7KBD/zuldh9X4AKVC8QuGBZckvmM=;
+	s=korg; t=1716923405;
+	bh=6Q7lrGNnO+L98LPU422ZztQSTu6T/nRdo9oT0gGYbGo=;
 	h=Date:To:From:Subject:From;
-	b=MSyupaGO5rDaF7ypuRA29KQW1g31HaKLE03tFWnWYWvSUBAbq7EZnf/ew3ZicWw1z
-	 b9VsddubJUNwe1e9akBXNtpbhLaWmZNwjSLDf8h/+yWqLT+FfhP//hnwgd8iHtODdS
-	 YVIYqRmziHgC9Q252742xreO76X2b+w1IcQALzUU=
-Date: Tue, 28 May 2024 12:07:42 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,tj@kernel.org,lstoakes@gmail.com,hch@infradead.org,dennis@kernel.org,cl@linux.com,ubizjak@gmail.com,akpm@linux-foundation.org
+	b=LPhlhF32/1eBM5j8cgJJ3Pm1lc4ez6+oBzq9rWFFNSIuVqp+GKr5ZUqaBFsllU53M
+	 T7IUFwnhK1N48pzl7eUt4BIQbT+6fP5Z0IgHgTE3sOtzPZRdovqKOZukzIEi7SbcUS
+	 PXaYnhONVq1EbauafEbNM1iTUkvWTu2ifKiiQcRE=
+Date: Tue, 28 May 2024 12:10:05 -0700
+To: mm-commits@vger.kernel.org,vivek.kasireddy@intel.com,sumit.semwal@linaro.org,kraxel@redhat.com,david@redhat.com,christian.koenig@amd.com,airlied@redhat.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-use-__this_cpu_try_cmpxchg-in-preload_this_cpu_lock.patch added to mm-unstable branch
-Message-Id: <20240528190743.39D25C3277B@smtp.kernel.org>
+Subject: + udmabuf-use-vmf_insert_pfn-and-vm_pfnmap-for-handling-mmap-fix.patch added to mm-unstable branch
+Message-Id: <20240528191005.D77CBC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: use __this_cpu_try_cmpxchg() in preload_this_cpu_lock()
+     Subject: udmabuf: add CONFIG_MMU dependency
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-use-__this_cpu_try_cmpxchg-in-preload_this_cpu_lock.patch
+     udmabuf-use-vmf_insert_pfn-and-vm_pfnmap-for-handling-mmap-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-use-__this_cpu_try_cmpxchg-in-preload_this_cpu_lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/udmabuf-use-vmf_insert_pfn-and-vm_pfnmap-for-handling-mmap-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,76 +58,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: mm/vmalloc: use __this_cpu_try_cmpxchg() in preload_this_cpu_lock()
-Date: Tue, 28 May 2024 16:43:14 +0200
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: udmabuf: add CONFIG_MMU dependency
+Date: Tue, 28 May 2024 15:31:31 +0200
 
-Use __this_cpu_try_cmpxchg() instead of __this_cpu_cmpxchg (*ptr, old,
-new) == old in preload_this_cpu_lock().  x86 CMPXCHG instruction returns
-success in ZF flag, so this change saves a compare after cmpxchg.
+There is no !CONFIG_MMU version of vmf_insert_pfn():
 
-The generated code improves from:
+arm-linux-gnueabi-ld: drivers/dma-buf/udmabuf.o: in function `udmabuf_vm_fault':
+udmabuf.c:(.text+0xaa): undefined reference to `vmf_insert_pfn'
 
-    4bb6:	48 85 f6             	test   %rsi,%rsi
-    4bb9:	0f 84 10 fa ff ff    	je     45cf <...>
-    4bbf:	4c 89 e8             	mov    %r13,%rax
-    4bc2:	65 48 0f b1 35 00 00 	cmpxchg %rsi,%gs:0x0(%rip)
-    4bc9:	00 00
-    4bcb:	48 85 c0             	test   %rax,%rax
-    4bce:	0f 84 fb f9 ff ff    	je     45cf <...>
-
-to:
-
-    4bb6:	48 85 f6             	test   %rsi,%rsi
-    4bb9:	0f 84 10 fa ff ff    	je     45cf <...>
-    4bbf:	4c 89 e8             	mov    %r13,%rax
-    4bc2:	65 48 0f b1 35 00 00 	cmpxchg %rsi,%gs:0x0(%rip)
-    4bc9:	00 00
-    4bcb:	0f 84 fe f9 ff ff    	je     45cf <...>
-
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/20240528144345.5980-2-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+Link: https://lkml.kernel.org/r/20240528133138.2237237-1-arnd@kernel.org
+Fixes: f7254e043ff1 ("udmabuf: use vmf_insert_pfn and VM_PFNMAP for handling mmap")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/dma-buf/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-use-__this_cpu_try_cmpxchg-in-preload_this_cpu_lock
-+++ a/mm/vmalloc.c
-@@ -1816,7 +1816,7 @@ static void free_vmap_area(struct vmap_a
- static inline void
- preload_this_cpu_lock(spinlock_t *lock, gfp_t gfp_mask, int node)
- {
--	struct vmap_area *va = NULL;
-+	struct vmap_area *va = NULL, *tmp;
- 
- 	/*
- 	 * Preload this CPU with one extra vmap_area object. It is used
-@@ -1832,7 +1832,8 @@ preload_this_cpu_lock(spinlock_t *lock,
- 
- 	spin_lock(lock);
- 
--	if (va && __this_cpu_cmpxchg(ne_fit_preload_node, NULL, va))
-+	tmp = NULL;
-+	if (va && !__this_cpu_try_cmpxchg(ne_fit_preload_node, &tmp, va))
- 		kmem_cache_free(vmap_area_cachep, va);
- }
- 
+--- a/drivers/dma-buf/Kconfig~udmabuf-use-vmf_insert_pfn-and-vm_pfnmap-for-handling-mmap-fix
++++ a/drivers/dma-buf/Kconfig
+@@ -35,6 +35,7 @@ config UDMABUF
+ 	default n
+ 	depends on DMA_SHARED_BUFFER
+ 	depends on MEMFD_CREATE || COMPILE_TEST
++	depends on MMU
+ 	help
+ 	  A driver to let userspace turn memfd regions into dma-bufs.
+ 	  Qemu can use this to create host dmabufs for guest framebuffers.
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-percpu-add-__this_cpu_try_cmpxchg.patch
-mm-vmalloc-use-__this_cpu_try_cmpxchg-in-preload_this_cpu_lock.patch
-fork-use-this_cpu_try_cmpxchg-in-try_release_thread_stack_to_cache.patch
-fork-use-this_cpu_try_cmpxchg-in-try_release_thread_stack_to_cache-fix.patch
+udmabuf-use-vmf_insert_pfn-and-vm_pfnmap-for-handling-mmap-fix.patch
 
