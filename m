@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8919B3BBCC;
-	Tue, 28 May 2024 21:15:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0995F224D1
+	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 21:18:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716930946; cv=none; b=F6VW4ycAF8hdJmtXAJRRVtMBRkz7r/qhkQ5P2H1CirxRNUBnIjcVIvNaVTFetHN3GKvNY6KUgoJOc6FGBtadPwKGHM/pezCnwwtjS1zDu7whIy07M3AAP78hHqSj9lBqHh6GuIX5e4AcscUc9u13Xxv6w1lC0TGh0aJuATIhCvA=
+	t=1716931109; cv=none; b=D1S/lfwzTcRZKcjR07tc3GAbVJQvIjrW1TsMmPaZVmFS1uIXiNf8rURkIveEuTS57OplC2kSC/xtzRJIFDnD4YD20bdp7co0LICrDKwtpv+/bqOPEH3UE528aC1zq8FYxyKEOnLWPpiz7XmZTY76P9vofeg8erFn2dwp/hYQUEw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716930946; c=relaxed/simple;
-	bh=z4saqk+1IZ7fcFkc3bM0Mnn1oDQodMj7hf0CiZFJqfg=;
-	h=Date:To:From:Subject:Message-Id; b=HsBZKfwCeOa7uM6LsaoC2I5qq5KGdEIWjvXkRHyjB65nQEq7E7g0NVNHnWvkI0QT5tdTB1pPKo1WGSUEyT+Z4cGJOjKqXsXrLUXEOBpBGhITh19YpYQlb/LJ2AaQ56rMyr+siUgxuGgp/oG+slc1NSMaTrnxtG9yTZW7jXlnQY4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FGTClnPP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716931109; c=relaxed/simple;
+	bh=aYfF+hfziXfg5oFvnYNHEXjkzvchR3hRbfMlQTe6TbA=;
+	h=Date:To:From:Subject:Message-Id; b=R7qa887cAPOCga4eo3NZ4HcRTUWFwKeEPLNW7ssJ4UZpwUYsIp4oC9r0uX2Bi6EnDryCkZlRYH1+LaMv0d8eKs8d31h8y3zySRLv22hqIhh+2Uoj2uBookYu3fRy2YVVRtrL3XE4KxX0/ftvDYtp4f3ZuDZ9Up05Xuv4NI1xJJ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bW1sGw5y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FGTClnPP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 071C0C3277B;
-	Tue, 28 May 2024 21:15:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bW1sGw5y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72E2BC3277B;
+	Tue, 28 May 2024 21:18:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716930946;
-	bh=z4saqk+1IZ7fcFkc3bM0Mnn1oDQodMj7hf0CiZFJqfg=;
+	s=korg; t=1716931108;
+	bh=aYfF+hfziXfg5oFvnYNHEXjkzvchR3hRbfMlQTe6TbA=;
 	h=Date:To:From:Subject:From;
-	b=FGTClnPPQ21W/86i6xinjp0FKsildsXzxSXc5Rul6OWEnS1wpBQzLA3jLNKFwtSYX
-	 /XriRl7Bt+h1GjnYMPYVlcI3tXFqPF4nqPV4aNLiL6DVIoOCXvsK+KrAfiWwXSdT+/
-	 GBX6w0jj2k+Fg4ty3J7gGv7hdggrgKWQVFMpZ0hU=
-Date: Tue, 28 May 2024 14:15:44 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,muchun.song@linux.dev,leitao@debian.org,osalvador@suse.de,akpm@linux-foundation.org
+	b=bW1sGw5yRc/Ww+Bc5+K5MkkgUvnysOGuQddiDHThyxBqSU2U6MtKTU2ds+1j9B4BD
+	 G19n0GxdaCZ2zp0UfpZIU10ott4w7PaDlSEx/SVLPpTRVOJahYHPLbR+6LG4qnB+ud
+	 kp89k9srCfU9kNeld9TbYgtYLmT7qwyu9Xj1tMlA=
+Date: Tue, 28 May 2024 14:18:27 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,tj@kernel.org,hughd@google.com,dennis@kernel.org,mjguzik@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-do-not-call-vma_add_reservation-upon-enomem.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240528211546.071C0C3277B@smtp.kernel.org>
+Subject: + percpu_counter-add-a-cmpxchg-based-_add_batch-variant.patch added to mm-nonmm-unstable branch
+Message-Id: <20240528211828.72E2BC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: do not call vma_add_reservation upon ENOMEM
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-do-not-call-vma_add_reservation-upon-enomem.patch
+     Subject: percpu_counter: add a cmpxchg-based _add_batch variant
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     percpu_counter-add-a-cmpxchg-based-_add_batch-variant.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-do-not-call-vma_add_reservation-upon-enomem.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu_counter-add-a-cmpxchg-based-_add_batch-variant.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,68 +58,113 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm/hugetlb: do not call vma_add_reservation upon ENOMEM
-Date: Tue, 28 May 2024 22:53:23 +0200
+From: Mateusz Guzik <mjguzik@gmail.com>
+Subject: percpu_counter: add a cmpxchg-based _add_batch variant
+Date: Tue, 28 May 2024 22:42:57 +0200
 
-sysbot reported a splat [1] on __unmap_hugepage_range().  This is because
-vma_needs_reservation() can return -ENOMEM if
-allocate_file_region_entries() fails to allocate the file_region struct
-for the reservation.
+Interrupt disable/enable trips are quite expensive on x86-64 compared to a
+mere cmpxchg (note: no lock prefix!) and percpu counters are used quite
+often.
 
-Check for that and do not call vma_add_reservation() if that is the case,
-otherwise region_abort() and region_del() will see that we do not have any
-file_regions.
+With this change I get a bump of 1% ops/s for negative path lookups,
+plugged into will-it-scale:
 
-If we detect that vma_needs_reservation() returned -ENOMEM, we clear the
-hugetlb_restore_reserve flag as if this reservation was still consumed, so
-free_huge_folio() will not increment the resv count.
+void testcase(unsigned long long *iterations, unsigned long nr)
+{
+        while (1) {
+                int fd = open("/tmp/nonexistent", O_RDONLY);
+                assert(fd == -1);
 
-[1] https://lore.kernel.org/linux-mm/0000000000004096100617c58d54@google.com/T/#ma5983bc1ab18a54910da83416b3f89f3c7ee43aa
+                (*iterations)++;
+        }
+}
 
-Link: https://lkml.kernel.org/r/20240528205323.20439-1-osalvador@suse.de
-Fixes: df7a6d1f6405 ("mm/hugetlb: restore the reservation if needed")
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reported-and-tested-by: syzbot+d3fe2dc5ffe9380b714b@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/linux-mm/0000000000004096100617c58d54@google.com/
-Cc: Breno Leitao <leitao@debian.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: <stable@vger.kernel.org>
+The win would be higher if it was not for other slowdowns, but one has
+to start somewhere.
+
+Link: https://lkml.kernel.org/r/20240528204257.434817-1-mjguzik@gmail.com
+Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Dennis Zhou <dennis@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ lib/percpu_counter.c |   44 ++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 39 insertions(+), 5 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-do-not-call-vma_add_reservation-upon-enomem
-+++ a/mm/hugetlb.c
-@@ -5768,8 +5768,20 @@ void __unmap_hugepage_range(struct mmu_g
- 		 * do_exit() will not see it, and will keep the reservation
- 		 * forever.
- 		 */
--		if (adjust_reservation && vma_needs_reservation(h, vma, address))
--			vma_add_reservation(h, vma, address);
-+		if (adjust_reservation) {
-+			int rc = vma_needs_reservation(h, vma, address);
-+
-+			if (rc < 0)
-+				/* Pressumably allocate_file_region_entries failed
-+				 * to allocate a file_region struct. Clear
-+				 * hugetlb_restore_reserve so that global reserve
-+				 * count will not be incremented by free_huge_folio.
-+				 * Act as if we consumed the reservation.
-+				 */
-+				folio_clear_hugetlb_restore_reserve(page_folio(page));
-+			else if (rc)
-+				vma_add_reservation(h, vma, address);
-+		}
+--- a/lib/percpu_counter.c~percpu_counter-add-a-cmpxchg-based-_add_batch-variant
++++ a/lib/percpu_counter.c
+@@ -73,17 +73,50 @@ void percpu_counter_set(struct percpu_co
+ EXPORT_SYMBOL(percpu_counter_set);
  
- 		tlb_remove_page_size(tlb, page, huge_page_size(h));
- 		/*
+ /*
+- * local_irq_save() is needed to make the function irq safe:
+- * - The slow path would be ok as protected by an irq-safe spinlock.
+- * - this_cpu_add would be ok as it is irq-safe by definition.
+- * But:
+- * The decision slow path/fast path and the actual update must be atomic, too.
++ * Add to a counter while respecting batch size.
++ *
++ * There are 2 implementations, both dealing with the following problem:
++ *
++ * The decision slow path/fast path and the actual update must be atomic.
+  * Otherwise a call in process context could check the current values and
+  * decide that the fast path can be used. If now an interrupt occurs before
+  * the this_cpu_add(), and the interrupt updates this_cpu(*fbc->counters),
+  * then the this_cpu_add() that is executed after the interrupt has completed
+  * can produce values larger than "batch" or even overflows.
+  */
++#ifdef CONFIG_HAVE_CMPXCHG_LOCAL
++/*
++ * Safety against interrupts is achieved in 2 ways:
++ * 1. the fast path uses local cmpxchg (note: no lock prefix)
++ * 2. the slow path operates with interrupts disabled
++ */
++void percpu_counter_add_batch(struct percpu_counter *fbc, s64 amount, s32 batch)
++{
++	s64 count;
++	unsigned long flags;
++
++	count = this_cpu_read(*fbc->counters);
++	do {
++		if (unlikely(abs(count + amount) >= batch)) {
++			raw_spin_lock_irqsave(&fbc->lock, flags);
++			/*
++			 * Note: by now we might have migrated to another CPU
++			 * or the value might have changed.
++			 */
++			count = __this_cpu_read(*fbc->counters);
++			fbc->count += count + amount;
++			__this_cpu_sub(*fbc->counters, count);
++			raw_spin_unlock_irqrestore(&fbc->lock, flags);
++			return;
++		}
++	} while (!this_cpu_try_cmpxchg(*fbc->counters, &count, count + amount));
++}
++#else
++/*
++ * local_irq_save() is used to make the function irq safe:
++ * - The slow path would be ok as protected by an irq-safe spinlock.
++ * - this_cpu_add would be ok as it is irq-safe by definition.
++ */
+ void percpu_counter_add_batch(struct percpu_counter *fbc, s64 amount, s32 batch)
+ {
+ 	s64 count;
+@@ -101,6 +134,7 @@ void percpu_counter_add_batch(struct per
+ 	}
+ 	local_irq_restore(flags);
+ }
++#endif
+ EXPORT_SYMBOL(percpu_counter_add_batch);
+ 
+ /*
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from mjguzik@gmail.com are
 
-mm-hugetlb-do-not-call-vma_add_reservation-upon-enomem.patch
-mm-hugetlb-drop-node_alloc_noretry-from-alloc_fresh_hugetlb_folio.patch
+mm-batch-unlink_file_vma-calls-in-free_pgd_range.patch
+percpu_counter-add-a-cmpxchg-based-_add_batch-variant.patch
 
