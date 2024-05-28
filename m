@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9607917966D
-	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 20:42:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F63517966C
+	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 20:42:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716928923; cv=none; b=HimxTLi1zmlX+cAmGebyG+chvVlcHuF29dXRGPTweQ+SuqyxiH2boRpfcCV0FvZYcAq8GEgLlqEwSBe3KKudBr8Ssr2lmL+DFsgDqbqAu0/GQRMdLgs6h1RZkB+XuRnKqDXyIbg8EOHFTp/inF5i0LlIueWNq/5+MIbZ1CkXbNw=
+	t=1716928925; cv=none; b=FTDCsHImlucla5kbb+Qg1Dk3CCsGsXLzZ76d4xGPe/qKYgxOPN7/yJTTWd6OVqyoi154eEpBk7YR4643hbxU2WlT8+6xd9JD0WWdZI27R/66GvbK6pK7OIVwYLYoAdjzFBiNn2KinDf/C14cbpWSdJodngYPyE+Fi3pF3IvaJ68=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716928923; c=relaxed/simple;
-	bh=0NkN/KGXcEcefCfle6MbgDX9uaIWU+F7pah6sfxbiqM=;
-	h=Date:To:From:Subject:Message-Id; b=AuK7rGFkj7TD61xmNjs5aGDt8QNTQezJXs2cbaRy5Pe3Ml1E126AOP3OdUsYwJiyNTbEi0c3qTApDVVBHggXR6bXA4X6LnVrwXZe5NmcIXmKHpTSd5QlpyqDxwlpYx2bVpyTcX0ldHZEcTPh5h4fWEZKLTuyCJhGA4h//F4KVV0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mq48ivHX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716928925; c=relaxed/simple;
+	bh=s4OFxTtr5K7Kj0Bx4KuoeOUK0JQimqCPENMmbcMzeBQ=;
+	h=Date:To:From:Subject:Message-Id; b=IuNkk0Czv/1c5Ayf0KW9tHRDkptWuENJj4XswJT3Ly3jx4xyEGgUEzbjjzyiGwRWF3Lp9lBbBn7Az5MquFdi+5/nLQKZsQaLwHPcZTCPcMX98N/dida2muY05AaIxOm6/vvfP60dMLge3xFYq+Y6IhF9H46V1yKukmWiSYQHf0A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CQQzCVbo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mq48ivHX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E6F7C32781;
-	Tue, 28 May 2024 20:42:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CQQzCVbo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A9CAC3277B;
+	Tue, 28 May 2024 20:42:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716928923;
-	bh=0NkN/KGXcEcefCfle6MbgDX9uaIWU+F7pah6sfxbiqM=;
+	s=korg; t=1716928925;
+	bh=s4OFxTtr5K7Kj0Bx4KuoeOUK0JQimqCPENMmbcMzeBQ=;
 	h=Date:To:From:Subject:From;
-	b=mq48ivHX0N6QHVlhFlvr6zdG4jGAZO3dgNwMJbwnkM11yhbzAqBz1zvqILELizDBc
-	 T6JX/Yqhl4pYdz1hsfSmTADf2PzebOZ87NmOxF739a0EpxeV7x4zDMX7zoJ0uf6PGM
-	 aRNrsCTlKx94HHqCdjkXRrYSKaGQJNkkPAP68pGU=
-Date: Tue, 28 May 2024 13:42:02 -0700
+	b=CQQzCVboqNFTVQhy9bAWdMeg3P8QLVg7KgIJ8F4rqc0FGhcNnm96MCJKY22D/oKzu
+	 ZlCuPg4Sa/kasZjrt5HB2GZoU5WNjoL9JlkhJkzhUibgJfpn8uqKTemqw1cOYtqLdR
+	 SRZF+tqmcltH0ooIUUVv/HnVrLgdWD/1vnMZx2wE=
+Date: Tue, 28 May 2024 13:42:04 -0700
 To: mm-commits@vger.kernel.org,jserv@ccns.ncku.edu.tw,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-sort-optimize-heapsort-for-handling-final-2-or-3-elements.patch added to mm-nonmm-unstable branch
-Message-Id: <20240528204203.5E6F7C32781@smtp.kernel.org>
+Subject: + lib-test_sort-add-a-testcase-to-ensure-code-coverage.patch added to mm-nonmm-unstable branch
+Message-Id: <20240528204205.2A9CAC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/sort: optimize heapsort for handling final 2 or 3 elements
+     Subject: lib/test_sort: add a testcase to ensure code coverage
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-sort-optimize-heapsort-for-handling-final-2-or-3-elements.patch
+     lib-test_sort-add-a-testcase-to-ensure-code-coverage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-sort-optimize-heapsort-for-handling-final-2-or-3-elements.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_sort-add-a-testcase-to-ensure-code-coverage.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,61 +59,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: lib/sort: optimize heapsort for handling final 2 or 3 elements
-Date: Tue, 28 May 2024 04:30:10 +0800
+Subject: lib/test_sort: add a testcase to ensure code coverage
+Date: Tue, 28 May 2024 04:30:11 +0800
 
-After building the heap, the code continuously pops two elements from the
-heap until only 2 or 3 elements remain, at which point it switches back to
-a regular heapsort with one element popped at a time.  However, to handle
-the final 2 or 3 elements, an additional else-if statement in the while
-loop was introduced, potentially increasing branch misses.  Moreover, when
-there are only 2 or 3 elements left, continuing with regular heapify
-operations is unnecessary as these cases are simple enough to be handled
-with a single comparison and 1 or 2 swaps outside the while loop.
+The addition of an if statement in lib/sort to handle the final unsorted 2
+or 3 elements is not covered by existing test cases, leading to incomplete
+test coverage.  To ensure comprehensive testing and maintain 100% code
+coverage, add a new testcase for scenarios where the if statement is
+triggered.
 
-Eliminating the additional else-if statement and directly managing cases
-involving 2 or 3 elements outside the loop reduces unnecessary conditional
-branches resulting from the numerous loops and conditionals in heapify.
+Since the if statement is only triggered when the array length is odd and
+the first element is greater than the second element, a testcase is
+created using an array length of TEST_LEN - 1 and a suitable random seed
+to maintain full code coverage.
 
-This optimization maintains consistent numbers of comparisons and swaps
-for arrays with even lengths while reducing swaps and comparisons for
-arrays with odd lengths from 2.5 swaps and 1 comparison to 1.5 swaps and 1
-comparison.
-
-Link: https://lkml.kernel.org/r/20240527203011.1644280-4-visitorckw@gmail.com
+Link: https://lkml.kernel.org/r/20240527203011.1644280-5-visitorckw@gmail.com
 Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
 Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/sort.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ lib/test_sort.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
---- a/lib/sort.c~lib-sort-optimize-heapsort-for-handling-final-2-or-3-elements
-+++ a/lib/sort.c
-@@ -250,10 +250,7 @@ void sort_r(void *base, size_t num, size
- 			a = size << shift;
- 			n -= size;
- 			do_swap(base + a, base + n, size, swap_func, priv);
--		} else if (n > size) {	/* Sorting: Extract root */
--			n -= size;
--			do_swap(base, base + n, size, swap_func, priv);
--		} else	{		/* Sort complete */
-+		} else {		/* Sort complete */
- 			break;
- 		}
+--- a/lib/test_sort.c~lib-test_sort-add-a-testcase-to-ensure-code-coverage
++++ a/lib/test_sort.c
+@@ -29,7 +29,19 @@ static void test_sort(struct kunit *test
  
-@@ -283,6 +280,11 @@ void sort_r(void *base, size_t num, size
- 			do_swap(base + b, base + c, size, swap_func, priv);
- 		}
- 	}
+ 	sort(a, TEST_LEN, sizeof(*a), cmpint, NULL);
+ 
+-	for (i = 0; i < TEST_LEN-1; i++)
++	for (i = 0; i < TEST_LEN - 1; i++)
++		KUNIT_ASSERT_LE(test, a[i], a[i + 1]);
 +
-+	n -= size;
-+	do_swap(base, base + n, size, swap_func, priv);
-+	if (n == size * 2 && do_cmp(base, base + size, cmp_func, priv) > 0)
-+		do_swap(base, base + size, size, swap_func, priv);
++	r = 48;
++
++	for (i = 0; i < TEST_LEN - 1; i++) {
++		r = (r * 725861) % 6599;
++		a[i] = r;
++	}
++
++	sort(a, TEST_LEN - 1, sizeof(*a), cmpint, NULL);
++
++	for (i = 0; i < TEST_LEN - 2; i++)
+ 		KUNIT_ASSERT_LE(test, a[i], a[i + 1]);
  }
- EXPORT_SYMBOL(sort_r);
  
 _
 
