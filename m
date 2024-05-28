@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CBDB175567;
-	Tue, 28 May 2024 20:08:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E38E010A3E
+	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 20:08:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716926891; cv=none; b=OQceeJPaJLa8qML66zPxpAGWk4yM+W5l7HnBJui/etX6IEJ1+ztTmDs9wKRcvARINEAtxOTdplSsDfOZ4nBkecVtKLxOjjF6dF/pgWNz6ZUuUSJoaaTrxqJz2SqPMxSf+0UybW5NN/QsJzip2lln/FeiIZR5Uptj20bpGB/pe+s=
+	t=1716926902; cv=none; b=fPhzDeWt+9tGHMPG9f7ECM7yT6GJwkFIh8Gt9zaZ1uhNyQnMyvXj/+6Ml+OIZYrCD9kJby6AgLe57U1x0koPqOdVqodA7WRLjSqsKIv0o+Ptcn6NAZZv8IUGVfS+bdpCr2BEhhBA+e7YWabaySuEYF9cutUsgM4OX2Vi4eA/N48=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716926891; c=relaxed/simple;
-	bh=9nK4Pt729bDyHsWtWfOueJ4b6xoCoKDa7FItRu9bWs0=;
-	h=Date:To:From:Subject:Message-Id; b=UzP1QXbqXDpr/zJl00ZkeDAOMUdOebSPBoRaqfS/uWk5NX0Q+iN6dWPQCUiYLlkTdAlNiLvi6F+1PPJI/m/y3F+iAsWbpw50bsYufxqVMNPNvzZgRi/oIftJfTKN41bHuKGbZJI6JGYZbn/QAWI0Ih4tkJYGI01lrNErbPRkcVk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=smtUY2yj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716926902; c=relaxed/simple;
+	bh=Ttt15ZXNpk2uiiQuXLZ99dvfuVu2NveBhLJkSWNWwM0=;
+	h=Date:To:From:Subject:Message-Id; b=Mj8USgejlZ5xt96UvXiArLB+Mb8mvRTKZYnFhN/HS+jh0qgiT2eifgU18SlwIZQzC91nCR2DUYPg6vzQ5BGSP1jwzS88mqaCYhFYvLWD3VGxCzA+wCk/gQxnCeyAhpuXDx4YxxDq31/XVgeAoKqUolDk27x+2W8szR0jQiFU8BY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0XiaidMK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="smtUY2yj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83538C3277B;
-	Tue, 28 May 2024 20:08:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0XiaidMK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 732A9C3277B;
+	Tue, 28 May 2024 20:08:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716926890;
-	bh=9nK4Pt729bDyHsWtWfOueJ4b6xoCoKDa7FItRu9bWs0=;
+	s=korg; t=1716926901;
+	bh=Ttt15ZXNpk2uiiQuXLZ99dvfuVu2NveBhLJkSWNWwM0=;
 	h=Date:To:From:Subject:From;
-	b=smtUY2yjYjkUZR7ZVRpFbJ81xBX2bI3kv0d2DzOiwYLznEPMmCQpI7mI+2bDf5B1f
-	 uz61R1ylCZllrb61HJrK1dmuiK3ilnw/DcGe9zNH8hGlAnWZWBnhbn1nps+vd6XhOj
-	 t2+6Y+8ex/LvezDnKHKfXIuzQ/WhRAAuPTqSF5S8=
-Date: Tue, 28 May 2024 13:08:09 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,keescook@chromium.org,elver@google.com,dvyukov@google.com,bjohannesmeyer@gmail.com,glider@google.com,akpm@linux-foundation.org
+	b=0XiaidMK+oIo4XiTKpRSn2FxOkNbVLmTscyFbprj+1XN4IKUBvH+TGurSaofAdJm2
+	 dEakJ/ba6LVMC8qyQatQrBPqG8zCvnhg3CvMba7KqnQXnjmif3W2/CVSoZOmdv+9/c
+	 zDR5t/oYbR0R4RaFVtU/bwMvr6PKx+Krd2yM3vP0=
+Date: Tue, 28 May 2024 13:08:20 -0700
+To: mm-commits@vger.kernel.org,keescook@chromium.org,glider@google.com,elver@google.com,dvyukov@google.com,bjohannesmeyer@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-do-not-wipe-out-origin-when-doing-partial-unpoisoning.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240528200810.83538C3277B@smtp.kernel.org>
+Subject: + kmsan-introduce-test_unpoison_memory.patch added to mm-unstable branch
+Message-Id: <20240528200821.732A9C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmsan: do not wipe out origin when doing partial unpoisoning
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kmsan-do-not-wipe-out-origin-when-doing-partial-unpoisoning.patch
+     Subject: kmsan: introduce test_unpoison_memory()
+has been added to the -mm mm-unstable branch.  Its filename is
+     kmsan-introduce-test_unpoison_memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-do-not-wipe-out-origin-when-doing-partial-unpoisoning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-introduce-test_unpoison_memory.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,72 +58,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: do not wipe out origin when doing partial unpoisoning
-Date: Tue, 28 May 2024 12:48:06 +0200
+From: Brian Johannesmeyer <bjohannesmeyer@gmail.com>
+Subject: kmsan: introduce test_unpoison_memory()
+Date: Tue, 28 May 2024 12:48:07 +0200
 
-As noticed by Brian, KMSAN should not be zeroing the origin when
-unpoisoning parts of a four-byte uninitialized value, e.g.:
+Add a regression test to ensure that kmsan_unpoison_memory() works the
+same as an unpoisoning operation added by the instrumentation.
 
-    char a[4];
-    kmsan_unpoison_memory(a, 1);
+The test has two subtests: one that checks the instrumentation, and one
+that checks kmsan_unpoison_memory().  Each subtest initializes the first
+byte of a 4-byte buffer, then checks that the other 3 bytes are
+uninitialized.
 
-This led to false negatives, as certain poisoned values could receive zero
-origins, preventing those values from being reported.
-
-To fix the problem, check that kmsan_internal_set_shadow_origin() writes
-zero origins only to slots which have zero shadow.
-
-Link: https://lkml.kernel.org/r/20240528104807.738758-1-glider@google.com
-Fixes: f80be4571b19 ("kmsan: add KMSAN runtime core")
+[glider@google.com: change description, remove comment about failing test case]
+Link: https://lkml.kernel.org/r/20240528104807.738758-2-glider@google.com
+Signed-off-by: Brian Johannesmeyer <bjohannesmeyer@gmail.com>
+Link: https://lore.kernel.org/lkml/20240524232804.1984355-1-bjohannesmeyer@gmail.com/T/
 Signed-off-by: Alexander Potapenko <glider@google.com>
-Reported-by: Brian Johannesmeyer <bjohannesmeyer@gmail.com>
-  Link: https://lore.kernel.org/lkml/20240524232804.1984355-1-bjohannesmeyer@gmail.com/T/
-Reviewed-by: Marco Elver <elver@google.com>
-Tested-by: Brian Johannesmeyer <bjohannesmeyer@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: <stable@vger.kernel.org>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/core.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ mm/kmsan/kmsan_test.c |   27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
---- a/mm/kmsan/core.c~kmsan-do-not-wipe-out-origin-when-doing-partial-unpoisoning
-+++ a/mm/kmsan/core.c
-@@ -196,8 +196,7 @@ void kmsan_internal_set_shadow_origin(vo
- 				      u32 origin, bool checked)
- {
- 	u64 address = (u64)addr;
--	void *shadow_start;
--	u32 *origin_start;
-+	u32 *shadow_start, *origin_start;
- 	size_t pad = 0;
- 
- 	KMSAN_WARN_ON(!kmsan_metadata_is_contiguous(addr, size));
-@@ -225,8 +224,16 @@ void kmsan_internal_set_shadow_origin(vo
- 	origin_start =
- 		(u32 *)kmsan_get_metadata((void *)address, KMSAN_META_ORIGIN);
- 
--	for (int i = 0; i < size / KMSAN_ORIGIN_SIZE; i++)
--		origin_start[i] = origin;
-+	/*
-+	 * If the new origin is non-zero, assume that the shadow byte is also non-zero,
-+	 * and unconditionally overwrite the old origin slot.
-+	 * If the new origin is zero, overwrite the old origin slot iff the
-+	 * corresponding shadow slot is zero.
-+	 */
-+	for (int i = 0; i < size / KMSAN_ORIGIN_SIZE; i++) {
-+		if (origin || !shadow_start[i])
-+			origin_start[i] = origin;
-+	}
+--- a/mm/kmsan/kmsan_test.c~kmsan-introduce-test_unpoison_memory
++++ a/mm/kmsan/kmsan_test.c
+@@ -614,6 +614,32 @@ static void test_stackdepot_roundtrip(st
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
  }
  
- struct page *kmsan_vmalloc_to_page_or_null(void *vaddr)
++/*
++ * Test case: ensure that kmsan_unpoison_memory() and the instrumentation work
++ * the same.
++ */
++static void test_unpoison_memory(struct kunit *test)
++{
++	EXPECTATION_UNINIT_VALUE_FN(expect, "test_unpoison_memory");
++	volatile char a[4], b[4];
++
++	kunit_info(
++		test,
++		"unpoisoning via the instrumentation vs. kmsan_unpoison_memory() (2 UMR reports)\n");
++
++	/* Initialize a[0] and check a[1]--a[3]. */
++	a[0] = 0;
++	kmsan_check_memory((char *)&a[1], 3);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++
++	report_reset();
++
++	/* Initialize b[0] and check b[1]--b[3]. */
++	kmsan_unpoison_memory((char *)&b[0], 1);
++	kmsan_check_memory((char *)&b[1], 3);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
+ static struct kunit_case kmsan_test_cases[] = {
+ 	KUNIT_CASE(test_uninit_kmalloc),
+ 	KUNIT_CASE(test_init_kmalloc),
+@@ -637,6 +663,7 @@ static struct kunit_case kmsan_test_case
+ 	KUNIT_CASE(test_memset64),
+ 	KUNIT_CASE(test_long_origin_chain),
+ 	KUNIT_CASE(test_stackdepot_roundtrip),
++	KUNIT_CASE(test_unpoison_memory),
+ 	{},
+ };
+ 
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from bjohannesmeyer@gmail.com are
 
-kmsan-do-not-wipe-out-origin-when-doing-partial-unpoisoning.patch
+kmsan-introduce-test_unpoison_memory.patch
 
