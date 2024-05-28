@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD7E8172BC4
-	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 19:03:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9F78172BBF
+	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 19:07:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716923020; cv=none; b=JWE4WZX1KEh4BljwxBGzI6aMadwh8/BJW/n6Hv76QlR8ZjSk0hCLgdjvnP6+lX0s7wC0JA1Mxku1JPtdK9kWoDu3TyIfTV7gKBKv41+Mmhj0o3v4WBEMQKmoGrUsDQDUB/SDfKFv0iMBzoRrLaRujvtMNetGQyMfxliidOGuwwc=
+	t=1716923261; cv=none; b=KsxrDNI2AtlU33zhDqW1pRXYazLtNVsRUpIsYR41BqL4oxlZWUBCDc4cPwP3sU1DjfZctBGR2HFo4IywfGfkcpD0/0cHuXV57FxBTaIW3aqU6SvziKks1RjBcZIscJM2vrm9NECCN1H/5WR0JWmCyCJ9KAQhcVTMAiXbyrVIyIE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716923020; c=relaxed/simple;
-	bh=acb1bRztSDRjxaeoU7NYDxwrmkGZHfex0BCiiohMcuw=;
-	h=Date:To:From:Subject:Message-Id; b=tOIBwroZ0R6Y1j3XjDcGh1xnky4OG9HlSyClwOOiA4U836xKqBaqExll5vLgmHvaOAQtCpfeaU7tA+DllG8hiyzZFLTABE7ZvFCAVcRzIH1aw8ZLMgSEIRCqaNJiya6+/L9BNXhu43YXC3etxql9YQPoKH9mxI1GkJ3mj4BG9wA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MAOI0y69; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716923261; c=relaxed/simple;
+	bh=mC8zDFcA7QtP6aYFU3zb5inQrl9N+gpHnCZjZMKIJYc=;
+	h=Date:To:From:Subject:Message-Id; b=PmPxvZ2ebcstdM6uLZqw0soPDxb11snezkW5nC60j9JtePvrfY/7R2wrupXBSI+dBDemc1MqvZM9+jeT+zErUOTbIaaz2M6ySmHSKOlfnprFiXHE1Nku55EKV0RL+LlDrIo+CiTC1gOHtIVT2chqIi+OYlWKW9MuNrzVp5f7AXk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vc28tkjp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MAOI0y69"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70B67C3277B;
-	Tue, 28 May 2024 19:03:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vc28tkjp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5387BC3277B;
+	Tue, 28 May 2024 19:07:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716923020;
-	bh=acb1bRztSDRjxaeoU7NYDxwrmkGZHfex0BCiiohMcuw=;
+	s=korg; t=1716923261;
+	bh=mC8zDFcA7QtP6aYFU3zb5inQrl9N+gpHnCZjZMKIJYc=;
 	h=Date:To:From:Subject:From;
-	b=MAOI0y69EJVxxQbCTSpkFKLDw2xxneE7zWAhjIocWGFW3YohHnBFpuUqrZEaaHQ2j
-	 3gMIqA1Q1PbAUh5fseU6FxSO8v2pjs7nc7klA1nyiw/iHw/oALV2V7ngaPTX5IRVnU
-	 hk9IGqi5uq1VPwJraYLANTWP5F3p/+VKtSPRl2Cc=
-Date: Tue, 28 May 2024 12:03:39 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,mcgrof@kernel.org,daniel@iogearbox.net,cong.wang@bytedance.com,akpm@linux-foundation.org
+	b=vc28tkjpzRlMJfAClptiRFMWMa9d4PKyRvepTw3BXuLzURwnkSkooMkREXjgQzNkh
+	 arCKdjDHlzF+RfTq1lvfyFAopVIim5vkdPsGcR53XRSDOSWY4xBJtqp5eNpVGFQwpZ
+	 S4d+MGUChmGf4Ya/QR7BnOVR9bJDbNeKJlQP4QuY=
+Date: Tue, 28 May 2024 12:07:40 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,tj@kernel.org,lstoakes@gmail.com,hch@infradead.org,dennis@kernel.org,cl@linux.com,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240528190340.70B67C3277B@smtp.kernel.org>
+Subject: + percpu-add-__this_cpu_try_cmpxchg.patch added to mm-unstable branch
+Message-Id: <20240528190741.5387BC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmalloc: check CONFIG_EXECMEM in is_vmalloc_or_module_addr()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr.patch
+     Subject: percpu: add __this_cpu_try_cmpxchg()
+has been added to the -mm mm-unstable branch.  Its filename is
+     percpu-add-__this_cpu_try_cmpxchg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-add-__this_cpu_try_cmpxchg.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,134 +58,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Cong Wang <cong.wang@bytedance.com>
-Subject: vmalloc: check CONFIG_EXECMEM in is_vmalloc_or_module_addr()
-Date: Tue, 28 May 2024 09:08:38 -0700
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: percpu: add __this_cpu_try_cmpxchg()
+Date: Tue, 28 May 2024 16:43:13 +0200
 
-After commit 2c9e5d4a0082 ("bpf: remove CONFIG_BPF_JIT dependency on
-CONFIG_MODULES of") CONFIG_BPF_JIT does not depend on CONFIG_MODULES any
-more and bpf jit also uses the [MODULES_VADDR, MODULES_END] memory region.
-But is_vmalloc_or_module_addr() still checks CONFIG_MODULES, which then
-returns false for a bpf jit memory region when CONFIG_MODULES is not
-defined.  It leads to the following kernel BUG:
+Add __this_cpu_try_cmpxchg() version of the percpu op.
 
-[    1.567023] ------------[ cut here ]------------
-[    1.567883] kernel BUG at mm/vmalloc.c:745!
-[    1.568477] Oops: invalid opcode: 0000 [#1] PREEMPT SMP KASAN NOPTI
-[    1.569367] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 6.9.0+ #448
-[    1.570247] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.15.0-1 04/01/2014
-[    1.570786] RIP: 0010:vmalloc_to_page+0x48/0x1ec
-[    1.570786] Code: 0f 00 00 e8 eb 1a 05 00 b8 37 00 00 00 48 ba fe ff ff ff ff 1f 00 00 4c 03 25 76 49 c6 02 48 c1 e0 28 48 01 e8 48 39 d0 76 02 <0f> 0b 4c 89 e7 e8 bf 1a 05 00 49 8b 04 24 48 a9 9f ff ff ff 0f 84
-[    1.570786] RSP: 0018:ffff888007787960 EFLAGS: 00010212
-[    1.570786] RAX: 000036ffa0000000 RBX: 0000000000000640 RCX: ffffffff8147e93c
-[    1.570786] RDX: 00001ffffffffffe RSI: dffffc0000000000 RDI: ffffffff840e32c8
-[    1.570786] RBP: ffffffffa0000000 R08: 0000000000000000 R09: 0000000000000000
-[    1.570786] R10: ffff888007787a88 R11: ffffffff8475d8e7 R12: ffffffff83e80ff8
-[    1.570786] R13: 0000000000000640 R14: 0000000000000640 R15: 0000000000000640
-[    1.570786] FS:  0000000000000000(0000) GS:ffff88806cc00000(0000) knlGS:0000000000000000
-[    1.570786] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[    1.570786] CR2: ffff888006a01000 CR3: 0000000003e80000 CR4: 0000000000350ef0
-[    1.570786] Call Trace:
-[    1.570786]  <TASK>
-[    1.570786]  ? __die_body+0x1b/0x58
-[    1.570786]  ? die+0x31/0x4b
-[    1.570786]  ? do_trap+0x9d/0x138
-[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
-[    1.570786]  ? do_error_trap+0xcd/0x102
-[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
-[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
-[    1.570786]  ? handle_invalid_op+0x2f/0x38
-[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
-[    1.570786]  ? exc_invalid_op+0x2b/0x41
-[    1.570786]  ? asm_exc_invalid_op+0x16/0x20
-[    1.570786]  ? vmalloc_to_page+0x26/0x1ec
-[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
-[    1.570786]  __text_poke+0xb6/0x458
-[    1.570786]  ? __pfx_text_poke_memcpy+0x10/0x10
-[    1.570786]  ? __pfx___mutex_lock+0x10/0x10
-[    1.570786]  ? __pfx___text_poke+0x10/0x10
-[    1.570786]  ? __pfx_get_random_u32+0x10/0x10
-[    1.570786]  ? srso_return_thunk+0x5/0x5f
-[    1.570786]  text_poke_copy_locked+0x70/0x84
-[    1.570786]  text_poke_copy+0x32/0x4f
-[    1.570786]  bpf_arch_text_copy+0xf/0x27
-[    1.570786]  bpf_jit_binary_pack_finalize+0x26/0x5a
-[    1.570786]  bpf_int_jit_compile+0x576/0x8ad
-[    1.570786]  ? __pfx_bpf_int_jit_compile+0x10/0x10
-[    1.570786]  ? srso_return_thunk+0x5/0x5f
-[    1.570786]  ? __kmalloc_node_track_caller+0x2b5/0x2e0
-[    1.570786]  bpf_prog_select_runtime+0x7c/0x199
-[    1.570786]  bpf_prepare_filter+0x1e9/0x25b
-[    1.570786]  ? __pfx_bpf_prepare_filter+0x10/0x10
-[    1.570786]  ? srso_return_thunk+0x5/0x5f
-[    1.570786]  ? _find_next_bit+0x29/0x7e
-[    1.570786]  bpf_prog_create+0xb8/0xe0
-[    1.570786]  ptp_classifier_init+0x75/0xa1
-[    1.570786]  ? __pfx_ptp_classifier_init+0x10/0x10
-[    1.570786]  ? srso_return_thunk+0x5/0x5f
-[    1.570786]  ? register_pernet_subsys+0x36/0x42
-[    1.570786]  ? srso_return_thunk+0x5/0x5f
-[    1.570786]  sock_init+0x99/0xa3
-[    1.570786]  ? __pfx_sock_init+0x10/0x10
-[    1.570786]  do_one_initcall+0x104/0x2c4
-[    1.570786]  ? __pfx_do_one_initcall+0x10/0x10
-[    1.570786]  ? parameq+0x25/0x2d
-[    1.570786]  ? rcu_is_watching+0x1c/0x3c
-[    1.570786]  ? trace_kmalloc+0x81/0xb2
-[    1.570786]  ? srso_return_thunk+0x5/0x5f
-[    1.570786]  ? __kmalloc+0x29c/0x2c7
-[    1.570786]  ? srso_return_thunk+0x5/0x5f
-[    1.570786]  do_initcalls+0xf9/0x123
-[    1.570786]  kernel_init_freeable+0x24f/0x289
-[    1.570786]  ? __pfx_kernel_init+0x10/0x10
-[    1.570786]  kernel_init+0x19/0x13a
-[    1.570786]  ret_from_fork+0x24/0x41
-[    1.570786]  ? __pfx_kernel_init+0x10/0x10
-[    1.570786]  ret_from_fork_asm+0x1a/0x30
-[    1.570786]  </TASK>
-[    1.570819] ---[ end trace 0000000000000000 ]---
-[    1.571463] RIP: 0010:vmalloc_to_page+0x48/0x1ec
-[    1.572111] Code: 0f 00 00 e8 eb 1a 05 00 b8 37 00 00 00 48 ba fe ff ff ff ff 1f 00 00 4c 03 25 76 49 c6 02 48 c1 e0 28 48 01 e8 48 39 d0 76 02 <0f> 0b 4c 89 e7 e8 bf 1a 05 00 49 8b 04 24 48 a9 9f ff ff ff 0f 84
-[    1.574632] RSP: 0018:ffff888007787960 EFLAGS: 00010212
-[    1.575129] RAX: 000036ffa0000000 RBX: 0000000000000640 RCX: ffffffff8147e93c
-[    1.576097] RDX: 00001ffffffffffe RSI: dffffc0000000000 RDI: ffffffff840e32c8
-[    1.577084] RBP: ffffffffa0000000 R08: 0000000000000000 R09: 0000000000000000
-[    1.578077] R10: ffff888007787a88 R11: ffffffff8475d8e7 R12: ffffffff83e80ff8
-[    1.578810] R13: 0000000000000640 R14: 0000000000000640 R15: 0000000000000640
-[    1.579823] FS:  0000000000000000(0000) GS:ffff88806cc00000(0000) knlGS:0000000000000000
-[    1.580992] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[    1.581869] CR2: ffff888006a01000 CR3: 0000000003e80000 CR4: 0000000000350ef0
-[    1.582800] Kernel panic - not syncing: Fatal exception
-[    1.583765] ---[ end Kernel panic - not syncing: Fatal exception ]---
-
-Fix this by checking CONFIG_EXECMEM instead.
-
-Link: https://lkml.kernel.org/r/20240528160838.102223-1-xiyou.wangcong@gmail.com
-Fixes: 2c9e5d4a0082 ("bpf: remove CONFIG_BPF_JIT dependency on CONFIG_MODULES of")
-Signed-off-by: Cong Wang <cong.wang@bytedance.com>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
+Link: https://lkml.kernel.org/r/20240528144345.5980-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/percpu-defs.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/vmalloc.c~vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr
-+++ a/mm/vmalloc.c
-@@ -722,7 +722,7 @@ int is_vmalloc_or_module_addr(const void
- 	 * and fall back on vmalloc() if that fails. Others
- 	 * just put it in the vmalloc space.
- 	 */
--#if defined(CONFIG_MODULES) && defined(MODULES_VADDR)
-+#if defined(CONFIG_EXECMEM) && defined(MODULES_VADDR)
- 	unsigned long addr = (unsigned long)kasan_reset_tag(x);
- 	if (addr >= MODULES_VADDR && addr < MODULES_END)
- 		return 1;
+--- a/include/linux/percpu-defs.h~percpu-add-__this_cpu_try_cmpxchg
++++ a/include/linux/percpu-defs.h
+@@ -475,6 +475,12 @@ do {									\
+ 	raw_cpu_cmpxchg(pcp, oval, nval);				\
+ })
+ 
++#define __this_cpu_try_cmpxchg(pcp, ovalp, nval)			\
++({									\
++	__this_cpu_preempt_check("try_cmpxchg");			\
++	raw_cpu_try_cmpxchg(pcp, ovalp, nval);				\
++})
++
+ #define __this_cpu_sub(pcp, val)	__this_cpu_add(pcp, -(typeof(pcp))(val))
+ #define __this_cpu_inc(pcp)		__this_cpu_add(pcp, 1)
+ #define __this_cpu_dec(pcp)		__this_cpu_sub(pcp, 1)
 _
 
-Patches currently in -mm which might be from cong.wang@bytedance.com are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
-vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr.patch
+percpu-add-__this_cpu_try_cmpxchg.patch
+mm-vmalloc-use-__this_cpu_try_cmpxchg-in-preload_this_cpu_lock.patch
+fork-use-this_cpu_try_cmpxchg-in-try_release_thread_stack_to_cache.patch
+fork-use-this_cpu_try_cmpxchg-in-try_release_thread_stack_to_cache-fix.patch
 
