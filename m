@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EFD9178367
-	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 20:39:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2117F17A930
+	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 20:39:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716928782; cv=none; b=j5FE2qzsO1nXl5Tw9eHIi1WsYvLDfDa1J5VNgBYyp2YPkZ8s0EyQLSGpcpYryUkYj8+Mew6YBRsuyvIvxU5qX4OnVxY6P/vtwGd87inDpbKEhisP26iMgxJxlXRUdl7iBlsXxhtKPVAX1o39Da2XEnFiVwH9CNPl41NpCBXRCiE=
+	t=1716928788; cv=none; b=EPkF/E0jebs/vtLDfxvv+DGZW+cXumRGy7S7oN4bf3/eIJxmq/0bRamG4VriByBvopmUXfwnv8O3p2RZfn+yCUKVI4mnYUG/PHiwUEXfOe7QkbRULfFm1IKd4miNZmy2h8NKxkEr+7xZtujdD6X/wuHwePFEg7mhEVd6w8BrPpc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716928782; c=relaxed/simple;
-	bh=jItQlo208hGFHtXxYQ+0k1EN+bn8/SIcDyy+fPr6Yj0=;
-	h=Date:To:From:Subject:Message-Id; b=AG2RFzJ4qvbOxdvtV+BXDAXyfLrXHG7Iht4bLobc1CTkW00ERWiWJEiYoQbfW5YsMOhqQaP7LDTzcU2WWlFHPgoQIDiAmuOPVgUEslB37kMVj6sqWwR7Ffby/EBqGo8odUoTMF49mpjiu/z/fA8ewuFeONd0MUHjdBuczXFtmaQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K6HSWBAm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716928788; c=relaxed/simple;
+	bh=SfALgIO2ltEWmo+Z5kog5KrWJwDH8VJ/gSOQzzM35kk=;
+	h=Date:To:From:Subject:Message-Id; b=BM3al97S6c4YgQdRWduCfzVySHjE6ykAtVB6w/3mBuu0KkJdSVrgXE1aMqn1Yu23NJimDDMjCVflogdRMXytY41zJIX6sTVFp8IKdL76w4E4YzuTrAKQZoL3vaooVe17wYkUxA7TAeAD621U29NAqzcZPV6Pm0NgOIbzCB6cm4o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zCRVuVmv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K6HSWBAm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F44CC3277B;
-	Tue, 28 May 2024 20:39:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zCRVuVmv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EE55C3277B;
+	Tue, 28 May 2024 20:39:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716928782;
-	bh=jItQlo208hGFHtXxYQ+0k1EN+bn8/SIcDyy+fPr6Yj0=;
+	s=korg; t=1716928787;
+	bh=SfALgIO2ltEWmo+Z5kog5KrWJwDH8VJ/gSOQzzM35kk=;
 	h=Date:To:From:Subject:From;
-	b=K6HSWBAm/tnMnHIW3V2Zf6XDlrP5xLmJnYIKWkyhTxFuKqEDhD8u4X2PYqX/SUAJF
-	 NfE+MexHiOBGFv19bruo0S0t4rXqIfkG3dujMa7mXM9URErxzIKEQYxPbCESImGnSj
-	 IT6k1gy0NMY3LmhIuxcqqFiHmP0sWyCXRQ9LRjCc=
-Date: Tue, 28 May 2024 13:39:41 -0700
+	b=zCRVuVmvEevsfYrFIAsTidyqlis4mnPTLny1gPc0/GBnOIymos3fu2luhG/vXHI6S
+	 HTTxyKyrCsyXFq0KTFpWQmbUygs2lpJ6dK0VUxA8ZJidOi32h8U8yjLlB4FsYRoEYk
+	 vSZICxfQRARPG68SUBFaglfOCBOEpDfEx9tE26Vg=
+Date: Tue, 28 May 2024 13:39:47 -0700
 To: mm-commits@vger.kernel.org,yury.norov@nvidia.com,viresh.kumar@linaro.org,vincent.guittot@linaro.org,ulf.hansson@linaro.org,tj@kernel.org,tglx@linutronix.de,rafael@kernel.org,peterz@infradead.org,paulmck@kernel.org,mathieu.desnoyers@efficios.com,linux@rasmusvillemoes.dk,keescook@chromium.org,juri.lelli@redhat.com,hannes@cmpxchg.org,frederic@kernel.org,dennis@kernel.org,daniel.lezcano@linaro.org,cl@linux.com,anna-maria@linutronix.de,amit.kachhap@gmail.com,yury.norov@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + cpumask-cleanup-core-headers-inclusion.patch added to mm-nonmm-unstable branch
-Message-Id: <20240528203942.5F44CC3277B@smtp.kernel.org>
+Subject: + cpumask-make-core-headers-including-cpumask_typesh-where-possible.patch added to mm-nonmm-unstable branch
+Message-Id: <20240528203947.9EE55C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: cpumask: cleanup core headers inclusion
+     Subject: cpumask: make core headers including cpumask_types.h where possible
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     cpumask-cleanup-core-headers-inclusion.patch
+     cpumask-make-core-headers-including-cpumask_typesh-where-possible.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cpumask-cleanup-core-headers-inclusion.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cpumask-make-core-headers-including-cpumask_typesh-where-possible.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: cpumask: cleanup core headers inclusion
-Date: Mon, 27 May 2024 17:56:47 -0700
+Subject: cpumask: make core headers including cpumask_types.h where possible
+Date: Mon, 27 May 2024 17:56:48 -0700
 
-Many core headers include cpumask.h for nothing. Drop it.
+Now that cpumask types are split out to a separate smaller header, many
+frequently included core headers may switch to using it.
 
-Link: https://lkml.kernel.org/r/20240528005648.182376-6-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20240528005648.182376-7-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Cc: Amit Daniel Kachhap <amit.kachhap@gmail.com>
 Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>
@@ -89,118 +90,128 @@ Cc: Yury Norov <yury.norov@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h      |    1 -
- include/linux/cpu.h         |    1 -
- include/linux/cpu_cooling.h |    1 -
- include/linux/kernel_stat.h |    1 -
- include/linux/node.h        |    1 -
- include/linux/percpu.h      |    1 -
- include/linux/profile.h     |    1 -
- include/linux/rcupdate.h    |    1 -
- include/linux/seq_file.h    |    1 -
- include/linux/tracepoint.h  |    1 -
- 10 files changed, 10 deletions(-)
+ include/linux/cacheinfo.h                    |    2 +-
+ include/linux/clockchips.h                   |    2 +-
+ include/linux/cpu_rmap.h                     |    2 +-
+ include/linux/interrupt.h                    |    2 +-
+ include/linux/irqchip/irq-partition-percpu.h |    2 +-
+ include/linux/msi.h                          |    2 +-
+ include/linux/pm_domain.h                    |    2 +-
+ include/linux/stop_machine.h                 |    2 +-
+ include/linux/torture.h                      |    2 +-
+ include/linux/workqueue.h                    |    2 +-
+ 10 files changed, 10 insertions(+), 10 deletions(-)
 
---- a/include/linux/cgroup.h~cpumask-cleanup-core-headers-inclusion
-+++ a/include/linux/cgroup.h
-@@ -10,7 +10,6 @@
+--- a/include/linux/cacheinfo.h~cpumask-make-core-headers-including-cpumask_typesh-where-possible
++++ a/include/linux/cacheinfo.h
+@@ -3,7 +3,7 @@
+ #define _LINUX_CACHEINFO_H
+ 
+ #include <linux/bitops.h>
+-#include <linux/cpumask.h>
++#include <linux/cpumask_types.h>
+ #include <linux/smp.h>
+ 
+ struct device_node;
+--- a/include/linux/clockchips.h~cpumask-make-core-headers-including-cpumask_typesh-where-possible
++++ a/include/linux/clockchips.h
+@@ -12,7 +12,7 @@
+ #ifdef CONFIG_GENERIC_CLOCKEVENTS
+ 
+ # include <linux/clocksource.h>
+-# include <linux/cpumask.h>
++# include <linux/cpumask_types.h>
+ # include <linux/ktime.h>
+ # include <linux/notifier.h>
+ 
+--- a/include/linux/cpu_rmap.h~cpumask-make-core-headers-including-cpumask_typesh-where-possible
++++ a/include/linux/cpu_rmap.h
+@@ -7,7 +7,7 @@
+  * Copyright 2011 Solarflare Communications Inc.
   */
  
- #include <linux/sched.h>
 -#include <linux/cpumask.h>
- #include <linux/nodemask.h>
- #include <linux/rculist.h>
- #include <linux/cgroupstats.h>
---- a/include/linux/cpu_cooling.h~cpumask-cleanup-core-headers-inclusion
-+++ a/include/linux/cpu_cooling.h
-@@ -15,7 +15,6 @@
- 
- #include <linux/of.h>
- #include <linux/thermal.h>
--#include <linux/cpumask.h>
- 
- struct cpufreq_policy;
- 
---- a/include/linux/cpu.h~cpumask-cleanup-core-headers-inclusion
-+++ a/include/linux/cpu.h
-@@ -16,7 +16,6 @@
- 
- #include <linux/node.h>
- #include <linux/compiler.h>
--#include <linux/cpumask.h>
- #include <linux/cpuhotplug.h>
- #include <linux/cpu_smt.h>
- 
---- a/include/linux/kernel_stat.h~cpumask-cleanup-core-headers-inclusion
-+++ a/include/linux/kernel_stat.h
-@@ -5,7 +5,6 @@
- #include <linux/smp.h>
- #include <linux/threads.h>
- #include <linux/percpu.h>
--#include <linux/cpumask.h>
- #include <linux/interrupt.h>
- #include <linux/sched.h>
- #include <linux/vtime.h>
---- a/include/linux/node.h~cpumask-cleanup-core-headers-inclusion
-+++ a/include/linux/node.h
-@@ -16,7 +16,6 @@
- #define _LINUX_NODE_H_
- 
- #include <linux/device.h>
--#include <linux/cpumask.h>
- #include <linux/list.h>
- 
- /**
---- a/include/linux/percpu.h~cpumask-cleanup-core-headers-inclusion
-+++ a/include/linux/percpu.h
-@@ -6,7 +6,6 @@
- #include <linux/mmdebug.h>
- #include <linux/preempt.h>
- #include <linux/smp.h>
--#include <linux/cpumask.h>
- #include <linux/pfn.h>
- #include <linux/init.h>
- #include <linux/cleanup.h>
---- a/include/linux/profile.h~cpumask-cleanup-core-headers-inclusion
-+++ a/include/linux/profile.h
-@@ -4,7 +4,6 @@
++#include <linux/cpumask_types.h>
+ #include <linux/gfp.h>
+ #include <linux/slab.h>
+ #include <linux/kref.h>
+--- a/include/linux/interrupt.h~cpumask-make-core-headers-including-cpumask_typesh-where-possible
++++ a/include/linux/interrupt.h
+@@ -5,7 +5,7 @@
  
  #include <linux/kernel.h>
- #include <linux/init.h>
+ #include <linux/bitops.h>
 -#include <linux/cpumask.h>
- #include <linux/cache.h>
++#include <linux/cpumask_types.h>
+ #include <linux/irqreturn.h>
+ #include <linux/irqnr.h>
+ #include <linux/hardirq.h>
+--- a/include/linux/irqchip/irq-partition-percpu.h~cpumask-make-core-headers-including-cpumask_typesh-where-possible
++++ a/include/linux/irqchip/irq-partition-percpu.h
+@@ -8,7 +8,7 @@
+ #define __LINUX_IRQCHIP_IRQ_PARTITION_PERCPU_H
  
- #include <asm/errno.h>
---- a/include/linux/rcupdate.h~cpumask-cleanup-core-headers-inclusion
-+++ a/include/linux/rcupdate.h
-@@ -29,7 +29,6 @@
- #include <linux/lockdep.h>
- #include <linux/cleanup.h>
- #include <asm/processor.h>
+ #include <linux/fwnode.h>
 -#include <linux/cpumask.h>
- #include <linux/context_tracking_irq.h>
++#include <linux/cpumask_types.h>
+ #include <linux/irqdomain.h>
  
- #define ULONG_CMP_GE(a, b)	(ULONG_MAX / 2 >= (a) - (b))
---- a/include/linux/seq_file.h~cpumask-cleanup-core-headers-inclusion
-+++ a/include/linux/seq_file.h
-@@ -7,7 +7,6 @@
- #include <linux/string_helpers.h>
- #include <linux/bug.h>
+ struct partition_affinity {
+--- a/include/linux/msi.h~cpumask-make-core-headers-including-cpumask_typesh-where-possible
++++ a/include/linux/msi.h
+@@ -19,7 +19,7 @@
+  */
+ 
+ #include <linux/irqdomain_defs.h>
+-#include <linux/cpumask.h>
++#include <linux/cpumask_types.h>
+ #include <linux/msi_api.h>
+ #include <linux/xarray.h>
  #include <linux/mutex.h>
+--- a/include/linux/pm_domain.h~cpumask-make-core-headers-including-cpumask_typesh-where-possible
++++ a/include/linux/pm_domain.h
+@@ -16,7 +16,7 @@
+ #include <linux/of.h>
+ #include <linux/notifier.h>
+ #include <linux/spinlock.h>
 -#include <linux/cpumask.h>
- #include <linux/nodemask.h>
- #include <linux/fs.h>
- #include <linux/cred.h>
---- a/include/linux/tracepoint.h~cpumask-cleanup-core-headers-inclusion
-+++ a/include/linux/tracepoint.h
-@@ -16,7 +16,6 @@
- #include <linux/srcu.h>
- #include <linux/errno.h>
- #include <linux/types.h>
++#include <linux/cpumask_types.h>
+ #include <linux/time64.h>
+ 
+ /*
+--- a/include/linux/stop_machine.h~cpumask-make-core-headers-including-cpumask_typesh-where-possible
++++ a/include/linux/stop_machine.h
+@@ -3,7 +3,7 @@
+ #define _LINUX_STOP_MACHINE
+ 
+ #include <linux/cpu.h>
 -#include <linux/cpumask.h>
++#include <linux/cpumask_types.h>
+ #include <linux/smp.h>
+ #include <linux/list.h>
+ 
+--- a/include/linux/torture.h~cpumask-make-core-headers-including-cpumask_typesh-where-possible
++++ a/include/linux/torture.h
+@@ -14,7 +14,7 @@
+ #include <linux/cache.h>
+ #include <linux/spinlock.h>
+ #include <linux/threads.h>
+-#include <linux/cpumask.h>
++#include <linux/cpumask_types.h>
+ #include <linux/seqlock.h>
+ #include <linux/lockdep.h>
+ #include <linux/completion.h>
+--- a/include/linux/workqueue.h~cpumask-make-core-headers-including-cpumask_typesh-where-possible
++++ a/include/linux/workqueue.h
+@@ -12,7 +12,7 @@
+ #include <linux/lockdep.h>
+ #include <linux/threads.h>
+ #include <linux/atomic.h>
+-#include <linux/cpumask.h>
++#include <linux/cpumask_types.h>
  #include <linux/rcupdate.h>
- #include <linux/tracepoint-defs.h>
- #include <linux/static_call.h>
+ #include <linux/workqueue_types.h>
+ 
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
