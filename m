@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9CD317B432
-	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 21:28:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA69817B432
+	for <mm-commits@vger.kernel.org>; Tue, 28 May 2024 21:29:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716931710; cv=none; b=ofELA1sOLorXz+t2y1N336bC9qpbYxyMk7GJtDiWz1zX2hWZsLpmEdX0bKtGY9lb0TcK45Ngy/+b5UhRcWORWbW3NuYF8/VG3rvhRHVYBE6/kVGZWRFldnDR899nAyX3tiqxRgsNAKMzrkcG7UJ5iHNwMYZlCGWl1GZqAXTVq8M=
+	t=1716931780; cv=none; b=NQNYqrwPvM8J+UFwc0Za137aynqzw6bBsGthU6L3XlxZwZTLjgw3Ld0BQiRaedtBlirWSL1Uk23HB6l/eo8WibFxyh4Mnko4e+iVbAQhr3+tyIJSDCdQAhQ8iHlq4643aOn8P5AFjZqtYvEzkR7rXMaVCSa6fFqUAFihq4BdRhE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716931710; c=relaxed/simple;
-	bh=uwZM+TplzI9ksL3M2dgmCCWFb/0/AZC46YEVqedQ8Gc=;
-	h=Date:To:From:Subject:Message-Id; b=rZzLyd3UCvsIJPaYUvvf6twiZoieomaRCOaMN6j6vuK8AqiK3EpQJAY+gZqb4s/WaAgrwmAg7+GFsKRK+OlK0ddEedaGGV50BalPAjuPoOyMa6o7zOkOPQZcbRwt7u1XLNEB+azRPeNFD4BVgHqSTXm4ksfSFfJTAsjE2jZg8tU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=urcgpcOG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716931780; c=relaxed/simple;
+	bh=cbntOjTckIDUFfYQtFqfD0zpTLIZ2RKFsSy8RPinDiA=;
+	h=Date:To:From:Subject:Message-Id; b=ExK+ymhZs/MEMkWucc51/rNQvJQlzp2zlYVen4noOGz7bIzWUA0iPD94PcO1As5WaL7kR0BdIYI1xk7X6vtubY2JK65l8nyTZa1x2NhxbSa0xYQUrR1ooTmT7ARJk1+ZN1gzurdi9r1DbWZTaY3nRwG4iDY/m+vl45t8RFa8344=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vBNqAd2+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="urcgpcOG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CE4EC3277B;
-	Tue, 28 May 2024 21:28:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vBNqAd2+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C065C3277B;
+	Tue, 28 May 2024 21:29:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1716931710;
-	bh=uwZM+TplzI9ksL3M2dgmCCWFb/0/AZC46YEVqedQ8Gc=;
+	s=korg; t=1716931780;
+	bh=cbntOjTckIDUFfYQtFqfD0zpTLIZ2RKFsSy8RPinDiA=;
 	h=Date:To:From:Subject:From;
-	b=urcgpcOGxygzSGlosiXfIGsQB4uUOVBuvUcwc17ziNH5SfcswJGp1IM0USVW65ZhX
-	 MHYE0HOiEF/lJMD6gZgK3LglUWo2wwNyA9kUIsXq31BEU+bUwpqGC2G69IXfmB/G5T
-	 LQXy/vb8aQ4FTCCAjIqdh2wPtIKDMZERdPeOGPkg=
-Date: Tue, 28 May 2024 14:28:29 -0700
-To: mm-commits@vger.kernel.org,david@redhat.com,dave.hansen@intel.com,osalvador@suse.de,akpm@linux-foundation.org
+	b=vBNqAd2+mYSnYHdtaK5nnZkrGYVleIUyp3AL4/JTODFNGlFaUFt+sZBwBPXvhxP28
+	 EkIJuHV+09Fpg1ol3qgVTQqiV8el7w3ccj9lE6WtYvq0gSEa22f2aRiGDIxtseJQLu
+	 lJAY+01dZX0OqfPMjYFNUK6SBe9Txqmq5tgPEk2c=
+Date: Tue, 28 May 2024 14:29:39 -0700
+To: mm-commits@vger.kernel.org,tim.bird@sony.com,shuah@kernel.org,rostedt@goodmis.org,mathieu.desnoyers@efficios.com,dyoung@redhat.com,brauner@kernel.org,avagin@google.com,wen.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arch-x86-do-not-explicitly-clear-reserved-flag-in-free_pagetable.patch added to mm-unstable branch
-Message-Id: <20240528212830.3CE4EC3277B@smtp.kernel.org>
+Subject: + selftests-introduce-additional-eventfd-test-coverage.patch added to mm-nonmm-unstable branch
+Message-Id: <20240528212940.4C065C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arch/x86: do not explicitly clear Reserved flag in free_pagetable
-has been added to the -mm mm-unstable branch.  Its filename is
-     arch-x86-do-not-explicitly-clear-reserved-flag-in-free_pagetable.patch
+     Subject: selftests: introduce additional eventfd test coverage
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-introduce-additional-eventfd-test-coverage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-x86-do-not-explicitly-clear-reserved-flag-in-free_pagetable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-introduce-additional-eventfd-test-coverage.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,42 +58,250 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: arch/x86: do not explicitly clear Reserved flag in free_pagetable
-Date: Mon, 27 May 2024 06:45:23 +0200
+From: Wen Yang <wen.yang@linux.dev>
+Subject: selftests: introduce additional eventfd test coverage
+Date: Mon, 27 May 2024 08:02:00 +0800
 
-In free_pagetable() we use the non-atomic version for clearing the
-PageReserved bit from the page.  free_pagetable() will either call
-free_reserved_page() or put_page_bootmem(), which will eventually end up
-calling free_reserved_page(), and in there we already clear the
-PageReserved flag.
+Add several new test cases which assert corner cases on the eventfd
+mechanism, for example, the supplied buffer is less than 8 bytes,
+attempting to write a value that is too large, etc.
 
-Link: https://lkml.kernel.org/r/20240527044523.29207-1-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+	./eventfd_test
+	# Starting 9 tests from 1 test cases.
+	#  RUN           global.eventfd_check_flag_rdwr ...
+	#            OK  global.eventfd_check_flag_rdwr
+	ok 1 global.eventfd_check_flag_rdwr
+	#  RUN           global.eventfd_check_flag_cloexec ...
+	#            OK  global.eventfd_check_flag_cloexec
+	ok 2 global.eventfd_check_flag_cloexec
+	#  RUN           global.eventfd_check_flag_nonblock ...
+	#            OK  global.eventfd_check_flag_nonblock
+	ok 3 global.eventfd_check_flag_nonblock
+	#  RUN           global.eventfd_chek_flag_cloexec_and_nonblock ...
+	#            OK  global.eventfd_chek_flag_cloexec_and_nonblock
+	ok 4 global.eventfd_chek_flag_cloexec_and_nonblock
+	#  RUN           global.eventfd_check_flag_semaphore ...
+	#            OK  global.eventfd_check_flag_semaphore
+	ok 5 global.eventfd_check_flag_semaphore
+	#  RUN           global.eventfd_check_write ...
+	#            OK  global.eventfd_check_write
+	ok 6 global.eventfd_check_write
+	#  RUN           global.eventfd_check_read ...
+	#            OK  global.eventfd_check_read
+	ok 7 global.eventfd_check_read
+	#  RUN           global.eventfd_check_read_with_nonsemaphore ...
+	#            OK  global.eventfd_check_read_with_nonsemaphore
+	ok 8 global.eventfd_check_read_with_nonsemaphore
+	#  RUN           global.eventfd_check_read_with_semaphore ...
+	#            OK  global.eventfd_check_read_with_semaphore
+	ok 9 global.eventfd_check_read_with_semaphore
+	# PASSED: 9 / 9 tests passed.
+	# Totals: pass:9 fail:0 xfail:0 xpass:0 skip:0 error:0
+
+Link: https://lkml.kernel.org/r/20240527000200.5615-1-wen.yang@linux.dev
+Signed-off-by: Wen Yang <wen.yang@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Andrei Vagin <avagin@google.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Tim Bird <tim.bird@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    2 --
- 1 file changed, 2 deletions(-)
+ tools/testing/selftests/filesystems/eventfd/eventfd_test.c |  136 +++++++++-
+ 1 file changed, 131 insertions(+), 5 deletions(-)
 
---- a/arch/x86/mm/init_64.c~arch-x86-do-not-explicitly-clear-reserved-flag-in-free_pagetable
-+++ a/arch/x86/mm/init_64.c
-@@ -980,8 +980,6 @@ static void __meminit free_pagetable(str
+--- a/tools/testing/selftests/filesystems/eventfd/eventfd_test.c~selftests-introduce-additional-eventfd-test-coverage
++++ a/tools/testing/selftests/filesystems/eventfd/eventfd_test.c
+@@ -13,6 +13,8 @@
+ #include <sys/eventfd.h>
+ #include "../../kselftest_harness.h"
  
- 	/* bootmem page has reserved flag */
- 	if (PageReserved(page)) {
--		__ClearPageReserved(page);
--
- 		magic = page->index;
- 		if (magic == SECTION_INFO || magic == MIX_SECTION_INFO) {
- 			while (nr_pages--)
++#define EVENTFD_TEST_ITERATIONS 100000UL
++
+ struct error {
+ 	int  code;
+ 	char msg[512];
+@@ -40,7 +42,7 @@ static inline int sys_eventfd2(unsigned
+ 	return syscall(__NR_eventfd2, count, flags);
+ }
+ 
+-TEST(eventfd01)
++TEST(eventfd_check_flag_rdwr)
+ {
+ 	int fd, flags;
+ 
+@@ -54,7 +56,7 @@ TEST(eventfd01)
+ 	close(fd);
+ }
+ 
+-TEST(eventfd02)
++TEST(eventfd_check_flag_cloexec)
+ {
+ 	int fd, flags;
+ 
+@@ -68,7 +70,7 @@ TEST(eventfd02)
+ 	close(fd);
+ }
+ 
+-TEST(eventfd03)
++TEST(eventfd_check_flag_nonblock)
+ {
+ 	int fd, flags;
+ 
+@@ -83,7 +85,7 @@ TEST(eventfd03)
+ 	close(fd);
+ }
+ 
+-TEST(eventfd04)
++TEST(eventfd_chek_flag_cloexec_and_nonblock)
+ {
+ 	int fd, flags;
+ 
+@@ -161,7 +163,7 @@ static int verify_fdinfo(int fd, struct
+ 	return 0;
+ }
+ 
+-TEST(eventfd05)
++TEST(eventfd_check_flag_semaphore)
+ {
+ 	struct error err = {0};
+ 	int fd, ret;
+@@ -182,5 +184,129 @@ TEST(eventfd05)
+ 
+ 	close(fd);
+ }
++
++/*
++ * A write(2) fails with the error EINVAL if the size of the supplied buffer
++ * is less than 8 bytes, or if an attempt is made to write the value
++ * 0xffffffffffffffff.
++ */
++TEST(eventfd_check_write)
++{
++	uint64_t value = 1;
++	ssize_t size;
++	int fd;
++
++	fd = sys_eventfd2(0, 0);
++	ASSERT_GE(fd, 0);
++
++	size = write(fd, &value, sizeof(int));
++	EXPECT_EQ(size, -1);
++	EXPECT_EQ(errno, EINVAL);
++
++	size = write(fd, &value, sizeof(value));
++	EXPECT_EQ(size, sizeof(value));
++
++	value = (uint64_t)-1;
++	size = write(fd, &value, sizeof(value));
++	EXPECT_EQ(size, -1);
++	EXPECT_EQ(errno, EINVAL);
++
++	close(fd);
++}
++
++/*
++ * A read(2) fails with the error EINVAL if the size of the supplied buffer is
++ * less than 8 bytes.
++ */
++TEST(eventfd_check_read)
++{
++	uint64_t value;
++	ssize_t size;
++	int fd;
++
++	fd = sys_eventfd2(1, 0);
++	ASSERT_GE(fd, 0);
++
++	size = read(fd, &value, sizeof(int));
++	EXPECT_EQ(size, -1);
++	EXPECT_EQ(errno, EINVAL);
++
++	size = read(fd, &value, sizeof(value));
++	EXPECT_EQ(size, sizeof(value));
++	EXPECT_EQ(value, 1);
++
++	close(fd);
++}
++
++
++/*
++ * If EFD_SEMAPHORE was not specified and the eventfd counter has a nonzero
++ * value, then a read(2) returns 8 bytes containing that value, and the
++ * counter's value is reset to zero.
++ * If the eventfd counter is zero at the time of the call to read(2), then the
++ * call fails with the error EAGAIN if the file descriptor has been made nonblocking.
++ */
++TEST(eventfd_check_read_with_nonsemaphore)
++{
++	uint64_t value;
++	ssize_t size;
++	int fd;
++	int i;
++
++	fd = sys_eventfd2(0, EFD_NONBLOCK);
++	ASSERT_GE(fd, 0);
++
++	value = 1;
++	for (i = 0; i < EVENTFD_TEST_ITERATIONS; i++) {
++		size = write(fd, &value, sizeof(value));
++		EXPECT_EQ(size, sizeof(value));
++	}
++
++	size = read(fd, &value, sizeof(value));
++	EXPECT_EQ(size, sizeof(uint64_t));
++	EXPECT_EQ(value, EVENTFD_TEST_ITERATIONS);
++
++	size = read(fd, &value, sizeof(value));
++	EXPECT_EQ(size, -1);
++	EXPECT_EQ(errno, EAGAIN);
++
++	close(fd);
++}
++
++/*
++ * If EFD_SEMAPHORE was specified and the eventfd counter has a nonzero value,
++ * then a read(2) returns 8 bytes containing the value 1, and the counter's
++ * value is decremented by 1.
++ * If the eventfd counter is zero at the time of the call to read(2), then the
++ * call fails with the error EAGAIN if the file descriptor has been made nonblocking.
++ */
++TEST(eventfd_check_read_with_semaphore)
++{
++	uint64_t value;
++	ssize_t size;
++	int fd;
++	int i;
++
++	fd = sys_eventfd2(0, EFD_SEMAPHORE|EFD_NONBLOCK);
++	ASSERT_GE(fd, 0);
++
++	value = 1;
++	for (i = 0; i < EVENTFD_TEST_ITERATIONS; i++) {
++		size = write(fd, &value, sizeof(value));
++		EXPECT_EQ(size, sizeof(value));
++	}
++
++	for (i = 0; i < EVENTFD_TEST_ITERATIONS; i++) {
++		size = read(fd, &value, sizeof(value));
++		EXPECT_EQ(size, sizeof(value));
++		EXPECT_EQ(value, 1);
++	}
++
++	size = read(fd, &value, sizeof(value));
++	EXPECT_EQ(size, -1);
++	EXPECT_EQ(errno, EAGAIN);
++
++	close(fd);
++}
+ 
+ TEST_HARNESS_MAIN
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from wen.yang@linux.dev are
 
-mm-hugetlb-do-not-call-vma_add_reservation-upon-enomem.patch
-mm-hugetlb-drop-node_alloc_noretry-from-alloc_fresh_hugetlb_folio.patch
-arch-x86-do-not-explicitly-clear-reserved-flag-in-free_pagetable.patch
+selftests-introduce-additional-eventfd-test-coverage.patch
 
