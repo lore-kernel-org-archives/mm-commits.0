@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71E93522A
-	for <mm-commits@vger.kernel.org>; Wed, 29 May 2024 19:20:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E6D3522A
+	for <mm-commits@vger.kernel.org>; Wed, 29 May 2024 19:20:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717010442; cv=none; b=Zsh9NzcEgE41WPwWfwUUYj83o6w6O4hicQtb1gNfwWNO8HEvUSvyfi4mQe0BHAgo39gLL3n8lawDnckV69eeGic0MD6jRKRvqyky/58OJM4xFd9vXb7bx4ZYglhNC6qFLD0m7gZSFq53oVe9n8e12AXh6koUUodpREE4AI1dznU=
+	t=1717010444; cv=none; b=IU9uWiJV8budQfDgPACt3eeeqsPCEWKw226KZTvWqQAW6IErmD9anDT4HR3JWbG8fZ1MLAYx6d1tD51/bkLk2XVnouAj43tDl66+ngYAS/WHavvwgS3depm8YbuabRlfTJGuj4sYeC592/ZC4Sj7fM7T6+A5KHejLNk6XfaJfGY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717010442; c=relaxed/simple;
-	bh=up7TR/St03OnosAOGdDKAOKpSKPBX8HQj/z/X/GpO5g=;
-	h=Date:To:From:Subject:Message-Id; b=WlVTKaVtlkYjN+lpRRRCTcPVUOOvMryL913wx18qlYXWR+DU/ArdsQt3twSkVNEY7kIHqJGddJKsksZhUdZQQioEThAdnOJ+/FSWyHivZz1F9DgxKTRtUk0IVOiG8EH3PiK4lAzw2KjeKi1kRzY3WMKRnxg4rvzqt3dR04LX35s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jNNssCPv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717010444; c=relaxed/simple;
+	bh=A0JJcaS+mAL/cEY7GFTqg4ojYNYrZvl+CZ5wr62+MOY=;
+	h=Date:To:From:Subject:Message-Id; b=RS/aGHXUCe9V5alJNLaGGM3wsgI/lNVM+E71s/yovawEtSF3rZpF9HBxJ4rXGl3uE9RJF59XYqELDRM3SW7wyVg+u+JsCPjjGcX4oTQiYJlof5oYjkbRLVnTt0LAYucS6BP0AGBZ7PrzGLyfywECjhLdpFGwlu9KpLyluhxhiUU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ebycNiTs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jNNssCPv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8F44C113CC;
-	Wed, 29 May 2024 19:20:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ebycNiTs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD52DC113CC;
+	Wed, 29 May 2024 19:20:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717010442;
-	bh=up7TR/St03OnosAOGdDKAOKpSKPBX8HQj/z/X/GpO5g=;
+	s=korg; t=1717010443;
+	bh=A0JJcaS+mAL/cEY7GFTqg4ojYNYrZvl+CZ5wr62+MOY=;
 	h=Date:To:From:Subject:From;
-	b=jNNssCPvkATQU2aYiERrkkPEs7VAFv7hr5CFuwS1wenjBBC20NnInZXpOxkl5Zg7x
-	 JGaXKSV+DvZvBqDZL1Q/wJkVKw7QFlqicFcmD67YBDqGcsm4hJuL0y36gsdYisy3qn
-	 hhrgqNsbE31eDM/NYNnYP7hPhdYvjEeseeTDVbQM=
-Date: Wed, 29 May 2024 12:20:41 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yosryahmed@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,surenb@google.com,ryan.roberts@arm.com,rafael@kernel.org,pavel@ucw.cz,len.brown@intel.com,khalid.aziz@oracle.com,kasong@tencent.com,hughd@google.com,hch@infradead.org,hannes@cmpxchg.org,hanchuanhua@oppo.com,david@redhat.com,davem@davemloft.net,chrisl@kernel.org,baolin.wang@linux.alibaba.com,andreas@gaisler.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=ebycNiTs5ewueqpCE5hDnhJa4YQ9mSjoaWdhYSfIB8HRn+gg0I1sfPFzpJo1YwDgr
+	 GRHLf+t2ojsIfh4BqxaMdhYUiln3Iy/at552ZFN28R/aJVkJ1HNjmLdNhcWzlv2IgM
+	 nRjI5gTdKOnnBVdrQco0GikMOyZidNzi0Cfd9C8s=
+Date: Wed, 29 May 2024 12:20:43 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yosryahmed@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,v-songbaohua@oppo.com,surenb@google.com,ryan.roberts@arm.com,rafael@kernel.org,pavel@ucw.cz,len.brown@intel.com,khalid.aziz@oracle.com,kasong@tencent.com,hughd@google.com,hch@infradead.org,hannes@cmpxchg.org,david@redhat.com,davem@davemloft.net,chrisl@kernel.org,baolin.wang@linux.alibaba.com,andreas@gaisler.com,hanchuanhua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages.patch added to mm-unstable branch
-Message-Id: <20240529192041.E8F44C113CC@smtp.kernel.org>
+Subject: + mm-swap-make-should_try_to_free_swap-support-large-folio.patch added to mm-unstable branch
+Message-Id: <20240529192043.BD52DC113CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce arch_do_swap_page_nr() which allows restore metadata for nr pages
+     Subject: mm: swap: make should_try_to_free_swap() support large-folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages.patch
+     mm-swap-make-should_try_to_free_swap-support-large-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-make-should_try_to_free_swap-support-large-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,37 +58,33 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: introduce arch_do_swap_page_nr() which allows restore metadata for nr pages
-Date: Wed, 29 May 2024 20:28:22 +1200
+From: Chuanhua Han <hanchuanhua@oppo.com>
+Subject: mm: swap: make should_try_to_free_swap() support large-folio
+Date: Wed, 29 May 2024 20:28:23 +1200
 
-Should do_swap_page() have the capability to directly map a large folio,
-metadata restoration becomes necessary for a specified number of pages
-denoted as nr.  It's important to highlight that metadata restoration is
-solely required by the SPARC platform, which, however, does not enable
-THP_SWAP.  Consequently, in the present kernel configuration, there exists
-no practical scenario where users necessitate the restoration of nr
-metadata.  Platforms implementing THP_SWAP might invoke this function with
-nr values exceeding 1, subsequent to do_swap_page() successfully mapping
-an entire large folio.  Nonetheless, their arch_do_swap_page_nr()
-functions remain empty.
+The function should_try_to_free_swap() operates under the assumption that
+swap-in always occurs at the normal page granularity, i.e.,
+folio_nr_pages() = 1.  However, in reality, for large folios,
+add_to_swap_cache() will invoke folio_ref_add(folio, nr).  To accommodate
+large folio swap-in, this patch eliminates this assumption.
 
-Link: https://lkml.kernel.org/r/20240529082824.150954-5-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240529082824.150954-6-21cnbao@gmail.com
+Signed-off-by: Chuanhua Han <hanchuanhua@oppo.com>
+Co-developed-by: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Acked-by: Chris Li <chrisl@kernel.org>
 Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Chris Li <chrisl@kernel.org>
 Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Chuanhua Han <hanchuanhua@oppo.com>
-Cc: David Hildenbrand <david@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Gao Xiang <xiang@kernel.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kairui Song <kasong@tencent.com>
+Cc: Khalid Aziz <khalid.aziz@oracle.com>
 Cc: Len Brown <len.brown@intel.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Pavel Machek <pavel@ucw.cz>
@@ -100,70 +96,25 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |   24 +++++++++++++++++++-----
- mm/memory.c             |    3 ++-
- 2 files changed, 21 insertions(+), 6 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/pgtable.h~mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages
-+++ a/include/linux/pgtable.h
-@@ -1089,6 +1089,15 @@ static inline int pgd_same(pgd_t pgd_a,
- })
- 
- #ifndef __HAVE_ARCH_DO_SWAP_PAGE
-+static inline void arch_do_swap_page_nr(struct mm_struct *mm,
-+				     struct vm_area_struct *vma,
-+				     unsigned long addr,
-+				     pte_t pte, pte_t oldpte,
-+				     int nr)
-+{
-+
-+}
-+#else
- /*
-  * Some architectures support metadata associated with a page. When a
-  * page is being swapped out, this metadata must be saved so it can be
-@@ -1097,12 +1106,17 @@ static inline int pgd_same(pgd_t pgd_a,
-  * page as metadata for the page. arch_do_swap_page() can restore this
-  * metadata when a page is swapped back in.
-  */
--static inline void arch_do_swap_page(struct mm_struct *mm,
--				     struct vm_area_struct *vma,
--				     unsigned long addr,
--				     pte_t pte, pte_t oldpte)
-+static inline void arch_do_swap_page_nr(struct mm_struct *mm,
-+					struct vm_area_struct *vma,
-+					unsigned long addr,
-+					pte_t pte, pte_t oldpte,
-+					int nr)
- {
--
-+	for (int i = 0; i < nr; i++) {
-+		arch_do_swap_page(vma->vm_mm, vma, addr + i * PAGE_SIZE,
-+				pte_advance_pfn(pte, i),
-+				pte_advance_pfn(oldpte, i));
-+	}
- }
- #endif
- 
---- a/mm/memory.c~mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages
+--- a/mm/memory.c~mm-swap-make-should_try_to_free_swap-support-large-folio
 +++ a/mm/memory.c
-@@ -4314,7 +4314,8 @@ vm_fault_t do_swap_page(struct vm_fault
- 	VM_BUG_ON(!folio_test_anon(folio) ||
- 			(pte_write(pte) && !PageAnonExclusive(page)));
- 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
--	arch_do_swap_page(vma->vm_mm, vma, vmf->address, pte, vmf->orig_pte);
-+	arch_do_swap_page_nr(vma->vm_mm, vma, vmf->address,
-+			pte, vmf->orig_pte, 1);
+@@ -3925,7 +3925,7 @@ static inline bool should_try_to_free_sw
+ 	 * reference only in case it's likely that we'll be the exlusive user.
+ 	 */
+ 	return (fault_flags & FAULT_FLAG_WRITE) && !folio_test_ksm(folio) &&
+-		folio_ref_count(folio) == 2;
++		folio_ref_count(folio) == (1 + folio_nr_pages(folio));
+ }
  
- 	folio_unlock(folio);
- 	if (folio != swapcache && swapcache) {
+ static vm_fault_t pte_marker_clear(struct vm_fault *vmf)
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from hanchuanhua@oppo.com are
 
-mm-huge_mm-fix-undefined-reference-to-mthp_stats-for-config_sysfs=n.patch
-mm-arm64-fix-the-out-of-bounds-issue-in-contpte_clear_young_dirty_ptes.patch
-mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr.patch
-mm-introduce-pte_move_swp_offset-helper-which-can-move-offset-bidirectionally.patch
-mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages.patch
+mm-swap-introduce-swap_free_nr-for-batched-swap_free.patch
+mm-swap-make-should_try_to_free_swap-support-large-folio.patch
+mm-swap-entirely-map-large-folios-found-in-swapcache.patch
 
