@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFB9F46433
-	for <mm-commits@vger.kernel.org>; Thu, 30 May 2024 19:33:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE36514D428
+	for <mm-commits@vger.kernel.org>; Thu, 30 May 2024 19:37:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717097619; cv=none; b=LpBuNG2EhekPW5Rw8hqdfAJI0V/XX719g1CrFYGEXKDjeRXbzQ3Yz1O0ORuD9AV1CuVnXbKO590yFDErrt/5IGDvPiL2LwexC3DhY3skGaFlHclbXrLz1XOjFiR6p+1VIDg4EtGgeRPz+BnER5U4Jo3/kTJevYdfm8gxqI7oz1I=
+	t=1717097865; cv=none; b=dQyqU7MQCvq2wO0X0sT1Sz+7cdXyWwo/c5VmHMS0gF8mtV22+qa04Gkr1SEP+BZQEhV5cy4RcD/RgQWYVPR3MDAsyfEsqohnxCZHt75nNipBjDtY4mYhRMG/ahwqDlg6D0XBdhe4Xrwn3RW4/RCDawXapvKv9p9NQz97vE4PRIE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717097619; c=relaxed/simple;
-	bh=O44a3zNefkljqxwyX5/EzFABQ+axfdRC7BEASXXajU0=;
-	h=Date:To:From:Subject:Message-Id; b=LiLMs/f9GwPVtGEExMdiRdjBkIHs4t6HYzwIpu+ADxNR5j0LkHMknuIm8eiwcqH3+9bTf4ahYMXPPXvKe67gSGrXuW8zTqcDRTu9p+4IqaWrTjAWWG3saLWaMUk1uxzsNSM6eeSdf+I2WqfoPj/MoW5Fi5rRkOcwkLPpjRufgjM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TmALGrAR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717097865; c=relaxed/simple;
+	bh=heJIMoBQszzrXUQy+xLaXfFfDzYUcXSon27rNb22AxM=;
+	h=Date:To:From:Subject:Message-Id; b=haUGTjy3FiWYWjyP5YnrHYLZmpvgxF+4tkIe0JM6gyD8xLddosieED3HAQEg4rzxGrClU0he0Fs+TT7TXYyGRdY7nnTbJ7QZO9BNuyuS5cpvM5C06EAA7qM5hXP4QWXjjJNoQrimbeWEJEJ42jc9ENtPvKU8w1rbUCktZzphYIU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZsoUScCO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TmALGrAR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46E50C2BBFC;
-	Thu, 30 May 2024 19:33:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZsoUScCO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4553DC2BBFC;
+	Thu, 30 May 2024 19:37:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717097619;
-	bh=O44a3zNefkljqxwyX5/EzFABQ+axfdRC7BEASXXajU0=;
+	s=korg; t=1717097865;
+	bh=heJIMoBQszzrXUQy+xLaXfFfDzYUcXSon27rNb22AxM=;
 	h=Date:To:From:Subject:From;
-	b=TmALGrARMs64d+tclxE1hITCkZsZswTMyj6BsHOYWipPVoq/iVNqFYb2HH7FHY+R3
-	 8dkuEbR6VJFXk7PxdGL9fEKiPikFkly/MNf4RDeGfYtHL1e1BSPAVSfNfp+/KiXKe9
-	 6Pmg0/02Idus+wV5Ty4ODDExloB4591/kJ9UWdWg=
-Date: Thu, 30 May 2024 12:33:38 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
+	b=ZsoUScCOTyG1EEmj/b1hEnU9D8m/NnrXp84JJ9NDWjPAQMPfXFa1mqYcHkWyjRJ3p
+	 x93S3j37SbquenwIQnhNfPhIz0A4fgY4RmbmqmKh3HlfO/suVYwMUo9nuqURW18i5A
+	 3R5ECOrdIJTQp0/3iZ2FaMjQAV4sGLFr4gkzmC2w=
+Date: Thu, 30 May 2024 12:37:44 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,peterz@infradead.org,nphamcs@gmail.com,lizhijian@fujitsu.com,kent.overstreet@linux.dev,jpoimboe@kernel.org,cerasuolodomenico@gmail.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-mm-memory_hotplug-use-a-folio-in-scan_movable_pages.patch added to mm-unstable branch
-Message-Id: <20240530193339.46E50C2BBFC@smtp.kernel.org>
+Subject: + vmstat-kernel-stack-usage-histogram.patch added to mm-unstable branch
+Message-Id: <20240530193745.4553DC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: mm/memory_hotplug: use a folio in scan_movable_pages()
+     Subject: vmstat: kernel stack usage histogram
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-mm-memory_hotplug-use-a-folio-in-scan_movable_pages.patch
+     vmstat-kernel-stack-usage-histogram.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-mm-memory_hotplug-use-a-folio-in-scan_movable_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmstat-kernel-stack-usage-histogram.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,89 +58,247 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugetlb: mm/memory_hotplug: use a folio in scan_movable_pages()
-Date: Thu, 30 May 2024 10:14:27 -0700
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: vmstat: kernel stack usage histogram
+Date: Thu, 30 May 2024 17:02:59 +0000
 
-By using a folio in scan_movable_pages() we convert the last user of the
-page-based hugetlb information macro functions to the folio version. 
-After this conversion, we can safely remove the page-based definitions
-from include/linux/hugetlb.h.
+Provide a kernel stack usage histogram to aid in optimizing kernel stack
+sizes and minimizing memory waste in large-scale environments.  The
+histogram divides stack usage into power-of-two buckets and reports the
+results in /proc/vmstat.  This information is especially valuable in
+environments with millions of machines, where even small optimizations can
+have a significant impact.
 
-Link: https://lkml.kernel.org/r/20240530171427.242018-1-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
+The histogram data is presented in /proc/vmstat with entries like
+"kstack_1k", "kstack_2k", and so on, indicating the number of threads that
+exited with stack usage falling within each respective bucket.
+
+Example outputs:
+Intel:
+$ grep kstack /proc/vmstat
+kstack_1k 3
+kstack_2k 188
+kstack_4k 11391
+kstack_8k 243
+kstack_16k 0
+
+ARM with 64K page_size:
+$ grep kstack /proc/vmstat
+kstack_1k 1
+kstack_2k 340
+kstack_4k 25212
+kstack_8k 1659
+kstack_16k 0
+kstack_32k 0
+kstack_64k 0
+
+Link: https://lkml.kernel.org/r/20240530170259.852088-1-pasha.tatashin@soleen.com
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Li Zhijian <lizhijian@fujitsu.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 +-----
- mm/memory_hotplug.c     |   11 +++++------
- 2 files changed, 6 insertions(+), 11 deletions(-)
+ include/linux/sched/task_stack.h |   49 +++++++++++++++++++++++++++--
+ include/linux/vm_event_item.h    |   42 ++++++++++++++++++++++++
+ include/linux/vmstat.h           |   16 ---------
+ mm/vmstat.c                      |   24 ++++++++++++++
+ 4 files changed, 113 insertions(+), 18 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-mm-memory_hotplug-use-a-folio-in-scan_movable_pages
-+++ a/include/linux/hugetlb.h
-@@ -616,9 +616,7 @@ static __always_inline						\
- bool folio_test_hugetlb_##flname(struct folio *folio)		\
- 	{	void *private = &folio->private;		\
- 		return test_bit(HPG_##flname, private);		\
--	}							\
--static inline int HPage##uname(struct page *page)		\
--	{ return test_bit(HPG_##flname, &(page->private)); }
-+	}
+--- a/include/linux/sched/task_stack.h~vmstat-kernel-stack-usage-histogram
++++ a/include/linux/sched/task_stack.h
+@@ -95,9 +95,51 @@ static inline int object_is_on_stack(con
+ extern void thread_stack_cache_init(void);
  
- #define SETHPAGEFLAG(uname, flname)				\
- static __always_inline						\
-@@ -637,8 +635,6 @@ void folio_clear_hugetlb_##flname(struct
- #define TESTHPAGEFLAG(uname, flname)				\
- static inline bool						\
- folio_test_hugetlb_##flname(struct folio *folio)		\
--	{ return 0; }						\
--static inline int HPage##uname(struct page *page)		\
- 	{ return 0; }
+ #ifdef CONFIG_DEBUG_STACK_USAGE
++#ifdef CONFIG_VM_EVENT_COUNTERS
++#include <linux/vm_event_item.h>
++
++/* Count the maximum pages reached in kernel stacks */
++static inline void kstack_histogram(unsigned long used_stack)
++{
++	if (used_stack <= 1024)
++		this_cpu_inc(vm_event_states.event[KSTACK_1K]);
++#if THREAD_SIZE > 1024
++	else if (used_stack <= 2048)
++		this_cpu_inc(vm_event_states.event[KSTACK_2K]);
++#endif
++#if THREAD_SIZE > 2048
++	else if (used_stack <= 4096)
++		this_cpu_inc(vm_event_states.event[KSTACK_4K]);
++#endif
++#if THREAD_SIZE > 4096
++	else if (used_stack <= 8192)
++		this_cpu_inc(vm_event_states.event[KSTACK_8K]);
++#endif
++#if THREAD_SIZE > 8192
++	else if (used_stack <= 16384)
++		this_cpu_inc(vm_event_states.event[KSTACK_16K]);
++#endif
++#if THREAD_SIZE > 16384
++	else if (used_stack <= 32768)
++		this_cpu_inc(vm_event_states.event[KSTACK_32K]);
++#endif
++#if THREAD_SIZE > 32768
++	else if (used_stack <= 65536)
++		this_cpu_inc(vm_event_states.event[KSTACK_64K]);
++#endif
++#if THREAD_SIZE > 65536
++	else
++		this_cpu_inc(vm_event_states.event[KSTACK_REST]);
++#endif
++}
++#else /* !CONFIG_VM_EVENT_COUNTERS */
++static inline void kstack_histogram(unsigned long used_stack) {}
++#endif /* CONFIG_VM_EVENT_COUNTERS */
++
+ static inline unsigned long stack_not_used(struct task_struct *p)
+ {
+ 	unsigned long *n = end_of_stack(p);
++	unsigned long unused_stack;
  
- #define SETHPAGEFLAG(uname, flname)				\
---- a/mm/memory_hotplug.c~mm-hugetlb-mm-memory_hotplug-use-a-folio-in-scan_movable_pages
-+++ a/mm/memory_hotplug.c
-@@ -1731,8 +1731,8 @@ static int scan_movable_pages(unsigned l
- 	unsigned long pfn;
+ 	do { 	/* Skip over canary */
+ # ifdef CONFIG_STACK_GROWSUP
+@@ -108,10 +150,13 @@ static inline unsigned long stack_not_us
+ 	} while (!*n);
  
- 	for (pfn = start; pfn < end; pfn++) {
--		struct page *page, *head;
--		unsigned long skip;
-+		struct page *page;
-+		struct folio *folio;
+ # ifdef CONFIG_STACK_GROWSUP
+-	return (unsigned long)end_of_stack(p) - (unsigned long)n;
++	unused_stack = (unsigned long)end_of_stack(p) - (unsigned long)n;
+ # else
+-	return (unsigned long)n - (unsigned long)end_of_stack(p);
++	unused_stack = (unsigned long)n - (unsigned long)end_of_stack(p);
+ # endif
++	kstack_histogram(THREAD_SIZE - unused_stack);
++
++	return unused_stack;
+ }
+ #endif
+ extern void set_task_stack_end_magic(struct task_struct *tsk);
+--- a/include/linux/vm_event_item.h~vmstat-kernel-stack-usage-histogram
++++ a/include/linux/vm_event_item.h
+@@ -154,9 +154,51 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		VMA_LOCK_RETRY,
+ 		VMA_LOCK_MISS,
+ #endif
++#ifdef CONFIG_DEBUG_STACK_USAGE
++		KSTACK_1K,
++#if THREAD_SIZE > 1024
++		KSTACK_2K,
++#endif
++#if THREAD_SIZE > 2048
++		KSTACK_4K,
++#endif
++#if THREAD_SIZE > 4096
++		KSTACK_8K,
++#endif
++#if THREAD_SIZE > 8192
++		KSTACK_16K,
++#endif
++#if THREAD_SIZE > 16384
++		KSTACK_32K,
++#endif
++#if THREAD_SIZE > 32768
++		KSTACK_64K,
++#endif
++#if THREAD_SIZE > 65536
++		KSTACK_REST,
++#endif
++#endif /* CONFIG_DEBUG_STACK_USAGE */
+ 		NR_VM_EVENT_ITEMS
+ };
  
- 		if (!pfn_valid(pfn))
- 			continue;
-@@ -1753,7 +1753,7 @@ static int scan_movable_pages(unsigned l
++#ifdef CONFIG_VM_EVENT_COUNTERS
++/*
++ * Light weight per cpu counter implementation.
++ *
++ * Counters should only be incremented and no critical kernel component
++ * should rely on the counter values.
++ *
++ * Counters are handled completely inline. On many platforms the code
++ * generated will simply be the increment of a global address.
++ */
++
++struct vm_event_state {
++	unsigned long event[NR_VM_EVENT_ITEMS];
++};
++
++DECLARE_PER_CPU(struct vm_event_state, vm_event_states);
++#endif
++
+ #ifndef CONFIG_TRANSPARENT_HUGEPAGE
+ #define THP_FILE_ALLOC ({ BUILD_BUG(); 0; })
+ #define THP_FILE_FALLBACK ({ BUILD_BUG(); 0; })
+--- a/include/linux/vmstat.h~vmstat-kernel-stack-usage-histogram
++++ a/include/linux/vmstat.h
+@@ -42,22 +42,6 @@ enum writeback_stat_item {
  
- 		if (!PageHuge(page))
- 			continue;
--		head = compound_head(page);
-+		folio = page_folio(page);
- 		/*
- 		 * This test is racy as we hold no reference or lock.  The
- 		 * hugetlb page could have been free'ed and head is no longer
-@@ -1761,10 +1761,9 @@ static int scan_movable_pages(unsigned l
- 		 * cases false positives and negatives are possible.  Calling
- 		 * code must deal with these scenarios.
- 		 */
--		if (HPageMigratable(head))
-+		if (folio_test_hugetlb_migratable(folio))
- 			goto found;
--		skip = compound_nr(head) - (pfn - page_to_pfn(head));
--		pfn += skip - 1;
-+		pfn |= folio_nr_pages(folio) - 1;
- 	}
- 	return -ENOENT;
- found:
+ #ifdef CONFIG_VM_EVENT_COUNTERS
+ /*
+- * Light weight per cpu counter implementation.
+- *
+- * Counters should only be incremented and no critical kernel component
+- * should rely on the counter values.
+- *
+- * Counters are handled completely inline. On many platforms the code
+- * generated will simply be the increment of a global address.
+- */
+-
+-struct vm_event_state {
+-	unsigned long event[NR_VM_EVENT_ITEMS];
+-};
+-
+-DECLARE_PER_CPU(struct vm_event_state, vm_event_states);
+-
+-/*
+  * vm counters are allowed to be racy. Use raw_cpu_ops to avoid the
+  * local_irq_disable overhead.
+  */
+--- a/mm/vmstat.c~vmstat-kernel-stack-usage-histogram
++++ a/mm/vmstat.c
+@@ -1416,6 +1416,30 @@ const char * const vmstat_text[] = {
+ 	"vma_lock_retry",
+ 	"vma_lock_miss",
+ #endif
++#ifdef CONFIG_DEBUG_STACK_USAGE
++	"kstack_1k",
++#if THREAD_SIZE > 1024
++	"kstack_2k",
++#endif
++#if THREAD_SIZE > 2048
++	"kstack_4k",
++#endif
++#if THREAD_SIZE > 4096
++	"kstack_8k",
++#endif
++#if THREAD_SIZE > 8192
++	"kstack_16k",
++#endif
++#if THREAD_SIZE > 16384
++	"kstack_32k",
++#endif
++#if THREAD_SIZE > 32768
++	"kstack_64k",
++#endif
++#if THREAD_SIZE > 65536
++	"kstack_rest",
++#endif
++#endif
+ #endif /* CONFIG_VM_EVENT_COUNTERS || CONFIG_MEMCG */
+ };
+ #endif /* CONFIG_PROC_FS || CONFIG_SYSFS || CONFIG_NUMA || CONFIG_MEMCG */
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-mm-hugetlb-remove-setclearhpage-macros.patch
-mm-hugetlb-mm-memory_hotplug-use-a-folio-in-scan_movable_pages.patch
+vmstat-kernel-stack-usage-histogram.patch
 
