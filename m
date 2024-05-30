@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 300C2158A0F
-	for <mm-commits@vger.kernel.org>; Thu, 30 May 2024 19:44:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E30A433CA;
+	Thu, 30 May 2024 19:51:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717098298; cv=none; b=fFJ03kl3hpUnPQTp4gVMc3iz4yVKCM0mtcvJAUfKIA7IRKQYSBjVr3srSj1Je+ytxZ4reZrXGuCGYs4WtYlw+SsTvvVkKYU1DC79I+BCHenuwwPCC+yr9+EbwV5zrbI1H3uGuyHqLbG5E37qi+NwhTbPEotrEiF6y9HepaxH65A=
+	t=1717098690; cv=none; b=RMWlQtfHSkpZ1jg1turwScYZCwBxrwuVnaWZ3yw1ERKhuXhlKTgty/lTZ6rlSgaE85ayvBUZPEEjEc8dR2YTQylbLxxuxdaHndC6jT/vWChUlAXji3O/3gYW5gr8UDO6rkq+hONIpyHAOewQrF3ESnog6zJhBcb1a9/dSGokLEU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717098298; c=relaxed/simple;
-	bh=LzVkN5Pt+S9eM6Es2/3n4mezJL8OrhZV9UKVoUOCn0k=;
-	h=Date:To:From:Subject:Message-Id; b=FL+IhjO1kBJXU/jPozcKE+dV/ZTRoeL07xqkQIxMIkuBefix0irKe6JFvxPXM1NDuAMTnccZaosEf9v54kNnLTfrLYp4NI2iF0a93u4EFAG1lcD0hUYTNeGvCfLDWy/0gVHQml6/nZUwQoEDoY0MEwuHtlqCBqgcL90sNPxy2XY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iWhooSU8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717098690; c=relaxed/simple;
+	bh=fO8QCfWvfKl1/hxz1mdJCg15uFs3PNC5SQVbQ3RoLkM=;
+	h=Date:To:From:Subject:Message-Id; b=sdm3lDAD3Z4/ogfDXVCSi+HB6561L8Q9JUO5l4JdOaoFcusvERBGJn7zpASRdZ78ZqzqPilTNsBw4t7jX1CvtTK3Rok8n6lJy7INz4hAGKwbYLhr/aU+1pymCXWwkHjFJRFAWIzUYofWv+DDsLLCALrpmtsJtdD9u9E6OONMNBk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LO/Nvq0x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iWhooSU8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6E71C2BBFC;
-	Thu, 30 May 2024 19:44:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LO/Nvq0x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAE78C2BBFC;
+	Thu, 30 May 2024 19:51:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717098297;
-	bh=LzVkN5Pt+S9eM6Es2/3n4mezJL8OrhZV9UKVoUOCn0k=;
+	s=korg; t=1717098689;
+	bh=fO8QCfWvfKl1/hxz1mdJCg15uFs3PNC5SQVbQ3RoLkM=;
 	h=Date:To:From:Subject:From;
-	b=iWhooSU8EkDX98k2cs6P80GxsCrcwYkfiI4WIkq/49WOzWEL43EZlYQwKz4y0/zt0
-	 3lreLf30Q7vxOHEgqk9OnBv438s+JOpx5dEVcrn94kastuVjKwz1d5R/wUC16YwmKC
-	 uDbdBWjoJQ+M/G/ZzEnsn4lcr5Wu60waAzvzvXeg=
-Date: Thu, 30 May 2024 12:44:57 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,kent.overstreet@linux.dev,keescook@chromium.org,iamjoonsoo.kim@lge.com,gustavoars@kernel.org,cl@linux.com,42.hyeyoo@gmail.com,cascardo@igalia.com,akpm@linux-foundation.org
+	b=LO/Nvq0xKAyKlov9Yi/DiuOO99FOfKc+nW8j6u0yP6gFaCNwK2jwBvR1DL5JBntjH
+	 naCS/Jg4cbyLe+J1P09AfBKnZCkD91Xb2A5Fe8A7L6po4GSNygRyhqq7d8IQrign+s
+	 wyA7xA9JChAv0eqcqStSAQCyMWA9d5h5evApuIb4=
+Date: Thu, 30 May 2024 12:51:29 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + codetag-avoid-race-at-alloc_slab_obj_exts.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240530194457.A6E71C2BBFC@smtp.kernel.org>
+Subject: + ocfs2-fix-null-pointer-dereference-in-ocfs2_journal_dirty.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240530195129.BAE78C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: codetag: avoid race at alloc_slab_obj_exts
+     Subject: ocfs2: fix NULL pointer dereference in ocfs2_journal_dirty()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     codetag-avoid-race-at-alloc_slab_obj_exts.patch
+     ocfs2-fix-null-pointer-dereference-in-ocfs2_journal_dirty.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/codetag-avoid-race-at-alloc_slab_obj_exts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-null-pointer-dereference-in-ocfs2_journal_dirty.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,120 +58,105 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
-Subject: codetag: avoid race at alloc_slab_obj_exts
-Date: Mon, 27 May 2024 15:30:06 -0300
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: fix NULL pointer dereference in ocfs2_journal_dirty()
+Date: Thu, 30 May 2024 19:06:29 +0800
 
-When CONFIG_MEM_ALLOC_PROFILING_DEBUG is enabled, the following warning
-may be noticed:
+bdev->bd_super has been removed and commit 8887b94d9322 change the usage
+from bdev->bd_super to b_assoc_map->host->i_sb.  This introduces the
+following NULL pointer dereference in ocfs2_journal_dirty() since
+b_assoc_map is still not initialized.  This can be easily reproduced by
+running xfstests generic/186, which simulate no more credits.
 
-[   48.299584] ------------[ cut here ]------------
-[   48.300092] alloc_tag was not set
-[   48.300528] WARNING: CPU: 2 PID: 1361 at include/linux/alloc_tag.h:130 alloc_tagging_slab_free_hook+0x84/0xc7
-[   48.301305] Modules linked in:
-[   48.301553] CPU: 2 PID: 1361 Comm: systemd-udevd Not tainted 6.10.0-rc1-00003-gac8755535862 #176
-[   48.302196] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
-[   48.302752] RIP: 0010:alloc_tagging_slab_free_hook+0x84/0xc7
-[   48.303169] Code: 8d 1c c4 48 85 db 74 4d 48 83 3b 00 75 1e 80 3d 65 02 86 04 00 75 15 48 c7 c7 11 48 1d 85 c6 05 55 02 86 04 01 e8 64 44 a5 ff <0f> 0b 48 8b 03 48 85 c0 74 21 48 83 f8 01 74 14 48 8b 50 20 48 f7
-[   48.304411] RSP: 0018:ffff8880111b7d40 EFLAGS: 00010282
-[   48.304916] RAX: 0000000000000000 RBX: ffff88800fcc9008 RCX: 0000000000000000
-[   48.305455] RDX: 0000000080000000 RSI: ffff888014060000 RDI: ffffed1002236f97
-[   48.305979] RBP: 0000000000001100 R08: fffffbfff0aa73a1 R09: 0000000000000000
-[   48.306473] R10: ffffffff814515e5 R11: 0000000000000003 R12: ffff88800fcc9000
-[   48.306943] R13: ffff88800b2e5cc0 R14: ffff8880111b7d90 R15: 0000000000000000
-[   48.307529] FS:  00007faf5d1908c0(0000) GS:ffff88806cf00000(0000) knlGS:0000000000000000
-[   48.308223] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   48.308710] CR2: 000058fb220c9118 CR3: 00000000110cc000 CR4: 0000000000750ef0
-[   48.309274] PKRU: 55555554
-[   48.309804] Call Trace:
-[   48.310029]  <TASK>
-[   48.310290]  ? show_regs+0x84/0x8d
-[   48.310722]  ? alloc_tagging_slab_free_hook+0x84/0xc7
-[   48.311298]  ? __warn+0x13b/0x2ff
-[   48.311580]  ? alloc_tagging_slab_free_hook+0x84/0xc7
-[   48.311987]  ? report_bug+0x2ce/0x3ab
-[   48.312292]  ? handle_bug+0x8c/0x107
-[   48.312563]  ? exc_invalid_op+0x34/0x6f
-[   48.312842]  ? asm_exc_invalid_op+0x1a/0x20
-[   48.313173]  ? this_cpu_in_panic+0x1c/0x72
-[   48.313503]  ? alloc_tagging_slab_free_hook+0x84/0xc7
-[   48.313880]  ? putname+0x143/0x14e
-[   48.314152]  kmem_cache_free+0xe9/0x214
-[   48.314454]  putname+0x143/0x14e
-[   48.314712]  do_unlinkat+0x413/0x45e
-[   48.315001]  ? __pfx_do_unlinkat+0x10/0x10
-[   48.315388]  ? __check_object_size+0x4d7/0x525
-[   48.315744]  ? __sanitizer_cov_trace_pc+0x20/0x4a
-[   48.316167]  ? __sanitizer_cov_trace_pc+0x20/0x4a
-[   48.316757]  ? getname_flags+0x4ed/0x500
-[   48.317261]  __x64_sys_unlink+0x42/0x4a
-[   48.317741]  do_syscall_64+0xe2/0x149
-[   48.318171]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
-[   48.318602] RIP: 0033:0x7faf5d8850ab
-[   48.318891] Code: fd ff ff e8 27 dd 01 00 0f 1f 80 00 00 00 00 f3 0f 1e fa b8 5f 00 00 00 0f 05 c3 0f 1f 40 00 f3 0f 1e fa b8 57 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 05 c3 0f 1f 40 00 48 8b 15 41 2d 0e 00 f7 d8
-[   48.320649] RSP: 002b:00007ffc44982b38 EFLAGS: 00000246 ORIG_RAX: 0000000000000057
-[   48.321182] RAX: ffffffffffffffda RBX: 00005ba344a44680 RCX: 00007faf5d8850ab
-[   48.321667] RDX: 0000000000000000 RSI: 00005ba344a44430 RDI: 00007ffc44982b40
-[   48.322139] RBP: 00007ffc44982c00 R08: 0000000000000000 R09: 0000000000000007
-[   48.322598] R10: 00005ba344a44430 R11: 0000000000000246 R12: 0000000000000000
-[   48.323071] R13: 00007ffc44982b40 R14: 0000000000000000 R15: 0000000000000000
-[   48.323596]  </TASK>
+[  134.351592] BUG: kernel NULL pointer dereference, address: 0000000000000000
+...
+[  134.355341] RIP: 0010:ocfs2_journal_dirty+0x14f/0x160 [ocfs2]
+...
+[  134.365071] Call Trace:
+[  134.365312]  <TASK>
+[  134.365524]  ? __die_body+0x1e/0x60
+[  134.365868]  ? page_fault_oops+0x13d/0x4f0
+[  134.366265]  ? __pfx_bit_wait_io+0x10/0x10
+[  134.366659]  ? schedule+0x27/0xb0
+[  134.366981]  ? exc_page_fault+0x6a/0x140
+[  134.367356]  ? asm_exc_page_fault+0x26/0x30
+[  134.367762]  ? ocfs2_journal_dirty+0x14f/0x160 [ocfs2]
+[  134.368305]  ? ocfs2_journal_dirty+0x13d/0x160 [ocfs2]
+[  134.368837]  ocfs2_create_new_meta_bhs.isra.51+0x139/0x2e0 [ocfs2]
+[  134.369454]  ocfs2_grow_tree+0x688/0x8a0 [ocfs2]
+[  134.369927]  ocfs2_split_and_insert.isra.67+0x35c/0x4a0 [ocfs2]
+[  134.370521]  ocfs2_split_extent+0x314/0x4d0 [ocfs2]
+[  134.371019]  ocfs2_change_extent_flag+0x174/0x410 [ocfs2]
+[  134.371566]  ocfs2_add_refcount_flag+0x3fa/0x630 [ocfs2]
+[  134.372117]  ocfs2_reflink_remap_extent+0x21b/0x4c0 [ocfs2]
+[  134.372994]  ? inode_update_timestamps+0x4a/0x120
+[  134.373692]  ? __pfx_ocfs2_journal_access_di+0x10/0x10 [ocfs2]
+[  134.374545]  ? __pfx_ocfs2_journal_access_di+0x10/0x10 [ocfs2]
+[  134.375393]  ocfs2_reflink_remap_blocks+0xe4/0x4e0 [ocfs2]
+[  134.376197]  ocfs2_remap_file_range+0x1de/0x390 [ocfs2]
+[  134.376971]  ? security_file_permission+0x29/0x50
+[  134.377644]  vfs_clone_file_range+0xfe/0x320
+[  134.378268]  ioctl_file_clone+0x45/0xa0
+[  134.378853]  do_vfs_ioctl+0x457/0x990
+[  134.379422]  __x64_sys_ioctl+0x6e/0xd0
+[  134.379987]  do_syscall_64+0x5d/0x170
+[  134.380550]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+[  134.381231] RIP: 0033:0x7fa4926397cb
+[  134.381786] Code: 73 01 c3 48 8b 0d bd 56 38 00 f7 d8 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 90 f3 0f 1e fa b8 10 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 8d 56 38 00 f7 d8 64 89 01 48
+[  134.383930] RSP: 002b:00007ffc2b39f7b8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+[  134.384854] RAX: ffffffffffffffda RBX: 0000000000000004 RCX: 00007fa4926397cb
+[  134.385734] RDX: 00007ffc2b39f7f0 RSI: 000000004020940d RDI: 0000000000000003
+[  134.386606] RBP: 0000000000000000 R08: 00111a82a4f015bb R09: 00007fa494221000
+[  134.387476] R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+[  134.388342] R13: 0000000000f10000 R14: 0000558e844e2ac8 R15: 0000000000f10000
+[  134.389207]  </TASK>
 
-This is due to a race when two objects are allocated from the same slab,
-which did not have an obj_exts allocated for.
+Fix it by only aborting transaction and journal in ocfs2_journal_dirty()
+now, and leave ocfs2_abort() later when detecting an aborted handle,
+e.g. start next transaction. Also log the handle details in this case.
 
-In such a case, the two threads will notice the NULL obj_exts and after
-one assigns slab->obj_exts, the second one will happily do the exchange if
-it reads this new assigned value.
-
-In order to avoid that, verify that the read obj_exts does not point to an
-allocated obj_exts before doing the exchange.
-
-Link: https://lkml.kernel.org/r/20240527183007.1595037-1-cascardo@igalia.com
-Fixes: 09c46563ff6d ("codetag: debug: introduce OBJEXTS_ALLOC_FAIL to mark failed slab_ext allocations")
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Link: https://lkml.kernel.org/r/20240530110630.3933832-1-joseph.qi@linux.alibaba.com
+Fixes: 8887b94d9322 ("ocfs2: stop using bdev->bd_super for journal error logging")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>	[6.6+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/ocfs2/journal.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/slub.c~codetag-avoid-race-at-alloc_slab_obj_exts
-+++ a/mm/slub.c
-@@ -1952,7 +1952,7 @@ int alloc_slab_obj_exts(struct slab *sla
- #ifdef CONFIG_MEMCG
- 	new_exts |= MEMCG_DATA_OBJEXTS;
- #endif
--	old_exts = slab->obj_exts;
-+	old_exts = READ_ONCE(slab->obj_exts);
- 	handle_failed_objexts_alloc(old_exts, vec, objects);
- 	if (new_slab) {
- 		/*
-@@ -1961,7 +1961,8 @@ int alloc_slab_obj_exts(struct slab *sla
- 		 * be simply assigned.
- 		 */
- 		slab->obj_exts = new_exts;
--	} else if (cmpxchg(&slab->obj_exts, old_exts, new_exts) != old_exts) {
-+	} else if ((old_exts & ~OBJEXTS_FLAGS_MASK) ||
-+		   cmpxchg(&slab->obj_exts, old_exts, new_exts) != old_exts) {
- 		/*
- 		 * If the slab is already in use, somebody can allocate and
- 		 * assign slabobj_exts in parallel. In this case the existing
+--- a/fs/ocfs2/journal.c~ocfs2-fix-null-pointer-dereference-in-ocfs2_journal_dirty
++++ a/fs/ocfs2/journal.c
+@@ -778,13 +778,15 @@ void ocfs2_journal_dirty(handle_t *handl
+ 		if (!is_handle_aborted(handle)) {
+ 			journal_t *journal = handle->h_transaction->t_journal;
+ 
+-			mlog(ML_ERROR, "jbd2_journal_dirty_metadata failed. "
+-					"Aborting transaction and journal.\n");
++			mlog(ML_ERROR, "jbd2_journal_dirty_metadata failed: "
++			     "handle type %u started at line %u, credits %u/%u "
++			     "errcode %d. Aborting transaction and journal.\n",
++			     handle->h_type, handle->h_line_no,
++			     handle->h_requested_credits,
++			     jbd2_handle_buffer_credits(handle), status);
+ 			handle->h_err = status;
+ 			jbd2_journal_abort_handle(handle);
+ 			jbd2_journal_abort(journal, status);
+-			ocfs2_abort(bh->b_assoc_map->host->i_sb,
+-				    "Journal already aborted.\n");
+ 		}
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from cascardo@igalia.com are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-codetag-avoid-race-at-alloc_slab_obj_exts.patch
+ocfs2-fix-null-pointer-dereference-in-ocfs2_journal_dirty.patch
+ocfs2-fix-null-pointer-dereference-in-ocfs2_abort_trigger.patch
 
