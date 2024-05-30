@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE36514D428
-	for <mm-commits@vger.kernel.org>; Thu, 30 May 2024 19:37:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 191C114BF8D;
+	Thu, 30 May 2024 19:38:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717097865; cv=none; b=dQyqU7MQCvq2wO0X0sT1Sz+7cdXyWwo/c5VmHMS0gF8mtV22+qa04Gkr1SEP+BZQEhV5cy4RcD/RgQWYVPR3MDAsyfEsqohnxCZHt75nNipBjDtY4mYhRMG/ahwqDlg6D0XBdhe4Xrwn3RW4/RCDawXapvKv9p9NQz97vE4PRIE=
+	t=1717097915; cv=none; b=gKpa43Drj/778k09499TgW3UV8RIDSLPFnm3wEz9qCpCoU9zuiRNF1ymlARbvi559qLXwJnaUN/kbObTkVty9W5ZP8kNY6HLUwLmdXArkrswWpa6cn5sveJebXQx66fY+kQm6xUtf6ehgPo6vJJGdM07m2QIy5U/e7CWytlskrw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717097865; c=relaxed/simple;
-	bh=heJIMoBQszzrXUQy+xLaXfFfDzYUcXSon27rNb22AxM=;
-	h=Date:To:From:Subject:Message-Id; b=haUGTjy3FiWYWjyP5YnrHYLZmpvgxF+4tkIe0JM6gyD8xLddosieED3HAQEg4rzxGrClU0he0Fs+TT7TXYyGRdY7nnTbJ7QZO9BNuyuS5cpvM5C06EAA7qM5hXP4QWXjjJNoQrimbeWEJEJ42jc9ENtPvKU8w1rbUCktZzphYIU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZsoUScCO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717097915; c=relaxed/simple;
+	bh=Ix6gwD7X6uDMEin5J9xf8KorDYnrCNICaYsuoYTfabk=;
+	h=Date:To:From:Subject:Message-Id; b=qHHw/B+S3zoLqgM2HzY7DzTbtitfibDB2/OWFTlmAsQEwBCOnY0Uww2R1J1Oi8W1DyuYrmWJFZVGgEDkj3kGPUTsbT02VMTQno2XCZHYDOgaCD4ury1UJZkhGWM4chNeI3GC424Z3sMTmMFftqJ0VRZ6GDRa6knaiGaj8pTT5gI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Na72SnQf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZsoUScCO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4553DC2BBFC;
-	Thu, 30 May 2024 19:37:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Na72SnQf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A60CC2BBFC;
+	Thu, 30 May 2024 19:38:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717097865;
-	bh=heJIMoBQszzrXUQy+xLaXfFfDzYUcXSon27rNb22AxM=;
+	s=korg; t=1717097914;
+	bh=Ix6gwD7X6uDMEin5J9xf8KorDYnrCNICaYsuoYTfabk=;
 	h=Date:To:From:Subject:From;
-	b=ZsoUScCOTyG1EEmj/b1hEnU9D8m/NnrXp84JJ9NDWjPAQMPfXFa1mqYcHkWyjRJ3p
-	 x93S3j37SbquenwIQnhNfPhIz0A4fgY4RmbmqmKh3HlfO/suVYwMUo9nuqURW18i5A
-	 3R5ECOrdIJTQp0/3iZ2FaMjQAV4sGLFr4gkzmC2w=
-Date: Thu, 30 May 2024 12:37:44 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,peterz@infradead.org,nphamcs@gmail.com,lizhijian@fujitsu.com,kent.overstreet@linux.dev,jpoimboe@kernel.org,cerasuolodomenico@gmail.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=Na72SnQfKDbYXlJtEa6ET1/AFcQYZGFUABDmXF9helpnxCYxrTbhKOxN+EElU97m5
+	 PGz9eyTBSMOFBin+ngMQu00W3HAzBxfmaqzBwNzkq+KOfT6qXdNtux5AWPRg6s9rDF
+	 Wtk1xskwqMa2lsqyhiFEmOKxhbLxbc2y4fVpVxQQ=
+Date: Thu, 30 May 2024 12:38:33 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmstat-kernel-stack-usage-histogram.patch added to mm-unstable branch
-Message-Id: <20240530193745.4553DC2BBFC@smtp.kernel.org>
+Subject: + nilfs2-fix-potential-kernel-bug-due-to-lack-of-writeback-flag-waiting.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240530193834.7A60CC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmstat: kernel stack usage histogram
-has been added to the -mm mm-unstable branch.  Its filename is
-     vmstat-kernel-stack-usage-histogram.patch
+     Subject: nilfs2: fix potential kernel bug due to lack of writeback flag waiting
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     nilfs2-fix-potential-kernel-bug-due-to-lack-of-writeback-flag-waiting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmstat-kernel-stack-usage-histogram.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-potential-kernel-bug-due-to-lack-of-writeback-flag-waiting.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,247 +58,80 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: vmstat: kernel stack usage histogram
-Date: Thu, 30 May 2024 17:02:59 +0000
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix potential kernel bug due to lack of writeback flag waiting
+Date: Thu, 30 May 2024 23:15:56 +0900
 
-Provide a kernel stack usage histogram to aid in optimizing kernel stack
-sizes and minimizing memory waste in large-scale environments.  The
-histogram divides stack usage into power-of-two buckets and reports the
-results in /proc/vmstat.  This information is especially valuable in
-environments with millions of machines, where even small optimizations can
-have a significant impact.
+Destructive writes to a block device on which nilfs2 is mounted can cause
+a kernel bug in the folio/page writeback start routine or writeback end
+routine (__folio_start_writeback in the log below):
 
-The histogram data is presented in /proc/vmstat with entries like
-"kstack_1k", "kstack_2k", and so on, indicating the number of threads that
-exited with stack usage falling within each respective bucket.
+ kernel BUG at mm/page-writeback.c:3070!
+ Oops: invalid opcode: 0000 [#1] PREEMPT SMP KASAN PTI
+ ...
+ RIP: 0010:__folio_start_writeback+0xbaa/0x10e0
+ Code: 25 ff 0f 00 00 0f 84 18 01 00 00 e8 40 ca c6 ff e9 17 f6 ff ff
+  e8 36 ca c6 ff 4c 89 f7 48 c7 c6 80 c0 12 84 e8 e7 b3 0f 00 90 <0f>
+  0b e8 1f ca c6 ff 4c 89 f7 48 c7 c6 a0 c6 12 84 e8 d0 b3 0f 00
+ ...
+ Call Trace:
+  <TASK>
+  nilfs_segctor_do_construct+0x4654/0x69d0 [nilfs2]
+  nilfs_segctor_construct+0x181/0x6b0 [nilfs2]
+  nilfs_segctor_thread+0x548/0x11c0 [nilfs2]
+  kthread+0x2f0/0x390
+  ret_from_fork+0x4b/0x80
+  ret_from_fork_asm+0x1a/0x30
+  </TASK>
 
-Example outputs:
-Intel:
-$ grep kstack /proc/vmstat
-kstack_1k 3
-kstack_2k 188
-kstack_4k 11391
-kstack_8k 243
-kstack_16k 0
+This is because when the log writer starts a writeback for segment summary
+blocks or a super root block that use the backing device's page cache, it
+does not wait for the ongoing folio/page writeback, resulting in an
+inconsistent writeback state.
 
-ARM with 64K page_size:
-$ grep kstack /proc/vmstat
-kstack_1k 1
-kstack_2k 340
-kstack_4k 25212
-kstack_8k 1659
-kstack_16k 0
-kstack_32k 0
-kstack_64k 0
+Fix this issue by waiting for ongoing writebacks when putting
+folios/pages on the backing device into writeback state.
 
-Link: https://lkml.kernel.org/r/20240530170259.852088-1-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Li Zhijian <lizhijian@fujitsu.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20240530141556.4411-1-konishi.ryusuke@gmail.com
+Fixes: 9ff05123e3bf ("nilfs2: segment constructor")
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/task_stack.h |   49 +++++++++++++++++++++++++++--
- include/linux/vm_event_item.h    |   42 ++++++++++++++++++++++++
- include/linux/vmstat.h           |   16 ---------
- mm/vmstat.c                      |   24 ++++++++++++++
- 4 files changed, 113 insertions(+), 18 deletions(-)
+ fs/nilfs2/segment.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/sched/task_stack.h~vmstat-kernel-stack-usage-histogram
-+++ a/include/linux/sched/task_stack.h
-@@ -95,9 +95,51 @@ static inline int object_is_on_stack(con
- extern void thread_stack_cache_init(void);
- 
- #ifdef CONFIG_DEBUG_STACK_USAGE
-+#ifdef CONFIG_VM_EVENT_COUNTERS
-+#include <linux/vm_event_item.h>
-+
-+/* Count the maximum pages reached in kernel stacks */
-+static inline void kstack_histogram(unsigned long used_stack)
-+{
-+	if (used_stack <= 1024)
-+		this_cpu_inc(vm_event_states.event[KSTACK_1K]);
-+#if THREAD_SIZE > 1024
-+	else if (used_stack <= 2048)
-+		this_cpu_inc(vm_event_states.event[KSTACK_2K]);
-+#endif
-+#if THREAD_SIZE > 2048
-+	else if (used_stack <= 4096)
-+		this_cpu_inc(vm_event_states.event[KSTACK_4K]);
-+#endif
-+#if THREAD_SIZE > 4096
-+	else if (used_stack <= 8192)
-+		this_cpu_inc(vm_event_states.event[KSTACK_8K]);
-+#endif
-+#if THREAD_SIZE > 8192
-+	else if (used_stack <= 16384)
-+		this_cpu_inc(vm_event_states.event[KSTACK_16K]);
-+#endif
-+#if THREAD_SIZE > 16384
-+	else if (used_stack <= 32768)
-+		this_cpu_inc(vm_event_states.event[KSTACK_32K]);
-+#endif
-+#if THREAD_SIZE > 32768
-+	else if (used_stack <= 65536)
-+		this_cpu_inc(vm_event_states.event[KSTACK_64K]);
-+#endif
-+#if THREAD_SIZE > 65536
-+	else
-+		this_cpu_inc(vm_event_states.event[KSTACK_REST]);
-+#endif
-+}
-+#else /* !CONFIG_VM_EVENT_COUNTERS */
-+static inline void kstack_histogram(unsigned long used_stack) {}
-+#endif /* CONFIG_VM_EVENT_COUNTERS */
-+
- static inline unsigned long stack_not_used(struct task_struct *p)
- {
- 	unsigned long *n = end_of_stack(p);
-+	unsigned long unused_stack;
- 
- 	do { 	/* Skip over canary */
- # ifdef CONFIG_STACK_GROWSUP
-@@ -108,10 +150,13 @@ static inline unsigned long stack_not_us
- 	} while (!*n);
- 
- # ifdef CONFIG_STACK_GROWSUP
--	return (unsigned long)end_of_stack(p) - (unsigned long)n;
-+	unused_stack = (unsigned long)end_of_stack(p) - (unsigned long)n;
- # else
--	return (unsigned long)n - (unsigned long)end_of_stack(p);
-+	unused_stack = (unsigned long)n - (unsigned long)end_of_stack(p);
- # endif
-+	kstack_histogram(THREAD_SIZE - unused_stack);
-+
-+	return unused_stack;
- }
- #endif
- extern void set_task_stack_end_magic(struct task_struct *tsk);
---- a/include/linux/vm_event_item.h~vmstat-kernel-stack-usage-histogram
-+++ a/include/linux/vm_event_item.h
-@@ -154,9 +154,51 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		VMA_LOCK_RETRY,
- 		VMA_LOCK_MISS,
- #endif
-+#ifdef CONFIG_DEBUG_STACK_USAGE
-+		KSTACK_1K,
-+#if THREAD_SIZE > 1024
-+		KSTACK_2K,
-+#endif
-+#if THREAD_SIZE > 2048
-+		KSTACK_4K,
-+#endif
-+#if THREAD_SIZE > 4096
-+		KSTACK_8K,
-+#endif
-+#if THREAD_SIZE > 8192
-+		KSTACK_16K,
-+#endif
-+#if THREAD_SIZE > 16384
-+		KSTACK_32K,
-+#endif
-+#if THREAD_SIZE > 32768
-+		KSTACK_64K,
-+#endif
-+#if THREAD_SIZE > 65536
-+		KSTACK_REST,
-+#endif
-+#endif /* CONFIG_DEBUG_STACK_USAGE */
- 		NR_VM_EVENT_ITEMS
- };
- 
-+#ifdef CONFIG_VM_EVENT_COUNTERS
-+/*
-+ * Light weight per cpu counter implementation.
-+ *
-+ * Counters should only be incremented and no critical kernel component
-+ * should rely on the counter values.
-+ *
-+ * Counters are handled completely inline. On many platforms the code
-+ * generated will simply be the increment of a global address.
-+ */
-+
-+struct vm_event_state {
-+	unsigned long event[NR_VM_EVENT_ITEMS];
-+};
-+
-+DECLARE_PER_CPU(struct vm_event_state, vm_event_states);
-+#endif
-+
- #ifndef CONFIG_TRANSPARENT_HUGEPAGE
- #define THP_FILE_ALLOC ({ BUILD_BUG(); 0; })
- #define THP_FILE_FALLBACK ({ BUILD_BUG(); 0; })
---- a/include/linux/vmstat.h~vmstat-kernel-stack-usage-histogram
-+++ a/include/linux/vmstat.h
-@@ -42,22 +42,6 @@ enum writeback_stat_item {
- 
- #ifdef CONFIG_VM_EVENT_COUNTERS
- /*
-- * Light weight per cpu counter implementation.
-- *
-- * Counters should only be incremented and no critical kernel component
-- * should rely on the counter values.
-- *
-- * Counters are handled completely inline. On many platforms the code
-- * generated will simply be the increment of a global address.
-- */
--
--struct vm_event_state {
--	unsigned long event[NR_VM_EVENT_ITEMS];
--};
--
--DECLARE_PER_CPU(struct vm_event_state, vm_event_states);
--
--/*
-  * vm counters are allowed to be racy. Use raw_cpu_ops to avoid the
-  * local_irq_disable overhead.
-  */
---- a/mm/vmstat.c~vmstat-kernel-stack-usage-histogram
-+++ a/mm/vmstat.c
-@@ -1416,6 +1416,30 @@ const char * const vmstat_text[] = {
- 	"vma_lock_retry",
- 	"vma_lock_miss",
- #endif
-+#ifdef CONFIG_DEBUG_STACK_USAGE
-+	"kstack_1k",
-+#if THREAD_SIZE > 1024
-+	"kstack_2k",
-+#endif
-+#if THREAD_SIZE > 2048
-+	"kstack_4k",
-+#endif
-+#if THREAD_SIZE > 4096
-+	"kstack_8k",
-+#endif
-+#if THREAD_SIZE > 8192
-+	"kstack_16k",
-+#endif
-+#if THREAD_SIZE > 16384
-+	"kstack_32k",
-+#endif
-+#if THREAD_SIZE > 32768
-+	"kstack_64k",
-+#endif
-+#if THREAD_SIZE > 65536
-+	"kstack_rest",
-+#endif
-+#endif
- #endif /* CONFIG_VM_EVENT_COUNTERS || CONFIG_MEMCG */
- };
- #endif /* CONFIG_PROC_FS || CONFIG_SYSFS || CONFIG_NUMA || CONFIG_MEMCG */
+--- a/fs/nilfs2/segment.c~nilfs2-fix-potential-kernel-bug-due-to-lack-of-writeback-flag-waiting
++++ a/fs/nilfs2/segment.c
+@@ -1652,6 +1652,7 @@ static void nilfs_segctor_prepare_write(
+ 			if (bh->b_folio != bd_folio) {
+ 				if (bd_folio) {
+ 					folio_lock(bd_folio);
++					folio_wait_writeback(bd_folio);
+ 					folio_clear_dirty_for_io(bd_folio);
+ 					folio_start_writeback(bd_folio);
+ 					folio_unlock(bd_folio);
+@@ -1665,6 +1666,7 @@ static void nilfs_segctor_prepare_write(
+ 			if (bh == segbuf->sb_super_root) {
+ 				if (bh->b_folio != bd_folio) {
+ 					folio_lock(bd_folio);
++					folio_wait_writeback(bd_folio);
+ 					folio_clear_dirty_for_io(bd_folio);
+ 					folio_start_writeback(bd_folio);
+ 					folio_unlock(bd_folio);
+@@ -1681,6 +1683,7 @@ static void nilfs_segctor_prepare_write(
+ 	}
+ 	if (bd_folio) {
+ 		folio_lock(bd_folio);
++		folio_wait_writeback(bd_folio);
+ 		folio_clear_dirty_for_io(bd_folio);
+ 		folio_start_writeback(bd_folio);
+ 		folio_unlock(bd_folio);
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-vmstat-kernel-stack-usage-histogram.patch
+nilfs2-fix-potential-kernel-bug-due-to-lack-of-writeback-flag-waiting.patch
 
