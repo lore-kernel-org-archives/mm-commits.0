@@ -1,159 +1,192 @@
-Received: from mail-lj1-f175.google.com (mail-lj1-f175.google.com [209.85.208.175])
+Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D06934C7C;
-	Fri, 31 May 2024 00:51:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D6A5EEAB
+	for <mm-commits@vger.kernel.org>; Fri, 31 May 2024 01:18:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717116681; cv=none; b=JEXXaYjpEw8G2IPTX5WAcCoBGWo/GspHK71m5VGF2P9/79ASkH6cAJVSXqPA9JU/gYZOGjvK7PTjweVFzM9ca1oAinB4b4WdGb5mrOpFSeI9rvy7aofgLjGeluza+oC9gqivn+NOQHVRncLja9DbaS/2Cxieg51N3A7thqWDip4=
+	t=1717118312; cv=none; b=kb8ITvDzMO51d76sPwKv6OnA2+TgFzQoOcEVoytuSmlAqgtfVPD5bJ28jKoFEf/xEq6ciOQhoYLWAYrPi906jPx9dCCITtjpFt/ZE9MCXbJePjHSDkmvRn/o1A+ZZk/OBmFvFxJ2pyhTGusIw8H8wmirIxgYdy8CVMfQql3u3sY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717116681; c=relaxed/simple;
-	bh=gqCWN/aKVfEZ8B1AN6RvVSW+jnuyhbKcn96VMyaIAwg=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=X7tSpFvI91erYJg8IRXuouueaIWO1YSjUA9LRtG1Z9oTpPJH64vP4E2QHZutoBKcNFKAeeVOK1RS0psIHXbCxtDtSB/KzfTjfzbGBn12R01kCu+bvbQ3MM+CuhzXD1DhAvrxmJUyIrDKiKCeQmSMkpNVeQhyCppvQZHdl3oLK2A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UL8xyyVS; arc=none smtp.client-ip=209.85.208.175
+	s=arc-20240116; t=1717118312; c=relaxed/simple;
+	bh=mbIVrRBWaA9f9S6NeAJN9A/iWnrZ9tfyUy3q4CvKJhs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=H59AeT54Y2fZm3QLM//sAyH0Ol9AJfCo4MoGWK0UR5MIVXMcJA5Rn/5vuiv0NYC5iB/quCulqyt26E2YHc6BmeX8Rj7cw7EAEvE+KMvc0WfNGrxPdYtqC7CQ19G8Xi1yChNBY2JCrRkw5gzrTJcVsE603SYtbgaXi3tAC625do8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TBFjQajL; arc=none smtp.client-ip=209.85.214.179
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UL8xyyVS"
-Received: by mail-lj1-f175.google.com with SMTP id 38308e7fff4ca-2e3efa18e6aso12672821fa.0;
-        Thu, 30 May 2024 17:51:19 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TBFjQajL"
+Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-1f44b45d6abso10434425ad.0
+        for <mm-commits@vger.kernel.org>; Thu, 30 May 2024 18:18:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1717116678; x=1717721478; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Rbi+3qahX1j8CVQX3MQ8thYDoCnotdr2XCb7Yeowios=;
-        b=UL8xyyVS8MZqcGtO83QsPCo4GazU0v3+W02+BGQmxCJK0ouXx5Ex2hruyd9FR0Dv5Q
-         qzNVyy+gB/bNXGGEtvCJV6qpdjGReGoWg2DXccru++uA9hS+Kki/e/G8m/0hez2YxEaF
-         7spYk0ET+F57RDdvw5OYhlfDX5nG7ZlFLW6svx34u3KRfzQsJNuPYb0UxQOYLY0qgXZk
-         v96xB7YmwUl9wokLY3JRITAe0l0B4M/gKckrJ1Y+C6nvbMtLRlWLQ4VzWf+nfR3BtUVW
-         0Q/nLPEwI/bhrxAH6oRMFqNNXEF5h2z1SDNuAK1kQnAQD60STBOxjFJDYyulrVU1AMoJ
-         5oKw==
+        d=gmail.com; s=20230601; t=1717118310; x=1717723110; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=LSGeaJ1Oc7ZXMpZIWdFGVG2/y37o2POYmtqt80gQkws=;
+        b=TBFjQajLTHHx7pqhCekss9LgQibxFad3V96TaTqZ6n6Y5GohwkJdHHtJ/sjl+ZFDGN
+         HQ5leWBdC4GkSUYCvLuNpG+42iU1+LOINPAkzOaAahRNimiimKbq6N9+vyPw5/+idqVB
+         ehrFUcN04Qj4XIYYcIRyRpZRQUccY+YjQgYKjMF29hcQwwjhV26cEBtBiYLRxm2BdLRp
+         je79JcL6FBhzOrd0LhDUPatN+QANQuadoJPUF4PVyThDz3qnUH7H7S0iN/M6rdedTHlr
+         32eeqgjpTKyMgBKfohIrYAE3oylplEdBZsEZ2Y1LzDA09NAlNtSLntEaIb1WCnfNC1C4
+         gX9Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1717116678; x=1717721478;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Rbi+3qahX1j8CVQX3MQ8thYDoCnotdr2XCb7Yeowios=;
-        b=Kte01oOxkQ6xGvA34QfWbYHwQlkhI8bfNlO1v/pk5FgjARtnxmzrp7GHMdHtpNfpJ1
-         94GoQXODNnaQub49rsekpLA3b3laNUnwOpxan+7sY5358l4JQWnkKJN3knv2+RXoio4Q
-         JDXacr71DKSSMUbmeR8W07dRUM/ho8sEZlQKMVR6V1WL1HdbpdcptJNagJCiFY8YLBRB
-         u8+XNo1xN9scGwwAcSSN7/NS50L835RaqGt/LZX3UpdY3sN+576fbwKL2z23DsVO85Da
-         TZkm/Zyci48zMP/MnaOQATTQB0dOrePDYsjrq/2vLP+FiyySiVnjiJVJAhOFYKeTpnNU
-         PihQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVF2DFPfipC1DMhlYCma/hFrCF3jd4TEPKD57h6E3EnD/Num5o+hvGb2MNLd075jx4rPmmkmdFBpoSMUWpIiMeecUb54dvc
-X-Gm-Message-State: AOJu0YwnlA+h56+QaGzZAL5kbkOnu1RngZDoNTvaUgpGCXtk/PwM7FRy
-	KYKkzBuM/PYHC8lZk7RxuOtZ5LRky1gfxVRMEe85tV796NLjbp9ND443aqrocExpiu0ok6IL96d
-	+N+vj7xQ30PnQiEQnksYvpN3Ioik=
-X-Google-Smtp-Source: AGHT+IE4iE4rNgVNOAhpmw/PEczHZOHfgHZMqP2kxc2wMzFrYxKMe7F7FEaeeNxJSKttbLPOjV+8FZpUUvNAcHGGgQ0=
-X-Received: by 2002:a05:651c:b06:b0:2e7:1621:89d0 with SMTP id
- 38308e7fff4ca-2ea84c0cad3mr11808521fa.2.1717116677554; Thu, 30 May 2024
- 17:51:17 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1717118310; x=1717723110;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=LSGeaJ1Oc7ZXMpZIWdFGVG2/y37o2POYmtqt80gQkws=;
+        b=NfmMz/hMEawSGArI1EDbEL+CMvvjdARFlasf+Vi0U6nyo63pACqKb5RHoWDTuKZiHV
+         3w5MLaMzVPZSGUgDDVIzZPE5GgZhSQlooCwfeOlVYPcB2nWmId9Gs9gk4hsiWWdV3RHh
+         cUrLKQBGTgrvKlrqXw6OsYXfwO21IzwppAmShz6c8WEWQ6bHxNMBURbpm9qGDMY8EPD5
+         LRd7i4ZAxaBPwwVOz1fxwSD2QpL7WbLPmiw0Ey+LMFssK30fQQOBodxBKQKyqPICBoS/
+         6bQHoQCY7yfKJQcQha1vR5jviLJWL5BBB6oL5dW1g+9wHKQvcJxlWnt5y0UpNhJU3cbv
+         nA0Q==
+X-Forwarded-Encrypted: i=1; AJvYcCX7/OtY7hBp65hu3uod09+GyGqMYVYBIhIYCOdgCYkjJHClSoRVsoY2E9kUdk6oIVV9oK7b81rPu9DH0A708g4gTrPOAMmCUzmfIA==
+X-Gm-Message-State: AOJu0YxJO20fbB6v1iGXYboxynB/8xXuMDgHOzqnfo7AIeVpDiHkNbb7
+	uNs13lCfomA7+9ETVcUS1s3WYsQmSrEui0BXBROG4vnnWTSZvD7DMpNgsA==
+X-Google-Smtp-Source: AGHT+IGjsYM3BvJ17Yz9iTTvE/7i0W6pnppdevq7AbtPQLxrm+6sKx3Wd9fy+tZq2s3QydK2bkjC9g==
+X-Received: by 2002:a17:902:e5c3:b0:1f4:f1c1:646b with SMTP id d9443c01a7336-1f6370200d2mr5585155ad.33.1717118310313;
+        Thu, 30 May 2024 18:18:30 -0700 (PDT)
+Received: from localhost ([216.228.127.129])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-1f632416d7asm4273865ad.286.2024.05.30.18.18.29
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 30 May 2024 18:18:29 -0700 (PDT)
+Date: Thu, 30 May 2024 18:18:27 -0700
+From: Yury Norov <yury.norov@gmail.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
+	yoann.congal@smile.fr, Vincent Guittot <vincent.guittot@linaro.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Petr Mladek <pmladek@suse.com>, Nhat Pham <nphamcs@gmail.com>,
+	Masahiro Yamada <masahiroy@kernel.org>,
+	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Alexander Lobakin <aleksander.lobakin@intel.com>
+Subject: Re: + gcc-disable-warray-bounds-for-gcc-9.patch added to
+ mm-hotfixes-unstable branch
+Message-ID: <ZlklY6LkIhn98S6Q@yury-ThinkPad>
+References: <20240524030008.78A1AC2BD10@smtp.kernel.org>
+ <0ab2702f-8245-4f02-beb7-dcc7d79d5416@app.fastmail.com>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240530200551.354DFC2BBFC@smtp.kernel.org>
-In-Reply-To: <20240530200551.354DFC2BBFC@smtp.kernel.org>
-From: Zhaoyang Huang <huangzhaoyang@gmail.com>
-Date: Fri, 31 May 2024 08:51:06 +0800
-Message-ID: <CAGWkznHXyyfnu4eo4CdRyDO-Tvo+4eRASvkVyAHqFQ_i6W102Q@mail.gmail.com>
-Subject: Re: + mm-vmalloc-fix-vbq-free-breakage.patch added to
- mm-hotfixes-unstable branch
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, zhaoyang.huang@unisoc.com, xiang@kernel.org, 
-	urezki@gmail.com, stable@vger.kernel.org, lstoakes@gmail.com, 
-	liuhailong@oppo.com, hch@infradead.org, guangye.yang@mediatek.com, 
-	21cnbao@gmail.com, hailong.liu@oppo.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <0ab2702f-8245-4f02-beb7-dcc7d79d5416@app.fastmail.com>
 
-On Fri, May 31, 2024 at 4:12=E2=80=AFAM Andrew Morton <akpm@linux-foundatio=
-n.org> wrote:
->
->
-> The patch titled
->      Subject: mm/vmalloc: fix vbq->free breakage
-> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
->      mm-vmalloc-fix-vbq-free-breakage.patch
->
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree=
-/patches/mm-vmalloc-fix-vbq-free-breakage.patch
->
-> This patch will later appear in the mm-hotfixes-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
->
-> *** Remember to use Documentation/process/submit-checklist.rst when testi=
-ng your code ***
->
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
->
-> ------------------------------------------------------
-> From: "hailong.liu" <hailong.liu@oppo.com>
-> Subject: mm/vmalloc: fix vbq->free breakage
-> Date: Thu, 30 May 2024 17:31:08 +0800
->
-> The function xa_for_each() in _vm_unmap_aliases() loops through all vbs.
-> However, since commit 062eacf57ad9 ("mm: vmalloc: remove a global
-> vmap_blocks xarray") the vb from xarray may not be on the corresponding
-> CPU vmap_block_queue.  Consequently, purge_fragmented_block() might use
-> the wrong vbq->lock to protect the free list, leading to vbq->free
-> breakage.
->
-> Link: https://lkml.kernel.org/r/20240530093108.4512-1-hailong.liu@oppo.co=
-m
-> Fixes: fc1e0d980037 ("mm/vmalloc: prevent stale TLBs in fully utilized bl=
-ocks")
-> Signed-off-by: Hailong.Liu <liuhailong@oppo.com>
-> Reported-by: Guangye Yang <guangye.yang@mediatek.com>
-> Cc: Barry Song <21cnbao@gmail.com>
-> Cc: Christoph Hellwig <hch@infradead.org>
-> Cc: Gao Xiang <xiang@kernel.org>
-> Cc: Guangye Yang <guangye.yang@mediatek.com>
-> Cc: liuhailong <liuhailong@oppo.com>
-> Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-> Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-> Cc: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-> Cc: <stable@vger.kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->
->  mm/vmalloc.c |    3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
->
-> --- a/mm/vmalloc.c~mm-vmalloc-fix-vbq-free-breakage
-> +++ a/mm/vmalloc.c
-> @@ -2830,10 +2830,9 @@ static void _vm_unmap_aliases(unsigned l
->         for_each_possible_cpu(cpu) {
->                 struct vmap_block_queue *vbq =3D &per_cpu(vmap_block_queu=
-e, cpu);
->                 struct vmap_block *vb;
-> -               unsigned long idx;
->
->                 rcu_read_lock();
-> -               xa_for_each(&vbq->vmap_blocks, idx, vb) {
-> +               list_for_each_entry_rcu(vb, &vbq->free, free_list) {
-No, this is wrong as the fully used vb's TLB will be kept since they
-are not on the vbq->free. I have sent Patchv2 out.
->                         spin_lock(&vb->lock);
->
->                         /*
-> _
->
-> Patches currently in -mm which might be from hailong.liu@oppo.com are
->
-> mm-vmalloc-fix-vbq-free-breakage.patch
->
->
+Hi Arnd,
+
+On Wed, May 29, 2024 at 04:39:45PM +0200, Arnd Bergmann wrote:
+> On Fri, May 24, 2024, at 05:00, Andrew Morton wrote:
+> > ------------------------------------------------------
+> > From: Yury Norov <yury.norov@gmail.com>
+> > Subject: gcc: disable '-Warray-bounds' for gcc-9
+> > Date: Wed, 22 May 2024 15:58:30 -0700
+> >
+> > '-Warray-bounds' is already disabled for gcc-10+.  Now that we've merged
+> > bitmap_{read,write), I see the following error when building the kernel
+> > with gcc-9.4 (Ubuntu 20.04.4 LTS) for x86_64 allmodconfig:
+> >
+> > drivers/pinctrl/pinctrl-cy8c95x0.c: In function 
+> > `cy8c95x0_read_regs_mask.isra.0':
+> > include/linux/bitmap.h:756:18: error: array subscript [1, 
+> > 288230376151711744] is outside array bounds of `long unsigned int[1]' 
+> > [-Werror=array-bounds]
+> >   756 |  value_high = map[index + 1] & BITMAP_LAST_WORD_MASK(start + 
+> > nbits);
+> >       |               ~~~^~~~~~~~~~~
+> >
+> > The immediate reason is that the commit b44759705f7d ("bitmap: make
+> > bitmap_{get,set}_value8() use bitmap_{read,write}()") switched the
+> > bitmap_get_value8() to an alias of bitmap_read(); the same for 'set'.
+> >
+> > Now; the code that triggers Warray-bounds, calls the function like this:
+> >
+> >   #define MAX_BANK 8
+> >   #define BANK_SZ 8
+> >   #define MAX_LINE        (MAX_BANK * BANK_SZ)
+> >   DECLARE_BITMAP(tval, MAX_LINE); // 64-bit map: unsigned long tval[1]
+> >
+> >   read_val |= bitmap_get_value8(tval, i * BANK_SZ) & ~bits;
+> >
+> > bitmap_read() is implemented such that it may conditionally dereference a
+> > pointer beyond the boundary like this:
+> >
+> > 	unsigned long offset = start % BITS_PER_LONG;
+> >         unsigned long space = BITS_PER_LONG - offset;
+> >
+> >         if (space >= nbits)
+> >                 return (map[index] >> offset) & BITMAP_LAST_WORD_MASK(nbits);
+> >
+> >         value_low = map[index] & BITMAP_FIRST_WORD_MASK(start);
+> >         value_high = map[index + 1] & BITMAP_LAST_WORD_MASK(start + nbits);
+> >         return (value_low >> offset) | (value_high << space);
+> >
+> > In case of bitmap_get_value8(), it's impossible to violate the boundary
+> > because 'space >= nbits' is never the true for byte-aligned 8-bit access. 
+> > So, this is clearly a false-positive.
+> >
+> > The same type of false-positives break my allmodconfig build in many
+> > places.  gcc-8, is clear, however.
+> 
+> I'm not too happy about this one,
+
+Neither me
+
+> I think this is mixing up
+> a couple of independent issues, and makes it harder to
+> ever enable the warning again.
+> 
+> The bitmap.h code looks suspicious to me, and if gcc is
+> unable to analyze this as a false positive, it probably
+> also can't optimize it correctly,
+
+In the b44759705f7d Alexander says:
+
+  bloat-o-meter shows no difference in vmlinux and -2 bytes for
+  gpio-pca953x.ko, which says the optimization didn't suffer due to
+  that change. The converted helpers have the value width embedded
+  and always compile-time constant and that helps a lot.
+
+Bloat-o-meter itself is not a measure of how effective the code is,
+but it's a good hit that code generation before/after is at least
+on par. Have you an evidence that the patch makes code generation
+worse?
+
+> so it may be better
+> to either not have this as an inline function at all,
+> or find an implementation that gcc can optimize better.
+
+The functions look bulky but it boild to one or at max two words fetch
+plus shifts. Inlining helps to generate better code, particularly in
+the bitmap_get/set_value8 case because masks and offsets generation is
+done at compile time.
+
+We had quite a few cycles back then... Alexander, can you please
+share on code generation, particularly inline vs outline versions?
+
+> In the meantime, I would suggest reverting b44759705f7d
+> ("bitmap: make bitmap_{get,set}_value8() use
+> bitmap_{read,write}()"), until the implementation is
+> improved to work without a warning.
+
+I think there's nothing to improve. This is clearly a false-positive
+GCC warning, and it should be fixed on GCC side.
+
+> The other problem I see is that the warning is
+> disabled globally even when building with W=123,
+> and I think we should change it to always warn at
+> least with W=1 regardless of the compiler version.
+> It's also likely that the other false-positive
+> warnings only happen when sanitizers are enabled,
+> so we could turn it on by default without sanitizers
+> and move it to W=1 with sanitizers.
+
+Interesting. If sanitizers are involved, we should do like you said.
+But this is a matter of a different patch, I think.
+
+Thanks,
+Yury
