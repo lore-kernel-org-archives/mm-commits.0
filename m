@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D40B181
-	for <mm-commits@vger.kernel.org>; Sat,  1 Jun 2024 00:03:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F077C181
+	for <mm-commits@vger.kernel.org>; Sat,  1 Jun 2024 00:06:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717200209; cv=none; b=kX6SR0frkLsqGA26r/gbN6ZtBoQc683aVGmCG1lO8A0BjPC0DcCclh7kk+cmn7d5mA0vJA9Rijd08NM9/Yv4rse0ZMlfhIQO1E+m1MT1jPMguFRDTHHE4AaN6yLL4tkX1kpIAWbxw/WjZRRAFw8iMKqkuxx0xjHuuOUmooMgMQc=
+	t=1717200385; cv=none; b=gauIcTEI4CXBNWRm/60peFQu5S/D4td6MR8YQrSH8ocdOISWBGAVIMuNusuBsYBeRFgJ2PB+c9sN6V8ScrGLFE9IOnBBlqpKq4bKEGqDe3j2gs/bhY4AeBfNXLcHd/hpotLLcK3+rdgURoL5f04T+L8tR8CuoTlTEr2lRySNJWQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717200209; c=relaxed/simple;
-	bh=ioIRd8b9ICnLO+xPqAlwSWQXAr6jydh+YdAKjThSNSI=;
-	h=Date:To:From:Subject:Message-Id; b=X/+XfUMI4qNqVFjjcyOM3zwEFL/k3IIHkUM9NhDFQJhVzt5QyTnZoi3GGwSLt12YmqThFynT21Px4lkMeaDaKr0DPLQptZ8uOCdvUtu+imYjSxE2Ppawu0hl2MxQhN3eCQXZY4OZSgHmLrCdL6KWiENE9NkXwgNggbcT9FEinY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rN3XYSEe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717200385; c=relaxed/simple;
+	bh=q+l7AcLifLQf2CjYlCD4ikgTYUS+0cwYJCr+RMHud/o=;
+	h=Date:To:From:Subject:Message-Id; b=ptyl4pYwVeOhhV3BYaTws+RihjfL7spQQCvEe7srungdVYsuRngRDj9sLFQfKMNSCsTBXC+4OSwCme7U6CCe6GrzA+yxP4TJvuGXNAQbWEgr+t1xfOgPEEmD8qzvnjEpDTI8rTdFdHYiwg2PUPEd3jOzUATOTdGwxpgbWDzDOQk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x/IMkAhR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rN3XYSEe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD7ABC116B1;
-	Sat,  1 Jun 2024 00:03:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x/IMkAhR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 550EBC116B1;
+	Sat,  1 Jun 2024 00:06:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717200208;
-	bh=ioIRd8b9ICnLO+xPqAlwSWQXAr6jydh+YdAKjThSNSI=;
+	s=korg; t=1717200384;
+	bh=q+l7AcLifLQf2CjYlCD4ikgTYUS+0cwYJCr+RMHud/o=;
 	h=Date:To:From:Subject:From;
-	b=rN3XYSEeqeVN6UKEvMMqkCChe634H9zT688lvmC94g5NgqLWFYFO/lt4t7iALld2p
-	 wt9GINWW+2r2QoKNI6w1gMA5zAFR0gSbhLNVzKCT3fUwbF5VLs99Qb0XBc1PCvmLoa
-	 xJn9/x8+hY0SYTK2ahlfdsor7X2e6my3E0LypdJU=
-Date: Fri, 31 May 2024 17:03:27 -0700
-To: mm-commits@vger.kernel.org,david@redhat.com,abaci@linux.alibaba.com,jiapeng.chong@linux.alibaba.com,akpm@linux-foundation.org
+	b=x/IMkAhR0GiqkfYB7WQrXDt/pnId2YZg87MPT1QkA33c1PzIgYXhOFcazwH2uC7dk
+	 DUY+f8X+OHCmq1aR4jrlxsBNy18e9RH3ceTg18RUZh6w8W318FrVDMahjPg40fw8ZL
+	 f2tPUIn5PI4ZSOre5ddIk1Gb41jOHLg4QxB8iqeQ=
+Date: Fri, 31 May 2024 17:06:23 -0700
+To: mm-commits@vger.kernel.org,gregkh@linuxfoundation.org,jani.nikula@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-userfaultfd-use-swap-in-double_pt_lock.patch added to mm-unstable branch
-Message-Id: <20240601000328.AD7ABC116B1@smtp.kernel.org>
+Subject: + kernel-panic-return-early-from-print_tainted-when-not-tainted.patch added to mm-nonmm-unstable branch
+Message-Id: <20240601000624.550EBC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: userfaultfd: use swap() in double_pt_lock()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-userfaultfd-use-swap-in-double_pt_lock.patch
+     Subject: kernel/panic: return early from print_tainted() when not tainted
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kernel-panic-return-early-from-print_tainted-when-not-tainted.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-use-swap-in-double_pt_lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-panic-return-early-from-print_tainted-when-not-tainted.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,47 +58,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-Subject: mm: userfaultfd: use swap() in double_pt_lock()
-Date: Fri, 31 May 2024 17:16:43 +0800
+From: Jani Nikula <jani.nikula@intel.com>
+Subject: kernel/panic: return early from print_tainted() when not tainted
+Date: Fri, 31 May 2024 12:04:54 +0300
 
-Use existing swap() function rather than duplicating its implementation.
+Reduce indent to make follow-up changes slightly easier on the eyes.
 
-./mm/userfaultfd.c:1006:13-14: WARNING opportunity for swap()
-
-Link: https://lkml.kernel.org/r/20240531091643.67778-1-jiapeng.chong@linux.alibaba.com
-Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-Closes: https://bugzilla.openanolis.cn/show_bug.cgi?id=9266
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/01d6c03de1c9d1b52b59c652a3704a0a9886ed63.1717146197.git.jani.nikula@intel.com
+Signed-off-by: Jani Nikula <jani.nikula@intel.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ kernel/panic.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
---- a/mm/userfaultfd.c~mm-userfaultfd-use-swap-in-double_pt_lock
-+++ a/mm/userfaultfd.c
-@@ -995,14 +995,8 @@ void double_pt_lock(spinlock_t *ptl1,
- 	__acquires(ptl1)
- 	__acquires(ptl2)
+--- a/kernel/panic.c~kernel-panic-return-early-from-print_tainted-when-not-tainted
++++ a/kernel/panic.c
+@@ -507,22 +507,23 @@ const struct taint_flag taint_flags[TAIN
+ const char *print_tainted(void)
  {
--	spinlock_t *ptl_tmp;
+ 	static char buf[TAINT_FLAGS_COUNT + sizeof("Tainted: ")];
++	char *s;
++	int i;
+ 
+ 	BUILD_BUG_ON(ARRAY_SIZE(taint_flags) != TAINT_FLAGS_COUNT);
+ 
+-	if (tainted_mask) {
+-		char *s;
+-		int i;
 -
--	if (ptl1 > ptl2) {
--		/* exchange ptl1 and ptl2 */
--		ptl_tmp = ptl1;
--		ptl1 = ptl2;
--		ptl2 = ptl_tmp;
--	}
-+	if (ptl1 > ptl2)
-+		swap(ptl1, ptl2);
- 	/* lock in virtual address order to avoid lock inversion */
- 	spin_lock(ptl1);
- 	if (ptl1 != ptl2)
+-		s = buf + sprintf(buf, "Tainted: ");
+-		for (i = 0; i < TAINT_FLAGS_COUNT; i++) {
+-			const struct taint_flag *t = &taint_flags[i];
+-			*s++ = test_bit(i, &tainted_mask) ?
+-					t->c_true : t->c_false;
+-		}
+-		*s = 0;
+-	} else
++	if (!tainted_mask) {
+ 		snprintf(buf, sizeof(buf), "Not tainted");
++		return buf;
++	}
++
++	s = buf + sprintf(buf, "Tainted: ");
++	for (i = 0; i < TAINT_FLAGS_COUNT; i++) {
++		const struct taint_flag *t = &taint_flags[i];
++		*s++ = test_bit(i, &tainted_mask) ?
++			t->c_true : t->c_false;
++	}
++	*s = 0;
+ 
+ 	return buf;
+ }
 _
 
-Patches currently in -mm which might be from jiapeng.chong@linux.alibaba.com are
+Patches currently in -mm which might be from jani.nikula@intel.com are
 
-mm-userfaultfd-use-swap-in-double_pt_lock.patch
+kernel-panic-return-early-from-print_tainted-when-not-tainted.patch
+kernel-panic-convert-print_tainted-to-use-struct-seq_buf-internally.patch
+kernel-panic-initialize-taint_flags-using-a-macro.patch
+kernel-panic-add-verbose-logging-of-kernel-taints-in-backtraces.patch
 
