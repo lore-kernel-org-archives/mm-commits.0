@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F077C181
-	for <mm-commits@vger.kernel.org>; Sat,  1 Jun 2024 00:06:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F96E37B
+	for <mm-commits@vger.kernel.org>; Sat,  1 Jun 2024 00:06:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717200385; cv=none; b=gauIcTEI4CXBNWRm/60peFQu5S/D4td6MR8YQrSH8ocdOISWBGAVIMuNusuBsYBeRFgJ2PB+c9sN6V8ScrGLFE9IOnBBlqpKq4bKEGqDe3j2gs/bhY4AeBfNXLcHd/hpotLLcK3+rdgURoL5f04T+L8tR8CuoTlTEr2lRySNJWQ=
+	t=1717200386; cv=none; b=lFpqfV1zpYInTKnEsp5rT+vIUTQqQdqWB3lWd+YRzHqelL334n2iajXr7GWHKwnETcLpVidqQdSbtrZGMVrE928goxANmG+hZasBm0AZSV8Y7MGVvWYQ40AoOSx4Mybgc9ibOgcNTa8MqzoerUj02KPxfVB391hUBR9LLd60pGw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717200385; c=relaxed/simple;
-	bh=q+l7AcLifLQf2CjYlCD4ikgTYUS+0cwYJCr+RMHud/o=;
-	h=Date:To:From:Subject:Message-Id; b=ptyl4pYwVeOhhV3BYaTws+RihjfL7spQQCvEe7srungdVYsuRngRDj9sLFQfKMNSCsTBXC+4OSwCme7U6CCe6GrzA+yxP4TJvuGXNAQbWEgr+t1xfOgPEEmD8qzvnjEpDTI8rTdFdHYiwg2PUPEd3jOzUATOTdGwxpgbWDzDOQk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x/IMkAhR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717200386; c=relaxed/simple;
+	bh=w9fih7sYP0izMwfpJs9ZWEX5BPcfCazKowDpHWrPTZQ=;
+	h=Date:To:From:Subject:Message-Id; b=bLm/LeNff88pp9rpENa2HSZ72O6bSYpfM+NnMSM4+G8TkEtJQeyjuTHYo7g7kVERCMojFkwGQIE1I9w/iyj25KXRgAp77gFYv/tLAnprC49Fq6DL/98szioRjamiqMmfb2AP7nN+k6fvooTRuUXHXOsNfohkCqwp4XYDVCWRYlo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=miWkYS7/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x/IMkAhR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 550EBC116B1;
-	Sat,  1 Jun 2024 00:06:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="miWkYS7/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 101CCC116B1;
+	Sat,  1 Jun 2024 00:06:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717200384;
-	bh=q+l7AcLifLQf2CjYlCD4ikgTYUS+0cwYJCr+RMHud/o=;
+	s=korg; t=1717200386;
+	bh=w9fih7sYP0izMwfpJs9ZWEX5BPcfCazKowDpHWrPTZQ=;
 	h=Date:To:From:Subject:From;
-	b=x/IMkAhR0GiqkfYB7WQrXDt/pnId2YZg87MPT1QkA33c1PzIgYXhOFcazwH2uC7dk
-	 DUY+f8X+OHCmq1aR4jrlxsBNy18e9RH3ceTg18RUZh6w8W318FrVDMahjPg40fw8ZL
-	 f2tPUIn5PI4ZSOre5ddIk1Gb41jOHLg4QxB8iqeQ=
-Date: Fri, 31 May 2024 17:06:23 -0700
+	b=miWkYS7//fB8A6N/lsMt78MfVdTVDNJZm70FAeSsbhnk4j3VSKmLIhxsaab0v01qG
+	 xazAuAsgBGPpl7soLhWiX7/Na6Xr615EmL06Ccxo+H2spsfnyOg7/rs7Xyj0YmePkl
+	 s/Nwoqyi4+Bp207CV1ezoRmsWJbVUcSe1hawMTCo=
+Date: Fri, 31 May 2024 17:06:25 -0700
 To: mm-commits@vger.kernel.org,gregkh@linuxfoundation.org,jani.nikula@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-panic-return-early-from-print_tainted-when-not-tainted.patch added to mm-nonmm-unstable branch
-Message-Id: <20240601000624.550EBC116B1@smtp.kernel.org>
+Subject: + kernel-panic-convert-print_tainted-to-use-struct-seq_buf-internally.patch added to mm-nonmm-unstable branch
+Message-Id: <20240601000626.101CCC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kernel/panic: return early from print_tainted() when not tainted
+     Subject: kernel/panic: convert print_tainted() to use struct seq_buf internally
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernel-panic-return-early-from-print_tainted-when-not-tainted.patch
+     kernel-panic-convert-print_tainted-to-use-struct-seq_buf-internally.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-panic-return-early-from-print_tainted-when-not-tainted.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-panic-convert-print_tainted-to-use-struct-seq_buf-internally.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,58 +59,88 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jani Nikula <jani.nikula@intel.com>
-Subject: kernel/panic: return early from print_tainted() when not tainted
-Date: Fri, 31 May 2024 12:04:54 +0300
+Subject: kernel/panic: convert print_tainted() to use struct seq_buf internally
+Date: Fri, 31 May 2024 12:04:55 +0300
 
-Reduce indent to make follow-up changes slightly easier on the eyes.
+Convert print_tainted() to use struct seq_buf internally in order to be
+more aware of the buffer constraints as well as make it easier to extend
+in follow-up work.
 
-Link: https://lkml.kernel.org/r/01d6c03de1c9d1b52b59c652a3704a0a9886ed63.1717146197.git.jani.nikula@intel.com
+Link: https://lkml.kernel.org/r/cb6006fa7c0f82a6b6885e8eea2920fcdc4fc9d0.1717146197.git.jani.nikula@intel.com
 Signed-off-by: Jani Nikula <jani.nikula@intel.com>
 Cc: Greg KH <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ kernel/panic.c |   38 ++++++++++++++++++++++++--------------
+ 1 file changed, 24 insertions(+), 14 deletions(-)
 
---- a/kernel/panic.c~kernel-panic-return-early-from-print_tainted-when-not-tainted
+--- a/kernel/panic.c~kernel-panic-convert-print_tainted-to-use-struct-seq_buf-internally
 +++ a/kernel/panic.c
-@@ -507,22 +507,23 @@ const struct taint_flag taint_flags[TAIN
+@@ -35,6 +35,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/sysfs.h>
+ #include <linux/context_tracking.h>
++#include <linux/seq_buf.h>
+ #include <trace/events/error_report.h>
+ #include <asm/sections.h>
+ 
+@@ -496,6 +497,25 @@ const struct taint_flag taint_flags[TAIN
+ 	[ TAINT_TEST ]			= { 'N', ' ', true },
+ };
+ 
++static void print_tainted_seq(struct seq_buf *s)
++{
++	int i;
++
++	if (!tainted_mask) {
++		seq_buf_puts(s, "Not tainted");
++		return;
++	}
++
++	seq_buf_printf(s, "Tainted: ");
++	for (i = 0; i < TAINT_FLAGS_COUNT; i++) {
++		const struct taint_flag *t = &taint_flags[i];
++		bool is_set = test_bit(i, &tainted_mask);
++		char c = is_set ? t->c_true : t->c_false;
++
++		seq_buf_putc(s, c);
++	}
++}
++
+ /**
+  * print_tainted - return a string to represent the kernel taint state.
+  *
+@@ -507,25 +527,15 @@ const struct taint_flag taint_flags[TAIN
  const char *print_tainted(void)
  {
  	static char buf[TAINT_FLAGS_COUNT + sizeof("Tainted: ")];
-+	char *s;
-+	int i;
+-	char *s;
+-	int i;
++	struct seq_buf s;
  
  	BUILD_BUG_ON(ARRAY_SIZE(taint_flags) != TAINT_FLAGS_COUNT);
  
--	if (tainted_mask) {
--		char *s;
--		int i;
--
--		s = buf + sprintf(buf, "Tainted: ");
--		for (i = 0; i < TAINT_FLAGS_COUNT; i++) {
--			const struct taint_flag *t = &taint_flags[i];
--			*s++ = test_bit(i, &tainted_mask) ?
--					t->c_true : t->c_false;
--		}
--		*s = 0;
--	} else
-+	if (!tainted_mask) {
- 		snprintf(buf, sizeof(buf), "Not tainted");
-+		return buf;
-+	}
-+
-+	s = buf + sprintf(buf, "Tainted: ");
-+	for (i = 0; i < TAINT_FLAGS_COUNT; i++) {
-+		const struct taint_flag *t = &taint_flags[i];
-+		*s++ = test_bit(i, &tainted_mask) ?
-+			t->c_true : t->c_false;
-+	}
-+	*s = 0;
+-	if (!tainted_mask) {
+-		snprintf(buf, sizeof(buf), "Not tainted");
+-		return buf;
+-	}
++	seq_buf_init(&s, buf, sizeof(buf));
  
- 	return buf;
+-	s = buf + sprintf(buf, "Tainted: ");
+-	for (i = 0; i < TAINT_FLAGS_COUNT; i++) {
+-		const struct taint_flag *t = &taint_flags[i];
+-		*s++ = test_bit(i, &tainted_mask) ?
+-			t->c_true : t->c_false;
+-	}
+-	*s = 0;
++	print_tainted_seq(&s);
+ 
+-	return buf;
++	return seq_buf_str(&s);
  }
+ 
+ int test_taint(unsigned flag)
 _
 
 Patches currently in -mm which might be from jani.nikula@intel.com are
