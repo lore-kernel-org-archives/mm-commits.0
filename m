@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 953551411F3
-	for <mm-commits@vger.kernel.org>; Tue,  4 Jun 2024 23:38:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8BA114D71C
+	for <mm-commits@vger.kernel.org>; Tue,  4 Jun 2024 23:38:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717544298; cv=none; b=Pfs+97H1vw57VbMuX1IhAqkg9c2VQ7P6b555VDQFHN/2axgQXF4BDoSz/ubI8pxtZePIqoA5Z5REsuZpguM3Aig7a0LzwlMWQbulT0OJ9nH7jn3k0omlfqMO9Y1ptaRABGAR10Vd9OCHgrxmkKpf9r2zYQkPs4LMgTn7EXRalP4=
+	t=1717544300; cv=none; b=I83wGac/hqHCKT9U6gOECxo/r54YNwc8gJlBf4tRmTW75m3kFVSs8h8nFHSDs5f9DAbMjEkGLKhiADpTYy17ll81ijYaswj5WLqCl1IxgID9mFfPBBPl9lNmZzRL4Bz0Zv5d2IiJeGu6EJgzncelm7yhTzJdhNs6puyLut/QkPc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717544298; c=relaxed/simple;
-	bh=nB2E3Bje33P5lDSHMUC0ybn7KxUNeBTCQcNh1jdmCzQ=;
-	h=Date:To:From:Subject:Message-Id; b=pIuuQgZM3t6c4T6Ew5VIGNHl+RVSAt7VIH0A7A/VyNQa0RKeXSP/OpLVKYdPdWhmbbDNUOwf3LgIu7VmLkRR9K/gtHf/tXIi2dgD1AqHO8qsrP/tfo/PjWVsBYrsE5UQH69Z5udU2PGorxsoTMlnZBTHbdkhnzOPotZA36R8Mo0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bfX1cLG4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717544300; c=relaxed/simple;
+	bh=G84pbXNFpmv++rvzWaJZn0alYM3nXMsvvi+Y3bP8bp0=;
+	h=Date:To:From:Subject:Message-Id; b=kYFw8MP+hfAlq18gUlzSRE8XyaW6ysOnB03dM5GucIpcCOPxr3YdGk938YdJSJ9CS3Vd4WXMvuFjmkDHjO8RfSfZfhVEdpcR8IVG+PwY9uV5Do1h2C/0N2oKY5nQsOqKNM8n77ozd+kg70ENpk8vE64UakwNkEBbhk97qagj0PE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bPnPuCqD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bfX1cLG4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BE5EC2BBFC;
-	Tue,  4 Jun 2024 23:38:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bPnPuCqD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6CE6C2BBFC;
+	Tue,  4 Jun 2024 23:38:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717544298;
-	bh=nB2E3Bje33P5lDSHMUC0ybn7KxUNeBTCQcNh1jdmCzQ=;
+	s=korg; t=1717544299;
+	bh=G84pbXNFpmv++rvzWaJZn0alYM3nXMsvvi+Y3bP8bp0=;
 	h=Date:To:From:Subject:From;
-	b=bfX1cLG4wyHkWGfRNlKTWl27DIWtZP3EscbuJOdFIHVRck4WcFXn/Fu7H6QgOdB6N
-	 EtwG5xXIp2cTDMont41GWdWBXV8muCrqeffU6SVHxxkgTQCgcgJoZFIDc3JEeD3Kn3
-	 D5BqtWk+GMUcCnt+PVbJea64Omf5Gbd6TLzKTTL4=
-Date: Tue, 04 Jun 2024 16:38:17 -0700
+	b=bPnPuCqDzWXydU3DFDXjoEcCrtMlXF7/IiMOlO4j2IuOKkYgWoXqeuivABiQ7WSNj
+	 27Taj6HJZAQQ+yIb7j2qw3/9cMS4GEKnuki9Pf06lvAbZyddSES2/+Lj3toc2ZGYaA
+	 /aVMA2vOH9S5kv+1IAEWhSLauqIX9kJRxLLQgzTU=
+Date: Tue, 04 Jun 2024 16:38:19 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,deller@gmx.de,david@redhat.com,daniel@ffwll.ch,corbet@lwn.net,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-task_mmu-use-folio-api-in-pte_is_pinned.patch added to mm-unstable branch
-Message-Id: <20240604233818.0BE5EC2BBFC@smtp.kernel.org>
+Subject: + mm-remove-page_maybe_dma_pinned.patch added to mm-unstable branch
+Message-Id: <20240604233819.D6CE6C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: use folio API in pte_is_pinned()
+     Subject: mm: remove page_maybe_dma_pinned()
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-proc-task_mmu-use-folio-api-in-pte_is_pinned.patch
+     mm-remove-page_maybe_dma_pinned.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-use-folio-api-in-pte_is_pinned.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-page_maybe_dma_pinned.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,60 +59,80 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: fs/proc/task_mmu: use folio API in pte_is_pinned()
-Date: Tue, 4 Jun 2024 19:48:19 +0800
+Subject: mm: remove page_maybe_dma_pinned()
+Date: Tue, 4 Jun 2024 19:48:20 +0800
 
-Patch series "mm: remove page_maybe_dma_pinned() and page_mkclean()".
+After the last user of page_maybe_dma_pinned() is converted to
+folio_maybe_dma_pinned(), remove page_maybe_dma_pinned() and update the
+document and comment.
 
-Most page_maybe_dma_pinned() and page_mkclean() callers have been
-converted to the folio equivalents, after two more convertsions,
-remove them and update the comment and documention.
-
-
-This patch (of 4):
-
-Convert to use vm_normal_folio() and folio_maybe_dma_pinned() API, which
-helps to remove page_maybe_dma_pinned() in the subsequent change.
-
-Link: https://lkml.kernel.org/r/20240604114822.2089819-1-wangkefeng.wang@huawei.com
-Link: https://lkml.kernel.org/r/20240604114822.2089819-2-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240604114822.2089819-3-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Helge Deller <deller@gmx.de>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/core-api/pin_user_pages.rst |   10 +++++-----
+ include/linux/mm.h                        |    9 ++-------
+ 2 files changed, 7 insertions(+), 12 deletions(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-use-folio-api-in-pte_is_pinned
-+++ a/fs/proc/task_mmu.c
-@@ -1088,7 +1088,7 @@ struct clear_refs_private {
+--- a/Documentation/core-api/pin_user_pages.rst~mm-remove-page_maybe_dma_pinned
++++ a/Documentation/core-api/pin_user_pages.rst
+@@ -196,20 +196,20 @@ INCORRECT (uses FOLL_GET calls):
+     write to the data within the pages
+     put_page()
  
- static inline bool pte_is_pinned(struct vm_area_struct *vma, unsigned long addr, pte_t pte)
+-page_maybe_dma_pinned(): the whole point of pinning
++folio_maybe_dma_pinned(): the whole point of pinning
+ ===================================================
+ 
+-The whole point of marking pages as "DMA-pinned" or "gup-pinned" is to be able
+-to query, "is this page DMA-pinned?" That allows code such as page_mkclean()
++The whole point of marking folios as "DMA-pinned" or "gup-pinned" is to be able
++to query, "is this folio DMA-pinned?" That allows code such as page_mkclean()
+ (and file system writeback code in general) to make informed decisions about
+-what to do when a page cannot be unmapped due to such pins.
++what to do when a folio cannot be unmapped due to such pins.
+ 
+ What to do in those cases is the subject of a years-long series of discussions
+ and debates (see the References at the end of this document). It's a TODO item
+ here: fill in the details once that's worked out. Meanwhile, it's safe to say
+ that having this available: ::
+ 
+-        static inline bool page_maybe_dma_pinned(struct page *page)
++        static inline bool folio_maybe_dma_pinned(struct folio *folio)
+ 
+ ...is a prerequisite to solving the long-running gup+DMA problem.
+ 
+--- a/include/linux/mm.h~mm-remove-page_maybe_dma_pinned
++++ a/include/linux/mm.h
+@@ -1940,8 +1940,8 @@ static inline struct folio *pfn_folio(un
+  *
+  * For more information, please see Documentation/core-api/pin_user_pages.rst.
+  *
+- * Return: True, if it is likely that the page has been "dma-pinned".
+- * False, if the page is definitely not dma-pinned.
++ * Return: True, if it is likely that the folio has been "dma-pinned".
++ * False, if the folio is definitely not dma-pinned.
+  */
+ static inline bool folio_maybe_dma_pinned(struct folio *folio)
  {
--	struct page *page;
-+	struct folio *folio;
- 
- 	if (!pte_write(pte))
- 		return false;
-@@ -1096,10 +1096,10 @@ static inline bool pte_is_pinned(struct
- 		return false;
- 	if (likely(!test_bit(MMF_HAS_PINNED, &vma->vm_mm->flags)))
- 		return false;
--	page = vm_normal_page(vma, addr, pte);
--	if (!page)
-+	folio = vm_normal_folio(vma, addr, pte);
-+	if (!folio)
- 		return false;
--	return page_maybe_dma_pinned(page);
-+	return folio_maybe_dma_pinned(folio);
+@@ -1960,11 +1960,6 @@ static inline bool folio_maybe_dma_pinne
+ 		GUP_PIN_COUNTING_BIAS;
  }
  
- static inline void clear_soft_dirty(struct vm_area_struct *vma,
+-static inline bool page_maybe_dma_pinned(struct page *page)
+-{
+-	return folio_maybe_dma_pinned(page_folio(page));
+-}
+-
+ /*
+  * This should most likely only be called during fork() to see whether we
+  * should break the cow immediately for an anon page on the src mm.
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
