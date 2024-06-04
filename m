@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D489143758
-	for <mm-commits@vger.kernel.org>; Tue,  4 Jun 2024 22:20:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 595D9146599;
+	Tue,  4 Jun 2024 22:36:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717539622; cv=none; b=rJbVayr4QqR6+SxR+R+CIhT3x1G5M+r92bLwW9HvmyoTRbBkr7F+ESUi4wmq0G99JQdsFWOTPQyyOxKyBGwk9hziTx4hj2eWUKJwlwYDjKO1WX7p4f8zVbBrdTHad+Z7xv/rISDFPGHdvRhweoQAzz13Gv6zOcjiRgpKxieQZuE=
+	t=1717540610; cv=none; b=SrRZ+PCiD8I2P47g6ZcNMRyI6E4XXFfjDm1c4GrgV2Dp5TIrtVgkKv10WP0pEYt2DWWsx/wU+HNMiptKmuwg+lFHeBzEsn6NFX2Xm+pcLSPwexS1WKKmd9RndmVkQ9JvOuHT2Bi9OD+GdQxBdWr6HzjiWSXKVrvIFnFMi5HW8RE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717539622; c=relaxed/simple;
-	bh=TfUd0kXjKhW4hbKrYFzSNiVzx1aFxa8H6Z717y+5uRk=;
-	h=Date:To:From:Subject:Message-Id; b=qcv91U4TsHOzDcT3/d5L+rmHgX4qATaast8snHdnNSrlHybQnnmlAiSwdBSbOyUMgfFkz4wnHrGC5imXWmbVxvTaWZVplf2Z7xY9oBEwwtGsv2e2+XzabUJK7N6FChSA9eivfTIZaCxEoq+2Yi9DplXdXTJOelst613wk+T1BEk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tK/uw7+F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717540610; c=relaxed/simple;
+	bh=kzpEXYvhFIGPJbW/6LW5yXMfSCpqjyC3cWtuTr3fGts=;
+	h=Date:To:From:Subject:Message-Id; b=mGL+ABnIW0XCfIcP4m1SfFeNSddDZKbwXIQ40mpAlEia89DC2yUUTAeKFYzQ6DB1fhA/Wcktono+coL9vgvxthdlwE2RjdVqjsGd1rmaiGWK7Qlerv7Ikow59xLdazYQwv5lm5dCIkZQyjC3jJySqlXU9umS6mfAEtv3TADe450=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G36raR43; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tK/uw7+F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8BD7C2BBFC;
-	Tue,  4 Jun 2024 22:20:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G36raR43"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B65E9C2BBFC;
+	Tue,  4 Jun 2024 22:36:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717539621;
-	bh=TfUd0kXjKhW4hbKrYFzSNiVzx1aFxa8H6Z717y+5uRk=;
+	s=korg; t=1717540609;
+	bh=kzpEXYvhFIGPJbW/6LW5yXMfSCpqjyC3cWtuTr3fGts=;
 	h=Date:To:From:Subject:From;
-	b=tK/uw7+FQhee/bEea2ZLw7nqwBbeKm8jt4J8xGe0RfRswJD1pRxfX4Poq9QLDKQ97
-	 xG3fLwXpmNFxARuxrfPokzoP1EYdToiA0ca9RuLn5lKCek8/MmQCHRxD6lxzfh3Ptd
-	 trv8RdxssU/TxLMqUL+S63sO1Qd7CbXQa5ou91jM=
-Date: Tue, 04 Jun 2024 15:20:20 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,senozhatsky@chromium.org,rientjes@google.com,minchan@kernel.org,erhard_f@mailbox.org,cl@linux.com,yosryahmed@google.com,akpm@linux-foundation.org
+	b=G36raR43vQyEqtGr7jYiCNEZQlv0JwIuOZEaDZ4OOFSCgan0yScE/Z8OezcHEoRh5
+	 0o5a9gB0A3/MEBuRdu1i5sqKtb0bSufuMCPNQtZDTkB9W/ndAHHRxgqhDd3AvNRhsV
+	 fNDY2kLuxoYED5vhKC9E5szGKB/NC0Ibd94/6sU0=
+Date: Tue, 04 Jun 2024 15:36:49 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zsmalloc-share-slab-caches-for-all-zsmalloc-zpools.patch added to mm-unstable branch
-Message-Id: <20240604222021.A8BD7C2BBFC@smtp.kernel.org>
+Subject: + nilfs2-fix-nilfs_empty_dir-misjudgment-and-long-loop-on-i-o-errors.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240604223649.B65E9C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zsmalloc: share slab caches for all zsmalloc zpools
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zsmalloc-share-slab-caches-for-all-zsmalloc-zpools.patch
+     Subject: nilfs2: fix nilfs_empty_dir() misjudgment and long loop on I/O errors
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     nilfs2-fix-nilfs_empty_dir-misjudgment-and-long-loop-on-i-o-errors.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-share-slab-caches-for-all-zsmalloc-zpools.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-nilfs_empty_dir-misjudgment-and-long-loop-on-i-o-errors.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,248 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zsmalloc: share slab caches for all zsmalloc zpools
-Date: Tue, 4 Jun 2024 17:53:40 +0000
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix nilfs_empty_dir() misjudgment and long loop on I/O errors
+Date: Tue, 4 Jun 2024 22:42:55 +0900
 
-Zswap creates multiple zpools to improve concurrency.  Each zsmalloc zpool
-creates its own 'zs_handle' and 'zspage' slab caches.  Currently we end up
-with 32 slab caches of each type.
+The error handling in nilfs_empty_dir() when a directory folio/page read
+fails is incorrect, as in the old ext2 implementation, and if the
+folio/page cannot be read or nilfs_check_folio() fails, it will falsely
+determine the directory as empty and corrupt the file system.
 
-Since each slab cache holds some free objects, we end up with a lot of
-free objects distributed among the separate zpool caches.  Slab caches are
-designed to handle concurrent allocations by using percpu structures, so
-having a single instance of each cache should be enough, and avoids
-wasting more memory than needed due to fragmentation.
+In addition, since nilfs_empty_dir() does not immediately return on a
+failed folio/page read, but continues to loop, this can cause a long loop
+with I/O if i_size of the directory's inode is also corrupted, causing the
+log writer thread to wait and hang, as reported by syzbot.
 
-Additionally, having more slab caches than needed unnecessarily slows down
-code paths that iterate slab_caches.
+Fix these issues by making nilfs_empty_dir() immediately return a false
+value (0) if it fails to get a directory folio/page.
 
-In the results reported by Eric in [1], the amount of unused slab memory
-in these caches goes down from 242808 bytes to 29216 bytes (-88%).  This
-is calculated by (num_objs - active_objs) * objsize for each 'zs_handle'
-and 'zspage' cache.  Although this patch did not help with the allocation
-failure reported by Eric with zswap + zsmalloc, I think it is still worth
-merging on its own.
-
-[1]https://lore.kernel.org/lkml/20240604134458.3ae4396a@yea/
-
-Link: https://lkml.kernel.org/r/20240604175340.218175-1-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Erhard Furtner <erhard_f@mailbox.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Link: https://lkml.kernel.org/r/20240604134255.7165-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+c8166c541d3971bf6c87@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=c8166c541d3971bf6c87
+Fixes: 2ba466d74ed7 ("nilfs2: directory entry operations")
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   87 ++++++++++++++++++++++++------------------------
- 1 file changed, 44 insertions(+), 43 deletions(-)
+ fs/nilfs2/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-share-slab-caches-for-all-zsmalloc-zpools
-+++ a/mm/zsmalloc.c
-@@ -221,8 +221,6 @@ struct zs_pool {
- 	const char *name;
+--- a/fs/nilfs2/dir.c~nilfs2-fix-nilfs_empty_dir-misjudgment-and-long-loop-on-i-o-errors
++++ a/fs/nilfs2/dir.c
+@@ -607,7 +607,7 @@ int nilfs_empty_dir(struct inode *inode)
  
- 	struct size_class *size_class[ZS_SIZE_CLASSES];
--	struct kmem_cache *handle_cachep;
--	struct kmem_cache *zspage_cachep;
+ 		kaddr = nilfs_get_folio(inode, i, &folio);
+ 		if (IS_ERR(kaddr))
+-			continue;
++			return 0;
  
- 	atomic_long_t pages_allocated;
- 
-@@ -290,50 +288,29 @@ static void init_deferred_free(struct zs
- static void SetZsPageMovable(struct zs_pool *pool, struct zspage *zspage) {}
- #endif
- 
--static int create_cache(struct zs_pool *pool)
--{
--	pool->handle_cachep = kmem_cache_create("zs_handle", ZS_HANDLE_SIZE,
--					0, 0, NULL);
--	if (!pool->handle_cachep)
--		return 1;
--
--	pool->zspage_cachep = kmem_cache_create("zspage", sizeof(struct zspage),
--					0, 0, NULL);
--	if (!pool->zspage_cachep) {
--		kmem_cache_destroy(pool->handle_cachep);
--		pool->handle_cachep = NULL;
--		return 1;
--	}
--
--	return 0;
--}
-+static struct kmem_cache *zs_handle_cache;
-+static struct kmem_cache *zspage_cache;
- 
--static void destroy_cache(struct zs_pool *pool)
-+static unsigned long cache_alloc_handle(gfp_t gfp)
- {
--	kmem_cache_destroy(pool->handle_cachep);
--	kmem_cache_destroy(pool->zspage_cachep);
--}
--
--static unsigned long cache_alloc_handle(struct zs_pool *pool, gfp_t gfp)
--{
--	return (unsigned long)kmem_cache_alloc(pool->handle_cachep,
-+	return (unsigned long)kmem_cache_alloc(zs_handle_cache,
- 			gfp & ~(__GFP_HIGHMEM|__GFP_MOVABLE));
- }
- 
--static void cache_free_handle(struct zs_pool *pool, unsigned long handle)
-+static void cache_free_handle(unsigned long handle)
- {
--	kmem_cache_free(pool->handle_cachep, (void *)handle);
-+	kmem_cache_free(zs_handle_cache, (void *)handle);
- }
- 
--static struct zspage *cache_alloc_zspage(struct zs_pool *pool, gfp_t flags)
-+static struct zspage *cache_alloc_zspage(gfp_t flags)
- {
--	return kmem_cache_zalloc(pool->zspage_cachep,
-+	return kmem_cache_zalloc(zspage_cache,
- 			flags & ~(__GFP_HIGHMEM|__GFP_MOVABLE));
- }
- 
--static void cache_free_zspage(struct zs_pool *pool, struct zspage *zspage)
-+static void cache_free_zspage(struct zspage *zspage)
- {
--	kmem_cache_free(pool->zspage_cachep, zspage);
-+	kmem_cache_free(zspage_cache, zspage);
- }
- 
- /* pool->lock(which owns the handle) synchronizes races */
-@@ -853,7 +830,7 @@ static void __free_zspage(struct zs_pool
- 		page = next;
- 	} while (page != NULL);
- 
--	cache_free_zspage(pool, zspage);
-+	cache_free_zspage(zspage);
- 
- 	class_stat_dec(class, ZS_OBJS_ALLOCATED, class->objs_per_zspage);
- 	atomic_long_sub(class->pages_per_zspage, &pool->pages_allocated);
-@@ -966,7 +943,7 @@ static struct zspage *alloc_zspage(struc
- {
- 	int i;
- 	struct page *pages[ZS_MAX_PAGES_PER_ZSPAGE];
--	struct zspage *zspage = cache_alloc_zspage(pool, gfp);
-+	struct zspage *zspage = cache_alloc_zspage(gfp);
- 
- 	if (!zspage)
- 		return NULL;
-@@ -984,7 +961,7 @@ static struct zspage *alloc_zspage(struc
- 				__ClearPageZsmalloc(pages[i]);
- 				__free_page(pages[i]);
- 			}
--			cache_free_zspage(pool, zspage);
-+			cache_free_zspage(zspage);
- 			return NULL;
- 		}
- 		__SetPageZsmalloc(page);
-@@ -1356,7 +1333,7 @@ unsigned long zs_malloc(struct zs_pool *
- 	if (unlikely(size > ZS_MAX_ALLOC_SIZE))
- 		return (unsigned long)ERR_PTR(-ENOSPC);
- 
--	handle = cache_alloc_handle(pool, gfp);
-+	handle = cache_alloc_handle(gfp);
- 	if (!handle)
- 		return (unsigned long)ERR_PTR(-ENOMEM);
- 
-@@ -1381,7 +1358,7 @@ unsigned long zs_malloc(struct zs_pool *
- 
- 	zspage = alloc_zspage(pool, class, gfp);
- 	if (!zspage) {
--		cache_free_handle(pool, handle);
-+		cache_free_handle(handle);
- 		return (unsigned long)ERR_PTR(-ENOMEM);
- 	}
- 
-@@ -1459,7 +1436,7 @@ void zs_free(struct zs_pool *pool, unsig
- 		free_zspage(pool, class, zspage);
- 
- 	spin_unlock(&pool->lock);
--	cache_free_handle(pool, handle);
-+	cache_free_handle(handle);
- }
- EXPORT_SYMBOL_GPL(zs_free);
- 
-@@ -2124,9 +2101,6 @@ struct zs_pool *zs_create_pool(const cha
- 	if (!pool->name)
- 		goto err;
- 
--	if (create_cache(pool))
--		goto err;
--
- 	/*
- 	 * Iterate reversely, because, size of size_class that we want to use
- 	 * for merging should be larger or equal to current size.
-@@ -2247,16 +2221,41 @@ void zs_destroy_pool(struct zs_pool *poo
- 		kfree(class);
- 	}
- 
--	destroy_cache(pool);
- 	kfree(pool->name);
- 	kfree(pool);
- }
- EXPORT_SYMBOL_GPL(zs_destroy_pool);
- 
-+static void zs_destroy_caches(void)
-+{
-+	kmem_cache_destroy(zs_handle_cache);
-+	kmem_cache_destroy(zspage_cache);
-+	zs_handle_cache = NULL;
-+	zspage_cache = NULL;
-+}
-+
-+static int zs_create_caches(void)
-+{
-+	zs_handle_cache = kmem_cache_create("zs_handle", ZS_HANDLE_SIZE,
-+					    0, 0, NULL);
-+	zspage_cache = kmem_cache_create("zspage", sizeof(struct zspage),
-+					 0, 0, NULL);
-+
-+	if (!zs_handle_cache || !zspage_cache) {
-+		zs_destroy_caches();
-+		return -1;
-+	}
-+	return 0;
-+}
-+
- static int __init zs_init(void)
- {
- 	int ret;
- 
-+	ret = zs_create_caches();
-+	if (ret)
-+		goto out;
-+
- 	ret = cpuhp_setup_state(CPUHP_MM_ZS_PREPARE, "mm/zsmalloc:prepare",
- 				zs_cpu_prepare, zs_cpu_dead);
- 	if (ret)
-@@ -2271,6 +2270,7 @@ static int __init zs_init(void)
- 	return 0;
- 
- out:
-+	zs_destroy_caches();
- 	return ret;
- }
- 
-@@ -2282,6 +2282,7 @@ static void __exit zs_exit(void)
- 	cpuhp_remove_state(CPUHP_MM_ZS_PREPARE);
- 
- 	zs_stat_exit();
-+	zs_destroy_caches();
- }
- 
- module_init(zs_init);
+ 		de = (struct nilfs_dir_entry *)kaddr;
+ 		kaddr += nilfs_last_byte(inode, i) - NILFS_DIR_REC_LEN(1);
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-mm-zswap-use-sg_set_folio-in-zswap_compress-decompress.patch
-mm-zswap-use-kmap_local_folio-in-zswap_load.patch
-mm-zswap-make-same_filled-functions-folio-friendly.patch
-mm-rmap-abstract-updating-per-node-and-per-memcg-stats.patch
-mm-zsmalloc-share-slab-caches-for-all-zsmalloc-zpools.patch
+nilfs2-fix-potential-kernel-bug-due-to-lack-of-writeback-flag-waiting.patch
+nilfs2-fix-nilfs_empty_dir-misjudgment-and-long-loop-on-i-o-errors.patch
 
