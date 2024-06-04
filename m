@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AE0E14D715
-	for <mm-commits@vger.kernel.org>; Tue,  4 Jun 2024 23:38:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D331D535
+	for <mm-commits@vger.kernel.org>; Tue,  4 Jun 2024 23:52:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717544304; cv=none; b=XZSNq2wKhXZvJ7J2TAQG9WN6rmc6RQZuZzP8n96OjlMGdcAhbfEiGgV+HpuR/LnyBB+mFH1pT1dhDTTrlnoRtXPqOoJ4u6wJi+XwoMvdJCi1IUwNTGbYHO4z1yY7bmBb4vLrlee2TSL5Fse1oN2WZ/3P//OZRZxUWHm9d735FOI=
+	t=1717545154; cv=none; b=INn9FcI7IGOgSpPZXdNfOKM8K3/kOkf8nSsfyNBfVOlKr2aqCkE8dLplw8IVbyMvXt5N/AWgaPg4eeKJd0bajx4wOaGYD+K19oKb8NpPj41S0k5WkcHCMcya6NYhWB7oc1o7JowcdI2wykB3aF2DC6V7sD8Xw+BimTvzHkjT4PY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717544304; c=relaxed/simple;
-	bh=6ogIo6/ldejxwnccgJAtcYpQ6tFbuxtReFpYH5iZ4iM=;
-	h=Date:To:From:Subject:Message-Id; b=LnoMA9GchVri+VbLPP/EwA45Q42yTwQmu2wyOxZ03ouYqQ+0T0KstmW2s0N0peVZDkJU9rgGshp2/Xt+NsmbRdsAXFkx65nhqrvnR8gynNJLaHqNFC2jH+MgULCQy2TnpaAmrNlO/twFeOxV8azXdarSS2/aVvMSfmN2dwoqyjw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xu1jrBhz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717545154; c=relaxed/simple;
+	bh=bn6V3BE9ck1tLkyeXszaeVCOFhw3pTSx2bfqDrBanTs=;
+	h=Date:To:From:Subject:Message-Id; b=Zix3CD9lqh2sY1Ff1EoCI7HIwRKcBsSVr1JskPSFNPoOmvCAMS6HVGVJP4NyIx/HQrSZ+7zfF4u8qPseFSlOy075cDFasiXrpeguw1fsGd7shVayWIcUlAyBQnAblDm4H6CU6ig87qRDcDmi5hREgNUrN7Mo3czr3vypJz+8hbI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZlcSbXzk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xu1jrBhz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F21A1C3277B;
-	Tue,  4 Jun 2024 23:38:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZlcSbXzk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95A51C2BBFC;
+	Tue,  4 Jun 2024 23:52:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717544304;
-	bh=6ogIo6/ldejxwnccgJAtcYpQ6tFbuxtReFpYH5iZ4iM=;
+	s=korg; t=1717545153;
+	bh=bn6V3BE9ck1tLkyeXszaeVCOFhw3pTSx2bfqDrBanTs=;
 	h=Date:To:From:Subject:From;
-	b=Xu1jrBhz79XZOA+8riZgQSkL/PIfvzUg9w43417e4QwdKeZS327vv6igwXNCgrbZx
-	 fBGM9DDuLjJH3eusuVeEtDto9WlW88OaePgLQSpAhJKu9ZBIC6InvNC6MBVc3Tun+w
-	 ur7sgtcJ4AsWAT+D8oHgKvgAp4zC9yTZuXlE5cc0=
-Date: Tue, 04 Jun 2024 16:38:23 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,deller@gmx.de,david@redhat.com,daniel@ffwll.ch,corbet@lwn.net,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=ZlcSbXzkpDkhwdRuo7MflpqxuRaQD7S47QW9+/xjfqEgIZU7jgY0lxkyvdihSVzp9
+	 olxP0tQw7BIRfDxdlUZSTBojXS5BWVgHg1AHs+WP8uZTyJfmWjwjGhUx6GQCBa86SG
+	 fCVvUw3Q7MWZHM6z16lIsnu2NyHHKL5JSVXs9GKw=
+Date: Tue, 04 Jun 2024 16:52:32 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-page_mkclean.patch added to mm-unstable branch
-Message-Id: <20240604233823.F21A1C3277B@smtp.kernel.org>
+Subject: + mm-memory-extend-finish_fault-to-support-large-folio.patch added to mm-unstable branch
+Message-Id: <20240604235233.95A51C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove page_mkclean()
+     Subject: mm: memory: extend finish_fault() to support large folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-page_mkclean.patch
+     mm-memory-extend-finish_fault-to-support-large-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-page_mkclean.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-extend-finish_fault-to-support-large-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,151 +58,190 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: remove page_mkclean()
-Date: Tue, 4 Jun 2024 19:48:22 +0800
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: memory: extend finish_fault() to support large folio
+Date: Tue, 4 Jun 2024 18:17:45 +0800
 
-There are no more users of page_mkclean(), remove it and update the
-document and comment.
+Patch series "add mTHP support for anonymous shmem", v4.
 
-Link: https://lkml.kernel.org/r/20240604114822.2089819-5-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Anonymous pages have already been supported for multi-size (mTHP)
+allocation through commit 19eaf44954df, that can allow THP to be
+configured through the sysfs interface located at
+'/sys/kernel/mm/transparent_hugepage/hugepage-XXkb/enabled'.
+
+However, the anonymous shmem will ignore the anonymous mTHP rule
+configured through the sysfs interface, and can only use the PMD-mapped
+THP, that is not reasonable.  Many implement anonymous page sharing
+through mmap(MAP_SHARED | MAP_ANONYMOUS), especially in database usage
+scenarios, therefore, users expect to apply an unified mTHP strategy for
+anonymous pages, also including the anonymous shared pages, in order to
+enjoy the benefits of mTHP.  For example, lower latency than PMD-mapped
+THP, smaller memory bloat than PMD-mapped THP, contiguous PTEs on ARM
+architecture to reduce TLB miss etc.
+
+As discussed in the bi-weekly MM meeting[1], the mTHP controls should
+control all of shmem, not only anonymous shmem, but support will be added
+iteratively.  Therefore, this patch set starts with support for anonymous
+shmem.
+
+The primary strategy is similar to supporting anonymous mTHP.  Introduce a
+new interface '/mm/transparent_hugepage/hugepage-XXkb/shmem_enabled',
+which can have almost the same values as the top-level
+'/sys/kernel/mm/transparent_hugepage/shmem_enabled', with adding a new
+additional "inherit" option and dropping the testing options 'force' and
+'deny'.  By default all sizes will be set to "never" except PMD size,
+which is set to "inherit".  This ensures backward compatibility with the
+anonymous shmem enabled of the top level, meanwhile also allows
+independent control of anonymous shmem enabled for each mTHP.
+
+Use the page fault latency tool to measure the performance of 1G anonymous
+shmem with 32 threads on my machine environment with: ARM64 Architecture,
+32 cores, 125G memory:
+
+base: mm-unstable
+user-time    sys_time    faults_per_sec_per_cpu     faults_per_sec
+0.04s        3.10s         83516.416                  2669684.890
+
+mm-unstable + patchset, anon shmem mTHP disabled
+user-time    sys_time    faults_per_sec_per_cpu     faults_per_sec
+0.02s        3.14s         82936.359                  2630746.027
+
+mm-unstable + patchset, anon shmem 64K mTHP enabled
+user-time    sys_time    faults_per_sec_per_cpu     faults_per_sec
+0.08s        0.31s         678630.231                 17082522.495
+
+From the data above, it is observed that the patchset has a minimal impact
+when mTHP is not enabled (some fluctuations observed during testing). 
+When enabling 64K mTHP, there is a significant improvement of the page
+fault latency.
+
+[1] https://lore.kernel.org/all/f1783ff0-65bd-4b2b-8952-52b6822a0835@redhat.com/
+
+
+This patch (of 6):
+
+Add large folio mapping establishment support for finish_fault() as a
+preparation, to support multi-size THP allocation of anonymous shmem pages
+in the following patches.
+
+Keep the same behavior (per-page fault) for non-anon shmem to avoid
+inflating the RSS unintentionally, and we can discuss what size of mapping
+to build when extending mTHP to control non-anon shmem in the future.
+
+Link: https://lkml.kernel.org/r/cover.1717495894.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/bee11bfd9157e60aaea6db033a4af7c13c982c82.1717495894.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Daniel Gomez <da.gomez@samsung.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/pin_user_pages.rst |    8 ++++----
- drivers/video/fbdev/core/fb_defio.c       |    4 ++--
- include/linux/mm.h                        |    2 +-
- include/linux/rmap.h                      |    4 ----
- mm/gup.c                                  |    2 +-
- mm/mremap.c                               |    2 +-
- 6 files changed, 9 insertions(+), 13 deletions(-)
+ mm/memory.c |   57 +++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 47 insertions(+), 10 deletions(-)
 
---- a/Documentation/core-api/pin_user_pages.rst~mm-remove-page_mkclean
-+++ a/Documentation/core-api/pin_user_pages.rst
-@@ -132,7 +132,7 @@ CASE 1: Direct IO (DIO)
- -----------------------
- There are GUP references to pages that are serving
- as DIO buffers. These buffers are needed for a relatively short time (so they
--are not "long term"). No special synchronization with page_mkclean() or
-+are not "long term"). No special synchronization with folio_mkclean() or
- munmap() is provided. Therefore, flags to set at the call site are: ::
+--- a/mm/memory.c~mm-memory-extend-finish_fault-to-support-large-folio
++++ a/mm/memory.c
+@@ -4831,9 +4831,12 @@ vm_fault_t finish_fault(struct vm_fault
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct page *page;
++	struct folio *folio;
+ 	vm_fault_t ret;
+ 	bool is_cow = (vmf->flags & FAULT_FLAG_WRITE) &&
+ 		      !(vma->vm_flags & VM_SHARED);
++	int type, nr_pages, i;
++	unsigned long addr = vmf->address;
  
-     FOLL_PIN
-@@ -144,7 +144,7 @@ CASE 2: RDMA
- ------------
- There are GUP references to pages that are serving as DMA
- buffers. These buffers are needed for a long time ("long term"). No special
--synchronization with page_mkclean() or munmap() is provided. Therefore, flags
-+synchronization with folio_mkclean() or munmap() is provided. Therefore, flags
- to set at the call site are: ::
+ 	/* Did we COW the page? */
+ 	if (is_cow)
+@@ -4864,24 +4867,58 @@ vm_fault_t finish_fault(struct vm_fault
+ 			return VM_FAULT_OOM;
+ 	}
  
-     FOLL_PIN | FOLL_LONGTERM
-@@ -170,7 +170,7 @@ callback, simply remove the range from t
++	folio = page_folio(page);
++	nr_pages = folio_nr_pages(folio);
++
++	/*
++	 * Using per-page fault to maintain the uffd semantics, and same
++	 * approach also applies to non-anonymous-shmem faults to avoid
++	 * inflating the RSS of the process.
++	 */
++	if (!vma_is_anon_shmem(vma) || unlikely(userfaultfd_armed(vma))) {
++		nr_pages = 1;
++	} else if (nr_pages > 1) {
++		pgoff_t idx = folio_page_idx(folio, page);
++		/* The page offset of vmf->address within the VMA. */
++		pgoff_t vma_off = vmf->pgoff - vmf->vma->vm_pgoff;
++
++		/*
++		 * Fallback to per-page fault in case the folio size in page
++		 * cache beyond the VMA limits.
++		 */
++		if (unlikely(vma_off < idx ||
++			     vma_off + (nr_pages - idx) > vma_pages(vma))) {
++			nr_pages = 1;
++		} else {
++			/* Now we can set mappings for the whole large folio. */
++			addr = vmf->address - idx * PAGE_SIZE;
++			page = &folio->page;
++		}
++	}
++
+ 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+-				      vmf->address, &vmf->ptl);
++				       addr, &vmf->ptl);
+ 	if (!vmf->pte)
+ 		return VM_FAULT_NOPAGE;
  
- Either way, as long as the driver unpins the pages upon mmu notifier callback,
- then there is proper synchronization with both filesystem and mm
--(page_mkclean(), munmap(), etc). Therefore, neither flag needs to be set.
-+(folio_mkclean(), munmap(), etc). Therefore, neither flag needs to be set.
+ 	/* Re-check under ptl */
+-	if (likely(!vmf_pte_changed(vmf))) {
+-		struct folio *folio = page_folio(page);
+-		int type = is_cow ? MM_ANONPAGES : mm_counter_file(folio);
+-
+-		set_pte_range(vmf, folio, page, 1, vmf->address);
+-		add_mm_counter(vma->vm_mm, type, 1);
+-		ret = 0;
+-	} else {
+-		update_mmu_tlb(vma, vmf->address, vmf->pte);
++	if (nr_pages == 1 && unlikely(vmf_pte_changed(vmf))) {
++		update_mmu_tlb(vma, addr, vmf->pte);
+ 		ret = VM_FAULT_NOPAGE;
++		goto unlock;
++	} else if (nr_pages > 1 && !pte_range_none(vmf->pte, nr_pages)) {
++		update_mmu_tlb_range(vma, addr, vmf->pte, nr_pages);
++		ret = VM_FAULT_NOPAGE;
++		goto unlock;
+ 	}
  
- CASE 4: Pinning for struct page manipulation only
- -------------------------------------------------
-@@ -200,7 +200,7 @@ folio_maybe_dma_pinned(): the whole poin
- ===================================================
- 
- The whole point of marking folios as "DMA-pinned" or "gup-pinned" is to be able
--to query, "is this folio DMA-pinned?" That allows code such as page_mkclean()
-+to query, "is this folio DMA-pinned?" That allows code such as folio_mkclean()
- (and file system writeback code in general) to make informed decisions about
- what to do when a folio cannot be unmapped due to such pins.
- 
---- a/drivers/video/fbdev/core/fb_defio.c~mm-remove-page_mkclean
-+++ a/drivers/video/fbdev/core/fb_defio.c
-@@ -113,7 +113,7 @@ static vm_fault_t fb_deferred_io_fault(s
- 		printk(KERN_ERR "no mapping available\n");
- 
- 	BUG_ON(!page->mapping);
--	page->index = vmf->pgoff; /* for page_mkclean() */
-+	page->index = vmf->pgoff; /* for folio_mkclean() */
- 
- 	vmf->page = page;
- 	return 0;
-@@ -161,7 +161,7 @@ static vm_fault_t fb_deferred_io_track_p
- 
- 	/*
- 	 * We want the page to remain locked from ->page_mkwrite until
--	 * the PTE is marked dirty to avoid page_mkclean() being called
-+	 * the PTE is marked dirty to avoid folio_mkclean() being called
- 	 * before the PTE is updated, which would leave the page ignored
- 	 * by defio.
- 	 * Do this by locking the page here and informing the caller
---- a/include/linux/mm.h~mm-remove-page_mkclean
-+++ a/include/linux/mm.h
-@@ -1597,7 +1597,7 @@ static inline void put_page(struct page
-  * issue.
-  *
-  * Locking: the lockless algorithm described in folio_try_get_rcu()
-- * provides safe operation for get_user_pages(), page_mkclean() and
-+ * provides safe operation for get_user_pages(), folio_mkclean() and
-  * other calls that race to set up page table entries.
-  */
- #define GUP_PIN_COUNTING_BIAS (1U << 10)
---- a/include/linux/rmap.h~mm-remove-page_mkclean
-+++ a/include/linux/rmap.h
-@@ -780,8 +780,4 @@ static inline int folio_mkclean(struct f
++	folio_ref_add(folio, nr_pages - 1);
++	set_pte_range(vmf, folio, page, nr_pages, addr);
++	type = is_cow ? MM_ANONPAGES : mm_counter_file(folio);
++	add_mm_counter(vma->vm_mm, type, nr_pages);
++	ret = 0;
++
++unlock:
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	return ret;
  }
- #endif	/* CONFIG_MMU */
- 
--static inline int page_mkclean(struct page *page)
--{
--	return folio_mkclean(page_folio(page));
--}
- #endif	/* _LINUX_RMAP_H */
---- a/mm/gup.c~mm-remove-page_mkclean
-+++ a/mm/gup.c
-@@ -393,7 +393,7 @@ void unpin_user_pages_dirty_lock(struct
- 		 * 1) This code sees the page as already dirty, so it
- 		 * skips the call to set_page_dirty(). That could happen
- 		 * because clear_page_dirty_for_io() called
--		 * page_mkclean(), followed by set_page_dirty().
-+		 * folio_mkclean(), followed by set_page_dirty().
- 		 * However, now the page is going to get written back,
- 		 * which meets the original intention of setting it
- 		 * dirty, so all is well: clear_page_dirty_for_io() goes
---- a/mm/mremap.c~mm-remove-page_mkclean
-+++ a/mm/mremap.c
-@@ -198,7 +198,7 @@ static int move_ptes(struct vm_area_stru
- 		 * PTE.
- 		 *
- 		 * NOTE! Both old and new PTL matter: the old one
--		 * for racing with page_mkclean(), the new one to
-+		 * for racing with folio_mkclean(), the new one to
- 		 * make sure the physical page stays valid until
- 		 * the TLB entry for the old mapping has been
- 		 * flushed.
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-add-folio_alloc_mpol.patch
-mm-mempolicy-use-folio_alloc_mpol_noprof-in-vma_alloc_folio_noprof.patch
-mm-mempolicy-use-folio_alloc_mpol-in-alloc_migration_target_by_mpol.patch
-mm-shmem-use-folio_alloc_mpol-in-shmem_alloc_folio.patch
-mm-refactor-folio_undo_large_rmappable.patch
-mm-memcontrol-remove-page_memcg.patch
-rmap-remove-define_page_vma_walk.patch
-mm-migrate-simplify-__buffer_migrate_folio.patch
-mm-migrate_device-use-a-newfolio-in-__migrate_device_pages.patch
-mm-migrate_device-unify-migrate-folio-for-migrate_sync_no_copy.patch
-mm-migrate-remove-migrate_folio_extra.patch
-mm-remove-migrate_sync_no_copy-mode.patch
-fs-proc-task_mmu-use-folio-api-in-pte_is_pinned.patch
-mm-remove-page_maybe_dma_pinned.patch
-fb_defio-use-a-folio-in-fb_deferred_io_work.patch
-mm-remove-page_mkclean.patch
+mm-drop-the-anon_-prefix-for-swap-out-mthp-counters.patch
+mm-memory-extend-finish_fault-to-support-large-folio.patch
+mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch
+mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch
+mm-shmem-add-mthp-support-for-anonymous-shmem.patch
+mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area.patch
+mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
 
