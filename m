@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45B23D535
-	for <mm-commits@vger.kernel.org>; Tue,  4 Jun 2024 23:52:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0A0FDDDF
+	for <mm-commits@vger.kernel.org>; Wed,  5 Jun 2024 02:23:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717545167; cv=none; b=aOvXcL/iL+25W7am+EXthw+ntqAEIjGvQhe5qZvkbKMl5yWorjSw6OF7rnLBf5Xn+JxX2kT8rACwdKhrsiiX3F8jwYjNv0+e6eQ+7ToIfKtxL3SZ7DRF/L/Q2Hvq5CQR41sE3d28TkhTZsVmvO9gXHWgyVRn+waJC+Ig4s+f6+8=
+	t=1717554197; cv=none; b=fsz3wzh9cou1ElVE2eIO3RCxY95A25n/hhpqwaFlPNCWck8ivVeeTsHYQkkZRw4Oz6fKpWEt6qj3b+GjQeHVyBUyYQlBIIOejje2nJZNDe8+MH4IeXnMQbUjbYQWK0LXilJU71l8fhsDKi3hHd9O+42LSOcSEdHlja//35iPODg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717545167; c=relaxed/simple;
-	bh=oOtD3AY1w+QzntvIXB48DLgxk2BwYdiYTtpBgt4gB0M=;
-	h=Date:To:From:Subject:Message-Id; b=k9/+BF5ExzOpDwYZHxGs8KZ0sYpkGx7NpyzeEf/4KInxzhXXdnWmerlr6/cahjBgRYbv5MBw3PRXO7qeMYoRk5d+nBgqm47kJYP3utBMttTGL8z5bdkgnOojxBG5sIbHlvzK2CkwOwcaHyMXR9cLSYzgBGfkIFQkABNNbHuTU+c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hkwKEFAF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717554197; c=relaxed/simple;
+	bh=TkvCVHjC3rIZR2MdvyKaNlbmJRTAvth0UpIaiN/mAHU=;
+	h=Date:To:From:Subject:Message-Id; b=huvmYSvQ4tFD4Pc+QksEioeHgt9hIS+P6RczEgv93qnFsCpgtlSG9ywKuIY17lMU+VXOPsqrL3Z1SmSipIZu2srAzZwQRmFNlMwiVmgxt5scaXw69+lbH8zFFewouq9PTgMHNQtT0ax11Et/ASg4QIOAULriKmN4xSPuN2RrWJE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kaxvkSxN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hkwKEFAF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 115F3C2BBFC;
-	Tue,  4 Jun 2024 23:52:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kaxvkSxN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 676F9C4AF07;
+	Wed,  5 Jun 2024 02:23:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717545167;
-	bh=oOtD3AY1w+QzntvIXB48DLgxk2BwYdiYTtpBgt4gB0M=;
+	s=korg; t=1717554197;
+	bh=TkvCVHjC3rIZR2MdvyKaNlbmJRTAvth0UpIaiN/mAHU=;
 	h=Date:To:From:Subject:From;
-	b=hkwKEFAFlubtxuNp87qjm+7mqT2J7Kpl0bVHCn9My2VDgGgEjYRaE6tRek+N4Z5qs
-	 2cV4YoT0oPfaPiYySbf1WqlKhAuWU5PPKa8i/jHU5eyDFMc6owELmjEkNFJZoXBrwQ
-	 9RfIWWeXaaY/fvZ/EY8ZSoEgPSSIUgTL7hl2tlls=
-Date: Tue, 04 Jun 2024 16:52:46 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=kaxvkSxN4nCfTLia6LZ0IaZwqMW8C9VPpYnBkBq1Y2T/xHL6bDyEG0rNQRDV0un9e
+	 t1g4jFhlIQiXQOqTyCjBi/GzBuCj3OAL8zGTTkQASQXlepZBdkNkLAYqj11tZzae1j
+	 9ErEaGLtYXLAXPYJg5VtTce0+M1qgHMwd7m0SjCE=
+Date: Tue, 04 Jun 2024 19:23:16 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,reinette.chatre@intel.com,peternewman@google.com,maciej.wieczor-retman@intel.com,james.morse@arm.com,gregkh@linuxfoundation.org,fenghua.yu@intel.com,dfustini@baylibre.com,Dave.Martin@arm.com,bp@alien8.de,babu.moger@amd.com,tony.luck@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-add-mthp-counters-for-anonymous-shmem.patch added to mm-unstable branch
-Message-Id: <20240604235247.115F3C2BBFC@smtp.kernel.org>
+Subject: [obsolete] cacheinfo-add-function-to-get-cacheinfo-for-a-given-cpu-cachelevel.patch removed from -mm tree
+Message-Id: <20240605022317.676F9C4AF07@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,142 +34,110 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: shmem: add mTHP counters for anonymous shmem
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
+The quilt patch titled
+     Subject: cacheinfo: add function to get cacheinfo for a given (cpu, cachelevel)
+has been removed from the -mm tree.  Its filename was
+     cacheinfo-add-function-to-get-cacheinfo-for-a-given-cpu-cachelevel.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: add mTHP counters for anonymous shmem
-Date: Tue, 4 Jun 2024 18:17:50 +0800
+From: Tony Luck <tony.luck@intel.com>
+Subject: cacheinfo: add function to get cacheinfo for a given (cpu, cachelevel)
+Date: Fri, 31 May 2024 12:57:18 -0700
 
-Add mTHP counters for anonymous shmem.
+Patch series "Add and use get_cpu_cacheinfo_level()".
 
-Link: https://lkml.kernel.org/r/f3c8f7a1c9fd17a48ffa22f7e7d236ac96caced6.1717495894.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Daniel Gomez <da.gomez@samsung.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+This helper function came up in discussion of the resctrl patches for
+Sub-NUMA Cluster (SNC) support.  Reinette pointed out[1] that there are
+already two places where it would clean things up by avoiding open coding.
+The SNC patches will add two additional call sites.
+
+So rather than have this jammed up as part of the SNC series, I'm posting
+it as a simple standalone cleanup.
+
+[1] https://lore.kernel.org/all/050c64b3-20b3-4db6-b782-f5124ebaab31@intel.com/
+
+
+This patch (of 3):
+
+Resctrl code open codes a search for information about a given cache level
+in a couple of places (and more are on the way).
+
+Provide a new inline function get_cpu_cacheinfo_level() in
+<linux/cacheinfo.h> to do the search and return a pointer to the cacheinfo
+structure.
+
+Simplify the existing get_cpu_cacheinfo_id() by using this new function to
+do the search.
+
+Link: https://lkml.kernel.org/r/20240531195720.232561-1-tony.luck@intel.com
+Link: https://lkml.kernel.org/r/20240531195720.232561-2-tony.luck@intel.com
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+Cc: Babu Moger <babu.moger@amd.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Dave Martin <Dave.Martin@arm.com>
+Cc: Drew Fustini <dfustini@baylibre.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: James Morse <james.morse@arm.com>
+Cc: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
+Cc: Peter Newman <peternewman@google.com>
+Cc: Reinette Chatre <reinette.chatre@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    3 +++
- mm/huge_memory.c        |    6 ++++++
- mm/shmem.c              |   18 +++++++++++++++---
- 3 files changed, 24 insertions(+), 3 deletions(-)
+ include/linux/cacheinfo.h |   21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-shmem-add-mthp-counters-for-anonymous-shmem
-+++ a/include/linux/huge_mm.h
-@@ -281,6 +281,9 @@ enum mthp_stat_item {
- 	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
- 	MTHP_STAT_SWPOUT,
- 	MTHP_STAT_SWPOUT_FALLBACK,
-+	MTHP_STAT_FILE_ALLOC,
-+	MTHP_STAT_FILE_FALLBACK,
-+	MTHP_STAT_FILE_FALLBACK_CHARGE,
- 	__MTHP_STAT_COUNT
- };
+--- a/include/linux/cacheinfo.h~cacheinfo-add-function-to-get-cacheinfo-for-a-given-cpu-cachelevel
++++ a/include/linux/cacheinfo.h
+@@ -113,10 +113,10 @@ int acpi_get_cache_info(unsigned int cpu
+ const struct attribute_group *cache_get_priv_group(struct cacheinfo *this_leaf);
  
---- a/mm/huge_memory.c~mm-shmem-add-mthp-counters-for-anonymous-shmem
-+++ a/mm/huge_memory.c
-@@ -555,6 +555,9 @@ DEFINE_MTHP_STAT_ATTR(anon_fault_fallbac
- DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
- DEFINE_MTHP_STAT_ATTR(swpout, MTHP_STAT_SWPOUT);
- DEFINE_MTHP_STAT_ATTR(swpout_fallback, MTHP_STAT_SWPOUT_FALLBACK);
-+DEFINE_MTHP_STAT_ATTR(file_alloc, MTHP_STAT_FILE_ALLOC);
-+DEFINE_MTHP_STAT_ATTR(file_fallback, MTHP_STAT_FILE_FALLBACK);
-+DEFINE_MTHP_STAT_ATTR(file_fallback_charge, MTHP_STAT_FILE_FALLBACK_CHARGE);
- 
- static struct attribute *stats_attrs[] = {
- 	&anon_fault_alloc_attr.attr,
-@@ -562,6 +565,9 @@ static struct attribute *stats_attrs[] =
- 	&anon_fault_fallback_charge_attr.attr,
- 	&swpout_attr.attr,
- 	&swpout_fallback_attr.attr,
-+	&file_alloc_attr.attr,
-+	&file_fallback_attr.attr,
-+	&file_fallback_charge_attr.attr,
- 	NULL,
- };
- 
---- a/mm/shmem.c~mm-shmem-add-mthp-counters-for-anonymous-shmem
-+++ a/mm/shmem.c
-@@ -1773,6 +1773,9 @@ static struct folio *shmem_alloc_and_add
- 
- 			if (pages == HPAGE_PMD_NR)
- 				count_vm_event(THP_FILE_FALLBACK);
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+			count_mthp_stat(order, MTHP_STAT_FILE_FALLBACK);
-+#endif
- 			order = next_order(&suitable_orders, order);
+ /*
+- * Get the id of the cache associated with @cpu at level @level.
++ * Get the cacheinfo structure for cache associated with @cpu at level @level.
+  * cpuhp lock must be held.
+  */
+-static inline int get_cpu_cacheinfo_id(int cpu, int level)
++static inline struct cacheinfo *get_cpu_cacheinfo_level(int cpu, int level)
+ {
+ 	struct cpu_cacheinfo *ci = get_cpu_cacheinfo(cpu);
+ 	int i;
+@@ -124,12 +124,23 @@ static inline int get_cpu_cacheinfo_id(i
+ 	for (i = 0; i < ci->num_leaves; i++) {
+ 		if (ci->info_list[i].level == level) {
+ 			if (ci->info_list[i].attributes & CACHE_ID)
+-				return ci->info_list[i].id;
+-			return -1;
++				return &ci->info_list[i];
++			return NULL;
  		}
- 	} else {
-@@ -1792,9 +1795,15 @@ allocated:
- 		if (xa_find(&mapping->i_pages, &index,
- 				index + pages - 1, XA_PRESENT)) {
- 			error = -EEXIST;
--		} else if (pages == HPAGE_PMD_NR) {
--			count_vm_event(THP_FILE_FALLBACK);
--			count_vm_event(THP_FILE_FALLBACK_CHARGE);
-+		} else if (pages > 1) {
-+			if (pages == HPAGE_PMD_NR) {
-+				count_vm_event(THP_FILE_FALLBACK);
-+				count_vm_event(THP_FILE_FALLBACK_CHARGE);
-+			}
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+			count_mthp_stat(folio_order(folio), MTHP_STAT_FILE_FALLBACK);
-+			count_mthp_stat(folio_order(folio), MTHP_STAT_FILE_FALLBACK_CHARGE);
-+#endif
- 		}
- 		goto unlock;
  	}
-@@ -2168,6 +2177,9 @@ repeat:
- 		if (!IS_ERR(folio)) {
- 			if (folio_test_pmd_mappable(folio))
- 				count_vm_event(THP_FILE_ALLOC);
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+			count_mthp_stat(folio_order(folio), MTHP_STAT_FILE_ALLOC);
-+#endif
- 			goto alloced;
- 		}
- 		if (PTR_ERR(folio) == -EEXIST)
+ 
+-	return -1;
++	return NULL;
++}
++
++/*
++ * Get the id of the cache associated with @cpu at level @level.
++ * cpuhp lock must be held.
++ */
++static inline int get_cpu_cacheinfo_id(int cpu, int level)
++{
++	struct cacheinfo *ci = get_cpu_cacheinfo_level(cpu, level);
++
++	return ci ? ci->id : -1;
+ }
+ 
+ #ifdef CONFIG_ARM64
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from tony.luck@intel.com are
 
-mm-drop-the-anon_-prefix-for-swap-out-mthp-counters.patch
-mm-memory-extend-finish_fault-to-support-large-folio.patch
-mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch
-mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch
-mm-shmem-add-mthp-support-for-anonymous-shmem.patch
-mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area.patch
-mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
+x86-resctrl-replace-open-code-cacheinfo-search-in-pseudo_lock_region_init.patch
+x86-resctrl-replace-open-code-cacheinfo-search-in-rdtgroup_cbm_to_size.patch
 
