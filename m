@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 847FD13BC3E
-	for <mm-commits@vger.kernel.org>; Wed,  5 Jun 2024 22:50:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4CD329AF
+	for <mm-commits@vger.kernel.org>; Wed,  5 Jun 2024 22:56:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717627857; cv=none; b=JR9P7KY6aQvqKR+egbW4B4Cc3MSsFl+bx1mHj1/W8QzuadE1NJoN7SpGrz9muFAklp9Weisjh0ORtILtVCJJCjA713lmcmiuJMyyJr4ZxZo2zfUzQaD9Mhx5tj4DkjUMqEqvqx1dwvivQvLbu3tC+ECaKv7m6Ss+45F+fP7baFY=
+	t=1717628182; cv=none; b=UQeKml/utIX8//6quvsmGX7gl1LKMl3xgO64VmHwrzYOBzONcwUB6jNTi8EGVRyyB/ss54KwNjdhc6T9jMMu15rNq+87NoE7rxZy/RxK6mzbLHcLpxW9oufOK2IRI5Lq/Z6FfTagxJM9QjTWSdAjxfqT1CBZ7PDDV82L7yQK7lM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717627857; c=relaxed/simple;
-	bh=VpnbSS8/uAKf3ZawD2ZaVb4LVYAuG+rN+5YAqTlDeRQ=;
-	h=Date:To:From:Subject:Message-Id; b=pJh9hFkhYAbECygNTB9WVgLNiMVp5NkJqhARZxUDoffb38m0KaDLT5Uya804WpndXddtQqIX0AGp0PS2JBb9JEJsyN0zveqIn4p0iZhP+S8bF4XbQqJjU1R0zR9rKfiCoODdJ6oz9DKVXlBjEuyDfgPISbfx+k6TvJc9LTl2Iaw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a2zEbZb6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717628182; c=relaxed/simple;
+	bh=DekKJHmp4iSuydv68p9drM8juuN0k0Bc2LANoHZ2Szk=;
+	h=Date:To:From:Subject:Message-Id; b=FLncOmqnuMcAG2INK4O4JwHBKMq/OYDQBcDCX4o4JoRuAjA/mGWOY8wju0N4qZB9c3UH0SIRRylm+PcbaTyRg9dGFpsYfzfL8bqK3AXb30DSRtemryO+5YaZdI80EzcHILUEJKL+EyKfCou1Syja0s6C1DxvWbfjsuTsaOlEhAA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bo8VmgdH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a2zEbZb6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2C8AC2BD11;
-	Wed,  5 Jun 2024 22:50:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bo8VmgdH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41350C2BD11;
+	Wed,  5 Jun 2024 22:56:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717627856;
-	bh=VpnbSS8/uAKf3ZawD2ZaVb4LVYAuG+rN+5YAqTlDeRQ=;
+	s=korg; t=1717628182;
+	bh=DekKJHmp4iSuydv68p9drM8juuN0k0Bc2LANoHZ2Szk=;
 	h=Date:To:From:Subject:From;
-	b=a2zEbZb6Ct3OUWXiRwVVPXBdR0cZP/UslQIzI5vVa37A1+wwRtho7pTfHw4DEkpTI
-	 ldq2N+5KpMB/kBqcIZz7TWapUlMNLZKpvuknYBoyCxgXQkSVT3d3dM36JfOmRyjgN0
-	 HDTGkWzZvlrr93RNNCD9z+ME4o4VYUIbou2vm/Vs=
-Date: Wed, 05 Jun 2024 15:50:56 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,ryan.roberts@arm.com,minchan@kernel.org,kasong@tencent.com,david@redhat.com,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=bo8VmgdHD64Aczce7VyHfJTI0WSGbStSjpw0+G6HajFNYm7BT9EIw8FSfWqyP+4lH
+	 cab7tUZILkVBOyeubpSJt59F4oYiAmVJnBAxLtmGkB454JJccCpTWjPminFxDXht7i
+	 YQhLuY2mQX+2i8Jfj10Og3Yd7S46nj8bF2gkkcIM=
+Date: Wed, 05 Jun 2024 15:56:21 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,pasha.tatashin@soleen.com,oliver.sang@intel.com,kent.overstreet@linux.dev,keescook@chromium.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-reuse-exclusive-folio-directly-instead-of-wp-page-faults.patch added to mm-unstable branch
-Message-Id: <20240605225056.D2C8AC2BD11@smtp.kernel.org>
+Subject: + lib-alloc_tag-fix-rcu-imbalance-in-pgalloc_tag_get.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240605225622.41350C2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: swap: reuse exclusive folio directly instead of wp page faults
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-reuse-exclusive-folio-directly-instead-of-wp-page-faults.patch
+     Subject: lib/alloc_tag: fix RCU imbalance in pgalloc_tag_get()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     lib-alloc_tag-fix-rcu-imbalance-in-pgalloc_tag_get.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-reuse-exclusive-folio-directly-instead-of-wp-page-faults.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-alloc_tag-fix-rcu-imbalance-in-pgalloc_tag_get.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,137 +58,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: swap: reuse exclusive folio directly instead of wp page faults
-Date: Sun, 2 Jun 2024 12:45:02 +1200
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: lib/alloc_tag: fix RCU imbalance in pgalloc_tag_get()
+Date: Sat, 1 Jun 2024 16:38:40 -0700
 
-After swapping out, we perform a swap-in operation.  If we first read and
-then write, we encounter a major fault in do_swap_page for reading, along
-with additional minor faults in do_wp_page for writing.  However, the
-latter appears to be unnecessary and inefficient.  Instead, we can
-directly reuse in do_swap_page and completely eliminate the need for
-do_wp_page.
+put_page_tag_ref() should be called only when get_page_tag_ref() returns a
+valid reference because only in that case get_page_tag_ref() enters RCU
+read section while put_page_tag_ref() will call rcu_read_unlock() even if
+the provided reference is NULL.  Fix pgalloc_tag_get() which does not
+follow this rule causing RCU imbalance.  Add a warning in
+put_page_tag_ref() to catch any future mistakes.
 
-This patch achieves that optimization specifically for exclusive folios. 
-The following microbenchmark demonstrates the significant reduction in
-minor faults.
-
- #define DATA_SIZE (2UL * 1024 * 1024)
- #define PAGE_SIZE (4UL * 1024)
-
- static void *read_write_data(char *addr)
- {
-         char tmp;
-
-         for (int i = 0; i < DATA_SIZE; i += PAGE_SIZE) {
-                 tmp = *(volatile char *)(addr + i);
-                 *(volatile char *)(addr + i) = tmp;
-         }
- }
-
- int main(int argc, char **argv)
- {
-         struct rusage ru;
-
-         char *addr = mmap(NULL, DATA_SIZE, PROT_READ | PROT_WRITE,
-                         MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-         memset(addr, 0x11, DATA_SIZE);
-
-         do {
-                 long old_ru_minflt, old_ru_majflt;
-                 long new_ru_minflt, new_ru_majflt;
-
-                 madvise(addr, DATA_SIZE, MADV_PAGEOUT);
-
-                 getrusage(RUSAGE_SELF, &ru);
-                 old_ru_minflt = ru.ru_minflt;
-                 old_ru_majflt = ru.ru_majflt;
-
-                 read_write_data(addr);
-                 getrusage(RUSAGE_SELF, &ru);
-                 new_ru_minflt = ru.ru_minflt;
-                 new_ru_majflt = ru.ru_majflt;
-
-                 printf("minor faults:%ld major faults:%ld\n",
-                         new_ru_minflt - old_ru_minflt,
-                         new_ru_majflt - old_ru_majflt);
-         } while(0);
-
-         return 0;
- }
-
-w/o patch,
-/ # ~/a.out
-minor faults:512 major faults:512
-
-w/ patch,
-/ # ~/a.out
-minor faults:0 major faults:512
-
-Minor faults decrease to 0!
-
-Link: https://lkml.kernel.org/r/20240602004502.26895-1-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20240601233840.617458-1-surenb@google.com
+Fixes: cc92eba1c88b ("mm: fix non-compound multi-order memory accounting in __free_pages")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202405271029.6d2f9c4c-lkp@intel.com
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ include/linux/pgalloc_tag.h |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-swap-reuse-exclusive-folio-directly-instead-of-wp-page-faults
-+++ a/mm/memory.c
-@@ -4308,6 +4308,10 @@ check_folio:
- 	add_mm_counter(vma->vm_mm, MM_ANONPAGES, nr_pages);
- 	add_mm_counter(vma->vm_mm, MM_SWAPENTS, -nr_pages);
- 	pte = mk_pte(page, vma->vm_page_prot);
-+	if (pte_swp_soft_dirty(vmf->orig_pte))
-+		pte = pte_mksoft_dirty(pte);
-+	if (pte_swp_uffd_wp(vmf->orig_pte))
-+		pte = pte_mkuffd_wp(pte);
+--- a/include/linux/pgalloc_tag.h~lib-alloc_tag-fix-rcu-imbalance-in-pgalloc_tag_get
++++ a/include/linux/pgalloc_tag.h
+@@ -37,6 +37,9 @@ static inline union codetag_ref *get_pag
  
- 	/*
- 	 * Same logic as in do_wp_page(); however, optimize for pages that are
-@@ -4317,18 +4321,18 @@ check_folio:
- 	 */
- 	if (!folio_test_ksm(folio) &&
- 	    (exclusive || folio_ref_count(folio) == 1)) {
--		if (vmf->flags & FAULT_FLAG_WRITE) {
--			pte = maybe_mkwrite(pte_mkdirty(pte), vma);
--			vmf->flags &= ~FAULT_FLAG_WRITE;
-+		if ((vma->vm_flags & VM_WRITE) && !userfaultfd_pte_wp(vma, pte) &&
-+		    !vma_soft_dirty_enabled(vma)) {
-+			pte = pte_mkwrite(pte, vma);
-+			if (vmf->flags & FAULT_FLAG_WRITE) {
-+				pte = pte_mkdirty(pte);
-+				vmf->flags &= ~FAULT_FLAG_WRITE;
-+			}
- 		}
- 		rmap_flags |= RMAP_EXCLUSIVE;
+ static inline void put_page_tag_ref(union codetag_ref *ref)
+ {
++	if (WARN_ON(!ref))
++		return;
++
+ 	page_ext_put(page_ext_from_codetag_ref(ref));
+ }
+ 
+@@ -102,9 +105,11 @@ static inline struct alloc_tag *pgalloc_
+ 		union codetag_ref *ref = get_page_tag_ref(page);
+ 
+ 		alloc_tag_sub_check(ref);
+-		if (ref && ref->ct)
+-			tag = ct_to_alloc_tag(ref->ct);
+-		put_page_tag_ref(ref);
++		if (ref) {
++			if (ref->ct)
++				tag = ct_to_alloc_tag(ref->ct);
++			put_page_tag_ref(ref);
++		}
  	}
- 	folio_ref_add(folio, nr_pages - 1);
- 	flush_icache_pages(vma, page, nr_pages);
--	if (pte_swp_soft_dirty(vmf->orig_pte))
--		pte = pte_mksoft_dirty(pte);
--	if (pte_swp_uffd_wp(vmf->orig_pte))
--		pte = pte_mkuffd_wp(pte);
- 	vmf->orig_pte = pte_advance_pfn(pte, page_idx);
  
- 	/* ksm created a completely new copy */
+ 	return tag;
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-huge_mm-fix-undefined-reference-to-mthp_stats-for-config_sysfs=n.patch
-mm-arm64-fix-the-out-of-bounds-issue-in-contpte_clear_young_dirty_ptes.patch
-mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr.patch
-mm-introduce-pte_move_swp_offset-helper-which-can-move-offset-bidirectionally.patch
-mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages.patch
-mm-swap-reuse-exclusive-folio-directly-instead-of-wp-page-faults.patch
+mm-fix-xyz_noprof-functions-calling-profiled-functions.patch
+lib-alloc_tag-fix-rcu-imbalance-in-pgalloc_tag_get.patch
 
