@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76DA661FC0
-	for <mm-commits@vger.kernel.org>; Wed,  5 Jun 2024 03:31:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73E673B1AB;
+	Wed,  5 Jun 2024 22:04:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717558307; cv=none; b=SFXxWNCeLi/t241D4rbfD8CACN2PcwEwcnBUjv/nAW/hmjLOBoog7l3vAK06MYX6GFMjIaZ1ZsIKR8CZ1LxJPDIsEH6FAw8ueFm7HeLLxv+6yhytEHkfhWT+AG8E5NHLrdKHawdnmeIWydAlxzXg+qrh4A6NJmwu0IlAV3Vq2pI=
+	t=1717625049; cv=none; b=QIC+26P9zd5+lZZCaakB0D1rQIYL2MAEmDBvHSeEnyzoRjcZbFEaWLenRfaFdn8pT6dtT8YujPz9K4ObFjOU0KCyQENEE08UiUqkuHfkA7Ze/+V23HBLpzTPWaoE9uAxYGnB4NRfYc101qB5Jvx92fKwlZIWk1MEBbIZSJj/mKY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717558307; c=relaxed/simple;
-	bh=pQn+sbzS1SAuQYZGu9BwflFLGAKifQxad1Z0CT74hQI=;
-	h=Date:To:From:Subject:Message-Id; b=SB9XSF+eS5XLbD2DGSz+oMrdqLAq7kk9kUJ91r9Fv1fpEXe8CCdDc6TtJAhuarqFy7i1NfIiM+iN80T/3RCi7ESD/IjOKR00nrOxdEjVsHQj8pkfWb5yMtD2lRAeufWha2VGDOa/V9io9iHr89WwBrTaM0Kj2jFCdXhCglHkeKM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RLggxW/u; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717625049; c=relaxed/simple;
+	bh=RZioaYMJPvPZnCV3Q6RXiVh/YaDF6STFZSTPUk9xEZE=;
+	h=Date:To:From:Subject:Message-Id; b=MvRS2ZlDY6l+hs//l7zCB85wXXehy1/XbC866v0uvi1FcVToZdFL64b4wRA5SGgSGJMjgKoX7cMcqxCTMsVlQIx2UUYoGfF0mkHeUGjxhXYiPKD7Q5eFCEyiiujmnhOp1kXH7DvYjDf1FRsSDBjcPpg2UMKWGkMHAMEgRhLhxfE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gdB+LAMF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RLggxW/u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CC8AC32781;
-	Wed,  5 Jun 2024 03:31:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gdB+LAMF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9192FC2BD11;
+	Wed,  5 Jun 2024 22:04:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717558307;
-	bh=pQn+sbzS1SAuQYZGu9BwflFLGAKifQxad1Z0CT74hQI=;
+	s=korg; t=1717625048;
+	bh=RZioaYMJPvPZnCV3Q6RXiVh/YaDF6STFZSTPUk9xEZE=;
 	h=Date:To:From:Subject:From;
-	b=RLggxW/uOwB8kYsZJlvd92t/WWF+S9or+d20Z87Y3HVKZJyqi8X7bOZKDNby4Ym4L
-	 N7mWm7acR+SC1iIr66pLyNBY9FuaJKvTFJSyw9QyrGCdcvFIHoog2dxPayqA2BCZAW
-	 VabtzgQCAoxO9+zlK+oqoVTSYXKgquLfcaGnjR70=
-Date: Tue, 04 Jun 2024 20:31:46 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,tony.luck@intel.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,linmiaohe@huawei.com,jiaqiyan@google.com,jglisse@redhat.com,jane.chu@oracle.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,bcrl@kvack.org,apopple@nvidia.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=gdB+LAMFeEc7OqgAnLfrE+GCYfGH0eR6JSQXPTI9DCPUIHrcHwieucIONtO34Pdst
+	 bGpnJS1AF1+bRJDyYNuUeLqGegCTwtKt/x/Iy5TIJTdYebklDZqN0O/RVc+rjL8Sb8
+	 kYw878CQi/S9hv0MQgYmzF/h22+1YsSkvJzsQg1Y=
+Date: Wed, 05 Jun 2024 15:04:07 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,pasha.tatashin@soleen.com,dan.j.williams@intel.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-remove-folio_migrate_copy.patch added to mm-unstable branch
-Message-Id: <20240605033147.3CC8AC32781@smtp.kernel.org>
+Subject: + mm-page_table_check-fix-crash-on-zone_device.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240605220408.9192FC2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: migrate: remove folio_migrate_copy()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate-remove-folio_migrate_copy.patch
+     Subject: mm/page_table_check: fix crash on ZONE_DEVICE
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-page_table_check-fix-crash-on-zone_device.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-remove-folio_migrate_copy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_table_check-fix-crash-on-zone_device.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,101 +58,75 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: migrate: remove folio_migrate_copy()
-Date: Mon, 3 Jun 2024 17:24:39 +0800
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/page_table_check: fix crash on ZONE_DEVICE
+Date: Wed, 5 Jun 2024 17:21:46 -0400
 
-The folio_migrate_copy() is just a wrapper of folio_copy() and
-folio_migrate_flags(), it is simple and only aio use it for now, unfold it
-and remove folio_migrate_copy().
+Not all pages may apply to pgtable check.  One example is ZONE_DEVICE
+pages: they map PFNs directly, and they don't allocate page_ext at all
+even if there's struct page around.  One may reference
+devm_memremap_pages().
 
-Link: https://lkml.kernel.org/r/20240603092439.3360652-7-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Jérôme Glisse <jglisse@redhat.com>
-Cc: Jiaqi Yan <jiaqiyan@google.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+When both ZONE_DEVICE and page-table-check enabled, then try to map some
+dax memories, one can trigger kernel bug constantly now when the kernel
+was trying to inject some pfn maps on the dax device:
+
+ kernel BUG at mm/page_table_check.c:55!
+
+While it's pretty legal to use set_pxx_at() for ZONE_DEVICE pages for page
+fault resolutions, skip all the checks if page_ext doesn't even exist in
+pgtable checker, which applies to ZONE_DEVICE but maybe more.
+
+Link: https://lkml.kernel.org/r/20240605212146.994486-1-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c                |    3 ++-
- include/linux/migrate.h |    1 -
- mm/migrate.c            |    7 -------
- 3 files changed, 2 insertions(+), 9 deletions(-)
+ mm/page_table_check.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
---- a/fs/aio.c~mm-migrate-remove-folio_migrate_copy
-+++ a/fs/aio.c
-@@ -455,7 +455,8 @@ static int aio_migrate_folio(struct addr
- 	 * events from being lost.
- 	 */
- 	spin_lock_irqsave(&ctx->completion_lock, flags);
--	folio_migrate_copy(dst, src);
-+	folio_copy(dst, src);
-+	folio_migrate_flags(dst, src);
- 	BUG_ON(ctx->ring_folios[idx] != src);
- 	ctx->ring_folios[idx] = dst;
- 	spin_unlock_irqrestore(&ctx->completion_lock, flags);
---- a/include/linux/migrate.h~mm-migrate-remove-folio_migrate_copy
-+++ a/include/linux/migrate.h
-@@ -76,7 +76,6 @@ int migrate_huge_page_move_mapping(struc
- void migration_entry_wait_on_locked(swp_entry_t entry, spinlock_t *ptl)
- 		__releases(ptl);
- void folio_migrate_flags(struct folio *newfolio, struct folio *folio);
--void folio_migrate_copy(struct folio *newfolio, struct folio *folio);
- int folio_migrate_mapping(struct address_space *mapping,
- 		struct folio *newfolio, struct folio *folio, int extra_count);
+--- a/mm/page_table_check.c~mm-page_table_check-fix-crash-on-zone_device
++++ a/mm/page_table_check.c
+@@ -73,6 +73,9 @@ static void page_table_check_clear(unsig
+ 	page = pfn_to_page(pfn);
+ 	page_ext = page_ext_get(page);
  
---- a/mm/migrate.c~mm-migrate-remove-folio_migrate_copy
-+++ a/mm/migrate.c
-@@ -652,13 +652,6 @@ void folio_migrate_flags(struct folio *n
- }
- EXPORT_SYMBOL(folio_migrate_flags);
++	if (!page_ext)
++		return;
++
+ 	BUG_ON(PageSlab(page));
+ 	anon = PageAnon(page);
  
--void folio_migrate_copy(struct folio *newfolio, struct folio *folio)
--{
--	folio_copy(newfolio, folio);
--	folio_migrate_flags(newfolio, folio);
--}
--EXPORT_SYMBOL(folio_migrate_copy);
--
- /************************************************************
-  *                    Migration functions
-  ***********************************************************/
+@@ -110,6 +113,9 @@ static void page_table_check_set(unsigne
+ 	page = pfn_to_page(pfn);
+ 	page_ext = page_ext_get(page);
+ 
++	if (!page_ext)
++		return;
++
+ 	BUG_ON(PageSlab(page));
+ 	anon = PageAnon(page);
+ 
+@@ -140,7 +146,10 @@ void __page_table_check_zero(struct page
+ 	BUG_ON(PageSlab(page));
+ 
+ 	page_ext = page_ext_get(page);
+-	BUG_ON(!page_ext);
++
++	if (!page_ext)
++		return;
++
+ 	for (i = 0; i < (1ul << order); i++) {
+ 		struct page_table_check *ptc = get_page_table_check(page_ext);
+ 
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-add-folio_alloc_mpol.patch
-mm-mempolicy-use-folio_alloc_mpol_noprof-in-vma_alloc_folio_noprof.patch
-mm-mempolicy-use-folio_alloc_mpol-in-alloc_migration_target_by_mpol.patch
-mm-shmem-use-folio_alloc_mpol-in-shmem_alloc_folio.patch
-mm-refactor-folio_undo_large_rmappable.patch
-mm-memcontrol-remove-page_memcg.patch
-rmap-remove-define_page_vma_walk.patch
-mm-migrate-simplify-__buffer_migrate_folio.patch
-mm-migrate_device-use-a-newfolio-in-__migrate_device_pages.patch
-mm-migrate_device-unify-migrate-folio-for-migrate_sync_no_copy.patch
-mm-migrate-remove-migrate_folio_extra.patch
-mm-remove-migrate_sync_no_copy-mode.patch
-fs-proc-task_mmu-use-folio-api-in-pte_is_pinned.patch
-mm-remove-page_maybe_dma_pinned.patch
-fb_defio-use-a-folio-in-fb_deferred_io_work.patch
-mm-remove-page_mkclean.patch
-mm-move-memory_failure_queue-into-copy_mc__highpage.patch
-mm-add-folio_mc_copy.patch
-mm-migrate-split-folio_migrate_mapping.patch
-mm-migrate-support-poisoned-recover-from-migrate-folio.patch
-fs-hugetlbfs-support-poison-recover-from-hugetlbfs_migrate_folio.patch
-mm-migrate-remove-folio_migrate_copy.patch
+mm-page_table_check-fix-crash-on-zone_device.patch
+mm-debug_vm_pgtable-drop-random_orvalue-trick.patch
+mm-drop-leftover-comment-references-to-pxx_huge.patch
 
