@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EED261FD3
-	for <mm-commits@vger.kernel.org>; Wed,  5 Jun 2024 02:23:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B80F2AF16
+	for <mm-commits@vger.kernel.org>; Wed,  5 Jun 2024 03:16:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717554200; cv=none; b=L9+ZpsEgBbbiSg3udd6M16IKpFZ2o9dt5oWubo3Q0oEpwh2fY7keSTwyk3d71y2fJN0Fzl4hzItikKv58DWkI2OTsuoaRvMwHYwimD9y/eF5TO+3ozvLLv/5TgEiYYAnLI78BNvz2BkhBXxR4UQZk3Dh1flXOvruWE6lrD0bybA=
+	t=1717557364; cv=none; b=Tu0w0WWaCyCS7aYbEANa+HwJesW/qv88H9yqYtncCx7DTMeZyoiZluDmUlmGY5ZkNZ5dKiHlQQ6qD6qyyPPG1MkzV4F5w/6BxMomqThrKdLR2zbv5l/BX2LEZ4QGdYogrc0GLPn0Now3pfRgDYntYP3dz6ZzMXO6TscP6m9S2fM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717554200; c=relaxed/simple;
-	bh=DBBwCaH2dOLKhLo6Mb6AhPf/H+UkfgvRX8RHCbH8bzY=;
-	h=Date:To:From:Subject:Message-Id; b=B/iZq084c86Zta9FLyPFX/Wdekc9VrxK+Z/t2fWZJR60AUGaMhFZltSl+X8RALwQcWaXxKtHa6limx/fad9sFtssVUCafYdIyH8lnMqYL/4unOUjTu+RA0DxvhOJsZ1oHCAK9SXNdJ4OayhzEUWXfxbHwcXOT3TEK5gbwxdpPAM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oL6Yop+Y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717557364; c=relaxed/simple;
+	bh=hbEyx0neAvRnCJWW2x4m9mZXfMzNotREQpUZr1G0nE8=;
+	h=Date:To:From:Subject:Message-Id; b=KcVxEU8nkMEfpSN0NBfK+4RiYaZTGdNj66l7pwsTT2oVQPWm3G3aGhFNu3TRwHzmRwEkYOXDLEOjnXVbCRYwWwrGXPSbH6LDtQT1H5QwrpURqrt120Ar/nH9H3RJ3EeYyl3tobRU6B+ZyEoveMFwBLheQoNcZvlRWrkyC6+C98M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kPIZcPxA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oL6Yop+Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C54FC2BBFC;
-	Wed,  5 Jun 2024 02:23:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kPIZcPxA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 066A5C32781;
+	Wed,  5 Jun 2024 03:16:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717554200;
-	bh=DBBwCaH2dOLKhLo6Mb6AhPf/H+UkfgvRX8RHCbH8bzY=;
+	s=korg; t=1717557364;
+	bh=hbEyx0neAvRnCJWW2x4m9mZXfMzNotREQpUZr1G0nE8=;
 	h=Date:To:From:Subject:From;
-	b=oL6Yop+YTIJTGhoMs7Fdpz8MMoKPqvf+++tjTo2bNYsnvoAVGIxSXdUQoFINJS2/N
-	 8FkhcfF40CmY6rR20Xn+OWRHMMNN/z0Ag+XeKNOz9BxOhBV95lIiUkxBmf2CehCkp1
-	 1VrBQgJupbHSYulWYlYXnG4T2ZmWdZq8ZZ/Yz7Wo=
-Date: Tue, 04 Jun 2024 19:23:19 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,reinette.chatre@intel.com,peternewman@google.com,maciej.wieczor-retman@intel.com,james.morse@arm.com,gregkh@linuxfoundation.org,fenghua.yu@intel.com,dfustini@baylibre.com,Dave.Martin@arm.com,bp@alien8.de,babu.moger@amd.com,tony.luck@intel.com,akpm@linux-foundation.org
+	b=kPIZcPxAqZALUHs82rFc3CYFcdMUJ98YW5PB8SSdqe+7pAxmLbikIosyOmEOFDhiY
+	 inuzHu7NAjrB0eZhRId5Z9bQ2IJnnReN7zjZxLfc9axNFzhIK5nNschJk3+tcR2SSl
+	 h5WsvigZMbs8GyP/ynJZBa3kFD0XF9t3kweJRXAc=
+Date: Tue, 04 Jun 2024 20:16:03 -0700
+To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,quic_jjohnson@quicinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] x86-resctrl-replace-open-code-cacheinfo-search-in-rdtgroup_cbm_to_size.patch removed from -mm tree
-Message-Id: <20240605022320.1C54FC2BBFC@smtp.kernel.org>
+Subject: + kmemleak-test-add-missing-module_description-macro.patch added to mm-unstable branch
+Message-Id: <20240605031604.066A5C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,67 +34,67 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: x86/resctrl: replace open code cacheinfo search in rdtgroup_cbm_to_size()
-has been removed from the -mm tree.  Its filename was
-     x86-resctrl-replace-open-code-cacheinfo-search-in-rdtgroup_cbm_to_size.patch
+The patch titled
+     Subject: kmemleak-test: add missing MODULE_DESCRIPTION() macro
+has been added to the -mm mm-unstable branch.  Its filename is
+     kmemleak-test-add-missing-module_description-macro.patch
 
-This patch was dropped because it is obsolete
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmemleak-test-add-missing-module_description-macro.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tony Luck <tony.luck@intel.com>
-Subject: x86/resctrl: replace open code cacheinfo search in rdtgroup_cbm_to_size()
-Date: Fri, 31 May 2024 12:57:20 -0700
+From: Jeff Johnson <quic_jjohnson@quicinc.com>
+Subject: kmemleak-test: add missing MODULE_DESCRIPTION() macro
+Date: Sat, 1 Jun 2024 18:05:00 -0700
 
-Use get_cpu_cacheinfo_level() instead of open coded search.
+make allmodconfig && make W=1 C=1 reports:
+WARNING: modpost: missing MODULE_DESCRIPTION() in samples/kmemleak/kmemleak-test.o
 
-Link: https://lkml.kernel.org/r/20240531195720.232561-4-tony.luck@intel.com
-Signed-off-by: Tony Luck <tony.luck@intel.com>
-Cc: Babu Moger <babu.moger@amd.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Dave Martin <Dave.Martin@arm.com>
-Cc: Drew Fustini <dfustini@baylibre.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: James Morse <james.morse@arm.com>
-Cc: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Cc: Peter Newman <peternewman@google.com>
-Cc: Reinette Chatre <reinette.chatre@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Add the missing invocation of the MODULE_DESCRIPTION() macro.
+
+Link: https://lkml.kernel.org/r/20240601-md-samples-kmemleak-v1-1-47186be7f0a8@quicinc.com
+Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/resctrl/rdtgroup.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ samples/kmemleak/kmemleak-test.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/x86/kernel/cpu/resctrl/rdtgroup.c~x86-resctrl-replace-open-code-cacheinfo-search-in-rdtgroup_cbm_to_size
-+++ a/arch/x86/kernel/cpu/resctrl/rdtgroup.c
-@@ -1450,18 +1450,14 @@ out:
- unsigned int rdtgroup_cbm_to_size(struct rdt_resource *r,
- 				  struct rdt_domain *d, unsigned long cbm)
- {
--	struct cpu_cacheinfo *ci;
-+	struct cacheinfo *ci;
- 	unsigned int size = 0;
--	int num_b, i;
-+	int num_b;
- 
- 	num_b = bitmap_weight(&cbm, r->cache.cbm_len);
--	ci = get_cpu_cacheinfo(cpumask_any(&d->cpu_mask));
--	for (i = 0; i < ci->num_leaves; i++) {
--		if (ci->info_list[i].level == r->cache_level) {
--			size = ci->info_list[i].size / r->cache.cbm_len * num_b;
--			break;
--		}
--	}
-+	ci = get_cpu_cacheinfo_level(cpumask_any(&d->cpu_mask), r->cache_level);
-+	if (ci)
-+		size = ci->size / r->cache.cbm_len * num_b;
- 
- 	return size;
+--- a/samples/kmemleak/kmemleak-test.c~kmemleak-test-add-missing-module_description-macro
++++ a/samples/kmemleak/kmemleak-test.c
+@@ -96,4 +96,5 @@ static void __exit kmemleak_test_exit(vo
  }
+ module_exit(kmemleak_test_exit);
+ 
++MODULE_DESCRIPTION("Sample module to leak memory for kmemleak testing");
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from tony.luck@intel.com are
+Patches currently in -mm which might be from quic_jjohnson@quicinc.com are
 
+mm-hwpoison-add-module_description.patch
+mm-dmapool-add-module_description.patch
+mm-kfence-add-module_description.patch
+mm-zsmalloc-add-module_description.patch
+kmemleak-test-add-missing-module_description-macro.patch
+backtracetest-add-module_description.patch
+dyndbg-add-missing-module_description-macro.patch
+lib-ts-add-missing-module_description-macros.patch
+kunit-fortify-add-missing-module_description-macros.patch
 
