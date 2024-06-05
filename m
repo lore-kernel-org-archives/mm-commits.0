@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83424BA38
-	for <mm-commits@vger.kernel.org>; Wed,  5 Jun 2024 23:08:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0977EBA38
+	for <mm-commits@vger.kernel.org>; Wed,  5 Jun 2024 23:09:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717628937; cv=none; b=VOmXrfzkQ8d0bP6NrlkKwodTUIAfP20KLgdu6V/4VJ8aJwJ3g8E0cKBHD5jjTCbcDV/hNySbs2jfCGS65zAiPInzxBE0Oj/h8TC0soKV3Hjhu/1knXsx8VhSJJshs32kVlbnroOPvl8T/Oh89x3lxUik/2O+x0KegfAiVoKVNnQ=
+	t=1717628992; cv=none; b=DYioeQrrIBBholowyrXRSU0YzjlKCk6o0nQcxFcPFknWsL0EV8w82/KjHbt27cRRc1yfqU3QBOca0HSqJV0sHabi5lLw1TAsmccXFCE3cXfFAr2RLj6R/eFgZVKyPLyNAWykYymdt+27sFbR6iHUFWklp0IRsMrAFyL091ixmQY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717628937; c=relaxed/simple;
-	bh=rpvX8PhIidh7lErE5+2uXON3t37eCoOIQPpgs4ZPcfg=;
-	h=Date:To:From:Subject:Message-Id; b=T7X/azV10b8zu0EuX/XpnGXuRdraJLqpAXzxDwBDIFcB4F9ggMbyHDJh47abrJLuwSzMCdTibTW1yC46FteABPMk9/F7yTmPhTxleIVDCQbP/MybvnCg5UHND916Y4l3EdrP45yisyak75Ale/+qM5zkplA6Zva+71r+skDIsCo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nvC2gHgT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717628992; c=relaxed/simple;
+	bh=nTLmnUkqrRBpC2O9RUqH7K7e7+h6mIwfcMjRUEXuavM=;
+	h=Date:To:From:Subject:Message-Id; b=HTTVL7JuSXlP/afmwpK5d31PYffZLlQkYVqe5cFoPrRQm4mRcF0+bbiyEVFzZwV6RQWc6V7I1oYXp6Qb+dTCSe6eIRLHiLWxPh93eYgSowBFZiftkGTqpGZw41JSleIKNb+/Pkj5w7sC/nWe0mWHWobc9977UtHLIrEghYV6hUs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zTtqFhSA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nvC2gHgT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0241AC2BD11;
-	Wed,  5 Jun 2024 23:08:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zTtqFhSA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF6A1C2BD11;
+	Wed,  5 Jun 2024 23:09:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717628937;
-	bh=rpvX8PhIidh7lErE5+2uXON3t37eCoOIQPpgs4ZPcfg=;
+	s=korg; t=1717628991;
+	bh=nTLmnUkqrRBpC2O9RUqH7K7e7+h6mIwfcMjRUEXuavM=;
 	h=Date:To:From:Subject:From;
-	b=nvC2gHgT30HXqSGcySFwXYKmrK1tOJTIbfCt5V6BRQrvGhrwh62yrDlcJPStx7iL4
-	 cKS0UJnwfPxPdE7SRpPXMXcwTRwJ+q0y9NEnIltpDIj02i2voIU4ejyCKWmM1nFKhw
-	 GJRFldNgck7a4eMR56e/AsMXg3NyiB4n16QE/VqY=
-Date: Wed, 05 Jun 2024 16:08:56 -0700
-To: mm-commits@vger.kernel.org,Jason@zx2c4.com,quic_jjohnson@quicinc.com,akpm@linux-foundation.org
+	b=zTtqFhSAMucCzKmZs/J/YCaswAH6nmz6Jmzjc/kTuxUgsVtRstrxSCW5ppWdD2i96
+	 SXs3NyjJptSiXKQ0cTfIdMa9dkzqGaiNLQ6o35ph4csQua4I83VTSZXo9kcG8CRxNK
+	 xwn6w9SBLr9QV1aru9wPaenijuRlKUn6n+97jD/M=
+Date: Wed, 05 Jun 2024 16:09:51 -0700
+To: mm-commits@vger.kernel.org,mcgrof@kernel.org,quic_jjohnson@quicinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + siphash-add-missing-module_description-macro.patch added to mm-nonmm-unstable branch
-Message-Id: <20240605230857.0241AC2BD11@smtp.kernel.org>
+Subject: + lib-test_kmod-add-missing-module_description-macro.patch added to mm-nonmm-unstable branch
+Message-Id: <20240605230951.CF6A1C2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: siphash: add missing MODULE_DESCRIPTION() macro
+     Subject: lib/test_kmod: add missing MODULE_DESCRIPTION() macro
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     siphash-add-missing-module_description-macro.patch
+     lib-test_kmod-add-missing-module_description-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/siphash-add-missing-module_description-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_kmod-add-missing-module_description-macro.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,31 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jeff Johnson <quic_jjohnson@quicinc.com>
-Subject: siphash: add missing MODULE_DESCRIPTION() macro
-Date: Fri, 31 May 2024 18:49:47 -0700
+Subject: lib/test_kmod: add missing MODULE_DESCRIPTION() macro
+Date: Fri, 31 May 2024 17:23:09 -0700
 
 make allmodconfig && make W=1 C=1 reports:
-WARNING: modpost: missing MODULE_DESCRIPTION() in lib/siphash_kunit.o
+WARNING: modpost: missing MODULE_DESCRIPTION() in lib/test_kmod.o
 
 Add the missing invocation of the MODULE_DESCRIPTION() macro.
 
-Link: https://lkml.kernel.org/r/20240531-md-lib-siphash_kunit-v1-1-38688065b796@quicinc.com
+Link: https://lkml.kernel.org/r/20240531-md-lib-test_kmod-v1-1-fdf11bc6095e@quicinc.com
 Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
-Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/siphash_kunit.c |    1 +
+ lib/test_kmod.c |    1 +
  1 file changed, 1 insertion(+)
 
---- a/lib/siphash_kunit.c~siphash-add-missing-module_description-macro
-+++ a/lib/siphash_kunit.c
-@@ -194,4 +194,5 @@ static struct kunit_suite siphash_test_s
- kunit_test_suite(siphash_test_suite);
+--- a/lib/test_kmod.c~lib-test_kmod-add-missing-module_description-macro
++++ a/lib/test_kmod.c
+@@ -1223,4 +1223,5 @@ static void __exit test_kmod_exit(void)
+ module_exit(test_kmod_exit);
  
- MODULE_AUTHOR("Jason A. Donenfeld <Jason@zx2c4.com>");
-+MODULE_DESCRIPTION("Test cases for siphash.c");
- MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_AUTHOR("Luis R. Rodriguez <mcgrof@kernel.org>");
++MODULE_DESCRIPTION("kmod stress test driver");
+ MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from quic_jjohnson@quicinc.com are
@@ -104,4 +104,5 @@ lib-asn1_encoder-add-missing-module_description-macro.patch
 kunit-add-missing-module_description-macros-to-lib-_kunitc.patch
 uuid-add-missing-module_description-macro.patch
 siphash-add-missing-module_description-macro.patch
+lib-test_kmod-add-missing-module_description-macro.patch
 
