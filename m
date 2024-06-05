@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1907A55E49
-	for <mm-commits@vger.kernel.org>; Wed,  5 Jun 2024 03:31:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 684E855E49
+	for <mm-commits@vger.kernel.org>; Wed,  5 Jun 2024 03:31:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717558299; cv=none; b=a50QZ+v1rcvkezUJHY7+Brpfg1189zd+4yIHHkCCvWt08kNzK3xwFJstiKo6tg9k0ZSNOGv8yWEBYyTnVkAtRsSs+sgXuWvcRkvKvE5TsAevGbW8pzHmb0RjoBp/ZZnbLMcgBgw4aJjJEb4tuurLnzcXMBbBsIjF4TWkbGYeYCg=
+	t=1717558301; cv=none; b=JJvAw8xCXJWb2LjPcsUT2U+G1Inxg1CDYwGU1yBfVcRK2P0t0tIOR2DXbnwCzo9wW3or3tgjXlWNq4lRsRXaFiqKhdElOpTQmvJYBNZoX8RQx4Q9LE8Pn+niDjY2iGysVmwaDshjn0Uj4xGO+FJnOXYJE8hEOsC2J4cyIKfEXUo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717558299; c=relaxed/simple;
-	bh=D+rONpxmViYhT7px9GQT75UhL/o2A2/gqE8Jpp7Zlns=;
-	h=Date:To:From:Subject:Message-Id; b=l+4xbd4l0z04lvKMLTdXXpK7SVJulMIPHkTzTnwoImf8Z7z6lIggBQoEhLltcgwFNeHDW0wlaqiRg8WosgH7HbLgzx/4S1PQ7SvPz3UpHB/umhcnc0tQqGerDYTmgzBjTEH+D+gvUy/3+Uxdn+J5ziWsseQRaHI3YbwGKEuJum0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SJugIuZF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717558301; c=relaxed/simple;
+	bh=NnX4gBPYojo25HLLvZL4pkJ4QRk6hrFAp1l/rbAJ4h4=;
+	h=Date:To:From:Subject:Message-Id; b=MHWQPVTwWf0crJ3rD2Rchr/W8IAM4CAHJQbDP+XU2uBgZXhP8ljKxQxRrRF50dIqrauhR9pTau0CKeCw+xT6udSrDPGjf8G2dJzfGtnJhNz39CGgVnLuqqQMcXvgiOCsdh19Wy7Gqa4JKRWiGAVzxthhG0evcs/sF8VbHqpVHQI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qE2Rr5SW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SJugIuZF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B24CC32781;
-	Wed,  5 Jun 2024 03:31:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qE2Rr5SW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB8D5C32781;
+	Wed,  5 Jun 2024 03:31:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717558298;
-	bh=D+rONpxmViYhT7px9GQT75UhL/o2A2/gqE8Jpp7Zlns=;
+	s=korg; t=1717558301;
+	bh=NnX4gBPYojo25HLLvZL4pkJ4QRk6hrFAp1l/rbAJ4h4=;
 	h=Date:To:From:Subject:From;
-	b=SJugIuZF+AspdFTNyQt0M2SVpB1wWOzsuWmDabjiKUOuVlnPRTqhPGwRm48SOwyH+
-	 OdmxOR3qzakDDoMkzSe2SMmJ5VBCo37UGUKox0l8W1B1Fd9PZmR1OuqEcxJ7ZCHjgC
-	 w0/NviZ3UiMw4QngqdPw4ZZAEuL5Pp6erM9IRr5c=
-Date: Tue, 04 Jun 2024 20:31:38 -0700
+	b=qE2Rr5SW00hTs9LIcpkDLbRRTui2xxjWXuAdp+rLhgR+Syh3aM1PScqhEsUTV2rUu
+	 FRofgXbC1CUeiNyq4YkEjwCYut4DheME/f03M/H1U94tpulvUYSeVHD5CT48Lkh0Y1
+	 k3xTjAhzOdlh+WyNgmQE1d57RxTcfhoG0iv9+Gto=
+Date: Tue, 04 Jun 2024 20:31:40 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,tony.luck@intel.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,linmiaohe@huawei.com,jiaqiyan@google.com,jglisse@redhat.com,jane.chu@oracle.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,bcrl@kvack.org,apopple@nvidia.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-folio_mc_copy.patch added to mm-unstable branch
-Message-Id: <20240605033138.9B24CC32781@smtp.kernel.org>
+Subject: + mm-migrate-split-folio_migrate_mapping.patch added to mm-unstable branch
+Message-Id: <20240605033140.EB8D5C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add folio_mc_copy()
+     Subject: mm: migrate: split folio_migrate_mapping()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-folio_mc_copy.patch
+     mm-migrate-split-folio_migrate_mapping.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-folio_mc_copy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-split-folio_migrate_mapping.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: add folio_mc_copy()
-Date: Mon, 3 Jun 2024 17:24:35 +0800
+Subject: mm: migrate: split folio_migrate_mapping()
+Date: Mon, 3 Jun 2024 17:24:36 +0800
 
-Add a #MC variant of folio_copy() which uses copy_mc_highpage() to support
-#MC handled during folio copy, it will be used in folio migration soon.
+The folio refcount check for !mapping and folio_ref_freeze() for mapping
+are moved out of the original folio_migrate_mapping(), and there is no
+turning back for the new __folio_migrate_mapping(), also update comment
+from page to folio.
 
-Link: https://lkml.kernel.org/r/20240603092439.3360652-3-wangkefeng.wang@huawei.com
+Note, the folio_ref_freeze() is moved out of xas_lock_irq(), Since the
+folio is already isolated and locked during migration, so suppose that
+there is no functional change.
+
+Link: https://lkml.kernel.org/r/20240603092439.3360652-4-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Benjamin LaHaise <bcrl@kvack.org>
@@ -85,46 +91,133 @@ Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- mm/util.c          |   17 +++++++++++++++++
- 2 files changed, 18 insertions(+)
+ mm/migrate.c |   63 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 32 insertions(+), 31 deletions(-)
 
---- a/include/linux/mm.h~mm-add-folio_mc_copy
-+++ a/include/linux/mm.h
-@@ -1311,6 +1311,7 @@ void put_pages_list(struct list_head *pa
- 
- void split_page(struct page *page, unsigned int order);
- void folio_copy(struct folio *dst, struct folio *src);
-+int folio_mc_copy(struct folio *dst, struct folio *src);
- 
- unsigned long nr_free_buffer_pages(void);
- 
---- a/mm/util.c~mm-add-folio_mc_copy
-+++ a/mm/util.c
-@@ -828,6 +828,23 @@ void folio_copy(struct folio *dst, struc
+--- a/mm/migrate.c~mm-migrate-split-folio_migrate_mapping
++++ a/mm/migrate.c
+@@ -393,50 +393,36 @@ static int folio_expected_refs(struct ad
  }
- EXPORT_SYMBOL(folio_copy);
  
-+int folio_mc_copy(struct folio *dst, struct folio *src)
-+{
-+	long nr = folio_nr_pages(src);
-+	long i = 0;
-+
-+	for (;;) {
-+		if (copy_mc_highpage(folio_page(dst, i), folio_page(src, i)))
-+			return -EHWPOISON;
-+		if (++i == nr)
-+			break;
-+		cond_resched();
-+	}
-+
-+	return 0;
+ /*
+- * Replace the page in the mapping.
++ * Replace the folio in the mapping.
+  *
+  * The number of remaining references must be:
+- * 1 for anonymous pages without a mapping
+- * 2 for pages with a mapping
+- * 3 for pages with a mapping and PagePrivate/PagePrivate2 set.
++ * 1 for anonymous folios without a mapping
++ * 2 for folios with a mapping
++ * 3 for folios with a mapping and PagePrivate/PagePrivate2 set.
+  */
+-int folio_migrate_mapping(struct address_space *mapping,
+-		struct folio *newfolio, struct folio *folio, int extra_count)
++static void __folio_migrate_mapping(struct address_space *mapping,
++		struct folio *newfolio, struct folio *folio, int expected_cnt)
+ {
+ 	XA_STATE(xas, &mapping->i_pages, folio_index(folio));
+ 	struct zone *oldzone, *newzone;
+-	int dirty;
+-	int expected_count = folio_expected_refs(mapping, folio) + extra_count;
+ 	long nr = folio_nr_pages(folio);
+ 	long entries, i;
++	int dirty;
+ 
+ 	if (!mapping) {
+-		/* Anonymous page without mapping */
+-		if (folio_ref_count(folio) != expected_count)
+-			return -EAGAIN;
+-
+-		/* No turning back from here */
++		/* Anonymous folio without mapping */
+ 		newfolio->index = folio->index;
+ 		newfolio->mapping = folio->mapping;
+ 		if (folio_test_swapbacked(folio))
+ 			__folio_set_swapbacked(newfolio);
+-
+-		return MIGRATEPAGE_SUCCESS;
++		return;
+ 	}
+ 
+ 	oldzone = folio_zone(folio);
+ 	newzone = folio_zone(newfolio);
+ 
+ 	xas_lock_irq(&xas);
+-	if (!folio_ref_freeze(folio, expected_count)) {
+-		xas_unlock_irq(&xas);
+-		return -EAGAIN;
+-	}
+-
+-	/*
+-	 * Now we know that no one else is looking at the folio:
+-	 * no turning back from here.
+-	 */
++	/* Now we know that no one else is looking at the folio */
+ 	newfolio->index = folio->index;
+ 	newfolio->mapping = folio->mapping;
+ 	folio_ref_add(newfolio, nr); /* add cache reference */
+@@ -452,7 +438,7 @@ int folio_migrate_mapping(struct address
+ 		entries = 1;
+ 	}
+ 
+-	/* Move dirty while page refs frozen and newpage not yet exposed */
++	/* Move dirty while folio refs frozen and newfolio not yet exposed */
+ 	dirty = folio_test_dirty(folio);
+ 	if (dirty) {
+ 		folio_clear_dirty(folio);
+@@ -466,22 +452,22 @@ int folio_migrate_mapping(struct address
+ 	}
+ 
+ 	/*
+-	 * Drop cache reference from old page by unfreezing
+-	 * to one less reference.
++	 * Since old folio's refcount freezed, now drop cache reference from
++	 * old folio by unfreezing to one less reference.
+ 	 * We know this isn't the last reference.
+ 	 */
+-	folio_ref_unfreeze(folio, expected_count - nr);
++	folio_ref_unfreeze(folio, expected_cnt - nr);
+ 
+ 	xas_unlock(&xas);
+ 	/* Leave irq disabled to prevent preemption while updating stats */
+ 
+ 	/*
+ 	 * If moved to a different zone then also account
+-	 * the page for that zone. Other VM counters will be
++	 * the folio for that zone. Other VM counters will be
+ 	 * taken care of when we establish references to the
+-	 * new page and drop references to the old page.
++	 * new folio and drop references to the old folio.
+ 	 *
+-	 * Note that anonymous pages are accounted for
++	 * Note that anonymous folios are accounted for
+ 	 * via NR_FILE_PAGES and NR_ANON_MAPPED if they
+ 	 * are mapped to swap space.
+ 	 */
+@@ -518,7 +504,22 @@ int folio_migrate_mapping(struct address
+ 		}
+ 	}
+ 	local_irq_enable();
 +}
-+EXPORT_SYMBOL(folio_mc_copy);
 +
- int sysctl_overcommit_memory __read_mostly = OVERCOMMIT_GUESS;
- int sysctl_overcommit_ratio __read_mostly = 50;
- unsigned long sysctl_overcommit_kbytes __read_mostly;
++int folio_migrate_mapping(struct address_space *mapping, struct folio *newfolio,
++			  struct folio *folio, int extra_count)
++{
++	int expected_cnt = folio_expected_refs(mapping, folio) + extra_count;
++
++	if (!mapping) {
++		if (folio_ref_count(folio) != expected_cnt)
++			return -EAGAIN;
++	} else {
++		if (!folio_ref_freeze(folio, expected_cnt))
++			return -EAGAIN;
++	}
+ 
++	__folio_migrate_mapping(mapping, newfolio, folio, expected_cnt);
+ 	return MIGRATEPAGE_SUCCESS;
+ }
+ EXPORT_SYMBOL(folio_migrate_mapping);
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
