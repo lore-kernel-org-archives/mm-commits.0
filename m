@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE8BA13A897
-	for <mm-commits@vger.kernel.org>; Wed,  5 Jun 2024 22:57:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71F10BA38
+	for <mm-commits@vger.kernel.org>; Wed,  5 Jun 2024 23:02:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717628238; cv=none; b=ROPJUNbreqrHdCW0l/ZID/xZwtuYMpOwtkfaO/qQnSyWnCtZM9qY8hHytFb8WSZr0Y3UNDQSJJzEHIOdU986AtMDy7bIe1gNTT9hfxD9HeWiG9vc3Iz2p1sgrsUMgl4E/Es0Sa8iW1xH5WWkiPqyfGZGONwLAw+jKs91I6tk51k=
+	t=1717628520; cv=none; b=N0ql/UCx+/eoOsEPQfhRNw03dvFthkQVvXW6FJopCg3UchaTVE16bh9ySnIG7TMaxbeL6Fe3mMr4LlBnFieK9c8T17RJ2LyBEkSM07UmEDLo6Vm2PyZP/GhVWM8Lb49hEco0non6+RSkRq8BkjfYm56E95T4iXC7h3WolIsOAkk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717628238; c=relaxed/simple;
-	bh=fyLhMziPeupjyggKcESLOaQQf3Cj0WymyMTKecjOXnw=;
-	h=Date:To:From:Subject:Message-Id; b=qNNYCUkC4eHF9KVokBvZv6ISC9xob2OUpuTZBcl9lUw/s+4JxmMaj519UZPNayR35sejFc06zhUsnfmQKFlSZRO2BmcFXhrvRess1B/0O/ORf+AzZ68Q/bW6Sc0EiS8kKZm0+1A6MVbeinqMeNezxkf00DvEBl9yGFhSVMLgXQI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z/9FFAeo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717628520; c=relaxed/simple;
+	bh=LHwW8HWemEILIo10BdD34jXLt0VEo9LA3+tjdLa5ByY=;
+	h=Date:To:From:Subject:Message-Id; b=V3FMAZs2LgdTZ1kO0D2xeKDsuxFHVgQ2YSoQlISAskWwuChdaqXr5querDJTu24N3BtKJI4b80pntzLoFsL38urzOX/ZXW5IFl19i8A9AXCHn07uMxDqJRb0NWbdm98+nZNT0Df7wk9VK5+wa+rRzK2Rom39wKcvNEngMkA6jgo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d6Y3eXXs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z/9FFAeo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55980C2BD11;
-	Wed,  5 Jun 2024 22:57:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d6Y3eXXs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DC7AC2BD11;
+	Wed,  5 Jun 2024 23:02:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717628238;
-	bh=fyLhMziPeupjyggKcESLOaQQf3Cj0WymyMTKecjOXnw=;
+	s=korg; t=1717628520;
+	bh=LHwW8HWemEILIo10BdD34jXLt0VEo9LA3+tjdLa5ByY=;
 	h=Date:To:From:Subject:From;
-	b=Z/9FFAeoHSgnQSQs5ao78xfjDWRIsOryuoaPeiK6YXyUfqpWO47/GNoPkVQy6tCU3
-	 0hEMbj6XKaYcz/eHL8hn4W4VOaSA8IO1xy+99HOntFI7MzQ3FuzXhOv8k5mBtgsARw
-	 HaO/pyHtMLxHhcHgWC9FogplUsGYODJjuUC85ulY=
-Date: Wed, 05 Jun 2024 15:57:17 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,pasha.tatashin@soleen.com,lkp@intel.com,kent.overstreet@linux.dev,keescook@chromium.org,surenb@google.com,akpm@linux-foundation.org
+	b=d6Y3eXXsY4A4xykZ6OwfVzG/f2gnrdWrYdF4AVPJqi/cqjB4OMxmJ0oUqkaL5WHOL
+	 OXS+GD6+Cx4sJirOBp7oMbGKo0zsvJqRPB4rTgUQreFY21MRWojx4/aW8yIfoHgW5e
+	 R2Nkv+pnLukSbJBOy7JE2jiiCoVJlKm15Haw8CR8=
+Date: Wed, 05 Jun 2024 16:01:59 -0700
+To: mm-commits@vger.kernel.org,quic_jjohnson@quicinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-alloc_tag-do-not-register-sysctl-interface-when-config_sysctl=n.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240605225718.55980C2BD11@smtp.kernel.org>
+Subject: + kunit-add-missing-module_description-macros-for-lib-_testko.patch added to mm-nonmm-unstable branch
+Message-Id: <20240605230200.2DC7AC2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/alloc_tag: do not register sysctl interface when CONFIG_SYSCTL=n
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     lib-alloc_tag-do-not-register-sysctl-interface-when-config_sysctl=n.patch
+     Subject: KUnit: add missing MODULE_DESCRIPTION() macros for lib/*_test.ko
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kunit-add-missing-module_description-macros-for-lib-_testko.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-alloc_tag-do-not-register-sysctl-interface-when-config_sysctl=n.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kunit-add-missing-module_description-macros-for-lib-_testko.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,74 +58,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: lib/alloc_tag: do not register sysctl interface when CONFIG_SYSCTL=n
-Date: Sat, 1 Jun 2024 16:38:31 -0700
+From: Jeff Johnson <quic_jjohnson@quicinc.com>
+Subject: KUnit: add missing MODULE_DESCRIPTION() macros for lib/*_test.ko
+Date: Sat, 1 Jun 2024 16:33:23 -0700
 
-Memory allocation profiling is trying to register sysctl interface even
-when CONFIG_SYSCTL=n, resulting in proc_do_static_key() being undefined. 
-Prevent that by skipping sysctl registration for such configurations.
+make allmodconfig && make W=1 C=1 reports for lib/*_test.ko:
+WARNING: modpost: missing MODULE_DESCRIPTION() in lib/atomic64_test.o
+WARNING: modpost: missing MODULE_DESCRIPTION() in lib/hashtable_test.o
 
-Link: https://lkml.kernel.org/r/20240601233831.617124-1-surenb@google.com
-Fixes: 22d407b164ff ("lib: add allocation tagging support for memory allocation profiling")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202405280616.wcOGWJEj-lkp@intel.com/
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Add the missing invocations of the MODULE_DESCRIPTION() macro.
+
+Link: https://lkml.kernel.org/r/20240601-md-lib-test2-v1-1-be764b785f17@quicinc.com
+Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/alloc_tag.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ lib/atomic64_test.c  |    1 +
+ lib/hashtable_test.c |    1 +
+ 2 files changed, 2 insertions(+)
 
---- a/lib/alloc_tag.c~lib-alloc_tag-do-not-register-sysctl-interface-when-config_sysctl=n
-+++ a/lib/alloc_tag.c
-@@ -227,6 +227,7 @@ struct page_ext_operations page_alloc_ta
- };
- EXPORT_SYMBOL(page_alloc_tagging_ops);
+--- a/lib/atomic64_test.c~kunit-add-missing-module_description-macros-for-lib-_testko
++++ a/lib/atomic64_test.c
+@@ -273,4 +273,5 @@ static __exit void test_atomics_exit(voi
+ module_init(test_atomics_init);
+ module_exit(test_atomics_exit);
  
-+#ifdef CONFIG_SYSCTL
- static struct ctl_table memory_allocation_profiling_sysctls[] = {
- 	{
- 		.procname	= "mem_profiling",
-@@ -241,6 +242,17 @@ static struct ctl_table memory_allocatio
- 	{ }
- };
++MODULE_DESCRIPTION("Testsuite for atomic64_t functions");
+ MODULE_LICENSE("GPL");
+--- a/lib/hashtable_test.c~kunit-add-missing-module_description-macros-for-lib-_testko
++++ a/lib/hashtable_test.c
+@@ -314,4 +314,5 @@ static struct kunit_suite hashtable_test
  
-+static void __init sysctl_init(void)
-+{
-+	if (!mem_profiling_support)
-+		memory_allocation_profiling_sysctls[0].mode = 0444;
-+
-+	register_sysctl_init("vm", memory_allocation_profiling_sysctls);
-+}
-+#else /* CONFIG_SYSCTL */
-+static inline void sysctl_init(void) {}
-+#endif /* CONFIG_SYSCTL */
-+
- static int __init alloc_tag_init(void)
- {
- 	const struct codetag_type_desc desc = {
-@@ -253,9 +265,7 @@ static int __init alloc_tag_init(void)
- 	if (IS_ERR(alloc_tag_cttype))
- 		return PTR_ERR(alloc_tag_cttype);
+ kunit_test_suites(&hashtable_test_module);
  
--	if (!mem_profiling_support)
--		memory_allocation_profiling_sysctls[0].mode = 0444;
--	register_sysctl_init("vm", memory_allocation_profiling_sysctls);
-+	sysctl_init();
- 	procfs_init();
- 
- 	return 0;
++MODULE_DESCRIPTION("KUnit test for the Kernel Hashtable structures");
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from quic_jjohnson@quicinc.com are
 
-mm-fix-xyz_noprof-functions-calling-profiled-functions.patch
-lib-alloc_tag-do-not-register-sysctl-interface-when-config_sysctl=n.patch
-lib-alloc_tag-fix-rcu-imbalance-in-pgalloc_tag_get.patch
+mm-hwpoison-add-module_description.patch
+mm-dmapool-add-module_description.patch
+mm-kfence-add-module_description.patch
+mm-zsmalloc-add-module_description.patch
+kmemleak-test-add-missing-module_description-macro.patch
+backtracetest-add-module_description.patch
+dyndbg-add-missing-module_description-macro.patch
+lib-ts-add-missing-module_description-macros.patch
+kunit-fortify-add-missing-module_description-macros.patch
+kunit-add-missing-module_description-macros-for-lib-_testko.patch
 
