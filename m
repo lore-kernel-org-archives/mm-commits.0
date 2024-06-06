@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD36F440C
-	for <mm-commits@vger.kernel.org>; Thu,  6 Jun 2024 02:20:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3512B182C3
+	for <mm-commits@vger.kernel.org>; Thu,  6 Jun 2024 02:20:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717640418; cv=none; b=Kcvohno5Ipl/EObKsje9jPdWVD0LbSGrvsNygWkft+tkamBPbVuxYJy86biGFhCxIlLULSGAVTZSvOThEZRJ1GYrsqTmM0TnO2r+bqCj5a/F4R4h1fJ7JskzsjKIOfhQGTXuEI4HgkbVoPzqLZnUZAs1g8jdVqSL+9c5Pud+yP4=
+	t=1717640420; cv=none; b=RojBeNLwkW9rSC3kjhPP3hJVJt1Sk+rqqWRbli6rqcYOGzL+nB5erMWDn/71J1jwyjiIzeYjqCFaD50QYn8fLdlY9bjHgzocIIyiyCsy+BRKjm7whLJzLZ8AnHRzboYme1C0hTUAncFeOpe72Jcz4uH6AMbTsEelvMVTuz7Ohmo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717640418; c=relaxed/simple;
-	bh=TOduFc8gZhyTgF3Y5XkJmAcLCeG8nvOlr650GBLmc1E=;
-	h=Date:To:From:Subject:Message-Id; b=M2kiMEq1Nlgpejg+E8bX9MTF50U8trDK+mHbbb3JXAd8ad543eIVoXVOGsWDVNoummgP4PZxPwpKv8sldBP29fLFrmqwTXz7BRPkdxrupUUgPPxDv8OwpohEzM36Gw6lD0SfoRORCGgYKgLa/8C44upP1FvEBu6VZjPNozq4mY4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JKbYt0BQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717640420; c=relaxed/simple;
+	bh=euqwXMeTs+Arxe03LNUU5jIYUTa06fdaelHbq0m7Mhw=;
+	h=Date:To:From:Subject:Message-Id; b=pHgy4RTzWlgEvZtWtN/lNUnPNcNW/05h0c9nICtmS0aSYUlK3hEV7vL1z+C7NNozJsXHlaM24QQtbmt5lFeGSLd6TqaVXn1vyIT5yjMuv6aYRAR3E1Gh73mOrdWx5QaTcneMQABRSEkENggbyvWPsIb4xBm0NAJIEy/y4+3SfHs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2C2pRbET; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JKbYt0BQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80AF2C4AF09;
-	Thu,  6 Jun 2024 02:20:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2C2pRbET"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9D0EC4AF16;
+	Thu,  6 Jun 2024 02:20:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717640418;
-	bh=TOduFc8gZhyTgF3Y5XkJmAcLCeG8nvOlr650GBLmc1E=;
+	s=korg; t=1717640419;
+	bh=euqwXMeTs+Arxe03LNUU5jIYUTa06fdaelHbq0m7Mhw=;
 	h=Date:To:From:Subject:From;
-	b=JKbYt0BQwDo1C092uzCDayxRyEaGD+hV8AIbg3rrdrILQJ0hHz3ThHqJrAxX8psBr
-	 y0PmpuDH6xZ6CBnbyawhu3s4az/LhCLLfLVURxNNILZk91zuJ7RnHWsrW3jEBx6Ihx
-	 cyknsX3wuZ4MY+k8IVEY4wZzNkzgNfNj45hG3pGM=
-Date: Wed, 05 Jun 2024 19:20:18 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,kent.overstreet@linux.dev,keescook@chromium.org,iamjoonsoo.kim@lge.com,gustavoars@kernel.org,cl@linux.com,42.hyeyoo@gmail.com,cascardo@igalia.com,akpm@linux-foundation.org
+	b=2C2pRbETqFyyAQ5bag6OXaXC/IJyLkW8Wq86IGEQfqDSUakILJzpfYEWuZvitLJnm
+	 aOswyMzxlJ0bN3ZshqrIoX67P9OSQN8eIsJw5cNusafr6N71clU4Soor3crkjtnsxM
+	 W3aedNn44XvSfvlpWI4wuLGjAF8h8lnwKa/JJkik=
+Date: Wed, 05 Jun 2024 19:20:19 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,kees@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] codetag-avoid-race-at-alloc_slab_obj_exts.patch removed from -mm tree
-Message-Id: <20240606022018.80AF2C4AF09@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-xyz_noprof-functions-calling-profiled-functions.patch removed from -mm tree
+Message-Id: <20240606022019.A9D0EC4AF16@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,127 +35,115 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: codetag: avoid race at alloc_slab_obj_exts
+     Subject: mm: fix xyz_noprof functions calling profiled functions
 has been removed from the -mm tree.  Its filename was
-     codetag-avoid-race-at-alloc_slab_obj_exts.patch
+     mm-fix-xyz_noprof-functions-calling-profiled-functions.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
-Subject: codetag: avoid race at alloc_slab_obj_exts
-Date: Mon, 27 May 2024 15:30:06 -0300
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: fix xyz_noprof functions calling profiled functions
+Date: Fri, 31 May 2024 13:53:50 -0700
 
-When CONFIG_MEM_ALLOC_PROFILING_DEBUG is enabled, the following warning
-may be noticed:
+Grepping /proc/allocinfo for "noprof" reveals several xyz_noprof
+functions, which means internally they are calling profiled functions. 
+This should never happen as such calls move allocation charge from a
+higher level location where it should be accounted for into these lower
+level helpers.  Fix this by replacing profiled function calls with noprof
+ones.
 
-[   48.299584] ------------[ cut here ]------------
-[   48.300092] alloc_tag was not set
-[   48.300528] WARNING: CPU: 2 PID: 1361 at include/linux/alloc_tag.h:130 alloc_tagging_slab_free_hook+0x84/0xc7
-[   48.301305] Modules linked in:
-[   48.301553] CPU: 2 PID: 1361 Comm: systemd-udevd Not tainted 6.10.0-rc1-00003-gac8755535862 #176
-[   48.302196] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
-[   48.302752] RIP: 0010:alloc_tagging_slab_free_hook+0x84/0xc7
-[   48.303169] Code: 8d 1c c4 48 85 db 74 4d 48 83 3b 00 75 1e 80 3d 65 02 86 04 00 75 15 48 c7 c7 11 48 1d 85 c6 05 55 02 86 04 01 e8 64 44 a5 ff <0f> 0b 48 8b 03 48 85 c0 74 21 48 83 f8 01 74 14 48 8b 50 20 48 f7
-[   48.304411] RSP: 0018:ffff8880111b7d40 EFLAGS: 00010282
-[   48.304916] RAX: 0000000000000000 RBX: ffff88800fcc9008 RCX: 0000000000000000
-[   48.305455] RDX: 0000000080000000 RSI: ffff888014060000 RDI: ffffed1002236f97
-[   48.305979] RBP: 0000000000001100 R08: fffffbfff0aa73a1 R09: 0000000000000000
-[   48.306473] R10: ffffffff814515e5 R11: 0000000000000003 R12: ffff88800fcc9000
-[   48.306943] R13: ffff88800b2e5cc0 R14: ffff8880111b7d90 R15: 0000000000000000
-[   48.307529] FS:  00007faf5d1908c0(0000) GS:ffff88806cf00000(0000) knlGS:0000000000000000
-[   48.308223] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   48.308710] CR2: 000058fb220c9118 CR3: 00000000110cc000 CR4: 0000000000750ef0
-[   48.309274] PKRU: 55555554
-[   48.309804] Call Trace:
-[   48.310029]  <TASK>
-[   48.310290]  ? show_regs+0x84/0x8d
-[   48.310722]  ? alloc_tagging_slab_free_hook+0x84/0xc7
-[   48.311298]  ? __warn+0x13b/0x2ff
-[   48.311580]  ? alloc_tagging_slab_free_hook+0x84/0xc7
-[   48.311987]  ? report_bug+0x2ce/0x3ab
-[   48.312292]  ? handle_bug+0x8c/0x107
-[   48.312563]  ? exc_invalid_op+0x34/0x6f
-[   48.312842]  ? asm_exc_invalid_op+0x1a/0x20
-[   48.313173]  ? this_cpu_in_panic+0x1c/0x72
-[   48.313503]  ? alloc_tagging_slab_free_hook+0x84/0xc7
-[   48.313880]  ? putname+0x143/0x14e
-[   48.314152]  kmem_cache_free+0xe9/0x214
-[   48.314454]  putname+0x143/0x14e
-[   48.314712]  do_unlinkat+0x413/0x45e
-[   48.315001]  ? __pfx_do_unlinkat+0x10/0x10
-[   48.315388]  ? __check_object_size+0x4d7/0x525
-[   48.315744]  ? __sanitizer_cov_trace_pc+0x20/0x4a
-[   48.316167]  ? __sanitizer_cov_trace_pc+0x20/0x4a
-[   48.316757]  ? getname_flags+0x4ed/0x500
-[   48.317261]  __x64_sys_unlink+0x42/0x4a
-[   48.317741]  do_syscall_64+0xe2/0x149
-[   48.318171]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
-[   48.318602] RIP: 0033:0x7faf5d8850ab
-[   48.318891] Code: fd ff ff e8 27 dd 01 00 0f 1f 80 00 00 00 00 f3 0f 1e fa b8 5f 00 00 00 0f 05 c3 0f 1f 40 00 f3 0f 1e fa b8 57 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 05 c3 0f 1f 40 00 48 8b 15 41 2d 0e 00 f7 d8
-[   48.320649] RSP: 002b:00007ffc44982b38 EFLAGS: 00000246 ORIG_RAX: 0000000000000057
-[   48.321182] RAX: ffffffffffffffda RBX: 00005ba344a44680 RCX: 00007faf5d8850ab
-[   48.321667] RDX: 0000000000000000 RSI: 00005ba344a44430 RDI: 00007ffc44982b40
-[   48.322139] RBP: 00007ffc44982c00 R08: 0000000000000000 R09: 0000000000000007
-[   48.322598] R10: 00005ba344a44430 R11: 0000000000000246 R12: 0000000000000000
-[   48.323071] R13: 00007ffc44982b40 R14: 0000000000000000 R15: 0000000000000000
-[   48.323596]  </TASK>
-
-This is due to a race when two objects are allocated from the same slab,
-which did not have an obj_exts allocated for.
-
-In such a case, the two threads will notice the NULL obj_exts and after
-one assigns slab->obj_exts, the second one will happily do the exchange if
-it reads this new assigned value.
-
-In order to avoid that, verify that the read obj_exts does not point to an
-allocated obj_exts before doing the exchange.
-
-Link: https://lkml.kernel.org/r/20240527183007.1595037-1-cascardo@igalia.com
-Fixes: 09c46563ff6d ("codetag: debug: introduce OBJEXTS_ALLOC_FAIL to mark failed slab_ext allocations")
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
+Link: https://lkml.kernel.org/r/20240531205350.3973009-1-surenb@google.com
+Fixes: b951aaff5035 ("mm: enable page allocation tagging")
+Fixes: e26d8769da6d ("mempool: hook up to memory allocation profiling")
+Fixes: 88ae5fb755b0 ("mm: vmalloc: enable memory allocation profiling")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Reviewed-by: Kees Cook <kees@kernel.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/filemap.c |    2 +-
+ mm/mempool.c |    2 +-
+ mm/util.c    |   10 +++++-----
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/slub.c~codetag-avoid-race-at-alloc_slab_obj_exts
-+++ a/mm/slub.c
-@@ -1952,7 +1952,7 @@ int alloc_slab_obj_exts(struct slab *sla
- #ifdef CONFIG_MEMCG
- 	new_exts |= MEMCG_DATA_OBJEXTS;
- #endif
--	old_exts = slab->obj_exts;
-+	old_exts = READ_ONCE(slab->obj_exts);
- 	handle_failed_objexts_alloc(old_exts, vec, objects);
- 	if (new_slab) {
- 		/*
-@@ -1961,7 +1961,8 @@ int alloc_slab_obj_exts(struct slab *sla
- 		 * be simply assigned.
- 		 */
- 		slab->obj_exts = new_exts;
--	} else if (cmpxchg(&slab->obj_exts, old_exts, new_exts) != old_exts) {
-+	} else if ((old_exts & ~OBJEXTS_FLAGS_MASK) ||
-+		   cmpxchg(&slab->obj_exts, old_exts, new_exts) != old_exts) {
- 		/*
- 		 * If the slab is already in use, somebody can allocate and
- 		 * assign slabobj_exts in parallel. In this case the existing
+--- a/mm/filemap.c~mm-fix-xyz_noprof-functions-calling-profiled-functions
++++ a/mm/filemap.c
+@@ -1000,7 +1000,7 @@ struct folio *filemap_alloc_folio_noprof
+ 		do {
+ 			cpuset_mems_cookie = read_mems_allowed_begin();
+ 			n = cpuset_mem_spread_node();
+-			folio = __folio_alloc_node(gfp, order, n);
++			folio = __folio_alloc_node_noprof(gfp, order, n);
+ 		} while (!folio && read_mems_allowed_retry(cpuset_mems_cookie));
+ 
+ 		return folio;
+--- a/mm/mempool.c~mm-fix-xyz_noprof-functions-calling-profiled-functions
++++ a/mm/mempool.c
+@@ -273,7 +273,7 @@ mempool_t *mempool_create_node_noprof(in
+ {
+ 	mempool_t *pool;
+ 
+-	pool = kzalloc_node(sizeof(*pool), gfp_mask, node_id);
++	pool = kmalloc_node_noprof(sizeof(*pool), gfp_mask | __GFP_ZERO, node_id);
+ 	if (!pool)
+ 		return NULL;
+ 
+--- a/mm/util.c~mm-fix-xyz_noprof-functions-calling-profiled-functions
++++ a/mm/util.c
+@@ -705,7 +705,7 @@ void *kvrealloc_noprof(const void *p, si
+ 
+ 	if (oldsize >= newsize)
+ 		return (void *)p;
+-	newp = kvmalloc(newsize, flags);
++	newp = kvmalloc_noprof(newsize, flags);
+ 	if (!newp)
+ 		return NULL;
+ 	memcpy(newp, p, oldsize);
+@@ -726,7 +726,7 @@ void *__vmalloc_array_noprof(size_t n, s
+ 
+ 	if (unlikely(check_mul_overflow(n, size, &bytes)))
+ 		return NULL;
+-	return __vmalloc(bytes, flags);
++	return __vmalloc_noprof(bytes, flags);
+ }
+ EXPORT_SYMBOL(__vmalloc_array_noprof);
+ 
+@@ -737,7 +737,7 @@ EXPORT_SYMBOL(__vmalloc_array_noprof);
+  */
+ void *vmalloc_array_noprof(size_t n, size_t size)
+ {
+-	return __vmalloc_array(n, size, GFP_KERNEL);
++	return __vmalloc_array_noprof(n, size, GFP_KERNEL);
+ }
+ EXPORT_SYMBOL(vmalloc_array_noprof);
+ 
+@@ -749,7 +749,7 @@ EXPORT_SYMBOL(vmalloc_array_noprof);
+  */
+ void *__vcalloc_noprof(size_t n, size_t size, gfp_t flags)
+ {
+-	return __vmalloc_array(n, size, flags | __GFP_ZERO);
++	return __vmalloc_array_noprof(n, size, flags | __GFP_ZERO);
+ }
+ EXPORT_SYMBOL(__vcalloc_noprof);
+ 
+@@ -760,7 +760,7 @@ EXPORT_SYMBOL(__vcalloc_noprof);
+  */
+ void *vcalloc_noprof(size_t n, size_t size)
+ {
+-	return __vmalloc_array(n, size, GFP_KERNEL | __GFP_ZERO);
++	return __vmalloc_array_noprof(n, size, GFP_KERNEL | __GFP_ZERO);
+ }
+ EXPORT_SYMBOL(vcalloc_noprof);
+ 
 _
 
-Patches currently in -mm which might be from cascardo@igalia.com are
+Patches currently in -mm which might be from surenb@google.com are
 
+lib-alloc_tag-do-not-register-sysctl-interface-when-config_sysctl=n.patch
+lib-alloc_tag-fix-rcu-imbalance-in-pgalloc_tag_get.patch
 
