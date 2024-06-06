@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1788117C9B
-	for <mm-commits@vger.kernel.org>; Thu,  6 Jun 2024 02:20:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2E3C17C9B
+	for <mm-commits@vger.kernel.org>; Thu,  6 Jun 2024 02:20:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717640412; cv=none; b=t0ZN9TXCfHlpYFkx8b7OXtltsr6eBLB4Fac1b/xmbSn55QGYjcm4jxpjxYJGTWoEh2N1mVcVA6NZg6zsaNIplDmDZY7Lu8I+7jHOywGpokT84B7+/cxWMSacEy3vz2p+Hdp3MJFNG3eCgImE6Va0RPhKiqyKaS51AhbuxECJqAI=
+	t=1717640413; cv=none; b=LQqasXi/o3Mhkp3Cbvn0Qk2f3AJVg/GRIwi7337NNCEW/7hoA9obg5pyOIFW5ZhN8N2ZyXP3GKlHJ5mrlXTnbP7Ci1ohh1DujO3wZB/ZkZ9DnUlDHkKKXYpBbjF3wv9P/N9dLYUL/PHe8YwDMIfOKQ9M2oIYc2YKJU4xDKgovts=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717640412; c=relaxed/simple;
-	bh=8ArXi7q1ZHIUP5I4vmbQtr7ZymT+/9hISEfPANUbVuw=;
-	h=Date:To:From:Subject:Message-Id; b=H8iRLNZ7SqsDKBPq7fOJXlcCd/9XFjVvKGTLxK5ytcPXn4ybYueZlPN/FDfTqtn+YHW8KZdBx4RhvxG2vVgm33fNAqJAEWeBNDJL925b5XxRHxKoadmSwDaMXxPEmAeZLrw/V529C/Erf52NfYYeoobozYMUNEuWC+VVn3fRJvw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ba8c7+e0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717640413; c=relaxed/simple;
+	bh=PsDKc/EfOQPLB+NCEzGUacqZpC3lW+g/q++3FjQdQSo=;
+	h=Date:To:From:Subject:Message-Id; b=iV/SVIEpgJjkVITpVAn58uKiytocc6nc/meVaL8CRhox+C6qbvjHUg0yIY/qLYXXAsoBSmAsc/+dBcmjnmuOm/P8VGpcptk8Waw50iYkXM+jgl9LxW4szMcX3rLP7FdwzK4jP2i44PW7hxL1kpg4FLJAA2xR7YrGeDix3TSxBgQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CQQ1C5hm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ba8c7+e0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D133C4AF1D;
-	Thu,  6 Jun 2024 02:20:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CQQ1C5hm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B79CBC4AF16;
+	Thu,  6 Jun 2024 02:20:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717640411;
-	bh=8ArXi7q1ZHIUP5I4vmbQtr7ZymT+/9hISEfPANUbVuw=;
+	s=korg; t=1717640412;
+	bh=PsDKc/EfOQPLB+NCEzGUacqZpC3lW+g/q++3FjQdQSo=;
 	h=Date:To:From:Subject:From;
-	b=ba8c7+e0UYcQv7uBcAwkIIul6wQbPMwmYDLa/Yhb4TdVGHisMChxDXx+dfmt36cGP
-	 DJNVM8lco7kkpSRSPeicpPGt2Vv6AUmbY2m8IQaXbhL8+PJzi6hrWqWqqTnLvsOTlV
-	 dsGWfQylPaHR+qXaTNRnoaMcq3sTYSZo/f4AinsA=
-Date: Wed, 05 Jun 2024 19:20:10 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,mgorman@techsingularity.net,hch@lst.de,hch@infradead.org,baolin.wang@linux.alibaba.com,andriy.shevchenko@linux.intel.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=CQQ1C5hmHK6Mcp1rgmq4vTSx95PVs1+xop4cwA57tVnMd/9Z1QaWRYU2nYLfftEFE
+	 cVmRI7vKC7ir+qtlflPzS7n+GvlgeMJbPzwcpErppMd2lC0CfAehfXlNP+S9MXjGtU
+	 FT8vD1EpnWtU9OPkR5SpurdCpOUulPTBxGyh0EEU=
+Date: Wed, 05 Jun 2024 19:20:12 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,mcgrof@kernel.org,daniel@iogearbox.net,cong.wang@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-page_alloc-fix-highatomic-typing-in-multi-block-buddies.patch removed from -mm tree
-Message-Id: <20240606022011.7D133C4AF1D@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr.patch removed from -mm tree
+Message-Id: <20240606022012.B79CBC4AF16@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,215 +35,141 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: fix highatomic typing in multi-block buddies
+     Subject: vmalloc: check CONFIG_EXECMEM in is_vmalloc_or_module_addr()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-highatomic-typing-in-multi-block-buddies.patch
+     vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: fix highatomic typing in multi-block buddies
-Date: Wed, 29 May 2024 18:18:12 -0400
+From: Cong Wang <cong.wang@bytedance.com>
+Subject: vmalloc: check CONFIG_EXECMEM in is_vmalloc_or_module_addr()
+Date: Tue, 28 May 2024 09:08:38 -0700
 
-Christoph reports a page allocator splat triggered by xfstests:
+After commit 2c9e5d4a0082 ("bpf: remove CONFIG_BPF_JIT dependency on
+CONFIG_MODULES of") CONFIG_BPF_JIT does not depend on CONFIG_MODULES any
+more and bpf jit also uses the [MODULES_VADDR, MODULES_END] memory region.
+But is_vmalloc_or_module_addr() still checks CONFIG_MODULES, which then
+returns false for a bpf jit memory region when CONFIG_MODULES is not
+defined.  It leads to the following kernel BUG:
 
-generic/176 214s ... [ 1204.507931] run fstests generic/176 at 2024-05-27 12:52:30
-XFS (nvme0n1): Mounting V5 Filesystem cd936307-415f-48a3-b99d-a2d52ae1f273
-XFS (nvme0n1): Ending clean mount
-XFS (nvme1n1): Mounting V5 Filesystem ab3ee1a4-af62-4934-9a6a-6c2fde321850
-XFS (nvme1n1): Ending clean mount
-XFS (nvme1n1): Unmounting Filesystem ab3ee1a4-af62-4934-9a6a-6c2fde321850
-XFS (nvme1n1): Mounting V5 Filesystem 7099b02d-9c58-4d1d-be1d-2cc472d12cd9
-XFS (nvme1n1): Ending clean mount
-------------[ cut here ]------------
-page type is 3, passed migratetype is 1 (nr=512)
-WARNING: CPU: 0 PID: 509870 at mm/page_alloc.c:645 expand+0x1c5/0x1f0
-Modules linked in: i2c_i801 crc32_pclmul i2c_smbus [last unloaded: scsi_debug]
-CPU: 0 PID: 509870 Comm: xfs_io Not tainted 6.10.0-rc1+ #2437
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-RIP: 0010:expand+0x1c5/0x1f0
-Code: 05 16 70 bf 02 01 e8 ca fc ff ff 8b 54 24 34 44 89 e1 48 c7 c7 80 a2 28 83 48 89 c6 b8 01 00 3
-RSP: 0018:ffffc90003b2b968 EFLAGS: 00010082
-RAX: 0000000000000000 RBX: ffffffff83fa9480 RCX: 0000000000000000
-RDX: 0000000000000005 RSI: 0000000000000027 RDI: 00000000ffffffff
-RBP: 00000000001f2600 R08: 00000000fffeffff R09: 0000000000000001
-R10: 0000000000000000 R11: ffffffff83676200 R12: 0000000000000009
-R13: 0000000000000200 R14: 0000000000000001 R15: ffffea0007c98000
-FS:  00007f72ca3d5780(0000) GS:ffff8881f9c00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f72ca1fff38 CR3: 00000001aa0c6002 CR4: 0000000000770ef0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff07f0 DR7: 0000000000000400
-PKRU: 55555554
-Call Trace:
- <TASK>
- ? __warn+0x7b/0x120
- ? expand+0x1c5/0x1f0
- ? report_bug+0x191/0x1c0
- ? handle_bug+0x3c/0x80
- ? exc_invalid_op+0x17/0x70
- ? asm_exc_invalid_op+0x1a/0x20
- ? expand+0x1c5/0x1f0
- ? expand+0x1c5/0x1f0
- __rmqueue_pcplist+0x3a9/0x730
- get_page_from_freelist+0x7a0/0xf00
- __alloc_pages_noprof+0x153/0x2e0
- __folio_alloc_noprof+0x10/0xa0
- __filemap_get_folio+0x16b/0x370
- iomap_write_begin+0x496/0x680
+[    1.567023] ------------[ cut here ]------------
+[    1.567883] kernel BUG at mm/vmalloc.c:745!
+[    1.568477] Oops: invalid opcode: 0000 [#1] PREEMPT SMP KASAN NOPTI
+[    1.569367] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 6.9.0+ #448
+[    1.570247] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.15.0-1 04/01/2014
+[    1.570786] RIP: 0010:vmalloc_to_page+0x48/0x1ec
+[    1.570786] Code: 0f 00 00 e8 eb 1a 05 00 b8 37 00 00 00 48 ba fe ff ff ff ff 1f 00 00 4c 03 25 76 49 c6 02 48 c1 e0 28 48 01 e8 48 39 d0 76 02 <0f> 0b 4c 89 e7 e8 bf 1a 05 00 49 8b 04 24 48 a9 9f ff ff ff 0f 84
+[    1.570786] RSP: 0018:ffff888007787960 EFLAGS: 00010212
+[    1.570786] RAX: 000036ffa0000000 RBX: 0000000000000640 RCX: ffffffff8147e93c
+[    1.570786] RDX: 00001ffffffffffe RSI: dffffc0000000000 RDI: ffffffff840e32c8
+[    1.570786] RBP: ffffffffa0000000 R08: 0000000000000000 R09: 0000000000000000
+[    1.570786] R10: ffff888007787a88 R11: ffffffff8475d8e7 R12: ffffffff83e80ff8
+[    1.570786] R13: 0000000000000640 R14: 0000000000000640 R15: 0000000000000640
+[    1.570786] FS:  0000000000000000(0000) GS:ffff88806cc00000(0000) knlGS:0000000000000000
+[    1.570786] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    1.570786] CR2: ffff888006a01000 CR3: 0000000003e80000 CR4: 0000000000350ef0
+[    1.570786] Call Trace:
+[    1.570786]  <TASK>
+[    1.570786]  ? __die_body+0x1b/0x58
+[    1.570786]  ? die+0x31/0x4b
+[    1.570786]  ? do_trap+0x9d/0x138
+[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
+[    1.570786]  ? do_error_trap+0xcd/0x102
+[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
+[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
+[    1.570786]  ? handle_invalid_op+0x2f/0x38
+[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
+[    1.570786]  ? exc_invalid_op+0x2b/0x41
+[    1.570786]  ? asm_exc_invalid_op+0x16/0x20
+[    1.570786]  ? vmalloc_to_page+0x26/0x1ec
+[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
+[    1.570786]  __text_poke+0xb6/0x458
+[    1.570786]  ? __pfx_text_poke_memcpy+0x10/0x10
+[    1.570786]  ? __pfx___mutex_lock+0x10/0x10
+[    1.570786]  ? __pfx___text_poke+0x10/0x10
+[    1.570786]  ? __pfx_get_random_u32+0x10/0x10
+[    1.570786]  ? srso_return_thunk+0x5/0x5f
+[    1.570786]  text_poke_copy_locked+0x70/0x84
+[    1.570786]  text_poke_copy+0x32/0x4f
+[    1.570786]  bpf_arch_text_copy+0xf/0x27
+[    1.570786]  bpf_jit_binary_pack_finalize+0x26/0x5a
+[    1.570786]  bpf_int_jit_compile+0x576/0x8ad
+[    1.570786]  ? __pfx_bpf_int_jit_compile+0x10/0x10
+[    1.570786]  ? srso_return_thunk+0x5/0x5f
+[    1.570786]  ? __kmalloc_node_track_caller+0x2b5/0x2e0
+[    1.570786]  bpf_prog_select_runtime+0x7c/0x199
+[    1.570786]  bpf_prepare_filter+0x1e9/0x25b
+[    1.570786]  ? __pfx_bpf_prepare_filter+0x10/0x10
+[    1.570786]  ? srso_return_thunk+0x5/0x5f
+[    1.570786]  ? _find_next_bit+0x29/0x7e
+[    1.570786]  bpf_prog_create+0xb8/0xe0
+[    1.570786]  ptp_classifier_init+0x75/0xa1
+[    1.570786]  ? __pfx_ptp_classifier_init+0x10/0x10
+[    1.570786]  ? srso_return_thunk+0x5/0x5f
+[    1.570786]  ? register_pernet_subsys+0x36/0x42
+[    1.570786]  ? srso_return_thunk+0x5/0x5f
+[    1.570786]  sock_init+0x99/0xa3
+[    1.570786]  ? __pfx_sock_init+0x10/0x10
+[    1.570786]  do_one_initcall+0x104/0x2c4
+[    1.570786]  ? __pfx_do_one_initcall+0x10/0x10
+[    1.570786]  ? parameq+0x25/0x2d
+[    1.570786]  ? rcu_is_watching+0x1c/0x3c
+[    1.570786]  ? trace_kmalloc+0x81/0xb2
+[    1.570786]  ? srso_return_thunk+0x5/0x5f
+[    1.570786]  ? __kmalloc+0x29c/0x2c7
+[    1.570786]  ? srso_return_thunk+0x5/0x5f
+[    1.570786]  do_initcalls+0xf9/0x123
+[    1.570786]  kernel_init_freeable+0x24f/0x289
+[    1.570786]  ? __pfx_kernel_init+0x10/0x10
+[    1.570786]  kernel_init+0x19/0x13a
+[    1.570786]  ret_from_fork+0x24/0x41
+[    1.570786]  ? __pfx_kernel_init+0x10/0x10
+[    1.570786]  ret_from_fork_asm+0x1a/0x30
+[    1.570786]  </TASK>
+[    1.570819] ---[ end trace 0000000000000000 ]---
+[    1.571463] RIP: 0010:vmalloc_to_page+0x48/0x1ec
+[    1.572111] Code: 0f 00 00 e8 eb 1a 05 00 b8 37 00 00 00 48 ba fe ff ff ff ff 1f 00 00 4c 03 25 76 49 c6 02 48 c1 e0 28 48 01 e8 48 39 d0 76 02 <0f> 0b 4c 89 e7 e8 bf 1a 05 00 49 8b 04 24 48 a9 9f ff ff ff 0f 84
+[    1.574632] RSP: 0018:ffff888007787960 EFLAGS: 00010212
+[    1.575129] RAX: 000036ffa0000000 RBX: 0000000000000640 RCX: ffffffff8147e93c
+[    1.576097] RDX: 00001ffffffffffe RSI: dffffc0000000000 RDI: ffffffff840e32c8
+[    1.577084] RBP: ffffffffa0000000 R08: 0000000000000000 R09: 0000000000000000
+[    1.578077] R10: ffff888007787a88 R11: ffffffff8475d8e7 R12: ffffffff83e80ff8
+[    1.578810] R13: 0000000000000640 R14: 0000000000000640 R15: 0000000000000640
+[    1.579823] FS:  0000000000000000(0000) GS:ffff88806cc00000(0000) knlGS:0000000000000000
+[    1.580992] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    1.581869] CR2: ffff888006a01000 CR3: 0000000003e80000 CR4: 0000000000350ef0
+[    1.582800] Kernel panic - not syncing: Fatal exception
+[    1.583765] ---[ end Kernel panic - not syncing: Fatal exception ]---
 
-While trying to service a movable allocation (page type 1), the page
-allocator runs into a two-pageblock buddy on the movable freelist whose
-second block is typed as highatomic (page type 3).
+Fix this by checking CONFIG_EXECMEM instead.
 
-This inconsistency is caused by the highatomic reservation system
-operating on single pageblocks, while MAX_ORDER can be bigger than that -
-in this configuration, pageblock_order is 9 while MAX_PAGE_ORDER is 10. 
-The test case is observed to make several adjacent order-3 requests with
-__GFP_DIRECT_RECLAIM cleared, which marks the surrounding block as
-highatomic.  Upon freeing, the blocks merge into an order-10 buddy.  When
-the highatomic pool is drained later on, this order-10 buddy gets moved
-back to the movable list, but only the first pageblock is marked movable
-again.  A subsequent expand() of this buddy warns about the tail being of
-a different type.
-
-This is a long-standing bug that's surfaced by the recent block type
-warnings added to the allocator.  The consequences seem mostly benign, it
-just results in odd behavior: the highatomic tail blocks are not properly
-drained, instead they end up on the movable list first, then go back to
-the highatomic list after an alloc-free cycle.
-
-To fix this, make the highatomic reservation code aware that
-allocations/buddies can be larger than a pageblock.
-
-While it's an old quirk, the recently added type consistency warnings seem
-to be the most prominent consequence of it.  Set the Fixes: tag
-accordingly to highlight this backporting dependency.
-
-Link: https://lkml.kernel.org/r/20240530114203.GA1222079@cmpxchg.org
-Fixes: e0932b6c1f94 ("mm: page_alloc: consolidate free page accounting")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Christoph Hellwig <hch@infradead.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Tested-by: Christoph Hellwig <hch@lst.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20240528160838.102223-1-xiyou.wangcong@gmail.com
+Fixes: 2c9e5d4a0082 ("bpf: remove CONFIG_BPF_JIT dependency on CONFIG_MODULES of")
+Signed-off-by: Cong Wang <cong.wang@bytedance.com>
+Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   50 +++++++++++++++++++++++++++++++---------------
- 1 file changed, 34 insertions(+), 16 deletions(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-highatomic-typing-in-multi-block-buddies
-+++ a/mm/page_alloc.c
-@@ -1955,10 +1955,12 @@ int find_suitable_fallback(struct free_a
- }
- 
- /*
-- * Reserve a pageblock for exclusive use of high-order atomic allocations if
-- * there are no empty page blocks that contain a page with a suitable order
-+ * Reserve the pageblock(s) surrounding an allocation request for
-+ * exclusive use of high-order atomic allocations if there are no
-+ * empty page blocks that contain a page with a suitable order
-  */
--static void reserve_highatomic_pageblock(struct page *page, struct zone *zone)
-+static void reserve_highatomic_pageblock(struct page *page, int order,
-+					 struct zone *zone)
- {
- 	int mt;
- 	unsigned long max_managed, flags;
-@@ -1984,10 +1986,17 @@ static void reserve_highatomic_pageblock
- 	/* Yoink! */
- 	mt = get_pageblock_migratetype(page);
- 	/* Only reserve normal pageblocks (i.e., they can merge with others) */
--	if (migratetype_is_mergeable(mt))
--		if (move_freepages_block(zone, page, mt,
--					 MIGRATE_HIGHATOMIC) != -1)
--			zone->nr_reserved_highatomic += pageblock_nr_pages;
-+	if (!migratetype_is_mergeable(mt))
-+		goto out_unlock;
-+
-+	if (order < pageblock_order) {
-+		if (move_freepages_block(zone, page, mt, MIGRATE_HIGHATOMIC) == -1)
-+			goto out_unlock;
-+		zone->nr_reserved_highatomic += pageblock_nr_pages;
-+	} else {
-+		change_pageblock_range(page, order, MIGRATE_HIGHATOMIC);
-+		zone->nr_reserved_highatomic += 1 << order;
-+	}
- 
- out_unlock:
- 	spin_unlock_irqrestore(&zone->lock, flags);
-@@ -1999,7 +2008,7 @@ out_unlock:
-  * intense memory pressure but failed atomic allocations should be easier
-  * to recover from than an OOM.
-  *
-- * If @force is true, try to unreserve a pageblock even though highatomic
-+ * If @force is true, try to unreserve pageblocks even though highatomic
-  * pageblock is exhausted.
-  */
- static bool unreserve_highatomic_pageblock(const struct alloc_context *ac,
-@@ -2041,6 +2050,7 @@ static bool unreserve_highatomic_pageblo
- 			 * adjust the count once.
- 			 */
- 			if (is_migrate_highatomic(mt)) {
-+				unsigned long size;
- 				/*
- 				 * It should never happen but changes to
- 				 * locking could inadvertently allow a per-cpu
-@@ -2048,9 +2058,9 @@ static bool unreserve_highatomic_pageblo
- 				 * while unreserving so be safe and watch for
- 				 * underflows.
- 				 */
--				zone->nr_reserved_highatomic -= min(
--						pageblock_nr_pages,
--						zone->nr_reserved_highatomic);
-+				size = max(pageblock_nr_pages, 1UL << order);
-+				size = min(size, zone->nr_reserved_highatomic);
-+				zone->nr_reserved_highatomic -= size;
- 			}
- 
- 			/*
-@@ -2062,11 +2072,19 @@ static bool unreserve_highatomic_pageblo
- 			 * of pageblocks that cannot be completely freed
- 			 * may increase.
- 			 */
--			ret = move_freepages_block(zone, page, mt,
--						   ac->migratetype);
-+			if (order < pageblock_order)
-+				ret = move_freepages_block(zone, page, mt,
-+							   ac->migratetype);
-+			else {
-+				move_to_free_list(page, zone, order, mt,
-+						  ac->migratetype);
-+				change_pageblock_range(page, order,
-+						       ac->migratetype);
-+				ret = 1;
-+			}
- 			/*
--			 * Reserving this block already succeeded, so this should
--			 * not fail on zone boundaries.
-+			 * Reserving the block(s) already succeeded,
-+			 * so this should not fail on zone boundaries.
- 			 */
- 			WARN_ON_ONCE(ret == -1);
- 			if (ret > 0) {
-@@ -3406,7 +3424,7 @@ try_this_zone:
- 			 * if the pageblock should be reserved for the future
- 			 */
- 			if (unlikely(alloc_flags & ALLOC_HIGHATOMIC))
--				reserve_highatomic_pageblock(page, zone);
-+				reserve_highatomic_pageblock(page, order, zone);
- 
- 			return page;
- 		} else {
+--- a/mm/vmalloc.c~vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr
++++ a/mm/vmalloc.c
+@@ -722,7 +722,7 @@ int is_vmalloc_or_module_addr(const void
+ 	 * and fall back on vmalloc() if that fails. Others
+ 	 * just put it in the vmalloc space.
+ 	 */
+-#if defined(CONFIG_MODULES) && defined(MODULES_VADDR)
++#if defined(CONFIG_EXECMEM) && defined(MODULES_VADDR)
+ 	unsigned long addr = (unsigned long)kasan_reset_tag(x);
+ 	if (addr >= MODULES_VADDR && addr < MODULES_END)
+ 		return 1;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from cong.wang@bytedance.com are
 
-mm-vmscan-restore-incremental-cgroup-iteration.patch
 
