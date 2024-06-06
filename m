@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62153440C;
-	Thu,  6 Jun 2024 02:20:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD36F440C
+	for <mm-commits@vger.kernel.org>; Thu,  6 Jun 2024 02:20:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717640417; cv=none; b=DNWjiQCq4S2hH02mbWdlsm2yKxHLPoE2cOETke1Z182NTyXL1r74Z4o34cfVxFuqwCUmXsuq/DANbG4pMikuz+QDdIScfll2Wfe26HwqPjWqxdxPYN6sHoXW/6z9Gi9Je9bNNDw31RlycBP7ggC08v/TK3e5rWRu7sBso8bGhCU=
+	t=1717640418; cv=none; b=Kcvohno5Ipl/EObKsje9jPdWVD0LbSGrvsNygWkft+tkamBPbVuxYJy86biGFhCxIlLULSGAVTZSvOThEZRJ1GYrsqTmM0TnO2r+bqCj5a/F4R4h1fJ7JskzsjKIOfhQGTXuEI4HgkbVoPzqLZnUZAs1g8jdVqSL+9c5Pud+yP4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717640417; c=relaxed/simple;
-	bh=kZRxQN2CUIH0u8eN6/qoloyz8aQBYFcfcktB3ZOyHxw=;
-	h=Date:To:From:Subject:Message-Id; b=aGUVfYAwjK5B1PbDU/iVRT7JcMe0SB7CgZEmFI8ufocngPTarqqfiKbcluwoE1Zpc2IfCFsJ/ivYgqpOhLwATnzi3ka4U9isVfqP++6wQoTwDsWTJoyl+C3t+Z29FffrSG/8QykuQGdoENx8D11HW+UEWwsQv74t6bOA0dy4R14=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n720W3cX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717640418; c=relaxed/simple;
+	bh=TOduFc8gZhyTgF3Y5XkJmAcLCeG8nvOlr650GBLmc1E=;
+	h=Date:To:From:Subject:Message-Id; b=M2kiMEq1Nlgpejg+E8bX9MTF50U8trDK+mHbbb3JXAd8ad543eIVoXVOGsWDVNoummgP4PZxPwpKv8sldBP29fLFrmqwTXz7BRPkdxrupUUgPPxDv8OwpohEzM36Gw6lD0SfoRORCGgYKgLa/8C44upP1FvEBu6VZjPNozq4mY4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JKbYt0BQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n720W3cX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33F04C4AF4D;
-	Thu,  6 Jun 2024 02:20:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JKbYt0BQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80AF2C4AF09;
+	Thu,  6 Jun 2024 02:20:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717640417;
-	bh=kZRxQN2CUIH0u8eN6/qoloyz8aQBYFcfcktB3ZOyHxw=;
+	s=korg; t=1717640418;
+	bh=TOduFc8gZhyTgF3Y5XkJmAcLCeG8nvOlr650GBLmc1E=;
 	h=Date:To:From:Subject:From;
-	b=n720W3cXLpFUXFoh58AsE4bWN3vqUiEyStnWTDEYHo5wqpPJD8HBQcNmEah/07oTJ
-	 p1MV70PETfMkN37H/xLo9RKA7LKSGDdu58WGjzvExDqtHry6s/ShgoJEMjM0+1AIJW
-	 I+EsfcgK239xEAQhxBlK3nugn59tdPpoDhZ6VaCM=
-Date: Wed, 05 Jun 2024 19:20:16 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,muchun.song@linux.dev,leitao@debian.org,osalvador@suse.de,akpm@linux-foundation.org
+	b=JKbYt0BQwDo1C092uzCDayxRyEaGD+hV8AIbg3rrdrILQJ0hHz3ThHqJrAxX8psBr
+	 y0PmpuDH6xZ6CBnbyawhu3s4az/LhCLLfLVURxNNILZk91zuJ7RnHWsrW3jEBx6Ihx
+	 cyknsX3wuZ4MY+k8IVEY4wZzNkzgNfNj45hG3pGM=
+Date: Wed, 05 Jun 2024 19:20:18 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,kent.overstreet@linux.dev,keescook@chromium.org,iamjoonsoo.kim@lge.com,gustavoars@kernel.org,cl@linux.com,42.hyeyoo@gmail.com,cascardo@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-hugetlb-do-not-call-vma_add_reservation-upon-enomem.patch removed from -mm tree
-Message-Id: <20240606022017.33F04C4AF4D@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] codetag-avoid-race-at-alloc_slab_obj_exts.patch removed from -mm tree
+Message-Id: <20240606022018.80AF2C4AF09@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,76 +35,127 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: do not call vma_add_reservation upon ENOMEM
+     Subject: codetag: avoid race at alloc_slab_obj_exts
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-do-not-call-vma_add_reservation-upon-enomem.patch
+     codetag-avoid-race-at-alloc_slab_obj_exts.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm/hugetlb: do not call vma_add_reservation upon ENOMEM
-Date: Tue, 28 May 2024 22:53:23 +0200
+From: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
+Subject: codetag: avoid race at alloc_slab_obj_exts
+Date: Mon, 27 May 2024 15:30:06 -0300
 
-sysbot reported a splat [1] on __unmap_hugepage_range().  This is because
-vma_needs_reservation() can return -ENOMEM if
-allocate_file_region_entries() fails to allocate the file_region struct
-for the reservation.
+When CONFIG_MEM_ALLOC_PROFILING_DEBUG is enabled, the following warning
+may be noticed:
 
-Check for that and do not call vma_add_reservation() if that is the case,
-otherwise region_abort() and region_del() will see that we do not have any
-file_regions.
+[   48.299584] ------------[ cut here ]------------
+[   48.300092] alloc_tag was not set
+[   48.300528] WARNING: CPU: 2 PID: 1361 at include/linux/alloc_tag.h:130 alloc_tagging_slab_free_hook+0x84/0xc7
+[   48.301305] Modules linked in:
+[   48.301553] CPU: 2 PID: 1361 Comm: systemd-udevd Not tainted 6.10.0-rc1-00003-gac8755535862 #176
+[   48.302196] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
+[   48.302752] RIP: 0010:alloc_tagging_slab_free_hook+0x84/0xc7
+[   48.303169] Code: 8d 1c c4 48 85 db 74 4d 48 83 3b 00 75 1e 80 3d 65 02 86 04 00 75 15 48 c7 c7 11 48 1d 85 c6 05 55 02 86 04 01 e8 64 44 a5 ff <0f> 0b 48 8b 03 48 85 c0 74 21 48 83 f8 01 74 14 48 8b 50 20 48 f7
+[   48.304411] RSP: 0018:ffff8880111b7d40 EFLAGS: 00010282
+[   48.304916] RAX: 0000000000000000 RBX: ffff88800fcc9008 RCX: 0000000000000000
+[   48.305455] RDX: 0000000080000000 RSI: ffff888014060000 RDI: ffffed1002236f97
+[   48.305979] RBP: 0000000000001100 R08: fffffbfff0aa73a1 R09: 0000000000000000
+[   48.306473] R10: ffffffff814515e5 R11: 0000000000000003 R12: ffff88800fcc9000
+[   48.306943] R13: ffff88800b2e5cc0 R14: ffff8880111b7d90 R15: 0000000000000000
+[   48.307529] FS:  00007faf5d1908c0(0000) GS:ffff88806cf00000(0000) knlGS:0000000000000000
+[   48.308223] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   48.308710] CR2: 000058fb220c9118 CR3: 00000000110cc000 CR4: 0000000000750ef0
+[   48.309274] PKRU: 55555554
+[   48.309804] Call Trace:
+[   48.310029]  <TASK>
+[   48.310290]  ? show_regs+0x84/0x8d
+[   48.310722]  ? alloc_tagging_slab_free_hook+0x84/0xc7
+[   48.311298]  ? __warn+0x13b/0x2ff
+[   48.311580]  ? alloc_tagging_slab_free_hook+0x84/0xc7
+[   48.311987]  ? report_bug+0x2ce/0x3ab
+[   48.312292]  ? handle_bug+0x8c/0x107
+[   48.312563]  ? exc_invalid_op+0x34/0x6f
+[   48.312842]  ? asm_exc_invalid_op+0x1a/0x20
+[   48.313173]  ? this_cpu_in_panic+0x1c/0x72
+[   48.313503]  ? alloc_tagging_slab_free_hook+0x84/0xc7
+[   48.313880]  ? putname+0x143/0x14e
+[   48.314152]  kmem_cache_free+0xe9/0x214
+[   48.314454]  putname+0x143/0x14e
+[   48.314712]  do_unlinkat+0x413/0x45e
+[   48.315001]  ? __pfx_do_unlinkat+0x10/0x10
+[   48.315388]  ? __check_object_size+0x4d7/0x525
+[   48.315744]  ? __sanitizer_cov_trace_pc+0x20/0x4a
+[   48.316167]  ? __sanitizer_cov_trace_pc+0x20/0x4a
+[   48.316757]  ? getname_flags+0x4ed/0x500
+[   48.317261]  __x64_sys_unlink+0x42/0x4a
+[   48.317741]  do_syscall_64+0xe2/0x149
+[   48.318171]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+[   48.318602] RIP: 0033:0x7faf5d8850ab
+[   48.318891] Code: fd ff ff e8 27 dd 01 00 0f 1f 80 00 00 00 00 f3 0f 1e fa b8 5f 00 00 00 0f 05 c3 0f 1f 40 00 f3 0f 1e fa b8 57 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 05 c3 0f 1f 40 00 48 8b 15 41 2d 0e 00 f7 d8
+[   48.320649] RSP: 002b:00007ffc44982b38 EFLAGS: 00000246 ORIG_RAX: 0000000000000057
+[   48.321182] RAX: ffffffffffffffda RBX: 00005ba344a44680 RCX: 00007faf5d8850ab
+[   48.321667] RDX: 0000000000000000 RSI: 00005ba344a44430 RDI: 00007ffc44982b40
+[   48.322139] RBP: 00007ffc44982c00 R08: 0000000000000000 R09: 0000000000000007
+[   48.322598] R10: 00005ba344a44430 R11: 0000000000000246 R12: 0000000000000000
+[   48.323071] R13: 00007ffc44982b40 R14: 0000000000000000 R15: 0000000000000000
+[   48.323596]  </TASK>
 
-If we detect that vma_needs_reservation() returned -ENOMEM, we clear the
-hugetlb_restore_reserve flag as if this reservation was still consumed, so
-free_huge_folio() will not increment the resv count.
+This is due to a race when two objects are allocated from the same slab,
+which did not have an obj_exts allocated for.
 
-[1] https://lore.kernel.org/linux-mm/0000000000004096100617c58d54@google.com/T/#ma5983bc1ab18a54910da83416b3f89f3c7ee43aa
+In such a case, the two threads will notice the NULL obj_exts and after
+one assigns slab->obj_exts, the second one will happily do the exchange if
+it reads this new assigned value.
 
-Link: https://lkml.kernel.org/r/20240528205323.20439-1-osalvador@suse.de
-Fixes: df7a6d1f6405 ("mm/hugetlb: restore the reservation if needed")
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reported-and-tested-by: syzbot+d3fe2dc5ffe9380b714b@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/linux-mm/0000000000004096100617c58d54@google.com/
-Cc: Breno Leitao <leitao@debian.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: <stable@vger.kernel.org>
+In order to avoid that, verify that the read obj_exts does not point to an
+allocated obj_exts before doing the exchange.
+
+Link: https://lkml.kernel.org/r/20240527183007.1595037-1-cascardo@igalia.com
+Fixes: 09c46563ff6d ("codetag: debug: introduce OBJEXTS_ALLOC_FAIL to mark failed slab_ext allocations")
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ mm/slub.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-do-not-call-vma_add_reservation-upon-enomem
-+++ a/mm/hugetlb.c
-@@ -5768,8 +5768,20 @@ void __unmap_hugepage_range(struct mmu_g
- 		 * do_exit() will not see it, and will keep the reservation
- 		 * forever.
- 		 */
--		if (adjust_reservation && vma_needs_reservation(h, vma, address))
--			vma_add_reservation(h, vma, address);
-+		if (adjust_reservation) {
-+			int rc = vma_needs_reservation(h, vma, address);
-+
-+			if (rc < 0)
-+				/* Pressumably allocate_file_region_entries failed
-+				 * to allocate a file_region struct. Clear
-+				 * hugetlb_restore_reserve so that global reserve
-+				 * count will not be incremented by free_huge_folio.
-+				 * Act as if we consumed the reservation.
-+				 */
-+				folio_clear_hugetlb_restore_reserve(page_folio(page));
-+			else if (rc)
-+				vma_add_reservation(h, vma, address);
-+		}
- 
- 		tlb_remove_page_size(tlb, page, huge_page_size(h));
+--- a/mm/slub.c~codetag-avoid-race-at-alloc_slab_obj_exts
++++ a/mm/slub.c
+@@ -1952,7 +1952,7 @@ int alloc_slab_obj_exts(struct slab *sla
+ #ifdef CONFIG_MEMCG
+ 	new_exts |= MEMCG_DATA_OBJEXTS;
+ #endif
+-	old_exts = slab->obj_exts;
++	old_exts = READ_ONCE(slab->obj_exts);
+ 	handle_failed_objexts_alloc(old_exts, vec, objects);
+ 	if (new_slab) {
  		/*
+@@ -1961,7 +1961,8 @@ int alloc_slab_obj_exts(struct slab *sla
+ 		 * be simply assigned.
+ 		 */
+ 		slab->obj_exts = new_exts;
+-	} else if (cmpxchg(&slab->obj_exts, old_exts, new_exts) != old_exts) {
++	} else if ((old_exts & ~OBJEXTS_FLAGS_MASK) ||
++		   cmpxchg(&slab->obj_exts, old_exts, new_exts) != old_exts) {
+ 		/*
+ 		 * If the slab is already in use, somebody can allocate and
+ 		 * assign slabobj_exts in parallel. In this case the existing
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from cascardo@igalia.com are
 
-mm-hugetlb-drop-node_alloc_noretry-from-alloc_fresh_hugetlb_folio.patch
-arch-x86-do-not-explicitly-clear-reserved-flag-in-free_pagetable.patch
 
