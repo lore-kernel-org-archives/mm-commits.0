@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B80E1182B3
-	for <mm-commits@vger.kernel.org>; Thu,  6 Jun 2024 02:20:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68C711805A
+	for <mm-commits@vger.kernel.org>; Thu,  6 Jun 2024 02:20:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717640407; cv=none; b=SKsXKf3qdJoFtAm6c5AjhYgUjPuOyxAvEmenE2KgrnMVeEURdOpltF74V0GqcyynyNfVBgX7oQ/K00D1OSE/dIObdAR6dYiCGTNZ3gLAQc9VR5lnCy9kWM62/GrijtB6RbJ0qsMOpSyYPYgROwlEGFfyt5E9dscfu2V1mAu7Gd0=
+	t=1717640410; cv=none; b=sBQg9S+Xs7g26ZGQp2uhdUuBVkoMxIyukdkVvb0+s+SZG2DUjr4IOOiSkvWzTqbIDScNqQ7fgcvUnXA/zcME1W6lAnzZKtNh4BgAPlC295jSyFChrQOwO0yvjhoEkIndPGiGp/HzMckYHP0blgBrBVMihl/BCp/HboCMzXLXK0w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717640407; c=relaxed/simple;
-	bh=XTieQALs1GIiX1bqltHqO6Op66D+mARR9PoEMGQo7Ww=;
-	h=Date:To:From:Subject:Message-Id; b=WLaXcqLilBQ0NVB/O5sCMUQRA6g/zsfBhNcPL6LljmdEk+4P4BORZsP+hQ7JH/aZ9IAR+ZvQu/33SWnQkX1jZSZ45e2gc+OEqgMW4ojcNywPTAcu0yy/0hPlWVkfkgvx/DpC5qr9yufMZOAvnq43ck+DdnmC2ELexwahbqGpM38=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BPHMyX0d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717640410; c=relaxed/simple;
+	bh=03xhrz0fvLPFVzPiQs0AmAT3YerK3NxP/G5gDNuXuf8=;
+	h=Date:To:From:Subject:Message-Id; b=T764BXHmPq+mnavL0ej6FbRJn3vC31zR+0fWtPaSPx9yu3OdQmECSqFtafP28Cwmk82KUkjvt9VfYhhJGAya9pRG8THzwEUrzAOFiCBKQM/dkNXnZqhOBfIwrRfp2SQyXhJ/juHcLem1Qy8TRvZ2VeWo7umUoe1lXmYOtL/KPCE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FmXiAvdw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BPHMyX0d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20FD3C4AF1C;
-	Thu,  6 Jun 2024 02:20:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FmXiAvdw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7A7CC4AF1D;
+	Thu,  6 Jun 2024 02:20:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717640407;
-	bh=XTieQALs1GIiX1bqltHqO6Op66D+mARR9PoEMGQo7Ww=;
+	s=korg; t=1717640408;
+	bh=03xhrz0fvLPFVzPiQs0AmAT3YerK3NxP/G5gDNuXuf8=;
 	h=Date:To:From:Subject:From;
-	b=BPHMyX0dEFgyUzxKsnmLXSBZqamZ8kSxhMAsHKt9T3ga03pyrKGV1n2r8a/zQeW+q
-	 sRe1h8wzTyuvluAazqbGUyzBSBuDT5levZSe+cL9j4XHr2N3cdGEyix6RdM+Gj9sul
-	 fMI3QFKbM47wryOg2OYtnzDWjeuce0rplzn+HUtU=
-Date: Wed, 05 Jun 2024 19:20:06 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,xiehuan09@gmail.com,will@kernel.org,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,shy828301@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,ioworker0@gmail.com,fengwei.yin@intel.com,david@redhat.com,chrisl@kernel.org,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=FmXiAvdwZcKGyVxa1D21YbZriTl19Mdjt7g1H5CXguHObHT7aFf15OaqtOgaG4Wf4
+	 1eR0TUC/T4jqXNyhGtlwg49XQ+ork5ry96cpp4zZGEW2LU19vymicG0N3+gYLc6WuX
+	 +2mI7wFmz7Qntb2nHyqWwJLqGmSRkfCN0QSKOCF0=
+Date: Wed, 05 Jun 2024 19:20:08 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,tglx@linutronix.de,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,bigeasy@linutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-arm64-fix-the-out-of-bounds-issue-in-contpte_clear_young_dirty_ptes.patch removed from -mm tree
-Message-Id: <20240606022007.20FD3C4AF1C@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] memcg-remove-the-lockdep-assert-from-__mod_objcg_mlstate.patch removed from -mm tree
+Message-Id: <20240606022008.D7A7CC4AF1D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: arm64: fix the out-of-bounds issue in contpte_clear_young_dirty_ptes
+     Subject: memcg: remove the lockdep assert from __mod_objcg_mlstate()
 has been removed from the -mm tree.  Its filename was
-     mm-arm64-fix-the-out-of-bounds-issue-in-contpte_clear_young_dirty_ptes.patch
+     memcg-remove-the-lockdep-assert-from-__mod_objcg_mlstate.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: arm64: fix the out-of-bounds issue in contpte_clear_young_dirty_ptes
-Date: Fri, 24 May 2024 12:54:44 +1200
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: memcg: remove the lockdep assert from __mod_objcg_mlstate()
+Date: Tue, 28 May 2024 16:13:41 +0200
 
-We are passing a huge nr to __clear_young_dirty_ptes() right now.  While
-we should pass the number of pages, we are actually passing CONT_PTE_SIZE.
-This is causing lots of crashes of MADV_FREE, panic oops could vary
-everytime.
+The assert was introduced in the commit cited below as an insurance that
+the semantic is the same after the local_irq_save() has been removed and
+the function has been made static.
 
-Link: https://lkml.kernel.org/r/20240524005444.135417-1-21cnbao@gmail.com
-Fixes: 89e86854fb0a ("mm/arm64: override clear_young_dirty_ptes() batch helper")
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Lance Yang <ioworker0@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Chris Li <chrisl@kernel.org>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Jeff Xie <xiehuan09@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+The original requirement to disable interrupt was due the modification
+of per-CPU counters which require interrupts to be disabled because the
+counter update operation is not atomic and some of the counters are
+updated from interrupt context.
+
+All callers of __mod_objcg_mlstate() acquire a lock
+(memcg_stock.stock_lock) which disables interrupts on !PREEMPT_RT and
+the lockdep assert is satisfied. On PREEMPT_RT the interrupts are not
+disabled and the assert triggers.
+
+The safety of the counter update is already ensured by
+VM_WARN_ON_IRQS_ENABLED() which is part of __mod_memcg_lruvec_state() and
+does not require yet another check.
+
+Remove the lockdep assert from __mod_objcg_mlstate().
+
+Link: https://lkml.kernel.org/r/20240528141341.rz_rytN_@linutronix.de
+Fixes: 91882c1617c1 ("memcg: simple cleanup of stats update functions")
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/contpte.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/arch/arm64/mm/contpte.c~mm-arm64-fix-the-out-of-bounds-issue-in-contpte_clear_young_dirty_ptes
-+++ a/arch/arm64/mm/contpte.c
-@@ -376,7 +376,7 @@ void contpte_clear_young_dirty_ptes(stru
- 	 * clearing access/dirty for the whole block.
- 	 */
- 	unsigned long start = addr;
--	unsigned long end = start + nr;
-+	unsigned long end = start + nr * PAGE_SIZE;
+--- a/mm/memcontrol.c~memcg-remove-the-lockdep-assert-from-__mod_objcg_mlstate
++++ a/mm/memcontrol.c
+@@ -3147,8 +3147,6 @@ static inline void __mod_objcg_mlstate(s
+ 	struct mem_cgroup *memcg;
+ 	struct lruvec *lruvec;
  
- 	if (pte_cont(__ptep_get(ptep + nr - 1)))
- 		end = ALIGN(end, CONT_PTE_SIZE);
-@@ -386,7 +386,7 @@ void contpte_clear_young_dirty_ptes(stru
- 		ptep = contpte_align_down(ptep);
- 	}
- 
--	__clear_young_dirty_ptes(vma, start, ptep, end - start, flags);
-+	__clear_young_dirty_ptes(vma, start, ptep, (end - start) / PAGE_SIZE, flags);
- }
- EXPORT_SYMBOL_GPL(contpte_clear_young_dirty_ptes);
- 
+-	lockdep_assert_irqs_disabled();
+-
+ 	rcu_read_lock();
+ 	memcg = obj_cgroup_memcg(objcg);
+ 	lruvec = mem_cgroup_lruvec(memcg, pgdat);
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
 
-mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr.patch
-mm-introduce-pte_move_swp_offset-helper-which-can-move-offset-bidirectionally.patch
-mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages.patch
-mm-swap-reuse-exclusive-folio-directly-instead-of-wp-page-faults.patch
 
