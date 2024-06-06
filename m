@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F211440C;
-	Thu,  6 Jun 2024 02:20:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62153440C;
+	Thu,  6 Jun 2024 02:20:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717640416; cv=none; b=iR4FQOcVuj9QUr/JJ0ZUsh3b0pC5zQfOIapWOe9aNFW3/UgR5fsbAfzSmqGrqqwWRbOjiKVteBmvlA2A1vTv4PKOf8n8K0VdOtj+kSzKjmeiBs/d9gJMXb1ttvtZv59vamft/w9YvgH9YdF7l/gUMRj3LuZmkSjMnuGokKYzF2Q=
+	t=1717640417; cv=none; b=DNWjiQCq4S2hH02mbWdlsm2yKxHLPoE2cOETke1Z182NTyXL1r74Z4o34cfVxFuqwCUmXsuq/DANbG4pMikuz+QDdIScfll2Wfe26HwqPjWqxdxPYN6sHoXW/6z9Gi9Je9bNNDw31RlycBP7ggC08v/TK3e5rWRu7sBso8bGhCU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717640416; c=relaxed/simple;
-	bh=T77HXa8ErpmFh8p28kCn5r6p0Ih01t8wrVawxRDzSuU=;
-	h=Date:To:From:Subject:Message-Id; b=ipuWElatMrjxC1N5j+zKqqGmLsK1jp2Zpix9QKarCZoHrqW5zF4A/hHUdX+snZimHXIHzxg0I+BYXUzdv6sQoTHf6dm5C+Is72Qdoc58PXR4oyj819hhabuDraPNxugai5jVzWITRc2g6s8RGKe4Bkk4HI1kchIfB+OypgV2z0U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f1+iUprW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717640417; c=relaxed/simple;
+	bh=kZRxQN2CUIH0u8eN6/qoloyz8aQBYFcfcktB3ZOyHxw=;
+	h=Date:To:From:Subject:Message-Id; b=aGUVfYAwjK5B1PbDU/iVRT7JcMe0SB7CgZEmFI8ufocngPTarqqfiKbcluwoE1Zpc2IfCFsJ/ivYgqpOhLwATnzi3ka4U9isVfqP++6wQoTwDsWTJoyl+C3t+Z29FffrSG/8QykuQGdoENx8D11HW+UEWwsQv74t6bOA0dy4R14=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n720W3cX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f1+iUprW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12EC6C4AF16;
-	Thu,  6 Jun 2024 02:20:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n720W3cX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33F04C4AF4D;
+	Thu,  6 Jun 2024 02:20:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717640416;
-	bh=T77HXa8ErpmFh8p28kCn5r6p0Ih01t8wrVawxRDzSuU=;
+	s=korg; t=1717640417;
+	bh=kZRxQN2CUIH0u8eN6/qoloyz8aQBYFcfcktB3ZOyHxw=;
 	h=Date:To:From:Subject:From;
-	b=f1+iUprW6boiFy1O4f0nNvSQtzAMcPxuiRr6FSek5Y8Z0RIaAgep0erBahGfmiuLM
-	 JFNWv4RGA2Dkq3Q04HGoKKJ1HxyBW06zNoEAiMXptzmgQixxwQ4NvlwiaHeX5ZSDyk
-	 MJK7/dgK/xCSlGVehD3DWorebsXEqVayFkSowXh8=
-Date: Wed, 05 Jun 2024 19:20:15 -0700
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,stable@vger.kernel.org,shr@devkernel.io,ran.xiaokai@zte.com.cn,hughd@google.com,david@redhat.com,aarcange@redhat.com,chengming.zhou@linux.dev,akpm@linux-foundation.org
+	b=n720W3cXLpFUXFoh58AsE4bWN3vqUiEyStnWTDEYHo5wqpPJD8HBQcNmEah/07oTJ
+	 p1MV70PETfMkN37H/xLo9RKA7LKSGDdu58WGjzvExDqtHry6s/ShgoJEMjM0+1AIJW
+	 I+EsfcgK239xEAQhxBlK3nugn59tdPpoDhZ6VaCM=
+Date: Wed, 05 Jun 2024 19:20:16 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,muchun.song@linux.dev,leitao@debian.org,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-ksm-fix-ksm_zero_pages-accounting.patch removed from -mm tree
-Message-Id: <20240606022016.12EC6C4AF16@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hugetlb-do-not-call-vma_add_reservation-upon-enomem.patch removed from -mm tree
+Message-Id: <20240606022017.33F04C4AF4D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,154 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/ksm: fix ksm_zero_pages accounting
+     Subject: mm/hugetlb: do not call vma_add_reservation upon ENOMEM
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-fix-ksm_zero_pages-accounting.patch
+     mm-hugetlb-do-not-call-vma_add_reservation-upon-enomem.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chengming Zhou <chengming.zhou@linux.dev>
-Subject: mm/ksm: fix ksm_zero_pages accounting
-Date: Tue, 28 May 2024 13:15:22 +0800
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm/hugetlb: do not call vma_add_reservation upon ENOMEM
+Date: Tue, 28 May 2024 22:53:23 +0200
 
-We normally ksm_zero_pages++ in ksmd when page is merged with zero page,
-but ksm_zero_pages-- is done from page tables side, where there is no any
-accessing protection of ksm_zero_pages.
+sysbot reported a splat [1] on __unmap_hugepage_range().  This is because
+vma_needs_reservation() can return -ENOMEM if
+allocate_file_region_entries() fails to allocate the file_region struct
+for the reservation.
 
-So we can read very exceptional value of ksm_zero_pages in rare cases,
-such as -1, which is very confusing to users.
+Check for that and do not call vma_add_reservation() if that is the case,
+otherwise region_abort() and region_del() will see that we do not have any
+file_regions.
 
-Fix it by changing to use atomic_long_t, and the same case with the
-mm->ksm_zero_pages.
+If we detect that vma_needs_reservation() returned -ENOMEM, we clear the
+hugetlb_restore_reserve flag as if this reservation was still consumed, so
+free_huge_folio() will not increment the resv count.
 
-Link: https://lkml.kernel.org/r/20240528-b4-ksm-counters-v3-2-34bb358fdc13@linux.dev
-Fixes: e2942062e01d ("ksm: count all zero pages placed by KSM")
-Fixes: 6080d19f0704 ("ksm: add ksm zero pages for each process")
-Signed-off-by: Chengming Zhou <chengming.zhou@linux.dev>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Cc: Stefan Roesch <shr@devkernel.io>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+[1] https://lore.kernel.org/linux-mm/0000000000004096100617c58d54@google.com/T/#ma5983bc1ab18a54910da83416b3f89f3c7ee43aa
+
+Link: https://lkml.kernel.org/r/20240528205323.20439-1-osalvador@suse.de
+Fixes: df7a6d1f6405 ("mm/hugetlb: restore the reservation if needed")
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Reported-and-tested-by: syzbot+d3fe2dc5ffe9380b714b@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/linux-mm/0000000000004096100617c58d54@google.com/
+Cc: Breno Leitao <leitao@debian.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c           |    2 +-
- include/linux/ksm.h      |   17 ++++++++++++++---
- include/linux/mm_types.h |    2 +-
- mm/ksm.c                 |   11 +++++------
- 4 files changed, 21 insertions(+), 11 deletions(-)
+ mm/hugetlb.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
---- a/fs/proc/base.c~mm-ksm-fix-ksm_zero_pages-accounting
-+++ a/fs/proc/base.c
-@@ -3214,7 +3214,7 @@ static int proc_pid_ksm_stat(struct seq_
- 	mm = get_task_mm(task);
- 	if (mm) {
- 		seq_printf(m, "ksm_rmap_items %lu\n", mm->ksm_rmap_items);
--		seq_printf(m, "ksm_zero_pages %lu\n", mm->ksm_zero_pages);
-+		seq_printf(m, "ksm_zero_pages %ld\n", mm_ksm_zero_pages(mm));
- 		seq_printf(m, "ksm_merging_pages %lu\n", mm->ksm_merging_pages);
- 		seq_printf(m, "ksm_process_profit %ld\n", ksm_process_profit(mm));
- 		mmput(mm);
---- a/include/linux/ksm.h~mm-ksm-fix-ksm_zero_pages-accounting
-+++ a/include/linux/ksm.h
-@@ -33,16 +33,27 @@ void __ksm_exit(struct mm_struct *mm);
-  */
- #define is_ksm_zero_pte(pte)	(is_zero_pfn(pte_pfn(pte)) && pte_dirty(pte))
- 
--extern unsigned long ksm_zero_pages;
-+extern atomic_long_t ksm_zero_pages;
-+
-+static inline void ksm_map_zero_page(struct mm_struct *mm)
-+{
-+	atomic_long_inc(&ksm_zero_pages);
-+	atomic_long_inc(&mm->ksm_zero_pages);
-+}
- 
- static inline void ksm_might_unmap_zero_page(struct mm_struct *mm, pte_t pte)
- {
- 	if (is_ksm_zero_pte(pte)) {
--		ksm_zero_pages--;
--		mm->ksm_zero_pages--;
-+		atomic_long_dec(&ksm_zero_pages);
-+		atomic_long_dec(&mm->ksm_zero_pages);
- 	}
- }
- 
-+static inline long mm_ksm_zero_pages(struct mm_struct *mm)
-+{
-+	return atomic_long_read(&mm->ksm_zero_pages);
-+}
-+
- static inline int ksm_fork(struct mm_struct *mm, struct mm_struct *oldmm)
- {
- 	if (test_bit(MMF_VM_MERGEABLE, &oldmm->flags))
---- a/include/linux/mm_types.h~mm-ksm-fix-ksm_zero_pages-accounting
-+++ a/include/linux/mm_types.h
-@@ -985,7 +985,7 @@ struct mm_struct {
- 		 * Represent how many empty pages are merged with kernel zero
- 		 * pages when enabling KSM use_zero_pages.
+--- a/mm/hugetlb.c~mm-hugetlb-do-not-call-vma_add_reservation-upon-enomem
++++ a/mm/hugetlb.c
+@@ -5768,8 +5768,20 @@ void __unmap_hugepage_range(struct mmu_g
+ 		 * do_exit() will not see it, and will keep the reservation
+ 		 * forever.
  		 */
--		unsigned long ksm_zero_pages;
-+		atomic_long_t ksm_zero_pages;
- #endif /* CONFIG_KSM */
- #ifdef CONFIG_LRU_GEN_WALKS_MMU
- 		struct {
---- a/mm/ksm.c~mm-ksm-fix-ksm_zero_pages-accounting
-+++ a/mm/ksm.c
-@@ -296,7 +296,7 @@ static bool ksm_use_zero_pages __read_mo
- static bool ksm_smart_scan = true;
+-		if (adjust_reservation && vma_needs_reservation(h, vma, address))
+-			vma_add_reservation(h, vma, address);
++		if (adjust_reservation) {
++			int rc = vma_needs_reservation(h, vma, address);
++
++			if (rc < 0)
++				/* Pressumably allocate_file_region_entries failed
++				 * to allocate a file_region struct. Clear
++				 * hugetlb_restore_reserve so that global reserve
++				 * count will not be incremented by free_huge_folio.
++				 * Act as if we consumed the reservation.
++				 */
++				folio_clear_hugetlb_restore_reserve(page_folio(page));
++			else if (rc)
++				vma_add_reservation(h, vma, address);
++		}
  
- /* The number of zero pages which is placed by KSM */
--unsigned long ksm_zero_pages;
-+atomic_long_t ksm_zero_pages = ATOMIC_LONG_INIT(0);
- 
- /* The number of pages that have been skipped due to "smart scanning" */
- static unsigned long ksm_pages_skipped;
-@@ -1429,8 +1429,7 @@ static int replace_page(struct vm_area_s
- 		 * the dirty bit in zero page's PTE is set.
- 		 */
- 		newpte = pte_mkdirty(pte_mkspecial(pfn_pte(page_to_pfn(kpage), vma->vm_page_prot)));
--		ksm_zero_pages++;
--		mm->ksm_zero_pages++;
-+		ksm_map_zero_page(mm);
+ 		tlb_remove_page_size(tlb, page, huge_page_size(h));
  		/*
- 		 * We're replacing an anonymous page with a zero page, which is
- 		 * not anonymous. We need to do proper accounting otherwise we
-@@ -3374,7 +3373,7 @@ static void wait_while_offlining(void)
- #ifdef CONFIG_PROC_FS
- long ksm_process_profit(struct mm_struct *mm)
- {
--	return (long)(mm->ksm_merging_pages + mm->ksm_zero_pages) * PAGE_SIZE -
-+	return (long)(mm->ksm_merging_pages + mm_ksm_zero_pages(mm)) * PAGE_SIZE -
- 		mm->ksm_rmap_items * sizeof(struct ksm_rmap_item);
- }
- #endif /* CONFIG_PROC_FS */
-@@ -3663,7 +3662,7 @@ KSM_ATTR_RO(pages_skipped);
- static ssize_t ksm_zero_pages_show(struct kobject *kobj,
- 				struct kobj_attribute *attr, char *buf)
- {
--	return sysfs_emit(buf, "%ld\n", ksm_zero_pages);
-+	return sysfs_emit(buf, "%ld\n", atomic_long_read(&ksm_zero_pages));
- }
- KSM_ATTR_RO(ksm_zero_pages);
- 
-@@ -3672,7 +3671,7 @@ static ssize_t general_profit_show(struc
- {
- 	long general_profit;
- 
--	general_profit = (ksm_pages_sharing + ksm_zero_pages) * PAGE_SIZE -
-+	general_profit = (ksm_pages_sharing + atomic_long_read(&ksm_zero_pages)) * PAGE_SIZE -
- 				ksm_rmap_items * sizeof(struct ksm_rmap_item);
- 
- 	return sysfs_emit(buf, "%ld\n", general_profit);
 _
 
-Patches currently in -mm which might be from chengming.zhou@linux.dev are
+Patches currently in -mm which might be from osalvador@suse.de are
 
+mm-hugetlb-drop-node_alloc_noretry-from-alloc_fresh_hugetlb_folio.patch
+arch-x86-do-not-explicitly-clear-reserved-flag-in-free_pagetable.patch
 
