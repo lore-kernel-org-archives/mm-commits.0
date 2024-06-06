@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 012C717BA2;
-	Thu,  6 Jun 2024 02:20:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EEEA17BA2;
+	Thu,  6 Jun 2024 02:20:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717640414; cv=none; b=BmDImZulQNO1lhJWKvMATFYW4M57xgtFhGGwx+EEm/Sm5grzu8iB5/BW5uCkW/etulfL49/5S02+GUqXNVaJEgxZWSSlVpPwSdbtAWKmroofAW4PLQquevwjXCHzP2vMdKKJFTjhuXcfW/ofHjvVdRRyPrRa7+TThvbJD11XpVY=
+	t=1717640415; cv=none; b=JoDDFC06T2k0f3i2zh7xaqrKj7llKjCtUatLdEp8EfZitdKyhZdDDGZbOT8JBwkbGC8smBr4K3wSiHWMdulRJDO+kBaYSntZZrebKvJtLuiiq1YHZG/he9cvKjAmvE8kP+FSEXkIl5p96bgIBYI905rOk6ZGb2sBIjOkxDacqMs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717640414; c=relaxed/simple;
-	bh=IIvGDybMDGBsf9i9IL2dHgNdPdRpNKIkeQCWsef1wx0=;
-	h=Date:To:From:Subject:Message-Id; b=TwmTAwBXMylWHv+IleWI+qb9CYWvnXbi0j8G8hEV7AdBOYUohfijWQwyTvsbgJ/eXW1sUy/0/CS6noeHcgBOABhhFU7x5eJPg+kC4p+V8E4TI7sLmIBHZMgz/aqiMIaFfcAN060JSDCu/S6W8zk0Axsl5oYD78i95/mOq+flml4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hq2NzXQ0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717640415; c=relaxed/simple;
+	bh=koJqcnepCHnoj74e5IkOSn/TRBUuM6AU/U7p02qbm0M=;
+	h=Date:To:From:Subject:Message-Id; b=fqBS6wDTwiNczpKLZZAm5vLLNPYJUgVU8asqupMq/xMjdUpfB9ODeu8d+OjCWg1L3ypEbVmHXSh8ZEfpCcwGDuCE8xqeM+mBq7uYra/LrjlTrs+D2nIPcu76Vrayju8TpU52Rybl/DGUxPvo/wf/765Tee34E/VvMFrRg5SneDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z7xKPq9e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hq2NzXQ0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9E6DC4AF16;
-	Thu,  6 Jun 2024 02:20:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z7xKPq9e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6B72C4AF16;
+	Thu,  6 Jun 2024 02:20:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717640413;
-	bh=IIvGDybMDGBsf9i9IL2dHgNdPdRpNKIkeQCWsef1wx0=;
+	s=korg; t=1717640415;
+	bh=koJqcnepCHnoj74e5IkOSn/TRBUuM6AU/U7p02qbm0M=;
 	h=Date:To:From:Subject:From;
-	b=Hq2NzXQ02/TeWw5reFJhrXLF8Rl1zSdLmvWdgG9a3BFdOVLePcrRwBkzxQJok//kM
-	 W12OQ1IVO3IcQwdS7qmUmoL5tzN9DhlSRD0uoeqIjP0A8K9B5BxrylOA/bkpdY7Vhb
-	 12xYzKpCYsR+myoBm5nH2CW28vMhTg+dB5PT+H9U=
-Date: Wed, 05 Jun 2024 19:20:13 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,keescook@chromium.org,elver@google.com,dvyukov@google.com,bjohannesmeyer@gmail.com,glider@google.com,akpm@linux-foundation.org
+	b=Z7xKPq9egFhI7YcItMnHZuv93Y+X6rL1opqd2sXCTIHy9QbS/hqx8KJ2HF/0SfvRU
+	 H97XqeU4Osl789/SEaXGPfU3vPfm91riPSUm9AV4C6Ikepyy2HdlHAHR6mwV0+XPru
+	 lPsjuJo+WV+5ldJo+nMFbKhXwGUtLIn+ksjEkSos=
+Date: Wed, 05 Jun 2024 19:20:14 -0700
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,stable@vger.kernel.org,shr@devkernel.io,ran.xiaokai@zte.com.cn,hughd@google.com,david@redhat.com,aarcange@redhat.com,chengming.zhou@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kmsan-do-not-wipe-out-origin-when-doing-partial-unpoisoning.patch removed from -mm tree
-Message-Id: <20240606022013.C9E6DC4AF16@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-ksm-fix-ksm_pages_scanned-accounting.patch removed from -mm tree
+Message-Id: <20240606022014.E6B72C4AF16@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kmsan: do not wipe out origin when doing partial unpoisoning
+     Subject: mm/ksm: fix ksm_pages_scanned accounting
 has been removed from the -mm tree.  Its filename was
-     kmsan-do-not-wipe-out-origin-when-doing-partial-unpoisoning.patch
+     mm-ksm-fix-ksm_pages_scanned-accounting.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: do not wipe out origin when doing partial unpoisoning
-Date: Tue, 28 May 2024 12:48:06 +0200
+From: Chengming Zhou <chengming.zhou@linux.dev>
+Subject: mm/ksm: fix ksm_pages_scanned accounting
+Date: Tue, 28 May 2024 13:15:21 +0800
 
-As noticed by Brian, KMSAN should not be zeroing the origin when
-unpoisoning parts of a four-byte uninitialized value, e.g.:
+Patch series "mm/ksm: fix some accounting problems", v3.
 
-    char a[4];
-    kmsan_unpoison_memory(a, 1);
+We encountered some abnormal ksm_pages_scanned and ksm_zero_pages during
+some random tests.
 
-This led to false negatives, as certain poisoned values could receive zero
-origins, preventing those values from being reported.
+1. ksm_pages_scanned unchanged even ksmd scanning has progress.
+2. ksm_zero_pages maybe -1 in some rare cases.
 
-To fix the problem, check that kmsan_internal_set_shadow_origin() writes
-zero origins only to slots which have zero shadow.
 
-Link: https://lkml.kernel.org/r/20240528104807.738758-1-glider@google.com
-Fixes: f80be4571b19 ("kmsan: add KMSAN runtime core")
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Reported-by: Brian Johannesmeyer <bjohannesmeyer@gmail.com>
-  Link: https://lore.kernel.org/lkml/20240524232804.1984355-1-bjohannesmeyer@gmail.com/T/
-Reviewed-by: Marco Elver <elver@google.com>
-Tested-by: Brian Johannesmeyer <bjohannesmeyer@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Kees Cook <keescook@chromium.org>
+This patch (of 2):
+
+During testing, I found ksm_pages_scanned is unchanged although the
+scan_get_next_rmap_item() did return valid rmap_item that is not NULL.
+
+The reason is the scan_get_next_rmap_item() will return NULL after a full
+scan, so ksm_do_scan() just return without accounting of the
+ksm_pages_scanned.
+
+Fix it by just putting ksm_pages_scanned accounting in that loop, and it
+will be accounted more timely if that loop would last for a long time.
+
+Link: https://lkml.kernel.org/r/20240528-b4-ksm-counters-v3-0-34bb358fdc13@linux.dev
+Link: https://lkml.kernel.org/r/20240528-b4-ksm-counters-v3-1-34bb358fdc13@linux.dev
+Fixes: b348b5fe2b5f ("mm/ksm: add pages scanned metric")
+Signed-off-by: Chengming Zhou <chengming.zhou@linux.dev>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: xu xin <xu.xin16@zte.com.cn>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Cc: Stefan Roesch <shr@devkernel.io>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/core.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ mm/ksm.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/kmsan/core.c~kmsan-do-not-wipe-out-origin-when-doing-partial-unpoisoning
-+++ a/mm/kmsan/core.c
-@@ -196,8 +196,7 @@ void kmsan_internal_set_shadow_origin(vo
- 				      u32 origin, bool checked)
+--- a/mm/ksm.c~mm-ksm-fix-ksm_pages_scanned-accounting
++++ a/mm/ksm.c
+@@ -2754,18 +2754,16 @@ static void ksm_do_scan(unsigned int sca
  {
- 	u64 address = (u64)addr;
--	void *shadow_start;
--	u32 *origin_start;
-+	u32 *shadow_start, *origin_start;
- 	size_t pad = 0;
+ 	struct ksm_rmap_item *rmap_item;
+ 	struct page *page;
+-	unsigned int npages = scan_npages;
  
- 	KMSAN_WARN_ON(!kmsan_metadata_is_contiguous(addr, size));
-@@ -225,8 +224,16 @@ void kmsan_internal_set_shadow_origin(vo
- 	origin_start =
- 		(u32 *)kmsan_get_metadata((void *)address, KMSAN_META_ORIGIN);
- 
--	for (int i = 0; i < size / KMSAN_ORIGIN_SIZE; i++)
--		origin_start[i] = origin;
-+	/*
-+	 * If the new origin is non-zero, assume that the shadow byte is also non-zero,
-+	 * and unconditionally overwrite the old origin slot.
-+	 * If the new origin is zero, overwrite the old origin slot iff the
-+	 * corresponding shadow slot is zero.
-+	 */
-+	for (int i = 0; i < size / KMSAN_ORIGIN_SIZE; i++) {
-+		if (origin || !shadow_start[i])
-+			origin_start[i] = origin;
-+	}
+-	while (npages-- && likely(!freezing(current))) {
++	while (scan_npages-- && likely(!freezing(current))) {
+ 		cond_resched();
+ 		rmap_item = scan_get_next_rmap_item(&page);
+ 		if (!rmap_item)
+ 			return;
+ 		cmp_and_merge_page(page, rmap_item);
+ 		put_page(page);
++		ksm_pages_scanned++;
+ 	}
+-
+-	ksm_pages_scanned += scan_npages - npages;
  }
  
- struct page *kmsan_vmalloc_to_page_or_null(void *vaddr)
+ static int ksmd_should_run(void)
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from chengming.zhou@linux.dev are
 
 
