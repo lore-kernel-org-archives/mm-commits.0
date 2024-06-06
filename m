@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2E3C17C9B
-	for <mm-commits@vger.kernel.org>; Thu,  6 Jun 2024 02:20:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 012C717BA2;
+	Thu,  6 Jun 2024 02:20:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717640413; cv=none; b=LQqasXi/o3Mhkp3Cbvn0Qk2f3AJVg/GRIwi7337NNCEW/7hoA9obg5pyOIFW5ZhN8N2ZyXP3GKlHJ5mrlXTnbP7Ci1ohh1DujO3wZB/ZkZ9DnUlDHkKKXYpBbjF3wv9P/N9dLYUL/PHe8YwDMIfOKQ9M2oIYc2YKJU4xDKgovts=
+	t=1717640414; cv=none; b=BmDImZulQNO1lhJWKvMATFYW4M57xgtFhGGwx+EEm/Sm5grzu8iB5/BW5uCkW/etulfL49/5S02+GUqXNVaJEgxZWSSlVpPwSdbtAWKmroofAW4PLQquevwjXCHzP2vMdKKJFTjhuXcfW/ofHjvVdRRyPrRa7+TThvbJD11XpVY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717640413; c=relaxed/simple;
-	bh=PsDKc/EfOQPLB+NCEzGUacqZpC3lW+g/q++3FjQdQSo=;
-	h=Date:To:From:Subject:Message-Id; b=iV/SVIEpgJjkVITpVAn58uKiytocc6nc/meVaL8CRhox+C6qbvjHUg0yIY/qLYXXAsoBSmAsc/+dBcmjnmuOm/P8VGpcptk8Waw50iYkXM+jgl9LxW4szMcX3rLP7FdwzK4jP2i44PW7hxL1kpg4FLJAA2xR7YrGeDix3TSxBgQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CQQ1C5hm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717640414; c=relaxed/simple;
+	bh=IIvGDybMDGBsf9i9IL2dHgNdPdRpNKIkeQCWsef1wx0=;
+	h=Date:To:From:Subject:Message-Id; b=TwmTAwBXMylWHv+IleWI+qb9CYWvnXbi0j8G8hEV7AdBOYUohfijWQwyTvsbgJ/eXW1sUy/0/CS6noeHcgBOABhhFU7x5eJPg+kC4p+V8E4TI7sLmIBHZMgz/aqiMIaFfcAN060JSDCu/S6W8zk0Axsl5oYD78i95/mOq+flml4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hq2NzXQ0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CQQ1C5hm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B79CBC4AF16;
-	Thu,  6 Jun 2024 02:20:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hq2NzXQ0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9E6DC4AF16;
+	Thu,  6 Jun 2024 02:20:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717640412;
-	bh=PsDKc/EfOQPLB+NCEzGUacqZpC3lW+g/q++3FjQdQSo=;
+	s=korg; t=1717640413;
+	bh=IIvGDybMDGBsf9i9IL2dHgNdPdRpNKIkeQCWsef1wx0=;
 	h=Date:To:From:Subject:From;
-	b=CQQ1C5hmHK6Mcp1rgmq4vTSx95PVs1+xop4cwA57tVnMd/9Z1QaWRYU2nYLfftEFE
-	 cVmRI7vKC7ir+qtlflPzS7n+GvlgeMJbPzwcpErppMd2lC0CfAehfXlNP+S9MXjGtU
-	 FT8vD1EpnWtU9OPkR5SpurdCpOUulPTBxGyh0EEU=
-Date: Wed, 05 Jun 2024 19:20:12 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,mcgrof@kernel.org,daniel@iogearbox.net,cong.wang@bytedance.com,akpm@linux-foundation.org
+	b=Hq2NzXQ02/TeWw5reFJhrXLF8Rl1zSdLmvWdgG9a3BFdOVLePcrRwBkzxQJok//kM
+	 W12OQ1IVO3IcQwdS7qmUmoL5tzN9DhlSRD0uoeqIjP0A8K9B5BxrylOA/bkpdY7Vhb
+	 12xYzKpCYsR+myoBm5nH2CW28vMhTg+dB5PT+H9U=
+Date: Wed, 05 Jun 2024 19:20:13 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,keescook@chromium.org,elver@google.com,dvyukov@google.com,bjohannesmeyer@gmail.com,glider@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr.patch removed from -mm tree
-Message-Id: <20240606022012.B79CBC4AF16@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kmsan-do-not-wipe-out-origin-when-doing-partial-unpoisoning.patch removed from -mm tree
+Message-Id: <20240606022013.C9E6DC4AF16@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,141 +35,79 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: vmalloc: check CONFIG_EXECMEM in is_vmalloc_or_module_addr()
+     Subject: kmsan: do not wipe out origin when doing partial unpoisoning
 has been removed from the -mm tree.  Its filename was
-     vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr.patch
+     kmsan-do-not-wipe-out-origin-when-doing-partial-unpoisoning.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Cong Wang <cong.wang@bytedance.com>
-Subject: vmalloc: check CONFIG_EXECMEM in is_vmalloc_or_module_addr()
-Date: Tue, 28 May 2024 09:08:38 -0700
+From: Alexander Potapenko <glider@google.com>
+Subject: kmsan: do not wipe out origin when doing partial unpoisoning
+Date: Tue, 28 May 2024 12:48:06 +0200
 
-After commit 2c9e5d4a0082 ("bpf: remove CONFIG_BPF_JIT dependency on
-CONFIG_MODULES of") CONFIG_BPF_JIT does not depend on CONFIG_MODULES any
-more and bpf jit also uses the [MODULES_VADDR, MODULES_END] memory region.
-But is_vmalloc_or_module_addr() still checks CONFIG_MODULES, which then
-returns false for a bpf jit memory region when CONFIG_MODULES is not
-defined.  It leads to the following kernel BUG:
+As noticed by Brian, KMSAN should not be zeroing the origin when
+unpoisoning parts of a four-byte uninitialized value, e.g.:
 
-[    1.567023] ------------[ cut here ]------------
-[    1.567883] kernel BUG at mm/vmalloc.c:745!
-[    1.568477] Oops: invalid opcode: 0000 [#1] PREEMPT SMP KASAN NOPTI
-[    1.569367] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 6.9.0+ #448
-[    1.570247] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.15.0-1 04/01/2014
-[    1.570786] RIP: 0010:vmalloc_to_page+0x48/0x1ec
-[    1.570786] Code: 0f 00 00 e8 eb 1a 05 00 b8 37 00 00 00 48 ba fe ff ff ff ff 1f 00 00 4c 03 25 76 49 c6 02 48 c1 e0 28 48 01 e8 48 39 d0 76 02 <0f> 0b 4c 89 e7 e8 bf 1a 05 00 49 8b 04 24 48 a9 9f ff ff ff 0f 84
-[    1.570786] RSP: 0018:ffff888007787960 EFLAGS: 00010212
-[    1.570786] RAX: 000036ffa0000000 RBX: 0000000000000640 RCX: ffffffff8147e93c
-[    1.570786] RDX: 00001ffffffffffe RSI: dffffc0000000000 RDI: ffffffff840e32c8
-[    1.570786] RBP: ffffffffa0000000 R08: 0000000000000000 R09: 0000000000000000
-[    1.570786] R10: ffff888007787a88 R11: ffffffff8475d8e7 R12: ffffffff83e80ff8
-[    1.570786] R13: 0000000000000640 R14: 0000000000000640 R15: 0000000000000640
-[    1.570786] FS:  0000000000000000(0000) GS:ffff88806cc00000(0000) knlGS:0000000000000000
-[    1.570786] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[    1.570786] CR2: ffff888006a01000 CR3: 0000000003e80000 CR4: 0000000000350ef0
-[    1.570786] Call Trace:
-[    1.570786]  <TASK>
-[    1.570786]  ? __die_body+0x1b/0x58
-[    1.570786]  ? die+0x31/0x4b
-[    1.570786]  ? do_trap+0x9d/0x138
-[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
-[    1.570786]  ? do_error_trap+0xcd/0x102
-[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
-[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
-[    1.570786]  ? handle_invalid_op+0x2f/0x38
-[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
-[    1.570786]  ? exc_invalid_op+0x2b/0x41
-[    1.570786]  ? asm_exc_invalid_op+0x16/0x20
-[    1.570786]  ? vmalloc_to_page+0x26/0x1ec
-[    1.570786]  ? vmalloc_to_page+0x48/0x1ec
-[    1.570786]  __text_poke+0xb6/0x458
-[    1.570786]  ? __pfx_text_poke_memcpy+0x10/0x10
-[    1.570786]  ? __pfx___mutex_lock+0x10/0x10
-[    1.570786]  ? __pfx___text_poke+0x10/0x10
-[    1.570786]  ? __pfx_get_random_u32+0x10/0x10
-[    1.570786]  ? srso_return_thunk+0x5/0x5f
-[    1.570786]  text_poke_copy_locked+0x70/0x84
-[    1.570786]  text_poke_copy+0x32/0x4f
-[    1.570786]  bpf_arch_text_copy+0xf/0x27
-[    1.570786]  bpf_jit_binary_pack_finalize+0x26/0x5a
-[    1.570786]  bpf_int_jit_compile+0x576/0x8ad
-[    1.570786]  ? __pfx_bpf_int_jit_compile+0x10/0x10
-[    1.570786]  ? srso_return_thunk+0x5/0x5f
-[    1.570786]  ? __kmalloc_node_track_caller+0x2b5/0x2e0
-[    1.570786]  bpf_prog_select_runtime+0x7c/0x199
-[    1.570786]  bpf_prepare_filter+0x1e9/0x25b
-[    1.570786]  ? __pfx_bpf_prepare_filter+0x10/0x10
-[    1.570786]  ? srso_return_thunk+0x5/0x5f
-[    1.570786]  ? _find_next_bit+0x29/0x7e
-[    1.570786]  bpf_prog_create+0xb8/0xe0
-[    1.570786]  ptp_classifier_init+0x75/0xa1
-[    1.570786]  ? __pfx_ptp_classifier_init+0x10/0x10
-[    1.570786]  ? srso_return_thunk+0x5/0x5f
-[    1.570786]  ? register_pernet_subsys+0x36/0x42
-[    1.570786]  ? srso_return_thunk+0x5/0x5f
-[    1.570786]  sock_init+0x99/0xa3
-[    1.570786]  ? __pfx_sock_init+0x10/0x10
-[    1.570786]  do_one_initcall+0x104/0x2c4
-[    1.570786]  ? __pfx_do_one_initcall+0x10/0x10
-[    1.570786]  ? parameq+0x25/0x2d
-[    1.570786]  ? rcu_is_watching+0x1c/0x3c
-[    1.570786]  ? trace_kmalloc+0x81/0xb2
-[    1.570786]  ? srso_return_thunk+0x5/0x5f
-[    1.570786]  ? __kmalloc+0x29c/0x2c7
-[    1.570786]  ? srso_return_thunk+0x5/0x5f
-[    1.570786]  do_initcalls+0xf9/0x123
-[    1.570786]  kernel_init_freeable+0x24f/0x289
-[    1.570786]  ? __pfx_kernel_init+0x10/0x10
-[    1.570786]  kernel_init+0x19/0x13a
-[    1.570786]  ret_from_fork+0x24/0x41
-[    1.570786]  ? __pfx_kernel_init+0x10/0x10
-[    1.570786]  ret_from_fork_asm+0x1a/0x30
-[    1.570786]  </TASK>
-[    1.570819] ---[ end trace 0000000000000000 ]---
-[    1.571463] RIP: 0010:vmalloc_to_page+0x48/0x1ec
-[    1.572111] Code: 0f 00 00 e8 eb 1a 05 00 b8 37 00 00 00 48 ba fe ff ff ff ff 1f 00 00 4c 03 25 76 49 c6 02 48 c1 e0 28 48 01 e8 48 39 d0 76 02 <0f> 0b 4c 89 e7 e8 bf 1a 05 00 49 8b 04 24 48 a9 9f ff ff ff 0f 84
-[    1.574632] RSP: 0018:ffff888007787960 EFLAGS: 00010212
-[    1.575129] RAX: 000036ffa0000000 RBX: 0000000000000640 RCX: ffffffff8147e93c
-[    1.576097] RDX: 00001ffffffffffe RSI: dffffc0000000000 RDI: ffffffff840e32c8
-[    1.577084] RBP: ffffffffa0000000 R08: 0000000000000000 R09: 0000000000000000
-[    1.578077] R10: ffff888007787a88 R11: ffffffff8475d8e7 R12: ffffffff83e80ff8
-[    1.578810] R13: 0000000000000640 R14: 0000000000000640 R15: 0000000000000640
-[    1.579823] FS:  0000000000000000(0000) GS:ffff88806cc00000(0000) knlGS:0000000000000000
-[    1.580992] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[    1.581869] CR2: ffff888006a01000 CR3: 0000000003e80000 CR4: 0000000000350ef0
-[    1.582800] Kernel panic - not syncing: Fatal exception
-[    1.583765] ---[ end Kernel panic - not syncing: Fatal exception ]---
+    char a[4];
+    kmsan_unpoison_memory(a, 1);
 
-Fix this by checking CONFIG_EXECMEM instead.
+This led to false negatives, as certain poisoned values could receive zero
+origins, preventing those values from being reported.
 
-Link: https://lkml.kernel.org/r/20240528160838.102223-1-xiyou.wangcong@gmail.com
-Fixes: 2c9e5d4a0082 ("bpf: remove CONFIG_BPF_JIT dependency on CONFIG_MODULES of")
-Signed-off-by: Cong Wang <cong.wang@bytedance.com>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
+To fix the problem, check that kmsan_internal_set_shadow_origin() writes
+zero origins only to slots which have zero shadow.
+
+Link: https://lkml.kernel.org/r/20240528104807.738758-1-glider@google.com
+Fixes: f80be4571b19 ("kmsan: add KMSAN runtime core")
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Reported-by: Brian Johannesmeyer <bjohannesmeyer@gmail.com>
+  Link: https://lore.kernel.org/lkml/20240524232804.1984355-1-bjohannesmeyer@gmail.com/T/
+Reviewed-by: Marco Elver <elver@google.com>
+Tested-by: Brian Johannesmeyer <bjohannesmeyer@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kmsan/core.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
---- a/mm/vmalloc.c~vmalloc-check-config_execmem-in-is_vmalloc_or_module_addr
-+++ a/mm/vmalloc.c
-@@ -722,7 +722,7 @@ int is_vmalloc_or_module_addr(const void
- 	 * and fall back on vmalloc() if that fails. Others
- 	 * just put it in the vmalloc space.
- 	 */
--#if defined(CONFIG_MODULES) && defined(MODULES_VADDR)
-+#if defined(CONFIG_EXECMEM) && defined(MODULES_VADDR)
- 	unsigned long addr = (unsigned long)kasan_reset_tag(x);
- 	if (addr >= MODULES_VADDR && addr < MODULES_END)
- 		return 1;
+--- a/mm/kmsan/core.c~kmsan-do-not-wipe-out-origin-when-doing-partial-unpoisoning
++++ a/mm/kmsan/core.c
+@@ -196,8 +196,7 @@ void kmsan_internal_set_shadow_origin(vo
+ 				      u32 origin, bool checked)
+ {
+ 	u64 address = (u64)addr;
+-	void *shadow_start;
+-	u32 *origin_start;
++	u32 *shadow_start, *origin_start;
+ 	size_t pad = 0;
+ 
+ 	KMSAN_WARN_ON(!kmsan_metadata_is_contiguous(addr, size));
+@@ -225,8 +224,16 @@ void kmsan_internal_set_shadow_origin(vo
+ 	origin_start =
+ 		(u32 *)kmsan_get_metadata((void *)address, KMSAN_META_ORIGIN);
+ 
+-	for (int i = 0; i < size / KMSAN_ORIGIN_SIZE; i++)
+-		origin_start[i] = origin;
++	/*
++	 * If the new origin is non-zero, assume that the shadow byte is also non-zero,
++	 * and unconditionally overwrite the old origin slot.
++	 * If the new origin is zero, overwrite the old origin slot iff the
++	 * corresponding shadow slot is zero.
++	 */
++	for (int i = 0; i < size / KMSAN_ORIGIN_SIZE; i++) {
++		if (origin || !shadow_start[i])
++			origin_start[i] = origin;
++	}
+ }
+ 
+ struct page *kmsan_vmalloc_to_page_or_null(void *vaddr)
 _
 
-Patches currently in -mm which might be from cong.wang@bytedance.com are
+Patches currently in -mm which might be from glider@google.com are
 
 
