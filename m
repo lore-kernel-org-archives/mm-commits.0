@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E4DC179A7;
-	Thu,  6 Jun 2024 02:17:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 269EC440C
+	for <mm-commits@vger.kernel.org>; Thu,  6 Jun 2024 02:20:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717640239; cv=none; b=eY0MGgXLYBjxfzSBLvz4ost31nS8/KZscTEp8BRWI7ZJmcX7ovFEku5+6rRcFiQqQxyEUexhARbuEoDCgB8UEyDtWe1TKt6bVakLYREjyjgwg5FaEhd38aDVrxUk/m6kEXk9vBRRXo/dArpdvdvEVwi04b8mvLAMHUtQEEstmWw=
+	t=1717640405; cv=none; b=OZZgA1cc/NfQB8xrTXT6IcYhi637e9lF6Of9XDYNnQ34KtIYqfSA4NoIQyXgCBgMo6+1ABJ+EXVASAsWjnrGAQ6Rz0uOX6ZcAiAcD67p1Bt7uNVNzMVlnKwEi9oUw1xA4UFPwab/R8spqhP+aBK/0C71vERW1LSHgh0hlhCpw14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717640239; c=relaxed/simple;
-	bh=8T5lplvemHv2ktDWDHZOSYiQnQQhhBFKWHMtoKSeFA0=;
-	h=Date:To:From:Subject:Message-Id; b=vGq7Dz863UOLN8BIoX8XDYjVr/pNMY/SfyNzdd47pIVINhQqGwB49RquNEN3BLZqMe9Yg3ZNNZ3qzZOotbtYJcSo+WuGR5JEKO4/FDNnfHoWkg61wRR7BC8Iw0oXIIudgJvBpnh3n+cVxKG/Xvx2tOYrHpeKNKj+iha3juHh+LU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=glx4BWXU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717640405; c=relaxed/simple;
+	bh=fxZSTTnlSFhtjmhScO+LcFW9RM0dWW/WlkbIOovb0h4=;
+	h=Date:To:From:Subject:Message-Id; b=eELrieHYalfIJUqONedHqxZTJCIJZ2UwNyvB0lC/FIvnsXFUkikfh2u+kRXuUaJW+yP+1tvjW09YeNgDjn26sq9mk0OqX0o9aJ1GtAMVw5ES4RW36VVbJEmXi63qkQkZ4fDNOvWr4l5awRBndZ0Cv8w8n4g/3j4eqHY4Eep8yYo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A/4ZnPgy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="glx4BWXU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04C97C4AF13;
-	Thu,  6 Jun 2024 02:17:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A/4ZnPgy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A4C5C3277B;
+	Thu,  6 Jun 2024 02:20:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717640239;
-	bh=8T5lplvemHv2ktDWDHZOSYiQnQQhhBFKWHMtoKSeFA0=;
+	s=korg; t=1717640404;
+	bh=fxZSTTnlSFhtjmhScO+LcFW9RM0dWW/WlkbIOovb0h4=;
 	h=Date:To:From:Subject:From;
-	b=glx4BWXU54wsOL4EYkvDwpQWYw+cJW+ECEjyXagHOWLjAx+065Ozg0NC5n2Rw7RwW
-	 XyiNh2gf3RoI42Zus21iRT6tqe0D9fU6TP0wNIO4K0KABHXEdbDbNufWF7k7MIWEj0
-	 qRzBohEb5kMCo6/YQ0vMoYkEarbft7iDK2FAuTyU=
-Date: Wed, 05 Jun 2024 19:17:18 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,ghe@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=A/4ZnPgyHmog0POI5nCAzcKy92fQI04Ov4mM3PfT/M/5R7FakS49l0olMjtyG9HdL
+	 wCnTVmZHov8YJ1Nptl4SaQdMAYQ9JFZU6X7wU2YjFjNVzG6FD+T9dKd4K6iZ51HjQa
+	 BTQ3h1xu6h8RQTMJlFjPXiHMgswUHqcFfZB/7ZTk=
+Date: Wed, 05 Jun 2024 19:20:03 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,ryan.roberts@arm.com,ioworker0@gmail.com,david@redhat.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] ocfs2-fix-null-pointer-dereference-in-ocfs2_abort_trigger-v2.patch removed from -mm tree
-Message-Id: <20240606021719.04C97C4AF13@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-drop-the-anon_-prefix-for-swap-out-mthp-counters.patch removed from -mm tree
+Message-Id: <20240606022004.7A4C5C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,282 +35,128 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: fix NULL pointer dereference in ocfs2_abort_trigger()
+     Subject: mm: drop the 'anon_' prefix for swap-out mTHP counters
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-null-pointer-dereference-in-ocfs2_abort_trigger-v2.patch
+     mm-drop-the-anon_-prefix-for-swap-out-mthp-counters.patch
 
-This patch was dropped because it was folded into ocfs2-fix-null-pointer-dereference-in-ocfs2_abort_trigger.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: fix NULL pointer dereference in ocfs2_abort_trigger()
-Date: Sun, 2 Jun 2024 19:20:45 +0800
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: drop the 'anon_' prefix for swap-out mTHP counters
+Date: Thu, 23 May 2024 10:36:39 +0800
 
-Link: https://lkml.kernel.org/r/20240602112045.1112708-1-joseph.qi@linux.alibaba.com
-Fixes: 8887b94d9322 ("ocfs2: stop using bdev->bd_super for journal error logging")
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Cc: <stable@vger.kernel.org>	[6.6+]
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
+The mTHP swap related counters: 'anon_swpout' and 'anon_swpout_fallback'
+are confusing with an 'anon_' prefix, since the shmem can swap out
+non-anonymous pages.  So drop the 'anon_' prefix to keep consistent with
+the old swap counter names.
+
+This is needed in 6.10-rcX to avoid having an inconsistent ABI out in the
+field.
+
+Link: https://lkml.kernel.org/r/7a8989c13299920d7589007a30065c3e2c19f0e0.1716431702.git.baolin.wang@linux.alibaba.com
+Fixes: d0f048ac39f6 ("mm: add per-order mTHP anon_swpout and anon_swpout_fallback counters")
+Fixes: 42248b9d34ea ("mm: add docs for per-order mTHP counters and transhuge_page ABI")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Suggested-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |  111 +++++++++++++++++--------------------------
- fs/ocfs2/ocfs2.h   |   27 ++++++++++
- fs/ocfs2/super.c   |    4 +
- 3 files changed, 74 insertions(+), 68 deletions(-)
+ Documentation/admin-guide/mm/transhuge.rst |    4 ++--
+ include/linux/huge_mm.h                    |    4 ++--
+ mm/huge_memory.c                           |    8 ++++----
+ mm/page_io.c                               |    2 +-
+ mm/vmscan.c                                |    2 +-
+ 5 files changed, 10 insertions(+), 10 deletions(-)
 
---- a/fs/ocfs2/journal.c~ocfs2-fix-null-pointer-dereference-in-ocfs2_abort_trigger-v2
-+++ a/fs/ocfs2/journal.c
-@@ -479,28 +479,6 @@ bail:
- 	return status;
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-drop-the-anon_-prefix-for-swap-out-mthp-counters
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -467,11 +467,11 @@ anon_fault_fallback_charge
+ 	instead falls back to using huge pages with lower orders or
+ 	small pages even though the allocation was successful.
+ 
+-anon_swpout
++swpout
+ 	is incremented every time a huge page is swapped out in one
+ 	piece without splitting.
+ 
+-anon_swpout_fallback
++swpout_fallback
+ 	is incremented if a huge page has to be split before swapout.
+ 	Usually because failed to allocate some continuous swap space
+ 	for the huge page.
+--- a/include/linux/huge_mm.h~mm-drop-the-anon_-prefix-for-swap-out-mthp-counters
++++ a/include/linux/huge_mm.h
+@@ -269,8 +269,8 @@ enum mthp_stat_item {
+ 	MTHP_STAT_ANON_FAULT_ALLOC,
+ 	MTHP_STAT_ANON_FAULT_FALLBACK,
+ 	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
+-	MTHP_STAT_ANON_SWPOUT,
+-	MTHP_STAT_ANON_SWPOUT_FALLBACK,
++	MTHP_STAT_SWPOUT,
++	MTHP_STAT_SWPOUT_FALLBACK,
+ 	__MTHP_STAT_COUNT
+ };
+ 
+--- a/mm/huge_memory.c~mm-drop-the-anon_-prefix-for-swap-out-mthp-counters
++++ a/mm/huge_memory.c
+@@ -558,15 +558,15 @@ static struct kobj_attribute _name##_att
+ DEFINE_MTHP_STAT_ATTR(anon_fault_alloc, MTHP_STAT_ANON_FAULT_ALLOC);
+ DEFINE_MTHP_STAT_ATTR(anon_fault_fallback, MTHP_STAT_ANON_FAULT_FALLBACK);
+ DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
+-DEFINE_MTHP_STAT_ATTR(anon_swpout, MTHP_STAT_ANON_SWPOUT);
+-DEFINE_MTHP_STAT_ATTR(anon_swpout_fallback, MTHP_STAT_ANON_SWPOUT_FALLBACK);
++DEFINE_MTHP_STAT_ATTR(swpout, MTHP_STAT_SWPOUT);
++DEFINE_MTHP_STAT_ATTR(swpout_fallback, MTHP_STAT_SWPOUT_FALLBACK);
+ 
+ static struct attribute *stats_attrs[] = {
+ 	&anon_fault_alloc_attr.attr,
+ 	&anon_fault_fallback_attr.attr,
+ 	&anon_fault_fallback_charge_attr.attr,
+-	&anon_swpout_attr.attr,
+-	&anon_swpout_fallback_attr.attr,
++	&swpout_attr.attr,
++	&swpout_fallback_attr.attr,
+ 	NULL,
+ };
+ 
+--- a/mm/page_io.c~mm-drop-the-anon_-prefix-for-swap-out-mthp-counters
++++ a/mm/page_io.c
+@@ -217,7 +217,7 @@ static inline void count_swpout_vm_event
+ 		count_memcg_folio_events(folio, THP_SWPOUT, 1);
+ 		count_vm_event(THP_SWPOUT);
+ 	}
+-	count_mthp_stat(folio_order(folio), MTHP_STAT_ANON_SWPOUT);
++	count_mthp_stat(folio_order(folio), MTHP_STAT_SWPOUT);
+ #endif
+ 	count_vm_events(PSWPOUT, folio_nr_pages(folio));
  }
- 
--
--struct ocfs2_triggers {
--	struct jbd2_buffer_trigger_type	ot_triggers;
--	int				ot_offset;
--	struct super_block		*sb;
--};
--
--enum ocfs2_journal_trigger_type {
--	OCFS2_JTR_DI,
--	OCFS2_JTR_EB,
--	OCFS2_JTR_RB,
--	OCFS2_JTR_GD,
--	OCFS2_JTR_DB,
--	OCFS2_JTR_XB,
--	OCFS2_JTR_DQ,
--	OCFS2_JTR_DR,
--	OCFS2_JTR_DL,
--	OCFS2_JTR_NONE  /* This must be the last entry */
--};
--
--#define OCFS2_JOURNAL_TRIGGER_COUNT OCFS2_JTR_NONE
--
- static inline struct ocfs2_triggers *to_ocfs2_trigger(struct jbd2_buffer_trigger_type *triggers)
- {
- 	return container_of(triggers, struct ocfs2_triggers, ot_triggers);
-@@ -626,6 +604,15 @@ static void ocfs2_setup_csum_triggers(st
- 	ot->sb = sb;
- }
- 
-+void ocfs2_initialize_journal_triggers(struct super_block *sb,
-+				       struct ocfs2_triggers triggers[])
-+{
-+	enum ocfs2_journal_trigger_type type;
-+
-+	for (type = OCFS2_JTR_DI; type < OCFS2_JOURNAL_TRIGGER_COUNT; type++)
-+		ocfs2_setup_csum_triggers(sb, type, &triggers[type]);
-+}
-+
- static int __ocfs2_journal_access(handle_t *handle,
- 				  struct ocfs2_caching_info *ci,
- 				  struct buffer_head *bh,
-@@ -706,101 +693,91 @@ static int __ocfs2_journal_access(handle
- int ocfs2_journal_access_di(handle_t *handle, struct ocfs2_caching_info *ci,
- 			    struct buffer_head *bh, int type)
- {
--	struct ocfs2_triggers di_triggers;
-+	struct ocfs2_super *osb = OCFS2_SB(ocfs2_metadata_cache_get_super(ci));
- 
--	ocfs2_setup_csum_triggers(ocfs2_metadata_cache_get_super(ci),
--				 OCFS2_JTR_DI, &di_triggers);
--
--	return __ocfs2_journal_access(handle, ci, bh, &di_triggers, type);
-+	return __ocfs2_journal_access(handle, ci, bh,
-+				      &osb->s_journal_triggers[OCFS2_JTR_DI],
-+				      type);
- }
- 
- int ocfs2_journal_access_eb(handle_t *handle, struct ocfs2_caching_info *ci,
- 			    struct buffer_head *bh, int type)
- {
--	struct ocfs2_triggers eb_triggers;
-+	struct ocfs2_super *osb = OCFS2_SB(ocfs2_metadata_cache_get_super(ci));
- 
--	ocfs2_setup_csum_triggers(ocfs2_metadata_cache_get_super(ci),
--				 OCFS2_JTR_EB, &eb_triggers);
--
--	return __ocfs2_journal_access(handle, ci, bh, &eb_triggers, type);
-+	return __ocfs2_journal_access(handle, ci, bh,
-+				      &osb->s_journal_triggers[OCFS2_JTR_EB],
-+				      type);
- }
- 
- int ocfs2_journal_access_rb(handle_t *handle, struct ocfs2_caching_info *ci,
- 			    struct buffer_head *bh, int type)
- {
--	struct ocfs2_triggers rb_triggers;
--
--	ocfs2_setup_csum_triggers(ocfs2_metadata_cache_get_super(ci),
--				 OCFS2_JTR_RB, &rb_triggers);
-+	struct ocfs2_super *osb = OCFS2_SB(ocfs2_metadata_cache_get_super(ci));
- 
--	return __ocfs2_journal_access(handle, ci, bh, &rb_triggers,
-+	return __ocfs2_journal_access(handle, ci, bh,
-+				      &osb->s_journal_triggers[OCFS2_JTR_RB],
- 				      type);
- }
- 
- int ocfs2_journal_access_gd(handle_t *handle, struct ocfs2_caching_info *ci,
- 			    struct buffer_head *bh, int type)
- {
--	struct ocfs2_triggers gd_triggers;
-+	struct ocfs2_super *osb = OCFS2_SB(ocfs2_metadata_cache_get_super(ci));
- 
--	ocfs2_setup_csum_triggers(ocfs2_metadata_cache_get_super(ci),
--				 OCFS2_JTR_GD, &gd_triggers);
--
--	return __ocfs2_journal_access(handle, ci, bh, &gd_triggers, type);
-+	return __ocfs2_journal_access(handle, ci, bh,
-+				     &osb->s_journal_triggers[OCFS2_JTR_GD],
-+				     type);
- }
- 
- int ocfs2_journal_access_db(handle_t *handle, struct ocfs2_caching_info *ci,
- 			    struct buffer_head *bh, int type)
- {
--	struct ocfs2_triggers db_triggers;
--
--	ocfs2_setup_csum_triggers(ocfs2_metadata_cache_get_super(ci),
--				 OCFS2_JTR_DB, &db_triggers);
-+	struct ocfs2_super *osb = OCFS2_SB(ocfs2_metadata_cache_get_super(ci));
- 
--	return __ocfs2_journal_access(handle, ci, bh, &db_triggers, type);
-+	return __ocfs2_journal_access(handle, ci, bh,
-+				     &osb->s_journal_triggers[OCFS2_JTR_DB],
-+				     type);
- }
- 
- int ocfs2_journal_access_xb(handle_t *handle, struct ocfs2_caching_info *ci,
- 			    struct buffer_head *bh, int type)
- {
--	struct ocfs2_triggers xb_triggers;
-+	struct ocfs2_super *osb = OCFS2_SB(ocfs2_metadata_cache_get_super(ci));
- 
--	ocfs2_setup_csum_triggers(ocfs2_metadata_cache_get_super(ci),
--				 OCFS2_JTR_XB, &xb_triggers);
--
--	return __ocfs2_journal_access(handle, ci, bh, &xb_triggers, type);
-+	return __ocfs2_journal_access(handle, ci, bh,
-+				     &osb->s_journal_triggers[OCFS2_JTR_XB],
-+				     type);
- }
- 
- int ocfs2_journal_access_dq(handle_t *handle, struct ocfs2_caching_info *ci,
- 			    struct buffer_head *bh, int type)
- {
--	struct ocfs2_triggers dq_triggers;
--
--	ocfs2_setup_csum_triggers(ocfs2_metadata_cache_get_super(ci),
--				 OCFS2_JTR_DQ, &dq_triggers);
-+	struct ocfs2_super *osb = OCFS2_SB(ocfs2_metadata_cache_get_super(ci));
- 
--	return __ocfs2_journal_access(handle, ci, bh, &dq_triggers, type);
-+	return __ocfs2_journal_access(handle, ci, bh,
-+				     &osb->s_journal_triggers[OCFS2_JTR_DQ],
-+				     type);
- }
- 
- int ocfs2_journal_access_dr(handle_t *handle, struct ocfs2_caching_info *ci,
- 			    struct buffer_head *bh, int type)
- {
--	struct ocfs2_triggers dr_triggers;
-+	struct ocfs2_super *osb = OCFS2_SB(ocfs2_metadata_cache_get_super(ci));
- 
--	ocfs2_setup_csum_triggers(ocfs2_metadata_cache_get_super(ci),
--				 OCFS2_JTR_DR, &dr_triggers);
--
--	return __ocfs2_journal_access(handle, ci, bh, &dr_triggers, type);
-+	return __ocfs2_journal_access(handle, ci, bh,
-+				     &osb->s_journal_triggers[OCFS2_JTR_DR],
-+				     type);
- }
- 
- int ocfs2_journal_access_dl(handle_t *handle, struct ocfs2_caching_info *ci,
- 			    struct buffer_head *bh, int type)
- {
--	struct ocfs2_triggers dl_triggers;
--
--	ocfs2_setup_csum_triggers(ocfs2_metadata_cache_get_super(ci),
--				 OCFS2_JTR_DL, &dl_triggers);
-+	struct ocfs2_super *osb = OCFS2_SB(ocfs2_metadata_cache_get_super(ci));
- 
--	return __ocfs2_journal_access(handle, ci, bh, &dl_triggers, type);
-+	return __ocfs2_journal_access(handle, ci, bh,
-+				     &osb->s_journal_triggers[OCFS2_JTR_DL],
-+				     type);
- }
- 
- int ocfs2_journal_access(handle_t *handle, struct ocfs2_caching_info *ci,
---- a/fs/ocfs2/ocfs2.h~ocfs2-fix-null-pointer-dereference-in-ocfs2_abort_trigger-v2
-+++ a/fs/ocfs2/ocfs2.h
-@@ -284,6 +284,30 @@ enum ocfs2_mount_options
- #define OCFS2_OSB_ERROR_FS	0x0004
- #define OCFS2_DEFAULT_ATIME_QUANTUM	60
- 
-+struct ocfs2_triggers {
-+	struct jbd2_buffer_trigger_type	ot_triggers;
-+	int				ot_offset;
-+	struct super_block		*sb;
-+};
-+
-+enum ocfs2_journal_trigger_type {
-+	OCFS2_JTR_DI,
-+	OCFS2_JTR_EB,
-+	OCFS2_JTR_RB,
-+	OCFS2_JTR_GD,
-+	OCFS2_JTR_DB,
-+	OCFS2_JTR_XB,
-+	OCFS2_JTR_DQ,
-+	OCFS2_JTR_DR,
-+	OCFS2_JTR_DL,
-+	OCFS2_JTR_NONE  /* This must be the last entry */
-+};
-+
-+#define OCFS2_JOURNAL_TRIGGER_COUNT OCFS2_JTR_NONE
-+
-+void ocfs2_initialize_journal_triggers(struct super_block *sb,
-+				       struct ocfs2_triggers triggers[]);
-+
- struct ocfs2_journal;
- struct ocfs2_slot_info;
- struct ocfs2_recovery_map;
-@@ -351,6 +375,9 @@ struct ocfs2_super
- 	struct ocfs2_journal *journal;
- 	unsigned long osb_commit_interval;
- 
-+	/* Journal triggers for checksum */
-+	struct ocfs2_triggers s_journal_triggers[OCFS2_JOURNAL_TRIGGER_COUNT];
-+
- 	struct delayed_work		la_enable_wq;
- 
- 	/*
---- a/fs/ocfs2/super.c~ocfs2-fix-null-pointer-dereference-in-ocfs2_abort_trigger-v2
-+++ a/fs/ocfs2/super.c
-@@ -1075,9 +1075,11 @@ static int ocfs2_fill_super(struct super
- 	debugfs_create_file("fs_state", S_IFREG|S_IRUSR, osb->osb_debug_root,
- 			    osb, &ocfs2_osb_debug_fops);
- 
--	if (ocfs2_meta_ecc(osb))
-+	if (ocfs2_meta_ecc(osb)) {
-+		ocfs2_initialize_journal_triggers(sb, osb->s_journal_triggers);
- 		ocfs2_blockcheck_stats_debugfs_install( &osb->osb_ecc_stats,
- 							osb->osb_debug_root);
-+	}
- 
- 	status = ocfs2_mount_volume(sb);
- 	if (status < 0)
+--- a/mm/vmscan.c~mm-drop-the-anon_-prefix-for-swap-out-mthp-counters
++++ a/mm/vmscan.c
+@@ -1227,7 +1227,7 @@ retry:
+ 							THP_SWPOUT_FALLBACK, 1);
+ 						count_vm_event(THP_SWPOUT_FALLBACK);
+ 					}
+-					count_mthp_stat(order, MTHP_STAT_ANON_SWPOUT_FALLBACK);
++					count_mthp_stat(order, MTHP_STAT_SWPOUT_FALLBACK);
+ #endif
+ 					if (!add_to_swap(folio))
+ 						goto activate_locked_split;
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-ocfs2-fix-null-pointer-dereference-in-ocfs2_journal_dirty.patch
-ocfs2-fix-null-pointer-dereference-in-ocfs2_abort_trigger.patch
+mm-memory-extend-finish_fault-to-support-large-folio.patch
+mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch
+mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch
+mm-shmem-add-mthp-support-for-anonymous-shmem.patch
+mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area.patch
+mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
 
