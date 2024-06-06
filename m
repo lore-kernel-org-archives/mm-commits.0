@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E578E182C3;
-	Thu,  6 Jun 2024 02:20:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0584618638
+	for <mm-commits@vger.kernel.org>; Thu,  6 Jun 2024 02:39:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717640421; cv=none; b=YuUFDZd30R0Er4g3KQW9bm27Aa+Ej+CuQ2Lgxz6XtoJt2KfyzFRfwHagUgSGzuaZrHzhKJzNWb/q2yDCC7g4alE/5ZwicoVse45t2oeGkeAQ59JQKU/F7w0iEU5RfbDKmSmy/7zSDADmjAvrQ3jwbKKIZ2GWRU+Ce12V1ueiVJQ=
+	t=1717641555; cv=none; b=tT3WoW0dVUX3gB18PeGuOnJox9nYV8R5TkHgrKRXMmS+UvVlIX5UGxSl+9uU1IL2fT9yJRX6n34KgSt9tI7PD6b7C6wcYePYJDb1INDQZCEiqewF9EI6yA3qPZGL+KI88pLBVU8DlGlbIJX4bK0kTVbSOqo5P5DIuDrmFExZ+Ww=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717640421; c=relaxed/simple;
-	bh=xPN9nICOBh+AaxV6AiRJyMy2Acs8CtrQWo96wUErMuo=;
-	h=Date:To:From:Subject:Message-Id; b=hZSWy3+gaWY5Fpf0AnDYl4wsHYDweGL2PjMWbZ4ZdqwWYetT6FECcJ+BW19U5EWYQUMBeZnovRAhZs2g7cXngUx672HiTGbx/LOgtGE2hZa3P+3JvneJPhb+6MX2tnxNyEhGspNHVzaeuDp7ZVn08Thj1YVFGPzQ3R944Pctrz4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i9Po4IuZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717641555; c=relaxed/simple;
+	bh=cp9xJXygnsbxIzWFgvFdCFOGzZei/Dc3nkh3yYiIer4=;
+	h=Date:To:From:Subject:Message-Id; b=kyic2f9grQk9JkrI5pDSEpNKIKE5qQG05f6rgOyaTa87koEffmrRSud8M+enwS2DmwBh6/vHDE06Ox+uCsXzRQ+fkmDBWfNBhF0rWKfj83G8+nw8VsXmV7hkF1MdogUylCWyz2X5n0/Lig9mnjXSbiJYzfdhf3+haj5j89pfU7k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b37ja+vl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i9Po4IuZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B95C1C4AF1D;
-	Thu,  6 Jun 2024 02:20:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b37ja+vl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BA3EC3277B;
+	Thu,  6 Jun 2024 02:39:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717640420;
-	bh=xPN9nICOBh+AaxV6AiRJyMy2Acs8CtrQWo96wUErMuo=;
+	s=korg; t=1717641554;
+	bh=cp9xJXygnsbxIzWFgvFdCFOGzZei/Dc3nkh3yYiIer4=;
 	h=Date:To:From:Subject:From;
-	b=i9Po4IuZcgrkw6Uwf6uVD61sjtq6oj91SaGg7nPioi6OuNRFrxdTQvZyWeUn99C5g
-	 nEmIVoK5sMLhBSVYprg4TnodXpVNbNeucvWa4X6HW6OGl9AwAovicCVOq0ETW1vRjX
-	 fJmycWEmCylSxnfRNT2soQG4L07+cl4N+qAJyJVc=
-Date: Wed, 05 Jun 2024 19:20:20 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=b37ja+vl4PNaM7pw0SlaegyqI8IipbTvtrxYEYTSB6UTVq6vI97+uHWGgVACL02sD
+	 nozncn2zJvEfjtTVhqRtuthJZnGSMeBvjzo2bDtblcoUDR9n5ezxj+lk0fwD3SZld3
+	 lU7mxLSDptZXIVGULlAQjrfox0xgjXNyEqe9GIsQ=
+Date: Wed, 05 Jun 2024 19:39:13 -0700
+To: mm-commits@vger.kernel.org,jim.cromie@gmail.com,jbaron@akamai.com,gregkh@linuxfoundation.org,quic_jjohnson@quicinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-fix-nilfs_empty_dir-misjudgment-and-long-loop-on-i-o-errors.patch removed from -mm tree
-Message-Id: <20240606022020.B95C1C4AF1D@smtp.kernel.org>
+Subject: [merged] dyndbg-add-missing-module_description-macro.patch removed from -mm tree
+Message-Id: <20240606023914.7BA3EC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: fix nilfs_empty_dir() misjudgment and long loop on I/O errors
+     Subject: dyndbg: add missing MODULE_DESCRIPTION() macro
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-nilfs_empty_dir-misjudgment-and-long-loop-on-i-o-errors.patch
+     dyndbg-add-missing-module_description-macro.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix nilfs_empty_dir() misjudgment and long loop on I/O errors
-Date: Tue, 4 Jun 2024 22:42:55 +0900
+From: Jeff Johnson <quic_jjohnson@quicinc.com>
+Subject: dyndbg: add missing MODULE_DESCRIPTION() macro
+Date: Fri, 31 May 2024 15:01:14 -0700
 
-The error handling in nilfs_empty_dir() when a directory folio/page read
-fails is incorrect, as in the old ext2 implementation, and if the
-folio/page cannot be read or nilfs_check_folio() fails, it will falsely
-determine the directory as empty and corrupt the file system.
+Make allmodconfig && make W=1 C=1 reports: WARNING: modpost: missing
+MODULE_DESCRIPTION() in lib/test_dynamic_debug.o
 
-In addition, since nilfs_empty_dir() does not immediately return on a
-failed folio/page read, but continues to loop, this can cause a long loop
-with I/O if i_size of the directory's inode is also corrupted, causing the
-log writer thread to wait and hang, as reported by syzbot.
+Add the missing invocation of the MODULE_DESCRIPTION() macro.
 
-Fix these issues by making nilfs_empty_dir() immediately return a false
-value (0) if it fails to get a directory folio/page.
-
-Link: https://lkml.kernel.org/r/20240604134255.7165-1-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+c8166c541d3971bf6c87@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=c8166c541d3971bf6c87
-Fixes: 2ba466d74ed7 ("nilfs2: directory entry operations")
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240531-md-test_dynamic_debug-v1-1-2194b477f55e@quicinc.com
+Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jason Baron <jbaron@akamai.com>
+Cc: Jim Cromie <jim.cromie@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/dir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_dynamic_debug.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/nilfs2/dir.c~nilfs2-fix-nilfs_empty_dir-misjudgment-and-long-loop-on-i-o-errors
-+++ a/fs/nilfs2/dir.c
-@@ -607,7 +607,7 @@ int nilfs_empty_dir(struct inode *inode)
+--- a/lib/test_dynamic_debug.c~dyndbg-add-missing-module_description-macro
++++ a/lib/test_dynamic_debug.c
+@@ -162,4 +162,5 @@ module_init(test_dynamic_debug_init);
+ module_exit(test_dynamic_debug_exit);
  
- 		kaddr = nilfs_get_folio(inode, i, &folio);
- 		if (IS_ERR(kaddr))
--			continue;
-+			return 0;
- 
- 		de = (struct nilfs_dir_entry *)kaddr;
- 		kaddr += nilfs_last_byte(inode, i) - NILFS_DIR_REC_LEN(1);
+ MODULE_AUTHOR("Jim Cromie <jim.cromie@gmail.com>");
++MODULE_DESCRIPTION("Kernel module for testing dynamic_debug");
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from quic_jjohnson@quicinc.com are
 
+mm-hwpoison-add-module_description.patch
+mm-dmapool-add-module_description.patch
+mm-kfence-add-module_description.patch
+mm-zsmalloc-add-module_description.patch
+kmemleak-test-add-missing-module_description-macro.patch
+test_xarray-add-missing-module_description-macro.patch
+ubsan-add-missing-module_description-macro.patch
+test_maple_tree-add-the-missing-module_description-macro.patch
+lib-test_hmm-add-missing-module_description-macro.patch
+backtracetest-add-module_description.patch
+lib-ts-add-missing-module_description-macros.patch
+kunit-fortify-add-missing-module_description-macros.patch
+kunit-add-missing-module_description-macros-for-lib-_testko.patch
+lib-asn1_encoder-add-missing-module_description-macro.patch
+kunit-add-missing-module_description-macros-to-lib-_kunitc.patch
+uuid-add-missing-module_description-macro.patch
+siphash-add-missing-module_description-macro.patch
+lib-test_kmod-add-missing-module_description-macro.patch
+lib-test_linear_ranges-add-missing-module_description-macro.patch
+list-test-add-the-missing-module_description-macro.patch
 
