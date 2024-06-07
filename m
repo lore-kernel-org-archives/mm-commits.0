@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CFAF14533D;
-	Fri,  7 Jun 2024 21:23:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E806514533D;
+	Fri,  7 Jun 2024 21:23:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717795415; cv=none; b=GCdnAoX7okOJUIsis1EDBFUxoyZD01l631azrch9n/feMuBRefHJWXfUGOmnTSLL4TaPPrZxsg5XkZYWA0PWKB6vBWPNwdeon2SP+gT+hKr0VMKDrmuAlGjjlTz0V1PjYN+oVdi1fQOUasZR1MlBw1KTrNh7AmAQBX8yrPiVrLU=
+	t=1717795431; cv=none; b=t/XpI+XPU7mUwyIV0v03x6oVr5nCDFcOrGJ4ddFoJNMvaaql6LlDZGOQ+jcvd8HKPIX3T6+1F9/mrer0kGXU0dnun9MTFSbkZIan6p3gKXfEZZJdmCNRf7TNh6OW1E0w8yr8P1dusWvu7TH/nsbzmVV1Q3mLUjmj9x3qBEE9/jw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717795415; c=relaxed/simple;
-	bh=DGBlabxmtksOuC5N/INqf6GSxQ38ZnbVgeeQd+NP9vg=;
-	h=Date:To:From:Subject:Message-Id; b=MJSBVRw5loATkqggssVQxix5UJn8D8R9e2DFZZgCfFju0OsGGYtkNBfxBvc18xkQoBwB3Dw0NIMbetWuh74YUaM80wdXmPon7nNwM/4T08hOsTc+oloA4Fvkm8WZttwikk8sf5oaaAmOWXOWE9jj/NpoGbIdOYCLCswkvOiodyU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ye6QoKF5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717795431; c=relaxed/simple;
+	bh=AzfoMd7Vrdbm3neppm8ZksaqNiv/rklfvUlP6pdryp0=;
+	h=Date:To:From:Subject:Message-Id; b=cmqcay84Juf0HhWyIMOz/l9VDNrhRgspSLQd644CpuWxiyr03Hl2rN/O1D6X3d+raDp8OwqRIVhcjM8JzyHjiYz02UmqxbcmvVt0V0BSVOYLuZ6n8ePmJdt+FFB05BSbzWH/K2i5M8+tm6pmKmBS7unLSnrvMoAPzZ4XEG3Z1iA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nn2ZDATk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ye6QoKF5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 636C6C2BBFC;
-	Fri,  7 Jun 2024 21:23:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nn2ZDATk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A640C2BBFC;
+	Fri,  7 Jun 2024 21:23:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717795414;
-	bh=DGBlabxmtksOuC5N/INqf6GSxQ38ZnbVgeeQd+NP9vg=;
+	s=korg; t=1717795430;
+	bh=AzfoMd7Vrdbm3neppm8ZksaqNiv/rklfvUlP6pdryp0=;
 	h=Date:To:From:Subject:From;
-	b=ye6QoKF5xT8USTeH+l96eP37SNBq52nCm4sJcADhRvMT1YVMUcaqvpGjj/SWShYsa
-	 N+jSYNo9qj2tTCk0RR6/KU1Ztj6o1V7HK4gh0khbJ6Zdl0B671lM0Lf88oy7rCQ44x
-	 hJDvPFeAWrewE4wl9kEJRGKt/dMPsKtTq4ZxPZpA=
-Date: Fri, 07 Jun 2024 14:23:33 -0700
+	b=Nn2ZDATkqBZ4hh8Aec5j+xJ54IIcOQNHYx9EEndeh1imsf8N2LykpgR3E849j9Cot
+	 dCyAF2v7UwpgL9X2YTwZAgokKgYqK6nrVvS1eWxlGxKBC9f+fuaZ/QSo4Wmji0Wunv
+	 hDv96qVH/+yWsIdwRjX/4HFhhxEU0nnDx8gheOUI=
+Date: Fri, 07 Jun 2024 14:23:49 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,stable@vger.kernel.org,mhocko@kernel.org,david@redhat.com,baohua@kernel.org,ran.xiaokai@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + =utf-8bw1bbveniigxpbnv4lw5lehqgdjndig1toibodwdlx21lbw9yetogzml4ig1pc3vzzwqgbwfwcgluz19syxjnzv9mb2xpb19zdxbwb3j0kcncocbmb3igyw5vbibmb2xpb3m==.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240607212334.636C6C2BBFC@smtp.kernel.org>
+Subject: + mm-huge_memory-fix-misused-mapping_large_folio_support-for-anon-folios.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240607212350.5A640C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -37,10 +37,10 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 The patch titled
      From: <xu.xin16@zte.com.cn>
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     =utf-8bw1bbveniigxpbnv4lw5lehqgdjndig1toibodwdlx21lbw9yetogzml4ig1pc3vzzwqgbwfwcgluz19syxjnzv9mb2xpb19zdxbwb3j0kcncocbmb3igyw5vbibmb2xpb3m==.patch
+     mm-huge_memory-fix-misused-mapping_large_folio_support-for-anon-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/=utf-8bw1bbveniigxpbnv4lw5lehqgdjndig1toibodwdlx21lbw9yetogzml4ig1pc3vzzwqgbwfwcgluz19syxjnzv9mb2xpb19zdxbwb3j0kcncocbmb3igyw5vbibmb2xpb3m==.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-misused-mapping_large_folio_support-for-anon-folios.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -104,7 +104,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/huge_memory.c        |   28 +++++++++++++++++-----------
  2 files changed, 21 insertions(+), 11 deletions(-)
 
---- a/include/linux/pagemap.h~=utf-8bw1bbveniigxpbnv4lw5lehqgdjndig1toibodwdlx21lbw9yetogzml4ig1pc3vzzwqgbwfwcgluz19syxjnzv9mb2xpb19zdxbwb3j0kcncocbmb3igyw5vbibmb2xpb3m==
+--- a/include/linux/pagemap.h~mm-huge_memory-fix-misused-mapping_large_folio_support-for-anon-folios
 +++ a/include/linux/pagemap.h
 @@ -368,6 +368,10 @@ static inline void mapping_set_large_fol
   */
@@ -117,7 +117,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	return IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
  		test_bit(AS_LARGE_FOLIO_SUPPORT, &mapping->flags);
  }
---- a/mm/huge_memory.c~=utf-8bw1bbveniigxpbnv4lw5lehqgdjndig1toibodwdlx21lbw9yetogzml4ig1pc3vzzwqgbwfwcgluz19syxjnzv9mb2xpb19zdxbwb3j0kcncocbmb3igyw5vbibmb2xpb3m==
+--- a/mm/huge_memory.c~mm-huge_memory-fix-misused-mapping_large_folio_support-for-anon-folios
 +++ a/mm/huge_memory.c
 @@ -3009,30 +3009,36 @@ int split_huge_page_to_list_to_order(str
  	if (new_order >= folio_order(folio))
@@ -171,6 +171,6 @@ _
 
 Patches currently in -mm which might be from ran.xiaokai@zte.com.cn are
 
-=utf-8bw1bbveniigxpbnv4lw5lehqgdjndig1toibodwdlx21lbw9yetogzml4ig1pc3vzzwqgbwfwcgluz19syxjnzv9mb2xpb19zdxbwb3j0kcncocbmb3igyw5vbibmb2xpb3m==.patch
+mm-huge_memory-fix-misused-mapping_large_folio_support-for-anon-folios.patch
 mm-huge_memory-mark-racy-access-onhuge_anon_orders_always.patch
 
