@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56ED215380A
-	for <mm-commits@vger.kernel.org>; Fri,  7 Jun 2024 20:59:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2324833EE
+	for <mm-commits@vger.kernel.org>; Fri,  7 Jun 2024 20:59:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717793962; cv=none; b=QrAt3sG4WzrFGzQCDd5t2Geecpl6VKyOxnrceNo7atXqAYg/ldl7j2OEhMHQcYmj+bDGqc6q6L1YPoshlpZodQXWhFoVZen1a7J7pQX+hI4nKegVgNqMiqy14lOcUrgyvCQ9ZFI/2eHpMRQ0USeWVVf3K+DvjSuaSnMVU+O7B/A=
+	t=1717793964; cv=none; b=CH/Y5kSZQfs4SHiWKlCTrUzt5zoNnF2RLTy4HKtZ37pZY32RcVA0xJtTJplXsXelcy8bnDlELfAAAn5dNwWvUQP7yQXJn+CGXvGJ0ak5mQa3l1TC221if00HMBVvXDzfF3t8nSVfZiN6p29jpYSPN21WmjFw2TWomqmjVb+ySYE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717793962; c=relaxed/simple;
-	bh=HeqxFY4NwO1rTVY43EFxbZlzSmx8XYm0udKUiMFk1Tk=;
-	h=Date:To:From:Subject:Message-Id; b=I8SQ7b+pRkjOzAMMioo6wpEcucFkbNeiltBkGnA22gg66vsj73zG6ETshJOofZr/R2ftyy2TkhVn8NFvbVJdJfgcXRp8JWm7E9pROGq3wBH7bl8dw2GSQ1XREAGkGr0uS2aB1268MHoRi757VNT+iZhWAOYVlidW/ZqEdtC4ll0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sbe7+JoN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717793964; c=relaxed/simple;
+	bh=k1MmLTYyzTYSivZvhW+1lrE2pgG7d8OpPzRBqAF9y0w=;
+	h=Date:To:From:Subject:Message-Id; b=StrkVVrKwf3aZzzsYmOYNRqx6pHxI9cFzBsvgh/45uxLl7E29U9NpwAbdPiEhngzC3dqWrII/KxHW8tBBcU2s1lHaNY/0n3mwr3+Jiw4/Gqk7ER2QjtpeAsI00ChDw2G9UWgTa7gFlKcRjGJQzi6Z1N3bGyaUosKl+bfgKL/6MU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pbrD8LsB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sbe7+JoN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1EFEC2BBFC;
-	Fri,  7 Jun 2024 20:59:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pbrD8LsB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E303EC2BBFC;
+	Fri,  7 Jun 2024 20:59:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717793962;
-	bh=HeqxFY4NwO1rTVY43EFxbZlzSmx8XYm0udKUiMFk1Tk=;
+	s=korg; t=1717793964;
+	bh=k1MmLTYyzTYSivZvhW+1lrE2pgG7d8OpPzRBqAF9y0w=;
 	h=Date:To:From:Subject:From;
-	b=sbe7+JoNuHqxE3wjue5g+ozJfXY2+XQD64aEaTC887f6jOEWqogUvEM3fS95Z5I35
-	 +LWTHzB29hQ8DBEUs4O9M9ikVS8NUQs/cyFFTNuCE0+jEZcHGgC/YLkJZkJcLdjg/1
-	 WWUzNO7hYqPBEBVGfgSfFDAOLBL+TFUznnnMVLkg=
-Date: Fri, 07 Jun 2024 13:59:21 -0700
+	b=pbrD8LsBCgrdmesXRcCXzBfDqwtq3yPoyhUNNoeLLUYFUIjiXhkzs0jqheHhqrD+F
+	 wG9cYl+arxJUpzPp7g9McXlWWu/tXWGvcgrdt19s3bbYVK0NzWVgCU+i8ZWF81XaV9
+	 SoVovWfIDhOfxNnYuHg12BODRwsVGT/7IOc5Nwmc=
+Date: Fri, 07 Jun 2024 13:59:23 -0700
 To: mm-commits@vger.kernel.org,kirill.shutemov@linux.intel.com,ioworker0@gmail.com,corbet@lwn.net,adobriyan@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-task_mmu-account-non-present-entries-as-maybe-shared-but-no-idea-how-often.patch added to mm-unstable branch
-Message-Id: <20240607205921.E1EFEC2BBFC@smtp.kernel.org>
+Subject: + fs-proc-move-page_mapcount-to-fs-proc-internalh.patch added to mm-unstable branch
+Message-Id: <20240607205923.E303EC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: account non-present entries as "maybe shared, but no idea how often"
+     Subject: fs/proc: move page_mapcount() to fs/proc/internal.h
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-proc-task_mmu-account-non-present-entries-as-maybe-shared-but-no-idea-how-often.patch
+     fs-proc-move-page_mapcount-to-fs-proc-internalh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-account-non-present-entries-as-maybe-shared-but-no-idea-how-often.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-move-page_mapcount-to-fs-proc-internalh.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,28 +59,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: fs/proc/task_mmu: account non-present entries as "maybe shared, but no idea how often"
-Date: Fri, 7 Jun 2024 14:23:55 +0200
+Subject: fs/proc: move page_mapcount() to fs/proc/internal.h
+Date: Fri, 7 Jun 2024 14:23:56 +0200
 
-We currently rely on mapcount information for pages referenced by
-non-present entries to calculate the USS (shared vs.  private) and the
-PSS.
+...  and rename it to folio_precise_page_mapcount().  fs/proc is the last
+remaining user, and that should stay that way.
 
-However, relying on mapcounts for non-present entries doesn't make any
-sense.  We have to treat such entries as "maybe shared, but no idea how
-often", implying that they will *not* get accounted towards the USS, and
-will get fully accounted to the PSS (no idea how often shared).
+While at it, cleanup kpagecount_read() a bit: there are still some legacy
+leftovers -- when the interface was introduced it returned the page
+refcount, but was changed briefly afterwards to return the page mapcount. 
+Further, some simple folio conversion.
 
-There is one exception: device exclusive entries essentially behave like
-present entries (e.g., mapcount incremented).
+Once we stop using the per-page mapcounts of large folios, all
+folio_precise_page_mapcount() users will have to implement an alternative
+way to achieve what they are trying to achieve, possibly in a less precise
+way.
 
-In smaps_pmd_entry(), use is_pfn_swap_entry() instead of
-is_migration_entry(), which should not make a real difference but makes
-the code look more similar to the PTE variant.
-
-While at it, adjust the comments in smaps_account().
-
-Link: https://lkml.kernel.org/r/20240607122357.115423-5-david@redhat.com
+Link: https://lkml.kernel.org/r/20240607122357.115423-6-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -89,149 +84,243 @@ Cc: Lance Yang <ioworker0@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   53 +++++++++++++++++++++++++------------------
- 1 file changed, 31 insertions(+), 22 deletions(-)
+ fs/proc/internal.h |   33 +++++++++++++++++++++++++++++++++
+ fs/proc/page.c     |   21 ++++++++++-----------
+ fs/proc/task_mmu.c |   35 ++++++++++++++++++++++-------------
+ include/linux/mm.h |   27 +--------------------------
+ 4 files changed, 66 insertions(+), 50 deletions(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-account-non-present-entries-as-maybe-shared-but-no-idea-how-often
-+++ a/fs/proc/task_mmu.c
-@@ -442,7 +442,7 @@ static void smaps_page_accumulate(struct
+--- a/fs/proc/internal.h~fs-proc-move-page_mapcount-to-fs-proc-internalh
++++ a/fs/proc/internal.h
+@@ -13,6 +13,7 @@
+ #include <linux/binfmts.h>
+ #include <linux/sched/coredump.h>
+ #include <linux/sched/task.h>
++#include <linux/mm.h>
  
- static void smaps_account(struct mem_size_stats *mss, struct page *page,
- 		bool compound, bool young, bool dirty, bool locked,
--		bool migration)
-+		bool present)
+ struct ctl_table_header;
+ struct mempolicy;
+@@ -142,6 +143,38 @@ unsigned name_to_int(const struct qstr *
+ /* Worst case buffer size needed for holding an integer. */
+ #define PROC_NUMBUF 13
+ 
++/**
++ * folio_precise_page_mapcount() - Number of mappings of this folio page.
++ * @folio: The folio.
++ * @page: The page.
++ *
++ * The number of present user page table entries that reference this page
++ * as tracked via the RMAP: either referenced directly (PTE) or as part of
++ * a larger area that covers this page (e.g., PMD).
++ *
++ * Use this function only for the calculation of existing statistics
++ * (USS, PSS, mapcount_max) and for debugging purposes (/proc/kpagecount).
++ *
++ * Do not add new users.
++ *
++ * Returns: The number of mappings of this folio page. 0 for
++ * folios that are not mapped to user space or are not tracked via the RMAP
++ * (e.g., shared zeropage).
++ */
++static inline int folio_precise_page_mapcount(struct folio *folio,
++		struct page *page)
++{
++	int mapcount = atomic_read(&page->_mapcount) + 1;
++
++	/* Handle page_has_type() pages */
++	if (mapcount < PAGE_MAPCOUNT_RESERVE + 1)
++		mapcount = 0;
++	if (folio_test_large(folio))
++		mapcount += folio_entire_mapcount(folio);
++
++	return mapcount;
++}
++
+ /*
+  * array.c
+  */
+--- a/fs/proc/page.c~fs-proc-move-page_mapcount-to-fs-proc-internalh
++++ a/fs/proc/page.c
+@@ -37,21 +37,19 @@ static inline unsigned long get_max_dump
+ #endif
+ }
+ 
+-/* /proc/kpagecount - an array exposing page counts
++/* /proc/kpagecount - an array exposing page mapcounts
+  *
+  * Each entry is a u64 representing the corresponding
+- * physical page count.
++ * physical page mapcount.
+  */
+ static ssize_t kpagecount_read(struct file *file, char __user *buf,
+ 			     size_t count, loff_t *ppos)
+ {
+ 	const unsigned long max_dump_pfn = get_max_dump_pfn();
+ 	u64 __user *out = (u64 __user *)buf;
+-	struct page *ppage;
+ 	unsigned long src = *ppos;
+ 	unsigned long pfn;
+ 	ssize_t ret = 0;
+-	u64 pcount;
+ 
+ 	pfn = src / KPMSIZE;
+ 	if (src & KPMMASK || count & KPMMASK)
+@@ -61,18 +59,19 @@ static ssize_t kpagecount_read(struct fi
+ 	count = min_t(unsigned long, count, (max_dump_pfn * KPMSIZE) - src);
+ 
+ 	while (count > 0) {
++		struct page *page;
++		u64 mapcount = 0;
++
+ 		/*
+ 		 * TODO: ZONE_DEVICE support requires to identify
+ 		 * memmaps that were actually initialized.
+ 		 */
+-		ppage = pfn_to_online_page(pfn);
+-
+-		if (!ppage)
+-			pcount = 0;
+-		else
+-			pcount = page_mapcount(ppage);
++		page = pfn_to_online_page(pfn);
++		if (page)
++			mapcount = folio_precise_page_mapcount(page_folio(page),
++							       page);
+ 
+-		if (put_user(pcount, out)) {
++		if (put_user(mapcount, out)) {
+ 			ret = -EFAULT;
+ 			break;
+ 		}
+--- a/fs/proc/task_mmu.c~fs-proc-move-page_mapcount-to-fs-proc-internalh
++++ a/fs/proc/task_mmu.c
+@@ -488,12 +488,12 @@ static void smaps_account(struct mem_siz
+ 		return;
+ 	}
+ 	/*
+-	 * The page_mapcount() is called to get a snapshot of the mapcount.
+-	 * Without holding the folio lock this snapshot can be slightly wrong as
+-	 * we cannot always read the mapcount atomically.
++	 * We obtain a snapshot of the mapcount. Without holding the folio lock
++	 * this snapshot can be slightly wrong as we cannot always read the
++	 * mapcount atomically.
+ 	 */
+ 	for (i = 0; i < nr; i++, page++) {
+-		int mapcount = page_mapcount(page);
++		int mapcount = folio_precise_page_mapcount(folio, page);
+ 		unsigned long pss = PAGE_SIZE << PSS_SHIFT;
+ 		if (mapcount >= 2)
+ 			pss /= mapcount;
+@@ -1424,6 +1424,7 @@ static pagemap_entry_t pte_to_pagemap_en
+ {
+ 	u64 frame = 0, flags = 0;
+ 	struct page *page = NULL;
++	struct folio *folio;
+ 
+ 	if (pte_present(pte)) {
+ 		if (pm->show_pfn)
+@@ -1461,10 +1462,14 @@ static pagemap_entry_t pte_to_pagemap_en
+ 			flags |= PM_UFFD_WP;
+ 	}
+ 
+-	if (page && !PageAnon(page))
+-		flags |= PM_FILE;
+-	if (page && (flags & PM_PRESENT) && page_mapcount(page) == 1)
+-		flags |= PM_MMAP_EXCLUSIVE;
++	if (page) {
++		folio = page_folio(page);
++		if (!folio_test_anon(folio))
++			flags |= PM_FILE;
++		if ((flags & PM_PRESENT) &&
++		    folio_precise_page_mapcount(folio, page) == 1)
++			flags |= PM_MMAP_EXCLUSIVE;
++	}
+ 	if (vma->vm_flags & VM_SOFTDIRTY)
+ 		flags |= PM_SOFT_DIRTY;
+ 
+@@ -1487,6 +1492,7 @@ static int pagemap_pmd_range(pmd_t *pmdp
+ 		u64 flags = 0, frame = 0;
+ 		pmd_t pmd = *pmdp;
+ 		struct page *page = NULL;
++		struct folio *folio;
+ 
+ 		if (vma->vm_flags & VM_SOFTDIRTY)
+ 			flags |= PM_SOFT_DIRTY;
+@@ -1525,15 +1531,18 @@ static int pagemap_pmd_range(pmd_t *pmdp
+ 		}
+ #endif
+ 
+-		if (page && !PageAnon(page))
+-			flags |= PM_FILE;
++		if (page) {
++			folio = page_folio(page);
++			if (!folio_test_anon(folio))
++				flags |= PM_FILE;
++		}
+ 
+ 		for (; addr != end; addr += PAGE_SIZE, idx++) {
+ 			unsigned long cur_flags = flags;
+ 			pagemap_entry_t pme;
+ 
+-			if (page && (flags & PM_PRESENT) &&
+-			    page_mapcount(page + idx) == 1)
++			if (folio && (flags & PM_PRESENT) &&
++			    folio_precise_page_mapcount(folio, page + idx) == 1)
+ 				cur_flags |= PM_MMAP_EXCLUSIVE;
+ 
+ 			pme = make_pme(frame, cur_flags);
+@@ -2572,7 +2581,7 @@ static void gather_stats(struct page *pa
+ 			unsigned long nr_pages)
  {
  	struct folio *folio = page_folio(page);
- 	int i, nr = compound ? compound_nr(page) : 1;
-@@ -471,22 +471,27 @@ static void smaps_account(struct mem_siz
- 	 * Then accumulate quantities that may depend on sharing, or that may
- 	 * differ page-by-page.
- 	 *
--	 * refcount == 1 guarantees the page is mapped exactly once.
--	 * If any subpage of the compound page mapped with PTE it would elevate
--	 * the refcount.
-+	 * refcount == 1 for present entries guarantees that the folio is mapped
-+	 * exactly once. For large folios this implies that exactly one
-+	 * PTE/PMD/... maps (a part of) this folio.
- 	 *
--	 * The page_mapcount() is called to get a snapshot of the mapcount.
--	 * Without holding the page lock this snapshot can be slightly wrong as
--	 * we cannot always read the mapcount atomically.  It is not safe to
--	 * call page_mapcount() even with PTL held if the page is not mapped,
--	 * especially for migration entries.  Treat regular migration entries
--	 * as mapcount == 1.
-+	 * Treat all non-present entries (where relying on the mapcount and
-+	 * refcount doesn't make sense) as "maybe shared, but not sure how
-+	 * often". We treat device private entries as being fake-present.
-+	 *
-+	 * Note that it would not be safe to read the mapcount especially for
-+	 * pages referenced by migration entries, even with the PTL held.
- 	 */
--	if ((folio_ref_count(folio) == 1) || migration) {
-+	if (folio_ref_count(folio) == 1 || !present) {
- 		smaps_page_accumulate(mss, folio, size, size << PSS_SHIFT,
--				dirty, locked, true);
-+				      dirty, locked, present);
- 		return;
- 	}
-+	/*
-+	 * The page_mapcount() is called to get a snapshot of the mapcount.
-+	 * Without holding the folio lock this snapshot can be slightly wrong as
-+	 * we cannot always read the mapcount atomically.
-+	 */
- 	for (i = 0; i < nr; i++, page++) {
- 		int mapcount = page_mapcount(page);
- 		unsigned long pss = PAGE_SIZE << PSS_SHIFT;
-@@ -531,13 +536,14 @@ static void smaps_pte_entry(pte_t *pte,
- 	struct vm_area_struct *vma = walk->vma;
- 	bool locked = !!(vma->vm_flags & VM_LOCKED);
- 	struct page *page = NULL;
--	bool migration = false, young = false, dirty = false;
-+	bool present = false, young = false, dirty = false;
- 	pte_t ptent = ptep_get(pte);
+-	int count = page_mapcount(page);
++	int count = folio_precise_page_mapcount(folio, page);
  
- 	if (pte_present(ptent)) {
- 		page = vm_normal_page(vma, addr, ptent);
- 		young = pte_young(ptent);
- 		dirty = pte_dirty(ptent);
-+		present = true;
- 	} else if (is_swap_pte(ptent)) {
- 		swp_entry_t swpent = pte_to_swp_entry(ptent);
- 
-@@ -555,8 +561,8 @@ static void smaps_pte_entry(pte_t *pte,
- 				mss->swap_pss += (u64)PAGE_SIZE << PSS_SHIFT;
- 			}
- 		} else if (is_pfn_swap_entry(swpent)) {
--			if (is_migration_entry(swpent))
--				migration = true;
-+			if (is_device_private_entry(swpent))
-+				present = true;
- 			page = pfn_swap_entry_to_page(swpent);
- 		}
- 	} else {
-@@ -567,7 +573,7 @@ static void smaps_pte_entry(pte_t *pte,
- 	if (!page)
- 		return;
- 
--	smaps_account(mss, page, false, young, dirty, locked, migration);
-+	smaps_account(mss, page, false, young, dirty, locked, present);
+ 	md->pages += nr_pages;
+ 	if (pte_dirty || folio_test_dirty(folio))
+--- a/include/linux/mm.h~fs-proc-move-page_mapcount-to-fs-proc-internalh
++++ a/include/linux/mm.h
+@@ -1197,8 +1197,7 @@ static inline int is_vmalloc_or_module_a
+ /*
+  * How many times the entire folio is mapped as a single unit (eg by a
+  * PMD or PUD entry).  This is probably not what you want, except for
+- * debugging purposes - it does not include PTE-mapped sub-pages; look
+- * at folio_mapcount() or page_mapcount() instead.
++ * debugging purposes or implementation of other core folio_*() primitives.
+  */
+ static inline int folio_entire_mapcount(const struct folio *folio)
+ {
+@@ -1206,30 +1205,6 @@ static inline int folio_entire_mapcount(
+ 	return atomic_read(&folio->_entire_mapcount) + 1;
  }
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -578,18 +584,17 @@ static void smaps_pmd_entry(pmd_t *pmd,
- 	struct vm_area_struct *vma = walk->vma;
- 	bool locked = !!(vma->vm_flags & VM_LOCKED);
- 	struct page *page = NULL;
-+	bool present = false;
- 	struct folio *folio;
--	bool migration = false;
- 
- 	if (pmd_present(*pmd)) {
- 		page = vm_normal_page_pmd(vma, addr, *pmd);
-+		present = true;
- 	} else if (unlikely(thp_migration_supported() && is_swap_pmd(*pmd))) {
- 		swp_entry_t entry = pmd_to_swp_entry(*pmd);
- 
--		if (is_migration_entry(entry)) {
--			migration = true;
-+		if (is_pfn_swap_entry(entry))
- 			page = pfn_swap_entry_to_page(entry);
--		}
- 	}
- 	if (IS_ERR_OR_NULL(page))
- 		return;
-@@ -604,7 +609,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
- 		mss->file_thp += HPAGE_PMD_SIZE;
- 
- 	smaps_account(mss, page, true, pmd_young(*pmd), pmd_dirty(*pmd),
--		      locked, migration);
-+		      locked, present);
- }
- #else
- static void smaps_pmd_entry(pmd_t *pmd, unsigned long addr,
-@@ -732,17 +737,21 @@ static int smaps_hugetlb_range(pte_t *pt
- 	struct vm_area_struct *vma = walk->vma;
- 	pte_t ptent = huge_ptep_get(pte);
- 	struct folio *folio = NULL;
-+	bool present = false;
- 
- 	if (pte_present(ptent)) {
- 		folio = page_folio(pte_page(ptent));
-+		present = true;
- 	} else if (is_swap_pte(ptent)) {
- 		swp_entry_t swpent = pte_to_swp_entry(ptent);
- 
- 		if (is_pfn_swap_entry(swpent))
- 			folio = pfn_swap_entry_folio(swpent);
- 	}
-+
- 	if (folio) {
--		if (folio_likely_mapped_shared(folio) ||
-+		/* We treat non-present entries as "maybe shared". */
-+		if (!present || folio_likely_mapped_shared(folio) ||
- 		    hugetlb_pmd_shared(pte))
- 			mss->shared_hugetlb += huge_page_size(hstate_vma(vma));
- 		else
+-/**
+- * page_mapcount() - Number of times this precise page is mapped.
+- * @page: The page.
+- *
+- * The number of times this page is mapped.  If this page is part of
+- * a large folio, it includes the number of times this page is mapped
+- * as part of that folio.
+- *
+- * Will report 0 for pages which cannot be mapped into userspace, eg
+- * slab, page tables and similar.
+- */
+-static inline int page_mapcount(struct page *page)
+-{
+-	int mapcount = atomic_read(&page->_mapcount) + 1;
+-
+-	/* Handle page_has_type() pages */
+-	if (mapcount < PAGE_MAPCOUNT_RESERVE + 1)
+-		mapcount = 0;
+-	if (unlikely(PageCompound(page)))
+-		mapcount += folio_entire_mapcount(page_folio(page));
+-
+-	return mapcount;
+-}
+-
+ static inline int folio_large_mapcount(const struct folio *folio)
+ {
+ 	VM_WARN_ON_FOLIO(!folio_test_large(folio), folio);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
