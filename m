@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB491502BE
-	for <mm-commits@vger.kernel.org>; Fri,  7 Jun 2024 22:23:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65FC7155327
+	for <mm-commits@vger.kernel.org>; Fri,  7 Jun 2024 22:23:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717799025; cv=none; b=iJFzp5ysOtLDLc6PQWOo6kSjCNgbQ3acunsQPwdtkxVAxFIT+Ep0l9UUUJOuprawiz/fvHhbMhS0NbWERE6reoKSwZWwB+1d+kvpIvrQpTKWBzSAjmDJD4uRACZaJSOd17CbxRDq71+mKKnoPtAET5d0IbH4Un3Ur9xQR5bnEK8=
+	t=1717799029; cv=none; b=SmB0+/VgfyWdpLM8JdPKB2EjIfcjsEOj/GJQAsE+6m9YMFInzCsEsTv6f3IXrvYgIArirnX3/mbRyBuQ26XLkoKIMf75GJgLH9kYzdKM3z4Rb5aNoMJ00bliL6bC9YoGoubpK4zRZupSEvaBjXKtqLxr8BdZ6SU1IxVPHjWGPhw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717799025; c=relaxed/simple;
-	bh=5QjL3eyCXlf0EKKOG3lPRCnypqeLcNYQdCBc9n5EWz0=;
-	h=Date:To:From:Subject:Message-Id; b=i2zYXgfoZpcUFUFhQOkkEdrJrfbY6H1NiTzc8Cc9lFbR6tA5/O00fQdub6CuPghSOXtcNU4NmW+JqgLJG3d63cEbLWKeTtacHv3UhpH8x1N6fSksctVte/6qjTzH9EqgcaWoVxKwsso4gB3OVmMyyCTj7NyIoRSmib4V9Sqmoos=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jDAillkn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717799029; c=relaxed/simple;
+	bh=t94nNrA0jU2SkkJzp+BVsEyiItD7zb0MWVhXttC4mQ4=;
+	h=Date:To:From:Subject:Message-Id; b=UsX2pUswlej1PyAIEVth36HiAa8Ncv46U+UOiSeaBA4R99mNsKWd+ELFHANrDbzaesZlzjIDu4EZEA85+uI+olFKNxGGTxy2nUpsLZitXS04j4HOxa0VptE7TzrBnLYuVhtCGGZC5dBZbEzFANxThZ3P7ILeLFDE7y8AB+49joI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B1Wq6gL4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jDAillkn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6F09C2BBFC;
-	Fri,  7 Jun 2024 22:23:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B1Wq6gL4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1DF6C2BBFC;
+	Fri,  7 Jun 2024 22:23:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717799024;
-	bh=5QjL3eyCXlf0EKKOG3lPRCnypqeLcNYQdCBc9n5EWz0=;
+	s=korg; t=1717799029;
+	bh=t94nNrA0jU2SkkJzp+BVsEyiItD7zb0MWVhXttC4mQ4=;
 	h=Date:To:From:Subject:From;
-	b=jDAillknSpPjD7UEk1Me7nGglVeCJ70sfbfIsCAoyUjdVujLKcyXPmJYvtY2g4Fn4
-	 1pP3hAUOiQWwwxgIsgQukHaxx84EoMQ6aF23Gcw4SAqCMJrADyY06T5XsIomAXoGAC
-	 ZLsSLeDch107Ep1L04WkeolDv5eg+Bg0zkqTiZbs=
-Date: Fri, 07 Jun 2024 15:23:44 -0700
+	b=B1Wq6gL4L/dSEgy7zBB/HdgHeUj2M+B0fieZzgIDTFtmLhWhGksUz2WPxe95gagMa
+	 G0x/kHSLZw/j8ShpviAedi3Iab2mA3LknPMNZJnX4NSvkhUhfbdIOhBwhgyDzObQN1
+	 5tAlfHFH7Ohx1Fu9quvwzdBDUmPSRcM9nf0u+7A8=
+Date: Fri, 07 Jun 2024 15:23:48 -0700
 To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,sstabellini@kernel.org,rppt@kernel.org,osalvador@suse.de,oleksandr_tyshchenko@epam.com,mst@redhat.com,kys@microsoft.com,jgross@suse.com,jasowang@redhat.com,haiyangz@microsoft.com,glider@google.com,eperezma@redhat.com,elver@google.com,dvyukov@google.com,decui@microsoft.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved.patch added to mm-unstable branch
-Message-Id: <20240607222344.B6F09C2BBFC@smtp.kernel.org>
+Subject: + mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining.patch added to mm-unstable branch
+Message-Id: <20240607222348.F1DF6C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory_hotplug: initialize memmap of !ZONE_DEVICE with PageOffline() instead of PageReserved()
+     Subject: mm/memory_hotplug: skip adjust_managed_page_count() for PageOffline() pages when offlining
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved.patch
+     mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,44 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: initialize memmap of !ZONE_DEVICE with PageOffline() instead of PageReserved()
-Date: Fri, 7 Jun 2024 11:09:37 +0200
+Subject: mm/memory_hotplug: skip adjust_managed_page_count() for PageOffline() pages when offlining
+Date: Fri, 7 Jun 2024 11:09:38 +0200
 
-We currently initialize the memmap such that PG_reserved is set and the
-refcount of the page is 1.  In virtio-mem code, we have to manually clear
-that PG_reserved flag to make memory offlining with partially hotplugged
-memory blocks possible: has_unmovable_pages() would otherwise bail out on
-such pages.
+We currently have a hack for virtio-mem in place to handle memory
+offlining with PageOffline pages for which we already adjusted the managed
+page count.
 
-We want to avoid PG_reserved where possible and move to typed pages
-instead.  Further, we want to further enlighten memory offlining code
-about PG_offline: offline pages in an online memory section.  One example
-is handling managed page count adjustments in a cleaner way during memory
-offlining.
+Let's enlighten memory offlining code so we can get rid of that hack, and
+document the situation.
 
-So let's initialize the pages with PG_offline instead of PG_reserved. 
-generic_online_page()->__free_pages_core() will now clear that flag before
-handing that memory to the buddy.
-
-Note that the page refcount is still 1 and would forbid offlining of such
-memory except when special care is take during GOING_OFFLINE as currently
-only implemented by virtio-mem.
-
-With this change, we can now get non-PageReserved() pages in the XEN
-balloon list.  From what I can tell, that can already happen via
-decrease_reservation(), so that should be fine.
-
-HV-balloon should not really observe a change: partial online memory
-blocks still cannot get surprise-offlined, because the refcount of these
-PageOffline() pages is 1.
-
-Update virtio-mem, HV-balloon and XEN-balloon code to be aware that
-hotplugged pages are now PageOffline() instead of PageReserved() before
-they are handed over to the buddy.
-
-We'll leave the ZONE_DEVICE case alone for now.
-
-Link: https://lkml.kernel.org/r/20240607090939.89524-3-david@redhat.com
+Link: https://lkml.kernel.org/r/20240607090939.89524-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dexuan Cui <decui@microsoft.com>
@@ -117,240 +90,144 @@ Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hv/hv_balloon.c     |    5 ++---
- drivers/virtio/virtio_mem.c |   18 ++++++++++++------
- drivers/xen/balloon.c       |    9 +++++++--
- include/linux/page-flags.h  |   12 +++++-------
- mm/memory_hotplug.c         |   16 ++++++++++------
- mm/mm_init.c                |   10 ++++++++--
- mm/page_alloc.c             |   32 +++++++++++++++++++++++---------
- 7 files changed, 67 insertions(+), 35 deletions(-)
+ drivers/virtio/virtio_mem.c    |   11 ++---------
+ include/linux/memory_hotplug.h |    4 ++--
+ include/linux/page-flags.h     |    8 ++++++--
+ mm/memory_hotplug.c            |    6 +++---
+ mm/page_alloc.c                |   12 ++++++++++--
+ 5 files changed, 23 insertions(+), 18 deletions(-)
 
---- a/drivers/hv/hv_balloon.c~mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved
-+++ a/drivers/hv/hv_balloon.c
-@@ -693,9 +693,8 @@ static void hv_page_online_one(struct hv
- 		if (!PageOffline(pg))
- 			__SetPageOffline(pg);
- 		return;
--	}
--	if (PageOffline(pg))
--		__ClearPageOffline(pg);
-+	} else if (!PageOffline(pg))
-+		return;
- 
- 	/* This frame is currently backed; online the page. */
- 	generic_online_page(pg, 0);
---- a/drivers/virtio/virtio_mem.c~mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved
+--- a/drivers/virtio/virtio_mem.c~mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining
 +++ a/drivers/virtio/virtio_mem.c
-@@ -1146,12 +1146,16 @@ static void virtio_mem_set_fake_offline(
- 	for (; nr_pages--; pfn++) {
- 		struct page *page = pfn_to_page(pfn);
+@@ -1269,12 +1269,6 @@ static void virtio_mem_fake_offline_goin
+ 	struct page *page;
+ 	unsigned long i;
  
--		__SetPageOffline(page);
--		if (!onlined) {
-+		if (!onlined)
-+			/*
-+			 * Pages that have not been onlined yet were initialized
-+			 * to PageOffline(). Remember that we have to route them
-+			 * through generic_online_page().
-+			 */
- 			SetPageDirty(page);
--			/* FIXME: remove after cleanups */
--			ClearPageReserved(page);
--		}
-+		else
-+			__SetPageOffline(page);
-+		VM_WARN_ON_ONCE(!PageOffline(page));
- 	}
- 	page_offline_end();
- }
-@@ -1166,9 +1170,11 @@ static void virtio_mem_clear_fake_offlin
- 	for (; nr_pages--; pfn++) {
- 		struct page *page = pfn_to_page(pfn);
- 
--		__ClearPageOffline(page);
- 		if (!onlined)
-+			/* generic_online_page() will clear PageOffline(). */
- 			ClearPageDirty(page);
-+		else
-+			__ClearPageOffline(page);
- 	}
- }
- 
---- a/drivers/xen/balloon.c~mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved
-+++ a/drivers/xen/balloon.c
-@@ -146,7 +146,8 @@ static DECLARE_WAIT_QUEUE_HEAD(balloon_w
- /* balloon_append: add the given page to the balloon. */
- static void balloon_append(struct page *page)
- {
--	__SetPageOffline(page);
-+	if (!PageOffline(page))
-+		__SetPageOffline(page);
- 
- 	/* Lowmem is re-populated first, so highmem pages go at list tail. */
- 	if (PageHighMem(page)) {
-@@ -412,7 +413,11 @@ static enum bp_state increase_reservatio
- 
- 		xenmem_reservation_va_mapping_update(1, &page, &frame_list[i]);
- 
--		/* Relinquish the page back to the allocator. */
-+		/*
-+		 * Relinquish the page back to the allocator. Note that
-+		 * some pages, including ones added via xen_online_page(), might
-+		 * not be marked reserved; free_reserved_page() will handle that.
-+		 */
- 		free_reserved_page(page);
- 	}
- 
---- a/include/linux/page-flags.h~mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved
-+++ a/include/linux/page-flags.h
-@@ -30,16 +30,11 @@
-  * - Pages falling into physical memory gaps - not IORESOURCE_SYSRAM. Trying
-  *   to read/write these pages might end badly. Don't touch!
-  * - The zero page(s)
-- * - Pages not added to the page allocator when onlining a section because
-- *   they were excluded via the online_page_callback() or because they are
-- *   PG_hwpoison.
-  * - Pages allocated in the context of kexec/kdump (loaded kernel image,
-  *   control pages, vmcoreinfo)
-  * - MMIO/DMA pages. Some architectures don't allow to ioremap pages that are
-  *   not marked PG_reserved (as they might be in use by somebody else who does
-  *   not respect the caching strategy).
-- * - Pages part of an offline section (struct pages of offline sections should
-- *   not be trusted as they will be initialized when first onlined).
-  * - MCA pages on ia64
-  * - Pages holding CPU notes for POWER Firmware Assisted Dump
-  * - Device memory (e.g. PMEM, DAX, HMM)
-@@ -1021,6 +1016,10 @@ PAGE_TYPE_OPS(Buddy, buddy, buddy)
-  * The content of these pages is effectively stale. Such pages should not
-  * be touched (read/write/dump/save) except by their owner.
-  *
-+ * When a memory block gets onlined, all pages are initialized with a
-+ * refcount of 1 and PageOffline(). generic_online_page() will
-+ * take care of clearing PageOffline().
-+ *
-  * If a driver wants to allow to offline unmovable PageOffline() pages without
-  * putting them back to the buddy, it can do so via the memory notifier by
-  * decrementing the reference count in MEM_GOING_OFFLINE and incrementing the
-@@ -1028,8 +1027,7 @@ PAGE_TYPE_OPS(Buddy, buddy, buddy)
-  * pages (now with a reference count of zero) are treated like free pages,
-  * allowing the containing memory block to get offlined. A driver that
-  * relies on this feature is aware that re-onlining the memory block will
-- * require to re-set the pages PageOffline() and not giving them to the
-- * buddy via online_page_callback_t.
-+ * require not giving them to the buddy via generic_online_page().
-  *
-  * There are drivers that mark a page PageOffline() and expect there won't be
-  * any further access to page content. PFN walkers that read content of random
---- a/mm/memory_hotplug.c~mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved
-+++ a/mm/memory_hotplug.c
-@@ -734,7 +734,7 @@ static inline void section_taint_zone_de
- /*
-  * Associate the pfn range with the given zone, initializing the memmaps
-  * and resizing the pgdat/zone data to span the added pages. After this
-- * call, all affected pages are PG_reserved.
-+ * call, all affected pages are PageOffline().
-  *
-  * All aligned pageblocks are initialized to the specified migratetype
-  * (usually MIGRATE_MOVABLE). Besides setting the migratetype, no related
-@@ -1100,8 +1100,12 @@ int mhp_init_memmap_on_memory(unsigned l
- 
- 	move_pfn_range_to_zone(zone, pfn, nr_pages, NULL, MIGRATE_UNMOVABLE);
- 
--	for (i = 0; i < nr_pages; i++)
--		SetPageVmemmapSelfHosted(pfn_to_page(pfn + i));
-+	for (i = 0; i < nr_pages; i++) {
-+		struct page *page = pfn_to_page(pfn + i);
-+
-+		__ClearPageOffline(page);
-+		SetPageVmemmapSelfHosted(page);
-+	}
+-	/*
+-	 * Drop our reference to the pages so the memory can get offlined
+-	 * and add the unplugged pages to the managed page counters (so
+-	 * offlining code can correctly subtract them again).
+-	 */
+-	adjust_managed_page_count(pfn_to_page(pfn), nr_pages);
+ 	/* Drop our reference to the pages so the memory can get offlined. */
+ 	for (i = 0; i < nr_pages; i++) {
+ 		page = pfn_to_page(pfn + i);
+@@ -1293,10 +1287,9 @@ static void virtio_mem_fake_offline_canc
+ 	unsigned long i;
  
  	/*
- 	 * It might be that the vmemmap_pages fully span sections. If that is
-@@ -1959,9 +1963,9 @@ int __ref offline_pages(unsigned long st
- 	 * Don't allow to offline memory blocks that contain holes.
- 	 * Consequently, memory blocks with holes can never get onlined
- 	 * via the hotplug path - online_pages() - as hotplugged memory has
--	 * no holes. This way, we e.g., don't have to worry about marking
--	 * memory holes PG_reserved, don't need pfn_valid() checks, and can
--	 * avoid using walk_system_ram_range() later.
-+	 * no holes. This way, we don't have to worry about memory holes,
-+	 * don't need pfn_valid() checks, and can avoid using
-+	 * walk_system_ram_range() later.
+-	 * Get the reference we dropped when going offline and subtract the
+-	 * unplugged pages from the managed page counters.
++	 * Get the reference again that we dropped via page_ref_dec_and_test()
++	 * when going offline.
  	 */
- 	walk_system_ram_range(start_pfn, nr_pages, &system_ram_pages,
- 			      count_system_ram_pages_cb);
---- a/mm/mm_init.c~mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved
-+++ a/mm/mm_init.c
-@@ -892,8 +892,14 @@ void __meminit memmap_init_range(unsigne
+-	adjust_managed_page_count(pfn_to_page(pfn), -nr_pages);
+ 	for (i = 0; i < nr_pages; i++)
+ 		page_ref_inc(pfn_to_page(pfn + i));
+ }
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining
++++ a/include/linux/memory_hotplug.h
+@@ -175,8 +175,8 @@ extern int mhp_init_memmap_on_memory(uns
+ extern void mhp_deinit_memmap_on_memory(unsigned long pfn, unsigned long nr_pages);
+ extern int online_pages(unsigned long pfn, unsigned long nr_pages,
+ 			struct zone *zone, struct memory_group *group);
+-extern void __offline_isolated_pages(unsigned long start_pfn,
+-				     unsigned long end_pfn);
++extern unsigned long __offline_isolated_pages(unsigned long start_pfn,
++		unsigned long end_pfn);
  
- 		page = pfn_to_page(pfn);
- 		__init_single_page(page, pfn, zone, nid);
--		if (context == MEMINIT_HOTPLUG)
--			__SetPageReserved(page);
-+		if (context == MEMINIT_HOTPLUG) {
-+#ifdef CONFIG_ZONE_DEVICE
-+			if (zone == ZONE_DEVICE)
-+				__SetPageReserved(page);
-+			else
-+#endif
-+				__SetPageOffline(page);
-+		}
+ typedef void (*online_page_callback_t)(struct page *page, unsigned int order);
  
- 		/*
- 		 * Usually, we want to mark the pageblock MIGRATE_MOVABLE,
---- a/mm/page_alloc.c~mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved
+--- a/include/linux/page-flags.h~mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining
++++ a/include/linux/page-flags.h
+@@ -1024,11 +1024,15 @@ PAGE_TYPE_OPS(Buddy, buddy, buddy)
+  * putting them back to the buddy, it can do so via the memory notifier by
+  * decrementing the reference count in MEM_GOING_OFFLINE and incrementing the
+  * reference count in MEM_CANCEL_OFFLINE. When offlining, the PageOffline()
+- * pages (now with a reference count of zero) are treated like free pages,
+- * allowing the containing memory block to get offlined. A driver that
++ * pages (now with a reference count of zero) are treated like free (unmanaged)
++ * pages, allowing the containing memory block to get offlined. A driver that
+  * relies on this feature is aware that re-onlining the memory block will
+  * require not giving them to the buddy via generic_online_page().
+  *
++ * Memory offlining code will not adjust the managed page count for any
++ * PageOffline() pages, treating them like they were never exposed to the
++ * buddy using generic_online_page().
++ *
+  * There are drivers that mark a page PageOffline() and expect there won't be
+  * any further access to page content. PFN walkers that read content of random
+  * pages should check PageOffline() and synchronize with such drivers using
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining
++++ a/mm/memory_hotplug.c
+@@ -1941,7 +1941,7 @@ int __ref offline_pages(unsigned long st
+ 			struct zone *zone, struct memory_group *group)
+ {
+ 	const unsigned long end_pfn = start_pfn + nr_pages;
+-	unsigned long pfn, system_ram_pages = 0;
++	unsigned long pfn, managed_pages, system_ram_pages = 0;
+ 	const int node = zone_to_nid(zone);
+ 	unsigned long flags;
+ 	struct memory_notify arg;
+@@ -2062,7 +2062,7 @@ int __ref offline_pages(unsigned long st
+ 	} while (ret);
+ 
+ 	/* Mark all sections offline and remove free pages from the buddy. */
+-	__offline_isolated_pages(start_pfn, end_pfn);
++	managed_pages = __offline_isolated_pages(start_pfn, end_pfn);
+ 	pr_debug("Offlined Pages %ld\n", nr_pages);
+ 
+ 	/*
+@@ -2078,7 +2078,7 @@ int __ref offline_pages(unsigned long st
+ 	zone_pcp_enable(zone);
+ 
+ 	/* removal success */
+-	adjust_managed_page_count(pfn_to_page(start_pfn), -nr_pages);
++	adjust_managed_page_count(pfn_to_page(start_pfn), -managed_pages);
+ 	adjust_present_page_count(pfn_to_page(start_pfn), group, -nr_pages);
+ 
+ 	/* reinitialise watermarks and update pcp limits */
+--- a/mm/page_alloc.c~mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining
 +++ a/mm/page_alloc.c
-@@ -1225,18 +1225,23 @@ void __free_pages_core(struct page *page
- 	 * When initializing the memmap, __init_single_page() sets the refcount
- 	 * of all pages to 1 ("allocated"/"not free"). We have to set the
- 	 * refcount of all involved pages to 0.
-+	 *
-+	 * Note that hotplugged memory pages are initialized to PageOffline().
-+	 * Pages freed from memblock might be marked as reserved.
- 	 */
--	prefetchw(p);
--	for (loop = 0; loop < (nr_pages - 1); loop++, p++) {
--		prefetchw(p + 1);
--		__ClearPageReserved(p);
--		set_page_count(p, 0);
--	}
--	__ClearPageReserved(p);
--	set_page_count(p, 0);
--
- 	if (IS_ENABLED(CONFIG_MEMORY_HOTPLUG) &&
- 	    unlikely(context == MEMINIT_HOTPLUG)) {
-+		prefetchw(p);
-+		for (loop = 0; loop < (nr_pages - 1); loop++, p++) {
-+			prefetchw(p + 1);
-+			VM_WARN_ON_ONCE(PageReserved(p));
-+			__ClearPageOffline(p);
-+			set_page_count(p, 0);
-+		}
-+		VM_WARN_ON_ONCE(PageReserved(p));
-+		__ClearPageOffline(p);
-+		set_page_count(p, 0);
-+
- 		/*
- 		 * Freeing the page with debug_pagealloc enabled will try to
- 		 * unmap it; some archs don't like double-unmappings, so
-@@ -1245,6 +1250,15 @@ void __free_pages_core(struct page *page
- 		debug_pagealloc_map_pages(page, nr_pages);
- 		adjust_managed_page_count(page, nr_pages);
- 	} else {
-+		prefetchw(p);
-+		for (loop = 0; loop < (nr_pages - 1); loop++, p++) {
-+			prefetchw(p + 1);
-+			__ClearPageReserved(p);
-+			set_page_count(p, 0);
-+		}
-+		__ClearPageReserved(p);
-+		set_page_count(p, 0);
-+
- 		/* memblock adjusts totalram_pages() ahead of time. */
- 		atomic_long_add(nr_pages, &page_zone(page)->managed_pages);
+@@ -6713,14 +6713,19 @@ void zone_pcp_reset(struct zone *zone)
+ /*
+  * All pages in the range must be in a single zone, must not contain holes,
+  * must span full sections, and must be isolated before calling this function.
++ *
++ * Returns the number of managed (non-PageOffline()) pages in the range: the
++ * number of pages for which memory offlining code must adjust managed page
++ * counters using adjust_managed_page_count().
+  */
+-void __offline_isolated_pages(unsigned long start_pfn, unsigned long end_pfn)
++unsigned long __offline_isolated_pages(unsigned long start_pfn,
++		unsigned long end_pfn)
+ {
++	unsigned long already_offline = 0, flags;
+ 	unsigned long pfn = start_pfn;
+ 	struct page *page;
+ 	struct zone *zone;
+ 	unsigned int order;
+-	unsigned long flags;
+ 
+ 	offline_mem_sections(pfn, end_pfn);
+ 	zone = page_zone(pfn_to_page(pfn));
+@@ -6742,6 +6747,7 @@ void __offline_isolated_pages(unsigned l
+ 		if (PageOffline(page)) {
+ 			BUG_ON(page_count(page));
+ 			BUG_ON(PageBuddy(page));
++			already_offline++;
+ 			pfn++;
+ 			continue;
+ 		}
+@@ -6754,6 +6760,8 @@ void __offline_isolated_pages(unsigned l
+ 		pfn += (1 << order);
  	}
+ 	spin_unlock_irqrestore(&zone->lock, flags);
++
++	return end_pfn - start_pfn - already_offline;
+ }
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from david@redhat.com are
