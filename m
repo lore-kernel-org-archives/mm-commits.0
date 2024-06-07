@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8050E14EC4F
-	for <mm-commits@vger.kernel.org>; Fri,  7 Jun 2024 20:34:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE36615380A
+	for <mm-commits@vger.kernel.org>; Fri,  7 Jun 2024 20:59:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717792473; cv=none; b=jnFdCPvcCMOudqG/jEddmPk2YhBeQiCsME4L1oaA1lj15IX3TwVRwFSTJP5QWJDasIqokzpnsIKi2VLgtZhvrl7g95hdCFT0FxLsMXb0gYYLquepR6MnKG0mrVucydP3EF/wf6DC+R4YlWcR1BUhyeYcwDzUyDch1+fCGGf9Pw4=
+	t=1717793957; cv=none; b=kwq7K5NFwGn/tFgAP5+Rj5dOa+C7hBTcl1re4Xnd0yUrNRFnpdWpsYLe5zC2E+FsUyd4KWr9/VvEj0iCkfX3R7oknCGVTF4HcQXOJVCtIxF6k3DhMGOQp+DrO3g3K9W7Wgu6ox8xdUgPWj5i4kbldo9zDWVHo3rdOfCwGgvjRN4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717792473; c=relaxed/simple;
-	bh=82Ka3mw0LZyEY/rjkCcwkFMWyk5oph1RIDaa+0b9T+4=;
-	h=Date:To:From:Subject:Message-Id; b=I5b3RaCs5DHztcdGNGI+o7Um359wqb/YIRyj9S27NVzgGcsNTLYH+nFMZ+z0O/eQryOeDRIxwZ/C+hQYQEcUdtn2HQhBTFyGhSXqJbodw/wMsGz2x26uNZfWku3pTu9gdGCSqEpgNUgHN4u/PgvOq8VTXPeriYi/BLZemyZP8Xw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oqgcx0Wa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717793957; c=relaxed/simple;
+	bh=qitr+rxbJzT3iVsNB71M/j9JlQcx9zL3jRCj6AcGm6Y=;
+	h=Date:To:From:Subject:Message-Id; b=qk78duHU/QzdShuewz/a91Rdo8FKMqsuiwCqXM1HN2bBnnd3J04T1so6q8TN3RECmzUHW4hN/xO6psW8kHop3V9gPe1Qbp62ZQ842yPM7TsDEejEkMi1nSuh+8KXdcgiMPREmAe4CMH4SkVAZljpS4A9glXWdfT0mkEon/byj8U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qg7+7huM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oqgcx0Wa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE312C2BBFC;
-	Fri,  7 Jun 2024 20:34:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qg7+7huM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A168C32781;
+	Fri,  7 Jun 2024 20:59:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717792472;
-	bh=82Ka3mw0LZyEY/rjkCcwkFMWyk5oph1RIDaa+0b9T+4=;
+	s=korg; t=1717793956;
+	bh=qitr+rxbJzT3iVsNB71M/j9JlQcx9zL3jRCj6AcGm6Y=;
 	h=Date:To:From:Subject:From;
-	b=Oqgcx0WamFv4shft2xDz2MLyImpENWfNlCfqBqywmpJ7Drua9p/ajq+gA1qIrwNOx
-	 FdlUAhDjVrSERcfUvHSqrOteCopz2zrlxybBb2B2c+1pKl3gxKE709vkLQpvYBiq/G
-	 ucNL5oThfvfLithshAM0pqf0btSP8eXJ6l/LX8+M=
-Date: Fri, 07 Jun 2024 13:34:31 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,fullspring2018@gmail.com,adobriyan@gmail.com,akpm@linux-foundation.org
+	b=qg7+7huMXWqKKNEc6QWKstPqzQ6Gr45JMoSQZIaOSyZBquyEnvrTfGhXvhkNQG15A
+	 QG+/SSsNWqlKiz+MFhJxkft/CR/+5oGb79P47c44BxqyGNpYeWi7kHyUceeaGFTAJX
+	 JS8crOTYJzXh3McgBFJWsEButbsgMnp2G3K6ZaLo=
+Date: Fri, 07 Jun 2024 13:59:15 -0700
+To: mm-commits@vger.kernel.org,kirill.shutemov@linux.intel.com,ioworker0@gmail.com,corbet@lwn.net,adobriyan@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-test-kthread-field.patch added to mm-nonmm-unstable branch
-Message-Id: <20240607203431.EE312C2BBFC@smtp.kernel.org>
+Subject: + fs-proc-task_mmu-indicate-pm_file-for-pmd-mapped-file-thp.patch added to mm-unstable branch
+Message-Id: <20240607205916.4A168C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: proc: test "Kthread:" field
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     proc-test-kthread-field.patch
+     Subject: fs/proc/task_mmu: indicate PM_FILE for PMD-mapped file THP
+has been added to the -mm mm-unstable branch.  Its filename is
+     fs-proc-task_mmu-indicate-pm_file-for-pmd-mapped-file-thp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-test-kthread-field.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-indicate-pm_file-for-pmd-mapped-file-thp.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,163 +58,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: test "Kthread:" field
-Date: Fri, 7 Jun 2024 18:14:29 +0300
+From: David Hildenbrand <david@redhat.com>
+Subject: fs/proc/task_mmu: indicate PM_FILE for PMD-mapped file THP
+Date: Fri, 7 Jun 2024 14:23:52 +0200
 
-/proc/${pid}/status got Kthread field recently.
+Patch series "fs/proc: move page_mapcount() to fs/proc/internal.h".
 
-Test that userspace program is not reported as kernel thread.
+With all other page_mapcount() users in the tree gone, move
+page_mapcount() to fs/proc/internal.h, rename it and extend the
+documentation to prevent future (ab)use.
 
-Test that kernel thread is reported as kernel thread.
-Use kthreadd with pid 2 for this.
+... of course, I find some issues while working on that code that I sort
+first ;)
 
-Link: https://lkml.kernel.org/r/818c4c41-8668-4566-97a9-7254abf819ee@p183
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Chunguang Wu <fullspring2018@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
+We'll now only end up calling page_mapcount() [now
+folio_precise_page_mapcount()] on pages mapped via present page table
+entries.  Except for /proc/kpagecount, that still does questionable
+things, but we'll leave that legacy interface as is for now.
+
+Did a quick sanity check.  Likely we would want some better selfestest for
+/proc/$/pagemap + smaps.  I'll see if I can find some time to write some
+more.
+
+
+This patch (of 6):
+
+Looks like we never taught pagemap_pmd_range() about the existence of
+PMD-mapped file THPs.  Seems to date back to the times when we first added
+support for non-anon THPs in the form of shmem THP.
+
+Link: https://lkml.kernel.org/r/20240607122357.115423-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20240607122357.115423-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Fixes: 800d8c63b2e9 ("shmem: add huge pages support")
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Lance Yang <ioworker0@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/proc/.gitignore               |    2 
- tools/testing/selftests/proc/Makefile                 |    2 
- tools/testing/selftests/proc/proc-2-is-kthread.c      |   53 ++++++++++
- tools/testing/selftests/proc/proc-self-isnt-kthread.c |   37 ++++++
- 4 files changed, 94 insertions(+)
+ fs/proc/task_mmu.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/tools/testing/selftests/proc/.gitignore~proc-test-kthread-field
-+++ a/tools/testing/selftests/proc/.gitignore
-@@ -2,6 +2,7 @@
- /fd-001-lookup
- /fd-002-posix-eq
- /fd-003-kthread
-+/proc-2-is-kthread
- /proc-fsconfig-hidepid
- /proc-loadavg-001
- /proc-multiple-procfs
-@@ -9,6 +10,7 @@
- /proc-pid-vm
- /proc-self-map-files-001
- /proc-self-map-files-002
-+/proc-self-isnt-kthread
- /proc-self-syscall
- /proc-self-wchan
- /proc-subset-pid
---- a/tools/testing/selftests/proc/Makefile~proc-test-kthread-field
-+++ a/tools/testing/selftests/proc/Makefile
-@@ -7,11 +7,13 @@ TEST_GEN_PROGS :=
- TEST_GEN_PROGS += fd-001-lookup
- TEST_GEN_PROGS += fd-002-posix-eq
- TEST_GEN_PROGS += fd-003-kthread
-+TEST_GEN_PROGS += proc-2-is-kthread
- TEST_GEN_PROGS += proc-loadavg-001
- TEST_GEN_PROGS += proc-empty-vm
- TEST_GEN_PROGS += proc-pid-vm
- TEST_GEN_PROGS += proc-self-map-files-001
- TEST_GEN_PROGS += proc-self-map-files-002
-+TEST_GEN_PROGS += proc-self-isnt-kthread
- TEST_GEN_PROGS += proc-self-syscall
- TEST_GEN_PROGS += proc-self-wchan
- TEST_GEN_PROGS += proc-subset-pid
---- /dev/null
-+++ a/tools/testing/selftests/proc/proc-2-is-kthread.c
-@@ -0,0 +1,53 @@
-+/*
-+ * Copyright (c) 2024 Alexey Dobriyan <adobriyan@gmail.com>
-+ *
-+ * Permission to use, copy, modify, and distribute this software for any
-+ * purpose with or without fee is hereby granted, provided that the above
-+ * copyright notice and this permission notice appear in all copies.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-+ */
-+/* Test that kernel thread is reported as such. */
-+#undef NDEBUG
-+#include <assert.h>
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <string.h>
-+#include <unistd.h>
-+
-+int main(void)
-+{
-+	/*
-+	 * The following solutions don't really work:
-+	 *
-+	 * 1) jit kernel module which creates kernel thread:
-+	 * test becomes arch-specific,
-+	 * problems with mandatory module signing,
-+	 * problems with lockdown mode,
-+	 * doesn't work with CONFIG_MODULES=n at all,
-+	 * kthread creation API is formally unstable internal kernel API,
-+	 * need a mechanism to report test kernel thread's PID back,
-+	 *
-+	 * 2) ksoftirqd/0 and kswapd0 look like stable enough kernel threads,
-+	 * but their PIDs are unstable.
-+	 *
-+	 * Check against kthreadd which always seem to exist under pid 2.
-+	 */
-+	int fd = open("/proc/2/status", O_RDONLY);
-+	assert(fd >= 0);
-+
-+	char buf[4096];
-+	ssize_t rv = read(fd, buf, sizeof(buf));
-+	assert(0 <= rv && rv < sizeof(buf));
-+	buf[rv] = '\0';
-+
-+	assert(strstr(buf, "Kthread:\t1\n"));
-+
-+	return 0;
-+}
---- /dev/null
-+++ a/tools/testing/selftests/proc/proc-self-isnt-kthread.c
-@@ -0,0 +1,37 @@
-+/*
-+ * Copyright (c) 2024 Alexey Dobriyan <adobriyan@gmail.com>
-+ *
-+ * Permission to use, copy, modify, and distribute this software for any
-+ * purpose with or without fee is hereby granted, provided that the above
-+ * copyright notice and this permission notice appear in all copies.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-+ */
-+/* Test that userspace program is not kernel thread. */
-+#undef NDEBUG
-+#include <assert.h>
-+#include <fcntl.h>
-+#include <string.h>
-+#include <unistd.h>
-+
-+int main(void)
-+{
-+	int fd = open("/proc/self/status", O_RDONLY);
-+	assert(fd >= 0);
-+
-+	char buf[4096];
-+	ssize_t rv = read(fd, buf, sizeof(buf));
-+	assert(0 <= rv && rv < sizeof(buf));
-+	buf[rv] = '\0';
-+
-+	/* This test is very much not kernel thread. */
-+	assert(strstr(buf, "Kthread:\t0\n"));
-+
-+	return 0;
-+}
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-indicate-pm_file-for-pmd-mapped-file-thp
++++ a/fs/proc/task_mmu.c
+@@ -1522,6 +1522,8 @@ static int pagemap_pmd_range(pmd_t *pmdp
+ 		}
+ #endif
+ 
++		if (page && !PageAnon(page))
++			flags |= PM_FILE;
+ 		if (page && !migration && page_mapcount(page) == 1)
+ 			flags |= PM_MMAP_EXCLUSIVE;
+ 
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-proc-test-kthread-field.patch
+revert-mm-init_mlocked_on_free_v3.patch
+mm-memory-move-page_count-check-into-validate_page_before_insert.patch
+mm-memory-cleanly-support-zeropage-in-vm_insert_page-vm_map_pages-and-vmf_insert_mixed.patch
+mm-rmap-sanity-check-that-zeropages-are-not-passed-to-rmap.patch
+mm-update-_mapcount-and-page_type-documentation.patch
+mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type.patch
+mm-zsmalloc-use-a-proper-page-type.patch
+mm-page_alloc-clear-pagebuddy-using-__clearpagebuddy-for-bad-pages.patch
+mm-filemap-reinitialize-folio-_mapcount-directly.patch
+mm-mm_init-initialize-page-_mapcount-directly-in-__init_single_page.patch
+fs-proc-task_mmu-indicate-pm_file-for-pmd-mapped-file-thp.patch
+fs-proc-task_mmu-dont-indicate-pm_mmap_exclusive-without-pm_present.patch
+fs-proc-task_mmu-properly-detect-pm_mmap_exclusive-per-page-of-pmd-mapped-thps.patch
+fs-proc-task_mmu-account-non-present-entries-as-maybe-shared-but-no-idea-how-often.patch
+fs-proc-move-page_mapcount-to-fs-proc-internalh.patch
+documentation-admin-guide-mm-pagemaprst-drop-using-pagemap-to-do-something-useful.patch
 
