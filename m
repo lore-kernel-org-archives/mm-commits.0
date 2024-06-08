@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FDB38BEF
-	for <mm-commits@vger.kernel.org>; Sat,  8 Jun 2024 02:28:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 442ABC8E1
+	for <mm-commits@vger.kernel.org>; Sat,  8 Jun 2024 04:19:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717813693; cv=none; b=ncZfKoIewGsx3f2pd6Sg0YMvoZgCXGLrAFV4lvS7JNErfHsoOxInWTAiQO2O3Aspom87C9Eo/PiImXNoglp6SLqTRLjfg0S93JP0a4s/bMeS/Yl5zt74OrYEEKfUE9KPzDTgscBGjLnD7RJGX4BNQfjViQyzTvkStzxWrY1gqw8=
+	t=1717820389; cv=none; b=jV6lvcjEbot3aKOubAr1AxoDaCB6JP0C3dGMrxt2B55/eLE7GhiLZwl9kGS3/zl1ORT/vqhJmcEkdLex5wSsFFxmLVZBDcDG/4c7ZpQ2k6HqbvUrT+FD9lxcgil39Yre/hBqV1MwQo4Cx5xTZjLg/V0yjEmkPXBkvFzaibrdAlY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717813693; c=relaxed/simple;
-	bh=hFV1oMI5TdEtiynkPMwNkuF0YV3bb9lRGwyuK/4GLYg=;
-	h=Date:To:From:Subject:Message-Id; b=A3xTaySLrH3GNTY7ZwFRXj0LuKfmHCvnCgPJmZJHYz4R+ppqZ0Gp/bLyYeo+bzoF7U6jcYOGerHe5b5Ez0/fTdFDSKiTIRf2HLB6ly47LbuUOYiFpMaQeMGg7SYGka4x5sjfGmwcymL69Y82ZEzRYNFUpdAfxN3wT0M3kwFAarg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wluBXHBW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717820389; c=relaxed/simple;
+	bh=7YGPTuiik9Ex+ihapqdVU61UYpuXTKxLCvxV2nFXYFY=;
+	h=Date:To:From:Subject:Message-Id; b=j1sZVtnjmbmmK20nKhKQbgaUcL2+Oh61Ro6fr0yeeziQ8BoWleuv6sxmIBlSTwrT+8iLKxOnNwnXZQt61bfUJrr1XPZweISgCzfwWnh8/57FejUobBxN4K9LEeqGXYKz3BQOIcnCckLUtr1mVY1oXTIu5C2LiJkW7pMqMBRR0iM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KY30Ec6d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wluBXHBW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A26CDC2BBFC;
-	Sat,  8 Jun 2024 02:28:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KY30Ec6d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1EFDC2BD11;
+	Sat,  8 Jun 2024 04:19:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717813692;
-	bh=hFV1oMI5TdEtiynkPMwNkuF0YV3bb9lRGwyuK/4GLYg=;
+	s=korg; t=1717820389;
+	bh=7YGPTuiik9Ex+ihapqdVU61UYpuXTKxLCvxV2nFXYFY=;
 	h=Date:To:From:Subject:From;
-	b=wluBXHBW2bD4P+a+QQwvcgbIh/mu2l7khDZWvlYIfm1jM1VJxzCj3t8ipASDeQ4Au
-	 OwHgdN8sXxTMT1cYYD1ttifT+ZiYcScCUeV6mKOyLKPhFeW43XVadKDuDcikyN5YHj
-	 CBA2RWEECE7D52ZAnYTrc/7dJI4f6Bg3/xwv2HnY=
-Date: Fri, 07 Jun 2024 19:28:12 -0700
-To: mm-commits@vger.kernel.org,jeffxu@chromium.org,jhubbard@nvidia.com,akpm@linux-foundation.org
+	b=KY30Ec6dcGrDkleOfmQHk9EeIuMuMp6Waqgp9JUrZt3ykQWIx5FC5kIthUZq0UFcC
+	 /PkZrQYb2lZlUCEYrdq5BaCELoQ9yKcIxVCjKxPnfHDE/Sb2O1/6uJnRHvki5XzLiO
+	 cfzhaPmX9+hwXzqSscPhb6aLztxJ5lsW8aLSOVM8=
+Date: Fri, 07 Jun 2024 21:19:48 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,ryan.roberts@arm.com,minchan@kernel.org,kasong@tencent.com,david@redhat.com,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass.patch added to mm-unstable branch
-Message-Id: <20240608022812.A26CDC2BBFC@smtp.kernel.org>
+Subject: + mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect.patch added to mm-unstable branch
+Message-Id: <20240608041948.E1EFDC2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: mseal, self_elf: rename TEST_END_CHECK to REPORT_TEST_PASS
+     Subject: mm: introduce pmd|pte_needs_soft_dirty_wp helpers for softdirty write-protect
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass.patch
+     mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,471 +58,119 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/mm: mseal, self_elf: rename TEST_END_CHECK to REPORT_TEST_PASS
-Date: Fri, 7 Jun 2024 19:10:23 -0700
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: introduce pmd|pte_needs_soft_dirty_wp helpers for softdirty write-protect
+Date: Sat, 8 Jun 2024 09:13:57 +1200
 
-Now that the test macros are factored out into their final location, and
-simplified, it's time to rename TEST_END_CHECK to something that
-represents its new functionality: REPORT_TEST_PASS.
+Patch series "mm: introduce pmd|pte_needs_soft_dirty_wp helpers and
+utilize them", v2.
 
-Link: https://lkml.kernel.org/r/20240608021023.176027-6-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Jeff Xu <jeffxu@chromium.org>
+
+This patchset introduces the pte_need_soft_dirty_wp and
+pmd_need_soft_dirty_wp helpers to determine if write protection is
+required for softdirty tracking.  These helpers enhance code readability
+and improve the overall appearance.
+
+They are then utilized in gup, mprotect, swap, and other related
+functions.
+
+
+This patch (of 2): 
+
+This patch introduces the pte_needs_soft_dirty_wp and
+pmd_needs_soft_dirty_wp helpers to determine if write protection is
+required for softdirty tracking.  This can enhance code readability and
+improve its overall appearance.  These new helpers are then utilized in
+gup, huge_memory, and mprotect.
+
+Link: https://lkml.kernel.org/r/20240607211358.4660-1-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240607211358.4660-2-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mseal_helpers.h |    2 
- tools/testing/selftests/mm/mseal_test.c    |   92 +++++++++----------
- tools/testing/selftests/mm/seal_elf.c      |    2 
- 3 files changed, 48 insertions(+), 48 deletions(-)
+ mm/gup.c         |    4 ++--
+ mm/huge_memory.c |    2 +-
+ mm/internal.h    |   10 ++++++++++
+ mm/mprotect.c    |    2 +-
+ 4 files changed, 14 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/mseal_helpers.h~selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass
-+++ a/tools/testing/selftests/mm/mseal_helpers.h
-@@ -22,7 +22,7 @@
- 		}							\
- 	} while (0)
+--- a/mm/gup.c~mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect
++++ a/mm/gup.c
+@@ -820,7 +820,7 @@ static inline bool can_follow_write_pmd(
+ 		return false;
  
--#define TEST_END_CHECK() ksft_test_result_pass("%s\n", __func__)
-+#define REPORT_TEST_PASS() ksft_test_result_pass("%s\n", __func__)
+ 	/* ... and a write-fault isn't required for other reasons. */
+-	if (vma_soft_dirty_enabled(vma) && !pmd_soft_dirty(pmd))
++	if (pmd_needs_soft_dirty_wp(vma, pmd))
+ 		return false;
+ 	return !userfaultfd_huge_pmd_wp(vma, pmd);
+ }
+@@ -941,7 +941,7 @@ static inline bool can_follow_write_pte(
+ 		return false;
  
- #ifndef PKEY_DISABLE_ACCESS
- #define PKEY_DISABLE_ACCESS	0x1
---- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass
-+++ a/tools/testing/selftests/mm/mseal_test.c
-@@ -240,7 +240,7 @@ static void test_seal_addseal(void)
- 	ret = sys_mseal(ptr, size);
- 	FAIL_TEST_IF_FALSE(!ret);
+ 	/* ... and a write-fault isn't required for other reasons. */
+-	if (vma_soft_dirty_enabled(vma) && !pte_soft_dirty(pte))
++	if (pte_needs_soft_dirty_wp(vma, pte))
+ 		return false;
+ 	return !userfaultfd_pte_wp(vma, pte);
+ }
+--- a/mm/huge_memory.c~mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect
++++ a/mm/huge_memory.c
+@@ -1625,7 +1625,7 @@ static inline bool can_change_pmd_writab
+ 		return false;
  
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
+ 	/* Do we need write faults for softdirty tracking? */
+-	if (vma_soft_dirty_enabled(vma) && !pmd_soft_dirty(pmd))
++	if (pmd_needs_soft_dirty_wp(vma, pmd))
+ 		return false;
+ 
+ 	/* Do we need write faults for uffd-wp tracking? */
+--- a/mm/internal.h~mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect
++++ a/mm/internal.h
+@@ -1349,6 +1349,16 @@ static inline bool vma_soft_dirty_enable
+ 	return !(vma->vm_flags & VM_SOFTDIRTY);
  }
  
- static void test_seal_unmapped_start(void)
-@@ -268,7 +268,7 @@ static void test_seal_unmapped_start(voi
- 	ret = sys_mseal(ptr + 2 * page_size, 2 * page_size);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_unmapped_middle(void)
-@@ -300,7 +300,7 @@ static void test_seal_unmapped_middle(vo
- 	ret = sys_mseal(ptr + 3 * page_size, page_size);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_unmapped_end(void)
-@@ -329,7 +329,7 @@ static void test_seal_unmapped_end(void)
- 	ret = sys_mseal(ptr, 2 * page_size);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_multiple_vmas(void)
-@@ -360,7 +360,7 @@ static void test_seal_multiple_vmas(void
- 	ret = sys_mseal(ptr, size);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_split_start(void)
-@@ -385,7 +385,7 @@ static void test_seal_split_start(void)
- 	ret = sys_mseal(ptr + page_size, 3 * page_size);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_split_end(void)
-@@ -410,7 +410,7 @@ static void test_seal_split_end(void)
- 	ret = sys_mseal(ptr, 3 * page_size);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_invalid_input(void)
-@@ -445,7 +445,7 @@ static void test_seal_invalid_input(void
- 	ret = sys_mseal(ptr - page_size, 5 * page_size);
- 	FAIL_TEST_IF_FALSE(ret < 0);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_zero_length(void)
-@@ -469,7 +469,7 @@ static void test_seal_zero_length(void)
- 	ret = sys_mprotect(ptr, size, PROT_READ | PROT_WRITE);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_zero_address(void)
-@@ -495,7 +495,7 @@ static void test_seal_zero_address(void)
- 	ret = sys_mprotect(ptr, size, PROT_READ | PROT_WRITE);
- 	FAIL_TEST_IF_FALSE(ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_twice(void)
-@@ -515,7 +515,7 @@ static void test_seal_twice(void)
- 	ret = sys_mseal(ptr, size);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mprotect(bool seal)
-@@ -539,7 +539,7 @@ static void test_seal_mprotect(bool seal
- 	else
- 		FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_start_mprotect(bool seal)
-@@ -569,7 +569,7 @@ static void test_seal_start_mprotect(boo
- 			PROT_READ | PROT_WRITE);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_end_mprotect(bool seal)
-@@ -599,7 +599,7 @@ static void test_seal_end_mprotect(bool
- 	else
- 		FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mprotect_unalign_len(bool seal)
-@@ -628,7 +628,7 @@ static void test_seal_mprotect_unalign_l
- 			PROT_READ | PROT_WRITE);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mprotect_unalign_len_variant_2(bool seal)
-@@ -656,7 +656,7 @@ static void test_seal_mprotect_unalign_l
- 			PROT_READ | PROT_WRITE);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mprotect_two_vma(bool seal)
-@@ -691,7 +691,7 @@ static void test_seal_mprotect_two_vma(b
- 	else
- 		FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mprotect_two_vma_with_split(bool seal)
-@@ -738,7 +738,7 @@ static void test_seal_mprotect_two_vma_w
- 			PROT_READ | PROT_WRITE);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mprotect_partial_mprotect(bool seal)
-@@ -764,7 +764,7 @@ static void test_seal_mprotect_partial_m
- 	else
- 		FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mprotect_two_vma_with_gap(bool seal)
-@@ -807,7 +807,7 @@ static void test_seal_mprotect_two_vma_w
- 	ret = sys_mprotect(ptr + 3 * page_size, page_size, PROT_READ);
- 	FAIL_TEST_IF_FALSE(ret == 0);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mprotect_split(bool seal)
-@@ -844,7 +844,7 @@ static void test_seal_mprotect_split(boo
- 	else
- 		FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mprotect_merge(bool seal)
-@@ -878,7 +878,7 @@ static void test_seal_mprotect_merge(boo
- 	ret = sys_mprotect(ptr + 2 * page_size, 2 * page_size, PROT_READ);
- 	FAIL_TEST_IF_FALSE(ret == 0);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_munmap(bool seal)
-@@ -903,7 +903,7 @@ static void test_seal_munmap(bool seal)
- 	else
- 		FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- /*
-@@ -943,7 +943,7 @@ static void test_seal_munmap_two_vma(boo
- 	else
- 		FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- /*
-@@ -981,7 +981,7 @@ static void test_seal_munmap_vma_with_ga
- 	ret = sys_munmap(ptr, size);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_munmap_start_freed(bool seal)
-@@ -1021,7 +1021,7 @@ static void test_munmap_start_freed(bool
- 		FAIL_TEST_IF_FALSE(size == 0);
- 	}
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_munmap_end_freed(bool seal)
-@@ -1051,7 +1051,7 @@ static void test_munmap_end_freed(bool s
- 	else
- 		FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_munmap_middle_freed(bool seal)
-@@ -1095,7 +1095,7 @@ static void test_munmap_middle_freed(boo
- 		FAIL_TEST_IF_FALSE(size == 0);
- 	}
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mremap_shrink(bool seal)
-@@ -1124,7 +1124,7 @@ static void test_seal_mremap_shrink(bool
- 
- 	}
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mremap_expand(bool seal)
-@@ -1156,7 +1156,7 @@ static void test_seal_mremap_expand(bool
- 
- 	}
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mremap_move(bool seal)
-@@ -1189,7 +1189,7 @@ static void test_seal_mremap_move(bool s
- 
- 	}
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mmap_overwrite_prot(bool seal)
-@@ -1217,7 +1217,7 @@ static void test_seal_mmap_overwrite_pro
- 	} else
- 		FAIL_TEST_IF_FALSE(ret2 == ptr);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mmap_expand(bool seal)
-@@ -1248,7 +1248,7 @@ static void test_seal_mmap_expand(bool s
- 	} else
- 		FAIL_TEST_IF_FALSE(ret2 == ptr);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mmap_shrink(bool seal)
-@@ -1276,7 +1276,7 @@ static void test_seal_mmap_shrink(bool s
- 	} else
- 		FAIL_TEST_IF_FALSE(ret2 == ptr);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mremap_shrink_fixed(bool seal)
-@@ -1307,7 +1307,7 @@ static void test_seal_mremap_shrink_fixe
- 	} else
- 		FAIL_TEST_IF_FALSE(ret2 == newAddr);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mremap_expand_fixed(bool seal)
-@@ -1338,7 +1338,7 @@ static void test_seal_mremap_expand_fixe
- 	} else
- 		FAIL_TEST_IF_FALSE(ret2 == newAddr);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mremap_move_fixed(bool seal)
-@@ -1368,7 +1368,7 @@ static void test_seal_mremap_move_fixed(
- 	} else
- 		FAIL_TEST_IF_FALSE(ret2 == newAddr);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mremap_move_fixed_zero(bool seal)
-@@ -1400,7 +1400,7 @@ static void test_seal_mremap_move_fixed_
- 
- 	}
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mremap_move_dontunmap(bool seal)
-@@ -1429,7 +1429,7 @@ static void test_seal_mremap_move_dontun
- 
- 	}
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_mremap_move_dontunmap_anyaddr(bool seal)
-@@ -1463,7 +1463,7 @@ static void test_seal_mremap_move_dontun
- 
- 	}
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- 
-@@ -1556,7 +1556,7 @@ static void test_seal_merge_and_split(vo
- 	FAIL_TEST_IF_FALSE(size ==  22 * page_size);
- 	FAIL_TEST_IF_FALSE(prot == 0x4);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_discard_ro_anon_on_rw(bool seal)
-@@ -1585,7 +1585,7 @@ static void test_seal_discard_ro_anon_on
- 	else
- 		FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_discard_ro_anon_on_pkey(bool seal)
-@@ -1632,7 +1632,7 @@ static void test_seal_discard_ro_anon_on
- 	else
- 		FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_discard_ro_anon_on_filebacked(bool seal)
-@@ -1669,7 +1669,7 @@ static void test_seal_discard_ro_anon_on
- 		FAIL_TEST_IF_FALSE(!ret);
- 	close(fd);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_discard_ro_anon_on_shared(bool seal)
-@@ -1698,7 +1698,7 @@ static void test_seal_discard_ro_anon_on
- 	else
- 		FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- static void test_seal_discard_ro_anon(bool seal)
-@@ -1728,7 +1728,7 @@ static void test_seal_discard_ro_anon(bo
- 	else
- 		FAIL_TEST_IF_FALSE(!ret);
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- int main(int argc, char **argv)
---- a/tools/testing/selftests/mm/seal_elf.c~selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass
-+++ a/tools/testing/selftests/mm/seal_elf.c
-@@ -127,7 +127,7 @@ static void test_seal_elf(void)
- 	FAIL_TEST_IF_FALSE(ret < 0);
- 	ksft_print_msg("somestr is sealed, mprotect is rejected\n");
- 
--	TEST_END_CHECK();
-+	REPORT_TEST_PASS();
- }
- 
- int main(int argc, char **argv)
++static inline bool pmd_needs_soft_dirty_wp(struct vm_area_struct *vma, pmd_t pmd)
++{
++	return vma_soft_dirty_enabled(vma) && !pmd_soft_dirty(pmd);
++}
++
++static inline bool pte_needs_soft_dirty_wp(struct vm_area_struct *vma, pte_t pte)
++{
++	return vma_soft_dirty_enabled(vma) && !pte_soft_dirty(pte);
++}
++
+ static inline void vma_iter_config(struct vma_iterator *vmi,
+ 		unsigned long index, unsigned long last)
+ {
+--- a/mm/mprotect.c~mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect
++++ a/mm/mprotect.c
+@@ -53,7 +53,7 @@ bool can_change_pte_writable(struct vm_a
+ 		return false;
+ 
+ 	/* Do we need write faults for softdirty tracking? */
+-	if (vma_soft_dirty_enabled(vma) && !pte_soft_dirty(pte))
++	if (pte_needs_soft_dirty_wp(vma, pte))
+ 		return false;
+ 
+ 	/* Do we need write faults for uffd-wp tracking? */
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-selftests-mm-mseal-self_elf-fix-missing-__nr_mseal.patch
-selftests-mm-fix-vm_utilc-build-failures-add-snapshot-of-fsh.patch
-mm-selftests-kvm-mdwe-fixes-to-avoid-requiring-make-headers.patch
-selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items.patch
-selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass.patch
-selftests-mqueue-fix-5-warnings-about-signed-unsigned-mismatches.patch
+mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr.patch
+mm-introduce-pte_move_swp_offset-helper-which-can-move-offset-bidirectionally.patch
+mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages.patch
+mm-swap-reuse-exclusive-folio-directly-instead-of-wp-page-faults.patch
+mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect.patch
+mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page.patch
 
