@@ -1,63 +1,116 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6B21522A;
-	Sat,  8 Jun 2024 00:15:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A233428FA
+	for <mm-commits@vger.kernel.org>; Sat,  8 Jun 2024 02:15:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717805754; cv=none; b=lzATI/SDcXoHjG8Xj7WCwDy/HTBuAh97qNBac2WQ1awS7vJvxV0hULwuweso69ORCSp8kwOzkKCJbU27MAw87OOzOmGMV7oku8AE03th4MU61sUE3puml0Ei90B3BLlv7VxEJiCJGMDuZyUZroNQRAXGI9ZfXJt1+xN4NUuAsVY=
+	t=1717812939; cv=none; b=XqvM11l3idyhwCu2bdC1wx9XxDwpBTJNirffk5P9lJ/TBSKoQ4F1xBGdGzG+CRqZI0z2xJFF8Hl0eib3XKViNKCVKR65S5MnANIZBkUO6/h44gQUTavN/9MLMRDiwRJk5FQa1t2cSIopGUKCdCpmRsSMO8cQzhx0nr5uKS2yGKs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717805754; c=relaxed/simple;
-	bh=ERQKEfoAStxfgSIjH8AQ8sfWG5NJa2jLuC1mg9bi5OI=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=Rc3220NBh/MO/tN3EdDe8g2DUeRfLWPri/jTOnbumxBHSxXpUgovtYd/4a9Si78KEPhB1eYSVtE33CQ8Mg4fobOPywLURBkScDHBkiZZaSzqClS+LRLUqte4j6YSDqTEcMFZs/T4yS6i/f2aOg5LSnQilc1bZhEbYKWbAzL+QzY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RvPUZlaC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717812939; c=relaxed/simple;
+	bh=DsL/6bfIU4xzBouAp+3waTZuMRMn/q1Yto+zvksptro=;
+	h=Date:To:From:Subject:Message-Id; b=Rpmyv+3HdJXZDPmyiRtB2yRVIeKJR3YfQvTBoWTVcY8ZzOB8FJX2NVkjNJwoEN1ekl58xBsstnJGgPDfeWfsBlDded9ud83ifwOVZH4l+9REu67lwe9aowurEEisDIaoJufC78Yw+2dKteGCWOFkmy0WfJ2yB/vCqK4p5OYvT3A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ez9Ty8Q8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RvPUZlaC"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 9ECAEC3277B;
-	Sat,  8 Jun 2024 00:15:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1717805754;
-	bh=ERQKEfoAStxfgSIjH8AQ8sfWG5NJa2jLuC1mg9bi5OI=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=RvPUZlaCQgMaG7BOA1cmuexw7b88yMY+mZ4W2Wc1Vquhl6VSDLxbLdx6F50Bnfx3h
-	 ZSqse3hAYlvq6MLRf0fbkQ9K6Yzg/bFrCT56ujQ510tDVD9FAhAz5HtU0+XUY0lNdu
-	 /9AGd6gX/E5Ouce53wG3IZ9uAmOGEc8Khq4xAz3ZJxgYfGOc5bCm4jabDM1aGOEByZ
-	 YO2FSqNmCD0+YMpb9LjF6YcE+OBvNQw9n5cOKzc9MB+RqLavvNv+yeCpufg60nk/Xk
-	 3uuzHWELv2dQfNAyRT4a+e6VcrUrSEvYntb4szO0XK1S13r8zTnd6EwQ6tyCfOGecI
-	 e3c2rtQZHe9bQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 96E40CF3BA4;
-	Sat,  8 Jun 2024 00:15:54 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 6.10-rc3
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20240607152944.60722ce87f5a4b1a74d1145d@linux-foundation.org>
-References: <20240607152944.60722ce87f5a4b1a74d1145d@linux-foundation.org>
-X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20240607152944.60722ce87f5a4b1a74d1145d@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-06-07-15-24
-X-PR-Tracked-Commit-Id: 7373a51e7998b508af7136530f3a997b286ce81c
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: dc772f8237f9b0c9ea3f34d0dc4a57d1f6a5070d
-Message-Id: <171780575460.4241.4759347059353805718.pr-tracker-bot@kernel.org>
-Date: Sat, 08 Jun 2024 00:15:54 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, mm-commits@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ez9Ty8Q8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2448BC2BBFC;
+	Sat,  8 Jun 2024 02:15:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1717812939;
+	bh=DsL/6bfIU4xzBouAp+3waTZuMRMn/q1Yto+zvksptro=;
+	h=Date:To:From:Subject:From;
+	b=Ez9Ty8Q81+NTpAlNLFTSmlCt5ZyNf8IUz02YU5qFRaZ6LvCCkN/75QjO24NPNBXvq
+	 GnVMu5uWkO5ZKdQE/ZStEXg4Bylw8zMnNSg/qDDVbggnh9B+r2XVSWwa3oZJvPmBfD
+	 sz/+W48IfY74lingIryEyCVLpIosXZSWmfdRlhOQ=
+Date: Fri, 07 Jun 2024 19:15:38 -0700
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-remove-page_mkclean-fix.patch added to mm-unstable branch
+Message-Id: <20240608021539.2448BC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-The pull request you sent on Fri, 7 Jun 2024 15:29:44 -0700:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-06-07-15-24
+The patch titled
+     Subject: pin_user_pages: fix underline length
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-remove-page_mkclean-fix.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/dc772f8237f9b0c9ea3f34d0dc4a57d1f6a5070d
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-page_mkclean-fix.patch
 
-Thank you!
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: pin_user_pages: fix underline length
+Date: Fri, 7 Jun 2024 14:46:57 +0800
+
+Documentation/core-api/pin_user_pages.rst:200: WARNING: Title underline too short.
+folio_maybe_dma_pinned(): the whole point of pinning
+===================================================
+
+Link: https://lkml.kernel.org/r/20240607064657.681997-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/core-api/pin_user_pages.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/Documentation/core-api/pin_user_pages.rst~mm-remove-page_mkclean-fix
++++ a/Documentation/core-api/pin_user_pages.rst
+@@ -197,7 +197,7 @@ INCORRECT (uses FOLL_GET calls):
+     put_page()
+ 
+ folio_maybe_dma_pinned(): the whole point of pinning
+-===================================================
++====================================================
+ 
+ The whole point of marking folios as "DMA-pinned" or "gup-pinned" is to be able
+ to query, "is this folio DMA-pinned?" That allows code such as folio_mkclean()
+_
+
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+
+mm-fix-possible-oob-in-numa_rebuild_large_mapping.patch
+mm-add-folio_alloc_mpol.patch
+mm-mempolicy-use-folio_alloc_mpol_noprof-in-vma_alloc_folio_noprof.patch
+mm-mempolicy-use-folio_alloc_mpol-in-alloc_migration_target_by_mpol.patch
+mm-shmem-use-folio_alloc_mpol-in-shmem_alloc_folio.patch
+mm-refactor-folio_undo_large_rmappable.patch
+mm-memcontrol-remove-page_memcg.patch
+rmap-remove-define_page_vma_walk.patch
+mm-migrate-simplify-__buffer_migrate_folio.patch
+mm-migrate_device-use-a-newfolio-in-__migrate_device_pages.patch
+mm-migrate_device-unify-migrate-folio-for-migrate_sync_no_copy.patch
+mm-migrate-remove-migrate_folio_extra.patch
+mm-remove-migrate_sync_no_copy-mode.patch
+fs-proc-task_mmu-use-folio-api-in-pte_is_pinned.patch
+mm-remove-page_maybe_dma_pinned.patch
+fb_defio-use-a-folio-in-fb_deferred_io_work.patch
+mm-remove-page_mkclean.patch
+mm-remove-page_mkclean-fix.patch
+mm-move-memory_failure_queue-into-copy_mc__highpage.patch
+mm-add-folio_mc_copy.patch
+mm-migrate-split-folio_migrate_mapping.patch
+mm-migrate-support-poisoned-recover-from-migrate-folio.patch
+fs-hugetlbfs-support-poison-recover-from-hugetlbfs_migrate_folio.patch
+mm-migrate-remove-folio_migrate_copy.patch
+
