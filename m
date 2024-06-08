@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75C52F9C8
-	for <mm-commits@vger.kernel.org>; Sat,  8 Jun 2024 04:19:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32A5D8BEF
+	for <mm-commits@vger.kernel.org>; Sat,  8 Jun 2024 04:22:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717820392; cv=none; b=cE+8F3CX2a4ljoeustp9xWTHRlE4qRAtlGq0Q3R4b0VNqS4XK0lln+Wx/96PlrqvXbY3pYCeSbqJYLL9fXrcWkfqPxAc1VfyhHsx/rUtjRJR/pKolXVo2ds/phzs7WiMMCYW8k0QG2DbbU1DLxFKnm42pQQwYyzL52tUWg4uEFA=
+	t=1717820576; cv=none; b=MLMkktNy0rxze36NbSTLZQ157K6B9hRvxx3L9NJJB+GPgv1J/bfZFDIa8pV5eyy7GhdqOcLoQqHgIf9NGgr3Yt8T+JdixEIYNZmQTUXtKSBy1HaZIvVqIk+XNvoOvYB58pPw+JWk5PFOSxsTGroEDkuZW5f9+7R6jBCz44LR8FI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717820392; c=relaxed/simple;
-	bh=l/VefjkCIc5G6A+HMK4VZHYbqdlt6Q88qqLhF1cDM9E=;
-	h=Date:To:From:Subject:Message-Id; b=aGuFE27ywJw6BEFzJie+NLABITaivz4mWIJWbWsTISlvc8EtO6zEuwQUgebC0uOKSdTdYZymzTk0pyWtKUcs/gF/4gM3DuypBYZ/il1Qil0OkHSIZo3ZYifOl3GRi8FH1ck7xYMh81/QLDcMbHKqMq5heJps90y7tRqbGX6n+BM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JQY49CG7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717820576; c=relaxed/simple;
+	bh=6Ii5br3/BVBvySptXamT23HQ7K7W/5efxIY1wOf1hRI=;
+	h=Date:To:From:Subject:Message-Id; b=SUIqHihKU62qz79Tc9yHvfRv5Xwm07ou8/vRXSfXrpQnFwhVgdYEaBSQLh8swSO/6kX/76VIWr7b+1sMIY7OzjciaV+smxM8Zc0Dtzdc/blk5RBVATlSV+MPpHLnlMgC1ZjXeTGIsy4eh4sD9cOhzgO6GowWEnauK9QFtPesAZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xf9YYpNg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JQY49CG7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC953C2BD11;
-	Sat,  8 Jun 2024 04:19:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xf9YYpNg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F542C2BD11;
+	Sat,  8 Jun 2024 04:22:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717820391;
-	bh=l/VefjkCIc5G6A+HMK4VZHYbqdlt6Q88qqLhF1cDM9E=;
+	s=korg; t=1717820575;
+	bh=6Ii5br3/BVBvySptXamT23HQ7K7W/5efxIY1wOf1hRI=;
 	h=Date:To:From:Subject:From;
-	b=JQY49CG788mkX3SsU3FKHW6KBwFW2g1pcAstU9raGt+MSZxhSLh0djyCymKBB3vJ0
-	 NOdFQkQqL5oXDA0eVIz6HMfcGmC1SYvHs0FRL9bPhNncD9vE5SmYlWJDg3d2OS6khb
-	 Erv+I9HHKCmUlumd7oxQwb4hLSN+CHiJo3N8JHQo=
-Date: Fri, 07 Jun 2024 21:19:51 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,ryan.roberts@arm.com,minchan@kernel.org,kasong@tencent.com,david@redhat.com,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=Xf9YYpNgSKymBZZyzMybKKaYKJEe1OuLC/Eg7PEZ69sF2gOP0c8OB9GY3RrkvImiJ
+	 881EYKQDUJ+xS+YQUs3Axh2k+7fcvUxIgcn8GPDxEOhxqM+53JxMa0Zhf2TjFPvbtR
+	 4fpWnD/8usgckx9YO1wuKyo+oclBFIs5L/WW7BHQ=
+Date: Fri, 07 Jun 2024 21:22:54 -0700
+To: mm-commits@vger.kernel.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page.patch added to mm-unstable branch
-Message-Id: <20240608041951.CC953C2BD11@smtp.kernel.org>
+Subject: + mm-highmem-reimplement-totalhigh_pages-by-walking-zones-fix.patch added to mm-unstable branch
+Message-Id: <20240608042255.9F542C2BD11@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: set pte writable while pte_soft_dirty() is true in do_swap_page()
+     Subject: mm-highmem-reimplement-totalhigh_pages-by-walking-zones-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page.patch
+     mm-highmem-reimplement-totalhigh_pages-by-walking-zones-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-highmem-reimplement-totalhigh_pages-by-walking-zones-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,50 +58,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: set pte writable while pte_soft_dirty() is true in do_swap_page()
-Date: Sat, 8 Jun 2024 09:13:58 +1200
+From: David Hildenbrand <david@redhat.com>
+Subject: mm-highmem-reimplement-totalhigh_pages-by-walking-zones-fix
+Date: Fri, 7 Jun 2024 23:04:53 +0200
 
-This patch leverages the new pte_needs_soft_dirty_wp() helper to optimize
-a scenario where softdirty is enabled, but the softdirty flag has already
-been set in do_swap_page().  In this situation, we can use pte_mkwrite
-instead of applying write-protection since we don't depend on write
-faults.
+fix build bot complaint
 
-Link: https://lkml.kernel.org/r/20240607211358.4660-3-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/b57e5bc4-eb72-40e3-add4-57dfa6e03df6@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/highmem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/memory.c~mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page
-+++ a/mm/memory.c
-@@ -4322,7 +4322,7 @@ check_folio:
- 	if (!folio_test_ksm(folio) &&
- 	    (exclusive || folio_ref_count(folio) == 1)) {
- 		if ((vma->vm_flags & VM_WRITE) && !userfaultfd_pte_wp(vma, pte) &&
--		    !vma_soft_dirty_enabled(vma)) {
-+		    !pte_needs_soft_dirty_wp(vma, pte)) {
- 			pte = pte_mkwrite(pte, vma);
- 			if (vmf->flags & FAULT_FLAG_WRITE) {
- 				pte = pte_mkdirty(pte);
+--- a/mm/highmem.c~mm-highmem-reimplement-totalhigh_pages-by-walking-zones-fix
++++ a/mm/highmem.c
+@@ -133,6 +133,7 @@ unsigned long __totalhigh_pages(void)
+ 		if (is_highmem(zone))
+ 			pages += zone_managed_pages(zone);
+ 	}
++EXPORT_SYMBOL(__totalhigh_pages);
+ 
+ 	return pages;
+ }
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr.patch
-mm-introduce-pte_move_swp_offset-helper-which-can-move-offset-bidirectionally.patch
-mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages.patch
-mm-swap-reuse-exclusive-folio-directly-instead-of-wp-page-faults.patch
-mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect.patch
-mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page.patch
+revert-mm-init_mlocked_on_free_v3.patch
+mm-memory-move-page_count-check-into-validate_page_before_insert.patch
+mm-memory-cleanly-support-zeropage-in-vm_insert_page-vm_map_pages-and-vmf_insert_mixed.patch
+mm-rmap-sanity-check-that-zeropages-are-not-passed-to-rmap.patch
+mm-update-_mapcount-and-page_type-documentation.patch
+mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type.patch
+mm-zsmalloc-use-a-proper-page-type.patch
+mm-page_alloc-clear-pagebuddy-using-__clearpagebuddy-for-bad-pages.patch
+mm-filemap-reinitialize-folio-_mapcount-directly.patch
+mm-mm_init-initialize-page-_mapcount-directly-in-__init_single_page.patch
+fs-proc-task_mmu-indicate-pm_file-for-pmd-mapped-file-thp.patch
+fs-proc-task_mmu-dont-indicate-pm_mmap_exclusive-without-pm_present.patch
+fs-proc-task_mmu-properly-detect-pm_mmap_exclusive-per-page-of-pmd-mapped-thps.patch
+fs-proc-task_mmu-account-non-present-entries-as-maybe-shared-but-no-idea-how-often.patch
+fs-proc-move-page_mapcount-to-fs-proc-internalh.patch
+documentation-admin-guide-mm-pagemaprst-drop-using-pagemap-to-do-something-useful.patch
+mm-pass-meminit_context-to-__free_pages_core.patch
+mm-pass-meminit_context-to-__free_pages_core-fix.patch
+mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved.patch
+mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining.patch
+mm-highmem-reimplement-totalhigh_pages-by-walking-zones.patch
+mm-highmem-reimplement-totalhigh_pages-by-walking-zones-fix.patch
+mm-highmem-make-nr_free_highpages-return-unsigned-long.patch
 
