@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFAD48BEF
-	for <mm-commits@vger.kernel.org>; Sat,  8 Jun 2024 02:28:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0DA88BEF
+	for <mm-commits@vger.kernel.org>; Sat,  8 Jun 2024 02:28:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717813682; cv=none; b=pI8gsR7i6+2W1vtkHUJu2Xp8BkoFPYir0PtYxTBxWG4ZQN5k0/iw3Yaq1UFRwzyQEzADz4i5R0NS6UNhUUnoWrH9niV31g4gNhVed5PTFNXmpRA1hC6rH9tQxhefNtQpn6K8tm1CozYfXqVHSGglD+aE6IKREUpuLT0YzenrgT0=
+	t=1717813685; cv=none; b=gW3WuWCBm3IPryC1iNQ2xT1IWFYOgVmmY0LFdmEMvUO1bF472kjFFsOEnLE2LS64F+QfWzPRgF+VXIUtQzayxsXys3gE8fxTqKcZ6PWM45OOzAz+5cTU6hFGVg0cMBO1x832zUvz6/uqLtXk1GpYNo/15mPbNFNMXnSXzOuOkQY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717813682; c=relaxed/simple;
-	bh=CqqRMhvNYbP0U48N0TSS0am6PLNXaFCrCtCN3Xp7+Wk=;
-	h=Date:To:From:Subject:Message-Id; b=YfKiACQ1g6wLq+ECtPpsegW8ky4uJfnt4U01Gb61IxiZJbUFuVkCBE588VbjZjlznwWPMuBt7TQusAQL9gw5yaW7fmIVwtCfRIpXLSn9dA2HFk+LSE5vHKEr491d/ORlyUB/qZwgQ//ip1H2bxBsmd0I0gZ+rILVTMmBx//038U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EMat5i18; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717813685; c=relaxed/simple;
+	bh=XntSmoeckkzYcE6WkKFiL9heYPOE7yxfpGrVpaudbRc=;
+	h=Date:To:From:Subject:Message-Id; b=rnH+EX4VfK/bcZOfs+kbLzclCfzaEP4QjHqb7cFtxCpAoxJTKhPZjd6Ew0/spm0Pr06sdCwXm9/4+CA+H3r7LyT+MvEURMIq+BlGIU+I5WbIAyo18fOaQVvJsMQd9BXIFfU340piybc3ZSChKJY1rrGMqYhhYRDG0cwV776bHiw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kgl/h/+T; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EMat5i18"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3757AC2BBFC;
-	Sat,  8 Jun 2024 02:28:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kgl/h/+T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E7C0C2BBFC;
+	Sat,  8 Jun 2024 02:28:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717813682;
-	bh=CqqRMhvNYbP0U48N0TSS0am6PLNXaFCrCtCN3Xp7+Wk=;
+	s=korg; t=1717813685;
+	bh=XntSmoeckkzYcE6WkKFiL9heYPOE7yxfpGrVpaudbRc=;
 	h=Date:To:From:Subject:From;
-	b=EMat5i18AZv9Fo+JVNuTy9XtzI87IM968aEgGhL9sjiCuRfiTlgRaBVTHBLn6RElS
-	 bFdBD4IeGyIkDg3XWp8LBHvU8zieYandCMXEHjRBzD5Rz4/6633FUJKFriu/X+6jCh
-	 G7FsPnhNnw1YtXukYg1IQ+C7R88iGcm31YwffGkY=
-Date: Fri, 07 Jun 2024 19:28:01 -0700
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,shuah@kernel.org,peterx@redhat.com,Liam.Howlett@oracle.com,kent.overstreet@linux.dev,kees@kernel.org,jeffxu@chromium.org,david@redhat.com,dalias@libc.org,brauner@kernel.org,axelrasmussen@google.com,avagin@google.com,jhubbard@nvidia.com,akpm@linux-foundation.org
+	b=Kgl/h/+TjL09nFQBOOsVo0lkZBAo6wM6Pc8WKi0rTC+d+xNcPM1kxEN4dObu2BB9T
+	 GXD64XuSpOtjkqBapVkX1XtKl395DAn4yceBVe0ehEf56xOFukzqIbza8n/idC0IzX
+	 PVJIZj2iaCa4CMAxjHRzQJwrCZW1qsi1L9Oi/0j0=
+Date: Fri, 07 Jun 2024 19:28:04 -0700
+To: mm-commits@vger.kernel.org,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-mseal-self_elf-fix-missing-__nr_mseal.patch added to mm-unstable branch
-Message-Id: <20240608022802.3757AC2BBFC@smtp.kernel.org>
+Subject: + selftests-mm-fix-vm_utilc-build-failures-add-snapshot-of-fsh.patch added to mm-unstable branch
+Message-Id: <20240608022805.3E7C0C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: mseal, self_elf: fix missing __NR_mseal
+     Subject: selftests/mm: fix vm_util.c build failures: add snapshot of fs.h
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-mseal-self_elf-fix-missing-__nr_mseal.patch
+     selftests-mm-fix-vm_utilc-build-failures-add-snapshot-of-fsh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mseal-self_elf-fix-missing-__nr_mseal.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-vm_utilc-build-failures-add-snapshot-of-fsh.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,98 +59,434 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/mm: mseal, self_elf: fix missing __NR_mseal
-Date: Fri, 7 Jun 2024 19:10:19 -0700
+Subject: selftests/mm: fix vm_util.c build failures: add snapshot of fs.h
+Date: Fri, 7 Jun 2024 19:10:20 -0700
 
-Pach series "cleanups, fixes, and progress towards avoiding "make
-headers"".
+On Ubuntu 23.04, on a clean git tree, the selftests/mm build fails due 10
+or 20 missing items, all of which are found in fs.h, which is created via
+"make headers".  However, as per [1], the idea is to stop requiring "make
+headers", and instead, take a snapshot of the files and check them in.
 
-Eventually, once the build succeeds on a sufficiently old distro, the idea
-is to delete $(KHDR_INCLUDES) from the selftests/mm build, and then after
-that, from selftests/lib.mk and all of the other selftest builds.
+Here are a few of the build errors:
 
-For now, this series merely achieves a clean build of selftests/mm on a
-not-so-old distro: Ubuntu 23.04:
+vm_util.c:34:21: error: variable has incomplete type 'struct pm_scan_arg'
+        struct pm_scan_arg arg;
+...
+vm_util.c:45:28: error: use of undeclared identifier 'PAGE_IS_WPALLOWED'
+...
+vm_util.c:55:21: error: variable has incomplete type 'struct page_region'
+...
+vm_util.c:105:20: error: use of undeclared identifier 'PAGE_IS_SOFT_DIRTY'
 
-1. Add __NR_mseal.
-
-2. Add fs.h, taken as usual from a snapshot of
-   ./usr/include/linux/fs.h after running "make headers".  This is how we
-   have agreed to do this sort of thing, see [1].
-
-3. Add a few selected prctl.h values that the ksm and mdwe tests require.
-
-[1] commit e076eaca5906 ("selftests: break the dependency upon local
-header files")
-
-
-This patch (of 5):
-
-The selftests/mm build isn't exactly "broken", according to the current
-documentation, which still claims that one must run "make headers", before
-building the kselftests.  However, according to the new plan to get rid of
-that requirement [1], they are future-broken: attempting to build
-selftests/mm *without* first running "make headers" will fail due to not
-finding __NR_mseal.
-
-Therefore, add __NR_mseal, to a new mseal_helpers.h file.  That file is
-small right now, but subsequent patches will add a lot more content to it.
+To fix this, add fs.h, taken from a snapshot of ./usr/include/linux/fs.h
+after running "make headers".
 
 [1] commit e076eaca5906 ("selftests: break the dependency upon local
 header files")
 
-Link: https://lkml.kernel.org/r/20240608021023.176027-1-jhubbard@nvidia.com
-Link: https://lkml.kernel.org/r/20240608021023.176027-2-jhubbard@nvidia.com
-Fixes: 4926c7a52de7 ("selftest mm/mseal memory sealing")
+Link: https://lkml.kernel.org/r/20240608021023.176027-3-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: Andrei Vagin <avagin@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mseal_helpers.h |    5 +++++
- tools/testing/selftests/mm/mseal_test.c    |    1 +
- tools/testing/selftests/mm/seal_elf.c      |    1 +
- 3 files changed, 7 insertions(+)
+ tools/include/uapi/linux/fs.h |  392 ++++++++++++++++++++++++++++++++
+ 1 file changed, 392 insertions(+)
 
 --- /dev/null
-+++ a/tools/testing/selftests/mm/mseal_helpers.h
-@@ -0,0 +1,5 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
++++ a/tools/include/uapi/linux/fs.h
+@@ -0,0 +1,392 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef _LINUX_FS_H
++#define _LINUX_FS_H
 +
-+#ifndef __NR_mseal
-+#define __NR_mseal 462
++/*
++ * This file has definitions for some important file table structures
++ * and constants and structures used by various generic file system
++ * ioctl's.  Please do not make any changes in this file before
++ * sending patches for review to linux-fsdevel@vger.kernel.org and
++ * linux-api@vger.kernel.org.
++ */
++
++#include <linux/limits.h>
++#include <linux/ioctl.h>
++#include <linux/types.h>
++#include <linux/fscrypt.h>
++
++/* Use of MS_* flags within the kernel is restricted to core mount(2) code. */
++#include <linux/mount.h>
++
++/*
++ * It's silly to have NR_OPEN bigger than NR_FILE, but you can change
++ * the file limit at runtime and only root can increase the per-process
++ * nr_file rlimit, so it's safe to set up a ridiculously high absolute
++ * upper limit on files-per-process.
++ *
++ * Some programs (notably those using select()) may have to be
++ * recompiled to take full advantage of the new limits..
++ */
++
++/* Fixed constants first: */
++#undef NR_OPEN
++#define INR_OPEN_CUR 1024	/* Initial setting for nfile rlimits */
++#define INR_OPEN_MAX 4096	/* Hard limit for nfile rlimits */
++
++#define BLOCK_SIZE_BITS 10
++#define BLOCK_SIZE (1<<BLOCK_SIZE_BITS)
++
++#define SEEK_SET	0	/* seek relative to beginning of file */
++#define SEEK_CUR	1	/* seek relative to current file position */
++#define SEEK_END	2	/* seek relative to end of file */
++#define SEEK_DATA	3	/* seek to the next data */
++#define SEEK_HOLE	4	/* seek to the next hole */
++#define SEEK_MAX	SEEK_HOLE
++
++#define RENAME_NOREPLACE	(1 << 0)	/* Don't overwrite target */
++#define RENAME_EXCHANGE		(1 << 1)	/* Exchange source and dest */
++#define RENAME_WHITEOUT		(1 << 2)	/* Whiteout source */
++
++struct file_clone_range {
++	__s64 src_fd;
++	__u64 src_offset;
++	__u64 src_length;
++	__u64 dest_offset;
++};
++
++struct fstrim_range {
++	__u64 start;
++	__u64 len;
++	__u64 minlen;
++};
++
++/*
++ * We include a length field because some filesystems (vfat) have an identifier
++ * that we do want to expose as a UUID, but doesn't have the standard length.
++ *
++ * We use a fixed size buffer beacuse this interface will, by fiat, never
++ * support "UUIDs" longer than 16 bytes; we don't want to force all downstream
++ * users to have to deal with that.
++ */
++struct fsuuid2 {
++	__u8	len;
++	__u8	uuid[16];
++};
++
++struct fs_sysfs_path {
++	__u8			len;
++	__u8			name[128];
++};
++
++/* extent-same (dedupe) ioctls; these MUST match the btrfs ioctl definitions */
++#define FILE_DEDUPE_RANGE_SAME		0
++#define FILE_DEDUPE_RANGE_DIFFERS	1
++
++/* from struct btrfs_ioctl_file_extent_same_info */
++struct file_dedupe_range_info {
++	__s64 dest_fd;		/* in - destination file */
++	__u64 dest_offset;	/* in - start of extent in destination */
++	__u64 bytes_deduped;	/* out - total # of bytes we were able
++				 * to dedupe from this file. */
++	/* status of this dedupe operation:
++	 * < 0 for error
++	 * == FILE_DEDUPE_RANGE_SAME if dedupe succeeds
++	 * == FILE_DEDUPE_RANGE_DIFFERS if data differs
++	 */
++	__s32 status;		/* out - see above description */
++	__u32 reserved;		/* must be zero */
++};
++
++/* from struct btrfs_ioctl_file_extent_same_args */
++struct file_dedupe_range {
++	__u64 src_offset;	/* in - start of extent in source */
++	__u64 src_length;	/* in - length of extent */
++	__u16 dest_count;	/* in - total elements in info array */
++	__u16 reserved1;	/* must be zero */
++	__u32 reserved2;	/* must be zero */
++	struct file_dedupe_range_info info[];
++};
++
++/* And dynamically-tunable limits and defaults: */
++struct files_stat_struct {
++	unsigned long nr_files;		/* read only */
++	unsigned long nr_free_files;	/* read only */
++	unsigned long max_files;		/* tunable */
++};
++
++struct inodes_stat_t {
++	long nr_inodes;
++	long nr_unused;
++	long dummy[5];		/* padding for sysctl ABI compatibility */
++};
++
++
++#define NR_FILE  8192	/* this can well be larger on a larger system */
++
++/*
++ * Structure for FS_IOC_FSGETXATTR[A] and FS_IOC_FSSETXATTR.
++ */
++struct fsxattr {
++	__u32		fsx_xflags;	/* xflags field value (get/set) */
++	__u32		fsx_extsize;	/* extsize field value (get/set)*/
++	__u32		fsx_nextents;	/* nextents field value (get)	*/
++	__u32		fsx_projid;	/* project identifier (get/set) */
++	__u32		fsx_cowextsize;	/* CoW extsize field value (get/set)*/
++	unsigned char	fsx_pad[8];
++};
++
++/*
++ * Flags for the fsx_xflags field
++ */
++#define FS_XFLAG_REALTIME	0x00000001	/* data in realtime volume */
++#define FS_XFLAG_PREALLOC	0x00000002	/* preallocated file extents */
++#define FS_XFLAG_IMMUTABLE	0x00000008	/* file cannot be modified */
++#define FS_XFLAG_APPEND		0x00000010	/* all writes append */
++#define FS_XFLAG_SYNC		0x00000020	/* all writes synchronous */
++#define FS_XFLAG_NOATIME	0x00000040	/* do not update access time */
++#define FS_XFLAG_NODUMP		0x00000080	/* do not include in backups */
++#define FS_XFLAG_RTINHERIT	0x00000100	/* create with rt bit set */
++#define FS_XFLAG_PROJINHERIT	0x00000200	/* create with parents projid */
++#define FS_XFLAG_NOSYMLINKS	0x00000400	/* disallow symlink creation */
++#define FS_XFLAG_EXTSIZE	0x00000800	/* extent size allocator hint */
++#define FS_XFLAG_EXTSZINHERIT	0x00001000	/* inherit inode extent size */
++#define FS_XFLAG_NODEFRAG	0x00002000	/* do not defragment */
++#define FS_XFLAG_FILESTREAM	0x00004000	/* use filestream allocator */
++#define FS_XFLAG_DAX		0x00008000	/* use DAX for IO */
++#define FS_XFLAG_COWEXTSIZE	0x00010000	/* CoW extent size allocator hint */
++#define FS_XFLAG_HASATTR	0x80000000	/* no DIFLAG for this	*/
++
++/* the read-only stuff doesn't really belong here, but any other place is
++   probably as bad and I don't want to create yet another include file. */
++
++#define BLKROSET   _IO(0x12,93)	/* set device read-only (0 = read-write) */
++#define BLKROGET   _IO(0x12,94)	/* get read-only status (0 = read_write) */
++#define BLKRRPART  _IO(0x12,95)	/* re-read partition table */
++#define BLKGETSIZE _IO(0x12,96)	/* return device size /512 (long *arg) */
++#define BLKFLSBUF  _IO(0x12,97)	/* flush buffer cache */
++#define BLKRASET   _IO(0x12,98)	/* set read ahead for block device */
++#define BLKRAGET   _IO(0x12,99)	/* get current read ahead setting */
++#define BLKFRASET  _IO(0x12,100)/* set filesystem (mm/filemap.c) read-ahead */
++#define BLKFRAGET  _IO(0x12,101)/* get filesystem (mm/filemap.c) read-ahead */
++#define BLKSECTSET _IO(0x12,102)/* set max sectors per request (ll_rw_blk.c) */
++#define BLKSECTGET _IO(0x12,103)/* get max sectors per request (ll_rw_blk.c) */
++#define BLKSSZGET  _IO(0x12,104)/* get block device sector size */
++#if 0
++#define BLKPG      _IO(0x12,105)/* See blkpg.h */
++
++/* Some people are morons.  Do not use sizeof! */
++
++#define BLKELVGET  _IOR(0x12,106,size_t)/* elevator get */
++#define BLKELVSET  _IOW(0x12,107,size_t)/* elevator set */
++/* This was here just to show that the number is taken -
++   probably all these _IO(0x12,*) ioctls should be moved to blkpg.h. */
 +#endif
---- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-mseal-self_elf-fix-missing-__nr_mseal
-+++ a/tools/testing/selftests/mm/mseal_test.c
-@@ -17,6 +17,7 @@
- #include <sys/ioctl.h>
- #include <sys/vfs.h>
- #include <sys/stat.h>
-+#include "mseal_helpers.h"
- 
- /*
-  * need those definition for manually build using gcc.
---- a/tools/testing/selftests/mm/seal_elf.c~selftests-mm-mseal-self_elf-fix-missing-__nr_mseal
-+++ a/tools/testing/selftests/mm/seal_elf.c
-@@ -16,6 +16,7 @@
- #include <sys/ioctl.h>
- #include <sys/vfs.h>
- #include <sys/stat.h>
-+#include "mseal_helpers.h"
- 
- /*
-  * need those definition for manually build using gcc.
++/* A jump here: 108-111 have been used for various private purposes. */
++#define BLKBSZGET  _IOR(0x12,112,size_t)
++#define BLKBSZSET  _IOW(0x12,113,size_t)
++#define BLKGETSIZE64 _IOR(0x12,114,size_t)	/* return device size in bytes (u64 *arg) */
++#define BLKTRACESETUP _IOWR(0x12,115,struct blk_user_trace_setup)
++#define BLKTRACESTART _IO(0x12,116)
++#define BLKTRACESTOP _IO(0x12,117)
++#define BLKTRACETEARDOWN _IO(0x12,118)
++#define BLKDISCARD _IO(0x12,119)
++#define BLKIOMIN _IO(0x12,120)
++#define BLKIOOPT _IO(0x12,121)
++#define BLKALIGNOFF _IO(0x12,122)
++#define BLKPBSZGET _IO(0x12,123)
++#define BLKDISCARDZEROES _IO(0x12,124)
++#define BLKSECDISCARD _IO(0x12,125)
++#define BLKROTATIONAL _IO(0x12,126)
++#define BLKZEROOUT _IO(0x12,127)
++#define BLKGETDISKSEQ _IOR(0x12,128,__u64)
++/*
++ * A jump here: 130-136 are reserved for zoned block devices
++ * (see uapi/linux/blkzoned.h)
++ */
++
++#define BMAP_IOCTL 1		/* obsolete - kept for compatibility */
++#define FIBMAP	   _IO(0x00,1)	/* bmap access */
++#define FIGETBSZ   _IO(0x00,2)	/* get the block size used for bmap */
++#define FIFREEZE	_IOWR('X', 119, int)	/* Freeze */
++#define FITHAW		_IOWR('X', 120, int)	/* Thaw */
++#define FITRIM		_IOWR('X', 121, struct fstrim_range)	/* Trim */
++#define FICLONE		_IOW(0x94, 9, int)
++#define FICLONERANGE	_IOW(0x94, 13, struct file_clone_range)
++#define FIDEDUPERANGE	_IOWR(0x94, 54, struct file_dedupe_range)
++
++#define FSLABEL_MAX 256	/* Max chars for the interface; each fs may differ */
++
++#define	FS_IOC_GETFLAGS			_IOR('f', 1, long)
++#define	FS_IOC_SETFLAGS			_IOW('f', 2, long)
++#define	FS_IOC_GETVERSION		_IOR('v', 1, long)
++#define	FS_IOC_SETVERSION		_IOW('v', 2, long)
++#define FS_IOC_FIEMAP			_IOWR('f', 11, struct fiemap)
++#define FS_IOC32_GETFLAGS		_IOR('f', 1, int)
++#define FS_IOC32_SETFLAGS		_IOW('f', 2, int)
++#define FS_IOC32_GETVERSION		_IOR('v', 1, int)
++#define FS_IOC32_SETVERSION		_IOW('v', 2, int)
++#define FS_IOC_FSGETXATTR		_IOR('X', 31, struct fsxattr)
++#define FS_IOC_FSSETXATTR		_IOW('X', 32, struct fsxattr)
++#define FS_IOC_GETFSLABEL		_IOR(0x94, 49, char[FSLABEL_MAX])
++#define FS_IOC_SETFSLABEL		_IOW(0x94, 50, char[FSLABEL_MAX])
++/* Returns the external filesystem UUID, the same one blkid returns */
++#define FS_IOC_GETFSUUID		_IOR(0x15, 0, struct fsuuid2)
++/*
++ * Returns the path component under /sys/fs/ that refers to this filesystem;
++ * also /sys/kernel/debug/ for filesystems with debugfs exports
++ */
++#define FS_IOC_GETFSSYSFSPATH		_IOR(0x15, 1, struct fs_sysfs_path)
++
++/*
++ * Inode flags (FS_IOC_GETFLAGS / FS_IOC_SETFLAGS)
++ *
++ * Note: for historical reasons, these flags were originally used and
++ * defined for use by ext2/ext3, and then other file systems started
++ * using these flags so they wouldn't need to write their own version
++ * of chattr/lsattr (which was shipped as part of e2fsprogs).  You
++ * should think twice before trying to use these flags in new
++ * contexts, or trying to assign these flags, since they are used both
++ * as the UAPI and the on-disk encoding for ext2/3/4.  Also, we are
++ * almost out of 32-bit flags.  :-)
++ *
++ * We have recently hoisted FS_IOC_FSGETXATTR / FS_IOC_FSSETXATTR from
++ * XFS to the generic FS level interface.  This uses a structure that
++ * has padding and hence has more room to grow, so it may be more
++ * appropriate for many new use cases.
++ *
++ * Please do not change these flags or interfaces before checking with
++ * linux-fsdevel@vger.kernel.org and linux-api@vger.kernel.org.
++ */
++#define	FS_SECRM_FL			0x00000001 /* Secure deletion */
++#define	FS_UNRM_FL			0x00000002 /* Undelete */
++#define	FS_COMPR_FL			0x00000004 /* Compress file */
++#define FS_SYNC_FL			0x00000008 /* Synchronous updates */
++#define FS_IMMUTABLE_FL			0x00000010 /* Immutable file */
++#define FS_APPEND_FL			0x00000020 /* writes to file may only append */
++#define FS_NODUMP_FL			0x00000040 /* do not dump file */
++#define FS_NOATIME_FL			0x00000080 /* do not update atime */
++/* Reserved for compression usage... */
++#define FS_DIRTY_FL			0x00000100
++#define FS_COMPRBLK_FL			0x00000200 /* One or more compressed clusters */
++#define FS_NOCOMP_FL			0x00000400 /* Don't compress */
++/* End compression flags --- maybe not all used */
++#define FS_ENCRYPT_FL			0x00000800 /* Encrypted file */
++#define FS_BTREE_FL			0x00001000 /* btree format dir */
++#define FS_INDEX_FL			0x00001000 /* hash-indexed directory */
++#define FS_IMAGIC_FL			0x00002000 /* AFS directory */
++#define FS_JOURNAL_DATA_FL		0x00004000 /* Reserved for ext3 */
++#define FS_NOTAIL_FL			0x00008000 /* file tail should not be merged */
++#define FS_DIRSYNC_FL			0x00010000 /* dirsync behaviour (directories only) */
++#define FS_TOPDIR_FL			0x00020000 /* Top of directory hierarchies*/
++#define FS_HUGE_FILE_FL			0x00040000 /* Reserved for ext4 */
++#define FS_EXTENT_FL			0x00080000 /* Extents */
++#define FS_VERITY_FL			0x00100000 /* Verity protected inode */
++#define FS_EA_INODE_FL			0x00200000 /* Inode used for large EA */
++#define FS_EOFBLOCKS_FL			0x00400000 /* Reserved for ext4 */
++#define FS_NOCOW_FL			0x00800000 /* Do not cow file */
++#define FS_DAX_FL			0x02000000 /* Inode is DAX */
++#define FS_INLINE_DATA_FL		0x10000000 /* Reserved for ext4 */
++#define FS_PROJINHERIT_FL		0x20000000 /* Create with parents projid */
++#define FS_CASEFOLD_FL			0x40000000 /* Folder is case insensitive */
++#define FS_RESERVED_FL			0x80000000 /* reserved for ext2 lib */
++
++#define FS_FL_USER_VISIBLE		0x0003DFFF /* User visible flags */
++#define FS_FL_USER_MODIFIABLE		0x000380FF /* User modifiable flags */
++
++
++#define SYNC_FILE_RANGE_WAIT_BEFORE	1
++#define SYNC_FILE_RANGE_WRITE		2
++#define SYNC_FILE_RANGE_WAIT_AFTER	4
++#define SYNC_FILE_RANGE_WRITE_AND_WAIT	(SYNC_FILE_RANGE_WRITE | \
++					 SYNC_FILE_RANGE_WAIT_BEFORE | \
++					 SYNC_FILE_RANGE_WAIT_AFTER)
++
++/*
++ * Flags for preadv2/pwritev2:
++ */
++
++typedef int __bitwise __kernel_rwf_t;
++
++/* high priority request, poll if possible */
++#define RWF_HIPRI	((__kernel_rwf_t)0x00000001)
++
++/* per-IO O_DSYNC */
++#define RWF_DSYNC	((__kernel_rwf_t)0x00000002)
++
++/* per-IO O_SYNC */
++#define RWF_SYNC	((__kernel_rwf_t)0x00000004)
++
++/* per-IO, return -EAGAIN if operation would block */
++#define RWF_NOWAIT	((__kernel_rwf_t)0x00000008)
++
++/* per-IO O_APPEND */
++#define RWF_APPEND	((__kernel_rwf_t)0x00000010)
++
++/* per-IO negation of O_APPEND */
++#define RWF_NOAPPEND	((__kernel_rwf_t)0x00000020)
++
++/* mask of flags supported by the kernel */
++#define RWF_SUPPORTED	(RWF_HIPRI | RWF_DSYNC | RWF_SYNC | RWF_NOWAIT |\
++			 RWF_APPEND | RWF_NOAPPEND)
++
++/* Pagemap ioctl */
++#define PAGEMAP_SCAN	_IOWR('f', 16, struct pm_scan_arg)
++
++/* Bitmasks provided in pm_scan_args masks and reported in page_region.categories. */
++#define PAGE_IS_WPALLOWED	(1 << 0)
++#define PAGE_IS_WRITTEN		(1 << 1)
++#define PAGE_IS_FILE		(1 << 2)
++#define PAGE_IS_PRESENT		(1 << 3)
++#define PAGE_IS_SWAPPED		(1 << 4)
++#define PAGE_IS_PFNZERO		(1 << 5)
++#define PAGE_IS_HUGE		(1 << 6)
++#define PAGE_IS_SOFT_DIRTY	(1 << 7)
++
++/*
++ * struct page_region - Page region with flags
++ * @start:	Start of the region
++ * @end:	End of the region (exclusive)
++ * @categories:	PAGE_IS_* category bitmask for the region
++ */
++struct page_region {
++	__u64 start;
++	__u64 end;
++	__u64 categories;
++};
++
++/* Flags for PAGEMAP_SCAN ioctl */
++#define PM_SCAN_WP_MATCHING	(1 << 0)	/* Write protect the pages matched. */
++#define PM_SCAN_CHECK_WPASYNC	(1 << 1)	/* Abort the scan when a non-WP-enabled page is found. */
++
++/*
++ * struct pm_scan_arg - Pagemap ioctl argument
++ * @size:		Size of the structure
++ * @flags:		Flags for the IOCTL
++ * @start:		Starting address of the region
++ * @end:		Ending address of the region
++ * @walk_end		Address where the scan stopped (written by kernel).
++ *			walk_end == end (address tags cleared) informs that the scan completed on entire range.
++ * @vec:		Address of page_region struct array for output
++ * @vec_len:		Length of the page_region struct array
++ * @max_pages:		Optional limit for number of returned pages (0 = disabled)
++ * @category_inverted:	PAGE_IS_* categories which values match if 0 instead of 1
++ * @category_mask:	Skip pages for which any category doesn't match
++ * @category_anyof_mask: Skip pages for which no category matches
++ * @return_mask:	PAGE_IS_* categories that are to be reported in `page_region`s returned
++ */
++struct pm_scan_arg {
++	__u64 size;
++	__u64 flags;
++	__u64 start;
++	__u64 end;
++	__u64 walk_end;
++	__u64 vec;
++	__u64 vec_len;
++	__u64 max_pages;
++	__u64 category_inverted;
++	__u64 category_mask;
++	__u64 category_anyof_mask;
++	__u64 return_mask;
++};
++
++#endif /* _LINUX_FS_H */
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
