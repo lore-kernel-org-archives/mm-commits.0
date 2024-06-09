@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2FCF14265
-	for <mm-commits@vger.kernel.org>; Sun,  9 Jun 2024 21:06:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1C2B446AB
+	for <mm-commits@vger.kernel.org>; Sun,  9 Jun 2024 21:10:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717967201; cv=none; b=OrMldD0fwE2TX4JXhlBVAnPvKKP2Lwm5TmM+XXdCI8s6j0D3/Yxv96Uv1dgOj69ZAms6jinO3uenoJYGhlxeJS2v0dqx+xVTEfeNh5n4AaucatECv3gmROx2K+PzwwJCAtNiOPZosE2zBvkxU9P905ik8RG+BypafJ5gdXi+j+w=
+	t=1717967436; cv=none; b=OY9wDEpIOPGi6y6GMHujAqUUaMMO27465eouT40krAVyGFgveRbPsVXF0vSg7CGKCekfEwvtSoEXm7uolf+0AkBvG5LQKdD8+9N5jP++H1/OXFnFLhSv35OAuBQCf1Gf10X/hgwmQbhsy4rNJTWDXb+9JyYP/F/7SKlr7nBqN04=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717967201; c=relaxed/simple;
-	bh=U2PhE00hiiXrgAGdXYCGGDAOBH6hV9WZX+pfmMEgYnM=;
-	h=Date:To:From:Subject:Message-Id; b=BRuxdx5M8l8dpmCedD/pJF89TvMZdfcOuyjtD0qWShafv6Jh7FFbnQO6R61jWQAx7ufwh4h+8pBm6VTAPrXkPW+4wPmf/o8XQyuaIG0tAKnmxICyFtwZ13dLO66KCtoixW4cFGW168lU002z1XScae+3kiiSa61e6vr9eNtBkik=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F0zxaNOi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717967436; c=relaxed/simple;
+	bh=0Uahb944hLMyUeKKQnPW1eSSdnt9lpJV054v9+LZr7U=;
+	h=Date:To:From:Subject:Message-Id; b=SYcyvHbiB4o6E4G75k/cqeJ3hsqiPGI+mFz8NaL/p135RkaVGIwk9DIR1z7rR91IljqT5iY7E6cU38ESDH3rAQOqo9vEo2DwIKZOMBV0KaWQWQ8GX9WgV8YMl2NN6ckmacA+Giyf2v3SSNbMTGE0fD7g7MBTjK+NPGgshpKAm00=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RjO29Feo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F0zxaNOi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A016C2BD10;
-	Sun,  9 Jun 2024 21:06:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RjO29Feo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78DF5C2BD10;
+	Sun,  9 Jun 2024 21:10:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717967201;
-	bh=U2PhE00hiiXrgAGdXYCGGDAOBH6hV9WZX+pfmMEgYnM=;
+	s=korg; t=1717967435;
+	bh=0Uahb944hLMyUeKKQnPW1eSSdnt9lpJV054v9+LZr7U=;
 	h=Date:To:From:Subject:From;
-	b=F0zxaNOi8bvH2yBJH8F4hXZsagO3yy6aBBknATYKUvPFgXo0zD1GRuEs9jZzh8nQZ
-	 0hQ+IgY6gbqh2O8HCbtlgiyPshRT0klzxnD5xZPeZUvGXz0nWdYdVVaqNCChGTjjJG
-	 +OaQjcIgQJmpaWOzHgOQV/MPZDoSY+kIjHb5f9ko=
-Date: Sun, 09 Jun 2024 14:06:40 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,parthiban.veerasooran@microchip.com,joel@jms.id.au,jk@ozlabs.org,eajames@linux.ibm.com,christian.gromm@microchip.com,alistair@popple.id.au,adobriyan@gmail.com,christophe.jaillet@wanadoo.fr,akpm@linux-foundation.org
+	b=RjO29Feox1r09CnQPPxIbyjkwOCB/duEjopp7HmwsPIsooy2a9hS7VD0if8fOHjDi
+	 zL6AX/uLc80QohAUtkKKgYnLzMNNLw702vw7AuG7Ytk8KLAkGCVgbEglzcOuvM7Nxi
+	 bWfL5gvoUQHyWGavThpiM0YhbuakZwEe6CgNUG14=
+Date: Sun, 09 Jun 2024 14:10:34 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,rostedt@goodmis.org,rachelmenge@linux.microsoft.com,qiang.zhang1211@gmail.com,paulmck@kernel.org,neeraj.upadhyay@kernel.org,mjguzik@gmail.com,michael.christie@oracle.com,mathieu.desnoyers@efficios.com,josh@joshtriplett.org,joel@joelfernandes.org,jiangshanlai@gmail.com,j.granados@samsung.com,fuweid89@gmail.com,frederic@kernel.org,brauner@kernel.org,boqun.feng@gmail.com,axboe@kernel.dk,apais@linux.microsoft.com,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-remove-usage-of-the-deprecated-ida_simple_xx-api.patch added to mm-nonmm-unstable branch
-Message-Id: <20240609210641.3A016C2BD10@smtp.kernel.org>
+Subject: + zap_pid_ns_processes-clear-tif_notify_signal-along-with-tif_sigpending.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240609211035.78DF5C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: proc: remove usage of the deprecated ida_simple_xx() API
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     proc-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
+     Subject: zap_pid_ns_processes: clear TIF_NOTIFY_SIGNAL along with TIF_SIGPENDING
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     zap_pid_ns_processes-clear-tif_notify_signal-along-with-tif_sigpending.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zap_pid_ns_processes-clear-tif_notify_signal-along-with-tif_sigpending.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,59 +58,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: proc: remove usage of the deprecated ida_simple_xx() API
-Date: Sat, 8 Jun 2024 16:34:20 +0200
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: zap_pid_ns_processes: clear TIF_NOTIFY_SIGNAL along with TIF_SIGPENDING
+Date: Sat, 8 Jun 2024 14:06:16 +0200
 
-ida_alloc() and ida_free() should be preferred to the deprecated
-ida_simple_get() and ida_simple_remove().
+kernel_wait4() doesn't sleep and returns -EINTR if there is no
+eligible child and signal_pending() is true.
 
-Note that the upper limit of ida_simple_get() is exclusive, but the one of
-ida_alloc_max() is inclusive. So a -1 has been added when needed.
+That is why zap_pid_ns_processes() clears TIF_SIGPENDING but this is not
+enough, it should also clear TIF_NOTIFY_SIGNAL to make signal_pending()
+return false and avoid a busy-wait loop.
 
-Link: https://lkml.kernel.org/r/ae10003feb87d240163d0854de95f09e1f00be7d.1717855701.git.christophe.jaillet@wanadoo.fr
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Alistar Popple <alistair@popple.id.au>
-Cc: Christian Gromm <christian.gromm@microchip.com>
-Cc: Eddie James <eajames@linux.ibm.com>
-Cc: Jeremy Kerr <jk@ozlabs.org>
-Cc: Joel Stanley <joel@jms.id.au>
-Cc: Parthiban Veerasooran <parthiban.veerasooran@microchip.com>
+Link: https://lkml.kernel.org/r/20240608120616.GB7947@redhat.com
+Fixes: 12db8b690010 ("entry: Add support for TIF_NOTIFY_SIGNAL")
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reported-by: Rachel Menge <rachelmenge@linux.microsoft.com>
+Closes: https://lore.kernel.org/all/1386cd49-36d0-4a5c-85e9-bc42056a5a38@linux.microsoft.com/
+Reviewed-by: Boqun Feng <boqun.feng@gmail.com>
+Tested-By: Wei Fu <fuweid89@gmail.com>
+Cc: Allen Pais <apais@linux.microsoft.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Frederic Weisbecker <frederic@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
+Cc: Joel Granados <j.granados@samsung.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Lai Jiangshan <jiangshanlai@gmail.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Mike Christie <michael.christie@oracle.com>
+Cc: Neeraj Upadhyay <neeraj.upadhyay@kernel.org>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Zqiang <qiang.zhang1211@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/pid_namespace.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/proc/generic.c~proc-remove-usage-of-the-deprecated-ida_simple_xx-api
-+++ a/fs/proc/generic.c
-@@ -202,8 +202,8 @@ int proc_alloc_inum(unsigned int *inum)
- {
- 	int i;
+--- a/kernel/pid_namespace.c~zap_pid_ns_processes-clear-tif_notify_signal-along-with-tif_sigpending
++++ a/kernel/pid_namespace.c
+@@ -218,6 +218,7 @@ void zap_pid_ns_processes(struct pid_nam
+ 	 */
+ 	do {
+ 		clear_thread_flag(TIF_SIGPENDING);
++		clear_thread_flag(TIF_NOTIFY_SIGNAL);
+ 		rc = kernel_wait4(-1, NULL, __WALL, NULL);
+ 	} while (rc != -ECHILD);
  
--	i = ida_simple_get(&proc_inum_ida, 0, UINT_MAX - PROC_DYNAMIC_FIRST + 1,
--			   GFP_KERNEL);
-+	i = ida_alloc_max(&proc_inum_ida, UINT_MAX - PROC_DYNAMIC_FIRST,
-+			  GFP_KERNEL);
- 	if (i < 0)
- 		return i;
- 
-@@ -213,7 +213,7 @@ int proc_alloc_inum(unsigned int *inum)
- 
- void proc_free_inum(unsigned int inum)
- {
--	ida_simple_remove(&proc_inum_ida, inum - PROC_DYNAMIC_FIRST);
-+	ida_free(&proc_inum_ida, inum - PROC_DYNAMIC_FIRST);
- }
- 
- static int proc_misc_d_revalidate(struct dentry *dentry, unsigned int flags)
 _
 
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-fsi-occ-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
-most-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
-proc-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
+zap_pid_ns_processes-clear-tif_notify_signal-along-with-tif_sigpending.patch
+zap_pid_ns_processes-dont-send-sigkill-to-sub-threads.patch
 
