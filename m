@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6478125D5
-	for <mm-commits@vger.kernel.org>; Sat,  8 Jun 2024 04:40:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14B6E26AF3
+	for <mm-commits@vger.kernel.org>; Sun,  9 Jun 2024 20:52:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717821656; cv=none; b=moc2IILXdWx9mAT8C1o9vz0DviBgy9j0CfK8wHRGen2I2xzO2Yu7szBW0FrbZCtZIQCGexMU6J7zZHh2cdod8wpk+UWCLq7kv1C6mFXNlyeU5ibrVvsoQ51IsGayXkdnlL+TRJtq/RpjEEKy/4IJDJO2BvEcYtic0Zko+NPkTf4=
+	t=1717966380; cv=none; b=gRw9oZqMPKQquYaECVh2xOpVwLyaa0GMVfgAVJhc4xgzKfCkxVFOUPH4tXgNNLYSwsbECAyvJrCrMmAbk/RJylIHz0KTSR/SWBmhiWe92uWAGWZEyt6HpiYo41hZ1FzfjdZ5HUCAiq4c8GHR1ih+g7qdJrD3zR0qhbt6wzwvWDo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717821656; c=relaxed/simple;
-	bh=TY/x5WAx7sDswvL3RrTB2AI5MFfWJGQ/bhzBvNNXtXc=;
-	h=Date:To:From:Subject:Message-Id; b=UttJcpWdBM8BBrXVy/OYfA7qHHhJ8oS2vgWgnF+YQt6gpWv4OnKMR7hVvC4SisYqFEWjZN6d4ln12qdhni02BCvWW7IFzqTPqU9U4nBoQvRMkMRaCWis0dia0AWPSrhPzW0zBBPPB0uJ/x5QXs37eJi/DEEGkp4fBHfIRlbm3Gw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w1iCbzw6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717966380; c=relaxed/simple;
+	bh=aZEJBb95Ag5NVr2zOe/Byie6T16DOenZktxERuHooFs=;
+	h=Date:To:From:Subject:Message-Id; b=nhhsn52LVfevs8upEBWG20RPUowmJvNvb1kLPnSShhYX3CpIgjA74l1I/M52lRB9oTOpTDpo1kUfJsHQRtkLmT4mAHx9wnxUvZ/t/M9AuO04XABIV0NqVVFcnHu7xwNaiVi3BrramkjKpnhmexZJuce3/YEsohmPUuZwV4lpMOc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L8q24ahX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w1iCbzw6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E667C2BD11;
-	Sat,  8 Jun 2024 04:40:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L8q24ahX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BB29C2BD10;
+	Sun,  9 Jun 2024 20:52:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1717821656;
-	bh=TY/x5WAx7sDswvL3RrTB2AI5MFfWJGQ/bhzBvNNXtXc=;
+	s=korg; t=1717966379;
+	bh=aZEJBb95Ag5NVr2zOe/Byie6T16DOenZktxERuHooFs=;
 	h=Date:To:From:Subject:From;
-	b=w1iCbzw6nYFVlGw3Vrw/dgPTKt0/UYw9T6Kc9i7l+e947VUm2RP93IlYech7ai8Ym
-	 FyGTpfFjNHHMxsMEa4uwGZc+uj6sFiD0lZKKZc34JSKzKSnKj71fMfMI/Fld6YJD0J
-	 7jwe/KBayCSvLMHEyWRUAkgmKoMkNwTUBjslzI6s=
-Date: Fri, 07 Jun 2024 21:40:55 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,shuah@kernel.org,mcgrof@kernel.org,david@redhat.com,p.raghav@samsung.com,akpm@linux-foundation.org
+	b=L8q24ahXHCBXEmgTLR+7/O6ySOcl+TUBkkm3iVPRJyPxeioxtFQDneUPCzM1MvMI3
+	 aeuKz3S0EUvZNW9vHBDCL3/T1XBl4n/UImlBpyXGYItTo9FcVNEDsNRy4EN6RVRm5i
+	 W9ekBampYUPz4vpYi8/Mx2Szy9lNUQxJrQLasYHg=
+Date: Sun, 09 Jun 2024 13:52:58 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,ryan.roberts@arm.com,mgorman@techsingularity.net,liushixin2@huawei.com,jhubbard@nvidia.com,david@redhat.com,baolin.wang@linux.alibaba.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-use-asm-volatile-to-not-optimize-mmap-read-variable.patch added to mm-unstable branch
-Message-Id: <20240608044056.4E667C2BD11@smtp.kernel.org>
+Subject: [to-be-updated] mm-fix-possible-oob-in-numa_rebuild_large_mapping.patch removed from -mm tree
+Message-Id: <20240609205259.8BB29C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,84 +34,156 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: selftests/mm: use asm volatile to not optimize mmap read variable
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-use-asm-volatile-to-not-optimize-mmap-read-variable.patch
+The quilt patch titled
+     Subject: mm: fix possible OOB in numa_rebuild_large_mapping()
+has been removed from the -mm tree.  Its filename was
+     mm-fix-possible-oob-in-numa_rebuild_large_mapping.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-use-asm-volatile-to-not-optimize-mmap-read-variable.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Pankaj Raghav <p.raghav@samsung.com>
-Subject: selftests/mm: use asm volatile to not optimize mmap read variable
-Date: Thu, 6 Jun 2024 20:36:19 +0000
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: fix possible OOB in numa_rebuild_large_mapping()
+Date: Fri, 7 Jun 2024 18:32:41 +0800
 
-create_pagecache_thp_and_fd() in split_huge_page_test.c used the variable
-dummy to perform mmap read.
+The large folio is mapped with folio size aligned virtual address during
+the pagefault, ie, 'addr = ALIGN_DOWN(vmf->address, nr_pages * PAGE_SIZE)'
+in do_anonymous_page().  But after the mremap(), the virtual address only
+requires PAGE_SIZE alignment.  Also pte is moved to new in
+move_page_tables(), then traversal of the new pte in
+numa_rebuild_large_mapping() will hit the following issue,
 
-However, this test was skipped even on XFS which has large folio support. 
-The issue was compiler (gcc 13.2.0) was optimizing out the dummy variable,
-therefore, not creating huge page in the page cache.
+   Unable to handle kernel paging request at virtual address 00000a80c021a788
+   Mem abort info:
+     ESR = 0x0000000096000004
+     EC = 0x25: DABT (current EL), IL = 32 bits
+     SET = 0, FnV = 0
+     EA = 0, S1PTW = 0
+     FSC = 0x04: level 0 translation fault
+   Data abort info:
+     ISV = 0, ISS = 0x00000004, ISS2 = 0x00000000
+     CM = 0, WnR = 0, TnD = 0, TagAccess = 0
+     GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+   user pgtable: 4k pages, 48-bit VAs, pgdp=00002040341a6000
+   [00000a80c021a788] pgd=0000000000000000, p4d=0000000000000000
+   Internal error: Oops: 0000000096000004 [#1] SMP
+   ...
+   CPU: 76 PID: 15187 Comm: git Kdump: loaded Tainted: G        W          6.10.0-rc2+ #209
+   Hardware name: Huawei TaiShan 2280 V2/BC82AMDD, BIOS 1.79 08/21/2021
+   pstate: 60400009 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+   pc : numa_rebuild_large_mapping+0x338/0x638
+   lr : numa_rebuild_large_mapping+0x320/0x638
+   sp : ffff8000b41c3b00
+   x29: ffff8000b41c3b30 x28: ffff8000812a0000 x27: 00000000000a8000
+   x26: 00000000000000a8 x25: 0010000000000001 x24: ffff20401c7170f0
+   x23: 0000ffff33a1e000 x22: 0000ffff33a76000 x21: ffff20400869eca0
+   x20: 0000ffff33976000 x19: 00000000000000a8 x18: ffffffffffffffff
+   x17: 0000000000000000 x16: 0000000000000020 x15: ffff8000b41c36a8
+   x14: 0000000000000000 x13: 205d373831353154 x12: 5b5d333331363732
+   x11: 000000000011ff78 x10: 000000000011ff10 x9 : ffff800080273f30
+   x8 : 000000320400869e x7 : c0000000ffffd87f x6 : 00000000001e6ba8
+   x5 : ffff206f3fb5af88 x4 : 0000000000000000 x3 : 0000000000000000
+   x2 : 0000000000000000 x1 : fffffdffc0000000 x0 : 00000a80c021a780
+   Call trace:
+    numa_rebuild_large_mapping+0x338/0x638
+    do_numa_page+0x3e4/0x4e0
+    handle_pte_fault+0x1bc/0x238
+    __handle_mm_fault+0x20c/0x400
+    handle_mm_fault+0xa8/0x288
+    do_page_fault+0x124/0x498
+    do_translation_fault+0x54/0x80
+    do_mem_abort+0x4c/0xa8
+    el0_da+0x40/0x110
+    el0t_64_sync_handler+0xe4/0x158
+    el0t_64_sync+0x188/0x190
 
-Use asm volatile() trick to force the compiler not to optimize out the
-loop where we read from the mmaped addr.  This is similar to what is being
-done in other tests (cow.c, etc)
+Fix it by correcting the start and end, which may lead to only rebuild
+part of large mapping in one numa page fault, there is no issue since
+other part could rebuild by another pagefault.
 
-As the variable is now used in the asm statement, remove the unused
-attribute.
-
-Link: https://lkml.kernel.org/r/20240606203619.677276-1-kernel@pankajraghav.com
-Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20240607103241.1298388-1-wangkefeng.wang@huawei.com
+Fixes: d2136d749d76 ("mm: support multi-size THP numa balancing")
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Liu Shixin <liushixin2@huawei.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memory.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-use-asm-volatile-to-not-optimize-mmap-read-variable
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -300,7 +300,7 @@ int create_pagecache_thp_and_fd(const ch
- 		char **addr)
+--- a/mm/memory.c~mm-fix-possible-oob-in-numa_rebuild_large_mapping
++++ a/mm/memory.c
+@@ -5095,15 +5095,21 @@ static void numa_rebuild_single_mapping(
+ 	update_mmu_cache_range(vmf, vma, fault_addr, fault_pte, 1);
+ }
+ 
+-static void numa_rebuild_large_mapping(struct vm_fault *vmf, struct vm_area_struct *vma,
+-				       struct folio *folio, pte_t fault_pte,
+-				       bool ignore_writable, bool pte_write_upgrade)
++static void numa_rebuild_large_mapping(struct vm_fault *vmf,
++		struct vm_area_struct *vma, struct folio *folio, int nr_pages,
++		pte_t fault_pte, bool ignore_writable, bool pte_write_upgrade)
  {
- 	size_t i;
--	int __attribute__((unused)) dummy = 0;
-+	int dummy = 0;
+ 	int nr = pte_pfn(fault_pte) - folio_pfn(folio);
+-	unsigned long start = max(vmf->address - nr * PAGE_SIZE, vma->vm_start);
+-	unsigned long end = min(vmf->address + (folio_nr_pages(folio) - nr) * PAGE_SIZE, vma->vm_end);
+-	pte_t *start_ptep = vmf->pte - (vmf->address - start) / PAGE_SIZE;
+-	unsigned long addr;
++	unsigned long folio_size = nr_pages * PAGE_SIZE;
++	unsigned long addr = vmf->address;
++	unsigned long start, end, align_addr;
++	pte_t *start_ptep;
++
++	align_addr = ALIGN_DOWN(addr, folio_size);
++	start = max3(addr - nr * PAGE_SIZE, align_addr, vma->vm_start);
++	end = min3(addr + (nr_pages - nr) * PAGE_SIZE, align_addr + folio_size,
++		   vma->vm_end);
++	start_ptep = vmf->pte - (addr - start) / PAGE_SIZE;
  
- 	srand(time(NULL));
- 
-@@ -341,6 +341,7 @@ int create_pagecache_thp_and_fd(const ch
- 
- 	for (size_t i = 0; i < fd_size; i++)
- 		dummy += *(*addr + i);
-+	asm volatile("" : "+r" (dummy));
- 
- 	if (!check_huge_file(*addr, fd_size / pmd_pagesize, pmd_pagesize)) {
- 		ksft_print_msg("No large pagecache folio generated, please provide a filesystem supporting large folio\n");
+ 	/* Restore all PTEs' mapping of the large folio */
+ 	for (addr = start; addr != end; start_ptep++, addr += PAGE_SIZE) {
+@@ -5233,8 +5239,8 @@ out_map:
+ 	 * non-accessible ptes, some can allow access by kernel mode.
+ 	 */
+ 	if (folio && folio_test_large(folio))
+-		numa_rebuild_large_mapping(vmf, vma, folio, pte, ignore_writable,
+-					   pte_write_upgrade);
++		numa_rebuild_large_mapping(vmf, vma, folio, nr_pages, pte,
++					   ignore_writable, pte_write_upgrade);
+ 	else
+ 		numa_rebuild_single_mapping(vmf, vma, vmf->address, vmf->pte,
+ 					    writable);
 _
 
-Patches currently in -mm which might be from p.raghav@samsung.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-selftests-mm-use-asm-volatile-to-not-optimize-mmap-read-variable.patch
+mm-add-folio_alloc_mpol.patch
+mm-mempolicy-use-folio_alloc_mpol_noprof-in-vma_alloc_folio_noprof.patch
+mm-mempolicy-use-folio_alloc_mpol-in-alloc_migration_target_by_mpol.patch
+mm-shmem-use-folio_alloc_mpol-in-shmem_alloc_folio.patch
+mm-refactor-folio_undo_large_rmappable.patch
+mm-memcontrol-remove-page_memcg.patch
+rmap-remove-define_page_vma_walk.patch
+mm-migrate-simplify-__buffer_migrate_folio.patch
+mm-migrate_device-use-a-newfolio-in-__migrate_device_pages.patch
+mm-migrate_device-unify-migrate-folio-for-migrate_sync_no_copy.patch
+mm-migrate-remove-migrate_folio_extra.patch
+mm-remove-migrate_sync_no_copy-mode.patch
+fs-proc-task_mmu-use-folio-api-in-pte_is_pinned.patch
+mm-remove-page_maybe_dma_pinned.patch
+fb_defio-use-a-folio-in-fb_deferred_io_work.patch
+mm-remove-page_mkclean.patch
+mm-remove-page_mkclean-fix.patch
+mm-move-memory_failure_queue-into-copy_mc__highpage.patch
+mm-add-folio_mc_copy.patch
+mm-migrate-split-folio_migrate_mapping.patch
+mm-migrate-support-poisoned-recover-from-migrate-folio.patch
+fs-hugetlbfs-support-poison-recover-from-hugetlbfs_migrate_folio.patch
+mm-migrate-remove-folio_migrate_copy.patch
 
