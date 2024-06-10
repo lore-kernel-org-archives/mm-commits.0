@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8739E1F16B
-	for <mm-commits@vger.kernel.org>; Mon, 10 Jun 2024 16:30:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF3331422CF
+	for <mm-commits@vger.kernel.org>; Mon, 10 Jun 2024 16:32:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718037058; cv=none; b=DmZ86R9TUuEs83OerJymZUzr5pxBx6vMtQIRP0i6HoJQHJfiHqkw7rLvx3swLWg+yhL2aZe9hAkECZSJIEaMdeaG1OinGT0Tg9/FPDDg0ViuXhuk4qoRKX9C+0ltwLBLy8Bu/DJjQIpkCB/OS54/h9XqY3jIDlSGUQrycaD2KAw=
+	t=1718037144; cv=none; b=CQmRj3WaCWTBpz3dK+QBYnMSV/5C6y9T+xugTRi9lKOCEf6ZcTUw0rhavWJKZOzyZDZ0XT3fX6oqivK9J0y2HCaCT4MCqB0OVYjy0CdN3pc7Fv29drdB4scILYKp4EIYaKOUbiRmM+13C/+5BcLaoRZtz7ltVwzgmJX/63GUwpg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718037058; c=relaxed/simple;
-	bh=DOUZFB93vGEOhw4xRfPVhWTrxk2W2rwO/3S5R8uLi1I=;
-	h=Date:To:From:Subject:Message-Id; b=jpJ2XboK9mT6sAwNlel9w4oNLwbr+Icnjya/uhLHaWc66stnRyB5FVpbD2ao2MOM84SQpkmGIto+V1SKWnD1zoK+6FY8tyzhNzL1D8Aobfj8a+QtuNC1XqRZmoMYTcm4NesCR0udwLpGTCNvYHt+uwD683sS6Fes4TKzgQxPvDs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2VioO7gV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718037144; c=relaxed/simple;
+	bh=7g5O0msvoSvxapCHn1RLdcrc2wbYcLV40VsC9OhX2fg=;
+	h=Date:To:From:Subject:Message-Id; b=haBBzfQWALPPrJnvfgM7FdbYBr+hIjO+UNTkElk7vx8s+YcnD67IM8Y0C43K4610C8hAEMqJugDFSpq0zo/2EDHuxRbJZ1vnm64DqjA5r//zAkSOKvbNvdfiTN6hd6/OkhPbzfHKBuf92AEZxE8Tz+7Pd1vqmjMmFsRvDAefHJ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jGlld8jj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2VioO7gV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B4EBC2BBFC;
-	Mon, 10 Jun 2024 16:30:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jGlld8jj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8426C2BBFC;
+	Mon, 10 Jun 2024 16:32:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718037058;
-	bh=DOUZFB93vGEOhw4xRfPVhWTrxk2W2rwO/3S5R8uLi1I=;
+	s=korg; t=1718037143;
+	bh=7g5O0msvoSvxapCHn1RLdcrc2wbYcLV40VsC9OhX2fg=;
 	h=Date:To:From:Subject:From;
-	b=2VioO7gVNnGqvWY9FiiBhAcCwoM5utqTsOmfrYOu38dfJmYUuBwVh1fwKd9fFEzxS
-	 8Wzr5jSMVj5pfrg5VoxfA6+enNubDC+3yyaqi9fHSChiCq5D52gNWsca/de1A6EZem
-	 ka9gDN6ow/ZLGrAD3tI0Loc8WkVrIFIJO9XqhMAA=
-Date: Mon, 10 Jun 2024 09:30:57 -0700
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=jGlld8jjiIjYr/ruC7TWxIBpeuch9pnuFQJIKkL/QbcuuHqwwPZ1GGBxcug5aU0hI
+	 5yFyEg+h9QGMaR1VRrpqGLTTA6G304lFgbyjwFO9QyPmyEpRTYuf+XbYwFcZO+qsoY
+	 O8+NmBFN++wfQZBp1bqBkTmsuu6wc/LrCgA62xkQ=
+Date: Mon, 10 Jun 2024 09:32:23 -0700
+To: mm-commits@vger.kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,apw@canonical.com,wsa+renesas@sang-engineering.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-do-not-call-inode_attach_wb-directly.patch added to mm-nonmm-unstable branch
-Message-Id: <20240610163058.1B4EBC2BBFC@smtp.kernel.org>
+Subject: + checkpatch-really-skip-long_line_-when-long_line-is-ignored.patch added to mm-nonmm-unstable branch
+Message-Id: <20240610163223.A8426C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: do not call inode_attach_wb() directly
+     Subject: checkpatch: really skip LONG_LINE_* when LONG_LINE is ignored
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-do-not-call-inode_attach_wb-directly.patch
+     checkpatch-really-skip-long_line_-when-long_line-is-ignored.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-do-not-call-inode_attach_wb-directly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-really-skip-long_line_-when-long_line-is-ignored.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,57 +58,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: do not call inode_attach_wb() directly
-Date: Tue, 11 Jun 2024 01:00:29 +0900
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Subject: checkpatch: really skip LONG_LINE_* when LONG_LINE is ignored
+Date: Mon, 10 Jun 2024 17:02:09 +0200
 
-Call mark_buffer_dirty() for segment summary and super root block buffers
-on the backing device's page cache, thereby indirectly calling
-inode_attach_wb().
+For a printout to happen, all types must be set to "show".  So, AND is
+needed for the flags, not OR, if we want to ignore something.
 
-Then remove the no longer needed call to inode_attach_wb() in
-nilfs_attach_log_writer(), resolving the concern about its layer-violating
-use.
-
-Link: https://lkml.kernel.org/r/20240610160029.7673-3-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Link: https://lkml.kernel.org/r/20240610150420.2279-2-wsa+renesas@sang-engineering.com
+Fixes: 47e0c88b37a5 ("checkpatch: categorize some long line length checks")
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/nilfs2/segment.c~nilfs2-do-not-call-inode_attach_wb-directly
-+++ a/fs/nilfs2/segment.c
-@@ -1678,6 +1678,7 @@ static void nilfs_prepare_write_logs(str
- 	list_for_each_entry(segbuf, logs, sb_list) {
- 		list_for_each_entry(bh, &segbuf->sb_segsum_buffers,
- 				    b_assoc_buffers) {
-+			mark_buffer_dirty(bh);
- 			if (bh->b_folio == bd_folio)
- 				continue;
- 			if (bd_folio) {
-@@ -1694,6 +1695,7 @@ static void nilfs_prepare_write_logs(str
- 	/* Prepare to write super root block */
- 	bh = NILFS_LAST_SEGBUF(logs)->sb_super_root;
- 	if (bh) {
-+		mark_buffer_dirty(bh);
- 		if (bh->b_folio != bd_folio) {
- 			folio_lock(bd_folio);
- 			folio_wait_writeback(bd_folio);
-@@ -2843,8 +2845,6 @@ int nilfs_attach_log_writer(struct super
- 	if (!nilfs->ns_writer)
- 		return -ENOMEM;
+--- a/scripts/checkpatch.pl~checkpatch-really-skip-long_line_-when-long_line-is-ignored
++++ a/scripts/checkpatch.pl
+@@ -3858,7 +3858,7 @@ sub process {
+ 			}
  
--	inode_attach_wb(nilfs->ns_bdev->bd_mapping->host, NULL);
--
- 	err = nilfs_segctor_start_thread(nilfs->ns_writer);
- 	if (unlikely(err))
- 		nilfs_detach_log_writer(sb);
+ 			if ($msg_type ne "" &&
+-			    (show_type("LONG_LINE") || show_type($msg_type))) {
++			    show_type("LONG_LINE") && show_type($msg_type)) {
+ 				my $msg_level = \&WARN;
+ 				$msg_level = \&CHK if ($file);
+ 				&{$msg_level}($msg_type,
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from wsa+renesas@sang-engineering.com are
 
-nilfs2-prepare-backing-device-folios-for-writing-after-adding-checksums.patch
-nilfs2-do-not-call-inode_attach_wb-directly.patch
+checkpatch-really-skip-long_line_-when-long_line-is-ignored.patch
 
