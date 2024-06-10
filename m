@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B62314B952
-	for <mm-commits@vger.kernel.org>; Mon, 10 Jun 2024 17:36:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48E6B14B96E
+	for <mm-commits@vger.kernel.org>; Mon, 10 Jun 2024 17:36:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718040984; cv=none; b=q52dBaK71Ej62l5mzHWSdrcr458EDN2vVuHN0tVogE98ho34qYMdpNk7blgr5K6+AWG2hsibkzdDn1N04pBvQgjBQEcmjNDHq8zUD6r0g91zAiTmoYH94kVqM0R854XCGsrE5CWmhi+4/LwVdLnEYCqqw4f7sWws+iBwkO/BLHc=
+	t=1718040986; cv=none; b=go//Awff9+vT9GsEdibLxL/VvBKAPddCO8/3/g7PZhb6uWLcIBKPXe4oeFzanWLvzuaq+iF6VuTHJqZ2B57l4nwqOF6PP/SHCire9JoGNvcEO/o1+TSMyB+ZsRtadn3+VPz+DC0alkvIxYk6rMymrABh/Tu8IlZT2/HCDVw8SUQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718040984; c=relaxed/simple;
-	bh=044qrhcfMp2370jmQdHVkz0piW+KJIOAheKDOFCHRl8=;
-	h=Date:To:From:Subject:Message-Id; b=OQvT7VCiDmGSsO6Uaj4KtLNfNhaKnoZaYrof1/r6EkLhR98b3F/foEohmdO3NYtAe+K5ny77mo+qHiP/ZyDtx2Ovm48GP07NcktJZJPb7zuxpzjRP2ts5xz+Gm9OvxZH81gIULNOcrk+MvOfpuadBKBrS9gvvQ1KlsK0VsfProw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AXIzbT81; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718040986; c=relaxed/simple;
+	bh=yEBv/JhHo7PR/sWfiPrSIUPHOEvoYeSiwAkidA6Vp5Y=;
+	h=Date:To:From:Subject:Message-Id; b=EoM0tPnzhnR3zH1EBct3Grwrd2qpnF2FnaimioXR2yAmZSD9YroG2QsL1pBT6Dt1nv7YO9ycBLTOBsA0AkW8dhZbeDNghKvcp2Ax2V5AXOt4GqPdpHOauc7PZY20TdX6hEJzAlQxTxqDNUbiGQvboyJaQSBtBXwzmcANr+vRx5s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wTyXgUur; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AXIzbT81"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FF14C2BBFC;
-	Mon, 10 Jun 2024 17:36:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wTyXgUur"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 035BBC2BBFC;
+	Mon, 10 Jun 2024 17:36:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718040984;
-	bh=044qrhcfMp2370jmQdHVkz0piW+KJIOAheKDOFCHRl8=;
+	s=korg; t=1718040986;
+	bh=yEBv/JhHo7PR/sWfiPrSIUPHOEvoYeSiwAkidA6Vp5Y=;
 	h=Date:To:From:Subject:From;
-	b=AXIzbT81641HK66WTVGPD6P4bjw8o9+6SblBTGTFrJkOggmazMrXDCDOcf5ta83gy
-	 LG9k6KGjEtmEIkYixCaLB3N6rBtbcFtiQLz7LEFUQXkP7CEZk6F5pW6VZiQ2DK0ppR
-	 IubANsTCkzFgycjN6vzmU5dhnyjpdiaOynJRn0qg=
-Date: Mon, 10 Jun 2024 10:36:23 -0700
+	b=wTyXgUurhdN1kuFKfgN8pOjlwEYioMTmmgfaeaEHsgEu+41qdT7S7EACjK4D5YuaJ
+	 TNFnhC4w07awLAt3AqTZz+K52BVg1Mbb1LoPtLfcI4Iq+sQytLlm8gzp1kTy9S+d//
+	 UoN2gMRmhLkulyqTufPz9wuG1qYyDWulEhmcdsG0=
+Date: Mon, 10 Jun 2024 10:36:25 -0700
 To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,xiehuan09@gmail.com,willy@infradead.org,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,sj@kernel.org,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,maskray@google.com,libang.li@antgroup.com,fengwei.yin@intel.com,david@redhat.com,baolin.wang@linux.alibaba.com,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-add-helper-to-restart-pgtable-walk-on-changes.patch added to mm-unstable branch
-Message-Id: <20240610173624.0FF14C2BBFC@smtp.kernel.org>
+Subject: + mm-rmap-integrate-pmd-mapped-folio-splitting-into-pagewalk-loop.patch added to mm-unstable branch
+Message-Id: <20240610173626.035BBC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: add helper to restart pgtable walk on changes
+     Subject: mm/rmap: integrate PMD-mapped folio splitting into pagewalk loop
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-add-helper-to-restart-pgtable-walk-on-changes.patch
+     mm-rmap-integrate-pmd-mapped-folio-splitting-into-pagewalk-loop.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-add-helper-to-restart-pgtable-walk-on-changes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-integrate-pmd-mapped-folio-splitting-into-pagewalk-loop.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lance Yang <ioworker0@gmail.com>
-Subject: mm/rmap: add helper to restart pgtable walk on changes
-Date: Mon, 10 Jun 2024 20:02:07 +0800
+Subject: mm/rmap: integrate PMD-mapped folio splitting into pagewalk loop
+Date: Mon, 10 Jun 2024 20:06:18 +0800
 
-Introduce the page_vma_mapped_walk_restart() helper to handle scenarios
-where the page table walk needs to be restarted due to changes in the page
-table, such as when a PMD is split.  It releases the PTL held during the
-previous walk and resets the state, allowing a new walk to start at the
-current address stored in pvmw->address.
+In preparation for supporting try_to_unmap_one() to unmap PMD-mapped
+folios, start the pagewalk first, then call split_huge_pmd_address() to
+split the folio.
 
-Link: https://lkml.kernel.org/r/20240610120209.66311-3-ioworker0@gmail.com
+Link: https://lkml.kernel.org/r/20240610120618.66520-1-ioworker0@gmail.com
 Signed-off-by: Lance Yang <ioworker0@gmail.com>
 Suggested-by: David Hildenbrand <david@redhat.com>
+Suggested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Bang Li <libang.li@antgroup.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Fangrui Song <maskray@google.com>
 Cc: Jeff Xie <xiehuan09@gmail.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
@@ -89,40 +87,135 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ include/linux/huge_mm.h |    6 +++++
+ mm/huge_memory.c        |   42 +++++++++++++++++++-------------------
+ mm/rmap.c               |   21 +++++++++++++------
+ 3 files changed, 43 insertions(+), 26 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-add-helper-to-restart-pgtable-walk-on-changes
-+++ a/include/linux/rmap.h
-@@ -703,6 +703,28 @@ static inline void page_vma_mapped_walk_
- 		spin_unlock(pvmw->ptl);
+--- a/include/linux/huge_mm.h~mm-rmap-integrate-pmd-mapped-folio-splitting-into-pagewalk-loop
++++ a/include/linux/huge_mm.h
+@@ -428,6 +428,9 @@ static inline bool thp_migration_support
+ 	return IS_ENABLED(CONFIG_ARCH_ENABLE_THP_MIGRATION);
  }
  
-+/**
-+ * page_vma_mapped_walk_restart - Restart the page table walk.
-+ * @pvmw: Pointer to struct page_vma_mapped_walk.
-+ *
-+ * It restarts the page table walk when changes occur in the page
-+ * table, such as splitting a PMD. Ensures that the PTL held during
-+ * the previous walk is released and resets the state to allow for
-+ * a new walk starting at the current address stored in pvmw->address.
-+ */
-+static inline void
-+page_vma_mapped_walk_restart(struct page_vma_mapped_walk *pvmw)
++void split_huge_pmd_locked(struct vm_area_struct *vma, unsigned long address,
++			   pmd_t *pmd, bool freeze, struct folio *folio);
++
+ #else /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ static inline bool folio_test_pmd_mappable(struct folio *folio)
+@@ -490,6 +493,9 @@ static inline void __split_huge_pmd(stru
+ 		unsigned long address, bool freeze, struct folio *folio) {}
+ static inline void split_huge_pmd_address(struct vm_area_struct *vma,
+ 		unsigned long address, bool freeze, struct folio *folio) {}
++static inline void split_huge_pmd_locked(struct vm_area_struct *vma,
++					 unsigned long address, pmd_t *pmd,
++					 bool freeze, struct folio *folio) {}
+ 
+ #define split_huge_pud(__vma, __pmd, __address)	\
+ 	do { } while (0)
+--- a/mm/huge_memory.c~mm-rmap-integrate-pmd-mapped-folio-splitting-into-pagewalk-loop
++++ a/mm/huge_memory.c
+@@ -2582,6 +2582,27 @@ static void __split_huge_pmd_locked(stru
+ 	pmd_populate(mm, pmd, pgtable);
+ }
+ 
++void split_huge_pmd_locked(struct vm_area_struct *vma, unsigned long address,
++			   pmd_t *pmd, bool freeze, struct folio *folio)
 +{
-+	WARN_ON_ONCE(!pvmw->pmd);
-+	WARN_ON_ONCE(!pvmw->ptl);
++	VM_WARN_ON_ONCE(folio && !folio_test_pmd_mappable(folio));
++	VM_WARN_ON_ONCE(!IS_ALIGNED(address, HPAGE_PMD_SIZE));
++	VM_WARN_ON_ONCE(folio && !folio_test_locked(folio));
++	VM_BUG_ON(freeze && !folio);
 +
-+	if (pvmw->ptl)
-+		spin_unlock(pvmw->ptl);
-+
-+	pvmw->ptl = NULL;
-+	pvmw->pmd = NULL;
++	/*
++	 * When the caller requests to set up a migration entry, we
++	 * require a folio to check the PMD against. Otherwise, there
++	 * is a risk of replacing the wrong folio.
++	 */
++	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) ||
++	    is_pmd_migration_entry(*pmd)) {
++		if (folio && folio != pmd_folio(*pmd))
++			return;
++		__split_huge_pmd_locked(vma, pmd, address, freeze);
++	}
 +}
 +
- bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw);
+ void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 		unsigned long address, bool freeze, struct folio *folio)
+ {
+@@ -2593,26 +2614,7 @@ void __split_huge_pmd(struct vm_area_str
+ 				(address & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE);
+ 	mmu_notifier_invalidate_range_start(&range);
+ 	ptl = pmd_lock(vma->vm_mm, pmd);
+-
+-	/*
+-	 * If caller asks to setup a migration entry, we need a folio to check
+-	 * pmd against. Otherwise we can end up replacing wrong folio.
+-	 */
+-	VM_BUG_ON(freeze && !folio);
+-	VM_WARN_ON_ONCE(folio && !folio_test_locked(folio));
+-
+-	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) ||
+-	    is_pmd_migration_entry(*pmd)) {
+-		/*
+-		 * It's safe to call pmd_page when folio is set because it's
+-		 * guaranteed that pmd is present.
+-		 */
+-		if (folio && folio != pmd_folio(*pmd))
+-			goto out;
+-		__split_huge_pmd_locked(vma, pmd, range.start, freeze);
+-	}
+-
+-out:
++	split_huge_pmd_locked(vma, range.start, pmd, freeze, folio);
+ 	spin_unlock(ptl);
+ 	mmu_notifier_invalidate_range_end(&range);
+ }
+--- a/mm/rmap.c~mm-rmap-integrate-pmd-mapped-folio-splitting-into-pagewalk-loop
++++ a/mm/rmap.c
+@@ -1642,9 +1642,6 @@ static bool try_to_unmap_one(struct foli
+ 	if (flags & TTU_SYNC)
+ 		pvmw.flags = PVMW_SYNC;
  
- /*
+-	if (flags & TTU_SPLIT_HUGE_PMD)
+-		split_huge_pmd_address(vma, address, false, folio);
+-
+ 	/*
+ 	 * For THP, we have to assume the worse case ie pmd for invalidation.
+ 	 * For hugetlb, it could be much worse if we need to do pud
+@@ -1670,9 +1667,6 @@ static bool try_to_unmap_one(struct foli
+ 	mmu_notifier_invalidate_range_start(&range);
+ 
+ 	while (page_vma_mapped_walk(&pvmw)) {
+-		/* Unexpected PMD-mapped THP? */
+-		VM_BUG_ON_FOLIO(!pvmw.pte, folio);
+-
+ 		/*
+ 		 * If the folio is in an mlock()d vma, we must not swap it out.
+ 		 */
+@@ -1684,6 +1678,21 @@ static bool try_to_unmap_one(struct foli
+ 			goto walk_done_err;
+ 		}
+ 
++		if (!pvmw.pte && (flags & TTU_SPLIT_HUGE_PMD)) {
++			/*
++			 * We temporarily have to drop the PTL and start once
++			 * again from that now-PTE-mapped page table.
++			 */
++			split_huge_pmd_locked(vma, pvmw.address, pvmw.pmd,
++					      false, folio);
++			flags &= ~TTU_SPLIT_HUGE_PMD;
++			page_vma_mapped_walk_restart(&pvmw);
++			continue;
++		}
++
++		/* Unexpected PMD-mapped THP? */
++		VM_BUG_ON_FOLIO(!pvmw.pte, folio);
++
+ 		pfn = pte_pfn(ptep_get(pvmw.pte));
+ 		subpage = folio_page(folio, pfn - folio_pfn(folio));
+ 		address = pvmw.address;
 _
 
 Patches currently in -mm which might be from ioworker0@gmail.com are
