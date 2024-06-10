@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D64C2143746
-	for <mm-commits@vger.kernel.org>; Mon, 10 Jun 2024 16:35:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E903146A85
+	for <mm-commits@vger.kernel.org>; Mon, 10 Jun 2024 17:36:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718037310; cv=none; b=TfFs3sM4Xso9Xo3CDho2YIrHsa5AP9Sj3atpq66QGd27Qbn8DoWRHCy5772bLtHpw1KDTYTh17ee3xpdJACYjJY/1mm5ljCQIeLhncknhr+w71DNko5zI3ldV3LaP1ZTrNZ45wH3Hx8JASs6sliF9GCnFbUIih+OJXZmhmmOaHQ=
+	t=1718040982; cv=none; b=PdpSQXELDV4KXGsd4u6qDffBf7Ue0WU0asXdi4FSQDKyhGVfJPMeeeYy6ZpM8x7+IikOSpPWwzHh0qMRPep5fF2+BKSyVJLuN7CyHZ1Q+mdkBQUCR/Sg1nb5sM91/YVc72wzbfmg4QFuRB1thAHCm9T8LjRK0ZnbDgwgSnBNhEM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718037310; c=relaxed/simple;
-	bh=yA0Zubde3rEjfXIDEvk7r0N9dKc4uknpSp4Tx7You68=;
-	h=Date:To:From:Subject:Message-Id; b=o7RlWXwM5D4pLU36uBiykKQR6XdaL+mdl0aLYbJ9eDgpnUnU+UdBE0BF39nawL+Z0A2m340uY5IN1PKkRK97hGn3P8wC5sbB51sCGhuVZ2GyqC66+QFpY9sRKrP31R2pyJvKNs6j0VLMGcZCFTKe64VzEqR+XJLHrcbDGjoW4cM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lQ2naCDQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718040982; c=relaxed/simple;
+	bh=XfOiCGG542H08ezVcI7YbqL/bzwca1xyYl2rtjqKqoY=;
+	h=Date:To:From:Subject:Message-Id; b=u1L5ewv9kt/qey8nskK+YxmXl/lmVfcP1D76qBZsK78teEQTIo4PDU9Y7BuT9MzsnP6mgAR3RNfeUozWTtWy5ufy1FP7hjRD23n74FxwPeEChwnayJ0i9tYWiuZKsIiDM2IhqDCXZ8s2ulLB2/BYRGXFVPWZ2iFJythvP4I1Ls4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hpxQOWDj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lQ2naCDQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54A31C2BBFC;
-	Mon, 10 Jun 2024 16:35:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hpxQOWDj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17539C2BBFC;
+	Mon, 10 Jun 2024 17:36:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718037310;
-	bh=yA0Zubde3rEjfXIDEvk7r0N9dKc4uknpSp4Tx7You68=;
+	s=korg; t=1718040982;
+	bh=XfOiCGG542H08ezVcI7YbqL/bzwca1xyYl2rtjqKqoY=;
 	h=Date:To:From:Subject:From;
-	b=lQ2naCDQfK60EfJr9WKLVsUmVbQ04PBYADpMECC6kRK5CYpxSyM/DL08Vh5YLhCeU
-	 szQ5ITvvC6U3AkRF6Yj5hx72qBAsQs0Ud29g8CNR07NWdqC589YRTYQoQUohCcTBzs
-	 +g00E2o2E1J3lxD/8fi/WJRGrOPpqx623+fAw0cA=
-Date: Mon, 10 Jun 2024 09:35:09 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,willy@infradead.org,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,usamaarif642@gmail.com,akpm@linux-foundation.org
+	b=hpxQOWDjpSUwMRxIrYJkrxpfrJruiwuBz0EWg8zraxfqI/kzK6RDi3DlWzraDAuBQ
+	 m0yMjsUt4kaqVx72XMLvkmWahRg+Ew+U8TZum1ErrwRV+iTflD4L/QPXCBYXj0Tl2O
+	 XgMHn2FsLf/vijXcOn1E3pvK0tjkDrPW/dBOJnSA=
+Date: Mon, 10 Jun 2024 10:36:21 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,xiehuan09@gmail.com,willy@infradead.org,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,sj@kernel.org,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,maskray@google.com,libang.li@antgroup.com,fengwei.yin@intel.com,david@redhat.com,baolin.wang@linux.alibaba.com,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-do-not-start-end-writeback-for-pages-stored-in-zswap.patch added to mm-unstable branch
-Message-Id: <20240610163510.54A31C2BBFC@smtp.kernel.org>
+Subject: + mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch added to mm-unstable branch
+Message-Id: <20240610173622.17539C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: do not start/end writeback for pages stored in zswap
+     Subject: mm/rmap: remove duplicated exit code in pagewalk loop
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-do-not-start-end-writeback-for-pages-stored-in-zswap.patch
+     mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-do-not-start-end-writeback-for-pages-stored-in-zswap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,43 +58,174 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Usama Arif <usamaarif642@gmail.com>
-Subject: mm: do not start/end writeback for pages stored in zswap
-Date: Mon, 10 Jun 2024 15:30:37 +0100
+From: Lance Yang <ioworker0@gmail.com>
+Subject: mm/rmap: remove duplicated exit code in pagewalk loop
+Date: Mon, 10 Jun 2024 20:02:06 +0800
 
-start/end writeback combination incorrectly increments NR_WRITTEN counter,
-eventhough the pages aren't written to disk.  Pages successfully stored in
-zswap should just unlock folio and return from writepage.
+Patch series "Reclaim lazyfree THP without splitting", v7.
 
-Link: https://lkml.kernel.org/r/20240610143037.812955-1-usamaarif642@gmail.com
-Signed-off-by: Usama Arif <usamaarif642@gmail.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: kernel-team@meta.com
+This series adds support for reclaiming PMD-mapped THP marked as lazyfree
+without needing to first split the large folio via
+split_huge_pmd_address().
+
+When the user no longer requires the pages, they would use
+madvise(MADV_FREE) to mark the pages as lazy free.  Subsequently, they
+typically would not re-write to that memory again.
+
+During memory reclaim, if we detect that the large folio and its PMD are
+both still marked as clean and there are no unexpected references(such as
+GUP), so we can just discard the memory lazily, improving the efficiency
+of memory reclamation in this case.
+
+Performance Testing
+===================
+
+On an Intel i5 CPU, reclaiming 1GiB of lazyfree THPs using
+mem_cgroup_force_empty() results in the following runtimes in seconds
+(shorter is better):
+
+--------------------------------------------
+|     Old       |      New       |  Change  |
+--------------------------------------------
+|   0.683426    |    0.049197    |  -92.80% |
+--------------------------------------------
+
+
+This patch (of 4):
+
+Introduce the labels walk_done and walk_done_err as exit points to
+eliminate duplicated exit code in the pagewalk loop.
+
+Link: https://lkml.kernel.org/r/20240610120209.66311-2-ioworker0@gmail.com
+Signed-off-by: Lance Yang <ioworker0@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Bang Li <libang.li@antgroup.com>
+Cc: Fangrui Song <maskray@google.com>
+Cc: Jeff Xie <xiehuan09@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/rmap.c |   40 +++++++++++++++-------------------------
+ 1 file changed, 15 insertions(+), 25 deletions(-)
 
---- a/mm/page_io.c~mm-do-not-start-end-writeback-for-pages-stored-in-zswap
-+++ a/mm/page_io.c
-@@ -196,9 +196,7 @@ int swap_writepage(struct page *page, st
- 		return ret;
+--- a/mm/rmap.c~mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop
++++ a/mm/rmap.c
+@@ -1681,9 +1681,7 @@ static bool try_to_unmap_one(struct foli
+ 			/* Restore the mlock which got missed */
+ 			if (!folio_test_large(folio))
+ 				mlock_vma_folio(folio, vma);
+-			page_vma_mapped_walk_done(&pvmw);
+-			ret = false;
+-			break;
++			goto walk_done_err;
+ 		}
+ 
+ 		pfn = pte_pfn(ptep_get(pvmw.pte));
+@@ -1721,11 +1719,8 @@ static bool try_to_unmap_one(struct foli
+ 			 */
+ 			if (!anon) {
+ 				VM_BUG_ON(!(flags & TTU_RMAP_LOCKED));
+-				if (!hugetlb_vma_trylock_write(vma)) {
+-					page_vma_mapped_walk_done(&pvmw);
+-					ret = false;
+-					break;
+-				}
++				if (!hugetlb_vma_trylock_write(vma))
++					goto walk_done_err;
+ 				if (huge_pmd_unshare(mm, vma, address, pvmw.pte)) {
+ 					hugetlb_vma_unlock_write(vma);
+ 					flush_tlb_range(vma,
+@@ -1740,8 +1735,7 @@ static bool try_to_unmap_one(struct foli
+ 					 * actual page and drop map count
+ 					 * to zero.
+ 					 */
+-					page_vma_mapped_walk_done(&pvmw);
+-					break;
++					goto walk_done;
+ 				}
+ 				hugetlb_vma_unlock_write(vma);
+ 			}
+@@ -1813,9 +1807,7 @@ static bool try_to_unmap_one(struct foli
+ 			if (unlikely(folio_test_swapbacked(folio) !=
+ 					folio_test_swapcache(folio))) {
+ 				WARN_ON_ONCE(1);
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				goto walk_done_err;
+ 			}
+ 
+ 			/* MADV_FREE page check */
+@@ -1854,23 +1846,17 @@ static bool try_to_unmap_one(struct foli
+ 				 */
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+ 				folio_set_swapbacked(folio);
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				goto walk_done_err;
+ 			}
+ 
+ 			if (swap_duplicate(entry) < 0) {
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				goto walk_done_err;
+ 			}
+ 			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
+ 				swap_free(entry);
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				goto walk_done_err;
+ 			}
+ 
+ 			/* See folio_try_share_anon_rmap(): clear PTE first. */
+@@ -1878,9 +1864,7 @@ static bool try_to_unmap_one(struct foli
+ 			    folio_try_share_anon_rmap_pte(folio, subpage)) {
+ 				swap_free(entry);
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				goto walk_done_err;
+ 			}
+ 			if (list_empty(&mm->mmlist)) {
+ 				spin_lock(&mmlist_lock);
+@@ -1920,6 +1904,12 @@ discard:
+ 		if (vma->vm_flags & VM_LOCKED)
+ 			mlock_drain_local();
+ 		folio_put(folio);
++		continue;
++walk_done_err:
++		ret = false;
++walk_done:
++		page_vma_mapped_walk_done(&pvmw);
++		break;
  	}
- 	if (zswap_store(folio)) {
--		folio_start_writeback(folio);
- 		folio_unlock(folio);
--		folio_end_writeback(folio);
- 		return 0;
- 	}
- 	if (!mem_cgroup_zswap_writeback_enabled(folio_memcg(folio))) {
+ 
+ 	mmu_notifier_invalidate_range_end(&range);
 _
 
-Patches currently in -mm which might be from usamaarif642@gmail.com are
+Patches currently in -mm which might be from ioworker0@gmail.com are
 
-mm-do-not-start-end-writeback-for-pages-stored-in-zswap.patch
+mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch
+mm-rmap-add-helper-to-restart-pgtable-walk-on-changes.patch
+mm-rmap-integrate-pmd-mapped-folio-splitting-into-pagewalk-loop.patch
+mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list.patch
 
