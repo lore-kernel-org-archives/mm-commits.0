@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9941155326
-	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 21:58:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93AF518EAB
+	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 22:00:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718143108; cv=none; b=EAEq8ZJUZWrzpbnPRh2UuJhz/OO9GJUMXe9Op9rUEvFAibXbZQnkwbddif0zu5TV3+jrqQqycHQiUe7Rjhb1Ko1xh9oZohWmKQk+ndoQE4MzKo+7A32NsS7PUy6I1jegmYYGZ9QK5xHU9sQEnjFVXYreKZHzqiXKTOT8iAD5nOk=
+	t=1718143256; cv=none; b=p8lOiChgZB/tb+F1Q/pogoraF0+RC66CTZwHvwgsS9154K9sXwGDADZ/N4mpVOYUANylMxvkriHzZOVGJHgRh38ML64uy0aiXwl0W+yIaWh4Ih7D/iNvY0ETJ8fxS9pJpHHjCWAAWj0AdEKZ0qMyAZYQvNL+IGl061E28iCJzws=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718143108; c=relaxed/simple;
-	bh=FOZ6Lr4T+zeso16Zi84Y9aZkQ/0aMcUOwZlM9aEZbao=;
-	h=Date:To:From:Subject:Message-Id; b=PGHmIGj3NRBXEAkWG33aLBXSwlnC+e+9Je93nRgBhP1qzi8H62jCKUAe+939G/OYQ3PfrQt7DVgeLXUcoxQMZ2yW6qlsRAOITVF6R2ikCUssBFybE9f7nmo27VjHsTWmcZRGvpGnB87Ai+k1DCJCM539EMrd2gMt5K77ekhTtA4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x4RYBgwS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718143256; c=relaxed/simple;
+	bh=LHadjlN+PkSaqS5FB/P8WtEmt6FoBDeIKnfVBEszA6A=;
+	h=Date:To:From:Subject:Message-Id; b=jbpQDY/SLzRr0lvdCNRj8Jl25HT6goHY6BNf6uX2qOBNVon49D11Z0MzaH2DA5uwZOJdh9sJNtDsrUyZTruAc24aSPfMIK15zbt8vAwmYyguueH9zw5b1K14O/QhE2s0Df56FETVKkr8w5qkWmHtvOLMojPSPzaXMkfS2HXpJdE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WHrSD9/r; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x4RYBgwS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E1AFC2BD10;
-	Tue, 11 Jun 2024 21:58:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WHrSD9/r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DFA9C2BD10;
+	Tue, 11 Jun 2024 22:00:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718143108;
-	bh=FOZ6Lr4T+zeso16Zi84Y9aZkQ/0aMcUOwZlM9aEZbao=;
+	s=korg; t=1718143256;
+	bh=LHadjlN+PkSaqS5FB/P8WtEmt6FoBDeIKnfVBEszA6A=;
 	h=Date:To:From:Subject:From;
-	b=x4RYBgwSzFBeuvExXMo4ALH0YNGZnvkuSA33HvoNUEVaeBwzjv/n8oR7kGu/KGhdc
-	 Gwk0aCVb6WtAbErtXYuk/68WsrbI2pZfDP/GPI/PtO8XubpF//1MGw7o1Er6IixNAO
-	 uH7VULFzHLeSreaDCPxxHVbDAXFPOuQTUnYBUGt8=
-Date: Tue, 11 Jun 2024 14:58:27 -0700
-To: mm-commits@vger.kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=WHrSD9/rvnE+/1Kbe1nCWF2ruhZHGQ2a2A0FrHpHO8JhyPr6AeqAPnTckazmaHbu3
+	 QKyaeM28ldxIGbZ1Kq4HWtnha2VFZ1aWV7YGq2RvCuoDDb3c0SD07q1QHrIIh6Z5QW
+	 ApYRjKpPSN66DwWwxbMRGHzUJGrzU23OKAu8aYQk=
+Date: Tue, 11 Jun 2024 15:00:55 -0700
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix-fix.patch added to mm-unstable branch
-Message-Id: <20240611215828.6E1AFC2BD10@smtp.kernel.org>
+Subject: + mm-remove-page_maybe_dma_pinned-fix.patch added to mm-unstable branch
+Message-Id: <20240611220056.0DFA9C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix-fix
+     Subject: mm-remove-page_maybe_dma_pinned-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix-fix.patch
+     mm-remove-page_maybe_dma_pinned-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-page_maybe_dma_pinned-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,46 +58,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix-fix
-Date: Tue Jun 11 02:56:34 PM PDT 2024
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm-remove-page_maybe_dma_pinned-fix
+Date: Thu, 6 Jun 2024 11:36:29 +0800
 
-reflow transhuge.rst addition to 80 cols
+fix pin_user_pages.rst underlining
 
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/61b256c7-4989-44ec-83db-f34a1bd4be2d@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ Documentation/core-api/pin_user_pages.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix-fix
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -332,12 +332,13 @@ deny
- force
-     Force the huge option on for all - very useful for testing;
+--- a/Documentation/core-api/pin_user_pages.rst~mm-remove-page_maybe_dma_pinned-fix
++++ a/Documentation/core-api/pin_user_pages.rst
+@@ -197,7 +197,7 @@ INCORRECT (uses FOLL_GET calls):
+     put_page()
  
--Shmem can also use "multi-size THP" (mTHP) by adding a new sysfs knob to control
--mTHP allocation: '/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/shmem_enabled',
--and its value for each mTHP is essentially consistent with the global setting.
--An 'inherit' option is added to ensure compatibility with these global settings.
--Conversely, the options 'force' and 'deny' are dropped, which are rather testing
--artifacts from the old ages.
-+Shmem can also use "multi-size THP" (mTHP) by adding a new sysfs knob to
-+control mTHP allocation:
-+'/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/shmem_enabled',
-+and its value for each mTHP is essentially consistent with the global
-+setting.  An 'inherit' option is added to ensure compatibility with these
-+global settings.  Conversely, the options 'force' and 'deny' are dropped,
-+which are rather testing artifacts from the old ages.
+ folio_maybe_dma_pinned(): the whole point of pinning
+-===================================================
++====================================================
  
- always
-     Attempt to allocate <size> huge pages every time we need a new page;
+ The whole point of marking folios as "DMA-pinned" or "gup-pinned" is to be able
+ to query, "is this folio DMA-pinned?" That allows code such as page_mkclean()
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3-fix.patch
-mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type-fix.patch
-mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix-fix.patch
+mm-add-folio_alloc_mpol.patch
+mm-mempolicy-use-folio_alloc_mpol_noprof-in-vma_alloc_folio_noprof.patch
+mm-mempolicy-use-folio_alloc_mpol-in-alloc_migration_target_by_mpol.patch
+mm-shmem-use-folio_alloc_mpol-in-shmem_alloc_folio.patch
+mm-refactor-folio_undo_large_rmappable.patch
+mm-memcontrol-remove-page_memcg.patch
+rmap-remove-define_page_vma_walk.patch
+mm-migrate-simplify-__buffer_migrate_folio.patch
+mm-migrate_device-use-a-newfolio-in-__migrate_device_pages.patch
+mm-migrate_device-unify-migrate-folio-for-migrate_sync_no_copy.patch
+mm-migrate-remove-migrate_folio_extra.patch
+mm-remove-migrate_sync_no_copy-mode.patch
+fs-proc-task_mmu-use-folio-api-in-pte_is_pinned.patch
+mm-remove-page_maybe_dma_pinned.patch
+mm-remove-page_maybe_dma_pinned-fix.patch
+fb_defio-use-a-folio-in-fb_deferred_io_work.patch
+mm-remove-page_mkclean.patch
+mm-remove-page_mkclean-fix.patch
+mm-move-memory_failure_queue-into-copy_mc__highpage.patch
+mm-add-folio_mc_copy.patch
+mm-migrate-split-folio_migrate_mapping.patch
+mm-migrate-support-poisoned-recover-from-migrate-folio.patch
+fs-hugetlbfs-support-poison-recover-from-hugetlbfs_migrate_folio.patch
+mm-migrate-remove-folio_migrate_copy.patch
 
