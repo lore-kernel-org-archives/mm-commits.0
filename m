@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C31A171A5
-	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 19:10:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 704A4171A5
+	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 19:10:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718133053; cv=none; b=tzK1XlEFSPb6dEcCAwX8sPda3T4wLRk26InSsYj7oZnSctiLdLEJnn96u8Ak2YJwsuSW7VHuQk3Z1l1fiwjx2Jjhuj2yZTxqBOO2rnzRcKpu8yGbdczuO1Ci0Ua3yqXsOiG0a1rZfk03hGUGAWoyYS9N03rOKojw8K7RhbJjNnI=
+	t=1718133055; cv=none; b=lUDF0ZQZEHQW1HOSaVjAB4Pv5B5EMKmdr7TBiK0GF4JGclduYreH17fvBSX0PFzr1jsRXlfTHo1fxwKdrKQdDmAOqIbuWcbiq+6mvRaXnNnPjJVWZXcx+vk1nKH36TGPRNfpzF7hF91BM0i4EOy/M4pza802u4uQEemQqK8zcfY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718133053; c=relaxed/simple;
-	bh=OrEWP1I0bhOAM1KmQPcSc3uvVhEsDTjSzs5MJ4C9O8I=;
-	h=Date:To:From:Subject:Message-Id; b=dn2mLZ1zSvYg8PIX+4xXXpHWeNiqgJnwO1UQbDNoRpIsdblqM+MAP/C6+PbKcCq26kvb8NR8GbUJ5mX8kLJjvVVdGeZp9yuVeBhcJRk9/JvCiucmeacHRiAQBYnzfhGfU3lElh8d0yGoCWH+He3Rx3uoa7hCP2YoSjYKgeZNvHE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aIBxFfPi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718133055; c=relaxed/simple;
+	bh=JKzU4iAnH9eQs5t7rNbmtB2pLA3bSvOp5SUR7e7XeJE=;
+	h=Date:To:From:Subject:Message-Id; b=pbtO6b4x3jFmuLAt5XfNV1ry39ZUvGSMG6hKXQVSDiImzf2xGZWb1gK4atSQUeumLQ60Ki1warMXIAyABgoTDcrSz/WikOwcH+8bCCbfKJ02Bw0d92erPHCqcSlL6Q43zDjdVIM1e1thZHHf2kujQE1dxKJ1nN1bf2XxEjgAAH4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pjaJD7yp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aIBxFfPi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C21E9C2BD10;
-	Tue, 11 Jun 2024 19:10:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pjaJD7yp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9DEAC2BD10;
+	Tue, 11 Jun 2024 19:10:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718133052;
-	bh=OrEWP1I0bhOAM1KmQPcSc3uvVhEsDTjSzs5MJ4C9O8I=;
+	s=korg; t=1718133055;
+	bh=JKzU4iAnH9eQs5t7rNbmtB2pLA3bSvOp5SUR7e7XeJE=;
 	h=Date:To:From:Subject:From;
-	b=aIBxFfPi97bXp1JbxBi4k3p4J6xxdrnUDPtqR/e6/s3GqiHBCaT6zXXFI5PqBB5s8
-	 nZFtCejSVFSxRGG1+JxqGKw6hSk1A1WjzCvFdNzoKOptb7aBDLtlBaBrKix96yGsCU
-	 zCwHV17Kf8MrFXnArF06NFGZCo0STQqsWB+ojZ2I=
-Date: Tue, 11 Jun 2024 12:10:52 -0700
+	b=pjaJD7yp+k4YcsuoDpcYE4pyZ802NSe6zGbYQUdTk7ukxBx09tpvNu2Ss9tdVYyTO
+	 WsMtPwgGi9jvpViXT+6bKhTA3NGkBDuUWi36EFOfzlk+6OY69NMhVnBNXCqRvdknBz
+	 64bT2a7RwPQDokVdk5vgrlZJdkbZ+dKAM8MrH9VA=
+Date: Tue, 11 Jun 2024 12:10:54 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch added to mm-unstable branch
-Message-Id: <20240611191052.C21E9C2BD10@smtp.kernel.org>
+Subject: + mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch added to mm-unstable branch
+Message-Id: <20240611191054.E9DEAC2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: shmem: add THP validation for PMD-mapped THP related statistics
+     Subject: mm: shmem: add multi-size THP sysfs interface for anonymous shmem
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch
+     mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,30 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: add THP validation for PMD-mapped THP related statistics
-Date: Tue, 11 Jun 2024 18:11:06 +0800
+Subject: mm: shmem: add multi-size THP sysfs interface for anonymous shmem
+Date: Tue, 11 Jun 2024 18:11:07 +0800
 
-In order to extend support for mTHP, add THP validation for PMD-mapped THP
-related statistics to avoid statistical confusion.
+To support the use of mTHP with anonymous shmem, add a new sysfs interface
+'shmem_enabled' in the '/sys/kernel/mm/transparent_hugepage/hugepages-kB/'
+directory for each mTHP to control whether shmem is enabled for that mTHP,
+with a value similar to the top level 'shmem_enabled', which can be set
+to: "always", "inherit (to inherit the top level setting)", "within_size",
+"advise", "never".  An 'inherit' option is added to ensure compatibility
+with these global settings, and the options 'force' and 'deny' are
+dropped, which are rather testing artifacts from the old ages.
 
-Link: https://lkml.kernel.org/r/c4b04cbd51e6951cc2436a87be8eaa4a1516faec.1718090413.git.baolin.wang@linux.alibaba.com
+By default, PMD-sized hugepages have enabled="inherit" and all other
+hugepage sizes have enabled="never" for
+'/sys/kernel/mm/transparent_hugepage/hugepages-xxkB/shmem_enabled'.
+
+In addition, if top level value is 'force', then only PMD-sized hugepages
+have enabled="inherit", otherwise configuration will be failed and vice
+versa.  That means now we will avoid using non-PMD sized THP to override
+the global huge allocation.
+
+Link: https://lkml.kernel.org/r/ffddfa8b3cb4266ff963099ab78cfd7184c57ac7.1718090413.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Barry Song <v-songbaohua@oppo.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
 Cc: Daniel Gomez <da.gomez@samsung.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
@@ -81,39 +96,230 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/mm/transhuge.rst |   23 ++++
+ include/linux/huge_mm.h                    |   10 +
+ mm/huge_memory.c                           |   11 --
+ mm/shmem.c                                 |   96 +++++++++++++++++++
+ 4 files changed, 132 insertions(+), 8 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics
-+++ a/mm/shmem.c
-@@ -1647,7 +1647,7 @@ static struct folio *shmem_alloc_and_add
- 			return ERR_PTR(-E2BIG);
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -332,6 +332,29 @@ deny
+ force
+     Force the huge option on for all - very useful for testing;
  
- 		folio = shmem_alloc_folio(gfp, HPAGE_PMD_ORDER, info, index);
--		if (!folio)
-+		if (!folio && pages == HPAGE_PMD_NR)
- 			count_vm_event(THP_FILE_FALLBACK);
- 	} else {
- 		pages = 1;
-@@ -1665,7 +1665,7 @@ static struct folio *shmem_alloc_and_add
- 		if (xa_find(&mapping->i_pages, &index,
- 				index + pages - 1, XA_PRESENT)) {
- 			error = -EEXIST;
--		} else if (huge) {
-+		} else if (pages == HPAGE_PMD_NR) {
- 			count_vm_event(THP_FILE_FALLBACK);
- 			count_vm_event(THP_FILE_FALLBACK_CHARGE);
- 		}
-@@ -2031,7 +2031,8 @@ repeat:
- 		folio = shmem_alloc_and_add_folio(huge_gfp,
- 				inode, index, fault_mm, true);
- 		if (!IS_ERR(folio)) {
--			count_vm_event(THP_FILE_ALLOC);
-+			if (folio_test_pmd_mappable(folio))
-+				count_vm_event(THP_FILE_ALLOC);
- 			goto alloced;
- 		}
- 		if (PTR_ERR(folio) == -EEXIST)
++Shmem can also use "multi-size THP" (mTHP) by adding a new sysfs knob to control
++mTHP allocation: '/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/shmem_enabled',
++and its value for each mTHP is essentially consistent with the global setting.
++An 'inherit' option is added to ensure compatibility with these global settings.
++Conversely, the options 'force' and 'deny' are dropped, which are rather testing
++artifacts from the old ages.
++always
++    Attempt to allocate <size> huge pages every time we need a new page;
++
++inherit
++    Inherit the top-level "shmem_enabled" value. By default, PMD-sized hugepages
++    have enabled="inherit" and all other hugepage sizes have enabled="never";
++
++never
++    Do not allocate <size> huge pages;
++
++within_size
++    Only allocate <size> huge page if it will be fully within i_size.
++    Also respect fadvise()/madvise() hints;
++
++advise
++    Only allocate <size> huge pages if requested with fadvise()/madvise();
++
+ Need of application restart
+ ===========================
+ 
+--- a/include/linux/huge_mm.h~mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem
++++ a/include/linux/huge_mm.h
+@@ -6,6 +6,7 @@
+ #include <linux/mm_types.h>
+ 
+ #include <linux/fs.h> /* only for vma_is_dax() */
++#include <linux/kobject.h>
+ 
+ vm_fault_t do_huge_pmd_anonymous_page(struct vm_fault *vmf);
+ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+@@ -63,6 +64,7 @@ ssize_t single_hugepage_flag_show(struct
+ 				  struct kobj_attribute *attr, char *buf,
+ 				  enum transparent_hugepage_flag flag);
+ extern struct kobj_attribute shmem_enabled_attr;
++extern struct kobj_attribute thpsize_shmem_enabled_attr;
+ 
+ /*
+  * Mask of all large folio orders supported for anonymous THP; all orders up to
+@@ -265,6 +267,14 @@ unsigned long thp_vma_allowable_orders(s
+ 	return __thp_vma_allowable_orders(vma, vm_flags, tva_flags, orders);
+ }
+ 
++struct thpsize {
++	struct kobject kobj;
++	struct list_head node;
++	int order;
++};
++
++#define to_thpsize(kobj) container_of(kobj, struct thpsize, kobj)
++
+ enum mthp_stat_item {
+ 	MTHP_STAT_ANON_FAULT_ALLOC,
+ 	MTHP_STAT_ANON_FAULT_FALLBACK,
+--- a/mm/huge_memory.c~mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem
++++ a/mm/huge_memory.c
+@@ -449,14 +449,6 @@ static void thpsize_release(struct kobje
+ static DEFINE_SPINLOCK(huge_anon_orders_lock);
+ static LIST_HEAD(thpsize_list);
+ 
+-struct thpsize {
+-	struct kobject kobj;
+-	struct list_head node;
+-	int order;
+-};
+-
+-#define to_thpsize(kobj) container_of(kobj, struct thpsize, kobj)
+-
+ static ssize_t thpsize_enabled_show(struct kobject *kobj,
+ 				    struct kobj_attribute *attr, char *buf)
+ {
+@@ -517,6 +509,9 @@ static struct kobj_attribute thpsize_ena
+ 
+ static struct attribute *thpsize_attrs[] = {
+ 	&thpsize_enabled_attr.attr,
++#ifdef CONFIG_SHMEM
++	&thpsize_shmem_enabled_attr.attr,
++#endif
+ 	NULL,
+ };
+ 
+--- a/mm/shmem.c~mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem
++++ a/mm/shmem.c
+@@ -131,6 +131,14 @@ struct shmem_options {
+ #define SHMEM_SEEN_QUOTA 32
+ };
+ 
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static unsigned long huge_shmem_orders_always __read_mostly;
++static unsigned long huge_shmem_orders_madvise __read_mostly;
++static unsigned long huge_shmem_orders_inherit __read_mostly;
++static unsigned long huge_shmem_orders_within_size __read_mostly;
++static DEFINE_SPINLOCK(huge_shmem_orders_lock);
++#endif
++
+ #ifdef CONFIG_TMPFS
+ static unsigned long shmem_default_max_blocks(void)
+ {
+@@ -4672,6 +4680,12 @@ void __init shmem_init(void)
+ 		SHMEM_SB(shm_mnt->mnt_sb)->huge = shmem_huge;
+ 	else
+ 		shmem_huge = SHMEM_HUGE_NEVER; /* just in case it was patched */
++
++	/*
++	 * Default to setting PMD-sized THP to inherit the global setting and
++	 * disable all other multi-size THPs.
++	 */
++	huge_shmem_orders_inherit = BIT(HPAGE_PMD_ORDER);
+ #endif
+ 	return;
+ 
+@@ -4731,6 +4745,11 @@ static ssize_t shmem_enabled_store(struc
+ 			huge != SHMEM_HUGE_NEVER && huge != SHMEM_HUGE_DENY)
+ 		return -EINVAL;
+ 
++	/* Do not override huge allocation policy with non-PMD sized mTHP */
++	if (huge == SHMEM_HUGE_FORCE &&
++	    huge_shmem_orders_inherit != BIT(HPAGE_PMD_ORDER))
++		return -EINVAL;
++
+ 	shmem_huge = huge;
+ 	if (shmem_huge > SHMEM_HUGE_DENY)
+ 		SHMEM_SB(shm_mnt->mnt_sb)->huge = shmem_huge;
+@@ -4738,6 +4757,83 @@ static ssize_t shmem_enabled_store(struc
+ }
+ 
+ struct kobj_attribute shmem_enabled_attr = __ATTR_RW(shmem_enabled);
++
++static ssize_t thpsize_shmem_enabled_show(struct kobject *kobj,
++					  struct kobj_attribute *attr, char *buf)
++{
++	int order = to_thpsize(kobj)->order;
++	const char *output;
++
++	if (test_bit(order, &huge_shmem_orders_always))
++		output = "[always] inherit within_size advise never";
++	else if (test_bit(order, &huge_shmem_orders_inherit))
++		output = "always [inherit] within_size advise never";
++	else if (test_bit(order, &huge_shmem_orders_within_size))
++		output = "always inherit [within_size] advise never";
++	else if (test_bit(order, &huge_shmem_orders_madvise))
++		output = "always inherit within_size [advise] never";
++	else
++		output = "always inherit within_size advise [never]";
++
++	return sysfs_emit(buf, "%s\n", output);
++}
++
++static ssize_t thpsize_shmem_enabled_store(struct kobject *kobj,
++					   struct kobj_attribute *attr,
++					   const char *buf, size_t count)
++{
++	int order = to_thpsize(kobj)->order;
++	ssize_t ret = count;
++
++	if (sysfs_streq(buf, "always")) {
++		spin_lock(&huge_shmem_orders_lock);
++		clear_bit(order, &huge_shmem_orders_inherit);
++		clear_bit(order, &huge_shmem_orders_madvise);
++		clear_bit(order, &huge_shmem_orders_within_size);
++		set_bit(order, &huge_shmem_orders_always);
++		spin_unlock(&huge_shmem_orders_lock);
++	} else if (sysfs_streq(buf, "inherit")) {
++		/* Do not override huge allocation policy with non-PMD sized mTHP */
++		if (shmem_huge == SHMEM_HUGE_FORCE &&
++		    order != HPAGE_PMD_ORDER)
++			return -EINVAL;
++
++		spin_lock(&huge_shmem_orders_lock);
++		clear_bit(order, &huge_shmem_orders_always);
++		clear_bit(order, &huge_shmem_orders_madvise);
++		clear_bit(order, &huge_shmem_orders_within_size);
++		set_bit(order, &huge_shmem_orders_inherit);
++		spin_unlock(&huge_shmem_orders_lock);
++	} else if (sysfs_streq(buf, "within_size")) {
++		spin_lock(&huge_shmem_orders_lock);
++		clear_bit(order, &huge_shmem_orders_always);
++		clear_bit(order, &huge_shmem_orders_inherit);
++		clear_bit(order, &huge_shmem_orders_madvise);
++		set_bit(order, &huge_shmem_orders_within_size);
++		spin_unlock(&huge_shmem_orders_lock);
++	} else if (sysfs_streq(buf, "madvise")) {
++		spin_lock(&huge_shmem_orders_lock);
++		clear_bit(order, &huge_shmem_orders_always);
++		clear_bit(order, &huge_shmem_orders_inherit);
++		clear_bit(order, &huge_shmem_orders_within_size);
++		set_bit(order, &huge_shmem_orders_madvise);
++		spin_unlock(&huge_shmem_orders_lock);
++	} else if (sysfs_streq(buf, "never")) {
++		spin_lock(&huge_shmem_orders_lock);
++		clear_bit(order, &huge_shmem_orders_always);
++		clear_bit(order, &huge_shmem_orders_inherit);
++		clear_bit(order, &huge_shmem_orders_within_size);
++		clear_bit(order, &huge_shmem_orders_madvise);
++		spin_unlock(&huge_shmem_orders_lock);
++	} else {
++		ret = -EINVAL;
++	}
++
++	return ret;
++}
++
++struct kobj_attribute thpsize_shmem_enabled_attr =
++	__ATTR(shmem_enabled, 0644, thpsize_shmem_enabled_show, thpsize_shmem_enabled_store);
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE && CONFIG_SYSFS */
+ 
+ #else /* !CONFIG_SHMEM */
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
