@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F3CF171A5
-	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 19:11:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2270E150991
+	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 19:20:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718133063; cv=none; b=dQPYkKkcs9ITGE7Fr9Cz3yah6HNBnpMaC5YuRP32Rp6DnzaXoCB31E85kvgbG1Jcr45JlEXh0jELcPBFu7rQexfLzRygMuyvkOR9MORSiTAMS9kPN44J1XjtQHubxlOGI/EQV7MR+b+Z+TdCcTKrHvaTadmSWF4laYb8dHcSoaA=
+	t=1718133609; cv=none; b=Q/TiY+uofdGVncXFFjBB4DjitA8O3YRwxOyT3wxYtoPVCc4aTmbOXF7+VL4M+4gb7h2HiRZ4ukZ6ZeY5Bq9Y/YmMMbFUlpdSYx78H0GwUPwVkIXxlrsbIa8RCIHCCDLtFdmaY0GemAlm2jsKRvlZAmxCeKe7jIOR+QWsfuVmQXU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718133063; c=relaxed/simple;
-	bh=aEXMB4lTmjMIQXDB9QRzZf/ZOOFNU2MLUrqPsw10odI=;
-	h=Date:To:From:Subject:Message-Id; b=sNJ/rLaFqvg1vWl3hkpaqQsZMxFdEEwLidWIi8nbkwe+2Llhe7sqIw4IvN8GoED5WO1ef01sRaHaKtSBi8rfReUqk+L0vfz82Z+REuLoa+l7dcUdKroRrKdGx1+0Vp11j88B1yoePVRPnzAZeh4UCfwY8lS3hHBiYkDOfBVKG9A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1XtVSsMN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718133609; c=relaxed/simple;
+	bh=7fBMfXmX71kipOUMi406oAN2p/JEsqUnh7wBHIJLFkU=;
+	h=Date:To:From:Subject:Message-Id; b=qcTLD2rWyZRs+3VbMVoeykR57JbdYhv8CamLbmk7j9ljjf/TGxTHU/KNTgWkVAQMldjlvhyZCjhPbTDJXdkfGXvcZVkOxzhAJLLkidZL+Ul6yS3tDyolL/AlzgDoKMp6c5bMPrgTz7VPjq9Vv6IbR6d7q0n6fEEiAMkDgPkpCsE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MPzNm949; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1XtVSsMN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95AB1C2BD10;
-	Tue, 11 Jun 2024 19:11:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MPzNm949"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B37C9C2BD10;
+	Tue, 11 Jun 2024 19:20:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718133062;
-	bh=aEXMB4lTmjMIQXDB9QRzZf/ZOOFNU2MLUrqPsw10odI=;
+	s=korg; t=1718133608;
+	bh=7fBMfXmX71kipOUMi406oAN2p/JEsqUnh7wBHIJLFkU=;
 	h=Date:To:From:Subject:From;
-	b=1XtVSsMNToqR5K7qeEfbqMySOoGTvsk9tg6QHPd+0rqwmCCGhjmNfzwJkDMIaylhq
-	 M56I9zkIvQLMJGWyAaFiWyQPYtUH6DXOD5M1Iy3KCOBaCUVrHCaFNOxXbXwiTvoA2M
-	 Ben20DAneRUWyLA+ci/2/RawzbsnFyyXyvTNRCaQ=
-Date: Tue, 11 Jun 2024 12:11:02 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=MPzNm94960WYAbYY3SxeDeRro/iPa0YgKgh7qH3kXbjPRcMxRdMHToaTS30DRgXcp
+	 EtTo0IsDm/jE6Pg8X/lhLAVcdDyZWaf25CPAhyfwQ1JEiz9Gk+VyrF/jVopZnJvVA3
+	 HzYunru4SkALT+6TDWDLn0UuXDLjy4M9J1lJIXGE=
+Date: Tue, 11 Jun 2024 12:20:08 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-add-mthp-counters-for-anonymous-shmem.patch added to mm-unstable branch
-Message-Id: <20240611191102.95AB1C2BD10@smtp.kernel.org>
+Subject: + mm-pass-meminit_context-to-__free_pages_core-fix-2.patch added to mm-unstable branch
+Message-Id: <20240611192008.B37C9C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: shmem: add mTHP counters for anonymous shmem
+     Subject: mm-pass-meminit_context-to-__free_pages_core-fix-2
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
+     mm-pass-meminit_context-to-__free_pages_core-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pass-meminit_context-to-__free_pages_core-fix-2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,116 +58,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: add mTHP counters for anonymous shmem
-Date: Tue, 11 Jun 2024 18:11:10 +0800
+From: David Hildenbrand <david@redhat.com>
+Subject: mm-pass-meminit_context-to-__free_pages_core-fix-2
+Date: Tue, 11 Jun 2024 12:05:09 +0200
 
-Add mTHP counters for anonymous shmem.
+fix up the memblock comment, per Oscar
 
-Link: https://lkml.kernel.org/r/4fd9e467d49ae4a747e428bcd821c7d13125ae67.1718090413.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Daniel Gomez <da.gomez@samsung.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/2ed64218-7f3b-4302-a5dc-27f060654fe2@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    3 +++
- mm/huge_memory.c        |    6 ++++++
- mm/shmem.c              |   18 +++++++++++++++---
- 3 files changed, 24 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/huge_mm.h~mm-shmem-add-mthp-counters-for-anonymous-shmem
-+++ a/include/linux/huge_mm.h
-@@ -281,6 +281,9 @@ enum mthp_stat_item {
- 	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
- 	MTHP_STAT_SWPOUT,
- 	MTHP_STAT_SWPOUT_FALLBACK,
-+	MTHP_STAT_FILE_ALLOC,
-+	MTHP_STAT_FILE_FALLBACK,
-+	MTHP_STAT_FILE_FALLBACK_CHARGE,
- 	__MTHP_STAT_COUNT
- };
- 
---- a/mm/huge_memory.c~mm-shmem-add-mthp-counters-for-anonymous-shmem
-+++ a/mm/huge_memory.c
-@@ -555,6 +555,9 @@ DEFINE_MTHP_STAT_ATTR(anon_fault_fallbac
- DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
- DEFINE_MTHP_STAT_ATTR(swpout, MTHP_STAT_SWPOUT);
- DEFINE_MTHP_STAT_ATTR(swpout_fallback, MTHP_STAT_SWPOUT_FALLBACK);
-+DEFINE_MTHP_STAT_ATTR(file_alloc, MTHP_STAT_FILE_ALLOC);
-+DEFINE_MTHP_STAT_ATTR(file_fallback, MTHP_STAT_FILE_FALLBACK);
-+DEFINE_MTHP_STAT_ATTR(file_fallback_charge, MTHP_STAT_FILE_FALLBACK_CHARGE);
- 
- static struct attribute *stats_attrs[] = {
- 	&anon_fault_alloc_attr.attr,
-@@ -562,6 +565,9 @@ static struct attribute *stats_attrs[] =
- 	&anon_fault_fallback_charge_attr.attr,
- 	&swpout_attr.attr,
- 	&swpout_fallback_attr.attr,
-+	&file_alloc_attr.attr,
-+	&file_fallback_attr.attr,
-+	&file_fallback_charge_attr.attr,
- 	NULL,
- };
- 
---- a/mm/shmem.c~mm-shmem-add-mthp-counters-for-anonymous-shmem
-+++ a/mm/shmem.c
-@@ -1773,6 +1773,9 @@ static struct folio *shmem_alloc_and_add
- 
- 			if (pages == HPAGE_PMD_NR)
- 				count_vm_event(THP_FILE_FALLBACK);
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+			count_mthp_stat(order, MTHP_STAT_FILE_FALLBACK);
-+#endif
- 			order = next_order(&suitable_orders, order);
- 		}
+--- a/mm/page_alloc.c~mm-pass-meminit_context-to-__free_pages_core-fix-2
++++ a/mm/page_alloc.c
+@@ -1245,7 +1245,7 @@ void __free_pages_core(struct page *page
+ 		debug_pagealloc_map_pages(page, nr_pages);
+ 		adjust_managed_page_count(page, nr_pages);
  	} else {
-@@ -1792,9 +1795,15 @@ allocated:
- 		if (xa_find(&mapping->i_pages, &index,
- 				index + pages - 1, XA_PRESENT)) {
- 			error = -EEXIST;
--		} else if (pages == HPAGE_PMD_NR) {
--			count_vm_event(THP_FILE_FALLBACK);
--			count_vm_event(THP_FILE_FALLBACK_CHARGE);
-+		} else if (pages > 1) {
-+			if (pages == HPAGE_PMD_NR) {
-+				count_vm_event(THP_FILE_FALLBACK);
-+				count_vm_event(THP_FILE_FALLBACK_CHARGE);
-+			}
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+			count_mthp_stat(folio_order(folio), MTHP_STAT_FILE_FALLBACK);
-+			count_mthp_stat(folio_order(folio), MTHP_STAT_FILE_FALLBACK_CHARGE);
-+#endif
- 		}
- 		goto unlock;
+-		/* memblock adjusts totalram_pages() ahead of time. */
++		/* memblock adjusts totalram_pages() manually. */
+ 		atomic_long_add(nr_pages, &page_zone(page)->managed_pages);
  	}
-@@ -2168,6 +2177,9 @@ repeat:
- 		if (!IS_ERR(folio)) {
- 			if (folio_test_pmd_mappable(folio))
- 				count_vm_event(THP_FILE_ALLOC);
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+			count_mthp_stat(folio_order(folio), MTHP_STAT_FILE_ALLOC);
-+#endif
- 			goto alloced;
- 		}
- 		if (PTR_ERR(folio) == -EEXIST)
+ 
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-memory-extend-finish_fault-to-support-large-folio.patch
-mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch
-mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch
-mm-shmem-add-mthp-support-for-anonymous-shmem.patch
-mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area.patch
-mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
+revert-mm-init_mlocked_on_free_v3.patch
+mm-memory-move-page_count-check-into-validate_page_before_insert.patch
+mm-memory-cleanly-support-zeropage-in-vm_insert_page-vm_map_pages-and-vmf_insert_mixed.patch
+mm-rmap-sanity-check-that-zeropages-are-not-passed-to-rmap.patch
+mm-update-_mapcount-and-page_type-documentation.patch
+mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type.patch
+mm-zsmalloc-use-a-proper-page-type.patch
+mm-page_alloc-clear-pagebuddy-using-__clearpagebuddy-for-bad-pages.patch
+mm-filemap-reinitialize-folio-_mapcount-directly.patch
+mm-mm_init-initialize-page-_mapcount-directly-in-__init_single_page.patch
+fs-proc-task_mmu-indicate-pm_file-for-pmd-mapped-file-thp.patch
+fs-proc-task_mmu-dont-indicate-pm_mmap_exclusive-without-pm_present.patch
+fs-proc-task_mmu-properly-detect-pm_mmap_exclusive-per-page-of-pmd-mapped-thps.patch
+fs-proc-task_mmu-account-non-present-entries-as-maybe-shared-but-no-idea-how-often.patch
+fs-proc-move-page_mapcount-to-fs-proc-internalh.patch
+documentation-admin-guide-mm-pagemaprst-drop-using-pagemap-to-do-something-useful.patch
+mm-pass-meminit_context-to-__free_pages_core.patch
+mm-pass-meminit_context-to-__free_pages_core-fix.patch
+mm-pass-meminit_context-to-__free_pages_core-fix-2.patch
+mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved.patch
+mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining.patch
+mm-highmem-reimplement-totalhigh_pages-by-walking-zones.patch
+mm-highmem-reimplement-totalhigh_pages-by-walking-zones-fix.patch
+mm-highmem-make-nr_free_highpages-return-unsigned-long.patch
 
