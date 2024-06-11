@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C828120314
-	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 22:08:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 818C4154C00
+	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 22:09:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718143734; cv=none; b=SKmLs2794szfw6wU/agp521RJYj6e6aNB8OEQB2w642BeT+6yBKYqTrITVFEXzUKI+BcawJxDHZ9sHI175yPofAVQZ9XWex/AtTHVuRuZlhX+RxkvLUTq7mLBe1nJThmWYpMHFg8ls/LDnL04NAZCrimhbiKZB/b5yTUJnMzU+U=
+	t=1718143748; cv=none; b=kkYLSchYMf2gAq9RDm2sb7kmF3WuPqQE6dZLodbwFeR7EsazNJ2qp6pjGWm+BlIJbF42JU73fPWTn+/DbkKmGaUJCmheBLEWT9fY88tcs+ZYuKFnuT6tn2WepamRAwY9pRRppttBkasA3mkWNx/Xz05nZbO/7IydyQ9zCd8pRyY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718143734; c=relaxed/simple;
-	bh=Fc5sU3IG85AlMA3gOaCbDg861+9df5MZ1L0dSIdvbCA=;
-	h=Date:To:From:Subject:Message-Id; b=mSJ8TG/1narkAEYMuEXh2dFIJvrGtMdG7JdV2UYOPtjasOwDBff0d73qqCdf7tWtBc1jzD2zjpe/uyfzZFs5DLI6CWqNhHi9oUJ0Zsk/WhcVvh3EFTyWy3dr/rdd6Lx1y+1FGgApdQNcgOtHlhBo2UkjNQ8qnfNxofN/nkVMAe0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oIkbRDIP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718143748; c=relaxed/simple;
+	bh=LRcZ6fEzm44qf3WxOVc4Ny3WbIvqjNEvff5gV0vms0M=;
+	h=Date:To:From:Subject:Message-Id; b=sViH1uAg38QtfnQxSthh7L4iVet3aOqblm6uesNYWEQ+o4xBDMCNjw7PWm7cNXjnvGy1Jr5ygIk/htwUEhJRkdVe4nDuZ9hGPqkMYjD3ldbd73Uwx7wHcLEEiZPejvFiZhr4HvfZbUTx9XRDPX87WG2xn8AEAj3bvhYMQzqWOWg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QaqZzcsZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oIkbRDIP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43A5CC2BD10;
-	Tue, 11 Jun 2024 22:08:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QaqZzcsZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F023CC2BD10;
+	Tue, 11 Jun 2024 22:09:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718143734;
-	bh=Fc5sU3IG85AlMA3gOaCbDg861+9df5MZ1L0dSIdvbCA=;
+	s=korg; t=1718143748;
+	bh=LRcZ6fEzm44qf3WxOVc4Ny3WbIvqjNEvff5gV0vms0M=;
 	h=Date:To:From:Subject:From;
-	b=oIkbRDIPu5uiITwE7Sg0djKLoKifIm8Ghc3S5o85DUCA1RsuO6oLLT14/mXfAXipp
-	 jJKUcpmYazx7hPbSgC7tEm90TSRpmfk3bJyeoVVwBQ4Ixk+1W5N3BpEuqDUKdD6z+l
-	 JEnwbukMVlYwMYYZxGqbkBMzRFld1VT1sgs2ha6M=
-Date: Tue, 11 Jun 2024 15:08:53 -0700
+	b=QaqZzcsZt9m4YZxF+DyOLq8Ia8qcRAX21dCmNzIMbGfqwrUa+2Tfpm1TCAKoatjGw
+	 k4TsH+RSCwmHcnvY9p61Xp7LopcDJ7rqCKztHndp5vjQ7vHFBrzRWppOZM8ml5LgQL
+	 3OS/DEGRGWrOoxUuhZ3RtPbtakQ/NkXXuv/mW8J0=
+Date: Tue, 11 Jun 2024 15:09:07 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,nphamcs@gmail.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,baohua@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-add-zswap_never_enabled.patch added to mm-unstable branch
-Message-Id: <20240611220854.43A5CC2BD10@smtp.kernel.org>
+Subject: + mm-zswap-handle-incorrect-attempts-to-load-large-folios.patch added to mm-unstable branch
+Message-Id: <20240611220907.F023CC2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: add zswap_never_enabled()
+     Subject: mm: zswap: handle incorrect attempts to load large folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-add-zswap_never_enabled.patch
+     mm-zswap-handle-incorrect-attempts-to-load-large-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-add-zswap_never_enabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-handle-incorrect-attempts-to-load-large-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,79 +59,109 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zswap: add zswap_never_enabled()
-Date: Tue, 11 Jun 2024 02:45:15 +0000
+Subject: mm: zswap: handle incorrect attempts to load large folios
+Date: Tue, 11 Jun 2024 02:45:16 +0000
 
-Add zswap_never_enabled() to skip the xarray lookup in zswap_load() if
-zswap was never enabled on the system.  It is implemented using static
-branches for efficiency, as enabling zswap should be a rare event.  This
-could shave some cycles off zswap_load() when CONFIG_ZSWAP is used but
-zswap is never enabled.
+Zswap does not support storing or loading large folios.  Until proper
+support is added, attempts to load large folios from zswap are a bug.
 
-However, the real motivation behind this patch is two-fold:
-- Incoming large folio swapin work will need to fallback to order-0
-  folios if zswap was ever enabled, because any part of the folio could be
-  in zswap, until proper handling of large folios with zswap is added.
+For example, if a swapin fault observes that contiguous PTEs are pointing
+to contiguous swap entries and tries to swap them in as a large folio,
+swap_read_folio() will pass in a large folio to zswap_load(), but
+zswap_load() will only effectively load the first page in the folio.  If
+the first page is not in zswap, the folio will be read from disk, even
+though other pages may be in zswap.
 
-- A warning and recovery attempt will be added in a following change in
-  case the above was not done incorrectly.  Zswap will fail the read if
-  the folio is large and it was ever enabled.
+In both cases, this will lead to silent data corruption.  Proper support
+needs to be added before large folio swapins and zswap can work together.
 
-Link: https://lkml.kernel.org/r/20240611024516.1375191-2-yosryahmed@google.com
+Looking at callers of swap_read_folio(), it seems like they are either
+allocated from __read_swap_cache_async() or do_swap_page() in the
+SWP_SYNCHRONOUS_IO path.  Both of which allocate order-0 folios, so
+everything is fine for now.
+
+However, there is ongoing work to add to support large folio swapins [1]. 
+To make sure new development does not break zswap (or get broken by
+zswap), add minimal handling of incorrect loads of large folios to zswap. 
+First, move the call folio_mark_uptodate() inside zswap_load().
+
+If a large folio load is attempted, and zswap was ever enabled on the
+system, return 'true' without calling folio_mark_uptodate().  This will
+prevent the folio from being read from disk, and will emit an IO error
+because the folio is not uptodate (e.g.  do_swap_fault() will return
+VM_FAULT_SIGBUS).  It may not be reliable recovery in all cases, but it is
+better than nothing.
+
+This was tested by hacking the allocation in __read_swap_cache_async() to
+use order 2 and __GFP_COMP.
+
+In the future, to handle this correctly, the swapin code should:
+
+(a) Fall back to order-0 swapins if zswap was ever used on the
+    machine, because compressed pages remain in zswap after it is
+    disabled.
+
+(b) Add proper support to swapin large folios from zswap (fully or
+    partially).
+
+Probably start with (a) then followup with (b).
+
+[1]https://lore.kernel.org/linux-mm/20240304081348.197341-6-21cnbao@gmail.com/
+
+Link: https://lkml.kernel.org/r/20240611024516.1375191-3-yosryahmed@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/page_io.c |    1 -
+ mm/zswap.c   |   12 ++++++++++++
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
---- a/mm/zswap.c~mm-zswap-add-zswap_never_enabled
+--- a/mm/page_io.c~mm-zswap-handle-incorrect-attempts-to-load-large-folios
++++ a/mm/page_io.c
+@@ -515,7 +515,6 @@ void swap_read_folio(struct folio *folio
+ 	delayacct_swapin_start();
+ 
+ 	if (zswap_load(folio)) {
+-		folio_mark_uptodate(folio);
+ 		folio_unlock(folio);
+ 	} else if (data_race(sis->flags & SWP_FS_OPS)) {
+ 		swap_read_folio_fs(folio, plug);
+--- a/mm/zswap.c~mm-zswap-handle-incorrect-attempts-to-load-large-folios
 +++ a/mm/zswap.c
-@@ -83,6 +83,7 @@ static bool zswap_pool_reached_full;
- static int zswap_setup(void);
+@@ -1567,6 +1567,17 @@ bool zswap_load(struct folio *folio)
+ 		return false;
  
- /* Enable/disable zswap */
-+static DEFINE_STATIC_KEY_MAYBE(CONFIG_ZSWAP_DEFAULT_ON, zswap_ever_enabled);
- static bool zswap_enabled = IS_ENABLED(CONFIG_ZSWAP_DEFAULT_ON);
- static int zswap_enabled_param_set(const char *,
- 				   const struct kernel_param *);
-@@ -136,6 +137,11 @@ bool zswap_is_enabled(void)
- 	return zswap_enabled;
- }
- 
-+static bool zswap_never_enabled(void)
-+{
-+	return !static_branch_maybe(CONFIG_ZSWAP_DEFAULT_ON, &zswap_ever_enabled);
-+}
-+
- /*********************************
- * data structures
- **********************************/
-@@ -1557,6 +1563,9 @@ bool zswap_load(struct folio *folio)
- 
- 	VM_WARN_ON_ONCE(!folio_test_locked(folio));
- 
-+	if (zswap_never_enabled())
-+		return false;
-+
  	/*
++	 * Large folios should not be swapped in while zswap is being used, as
++	 * they are not properly handled. Zswap does not properly load large
++	 * folios, and a large folio may only be partially in zswap.
++	 *
++	 * Return true without marking the folio uptodate so that an IO error is
++	 * emitted (e.g. do_swap_page() will sigbus).
++	 */
++	if (WARN_ON_ONCE(folio_test_large(folio)))
++		return true;
++
++	/*
  	 * When reading into the swapcache, invalidate our entry. The
  	 * swapcache can be the authoritative owner of the page and
-@@ -1735,6 +1744,7 @@ static int zswap_setup(void)
- 			zpool_get_type(pool->zpools[0]));
- 		list_add(&pool->list, &zswap_pools);
- 		zswap_has_pool = true;
-+		static_branch_enable(&zswap_ever_enabled);
- 	} else {
- 		pr_err("pool creation failed\n");
- 		zswap_enabled = false;
+ 	 * its mappings, and the pressure that results from having two
+@@ -1600,6 +1611,7 @@ bool zswap_load(struct folio *folio)
+ 		folio_mark_dirty(folio);
+ 	}
+ 
++	folio_mark_uptodate(folio);
+ 	return true;
+ }
+ 
 _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
