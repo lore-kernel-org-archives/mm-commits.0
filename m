@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93AF518EAB
-	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 22:00:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C828120314
+	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 22:08:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718143256; cv=none; b=p8lOiChgZB/tb+F1Q/pogoraF0+RC66CTZwHvwgsS9154K9sXwGDADZ/N4mpVOYUANylMxvkriHzZOVGJHgRh38ML64uy0aiXwl0W+yIaWh4Ih7D/iNvY0ETJ8fxS9pJpHHjCWAAWj0AdEKZ0qMyAZYQvNL+IGl061E28iCJzws=
+	t=1718143734; cv=none; b=SKmLs2794szfw6wU/agp521RJYj6e6aNB8OEQB2w642BeT+6yBKYqTrITVFEXzUKI+BcawJxDHZ9sHI175yPofAVQZ9XWex/AtTHVuRuZlhX+RxkvLUTq7mLBe1nJThmWYpMHFg8ls/LDnL04NAZCrimhbiKZB/b5yTUJnMzU+U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718143256; c=relaxed/simple;
-	bh=LHadjlN+PkSaqS5FB/P8WtEmt6FoBDeIKnfVBEszA6A=;
-	h=Date:To:From:Subject:Message-Id; b=jbpQDY/SLzRr0lvdCNRj8Jl25HT6goHY6BNf6uX2qOBNVon49D11Z0MzaH2DA5uwZOJdh9sJNtDsrUyZTruAc24aSPfMIK15zbt8vAwmYyguueH9zw5b1K14O/QhE2s0Df56FETVKkr8w5qkWmHtvOLMojPSPzaXMkfS2HXpJdE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WHrSD9/r; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718143734; c=relaxed/simple;
+	bh=Fc5sU3IG85AlMA3gOaCbDg861+9df5MZ1L0dSIdvbCA=;
+	h=Date:To:From:Subject:Message-Id; b=mSJ8TG/1narkAEYMuEXh2dFIJvrGtMdG7JdV2UYOPtjasOwDBff0d73qqCdf7tWtBc1jzD2zjpe/uyfzZFs5DLI6CWqNhHi9oUJ0Zsk/WhcVvh3EFTyWy3dr/rdd6Lx1y+1FGgApdQNcgOtHlhBo2UkjNQ8qnfNxofN/nkVMAe0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oIkbRDIP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WHrSD9/r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DFA9C2BD10;
-	Tue, 11 Jun 2024 22:00:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oIkbRDIP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43A5CC2BD10;
+	Tue, 11 Jun 2024 22:08:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718143256;
-	bh=LHadjlN+PkSaqS5FB/P8WtEmt6FoBDeIKnfVBEszA6A=;
+	s=korg; t=1718143734;
+	bh=Fc5sU3IG85AlMA3gOaCbDg861+9df5MZ1L0dSIdvbCA=;
 	h=Date:To:From:Subject:From;
-	b=WHrSD9/rvnE+/1Kbe1nCWF2ruhZHGQ2a2A0FrHpHO8JhyPr6AeqAPnTckazmaHbu3
-	 QKyaeM28ldxIGbZ1Kq4HWtnha2VFZ1aWV7YGq2RvCuoDDb3c0SD07q1QHrIIh6Z5QW
-	 ApYRjKpPSN66DwWwxbMRGHzUJGrzU23OKAu8aYQk=
-Date: Tue, 11 Jun 2024 15:00:55 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=oIkbRDIPu5uiITwE7Sg0djKLoKifIm8Ghc3S5o85DUCA1RsuO6oLLT14/mXfAXipp
+	 jJKUcpmYazx7hPbSgC7tEm90TSRpmfk3bJyeoVVwBQ4Ixk+1W5N3BpEuqDUKdD6z+l
+	 JEnwbukMVlYwMYYZxGqbkBMzRFld1VT1sgs2ha6M=
+Date: Tue, 11 Jun 2024 15:08:53 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,nphamcs@gmail.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,baohua@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-page_maybe_dma_pinned-fix.patch added to mm-unstable branch
-Message-Id: <20240611220056.0DFA9C2BD10@smtp.kernel.org>
+Subject: + mm-zswap-add-zswap_never_enabled.patch added to mm-unstable branch
+Message-Id: <20240611220854.43A5CC2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-remove-page_maybe_dma_pinned-fix
+     Subject: mm: zswap: add zswap_never_enabled()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-page_maybe_dma_pinned-fix.patch
+     mm-zswap-add-zswap_never_enabled.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-page_maybe_dma_pinned-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-add-zswap_never_enabled.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,57 +58,90 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm-remove-page_maybe_dma_pinned-fix
-Date: Thu, 6 Jun 2024 11:36:29 +0800
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: zswap: add zswap_never_enabled()
+Date: Tue, 11 Jun 2024 02:45:15 +0000
 
-fix pin_user_pages.rst underlining
+Add zswap_never_enabled() to skip the xarray lookup in zswap_load() if
+zswap was never enabled on the system.  It is implemented using static
+branches for efficiency, as enabling zswap should be a rare event.  This
+could shave some cycles off zswap_load() when CONFIG_ZSWAP is used but
+zswap is never enabled.
 
-Link: https://lkml.kernel.org/r/61b256c7-4989-44ec-83db-f34a1bd4be2d@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+However, the real motivation behind this patch is two-fold:
+- Incoming large folio swapin work will need to fallback to order-0
+  folios if zswap was ever enabled, because any part of the folio could be
+  in zswap, until proper handling of large folios with zswap is added.
+
+- A warning and recovery attempt will be added in a following change in
+  case the above was not done incorrectly.  Zswap will fail the read if
+  the folio is large and it was ever enabled.
+
+Link: https://lkml.kernel.org/r/20240611024516.1375191-2-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/pin_user_pages.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zswap.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/Documentation/core-api/pin_user_pages.rst~mm-remove-page_maybe_dma_pinned-fix
-+++ a/Documentation/core-api/pin_user_pages.rst
-@@ -197,7 +197,7 @@ INCORRECT (uses FOLL_GET calls):
-     put_page()
+--- a/mm/zswap.c~mm-zswap-add-zswap_never_enabled
++++ a/mm/zswap.c
+@@ -83,6 +83,7 @@ static bool zswap_pool_reached_full;
+ static int zswap_setup(void);
  
- folio_maybe_dma_pinned(): the whole point of pinning
--===================================================
-+====================================================
+ /* Enable/disable zswap */
++static DEFINE_STATIC_KEY_MAYBE(CONFIG_ZSWAP_DEFAULT_ON, zswap_ever_enabled);
+ static bool zswap_enabled = IS_ENABLED(CONFIG_ZSWAP_DEFAULT_ON);
+ static int zswap_enabled_param_set(const char *,
+ 				   const struct kernel_param *);
+@@ -136,6 +137,11 @@ bool zswap_is_enabled(void)
+ 	return zswap_enabled;
+ }
  
- The whole point of marking folios as "DMA-pinned" or "gup-pinned" is to be able
- to query, "is this folio DMA-pinned?" That allows code such as page_mkclean()
++static bool zswap_never_enabled(void)
++{
++	return !static_branch_maybe(CONFIG_ZSWAP_DEFAULT_ON, &zswap_ever_enabled);
++}
++
+ /*********************************
+ * data structures
+ **********************************/
+@@ -1557,6 +1563,9 @@ bool zswap_load(struct folio *folio)
+ 
+ 	VM_WARN_ON_ONCE(!folio_test_locked(folio));
+ 
++	if (zswap_never_enabled())
++		return false;
++
+ 	/*
+ 	 * When reading into the swapcache, invalidate our entry. The
+ 	 * swapcache can be the authoritative owner of the page and
+@@ -1735,6 +1744,7 @@ static int zswap_setup(void)
+ 			zpool_get_type(pool->zpools[0]));
+ 		list_add(&pool->list, &zswap_pools);
+ 		zswap_has_pool = true;
++		static_branch_enable(&zswap_ever_enabled);
+ 	} else {
+ 		pr_err("pool creation failed\n");
+ 		zswap_enabled = false;
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-mm-add-folio_alloc_mpol.patch
-mm-mempolicy-use-folio_alloc_mpol_noprof-in-vma_alloc_folio_noprof.patch
-mm-mempolicy-use-folio_alloc_mpol-in-alloc_migration_target_by_mpol.patch
-mm-shmem-use-folio_alloc_mpol-in-shmem_alloc_folio.patch
-mm-refactor-folio_undo_large_rmappable.patch
-mm-memcontrol-remove-page_memcg.patch
-rmap-remove-define_page_vma_walk.patch
-mm-migrate-simplify-__buffer_migrate_folio.patch
-mm-migrate_device-use-a-newfolio-in-__migrate_device_pages.patch
-mm-migrate_device-unify-migrate-folio-for-migrate_sync_no_copy.patch
-mm-migrate-remove-migrate_folio_extra.patch
-mm-remove-migrate_sync_no_copy-mode.patch
-fs-proc-task_mmu-use-folio-api-in-pte_is_pinned.patch
-mm-remove-page_maybe_dma_pinned.patch
-mm-remove-page_maybe_dma_pinned-fix.patch
-fb_defio-use-a-folio-in-fb_deferred_io_work.patch
-mm-remove-page_mkclean.patch
-mm-remove-page_mkclean-fix.patch
-mm-move-memory_failure_queue-into-copy_mc__highpage.patch
-mm-add-folio_mc_copy.patch
-mm-migrate-split-folio_migrate_mapping.patch
-mm-migrate-support-poisoned-recover-from-migrate-folio.patch
-fs-hugetlbfs-support-poison-recover-from-hugetlbfs_migrate_folio.patch
-mm-migrate-remove-folio_migrate_copy.patch
+mm-zswap-use-sg_set_folio-in-zswap_compress-decompress.patch
+mm-zswap-use-kmap_local_folio-in-zswap_load.patch
+mm-zswap-make-same_filled-functions-folio-friendly.patch
+mm-rmap-abstract-updating-per-node-and-per-memcg-stats.patch
+mm-swap-remove-synchronous-argument-to-swap_read_folio.patch
+mm-zswap-rename-is_zswap_enabled-to-zswap_is_enabled.patch
+mm-zswap-add-zswap_never_enabled.patch
+mm-zswap-handle-incorrect-attempts-to-load-large-folios.patch
 
