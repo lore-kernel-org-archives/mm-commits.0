@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F2933A8E4
-	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 21:53:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63B053A8E4
+	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 21:53:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718142817; cv=none; b=tUNw92meIuERD4pIpY7er2SgEefO2ZbNDTJ568D11dsHuNL8EFSaxFokz1drLQifGEE/wI3DgqEbZSI+NegUr0LDyBLUk73mUwsbvan2bqX0ziacMW1WChULshz34JKaxqHNA7UxMwVuP1hH0QzC45uiTXimjN1t3QuucJA57rY=
+	t=1718142818; cv=none; b=FeXqSb1nJypEHS1Ho4+EOLVXPo++nWx+jelyXL5BeFfwyabH7sMpFS2uYtarQbREs474NumyVlk6ca6xGlEa2P/NQ7r0/xJp4ADgmrcQ6TI+ywtWo66bBIQczmv/5OIhqe+XlS8CbPrUo2ELXJhEamAUDux1JW1dg7aFwblyueI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718142817; c=relaxed/simple;
-	bh=CZBKseW3OsN/L6ZXL//d/X73+KWDQDjQMw6cKbVgBEY=;
-	h=Date:To:From:Subject:Message-Id; b=YlLkBhmwk/Iu30pMY3D+AGYmzFJq3D13UBAhH5YI+YCS6OZxH4XiY5APcpNB17sYT1l1vLshGOH1Wb6sCTHuzGqbBO8Q6XYOlcJIpWSPFUqjVA7pdIrDOvFNK+K0EtnWAXmBNh3NYgTYLbzR9L2QvGF4niimsbGhj5HBxAC8y8A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G2WmEv+U; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718142818; c=relaxed/simple;
+	bh=DVYB/4ZtM3kzHBno4H21NYDfiDF/oEQMKhWEx+a4WfY=;
+	h=Date:To:From:Subject:Message-Id; b=RQyKZEiOxej/Za062VOqXQE/X/ysxXPZYRWThPhcjUTkTUSV/yjGiVEyB4JDzfC56DDlfZyjT+VMRxhwbJ3pvhbHF1dKFvGcGLNILl+FiwGmJRatvHB2OuQkr7AhvxyMq04hFXfWv/ZkRtHWvyjw10q18i/Vkg0Z4O2lIpDZPdE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K7mGjcu4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G2WmEv+U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FA09C2BD10;
-	Tue, 11 Jun 2024 21:53:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K7mGjcu4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C75BC2BD10;
+	Tue, 11 Jun 2024 21:53:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718142816;
-	bh=CZBKseW3OsN/L6ZXL//d/X73+KWDQDjQMw6cKbVgBEY=;
+	s=korg; t=1718142818;
+	bh=DVYB/4ZtM3kzHBno4H21NYDfiDF/oEQMKhWEx+a4WfY=;
 	h=Date:To:From:Subject:From;
-	b=G2WmEv+UhGtFHgEXyIyJqCFCamTwL16myj6b8rEltK0oxDO+d6qBx6sxZ4vHaBHeo
-	 0Kj26AIFqMAZ4w6mYvnXOnu1LoteSAriLldmHKdtFaj9vtqBOox4AoPVtu/7n8dEU9
-	 /SgjscR69c+AMliz4g5sLh51tkydtgYaiFHKMKRo=
-Date: Tue, 11 Jun 2024 14:53:35 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
+	b=K7mGjcu4SxlNcRc17a3BzePJDF6CpMAnApmS6xJdbO6TMJqVKCAo6woiCXoj+XQUQ
+	 8gNcn0Aly0uclXQXrvtgSNyXZa9tIU0GzcZmDVKOtOFTm47JSM1AMoKgyyfaDdQGIn
+	 eonb5Zm4x5bObQUJid3GJQy+FO1tfziiElxDtLPE=
+Date: Tue, 11 Jun 2024 14:53:37 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3.patch added to mm-unstable branch
-Message-Id: <20240611215336.5FA09C2BD10@smtp.kernel.org>
+Subject: + writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3-fix.patch added to mm-unstable branch
+Message-Id: <20240611215338.2C75BC2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3
+     Subject: writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3.patch
+     writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,46 +58,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3
-Date: Thu, 6 Jun 2024 11:35:47 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3-fix
+Date: Tue Jun 11 02:50:38 PM PDT 2024
 
-add comment
+s/fileds/fields/ in comment
 
-Link: https://lkml.kernel.org/r/20240606033547.344376-1-shikemeng@huaweicloud.com
-Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/page-writeback.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page-writeback.c~writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3
+--- a/mm/page-writeback.c~writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3-fix
 +++ a/mm/page-writeback.c
-@@ -1783,6 +1783,10 @@ static inline void wb_dirty_exceeded(str
- 		((dtc->dirty > dtc->thresh) || strictlimit);
+@@ -1784,8 +1784,8 @@ static inline void wb_dirty_exceeded(str
  }
  
-+/*
-+ * The limits fileds dirty_exceeded and pos_ratio won't be updated if wb is
-+ * in freerun state. Please don't use these invalid fileds in freerun case.
-+ */
+ /*
+- * The limits fileds dirty_exceeded and pos_ratio won't be updated if wb is
+- * in freerun state. Please don't use these invalid fileds in freerun case.
++ * The limits fields dirty_exceeded and pos_ratio won't be updated if wb is
++ * in freerun state. Please don't use these invalid fields in freerun case.
+  */
  static void balance_wb_limits(struct dirty_throttle_control *dtc,
  			      bool strictlimit)
- {
 _
 
-Patches currently in -mm which might be from shikemeng@huaweicloud.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-writeback-factor-out-wb_bg_dirty_limits-to-remove-repeated-code.patch
-writeback-add-general-function-domain_dirty_avail-to-calculate-dirty-and-avail-of-domain.patch
-writeback-factor-out-domain_over_bg_thresh-to-remove-repeated-code.patch
-writeback-factor-out-code-of-freerun-to-remove-repeated-code.patch
-writeback-factor-out-wb_dirty_freerun-to-remove-more-repeated-freerun-code.patch
-writeback-factor-out-balance_domain_limits-to-remove-repeated-code.patch
-writeback-factor-out-wb_dirty_exceeded-to-remove-repeated-code.patch
-writeback-factor-out-balance_wb_limits-to-remove-repeated-code.patch
-writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3.patch
+writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3-fix.patch
+mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type-fix.patch
 
