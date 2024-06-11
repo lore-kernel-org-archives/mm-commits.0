@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84CCF249E5
-	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 18:27:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C30A7D3FA
+	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 18:33:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718130432; cv=none; b=J9haER6gQU/eNij/gHiP+o4WKC/qP2sXC4K68BKEKT2kGSvRXqYlywTF9jqygfUDVjkTTdRei82TmFX9x4CV1N6a3p/24pGdB2QpJoRsI80dfWAhZew4f5Aiq+GDnp2FnAPzK/O1YjUxB4n75Kzrw2nI6nyTu1jxMdm1ImPq47k=
+	t=1718130810; cv=none; b=GRZKFZRXj/JPBwXct7mf+2DqDbvnojyOWXCKmf+aC5yIJKUKu27F/G+Amqbuda69GL4dyeWLJMyawBmKRH1HtruBlFdlmlG3jJTDfH+jcgaYJxQWCjdTfuBjN1jlu2xUiK57wCucB5vhiXo6+Efvy5SVhjBJvTdCfafCeRbIAtU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718130432; c=relaxed/simple;
-	bh=rpg0OEKn/5smtI247drvjqUqhcAIfrHCSAYutLfmz0k=;
-	h=Date:To:From:Subject:Message-Id; b=k7csWQa4sc8pgniqOfsS9a/N7NXW548I8/nHYtcVztC68xQOhFSH+pg/knbdo40oDxUl/L/syTrDYEiNyfUs/HwNXJNC1aJ4sBiffVAxSbZw3a/3AIgAOmBP0rMq695eraUDAsjLWjUkmmpzI7p8h42tOd1vi+ZXyd/2XhjeWBg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DTxxYtI6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718130810; c=relaxed/simple;
+	bh=L6ZhRXjhp7SywwBqeBSN+ItAImkq3mNX4d6PVterT5Y=;
+	h=Date:To:From:Subject:Message-Id; b=MSIIg0g/jBNC0dz6Ng7xd3WhOkjZaURrBCMhgLV5mrOH+HJ1MRAiOA8qpDThHOH5Ms39tvoxnfThQCfFkItNIjN0lXMGmzCi//rO6VeR2tzKhkgnUTZKgPgLhS8hg//i+UXL4nzuTTEiOUcu5TzuF3gK7+cKqOHNBfhOSU4VYf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XG/tWocl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DTxxYtI6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FE6CC2BD10;
-	Tue, 11 Jun 2024 18:27:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XG/tWocl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABE13C2BD10;
+	Tue, 11 Jun 2024 18:33:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718130432;
-	bh=rpg0OEKn/5smtI247drvjqUqhcAIfrHCSAYutLfmz0k=;
+	s=korg; t=1718130809;
+	bh=L6ZhRXjhp7SywwBqeBSN+ItAImkq3mNX4d6PVterT5Y=;
 	h=Date:To:From:Subject:From;
-	b=DTxxYtI6uCGq4L+B+Ff0Poj9omXazrlvM1NNcNsAcrNwZ04pf69Rvke5hFh6lGRSn
-	 L38pywjze0ao/gTVoppFMmkzlk5LzRsTglTB2hmOA8MMQ81kP0bzaq5ysfqlgDS0SM
-	 B245OhB77RCQxXzi31ECvCOCMjQgOICTvQpU8jkk=
-Date: Tue, 11 Jun 2024 11:27:11 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
+	b=XG/tWoclZZR/mRQmGd+IA+cOArzOCMmd7VOJTklrHuyUVaJUT0oBof++47dfUAaC6
+	 BXc6AtiXZiOH/HdutsgmxO90ZAMG7uuHSwk6RlzcrJjcK14FnKXPQSHHUfQIugaSN6
+	 8DK6vhMEmC0xfGHucS2LfaK8CtBYZw0s7/tQrqRo=
+Date: Tue, 11 Jun 2024 11:33:29 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-use-split-munmap-calls-for-map_fixed.patch added to mm-unstable branch
-Message-Id: <20240611182712.4FE6CC2BD10@smtp.kernel.org>
+Subject: + mm-mm_initc-print-mem_init-info-after-defer_init-is-done.patch added to mm-unstable branch
+Message-Id: <20240611183329.ABE13C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mmap: use split munmap calls for MAP_FIXED
+     Subject: mm/mm_init.c: print mem_init info after defer_init is done
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-use-split-munmap-calls-for-map_fixed.patch
+     mm-mm_initc-print-mem_init-info-after-defer_init-is-done.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-use-split-munmap-calls-for-map_fixed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_initc-print-mem_init-info-after-defer_init-is-done.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,204 +58,75 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm/mmap: use split munmap calls for MAP_FIXED
-Date: Tue, 11 Jun 2024 14:02:00 -0400
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/mm_init.c: print mem_init info after defer_init is done
+Date: Tue, 11 Jun 2024 14:52:23 +0000
 
-Use vms_gather_munmap_vmas() and vms_complete_munmap_vmas() to prepare and
-execute the unmapping after the new area is written to the maple tree. 
-Delaying the unmapping avoids RCU readers seeing a gap in the vmas, which
-isn't supposed to exist logically.
+Current call flow looks like this:
 
-Gathering the vmas that will be unmapped allows for the accounting work to
-be calculated prior to checking if there is enough memory.  Using the
-number calculated during vms_gather_munmap_vmas() allows code to be
-reduced in mmap_region().  This removes the only caller to
-count_vma_pages_range(), so the function has been dropped.
+start_kernel
+  mm_core_init
+    mem_init
+    mem_init_print_info
+  rest_init
+    kernel_init
+      kernel_init_freeable
+        page_alloc_init_late
+          deferred_init_memmap
 
-This does have the side effect of allowing vmas to be split for unmap and
-fail may_expand_vm(), but the number of pages covered will not change.
+If CONFIG_DEFERRED_STRUCT_PAGE_INIT, the time mem_init_print_info()
+calls, pages are not totally initialized and freed to buddy.
 
-The validate_mm() call in vma_expand() must be dropped as the MAP_FIXED
-munmap may be in progress.  There is still a validate_mm() call at the end
-of mmap_region(), which calls vma_expand().
+This has one issue
 
-Note that do_vmi_munmap() was previously used to munmap, which checked
-alignment and overflow.  These checks were unnecessary as do_mmap()
-already checks these cases, and arch/mips/kernel/vdso.c
-arch_setup_additional_pages() uses predefined values that must already
-pass these checks.
+  * nr_free_pages() just contains partial free pages in the system,
+    which is not we expect.
 
-Link: https://lkml.kernel.org/r/20240611180200.711239-9-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Let's print the mem info after defer_init is done.
+
+Also this would help changing totalram_pages accounting, since we plan
+to move the accounting into __free_pages_core().
+
+Link: https://lkml.kernel.org/r/20240611145223.16872-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   85 +++++++++++++++++++++++++---------------------------
- 1 file changed, 42 insertions(+), 43 deletions(-)
+ mm/mm_init.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/mmap.c~mm-mmap-use-split-munmap-calls-for-map_fixed
-+++ a/mm/mmap.c
-@@ -405,23 +405,6 @@ anon_vma_interval_tree_post_update_vma(s
- 		anon_vma_interval_tree_insert(avc, &avc->anon_vma->rb_root);
+--- a/mm/mm_init.c~mm-mm_initc-print-mem_init-info-after-defer_init-is-done
++++ a/mm/mm_init.c
+@@ -2327,6 +2327,7 @@ void set_zone_contiguous(struct zone *zo
+ 	zone->contiguous = true;
  }
  
--static unsigned long count_vma_pages_range(struct mm_struct *mm,
--		unsigned long addr, unsigned long end)
--{
--	VMA_ITERATOR(vmi, mm, addr);
--	struct vm_area_struct *vma;
--	unsigned long nr_pages = 0;
--
--	for_each_vma_range(vmi, vma, end) {
--		unsigned long vm_start = max(addr, vma->vm_start);
--		unsigned long vm_end = min(end, vma->vm_end);
--
--		nr_pages += PHYS_PFN(vm_end - vm_start);
--	}
--
--	return nr_pages;
--}
--
- static void __vma_link_file(struct vm_area_struct *vma,
- 			    struct address_space *mapping)
++static void __init mem_init_print_info(void);
+ void __init page_alloc_init_late(void)
  {
-@@ -733,7 +716,6 @@ int vma_expand(struct vma_iterator *vmi,
- 	vma_iter_store(vmi, vma);
+ 	struct zone *zone;
+@@ -2353,6 +2354,8 @@ void __init page_alloc_init_late(void)
+ 	files_maxfiles_init();
+ #endif
  
- 	vma_complete(&vp, vmi, vma->vm_mm);
--	validate_mm(vma->vm_mm);
- 	return 0;
++	/* Accounting of total+free memory is stable at this point. */
++	mem_init_print_info();
+ 	buffer_init();
  
- nomem:
-@@ -2911,47 +2893,61 @@ unsigned long mmap_region(struct file *f
- 	struct vm_area_struct *next, *prev, *merge;
- 	pgoff_t pglen = len >> PAGE_SHIFT;
- 	unsigned long charged = 0;
-+	struct vma_munmap_struct vms;
-+	struct ma_state mas_detach;
- 	unsigned long end = addr + len;
- 	unsigned long merge_start = addr, merge_end = end;
- 	bool writable_file_mapping = false;
- 	pgoff_t vm_pgoff;
--	int error;
-+	int error = -ENOMEM;
- 	VMA_ITERATOR(vmi, mm, addr);
- 
--	/* Check against address space limit. */
--	if (!may_expand_vm(mm, vm_flags, len >> PAGE_SHIFT)) {
--		unsigned long nr_pages;
-+	vma = vma_find(&vmi, end);
-+	if (vma) {
-+		struct maple_tree mt_detach;
- 
--		/*
--		 * MAP_FIXED may remove pages of mappings that intersects with
--		 * requested mapping. Account for the pages it would unmap.
--		 */
--		nr_pages = count_vma_pages_range(mm, addr, end);
-+		/* Prevent unmapping a sealed VMA.  */
-+		if (unlikely(!can_modify_mm(mm, addr, end)))
-+			return -EPERM;
- 
--		if (!may_expand_vm(mm, vm_flags,
--					(len >> PAGE_SHIFT) - nr_pages))
-+		mt_init_flags(&mt_detach, vmi.mas.tree->ma_flags & MT_FLAGS_LOCK_MASK);
-+		mt_on_stack(mt_detach);
-+		mas_init(&mas_detach, &mt_detach, 0);
-+		/* arch_unmap() might do unmaps itself.  */
-+		arch_unmap(mm, addr, end);
-+		init_vma_munmap(&vms, &vmi, vma, addr, end, uf,
-+				/* unlock = */ false);
-+		/* Prepare to unmap any existing mapping in the area */
-+		if (vms_gather_munmap_vmas(&vms, &mas_detach))
- 			return -ENOMEM;
-+		next = vms.next;
-+		prev = vms.prev;
-+		vma = NULL;
-+		vma_iter_prev_range(&vmi);
-+	} else {
-+		vms.end = 0; /* vms.end == 0 indicates there is no MAP_FIXED */
-+		vms.nr_pages = 0;
-+		next = vma_next(&vmi);
-+		prev = vma_prev(&vmi);
- 	}
- 
--	/* Unmap any existing mapping in the area */
--	error = do_vmi_munmap(&vmi, mm, addr, len, uf, false);
--	if (error == -EPERM)
--		return error;
--	else if (error)
--		return -ENOMEM;
--
+ 	/* Discard memblock private memory */
+@@ -2713,7 +2716,6 @@ void __init mm_core_init(void)
+ 	kmsan_init_shadow();
+ 	stack_depot_early_init();
+ 	mem_init();
+-	mem_init_print_info();
+ 	kmem_cache_init();
  	/*
--	 * Private writable mapping: check memory availability
-+	 * Check against address space limit.
-+	 * MAP_FIXED may remove pages of mappings that intersects with
-+	 * requested mapping. Account for the pages it would unmap.
- 	 */
-+	if (!may_expand_vm(mm, vm_flags, (len >> PAGE_SHIFT) - vms.nr_pages))
-+		goto no_mem;
-+
-+	/* Private writable mapping: check memory availability */
- 	if (accountable_mapping(file, vm_flags)) {
- 		charged = len >> PAGE_SHIFT;
-+		charged -= vms.nr_pages; /* MAP_FIXED removed memory */
- 		if (security_vm_enough_memory_mm(mm, charged))
--			return -ENOMEM;
-+			goto no_mem;
- 		vm_flags |= VM_ACCOUNT;
- 	}
- 
--	next = vma_next(&vmi);
--	prev = vma_prev(&vmi);
- 	if (vm_flags & VM_SPECIAL) {
- 		if (prev)
- 			vma_iter_next_range(&vmi);
-@@ -2998,10 +2994,8 @@ cannot_expand:
- 	 * not unmapped, but the maps are removed from the list.
- 	 */
- 	vma = vm_area_alloc(mm);
--	if (!vma) {
--		error = -ENOMEM;
-+	if (!vma)
- 		goto unacct_error;
--	}
- 
- 	vma_iter_config(&vmi, addr, end);
- 	vma_set_range(vma, addr, end, pgoff);
-@@ -3123,6 +3117,8 @@ expanded:
- 	vm_flags_set(vma, VM_SOFTDIRTY);
- 
- 	vma_set_page_prot(vma);
-+	if (vms.end)
-+		vms_complete_munmap_vmas(&vms, &mas_detach);
- 
- 	validate_mm(mm);
- 	return addr;
-@@ -3148,6 +3144,9 @@ free_vma:
- unacct_error:
- 	if (charged)
- 		vm_unacct_memory(charged);
-+no_mem:
-+	if (vms.end)
-+		abort_munmap_vmas(&mas_detach);
- 	validate_mm(mm);
- 	return error;
- }
+ 	 * page_owner must be initialized after buddy is ready, and also after
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-mmap-correctly-position-vma_iterator-in-__split_vma.patch
-mm-mmap-introduce-abort_munmap_vmas.patch
-mm-mmap-introduce-vmi_complete_munmap_vmas.patch
-mm-mmap-extract-the-gathering-of-vmas-from-do_vmi_align_munmap.patch
-mm-mmap-introduce-vma_munmap_struct-for-use-in-munmap-operations.patch
-mm-mmap-change-munmap-to-use-vma_munmap_struct-for-accounting-and-surrounding-vmas.patch
-mm-mmap-extract-validate_mm-from-vma_complete.patch
-mm-mmap-use-split-munmap-calls-for-map_fixed.patch
+mm-mm_initc-print-mem_init-info-after-defer_init-is-done.patch
 
