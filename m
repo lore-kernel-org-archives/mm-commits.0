@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EFFB757E5
-	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 18:27:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A29A249E5
+	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 18:27:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718130426; cv=none; b=F6p7QABYStd3tYZYUVw9VBEeR/8awGE2jQPZ64ZpoKgsD5VEyLJEAbaGO37i1VMZuHLOHgrWKNmmr5eQBTnChnd1oCLqWDw1VU6D0u5liU+xWSNOQdwzCcqZr0r9wsfAomEsNcOuqB4CvomOAe8ixGaXYSWzKbJTHeG/uR7nw6o=
+	t=1718130428; cv=none; b=DX2spA/Fqs+VdbSXUqLmDj8/IJ1gM2z9XyIoLW2BAi3vRHyvKDCziow35GEm/pQ33NFteDQ10fAKzsTWmPEZxPvlapDM/tZ1/GD+K+QFtO6w9KS0zoVA7BL9EEgaXrcFS6TNL5xp/EH4atBHD1XdIeYUl6H3TuNZa1HK6vG1fe4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718130426; c=relaxed/simple;
-	bh=E9j9am/+R5thvt6SpNqwVdCWtW4oaIEanoFFUgCTbz8=;
-	h=Date:To:From:Subject:Message-Id; b=lff4b+b6k3lw5hQ7Wi/m3SOO7s5L5GUrjBQ37t5lwsn7Wqh3du44EHjInZ6EY4gPHucreaLT7mFC/bwM1Z5gjYyM3R9daWHOG2X4cRVJ/rHE64tmukeH0hK2tUn5mGPKK2GR+Su9OypFJ3KU0KDXZh0oKCQ2zOwilUWUUbEOpYs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oCF0IyBv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718130428; c=relaxed/simple;
+	bh=E7oWUuC3K2pOTY1zTKujUUx66+OKbEaf1UFTZmiaJPI=;
+	h=Date:To:From:Subject:Message-Id; b=I2aXUtC1826eEAyFoDyCD9ONeG3fTdftHR0xaPIc/6i4dr0vpu/0jIosN0R6q7x/WaA15FBE5fyTYnSJASNvbGm4z7BVntj2uBVtnIooI1jL4W/7ZKdqJSjcOYJMAX9IdhEIelA6USRCAiRTB6w47pVkwVD9VQ38F0G4/MqKPeA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aKF1phmh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oCF0IyBv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5CC3C2BD10;
-	Tue, 11 Jun 2024 18:27:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aKF1phmh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B44DC2BD10;
+	Tue, 11 Jun 2024 18:27:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718130425;
-	bh=E9j9am/+R5thvt6SpNqwVdCWtW4oaIEanoFFUgCTbz8=;
+	s=korg; t=1718130428;
+	bh=E7oWUuC3K2pOTY1zTKujUUx66+OKbEaf1UFTZmiaJPI=;
 	h=Date:To:From:Subject:From;
-	b=oCF0IyBvGASOg8MpIKVQYDu6iAshmTDQdAXbDY0E365aQfjdrsq/AYfc3fc/z5mWp
-	 eSqsOgmRBbcMPf9lM10pi3sqVVPUqcPEFumCNqxU0DwG3lPFPB5FRmyPeNeeYeV9rX
-	 mkvf4+VXwdphEyfS39MhY7VVN7tWBwPerEpXCK5A=
-Date: Tue, 11 Jun 2024 11:27:05 -0700
+	b=aKF1phmh7OsH6mds+C2YF0SW0oGnQPcTlRzKYmX1tHEu5Auk4aUJKZAd9P5+fuuHL
+	 eWUdTS+PTOV4qAJIsjO/DSYoS3gxGXWZl+87tYPb2YtfwEMnQptgpcsAPfTbmnBD27
+	 nmG5y2uLJA+qZxiOKkl1qqbB4PBzmC/zLOEhWqHg=
+Date: Tue, 11 Jun 2024 11:27:07 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-introduce-vma_munmap_struct-for-use-in-munmap-operations.patch added to mm-unstable branch
-Message-Id: <20240611182705.C5CC3C2BD10@smtp.kernel.org>
+Subject: + mm-mmap-change-munmap-to-use-vma_munmap_struct-for-accounting-and-surrounding-vmas.patch added to mm-unstable branch
+Message-Id: <20240611182708.3B44DC2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mmap: introduce vma_munmap_struct for use in munmap operations
+     Subject: mm/mmap: change munmap to use vma_munmap_struct() for accounting and surrounding vmas
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-introduce-vma_munmap_struct-for-use-in-munmap-operations.patch
+     mm-mmap-change-munmap-to-use-vma_munmap_struct-for-accounting-and-surrounding-vmas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-introduce-vma_munmap_struct-for-use-in-munmap-operations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-change-munmap-to-use-vma_munmap_struct-for-accounting-and-surrounding-vmas.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,316 +59,215 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm/mmap: introduce vma_munmap_struct for use in munmap operations
-Date: Tue, 11 Jun 2024 14:01:57 -0400
+Subject: mm/mmap: change munmap to use vma_munmap_struct() for accounting and surrounding vmas
+Date: Tue, 11 Jun 2024 14:01:58 -0400
 
-Use a structure to pass along all the necessary information and counters
-involved in removing vmas from the mm_struct.
+Clean up the code by changing the munmap operation to use a structure for
+the accounting and munmap variables.
 
-Update vmi_ function names to vms_ to indicate the first argument type
-change.
+Since remove_mt() is only called in one location and the contents will be
+reduce to almost nothing.  The remains of the function can be added to
+vms_complete_munmap_vmas().
 
-Link: https://lkml.kernel.org/r/20240611180200.711239-6-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20240611180200.711239-7-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   16 +++++
- mm/mmap.c     |  139 +++++++++++++++++++++++++-----------------------
- 2 files changed, 89 insertions(+), 66 deletions(-)
+ mm/internal.h |    6 +++
+ mm/mmap.c     |   88 ++++++++++++++++++++++++++----------------------
+ 2 files changed, 54 insertions(+), 40 deletions(-)
 
---- a/mm/internal.h~mm-mmap-introduce-vma_munmap_struct-for-use-in-munmap-operations
+--- a/mm/internal.h~mm-mmap-change-munmap-to-use-vma_munmap_struct-for-accounting-and-surrounding-vmas
 +++ a/mm/internal.h
-@@ -1470,6 +1470,22 @@ struct vma_prepare {
- 	struct vm_area_struct *remove2;
+@@ -1477,12 +1477,18 @@ struct vma_munmap_struct {
+ 	struct vma_iterator *vmi;
+ 	struct mm_struct *mm;
+ 	struct vm_area_struct *vma;	/* The first vma to munmap */
++	struct vm_area_struct *next;	/* vma after the munmap area */
++	struct vm_area_struct *prev;    /* vma before the munmap area */
+ 	struct list_head *uf;		/* Userfaultfd list_head */
+ 	unsigned long start;		/* Aligned start addr */
+ 	unsigned long end;		/* Aligned end addr */
+ 	int vma_count;			/* Number of vmas that will be removed */
+ 	unsigned long nr_pages;		/* Number of pages being removed */
+ 	unsigned long locked_vm;	/* Number of locked pages */
++	unsigned long nr_accounted;	/* Number of VM_ACCOUNT pages */
++	unsigned long exec_vm;
++	unsigned long stack_vm;
++	unsigned long data_vm;
+ 	bool unlock;			/* Unlock after the munmap */
  };
  
-+/*
-+ * vma munmap operation
-+ */
-+struct vma_munmap_struct {
-+	struct vma_iterator *vmi;
-+	struct mm_struct *mm;
-+	struct vm_area_struct *vma;	/* The first vma to munmap */
-+	struct list_head *uf;		/* Userfaultfd list_head */
-+	unsigned long start;		/* Aligned start addr */
-+	unsigned long end;		/* Aligned end addr */
-+	int vma_count;			/* Number of vmas that will be removed */
-+	unsigned long nr_pages;		/* Number of pages being removed */
-+	unsigned long locked_vm;	/* Number of locked pages */
-+	bool unlock;			/* Unlock after the munmap */
-+};
-+
- void __meminit __init_single_page(struct page *page, unsigned long pfn,
- 				unsigned long zone, int nid);
- 
---- a/mm/mmap.c~mm-mmap-introduce-vma_munmap_struct-for-use-in-munmap-operations
+--- a/mm/mmap.c~mm-mmap-change-munmap-to-use-vma_munmap_struct-for-accounting-and-surrounding-vmas
 +++ a/mm/mmap.c
-@@ -500,6 +500,31 @@ static inline void init_vma_prep(struct
- 	init_multi_vma_prep(vp, vma, NULL, NULL, NULL);
- }
- 
-+/*
-+ * init_vma_munmap() - Initializer wrapper for vma_munmap_struct
-+ * @vms: The vma munmap struct
-+ * @vmi: The vma iterator
-+ * @vma: The first vm_area_struct to munmap
-+ * @start: The aligned start address to munmap
-+ * @end: The aligned end address to munmap
-+ * @uf: The userfaultfd list_head
-+ * @unlock: Unlock after the operation.  Only unlocked on success
-+ */
-+static inline void init_vma_munmap(struct vma_munmap_struct *vms,
-+		struct vma_iterator *vmi, struct vm_area_struct *vma,
-+		unsigned long start, unsigned long end, struct list_head *uf,
-+		bool unlock)
-+{
-+	vms->vmi = vmi;
-+	vms->vma = vma;
-+	vms->mm = vma->vm_mm;
-+	vms->start = start;
-+	vms->end = end;
-+	vms->unlock = unlock;
-+	vms->uf = uf;
-+	vms->vma_count = 0;
-+	vms->nr_pages = vms->locked_vm = 0;
-+}
- 
- /*
-  * vma_prepare() - Helper function for handling locking VMAs prior to altering
-@@ -2606,78 +2631,59 @@ static inline void abort_munmap_vmas(str
+@@ -523,7 +523,8 @@ static inline void init_vma_munmap(struc
+ 	vms->unlock = unlock;
+ 	vms->uf = uf;
+ 	vms->vma_count = 0;
+-	vms->nr_pages = vms->locked_vm = 0;
++	vms->nr_pages = vms->locked_vm = vms->nr_accounted = 0;
++	vms->exec_vm = vms->stack_vm = vms->data_vm = 0;
  }
  
  /*
-- * vmi_complete_munmap_vmas() - Finish the munmap() operation
-- * @vmi: The vma iterator
-- * @start: The start address
-- * @end: The end address
-- * @unlock: Unlock the mm or not
-- * @mas_detach: them maple state of the detached vma maple tree
-- * @locked_vm: The locked_vm count in the detached vmas
+@@ -2389,30 +2390,6 @@ success:
+ }
+ 
+ /*
+- * Ok - we have the memory areas we should free on a maple tree so release them,
+- * and do the vma updates.
 - *
-- * This function updates the mm_struct, unmaps the region, frees the resources
-- * used for the munmap() and may downgrade the lock - if requested.  Everything
-- * needed to be done once the vma maple tree is updated.
+- * Called with the mm semaphore held.
 - */
--static void
--vmi_complete_munmap_vmas(struct vma_iterator *vmi, struct vm_area_struct *vma,
--		struct mm_struct *mm, unsigned long start,
--		unsigned long end, bool unlock, struct ma_state *mas_detach,
--		unsigned long locked_vm)
-+ * vms_complete_munmap_vmas() - Finish the munmap() operation
-+ * @vms: The vma munmap struct
-+ * @mas_detach: The maple state of the detached vmas
-+ */
-+
-+static void vms_complete_munmap_vmas(struct vma_munmap_struct *vms,
-+		struct ma_state *mas_detach)
- {
- 	struct vm_area_struct *prev, *next;
--	int count;
-+	struct mm_struct *mm;
+-static inline void remove_mt(struct mm_struct *mm, struct ma_state *mas)
+-{
+-	unsigned long nr_accounted = 0;
+-	struct vm_area_struct *vma;
+-
+-	/* Update high watermark before we lower total_vm */
+-	update_hiwater_vm(mm);
+-	mas_for_each(mas, vma, ULONG_MAX) {
+-		long nrpages = vma_pages(vma);
+-
+-		if (vma->vm_flags & VM_ACCOUNT)
+-			nr_accounted += nrpages;
+-		vm_stat_account(mm, vma->vm_flags, -nrpages);
+-		remove_vma(vma, false);
+-	}
+-	vm_unacct_memory(nr_accounted);
+-}
+-
+-/*
+  * Get rid of page table information in the indicated region.
+  *
+  * Called with the mm semaphore held.
+@@ -2630,16 +2607,20 @@ static inline void abort_munmap_vmas(str
+ 	__mt_destroy(mas_detach->tree);
+ }
  
--	count = mas_detach->index + 1;
--	mm->map_count -= count;
--	mm->locked_vm -= locked_vm;
--	if (unlock)
-+	mm = vms->mm;
-+	mm->map_count -= vms->vma_count;
-+	mm->locked_vm -= vms->locked_vm;
-+	if (vms->unlock)
++static inline void vms_vm_stat_account(struct vma_munmap_struct *vms);
+ /*
+  * vms_complete_munmap_vmas() - Finish the munmap() operation
+  * @vms: The vma munmap struct
+  * @mas_detach: The maple state of the detached vmas
++ *
++ * This function updates the mm_struct, unmaps the region, frees the resources
++ * used for the munmap() and may downgrade the lock - if requested.  Everything
++ * needed to be done once the vma maple tree is updated.
+  */
+-
+ static void vms_complete_munmap_vmas(struct vma_munmap_struct *vms,
+ 		struct ma_state *mas_detach)
+ {
+-	struct vm_area_struct *prev, *next;
++	struct vm_area_struct *vma;
+ 	struct mm_struct *mm;
+ 
+ 	mm = vms->mm;
+@@ -2648,21 +2629,21 @@ static void vms_complete_munmap_vmas(str
+ 	if (vms->unlock)
  		mmap_write_downgrade(mm);
  
--	prev = vma_iter_prev_range(vmi);
--	next = vma_next(vmi);
-+	prev = vma_iter_prev_range(vms->vmi);
-+	next = vma_next(vms->vmi);
- 	if (next)
--		vma_iter_prev_range(vmi);
-+		vma_iter_prev_range(vms->vmi);
- 
+-	prev = vma_iter_prev_range(vms->vmi);
+-	next = vma_next(vms->vmi);
+-	if (next)
+-		vma_iter_prev_range(vms->vmi);
+-
  	/*
  	 * We can free page tables without write-locking mmap_lock because VMAs
  	 * were isolated before we downgraded mmap_lock.
  	 */
  	mas_set(mas_detach, 1);
--	unmap_region(mm, mas_detach, vma, prev, next, start, end, count,
--		     !unlock);
-+	unmap_region(mm, mas_detach, vms->vma, prev, next, vms->start, vms->end,
-+		     vms->vma_count, !vms->unlock);
- 	/* Statistics and freeing VMAs */
+-	unmap_region(mm, mas_detach, vms->vma, prev, next, vms->start, vms->end,
+-		     vms->vma_count, !vms->unlock);
+-	/* Statistics and freeing VMAs */
++	unmap_region(mm, mas_detach, vms->vma, vms->prev, vms->next,
++		     vms->start, vms->end, vms->vma_count, !vms->unlock);
++	/* Update high watermark before we lower total_vm */
++	update_hiwater_vm(mm);
++	vms_vm_stat_account(vms);
  	mas_set(mas_detach, 0);
- 	remove_mt(mm, mas_detach);
+-	remove_mt(mm, mas_detach);
++	mas_for_each(mas_detach, vma, ULONG_MAX)
++		remove_vma(vma, false);
++
++	vm_unacct_memory(vms->nr_accounted);
  	validate_mm(mm);
--	if (unlock)
-+	if (vms->unlock)
+ 	if (vms->unlock)
  		mmap_read_unlock(mm);
- 
- 	__mt_destroy(mas_detach->tree);
- }
- 
- /*
-- * vmi_gather_munmap_vmas() - Put all VMAs within a range into a maple tree
-+ * vms_gather_munmap_vmas() - Put all VMAs within a range into a maple tree
-  * for removal at a later date.  Handles splitting first and last if necessary
-  * and marking the vmas as isolated.
-  *
-- * @vmi: The vma iterator
-- * @vma: The starting vm_area_struct
-- * @mm: The mm_struct
-- * @start: The aligned start address to munmap.
-- * @end: The aligned end address to munmap.
-- * @uf: The userfaultfd list_head
-+ * @vms: The vma munmap struct
-  * @mas_detach: The maple state tracking the detached tree
-  *
-  * Return: 0 on success
-  */
--static int
--vmi_gather_munmap_vmas(struct vma_iterator *vmi, struct vm_area_struct *vma,
--		    struct mm_struct *mm, unsigned long start,
--		    unsigned long end, struct list_head *uf,
--		    struct ma_state *mas_detach, unsigned long *locked_vm)
-+static int vms_gather_munmap_vmas(struct vma_munmap_struct *vms,
-+		struct ma_state *mas_detach)
- {
- 	struct vm_area_struct *next = NULL;
--	int count = 0;
- 	int error = -ENOMEM;
- 
- 	/*
-@@ -2689,17 +2695,18 @@ vmi_gather_munmap_vmas(struct vma_iterat
- 	 */
- 
- 	/* Does it split the first one? */
--	if (start > vma->vm_start) {
-+	if (vms->start > vms->vma->vm_start) {
- 
- 		/*
- 		 * Make sure that map_count on return from munmap() will
- 		 * not exceed its limit; but let map_count go just above
- 		 * its limit temporarily, to help free resources as expected.
- 		 */
--		if (end < vma->vm_end && mm->map_count >= sysctl_max_map_count)
-+		if (vms->end < vms->vma->vm_end &&
-+		    vms->mm->map_count >= sysctl_max_map_count)
- 			goto map_count_exceeded;
- 
--		error = __split_vma(vmi, vma, start, 1);
-+		error = __split_vma(vms->vmi, vms->vma, vms->start, 1);
+@@ -2710,13 +2691,14 @@ static int vms_gather_munmap_vmas(struct
  		if (error)
  			goto start_split_failed;
  	}
-@@ -2708,24 +2715,24 @@ vmi_gather_munmap_vmas(struct vma_iterat
++	vms->prev = vma_prev(vms->vmi);
+ 
+ 	/*
  	 * Detach a range of VMAs from the mm. Using next as a temp variable as
  	 * it is always overwritten.
  	 */
--	next = vma;
-+	next = vms->vma;
- 	do {
+-	next = vms->vma;
+-	do {
++	for_each_vma_range(*(vms->vmi), next, vms->end) {
++		long nrpages;
  		/* Does it split the end? */
--		if (next->vm_end > end) {
--			error = __split_vma(vmi, next, end, 0);
-+		if (next->vm_end > vms->end) {
-+			error = __split_vma(vms->vmi, next, vms->end, 0);
- 			if (error)
- 				goto end_split_failed;
+ 		if (next->vm_end > vms->end) {
+ 			error = __split_vma(vms->vmi, next, vms->end, 0);
+@@ -2725,8 +2707,21 @@ static int vms_gather_munmap_vmas(struct
  		}
  		vma_start_write(next);
--		mas_set(mas_detach, count++);
-+		mas_set(mas_detach, vms->vma_count++);
+ 		mas_set(mas_detach, vms->vma_count++);
++		nrpages = vma_pages(next);
++
++		vms->nr_pages += nrpages;
  		if (next->vm_flags & VM_LOCKED)
--			*locked_vm += vma_pages(next);
-+			vms->locked_vm += vma_pages(next);
+-			vms->locked_vm += vma_pages(next);
++			vms->locked_vm += nrpages;
++
++		if (next->vm_flags & VM_ACCOUNT)
++			vms->nr_accounted += nrpages;
++
++		if (is_exec_mapping(next->vm_flags))
++			vms->exec_vm += nrpages;
++		else if (is_stack_mapping(next->vm_flags))
++			vms->stack_vm += nrpages;
++		else if (is_data_mapping(next->vm_flags))
++			vms->data_vm += nrpages;
  
  		error = mas_store_gfp(mas_detach, next, GFP_KERNEL);
  		if (error)
- 			goto munmap_gather_failed;
- 		vma_mark_detached(next, true);
--		if (unlikely(uf)) {
-+		if (unlikely(vms->uf)) {
- 			/*
- 			 * If userfaultfd_unmap_prep returns an error the vmas
- 			 * will remain split, but userland will get a
-@@ -2735,16 +2742,17 @@ vmi_gather_munmap_vmas(struct vma_iterat
- 			 * split, despite we could. This is unlikely enough
- 			 * failure that it's not worth optimizing it for.
- 			 */
--			error = userfaultfd_unmap_prep(next, start, end, uf);
-+			error = userfaultfd_unmap_prep(next, vms->start,
-+						       vms->end, vms->uf);
- 
- 			if (error)
- 				goto userfaultfd_error;
- 		}
- #ifdef CONFIG_DEBUG_VM_MAPLE_TREE
--		BUG_ON(next->vm_start < start);
--		BUG_ON(next->vm_start > end);
-+		BUG_ON(next->vm_start < vms->start);
-+		BUG_ON(next->vm_start > vms->end);
+@@ -2752,7 +2747,9 @@ static int vms_gather_munmap_vmas(struct
+ 		BUG_ON(next->vm_start < vms->start);
+ 		BUG_ON(next->vm_start > vms->end);
  #endif
--	} for_each_vma_range(*vmi, next, end);
-+	} for_each_vma_range(*(vms->vmi), next, vms->end);
+-	} for_each_vma_range(*(vms->vmi), next, vms->end);
++	}
++
++	vms->next = vma_next(vms->vmi);
  
  #if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
  	/* Make sure no VMAs are about to be lost. */
-@@ -2753,21 +2761,21 @@ vmi_gather_munmap_vmas(struct vma_iterat
- 		struct vm_area_struct *vma_mas, *vma_test;
- 		int test_count = 0;
+@@ -3673,6 +3670,17 @@ void vm_stat_account(struct mm_struct *m
+ 		mm->data_vm += npages;
+ }
  
--		vma_iter_set(vmi, start);
-+		vma_iter_set(vms->vmi, vms->start);
- 		rcu_read_lock();
--		vma_test = mas_find(&test, count - 1);
--		for_each_vma_range(*vmi, vma_mas, end) {
-+		vma_test = mas_find(&test, vms->vma_count - 1);
-+		for_each_vma_range(*(vms->vmi), vma_mas, vms->end) {
- 			BUG_ON(vma_mas != vma_test);
- 			test_count++;
--			vma_test = mas_next(&test, count - 1);
-+			vma_test = mas_next(&test, vms->vma_count - 1);
- 		}
- 		rcu_read_unlock();
--		BUG_ON(count != test_count);
-+		BUG_ON(vms->vma_count != test_count);
- 	}
- #endif
++/* Accounting for munmap */
++static inline void vms_vm_stat_account(struct vma_munmap_struct *vms)
++{
++	struct mm_struct *mm = vms->mm;
++
++	WRITE_ONCE(mm->total_vm, READ_ONCE(mm->total_vm) - vms->nr_pages);
++	mm->exec_vm -= vms->exec_vm;
++	mm->stack_vm -= vms->stack_vm;
++	mm->data_vm -= vms->data_vm;
++}
++
+ static vm_fault_t special_mapping_fault(struct vm_fault *vmf);
  
--	while (vma_iter_addr(vmi) > start)
--		vma_iter_prev_range(vmi);
-+	while (vma_iter_addr(vms->vmi) > vms->start)
-+		vma_iter_prev_range(vms->vmi);
- 
- 	return 0;
- 
-@@ -2803,11 +2811,11 @@ do_vmi_align_munmap(struct vma_iterator
- 	MA_STATE(mas_detach, &mt_detach, 0, 0);
- 	mt_init_flags(&mt_detach, vmi->mas.tree->ma_flags & MT_FLAGS_LOCK_MASK);
- 	mt_on_stack(mt_detach);
-+	struct vma_munmap_struct vms;
- 	int error;
--	unsigned long locked_vm = 0;
- 
--	error = vmi_gather_munmap_vmas(vmi, vma, mm, start, end, uf,
--				       &mas_detach, &locked_vm);
-+	init_vma_munmap(&vms, vmi, vma, start, end, uf, unlock);
-+	error = vms_gather_munmap_vmas(&vms, &mas_detach);
- 	if (error)
- 		goto gather_failed;
- 
-@@ -2816,8 +2824,7 @@ do_vmi_align_munmap(struct vma_iterator
- 		goto clear_tree_failed;
- 
- 	/* Point of no return */
--	vmi_complete_munmap_vmas(vmi, vma, mm, start, end, unlock, &mas_detach,
--				 locked_vm);
-+	vms_complete_munmap_vmas(&vms, &mas_detach);
- 	return 0;
- 
- clear_tree_failed:
+ /*
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
