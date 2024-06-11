@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 551422CCB7
-	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 21:42:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F2933A8E4
+	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 21:53:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718142152; cv=none; b=u2Bo8zeb22wEvzz0QKuKorYVWL9FYSWgFuK7ajCsu8M74mmKEFcB3Yjf5+Sfx3wcSrV0HQmGS9Jqr3spn1Vw2tIbI+vUIfbA7boY/6al8lPoFEh4d6RZLHMg8vx6umz+tXCRxYnoIZHIn8fnuD5g1Her3oS/I6+rBDVGfz+kqfs=
+	t=1718142817; cv=none; b=tUNw92meIuERD4pIpY7er2SgEefO2ZbNDTJ568D11dsHuNL8EFSaxFokz1drLQifGEE/wI3DgqEbZSI+NegUr0LDyBLUk73mUwsbvan2bqX0ziacMW1WChULshz34JKaxqHNA7UxMwVuP1hH0QzC45uiTXimjN1t3QuucJA57rY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718142152; c=relaxed/simple;
-	bh=gWdJFS7uy0HeY0ooEAt0hbGTPRtlc+IuPuGZwNVMYvs=;
-	h=Date:To:From:Subject:Message-Id; b=nmO3+MbLQYOCa8UHj5UrEJMq2hAYAYPOZ6z68FEtAyGWhgkhcT8HhCPGWIqSY4/wxpev0gCKZ8S0NZi9abgsXzGykIiKpvWA3XMc2pNrVUBYATDvlDdbGnkRDzYUzWA9G2TpoKLAr+idQYnf+lXVsxCbcrD00wb7raAM1Ev+fh8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QzowUB22; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718142817; c=relaxed/simple;
+	bh=CZBKseW3OsN/L6ZXL//d/X73+KWDQDjQMw6cKbVgBEY=;
+	h=Date:To:From:Subject:Message-Id; b=YlLkBhmwk/Iu30pMY3D+AGYmzFJq3D13UBAhH5YI+YCS6OZxH4XiY5APcpNB17sYT1l1vLshGOH1Wb6sCTHuzGqbBO8Q6XYOlcJIpWSPFUqjVA7pdIrDOvFNK+K0EtnWAXmBNh3NYgTYLbzR9L2QvGF4niimsbGhj5HBxAC8y8A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G2WmEv+U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QzowUB22"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7DD2C3277B;
-	Tue, 11 Jun 2024 21:42:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G2WmEv+U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FA09C2BD10;
+	Tue, 11 Jun 2024 21:53:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718142151;
-	bh=gWdJFS7uy0HeY0ooEAt0hbGTPRtlc+IuPuGZwNVMYvs=;
+	s=korg; t=1718142816;
+	bh=CZBKseW3OsN/L6ZXL//d/X73+KWDQDjQMw6cKbVgBEY=;
 	h=Date:To:From:Subject:From;
-	b=QzowUB22CUjNBy6rI6ApgB0iMhxLgFXc6oe0ZL2IVsok35/Up+PC70RgO5B3ucyBa
-	 pFVIvDIqM1CgKbYwcksRLBGJXQRPaF7smMgWYKFiyr8U+zABdF1lDEofQRSQx31vsP
-	 WRiO8wfj3Lh9WJiA7dg3DG8dmYR2FlKU50bitkww=
-Date: Tue, 11 Jun 2024 14:42:31 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,david@redhat.com,abelova@astralinux.ru,akpm@linux-foundation.org
+	b=G2WmEv+UhGtFHgEXyIyJqCFCamTwL16myj6b8rEltK0oxDO+d6qBx6sxZ4vHaBHeo
+	 0Kj26AIFqMAZ4w6mYvnXOnu1LoteSAriLldmHKdtFaj9vtqBOox4AoPVtu/7n8dEU9
+	 /SgjscR69c+AMliz4g5sLh51tkydtgYaiFHKMKRo=
+Date: Tue, 11 Jun 2024 14:53:35 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-prevent-accessing-by-index=-1.patch added to mm-unstable branch
-Message-Id: <20240611214231.B7DD2C3277B@smtp.kernel.org>
+Subject: + writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3.patch added to mm-unstable branch
+Message-Id: <20240611215336.5FA09C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory_hotplug: prevent accessing by index=-1
+     Subject: writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-prevent-accessing-by-index=-1.patch
+     writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-prevent-accessing-by-index=-1.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,48 +58,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anastasia Belova <abelova@astralinux.ru>
-Subject: mm/memory_hotplug: prevent accessing by index=-1
-Date: Thu, 6 Jun 2024 11:06:59 +0300
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3
+Date: Thu, 6 Jun 2024 11:35:47 +0800
 
-nid may be equal to NUMA_NO_NODE=-1.  Prevent accessing node_data array by
-invalid index with check for nid.
+add comment
 
-Found by Linux Verification Center (linuxtesting.org) with SVACE.
-
-Link: https://lkml.kernel.org/r/20240606080659.18525-1-abelova@astralinux.ru
-Fixes: e83a437faa62 ("mm/memory_hotplug: introduce "auto-movable" online policy")
-Signed-off-by: Anastasia Belova <abelova@astralinux.ru>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/20240606033547.344376-1-shikemeng@huaweicloud.com
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page-writeback.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-prevent-accessing-by-index=-1
-+++ a/mm/memory_hotplug.c
-@@ -839,7 +839,6 @@ static bool auto_movable_can_online_mova
- 	unsigned long kernel_early_pages, movable_pages;
- 	struct auto_movable_group_stats group_stats = {};
- 	struct auto_movable_stats stats = {};
--	pg_data_t *pgdat = NODE_DATA(nid);
- 	struct zone *zone;
- 	int i;
+--- a/mm/page-writeback.c~writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3
++++ a/mm/page-writeback.c
+@@ -1783,6 +1783,10 @@ static inline void wb_dirty_exceeded(str
+ 		((dtc->dirty > dtc->thresh) || strictlimit);
+ }
  
-@@ -850,6 +849,8 @@ static bool auto_movable_can_online_mova
- 			auto_movable_stats_account_zone(&stats, zone);
- 	} else {
- 		for (i = 0; i < MAX_NR_ZONES; i++) {
-+			pg_data_t *pgdat = NODE_DATA(nid);
-+
- 			zone = pgdat->node_zones + i;
- 			if (populated_zone(zone))
- 				auto_movable_stats_account_zone(&stats, zone);
++/*
++ * The limits fileds dirty_exceeded and pos_ratio won't be updated if wb is
++ * in freerun state. Please don't use these invalid fileds in freerun case.
++ */
+ static void balance_wb_limits(struct dirty_throttle_control *dtc,
+ 			      bool strictlimit)
+ {
 _
 
-Patches currently in -mm which might be from abelova@astralinux.ru are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
-mm-memory_hotplug-prevent-accessing-by-index=-1.patch
+writeback-factor-out-wb_bg_dirty_limits-to-remove-repeated-code.patch
+writeback-add-general-function-domain_dirty_avail-to-calculate-dirty-and-avail-of-domain.patch
+writeback-factor-out-domain_over_bg_thresh-to-remove-repeated-code.patch
+writeback-factor-out-code-of-freerun-to-remove-repeated-code.patch
+writeback-factor-out-wb_dirty_freerun-to-remove-more-repeated-freerun-code.patch
+writeback-factor-out-balance_domain_limits-to-remove-repeated-code.patch
+writeback-factor-out-wb_dirty_exceeded-to-remove-repeated-code.patch
+writeback-factor-out-balance_wb_limits-to-remove-repeated-code.patch
+writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3.patch
 
