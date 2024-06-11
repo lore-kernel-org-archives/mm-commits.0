@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E025B1CF90
-	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 19:57:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B13A7350E
+	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 20:25:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718135842; cv=none; b=tt9K5/7z/v6RACCYnAW+uda1ofdZoK4gUBk5hZUg9icAOu2NAsyaa7QSrjGSroMG3x5d78FsoTf90rTZKiKO1FoF+e/nmGjxVhpRDdgYxB6HwmnZsT0QgcR5nfrouZDUOSdwm2oL33zLihgQ6iXysILPaMqqzi9veVcbJSdOb3A=
+	t=1718137521; cv=none; b=Ak3xyjPJhRV8dT5kL/R8G6wAfmNo9BGTxe8spmUBpnoreJ447pGYwrIgZvC4xRE7LR36sBmpbqQl+2V9X0+xsPCSfMKgBSbnUTfbcW3kj5paejSXHkxof58gSz61kCc2Kpb9zHaPFVIN521AGg7kYU7FcYVIJDeeueBJQaUEefU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718135842; c=relaxed/simple;
-	bh=pioFOL8TrLREYu4+NtQQ85wbQUMQ910uKSfBLf5LgNA=;
-	h=Date:To:From:Subject:Message-Id; b=gcbjtrsRb82YOsjYvKLP5RpDcguy9HlO6wtGPNtnEMd5sKQ887zG264ZwndTkU6kIVTw6sd+4nifoS5XyCPywv4rcxMfwB04WR2MkTfEylPQ1gx5vUTPJZSKULoF7a/zhgaA+0Yzxf7aREX3ZTRxX4kfVX69RKa0crkNoO40rTw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vIcL+BYu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718137521; c=relaxed/simple;
+	bh=huUzlSNNsLNGvO0mPg3k/NWR3lzTvI0rQNiWirn2e2Y=;
+	h=Date:To:From:Subject:Message-Id; b=moDalK04bOehj9admDsWiUPouUDNAYZu3kxcvZWmSAaZNqdsRsPJKY9+Pyp86lkIGS3Fvs1/SvGNfcv5sPz0pX8/AEX0US0hoRbu+NK1iv6ah/FR3ZFKA1KxMWbeflzc8TeIljAmgNr8SgheHFCJDdxGWbRKiUh2p58RzeL0PDc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lP6Vs2BQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vIcL+BYu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 703E7C32786;
-	Tue, 11 Jun 2024 19:57:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lP6Vs2BQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2E70C2BD10;
+	Tue, 11 Jun 2024 20:25:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718135841;
-	bh=pioFOL8TrLREYu4+NtQQ85wbQUMQ910uKSfBLf5LgNA=;
+	s=korg; t=1718137520;
+	bh=huUzlSNNsLNGvO0mPg3k/NWR3lzTvI0rQNiWirn2e2Y=;
 	h=Date:To:From:Subject:From;
-	b=vIcL+BYueFym8tn7l3odmQCvvDU3R70rRvX9UYUd9xquYw0Z7MgxrXhot3o4waWdx
-	 E+nbJMHNv9bYrxMf0zeAWnoQmBz6fmBE+sbf2H9egkxWn+svlsLvyMtMfSTC8Au+6D
-	 on7Is3j8x59L+yeFekq8OuKe76n5Mg/7xwths7UM=
-Date: Tue, 11 Jun 2024 12:57:20 -0700
-To: mm-commits@vger.kernel.org,xiongwei.song@windriver.com,willy@infradead.org,urezki@gmail.com,shubhang@os.amperecomputing.com,guoren@kernel.org,corbet@lwn.net,cl@linux.com,Shubhang@os.amperecomputing.com,akpm@linux-foundation.org
+	b=lP6Vs2BQQftck3XfLurY5j12B69Ak7US6MQjZxyiDQXFz3F45nVBQESwRBaY1nmq2
+	 nIU3wBefu25miteNB+i0v/6lDIswcckjG8JocNrS8g5o7l3smxvg+jYZhdNIih55F0
+	 JBzEO5WUKXdruXk6BVls8OBl1jTKjsBBxPdGzAjY=
+Date: Tue, 11 Jun 2024 13:25:20 -0700
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,rdunlap@infradead.org,pobrn@protonmail.com,keescook@chromium.org,jorgelo@chromium.org,hughd@google.com,dverkamp@chromium.org,dmitry.torokhov@gmail.com,david@readahead.eu,cyphar@cyphar.com,jeffxu@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmalloc-modify-the-alloc_vmap_area-error-message-for-better-diagnostics-v5.patch added to mm-unstable branch
-Message-Id: <20240611195721.703E7C32786@smtp.kernel.org>
+Subject: + mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v2.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240611202520.B2E70C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmalloc: modify the alloc_vmap_area() error message for better diagnostics
-has been added to the -mm mm-unstable branch.  Its filename is
-     vmalloc-modify-the-alloc_vmap_area-error-message-for-better-diagnostics-v5.patch
+     Subject: mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v2
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmalloc-modify-the-alloc_vmap_area-error-message-for-better-diagnostics-v5.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v2.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,41 +58,102 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shubhang Kaushik OS <Shubhang@os.amperecomputing.com>
-Subject: vmalloc: modify the alloc_vmap_area() error message for better diagnostics
-Date: Tue, 11 Jun 2024 19:38:44 +0000
+From: Jeff Xu <jeffxu@chromium.org>
+Subject: mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v2
+Date: Tue, 11 Jun 2024 03:49:01 +0000
 
-use `vend' in warning printk
+updates per Randy
 
-Link: https://lkml.kernel.org/r/CH2PR01MB5894B0182EA0B28DF2EFB916F5C72@CH2PR01MB5894.prod.exchangelabs.com
-Signed-off-by: Shubhang Kaushik <shubhang@os.amperecomputing.com>
-Reviewed-by: Christoph Lameter (Ampere) <cl@linux.com>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Xiongwei Song <xiongwei.song@windriver.com>
+Link: https://lkml.kernel.org/r/20240611034903.3456796-2-jeffxu@chromium.org
+Signed-off-by: Jeff Xu <jeffxu@chromium.org>
+Cc: Aleksa Sarai <cyphar@cyphar.com>
+Cc: Barnabás Pőcze <pobrn@protonmail.com>
+Cc: Daniel Verkamp <dverkamp@chromium.org>
+Cc: David Rheinsberg <david@readahead.eu>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/userspace-api/mfd_noexec.rst |   30 +++++++++----------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
---- a/mm/vmalloc.c~vmalloc-modify-the-alloc_vmap_area-error-message-for-better-diagnostics-v5
-+++ a/mm/vmalloc.c
-@@ -2057,7 +2057,7 @@ overflow:
+--- a/Documentation/userspace-api/mfd_noexec.rst~mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v2
++++ a/Documentation/userspace-api/mfd_noexec.rst
+@@ -10,27 +10,27 @@ Introduction of non executable mfd
+ :Contributor:
+ 	Aleksa Sarai <cyphar@cyphar.com>
  
- 	if (!(gfp_mask & __GFP_NOWARN) && printk_ratelimit())
- 		pr_warn("vmalloc_node_range for size %lu failed: Address range restricted to %#lx - %#lx\n",
--				size, addr, addr+size);
-+				size, vstart, vend);
+-Since Linux introduced the memfd feature, memfd have always had their
++Since Linux introduced the memfd feature, memfds have always had their
+ execute bit set, and the memfd_create() syscall doesn't allow setting
+ it differently.
  
- 	kmem_cache_free(vmap_area_cachep, va);
- 	return ERR_PTR(-EBUSY);
+-However, in a secure by default system, such as ChromeOS, (where all
+-executables should come from the rootfs, which is protected by Verified
++However, in a secure-by-default system, such as ChromeOS, (where all
++executables should come from the rootfs, which is protected by verified
+ boot), this executable nature of memfd opens a door for NoExec bypass
+ and enables “confused deputy attack”.  E.g, in VRP bug [1]: cros_vm
+ process created a memfd to share the content with an external process,
+ however the memfd is overwritten and used for executing arbitrary code
+-and root escalation. [2] lists more VRP in this kind.
++and root escalation. [2] lists more VRP of this kind.
+ 
+-On the other hand, executable memfd has its legit use, runc uses memfd’s
++On the other hand, executable memfd has its legit use: runc uses memfd’s
+ seal and executable feature to copy the contents of the binary then
+-execute them, for such system, we need a solution to differentiate runc's
+-use of  executable memfds and an attacker's [3].
++execute them. For such a system, we need a solution to differentiate runc's
++use of executable memfds and an attacker's [3].
+ 
+-To address those above.
++To address those above:
+  - Let memfd_create() set X bit at creation time.
+  - Let memfd be sealed for modifying X bit when NX is set.
+- - A new pid namespace sysctl: vm.memfd_noexec to help applications to
++ - Add a new pid namespace sysctl: vm.memfd_noexec to help applications to
+    migrating and enforcing non-executable MFD.
+ 
+ User API
+@@ -48,7 +48,7 @@ User API
+ 
+ Note:
+ 	``MFD_NOEXEC_SEAL`` implies ``MFD_ALLOW_SEALING``. In case that
+-	app doesn't want sealing, it can add F_SEAL_SEAL after creation.
++	an app doesn't want sealing, it can add F_SEAL_SEAL after creation.
+ 
+ 
+ Sysctl:
+@@ -68,14 +68,14 @@ The new pid namespaced sysctl vm.memfd_n
+  - 2: MEMFD_NOEXEC_SCOPE_NOEXEC_ENFORCED
+ 	memfd_create() without MFD_NOEXEC_SEAL will be rejected.
+ 
+-The sysctl allows finer control of memfd_create for old-software that
+-doesn't set the executable bit, for example, a container with
+-vm.memfd_noexec=1 means the old-software will create non-executable memfd
+-by default while new-software can create executable memfd by setting
++The sysctl allows finer control of memfd_create for old software that
++doesn't set the executable bit; for example, a container with
++vm.memfd_noexec=1 means the old software will create non-executable memfd
++by default while new software can create executable memfd by setting
+ MFD_EXEC.
+ 
+ The value of vm.memfd_noexec is passed to child namespace at creation
+-time, in addition, the setting is hierarchical, i.e. during memfd_create,
++time. In addition, the setting is hierarchical, i.e. during memfd_create,
+ we will search from current ns to root ns and use the most restrictive
+ setting.
+ 
 _
 
-Patches currently in -mm which might be from Shubhang@os.amperecomputing.com are
+Patches currently in -mm which might be from jeffxu@chromium.org are
 
-vmalloc-modify-the-alloc_vmap_area-error-message-for-better-diagnostics.patch
-vmalloc-modify-the-alloc_vmap_area-error-message-for-better-diagnostics-v5.patch
+mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec.patch
+mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v2.patch
 
