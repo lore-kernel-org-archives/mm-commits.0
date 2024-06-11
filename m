@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97A4838FA1
-	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 18:06:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCE92249E5
+	for <mm-commits@vger.kernel.org>; Tue, 11 Jun 2024 18:26:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718129217; cv=none; b=LF7oFpljqug2ngB8NIoITKDmVmxgH3eCj7Tv1JmjEpjzjhyC7t3/a7MCr/076yt3UUKhBP1+2LlSqVyNsBkN3sRBHlWKRfS7tEBbD8dK0CD/PKXqiHlYSYbqLPTbDSqxeKMTIjZSWvSu5chzPnp7S7QcW28N13yekZ+OKCJrgqk=
+	t=1718130418; cv=none; b=Q/J6SpeDpeLZDTekP2xjG+fgz02tOBhZYk1Cil3yh8uPgtpv27c+UyhmWSiTdvBHwQTs95LG1eumbKO/EpvyvlvyBBmwMVv52oJqgUWzmefkr+q/YatpyrMeETBpcX5PCJ3OUDmPdZ00hYGsm/Aj3UyQ5VNBRbHGcqu2hvGiHOc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718129217; c=relaxed/simple;
-	bh=k+MwGRS45Tc87hSmQFQPIrvT6FGr6azSt9Yse+vYWTI=;
-	h=Date:To:From:Subject:Message-Id; b=LbPym7rdsJ4MGvr5yCWXaBVWFZPeHHF8sS4hL0d5PkLO7ZfAmUvIR0NEIxIWylip//5E/rLl42X/em3fZhj0rXq6hWOUHVZrVbY2TpvLlf/gffTaZ8hCqMO50yESeriZ+ntzzbiAVGEZDN6Uu0+4I/n8G14FiotWZak/w1Ab0HA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wDkW80pY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718130418; c=relaxed/simple;
+	bh=u8rmX2vcneBvDf/ad11SAFsLUwvfYHg0DkVcM+1198Y=;
+	h=Date:To:From:Subject:Message-Id; b=IOCWtb24ZgqAaIP7mCksMqEbeWJO4RV5Tearu+lEOJjNJzuGlREV76UYGEyqL79zDZCOHNt9Wk5G1JtJiTNbq+sPE5QhyPwqDI2F0YvnBXEhkZMEhNgC5JSj2nzI7RNo7vlZaOaOPo7EsUKeIGk1XC60W3spFpSxLMJS6wvQptw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WAIrqhds; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wDkW80pY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11822C2BD10;
-	Tue, 11 Jun 2024 18:06:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WAIrqhds"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32B32C2BD10;
+	Tue, 11 Jun 2024 18:26:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718129217;
-	bh=k+MwGRS45Tc87hSmQFQPIrvT6FGr6azSt9Yse+vYWTI=;
+	s=korg; t=1718130418;
+	bh=u8rmX2vcneBvDf/ad11SAFsLUwvfYHg0DkVcM+1198Y=;
 	h=Date:To:From:Subject:From;
-	b=wDkW80pYBDZRSN6F/UoHmagnJt5tP8ecPz/hkX47CZUrkv9J1+4KBFZxtPgJyBFEf
-	 GzB2xA1XW8fhiv29ZyZJRtRT7tk74qvWSlyfoJLTfh4ONaC4iBjNBgDexXXhviyHsj
-	 Tdp+812fGFgjMyVmFAKKauu4h0BOrYPza5pJcPQA=
-Date: Tue, 11 Jun 2024 11:06:56 -0700
-To: mm-commits@vger.kernel.org,david@redhat.com,abrestic@rivosinc.com,akpm@linux-foundation.org
+	b=WAIrqhdsCWtSYKA+u6GK5RFiY3SSa6zjSJtbEwXH8Ui7KHoC5rrtA+6A8ZvGhWNWC
+	 QmcRSKo4rOhbOilIHSZEvH08LhEoL24kKn23A3VTWw5VzY+3QAc3fednNjgm1i1IU9
+	 uFqSIF5hrYcIu5A/C918/OuuPWlM5dndM7D0u9tw=
+Date: Tue, 11 Jun 2024 11:26:57 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-dont-require-head-page-for-do_set_pmd.patch added to mm-unstable branch
-Message-Id: <20240611180657.11822C2BD10@smtp.kernel.org>
+Subject: + mm-mmap-correctly-position-vma_iterator-in-__split_vma.patch added to mm-unstable branch
+Message-Id: <20240611182658.32B32C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory: don't require head page for do_set_pmd()
+     Subject: mm/mmap: correctly position vma_iterator in __split_vma()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-dont-require-head-page-for-do_set_pmd.patch
+     mm-mmap-correctly-position-vma_iterator-in-__split_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-dont-require-head-page-for-do_set_pmd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-correctly-position-vma_iterator-in-__split_vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,43 +58,88 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Bresticker <abrestic@rivosinc.com>
-Subject: mm/memory: don't require head page for do_set_pmd()
-Date: Tue, 11 Jun 2024 08:32:16 -0700
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: mm/mmap: correctly position vma_iterator in __split_vma()
+Date: Tue, 11 Jun 2024 14:01:53 -0400
 
-The requirement that the head page be passed to do_set_pmd() was added in
-commit ef37b2ea08ac ("mm/memory: page_add_file_rmap() ->
-folio_add_file_rmap_[pte|pmd]()") and prevents pmd-mapping in the
-finish_fault() and filemap_map_pages() paths if the page to be inserted is
-anything but the head page for an otherwise suitable vma and pmd-sized
-page.
+Patch series "Avoid MAP_FIXED gap exposure".
 
-Link: https://lkml.kernel.org/r/20240611153216.2794513-1-abrestic@rivosinc.com
-Fixes: ef37b2ea08ac ("mm/memory: page_add_file_rmap() -> folio_add_file_rmap_[pte|pmd]()")
-Signed-off-by: Andrew Bresticker <abrestic@rivosinc.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+It is now possible to walk the vma tree using the rcu read locks and is
+beneficial to do so to reduce lock contention.  Doing so while a MAP_FIXED
+mapping is executing means that a reader may see a gap in the vma tree
+that should never logically exist - and does not when using the mmap lock
+in read mode.  The temporal gap exists because mmap_region() calls
+munmap() prior to installing the new mapping.
+
+This patchset stops rcu readers from seeing the temporal gap by splitting
+up the munmap() function into two parts.  The first part prepares the vma
+tree for modifications by doing the necessary splits and tracks the vmas
+marked for removal in a side tree.  The second part completes the
+munmapping of the vmas after the vma tree has been overwritten (either by
+a MAP_FIXED replacement vma or by a NULL in the munmap() case).
+
+Please note that rcu walkers will still be able to see a temporary state
+of split vmas that may be in the process of being removed, but the
+temporal gap will not be exposed.  vma_start_write() are called on both
+parts of the split vma, so this state is detectable.
+
+
+This patch (of 8):
+
+The vma iterator may be left pointing to the newly created vma.  This
+happens when inserting the new vma at the end of the old vma (!new_below).
+
+The incorrect position in the vma iterator is not exposed currently since
+the vma iterator is repositioned in the munmap path and is not reused in
+any of the other paths.
+
+This has limited impact in the current code, but is required for future
+changes.
+
+Link: https://lkml.kernel.org/r/20240611180200.711239-1-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20240611180200.711239-2-Liam.Howlett@oracle.com
+Fixes: b2b3b886738f ("mm: don't use __vma_adjust() in __split_vma()")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/mmap.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-memory-dont-require-head-page-for-do_set_pmd
-+++ a/mm/memory.c
-@@ -4699,8 +4699,9 @@ vm_fault_t do_set_pmd(struct vm_fault *v
- 	if (!thp_vma_suitable_order(vma, haddr, PMD_ORDER))
- 		return ret;
+--- a/mm/mmap.c~mm-mmap-correctly-position-vma_iterator-in-__split_vma
++++ a/mm/mmap.c
+@@ -2414,7 +2414,7 @@ static void unmap_region(struct mm_struc
+ /*
+  * __split_vma() bypasses sysctl_max_map_count checking.  We use this where it
+  * has already been checked or doesn't make sense to fail.
+- * VMA Iterator will point to the end VMA.
++ * VMA Iterator will point to the original vma.
+  */
+ static int __split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
+ 		       unsigned long addr, int new_below)
+@@ -2483,6 +2483,9 @@ static int __split_vma(struct vma_iterat
+ 	/* Success. */
+ 	if (new_below)
+ 		vma_next(vmi);
++	else
++		vma_prev(vmi);
++
+ 	return 0;
  
--	if (page != &folio->page || folio_order(folio) != HPAGE_PMD_ORDER)
-+	if (folio_order(folio) != HPAGE_PMD_ORDER)
- 		return ret;
-+	page = &folio->page;
- 
- 	/*
- 	 * Just backoff if any subpage of a THP is corrupted otherwise
+ out_free_mpol:
 _
 
-Patches currently in -mm which might be from abrestic@rivosinc.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-mm-memory-dont-require-head-page-for-do_set_pmd.patch
+mm-mmap-correctly-position-vma_iterator-in-__split_vma.patch
+mm-mmap-introduce-abort_munmap_vmas.patch
+mm-mmap-introduce-vmi_complete_munmap_vmas.patch
+mm-mmap-extract-the-gathering-of-vmas-from-do_vmi_align_munmap.patch
+mm-mmap-introduce-vma_munmap_struct-for-use-in-munmap-operations.patch
+mm-mmap-change-munmap-to-use-vma_munmap_struct-for-accounting-and-surrounding-vmas.patch
+mm-mmap-extract-validate_mm-from-vma_complete.patch
+mm-mmap-use-split-munmap-calls-for-map_fixed.patch
 
