@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8393C823AC
-	for <mm-commits@vger.kernel.org>; Wed, 12 Jun 2024 19:01:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92F3481AD1
+	for <mm-commits@vger.kernel.org>; Wed, 12 Jun 2024 19:01:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718218902; cv=none; b=eagsYpx22qEBl5vaEd7nCMozZ91hkoxdBvbcXl1bvStJIgNS4pq8Vz5IpB9jkRP0xkJ1pN0khfkWBVulG5A512fY7M0WWNuOj+LnBixukfxoFeJwMiVPBE81QBEmCCNl+ZWKcMLNXIvlt/ssC0UKsAJef0EgG0yL/+9hHZ7irxY=
+	t=1718218904; cv=none; b=o4rTvLyHbt9DOVA6qMSSALnZwRxef2moVrZ/bwPIyqnyegArzIr1Udj1B+zTQ5ybalVExC8hSCqduCraPQXv4lE/dvz5f1DDditaYRddbfYAdvM8/GO4/eB9KACiMEsAIqJLkE4PKrfpiLfA+uPzfqNLat8RjxdpUtaoCSAd4ZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718218902; c=relaxed/simple;
-	bh=w3ESQ/nPsdgE8wThOyFfzQr/WjY31JmlnwOsfb4FXMw=;
-	h=Date:To:From:Subject:Message-Id; b=VyajwkhZTOI1GRJE2N5QBKQEk3qigx7j7BpVzB0BELAntHRTW0WH7djYK8VUNddIFLDrtaeJoKgTLpJ+Gu5lKEuGxIlFaL24SelK2BwD1Ei75Amepz+07x5Efu1qXcgnxhHfveDBpM/9aZR+IYL7h/pCU4UrVnWwjJxBmdu3NcM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p9u1Jka3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718218904; c=relaxed/simple;
+	bh=xIQ+arAvMhC+p/v6hK6KQJIcRR4BG+Z6RTjxceW1Vsw=;
+	h=Date:To:From:Subject:Message-Id; b=AOtHDi/+d++sOS2dOY+2XJ07uyFDRJhs/HBxgez1a8VKcgNPv20JjTqf+z6p28oReEMRaiZPnz4fkzPI13CodjT3moAXJfeZjSW/aOG6+IsLhd8mP1gu9UjCqEDm7wdhzZOo6H03YqaPJV/a+u24MHeD3EgkEp2aqDVUC7TeP94=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tnO/q8pJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p9u1Jka3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42545C116B1;
-	Wed, 12 Jun 2024 19:01:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tnO/q8pJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 563C2C116B1;
+	Wed, 12 Jun 2024 19:01:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718218902;
-	bh=w3ESQ/nPsdgE8wThOyFfzQr/WjY31JmlnwOsfb4FXMw=;
+	s=korg; t=1718218904;
+	bh=xIQ+arAvMhC+p/v6hK6KQJIcRR4BG+Z6RTjxceW1Vsw=;
 	h=Date:To:From:Subject:From;
-	b=p9u1Jka3mfN3GIyuIScVJdeuIb6Uctw0Y+1iURBRgBd+tlOTbtpq/gdKRTp2bN/oc
-	 U/JaNQSYDQoUDQvn/BeG6ivmO6vnkogLJZWP0y1U4R0mlKQEX/Z+InrUs0+WM/hMnM
-	 aA9eVokFUBMXNhMpneB4tBAYHyNLb3a2I3Eq++Rs=
-Date: Wed, 12 Jun 2024 12:01:41 -0700
+	b=tnO/q8pJCy9tZh3h0SqEllhRlYKJxfv/Q6qxtI0z/w3SIBQl1xAmVOaeKrw8XvRTn
+	 vXJYtpktllmKusDQBvLb0aqU4HWLQDG8mGDEn2mgvTZtF2CNhQtOE/5RTv98zljf6u
+	 Ax4YN+LcSQOjbprSzbKBIZlJMMwwheNscAGf0Cmo=
+Date: Wed, 12 Jun 2024 12:01:43 -0700
 To: mm-commits@vger.kernel.org,tony.luck@intel.com,nao.horiguchi@gmail.com,lkp@intel.com,david@redhat.com,bp@alien8.de,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-remove-obsolete-comment-in-unpoison_memory.patch added to mm-unstable branch
-Message-Id: <20240612190142.42545C116B1@smtp.kernel.org>
+Subject: + mm-memory-failure-move-some-function-declarations-into-internalh.patch added to mm-unstable branch
+Message-Id: <20240612190144.563C2C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: remove obsolete comment in unpoison_memory()
+     Subject: mm/memory-failure: move some function declarations into internal.h
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-remove-obsolete-comment-in-unpoison_memory.patch
+     mm-memory-failure-move-some-function-declarations-into-internalh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-remove-obsolete-comment-in-unpoison_memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-move-some-function-declarations-into-internalh.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,39 +59,96 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory-failure: remove obsolete comment in unpoison_memory()
-Date: Wed, 12 Jun 2024 15:18:31 +0800
+Subject: mm/memory-failure: move some function declarations into internal.h
+Date: Wed, 12 Jun 2024 15:18:32 +0800
 
-Since commit 130d4df57390 ("mm/sl[au]b: rearrange struct slab fields to
-allow larger rcu_head"), folio->_mapcount is not overloaded with SLAB. 
-Update corresponding comment.
+There are some functions only used inside mm.  Move them into internal.h. 
+No functional change intended.
 
-Link: https://lkml.kernel.org/r/20240612071835.157004-10-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20240612071835.157004-11-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202405251049.hxjwX7zO-lkp@intel.com/
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: kernel test robot <lkp@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/mm.h         |    7 -------
+ include/linux/page-flags.h |    5 -----
+ include/linux/rmap.h       |    2 --
+ mm/internal.h              |   10 ++++++++++
+ 4 files changed, 10 insertions(+), 14 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-remove-obsolete-comment-in-unpoison_memory
-+++ a/mm/memory-failure.c
-@@ -2584,10 +2584,6 @@ int unpoison_memory(unsigned long pfn)
- 	    folio_test_reserved(folio) || folio_test_offline(folio))
- 		goto unlock_mutex;
+--- a/include/linux/mm.h~mm-memory-failure-move-some-function-declarations-into-internalh
++++ a/include/linux/mm.h
+@@ -3981,7 +3981,6 @@ extern int __get_huge_page_for_hwpoison(
+ 					bool *migratable_cleared);
+ void num_poisoned_pages_inc(unsigned long pfn);
+ void num_poisoned_pages_sub(unsigned long pfn, long i);
+-struct task_struct *task_early_kill(struct task_struct *tsk, int force_early);
+ #else
+ static inline void memory_failure_queue(unsigned long pfn, int flags)
+ {
+@@ -4002,12 +4001,6 @@ static inline void num_poisoned_pages_su
+ }
+ #endif
  
--	/*
--	 * Note that folio->_mapcount is overloaded in SLAB, so the simple test
--	 * in folio_mapped() has to be done after folio_test_slab() is checked.
--	 */
- 	if (folio_mapped(folio)) {
- 		unpoison_pr_info("Unpoison: Someone maps the hwpoison page %#lx\n",
- 				 pfn, &unpoison_rs);
+-#if defined(CONFIG_MEMORY_FAILURE) && defined(CONFIG_KSM)
+-void add_to_kill_ksm(struct task_struct *tsk, struct page *p,
+-		     struct vm_area_struct *vma, struct list_head *to_kill,
+-		     unsigned long ksm_addr);
+-#endif
+-
+ #if defined(CONFIG_MEMORY_FAILURE) && defined(CONFIG_MEMORY_HOTPLUG)
+ extern void memblk_nr_poison_inc(unsigned long pfn);
+ extern void memblk_nr_poison_sub(unsigned long pfn, long i);
+--- a/include/linux/page-flags.h~mm-memory-failure-move-some-function-declarations-into-internalh
++++ a/include/linux/page-flags.h
+@@ -611,11 +611,6 @@ PAGEFLAG_FALSE(Uncached, uncached)
+ PAGEFLAG(HWPoison, hwpoison, PF_ANY)
+ TESTSCFLAG(HWPoison, hwpoison, PF_ANY)
+ #define __PG_HWPOISON (1UL << PG_hwpoison)
+-#define MAGIC_HWPOISON	0x48575053U	/* HWPS */
+-extern void SetPageHWPoisonTakenOff(struct page *page);
+-extern void ClearPageHWPoisonTakenOff(struct page *page);
+-extern bool take_page_off_buddy(struct page *page);
+-extern bool put_page_back_buddy(struct page *page);
+ #else
+ PAGEFLAG_FALSE(HWPoison, hwpoison)
+ #define __PG_HWPOISON 0
+--- a/include/linux/rmap.h~mm-memory-failure-move-some-function-declarations-into-internalh
++++ a/include/linux/rmap.h
+@@ -745,8 +745,6 @@ int pfn_mkclean_range(unsigned long pfn,
+ 
+ void remove_migration_ptes(struct folio *src, struct folio *dst, bool locked);
+ 
+-unsigned long page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
+-
+ /*
+  * rmap_walk_control: To control rmap traversing for specific needs
+  *
+--- a/mm/internal.h~mm-memory-failure-move-some-function-declarations-into-internalh
++++ a/mm/internal.h
+@@ -1078,6 +1078,16 @@ extern u64 hwpoison_filter_flags_mask;
+ extern u64 hwpoison_filter_flags_value;
+ extern u64 hwpoison_filter_memcg;
+ extern u32 hwpoison_filter_enable;
++#define MAGIC_HWPOISON	0x48575053U	/* HWPS */
++void SetPageHWPoisonTakenOff(struct page *page);
++void ClearPageHWPoisonTakenOff(struct page *page);
++bool take_page_off_buddy(struct page *page);
++bool put_page_back_buddy(struct page *page);
++struct task_struct *task_early_kill(struct task_struct *tsk, int force_early);
++void add_to_kill_ksm(struct task_struct *tsk, struct page *p,
++		     struct vm_area_struct *vma, struct list_head *to_kill,
++		     unsigned long ksm_addr);
++unsigned long page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
+ 
+ extern unsigned long  __must_check vm_mmap_pgoff(struct file *, unsigned long,
+         unsigned long, unsigned long,
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
