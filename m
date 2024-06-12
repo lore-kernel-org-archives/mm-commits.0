@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C45782C8E
-	for <mm-commits@vger.kernel.org>; Wed, 12 Jun 2024 19:23:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EB066A8DB
+	for <mm-commits@vger.kernel.org>; Wed, 12 Jun 2024 19:33:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718220205; cv=none; b=DxHkKnOgAL6qICCHtIEoznJIz26szsvHIZIcOcJ+6hP2pFXe2UAAO2oCBfuihre904m8QuTnStoPNNY9dPkarFovRLwNLHyvh/z3W7wVCeiAYhfVlO2FYQJGc9dAmI7HcToJmoc4j9r2vz0IVsAQL9+9r8IsE8Tw1oD+35c7X4s=
+	t=1718220834; cv=none; b=oinXeiLClRjDog5HP9arMkqskwaATBq7JJUflrKliO8Ggz1BE1m4ouzq8hW1D9ojOGHkk2j5kt21biLMISY29KDyZ0ZAnXu199FCXit/mJtZqyhgTyvvvZLvZUuI/iL5TMCIPzj7ZoEz4kuM0SkVxkwNLaWk+zvAvEbu/9t6FBg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718220205; c=relaxed/simple;
-	bh=N3cyZEsthyQutK6co8AKfbxiqaKMUchFtx1IFTGixms=;
-	h=Date:To:From:Subject:Message-Id; b=rVfFF5zV6VOey4PpZnKRRN8eykA/D7qTyywoezYgPT9Td/Yd8DQ2yNtyskPoVRTExyFgLfz7WVYcMvRxd2QcgprYN7OWWkjcynFJkql82e5GNjDkUoi2uZBLWaxx8niv7PK5z9k2RtF3RVXghvSGv1R3yKFE6w0k8xP8pGWkpgQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UVbahBhP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718220834; c=relaxed/simple;
+	bh=fHxJsLYP92/boK8qPq4vxZRfldydgmzCeSlEvx0lcpQ=;
+	h=Date:To:From:Subject:Message-Id; b=EHquvneJoAgEwI7+OjWcfu3vstrolrDcTj0J0KVeX/JUtAYIFqCVOdhtTjEGWiVjBrhJOaFtjxpI1F8diQCLaO1ECljpnwgrJBBRvwr3UKg6xuDZx1UWtc58VxqnNTC0d/1y6ihwmse44+v5nP4xLQJupS4yofVtDZz748DaARo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sgbJVbTI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UVbahBhP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 009E0C116B1;
-	Wed, 12 Jun 2024 19:23:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sgbJVbTI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43846C116B1;
+	Wed, 12 Jun 2024 19:33:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718220205;
-	bh=N3cyZEsthyQutK6co8AKfbxiqaKMUchFtx1IFTGixms=;
+	s=korg; t=1718220834;
+	bh=fHxJsLYP92/boK8qPq4vxZRfldydgmzCeSlEvx0lcpQ=;
 	h=Date:To:From:Subject:From;
-	b=UVbahBhP915eliD36TNC5rXYSlSYLuYAaYON7pNDzIodKbT3s4ekLnjCsfc9zM5FL
-	 ZaEd4GuW8KVKepRe3Mf0uSWCRhXZ5Ex/ZC0e2l5F4h4LKLgKfZarwDLZejkFw4/7Nx
-	 7Gy/0UJ5JWrgXcHvdurEzZEi7YZtleSt7NQRlTW4=
-Date: Wed, 12 Jun 2024 12:23:24 -0700
-To: mm-commits@vger.kernel.org,rdunlap@infradead.org,jeffxu@chromium.org,akpm@linux-foundation.org
+	b=sgbJVbTI0ONsXheuqgMd93KPPImlRUDt/ENLdTU0/fnm+kNlL0/YDer3lnYr3jCsu
+	 8MzPddGvIbvkMOtQGX96a2cC+SwWCrI4j/3eOLA5a2Jyg+yOIOtbd8F/LugtbsyG2A
+	 +tPFLZyf1l+CMfcLJlFUHuMa4srs/CnjpRBGeHVU=
+Date: Wed, 12 Jun 2024 12:33:53 -0700
+To: mm-commits@vger.kernel.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v3.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240612192325.009E0C116B1@smtp.kernel.org>
+Subject: + mm-pass-meminit_context-to-__free_pages_core-fix-3.patch added to mm-unstable branch
+Message-Id: <20240612193354.43846C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v3
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v3.patch
+     Subject: mm-pass-meminit_context-to-__free_pages_core-fix-3
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-pass-meminit_context-to-__free_pages_core-fix-3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pass-meminit_context-to-__free_pages_core-fix-3.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,44 +58,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jeff Xu <jeffxu@chromium.org>
-Subject: mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v3
-Date: Tue, 11 Jun 2024 23:14:08 +0000
+From: David Hildenbrand <david@redhat.com>
+Subject: mm-pass-meminit_context-to-__free_pages_core-fix-3
+Date: Wed, 12 Jun 2024 20:31:07 +0200
 
-Link: https://lkml.kernel.org/r/20240611231409.3899809-2-jeffxu@chromium.org
-Signed-off-by: Jeff Xu <jeffxu@chromium.org>
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+add the parameter name also in the declaration
+
+Link: https://lkml.kernel.org/r/ca575956-f0dd-4fb9-a307-6b7621681ed9@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/userspace-api/mfd_noexec.rst |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/internal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/userspace-api/mfd_noexec.rst~mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v3
-+++ a/Documentation/userspace-api/mfd_noexec.rst
-@@ -1,7 +1,7 @@
- .. SPDX-License-Identifier: GPL-2.0
+--- a/mm/internal.h~mm-pass-meminit_context-to-__free_pages_core-fix-3
++++ a/mm/internal.h
+@@ -605,7 +605,7 @@ extern void __putback_isolated_page(stru
+ extern void memblock_free_pages(struct page *page, unsigned long pfn,
+ 					unsigned int order);
+ extern void __free_pages_core(struct page *page, unsigned int order,
+-		enum meminit_context);
++		enum meminit_context context);
  
- ==================================
--Introduction of non executable mfd
-+Introduction of non-executable mfd
- ==================================
- :Author:
-     Daniel Verkamp <dverkamp@chromium.org>
-@@ -30,7 +30,7 @@ use of executable memfds and an attacker
- To address those above:
-  - Let memfd_create() set X bit at creation time.
-  - Let memfd be sealed for modifying X bit when NX is set.
-- - Add a new pid namespace sysctl: vm.memfd_noexec to help applications to
-+ - Add a new pid namespace sysctl: vm.memfd_noexec to help applications in
-    migrating and enforcing non-executable MFD.
- 
- User API
+ /*
+  * This will have no effect, other than possibly generating a warning, if the
 _
 
-Patches currently in -mm which might be from jeffxu@chromium.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec.patch
-mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v2.patch
-mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v3.patch
+revert-mm-init_mlocked_on_free_v3.patch
+mm-memory-move-page_count-check-into-validate_page_before_insert.patch
+mm-memory-cleanly-support-zeropage-in-vm_insert_page-vm_map_pages-and-vmf_insert_mixed.patch
+mm-rmap-sanity-check-that-zeropages-are-not-passed-to-rmap.patch
+mm-update-_mapcount-and-page_type-documentation.patch
+mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type.patch
+mm-zsmalloc-use-a-proper-page-type.patch
+mm-page_alloc-clear-pagebuddy-using-__clearpagebuddy-for-bad-pages.patch
+mm-filemap-reinitialize-folio-_mapcount-directly.patch
+mm-mm_init-initialize-page-_mapcount-directly-in-__init_single_page.patch
+fs-proc-task_mmu-indicate-pm_file-for-pmd-mapped-file-thp.patch
+fs-proc-task_mmu-dont-indicate-pm_mmap_exclusive-without-pm_present.patch
+fs-proc-task_mmu-properly-detect-pm_mmap_exclusive-per-page-of-pmd-mapped-thps.patch
+fs-proc-task_mmu-account-non-present-entries-as-maybe-shared-but-no-idea-how-often.patch
+fs-proc-move-page_mapcount-to-fs-proc-internalh.patch
+documentation-admin-guide-mm-pagemaprst-drop-using-pagemap-to-do-something-useful.patch
+mm-pass-meminit_context-to-__free_pages_core.patch
+mm-pass-meminit_context-to-__free_pages_core-fix.patch
+mm-pass-meminit_context-to-__free_pages_core-fix-2.patch
+mm-pass-meminit_context-to-__free_pages_core-fix-3.patch
+mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved.patch
+mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining.patch
+mm-highmem-reimplement-totalhigh_pages-by-walking-zones.patch
+mm-highmem-reimplement-totalhigh_pages-by-walking-zones-fix.patch
+mm-highmem-make-nr_free_highpages-return-unsigned-long.patch
 
