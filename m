@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B18EF8287E
-	for <mm-commits@vger.kernel.org>; Wed, 12 Jun 2024 19:01:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E2098287E
+	for <mm-commits@vger.kernel.org>; Wed, 12 Jun 2024 19:01:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718218897; cv=none; b=lPNNm4yv9IaLjxB4+LFLnsFmUcxBdh6LPdta+RmivTR0ttTejYgOTCib5FGrtZqKz8znbDzXUlVWAYYBOrVKpRatcyeATt0bUP9c8JAa2+4927Acb6t9flrpINGh5KN+p3Dfak5VAdlN6FGfNYVIBAXQL4c8kEl8vwhVcWL6hkI=
+	t=1718218899; cv=none; b=EA/Hdod7k4dN1twINkWL2WByIH84m1Ncnyd0A2nanTq9hVZ5tpxbtHmjSAN3yzNV7dNyRicpwvu/gqlW43aSrneUiW5mHtkvMYpj/3tPHTRWvqDxenf7RYUaQicARwSGKWiq1lvHg6KJ9QCTtP7Kj/Kmq1cUqwUvSQjpGONyizc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718218897; c=relaxed/simple;
-	bh=Vc1YguFTb40Neb0Gxh2TRt8j6bmlgV2itEmOjTpxV+w=;
-	h=Date:To:From:Subject:Message-Id; b=nspG76bkogKrLHvHU9HvwCp+HYQb+ZULhLPo+UGlut+uPgCu7JW8Eu8kNMfGTVWbbj3N49Py8VU7Tp5zw6e9TGWYBTBj2rbKJxAubiAQvOO8YaaRaYAf+hmXbD8Px/lFXWi5qFGuKyr7R9F+4zXLxm3CsxK38MmhArRyqyumZmg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jEE+9KX/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718218899; c=relaxed/simple;
+	bh=ySpGcarPRJt7SMSeNSvrN0C90itTKJjuESZVUwx4PLY=;
+	h=Date:To:From:Subject:Message-Id; b=l+Ru7BXUCOLsDLdgpbh0AysP6+YUHbdZU2oCBw0MuCTqqruU6vwTpPd5qh8R5DriGFiqqBt/i+yLsGOQYfZftteOr36OtClGR9nbmwHVbPkojF9UUjU/iTg/q+a/EZ5HEgTYqhOADB4R3HjX92NLyemhm6jPqvx4lyXKBzUY9aE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q3oRCY+L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jEE+9KX/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84C13C116B1;
-	Wed, 12 Jun 2024 19:01:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q3oRCY+L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36690C116B1;
+	Wed, 12 Jun 2024 19:01:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718218897;
-	bh=Vc1YguFTb40Neb0Gxh2TRt8j6bmlgV2itEmOjTpxV+w=;
+	s=korg; t=1718218899;
+	bh=ySpGcarPRJt7SMSeNSvrN0C90itTKJjuESZVUwx4PLY=;
 	h=Date:To:From:Subject:From;
-	b=jEE+9KX/z7AOL3Tgsc3AB767N4FsUoBxZtxKDgCkWmEnl6dfxpvWvGQYBsO6JGoCD
-	 beSvbmJID0aWjoXqSzyNO19+EbTnSxeI/0DpkHheN6ZRl3ilxseZtr5flgYDx/Xm8a
-	 Ee13xBf1Ks3Tf6iS9pbyGrr7Qk9dMzZjIiMI5T4w=
-Date: Wed, 12 Jun 2024 12:01:36 -0700
+	b=Q3oRCY+LRgdgR+2vrdsPISxACZNH0NdgXFfRCs8wq/59PcN7mDDf5f+34iOarggAt
+	 Ed1GPKgmBmwPCaC4xfRIVzWq3wUOu+CXRaeke9XeAleB+eYpD86KIU/tKy0E0QMVNS
+	 lgKj1LoRvtLBq33aJSbTu7OTLRno2UHtZ3mVW6w8=
+Date: Wed, 12 Jun 2024 12:01:38 -0700
 To: mm-commits@vger.kernel.org,tony.luck@intel.com,nao.horiguchi@gmail.com,lkp@intel.com,david@redhat.com,bp@alien8.de,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-remove-confusing-initialization-to-count.patch added to mm-unstable branch
-Message-Id: <20240612190137.84C13C116B1@smtp.kernel.org>
+Subject: + mm-memory-failure-dont-export-hwpoison_filter-when-config_hwpoison_inject.patch added to mm-unstable branch
+Message-Id: <20240612190139.36690C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: remove confusing initialization to count
+     Subject: mm/memory-failure: don't export hwpoison_filter() when !CONFIG_HWPOISON_INJECT
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-remove-confusing-initialization-to-count.patch
+     mm-memory-failure-dont-export-hwpoison_filter-when-config_hwpoison_inject.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-remove-confusing-initialization-to-count.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-dont-export-hwpoison_filter-when-config_hwpoison_inject.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,36 +59,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory-failure: remove confusing initialization to count
-Date: Wed, 12 Jun 2024 15:18:28 +0800
+Subject: mm/memory-failure: don't export hwpoison_filter() when !CONFIG_HWPOISON_INJECT
+Date: Wed, 12 Jun 2024 15:18:29 +0800
 
-It's meaningless and confusing to init local variable count to 1.  Remove
-it.  No functional change intended.
+When CONFIG_HWPOISON_INJECT is not enabled, there is no user of the
+hwpoison_filter() outside memory-failure.  So there is no need to export
+it in that case.
 
-Link: https://lkml.kernel.org/r/20240612071835.157004-7-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20240612071835.157004-8-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202406070136.hGQwVbsv-lkp@intel.com/
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: kernel test robot <lkp@intel.com>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-remove-confusing-initialization-to-count
+--- a/mm/memory-failure.c~mm-memory-failure-dont-export-hwpoison_filter-when-config_hwpoison_inject
 +++ a/mm/memory-failure.c
-@@ -2542,7 +2542,7 @@ int unpoison_memory(unsigned long pfn)
- 	struct folio *folio;
- 	struct page *p;
- 	int ret = -EBUSY, ghp;
--	unsigned long count = 1;
-+	unsigned long count;
- 	bool huge = false;
- 	static DEFINE_RATELIMIT_STATE(unpoison_rs, DEFAULT_RATELIMIT_INTERVAL,
- 					DEFAULT_RATELIMIT_BURST);
+@@ -294,6 +294,7 @@ int hwpoison_filter(struct page *p)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(hwpoison_filter);
+ #else
+ int hwpoison_filter(struct page *p)
+ {
+@@ -301,8 +302,6 @@ int hwpoison_filter(struct page *p)
+ }
+ #endif
+ 
+-EXPORT_SYMBOL_GPL(hwpoison_filter);
+-
+ /*
+  * Kill all processes that have a poisoned page mapped and then isolate
+  * the page.
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
