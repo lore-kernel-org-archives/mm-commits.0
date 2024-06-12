@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3438A4AEF2
-	for <mm-commits@vger.kernel.org>; Wed, 12 Jun 2024 18:35:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF5521C14
+	for <mm-commits@vger.kernel.org>; Wed, 12 Jun 2024 19:01:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718217321; cv=none; b=aC3v6SKq8tfI7BA+f23ibTSxqtAUhCGhmKVlFKFkC4PiLxg63S+CScp/sWT61dfhkFdzJ1OhiGli+scgLuAMAzLyc6mXNxo3xvjz10gsFZNSf1cEzu1h7dcPdcUFHSuZaDF9pxL+y9Ie6lDuy2qf/2sazqlASG0r2767vNZtilQ=
+	t=1718218889; cv=none; b=EGjMUhPqVTTSWaJGksYM3P2bWDQb1bSnMRutLONP5ew6OKFkVJTRZ1CbK/C5eAswTKQxzwjiF7I44CXnehZxC3lqSd4fN4EUN0isbYAUqSi/iMMBKdUW+T29WUoySkL145uKWOl/gXVla4g0/ONOF09nA9ntOlW9gW2sBHgEEw0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718217321; c=relaxed/simple;
-	bh=QcPmVaMXh1wz9wghn6Qk08/UEWgahflDRgoNmi5euQc=;
-	h=Date:To:From:Subject:Message-Id; b=Z5UMdDqi0p/2ajrt6jdgvG81s+QETO7lLg0h6bWvy/LsvI5jy3tIBXWAphkc9yR7QZ+oFCV11FAJqMBzIHirCvkVA3sTL2MOm/IvFeY1vcEqLJ9vVDc/2Lp9wii5JuHyUJb2QDrJS2vh9zOV0JW8Oo8EOl2e1P7qWPtgFZN6UdQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e5+sKSHo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718218889; c=relaxed/simple;
+	bh=brmY+HN0DUkbuiY0pcDJYKsP99Th+r8IJnwSBn52syU=;
+	h=Date:To:From:Subject:Message-Id; b=hmfAz3KdW9OYPPivBwJ5oVT5bdLedvAxGi2SaE8ZCExyApOeluhvBvnD10qI8q0pEJk7a6GDWZ9qQo0+u7n2dphm6Zaq2GX8pHb23VzF1vY2OQMPu3ZlhyYtUnlE/N2jU7+7dOAdbyzD9UGfatwiGRM9uzET4vcmnUOofGBUaT4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cn6oKsRa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e5+sKSHo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB387C116B1;
-	Wed, 12 Jun 2024 18:35:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cn6oKsRa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64DEDC116B1;
+	Wed, 12 Jun 2024 19:01:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718217320;
-	bh=QcPmVaMXh1wz9wghn6Qk08/UEWgahflDRgoNmi5euQc=;
+	s=korg; t=1718218889;
+	bh=brmY+HN0DUkbuiY0pcDJYKsP99Th+r8IJnwSBn52syU=;
 	h=Date:To:From:Subject:From;
-	b=e5+sKSHoP9ldJaHwJ3RCcZAMlhK32xieHYvZbfPInVT2WdhMVGy2XRwGBngDxQ0Bw
-	 +ymGJ4GcR1XkksUSF8OEcU1Foz9DGMbulUG7u8HnDsxjAGnvBlPW3gyj7pWHxCpa+p
-	 iq94MidXBLxwrDObqrYPjfjuMyJLablWgQfqRiH4=
-Date: Wed, 12 Jun 2024 11:35:20 -0700
-To: mm-commits@vger.kernel.org,vivek.kasireddy@intel.com,muchun.song@linux.dev,osalvador@suse.de,akpm@linux-foundation.org
+	b=Cn6oKsRar/Uhtp4E5nG9bxIqGqOYEc7x9P8RFKgdtTmIRkyi+myHbp+vkyQqpwtqN
+	 BZp7bSfOV/E8yramML0izIjwVVFXkm3/1V/Kqep+IQ7YSBoyL7rU7vsiM/nrrDR56j
+	 a1TfY0FEmufZHXLYGl1QzLXvwxMCBphUtJpifXmA=
+Date: Wed, 12 Jun 2024 12:01:28 -0700
+To: mm-commits@vger.kernel.org,tony.luck@intel.com,nao.horiguchi@gmail.com,lkp@intel.com,david@redhat.com,bp@alien8.de,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-guard-dequeue_hugetlb_folio_nodemask-against-numa_no_node-uses.patch added to mm-unstable branch
-Message-Id: <20240612183520.CB387C116B1@smtp.kernel.org>
+Subject: + mm-memory-failure-simplify-put_ref_page.patch added to mm-unstable branch
+Message-Id: <20240612190129.64DEDC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: guard dequeue_hugetlb_folio_nodemask against NUMA_NO_NODE uses
+     Subject: mm/memory-failure: simplify put_ref_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-guard-dequeue_hugetlb_folio_nodemask-against-numa_no_node-uses.patch
+     mm-memory-failure-simplify-put_ref_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-guard-dequeue_hugetlb_folio_nodemask-against-numa_no_node-uses.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-simplify-put_ref_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,53 +58,69 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm/hugetlb: guard dequeue_hugetlb_folio_nodemask against NUMA_NO_NODE uses
-Date: Wed, 12 Jun 2024 10:29:36 +0200
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/memory-failure: simplify put_ref_page()
+Date: Wed, 12 Jun 2024 15:18:23 +0800
 
-dequeue_hugetlb_folio_nodemask() expects a preferred node where to get the
-hugetlb page from.  It does not expect, though, users to pass
-NUMA_NO_NODE, otherwise we will get trash when trying to get the zonelist
-from that node.  All current users are careful enough to not pass
-NUMA_NO_NODE, but it opens the door for new users to get this wrong since
-it is not documented [0].
+Patch series "Some cleanups for memory-failure", v3.
 
-Guard against this by getting the local nid if NUMA_NO_NODE was passed.
+This series contains a few cleanup patches to avoid exporting unused
+function, add helper macro, fix some obsolete comments and so on.  More
+details can be found in the respective changelogs.  
 
-[0] https://lore.kernel.org/linux-mm/0000000000004f12bb061a9acf07@google.com/
 
-Closes: https://lore.kernel.org/linux-mm/0000000000004f12bb061a9acf07@google.com/
-Link: https://lkml.kernel.org/r/20240612082936.10867-1-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reported-by: syzbot+569ed13f4054f271087b@syzkaller.appspotmail.com
-Tested-by: syzbot+569ed13f4054f271087b@syzkaller.appspotmail.com
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Acked-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+This patch (of 13):
+
+Remove unneeded page != NULL check.  pfn_to_page() won't return NULL.  No
+functional change intended.
+
+Link: https://lkml.kernel.org/r/20240612071835.157004-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20240612071835.157004-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/memory-failure.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-guard-dequeue_hugetlb_folio_nodemask-against-numa_no_node-uses
-+++ a/mm/hugetlb.c
-@@ -1355,6 +1355,10 @@ static struct folio *dequeue_hugetlb_fol
- 	struct zoneref *z;
- 	int node = NUMA_NO_NODE;
+--- a/mm/memory-failure.c~mm-memory-failure-simplify-put_ref_page
++++ a/mm/memory-failure.c
+@@ -2120,14 +2120,10 @@ static inline unsigned long folio_free_r
+ /* Drop the extra refcount in case we come from madvise() */
+ static void put_ref_page(unsigned long pfn, int flags)
+ {
+-	struct page *page;
+-
+ 	if (!(flags & MF_COUNT_INCREASED))
+ 		return;
  
-+	/* 'nid' should not be NUMA_NO_NODE. Try to catch any misuse of it and rectifiy. */
-+	if (nid == NUMA_NO_NODE)
-+		nid = numa_node_id();
-+
- 	zonelist = node_zonelist(nid, gfp_mask);
+-	page = pfn_to_page(pfn);
+-	if (page)
+-		put_page(page);
++	put_page(pfn_to_page(pfn));
+ }
  
- retry_cpuset:
+ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-hugetlb-drop-node_alloc_noretry-from-alloc_fresh_hugetlb_folio.patch
-arch-x86-do-not-explicitly-clear-reserved-flag-in-free_pagetable.patch
-mm-hugetlb-guard-dequeue_hugetlb_folio_nodemask-against-numa_no_node-uses.patch
+mm-memory-failure-simplify-put_ref_page.patch
+mm-memory-failure-remove-mf_msg_slab.patch
+mm-memory-failure-add-macro-get_page_max_retry_num.patch
+mm-memory-failure-save-some-page_folio-calls.patch
+mm-memory-failure-remove-unneeded-empty-string.patch
+mm-memory-failure-remove-confusing-initialization-to-count.patch
+mm-memory-failure-dont-export-hwpoison_filter-when-config_hwpoison_inject.patch
+mm-memory-failure-use-helper-macro-task_pid_nr.patch
+mm-memory-failure-remove-obsolete-comment-in-unpoison_memory.patch
+mm-memory-failure-move-some-function-declarations-into-internalh.patch
+mm-memory-failure-fix-comment-of-get_hwpoison_page.patch
+mm-memory-failure-remove-obsolete-comment-in-kill_proc.patch
+mm-memory-failure-correct-comment-in-me_swapcache_dirty.patch
 
