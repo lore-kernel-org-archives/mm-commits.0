@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76D0B824A4
-	for <mm-commits@vger.kernel.org>; Wed, 12 Jun 2024 19:20:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C45782C8E
+	for <mm-commits@vger.kernel.org>; Wed, 12 Jun 2024 19:23:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718220020; cv=none; b=XNq1kboeZbT+5qc4Xot/VQislMdBraA3Utl3CDi/RzZVAAKWQMErTx3Kqj6R6xvz8hrkn8bewUm5C8JcecmjuzEg9yz+DWJdaaWRpF27uUKj2wVBBzSV7JDTkPu28a94E31GvJsYZzc4wHAN+g+/V09DMFLiiPBijjaiHZTxZYY=
+	t=1718220205; cv=none; b=DxHkKnOgAL6qICCHtIEoznJIz26szsvHIZIcOcJ+6hP2pFXe2UAAO2oCBfuihre904m8QuTnStoPNNY9dPkarFovRLwNLHyvh/z3W7wVCeiAYhfVlO2FYQJGc9dAmI7HcToJmoc4j9r2vz0IVsAQL9+9r8IsE8Tw1oD+35c7X4s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718220020; c=relaxed/simple;
-	bh=262IeUJt05QU09P4pR4GhH2UnI2ZbyyaXVJxylv43fo=;
-	h=Date:To:From:Subject:Message-Id; b=FNCyfgOS3E8EjoUC7Y4WnkEr3nEjESUuUt+Eiaoxu6qpg9Vo7PGqIXlVwdbVl/M3GHo6Wibm5a/ztvxJVQM476mOJhVx01g78zRw4JrsUNyNBwvAldrLgf3Q+xsE+IG+cTgIZ53zIxCxJeX0NHRKkdAwpktPJWQY+yWxAMknzIM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NJL053iN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718220205; c=relaxed/simple;
+	bh=N3cyZEsthyQutK6co8AKfbxiqaKMUchFtx1IFTGixms=;
+	h=Date:To:From:Subject:Message-Id; b=rVfFF5zV6VOey4PpZnKRRN8eykA/D7qTyywoezYgPT9Td/Yd8DQ2yNtyskPoVRTExyFgLfz7WVYcMvRxd2QcgprYN7OWWkjcynFJkql82e5GNjDkUoi2uZBLWaxx8niv7PK5z9k2RtF3RVXghvSGv1R3yKFE6w0k8xP8pGWkpgQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UVbahBhP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NJL053iN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04C4AC116B1;
-	Wed, 12 Jun 2024 19:20:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UVbahBhP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 009E0C116B1;
+	Wed, 12 Jun 2024 19:23:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718220020;
-	bh=262IeUJt05QU09P4pR4GhH2UnI2ZbyyaXVJxylv43fo=;
+	s=korg; t=1718220205;
+	bh=N3cyZEsthyQutK6co8AKfbxiqaKMUchFtx1IFTGixms=;
 	h=Date:To:From:Subject:From;
-	b=NJL053iNzFeIXMzDs0U55stmTrMTxWYkxdpRtiCKoCkZfjKCGeNzsjxd6Kg69Kg0Z
-	 n+a2QCJiAlVdqfJ+aGNnoZwUmC295Yyx5omyv+wIjDd+ksjYwj26Lr+4HNN4R4uZ2l
-	 vFjcV3vTfeTGfFkrTxYaMdGlkl1sWk51n2d1XV7U=
-Date: Wed, 12 Jun 2024 12:20:19 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,nphamcs@gmail.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,baohua@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
+	b=UVbahBhP915eliD36TNC5rXYSlSYLuYAaYON7pNDzIodKbT3s4ekLnjCsfc9zM5FL
+	 ZaEd4GuW8KVKepRe3Mf0uSWCRhXZ5Ex/ZC0e2l5F4h4LKLgKfZarwDLZejkFw4/7Nx
+	 7Gy/0UJ5JWrgXcHvdurEzZEi7YZtleSt7NQRlTW4=
+Date: Wed, 12 Jun 2024 12:23:24 -0700
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,jeffxu@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-add-zswap_never_enabled-fix.patch added to mm-unstable branch
-Message-Id: <20240612192020.04C4AC116B1@smtp.kernel.org>
+Subject: + mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v3.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240612192325.009E0C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-zswap-add-zswap_never_enabled-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-add-zswap_never_enabled-fix.patch
+     Subject: mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v3
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-add-zswap_never_enabled-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v3.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,73 +58,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm-zswap-add-zswap_never_enabled-fix
-Date: Tue, 11 Jun 2024 23:37:52 +0000
+From: Jeff Xu <jeffxu@chromium.org>
+Subject: mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v3
+Date: Tue, 11 Jun 2024 23:14:08 +0000
 
-Expose zswap_never_enabled() in the header for the swapin work to use
-it later.
-
-Link: https://lkml.kernel.org/r/Zmjf0Dr8s9xSW41X@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Link: https://lkml.kernel.org/r/20240611231409.3899809-2-jeffxu@chromium.org
+Signed-off-by: Jeff Xu <jeffxu@chromium.org>
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zswap.h |    6 ++++++
- mm/zswap.c            |    2 +-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ Documentation/userspace-api/mfd_noexec.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/zswap.h~mm-zswap-add-zswap_never_enabled-fix
-+++ a/include/linux/zswap.h
-@@ -36,6 +36,7 @@ void zswap_memcg_offline_cleanup(struct
- void zswap_lruvec_state_init(struct lruvec *lruvec);
- void zswap_folio_swapin(struct folio *folio);
- bool zswap_is_enabled(void);
-+bool zswap_never_enabled(void);
- #else
+--- a/Documentation/userspace-api/mfd_noexec.rst~mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v3
++++ a/Documentation/userspace-api/mfd_noexec.rst
+@@ -1,7 +1,7 @@
+ .. SPDX-License-Identifier: GPL-2.0
  
- struct zswap_lruvec_state {};
-@@ -64,6 +65,11 @@ static inline bool zswap_is_enabled(void
- {
- 	return false;
- }
-+
-+static inline bool zswap_never_enabled(void)
-+{
-+	return false;
-+}
+ ==================================
+-Introduction of non executable mfd
++Introduction of non-executable mfd
+ ==================================
+ :Author:
+     Daniel Verkamp <dverkamp@chromium.org>
+@@ -30,7 +30,7 @@ use of executable memfds and an attacker
+ To address those above:
+  - Let memfd_create() set X bit at creation time.
+  - Let memfd be sealed for modifying X bit when NX is set.
+- - Add a new pid namespace sysctl: vm.memfd_noexec to help applications to
++ - Add a new pid namespace sysctl: vm.memfd_noexec to help applications in
+    migrating and enforcing non-executable MFD.
  
- #endif
- 
---- a/mm/zswap.c~mm-zswap-add-zswap_never_enabled-fix
-+++ a/mm/zswap.c
-@@ -137,7 +137,7 @@ bool zswap_is_enabled(void)
- 	return zswap_enabled;
- }
- 
--static bool zswap_never_enabled(void)
-+bool zswap_never_enabled(void)
- {
- 	return !static_branch_maybe(CONFIG_ZSWAP_DEFAULT_ON, &zswap_ever_enabled);
- }
+ User API
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from jeffxu@chromium.org are
 
-mm-zswap-use-sg_set_folio-in-zswap_compress-decompress.patch
-mm-zswap-use-kmap_local_folio-in-zswap_load.patch
-mm-zswap-make-same_filled-functions-folio-friendly.patch
-mm-rmap-abstract-updating-per-node-and-per-memcg-stats.patch
-mm-swap-remove-synchronous-argument-to-swap_read_folio.patch
-mm-zswap-rename-is_zswap_enabled-to-zswap_is_enabled.patch
-mm-zswap-add-zswap_never_enabled.patch
-mm-zswap-add-zswap_never_enabled-fix.patch
-mm-zswap-handle-incorrect-attempts-to-load-large-folios.patch
+mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec.patch
+mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v2.patch
+mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v3.patch
 
