@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7878B823AF
-	for <mm-commits@vger.kernel.org>; Wed, 12 Jun 2024 19:01:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10EB91C14
+	for <mm-commits@vger.kernel.org>; Wed, 12 Jun 2024 19:01:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718218908; cv=none; b=Xz8Zl/+ioXmTSbdLmpI3NHyz0ORV6yBr2lPYn3rzrvr/CGA7XGPOyL++XW6Zj3sRMkT6DevABV++1lhfxNz/Ri73o6NOHe4RLK8cKDBPQW0Yx4bJgMXkejxkqY+myeeeYH4wwCgfzCXPv2iJQzbxrYDJ0r5xn5Fvorl1ZL+stnM=
+	t=1718218910; cv=none; b=lygWgUwy7CUl5letJ0W2k8X6so8pYUPXQkI/t/55QmaQEDkPrJL+dC7NWIMyjgFpvwct5ms0UOjo8WK6+txiVeBnL0G96XBjv6t1npe/w3bnYQHTem9lTNB+vzdboGW/LAdgQL8TQyyS9yOObiP9IAoNmR42yx4xVSG534iG5wE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718218908; c=relaxed/simple;
-	bh=U+gPCQPWSW60b1YYwqzyCInIso4b34M8dzeAeWPAQQA=;
-	h=Date:To:From:Subject:Message-Id; b=uZEUsuJAcdT6PudD9WwYcrDhAe2QC/kZFLWeB2JGRUjIi9D1/4LYtBMlt3DbHKWXv23b0FevSjK8nvZYgdfthpGV+EM78gBLF17IkQrDKRIEfZX8WLXyyzs89euzbTluipeAuOHsBSo8FNZvQDKD3kgOb2KLUsAHz2MUP4rWmOM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h5dmXI+s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718218910; c=relaxed/simple;
+	bh=/2zc8gaEXUV9VaRDJLiZjvE5SqgZWkUHFw+S0h7OPRc=;
+	h=Date:To:From:Subject:Message-Id; b=PbmjfLHdOLHnMueCqUgKXEKUDSnZJFpB4BBttzEren7ZyV1CNtmA/ZSOTUX4584RQCCKde55r+oQ7vT1gep5S+j9UfbVsg4L9AqSmn3s+/52THyrOSev3tCPslSHq2izSMEcRoTlMS4bc3W33ETP9AFT7ayUD88maI64ZaIXze4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dY5Gs4bq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h5dmXI+s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B6EDC116B1;
-	Wed, 12 Jun 2024 19:01:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dY5Gs4bq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8600C116B1;
+	Wed, 12 Jun 2024 19:01:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718218908;
-	bh=U+gPCQPWSW60b1YYwqzyCInIso4b34M8dzeAeWPAQQA=;
+	s=korg; t=1718218909;
+	bh=/2zc8gaEXUV9VaRDJLiZjvE5SqgZWkUHFw+S0h7OPRc=;
 	h=Date:To:From:Subject:From;
-	b=h5dmXI+sqOz3+VN/0toAhBnTY1SofPGm/bCAz2KhG3VrzTguRvvAhlCGPmO11xUMJ
-	 wkMLiHnxVU2k9F03rMef5fGGE1ape6K9JXCREF4hdhcfYC8w2Q0KXlwa8IOb9t/xiR
-	 YKFqQ+FU9TgjgSrMlwRgcZlnl2l83MSgqTzRGdHI=
-Date: Wed, 12 Jun 2024 12:01:47 -0700
+	b=dY5Gs4bq/1ECTnQeXCzw8Ch08NmeNRwDdxMYsgVsGWe9IklFGRUw6S21Ak4lUdUgI
+	 sFuVMem7B/2NsWr851gqO6KvgT3J7PWfTGBLs1ZdPdNCWA14/Y/dEMLesj94Yn/4Yc
+	 Hc0z1IaW7wRXGDB14bAQ+goTytBlNfWgnpRB4UmM=
+Date: Wed, 12 Jun 2024 12:01:49 -0700
 To: mm-commits@vger.kernel.org,tony.luck@intel.com,nao.horiguchi@gmail.com,lkp@intel.com,david@redhat.com,bp@alien8.de,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-remove-obsolete-comment-in-kill_proc.patch added to mm-unstable branch
-Message-Id: <20240612190148.4B6EDC116B1@smtp.kernel.org>
+Subject: + mm-memory-failure-correct-comment-in-me_swapcache_dirty.patch added to mm-unstable branch
+Message-Id: <20240612190149.D8600C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: remove obsolete comment in kill_proc()
+     Subject: mm/memory-failure: correct comment in me_swapcache_dirty
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-remove-obsolete-comment-in-kill_proc.patch
+     mm-memory-failure-correct-comment-in-me_swapcache_dirty.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-remove-obsolete-comment-in-kill_proc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-correct-comment-in-me_swapcache_dirty.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory-failure: remove obsolete comment in kill_proc()
-Date: Wed, 12 Jun 2024 15:18:34 +0800
+Subject: mm/memory-failure: correct comment in me_swapcache_dirty
+Date: Wed, 12 Jun 2024 15:18:35 +0800
 
-When user sets SIGBUS to SIG_IGN, it won't cause loop now.  For action
-required mce error, SIGBUS cannot be blocked.  Also when a hwpoisoned page
-is re-accessed, kill_accessing_process() will be called to kill the
-process.
+Dirty swap cache page could live both in page table (not page cache) and
+swap cache when freshly swapped in.  Correct comment.
 
-Link: https://lkml.kernel.org/r/20240612071835.157004-13-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20240612071835.157004-14-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
 Cc: David Hildenbrand <david@redhat.com>
@@ -77,20 +75,20 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-remove-obsolete-comment-in-kill_proc
+--- a/mm/memory-failure.c~mm-memory-failure-correct-comment-in-me_swapcache_dirty
 +++ a/mm/memory-failure.c
-@@ -354,8 +354,6 @@ static int kill_proc(struct to_kill *tk,
- 		 * PF_MCE_EARLY set.
- 		 * Don't use force here, it's convenient if the signal
- 		 * can be temporarily blocked.
--		 * This could cause a loop when the user sets SIGBUS
--		 * to SIG_IGN, but hopefully no one will do that?
- 		 */
- 		ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)tk->addr,
- 				      addr_lsb, t);
+@@ -1126,7 +1126,7 @@ static int me_pagecache_dirty(struct pag
+  * Clean and dirty swap cache.
+  *
+  * Dirty swap cache page is tricky to handle. The page could live both in page
+- * cache and swap cache(ie. page is freshly swapped in). So it could be
++ * table and swap cache(ie. page is freshly swapped in). So it could be
+  * referenced concurrently by 2 types of PTEs:
+  * normal PTEs and swap PTEs. We try to handle them consistently by calling
+  * try_to_unmap(!TTU_HWPOISON) to convert the normal PTEs to swap PTEs,
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
