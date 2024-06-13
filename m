@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15C9212EBF3;
-	Thu, 13 Jun 2024 20:19:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C15817E792
+	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:30:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718309947; cv=none; b=tukD9Kqtt6Du0xiuyl2krAOyjUlVUf59qXrvQL3+CGMW/CXdTRV/UgS+JyVIWAr9pWO2TFUTnlWmeZKDsOFnYimcUFJol9kyZ9GFBMPfjralulq3TYH4WhnS0a2MUb/L8fuDWkqRNNQkw/7HhgKBtaAhn8sC9eRYj1xL9t9WuNE=
+	t=1718310635; cv=none; b=exRn5wjp684FiVmEOmLFnJkktQtH+LjsSIiMrY9p02cLYszkoUORpbLQU3O5jLeDuFqRha7XbG88ommdydtz88g3kVEtyp7DkFAKwNkX379/An4Kq7ni2TYm42Fsgk9ir1YuVLXYxAoJ85lLvRIIwi/oB+bI16Ca1FmxOrkBUtw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718309947; c=relaxed/simple;
-	bh=CJD/qsrIVAqenAItFnfsKYHk707iyt7Yr4lXqxz2M9c=;
-	h=Date:To:From:Subject:Message-Id; b=DxASHFh6HnSyeT0YTAD/tvtbxwPnePtprjyzAWkFmEK32qfJuLtlml2v5GMrp4i/kwKeSZDYjo57vstQ4VAWSWeOjg8YvGnqZs1ILZA/0nAoq/N7FcOm4EirGqDdfSwGbQwnr/H6/WimjxNhpJQWwiFtU2B0C1ig7kgrT/dmvtc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V5a7DW/M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718310635; c=relaxed/simple;
+	bh=7aWXLK4x8IfayDMGE6jyuoY9IFsSVC8yu6vaciUG7OI=;
+	h=Date:To:From:Subject:Message-Id; b=rRuQP3l/RDHesArQBuZwuEkkJ8GV8s+prpRnzNrnouhFCWttR+Lu6SEdeixhw7PwuG3lrUdSfKL+QyRnKQfMvebVDlkQxm0rad0J/P8G33PJhXC1nkD1dodeSfGUF2zRvUERbXbuS+4ilm6eWJoiZGq1FJKQ3q1Kx+3uCJgzfpY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=benFPsF/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V5a7DW/M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2E4CC32789;
-	Thu, 13 Jun 2024 20:19:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="benFPsF/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4453EC2BBFC;
+	Thu, 13 Jun 2024 20:30:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718309946;
-	bh=CJD/qsrIVAqenAItFnfsKYHk707iyt7Yr4lXqxz2M9c=;
+	s=korg; t=1718310635;
+	bh=7aWXLK4x8IfayDMGE6jyuoY9IFsSVC8yu6vaciUG7OI=;
 	h=Date:To:From:Subject:From;
-	b=V5a7DW/Mizax2fxW6jsusA6YbiuVsghfVqVyYi5qklsEcrt4F2WuNCBuOXBq1LlFO
-	 dHSV4cxfOXCllM2QNwsIW+cUyR8dTF1Zq8UPX85eMdp+uIA2lkgOIh7Rj9oYekry19
-	 zrvwOcJN6aHSVjG3MI3d+SC+yHtONGQay969qwuw=
-Date: Thu, 13 Jun 2024 13:19:06 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,tglx@linutronix.de,stable@vger.kernel.org,lstoakes@gmail.com,hch@infradead.org,hailong.liu@oppo.com,bhe@redhat.com,zhaoyang.huang@unisoc.com,akpm@linux-foundation.org
+	b=benFPsF/zAn+8K1/h0NIbwiba17fkn0ZXpmQvqkHqyDgjJFQBf24+jp4A7Kvn1Dqn
+	 NMu6cchLLNg47I4Vyys5M8kXLeax0w8WYRVXMGUB3yNj9lMv7YLop8JOZ6DsMtC/oH
+	 NoEH52FxHOoggjm7WESa1rs26/O/FAZkpHNpM3N8=
+Date: Thu, 13 Jun 2024 13:30:34 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-incorrect-vbq-reference-in-purge_fragmented_block.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240613201906.A2E4CC32789@smtp.kernel.org>
+Subject: + ftrace-unpoison-ftrace_regs-in-ftrace_ops_list_func.patch added to mm-unstable branch
+Message-Id: <20240613203035.4453EC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix incorrect vbq reference in purge_fragmented_block
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-incorrect-vbq-reference-in-purge_fragmented_block.patch
+     Subject: ftrace: unpoison ftrace_regs in ftrace_ops_list_func()
+has been added to the -mm mm-unstable branch.  Its filename is
+     ftrace-unpoison-ftrace_regs-in-ftrace_ops_list_func.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-incorrect-vbq-reference-in-purge_fragmented_block.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ftrace-unpoison-ftrace_regs-in-ftrace_ops_list_func.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,114 +58,109 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Subject: mm: fix incorrect vbq reference in purge_fragmented_block
-Date: Fri, 7 Jun 2024 10:31:16 +0800
+From: Ilya Leoshkevich <iii@linux.ibm.com>
+Subject: ftrace: unpoison ftrace_regs in ftrace_ops_list_func()
+Date: Thu, 13 Jun 2024 17:34:03 +0200
 
-vmalloc area runs out in our ARM64 system during an erofs test as
-vm_map_ram failed[1].  By following the debug log, we find that
-vm_map_ram()->vb_alloc() will allocate new vb->va which corresponding to
-4MB vmalloc area as list_for_each_entry_rcu returns immediately when
-vbq->free->next points to vbq->free.  That is to say, 65536 times of page
-fault after the list's broken will run out of the whole vmalloc area. 
-This should be introduced by one vbq->free->next point to vbq->free which
-makes list_for_each_entry_rcu can not iterate the list and find the BUG.
+Patch series "kmsan: Enable on s390", v4.
 
-[1]
-PID: 1        TASK: ffffff80802b4e00  CPU: 6    COMMAND: "init"
- #0 [ffffffc08006afe0] __switch_to at ffffffc08111d5cc
- #1 [ffffffc08006b040] __schedule at ffffffc08111dde0
- #2 [ffffffc08006b0a0] schedule at ffffffc08111e294
- #3 [ffffffc08006b0d0] schedule_preempt_disabled at ffffffc08111e3f0
- #4 [ffffffc08006b140] __mutex_lock at ffffffc08112068c
- #5 [ffffffc08006b180] __mutex_lock_slowpath at ffffffc08111f8f8
- #6 [ffffffc08006b1a0] mutex_lock at ffffffc08111f834
- #7 [ffffffc08006b1d0] reclaim_and_purge_vmap_areas at ffffffc0803ebc3c
- #8 [ffffffc08006b290] alloc_vmap_area at ffffffc0803e83fc
- #9 [ffffffc08006b300] vm_map_ram at ffffffc0803e78c0
+This series provides the minimal support for Kernel Memory Sanitizer on
+s390.  Kernel Memory Sanitizer is clang-only instrumentation for finding
+accesses to uninitialized memory.  The clang support for s390 has already
+been merged (https://reviews.llvm.org/D148596).
 
-For detailed descri[ption of the broken list, please see
-https://lore.kernel.org/all/20240531024820.5507-1-hailong.liu@oppo.com/
 
-Link: https://lkml.kernel.org/r/20240607023116.1720640-1-zhaoyang.huang@unisoc.com
-Fixes: fc1e0d980037 ("mm/vmalloc: prevent stale TLBs in fully utilized blocks")
-Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Suggested-by: Hailong.Liu <hailong.liu@oppo.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@vger.kernel.org>
+This patch (of 35):
+
+Architectures use assembly code to initialize ftrace_regs and call
+ftrace_ops_list_func().  Therefore, from the KMSAN's point of view,
+ftrace_regs is poisoned on ftrace_ops_list_func entry().  This causes
+KMSAN warnings when running the ftrace testsuite.
+
+Fix by trusting the architecture-specific assembly code and always
+unpoisoning ftrace_regs in ftrace_ops_list_func.
+
+The issue was not encountered on x86_64 so far only by accident:
+assembly-allocated ftrace_regs was overlapping a stale partially
+unpoisoned stack frame.  Poisoning stack frames before returns [1] makes
+the issue appear on x86_64 as well.
+
+[1] https://github.com/iii-i/llvm-project/commits/msan-poison-allocas-before-returning-2024-06-12/
+
+Link: https://lkml.kernel.org/r/20240613153924.961511-1-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240613153924.961511-2-iii@linux.ibm.com
+Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Acked-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ kernel/trace/ftrace.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmalloc.c~mm-fix-incorrect-vbq-reference-in-purge_fragmented_block
-+++ a/mm/vmalloc.c
-@@ -2498,6 +2498,7 @@ struct vmap_block {
- 	struct list_head free_list;
- 	struct rcu_head rcu_head;
- 	struct list_head purge;
-+	unsigned int cpu;
- };
- 
- /* Queue of free and dirty vmap blocks, for allocation and flushing purposes */
-@@ -2625,8 +2626,15 @@ static void *new_vmap_block(unsigned int
- 		free_vmap_area(va);
- 		return ERR_PTR(err);
- 	}
--
--	vbq = raw_cpu_ptr(&vmap_block_queue);
-+	/*
-+	 * list_add_tail_rcu could happened in another core
-+	 * rather than vb->cpu due to task migration, which
-+	 * is safe as list_add_tail_rcu will ensure the list's
-+	 * integrity together with list_for_each_rcu from read
-+	 * side.
-+	 */
-+	vb->cpu = raw_smp_processor_id();
-+	vbq = per_cpu_ptr(&vmap_block_queue, vb->cpu);
- 	spin_lock(&vbq->lock);
- 	list_add_tail_rcu(&vb->free_list, &vbq->free);
- 	spin_unlock(&vbq->lock);
-@@ -2654,9 +2662,10 @@ static void free_vmap_block(struct vmap_
- }
- 
- static bool purge_fragmented_block(struct vmap_block *vb,
--		struct vmap_block_queue *vbq, struct list_head *purge_list,
--		bool force_purge)
-+		struct list_head *purge_list, bool force_purge)
+--- a/kernel/trace/ftrace.c~ftrace-unpoison-ftrace_regs-in-ftrace_ops_list_func
++++ a/kernel/trace/ftrace.c
+@@ -7407,6 +7407,7 @@ out:
+ void arch_ftrace_ops_list_func(unsigned long ip, unsigned long parent_ip,
+ 			       struct ftrace_ops *op, struct ftrace_regs *fregs)
  {
-+	struct vmap_block_queue *vbq = &per_cpu(vmap_block_queue, vb->cpu);
-+
- 	if (vb->free + vb->dirty != VMAP_BBMAP_BITS ||
- 	    vb->dirty == VMAP_BBMAP_BITS)
- 		return false;
-@@ -2704,7 +2713,7 @@ static void purge_fragmented_blocks(int
- 			continue;
- 
- 		spin_lock(&vb->lock);
--		purge_fragmented_block(vb, vbq, &purge, true);
-+		purge_fragmented_block(vb, &purge, true);
- 		spin_unlock(&vb->lock);
- 	}
- 	rcu_read_unlock();
-@@ -2841,7 +2850,7 @@ static void _vm_unmap_aliases(unsigned l
- 			 * not purgeable, check whether there is dirty
- 			 * space to be flushed.
- 			 */
--			if (!purge_fragmented_block(vb, vbq, &purge_list, false) &&
-+			if (!purge_fragmented_block(vb, &purge_list, false) &&
- 			    vb->dirty_max && vb->dirty != VMAP_BBMAP_BITS) {
- 				unsigned long va_start = vb->va->va_start;
- 				unsigned long s, e;
++	kmsan_unpoison_memory(fregs, sizeof(*fregs));
+ 	__ftrace_ops_list_func(ip, parent_ip, NULL, fregs);
+ }
+ #else
 _
 
-Patches currently in -mm which might be from zhaoyang.huang@unisoc.com are
+Patches currently in -mm which might be from iii@linux.ibm.com are
 
-mm-fix-incorrect-vbq-reference-in-purge_fragmented_block.patch
-mm-optimization-on-page-allocation-when-cma-enabled.patch
+ftrace-unpoison-ftrace_regs-in-ftrace_ops_list_func.patch
+kmsan-make-the-tests-compatible-with-kmsanpanic=1.patch
+kmsan-disable-kmsan-when-deferred_struct_page_init-is-enabled.patch
+kmsan-increase-the-maximum-store-size-to-4096.patch
+kmsan-fix-is_bad_asm_addr-on-arches-with-overlapping-address-spaces.patch
+kmsan-fix-kmsan_copy_to_user-on-arches-with-overlapping-address-spaces.patch
+kmsan-remove-a-useless-assignment-from-kmsan_vmap_pages_range_noflush.patch
+kmsan-remove-an-x86-specific-include-from-kmsanh.patch
+kmsan-expose-kmsan_get_metadata.patch
+kmsan-export-panic_on_kmsan.patch
+kmsan-allow-disabling-kmsan-checks-for-the-current-task.patch
+kmsan-support-slab_poison.patch
+kmsan-use-align_down-in-kmsan_get_metadata.patch
+kmsan-do-not-round-up-pg_data_t-size.patch
+mm-slub-let-kmsan-access-metadata.patch
+mm-slub-unpoison-the-memchr_inv-return-value.patch
+mm-kfence-disable-kmsan-when-checking-the-canary.patch
+lib-zlib-unpoison-dfltcc-output-buffers.patch
+kmsan-accept-ranges-starting-with-0-on-s390.patch
+s390-boot-turn-off-kmsan.patch
+s390-use-a-larger-stack-for-kmsan.patch
+s390-boot-add-the-kmsan-runtime-stub.patch
+s390-checksum-add-a-kmsan-check.patch
+s390-cpacf-unpoison-the-results-of-cpacf_trng.patch
+s390-cpumf-unpoison-stcctm-output-buffer.patch
+s390-diag-unpoison-diag224-output-buffer.patch
+s390-ftrace-unpoison-ftrace_regs-in-kprobe_ftrace_handler.patch
+s390-irqflags-do-not-instrument-arch_local_irq_-with-kmsan.patch
+s390-mm-define-kmsan-metadata-for-vmalloc-and-modules.patch
+s390-string-add-kmsan-support.patch
+s390-traps-unpoison-the-kernel_stack_overflows-pt_regs.patch
+s390-uaccess-add-kmsan-support-to-put_user-and-get_user.patch
+s390-unwind-disable-kmsan-checks.patch
+s390-implement-the-architecture-specific-kmsan-functions.patch
+kmsan-enable-on-s390.patch
 
