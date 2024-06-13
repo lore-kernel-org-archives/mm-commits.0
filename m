@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D97413A86D
-	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:31:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5462D13A86D
+	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:31:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718310691; cv=none; b=bvspoZOBRU6In93ril/t8Ywe5Ev6u1PjZm6w2NdeYdcnUliLP9m1GL2Yr8L4a9pkkbY+LuUsUU5oPgccvnBbffUbrkqvVbQ0vFmrNI0zKWHlAMU5ceI9gigCe4bou4A/uqhzHKLAsIm3HYZjPpXGIGfWh4im78NtZ92cwvi4dMI=
+	t=1718310695; cv=none; b=IzEUg9PI8e/gznN/IGGSJvvmewHkjeaIf9ajW59ZII71n2GCTYBr+rTBcn/2YpMUBuvhph0xiCeURW6uMOlUDFXhjzWPVuW/tcttxVSn0CPg0OSgjk9MeLRKbhnC2maUQqgemBrBUsuRjriHwYunRmdzsSjymKCdNaH0ptsJqlQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718310691; c=relaxed/simple;
-	bh=Y1j4ONDJiW+PmVIN53FX9ioSDEwhD11y7LVvcEQj0wQ=;
-	h=Date:To:From:Subject:Message-Id; b=iH9+lY4y/lemx7/0XCHMA/5oNjE3coM8zv69GcqDZAJkRwa4+p3fLT50U1xiqkjjimbXvnwnlUqmqBkw9urYwI9y+MeYVvkLJ8nSAvaiJ2VXZcngAPXFyzW3jyATP3zbb/Eryi35OsAQBEG5NVX3+j48KQ+sWCYpBZa226/q/is=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zprJaWlN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718310695; c=relaxed/simple;
+	bh=oYWTljlXyfDuhVhcsDfKyWKdZFm4V4sTs5sakahzeEk=;
+	h=Date:To:From:Subject:Message-Id; b=mZdZw/XBIUgFtbM45icQbDfC45JPyZJWQMrjjBTsq6Xl3fXDNg/ZllDghnDSgFea8J995H5MIk6gr27Bl1uqqRTbGCXKeJE08iZnQGJ2b7aDv8GnrStEhvor9qWCrPOez/eQGWk74kLojCzft37qzPgAVRHMHb7aDu9BmAXM19s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kE/+kCuM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zprJaWlN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 020DFC2BBFC;
-	Thu, 13 Jun 2024 20:31:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kE/+kCuM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29232C2BBFC;
+	Thu, 13 Jun 2024 20:31:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718310691;
-	bh=Y1j4ONDJiW+PmVIN53FX9ioSDEwhD11y7LVvcEQj0wQ=;
+	s=korg; t=1718310695;
+	bh=oYWTljlXyfDuhVhcsDfKyWKdZFm4V4sTs5sakahzeEk=;
 	h=Date:To:From:Subject:From;
-	b=zprJaWlNFzeQi0ln053L80U1sg3HnzPKwkxiIA9NaScMxDeqmdRlOMjrLNTaGo+wl
-	 t5TH1tttG8iigtki2dTg4//BSqSv0mvb7Mz87tOmNh4sjFKLCr5YVn751jpQRjLxKw
-	 TveQRfbeYALNPAWpQNCtEApgF4+lRto6/EOEBNu4=
-Date: Thu, 13 Jun 2024 13:31:30 -0700
+	b=kE/+kCuMbG3X58Of4+QkVM+OIQqYm9+qMvALIS4C6A73wSG1Ny/HgfYj3OuTCi5Et
+	 fuyezG8yTKtOaZbCPyVI8b1C4tCgjdIK9XReZfsj4KcVtlS5pcJpiERknWvd55ojXi
+	 JcioPfJwa/VROmWtwqsMzZwDtHfSCvb9f0RFi2Mg=
+Date: Thu, 13 Jun 2024 13:31:34 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-string-add-kmsan-support.patch added to mm-unstable branch
-Message-Id: <20240613203131.020DFC2BBFC@smtp.kernel.org>
+Subject: + s390-traps-unpoison-the-kernel_stack_overflows-pt_regs.patch added to mm-unstable branch
+Message-Id: <20240613203135.29232C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/string: add KMSAN support
+     Subject: s390/traps: unpoison the kernel_stack_overflow()'s pt_regs
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-string-add-kmsan-support.patch
+     s390-traps-unpoison-the-kernel_stack_overflows-pt_regs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-string-add-kmsan-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-traps-unpoison-the-kernel_stack_overflows-pt_regs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,23 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: s390/string: add KMSAN support
-Date: Thu, 13 Jun 2024 17:34:32 +0200
+Subject: s390/traps: unpoison the kernel_stack_overflow()'s pt_regs
+Date: Thu, 13 Jun 2024 17:34:33 +0200
 
-Add KMSAN support for the s390 implementations of the string functions.
-Do this similar to how it's already done for KASAN, except that the
-optimized memset{16,32,64}() functions need to be disabled: it's
-important for KMSAN to know that they initialized something.
+This is normally done by the generic entry code, but the
+kernel_stack_overflow() flow bypasses it.
 
-The way boot code is built with regard to string functions is
-problematic, since most files think it's configured with sanitizers,
-but boot/string.c doesn't. This creates various problems with the
-memset64() definitions, depending on whether the code is built with
-sanitizers or fortify. This should probably be streamlined, but in the
-meantime resolve the issues by introducing the IN_BOOT_STRING_C macro,
-similar to the existing IN_ARCH_STRING_C macro.
-
-Link: https://lkml.kernel.org/r/20240613153924.961511-31-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240613153924.961511-32-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Acked-by: Heiko Carstens <hca@linux.ibm.com>
@@ -98,116 +88,31 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/boot/string.c        |   16 ++++++++++++++++
- arch/s390/include/asm/string.h |   20 +++++++++++++++-----
- 2 files changed, 31 insertions(+), 5 deletions(-)
+ arch/s390/kernel/traps.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/arch/s390/boot/string.c~s390-string-add-kmsan-support
-+++ a/arch/s390/boot/string.c
-@@ -1,11 +1,18 @@
- // SPDX-License-Identifier: GPL-2.0
-+#define IN_BOOT_STRING_C 1
- #include <linux/ctype.h>
- #include <linux/kernel.h>
- #include <linux/errno.h>
- #undef CONFIG_KASAN
- #undef CONFIG_KASAN_GENERIC
-+#undef CONFIG_KMSAN
- #include "../lib/string.c"
+--- a/arch/s390/kernel/traps.c~s390-traps-unpoison-the-kernel_stack_overflows-pt_regs
++++ a/arch/s390/kernel/traps.c
+@@ -27,6 +27,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/cpu.h>
+ #include <linux/entry-common.h>
++#include <linux/kmsan.h>
+ #include <asm/asm-extable.h>
+ #include <asm/vtime.h>
+ #include <asm/fpu.h>
+@@ -262,6 +263,11 @@ static void monitor_event_exception(stru
  
-+/*
-+ * Duplicate some functions from the common lib/string.c
-+ * instead of fully including it.
-+ */
-+
- int strncmp(const char *cs, const char *ct, size_t count)
+ void kernel_stack_overflow(struct pt_regs *regs)
  {
- 	unsigned char c1, c2;
-@@ -22,6 +29,15 @@ int strncmp(const char *cs, const char *
- 	return 0;
- }
- 
-+void *memset64(uint64_t *s, uint64_t v, size_t count)
-+{
-+	uint64_t *xs = s;
-+
-+	while (count--)
-+		*xs++ = v;
-+	return s;
-+}
-+
- char *skip_spaces(const char *str)
- {
- 	while (isspace(*str))
---- a/arch/s390/include/asm/string.h~s390-string-add-kmsan-support
-+++ a/arch/s390/include/asm/string.h
-@@ -15,15 +15,12 @@
- #define __HAVE_ARCH_MEMCPY	/* gcc builtin & arch function */
- #define __HAVE_ARCH_MEMMOVE	/* gcc builtin & arch function */
- #define __HAVE_ARCH_MEMSET	/* gcc builtin & arch function */
--#define __HAVE_ARCH_MEMSET16	/* arch function */
--#define __HAVE_ARCH_MEMSET32	/* arch function */
--#define __HAVE_ARCH_MEMSET64	/* arch function */
- 
- void *memcpy(void *dest, const void *src, size_t n);
- void *memset(void *s, int c, size_t n);
- void *memmove(void *dest, const void *src, size_t n);
- 
--#ifndef CONFIG_KASAN
-+#if !defined(CONFIG_KASAN) && !defined(CONFIG_KMSAN)
- #define __HAVE_ARCH_MEMCHR	/* inline & arch function */
- #define __HAVE_ARCH_MEMCMP	/* arch function */
- #define __HAVE_ARCH_MEMSCAN	/* inline & arch function */
-@@ -36,6 +33,9 @@ void *memmove(void *dest, const void *sr
- #define __HAVE_ARCH_STRNCPY	/* arch function */
- #define __HAVE_ARCH_STRNLEN	/* inline & arch function */
- #define __HAVE_ARCH_STRSTR	/* arch function */
-+#define __HAVE_ARCH_MEMSET16	/* arch function */
-+#define __HAVE_ARCH_MEMSET32	/* arch function */
-+#define __HAVE_ARCH_MEMSET64	/* arch function */
- 
- /* Prototypes for non-inlined arch strings functions. */
- int memcmp(const void *s1, const void *s2, size_t n);
-@@ -44,7 +44,7 @@ size_t strlcat(char *dest, const char *s
- char *strncat(char *dest, const char *src, size_t n);
- char *strncpy(char *dest, const char *src, size_t n);
- char *strstr(const char *s1, const char *s2);
--#endif /* !CONFIG_KASAN */
-+#endif /* !defined(CONFIG_KASAN) && !defined(CONFIG_KMSAN) */
- 
- #undef __HAVE_ARCH_STRCHR
- #undef __HAVE_ARCH_STRNCHR
-@@ -74,20 +74,30 @@ void *__memset16(uint16_t *s, uint16_t v
- void *__memset32(uint32_t *s, uint32_t v, size_t count);
- void *__memset64(uint64_t *s, uint64_t v, size_t count);
- 
-+#ifdef __HAVE_ARCH_MEMSET16
- static inline void *memset16(uint16_t *s, uint16_t v, size_t count)
- {
- 	return __memset16(s, v, count * sizeof(v));
- }
-+#endif
- 
-+#ifdef __HAVE_ARCH_MEMSET32
- static inline void *memset32(uint32_t *s, uint32_t v, size_t count)
- {
- 	return __memset32(s, v, count * sizeof(v));
- }
-+#endif
- 
-+#ifdef __HAVE_ARCH_MEMSET64
-+#ifdef IN_BOOT_STRING_C
-+void *memset64(uint64_t *s, uint64_t v, size_t count);
-+#else
- static inline void *memset64(uint64_t *s, uint64_t v, size_t count)
- {
- 	return __memset64(s, v, count * sizeof(v));
- }
-+#endif
-+#endif
- 
- #if !defined(IN_ARCH_STRING_C) && (!defined(CONFIG_FORTIFY_SOURCE) || defined(__NO_FORTIFY))
- 
++	/*
++	 * Normally regs are unpoisoned by the generic entry code, but
++	 * kernel_stack_overflow() is a rare case that is called bypassing it.
++	 */
++	kmsan_unpoison_entry_regs(regs);
+ 	bust_spinlocks(1);
+ 	printk("Kernel stack overflow.\n");
+ 	show_regs(regs);
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
