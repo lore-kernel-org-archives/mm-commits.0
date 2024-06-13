@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB95D13B28D
-	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:31:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A381C13A3F2
+	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:31:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718310681; cv=none; b=KRT8U42VfPoOepnSOWt+JAAZQXgVrO38MXZvGOtPQdUdtw+bYFl9NJ+HXGNLMvfL+P14BOS2zra4a9OfZWF8NBRmngNnI4gj4buw+duH6sIfc/Bq8yR4pdvjudbMio8pOieBVEjW0zgpVU1qbAp6OXQtoB4Kv8Dw1mU9/zPlF9c=
+	t=1718310682; cv=none; b=fAv3VuFB0ZiTMlim4zQ0b/l6Vaz0PXH8Bbl+6bjszSVYn9J9pbUBHctJFrmJDA0w7NZRVz8hmEIQ7FvhqD2bs5MURtcTnTJBcfAyyQeThu/8jAwnqxxBnQY67e+SsOlNLScTy50bh8LUb6Gs6DdmRrEcN9kO7jgZ66W6ydkbZ1c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718310681; c=relaxed/simple;
-	bh=KsYJJASRfsL5qfDAKsgc5KefOekQt5Y+yudS4BCyS4c=;
-	h=Date:To:From:Subject:Message-Id; b=O5FTS4hB2S4+8vNetVSVz1MDA/wqahpc7iAwZcFMSJZe7HdIXz1Kd+3A6AUdH8Xsu0iLTcx4IUrU1ath+aywhSQ9eYSYefYVvCuX8/DpW6cVtPtr2tk+1Vh2b1oAKgmFAQ3nqgorwc7oXsw9y+XRL5w6/MgIpHV7YDCE9F/Ekvo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aL7cC5NT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718310682; c=relaxed/simple;
+	bh=uChCjXSis3tk5XXDs0tK9uv0JyK9CAG1EbGDstG+PK4=;
+	h=Date:To:From:Subject:Message-Id; b=YycFR/nk7axaqPC4i3/+pcWGdl7snXab0RvsMVFH93YZcF3lgFUayvHAKQ0X6Twm/hYttgjRmaNqlGlOWz5Z1C9UUssFlt73L9Wh7KlMa8O5GmRM6qqi7vu9RTXMxvSZqviY5gDbNOpLLCyji2wjso98+iGAz6DjuXkqgae4aqo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iNmOtYgx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aL7cC5NT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF1DBC2BBFC;
-	Thu, 13 Jun 2024 20:31:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iNmOtYgx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E0CEC2BBFC;
+	Thu, 13 Jun 2024 20:31:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718310680;
-	bh=KsYJJASRfsL5qfDAKsgc5KefOekQt5Y+yudS4BCyS4c=;
+	s=korg; t=1718310682;
+	bh=uChCjXSis3tk5XXDs0tK9uv0JyK9CAG1EbGDstG+PK4=;
 	h=Date:To:From:Subject:From;
-	b=aL7cC5NTmCGcRWzbe/sIc8ePYGV4HQVOSCrZXOvrigDo+5Jqm4dHniSFORLDRZ4EM
-	 c1lBnlBjoHzBRtJ2/Tby4MV8Lxw+OX7OmK9mYYaAm4Dz231mR0Wu03O+dLs3YcniNM
-	 MxvQytQLgkduUdZyi6S/K70M6bgD/bL9zu5Dtl1Y=
-Date: Thu, 13 Jun 2024 13:31:20 -0700
+	b=iNmOtYgxP2Uu0Kj1HFT6lQIBde9UmFLIIwF+BPuUpGVCltCrZoQHvaswnIDbJ1wlW
+	 fX1y+N8AlzOd8LLsuh7PngwOnL+J/F+MbesFtvTtXxKe6STpi8EeLxqRUsQ2nLGWhh
+	 OBBvH8vmpJIa3LlvUmL5o+VReg9bBpld2IR3guig=
+Date: Thu, 13 Jun 2024 13:31:21 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-diag-unpoison-diag224-output-buffer.patch added to mm-unstable branch
-Message-Id: <20240613203120.BF1DBC2BBFC@smtp.kernel.org>
+Subject: + s390-ftrace-unpoison-ftrace_regs-in-kprobe_ftrace_handler.patch added to mm-unstable branch
+Message-Id: <20240613203122.6E0CEC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/diag: unpoison diag224() output buffer
+     Subject: s390/ftrace: unpoison ftrace_regs in kprobe_ftrace_handler()
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-diag-unpoison-diag224-output-buffer.patch
+     s390-ftrace-unpoison-ftrace_regs-in-kprobe_ftrace_handler.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-diag-unpoison-diag224-output-buffer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-ftrace-unpoison-ftrace_regs-in-kprobe_ftrace_handler.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: s390/diag: unpoison diag224() output buffer
-Date: Thu, 13 Jun 2024 17:34:28 +0200
+Subject: s390/ftrace: unpoison ftrace_regs in kprobe_ftrace_handler()
+Date: Thu, 13 Jun 2024 17:34:29 +0200
 
-Diagnose 224 stores 4k bytes, which currently cannot be deduced from
-the inline assembly constraints. This leads to KMSAN false positives.
+s390 uses assembly code to initialize ftrace_regs and call
+kprobe_ftrace_handler(). Therefore, from the KMSAN's point of view,
+ftrace_regs is poisoned on kprobe_ftrace_handler() entry. This causes
+KMSAN warnings when running the ftrace testsuite.
 
-Fix the constraints by using a 4k-sized struct instead of a raw
-pointer. While at it, prettify them too.
+Fix by trusting the assembly code and always unpoisoning ftrace_regs in
+kprobe_ftrace_handler().
 
-Link: https://lkml.kernel.org/r/20240613153924.961511-27-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240613153924.961511-28-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Suggested-by: Heiko Carstens <hca@linux.ibm.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Acked-by: Heiko Carstens <hca@linux.ibm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexander Potapenko <glider@google.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -91,30 +93,27 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/diag.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ arch/s390/kernel/ftrace.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/arch/s390/kernel/diag.c~s390-diag-unpoison-diag224-output-buffer
-+++ a/arch/s390/kernel/diag.c
-@@ -278,12 +278,14 @@ int diag224(void *ptr)
- 	int rc = -EOPNOTSUPP;
+--- a/arch/s390/kernel/ftrace.c~s390-ftrace-unpoison-ftrace_regs-in-kprobe_ftrace_handler
++++ a/arch/s390/kernel/ftrace.c
+@@ -12,6 +12,7 @@
+ #include <linux/ftrace.h>
+ #include <linux/kernel.h>
+ #include <linux/types.h>
++#include <linux/kmsan-checks.h>
+ #include <linux/kprobes.h>
+ #include <linux/execmem.h>
+ #include <trace/syscall.h>
+@@ -303,6 +304,7 @@ void kprobe_ftrace_handler(unsigned long
+ 	if (bit < 0)
+ 		return;
  
- 	diag_stat_inc(DIAG_STAT_X224);
--	asm volatile(
--		"	diag	%1,%2,0x224\n"
--		"0:	lhi	%0,0x0\n"
-+	asm volatile("\n"
-+		"	diag	%[type],%[addr],0x224\n"
-+		"0:	lhi	%[rc],0\n"
- 		"1:\n"
- 		EX_TABLE(0b,1b)
--		: "+d" (rc) :"d" (0), "d" (addr) : "memory");
-+		: [rc] "+d" (rc)
-+		, "=m" (*(struct { char buf[PAGE_SIZE]; } *)ptr)
-+		: [type] "d" (0), [addr] "d" (addr));
- 	return rc;
- }
- EXPORT_SYMBOL(diag224);
++	kmsan_unpoison_memory(fregs, sizeof(*fregs));
+ 	regs = ftrace_get_regs(fregs);
+ 	p = get_kprobe((kprobe_opcode_t *)ip);
+ 	if (!regs || unlikely(!p) || kprobe_disabled(p))
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
