@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D90A2F50
-	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 21:01:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B1D313B5B6
+	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 21:02:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718312462; cv=none; b=RRb9imgqnu11DW7fRvoNlJH9BdpAThjv4fFp9k0sbnG+Sq+p2sf5Mfzuqo5DzP384LMPYj4DEtxVYoUrZuspHqFkLXXX0a2n1UmIaK1A9s4C9Qddmlus3K0O+sdqumgVs/vNCwcbbO+oZS51WgD4n0VrLt2o3D/7t3UOTV4udKo=
+	t=1718312572; cv=none; b=oKx/BaLhuBKqTv96H5gc6y3oZlzCVZWdbir3LuA73yDePjQ9AfqSBwBS6BX5XNd5Ns4uvGx+UxErnUFLCUqEhJ3k9828GzV9ZHlYscyhCSv9Kf1Cv3p21B91Jo5L2qZ7hN0tZ8JbXDF2mRniAuurF5+FhsEiP5XqTyDiiZsFX28=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718312462; c=relaxed/simple;
-	bh=T4Oi25g4aJBDdvNJVpiCLbKcdw5ENR/6gB4nP14IPro=;
-	h=Date:To:From:Subject:Message-Id; b=Or0vRy7bEd98AActhE4d5tjU9doou0rnSGcPFQvEhZ+GBWpohE87SgKEXm02eRS+dvknI5wi0Gz0qYRISKAZprhsVXLBslvxydDqbjbMCUNGAeunZo8YQR3a5CtasN+uubIV5LGeZ+9g9I+xZaXyuVYYBGeHD6sDmRbXhcSvUh4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lHV+wCjJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718312572; c=relaxed/simple;
+	bh=UkwwpQqXmRCfzVnKU9U8sk90YrbWezyeZf5551/bQn0=;
+	h=Date:To:From:Subject:Message-Id; b=lDvSFRNCdXu2SJaz2738hBkDHFcz/CIs7FO2dhqHRBqbcEoHU3JvAZHp3fZu15jHf8iErebK4bM7/ITmYjwGwYRdoDtE3oGchs3DZRhfc26it+SNHt/xLlNGoX1VSVXNiHVom17CVsxSi5g+IDZGkR2HcLCT5ythUv3KjK/1qe0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IdfJROcU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lHV+wCjJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 665C4C2BBFC;
-	Thu, 13 Jun 2024 21:01:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IdfJROcU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76968C2BBFC;
+	Thu, 13 Jun 2024 21:02:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718312462;
-	bh=T4Oi25g4aJBDdvNJVpiCLbKcdw5ENR/6gB4nP14IPro=;
+	s=korg; t=1718312571;
+	bh=UkwwpQqXmRCfzVnKU9U8sk90YrbWezyeZf5551/bQn0=;
 	h=Date:To:From:Subject:From;
-	b=lHV+wCjJbtW/4guWC5h7yuPfGgv0qVDVZwhnia4vRBjakENc8aIIaUu9aViIVHhzI
-	 P7smnNRmA5oDV4S0x2ObWKD4o5sRfBxUuq+id1xVPQwqhfu4om+9pHzOGcJ2U6UnIN
-	 UeLZbcZkDpKtTaJyknfObygbyne/iiJF2sqOSTy0=
-Date: Thu, 13 Jun 2024 14:01:01 -0700
-To: mm-commits@vger.kernel.org,ioworker0@gmail.com,akpm@linux-foundation.org
+	b=IdfJROcUKHOyE1ceSILBeZGgv9r/F8kIOAWT5CXbLhxmfgAP9WHf1TtZAv+3ec/y5
+	 FUbgmvtwQEUhnWLyAr0OVfoF7ya12uuWozjHavAtoQBXUgFBDAKU+rr3FXqmNnMeZ4
+	 rt1EBhOuhk4wVBdpd1Ih/uVdvutA7QqWgQd58oxw=
+Date: Thu, 13 Jun 2024 14:02:50 -0700
+To: mm-commits@vger.kernel.org,kent.overstreet@linux.dev,jsiddle@redhat.com,j.granados@samsung.com,cunhuang@tencent.com,leonylgao@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix.patch added to mm-unstable branch
-Message-Id: <20240613210102.665C4C2BBFC@smtp.kernel.org>
+Subject: + hung_task-ignore-hung_task_warnings-when-hung_task_panic-is-enabled.patch added to mm-nonmm-unstable branch
+Message-Id: <20240613210251.76968C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix.patch
+     Subject: hung_task: ignore hung_task_warnings when hung_task_panic is enabled
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     hung_task-ignore-hung_task_warnings-when-hung_task_panic-is-enabled.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-ignore-hung_task_warnings-when-hung_task_panic-is-enabled.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,73 +58,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lance Yang <ioworker0@gmail.com>
-Subject: mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
-Date: Thu, 13 Jun 2024 15:28:58 +0800
+From: Yongliang Gao <leonylgao@tencent.com>
+Subject: hung_task: ignore hung_task_warnings when hung_task_panic is enabled
+Date: Thu, 13 Jun 2024 11:31:59 +0800
 
-fix bug:
-https://lore.kernel.org/linux-mm/20240613065521.15960-1-ioworker0@gmail.com/
+If hung_task_panic is enabled, don't consider the value of
+hung_task_warnings and display the information of the hung tasks.
 
-Link: https://lkml.kernel.org/r/20240613072858.16512-1-ioworker0@gmail.com
-Signed-off-by: Lance Yang <ioworker0@gmail.com>
+In some cases, hung_task_panic might not be initially set up, after
+several hung tasks occur, the hung_task_warnings count reaches zero.  If
+hung_task_panic is set up later, it may not display any helpful hung task
+info in dmesg, only showing messages like:
+
+Kernel panic - not syncing: hung_task: blocked tasks
+CPU: 3 PID: 58 Comm: khungtaskd Not tainted 6.10.0-rc3 #19
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996)
+Call Trace:
+ <TASK>
+ panic+0x2f3/0x320
+ watchdog+0x2dd/0x510
+ ? __pfx_watchdog+0x10/0x10
+ kthread+0xe0/0x110
+ ? __pfx_kthread+0x10/0x10
+ ret_from_fork+0x2f/0x40
+ ? __pfx_kthread+0x10/0x10
+ ret_from_fork_asm+0x1a/0x30
+ </TASK>
+
+Link: https://lkml.kernel.org/r/20240613033159.3446265-1-leonylgao@gmail.com
+Signed-off-by: Yongliang Gao <leonylgao@tencent.com>
+Reviewed-by: Huang Cun <cunhuang@tencent.com>
+Cc: Joel Granados <j.granados@samsung.com>
+Cc: John Siddle <jsiddle@redhat.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   10 +++-------
- mm/rmap.c        |    7 +------
- 2 files changed, 4 insertions(+), 13 deletions(-)
+ kernel/hung_task.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
-+++ a/mm/huge_memory.c
-@@ -2707,10 +2707,8 @@ static bool __discard_anon_folio_pmd_loc
- 	if (unlikely(page_folio(page) != folio))
- 		return false;
- 
--	if (folio_test_dirty(folio) || pmd_dirty(orig_pmd)) {
--		folio_set_swapbacked(folio);
-+	if (folio_test_dirty(folio) || pmd_dirty(orig_pmd))
- 		return false;
--	}
- 
- 	orig_pmd = pmdp_huge_clear_flush(vma, addr, pmdp);
- 
-@@ -2737,10 +2735,8 @@ static bool __discard_anon_folio_pmd_loc
- 	 *
- 	 * The only folio refs must be one from isolation plus the rmap(s).
+--- a/kernel/hung_task.c~hung_task-ignore-hung_task_warnings-when-hung_task_panic-is-enabled
++++ a/kernel/hung_task.c
+@@ -127,7 +127,7 @@ static void check_hung_task(struct task_
+ 	 * Ok, the task did not get scheduled for more than 2 minutes,
+ 	 * complain:
  	 */
--	if (folio_test_dirty(folio) || pmd_dirty(orig_pmd))
--		folio_set_swapbacked(folio);
--
--	if (folio_test_swapbacked(folio) || ref_count != map_count + 1) {
-+	if (folio_test_dirty(folio) || pmd_dirty(orig_pmd) ||
-+	    ref_count != map_count + 1) {
- 		set_pmd_at(mm, addr, pmdp, orig_pmd);
- 		return false;
- 	}
---- a/mm/rmap.c~mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
-+++ a/mm/rmap.c
-@@ -1824,12 +1824,7 @@ static bool try_to_unmap_one(struct foli
- 			 */
- 			if (unlikely(folio_test_swapbacked(folio) !=
- 					folio_test_swapcache(folio))) {
--				/*
--				 * unmap_huge_pmd_locked() will unmark a
--				 * PMD-mapped folio as lazyfree if the folio or
--				 * its PMD was redirtied.
--				 */
--				WARN_ON_ONCE(!pmd_mapped);
-+				WARN_ON_ONCE(1);
- 				goto walk_done_err;
- 			}
- 
+-	if (sysctl_hung_task_warnings) {
++	if (sysctl_hung_task_warnings || hung_task_call_panic) {
+ 		if (sysctl_hung_task_warnings > 0)
+ 			sysctl_hung_task_warnings--;
+ 		pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
 _
 
-Patches currently in -mm which might be from ioworker0@gmail.com are
+Patches currently in -mm which might be from leonylgao@tencent.com are
 
-mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch
-mm-rmap-add-helper-to-restart-pgtable-walk-on-changes.patch
-mm-rmap-integrate-pmd-mapped-folio-splitting-into-pagewalk-loop.patch
-mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list.patch
-mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix.patch
-mm-mlock-implement-folio_mlock_step-using-folio_pte_batch.patch
+hung_task-ignore-hung_task_warnings-when-hung_task_panic-is-enabled.patch
 
