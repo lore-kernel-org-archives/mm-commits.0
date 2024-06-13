@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FEF93CF74
-	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:31:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DA5813A86D
+	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:31:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718310660; cv=none; b=K+mbn6jeH1a1b1IbGpLHnBUUb9vLJT+5szm9HkvAToW7Jnkp71VdErDNIgTZP9gbqU2TTNRh7bJMpntGo+iw7s5K54SzaG6smBGqBvIr28npfm/q/uUssVOMRK+v0lDbPuedY2Qs/9wzROn/E3Yy/tGZ1N+Pgp6UjXn18WsOcdQ=
+	t=1718310662; cv=none; b=nF/hWjq0rJY1M9QP3B7im5RyyoVjHUk6JhSx8JPALGDYLzZayw4m47fYT3QbhMKSh+u1296tKb+wdPEjErhHZO1nrl3SooodBne+aQD6Zt0aFY1CCfn/tU2dtbCvfdnCpPjjjnfFsl39JnAPK+aG5borI2eCrGFKBkvwymv1mjc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718310660; c=relaxed/simple;
-	bh=fCnoHoB/iPOq2+txSmn5S4TR6/wbuQWXZMminjSO+Rc=;
-	h=Date:To:From:Subject:Message-Id; b=dSnhqXBZVquEiS0PDub7zB79gX6HWqfiPdl/QkKf2tZNMjWnfaMO5doigVPm1MzoLPbFOioSOk7fGxlB9iQTBdsZlI+ifqT3ckyNQ9UhXWffJJkmEuHqOlf0RhynNvpp3e/iBIY/yaPskGQGCyt/HFq5El9p9HDPS8lrO4J85tE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1cQEoL9k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718310662; c=relaxed/simple;
+	bh=asDfI1kTnpBAnKJU66S747epyOelmYfkOalWRgjxahQ=;
+	h=Date:To:From:Subject:Message-Id; b=si+TOg3rsHMIDrPCdtSOm1tRAkY/GDNc5qTrSrX9Qgmk9NJlM67uRLu351kFZj1BEq6qvzlz4tBqgSm2OZzNHr+hALbe+Fpi06vsmEqrcZrO2i5K9dAaQCCxzsOpkc8hSQ4Wc4970OP8tYCrp6+9UuMykpfblgr0p8QgBeJDfPI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ht8ZKf79; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1cQEoL9k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41561C2BBFC;
-	Thu, 13 Jun 2024 20:31:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ht8ZKf79"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5B32C2BBFC;
+	Thu, 13 Jun 2024 20:31:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718310660;
-	bh=fCnoHoB/iPOq2+txSmn5S4TR6/wbuQWXZMminjSO+Rc=;
+	s=korg; t=1718310661;
+	bh=asDfI1kTnpBAnKJU66S747epyOelmYfkOalWRgjxahQ=;
 	h=Date:To:From:Subject:From;
-	b=1cQEoL9kHvg/Jw1RRW11PEZapOW/LJbikq4ppT5StdBocUwKiE35aAPfGWp0nuwRT
-	 U+GVBEzfX04ywveroC8pw3CNh4DFytWiKSBpMkWaiTAfglkb4o25s8J2T31X6lHKtD
-	 IA9vOmIKiB8JDVbbdkdcfkkzFYboohSPRBOtvCPM=
-Date: Thu, 13 Jun 2024 13:30:59 -0700
+	b=ht8ZKf79QZ6+60TmI7x6gJGq14tGOfqLm8e+bwf7Pz8FjKeVFmsQ5WZIK4vPW9qPU
+	 4sepIKoTV6fQdEut+pjtz/y9HirXu6iWMaZCxfggHSmbueTAUTgstgElMQfZz4NyYA
+	 xiUeVusdIdtXpKxpJoUx8jTnRJAfrlyiU2hdBjSU=
+Date: Thu, 13 Jun 2024 13:31:01 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-slub-let-kmsan-access-metadata.patch added to mm-unstable branch
-Message-Id: <20240613203100.41561C2BBFC@smtp.kernel.org>
+Subject: + mm-slub-unpoison-the-memchr_inv-return-value.patch added to mm-unstable branch
+Message-Id: <20240613203101.D5B32C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: slub: let KMSAN access metadata
+     Subject: mm: slub: unpoison the memchr_inv() return value
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-slub-let-kmsan-access-metadata.patch
+     mm-slub-unpoison-the-memchr_inv-return-value.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slub-let-kmsan-access-metadata.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slub-unpoison-the-memchr_inv-return-value.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: mm: slub: let KMSAN access metadata
-Date: Thu, 13 Jun 2024 17:34:17 +0200
+Subject: mm: slub: unpoison the memchr_inv() return value
+Date: Thu, 13 Jun 2024 17:34:18 +0200
 
-Building the kernel with CONFIG_SLUB_DEBUG and CONFIG_KMSAN causes
-KMSAN to complain about touching redzones in kfree().
+Even though the KMSAN warnings generated by memchr_inv() are suppressed by
+metadata_access_enable(), its return value may still be poisoned.
 
-Fix by extending the existing KASAN-related metadata_access_enable()
-and metadata_access_disable() functions to KMSAN.
+The reason is that the last iteration of memchr_inv() returns `*start !=
+value ?  start : NULL`, where *start is poisoned.  Because of this,
+somewhat counterintuitively, the shadow value computed by
+visitSelectInst() is equal to `(uintptr_t)start`.
 
-Link: https://lkml.kernel.org/r/20240613153924.961511-16-iii@linux.ibm.com
+The intention behind guarding memchr_inv() behind metadata_access_enable()
+is to touch poisoned metadata without triggering KMSAN, so unpoison its
+return value.
+
+Link: https://lkml.kernel.org/r/20240613153924.961511-17-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -94,21 +100,24 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/slub.c |    2 ++
  1 file changed, 2 insertions(+)
 
---- a/mm/slub.c~mm-slub-let-kmsan-access-metadata
+--- a/mm/slub.c~mm-slub-unpoison-the-memchr_inv-return-value
 +++ a/mm/slub.c
-@@ -829,10 +829,12 @@ static int disable_higher_order_debug;
- static inline void metadata_access_enable(void)
- {
- 	kasan_disable_current();
-+	kmsan_disable_current();
- }
+@@ -1185,6 +1185,7 @@ static int check_bytes_and_report(struct
+ 	metadata_access_enable();
+ 	fault = memchr_inv(kasan_reset_tag(start), value, bytes);
+ 	metadata_access_disable();
++	kmsan_unpoison_memory(&fault, sizeof(fault));
+ 	if (!fault)
+ 		return 1;
  
- static inline void metadata_access_disable(void)
- {
-+	kmsan_enable_current();
- 	kasan_enable_current();
- }
- 
+@@ -1291,6 +1292,7 @@ static void slab_pad_check(struct kmem_c
+ 	metadata_access_enable();
+ 	fault = memchr_inv(kasan_reset_tag(pad), POISON_INUSE, remainder);
+ 	metadata_access_disable();
++	kmsan_unpoison_memory(&fault, sizeof(fault));
+ 	if (!fault)
+ 		return;
+ 	while (end > fault && end[-1] == POISON_INUSE)
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
