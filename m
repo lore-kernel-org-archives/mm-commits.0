@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CDF012F37B
-	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:31:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 677215A4D5
+	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:31:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718310667; cv=none; b=g25E/el8idwJq2bAIbZ05N/FQMzR/wCXPoCiLlp/6sy6va/8hd0mKIui2d27MBF6ZNVfCWW/SAptypQ5tKyB+n6TlZUUI731TvHXyXDI7DZXOBpl+UZrxRMi29REXjxc9VzetPxuVfBa6g+bKSNtBJmx+I8lCOtebakELKVzZgY=
+	t=1718310669; cv=none; b=KmZpT7cew9Y7WZx7FMvp79qeaYAEVohyZn9itTDJPwSF5DHPESFeJZvqUIAL0BeWQPtbyfunlQYBUZshUzcbk8HYN9upqE2DxT0anUn/j/4sytNkUjS1FuoEbSUMFtK0ea9iviP5/erx/NQAtXcesaczIAhkQKo03rehJwclMdU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718310667; c=relaxed/simple;
-	bh=5wEax17rnq0BBlczTV9kUK/nxkKxb+cZfiOWHy6u9cw=;
-	h=Date:To:From:Subject:Message-Id; b=iwUOnBjM7DEP9Ezp4H5nXdKtCKac6F+jMPO2XWsFWm12BpdRgboSd2hFcfmV29IQgl+i8wuRLUXtJcz38xYEN4kHdfv4Cnxt99naAOOrIVKRv8NWNoElxIxLQntnfM4ajJhfxGlhKw/tTFplk/Pcn7tB9wZ2KNzLuNhUyGkeXrI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IIMMSZHu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718310669; c=relaxed/simple;
+	bh=sOumoi3QQx6YfjvpRtLb7kYuOH5Tssbd6RCsUapfV28=;
+	h=Date:To:From:Subject:Message-Id; b=EV7NgVod2Rb8umWVDqgI1JUS0bjD+fPAUZRQ7s1AuFjnRTY58K9RVIi0Giy4AITKulUpCdnbv8LFClvndqFRD+MGjAxYPjtRlFdEWa9elpY2XmSjeeAeuGnLD1/wz2I6/ffmgOAjjeAPW3d4yK5TJLGjzUj2+O0iCKPIlV/IGNY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sapC1wFi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IIMMSZHu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4E4AC2BBFC;
-	Thu, 13 Jun 2024 20:31:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sapC1wFi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33EFAC2BBFC;
+	Thu, 13 Jun 2024 20:31:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718310666;
-	bh=5wEax17rnq0BBlczTV9kUK/nxkKxb+cZfiOWHy6u9cw=;
+	s=korg; t=1718310669;
+	bh=sOumoi3QQx6YfjvpRtLb7kYuOH5Tssbd6RCsUapfV28=;
 	h=Date:To:From:Subject:From;
-	b=IIMMSZHuhewXjEHIR7kQY3jQE122NrbjW+Jm5zL7BPHnxyoVSenrn1pmFWTfeKdxw
-	 f0lqvJ01M+Y6idC1Q7b3ksTZeNQKcMJ+HpI1VovAWE1Fv39fLIz5OzXBKFHqMxMTyv
-	 h16kq+GQ+l4Et4WhIWF8SNRr2IPFH7Y+F0/iuks0=
-Date: Thu, 13 Jun 2024 13:31:06 -0700
+	b=sapC1wFiP2QYoFs0ulSq8FWcnCQTqSutT9RBLI7lplqZyjxLBWe2q6Q9MpE/xu65c
+	 PaHlVIuhMeKFTfP5HY962ZGXgFoSDVHZRXhlOWF4J/0A2pK6g1ctcUZtvjLcPfEuvm
+	 1e+OWitLOepdiAPwwRMTu6cFWTgXGgH5yjZUNFS8=
+Date: Thu, 13 Jun 2024 13:31:08 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-accept-ranges-starting-with-0-on-s390.patch added to mm-unstable branch
-Message-Id: <20240613203106.D4E4AC2BBFC@smtp.kernel.org>
+Subject: + s390-boot-turn-off-kmsan.patch added to mm-unstable branch
+Message-Id: <20240613203109.33EFAC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmsan: accept ranges starting with 0 on s390
+     Subject: s390/boot: turn off KMSAN
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-accept-ranges-starting-with-0-on-s390.patch
+     s390-boot-turn-off-kmsan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-accept-ranges-starting-with-0-on-s390.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-boot-turn-off-kmsan.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: kmsan: accept ranges starting with 0 on s390
-Date: Thu, 13 Jun 2024 17:34:21 +0200
+Subject: s390/boot: turn off KMSAN
+Date: Thu, 13 Jun 2024 17:34:22 +0200
 
-On s390 the virtual address 0 is valid (current CPU's lowcore is mapped
-there), therefore KMSAN should not complain about it.
+All other sanitizers are disabled for boot as well. While at it, add a
+comment explaining why we need this.
 
-Disable the respective check on s390. There doesn't seem to be a
-Kconfig option to describe this situation, so explicitly check for
-s390.
-
-Link: https://lkml.kernel.org/r/20240613153924.961511-20-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240613153924.961511-21-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Reviewed-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -92,23 +88,25 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/init.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/s390/boot/Makefile |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/kmsan/init.c~kmsan-accept-ranges-starting-with-0-on-s390
-+++ a/mm/kmsan/init.c
-@@ -33,7 +33,10 @@ static void __init kmsan_record_future_s
- 	bool merged = false;
+--- a/arch/s390/boot/Makefile~s390-boot-turn-off-kmsan
++++ a/arch/s390/boot/Makefile
+@@ -3,11 +3,13 @@
+ # Makefile for the linux s390-specific parts of the memory manager.
+ #
  
- 	KMSAN_WARN_ON(future_index == NUM_FUTURE_RANGES);
--	KMSAN_WARN_ON((nstart >= nend) || !nstart || !nend);
-+	KMSAN_WARN_ON((nstart >= nend) ||
-+		      /* Virtual address 0 is valid on s390. */
-+		      (!IS_ENABLED(CONFIG_S390) && !nstart) ||
-+		      !nend);
- 	nstart = ALIGN_DOWN(nstart, PAGE_SIZE);
- 	nend = ALIGN(nend, PAGE_SIZE);
++# Tooling runtimes are unavailable and cannot be linked for early boot code
+ KCOV_INSTRUMENT := n
+ GCOV_PROFILE := n
+ UBSAN_SANITIZE := n
+ KASAN_SANITIZE := n
+ KCSAN_SANITIZE := n
++KMSAN_SANITIZE := n
  
+ KBUILD_AFLAGS := $(KBUILD_AFLAGS_DECOMPRESSOR)
+ KBUILD_CFLAGS := $(KBUILD_CFLAGS_DECOMPRESSOR)
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
