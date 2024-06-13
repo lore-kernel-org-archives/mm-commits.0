@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3712D13B287
-	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:31:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D97413A86D
+	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:31:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718310687; cv=none; b=uKnhKXSZmpfMr1zuP5G2D/W6eB+LNrvUH8zoayfx1YOCp2djpJcMnYaz9LjjmAOjqiKj9DN8L5qb9SapH+5vcui9MjuhsTvzYbI2oEeT7sPLfojpZtXWQ/tRHFYq3XEvi5PiRjsKbvuRS6KBQLo+Rxk69tphdsc05CaAxcGpcBo=
+	t=1718310691; cv=none; b=bvspoZOBRU6In93ril/t8Ywe5Ev6u1PjZm6w2NdeYdcnUliLP9m1GL2Yr8L4a9pkkbY+LuUsUU5oPgccvnBbffUbrkqvVbQ0vFmrNI0zKWHlAMU5ceI9gigCe4bou4A/uqhzHKLAsIm3HYZjPpXGIGfWh4im78NtZ92cwvi4dMI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718310687; c=relaxed/simple;
-	bh=Iqc/95ZxuEX7QEKLmPI7xzMZK8aAXEcroCNcQfLTT54=;
-	h=Date:To:From:Subject:Message-Id; b=DFCGqco7nfrp+Jb/4/29+wirKkZAUU+PaYydNkCltnonyQO6dVjuASbYD5OspViHFn6IDy8o5YV0lg2yn++AAAF1M1Nav9N9LOxXjQIgBWtXPxA7Uye9DMv9IiGiGbVNFFOFtvGKGUcEUl7HiUXujMy5/ARiA5CszmR6Je2J+o8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wDj7knbf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718310691; c=relaxed/simple;
+	bh=Y1j4ONDJiW+PmVIN53FX9ioSDEwhD11y7LVvcEQj0wQ=;
+	h=Date:To:From:Subject:Message-Id; b=iH9+lY4y/lemx7/0XCHMA/5oNjE3coM8zv69GcqDZAJkRwa4+p3fLT50U1xiqkjjimbXvnwnlUqmqBkw9urYwI9y+MeYVvkLJ8nSAvaiJ2VXZcngAPXFyzW3jyATP3zbb/Eryi35OsAQBEG5NVX3+j48KQ+sWCYpBZa226/q/is=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zprJaWlN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wDj7knbf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08546C2BBFC;
-	Thu, 13 Jun 2024 20:31:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zprJaWlN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 020DFC2BBFC;
+	Thu, 13 Jun 2024 20:31:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718310687;
-	bh=Iqc/95ZxuEX7QEKLmPI7xzMZK8aAXEcroCNcQfLTT54=;
+	s=korg; t=1718310691;
+	bh=Y1j4ONDJiW+PmVIN53FX9ioSDEwhD11y7LVvcEQj0wQ=;
 	h=Date:To:From:Subject:From;
-	b=wDj7knbfPQdk0qzp8bzdFqes/qbZt/rp1KvGkfvBMdsGDS0WEm6jGIiIwHSoFJrXC
-	 YWsnOTlCXaT0NviSyHgSRq760Sxu8uN6utR+YJ9errxl5Scx8GIPsvpsYFiuzR1Fko
-	 aRafVQ7auDpSjIp5m70EoTEc1CtG6dUBSIMuTm2c=
-Date: Thu, 13 Jun 2024 13:31:26 -0700
+	b=zprJaWlNFzeQi0ln053L80U1sg3HnzPKwkxiIA9NaScMxDeqmdRlOMjrLNTaGo+wl
+	 t5TH1tttG8iigtki2dTg4//BSqSv0mvb7Mz87tOmNh4sjFKLCr5YVn751jpQRjLxKw
+	 TveQRfbeYALNPAWpQNCtEApgF4+lRto6/EOEBNu4=
+Date: Thu, 13 Jun 2024 13:31:30 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-mm-define-kmsan-metadata-for-vmalloc-and-modules.patch added to mm-unstable branch
-Message-Id: <20240613203127.08546C2BBFC@smtp.kernel.org>
+Subject: + s390-string-add-kmsan-support.patch added to mm-unstable branch
+Message-Id: <20240613203131.020DFC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/mm: define KMSAN metadata for vmalloc and modules
+     Subject: s390/string: add KMSAN support
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-mm-define-kmsan-metadata-for-vmalloc-and-modules.patch
+     s390-string-add-kmsan-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-mm-define-kmsan-metadata-for-vmalloc-and-modules.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-string-add-kmsan-support.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,24 +59,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: s390/mm: define KMSAN metadata for vmalloc and modules
-Date: Thu, 13 Jun 2024 17:34:31 +0200
+Subject: s390/string: add KMSAN support
+Date: Thu, 13 Jun 2024 17:34:32 +0200
 
-The pages for the KMSAN metadata associated with most kernel mappings
-are taken from memblock by the common code. However, vmalloc and module
-metadata needs to be defined by the architectures.
+Add KMSAN support for the s390 implementations of the string functions.
+Do this similar to how it's already done for KASAN, except that the
+optimized memset{16,32,64}() functions need to be disabled: it's
+important for KMSAN to know that they initialized something.
 
-Be a little bit more careful than x86: allocate exactly MODULES_LEN
-for the module shadow and origins, and then take 2/3 of vmalloc for
-the vmalloc shadow and origins. This ensures that users passing small
-vmalloc= values on the command line do not cause module metadata
-collisions.
+The way boot code is built with regard to string functions is
+problematic, since most files think it's configured with sanitizers,
+but boot/string.c doesn't. This creates various problems with the
+memset64() definitions, depending on whether the code is built with
+sanitizers or fortify. This should probably be streamlined, but in the
+meantime resolve the issues by introducing the IN_BOOT_STRING_C macro,
+similar to the existing IN_ARCH_STRING_C macro.
 
-Link: https://lkml.kernel.org/r/20240613153924.961511-30-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240613153924.961511-31-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
-Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Acked-by: Heiko Carstens <hca@linux.ibm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -95,48 +98,116 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/boot/startup.c        |    7 +++++++
- arch/s390/include/asm/pgtable.h |    8 ++++++++
- 2 files changed, 15 insertions(+)
+ arch/s390/boot/string.c        |   16 ++++++++++++++++
+ arch/s390/include/asm/string.h |   20 +++++++++++++++-----
+ 2 files changed, 31 insertions(+), 5 deletions(-)
 
---- a/arch/s390/boot/startup.c~s390-mm-define-kmsan-metadata-for-vmalloc-and-modules
-+++ a/arch/s390/boot/startup.c
-@@ -301,11 +301,18 @@ static unsigned long setup_kernel_memory
- 	MODULES_END = round_down(kernel_start, _SEGMENT_SIZE);
- 	MODULES_VADDR = MODULES_END - MODULES_LEN;
- 	VMALLOC_END = MODULES_VADDR;
-+	if (IS_ENABLED(CONFIG_KMSAN))
-+		VMALLOC_END -= MODULES_LEN * 2;
+--- a/arch/s390/boot/string.c~s390-string-add-kmsan-support
++++ a/arch/s390/boot/string.c
+@@ -1,11 +1,18 @@
+ // SPDX-License-Identifier: GPL-2.0
++#define IN_BOOT_STRING_C 1
+ #include <linux/ctype.h>
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+ #undef CONFIG_KASAN
+ #undef CONFIG_KASAN_GENERIC
++#undef CONFIG_KMSAN
+ #include "../lib/string.c"
  
- 	/* allow vmalloc area to occupy up to about 1/2 of the rest virtual space left */
- 	vsize = (VMALLOC_END - FIXMAP_SIZE) / 2;
- 	vsize = round_down(vsize, _SEGMENT_SIZE);
- 	vmalloc_size = min(vmalloc_size, vsize);
-+	if (IS_ENABLED(CONFIG_KMSAN)) {
-+		/* take 2/3 of vmalloc area for KMSAN shadow and origins */
-+		vmalloc_size = round_down(vmalloc_size / 3, _SEGMENT_SIZE);
-+		VMALLOC_END -= vmalloc_size * 2;
-+	}
- 	VMALLOC_START = VMALLOC_END - vmalloc_size;
- 
- 	__memcpy_real_area = round_down(VMALLOC_START - MEMCPY_REAL_SIZE, PAGE_SIZE);
---- a/arch/s390/include/asm/pgtable.h~s390-mm-define-kmsan-metadata-for-vmalloc-and-modules
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -107,6 +107,14 @@ static inline int is_module_addr(void *a
- 	return 1;
++/*
++ * Duplicate some functions from the common lib/string.c
++ * instead of fully including it.
++ */
++
+ int strncmp(const char *cs, const char *ct, size_t count)
+ {
+ 	unsigned char c1, c2;
+@@ -22,6 +29,15 @@ int strncmp(const char *cs, const char *
+ 	return 0;
  }
  
-+#ifdef CONFIG_KMSAN
-+#define KMSAN_VMALLOC_SIZE (VMALLOC_END - VMALLOC_START)
-+#define KMSAN_VMALLOC_SHADOW_START VMALLOC_END
-+#define KMSAN_VMALLOC_ORIGIN_START (KMSAN_VMALLOC_SHADOW_START + KMSAN_VMALLOC_SIZE)
-+#define KMSAN_MODULES_SHADOW_START (KMSAN_VMALLOC_ORIGIN_START + KMSAN_VMALLOC_SIZE)
-+#define KMSAN_MODULES_ORIGIN_START (KMSAN_MODULES_SHADOW_START + MODULES_LEN)
-+#endif
++void *memset64(uint64_t *s, uint64_t v, size_t count)
++{
++	uint64_t *xs = s;
 +
- #ifdef CONFIG_RANDOMIZE_BASE
- #define KASLR_LEN	(1UL << 31)
- #else
++	while (count--)
++		*xs++ = v;
++	return s;
++}
++
+ char *skip_spaces(const char *str)
+ {
+ 	while (isspace(*str))
+--- a/arch/s390/include/asm/string.h~s390-string-add-kmsan-support
++++ a/arch/s390/include/asm/string.h
+@@ -15,15 +15,12 @@
+ #define __HAVE_ARCH_MEMCPY	/* gcc builtin & arch function */
+ #define __HAVE_ARCH_MEMMOVE	/* gcc builtin & arch function */
+ #define __HAVE_ARCH_MEMSET	/* gcc builtin & arch function */
+-#define __HAVE_ARCH_MEMSET16	/* arch function */
+-#define __HAVE_ARCH_MEMSET32	/* arch function */
+-#define __HAVE_ARCH_MEMSET64	/* arch function */
+ 
+ void *memcpy(void *dest, const void *src, size_t n);
+ void *memset(void *s, int c, size_t n);
+ void *memmove(void *dest, const void *src, size_t n);
+ 
+-#ifndef CONFIG_KASAN
++#if !defined(CONFIG_KASAN) && !defined(CONFIG_KMSAN)
+ #define __HAVE_ARCH_MEMCHR	/* inline & arch function */
+ #define __HAVE_ARCH_MEMCMP	/* arch function */
+ #define __HAVE_ARCH_MEMSCAN	/* inline & arch function */
+@@ -36,6 +33,9 @@ void *memmove(void *dest, const void *sr
+ #define __HAVE_ARCH_STRNCPY	/* arch function */
+ #define __HAVE_ARCH_STRNLEN	/* inline & arch function */
+ #define __HAVE_ARCH_STRSTR	/* arch function */
++#define __HAVE_ARCH_MEMSET16	/* arch function */
++#define __HAVE_ARCH_MEMSET32	/* arch function */
++#define __HAVE_ARCH_MEMSET64	/* arch function */
+ 
+ /* Prototypes for non-inlined arch strings functions. */
+ int memcmp(const void *s1, const void *s2, size_t n);
+@@ -44,7 +44,7 @@ size_t strlcat(char *dest, const char *s
+ char *strncat(char *dest, const char *src, size_t n);
+ char *strncpy(char *dest, const char *src, size_t n);
+ char *strstr(const char *s1, const char *s2);
+-#endif /* !CONFIG_KASAN */
++#endif /* !defined(CONFIG_KASAN) && !defined(CONFIG_KMSAN) */
+ 
+ #undef __HAVE_ARCH_STRCHR
+ #undef __HAVE_ARCH_STRNCHR
+@@ -74,20 +74,30 @@ void *__memset16(uint16_t *s, uint16_t v
+ void *__memset32(uint32_t *s, uint32_t v, size_t count);
+ void *__memset64(uint64_t *s, uint64_t v, size_t count);
+ 
++#ifdef __HAVE_ARCH_MEMSET16
+ static inline void *memset16(uint16_t *s, uint16_t v, size_t count)
+ {
+ 	return __memset16(s, v, count * sizeof(v));
+ }
++#endif
+ 
++#ifdef __HAVE_ARCH_MEMSET32
+ static inline void *memset32(uint32_t *s, uint32_t v, size_t count)
+ {
+ 	return __memset32(s, v, count * sizeof(v));
+ }
++#endif
+ 
++#ifdef __HAVE_ARCH_MEMSET64
++#ifdef IN_BOOT_STRING_C
++void *memset64(uint64_t *s, uint64_t v, size_t count);
++#else
+ static inline void *memset64(uint64_t *s, uint64_t v, size_t count)
+ {
+ 	return __memset64(s, v, count * sizeof(v));
+ }
++#endif
++#endif
+ 
+ #if !defined(IN_ARCH_STRING_C) && (!defined(CONFIG_FORTIFY_SOURCE) || defined(__NO_FORTIFY))
+ 
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
