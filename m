@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FE1E57CB6
-	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:30:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D07EC13A876
+	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:30:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718310657; cv=none; b=gSwo1LaAYAgcERlYIbRvriu3daBYIwH33rQZv1lGXmB/2Z+3tBBLzn/WCwOv0Y5T3ZpT+WNWs0RSvgvhNdeFaLOxUdKqqrVK9fZx7tXa82mJ8/wxiFEajUtWq6ZX6tvvxQFqnhbLeh2RHL0liHeI7PfwgVu9BXPioc0bLKIjc4k=
+	t=1718310658; cv=none; b=b9FtaHD+rBt+gsG7mTsOkYZoIoAQZbmH7KUbCXSye3XsOuNONObSUWXjRdTxEhVPOnlyj4g1GeNWk9HRunkyxsazs5fDr7XKyHZWkiZ2AezrttvBXV720Ek2KzcqWjlrvZ9UfrRC+glDNifhR2BW8KRkcot85A4B+C4ZViKSi3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718310657; c=relaxed/simple;
-	bh=gMV8wrVbbfgzCOJQAX68hRd/nPmhXlEoUOJdb42V8XI=;
-	h=Date:To:From:Subject:Message-Id; b=ofoi4rxph+45Wmiv4CT6EU5mtB3szVkSGk4rlnat8vnQ30RB6LDq5qnEN9S0wxsBVKwuZUzbfZiks1t8KvbcjwR5LK3clS6MwMLCIhKSmVYEfVGPj3lj4rpHMrCpS3wbSYo7L90Qa6etk/jbXYsimxk0My3sYyf1t7im7o6Oodk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jGACM4sa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718310658; c=relaxed/simple;
+	bh=iOpUpZqev+ncpprrR0DV59xNrqwxM3cgLmmf3pgl7bI=;
+	h=Date:To:From:Subject:Message-Id; b=AR+d2FXuzf1KadUdx7woQdnsdMrGl+TriVxzyOG3Je500d9FbRXt91ybNLuGuuNAW6DIaKyh+/7NpPoAmcJwJWa0Ox4RqrE9LUjYwBxw43CifKjl1boNVvcX8ddsSXCw4y00rHtgSW+fY65WoTWtmOOY0KNIbkDwgp79uvDwXfI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q8y2kDLW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jGACM4sa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1524EC2BBFC;
-	Thu, 13 Jun 2024 20:30:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q8y2kDLW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3F26C2BBFC;
+	Thu, 13 Jun 2024 20:30:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718310657;
-	bh=gMV8wrVbbfgzCOJQAX68hRd/nPmhXlEoUOJdb42V8XI=;
+	s=korg; t=1718310658;
+	bh=iOpUpZqev+ncpprrR0DV59xNrqwxM3cgLmmf3pgl7bI=;
 	h=Date:To:From:Subject:From;
-	b=jGACM4saFvH33D8ISbW0Pj+cLTyvyVJrZTR+xletLYf/KeKqKkpsoqFXRTHLBDHcN
-	 e9MKYcuykjCPj7ghsB/1yWCkxVjHbjvHiesWAMquYHodbJ63EbGK7D6/9Oy4MPLILQ
-	 MnHKKBmagj/2VMt5C8S/E48nqBSknt7oYss2C5ek=
-Date: Thu, 13 Jun 2024 13:30:56 -0700
+	b=Q8y2kDLWOO7hgFkQBztFTze7pikHcppNL8Hg48d5oCPE64OgJOBylJiuYcrg9kgUU
+	 SA7EzVL3XGezhhwaPcMJsZaZffGsI6n51URawsRaWDDVr4zlOu1NmkOkHQG0CJPesR
+	 Mfk5a/GY8WdZDJA65bBaS2U+wRUrDNGVuamoezbw=
+Date: Thu, 13 Jun 2024 13:30:58 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-use-align_down-in-kmsan_get_metadata.patch added to mm-unstable branch
-Message-Id: <20240613203057.1524EC2BBFC@smtp.kernel.org>
+Subject: + kmsan-do-not-round-up-pg_data_t-size.patch added to mm-unstable branch
+Message-Id: <20240613203058.A3F26C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmsan: use ALIGN_DOWN() in kmsan_get_metadata()
+     Subject: kmsan: do not round up pg_data_t size
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-use-align_down-in-kmsan_get_metadata.patch
+     kmsan-do-not-round-up-pg_data_t-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-use-align_down-in-kmsan_get_metadata.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-do-not-round-up-pg_data_t-size.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,26 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: kmsan: use ALIGN_DOWN() in kmsan_get_metadata()
-Date: Thu, 13 Jun 2024 17:34:15 +0200
+Subject: kmsan: do not round up pg_data_t size
+Date: Thu, 13 Jun 2024 17:34:16 +0200
 
-Improve the readability by replacing the custom aligning logic with
-ALIGN_DOWN().  Unlike other places where a similar sequence is used, there
-is no size parameter that needs to be adjusted, so the standard macro
-fits.
+x86's alloc_node_data() rounds up node data size to PAGE_SIZE.  It's not
+explained why it's needed, but it's most likely for performance reasons,
+since the padding bytes are not used anywhere.  Some other architectures
+do it as well, e.g., mips rounds it up to the cache line size.
 
-Link: https://lkml.kernel.org/r/20240613153924.961511-14-iii@linux.ibm.com
+kmsan_init_shadow() initializes metadata for each node data and assumes
+the x86 rounding, which does not match other architectures.  This may
+cause the range end to overshoot the end of available memory, in turn
+causing virt_to_page_or_null() in kmsan_init_alloc_meta_for_range() to
+return NULL, which leads to kernel panic shortly after.
+
+Since the padding bytes are not used, drop the rounding.
+
+Link: https://lkml.kernel.org/r/20240613153924.961511-15-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -90,29 +98,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/shadow.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/kmsan/init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kmsan/shadow.c~kmsan-use-align_down-in-kmsan_get_metadata
-+++ a/mm/kmsan/shadow.c
-@@ -123,14 +123,12 @@ return_dummy:
+--- a/mm/kmsan/init.c~kmsan-do-not-round-up-pg_data_t-size
++++ a/mm/kmsan/init.c
+@@ -72,7 +72,7 @@ static void __init kmsan_record_future_s
   */
- void *kmsan_get_metadata(void *address, bool is_origin)
+ void __init kmsan_init_shadow(void)
  {
--	u64 addr = (u64)address, pad, off;
-+	u64 addr = (u64)address, off;
- 	struct page *page;
- 	void *ret;
- 
--	if (is_origin && !IS_ALIGNED(addr, KMSAN_ORIGIN_SIZE)) {
--		pad = addr % KMSAN_ORIGIN_SIZE;
--		addr -= pad;
--	}
-+	if (is_origin)
-+		addr = ALIGN_DOWN(addr, KMSAN_ORIGIN_SIZE);
- 	address = (void *)addr;
- 	if (kmsan_internal_is_vmalloc_addr(address) ||
- 	    kmsan_internal_is_module_addr(address))
+-	const size_t nd_size = roundup(sizeof(pg_data_t), PAGE_SIZE);
++	const size_t nd_size = sizeof(pg_data_t);
+ 	phys_addr_t p_start, p_end;
+ 	u64 loop;
+ 	int nid;
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
