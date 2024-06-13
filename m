@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0ACA13A878
-	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:31:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A14D057CB6
+	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:31:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718310671; cv=none; b=Q9/yOSklh4eSAnmqMfzLBAeBtz0nrnUDDeKTAGE82k+ao61DF5RRf0Vsq4iU5HQWJGJDrpNqxwORoBKDiisrw52r32kwqybdf7Ju2/D4T8XMo610ah5+Lf8ti4tXj//C8+HiF309nHMlj4ouSTgmasspyTuEWY19MhwEvmcUcFw=
+	t=1718310672; cv=none; b=Gn95hlB3dj3B5MB6tR20HEpxTrX1+zZaaQe2x0t5nFcpnN8LNstezwZUzwsNnVrXxzSYrs4T9u8q+1c91IaqGkEgrEADvXuL+Tak51uFPt8hWAvqu50a4wwAyHpPGWVddBmeCJLlaStSZfqyhHd61oFECBfJCwTzFTen1hHKAbM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718310671; c=relaxed/simple;
-	bh=bt62FQBUTCMr2vv6cLkZYg3HmfZ3z/+ZGSmpJsL/Idg=;
-	h=Date:To:From:Subject:Message-Id; b=rx2m1q/PxIylOubEbjd+TKuF+LJtHQBCLUbRRpPN4UC20wGUyeDFZZRSkj1sH7PROvWwgbV1JUaDlbIiKbvyzmI7E2nzjzT/22hDsawTfCtSzELuWQXxVANKJIMPQop3GfSpC0oQbEMw0NfjhZkKq7Ghq7+sqJ8dU0cHkPOBXNU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LdTO0QBV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718310672; c=relaxed/simple;
+	bh=I8lTfqWLBlG4iUtVPsyM+EPAbSi3v4MGNjjJmQzw9KQ=;
+	h=Date:To:From:Subject:Message-Id; b=rwhmls/W9S5+Ihbfvhs5TSvTGo09kvbviUCmCDaXRQPvcsIa/Pg6zAo+03OCFPn2sZo9Jp/n2v4iwMYJqD22Yvg5F5WG0kbwoMvUleDCEe/86c4vq95XFtN2PWzO8oM58PEU7mxpHEmpy9io0B+j5wpOk2HoL+x5k49+xbrrvNE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BH2JsoKw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LdTO0QBV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6232C2BBFC;
-	Thu, 13 Jun 2024 20:31:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BH2JsoKw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75F97C2BBFC;
+	Thu, 13 Jun 2024 20:31:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718310670;
-	bh=bt62FQBUTCMr2vv6cLkZYg3HmfZ3z/+ZGSmpJsL/Idg=;
+	s=korg; t=1718310672;
+	bh=I8lTfqWLBlG4iUtVPsyM+EPAbSi3v4MGNjjJmQzw9KQ=;
 	h=Date:To:From:Subject:From;
-	b=LdTO0QBVtXNYSo8Yp+xg8wbwCm5Ysy79g+uIFzRWV/AWvT5L2XW0g43JGSeDcZOOe
-	 acN2q5+dgQaPpbswen9O6KwT4vBKUtJExkhmdVcwE6mEOoPeeX0I5WdaHC0BBv/J33
-	 fV3B6K/hvOLfZII2iTy3ymT56s2Kyn2G2abGJvmA=
-Date: Thu, 13 Jun 2024 13:31:10 -0700
+	b=BH2JsoKwcw8FTkcGGm2+dm8I03qInZ8lY7nLUdKEM5KSms2L0o75s1uQjjRAH/XLm
+	 mjSRE6Lj/rGCpRib8CZgjxNPYU9iXv7UQvEQvNbSC4i/akaRRGeKYx6JTb42WPy6YD
+	 lh6jCmrPdC4XDSDdf/fJS5PS64zogyT8xQIPXUmo=
+Date: Thu, 13 Jun 2024 13:31:11 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-use-a-larger-stack-for-kmsan.patch added to mm-unstable branch
-Message-Id: <20240613203110.B6232C2BBFC@smtp.kernel.org>
+Subject: + s390-boot-add-the-kmsan-runtime-stub.patch added to mm-unstable branch
+Message-Id: <20240613203112.75F97C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390: use a larger stack for KMSAN
+     Subject: s390/boot: add the KMSAN runtime stub
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-use-a-larger-stack-for-kmsan.patch
+     s390-boot-add-the-kmsan-runtime-stub.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-use-a-larger-stack-for-kmsan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-boot-add-the-kmsan-runtime-stub.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: s390: use a larger stack for KMSAN
-Date: Thu, 13 Jun 2024 17:34:23 +0200
+Subject: s390/boot: add the KMSAN runtime stub
+Date: Thu, 13 Jun 2024 17:34:24 +0200
 
-Adjust the stack size for the KMSAN-enabled kernel like it was done
-for the KASAN-enabled one in commit 7fef92ccadd7 ("s390/kasan: double
-the stack size"). Both tools have similar requirements.
+It should be possible to have inline functions in the s390 header
+files, which call kmsan_unpoison_memory(). The problem is that these
+header files might be included by the decompressor, which does not
+contain KMSAN runtime, causing linker errors.
 
-Link: https://lkml.kernel.org/r/20240613153924.961511-22-iii@linux.ibm.com
+Not compiling these calls if __SANITIZE_MEMORY__ is not defined -
+either by changing kmsan-checks.h or at the call sites - may cause
+unintended side effects, since calling these functions from an
+uninstrumented code that is linked into the kernel is valid use case.
+
+One might want to explicitly distinguish between the kernel and the
+decompressor. Checking for a decompressor-specific #define is quite
+heavy-handed, and will have to be done at all call sites.
+
+A more generic approach is to provide a dummy kmsan_unpoison_memory()
+definition. This produces some runtime overhead, but only when building
+with CONFIG_KMSAN. The benefit is that it does not disturb the existing
+KMSAN build logic and call sites don't need to be changed.
+
+Link: https://lkml.kernel.org/r/20240613153924.961511-23-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Reviewed-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -89,32 +104,29 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/Makefile                  |    2 +-
- arch/s390/include/asm/thread_info.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/s390/boot/Makefile |    1 +
+ arch/s390/boot/kmsan.c  |    6 ++++++
+ 2 files changed, 7 insertions(+)
 
---- a/arch/s390/include/asm/thread_info.h~s390-use-a-larger-stack-for-kmsan
-+++ a/arch/s390/include/asm/thread_info.h
-@@ -16,7 +16,7 @@
- /*
-  * General size of kernel stacks
-  */
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN) || defined(CONFIG_KMSAN)
- #define THREAD_SIZE_ORDER 4
- #else
- #define THREAD_SIZE_ORDER 2
---- a/arch/s390/Makefile~s390-use-a-larger-stack-for-kmsan
-+++ a/arch/s390/Makefile
-@@ -36,7 +36,7 @@ KBUILD_CFLAGS_DECOMPRESSOR += $(if $(CON
- KBUILD_CFLAGS_DECOMPRESSOR += $(if $(CONFIG_CC_NO_ARRAY_BOUNDS),-Wno-array-bounds)
+--- /dev/null
++++ a/arch/s390/boot/kmsan.c
+@@ -0,0 +1,6 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <linux/kmsan-checks.h>
++
++void kmsan_unpoison_memory(const void *address, size_t size)
++{
++}
+--- a/arch/s390/boot/Makefile~s390-boot-add-the-kmsan-runtime-stub
++++ a/arch/s390/boot/Makefile
+@@ -44,6 +44,7 @@ obj-$(findstring y, $(CONFIG_PROTECTED_V
+ obj-$(CONFIG_RANDOMIZE_BASE)	+= kaslr.o
+ obj-y	+= $(if $(CONFIG_KERNEL_UNCOMPRESSED),,decompressor.o) info.o
+ obj-$(CONFIG_KERNEL_ZSTD) += clz_ctz.o
++obj-$(CONFIG_KMSAN) += kmsan.o
+ obj-all := $(obj-y) piggy.o syms.o
  
- UTS_MACHINE	:= s390x
--STACK_SIZE	:= $(if $(CONFIG_KASAN),65536,16384)
-+STACK_SIZE	:= $(if $(CONFIG_KASAN),65536,$(if $(CONFIG_KMSAN),65536,16384))
- CHECKFLAGS	+= -D__s390__ -D__s390x__
- 
- export LD_BFD
+ targets	:= bzImage section_cmp.boot.data section_cmp.boot.preserved.data $(obj-y)
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
