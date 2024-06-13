@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66BDF12F37B
-	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:30:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E59A113A3F2
+	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:30:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718310647; cv=none; b=NhH/R8Jt/x1FnMwf3q3xaVOZLZueqdzjcGgiG9EKEPXpVGFC9jgTslZROKHMF9lY7H5099zzlClAbCPscAX7aJVDS7onfWSJ1m/CuIrR4PrOtUm9RNlid2xaXqP2794Ao/sMUXcUYm2jNufeiN2Ul1N8fdjLePgzTP9zaeueQoU=
+	t=1718310649; cv=none; b=XO0d6LkASKVtotaEv7TQyboJ2+pyMkvDUII5iGKUYwUdBf6hBX3J1uDB1hzPpbbwzb08Ino+D/pSnlM1waxu4Y4f6kDi0NJv9oiu1TV3s82UDROTTjEbigXB00vDTMOLf2zAHSQVmJNcfwvRWUsXbuD0Mn8h2A+kDjwpj/obCWY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718310647; c=relaxed/simple;
-	bh=PEjKC8ylsBztJDchfxWjJF4PEP+Hyrwkqk11Y6KC5ic=;
-	h=Date:To:From:Subject:Message-Id; b=fWtGMmK9UYvzkeHiNzMutXOohl1LBZt7Ypvi59wlYeenbBWBVkof8Kz6nfhOr3eBDTOFRCYStKbrIJxQaGGmHf1bJLorMdqSannpodYQ8inlOsnyB4g5AOp8pXdHXNcxNCmBHAC/HvecOechWt6qP1JCEjnUMkztaKRd7qvpdfs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GdQXG2aX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718310649; c=relaxed/simple;
+	bh=SbTsJ4ShaRGhVyCPga7BDW4nLC4wE211WMQfY+w1Deg=;
+	h=Date:To:From:Subject:Message-Id; b=FkkBzx0QtR/8DnBCUNXAAuvGs5gputJN1Cbt4Uf/Pa7EpksWxgiim9YKurnGU+k+7FEjjliRWiH7KnhDoUIc4acZqFIYOOdo3obD9wbrUj/ObZ6QU27riokJFioYbBAgvSSV2wcusZVpwlC/eTSQwz62oSvaypNKdt8YpljLQMk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EDLZVF0v; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GdQXG2aX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E367AC2BBFC;
-	Thu, 13 Jun 2024 20:30:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EDLZVF0v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 746AAC2BBFC;
+	Thu, 13 Jun 2024 20:30:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718310647;
-	bh=PEjKC8ylsBztJDchfxWjJF4PEP+Hyrwkqk11Y6KC5ic=;
+	s=korg; t=1718310648;
+	bh=SbTsJ4ShaRGhVyCPga7BDW4nLC4wE211WMQfY+w1Deg=;
 	h=Date:To:From:Subject:From;
-	b=GdQXG2aXrIysS2/VimofbuFxN0CE9RNWnQkyjDJDljMh5IIvgj5n5YCiOqL2ILhgL
-	 5oDuboNDfBBfldgZER5/f5AKlnQrVl9HMYk4h+6MEqWecJE6pNT/htC2rhzKQqmHXs
-	 lBJay+E/TM5g7SWVc/Q+tOQCE9JFCW6ufJuss6CY=
-Date: Thu, 13 Jun 2024 13:30:46 -0700
+	b=EDLZVF0vvxQVbdVcZeyjhHK5g/StAVnb1H7TMZAD9CET9sZtQlWRhhx7u1aWoIMKQ
+	 hpgEq8oSBnzga2UKJEnccpc2Rp4CM9jlVp/TMKrxTgL3S99p9ddnHltP9KnFmjNTn5
+	 vyTsGV7eDPebUG728lylnPS4+hToEj1CxumiUtWA=
+Date: Thu, 13 Jun 2024 13:30:47 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-remove-an-x86-specific-include-from-kmsanh.patch added to mm-unstable branch
-Message-Id: <20240613203046.E367AC2BBFC@smtp.kernel.org>
+Subject: + kmsan-expose-kmsan_get_metadata.patch added to mm-unstable branch
+Message-Id: <20240613203048.746AAC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmsan: remove an x86-specific #include from kmsan.h
+     Subject: kmsan: expose kmsan_get_metadata()
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-remove-an-x86-specific-include-from-kmsanh.patch
+     kmsan-expose-kmsan_get_metadata.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-remove-an-x86-specific-include-from-kmsanh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-expose-kmsan_get_metadata.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,25 +59,29 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: kmsan: remove an x86-specific #include from kmsan.h
-Date: Thu, 13 Jun 2024 17:34:10 +0200
+Subject: kmsan: expose kmsan_get_metadata()
+Date: Thu, 13 Jun 2024 17:34:11 +0200
 
-Replace the x86-specific asm/pgtable_64_types.h #include with the
-linux/pgtable.h one, which all architectures have.
+Each s390 CPU has lowcore pages associated with it.  Each CPU sees its own
+lowcore at virtual address 0 through a hardware mechanism called
+prefixing.  Additionally, all lowcores are mapped to non-0 virtual
+addresses stored in the lowcore_ptr[] array.
 
-While at it, sort the headers alphabetically for the sake of
-consistency with other KMSAN code.
+When lowcore is accessed through virtual address 0, one needs to
+resolve metadata for lowcore_ptr[raw_smp_processor_id()].
 
-Link: https://lkml.kernel.org/r/20240613153924.961511-9-iii@linux.ibm.com
-Fixes: f80be4571b19 ("kmsan: add KMSAN runtime core")
+Expose kmsan_get_metadata() to make it possible to do this from the
+arch code.
+
+Link: https://lkml.kernel.org/r/20240613153924.961511-10-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Suggested-by: Heiko Carstens <hca@linux.ibm.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Marco Elver <elver@google.com>
@@ -92,30 +96,49 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/kmsan.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/kmsan.h      |    9 +++++++++
+ mm/kmsan/instrumentation.c |    1 +
+ mm/kmsan/kmsan.h           |    1 -
+ 3 files changed, 10 insertions(+), 1 deletion(-)
 
---- a/mm/kmsan/kmsan.h~kmsan-remove-an-x86-specific-include-from-kmsanh
+--- a/include/linux/kmsan.h~kmsan-expose-kmsan_get_metadata
++++ a/include/linux/kmsan.h
+@@ -230,6 +230,15 @@ void kmsan_handle_urb(const struct urb *
+  */
+ void kmsan_unpoison_entry_regs(const struct pt_regs *regs);
+ 
++/**
++ * kmsan_get_metadata() - Return a pointer to KMSAN shadow or origins.
++ * @addr:      kernel address.
++ * @is_origin: whether to return origins or shadow.
++ *
++ * Return NULL if metadata cannot be found.
++ */
++void *kmsan_get_metadata(void *addr, bool is_origin);
++
+ #else
+ 
+ static inline void kmsan_init_shadow(void)
+--- a/mm/kmsan/instrumentation.c~kmsan-expose-kmsan_get_metadata
++++ a/mm/kmsan/instrumentation.c
+@@ -14,6 +14,7 @@
+ 
+ #include "kmsan.h"
+ #include <linux/gfp.h>
++#include <linux/kmsan.h>
+ #include <linux/kmsan_string.h>
+ #include <linux/mm.h>
+ #include <linux/uaccess.h>
+--- a/mm/kmsan/kmsan.h~kmsan-expose-kmsan_get_metadata
 +++ a/mm/kmsan/kmsan.h
-@@ -10,14 +10,14 @@
- #ifndef __MM_KMSAN_KMSAN_H
- #define __MM_KMSAN_KMSAN_H
+@@ -66,7 +66,6 @@ struct shadow_origin_ptr {
  
--#include <asm/pgtable_64_types.h>
- #include <linux/irqflags.h>
-+#include <linux/mm.h>
-+#include <linux/nmi.h>
-+#include <linux/pgtable.h>
-+#include <linux/printk.h>
- #include <linux/sched.h>
- #include <linux/stackdepot.h>
- #include <linux/stacktrace.h>
--#include <linux/nmi.h>
--#include <linux/mm.h>
--#include <linux/printk.h>
+ struct shadow_origin_ptr kmsan_get_shadow_origin_ptr(void *addr, u64 size,
+ 						     bool store);
+-void *kmsan_get_metadata(void *addr, bool is_origin);
+ void __init kmsan_init_alloc_meta_for_range(void *start, void *end);
  
- #define KMSAN_ALLOCA_MAGIC_ORIGIN 0xabcd0100
- #define KMSAN_CHAIN_MAGIC_ORIGIN 0xabcd0200
+ enum kmsan_bug_reason {
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
