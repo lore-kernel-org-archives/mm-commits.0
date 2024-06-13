@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A14D057CB6
-	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:31:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D09B83CF74
+	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 20:31:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718310672; cv=none; b=Gn95hlB3dj3B5MB6tR20HEpxTrX1+zZaaQe2x0t5nFcpnN8LNstezwZUzwsNnVrXxzSYrs4T9u8q+1c91IaqGkEgrEADvXuL+Tak51uFPt8hWAvqu50a4wwAyHpPGWVddBmeCJLlaStSZfqyhHd61oFECBfJCwTzFTen1hHKAbM=
+	t=1718310675; cv=none; b=goxu0dCdvUfKv8wxx/NKhSWg+meCqRtsWTaqHZLgcsUpBtUjHQdAq7Sj2P7TZJ8ImDk77+EEXOXUBC7ybAq473lUufn7PuK6TH9vsBCL1t8JUsL4VkgC8jLX4gb5TochtR3g5hUGGDV61r5n7wRxTP+QpIXr7VhHUF25XzRH4bI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718310672; c=relaxed/simple;
-	bh=I8lTfqWLBlG4iUtVPsyM+EPAbSi3v4MGNjjJmQzw9KQ=;
-	h=Date:To:From:Subject:Message-Id; b=rwhmls/W9S5+Ihbfvhs5TSvTGo09kvbviUCmCDaXRQPvcsIa/Pg6zAo+03OCFPn2sZo9Jp/n2v4iwMYJqD22Yvg5F5WG0kbwoMvUleDCEe/86c4vq95XFtN2PWzO8oM58PEU7mxpHEmpy9io0B+j5wpOk2HoL+x5k49+xbrrvNE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BH2JsoKw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718310675; c=relaxed/simple;
+	bh=UHbqHggRAfQ9sS1W0w7/bGiuCZC+Kw6Hv4w1cdGe51U=;
+	h=Date:To:From:Subject:Message-Id; b=qKtmQnao8PQwDCMKl17OUCF+ubp/PHeRPaJ4OCm20D8PeDtou0gZHhjq1bQ7LzT0DgoZw3j/Jr0HlrEV6zyzN2i4QCn5qomY3x+lxkoJ3Fm6T5SrHQBaJErSFvg6W+4JL3iH/k/vm84qUDw6CMkNjouscXDCDxefBQRxVYbOG4o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fpl0LuzU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BH2JsoKw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75F97C2BBFC;
-	Thu, 13 Jun 2024 20:31:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fpl0LuzU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B44FC2BBFC;
+	Thu, 13 Jun 2024 20:31:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718310672;
-	bh=I8lTfqWLBlG4iUtVPsyM+EPAbSi3v4MGNjjJmQzw9KQ=;
+	s=korg; t=1718310675;
+	bh=UHbqHggRAfQ9sS1W0w7/bGiuCZC+Kw6Hv4w1cdGe51U=;
 	h=Date:To:From:Subject:From;
-	b=BH2JsoKwcw8FTkcGGm2+dm8I03qInZ8lY7nLUdKEM5KSms2L0o75s1uQjjRAH/XLm
-	 mjSRE6Lj/rGCpRib8CZgjxNPYU9iXv7UQvEQvNbSC4i/akaRRGeKYx6JTb42WPy6YD
-	 lh6jCmrPdC4XDSDdf/fJS5PS64zogyT8xQIPXUmo=
-Date: Thu, 13 Jun 2024 13:31:11 -0700
+	b=Fpl0LuzUui1Cm4jiu6gN6A+BL+TgaY8xFosnA53lfw3S8XqxQB/djMfZ3Jlfa6paL
+	 AbAMAJN6wY87PX060uZTSUNSrx9jxLkt/0ld5HrZK3IyF37JnzEGynui+rk35rDJdc
+	 N5ctXkNEPhwqH37LC+bOr8X7FZEpurfDhrbUXkNE=
+Date: Thu, 13 Jun 2024 13:31:15 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-boot-add-the-kmsan-runtime-stub.patch added to mm-unstable branch
-Message-Id: <20240613203112.75F97C2BBFC@smtp.kernel.org>
+Subject: + s390-checksum-add-a-kmsan-check.patch added to mm-unstable branch
+Message-Id: <20240613203115.9B44FC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/boot: add the KMSAN runtime stub
+     Subject: s390/checksum: add a KMSAN check
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-boot-add-the-kmsan-runtime-stub.patch
+     s390-checksum-add-a-kmsan-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-boot-add-the-kmsan-runtime-stub.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-checksum-add-a-kmsan-check.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,32 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: s390/boot: add the KMSAN runtime stub
-Date: Thu, 13 Jun 2024 17:34:24 +0200
+Subject: s390/checksum: add a KMSAN check
+Date: Thu, 13 Jun 2024 17:34:25 +0200
 
-It should be possible to have inline functions in the s390 header
-files, which call kmsan_unpoison_memory(). The problem is that these
-header files might be included by the decompressor, which does not
-contain KMSAN runtime, causing linker errors.
+Add a KMSAN check to the CKSM inline assembly, similar to how it was
+done for ASAN in commit e42ac7789df6 ("s390/checksum: always use cksm
+instruction").
 
-Not compiling these calls if __SANITIZE_MEMORY__ is not defined -
-either by changing kmsan-checks.h or at the call sites - may cause
-unintended side effects, since calling these functions from an
-uninstrumented code that is linked into the kernel is valid use case.
-
-One might want to explicitly distinguish between the kernel and the
-decompressor. Checking for a decompressor-specific #define is quite
-heavy-handed, and will have to be done at all call sites.
-
-A more generic approach is to provide a dummy kmsan_unpoison_memory()
-definition. This produces some runtime overhead, but only when building
-with CONFIG_KMSAN. The benefit is that it does not disturb the existing
-KMSAN build logic and call sites don't need to be changed.
-
-Link: https://lkml.kernel.org/r/20240613153924.961511-23-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240613153924.961511-24-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -104,29 +89,27 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/boot/Makefile |    1 +
- arch/s390/boot/kmsan.c  |    6 ++++++
- 2 files changed, 7 insertions(+)
+ arch/s390/include/asm/checksum.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- /dev/null
-+++ a/arch/s390/boot/kmsan.c
-@@ -0,0 +1,6 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#include <linux/kmsan-checks.h>
-+
-+void kmsan_unpoison_memory(const void *address, size_t size)
-+{
-+}
---- a/arch/s390/boot/Makefile~s390-boot-add-the-kmsan-runtime-stub
-+++ a/arch/s390/boot/Makefile
-@@ -44,6 +44,7 @@ obj-$(findstring y, $(CONFIG_PROTECTED_V
- obj-$(CONFIG_RANDOMIZE_BASE)	+= kaslr.o
- obj-y	+= $(if $(CONFIG_KERNEL_UNCOMPRESSED),,decompressor.o) info.o
- obj-$(CONFIG_KERNEL_ZSTD) += clz_ctz.o
-+obj-$(CONFIG_KMSAN) += kmsan.o
- obj-all := $(obj-y) piggy.o syms.o
+--- a/arch/s390/include/asm/checksum.h~s390-checksum-add-a-kmsan-check
++++ a/arch/s390/include/asm/checksum.h
+@@ -13,6 +13,7 @@
+ #define _S390_CHECKSUM_H
  
- targets	:= bzImage section_cmp.boot.data section_cmp.boot.preserved.data $(obj-y)
+ #include <linux/instrumented.h>
++#include <linux/kmsan-checks.h>
+ #include <linux/in6.h>
+ 
+ static inline __wsum cksm(const void *buff, int len, __wsum sum)
+@@ -23,6 +24,7 @@ static inline __wsum cksm(const void *bu
+ 	};
+ 
+ 	instrument_read(buff, len);
++	kmsan_check_memory(buff, len);
+ 	asm volatile("\n"
+ 		"0:	cksm	%[sum],%[rp]\n"
+ 		"	jo	0b\n"
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
