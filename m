@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B1D313B5B6
-	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 21:02:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D473413A3F7
+	for <mm-commits@vger.kernel.org>; Thu, 13 Jun 2024 21:18:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718312572; cv=none; b=oKx/BaLhuBKqTv96H5gc6y3oZlzCVZWdbir3LuA73yDePjQ9AfqSBwBS6BX5XNd5Ns4uvGx+UxErnUFLCUqEhJ3k9828GzV9ZHlYscyhCSv9Kf1Cv3p21B91Jo5L2qZ7hN0tZ8JbXDF2mRniAuurF5+FhsEiP5XqTyDiiZsFX28=
+	t=1718313536; cv=none; b=IYtu/WuWMdoE0eno793YrptIYqZGtCTaA1+ysezlycjROTZ6aNl98/g4XFh3gJCFQgNU7loIbfv2c/gUp25L/p4KwLkAuzusY5OHMRjFCG700vjyc0DtJ5uiX4cmyNBxjsHXytXGr/wPR4rSx5Aveon9/+syxKuJnBZFKB9Eg+Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718312572; c=relaxed/simple;
-	bh=UkwwpQqXmRCfzVnKU9U8sk90YrbWezyeZf5551/bQn0=;
-	h=Date:To:From:Subject:Message-Id; b=lDvSFRNCdXu2SJaz2738hBkDHFcz/CIs7FO2dhqHRBqbcEoHU3JvAZHp3fZu15jHf8iErebK4bM7/ITmYjwGwYRdoDtE3oGchs3DZRhfc26it+SNHt/xLlNGoX1VSVXNiHVom17CVsxSi5g+IDZGkR2HcLCT5ythUv3KjK/1qe0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IdfJROcU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718313536; c=relaxed/simple;
+	bh=YYP6xQOsFGAf++34MYoNQlXaIKEMCF2xFMGkgnnrEYQ=;
+	h=Date:To:From:Subject:Message-Id; b=CxYON4+UYWQn8t+4ZPgwZQbHxoWsvmVvJXnBkaXF7xlClcdiqqqFZtEHuPKnIG2+ddDSRMTxUsGDDjG2UbIlcCtRiJ0hJpXEBYilHCS/yX3qMyvtCEJCGW7JkIRAadI1qzwFMtg5gKkBxOTcs8xAA09a2uFJ1rMN0NwWmzSyQX8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qhWdc/fr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IdfJROcU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76968C2BBFC;
-	Thu, 13 Jun 2024 21:02:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qhWdc/fr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78CF6C32786;
+	Thu, 13 Jun 2024 21:18:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718312571;
-	bh=UkwwpQqXmRCfzVnKU9U8sk90YrbWezyeZf5551/bQn0=;
+	s=korg; t=1718313536;
+	bh=YYP6xQOsFGAf++34MYoNQlXaIKEMCF2xFMGkgnnrEYQ=;
 	h=Date:To:From:Subject:From;
-	b=IdfJROcUKHOyE1ceSILBeZGgv9r/F8kIOAWT5CXbLhxmfgAP9WHf1TtZAv+3ec/y5
-	 FUbgmvtwQEUhnWLyAr0OVfoF7ya12uuWozjHavAtoQBXUgFBDAKU+rr3FXqmNnMeZ4
-	 rt1EBhOuhk4wVBdpd1Ih/uVdvutA7QqWgQd58oxw=
-Date: Thu, 13 Jun 2024 14:02:50 -0700
-To: mm-commits@vger.kernel.org,kent.overstreet@linux.dev,jsiddle@redhat.com,j.granados@samsung.com,cunhuang@tencent.com,leonylgao@tencent.com,akpm@linux-foundation.org
+	b=qhWdc/frSX8IJ8YG/qv11hNimhcjFaEJvUesOuGmZ0u6+c316O5rS0NSKSGHDNPgF
+	 t2ivs/QJacojzdkOxjiw1GdWDUQEUB5Nz2DQiUgXStHioi+r7SBuvKPvvGlAtOjsor
+	 tFPkNTAHTI7poEt1j7NyfqnJp3VK59jb2ahlPQCA=
+Date: Thu, 13 Jun 2024 14:18:55 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hung_task-ignore-hung_task_warnings-when-hung_task_panic-is-enabled.patch added to mm-nonmm-unstable branch
-Message-Id: <20240613210251.76968C2BBFC@smtp.kernel.org>
+Subject: + mm-shmem-add-mthp-counters-for-anonymous-shmem-fix.patch added to mm-unstable branch
+Message-Id: <20240613211856.78CF6C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hung_task: ignore hung_task_warnings when hung_task_panic is enabled
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hung_task-ignore-hung_task_warnings-when-hung_task_panic-is-enabled.patch
+     Subject: mm-shmem-add-mthp-counters-for-anonymous-shmem-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-shmem-add-mthp-counters-for-anonymous-shmem-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-ignore-hung_task_warnings-when-hung_task_panic-is-enabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-add-mthp-counters-for-anonymous-shmem-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,59 +58,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yongliang Gao <leonylgao@tencent.com>
-Subject: hung_task: ignore hung_task_warnings when hung_task_panic is enabled
-Date: Thu, 13 Jun 2024 11:31:59 +0800
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm-shmem-add-mthp-counters-for-anonymous-shmem-fix
+Date: Thu, 13 Jun 2024 09:08:37 +0800
 
-If hung_task_panic is enabled, don't consider the value of
-hung_task_warnings and display the information of the hung tasks.
+update Documentation/admin-guide/mm/transhuge.rst
 
-In some cases, hung_task_panic might not be initially set up, after
-several hung tasks occur, the hung_task_warnings count reaches zero.  If
-hung_task_panic is set up later, it may not display any helpful hung task
-info in dmesg, only showing messages like:
-
-Kernel panic - not syncing: hung_task: blocked tasks
-CPU: 3 PID: 58 Comm: khungtaskd Not tainted 6.10.0-rc3 #19
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996)
-Call Trace:
- <TASK>
- panic+0x2f3/0x320
- watchdog+0x2dd/0x510
- ? __pfx_watchdog+0x10/0x10
- kthread+0xe0/0x110
- ? __pfx_kthread+0x10/0x10
- ret_from_fork+0x2f/0x40
- ? __pfx_kthread+0x10/0x10
- ret_from_fork_asm+0x1a/0x30
- </TASK>
-
-Link: https://lkml.kernel.org/r/20240613033159.3446265-1-leonylgao@gmail.com
-Signed-off-by: Yongliang Gao <leonylgao@tencent.com>
-Reviewed-by: Huang Cun <cunhuang@tencent.com>
-Cc: Joel Granados <j.granados@samsung.com>
-Cc: John Siddle <jsiddle@redhat.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Link: https://lkml.kernel.org/r/d86e2e7f-4141-432b-b2ba-c6691f36ef0b@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
+Cc: Daniel Gomez <da.gomez@samsung.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/mm/transhuge.rst |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/kernel/hung_task.c~hung_task-ignore-hung_task_warnings-when-hung_task_panic-is-enabled
-+++ a/kernel/hung_task.c
-@@ -127,7 +127,7 @@ static void check_hung_task(struct task_
- 	 * Ok, the task did not get scheduled for more than 2 minutes,
- 	 * complain:
- 	 */
--	if (sysctl_hung_task_warnings) {
-+	if (sysctl_hung_task_warnings || hung_task_call_panic) {
- 		if (sysctl_hung_task_warnings > 0)
- 			sysctl_hung_task_warnings--;
- 		pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-shmem-add-mthp-counters-for-anonymous-shmem-fix
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -501,6 +501,19 @@ swpout_fallback
+ 	Usually because failed to allocate some continuous swap space
+ 	for the huge page.
+ 
++file_alloc
++	is incremented every time a file huge page is successfully
++	allocated.
++
++file_fallback
++	is incremented if a file huge page is attempted to be allocated
++	but fails and instead falls back to using small pages.
++
++file_fallback_charge
++	is incremented if a file huge page cannot be charged and instead
++	falls back to using small pages even though the allocation was
++	successful.
++
+ As the system ages, allocating huge pages may be expensive as the
+ system uses memory compaction to copy data around memory to free a
+ huge page for use. There are some counters in ``/proc/vmstat`` to help
 _
 
-Patches currently in -mm which might be from leonylgao@tencent.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-hung_task-ignore-hung_task_warnings-when-hung_task_panic-is-enabled.patch
+mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio.patch
+mm-memory-extend-finish_fault-to-support-large-folio.patch
+mm-memory-extend-finish_fault-to-support-large-folio-fix.patch
+mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch
+mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch
+mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix.patch
+mm-shmem-add-mthp-support-for-anonymous-shmem.patch
+mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area.patch
+mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
+mm-shmem-add-mthp-counters-for-anonymous-shmem-fix.patch
 
