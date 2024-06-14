@@ -1,185 +1,167 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail-40134.protonmail.ch (mail-40134.protonmail.ch [185.70.40.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA4F482D6D
-	for <mm-commits@vger.kernel.org>; Fri, 14 Jun 2024 18:59:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1E9A1A2549
+	for <mm-commits@vger.kernel.org>; Fri, 14 Jun 2024 20:00:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.40.134
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718391561; cv=none; b=uCXYaksTBbgT3+DlcTFrVG7OS1Ij2G8UWNlh4ngkLSF0BvIwUuIkpOTV/jH0nMf7u0AuiQK6golVbO+TrZ4Atg9dpIXAAWlfCtgqFV36yih2d0HCZqiD/nOLzlm3I5ykggX0NxRUVNv9AiulrdvrZHk9zzOcZxcMIxBrVSiksys=
+	t=1718395210; cv=none; b=C/Ro98Sn681Zvzpzyc4EDQn1o9WdWv7nxqs0Py/VH5eYGAeJE5NkAVOP1sQE/OiliXy6+a5O+BkJuzc3lwpNIY1x7I7YL5XpuHPIlsQpsCtXs1jjVRol67cYazyA8A0ubk9HRCEkXu8okjJ4XYqEs1/Fr1XISLBeTQQdW5NJs7o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718391561; c=relaxed/simple;
-	bh=wf7Yfy3kCDLdRlr7EBEoxV0BbFhy8phWFgDlMgoD6So=;
-	h=Date:To:From:Subject:Message-Id; b=sMrWgBGrkLa6pbaY7npaaJ3UfmFjyb8IsOohDH2Go6eVbTESOQIor47I2mAEMzD4siebBx6pOly4vMEp0HOrvf34aF9sQTXmGcqAfokdAazs8/WRiv+mk3wEh9KC8JyVcwyUJSA4Y9pFReFl9eVDlLRD+1dUsBSsosKA4EEq2uw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mAhh/7Ak; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718395210; c=relaxed/simple;
+	bh=hVSW4Dt4moPr5JmNLWBiRLbKDJVT8uSN56UcqbaJR4M=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=G2TFibko7KVBnJcIYO/VR9/gyEtmm60bCiMyEtxCED/F1kWfcPCki4NnmWCJQH0W04RjmI2trCu1rTb7oIgR74NCyUW8cPvPNoRHtcZDq07uY791iwsJ/eCNbX7IkcCSZCWFCbrzzWfnxnrT86KhGbV9147DmZxuDl0mtABugYY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=hgTpaqtx; arc=none smtp.client-ip=185.70.40.134
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mAhh/7Ak"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B50FC2BD10;
-	Fri, 14 Jun 2024 18:59:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718391561;
-	bh=wf7Yfy3kCDLdRlr7EBEoxV0BbFhy8phWFgDlMgoD6So=;
-	h=Date:To:From:Subject:From;
-	b=mAhh/7AkyrZHOPVpttE79fQuXMVjeuSjNU+VxdBnfm7sAFNV+L/yFrtV3Jh/gJhjM
-	 wQfL1LTvWQaxkjERDAPMQcLIyqutoq0N5UmLlyXPRgdvKNN/mJEyhlxKuy97iNiAuR
-	 4kpYtXCkpGVKwTUre3ZMW8Edcm3LL+leAina4rvU=
-Date: Fri, 14 Jun 2024 11:59:20 -0700
-To: mm-commits@vger.kernel.org,jserv@ccns.ncku.edu.tw,richard120310@gmail.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-plistc-avoid-worst-case-scenario-in-plist_add.patch added to mm-nonmm-unstable branch
-Message-Id: <20240614185921.7B50FC2BD10@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="hgTpaqtx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1718395206; x=1718654406;
+	bh=mqxg5MhI0wx6OQdblj4kZ4FD6HbJWf2y9YCxbFrn5LI=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=hgTpaqtxRoCkTDJXKcaH6VV2LWjwC8kPWI6Pp3rKio1/iYoPo28wa1iNAV8IN90+b
+	 Tty20ErjnkMmc8ED6C02zqMXHK2gFcgh9w51YuckR98NxZ3dBabUrCj/2Xcyeja0cb
+	 ZI7sXn6Li+xlaXD+Qna3HTL1L/dbH2gSnxPCVT3srpFr2p4+FKdc9qB/3vrByDGseo
+	 HPuEVVP8NzTk/30lrd8vTI77g7GGJ7qqFfqfgHThUHxjIPrJk7uIUnZ5Kijp+CevZF
+	 hTL0qViGW+RCODJP99+657FJMJOaVhha4U79eSP4eoDpfKe2A+JfqVwJ+o4Dg8bR0N
+	 eeajwmbHlgidg==
+Date: Fri, 14 Jun 2024 20:00:02 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+From: =?utf-8?Q?Barnab=C3=A1s_P=C5=91cze?= <pobrn@protonmail.com>
+Cc: mm-commits@vger.kernel.org, skhan@linuxfoundation.org, keescook@chromium.org, jorgelo@chromium.org, jeffxu@google.com, hughd@google.com, dverkamp@chromium.org, dmitry.torokhov@gmail.com, david@readahead.eu
+Subject: Re: [nacked] memfd-mfd_noexec_seal-should-not-imply-mfd_allow_sealing.patch removed from -mm tree
+Message-ID: <qdcD-qU2Jfk6ImGOIaV4sWrbTZcHj44hNr454b2pd_SV8t4Bu1mnjsWXfYgW-c7tFW7bQowMRaKysMVcmWvGvUW3O20py_2H1jd7kNGT62Y=@protonmail.com>
+In-Reply-To: <20240614182715.12694C2BD10@smtp.kernel.org>
+References: <20240614182715.12694C2BD10@smtp.kernel.org>
+Feedback-ID: 20568564:user:proton
+X-Pm-Message-ID: 49afcb5920324f4f4c362c178c86c7a302831a09
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+2024. j=C3=BAnius 14., p=C3=A9ntek 20:27 keltez=C3=A9ssel, Andrew Morton <a=
+kpm@linux-foundation.org> =C3=ADrta:
+
+> The quilt patch titled
+>      Subject: memfd: `MFD_NOEXEC_SEAL` should not imply `MFD_ALLOW_SEALIN=
+G`
+> has been removed from the -mm tree.  Its filename was
+>      memfd-mfd_noexec_seal-should-not-imply-mfd_allow_sealing.patch
+>=20
+> This patch was dropped because it was nacked
+
+Hi Andrew,
+
+do I gather it correctly that this is the final decision, and there is not =
+much
+willingness to try to remove this quirk of the `memfd_create()`? As far as =
+I can tell,
+the change was in linux-next for some time, did that uncover any problems? =
+(If so,
+I haven't been notified.)
+
+Anyways, I believe I have laid out my arguments already, so I won't repeat =
+them here,
+and if this is final, then I will stop wasting everyone's time with further=
+ emails. :-)
 
 
-The patch titled
-     Subject: lib/plist.c: avoid worst case scenario in plist_add
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-plistc-avoid-worst-case-scenario-in-plist_add.patch
+Regards,
+Barnab=C3=A1s P=C5=91cze
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-plistc-avoid-worst-case-scenario-in-plist_add.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: I Hsin Cheng <richard120310@gmail.com>
-Subject: lib/plist.c: avoid worst case scenario in plist_add
-Date: Fri, 14 Jun 2024 23:46:03 +0800
-
-Worst case scenario of plist_add() happens when the priority of the
-inserted plist_node is going to be the largest after the insertion is
-done.  The cost is going to be more significant when the original plist is
-longer, because the iterator is going to traverse the whole plist to find
-the correct position to insert the new node.
-
-The situation can be avoided by using a reverse iterator at the same time,
-doing so the maximum possible number of iteration is going to shrink from
-N to N/2.
-
-The proposed change of plist_add pasts the test in lib/plist.c to validate
-its correctness, also add the worst case scenario test for plist_add() in
-plist_test().
-
-The worst case test are tested with the size of test_data and test_node
-growing from 200 to 1000.  The result are showned in the following table,
-in which we can observed that the proposed change of plist_add performs
-better than the original version, and the difference between these two
-implementations are more significant with the size of N growing.
-
-The random case test [1], and best case test [2] are also provided, with
-result showing the proposed change performs slightly better in random case
-test while the original implementation performs slightly better in best
-case test, while the difference in both test are minor, we can see them as
-even in those two situations.
-
- -----------------------------------------------------------
-| Test size      |   200 |   400 |    600 |    800 |   1000 |
- -----------------------------------------------------------
-| new_plist_add  | 140911| 548681| 1220512| 2048493| 3763755|
- -----------------------------------------------------------
-| old_plist_add  | 188198| 774222| 1643547| 3008929| 4947435|
- -----------------------------------------------------------
-
-Link: https://lkml.kernel.org/r/20240614154603.65203-1-richard120310@gmail.com
-Signed-off-by: I Hsin Cheng <richard120310@gmail.com>
-Signed-off-by: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- lib/plist.c |   38 +++++++++++++++++++++++++++++++++++++-
- 1 file changed, 37 insertions(+), 1 deletion(-)
-
---- a/lib/plist.c~lib-plistc-avoid-worst-case-scenario-in-plist_add
-+++ a/lib/plist.c
-@@ -72,7 +72,7 @@ static void plist_check_head(struct plis
-  */
- void plist_add(struct plist_node *node, struct plist_head *head)
- {
--	struct plist_node *first, *iter, *prev = NULL;
-+	struct plist_node *first, *iter, *prev = NULL, *last, *reverse_iter;
- 	struct list_head *node_next = &head->node_list;
- 
- 	plist_check_head(head);
-@@ -83,16 +83,26 @@ void plist_add(struct plist_node *node,
- 		goto ins_node;
- 
- 	first = iter = plist_first(head);
-+	last = reverse_iter = list_entry(first->prio_list.prev, struct plist_node, prio_list);
- 
- 	do {
- 		if (node->prio < iter->prio) {
- 			node_next = &iter->node_list;
- 			break;
-+		} else if (node->prio >= reverse_iter->prio) {
-+			prev = reverse_iter;
-+			iter = list_entry(reverse_iter->prio_list.next,
-+				struct plist_node, prio_list);
-+			if (likely(reverse_iter != last))
-+				node_next = &iter->node_list;
-+			break;
- 		}
- 
- 		prev = iter;
- 		iter = list_entry(iter->prio_list.next,
- 				struct plist_node, prio_list);
-+		reverse_iter = list_entry(reverse_iter->prio_list.prev,
-+				struct plist_node, prio_list);
- 	} while (iter != first);
- 
- 	if (!prev || prev->prio != node->prio)
-@@ -255,6 +265,32 @@ static int  __init plist_test(void)
- 	}
- 
- 	printk(KERN_DEBUG "end plist test\n");
-+
-+	/* Worst case test for plist_add() */
-+	unsigned int test_data[241];
-+
-+	for (i = 0; i < ARRAY_SIZE(test_data); i++)
-+		test_data[i] = i;
-+
-+	ktime_t start, end, time_elapsed = 0;
-+
-+	plist_head_init(&test_head);
-+
-+	for (i = 0; i < ARRAY_SIZE(test_node); i++) {
-+		plist_node_init(test_node + i, 0);
-+		test_node[i].prio = test_data[i];
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(test_node); i++) {
-+		if (plist_node_empty(test_node + i)) {
-+			start = ktime_get();
-+			plist_add(test_node + i, &test_head);
-+			end = ktime_get();
-+			time_elapsed += (end - start);
-+		}
-+	}
-+
-+	pr_debug("plist_add worst case test time elapsed %lld\n", time_elapsed);
- 	return 0;
- }
- 
-_
-
-Patches currently in -mm which might be from richard120310@gmail.com are
-
-lib-plistc-enforce-memory-ordering-in-plist_check_list.patch
-lib-plistc-avoid-worst-case-scenario-in-plist_add.patch
-
+>=20
+> ------------------------------------------------------
+> From: Barnab=C3=A1s P=C5=91cze <pobrn@protonmail.com>
+> Subject: memfd: `MFD_NOEXEC_SEAL` should not imply `MFD_ALLOW_SEALING`
+> Date: Mon, 13 May 2024 19:15:47 +0000
+>=20
+> `MFD_NOEXEC_SEAL` should remove the executable bits and set `F_SEAL_EXEC`
+> to prevent further modifications to the executable bits as per the commen=
+t
+> in the uapi header file:
+>=20
+>   not executable and sealed to prevent changing to executable
+>=20
+> However, currently, it also unsets `F_SEAL_SEAL`, essentially acting as a
+> superset of `MFD_ALLOW_SEALING`.  Nothing implies that it should be so,
+> and indeed up until the second version of the of the patchset[0] that
+> introduced `MFD_EXEC` and `MFD_NOEXEC_SEAL`, `F_SEAL_SEAL` was not
+> removed, however it was changed in the third revision of the patchset[1]
+> without a clear explanation.
+>=20
+> This behaviour is suprising for application developers, there is no
+> documentation that would reveal that `MFD_NOEXEC_SEAL` has the additional
+> effect of `MFD_ALLOW_SEALING`.
+>=20
+> So do not remove `F_SEAL_SEAL` when `MFD_NOEXEC_SEAL` is requested.  This
+> is technically an ABI break, but it seems very unlikely that an
+> application would depend on this behaviour (unless by accident).
+>=20
+> [0]: https://lore.kernel.org/lkml/20220805222126.142525-3-jeffxu@google.c=
+om/
+> [1]: https://lore.kernel.org/lkml/20221202013404.163143-3-jeffxu@google.c=
+om/
+>=20
+> Link: https://lkml.kernel.org/r/20240513191544.94754-1-pobrn@protonmail.c=
+om
+> Fixes: 105ff5339f49 ("mm/memfd: add MFD_NOEXEC_SEAL and MFD_EXEC")
+> Signed-off-by: Barnab=C3=A1s P=C5=91cze <pobrn@protonmail.com>
+> Reviewed-by: Jeff Xu <jeffxu@google.com>
+> Reviewed-by: David Rheinsberg <david@readahead.eu>
+> Cc: Daniel Verkamp <dverkamp@chromium.org>
+> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> Cc: Hugh Dickins <hughd@google.com>
+> Cc: Jeff Xu <jeffxu@google.com>
+> Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+> Cc: Kees Cook <keescook@chromium.org>
+> Cc: Shuah Khan <skhan@linuxfoundation.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>=20
+>  mm/memfd.c                                 |    9 ++++-----
+>  tools/testing/selftests/memfd/memfd_test.c |    2 +-
+>  2 files changed, 5 insertions(+), 6 deletions(-)
+>=20
+> --- a/mm/memfd.c~memfd-mfd_noexec_seal-should-not-imply-mfd_allow_sealing
+> +++ a/mm/memfd.c
+> @@ -356,12 +356,11 @@ SYSCALL_DEFINE2(memfd_create,
+>=20
+>  =09=09inode->i_mode &=3D ~0111;
+>  =09=09file_seals =3D memfd_file_seals_ptr(file);
+> -=09=09if (file_seals) {
+> -=09=09=09*file_seals &=3D ~F_SEAL_SEAL;
+> +=09=09if (file_seals)
+>  =09=09=09*file_seals |=3D F_SEAL_EXEC;
+> -=09=09}
+> -=09} else if (flags & MFD_ALLOW_SEALING) {
+> -=09=09/* MFD_EXEC and MFD_ALLOW_SEALING are set */
+> +=09}
+> +
+> +=09if (flags & MFD_ALLOW_SEALING) {
+>  =09=09file_seals =3D memfd_file_seals_ptr(file);
+>  =09=09if (file_seals)
+>  =09=09=09*file_seals &=3D ~F_SEAL_SEAL;
+> --- a/tools/testing/selftests/memfd/memfd_test.c~memfd-mfd_noexec_seal-sh=
+ould-not-imply-mfd_allow_sealing
+> +++ a/tools/testing/selftests/memfd/memfd_test.c
+> @@ -1151,7 +1151,7 @@ static void test_noexec_seal(void)
+>  =09=09=09    mfd_def_size,
+>  =09=09=09    MFD_CLOEXEC | MFD_NOEXEC_SEAL);
+>  =09mfd_assert_mode(fd, 0666);
+> -=09mfd_assert_has_seals(fd, F_SEAL_EXEC);
+> +=09mfd_assert_has_seals(fd, F_SEAL_SEAL | F_SEAL_EXEC);
+>  =09mfd_fail_chmod(fd, 0777);
+>  =09close(fd);
+>  }
+> _
+>=20
+> Patches currently in -mm which might be from pobrn@protonmail.com are
