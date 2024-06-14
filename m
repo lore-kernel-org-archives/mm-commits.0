@@ -1,102 +1,91 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 955AB137764
-	for <mm-commits@vger.kernel.org>; Fri, 14 Jun 2024 18:24:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D61852CCD0
+	for <mm-commits@vger.kernel.org>; Fri, 14 Jun 2024 18:25:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718389472; cv=none; b=eqx0BlCA89zCKDOaN6V46KdYFliQhyzQMrnyN8Gb7fG5k4rU8HCgdkoWNcbcCWTLI1tL07vgq7MOoJo+YJIkYc5q/MRpo+esWesb7f/GsIig39x9i4FzepeB0c5kBuEW/Ya++d+ZYNK8675kLQ1B56rcLiS/8yOybOaMfaViQ3c=
+	t=1718389551; cv=none; b=s2hCTs7uZWIn79p05dlpDdPPOgEGim4cNyAx+RJBaIIXpDzJ156+47oLmz7EVEcic0aiDVpTEZqBGt/8d9zutyR1zsGDoQdlYO0JA4xjDFKzrlggEiL+Lcy7Pi15L9Ad99jlvd/+t1UcFA3drrGZRTflvYM+LvpO+lR80gCZQ0U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718389472; c=relaxed/simple;
-	bh=kg28aTcJE1zYNGHWAS01VDc4SgXMRTexLrsrBl9NqlE=;
-	h=Date:To:From:Subject:Message-Id; b=ay/wsPmGHE79Gpw0/lxV4kIq7nvtE+1su4985vSBRs50uDcp/m7c8d3x11yzAne+P7ircnWw4Ks0WM8zDcRwXQpGRdG6a361U0FITBN1ihguBoM6Zro0Grq2SiAAhnH3j+z/oBekJw9S/AjhIX4oNy770/f7iC38o1b8yvK1gJs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TYqfEKd/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718389551; c=relaxed/simple;
+	bh=GQ1hMQwwIcVXuzkhWgauGfW9Zyb/7EB2L+Am5AichnA=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=i8M5wRnR5hPy9vqibplfs56MgC9hgXBFLGMBXLUeBUWNEmw3MVobzbhRb4lx7jO1UouvaRVdZGvbBncP0E6gTMmqCbKKrUStRml074Se4mBQ4xlV3xwS5chm2JFIFaVQOEDgYGPrUajhRMmbHjy7NcJlyGTJcDff+Ulendt3BwE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MjR6FTip; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TYqfEKd/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 063F7C2BD10;
-	Fri, 14 Jun 2024 18:24:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MjR6FTip"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59B83C2BD10;
+	Fri, 14 Jun 2024 18:25:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718389471;
-	bh=kg28aTcJE1zYNGHWAS01VDc4SgXMRTexLrsrBl9NqlE=;
-	h=Date:To:From:Subject:From;
-	b=TYqfEKd/ZJWO/hRRuIHfERU4qhApWU7/sSZBJ/Ie9I1yRe4vaqE0ORoJTThlpu1fK
-	 7DaMFs7OB/oEy1cN35QrGzpqaerSXnrz4pCgmjlZPhu4561nQypGFVopKoceUTisb+
-	 Z4UjY4ZYb+gUMc+P2xwesHg0FKUDxAYbD+xfDows=
-Date: Fri, 14 Jun 2024 11:24:30 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,v-songbaohua@oppo.com,trondmy@kernel.org,sfrench@samba.org,ryan.roberts@arm.com,hanchuanhua@oppo.com,chrisl@kernel.org,anna@kernel.org,hch@lst.de,akpm@linux-foundation.org
+	s=korg; t=1718389550;
+	bh=GQ1hMQwwIcVXuzkhWgauGfW9Zyb/7EB2L+Am5AichnA=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=MjR6FTipRoJrt/Py/QRELjVYmZ90osU1VVjFjOQbaKnLrlXx5U5tJOwrn7VinSrBP
+	 p0fBQCrK6HkUpDb+6rT2ekdhcYifqUo59pPJonHbRtraET7TJZ42960b8jLPbCQG7e
+	 OrP7cqar9HbMgzn5h2fZjrI9WP0NSiyT56L+Of18=
+Date: Fri, 14 Jun 2024 11:25:49 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nfs-fix-nfs_swap_rw-for-large-folio-swap.patch added to mm-unstable branch
-Message-Id: <20240614182431.063F7C2BD10@smtp.kernel.org>
+To: Jeff Xu <jeffxu@chromium.org>
+Cc: mm-commits@vger.kernel.org, rdunlap@infradead.org
+Subject: Re: +
+ mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec-v3.patch added to
+ mm-hotfixes-unstable branch
+Message-Id: <20240614112549.7edf65ca59b1899fa7687061@linux-foundation.org>
+In-Reply-To: <CABi2SkWSip60dF95A_UeViAWDP=EMVULdqBeU+5tXw5E0osFnw@mail.gmail.com>
+References: <20240612192325.009E0C116B1@smtp.kernel.org>
+	<CABi2SkW4eg27XTe6otutK8P1MgK0MMnLdwWAuEDks98_aZku=Q@mail.gmail.com>
+	<20240614103154.2dea6d48dfbbb2e1328acc9f@linux-foundation.org>
+	<CABi2SkWSip60dF95A_UeViAWDP=EMVULdqBeU+5tXw5E0osFnw@mail.gmail.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
+On Fri, 14 Jun 2024 11:05:58 -0700 Jeff Xu <jeffxu@chromium.org> wrote:
 
-The patch titled
-     Subject: nfs: fix nfs_swap_rw for large-folio swap
-has been added to the -mm mm-unstable branch.  Its filename is
-     nfs-fix-nfs_swap_rw-for-large-folio-swap.patch
+> Hi Andrew
+> 
+> On Fri, Jun 14, 2024 at 10:31 AM Andrew Morton
+> <akpm@linux-foundation.org> wrote:
+> >
+> > On Fri, 14 Jun 2024 07:32:07 -0700 Jeff Xu <jeffxu@chromium.org> wrote:
+> >
+> > > Hi Andrew,
+> > >
+> > > By fixing the document, the usage of MFD_NOEXEC_SEAL shall be clear.
+> > > Was the previous patch (which  changed ABI)  removed from unstable ?
+> > >
+> > > I pulled the mm-unstable this morning, it seems that patch is still here.
+> > > I'm not sure about the process of reverting it, hence asking.
+> > >
+> > > c1e11be9abae86ebe5cecc42abc412f61ae563c6
+> > >  memfd: `MFD_NOEXEC_SEAL` should not imply `MFD_ALLOW_SEALING`
+> > >
+> >
+> > I'm not completely sure what you're asking here.
+> >
+> > Please try not to use terms like "the previous patch".  There are a lot
+> > of patches!
+> >
+> > I *think* you're saying that the patch "mm/memfd: add documentation for
+> > MFD_NOEXEC_SEAL MFD_EXEC" (and its two fixups) are tied to the patch
+> > "memfd: `MFD_NOEXEC_SEAL` should not imply `MFD_ALLOW_SEALING`".
+> >
+> > If so then this escaped me and I shall rearrange the grouping to be
+> > more logical.
+> >
+> > The base patch "memfd: `MFD_NOEXEC_SEAL` should not imply `MFD_ALLOW_SEALING`" is in mm-unstable but I need to revisit the discussion to see whether we should be proceeding with it.  Any guidance you can offer here will be helpful.
+> >
+> >
+> Apology for the confusion.
+> 
+> The  patch memfd: `MFD_NOEXEC_SEAL` should not imply `MFD_ALLOW_SEALING`"
+> changes ABI, and I think it is risky and should be removed.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nfs-fix-nfs_swap_rw-for-large-folio-swap.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: nfs: fix nfs_swap_rw for large-folio swap
-Date: Fri, 14 Jun 2024 12:03:25 +0200
-
-The series "large folios swap-in: handle refault cases first" will permit
-the MM to swap out larger than page size chunks.  NFS has all code ready
-to handle this, but has a VM_BUG_ON that triggers when this happens. 
-Simply remove the VM_BUG_ON to fix this use case.
-
-Link: https://lkml.kernel.org/r/20240614100329.1203579-2-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Anna Schumaker <anna@kernel.org>
-Cc: Steve French <sfrench@samba.org>
-Cc: Trond Myklebust <trondmy@kernel.org>
-Cc: Chuanhua Han <hanchuanhua@oppo.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/nfs/direct.c |    2 --
- 1 file changed, 2 deletions(-)
-
---- a/fs/nfs/direct.c~nfs-fix-nfs_swap_rw-for-large-folio-swap
-+++ a/fs/nfs/direct.c
-@@ -141,8 +141,6 @@ int nfs_swap_rw(struct kiocb *iocb, stru
- {
- 	ssize_t ret;
- 
--	VM_BUG_ON(iov_iter_count(iter) != PAGE_SIZE);
--
- 	if (iov_iter_rw(iter) == READ)
- 		ret = nfs_file_direct_read(iocb, iter, true);
- 	else
-_
-
-Patches currently in -mm which might be from hch@lst.de are
-
-nfs-fix-nfs_swap_rw-for-large-folio-swap.patch
+OK, I'll drop that one.
 
