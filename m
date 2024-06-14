@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0183038C
-	for <mm-commits@vger.kernel.org>; Fri, 14 Jun 2024 04:47:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5B77391;
+	Fri, 14 Jun 2024 04:49:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718340456; cv=none; b=hJHnLTHyw+QKoWb7s0vsCOIG9kAkmO9rvhlCsV5KidVW8pB6GWSNiFUxXi2dxPMMYPNGHnvAGAh7uP2lazQnPtbdkxrsDabrn6ghCVkhRPsTsDSxBDAuZoKalcL8wbvMfyGgvSUNdRar3CSSH1dm6AOC1SHsOqj2NkTY1F8gWMU=
+	t=1718340578; cv=none; b=PvuabQrdn9wEIHRVVehSqLUcYxrLwXZixVJG1F64wgVjBL4Swt+H1gcxNPS7KeX8tQY1LwXwRPprZcmY/uxeCoBrPG0yEOyrwA4qmK98lOeQaoBDtsZR7/Zx6mJk31tWrP+VAqrGl07GJ2FqUuM797A+DxRSCG5dnH03nQc8j1A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718340456; c=relaxed/simple;
-	bh=fmS9OG1eFpUnndpFfe3Sb0IMvfvxm46cXfqD6k3kfew=;
-	h=Date:To:From:Subject:Message-Id; b=CUkudzAJuHvLsSeSte8to/5sFCiJVmxVn/3Rxp5MX4zVFb1OUK3UNT6B8kYKwsf7ckSZ/T2fQEpV86mhccTJMtuFjdB5Lf7zPaPnXrnVXSgucXbU5dmAemU00eqcdxrl0GVk0yfLULHvPWaDefMkt/XrLwdikVN+vcAfZOcCYv8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FWMDJu2T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718340578; c=relaxed/simple;
+	bh=e8Bc+QOr8+Ev6dxPks2or9do/1BhsoPXyRAad8xZUXU=;
+	h=Date:To:From:Subject:Message-Id; b=ohVfraC7ju18OdDeASRWp3/U3yiV1FNxbDk09SQYrfBphy82Mrchs1RJ5HjcltLuuaiTgeikDrz9vxzYuo8BNrMtmvhrDTsuMyAcpnqbmTGp1Vqq9Wj9wJbS8hQo3rh5OKcYiQfqDWzSLC82c/dm/nQ0LNOt4sT3T2WNPVcM90k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r4IzNido; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FWMDJu2T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85462C2BD10;
-	Fri, 14 Jun 2024 04:47:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r4IzNido"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 245B3C2BD10;
+	Fri, 14 Jun 2024 04:49:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718340455;
-	bh=fmS9OG1eFpUnndpFfe3Sb0IMvfvxm46cXfqD6k3kfew=;
+	s=korg; t=1718340578;
+	bh=e8Bc+QOr8+Ev6dxPks2or9do/1BhsoPXyRAad8xZUXU=;
 	h=Date:To:From:Subject:From;
-	b=FWMDJu2Tl1mpB/yuoFmw4yEe5g0XrcHSFIyi1+0Jlkcff6JSKMncm426Xp4dtd96P
-	 h68NqIztCahuBBJbNFZONWOHZZD/TG7swKbiLZN4U5JuI21+aaIXY0BqvyaH4PwILH
-	 BRb0XCc3VGvYXmYGwn9lNPAjNO99HeyYLmR8H3Fo=
-Date: Thu, 13 Jun 2024 21:47:34 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,xiehuan09@gmail.com,willy@infradead.org,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,sj@kernel.org,shy828301@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,maskray@google.com,libang.li@antgroup.com,fengwei.yin@intel.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ioworker0@gmail.com,akpm@linux-foundation.org
+	b=r4IzNidoYa/DlZZ02aUb+T6IfSpDVoAhJLvpnDvTIgitiASeK5IxD31lhzvVibUgv
+	 pszDCa1t86mCmCmtHk8CrOZRUM6xU+ZRE95f0O5ghEjCelCh0eEam9kVIyguO+20Uw
+	 VE0IMVoqNH+p07Uc0A/3PT9DJGSiLPEa2OauFzGw=
+Date: Thu, 13 Jun 2024 21:49:37 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,tglx@linutronix.de,stable@vger.kernel.org,lstoakes@gmail.com,hch@infradead.org,hailong.liu@oppo.com,bhe@redhat.com,zhaoyang.huang@unisoc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list.patch added to mm-unstable branch
-Message-Id: <20240614044735.85462C2BD10@smtp.kernel.org>
+Subject: + mm-fix-incorrect-vbq-reference-in-purge_fragmented_block.patch tentatively added to mm-hotfixes-stable branch
+Message-Id: <20240614044938.245B3C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: avoid split lazyfree THP during shrink_folio_list()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list.patch
+     Subject: mm: fix incorrect vbq reference in purge_fragmented_block
+has been added to the -mm mm-hotfixes-stable branch.  Its filename is
+     mm-fix-incorrect-vbq-reference-in-purge_fragmented_block.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-incorrect-vbq-reference-in-purge_fragmented_block.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-stable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,209 +58,206 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lance Yang <ioworker0@gmail.com>
-Subject: mm/vmscan: avoid split lazyfree THP during shrink_folio_list()
-Date: Fri, 14 Jun 2024 09:51:38 +0800
+From: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Subject: mm: fix incorrect vbq reference in purge_fragmented_block
+Date: Fri, 7 Jun 2024 10:31:16 +0800
 
-When the user no longer requires the pages, they would use
-madvise(MADV_FREE) to mark the pages as lazy free.  Subsequently, they
-typically would not re-write to that memory again.
+xa_for_each() in _vm_unmap_aliases() loops through all vbs.  However,
+since commit 062eacf57ad9 ("mm: vmalloc: remove a global vmap_blocks
+xarray") the vb from xarray may not be on the corresponding CPU
+vmap_block_queue.  Consequently, purge_fragmented_block() might use the
+wrong vbq->lock to protect the free list, leading to vbq->free breakage.
 
-During memory reclaim, if we detect that the large folio and its PMD are
-both still marked as clean and there are no unexpected references (such as
-GUP), so we can just discard the memory lazily, improving the efficiency
-of memory reclamation in this case.
+Incorrect lock protection can exhaust all vmalloc space as follows:
+CPU0                                            CPU1
++--------------------------------------------+
+|    +--------------------+     +-----+      |
++--> |                    |---->|     |------+
+     | CPU1:vbq free_list |     | vb1 |
++--- |                    |<----|     |<-----+
+|    +--------------------+     +-----+      |
++--------------------------------------------+
 
-On an Intel i5 CPU, reclaiming 1GiB of lazyfree THPs using
-mem_cgroup_force_empty() results in the following runtimes in seconds
-(shorter is better):
+_vm_unmap_aliases()                             vb_alloc()
+                                                new_vmap_block()
+xa_for_each(&vbq->vmap_blocks, idx, vb)
+--> vb in CPU1:vbq->freelist
 
---------------------------------------------
-|     Old       |      New       |  Change  |
---------------------------------------------
-|   0.683426    |    0.049197    |  -92.80% |
---------------------------------------------
+purge_fragmented_block(vb)
+spin_lock(&vbq->lock)                           spin_lock(&vbq->lock)
+--> use CPU0:vbq->lock                          --> use CPU1:vbq->lock
 
-Link: https://lkml.kernel.org/r/20240614015138.31461-4-ioworker0@gmail.com
-Signed-off-by: Lance Yang <ioworker0@gmail.com>
-Suggested-by: Zi Yan <ziy@nvidia.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: Bang Li <libang.li@antgroup.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Fangrui Song <maskray@google.com>
-Cc: Jeff Xie <xiehuan09@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
+list_del_rcu(&vb->free_list)                    list_add_tail_rcu(&vb->free_list, &vbq->free)
+    __list_del(vb->prev, vb->next)
+        next->prev = prev
+    +--------------------+
+    |                    |
+    | CPU1:vbq free_list |
++---|                    |<--+
+|   +--------------------+   |
++----------------------------+
+                                                __list_add(new, head->prev, head)
++--------------------------------------------+
+|    +--------------------+     +-----+      |
++--> |                    |---->|     |------+
+     | CPU1:vbq free_list |     | vb2 |
++--- |                    |<----|     |<-----+
+|    +--------------------+     +-----+      |
++--------------------------------------------+
+
+        prev->next = next
++--------------------------------------------+
+|----------------------------+               |
+|    +--------------------+  |  +-----+      |
++--> |                    |--+  |     |------+
+     | CPU1:vbq free_list |     | vb2 |
++--- |                    |<----|     |<-----+
+|    +--------------------+     +-----+      |
++--------------------------------------------+
+Here’s a list breakdown. All vbs, which were to be added to
+‘prev’, cannot be used by list_for_each_entry_rcu(vb, &vbq->free,
+free_list) in vb_alloc(). Thus, vmalloc space is exhausted.
+
+This issue affects both erofs and f2fs, the stacktrace is as follows:
+erofs:
+[<ffffffd4ffb93ad4>] __switch_to+0x174
+[<ffffffd4ffb942f0>] __schedule+0x624
+[<ffffffd4ffb946f4>] schedule+0x7c
+[<ffffffd4ffb947cc>] schedule_preempt_disabled+0x24
+[<ffffffd4ffb962ec>] __mutex_lock+0x374
+[<ffffffd4ffb95998>] __mutex_lock_slowpath+0x14
+[<ffffffd4ffb95954>] mutex_lock+0x24
+[<ffffffd4fef2900c>] reclaim_and_purge_vmap_areas+0x44
+[<ffffffd4fef25908>] alloc_vmap_area+0x2e0
+[<ffffffd4fef24ea0>] vm_map_ram+0x1b0
+[<ffffffd4ff1b46f4>] z_erofs_lz4_decompress+0x278
+[<ffffffd4ff1b8ac4>] z_erofs_decompress_queue+0x650
+[<ffffffd4ff1b8328>] z_erofs_runqueue+0x7f4
+[<ffffffd4ff1b66a8>] z_erofs_read_folio+0x104
+[<ffffffd4feeb6fec>] filemap_read_folio+0x6c
+[<ffffffd4feeb68c4>] filemap_fault+0x300
+[<ffffffd4fef0ecac>] __do_fault+0xc8
+[<ffffffd4fef0c908>] handle_mm_fault+0xb38
+[<ffffffd4ffb9f008>] do_page_fault+0x288
+[<ffffffd4ffb9ed64>] do_translation_fault[jt]+0x40
+[<ffffffd4fec39c78>] do_mem_abort+0x58
+[<ffffffd4ffb8c3e4>] el0_ia+0x70
+[<ffffffd4ffb8c260>] el0t_64_sync_handler[jt]+0xb0
+[<ffffffd4fec11588>] ret_to_user[jt]+0x0
+
+f2fs:
+[<ffffffd4ffb93ad4>] __switch_to+0x174
+[<ffffffd4ffb942f0>] __schedule+0x624
+[<ffffffd4ffb946f4>] schedule+0x7c
+[<ffffffd4ffb947cc>] schedule_preempt_disabled+0x24
+[<ffffffd4ffb962ec>] __mutex_lock+0x374
+[<ffffffd4ffb95998>] __mutex_lock_slowpath+0x14
+[<ffffffd4ffb95954>] mutex_lock+0x24
+[<ffffffd4fef2900c>] reclaim_and_purge_vmap_areas+0x44
+[<ffffffd4fef25908>] alloc_vmap_area+0x2e0
+[<ffffffd4fef24ea0>] vm_map_ram+0x1b0
+[<ffffffd4ff1a3b60>] f2fs_prepare_decomp_mem+0x144
+[<ffffffd4ff1a6c24>] f2fs_alloc_dic+0x264
+[<ffffffd4ff175468>] f2fs_read_multi_pages+0x428
+[<ffffffd4ff17b46c>] f2fs_mpage_readpages+0x314
+[<ffffffd4ff1785c4>] f2fs_readahead+0x50
+[<ffffffd4feec3384>] read_pages+0x80
+[<ffffffd4feec32c0>] page_cache_ra_unbounded+0x1a0
+[<ffffffd4feec39e8>] page_cache_ra_order+0x274
+[<ffffffd4feeb6cec>] do_sync_mmap_readahead+0x11c
+[<ffffffd4feeb6764>] filemap_fault+0x1a0
+[<ffffffd4ff1423bc>] f2fs_filemap_fault+0x28
+[<ffffffd4fef0ecac>] __do_fault+0xc8
+[<ffffffd4fef0c908>] handle_mm_fault+0xb38
+[<ffffffd4ffb9f008>] do_page_fault+0x288
+[<ffffffd4ffb9ed64>] do_translation_fault[jt]+0x40
+[<ffffffd4fec39c78>] do_mem_abort+0x58
+[<ffffffd4ffb8c3e4>] el0_ia+0x70
+[<ffffffd4ffb8c260>] el0t_64_sync_handler[jt]+0xb0
+[<ffffffd4fec11588>] ret_to_user[jt]+0x0
+
+To fix this, introducee cpu within vmap_block to record which this vb
+belongs to.
+
+Link: https://lkml.kernel.org/r/20240607023116.1720640-1-zhaoyang.huang@unisoc.com
+Fixes: fc1e0d980037 ("mm/vmalloc: prevent stale TLBs in fully utilized blocks")
+Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Suggested-by: Hailong.Liu <hailong.liu@oppo.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    9 ++++
- mm/huge_memory.c        |   76 ++++++++++++++++++++++++++++++++++++++
- mm/rmap.c               |   27 ++++++++-----
- 3 files changed, 102 insertions(+), 10 deletions(-)
+ mm/vmalloc.c |   21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list
-+++ a/include/linux/huge_mm.h
-@@ -430,6 +430,8 @@ static inline bool thp_migration_support
+--- a/mm/vmalloc.c~mm-fix-incorrect-vbq-reference-in-purge_fragmented_block
++++ a/mm/vmalloc.c
+@@ -2498,6 +2498,7 @@ struct vmap_block {
+ 	struct list_head free_list;
+ 	struct rcu_head rcu_head;
+ 	struct list_head purge;
++	unsigned int cpu;
+ };
  
- void split_huge_pmd_locked(struct vm_area_struct *vma, unsigned long address,
- 			   pmd_t *pmd, bool freeze, struct folio *folio);
-+bool unmap_huge_pmd_locked(struct vm_area_struct *vma, unsigned long addr,
-+			   pmd_t *pmdp, struct folio *folio);
- 
- #else /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
-@@ -497,6 +499,13 @@ static inline void split_huge_pmd_locked
- 					 unsigned long address, pmd_t *pmd,
- 					 bool freeze, struct folio *folio) {}
- 
-+static inline bool unmap_huge_pmd_locked(struct vm_area_struct *vma,
-+					 unsigned long addr, pmd_t *pmdp,
-+					 struct folio *folio)
-+{
-+	return false;
-+}
-+
- #define split_huge_pud(__vma, __pmd, __address)	\
- 	do { } while (0)
- 
---- a/mm/huge_memory.c~mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list
-+++ a/mm/huge_memory.c
-@@ -2688,6 +2688,82 @@ static void unmap_folio(struct folio *fo
- 	try_to_unmap_flush();
+ /* Queue of free and dirty vmap blocks, for allocation and flushing purposes */
+@@ -2625,8 +2626,15 @@ static void *new_vmap_block(unsigned int
+ 		free_vmap_area(va);
+ 		return ERR_PTR(err);
+ 	}
+-
+-	vbq = raw_cpu_ptr(&vmap_block_queue);
++	/*
++	 * list_add_tail_rcu could happened in another core
++	 * rather than vb->cpu due to task migration, which
++	 * is safe as list_add_tail_rcu will ensure the list's
++	 * integrity together with list_for_each_rcu from read
++	 * side.
++	 */
++	vb->cpu = raw_smp_processor_id();
++	vbq = per_cpu_ptr(&vmap_block_queue, vb->cpu);
+ 	spin_lock(&vbq->lock);
+ 	list_add_tail_rcu(&vb->free_list, &vbq->free);
+ 	spin_unlock(&vbq->lock);
+@@ -2654,9 +2662,10 @@ static void free_vmap_block(struct vmap_
  }
  
-+static bool __discard_anon_folio_pmd_locked(struct vm_area_struct *vma,
-+					    unsigned long addr, pmd_t *pmdp,
-+					    struct folio *folio)
-+{
-+	VM_WARN_ON_FOLIO(folio_test_swapbacked(folio), folio);
-+	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
-+
-+	struct mm_struct *mm = vma->vm_mm;
-+	int ref_count, map_count;
-+	pmd_t orig_pmd = *pmdp;
-+	struct page *page;
-+
-+	if (unlikely(!pmd_present(orig_pmd) || !pmd_trans_huge(orig_pmd)))
-+		return false;
-+
-+	page = pmd_page(orig_pmd);
-+	if (unlikely(page_folio(page) != folio))
-+		return false;
-+
-+	if (folio_test_dirty(folio) || pmd_dirty(orig_pmd))
-+		return false;
-+
-+	orig_pmd = pmdp_huge_clear_flush(vma, addr, pmdp);
-+
-+	/*
-+	 * Syncing against concurrent GUP-fast:
-+	 * - clear PMD; barrier; read refcount
-+	 * - inc refcount; barrier; read PMD
-+	 */
-+	smp_mb();
-+
-+	ref_count = folio_ref_count(folio);
-+	map_count = folio_mapcount(folio);
-+
-+	/*
-+	 * Order reads for folio refcount and dirty flag
-+	 * (see comments in __remove_mapping()).
-+	 */
-+	smp_rmb();
-+
-+	/*
-+	 * If the folio or its PMD is redirtied at this point, or if there
-+	 * are unexpected references, we will give up to discard this folio
-+	 * and remap it.
-+	 *
-+	 * The only folio refs must be one from isolation plus the rmap(s).
-+	 */
-+	if (folio_test_dirty(folio) || pmd_dirty(orig_pmd) ||
-+	    ref_count != map_count + 1) {
-+		set_pmd_at(mm, addr, pmdp, orig_pmd);
-+		return false;
-+	}
-+
-+	folio_remove_rmap_pmd(folio, page, vma);
-+	zap_deposited_table(mm, pmdp);
-+	add_mm_counter(mm, MM_ANONPAGES, -HPAGE_PMD_NR);
-+	if (vma->vm_flags & VM_LOCKED)
-+		mlock_drain_local();
-+	folio_put(folio);
-+
-+	return true;
-+}
-+
-+bool unmap_huge_pmd_locked(struct vm_area_struct *vma, unsigned long addr,
-+			   pmd_t *pmdp, struct folio *folio)
-+{
-+	VM_WARN_ON_FOLIO(!folio_test_pmd_mappable(folio), folio);
-+	VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
-+	VM_WARN_ON_ONCE(!IS_ALIGNED(addr, HPAGE_PMD_SIZE));
-+
-+	if (folio_test_anon(folio) && !folio_test_swapbacked(folio))
-+		return __discard_anon_folio_pmd_locked(vma, addr, pmdp, folio);
-+
-+	return false;
-+}
-+
- static void remap_page(struct folio *folio, unsigned long nr)
+ static bool purge_fragmented_block(struct vmap_block *vb,
+-		struct vmap_block_queue *vbq, struct list_head *purge_list,
+-		bool force_purge)
++		struct list_head *purge_list, bool force_purge)
  {
- 	int i = 0;
---- a/mm/rmap.c~mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list
-+++ a/mm/rmap.c
-@@ -1678,16 +1678,23 @@ static bool try_to_unmap_one(struct foli
- 			goto walk_abort;
- 		}
- 
--		if (!pvmw.pte && (flags & TTU_SPLIT_HUGE_PMD)) {
--			/*
--			 * We temporarily have to drop the PTL and start once
--			 * again from that now-PTE-mapped page table.
--			 */
--			split_huge_pmd_locked(vma, pvmw.address, pvmw.pmd,
--					      false, folio);
--			flags &= ~TTU_SPLIT_HUGE_PMD;
--			page_vma_mapped_walk_restart(&pvmw);
--			continue;
-+		if (!pvmw.pte) {
-+			if (unmap_huge_pmd_locked(vma, pvmw.address, pvmw.pmd,
-+						  folio))
-+				goto walk_done;
++	struct vmap_block_queue *vbq = &per_cpu(vmap_block_queue, vb->cpu);
 +
-+			if (flags & TTU_SPLIT_HUGE_PMD) {
-+				/*
-+				 * We temporarily have to drop the PTL and start
-+				 * once again from that now-PTE-mapped page
-+				 * table.
-+				 */
-+				split_huge_pmd_locked(vma, pvmw.address,
-+						      pvmw.pmd, false, folio);
-+				flags &= ~TTU_SPLIT_HUGE_PMD;
-+				page_vma_mapped_walk_restart(&pvmw);
-+				continue;
-+			}
- 		}
+ 	if (vb->free + vb->dirty != VMAP_BBMAP_BITS ||
+ 	    vb->dirty == VMAP_BBMAP_BITS)
+ 		return false;
+@@ -2704,7 +2713,7 @@ static void purge_fragmented_blocks(int
+ 			continue;
  
- 		/* Unexpected PMD-mapped THP? */
+ 		spin_lock(&vb->lock);
+-		purge_fragmented_block(vb, vbq, &purge, true);
++		purge_fragmented_block(vb, &purge, true);
+ 		spin_unlock(&vb->lock);
+ 	}
+ 	rcu_read_unlock();
+@@ -2841,7 +2850,7 @@ static void _vm_unmap_aliases(unsigned l
+ 			 * not purgeable, check whether there is dirty
+ 			 * space to be flushed.
+ 			 */
+-			if (!purge_fragmented_block(vb, vbq, &purge_list, false) &&
++			if (!purge_fragmented_block(vb, &purge_list, false) &&
+ 			    vb->dirty_max && vb->dirty != VMAP_BBMAP_BITS) {
+ 				unsigned long va_start = vb->va->va_start;
+ 				unsigned long s, e;
 _
 
-Patches currently in -mm which might be from ioworker0@gmail.com are
+Patches currently in -mm which might be from zhaoyang.huang@unisoc.com are
 
-mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch
-mm-rmap-integrate-pmd-mapped-folio-splitting-into-pagewalk-loop.patch
-mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list.patch
-mm-mlock-implement-folio_mlock_step-using-folio_pte_batch.patch
+mm-fix-incorrect-vbq-reference-in-purge_fragmented_block.patch
+mm-optimization-on-page-allocation-when-cma-enabled.patch
 
