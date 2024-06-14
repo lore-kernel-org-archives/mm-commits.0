@@ -1,1388 +1,160 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C95AA38B
-	for <mm-commits@vger.kernel.org>; Fri, 14 Jun 2024 04:54:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1633C146010
+	for <mm-commits@vger.kernel.org>; Fri, 14 Jun 2024 04:54:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718340890; cv=none; b=qhPtLxhpe8L5p59I9N2v5uuX5nctQu0GC7Bai9rvbXQpoTEJddSaae5aMivGgFPuR4LhAhU0kzI7z1p9f0qUXNKEqpGDaw+txyuMUkP/k6r/UMKC8NkQLS0bpv/MJN9mpZi67J+s5MTXcAb6rvqH/CKB/u5CIPrgkh8LIzOSr4U=
+	t=1718340895; cv=none; b=Jm4ioQoN6OX77B71s6Ml8ujhuotb9yG0kaZBXe6qfNjiQXfgt4Am7QyUXRvoz2/3ywYDADiLqfLRbhOhoX/v3aElPzaFaALpFOaugsUAuMmIL7ifShBs0s9oLrDB2NIs0DA8/e3WwwS0KAVPGotjxu+UabkIamHr98YCqXsjVlA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718340890; c=relaxed/simple;
-	bh=DzqBt8APQgWlTZXkHUB8O8VOjOxtvz7SLilJVzdIqo4=;
-	h=Date:To:From:Subject:Message-Id; b=d7UAmbKDSd9qolhAm5Q3tmEZ1m63imoz01Cj2vZvZ+ZHRV2TOiKsW+/WVEhUOq3x+3dJX3EFvtRCf+W0nt0TnMsSmMJmWkU/VKXqIf71dHsZomWz/lIl0rxmxO9fq65h5smGy2b11JMh4QbPbL4N7rQAt2Pij5aZFFrO207Fod0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sUhvOtEP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718340895; c=relaxed/simple;
+	bh=+YODvDR5GALswpHOi5oC+0KviXoiHiSu7jBbKjVmjwA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=NWT/1Im9UQshnIVx1eXfvhS97TGASswjlwn5ZLIG36MxikRP/EGdfpyTi1JO6oPa2CpyJrBZd9k1E3a425O9nPNGsedb37J/mfWUU09S40E69uH8h9g6nywov5HK5eq395GtKjJnu7KLRgtVgmsFjOxb+TWSeKue1A/DVKmtlvQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=m7FK4G3w; arc=none smtp.client-ip=115.124.30.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sUhvOtEP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33CFCC2BD10;
-	Fri, 14 Jun 2024 04:54:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718340890;
-	bh=DzqBt8APQgWlTZXkHUB8O8VOjOxtvz7SLilJVzdIqo4=;
-	h=Date:To:From:Subject:From;
-	b=sUhvOtEPwYc4EkS9ibhk5TfxtxqbZ8dsv0JvDH+5ofmZ8PEvT6VzQj+VaHUJVTeWs
-	 zzK/Y1vEbQ0vOM0I0nKXCHx7Umgn6KJh5PZhJCUvQWuA9rIA3JmhYJa6WYne/Vl0Pi
-	 Mcs2IIQNWxRumDruiuDnVJUCiAKLV+P3kYBol7P8=
-Date: Thu, 13 Jun 2024 21:54:49 -0700
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,shuah@kernel.org,peterx@redhat.com,Liam.Howlett@oracle.com,kent.overstreet@linux.dev,kees@kernel.org,jeffxu@chromium.org,david@redhat.com,dalias@libc.org,brauner@kernel.org,axelrasmussen@google.com,avagin@google.com,jhubbard@nvidia.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-mseal-self_elf-fix-missing-__nr_mseal.patch added to mm-unstable branch
-Message-Id: <20240614045450.33CFCC2BD10@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="m7FK4G3w"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1718340884; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=Wi8g+RYrD3JIFaCl9fMy9AF4F/aHCqZIeUhf5e1PjbI=;
+	b=m7FK4G3wFjZ3E0bDgE3lEsab9tOZXtP7txouP+Vn5Qyhf6s0U/4k+UJWviWZHUyEEyeK6zEQgxNPYnKHEBHmJ9MhXCxaBVqg//Ydj5E0C5AmxnajOfpmfnPSqMGDe4Le1dZoaV966zcrlNh3O9rc7ZWEzqCmQLw0jxxPl31vaCY=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037067110;MF=baolin.wang@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0W8Q.ob2_1718340881;
+Received: from 30.97.56.56(mailfrom:baolin.wang@linux.alibaba.com fp:SMTPD_---0W8Q.ob2_1718340881)
+          by smtp.aliyun-inc.com;
+          Fri, 14 Jun 2024 12:54:42 +0800
+Message-ID: <e1f5767a-2c9b-4e37-afe6-1de26fe54e41@linux.alibaba.com>
+Date: Fri, 14 Jun 2024 12:54:41 +0800
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: + mm-memory-extend-finish_fault-to-support-large-folio-fix.patch
+ added to mm-unstable branch
+To: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
+ ziy@nvidia.com, ying.huang@intel.com, wangkefeng.wang@huawei.com,
+ v-songbaohua@oppo.com, shy828301@gmail.com, ryan.roberts@arm.com,
+ p.raghav@samsung.com, ioworker0@gmail.com, hughd@google.com,
+ david@redhat.com, da.gomez@samsung.com
+References: <20240613204637.17E68C2BBFC@smtp.kernel.org>
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+In-Reply-To: <20240613204637.17E68C2BBFC@smtp.kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: selftests/mm: mseal, self_elf: fix missing __NR_mseal
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-mseal-self_elf-fix-missing-__nr_mseal.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mseal-self_elf-fix-missing-__nr_mseal.patch
+On 2024/6/14 04:46, Andrew Morton wrote:
+> The patch titled
+>       Subject: mm-memory-extend-finish_fault-to-support-large-folio-fix
+> has been added to the -mm mm-unstable branch.  Its filename is
+>       mm-memory-extend-finish_fault-to-support-large-folio-fix.patch
+> 
+> This patch will shortly appear at
+>       https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-extend-finish_fault-to-support-large-folio-fix.patch
+> 
+> This patch will later appear in the mm-unstable branch at
+>      git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>     a) Consider who else should be cc'ed
+>     b) Prefer to cc a suitable mailing list as well
+>     c) Ideally: find the original patch on the mailing list and do a
+>        reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+> 
+> ------------------------------------------------------
+> From: Baolin Wang <baolin.wang@linux.alibaba.com>
+> Subject: mm-memory-extend-finish_fault-to-support-large-folio-fix
+> Date: Thu, 13 Jun 2024 21:03:36 +0800
+> 
+> avoid going beyond the PMD pagetable size
+> 
+> Link: https://lkml.kernel.org/r/b0e6a8b1-a32c-459e-ae67-fde5d28773e6@linux.alibaba.com
+> Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+> Reported-by: syzbot+d6e5c328862b5ae6cbfe@syzkaller.appspotmail.com
+> Fixes: 1c05047ad016 ("mm: memory: extend finish_fault() to support
+> Cc: Barry Song <v-songbaohua@oppo.com>
+> Cc: Daniel Gomez <da.gomez@samsung.com>
+> Cc: David Hildenbrand <david@redhat.com>
+> Cc: "Huang, Ying" <ying.huang@intel.com>
+> Cc: Hugh Dickins <hughd@google.com>
+> Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+> Cc: Lance Yang <ioworker0@gmail.com>
+> Cc: Pankaj Raghav <p.raghav@samsung.com>
+> Cc: Ryan Roberts <ryan.roberts@arm.com>
+> Cc: Yang Shi <shy828301@gmail.com>
+> Cc: Zi Yan <ziy@nvidia.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>   mm/memory.c |    8 ++++++--
+>   1 file changed, 6 insertions(+), 2 deletions(-)
+> 
+> --- a/mm/memory.c~mm-memory-extend-finish_fault-to-support-large-folio-fix
+> +++ a/mm/memory.c
+> @@ -4875,13 +4875,17 @@ vm_fault_t finish_fault(struct vm_fault
+>   		pgoff_t idx = folio_page_idx(folio, page);
+>   		/* The page offset of vmf->address within the VMA. */
+>   		pgoff_t vma_off = vmf->pgoff - vmf->vma->vm_pgoff;
+> +		/* The index of the entry in the pagetable for fault page. */
+> +		pgoff_t pte_off = pte_index(vmf->address);
+>   
+>   		/*
+>   		 * Fallback to per-page fault in case the folio size in page
+> -		 * cache beyond the VMA limits.
+> +		 * cache beyond the VMA limits and PMD pagetable limits.
+>   		 */
+>   		if (unlikely(vma_off < idx ||
+> -			     vma_off + (nr_pages - idx) > vma_pages(vma))) {
+> +			    vma_off + (nr_pages - idx) > vma_pages(vma) ||
+> +			    pte_off < idx ||
+> +			    pte_off + (nr_pages - idx)  > PTRS_PER_PTE - 1)) {
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+We should use 'PTRS_PER_PTE' instead of 'PTRS_PER_PTE - 1'. Sorry for my 
+math fault (I wrote the code too late last night, wasn't thinking 
+clearly:( ).
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Sorry Andrew, could you help to squash this change? Thanks.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+diff --git a/mm/memory.c b/mm/memory.c
+index b7137d9c99a9..e6521dd82281 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -4888,7 +4888,7 @@ vm_fault_t finish_fault(struct vm_fault *vmf)
+                 if (unlikely(vma_off < idx ||
+                             vma_off + (nr_pages - idx) > vma_pages(vma) ||
+                             pte_off < idx ||
+-                           pte_off + (nr_pages - idx)  > PTRS_PER_PTE - 
+1)) {
++                           pte_off + (nr_pages - idx)  > PTRS_PER_PTE)) {
+                         nr_pages = 1;
+                 } else {
+                         /* Now we can set mappings for the whole large 
+folio. */
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/mm: mseal, self_elf: fix missing __NR_mseal
-Date: Thu, 13 Jun 2024 19:30:04 -0700
-
-Patch series "cleanups, fixes, and progress towards avoiding "make
-headers"", v2.
-
-Eventually, once the build succeeds on a sufficiently old distro, the idea
-is to delete $(KHDR_INCLUDES) from the selftests/mm build, and then after
-that, from selftests/lib.mk and all of the other selftest builds.
-
-For now, this series merely achieves a clean build of selftests/mm on a
-not-so-old distro: Ubuntu 23.04.  In other words, after this series is
-applied, it is possible to delete $(KHDR_INCLUDES) from
-selftests/mm/Makefile and the build will still succeed.
-
-1. Add tools/uapi/asm/unistd_[32|x32|64].h files, which include
-   definitions of __NR_mseal, and include them (indirectly) from the files
-   that use __NR_mseal.  The new files are copied from ./usr/include/asm,
-   which is how we have agreed to do this sort of thing, see [1].
-
-2. Add fs.h, similarly created: it was copied directly from a snapshot
-   of ./usr/include/linux/fs.h after running "make headers".
-
-3. Add a few selected prctl.h values that the ksm and mdwe tests require.
-
-4. Factor out some common code from mseal_test.c and seal_elf.c, into
-   a new mseal_helpers.h file.
-
-5. Remove local __NR_* definitions and checks.
-
-[1] commit e076eaca5906 ("selftests: break the dependency upon local
-header files")
-
-
-This patch (of 6):
-
-The selftests/mm build isn't exactly "broken", according to the current
-documentation, which still claims that one must run "make headers", before
-building the kselftests.  However, according to the new plan to get rid of
-that requirement [1], they are future-broken: attempting to build
-selftests/mm *without* first running "make headers" will fail due to not
-finding __NR_mseal.
-
-Therefore, add ./usr/include/asm/unistd_[32|x32|64].h (created via "make
-headers") to tools/uapi/, and change the selftests/mm files that require
-__NR_mseal to include from the correct location.  The way to do so is to
-include <linux/unistd.h> instead of just <unistd.h>.
-
-[1] commit e076eaca5906 ("selftests: break the dependency upon local
-header files")
-
-Link: https://lkml.kernel.org/r/20240614023009.221547-1-jhubbard@nvidia.com
-Link: https://lkml.kernel.org/r/20240614023009.221547-2-jhubbard@nvidia.com
-Fixes: 4926c7a52de7 ("selftest mm/mseal memory sealing")
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Andrei Vagin <avagin@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- tools/include/uapi/asm/unistd_32.h      |  458 ++++++++++++++++++++++
- tools/include/uapi/asm/unistd_64.h      |  380 ++++++++++++++++++
- tools/include/uapi/asm/unistd_x32.h     |  369 +++++++++++++++++
- tools/testing/selftests/mm/mseal_test.c |    2 
- tools/testing/selftests/mm/seal_elf.c   |    2 
- 5 files changed, 1209 insertions(+), 2 deletions(-)
-
---- /dev/null
-+++ a/tools/include/uapi/asm/unistd_32.h
-@@ -0,0 +1,458 @@
-+#ifndef _ASM_UNISTD_32_H
-+#define _ASM_UNISTD_32_H
-+
-+#define __NR_restart_syscall 0
-+#define __NR_exit 1
-+#define __NR_fork 2
-+#define __NR_read 3
-+#define __NR_write 4
-+#define __NR_open 5
-+#define __NR_close 6
-+#define __NR_waitpid 7
-+#define __NR_creat 8
-+#define __NR_link 9
-+#define __NR_unlink 10
-+#define __NR_execve 11
-+#define __NR_chdir 12
-+#define __NR_time 13
-+#define __NR_mknod 14
-+#define __NR_chmod 15
-+#define __NR_lchown 16
-+#define __NR_break 17
-+#define __NR_oldstat 18
-+#define __NR_lseek 19
-+#define __NR_getpid 20
-+#define __NR_mount 21
-+#define __NR_umount 22
-+#define __NR_setuid 23
-+#define __NR_getuid 24
-+#define __NR_stime 25
-+#define __NR_ptrace 26
-+#define __NR_alarm 27
-+#define __NR_oldfstat 28
-+#define __NR_pause 29
-+#define __NR_utime 30
-+#define __NR_stty 31
-+#define __NR_gtty 32
-+#define __NR_access 33
-+#define __NR_nice 34
-+#define __NR_ftime 35
-+#define __NR_sync 36
-+#define __NR_kill 37
-+#define __NR_rename 38
-+#define __NR_mkdir 39
-+#define __NR_rmdir 40
-+#define __NR_dup 41
-+#define __NR_pipe 42
-+#define __NR_times 43
-+#define __NR_prof 44
-+#define __NR_brk 45
-+#define __NR_setgid 46
-+#define __NR_getgid 47
-+#define __NR_signal 48
-+#define __NR_geteuid 49
-+#define __NR_getegid 50
-+#define __NR_acct 51
-+#define __NR_umount2 52
-+#define __NR_lock 53
-+#define __NR_ioctl 54
-+#define __NR_fcntl 55
-+#define __NR_mpx 56
-+#define __NR_setpgid 57
-+#define __NR_ulimit 58
-+#define __NR_oldolduname 59
-+#define __NR_umask 60
-+#define __NR_chroot 61
-+#define __NR_ustat 62
-+#define __NR_dup2 63
-+#define __NR_getppid 64
-+#define __NR_getpgrp 65
-+#define __NR_setsid 66
-+#define __NR_sigaction 67
-+#define __NR_sgetmask 68
-+#define __NR_ssetmask 69
-+#define __NR_setreuid 70
-+#define __NR_setregid 71
-+#define __NR_sigsuspend 72
-+#define __NR_sigpending 73
-+#define __NR_sethostname 74
-+#define __NR_setrlimit 75
-+#define __NR_getrlimit 76
-+#define __NR_getrusage 77
-+#define __NR_gettimeofday 78
-+#define __NR_settimeofday 79
-+#define __NR_getgroups 80
-+#define __NR_setgroups 81
-+#define __NR_select 82
-+#define __NR_symlink 83
-+#define __NR_oldlstat 84
-+#define __NR_readlink 85
-+#define __NR_uselib 86
-+#define __NR_swapon 87
-+#define __NR_reboot 88
-+#define __NR_readdir 89
-+#define __NR_mmap 90
-+#define __NR_munmap 91
-+#define __NR_truncate 92
-+#define __NR_ftruncate 93
-+#define __NR_fchmod 94
-+#define __NR_fchown 95
-+#define __NR_getpriority 96
-+#define __NR_setpriority 97
-+#define __NR_profil 98
-+#define __NR_statfs 99
-+#define __NR_fstatfs 100
-+#define __NR_ioperm 101
-+#define __NR_socketcall 102
-+#define __NR_syslog 103
-+#define __NR_setitimer 104
-+#define __NR_getitimer 105
-+#define __NR_stat 106
-+#define __NR_lstat 107
-+#define __NR_fstat 108
-+#define __NR_olduname 109
-+#define __NR_iopl 110
-+#define __NR_vhangup 111
-+#define __NR_idle 112
-+#define __NR_vm86old 113
-+#define __NR_wait4 114
-+#define __NR_swapoff 115
-+#define __NR_sysinfo 116
-+#define __NR_ipc 117
-+#define __NR_fsync 118
-+#define __NR_sigreturn 119
-+#define __NR_clone 120
-+#define __NR_setdomainname 121
-+#define __NR_uname 122
-+#define __NR_modify_ldt 123
-+#define __NR_adjtimex 124
-+#define __NR_mprotect 125
-+#define __NR_sigprocmask 126
-+#define __NR_create_module 127
-+#define __NR_init_module 128
-+#define __NR_delete_module 129
-+#define __NR_get_kernel_syms 130
-+#define __NR_quotactl 131
-+#define __NR_getpgid 132
-+#define __NR_fchdir 133
-+#define __NR_bdflush 134
-+#define __NR_sysfs 135
-+#define __NR_personality 136
-+#define __NR_afs_syscall 137
-+#define __NR_setfsuid 138
-+#define __NR_setfsgid 139
-+#define __NR__llseek 140
-+#define __NR_getdents 141
-+#define __NR__newselect 142
-+#define __NR_flock 143
-+#define __NR_msync 144
-+#define __NR_readv 145
-+#define __NR_writev 146
-+#define __NR_getsid 147
-+#define __NR_fdatasync 148
-+#define __NR__sysctl 149
-+#define __NR_mlock 150
-+#define __NR_munlock 151
-+#define __NR_mlockall 152
-+#define __NR_munlockall 153
-+#define __NR_sched_setparam 154
-+#define __NR_sched_getparam 155
-+#define __NR_sched_setscheduler 156
-+#define __NR_sched_getscheduler 157
-+#define __NR_sched_yield 158
-+#define __NR_sched_get_priority_max 159
-+#define __NR_sched_get_priority_min 160
-+#define __NR_sched_rr_get_interval 161
-+#define __NR_nanosleep 162
-+#define __NR_mremap 163
-+#define __NR_setresuid 164
-+#define __NR_getresuid 165
-+#define __NR_vm86 166
-+#define __NR_query_module 167
-+#define __NR_poll 168
-+#define __NR_nfsservctl 169
-+#define __NR_setresgid 170
-+#define __NR_getresgid 171
-+#define __NR_prctl 172
-+#define __NR_rt_sigreturn 173
-+#define __NR_rt_sigaction 174
-+#define __NR_rt_sigprocmask 175
-+#define __NR_rt_sigpending 176
-+#define __NR_rt_sigtimedwait 177
-+#define __NR_rt_sigqueueinfo 178
-+#define __NR_rt_sigsuspend 179
-+#define __NR_pread64 180
-+#define __NR_pwrite64 181
-+#define __NR_chown 182
-+#define __NR_getcwd 183
-+#define __NR_capget 184
-+#define __NR_capset 185
-+#define __NR_sigaltstack 186
-+#define __NR_sendfile 187
-+#define __NR_getpmsg 188
-+#define __NR_putpmsg 189
-+#define __NR_vfork 190
-+#define __NR_ugetrlimit 191
-+#define __NR_mmap2 192
-+#define __NR_truncate64 193
-+#define __NR_ftruncate64 194
-+#define __NR_stat64 195
-+#define __NR_lstat64 196
-+#define __NR_fstat64 197
-+#define __NR_lchown32 198
-+#define __NR_getuid32 199
-+#define __NR_getgid32 200
-+#define __NR_geteuid32 201
-+#define __NR_getegid32 202
-+#define __NR_setreuid32 203
-+#define __NR_setregid32 204
-+#define __NR_getgroups32 205
-+#define __NR_setgroups32 206
-+#define __NR_fchown32 207
-+#define __NR_setresuid32 208
-+#define __NR_getresuid32 209
-+#define __NR_setresgid32 210
-+#define __NR_getresgid32 211
-+#define __NR_chown32 212
-+#define __NR_setuid32 213
-+#define __NR_setgid32 214
-+#define __NR_setfsuid32 215
-+#define __NR_setfsgid32 216
-+#define __NR_pivot_root 217
-+#define __NR_mincore 218
-+#define __NR_madvise 219
-+#define __NR_getdents64 220
-+#define __NR_fcntl64 221
-+#define __NR_gettid 224
-+#define __NR_readahead 225
-+#define __NR_setxattr 226
-+#define __NR_lsetxattr 227
-+#define __NR_fsetxattr 228
-+#define __NR_getxattr 229
-+#define __NR_lgetxattr 230
-+#define __NR_fgetxattr 231
-+#define __NR_listxattr 232
-+#define __NR_llistxattr 233
-+#define __NR_flistxattr 234
-+#define __NR_removexattr 235
-+#define __NR_lremovexattr 236
-+#define __NR_fremovexattr 237
-+#define __NR_tkill 238
-+#define __NR_sendfile64 239
-+#define __NR_futex 240
-+#define __NR_sched_setaffinity 241
-+#define __NR_sched_getaffinity 242
-+#define __NR_set_thread_area 243
-+#define __NR_get_thread_area 244
-+#define __NR_io_setup 245
-+#define __NR_io_destroy 246
-+#define __NR_io_getevents 247
-+#define __NR_io_submit 248
-+#define __NR_io_cancel 249
-+#define __NR_fadvise64 250
-+#define __NR_exit_group 252
-+#define __NR_lookup_dcookie 253
-+#define __NR_epoll_create 254
-+#define __NR_epoll_ctl 255
-+#define __NR_epoll_wait 256
-+#define __NR_remap_file_pages 257
-+#define __NR_set_tid_address 258
-+#define __NR_timer_create 259
-+#define __NR_timer_settime 260
-+#define __NR_timer_gettime 261
-+#define __NR_timer_getoverrun 262
-+#define __NR_timer_delete 263
-+#define __NR_clock_settime 264
-+#define __NR_clock_gettime 265
-+#define __NR_clock_getres 266
-+#define __NR_clock_nanosleep 267
-+#define __NR_statfs64 268
-+#define __NR_fstatfs64 269
-+#define __NR_tgkill 270
-+#define __NR_utimes 271
-+#define __NR_fadvise64_64 272
-+#define __NR_vserver 273
-+#define __NR_mbind 274
-+#define __NR_get_mempolicy 275
-+#define __NR_set_mempolicy 276
-+#define __NR_mq_open 277
-+#define __NR_mq_unlink 278
-+#define __NR_mq_timedsend 279
-+#define __NR_mq_timedreceive 280
-+#define __NR_mq_notify 281
-+#define __NR_mq_getsetattr 282
-+#define __NR_kexec_load 283
-+#define __NR_waitid 284
-+#define __NR_add_key 286
-+#define __NR_request_key 287
-+#define __NR_keyctl 288
-+#define __NR_ioprio_set 289
-+#define __NR_ioprio_get 290
-+#define __NR_inotify_init 291
-+#define __NR_inotify_add_watch 292
-+#define __NR_inotify_rm_watch 293
-+#define __NR_migrate_pages 294
-+#define __NR_openat 295
-+#define __NR_mkdirat 296
-+#define __NR_mknodat 297
-+#define __NR_fchownat 298
-+#define __NR_futimesat 299
-+#define __NR_fstatat64 300
-+#define __NR_unlinkat 301
-+#define __NR_renameat 302
-+#define __NR_linkat 303
-+#define __NR_symlinkat 304
-+#define __NR_readlinkat 305
-+#define __NR_fchmodat 306
-+#define __NR_faccessat 307
-+#define __NR_pselect6 308
-+#define __NR_ppoll 309
-+#define __NR_unshare 310
-+#define __NR_set_robust_list 311
-+#define __NR_get_robust_list 312
-+#define __NR_splice 313
-+#define __NR_sync_file_range 314
-+#define __NR_tee 315
-+#define __NR_vmsplice 316
-+#define __NR_move_pages 317
-+#define __NR_getcpu 318
-+#define __NR_epoll_pwait 319
-+#define __NR_utimensat 320
-+#define __NR_signalfd 321
-+#define __NR_timerfd_create 322
-+#define __NR_eventfd 323
-+#define __NR_fallocate 324
-+#define __NR_timerfd_settime 325
-+#define __NR_timerfd_gettime 326
-+#define __NR_signalfd4 327
-+#define __NR_eventfd2 328
-+#define __NR_epoll_create1 329
-+#define __NR_dup3 330
-+#define __NR_pipe2 331
-+#define __NR_inotify_init1 332
-+#define __NR_preadv 333
-+#define __NR_pwritev 334
-+#define __NR_rt_tgsigqueueinfo 335
-+#define __NR_perf_event_open 336
-+#define __NR_recvmmsg 337
-+#define __NR_fanotify_init 338
-+#define __NR_fanotify_mark 339
-+#define __NR_prlimit64 340
-+#define __NR_name_to_handle_at 341
-+#define __NR_open_by_handle_at 342
-+#define __NR_clock_adjtime 343
-+#define __NR_syncfs 344
-+#define __NR_sendmmsg 345
-+#define __NR_setns 346
-+#define __NR_process_vm_readv 347
-+#define __NR_process_vm_writev 348
-+#define __NR_kcmp 349
-+#define __NR_finit_module 350
-+#define __NR_sched_setattr 351
-+#define __NR_sched_getattr 352
-+#define __NR_renameat2 353
-+#define __NR_seccomp 354
-+#define __NR_getrandom 355
-+#define __NR_memfd_create 356
-+#define __NR_bpf 357
-+#define __NR_execveat 358
-+#define __NR_socket 359
-+#define __NR_socketpair 360
-+#define __NR_bind 361
-+#define __NR_connect 362
-+#define __NR_listen 363
-+#define __NR_accept4 364
-+#define __NR_getsockopt 365
-+#define __NR_setsockopt 366
-+#define __NR_getsockname 367
-+#define __NR_getpeername 368
-+#define __NR_sendto 369
-+#define __NR_sendmsg 370
-+#define __NR_recvfrom 371
-+#define __NR_recvmsg 372
-+#define __NR_shutdown 373
-+#define __NR_userfaultfd 374
-+#define __NR_membarrier 375
-+#define __NR_mlock2 376
-+#define __NR_copy_file_range 377
-+#define __NR_preadv2 378
-+#define __NR_pwritev2 379
-+#define __NR_pkey_mprotect 380
-+#define __NR_pkey_alloc 381
-+#define __NR_pkey_free 382
-+#define __NR_statx 383
-+#define __NR_arch_prctl 384
-+#define __NR_io_pgetevents 385
-+#define __NR_rseq 386
-+#define __NR_semget 393
-+#define __NR_semctl 394
-+#define __NR_shmget 395
-+#define __NR_shmctl 396
-+#define __NR_shmat 397
-+#define __NR_shmdt 398
-+#define __NR_msgget 399
-+#define __NR_msgsnd 400
-+#define __NR_msgrcv 401
-+#define __NR_msgctl 402
-+#define __NR_clock_gettime64 403
-+#define __NR_clock_settime64 404
-+#define __NR_clock_adjtime64 405
-+#define __NR_clock_getres_time64 406
-+#define __NR_clock_nanosleep_time64 407
-+#define __NR_timer_gettime64 408
-+#define __NR_timer_settime64 409
-+#define __NR_timerfd_gettime64 410
-+#define __NR_timerfd_settime64 411
-+#define __NR_utimensat_time64 412
-+#define __NR_pselect6_time64 413
-+#define __NR_ppoll_time64 414
-+#define __NR_io_pgetevents_time64 416
-+#define __NR_recvmmsg_time64 417
-+#define __NR_mq_timedsend_time64 418
-+#define __NR_mq_timedreceive_time64 419
-+#define __NR_semtimedop_time64 420
-+#define __NR_rt_sigtimedwait_time64 421
-+#define __NR_futex_time64 422
-+#define __NR_sched_rr_get_interval_time64 423
-+#define __NR_pidfd_send_signal 424
-+#define __NR_io_uring_setup 425
-+#define __NR_io_uring_enter 426
-+#define __NR_io_uring_register 427
-+#define __NR_open_tree 428
-+#define __NR_move_mount 429
-+#define __NR_fsopen 430
-+#define __NR_fsconfig 431
-+#define __NR_fsmount 432
-+#define __NR_fspick 433
-+#define __NR_pidfd_open 434
-+#define __NR_clone3 435
-+#define __NR_close_range 436
-+#define __NR_openat2 437
-+#define __NR_pidfd_getfd 438
-+#define __NR_faccessat2 439
-+#define __NR_process_madvise 440
-+#define __NR_epoll_pwait2 441
-+#define __NR_mount_setattr 442
-+#define __NR_quotactl_fd 443
-+#define __NR_landlock_create_ruleset 444
-+#define __NR_landlock_add_rule 445
-+#define __NR_landlock_restrict_self 446
-+#define __NR_memfd_secret 447
-+#define __NR_process_mrelease 448
-+#define __NR_futex_waitv 449
-+#define __NR_set_mempolicy_home_node 450
-+#define __NR_cachestat 451
-+#define __NR_fchmodat2 452
-+#define __NR_map_shadow_stack 453
-+#define __NR_futex_wake 454
-+#define __NR_futex_wait 455
-+#define __NR_futex_requeue 456
-+#define __NR_statmount 457
-+#define __NR_listmount 458
-+#define __NR_lsm_get_self_attr 459
-+#define __NR_lsm_set_self_attr 460
-+#define __NR_lsm_list_modules 461
-+#define __NR_mseal 462
-+
-+
-+#endif /* _ASM_UNISTD_32_H */
---- /dev/null
-+++ a/tools/include/uapi/asm/unistd_64.h
-@@ -0,0 +1,380 @@
-+#ifndef _ASM_UNISTD_64_H
-+#define _ASM_UNISTD_64_H
-+
-+#define __NR_read 0
-+#define __NR_write 1
-+#define __NR_open 2
-+#define __NR_close 3
-+#define __NR_stat 4
-+#define __NR_fstat 5
-+#define __NR_lstat 6
-+#define __NR_poll 7
-+#define __NR_lseek 8
-+#define __NR_mmap 9
-+#define __NR_mprotect 10
-+#define __NR_munmap 11
-+#define __NR_brk 12
-+#define __NR_rt_sigaction 13
-+#define __NR_rt_sigprocmask 14
-+#define __NR_rt_sigreturn 15
-+#define __NR_ioctl 16
-+#define __NR_pread64 17
-+#define __NR_pwrite64 18
-+#define __NR_readv 19
-+#define __NR_writev 20
-+#define __NR_access 21
-+#define __NR_pipe 22
-+#define __NR_select 23
-+#define __NR_sched_yield 24
-+#define __NR_mremap 25
-+#define __NR_msync 26
-+#define __NR_mincore 27
-+#define __NR_madvise 28
-+#define __NR_shmget 29
-+#define __NR_shmat 30
-+#define __NR_shmctl 31
-+#define __NR_dup 32
-+#define __NR_dup2 33
-+#define __NR_pause 34
-+#define __NR_nanosleep 35
-+#define __NR_getitimer 36
-+#define __NR_alarm 37
-+#define __NR_setitimer 38
-+#define __NR_getpid 39
-+#define __NR_sendfile 40
-+#define __NR_socket 41
-+#define __NR_connect 42
-+#define __NR_accept 43
-+#define __NR_sendto 44
-+#define __NR_recvfrom 45
-+#define __NR_sendmsg 46
-+#define __NR_recvmsg 47
-+#define __NR_shutdown 48
-+#define __NR_bind 49
-+#define __NR_listen 50
-+#define __NR_getsockname 51
-+#define __NR_getpeername 52
-+#define __NR_socketpair 53
-+#define __NR_setsockopt 54
-+#define __NR_getsockopt 55
-+#define __NR_clone 56
-+#define __NR_fork 57
-+#define __NR_vfork 58
-+#define __NR_execve 59
-+#define __NR_exit 60
-+#define __NR_wait4 61
-+#define __NR_kill 62
-+#define __NR_uname 63
-+#define __NR_semget 64
-+#define __NR_semop 65
-+#define __NR_semctl 66
-+#define __NR_shmdt 67
-+#define __NR_msgget 68
-+#define __NR_msgsnd 69
-+#define __NR_msgrcv 70
-+#define __NR_msgctl 71
-+#define __NR_fcntl 72
-+#define __NR_flock 73
-+#define __NR_fsync 74
-+#define __NR_fdatasync 75
-+#define __NR_truncate 76
-+#define __NR_ftruncate 77
-+#define __NR_getdents 78
-+#define __NR_getcwd 79
-+#define __NR_chdir 80
-+#define __NR_fchdir 81
-+#define __NR_rename 82
-+#define __NR_mkdir 83
-+#define __NR_rmdir 84
-+#define __NR_creat 85
-+#define __NR_link 86
-+#define __NR_unlink 87
-+#define __NR_symlink 88
-+#define __NR_readlink 89
-+#define __NR_chmod 90
-+#define __NR_fchmod 91
-+#define __NR_chown 92
-+#define __NR_fchown 93
-+#define __NR_lchown 94
-+#define __NR_umask 95
-+#define __NR_gettimeofday 96
-+#define __NR_getrlimit 97
-+#define __NR_getrusage 98
-+#define __NR_sysinfo 99
-+#define __NR_times 100
-+#define __NR_ptrace 101
-+#define __NR_getuid 102
-+#define __NR_syslog 103
-+#define __NR_getgid 104
-+#define __NR_setuid 105
-+#define __NR_setgid 106
-+#define __NR_geteuid 107
-+#define __NR_getegid 108
-+#define __NR_setpgid 109
-+#define __NR_getppid 110
-+#define __NR_getpgrp 111
-+#define __NR_setsid 112
-+#define __NR_setreuid 113
-+#define __NR_setregid 114
-+#define __NR_getgroups 115
-+#define __NR_setgroups 116
-+#define __NR_setresuid 117
-+#define __NR_getresuid 118
-+#define __NR_setresgid 119
-+#define __NR_getresgid 120
-+#define __NR_getpgid 121
-+#define __NR_setfsuid 122
-+#define __NR_setfsgid 123
-+#define __NR_getsid 124
-+#define __NR_capget 125
-+#define __NR_capset 126
-+#define __NR_rt_sigpending 127
-+#define __NR_rt_sigtimedwait 128
-+#define __NR_rt_sigqueueinfo 129
-+#define __NR_rt_sigsuspend 130
-+#define __NR_sigaltstack 131
-+#define __NR_utime 132
-+#define __NR_mknod 133
-+#define __NR_uselib 134
-+#define __NR_personality 135
-+#define __NR_ustat 136
-+#define __NR_statfs 137
-+#define __NR_fstatfs 138
-+#define __NR_sysfs 139
-+#define __NR_getpriority 140
-+#define __NR_setpriority 141
-+#define __NR_sched_setparam 142
-+#define __NR_sched_getparam 143
-+#define __NR_sched_setscheduler 144
-+#define __NR_sched_getscheduler 145
-+#define __NR_sched_get_priority_max 146
-+#define __NR_sched_get_priority_min 147
-+#define __NR_sched_rr_get_interval 148
-+#define __NR_mlock 149
-+#define __NR_munlock 150
-+#define __NR_mlockall 151
-+#define __NR_munlockall 152
-+#define __NR_vhangup 153
-+#define __NR_modify_ldt 154
-+#define __NR_pivot_root 155
-+#define __NR__sysctl 156
-+#define __NR_prctl 157
-+#define __NR_arch_prctl 158
-+#define __NR_adjtimex 159
-+#define __NR_setrlimit 160
-+#define __NR_chroot 161
-+#define __NR_sync 162
-+#define __NR_acct 163
-+#define __NR_settimeofday 164
-+#define __NR_mount 165
-+#define __NR_umount2 166
-+#define __NR_swapon 167
-+#define __NR_swapoff 168
-+#define __NR_reboot 169
-+#define __NR_sethostname 170
-+#define __NR_setdomainname 171
-+#define __NR_iopl 172
-+#define __NR_ioperm 173
-+#define __NR_create_module 174
-+#define __NR_init_module 175
-+#define __NR_delete_module 176
-+#define __NR_get_kernel_syms 177
-+#define __NR_query_module 178
-+#define __NR_quotactl 179
-+#define __NR_nfsservctl 180
-+#define __NR_getpmsg 181
-+#define __NR_putpmsg 182
-+#define __NR_afs_syscall 183
-+#define __NR_tuxcall 184
-+#define __NR_security 185
-+#define __NR_gettid 186
-+#define __NR_readahead 187
-+#define __NR_setxattr 188
-+#define __NR_lsetxattr 189
-+#define __NR_fsetxattr 190
-+#define __NR_getxattr 191
-+#define __NR_lgetxattr 192
-+#define __NR_fgetxattr 193
-+#define __NR_listxattr 194
-+#define __NR_llistxattr 195
-+#define __NR_flistxattr 196
-+#define __NR_removexattr 197
-+#define __NR_lremovexattr 198
-+#define __NR_fremovexattr 199
-+#define __NR_tkill 200
-+#define __NR_time 201
-+#define __NR_futex 202
-+#define __NR_sched_setaffinity 203
-+#define __NR_sched_getaffinity 204
-+#define __NR_set_thread_area 205
-+#define __NR_io_setup 206
-+#define __NR_io_destroy 207
-+#define __NR_io_getevents 208
-+#define __NR_io_submit 209
-+#define __NR_io_cancel 210
-+#define __NR_get_thread_area 211
-+#define __NR_lookup_dcookie 212
-+#define __NR_epoll_create 213
-+#define __NR_epoll_ctl_old 214
-+#define __NR_epoll_wait_old 215
-+#define __NR_remap_file_pages 216
-+#define __NR_getdents64 217
-+#define __NR_set_tid_address 218
-+#define __NR_restart_syscall 219
-+#define __NR_semtimedop 220
-+#define __NR_fadvise64 221
-+#define __NR_timer_create 222
-+#define __NR_timer_settime 223
-+#define __NR_timer_gettime 224
-+#define __NR_timer_getoverrun 225
-+#define __NR_timer_delete 226
-+#define __NR_clock_settime 227
-+#define __NR_clock_gettime 228
-+#define __NR_clock_getres 229
-+#define __NR_clock_nanosleep 230
-+#define __NR_exit_group 231
-+#define __NR_epoll_wait 232
-+#define __NR_epoll_ctl 233
-+#define __NR_tgkill 234
-+#define __NR_utimes 235
-+#define __NR_vserver 236
-+#define __NR_mbind 237
-+#define __NR_set_mempolicy 238
-+#define __NR_get_mempolicy 239
-+#define __NR_mq_open 240
-+#define __NR_mq_unlink 241
-+#define __NR_mq_timedsend 242
-+#define __NR_mq_timedreceive 243
-+#define __NR_mq_notify 244
-+#define __NR_mq_getsetattr 245
-+#define __NR_kexec_load 246
-+#define __NR_waitid 247
-+#define __NR_add_key 248
-+#define __NR_request_key 249
-+#define __NR_keyctl 250
-+#define __NR_ioprio_set 251
-+#define __NR_ioprio_get 252
-+#define __NR_inotify_init 253
-+#define __NR_inotify_add_watch 254
-+#define __NR_inotify_rm_watch 255
-+#define __NR_migrate_pages 256
-+#define __NR_openat 257
-+#define __NR_mkdirat 258
-+#define __NR_mknodat 259
-+#define __NR_fchownat 260
-+#define __NR_futimesat 261
-+#define __NR_newfstatat 262
-+#define __NR_unlinkat 263
-+#define __NR_renameat 264
-+#define __NR_linkat 265
-+#define __NR_symlinkat 266
-+#define __NR_readlinkat 267
-+#define __NR_fchmodat 268
-+#define __NR_faccessat 269
-+#define __NR_pselect6 270
-+#define __NR_ppoll 271
-+#define __NR_unshare 272
-+#define __NR_set_robust_list 273
-+#define __NR_get_robust_list 274
-+#define __NR_splice 275
-+#define __NR_tee 276
-+#define __NR_sync_file_range 277
-+#define __NR_vmsplice 278
-+#define __NR_move_pages 279
-+#define __NR_utimensat 280
-+#define __NR_epoll_pwait 281
-+#define __NR_signalfd 282
-+#define __NR_timerfd_create 283
-+#define __NR_eventfd 284
-+#define __NR_fallocate 285
-+#define __NR_timerfd_settime 286
-+#define __NR_timerfd_gettime 287
-+#define __NR_accept4 288
-+#define __NR_signalfd4 289
-+#define __NR_eventfd2 290
-+#define __NR_epoll_create1 291
-+#define __NR_dup3 292
-+#define __NR_pipe2 293
-+#define __NR_inotify_init1 294
-+#define __NR_preadv 295
-+#define __NR_pwritev 296
-+#define __NR_rt_tgsigqueueinfo 297
-+#define __NR_perf_event_open 298
-+#define __NR_recvmmsg 299
-+#define __NR_fanotify_init 300
-+#define __NR_fanotify_mark 301
-+#define __NR_prlimit64 302
-+#define __NR_name_to_handle_at 303
-+#define __NR_open_by_handle_at 304
-+#define __NR_clock_adjtime 305
-+#define __NR_syncfs 306
-+#define __NR_sendmmsg 307
-+#define __NR_setns 308
-+#define __NR_getcpu 309
-+#define __NR_process_vm_readv 310
-+#define __NR_process_vm_writev 311
-+#define __NR_kcmp 312
-+#define __NR_finit_module 313
-+#define __NR_sched_setattr 314
-+#define __NR_sched_getattr 315
-+#define __NR_renameat2 316
-+#define __NR_seccomp 317
-+#define __NR_getrandom 318
-+#define __NR_memfd_create 319
-+#define __NR_kexec_file_load 320
-+#define __NR_bpf 321
-+#define __NR_execveat 322
-+#define __NR_userfaultfd 323
-+#define __NR_membarrier 324
-+#define __NR_mlock2 325
-+#define __NR_copy_file_range 326
-+#define __NR_preadv2 327
-+#define __NR_pwritev2 328
-+#define __NR_pkey_mprotect 329
-+#define __NR_pkey_alloc 330
-+#define __NR_pkey_free 331
-+#define __NR_statx 332
-+#define __NR_io_pgetevents 333
-+#define __NR_rseq 334
-+#define __NR_pidfd_send_signal 424
-+#define __NR_io_uring_setup 425
-+#define __NR_io_uring_enter 426
-+#define __NR_io_uring_register 427
-+#define __NR_open_tree 428
-+#define __NR_move_mount 429
-+#define __NR_fsopen 430
-+#define __NR_fsconfig 431
-+#define __NR_fsmount 432
-+#define __NR_fspick 433
-+#define __NR_pidfd_open 434
-+#define __NR_clone3 435
-+#define __NR_close_range 436
-+#define __NR_openat2 437
-+#define __NR_pidfd_getfd 438
-+#define __NR_faccessat2 439
-+#define __NR_process_madvise 440
-+#define __NR_epoll_pwait2 441
-+#define __NR_mount_setattr 442
-+#define __NR_quotactl_fd 443
-+#define __NR_landlock_create_ruleset 444
-+#define __NR_landlock_add_rule 445
-+#define __NR_landlock_restrict_self 446
-+#define __NR_memfd_secret 447
-+#define __NR_process_mrelease 448
-+#define __NR_futex_waitv 449
-+#define __NR_set_mempolicy_home_node 450
-+#define __NR_cachestat 451
-+#define __NR_fchmodat2 452
-+#define __NR_map_shadow_stack 453
-+#define __NR_futex_wake 454
-+#define __NR_futex_wait 455
-+#define __NR_futex_requeue 456
-+#define __NR_statmount 457
-+#define __NR_listmount 458
-+#define __NR_lsm_get_self_attr 459
-+#define __NR_lsm_set_self_attr 460
-+#define __NR_lsm_list_modules 461
-+#define __NR_mseal 462
-+
-+
-+#endif /* _ASM_UNISTD_64_H */
---- /dev/null
-+++ a/tools/include/uapi/asm/unistd_x32.h
-@@ -0,0 +1,369 @@
-+#ifndef _ASM_UNISTD_X32_H
-+#define _ASM_UNISTD_X32_H
-+
-+#define __NR_read (__X32_SYSCALL_BIT + 0)
-+#define __NR_write (__X32_SYSCALL_BIT + 1)
-+#define __NR_open (__X32_SYSCALL_BIT + 2)
-+#define __NR_close (__X32_SYSCALL_BIT + 3)
-+#define __NR_stat (__X32_SYSCALL_BIT + 4)
-+#define __NR_fstat (__X32_SYSCALL_BIT + 5)
-+#define __NR_lstat (__X32_SYSCALL_BIT + 6)
-+#define __NR_poll (__X32_SYSCALL_BIT + 7)
-+#define __NR_lseek (__X32_SYSCALL_BIT + 8)
-+#define __NR_mmap (__X32_SYSCALL_BIT + 9)
-+#define __NR_mprotect (__X32_SYSCALL_BIT + 10)
-+#define __NR_munmap (__X32_SYSCALL_BIT + 11)
-+#define __NR_brk (__X32_SYSCALL_BIT + 12)
-+#define __NR_rt_sigprocmask (__X32_SYSCALL_BIT + 14)
-+#define __NR_pread64 (__X32_SYSCALL_BIT + 17)
-+#define __NR_pwrite64 (__X32_SYSCALL_BIT + 18)
-+#define __NR_access (__X32_SYSCALL_BIT + 21)
-+#define __NR_pipe (__X32_SYSCALL_BIT + 22)
-+#define __NR_select (__X32_SYSCALL_BIT + 23)
-+#define __NR_sched_yield (__X32_SYSCALL_BIT + 24)
-+#define __NR_mremap (__X32_SYSCALL_BIT + 25)
-+#define __NR_msync (__X32_SYSCALL_BIT + 26)
-+#define __NR_mincore (__X32_SYSCALL_BIT + 27)
-+#define __NR_madvise (__X32_SYSCALL_BIT + 28)
-+#define __NR_shmget (__X32_SYSCALL_BIT + 29)
-+#define __NR_shmat (__X32_SYSCALL_BIT + 30)
-+#define __NR_shmctl (__X32_SYSCALL_BIT + 31)
-+#define __NR_dup (__X32_SYSCALL_BIT + 32)
-+#define __NR_dup2 (__X32_SYSCALL_BIT + 33)
-+#define __NR_pause (__X32_SYSCALL_BIT + 34)
-+#define __NR_nanosleep (__X32_SYSCALL_BIT + 35)
-+#define __NR_getitimer (__X32_SYSCALL_BIT + 36)
-+#define __NR_alarm (__X32_SYSCALL_BIT + 37)
-+#define __NR_setitimer (__X32_SYSCALL_BIT + 38)
-+#define __NR_getpid (__X32_SYSCALL_BIT + 39)
-+#define __NR_sendfile (__X32_SYSCALL_BIT + 40)
-+#define __NR_socket (__X32_SYSCALL_BIT + 41)
-+#define __NR_connect (__X32_SYSCALL_BIT + 42)
-+#define __NR_accept (__X32_SYSCALL_BIT + 43)
-+#define __NR_sendto (__X32_SYSCALL_BIT + 44)
-+#define __NR_shutdown (__X32_SYSCALL_BIT + 48)
-+#define __NR_bind (__X32_SYSCALL_BIT + 49)
-+#define __NR_listen (__X32_SYSCALL_BIT + 50)
-+#define __NR_getsockname (__X32_SYSCALL_BIT + 51)
-+#define __NR_getpeername (__X32_SYSCALL_BIT + 52)
-+#define __NR_socketpair (__X32_SYSCALL_BIT + 53)
-+#define __NR_clone (__X32_SYSCALL_BIT + 56)
-+#define __NR_fork (__X32_SYSCALL_BIT + 57)
-+#define __NR_vfork (__X32_SYSCALL_BIT + 58)
-+#define __NR_exit (__X32_SYSCALL_BIT + 60)
-+#define __NR_wait4 (__X32_SYSCALL_BIT + 61)
-+#define __NR_kill (__X32_SYSCALL_BIT + 62)
-+#define __NR_uname (__X32_SYSCALL_BIT + 63)
-+#define __NR_semget (__X32_SYSCALL_BIT + 64)
-+#define __NR_semop (__X32_SYSCALL_BIT + 65)
-+#define __NR_semctl (__X32_SYSCALL_BIT + 66)
-+#define __NR_shmdt (__X32_SYSCALL_BIT + 67)
-+#define __NR_msgget (__X32_SYSCALL_BIT + 68)
-+#define __NR_msgsnd (__X32_SYSCALL_BIT + 69)
-+#define __NR_msgrcv (__X32_SYSCALL_BIT + 70)
-+#define __NR_msgctl (__X32_SYSCALL_BIT + 71)
-+#define __NR_fcntl (__X32_SYSCALL_BIT + 72)
-+#define __NR_flock (__X32_SYSCALL_BIT + 73)
-+#define __NR_fsync (__X32_SYSCALL_BIT + 74)
-+#define __NR_fdatasync (__X32_SYSCALL_BIT + 75)
-+#define __NR_truncate (__X32_SYSCALL_BIT + 76)
-+#define __NR_ftruncate (__X32_SYSCALL_BIT + 77)
-+#define __NR_getdents (__X32_SYSCALL_BIT + 78)
-+#define __NR_getcwd (__X32_SYSCALL_BIT + 79)
-+#define __NR_chdir (__X32_SYSCALL_BIT + 80)
-+#define __NR_fchdir (__X32_SYSCALL_BIT + 81)
-+#define __NR_rename (__X32_SYSCALL_BIT + 82)
-+#define __NR_mkdir (__X32_SYSCALL_BIT + 83)
-+#define __NR_rmdir (__X32_SYSCALL_BIT + 84)
-+#define __NR_creat (__X32_SYSCALL_BIT + 85)
-+#define __NR_link (__X32_SYSCALL_BIT + 86)
-+#define __NR_unlink (__X32_SYSCALL_BIT + 87)
-+#define __NR_symlink (__X32_SYSCALL_BIT + 88)
-+#define __NR_readlink (__X32_SYSCALL_BIT + 89)
-+#define __NR_chmod (__X32_SYSCALL_BIT + 90)
-+#define __NR_fchmod (__X32_SYSCALL_BIT + 91)
-+#define __NR_chown (__X32_SYSCALL_BIT + 92)
-+#define __NR_fchown (__X32_SYSCALL_BIT + 93)
-+#define __NR_lchown (__X32_SYSCALL_BIT + 94)
-+#define __NR_umask (__X32_SYSCALL_BIT + 95)
-+#define __NR_gettimeofday (__X32_SYSCALL_BIT + 96)
-+#define __NR_getrlimit (__X32_SYSCALL_BIT + 97)
-+#define __NR_getrusage (__X32_SYSCALL_BIT + 98)
-+#define __NR_sysinfo (__X32_SYSCALL_BIT + 99)
-+#define __NR_times (__X32_SYSCALL_BIT + 100)
-+#define __NR_getuid (__X32_SYSCALL_BIT + 102)
-+#define __NR_syslog (__X32_SYSCALL_BIT + 103)
-+#define __NR_getgid (__X32_SYSCALL_BIT + 104)
-+#define __NR_setuid (__X32_SYSCALL_BIT + 105)
-+#define __NR_setgid (__X32_SYSCALL_BIT + 106)
-+#define __NR_geteuid (__X32_SYSCALL_BIT + 107)
-+#define __NR_getegid (__X32_SYSCALL_BIT + 108)
-+#define __NR_setpgid (__X32_SYSCALL_BIT + 109)
-+#define __NR_getppid (__X32_SYSCALL_BIT + 110)
-+#define __NR_getpgrp (__X32_SYSCALL_BIT + 111)
-+#define __NR_setsid (__X32_SYSCALL_BIT + 112)
-+#define __NR_setreuid (__X32_SYSCALL_BIT + 113)
-+#define __NR_setregid (__X32_SYSCALL_BIT + 114)
-+#define __NR_getgroups (__X32_SYSCALL_BIT + 115)
-+#define __NR_setgroups (__X32_SYSCALL_BIT + 116)
-+#define __NR_setresuid (__X32_SYSCALL_BIT + 117)
-+#define __NR_getresuid (__X32_SYSCALL_BIT + 118)
-+#define __NR_setresgid (__X32_SYSCALL_BIT + 119)
-+#define __NR_getresgid (__X32_SYSCALL_BIT + 120)
-+#define __NR_getpgid (__X32_SYSCALL_BIT + 121)
-+#define __NR_setfsuid (__X32_SYSCALL_BIT + 122)
-+#define __NR_setfsgid (__X32_SYSCALL_BIT + 123)
-+#define __NR_getsid (__X32_SYSCALL_BIT + 124)
-+#define __NR_capget (__X32_SYSCALL_BIT + 125)
-+#define __NR_capset (__X32_SYSCALL_BIT + 126)
-+#define __NR_rt_sigsuspend (__X32_SYSCALL_BIT + 130)
-+#define __NR_utime (__X32_SYSCALL_BIT + 132)
-+#define __NR_mknod (__X32_SYSCALL_BIT + 133)
-+#define __NR_personality (__X32_SYSCALL_BIT + 135)
-+#define __NR_ustat (__X32_SYSCALL_BIT + 136)
-+#define __NR_statfs (__X32_SYSCALL_BIT + 137)
-+#define __NR_fstatfs (__X32_SYSCALL_BIT + 138)
-+#define __NR_sysfs (__X32_SYSCALL_BIT + 139)
-+#define __NR_getpriority (__X32_SYSCALL_BIT + 140)
-+#define __NR_setpriority (__X32_SYSCALL_BIT + 141)
-+#define __NR_sched_setparam (__X32_SYSCALL_BIT + 142)
-+#define __NR_sched_getparam (__X32_SYSCALL_BIT + 143)
-+#define __NR_sched_setscheduler (__X32_SYSCALL_BIT + 144)
-+#define __NR_sched_getscheduler (__X32_SYSCALL_BIT + 145)
-+#define __NR_sched_get_priority_max (__X32_SYSCALL_BIT + 146)
-+#define __NR_sched_get_priority_min (__X32_SYSCALL_BIT + 147)
-+#define __NR_sched_rr_get_interval (__X32_SYSCALL_BIT + 148)
-+#define __NR_mlock (__X32_SYSCALL_BIT + 149)
-+#define __NR_munlock (__X32_SYSCALL_BIT + 150)
-+#define __NR_mlockall (__X32_SYSCALL_BIT + 151)
-+#define __NR_munlockall (__X32_SYSCALL_BIT + 152)
-+#define __NR_vhangup (__X32_SYSCALL_BIT + 153)
-+#define __NR_modify_ldt (__X32_SYSCALL_BIT + 154)
-+#define __NR_pivot_root (__X32_SYSCALL_BIT + 155)
-+#define __NR_prctl (__X32_SYSCALL_BIT + 157)
-+#define __NR_arch_prctl (__X32_SYSCALL_BIT + 158)
-+#define __NR_adjtimex (__X32_SYSCALL_BIT + 159)
-+#define __NR_setrlimit (__X32_SYSCALL_BIT + 160)
-+#define __NR_chroot (__X32_SYSCALL_BIT + 161)
-+#define __NR_sync (__X32_SYSCALL_BIT + 162)
-+#define __NR_acct (__X32_SYSCALL_BIT + 163)
-+#define __NR_settimeofday (__X32_SYSCALL_BIT + 164)
-+#define __NR_mount (__X32_SYSCALL_BIT + 165)
-+#define __NR_umount2 (__X32_SYSCALL_BIT + 166)
-+#define __NR_swapon (__X32_SYSCALL_BIT + 167)
-+#define __NR_swapoff (__X32_SYSCALL_BIT + 168)
-+#define __NR_reboot (__X32_SYSCALL_BIT + 169)
-+#define __NR_sethostname (__X32_SYSCALL_BIT + 170)
-+#define __NR_setdomainname (__X32_SYSCALL_BIT + 171)
-+#define __NR_iopl (__X32_SYSCALL_BIT + 172)
-+#define __NR_ioperm (__X32_SYSCALL_BIT + 173)
-+#define __NR_init_module (__X32_SYSCALL_BIT + 175)
-+#define __NR_delete_module (__X32_SYSCALL_BIT + 176)
-+#define __NR_quotactl (__X32_SYSCALL_BIT + 179)
-+#define __NR_getpmsg (__X32_SYSCALL_BIT + 181)
-+#define __NR_putpmsg (__X32_SYSCALL_BIT + 182)
-+#define __NR_afs_syscall (__X32_SYSCALL_BIT + 183)
-+#define __NR_tuxcall (__X32_SYSCALL_BIT + 184)
-+#define __NR_security (__X32_SYSCALL_BIT + 185)
-+#define __NR_gettid (__X32_SYSCALL_BIT + 186)
-+#define __NR_readahead (__X32_SYSCALL_BIT + 187)
-+#define __NR_setxattr (__X32_SYSCALL_BIT + 188)
-+#define __NR_lsetxattr (__X32_SYSCALL_BIT + 189)
-+#define __NR_fsetxattr (__X32_SYSCALL_BIT + 190)
-+#define __NR_getxattr (__X32_SYSCALL_BIT + 191)
-+#define __NR_lgetxattr (__X32_SYSCALL_BIT + 192)
-+#define __NR_fgetxattr (__X32_SYSCALL_BIT + 193)
-+#define __NR_listxattr (__X32_SYSCALL_BIT + 194)
-+#define __NR_llistxattr (__X32_SYSCALL_BIT + 195)
-+#define __NR_flistxattr (__X32_SYSCALL_BIT + 196)
-+#define __NR_removexattr (__X32_SYSCALL_BIT + 197)
-+#define __NR_lremovexattr (__X32_SYSCALL_BIT + 198)
-+#define __NR_fremovexattr (__X32_SYSCALL_BIT + 199)
-+#define __NR_tkill (__X32_SYSCALL_BIT + 200)
-+#define __NR_time (__X32_SYSCALL_BIT + 201)
-+#define __NR_futex (__X32_SYSCALL_BIT + 202)
-+#define __NR_sched_setaffinity (__X32_SYSCALL_BIT + 203)
-+#define __NR_sched_getaffinity (__X32_SYSCALL_BIT + 204)
-+#define __NR_io_destroy (__X32_SYSCALL_BIT + 207)
-+#define __NR_io_getevents (__X32_SYSCALL_BIT + 208)
-+#define __NR_io_cancel (__X32_SYSCALL_BIT + 210)
-+#define __NR_lookup_dcookie (__X32_SYSCALL_BIT + 212)
-+#define __NR_epoll_create (__X32_SYSCALL_BIT + 213)
-+#define __NR_remap_file_pages (__X32_SYSCALL_BIT + 216)
-+#define __NR_getdents64 (__X32_SYSCALL_BIT + 217)
-+#define __NR_set_tid_address (__X32_SYSCALL_BIT + 218)
-+#define __NR_restart_syscall (__X32_SYSCALL_BIT + 219)
-+#define __NR_semtimedop (__X32_SYSCALL_BIT + 220)
-+#define __NR_fadvise64 (__X32_SYSCALL_BIT + 221)
-+#define __NR_timer_settime (__X32_SYSCALL_BIT + 223)
-+#define __NR_timer_gettime (__X32_SYSCALL_BIT + 224)
-+#define __NR_timer_getoverrun (__X32_SYSCALL_BIT + 225)
-+#define __NR_timer_delete (__X32_SYSCALL_BIT + 226)
-+#define __NR_clock_settime (__X32_SYSCALL_BIT + 227)
-+#define __NR_clock_gettime (__X32_SYSCALL_BIT + 228)
-+#define __NR_clock_getres (__X32_SYSCALL_BIT + 229)
-+#define __NR_clock_nanosleep (__X32_SYSCALL_BIT + 230)
-+#define __NR_exit_group (__X32_SYSCALL_BIT + 231)
-+#define __NR_epoll_wait (__X32_SYSCALL_BIT + 232)
-+#define __NR_epoll_ctl (__X32_SYSCALL_BIT + 233)
-+#define __NR_tgkill (__X32_SYSCALL_BIT + 234)
-+#define __NR_utimes (__X32_SYSCALL_BIT + 235)
-+#define __NR_mbind (__X32_SYSCALL_BIT + 237)
-+#define __NR_set_mempolicy (__X32_SYSCALL_BIT + 238)
-+#define __NR_get_mempolicy (__X32_SYSCALL_BIT + 239)
-+#define __NR_mq_open (__X32_SYSCALL_BIT + 240)
-+#define __NR_mq_unlink (__X32_SYSCALL_BIT + 241)
-+#define __NR_mq_timedsend (__X32_SYSCALL_BIT + 242)
-+#define __NR_mq_timedreceive (__X32_SYSCALL_BIT + 243)
-+#define __NR_mq_getsetattr (__X32_SYSCALL_BIT + 245)
-+#define __NR_add_key (__X32_SYSCALL_BIT + 248)
-+#define __NR_request_key (__X32_SYSCALL_BIT + 249)
-+#define __NR_keyctl (__X32_SYSCALL_BIT + 250)
-+#define __NR_ioprio_set (__X32_SYSCALL_BIT + 251)
-+#define __NR_ioprio_get (__X32_SYSCALL_BIT + 252)
-+#define __NR_inotify_init (__X32_SYSCALL_BIT + 253)
-+#define __NR_inotify_add_watch (__X32_SYSCALL_BIT + 254)
-+#define __NR_inotify_rm_watch (__X32_SYSCALL_BIT + 255)
-+#define __NR_migrate_pages (__X32_SYSCALL_BIT + 256)
-+#define __NR_openat (__X32_SYSCALL_BIT + 257)
-+#define __NR_mkdirat (__X32_SYSCALL_BIT + 258)
-+#define __NR_mknodat (__X32_SYSCALL_BIT + 259)
-+#define __NR_fchownat (__X32_SYSCALL_BIT + 260)
-+#define __NR_futimesat (__X32_SYSCALL_BIT + 261)
-+#define __NR_newfstatat (__X32_SYSCALL_BIT + 262)
-+#define __NR_unlinkat (__X32_SYSCALL_BIT + 263)
-+#define __NR_renameat (__X32_SYSCALL_BIT + 264)
-+#define __NR_linkat (__X32_SYSCALL_BIT + 265)
-+#define __NR_symlinkat (__X32_SYSCALL_BIT + 266)
-+#define __NR_readlinkat (__X32_SYSCALL_BIT + 267)
-+#define __NR_fchmodat (__X32_SYSCALL_BIT + 268)
-+#define __NR_faccessat (__X32_SYSCALL_BIT + 269)
-+#define __NR_pselect6 (__X32_SYSCALL_BIT + 270)
-+#define __NR_ppoll (__X32_SYSCALL_BIT + 271)
-+#define __NR_unshare (__X32_SYSCALL_BIT + 272)
-+#define __NR_splice (__X32_SYSCALL_BIT + 275)
-+#define __NR_tee (__X32_SYSCALL_BIT + 276)
-+#define __NR_sync_file_range (__X32_SYSCALL_BIT + 277)
-+#define __NR_utimensat (__X32_SYSCALL_BIT + 280)
-+#define __NR_epoll_pwait (__X32_SYSCALL_BIT + 281)
-+#define __NR_signalfd (__X32_SYSCALL_BIT + 282)
-+#define __NR_timerfd_create (__X32_SYSCALL_BIT + 283)
-+#define __NR_eventfd (__X32_SYSCALL_BIT + 284)
-+#define __NR_fallocate (__X32_SYSCALL_BIT + 285)
-+#define __NR_timerfd_settime (__X32_SYSCALL_BIT + 286)
-+#define __NR_timerfd_gettime (__X32_SYSCALL_BIT + 287)
-+#define __NR_accept4 (__X32_SYSCALL_BIT + 288)
-+#define __NR_signalfd4 (__X32_SYSCALL_BIT + 289)
-+#define __NR_eventfd2 (__X32_SYSCALL_BIT + 290)
-+#define __NR_epoll_create1 (__X32_SYSCALL_BIT + 291)
-+#define __NR_dup3 (__X32_SYSCALL_BIT + 292)
-+#define __NR_pipe2 (__X32_SYSCALL_BIT + 293)
-+#define __NR_inotify_init1 (__X32_SYSCALL_BIT + 294)
-+#define __NR_perf_event_open (__X32_SYSCALL_BIT + 298)
-+#define __NR_fanotify_init (__X32_SYSCALL_BIT + 300)
-+#define __NR_fanotify_mark (__X32_SYSCALL_BIT + 301)
-+#define __NR_prlimit64 (__X32_SYSCALL_BIT + 302)
-+#define __NR_name_to_handle_at (__X32_SYSCALL_BIT + 303)
-+#define __NR_open_by_handle_at (__X32_SYSCALL_BIT + 304)
-+#define __NR_clock_adjtime (__X32_SYSCALL_BIT + 305)
-+#define __NR_syncfs (__X32_SYSCALL_BIT + 306)
-+#define __NR_setns (__X32_SYSCALL_BIT + 308)
-+#define __NR_getcpu (__X32_SYSCALL_BIT + 309)
-+#define __NR_kcmp (__X32_SYSCALL_BIT + 312)
-+#define __NR_finit_module (__X32_SYSCALL_BIT + 313)
-+#define __NR_sched_setattr (__X32_SYSCALL_BIT + 314)
-+#define __NR_sched_getattr (__X32_SYSCALL_BIT + 315)
-+#define __NR_renameat2 (__X32_SYSCALL_BIT + 316)
-+#define __NR_seccomp (__X32_SYSCALL_BIT + 317)
-+#define __NR_getrandom (__X32_SYSCALL_BIT + 318)
-+#define __NR_memfd_create (__X32_SYSCALL_BIT + 319)
-+#define __NR_kexec_file_load (__X32_SYSCALL_BIT + 320)
-+#define __NR_bpf (__X32_SYSCALL_BIT + 321)
-+#define __NR_userfaultfd (__X32_SYSCALL_BIT + 323)
-+#define __NR_membarrier (__X32_SYSCALL_BIT + 324)
-+#define __NR_mlock2 (__X32_SYSCALL_BIT + 325)
-+#define __NR_copy_file_range (__X32_SYSCALL_BIT + 326)
-+#define __NR_pkey_mprotect (__X32_SYSCALL_BIT + 329)
-+#define __NR_pkey_alloc (__X32_SYSCALL_BIT + 330)
-+#define __NR_pkey_free (__X32_SYSCALL_BIT + 331)
-+#define __NR_statx (__X32_SYSCALL_BIT + 332)
-+#define __NR_io_pgetevents (__X32_SYSCALL_BIT + 333)
-+#define __NR_rseq (__X32_SYSCALL_BIT + 334)
-+#define __NR_pidfd_send_signal (__X32_SYSCALL_BIT + 424)
-+#define __NR_io_uring_setup (__X32_SYSCALL_BIT + 425)
-+#define __NR_io_uring_enter (__X32_SYSCALL_BIT + 426)
-+#define __NR_io_uring_register (__X32_SYSCALL_BIT + 427)
-+#define __NR_open_tree (__X32_SYSCALL_BIT + 428)
-+#define __NR_move_mount (__X32_SYSCALL_BIT + 429)
-+#define __NR_fsopen (__X32_SYSCALL_BIT + 430)
-+#define __NR_fsconfig (__X32_SYSCALL_BIT + 431)
-+#define __NR_fsmount (__X32_SYSCALL_BIT + 432)
-+#define __NR_fspick (__X32_SYSCALL_BIT + 433)
-+#define __NR_pidfd_open (__X32_SYSCALL_BIT + 434)
-+#define __NR_clone3 (__X32_SYSCALL_BIT + 435)
-+#define __NR_close_range (__X32_SYSCALL_BIT + 436)
-+#define __NR_openat2 (__X32_SYSCALL_BIT + 437)
-+#define __NR_pidfd_getfd (__X32_SYSCALL_BIT + 438)
-+#define __NR_faccessat2 (__X32_SYSCALL_BIT + 439)
-+#define __NR_process_madvise (__X32_SYSCALL_BIT + 440)
-+#define __NR_epoll_pwait2 (__X32_SYSCALL_BIT + 441)
-+#define __NR_mount_setattr (__X32_SYSCALL_BIT + 442)
-+#define __NR_quotactl_fd (__X32_SYSCALL_BIT + 443)
-+#define __NR_landlock_create_ruleset (__X32_SYSCALL_BIT + 444)
-+#define __NR_landlock_add_rule (__X32_SYSCALL_BIT + 445)
-+#define __NR_landlock_restrict_self (__X32_SYSCALL_BIT + 446)
-+#define __NR_memfd_secret (__X32_SYSCALL_BIT + 447)
-+#define __NR_process_mrelease (__X32_SYSCALL_BIT + 448)
-+#define __NR_futex_waitv (__X32_SYSCALL_BIT + 449)
-+#define __NR_set_mempolicy_home_node (__X32_SYSCALL_BIT + 450)
-+#define __NR_cachestat (__X32_SYSCALL_BIT + 451)
-+#define __NR_fchmodat2 (__X32_SYSCALL_BIT + 452)
-+#define __NR_map_shadow_stack (__X32_SYSCALL_BIT + 453)
-+#define __NR_futex_wake (__X32_SYSCALL_BIT + 454)
-+#define __NR_futex_wait (__X32_SYSCALL_BIT + 455)
-+#define __NR_futex_requeue (__X32_SYSCALL_BIT + 456)
-+#define __NR_statmount (__X32_SYSCALL_BIT + 457)
-+#define __NR_listmount (__X32_SYSCALL_BIT + 458)
-+#define __NR_lsm_get_self_attr (__X32_SYSCALL_BIT + 459)
-+#define __NR_lsm_set_self_attr (__X32_SYSCALL_BIT + 460)
-+#define __NR_lsm_list_modules (__X32_SYSCALL_BIT + 461)
-+#define __NR_mseal (__X32_SYSCALL_BIT + 462)
-+#define __NR_rt_sigaction (__X32_SYSCALL_BIT + 512)
-+#define __NR_rt_sigreturn (__X32_SYSCALL_BIT + 513)
-+#define __NR_ioctl (__X32_SYSCALL_BIT + 514)
-+#define __NR_readv (__X32_SYSCALL_BIT + 515)
-+#define __NR_writev (__X32_SYSCALL_BIT + 516)
-+#define __NR_recvfrom (__X32_SYSCALL_BIT + 517)
-+#define __NR_sendmsg (__X32_SYSCALL_BIT + 518)
-+#define __NR_recvmsg (__X32_SYSCALL_BIT + 519)
-+#define __NR_execve (__X32_SYSCALL_BIT + 520)
-+#define __NR_ptrace (__X32_SYSCALL_BIT + 521)
-+#define __NR_rt_sigpending (__X32_SYSCALL_BIT + 522)
-+#define __NR_rt_sigtimedwait (__X32_SYSCALL_BIT + 523)
-+#define __NR_rt_sigqueueinfo (__X32_SYSCALL_BIT + 524)
-+#define __NR_sigaltstack (__X32_SYSCALL_BIT + 525)
-+#define __NR_timer_create (__X32_SYSCALL_BIT + 526)
-+#define __NR_mq_notify (__X32_SYSCALL_BIT + 527)
-+#define __NR_kexec_load (__X32_SYSCALL_BIT + 528)
-+#define __NR_waitid (__X32_SYSCALL_BIT + 529)
-+#define __NR_set_robust_list (__X32_SYSCALL_BIT + 530)
-+#define __NR_get_robust_list (__X32_SYSCALL_BIT + 531)
-+#define __NR_vmsplice (__X32_SYSCALL_BIT + 532)
-+#define __NR_move_pages (__X32_SYSCALL_BIT + 533)
-+#define __NR_preadv (__X32_SYSCALL_BIT + 534)
-+#define __NR_pwritev (__X32_SYSCALL_BIT + 535)
-+#define __NR_rt_tgsigqueueinfo (__X32_SYSCALL_BIT + 536)
-+#define __NR_recvmmsg (__X32_SYSCALL_BIT + 537)
-+#define __NR_sendmmsg (__X32_SYSCALL_BIT + 538)
-+#define __NR_process_vm_readv (__X32_SYSCALL_BIT + 539)
-+#define __NR_process_vm_writev (__X32_SYSCALL_BIT + 540)
-+#define __NR_setsockopt (__X32_SYSCALL_BIT + 541)
-+#define __NR_getsockopt (__X32_SYSCALL_BIT + 542)
-+#define __NR_io_setup (__X32_SYSCALL_BIT + 543)
-+#define __NR_io_submit (__X32_SYSCALL_BIT + 544)
-+#define __NR_execveat (__X32_SYSCALL_BIT + 545)
-+#define __NR_preadv2 (__X32_SYSCALL_BIT + 546)
-+#define __NR_pwritev2 (__X32_SYSCALL_BIT + 547)
-+
-+
-+#endif /* _ASM_UNISTD_X32_H */
---- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-mseal-self_elf-fix-missing-__nr_mseal
-+++ a/tools/testing/selftests/mm/mseal_test.c
-@@ -3,7 +3,7 @@
- #include <linux/mman.h>
- #include <sys/mman.h>
- #include <stdint.h>
--#include <unistd.h>
-+#include <linux/unistd.h>
- #include <string.h>
- #include <sys/time.h>
- #include <sys/resource.h>
---- a/tools/testing/selftests/mm/seal_elf.c~selftests-mm-mseal-self_elf-fix-missing-__nr_mseal
-+++ a/tools/testing/selftests/mm/seal_elf.c
-@@ -2,7 +2,7 @@
- #define _GNU_SOURCE
- #include <sys/mman.h>
- #include <stdint.h>
--#include <unistd.h>
-+#include <linux/unistd.h>
- #include <string.h>
- #include <sys/time.h>
- #include <sys/resource.h>
-_
-
-Patches currently in -mm which might be from jhubbard@nvidia.com are
-
-selftests-mm-mseal-self_elf-fix-missing-__nr_mseal.patch
-selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items.patch
-selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass.patch
-selftests-mm-fix-vm_utilc-build-failures-add-snapshot-of-fsh.patch
-selftests-mm-kvm-mdwe-fixes-to-avoid-requiring-make-headers.patch
-selftests-mm-remove-local-__nr_-definitions.patch
-selftests-mqueue-fix-5-warnings-about-signed-unsigned-mismatches.patch
-
+>   			nr_pages = 1;
+>   		} else {
+>   			/* Now we can set mappings for the whole large folio. */
+> _
+> 
+> Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+> 
+> mm-memory-extend-finish_fault-to-support-large-folio.patch
+> mm-memory-extend-finish_fault-to-support-large-folio-fix.patch
+> mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch
+> mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch
+> mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix.patch
+> mm-shmem-add-mthp-support-for-anonymous-shmem.patch
+> mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area.patch
+> mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
