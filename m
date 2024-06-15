@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEB431EB3D
-	for <mm-commits@vger.kernel.org>; Sat, 15 Jun 2024 17:44:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 429721EB3D
+	for <mm-commits@vger.kernel.org>; Sat, 15 Jun 2024 17:44:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718473441; cv=none; b=A6urZmFUU2G1JyQLGtjJ/oC0cSr6xh3p0nSk8q1QnGmSMU7NDYgRvsHkcNDhJhLopqapDNbC7k/3q5YNITH4UJbl1WggZkR2FNVFCVUXKZ6gFGnJ/IoYlyK6lYNpDqqH+Bqd8tY/jWkzKiK8d0rvu8PZ8WWf/ujoefU5Jxb4Qe8=
+	t=1718473443; cv=none; b=AytLKD/P6QsFJ14Sa/ZxJSG9ApW15U17F8ByzfIQUGWOB5tQZ50zkozcJR1tSK6htwifGc3mGrPvsC7Od1wuwqDL0koKhRowBRt4y9uiMyGSsUTH04uYNiVpIphMnHglSPpkzpv+orwwKI9xSr+UA/DoyPeFfP+X5myo0lN9kgw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718473441; c=relaxed/simple;
-	bh=hnreDgPcluc2t4z4QLu1VDD7E0cAo56O1SAS0In1DLM=;
-	h=Date:To:From:Subject:Message-Id; b=pTlSwiQl7AkJrHYAj9+yd2YgPk0bU/3uvTJqc3IFk7PQyu5Dbo34Z+0BrfVoXzkmT2TmVysjoQyYFpX32y0dSPG/pHkd2JZkdn88zlwDIgghR1Rk2zrePKYp0+1bYG6XuFYsb9AzoXmRGJsl24ulF82sjTGhczg2C9kbvqiz8KQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ff4RAgZE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718473443; c=relaxed/simple;
+	bh=86zD52HMH/TxG620xXkzUGOtQf/vWZBrbqPJ2+durk8=;
+	h=Date:To:From:Subject:Message-Id; b=u7EDGfirpuOgjll7xMBZFrKG4/zTj8panJ/eeO3MS2mxuvH15twn6ihd6NyOk1JsyxdCZ2/rPN6BIVB4Zx6KVWq4q06m8hNIFdRw0JuMCgNdUwcNtFKmJs0YaFU+e+4cYgpyl1t/vYSWa0Ziqfd6ZbzBP4uv4Iu6J5v3R9wJTxM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fUKiCcEL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ff4RAgZE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91CB4C116B1;
-	Sat, 15 Jun 2024 17:44:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fUKiCcEL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4C8BC116B1;
+	Sat, 15 Jun 2024 17:44:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718473441;
-	bh=hnreDgPcluc2t4z4QLu1VDD7E0cAo56O1SAS0In1DLM=;
+	s=korg; t=1718473442;
+	bh=86zD52HMH/TxG620xXkzUGOtQf/vWZBrbqPJ2+durk8=;
 	h=Date:To:From:Subject:From;
-	b=Ff4RAgZEEMpCzXWib0AdVLUZk3tXb/saawrQxMEwnL0SXgmI1NCwDDEKFXHYzmiIZ
-	 TaaW5dbng/VdHFwIM/MOOVMDB4Puo86LOxIqB0fcz8AG9EEpb0uFX0v4Housx6zxw8
-	 drPHGUc21+Gpmch+dYSyWe7A9rP3ylXWw/3HU5K8=
-Date: Sat, 15 Jun 2024 10:44:01 -0700
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,shuah@kernel.org,ryan.roberts@arm.com,broonie@kernel.org,akpm@linux-foundation.org
+	b=fUKiCcELfeAv9IzsZny50Jc8EcZrSgN8wcwCjSC3LvX2TCl3Kru5K8uWyr55wbave
+	 TBMIKLgJmkW5YUV9tDOMIQO6BdVZuhlcoqByqDuvpqQGgfv1pAR/NblWXPc2tBi3l1
+	 Z1rR9Mjy7H59O0InbR8yW4R9OY4dk5MPvKtNgYRk=
+Date: Sat, 15 Jun 2024 10:44:02 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,david@redhat.com,baolin.wang@linux.alibaba.com,hughd@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-make-map_fixed_noreplace-test-names-stable.patch removed from -mm tree
-Message-Id: <20240615174401.91CB4C116B1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-migrate-fix-kernel-bug-at-mm-compactionc-2761.patch removed from -mm tree
+Message-Id: <20240615174402.C4C8BC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,128 +35,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests: mm: make map_fixed_noreplace test names stable
+     Subject: mm/migrate: fix kernel BUG at mm/compaction.c:2761!
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-make-map_fixed_noreplace-test-names-stable.patch
+     mm-migrate-fix-kernel-bug-at-mm-compactionc-2761.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mark Brown <broonie@kernel.org>
-Subject: selftests: mm: make map_fixed_noreplace test names stable
-Date: Wed, 05 Jun 2024 23:36:12 +0100
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/migrate: fix kernel BUG at mm/compaction.c:2761!
+Date: Tue, 11 Jun 2024 22:06:20 -0700 (PDT)
 
-KTAP parsers interpret the output of ksft_test_result_*() as being the
-name of the test.  The map_fixed_noreplace test uses a dynamically
-allocated base address for the mmap()s that it tests and currently
-includes this in the test names that it logs so the test names that are
-logged are not stable between runs.  It also uses multiples of PAGE_SIZE
-which mean that runs for kernels with different PAGE_SIZE configurations
-can't be directly compared.  Both these factors cause issues for CI
-systems when interpreting and displaying results.
+I hit the VM_BUG_ON(!list_empty(&cc->migratepages)) in compact_zone(); and
+if DEBUG_VM were off, then pages would be lost on a local list.
 
-Fix this by replacing the current test names with fixed strings describing
-the intent of the mappings that are logged, the existing messages with the
-actual addresses and sizes are retained as diagnostic prints to aid in
-debugging.
+Our convention is that if migrate_pages() reports complete success (0),
+then the migratepages list will be empty; but if it reports an error or
+some pages remaining, then its caller must putback_movable_pages().
 
-Link: https://lkml.kernel.org/r/20240605-kselftest-mm-fixed-noreplace-v1-1-a235db8b9be9@kernel.org
-Fixes: 4838cf70e539 ("selftests/mm: map_fixed_noreplace: conform test to TAP format output")
-Signed-off-by: Mark Brown <broonie@kernel.org>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Shuah Khan <shuah@kernel.org>
+There's a new case in which migrate_pages() has been reporting complete
+success, but returning with pages left on the migratepages list: when
+migrate_pages_batch() successfully split a folio on the deferred list, but
+then the "Failure isn't counted" call does not dispose of them all.
+
+Since that block is expecting the large folio to have been counted as 1
+failure already, and since the return code is later adjusted to success
+whenever the returned list is found empty, the simple way to fix this
+safely is to count splitting the deferred folio as "a failure".
+
+Link: https://lkml.kernel.org/r/46c948b4-4dd8-6e03-4c7b-ce4e81cfa536@google.com
+Fixes: 7262f208ca68 ("mm/migrate: split source folio if it is on deferred split list")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/map_fixed_noreplace.c |   24 ++++++++-----
- 1 file changed, 16 insertions(+), 8 deletions(-)
+ mm/migrate.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/map_fixed_noreplace.c~selftests-mm-make-map_fixed_noreplace-test-names-stable
-+++ a/tools/testing/selftests/mm/map_fixed_noreplace.c
-@@ -67,7 +67,8 @@ int main(void)
- 		dump_maps();
- 		ksft_exit_fail_msg("Error: munmap failed!?\n");
- 	}
--	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_test_result_pass("mmap() 5*PAGE_SIZE at base\n");
+--- a/mm/migrate.c~mm-migrate-fix-kernel-bug-at-mm-compactionc-2761
++++ a/mm/migrate.c
+@@ -1654,7 +1654,12 @@ static int migrate_pages_batch(struct li
  
- 	addr = base_addr + page_size;
- 	size = 3 * page_size;
-@@ -76,7 +77,8 @@ int main(void)
- 		dump_maps();
- 		ksft_exit_fail_msg("Error: first mmap() failed unexpectedly\n");
- 	}
--	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_test_result_pass("mmap() 3*PAGE_SIZE at base+PAGE_SIZE\n");
- 
- 	/*
- 	 * Exact same mapping again:
-@@ -93,7 +95,8 @@ int main(void)
- 		dump_maps();
- 		ksft_exit_fail_msg("Error:1: mmap() succeeded when it shouldn't have\n");
- 	}
--	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_test_result_pass("mmap() 5*PAGE_SIZE at base\n");
- 
- 	/*
- 	 * Second mapping contained within first:
-@@ -111,7 +114,8 @@ int main(void)
- 		dump_maps();
- 		ksft_exit_fail_msg("Error:2: mmap() succeeded when it shouldn't have\n");
- 	}
--	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_test_result_pass("mmap() 2*PAGE_SIZE at base+PAGE_SIZE\n");
- 
- 	/*
- 	 * Overlap end of existing mapping:
-@@ -128,7 +132,8 @@ int main(void)
- 		dump_maps();
- 		ksft_exit_fail_msg("Error:3: mmap() succeeded when it shouldn't have\n");
- 	}
--	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_test_result_pass("mmap() 2*PAGE_SIZE  at base+(3*PAGE_SIZE)\n");
- 
- 	/*
- 	 * Overlap start of existing mapping:
-@@ -145,7 +150,8 @@ int main(void)
- 		dump_maps();
- 		ksft_exit_fail_msg("Error:4: mmap() succeeded when it shouldn't have\n");
- 	}
--	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_test_result_pass("mmap() 2*PAGE_SIZE bytes at base\n");
- 
- 	/*
- 	 * Adjacent to start of existing mapping:
-@@ -162,7 +168,8 @@ int main(void)
- 		dump_maps();
- 		ksft_exit_fail_msg("Error:5: mmap() failed when it shouldn't have\n");
- 	}
--	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_test_result_pass("mmap() PAGE_SIZE at base\n");
- 
- 	/*
- 	 * Adjacent to end of existing mapping:
-@@ -179,7 +186,8 @@ int main(void)
- 		dump_maps();
- 		ksft_exit_fail_msg("Error:6: mmap() failed when it shouldn't have\n");
- 	}
--	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-+	ksft_test_result_pass("mmap() PAGE_SIZE at base+(4*PAGE_SIZE)\n");
- 
- 	addr = base_addr;
- 	size = 5 * page_size;
+ 			/*
+ 			 * The rare folio on the deferred split list should
+-			 * be split now. It should not count as a failure.
++			 * be split now. It should not count as a failure:
++			 * but increment nr_failed because, without doing so,
++			 * migrate_pages() may report success with (split but
++			 * unmigrated) pages still on its fromlist; whereas it
++			 * always reports success when its fromlist is empty.
++			 *
+ 			 * Only check it without removing it from the list.
+ 			 * Since the folio can be on deferred_split_scan()
+ 			 * local list and removing it can cause the local list
+@@ -1669,6 +1674,7 @@ static int migrate_pages_batch(struct li
+ 			if (nr_pages > 2 &&
+ 			   !list_empty(&folio->_deferred_list)) {
+ 				if (try_split_folio(folio, split_folios) == 0) {
++					nr_failed++;
+ 					stats->nr_thp_split += is_thp;
+ 					stats->nr_split++;
+ 					continue;
 _
 
-Patches currently in -mm which might be from broonie@kernel.org are
+Patches currently in -mm which might be from hughd@google.com are
 
+mm-rmap-abstract-updating-per-node-and-per-memcg-stats-fix.patch
 
