@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3712A1EB3D;
-	Sat, 15 Jun 2024 17:43:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D96D41EB3D
+	for <mm-commits@vger.kernel.org>; Sat, 15 Jun 2024 17:43:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718473438; cv=none; b=QJaWY7ZMdTmn3YgZch6bxtKd4BLsfxkNZwfGX22dehydGDyvDk73kJocaxsU6LGeAI6V7Pqb9A8iVU6SQFkbrbqtZayirw6nr1O3wsDgtIx2pyGO2/WpIrK8jNi3iya21muQchxejrobN3R9hVTEGeKI318+ZBe0CTVVF7hfgCk=
+	t=1718473439; cv=none; b=a+NrjIVB3fBFy4Sg0R5n8aIUNjPWhGah8al73cGCZX/Wk4Vb6n8Cjz7i2E3NnyPBz8hqXhCkNYaiVtaA6rOoMdtt0N7gRdKqwf1QiG3k9CJkos4cPewZZ2v+LWl0J8ECArQsyez6p+FubWxJlmlOlQOQTaMB/gxghTBeD4q5aqI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718473438; c=relaxed/simple;
-	bh=h3x5q/IhgOqB4QEFworV6zpzSawmpqBbpHTTAjMsiTk=;
-	h=Date:To:From:Subject:Message-Id; b=LB08CcTs4xMlMCpxN/pRG0Cxsd/y6tTrpiOsoTsoufzueqBgbtiR6A5NzNhvYp4mtrE6ToOb/n/MjHkTth1ejcrD0/U/UUa0/THG8cUcC8kACFfMQWad03dH/g0c1+lckrmoEQpiyY08dMgjqVG4uxrpjxShuzO6Us2rueWn4Cc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qFBRwOdn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718473439; c=relaxed/simple;
+	bh=nIFxsY44jPs1Ax1xMZnWbyh+SNAQAbixDoVbfi7EZow=;
+	h=Date:To:From:Subject:Message-Id; b=h0FXhCY9CY6cj2NiAFevLsmPy7e6t2VDOixKBc/7Z14x0jCq9iodxbTfJUc0KYonp32zaR/BY9APQTwwBkbV3TlpKRirhHvzVH7lxFfcbljoMwN+wOwXcBupovBfH5czEqzSB5wTbz4mIub520Mw5OFDsifJyOEniWpwJskPqyY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZEAVhA7F; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qFBRwOdn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B457DC3277B;
-	Sat, 15 Jun 2024 17:43:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZEAVhA7F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF56CC116B1;
+	Sat, 15 Jun 2024 17:43:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718473437;
-	bh=h3x5q/IhgOqB4QEFworV6zpzSawmpqBbpHTTAjMsiTk=;
+	s=korg; t=1718473439;
+	bh=nIFxsY44jPs1Ax1xMZnWbyh+SNAQAbixDoVbfi7EZow=;
 	h=Date:To:From:Subject:From;
-	b=qFBRwOdnpUH855ZMAeggJdYoUQLq127RdIv6ZziNpmhOutOHRhM/tSC9Bhr2K7444
-	 YOUN1Zc/42pITuGIx8IFgQK2BUbY+9nBY94nHseMOxjkng3nhwFYCs4RMgytSCyw+x
-	 V09niou+jVgsbiLKM+qmp5o59jVtOgd+Y2xHdhXY=
-Date: Sat, 15 Jun 2024 10:43:57 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,samuel.holland@sifive.com,rppt@kernel.org,pmladek@suse.com,paulmck@kernel.org,hca@linux.ibm.com,arnd@arndb.de,aquini@redhat.com,akpm@linux-foundation.org
+	b=ZEAVhA7FOqHDdtx2PTCiSPYV/zyMXEI2KRNcuhNUfQyVWiMh6+orfuZxtRB2BJlOE
+	 V67gBAaFLIAUFNVLTrnCMQgZKBeixmDaVhbJA5VVE+0lNSbXppW43WpWGZpGDoLmG2
+	 GhHWG2VVV3a7c5khMAjG1jE+OmwiDfa97YbLGPA0=
+Date: Sat, 15 Jun 2024 10:43:59 -0700
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,rdunlap@infradead.org,pobrn@protonmail.com,keescook@chromium.org,jorgelo@chromium.org,hughd@google.com,dverkamp@chromium.org,dmitry.torokhov@gmail.com,david@readahead.eu,cyphar@cyphar.com,jeffxu@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mmap-allow-for-the-maximum-number-of-bits-for-randomizing-mmap_base-by-default.patch removed from -mm tree
-Message-Id: <20240615174357.B457DC3277B@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec.patch removed from -mm tree
+Message-Id: <20240615174359.AF56CC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,185 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: mmap: allow for the maximum number of bits for randomizing mmap_base by default
+     Subject: mm/memfd: add documentation for MFD_NOEXEC_SEAL MFD_EXEC
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-allow-for-the-maximum-number-of-bits-for-randomizing-mmap_base-by-default.patch
+     mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Rafael Aquini <aquini@redhat.com>
-Subject: mm: mmap: allow for the maximum number of bits for randomizing mmap_base by default
-Date: Thu, 6 Jun 2024 14:06:22 -0400
+From: Jeff Xu <jeffxu@chromium.org>
+Subject: mm/memfd: add documentation for MFD_NOEXEC_SEAL MFD_EXEC
+Date: Fri, 7 Jun 2024 20:35:41 +0000
 
-An ASLR regression was noticed [1] and tracked down to file-mapped areas
-being backed by THP in recent kernels.  The 21-bit alignment constraint
-for such mappings reduces the entropy for randomizing the placement of
-64-bit library mappings and breaks ASLR completely for 32-bit libraries.
+When MFD_NOEXEC_SEAL was introduced, there was one big mistake: it didn't
+have proper documentation.  This led to a lot of confusion, especially
+about whether or not memfd created with the MFD_NOEXEC_SEAL flag is
+sealable.  Before MFD_NOEXEC_SEAL, memfd had to explicitly set
+MFD_ALLOW_SEALING to be sealable, so it's a fair question.
 
-The reported issue is easily addressed by increasing vm.mmap_rnd_bits and
-vm.mmap_rnd_compat_bits.  This patch just provides a simple way to set
-ARCH_MMAP_RND_BITS and ARCH_MMAP_RND_COMPAT_BITS to their maximum values
-allowed by the architecture at build time.
+As one might have noticed, unlike other flags in memfd_create,
+MFD_NOEXEC_SEAL is actually a combination of multiple flags.  The idea is
+to make it easier to use memfd in the most common way, which is NOEXEC +
+F_SEAL_EXEC + MFD_ALLOW_SEALING.  This works with sysctl vm.noexec to help
+existing applications move to a more secure way of using memfd.
 
-[1] https://zolutal.github.io/aslrnt/
+Proposals have been made to put MFD_NOEXEC_SEAL non-sealable, unless
+MFD_ALLOW_SEALING is set, to be consistent with other flags [1], Those
+are based on the viewpoint that each flag is an atomic unit, which is a
+reasonable assumption.  However, MFD_NOEXEC_SEAL was designed with the
+intent of promoting the most secure method of using memfd, therefore a
+combination of multiple functionalities into one bit.
 
-[akpm@linux-foundation.org: default to `y' if 32-bit, per Rafael]
-Link: https://lkml.kernel.org/r/20240606180622.102099-1-aquini@redhat.com
-Fixes: 1854bc6e2420 ("mm/readahead: Align file mappings for non-DAX")
-Signed-off-by: Rafael Aquini <aquini@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Samuel Holland <samuel.holland@sifive.com>
-Cc: <stable@vger.kernel.org>
+Furthermore, the MFD_NOEXEC_SEAL has been added for more than one year,
+and multiple applications and distributions have backported and utilized
+it.  Altering ABI now presents a degree of risk and may lead to
+disruption.
+
+MFD_NOEXEC_SEAL is a new flag, and applications must change their code to
+use it.  There is no backward compatibility problem.
+
+When sysctl vm.noexec == 1 or 2, applications that don't set
+MFD_NOEXEC_SEAL or MFD_EXEC will get MFD_NOEXEC_SEAL memfd.  And
+old-application might break, that is by-design, in such a system vm.noexec
+= 0 shall be used.  Also no backward compatibility problem.
+
+I propose to include this documentation patch to assist in clarifying the
+semantics of MFD_NOEXEC_SEAL, thereby preventing any potential future
+confusion.
+
+Finally, I would like to express my gratitude to David Rheinsberg and
+Barnabás Pőcze for initiating the discussion on the topic of sealability.
+
+[1]
+https://lore.kernel.org/lkml/20230714114753.170814-1-david@readahead.eu/
+
+[jeffxu@chromium.org: updates per Randy]
+  Link: https://lkml.kernel.org/r/20240611034903.3456796-2-jeffxu@chromium.org
+[jeffxu@chromium.org: v3]
+  Link: https://lkml.kernel.org/r/20240611231409.3899809-2-jeffxu@chromium.org
+Link: https://lkml.kernel.org/r/20240607203543.2151433-2-jeffxu@google.com
+Signed-off-by: Jeff Xu <jeffxu@chromium.org>
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Aleksa Sarai <cyphar@cyphar.com>
+Cc: Barnabás Pőcze <pobrn@protonmail.com>
+Cc: Daniel Verkamp <dverkamp@chromium.org>
+Cc: David Rheinsberg <david@readahead.eu>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ Documentation/userspace-api/index.rst      |    1 
+ Documentation/userspace-api/mfd_noexec.rst |   86 +++++++++++++++++++
+ 2 files changed, 87 insertions(+)
 
---- a/arch/Kconfig~mm-mmap-allow-for-the-maximum-number-of-bits-for-randomizing-mmap_base-by-default
-+++ a/arch/Kconfig
-@@ -1046,10 +1046,21 @@ config ARCH_MMAP_RND_BITS_MAX
- config ARCH_MMAP_RND_BITS_DEFAULT
- 	int
+--- a/Documentation/userspace-api/index.rst~mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec
++++ a/Documentation/userspace-api/index.rst
+@@ -32,6 +32,7 @@ Security-related interfaces
+    seccomp_filter
+    landlock
+    lsm
++   mfd_noexec
+    spec_ctrl
+    tee
  
-+config FORCE_MAX_MMAP_RND_BITS
-+	bool "Force maximum number of bits to use for ASLR of mmap base address"
-+	default y if !64BIT
-+	help
-+	  ARCH_MMAP_RND_BITS and ARCH_MMAP_RND_COMPAT_BITS represent the number
-+	  of bits to use for ASLR and if no custom value is assigned (EXPERT)
-+	  then the architecture's lower bound (minimum) value is assumed.
-+	  This toggle changes that default assumption to assume the arch upper
-+	  bound (maximum) value instead.
+--- /dev/null
++++ a/Documentation/userspace-api/mfd_noexec.rst
+@@ -0,0 +1,86 @@
++.. SPDX-License-Identifier: GPL-2.0
 +
- config ARCH_MMAP_RND_BITS
- 	int "Number of bits to use for ASLR of mmap base address" if EXPERT
- 	range ARCH_MMAP_RND_BITS_MIN ARCH_MMAP_RND_BITS_MAX
- 	default ARCH_MMAP_RND_BITS_DEFAULT if ARCH_MMAP_RND_BITS_DEFAULT
-+	default ARCH_MMAP_RND_BITS_MAX if FORCE_MAX_MMAP_RND_BITS
- 	default ARCH_MMAP_RND_BITS_MIN
- 	depends on HAVE_ARCH_MMAP_RND_BITS
- 	help
-@@ -1084,6 +1095,7 @@ config ARCH_MMAP_RND_COMPAT_BITS
- 	int "Number of bits to use for ASLR of mmap base address for compatible applications" if EXPERT
- 	range ARCH_MMAP_RND_COMPAT_BITS_MIN ARCH_MMAP_RND_COMPAT_BITS_MAX
- 	default ARCH_MMAP_RND_COMPAT_BITS_DEFAULT if ARCH_MMAP_RND_COMPAT_BITS_DEFAULT
-+	default ARCH_MMAP_RND_COMPAT_BITS_MAX if FORCE_MAX_MMAP_RND_BITS
- 	default ARCH_MMAP_RND_COMPAT_BITS_MIN
- 	depends on HAVE_ARCH_MMAP_RND_COMPAT_BITS
- 	help
++==================================
++Introduction of non-executable mfd
++==================================
++:Author:
++    Daniel Verkamp <dverkamp@chromium.org>
++    Jeff Xu <jeffxu@chromium.org>
++
++:Contributor:
++	Aleksa Sarai <cyphar@cyphar.com>
++
++Since Linux introduced the memfd feature, memfds have always had their
++execute bit set, and the memfd_create() syscall doesn't allow setting
++it differently.
++
++However, in a secure-by-default system, such as ChromeOS, (where all
++executables should come from the rootfs, which is protected by verified
++boot), this executable nature of memfd opens a door for NoExec bypass
++and enables “confused deputy attack”.  E.g, in VRP bug [1]: cros_vm
++process created a memfd to share the content with an external process,
++however the memfd is overwritten and used for executing arbitrary code
++and root escalation. [2] lists more VRP of this kind.
++
++On the other hand, executable memfd has its legit use: runc uses memfd’s
++seal and executable feature to copy the contents of the binary then
++execute them. For such a system, we need a solution to differentiate runc's
++use of executable memfds and an attacker's [3].
++
++To address those above:
++ - Let memfd_create() set X bit at creation time.
++ - Let memfd be sealed for modifying X bit when NX is set.
++ - Add a new pid namespace sysctl: vm.memfd_noexec to help applications in
++   migrating and enforcing non-executable MFD.
++
++User API
++========
++``int memfd_create(const char *name, unsigned int flags)``
++
++``MFD_NOEXEC_SEAL``
++	When MFD_NOEXEC_SEAL bit is set in the ``flags``, memfd is created
++	with NX. F_SEAL_EXEC is set and the memfd can't be modified to
++	add X later. MFD_ALLOW_SEALING is also implied.
++	This is the most common case for the application to use memfd.
++
++``MFD_EXEC``
++	When MFD_EXEC bit is set in the ``flags``, memfd is created with X.
++
++Note:
++	``MFD_NOEXEC_SEAL`` implies ``MFD_ALLOW_SEALING``. In case that
++	an app doesn't want sealing, it can add F_SEAL_SEAL after creation.
++
++
++Sysctl:
++========
++``pid namespaced sysctl vm.memfd_noexec``
++
++The new pid namespaced sysctl vm.memfd_noexec has 3 values:
++
++ - 0: MEMFD_NOEXEC_SCOPE_EXEC
++	memfd_create() without MFD_EXEC nor MFD_NOEXEC_SEAL acts like
++	MFD_EXEC was set.
++
++ - 1: MEMFD_NOEXEC_SCOPE_NOEXEC_SEAL
++	memfd_create() without MFD_EXEC nor MFD_NOEXEC_SEAL acts like
++	MFD_NOEXEC_SEAL was set.
++
++ - 2: MEMFD_NOEXEC_SCOPE_NOEXEC_ENFORCED
++	memfd_create() without MFD_NOEXEC_SEAL will be rejected.
++
++The sysctl allows finer control of memfd_create for old software that
++doesn't set the executable bit; for example, a container with
++vm.memfd_noexec=1 means the old software will create non-executable memfd
++by default while new software can create executable memfd by setting
++MFD_EXEC.
++
++The value of vm.memfd_noexec is passed to child namespace at creation
++time. In addition, the setting is hierarchical, i.e. during memfd_create,
++we will search from current ns to root ns and use the most restrictive
++setting.
++
++[1] https://crbug.com/1305267
++
++[2] https://bugs.chromium.org/p/chromium/issues/list?q=type%3Dbug-security%20memfd%20escalation&can=1
++
++[3] https://lwn.net/Articles/781013/
 _
 
-Patches currently in -mm which might be from aquini@redhat.com are
+Patches currently in -mm which might be from jeffxu@chromium.org are
 
+proc-pid-smaps-add-mseal-info-for-vma.patch
 
