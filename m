@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA4034DA0F;
-	Sat, 15 Jun 2024 17:44:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E5A04D13B;
+	Sat, 15 Jun 2024 17:44:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718473446; cv=none; b=F5Gw5UounHyLZf78vOH5bWEpUGoKUpVOe+HLJsvt1QiuDr6pUr5IhpmCeBAZ8fo/HGPrNb7SbXAx4vfxKLOBzgJmt+Fms27XPpjXHGVVtMiUWhMhjeBEI/MRlG4pwVVqF0TJ1wnV+dvRtFpVAk9kshbtdad6vlMqa1w4S2tX+3c=
+	t=1718473449; cv=none; b=h2uuwfqHwv1TPGw6PyGM3rQyBVhnv8sirDgfOjtEEPc1VX02xkgjcJHSqptcuy3u0fARS9BrbH5Lbs8h17SxfVnbxNgCYggDmtGzzj0NmYUfl4Wq+XZ0VUgpZosYuPdwgMAIqm4VsFSgXzalwT7SozA3n7T52I8FfzcODSZ7+mk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718473446; c=relaxed/simple;
-	bh=VCWVBNHoSiRbxneTB0jL8miVGTsRxJdbLI5Egt7I6a4=;
-	h=Date:To:From:Subject:Message-Id; b=uJTjuMNNlTgJq6y/iV03WzBt6P+ukM0ac6q477QtunBv6qwUl6lflH0bRi8MYlXB0oQdYU+aXUViemiG+sUouxSo2CRgQZEElVvYEYPbHuJI9mhUTKhhHZwbfg9aOHZH5y/UJbqIeCf2lWCEpqa9EsNPrrXRWndIQNrjwgp9LcQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uf61K0ot; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718473449; c=relaxed/simple;
+	bh=AmqvOQpO3QrQWuQhJinIdBoo38s+x90NYqSrGEhX8cQ=;
+	h=Date:To:From:Subject:Message-Id; b=qixRFRJLMImwcsvM0s7agwu96959AvQvfM9hvSZs20eZESnJZ+RoBH/UdjPR8/X8ioUstEjR7Wj0WIZC4BVtJ8Sq0UkAzmnT9DEaqKojKiHfXZRCAaf7YmLNmAeW69PIFSJeDZsK7ad88S6vVx98h0FRDVchH8XVsjsHdPxUdYA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DAG5FNnP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uf61K0ot"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FC4DC116B1;
-	Sat, 15 Jun 2024 17:44:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DAG5FNnP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D601FC116B1;
+	Sat, 15 Jun 2024 17:44:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718473446;
-	bh=VCWVBNHoSiRbxneTB0jL8miVGTsRxJdbLI5Egt7I6a4=;
+	s=korg; t=1718473448;
+	bh=AmqvOQpO3QrQWuQhJinIdBoo38s+x90NYqSrGEhX8cQ=;
 	h=Date:To:From:Subject:From;
-	b=uf61K0otnMADcUarCvX9bBvwlTFz1efBd3BRHgzbm+rXsoIsE/mRncxmiml5CBeYm
-	 Fxt4BVHKM0keTyxs0ETW3KZ/+zP1EH0neUKqWqPqRY43LMjAxnaDyA874Tlicneslr
-	 IUpWFmz1gvLV7VD5BkUnnJwt4EbXvcTgYZYIgLwc=
-Date: Sat, 15 Jun 2024 10:44:06 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,mhocko@suse.com,hughd@google.com,hannes@cmpxchg.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=DAG5FNnP2Wk9H4a//YKirybPqQFv8xJpA4bPTUBtNa0AQnh8khNhM26lI2VBZKh/3
+	 R5algB9xFRr22yrLFcBmIh0XseExmL5qt3vTdNsvhEICjMc7O8OS2zEWIqA9voAIfe
+	 fJk9NuloK5DVIXqGBgWSBS1UJsblT8Y/0dhswYqA=
+Date: Sat, 15 Jun 2024 10:44:08 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,glider@google.com,elver@google.com,dvyukov@google.com,arnd@arndb.de,andreyknvl@gmail.com,nogikh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio.patch removed from -mm tree
-Message-Id: <20240615174406.8FC4DC116B1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kcov-dont-lose-track-of-remote-references-during-softirqs.patch removed from -mm tree
+Message-Id: <20240615174408.D601FC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,125 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: shmem: fix getting incorrect lruvec when replacing a shmem folio
+     Subject: kcov: don't lose track of remote references during softirqs
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio.patch
+     kcov-dont-lose-track-of-remote-references-during-softirqs.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: fix getting incorrect lruvec when replacing a shmem folio
-Date: Thu, 13 Jun 2024 16:21:19 +0800
+From: Aleksandr Nogikh <nogikh@google.com>
+Subject: kcov: don't lose track of remote references during softirqs
+Date: Tue, 11 Jun 2024 15:32:29 +0200
 
-When testing shmem swapin, I encountered the warning below on my machine. 
-The reason is that replacing an old shmem folio with a new one causes
-mem_cgroup_migrate() to clear the old folio's memcg data.  As a result,
-the old folio cannot get the correct memcg's lruvec needed to remove
-itself from the LRU list when it is being freed.  This could lead to
-possible serious problems, such as LRU list crashes due to holding the
-wrong LRU lock, and incorrect LRU statistics.
+In kcov_remote_start()/kcov_remote_stop(), we swap the previous KCOV
+metadata of the current task into a per-CPU variable.  However, the
+kcov_mode_enabled(mode) check is not sufficient in the case of remote KCOV
+coverage: current->kcov_mode always remains KCOV_MODE_DISABLED for remote
+KCOV objects.
 
-To fix this issue, we can fallback to use the mem_cgroup_replace_folio()
-to replace the old shmem folio.
+If the original task that has invoked the KCOV_REMOTE_ENABLE ioctl happens
+to get interrupted and kcov_remote_start() is called, it ultimately leads
+to kcov_remote_stop() NOT restoring the original KCOV reference.  So when
+the task exits, all registered remote KCOV handles remain active forever.
 
-[ 5241.100311] page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x5d9960
-[ 5241.100317] head: order:4 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
-[ 5241.100319] flags: 0x17fffe0000040068(uptodate|lru|head|swapbacked|node=0|zone=2|lastcpupid=0x3ffff)
-[ 5241.100323] raw: 17fffe0000040068 fffffdffd6687948 fffffdffd69ae008 0000000000000000
-[ 5241.100325] raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
-[ 5241.100326] head: 17fffe0000040068 fffffdffd6687948 fffffdffd69ae008 0000000000000000
-[ 5241.100327] head: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
-[ 5241.100328] head: 17fffe0000000204 fffffdffd6665801 ffffffffffffffff 0000000000000000
-[ 5241.100329] head: 0000000a00000010 0000000000000000 00000000ffffffff 0000000000000000
-[ 5241.100330] page dumped because: VM_WARN_ON_ONCE_FOLIO(!memcg && !mem_cgroup_disabled())
-[ 5241.100338] ------------[ cut here ]------------
-[ 5241.100339] WARNING: CPU: 19 PID: 78402 at include/linux/memcontrol.h:775 folio_lruvec_lock_irqsave+0x140/0x150
-[...]
-[ 5241.100374] pc : folio_lruvec_lock_irqsave+0x140/0x150
-[ 5241.100375] lr : folio_lruvec_lock_irqsave+0x138/0x150
-[ 5241.100376] sp : ffff80008b38b930
-[...]
-[ 5241.100398] Call trace:
-[ 5241.100399]  folio_lruvec_lock_irqsave+0x140/0x150
-[ 5241.100401]  __page_cache_release+0x90/0x300
-[ 5241.100404]  __folio_put+0x50/0x108
-[ 5241.100406]  shmem_replace_folio+0x1b4/0x240
-[ 5241.100409]  shmem_swapin_folio+0x314/0x528
-[ 5241.100411]  shmem_get_folio_gfp+0x3b4/0x930
-[ 5241.100412]  shmem_fault+0x74/0x160
-[ 5241.100414]  __do_fault+0x40/0x218
-[ 5241.100417]  do_shared_fault+0x34/0x1b0
-[ 5241.100419]  do_fault+0x40/0x168
-[ 5241.100420]  handle_pte_fault+0x80/0x228
-[ 5241.100422]  __handle_mm_fault+0x1c4/0x440
-[ 5241.100424]  handle_mm_fault+0x60/0x1f0
-[ 5241.100426]  do_page_fault+0x120/0x488
-[ 5241.100429]  do_translation_fault+0x4c/0x68
-[ 5241.100431]  do_mem_abort+0x48/0xa0
-[ 5241.100434]  el0_da+0x38/0xc0
-[ 5241.100436]  el0t_64_sync_handler+0x68/0xc0
-[ 5241.100437]  el0t_64_sync+0x14c/0x150
-[ 5241.100439] ---[ end trace 0000000000000000 ]---
+The most uncomfortable effect (at least for syzkaller) is that the bug
+prevents the reuse of the same /sys/kernel/debug/kcov descriptor.  If
+we obtain it in the parent process and then e.g.  drop some
+capabilities and continuously fork to execute individual programs, at
+some point current->kcov of the forked process is lost,
+kcov_task_exit() takes no action, and all KCOV_REMOTE_ENABLE ioctls
+calls from subsequent forks fail.
 
-[baolin.wang@linux.alibaba.com: remove less helpful comments, per Matthew]
-  Link: https://lkml.kernel.org/r/ccad3fe1375b468ebca3227b6b729f3eaf9d8046.1718423197.git.baolin.wang@linux.alibaba.com
-Link: https://lkml.kernel.org/r/3c11000dd6c1df83015a8321a859e9775ebbc23e.1718266112.git.baolin.wang@linux.alibaba.com
-Fixes: 85ce2c517ade ("memcontrol: only transfer the memcg data for migration")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>
+And, yes, the efficiency is also affected if we keep on losing remote
+kcov objects.
+a) kcov_remote_map keeps on growing forever.
+b) (If I'm not mistaken), we're also not freeing the memory referenced
+by kcov->area.
+
+Fix it by introducing a special kcov_mode that is assigned to the task
+that owns a KCOV remote object.  It makes kcov_mode_enabled() return true
+and yet does not trigger coverage collection in __sanitizer_cov_trace_pc()
+and write_comp_data().
+
+[nogikh@google.com: replace WRITE_ONCE() with an ordinary assignment]
+  Link: https://lkml.kernel.org/r/20240614171221.2837584-1-nogikh@google.com
+Link: https://lkml.kernel.org/r/20240611133229.527822-1-nogikh@google.com
+Fixes: 5ff3b30ab57d ("kcov: collect coverage from interrupts")
+Signed-off-by: Aleksandr Nogikh <nogikh@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Tested-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Marco Elver <elver@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 +--
- mm/shmem.c      |    2 +-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ include/linux/kcov.h |    2 ++
+ kernel/kcov.c        |    1 +
+ 2 files changed, 3 insertions(+)
 
---- a/mm/memcontrol.c~mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio
-+++ a/mm/memcontrol.c
-@@ -7745,8 +7745,7 @@ void __mem_cgroup_uncharge_folios(struct
-  * @new: Replacement folio.
-  *
-  * Charge @new as a replacement folio for @old. @old will
-- * be uncharged upon free. This is only used by the page cache
-- * (in replace_page_cache_folio()).
-+ * be uncharged upon free.
-  *
-  * Both folios must be locked, @new->mapping must be set up.
-  */
---- a/mm/shmem.c~mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio
-+++ a/mm/shmem.c
-@@ -1786,7 +1786,7 @@ static int shmem_replace_folio(struct fo
- 	xa_lock_irq(&swap_mapping->i_pages);
- 	error = shmem_replace_entry(swap_mapping, swap_index, old, new);
- 	if (!error) {
--		mem_cgroup_migrate(old, new);
-+		mem_cgroup_replace_folio(old, new);
- 		__lruvec_stat_mod_folio(new, NR_FILE_PAGES, 1);
- 		__lruvec_stat_mod_folio(new, NR_SHMEM, 1);
- 		__lruvec_stat_mod_folio(old, NR_FILE_PAGES, -1);
+--- a/include/linux/kcov.h~kcov-dont-lose-track-of-remote-references-during-softirqs
++++ a/include/linux/kcov.h
+@@ -21,6 +21,8 @@ enum kcov_mode {
+ 	KCOV_MODE_TRACE_PC = 2,
+ 	/* Collecting comparison operands mode. */
+ 	KCOV_MODE_TRACE_CMP = 3,
++	/* The process owns a KCOV remote reference. */
++	KCOV_MODE_REMOTE = 4,
+ };
+ 
+ #define KCOV_IN_CTXSW	(1 << 30)
+--- a/kernel/kcov.c~kcov-dont-lose-track-of-remote-references-during-softirqs
++++ a/kernel/kcov.c
+@@ -632,6 +632,7 @@ static int kcov_ioctl_locked(struct kcov
+ 			return -EINVAL;
+ 		kcov->mode = mode;
+ 		t->kcov = kcov;
++	        t->kcov_mode = KCOV_MODE_REMOTE;
+ 		kcov->t = t;
+ 		kcov->remote = true;
+ 		kcov->remote_size = remote_arg->area_size;
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from nogikh@google.com are
 
-mm-memory-extend-finish_fault-to-support-large-folio.patch
-mm-memory-extend-finish_fault-to-support-large-folio-fix.patch
-mm-memory-extend-finish_fault-to-support-large-folio-fix-fix.patch
-mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch
-mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch
-mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix.patch
-mm-shmem-add-mthp-support-for-anonymous-shmem.patch
-mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area.patch
-mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
-mm-shmem-add-mthp-counters-for-anonymous-shmem-fix.patch
-mm-memcontrol-add-vm_bug_on_folio-to-catch-lru-folio-in-mem_cgroup_migrate.patch
 
