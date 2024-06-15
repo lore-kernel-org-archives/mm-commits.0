@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 897AC4DA0F
-	for <mm-commits@vger.kernel.org>; Sat, 15 Jun 2024 17:44:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA4034DA0F;
+	Sat, 15 Jun 2024 17:44:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718473445; cv=none; b=BaAS2YLCkumBYkX73I95VBMNJGHzi5G0O4Xe/YxDAZLfJKi+lNLKu+HUN/lzFUMdFGAuSDfHJa8v8n6+l5d6REfl3NrTugN60ev2nlA6vaQWkGG/fdLuUpB8N1VdLOqDc3c67nyppGZRTwQJeXHkUBelq7SrCIEKELsfoHs2uSU=
+	t=1718473446; cv=none; b=F5Gw5UounHyLZf78vOH5bWEpUGoKUpVOe+HLJsvt1QiuDr6pUr5IhpmCeBAZ8fo/HGPrNb7SbXAx4vfxKLOBzgJmt+Fms27XPpjXHGVVtMiUWhMhjeBEI/MRlG4pwVVqF0TJ1wnV+dvRtFpVAk9kshbtdad6vlMqa1w4S2tX+3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718473445; c=relaxed/simple;
-	bh=aUZtJEKBx1ng2zdFvlxwEEVWDsUg6p09gL+NX1QaodU=;
-	h=Date:To:From:Subject:Message-Id; b=pKrHqcjrF/pICWtXYrRRudVI42jEjxV4r6WZz88lwuJBKngOXDvlnD7rr74RPeoITNTA6gw+r+g3bRQxLbT7Xp4NEzsUcbs5YBDPRS1ww/flH/amRNlZTERBNSf+UW79Omma+4gpTYfPBGLG8C75zXkyIo7uLepSb5oK4o5+67g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IFtTgoQ6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718473446; c=relaxed/simple;
+	bh=VCWVBNHoSiRbxneTB0jL8miVGTsRxJdbLI5Egt7I6a4=;
+	h=Date:To:From:Subject:Message-Id; b=uJTjuMNNlTgJq6y/iV03WzBt6P+ukM0ac6q477QtunBv6qwUl6lflH0bRi8MYlXB0oQdYU+aXUViemiG+sUouxSo2CRgQZEElVvYEYPbHuJI9mhUTKhhHZwbfg9aOHZH5y/UJbqIeCf2lWCEpqa9EsNPrrXRWndIQNrjwgp9LcQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uf61K0ot; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IFtTgoQ6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E3B0C116B1;
-	Sat, 15 Jun 2024 17:44:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uf61K0ot"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FC4DC116B1;
+	Sat, 15 Jun 2024 17:44:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718473445;
-	bh=aUZtJEKBx1ng2zdFvlxwEEVWDsUg6p09gL+NX1QaodU=;
+	s=korg; t=1718473446;
+	bh=VCWVBNHoSiRbxneTB0jL8miVGTsRxJdbLI5Egt7I6a4=;
 	h=Date:To:From:Subject:From;
-	b=IFtTgoQ6nkd7WyU6LV8UCfSX56EQJoaY2QojDlIP36rR4yNl/0CMPo/Z4oq+0rBvj
-	 pFvI9kgQzU5vWNgHZy0HgMO9nntcMy6CvLh6A68xZHK010UEXFIjKkHspxWrRaguYn
-	 rgQtl87PN/g/KrP3DUDHbnPN3bszuCe/2Ab+Ydk8=
-Date: Sat, 15 Jun 2024 10:44:04 -0700
-To: mm-commits@vger.kernel.org,pasha.tatashin@soleen.com,mikhail.v.gavrilov@gmail.com,gshan@redhat.com,david@redhat.com,anshuman.khandual@arm.com,aneesh.kumar@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=uf61K0otnMADcUarCvX9bBvwlTFz1efBd3BRHgzbm+rXsoIsE/mRncxmiml5CBeYm
+	 Fxt4BVHKM0keTyxs0ETW3KZ/+zP1EH0neUKqWqPqRY43LMjAxnaDyA874Tlicneslr
+	 IUpWFmz1gvLV7VD5BkUnnJwt4EbXvcTgYZYIgLwc=
+Date: Sat, 15 Jun 2024 10:44:06 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,mhocko@suse.com,hughd@google.com,hannes@cmpxchg.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-debug_vm_pgtable-drop-random_orvalue-trick.patch removed from -mm tree
-Message-Id: <20240615174405.5E3B0C116B1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio.patch removed from -mm tree
+Message-Id: <20240615174406.8FC4DC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,143 +35,125 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/debug_vm_pgtable: drop RANDOM_ORVALUE trick
+     Subject: mm: shmem: fix getting incorrect lruvec when replacing a shmem folio
 has been removed from the -mm tree.  Its filename was
-     mm-debug_vm_pgtable-drop-random_orvalue-trick.patch
+     mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/debug_vm_pgtable: drop RANDOM_ORVALUE trick
-Date: Thu, 23 May 2024 09:21:39 -0400
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: shmem: fix getting incorrect lruvec when replacing a shmem folio
+Date: Thu, 13 Jun 2024 16:21:19 +0800
 
-Macro RANDOM_ORVALUE was used to make sure the pgtable entry will be
-populated with !none data in clear tests.
+When testing shmem swapin, I encountered the warning below on my machine. 
+The reason is that replacing an old shmem folio with a new one causes
+mem_cgroup_migrate() to clear the old folio's memcg data.  As a result,
+the old folio cannot get the correct memcg's lruvec needed to remove
+itself from the LRU list when it is being freed.  This could lead to
+possible serious problems, such as LRU list crashes due to holding the
+wrong LRU lock, and incorrect LRU statistics.
 
-The RANDOM_ORVALUE tried to cover mostly all the bits in a pgtable entry,
-even if there's no discussion on whether all the bits will be vaild.  Both
-S390 and PPC64 have their own masks to avoid touching some bits.  Now it's
-the turn for x86_64.
+To fix this issue, we can fallback to use the mem_cgroup_replace_folio()
+to replace the old shmem folio.
 
-The issue is there's a recent report from Mikhail Gavrilov showing that
-this can cause a warning with the newly added pte set check in commit
-8430557fc5 on writable v.s.  userfaultfd-wp bit, even though the check
-itself was valid, the random pte is not.  We can choose to mask more bits
-out.
+[ 5241.100311] page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x5d9960
+[ 5241.100317] head: order:4 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+[ 5241.100319] flags: 0x17fffe0000040068(uptodate|lru|head|swapbacked|node=0|zone=2|lastcpupid=0x3ffff)
+[ 5241.100323] raw: 17fffe0000040068 fffffdffd6687948 fffffdffd69ae008 0000000000000000
+[ 5241.100325] raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+[ 5241.100326] head: 17fffe0000040068 fffffdffd6687948 fffffdffd69ae008 0000000000000000
+[ 5241.100327] head: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+[ 5241.100328] head: 17fffe0000000204 fffffdffd6665801 ffffffffffffffff 0000000000000000
+[ 5241.100329] head: 0000000a00000010 0000000000000000 00000000ffffffff 0000000000000000
+[ 5241.100330] page dumped because: VM_WARN_ON_ONCE_FOLIO(!memcg && !mem_cgroup_disabled())
+[ 5241.100338] ------------[ cut here ]------------
+[ 5241.100339] WARNING: CPU: 19 PID: 78402 at include/linux/memcontrol.h:775 folio_lruvec_lock_irqsave+0x140/0x150
+[...]
+[ 5241.100374] pc : folio_lruvec_lock_irqsave+0x140/0x150
+[ 5241.100375] lr : folio_lruvec_lock_irqsave+0x138/0x150
+[ 5241.100376] sp : ffff80008b38b930
+[...]
+[ 5241.100398] Call trace:
+[ 5241.100399]  folio_lruvec_lock_irqsave+0x140/0x150
+[ 5241.100401]  __page_cache_release+0x90/0x300
+[ 5241.100404]  __folio_put+0x50/0x108
+[ 5241.100406]  shmem_replace_folio+0x1b4/0x240
+[ 5241.100409]  shmem_swapin_folio+0x314/0x528
+[ 5241.100411]  shmem_get_folio_gfp+0x3b4/0x930
+[ 5241.100412]  shmem_fault+0x74/0x160
+[ 5241.100414]  __do_fault+0x40/0x218
+[ 5241.100417]  do_shared_fault+0x34/0x1b0
+[ 5241.100419]  do_fault+0x40/0x168
+[ 5241.100420]  handle_pte_fault+0x80/0x228
+[ 5241.100422]  __handle_mm_fault+0x1c4/0x440
+[ 5241.100424]  handle_mm_fault+0x60/0x1f0
+[ 5241.100426]  do_page_fault+0x120/0x488
+[ 5241.100429]  do_translation_fault+0x4c/0x68
+[ 5241.100431]  do_mem_abort+0x48/0xa0
+[ 5241.100434]  el0_da+0x38/0xc0
+[ 5241.100436]  el0t_64_sync_handler+0x68/0xc0
+[ 5241.100437]  el0t_64_sync+0x14c/0x150
+[ 5241.100439] ---[ end trace 0000000000000000 ]---
 
-However the need to have such random bits setup is questionable, as now
-it's already guaranteed to be true on below:
-
-  - For pte level, the pgtable entry will be installed with value from
-    pfn_pte(), where pfn points to a valid page.  Hence the pte will be
-    !none already if populated with pfn_pte().
-
-  - For upper-than-pte level, the pgtable entry should contain a directory
-    entry always, which is also !none.
-
-All the cases look like good enough to test a pxx_clear() helper.  Instead
-of extending the bitmask, drop the "set random bits" trick completely.  Add
-some warning guards to make sure the entries will be !none before clear().
-
-Link: https://lkml.kernel.org/r/20240523132139.289719-1-peterx@redhat.com
-Fixes: 8430557fc584 ("mm/page_table_check: support userfault wr-protect entries")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>
-Link: https://lore.kernel.org/r/CABXGCsMB9A8-X+Np_Q+fWLURYL_0t3Y-MdoNabDM-Lzk58-DGA@mail.gmail.com
-Tested-by: Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+[baolin.wang@linux.alibaba.com: remove less helpful comments, per Matthew]
+  Link: https://lkml.kernel.org/r/ccad3fe1375b468ebca3227b6b729f3eaf9d8046.1718423197.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/3c11000dd6c1df83015a8321a859e9775ebbc23e.1718266112.git.baolin.wang@linux.alibaba.com
+Fixes: 85ce2c517ade ("memcontrol: only transfer the memcg data for migration")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   31 +++++--------------------------
- 1 file changed, 5 insertions(+), 26 deletions(-)
+ mm/memcontrol.c |    3 +--
+ mm/shmem.c      |    2 +-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-drop-random_orvalue-trick
-+++ a/mm/debug_vm_pgtable.c
-@@ -40,22 +40,7 @@
-  * Please refer Documentation/mm/arch_pgtable_helpers.rst for the semantics
-  * expectations that are being validated here. All future changes in here
-  * or the documentation need to be in sync.
-- *
-- * On s390 platform, the lower 4 bits are used to identify given page table
-- * entry type. But these bits might affect the ability to clear entries with
-- * pxx_clear() because of how dynamic page table folding works on s390. So
-- * while loading up the entries do not change the lower 4 bits. It does not
-- * have affect any other platform. Also avoid the 62nd bit on ppc64 that is
-- * used to mark a pte entry.
+--- a/mm/memcontrol.c~mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio
++++ a/mm/memcontrol.c
+@@ -7745,8 +7745,7 @@ void __mem_cgroup_uncharge_folios(struct
+  * @new: Replacement folio.
+  *
+  * Charge @new as a replacement folio for @old. @old will
+- * be uncharged upon free. This is only used by the page cache
+- * (in replace_page_cache_folio()).
++ * be uncharged upon free.
+  *
+  * Both folios must be locked, @new->mapping must be set up.
   */
--#define S390_SKIP_MASK		GENMASK(3, 0)
--#if __BITS_PER_LONG == 64
--#define PPC64_SKIP_MASK		GENMASK(62, 62)
--#else
--#define PPC64_SKIP_MASK		0x0
--#endif
--#define ARCH_SKIP_MASK (S390_SKIP_MASK | PPC64_SKIP_MASK)
--#define RANDOM_ORVALUE (GENMASK(BITS_PER_LONG - 1, 0) & ~ARCH_SKIP_MASK)
- #define RANDOM_NZVALUE	GENMASK(7, 0)
- 
- struct pgtable_debug_args {
-@@ -511,8 +496,7 @@ static void __init pud_clear_tests(struc
- 		return;
- 
- 	pr_debug("Validating PUD clear\n");
--	pud = __pud(pud_val(pud) | RANDOM_ORVALUE);
--	WRITE_ONCE(*args->pudp, pud);
-+	WARN_ON(pud_none(pud));
- 	pud_clear(args->pudp);
- 	pud = READ_ONCE(*args->pudp);
- 	WARN_ON(!pud_none(pud));
-@@ -548,8 +532,7 @@ static void __init p4d_clear_tests(struc
- 		return;
- 
- 	pr_debug("Validating P4D clear\n");
--	p4d = __p4d(p4d_val(p4d) | RANDOM_ORVALUE);
--	WRITE_ONCE(*args->p4dp, p4d);
-+	WARN_ON(p4d_none(p4d));
- 	p4d_clear(args->p4dp);
- 	p4d = READ_ONCE(*args->p4dp);
- 	WARN_ON(!p4d_none(p4d));
-@@ -582,8 +565,7 @@ static void __init pgd_clear_tests(struc
- 		return;
- 
- 	pr_debug("Validating PGD clear\n");
--	pgd = __pgd(pgd_val(pgd) | RANDOM_ORVALUE);
--	WRITE_ONCE(*args->pgdp, pgd);
-+	WARN_ON(pgd_none(pgd));
- 	pgd_clear(args->pgdp);
- 	pgd = READ_ONCE(*args->pgdp);
- 	WARN_ON(!pgd_none(pgd));
-@@ -634,10 +616,8 @@ static void __init pte_clear_tests(struc
- 	if (WARN_ON(!args->ptep))
- 		return;
- 
--#ifndef CONFIG_RISCV
--	pte = __pte(pte_val(pte) | RANDOM_ORVALUE);
--#endif
- 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
-+	WARN_ON(pte_none(pte));
- 	flush_dcache_page(page);
- 	barrier();
- 	ptep_clear(args->mm, args->vaddr, args->ptep);
-@@ -650,8 +630,7 @@ static void __init pmd_clear_tests(struc
- 	pmd_t pmd = READ_ONCE(*args->pmdp);
- 
- 	pr_debug("Validating PMD clear\n");
--	pmd = __pmd(pmd_val(pmd) | RANDOM_ORVALUE);
--	WRITE_ONCE(*args->pmdp, pmd);
-+	WARN_ON(pmd_none(pmd));
- 	pmd_clear(args->pmdp);
- 	pmd = READ_ONCE(*args->pmdp);
- 	WARN_ON(!pmd_none(pmd));
+--- a/mm/shmem.c~mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio
++++ a/mm/shmem.c
+@@ -1786,7 +1786,7 @@ static int shmem_replace_folio(struct fo
+ 	xa_lock_irq(&swap_mapping->i_pages);
+ 	error = shmem_replace_entry(swap_mapping, swap_index, old, new);
+ 	if (!error) {
+-		mem_cgroup_migrate(old, new);
++		mem_cgroup_replace_folio(old, new);
+ 		__lruvec_stat_mod_folio(new, NR_FILE_PAGES, 1);
+ 		__lruvec_stat_mod_folio(new, NR_SHMEM, 1);
+ 		__lruvec_stat_mod_folio(old, NR_FILE_PAGES, -1);
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-drop-leftover-comment-references-to-pxx_huge.patch
+mm-memory-extend-finish_fault-to-support-large-folio.patch
+mm-memory-extend-finish_fault-to-support-large-folio-fix.patch
+mm-memory-extend-finish_fault-to-support-large-folio-fix-fix.patch
+mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch
+mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch
+mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix.patch
+mm-shmem-add-mthp-support-for-anonymous-shmem.patch
+mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area.patch
+mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
+mm-shmem-add-mthp-counters-for-anonymous-shmem-fix.patch
+mm-memcontrol-add-vm_bug_on_folio-to-catch-lru-folio-in-mem_cgroup_migrate.patch
 
