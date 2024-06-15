@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2969C8F6B
-	for <mm-commits@vger.kernel.org>; Sat, 15 Jun 2024 02:44:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ED91CA64;
+	Sat, 15 Jun 2024 02:54:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718419490; cv=none; b=gbDACcdCGdZj1rpYJUFuVi8HU8ir4d/rZ16EMphnE/s+1nikVfNawMh2TxpUtdUJW+lZlv2bdM5yQC1yn5Yc2iXgwt5tK3fnJqYO+Rl3YhvVZs2U2UtQF9T1Q5ZjKpASvTlhbFHw90U9fwgxh4jo/l9+c9IqAfSk7ur9db6ofRw=
+	t=1718420079; cv=none; b=JTTId50K1deYIQoqLc4RNFi3U3Y92YDioWAEhW75tT+UXzJI/HAmi4J4Sf1dD2XOyECNcfWuv2BPXo6LhjQ91PVKuJaCbz/ZVWGuHy1t8mpssdiPmpWO0pSd6jF37UinRPSjlIevxoTy1sbc775uezo8sLRtvwJkKHxW7317CpI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718419490; c=relaxed/simple;
-	bh=nt2dNBmuwPnzzIbu1RWOwuCD67FuBpczpRTVApieUx8=;
-	h=Date:To:From:Subject:Message-Id; b=YCHtbVun7lUabFztebAp3XOcpnD3vviaI+6MUz/unIk7LbqdEUnU/uSL5f6ZFoVkbrJzdNZe6PXL7Dcx2C+m/GzhFYtUxUczEYq6QLnrjdGjI9SQ9dnDPAdzoViXsQKoopKe4AWFPxqO1EQZbmjZTaXLTqBl6nWoS8/NhquT7OE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=figClkXi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718420079; c=relaxed/simple;
+	bh=l/0fhl0yVzSHwE/dVVzvf+ksUF/X6jLGDtwx2/XTjwU=;
+	h=Date:To:From:Subject:Message-Id; b=foOyJ8UenoNMQtpb2OnXaaIskdRj5x5TPknfs/dsXV3EnS1pObwQCzXky/KKnum2TFgHhpSJIuPN+EEgqCzbugIb4Ml9UatKI2N9uoUAdZYe2j1qcs4Hwyj2E/pj/3mOFj/gr7KExycpS+BHRbZXnhLm+56Oa8tK/4bTTeoHpAE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yZpE3NlS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="figClkXi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B475C2BD10;
-	Sat, 15 Jun 2024 02:44:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yZpE3NlS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16FD5C2BD10;
+	Sat, 15 Jun 2024 02:54:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718419489;
-	bh=nt2dNBmuwPnzzIbu1RWOwuCD67FuBpczpRTVApieUx8=;
+	s=korg; t=1718420079;
+	bh=l/0fhl0yVzSHwE/dVVzvf+ksUF/X6jLGDtwx2/XTjwU=;
 	h=Date:To:From:Subject:From;
-	b=figClkXiL4JIDvTFuxWDMGt4E7kLWG2dxMLriQ9M8HpseWQ0K4Pb25stm2qSFmkW2
-	 XZIfY2EdSNa7mr+R8dmYP34nLkPncpL5dNkmgTNKuwq8ja+KNn9UvoeRkwmPYr6JgM
-	 ky2FJ/YH4jdpqXugscrNNJbwfzsocU+spYjgpSSM=
-Date: Fri, 14 Jun 2024 19:44:48 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=yZpE3NlSaC326rdvxNRtkuO4IPUu2Fn2cs3DQs8TUNpNycrw3nzPprQYgGg9bkVl8
+	 Z/q4USnXXOebcgAIPFXHjHiq4jFrwsMfnKsaIFeYAYMQ3MhsuEwlxhjx6e7OUSoyWk
+	 gunhV4BN8sMLNPhNN4dJuBOI/Q5CtAa1ov1ULJtM=
+Date: Fri, 14 Jun 2024 19:54:38 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,ghe@suse.com,gechangwei@live.cn,jack@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-add-vm_bug_on_folio-to-catch-lru-folio-in-mem_cgroup_migrate.patch added to mm-unstable branch
-Message-Id: <20240615024449.7B475C2BD10@smtp.kernel.org>
+Subject: + ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240615025439.16FD5C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: add VM_BUG_ON_FOLIO() to catch lru folio in mem_cgroup_migrate()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcontrol-add-vm_bug_on_folio-to-catch-lru-folio-in-mem_cgroup_migrate.patch
+     Subject: ocfs2: fix DIO failure due to insufficient transaction credits
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-add-vm_bug_on_folio-to-catch-lru-folio-in-mem_cgroup_migrate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,57 +58,108 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: memcontrol: add VM_BUG_ON_FOLIO() to catch lru folio in mem_cgroup_migrate()
-Date: Fri, 14 Jun 2024 09:07:42 +0800
+From: Jan Kara <jack@suse.cz>
+Subject: ocfs2: fix DIO failure due to insufficient transaction credits
+Date: Fri, 14 Jun 2024 16:52:43 +0200
 
-mem_cgroup_migrate() will clear the memcg data of the old folio,
-therefore, the callers must make sure the old folio is no longer on the
-LRU list, otherwise the old folio can not get the correct lruvec object
-without the memcg data, which could lead to potential problems [1].
+The code in ocfs2_dio_end_io_write() estimates number of necessary
+transaction credits using ocfs2_calc_extend_credits(). This however does
+not take into account that the IO could be arbitrarily large and can
+contain arbitrary number of extents. Extent tree manipulations do often
+extend the current transaction but not in all of the cases. For example
+if we have only single block extents in the tree,
+ocfs2_mark_extent_written() will end up calling
+ocfs2_replace_extent_rec() all the time and we will never extend the
+current transaction and eventually exhaust all the transaction credits
+if the IO contains many single block extents. Make sure the transaction
+always has enough credits for one extent insert before each call of
+ocfs2_mark_extent_written().
 
-Thus adding a VM_BUG_ON_FOLIO() to catch this issue.
-
-[1] https://lore.kernel.org/all/5ab860d8ee987955e917748f9d6da525d3b52690.1718326003.git.baolin.wang@linux.alibaba.com/
-
-Link: https://lkml.kernel.org/r/66d181c41b7ced35dbd39ffd3f5774a11aef266a.1718327124.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Link: https://lkml.kernel.org/r/20240614145243.8837-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ocfs2/aops.c        |    5 +++++
+ fs/ocfs2/journal.c     |   17 +++++++++++++++++
+ fs/ocfs2/journal.h     |    2 ++
+ fs/ocfs2/ocfs2_trace.h |    2 ++
+ 4 files changed, 26 insertions(+)
 
---- a/mm/memcontrol.c~mm-memcontrol-add-vm_bug_on_folio-to-catch-lru-folio-in-mem_cgroup_migrate
-+++ a/mm/memcontrol.c
-@@ -7808,6 +7808,7 @@ void mem_cgroup_migrate(struct folio *ol
- 	VM_BUG_ON_FOLIO(!folio_test_locked(new), new);
- 	VM_BUG_ON_FOLIO(folio_test_anon(old) != folio_test_anon(new), new);
- 	VM_BUG_ON_FOLIO(folio_nr_pages(old) != folio_nr_pages(new), new);
-+	VM_BUG_ON_FOLIO(folio_test_lru(old), old);
+--- a/fs/ocfs2/aops.c~ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits
++++ a/fs/ocfs2/aops.c
+@@ -2366,6 +2366,11 @@ static int ocfs2_dio_end_io_write(struct
+ 	}
  
- 	if (mem_cgroup_disabled())
- 		return;
+ 	list_for_each_entry(ue, &dwc->dw_zero_list, ue_node) {
++		ret = ocfs2_assure_trans_credits(handle, credits);
++		if (ret < 0) {
++			mlog_errno(ret);
++			break;
++		}
+ 		ret = ocfs2_mark_extent_written(inode, &et, handle,
+ 						ue->ue_cpos, 1,
+ 						ue->ue_phys,
+--- a/fs/ocfs2/journal.c~ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits
++++ a/fs/ocfs2/journal.c
+@@ -446,6 +446,23 @@ bail:
+ }
+ 
+ /*
++ * Make sure handle has at least 'nblocks' credits available. If it does not
++ * have that many credits available, we will try to extend the handle to have
++ * enough credits. If that fails, we will restart transaction to have enough
++ * credits. Similar notes regarding data consistency and locking implications
++ * as for ocfs2_extend_trans() apply here.
++ */
++int ocfs2_assure_trans_credits(handle_t *handle, int nblocks)
++{
++	int old_nblks = jbd2_handle_buffer_credits(handle);
++
++	trace_ocfs2_assure_trans_credits(old_nblks);
++	if (old_nblks >= nblocks)
++		return 0;
++	return ocfs2_extend_trans(handle, nblocks - old_nblks);
++}
++
++/*
+  * If we have fewer than thresh credits, extend by OCFS2_MAX_TRANS_DATA.
+  * If that fails, restart the transaction & regain write access for the
+  * buffer head which is used for metadata modifications.
+--- a/fs/ocfs2/journal.h~ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits
++++ a/fs/ocfs2/journal.h
+@@ -243,6 +243,8 @@ handle_t		    *ocfs2_start_trans(struct
+ int			     ocfs2_commit_trans(struct ocfs2_super *osb,
+ 						handle_t *handle);
+ int			     ocfs2_extend_trans(handle_t *handle, int nblocks);
++int			     ocfs2_assure_trans_credits(handle_t *handle,
++						int nblocks);
+ int			     ocfs2_allocate_extend_trans(handle_t *handle,
+ 						int thresh);
+ 
+--- a/fs/ocfs2/ocfs2_trace.h~ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits
++++ a/fs/ocfs2/ocfs2_trace.h
+@@ -2577,6 +2577,8 @@ DEFINE_OCFS2_ULL_UINT_EVENT(ocfs2_commit
+ 
+ DEFINE_OCFS2_INT_INT_EVENT(ocfs2_extend_trans);
+ 
++DEFINE_OCFS2_INT_EVENT(ocfs2_assure_trans_credits);
++
+ DEFINE_OCFS2_INT_EVENT(ocfs2_extend_trans_restart);
+ 
+ DEFINE_OCFS2_INT_INT_EVENT(ocfs2_allocate_extend_trans);
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio.patch
-mm-memory-extend-finish_fault-to-support-large-folio.patch
-mm-memory-extend-finish_fault-to-support-large-folio-fix.patch
-mm-memory-extend-finish_fault-to-support-large-folio-fix-fix.patch
-mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch
-mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch
-mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix.patch
-mm-shmem-add-mthp-support-for-anonymous-shmem.patch
-mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area.patch
-mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
-mm-shmem-add-mthp-counters-for-anonymous-shmem-fix.patch
-mm-memcontrol-add-vm_bug_on_folio-to-catch-lru-folio-in-mem_cgroup_migrate.patch
+ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits.patch
 
