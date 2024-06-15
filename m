@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4370E1EB3D
-	for <mm-commits@vger.kernel.org>; Sat, 15 Jun 2024 17:43:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 228681EB3D
+	for <mm-commits@vger.kernel.org>; Sat, 15 Jun 2024 17:43:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718473432; cv=none; b=o1WaX0h8Y41cTGF2YgN5JUGIWXaYsspsU5K/DOtzq26jf11hTPZxKT2i35A2Q+/+lIruKZcxLnWhoFz1TpIzLXQ6aGp1D/d3kz0aeRuVyyBHy99d2HRPJk4JXftw9+amv+Zh7hoiW1q+qxpMAqKfIgnDB9zNBqD0XoNFvOfBpuQ=
+	t=1718473433; cv=none; b=QPTR+5rO05hIaJf9Y4N5wDkisHGMAPQ/WuumtxXYD2V9QBsDOislatB0zoRWBmwwl6o8/fpu0C7mf7F1aS9D2GxcGBGYqtZnnSxMlUoaP5WXqXhB6HxvRq3ZsURXsXoX4DsMOMswZiqucMzS618y+kAuJlMp8FmVq9aPdw/Pl1M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718473432; c=relaxed/simple;
-	bh=nJssK3KbT7Ufec0eIGKVr7A99XZfSCBFV+ENGEH5phA=;
-	h=Date:To:From:Subject:Message-Id; b=KDvkjX1MZ46ywTlGSsFxoUFBb/WWbTiDEHR47awjS0ReogL1IrufwwVbaN/2tN5LUPIQ7c7afKZOKACHQcTsPre1cN4fHyL+LOMvjaOKgVhgpU5uo8rBt9jHgN6f5vQOqEHLHyWzRtBxgGEZc7M/533lBsxfPVwbyp96daaZ5rA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XlNnDD4i; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718473433; c=relaxed/simple;
+	bh=j/1hiPC0ybqZQ3hcdmERRvDJPsqElN1Omkl4vp7gks4=;
+	h=Date:To:From:Subject:Message-Id; b=CG3XcNPiz/gLS2xtgp3RdrV4ReVpwPwN0NW1KehCT/oo68sw8WjWKSFKQquFQlM4l7ddol7zHZuPNACbIMwUt34rn/54CXWvIVA036NVuWIMh7sIztd1niAAL8OPRnFGqqOnMrOucYovvdTJspSXXiJUIfN4li3ayg3JKkg87VA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2dfDmBjx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XlNnDD4i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAC5CC116B1;
-	Sat, 15 Jun 2024 17:43:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2dfDmBjx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB08DC116B1;
+	Sat, 15 Jun 2024 17:43:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718473431;
-	bh=nJssK3KbT7Ufec0eIGKVr7A99XZfSCBFV+ENGEH5phA=;
+	s=korg; t=1718473433;
+	bh=j/1hiPC0ybqZQ3hcdmERRvDJPsqElN1Omkl4vp7gks4=;
 	h=Date:To:From:Subject:From;
-	b=XlNnDD4ifOIXapRFfTTqbdRgCbxIoWp3guM0eKz0A4Jst2BzzN9UsgqWU+Ia7CPDR
-	 f/Qltg5BWoxxVZO/rnLGjoMYY4YH+Sdqp+P/CTQ0AQ2LIAtk8AhdwjL3f4XUAdA99e
-	 UTZAIQfqLjInYAwg0jyo/7TtMnDC7XEgZdclxjC4=
-Date: Sat, 15 Jun 2024 10:43:51 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,pasha.tatashin@soleen.com,lkp@intel.com,kent.overstreet@linux.dev,keescook@chromium.org,surenb@google.com,akpm@linux-foundation.org
+	b=2dfDmBjxSiOY/cceomltGaxKmwHGW3mM1+H8jY+7WXdfppBvHsmzFdxVJik9sPX25
+	 Wrzi2pT0crEt7vm2JeYi5nb9lVaQRzyT6xBHnAwuZ5552rRjcxm3rTIwQusuBt37Gc
+	 9lUM2zeADrBvsfbFGkGilro1SkzO91AuRHUglol0=
+Date: Sat, 15 Jun 2024 10:43:52 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,pasha.tatashin@soleen.com,oliver.sang@intel.com,kent.overstreet@linux.dev,keescook@chromium.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] lib-alloc_tag-do-not-register-sysctl-interface-when-config_sysctl=n.patch removed from -mm tree
-Message-Id: <20240615174351.BAC5CC116B1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] lib-alloc_tag-fix-rcu-imbalance-in-pgalloc_tag_get.patch removed from -mm tree
+Message-Id: <20240615174352.EB08DC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,77 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/alloc_tag: do not register sysctl interface when CONFIG_SYSCTL=n
+     Subject: lib/alloc_tag: fix RCU imbalance in pgalloc_tag_get()
 has been removed from the -mm tree.  Its filename was
-     lib-alloc_tag-do-not-register-sysctl-interface-when-config_sysctl=n.patch
+     lib-alloc_tag-fix-rcu-imbalance-in-pgalloc_tag_get.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: lib/alloc_tag: do not register sysctl interface when CONFIG_SYSCTL=n
-Date: Sat, 1 Jun 2024 16:38:31 -0700
+Subject: lib/alloc_tag: fix RCU imbalance in pgalloc_tag_get()
+Date: Sat, 1 Jun 2024 16:38:40 -0700
 
-Memory allocation profiling is trying to register sysctl interface even
-when CONFIG_SYSCTL=n, resulting in proc_do_static_key() being undefined. 
-Prevent that by skipping sysctl registration for such configurations.
+put_page_tag_ref() should be called only when get_page_tag_ref() returns a
+valid reference because only in that case get_page_tag_ref() enters RCU
+read section while put_page_tag_ref() will call rcu_read_unlock() even if
+the provided reference is NULL.  Fix pgalloc_tag_get() which does not
+follow this rule causing RCU imbalance.  Add a warning in
+put_page_tag_ref() to catch any future mistakes.
 
-Link: https://lkml.kernel.org/r/20240601233831.617124-1-surenb@google.com
-Fixes: 22d407b164ff ("lib: add allocation tagging support for memory allocation profiling")
+Link: https://lkml.kernel.org/r/20240601233840.617458-1-surenb@google.com
+Fixes: cc92eba1c88b ("mm: fix non-compound multi-order memory accounting in __free_pages")
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202405280616.wcOGWJEj-lkp@intel.com/
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202405271029.6d2f9c4c-lkp@intel.com
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/alloc_tag.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ include/linux/pgalloc_tag.h |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/lib/alloc_tag.c~lib-alloc_tag-do-not-register-sysctl-interface-when-config_sysctl=n
-+++ a/lib/alloc_tag.c
-@@ -227,6 +227,7 @@ struct page_ext_operations page_alloc_ta
- };
- EXPORT_SYMBOL(page_alloc_tagging_ops);
+--- a/include/linux/pgalloc_tag.h~lib-alloc_tag-fix-rcu-imbalance-in-pgalloc_tag_get
++++ a/include/linux/pgalloc_tag.h
+@@ -37,6 +37,9 @@ static inline union codetag_ref *get_pag
  
-+#ifdef CONFIG_SYSCTL
- static struct ctl_table memory_allocation_profiling_sysctls[] = {
- 	{
- 		.procname	= "mem_profiling",
-@@ -241,6 +242,17 @@ static struct ctl_table memory_allocatio
- 	{ }
- };
- 
-+static void __init sysctl_init(void)
-+{
-+	if (!mem_profiling_support)
-+		memory_allocation_profiling_sysctls[0].mode = 0444;
-+
-+	register_sysctl_init("vm", memory_allocation_profiling_sysctls);
-+}
-+#else /* CONFIG_SYSCTL */
-+static inline void sysctl_init(void) {}
-+#endif /* CONFIG_SYSCTL */
-+
- static int __init alloc_tag_init(void)
+ static inline void put_page_tag_ref(union codetag_ref *ref)
  {
- 	const struct codetag_type_desc desc = {
-@@ -253,9 +265,7 @@ static int __init alloc_tag_init(void)
- 	if (IS_ERR(alloc_tag_cttype))
- 		return PTR_ERR(alloc_tag_cttype);
++	if (WARN_ON(!ref))
++		return;
++
+ 	page_ext_put(page_ext_from_codetag_ref(ref));
+ }
  
--	if (!mem_profiling_support)
--		memory_allocation_profiling_sysctls[0].mode = 0444;
--	register_sysctl_init("vm", memory_allocation_profiling_sysctls);
-+	sysctl_init();
- 	procfs_init();
+@@ -102,9 +105,11 @@ static inline struct alloc_tag *pgalloc_
+ 		union codetag_ref *ref = get_page_tag_ref(page);
  
- 	return 0;
+ 		alloc_tag_sub_check(ref);
+-		if (ref && ref->ct)
+-			tag = ct_to_alloc_tag(ref->ct);
+-		put_page_tag_ref(ref);
++		if (ref) {
++			if (ref->ct)
++				tag = ct_to_alloc_tag(ref->ct);
++			put_page_tag_ref(ref);
++		}
+ 	}
+ 
+ 	return tag;
 _
 
 Patches currently in -mm which might be from surenb@google.com are
