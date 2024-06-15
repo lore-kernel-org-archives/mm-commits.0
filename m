@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D96D41EB3D
-	for <mm-commits@vger.kernel.org>; Sat, 15 Jun 2024 17:43:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEB431EB3D
+	for <mm-commits@vger.kernel.org>; Sat, 15 Jun 2024 17:44:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718473439; cv=none; b=a+NrjIVB3fBFy4Sg0R5n8aIUNjPWhGah8al73cGCZX/Wk4Vb6n8Cjz7i2E3NnyPBz8hqXhCkNYaiVtaA6rOoMdtt0N7gRdKqwf1QiG3k9CJkos4cPewZZ2v+LWl0J8ECArQsyez6p+FubWxJlmlOlQOQTaMB/gxghTBeD4q5aqI=
+	t=1718473441; cv=none; b=A6urZmFUU2G1JyQLGtjJ/oC0cSr6xh3p0nSk8q1QnGmSMU7NDYgRvsHkcNDhJhLopqapDNbC7k/3q5YNITH4UJbl1WggZkR2FNVFCVUXKZ6gFGnJ/IoYlyK6lYNpDqqH+Bqd8tY/jWkzKiK8d0rvu8PZ8WWf/ujoefU5Jxb4Qe8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718473439; c=relaxed/simple;
-	bh=nIFxsY44jPs1Ax1xMZnWbyh+SNAQAbixDoVbfi7EZow=;
-	h=Date:To:From:Subject:Message-Id; b=h0FXhCY9CY6cj2NiAFevLsmPy7e6t2VDOixKBc/7Z14x0jCq9iodxbTfJUc0KYonp32zaR/BY9APQTwwBkbV3TlpKRirhHvzVH7lxFfcbljoMwN+wOwXcBupovBfH5czEqzSB5wTbz4mIub520Mw5OFDsifJyOEniWpwJskPqyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZEAVhA7F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718473441; c=relaxed/simple;
+	bh=hnreDgPcluc2t4z4QLu1VDD7E0cAo56O1SAS0In1DLM=;
+	h=Date:To:From:Subject:Message-Id; b=pTlSwiQl7AkJrHYAj9+yd2YgPk0bU/3uvTJqc3IFk7PQyu5Dbo34Z+0BrfVoXzkmT2TmVysjoQyYFpX32y0dSPG/pHkd2JZkdn88zlwDIgghR1Rk2zrePKYp0+1bYG6XuFYsb9AzoXmRGJsl24ulF82sjTGhczg2C9kbvqiz8KQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ff4RAgZE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZEAVhA7F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF56CC116B1;
-	Sat, 15 Jun 2024 17:43:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ff4RAgZE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91CB4C116B1;
+	Sat, 15 Jun 2024 17:44:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718473439;
-	bh=nIFxsY44jPs1Ax1xMZnWbyh+SNAQAbixDoVbfi7EZow=;
+	s=korg; t=1718473441;
+	bh=hnreDgPcluc2t4z4QLu1VDD7E0cAo56O1SAS0In1DLM=;
 	h=Date:To:From:Subject:From;
-	b=ZEAVhA7FOqHDdtx2PTCiSPYV/zyMXEI2KRNcuhNUfQyVWiMh6+orfuZxtRB2BJlOE
-	 V67gBAaFLIAUFNVLTrnCMQgZKBeixmDaVhbJA5VVE+0lNSbXppW43WpWGZpGDoLmG2
-	 GhHWG2VVV3a7c5khMAjG1jE+OmwiDfa97YbLGPA0=
-Date: Sat, 15 Jun 2024 10:43:59 -0700
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,rdunlap@infradead.org,pobrn@protonmail.com,keescook@chromium.org,jorgelo@chromium.org,hughd@google.com,dverkamp@chromium.org,dmitry.torokhov@gmail.com,david@readahead.eu,cyphar@cyphar.com,jeffxu@chromium.org,akpm@linux-foundation.org
+	b=Ff4RAgZEEMpCzXWib0AdVLUZk3tXb/saawrQxMEwnL0SXgmI1NCwDDEKFXHYzmiIZ
+	 TaaW5dbng/VdHFwIM/MOOVMDB4Puo86LOxIqB0fcz8AG9EEpb0uFX0v4Housx6zxw8
+	 drPHGUc21+Gpmch+dYSyWe7A9rP3ylXWw/3HU5K8=
+Date: Sat, 15 Jun 2024 10:44:01 -0700
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,shuah@kernel.org,ryan.roberts@arm.com,broonie@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec.patch removed from -mm tree
-Message-Id: <20240615174359.AF56CC116B1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-make-map_fixed_noreplace-test-names-stable.patch removed from -mm tree
+Message-Id: <20240615174401.91CB4C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,185 +35,128 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memfd: add documentation for MFD_NOEXEC_SEAL MFD_EXEC
+     Subject: selftests: mm: make map_fixed_noreplace test names stable
 has been removed from the -mm tree.  Its filename was
-     mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec.patch
+     selftests-mm-make-map_fixed_noreplace-test-names-stable.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jeff Xu <jeffxu@chromium.org>
-Subject: mm/memfd: add documentation for MFD_NOEXEC_SEAL MFD_EXEC
-Date: Fri, 7 Jun 2024 20:35:41 +0000
+From: Mark Brown <broonie@kernel.org>
+Subject: selftests: mm: make map_fixed_noreplace test names stable
+Date: Wed, 05 Jun 2024 23:36:12 +0100
 
-When MFD_NOEXEC_SEAL was introduced, there was one big mistake: it didn't
-have proper documentation.  This led to a lot of confusion, especially
-about whether or not memfd created with the MFD_NOEXEC_SEAL flag is
-sealable.  Before MFD_NOEXEC_SEAL, memfd had to explicitly set
-MFD_ALLOW_SEALING to be sealable, so it's a fair question.
+KTAP parsers interpret the output of ksft_test_result_*() as being the
+name of the test.  The map_fixed_noreplace test uses a dynamically
+allocated base address for the mmap()s that it tests and currently
+includes this in the test names that it logs so the test names that are
+logged are not stable between runs.  It also uses multiples of PAGE_SIZE
+which mean that runs for kernels with different PAGE_SIZE configurations
+can't be directly compared.  Both these factors cause issues for CI
+systems when interpreting and displaying results.
 
-As one might have noticed, unlike other flags in memfd_create,
-MFD_NOEXEC_SEAL is actually a combination of multiple flags.  The idea is
-to make it easier to use memfd in the most common way, which is NOEXEC +
-F_SEAL_EXEC + MFD_ALLOW_SEALING.  This works with sysctl vm.noexec to help
-existing applications move to a more secure way of using memfd.
+Fix this by replacing the current test names with fixed strings describing
+the intent of the mappings that are logged, the existing messages with the
+actual addresses and sizes are retained as diagnostic prints to aid in
+debugging.
 
-Proposals have been made to put MFD_NOEXEC_SEAL non-sealable, unless
-MFD_ALLOW_SEALING is set, to be consistent with other flags [1], Those
-are based on the viewpoint that each flag is an atomic unit, which is a
-reasonable assumption.  However, MFD_NOEXEC_SEAL was designed with the
-intent of promoting the most secure method of using memfd, therefore a
-combination of multiple functionalities into one bit.
-
-Furthermore, the MFD_NOEXEC_SEAL has been added for more than one year,
-and multiple applications and distributions have backported and utilized
-it.  Altering ABI now presents a degree of risk and may lead to
-disruption.
-
-MFD_NOEXEC_SEAL is a new flag, and applications must change their code to
-use it.  There is no backward compatibility problem.
-
-When sysctl vm.noexec == 1 or 2, applications that don't set
-MFD_NOEXEC_SEAL or MFD_EXEC will get MFD_NOEXEC_SEAL memfd.  And
-old-application might break, that is by-design, in such a system vm.noexec
-= 0 shall be used.  Also no backward compatibility problem.
-
-I propose to include this documentation patch to assist in clarifying the
-semantics of MFD_NOEXEC_SEAL, thereby preventing any potential future
-confusion.
-
-Finally, I would like to express my gratitude to David Rheinsberg and
-Barnabás Pőcze for initiating the discussion on the topic of sealability.
-
-[1]
-https://lore.kernel.org/lkml/20230714114753.170814-1-david@readahead.eu/
-
-[jeffxu@chromium.org: updates per Randy]
-  Link: https://lkml.kernel.org/r/20240611034903.3456796-2-jeffxu@chromium.org
-[jeffxu@chromium.org: v3]
-  Link: https://lkml.kernel.org/r/20240611231409.3899809-2-jeffxu@chromium.org
-Link: https://lkml.kernel.org/r/20240607203543.2151433-2-jeffxu@google.com
-Signed-off-by: Jeff Xu <jeffxu@chromium.org>
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Aleksa Sarai <cyphar@cyphar.com>
-Cc: Barnabás Pőcze <pobrn@protonmail.com>
-Cc: Daniel Verkamp <dverkamp@chromium.org>
-Cc: David Rheinsberg <david@readahead.eu>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
+Link: https://lkml.kernel.org/r/20240605-kselftest-mm-fixed-noreplace-v1-1-a235db8b9be9@kernel.org
+Fixes: 4838cf70e539 ("selftests/mm: map_fixed_noreplace: conform test to TAP format output")
+Signed-off-by: Mark Brown <broonie@kernel.org>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/userspace-api/index.rst      |    1 
- Documentation/userspace-api/mfd_noexec.rst |   86 +++++++++++++++++++
- 2 files changed, 87 insertions(+)
+ tools/testing/selftests/mm/map_fixed_noreplace.c |   24 ++++++++-----
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
---- a/Documentation/userspace-api/index.rst~mm-memfd-add-documentation-for-mfd_noexec_seal-mfd_exec
-+++ a/Documentation/userspace-api/index.rst
-@@ -32,6 +32,7 @@ Security-related interfaces
-    seccomp_filter
-    landlock
-    lsm
-+   mfd_noexec
-    spec_ctrl
-    tee
+--- a/tools/testing/selftests/mm/map_fixed_noreplace.c~selftests-mm-make-map_fixed_noreplace-test-names-stable
++++ a/tools/testing/selftests/mm/map_fixed_noreplace.c
+@@ -67,7 +67,8 @@ int main(void)
+ 		dump_maps();
+ 		ksft_exit_fail_msg("Error: munmap failed!?\n");
+ 	}
+-	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_test_result_pass("mmap() 5*PAGE_SIZE at base\n");
  
---- /dev/null
-+++ a/Documentation/userspace-api/mfd_noexec.rst
-@@ -0,0 +1,86 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+==================================
-+Introduction of non-executable mfd
-+==================================
-+:Author:
-+    Daniel Verkamp <dverkamp@chromium.org>
-+    Jeff Xu <jeffxu@chromium.org>
-+
-+:Contributor:
-+	Aleksa Sarai <cyphar@cyphar.com>
-+
-+Since Linux introduced the memfd feature, memfds have always had their
-+execute bit set, and the memfd_create() syscall doesn't allow setting
-+it differently.
-+
-+However, in a secure-by-default system, such as ChromeOS, (where all
-+executables should come from the rootfs, which is protected by verified
-+boot), this executable nature of memfd opens a door for NoExec bypass
-+and enables “confused deputy attack”.  E.g, in VRP bug [1]: cros_vm
-+process created a memfd to share the content with an external process,
-+however the memfd is overwritten and used for executing arbitrary code
-+and root escalation. [2] lists more VRP of this kind.
-+
-+On the other hand, executable memfd has its legit use: runc uses memfd’s
-+seal and executable feature to copy the contents of the binary then
-+execute them. For such a system, we need a solution to differentiate runc's
-+use of executable memfds and an attacker's [3].
-+
-+To address those above:
-+ - Let memfd_create() set X bit at creation time.
-+ - Let memfd be sealed for modifying X bit when NX is set.
-+ - Add a new pid namespace sysctl: vm.memfd_noexec to help applications in
-+   migrating and enforcing non-executable MFD.
-+
-+User API
-+========
-+``int memfd_create(const char *name, unsigned int flags)``
-+
-+``MFD_NOEXEC_SEAL``
-+	When MFD_NOEXEC_SEAL bit is set in the ``flags``, memfd is created
-+	with NX. F_SEAL_EXEC is set and the memfd can't be modified to
-+	add X later. MFD_ALLOW_SEALING is also implied.
-+	This is the most common case for the application to use memfd.
-+
-+``MFD_EXEC``
-+	When MFD_EXEC bit is set in the ``flags``, memfd is created with X.
-+
-+Note:
-+	``MFD_NOEXEC_SEAL`` implies ``MFD_ALLOW_SEALING``. In case that
-+	an app doesn't want sealing, it can add F_SEAL_SEAL after creation.
-+
-+
-+Sysctl:
-+========
-+``pid namespaced sysctl vm.memfd_noexec``
-+
-+The new pid namespaced sysctl vm.memfd_noexec has 3 values:
-+
-+ - 0: MEMFD_NOEXEC_SCOPE_EXEC
-+	memfd_create() without MFD_EXEC nor MFD_NOEXEC_SEAL acts like
-+	MFD_EXEC was set.
-+
-+ - 1: MEMFD_NOEXEC_SCOPE_NOEXEC_SEAL
-+	memfd_create() without MFD_EXEC nor MFD_NOEXEC_SEAL acts like
-+	MFD_NOEXEC_SEAL was set.
-+
-+ - 2: MEMFD_NOEXEC_SCOPE_NOEXEC_ENFORCED
-+	memfd_create() without MFD_NOEXEC_SEAL will be rejected.
-+
-+The sysctl allows finer control of memfd_create for old software that
-+doesn't set the executable bit; for example, a container with
-+vm.memfd_noexec=1 means the old software will create non-executable memfd
-+by default while new software can create executable memfd by setting
-+MFD_EXEC.
-+
-+The value of vm.memfd_noexec is passed to child namespace at creation
-+time. In addition, the setting is hierarchical, i.e. during memfd_create,
-+we will search from current ns to root ns and use the most restrictive
-+setting.
-+
-+[1] https://crbug.com/1305267
-+
-+[2] https://bugs.chromium.org/p/chromium/issues/list?q=type%3Dbug-security%20memfd%20escalation&can=1
-+
-+[3] https://lwn.net/Articles/781013/
+ 	addr = base_addr + page_size;
+ 	size = 3 * page_size;
+@@ -76,7 +77,8 @@ int main(void)
+ 		dump_maps();
+ 		ksft_exit_fail_msg("Error: first mmap() failed unexpectedly\n");
+ 	}
+-	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_test_result_pass("mmap() 3*PAGE_SIZE at base+PAGE_SIZE\n");
+ 
+ 	/*
+ 	 * Exact same mapping again:
+@@ -93,7 +95,8 @@ int main(void)
+ 		dump_maps();
+ 		ksft_exit_fail_msg("Error:1: mmap() succeeded when it shouldn't have\n");
+ 	}
+-	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_test_result_pass("mmap() 5*PAGE_SIZE at base\n");
+ 
+ 	/*
+ 	 * Second mapping contained within first:
+@@ -111,7 +114,8 @@ int main(void)
+ 		dump_maps();
+ 		ksft_exit_fail_msg("Error:2: mmap() succeeded when it shouldn't have\n");
+ 	}
+-	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_test_result_pass("mmap() 2*PAGE_SIZE at base+PAGE_SIZE\n");
+ 
+ 	/*
+ 	 * Overlap end of existing mapping:
+@@ -128,7 +132,8 @@ int main(void)
+ 		dump_maps();
+ 		ksft_exit_fail_msg("Error:3: mmap() succeeded when it shouldn't have\n");
+ 	}
+-	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_test_result_pass("mmap() 2*PAGE_SIZE  at base+(3*PAGE_SIZE)\n");
+ 
+ 	/*
+ 	 * Overlap start of existing mapping:
+@@ -145,7 +150,8 @@ int main(void)
+ 		dump_maps();
+ 		ksft_exit_fail_msg("Error:4: mmap() succeeded when it shouldn't have\n");
+ 	}
+-	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_test_result_pass("mmap() 2*PAGE_SIZE bytes at base\n");
+ 
+ 	/*
+ 	 * Adjacent to start of existing mapping:
+@@ -162,7 +168,8 @@ int main(void)
+ 		dump_maps();
+ 		ksft_exit_fail_msg("Error:5: mmap() failed when it shouldn't have\n");
+ 	}
+-	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_test_result_pass("mmap() PAGE_SIZE at base\n");
+ 
+ 	/*
+ 	 * Adjacent to end of existing mapping:
+@@ -179,7 +186,8 @@ int main(void)
+ 		dump_maps();
+ 		ksft_exit_fail_msg("Error:6: mmap() failed when it shouldn't have\n");
+ 	}
+-	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
++	ksft_test_result_pass("mmap() PAGE_SIZE at base+(4*PAGE_SIZE)\n");
+ 
+ 	addr = base_addr;
+ 	size = 5 * page_size;
 _
 
-Patches currently in -mm which might be from jeffxu@chromium.org are
+Patches currently in -mm which might be from broonie@kernel.org are
 
-proc-pid-smaps-add-mseal-info-for-vma.patch
 
