@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E83D2907
-	for <mm-commits@vger.kernel.org>; Sat, 15 Jun 2024 02:56:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15AE226AED
+	for <mm-commits@vger.kernel.org>; Sat, 15 Jun 2024 17:27:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718420161; cv=none; b=UD4mvRKB+n0dNvrcDtfxK4RsEqX3OnmB8LLIGskbcp2knMdV3mgpTF8Ebpq1zh6X7pvCf4DBIP1LDX84K2T68r7d+5Nl8tIhRD/1KokpjrPeegj2zuFIq6eel1FhxCpzAACedGXnxNuir2YUvos4NHzm4EJC7w2butBqldaJvqI=
+	t=1718472472; cv=none; b=mWpCl6gyXQiGU8Js+ZzVpv+7LnAseKgBZyQdOVhCzo6ukZtHgKR6NXnWFYCVp5t760ShXEKuw7IZzzu6plalwnrEztTUws8NOZ15ag02OQM16D5QMtijX6yCtuWmYLL8XtRaJV5HNb7i5CsuuhuI0XUlVz5bnKO8Rmcsxr+nKIA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718420161; c=relaxed/simple;
-	bh=SbYdBb8aS3+Qki6JyPbEN5ENKzwZTFH4L2yck2E8c8E=;
-	h=Date:To:From:Subject:Message-Id; b=D1AVxszOEq7Ako9cpIXTOYlLUmdAUlFbWTcaASRsev2vVnXlnxEK3pxwVVW8VAfVJR7Q8DD/bxa4kxG0tK1Cwr6cCchSgvaf20Qk/drd2N7qVQBeFox69t0gPVSE4sVqsB4HJlyZYoAVFZAd5YXt8kmgIfLWU1REFEalQYCNXAU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1mxQ4+KI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718472472; c=relaxed/simple;
+	bh=bBQAAdQa90rnMWzJYa4bQoIdkZFVZs14gKLRwYluRo8=;
+	h=Date:To:From:Subject:Message-Id; b=Ox+wAsoedNUnhxEpl5V/o9Ib9EXum5OXpMERNAiwaxLF6/JP5dgYD6o87lDSGbtHymkhnyd8t7kmfND2xkeJ0EvD+gpV3T8zYTxn2zS9aw/jMKa89Dawr843OML3u1sCgcmFTy1ooO6biRp+Mnv+49bMXioytyG1QJUSpE+euc4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O9L+3a9B; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1mxQ4+KI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC5EEC2BD10;
-	Sat, 15 Jun 2024 02:56:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O9L+3a9B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 892EBC116B1;
+	Sat, 15 Jun 2024 17:27:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718420161;
-	bh=SbYdBb8aS3+Qki6JyPbEN5ENKzwZTFH4L2yck2E8c8E=;
+	s=korg; t=1718472471;
+	bh=bBQAAdQa90rnMWzJYa4bQoIdkZFVZs14gKLRwYluRo8=;
 	h=Date:To:From:Subject:From;
-	b=1mxQ4+KIzO4jZZSEFBb5P98VSLR+qb+PVdjWuWhYVv65Eoq+JIYfKfNH0KmfF/rN+
-	 kv8BVVfSb9GdZvN4bxC79ud5s2EarCVSzMwsfIjihDQDw5u2qQpej+WNfU22AP/UiO
-	 YU+rcy6b84NxO5H5tGcTHAAYhtmOtL0wyt4CclLo=
-Date: Fri, 14 Jun 2024 19:56:00 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,ghe@suse.com,gechangwei@live.cn,christophe.jaillet@wanadoo.fr,akpm@linux-foundation.org
+	b=O9L+3a9B68Z7uGaWiZT9lsqwPP/fxN4Qb8qCsZKQ/QdFFBGJZ9kLRu8k1EW4eYJz+
+	 pZ/VCQr3C00oVG2AYKLSUU4WfZtJBiVN6IaxeO6w1GTTAWmYiSxgiZVVjE3ioaG6Fz
+	 PDvOSHcSksUQJsWQtrhnuCnNl0SL8DJzOz24yirc=
+Date: Sat, 15 Jun 2024 10:27:50 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,shakeel.butt@linux.dev,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-constify-struct-ocfs2_stack_operations.patch added to mm-nonmm-unstable branch
-Message-Id: <20240615025600.EC5EEC2BD10@smtp.kernel.org>
+Subject: + mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio-v3.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240615172751.892EBC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: constify struct ocfs2_stack_operations
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-constify-struct-ocfs2_stack_operations.patch
+     Subject: mm: shmem: fix getting incorrect lruvec when replacing a shmem folio
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio-v3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-constify-struct-ocfs2_stack_operations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio-v3.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,86 +58,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: ocfs2: constify struct ocfs2_stack_operations
-Date: Fri, 14 Jun 2024 22:57:09 +0200
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: shmem: fix getting incorrect lruvec when replacing a shmem folio
+Date: Sat, 15 Jun 2024 11:49:54 +0800
 
-"struct ocfs2_stack_operations" are not modified in this driver.
+remove less helpful comments, per Matthew
 
-Constifying this structure moves some data to a read-only section, so
-increase overall security.
-
-In order to do it, "struct ocfs2_stack_plugin" also needs to be adjusted
-to this new const qualifier.
-
-On a x86_64, with allmodconfig:
-Before:
-======
-   text	   data	    bss	    dec	    hex	filename
-   6241	    644	      0	   6885	   1ae5	fs/ocfs2/stack_o2cb.o
-
-After:
-=====
-   text	   data	    bss	    dec	    hex	filename
-   6337	    548	      0	   6885	   1ae5	fs/ocfs2/stack_o2cb.o
-
-Link: https://lkml.kernel.org/r/f52dab89ee0049ec6271de29183a781efbb275ab.1718398605.git.christophe.jaillet@wanadoo.fr
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/ccad3fe1375b468ebca3227b6b729f3eaf9d8046.1718423197.git.baolin.wang@linux.alibaba.com
+Fixes: 85ce2c517ade ("memcontrol: only transfer the memcg data for migration")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stack_o2cb.c |    2 +-
- fs/ocfs2/stack_user.c |    2 +-
- fs/ocfs2/stackglue.h  |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/fs/ocfs2/stackglue.h~ocfs2-constify-struct-ocfs2_stack_operations
-+++ a/fs/ocfs2/stackglue.h
-@@ -223,7 +223,7 @@ struct ocfs2_stack_operations {
+--- a/mm/memcontrol.c~mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio-v3
++++ a/mm/memcontrol.c
+@@ -7745,8 +7745,7 @@ void __mem_cgroup_uncharge_folios(struct
+  * @new: Replacement folio.
+  *
+  * Charge @new as a replacement folio for @old. @old will
+- * be uncharged upon free. This is only used by the page cache
+- * (in replace_page_cache_folio()).
++ * be uncharged upon free.
+  *
+  * Both folios must be locked, @new->mapping must be set up.
   */
- struct ocfs2_stack_plugin {
- 	char *sp_name;
--	struct ocfs2_stack_operations *sp_ops;
-+	const struct ocfs2_stack_operations *sp_ops;
- 	struct module *sp_owner;
- 
- 	/* These are managed by the stackglue code. */
---- a/fs/ocfs2/stack_o2cb.c~ocfs2-constify-struct-ocfs2_stack_operations
-+++ a/fs/ocfs2/stack_o2cb.c
-@@ -404,7 +404,7 @@ static int o2cb_cluster_this_node(struct
- 	return 0;
- }
- 
--static struct ocfs2_stack_operations o2cb_stack_ops = {
-+static const struct ocfs2_stack_operations o2cb_stack_ops = {
- 	.connect	= o2cb_cluster_connect,
- 	.disconnect	= o2cb_cluster_disconnect,
- 	.this_node	= o2cb_cluster_this_node,
---- a/fs/ocfs2/stack_user.c~ocfs2-constify-struct-ocfs2_stack_operations
-+++ a/fs/ocfs2/stack_user.c
-@@ -1065,7 +1065,7 @@ static int user_cluster_this_node(struct
- 	return 0;
- }
- 
--static struct ocfs2_stack_operations ocfs2_user_plugin_ops = {
-+static const struct ocfs2_stack_operations ocfs2_user_plugin_ops = {
- 	.connect	= user_cluster_connect,
- 	.disconnect	= user_cluster_disconnect,
- 	.this_node	= user_cluster_this_node,
 _
 
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-fsi-occ-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
-most-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
-proc-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
-ocfs2-constify-struct-ocfs2_lock_res_ops.patch
-ocfs2-constify-struct-ocfs2_stack_operations.patch
+mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio.patch
+mm-shmem-fix-getting-incorrect-lruvec-when-replacing-a-shmem-folio-v3.patch
+mm-memory-extend-finish_fault-to-support-large-folio.patch
+mm-memory-extend-finish_fault-to-support-large-folio-fix.patch
+mm-memory-extend-finish_fault-to-support-large-folio-fix-fix.patch
+mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch
+mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch
+mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix.patch
+mm-shmem-add-mthp-support-for-anonymous-shmem.patch
+mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area.patch
+mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
+mm-shmem-add-mthp-counters-for-anonymous-shmem-fix.patch
+mm-memcontrol-add-vm_bug_on_folio-to-catch-lru-folio-in-mem_cgroup_migrate.patch
 
