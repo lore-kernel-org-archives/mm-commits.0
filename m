@@ -1,273 +1,134 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com [209.85.167.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16D87E542
-	for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 20:02:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACD6218F2DD
+	for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 20:09:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718654521; cv=none; b=MmPIPDSE/1bhNHIQL7di1bOcNYfS/VcvO14/r1jkB+0D59k5lCac7QS882P5+seGXyLBgyRlft70o4tUHuKQez7GGtIBXZvdGfpHsctdlQev+J1qulX5wx25FyDuvpc7aMVd6zXSXl/W/icKQ0BHTLMv6DplT5HJJN3quBgVzxk=
+	t=1718654986; cv=none; b=b5WaN37MQ/vuNZopPLM6sLu+JNYPQ7ktgAjOo8Cu/gJorHq2WE4JJ+DtyWymzKZ+HsrpQUCwqMzFZW2ZwjImmpubnAHir2ADO5Z8rXS7cyizNqLPKEtgv2tQTnAhikJTtmRHvDbj0sEUHu/ihQapXoH5S/X6M/qUgIDtVJQOsU0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718654521; c=relaxed/simple;
-	bh=iubTLYcMmvNoJh8BSyuKNXmibZ0hVpdGBCP6P2qFGrE=;
-	h=Date:To:From:Subject:Message-Id; b=rt1OnxgmgqIqiToz6MdGDECTn4c1AS22jXzvqYFgvDbVvNP5GtiA401xdISN/Frk/QKjWh52OntVnTZ02jSqX8mx+emRG8jzblUfq6k8Bjgvt/F+RsXgzRnztqTvm9IH7GuejUwIGS3WX5KzrGikCg/H08popBdPg/YYnTTBM8M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2myHOoRC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718654986; c=relaxed/simple;
+	bh=lMOHT9AzaSNEukALssulLQMHUV6v697K4yD8C4n+Ca0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=FT5OYP2edBMuzriELgHCbZlmz5Xc5yj0qkoRrHtGgYYLSoQOR0nljnusGcebRYhLRarphUcKQQipFtILN8FwQAXPb4okNxywSAiZhcxIyhCHkDflx0KDqBQOXkqrMO2SBRkonNLAHoQ4O87JzFU6lU2S/j11aXJcZ4lzKrjQ0A8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ShLEzPPK; arc=none smtp.client-ip=209.85.167.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2myHOoRC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87344C2BD10;
-	Mon, 17 Jun 2024 20:02:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718654520;
-	bh=iubTLYcMmvNoJh8BSyuKNXmibZ0hVpdGBCP6P2qFGrE=;
-	h=Date:To:From:Subject:From;
-	b=2myHOoRCixVW/EjmLluiYhJJaaRi4CfvYCDpFNEu1jXsXWFZey0o9u+Mk3EHM22E7
-	 Yt6GfSx+9NVzUH6fkrPpOdFs6X2ASeuQW5YJwBZyoHlKCMlIuQ82vj68+Jj9hnUvvs
-	 QopK8EHJxP/n4sqKIKgOUF3yHX05QxPzMWh719NI=
-Date: Mon, 17 Jun 2024 13:02:00 -0700
-To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-use-only-one-pool-in-zswap.patch added to mm-unstable branch
-Message-Id: <20240617200200.87344C2BD10@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ShLEzPPK"
+Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-52bc27cfb14so5930294e87.0
+        for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 13:09:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1718654983; x=1719259783; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=32irAGR56mVNB9UGYg2c/DMgiXDqjQ+y0dbB2T9WACs=;
+        b=ShLEzPPKEtHAou6ivJtsfQR3B07UIIet5ec5PX0atO4aD9/zoFM5rFXN5O0uype2cB
+         +bkUEFd8LIQwYHuQm4OUBs43GTLJiCgYHST7/c6NFHgmJG4EiLIl8cY4QApXSg0oBiWY
+         4rZFVLXhBS0/SeDx5kZd1MY3WwNsTo+TXd6lo=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1718654983; x=1719259783;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=32irAGR56mVNB9UGYg2c/DMgiXDqjQ+y0dbB2T9WACs=;
+        b=six4wJi0lg9rigMNHsQ+Poc5h1XetyvSiHcFKAst0vy9CTY/PiF8x+s/iV4xmThuI4
+         5oU1w+QrB25TmLUuy2yS/0reE6am16DO/BUVkejk5Lsond4J1uR680lFqTEbk0TMs+O2
+         bE+gv0woozco8cMcaipT7vYR/tImeas6yMptqBfLs6o0Qm8m3jD1JUjGMDEfYSivX99k
+         C9HU9dY6QS0fv0qWExgHdDLXxVk91EQ5Xl9uc0CUHQ+Rqn/r1+9lHNUtN26oODcl5Eq8
+         xEpO/ZEqPIon1VCNUQTv7pi6mEN68RsZ4mZh9OiLtfCpZjTKkCV2ArEBdiC4FRkFMtF6
+         JeQA==
+X-Forwarded-Encrypted: i=1; AJvYcCVVpoae23zLRkUryrLd9ovyAv4skYodGGnJgRwpj3+aBJjpsBH/ux1ICNYX49Rcz5JD9QV/hWlhckWN0drsK3hXxgbrsKHRPq6Ejw==
+X-Gm-Message-State: AOJu0YzfEwx0mTeKQ/+d1s43n3XW7UwA1Mz0OG/pKoFBuSuk8dqEbYMu
+	KInYnDrI4mdzNUOi9T16j6omNTr4G7wQrNzMvcW3B0qEf6IhwzPo3fhdL9pijo3vBfdF3quvJm4
+	g8QSyPA==
+X-Google-Smtp-Source: AGHT+IF4MAy1hFseUlFTl5dd/7xF5n7SW9dkHFq41UkVWB9NgJK87NLKeo9/IsKtkd6EzRhhcvz5+Q==
+X-Received: by 2002:a05:6512:3f27:b0:52c:9ae0:beed with SMTP id 2adb3069b0e04-52ca6e92a3cmr10275361e87.52.1718654982779;
+        Mon, 17 Jun 2024 13:09:42 -0700 (PDT)
+Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com. [209.85.218.48])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a6f681ae61fsm418466866b.99.2024.06.17.13.09.41
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 17 Jun 2024 13:09:41 -0700 (PDT)
+Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-a6f51660223so280983566b.0
+        for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 13:09:41 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCXqdt6XSfw9yizBPac2eFmgcKX9vE8+lJnplGPw+3bKcngU+572oWHe+onFre0LwU5LodMVYe3Fg/f58doz0Rb+TqrPTUuwZZ6ycg==
+X-Received: by 2002:a50:9e85:0:b0:57c:6031:8ebf with SMTP id
+ 4fb4d7f45d1cf-57cbd6c74c8mr7654997a12.31.1718654981431; Mon, 17 Jun 2024
+ 13:09:41 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20240617114712.45d4743f8bacb832dea4b5a9@linux-foundation.org>
+In-Reply-To: <20240617114712.45d4743f8bacb832dea4b5a9@linux-foundation.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Mon, 17 Jun 2024 13:09:15 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wjiUzOHfHaWgUcByAygaG6w_BKOqbTN6EHrDHaXb_i+xA@mail.gmail.com>
+Message-ID: <CAHk-=wjiUzOHfHaWgUcByAygaG6w_BKOqbTN6EHrDHaXb_i+xA@mail.gmail.com>
+Subject: Re: [GIT PULL] hotfixes for 6.10-rc5
+To: Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, 
+	Rafael Aquini <aquini@redhat.com>, Jiri Slaby <jirislaby@kernel.org>, 
+	Suren Baghdasaryan <surenb@google.com>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
+On Mon, 17 Jun 2024 at 11:47, Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> Rafael Aquini (1):
+>       mm: mmap: allow for the maximum number of bits for randomizing mmap_base by default
 
-The patch titled
-     Subject: mm/zswap: use only one pool in zswap
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-use-only-one-pool-in-zswap.patch
+No.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-use-only-one-pool-in-zswap.patch
+And HELL NO!
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+We're not adding *another* new random incomprehensible config option
+that tries to fix a random case that no normal user will understand.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Our kernel config is too damn complex as-is. We're not making it worse
+like this. Anybody who cares about this kind of crazy esoteric detail
+can damn well just set their Kconfig manually, instead of forcing this
+kind of insane questions on other people.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+This Kconfig insanity needs to stop. Why do I need to be the person who says
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  "STOP ASKING POOR USERS IDIOTIC QUESTIONS THAT THEY CAN'T SANELY ANSWER"
 
-------------------------------------------------------
-From: Chengming Zhou <chengming.zhou@linux.dev>
-Subject: mm/zswap: use only one pool in zswap
-Date: Mon, 17 Jun 2024 20:57:41 +0800
+I've pulled, but I'm reverting this commit. We are *not* going down
+this path of insanity.
 
-Zswap uses 32 pools to workaround the locking scalability problem in
-zsmalloc, which brings its own problems like memory waste and more memory
-fragmentation.
+I'd also like to note that the reported 32-bit issue was ALREADY FIXED
+months ago by commit 4ef9ad19e176 ("mm: huge_memory: don't force huge
+page alignment on 32 bit")
 
-Testing results show that we can have near performance with only one pool
-in zswap after changing zsmalloc to use per-size_class lock instead of
-pool spinlock.
+It's possible that we should extend that - much saner - fix to also
+look at the number of bits for randomization even outside of 32-bit
+processes, and judge things on the number of bits we're expected to
+randomize mappings on.
 
-Testing kernel build (make bzImage -j32) on tmpfs with memory.max=1GB, and
-zswap shrinker enabled with 10GB swapfile on ext4.
+So it's very possible that the
 
-                                real    user    sys
-6.10.0-rc3                      138.18  1241.38 1452.73
-6.10.0-rc3-onepool              149.45  1240.45 1844.69
-6.10.0-rc3-onepool-perclass     138.23  1242.37 1469.71
+        if (IS_ENABLED(CONFIG_32BIT) || in_compat_syscall())
+                return 0;
 
-Link: https://lkml.kernel.org/r/20240617-zsmalloc-lock-mm-everything-v1-2-5e5081ea11b3@linux.dev
-Signed-off-by: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chengming Zhou <zhouchengming@bytedance.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+test in __thp_get_unmapped_area() should be extended to take requested
+address randomization into account.
 
- mm/zswap.c |   60 ++++++++++++++++-----------------------------------
- 1 file changed, 19 insertions(+), 41 deletions(-)
+But there is NO WAY this is fixed with another completely
+incomprehensible Kconfig option.
 
---- a/mm/zswap.c~mm-zswap-use-only-one-pool-in-zswap
-+++ a/mm/zswap.c
-@@ -122,9 +122,6 @@ static unsigned int zswap_accept_thr_per
- module_param_named(accept_threshold_percent, zswap_accept_thr_percent,
- 		   uint, 0644);
- 
--/* Number of zpools in zswap_pool (empirically determined for scalability) */
--#define ZSWAP_NR_ZPOOLS 32
--
- /* Enable/disable memory pressure-based shrinker. */
- static bool zswap_shrinker_enabled = IS_ENABLED(
- 		CONFIG_ZSWAP_SHRINKER_DEFAULT_ON);
-@@ -160,7 +157,7 @@ struct crypto_acomp_ctx {
-  * needs to be verified that it's still valid in the tree.
-  */
- struct zswap_pool {
--	struct zpool *zpools[ZSWAP_NR_ZPOOLS];
-+	struct zpool *zpool;
- 	struct crypto_acomp_ctx __percpu *acomp_ctx;
- 	struct percpu_ref ref;
- 	struct list_head list;
-@@ -237,7 +234,7 @@ static inline struct xarray *swap_zswap_
- 
- #define zswap_pool_debug(msg, p)				\
- 	pr_debug("%s pool %s/%s\n", msg, (p)->tfm_name,		\
--		 zpool_get_type((p)->zpools[0]))
-+		 zpool_get_type((p)->zpool))
- 
- /*********************************
- * pool functions
-@@ -246,7 +243,6 @@ static void __zswap_pool_empty(struct pe
- 
- static struct zswap_pool *zswap_pool_create(char *type, char *compressor)
- {
--	int i;
- 	struct zswap_pool *pool;
- 	char name[38]; /* 'zswap' + 32 char (max) num + \0 */
- 	gfp_t gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
-@@ -267,18 +263,14 @@ static struct zswap_pool *zswap_pool_cre
- 	if (!pool)
- 		return NULL;
- 
--	for (i = 0; i < ZSWAP_NR_ZPOOLS; i++) {
--		/* unique name for each pool specifically required by zsmalloc */
--		snprintf(name, 38, "zswap%x",
--			 atomic_inc_return(&zswap_pools_count));
--
--		pool->zpools[i] = zpool_create_pool(type, name, gfp);
--		if (!pool->zpools[i]) {
--			pr_err("%s zpool not available\n", type);
--			goto error;
--		}
-+	/* unique name for each pool specifically required by zsmalloc */
-+	snprintf(name, 38, "zswap%x", atomic_inc_return(&zswap_pools_count));
-+	pool->zpool = zpool_create_pool(type, name, gfp);
-+	if (!pool->zpool) {
-+		pr_err("%s zpool not available\n", type);
-+		goto error;
- 	}
--	pr_debug("using %s zpool\n", zpool_get_type(pool->zpools[0]));
-+	pr_debug("using %s zpool\n", zpool_get_type(pool->zpool));
- 
- 	strscpy(pool->tfm_name, compressor, sizeof(pool->tfm_name));
- 
-@@ -311,8 +303,7 @@ ref_fail:
- error:
- 	if (pool->acomp_ctx)
- 		free_percpu(pool->acomp_ctx);
--	while (i--)
--		zpool_destroy_pool(pool->zpools[i]);
-+	zpool_destroy_pool(pool->zpool);
- 	kfree(pool);
- 	return NULL;
- }
-@@ -361,15 +352,12 @@ static struct zswap_pool *__zswap_pool_c
- 
- static void zswap_pool_destroy(struct zswap_pool *pool)
- {
--	int i;
--
- 	zswap_pool_debug("destroying", pool);
- 
- 	cpuhp_state_remove_instance(CPUHP_MM_ZSWP_POOL_PREPARE, &pool->node);
- 	free_percpu(pool->acomp_ctx);
- 
--	for (i = 0; i < ZSWAP_NR_ZPOOLS; i++)
--		zpool_destroy_pool(pool->zpools[i]);
-+	zpool_destroy_pool(pool->zpool);
- 	kfree(pool);
- }
- 
-@@ -464,8 +452,7 @@ static struct zswap_pool *zswap_pool_fin
- 	list_for_each_entry_rcu(pool, &zswap_pools, list) {
- 		if (strcmp(pool->tfm_name, compressor))
- 			continue;
--		/* all zpools share the same type */
--		if (strcmp(zpool_get_type(pool->zpools[0]), type))
-+		if (strcmp(zpool_get_type(pool->zpool), type))
- 			continue;
- 		/* if we can't get it, it's about to be destroyed */
- 		if (!zswap_pool_get(pool))
-@@ -492,12 +479,8 @@ unsigned long zswap_total_pages(void)
- 	unsigned long total = 0;
- 
- 	rcu_read_lock();
--	list_for_each_entry_rcu(pool, &zswap_pools, list) {
--		int i;
--
--		for (i = 0; i < ZSWAP_NR_ZPOOLS; i++)
--			total += zpool_get_total_pages(pool->zpools[i]);
--	}
-+	list_for_each_entry_rcu(pool, &zswap_pools, list)
-+		total += zpool_get_total_pages(pool->zpool);
- 	rcu_read_unlock();
- 
- 	return total;
-@@ -802,11 +785,6 @@ static void zswap_entry_cache_free(struc
- 	kmem_cache_free(zswap_entry_cache, entry);
- }
- 
--static struct zpool *zswap_find_zpool(struct zswap_entry *entry)
--{
--	return entry->pool->zpools[hash_ptr(entry, ilog2(ZSWAP_NR_ZPOOLS))];
--}
--
- /*
-  * Carries out the common pattern of freeing and entry's zpool allocation,
-  * freeing the entry itself, and decrementing the number of stored pages.
-@@ -814,7 +792,7 @@ static struct zpool *zswap_find_zpool(st
- static void zswap_entry_free(struct zswap_entry *entry)
- {
- 	zswap_lru_del(&zswap_list_lru, entry);
--	zpool_free(zswap_find_zpool(entry), entry->handle);
-+	zpool_free(entry->pool->zpool, entry->handle);
- 	zswap_pool_put(entry->pool);
- 	if (entry->objcg) {
- 		obj_cgroup_uncharge_zswap(entry->objcg, entry->length);
-@@ -939,7 +917,7 @@ static bool zswap_compress(struct folio
- 	if (comp_ret)
- 		goto unlock;
- 
--	zpool = zswap_find_zpool(entry);
-+	zpool = entry->pool->zpool;
- 	gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
- 	if (zpool_malloc_support_movable(zpool))
- 		gfp |= __GFP_HIGHMEM | __GFP_MOVABLE;
-@@ -968,7 +946,7 @@ unlock:
- 
- static void zswap_decompress(struct zswap_entry *entry, struct folio *folio)
- {
--	struct zpool *zpool = zswap_find_zpool(entry);
-+	struct zpool *zpool = entry->pool->zpool;
- 	struct scatterlist input, output;
- 	struct crypto_acomp_ctx *acomp_ctx;
- 	u8 *src;
-@@ -1467,7 +1445,7 @@ bool zswap_store(struct folio *folio)
- 	return true;
- 
- store_failed:
--	zpool_free(zswap_find_zpool(entry), entry->handle);
-+	zpool_free(entry->pool->zpool, entry->handle);
- put_pool:
- 	zswap_pool_put(entry->pool);
- freepage:
-@@ -1683,7 +1661,7 @@ static int zswap_setup(void)
- 	pool = __zswap_pool_create_fallback();
- 	if (pool) {
- 		pr_info("loaded using pool %s/%s\n", pool->tfm_name,
--			zpool_get_type(pool->zpools[0]));
-+			zpool_get_type(pool->zpool));
- 		list_add(&pool->list, &zswap_pools);
- 		zswap_has_pool = true;
- 		static_branch_enable(&zswap_ever_enabled);
-_
+So I'm really unhappy about this. The whole "add idiotic random
+Kconfig options" needs to stop.
 
-Patches currently in -mm which might be from chengming.zhou@linux.dev are
+Those options are not something a normal person can understand, and as
+shown by the fact that this patch was already bogus and superseded by
+a much better patch from months ago, clearly said Kconfig options
+WEREN'T EVEN UNDERSTOOD BY VM MAINTAINERS!
 
-mm-zswap-use-only-one-pool-in-zswap.patch
+Christ. Sorry for the shouting, but dammit, people need to really
+internalize the whole "we don't add crazy Kconfig options".
 
+                    Linus
