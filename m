@@ -1,202 +1,146 @@
-Received: from mail-ua1-f53.google.com (mail-ua1-f53.google.com [209.85.222.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B9551922C7
-	for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 10:05:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A7F7194AF6;
+	Mon, 17 Jun 2024 18:47:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718618733; cv=none; b=WwFT6kOXoIUMrJi98WTkAeZSDAumk9kFB0chHa8/7QgT8GPfaAhpRoBbwRir5kB3774kmZkKu3/zOekxKu5hKzZ/oIf61QQZs+MdzcnXnW3DSNpmS6PaBioGGePDDQEHJ7HEZ3gnSe3tTTdf6faDJFIJL7DH14KLvx/e5M65bSc=
+	t=1718650034; cv=none; b=qCsRUjvXCzDojtzKkAn3yXtpYRGKj3Mw+zIV1yHvEbSwjM2XDWJwE96JkV9O2KZgn9DQdtPqtO4KpxxhL9G1B1tqkzjlfWbtGb5IBdVxfq4TXSkRpVS9m2s7jTnpnvQgOovKCOG9DlLvp3PmrH1MTrHP7BBbjh9a93/hhagf4LI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718618733; c=relaxed/simple;
-	bh=Cz/D7wrIh7mOIYI8MLHfMsFTkqTpM1rYJTZ2vcTDiyY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=j4Z4/llvwrzSGYwgAu0LquPHm7VzHVEW8op4iRka+yGYUNFShJfTNgPwygmvhDNOAhU8WmJOUBkaKyQwpucIJmnXMpnEsgdJYIn4dSAnJ3FOzm/rf79eLc6XM8/KVivoBGWc2k2xqr24cpf2nk9sGXI1q7rhlt3v3UGnx/91Zio=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lJoCyuft; arc=none smtp.client-ip=209.85.222.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1718650034; c=relaxed/simple;
+	bh=P9nFVL6PwUB1vuX7YltEykomKEoLB1b3dO/elBvkJdE=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=gGOzi0SQLtxvRdOMXZ/6QqJlg919TT43HD0GezTDbok55rdplwy7/sbGucDxynfcLXHUJ00Ei7n6E499VNo9LxEvJp209nL34wjRURGE4PZjzFi6Nyf4eVPIssDMsJebKWKRxoWhbuqsy24nWjQzBPNdFwExoT0k6ZKtjv02qBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u1Bp8cpa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lJoCyuft"
-Received: by mail-ua1-f53.google.com with SMTP id a1e0cc1a2514c-80b76c5de79so1194358241.1
-        for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 03:05:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1718618730; x=1719223530; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=jrfWmaY5Y4YJVQ+uwh+KzA9TAkTG/B9YghQtZhDxOZo=;
-        b=lJoCyuftBOdiYi4JJaVP2fsoSqtRE2Xhq/El6n1S5wCcB3KiOjlMDz5QjU529q0R9c
-         qLjXoDtTMDHcJnPccN18g8nfpMhY9KIGJ8V5R3TA1GxOKaaxa4sHk5cl9/hu8mUwpYBZ
-         BS74IqamdjW5XyqN4wiUlEyfHDf4QoZlaa5mLmJHw5Ai6oSQQS0VBj0OtIv7yhrF30Xx
-         pl79Mkv2UKJp4i4+hwnL2Om6pXew02Y7Kkl819+UHX/h4Qu6j8Ew8FxaWvjjQbiPKpyw
-         4liCNwbDl/forIjRTvZxIQimMVt1MBlSqK+Rjgoz+GtwHE5ZZXsK1AUPt79W0J+CTboG
-         qfTg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718618730; x=1719223530;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=jrfWmaY5Y4YJVQ+uwh+KzA9TAkTG/B9YghQtZhDxOZo=;
-        b=YDTStONDLSD/hNDGWdotxztoLm/Wz12Wug1UfyD56Q5+G+KrLr7U+kUiozUWBSyahf
-         T/kwH5XIYYfa3DtyTRbph04C4TYfFLz3FCWbkQD4sUoPfRdWSLtR3551Gs/tPiL1dsIp
-         fenS8cnmzIbu8cRkmNpvAE6M+pbub6A4xPoa/cnmTjWVnBTwSeXb5S/6l7mhkZRiYY32
-         pktsAZ+/t4Mi8CeibthEr3KJUzjV1OvGp17uI/4qoqEcvLeek041fv7ojmRTLvKybMT8
-         xDC7yo53aV7oiWzOhyYYMIeaK3tDyrO3Ykxekb80qQ7cBzYw/zqHI1XxI4mdBRwXIWs+
-         v4jg==
-X-Gm-Message-State: AOJu0YwJfUYjCyWLy6mtFUCsgqN71fmXSpVfm7cWHOpiV71YI51NSWKG
-	SAqNvBlliQPd+ZKHSo5soQ4eEN4dPa6t1AjjCDXvKWaqfmn9QVNMlmZGHDepPBaW8y87G2nW+40
-	6bm1kfh67PDrS7cj4mAnVPHLdYEc=
-X-Google-Smtp-Source: AGHT+IEbyTrIEfFopunQwTaGX7baW7WVNOwqtNzx2NSW8r2vcUU8hr9CqwhO4QxE2SurLKPmtzEetyJQm8t8dagflOI=
-X-Received: by 2002:a05:6102:512a:b0:48d:73d4:8b7e with SMTP id
- ada2fe7eead31-48dae322a1emr10695708137.20.1718618730197; Mon, 17 Jun 2024
- 03:05:30 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u1Bp8cpa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DE0EC2BD10;
+	Mon, 17 Jun 2024 18:47:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1718650033;
+	bh=P9nFVL6PwUB1vuX7YltEykomKEoLB1b3dO/elBvkJdE=;
+	h=Date:From:To:Cc:Subject:From;
+	b=u1Bp8cpaOA/OEAU9tqGuFRl2CjsWza9+njLV7hNB3cT1gOjoYCKqQGFBjqJquDYUq
+	 a6rcnDxJalMpk+7ipsO5UDGiBO5elFGqu3nhefj8DOArb0QCCuqz8v7gT/JcKtMkvA
+	 IBxENi7jrlhqLWe75jSr8yHkBBstJnQJCarCWpU8=
+Date: Mon, 17 Jun 2024 11:47:12 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.10-rc5
+Message-Id: <20240617114712.45d4743f8bacb832dea4b5a9@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20240614182431.063F7C2BD10@smtp.kernel.org>
-In-Reply-To: <20240614182431.063F7C2BD10@smtp.kernel.org>
-From: Barry Song <21cnbao@gmail.com>
-Date: Mon, 17 Jun 2024 22:05:19 +1200
-Message-ID: <CAGsJ_4y5s1uu-LdkAudKdqE9u=GfHdK4eCdB6yc3b2ea4+_BBQ@mail.gmail.com>
-Subject: Re: + nfs-fix-nfs_swap_rw-for-large-folio-swap.patch added to
- mm-unstable branch
-To: Andrew Morton <akpm@linux-foundation.org>, Neil Brown <neilb@suse.de>
-Cc: mm-commits@vger.kernel.org, ying.huang@intel.com, v-songbaohua@oppo.com, 
-	trondmy@kernel.org, sfrench@samba.org, ryan.roberts@arm.com, 
-	hanchuanhua@oppo.com, chrisl@kernel.org, anna@kernel.org, hch@lst.de
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, Jun 15, 2024 at 6:25=E2=80=AFAM Andrew Morton <akpm@linux-foundatio=
-n.org> wrote:
->
->
-> The patch titled
->      Subject: nfs: fix nfs_swap_rw for large-folio swap
-> has been added to the -mm mm-unstable branch.  Its filename is
->      nfs-fix-nfs_swap_rw-for-large-folio-swap.patch
->
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree=
-/patches/nfs-fix-nfs_swap_rw-for-large-folio-swap.patch
->
-> This patch will later appear in the mm-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
->
-> *** Remember to use Documentation/process/submit-checklist.rst when testi=
-ng your code ***
->
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
->
-> ------------------------------------------------------
-> From: Christoph Hellwig <hch@lst.de>
-> Subject: nfs: fix nfs_swap_rw for large-folio swap
-> Date: Fri, 14 Jun 2024 12:03:25 +0200
->
-> The series "large folios swap-in: handle refault cases first" will permit
-> the MM to swap out larger than page size chunks.  NFS has all code ready
-> to handle this, but has a VM_BUG_ON that triggers when this happens.
-> Simply remove the VM_BUG_ON to fix this use case.
->
-> Link: https://lkml.kernel.org/r/20240614100329.1203579-2-hch@lst.de
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> Cc: Anna Schumaker <anna@kernel.org>
-> Cc: Steve French <sfrench@samba.org>
-> Cc: Trond Myklebust <trondmy@kernel.org>
-> Cc: Chuanhua Han <hanchuanhua@oppo.com>
-> Cc: Barry Song <v-songbaohua@oppo.com>
-> Cc: Ryan Roberts <ryan.roberts@arm.com>
-> Cc: Chris Li <chrisl@kernel.org>
-> Cc: "Huang, Ying" <ying.huang@intel.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-
-Hi Andrew, Christoph,
-
-As explained here[1], please hold this patch till the root cause
-is confirmed. I don't think "swap out larger than page size" is
-the cause. To me, the root cause is more of NeilBrown's
-"mm: submit multipage write for SWP_FS_OPS swap-space"
-which allows many pages plugged in an array and then unplugged
-all together. So, Cc: Neil Brown.
-
-I am going to send v3 with fixes tags once it gets double confirmed.
-
-commit 2282679fb20bf036a714ed49fadd0230c278a203
-Author: NeilBrown <neilb@suse.de>
-Date:   Mon May 9 18:20:49 2022 -0700
-
-    mm: submit multipage write for SWP_FS_OPS swap-space
-
-    swap_writepage() is given one page at a time, but may be called repeate=
-dly
-    in succession.
-
-    For block-device swapspace, the blk_plug functionality allows the multi=
-ple
-    pages to be combined together at lower layers.  That cannot be used for
-    SWP_FS_OPS as blk_plug may not exist - it is only active when
-    CONFIG_BLOCK=3Dy.  Consequently all swap reads over NFS are single page
-    reads.
-
-    With this patch we pass a pointer-to-pointer via the wbc.  swap_writepa=
-ge
-    can store state between calls - much like the pointer passed explicitly=
- to
-    swap_readpage.  After calling swap_writepage() some number of times, th=
-e
-    state will be passed to swap_write_unplug() which can submit the combin=
-ed
-    request.
-
-    Link: https://lkml.kernel.org/r/164859778128.29473.5191868522654408537.=
-stgit@noble.brown
-    Signed-off-by: NeilBrown <neilb@suse.de>
-    Reviewed-by: Christoph Hellwig <hch@lst.de>
-    Tested-by: David Howells <dhowells@redhat.com>
-    Tested-by: Geert Uytterhoeven <geert+renesas@glider.be>
-    Cc: Hugh Dickins <hughd@google.com>
-    Cc: Mel Gorman <mgorman@techsingularity.net>
-    Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-    Cc: Miaohe Lin <linmiaohe@huawei.com>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-
-[1] https://lore.kernel.org/linux-mm/CAGsJ_4xDkjN0X8ogE9djmu+nDUd_PJcSwr+GV=
-H4vUiUAeJskaQ@mail.gmail.com/
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-> ---
->
->  fs/nfs/direct.c |    2 --
->  1 file changed, 2 deletions(-)
->
-> --- a/fs/nfs/direct.c~nfs-fix-nfs_swap_rw-for-large-folio-swap
-> +++ a/fs/nfs/direct.c
-> @@ -141,8 +141,6 @@ int nfs_swap_rw(struct kiocb *iocb, stru
->  {
->         ssize_t ret;
->
-> -       VM_BUG_ON(iov_iter_count(iter) !=3D PAGE_SIZE);
-> -
->         if (iov_iter_rw(iter) =3D=3D READ)
->                 ret =3D nfs_file_direct_read(iocb, iter, true);
->         else
-> _
->
-> Patches currently in -mm which might be from hch@lst.de are
->
-> nfs-fix-nfs_swap_rw-for-large-folio-swap.patch
->
->
+Linus, please merge this batch of hotfixes, thanks.
 
-Thanks
-Barry
+
+The following changes since commit 83a7eefedc9b56fe7bfeff13b6c7356688ffa670:
+
+  Linux 6.10-rc3 (2024-06-09 14:19:43 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-06-17-11-43
+
+for you to fetch changes up to 01c8f9806bde438ca1c8cbbc439f0a14a6694f6c:
+
+  kcov: don't lose track of remote references during softirqs (2024-06-15 10:43:08 -0700)
+
+----------------------------------------------------------------
+19 hotfixes, 8 of which are cc:stable.
+
+Mainly MM singleton fixes.  And a couple of ocfs2 regression fixes.
+
+----------------------------------------------------------------
+Aleksandr Nogikh (1):
+      kcov: don't lose track of remote references during softirqs
+
+Baolin Wang (1):
+      mm: shmem: fix getting incorrect lruvec when replacing a shmem folio
+
+David Hildenbrand (1):
+      Revert "mm: init_mlocked_on_free_v3"
+
+Hugh Dickins (1):
+      mm/migrate: fix kernel BUG at mm/compaction.c:2761!
+
+Jeff Xu (1):
+      mm/memfd: add documentation for MFD_NOEXEC_SEAL MFD_EXEC
+
+Joseph Qi (2):
+      ocfs2: fix NULL pointer dereference in ocfs2_journal_dirty()
+      ocfs2: fix NULL pointer dereference in ocfs2_abort_trigger()
+
+Kefeng Wang (1):
+      mm: fix possible OOB in numa_rebuild_large_mapping()
+
+Lorenzo Stoakes (1):
+      MAINTAINERS: remove Lorenzo as vmalloc reviewer
+
+Mark Brown (1):
+      selftests: mm: make map_fixed_noreplace test names stable
+
+Oleg Nesterov (1):
+      zap_pid_ns_processes: clear TIF_NOTIFY_SIGNAL along with TIF_SIGPENDING
+
+Peter Oberparleiter (1):
+      gcov: add support for GCC 14
+
+Peter Xu (2):
+      mm/page_table_check: fix crash on ZONE_DEVICE
+      mm/debug_vm_pgtable: drop RANDOM_ORVALUE trick
+
+Rafael Aquini (1):
+      mm: mmap: allow for the maximum number of bits for randomizing mmap_base by default
+
+Ran Xiaokai (1):
+      mm: huge_memory: fix misused mapping_large_folio_support() for anon folios
+
+Suren Baghdasaryan (2):
+      lib/alloc_tag: do not register sysctl interface when CONFIG_SYSCTL=n
+      lib/alloc_tag: fix RCU imbalance in pgalloc_tag_get()
+
+Yury Norov (1):
+      gcc: disable '-Warray-bounds' for gcc-9
+
+ Documentation/admin-guide/kernel-parameters.txt  |   6 -
+ Documentation/userspace-api/index.rst            |   1 +
+ Documentation/userspace-api/mfd_noexec.rst       |  86 ++++++++++
+ MAINTAINERS                                      |   1 -
+ arch/Kconfig                                     |  12 ++
+ fs/ocfs2/journal.c                               | 192 +++++++++++++----------
+ fs/ocfs2/ocfs2.h                                 |  27 ++++
+ fs/ocfs2/super.c                                 |   4 +-
+ include/linux/kcov.h                             |   2 +
+ include/linux/mm.h                               |   9 +-
+ include/linux/pagemap.h                          |   4 +
+ include/linux/pgalloc_tag.h                      |  11 +-
+ init/Kconfig                                     |   2 +-
+ kernel/gcov/gcc_4_7.c                            |   4 +-
+ kernel/kcov.c                                    |   1 +
+ kernel/pid_namespace.c                           |   1 +
+ lib/alloc_tag.c                                  |  16 +-
+ mm/debug_vm_pgtable.c                            |  31 +---
+ mm/huge_memory.c                                 |  28 ++--
+ mm/internal.h                                    |   1 -
+ mm/memcontrol.c                                  |   3 +-
+ mm/memory.c                                      |  20 +--
+ mm/migrate.c                                     |   8 +-
+ mm/mm_init.c                                     |  43 +----
+ mm/page_alloc.c                                  |   2 +-
+ mm/page_table_check.c                            |  11 +-
+ mm/shmem.c                                       |   2 +-
+ security/Kconfig.hardening                       |  15 --
+ tools/testing/selftests/mm/map_fixed_noreplace.c |  24 ++-
+ 29 files changed, 345 insertions(+), 222 deletions(-)
+ create mode 100644 Documentation/userspace-api/mfd_noexec.rst
+
