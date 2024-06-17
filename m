@@ -1,146 +1,218 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A7F7194AF6;
-	Mon, 17 Jun 2024 18:47:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECFE618A934
+	for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 19:15:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718650034; cv=none; b=qCsRUjvXCzDojtzKkAn3yXtpYRGKj3Mw+zIV1yHvEbSwjM2XDWJwE96JkV9O2KZgn9DQdtPqtO4KpxxhL9G1B1tqkzjlfWbtGb5IBdVxfq4TXSkRpVS9m2s7jTnpnvQgOovKCOG9DlLvp3PmrH1MTrHP7BBbjh9a93/hhagf4LI=
+	t=1718651754; cv=none; b=JNtsWB8T8UPLZb6z/jA3rdiaZqQP97rT3Ex4pRMsrJLxNSU5Gubjqeljr68YEwi7CuwZsIrUNQ0CGl2IupY44/5i8Ogp7ZiHwodHlqX+rzqRupFV6/ecaofBJRX2qq8Nx40YLzy0N1BRzGto57/LOK7Og+cCysQjbsa4wv+Khqg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718650034; c=relaxed/simple;
-	bh=P9nFVL6PwUB1vuX7YltEykomKEoLB1b3dO/elBvkJdE=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=gGOzi0SQLtxvRdOMXZ/6QqJlg919TT43HD0GezTDbok55rdplwy7/sbGucDxynfcLXHUJ00Ei7n6E499VNo9LxEvJp209nL34wjRURGE4PZjzFi6Nyf4eVPIssDMsJebKWKRxoWhbuqsy24nWjQzBPNdFwExoT0k6ZKtjv02qBs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u1Bp8cpa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718651754; c=relaxed/simple;
+	bh=WElwa3QyRdLwqmmwJrurchCnaJ8yZscyeSUarroQrhY=;
+	h=Date:To:From:Subject:Message-Id; b=MJNkuCGV0azZZRFz82EaVa+qzSBhYq5Y1U+yv0qcrPxhceuQ/f81FcXDGN+V6dWPXnKSXON7yFIDA6mtSq1ubFoCburCMg9uWy6dVWV6oYXxXF72oUEBWtwF+Xlwp4GUZCaH973FBROF4oV0VlIxLWHvTkwh8ESNkCj2QaPboH8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t47X8xyT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u1Bp8cpa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DE0EC2BD10;
-	Mon, 17 Jun 2024 18:47:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t47X8xyT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61B15C2BD10;
+	Mon, 17 Jun 2024 19:15:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718650033;
-	bh=P9nFVL6PwUB1vuX7YltEykomKEoLB1b3dO/elBvkJdE=;
-	h=Date:From:To:Cc:Subject:From;
-	b=u1Bp8cpaOA/OEAU9tqGuFRl2CjsWza9+njLV7hNB3cT1gOjoYCKqQGFBjqJquDYUq
-	 a6rcnDxJalMpk+7ipsO5UDGiBO5elFGqu3nhefj8DOArb0QCCuqz8v7gT/JcKtMkvA
-	 IBxENi7jrlhqLWe75jSr8yHkBBstJnQJCarCWpU8=
-Date: Mon, 17 Jun 2024 11:47:12 -0700
+	s=korg; t=1718651753;
+	bh=WElwa3QyRdLwqmmwJrurchCnaJ8yZscyeSUarroQrhY=;
+	h=Date:To:From:Subject:From;
+	b=t47X8xyTlQwM7wuuPAqrn4GGhnnoeHoLRKIk8CC3pmiQfO6KjVbBE9E98jNd7YyAF
+	 +JbzG3QU/Yqyr+HhVfl2V6nUoxNANJmFTkwRHQk28eXa9ZoYgR5Uri6RilXhMr2YiO
+	 fFuGPbKiVxBn25i3K7vaA1gouAiZgNsUX10yMbqA=
+Date: Mon, 17 Jun 2024 12:15:52 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,rientjes@google.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,linmiaohe@huawei.com,jane.chu@oracle.com,ioworker0@gmail.com,fvdl@google.com,corbet@lwn.net,jiaqiyan@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.10-rc5
-Message-Id: <20240617114712.45d4743f8bacb832dea4b5a9@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-memory-failure-userspace-controls-soft-offlining-pages.patch added to mm-unstable branch
+Message-Id: <20240617191553.61B15C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please merge this batch of hotfixes, thanks.
+The patch titled
+     Subject: mm/memory-failure: userspace controls soft-offlining pages
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memory-failure-userspace-controls-soft-offlining-pages.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-userspace-controls-soft-offlining-pages.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Jiaqi Yan <jiaqiyan@google.com>
+Subject: mm/memory-failure: userspace controls soft-offlining pages
+Date: Mon, 17 Jun 2024 17:05:43 +0000
+
+Patch series "Userspace controls soft-offline pages", v3.
+
+Correctable memory errors are very common on servers with large
+amount of memory, and are corrected by ECC, but with two
+pain points to users:
+1. Correction usually happens on the fly and adds latency overhead
+2. Not-fully-proved theory states excessive correctable memory
+   errors can develop into uncorrectable memory error.
+
+Soft offline is kernel's additional solution for memory pages
+having (excessive) corrected memory errors. Impacted page is migrated
+to healthy page if it is in use, then the original page is discarded
+for any future use.
+
+The actual policy on whether (and when) to soft offline should be
+maintained by userspace, especially in case of an 1G HugeTLB page.
+Soft-offline dissolves the HugeTLB page, either in-use or free, into
+chunks of 4K pages, reducing HugeTLB pool capacity by 1 hugepage.
+If userspace has not acknowledged such behavior, it may be surprised
+when later mmap hugepages MAP_FAILED due to lack of hugepages.
+In case of a transparent hugepage, it will be split into 4K pages
+as well; userspace will stop enjoying the transparent performance.
+
+In addition, discarding the entire 1G HugeTLB page only because of
+corrected memory errors sounds very costly and kernel better not
+doing under the hood. But today there are at least 2 such cases:
+1. GHES driver sees both GHES_SEV_CORRECTED and
+   CPER_SEC_ERROR_THRESHOLD_EXCEEDED after parsing CPER.
+2. RAS Correctable Errors Collector counts correctable errors per
+   PFN and when the counter for a PFN reaches threshold
+In both cases, userspace has no control of the soft offline performed
+by kernel's memory failure recovery.
+
+This patch series give userspace the control of softofflining any page:
+kernel only soft offlines raw page / transparent hugepage / HugeTLB
+hugepage if userspace has agreed to.  The interface to userspace is a new
+sysctl called enable_soft_offline under /proc/sys/vm.  By default
+enable_soft_line is 1 to preserve existing behavior in kernel.
 
 
-The following changes since commit 83a7eefedc9b56fe7bfeff13b6c7356688ffa670:
+This patch (of 3):
 
-  Linux 6.10-rc3 (2024-06-09 14:19:43 -0700)
+Correctable memory errors are very common on servers with large amount of
+memory, and are corrected by ECC.  Soft offline is kernel's additional
+recovery handling for memory pages having (excessive) corrected memory
+errors.  Impacted page is migrated to a healthy page if it is in-use; the
+original page is discarded for any future use.
 
-are available in the Git repository at:
+The actual policy on whether (and when) to soft offline should be
+maintained by userspace, especially in case of an 1G HugeTLB page. 
+Soft-offline dissolves the HugeTLB page, either in-use or free, into
+chunks of 4K pages, reducing HugeTLB pool capacity by 1 hugepage.  If
+userspace has not acknowledged such behavior, it may be surprised when
+later failed to mmap hugepages due to lack of hugepages.  In case of a
+transparent hugepage, it will be split into 4K pages as well; userspace
+will stop enjoying the transparent performance.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-06-17-11-43
+In addition, discarding the entire 1G HugeTLB page only because of
+corrected memory errors sounds very costly and kernel better not
+doing under the hood. But today there are at least 2 such cases
+doing so:
+1. GHES driver sees both GHES_SEV_CORRECTED and
+   CPER_SEC_ERROR_THRESHOLD_EXCEEDED after parsing CPER.
+2. RAS Correctable Errors Collector counts correctable errors per
+   PFN and when the counter for a PFN reaches threshold
+In both cases, userspace has no control of the soft offline performed
+by kernel's memory failure recovery.
 
-for you to fetch changes up to 01c8f9806bde438ca1c8cbbc439f0a14a6694f6c:
+This commit gives userspace the control of softofflining any page: kernel
+only soft offlines raw page / transparent hugepage / HugeTLB hugepage if
+userspace has agreed to.  The interface to userspace is a new sysctl at
+/proc/sys/vm/enable_soft_offline.  By default its value is set to 1 to
+preserve existing behavior in kernel.  When set to 0, soft-offline (e.g. 
+MADV_SOFT_OFFLINE) will fail with EOPNOTSUPP.
 
-  kcov: don't lose track of remote references during softirqs (2024-06-15 10:43:08 -0700)
+Link: https://lkml.kernel.org/r/20240617170545.3820912-1-jiaqiyan@google.com
+Link: https://lkml.kernel.org/r/20240617170545.3820912-2-jiaqiyan@google.com
+Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Shuah Khan <shuah@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-----------------------------------------------------------------
-19 hotfixes, 8 of which are cc:stable.
+ mm/memory-failure.c |   22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-Mainly MM singleton fixes.  And a couple of ocfs2 regression fixes.
+--- a/mm/memory-failure.c~mm-memory-failure-userspace-controls-soft-offlining-pages
++++ a/mm/memory-failure.c
+@@ -68,6 +68,8 @@ static int sysctl_memory_failure_early_k
+ 
+ static int sysctl_memory_failure_recovery __read_mostly = 1;
+ 
++static int sysctl_enable_soft_offline __read_mostly = 1;
++
+ atomic_long_t num_poisoned_pages __read_mostly = ATOMIC_LONG_INIT(0);
+ 
+ static bool hw_memory_failure __read_mostly = false;
+@@ -141,6 +143,15 @@ static struct ctl_table memory_failure_t
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_ONE,
+ 	},
++	{
++		.procname	= "enable_soft_offline",
++		.data		= &sysctl_enable_soft_offline,
++		.maxlen		= sizeof(sysctl_enable_soft_offline),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_ONE,
++	}
+ };
+ 
+ /*
+@@ -2755,8 +2766,9 @@ static int soft_offline_in_use_page(stru
+  * @pfn: pfn to soft-offline
+  * @flags: flags. Same as memory_failure().
+  *
+- * Returns 0 on success
+- *         -EOPNOTSUPP for hwpoison_filter() filtered the error event
++ * Returns 0 on success,
++ *         -EOPNOTSUPP for hwpoison_filter() filtered the error event,
++ *         -EOPNOTSUPP if disabled by /proc/sys/vm/enable_soft_offline,
+  *         < 0 otherwise negated errno.
+  *
+  * Soft offline a page, by migration or invalidation,
+@@ -2792,6 +2804,12 @@ int soft_offline_page(unsigned long pfn,
+ 		return -EIO;
+ 	}
+ 
++	if (!sysctl_enable_soft_offline) {
++		pr_info("%#lx: OS-wide disabled\n", pfn);
++		put_ref_page(pfn, flags);
++		return -EOPNOTSUPP;
++	}
++
+ 	mutex_lock(&mf_mutex);
+ 
+ 	if (PageHWPoison(page)) {
+_
 
-----------------------------------------------------------------
-Aleksandr Nogikh (1):
-      kcov: don't lose track of remote references during softirqs
+Patches currently in -mm which might be from jiaqiyan@google.com are
 
-Baolin Wang (1):
-      mm: shmem: fix getting incorrect lruvec when replacing a shmem folio
-
-David Hildenbrand (1):
-      Revert "mm: init_mlocked_on_free_v3"
-
-Hugh Dickins (1):
-      mm/migrate: fix kernel BUG at mm/compaction.c:2761!
-
-Jeff Xu (1):
-      mm/memfd: add documentation for MFD_NOEXEC_SEAL MFD_EXEC
-
-Joseph Qi (2):
-      ocfs2: fix NULL pointer dereference in ocfs2_journal_dirty()
-      ocfs2: fix NULL pointer dereference in ocfs2_abort_trigger()
-
-Kefeng Wang (1):
-      mm: fix possible OOB in numa_rebuild_large_mapping()
-
-Lorenzo Stoakes (1):
-      MAINTAINERS: remove Lorenzo as vmalloc reviewer
-
-Mark Brown (1):
-      selftests: mm: make map_fixed_noreplace test names stable
-
-Oleg Nesterov (1):
-      zap_pid_ns_processes: clear TIF_NOTIFY_SIGNAL along with TIF_SIGPENDING
-
-Peter Oberparleiter (1):
-      gcov: add support for GCC 14
-
-Peter Xu (2):
-      mm/page_table_check: fix crash on ZONE_DEVICE
-      mm/debug_vm_pgtable: drop RANDOM_ORVALUE trick
-
-Rafael Aquini (1):
-      mm: mmap: allow for the maximum number of bits for randomizing mmap_base by default
-
-Ran Xiaokai (1):
-      mm: huge_memory: fix misused mapping_large_folio_support() for anon folios
-
-Suren Baghdasaryan (2):
-      lib/alloc_tag: do not register sysctl interface when CONFIG_SYSCTL=n
-      lib/alloc_tag: fix RCU imbalance in pgalloc_tag_get()
-
-Yury Norov (1):
-      gcc: disable '-Warray-bounds' for gcc-9
-
- Documentation/admin-guide/kernel-parameters.txt  |   6 -
- Documentation/userspace-api/index.rst            |   1 +
- Documentation/userspace-api/mfd_noexec.rst       |  86 ++++++++++
- MAINTAINERS                                      |   1 -
- arch/Kconfig                                     |  12 ++
- fs/ocfs2/journal.c                               | 192 +++++++++++++----------
- fs/ocfs2/ocfs2.h                                 |  27 ++++
- fs/ocfs2/super.c                                 |   4 +-
- include/linux/kcov.h                             |   2 +
- include/linux/mm.h                               |   9 +-
- include/linux/pagemap.h                          |   4 +
- include/linux/pgalloc_tag.h                      |  11 +-
- init/Kconfig                                     |   2 +-
- kernel/gcov/gcc_4_7.c                            |   4 +-
- kernel/kcov.c                                    |   1 +
- kernel/pid_namespace.c                           |   1 +
- lib/alloc_tag.c                                  |  16 +-
- mm/debug_vm_pgtable.c                            |  31 +---
- mm/huge_memory.c                                 |  28 ++--
- mm/internal.h                                    |   1 -
- mm/memcontrol.c                                  |   3 +-
- mm/memory.c                                      |  20 +--
- mm/migrate.c                                     |   8 +-
- mm/mm_init.c                                     |  43 +----
- mm/page_alloc.c                                  |   2 +-
- mm/page_table_check.c                            |  11 +-
- mm/shmem.c                                       |   2 +-
- security/Kconfig.hardening                       |  15 --
- tools/testing/selftests/mm/map_fixed_noreplace.c |  24 ++-
- 29 files changed, 345 insertions(+), 222 deletions(-)
- create mode 100644 Documentation/userspace-api/mfd_noexec.rst
+mm-memory-failure-userspace-controls-soft-offlining-pages.patch
+selftest-mm-test-enable_soft_offline-behaviors.patch
+docs-mm-add-enable_soft_offline-sysctl.patch
 
