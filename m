@@ -1,63 +1,100 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDC8219AA66;
-	Mon, 17 Jun 2024 20:20:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9790518FDCF
+	for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 20:24:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718655644; cv=none; b=Ej6fGv8j1I7ufvEfiica6di9EFqIULbFg2X/ZjigAumUaOO+RBz9aNYWa/vl5PkJBCcPXlmZ9SWQrfz3aBon3HoO/onLJNIFgjJCBcQIIiJtLnAYViF8810JbqP+eIwOaMH+O3eLdtTDuduIx0qo3IjrW7Zdoka7Ec8VNmdfps0=
+	t=1718655844; cv=none; b=B1r4EXAFrfILI2uBuQ4YmNpjVxya7Ja1HIW0wSVdNJhYJw8QlznGPJ+bFTPuRT6uX/h+8vdex+npGfMt6Qss1/KiVtBIQSX1U/fZkPoB4pPNOlMvugJc1/n8Q+EB8Abou4fyV809MOt62DTV68JhOY2jtTk7pwwrT5getFzHmlM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718655644; c=relaxed/simple;
-	bh=XRfwQQ42SAGnZUjgqc8i/9rJPtME17Rs3iBLm47zuJU=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=DPkwTW1FM1jb2rAzkfXN2Jw6quAPysu+VS8xqDgZxEJ75+jFqj2jvDFaOFedR9tOxC8NeIGXF0cCDyAOVCfG9sTulhIb2ar8i0MTKZCrbJwU6VzU9+Dfq2UgsM2gv3JYQW1L/GPWbhprBAHWgXWKYIZr+woBbI/v3BvQTtCU2ZA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=q0JN1pJZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718655844; c=relaxed/simple;
+	bh=zkHuXWx8sTa/oNFKVsylABjyDEiMRGafzuDbOPJQ5wY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=objaOZEAi/FAT3BE/9Y8t9iEytgDvEemFx11sGn4P6yigu+yJJCRghMTN37Uvf/UZ13NC5bREWNFATmqRb0WlsjCmu9dcS4KcxBKLPIgYjWYdKIML1CrIwCMk2YptcSXG4cvkvFPRALumCw2xlqtyhUCckWuCA82dKJYyI70/w4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E7UVGwuX; arc=none smtp.client-ip=209.85.218.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="q0JN1pJZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id CEFF7C4AF1C;
-	Mon, 17 Jun 2024 20:20:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1718655643;
-	bh=XRfwQQ42SAGnZUjgqc8i/9rJPtME17Rs3iBLm47zuJU=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=q0JN1pJZRbPoTX0oRK+gqDiKmDH6p2SeYZCmL10gWEDLpfeeFhCGKExIlkKWbFhKB
-	 rn2hOorCxw6b6XYpeUDK03NqgaPQO+PCoLyFBj+pe5jxHplseCwg9OtVqOPLN5oItO
-	 d4DYnMHk6efgwZFwFjPPghLgg3a13HqyxIixqlPPAj7pXswYBdcP7gR18Flh4vlTIp
-	 ggSfUxHvxCZRsvWkW94UqKRWQkUoSxJ8MRBJbQzEOBX0s/MPpoeHtOfjbvXx4OIhE6
-	 ft6KQE2naSs9OW3VlhILKofqOLtKnckIgJgOGz6GCg3tVpGzmCY+MdC7weIDkVMH0y
-	 BQ7p2VVES6/lQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id BC5ABC4332E;
-	Mon, 17 Jun 2024 20:20:43 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 6.10-rc5
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20240617114712.45d4743f8bacb832dea4b5a9@linux-foundation.org>
-References: <20240617114712.45d4743f8bacb832dea4b5a9@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20240617114712.45d4743f8bacb832dea4b5a9@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-06-17-11-43
-X-PR-Tracked-Commit-Id: 01c8f9806bde438ca1c8cbbc439f0a14a6694f6c
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: e6b324fbf2de1797a4756fe2a489442464738dad
-Message-Id: <171865564376.9005.9789134174772755356.pr-tracker-bot@kernel.org>
-Date: Mon, 17 Jun 2024 20:20:43 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E7UVGwuX"
+Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-a62ef52e837so599316666b.3
+        for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 13:24:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1718655841; x=1719260641; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=htUQv2quqma4VO2V330/QazjqgtbFEOYp5UR9RkEEGk=;
+        b=E7UVGwuXeO17nlxTabAgDSAmM1Zcsk3Kyqprvi04Pqvbav1VlEQZsg8OGAOrCoYVUk
+         Ux94QgQ57NGMoaJQb2n/gTb39kq1psHfFgzxGrpV6C0VGdWPDRGi6+L1FB2ZUvF8QlOr
+         GZWgMMgU1TJRyGlQQr+NGWcx6VT78faj1MIOg=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1718655841; x=1719260641;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=htUQv2quqma4VO2V330/QazjqgtbFEOYp5UR9RkEEGk=;
+        b=dxxBrczEPqX3Whn9IW7ypgaGHqzS/zGPjzVtaTVwxeL2kSQO90oEu/qQ1KXuKK72c7
+         e9wf5QvjmnnGl3Dz99L1S8ywODF0J7NsoPJholjKbeVZmbemDz4QRWZZQ4JjUw8pS7Kf
+         Ggu+3nalC/DF8JtUJ8hCvL5nyRXh4niYMswFmiFyzQ065DpInWF5lniTcDV4E5r6BPIb
+         JCll83+btgv1aBlZvb9oQhwimbTzas5Y59PaNauh6o/RFTH/3dUJRzZqAic3P0aSd0xr
+         X8Yk3ErknfaM6y5lfTZXfbbtxdDcnQWHijoJ0CdEWf2A7ioURmrGkQvAZpbLK/CEk2Zn
+         iS6A==
+X-Forwarded-Encrypted: i=1; AJvYcCXLsLHVdWWnm7JsaJW5RWdfKiO11ca87BcCYx6/3PTd0ctbhdoN4d7x2MIKbEAMEt6xqv7fv0S1vJC2y7a95203H9y6JH63gITA+Q==
+X-Gm-Message-State: AOJu0YxCLiU3ZYkupjPcvhLaVtl4U2Re4gNHo5cB7MfK/c1gdsNBv0qu
+	EbOETH0kg/TMROWnwKeSUsEEGhvbkL1km9vWr9Ha+VMb3LZUcnpzoFmpauXUa1XksklYouDmWw6
+	tSyBukg==
+X-Google-Smtp-Source: AGHT+IEqRA0vGKmdYLAeCxSPzfTkE/Mfg9Fae4KgGQEfL0H0s3/3yznfoPMnnk4qm5SRHmhHkeeFlA==
+X-Received: by 2002:a17:906:f105:b0:a6f:586b:6c2 with SMTP id a640c23a62f3a-a6f60dc4faemr688299066b.60.1718655840683;
+        Mon, 17 Jun 2024 13:24:00 -0700 (PDT)
+Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com. [209.85.208.45])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a6f56da3f41sm548381566b.33.2024.06.17.13.24.00
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 17 Jun 2024 13:24:00 -0700 (PDT)
+Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-57a30dbdb7fso8404373a12.3
+        for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 13:24:00 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCUkKbkFYd/Rbq/KRzQo5KQh7/vUjyvbLsQYVZKZGLDzsztqq5kRlZoP00WRlREN6RmHxv2XYJCHxA51nUxYbcpOLZ2BWj87jYCBsQ==
+X-Received: by 2002:a50:f699:0:b0:57c:6afc:d2b0 with SMTP id
+ 4fb4d7f45d1cf-57cbd64969amr8464309a12.1.1718655839701; Mon, 17 Jun 2024
+ 13:23:59 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20240617114712.45d4743f8bacb832dea4b5a9@linux-foundation.org>
+ <CAHk-=wjiUzOHfHaWgUcByAygaG6w_BKOqbTN6EHrDHaXb_i+xA@mail.gmail.com> <ZnCZvOHqbp-itE_-@casper.infradead.org>
+In-Reply-To: <ZnCZvOHqbp-itE_-@casper.infradead.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Mon, 17 Jun 2024 13:23:42 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wgEjJA7rNaDsmG_YUwr7Nw5BGP=tMaKK2=DPWm6r6hxKA@mail.gmail.com>
+Message-ID: <CAHk-=wgEjJA7rNaDsmG_YUwr7Nw5BGP=tMaKK2=DPWm6r6hxKA@mail.gmail.com>
+Subject: Re: [GIT PULL] hotfixes for 6.10-rc5
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Rafael Aquini <aquini@redhat.com>, 
+	Jiri Slaby <jirislaby@kernel.org>, Suren Baghdasaryan <surenb@google.com>, linux-mm@kvack.org, 
+	mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-The pull request you sent on Mon, 17 Jun 2024 11:47:12 -0700:
+On Mon, 17 Jun 2024 at 13:17, Matthew Wilcox <willy@infradead.org> wrote:
+>
+> This patch wasn't even cc'd to linux-mm, so I never saw it.  I would
+> have NAKed it based on this already being fixed.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-06-17-11-43
+I actually cc'd y ou partly because you were part of that earlier fix,
+but also because of the implicit question:
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/e6b324fbf2de1797a4756fe2a489442464738dad
+  "So it's very possible that the
 
-Thank you!
+        if (IS_ENABLED(CONFIG_32BIT) || in_compat_syscall())
+                return 0;
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+   test in __thp_get_unmapped_area() should be extended to take requested
+   address randomization into account"
+
+and whether we maybe could do better?
+
+For x86-64, the default for min compat bits is 28 - which is
+presumably plenty - but maybe we have issues elsewhere?
+
+               Linus
