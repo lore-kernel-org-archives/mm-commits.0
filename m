@@ -1,134 +1,173 @@
-Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com [209.85.167.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACD6218F2DD
-	for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 20:09:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30632187575;
+	Mon, 17 Jun 2024 20:16:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718654986; cv=none; b=b5WaN37MQ/vuNZopPLM6sLu+JNYPQ7ktgAjOo8Cu/gJorHq2WE4JJ+DtyWymzKZ+HsrpQUCwqMzFZW2ZwjImmpubnAHir2ADO5Z8rXS7cyizNqLPKEtgv2tQTnAhikJTtmRHvDbj0sEUHu/ihQapXoH5S/X6M/qUgIDtVJQOsU0=
+	t=1718655404; cv=none; b=QgIcdeYweMVKO+HNeesvIYwaMUYbAiYFkncJ/8cQW5r5Pk7A2gZxePymGQk69BeaJX3U4QwmCWZyO2RWusnEKqSroMMhGAOyq8chHHcX4Dj5Pzfa6YtHgOfCxPDfvQxapL+KkAOct/fT91kaPmROUwNouL292zqjgo/gCx5fw+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718654986; c=relaxed/simple;
-	bh=lMOHT9AzaSNEukALssulLQMHUV6v697K4yD8C4n+Ca0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=FT5OYP2edBMuzriELgHCbZlmz5Xc5yj0qkoRrHtGgYYLSoQOR0nljnusGcebRYhLRarphUcKQQipFtILN8FwQAXPb4okNxywSAiZhcxIyhCHkDflx0KDqBQOXkqrMO2SBRkonNLAHoQ4O87JzFU6lU2S/j11aXJcZ4lzKrjQ0A8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ShLEzPPK; arc=none smtp.client-ip=209.85.167.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	s=arc-20240116; t=1718655404; c=relaxed/simple;
+	bh=w4yEqIe57awiwI2V5uQteKS/QqfeXDy1eWiIO+pVGZc=;
+	h=Date:To:From:Subject:Message-Id; b=GygIuGXwNNsdV2t6PFOAou2ri5g9sdNtvxvj81/gsvirNeLXBuPwFnz0uqwTmosXizYGGhKuqVLrXFGSoiX7pbCHuyrjrYWttUI31F1aLP6Kldryh8evyI1STyKgifApGI8pn1MSszM7jwSeb3CNrOyyh9l/yxp6Vy4NX7nAFu8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gNGJtddb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ShLEzPPK"
-Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-52bc27cfb14so5930294e87.0
-        for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 13:09:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1718654983; x=1719259783; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=32irAGR56mVNB9UGYg2c/DMgiXDqjQ+y0dbB2T9WACs=;
-        b=ShLEzPPKEtHAou6ivJtsfQR3B07UIIet5ec5PX0atO4aD9/zoFM5rFXN5O0uype2cB
-         +bkUEFd8LIQwYHuQm4OUBs43GTLJiCgYHST7/c6NFHgmJG4EiLIl8cY4QApXSg0oBiWY
-         4rZFVLXhBS0/SeDx5kZd1MY3WwNsTo+TXd6lo=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718654983; x=1719259783;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=32irAGR56mVNB9UGYg2c/DMgiXDqjQ+y0dbB2T9WACs=;
-        b=six4wJi0lg9rigMNHsQ+Poc5h1XetyvSiHcFKAst0vy9CTY/PiF8x+s/iV4xmThuI4
-         5oU1w+QrB25TmLUuy2yS/0reE6am16DO/BUVkejk5Lsond4J1uR680lFqTEbk0TMs+O2
-         bE+gv0woozco8cMcaipT7vYR/tImeas6yMptqBfLs6o0Qm8m3jD1JUjGMDEfYSivX99k
-         C9HU9dY6QS0fv0qWExgHdDLXxVk91EQ5Xl9uc0CUHQ+Rqn/r1+9lHNUtN26oODcl5Eq8
-         xEpO/ZEqPIon1VCNUQTv7pi6mEN68RsZ4mZh9OiLtfCpZjTKkCV2ArEBdiC4FRkFMtF6
-         JeQA==
-X-Forwarded-Encrypted: i=1; AJvYcCVVpoae23zLRkUryrLd9ovyAv4skYodGGnJgRwpj3+aBJjpsBH/ux1ICNYX49Rcz5JD9QV/hWlhckWN0drsK3hXxgbrsKHRPq6Ejw==
-X-Gm-Message-State: AOJu0YzfEwx0mTeKQ/+d1s43n3XW7UwA1Mz0OG/pKoFBuSuk8dqEbYMu
-	KInYnDrI4mdzNUOi9T16j6omNTr4G7wQrNzMvcW3B0qEf6IhwzPo3fhdL9pijo3vBfdF3quvJm4
-	g8QSyPA==
-X-Google-Smtp-Source: AGHT+IF4MAy1hFseUlFTl5dd/7xF5n7SW9dkHFq41UkVWB9NgJK87NLKeo9/IsKtkd6EzRhhcvz5+Q==
-X-Received: by 2002:a05:6512:3f27:b0:52c:9ae0:beed with SMTP id 2adb3069b0e04-52ca6e92a3cmr10275361e87.52.1718654982779;
-        Mon, 17 Jun 2024 13:09:42 -0700 (PDT)
-Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com. [209.85.218.48])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a6f681ae61fsm418466866b.99.2024.06.17.13.09.41
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 17 Jun 2024 13:09:41 -0700 (PDT)
-Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-a6f51660223so280983566b.0
-        for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 13:09:41 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCXqdt6XSfw9yizBPac2eFmgcKX9vE8+lJnplGPw+3bKcngU+572oWHe+onFre0LwU5LodMVYe3Fg/f58doz0Rb+TqrPTUuwZZ6ycg==
-X-Received: by 2002:a50:9e85:0:b0:57c:6031:8ebf with SMTP id
- 4fb4d7f45d1cf-57cbd6c74c8mr7654997a12.31.1718654981431; Mon, 17 Jun 2024
- 13:09:41 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gNGJtddb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F754C2BD10;
+	Mon, 17 Jun 2024 20:16:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1718655403;
+	bh=w4yEqIe57awiwI2V5uQteKS/QqfeXDy1eWiIO+pVGZc=;
+	h=Date:To:From:Subject:From;
+	b=gNGJtddbm9utbYx+05aTCGtISbwbB6c2U2TlAhCE7UQPqsEmfvWRJO8qoTY/k48Y2
+	 kzKkD21EIPMJx+uQPrfhXvvdWrKWiPEYQSD/5Xx46y8eSoG9iFtAAYYnTjj5XqSDnc
+	 frKk+zmS0FZpKePYOWDbWoIYkjKxLpDMexKxC8uw=
+Date: Mon, 17 Jun 2024 13:16:43 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,ghe@suse.com,gechangwei@live.cn,jack@suse.cz,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240617201643.9F754C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20240617114712.45d4743f8bacb832dea4b5a9@linux-foundation.org>
-In-Reply-To: <20240617114712.45d4743f8bacb832dea4b5a9@linux-foundation.org>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Mon, 17 Jun 2024 13:09:15 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wjiUzOHfHaWgUcByAygaG6w_BKOqbTN6EHrDHaXb_i+xA@mail.gmail.com>
-Message-ID: <CAHk-=wjiUzOHfHaWgUcByAygaG6w_BKOqbTN6EHrDHaXb_i+xA@mail.gmail.com>
-Subject: Re: [GIT PULL] hotfixes for 6.10-rc5
-To: Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, 
-	Rafael Aquini <aquini@redhat.com>, Jiri Slaby <jirislaby@kernel.org>, 
-	Suren Baghdasaryan <surenb@google.com>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
 
-On Mon, 17 Jun 2024 at 11:47, Andrew Morton <akpm@linux-foundation.org> wrote:
->
-> Rafael Aquini (1):
->       mm: mmap: allow for the maximum number of bits for randomizing mmap_base by default
 
-No.
+The patch titled
+     Subject: ocfs2: fix DIO failure due to insufficient transaction credits
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits.patch
 
-And HELL NO!
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits.patch
 
-We're not adding *another* new random incomprehensible config option
-that tries to fix a random case that no normal user will understand.
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Our kernel config is too damn complex as-is. We're not making it worse
-like this. Anybody who cares about this kind of crazy esoteric detail
-can damn well just set their Kconfig manually, instead of forcing this
-kind of insane questions on other people.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-This Kconfig insanity needs to stop. Why do I need to be the person who says
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-  "STOP ASKING POOR USERS IDIOTIC QUESTIONS THAT THEY CAN'T SANELY ANSWER"
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-I've pulled, but I'm reverting this commit. We are *not* going down
-this path of insanity.
+------------------------------------------------------
+From: Jan Kara <jack@suse.cz>
+Subject: ocfs2: fix DIO failure due to insufficient transaction credits
+Date: Fri, 14 Jun 2024 16:52:43 +0200
 
-I'd also like to note that the reported 32-bit issue was ALREADY FIXED
-months ago by commit 4ef9ad19e176 ("mm: huge_memory: don't force huge
-page alignment on 32 bit")
+The code in ocfs2_dio_end_io_write() estimates number of necessary
+transaction credits using ocfs2_calc_extend_credits().  This however does
+not take into account that the IO could be arbitrarily large and can
+contain arbitrary number of extents.
 
-It's possible that we should extend that - much saner - fix to also
-look at the number of bits for randomization even outside of 32-bit
-processes, and judge things on the number of bits we're expected to
-randomize mappings on.
+Extent tree manipulations do often extend the current transaction but not
+in all of the cases.  For example if we have only single block extents in
+the tree, ocfs2_mark_extent_written() will end up calling
+ocfs2_replace_extent_rec() all the time and we will never extend the
+current transaction and eventually exhaust all the transaction credits if
+the IO contains many single block extents.  Once that happens a
+WARN_ON(jbd2_handle_buffer_credits(handle) <= 0) is triggered in
+jbd2_journal_dirty_metadata() and subsequently OCFS2 aborts in response to
+this error.  This was actually triggered by one of our customers on a
+heavily fragmented OCFS2 filesystem.
 
-So it's very possible that the
+To fix the issue make sure the transaction always has enough credits for
+one extent insert before each call of ocfs2_mark_extent_written().
 
-        if (IS_ENABLED(CONFIG_32BIT) || in_compat_syscall())
-                return 0;
+Link: https://lkml.kernel.org/r/20240617095543.6971-1-jack@suse.cz
+Link: https://lkml.kernel.org/r/20240614145243.8837-1-jack@suse.cz
+Fixes: c15471f79506 ("ocfs2: fix sparse file & data ordering issue in direct io")
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Heming Zhao <heming.zhao@suse.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-test in __thp_get_unmapped_area() should be extended to take requested
-address randomization into account.
+ fs/ocfs2/aops.c        |    5 +++++
+ fs/ocfs2/journal.c     |   17 +++++++++++++++++
+ fs/ocfs2/journal.h     |    2 ++
+ fs/ocfs2/ocfs2_trace.h |    2 ++
+ 4 files changed, 26 insertions(+)
 
-But there is NO WAY this is fixed with another completely
-incomprehensible Kconfig option.
+--- a/fs/ocfs2/aops.c~ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits
++++ a/fs/ocfs2/aops.c
+@@ -2366,6 +2366,11 @@ static int ocfs2_dio_end_io_write(struct
+ 	}
+ 
+ 	list_for_each_entry(ue, &dwc->dw_zero_list, ue_node) {
++		ret = ocfs2_assure_trans_credits(handle, credits);
++		if (ret < 0) {
++			mlog_errno(ret);
++			break;
++		}
+ 		ret = ocfs2_mark_extent_written(inode, &et, handle,
+ 						ue->ue_cpos, 1,
+ 						ue->ue_phys,
+--- a/fs/ocfs2/journal.c~ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits
++++ a/fs/ocfs2/journal.c
+@@ -446,6 +446,23 @@ bail:
+ }
+ 
+ /*
++ * Make sure handle has at least 'nblocks' credits available. If it does not
++ * have that many credits available, we will try to extend the handle to have
++ * enough credits. If that fails, we will restart transaction to have enough
++ * credits. Similar notes regarding data consistency and locking implications
++ * as for ocfs2_extend_trans() apply here.
++ */
++int ocfs2_assure_trans_credits(handle_t *handle, int nblocks)
++{
++	int old_nblks = jbd2_handle_buffer_credits(handle);
++
++	trace_ocfs2_assure_trans_credits(old_nblks);
++	if (old_nblks >= nblocks)
++		return 0;
++	return ocfs2_extend_trans(handle, nblocks - old_nblks);
++}
++
++/*
+  * If we have fewer than thresh credits, extend by OCFS2_MAX_TRANS_DATA.
+  * If that fails, restart the transaction & regain write access for the
+  * buffer head which is used for metadata modifications.
+--- a/fs/ocfs2/journal.h~ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits
++++ a/fs/ocfs2/journal.h
+@@ -243,6 +243,8 @@ handle_t		    *ocfs2_start_trans(struct
+ int			     ocfs2_commit_trans(struct ocfs2_super *osb,
+ 						handle_t *handle);
+ int			     ocfs2_extend_trans(handle_t *handle, int nblocks);
++int			     ocfs2_assure_trans_credits(handle_t *handle,
++						int nblocks);
+ int			     ocfs2_allocate_extend_trans(handle_t *handle,
+ 						int thresh);
+ 
+--- a/fs/ocfs2/ocfs2_trace.h~ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits
++++ a/fs/ocfs2/ocfs2_trace.h
+@@ -2577,6 +2577,8 @@ DEFINE_OCFS2_ULL_UINT_EVENT(ocfs2_commit
+ 
+ DEFINE_OCFS2_INT_INT_EVENT(ocfs2_extend_trans);
+ 
++DEFINE_OCFS2_INT_EVENT(ocfs2_assure_trans_credits);
++
+ DEFINE_OCFS2_INT_EVENT(ocfs2_extend_trans_restart);
+ 
+ DEFINE_OCFS2_INT_INT_EVENT(ocfs2_allocate_extend_trans);
+_
 
-So I'm really unhappy about this. The whole "add idiotic random
-Kconfig options" needs to stop.
+Patches currently in -mm which might be from jack@suse.cz are
 
-Those options are not something a normal person can understand, and as
-shown by the fact that this patch was already bogus and superseded by
-a much better patch from months ago, clearly said Kconfig options
-WEREN'T EVEN UNDERSTOOD BY VM MAINTAINERS!
+ocfs2-fix-dio-failure-due-to-insufficient-transaction-credits.patch
 
-Christ. Sorry for the shouting, but dammit, people need to really
-internalize the whole "we don't add crazy Kconfig options".
-
-                    Linus
