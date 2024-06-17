@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF2A818F2E5
-	for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 19:58:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20771E542
+	for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 20:01:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718654335; cv=none; b=dScL42nHEjL0laZ2NkexTsZIxMBV3PIcbBv/7brhKK+49TjGjojASUqfioIaf8qEcAbEZmUV5YrWcxyz/gbMzShwaoGL5Q6HXBh4l0wq59iT7YgerHgwkNBRwSa+LQrQbb6lN1F8vQFeoBiV7jJsWcu0TZ0H28+OWGX699Nz9sY=
+	t=1718654519; cv=none; b=NYdsAm+ER9hBq/Si3RnWKc8hXwRCvw4pq9F6eweF9M69pqxa27sQfhABN7tGZT9O55tio5H3jtZdJe1/HDemDAW9qXVTlBU7XSHVYUDqe5qUnAW+XxOiOJOKg/3cR50FJzGkGeSJ+24TJlxncUOErJWVlFBBHVx4C3cZf+j35q0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718654335; c=relaxed/simple;
-	bh=xzC0Qjo5eVvN20/A6HGQp2k9ltoR9AJfS5tWVK9t1/Q=;
-	h=Date:To:From:Subject:Message-Id; b=aEXH94ob4b+o97XANu6i6eQ78tStDElteRwUfT22qNS/BTO9BzV9EtKN0eWqlJXz/8m894R9jFRsmVyyO5nbzON4NgXT4bIcbmH0DZ2s/NBXs84H0WzpTS5CaJzYdqzMoOO2JHMFWJpzRu8BL7jTNXTUNtLApDz8UocqvDASzCA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EOwFrAFe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718654519; c=relaxed/simple;
+	bh=sslWQj9ifudR231rWzfBLIwbtml2We2giIa9RA3hOBQ=;
+	h=Date:To:From:Subject:Message-Id; b=tcoTJcVDbKhpo2GSe4UbZXWOV0d50CXlqANlc9dcgSUVIftnGT6qBOAemgl6Uw/4soMltCfseF82i31MwO4ne4RlxHklkqc1fr+GQOPiNTlLa0WN35J/gfvQwhDvW75EMXijYHbCw6SObTMtmN+SKykvBvJls56Etdx7uZIrfPs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a+mBApjl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EOwFrAFe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55288C2BD10;
-	Mon, 17 Jun 2024 19:58:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a+mBApjl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85E37C2BD10;
+	Mon, 17 Jun 2024 20:01:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718654335;
-	bh=xzC0Qjo5eVvN20/A6HGQp2k9ltoR9AJfS5tWVK9t1/Q=;
+	s=korg; t=1718654518;
+	bh=sslWQj9ifudR231rWzfBLIwbtml2We2giIa9RA3hOBQ=;
 	h=Date:To:From:Subject:From;
-	b=EOwFrAFe8hwmHQbqQqAWJD07djrkDdZ7nz5c3XtQGoYd6OYwgrMULyls9ccBvt0hQ
-	 EI4bD1eOGTfaDhDfaVdCuRVhWuGLyXKmfNLTNN8xCdz6kPxtVdlcI80RCl2jlvE1p+
-	 jWRo+KEr6jmqO+XeD4zTk1BXX6wr3th8hsLSMktM=
-Date: Mon, 17 Jun 2024 12:58:54 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,quic_jjohnson@quicinc.com,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
+	b=a+mBApjlWb8mLQ512+Ud45hPwgHU9Uy/ZNagMQa4s1QQTMMvVbqheERrTzZX2KyyS
+	 I78XQD93k9EXLQ9/5vS9dOOSTwUPC6V7DM8g6mWb0B1jN8cj3mbepfZ8zpnkGnYS4G
+	 1dkp/mINH+O8NpFCp9a/mSICqIujeCts/aeOxJtI=
+Date: Mon, 17 Jun 2024 13:01:57 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,zhouchengming@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-testing-radix-tree-add-missing-module_description-definition.patch added to mm-nonmm-unstable branch
-Message-Id: <20240617195855.55288C2BD10@smtp.kernel.org>
+Subject: + mm-zsmalloc-change-back-to-per-size_class-lock.patch added to mm-unstable branch
+Message-Id: <20240617200158.85E37C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/testing/radix-tree: add missing MODULE_DESCRIPTION definition
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     tools-testing-radix-tree-add-missing-module_description-definition.patch
+     Subject: mm/zsmalloc: change back to per-size_class lock
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zsmalloc-change-back-to-per-size_class-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-radix-tree-add-missing-module_description-definition.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-change-back-to-per-size_class-lock.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,54 +58,362 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: tools/testing/radix-tree: add missing MODULE_DESCRIPTION definition
-Date: Mon, 17 Jun 2024 12:52:21 -0700
+From: Chengming Zhou <zhouchengming@bytedance.com>
+Subject: mm/zsmalloc: change back to per-size_class lock
+Date: Mon, 17 Jun 2024 20:57:40 +0800
 
-Userspace builds of the radix-tree testing suite fails because of commit
-test_maple_tree: add the missing MODULE_DESCRIPTION() macro.  Add the
-proper defines to tools/testing/radix-tree/maple.c and
-tools/testing/radix-tree/xarray.c so MODULE_DESCRIPTION has a definition. 
-This allows the build to succeed.
+Patch series "mm/zsmalloc: change back to per-size_class lock".
 
-Link: https://lkml.kernel.org/r/20240617195221.106565-1-sidhartha.kumar@oracle.com
-Fixes: 9f8090e8c4d1 ("test_maple_tree: add the missing MODULE_DESCRIPTION() macro")
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Jeff Johnson <quic_jjohnson@quicinc.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Commit c0547d0b6a4b ("zsmalloc: consolidate zs_pool's migrate_lock and
+size_class's locks") changed per-size_class lock to pool spinlock to
+prepare reclaim support in zsmalloc.  Then reclaim support in zsmalloc had
+been dropped in favor of LRU reclaim in zswap, but this locking change had
+been left there.
+
+Obviously, the scalability of pool spinlock is worse than per-size_class. 
+And we have a workaround that using 32 pools in zswap to avoid this
+scalability problem, which brings its own problems like memory waste and
+more memory fragmentation.
+
+So this series changes back to use per-size_class lock and using testing
+data in much stressed situation to verify that we can use only one pool in
+zswap.
+
+Testing kernel build (make bzImage -j32) on tmpfs with memory.max=1GB, and
+zswap shrinker enabled with 10GB swapfile on ext4.
+
+				real	user    sys
+6.10.0-rc3			138.18	1241.38 1452.73
+6.10.0-rc3-onepool		149.45	1240.45 1844.69
+6.10.0-rc3-onepool-perclass	138.23	1242.37 1469.71
+
+We can see from "sys" column that per-size_class locking with only one
+pool in zswap can have near performance with the current 32 pools.
+
+
+This patch (of 2):
+
+This patch is almost a revert of commit c0547d0b6a4b ("zsmalloc:
+consolidate zs_pool's migrate_lock and size_class's locks"), which changed
+to use a global pool->lock instead of per-size_class lock and
+pool->migrate_lock, was preparation for suppporting reclaim in zsmalloc. 
+Then reclaim in zsmalloc had been dropped in favor of LRU reclaim in
+zswap.
+
+In theory, per-size_class is more fine-grained than the pool->lock, since
+a pool can have many size_classes.  As for the additional
+pool->migrate_lock, only free() and map() need to grab it to access stable
+handle to get zspage, and only in read lock mode.
+
+Link: https://lkml.kernel.org/r/20240617-zsmalloc-lock-mm-everything-v1-0-5e5081ea11b3@linux.dev
+Link: https://lkml.kernel.org/r/20240617-zsmalloc-lock-mm-everything-v1-1-5e5081ea11b3@linux.dev
+Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/maple.c  |    1 +
- tools/testing/radix-tree/xarray.c |    1 +
- 2 files changed, 2 insertions(+)
+ mm/zsmalloc.c |   85 ++++++++++++++++++++++++++++--------------------
+ 1 file changed, 50 insertions(+), 35 deletions(-)
 
---- a/tools/testing/radix-tree/maple.c~tools-testing-radix-tree-add-missing-module_description-definition
-+++ a/tools/testing/radix-tree/maple.c
-@@ -19,6 +19,7 @@
- #define module_init(x)
- #define module_exit(x)
- #define MODULE_AUTHOR(x)
-+#define MODULE_DESCRIPTION(X)
- #define MODULE_LICENSE(x)
- #define dump_stack()	assert(0)
+--- a/mm/zsmalloc.c~mm-zsmalloc-change-back-to-per-size_class-lock
++++ a/mm/zsmalloc.c
+@@ -34,7 +34,8 @@
+ /*
+  * lock ordering:
+  *	page_lock
+- *	pool->lock
++ *	pool->migrate_lock
++ *	class->lock
+  *	zspage->lock
+  */
  
---- a/tools/testing/radix-tree/xarray.c~tools-testing-radix-tree-add-missing-module_description-definition
-+++ a/tools/testing/radix-tree/xarray.c
-@@ -10,6 +10,7 @@
- #define module_init(x)
- #define module_exit(x)
- #define MODULE_AUTHOR(x)
-+#define MODULE_DESCRIPTION(X)
- #define MODULE_LICENSE(x)
- #define dump_stack()	assert(0)
+@@ -183,6 +184,7 @@ static struct dentry *zs_stat_root;
+ static size_t huge_class_size;
  
+ struct size_class {
++	spinlock_t lock;
+ 	struct list_head fullness_list[NR_FULLNESS_GROUPS];
+ 	/*
+ 	 * Size of objects stored in this class. Must be multiple
+@@ -237,7 +239,8 @@ struct zs_pool {
+ #ifdef CONFIG_COMPACTION
+ 	struct work_struct free_work;
+ #endif
+-	spinlock_t lock;
++	/* protect page/zspage migration */
++	rwlock_t migrate_lock;
+ 	atomic_t compaction_in_progress;
+ };
+ 
+@@ -336,7 +339,7 @@ static void cache_free_zspage(struct zs_
+ 	kmem_cache_free(pool->zspage_cachep, zspage);
+ }
+ 
+-/* pool->lock(which owns the handle) synchronizes races */
++/* class->lock(which owns the handle) synchronizes races */
+ static void record_obj(unsigned long handle, unsigned long obj)
+ {
+ 	*(unsigned long *)handle = obj;
+@@ -431,7 +434,7 @@ static __maybe_unused int is_first_page(
+ 	return PagePrivate(page);
+ }
+ 
+-/* Protected by pool->lock */
++/* Protected by class->lock */
+ static inline int get_zspage_inuse(struct zspage *zspage)
+ {
+ 	return zspage->inuse;
+@@ -569,7 +572,7 @@ static int zs_stats_size_show(struct seq
+ 		if (class->index != i)
+ 			continue;
+ 
+-		spin_lock(&pool->lock);
++		spin_lock(&class->lock);
+ 
+ 		seq_printf(s, " %5u %5u ", i, class->size);
+ 		for (fg = ZS_INUSE_RATIO_10; fg < NR_FULLNESS_GROUPS; fg++) {
+@@ -580,7 +583,7 @@ static int zs_stats_size_show(struct seq
+ 		obj_allocated = zs_stat_get(class, ZS_OBJS_ALLOCATED);
+ 		obj_used = zs_stat_get(class, ZS_OBJS_INUSE);
+ 		freeable = zs_can_compact(class);
+-		spin_unlock(&pool->lock);
++		spin_unlock(&class->lock);
+ 
+ 		objs_per_zspage = class->objs_per_zspage;
+ 		pages_used = obj_allocated / objs_per_zspage *
+@@ -837,7 +840,7 @@ static void __free_zspage(struct zs_pool
+ {
+ 	struct page *page, *next;
+ 
+-	assert_spin_locked(&pool->lock);
++	assert_spin_locked(&class->lock);
+ 
+ 	VM_BUG_ON(get_zspage_inuse(zspage));
+ 	VM_BUG_ON(zspage->fullness != ZS_INUSE_RATIO_0);
+@@ -1196,19 +1199,19 @@ void *zs_map_object(struct zs_pool *pool
+ 	BUG_ON(in_interrupt());
+ 
+ 	/* It guarantees it can get zspage from handle safely */
+-	spin_lock(&pool->lock);
++	read_lock(&pool->migrate_lock);
+ 	obj = handle_to_obj(handle);
+ 	obj_to_location(obj, &page, &obj_idx);
+ 	zspage = get_zspage(page);
+ 
+ 	/*
+-	 * migration cannot move any zpages in this zspage. Here, pool->lock
++	 * migration cannot move any zpages in this zspage. Here, class->lock
+ 	 * is too heavy since callers would take some time until they calls
+ 	 * zs_unmap_object API so delegate the locking from class to zspage
+ 	 * which is smaller granularity.
+ 	 */
+ 	migrate_read_lock(zspage);
+-	spin_unlock(&pool->lock);
++	read_unlock(&pool->migrate_lock);
+ 
+ 	class = zspage_class(pool, zspage);
+ 	off = offset_in_page(class->size * obj_idx);
+@@ -1364,8 +1367,8 @@ unsigned long zs_malloc(struct zs_pool *
+ 	size += ZS_HANDLE_SIZE;
+ 	class = pool->size_class[get_size_class_index(size)];
+ 
+-	/* pool->lock effectively protects the zpage migration */
+-	spin_lock(&pool->lock);
++	/* class->lock effectively protects the zpage migration */
++	spin_lock(&class->lock);
+ 	zspage = find_get_zspage(class);
+ 	if (likely(zspage)) {
+ 		obj = obj_malloc(pool, zspage, handle);
+@@ -1377,7 +1380,7 @@ unsigned long zs_malloc(struct zs_pool *
+ 		goto out;
+ 	}
+ 
+-	spin_unlock(&pool->lock);
++	spin_unlock(&class->lock);
+ 
+ 	zspage = alloc_zspage(pool, class, gfp);
+ 	if (!zspage) {
+@@ -1385,7 +1388,7 @@ unsigned long zs_malloc(struct zs_pool *
+ 		return (unsigned long)ERR_PTR(-ENOMEM);
+ 	}
+ 
+-	spin_lock(&pool->lock);
++	spin_lock(&class->lock);
+ 	obj = obj_malloc(pool, zspage, handle);
+ 	newfg = get_fullness_group(class, zspage);
+ 	insert_zspage(class, zspage, newfg);
+@@ -1397,7 +1400,7 @@ unsigned long zs_malloc(struct zs_pool *
+ 	/* We completely set up zspage so mark them as movable */
+ 	SetZsPageMovable(pool, zspage);
+ out:
+-	spin_unlock(&pool->lock);
++	spin_unlock(&class->lock);
+ 
+ 	return handle;
+ }
+@@ -1442,14 +1445,16 @@ void zs_free(struct zs_pool *pool, unsig
+ 		return;
+ 
+ 	/*
+-	 * The pool->lock protects the race with zpage's migration
++	 * The pool->migrate_lock protects the race with zpage's migration
+ 	 * so it's safe to get the page from handle.
+ 	 */
+-	spin_lock(&pool->lock);
++	read_lock(&pool->migrate_lock);
+ 	obj = handle_to_obj(handle);
+ 	obj_to_page(obj, &f_page);
+ 	zspage = get_zspage(f_page);
+ 	class = zspage_class(pool, zspage);
++	spin_lock(&class->lock);
++	read_unlock(&pool->migrate_lock);
+ 
+ 	class_stat_dec(class, ZS_OBJS_INUSE, 1);
+ 	obj_free(class->size, obj);
+@@ -1458,7 +1463,7 @@ void zs_free(struct zs_pool *pool, unsig
+ 	if (fullness == ZS_INUSE_RATIO_0)
+ 		free_zspage(pool, class, zspage);
+ 
+-	spin_unlock(&pool->lock);
++	spin_unlock(&class->lock);
+ 	cache_free_handle(pool, handle);
+ }
+ EXPORT_SYMBOL_GPL(zs_free);
+@@ -1780,12 +1785,16 @@ static int zs_page_migrate(struct page *
+ 	pool = zspage->pool;
+ 
+ 	/*
+-	 * The pool's lock protects the race between zpage migration
++	 * The pool migrate_lock protects the race between zpage migration
+ 	 * and zs_free.
+ 	 */
+-	spin_lock(&pool->lock);
++	write_lock(&pool->migrate_lock);
+ 	class = zspage_class(pool, zspage);
+ 
++	/*
++	 * the class lock protects zpage alloc/free in the zspage.
++	 */
++	spin_lock(&class->lock);
+ 	/* the migrate_write_lock protects zpage access via zs_map_object */
+ 	migrate_write_lock(zspage);
+ 
+@@ -1815,9 +1824,10 @@ static int zs_page_migrate(struct page *
+ 	replace_sub_page(class, zspage, newpage, page);
+ 	/*
+ 	 * Since we complete the data copy and set up new zspage structure,
+-	 * it's okay to release the pool's lock.
++	 * it's okay to release migration_lock.
+ 	 */
+-	spin_unlock(&pool->lock);
++	write_unlock(&pool->migrate_lock);
++	spin_unlock(&class->lock);
+ 	migrate_write_unlock(zspage);
+ 
+ 	get_page(newpage);
+@@ -1861,20 +1871,20 @@ static void async_free_zspage(struct wor
+ 		if (class->index != i)
+ 			continue;
+ 
+-		spin_lock(&pool->lock);
++		spin_lock(&class->lock);
+ 		list_splice_init(&class->fullness_list[ZS_INUSE_RATIO_0],
+ 				 &free_pages);
+-		spin_unlock(&pool->lock);
++		spin_unlock(&class->lock);
+ 	}
+ 
+ 	list_for_each_entry_safe(zspage, tmp, &free_pages, list) {
+ 		list_del(&zspage->list);
+ 		lock_zspage(zspage);
+ 
+-		spin_lock(&pool->lock);
+ 		class = zspage_class(pool, zspage);
++		spin_lock(&class->lock);
+ 		__free_zspage(pool, class, zspage);
+-		spin_unlock(&pool->lock);
++		spin_unlock(&class->lock);
+ 	}
+ };
+ 
+@@ -1938,7 +1948,8 @@ static unsigned long __zs_compact(struct
+ 	 * protect the race between zpage migration and zs_free
+ 	 * as well as zpage allocation/free
+ 	 */
+-	spin_lock(&pool->lock);
++	write_lock(&pool->migrate_lock);
++	spin_lock(&class->lock);
+ 	while (zs_can_compact(class)) {
+ 		int fg;
+ 
+@@ -1964,13 +1975,15 @@ static unsigned long __zs_compact(struct
+ 		src_zspage = NULL;
+ 
+ 		if (get_fullness_group(class, dst_zspage) == ZS_INUSE_RATIO_100
+-		    || spin_is_contended(&pool->lock)) {
++		    || rwlock_is_contended(&pool->migrate_lock)) {
+ 			putback_zspage(class, dst_zspage);
+ 			dst_zspage = NULL;
+ 
+-			spin_unlock(&pool->lock);
++			spin_unlock(&class->lock);
++			write_unlock(&pool->migrate_lock);
+ 			cond_resched();
+-			spin_lock(&pool->lock);
++			write_lock(&pool->migrate_lock);
++			spin_lock(&class->lock);
+ 		}
+ 	}
+ 
+@@ -1980,7 +1993,8 @@ static unsigned long __zs_compact(struct
+ 	if (dst_zspage)
+ 		putback_zspage(class, dst_zspage);
+ 
+-	spin_unlock(&pool->lock);
++	spin_unlock(&class->lock);
++	write_unlock(&pool->migrate_lock);
+ 
+ 	return pages_freed;
+ }
+@@ -1992,10 +2006,10 @@ unsigned long zs_compact(struct zs_pool
+ 	unsigned long pages_freed = 0;
+ 
+ 	/*
+-	 * Pool compaction is performed under pool->lock so it is basically
++	 * Pool compaction is performed under pool->migrate_lock so it is basically
+ 	 * single-threaded. Having more than one thread in __zs_compact()
+-	 * will increase pool->lock contention, which will impact other
+-	 * zsmalloc operations that need pool->lock.
++	 * will increase pool->migrate_lock contention, which will impact other
++	 * zsmalloc operations that need pool->migrate_lock.
+ 	 */
+ 	if (atomic_xchg(&pool->compaction_in_progress, 1))
+ 		return 0;
+@@ -2117,7 +2131,7 @@ struct zs_pool *zs_create_pool(const cha
+ 		return NULL;
+ 
+ 	init_deferred_free(pool);
+-	spin_lock_init(&pool->lock);
++	rwlock_init(&pool->migrate_lock);
+ 	atomic_set(&pool->compaction_in_progress, 0);
+ 
+ 	pool->name = kstrdup(name, GFP_KERNEL);
+@@ -2189,6 +2203,7 @@ struct zs_pool *zs_create_pool(const cha
+ 		class->index = i;
+ 		class->pages_per_zspage = pages_per_zspage;
+ 		class->objs_per_zspage = objs_per_zspage;
++		spin_lock_init(&class->lock);
+ 		pool->size_class[i] = class;
+ 
+ 		fullness = ZS_INUSE_RATIO_0;
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from zhouchengming@bytedance.com are
 
-mm-hugetlb-remove-setclearhpage-macros.patch
-mm-hugetlb-mm-memory_hotplug-use-a-folio-in-scan_movable_pages.patch
-tools-testing-radix-tree-add-missing-module_description-definition.patch
+mm-zsmalloc-change-back-to-per-size_class-lock.patch
 
