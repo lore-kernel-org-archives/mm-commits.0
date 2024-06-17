@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD455198A03
-	for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 19:16:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF2A818F2E5
+	for <mm-commits@vger.kernel.org>; Mon, 17 Jun 2024 19:58:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718651760; cv=none; b=YMTh5dTvWDdCYxJyruQgIUc0VbYq+eqLHdCZAY6S/Lks/zR5v8blN977NaoMm88a5YwXwnOo7aucC/653SBGu7nC6pXDgaZivvBrhyBiLHswRv6pdQs37MtTBf2go/b/J5Tp9DNjqx19pjN7wloY0sK1KMzDDizbsqwh2JsWzGA=
+	t=1718654335; cv=none; b=dScL42nHEjL0laZ2NkexTsZIxMBV3PIcbBv/7brhKK+49TjGjojASUqfioIaf8qEcAbEZmUV5YrWcxyz/gbMzShwaoGL5Q6HXBh4l0wq59iT7YgerHgwkNBRwSa+LQrQbb6lN1F8vQFeoBiV7jJsWcu0TZ0H28+OWGX699Nz9sY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718651760; c=relaxed/simple;
-	bh=xZqgEf+s7xp0H/aMmrYGNs3FWOcyepiXkofmB4yagUA=;
-	h=Date:To:From:Subject:Message-Id; b=gOKUoPUQKMsRbosJP3wCyHOulWlRry/AcaE+XMxcdY5xw/QYpvUMAnMxvo9sW0veoAn//IKMwZKJ6IYCakMv83D/oAxnznXGB8V8JDMk4dVPvkvVRKkh0xVwOEnyxkaF/i15bm9u+qMC3juKqNxLm4mgt3gR1sY+64uwG1VX64U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oprth+/4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718654335; c=relaxed/simple;
+	bh=xzC0Qjo5eVvN20/A6HGQp2k9ltoR9AJfS5tWVK9t1/Q=;
+	h=Date:To:From:Subject:Message-Id; b=aEXH94ob4b+o97XANu6i6eQ78tStDElteRwUfT22qNS/BTO9BzV9EtKN0eWqlJXz/8m894R9jFRsmVyyO5nbzON4NgXT4bIcbmH0DZ2s/NBXs84H0WzpTS5CaJzYdqzMoOO2JHMFWJpzRu8BL7jTNXTUNtLApDz8UocqvDASzCA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EOwFrAFe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oprth+/4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2450BC2BD10;
-	Mon, 17 Jun 2024 19:16:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EOwFrAFe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55288C2BD10;
+	Mon, 17 Jun 2024 19:58:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718651760;
-	bh=xZqgEf+s7xp0H/aMmrYGNs3FWOcyepiXkofmB4yagUA=;
+	s=korg; t=1718654335;
+	bh=xzC0Qjo5eVvN20/A6HGQp2k9ltoR9AJfS5tWVK9t1/Q=;
 	h=Date:To:From:Subject:From;
-	b=Oprth+/4MLCIAFyK28Bdv5ey3lIHnEYcSyeyEl5mI90avwRkdhNZEqO9jZLZuW3Wh
-	 DSDKK/cWtGnQL4Dvb6D3vliItnuosbL6OzxQuL7fzuP41krPyu3yrqINKgmkui1ReU
-	 fIY6nhBX6M8z0/9Ng3L4tlZ2t5d6WJ1FT7ngxs8E=
-Date: Mon, 17 Jun 2024 12:15:59 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,rientjes@google.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,linmiaohe@huawei.com,jane.chu@oracle.com,ioworker0@gmail.com,fvdl@google.com,corbet@lwn.net,jiaqiyan@google.com,akpm@linux-foundation.org
+	b=EOwFrAFe8hwmHQbqQqAWJD07djrkDdZ7nz5c3XtQGoYd6OYwgrMULyls9ccBvt0hQ
+	 EI4bD1eOGTfaDhDfaVdCuRVhWuGLyXKmfNLTNN8xCdz6kPxtVdlcI80RCl2jlvE1p+
+	 jWRo+KEr6jmqO+XeD4zTk1BXX6wr3th8hsLSMktM=
+Date: Mon, 17 Jun 2024 12:58:54 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,quic_jjohnson@quicinc.com,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-add-enable_soft_offline-sysctl.patch added to mm-unstable branch
-Message-Id: <20240617191600.2450BC2BD10@smtp.kernel.org>
+Subject: + tools-testing-radix-tree-add-missing-module_description-definition.patch added to mm-nonmm-unstable branch
+Message-Id: <20240617195855.55288C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs: mm: add enable_soft_offline sysctl
-has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-add-enable_soft_offline-sysctl.patch
+     Subject: tools/testing/radix-tree: add missing MODULE_DESCRIPTION definition
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     tools-testing-radix-tree-add-missing-module_description-definition.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-add-enable_soft_offline-sysctl.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-radix-tree-add-missing-module_description-definition.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,85 +58,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jiaqi Yan <jiaqiyan@google.com>
-Subject: docs: mm: add enable_soft_offline sysctl
-Date: Mon, 17 Jun 2024 17:05:45 +0000
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: tools/testing/radix-tree: add missing MODULE_DESCRIPTION definition
+Date: Mon, 17 Jun 2024 12:52:21 -0700
 
-Add the documentation for soft offline behaviors / costs, and what
-the new enable_soft_offline sysctl is for.
+Userspace builds of the radix-tree testing suite fails because of commit
+test_maple_tree: add the missing MODULE_DESCRIPTION() macro.  Add the
+proper defines to tools/testing/radix-tree/maple.c and
+tools/testing/radix-tree/xarray.c so MODULE_DESCRIPTION has a definition. 
+This allows the build to succeed.
 
-Link: https://lkml.kernel.org/r/20240617170545.3820912-4-jiaqiyan@google.com
-Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20240617195221.106565-1-sidhartha.kumar@oracle.com
+Fixes: 9f8090e8c4d1 ("test_maple_tree: add the missing MODULE_DESCRIPTION() macro")
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Jeff Johnson <quic_jjohnson@quicinc.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |   33 ++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ tools/testing/radix-tree/maple.c  |    1 +
+ tools/testing/radix-tree/xarray.c |    1 +
+ 2 files changed, 2 insertions(+)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~docs-mm-add-enable_soft_offline-sysctl
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -36,6 +36,7 @@ Currently, these files are in /proc/sys/
- - dirtytime_expire_seconds
- - dirty_writeback_centisecs
- - drop_caches
-+- enable_soft_offline
- - extfrag_threshold
- - highmem_is_dirtyable
- - hugetlb_shm_group
-@@ -267,6 +268,38 @@ used::
- These are informational only.  They do not mean that anything is wrong
- with your system.  To disable them, echo 4 (bit 2) into drop_caches.
+--- a/tools/testing/radix-tree/maple.c~tools-testing-radix-tree-add-missing-module_description-definition
++++ a/tools/testing/radix-tree/maple.c
+@@ -19,6 +19,7 @@
+ #define module_init(x)
+ #define module_exit(x)
+ #define MODULE_AUTHOR(x)
++#define MODULE_DESCRIPTION(X)
+ #define MODULE_LICENSE(x)
+ #define dump_stack()	assert(0)
  
-+enable_soft_offline
-+===================
-+Correctable memory errors are very common on servers. Soft-offline is kernel's
-+solution for memory pages having (excessive) corrected memory errors.
-+
-+For different types of page, soft-offline has different behaviors / costs.
-+- For a raw error page, soft-offline migrates the in-use page's content to
-+  a new raw page.
-+- For a page that is part of a transparent hugepage,  soft-offline splits the
-+  transparent hugepage into raw pages, then migrates only the raw error page.
-+  As a result, user is transparently backed by 1 less hugepage, impacting
-+  memory access performance.
-+- For a page that is part of a HugeTLB hugepage, soft-offline first migrates
-+  the entire HugeTLB hugepage, during which a free hugepage will be consumed
-+  as migration target.  Then the original hugepage is dissolved into raw
-+  pages without compensation, reducing the capacity of the HugeTLB pool by 1.
-+
-+It is user's call to choose between reliability (staying away from fragile
-+physical memory) vs performance / capacity implications in transparent and
-+HugeTLB cases.
-+
-+For all architectures, enable_soft_offline controls whether to soft offline
-+memory pages.  When setting to 1, kernel attempts to soft offline the pages
-+whenever it thinks needed.  When setting to 0, kernel returns EOPNOTSUPP to
-+the request to soft offline the pages.  Its default value is 1.
-+
-+It is worth mentioning that after setting enable_soft_offline to 0:
-+- If RAS Correctable Errors Collector is running, its request to soft offline
-+  pages will fail.
-+- On ARM, the request to soft offline pages from GHES driver will fail.
-+- On PARISC, the request to soft offline pages from Page Deallocation Table
-+  will fail.
+--- a/tools/testing/radix-tree/xarray.c~tools-testing-radix-tree-add-missing-module_description-definition
++++ a/tools/testing/radix-tree/xarray.c
+@@ -10,6 +10,7 @@
+ #define module_init(x)
+ #define module_exit(x)
+ #define MODULE_AUTHOR(x)
++#define MODULE_DESCRIPTION(X)
+ #define MODULE_LICENSE(x)
+ #define dump_stack()	assert(0)
  
- extfrag_threshold
- =================
 _
 
-Patches currently in -mm which might be from jiaqiyan@google.com are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
-mm-memory-failure-userspace-controls-soft-offlining-pages.patch
-selftest-mm-test-enable_soft_offline-behaviors.patch
-docs-mm-add-enable_soft_offline-sysctl.patch
+mm-hugetlb-remove-setclearhpage-macros.patch
+mm-hugetlb-mm-memory_hotplug-use-a-folio-in-scan_movable_pages.patch
+tools-testing-radix-tree-add-missing-module_description-definition.patch
 
