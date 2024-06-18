@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C23D53E24
-	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 20:32:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E220A53E24
+	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 20:44:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718742751; cv=none; b=RXAifrvDe+ainK5smZQLUjGSXhfs8LImIdU9mbllvKpD/IlyOVotHja11rjqkGglyxGUwzBGHYXz6AdZu/1gesJ/5xgtxGZyhuwA873bLDsYc2AzevJPVzuzTcxrVHemOcSI/iMWYfrOuYF3QfdjDOjjlE8AmDnYXv8BNi06feI=
+	t=1718743493; cv=none; b=QkABXxW397e58UmuH1H4gdk7FM/2/bws242+6xGPkFz4zBT1/EMGU6NPDKXGx6wmOxTJ04qocrLk3m7Aaz8uqSB2VnC1TpQDZWK6kgFmRqDeZCimmOfxlB8v2TUGLjjsBefNrNcODOBhAXLQ4pi5VLMOpSqCvcmFYZZrE7CZTDw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718742751; c=relaxed/simple;
-	bh=E2SDC1lFQ0S6rSqW3IyIef3hUK9TcwWdrFrkeakqFO4=;
-	h=Date:To:From:Subject:Message-Id; b=R6iDl1fISWH5EvAl4AF9QUXadAEay9LabUHlnSpeVQNC2OR3SXLBmRCebZRhKEIbS8q2tAUe2A7qrc3d+Qge495HULgYjh0OrFQdtwetQPTF3GdSGdLbC2MiCsVn4QNCKSmDwv7M9aPzHl54eGIw9ExWHUuPH6jsWN0LJX46KN0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nwi6NV6M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718743493; c=relaxed/simple;
+	bh=lf44kbEOvhrkP7OLj/8aM5eUcDPZV8XigNIcnIdlY0o=;
+	h=Date:To:From:Subject:Message-Id; b=PWmVbQvsi5O69SKDkTDkV+FzFWToYJmFV8BhPo4yx1W9lHc1ihBNEfRsbcwm78t18CbVLlYSFEAc9ayoylUfVPFAk/f66Bvi6nTbVN9twz5Hia3AYIDEQYi3Ha8e/eYLcgWv+oSx7bMocmv/ODwJOAKDhIv+ta5Yix6oTmM0s4c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kdZvD5Us; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nwi6NV6M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FD88C3277B;
-	Tue, 18 Jun 2024 20:32:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kdZvD5Us"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38354C3277B;
+	Tue, 18 Jun 2024 20:44:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718742751;
-	bh=E2SDC1lFQ0S6rSqW3IyIef3hUK9TcwWdrFrkeakqFO4=;
+	s=korg; t=1718743492;
+	bh=lf44kbEOvhrkP7OLj/8aM5eUcDPZV8XigNIcnIdlY0o=;
 	h=Date:To:From:Subject:From;
-	b=nwi6NV6MyhnRH+1irbKYSXfW4e4WzmFmwrX4hOBXlaKXheGw6ueYTRTQxPw0WZFtD
-	 JS3ps9RXU4ePI+XE0kczKSI1Kdu16myCYfS6eR6QTf0nMJh+DZ6S62/iWUziDcZ615
-	 Y3k4+dwfAgHTtI8fyoOckbCxZY9qAeg/nKBnc4o8=
-Date: Tue, 18 Jun 2024 13:32:30 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,21cnbao@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=kdZvD5UsFPw4aKNnWOhX7BPMbRHS3KJANNNbR64QtaA9Zkw23xgqH8sE3FQeC3iYS
+	 HADJpTrKJh15tpxxtwAV4rkuuplpaZTO/nx49QM7WpxC4FSIB061t0b96uInkXyZJL
+	 tBEz8pFJdbHUG4w8rwNV8neIIj+u2DeWZkZ0CE3Y=
+Date: Tue, 18 Jun 2024 13:44:51 -0700
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,shuah@kernel.org,peterx@redhat.com,Liam.Howlett@oracle.com,kent.overstreet@linux.dev,kees@kernel.org,jeffxu@chromium.org,david@redhat.com,dalias@libc.org,brauner@kernel.org,axelrasmussen@google.com,avagin@google.com,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-support-large-folio-swap-out.patch added to mm-unstable branch
-Message-Id: <20240618203231.6FD88C3277B@smtp.kernel.org>
+Subject: + selftests-mm-mseal-self_elf-fix-missing-__nr_mseal.patch added to mm-unstable branch
+Message-Id: <20240618204452.38354C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: shmem: support large folio swap out
+     Subject: selftests/mm: mseal, self_elf: fix missing __NR_mseal
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-support-large-folio-swap-out.patch
+     selftests-mm-mseal-self_elf-fix-missing-__nr_mseal.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-support-large-folio-swap-out.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mseal-self_elf-fix-missing-__nr_mseal.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,144 +58,111 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: support large folio swap out
-Date: Tue, 18 Jun 2024 14:54:21 +0800
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/mm: mseal, self_elf: fix missing __NR_mseal
+Date: Mon, 17 Jun 2024 19:24:17 -0700
 
-Shmem will support large folio allocation [1] [2] to get a better
-performance, however, the memory reclaim still splits the precious large
-folios when trying to swap out shmem, which may lead to the memory
-fragmentation issue and can not take advantage of the large folio for
-shmeme.
+Patch series "cleanups, fixes, and progress towards avoiding "make
+headers"", v3.
 
-Moreover, the swap code already supports for swapping out large folio
-without split, hence this patch set supports the large folio swap out for
-shmem.
+Eventually, once the build succeeds on a sufficiently old distro, the idea
+is to delete $(KHDR_INCLUDES) from the selftests/mm build, and then after
+that, from selftests/lib.mk and all of the other selftest builds.
 
-Note the i915_gem_shmem driver still need to be split when swapping, thus
-add a new flag 'split_large_folio' for writeback_control to indicate
-spliting the large folio.
+For now, this series merely achieves a clean build of selftests/mm on a
+not-so-old distro: Ubuntu 23.04.  In other words, after this series is
+applied, it is possible to delete $(KHDR_INCLUDES) from
+selftests/mm/Makefile and the build will still succeed.
 
-[1] https://lore.kernel.org/all/cover.1717495894.git.baolin.wang@linux.alibaba.com/
-[2] https://lore.kernel.org/all/20240515055719.32577-1-da.gomez@samsung.com/
-Link: https://lkml.kernel.org/r/df16cdc6c7ce9b3f8e4f71cc6005738c67b3dacf.1718690645.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Chris Li <chrisl@kernel.org>
+1. Add tools/uapi/asm/unistd_[32|x32|64].h files, which include
+   definitions of __NR_mseal, and include them (indirectly) from the files
+   that use __NR_mseal.  The new files are copied from ./usr/include/asm,
+   which is how we have agreed to do this sort of thing, see [1].
+
+2. Add fs.h, similarly created: it was copied directly from a snapshot
+   of ./usr/include/linux/fs.h after running "make headers".
+
+3. Add a few selected prctl.h values that the ksm and mdwe tests require.
+
+4. Factor out some common code from mseal_test.c and seal_elf.c, into
+   a new mseal_helpers.h file.
+
+5. Remove local __NR_* definitions and checks.
+
+[1] commit e076eaca5906 ("selftests: break the dependency upon local
+header files")
+
+
+This patch (of 6):
+
+The selftests/mm build isn't exactly "broken", according to the current
+documentation, which still claims that one must run "make headers", before
+building the kselftests.  However, according to the new plan to get rid of
+that requirement [1], they are future-broken: attempting to build
+selftests/mm *without* first running "make headers" will fail due to not
+finding __NR_mseal.
+
+Therefore, include asm-generic/unistd.h, which has all of the system call
+numbers that are needed, abstracted across the various CPU arches.
+
+[1] commit e076eaca5906 ("selftests: break the dependency upon local
+header files")
+
+Link: https://lkml.kernel.org/r/20240618022422.804305-1-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20240618022422.804305-2-jhubbard@nvidia.com
+Fixes: 4926c7a52de7 ("selftest mm/mseal memory sealing")
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Jeff Xu <jeffxu@chromium.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Andrei Vagin <avagin@google.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/gem/i915_gem_shmem.c |    1 +
- include/linux/writeback.h                 |    1 +
- mm/shmem.c                                |    3 +--
- mm/vmscan.c                               |   14 ++++++++++++--
- 4 files changed, 15 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/mseal_test.c |    2 +-
+ tools/testing/selftests/mm/seal_elf.c   |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c~mm-shmem-support-large-folio-swap-out
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
-@@ -308,6 +308,7 @@ void __shmem_writeback(size_t size, stru
- 		.range_start = 0,
- 		.range_end = LLONG_MAX,
- 		.for_reclaim = 1,
-+		.split_large_folio = 1,
- 	};
- 	unsigned long i;
- 
---- a/include/linux/writeback.h~mm-shmem-support-large-folio-swap-out
-+++ a/include/linux/writeback.h
-@@ -63,6 +63,7 @@ struct writeback_control {
- 	unsigned range_cyclic:1;	/* range_start is cyclic */
- 	unsigned for_sync:1;		/* sync(2) WB_SYNC_ALL writeback */
- 	unsigned unpinned_netfs_wb:1;	/* Cleared I_PINNING_NETFS_WB */
-+	unsigned split_large_folio:1;	/* Split large folio for shmem writeback */
- 
- 	/*
- 	 * When writeback IOs are bounced through async layers, only the
---- a/mm/shmem.c~mm-shmem-support-large-folio-swap-out
-+++ a/mm/shmem.c
-@@ -775,7 +775,6 @@ static int shmem_add_to_page_cache(struc
- 	VM_BUG_ON_FOLIO(index != round_down(index, nr), folio);
- 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
- 	VM_BUG_ON_FOLIO(!folio_test_swapbacked(folio), folio);
--	VM_BUG_ON(expected && folio_test_large(folio));
- 
- 	folio_ref_add(folio, nr);
- 	folio->mapping = mapping;
-@@ -1462,7 +1461,7 @@ static int shmem_writepage(struct page *
- 	 * "force", drivers/gpu/drm/i915/gem/i915_gem_shmem.c gets huge pages,
- 	 * and its shmem_writeback() needs them to be split when swapping.
- 	 */
--	if (folio_test_large(folio)) {
-+	if (wbc->split_large_folio && folio_test_large(folio)) {
- 		/* Ensure the subpages are still dirty */
- 		folio_test_set_dirty(folio);
- 		if (split_huge_page(page) < 0)
---- a/mm/vmscan.c~mm-shmem-support-large-folio-swap-out
-+++ a/mm/vmscan.c
-@@ -1245,8 +1245,12 @@ retry:
- 			if (!total_swap_pages)
- 				goto activate_locked;
- 
--			/* Split shmem folio */
--			if (split_folio_to_list(folio, folio_list))
-+			/*
-+			 * Only split shmem folio when CONFIG_THP_SWAP
-+			 * is not enabled.
-+			 */
-+			if (!IS_ENABLED(CONFIG_THP_SWAP) &&
-+			    split_folio_to_list(folio, folio_list))
- 				goto keep_locked;
- 		}
- 
-@@ -1348,10 +1352,16 @@ retry:
- 			 * starts and then write it out here.
- 			 */
- 			try_to_unmap_flush_dirty();
-+try_pageout:
- 			switch (pageout(folio, mapping, &plug)) {
- 			case PAGE_KEEP:
- 				goto keep_locked;
- 			case PAGE_ACTIVATE:
-+				if (shmem_mapping(mapping) && folio_test_large(folio) &&
-+				    !split_folio_to_list(folio, folio_list)) {
-+					nr_pages = 1;
-+					goto try_pageout;
-+				}
- 				goto activate_locked;
- 			case PAGE_SUCCESS:
- 				stat->nr_pageout += nr_pages;
+--- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-mseal-self_elf-fix-missing-__nr_mseal
++++ a/tools/testing/selftests/mm/mseal_test.c
+@@ -3,7 +3,7 @@
+ #include <linux/mman.h>
+ #include <sys/mman.h>
+ #include <stdint.h>
+-#include <unistd.h>
++#include <asm-generic/unistd.h>
+ #include <string.h>
+ #include <sys/time.h>
+ #include <sys/resource.h>
+--- a/tools/testing/selftests/mm/seal_elf.c~selftests-mm-mseal-self_elf-fix-missing-__nr_mseal
++++ a/tools/testing/selftests/mm/seal_elf.c
+@@ -2,7 +2,7 @@
+ #define _GNU_SOURCE
+ #include <sys/mman.h>
+ #include <stdint.h>
+-#include <unistd.h>
++#include <asm-generic/unistd.h>
+ #include <string.h>
+ #include <sys/time.h>
+ #include <sys/resource.h>
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-mm-memory-extend-finish_fault-to-support-large-folio.patch
-mm-memory-extend-finish_fault-to-support-large-folio-fix.patch
-mm-memory-extend-finish_fault-to-support-large-folio-fix-fix.patch
-mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch
-mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch
-mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix.patch
-mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix-3.patch
-mm-shmem-add-mthp-support-for-anonymous-shmem.patch
-mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area.patch
-mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
-mm-shmem-add-mthp-counters-for-anonymous-shmem-fix.patch
-mm-memcontrol-add-vm_bug_on_folio-to-catch-lru-folio-in-mem_cgroup_migrate.patch
-mm-vmscan-add-validation-before-spliting-shmem-large-folio.patch
-mm-swap-extend-swap_shmem_alloc-to-support-batch-swap_map_shmem-flag-setting.patch
-mm-shmem-extend-shmem_partial_swap_usage-to-support-large-folio-swap.patch
-mm-filemap-use-xa_get_order-to-get-the-swap-entry-order.patch
-mm-shmem-use-swap_free_nr-to-free-shmem-swap-entries.patch
-mm-shmem-support-large-folio-allocation-for-shmem_replace_folio.patch
-mm-shmem-drop-folio-reference-count-using-nr_pages-in-shmem_delete_from_page_cache.patch
-mm-shmem-support-large-folio-swap-out.patch
+selftests-mm-mseal-self_elf-fix-missing-__nr_mseal.patch
+selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items.patch
+selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix.patch
+selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass.patch
+selftests-mm-fix-vm_utilc-build-failures-add-snapshot-of-fsh.patch
+selftests-mm-kvm-mdwe-fixes-to-avoid-requiring-make-headers.patch
+selftests-mm-remove-local-__nr_-definitions.patch
+selftests-mqueue-fix-5-warnings-about-signed-unsigned-mismatches.patch
 
