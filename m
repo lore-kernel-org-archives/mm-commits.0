@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 110F116EB4C
-	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 20:03:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94C2553E24
+	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 20:32:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718741014; cv=none; b=Lg/749mA2wsjmY8HkrwPVG4qmfTXn13xYKaghu1wlNmAi7VYBtaA4DbJg2Hr0Ijk8OWKFDe7l/hkCeZmWa6ifPHsuj/avD5bRxIK56rMGBVSM/oQqnzT6BG6kRmTtRYJrnTpmRRlZQxy5QMQWTtOeQcDMihn1JNQJEL6yZp7Sh0=
+	t=1718742735; cv=none; b=q0otCUDjmMJ3RyXOTpNYW/uFHf+fESM4XGDAEp33Js0ksFPOg3957OjyFHmspQckWLW7df6p1ABwIFG/mLkrdeBORIB9BYW/76NhahxYMy5l2MrlDe4FCBRrJsevNOeJ1fQIbw3DN6RO4v4s739+AKMsOOjd2HMSHTJLoPPQDac=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718741014; c=relaxed/simple;
-	bh=nXck0oWURz1ckpWxYAr5/WRscqcQJWVUZ4NTBy7aQIw=;
-	h=Date:To:From:Subject:Message-Id; b=dmrGRma0z4AVBwJtHWSmoS3RA2qPwSk1vjSAfRf41G4z+4Ajvbzm8c1DifIcaj7amK7TdTISIvKZ7d7Odc/RfD6AkauRUm4s/EDtvHRqwxkNxMstfGyrhp07kT9/h5z8F3dubwsj2bvxXAy82pbRVPpYOZBubW8Bi5TygBoEgG0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OViMcs3d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718742735; c=relaxed/simple;
+	bh=DvazxhjRmrenTb0+A99jBxGi7/Bom3Lv+L2XtoXH2/Q=;
+	h=Date:To:From:Subject:Message-Id; b=ZN5KEDeOPLPxWU4a3K9fXUS5cxr3qkrZyAi+IOOiq4ED3hUxhDysYS5IwXsbB21knS+F89dfNQq2d0Nzi6OqfV3FCqCRt7hE6DVLRPx1q4REd0elG5jHjOfC7soIBqxDfQ2cQl099Ow0wCNORURp4YWhuixq7jEb+kL1mDSSHoc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lKKctQH5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OViMcs3d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 715A4C4AF1A;
-	Tue, 18 Jun 2024 20:03:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lKKctQH5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E626C3277B;
+	Tue, 18 Jun 2024 20:32:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718741013;
-	bh=nXck0oWURz1ckpWxYAr5/WRscqcQJWVUZ4NTBy7aQIw=;
+	s=korg; t=1718742735;
+	bh=DvazxhjRmrenTb0+A99jBxGi7/Bom3Lv+L2XtoXH2/Q=;
 	h=Date:To:From:Subject:From;
-	b=OViMcs3dJHrp0scuMVdfs9BsMyobbVMP/OKxyfo4Qakj0B8pX5IffTndGfskwfLLs
-	 h5HC5CUp5ial3jdccXLpWvjLGEGkrJ6cJ0oKFzlJQLuxJrOH/rEd/1/YWL/vyPoK6N
-	 RZtjTary/1tC1OLawrXNEolTMmvWybZAz9KmX/S4=
-Date: Tue, 18 Jun 2024 13:03:32 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,ryan.roberts@arm.com,kasong@tencent.com,kaleshsingh@google.com,21cnbao@gmail.com,chrisl@kernel.org,akpm@linux-foundation.org
+	b=lKKctQH59wWBEy3RDhowVVrBvEZVqS5BS41M0fGj82Ol2DJ8/dolnFvkQ2zpsgpLQ
+	 ZpljjKlKcFJUAPTUYiMgwXeCywtgga4L8ZUwOHbhM0p94U9sF/LraUtzCg9B8OHOJg
+	 yEmSlEm+cdOfmHe0onOH5O24bWy0ykz2MgcfJJko=
+Date: Tue, 18 Jun 2024 13:32:14 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,chrisl@kernel.org,21cnbao@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-swap-mthp-allocate-swap-entries-from-nonfull-list.patch removed from -mm tree
-Message-Id: <20240618200333.715A4C4AF1A@smtp.kernel.org>
+Subject: + mm-vmscan-add-validation-before-spliting-shmem-large-folio.patch added to mm-unstable branch
+Message-Id: <20240618203215.1E626C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,189 +34,144 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: swap: mTHP allocate swap entries from nonfull list
-has been removed from the -mm tree.  Its filename was
-     mm-swap-mthp-allocate-swap-entries-from-nonfull-list.patch
+The patch titled
+     Subject: mm: vmscan: add validation before spliting shmem large folio
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmscan-add-validation-before-spliting-shmem-large-folio.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-add-validation-before-spliting-shmem-large-folio.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chris Li <chrisl@kernel.org>
-Subject: mm: swap: mTHP allocate swap entries from nonfull list
-Date: Fri, 14 Jun 2024 16:48:08 -0700
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: vmscan: add validation before spliting shmem large folio
+Date: Tue, 18 Jun 2024 14:54:13 +0800
 
-Track the nonfull cluster as well as the empty cluster on lists.  Each
-order has one nonfull cluster list.
+Patch series "support large folio swap-out and swap-in for shmem", v2.
 
-The cluster will remember which order it was used during new cluster
-allocation.
+Shmem will support large folio allocation [1] [2] to get a better
+performance, however, the memory reclaim still splits the precious large
+folios when trying to swap-out shmem, which may lead to the memory
+fragmentation issue and can not take advantage of the large folio for
+shmeme.
 
-When the cluster has free entry, add to the nonfull[order] list. 
-Allocation use the nonfull cluster list before using the the free cluster
-list.
+Moreover, the swap code already supports for swapping out large folio
+without split, and large folio swap-in[3] series is queued into
+mm-unstable branch.  Hence this patch set also supports the large folio
+swap-out and swap-in for shmem.
 
-This improves the mTHP swap allocation success rate.
+Functional testing
+==================
 
-There are limitations if the distribution of numbers of different orders
-of mTHP changes a lot.  e.g.  there are a lot of nonfull cluster assign to
-order A while later time there are a lot of order B allocation while very
-little allocation in order A.  Currently the cluster used by order A will
-not reused by order B unless the cluster is 100% empty.
+Machine environment: 32 Arm cores, 120G memory and 50G swap device.
 
-Link: https://lkml.kernel.org/r/20240614-swap-allocator-v2-2-2a513b4a7f2f@kernel.org
-Signed-off-by: Chris Li <chrisl@kernel.org>
-Reported-by: Barry Song <21cnbao@gmail.com>
+1. Run xfstests suite to test tmpfs filesystem, and I did not catch any
+   regressions with this patch set.
+
+FSTYP=tmpfs
+export TEST_DIR=/mnt/tempfs_mnt
+export TEST_DEV=/mnt/tempfs_mnt
+export SCRATCH_MNT=/mnt/scratchdir
+export SCRATCH_DEV=/mnt/scratchdir
+
+2. Run all mm selftests in tools/testing/selftests/mm/, and no
+   regressions found.
+
+3. I also wrote several shmem swap test cases, including shmem
+   splitting, shmem swapout, shmem swapin, swapoff during shmem swapout,
+   shmem reclaim, shmem swapin replacement, etc.  I tested these cases
+   under 4K and 64K shmem folio sizes with a swap device, and shmem swap
+   functionality works well on my machine (I can share these test cases if
+   needed).
+
+[1] https://lore.kernel.org/all/cover.1717495894.git.baolin.wang@linux.alibaba.com/
+[2] https://lore.kernel.org/all/20240515055719.32577-1-da.gomez@samsung.com/
+[3] https://lore.kernel.org/all/20240508224040.190469-6-21cnbao@gmail.com/T/
+[4] https://lore.kernel.org/all/8db63194-77fd-e0b8-8601-2bbf04889a5b@google.com/
+
+
+This patch (of 9):
+
+Add swap available space validation before spliting shmem large folio to
+avoid redundant split, since we can not write shmem folio to the swap
+device in this case.
+
+Link: https://lkml.kernel.org/r/cover.1718690645.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/413866f2f2d996cfbb5c906467b36c96b1a82e2d.1718690645.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Daniel Gomez <da.gomez@samsung.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    9 +++++--
- mm/swapfile.c        |   49 ++++++++++++++++++++++++++++++-----------
- 2 files changed, 43 insertions(+), 15 deletions(-)
+ mm/vmscan.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/include/linux/swap.h~mm-swap-mthp-allocate-swap-entries-from-nonfull-list
-+++ a/include/linux/swap.h
-@@ -245,18 +245,21 @@ enum {
-  */
- struct swap_cluster_info {
- 	spinlock_t lock;	/*
--				 * Protect swap_cluster_info count and state
--				 * field and swap_info_struct->swap_map
-+				 * Protect swap_cluster_info bitfields
-+				 * and swap_info_struct->swap_map
- 				 * elements correspond to the swap
- 				 * cluster
- 				 */
- 	unsigned int count:12;
- 	unsigned int state:3;
-+	unsigned int order:4;
- 	struct list_head list;	/* Protected by swap_info_struct->lock */
- };
- 
- #define CLUSTER_STATE_FREE	1 /* This cluster is free */
- #define CLUSTER_STATE_PER_CPU	2 /* This cluster on per_cpu_cluster  */
-+#define CLUSTER_STATE_SCANNED	3 /* This cluster off per_cpu_cluster */
-+#define CLUSTER_STATE_NONFULL	4 /* This cluster is on nonfull list */
- 
- 
- /*
-@@ -295,6 +298,8 @@ struct swap_info_struct {
- 	unsigned char *swap_map;	/* vmalloc'ed array of usage counts */
- 	struct swap_cluster_info *cluster_info; /* cluster info. Only for SSD */
- 	struct list_head free_clusters; /* free clusters list */
-+	struct list_head nonfull_clusters[SWAP_NR_ORDERS];
-+					/* list of cluster that contains at least one free slot */
- 	unsigned int lowest_bit;	/* index of first free in swap_map */
- 	unsigned int highest_bit;	/* index of last free in swap_map */
- 	unsigned int pages;		/* total of usable pages of swap */
---- a/mm/swapfile.c~mm-swap-mthp-allocate-swap-entries-from-nonfull-list
-+++ a/mm/swapfile.c
-@@ -361,8 +361,12 @@ static void swap_cluster_schedule_discar
- 
- static void __free_cluster(struct swap_info_struct *si, struct swap_cluster_info *ci)
- {
-+	if (ci->state == CLUSTER_STATE_NONFULL)
-+		list_move_tail(&ci->list, &si->free_clusters);
-+	else
-+		list_add_tail(&ci->list, &si->free_clusters);
- 	ci->state = CLUSTER_STATE_FREE;
--	list_add_tail(&ci->list, &si->free_clusters);
-+	ci->order = 0;
- }
- 
- /*
-@@ -484,7 +488,12 @@ static void dec_cluster_info_page(struct
- 	ci->count--;
- 
- 	if (!ci->count)
--		free_cluster(p, ci);
-+		return free_cluster(p, ci);
+--- a/mm/vmscan.c~mm-vmscan-add-validation-before-spliting-shmem-large-folio
++++ a/mm/vmscan.c
+@@ -1237,6 +1237,14 @@ retry:
+ 			}
+ 		} else if (folio_test_swapbacked(folio) &&
+ 			   folio_test_large(folio)) {
 +
-+	if (ci->state == CLUSTER_STATE_SCANNED) {
-+		list_add_tail(&ci->list, &p->nonfull_clusters[ci->order]);
-+		ci->state = CLUSTER_STATE_NONFULL;
-+	}
- }
- 
- /*
-@@ -535,17 +544,25 @@ static bool scan_swap_map_try_ssd_cluste
- 	unsigned int nr_pages = 1 << order;
- 	struct percpu_cluster *cluster;
- 	struct swap_cluster_info *ci;
--	unsigned int tmp, max;
-+	unsigned int tmp, max, found = 0;
- 
- new_cluster:
- 	cluster = this_cpu_ptr(si->percpu_cluster);
- 	tmp = cluster->next[order];
- 	if (tmp == SWAP_NEXT_INVALID) {
--		if (!list_empty(&si->free_clusters)) {
-+		if (!list_empty(&si->nonfull_clusters[order])) {
-+			ci = list_first_entry(&si->nonfull_clusters[order], struct swap_cluster_info, list);
-+			list_del(&ci->list);
-+			spin_lock(&ci->lock);
-+			ci->state = CLUSTER_STATE_PER_CPU;
-+			spin_unlock(&ci->lock);
-+			tmp = (ci - si->cluster_info) * SWAPFILE_CLUSTER;
-+		} else if (!list_empty(&si->free_clusters)) {
- 			ci = list_first_entry(&si->free_clusters, struct swap_cluster_info, list);
- 			list_del(&ci->list);
- 			spin_lock(&ci->lock);
- 			ci->state = CLUSTER_STATE_PER_CPU;
-+			ci->order = order;
- 			spin_unlock(&ci->lock);
- 			tmp = (ci - si->cluster_info) * SWAPFILE_CLUSTER;
- 		} else if (!list_empty(&si->discard_clusters)) {
-@@ -570,21 +587,24 @@ new_cluster:
- 	max = min_t(unsigned long, si->max, ALIGN(tmp + 1, SWAPFILE_CLUSTER));
- 	if (tmp < max) {
- 		ci = lock_cluster(si, tmp);
--		while (tmp < max) {
-+		while (!found && tmp < max) {
- 			if (swap_range_empty(si->swap_map, tmp, nr_pages))
--				break;
-+				found = tmp;
- 			tmp += nr_pages;
- 		}
-+		if (tmp >= max) {
-+			ci->state = CLUSTER_STATE_SCANNED;
-+			cluster->next[order] = SWAP_NEXT_INVALID;
-+		} else
-+			cluster->next[order] = tmp;
-+		WARN_ONCE(ci->order != order, "expecting order %d got %d", order, ci->order);
- 		unlock_cluster(ci);
- 	}
--	if (tmp >= max) {
--		cluster->next[order] = SWAP_NEXT_INVALID;
-+	if (!found)
- 		goto new_cluster;
--	}
--	*offset = tmp;
--	*scan_base = tmp;
--	tmp += nr_pages;
--	cluster->next[order] = tmp < max ? tmp : SWAP_NEXT_INVALID;
++			/*
++			 * Do not split shmem folio if no swap memory
++			 * available.
++			 */
++			if (!total_swap_pages)
++				goto activate_locked;
 +
-+	*offset = found;
-+	*scan_base = found;
- 	return true;
- }
- 
-@@ -2896,6 +2916,9 @@ static int setup_swap_map_and_extents(st
- 	INIT_LIST_HEAD(&p->free_clusters);
- 	INIT_LIST_HEAD(&p->discard_clusters);
- 
-+	for (i = 0; i < SWAP_NR_ORDERS; i++)
-+		INIT_LIST_HEAD(&p->nonfull_clusters[i]);
-+
- 	for (i = 0; i < swap_header->info.nr_badpages; i++) {
- 		unsigned int page_nr = swap_header->info.badpages[i];
- 		if (page_nr == 0 || page_nr > swap_header->info.last_page)
+ 			/* Split shmem folio */
+ 			if (split_folio_to_list(folio, folio_list))
+ 				goto keep_locked;
 _
 
-Patches currently in -mm which might be from chrisl@kernel.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
+mm-memory-extend-finish_fault-to-support-large-folio.patch
+mm-memory-extend-finish_fault-to-support-large-folio-fix.patch
+mm-memory-extend-finish_fault-to-support-large-folio-fix-fix.patch
+mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch
+mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch
+mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix.patch
+mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix-3.patch
+mm-shmem-add-mthp-support-for-anonymous-shmem.patch
+mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area.patch
+mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
+mm-shmem-add-mthp-counters-for-anonymous-shmem-fix.patch
+mm-memcontrol-add-vm_bug_on_folio-to-catch-lru-folio-in-mem_cgroup_migrate.patch
+mm-vmscan-add-validation-before-spliting-shmem-large-folio.patch
+mm-swap-extend-swap_shmem_alloc-to-support-batch-swap_map_shmem-flag-setting.patch
+mm-shmem-extend-shmem_partial_swap_usage-to-support-large-folio-swap.patch
+mm-filemap-use-xa_get_order-to-get-the-swap-entry-order.patch
+mm-shmem-use-swap_free_nr-to-free-shmem-swap-entries.patch
+mm-shmem-support-large-folio-allocation-for-shmem_replace_folio.patch
+mm-shmem-drop-folio-reference-count-using-nr_pages-in-shmem_delete_from_page_cache.patch
+mm-shmem-support-large-folio-swap-out.patch
 
