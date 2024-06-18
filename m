@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E288613BC30
-	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 21:16:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 573841779A9
+	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 22:08:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718745381; cv=none; b=ENNsLf1cu6mgUyvofT00ATpeMRCahbywrMhK9Ie+aRKT6BnjPfVcwnh2rm04Jo+PbW/SW/U8VDKtNbLIQ5CC70yrKmKvjWovoVtFnrQdZtqn4auYFMZ/tdQuB2M0J9Ezw5f8dZQbjjNnfBgxWr5McVL8WpIUWEVqe4j6SfFOank=
+	t=1718748520; cv=none; b=tu5u667U5btNtiO/yccfqqvz36nBQwqrbWhHVIQPlM15jd4lEyvgp0+UP1+uoxAjJRR2JZZMtMEKvjPixcjnGGk3gI/bbvcgcUG92UOxxVjH+eBxzhF4vsdTeLSVwtF26cYy6f4e4a56FRjeQwhB3pZG5gHoJw0Gre/Ed9Uh3/M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718745381; c=relaxed/simple;
-	bh=lPOegJQtPfOFUAS1AqJ1Rn4ljbDX2oGsPS9usTigOE4=;
-	h=Date:To:From:Subject:Message-Id; b=ZmVzbUUDCQr8mbdTrtghSJ5+y01lrsPvvYquH+oTPsapF448ZXb4EznlhLBA1h+RnPWi2uZcroK5sM1pkyNip1ucfXw6MtLOCeH9u1pHV9zvSNKjEDGZhDbFRV5q1MafwxmptKwoWH6z4dk97sg11nyW9Gn2aHWpcMu+1B9VAZs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gphbVJuA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718748520; c=relaxed/simple;
+	bh=aLeaKvGi7a3i0ubVl6ntFbRdlYDy/q/MjfkSGl/ui/I=;
+	h=Date:To:From:Subject:Message-Id; b=J8cRf6DKZiU1Az1AEboVdt5AaRQ99cE235IzOBRIP/B9c6uWopisXWWt/Gil0i2H9r3oX7Kv1IgLILRjk670uKlapMsU4lWuGd6mF+QZOk4Kg+aGdo93RkWKq/gl1PP/NJehb50JCnKL3F3epfJC5FBVYp2b2vQPeAoXgQWTMVQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dYPCcRdO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gphbVJuA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCB38C32786;
-	Tue, 18 Jun 2024 21:16:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dYPCcRdO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A899BC3277B;
+	Tue, 18 Jun 2024 22:08:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718745379;
-	bh=lPOegJQtPfOFUAS1AqJ1Rn4ljbDX2oGsPS9usTigOE4=;
+	s=korg; t=1718748519;
+	bh=aLeaKvGi7a3i0ubVl6ntFbRdlYDy/q/MjfkSGl/ui/I=;
 	h=Date:To:From:Subject:From;
-	b=gphbVJuAmbJXJRU9QKMKXzPAf9uL5hMdx6fi0TLwYLB0LGVLYgJWLiXsefGnv7/7v
-	 WGHybVWD+Udnicfb9SBvdD3s2XYUr9/zQNWygSPc8ETv5/g7pfgkHwqnrIvmaLtnlv
-	 KJe37flNq+qkubqA292lvOGYb69uXEFXULAEyXqg=
-Date: Tue, 18 Jun 2024 14:16:19 -0700
-To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,Liam.Howlett@oracle.com,rgbi3307@gmail.com,akpm@linux-foundation.org
+	b=dYPCcRdO7RL3PMzypDTnbWGBB0sZm2Llusl7OvTkz+NLahS50fWXAPUxz/+KkCkUy
+	 sB6WILKaMewiGrC7bZ7VXpiSYZ6uJjTu+LWe+ME8Nr1Z/xeyDfVZj3p7bN4S6M3QuR
+	 iq6tGvHv+96Gv2ITp20QXbGp3sno6TeJXwoNdBAY=
+Date: Tue, 18 Jun 2024 15:08:39 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-modified-return-type-of-mas_wr_store_entry.patch added to mm-unstable branch
-Message-Id: <20240618211619.BCB38C32786@smtp.kernel.org>
+Subject: + docs-damon-document-damos_migrate_hotcold-fix.patch added to mm-unstable branch
+Message-Id: <20240618220839.A899BC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: modified return type of mas_wr_store_entry()
+     Subject: Docs/admin-guide/damon/usage: trivial fixups for DAMOS_MIGRATE_{HOT,COLD} documetnation
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-modified-return-type-of-mas_wr_store_entry.patch
+     docs-damon-document-damos_migrate_hotcold-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-modified-return-type-of-mas_wr_store_entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-damon-document-damos_migrate_hotcold-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,66 +58,80 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: JaeJoon Jung <rgbi3307@gmail.com>
-Subject: maple_tree: modified return type of mas_wr_store_entry()
-Date: Fri, 14 Jun 2024 18:24:28 +0900
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/admin-guide/damon/usage: trivial fixups for DAMOS_MIGRATE_{HOT,COLD} documetnation
+Date: Tue, 18 Jun 2024 14:36:29 -0700
 
-Since the return value of mas_wr_store_entry() is not used,
-the return type can be changed to void.
+Fixup below three trivial issues in DAMOS_MIGRATE_{HOT,COLD} usage
+documentation[1,2].
 
-Link: https://lkml.kernel.org/r/20240614092428.29491-1-rgbi3307@gmail.com
-Signed-off-by: JaeJoon Jung <rgbi3307@gmail.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+1. Add target_nid on sysfs files hierarchy
+2. Fix scheme directory section to mention target_nid file
+3. Explain target_nid before apply_interval_us
+
+Link: https://lkml.kernel.org/r/20240618213630.84846-2-sj@kernel.org
+Fixes: c100fc71858a ("Docs/damon: document damos_migrate_{hot,cold}") # mm-unstable [1]
+Link: https://lore.kernel.org/20240614030010.751-8-honggyu.kim@sk.com # [2]Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ Documentation/admin-guide/mm/damon/usage.rst |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-modified-return-type-of-mas_wr_store_entry
-+++ a/lib/maple_tree.c
-@@ -4203,31 +4203,28 @@ slow_path:
-  *
-  * Return: The contents that was stored at the index.
-  */
--static inline void *mas_wr_store_entry(struct ma_wr_state *wr_mas)
-+static inline void mas_wr_store_entry(struct ma_wr_state *wr_mas)
- {
- 	struct ma_state *mas = wr_mas->mas;
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-damon-document-damos_migrate_hotcold-fix
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -78,7 +78,7 @@ comma (",").
+     │ │ │ │ │ │ │ │ ...
+     │ │ │ │ │ │ ...
+     │ │ │ │ │ :ref:`schemes <sysfs_schemes>`/nr_schemes
+-    │ │ │ │ │ │ :ref:`0 <sysfs_scheme>`/action,apply_interval_us
++    │ │ │ │ │ │ :ref:`0 <sysfs_scheme>`/action,target_nid,apply_interval_us
+     │ │ │ │ │ │ │ :ref:`access_pattern <sysfs_access_pattern>`/
+     │ │ │ │ │ │ │ │ sz/min,max
+     │ │ │ │ │ │ │ │ nr_accesses/min,max
+@@ -289,21 +289,21 @@ schemes/<N>/
+ ------------
  
- 	wr_mas->content = mas_start(mas);
- 	if (mas_is_none(mas) || mas_is_ptr(mas)) {
- 		mas_store_root(mas, wr_mas->entry);
--		return wr_mas->content;
-+		return;
- 	}
+ In each scheme directory, five directories (``access_pattern``, ``quotas``,
+-``watermarks``, ``filters``, ``stats``, and ``tried_regions``) and two files
+-(``action`` and ``apply_interval``) exist.
++``watermarks``, ``filters``, ``stats``, and ``tried_regions``) and three files
++(``action``, ``target_nid`` and ``apply_interval``) exist.
  
- 	if (unlikely(!mas_wr_walk(wr_mas))) {
- 		mas_wr_spanning_store(wr_mas);
--		return wr_mas->content;
-+		return;
- 	}
+ The ``action`` file is for setting and getting the scheme's :ref:`action
+ <damon_design_damos_action>`.  The keywords that can be written to and read
+ from the file and their meaning are same to those of the list on
+ :ref:`design doc <damon_design_damos_action>`.
  
- 	/* At this point, we are at the leaf node that needs to be altered. */
- 	mas_wr_end_piv(wr_mas);
- 	/* New root for a single pointer */
--	if (unlikely(!mas->index && mas->last == ULONG_MAX)) {
-+	if (unlikely(!mas->index && mas->last == ULONG_MAX))
- 		mas_new_root(mas, wr_mas->entry);
--		return wr_mas->content;
--	}
+-The ``apply_interval_us`` file is for setting and getting the scheme's
+-:ref:`apply_interval <damon_design_damos>` in microseconds.
 -
--	mas_wr_modify(wr_mas);
--	return wr_mas->content;
-+	else
-+		mas_wr_modify(wr_mas);
- }
+ The ``target_nid`` file is for setting the migration target node, which is
+ only meaningful when the ``action`` is either ``migrate_hot`` or
+ ``migrate_cold``.
  
- /**
++The ``apply_interval_us`` file is for setting and getting the scheme's
++:ref:`apply_interval <damon_design_damos>` in microseconds.
++
+ .. _sysfs_access_pattern:
+ 
+ schemes/<N>/access_pattern/
 _
 
-Patches currently in -mm which might be from rgbi3307@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-maple_tree-modified-return-type-of-mas_wr_store_entry.patch
+docs-damon-document-damos_migrate_hotcold-fix.patch
+mm-damon-core-implement-damos-quota-goals-online-commit-function.patch
+mm-damon-core-implement-damon-context-commit-function.patch
+mm-damon-sysfs-use-damon_commit_ctx.patch
+mm-damon-sysfs-schemes-use-damos_commit_quota_goals.patch
+mm-damon-sysfs-remove-unnecessary-online-tuning-handling-code.patch
+mm-damon-sysfs-rename-damon_sysfs_set_targets-to-add_targets.patch
+mm-damon-sysfs-schemes-remove-unnecessary-online-tuning-handling-code.patch
+mm-damon-sysfs-schemes-rename-_set_schemesscheme_filtersquota_scoreschemes.patch
+mm-damon-reclaim-use-damon_commit_ctx.patch
+mm-damon-reclaim-remove-unnecessary-code-for-online-tuning.patch
+mm-damon-lru_sort-use-damon_commit_ctx.patch
+mm-damon-lru_sort-remove-unnecessary-online-tuning-handling-code.patch
+docs-abi-damon-document-target_nid-file.patch
 
