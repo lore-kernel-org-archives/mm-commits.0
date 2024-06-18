@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1344A53E24
-	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 20:32:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A700953E24
+	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 20:32:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718742748; cv=none; b=BLoJqpk3AUtgFX9X9S5Ul9Jobg+Jt+EdTJ2IwSVTVk2t0ViyOoFAa6b60yhrh/hzS4Swpl5jwGSXGFRufrUv4xslI5kMHqOpspKSFYQ66IAa/SbATWSxLYxSxvU6QuPHviD8UT/iuMm0/Zo7fDJzuFX39IoGnIKC5/OWsvayKUE=
+	t=1718742749; cv=none; b=XAlz2IoSkhj+w/yzAx0T05MHu+zTVGn5KYEM55ljLLFcJuAsWrUQQROwhsDfLbOiWpXfK5mzimte0uCDGkSQhjEI23C5LqLaVYMxSbN7irzTyVcedSlULASYxUNz0MmvEsVarpnD3xtkfnEm3KJ3JCri0bnKs2IrT5W8/1TeDkw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718742748; c=relaxed/simple;
-	bh=mRGQBTHwdHHLQ9PXm8mRQGvMiGzTYOxyIeJiaX95WPY=;
-	h=Date:To:From:Subject:Message-Id; b=lpPh1kLNmA6Va5dUyKa0rMjBDoIyf1Hfl9X9dq8NqN+Afw6jYXHpg2PzznCZFge/bPL0CyjzedanH48mtHRggiBdRjQBWCkIYBtBdbDO4CiDgGm5FLEriJSXmoAzjXaOQq9UpXercAthThXrbY/VMBIPns64yuTpgcneBKRAO0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NRosxKJY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718742749; c=relaxed/simple;
+	bh=CkL72ylkD3/VDBdGZqI0bRgA+PswuzdVaxk8CAXtdDU=;
+	h=Date:To:From:Subject:Message-Id; b=mYER5lZD7bZ8q6+nklET1agClyAGj6tiCA/XzDoQFMR/lQHoEPCy5tip9Z8vrBCpGjXyahUGeCb1CYUsIfeDY3UnpNpOpb7cnYGc2o5sQGe67cRqD3b5Q7EfP6tW+dKIp8aCQOo66hjDv4H2TpPJX3vYIhzJ0DpFgq5TfbWgXTM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YKoGU8uR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NRosxKJY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FA18C4AF1C;
-	Tue, 18 Jun 2024 20:32:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YKoGU8uR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78E88C3277B;
+	Tue, 18 Jun 2024 20:32:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718742747;
-	bh=mRGQBTHwdHHLQ9PXm8mRQGvMiGzTYOxyIeJiaX95WPY=;
+	s=korg; t=1718742749;
+	bh=CkL72ylkD3/VDBdGZqI0bRgA+PswuzdVaxk8CAXtdDU=;
 	h=Date:To:From:Subject:From;
-	b=NRosxKJYZFPMxYkSGMT44ViqnJK7w5ajlb7Fe6/mrZMn8Zl3OLE5e3zcjlQYo0D3j
-	 fU/Tj3t7aypsW4yQ31Vkp41+wXOFB/qDerWgeUAO+pE1Z61HvuFsdXEyCi35jrbyd1
-	 IwrMo9OIAaOQO5vDw4T5fKv4vCg8diiOseqH+Gwk=
-Date: Tue, 18 Jun 2024 13:32:27 -0700
+	b=YKoGU8uRSivZY6rz3KGoO4HmfD1TvE9DRECh7MqRVDqlDpC9yMf3MfU4VxwxXgn4Q
+	 5mzlEIgW7qpF7meOZoLW+36+5U5ny6hue+ehAYZptpRh0BgNtyI/PNZ1+Y2IqCEPIb
+	 Dkp1xqA3iM0RIEsRZKosJbrz7H0VdKjcWRHpPcFg=
+Date: Tue, 18 Jun 2024 13:32:28 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,chrisl@kernel.org,21cnbao@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-support-large-folio-allocation-for-shmem_replace_folio.patch added to mm-unstable branch
-Message-Id: <20240618203227.7FA18C4AF1C@smtp.kernel.org>
+Subject: + mm-shmem-drop-folio-reference-count-using-nr_pages-in-shmem_delete_from_page_cache.patch added to mm-unstable branch
+Message-Id: <20240618203229.78E88C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: shmem: support large folio allocation for shmem_replace_folio()
+     Subject: mm: shmem: drop folio reference count using 'nr_pages' in shmem_delete_from_page_cache()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-support-large-folio-allocation-for-shmem_replace_folio.patch
+     mm-shmem-drop-folio-reference-count-using-nr_pages-in-shmem_delete_from_page_cache.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-support-large-folio-allocation-for-shmem_replace_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-drop-folio-reference-count-using-nr_pages-in-shmem_delete_from_page_cache.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: support large folio allocation for shmem_replace_folio()
-Date: Tue, 18 Jun 2024 14:54:19 +0800
+Subject: mm: shmem: drop folio reference count using 'nr_pages' in shmem_delete_from_page_cache()
+Date: Tue, 18 Jun 2024 14:54:20 +0800
 
-To support large folio swapin for shmem in the following patches, add
-large folio allocation for the new replacement folio in
-shmem_replace_folio().  Moreover large folios occupy N consecutive entries
-in the swap cache instead of using multi-index entries like the page
-cache, therefore we should replace each consecutive entries in the swap
-cache instead of using the shmem_replace_entry().
+To support large folio swapin/swapout for shmem in the following patches,
+drop the folio's reference count by the number of pages contained in the
+folio when a shmem folio is deleted from shmem pagecache after adding into
+swap cache.
 
-As well as updating statistics and folio reference count using the number
-of pages in the folio.
-
-Link: https://lkml.kernel.org/r/75d1c1f2fbc88dce476a53fa90f085b3bebb83c5.1718690645.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/a11634487d3d3dfb4e69e07f5575de18a27ee67a.1718690645.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <21cnbao@gmail.com>
 Cc: Chris Li <chrisl@kernel.org>
@@ -90,95 +85,18 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   53 ++++++++++++++++++++++++++++-----------------------
- 1 file changed, 30 insertions(+), 23 deletions(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/shmem.c~mm-shmem-support-large-folio-allocation-for-shmem_replace_folio
+--- a/mm/shmem.c~mm-shmem-drop-folio-reference-count-using-nr_pages-in-shmem_delete_from_page_cache
 +++ a/mm/shmem.c
-@@ -1878,28 +1878,24 @@ static bool shmem_should_replace_folio(s
- static int shmem_replace_folio(struct folio **foliop, gfp_t gfp,
- 				struct shmem_inode_info *info, pgoff_t index)
- {
--	struct folio *old, *new;
--	struct address_space *swap_mapping;
--	swp_entry_t entry;
--	pgoff_t swap_index;
--	int error;
--
--	old = *foliop;
--	entry = old->swap;
--	swap_index = swap_cache_index(entry);
--	swap_mapping = swap_address_space(entry);
-+	struct folio *new, *old = *foliop;
-+	swp_entry_t entry = old->swap;
-+	struct address_space *swap_mapping = swap_address_space(entry);
-+	pgoff_t swap_index = swap_cache_index(entry);
-+	XA_STATE(xas, &swap_mapping->i_pages, swap_index);
-+	int nr_pages = folio_nr_pages(old);
-+	int error = 0, i;
- 
- 	/*
- 	 * We have arrived here because our zones are constrained, so don't
- 	 * limit chance of success by further cpuset and node constraints.
- 	 */
- 	gfp &= ~GFP_CONSTRAINT_MASK;
--	VM_BUG_ON_FOLIO(folio_test_large(old), old);
--	new = shmem_alloc_folio(gfp, 0, info, index);
-+	new = shmem_alloc_folio(gfp, folio_order(old), info, index);
- 	if (!new)
- 		return -ENOMEM;
- 
--	folio_get(new);
-+	folio_ref_add(new, nr_pages);
- 	folio_copy(new, old);
- 	flush_dcache_folio(new);
- 
-@@ -1909,18 +1905,24 @@ static int shmem_replace_folio(struct fo
- 	new->swap = entry;
- 	folio_set_swapcache(new);
- 
--	/*
--	 * Our caller will very soon move newpage out of swapcache, but it's
--	 * a nice clean interface for us to replace oldpage by newpage there.
--	 */
-+	/* Swap cache still stores N entries instead of a high-order entry */
- 	xa_lock_irq(&swap_mapping->i_pages);
--	error = shmem_replace_entry(swap_mapping, swap_index, old, new);
-+	for (i = 0; i < nr_pages; i++) {
-+		void *item = xas_store(&xas, new);
-+
-+		if (item != old) {
-+			error = -ENOENT;
-+			break;
-+		}
-+
-+		xas_next(&xas);
-+	}
- 	if (!error) {
- 		mem_cgroup_replace_folio(old, new);
--		__lruvec_stat_mod_folio(new, NR_FILE_PAGES, 1);
--		__lruvec_stat_mod_folio(new, NR_SHMEM, 1);
--		__lruvec_stat_mod_folio(old, NR_FILE_PAGES, -1);
--		__lruvec_stat_mod_folio(old, NR_SHMEM, -1);
-+		__lruvec_stat_mod_folio(new, NR_FILE_PAGES, nr_pages);
-+		__lruvec_stat_mod_folio(new, NR_SHMEM, nr_pages);
-+		__lruvec_stat_mod_folio(old, NR_FILE_PAGES, -nr_pages);
-+		__lruvec_stat_mod_folio(old, NR_SHMEM, -nr_pages);
- 	}
- 	xa_unlock_irq(&swap_mapping->i_pages);
- 
-@@ -1940,7 +1942,12 @@ static int shmem_replace_folio(struct fo
- 	old->private = NULL;
- 
- 	folio_unlock(old);
--	folio_put_refs(old, 2);
-+	/*
-+	 * The old folio are removed from swap cache, drop the 'nr_pages'
-+	 * reference, as well as one temporary reference getting from swap
-+	 * cache.
-+	 */
-+	folio_put_refs(old, nr_pages + 1);
- 	return error;
+@@ -831,7 +831,7 @@ static void shmem_delete_from_page_cache
+ 	__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, -nr);
+ 	__lruvec_stat_mod_folio(folio, NR_SHMEM, -nr);
+ 	xa_unlock_irq(&mapping->i_pages);
+-	folio_put(folio);
++	folio_put_refs(folio, nr);
+ 	BUG_ON(error);
  }
  
 _
