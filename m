@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F390D16D9CB
-	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 19:44:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31EDE210EC
+	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 19:51:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718739861; cv=none; b=Ny5fvbHWlm69NsR7+HZL3a/yZcat37Cv3slnMwEv3WE1JkPjP5BG3jLVQdC370PYs6rnEg22h0P0FxvtMuVUweGCoWoH3I5vtOL/G5Brz3Aef0GY3DaWSIEh/onxU7ti20U9ENh9/oq6O/Fc5xczM9+wwejosGKsOOYamrRawqo=
+	t=1718740320; cv=none; b=lPoLgCOWCEDARjVRcuOWiYonn+vv3wrw4phmGBhPFicuN2/dJan8ROcS9MNDyQRMfGUnOYJ5r/hFq1poVz0nIKduXh74QNIw07xyNqesK3UGlaayhLKfTZeIq24TYMYx30XPRNwcuyrP776MYv0y4iu45nBsVun4wXbGsA1K2RA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718739861; c=relaxed/simple;
-	bh=551KRMAGB3YAjbDQE6MeQCVf7RbcxelSu1w101M+U4M=;
-	h=Date:To:From:Subject:Message-Id; b=JQkhyX1SBU0Ox7mxxAk7i7F40KwnrjzHb8FAfKGs7qvzk1nW9hwK/heMVSTbFk7H8G7JpGQ0pjQKutQJ/8nl7v8nEsp/MFLqNvtbEef5eTOxXfEB5cx65fC7rC0GKkrmJIS4KShj9ijX7nz3P9xAFFdzmBbbGq/so8PyHlu2DZI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lvnEROYD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718740320; c=relaxed/simple;
+	bh=jxsPxfhFZeuOUfMQzoPJ4AIIPeXXQjmPsvun7K+Lh6w=;
+	h=Date:To:From:Subject:Message-Id; b=MKBwrU3RS+BQt9cmC7hq3CTjBUQVeUHNA4121KXapRFSuPiMHaP5VRBStJwXFXzQHrTw2lvf8v3ciceRXA6JzI9Jvir0ExYXTF+O+shyzWrEzuPjytVcG3nRhR7akW4CaIu+cn2C25PdQ0Bi0UpJ3fIGUMphILN3jMfEXBZBO/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g4w5Z2uA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lvnEROYD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7653CC3277B;
-	Tue, 18 Jun 2024 19:44:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g4w5Z2uA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99145C3277B;
+	Tue, 18 Jun 2024 19:51:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718739860;
-	bh=551KRMAGB3YAjbDQE6MeQCVf7RbcxelSu1w101M+U4M=;
+	s=korg; t=1718740319;
+	bh=jxsPxfhFZeuOUfMQzoPJ4AIIPeXXQjmPsvun7K+Lh6w=;
 	h=Date:To:From:Subject:From;
-	b=lvnEROYD3JMF4+XJsUo/S9R6oXWa5DboPkpgOpSkMHUlja0y5UpALwL58LVbdrMI8
-	 KpKl0WYCCe/prfulwBoTAlzvZq5B19vJgD8dbE5DUAbeQq9XkF64e9hdupc1EGsI1+
-	 CQXCnz5iXzZJSclTpmH2utn9tKZSr/Atn5W2V1WM=
-Date: Tue, 18 Jun 2024 12:44:19 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,shy828301@gmail.com,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=g4w5Z2uA2/E2+QuwOWb30qHqnD3bvExWQ6Zye3Ncyez+m0z87jt6xZ3dA9TIPFzxr
+	 eb38baJWCLIQnk/QnuX5THIbAZskFe5Gslnb4Th72m+BYGQgxQTQMxmcaCoeA0/yHl
+	 meRliMJUYg2ggChUi6NwiYAKRgB9Mea2R8TfguOk=
+Date: Tue, 18 Jun 2024 12:51:58 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,oliver.sang@intel.com,muchun.song@linux.dev,xiujianfeng@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-make-migrate_pages_batch-stats-consistent.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240618194420.7653CC3277B@smtp.kernel.org>
+Subject: + mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix.patch added to mm-unstable branch
+Message-Id: <20240618195159.99145C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/migrate: make migrate_pages_batch() stats consistent
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-migrate-make-migrate_pages_batch-stats-consistent.patch
+     Subject: mm/hugetlb_cgroup: register lockdep key for cftype
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-make-migrate_pages_batch-stats-consistent.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,55 +58,105 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/migrate: make migrate_pages_batch() stats consistent
-Date: Tue, 18 Jun 2024 09:41:51 -0400
+From: Xiu Jianfeng <xiujianfeng@huawei.com>
+Subject: mm/hugetlb_cgroup: register lockdep key for cftype
+Date: Tue, 18 Jun 2024 07:19:22 +0000
 
-As Ying pointed out in [1], stats->nr_thp_failed needs to be updated to
-avoid stats inconsistency between MIGRATE_SYNC and MIGRATE_ASYNC when
-calling migrate_pages_batch().
+When CONFIG_DEBUG_LOCK_ALLOC is enabled, the following commands can
+trigger a bug,
 
-[1] https://lore.kernel.org/linux-mm/87msnq7key.fsf@yhuang6-desk2.ccr.corp.intel.com/
+mount -t cgroup2 none /sys/fs/cgroup
+cd /sys/fs/cgroup
+echo "+hugetlb" > cgroup.subtree_control
 
-Link: https://lkml.kernel.org/r/20240618134151.29214-1-zi.yan@sent.com
-Fixes: 7262f208ca68 ("mm/migrate: split source folio if it is on deferred split list")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Suggested-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
+The log is as below:
+
+BUG: key ffff8880046d88d8 has not been registered!
+------------[ cut here ]------------
+DEBUG_LOCKS_WARN_ON(1)
+WARNING: CPU: 3 PID: 226 at kernel/locking/lockdep.c:4945 lockdep_init_map_type+0x185/0x220
+Modules linked in:
+CPU: 3 PID: 226 Comm: bash Not tainted 6.10.0-rc4-next-20240617-g76db4c64526c #544
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
+RIP: 0010:lockdep_init_map_type+0x185/0x220
+Code: 00 85 c0 0f 84 6c ff ff ff 8b 3d 6a d1 85 01 85 ff 0f 85 5e ff ff ff 48 c7 c6 21 99 4a 82 48 c7 c7 60 29 49 82 e8 3b 2e f5
+RSP: 0018:ffffc9000083fc30 EFLAGS: 00000282
+RAX: 0000000000000000 RBX: ffffffff828dd820 RCX: 0000000000000027
+RDX: ffff88803cd9cac8 RSI: 0000000000000001 RDI: ffff88803cd9cac0
+RBP: ffff88800674fbb0 R08: ffffffff828ce248 R09: 00000000ffffefff
+R10: ffffffff8285e260 R11: ffffffff828b8eb8 R12: ffff8880046d88d8
+R13: 0000000000000000 R14: 0000000000000000 R15: ffff8880067281c0
+FS:  00007f68601ea740(0000) GS:ffff88803cd80000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00005614f3ebc740 CR3: 000000000773a000 CR4: 00000000000006f0
+Call Trace:
+ <TASK>
+ ? __warn+0x77/0xd0
+ ? lockdep_init_map_type+0x185/0x220
+ ? report_bug+0x189/0x1a0
+ ? handle_bug+0x3c/0x70
+ ? exc_invalid_op+0x18/0x70
+ ? asm_exc_invalid_op+0x1a/0x20
+ ? lockdep_init_map_type+0x185/0x220
+ __kernfs_create_file+0x79/0x100
+ cgroup_addrm_files+0x163/0x380
+ ? find_held_lock+0x2b/0x80
+ ? find_held_lock+0x2b/0x80
+ ? find_held_lock+0x2b/0x80
+ css_populate_dir+0x73/0x180
+ cgroup_apply_control_enable+0x12f/0x3a0
+ cgroup_subtree_control_write+0x30b/0x440
+ kernfs_fop_write_iter+0x13a/0x1f0
+ vfs_write+0x341/0x450
+ ksys_write+0x64/0xe0
+ do_syscall_64+0x4b/0x110
+ entry_SYSCALL_64_after_hwframe+0x76/0x7e
+RIP: 0033:0x7f68602d9833
+Code: 8b 15 61 26 0e 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb b7 0f 1f 00 64 8b 04 25 18 00 00 00 85 c0 75 14 b8 01 00 00 00 08
+RSP: 002b:00007fff9bbdf8e8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000009 RCX: 00007f68602d9833
+RDX: 0000000000000009 RSI: 00005614f3ebc740 RDI: 0000000000000001
+RBP: 00005614f3ebc740 R08: 000000000000000a R09: 0000000000000008
+R10: 00005614f3db6ba0 R11: 0000000000000246 R12: 0000000000000009
+R13: 00007f68603bd6a0 R14: 0000000000000009 R15: 00007f68603b8880
+
+For lockdep, there is a sanity check in lockdep_init_map_type(), the
+lock-class key must either have been allocated statically or must have
+been registered as a dynamic key.  However the commit e18df2889ff9
+("mm/hugetlb_cgroup: prepare cftypes based on template") has changed the
+cftypes from static allocated objects to dynamic allocated objects, so the
+cft->lockdep_key must be registered proactively.
+
+Link: https://lkml.kernel.org/r/20240618071922.2127289-1-xiujianfeng@huawei.com
+Fixes: e18df2889ff9 ("mm/hugetlb_cgroup: prepare cftypes based on template")
+Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202406181046.8d8b2492-oliver.sang@intel.com
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/hugetlb_cgroup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/migrate.c~mm-migrate-make-migrate_pages_batch-stats-consistent
-+++ a/mm/migrate.c
-@@ -1659,6 +1659,10 @@ static int migrate_pages_batch(struct li
- 			 * migrate_pages() may report success with (split but
- 			 * unmigrated) pages still on its fromlist; whereas it
- 			 * always reports success when its fromlist is empty.
-+			 * stats->nr_thp_failed should be increased too,
-+			 * otherwise stats inconsistency will happen when
-+			 * migrate_pages_batch is called via migrate_pages()
-+			 * with MIGRATE_SYNC and MIGRATE_ASYNC.
- 			 *
- 			 * Only check it without removing it from the list.
- 			 * Since the folio can be on deferred_split_scan()
-@@ -1675,6 +1679,7 @@ static int migrate_pages_batch(struct li
- 			   !list_empty(&folio->_deferred_list)) {
- 				if (try_split_folio(folio, split_folios) == 0) {
- 					nr_failed++;
-+					stats->nr_thp_failed += is_thp;
- 					stats->nr_thp_split += is_thp;
- 					stats->nr_split++;
- 					continue;
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix
++++ a/mm/hugetlb_cgroup.c
+@@ -836,6 +836,8 @@ hugetlb_cgroup_cfttypes_init(struct hsta
+ 			cft->file_offset = MEMFILE_OFFSET0(offset) +
+ 					   MEMFILE_FIELD_SIZE(offset) * idx;
+ 		}
++
++		lockdep_register_key(&cft->lockdep_key);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from xiujianfeng@huawei.com are
 
-mm-migrate-make-migrate_pages_batch-stats-consistent.patch
+mm-hugetlb_cgroup-identify-the-legacy-using-cgroup_subsys_on_dfl.patch
+mm-hugetlb_cgroup-prepare-cftypes-based-on-template.patch
+mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix.patch
+mm-hugetlb_cgroup-switch-to-the-new-cftypes.patch
 
