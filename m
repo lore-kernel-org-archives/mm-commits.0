@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C6F553E24
-	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 20:44:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF97F53E24
+	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 20:44:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718743498; cv=none; b=D8po99EOZQKJ0fUV+CEDBRsQ/PkGp4xv5+6z8A9lsGKRsIK6jeDHzi3wjW7glmZqCtYVRrIs2h1dEi1SN83QA20sFNW/P/vXUu/RbfqmcM6i+e/Ne0cNL43nJsf7ksU7r8V//rDPIFRjReS4xHsYJdpYEoMeTYSN7PJ6g//nXfo=
+	t=1718743500; cv=none; b=ZxeQpvaTKXog84gXNfqh0L0+wRJy9Qe5SeTNEocRhqZNkutzkEEKAD6fA0ZdYjW2c2m+E3DlX+hTYQ+2GsZqclwoUysLE4fcndQvyGJN7XYm8qFVgKMiBGMuXVHu3Sh99V2E1FgdoM0D2S5z2BRj1JdQPNiUw+InA+gMPDFika4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718743498; c=relaxed/simple;
-	bh=0ylAZ/D/acI+waEyzeO1iw+sjp9uNSxzeS3LX/S3Qa4=;
-	h=Date:To:From:Subject:Message-Id; b=ZuPQ9sdjYXMQ2/O33j2ae3g/aAnq4pzbjGYHDjUWaw3GDqXYb+SbLRaDimZXIjOk72l3qm1qZ1XmwhIj4YuS/7ouxCDSGsxGnj51t2/1sZ9m9n9D6iQz0LzUe1sxJBtVtYqiTAIvsYQTq25oU5QKo99CPyvgMY1adCNj7yTHAMw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n7ZH/TMx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718743500; c=relaxed/simple;
+	bh=lrQvdYpAgRV3k6sWE0gmg7E3F7Ph/M0KVSmF+93XNZ8=;
+	h=Date:To:From:Subject:Message-Id; b=NcR++egNTcX0aKGmdK4wlfLgZ2CpEvarTTOT/bhxoI3BFGjeUV48R2zp3jvwkt5z6MeBcFnuRlpDJUcYFuttzIqVTA6rAZDTqfmH8hiia7uTABK3Nc9b5BgKIxbFYsdovWPhSx4tZZoLVw1mExWZZW1E8PYvA5IQzIc989VzJ6c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sGliSnMX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n7ZH/TMx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 827A8C3277B;
-	Tue, 18 Jun 2024 20:44:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sGliSnMX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D572C3277B;
+	Tue, 18 Jun 2024 20:44:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718743497;
-	bh=0ylAZ/D/acI+waEyzeO1iw+sjp9uNSxzeS3LX/S3Qa4=;
+	s=korg; t=1718743499;
+	bh=lrQvdYpAgRV3k6sWE0gmg7E3F7Ph/M0KVSmF+93XNZ8=;
 	h=Date:To:From:Subject:From;
-	b=n7ZH/TMxK6QRfYFAEKLO5RsjgKfaKJ7CKdAk2SZfehv2gR3JOlQv6DL9ecKJigGvP
-	 4X7zajKuIad52EnIXD6AF9XKD4LguhUrbavStHXVPVw0DWN2RThsul75JtASpMRDiZ
-	 wYhHzC2y6GbrpoFFMOwTg5T2C0QvMt1vceg23wk4=
-Date: Tue, 18 Jun 2024 13:44:57 -0700
+	b=sGliSnMXoTejntewI3q0kMDyGdbodGhaiES1OUht2kxRoLt+z4aH+F+ZsVGlk+GER
+	 tW8//hdJGt1X+WDawvCLkXyQRyZx2pF0EQ+GRoc0pIOMLHdtZ4XBhtKoTfOKsUnUsT
+	 WljnhBtT/0f1oC++tLoXQBfA36ANqD4F1pe1aTNU=
+Date: Tue, 18 Jun 2024 13:44:58 -0700
 To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,shuah@kernel.org,peterx@redhat.com,Liam.Howlett@oracle.com,kent.overstreet@linux.dev,kees@kernel.org,jeffxu@chromium.org,david@redhat.com,dalias@libc.org,brauner@kernel.org,axelrasmussen@google.com,avagin@google.com,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix.patch added to mm-unstable branch
-Message-Id: <20240618204457.827A8C3277B@smtp.kernel.org>
+Subject: + selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass.patch added to mm-unstable branch
+Message-Id: <20240618204459.5D572C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix
+     Subject: selftests/mm: mseal, self_elf: rename TEST_END_CHECK to REPORT_TEST_PASS
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix.patch
+     selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix
-Date: Tue, 18 Jun 2024 13:17:45 -0700
+Subject: selftests/mm: mseal, self_elf: rename TEST_END_CHECK to REPORT_TEST_PASS
+Date: Mon, 17 Jun 2024 19:24:19 -0700
 
-include the new mseal_helpers.h in Makefile dependencies
+Now that the test macros are factored out into their final location, and
+simplified, it's time to rename TEST_END_CHECK to something that
+represents its new functionality: REPORT_TEST_PASS.
 
-
-Link: https://lkml.kernel.org/r/01685978-f6b1-4c24-8397-22cd3c24b91a@nvidia.com
+Link: https://lkml.kernel.org/r/20240618022422.804305-4-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Jeff Xu <jeffxu@chromium.org>
+Tested-by: Jeff Xu <jeffxu@chromium.org>
 Cc: Andrei Vagin <avagin@google.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jeff Xu <jeffxu@chromium.org>
 Cc: Kees Cook <kees@kernel.org>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
@@ -82,19 +84,449 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/mm/mseal_helpers.h |    2 
+ tools/testing/selftests/mm/mseal_test.c    |   92 +++++++++----------
+ tools/testing/selftests/mm/seal_elf.c      |    2 
+ 3 files changed, 48 insertions(+), 48 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -2,6 +2,7 @@
- # Makefile for mm selftests
+--- a/tools/testing/selftests/mm/mseal_helpers.h~selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass
++++ a/tools/testing/selftests/mm/mseal_helpers.h
+@@ -18,7 +18,7 @@
+ 		}							\
+ 	} while (0)
  
- LOCAL_HDRS += $(selfdir)/mm/local_config.h $(top_srcdir)/mm/gup_test.h
-+LOCAL_HDRS += $(selfdir)/mm/mseal_helpers.h
+-#define TEST_END_CHECK() ksft_test_result_pass("%s\n", __func__)
++#define REPORT_TEST_PASS() ksft_test_result_pass("%s\n", __func__)
  
- include local_config.mk
+ #ifndef PKEY_DISABLE_ACCESS
+ #define PKEY_DISABLE_ACCESS	0x1
+--- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass
++++ a/tools/testing/selftests/mm/mseal_test.c
+@@ -240,7 +240,7 @@ static void test_seal_addseal(void)
+ 	ret = sys_mseal(ptr, size);
+ 	FAIL_TEST_IF_FALSE(!ret);
  
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_unmapped_start(void)
+@@ -268,7 +268,7 @@ static void test_seal_unmapped_start(voi
+ 	ret = sys_mseal(ptr + 2 * page_size, 2 * page_size);
+ 	FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_unmapped_middle(void)
+@@ -300,7 +300,7 @@ static void test_seal_unmapped_middle(vo
+ 	ret = sys_mseal(ptr + 3 * page_size, page_size);
+ 	FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_unmapped_end(void)
+@@ -329,7 +329,7 @@ static void test_seal_unmapped_end(void)
+ 	ret = sys_mseal(ptr, 2 * page_size);
+ 	FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_multiple_vmas(void)
+@@ -360,7 +360,7 @@ static void test_seal_multiple_vmas(void
+ 	ret = sys_mseal(ptr, size);
+ 	FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_split_start(void)
+@@ -385,7 +385,7 @@ static void test_seal_split_start(void)
+ 	ret = sys_mseal(ptr + page_size, 3 * page_size);
+ 	FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_split_end(void)
+@@ -410,7 +410,7 @@ static void test_seal_split_end(void)
+ 	ret = sys_mseal(ptr, 3 * page_size);
+ 	FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_invalid_input(void)
+@@ -445,7 +445,7 @@ static void test_seal_invalid_input(void
+ 	ret = sys_mseal(ptr - page_size, 5 * page_size);
+ 	FAIL_TEST_IF_FALSE(ret < 0);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_zero_length(void)
+@@ -469,7 +469,7 @@ static void test_seal_zero_length(void)
+ 	ret = sys_mprotect(ptr, size, PROT_READ | PROT_WRITE);
+ 	FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_zero_address(void)
+@@ -495,7 +495,7 @@ static void test_seal_zero_address(void)
+ 	ret = sys_mprotect(ptr, size, PROT_READ | PROT_WRITE);
+ 	FAIL_TEST_IF_FALSE(ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_twice(void)
+@@ -515,7 +515,7 @@ static void test_seal_twice(void)
+ 	ret = sys_mseal(ptr, size);
+ 	FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mprotect(bool seal)
+@@ -539,7 +539,7 @@ static void test_seal_mprotect(bool seal
+ 	else
+ 		FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_start_mprotect(bool seal)
+@@ -569,7 +569,7 @@ static void test_seal_start_mprotect(boo
+ 			PROT_READ | PROT_WRITE);
+ 	FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_end_mprotect(bool seal)
+@@ -599,7 +599,7 @@ static void test_seal_end_mprotect(bool
+ 	else
+ 		FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mprotect_unalign_len(bool seal)
+@@ -628,7 +628,7 @@ static void test_seal_mprotect_unalign_l
+ 			PROT_READ | PROT_WRITE);
+ 	FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mprotect_unalign_len_variant_2(bool seal)
+@@ -656,7 +656,7 @@ static void test_seal_mprotect_unalign_l
+ 			PROT_READ | PROT_WRITE);
+ 	FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mprotect_two_vma(bool seal)
+@@ -691,7 +691,7 @@ static void test_seal_mprotect_two_vma(b
+ 	else
+ 		FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mprotect_two_vma_with_split(bool seal)
+@@ -738,7 +738,7 @@ static void test_seal_mprotect_two_vma_w
+ 			PROT_READ | PROT_WRITE);
+ 	FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mprotect_partial_mprotect(bool seal)
+@@ -764,7 +764,7 @@ static void test_seal_mprotect_partial_m
+ 	else
+ 		FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mprotect_two_vma_with_gap(bool seal)
+@@ -807,7 +807,7 @@ static void test_seal_mprotect_two_vma_w
+ 	ret = sys_mprotect(ptr + 3 * page_size, page_size, PROT_READ);
+ 	FAIL_TEST_IF_FALSE(ret == 0);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mprotect_split(bool seal)
+@@ -844,7 +844,7 @@ static void test_seal_mprotect_split(boo
+ 	else
+ 		FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mprotect_merge(bool seal)
+@@ -878,7 +878,7 @@ static void test_seal_mprotect_merge(boo
+ 	ret = sys_mprotect(ptr + 2 * page_size, 2 * page_size, PROT_READ);
+ 	FAIL_TEST_IF_FALSE(ret == 0);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_munmap(bool seal)
+@@ -903,7 +903,7 @@ static void test_seal_munmap(bool seal)
+ 	else
+ 		FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ /*
+@@ -943,7 +943,7 @@ static void test_seal_munmap_two_vma(boo
+ 	else
+ 		FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ /*
+@@ -981,7 +981,7 @@ static void test_seal_munmap_vma_with_ga
+ 	ret = sys_munmap(ptr, size);
+ 	FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_munmap_start_freed(bool seal)
+@@ -1021,7 +1021,7 @@ static void test_munmap_start_freed(bool
+ 		FAIL_TEST_IF_FALSE(size == 0);
+ 	}
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_munmap_end_freed(bool seal)
+@@ -1051,7 +1051,7 @@ static void test_munmap_end_freed(bool s
+ 	else
+ 		FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_munmap_middle_freed(bool seal)
+@@ -1095,7 +1095,7 @@ static void test_munmap_middle_freed(boo
+ 		FAIL_TEST_IF_FALSE(size == 0);
+ 	}
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mremap_shrink(bool seal)
+@@ -1124,7 +1124,7 @@ static void test_seal_mremap_shrink(bool
+ 
+ 	}
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mremap_expand(bool seal)
+@@ -1156,7 +1156,7 @@ static void test_seal_mremap_expand(bool
+ 
+ 	}
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mremap_move(bool seal)
+@@ -1189,7 +1189,7 @@ static void test_seal_mremap_move(bool s
+ 
+ 	}
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mmap_overwrite_prot(bool seal)
+@@ -1217,7 +1217,7 @@ static void test_seal_mmap_overwrite_pro
+ 	} else
+ 		FAIL_TEST_IF_FALSE(ret2 == ptr);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mmap_expand(bool seal)
+@@ -1248,7 +1248,7 @@ static void test_seal_mmap_expand(bool s
+ 	} else
+ 		FAIL_TEST_IF_FALSE(ret2 == ptr);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mmap_shrink(bool seal)
+@@ -1276,7 +1276,7 @@ static void test_seal_mmap_shrink(bool s
+ 	} else
+ 		FAIL_TEST_IF_FALSE(ret2 == ptr);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mremap_shrink_fixed(bool seal)
+@@ -1307,7 +1307,7 @@ static void test_seal_mremap_shrink_fixe
+ 	} else
+ 		FAIL_TEST_IF_FALSE(ret2 == newAddr);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mremap_expand_fixed(bool seal)
+@@ -1338,7 +1338,7 @@ static void test_seal_mremap_expand_fixe
+ 	} else
+ 		FAIL_TEST_IF_FALSE(ret2 == newAddr);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mremap_move_fixed(bool seal)
+@@ -1368,7 +1368,7 @@ static void test_seal_mremap_move_fixed(
+ 	} else
+ 		FAIL_TEST_IF_FALSE(ret2 == newAddr);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mremap_move_fixed_zero(bool seal)
+@@ -1400,7 +1400,7 @@ static void test_seal_mremap_move_fixed_
+ 
+ 	}
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mremap_move_dontunmap(bool seal)
+@@ -1429,7 +1429,7 @@ static void test_seal_mremap_move_dontun
+ 
+ 	}
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_mremap_move_dontunmap_anyaddr(bool seal)
+@@ -1463,7 +1463,7 @@ static void test_seal_mremap_move_dontun
+ 
+ 	}
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ 
+@@ -1556,7 +1556,7 @@ static void test_seal_merge_and_split(vo
+ 	FAIL_TEST_IF_FALSE(size ==  22 * page_size);
+ 	FAIL_TEST_IF_FALSE(prot == 0x4);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_discard_ro_anon_on_rw(bool seal)
+@@ -1585,7 +1585,7 @@ static void test_seal_discard_ro_anon_on
+ 	else
+ 		FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_discard_ro_anon_on_pkey(bool seal)
+@@ -1632,7 +1632,7 @@ static void test_seal_discard_ro_anon_on
+ 	else
+ 		FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_discard_ro_anon_on_filebacked(bool seal)
+@@ -1669,7 +1669,7 @@ static void test_seal_discard_ro_anon_on
+ 		FAIL_TEST_IF_FALSE(!ret);
+ 	close(fd);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_discard_ro_anon_on_shared(bool seal)
+@@ -1698,7 +1698,7 @@ static void test_seal_discard_ro_anon_on
+ 	else
+ 		FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ static void test_seal_discard_ro_anon(bool seal)
+@@ -1728,7 +1728,7 @@ static void test_seal_discard_ro_anon(bo
+ 	else
+ 		FAIL_TEST_IF_FALSE(!ret);
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ int main(int argc, char **argv)
+--- a/tools/testing/selftests/mm/seal_elf.c~selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass
++++ a/tools/testing/selftests/mm/seal_elf.c
+@@ -127,7 +127,7 @@ static void test_seal_elf(void)
+ 	FAIL_TEST_IF_FALSE(ret < 0);
+ 	ksft_print_msg("somestr is sealed, mprotect is rejected\n");
+ 
+-	TEST_END_CHECK();
++	REPORT_TEST_PASS();
+ }
+ 
+ int main(int argc, char **argv)
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
