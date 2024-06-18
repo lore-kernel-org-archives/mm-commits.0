@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6EC9158DBA
-	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 19:36:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72810158DBA
+	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 19:36:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718739398; cv=none; b=gVTeBWILbr6R4xHx7l105vviUQUtfm3U7lCgmCcFAdt+iN5v5k+IdjmIBEqsXa5L+DSFQqR14DLIkq15THjZ86fM6XOvFTN7sgznm34rDzasDyNkRd6R3DDpUPv7CNrOlUQO024Wu2j3YJARNZPmqRm1meGYLehXlVe1ITw8VkI=
+	t=1718739400; cv=none; b=Xn9zXDrQyL5dhsbb9gitfu1lQsWrOLyzdeIJXyMTjm8M+9AU4NFRDTrC/l/P/LydFfQzPpjP6pFe5yrBn93s6J/cz96hkl6TmkM1dBdwRgaWeuqkfTrU9sW/E05LB/cwKynH+9NSSZZ5hNhEgYjALAo7+ywGlVE9xAtZ+tFk9XU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718739398; c=relaxed/simple;
-	bh=CaAGRFxdGzwgLEHjP1KC8iCz1JL5Db1Gqkr9syzmOXY=;
-	h=Date:To:From:Subject:Message-Id; b=RRmEmgYlFG9DHV6DNQl9VHqei/yiJfKyrLrdx7rxQ2OahnnT8/EhGnxuooK4NV10UzkHALSgBF00DhofApg2Xqotb7ZrsNePjKPBPezSrpJV3TJRvbA3oRKXHH5mf2c/gyY5rrENVN4G4A0usXVx20ZTyHwaewQ7W5SHu3Hx4og=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1c5M3GU/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718739400; c=relaxed/simple;
+	bh=nJ7jb9TmdppPZYjS0OL1ij1a55x/pfwmDVrmZLAFvnU=;
+	h=Date:To:From:Subject:Message-Id; b=LnVg1l6Sv6nuAc6+fp9RPp5+Q2aEm9W1nr10hRpM5PppN7knFX73ezIilnT4JAQy7aXKH+pImUnGyIfM9NRCwSbIHoi9v/mQMoPER/TXAYekAcE2JgVJiiehbhmH629vbEKkC24eMylDgJhOPnKl/4NmNgZW6G3NvA6jOOvBeEA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=waxR5G83; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1c5M3GU/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7047C3277B;
-	Tue, 18 Jun 2024 19:36:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="waxR5G83"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D885CC3277B;
+	Tue, 18 Jun 2024 19:36:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718739397;
-	bh=CaAGRFxdGzwgLEHjP1KC8iCz1JL5Db1Gqkr9syzmOXY=;
+	s=korg; t=1718739399;
+	bh=nJ7jb9TmdppPZYjS0OL1ij1a55x/pfwmDVrmZLAFvnU=;
 	h=Date:To:From:Subject:From;
-	b=1c5M3GU/7lE1lvMFt3mGyyLaiiCSu2u8TKRLvpPGh2G5QXFDMbhSlMCfHHa/ZM/Oe
-	 pIHo+INYePWPAWw+PDkbOxl8ImhLT1CEmUhH4Zc3b5gGU9OewmG6Lq37lKaK3whgaa
-	 cLwMYZ1cSOFwztcvp5tcUrpi9oT5gZvLH/C2KSwE=
-Date: Tue, 18 Jun 2024 12:36:37 -0700
+	b=waxR5G83V86064eTZ6HPzglmSi5+aVPVBreD6KF34Ni4JH6wr2eEmGlmXhudXYXmO
+	 S0L4uvNtzLa5z/uFLNOE1BbpjfHOr31lbaM2tofsTSnrMvJeblgfHhvZSoJ5XeNBE+
+	 1/ZHemNM4s2nO41GUb4LERAM+vIg4yLaxawkKEBA=
+Date: Tue, 18 Jun 2024 12:36:39 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-rename-damon_sysfs_set_targets-to-add_targets.patch added to mm-unstable branch
-Message-Id: <20240618193637.B7047C3277B@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-remove-unnecessary-online-tuning-handling-code.patch added to mm-unstable branch
+Message-Id: <20240618193639.D885CC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: rename damon_sysfs_set_targets() to ...add_targets()
+     Subject: mm/damon/sysfs-schemes: remove unnecessary online tuning handling code
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-rename-damon_sysfs_set_targets-to-add_targets.patch
+     mm-damon-sysfs-schemes-remove-unnecessary-online-tuning-handling-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-rename-damon_sysfs_set_targets-to-add_targets.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-remove-unnecessary-online-tuning-handling-code.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,80 +59,119 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: rename damon_sysfs_set_targets() to ...add_targets()
-Date: Tue, 18 Jun 2024 11:18:03 -0700
+Subject: mm/damon/sysfs-schemes: remove unnecessary online tuning handling code
+Date: Tue, 18 Jun 2024 11:18:04 -0700
 
-The function was for updating DAMON structs that may or may not be
-partially populated.  Hence it was not for only adding items, but also
-removing unnecessary items and updating items in-place.  A previous commit
-has changed the function to assume the structs are not partially
-populated, and do only adding items.  Make the function name better
-explain the behavior.
+damon/sysfs-schemes.c contains code for handling of online DAMON
+parameters update edge cases.  The logics are no more necessary since
+damon_commit_ctx() and damon_commit_quota_goals() takes care of the cases.
+Remove the unnecessary code.
 
-Link: https://lkml.kernel.org/r/20240618181809.82078-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240618181809.82078-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-test.h |    8 ++++----
- mm/damon/sysfs.c      |    4 ++--
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ mm/damon/sysfs-schemes.c |   68 +------------------------------------
+ 1 file changed, 3 insertions(+), 65 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-rename-damon_sysfs_set_targets-to-add_targets
-+++ a/mm/damon/sysfs.c
-@@ -1162,7 +1162,7 @@ destroy_targets_out:
- 	return err;
- }
- 
--static int damon_sysfs_set_targets(struct damon_ctx *ctx,
-+static int damon_sysfs_add_targets(struct damon_ctx *ctx,
- 		struct damon_sysfs_targets *sysfs_targets)
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-remove-unnecessary-online-tuning-handling-code
++++ a/mm/damon/sysfs-schemes.c
+@@ -1912,10 +1912,6 @@ static int damon_sysfs_set_scheme_filter
+ 		struct damon_sysfs_scheme_filters *sysfs_filters)
  {
- 	int i, err;
-@@ -1283,7 +1283,7 @@ static int damon_sysfs_apply_inputs(stru
- 	err = damon_sysfs_set_attrs(ctx, sys_ctx->attrs);
- 	if (err)
- 		return err;
--	err = damon_sysfs_set_targets(ctx, sys_ctx->targets);
-+	err = damon_sysfs_add_targets(ctx, sys_ctx->targets);
- 	if (err)
- 		return err;
- 	return damon_sysfs_set_schemes(ctx, sys_ctx->schemes);
---- a/mm/damon/sysfs-test.h~mm-damon-sysfs-rename-damon_sysfs_set_targets-to-add_targets
-+++ a/mm/damon/sysfs-test.h
-@@ -38,7 +38,7 @@ static int __damon_sysfs_test_get_any_pi
- 	return -1;
- }
+ 	int i;
+-	struct damos_filter *filter, *next;
+-
+-	damos_for_each_filter_safe(filter, next, scheme)
+-		damos_destroy_filter(filter);
  
--static void damon_sysfs_test_set_targets(struct kunit *test)
-+static void damon_sysfs_test_add_targets(struct kunit *test)
+ 	for (i = 0; i < sysfs_filters->nr; i++) {
+ 		struct damon_sysfs_scheme_filter *sysfs_filter =
+@@ -1955,12 +1951,9 @@ static int damos_sysfs_set_quota_score(
+ 		struct damos_sysfs_quota_goals *sysfs_goals,
+ 		struct damos_quota *quota)
  {
- 	struct damon_sysfs_targets *sysfs_targets;
- 	struct damon_sysfs_target *sysfs_target;
-@@ -56,12 +56,12 @@ static void damon_sysfs_test_set_targets
+-	struct damos_quota_goal *goal, *next;
++	struct damos_quota_goal *goal;
+ 	int i;
  
- 	ctx = damon_new_ctx();
- 
--	damon_sysfs_set_targets(ctx, sysfs_targets);
-+	damon_sysfs_add_targets(ctx, sysfs_targets);
- 	KUNIT_EXPECT_EQ(test, 1u, nr_damon_targets(ctx));
- 
- 	sysfs_target->pid = __damon_sysfs_test_get_any_pid(
- 			sysfs_target->pid + 1, 200);
--	damon_sysfs_set_targets(ctx, sysfs_targets);
-+	damon_sysfs_add_targets(ctx, sysfs_targets);
- 	KUNIT_EXPECT_EQ(test, 2u, nr_damon_targets(ctx));
- 
- 	damon_destroy_ctx(ctx);
-@@ -71,7 +71,7 @@ static void damon_sysfs_test_set_targets
+-	damos_for_each_quota_goal_safe(goal, next, quota)
+-		damos_destroy_quota_goal(goal);
+-
+ 	for (i = 0; i < sysfs_goals->nr; i++) {
+ 		struct damos_sysfs_quota_goal *sysfs_goal =
+ 			sysfs_goals->goals_arr[i];
+@@ -2091,67 +2084,12 @@ static struct damos *damon_sysfs_mk_sche
+ 	return scheme;
  }
  
- static struct kunit_case damon_sysfs_test_cases[] = {
--	KUNIT_CASE(damon_sysfs_test_set_targets),
-+	KUNIT_CASE(damon_sysfs_test_add_targets),
- 	{},
- };
+-static void damon_sysfs_update_scheme(struct damos *scheme,
+-		struct damon_sysfs_scheme *sysfs_scheme)
+-{
+-	struct damon_sysfs_access_pattern *access_pattern =
+-		sysfs_scheme->access_pattern;
+-	struct damon_sysfs_quotas *sysfs_quotas = sysfs_scheme->quotas;
+-	struct damon_sysfs_weights *sysfs_weights = sysfs_quotas->weights;
+-	struct damon_sysfs_watermarks *sysfs_wmarks = sysfs_scheme->watermarks;
+-	int err;
+-
+-	scheme->pattern.min_sz_region = access_pattern->sz->min;
+-	scheme->pattern.max_sz_region = access_pattern->sz->max;
+-	scheme->pattern.min_nr_accesses = access_pattern->nr_accesses->min;
+-	scheme->pattern.max_nr_accesses = access_pattern->nr_accesses->max;
+-	scheme->pattern.min_age_region = access_pattern->age->min;
+-	scheme->pattern.max_age_region = access_pattern->age->max;
+-
+-	scheme->action = sysfs_scheme->action;
+-	scheme->apply_interval_us = sysfs_scheme->apply_interval_us;
+-	scheme->target_nid = sysfs_scheme->target_nid;
+-
+-	scheme->quota.ms = sysfs_quotas->ms;
+-	scheme->quota.sz = sysfs_quotas->sz;
+-	scheme->quota.reset_interval = sysfs_quotas->reset_interval_ms;
+-	scheme->quota.weight_sz = sysfs_weights->sz;
+-	scheme->quota.weight_nr_accesses = sysfs_weights->nr_accesses;
+-	scheme->quota.weight_age = sysfs_weights->age;
+-
+-	err = damos_sysfs_set_quota_score(sysfs_quotas->goals, &scheme->quota);
+-	if (err) {
+-		damon_destroy_scheme(scheme);
+-		return;
+-	}
+-
+-	scheme->wmarks.metric = sysfs_wmarks->metric;
+-	scheme->wmarks.interval = sysfs_wmarks->interval_us;
+-	scheme->wmarks.high = sysfs_wmarks->high;
+-	scheme->wmarks.mid = sysfs_wmarks->mid;
+-	scheme->wmarks.low = sysfs_wmarks->low;
+-
+-	err = damon_sysfs_set_scheme_filters(scheme, sysfs_scheme->filters);
+-	if (err)
+-		damon_destroy_scheme(scheme);
+-}
+-
+ int damon_sysfs_set_schemes(struct damon_ctx *ctx,
+ 		struct damon_sysfs_schemes *sysfs_schemes)
+ {
+-	struct damos *scheme, *next;
+-	int i = 0;
+-
+-	damon_for_each_scheme_safe(scheme, next, ctx) {
+-		if (i < sysfs_schemes->nr)
+-			damon_sysfs_update_scheme(scheme,
+-					sysfs_schemes->schemes_arr[i]);
+-		else
+-			damon_destroy_scheme(scheme);
+-		i++;
+-	}
++	int i;
  
+-	for (; i < sysfs_schemes->nr; i++) {
++	for (i = 0; i < sysfs_schemes->nr; i++) {
+ 		struct damos *scheme, *next;
+ 
+ 		scheme = damon_sysfs_mk_scheme(sysfs_schemes->schemes_arr[i]);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
