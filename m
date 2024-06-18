@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E64615E5BB
-	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 19:56:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 729A716D9A7
+	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 19:56:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718740616; cv=none; b=nD9qya6sQgw5AfmkJ1jaOusgqonErwpWfRbssSl3ZbYxB1kkMBykQYUTdP7i0+8noGuCMmkW+bMG1UOCoP/mCKeKRDL+MWk4dZOSvIBFcZ0hkOLAKNq1ILdRAPS9zUFRsAYfxdMINok7gmHo2gqfRpEumB9H2KHRuLzyfQpjMd0=
+	t=1718740619; cv=none; b=sxtJlxYpbO/mNCiSaq8Rdc0XkHe56DBXoZBUEaPj9qeqK+HIAN81DKaHdZ+PMuyIsFUES1dn84fSgEwY4fVJqVnIQeanSgRJgRCSnKN6O0cSsPLRkE0P/V9aOjmkXiEYFZxo+bb02xk35rl1Nb9qY9ltpHQSSb1h9Aadt9POmsI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718740616; c=relaxed/simple;
-	bh=9XwW5wuroOrLMwRAD1BsiChaTRqIuUIu5k6SA6M0DX0=;
-	h=Date:To:From:Subject:Message-Id; b=lswz+7KcdeO9mUelL6hulago6T2Sp15h6qfLEjwF1TmVQDKMdHZHUxen4sbqscbvBJ4n8t015sGVRs2wmb8aI1QQrRcaflG75GfmbvUooslKmGaa9TUaX7SLrI681eHf4DyoemX07Sec7s7w3oHy0t1hX99YLNGgMdNEYtc7ELw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fvh5alUU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718740619; c=relaxed/simple;
+	bh=3Wik28Rf3kEtiWoEM8CRir9o3hv+oR5G4u0MnswzBV0=;
+	h=Date:To:From:Subject:Message-Id; b=FC4ga4cRhpmv57H+Ln5Z1+NERgVR6+nfk+sT+AlUQsMs5WM1v+cgAsW0Sz7mWozsrkotHcE+ZN9U63WxrcqpLBQprvsWIE0yLuwCUe5PgkNglEUyWGIYTCgpoADg3elYGH2K5+Loatj31+7dY+L4OPC9Ci9OgX51lrwFpyn4y5w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x6+BIzJe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fvh5alUU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A828EC3277B;
-	Tue, 18 Jun 2024 19:56:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x6+BIzJe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF6EAC3277B;
+	Tue, 18 Jun 2024 19:56:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718740615;
-	bh=9XwW5wuroOrLMwRAD1BsiChaTRqIuUIu5k6SA6M0DX0=;
+	s=korg; t=1718740619;
+	bh=3Wik28Rf3kEtiWoEM8CRir9o3hv+oR5G4u0MnswzBV0=;
 	h=Date:To:From:Subject:From;
-	b=Fvh5alUUuMAvlqHkHnBQjgFRP9CcoZR3TucDv2H19BEtwpVThR6UXGBZ27wrDd7Jk
-	 IUWPCzHZuJaQkWyTKiA9d7oSWcioszzg/aCUf0nMepX/OquOlZsD3MVHBBkSWoL85G
-	 8RA8HLSLclGKRE0kZZhByciSoIYpWlXwKK5b/yDQ=
-Date: Tue, 18 Jun 2024 12:56:55 -0700
+	b=x6+BIzJeahDJnQvIyhltjsVJAynWpfrZuZvC9faBlE55geanhkFN+xqEIbsKOIrLL
+	 CfWtv6M7YLQJr4oajjGQqYxZOGuku3OFX6XyIoo4jWd6dV8aa4VJNfxHubEwG/Z4Io
+	 Fji5AiWCIa6xaW23LpMf5/oMQlT6OlxZNkGBNpTE=
+Date: Tue, 18 Jun 2024 12:56:58 -0700
 To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,muchun.song@linux.dev,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-convert-clear_huge_page-to-folio_zero_user.patch added to mm-unstable branch
-Message-Id: <20240618195655.A828EC3277B@smtp.kernel.org>
+Subject: + mm-memory-use-folio-in-struct-copy_subpage_arg.patch added to mm-unstable branch
+Message-Id: <20240618195658.EF6EAC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memory: convert clear_huge_page() to folio_zero_user()
+     Subject: mm: memory: use folio in struct copy_subpage_arg
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-convert-clear_huge_page-to-folio_zero_user.patch
+     mm-memory-use-folio-in-struct-copy_subpage_arg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-convert-clear_huge_page-to-folio_zero_user.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-use-folio-in-struct-copy_subpage_arg.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,160 +59,57 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory: convert clear_huge_page() to folio_zero_user()
-Date: Tue, 18 Jun 2024 17:12:39 +0800
+Subject: mm: memory: use folio in struct copy_subpage_arg
+Date: Tue, 18 Jun 2024 17:12:40 +0800
 
-Patch series "mm: improve clear and copy user folio", v2.
+Directly use folio in struct copy_subpage_arg.
 
-Some folio conversions.  An improvement is to move address alignment into
-the caller as it is only needed if we don't know which address will be
-accessed when clearing/copying user folios.
-
-
-This patch (of 4):
-
-Replace clear_huge_page() with folio_zero_user(), and take a folio
-instead of a page. Directly get number of pages by folio_nr_pages()
-to remove pages_per_huge_page argument, furthermore, move the address
-alignment from folio_zero_user() to the callers since the alignment
-is only needed when we don't know which address will be accessed.
-
-Link: https://lkml.kernel.org/r/20240618091242.2140164-1-wangkefeng.wang@huawei.com
-Link: https://lkml.kernel.org/r/20240618091242.2140164-2-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240618091242.2140164-3-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    2 +-
- include/linux/mm.h   |    4 +---
- mm/huge_memory.c     |    4 ++--
- mm/hugetlb.c         |    3 +--
- mm/memory.c          |   34 ++++++++++++++++------------------
- 5 files changed, 21 insertions(+), 26 deletions(-)
+ mm/memory.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~mm-memory-convert-clear_huge_page-to-folio_zero_user
-+++ a/fs/hugetlbfs/inode.c
-@@ -892,7 +892,7 @@ static long hugetlbfs_fallocate(struct f
- 			error = PTR_ERR(folio);
- 			goto out;
- 		}
--		clear_huge_page(&folio->page, addr, pages_per_huge_page(h));
-+		folio_zero_user(folio, ALIGN_DOWN(addr, hpage_size));
- 		__folio_mark_uptodate(folio);
- 		error = hugetlb_add_to_page_cache(folio, mapping, index);
- 		if (unlikely(error)) {
---- a/include/linux/mm.h~mm-memory-convert-clear_huge_page-to-folio_zero_user
-+++ a/include/linux/mm.h
-@@ -4078,9 +4078,7 @@ enum mf_action_page_type {
+--- a/mm/memory.c~mm-memory-use-folio-in-struct-copy_subpage_arg
++++ a/mm/memory.c
+@@ -6487,16 +6487,16 @@ static int copy_user_gigantic_page(struc
+ }
+ 
+ struct copy_subpage_arg {
+-	struct page *dst;
+-	struct page *src;
++	struct folio *dst;
++	struct folio *src;
+ 	struct vm_area_struct *vma;
  };
  
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_HUGETLBFS)
--extern void clear_huge_page(struct page *page,
--			    unsigned long addr_hint,
--			    unsigned int pages_per_huge_page);
-+void folio_zero_user(struct folio *folio, unsigned long addr_hint);
- int copy_user_large_folio(struct folio *dst, struct folio *src,
- 			  unsigned long addr_hint,
- 			  struct vm_area_struct *vma);
---- a/mm/huge_memory.c~mm-memory-convert-clear_huge_page-to-folio_zero_user
-+++ a/mm/huge_memory.c
-@@ -943,10 +943,10 @@ static vm_fault_t __do_huge_pmd_anonymou
- 		goto release;
- 	}
- 
--	clear_huge_page(page, vmf->address, HPAGE_PMD_NR);
-+	folio_zero_user(folio, vmf->address);
- 	/*
- 	 * The memory barrier inside __folio_mark_uptodate makes sure that
--	 * clear_huge_page writes become visible before the set_pmd_at()
-+	 * folio_zero_user writes become visible before the set_pmd_at()
- 	 * write.
- 	 */
- 	__folio_mark_uptodate(folio);
---- a/mm/hugetlb.c~mm-memory-convert-clear_huge_page-to-folio_zero_user
-+++ a/mm/hugetlb.c
-@@ -6300,8 +6300,7 @@ static vm_fault_t hugetlb_no_page(struct
- 				ret = 0;
- 			goto out;
- 		}
--		clear_huge_page(&folio->page, vmf->real_address,
--				pages_per_huge_page(h));
-+		folio_zero_user(folio, vmf->real_address);
- 		__folio_mark_uptodate(folio);
- 		new_folio = true;
- 
---- a/mm/memory.c~mm-memory-convert-clear_huge_page-to-folio_zero_user
-+++ a/mm/memory.c
-@@ -4477,7 +4477,7 @@ static struct folio *alloc_anon_folio(st
- 				goto next;
- 			}
- 			folio_throttle_swaprate(folio, gfp);
--			clear_huge_page(&folio->page, vmf->address, 1 << order);
-+			folio_zero_user(folio, vmf->address);
- 			return folio;
- 		}
- next:
-@@ -6430,41 +6430,39 @@ static inline int process_huge_page(
- 	return 0;
- }
- 
--static void clear_gigantic_page(struct page *page,
--				unsigned long addr,
-+static void clear_gigantic_page(struct folio *folio, unsigned long addr,
- 				unsigned int pages_per_huge_page)
+ static int copy_subpage(unsigned long addr, int idx, void *arg)
  {
- 	int i;
--	struct page *p;
+ 	struct copy_subpage_arg *copy_arg = arg;
+-	struct page *dst = nth_page(copy_arg->dst, idx);
+-	struct page *src = nth_page(copy_arg->src, idx);
++	struct page *dst = folio_page(copy_arg->dst, idx);
++	struct page *src = folio_page(copy_arg->src, idx);
  
- 	might_sleep();
- 	for (i = 0; i < pages_per_huge_page; i++) {
--		p = nth_page(page, i);
- 		cond_resched();
--		clear_user_highpage(p, addr + i * PAGE_SIZE);
-+		clear_user_highpage(folio_page(folio, i), addr + i * PAGE_SIZE);
- 	}
- }
+ 	if (copy_mc_user_highpage(dst, src, addr, copy_arg->vma))
+ 		return -EHWPOISON;
+@@ -6510,8 +6510,8 @@ int copy_user_large_folio(struct folio *
+ 	unsigned long addr = addr_hint &
+ 		~(((unsigned long)pages_per_huge_page << PAGE_SHIFT) - 1);
+ 	struct copy_subpage_arg arg = {
+-		.dst = &dst->page,
+-		.src = &src->page,
++		.dst = dst,
++		.src = src,
+ 		.vma = vma,
+ 	};
  
- static int clear_subpage(unsigned long addr, int idx, void *arg)
- {
--	struct page *page = arg;
-+	struct folio *folio = arg;
- 
--	clear_user_highpage(nth_page(page, idx), addr);
-+	clear_user_highpage(folio_page(folio, idx), addr);
- 	return 0;
- }
- 
--void clear_huge_page(struct page *page,
--		     unsigned long addr_hint, unsigned int pages_per_huge_page)
-+/**
-+ * folio_zero_user - Zero a folio which will be mapped to userspace.
-+ * @folio: The folio to zero.
-+ * @addr_hint: The address will be accessed or the base address if uncelar.
-+ */
-+void folio_zero_user(struct folio *folio, unsigned long addr_hint)
- {
--	unsigned long addr = addr_hint &
--		~(((unsigned long)pages_per_huge_page << PAGE_SHIFT) - 1);
-+	unsigned int nr_pages = folio_nr_pages(folio);
- 
--	if (unlikely(pages_per_huge_page > MAX_ORDER_NR_PAGES)) {
--		clear_gigantic_page(page, addr, pages_per_huge_page);
--		return;
--	}
--
--	process_huge_page(addr_hint, pages_per_huge_page, clear_subpage, page);
-+	if (unlikely(nr_pages > MAX_ORDER_NR_PAGES))
-+		clear_gigantic_page(folio, addr_hint, nr_pages);
-+	else
-+		process_huge_page(addr_hint, nr_pages, clear_subpage, folio);
- }
- 
- static int copy_user_gigantic_page(struct folio *dst, struct folio *src,
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
