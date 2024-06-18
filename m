@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E4CC53E24
-	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 20:44:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C6F553E24
+	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 20:44:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718743495; cv=none; b=qV6p5BJLXeHLr84GmNmbY0JtvS73EIMBfIzfeymYf23amsh/f4Qivli2c35VaCCBVUEeNdw91UCmXAiQxs/tKy+U72XsAx/zj5MQWecVF2xWkMh/b3OQXHfPxJstT3QLoiHuaTnP7D1QTpjs/PWb+FUZj/jfGV2IAaBj7qDxnYc=
+	t=1718743498; cv=none; b=D8po99EOZQKJ0fUV+CEDBRsQ/PkGp4xv5+6z8A9lsGKRsIK6jeDHzi3wjW7glmZqCtYVRrIs2h1dEi1SN83QA20sFNW/P/vXUu/RbfqmcM6i+e/Ne0cNL43nJsf7ksU7r8V//rDPIFRjReS4xHsYJdpYEoMeTYSN7PJ6g//nXfo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718743495; c=relaxed/simple;
-	bh=tXR7/Gg96gyomPmAFx/V6cp+eRXoOzX+bxUnrqx8rR0=;
-	h=Date:To:From:Subject:Message-Id; b=nyBojlIYKBMtMmG5vX5x8edB8EeJpCcWn+ANCBGkGaZWGkdzbEKiqnMCxY8jKkA0eP1njkV9d99kmB/GVVE2nLuGM8Ik7fwYJCq4oDxDEiOWfuCFfnPt07R1reHNh3NLIYp92b3VInKBYQmzOlzdP6NRoPjCDw5Sa8tPkUSna7w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RO8npX8w; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718743498; c=relaxed/simple;
+	bh=0ylAZ/D/acI+waEyzeO1iw+sjp9uNSxzeS3LX/S3Qa4=;
+	h=Date:To:From:Subject:Message-Id; b=ZuPQ9sdjYXMQ2/O33j2ae3g/aAnq4pzbjGYHDjUWaw3GDqXYb+SbLRaDimZXIjOk72l3qm1qZ1XmwhIj4YuS/7ouxCDSGsxGnj51t2/1sZ9m9n9D6iQz0LzUe1sxJBtVtYqiTAIvsYQTq25oU5QKo99CPyvgMY1adCNj7yTHAMw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n7ZH/TMx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RO8npX8w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71C21C3277B;
-	Tue, 18 Jun 2024 20:44:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n7ZH/TMx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 827A8C3277B;
+	Tue, 18 Jun 2024 20:44:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718743494;
-	bh=tXR7/Gg96gyomPmAFx/V6cp+eRXoOzX+bxUnrqx8rR0=;
+	s=korg; t=1718743497;
+	bh=0ylAZ/D/acI+waEyzeO1iw+sjp9uNSxzeS3LX/S3Qa4=;
 	h=Date:To:From:Subject:From;
-	b=RO8npX8w0TGOSmW/sbxK+Pu9jqqn/JnIhdECSQSJIEM1peJ74RNCIjkMOR+5katWb
-	 3QZokL7X5oKSmEwhHr4frT0TgC5CpBUE7oy6YBZxzwSj539kGZsp5rFG5m7GHlLgWK
-	 YCLDKlt4QJSXBhKxCKb9bMJkttZbjqBrCglUx2hA=
-Date: Tue, 18 Jun 2024 13:44:53 -0700
+	b=n7ZH/TMxK6QRfYFAEKLO5RsjgKfaKJ7CKdAk2SZfehv2gR3JOlQv6DL9ecKJigGvP
+	 4X7zajKuIad52EnIXD6AF9XKD4LguhUrbavStHXVPVw0DWN2RThsul75JtASpMRDiZ
+	 wYhHzC2y6GbrpoFFMOwTg5T2C0QvMt1vceg23wk4=
+Date: Tue, 18 Jun 2024 13:44:57 -0700
 To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,shuah@kernel.org,peterx@redhat.com,Liam.Howlett@oracle.com,kent.overstreet@linux.dev,kees@kernel.org,jeffxu@chromium.org,david@redhat.com,dalias@libc.org,brauner@kernel.org,axelrasmussen@google.com,avagin@google.com,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items.patch added to mm-unstable branch
-Message-Id: <20240618204454.71C21C3277B@smtp.kernel.org>
+Subject: + selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix.patch added to mm-unstable branch
+Message-Id: <20240618204457.827A8C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: mseal, self_elf: factor out test macros and other duplicated items
+     Subject: selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items.patch
+     selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/mm: mseal, self_elf: factor out test macros and other duplicated items
-Date: Mon, 17 Jun 2024 19:24:18 -0700
+Subject: selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix
+Date: Tue, 18 Jun 2024 13:17:45 -0700
 
-Clean up and move some copy-pasted items into a new mseal_helpers.h.
+include the new mseal_helpers.h in Makefile dependencies
 
-1. The test macros can be made safer and simpler, by observing that
-   they are invariably called when about to return.  This means that the
-   macros do not need an intrusive label to goto; they can simply return.
 
-2. PKEY* items.  We cannot, unfortunately use pkey-helpers.h.  The
-   best we can do is to factor out these few items into mseal_helpers.h.
-
-3. These tests still need their own definition of u64, so also move
-   that to the header file.
-
-4.  Be sure to include the new mseal_helpers.h in the Makefile
-   dependencies.
-
-Link: https://lkml.kernel.org/r/20240618022422.804305-3-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/01685978-f6b1-4c24-8397-22cd3c24b91a@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Jeff Xu <jeffxu@chromium.org>
 Cc: Andrei Vagin <avagin@google.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jeff Xu <jeffxu@chromium.org>
 Cc: Kees Cook <kees@kernel.org>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
@@ -94,155 +82,19 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mseal_helpers.h |   41 +++++++++++++++
- tools/testing/selftests/mm/mseal_test.c    |   49 -------------------
- tools/testing/selftests/mm/seal_elf.c      |   33 ------------
- 3 files changed, 43 insertions(+), 80 deletions(-)
+ tools/testing/selftests/mm/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
---- /dev/null
-+++ a/tools/testing/selftests/mm/mseal_helpers.h
-@@ -0,0 +1,41 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+#define FAIL_TEST_IF_FALSE(test_passed)					\
-+	do {								\
-+		if (!(test_passed)) {					\
-+			ksft_test_result_fail("%s: line:%d\n",		\
-+						__func__, __LINE__);	\
-+			return;						\
-+		}							\
-+	} while (0)
-+
-+#define SKIP_TEST_IF_FALSE(test_passed)					\
-+	do {								\
-+		if (!(test_passed)) {					\
-+			ksft_test_result_skip("%s: line:%d\n",		\
-+						__func__, __LINE__);	\
-+			return;						\
-+		}							\
-+	} while (0)
-+
-+#define TEST_END_CHECK() ksft_test_result_pass("%s\n", __func__)
-+
-+#ifndef PKEY_DISABLE_ACCESS
-+#define PKEY_DISABLE_ACCESS	0x1
-+#endif
-+
-+#ifndef PKEY_DISABLE_WRITE
-+#define PKEY_DISABLE_WRITE	0x2
-+#endif
-+
-+#ifndef PKEY_BITS_PER_PKEY
-+#define PKEY_BITS_PER_PKEY	2
-+#endif
-+
-+#ifndef PKEY_MASK
-+#define PKEY_MASK	(PKEY_DISABLE_ACCESS | PKEY_DISABLE_WRITE)
-+#endif
-+
-+#ifndef u64
-+#define u64 unsigned long long
-+#endif
---- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items
-+++ a/tools/testing/selftests/mm/mseal_test.c
-@@ -17,54 +17,7 @@
- #include <sys/ioctl.h>
- #include <sys/vfs.h>
- #include <sys/stat.h>
--
--/*
-- * need those definition for manually build using gcc.
-- * gcc -I ../../../../usr/include   -DDEBUG -O3  -DDEBUG -O3 mseal_test.c -o mseal_test
-- */
--#ifndef PKEY_DISABLE_ACCESS
--# define PKEY_DISABLE_ACCESS    0x1
--#endif
--
--#ifndef PKEY_DISABLE_WRITE
--# define PKEY_DISABLE_WRITE     0x2
--#endif
--
--#ifndef PKEY_BITS_PER_PKEY
--#define PKEY_BITS_PER_PKEY      2
--#endif
--
--#ifndef PKEY_MASK
--#define PKEY_MASK       (PKEY_DISABLE_ACCESS | PKEY_DISABLE_WRITE)
--#endif
--
--#define FAIL_TEST_IF_FALSE(c) do {\
--		if (!(c)) {\
--			ksft_test_result_fail("%s, line:%d\n", __func__, __LINE__);\
--			goto test_end;\
--		} \
--	} \
--	while (0)
--
--#define SKIP_TEST_IF_FALSE(c) do {\
--		if (!(c)) {\
--			ksft_test_result_skip("%s, line:%d\n", __func__, __LINE__);\
--			goto test_end;\
--		} \
--	} \
--	while (0)
--
--
--#define TEST_END_CHECK() {\
--		ksft_test_result_pass("%s\n", __func__);\
--		return;\
--test_end:\
--		return;\
--}
--
--#ifndef u64
--#define u64 unsigned long long
--#endif
-+#include "mseal_helpers.h"
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix
++++ a/tools/testing/selftests/mm/Makefile
+@@ -2,6 +2,7 @@
+ # Makefile for mm selftests
  
- static unsigned long get_vma_size(void *addr, int *prot)
- {
---- a/tools/testing/selftests/mm/seal_elf.c~selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items
-+++ a/tools/testing/selftests/mm/seal_elf.c
-@@ -16,38 +16,7 @@
- #include <sys/ioctl.h>
- #include <sys/vfs.h>
- #include <sys/stat.h>
--
--/*
-- * need those definition for manually build using gcc.
-- * gcc -I ../../../../usr/include   -DDEBUG -O3  -DDEBUG -O3 seal_elf.c -o seal_elf
-- */
--#define FAIL_TEST_IF_FALSE(c) do {\
--		if (!(c)) {\
--			ksft_test_result_fail("%s, line:%d\n", __func__, __LINE__);\
--			goto test_end;\
--		} \
--	} \
--	while (0)
--
--#define SKIP_TEST_IF_FALSE(c) do {\
--		if (!(c)) {\
--			ksft_test_result_skip("%s, line:%d\n", __func__, __LINE__);\
--			goto test_end;\
--		} \
--	} \
--	while (0)
--
--
--#define TEST_END_CHECK() {\
--		ksft_test_result_pass("%s\n", __func__);\
--		return;\
--test_end:\
--		return;\
--}
--
--#ifndef u64
--#define u64 unsigned long long
--#endif
-+#include "mseal_helpers.h"
+ LOCAL_HDRS += $(selfdir)/mm/local_config.h $(top_srcdir)/mm/gup_test.h
++LOCAL_HDRS += $(selfdir)/mm/mseal_helpers.h
  
- /*
-  * define sys_xyx to call syscall directly.
+ include local_config.mk
+ 
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
