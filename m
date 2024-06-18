@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93DE81741D4
-	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 21:08:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BDBA1741D4
+	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 21:08:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718744923; cv=none; b=ZxxDXF3uMZw83lnXmpDMQqWJOnEhnjWA8CNGXZfj+H/AwnSx5aCsisqShosA0+lNyxu27op0L57lkFAbvWNZYGQnWT8JhqoooBafXnyz+m6MFhqi2H1WwrAJpdAjwEEbc78/tCiaU7t0qEu8OvvCT756Z64JnN5O0c3Ssx6rIVs=
+	t=1718744928; cv=none; b=Sxs/bjyuG5IWWK/Jj7le+G/31zi9/gpPA5MfmDnkhDscvUYJBNhXhpi1pnsTrMBakSVXVHFuRXtKBr/9iRLON2zgBYuFAahiOLbGUIp7CAzVv187WpKTOgKVnP2aOj+04u4zRIQUScoMsI8o9lOCiC4J8k8CLDiT7JVqwcfZvko=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718744923; c=relaxed/simple;
-	bh=A/i5S/56NCa0RC8foiaZ+QG6sOwReYpgOzRDPNifTkA=;
-	h=Date:To:From:Subject:Message-Id; b=V2Y6eG73X5vV+7WFWCdd1x+PObMPQxX99m8yNO/me7IV2urhFG283VXJoIjFCljneeTc1dos9aADl+AYnWUCYfehmAR4C+gtRTEL/kAjtHoWqNAko39nF2uevfZjp5NFvxWAsPMV1AAyuWpzf2B+/BRD5Sle/6L54UdPNmiqy7I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QWdGR2Xi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718744928; c=relaxed/simple;
+	bh=6xPzg2EYi1pbWHDakXc3SaPrTujT7vCQ2zHmbXmYW0g=;
+	h=Date:To:From:Subject:Message-Id; b=DWenJYwASg5IEQcxEkek7mSn+0Z85ykPslkUeO9CJ5Oa6GZj16eKGfOEZ1ekzpmlfqbAjDC6vjX6NRURV55cLtCK2+4jJNwN2mi2+CQb2OVpL3id1gkJt9uvexcJyAasi/rGVx3tP59/GEqKDN6peim+9rOVYSWduxZsAJcznuw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pCUwwIPc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QWdGR2Xi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 165F0C3277B;
-	Tue, 18 Jun 2024 21:08:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pCUwwIPc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8C8EC3277B;
+	Tue, 18 Jun 2024 21:08:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718744923;
-	bh=A/i5S/56NCa0RC8foiaZ+QG6sOwReYpgOzRDPNifTkA=;
+	s=korg; t=1718744927;
+	bh=6xPzg2EYi1pbWHDakXc3SaPrTujT7vCQ2zHmbXmYW0g=;
 	h=Date:To:From:Subject:From;
-	b=QWdGR2XiJVbo4xICOdxkXMBaIVyBVd2uD2lKBOnkTyZoxtf5CPn1SMf8KNPKSX3VC
-	 sEFF9M7dBVFact0zzPSkoMW/gDrQs9kwNeDgLVJ5nj2Gnl+1Ikq4PzVwxyRHqWPMTu
-	 u4Q/YJHq7nLJtjpJ/nYHfxFrOgq6sfH8UW4ER8EU=
-Date: Tue, 18 Jun 2024 14:08:42 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanshuai@oppo.com,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,surenb@google.com,shy828301@gmail.com,ryan.roberts@arm.com,mhocko@suse.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=pCUwwIPcJNsXFNYInKH4/qUPXsg+hM8D4WIJh01wbFshbr0VJHY2aevawDmODJdoE
+	 Z/Rr+2ELCM7et8o6nGutuiEDH0JQYUvDDfdTpqo65eG4PcW/8km0bvzr4LRCO2Ukxo
+	 /LKLExWJ9zZ1uiZcly1lO/ru46jlkMt7JhPbaZ90=
+Date: Tue, 18 Jun 2024 14:08:47 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanshuai@oppo.com,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,v-songbaohua@oppo.com,surenb@google.com,shy828301@gmail.com,ryan.roberts@arm.com,mhocko@suse.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap.patch added to mm-unstable branch
-Message-Id: <20240618210843.165F0C3277B@smtp.kernel.org>
+Subject: + mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix.patch added to mm-unstable branch
+Message-Id: <20240618210847.C8C8EC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: extend rmap flags arguments for folio_add_new_anon_rmap
+     Subject: mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap.patch
+     mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,52 +58,21 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: extend rmap flags arguments for folio_add_new_anon_rmap
-Date: Tue, 18 Jun 2024 11:11:35 +1200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix
+Date: Tue Jun 18 02:03:56 PM PDT 2024
 
-Patch series "mm: clarify folio_add_new_anon_rmap() and
-__folio_add_anon_rmap()", v2.
+cleanup and constifications per David and akpm
 
-This patchset is preparatory work for mTHP swapin.
-
-folio_add_new_anon_rmap() assumes that new anon rmaps are always
-exclusive.  However, this assumption doesn’t hold true for cases like
-do_swap_page(), where a new anon might be added to the swapcache and is
-not necessarily exclusive.
-
-The patchset extends the rmap flags to allow folio_add_new_anon_rmap() to
-handle both exclusive and non-exclusive new anon folios.  The
-do_swap_page() function is updated to use this extended API with rmap
-flags.  Consequently, all new anon folios now consistently use
-folio_add_new_anon_rmap().  The special case for !folio_test_anon() in
-__folio_add_anon_rmap() can be safely removed.
-
-In conclusion, new anon folios always use folio_add_new_anon_rmap(),
-regardless of exclusivity.  Old anon folios continue to use
-__folio_add_anon_rmap() via folio_add_anon_rmap_pmd() and
-folio_add_anon_rmap_ptes().
-
-
-This patch (of 3):
-
-In the case of a swap-in, a new anonymous folio is not necessarily
-exclusive.  This patch updates the rmap flags to allow a new anonymous
-folio to be treated as either exclusive or non-exclusive.  To maintain the
-existing behavior, we always use EXCLUSIVE as the default setting.
-
-Link: https://lkml.kernel.org/r/20240617231137.80726-1-21cnbao@gmail.com
-Link: https://lkml.kernel.org/r/20240617231137.80726-2-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Tested-by: Shuai Yuan <yuanshuai@oppo.com>
-Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
 Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuai Yuan <yuanshuai@oppo.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Yang Shi <shy828301@gmail.com>
 Cc: Yosry Ahmed <yosryahmed@google.com>
@@ -111,207 +80,29 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h    |    2 +-
- kernel/events/uprobes.c |    2 +-
- mm/huge_memory.c        |    2 +-
- mm/khugepaged.c         |    2 +-
- mm/memory.c             |   10 +++++-----
- mm/migrate_device.c     |    2 +-
- mm/rmap.c               |   17 ++++++++++-------
- mm/swapfile.c           |    2 +-
- mm/userfaultfd.c        |    2 +-
- 9 files changed, 22 insertions(+), 19 deletions(-)
+ mm/rmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/rmap.h~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
-+++ a/include/linux/rmap.h
-@@ -244,7 +244,7 @@ void folio_add_anon_rmap_ptes(struct fol
- void folio_add_anon_rmap_pmd(struct folio *, struct page *,
- 		struct vm_area_struct *, unsigned long address, rmap_t flags);
- void folio_add_new_anon_rmap(struct folio *, struct vm_area_struct *,
--		unsigned long address);
-+		unsigned long address, rmap_t flags);
- void folio_add_file_rmap_ptes(struct folio *, struct page *, int nr_pages,
- 		struct vm_area_struct *);
- #define folio_add_file_rmap_pte(folio, page, vma) \
---- a/kernel/events/uprobes.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
-+++ a/kernel/events/uprobes.c
-@@ -181,7 +181,7 @@ static int __replace_page(struct vm_area
- 
- 	if (new_page) {
- 		folio_get(new_folio);
--		folio_add_new_anon_rmap(new_folio, vma, addr);
-+		folio_add_new_anon_rmap(new_folio, vma, addr, RMAP_EXCLUSIVE);
- 		folio_add_lru_vma(new_folio, vma);
- 	} else
- 		/* no new page, just dec_mm_counter for old_page */
---- a/mm/huge_memory.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
-+++ a/mm/huge_memory.c
-@@ -973,7 +973,7 @@ static vm_fault_t __do_huge_pmd_anonymou
- 
- 		entry = mk_huge_pmd(page, vma->vm_page_prot);
- 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
--		folio_add_new_anon_rmap(folio, vma, haddr);
-+		folio_add_new_anon_rmap(folio, vma, haddr, RMAP_EXCLUSIVE);
- 		folio_add_lru_vma(folio, vma);
- 		pgtable_trans_huge_deposit(vma->vm_mm, vmf->pmd, pgtable);
- 		set_pmd_at(vma->vm_mm, haddr, vmf->pmd, entry);
---- a/mm/khugepaged.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
-+++ a/mm/khugepaged.c
-@@ -1210,7 +1210,7 @@ static int collapse_huge_page(struct mm_
- 
- 	spin_lock(pmd_ptl);
- 	BUG_ON(!pmd_none(*pmd));
--	folio_add_new_anon_rmap(folio, vma, address);
-+	folio_add_new_anon_rmap(folio, vma, address, RMAP_EXCLUSIVE);
- 	folio_add_lru_vma(folio, vma);
- 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
- 	set_pmd_at(mm, address, pmd, _pmd);
---- a/mm/memory.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
-+++ a/mm/memory.c
-@@ -930,7 +930,7 @@ copy_present_page(struct vm_area_struct
- 	*prealloc = NULL;
- 	copy_user_highpage(&new_folio->page, page, addr, src_vma);
- 	__folio_mark_uptodate(new_folio);
--	folio_add_new_anon_rmap(new_folio, dst_vma, addr);
-+	folio_add_new_anon_rmap(new_folio, dst_vma, addr, RMAP_EXCLUSIVE);
- 	folio_add_lru_vma(new_folio, dst_vma);
- 	rss[MM_ANONPAGES]++;
- 
-@@ -3400,7 +3400,7 @@ static vm_fault_t wp_page_copy(struct vm
- 		 * some TLBs while the old PTE remains in others.
- 		 */
- 		ptep_clear_flush(vma, vmf->address, vmf->pte);
--		folio_add_new_anon_rmap(new_folio, vma, vmf->address);
-+		folio_add_new_anon_rmap(new_folio, vma, vmf->address, RMAP_EXCLUSIVE);
- 		folio_add_lru_vma(new_folio, vma);
- 		BUG_ON(unshare && pte_write(entry));
- 		set_pte_at(mm, vmf->address, vmf->pte, entry);
-@@ -4337,7 +4337,7 @@ check_folio:
- 
- 	/* ksm created a completely new copy */
- 	if (unlikely(folio != swapcache && swapcache)) {
--		folio_add_new_anon_rmap(folio, vma, address);
-+		folio_add_new_anon_rmap(folio, vma, address, RMAP_EXCLUSIVE);
- 		folio_add_lru_vma(folio, vma);
- 	} else {
- 		folio_add_anon_rmap_ptes(folio, page, nr_pages, vma, address,
-@@ -4592,7 +4592,7 @@ static vm_fault_t do_anonymous_page(stru
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	count_mthp_stat(folio_order(folio), MTHP_STAT_ANON_FAULT_ALLOC);
- #endif
--	folio_add_new_anon_rmap(folio, vma, addr);
-+	folio_add_new_anon_rmap(folio, vma, addr, RMAP_EXCLUSIVE);
- 	folio_add_lru_vma(folio, vma);
- setpte:
- 	if (vmf_orig_pte_uffd_wp(vmf))
-@@ -4790,7 +4790,7 @@ void set_pte_range(struct vm_fault *vmf,
- 	/* copy-on-write page */
- 	if (write && !(vma->vm_flags & VM_SHARED)) {
- 		VM_BUG_ON_FOLIO(nr != 1, folio);
--		folio_add_new_anon_rmap(folio, vma, addr);
-+		folio_add_new_anon_rmap(folio, vma, addr, RMAP_EXCLUSIVE);
- 		folio_add_lru_vma(folio, vma);
- 	} else {
- 		folio_add_file_rmap_ptes(folio, page, nr, vma);
---- a/mm/migrate_device.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
-+++ a/mm/migrate_device.c
-@@ -658,7 +658,7 @@ static void migrate_vma_insert_page(stru
- 		goto unlock_abort;
- 
- 	inc_mm_counter(mm, MM_ANONPAGES);
--	folio_add_new_anon_rmap(folio, vma, addr);
-+	folio_add_new_anon_rmap(folio, vma, addr, RMAP_EXCLUSIVE);
- 	if (!folio_is_zone_device(folio))
- 		folio_add_lru_vma(folio, vma);
- 	folio_get(folio);
---- a/mm/rmap.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
+--- a/mm/rmap.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix
 +++ a/mm/rmap.c
-@@ -1406,25 +1406,26 @@ void folio_add_anon_rmap_pmd(struct foli
-  * This means the inc-and-test can be bypassed.
-  * The folio does not have to be locked.
-  *
-- * If the folio is pmd-mappable, it is accounted as a THP.  As the folio
-- * is new, it's assumed to be mapped exclusively by a single process.
-+ * If the folio is pmd-mappable, it is accounted as a THP.
-  */
+@@ -1411,9 +1411,9 @@ void folio_add_anon_rmap_pmd(struct foli
  void folio_add_new_anon_rmap(struct folio *folio, struct vm_area_struct *vma,
--		unsigned long address)
-+		unsigned long address, rmap_t flags)
+ 		unsigned long address, rmap_t flags)
  {
- 	int nr = folio_nr_pages(folio);
+-	int nr = folio_nr_pages(folio);
++	const int nr = folio_nr_pages(folio);
++	const bool exclusive = flags & RMAP_EXCLUSIVE;
  	int nr_pmdmapped = 0;
-+	bool exclusive = flags & RMAP_EXCLUSIVE;
+-	bool exclusive = flags & RMAP_EXCLUSIVE;
  
  	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
  	VM_BUG_ON_VMA(address < vma->vm_start ||
- 			address + (nr << PAGE_SHIFT) > vma->vm_end, vma);
- 	__folio_set_swapbacked(folio);
--	__folio_set_anon(folio, vma, address, true);
-+	__folio_set_anon(folio, vma, address, exclusive);
- 
- 	if (likely(!folio_test_large(folio))) {
- 		/* increment count (starts at -1) */
- 		atomic_set(&folio->_mapcount, 0);
--		SetPageAnonExclusive(&folio->page);
-+		if (exclusive)
-+			SetPageAnonExclusive(&folio->page);
- 	} else if (!folio_test_pmd_mappable(folio)) {
- 		int i;
- 
-@@ -1433,7 +1434,8 @@ void folio_add_new_anon_rmap(struct foli
- 
- 			/* increment count (starts at -1) */
- 			atomic_set(&page->_mapcount, 0);
--			SetPageAnonExclusive(page);
-+			if (exclusive)
-+				SetPageAnonExclusive(page);
- 		}
- 
- 		/* increment count (starts at -1) */
-@@ -1445,7 +1447,8 @@ void folio_add_new_anon_rmap(struct foli
- 		/* increment count (starts at -1) */
- 		atomic_set(&folio->_large_mapcount, 0);
- 		atomic_set(&folio->_nr_pages_mapped, ENTIRELY_MAPPED);
--		SetPageAnonExclusive(&folio->page);
-+		if (exclusive)
-+			SetPageAnonExclusive(&folio->page);
- 		nr_pmdmapped = nr;
- 	}
- 
---- a/mm/swapfile.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
-+++ a/mm/swapfile.c
-@@ -1919,7 +1919,7 @@ static int unuse_pte(struct vm_area_stru
- 
- 		folio_add_anon_rmap_pte(folio, page, vma, addr, rmap_flags);
- 	} else { /* ksm created a completely new copy */
--		folio_add_new_anon_rmap(folio, vma, addr);
-+		folio_add_new_anon_rmap(folio, vma, addr, RMAP_EXCLUSIVE);
- 		folio_add_lru_vma(folio, vma);
- 	}
- 	new_pte = pte_mkold(mk_pte(page, vma->vm_page_prot));
---- a/mm/userfaultfd.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
-+++ a/mm/userfaultfd.c
-@@ -216,7 +216,7 @@ int mfill_atomic_install_pte(pmd_t *dst_
- 			folio_add_lru(folio);
- 		folio_add_file_rmap_pte(folio, page, dst_vma);
- 	} else {
--		folio_add_new_anon_rmap(folio, dst_vma, dst_addr);
-+		folio_add_new_anon_rmap(folio, dst_vma, dst_addr, RMAP_EXCLUSIVE);
- 		folio_add_lru_vma(folio, dst_vma);
- 	}
- 
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cifs-drop-the-incorrect-assertion-in-cifs_swap_rw.patch
-mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr.patch
-mm-introduce-pte_move_swp_offset-helper-which-can-move-offset-bidirectionally.patch
-mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages.patch
-mm-swap-reuse-exclusive-folio-directly-instead-of-wp-page-faults.patch
-mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect.patch
-mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page.patch
-mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap.patch
-mm-use-folio_add_new_anon_rmap-if-folio_test_anonfolio==false.patch
-mm-remove-folio_test_anonfolio==false-path-in-__folio_add_anon_rmap.patch
+writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3-fix.patch
+mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix-fix.patch
+mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix.patch
+mm-use-folio_add_new_anon_rmap-if-folio_test_anonfolio==false-fix.patch
 
