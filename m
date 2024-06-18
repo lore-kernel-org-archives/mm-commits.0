@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3A9E53E24
-	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 20:32:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1344A53E24
+	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 20:32:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718742745; cv=none; b=pl1mz+m+nXjUe13pluvtmL+lGiiyBbwCzk6/5LWgbe4X5PRP85zgf/EcwxXVlFvkwUyBpjQoG2EfSTafhTT/CNOXdoDZ+piW40/j7sgCFPp0bocg0uq5LryRD0xjDHOHurj0Hd10znfFK0Uju58HYmtRpJG7b1yl3hpDBAZ9f6Y=
+	t=1718742748; cv=none; b=BLoJqpk3AUtgFX9X9S5Ul9Jobg+Jt+EdTJ2IwSVTVk2t0ViyOoFAa6b60yhrh/hzS4Swpl5jwGSXGFRufrUv4xslI5kMHqOpspKSFYQ66IAa/SbATWSxLYxSxvU6QuPHviD8UT/iuMm0/Zo7fDJzuFX39IoGnIKC5/OWsvayKUE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718742745; c=relaxed/simple;
-	bh=o6VaQd1cNKJS11sx4zfYvw6bJDGpqeKsjUzunsEUvvM=;
-	h=Date:To:From:Subject:Message-Id; b=RmQHVajomIVI1CYXajXgrglZ2YC7nKoWjJhOLEs2pLSXPJJb2hJ7EAio54iI9ma785yFyOVnhGzKud2Vh2JPYqiLUAXlZG6IoasdAq/Hmz1+BCm9jgdWxhi8IQs2ilTn53K/6clY3lYwwbeI1sM0tIse51ayBU/+nj2jTze6ATI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C7yfaQNd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718742748; c=relaxed/simple;
+	bh=mRGQBTHwdHHLQ9PXm8mRQGvMiGzTYOxyIeJiaX95WPY=;
+	h=Date:To:From:Subject:Message-Id; b=lpPh1kLNmA6Va5dUyKa0rMjBDoIyf1Hfl9X9dq8NqN+Afw6jYXHpg2PzznCZFge/bPL0CyjzedanH48mtHRggiBdRjQBWCkIYBtBdbDO4CiDgGm5FLEriJSXmoAzjXaOQq9UpXercAthThXrbY/VMBIPns64yuTpgcneBKRAO0M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NRosxKJY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C7yfaQNd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DFDFC3277B;
-	Tue, 18 Jun 2024 20:32:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NRosxKJY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FA18C4AF1C;
+	Tue, 18 Jun 2024 20:32:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718742745;
-	bh=o6VaQd1cNKJS11sx4zfYvw6bJDGpqeKsjUzunsEUvvM=;
+	s=korg; t=1718742747;
+	bh=mRGQBTHwdHHLQ9PXm8mRQGvMiGzTYOxyIeJiaX95WPY=;
 	h=Date:To:From:Subject:From;
-	b=C7yfaQNdQaNBgnOAob0y4jms28mF7g1d4ewGjh6m1d1rJodGnV0au+oSUtfbVoYo/
-	 mzuhDconozJxWY3adOT+61ZuwYb35S6RGa43B4o8V5x2bpoWCFTYNjWr+112a7fUea
-	 hVblTcSVjayNzs+O4E7R8kQu3YSPH85w5FTt/jDI=
-Date: Tue, 18 Jun 2024 13:32:25 -0700
+	b=NRosxKJYZFPMxYkSGMT44ViqnJK7w5ajlb7Fe6/mrZMn8Zl3OLE5e3zcjlQYo0D3j
+	 fU/Tj3t7aypsW4yQ31Vkp41+wXOFB/qDerWgeUAO+pE1Z61HvuFsdXEyCi35jrbyd1
+	 IwrMo9OIAaOQO5vDw4T5fKv4vCg8diiOseqH+Gwk=
+Date: Tue, 18 Jun 2024 13:32:27 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,chrisl@kernel.org,21cnbao@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-use-swap_free_nr-to-free-shmem-swap-entries.patch added to mm-unstable branch
-Message-Id: <20240618203225.8DFDFC3277B@smtp.kernel.org>
+Subject: + mm-shmem-support-large-folio-allocation-for-shmem_replace_folio.patch added to mm-unstable branch
+Message-Id: <20240618203227.7FA18C4AF1C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: shmem: use swap_free_nr() to free shmem swap entries
+     Subject: mm: shmem: support large folio allocation for shmem_replace_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-use-swap_free_nr-to-free-shmem-swap-entries.patch
+     mm-shmem-support-large-folio-allocation-for-shmem_replace_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-use-swap_free_nr-to-free-shmem-swap-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-support-large-folio-allocation-for-shmem_replace_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: use swap_free_nr() to free shmem swap entries
-Date: Tue, 18 Jun 2024 14:54:18 +0800
+Subject: mm: shmem: support large folio allocation for shmem_replace_folio()
+Date: Tue, 18 Jun 2024 14:54:19 +0800
 
-As preparation for supporting shmem large folio swapout, use
-swap_free_nr() to free some continuous swap entries of the shmem large
-folio when the large folio was swapped in from the swap cache.  In
-addition, the index should also be round down to the number of pages when
-adding the swapin folio into the pagecache.
+To support large folio swapin for shmem in the following patches, add
+large folio allocation for the new replacement folio in
+shmem_replace_folio().  Moreover large folios occupy N consecutive entries
+in the swap cache instead of using multi-index entries like the page
+cache, therefore we should replace each consecutive entries in the swap
+cache instead of using the shmem_replace_entry().
 
-Link: https://lkml.kernel.org/r/373a0d959930494b83f68169eddb62d0d49a29cf.1718690645.git.baolin.wang@linux.alibaba.com
+As well as updating statistics and folio reference count using the number
+of pages in the folio.
+
+Link: https://lkml.kernel.org/r/75d1c1f2fbc88dce476a53fa90f085b3bebb83c5.1718690645.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <21cnbao@gmail.com>
 Cc: Chris Li <chrisl@kernel.org>
@@ -86,79 +90,97 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ mm/shmem.c |   53 ++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 30 insertions(+), 23 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-use-swap_free_nr-to-free-shmem-swap-entries
+--- a/mm/shmem.c~mm-shmem-support-large-folio-allocation-for-shmem_replace_folio
 +++ a/mm/shmem.c
-@@ -1950,6 +1950,7 @@ static void shmem_set_folio_swapin_error
- 	struct address_space *mapping = inode->i_mapping;
- 	swp_entry_t swapin_error;
- 	void *old;
-+	int nr_pages;
+@@ -1878,28 +1878,24 @@ static bool shmem_should_replace_folio(s
+ static int shmem_replace_folio(struct folio **foliop, gfp_t gfp,
+ 				struct shmem_inode_info *info, pgoff_t index)
+ {
+-	struct folio *old, *new;
+-	struct address_space *swap_mapping;
+-	swp_entry_t entry;
+-	pgoff_t swap_index;
+-	int error;
+-
+-	old = *foliop;
+-	entry = old->swap;
+-	swap_index = swap_cache_index(entry);
+-	swap_mapping = swap_address_space(entry);
++	struct folio *new, *old = *foliop;
++	swp_entry_t entry = old->swap;
++	struct address_space *swap_mapping = swap_address_space(entry);
++	pgoff_t swap_index = swap_cache_index(entry);
++	XA_STATE(xas, &swap_mapping->i_pages, swap_index);
++	int nr_pages = folio_nr_pages(old);
++	int error = 0, i;
  
- 	swapin_error = make_poisoned_swp_entry();
- 	old = xa_cmpxchg_irq(&mapping->i_pages, index,
-@@ -1958,6 +1959,7 @@ static void shmem_set_folio_swapin_error
- 	if (old != swp_to_radix_entry(swap))
- 		return;
- 
-+	nr_pages = folio_nr_pages(folio);
- 	folio_wait_writeback(folio);
- 	delete_from_swap_cache(folio);
  	/*
-@@ -1965,8 +1967,8 @@ static void shmem_set_folio_swapin_error
- 	 * won't be 0 when inode is released and thus trigger WARN_ON(i_blocks)
- 	 * in shmem_evict_inode().
+ 	 * We have arrived here because our zones are constrained, so don't
+ 	 * limit chance of success by further cpuset and node constraints.
  	 */
--	shmem_recalc_inode(inode, -1, -1);
--	swap_free(swap);
-+	shmem_recalc_inode(inode, -nr_pages, -nr_pages);
-+	swap_free_nr(swap, nr_pages);
+ 	gfp &= ~GFP_CONSTRAINT_MASK;
+-	VM_BUG_ON_FOLIO(folio_test_large(old), old);
+-	new = shmem_alloc_folio(gfp, 0, info, index);
++	new = shmem_alloc_folio(gfp, folio_order(old), info, index);
+ 	if (!new)
+ 		return -ENOMEM;
+ 
+-	folio_get(new);
++	folio_ref_add(new, nr_pages);
+ 	folio_copy(new, old);
+ 	flush_dcache_folio(new);
+ 
+@@ -1909,18 +1905,24 @@ static int shmem_replace_folio(struct fo
+ 	new->swap = entry;
+ 	folio_set_swapcache(new);
+ 
+-	/*
+-	 * Our caller will very soon move newpage out of swapcache, but it's
+-	 * a nice clean interface for us to replace oldpage by newpage there.
+-	 */
++	/* Swap cache still stores N entries instead of a high-order entry */
+ 	xa_lock_irq(&swap_mapping->i_pages);
+-	error = shmem_replace_entry(swap_mapping, swap_index, old, new);
++	for (i = 0; i < nr_pages; i++) {
++		void *item = xas_store(&xas, new);
++
++		if (item != old) {
++			error = -ENOENT;
++			break;
++		}
++
++		xas_next(&xas);
++	}
+ 	if (!error) {
+ 		mem_cgroup_replace_folio(old, new);
+-		__lruvec_stat_mod_folio(new, NR_FILE_PAGES, 1);
+-		__lruvec_stat_mod_folio(new, NR_SHMEM, 1);
+-		__lruvec_stat_mod_folio(old, NR_FILE_PAGES, -1);
+-		__lruvec_stat_mod_folio(old, NR_SHMEM, -1);
++		__lruvec_stat_mod_folio(new, NR_FILE_PAGES, nr_pages);
++		__lruvec_stat_mod_folio(new, NR_SHMEM, nr_pages);
++		__lruvec_stat_mod_folio(old, NR_FILE_PAGES, -nr_pages);
++		__lruvec_stat_mod_folio(old, NR_SHMEM, -nr_pages);
+ 	}
+ 	xa_unlock_irq(&swap_mapping->i_pages);
+ 
+@@ -1940,7 +1942,12 @@ static int shmem_replace_folio(struct fo
+ 	old->private = NULL;
+ 
+ 	folio_unlock(old);
+-	folio_put_refs(old, 2);
++	/*
++	 * The old folio are removed from swap cache, drop the 'nr_pages'
++	 * reference, as well as one temporary reference getting from swap
++	 * cache.
++	 */
++	folio_put_refs(old, nr_pages + 1);
+ 	return error;
  }
  
- /*
-@@ -1985,7 +1987,7 @@ static int shmem_swapin_folio(struct ino
- 	struct swap_info_struct *si;
- 	struct folio *folio = NULL;
- 	swp_entry_t swap;
--	int error;
-+	int error, nr_pages;
- 
- 	VM_BUG_ON(!*foliop || !xa_is_value(*foliop));
- 	swap = radix_to_swp_entry(*foliop);
-@@ -2032,6 +2034,7 @@ static int shmem_swapin_folio(struct ino
- 		goto failed;
- 	}
- 	folio_wait_writeback(folio);
-+	nr_pages = folio_nr_pages(folio);
- 
- 	/*
- 	 * Some architectures may have to restore extra metadata to the
-@@ -2045,19 +2048,20 @@ static int shmem_swapin_folio(struct ino
- 			goto failed;
- 	}
- 
--	error = shmem_add_to_page_cache(folio, mapping, index,
-+	error = shmem_add_to_page_cache(folio, mapping,
-+					round_down(index, nr_pages),
- 					swp_to_radix_entry(swap), gfp);
- 	if (error)
- 		goto failed;
- 
--	shmem_recalc_inode(inode, 0, -1);
-+	shmem_recalc_inode(inode, 0, -nr_pages);
- 
- 	if (sgp == SGP_WRITE)
- 		folio_mark_accessed(folio);
- 
- 	delete_from_swap_cache(folio);
- 	folio_mark_dirty(folio);
--	swap_free(swap);
-+	swap_free_nr(swap, nr_pages);
- 	put_swap_device(si);
- 
- 	*foliop = folio;
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
