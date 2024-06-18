@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24C98158DBA
-	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 19:36:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6EC9158DBA
+	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 19:36:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718739396; cv=none; b=TGK/NaOQdKq94NtFHochSJjSv8MUU8pRuiq5rbltYi75MEDTx/u3lByuhGY8n1/HU8oEWQzS3Bfdt4KJ3VXMzHGOjtc33oEkrWRSbxqnPDgIgcSvh841sClaI6zdXgP+gJXmtknTAY6GqWWxJ4dO6YhdgMyNgtxz1Q7Fd0epWis=
+	t=1718739398; cv=none; b=gVTeBWILbr6R4xHx7l105vviUQUtfm3U7lCgmCcFAdt+iN5v5k+IdjmIBEqsXa5L+DSFQqR14DLIkq15THjZ86fM6XOvFTN7sgznm34rDzasDyNkRd6R3DDpUPv7CNrOlUQO024Wu2j3YJARNZPmqRm1meGYLehXlVe1ITw8VkI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718739396; c=relaxed/simple;
-	bh=z60YUHVSMA5yWFEKp1IAKSczCvYkkt0raL7ZZc743j8=;
-	h=Date:To:From:Subject:Message-Id; b=QrhoHUs6ZRQbJdLD7t1vnG2tBjLVRExVeOje2UTgBKEEgM2YL7w3OWX84989RcPMSHqKFQzcxhW1P60B28rAe9AicBx3HRsWYk8k2bkfiM+AfmQI3OrnIHeaXcx1fxXHjztwth2FolVXOCkL0WS096qcrSx6jppvhe0El9ahmYA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IWMJi28o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718739398; c=relaxed/simple;
+	bh=CaAGRFxdGzwgLEHjP1KC8iCz1JL5Db1Gqkr9syzmOXY=;
+	h=Date:To:From:Subject:Message-Id; b=RRmEmgYlFG9DHV6DNQl9VHqei/yiJfKyrLrdx7rxQ2OahnnT8/EhGnxuooK4NV10UzkHALSgBF00DhofApg2Xqotb7ZrsNePjKPBPezSrpJV3TJRvbA3oRKXHH5mf2c/gyY5rrENVN4G4A0usXVx20ZTyHwaewQ7W5SHu3Hx4og=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1c5M3GU/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IWMJi28o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96ADDC3277B;
-	Tue, 18 Jun 2024 19:36:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1c5M3GU/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7047C3277B;
+	Tue, 18 Jun 2024 19:36:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718739395;
-	bh=z60YUHVSMA5yWFEKp1IAKSczCvYkkt0raL7ZZc743j8=;
+	s=korg; t=1718739397;
+	bh=CaAGRFxdGzwgLEHjP1KC8iCz1JL5Db1Gqkr9syzmOXY=;
 	h=Date:To:From:Subject:From;
-	b=IWMJi28oEVjmIILXMm47cdvD1wc7zYIh+ZslEA99R/gXQUJuxVARdx2vKO/KF2Siy
-	 A5oLEf54uWg16m3jOIoDKeLfcnefe4fJHsSPhi8hb/kbn10bXEnSmsf8WCR0OSCQ3E
-	 FwxC40GH2ztSy2tBlikRpMuWkiG5wU+9C2JEOkus=
-Date: Tue, 18 Jun 2024 12:36:35 -0700
+	b=1c5M3GU/7lE1lvMFt3mGyyLaiiCSu2u8TKRLvpPGh2G5QXFDMbhSlMCfHHa/ZM/Oe
+	 pIHo+INYePWPAWw+PDkbOxl8ImhLT1CEmUhH4Zc3b5gGU9OewmG6Lq37lKaK3whgaa
+	 cLwMYZ1cSOFwztcvp5tcUrpi9oT5gZvLH/C2KSwE=
+Date: Tue, 18 Jun 2024 12:36:37 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-remove-unnecessary-online-tuning-handling-code.patch added to mm-unstable branch
-Message-Id: <20240618193635.96ADDC3277B@smtp.kernel.org>
+Subject: + mm-damon-sysfs-rename-damon_sysfs_set_targets-to-add_targets.patch added to mm-unstable branch
+Message-Id: <20240618193637.B7047C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: remove unnecessary online tuning handling code
+     Subject: mm/damon/sysfs: rename damon_sysfs_set_targets() to ...add_targets()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-remove-unnecessary-online-tuning-handling-code.patch
+     mm-damon-sysfs-rename-damon_sysfs_set_targets-to-add_targets.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-remove-unnecessary-online-tuning-handling-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-rename-damon_sysfs_set_targets-to-add_targets.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,110 +59,80 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: remove unnecessary online tuning handling code
-Date: Tue, 18 Jun 2024 11:18:02 -0700
+Subject: mm/damon/sysfs: rename damon_sysfs_set_targets() to ...add_targets()
+Date: Tue, 18 Jun 2024 11:18:03 -0700
 
-damon/sysfs.c contains code for handling of online DAMON parameters update
-edge cases.  It is no more necessary since damon_commit_ctx() takes care
-of the cases.  Remove the unnecessary code.
+The function was for updating DAMON structs that may or may not be
+partially populated.  Hence it was not for only adding items, but also
+removing unnecessary items and updating items in-place.  A previous commit
+has changed the function to assume the structs are not partially
+populated, and do only adding items.  Make the function name better
+explain the behavior.
 
-Link: https://lkml.kernel.org/r/20240618181809.82078-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240618181809.82078-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-test.h |    2 -
- mm/damon/sysfs.c      |   60 +---------------------------------------
- 2 files changed, 3 insertions(+), 59 deletions(-)
+ mm/damon/sysfs-test.h |    8 ++++----
+ mm/damon/sysfs.c      |    4 ++--
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-unnecessary-online-tuning-handling-code
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-rename-damon_sysfs_set_targets-to-add_targets
 +++ a/mm/damon/sysfs.c
-@@ -1162,72 +1162,16 @@ destroy_targets_out:
+@@ -1162,7 +1162,7 @@ destroy_targets_out:
  	return err;
  }
  
--static int damon_sysfs_update_target_pid(struct damon_target *target, int pid)
--{
--	struct pid *pid_new;
--
--	pid_new = find_get_pid(pid);
--	if (!pid_new)
--		return -EINVAL;
--
--	if (pid_new == target->pid) {
--		put_pid(pid_new);
--		return 0;
--	}
--
--	put_pid(target->pid);
--	target->pid = pid_new;
--	return 0;
--}
--
--static int damon_sysfs_update_target(struct damon_target *target,
--		struct damon_ctx *ctx,
--		struct damon_sysfs_target *sys_target)
--{
--	int err = 0;
--
--	if (damon_target_has_pid(ctx)) {
--		err = damon_sysfs_update_target_pid(target, sys_target->pid);
--		if (err)
--			return err;
--	}
--
--	/*
--	 * Do monitoring target region boundary update only if one or more
--	 * regions are set by the user.  This is for keeping current monitoring
--	 * target results and range easier, especially for dynamic monitoring
--	 * target regions update ops like 'vaddr'.
--	 */
--	if (sys_target->regions->nr)
--		err = damon_sysfs_set_regions(target, sys_target->regions);
--	return err;
--}
--
- static int damon_sysfs_set_targets(struct damon_ctx *ctx,
+-static int damon_sysfs_set_targets(struct damon_ctx *ctx,
++static int damon_sysfs_add_targets(struct damon_ctx *ctx,
  		struct damon_sysfs_targets *sysfs_targets)
  {
--	struct damon_target *t, *next;
--	int i = 0, err;
-+	int i, err;
- 
- 	/* Multiple physical address space monitoring targets makes no sense */
- 	if (ctx->ops.id == DAMON_OPS_PADDR && sysfs_targets->nr > 1)
- 		return -EINVAL;
- 
--	damon_for_each_target_safe(t, next, ctx) {
--		if (i < sysfs_targets->nr) {
--			err = damon_sysfs_update_target(t, ctx,
--					sysfs_targets->targets_arr[i]);
--			if (err)
--				return err;
--		} else {
--			if (damon_target_has_pid(ctx))
--				put_pid(t->pid);
--			damon_destroy_target(t);
--		}
--		i++;
--	}
--
--	for (; i < sysfs_targets->nr; i++) {
-+	for (i = 0; i < sysfs_targets->nr; i++) {
- 		struct damon_sysfs_target *st = sysfs_targets->targets_arr[i];
- 
- 		err = damon_sysfs_add_target(st, ctx);
---- a/mm/damon/sysfs-test.h~mm-damon-sysfs-remove-unnecessary-online-tuning-handling-code
+ 	int i, err;
+@@ -1283,7 +1283,7 @@ static int damon_sysfs_apply_inputs(stru
+ 	err = damon_sysfs_set_attrs(ctx, sys_ctx->attrs);
+ 	if (err)
+ 		return err;
+-	err = damon_sysfs_set_targets(ctx, sys_ctx->targets);
++	err = damon_sysfs_add_targets(ctx, sys_ctx->targets);
+ 	if (err)
+ 		return err;
+ 	return damon_sysfs_set_schemes(ctx, sys_ctx->schemes);
+--- a/mm/damon/sysfs-test.h~mm-damon-sysfs-rename-damon_sysfs_set_targets-to-add_targets
 +++ a/mm/damon/sysfs-test.h
-@@ -62,7 +62,7 @@ static void damon_sysfs_test_set_targets
+@@ -38,7 +38,7 @@ static int __damon_sysfs_test_get_any_pi
+ 	return -1;
+ }
+ 
+-static void damon_sysfs_test_set_targets(struct kunit *test)
++static void damon_sysfs_test_add_targets(struct kunit *test)
+ {
+ 	struct damon_sysfs_targets *sysfs_targets;
+ 	struct damon_sysfs_target *sysfs_target;
+@@ -56,12 +56,12 @@ static void damon_sysfs_test_set_targets
+ 
+ 	ctx = damon_new_ctx();
+ 
+-	damon_sysfs_set_targets(ctx, sysfs_targets);
++	damon_sysfs_add_targets(ctx, sysfs_targets);
+ 	KUNIT_EXPECT_EQ(test, 1u, nr_damon_targets(ctx));
+ 
  	sysfs_target->pid = __damon_sysfs_test_get_any_pid(
  			sysfs_target->pid + 1, 200);
- 	damon_sysfs_set_targets(ctx, sysfs_targets);
--	KUNIT_EXPECT_EQ(test, 1u, nr_damon_targets(ctx));
-+	KUNIT_EXPECT_EQ(test, 2u, nr_damon_targets(ctx));
+-	damon_sysfs_set_targets(ctx, sysfs_targets);
++	damon_sysfs_add_targets(ctx, sysfs_targets);
+ 	KUNIT_EXPECT_EQ(test, 2u, nr_damon_targets(ctx));
  
  	damon_destroy_ctx(ctx);
- 	kfree(sysfs_targets->targets_arr);
+@@ -71,7 +71,7 @@ static void damon_sysfs_test_set_targets
+ }
+ 
+ static struct kunit_case damon_sysfs_test_cases[] = {
+-	KUNIT_CASE(damon_sysfs_test_set_targets),
++	KUNIT_CASE(damon_sysfs_test_add_targets),
+ 	{},
+ };
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
