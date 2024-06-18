@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D763D53E24
-	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 20:32:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3A9E53E24
+	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 20:32:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718742743; cv=none; b=cXNfg2+LQM96d0e44vqsXBlJ+xsrVNuyiuhTV6PGoHSGInVhhe726yEinpwQXEZkhcwI3n2nScZos99vL5ulKg1kNVHyPT6k8xC9hSrylwVrWN8VGAzA54Owp2snDcIWwkL88N+k4H0w5dPVxtXkPXssXled0s4TSE6x6okdJwM=
+	t=1718742745; cv=none; b=pl1mz+m+nXjUe13pluvtmL+lGiiyBbwCzk6/5LWgbe4X5PRP85zgf/EcwxXVlFvkwUyBpjQoG2EfSTafhTT/CNOXdoDZ+piW40/j7sgCFPp0bocg0uq5LryRD0xjDHOHurj0Hd10znfFK0Uju58HYmtRpJG7b1yl3hpDBAZ9f6Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718742743; c=relaxed/simple;
-	bh=XS0LjJMg+8xM8ziQNbamJwruu5+hd8Gn6BVsirtIMsk=;
-	h=Date:To:From:Subject:Message-Id; b=ZuaVbPOTuLVqFxLpSfnung/OtkWdZfN6jVttOoDvZUpaCDm5caNmnk/SH9l0awX0fxMR079dNTy1sBxLMapTnMi1Zbv9DV3EXns3O+I60oYSvq01r3xlJp13fLtENEcQyUItS7Ijkw1QbixzVqovG1nOVuOY18GxfPcHe2wzN60=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xL9EcIsl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718742745; c=relaxed/simple;
+	bh=o6VaQd1cNKJS11sx4zfYvw6bJDGpqeKsjUzunsEUvvM=;
+	h=Date:To:From:Subject:Message-Id; b=RmQHVajomIVI1CYXajXgrglZ2YC7nKoWjJhOLEs2pLSXPJJb2hJ7EAio54iI9ma785yFyOVnhGzKud2Vh2JPYqiLUAXlZG6IoasdAq/Hmz1+BCm9jgdWxhi8IQs2ilTn53K/6clY3lYwwbeI1sM0tIse51ayBU/+nj2jTze6ATI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C7yfaQNd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xL9EcIsl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1720C3277B;
-	Tue, 18 Jun 2024 20:32:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C7yfaQNd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DFDFC3277B;
+	Tue, 18 Jun 2024 20:32:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718742743;
-	bh=XS0LjJMg+8xM8ziQNbamJwruu5+hd8Gn6BVsirtIMsk=;
+	s=korg; t=1718742745;
+	bh=o6VaQd1cNKJS11sx4zfYvw6bJDGpqeKsjUzunsEUvvM=;
 	h=Date:To:From:Subject:From;
-	b=xL9EcIslkDtt5oX4uYU0IiecvxnJOIDmW3ycAYaj7GyIBFPFt4b04ZjvhK89F5/8N
-	 mT8FGDYtpamUKs3HhjPgRrNSnK4d+a/hWauBObme/rjK/v72UbAip6LE7Ip2r63f5t
-	 so8b3b9S8M0p9ax4pjKk1pI9yvGtsMgcxKw4CSWc=
-Date: Tue, 18 Jun 2024 13:32:23 -0700
+	b=C7yfaQNdQaNBgnOAob0y4jms28mF7g1d4ewGjh6m1d1rJodGnV0au+oSUtfbVoYo/
+	 mzuhDconozJxWY3adOT+61ZuwYb35S6RGa43B4o8V5x2bpoWCFTYNjWr+112a7fUea
+	 hVblTcSVjayNzs+O4E7R8kQu3YSPH85w5FTt/jDI=
+Date: Tue, 18 Jun 2024 13:32:25 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,chrisl@kernel.org,21cnbao@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-use-xa_get_order-to-get-the-swap-entry-order.patch added to mm-unstable branch
-Message-Id: <20240618203223.A1720C3277B@smtp.kernel.org>
+Subject: + mm-shmem-use-swap_free_nr-to-free-shmem-swap-entries.patch added to mm-unstable branch
+Message-Id: <20240618203225.8DFDFC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: filemap: use xa_get_order() to get the swap entry order
+     Subject: mm: shmem: use swap_free_nr() to free shmem swap entries
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-filemap-use-xa_get_order-to-get-the-swap-entry-order.patch
+     mm-shmem-use-swap_free_nr-to-free-shmem-swap-entries.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-use-xa_get_order-to-get-the-swap-entry-order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-use-swap_free_nr-to-free-shmem-swap-entries.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: filemap: use xa_get_order() to get the swap entry order
-Date: Tue, 18 Jun 2024 14:54:17 +0800
+Subject: mm: shmem: use swap_free_nr() to free shmem swap entries
+Date: Tue, 18 Jun 2024 14:54:18 +0800
 
-In the following patches, shmem will support the swap out of large folios,
-which means the shmem mappings may contain large order swap entries, so
-using xa_get_order() to get the folio order of the shmem swap entry to
-update the '*start' correctly.
+As preparation for supporting shmem large folio swapout, use
+swap_free_nr() to free some continuous swap entries of the shmem large
+folio when the large folio was swapped in from the swap cache.  In
+addition, the index should also be round down to the number of pages when
+adding the swapin folio into the pagecache.
 
-Link: https://lkml.kernel.org/r/e718e4afb0a387dc04d0e3cb8440d8de20adb011.1718690645.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/373a0d959930494b83f68169eddb62d0d49a29cf.1718690645.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <21cnbao@gmail.com>
 Cc: Chris Li <chrisl@kernel.org>
@@ -85,29 +86,79 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/shmem.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-use-xa_get_order-to-get-the-swap-entry-order
-+++ a/mm/filemap.c
-@@ -2056,6 +2056,8 @@ unsigned find_get_entries(struct address
- 		folio = fbatch->folios[idx];
- 		if (!xa_is_value(folio))
- 			nr = folio_nr_pages(folio);
-+		else
-+			nr = 1 << xa_get_order(&mapping->i_pages, indices[idx]);
- 		*start = indices[idx] + nr;
+--- a/mm/shmem.c~mm-shmem-use-swap_free_nr-to-free-shmem-swap-entries
++++ a/mm/shmem.c
+@@ -1950,6 +1950,7 @@ static void shmem_set_folio_swapin_error
+ 	struct address_space *mapping = inode->i_mapping;
+ 	swp_entry_t swapin_error;
+ 	void *old;
++	int nr_pages;
+ 
+ 	swapin_error = make_poisoned_swp_entry();
+ 	old = xa_cmpxchg_irq(&mapping->i_pages, index,
+@@ -1958,6 +1959,7 @@ static void shmem_set_folio_swapin_error
+ 	if (old != swp_to_radix_entry(swap))
+ 		return;
+ 
++	nr_pages = folio_nr_pages(folio);
+ 	folio_wait_writeback(folio);
+ 	delete_from_swap_cache(folio);
+ 	/*
+@@ -1965,8 +1967,8 @@ static void shmem_set_folio_swapin_error
+ 	 * won't be 0 when inode is released and thus trigger WARN_ON(i_blocks)
+ 	 * in shmem_evict_inode().
+ 	 */
+-	shmem_recalc_inode(inode, -1, -1);
+-	swap_free(swap);
++	shmem_recalc_inode(inode, -nr_pages, -nr_pages);
++	swap_free_nr(swap, nr_pages);
+ }
+ 
+ /*
+@@ -1985,7 +1987,7 @@ static int shmem_swapin_folio(struct ino
+ 	struct swap_info_struct *si;
+ 	struct folio *folio = NULL;
+ 	swp_entry_t swap;
+-	int error;
++	int error, nr_pages;
+ 
+ 	VM_BUG_ON(!*foliop || !xa_is_value(*foliop));
+ 	swap = radix_to_swp_entry(*foliop);
+@@ -2032,6 +2034,7 @@ static int shmem_swapin_folio(struct ino
+ 		goto failed;
  	}
- 	return folio_batch_count(fbatch);
-@@ -2120,6 +2122,8 @@ put:
- 		folio = fbatch->folios[idx];
- 		if (!xa_is_value(folio))
- 			nr = folio_nr_pages(folio);
-+		else
-+			nr = 1 << xa_get_order(&mapping->i_pages, indices[idx]);
- 		*start = indices[idx] + nr;
+ 	folio_wait_writeback(folio);
++	nr_pages = folio_nr_pages(folio);
+ 
+ 	/*
+ 	 * Some architectures may have to restore extra metadata to the
+@@ -2045,19 +2048,20 @@ static int shmem_swapin_folio(struct ino
+ 			goto failed;
  	}
- 	return folio_batch_count(fbatch);
+ 
+-	error = shmem_add_to_page_cache(folio, mapping, index,
++	error = shmem_add_to_page_cache(folio, mapping,
++					round_down(index, nr_pages),
+ 					swp_to_radix_entry(swap), gfp);
+ 	if (error)
+ 		goto failed;
+ 
+-	shmem_recalc_inode(inode, 0, -1);
++	shmem_recalc_inode(inode, 0, -nr_pages);
+ 
+ 	if (sgp == SGP_WRITE)
+ 		folio_mark_accessed(folio);
+ 
+ 	delete_from_swap_cache(folio);
+ 	folio_mark_dirty(folio);
+-	swap_free(swap);
++	swap_free_nr(swap, nr_pages);
+ 	put_swap_device(si);
+ 
+ 	*foliop = folio;
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
