@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C2F428DCC;
-	Tue, 18 Jun 2024 20:01:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB8FE16DC3F
+	for <mm-commits@vger.kernel.org>; Tue, 18 Jun 2024 20:02:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718740870; cv=none; b=qxeVLp4D5KqAjKogoRyjdqGNhMX1SJ0mp1rs2m8Xhv3kMqSx6JTMOdMtA/2WyQtNPhvyCHSeEHzcgyF+kgxphMrXPan5Ytg22670awN972uHS0RqcYkl90pUA28432hnXdxqQwTtl+9Ig3Q1gWV3TCJagTsYZL8Pnbp7gCVmCjI=
+	t=1718740968; cv=none; b=jexIBh0Z/tih3QY6R6gCMK5lHYxOOOzaue4JVP7MFszPSe55aDrVAfTFDKm/ROEFUZZ8rk8UnFiA8yx2sAYtRNSFjIPBcIM6k3T+grnCMMK1Rlt7nH+M7qgrp5YIt9UVmABQ4xUEC9crq4yCawxF7WXcs7v5sdKJLfypEJycKwU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718740870; c=relaxed/simple;
-	bh=Am4A+3tB3OtBkQUIerg35GndeEnrCJBx63LQtXDSPJE=;
-	h=Date:To:From:Subject:Message-Id; b=LQ7IPyq54PwkT1w/gbaf0nb1H5pbM2jZytmLDwIHz7OJ1TRuyUXa8wabrwrq3Vx1niKs4dYH2DY8YOwyzP8A3xMcFHtPwbcHOopO3hgkpsQrPoGnSR1ksFfXi3G+rP7wyXDKQiWQoRSte88yjDPyaZwDHTcEAsfbd9pKbewN6Kc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=llC5a5nj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718740968; c=relaxed/simple;
+	bh=SeZMVby3yV97U8AEZiuJL+OlsWT7UZoFs2YlGjHFfOk=;
+	h=Date:To:From:Subject:Message-Id; b=XNn5LyaTXv86Y61f2juHgKIbwQkdGwhbks5/k67NF2It00a7qPOC4nGDwSmcomFDje2xDrZHSZ/ep3X0WOTIFRo96KLk0gb+Mq72ccIDxHVHgEsx6xuDk9vZ+D1e4iTCA2rvQvIruaOAU91KUzidi3aF9r5CvFAWyQScki77+AA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vzt7bf0U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="llC5a5nj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53892C4AF48;
-	Tue, 18 Jun 2024 20:01:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vzt7bf0U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43B28C3277B;
+	Tue, 18 Jun 2024 20:02:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718740870;
-	bh=Am4A+3tB3OtBkQUIerg35GndeEnrCJBx63LQtXDSPJE=;
+	s=korg; t=1718740968;
+	bh=SeZMVby3yV97U8AEZiuJL+OlsWT7UZoFs2YlGjHFfOk=;
 	h=Date:To:From:Subject:From;
-	b=llC5a5nj9XwjDO4CbPczzLVQ8PAHDz5fvXebAdIrkBuXkxyOQNvPBTH49yNcOwb+5
-	 2HsA00PhUS1BbLPfzyJTk8t4dLj77CCoTZ4FJAcfu1URZgB/SzmSRcMRyJJH0xOCeL
-	 QKUuBx29sD2DqGx32ZEBQi8erwtZfH1H+9Gp2QCc=
-Date: Tue, 18 Jun 2024 13:01:09 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,v-songbaohua@oppo.com,trondmy@kernel.org,stable@vger.kernel.org,sfrench@samba.org,ryan.roberts@arm.com,neilb@suse.de,martin.l.wege@gmail.com,jlayton@kernel.org,hanchuanhua@oppo.com,chrisl@kernel.org,anna@kernel.org,hch@lst.de,akpm@linux-foundation.org
+	b=Vzt7bf0U1p/Q/rq40Aq4fFqpUGxI8l9yNJIXIRCa+lohvnimv+gDpnddR+2NpGPe+
+	 moWGAfO8zosIkVm1TAfemzXvQTmlR3W+C4ca79DnsiM0ShrhJ78HErf+dIV+UA8aBu
+	 xDvyV2U+kj4yByn1yqLhBB891jJE6lI1eFQfkwe8=
+Date: Tue, 18 Jun 2024 13:02:47 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,v-songbaohua@oppo.com,trondmy@kernel.org,sfrench@samba.org,ryan.roberts@arm.com,jlayton@kernel.org,hanchuanhua@oppo.com,chrisl@kernel.org,anna@kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nfs-drop-the-incorrect-assertion-in-nfs_swap_rw.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240618200110.53892C4AF48@smtp.kernel.org>
+Subject: [alternative-merged] nfs-fix-nfs_swap_rw-for-large-folio-swap.patch removed from -mm tree
+Message-Id: <20240618200248.43B28C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,68 +34,41 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: nfs: drop the incorrect assertion in nfs_swap_rw()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nfs-drop-the-incorrect-assertion-in-nfs_swap_rw.patch
+The quilt patch titled
+     Subject: nfs: fix nfs_swap_rw for large-folio swap
+has been removed from the -mm tree.  Its filename was
+     nfs-fix-nfs_swap_rw-for-large-folio-swap.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nfs-drop-the-incorrect-assertion-in-nfs_swap_rw.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an alternative patch was or shall be merged
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: nfs: drop the incorrect assertion in nfs_swap_rw()
-Date: Tue, 18 Jun 2024 18:56:47 +1200
+Subject: nfs: fix nfs_swap_rw for large-folio swap
+Date: Fri, 14 Jun 2024 12:03:25 +0200
 
-Since commit 2282679fb20b ("mm: submit multipage write for SWP_FS_OPS
-swap-space"), we can plug multiple pages then unplug them all together. 
-That means iov_iter_count(iter) could be way bigger than PAGE_SIZE, it
-actually equals the size of iov_iter_npages(iter, INT_MAX).
+The series "large folios swap-in: handle refault cases first" will permit
+the MM to swap out larger than page size chunks.  NFS has all code ready
+to handle this, but has a VM_BUG_ON that triggers when this happens. 
+Simply remove the VM_BUG_ON to fix this use case.
 
-Note this issue has nothing to do with large folios as we don't support
-THP_SWPOUT to non-block devices.
-
-[v-songbaohua@oppo.com: figure out the cause and correct the commit message]
-Link: https://lkml.kernel.org/r/20240618065647.21791-1-21cnbao@gmail.com
-Fixes: 2282679fb20b ("mm: submit multipage write for SWP_FS_OPS swap-space")
+Link: https://lkml.kernel.org/r/20240614100329.1203579-2-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Reported-by: Christoph Hellwig <hch@lst.de>
-Closes: https://lore.kernel.org/linux-mm/20240617053201.GA16852@lst.de/
-Reviewed-by: Martin Wege <martin.l.wege@gmail.com>
-Cc: NeilBrown <neilb@suse.de>
+Reviewed-by: Jeff Layton <jlayton@kernel.org>
 Cc: Anna Schumaker <anna@kernel.org>
 Cc: Steve French <sfrench@samba.org>
 Cc: Trond Myklebust <trondmy@kernel.org>
 Cc: Chuanhua Han <hanchuanhua@oppo.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  fs/nfs/direct.c |    2 --
  1 file changed, 2 deletions(-)
 
---- a/fs/nfs/direct.c~nfs-drop-the-incorrect-assertion-in-nfs_swap_rw
+--- a/fs/nfs/direct.c~nfs-fix-nfs_swap_rw-for-large-folio-swap
 +++ a/fs/nfs/direct.c
 @@ -141,8 +141,6 @@ int nfs_swap_rw(struct kiocb *iocb, stru
  {
@@ -111,5 +84,4 @@ _
 Patches currently in -mm which might be from hch@lst.de are
 
 nfs-drop-the-incorrect-assertion-in-nfs_swap_rw.patch
-nfs-fix-nfs_swap_rw-for-large-folio-swap.patch
 
