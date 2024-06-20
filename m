@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8BC05661
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:59:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C031D5661
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:59:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718845160; cv=none; b=iCBwIdKZLB862RaUV/Kj5LBeBvy4xfWhl52kFgUUHs5otjcT/yeKbbFzfevAqNpVBmr/jJTuUSAzJQP3zgGFSmf47g7HJVC+ZK2A3qVoecRAyNfBPiBj6irM0KvEzrWMkF+FnOr9JYx0k3OocQJ42liXc5aHu383nfgoUpDiLPI=
+	t=1718845162; cv=none; b=I5UbSeg1NjqO3lghKQaKSP1j7UaOnvi2yJBvHWW0+ZaSbYqWSGJWbFw5DVxRI0HXEXSPds7tL4lFeW6KS+eVtMH0HLBuvHziMygwM303VXkk+vUHp3Lflw28qyLJhACRdUlKRtgvE5fkQuCrZi28yoZLREE7pQyY+OVLY1PFhZU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718845160; c=relaxed/simple;
-	bh=/bKviWay4On2LCwicwLTZol5UEwrfNK3YGiIdCtzejc=;
-	h=Date:To:From:Subject:Message-Id; b=psGUrfhlWHeBZQIZAgsJ3/DnZ0zQwTNcgpHh0u/G0Wl/ej8903N5bjgGC1Xc24Y5BMOyat6Jurrwg5UmZ7L1Tqtwou9OHSrOnUD3O5hDWBdEQuhB+6ri0iebQxKUYCe3N2Nl8GpGjpd+kp0TBXWgInv/YAXIk9M4BOXvTZf9z1w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=09Ijkcb9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718845162; c=relaxed/simple;
+	bh=mAr3kFyO1wAMtP62PozKbZdjUsM9jcq3L1YW2DS+Pm4=;
+	h=Date:To:From:Subject:Message-Id; b=rts7k/gIt2QHxqKafyA3oI3MXo4pzXhOKPueZAvZhTUOWDBPNsM01IY5hNbx+MhJRv79zp+6Z8IdJm97bH6x3zwq5036wdoFu1SvRhe6EX1A28rFb5sv2TBwqi6/qWMLvvxjVamwpkoFqbsjzLGMT/XnkgQDZaInP4XByH9nt/E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eq371Gd+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="09Ijkcb9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DD1AC2BBFC;
-	Thu, 20 Jun 2024 00:59:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eq371Gd+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9659EC2BBFC;
+	Thu, 20 Jun 2024 00:59:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718845160;
-	bh=/bKviWay4On2LCwicwLTZol5UEwrfNK3YGiIdCtzejc=;
+	s=korg; t=1718845162;
+	bh=mAr3kFyO1wAMtP62PozKbZdjUsM9jcq3L1YW2DS+Pm4=;
 	h=Date:To:From:Subject:From;
-	b=09Ijkcb9+ZkYh84+jn7Ugs96kYul3DeF6Q8o4ji/9F0kTL2bpFwaa5seeV+1Cr6yS
-	 3JkbonZe5MBkg4qSug6rq+EsjXzNt/IAMfcUkbUauo+c2QGj7yWktIKvrMwmdZdfU5
-	 e2ctQD75t9goTEyNQn2iA4UPJw0Uyb7/J/wTXp/s=
-Date: Wed, 19 Jun 2024 17:59:20 -0700
+	b=eq371Gd+i27Vu8ZVg9/lfIppjYt1enLRaL09g3lWcZUnKkKI40SSQEdtXFpWhtQb1
+	 iqB3KL92vlztmRsFT0a1x4XjXz6JOMex+SwlXpWEc48QlPu3iODfKcZ8J2KYIrw7Pr
+	 L5dkpI0YRR2NeVLUIXVdHFOr3MTCT9naCea/I6yU=
+Date: Wed, 19 Jun 2024 17:59:22 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,kasan-dev@googlegroups.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-traps-unpoison-the-kernel_stack_overflows-pt_regs.patch added to mm-unstable branch
-Message-Id: <20240620005920.8DD1AC2BBFC@smtp.kernel.org>
+Subject: + s390-uaccess-add-kmsan-support-to-put_user-and-get_user.patch added to mm-unstable branch
+Message-Id: <20240620005922.9659EC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/traps: unpoison the kernel_stack_overflow()'s pt_regs
+     Subject: s390/uaccess: add KMSAN support to put_user() and get_user()
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-traps-unpoison-the-kernel_stack_overflows-pt_regs.patch
+     s390-uaccess-add-kmsan-support-to-put_user-and-get_user.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-traps-unpoison-the-kernel_stack_overflows-pt_regs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-uaccess-add-kmsan-support-to-put_user-and-get_user.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: s390/traps: unpoison the kernel_stack_overflow()'s pt_regs
-Date: Wed, 19 Jun 2024 17:44:07 +0200
+Subject: s390/uaccess: add KMSAN support to put_user() and get_user()
+Date: Wed, 19 Jun 2024 17:44:08 +0200
 
-This is normally done by the generic entry code, but the
-kernel_stack_overflow() flow bypasses it.
+put_user() uses inline assembly with precise constraints, so Clang is in
+principle capable of instrumenting it automatically.  Unfortunately, one
+of the constraints contains a dereferenced user pointer, and Clang does
+not currently distinguish user and kernel pointers.  Therefore KMSAN
+attempts to access shadow for user pointers, which is not a right thing to
+do.
 
-Link: https://lkml.kernel.org/r/20240619154530.163232-33-iii@linux.ibm.com
+An obvious fix to add __no_sanitize_memory to __put_user_fn() does not
+work, since it's __always_inline.  And __always_inline cannot be removed
+due to the __put_user_bad() trick.
+
+A different obvious fix of using the "a" instead of the "+Q" constraint
+degrades the code quality, which is very important here, since it's a hot
+path.
+
+Instead, repurpose the __put_user_asm() macro to define
+__put_user_{char,short,int,long}_noinstr() functions and mark them with
+__no_sanitize_memory.  For the non-KMSAN builds make them __always_inline
+in order to keep the generated code quality.  Also define
+__put_user_{char,short,int,long}() functions, which call the
+aforementioned ones and which *are* instrumented, because they call KMSAN
+hooks, which may be implemented as macros.
+
+The same applies to get_user() as well.
+
+Link: https://lkml.kernel.org/r/20240619154530.163232-34-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
 Acked-by: Heiko Carstens <hca@linux.ibm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -89,31 +111,195 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/traps.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/s390/include/asm/uaccess.h |  111 +++++++++++++++++++++---------
+ 1 file changed, 79 insertions(+), 32 deletions(-)
 
---- a/arch/s390/kernel/traps.c~s390-traps-unpoison-the-kernel_stack_overflows-pt_regs
-+++ a/arch/s390/kernel/traps.c
-@@ -27,6 +27,7 @@
- #include <linux/uaccess.h>
- #include <linux/cpu.h>
- #include <linux/entry-common.h>
-+#include <linux/kmsan.h>
- #include <asm/asm-extable.h>
- #include <asm/vtime.h>
- #include <asm/fpu.h>
-@@ -262,6 +263,11 @@ static void monitor_event_exception(stru
+--- a/arch/s390/include/asm/uaccess.h~s390-uaccess-add-kmsan-support-to-put_user-and-get_user
++++ a/arch/s390/include/asm/uaccess.h
+@@ -78,13 +78,24 @@ union oac {
  
- void kernel_stack_overflow(struct pt_regs *regs)
+ int __noreturn __put_user_bad(void);
+ 
+-#define __put_user_asm(to, from, size)					\
+-({									\
++#ifdef CONFIG_KMSAN
++#define get_put_user_noinstr_attributes \
++	noinline __maybe_unused __no_sanitize_memory
++#else
++#define get_put_user_noinstr_attributes __always_inline
++#endif
++
++#define DEFINE_PUT_USER(type)						\
++static get_put_user_noinstr_attributes int				\
++__put_user_##type##_noinstr(unsigned type __user *to,			\
++			    unsigned type *from,			\
++			    unsigned long size)				\
++{									\
+ 	union oac __oac_spec = {					\
+ 		.oac1.as = PSW_BITS_AS_SECONDARY,			\
+ 		.oac1.a = 1,						\
+ 	};								\
+-	int __rc;							\
++	int rc;								\
+ 									\
+ 	asm volatile(							\
+ 		"	lr	0,%[spec]\n"				\
+@@ -93,12 +104,28 @@ int __noreturn __put_user_bad(void);
+ 		"2:\n"							\
+ 		EX_TABLE_UA_STORE(0b, 2b, %[rc])			\
+ 		EX_TABLE_UA_STORE(1b, 2b, %[rc])			\
+-		: [rc] "=&d" (__rc), [_to] "+Q" (*(to))			\
++		: [rc] "=&d" (rc), [_to] "+Q" (*(to))			\
+ 		: [_size] "d" (size), [_from] "Q" (*(from)),		\
+ 		  [spec] "d" (__oac_spec.val)				\
+ 		: "cc", "0");						\
+-	__rc;								\
+-})
++	return rc;							\
++}									\
++									\
++static __always_inline int						\
++__put_user_##type(unsigned type __user *to, unsigned type *from,	\
++		  unsigned long size)					\
++{									\
++	int rc;								\
++									\
++	rc = __put_user_##type##_noinstr(to, from, size);		\
++	instrument_put_user(*from, to, size);				\
++	return rc;							\
++}
++
++DEFINE_PUT_USER(char);
++DEFINE_PUT_USER(short);
++DEFINE_PUT_USER(int);
++DEFINE_PUT_USER(long);
+ 
+ static __always_inline int __put_user_fn(void *x, void __user *ptr, unsigned long size)
  {
-+	/*
-+	 * Normally regs are unpoisoned by the generic entry code, but
-+	 * kernel_stack_overflow() is a rare case that is called bypassing it.
-+	 */
-+	kmsan_unpoison_entry_regs(regs);
- 	bust_spinlocks(1);
- 	printk("Kernel stack overflow.\n");
- 	show_regs(regs);
+@@ -106,24 +133,24 @@ static __always_inline int __put_user_fn
+ 
+ 	switch (size) {
+ 	case 1:
+-		rc = __put_user_asm((unsigned char __user *)ptr,
+-				    (unsigned char *)x,
+-				    size);
++		rc = __put_user_char((unsigned char __user *)ptr,
++				     (unsigned char *)x,
++				     size);
+ 		break;
+ 	case 2:
+-		rc = __put_user_asm((unsigned short __user *)ptr,
+-				    (unsigned short *)x,
+-				    size);
++		rc = __put_user_short((unsigned short __user *)ptr,
++				      (unsigned short *)x,
++				      size);
+ 		break;
+ 	case 4:
+-		rc = __put_user_asm((unsigned int __user *)ptr,
++		rc = __put_user_int((unsigned int __user *)ptr,
+ 				    (unsigned int *)x,
+ 				    size);
+ 		break;
+ 	case 8:
+-		rc = __put_user_asm((unsigned long __user *)ptr,
+-				    (unsigned long *)x,
+-				    size);
++		rc = __put_user_long((unsigned long __user *)ptr,
++				     (unsigned long *)x,
++				     size);
+ 		break;
+ 	default:
+ 		__put_user_bad();
+@@ -134,13 +161,17 @@ static __always_inline int __put_user_fn
+ 
+ int __noreturn __get_user_bad(void);
+ 
+-#define __get_user_asm(to, from, size)					\
+-({									\
++#define DEFINE_GET_USER(type)						\
++static get_put_user_noinstr_attributes int				\
++__get_user_##type##_noinstr(unsigned type *to,				\
++			    unsigned type __user *from,			\
++			    unsigned long size)				\
++{									\
+ 	union oac __oac_spec = {					\
+ 		.oac2.as = PSW_BITS_AS_SECONDARY,			\
+ 		.oac2.a = 1,						\
+ 	};								\
+-	int __rc;							\
++	int rc;								\
+ 									\
+ 	asm volatile(							\
+ 		"	lr	0,%[spec]\n"				\
+@@ -149,13 +180,29 @@ int __noreturn __get_user_bad(void);
+ 		"2:\n"							\
+ 		EX_TABLE_UA_LOAD_MEM(0b, 2b, %[rc], %[_to], %[_ksize])	\
+ 		EX_TABLE_UA_LOAD_MEM(1b, 2b, %[rc], %[_to], %[_ksize])	\
+-		: [rc] "=&d" (__rc), "=Q" (*(to))			\
++		: [rc] "=&d" (rc), "=Q" (*(to))				\
+ 		: [_size] "d" (size), [_from] "Q" (*(from)),		\
+ 		  [spec] "d" (__oac_spec.val), [_to] "a" (to),		\
+ 		  [_ksize] "K" (size)					\
+ 		: "cc", "0");						\
+-	__rc;								\
+-})
++	return rc;							\
++}									\
++									\
++static __always_inline int						\
++__get_user_##type(unsigned type *to, unsigned type __user *from,	\
++		  unsigned long size)					\
++{									\
++	int rc;								\
++									\
++	rc = __get_user_##type##_noinstr(to, from, size);		\
++	instrument_get_user(*to);					\
++	return rc;							\
++}
++
++DEFINE_GET_USER(char);
++DEFINE_GET_USER(short);
++DEFINE_GET_USER(int);
++DEFINE_GET_USER(long);
+ 
+ static __always_inline int __get_user_fn(void *x, const void __user *ptr, unsigned long size)
+ {
+@@ -163,24 +210,24 @@ static __always_inline int __get_user_fn
+ 
+ 	switch (size) {
+ 	case 1:
+-		rc = __get_user_asm((unsigned char *)x,
+-				    (unsigned char __user *)ptr,
+-				    size);
++		rc = __get_user_char((unsigned char *)x,
++				     (unsigned char __user *)ptr,
++				     size);
+ 		break;
+ 	case 2:
+-		rc = __get_user_asm((unsigned short *)x,
+-				    (unsigned short __user *)ptr,
+-				    size);
++		rc = __get_user_short((unsigned short *)x,
++				      (unsigned short __user *)ptr,
++				      size);
+ 		break;
+ 	case 4:
+-		rc = __get_user_asm((unsigned int *)x,
++		rc = __get_user_int((unsigned int *)x,
+ 				    (unsigned int __user *)ptr,
+ 				    size);
+ 		break;
+ 	case 8:
+-		rc = __get_user_asm((unsigned long *)x,
+-				    (unsigned long __user *)ptr,
+-				    size);
++		rc = __get_user_long((unsigned long *)x,
++				     (unsigned long __user *)ptr,
++				     size);
+ 		break;
+ 	default:
+ 		__get_user_bad();
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
