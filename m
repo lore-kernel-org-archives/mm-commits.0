@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7DDA4C9B
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:58:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C69944685
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:58:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718845099; cv=none; b=K0344C8aMVqFIHlwDsBB3U7gLZ8WX3MFCsyUerwd3mRPF7ZcF2KcPPDjvKgU3OTtZsxtMCkCWFSl3k981yugUEsvGj6bj4KDwnU7/MWednce9/T3Zcgb0G/bOd2qEiYY6i4dT8Bc/U/qbq17so+WErohSHO2q/Oz6FFvui0OkfU=
+	t=1718845101; cv=none; b=m04lQDjDCdjcxUCiA07UEM3yexcSSk9346JSfaAxX+HFsPf7bDO2YPBdt9c4aG09/ngdd8Xxk4dnj1Be20lmwoEbhEVFEXIxVpbOjTGXXUiJbaCDK16A2YEox04fBSM5IHAyzW1qPXZj7MxB+Viv7YaKoav1sQhoYFFONcC9P8Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718845099; c=relaxed/simple;
-	bh=g7LvSAcYdsgkwDgvcNB4keQhYUfqivjVYziPS0kVNj8=;
-	h=Date:To:From:Subject:Message-Id; b=lQ67gwIzwY3NtS7szZv1C6y8xEN19jm3ga/IOivoYR5jXVPmVwHtZxKcTZbANueRKEABvPYulWrs4Qzg8Biz6xsYvSAC+evlwNb71OkSPBfoZFdeXFar11X0gLF0WF70W0ZHhkO9WIiJoU5wmG/6lU+MnS3F07vZtO9XnWGJzyM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QL/1UEPn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718845101; c=relaxed/simple;
+	bh=DV2ywfFWQTkCGCpw4PsQ2YKtXG7gmPt84lnVTfP8OTU=;
+	h=Date:To:From:Subject:Message-Id; b=sQ4grhnRiIhCzLSbFNBD7GFETsieMItgnyfEaenTrqlbEivZ9Cyu7zzLKfjS6vYhQNJGO5S7U6Q92+xC1/HrLZ4xrnKa2QmvuX1kCauWJRjFzPPB82NOBoQoHuE6Q8hjH9+LqzJmSgzlLsNKBjjF4V3n534+bj/H+GLQa7+g/u0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vwa3TDcC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QL/1UEPn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98DA3C2BBFC;
-	Thu, 20 Jun 2024 00:58:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vwa3TDcC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F1A7C2BBFC;
+	Thu, 20 Jun 2024 00:58:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718845099;
-	bh=g7LvSAcYdsgkwDgvcNB4keQhYUfqivjVYziPS0kVNj8=;
+	s=korg; t=1718845101;
+	bh=DV2ywfFWQTkCGCpw4PsQ2YKtXG7gmPt84lnVTfP8OTU=;
 	h=Date:To:From:Subject:From;
-	b=QL/1UEPnwYxSU4XpmjvZqRObmN6JhQV7/bD7l8rfqXOy7Wxm9n8necMFZFJn1eg1m
-	 8sMxaf+KE26igqp0fQhnHC+0F5oO0IswbXXl9VvXOIvSIlpOl6KGheJMInruLrG04K
-	 6y5Q8HL4x/AI38Ip0Yv5pixgce+TDUL4nq+wfbVM=
-Date: Wed, 19 Jun 2024 17:58:19 -0700
+	b=vwa3TDcC/XS58l+U67BZYwwDovUuQSmvYm3XKEQPLMUv6MPaHvZSy00zXbAYZ2fKr
+	 Ed1BzzJxvcH4f9HysUg3B4yNptkz2WWguKvI9xW1pP7IbVPcOmYliZDGRVNhYN9knK
+	 x3ZNgu/ikK6UM/Whuaj74XWMU5PGe8R7eQm8gQ1o=
+Date: Wed, 19 Jun 2024 17:58:21 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,kasan-dev@googlegroups.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-increase-the-maximum-store-size-to-4096.patch added to mm-unstable branch
-Message-Id: <20240620005819.98DA3C2BBFC@smtp.kernel.org>
+Subject: + kmsan-fix-is_bad_asm_addr-on-arches-with-overlapping-address-spaces.patch added to mm-unstable branch
+Message-Id: <20240620005821.8F1A7C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmsan: increase the maximum store size to 4096
+     Subject: kmsan: fix is_bad_asm_addr() on arches with overlapping address spaces
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-increase-the-maximum-store-size-to-4096.patch
+     kmsan-fix-is_bad_asm_addr-on-arches-with-overlapping-address-spaces.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-increase-the-maximum-store-size-to-4096.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-fix-is_bad_asm_addr-on-arches-with-overlapping-address-spaces.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: kmsan: increase the maximum store size to 4096
-Date: Wed, 19 Jun 2024 17:43:39 +0200
+Subject: kmsan: fix is_bad_asm_addr() on arches with overlapping address spaces
+Date: Wed, 19 Jun 2024 17:43:40 +0200
 
-The inline assembly block in s390's chsc() stores that much.
+Comparing pointers with TASK_SIZE does not make sense when kernel and
+userspace overlap.  Skip the comparison when this is the case.
 
-Link: https://lkml.kernel.org/r/20240619154530.163232-5-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240619154530.163232-6-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -88,26 +89,21 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/instrumentation.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/kmsan/instrumentation.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/kmsan/instrumentation.c~kmsan-increase-the-maximum-store-size-to-4096
+--- a/mm/kmsan/instrumentation.c~kmsan-fix-is_bad_asm_addr-on-arches-with-overlapping-address-spaces
 +++ a/mm/kmsan/instrumentation.c
-@@ -110,11 +110,10 @@ void __msan_instrument_asm_store(void *a
+@@ -20,7 +20,8 @@
  
- 	ua_flags = user_access_save();
- 	/*
--	 * Most of the accesses are below 32 bytes. The two exceptions so far
--	 * are clwb() (64 bytes) and FPU state (512 bytes).
--	 * It's unlikely that the assembly will touch more than 512 bytes.
-+	 * Most of the accesses are below 32 bytes. The exceptions so far are
-+	 * clwb() (64 bytes), FPU state (512 bytes) and chsc() (4096 bytes).
- 	 */
--	if (size > 512) {
-+	if (size > 4096) {
- 		WARN_ONCE(1, "assembly store size too big: %ld\n", size);
- 		size = 8;
- 	}
+ static inline bool is_bad_asm_addr(void *addr, uintptr_t size, bool is_store)
+ {
+-	if ((u64)addr < TASK_SIZE)
++	if (IS_ENABLED(CONFIG_ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE) &&
++	    (u64)addr < TASK_SIZE)
+ 		return true;
+ 	if (!kmsan_get_metadata(addr, KMSAN_META_SHADOW))
+ 		return true;
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
