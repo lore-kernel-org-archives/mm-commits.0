@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79F8319B
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 01:12:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 150EA1C36
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 01:19:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718845975; cv=none; b=bME0cQv4UOIcVIr8n2JbatxmdeASrTxy8I/ECvBlMcZ1zzTJhwA8RgAJFGXF5+CU0gMfrJYLK9KdTX7AbXqClj7wfFVIGME0oGl9dtZQeNWAdeYQ1/ttSsD5x4+kkUzpPvYSL9IDIOAh0urHuU9jSuJyNo318O//xIYmgHb0urU=
+	t=1718846343; cv=none; b=I2IbADzTpk/RNlzEDqzW5xwdriJESLtlPhQCybkf/k08JACWsDQO02fCcgC6s59KowEjapnBErQfyBeq0qyNF2nr34BQElWJxwAEzhHe6/sAqjCGuZVtG7j5Z8Dh0yyV4mAVgH6w4FUyCF717QRThDyh0WLkuMaxAuv9hU0fkr0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718845975; c=relaxed/simple;
-	bh=BspsAefrh7v67ew53tNjxZRu/eZNGAeRzcviiN8g/7s=;
-	h=Date:To:From:Subject:Message-Id; b=YPkCrKg+KAHt7vwvecXm/Gx8SEejEtcG+bC4v5ErarYqzzwk+NxBXlr6BPfjQ3oePt9iM469Rfb70cSuLUA9zGMfiKyfQFD5QpTktEsVNZS7YaROPHSuo9Ce9qSxVB+Yt3XsJMd/VwnXE/K3EitkjrEGaojY91DCvv8E/ugLcqs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zBDyMeDB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718846343; c=relaxed/simple;
+	bh=IG2JLHDd1MKjrcaUxUv4nMVtGmqv2gjLk4bDyowlhpI=;
+	h=Date:To:From:Subject:Message-Id; b=ZIZ08Cya55cPbmiL233YmQWwRdE8nx9n8eKxw04DpMHkRQgEpxnR5RxYcHBB/YU+O/vfDAqAiHRDlVavVkqwzWLJTOdnzL4hDR2g+wkP0HVp6gifv1CEy1hDwcRLylONhIZ0wQ+5GhxdT3MGpJldjkR3pA8Dw5cYLzGGmFUkFTU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rRGgvhYj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zBDyMeDB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03E9AC2BBFC;
-	Thu, 20 Jun 2024 01:12:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rRGgvhYj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76804C32786;
+	Thu, 20 Jun 2024 01:19:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718845975;
-	bh=BspsAefrh7v67ew53tNjxZRu/eZNGAeRzcviiN8g/7s=;
+	s=korg; t=1718846342;
+	bh=IG2JLHDd1MKjrcaUxUv4nMVtGmqv2gjLk4bDyowlhpI=;
 	h=Date:To:From:Subject:From;
-	b=zBDyMeDBoCC3+76sm1QL/WNKUdA2jVmffjpMTi+XG1gMvr0SmXp241rbbxg265lmE
-	 3tHlIiI+GOVCxkRJhoCA1YidI1it4Xz2txL8LZaeceYT/rxH1iR8jFuywJfaL5u3Hd
-	 c0UZd6OGs6IH5/clq4i+Ce1M3MCHZCvzoSPMLhCs=
-Date: Wed, 19 Jun 2024 18:12:54 -0700
-To: mm-commits@vger.kernel.org,mpe@ellerman.id.au,kirill.shutemov@linux.intel.com,kbingham@kernel.org,jan.kiszka@siemens.com,kuan-ying.lee@canonical.com,akpm@linux-foundation.org
+	b=rRGgvhYjrnn27x/mzP8mFy1L4faNpY1eZK6tiHJa/Sb8VTWCu0ii6A2woV1aH0Oi8
+	 8fyEU+yW++fiEn/fzkjEfu7PekI7ePksXHj1tAz+2SmVPqV9fPbz6GaX0u5ttqN6nU
+	 ylJci9yKkCa2N3BSPSZjVD6OJOYxpnm8vpdMeUpk=
+Date: Wed, 19 Jun 2024 18:19:01 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,jane.chu@oracle.com,ioworker0@gmail.com,jiaqiyan@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-rename-pool_index-to-pool_index_plus_1.patch added to mm-nonmm-unstable branch
-Message-Id: <20240620011255.03E9AC2BBFC@smtp.kernel.org>
+Subject: + mm-memory-failure-refactor-log-format-in-unpoison_memory.patch added to mm-unstable branch
+Message-Id: <20240620011902.76804C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/gdb: rename pool_index to pool_index_plus_1
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-rename-pool_index-to-pool_index_plus_1.patch
+     Subject: mm/memory-failure: refactor log format in unpoison_memory
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memory-failure-refactor-log-format-in-unpoison_memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-rename-pool_index-to-pool_index_plus_1.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-refactor-log-format-in-unpoison_memory.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,64 +58,120 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kuan-Ying Lee <kuan-ying.lee@canonical.com>
-Subject: scripts/gdb: rename pool_index to pool_index_plus_1
-Date: Wed, 19 Jun 2024 15:49:11 +0800
+From: Jiaqi Yan <jiaqiyan@google.com>
+Subject: mm/memory-failure: refactor log format in unpoison_memory
+Date: Wed, 19 Jun 2024 06:33:55 +0000
 
-We encounter the following issue after commit a6c1d9cb9a68 ("stackdepot:
-rename pool_index to pool_index_plus_1").
+Logs from memory_failure and other memory-failure.c code follow the
+format:
 
-(gdb) lx-dump-page-owner --pfn 262144
-...
-Python Exception <class 'gdb.error'>: There is no member named pool_index.
-Error occurred in Python: There is no member named pool_index.
+  "Memory failure: 0x{pfn}: ${lower_case_message}"
 
-We rename pool_index to pool_index_plus_1 to fix this issue.
+Convert the logs in unpoison_memory to follow similar format:
 
-Link: https://lkml.kernel.org/r/20240619074911.100434-7-kuan-ying.lee@canonical.com
-Fixes: a6c1d9cb9a68 ("stackdepot: rename pool_index to pool_index_plus_1")
-Signed-off-by: Kuan-Ying Lee <kuan-ying.lee@canonical.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+  "Unpoison: 0x${pfn}: ${lower_case_message}"
+
+For example (from local test):
+  [ 1331.938397] Unpoison: 0x144bc8: page was already unpoisoned
+
+No functional change in this commit.
+
+Link: https://lkml.kernel.org/r/20240619063355.171313-1-jiaqiyan@google.com
+Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/stackdepot.py |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/scripts/gdb/linux/stackdepot.py~scripts-gdb-rename-pool_index-to-pool_index_plus_1
-+++ a/scripts/gdb/linux/stackdepot.py
-@@ -27,14 +27,18 @@ def stack_depot_fetch(handle):
-     offset = parts['offset'] << DEPOT_STACK_ALIGN
-     pools_num = gdb.parse_and_eval('pools_num')
+--- a/mm/memory-failure.c~mm-memory-failure-refactor-log-format-in-unpoison_memory
++++ a/mm/memory-failure.c
+@@ -2526,7 +2526,7 @@ static int __init memory_failure_init(vo
+ core_initcall(memory_failure_init);
  
--    if parts['pool_index'] > pools_num:
-+    if handle == 0:
-+        raise gdb.GdbError("handle is 0\n")
-+
-+    pool_index = parts['pool_index_plus_1'] - 1
-+    if pool_index >= pools_num:
-         gdb.write("pool index %d out of bounds (%d) for stack id 0x%08x\n" % (parts['pool_index'], pools_num, handle))
-         return gdb.Value(0), 0
+ #undef pr_fmt
+-#define pr_fmt(fmt)	fmt
++#define pr_fmt(fmt)	"Unpoison: " fmt
+ #define unpoison_pr_info(fmt, pfn, rs)			\
+ ({							\
+ 	if (__ratelimit(rs))				\
+@@ -2564,27 +2564,27 @@ int unpoison_memory(unsigned long pfn)
+ 	mutex_lock(&mf_mutex);
  
-     stack_pools = gdb.parse_and_eval('stack_pools')
+ 	if (hw_memory_failure) {
+-		unpoison_pr_info("Unpoison: Disabled after HW memory failure %#lx\n",
++		unpoison_pr_info("%#lx: disabled after HW memory failure\n",
+ 				 pfn, &unpoison_rs);
+ 		ret = -EOPNOTSUPP;
+ 		goto unlock_mutex;
+ 	}
  
-     try:
--        pool = stack_pools[parts['pool_index']]
-+        pool = stack_pools[pool_index]
-         stack = (pool + gdb.Value(offset).cast(utils.get_size_t_type())).cast(stack_record_type.get_type().pointer())
-         size = int(stack['size'].cast(utils.get_ulong_type()))
-         return stack['entries'], size
+ 	if (is_huge_zero_folio(folio)) {
+-		unpoison_pr_info("Unpoison: huge zero page is not supported %#lx\n",
++		unpoison_pr_info("%#lx: huge zero page is not supported\n",
+ 				 pfn, &unpoison_rs);
+ 		ret = -EOPNOTSUPP;
+ 		goto unlock_mutex;
+ 	}
+ 
+ 	if (!PageHWPoison(p)) {
+-		unpoison_pr_info("Unpoison: Page was already unpoisoned %#lx\n",
++		unpoison_pr_info("%#lx: page was already unpoisoned\n",
+ 				 pfn, &unpoison_rs);
+ 		goto unlock_mutex;
+ 	}
+ 
+ 	if (folio_ref_count(folio) > 1) {
+-		unpoison_pr_info("Unpoison: Someone grabs the hwpoison page %#lx\n",
++		unpoison_pr_info("%#lx: someone grabs the hwpoison page\n",
+ 				 pfn, &unpoison_rs);
+ 		goto unlock_mutex;
+ 	}
+@@ -2594,13 +2594,13 @@ int unpoison_memory(unsigned long pfn)
+ 		goto unlock_mutex;
+ 
+ 	if (folio_mapped(folio)) {
+-		unpoison_pr_info("Unpoison: Someone maps the hwpoison page %#lx\n",
++		unpoison_pr_info("%#lx: someone maps the hwpoison page\n",
+ 				 pfn, &unpoison_rs);
+ 		goto unlock_mutex;
+ 	}
+ 
+ 	if (folio_mapping(folio)) {
+-		unpoison_pr_info("Unpoison: the hwpoison page has non-NULL mapping %#lx\n",
++		unpoison_pr_info("%#lx: the hwpoison page has non-NULL mapping\n",
+ 				 pfn, &unpoison_rs);
+ 		goto unlock_mutex;
+ 	}
+@@ -2619,7 +2619,7 @@ int unpoison_memory(unsigned long pfn)
+ 			ret = put_page_back_buddy(p) ? 0 : -EBUSY;
+ 		} else {
+ 			ret = ghp;
+-			unpoison_pr_info("Unpoison: failed to grab page %#lx\n",
++			unpoison_pr_info("%#lx: failed to grab page\n",
+ 					 pfn, &unpoison_rs);
+ 		}
+ 	} else {
+@@ -2644,7 +2644,7 @@ unlock_mutex:
+ 	if (!ret) {
+ 		if (!huge)
+ 			num_poisoned_pages_sub(pfn, 1);
+-		unpoison_pr_info("Unpoison: Software-unpoisoned page %#lx\n",
++		unpoison_pr_info("%#lx: software-unpoisoned page\n",
+ 				 page_to_pfn(p), &unpoison_rs);
+ 	}
+ 	return ret;
 _
 
-Patches currently in -mm which might be from kuan-ying.lee@canonical.com are
+Patches currently in -mm which might be from jiaqiyan@google.com are
 
-scripts-gdb-redefine-max_order-sanely.patch
-scripts-gdb-rework-module-va-range.patch
-scripts-gdb-change-the-layout-of-vmemmap.patch
-scripts-gdb-set-vabits_actual-based-on-tcr_el1.patch
-scripts-gdb-change-va_bits_min-when-we-use-16k-page.patch
-scripts-gdb-rename-pool_index-to-pool_index_plus_1.patch
+mm-memory-failure-userspace-controls-soft-offlining-pages.patch
+selftest-mm-test-enable_soft_offline-behaviors.patch
+docs-mm-add-enable_soft_offline-sysctl.patch
+mm-memory-failure-refactor-log-format-in-unpoison_memory.patch
 
