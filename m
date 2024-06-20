@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F3A78C04
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:58:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 894DB748A
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:58:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718845124; cv=none; b=a//wzaarLSlSKwec0N6ok3OTvitBrYLBD8bBjjmKu3+rHrrFxOJLMJ+Oeo8WQ6Mbhgc5H/Cs8PhimdLVeU1NtyMTd/vkdwhzxY0jgjEgQ1CHZfdG+OJ4Ez0sYEhvOB+bgb3iXrl2Gsh1YHmJkBc8K9LCBhHlt6hBzZv0gNcn2JA=
+	t=1718845126; cv=none; b=BKirzZ8ZoDCb59BOk+yXcXKR9BR7MCRCdnWdgA7MDNZUGAZjDTijGH4q+oZIB/I+nKDYLztS3LsgGeT6F10yqnwndBIqKg4Y9RXGNGG+jaWtLX7fjsYWatEJXSRuWSBJBYkc34iZgB02DJwCw7Tg62hWRmjkG+Ana2Prokv2oRw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718845124; c=relaxed/simple;
-	bh=E9bT0FT65z0KWxbGxz9YMh0UYuPR2t1JUBapcm+zn2k=;
-	h=Date:To:From:Subject:Message-Id; b=fs6LoRg5Bo2m399DXCp9YoKjGZCBHzeVlAFNHsvdTQ8p6I0kUyuWsaOIGsexn6rPtHq8uBZtC+22uGnUSTIpkMS5XJ8MVtBd/6OLj719ghIMDYfMSdS471EDOSpaBqjAvbnbuThvyNkBvXZHYFYXhaOLWrc7Vsq2C2jdfN1PGNQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b/W2jgy/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718845126; c=relaxed/simple;
+	bh=bqSkwvR8CIvCp4c/GvK0ezQ+KruUznhzfUhhB0EWNQw=;
+	h=Date:To:From:Subject:Message-Id; b=Nmc/4mzJknUbTLyB5ZVq7CtQ14/Y3bi7GbPoBm8mXnJbp8/wuRQwzT3YGKrzBLaFuaTc/2F/69UtuaVO4KqoRqmmhTaJLEdhntCAU9O1P6wtRGpFE6mJo1PHLaMsvS8cxik1o92z+qnzR8LEPy6icZcbJWGQfpB4RtxihBS9B+8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MD6PmYuO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b/W2jgy/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63957C2BBFC;
-	Thu, 20 Jun 2024 00:58:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MD6PmYuO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53CF4C2BBFC;
+	Thu, 20 Jun 2024 00:58:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718845124;
-	bh=E9bT0FT65z0KWxbGxz9YMh0UYuPR2t1JUBapcm+zn2k=;
+	s=korg; t=1718845126;
+	bh=bqSkwvR8CIvCp4c/GvK0ezQ+KruUznhzfUhhB0EWNQw=;
 	h=Date:To:From:Subject:From;
-	b=b/W2jgy/aYGVY9uxwvPshrY5jNnTEqpzmuwZqmj5KXHFrAVUAl2U4Rav9B5J+6vBT
-	 cdSRcGLAEw2lvO2XUs/Bd9ezxAI8m1eSVRFPAZFKx/qB8s68NGofE/V/blT8OYraOi
-	 w3X3qA/TcoQxNEy4UtVTu/JLN+M6uI7aeex5XB5Y=
-Date: Wed, 19 Jun 2024 17:58:43 -0700
+	b=MD6PmYuOxkM1742CIXpVW+2uq+iGJhyyoQNMRBvB1T2QbtDqgFNck4FrFLam9ZtHr
+	 mKKD3ZM0aPiyS8paXZWgXepiSvvsljNN6KJcVDJS7HaceLxJOGPKQHUt/79r65psc3
+	 mHDpJ7MlhQMwCD50BEe8er+dEFZNUJTmRvH0xIAQ=
+Date: Wed, 19 Jun 2024 17:58:45 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,kasan-dev@googlegroups.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-do-not-round-up-pg_data_t-size.patch added to mm-unstable branch
-Message-Id: <20240620005844.63957C2BBFC@smtp.kernel.org>
+Subject: + mm-slub-let-kmsan-access-metadata.patch added to mm-unstable branch
+Message-Id: <20240620005846.53CF4C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmsan: do not round up pg_data_t size
+     Subject: mm: slub: let KMSAN access metadata
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-do-not-round-up-pg_data_t-size.patch
+     mm-slub-let-kmsan-access-metadata.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-do-not-round-up-pg_data_t-size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slub-let-kmsan-access-metadata.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,24 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: kmsan: do not round up pg_data_t size
-Date: Wed, 19 Jun 2024 17:43:50 +0200
+Subject: mm: slub: let KMSAN access metadata
+Date: Wed, 19 Jun 2024 17:43:51 +0200
 
-x86's alloc_node_data() rounds up node data size to PAGE_SIZE.  It's not
-explained why it's needed, but it's most likely for performance reasons,
-since the padding bytes are not used anywhere.  Some other architectures
-do it as well, e.g., mips rounds it up to the cache line size.
+Building the kernel with CONFIG_SLUB_DEBUG and CONFIG_KMSAN causes KMSAN
+to complain about touching redzones in kfree().
 
-kmsan_init_shadow() initializes metadata for each node data and assumes
-the x86 rounding, which does not match other architectures.  This may
-cause the range end to overshoot the end of available memory, in turn
-causing virt_to_page_or_null() in kmsan_init_alloc_meta_for_range() to
-return NULL, which leads to kernel panic shortly after.
+Fix by extending the existing KASAN-related metadata_access_enable() and
+metadata_access_disable() functions to KMSAN.
 
-Since the padding bytes are not used, drop the rounding.
-
-Link: https://lkml.kernel.org/r/20240619154530.163232-16-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240619154530.163232-17-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
@@ -95,24 +89,27 @@ Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/kmsan/init.c~kmsan-do-not-round-up-pg_data_t-size
-+++ a/mm/kmsan/init.c
-@@ -72,7 +72,7 @@ static void __init kmsan_record_future_s
-  */
- void __init kmsan_init_shadow(void)
+--- a/mm/slub.c~mm-slub-let-kmsan-access-metadata
++++ a/mm/slub.c
+@@ -829,10 +829,12 @@ static int disable_higher_order_debug;
+ static inline void metadata_access_enable(void)
  {
--	const size_t nd_size = roundup(sizeof(pg_data_t), PAGE_SIZE);
-+	const size_t nd_size = sizeof(pg_data_t);
- 	phys_addr_t p_start, p_end;
- 	u64 loop;
- 	int nid;
+ 	kasan_disable_current();
++	kmsan_disable_current();
+ }
+ 
+ static inline void metadata_access_disable(void)
+ {
++	kmsan_enable_current();
+ 	kasan_enable_current();
+ }
+ 
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
