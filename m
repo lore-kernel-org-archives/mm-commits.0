@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDD9F5684
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:59:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8D815661
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:59:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718845147; cv=none; b=lysKqLxppq+VL4hEaddfCYo40CH+F5xr9y4e1Z/6skJS7qHZEyHw/pMvAXn/Ux9GagR03B/0QEGc2xvdVPQy8nPMGiM0ymC50/aZkVGA2Z/HgXmvk2npH8OvblVYynNXnpfrpBoRa7MUCXTZy2drNLMaERuLAYlGxVDCZXHNkTI=
+	t=1718845149; cv=none; b=LbQoRkYM1Z+msmu9fCZDBv52c1D/uipgoVe3sIdfn8+itD8D62b/3mqz4Wiuxx4tlrRJ9vFYn8xM/Xq7kX1I2jyrokmHktnByzEnNYH5Hhu8jpCoh5CyH+ABMB2v8Vo9P7101jJsMHy4FyCrcv+BAaeQsIpA61brmzKDumLPYoQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718845147; c=relaxed/simple;
-	bh=F+KJi4+OzsXI4Kl+a7JWnNO0nqVG4V/OiICA1/0rY2g=;
-	h=Date:To:From:Subject:Message-Id; b=tVdVvMFpGQ9HYgp3VFlvudNPlWvgovg/u3oiuSv9aUiKaY/ygJKjwtNlLeyyWhDsXz7Dfh9BZkhgj6l9UP+b1o+lL9m1uh0aLNHnnHT2dayOa3psS0crEIssxMv9hm+1KJOLxbvJDs8qwtyWAbZQsncNfV99Ww1mYY0HqO9qZB4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2E44P0Nl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718845149; c=relaxed/simple;
+	bh=kil5QO7oGhcWIADyk2+bEs0WtziBXQs1yvVaIz0Gx0w=;
+	h=Date:To:From:Subject:Message-Id; b=GyuofQ+QPwxLB71DSmdDDKxr1YNltyjlPSqR74PxnyHSxJ1Q2jVkqNhJcDnAJIxCGTaqLc5VpQ09BHj8bIQJkLB/Uu5CZHF5IzSTIn/ReB2JYIJoOG/xs3RlGo9CqYaggUyzTsV8vWJuR7S0KFWJ2EVMkhkXWmfM+9it9hjctXg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Waa6SUXs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2E44P0Nl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99D6CC2BBFC;
-	Thu, 20 Jun 2024 00:59:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Waa6SUXs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DA00C2BBFC;
+	Thu, 20 Jun 2024 00:59:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718845147;
-	bh=F+KJi4+OzsXI4Kl+a7JWnNO0nqVG4V/OiICA1/0rY2g=;
+	s=korg; t=1718845149;
+	bh=kil5QO7oGhcWIADyk2+bEs0WtziBXQs1yvVaIz0Gx0w=;
 	h=Date:To:From:Subject:From;
-	b=2E44P0NlO7qvaEkq8WlRS+YcW0z2/1br+r6h2alUaEhMnuWBdsHjldfkdj3HM/fhg
-	 0WlP2OJ/0m5T+ITW0+l6Wnfavu5j/7kvkI/ouzk3ID19LnptG0GbB2B1tTQC8Zr3j+
-	 8fH/c5IBgzUBIcLsu94aPj6Wlk017njLzkVoAocU=
-Date: Wed, 19 Jun 2024 17:59:07 -0700
+	b=Waa6SUXsSnJai/BEu0j5KAMSBjee+RUtk/YgLe4DN6g6NLLj0UoDvJI8ldVtO+VfW
+	 ZNH4VjNJHTz/I8umLMjtqLIlzwUsTGuYCN4dBfeFwJxLy8YHhADBmWlCYUHFXtrHsP
+	 xJlpHvm942Iml2LRd6xYVeCFwIvfIdmEQkkahspA=
+Date: Wed, 19 Jun 2024 17:59:09 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,kasan-dev@googlegroups.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-cpumf-unpoison-stcctm-output-buffer.patch added to mm-unstable branch
-Message-Id: <20240620005907.99D6CC2BBFC@smtp.kernel.org>
+Subject: + s390-diag-unpoison-diag224-output-buffer.patch added to mm-unstable branch
+Message-Id: <20240620005909.8DA00C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/cpumf: unpoison STCCTM output buffer
+     Subject: s390/diag: unpoison diag224() output buffer
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-cpumf-unpoison-stcctm-output-buffer.patch
+     s390-diag-unpoison-diag224-output-buffer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-cpumf-unpoison-stcctm-output-buffer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-diag-unpoison-diag224-output-buffer.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: s390/cpumf: unpoison STCCTM output buffer
-Date: Wed, 19 Jun 2024 17:44:01 +0200
+Subject: s390/diag: unpoison diag224() output buffer
+Date: Wed, 19 Jun 2024 17:44:02 +0200
 
-stcctm() uses the "Q" constraint for dest, therefore KMSAN does not
-understand that it fills multiple doublewords pointed to by dest, not just
-one.  This results in false positives.
+Diagnose 224 stores 4k bytes, which currently cannot be deduced from the
+inline assembly constraints.  This leads to KMSAN false positives.
 
-Unpoison the whole dest manually with kmsan_unpoison_memory().
+Fix the constraints by using a 4k-sized struct instead of a raw pointer. 
+While at it, prettify them too.
 
-Link: https://lkml.kernel.org/r/20240619154530.163232-27-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240619154530.163232-28-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Reported-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Suggested-by: Heiko Carstens <hca@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
-Acked-by: Heiko Carstens <hca@linux.ibm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -92,31 +92,30 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/cpu_mf.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/s390/kernel/diag.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/arch/s390/include/asm/cpu_mf.h~s390-cpumf-unpoison-stcctm-output-buffer
-+++ a/arch/s390/include/asm/cpu_mf.h
-@@ -10,6 +10,7 @@
- #define _ASM_S390_CPU_MF_H
+--- a/arch/s390/kernel/diag.c~s390-diag-unpoison-diag224-output-buffer
++++ a/arch/s390/kernel/diag.c
+@@ -278,12 +278,14 @@ int diag224(void *ptr)
+ 	int rc = -EOPNOTSUPP;
  
- #include <linux/errno.h>
-+#include <linux/kmsan-checks.h>
- #include <asm/asm-extable.h>
- #include <asm/facility.h>
- 
-@@ -239,6 +240,11 @@ static __always_inline int stcctm(enum s
- 		: "=d" (cc)
- 		: "Q" (*dest), "d" (range), "i" (set)
- 		: "cc", "memory");
-+	/*
-+	 * If cc == 2, less than RANGE counters are stored, but it's not easy
-+	 * to tell how many. Always unpoison the whole range for simplicity.
-+	 */
-+	kmsan_unpoison_memory(dest, range * sizeof(u64));
- 	return cc;
+ 	diag_stat_inc(DIAG_STAT_X224);
+-	asm volatile(
+-		"	diag	%1,%2,0x224\n"
+-		"0:	lhi	%0,0x0\n"
++	asm volatile("\n"
++		"	diag	%[type],%[addr],0x224\n"
++		"0:	lhi	%[rc],0\n"
+ 		"1:\n"
+ 		EX_TABLE(0b,1b)
+-		: "+d" (rc) :"d" (0), "d" (addr) : "memory");
++		: [rc] "+d" (rc)
++		, "=m" (*(struct { char buf[PAGE_SIZE]; } *)ptr)
++		: [type] "d" (0), [addr] "d" (addr));
+ 	return rc;
  }
- 
+ EXPORT_SYMBOL(diag224);
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
