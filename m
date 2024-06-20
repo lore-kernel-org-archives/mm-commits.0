@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91C3F8475
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:58:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA95E6FCC
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:58:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718845132; cv=none; b=r/uTZJlDclRsFRWIHAic1FASPgFGAMOODmCTLzBKqgNapcs7Gtf3tUmOopRjeSv6WkZXhkD6hcNQ7IqlirgEZncngz/P72m2JRexY4oXhbHhf9bUMtJen5et1OQ2EqrAOE2hXbOHJncUZLx1Cq074st1tNoaYdQAfQu8uANPy6U=
+	t=1718845135; cv=none; b=eA8QZWTsPFSkiJl8rsGA8Ssa3bQk8o4qXPzwJyzQfw3+FFxPoH31+ko43TpQg9e5rcFKpc0GkbxNyq5KUFl1IR/DUNwLuTJIfpQqSgkGz0LlY8b2mFq6Si03soxSL/7A+PnGtk26OqSVnb21kagePGLVHYKHoX3edafcuos8GwA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718845132; c=relaxed/simple;
-	bh=CnNNkZo3SYl6H3CtoZCtyK0RENrAtlOE9Ak8KY6q9Gg=;
-	h=Date:To:From:Subject:Message-Id; b=QkBTd30bqdcodfdAHiy3teKyqcI3XgHpLzFgiO5p/+l4P0HUOMwCLxTDu/NcTF/uxyhINMCHM7cYRYx51+FLTwEcY9MtmrUHrQinh1SqDtH3fPbiBjeQHqhazDT4kaCFEYPTr1K01HKgyX5jo3YjnlNHLRk3YWERNxwujlT6dkg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PMHrSKxk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718845135; c=relaxed/simple;
+	bh=X0S47WUR5fsjlNnQHwvuqTz2RX7FKFc/E1xvy/x6SM8=;
+	h=Date:To:From:Subject:Message-Id; b=DR9ACScyB71F5DVPFkbwAMuS0S5XL8Gp9qfwJmZ59mKw5t41YImshHXwd6FCqxTCoOrwDsK7wVLR5F4M0ufsYLdKV7oo1BLsPzXr3xg441aYek2lNCC9kiDzzN/40bnr5VdQiidrovBJZKVX6nyTwm3qWPCwKlBtQKvUFGJMaw0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qRaQxXYa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PMHrSKxk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 665FFC2BBFC;
-	Thu, 20 Jun 2024 00:58:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qRaQxXYa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF516C2BBFC;
+	Thu, 20 Jun 2024 00:58:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718845132;
-	bh=CnNNkZo3SYl6H3CtoZCtyK0RENrAtlOE9Ak8KY6q9Gg=;
+	s=korg; t=1718845134;
+	bh=X0S47WUR5fsjlNnQHwvuqTz2RX7FKFc/E1xvy/x6SM8=;
 	h=Date:To:From:Subject:From;
-	b=PMHrSKxkzgPqsk0AluododnCTfs5Mv8eXF0hqOFiz+UBxjMVU1yCwqWpZyEtYJU27
-	 Zb1x2QDKUtwXjpjGANBwrZdKLMOzt+SLHNrZG1i2zjmlMXt6cz1JjHmjHMMAtTL3ND
-	 wJdtCBYeuPaXJywG42DY03OvYlb7/iVNqbSPLUCU=
-Date: Wed, 19 Jun 2024 17:58:51 -0700
+	b=qRaQxXYasQi2gbwPd7HW2juC4UvhjVwzJUFSjiSkW5fYgRlXJXmClKNXy5t1LKgkl
+	 Gr5QAKHdsXY/K/U90Ey5WBx+ivDgkIxtY/N+CCT7+oVkmVQItSHFXVFzm1qiFL5Hw3
+	 iE0B5tgPtRnm2pe/t4gBvzRh67nqHoVoitjoHEmM=
+Date: Wed, 19 Jun 2024 17:58:54 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,kasan-dev@googlegroups.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-zlib-unpoison-dfltcc-output-buffers.patch added to mm-unstable branch
-Message-Id: <20240620005852.665FFC2BBFC@smtp.kernel.org>
+Subject: + kmsan-accept-ranges-starting-with-0-on-s390.patch added to mm-unstable branch
+Message-Id: <20240620005854.BF516C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/zlib: unpoison DFLTCC output buffers
+     Subject: kmsan: accept ranges starting with 0 on s390
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-zlib-unpoison-dfltcc-output-buffers.patch
+     kmsan-accept-ranges-starting-with-0-on-s390.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-zlib-unpoison-dfltcc-output-buffers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-accept-ranges-starting-with-0-on-s390.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: lib/zlib: unpoison DFLTCC output buffers
-Date: Wed, 19 Jun 2024 17:43:54 +0200
+Subject: kmsan: accept ranges starting with 0 on s390
+Date: Wed, 19 Jun 2024 17:43:55 +0200
 
-The constraints of the DFLTCC inline assembly are not precise: they do not
-communicate the size of the output buffers to the compiler, so it cannot
-automatically instrument it.
+On s390 the virtual address 0 is valid (current CPU's lowcore is mapped
+there), therefore KMSAN should not complain about it.
 
-Add the manual kmsan_unpoison_memory() calls for the output buffers.  The
-logic is the same as in [1].
+Disable the respective check on s390.  There doesn't seem to be a Kconfig
+option to describe this situation, so explicitly check for s390.
 
-[1] https://github.com/zlib-ng/zlib-ng/commit/1f5ddcc009ac3511e99fc88736a9e1a6381168c5
-
-Link: https://lkml.kernel.org/r/20240619154530.163232-20-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240619154530.163232-21-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Reported-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -95,78 +92,23 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/zlib_dfltcc/dfltcc.h      |    1 +
- lib/zlib_dfltcc/dfltcc_util.h |   28 ++++++++++++++++++++++++++++
- 2 files changed, 29 insertions(+)
+ mm/kmsan/init.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/lib/zlib_dfltcc/dfltcc.h~lib-zlib-unpoison-dfltcc-output-buffers
-+++ a/lib/zlib_dfltcc/dfltcc.h
-@@ -80,6 +80,7 @@ struct dfltcc_param_v0 {
-     uint8_t csb[1152];
- };
+--- a/mm/kmsan/init.c~kmsan-accept-ranges-starting-with-0-on-s390
++++ a/mm/kmsan/init.c
+@@ -33,7 +33,10 @@ static void __init kmsan_record_future_s
+ 	bool merged = false;
  
-+static_assert(offsetof(struct dfltcc_param_v0, csb) == 384);
- static_assert(sizeof(struct dfltcc_param_v0) == 1536);
+ 	KMSAN_WARN_ON(future_index == NUM_FUTURE_RANGES);
+-	KMSAN_WARN_ON((nstart >= nend) || !nstart || !nend);
++	KMSAN_WARN_ON((nstart >= nend) ||
++		      /* Virtual address 0 is valid on s390. */
++		      (!IS_ENABLED(CONFIG_S390) && !nstart) ||
++		      !nend);
+ 	nstart = ALIGN_DOWN(nstart, PAGE_SIZE);
+ 	nend = ALIGN(nend, PAGE_SIZE);
  
- #define CVT_CRC32 0
---- a/lib/zlib_dfltcc/dfltcc_util.h~lib-zlib-unpoison-dfltcc-output-buffers
-+++ a/lib/zlib_dfltcc/dfltcc_util.h
-@@ -2,6 +2,8 @@
- #ifndef DFLTCC_UTIL_H
- #define DFLTCC_UTIL_H
- 
-+#include "dfltcc.h"
-+#include <linux/kmsan-checks.h>
- #include <linux/zutil.h>
- 
- /*
-@@ -20,6 +22,7 @@ typedef enum {
- #define DFLTCC_CMPR 2
- #define DFLTCC_XPND 4
- #define HBT_CIRCULAR (1 << 7)
-+#define DFLTCC_FN_MASK ((1 << 7) - 1)
- #define HB_BITS 15
- #define HB_SIZE (1 << HB_BITS)
- 
-@@ -34,6 +37,7 @@ static inline dfltcc_cc dfltcc(
- )
- {
-     Byte *t2 = op1 ? *op1 : NULL;
-+    unsigned char *orig_t2 = t2;
-     size_t t3 = len1 ? *len1 : 0;
-     const Byte *t4 = op2 ? *op2 : NULL;
-     size_t t5 = len2 ? *len2 : 0;
-@@ -59,6 +63,30 @@ static inline dfltcc_cc dfltcc(
-                      : "cc", "memory");
-     t2 = r2; t3 = r3; t4 = r4; t5 = r5;
- 
-+    /*
-+     * Unpoison the parameter block and the output buffer.
-+     * This is a no-op in non-KMSAN builds.
-+     */
-+    switch (fn & DFLTCC_FN_MASK) {
-+    case DFLTCC_QAF:
-+        kmsan_unpoison_memory(param, sizeof(struct dfltcc_qaf_param));
-+        break;
-+    case DFLTCC_GDHT:
-+        kmsan_unpoison_memory(param, offsetof(struct dfltcc_param_v0, csb));
-+        break;
-+    case DFLTCC_CMPR:
-+        kmsan_unpoison_memory(param, sizeof(struct dfltcc_param_v0));
-+        kmsan_unpoison_memory(
-+                orig_t2,
-+                t2 - orig_t2 +
-+                    (((struct dfltcc_param_v0 *)param)->sbb == 0 ? 0 : 1));
-+        break;
-+    case DFLTCC_XPND:
-+        kmsan_unpoison_memory(param, sizeof(struct dfltcc_param_v0));
-+        kmsan_unpoison_memory(orig_t2, t2 - orig_t2);
-+        break;
-+    }
-+
-     if (op1)
-         *op1 = t2;
-     if (len1)
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
