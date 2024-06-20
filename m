@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBC315661
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:59:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9F635661
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:59:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718845165; cv=none; b=ZBrIBrKKGzhUfE3OTHE15rq550XbFOjT4Gd5gOjtvPmO9YwfwBbAKBqIsMG//nrJRNWqgF8b7FIw6l3pYBQITlEd4jF/OQFLE0G/Gt6eqkd4DkE618gRK24IrPrkqkjGr2HGPSDQItTeD1J4N0V5pNsWB2wCGdCZBa0yi285iUE=
+	t=1718845166; cv=none; b=bXFth3RaeFv4Bt+brO0CG//CoPXoAh5S2Jn0aMrxv2qRG+A9t1Y4bFHnd68UovU1sXJVVC7SbmKNoU9H+spj4WzFcerDzurgYOG8U6WqLd928kv7492C5jDhTwD/sjWG0i32wAKmuyBCApm9Ov7Qkb79ae9NGdPXyObZO9X8pLk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718845165; c=relaxed/simple;
-	bh=z6gY46iDf2hOG1sr2/9VsIt6xQs6wSKzN70/iUBJVSY=;
-	h=Date:To:From:Subject:Message-Id; b=syRa99UBWg4Vh5lCOWa+UDZxAvAhwjG0mUMAZOQdrSHapmSOuIS3YY+88UGYPEMPFLlszkhPrxuh6kVbwTlmSesZlJ8ewlfJwv2qwiVN8Of9zeIOMhez3t4CFguA+pEamz36GgQK/L38YywxsbB6Nb/k6KTvc8rukbd0ttHiSpg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FKedlEoM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718845166; c=relaxed/simple;
+	bh=CpgWItqpK4qoRkYQxsGAl07Yoro1ARWMI1SbG/mX0oI=;
+	h=Date:To:From:Subject:Message-Id; b=kouAE40jFabJi2jotaTQCt8OPZJ5brhJDUfBTW3zAhQIgMVC3qIDw9aflZ7MvgRBRQkLa+B6QZlc688xiDkYCLE7z3q+SW0Mi8P6YByXPXsPAfhGSc2GaN7xUzmF5HpxhS6jd9ps0tm0nFkl6aOkE+wQd0r7XCZrNSjqpa5W0NQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uv/DHq0Q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FKedlEoM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7036C2BBFC;
-	Thu, 20 Jun 2024 00:59:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uv/DHq0Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4CFCC2BBFC;
+	Thu, 20 Jun 2024 00:59:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718845164;
-	bh=z6gY46iDf2hOG1sr2/9VsIt6xQs6wSKzN70/iUBJVSY=;
+	s=korg; t=1718845166;
+	bh=CpgWItqpK4qoRkYQxsGAl07Yoro1ARWMI1SbG/mX0oI=;
 	h=Date:To:From:Subject:From;
-	b=FKedlEoMgsxWacuynjCr5XbRiHWEnEXzph3f8rjdsZuCECnoo+UYON1VSB63DrDzr
-	 0DgyFuAjQGLfLVCsM2sHABFBNmAOt2IvRungYJPpUe4mhBI9xsXfY08Bs6g6dXZ9+Q
-	 CDbvQTkVltcPGemTpV+iosg9Y5rPUgE/HHxAfy/0=
-Date: Wed, 19 Jun 2024 17:59:24 -0700
+	b=uv/DHq0QiL/9lyu/Af7O95i1Gu1OpYQyhW6aiVDm/on35CxsS4hOtHGqi0xD7Iozz
+	 gQcho/R2RklNGSZbjT80FpDb//l4LAaCrvjxXjO0hnjdI2bBU3o1/ctIeQXUwoXaB+
+	 hryqi4CyRoozvXwxjUS7LJcIAU5aybsZWxRxNSQA=
+Date: Wed, 19 Jun 2024 17:59:26 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,kasan-dev@googlegroups.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-uaccess-add-the-missing-linux-instrumentedh-include.patch added to mm-unstable branch
-Message-Id: <20240620005924.B7036C2BBFC@smtp.kernel.org>
+Subject: + s390-unwind-disable-kmsan-checks.patch added to mm-unstable branch
+Message-Id: <20240620005926.A4CFCC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/uaccess: add the missing linux/instrumented.h #include
+     Subject: s390/unwind: disable KMSAN checks
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-uaccess-add-the-missing-linux-instrumentedh-include.patch
+     s390-unwind-disable-kmsan-checks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-uaccess-add-the-missing-linux-instrumentedh-include.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-unwind-disable-kmsan-checks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,23 +59,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: s390/uaccess: add the missing linux/instrumented.h #include
-Date: Wed, 19 Jun 2024 17:44:09 +0200
+Subject: s390/unwind: disable KMSAN checks
+Date: Wed, 19 Jun 2024 17:44:10 +0200
 
-uaccess.h uses instrument_get_user() and instrument_put_user(), which are
-defined in linux/instrumented.h.  Currently we get this header from
-somewhere else by accident; prefer to be explicit about it and include it
-directly.
+The unwind code can read uninitialized frames.  Furthermore, even in the
+good case, KMSAN does not emit shadow for backchains.  Therefore disable
+it for the unwinding functions.
 
-Link: https://lkml.kernel.org/r/20240619154530.163232-35-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240619154530.163232-36-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Suggested-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Acked-by: Heiko Carstens <hca@linux.ibm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: <kasan-dev@googlegroups.com>
@@ -91,19 +90,29 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/uaccess.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/s390/kernel/unwind_bc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/arch/s390/include/asm/uaccess.h~s390-uaccess-add-the-missing-linux-instrumentedh-include
-+++ a/arch/s390/include/asm/uaccess.h
-@@ -18,6 +18,7 @@
- #include <asm/extable.h>
- #include <asm/facility.h>
- #include <asm-generic/access_ok.h>
-+#include <linux/instrumented.h>
+--- a/arch/s390/kernel/unwind_bc.c~s390-unwind-disable-kmsan-checks
++++ a/arch/s390/kernel/unwind_bc.c
+@@ -49,6 +49,8 @@ static inline bool is_final_pt_regs(stru
+ 	       READ_ONCE_NOCHECK(regs->psw.mask) & PSW_MASK_PSTATE;
+ }
  
- void debug_user_asce(int exit);
++/* Avoid KMSAN false positives from touching uninitialized frames. */
++__no_kmsan_checks
+ bool unwind_next_frame(struct unwind_state *state)
+ {
+ 	struct stack_info *info = &state->stack_info;
+@@ -118,6 +120,8 @@ out_stop:
+ }
+ EXPORT_SYMBOL_GPL(unwind_next_frame);
  
++/* Avoid KMSAN false positives from touching uninitialized frames. */
++__no_kmsan_checks
+ void __unwind_start(struct unwind_state *state, struct task_struct *task,
+ 		    struct pt_regs *regs, unsigned long first_frame)
+ {
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
