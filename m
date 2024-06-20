@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 894DB748A
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:58:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8C985684
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:58:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718845126; cv=none; b=BKirzZ8ZoDCb59BOk+yXcXKR9BR7MCRCdnWdgA7MDNZUGAZjDTijGH4q+oZIB/I+nKDYLztS3LsgGeT6F10yqnwndBIqKg4Y9RXGNGG+jaWtLX7fjsYWatEJXSRuWSBJBYkc34iZgB02DJwCw7Tg62hWRmjkG+Ana2Prokv2oRw=
+	t=1718845128; cv=none; b=TALf/DYfc/zwuNlmhKs1PFPCkGFt1/Vokhq6Pxy2TMcsA8p3+cyGdnXf7k0O8ikjh4wO8uODkDdFECRpGjC/MyTK0jC/6ngV99v2bI7TR4p/pTQ7gvCh6sBMLdIY+IXTFYwMTEve5y0ytTaR3zcr3dNRjRYlq1dx1YT/Ezk1xRM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718845126; c=relaxed/simple;
-	bh=bqSkwvR8CIvCp4c/GvK0ezQ+KruUznhzfUhhB0EWNQw=;
-	h=Date:To:From:Subject:Message-Id; b=Nmc/4mzJknUbTLyB5ZVq7CtQ14/Y3bi7GbPoBm8mXnJbp8/wuRQwzT3YGKrzBLaFuaTc/2F/69UtuaVO4KqoRqmmhTaJLEdhntCAU9O1P6wtRGpFE6mJo1PHLaMsvS8cxik1o92z+qnzR8LEPy6icZcbJWGQfpB4RtxihBS9B+8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MD6PmYuO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718845128; c=relaxed/simple;
+	bh=q836BUlpJ6wMspEA9HgOEkNvIiaJi4BFuib261Ll+mc=;
+	h=Date:To:From:Subject:Message-Id; b=uVxPMqwKjTY+zTi78Q/MwF98S4jMpQJUdI1YIhq/IWqnpUyRrboTXN47H/FXz8D3/XaWz3jCYPd/WpSno1/lIgxdriC8PmzyAzzIdumIsIPIHaglyDpSxY0LNI0QUvApPjP4pes0fughEvs1SZ4QOsoM2MyB7ueiYNIZNLvKDy0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uKqL7HCp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MD6PmYuO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53CF4C2BBFC;
-	Thu, 20 Jun 2024 00:58:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uKqL7HCp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46933C2BBFC;
+	Thu, 20 Jun 2024 00:58:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718845126;
-	bh=bqSkwvR8CIvCp4c/GvK0ezQ+KruUznhzfUhhB0EWNQw=;
+	s=korg; t=1718845128;
+	bh=q836BUlpJ6wMspEA9HgOEkNvIiaJi4BFuib261Ll+mc=;
 	h=Date:To:From:Subject:From;
-	b=MD6PmYuOxkM1742CIXpVW+2uq+iGJhyyoQNMRBvB1T2QbtDqgFNck4FrFLam9ZtHr
-	 mKKD3ZM0aPiyS8paXZWgXepiSvvsljNN6KJcVDJS7HaceLxJOGPKQHUt/79r65psc3
-	 mHDpJ7MlhQMwCD50BEe8er+dEFZNUJTmRvH0xIAQ=
-Date: Wed, 19 Jun 2024 17:58:45 -0700
+	b=uKqL7HCpX5Bn1+P4GeYXz0PRYzlJlN0TZ24CrtwdFVZotZ+zbusjbHFl9bimtGe+m
+	 oajEcZoEq76+BSt2l1+4XsuS8JuIkMkLQxEp0NO5DHFNjrZ0Cehsi1Q/0B3OVt6Qy+
+	 4SSaWY2I0vSgYAlVhzJu/IKVKA2oeu2G+DNbqX/A=
+Date: Wed, 19 Jun 2024 17:58:47 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,kasan-dev@googlegroups.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-slub-let-kmsan-access-metadata.patch added to mm-unstable branch
-Message-Id: <20240620005846.53CF4C2BBFC@smtp.kernel.org>
+Subject: + mm-slub-disable-kmsan-when-checking-the-padding-bytes.patch added to mm-unstable branch
+Message-Id: <20240620005848.46933C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: slub: let KMSAN access metadata
+     Subject: mm: slub: disable KMSAN when checking the padding bytes
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-slub-let-kmsan-access-metadata.patch
+     mm-slub-disable-kmsan-when-checking-the-padding-bytes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slub-let-kmsan-access-metadata.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slub-disable-kmsan-when-checking-the-padding-bytes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: mm: slub: let KMSAN access metadata
-Date: Wed, 19 Jun 2024 17:43:51 +0200
+Subject: mm: slub: disable KMSAN when checking the padding bytes
+Date: Wed, 19 Jun 2024 17:43:52 +0200
 
-Building the kernel with CONFIG_SLUB_DEBUG and CONFIG_KMSAN causes KMSAN
-to complain about touching redzones in kfree().
+Even though the KMSAN warnings generated by memchr_inv() are suppressed by
+metadata_access_enable(), its return value may still be poisoned.
 
-Fix by extending the existing KASAN-related metadata_access_enable() and
-metadata_access_disable() functions to KMSAN.
+The reason is that the last iteration of memchr_inv() returns `*start !=
+value ?  start : NULL`, where *start is poisoned.  Because of this,
+somewhat counterintuitively, the shadow value computed by
+visitSelectInst() is equal to `(uintptr_t)start`.
 
-Link: https://lkml.kernel.org/r/20240619154530.163232-17-iii@linux.ibm.com
+One possibility to fix this, since the intention behind guarding
+memchr_inv() behind metadata_access_enable() is to touch poisoned metadata
+without triggering KMSAN, is to unpoison its return value.  However, this
+approach is too fragile.  So simply disable the KMSAN checks in the
+respective functions.
+
+Link: https://lkml.kernel.org/r/20240619154530.163232-18-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -89,27 +96,45 @@ Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/slub.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
---- a/mm/slub.c~mm-slub-let-kmsan-access-metadata
+--- a/mm/slub.c~mm-slub-disable-kmsan-when-checking-the-padding-bytes
 +++ a/mm/slub.c
-@@ -829,10 +829,12 @@ static int disable_higher_order_debug;
- static inline void metadata_access_enable(void)
- {
- 	kasan_disable_current();
-+	kmsan_disable_current();
+@@ -1176,9 +1176,16 @@ static void restore_bytes(struct kmem_ca
+ 	memset(from, data, to - from);
  }
  
- static inline void metadata_access_disable(void)
+-static int check_bytes_and_report(struct kmem_cache *s, struct slab *slab,
+-			u8 *object, char *what,
+-			u8 *start, unsigned int value, unsigned int bytes)
++#ifdef CONFIG_KMSAN
++#define pad_check_attributes noinline __no_kmsan_checks
++#else
++#define pad_check_attributes
++#endif
++
++static pad_check_attributes int
++check_bytes_and_report(struct kmem_cache *s, struct slab *slab,
++		       u8 *object, char *what,
++		       u8 *start, unsigned int value, unsigned int bytes)
  {
-+	kmsan_enable_current();
- 	kasan_enable_current();
+ 	u8 *fault;
+ 	u8 *end;
+@@ -1270,7 +1277,8 @@ static int check_pad_bytes(struct kmem_c
  }
  
+ /* Check the pad bytes at the end of a slab page */
+-static void slab_pad_check(struct kmem_cache *s, struct slab *slab)
++static pad_check_attributes void
++slab_pad_check(struct kmem_cache *s, struct slab *slab)
+ {
+ 	u8 *start;
+ 	u8 *fault;
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
