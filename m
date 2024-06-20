@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E13565684
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:59:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D022D5684
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:59:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718845144; cv=none; b=eiuMJ4+bw2m/fqSiEErkeOQEZqHtWF7KcfvUPn21XfWSb9WL3eVattYRrxt2QhmMlAAU1sSFQZnQii6MuH1y4vV4CuQXWUuh/7oyFzyBPpHli0kNrMn4vewiTZnkgDM1KWmJJN3VjUwOTGtLj6qMnYQVHsXU2UvOSw2cBjEipUY=
+	t=1718845145; cv=none; b=UEGyjMTpcmlBlb6mJO1LyRii/qVS4Ocl7nIv8fNDgbIsuxp5sn1OK2K5fy1RsLeaUeRfscmH/YcKYpthrqGo+Mqxmz2v1LSbbPFXFI4K3/987JRnE+rpQ8LYr6dGWfXS++Lr/CZX5XAjeDt+HtOlDNPCqj8hLJElTNUmsza9R18=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718845144; c=relaxed/simple;
-	bh=sT34UWZU/Tvso2Z+KKZDgryYFNfXFJP9RRNY0Pc+/D0=;
-	h=Date:To:From:Subject:Message-Id; b=H0EcvgtspdKcxjI5BeYqJo9y/GAAEYMdX6rL8r7w6gfdVI6bqr0upjVqF++TMsC825QxhDAymRwY7WcDoMZGvJcyyBSG0xl4ztr+jKD76NH9vNw2QcOUJeXleJwTs9it17djguIZAviaBTlb6Tu7aNNQDGmjRSUtY3VC0XfLt3Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cbSeLQp2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718845145; c=relaxed/simple;
+	bh=wH5+PcIYrxD6CPmRtrHCpcCf5bmv5RUvgZSx8wk9zFg=;
+	h=Date:To:From:Subject:Message-Id; b=efQfSm/MOml83ZRLqXGr3SLWxXvK8fq4qBGE1fkCb4e5tgAnmvyL4lRn9+BAzFGV1ub1zpDXa1fLdq5JzC7u+jhMMaatcPIeBfm1vZQKFLd8U38rmmf4RMHUAUKkfAd1gFgxKYXtpsI33cYArNSqfNBtDcqsxKNvN7KhhS4SsAU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JfEz4XRm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cbSeLQp2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A886FC2BBFC;
-	Thu, 20 Jun 2024 00:59:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JfEz4XRm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A29C0C2BBFC;
+	Thu, 20 Jun 2024 00:59:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718845143;
-	bh=sT34UWZU/Tvso2Z+KKZDgryYFNfXFJP9RRNY0Pc+/D0=;
+	s=korg; t=1718845145;
+	bh=wH5+PcIYrxD6CPmRtrHCpcCf5bmv5RUvgZSx8wk9zFg=;
 	h=Date:To:From:Subject:From;
-	b=cbSeLQp2YHBp38vJGhRYIFy8sfabeChzwehiZ6pV1RWzx2M2RUAXMT5HNvnWQ1dIO
-	 UrBnH2DvIZ9+msTtG0Qu1XBmJ80bdioyVWtX0NTyycTZ6487nendg6UXQcacguCr6U
-	 Ri7ueasKg9sTX2YJVq4dThiJ51ZMcdAdQCdVdZ9c=
-Date: Wed, 19 Jun 2024 17:59:03 -0700
+	b=JfEz4XRm9nrUVewmmILLfe4Ub6LqDAi0pTTPkTG4JQ9bVHwjXuHDCf/fohGaWySUv
+	 8w67BkJXHEzHRuBmlJSpbyvbyfHg576l+p+F7Vx11I0yegVYt4cAxoowWHXoV1ZUKY
+	 nRoBeWUOu2qNeBjW6aYwpawJ5Tx9yCnQ0j1L4y8k=
+Date: Wed, 19 Jun 2024 17:59:05 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,kasan-dev@googlegroups.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-checksum-add-a-kmsan-check.patch added to mm-unstable branch
-Message-Id: <20240620005903.A886FC2BBFC@smtp.kernel.org>
+Subject: + s390-cpacf-unpoison-the-results-of-cpacf_trng.patch added to mm-unstable branch
+Message-Id: <20240620005905.A29C0C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/checksum: add a KMSAN check
+     Subject: s390/cpacf: unpoison the results of cpacf_trng()
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-checksum-add-a-kmsan-check.patch
+     s390-cpacf-unpoison-the-results-of-cpacf_trng.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-checksum-add-a-kmsan-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-cpacf-unpoison-the-results-of-cpacf_trng.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: s390/checksum: add a KMSAN check
-Date: Wed, 19 Jun 2024 17:43:59 +0200
+Subject: s390/cpacf: unpoison the results of cpacf_trng()
+Date: Wed, 19 Jun 2024 17:44:00 +0200
 
-Add a KMSAN check to the CKSM inline assembly, similar to how it was done
-for ASAN in commit e42ac7789df6 ("s390/checksum: always use cksm
-instruction").
+Prevent KMSAN from complaining about buffers filled by cpacf_trng() being
+uninitialized.
 
-Link: https://lkml.kernel.org/r/20240619154530.163232-25-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240619154530.163232-26-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Tested-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
+Acked-by: Heiko Carstens <hca@linux.ibm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: <kasan-dev@googlegroups.com>
@@ -90,27 +89,28 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/checksum.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/s390/include/asm/cpacf.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/arch/s390/include/asm/checksum.h~s390-checksum-add-a-kmsan-check
-+++ a/arch/s390/include/asm/checksum.h
-@@ -13,6 +13,7 @@
- #define _S390_CHECKSUM_H
+--- a/arch/s390/include/asm/cpacf.h~s390-cpacf-unpoison-the-results-of-cpacf_trng
++++ a/arch/s390/include/asm/cpacf.h
+@@ -12,6 +12,7 @@
+ #define _ASM_S390_CPACF_H
  
- #include <linux/instrumented.h>
+ #include <asm/facility.h>
 +#include <linux/kmsan-checks.h>
- #include <linux/in6.h>
  
- static inline __wsum cksm(const void *buff, int len, __wsum sum)
-@@ -23,6 +24,7 @@ static inline __wsum cksm(const void *bu
- 	};
+ /*
+  * Instruction opcodes for the CPACF instructions
+@@ -542,6 +543,8 @@ static inline void cpacf_trng(u8 *ucbuf,
+ 		: [ucbuf] "+&d" (u.pair), [cbuf] "+&d" (c.pair)
+ 		: [fc] "K" (CPACF_PRNO_TRNG), [opc] "i" (CPACF_PRNO)
+ 		: "cc", "memory", "0");
++	kmsan_unpoison_memory(ucbuf, ucbuf_len);
++	kmsan_unpoison_memory(cbuf, cbuf_len);
+ }
  
- 	instrument_read(buff, len);
-+	kmsan_check_memory(buff, len);
- 	asm volatile("\n"
- 		"0:	cksm	%[sum],%[rp]\n"
- 		"	jo	0b\n"
+ /**
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
