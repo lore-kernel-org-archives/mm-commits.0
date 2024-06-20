@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFDAE812
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 01:36:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2012F125A9
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 01:38:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718847376; cv=none; b=tD+Vurj9ZGZa/T5WqBht3cSLP7waphVO45/PhIXOycoUe3W31awlMi7q+XzzGx/vf2btAwX9Wirq53cD6C7V5iNnbLNPpNKr+zehACzRwms9ks/w5qXc7Bcm3nc3uJtJwMgKPEyATfPQqvzoStjTrYOvI4wEKP5/1iyBZyzU04I=
+	t=1718847531; cv=none; b=lazL/8BrSQjZzF77CXeXY/d654kPSeA/ywPN8QPNYME19O+GyP+WL3x1dnbJnCNmSrefXv1mlnJ01p7Q+3rEWCbi/9KkF3Cl3FCBY3BZLgqywiXG6WwoQrOeEXWFrtTSSK6Qyj52R/XeyoiaOmCmso7y1f2fVs2GFvI0SQ+K9DA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718847376; c=relaxed/simple;
-	bh=J0d1JlenSRyLrZHocB6MSQJiwcPuZmVgiFy/DQrOzgE=;
-	h=Date:To:From:Subject:Message-Id; b=r2pAQ76LPTy0DksWmyA0h3XZHGfAyK611AV55Nfx6xFbG6nAxFE/Qw9qu6Tu1zkawIbO3psw6LCaqVwnr+6/dSxGa1WQM2GdUN/Jv3g8JDh0JIWbfjxfZbYPMxrHA4xk5xXBKDGSbkJO+9xyughG803rbw/5+T5rFQ4PAvhE5WM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fdJ3Bing; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718847531; c=relaxed/simple;
+	bh=1Q7Dpumy4B6TwPqkjqRDRLMfQl8MzCQ3IZvOoVI4EPc=;
+	h=Date:To:From:Subject:Message-Id; b=NeX6FLD87GswmEStiRe6BgdBmgI+Vs/fcfFIfyIpEBfBl3VDg7VUwATfaiKTgxFsg38rKCvceEtQZ+NxG2fBexpYNjFKimC+tHOssGysz9QJJF0q4sYoJeZw7snhKAS0HB2WGSc5VhVU79suhWHNYbXkL6I4aLx9JPWxkHb6ObE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yAFQN2NJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fdJ3Bing"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98F76C32786;
-	Thu, 20 Jun 2024 01:36:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yAFQN2NJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D876FC2BBFC;
+	Thu, 20 Jun 2024 01:38:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718847376;
-	bh=J0d1JlenSRyLrZHocB6MSQJiwcPuZmVgiFy/DQrOzgE=;
+	s=korg; t=1718847530;
+	bh=1Q7Dpumy4B6TwPqkjqRDRLMfQl8MzCQ3IZvOoVI4EPc=;
 	h=Date:To:From:Subject:From;
-	b=fdJ3BingGBF/sZba7KqrE8hsNgg/aEkxZTW8tZ8ORuYF9Tq8Src2F1Zs/rD0z/Nm6
-	 ZVk0l1l38X2lGC1TH1Si43seh8xrJNzIi9hyXC39F8M6c8wVMXBzVEXhHDLRH6ndcY
-	 S8JPsi74MwWCWcEZegA7/XB8n6uoUUY9jYag7BGA=
-Date: Wed, 19 Jun 2024 18:36:16 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=yAFQN2NJRAeVsRD2EyvRlaG1rFDVqT628l3Mk7YuD+wQ0eqI1KXkgNPAWy9bm4QJm
+	 jrQV62dYDrtwGBxQ4uT6MKo/h6rUF3Jmb6lzWly0YM+omVto81IS5G+fCh8/J+fnXN
+	 uSBAwYOFuS1m2OP4cY/y7+IHoddJjc+zERrfQzng=
+Date: Wed, 19 Jun 2024 18:38:50 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,shuah@kernel.org,ryan.roberts@arm.com,kasong@tencent.com,kaleshsingh@google.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-reword-the-comment-of-buddy_merge_likely.patch added to mm-unstable branch
-Message-Id: <20240620013616.98F76C32786@smtp.kernel.org>
+Subject: + selftests-mm-introduce-a-test-program-to-assess-swap-entry-allocation-for-thp_swapout.patch added to mm-unstable branch
+Message-Id: <20240620013850.D876FC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: reword the comment of buddy_merge_likely()
+     Subject: selftests/mm: Introduce a test program to assess swap entry allocation for thp_swapout
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-reword-the-comment-of-buddy_merge_likely.patch
+     selftests-mm-introduce-a-test-program-to-assess-swap-entry-allocation-for-thp_swapout.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-reword-the-comment-of-buddy_merge_likely.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-introduce-a-test-program-to-assess-swap-entry-allocation-for-thp_swapout.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,52 +58,258 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/page_alloc: reword the comment of buddy_merge_likely()
-Date: Wed, 19 Jun 2024 01:06:12 +0000
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: selftests/mm: Introduce a test program to assess swap entry allocation for thp_swapout
+Date: Thu, 20 Jun 2024 12:26:48 +1200
 
-For page with order O, we are checking its order (O + 1)'s buddy.  If it
-is free, we would like to put it to the tail and expect it would be merged
-to a page with order (O + 2).
+Both Ryan and Chris have been utilizing the small test program to aid in
+debugging and identifying issues with swap entry allocation.  While a real
+or intricate workload might be more suitable for assessing the correctness
+and effectiveness of the swap allocation policy, a small test program
+presents a simpler means of understanding the problem and initially
+verifying the improvements being made.
 
-Reword the comment to reflect it.
+Let's endeavor to integrate it into the self-test suite.  Although it
+presently only accommodates 64KB and 4KB, I'm optimistic that we can
+expand its capabilities to support multiple sizes and simulate more
+complex systems in the future as required.
 
-Link: https://lkml.kernel.org/r/20240619010612.20740-4-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20240620002648.75204-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/Makefile                  |    1 
+ tools/testing/selftests/mm/thp_swap_allocator_test.c |  192 ++++++++++
+ 2 files changed, 193 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-reword-the-comment-of-buddy_merge_likely
-+++ a/mm/page_alloc.c
-@@ -711,12 +711,12 @@ static inline struct page *get_page_from
- }
- 
- /*
-- * If this is not the largest possible page, check if the buddy
-- * of the next-highest order is free. If it is, it's possible
-+ * If this is less than the 2nd largest possible page, check if the buddy
-+ * of the next-higher order is free. If it is, it's possible
-  * that pages are being freed that will coalesce soon. In case,
-  * that is happening, add the free page to the tail of the list
-  * so it's less likely to be used soon and more likely to be merged
-- * as a higher order page
-+ * as a 2-level higher order page
-  */
- static inline bool
- buddy_merge_likely(unsigned long pfn, unsigned long buddy_pfn,
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-introduce-a-test-program-to-assess-swap-entry-allocation-for-thp_swapout
++++ a/tools/testing/selftests/mm/Makefile
+@@ -65,6 +65,7 @@ TEST_GEN_FILES += mseal_test
+ TEST_GEN_FILES += seal_elf
+ TEST_GEN_FILES += on-fault-limit
+ TEST_GEN_FILES += pagemap_ioctl
++TEST_GEN_FILES += thp_swap_allocator_test
+ TEST_GEN_FILES += thuge-gen
+ TEST_GEN_FILES += transhuge-stress
+ TEST_GEN_FILES += uffd-stress
+--- /dev/null
++++ a/tools/testing/selftests/mm/thp_swap_allocator_test.c
+@@ -0,0 +1,192 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * thp_swap_allocator_test
++ *
++ * The purpose of this test program is helping check if THP swpout
++ * can correctly get swap slots to swap out as a whole instead of
++ * being split. It randomly releases swap entries through madvise
++ * DONTNEED and do swapout on two memory areas: a memory area for
++ * 64KB THP and the other area for small folios. The second memory
++ * can be enabled by "-s".
++ * Before running the program, we need to setup a zRAM or similar
++ * swap device by:
++ *  echo lzo > /sys/block/zram0/comp_algorithm
++ *  echo 64M > /sys/block/zram0/disksize
++ *  echo never > /sys/kernel/mm/transparent_hugepage/hugepages-2048kB/enabled
++ *  echo always > /sys/kernel/mm/transparent_hugepage/hugepages-64kB/enabled
++ *  mkswap /dev/zram0
++ *  swapon /dev/zram0
++ * The expected result should be 0% anon swpout fallback ratio w/ or
++ * w/o "-s".
++ *
++ * Author(s): Barry Song <v-songbaohua@oppo.com>
++ */
++
++#define _GNU_SOURCE
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <string.h>
++#include <sys/mman.h>
++#include <errno.h>
++#include <time.h>
++
++#define MEMSIZE_MTHP (60 * 1024 * 1024)
++#define MEMSIZE_SMALLFOLIO (1 * 1024 * 1024)
++#define ALIGNMENT_MTHP (64 * 1024)
++#define ALIGNMENT_SMALLFOLIO (4 * 1024)
++#define TOTAL_DONTNEED_MTHP (16 * 1024 * 1024)
++#define TOTAL_DONTNEED_SMALLFOLIO (768 * 1024)
++#define MTHP_FOLIO_SIZE (64 * 1024)
++
++#define SWPOUT_PATH \
++	"/sys/kernel/mm/transparent_hugepage/hugepages-64kB/stats/swpout"
++#define SWPOUT_FALLBACK_PATH \
++	"/sys/kernel/mm/transparent_hugepage/hugepages-64kB/stats/swpout_fallback"
++
++static void *aligned_alloc_mem(size_t size, size_t alignment)
++{
++	void *mem = NULL;
++
++	if (posix_memalign(&mem, alignment, size) != 0) {
++		perror("posix_memalign");
++		return NULL;
++	}
++	return mem;
++}
++
++static void random_madvise_dontneed(void *mem, size_t mem_size,
++		size_t align_size, size_t total_dontneed_size)
++{
++	size_t num_pages = total_dontneed_size / align_size;
++	size_t i;
++	size_t offset;
++	void *addr;
++
++	for (i = 0; i < num_pages; ++i) {
++		offset = (rand() % (mem_size / align_size)) * align_size;
++		addr = (char *)mem + offset;
++		if (madvise(addr, align_size, MADV_DONTNEED) != 0)
++			perror("madvise dontneed");
++
++		memset(addr, 0x11, align_size);
++	}
++}
++
++static unsigned long read_stat(const char *path)
++{
++	FILE *file;
++	unsigned long value;
++
++	file = fopen(path, "r");
++	if (!file) {
++		perror("fopen");
++		return 0;
++	}
++
++	if (fscanf(file, "%lu", &value) != 1) {
++		perror("fscanf");
++		fclose(file);
++		return 0;
++	}
++
++	fclose(file);
++	return value;
++}
++
++int main(int argc, char *argv[])
++{
++	int use_small_folio = 0;
++	int i;
++	void *mem1 = aligned_alloc_mem(MEMSIZE_MTHP, ALIGNMENT_MTHP);
++	void *mem2 = NULL;
++
++	if (mem1 == NULL) {
++		fprintf(stderr, "Failed to allocate 60MB memory\n");
++		return EXIT_FAILURE;
++	}
++
++	if (madvise(mem1, MEMSIZE_MTHP, MADV_HUGEPAGE) != 0) {
++		perror("madvise hugepage for mem1");
++		free(mem1);
++		return EXIT_FAILURE;
++	}
++
++	for (i = 1; i < argc; ++i) {
++		if (strcmp(argv[i], "-s") == 0)
++			use_small_folio = 1;
++	}
++
++	if (use_small_folio) {
++		mem2 = aligned_alloc_mem(MEMSIZE_SMALLFOLIO, ALIGNMENT_MTHP);
++		if (mem2 == NULL) {
++			fprintf(stderr, "Failed to allocate 1MB memory\n");
++			free(mem1);
++			return EXIT_FAILURE;
++		}
++
++		if (madvise(mem2, MEMSIZE_SMALLFOLIO, MADV_NOHUGEPAGE) != 0) {
++			perror("madvise nohugepage for mem2");
++			free(mem1);
++			free(mem2);
++			return EXIT_FAILURE;
++		}
++	}
++
++	for (i = 0; i < 100; ++i) {
++		unsigned long initial_swpout;
++		unsigned long initial_swpout_fallback;
++		unsigned long final_swpout;
++		unsigned long final_swpout_fallback;
++		unsigned long swpout_inc;
++		unsigned long swpout_fallback_inc;
++		double fallback_percentage;
++
++		initial_swpout = read_stat(SWPOUT_PATH);
++		initial_swpout_fallback = read_stat(SWPOUT_FALLBACK_PATH);
++
++		random_madvise_dontneed(mem1, MEMSIZE_MTHP, ALIGNMENT_MTHP,
++				TOTAL_DONTNEED_MTHP);
++
++		if (use_small_folio) {
++			random_madvise_dontneed(mem2, MEMSIZE_SMALLFOLIO,
++					ALIGNMENT_SMALLFOLIO,
++					TOTAL_DONTNEED_SMALLFOLIO);
++		}
++
++		if (madvise(mem1, MEMSIZE_MTHP, MADV_PAGEOUT) != 0) {
++			perror("madvise pageout for mem1");
++			free(mem1);
++			if (mem2 != NULL)
++				free(mem2);
++			return EXIT_FAILURE;
++		}
++
++		if (use_small_folio) {
++			if (madvise(mem2, MEMSIZE_SMALLFOLIO, MADV_PAGEOUT) != 0) {
++				perror("madvise pageout for mem2");
++				free(mem1);
++				free(mem2);
++				return EXIT_FAILURE;
++			}
++		}
++
++		final_swpout = read_stat(SWPOUT_PATH);
++		final_swpout_fallback = read_stat(SWPOUT_FALLBACK_PATH);
++
++		swpout_inc = final_swpout - initial_swpout;
++		swpout_fallback_inc = final_swpout_fallback - initial_swpout_fallback;
++
++		fallback_percentage = (double)swpout_fallback_inc /
++			(swpout_fallback_inc + swpout_inc) * 100;
++
++		printf("Iteration %d: swpout inc: %lu, swpout fallback inc: %lu, Fallback percentage: %.2f%%\n",
++				i + 1, swpout_inc, swpout_fallback_inc, fallback_percentage);
++	}
++
++	free(mem1);
++	if (mem2 != NULL)
++		free(mem2);
++
++	return EXIT_SUCCESS;
++}
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mm-mm_initc-print-mem_init-info-after-defer_init-is-done.patch
-mm-mm_initc-simplify-logic-of-deferred__pages.patch
-mm-mm_initc-simplify-logic-of-deferred__pages-v2.patch
-mm-sparse-nr_pages-wont-be-0.patch
-mm-mm_initc-move-build-check-on-max_zonelists-out-of-ifdef.patch
-mm-page_alloc-fix-a-typo-in-comment-about-gfp-flag.patch
-mm-page_alloc-reword-the-comment-of-buddy_merge_likely.patch
+cifs-drop-the-incorrect-assertion-in-cifs_swap_rw.patch
+mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr.patch
+mm-introduce-pte_move_swp_offset-helper-which-can-move-offset-bidirectionally.patch
+mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages.patch
+mm-swap-reuse-exclusive-folio-directly-instead-of-wp-page-faults.patch
+mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect.patch
+mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page.patch
+mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap.patch
+mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix-2.patch
+mm-use-folio_add_new_anon_rmap-if-folio_test_anonfolio==false.patch
+mm-remove-folio_test_anonfolio==false-path-in-__folio_add_anon_rmap.patch
+selftests-mm-introduce-a-test-program-to-assess-swap-entry-allocation-for-thp_swapout.patch
 
