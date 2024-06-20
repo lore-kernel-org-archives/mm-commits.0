@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7FE55661
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:59:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10C7B5661
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:59:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718845153; cv=none; b=rS5bH7mvPsfyzMYZbvTQ3c/wW9MLfUdM4OHeJMDPbaYaFVhkJ6V5TZSPG8+qivcS+nvj3f7UN+73jvGlN45UpDRGkgLGovcvegzzrPQu5xUnxFK6zpCGkrvHr36O9PF6UhgszlZ1Wbvq39EU+1XdE0YmmVPpinsaUCvARF77oJo=
+	t=1718845156; cv=none; b=jWpkTrcAt4qweMA1T2cjwGSGDImRd6sM67wubQEtgH2yTY1Xu/lMvCrfCUWR2Ag//QPvY9Q2Tjm2kgsASEptuG3FAJO25+SUV2TxOQnI19SRd/WM1TNcU8WZ5DHarU8KKTgA786E7ca9BrSYQxfBldxrvjLZt4viZpFAERG38Cs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718845153; c=relaxed/simple;
-	bh=GG4UsZBlEfDpNhWfn39bBCpfGmCKhRdrodsoodpOhGM=;
-	h=Date:To:From:Subject:Message-Id; b=HM5MWzlRAR6mzXb3vGqxqAjfx6OBICQL8q857FIxsn80nETIGQ1M2go3fPQiwnsXT3k+Z0n4QJJqX9k91vfq3Op4CXhXvBo9DYR8vti4RVseTkCOv5wAnvpIM+dcaX7o/6G5zu7KVUu6bVEDQWz7lVYX++rlj6jdHFdlknjcETE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q56XbFNS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718845156; c=relaxed/simple;
+	bh=C/tDCL/BL96OaeWnf6dLoXGIKp/vo28vXFC9YcfbgRM=;
+	h=Date:To:From:Subject:Message-Id; b=tUSSgxhvW6Xai4YEoDviUIJ8EuC0tT1keqLsifdFWr3KV7HdYJlDCzf1QU/Ed1zspJFwnRoYs640Cozcr4mDIPxLUrAv+euUadXuAyB9+lGpK6Rvcrr7BG/sYmSVwVN0/v5UpoopPiO7yXdltSPyldV+Q2jdVCyAcFvwnBX9xf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R2FpjN/h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q56XbFNS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BCEBC2BBFC;
-	Thu, 20 Jun 2024 00:59:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R2FpjN/h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA440C2BBFC;
+	Thu, 20 Jun 2024 00:59:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718845153;
-	bh=GG4UsZBlEfDpNhWfn39bBCpfGmCKhRdrodsoodpOhGM=;
+	s=korg; t=1718845155;
+	bh=C/tDCL/BL96OaeWnf6dLoXGIKp/vo28vXFC9YcfbgRM=;
 	h=Date:To:From:Subject:From;
-	b=Q56XbFNSQ2WKT6k2Y1NXiBtZxweGy0aZatV17/kjcNcPxLVbzaZUY4sKTaiQo5hvW
-	 fq14hH7yR8ImVgUV774F9J6LNI9DpdxWXd4yC+zC5yC4vsfAbHQ1OM3wMBFUxAJ/to
-	 CLd4up58qlerthzcDRbksfGTFsz1zvBjn2NhP6mo=
-Date: Wed, 19 Jun 2024 17:59:12 -0700
+	b=R2FpjN/hgtZvta/YIRTkhFiw1SgbkeVbL/LO4cVsv0vei5U8N2X28Z6xBnKP90uQn
+	 BFovVN7H7S5AGS7kJrAysS4iFBdZppyxNWRPrXJpaqnPmoIikW8n5Uk6yfkP+XO67Y
+	 q6h4UU4CzNZu9Wt4zTAq0lSHyuI6ykoT6Qn+O+s8=
+Date: Wed, 19 Jun 2024 17:59:15 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,kasan-dev@googlegroups.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-irqflags-do-not-instrument-arch_local_irq_-with-kmsan.patch added to mm-unstable branch
-Message-Id: <20240620005913.7BCEBC2BBFC@smtp.kernel.org>
+Subject: + s390-mm-define-kmsan-metadata-for-vmalloc-and-modules.patch added to mm-unstable branch
+Message-Id: <20240620005915.DA440C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/irqflags: do not instrument arch_local_irq_*() with KMSAN
+     Subject: s390/mm: define KMSAN metadata for vmalloc and modules
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-irqflags-do-not-instrument-arch_local_irq_-with-kmsan.patch
+     s390-mm-define-kmsan-metadata-for-vmalloc-and-modules.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-irqflags-do-not-instrument-arch_local_irq_-with-kmsan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-mm-define-kmsan-metadata-for-vmalloc-and-modules.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,42 +59,28 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: s390/irqflags: do not instrument arch_local_irq_*() with KMSAN
-Date: Wed, 19 Jun 2024 17:44:04 +0200
+Subject: s390/mm: define KMSAN metadata for vmalloc and modules
+Date: Wed, 19 Jun 2024 17:44:05 +0200
 
-Lockdep generates the following false positives with KMSAN on s390x:
+The pages for the KMSAN metadata associated with most kernel mappings are
+taken from memblock by the common code.  However, vmalloc and module
+metadata needs to be defined by the architectures.
 
-[    6.063666] DEBUG_LOCKS_WARN_ON(lockdep_hardirqs_enabled())
-[         ...]
-[    6.577050] Call Trace:
-[    6.619637]  [<000000000690d2de>] check_flags+0x1fe/0x210
-[    6.665411] ([<000000000690d2da>] check_flags+0x1fa/0x210)
-[    6.707478]  [<00000000006cec1a>] lock_acquire+0x2ca/0xce0
-[    6.749959]  [<00000000069820ea>] _raw_spin_lock_irqsave+0xea/0x190
-[    6.794912]  [<00000000041fc988>] __stack_depot_save+0x218/0x5b0
-[    6.838420]  [<000000000197affe>] __msan_poison_alloca+0xfe/0x1a0
-[    6.882985]  [<0000000007c5827c>] start_kernel+0x70c/0xd50
-[    6.927454]  [<0000000000100036>] startup_continue+0x36/0x40
+Be a little bit more careful than x86: allocate exactly MODULES_LEN for
+the module shadow and origins, and then take 2/3 of vmalloc for the
+vmalloc shadow and origins.  This ensures that users passing small
+vmalloc= values on the command line do not cause module metadata
+collisions.
 
-Between trace_hardirqs_on() and `stosm __mask, 3` lockdep thinks that
-interrupts are on, but on the CPU they are still off.  KMSAN
-instrumentation takes spinlocks, giving lockdep a chance to see and
-complain about this discrepancy.
-
-KMSAN instrumentation is inserted in order to poison the __mask variable. 
-Disable instrumentation in the respective functions.  They are very small
-and it's easy to see that no important metadata updates are lost because
-of this.
-
-Link: https://lkml.kernel.org/r/20240619154530.163232-30-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240619154530.163232-31-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Acked-by: Heiko Carstens <hca@linux.ibm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: <kasan-dev@googlegroups.com>
@@ -110,58 +96,48 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/irqflags.h |   17 ++++++++++++++---
- drivers/s390/char/sclp.c         |    2 +-
- 2 files changed, 15 insertions(+), 4 deletions(-)
+ arch/s390/boot/startup.c        |    7 +++++++
+ arch/s390/include/asm/pgtable.h |    8 ++++++++
+ 2 files changed, 15 insertions(+)
 
---- a/arch/s390/include/asm/irqflags.h~s390-irqflags-do-not-instrument-arch_local_irq_-with-kmsan
-+++ a/arch/s390/include/asm/irqflags.h
-@@ -37,12 +37,18 @@ static __always_inline void __arch_local
- 	asm volatile("ssm   %0" : : "Q" (flags) : "memory");
+--- a/arch/s390/boot/startup.c~s390-mm-define-kmsan-metadata-for-vmalloc-and-modules
++++ a/arch/s390/boot/startup.c
+@@ -301,11 +301,18 @@ static unsigned long setup_kernel_memory
+ 	MODULES_END = round_down(kernel_start, _SEGMENT_SIZE);
+ 	MODULES_VADDR = MODULES_END - MODULES_LEN;
+ 	VMALLOC_END = MODULES_VADDR;
++	if (IS_ENABLED(CONFIG_KMSAN))
++		VMALLOC_END -= MODULES_LEN * 2;
+ 
+ 	/* allow vmalloc area to occupy up to about 1/2 of the rest virtual space left */
+ 	vsize = (VMALLOC_END - FIXMAP_SIZE) / 2;
+ 	vsize = round_down(vsize, _SEGMENT_SIZE);
+ 	vmalloc_size = min(vmalloc_size, vsize);
++	if (IS_ENABLED(CONFIG_KMSAN)) {
++		/* take 2/3 of vmalloc area for KMSAN shadow and origins */
++		vmalloc_size = round_down(vmalloc_size / 3, _SEGMENT_SIZE);
++		VMALLOC_END -= vmalloc_size * 2;
++	}
+ 	VMALLOC_START = VMALLOC_END - vmalloc_size;
+ 
+ 	__memcpy_real_area = round_down(VMALLOC_START - MEMCPY_REAL_SIZE, PAGE_SIZE);
+--- a/arch/s390/include/asm/pgtable.h~s390-mm-define-kmsan-metadata-for-vmalloc-and-modules
++++ a/arch/s390/include/asm/pgtable.h
+@@ -107,6 +107,14 @@ static inline int is_module_addr(void *a
+ 	return 1;
  }
  
--static __always_inline unsigned long arch_local_save_flags(void)
 +#ifdef CONFIG_KMSAN
-+#define arch_local_irq_attributes noinline notrace __no_sanitize_memory __maybe_unused
-+#else
-+#define arch_local_irq_attributes __always_inline
++#define KMSAN_VMALLOC_SIZE (VMALLOC_END - VMALLOC_START)
++#define KMSAN_VMALLOC_SHADOW_START VMALLOC_END
++#define KMSAN_VMALLOC_ORIGIN_START (KMSAN_VMALLOC_SHADOW_START + KMSAN_VMALLOC_SIZE)
++#define KMSAN_MODULES_SHADOW_START (KMSAN_VMALLOC_ORIGIN_START + KMSAN_VMALLOC_SIZE)
++#define KMSAN_MODULES_ORIGIN_START (KMSAN_MODULES_SHADOW_START + MODULES_LEN)
 +#endif
 +
-+static arch_local_irq_attributes unsigned long arch_local_save_flags(void)
- {
- 	return __arch_local_irq_stnsm(0xff);
- }
- 
--static __always_inline unsigned long arch_local_irq_save(void)
-+static arch_local_irq_attributes unsigned long arch_local_irq_save(void)
- {
- 	return __arch_local_irq_stnsm(0xfc);
- }
-@@ -52,7 +58,12 @@ static __always_inline void arch_local_i
- 	arch_local_irq_save();
- }
- 
--static __always_inline void arch_local_irq_enable(void)
-+static arch_local_irq_attributes void arch_local_irq_enable_external(void)
-+{
-+	__arch_local_irq_stosm(0x01);
-+}
-+
-+static arch_local_irq_attributes void arch_local_irq_enable(void)
- {
- 	__arch_local_irq_stosm(0x03);
- }
---- a/drivers/s390/char/sclp.c~s390-irqflags-do-not-instrument-arch_local_irq_-with-kmsan
-+++ a/drivers/s390/char/sclp.c
-@@ -736,7 +736,7 @@ sclp_sync_wait(void)
- 	cr0_sync.val = cr0.val & ~CR0_IRQ_SUBCLASS_MASK;
- 	cr0_sync.val |= 1UL << (63 - 54);
- 	local_ctl_load(0, &cr0_sync);
--	__arch_local_irq_stosm(0x01);
-+	arch_local_irq_enable_external();
- 	/* Loop until driver state indicates finished request */
- 	while (sclp_running_state != sclp_running_state_idle) {
- 		/* Check for expired request timer */
+ #ifdef CONFIG_RANDOMIZE_BASE
+ #define KASLR_LEN	(1UL << 31)
+ #else
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
