@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2012F125A9
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 01:38:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5916DBA46;
+	Thu, 20 Jun 2024 01:39:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718847531; cv=none; b=lazL/8BrSQjZzF77CXeXY/d654kPSeA/ywPN8QPNYME19O+GyP+WL3x1dnbJnCNmSrefXv1mlnJ01p7Q+3rEWCbi/9KkF3Cl3FCBY3BZLgqywiXG6WwoQrOeEXWFrtTSSK6Qyj52R/XeyoiaOmCmso7y1f2fVs2GFvI0SQ+K9DA=
+	t=1718847599; cv=none; b=bRRqsV0hM3AoSMFXrTdk2e7vbyKrXffEQ3euGOxj5kLZank/aKX+KjMd7RKrOUBqMFqlJwxZyImop2tTtZDSNk4gyPSYGSLNrN5yZAGHz7Mnz9WMPfDo+vhNC1/48CVzvrXTQp6kYMVii+apQHneEmj0tSajspv8rcu46m0MD3o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718847531; c=relaxed/simple;
-	bh=1Q7Dpumy4B6TwPqkjqRDRLMfQl8MzCQ3IZvOoVI4EPc=;
-	h=Date:To:From:Subject:Message-Id; b=NeX6FLD87GswmEStiRe6BgdBmgI+Vs/fcfFIfyIpEBfBl3VDg7VUwATfaiKTgxFsg38rKCvceEtQZ+NxG2fBexpYNjFKimC+tHOssGysz9QJJF0q4sYoJeZw7snhKAS0HB2WGSc5VhVU79suhWHNYbXkL6I4aLx9JPWxkHb6ObE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yAFQN2NJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718847599; c=relaxed/simple;
+	bh=3wrHQP8lDHaazvhk1TFVq0s3mb5+EMeEmGGrg8sCL5I=;
+	h=Date:To:From:Subject:Message-Id; b=e5vLQxd2EESXAgDzaTdE1pnxVoLJukBTU1pM3/tDfdhLspnaSaIIHHfJ+uI1PD0G1cKqNrSdfR69fHWM03EWrrnu2NFsG/xkgZ3oKUcQjxSZPaIilxStcvFfd5f9dorbHIdfOi995QkcJI9NfPdNeqQOLiW3Pwu8qGUPpsrA2m0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mKaMbnp9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yAFQN2NJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D876FC2BBFC;
-	Thu, 20 Jun 2024 01:38:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mKaMbnp9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 255E1C2BBFC;
+	Thu, 20 Jun 2024 01:39:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718847530;
-	bh=1Q7Dpumy4B6TwPqkjqRDRLMfQl8MzCQ3IZvOoVI4EPc=;
+	s=korg; t=1718847599;
+	bh=3wrHQP8lDHaazvhk1TFVq0s3mb5+EMeEmGGrg8sCL5I=;
 	h=Date:To:From:Subject:From;
-	b=yAFQN2NJRAeVsRD2EyvRlaG1rFDVqT628l3Mk7YuD+wQ0eqI1KXkgNPAWy9bm4QJm
-	 jrQV62dYDrtwGBxQ4uT6MKo/h6rUF3Jmb6lzWly0YM+omVto81IS5G+fCh8/J+fnXN
-	 uSBAwYOFuS1m2OP4cY/y7+IHoddJjc+zERrfQzng=
-Date: Wed, 19 Jun 2024 18:38:50 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,shuah@kernel.org,ryan.roberts@arm.com,kasong@tencent.com,kaleshsingh@google.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=mKaMbnp9esRq2G6bD+1YGtMS+hsfOIFsbB3qq8ENGyNO2yQqIEh5sLCg6XlnFocs0
+	 cKAuBK3sxTuxg7WFswipEzglEfsyLzrSzqLjnowZY9f21Cs1B270o/EQ4lx4z09ywI
+	 kZqnCvnhn5ar1ywSvssknii4j1TQXcw2uNHIvxOM=
+Date: Wed, 19 Jun 2024 18:39:58 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mgorman@techsingularity.net,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-introduce-a-test-program-to-assess-swap-entry-allocation-for-thp_swapout.patch added to mm-unstable branch
-Message-Id: <20240620013850.D876FC2BBFC@smtp.kernel.org>
+Subject: + mm-page_alloc-separate-thp-pcp-into-movable-and-non-movable-categories.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240620013959.255E1C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: Introduce a test program to assess swap entry allocation for thp_swapout
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-introduce-a-test-program-to-assess-swap-entry-allocation-for-thp_swapout.patch
+     Subject: mm/page_alloc: Separate THP PCP into movable and non-movable categories
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-page_alloc-separate-thp-pcp-into-movable-and-non-movable-categories.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-introduce-a-test-program-to-assess-swap-entry-allocation-for-thp_swapout.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-separate-thp-pcp-into-movable-and-non-movable-categories.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,258 +58,114 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: selftests/mm: Introduce a test program to assess swap entry allocation for thp_swapout
-Date: Thu, 20 Jun 2024 12:26:48 +1200
+From: yangge <yangge1116@126.com>
+Subject: mm/page_alloc: Separate THP PCP into movable and non-movable categories
+Date: Thu, 20 Jun 2024 08:59:50 +0800
 
-Both Ryan and Chris have been utilizing the small test program to aid in
-debugging and identifying issues with swap entry allocation.  While a real
-or intricate workload might be more suitable for assessing the correctness
-and effectiveness of the swap allocation policy, a small test program
-presents a simpler means of understanding the problem and initially
-verifying the improvements being made.
+Since commit 5d0a661d808f ("mm/page_alloc: use only one PCP list for
+THP-sized allocations") no longer differentiates the migration type of
+pages in THP-sized PCP list, it's possible that non-movable allocation
+requests may get a CMA page from the list, in some cases, it's not
+acceptable.
 
-Let's endeavor to integrate it into the self-test suite.  Although it
-presently only accommodates 64KB and 4KB, I'm optimistic that we can
-expand its capabilities to support multiple sizes and simulate more
-complex systems in the future as required.
+If a large number of CMA memory are configured in system (for example, the
+CMA memory accounts for 50% of the system memory), starting a virtual
+machine with device passthrough will get stuck.  During starting the
+virtual machine, it will call pin_user_pages_remote(..., FOLL_LONGTERM,
+...) to pin memory.  Normally if a page is present and in CMA area,
+pin_user_pages_remote() will migrate the page from CMA area to non-CMA
+area because of FOLL_LONGTERM flag.  But if non-movable allocation
+requests return CMA memory, migrate_longterm_unpinnable_pages() will
+migrate a CMA page to another CMA page, which will fail to pass the check
+in check_and_migrate_movable_pages() and cause migration endless.
 
-Link: https://lkml.kernel.org/r/20240620002648.75204-1-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Call trace:
+pin_user_pages_remote
+--__gup_longterm_locked // endless loops in this function
+----_get_user_pages_locked
+----check_and_migrate_movable_pages
+------migrate_longterm_unpinnable_pages
+--------alloc_migration_target
+
+This problem will also have a negative impact on CMA itself.  For example,
+when CMA is borrowed by THP, and we need to reclaim it through cma_alloc()
+or dma_alloc_coherent(), we must move those pages out to ensure CMA's
+users can retrieve that contigous memory.  Currently, CMA's memory is
+occupied by non-movable pages, meaning we can't relocate them.  As a
+result, cma_alloc() is more likely to fail.
+
+To fix the problem above, we add one PCP list for THP, which will not
+introduce a new cacheline for struct per_cpu_pages.  THP will have 2 PCP
+lists, one PCP list is used by MOVABLE allocation, and the other PCP list
+is used by UNMOVABLE allocation.  MOVABLE allocation contains GPF_MOVABLE,
+and UNMOVABLE allocation contains GFP_UNMOVABLE and GFP_RECLAIMABLE.
+
+Link: https://lkml.kernel.org/r/1718845190-4456-1-git-send-email-yangge1116@126.com
+Fixes: 5d0a661d808f ("mm/page_alloc: use only one PCP list for THP-sized allocations")
+Signed-off-by: yangge <yangge1116@126.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile                  |    1 
- tools/testing/selftests/mm/thp_swap_allocator_test.c |  192 ++++++++++
- 2 files changed, 193 insertions(+)
+ include/linux/mmzone.h |    9 ++++-----
+ mm/page_alloc.c        |    9 +++++++--
+ 2 files changed, 11 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-introduce-a-test-program-to-assess-swap-entry-allocation-for-thp_swapout
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -65,6 +65,7 @@ TEST_GEN_FILES += mseal_test
- TEST_GEN_FILES += seal_elf
- TEST_GEN_FILES += on-fault-limit
- TEST_GEN_FILES += pagemap_ioctl
-+TEST_GEN_FILES += thp_swap_allocator_test
- TEST_GEN_FILES += thuge-gen
- TEST_GEN_FILES += transhuge-stress
- TEST_GEN_FILES += uffd-stress
---- /dev/null
-+++ a/tools/testing/selftests/mm/thp_swap_allocator_test.c
-@@ -0,0 +1,192 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+/*
-+ * thp_swap_allocator_test
-+ *
-+ * The purpose of this test program is helping check if THP swpout
-+ * can correctly get swap slots to swap out as a whole instead of
-+ * being split. It randomly releases swap entries through madvise
-+ * DONTNEED and do swapout on two memory areas: a memory area for
-+ * 64KB THP and the other area for small folios. The second memory
-+ * can be enabled by "-s".
-+ * Before running the program, we need to setup a zRAM or similar
-+ * swap device by:
-+ *  echo lzo > /sys/block/zram0/comp_algorithm
-+ *  echo 64M > /sys/block/zram0/disksize
-+ *  echo never > /sys/kernel/mm/transparent_hugepage/hugepages-2048kB/enabled
-+ *  echo always > /sys/kernel/mm/transparent_hugepage/hugepages-64kB/enabled
-+ *  mkswap /dev/zram0
-+ *  swapon /dev/zram0
-+ * The expected result should be 0% anon swpout fallback ratio w/ or
-+ * w/o "-s".
-+ *
-+ * Author(s): Barry Song <v-songbaohua@oppo.com>
-+ */
+--- a/include/linux/mmzone.h~mm-page_alloc-separate-thp-pcp-into-movable-and-non-movable-categories
++++ a/include/linux/mmzone.h
+@@ -654,13 +654,12 @@ enum zone_watermarks {
+ };
+ 
+ /*
+- * One per migratetype for each PAGE_ALLOC_COSTLY_ORDER. One additional list
+- * for THP which will usually be GFP_MOVABLE. Even if it is another type,
+- * it should not contribute to serious fragmentation causing THP allocation
+- * failures.
++ * One per migratetype for each PAGE_ALLOC_COSTLY_ORDER. Two additional lists
++ * are added for THP. One PCP list is used by GPF_MOVABLE, and the other PCP list
++ * is used by GFP_UNMOVABLE and GFP_RECLAIMABLE.
+  */
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-#define NR_PCP_THP 1
++#define NR_PCP_THP 2
+ #else
+ #define NR_PCP_THP 0
+ #endif
+--- a/mm/page_alloc.c~mm-page_alloc-separate-thp-pcp-into-movable-and-non-movable-categories
++++ a/mm/page_alloc.c
+@@ -504,10 +504,15 @@ out:
+ 
+ static inline unsigned int order_to_pindex(int migratetype, int order)
+ {
++	bool __maybe_unused movable;
 +
-+#define _GNU_SOURCE
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <string.h>
-+#include <sys/mman.h>
-+#include <errno.h>
-+#include <time.h>
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	if (order > PAGE_ALLOC_COSTLY_ORDER) {
+ 		VM_BUG_ON(order != HPAGE_PMD_ORDER);
+-		return NR_LOWORDER_PCP_LISTS;
 +
-+#define MEMSIZE_MTHP (60 * 1024 * 1024)
-+#define MEMSIZE_SMALLFOLIO (1 * 1024 * 1024)
-+#define ALIGNMENT_MTHP (64 * 1024)
-+#define ALIGNMENT_SMALLFOLIO (4 * 1024)
-+#define TOTAL_DONTNEED_MTHP (16 * 1024 * 1024)
-+#define TOTAL_DONTNEED_SMALLFOLIO (768 * 1024)
-+#define MTHP_FOLIO_SIZE (64 * 1024)
++		movable = migratetype == MIGRATE_MOVABLE;
 +
-+#define SWPOUT_PATH \
-+	"/sys/kernel/mm/transparent_hugepage/hugepages-64kB/stats/swpout"
-+#define SWPOUT_FALLBACK_PATH \
-+	"/sys/kernel/mm/transparent_hugepage/hugepages-64kB/stats/swpout_fallback"
-+
-+static void *aligned_alloc_mem(size_t size, size_t alignment)
-+{
-+	void *mem = NULL;
-+
-+	if (posix_memalign(&mem, alignment, size) != 0) {
-+		perror("posix_memalign");
-+		return NULL;
-+	}
-+	return mem;
-+}
-+
-+static void random_madvise_dontneed(void *mem, size_t mem_size,
-+		size_t align_size, size_t total_dontneed_size)
-+{
-+	size_t num_pages = total_dontneed_size / align_size;
-+	size_t i;
-+	size_t offset;
-+	void *addr;
-+
-+	for (i = 0; i < num_pages; ++i) {
-+		offset = (rand() % (mem_size / align_size)) * align_size;
-+		addr = (char *)mem + offset;
-+		if (madvise(addr, align_size, MADV_DONTNEED) != 0)
-+			perror("madvise dontneed");
-+
-+		memset(addr, 0x11, align_size);
-+	}
-+}
-+
-+static unsigned long read_stat(const char *path)
-+{
-+	FILE *file;
-+	unsigned long value;
-+
-+	file = fopen(path, "r");
-+	if (!file) {
-+		perror("fopen");
-+		return 0;
-+	}
-+
-+	if (fscanf(file, "%lu", &value) != 1) {
-+		perror("fscanf");
-+		fclose(file);
-+		return 0;
-+	}
-+
-+	fclose(file);
-+	return value;
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	int use_small_folio = 0;
-+	int i;
-+	void *mem1 = aligned_alloc_mem(MEMSIZE_MTHP, ALIGNMENT_MTHP);
-+	void *mem2 = NULL;
-+
-+	if (mem1 == NULL) {
-+		fprintf(stderr, "Failed to allocate 60MB memory\n");
-+		return EXIT_FAILURE;
-+	}
-+
-+	if (madvise(mem1, MEMSIZE_MTHP, MADV_HUGEPAGE) != 0) {
-+		perror("madvise hugepage for mem1");
-+		free(mem1);
-+		return EXIT_FAILURE;
-+	}
-+
-+	for (i = 1; i < argc; ++i) {
-+		if (strcmp(argv[i], "-s") == 0)
-+			use_small_folio = 1;
-+	}
-+
-+	if (use_small_folio) {
-+		mem2 = aligned_alloc_mem(MEMSIZE_SMALLFOLIO, ALIGNMENT_MTHP);
-+		if (mem2 == NULL) {
-+			fprintf(stderr, "Failed to allocate 1MB memory\n");
-+			free(mem1);
-+			return EXIT_FAILURE;
-+		}
-+
-+		if (madvise(mem2, MEMSIZE_SMALLFOLIO, MADV_NOHUGEPAGE) != 0) {
-+			perror("madvise nohugepage for mem2");
-+			free(mem1);
-+			free(mem2);
-+			return EXIT_FAILURE;
-+		}
-+	}
-+
-+	for (i = 0; i < 100; ++i) {
-+		unsigned long initial_swpout;
-+		unsigned long initial_swpout_fallback;
-+		unsigned long final_swpout;
-+		unsigned long final_swpout_fallback;
-+		unsigned long swpout_inc;
-+		unsigned long swpout_fallback_inc;
-+		double fallback_percentage;
-+
-+		initial_swpout = read_stat(SWPOUT_PATH);
-+		initial_swpout_fallback = read_stat(SWPOUT_FALLBACK_PATH);
-+
-+		random_madvise_dontneed(mem1, MEMSIZE_MTHP, ALIGNMENT_MTHP,
-+				TOTAL_DONTNEED_MTHP);
-+
-+		if (use_small_folio) {
-+			random_madvise_dontneed(mem2, MEMSIZE_SMALLFOLIO,
-+					ALIGNMENT_SMALLFOLIO,
-+					TOTAL_DONTNEED_SMALLFOLIO);
-+		}
-+
-+		if (madvise(mem1, MEMSIZE_MTHP, MADV_PAGEOUT) != 0) {
-+			perror("madvise pageout for mem1");
-+			free(mem1);
-+			if (mem2 != NULL)
-+				free(mem2);
-+			return EXIT_FAILURE;
-+		}
-+
-+		if (use_small_folio) {
-+			if (madvise(mem2, MEMSIZE_SMALLFOLIO, MADV_PAGEOUT) != 0) {
-+				perror("madvise pageout for mem2");
-+				free(mem1);
-+				free(mem2);
-+				return EXIT_FAILURE;
-+			}
-+		}
-+
-+		final_swpout = read_stat(SWPOUT_PATH);
-+		final_swpout_fallback = read_stat(SWPOUT_FALLBACK_PATH);
-+
-+		swpout_inc = final_swpout - initial_swpout;
-+		swpout_fallback_inc = final_swpout_fallback - initial_swpout_fallback;
-+
-+		fallback_percentage = (double)swpout_fallback_inc /
-+			(swpout_fallback_inc + swpout_inc) * 100;
-+
-+		printf("Iteration %d: swpout inc: %lu, swpout fallback inc: %lu, Fallback percentage: %.2f%%\n",
-+				i + 1, swpout_inc, swpout_fallback_inc, fallback_percentage);
-+	}
-+
-+	free(mem1);
-+	if (mem2 != NULL)
-+		free(mem2);
-+
-+	return EXIT_SUCCESS;
-+}
++		return NR_LOWORDER_PCP_LISTS + movable;
+ 	}
+ #else
+ 	VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
+@@ -521,7 +526,7 @@ static inline int pindex_to_order(unsign
+ 	int order = pindex / MIGRATE_PCPTYPES;
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	if (pindex == NR_LOWORDER_PCP_LISTS)
++	if (pindex >= NR_LOWORDER_PCP_LISTS)
+ 		order = HPAGE_PMD_ORDER;
+ #else
+ 	VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from yangge1116@126.com are
 
-cifs-drop-the-incorrect-assertion-in-cifs_swap_rw.patch
-mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr.patch
-mm-introduce-pte_move_swp_offset-helper-which-can-move-offset-bidirectionally.patch
-mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages.patch
-mm-swap-reuse-exclusive-folio-directly-instead-of-wp-page-faults.patch
-mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect.patch
-mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page.patch
-mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap.patch
-mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix-2.patch
-mm-use-folio_add_new_anon_rmap-if-folio_test_anonfolio==false.patch
-mm-remove-folio_test_anonfolio==false-path-in-__folio_add_anon_rmap.patch
-selftests-mm-introduce-a-test-program-to-assess-swap-entry-allocation-for-thp_swapout.patch
+mm-page_alloc-separate-thp-pcp-into-movable-and-non-movable-categories.patch
+mm-page_alloc-add-one-pcp-list-for-thp.patch
 
