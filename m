@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30D254685
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:58:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DA794685
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:58:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718845112; cv=none; b=LT+xMfdrG7NdN4voyGvEZyyluFIvh+1IGCWayM+L+EJA1eVtth5lsjimIjrm5rqm3i1AcnlxtpMAtV0BlS5w5QnNrOCYMAOu0PNgp57ztj/x773RC70VhI0j7hPGGNv1Wl70RjnYq3F1fESUu8jtWjlvPEiEHOvs9IIQjlrL5gI=
+	t=1718845114; cv=none; b=F1rBqjrvn7JLkabKOkbtKK0WZNREBJVimnxnfzeAeTkQKO5X7R7CsIMn6pksumIzb6T5/Rm9wc9kSfy0OKrKt9wiiz71VrrXt70Ie5SWHgrtSictcoGauMNbfmBGCUv8xDaQP8Yqt2wRSu4VCiDLjkgN+ltIxEUxEKwgQDafJo0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718845112; c=relaxed/simple;
-	bh=N9BpBd6macTrOE75XSlJZpdrg1NGT8BvcTg3pdYSFqA=;
-	h=Date:To:From:Subject:Message-Id; b=ia7zAhtRMbNAHrzxvID2vxSxUgMrJPK48RN91K/ZoM4XugAT79pX+4SW3BGaL2FRvI77aqs9FjwOwjnHkDu6QTzegumdB2hpbpLhRRdWVbRZhOBDxPW51gIOSrvJi0S+FyLJnLpoFn5tziY85DlXYIO98jO4NhW0HLATZ8QBx9c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tQruxVZ1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718845114; c=relaxed/simple;
+	bh=nntejb8pigVV8RiwNvZGFmTsyxS85Fa+9ZYvnYwtwbE=;
+	h=Date:To:From:Subject:Message-Id; b=oc2hfr/cmqmjU8nOBzvv0aD5VSjlztDG0qwolIZcAkm7cobIYhzcN4hj1rsCzT1qTl3EICsa4D5dqbwxrzwIjaf3Ww0BmG4sKqPDyXZWqhlXm4C2kNzFhrEcVLYp9w3P8WwUawG7QUW8MVRFdTowEU4+YozhZfsKLKWr/xOdqOQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ecq+QRmX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tQruxVZ1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0509BC2BBFC;
-	Thu, 20 Jun 2024 00:58:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ecq+QRmX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F182AC2BBFC;
+	Thu, 20 Jun 2024 00:58:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718845112;
-	bh=N9BpBd6macTrOE75XSlJZpdrg1NGT8BvcTg3pdYSFqA=;
+	s=korg; t=1718845114;
+	bh=nntejb8pigVV8RiwNvZGFmTsyxS85Fa+9ZYvnYwtwbE=;
 	h=Date:To:From:Subject:From;
-	b=tQruxVZ11q6C5MOgeTK7f0XxDuGlZLszqh5F4LSDprzW0ehFWenmsQkS11+e9qUJ9
-	 54Kf8JaF2hlN9Sxy9+13iRKd/bzLo6EdOUfzcAL0bwHwLKQ1y1IGC4DfK8zyYo3eXY
-	 lY7zMVji22BFdn6sPP0phuR1xwsyEw3La3/SLSJ4=
-Date: Wed, 19 Jun 2024 17:58:31 -0700
+	b=Ecq+QRmXLqmdvS/bPhBPRY2w4sEGOvz+b6gsFo3x9jjrMo9TUaia3jw3TJPtYhdQF
+	 nvOLpL5JIjAzk5B0GRvkrLwlwdi8rQSPi9tJd/buDTBl9ovQkyoEI0Z2uCFr4KVMoi
+	 B3wwZ6FoQxVDG/anxkTnT71H7OUvpw5Ng9YecQWg=
+Date: Wed, 19 Jun 2024 17:58:33 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,kasan-dev@googlegroups.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-export-panic_on_kmsan.patch added to mm-unstable branch
-Message-Id: <20240620005832.0509BC2BBFC@smtp.kernel.org>
+Subject: + kmsan-allow-disabling-kmsan-checks-for-the-current-task.patch added to mm-unstable branch
+Message-Id: <20240620005833.F182AC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmsan: export panic_on_kmsan
+     Subject: kmsan: allow disabling KMSAN checks for the current task
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-export-panic_on_kmsan.patch
+     kmsan-allow-disabling-kmsan-checks-for-the-current-task.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-export-panic_on_kmsan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-allow-disabling-kmsan-checks-for-the-current-task.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: kmsan: export panic_on_kmsan
-Date: Wed, 19 Jun 2024 17:43:45 +0200
+Subject: kmsan: allow disabling KMSAN checks for the current task
+Date: Wed, 19 Jun 2024 17:43:46 +0200
 
-When building the kmsan test as a module, modpost fails with the following
-error message:
+Like for KASAN, it's useful to temporarily disable KMSAN checks around,
+e.g., redzone accesses.  Introduce kmsan_disable_current() and
+kmsan_enable_current(), which are similar to their KASAN counterparts.
 
-    ERROR: modpost: "panic_on_kmsan" [mm/kmsan/kmsan_test.ko] undefined!
+Make them reentrant in order to handle memory allocations in interrupt
+context.  Repurpose the allow_reporting field for this.
 
-Export panic_on_kmsan in order to improve the KMSAN usability for modules.
-
-Link: https://lkml.kernel.org/r/20240619154530.163232-11-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240619154530.163232-12-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -93,19 +93,183 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/report.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/dev-tools/kmsan.rst |   11 +++++++++--
+ include/linux/kmsan.h             |   24 ++++++++++++++++++++++++
+ include/linux/kmsan_types.h       |    2 +-
+ mm/kmsan/core.c                   |    1 -
+ mm/kmsan/hooks.c                  |   18 +++++++++++++++---
+ mm/kmsan/report.c                 |    7 ++++---
+ tools/objtool/check.c             |    2 ++
+ 7 files changed, 55 insertions(+), 10 deletions(-)
 
---- a/mm/kmsan/report.c~kmsan-export-panic_on_kmsan
-+++ a/mm/kmsan/report.c
-@@ -20,6 +20,7 @@ static DEFINE_RAW_SPINLOCK(kmsan_report_
- /* Protected by kmsan_report_lock */
- static char report_local_descr[DESCR_SIZE];
- int panic_on_kmsan __read_mostly;
-+EXPORT_SYMBOL_GPL(panic_on_kmsan);
+--- a/Documentation/dev-tools/kmsan.rst~kmsan-allow-disabling-kmsan-checks-for-the-current-task
++++ a/Documentation/dev-tools/kmsan.rst
+@@ -110,6 +110,13 @@ in the Makefile. Think of this as applyi
+ function in the file or directory. Most users won't need KMSAN_SANITIZE, unless
+ their code gets broken by KMSAN (e.g. runs at early boot time).
  
- #ifdef MODULE_PARAM_PREFIX
- #undef MODULE_PARAM_PREFIX
++KMSAN checks can also be temporarily disabled for the current task using
++``kmsan_disable_current()`` and ``kmsan_enable_current()`` calls. Each
++``kmsan_enable_current()`` call must be preceded by a
++``kmsan_disable_current()`` call; these call pairs may be nested. One needs to
++be careful with these calls, keeping the regions short and preferring other
++ways to disable instrumentation, where possible.
++
+ Support
+ =======
+ 
+@@ -338,11 +345,11 @@ Per-task KMSAN state
+ ~~~~~~~~~~~~~~~~~~~~
+ 
+ Every task_struct has an associated KMSAN task state that holds the KMSAN
+-context (see above) and a per-task flag disallowing KMSAN reports::
++context (see above) and a per-task counter disallowing KMSAN reports::
+ 
+   struct kmsan_context {
+     ...
+-    bool allow_reporting;
++    unsigned int depth;
+     struct kmsan_context_state cstate;
+     ...
+   }
+--- a/include/linux/kmsan.h~kmsan-allow-disabling-kmsan-checks-for-the-current-task
++++ a/include/linux/kmsan.h
+@@ -239,6 +239,22 @@ void kmsan_unpoison_entry_regs(const str
+  */
+ void *kmsan_get_metadata(void *addr, bool is_origin);
+ 
++/*
++ * kmsan_enable_current(): Enable KMSAN for the current task.
++ *
++ * Each kmsan_enable_current() current call must be preceded by a
++ * kmsan_disable_current() call. These call pairs may be nested.
++ */
++void kmsan_enable_current(void);
++
++/*
++ * kmsan_disable_current(): Disable KMSAN for the current task.
++ *
++ * Each kmsan_disable_current() current call must be followed by a
++ * kmsan_enable_current() call. These call pairs may be nested.
++ */
++void kmsan_disable_current(void);
++
+ #else
+ 
+ static inline void kmsan_init_shadow(void)
+@@ -338,6 +354,14 @@ static inline void kmsan_unpoison_entry_
+ {
+ }
+ 
++static inline void kmsan_enable_current(void)
++{
++}
++
++static inline void kmsan_disable_current(void)
++{
++}
++
+ #endif
+ 
+ #endif /* _LINUX_KMSAN_H */
+--- a/include/linux/kmsan_types.h~kmsan-allow-disabling-kmsan-checks-for-the-current-task
++++ a/include/linux/kmsan_types.h
+@@ -31,7 +31,7 @@ struct kmsan_context_state {
+ struct kmsan_ctx {
+ 	struct kmsan_context_state cstate;
+ 	int kmsan_in_runtime;
+-	bool allow_reporting;
++	unsigned int depth;
+ };
+ 
+ #endif /* _LINUX_KMSAN_TYPES_H */
+--- a/mm/kmsan/core.c~kmsan-allow-disabling-kmsan-checks-for-the-current-task
++++ a/mm/kmsan/core.c
+@@ -43,7 +43,6 @@ void kmsan_internal_task_create(struct t
+ 	struct thread_info *info = current_thread_info();
+ 
+ 	__memset(ctx, 0, sizeof(*ctx));
+-	ctx->allow_reporting = true;
+ 	kmsan_internal_unpoison_memory(info, sizeof(*info), false);
+ }
+ 
+--- a/mm/kmsan/hooks.c~kmsan-allow-disabling-kmsan-checks-for-the-current-task
++++ a/mm/kmsan/hooks.c
+@@ -39,12 +39,10 @@ void kmsan_task_create(struct task_struc
+ 
+ void kmsan_task_exit(struct task_struct *task)
+ {
+-	struct kmsan_ctx *ctx = &task->kmsan_ctx;
+-
+ 	if (!kmsan_enabled || kmsan_in_runtime())
+ 		return;
+ 
+-	ctx->allow_reporting = false;
++	kmsan_disable_current();
+ }
+ 
+ void kmsan_slab_alloc(struct kmem_cache *s, void *object, gfp_t flags)
+@@ -424,3 +422,17 @@ void kmsan_check_memory(const void *addr
+ 					   REASON_ANY);
+ }
+ EXPORT_SYMBOL(kmsan_check_memory);
++
++void kmsan_enable_current(void)
++{
++	KMSAN_WARN_ON(current->kmsan_ctx.depth == 0);
++	current->kmsan_ctx.depth--;
++}
++EXPORT_SYMBOL(kmsan_enable_current);
++
++void kmsan_disable_current(void)
++{
++	current->kmsan_ctx.depth++;
++	KMSAN_WARN_ON(current->kmsan_ctx.depth == 0);
++}
++EXPORT_SYMBOL(kmsan_disable_current);
+--- a/mm/kmsan/report.c~kmsan-allow-disabling-kmsan-checks-for-the-current-task
++++ a/mm/kmsan/report.c
+@@ -8,6 +8,7 @@
+  */
+ 
+ #include <linux/console.h>
++#include <linux/kmsan.h>
+ #include <linux/moduleparam.h>
+ #include <linux/stackdepot.h>
+ #include <linux/stacktrace.h>
+@@ -158,12 +159,12 @@ void kmsan_report(depot_stack_handle_t o
+ 
+ 	if (!kmsan_enabled)
+ 		return;
+-	if (!current->kmsan_ctx.allow_reporting)
++	if (current->kmsan_ctx.depth)
+ 		return;
+ 	if (!origin)
+ 		return;
+ 
+-	current->kmsan_ctx.allow_reporting = false;
++	kmsan_disable_current();
+ 	ua_flags = user_access_save();
+ 	raw_spin_lock(&kmsan_report_lock);
+ 	pr_err("=====================================================\n");
+@@ -216,5 +217,5 @@ void kmsan_report(depot_stack_handle_t o
+ 	if (panic_on_kmsan)
+ 		panic("kmsan.panic set ...\n");
+ 	user_access_restore(ua_flags);
+-	current->kmsan_ctx.allow_reporting = true;
++	kmsan_enable_current();
+ }
+--- a/tools/objtool/check.c~kmsan-allow-disabling-kmsan-checks-for-the-current-task
++++ a/tools/objtool/check.c
+@@ -1202,6 +1202,8 @@ static const char *uaccess_safe_builtin[
+ 	"__sanitizer_cov_trace_switch",
+ 	/* KMSAN */
+ 	"kmsan_copy_to_user",
++	"kmsan_disable_current",
++	"kmsan_enable_current",
+ 	"kmsan_report",
+ 	"kmsan_unpoison_entry_regs",
+ 	"kmsan_unpoison_memory",
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
