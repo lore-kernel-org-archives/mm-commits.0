@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D9D72E859;
-	Thu, 20 Jun 2024 20:21:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 800DD134A5
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 20:32:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718914892; cv=none; b=L2uADCkREosWahnPEe13NU2AErEgJPYU3o79Ed1ki8FOH8sGAml0fZdAoaXi/Di1S/8L4Gk1E5Q5PL8A0OlT5g+X6LGwoBWrXjIOqnLdUa2DrFv5XhbJE9f6TSjxIG/lxVZtPnpmHmQ5GntavRRmkFpOU8YQ0E3vqnTJn6t5B08=
+	t=1718915552; cv=none; b=OR63ycZqD1LUGoZettfRt7bMh97e0E6GdflAQ1qcvRsqSSOuSl/QpZ+DIdWnsIl+oyCZn8B7yjyvzDFcTe0XoPgDTks2vwjXnZ+X2ZDTNLTikLwk9mQpXBlfg3N7sTt/QMb1rZNPZdCBzUx1ijk7gy/+f8Nquy+3m+6DOev/y90=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718914892; c=relaxed/simple;
-	bh=TBH/liEzIynZTou4cLDfKvLvQeEIyYB9kvw/22kAOCI=;
-	h=Date:To:From:Subject:Message-Id; b=KTAW/xGjL1QYvqdIpoDkF0dPBlFFwWniZwrd7eFlFC9dHD7A//ByLhicbe7iUQfRgb/XwMRgNG5AiN1VOrtgtgrokoGzCmqowhh+jaThlLTxYMBxhPmmQoCy+1/HSayZ18mMEKJmlHRLNbvCwmmqfA57xbdQJ7LzZMZ8kuxPdGg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mdiXQFFo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718915552; c=relaxed/simple;
+	bh=o73yOVSFM7/FzCUBDv+tI3jirtbeWS51QdRuwpzULsU=;
+	h=Date:To:From:Subject:Message-Id; b=eY2Ihu+ZpIPiIk7bivinJ3nqcDnszILovVeRbpgX42ONd+rD2w0PGVn/5zgRoYypmDSBvUyVZLRVgH6nthhxDrIlJHYERKOekWY09Iyn0mZf3CtbX1D0wD0rBRl5q6RuBq7r8uOIN54iTOieoPhSSOA3YU0DjMoB1qZS7aL+RYA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fX787vwt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mdiXQFFo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9A86C2BD10;
-	Thu, 20 Jun 2024 20:21:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fX787vwt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEB80C2BD10;
+	Thu, 20 Jun 2024 20:32:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718914890;
-	bh=TBH/liEzIynZTou4cLDfKvLvQeEIyYB9kvw/22kAOCI=;
+	s=korg; t=1718915552;
+	bh=o73yOVSFM7/FzCUBDv+tI3jirtbeWS51QdRuwpzULsU=;
 	h=Date:To:From:Subject:From;
-	b=mdiXQFFovnE/0dY3Ig6HUvsbSKwBlrVkfSwvdwpdRBc7gjmkuY1MwyWGSZ7g7TrlM
-	 034REZBouPcqblGvJJO2HbO/iPtE1na8KW5APn+Bv6dPPS64zfvqDu92873BVo2n4a
-	 8xFPBLcQY3h6hkBEgicoXtQPYecgXUFICEIkAYIA=
-Date: Thu, 20 Jun 2024 13:21:30 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,tandersen@netflix.com,stable@vger.kernel.org,oleg@redhat.com,mjguzik@gmail.com,brauner@kernel.org,axboe@kernel.dk,alexjlzheng@tencent.com,akpm@linux-foundation.org
+	b=fX787vwtVnMKhZYUlZwqgT4TT4qyEzF0wL1q9Jzmomw4Zfu4F9oZzMTz9DMYeNPE4
+	 XZylI1ery0sEuN+hzIM25WKATt6muLHFh2fhjBjjp2Kyfd6IKvsZ9PCkugCWMQBrOn
+	 B3a6EjWiS/leWst/zDH9ZNrNxVGRHlI/KnFx804o=
+Date: Thu, 20 Jun 2024 13:32:31 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,osalvador@suse.de,oliver.sang@intel.com,linmiaohe@huawei.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-optimize-the-redundant-loop-of-mm_update_owner_next.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240620202130.B9A86C2BD10@smtp.kernel.org>
+Subject: + mm-read-page_type-using-read_once.patch added to mm-unstable branch
+Message-Id: <20240620203231.EEB80C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: optimize the redundant loop of mm_update_owner_next()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-optimize-the-redundant-loop-of-mm_update_owner_next.patch
+     Subject: mm: read page_type using READ_ONCE
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-read-page_type-using-read_once.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-optimize-the-redundant-loop-of-mm_update_owner_next.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-read-page_type-using-read_once.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,50 +58,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinliang Zheng <alexjlzheng@tencent.com>
-Subject: mm: optimize the redundant loop of mm_update_owner_next()
-Date: Thu, 20 Jun 2024 20:21:24 +0800
+From: David Hildenbrand <david@redhat.com>
+Subject: mm: read page_type using READ_ONCE
+Date: Fri, 31 May 2024 14:56:16 +0200
 
-When mm_update_owner_next() is racing with swapoff (try_to_unuse()) or
-/proc or ptrace or page migration (get_task_mm()), it is impossible to
-find an appropriate task_struct in the loop whose mm_struct is the same as
-the target mm_struct.
+KCSAN complains about possible data races: while we check for a page_type
+-- for example for sanity checks -- we might concurrently modify the
+mapcount that overlays page_type.
 
-If the above race condition is combined with the stress-ng-zombie and
-stress-ng-dup tests, such a long loop can easily cause a Hard Lockup in
-write_lock_irq() for tasklist_lock.
+Let's use READ_ONCE to avoid load tearing (shouldn't make a difference)
+and to make KCSAN happy.
 
-Recognize this situation in advance and exit early.
+Likely, we might also want to use WRITE_ONCE for the writer side of
+page_type, if KCSAN ever complains about that.  But we'll not mess with
+that for now.
 
-Link: https://lkml.kernel.org/r/20240620122123.3877432-1-alexjlzheng@tencent.com
-Signed-off-by: Jinliang Zheng <alexjlzheng@tencent.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Tycho Andersen <tandersen@netflix.com>
-Cc: <stable@vger.kernel.org>
+Note: nothing should really be broken besides wrong KCSAN complaints.  The
+sanity check that triggers this was added in commit 68f0320824fa
+("mm/rmap: convert folio_add_file_rmap_range() into
+folio_add_file_rmap_[pte|ptes|pmd]()").  Even before that similar races
+likely where possible, ever since we added page_type in commit
+6e292b9be7f4 ("mm: split page_type out from _mapcount").
+
+Link: https://lkml.kernel.org/r/20240531125616.2850153-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202405281431.c46a3be9-lkp@intel.com
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/page-flags.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/kernel/exit.c~mm-optimize-the-redundant-loop-of-mm_update_owner_next
-+++ a/kernel/exit.c
-@@ -484,6 +484,8 @@ retry:
- 	 * Search through everything else, we should not get here often.
- 	 */
- 	for_each_process(g) {
-+		if (atomic_read(&mm->mm_users) <= 1)
-+			break;
- 		if (g->flags & PF_KTHREAD)
- 			continue;
- 		for_each_thread(g, c) {
+--- a/include/linux/page-flags.h~mm-read-page_type-using-read_once
++++ a/include/linux/page-flags.h
+@@ -949,9 +949,9 @@ enum pagetype {
+ };
+ 
+ #define PageType(page, flag)						\
+-	((page->page_type & (PAGE_TYPE_BASE | flag)) == PAGE_TYPE_BASE)
++	((READ_ONCE(page->page_type) & (PAGE_TYPE_BASE | flag)) == PAGE_TYPE_BASE)
+ #define folio_test_type(folio, flag)					\
+-	((folio->page.page_type & (PAGE_TYPE_BASE | flag)) == PAGE_TYPE_BASE)
++	((READ_ONCE(folio->page.page_type) & (PAGE_TYPE_BASE | flag))  == PAGE_TYPE_BASE)
+ 
+ static inline int page_type_has_type(unsigned int page_type)
+ {
+@@ -960,7 +960,7 @@ static inline int page_type_has_type(uns
+ 
+ static inline int page_has_type(const struct page *page)
+ {
+-	return page_type_has_type(page->page_type);
++	return page_type_has_type(READ_ONCE(page->page_type));
+ }
+ 
+ #define FOLIO_TYPE_OPS(lname, fname)					\
 _
 
-Patches currently in -mm which might be from alexjlzheng@tencent.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-optimize-the-redundant-loop-of-mm_update_owner_next.patch
+mm-memory-move-page_count-check-into-validate_page_before_insert.patch
+mm-memory-cleanly-support-zeropage-in-vm_insert_page-vm_map_pages-and-vmf_insert_mixed.patch
+mm-rmap-sanity-check-that-zeropages-are-not-passed-to-rmap.patch
+fs-proc-task_mmu-indicate-pm_file-for-pmd-mapped-file-thp.patch
+fs-proc-task_mmu-dont-indicate-pm_mmap_exclusive-without-pm_present.patch
+fs-proc-task_mmu-properly-detect-pm_mmap_exclusive-per-page-of-pmd-mapped-thps.patch
+fs-proc-task_mmu-account-non-present-entries-as-maybe-shared-but-no-idea-how-often.patch
+fs-proc-move-page_mapcount-to-fs-proc-internalh.patch
+documentation-admin-guide-mm-pagemaprst-drop-using-pagemap-to-do-something-useful.patch
+mm-pass-meminit_context-to-__free_pages_core.patch
+mm-pass-meminit_context-to-__free_pages_core-fix.patch
+mm-pass-meminit_context-to-__free_pages_core-fix-2.patch
+mm-pass-meminit_context-to-__free_pages_core-fix-3.patch
+mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved.patch
+mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining.patch
+mm-highmem-reimplement-totalhigh_pages-by-walking-zones.patch
+mm-highmem-reimplement-totalhigh_pages-by-walking-zones-fix.patch
+mm-highmem-make-nr_free_highpages-return-unsigned-long.patch
+mm-read-page_type-using-read_once.patch
 
