@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 944D94685
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:58:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30D254685
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:58:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718845109; cv=none; b=K3gOvEjpWhDtsmXvdo67mFIVZj/tOx5YVn8pn/fnf6oQolx0UwtEs1Z1mVs++7vwXYlvo+4OxtCDxaVNXjlJMQMw6yqJMBEmmSTofEy0MszzMDtNVsguIddGQAkiD3A9HEmg5Y6tqKgHQwFD694krMbJKetrT7072JseHR15InI=
+	t=1718845112; cv=none; b=LT+xMfdrG7NdN4voyGvEZyyluFIvh+1IGCWayM+L+EJA1eVtth5lsjimIjrm5rqm3i1AcnlxtpMAtV0BlS5w5QnNrOCYMAOu0PNgp57ztj/x773RC70VhI0j7hPGGNv1Wl70RjnYq3F1fESUu8jtWjlvPEiEHOvs9IIQjlrL5gI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718845109; c=relaxed/simple;
-	bh=T7/gOSN7KrfuH99gevkCt+xBzl+wHWvIc4UriV7wYwg=;
-	h=Date:To:From:Subject:Message-Id; b=fYPKq0QD39iUdwLjXsK2Vs9AzrbmWFrnNte3M9zqxZA39w8+tW/HdPSAGrH6zU7tm2xif2iTNBlKEb8HuXYzsN2F67vUSdYwAXXvEIVGY44chT0rCIzka1ZAYZG+mjOCy0+oadKoScRy8bNS+MlKRabyerGS82DvND78I7gV3+4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ENf0YHCr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718845112; c=relaxed/simple;
+	bh=N9BpBd6macTrOE75XSlJZpdrg1NGT8BvcTg3pdYSFqA=;
+	h=Date:To:From:Subject:Message-Id; b=ia7zAhtRMbNAHrzxvID2vxSxUgMrJPK48RN91K/ZoM4XugAT79pX+4SW3BGaL2FRvI77aqs9FjwOwjnHkDu6QTzegumdB2hpbpLhRRdWVbRZhOBDxPW51gIOSrvJi0S+FyLJnLpoFn5tziY85DlXYIO98jO4NhW0HLATZ8QBx9c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tQruxVZ1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ENf0YHCr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 615A6C2BBFC;
-	Thu, 20 Jun 2024 00:58:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tQruxVZ1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0509BC2BBFC;
+	Thu, 20 Jun 2024 00:58:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718845109;
-	bh=T7/gOSN7KrfuH99gevkCt+xBzl+wHWvIc4UriV7wYwg=;
+	s=korg; t=1718845112;
+	bh=N9BpBd6macTrOE75XSlJZpdrg1NGT8BvcTg3pdYSFqA=;
 	h=Date:To:From:Subject:From;
-	b=ENf0YHCrmPOucQHJEq4pI+2G8BKm6SN+HfZmKpndVxZ5vb9Ar748JkcgPK0qwT414
-	 8k0U7j52LJ0AMMYQHvhRzopHgJe9AlAWStVSB1yGS/5PB8jV0xPNdIVDT0dVWC9Frm
-	 QiFc4eTGio/Soc7lPR1ebvcScjPYErwfghjSKVYE=
-Date: Wed, 19 Jun 2024 17:58:28 -0700
+	b=tQruxVZ11q6C5MOgeTK7f0XxDuGlZLszqh5F4LSDprzW0ehFWenmsQkS11+e9qUJ9
+	 54Kf8JaF2hlN9Sxy9+13iRKd/bzLo6EdOUfzcAL0bwHwLKQ1y1IGC4DfK8zyYo3eXY
+	 lY7zMVji22BFdn6sPP0phuR1xwsyEw3La3/SLSJ4=
+Date: Wed, 19 Jun 2024 17:58:31 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,kasan-dev@googlegroups.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-expose-kmsan_get_metadata.patch added to mm-unstable branch
-Message-Id: <20240620005829.615A6C2BBFC@smtp.kernel.org>
+Subject: + kmsan-export-panic_on_kmsan.patch added to mm-unstable branch
+Message-Id: <20240620005832.0509BC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmsan: expose kmsan_get_metadata()
+     Subject: kmsan: export panic_on_kmsan
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-expose-kmsan_get_metadata.patch
+     kmsan-export-panic_on_kmsan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-expose-kmsan_get_metadata.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-export-panic_on_kmsan.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: kmsan: expose kmsan_get_metadata()
-Date: Wed, 19 Jun 2024 17:43:44 +0200
+Subject: kmsan: export panic_on_kmsan
+Date: Wed, 19 Jun 2024 17:43:45 +0200
 
-Each s390 CPU has lowcore pages associated with it.  Each CPU sees its own
-lowcore at virtual address 0 through a hardware mechanism called
-prefixing.  Additionally, all lowcores are mapped to non-0 virtual
-addresses stored in the lowcore_ptr[] array.
+When building the kmsan test as a module, modpost fails with the following
+error message:
 
-When lowcore is accessed through virtual address 0, one needs to resolve
-metadata for lowcore_ptr[raw_smp_processor_id()].
+    ERROR: modpost: "panic_on_kmsan" [mm/kmsan/kmsan_test.ko] undefined!
 
-Expose kmsan_get_metadata() to make it possible to do this from the arch
-code.
+Export panic_on_kmsan in order to improve the KMSAN usability for modules.
 
-Link: https://lkml.kernel.org/r/20240619154530.163232-10-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240619154530.163232-11-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -97,49 +93,19 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmsan.h      |    9 +++++++++
- mm/kmsan/instrumentation.c |    1 +
- mm/kmsan/kmsan.h           |    1 -
- 3 files changed, 10 insertions(+), 1 deletion(-)
+ mm/kmsan/report.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/kmsan.h~kmsan-expose-kmsan_get_metadata
-+++ a/include/linux/kmsan.h
-@@ -230,6 +230,15 @@ void kmsan_handle_urb(const struct urb *
-  */
- void kmsan_unpoison_entry_regs(const struct pt_regs *regs);
+--- a/mm/kmsan/report.c~kmsan-export-panic_on_kmsan
++++ a/mm/kmsan/report.c
+@@ -20,6 +20,7 @@ static DEFINE_RAW_SPINLOCK(kmsan_report_
+ /* Protected by kmsan_report_lock */
+ static char report_local_descr[DESCR_SIZE];
+ int panic_on_kmsan __read_mostly;
++EXPORT_SYMBOL_GPL(panic_on_kmsan);
  
-+/**
-+ * kmsan_get_metadata() - Return a pointer to KMSAN shadow or origins.
-+ * @addr:      kernel address.
-+ * @is_origin: whether to return origins or shadow.
-+ *
-+ * Return NULL if metadata cannot be found.
-+ */
-+void *kmsan_get_metadata(void *addr, bool is_origin);
-+
- #else
- 
- static inline void kmsan_init_shadow(void)
---- a/mm/kmsan/instrumentation.c~kmsan-expose-kmsan_get_metadata
-+++ a/mm/kmsan/instrumentation.c
-@@ -14,6 +14,7 @@
- 
- #include "kmsan.h"
- #include <linux/gfp.h>
-+#include <linux/kmsan.h>
- #include <linux/kmsan_string.h>
- #include <linux/mm.h>
- #include <linux/uaccess.h>
---- a/mm/kmsan/kmsan.h~kmsan-expose-kmsan_get_metadata
-+++ a/mm/kmsan/kmsan.h
-@@ -66,7 +66,6 @@ struct shadow_origin_ptr {
- 
- struct shadow_origin_ptr kmsan_get_shadow_origin_ptr(void *addr, u64 size,
- 						     bool store);
--void *kmsan_get_metadata(void *addr, bool is_origin);
- void __init kmsan_init_alloc_meta_for_range(void *start, void *end);
- 
- enum kmsan_bug_reason {
+ #ifdef MODULE_PARAM_PREFIX
+ #undef MODULE_PARAM_PREFIX
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
