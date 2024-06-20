@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4552815ADAF
-	for <mm-commits@vger.kernel.org>; Wed, 19 Jun 2024 23:12:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FC336116
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:58:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718838749; cv=none; b=sWXWGvGQqOe0DQgzoRXynJdRc62u1+8pd+LmblvdLQjtIDi8vTFuSOct1dE6JAzBk8P900wpASQBxUsCyxQTCevmf4cyB3JFLx8MLszhDCalcNd2+ldpsHuTZT7r4v154PbQyWPm7aioSROOSHBoU2Ky6JvnMkhSo1Zcb4HX5gU=
+	t=1718845094; cv=none; b=CIhfrUp7cXrb+d+sGs/BLByj+Q+MKw7ltifsSOTEUwYIHz+pAV8XylMQXw4/zTE9NVkZh8t7iAN1wF/GbH5yXtpNGW3nmnb9/rMcLkwDXZ88coqeVkIytATYXVkhAlunEYQI4rTRQJJo4epf3xVjr4RlCAR2OnNhwNgnF/RgJsg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718838749; c=relaxed/simple;
-	bh=AmOzQqidWa908LDfdT+VXDRSs2u9ncfnaIRCCNnoE6U=;
-	h=Date:To:From:Subject:Message-Id; b=bceRlBARQg96YwVDEom7wAwJo5WWfdbkT63maB/FZgC8ow5UralVsJ26h1gpCIfjliochBDUSi5GHl01nTqaiGq4b2aglF56GfipiStQYk6wZc71/r5VaGS7MHw2vpyUXNkO3tHoy6KhDjuyen3+ti9pMKUQSLjNtnK9H4mRHB0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BdBTvmXr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718845094; c=relaxed/simple;
+	bh=cRszkQiYIaURhuUX+DH0U/1HnmLP4IUJNrXUMu1faBg=;
+	h=Date:To:From:Subject:Message-Id; b=Ghz599vPLnsZ1OJXdYn6XoKbAId8exdG3z4ggyiFPi6Mb9dUSqbNNpfGrWyAOnhUzKPi7mQ3ZrvIWq9jvo8VipnPab/3gCCvVTyFFfFycfhFwXj0Jb+ITCFJ0o9ODXTHZ6owlv4wSbDEYHpC7EWVnGu2BIFZag5iFunyeXPSJX4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YbiHSF4t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BdBTvmXr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C05CCC2BBFC;
-	Wed, 19 Jun 2024 23:12:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YbiHSF4t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A65F1C2BBFC;
+	Thu, 20 Jun 2024 00:58:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718838748;
-	bh=AmOzQqidWa908LDfdT+VXDRSs2u9ncfnaIRCCNnoE6U=;
+	s=korg; t=1718845093;
+	bh=cRszkQiYIaURhuUX+DH0U/1HnmLP4IUJNrXUMu1faBg=;
 	h=Date:To:From:Subject:From;
-	b=BdBTvmXrxtHb7v/5uLWkpKa2CGwEcOEA5Yvso8fGfZyo31Tw+kE8Rob4B/xTptjHo
-	 8tPn/SOm7sItCRePQqlqvWMMLe+DvPObVx35gaPoGWwvwWvye3S4+X+i65Ii6RTGyg
-	 aeNgZSSlPQggKxzZFGofDmfHuDTXa0WkB9xovByo=
-Date: Wed, 19 Jun 2024 16:12:28 -0700
-To: mm-commits@vger.kernel.org,lkp@intel.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=YbiHSF4tbBIgu/1z06OhjSa2PVPnHShP4lc6CK0mikpEgUwp+pmRScRoLztUypBAD
+	 6dppFN7BEzB/VgVASNq7DEsYpYN2BnZOVEAjGkyMQgCmT/AbcI3n/biJCqcTIUfBAa
+	 UIvRvgCrlzAxUojtFDm71yV61hGJSG5CsOauJmh4=
+Date: Wed, 19 Jun 2024 17:58:12 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,kasan-dev@googlegroups.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix-2.patch added to mm-unstable branch
-Message-Id: <20240619231228.C05CCC2BBFC@smtp.kernel.org>
+Subject: + ftrace-unpoison-ftrace_regs-in-ftrace_ops_list_func.patch added to mm-unstable branch
+Message-Id: <20240620005813.A65F1C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix the missing doc for flags of folio_add_new_anon_rmap()
+     Subject: ftrace: unpoison ftrace_regs in ftrace_ops_list_func()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix-2.patch
+     ftrace-unpoison-ftrace_regs-in-ftrace_ops_list_func.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ftrace-unpoison-ftrace_regs-in-ftrace_ops_list_func.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,46 +58,118 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: fix the missing doc for flags of folio_add_new_anon_rmap()
-Date: Thu, 20 Jun 2024 08:57:55 +1200
+From: Ilya Leoshkevich <iii@linux.ibm.com>
+Subject: ftrace: unpoison ftrace_regs in ftrace_ops_list_func()
+Date: Wed, 19 Jun 2024 17:43:36 +0200
 
-Fix mm/rmap.c:1413: warning: Function parameter or struct member
-'flags' not described in 'folio_add_new_anon_rmap'.
+Patch series "kmsan: Enable on s390", v5.
 
-Link: https://lkml.kernel.org/r/20240619210641.62542-1-21cnbao@gmail.com
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202406200059.tVU9semU-lkp@intel.com/
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+This series provides the minimal support for Kernel Memory Sanitizer on
+s390.  Kernel Memory Sanitizer is clang-only instrumentation for finding
+accesses to uninitialized memory.  The clang support for s390 has already
+been merged [1].
+
+With this series, I can successfully boot s390 defconfig and
+debug_defconfig with kmsan.panic=1.  The tool found one real s390-specific
+bug (fixed in master).
+
+[1] https://reviews.llvm.org/D148596
+
+
+This patch (of 37):
+
+Architectures use assembly code to initialize ftrace_regs and call
+ftrace_ops_list_func().  Therefore, from the KMSAN's point of view,
+ftrace_regs is poisoned on ftrace_ops_list_func entry().  This causes
+KMSAN warnings when running the ftrace testsuite.
+
+Fix by trusting the architecture-specific assembly code and always
+unpoisoning ftrace_regs in ftrace_ops_list_func.
+
+The issue was not encountered on x86_64 so far only by accident:
+assembly-allocated ftrace_regs was overlapping a stale partially
+unpoisoned stack frame.  Poisoning stack frames before returns [1] makes
+the issue appear on x86_64 as well.
+
+[1] https://github.com/iii-i/llvm-project/commits/msan-poison-allocas-before-returning-2024-06-12/
+
+Link: https://lkml.kernel.org/r/20240619154530.163232-1-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240619154530.163232-2-iii@linux.ibm.com
+Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Acked-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: <kasan-dev@googlegroups.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    1 +
+ kernel/trace/ftrace.c |    1 +
  1 file changed, 1 insertion(+)
 
---- a/mm/rmap.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix-2
-+++ a/mm/rmap.c
-@@ -1401,6 +1401,7 @@ void folio_add_anon_rmap_pmd(struct foli
-  * @folio:	The folio to add the mapping to.
-  * @vma:	the vm area in which the mapping is added
-  * @address:	the user virtual address mapped
-+ * @flags:	The rmap flags
-  *
-  * Like folio_add_anon_rmap_*() but must only be called on *new* folios.
-  * This means the inc-and-test can be bypassed.
+--- a/kernel/trace/ftrace.c~ftrace-unpoison-ftrace_regs-in-ftrace_ops_list_func
++++ a/kernel/trace/ftrace.c
+@@ -7407,6 +7407,7 @@ out:
+ void arch_ftrace_ops_list_func(unsigned long ip, unsigned long parent_ip,
+ 			       struct ftrace_ops *op, struct ftrace_regs *fregs)
+ {
++	kmsan_unpoison_memory(fregs, sizeof(*fregs));
+ 	__ftrace_ops_list_func(ip, parent_ip, NULL, fregs);
+ }
+ #else
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from iii@linux.ibm.com are
 
-cifs-drop-the-incorrect-assertion-in-cifs_swap_rw.patch
-mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr.patch
-mm-introduce-pte_move_swp_offset-helper-which-can-move-offset-bidirectionally.patch
-mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages.patch
-mm-swap-reuse-exclusive-folio-directly-instead-of-wp-page-faults.patch
-mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect.patch
-mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page.patch
-mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap.patch
-mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix-2.patch
-mm-use-folio_add_new_anon_rmap-if-folio_test_anonfolio==false.patch
-mm-remove-folio_test_anonfolio==false-path-in-__folio_add_anon_rmap.patch
+ftrace-unpoison-ftrace_regs-in-ftrace_ops_list_func.patch
+kmsan-make-the-tests-compatible-with-kmsanpanic=1.patch
+kmsan-disable-kmsan-when-deferred_struct_page_init-is-enabled.patch
+kmsan-increase-the-maximum-store-size-to-4096.patch
+kmsan-fix-is_bad_asm_addr-on-arches-with-overlapping-address-spaces.patch
+kmsan-fix-kmsan_copy_to_user-on-arches-with-overlapping-address-spaces.patch
+kmsan-remove-a-useless-assignment-from-kmsan_vmap_pages_range_noflush.patch
+kmsan-remove-an-x86-specific-include-from-kmsanh.patch
+kmsan-expose-kmsan_get_metadata.patch
+kmsan-export-panic_on_kmsan.patch
+kmsan-allow-disabling-kmsan-checks-for-the-current-task.patch
+kmsan-introduce-memset_no_sanitize_memory.patch
+kmsan-support-slab_poison.patch
+kmsan-use-align_down-in-kmsan_get_metadata.patch
+kmsan-do-not-round-up-pg_data_t-size.patch
+mm-slub-let-kmsan-access-metadata.patch
+mm-slub-disable-kmsan-when-checking-the-padding-bytes.patch
+mm-kfence-disable-kmsan-when-checking-the-canary.patch
+lib-zlib-unpoison-dfltcc-output-buffers.patch
+kmsan-accept-ranges-starting-with-0-on-s390.patch
+s390-boot-turn-off-kmsan.patch
+s390-use-a-larger-stack-for-kmsan.patch
+s390-boot-add-the-kmsan-runtime-stub.patch
+s390-checksum-add-a-kmsan-check.patch
+s390-cpacf-unpoison-the-results-of-cpacf_trng.patch
+s390-cpumf-unpoison-stcctm-output-buffer.patch
+s390-diag-unpoison-diag224-output-buffer.patch
+s390-ftrace-unpoison-ftrace_regs-in-kprobe_ftrace_handler.patch
+s390-irqflags-do-not-instrument-arch_local_irq_-with-kmsan.patch
+s390-mm-define-kmsan-metadata-for-vmalloc-and-modules.patch
+s390-string-add-kmsan-support.patch
+s390-traps-unpoison-the-kernel_stack_overflows-pt_regs.patch
+s390-uaccess-add-kmsan-support-to-put_user-and-get_user.patch
+s390-uaccess-add-the-missing-linux-instrumentedh-include.patch
+s390-unwind-disable-kmsan-checks.patch
+s390-kmsan-implement-the-architecture-specific-functions.patch
+kmsan-enable-on-s390.patch
 
