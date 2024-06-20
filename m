@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D71D3FC2
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:58:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 521914C9B
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 00:58:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718845096; cv=none; b=hoeIgVQOJma69QrmIF0HVmFQETkAyLQzF0YaJhdqc22W4FMjY60et2WFq/NonP7JId9e84VUMa5Uu2/YdTvH4E1Qmm5QKdJsPTBfv3TfwL6p8n72akTTUwWdSw3xCE9BXj5wakr8mHhO57Byuorp5oXrkqYroBtpa1qwPRRXjjU=
+	t=1718845098; cv=none; b=d6vmYAy+ZHROYrjXzhimnvIjRc3XP+4vbg/01Y2CPJ5RccAn5GTFgD7TbCZABM0fd04D4omhQEg8Nsr00d+tRtgup2keiPNzoV2kcetVox7z2mNeWh0mcscCYVWA1zcika0l7X+6Qj03oH5J2V16G9DQ4ZsRSEHRLY4hssqTehk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718845096; c=relaxed/simple;
-	bh=XpBX14oiBq50faGXVUlasGVCuvpSBH2bmPQ+bnC54nU=;
-	h=Date:To:From:Subject:Message-Id; b=XGt0UDvI1u+SCMjvBntaXlM+noYYBj9o0OKJc8Y/+DH2fquDySYBaFQUPIyMlJxkVoWglDxV1Xk6Yu/SOX8xMGP9sJ8oMvntT8FYWIr4Yquc74HmSCeJW8wU/hZxENxWFC4YMwpCOL/s0OZcdPq7EfzzULQr0sZ9r1PcnEUfmZ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E1fdHsjY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718845098; c=relaxed/simple;
+	bh=4jkJNTcqHXPMRn6rYj3kQYCeBaBCvQ76UZRn+50Zn4U=;
+	h=Date:To:From:Subject:Message-Id; b=qbDcSaZbRrxJ+BMILHYodgE20oKe5yXBKA8WIWvHclV8bt9cBinSOH92zcqG6d1Co1NbolXyJMxxIvNWpn7tq3rXr6oi7kWPSImBpAm5FyjLbYD+n/YhSFRcYTc/jqUPuvdQkpLiMuO5ihyD7sKfYSO28YyYIhGgdushdbTdBkU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TUJ5UjQ3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E1fdHsjY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B06EEC2BBFC;
-	Thu, 20 Jun 2024 00:58:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TUJ5UjQ3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B76DBC2BBFC;
+	Thu, 20 Jun 2024 00:58:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718845095;
-	bh=XpBX14oiBq50faGXVUlasGVCuvpSBH2bmPQ+bnC54nU=;
+	s=korg; t=1718845097;
+	bh=4jkJNTcqHXPMRn6rYj3kQYCeBaBCvQ76UZRn+50Zn4U=;
 	h=Date:To:From:Subject:From;
-	b=E1fdHsjYeHNAzGoABBrGCF6fRbJkN2fyIGID0K5WAZbP9DKet+bTZ5aTSIOhUwQYe
-	 bg4jHdzbQLYPBFylVSREvfQejpjoaizfKPOaNVsc2gqWtYzu+BEeCy0/cy2vtbx2QG
-	 jzfTLCeV+nrCB1kPsOWBfgSmuyKd5zvUWWE30CHo=
-Date: Wed, 19 Jun 2024 17:58:15 -0700
+	b=TUJ5UjQ3VHWoku7ftXFpXcC/uwHMGywqj3MQqY5dDbbk7vAQvBPjfnm7Wrnnxn0uQ
+	 Ucsd4J8nACeYyb7+gF01wd5aUm5MCo0zkD5TvcFgGwLJJMMcTtyL4qW9sYyPJrioRH
+	 hE1uzlr+EmHSjkR4r01e3Ids4ybf78V6w+ATDaBU=
+Date: Wed, 19 Jun 2024 17:58:17 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,kasan-dev@googlegroups.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-make-the-tests-compatible-with-kmsanpanic=1.patch added to mm-unstable branch
-Message-Id: <20240620005815.B06EEC2BBFC@smtp.kernel.org>
+Subject: + kmsan-disable-kmsan-when-deferred_struct_page_init-is-enabled.patch added to mm-unstable branch
+Message-Id: <20240620005817.B76DBC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmsan: make the tests compatible with kmsan.panic=1
+     Subject: kmsan: disable KMSAN when DEFERRED_STRUCT_PAGE_INIT is enabled
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-make-the-tests-compatible-with-kmsanpanic=1.patch
+     kmsan-disable-kmsan-when-deferred_struct_page_init-is-enabled.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-make-the-tests-compatible-with-kmsanpanic=1.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-disable-kmsan-when-deferred_struct_page_init-is-enabled.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: kmsan: make the tests compatible with kmsan.panic=1
-Date: Wed, 19 Jun 2024 17:43:37 +0200
+Subject: kmsan: disable KMSAN when DEFERRED_STRUCT_PAGE_INIT is enabled
+Date: Wed, 19 Jun 2024 17:43:38 +0200
 
-It's useful to have both tests and kmsan.panic=1 during development, but
-right now the warnings, that the tests cause, lead to kernel panics.
+KMSAN relies on memblock returning all available pages to it (see
+kmsan_memblock_free_pages()).  It partitions these pages into 3
+categories: pages available to the buddy allocator, shadow pages and
+origin pages.  This partitioning is static.
 
-Temporarily set kmsan.panic=0 for the duration of the KMSAN testing.
+If new pages appear after kmsan_init_runtime(), it is considered an error.
+DEFERRED_STRUCT_PAGE_INIT causes this, so mark it as incompatible with
+KMSAN.
 
-Link: https://lkml.kernel.org/r/20240619154530.163232-3-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240619154530.163232-4-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -91,33 +95,19 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/kmsan_test.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/kmsan/kmsan_test.c~kmsan-make-the-tests-compatible-with-kmsanpanic=1
-+++ a/mm/kmsan/kmsan_test.c
-@@ -686,9 +686,13 @@ static void test_exit(struct kunit *test
- {
- }
- 
-+static int orig_panic_on_kmsan;
-+
- static int kmsan_suite_init(struct kunit_suite *suite)
- {
- 	register_trace_console(probe_console, NULL);
-+	orig_panic_on_kmsan = panic_on_kmsan;
-+	panic_on_kmsan = 0;
- 	return 0;
- }
- 
-@@ -696,6 +700,7 @@ static void kmsan_suite_exit(struct kuni
- {
- 	unregister_trace_console(probe_console, NULL);
- 	tracepoint_synchronize_unregister();
-+	panic_on_kmsan = orig_panic_on_kmsan;
- }
- 
- static struct kunit_suite kmsan_test_suite = {
+--- a/mm/Kconfig~kmsan-disable-kmsan-when-deferred_struct_page_init-is-enabled
++++ a/mm/Kconfig
+@@ -946,6 +946,7 @@ config DEFERRED_STRUCT_PAGE_INIT
+ 	depends on SPARSEMEM
+ 	depends on !NEED_PER_CPU_KM
+ 	depends on 64BIT
++	depends on !KMSAN
+ 	select PADATA
+ 	help
+ 	  Ordinarily all struct pages are initialised during early boot in a
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
