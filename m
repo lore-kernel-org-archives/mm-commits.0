@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 150EA1C36
-	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 01:19:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3456E13AF2
+	for <mm-commits@vger.kernel.org>; Thu, 20 Jun 2024 01:27:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718846343; cv=none; b=I2IbADzTpk/RNlzEDqzW5xwdriJESLtlPhQCybkf/k08JACWsDQO02fCcgC6s59KowEjapnBErQfyBeq0qyNF2nr34BQElWJxwAEzhHe6/sAqjCGuZVtG7j5Z8Dh0yyV4mAVgH6w4FUyCF717QRThDyh0WLkuMaxAuv9hU0fkr0=
+	t=1718846872; cv=none; b=hV864okhwjd2+VdDChMlBBNpcgrXvEwUf39hsYIMNJtcV17k1FzxcRBfXOd/X+hilitUaBRVgGSOWWUnqpw0qCbr8Er/2yx093Ppin78c2kfLPhNI4WWUo6XKUrr4Tw0IwqtQYBBK4BWhB29R1xy+cHbxwmIDPSnIqSo5Stin/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718846343; c=relaxed/simple;
-	bh=IG2JLHDd1MKjrcaUxUv4nMVtGmqv2gjLk4bDyowlhpI=;
-	h=Date:To:From:Subject:Message-Id; b=ZIZ08Cya55cPbmiL233YmQWwRdE8nx9n8eKxw04DpMHkRQgEpxnR5RxYcHBB/YU+O/vfDAqAiHRDlVavVkqwzWLJTOdnzL4hDR2g+wkP0HVp6gifv1CEy1hDwcRLylONhIZ0wQ+5GhxdT3MGpJldjkR3pA8Dw5cYLzGGmFUkFTU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rRGgvhYj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718846872; c=relaxed/simple;
+	bh=sBOcGv8MpzyEGy7nqH2E49ZoZC/Ng4QqyHEZ03k+vok=;
+	h=Date:To:From:Subject:Message-Id; b=ZrF5O5Pph1RhkIF88z4dwsYid635F14M/zoFM0sKv7TfarNt5IuEz+HsduzJ4wgDVOUXtaDQeCWnA7d5ry2L7aD4wT6J0zFUGcLHBDhqodW6OWR/mjIepRIO7FQ2mpYvaJxeFp2L2ejH2Bjc9NOFeJEVmVgXbqYsb9CTNRYGMTc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SA/a3btT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rRGgvhYj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76804C32786;
-	Thu, 20 Jun 2024 01:19:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SA/a3btT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9606DC2BBFC;
+	Thu, 20 Jun 2024 01:27:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718846342;
-	bh=IG2JLHDd1MKjrcaUxUv4nMVtGmqv2gjLk4bDyowlhpI=;
+	s=korg; t=1718846871;
+	bh=sBOcGv8MpzyEGy7nqH2E49ZoZC/Ng4QqyHEZ03k+vok=;
 	h=Date:To:From:Subject:From;
-	b=rRGgvhYjrnn27x/mzP8mFy1L4faNpY1eZK6tiHJa/Sb8VTWCu0ii6A2woV1aH0Oi8
-	 8fyEU+yW++fiEn/fzkjEfu7PekI7ePksXHj1tAz+2SmVPqV9fPbz6GaX0u5ttqN6nU
-	 ylJci9yKkCa2N3BSPSZjVD6OJOYxpnm8vpdMeUpk=
-Date: Wed, 19 Jun 2024 18:19:01 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,jane.chu@oracle.com,ioworker0@gmail.com,jiaqiyan@google.com,akpm@linux-foundation.org
+	b=SA/a3btTMGzXOCCZKWp33LGbO9atU0TlLPrIeSHHx6bMxdsNFcNpzI1o+1HYbbPLl
+	 8ky3CJTZAr6PoKsHTDHvgFZl52rgutfhHijJ47IZ/AAsdnCVO0L2OI1b9BHdVKpR3F
+	 EzGZVxcjN7baj/b6HPQSTeYAHyBYLZge5y2JS1n0=
+Date: Wed, 19 Jun 2024 18:27:51 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,osalvador@suse.de,oliver.sang@intel.com,muchun.song@linux.dev,m.szyprowski@samsung.com,xiujianfeng@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-refactor-log-format-in-unpoison_memory.patch added to mm-unstable branch
-Message-Id: <20240620011902.76804C32786@smtp.kernel.org>
+Subject: + mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix-fix.patch added to mm-unstable branch
+Message-Id: <20240620012751.9606DC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: refactor log format in unpoison_memory
+     Subject: mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-refactor-log-format-in-unpoison_memory.patch
+     mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-refactor-log-format-in-unpoison_memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,120 +58,110 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jiaqi Yan <jiaqiyan@google.com>
-Subject: mm/memory-failure: refactor log format in unpoison_memory
-Date: Wed, 19 Jun 2024 06:33:55 +0000
+From: Xiu Jianfeng <xiujianfeng@huawei.com>
+Subject: mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix-fix
+Date: Wed, 19 Jun 2024 01:55:27 +0000
 
-Logs from memory_failure and other memory-failure.c code follow the
-format:
+When CONFIG_DEBUG_LOCK_ALLOC is enabled, the following commands can
+trigger a bug,
 
-  "Memory failure: 0x{pfn}: ${lower_case_message}"
+mount -t cgroup2 none /sys/fs/cgroup
+cd /sys/fs/cgroup
+echo "+hugetlb" > cgroup.subtree_control
 
-Convert the logs in unpoison_memory to follow similar format:
+The log is as below:
 
-  "Unpoison: 0x${pfn}: ${lower_case_message}"
+BUG: key ffff8880046d88d8 has not been registered!
+------------[ cut here ]------------
+DEBUG_LOCKS_WARN_ON(1)
+WARNING: CPU: 3 PID: 226 at kernel/locking/lockdep.c:4945 lockdep_init_map_type+0x185/0x220
+Modules linked in:
+CPU: 3 PID: 226 Comm: bash Not tainted 6.10.0-rc4-next-20240617-g76db4c64526c #544
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
+RIP: 0010:lockdep_init_map_type+0x185/0x220
+Code: 00 85 c0 0f 84 6c ff ff ff 8b 3d 6a d1 85 01 85 ff 0f 85 5e ff ff ff 48 c7 c6 21 99 4a 82 48 c7 c7 60 29 49 82 e8 3b 2e f5
+RSP: 0018:ffffc9000083fc30 EFLAGS: 00000282
+RAX: 0000000000000000 RBX: ffffffff828dd820 RCX: 0000000000000027
+RDX: ffff88803cd9cac8 RSI: 0000000000000001 RDI: ffff88803cd9cac0
+RBP: ffff88800674fbb0 R08: ffffffff828ce248 R09: 00000000ffffefff
+R10: ffffffff8285e260 R11: ffffffff828b8eb8 R12: ffff8880046d88d8
+R13: 0000000000000000 R14: 0000000000000000 R15: ffff8880067281c0
+FS:  00007f68601ea740(0000) GS:ffff88803cd80000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00005614f3ebc740 CR3: 000000000773a000 CR4: 00000000000006f0
+Call Trace:
+ <TASK>
+ ? __warn+0x77/0xd0
+ ? lockdep_init_map_type+0x185/0x220
+ ? report_bug+0x189/0x1a0
+ ? handle_bug+0x3c/0x70
+ ? exc_invalid_op+0x18/0x70
+ ? asm_exc_invalid_op+0x1a/0x20
+ ? lockdep_init_map_type+0x185/0x220
+ __kernfs_create_file+0x79/0x100
+ cgroup_addrm_files+0x163/0x380
+ ? find_held_lock+0x2b/0x80
+ ? find_held_lock+0x2b/0x80
+ ? find_held_lock+0x2b/0x80
+ css_populate_dir+0x73/0x180
+ cgroup_apply_control_enable+0x12f/0x3a0
+ cgroup_subtree_control_write+0x30b/0x440
+ kernfs_fop_write_iter+0x13a/0x1f0
+ vfs_write+0x341/0x450
+ ksys_write+0x64/0xe0
+ do_syscall_64+0x4b/0x110
+ entry_SYSCALL_64_after_hwframe+0x76/0x7e
+RIP: 0033:0x7f68602d9833
+Code: 8b 15 61 26 0e 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb b7 0f 1f 00 64 8b 04 25 18 00 00 00 85 c0 75 14 b8 01 00 00 00 08
+RSP: 002b:00007fff9bbdf8e8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000009 RCX: 00007f68602d9833
+RDX: 0000000000000009 RSI: 00005614f3ebc740 RDI: 0000000000000001
+RBP: 00005614f3ebc740 R08: 000000000000000a R09: 0000000000000008
+R10: 00005614f3db6ba0 R11: 0000000000000246 R12: 0000000000000009
+R13: 00007f68603bd6a0 R14: 0000000000000009 R15: 00007f68603b8880
 
-For example (from local test):
-  [ 1331.938397] Unpoison: 0x144bc8: page was already unpoisoned
+For lockdep, there is a sanity check in lockdep_init_map_type(), the
+lock-class key must either have been allocated statically or must
+have been registered as a dynamic key. However the commit e18df2889ff9
+("mm/hugetlb_cgroup: prepare cftypes based on template") has changed
+the cftypes from static allocated objects to dynamic allocated objects,
+so the cft->lockdep_key must be registered proactively.
 
-No functional change in this commit.
-
-Link: https://lkml.kernel.org/r/20240619063355.171313-1-jiaqiyan@google.com
-Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Link: https://lkml.kernel.org/r/20240619015527.2212698-1-xiujianfeng@huawei.com
+Fixes: e18df2889ff9 ("mm/hugetlb_cgroup: prepare cftypes based on template")
+Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202406181046.8d8b2492-oliver.sang@intel.com
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Tested-by: SeongJae Park <sj@kernel.org>
+Closes: https://lore.kernel.org/20240618233608.400367-1-sj@kernel.org
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ include/linux/cgroup-defs.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-refactor-log-format-in-unpoison_memory
-+++ a/mm/memory-failure.c
-@@ -2526,7 +2526,7 @@ static int __init memory_failure_init(vo
- core_initcall(memory_failure_init);
+--- a/include/linux/cgroup-defs.h~mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix-fix
++++ a/include/linux/cgroup-defs.h
+@@ -676,9 +676,7 @@ struct cftype {
+ 	__poll_t (*poll)(struct kernfs_open_file *of,
+ 			 struct poll_table_struct *pt);
  
- #undef pr_fmt
--#define pr_fmt(fmt)	fmt
-+#define pr_fmt(fmt)	"Unpoison: " fmt
- #define unpoison_pr_info(fmt, pfn, rs)			\
- ({							\
- 	if (__ratelimit(rs))				\
-@@ -2564,27 +2564,27 @@ int unpoison_memory(unsigned long pfn)
- 	mutex_lock(&mf_mutex);
+-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+ 	struct lock_class_key	lockdep_key;
+-#endif
+ };
  
- 	if (hw_memory_failure) {
--		unpoison_pr_info("Unpoison: Disabled after HW memory failure %#lx\n",
-+		unpoison_pr_info("%#lx: disabled after HW memory failure\n",
- 				 pfn, &unpoison_rs);
- 		ret = -EOPNOTSUPP;
- 		goto unlock_mutex;
- 	}
- 
- 	if (is_huge_zero_folio(folio)) {
--		unpoison_pr_info("Unpoison: huge zero page is not supported %#lx\n",
-+		unpoison_pr_info("%#lx: huge zero page is not supported\n",
- 				 pfn, &unpoison_rs);
- 		ret = -EOPNOTSUPP;
- 		goto unlock_mutex;
- 	}
- 
- 	if (!PageHWPoison(p)) {
--		unpoison_pr_info("Unpoison: Page was already unpoisoned %#lx\n",
-+		unpoison_pr_info("%#lx: page was already unpoisoned\n",
- 				 pfn, &unpoison_rs);
- 		goto unlock_mutex;
- 	}
- 
- 	if (folio_ref_count(folio) > 1) {
--		unpoison_pr_info("Unpoison: Someone grabs the hwpoison page %#lx\n",
-+		unpoison_pr_info("%#lx: someone grabs the hwpoison page\n",
- 				 pfn, &unpoison_rs);
- 		goto unlock_mutex;
- 	}
-@@ -2594,13 +2594,13 @@ int unpoison_memory(unsigned long pfn)
- 		goto unlock_mutex;
- 
- 	if (folio_mapped(folio)) {
--		unpoison_pr_info("Unpoison: Someone maps the hwpoison page %#lx\n",
-+		unpoison_pr_info("%#lx: someone maps the hwpoison page\n",
- 				 pfn, &unpoison_rs);
- 		goto unlock_mutex;
- 	}
- 
- 	if (folio_mapping(folio)) {
--		unpoison_pr_info("Unpoison: the hwpoison page has non-NULL mapping %#lx\n",
-+		unpoison_pr_info("%#lx: the hwpoison page has non-NULL mapping\n",
- 				 pfn, &unpoison_rs);
- 		goto unlock_mutex;
- 	}
-@@ -2619,7 +2619,7 @@ int unpoison_memory(unsigned long pfn)
- 			ret = put_page_back_buddy(p) ? 0 : -EBUSY;
- 		} else {
- 			ret = ghp;
--			unpoison_pr_info("Unpoison: failed to grab page %#lx\n",
-+			unpoison_pr_info("%#lx: failed to grab page\n",
- 					 pfn, &unpoison_rs);
- 		}
- 	} else {
-@@ -2644,7 +2644,7 @@ unlock_mutex:
- 	if (!ret) {
- 		if (!huge)
- 			num_poisoned_pages_sub(pfn, 1);
--		unpoison_pr_info("Unpoison: Software-unpoisoned page %#lx\n",
-+		unpoison_pr_info("%#lx: software-unpoisoned page\n",
- 				 page_to_pfn(p), &unpoison_rs);
- 	}
- 	return ret;
+ /*
 _
 
-Patches currently in -mm which might be from jiaqiyan@google.com are
+Patches currently in -mm which might be from xiujianfeng@huawei.com are
 
-mm-memory-failure-userspace-controls-soft-offlining-pages.patch
-selftest-mm-test-enable_soft_offline-behaviors.patch
-docs-mm-add-enable_soft_offline-sysctl.patch
-mm-memory-failure-refactor-log-format-in-unpoison_memory.patch
+mm-hugetlb_cgroup-identify-the-legacy-using-cgroup_subsys_on_dfl.patch
+mm-hugetlb_cgroup-prepare-cftypes-based-on-template.patch
+mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix.patch
+mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix-fix.patch
+mm-hugetlb_cgroup-switch-to-the-new-cftypes.patch
 
