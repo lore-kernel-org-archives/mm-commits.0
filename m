@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9C6759155;
-	Fri, 21 Jun 2024 17:12:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4935516630B;
+	Fri, 21 Jun 2024 17:12:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718989960; cv=none; b=UST9Rs11fK6X/IDIFDV97ZIqqs75tFxz97IqTq7Cn0WlWVXoSkkYqj2h1WW9jWPAx0NAxVUJ7KCONbxw4EWgJdkNwoml4cgU9ufvzhnwuzIuBJLpMdrwPwikBqbhXvln4fjo2A3E0TPgtaQndV3ymyEepBz3R1bxN83/B8s8U9w=
+	t=1718989960; cv=none; b=BLebLxnFZDPeYNkbyrpDy15EyYVj1anxjjs6RsM/PkB5cTt+Ud3palpnPCLbLnOjB5lxcNVRTCZ+PJV+LULO6x24JDJ/h8EcVUJfALWvWrZnBkWCtYSYyLLOpUYRNCBffaot4drV709Lt7viUOcnx512XI293pOlCkJK/yKUMQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1718989960; c=relaxed/simple;
-	bh=Jghk4pyl4Z34T16vjHf0Gw1TzdKKIPp1S6KPJorLW9E=;
-	h=Date:To:From:Subject:Message-Id; b=B9eum4Wps0tYPV/RSwTMm7kdYNjpyLtCKKPe7ZnuwUGtZNVXyGWsUZPfC7ASxTtcBN4j3mszDJkKvaS4UsuGyzEYCswMGALtugsjrOgvY5dQnPDlTUFoG3LgtUAQ1XAbUmF+Ykuaw4JjsBYxmPFz2xrdWCUUpbN4p0i+FOAG9Gw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VvwU4TVH; arc=none smtp.client-ip=10.30.226.201
+	bh=30cTgoRowG8PLheLB99SN9nk0CO3G+hEj/VcPgOPTLU=;
+	h=Date:To:From:Subject:Message-Id; b=Tv24wQjhcu4iQwXfwtXJqcOApQslj+kgwQ5F+BRioCEEuQmQ7rOuE+bcQxFSxg5gs7JymYhJ51dXTy34TbgJ5KY8Osa1WYGGKiHhgBfBKNwEpaMwHTNU04esThE/322EWmLKA3/kbgi+8A7jKPbfJUtuIneOf89njmyqVLFM+54=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C0Rdqcdx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VvwU4TVH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53536C2BBFC;
-	Fri, 21 Jun 2024 17:12:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C0Rdqcdx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1722DC2BBFC;
+	Fri, 21 Jun 2024 17:12:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718989958;
-	bh=Jghk4pyl4Z34T16vjHf0Gw1TzdKKIPp1S6KPJorLW9E=;
+	s=korg; t=1718989960;
+	bh=30cTgoRowG8PLheLB99SN9nk0CO3G+hEj/VcPgOPTLU=;
 	h=Date:To:From:Subject:From;
-	b=VvwU4TVHz0zLW7SBP8izpyCh7Mb40rul7ByQ4AGlki9Xn5DTBnbvRlZ/+Xw2p6pAJ
-	 mtDimIW+m31yqlR8Eh1yS6V4yaCBbAb+X1Ouh0N7yu02CDMrPJDwVQZqzjekod1VOT
-	 d9fObQVg1p01d79ITneo6iYYb6txhg0ZGHw0lJg4=
-Date: Fri, 21 Jun 2024 10:12:37 -0700
+	b=C0RdqcdxBolvII2kYmI29krBjhBrGexkOgBLAs6XQdtQnLV7MO7hpQyS5btwcuUNX
+	 r/N94Q3+aEWOk8K/SwpYXTdeVz8ZaJ0fU0zyVH5mlXytnsEP9o2wf+0lrc5t1ESaRj
+	 jdrmFg5flQ/WJCINTo0/XZvkaRyftZnG6ANn3FEg=
+Date: Fri, 21 Jun 2024 10:12:39 -0700
 To: mm-commits@vger.kernel.org,zokeefe@google.com,stable@vger.kernel.org,jack@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch added to mm-unstable branch
-Message-Id: <20240621171238.53536C2BBFC@smtp.kernel.org>
+Subject: + mm-avoid-overflows-in-dirty-throttling-logic.patch added to mm-unstable branch
+Message-Id: <20240621171240.1722DC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again"
+     Subject: mm: avoid overflows in dirty throttling logic
 has been added to the -mm mm-unstable branch.  Its filename is
-     revert-mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch
+     mm-avoid-overflows-in-dirty-throttling-logic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-avoid-overflows-in-dirty-throttling-logic.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,53 +59,99 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: Revert "mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again"
-Date: Fri, 21 Jun 2024 16:42:37 +0200
+Subject: mm: avoid overflows in dirty throttling logic
+Date: Fri, 21 Jun 2024 16:42:38 +0200
 
-Patch series "mm: Avoid possible overflows in dirty throttling".
+The dirty throttling logic is interspersed with assumptions that dirty
+limits in PAGE_SIZE units fit into 32-bit (so that various multiplications
+fit into 64-bits).  If limits end up being larger, we will hit overflows,
+possible divisions by 0 etc.  Fix these problems by never allowing so
+large dirty limits as they have dubious practical value anyway.  For
+dirty_bytes / dirty_background_bytes interfaces we can just refuse to set
+so large limits.  For dirty_ratio / dirty_background_ratio it isn't so
+simple as the dirty limit is computed from the amount of available memory
+which can change due to memory hotplug etc.  So when converting dirty
+limits from ratios to numbers of pages, we just don't allow the result to
+exceed UINT_MAX.
 
-Dirty throttling logic assumes dirty limits in page units fit into
-32-bits.  This patch series makes sure this is true (see patch 2/2 for
-more details).
-
-
-This patch (of 2):
-
-This reverts commit 9319b647902cbd5cc884ac08a8a6d54ce111fc78.
-
-The commit is broken in several ways.  Firstly, the removed (u64) cast
-from the multiplication will introduce a multiplication overflow on 32-bit
-archs if wb_thresh * bg_thresh >= 1<<32 (which is actually common - the
-default settings with 4GB of RAM will trigger this).  Secondly, the
-div64_u64() is unnecessarily expensive on 32-bit archs.  We have
-div64_ul() in case we want to be safe & cheap.  Thirdly, if dirty
-thresholds are larger than 1<<32 pages, then dirty balancing is going to
-blow up in many other spectacular ways anyway so trying to fix one
-possible overflow is just moot.
-
-Link: https://lkml.kernel.org/r/20240621144017.30993-1-jack@suse.cz
-Link: https://lkml.kernel.org/r/20240621144246.11148-1-jack@suse.cz
-Fixes: 9319b647902c ("mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again")
+Link: https://lkml.kernel.org/r/20240621144246.11148-2-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Reported-by: Zach O'Keefe <zokeefe@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page-writeback.c |   30 ++++++++++++++++++++++++++----
+ 1 file changed, 26 insertions(+), 4 deletions(-)
 
---- a/mm/page-writeback.c~revert-mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again
+--- a/mm/page-writeback.c~mm-avoid-overflows-in-dirty-throttling-logic
 +++ a/mm/page-writeback.c
-@@ -1683,7 +1683,7 @@ static inline void wb_dirty_limits(struc
- 	 */
- 	dtc->wb_thresh = __wb_calc_thresh(dtc, dtc->thresh);
- 	dtc->wb_bg_thresh = dtc->thresh ?
--		div64_u64(dtc->wb_thresh * dtc->bg_thresh, dtc->thresh) : 0;
-+		div_u64((u64)dtc->wb_thresh * dtc->bg_thresh, dtc->thresh) : 0;
+@@ -417,13 +417,20 @@ static void domain_dirty_limits(struct d
+ 	else
+ 		bg_thresh = (bg_ratio * available_memory) / PAGE_SIZE;
  
- 	/*
- 	 * In order to avoid the stacked BDI deadlock we need
+-	if (bg_thresh >= thresh)
+-		bg_thresh = thresh / 2;
+ 	tsk = current;
+ 	if (rt_task(tsk)) {
+ 		bg_thresh += bg_thresh / 4 + global_wb_domain.dirty_limit / 32;
+ 		thresh += thresh / 4 + global_wb_domain.dirty_limit / 32;
+ 	}
++	/*
++	 * Dirty throttling logic assumes the limits in page units fit into
++	 * 32-bits. This gives 16TB dirty limits max which is hopefully enough.
++	 */
++	if (thresh > UINT_MAX)
++		thresh = UINT_MAX;
++	/* This makes sure bg_thresh is within 32-bits as well */
++	if (bg_thresh >= thresh)
++		bg_thresh = thresh / 2;
+ 	dtc->thresh = thresh;
+ 	dtc->bg_thresh = bg_thresh;
+ 
+@@ -473,7 +480,11 @@ static unsigned long node_dirty_limit(st
+ 	if (rt_task(tsk))
+ 		dirty += dirty / 4;
+ 
+-	return dirty;
++	/*
++	 * Dirty throttling logic assumes the limits in page units fit into
++	 * 32-bits. This gives 16TB dirty limits max which is hopefully enough.
++	 */
++	return min_t(unsigned long, dirty, UINT_MAX);
+ }
+ 
+ /**
+@@ -510,10 +521,17 @@ static int dirty_background_bytes_handle
+ 		void *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	int ret;
++	unsigned long old_bytes = dirty_background_bytes;
+ 
+ 	ret = proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
+-	if (ret == 0 && write)
++	if (ret == 0 && write) {
++		if (DIV_ROUND_UP(dirty_background_bytes, PAGE_SIZE) >
++								UINT_MAX) {
++			dirty_background_bytes = old_bytes;
++			return -ERANGE;
++		}
+ 		dirty_background_ratio = 0;
++	}
+ 	return ret;
+ }
+ 
+@@ -539,6 +557,10 @@ static int dirty_bytes_handler(struct ct
+ 
+ 	ret = proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
+ 	if (ret == 0 && write && vm_dirty_bytes != old_bytes) {
++		if (DIV_ROUND_UP(vm_dirty_bytes, PAGE_SIZE) > UINT_MAX) {
++			vm_dirty_bytes = old_bytes;
++			return -ERANGE;
++		}
+ 		writeback_set_ratelimit();
+ 		vm_dirty_ratio = 0;
+ 	}
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
