@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 165C91662F0
-	for <mm-commits@vger.kernel.org>; Fri, 21 Jun 2024 17:03:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC6BC13D521
+	for <mm-commits@vger.kernel.org>; Fri, 21 Jun 2024 17:03:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718989434; cv=none; b=Q+rccn9ByCuwTGNShuukhryocaDx4Ky4teXPvTrG5s7fL9AEAy6QVJx5vWBZG4kia9FFzfy+UIwbVJxFXAkfZFy3+7j0TDaJ8rGKKUN5HNmPQ8P/hCc2v+u9SUbs+vFpmoWAIfA6l8whI3eAY902yqC8jZdyKa4H7gNtCW6t/p8=
+	t=1718989436; cv=none; b=cCS+CKQXyR8FCKuwdVA4T2gzsPILBZviXMCV+dgJOOKA92T4jK9SPl67VJ5t697z7TGQMFTFUA9dKzY6RHbuIzRUjtHYsXFXRb3zp9fmjbd3I32soGemJK7bOAojLtCFLuM61ivrS1Pezh5RjpbQDdfMyxvDDa7xvb8VYP1KIGk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718989434; c=relaxed/simple;
-	bh=ZMSALXgZ+EntDuLVivTlaUw2DEdcll6hXDE2P/247YA=;
-	h=Date:To:From:Subject:Message-Id; b=aDqLskaG6Y2Lwo8v8cVmAR5aCT2+4QYNHHuw1GVlXTQTV1QFz/93YHyC4PMxkuCt00PBux+szL0pr1X2N8uR6WqNXNZwH1ZbpPwPd0weDxp+WZ1fylnm3G7ko73Ol6frkrts5riRfCoCUqAxaJkxNrkTDBScdU4zfXBEv98oAPM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bzykD5b0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718989436; c=relaxed/simple;
+	bh=isG9jsPKHnKCTQMHxlTaOoicLb3GzUpGmPfMpwWKHOM=;
+	h=Date:To:From:Subject:Message-Id; b=JyXq2X1hRKoh62S4ukNAtiRW1o6IgPiQiQQhV8h7ubjq+sodVXe6qo23oV1/rwY0h5UuSuCv4wniH1wKjMQGYrPKe/bo3qRNJFcf9jpKhwVIFk0sPEaQdIr++Gcvna0UTDrR+iAjgFfd+XL5jalErL4MEnzhVuJY7PkTBzwy/us=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MPoKWZz4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bzykD5b0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFB83C2BBFC;
-	Fri, 21 Jun 2024 17:03:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MPoKWZz4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 939F7C2BBFC;
+	Fri, 21 Jun 2024 17:03:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1718989433;
-	bh=ZMSALXgZ+EntDuLVivTlaUw2DEdcll6hXDE2P/247YA=;
+	s=korg; t=1718989435;
+	bh=isG9jsPKHnKCTQMHxlTaOoicLb3GzUpGmPfMpwWKHOM=;
 	h=Date:To:From:Subject:From;
-	b=bzykD5b0Sw7XQL0s44hA6gU5yt1YnWSruHftkBsRakqwp6lQfX4ZD1UG55ftdP32I
-	 6rJGsDBQVBfrJ9CjIbWTiYKlBDKiQQWVp2o81OEzKCIkRR4RQTQdi5PeLreXuFGRJY
-	 NkLBweMBQsgGPztdswyXyGtKO1Xy2TZVOUs/cVDc=
-Date: Fri, 21 Jun 2024 10:03:53 -0700
+	b=MPoKWZz4HZU3Qt0CZXKhKjQkA8oZMwGP7YKyqq8mmrCu+EI5w1TOzxxml7NK60BU7
+	 lnr83rVhRUX81OrL2gcLNjtz+xSxyyKhudIonUf5Zv8nltCqs8yQQlZ355mqcmQxBb
+	 pWkWXngB3/q+/p0suitnzYHK6bnDTDtBAgkR4Xb8=
+Date: Fri, 21 Jun 2024 10:03:55 -0700
 To: mm-commits@vger.kernel.org,rdunlap@infradead.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-maintainer-profile-introduce-hackermail.patch added to mm-unstable branch
-Message-Id: <20240621170353.BFB83C2BBFC@smtp.kernel.org>
+Subject: + docs-mm-damon-maintainer-profile-document-damon-community-meetups.patch added to mm-unstable branch
+Message-Id: <20240621170355.939F7C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/maintainer-profile: introduce HacKerMaiL
+     Subject: Docs/mm/damon/maintainer-profile: document DAMON community meetups
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-maintainer-profile-introduce-hackermail.patch
+     docs-mm-damon-maintainer-profile-document-damon-community-meetups.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-introduce-hackermail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-document-damon-community-meetups.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,82 +59,61 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/maintainer-profile: introduce HacKerMaiL
-Date: Fri, 21 Jun 2024 09:36:25 -0700
+Subject: Docs/mm/damon/maintainer-profile: document DAMON community meetups
+Date: Fri, 21 Jun 2024 09:36:26 -0700
 
-Patch series "Docs/mm/damon/maintaier-profile: document a mailing tool and
-community meetup series", v2.
+DAMON bi-weekly community meetup series has continued since 2022-08-15 for
+community members who prefer synchronous chat over asynchronous mails. 
+Recently I got some feedbacks about the series from a few people.  They
+told me the series is helpful for understanding of the project and
+particiapting to the development, but it could be further better in terms
+of the visibility.  Based on that, I started sending meeting reminder for
+every occurrence.  For people who don't subscribe the mailing list,
+however, adding an announcement on the official document could be helpful.
+Document the series on DAMON maintainer's profile for the purpose.
 
-There is a mailing tool that developed and maintained by DAMON
-maintainer aiming to support DAMON community.  Also there are DAMON
-community meetup series.  Both are known to have rooms of improvements
-in terms of their visibility.  Document those on the maintainer's
-profile document.
-
-
-This patch (of 2):
-
-Since DAMON was merged into mainline, I periodically received some
-questions around DAMON's mailing lists based workflow.  The workflow is
-not different from the normal ones that well documented, but it is also
-true that it is not always easy and familiar for everyone.
-
-I personally overcame it by developing and using a simple tool, named
-HacKerMaiL (hkml)[1].  Based on my experience, I believe it is matured
-enough to be used for simple workflows like that of DAMON.  Actually some
-DAMON contributors and Linux kernel developers other than myself told me
-they are using the tool.
-
-As DAMON maintainer, I also believe helping new DAMON community members
-onboarding to the worklow is one of the most important parts of my
-responsibilities.  For the reason, the tool is announced[2] to support
-DAMON community.  To further increasing the visibility of the fact,
-document the tool and the support plan on DAMON maintainer's profile.
-
-[1] https://github.com/damonitor/hackermail
-[2] https://github.com/damonitor/hackermail/commit/3909dad91301
-
-Link: https://lkml.kernel.org/r/20240621163626.74815-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20240621163626.74815-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240621163626.74815-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/maintainer-profile.rst |   17 ++++++++++++++++
- 1 file changed, 17 insertions(+)
+ Documentation/mm/damon/maintainer-profile.rst |   19 ++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
---- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-introduce-hackermail
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-document-damon-community-meetups
 +++ a/Documentation/mm/damon/maintainer-profile.rst
-@@ -53,6 +53,22 @@ Mon-Fri) in PT (Pacific Time).  The resp
- slow.  Do not hesitate to send a ping if you have not heard back within a week
- of sending a patch.
+@@ -69,6 +69,24 @@ In other words, ``hkml`` [8]_ is a maili
+ DAMON maintainer is committed to support.  Please feel free to try and report
+ issues or feature requests for the tool to the maintainer.
  
-+Mailing tool
-+------------
++Community meetup
++----------------
 +
-+Like many other Linux kernel subsystems, DAMON uses the mailing lists
-+(damon@lists.linux.dev and linux-mm@kvack.org) as the major communication
-+channel.  There is a simple tool called HacKerMaiL (``hkml``) [8]_ , which is
-+for people who are not very familiar with the mailing lists based
-+communication.  The tool could be particularly helpful for DAMON community
-+members since it is developed and maintained by DAMON maintainer.  The tool is
-+also officially announced to support DAMON and general Linux kernel development
-+workflow.
++DAMON community is maintaining two bi-weekly meetup series for community
++members who prefer synchronous conversations over mails.
 +
-+In other words, ``hkml`` [8]_ is a mailing tool for DAMON community, which
-+DAMON maintainer is committed to support.  Please feel free to try and report
-+issues or feature requests for the tool to the maintainer.
++The first one is for any discussion between every community member.  No
++reservation is needed.
++
++The seconds one is for discussions on specific topics between restricted
++members including the maintainer.  The maintainer shares the available time
++slots, and attendees should reserve one of those at least 24 hours before the
++time slot, by reaching out to the maintainer.
++
++Schedules and available reservation time slots are available at the Google doc
++[9]_ .  DAMON maintainer will also provide periodic reminder to the mailing
++list (damon@lists.linux.dev).
 +
  
  .. [1] https://git.kernel.org/akpm/mm/h/mm-unstable
  .. [2] https://git.kernel.org/sj/h/damon/next
-@@ -61,3 +77,4 @@ of sending a patch.
- .. [5] https://github.com/awslabs/damon-tests/blob/master/corr/tests/kunit.sh
+@@ -78,3 +96,4 @@ issues or feature requests for the tool
  .. [6] https://github.com/awslabs/damon-tests/tree/master/corr
  .. [7] https://github.com/awslabs/damon-tests/tree/master/perf
-+.. [8] https://github.com/damonitor/hackermail
+ .. [8] https://github.com/damonitor/hackermail
++.. [9] https://docs.google.com/document/d/1v43Kcj3ly4CYqmAkMaZzLiM2GEnWfgdGbZAH3mi2vpM/edit?usp=sharing
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
