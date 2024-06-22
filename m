@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2104763A5;
-	Sat, 22 Jun 2024 02:09:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23B8E1C32
+	for <mm-commits@vger.kernel.org>; Sat, 22 Jun 2024 02:19:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719022172; cv=none; b=lt85nNgrKirLjZg3DKcLwapdKMGTWkKe54vyGxMYXrCTyBPpnRRPkwsM3JDbYvrclnIcRzSECoIbf9mkucSEdOny6Hl7H66cy/bR5IqOjlR5233RNzdAtKHA7JIXqPxyE8tqlPjs1S/O7hRpfQDmO0k69gAlxLYmKRgsnEWVoLQ=
+	t=1719022762; cv=none; b=m3WH1Jr7Vy1GkpuD9bkXDWfcszTtMcj1+TlUcZLskYZZ/gWSsKyH3eNBmAvUuKF3InNapMdoLfgB2MG7zYZUMGn9AWXjS+cXCEgcR9owUTwT8RVo8E56IiseecuPL86SeoZfgRstJELcS/scepMySoVpbUzY//IXc3fRLxlIE90=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719022172; c=relaxed/simple;
-	bh=vsvxXnNWDgWjsgJdlwfXIKo7fAJZLwLHY15hAlPhv6E=;
-	h=Date:To:From:Subject:Message-Id; b=oZ1PUaZgSH1PGeCMTOzLfsrigGNYlcERYsKkqq1TrknciOjeuB9XhhUK9ykn2/wm28Mmwm5uLJjK9WdAc7Y3OkimM9bj+NbVKkHWlukV/OHGYqGFppT7PTsqIBd7fXs2i9ubfdawJjmM+LMO/tqd2EjI/3R9QXkBdpHBaUdm74o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xrk1mrnQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719022762; c=relaxed/simple;
+	bh=LUuOotLQEL+pxIdLxohz2nQO2r+jUSiN5h1ULHOnKFA=;
+	h=Date:To:From:Subject:Message-Id; b=msnsWAZmNiljpdcmDvhN10Ze9lG16DCg0QIxNg/4+erZtSh7pwZ69X9MLwOPzLubD7Zitst0UKbznj7lHausgMAmi4W6R36t+pnTqeFXvxtFRXdp9+uNGBaAviZONirHrkIACMQI0btMElwmfBHLx2HdcgNS3ibID1zwFoX2pQw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f+JVNPL3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xrk1mrnQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87156C2BBFC;
-	Sat, 22 Jun 2024 02:09:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f+JVNPL3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A3A7C2BBFC;
+	Sat, 22 Jun 2024 02:19:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719022171;
-	bh=vsvxXnNWDgWjsgJdlwfXIKo7fAJZLwLHY15hAlPhv6E=;
+	s=korg; t=1719022761;
+	bh=LUuOotLQEL+pxIdLxohz2nQO2r+jUSiN5h1ULHOnKFA=;
 	h=Date:To:From:Subject:From;
-	b=Xrk1mrnQySlkFz/VP1Hy1UkLK4Gb4dQlzvLSe24Qp57zrbWXs8RwWqzx26Gk9haWf
-	 +VU3tSZCMOpgxX1BGW6kovTVI1qEVNYHQY4G+x+/OJnhgmdJQRwKkzrQj3LZgVJNTy
-	 0yiNdgbdlPYYbMK7Les5aFeqEP7V3Irv0cXOeclI=
-Date: Fri, 21 Jun 2024 19:09:30 -0700
-To: mm-commits@vger.kernel.org,syzbot+40905bca570ae6784745@syzkaller.appspotmail.com,stable@vger.kernel.org,nsaenzju@redhat.com,axelrasmussen@google.com,penguin-kernel@I-love.SAKURA.ne.jp,akpm@linux-foundation.org
+	b=f+JVNPL3ae7JnDvjYFePfdK2ZBWXScJdxkCMtBCXceucvvZTfdPKN70oxbQ9EgzZQ
+	 /fPZgRXS7FfHIKU49fzxMxhbv5aNBSgY8TvLSRS0ENJPw/RQXxjfrbPM9xtYtYRCes
+	 ThfCZ+DqWviCp8mHGk33vP4WfYjFWoC2n6drAwpk=
+Date: Fri, 21 Jun 2024 19:19:20 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,donettom@linux.ibm.com,baolin.wang@linux.alibaba.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap_lock-replace-get_memcg_path_buf-with-on-stack-buffer.patch added to mm-unstable branch
-Message-Id: <20240622020931.87156C2BBFC@smtp.kernel.org>
+Subject: + mm-migrate-make-migrate_misplaced_folio-return-0-on-success.patch added to mm-unstable branch
+Message-Id: <20240622021921.7A3A7C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mmap_lock: replace get_memcg_path_buf() with on-stack buffer
+     Subject: mm/migrate: make migrate_misplaced_folio() return 0 on success
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap_lock-replace-get_memcg_path_buf-with-on-stack-buffer.patch
+     mm-migrate-make-migrate_misplaced_folio-return-0-on-success.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap_lock-replace-get_memcg_path_buf-with-on-stack-buffer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-make-migrate_misplaced_folio-return-0-on-success.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,266 +58,109 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm: mmap_lock: replace get_memcg_path_buf() with on-stack buffer
-Date: Fri, 21 Jun 2024 10:08:41 +0900
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/migrate: make migrate_misplaced_folio() return 0 on success
+Date: Thu, 20 Jun 2024 23:29:34 +0200
 
-Commit 2b5067a8143e ("mm: mmap_lock: add tracepoints around lock
-acquisition") introduced TRACE_MMAP_LOCK_EVENT() macro using
-preempt_disable() in order to let get_mm_memcg_path() return a percpu
-buffer exclusively used by normal, softirq, irq and NMI contexts
-respectively.
+Patch series "mm/migrate: move NUMA hinting fault folio isolation + checks
+under PTL".
 
-Commit 832b50725373 ("mm: mmap_lock: use local locks instead of disabling
-preemption") replaced preempt_disable() with local_lock(&memcg_paths.lock)
-based on an argument that preempt_disable() has to be avoided because
-get_mm_memcg_path() might sleep if PREEMPT_RT=y.
 
-But syzbot started reporting
+Let's just return 0 on success, which is less confusing.
 
-  inconsistent {HARDIRQ-ON-W} -> {IN-HARDIRQ-W} usage.
+...  especially because we got it wrong in the migrate.h stub where we
+have "return -EAGAIN; /* can't migrate now */" instead of "return 0;". 
+Likely this wrong return value doesn't currently matter, but it certainly
+adds confusion.
 
-and
+We'll add migrate_misplaced_folio_prepare() next, where we want to use the
+same "return 0 on success" approach, so let's just clean this up.
 
-  inconsistent {SOFTIRQ-ON-W} -> {IN-SOFTIRQ-W} usage.
-
-messages, for local_lock() does not disable IRQ.
-
-We could replace local_lock() with local_lock_irqsave() in order to
-suppress these messages.  But this patch instead replaces percpu buffers
-with on-stack buffer, for the size of each buffer returned by
-get_memcg_path_buf() is only 256 bytes which is tolerable for allocating
-from current thread's kernel stack memory.
-
-Link: https://lkml.kernel.org/r/ef22d289-eadb-4ed9-863b-fbc922b33d8d@I-love.SAKURA.ne.jp
-Reported-by: syzbot <syzbot+40905bca570ae6784745@syzkaller.appspotmail.com>
-Closes: https://syzkaller.appspot.com/bug?extid=40905bca570ae6784745
-Fixes: 832b50725373 ("mm: mmap_lock: use local locks instead of disabling preemption")
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Nicolas Saenz Julienne <nsaenzju@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240620212935.656243-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20240620212935.656243-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Donet Tom <donettom@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap_lock.c |  175 +++++------------------------------------------
- 1 file changed, 20 insertions(+), 155 deletions(-)
+ mm/huge_memory.c |    5 ++---
+ mm/memory.c      |    2 +-
+ mm/migrate.c     |    4 ++--
+ 3 files changed, 5 insertions(+), 6 deletions(-)
 
---- a/mm/mmap_lock.c~mm-mmap_lock-replace-get_memcg_path_buf-with-on-stack-buffer
-+++ a/mm/mmap_lock.c
-@@ -19,14 +19,7 @@ EXPORT_TRACEPOINT_SYMBOL(mmap_lock_relea
+--- a/mm/huge_memory.c~mm-migrate-make-migrate_misplaced_folio-return-0-on-success
++++ a/mm/huge_memory.c
+@@ -1652,7 +1652,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
+ 	int nid = NUMA_NO_NODE;
+ 	int target_nid, last_cpupid = (-1 & LAST_CPUPID_MASK);
+-	bool migrated = false, writable = false;
++	bool writable = false;
+ 	int flags = 0;
  
- #ifdef CONFIG_MEMCG
+ 	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
+@@ -1696,8 +1696,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 	spin_unlock(vmf->ptl);
+ 	writable = false;
  
--/*
-- * Our various events all share the same buffer (because we don't want or need
-- * to allocate a set of buffers *per event type*), so we need to protect against
-- * concurrent _reg() and _unreg() calls, and count how many _reg() calls have
-- * been made.
-- */
--static DEFINE_MUTEX(reg_lock);
--static int reg_refcount; /* Protected by reg_lock. */
-+static atomic_t reg_refcount;
+-	migrated = migrate_misplaced_folio(folio, vma, target_nid);
+-	if (migrated) {
++	if (!migrate_misplaced_folio(folio, vma, target_nid)) {
+ 		flags |= TNF_MIGRATED;
+ 		nid = target_nid;
+ 	} else {
+--- a/mm/memory.c~mm-migrate-make-migrate_misplaced_folio-return-0-on-success
++++ a/mm/memory.c
+@@ -5354,7 +5354,7 @@ static vm_fault_t do_numa_page(struct vm
+ 	ignore_writable = true;
  
- /*
-  * Size of the buffer for memcg path names. Ignoring stack trace support,
-@@ -34,136 +27,22 @@ static int reg_refcount; /* Protected by
-  */
- #define MEMCG_PATH_BUF_SIZE MAX_FILTER_STR_VAL
+ 	/* Migrate to the requested node */
+-	if (migrate_misplaced_folio(folio, vma, target_nid)) {
++	if (!migrate_misplaced_folio(folio, vma, target_nid)) {
+ 		nid = target_nid;
+ 		flags |= TNF_MIGRATED;
+ 	} else {
+--- a/mm/migrate.c~mm-migrate-make-migrate_misplaced_folio-return-0-on-success
++++ a/mm/migrate.c
+@@ -2629,11 +2629,11 @@ int migrate_misplaced_folio(struct folio
+ 					    nr_succeeded);
+ 	}
+ 	BUG_ON(!list_empty(&migratepages));
+-	return isolated;
++	return isolated ? 0 : -EAGAIN;
  
--/*
-- * How many contexts our trace events might be called in: normal, softirq, irq,
-- * and NMI.
-- */
--#define CONTEXT_COUNT 4
--
--struct memcg_path {
--	local_lock_t lock;
--	char __rcu *buf;
--	local_t buf_idx;
--};
--static DEFINE_PER_CPU(struct memcg_path, memcg_paths) = {
--	.lock = INIT_LOCAL_LOCK(lock),
--	.buf_idx = LOCAL_INIT(0),
--};
--
--static char **tmp_bufs;
--
--/* Called with reg_lock held. */
--static void free_memcg_path_bufs(void)
--{
--	struct memcg_path *memcg_path;
--	int cpu;
--	char **old = tmp_bufs;
--
--	for_each_possible_cpu(cpu) {
--		memcg_path = per_cpu_ptr(&memcg_paths, cpu);
--		*(old++) = rcu_dereference_protected(memcg_path->buf,
--			lockdep_is_held(&reg_lock));
--		rcu_assign_pointer(memcg_path->buf, NULL);
--	}
--
--	/* Wait for inflight memcg_path_buf users to finish. */
--	synchronize_rcu();
--
--	old = tmp_bufs;
--	for_each_possible_cpu(cpu) {
--		kfree(*(old++));
--	}
--
--	kfree(tmp_bufs);
--	tmp_bufs = NULL;
--}
--
- int trace_mmap_lock_reg(void)
- {
--	int cpu;
--	char *new;
--
--	mutex_lock(&reg_lock);
--
--	/* If the refcount is going 0->1, proceed with allocating buffers. */
--	if (reg_refcount++)
--		goto out;
--
--	tmp_bufs = kmalloc_array(num_possible_cpus(), sizeof(*tmp_bufs),
--				 GFP_KERNEL);
--	if (tmp_bufs == NULL)
--		goto out_fail;
--
--	for_each_possible_cpu(cpu) {
--		new = kmalloc(MEMCG_PATH_BUF_SIZE * CONTEXT_COUNT, GFP_KERNEL);
--		if (new == NULL)
--			goto out_fail_free;
--		rcu_assign_pointer(per_cpu_ptr(&memcg_paths, cpu)->buf, new);
--		/* Don't need to wait for inflights, they'd have gotten NULL. */
--	}
--
--out:
--	mutex_unlock(&reg_lock);
-+	atomic_inc(&reg_refcount);
- 	return 0;
--
--out_fail_free:
--	free_memcg_path_bufs();
--out_fail:
--	/* Since we failed, undo the earlier ref increment. */
--	--reg_refcount;
--
--	mutex_unlock(&reg_lock);
--	return -ENOMEM;
+ out:
+ 	folio_put(folio);
+-	return 0;
++	return -EAGAIN;
  }
- 
- void trace_mmap_lock_unreg(void)
- {
--	mutex_lock(&reg_lock);
--
--	/* If the refcount is going 1->0, proceed with freeing buffers. */
--	if (--reg_refcount)
--		goto out;
--
--	free_memcg_path_bufs();
--
--out:
--	mutex_unlock(&reg_lock);
--}
--
--static inline char *get_memcg_path_buf(void)
--{
--	struct memcg_path *memcg_path = this_cpu_ptr(&memcg_paths);
--	char *buf;
--	int idx;
--
--	rcu_read_lock();
--	buf = rcu_dereference(memcg_path->buf);
--	if (buf == NULL) {
--		rcu_read_unlock();
--		return NULL;
--	}
--	idx = local_add_return(MEMCG_PATH_BUF_SIZE, &memcg_path->buf_idx) -
--	      MEMCG_PATH_BUF_SIZE;
--	return &buf[idx];
-+	atomic_dec(&reg_refcount);
- }
- 
--static inline void put_memcg_path_buf(void)
--{
--	local_sub(MEMCG_PATH_BUF_SIZE, &this_cpu_ptr(&memcg_paths)->buf_idx);
--	rcu_read_unlock();
--}
--
--#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
--	do {                                                                   \
--		const char *memcg_path;                                        \
--		local_lock(&memcg_paths.lock);                                 \
--		memcg_path = get_mm_memcg_path(mm);                            \
--		trace_mmap_lock_##type(mm,                                     \
--				       memcg_path != NULL ? memcg_path : "",   \
--				       ##__VA_ARGS__);                         \
--		if (likely(memcg_path != NULL))                                \
--			put_memcg_path_buf();                                  \
--		local_unlock(&memcg_paths.lock);                               \
-+#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                    \
-+	do {                                                    \
-+		char buf[MEMCG_PATH_BUF_SIZE];                  \
-+		get_mm_memcg_path(mm, buf, sizeof(buf));        \
-+		trace_mmap_lock_##type(mm, buf, ##__VA_ARGS__); \
- 	} while (0)
- 
- #else /* !CONFIG_MEMCG */
-@@ -185,37 +64,23 @@ void trace_mmap_lock_unreg(void)
- #ifdef CONFIG_TRACING
- #ifdef CONFIG_MEMCG
- /*
-- * Write the given mm_struct's memcg path to a percpu buffer, and return a
-- * pointer to it. If the path cannot be determined, or no buffer was available
-- * (because the trace event is being unregistered), NULL is returned.
-- *
-- * Note: buffers are allocated per-cpu to avoid locking, so preemption must be
-- * disabled by the caller before calling us, and re-enabled only after the
-- * caller is done with the pointer.
-- *
-- * The caller must call put_memcg_path_buf() once the buffer is no longer
-- * needed. This must be done while preemption is still disabled.
-+ * Write the given mm_struct's memcg path to a buffer. If the path cannot be
-+ * determined or the trace event is being unregistered, empty string is written.
-  */
--static const char *get_mm_memcg_path(struct mm_struct *mm)
-+static void get_mm_memcg_path(struct mm_struct *mm, char *buf, size_t buflen)
- {
--	char *buf = NULL;
--	struct mem_cgroup *memcg = get_mem_cgroup_from_mm(mm);
-+	struct mem_cgroup *memcg;
- 
-+	buf[0] = '\0';
-+	/* No need to get path if no trace event is registered. */
-+	if (!atomic_read(&reg_refcount))
-+		return;
-+	memcg = get_mem_cgroup_from_mm(mm);
- 	if (memcg == NULL)
--		goto out;
--	if (unlikely(memcg->css.cgroup == NULL))
--		goto out_put;
--
--	buf = get_memcg_path_buf();
--	if (buf == NULL)
--		goto out_put;
--
--	cgroup_path(memcg->css.cgroup, buf, MEMCG_PATH_BUF_SIZE);
--
--out_put:
-+		return;
-+	if (memcg->css.cgroup)
-+		cgroup_path(memcg->css.cgroup, buf, buflen);
- 	css_put(&memcg->css);
--out:
--	return buf;
- }
- 
- #endif /* CONFIG_MEMCG */
+ #endif /* CONFIG_NUMA_BALANCING */
+ #endif /* CONFIG_NUMA */
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-mmap_lock-replace-get_memcg_path_buf-with-on-stack-buffer.patch
+mm-memory-move-page_count-check-into-validate_page_before_insert.patch
+mm-memory-cleanly-support-zeropage-in-vm_insert_page-vm_map_pages-and-vmf_insert_mixed.patch
+mm-rmap-sanity-check-that-zeropages-are-not-passed-to-rmap.patch
+fs-proc-task_mmu-indicate-pm_file-for-pmd-mapped-file-thp.patch
+fs-proc-task_mmu-dont-indicate-pm_mmap_exclusive-without-pm_present.patch
+fs-proc-task_mmu-properly-detect-pm_mmap_exclusive-per-page-of-pmd-mapped-thps.patch
+fs-proc-task_mmu-account-non-present-entries-as-maybe-shared-but-no-idea-how-often.patch
+fs-proc-move-page_mapcount-to-fs-proc-internalh.patch
+documentation-admin-guide-mm-pagemaprst-drop-using-pagemap-to-do-something-useful.patch
+mm-pass-meminit_context-to-__free_pages_core.patch
+mm-pass-meminit_context-to-__free_pages_core-fix.patch
+mm-pass-meminit_context-to-__free_pages_core-fix-2.patch
+mm-pass-meminit_context-to-__free_pages_core-fix-3.patch
+mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved.patch
+mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining.patch
+mm-highmem-reimplement-totalhigh_pages-by-walking-zones.patch
+mm-highmem-reimplement-totalhigh_pages-by-walking-zones-fix.patch
+mm-highmem-make-nr_free_highpages-return-unsigned-long.patch
+mm-read-page_type-using-read_once.patch
+mm-migrate-make-migrate_misplaced_folio-return-0-on-success.patch
+mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl.patch
 
