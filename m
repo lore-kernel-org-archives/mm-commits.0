@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF87FEC4
-	for <mm-commits@vger.kernel.org>; Sat, 22 Jun 2024 00:55:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E59E161
+	for <mm-commits@vger.kernel.org>; Sat, 22 Jun 2024 01:02:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719017750; cv=none; b=nyx+uU/uKfW6UfaAtjojbNfNRADfXTXve7G5Qqaig8SKqAByQ/um6KnNPFVyZwcAHun6HxlushNsu6IuVEOYPDpftUIgkgqdSbLXKlZMJcFVKLgz3toWkqdtApuzTWoiWAtUgAWuBwK5lGcKyxgtstQC3cPs7gGUMSyNOtwnO8o=
+	t=1719018179; cv=none; b=Dzn4tg2sjB4DylzGo258lIT/7+Xvb+PpzPWw2j/pL398mIjdYjsUhMIH/NC1CpEcju5dnAhY8sOv7vgGnb1PkOp3/tsepy8bcHAtgJiUO1PzHAfqRRUz1jfD3ih5c/Q+hMGwIw9+uzYeznTUHAvYcwkPVToWWQdYX7MOmfKHWnI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719017750; c=relaxed/simple;
-	bh=pnO5MMsNDgaQlZXgiquxeT3DGHAN71IR9i6aLW5GZN4=;
-	h=Date:To:From:Subject:Message-Id; b=BHtoydraqGpoWgOW1sQH6fIvWSXG1md6l2rXQScVeifl7gGGwtpBjHIhWRPCO8jbBZ+SW2LGrg1CIqV7OJekQBAuIzzzJ9RYtw44Z8w0YXaXoDk5lVDOrcTjR/jx+tDTM51sTv+d/n1o59F9cT6DCeRFhmsl/SXjvINMzcNgrh8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NLPkLokz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719018179; c=relaxed/simple;
+	bh=PrDG4AhCFS/PLmRKlDeBggufhO1ZsZ4XYaETTnlliIA=;
+	h=Date:To:From:Subject:Message-Id; b=nwpTdGx4lh0g92Z8UVJHfnO0ryHNocbtRi/5sVSErLRasIjXpHXbM0w1iKEEt9ylupLnrFIiqQWzx74JalGMajTyVwshnXcuOWI3gWbG5Q5+nitbkW2jW3Q8ivXIwFqlSC6Dw62Y9IHbGud2a1uZNQfDhervWlsWcks//x3K8BY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QVNH3kNP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NLPkLokz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0ADE1C2BBFC;
-	Sat, 22 Jun 2024 00:55:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QVNH3kNP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 610EEC2BBFC;
+	Sat, 22 Jun 2024 01:02:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719017750;
-	bh=pnO5MMsNDgaQlZXgiquxeT3DGHAN71IR9i6aLW5GZN4=;
+	s=korg; t=1719018178;
+	bh=PrDG4AhCFS/PLmRKlDeBggufhO1ZsZ4XYaETTnlliIA=;
 	h=Date:To:From:Subject:From;
-	b=NLPkLokzp8305oqXVCOxXlArTTF+vQeyPiezoBWAoMHQpOnlQ23xB+jqbeNONHh1u
-	 IOBZg8Pue8KGh1U8SFURiv/meL94ykHcRNKbvNYG5FzybK5F3pwM01M/FbJtQa3xc5
-	 0gL4Sz3w4Q7M6J6lQKQ2qQ06FK83TRbNnw2RUqGg=
-Date: Fri, 21 Jun 2024 17:55:49 -0700
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,aris@redhat.com,akpm@linux-foundation.org
+	b=QVNH3kNPkplNXmHTXzLjhktmOfbmNfagxRYRDHNCBoZgqrmiUG7SzaTptxmZymPal
+	 uh48yYN2XKLOLwO2cUqOrYJeaPAyf3UCBkGGCI6TNz1nt5o8dmzDilAS1zLQleT8ab
+	 gJgm4G4n3U3gTqrZZy2EzTNbx2OaI1jyIvmYl+d0=
+Date: Fri, 21 Jun 2024 18:02:57 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,shuah@kernel.org,shli@fb.com,rppt@linux.vnet.ibm.com,raquini@redhat.com,peterx@redhat.com,jack@suse.cz,brauner@kernel.org,aarcange@redhat.com,audra@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-force-allocating-surplus-hugepages-on-mempolicy-allowed-nodes.patch added to mm-unstable branch
-Message-Id: <20240622005550.0ADE1C2BBFC@smtp.kernel.org>
+Subject: + fix-userfaultfd_api-to-return-einval-as-expected.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240622010258.610EEC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hugetlb: force allocating surplus hugepages on mempolicy allowed nodes
-has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-force-allocating-surplus-hugepages-on-mempolicy-allowed-nodes.patch
+     Subject: mm/uffd: fix userfaultfd_api to return EINVAL as expected
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     fix-userfaultfd_api-to-return-einval-as-expected.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-force-allocating-surplus-hugepages-on-mempolicy-allowed-nodes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fix-userfaultfd_api-to-return-einval-as-expected.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,113 +58,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Aristeu Rozanski <aris@redhat.com>
-Subject: hugetlb: force allocating surplus hugepages on mempolicy allowed nodes
-Date: Fri, 21 Jun 2024 15:00:50 -0400
+From: Audra Mitchell <audra@redhat.com>
+Subject: mm/uffd: fix userfaultfd_api to return EINVAL as expected
+Date: Fri, 21 Jun 2024 14:12:22 -0400
 
-allowed_mems_nr() only accounts for the number of free hugepages in the
-nodes the current process belongs to.  In case one or more of the
-requested surplus hugepages are allocated in a different node, the whole
-allocation will fail due allowed_mems_nr() returning a lower value.
+Currently if we request a feature that is not set in the Kernel config we
+fail silently and return all the available features.  However, the man
+page indicates we should return an EINVAL.
 
-So allocate surplus hugepages in one of the nodes the current process belongs to.
+We need to fix this issue since we can end up with a Kernel warning
+should a program request the feature UFFD_FEATURE_WP_UNPOPULATED on
+a kernel with the config not set with this feature.
 
-Easy way to reproduce this issue is to use a 2+ NUMA nodes system:
+ [  200.812896] WARNING: CPU: 91 PID: 13634 at mm/memory.c:1660 zap_pte_range+0x43d/0x660
+ [  200.820738] Modules linked in:
+ [  200.869387] CPU: 91 PID: 13634 Comm: userfaultfd Kdump: loaded Not tainted 6.9.0-rc5+ #8
+ [  200.877477] Hardware name: Dell Inc. PowerEdge R6525/0N7YGH, BIOS 2.7.3 03/30/2022
+ [  200.885052] RIP: 0010:zap_pte_range+0x43d/0x660
 
-		# echo 0 >/proc/sys/vm/nr_hugepages
-		# echo 1 >/proc/sys/vm/nr_overcommit_hugepages
-		# numactl -m0 ./tools/testing/selftests/mm/map_hugetlb 2
-
-will eventually fail when the hugepage ends up allocated in a different node.
-
-Link: https://lkml.kernel.org/r/20240621190050.mhxwb65zn37doegp@redhat.com
-Signed-off-by: Aristeu Rozanski <aris@redhat.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20240621181224.3881179-1-audra@redhat.com
+Fixes: e06f1e1dd499 ("userfaultfd: wp: enabled write protection in userfaultfd API")
+Signed-off-by: Audra Mitchell <audra@redhat.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Rafael Aquini <raquini@redhat.com>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   46 +++++++++++++++++++++++++++-------------------
- 1 file changed, 27 insertions(+), 19 deletions(-)
+ fs/userfaultfd.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~hugetlb-force-allocating-surplus-hugepages-on-mempolicy-allowed-nodes
-+++ a/mm/hugetlb.c
-@@ -2620,6 +2620,23 @@ struct folio *alloc_hugetlb_folio_nodema
- 	return alloc_migrate_hugetlb_folio(h, gfp_mask, preferred_nid, nmask);
- }
- 
-+static nodemask_t *policy_mbind_nodemask(gfp_t gfp)
-+{
-+#ifdef CONFIG_NUMA
-+	struct mempolicy *mpol = get_task_policy(current);
+--- a/fs/userfaultfd.c~fix-userfaultfd_api-to-return-einval-as-expected
++++ a/fs/userfaultfd.c
+@@ -2057,7 +2057,7 @@ static int userfaultfd_api(struct userfa
+ 		goto out;
+ 	features = uffdio_api.features;
+ 	ret = -EINVAL;
+-	if (uffdio_api.api != UFFD_API || (features & ~UFFD_API_FEATURES))
++	if (uffdio_api.api != UFFD_API)
+ 		goto err_out;
+ 	ret = -EPERM;
+ 	if ((features & UFFD_FEATURE_EVENT_FORK) && !capable(CAP_SYS_PTRACE))
+@@ -2081,6 +2081,11 @@ static int userfaultfd_api(struct userfa
+ 	uffdio_api.features &= ~UFFD_FEATURE_WP_UNPOPULATED;
+ 	uffdio_api.features &= ~UFFD_FEATURE_WP_ASYNC;
+ #endif
 +
-+	/*
-+	 * Only enforce MPOL_BIND policy which overlaps with cpuset policy
-+	 * (from policy_nodemask) specifically for hugetlb case
-+	 */
-+	if (mpol->mode == MPOL_BIND &&
-+		(apply_policy_zone(mpol, gfp_zone(gfp)) &&
-+		 cpuset_nodemask_valid_mems_allowed(&mpol->nodes)))
-+		return &mpol->nodes;
-+#endif
-+	return NULL;
-+}
++	ret = -EINVAL;
++	if (features & ~uffdio_api.features)
++		goto err_out;
 +
- /*
-  * Increase the hugetlb pool such that it can accommodate a reservation
-  * of size 'delta'.
-@@ -2633,6 +2650,8 @@ static int gather_surplus_pages(struct h
- 	long i;
- 	long needed, allocated;
- 	bool alloc_ok = true;
-+	int node;
-+	nodemask_t *mbind_nodemask = policy_mbind_nodemask(htlb_alloc_mask(h));
- 
- 	lockdep_assert_held(&hugetlb_lock);
- 	needed = (h->resv_huge_pages + delta) - h->free_huge_pages;
-@@ -2647,8 +2666,14 @@ static int gather_surplus_pages(struct h
- retry:
- 	spin_unlock_irq(&hugetlb_lock);
- 	for (i = 0; i < needed; i++) {
--		folio = alloc_surplus_hugetlb_folio(h, htlb_alloc_mask(h),
--				NUMA_NO_NODE, NULL);
-+		for_each_node_mask(node, cpuset_current_mems_allowed) {
-+			if (!mbind_nodemask || node_isset(node, *mbind_nodemask)) {
-+				folio = alloc_surplus_hugetlb_folio(h, htlb_alloc_mask(h),
-+						node, NULL);
-+				if (folio)
-+					break;
-+			}
-+		}
- 		if (!folio) {
- 			alloc_ok = false;
- 			break;
-@@ -4878,23 +4903,6 @@ static int __init default_hugepagesz_set
- }
- __setup("default_hugepagesz=", default_hugepagesz_setup);
- 
--static nodemask_t *policy_mbind_nodemask(gfp_t gfp)
--{
--#ifdef CONFIG_NUMA
--	struct mempolicy *mpol = get_task_policy(current);
--
--	/*
--	 * Only enforce MPOL_BIND policy which overlaps with cpuset policy
--	 * (from policy_nodemask) specifically for hugetlb case
--	 */
--	if (mpol->mode == MPOL_BIND &&
--		(apply_policy_zone(mpol, gfp_zone(gfp)) &&
--		 cpuset_nodemask_valid_mems_allowed(&mpol->nodes)))
--		return &mpol->nodes;
--#endif
--	return NULL;
--}
--
- static unsigned int allowed_mems_nr(struct hstate *h)
- {
- 	int node;
+ 	uffdio_api.ioctls = UFFD_API_IOCTLS;
+ 	ret = -EFAULT;
+ 	if (copy_to_user(buf, &uffdio_api, sizeof(uffdio_api)))
 _
 
-Patches currently in -mm which might be from aris@redhat.com are
+Patches currently in -mm which might be from audra@redhat.com are
 
-hugetlb-force-allocating-surplus-hugepages-on-mempolicy-allowed-nodes.patch
+fix-userfaultfd_api-to-return-einval-as-expected.patch
 
