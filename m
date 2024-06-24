@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3D092233B
-	for <mm-commits@vger.kernel.org>; Mon, 24 Jun 2024 20:38:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B6322233B
+	for <mm-commits@vger.kernel.org>; Mon, 24 Jun 2024 20:38:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719261523; cv=none; b=NqThdL0NBRYqvyNXSwBsq+RuQHEeaiA/mfq8kdITi4t+Yhnu9RHkuVcMtjT59V5HaK8JJgrRwZoklO5trTR132hb8LDN8IG013yEn/HwVBc+knefKpWS6ZuEgYJ+5WCJJ1j7SvcNT9ZrFcmt6c7ZW7exGs8snRd6fJo5ttEMxfk=
+	t=1719261525; cv=none; b=IOIFV5ci/4SM61myuPkCfgXBa0JDh1XHCkTd6O186X9SI/uIM5B+EE2niVVbfzLwRKZhWcUx+KyK84VuOkzMpb/YgcF2wREjLwgY35GQmT91IegrC4lTHtZ9Z0ZJ46N08xlTVSt+oq+mHXvItHvRvqKF18zCFlU001S7nHmN6kM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719261523; c=relaxed/simple;
-	bh=GpJXHeIk7MLlzVZ3EjPNt429MkNSCjx1nHzqcQNgUHg=;
-	h=Date:To:From:Subject:Message-Id; b=cBA4MJlsebTSennXV4m3nJx0hj6CFj+OiAu9efiGsxu+TXcix/MVbrWBPhO9kZjCn1yVr6C2h6hdezlcKRzKWRn7yZklP1dRIyhWF2ZYQSAoNzV8LmJWVT+LepbE5V/5Dm5ZZ8rliIISyvopHSHgWzL61wTdidBWrFkvCihMUIU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JcU/3ZrT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719261525; c=relaxed/simple;
+	bh=mr55nPBlwEUK5TnU7ci8XAWWIXwfiJEj3Gut3CLwwA0=;
+	h=Date:To:From:Subject:Message-Id; b=ufb7Fz5XPX32JHP3x/oqfNWuQMGmYhu/17ehnXSwNsTW9hMbLbv6NaaioKWdjSrfO5/eo5Ojr1JGd13AME68VtEnLK+dG3OKAmFq+fF5PL3zNB5GnJxH4I2aldHg6yrW/EIB9FsSFjk0YO4tWR2v92jFJzJ7A33hSZ0/1rOcka0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RovAHdYN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JcU/3ZrT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38EB6C2BBFC;
-	Mon, 24 Jun 2024 20:38:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RovAHdYN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F418DC2BBFC;
+	Mon, 24 Jun 2024 20:38:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719261523;
-	bh=GpJXHeIk7MLlzVZ3EjPNt429MkNSCjx1nHzqcQNgUHg=;
+	s=korg; t=1719261525;
+	bh=mr55nPBlwEUK5TnU7ci8XAWWIXwfiJEj3Gut3CLwwA0=;
 	h=Date:To:From:Subject:From;
-	b=JcU/3ZrTPSgwCfjDLMJxfhPB8UewiC14E6pS1Hoidpo3QGlxNVpLjPt7deuHo8JPz
-	 8MaMXQjOH19IUwCIJW+t2MpP3BYZHmI6rt9LyI4OaZ3sGcbxfNPRMIjZDeAdHD6Oxo
-	 zE/A4PcbHq1u5X6MQS7revQgIMK1WSJAgph6++Uc=
-Date: Mon, 24 Jun 2024 13:38:42 -0700
+	b=RovAHdYNxrHQa50vEsN4uymY8iSwP/VrkiiL+qRnQeUlgexRHKoYQGFoFxqWcn3b7
+	 L7g5UWDSXtr82Je8R24H/eDQ+SdZJdjtJ7uMd3fuvmNeQgEOlFl/PKsQ1LcRuWH8AY
+	 kmdUX5QJ9QX9z0eB8dT80EPKQ9MU6YHgrVlwo+Ig=
+Date: Mon, 24 Jun 2024 13:38:44 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-remove-mas_wr_modify.patch added to mm-unstable branch
-Message-Id: <20240624203843.38EB6C2BBFC@smtp.kernel.org>
+Subject: + maple_tree-have-mas_store-allocate-nodes-if-needed.patch added to mm-unstable branch
+Message-Id: <20240624203844.F418DC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: remove mas_wr_modify()
+     Subject: maple_tree: have mas_store() allocate nodes if needed
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-remove-mas_wr_modify.patch
+     maple_tree-have-mas_store-allocate-nodes-if-needed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-remove-mas_wr_modify.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-have-mas_store-allocate-nodes-if-needed.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,68 +59,68 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: maple_tree: remove mas_wr_modify()
-Date: Tue, 18 Jun 2024 13:47:46 -0700
+Subject: maple_tree: have mas_store() allocate nodes if needed
+Date: Tue, 18 Jun 2024 13:47:47 -0700
 
-There are no more users of the function, safely remove it.
+Not all users of mas_store() enter with nodes already preallocated.  Check
+for the MA_STATE_PREALLOC flag to decide whether to preallocate nodes
+within mas_store() rather than relying on future write helper functions to
+perform the allocations.  This allows the write helper functions to be
+simplified as they do not have to do checks to make sure there are enough
+allocated nodes to perform the write.
 
-Link: https://lkml.kernel.org/r/20240618204750.79512-13-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20240618204750.79512-14-sidhartha.kumar@oracle.com
 Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   38 --------------------------------------
- 1 file changed, 38 deletions(-)
+ lib/maple_tree.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-remove-mas_wr_modify
+--- a/lib/maple_tree.c~maple_tree-have-mas_store-allocate-nodes-if-needed
 +++ a/lib/maple_tree.c
-@@ -4155,44 +4155,6 @@ static void mas_wr_bnode(struct ma_wr_st
- 	mas_commit_b_node(wr_mas, &b_node, wr_mas->mas->end);
- }
+@@ -5536,13 +5536,12 @@ static inline void mte_destroy_walk(stru
+  * @entry: The entry to store.
+  *
+  * The @mas->index and @mas->last is used to set the range for the @entry.
+- * Note: The @mas should have pre-allocated entries to ensure there is memory to
+- * store the entry.  Please see mas_expected_entries()/mas_destroy() for more details.
+  *
+  * Return: the first entry between mas->index and mas->last or %NULL.
+  */
+ void *mas_store(struct ma_state *mas, void *entry)
+ {
++	int request;
+ 	MA_WR_STATE(wr_mas, mas, entry);
  
--static inline void mas_wr_modify(struct ma_wr_state *wr_mas)
--{
--	struct ma_state *mas = wr_mas->mas;
--	unsigned char new_end;
--
--	/* Direct replacement */
--	if (wr_mas->r_min == mas->index && wr_mas->r_max == mas->last) {
--		rcu_assign_pointer(wr_mas->slots[mas->offset], wr_mas->entry);
--		if (!!wr_mas->entry ^ !!wr_mas->content)
--			mas_update_gap(mas);
--		return;
--	}
--
--	/*
--	 * new_end exceeds the size of the maple node and cannot enter the fast
--	 * path.
--	 */
--	new_end = mas_wr_new_end(wr_mas);
--	if (new_end >= mt_slots[wr_mas->type])
--		goto slow_path;
--
--	/* Attempt to append */
--	if (mas_wr_append(wr_mas, new_end))
--		return;
--
--	if (new_end == mas->end && mas_wr_slot_store(wr_mas))
--		return;
--
--	if (mas_wr_node_store(wr_mas, new_end))
--		return;
--
--	if (mas_is_err(mas))
--		return;
--
--slow_path:
--	mas_wr_bnode(wr_mas);
--}
--
- /*
-  * mas_wr_store_entry() - Internal call to store a value
-  * @mas: The maple state
+ 	trace_ma_write(__func__, mas, 0, entry);
+@@ -5565,7 +5564,24 @@ void *mas_store(struct ma_state *mas, vo
+ 	 */
+ 	mas_wr_prealloc_setup(&wr_mas);
+ 	mas_wr_store_type(&wr_mas);
++	WARN_ON_ONCE(mas->store_type == wr_invalid);
++	if (mas->mas_flags & MA_STATE_PREALLOC) {
++		mas_wr_store_entry(&wr_mas);
++		MAS_WR_BUG_ON(&wr_mas, mas_is_err(mas));
++		return wr_mas.content;
++	}
++
++	request = mas_prealloc_calc(mas, entry);
++	if (!request)
++		goto store;
++
++	mas_node_count(mas, request);
++	if (mas_is_err(mas))
++		return NULL;
++
++store:
+ 	mas_wr_store_entry(&wr_mas);
++	mas_destroy(mas);
+ 	return wr_mas.content;
+ }
+ EXPORT_SYMBOL_GPL(mas_store);
 _
 
 Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
