@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 915D22233B
-	for <mm-commits@vger.kernel.org>; Mon, 24 Jun 2024 20:38:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6824B19F464
+	for <mm-commits@vger.kernel.org>; Mon, 24 Jun 2024 20:38:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719261514; cv=none; b=CDVzHfvLyLggoiPvxsn4wjaNneGWNexytFpGSDS/P/LeZeOdn69VpknHPpocVXekP89UWNrjObVvabltBoIF3JiFQhycrZCZMOrPNQw1+Aqj8F2jheWemR3SyHy3PTh6tlZs/8HUlFsjtGD+UCzpobNtzKSNRh/kiTdW11vDz/g=
+	t=1719261516; cv=none; b=DCAI2J0VbmJLyFNcYFS+JjoVco8gvgwJw4ogiDGKHnuQ2Nd/+NhUWmuCpbaLOnICmTr+IbllttqWnDnnfX6lxTAhPnpLDuklDcmXRl6WyfXRjheHSTFGALVTrmr8r7V4/KrGOddWZt/BGS2t9NHNrLh8ik68SnIz1fND3yRsmG0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719261514; c=relaxed/simple;
-	bh=TfDkuEfOXI4EnUDGXH4H8zNYgcUi7vJdzv8I3bbvE98=;
-	h=Date:To:From:Subject:Message-Id; b=KQZY7c1ATL8t/9FmGNQjkCzqhPchNDr2AXir5z/eYRXbrIxuOQhqoIkDJXbIQgjwvco/JsJiK3eQX9e7fqPk3hkRkQ2zDUYWYzgfoZv+T25V1jq+4SzWNJw4FjM9sgWlTlBAfW3GKLBQCTtdP74p8abqigw83Fcq/Hf5LTZmVXQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=icOPKifA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719261516; c=relaxed/simple;
+	bh=tUcC+rF3YCO+s1wUd8IFOayAa1bWSvghyFsQsuK0ktQ=;
+	h=Date:To:From:Subject:Message-Id; b=C5hzRHgBC5xzwbr5PN7/pNDRhLazwL0CBVWOdisiPGhDDJnrEUjMPOeYz0CMbK04Bnrv1uQ+P3ibMe2d9bHfTPqVZvLL64bEGDnCuXoV7KnPJb2ATygZH3YBsSFR7Tp0i0ANOuzWOzAKkzP9Abe3l2txeNzgGsNildasXFY9G6Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=isJmagVI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="icOPKifA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06A5AC2BBFC;
-	Mon, 24 Jun 2024 20:38:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="isJmagVI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAC68C32781;
+	Mon, 24 Jun 2024 20:38:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719261514;
-	bh=TfDkuEfOXI4EnUDGXH4H8zNYgcUi7vJdzv8I3bbvE98=;
+	s=korg; t=1719261515;
+	bh=tUcC+rF3YCO+s1wUd8IFOayAa1bWSvghyFsQsuK0ktQ=;
 	h=Date:To:From:Subject:From;
-	b=icOPKifAd/87U6b9hDGtjePTcZd9ZVPDxA1piLf+MoXUg3V8Kzh+1DLyDfncWwCHh
-	 K50St3i5edEWFODOVTOazwKpd6nYt269rmM5BH1ZkxjPRJw89LIALmXh2x5tS47xON
-	 179VwZD0cx+xGMjTM9daNCyLzsoXwAzQo7qtV6Io=
-Date: Mon, 24 Jun 2024 13:38:33 -0700
+	b=isJmagVIzuoLod3H3aOgekYrNcwKImga5okNlsTEG+FOrDOQ8qbYMOD9PZmiGqfK9
+	 pSOhJuaELJGfqE7gTOOcukXoPq6/3mqcj/X8OrI9AZFUgFlikgtb3MYn6+M+KXmsPN
+	 kvyU7KiXQ0H9LjD761ov/NxAfGWszoHaQ1ksKW+w=
+Date: Mon, 24 Jun 2024 13:38:35 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-use-mas_store_gfp-in-mtree_store_range.patch added to mm-unstable branch
-Message-Id: <20240624203834.06A5AC2BBFC@smtp.kernel.org>
+Subject: + maple_tree-print-store-type-in-mas_dump.patch added to mm-unstable branch
+Message-Id: <20240624203835.CAC68C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: use mas_store_gfp() in mtree_store_range()
+     Subject: maple_tree: print store type in mas_dump()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-use-mas_store_gfp-in-mtree_store_range.patch
+     maple_tree-print-store-type-in-mas_dump.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-use-mas_store_gfp-in-mtree_store_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-print-store-type-in-mas_dump.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,52 +59,68 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: maple_tree: use mas_store_gfp() in mtree_store_range()
-Date: Tue, 18 Jun 2024 13:47:41 -0700
+Subject: maple_tree: print store type in mas_dump()
+Date: Tue, 18 Jun 2024 13:47:42 -0700
 
-Refactor mtree_store_range() to use mas_store_gfp() which will abstract
-the store, memory allocation, and error handling.
+Knowing the store type of the maple state could be helpful for debugging. 
+Have mas_dump() print mas->store_type.
 
-Link: https://lkml.kernel.org/r/20240618204750.79512-8-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20240618204750.79512-9-sidhartha.kumar@oracle.com
 Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ lib/maple_tree.c |   37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
---- a/lib/maple_tree.c~maple_tree-use-mas_store_gfp-in-mtree_store_range
+--- a/lib/maple_tree.c~maple_tree-print-store-type-in-mas_dump
 +++ a/lib/maple_tree.c
-@@ -6456,7 +6456,6 @@ int mtree_store_range(struct maple_tree
- 		unsigned long last, void *entry, gfp_t gfp)
- {
- 	MA_STATE(mas, mt, index, last);
--	MA_WR_STATE(wr_mas, &mas, entry);
- 	int ret = 0;
+@@ -7728,6 +7728,43 @@ void mas_dump(const struct ma_state *mas
+ 		break;
+ 	}
  
- 	trace_ma_write(__func__, &mas, 0, entry);
-@@ -6467,17 +6466,10 @@ int mtree_store_range(struct maple_tree
- 		return -EINVAL;
- 
- 	mtree_lock(mt);
--retry:
--	mas_wr_store_entry(&wr_mas);
--	if (mas_nomem(&mas, gfp))
--		goto retry;
--
-+	ret = mas_store_gfp(&mas, entry, gfp);
-+	MT_BUG_ON(mas.tree, mas.store_type == wr_invalid);
- 	mtree_unlock(mt);
- 
--	if (mas_is_err(&mas))
--		ret = xa_err(mas.node);
--
--	mas_destroy(&mas);
- 	return ret;
- }
- EXPORT_SYMBOL(mtree_store_range);
++	pr_err("Store Type: ");
++	switch (mas->store_type) {
++	case wr_invalid:
++		pr_err("invalid store type\n");
++		break;
++	case wr_new_root:
++		pr_err("new_root\n");
++		break;
++	case wr_store_root:
++		pr_err("store_root\n");
++		break;
++	case wr_exact_fit:
++		pr_err("exact_fit\n");
++		break;
++	case wr_split_store:
++		pr_err("split_store\n");
++		break;
++	case wr_slot_store:
++		pr_err("slot_store\n");
++		break;
++	case wr_append:
++		pr_err("append\n");
++		break;
++	case wr_node_store:
++		pr_err("node_store\n");
++		break;
++	case wr_spanning_store:
++		pr_err("spanning_store\n");
++		break;
++	case wr_rebalance:
++		pr_err("rebalance\n");
++		break;
++	case wr_bnode:
++		pr_err("write_bnode\n");
++		break;
++	}
++
+ 	pr_err("[%u/%u] index=%lx last=%lx\n", mas->offset, mas->end,
+ 	       mas->index, mas->last);
+ 	pr_err("     min=%lx max=%lx alloc=%p, depth=%u, flags=%x\n",
 _
 
 Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
