@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAF064AECE
-	for <mm-commits@vger.kernel.org>; Mon, 24 Jun 2024 23:07:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6D1E17BCC
+	for <mm-commits@vger.kernel.org>; Mon, 24 Jun 2024 23:11:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719270420; cv=none; b=NpwtVagLAZUlRObiPKAK1rlFxAa+HnAoLBJsx50DNMzS/cCATMnKpWFqEhUo4+4Q4DhmhET38xmq4kxgHXHXBWaTV6d+ZNQkk1El9XlKSATziqpDoG4UlFRyHG4NyCbQr9Fuz/ED43HXUn0xrJaqYBcQlQG1cWXu/q/6eoBxFl0=
+	t=1719270679; cv=none; b=UcTh8z0h/j0w5OOgvwX78xTy+Covl676vgDPny4DZe8QXeAmo7rxQOkmK9YEdBomj1mjO72QNqRUD6HIIAlWfYNotTpH0Lm53jk+5zM0mWMc+Qhnm8vexDaHoq1qYrDK6Nk7sR46OQBRXC9A9uhW1gXeoGhldoBDrYLC02tZz3s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719270420; c=relaxed/simple;
-	bh=94Ddu5PU9sM/BJUN+K9wfJ67Jr+udQCP9MAxVBuIhSY=;
-	h=Date:To:From:Subject:Message-Id; b=cb22Hwcqgu1pV2cBPQ9O2jzhrEKn0ZUqfPL1JAt371f5x0/kZrTsWp4fywzGYPtRUWQY7xgf8IzS9TdRTPcOjEBayUkcPcch5/vcaZnMbPVup2rkHKWmj187nuiI83oSHLBFZO2wtzZGgx3JJoCZxa0d0iEZPrfMNIYh/6En4Ow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ODxcT/gI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719270679; c=relaxed/simple;
+	bh=6h2GDECuXfLd9n0wb1fMZuzxCIAjF1ozZaaObFJL5Ms=;
+	h=Date:To:From:Subject:Message-Id; b=kxPTbQYRHAnZmD6tyGwyVZCqIgMvJZrW1WKzR3GWZ7aMO89FTv69ENFVu1Kz0KFybUVXZ/xpoRXXsFbB7h9oGMW9evxSQN/xLibEmPuTS9mrLqMtRj0UtXW9Gs3zbrXOSTvDrtJBltpprLlzyttMrk9JigUwPtRNGcwALSWnf6o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rcl128P6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ODxcT/gI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 210C1C2BBFC;
-	Mon, 24 Jun 2024 23:07:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rcl128P6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3922DC2BBFC;
+	Mon, 24 Jun 2024 23:11:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719270420;
-	bh=94Ddu5PU9sM/BJUN+K9wfJ67Jr+udQCP9MAxVBuIhSY=;
+	s=korg; t=1719270679;
+	bh=6h2GDECuXfLd9n0wb1fMZuzxCIAjF1ozZaaObFJL5Ms=;
 	h=Date:To:From:Subject:From;
-	b=ODxcT/gIaB+KM0c5ZhN/EKzvPpxlmCheTVYZMPWg0Le4R8G9hI6e6UkQ6odGq1W7C
-	 E4BeTG+nwf77iI04ixf+R0oXTCZ2ngAkDxWlSMQBAefGU8Kls5hdCfuGUe89mQT347
-	 CebiI5BpVrRyWuwoHr8bH4IWzlLUt6O0rTVckep4=
-Date: Mon, 24 Jun 2024 16:06:59 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,xiehuan09@gmail.com,willy@infradead.org,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,sj@kernel.org,shy828301@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,maskray@google.com,libang.li@antgroup.com,fengwei.yin@intel.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ioworker0@gmail.com,akpm@linux-foundation.org
+	b=rcl128P69DNHq5abgywc3YcRD+QQCa3g9sgUZXz8Ih0n1AgTODfFsVgazFNse8ewa
+	 OJMKdfSCowTBa0ozBdcbP8j3Mj0uVKzDiR5/hPqHArX9/kzQFP7qhrjvInrlNjxSzo
+	 lNYJFgI3rRNmqytu/+8t2syDQ5v8xamZA+g+bKUM=
+Date: Mon, 24 Jun 2024 16:11:18 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,ryan.roberts@arm.com,kasong@tencent.com,kaleshsingh@google.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix.patch added to mm-unstable branch
-Message-Id: <20240624230700.210C1C2BBFC@smtp.kernel.org>
+Subject: + tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout.patch added to mm-unstable branch
+Message-Id: <20240624231119.3922DC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
+     Subject: tools/mm: Introduce a tool to assess swap entry allocation for thp_swapout
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix.patch
+     tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,85 +58,322 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lance Yang <ioworker0@gmail.com>
-Subject: mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
-Date: Sat, 22 Jun 2024 18:00:57 +0800
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: tools/mm: Introduce a tool to assess swap entry allocation for thp_swapout
+Date: Sat, 22 Jun 2024 19:12:31 +1200
 
-minor changes suggested by David (https://lore.kernel.org/linux-mm/e7c0aff1-b690-4926-9a34-4e32c9f3faaa@redhat.com/)
-Lance
+Both Ryan and Chris have been utilizing the small test program to aid in
+debugging and identifying issues with swap entry allocation.  While a real
+or intricate workload might be more suitable for assessing the correctness
+and effectiveness of the swap allocation policy, a small test program
+presents a simpler means of understanding the problem and initially
+verifying the improvements being made.
 
-Link: https://lkml.kernel.org/r/20240622100057.3352-1-ioworker0@gmail.com
-Signed-off-by: Lance Yang <ioworker0@gmail.com>
-Cc: Bang Li <libang.li@antgroup.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
+Let's endeavor to integrate it into tools/mm.  Although it presently only
+accommodates 64KB and 4KB, I'm optimistic that we can expand its
+capabilities to support multiple sizes and simulate more complex systems
+in the future as required.
+
+Basically, we have
+
+1. Use MADV_PAGEPUT for rapid swap-out, putting the swap allocation
+   code under high exercise in a short time.
+
+2. Use MADV_DONTNEED to simulate the behavior of libc and Java heap in
+   freeing memory, as well as for munmap, app exits, or OOM killer
+   scenarios.  This ensures new mTHP is always generated, released or
+   swapped out, similar to the behavior on a PC or Android phone where
+   many applications are frequently started and terminated.
+
+3. Swap in with or without the "-a" option to observe how fragments
+   due to swap-in and the incoming swap-in of large folios will impact
+   swap-out fallback.
+
+Due to 2, we ensure a certain proportion of mTHP.  Similarly, because of
+3, we maintain a certain proportion of small folios, as we don't support
+large folios swap-in, meaning any swap-in will immediately result in small
+folios.  Therefore, with both 2 and 3, we automatically achieve a system
+containing both mTHP and small folios.  Additionally, 1 provides the
+ability to continuously swap them out.
+
+We can also use "-s" to add a dedicated small folios memory area.
+
+Link: https://lkml.kernel.org/r/20240622071231.576056-2-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Fangrui Song <maskray@google.com>
-Cc: Jeff Xie <xiehuan09@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Peter Xu <peterx@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   10 ----------
- mm/rmap.c        |    5 ++---
- 2 files changed, 2 insertions(+), 13 deletions(-)
+ tools/mm/Makefile                  |    2 
+ tools/mm/thp_swap_allocator_test.c |  233 +++++++++++++++++++++++++++
+ 2 files changed, 234 insertions(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
-+++ a/mm/huge_memory.c
-@@ -2693,21 +2693,11 @@ static bool __discard_anon_folio_pmd_loc
- 					    unsigned long addr, pmd_t *pmdp,
- 					    struct folio *folio)
- {
--	VM_WARN_ON_FOLIO(folio_test_swapbacked(folio), folio);
--	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
--
- 	struct mm_struct *mm = vma->vm_mm;
- 	int ref_count, map_count;
- 	pmd_t orig_pmd = *pmdp;
- 	struct page *page;
+--- a/tools/mm/Makefile~tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout
++++ a/tools/mm/Makefile
+@@ -3,7 +3,7 @@
+ #
+ include ../scripts/Makefile.include
  
--	if (unlikely(!pmd_present(orig_pmd) || !pmd_trans_huge(orig_pmd)))
--		return false;
--
--	page = pmd_page(orig_pmd);
--	if (unlikely(page_folio(page) != folio))
--		return false;
--
- 	if (folio_test_dirty(folio) || pmd_dirty(orig_pmd))
- 		return false;
+-BUILD_TARGETS=page-types slabinfo page_owner_sort
++BUILD_TARGETS=page-types slabinfo page_owner_sort thp_swap_allocator_test
+ INSTALL_TARGETS = $(BUILD_TARGETS) thpmaps
  
---- a/mm/rmap.c~mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
-+++ a/mm/rmap.c
-@@ -1685,9 +1685,8 @@ static bool try_to_unmap_one(struct foli
- 
- 			if (flags & TTU_SPLIT_HUGE_PMD) {
- 				/*
--				 * We temporarily have to drop the PTL and start
--				 * once again from that now-PTE-mapped page
--				 * table.
-+				 * We temporarily have to drop the PTL and
-+				 * restart so we can process the PTE-mapped THP.
- 				 */
- 				split_huge_pmd_locked(vma, pvmw.address,
- 						      pvmw.pmd, false, folio);
+ LIB_DIR = ../lib/api
+--- /dev/null
++++ a/tools/mm/thp_swap_allocator_test.c
+@@ -0,0 +1,233 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * thp_swap_allocator_test
++ *
++ * The purpose of this test program is helping check if THP swpout
++ * can correctly get swap slots to swap out as a whole instead of
++ * being split. It randomly releases swap entries through madvise
++ * DONTNEED and swapin/out on two memory areas: a memory area for
++ * 64KB THP and the other area for small folios. The second memory
++ * can be enabled by "-s".
++ * Before running the program, we need to setup a zRAM or similar
++ * swap device by:
++ *  echo lzo > /sys/block/zram0/comp_algorithm
++ *  echo 64M > /sys/block/zram0/disksize
++ *  echo never > /sys/kernel/mm/transparent_hugepage/hugepages-2048kB/enabled
++ *  echo always > /sys/kernel/mm/transparent_hugepage/hugepages-64kB/enabled
++ *  mkswap /dev/zram0
++ *  swapon /dev/zram0
++ * The expected result should be 0% anon swpout fallback ratio w/ or
++ * w/o "-s".
++ *
++ * Author(s): Barry Song <v-songbaohua@oppo.com>
++ */
++
++#define _GNU_SOURCE
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <string.h>
++#include <sys/mman.h>
++#include <errno.h>
++#include <time.h>
++
++#define MEMSIZE_MTHP (60 * 1024 * 1024)
++#define MEMSIZE_SMALLFOLIO (4 * 1024 * 1024)
++#define ALIGNMENT_MTHP (64 * 1024)
++#define ALIGNMENT_SMALLFOLIO (4 * 1024)
++#define TOTAL_DONTNEED_MTHP (16 * 1024 * 1024)
++#define TOTAL_DONTNEED_SMALLFOLIO (1 * 1024 * 1024)
++#define MTHP_FOLIO_SIZE (64 * 1024)
++
++#define SWPOUT_PATH \
++	"/sys/kernel/mm/transparent_hugepage/hugepages-64kB/stats/swpout"
++#define SWPOUT_FALLBACK_PATH \
++	"/sys/kernel/mm/transparent_hugepage/hugepages-64kB/stats/swpout_fallback"
++
++static void *aligned_alloc_mem(size_t size, size_t alignment)
++{
++	void *mem = NULL;
++
++	if (posix_memalign(&mem, alignment, size) != 0) {
++		perror("posix_memalign");
++		return NULL;
++	}
++	return mem;
++}
++
++/*
++ * This emulates the behavior of native libc and Java heap,
++ * as well as process exit and munmap. It helps generate mTHP
++ * and ensures that iterations can proceed with mTHP, as we
++ * currently don't support large folios swap-in.
++ */
++static void random_madvise_dontneed(void *mem, size_t mem_size,
++		size_t align_size, size_t total_dontneed_size)
++{
++	size_t num_pages = total_dontneed_size / align_size;
++	size_t i;
++	size_t offset;
++	void *addr;
++
++	for (i = 0; i < num_pages; ++i) {
++		offset = (rand() % (mem_size / align_size)) * align_size;
++		addr = (char *)mem + offset;
++		if (madvise(addr, align_size, MADV_DONTNEED) != 0)
++			perror("madvise dontneed");
++
++		memset(addr, 0x11, align_size);
++	}
++}
++
++static void random_swapin(void *mem, size_t mem_size,
++		size_t align_size, size_t total_swapin_size)
++{
++	size_t num_pages = total_swapin_size / align_size;
++	size_t i;
++	size_t offset;
++	void *addr;
++
++	for (i = 0; i < num_pages; ++i) {
++		offset = (rand() % (mem_size / align_size)) * align_size;
++		addr = (char *)mem + offset;
++		memset(addr, 0x11, align_size);
++	}
++}
++
++static unsigned long read_stat(const char *path)
++{
++	FILE *file;
++	unsigned long value;
++
++	file = fopen(path, "r");
++	if (!file) {
++		perror("fopen");
++		return 0;
++	}
++
++	if (fscanf(file, "%lu", &value) != 1) {
++		perror("fscanf");
++		fclose(file);
++		return 0;
++	}
++
++	fclose(file);
++	return value;
++}
++
++int main(int argc, char *argv[])
++{
++	int use_small_folio = 0, aligned_swapin = 0;
++	void *mem1 = NULL, *mem2 = NULL;
++	int i;
++
++	for (i = 1; i < argc; ++i) {
++		if (strcmp(argv[i], "-s") == 0)
++			use_small_folio = 1;
++		else if (strcmp(argv[i], "-a") == 0)
++			aligned_swapin = 1;
++	}
++
++	mem1 = aligned_alloc_mem(MEMSIZE_MTHP, ALIGNMENT_MTHP);
++	if (mem1 == NULL) {
++		fprintf(stderr, "Failed to allocate large folios memory\n");
++		return EXIT_FAILURE;
++	}
++
++	if (madvise(mem1, MEMSIZE_MTHP, MADV_HUGEPAGE) != 0) {
++		perror("madvise hugepage for mem1");
++		free(mem1);
++		return EXIT_FAILURE;
++	}
++
++	if (use_small_folio) {
++		mem2 = aligned_alloc_mem(MEMSIZE_SMALLFOLIO, ALIGNMENT_MTHP);
++		if (mem2 == NULL) {
++			fprintf(stderr, "Failed to allocate small folios memory\n");
++			free(mem1);
++			return EXIT_FAILURE;
++		}
++
++		if (madvise(mem2, MEMSIZE_SMALLFOLIO, MADV_NOHUGEPAGE) != 0) {
++			perror("madvise nohugepage for mem2");
++			free(mem1);
++			free(mem2);
++			return EXIT_FAILURE;
++		}
++	}
++
++	/* warm-up phase to occupy the swapfile */
++	memset(mem1, 0x11, MEMSIZE_MTHP);
++	madvise(mem1, MEMSIZE_MTHP, MADV_PAGEOUT);
++	if (use_small_folio) {
++		memset(mem2, 0x11, MEMSIZE_SMALLFOLIO);
++		madvise(mem2, MEMSIZE_SMALLFOLIO, MADV_PAGEOUT);
++	}
++
++	/* iterations with newly created mTHP, swap-in, and swap-out */
++	for (i = 0; i < 100; ++i) {
++		unsigned long initial_swpout;
++		unsigned long initial_swpout_fallback;
++		unsigned long final_swpout;
++		unsigned long final_swpout_fallback;
++		unsigned long swpout_inc;
++		unsigned long swpout_fallback_inc;
++		double fallback_percentage;
++
++		initial_swpout = read_stat(SWPOUT_PATH);
++		initial_swpout_fallback = read_stat(SWPOUT_FALLBACK_PATH);
++
++		/*
++		 * The following setup creates a 1:1 ratio of mTHP to small folios
++		 * since large folio swap-in isn't supported yet. Once we support
++		 * mTHP swap-in, we'll likely need to reduce MEMSIZE_MTHP and
++		 * increase MEMSIZE_SMALLFOLIO to maintain the ratio.
++		 */
++		random_swapin(mem1, MEMSIZE_MTHP,
++				aligned_swapin ? ALIGNMENT_MTHP : ALIGNMENT_SMALLFOLIO,
++				TOTAL_DONTNEED_MTHP);
++		random_madvise_dontneed(mem1, MEMSIZE_MTHP, ALIGNMENT_MTHP,
++				TOTAL_DONTNEED_MTHP);
++
++		if (use_small_folio) {
++			random_swapin(mem2, MEMSIZE_SMALLFOLIO,
++					ALIGNMENT_SMALLFOLIO,
++					TOTAL_DONTNEED_SMALLFOLIO);
++		}
++
++		if (madvise(mem1, MEMSIZE_MTHP, MADV_PAGEOUT) != 0) {
++			perror("madvise pageout for mem1");
++			free(mem1);
++			if (mem2 != NULL)
++				free(mem2);
++			return EXIT_FAILURE;
++		}
++
++		if (use_small_folio) {
++			if (madvise(mem2, MEMSIZE_SMALLFOLIO, MADV_PAGEOUT) != 0) {
++				perror("madvise pageout for mem2");
++				free(mem1);
++				free(mem2);
++				return EXIT_FAILURE;
++			}
++		}
++
++		final_swpout = read_stat(SWPOUT_PATH);
++		final_swpout_fallback = read_stat(SWPOUT_FALLBACK_PATH);
++
++		swpout_inc = final_swpout - initial_swpout;
++		swpout_fallback_inc = final_swpout_fallback - initial_swpout_fallback;
++
++		fallback_percentage = (double)swpout_fallback_inc /
++			(swpout_fallback_inc + swpout_inc) * 100;
++
++		printf("Iteration %d: swpout inc: %lu, swpout fallback inc: %lu, Fallback percentage: %.2f%%\n",
++				i + 1, swpout_inc, swpout_fallback_inc, fallback_percentage);
++	}
++
++	free(mem1);
++	if (mem2 != NULL)
++		free(mem2);
++
++	return EXIT_SUCCESS;
++}
 _
 
-Patches currently in -mm which might be from ioworker0@gmail.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch
-mm-rmap-integrate-pmd-mapped-folio-splitting-into-pagewalk-loop.patch
-mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list.patch
-mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix.patch
-mm-mlock-implement-folio_mlock_step-using-folio_pte_batch.patch
+mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr.patch
+mm-introduce-pte_move_swp_offset-helper-which-can-move-offset-bidirectionally.patch
+mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages.patch
+mm-swap-reuse-exclusive-folio-directly-instead-of-wp-page-faults.patch
+mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect.patch
+mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page.patch
+mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap.patch
+mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix-2.patch
+mm-use-folio_add_new_anon_rmap-if-folio_test_anonfolio==false.patch
+mm-remove-folio_test_anonfolio==false-path-in-__folio_add_anon_rmap.patch
+tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout.patch
 
