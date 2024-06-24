@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6D1E17BCC
-	for <mm-commits@vger.kernel.org>; Mon, 24 Jun 2024 23:11:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E2F649655;
+	Mon, 24 Jun 2024 23:16:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719270679; cv=none; b=UcTh8z0h/j0w5OOgvwX78xTy+Covl676vgDPny4DZe8QXeAmo7rxQOkmK9YEdBomj1mjO72QNqRUD6HIIAlWfYNotTpH0Lm53jk+5zM0mWMc+Qhnm8vexDaHoq1qYrDK6Nk7sR46OQBRXC9A9uhW1gXeoGhldoBDrYLC02tZz3s=
+	t=1719270967; cv=none; b=D21pYBh3zLIKHiU9fR2MLWon0qUAHkEEou84iogRXjd82WPwZoDhYINUEJn1hu3MEqOvVMWfigOFhLCm0uu2WaN8ZyYJQqf6EwD3A/WebPiQo5trBylUhwsiGp8YeErHEiwpkY23uEA6qhZ0FJSrVyBsuOTItRJZtFl4HgxGzL8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719270679; c=relaxed/simple;
-	bh=6h2GDECuXfLd9n0wb1fMZuzxCIAjF1ozZaaObFJL5Ms=;
-	h=Date:To:From:Subject:Message-Id; b=kxPTbQYRHAnZmD6tyGwyVZCqIgMvJZrW1WKzR3GWZ7aMO89FTv69ENFVu1Kz0KFybUVXZ/xpoRXXsFbB7h9oGMW9evxSQN/xLibEmPuTS9mrLqMtRj0UtXW9Gs3zbrXOSTvDrtJBltpprLlzyttMrk9JigUwPtRNGcwALSWnf6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rcl128P6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719270967; c=relaxed/simple;
+	bh=GyPLuDKzZ9rc7g0cL7UY9cFki+/ZfjPPvwqx/nIBl78=;
+	h=Date:To:From:Subject:Message-Id; b=Of9nuHctG2mRSTo/4JICjEKZObhTlANEojdCNfVKhK2BOSScilA8biU2vMixUAPFBg42zkvYzjoPZwgvXC95kSw080QebA5BNEOssPtmNTEs91ZtvxXoxTQdzuAIek0Vb9l3cq24c7hDP8SuTcKJp+ncZ+8whdjKKSU0NSSKmtA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kPtAGS3x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rcl128P6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3922DC2BBFC;
-	Mon, 24 Jun 2024 23:11:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kPtAGS3x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A7F7C2BBFC;
+	Mon, 24 Jun 2024 23:16:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719270679;
-	bh=6h2GDECuXfLd9n0wb1fMZuzxCIAjF1ozZaaObFJL5Ms=;
+	s=korg; t=1719270966;
+	bh=GyPLuDKzZ9rc7g0cL7UY9cFki+/ZfjPPvwqx/nIBl78=;
 	h=Date:To:From:Subject:From;
-	b=rcl128P69DNHq5abgywc3YcRD+QQCa3g9sgUZXz8Ih0n1AgTODfFsVgazFNse8ewa
-	 OJMKdfSCowTBa0ozBdcbP8j3Mj0uVKzDiR5/hPqHArX9/kzQFP7qhrjvInrlNjxSzo
-	 lNYJFgI3rRNmqytu/+8t2syDQ5v8xamZA+g+bKUM=
-Date: Mon, 24 Jun 2024 16:11:18 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,ryan.roberts@arm.com,kasong@tencent.com,kaleshsingh@google.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=kPtAGS3xFSiOl8Pso0ZghlxyGjhTXLmDWLluZtNOYIuDzZm/7Gy9M7Mib3KUNKl8b
+	 QldX2zaayCcmpWWEijIL8a1U4lgiuCZ9dk465wjR76IguVLplaFpeH4OF3md5Y5xoi
+	 ibn8ORxBUeCuA9tuz/nMjViRtdbNB+rX2neLR5Xs=
+Date: Mon, 24 Jun 2024 16:16:05 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shli@kernel.org,david@redhat.com,baolin.wang@linux.alibaba.com,alex.shi@linux.alibaba.com,yangge1116@126.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout.patch added to mm-unstable branch
-Message-Id: <20240624231119.3922DC2BBFC@smtp.kernel.org>
+Subject: + mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240624231606.6A7F7C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/mm: Introduce a tool to assess swap entry allocation for thp_swapout
-has been added to the -mm mm-unstable branch.  Its filename is
-     tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout.patch
+     Subject: mm/gup: clear the LRU flag of a page before adding to LRU batch
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,322 +58,150 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: tools/mm: Introduce a tool to assess swap entry allocation for thp_swapout
-Date: Sat, 22 Jun 2024 19:12:31 +1200
+From: yangge <yangge1116@126.com>
+Subject: mm/gup: clear the LRU flag of a page before adding to LRU batch
+Date: Sat, 22 Jun 2024 14:48:04 +0800
 
-Both Ryan and Chris have been utilizing the small test program to aid in
-debugging and identifying issues with swap entry allocation.  While a real
-or intricate workload might be more suitable for assessing the correctness
-and effectiveness of the swap allocation policy, a small test program
-presents a simpler means of understanding the problem and initially
-verifying the improvements being made.
+If a large number of CMA memory are configured in system (for example, the
+CMA memory accounts for 50% of the system memory), starting a virtual
+machine, it will call pin_user_pages_remote(..., FOLL_LONGTERM, ...) to
+pin memory.  Normally if a page is present and in CMA area,
+pin_user_pages_remote() will migrate the page from CMA area to non-CMA
+area because of FOLL_LONGTERM flag.  But the current code will cause the
+migration failure due to unexpected page refcounts, and eventually cause
+the virtual machine fail to start.
 
-Let's endeavor to integrate it into tools/mm.  Although it presently only
-accommodates 64KB and 4KB, I'm optimistic that we can expand its
-capabilities to support multiple sizes and simulate more complex systems
-in the future as required.
+If a page is added in LRU batch, its refcount increases one, remove the
+page from LRU batch decreases one.  Page migration requires the page is
+not referenced by others except page mapping.  Before migrating a page, we
+should try to drain the page from LRU batch in case the page is in it,
+however, folio_test_lru() is not sufficient to tell whether the page is in
+LRU batch or not, if the page is in LRU batch, the migration will fail.
 
-Basically, we have
+To solve the problem above, we modify the logic of adding to LRU batch. 
+Before adding a page to LRU batch, we clear the LRU flag of the page so
+that we can check whether the page is in LRU batch by
+folio_test_lru(page).  Seems making the LRU flag of the page invisible a
+long time is no problem, because a new page is allocated from buddy and
+added to the lru batch, its LRU flag is also not visible for a long time.
 
-1. Use MADV_PAGEPUT for rapid swap-out, putting the swap allocation
-   code under high exercise in a short time.
-
-2. Use MADV_DONTNEED to simulate the behavior of libc and Java heap in
-   freeing memory, as well as for munmap, app exits, or OOM killer
-   scenarios.  This ensures new mTHP is always generated, released or
-   swapped out, similar to the behavior on a PC or Android phone where
-   many applications are frequently started and terminated.
-
-3. Swap in with or without the "-a" option to observe how fragments
-   due to swap-in and the incoming swap-in of large folios will impact
-   swap-out fallback.
-
-Due to 2, we ensure a certain proportion of mTHP.  Similarly, because of
-3, we maintain a certain proportion of small folios, as we don't support
-large folios swap-in, meaning any swap-in will immediately result in small
-folios.  Therefore, with both 2 and 3, we automatically achieve a system
-containing both mTHP and small folios.  Additionally, 1 provides the
-ability to continuously swap them out.
-
-We can also use "-s" to add a dedicated small folios memory area.
-
-Link: https://lkml.kernel.org/r/20240622071231.576056-2-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Cc: Chris Li <chrisl@kernel.org>
+Link: https://lkml.kernel.org/r/1719038884-1903-1-git-send-email-yangge1116@126.com
+Signed-off-by: yangge <yangge1116@126.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/Makefile                  |    2 
- tools/mm/thp_swap_allocator_test.c |  233 +++++++++++++++++++++++++++
- 2 files changed, 234 insertions(+), 1 deletion(-)
+ mm/swap.c |   43 +++++++++++++++++++++++++++++++------------
+ 1 file changed, 31 insertions(+), 12 deletions(-)
 
---- a/tools/mm/Makefile~tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout
-+++ a/tools/mm/Makefile
-@@ -3,7 +3,7 @@
- #
- include ../scripts/Makefile.include
+--- a/mm/swap.c~mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch
++++ a/mm/swap.c
+@@ -212,10 +212,6 @@ static void folio_batch_move_lru(struct
+ 	for (i = 0; i < folio_batch_count(fbatch); i++) {
+ 		struct folio *folio = fbatch->folios[i];
  
--BUILD_TARGETS=page-types slabinfo page_owner_sort
-+BUILD_TARGETS=page-types slabinfo page_owner_sort thp_swap_allocator_test
- INSTALL_TARGETS = $(BUILD_TARGETS) thpmaps
+-		/* block memcg migration while the folio moves between lru */
+-		if (move_fn != lru_add_fn && !folio_test_clear_lru(folio))
+-			continue;
+-
+ 		folio_lruvec_relock_irqsave(folio, &lruvec, &flags);
+ 		move_fn(lruvec, folio);
  
- LIB_DIR = ../lib/api
---- /dev/null
-+++ a/tools/mm/thp_swap_allocator_test.c
-@@ -0,0 +1,233 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+/*
-+ * thp_swap_allocator_test
-+ *
-+ * The purpose of this test program is helping check if THP swpout
-+ * can correctly get swap slots to swap out as a whole instead of
-+ * being split. It randomly releases swap entries through madvise
-+ * DONTNEED and swapin/out on two memory areas: a memory area for
-+ * 64KB THP and the other area for small folios. The second memory
-+ * can be enabled by "-s".
-+ * Before running the program, we need to setup a zRAM or similar
-+ * swap device by:
-+ *  echo lzo > /sys/block/zram0/comp_algorithm
-+ *  echo 64M > /sys/block/zram0/disksize
-+ *  echo never > /sys/kernel/mm/transparent_hugepage/hugepages-2048kB/enabled
-+ *  echo always > /sys/kernel/mm/transparent_hugepage/hugepages-64kB/enabled
-+ *  mkswap /dev/zram0
-+ *  swapon /dev/zram0
-+ * The expected result should be 0% anon swpout fallback ratio w/ or
-+ * w/o "-s".
-+ *
-+ * Author(s): Barry Song <v-songbaohua@oppo.com>
-+ */
-+
-+#define _GNU_SOURCE
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <string.h>
-+#include <sys/mman.h>
-+#include <errno.h>
-+#include <time.h>
-+
-+#define MEMSIZE_MTHP (60 * 1024 * 1024)
-+#define MEMSIZE_SMALLFOLIO (4 * 1024 * 1024)
-+#define ALIGNMENT_MTHP (64 * 1024)
-+#define ALIGNMENT_SMALLFOLIO (4 * 1024)
-+#define TOTAL_DONTNEED_MTHP (16 * 1024 * 1024)
-+#define TOTAL_DONTNEED_SMALLFOLIO (1 * 1024 * 1024)
-+#define MTHP_FOLIO_SIZE (64 * 1024)
-+
-+#define SWPOUT_PATH \
-+	"/sys/kernel/mm/transparent_hugepage/hugepages-64kB/stats/swpout"
-+#define SWPOUT_FALLBACK_PATH \
-+	"/sys/kernel/mm/transparent_hugepage/hugepages-64kB/stats/swpout_fallback"
-+
-+static void *aligned_alloc_mem(size_t size, size_t alignment)
-+{
-+	void *mem = NULL;
-+
-+	if (posix_memalign(&mem, alignment, size) != 0) {
-+		perror("posix_memalign");
-+		return NULL;
-+	}
-+	return mem;
-+}
-+
-+/*
-+ * This emulates the behavior of native libc and Java heap,
-+ * as well as process exit and munmap. It helps generate mTHP
-+ * and ensures that iterations can proceed with mTHP, as we
-+ * currently don't support large folios swap-in.
-+ */
-+static void random_madvise_dontneed(void *mem, size_t mem_size,
-+		size_t align_size, size_t total_dontneed_size)
-+{
-+	size_t num_pages = total_dontneed_size / align_size;
-+	size_t i;
-+	size_t offset;
-+	void *addr;
-+
-+	for (i = 0; i < num_pages; ++i) {
-+		offset = (rand() % (mem_size / align_size)) * align_size;
-+		addr = (char *)mem + offset;
-+		if (madvise(addr, align_size, MADV_DONTNEED) != 0)
-+			perror("madvise dontneed");
-+
-+		memset(addr, 0x11, align_size);
-+	}
-+}
-+
-+static void random_swapin(void *mem, size_t mem_size,
-+		size_t align_size, size_t total_swapin_size)
-+{
-+	size_t num_pages = total_swapin_size / align_size;
-+	size_t i;
-+	size_t offset;
-+	void *addr;
-+
-+	for (i = 0; i < num_pages; ++i) {
-+		offset = (rand() % (mem_size / align_size)) * align_size;
-+		addr = (char *)mem + offset;
-+		memset(addr, 0x11, align_size);
-+	}
-+}
-+
-+static unsigned long read_stat(const char *path)
-+{
-+	FILE *file;
-+	unsigned long value;
-+
-+	file = fopen(path, "r");
-+	if (!file) {
-+		perror("fopen");
-+		return 0;
-+	}
-+
-+	if (fscanf(file, "%lu", &value) != 1) {
-+		perror("fscanf");
-+		fclose(file);
-+		return 0;
-+	}
-+
-+	fclose(file);
-+	return value;
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	int use_small_folio = 0, aligned_swapin = 0;
-+	void *mem1 = NULL, *mem2 = NULL;
-+	int i;
-+
-+	for (i = 1; i < argc; ++i) {
-+		if (strcmp(argv[i], "-s") == 0)
-+			use_small_folio = 1;
-+		else if (strcmp(argv[i], "-a") == 0)
-+			aligned_swapin = 1;
-+	}
-+
-+	mem1 = aligned_alloc_mem(MEMSIZE_MTHP, ALIGNMENT_MTHP);
-+	if (mem1 == NULL) {
-+		fprintf(stderr, "Failed to allocate large folios memory\n");
-+		return EXIT_FAILURE;
-+	}
-+
-+	if (madvise(mem1, MEMSIZE_MTHP, MADV_HUGEPAGE) != 0) {
-+		perror("madvise hugepage for mem1");
-+		free(mem1);
-+		return EXIT_FAILURE;
-+	}
-+
-+	if (use_small_folio) {
-+		mem2 = aligned_alloc_mem(MEMSIZE_SMALLFOLIO, ALIGNMENT_MTHP);
-+		if (mem2 == NULL) {
-+			fprintf(stderr, "Failed to allocate small folios memory\n");
-+			free(mem1);
-+			return EXIT_FAILURE;
+@@ -256,11 +252,16 @@ static void lru_move_tail_fn(struct lruv
+ void folio_rotate_reclaimable(struct folio *folio)
+ {
+ 	if (!folio_test_locked(folio) && !folio_test_dirty(folio) &&
+-	    !folio_test_unevictable(folio) && folio_test_lru(folio)) {
++	    !folio_test_unevictable(folio)) {
+ 		struct folio_batch *fbatch;
+ 		unsigned long flags;
+ 
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
 +		}
 +
-+		if (madvise(mem2, MEMSIZE_SMALLFOLIO, MADV_NOHUGEPAGE) != 0) {
-+			perror("madvise nohugepage for mem2");
-+			free(mem1);
-+			free(mem2);
-+			return EXIT_FAILURE;
+ 		local_lock_irqsave(&lru_rotate.lock, flags);
+ 		fbatch = this_cpu_ptr(&lru_rotate.fbatch);
+ 		folio_batch_add_and_move(fbatch, folio, lru_move_tail_fn);
+@@ -353,11 +354,15 @@ static void folio_activate_drain(int cpu
+ 
+ void folio_activate(struct folio *folio)
+ {
+-	if (folio_test_lru(folio) && !folio_test_active(folio) &&
+-	    !folio_test_unevictable(folio)) {
++	if (!folio_test_active(folio) && !folio_test_unevictable(folio)) {
+ 		struct folio_batch *fbatch;
+ 
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
 +		}
++
+ 		local_lock(&cpu_fbatches.lock);
+ 		fbatch = this_cpu_ptr(&cpu_fbatches.activate);
+ 		folio_batch_add_and_move(fbatch, folio, folio_activate_fn);
+@@ -701,6 +706,11 @@ void deactivate_file_folio(struct folio
+ 		return;
+ 
+ 	folio_get(folio);
++	if (!folio_test_clear_lru(folio)) {
++		folio_put(folio);
++		return;
 +	}
 +
-+	/* warm-up phase to occupy the swapfile */
-+	memset(mem1, 0x11, MEMSIZE_MTHP);
-+	madvise(mem1, MEMSIZE_MTHP, MADV_PAGEOUT);
-+	if (use_small_folio) {
-+		memset(mem2, 0x11, MEMSIZE_SMALLFOLIO);
-+		madvise(mem2, MEMSIZE_SMALLFOLIO, MADV_PAGEOUT);
-+	}
-+
-+	/* iterations with newly created mTHP, swap-in, and swap-out */
-+	for (i = 0; i < 100; ++i) {
-+		unsigned long initial_swpout;
-+		unsigned long initial_swpout_fallback;
-+		unsigned long final_swpout;
-+		unsigned long final_swpout_fallback;
-+		unsigned long swpout_inc;
-+		unsigned long swpout_fallback_inc;
-+		double fallback_percentage;
-+
-+		initial_swpout = read_stat(SWPOUT_PATH);
-+		initial_swpout_fallback = read_stat(SWPOUT_FALLBACK_PATH);
-+
-+		/*
-+		 * The following setup creates a 1:1 ratio of mTHP to small folios
-+		 * since large folio swap-in isn't supported yet. Once we support
-+		 * mTHP swap-in, we'll likely need to reduce MEMSIZE_MTHP and
-+		 * increase MEMSIZE_SMALLFOLIO to maintain the ratio.
-+		 */
-+		random_swapin(mem1, MEMSIZE_MTHP,
-+				aligned_swapin ? ALIGNMENT_MTHP : ALIGNMENT_SMALLFOLIO,
-+				TOTAL_DONTNEED_MTHP);
-+		random_madvise_dontneed(mem1, MEMSIZE_MTHP, ALIGNMENT_MTHP,
-+				TOTAL_DONTNEED_MTHP);
-+
-+		if (use_small_folio) {
-+			random_swapin(mem2, MEMSIZE_SMALLFOLIO,
-+					ALIGNMENT_SMALLFOLIO,
-+					TOTAL_DONTNEED_SMALLFOLIO);
+ 	local_lock(&cpu_fbatches.lock);
+ 	fbatch = this_cpu_ptr(&cpu_fbatches.lru_deactivate_file);
+ 	folio_batch_add_and_move(fbatch, folio, lru_deactivate_file_fn);
+@@ -717,11 +727,16 @@ void deactivate_file_folio(struct folio
+  */
+ void folio_deactivate(struct folio *folio)
+ {
+-	if (folio_test_lru(folio) && !folio_test_unevictable(folio) &&
+-	    (folio_test_active(folio) || lru_gen_enabled())) {
++	if (!folio_test_unevictable(folio) && (folio_test_active(folio) ||
++	    lru_gen_enabled())) {
+ 		struct folio_batch *fbatch;
+ 
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
 +		}
 +
-+		if (madvise(mem1, MEMSIZE_MTHP, MADV_PAGEOUT) != 0) {
-+			perror("madvise pageout for mem1");
-+			free(mem1);
-+			if (mem2 != NULL)
-+				free(mem2);
-+			return EXIT_FAILURE;
+ 		local_lock(&cpu_fbatches.lock);
+ 		fbatch = this_cpu_ptr(&cpu_fbatches.lru_deactivate);
+ 		folio_batch_add_and_move(fbatch, folio, lru_deactivate_fn);
+@@ -738,12 +753,16 @@ void folio_deactivate(struct folio *foli
+  */
+ void folio_mark_lazyfree(struct folio *folio)
+ {
+-	if (folio_test_lru(folio) && folio_test_anon(folio) &&
+-	    folio_test_swapbacked(folio) && !folio_test_swapcache(folio) &&
+-	    !folio_test_unevictable(folio)) {
++	if (folio_test_anon(folio) && folio_test_swapbacked(folio) &&
++	    !folio_test_swapcache(folio) && !folio_test_unevictable(folio)) {
+ 		struct folio_batch *fbatch;
+ 
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
 +		}
 +
-+		if (use_small_folio) {
-+			if (madvise(mem2, MEMSIZE_SMALLFOLIO, MADV_PAGEOUT) != 0) {
-+				perror("madvise pageout for mem2");
-+				free(mem1);
-+				free(mem2);
-+				return EXIT_FAILURE;
-+			}
-+		}
-+
-+		final_swpout = read_stat(SWPOUT_PATH);
-+		final_swpout_fallback = read_stat(SWPOUT_FALLBACK_PATH);
-+
-+		swpout_inc = final_swpout - initial_swpout;
-+		swpout_fallback_inc = final_swpout_fallback - initial_swpout_fallback;
-+
-+		fallback_percentage = (double)swpout_fallback_inc /
-+			(swpout_fallback_inc + swpout_inc) * 100;
-+
-+		printf("Iteration %d: swpout inc: %lu, swpout fallback inc: %lu, Fallback percentage: %.2f%%\n",
-+				i + 1, swpout_inc, swpout_fallback_inc, fallback_percentage);
-+	}
-+
-+	free(mem1);
-+	if (mem2 != NULL)
-+		free(mem2);
-+
-+	return EXIT_SUCCESS;
-+}
+ 		local_lock(&cpu_fbatches.lock);
+ 		fbatch = this_cpu_ptr(&cpu_fbatches.lru_lazyfree);
+ 		folio_batch_add_and_move(fbatch, folio, lru_lazyfree_fn);
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from yangge1116@126.com are
 
-mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr.patch
-mm-introduce-pte_move_swp_offset-helper-which-can-move-offset-bidirectionally.patch
-mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages.patch
-mm-swap-reuse-exclusive-folio-directly-instead-of-wp-page-faults.patch
-mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect.patch
-mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page.patch
-mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap.patch
-mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix-2.patch
-mm-use-folio_add_new_anon_rmap-if-folio_test_anonfolio==false.patch
-mm-remove-folio_test_anonfolio==false-path-in-__folio_add_anon_rmap.patch
-tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout.patch
+mm-page_alloc-separate-thp-pcp-into-movable-and-non-movable-categories.patch
+mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch
 
