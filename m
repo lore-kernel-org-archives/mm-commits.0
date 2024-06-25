@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F9FA21A0C
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:31:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6171135A7F
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:31:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719289863; cv=none; b=MQvjbWmZq7vQE1TMsPXYsiXerNiSManY1lhH+Ycx4F1wmn8tAjoNVRAuFyVXXpPrH302u7fJBMBFopAe44wyLuakZ8qmrVkDsh2qOj6bihdXiJ9aZbhSTcR1qZplEWgnbnfWb6Oc7TpBYg9OsFS1Zu4tgoTdBkmiKqx3FlU1j8s=
+	t=1719289912; cv=none; b=JUW2raYL6Y4CAjnZkNfFsnRDk0Y60e6MIzEeeOhWyn1/UBTFpgA6Iibq8/Bp1F14hSyjgytWNq+Dsr4PlnPtm80Sp1lA4FrMfruoDjL4o7iGpT6sAx41sxRJ7dMOdu0DFFwLJ8ipU3UOenc1ZnLzzF/WuKxTo7hGewJmn0q9lTQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719289863; c=relaxed/simple;
-	bh=KvlDxc9JPwlPtCZfcb60DoQih2JpQHjKk40YTlh4Lbc=;
-	h=Date:To:From:Subject:Message-Id; b=qfVQ+5fK0ll8Yo84nZ2vz+l+VM3S3WZj2+0yA6oNCElKF2maIygUBqSN6PlohsfiFC05TOKaRi4DzlSqV8kO761bepNu8CGlI/XF5C9gyhRGjN4434dtcOtBDRj+5kn2RpCZIM3Eha8n7/rCNfkQzr0uvki5/FBeLTeKNkNUXIo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DXUvQaLZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719289912; c=relaxed/simple;
+	bh=sUOZ84raFeCKT0k7iUiLx3xwrsGKG9I5GnYgDq9HVXk=;
+	h=Date:To:From:Subject:Message-Id; b=UNnOlFd7UmtSVHgSfdMyFhV5ht/cej0yfEZgJKzYKRrIliioBO9AKVLeR2/6IVy1+sL2EqQldq7PpKWrLwYqtnuAWm/0DP+dHSm3V8wa8a9HMiQvYhTlJbhKrnuF3FShBf6i1Qx0RfVce0eLNWGE8LIulNDUUml7wyHPYeMEroE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DHAl1hcb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DXUvQaLZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E64E8C32782;
-	Tue, 25 Jun 2024 04:31:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DHAl1hcb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61A7FC32782;
+	Tue, 25 Jun 2024 04:31:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719289863;
-	bh=KvlDxc9JPwlPtCZfcb60DoQih2JpQHjKk40YTlh4Lbc=;
+	s=korg; t=1719289911;
+	bh=sUOZ84raFeCKT0k7iUiLx3xwrsGKG9I5GnYgDq9HVXk=;
 	h=Date:To:From:Subject:From;
-	b=DXUvQaLZAw5Av5hKhqMmz87C7vwcFJs9UcfudjVUdMNeOsdXUc27ylIWs43bHAHq8
-	 gyozmfjZqgs6LqJ6iTYO+yTwh3elfYV60TlXyF/y7TESM2zML+1krBu9pUwps2sL/B
-	 ylw2wpsak0fJ9CxqkiLTYx43h5I0USbyh2rMNL+M=
-Date: Mon, 24 Jun 2024 21:31:02 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,xiehuan09@gmail.com,willy@infradead.org,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,sj@kernel.org,shy828301@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,maskray@google.com,libang.li@antgroup.com,fengwei.yin@intel.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ioworker0@gmail.com,akpm@linux-foundation.org
+	b=DHAl1hcbureEfK5qRQECLrGudVeqAr4P2wLaQ+OaAs8A9RQqnlX1pFp5FNMWuHtk6
+	 pY0LrQk6TIZ1GRAgl4mxRtnCvmIM+3lMMT072TfbOswKmFIMNq27SH+GB/PsTzeoEv
+	 3sbZVnjhcqr46ZYYUB2xr0a80zFN6opgGWIo5zT0=
+Date: Mon, 24 Jun 2024 21:31:50 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,nphamcs@gmail.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,baohua@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix.patch removed from -mm tree
-Message-Id: <20240625043102.E64E8C32782@smtp.kernel.org>
+Subject: [folded-merged] mm-zswap-add-zswap_never_enabled-fix.patch removed from -mm tree
+Message-Id: <20240625043151.61A7FC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,91 +35,79 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
+     Subject: mm-zswap-add-zswap_never_enabled-fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix.patch
+     mm-zswap-add-zswap_never_enabled-fix.patch
 
-This patch was dropped because it was folded into mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list.patch
+This patch was dropped because it was folded into mm-zswap-add-zswap_never_enabled.patch
 
 ------------------------------------------------------
-From: Lance Yang <ioworker0@gmail.com>
-Subject: mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
-Date: Sat, 22 Jun 2024 18:00:57 +0800
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm-zswap-add-zswap_never_enabled-fix
+Date: Tue, 11 Jun 2024 23:37:52 +0000
 
-minor changes suggested by David (https://lore.kernel.org/linux-mm/e7c0aff1-b690-4926-9a34-4e32c9f3faaa@redhat.com/)
-Lance
+Expose zswap_never_enabled() in the header for the swapin work to use
+it later.
 
-Link: https://lkml.kernel.org/r/20240622100057.3352-1-ioworker0@gmail.com
-Signed-off-by: Lance Yang <ioworker0@gmail.com>
-Cc: Bang Li <libang.li@antgroup.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/Zmjf0Dr8s9xSW41X@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
 Cc: Barry Song <baohua@kernel.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Fangrui Song <maskray@google.com>
-Cc: Jeff Xie <xiehuan09@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   10 ----------
- mm/rmap.c        |    5 ++---
- 2 files changed, 2 insertions(+), 13 deletions(-)
+ include/linux/zswap.h |    6 ++++++
+ mm/zswap.c            |    2 +-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
-+++ a/mm/huge_memory.c
-@@ -2693,21 +2693,11 @@ static bool __discard_anon_folio_pmd_loc
- 					    unsigned long addr, pmd_t *pmdp,
- 					    struct folio *folio)
+--- a/include/linux/zswap.h~mm-zswap-add-zswap_never_enabled-fix
++++ a/include/linux/zswap.h
+@@ -36,6 +36,7 @@ void zswap_memcg_offline_cleanup(struct
+ void zswap_lruvec_state_init(struct lruvec *lruvec);
+ void zswap_folio_swapin(struct folio *folio);
+ bool zswap_is_enabled(void);
++bool zswap_never_enabled(void);
+ #else
+ 
+ struct zswap_lruvec_state {};
+@@ -64,6 +65,11 @@ static inline bool zswap_is_enabled(void
  {
--	VM_WARN_ON_FOLIO(folio_test_swapbacked(folio), folio);
--	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
--
- 	struct mm_struct *mm = vma->vm_mm;
- 	int ref_count, map_count;
- 	pmd_t orig_pmd = *pmdp;
- 	struct page *page;
+ 	return false;
+ }
++
++static inline bool zswap_never_enabled(void)
++{
++	return false;
++}
  
--	if (unlikely(!pmd_present(orig_pmd) || !pmd_trans_huge(orig_pmd)))
--		return false;
--
--	page = pmd_page(orig_pmd);
--	if (unlikely(page_folio(page) != folio))
--		return false;
--
- 	if (folio_test_dirty(folio) || pmd_dirty(orig_pmd))
- 		return false;
+ #endif
  
---- a/mm/rmap.c~mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
-+++ a/mm/rmap.c
-@@ -1685,9 +1685,8 @@ static bool try_to_unmap_one(struct foli
+--- a/mm/zswap.c~mm-zswap-add-zswap_never_enabled-fix
++++ a/mm/zswap.c
+@@ -137,7 +137,7 @@ bool zswap_is_enabled(void)
+ 	return zswap_enabled;
+ }
  
- 			if (flags & TTU_SPLIT_HUGE_PMD) {
- 				/*
--				 * We temporarily have to drop the PTL and start
--				 * once again from that now-PTE-mapped page
--				 * table.
-+				 * We temporarily have to drop the PTL and
-+				 * restart so we can process the PTE-mapped THP.
- 				 */
- 				split_huge_pmd_locked(vma, pvmw.address,
- 						      pvmw.pmd, false, folio);
+-static bool zswap_never_enabled(void)
++bool zswap_never_enabled(void)
+ {
+ 	return !static_branch_maybe(CONFIG_ZSWAP_DEFAULT_ON, &zswap_ever_enabled);
+ }
 _
 
-Patches currently in -mm which might be from ioworker0@gmail.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch
-mm-rmap-integrate-pmd-mapped-folio-splitting-into-pagewalk-loop.patch
-mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list.patch
-mm-mlock-implement-folio_mlock_step-using-folio_pte_batch.patch
+mm-zswap-use-sg_set_folio-in-zswap_compress-decompress.patch
+mm-zswap-use-kmap_local_folio-in-zswap_load.patch
+mm-zswap-make-same_filled-functions-folio-friendly.patch
+mm-rmap-abstract-updating-per-node-and-per-memcg-stats.patch
+mm-swap-remove-synchronous-argument-to-swap_read_folio.patch
+mm-zswap-rename-is_zswap_enabled-to-zswap_is_enabled.patch
+mm-zswap-add-zswap_never_enabled.patch
+mm-zswap-handle-incorrect-attempts-to-load-large-folios.patch
 
