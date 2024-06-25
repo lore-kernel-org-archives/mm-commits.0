@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEE9A144315
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D827314533C
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291716; cv=none; b=fEW8Hl0MifAYv5bOfcBv4qZZh5N+mjPT39VlPTZDSTIfO4utvdXtHKGu64ahKrsk0qiOA9cLtXJB0rKPP0N9FXwfylc4mLvSgL06+DTMm67g1hDS2mADfpjWLw6vajQhcJ1dtR1ii02SR2WoT4hFW63fbogcxO3tDL6NSx/gIn0=
+	t=1719291717; cv=none; b=Q9Hnv+iWnWCylh11FmQEjJ6owk+ZHgmfvHgM/x+nNOAQruIDj0hbryKbQveqPpgDhyfImSQ7wTXEBJgtKCH7Akx6bGAteG6ORfc0isZ4oBqQ2Dbs6C8V1H4ErJrFfOe90gMvEB3V9cbX38uzesutpMkpFMMS87Yw4UpQtXwgd5M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291716; c=relaxed/simple;
-	bh=JHDk80PAmJFQEy3gLzZlTBe4ffCbp/QwvHrhZPDBgXQ=;
-	h=Date:To:From:Subject:Message-Id; b=QjYB6S7hnNKhCRcbylqySRjEcZiGSNDG2EaAKc+DW8SY+5Va1pU36fVnKRkBY5+SwgQzWvMFRJnYqtd2dpAiAm9UovTXhf7i1aysmBBb3XjUCo/uwjBgPgdce2Ix8GWmQaFjT7OGbAJ5gFhsAZilbxz7K45PYFOwLkOpDb2P7yI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uBApFb+k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291717; c=relaxed/simple;
+	bh=1tdp5jINaRiPq3vDeQOgK0ApzZvQIMqDNRtkPIrb5eA=;
+	h=Date:To:From:Subject:Message-Id; b=kJPUuxeYZ7wa4IxVt9tEfjP3k7v3IvmK0Pnqv4Z9rWoM7gGEWBi4FFjML+qzQcyppvQJ6MxF35NOOqEed6SwjFzFwluCddNL1t6gcBQrViGEi29eYV4MaEmYMeanfcL2u0Wtt9i/b68bc9Oe3Jhssg4gnWlcf/kYWdn8YLqxQP4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2hV5OO/M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uBApFb+k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A57B1C32782;
-	Tue, 25 Jun 2024 05:01:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2hV5OO/M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEF98C32782;
+	Tue, 25 Jun 2024 05:01:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291716;
-	bh=JHDk80PAmJFQEy3gLzZlTBe4ffCbp/QwvHrhZPDBgXQ=;
+	s=korg; t=1719291717;
+	bh=1tdp5jINaRiPq3vDeQOgK0ApzZvQIMqDNRtkPIrb5eA=;
 	h=Date:To:From:Subject:From;
-	b=uBApFb+ks6o5rWanFxeHAkIgncWM1zxNdWRTd6q37NfU5vgTwgmGrSL7jq7mTai2P
-	 fImfjAInxe07c3d4NKWuQRfa9cdRSNcpEp3Lsia/K69hWu5b1ERxg2+J402kvADe79
-	 DntIZwFFIwKrFvRcQwQaK2gD77exJ2oTORheLf0E=
-Date: Mon, 24 Jun 2024 22:01:56 -0700
+	b=2hV5OO/M2KiQ5McC3URj2Ji4LmM3nvgo9/haj8vjuux61GwEwk0F2YdMiK+6UMnuF
+	 wNj14aC6Mah5tDMadX9/crxifkRCZe8VpQ3y+XPmpI1oFPTyFsSkZkNHhib5QXEteq
+	 ijZDoas1MlUDe3mTyb6+HMQP/Ya0zo3wmSEAydaQ=
+Date: Mon, 24 Jun 2024 22:01:57 -0700
 To: mm-commits@vger.kernel.org,tony.luck@intel.com,nao.horiguchi@gmail.com,lkp@intel.com,david@redhat.com,bp@alien8.de,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-failure-fix-comment-of-get_hwpoison_page.patch removed from -mm tree
-Message-Id: <20240625050156.A57B1C32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-failure-remove-obsolete-comment-in-kill_proc.patch removed from -mm tree
+Message-Id: <20240625050157.AEF98C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory-failure: fix comment of get_hwpoison_page()
+     Subject: mm/memory-failure: remove obsolete comment in kill_proc()
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-fix-comment-of-get_hwpoison_page.patch
+     mm-memory-failure-remove-obsolete-comment-in-kill_proc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory-failure: fix comment of get_hwpoison_page()
-Date: Wed, 12 Jun 2024 15:18:33 +0800
+Subject: mm/memory-failure: remove obsolete comment in kill_proc()
+Date: Wed, 12 Jun 2024 15:18:34 +0800
 
-When return value is 0, it could also means the page is free hugetlb page
-or free buddy page.  Fix the corresponding comment.
+When user sets SIGBUS to SIG_IGN, it won't cause loop now.  For action
+required mce error, SIGBUS cannot be blocked.  Also when a hwpoisoned page
+is re-accessed, kill_accessing_process() will be called to kill the
+process.
 
-Link: https://lkml.kernel.org/r/20240612071835.157004-12-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20240612071835.157004-13-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
 Cc: David Hildenbrand <david@redhat.com>
@@ -60,20 +62,20 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-fix-comment-of-get_hwpoison_page
+--- a/mm/memory-failure.c~mm-memory-failure-remove-obsolete-comment-in-kill_proc
 +++ a/mm/memory-failure.c
-@@ -1525,7 +1525,7 @@ static int __get_unpoison_page(struct pa
-  * the given page has PG_hwpoison. So it's never reused for other page
-  * allocations, and __get_unpoison_page() never races with them.
-  *
-- * Return: 0 on failure,
-+ * Return: 0 on failure or free buddy (hugetlb) page,
-  *         1 on success for in-use pages in a well-defined state,
-  *         -EIO for pages on which we can not handle memory errors,
-  *         -EBUSY when get_hwpoison_page() has raced with page lifecycle
+@@ -354,8 +354,6 @@ static int kill_proc(struct to_kill *tk,
+ 		 * PF_MCE_EARLY set.
+ 		 * Don't use force here, it's convenient if the signal
+ 		 * can be temporarily blocked.
+-		 * This could cause a loop when the user sets SIGBUS
+-		 * to SIG_IGN, but hopefully no one will do that?
+ 		 */
+ 		ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)tk->addr,
+ 				      addr_lsb, t);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
