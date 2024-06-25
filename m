@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60B0A1459E6
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:27:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66D2033C0
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:27:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293224; cv=none; b=jRv8yZ5OCxG/IIBulSPuFwD2kiAX1Lxho20Ui+qqffghbOdKr7Mayl2+s0s+iOALoEFlpcSAaHCP4XuGJ1A6DHfPAlWQGuXBJapIO3jEgJL8PTcyS5KGRgeFgCxWOEMV02xD4uOukw9JcqKy+PyW1Ogft78ddn88bQv/fgmVFsA=
+	t=1719293225; cv=none; b=PSdIj79s6d6dcUnDhE64z9jjI8OOuFV5LFETARUXNcazuWItN/DNaucZ2hmvR3lasA+9Qhwd9wTSXlBQD5ZnVC3Ys+wAe0FOsfaqBLCKNizmh923UMuVLJusXHvyTZprHTdmHtNvsC/wuyggU7PcdAUrE3TeyEBZJViN6VTHrME=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719293224; c=relaxed/simple;
-	bh=f8fYqflUNTIoYMAZgPokvHOKmZKt/UejA7qprl16kq0=;
-	h=Date:To:From:Subject:Message-Id; b=lihGcMWlazvqqCn1OQ3PcjjfgVriUQfMaHsJMEmgqoaguH7JdcvN4MjK2gsY8DtcJHQN5t8ZV4qjq43ppA1Qeo3b7e0AUJZqkcME2/3mVijvOKGrGsN/SOxazL7G7KvGqrruD6pbJ+hn41ppcqjvPt5j1qr3uBt8S9PNxMyEPJs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C56TZEMF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719293225; c=relaxed/simple;
+	bh=MqTYHYjw4MXQa15t0UVqWf6nNGw9O9lAoew6L0WLBo8=;
+	h=Date:To:From:Subject:Message-Id; b=HSl0mdcVBACfQ1wE1b9q8+fsza8IycO4p4oCZF5FziM99eYpkkRUpSMFCAHPZcbR1rtCrhVN2rpgEGoiXyB+G4ao+uD96WEmkRtifkS92YUb5bnvBZndeGEq2WLPN2Unc56zasmckWS9ETsDEdU0hcF5Txs7rNnGoc7Z3LU4fz8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f0bW3CAd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C56TZEMF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B128C32782;
-	Tue, 25 Jun 2024 05:27:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f0bW3CAd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DB07C32782;
+	Tue, 25 Jun 2024 05:27:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293224;
-	bh=f8fYqflUNTIoYMAZgPokvHOKmZKt/UejA7qprl16kq0=;
+	s=korg; t=1719293225;
+	bh=MqTYHYjw4MXQa15t0UVqWf6nNGw9O9lAoew6L0WLBo8=;
 	h=Date:To:From:Subject:From;
-	b=C56TZEMF5rTNu2nW/OYcdEQgcw9D26GFxuCb9SoSrX5ohdiDodpHiJ/NMI1Y48RHR
-	 /zfnp60EmEyVZDfVhQy3tTb3bdQUyEg4V3p0EohVSvSJxiGJeLDRZznowI/mO07BdE
-	 q4LKGUNwaS1vXt2O+fdgC2rpyDvt1yJvSPZDCKHc=
-Date: Mon, 24 Jun 2024 22:27:03 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,ghe@suse.com,gechangwei@live.cn,christophe.jaillet@wanadoo.fr,akpm@linux-foundation.org
+	b=f0bW3CAdItEVEQcZwhjmWbUgn++13uncCkMYzND2aoKKqw79iVKlJVW5OG1yPYWVi
+	 uEcqC5YdLwml09cNP14dxS/QiX6P79WC2baLIrnOMkA0I58evBZbvsU+iexev4CaqK
+	 pGNAXwUT0ocmv2RA8jGztblCvVAZw8owS703yJe0=
+Date: Mon, 24 Jun 2024 22:27:04 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,quic_jjohnson@quicinc.com,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-constify-struct-ocfs2_stack_operations.patch removed from -mm tree
-Message-Id: <20240625052704.2B128C32782@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] tools-testing-radix-tree-add-missing-module_description-definition.patch removed from -mm tree
+Message-Id: <20240625052705.3DB07C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,89 +35,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: constify struct ocfs2_stack_operations
+     Subject: tools/testing/radix-tree: add missing MODULE_DESCRIPTION definition
 has been removed from the -mm tree.  Its filename was
-     ocfs2-constify-struct-ocfs2_stack_operations.patch
+     tools-testing-radix-tree-add-missing-module_description-definition.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: ocfs2: constify struct ocfs2_stack_operations
-Date: Fri, 14 Jun 2024 22:57:09 +0200
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: tools/testing/radix-tree: add missing MODULE_DESCRIPTION definition
+Date: Mon, 17 Jun 2024 12:52:21 -0700
 
-"struct ocfs2_stack_operations" are not modified in this driver.
+Userspace builds of the radix-tree testing suite fails because of commit
+test_maple_tree: add the missing MODULE_DESCRIPTION() macro.  Add the
+proper defines to tools/testing/radix-tree/maple.c and
+tools/testing/radix-tree/xarray.c so MODULE_DESCRIPTION has a definition. 
+This allows the build to succeed.
 
-Constifying this structure moves some data to a read-only section, so
-increase overall security.
-
-In order to do it, "struct ocfs2_stack_plugin" also needs to be adjusted
-to this new const qualifier.
-
-On a x86_64, with allmodconfig:
-Before:
-======
-   text	   data	    bss	    dec	    hex	filename
-   6241	    644	      0	   6885	   1ae5	fs/ocfs2/stack_o2cb.o
-
-After:
-=====
-   text	   data	    bss	    dec	    hex	filename
-   6337	    548	      0	   6885	   1ae5	fs/ocfs2/stack_o2cb.o
-
-Link: https://lkml.kernel.org/r/f52dab89ee0049ec6271de29183a781efbb275ab.1718398605.git.christophe.jaillet@wanadoo.fr
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20240617195221.106565-1-sidhartha.kumar@oracle.com
+Fixes: 9f8090e8c4d1 ("test_maple_tree: add the missing MODULE_DESCRIPTION() macro")
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Jeff Johnson <quic_jjohnson@quicinc.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stack_o2cb.c |    2 +-
- fs/ocfs2/stack_user.c |    2 +-
- fs/ocfs2/stackglue.h  |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ tools/testing/radix-tree/maple.c  |    1 +
+ tools/testing/radix-tree/xarray.c |    1 +
+ 2 files changed, 2 insertions(+)
 
---- a/fs/ocfs2/stackglue.h~ocfs2-constify-struct-ocfs2_stack_operations
-+++ a/fs/ocfs2/stackglue.h
-@@ -223,7 +223,7 @@ struct ocfs2_stack_operations {
-  */
- struct ocfs2_stack_plugin {
- 	char *sp_name;
--	struct ocfs2_stack_operations *sp_ops;
-+	const struct ocfs2_stack_operations *sp_ops;
- 	struct module *sp_owner;
+--- a/tools/testing/radix-tree/maple.c~tools-testing-radix-tree-add-missing-module_description-definition
++++ a/tools/testing/radix-tree/maple.c
+@@ -19,6 +19,7 @@
+ #define module_init(x)
+ #define module_exit(x)
+ #define MODULE_AUTHOR(x)
++#define MODULE_DESCRIPTION(X)
+ #define MODULE_LICENSE(x)
+ #define dump_stack()	assert(0)
  
- 	/* These are managed by the stackglue code. */
---- a/fs/ocfs2/stack_o2cb.c~ocfs2-constify-struct-ocfs2_stack_operations
-+++ a/fs/ocfs2/stack_o2cb.c
-@@ -404,7 +404,7 @@ static int o2cb_cluster_this_node(struct
- 	return 0;
- }
+--- a/tools/testing/radix-tree/xarray.c~tools-testing-radix-tree-add-missing-module_description-definition
++++ a/tools/testing/radix-tree/xarray.c
+@@ -10,6 +10,7 @@
+ #define module_init(x)
+ #define module_exit(x)
+ #define MODULE_AUTHOR(x)
++#define MODULE_DESCRIPTION(X)
+ #define MODULE_LICENSE(x)
+ #define dump_stack()	assert(0)
  
--static struct ocfs2_stack_operations o2cb_stack_ops = {
-+static const struct ocfs2_stack_operations o2cb_stack_ops = {
- 	.connect	= o2cb_cluster_connect,
- 	.disconnect	= o2cb_cluster_disconnect,
- 	.this_node	= o2cb_cluster_this_node,
---- a/fs/ocfs2/stack_user.c~ocfs2-constify-struct-ocfs2_stack_operations
-+++ a/fs/ocfs2/stack_user.c
-@@ -1065,7 +1065,7 @@ static int user_cluster_this_node(struct
- 	return 0;
- }
- 
--static struct ocfs2_stack_operations ocfs2_user_plugin_ops = {
-+static const struct ocfs2_stack_operations ocfs2_user_plugin_ops = {
- 	.connect	= user_cluster_connect,
- 	.disconnect	= user_cluster_disconnect,
- 	.this_node	= user_cluster_this_node,
 _
 
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
+maple_tree-introduce-store_type-enum.patch
+maple_tree-introduce-mas_wr_prealloc_setup.patch
+maple_tree-move-up-mas_wr_store_setup-and-mas_wr_prealloc_setup.patch
+maple_tree-introduce-mas_wr_store_type.patch
+maple_tree-remove-mas_destroy-from-mas_nomem.patch
+maple_tree-use-mas_store_gfp-in-mas_erase.patch
+maple_tree-use-mas_store_gfp-in-mtree_store_range.patch
+maple_tree-print-store-type-in-mas_dump.patch
+maple_tree-use-store-type-in-mas_wr_store_entry.patch
+maple_tree-convert-mas_insert-to-preallocate-nodes.patch
+maple_tree-simplify-mas_commit_b_node.patch
+maple_tree-remove-mas_wr_modify.patch
+maple_tree-have-mas_store-allocate-nodes-if-needed.patch
+maple_tree-remove-node-allocations-from-various-write-helper-functions.patch
+maple_tree-remove-repeated-sanity-checks-from-mas_wr_append.patch
+maple_tree-remove-unneeded-mas_wr_walk-in-mas_store_prealloc.patch
 
