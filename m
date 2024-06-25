@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B251913C691
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8395513C691
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291687; cv=none; b=OaGwofDLKezgozIQJQx4ccwNyqQzPkApd3YqkF/qBaA41g8OnHgQD/oCfmM1tR/uDa0FhyrFUupSKYn7KYXpLRp693KwJYHrUpIt0dNRRuiIL/kYyYfjnMd35VpkMsPL+5AgAadLuZ8yFrksWmRYNnyPCXvfqVOpAbiUWmgARhc=
+	t=1719291688; cv=none; b=BPmCR5QGELfhL9AYF7w1jRxksPArL4oaQUZT+LzI5ZhIM1JnZBc6FMCfSLIc9q2KqWXmexQTg784n06gIW4JrrH69BmUXwFCLa29mmL+pIt3c1dWxlPWdW7qPF4v9x1hbh5gsX2MnUfNy0wTfDBdOKrLDZD9xm6sS2jveC4IxuU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291687; c=relaxed/simple;
-	bh=iKUhlNK3zGVMpoMlTeuh4inlFnJ9NqNdgFTp7QcY6z8=;
-	h=Date:To:From:Subject:Message-Id; b=mruF3pbI0KlMC18AEbr/W5JGTGUB3ZFC6ruKHROxwyAy+uotPewuhXa88Y5LsUh3wyM3GIsiqTg3Qqb2QdLSpF1WI9xXnY7pxJygITZdwCad5v5NLjQm+uGf9buGsZrfaaeaccjm/3NCOKwgKvDYmJPEqem23YRpFsrKil14HQQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rhRSuSu0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291688; c=relaxed/simple;
+	bh=n7jS+9ucFIkPSvK0pKS0/wUvkeDIfJ761b4+rmnDzl8=;
+	h=Date:To:From:Subject:Message-Id; b=KJfwpZhip1yPngPjmDOZ8T8qtrA2gKvZLEF5Cv48ltXoWVe6tMZBJ7Z5ZdkGkQuI9Y2QMK0G/SXpaU6igSexWiz7549txBmbg4OOTIpYV5m/428Vt86OgDtNPNB2//Jsv1AHdCvaz1p5DJJZlCVPG/nrsDp80/P2t+Xu8SIBRAU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dXGr8Euc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rhRSuSu0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FA4EC32782;
-	Tue, 25 Jun 2024 05:01:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dXGr8Euc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 597AFC32782;
+	Tue, 25 Jun 2024 05:01:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291687;
-	bh=iKUhlNK3zGVMpoMlTeuh4inlFnJ9NqNdgFTp7QcY6z8=;
+	s=korg; t=1719291688;
+	bh=n7jS+9ucFIkPSvK0pKS0/wUvkeDIfJ761b4+rmnDzl8=;
 	h=Date:To:From:Subject:From;
-	b=rhRSuSu0IrVlMgD/ywGpaifo6WE8+N/PK8Z0iCN9thnz0Q824APJLiB65A/avJjf/
-	 046tx94UbBqK8k6r5YCP91sgPRjjG6a4jVhTdsh8uqlVoWf12EDYMoyW3CePNnFl2l
-	 6HI+0Ev/TFAWupvNZ9WpDW/yoZK6xW7eAB2bJIDE=
-Date: Mon, 24 Jun 2024 22:01:26 -0700
+	b=dXGr8EucgUabAkNFxwSz6kR4dXzl0YCHFZbkkSCGwtI6fgxYrFioE4oZfYmjWojRN
+	 0LNTDuip23QStZGSxeqB97AENwCG6anorc3MgZtyxQ9Kp8eWlaqvIZR3pp0YX3Z+1h
+	 obGdQ9j5kV0YueplGn8DJgRKuNkANLUk2ZqHeb5k=
+Date: Mon, 24 Jun 2024 22:01:27 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,nphamcs@gmail.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,baohua@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-rename-is_zswap_enabled-to-zswap_is_enabled.patch removed from -mm tree
-Message-Id: <20240625050127.3FA4EC32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-add-zswap_never_enabled.patch removed from -mm tree
+Message-Id: <20240625050128.597AFC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: zswap: rename is_zswap_enabled() to zswap_is_enabled()
+     Subject: mm: zswap: add zswap_never_enabled()
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-rename-is_zswap_enabled-to-zswap_is_enabled.patch
+     mm-zswap-add-zswap_never_enabled.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zswap: rename is_zswap_enabled() to zswap_is_enabled()
-Date: Tue, 11 Jun 2024 02:45:14 +0000
+Subject: mm: zswap: add zswap_never_enabled()
+Date: Tue, 11 Jun 2024 02:45:15 +0000
 
-In preparation for introducing a similar function, rename
-is_zswap_enabled() to use zswap_* prefix like other zswap functions.
+Add zswap_never_enabled() to skip the xarray lookup in zswap_load() if
+zswap was never enabled on the system.  It is implemented using static
+branches for efficiency, as enabling zswap should be a rare event.  This
+could shave some cycles off zswap_load() when CONFIG_ZSWAP is used but
+zswap is never enabled.
 
-Link: https://lkml.kernel.org/r/20240611024516.1375191-1-yosryahmed@google.com
+However, the real motivation behind this patch is two-fold:
+- Incoming large folio swapin work will need to fallback to order-0
+  folios if zswap was ever enabled, because any part of the folio could be
+  in zswap, until proper handling of large folios with zswap is added.
+
+- A warning and recovery attempt will be added in a following change in
+  case the above was not done incorrectly.  Zswap will fail the read if
+  the folio is large and it was ever enabled.
+
+Expose zswap_never_enabled() in the header for the swapin work to use
+it later.
+
+[yosryahmed@google.com: expose zswap_never_enabled() in the header]
+  Link: https://lkml.kernel.org/r/Zmjf0Dr8s9xSW41X@google.com
+Link: https://lkml.kernel.org/r/20240611024516.1375191-2-yosryahmed@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
 Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -62,53 +79,72 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zswap.h |    4 ++--
- mm/memcontrol.c       |    2 +-
- mm/zswap.c            |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/zswap.h |    6 ++++++
+ mm/zswap.c            |   10 ++++++++++
+ 2 files changed, 16 insertions(+)
 
---- a/include/linux/zswap.h~mm-zswap-rename-is_zswap_enabled-to-zswap_is_enabled
+--- a/include/linux/zswap.h~mm-zswap-add-zswap_never_enabled
 +++ a/include/linux/zswap.h
-@@ -35,7 +35,7 @@ void zswap_swapoff(int type);
- void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg);
+@@ -36,6 +36,7 @@ void zswap_memcg_offline_cleanup(struct
  void zswap_lruvec_state_init(struct lruvec *lruvec);
  void zswap_folio_swapin(struct folio *folio);
--bool is_zswap_enabled(void);
-+bool zswap_is_enabled(void);
+ bool zswap_is_enabled(void);
++bool zswap_never_enabled(void);
  #else
  
  struct zswap_lruvec_state {};
-@@ -60,7 +60,7 @@ static inline void zswap_memcg_offline_c
- static inline void zswap_lruvec_state_init(struct lruvec *lruvec) {}
- static inline void zswap_folio_swapin(struct folio *folio) {}
- 
--static inline bool is_zswap_enabled(void)
-+static inline bool zswap_is_enabled(void)
+@@ -64,6 +65,11 @@ static inline bool zswap_is_enabled(void
  {
  	return false;
  }
---- a/mm/memcontrol.c~mm-zswap-rename-is_zswap_enabled-to-zswap_is_enabled
-+++ a/mm/memcontrol.c
-@@ -8433,7 +8433,7 @@ void obj_cgroup_uncharge_zswap(struct ob
- bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg)
- {
- 	/* if zswap is disabled, do not block pages going to the swapping device */
--	return !is_zswap_enabled() || !memcg || READ_ONCE(memcg->zswap_writeback);
-+	return !zswap_is_enabled() || !memcg || READ_ONCE(memcg->zswap_writeback);
- }
++
++static inline bool zswap_never_enabled(void)
++{
++	return false;
++}
  
- static u64 zswap_current_read(struct cgroup_subsys_state *css,
---- a/mm/zswap.c~mm-zswap-rename-is_zswap_enabled-to-zswap_is_enabled
+ #endif
+ 
+--- a/mm/zswap.c~mm-zswap-add-zswap_never_enabled
 +++ a/mm/zswap.c
-@@ -131,7 +131,7 @@ static bool zswap_shrinker_enabled = IS_
- 		CONFIG_ZSWAP_SHRINKER_DEFAULT_ON);
- module_param_named(shrinker_enabled, zswap_shrinker_enabled, bool, 0644);
+@@ -83,6 +83,7 @@ static bool zswap_pool_reached_full;
+ static int zswap_setup(void);
  
--bool is_zswap_enabled(void)
-+bool zswap_is_enabled(void)
- {
+ /* Enable/disable zswap */
++static DEFINE_STATIC_KEY_MAYBE(CONFIG_ZSWAP_DEFAULT_ON, zswap_ever_enabled);
+ static bool zswap_enabled = IS_ENABLED(CONFIG_ZSWAP_DEFAULT_ON);
+ static int zswap_enabled_param_set(const char *,
+ 				   const struct kernel_param *);
+@@ -136,6 +137,11 @@ bool zswap_is_enabled(void)
  	return zswap_enabled;
  }
+ 
++bool zswap_never_enabled(void)
++{
++	return !static_branch_maybe(CONFIG_ZSWAP_DEFAULT_ON, &zswap_ever_enabled);
++}
++
+ /*********************************
+ * data structures
+ **********************************/
+@@ -1557,6 +1563,9 @@ bool zswap_load(struct folio *folio)
+ 
+ 	VM_WARN_ON_ONCE(!folio_test_locked(folio));
+ 
++	if (zswap_never_enabled())
++		return false;
++
+ 	/*
+ 	 * When reading into the swapcache, invalidate our entry. The
+ 	 * swapcache can be the authoritative owner of the page and
+@@ -1735,6 +1744,7 @@ static int zswap_setup(void)
+ 			zpool_get_type(pool->zpools[0]));
+ 		list_add(&pool->list, &zswap_pools);
+ 		zswap_has_pool = true;
++		static_branch_enable(&zswap_ever_enabled);
+ 	} else {
+ 		pr_err("pool creation failed\n");
+ 		zswap_enabled = false;
 _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
