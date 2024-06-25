@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BBC6136E28;
-	Tue, 25 Jun 2024 03:52:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD53913C682;
+	Tue, 25 Jun 2024 03:52:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719287567; cv=none; b=qqYDKp3H9Hxe42rXxrduKHSfq8FtdsArWy45D91u2fmzVVAHYe7JDfJNbZbSJEX22Fd9ePFlFVoaPMgI8JnS7M6GYSb9q0Dm1Se3GJ/K/Obw+gyJ+ZQHdnKSJ6M+VWl9wrOvxA/TEQ2+blAJr3kRi6qTlpJRv3epim/UZgCjFA4=
+	t=1719287568; cv=none; b=tRahv9/SBU4rpv7pHhbvXmYAHBFPs9rNRrl2ErDBFOxCR8DA2+4X//sBL7ioi7wNCdCAZ/lr4M0NoOtM/+9eGevx5/Hzp/L/qffgq5r2yh5p2L4A+ZaRsuvGVzA+C8MI76UZuYF9Gkr2mdtub0mhAxsuEmlrMysWO+8FlgOoaB0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719287567; c=relaxed/simple;
-	bh=ogOfrsBqP/kQg9Sev5wQcSuHEK53h1n/xgo7qmc2Gig=;
-	h=Date:To:From:Subject:Message-Id; b=m+jt5Mp0i/CmcAS+2POlnldofrzvUBLNNXy2gX8I83bSPlz0scU29mgvAlzZlv+7/pyhnSeKPWIS3e8kYbOwI3yAocv4dw5DBfrTZll0IFiXFvOq5BoxeOEuryrhVXloWDtcK9EpKxukxxU+N6119yiAyRzrvPQFeDfRdjqKYhI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XGY/LfiY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719287568; c=relaxed/simple;
+	bh=OA64S8S82S5odm3a5NBs5HrMIbSl8EQfQ0qr3dXhBl0=;
+	h=Date:To:From:Subject:Message-Id; b=oM2DrQJqBVbFV3DNLmdRuBO+Rdb/q01DOCob2SxVq7cxoVBKxXnKFrCPbOMSpHka29pExlXn5yRWyihD1QYLrgI+JzswHoRIimpUXKY2W9nl0PSIedlf7iH9QJ/UuzOYCg3F6eYtMvz0csLF0y53FMJnlEWNcmiAx5Y3xCy0E+g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q5Rw6A4A; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XGY/LfiY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E7BFC4AF09;
-	Tue, 25 Jun 2024 03:52:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q5Rw6A4A"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 822DEC4AF0A;
+	Tue, 25 Jun 2024 03:52:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719287567;
-	bh=ogOfrsBqP/kQg9Sev5wQcSuHEK53h1n/xgo7qmc2Gig=;
+	s=korg; t=1719287568;
+	bh=OA64S8S82S5odm3a5NBs5HrMIbSl8EQfQ0qr3dXhBl0=;
 	h=Date:To:From:Subject:From;
-	b=XGY/LfiYlsDR8yUBkbQZh3ft7G8Ui6xE+YvKMqRj8Vg5TGsQVKmwAJrucEdp9lDWD
-	 w5Jw9GLvxJqU69jNTEGJylT2RNsX0dKa367YPvHMsWZfscGUA+FaLEIJH495bq+nl2
-	 D2raz6XtDO3JKNqEACkbVu6ke6CkTVIAmyaWrsQQ=
-Date: Mon, 24 Jun 2024 20:52:46 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mgorman@techsingularity.net,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
+	b=Q5Rw6A4AoqJHntS2McfTVRlnDpx4eGuDo9/aH+BTXtN6kC/RfOFB566+rvd5V/3Aq
+	 zcZ8WR2TkTl8nN5R2qxf0po44v5DiYgYskyB6E1Y5+ZiTK9TtISJEH9vXeB4P9RYjq
+	 ilqPgEeQpzoA0aAT2CtoXRdT4Fg5bPKOIhTCND1U=
+Date: Mon, 24 Jun 2024 20:52:48 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hughd@google.com,david@redhat.com,abrestic@rivosinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-page_alloc-separate-thp-pcp-into-movable-and-non-movable-categories.patch removed from -mm tree
-Message-Id: <20240625035247.5E7BFC4AF09@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-memory-dont-require-head-page-for-do_set_pmd.patch removed from -mm tree
+Message-Id: <20240625035248.822DEC4AF0A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,121 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: Separate THP PCP into movable and non-movable categories
+     Subject: mm/memory: don't require head page for do_set_pmd()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-separate-thp-pcp-into-movable-and-non-movable-categories.patch
+     mm-memory-dont-require-head-page-for-do_set_pmd.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: yangge <yangge1116@126.com>
-Subject: mm/page_alloc: Separate THP PCP into movable and non-movable categories
-Date: Thu, 20 Jun 2024 08:59:50 +0800
+From: Andrew Bresticker <abrestic@rivosinc.com>
+Subject: mm/memory: don't require head page for do_set_pmd()
+Date: Tue, 11 Jun 2024 08:32:16 -0700
 
-Since commit 5d0a661d808f ("mm/page_alloc: use only one PCP list for
-THP-sized allocations") no longer differentiates the migration type of
-pages in THP-sized PCP list, it's possible that non-movable allocation
-requests may get a CMA page from the list, in some cases, it's not
-acceptable.
+The requirement that the head page be passed to do_set_pmd() was added in
+commit ef37b2ea08ac ("mm/memory: page_add_file_rmap() ->
+folio_add_file_rmap_[pte|pmd]()") and prevents pmd-mapping in the
+finish_fault() and filemap_map_pages() paths if the page to be inserted is
+anything but the head page for an otherwise suitable vma and pmd-sized
+page.
 
-If a large number of CMA memory are configured in system (for example, the
-CMA memory accounts for 50% of the system memory), starting a virtual
-machine with device passthrough will get stuck.  During starting the
-virtual machine, it will call pin_user_pages_remote(..., FOLL_LONGTERM,
-...) to pin memory.  Normally if a page is present and in CMA area,
-pin_user_pages_remote() will migrate the page from CMA area to non-CMA
-area because of FOLL_LONGTERM flag.  But if non-movable allocation
-requests return CMA memory, migrate_longterm_unpinnable_pages() will
-migrate a CMA page to another CMA page, which will fail to pass the check
-in check_and_migrate_movable_pages() and cause migration endless.
+Matthew said:
 
-Call trace:
-pin_user_pages_remote
---__gup_longterm_locked // endless loops in this function
-----_get_user_pages_locked
-----check_and_migrate_movable_pages
-------migrate_longterm_unpinnable_pages
---------alloc_migration_target
+: We're going to stop using PMDs to map large folios unless the fault is
+: within the first 4KiB of the PMD.  No idea how many workloads that
+: affects, but it only needs to be backported as far as v6.8, so we may
+: as well backport it.
 
-This problem will also have a negative impact on CMA itself.  For example,
-when CMA is borrowed by THP, and we need to reclaim it through cma_alloc()
-or dma_alloc_coherent(), we must move those pages out to ensure CMA's
-users can retrieve that contigous memory.  Currently, CMA's memory is
-occupied by non-movable pages, meaning we can't relocate them.  As a
-result, cma_alloc() is more likely to fail.
-
-To fix the problem above, we add one PCP list for THP, which will not
-introduce a new cacheline for struct per_cpu_pages.  THP will have 2 PCP
-lists, one PCP list is used by MOVABLE allocation, and the other PCP list
-is used by UNMOVABLE allocation.  MOVABLE allocation contains GPF_MOVABLE,
-and UNMOVABLE allocation contains GFP_UNMOVABLE and GFP_RECLAIMABLE.
-
-Link: https://lkml.kernel.org/r/1718845190-4456-1-git-send-email-yangge1116@126.com
-Fixes: 5d0a661d808f ("mm/page_alloc: use only one PCP list for THP-sized allocations")
-Signed-off-by: yangge <yangge1116@126.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: https://lkml.kernel.org/r/20240611153216.2794513-1-abrestic@rivosinc.com
+Fixes: ef37b2ea08ac ("mm/memory: page_add_file_rmap() -> folio_add_file_rmap_[pte|pmd]()")
+Signed-off-by: Andrew Bresticker <abrestic@rivosinc.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    9 ++++-----
- mm/page_alloc.c        |    9 +++++++--
- 2 files changed, 11 insertions(+), 7 deletions(-)
+ mm/memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/mmzone.h~mm-page_alloc-separate-thp-pcp-into-movable-and-non-movable-categories
-+++ a/include/linux/mmzone.h
-@@ -654,13 +654,12 @@ enum zone_watermarks {
- };
+--- a/mm/memory.c~mm-memory-dont-require-head-page-for-do_set_pmd
++++ a/mm/memory.c
+@@ -4608,8 +4608,9 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 	if (!thp_vma_suitable_order(vma, haddr, PMD_ORDER))
+ 		return ret;
  
- /*
-- * One per migratetype for each PAGE_ALLOC_COSTLY_ORDER. One additional list
-- * for THP which will usually be GFP_MOVABLE. Even if it is another type,
-- * it should not contribute to serious fragmentation causing THP allocation
-- * failures.
-+ * One per migratetype for each PAGE_ALLOC_COSTLY_ORDER. Two additional lists
-+ * are added for THP. One PCP list is used by GPF_MOVABLE, and the other PCP list
-+ * is used by GFP_UNMOVABLE and GFP_RECLAIMABLE.
-  */
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--#define NR_PCP_THP 1
-+#define NR_PCP_THP 2
- #else
- #define NR_PCP_THP 0
- #endif
---- a/mm/page_alloc.c~mm-page_alloc-separate-thp-pcp-into-movable-and-non-movable-categories
-+++ a/mm/page_alloc.c
-@@ -504,10 +504,15 @@ out:
+-	if (page != &folio->page || folio_order(folio) != HPAGE_PMD_ORDER)
++	if (folio_order(folio) != HPAGE_PMD_ORDER)
+ 		return ret;
++	page = &folio->page;
  
- static inline unsigned int order_to_pindex(int migratetype, int order)
- {
-+	bool __maybe_unused movable;
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	if (order > PAGE_ALLOC_COSTLY_ORDER) {
- 		VM_BUG_ON(order != HPAGE_PMD_ORDER);
--		return NR_LOWORDER_PCP_LISTS;
-+
-+		movable = migratetype == MIGRATE_MOVABLE;
-+
-+		return NR_LOWORDER_PCP_LISTS + movable;
- 	}
- #else
- 	VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
-@@ -521,7 +526,7 @@ static inline int pindex_to_order(unsign
- 	int order = pindex / MIGRATE_PCPTYPES;
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	if (pindex == NR_LOWORDER_PCP_LISTS)
-+	if (pindex >= NR_LOWORDER_PCP_LISTS)
- 		order = HPAGE_PMD_ORDER;
- #else
- 	VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
+ 	/*
+ 	 * Just backoff if any subpage of a THP is corrupted otherwise
 _
 
-Patches currently in -mm which might be from yangge1116@126.com are
+Patches currently in -mm which might be from abrestic@rivosinc.com are
 
-mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch
 
