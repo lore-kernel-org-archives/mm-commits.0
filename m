@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6E6433C0
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A79CF144D16
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293174; cv=none; b=t+mO4YaSvKbIsoIHUP2xguQNvOsIXswVtrUAGhd3p1xXvTpeU2acQ5qieOFYlZ0nAOMHdNcO2VXjo+bOc62ZjMRazeylLw0uz4OnhjxH09Pr5JURGNT4n7QazgBmj0NrW6E6IrKjlDbHOd2G2/TPfcM1p6iidWG7HIndaQ51AfU=
+	t=1719293175; cv=none; b=rqsNULrpGFI8TVfn0diPd5Ii7LGo1zHpZi783MyM2yKBEyUKxCGzL2nM2Rt95Fjf7b22ZLxeDtEIb28N1I+rU4IsIbmLupAz05AdsJHtNSGRZO+6nEnNzfW374fY6okuiymdWYlbXNH2rVrhZbdFnb4Qm1Vlbv2xuL/k+Fpfp4Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719293174; c=relaxed/simple;
-	bh=SRNY/RDAdOrcQKD1SqTBF75OfWw3/HQFLT7nFsIjmz8=;
-	h=Date:To:From:Subject:Message-Id; b=OglvN/CJWIurQ1Iv8Wo79SqmZ6EhCuZBryjeXkePtO296ud/mn6jaObd7Cl2VJA/ZhLgM4N/2CYRnsOHiTXyaqH06NyMFzxNlwJcYF2e5YP1Nc8Wf4gOSssmnfdbf8as89XE1qeZlphaPw3CmrOCJnshaIXiuKnB6hfCbSF9mM0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ptQAGubJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719293175; c=relaxed/simple;
+	bh=1jflDBss7DeNZwORvvhKZoz1hHFtPB4kYCOa1bvjqqU=;
+	h=Date:To:From:Subject:Message-Id; b=odMJzkzLKt2e6tr/sNDJm4T4KuVvtWQ/qZcaxZgI/XFi7YPNb/OYa+uIj71HAiB8R3NPmVw1/iizUMNjI8FNQ5vASddaFSpVfAdeiFQ0wgKqb8SFV7nEjy3QB1t/t3PgOC8DS5/Jkc9sR0qhVGUC6ix3LmFRBDPiFH9lR9YH+xQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t148tvnZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ptQAGubJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46A5BC32782;
-	Tue, 25 Jun 2024 05:26:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t148tvnZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A76BC32782;
+	Tue, 25 Jun 2024 05:26:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293174;
-	bh=SRNY/RDAdOrcQKD1SqTBF75OfWw3/HQFLT7nFsIjmz8=;
+	s=korg; t=1719293175;
+	bh=1jflDBss7DeNZwORvvhKZoz1hHFtPB4kYCOa1bvjqqU=;
 	h=Date:To:From:Subject:From;
-	b=ptQAGubJFm9zgO2L14Ev78VtsLNOLXns9sZmTfLuVmc2kj/xe2U41gfIIlJaSd3KH
-	 qH/tk92rbar2VwWJjB0svoLBSHk7KerBLCC2bb14pw+NcWAClgvBkzKxyv70TXfVgW
-	 oRo8+Ihze8/DcL5GVnQMlqPjlmT/dXWSmQ9yjDp0=
-Date: Mon, 24 Jun 2024 22:26:13 -0700
+	b=t148tvnZ1oiMrnksPv040c+krmbo25iDDHir0TdU8ImPfyvhVFIlzXibynHePD3fr
+	 OMEIiVlAtXwq6rI3RkLPPZzJJd7NRAWNugWaVtZyunNgZ7xJQuqzQppE7rF9a3uXGQ
+	 g4hn/1sIdukptIak3OVHW8W4MY5QdaNDr/2NmOlM=
+Date: Mon, 24 Jun 2024 22:26:15 -0700
 To: mm-commits@vger.kernel.org,rdunlap@infradead.org,peterz@infradead.org,namhyung@kernel.org,msakai@redhat.com,mingo@redhat.com,mark.rutland@arm.com,kent.overstreet@linux.dev,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,irogers@google.com,colyli@suse.de,bfoster@redhat.com,bagasdotme@gmail.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] bcache-remove-heap-related-macros-and-switch-to-generic-min_heap.patch removed from -mm tree
-Message-Id: <20240625052614.46A5BC32782@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap.patch removed from -mm tree
+Message-Id: <20240625052615.7A76BC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,41 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: bcache: remove heap-related macros and switch to generic min_heap
+     Subject: bcachefs: remove heap-related macros and switch to generic min_heap
 has been removed from the -mm tree.  Its filename was
-     bcache-remove-heap-related-macros-and-switch-to-generic-min_heap.patch
+     bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: bcache: remove heap-related macros and switch to generic min_heap
-Date: Fri, 24 May 2024 23:29:57 +0800
+Subject: bcachefs: remove heap-related macros and switch to generic min_heap
+Date: Fri, 24 May 2024 23:29:58 +0800
 
-Drop the heap-related macros from bcache and replacing them with the
+Drop the heap-related macros from bcachefs and replacing them with the
 generic min_heap implementation from include/linux.  By doing so, code
 readability is improved by using functions instead of macros.  Moreover,
 the min_heap implementation in include/linux adopts a bottom-up variation
-compared to the textbook version currently used in bcache.  This bottom-up
-variation allows for approximately 50% reduction in the number of
-comparison operations during heap siftdown, without changing the number of
-swaps, thus making it more efficient.
+compared to the textbook version currently used in bcachefs.  This
+bottom-up variation allows for approximately 50% reduction in the number
+of comparison operations during heap siftdown, without changing the number
+of swaps, thus making it more efficient.
 
+[visitorckw@gmail.com: fix missing assignment of minimum element]
+  Link: https://lkml.kernel.org/r/20240602174828.1955320-1-visitorckw@gmail.com
 Link: https://lkml.kernel.org/ioyfizrzq7w7mjrqcadtzsfgpuntowtjdw5pgn4qhvsdp4mqqg@nrlek5vmisbu
-Link: https://lkml.kernel.org/r/20240524152958.919343-16-visitorckw@gmail.com
+Link: https://lkml.kernel.org/r/20240524152958.919343-17-visitorckw@gmail.com
 Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
 Reviewed-by: Ian Rogers <irogers@google.com>
-Acked-by: Coly Li <colyli@suse.de>
+Acked-by: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
 Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
 Cc: Bagas Sanjaya <bagasdotme@gmail.com>
 Cc: Brian Foster <bfoster@redhat.com>
 Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Cc: Coly Li <colyli@suse.de>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Sakai <msakai@redhat.com>
 Cc: Namhyung Kim <namhyung@kernel.org>
@@ -78,1049 +80,436 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bcache/alloc.c     |   64 ++++++++++++----
- drivers/md/bcache/bcache.h    |    2 
- drivers/md/bcache/bset.c      |  124 ++++++++++++++++++++------------
- drivers/md/bcache/bset.h      |   42 ++++------
- drivers/md/bcache/btree.c     |   69 ++++++++++-------
- drivers/md/bcache/extents.c   |   51 ++++++++-----
- drivers/md/bcache/movinggc.c  |   41 ++++++++--
- drivers/md/bcache/super.c     |    3 
- drivers/md/bcache/sysfs.c     |    4 -
- drivers/md/bcache/util.h      |   67 -----------------
- drivers/md/bcache/writeback.c |   13 ++-
- 11 files changed, 263 insertions(+), 217 deletions(-)
+ fs/bcachefs/clock.c       |   47 ++++++++++----
+ fs/bcachefs/clock_types.h |    2 
+ fs/bcachefs/ec.c          |   76 +++++++++++++++--------
+ fs/bcachefs/ec_types.h    |    2 
+ fs/bcachefs/util.h        |  118 ------------------------------------
+ 5 files changed, 90 insertions(+), 155 deletions(-)
 
---- a/drivers/md/bcache/alloc.c~bcache-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/drivers/md/bcache/alloc.c
-@@ -164,40 +164,68 @@ static void bch_invalidate_one_bucket(st
-  * prio is worth 1/8th of what INITIAL_PRIO is worth.
-  */
+--- a/fs/bcachefs/clock.c~bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap
++++ a/fs/bcachefs/clock.c
+@@ -6,16 +6,29 @@
+ #include <linux/kthread.h>
+ #include <linux/preempt.h>
  
--#define bucket_prio(b)							\
--({									\
--	unsigned int min_prio = (INITIAL_PRIO - ca->set->min_prio) / 8;	\
--									\
--	(b->prio - ca->set->min_prio + min_prio) * GC_SECTORS_USED(b);	\
--})
-+static inline unsigned int new_bucket_prio(struct cache *ca, struct bucket *b)
-+{
-+	unsigned int min_prio = (INITIAL_PRIO - ca->set->min_prio) / 8;
+-static inline long io_timer_cmp(io_timer_heap *h,
+-				struct io_timer *l,
+-				struct io_timer *r)
++static inline bool io_timer_cmp(const void *l, const void *r, void __always_unused *args)
+ {
+-	return l->expire - r->expire;
++	struct io_timer **_l = (struct io_timer **)l;
++	struct io_timer **_r = (struct io_timer **)r;
 +
-+	return (b->prio - ca->set->min_prio + min_prio) * GC_SECTORS_USED(b);
++	return (*_l)->expire < (*_r)->expire;
 +}
 +
-+static inline bool new_bucket_max_cmp(const void *l, const void *r, void *args)
++static inline void io_timer_swp(void *l, void *r, void __always_unused *args)
 +{
-+	struct bucket **lhs = (struct bucket **)l;
-+	struct bucket **rhs = (struct bucket **)r;
-+	struct cache *ca = args;
-+
-+	return new_bucket_prio(ca, *lhs) > new_bucket_prio(ca, *rhs);
-+}
-+
-+static inline bool new_bucket_min_cmp(const void *l, const void *r, void *args)
-+{
-+	struct bucket **lhs = (struct bucket **)l;
-+	struct bucket **rhs = (struct bucket **)r;
-+	struct cache *ca = args;
-+
-+	return new_bucket_prio(ca, *lhs) < new_bucket_prio(ca, *rhs);
-+}
-+
-+static inline void new_bucket_swap(void *l, void *r, void __always_unused *args)
-+{
-+	struct bucket **lhs = l, **rhs = r;
- 
--#define bucket_max_cmp(l, r)	(bucket_prio(l) < bucket_prio(r))
--#define bucket_min_cmp(l, r)	(bucket_prio(l) > bucket_prio(r))
-+	swap(*lhs, *rhs);
-+}
- 
- static void invalidate_buckets_lru(struct cache *ca)
- {
- 	struct bucket *b;
--	ssize_t i;
-+	const struct min_heap_callbacks bucket_max_cmp_callback = {
-+		.less = new_bucket_max_cmp,
-+		.swp = new_bucket_swap,
-+	};
-+	const struct min_heap_callbacks bucket_min_cmp_callback = {
-+		.less = new_bucket_min_cmp,
-+		.swp = new_bucket_swap,
-+	};
- 
--	ca->heap.used = 0;
-+	ca->heap.nr = 0;
- 
- 	for_each_bucket(b, ca) {
- 		if (!bch_can_invalidate_bucket(ca, b))
- 			continue;
- 
--		if (!heap_full(&ca->heap))
--			heap_add(&ca->heap, b, bucket_max_cmp);
--		else if (bucket_max_cmp(b, heap_peek(&ca->heap))) {
-+		if (!min_heap_full(&ca->heap))
-+			min_heap_push(&ca->heap, &b, &bucket_max_cmp_callback, ca);
-+		else if (!new_bucket_max_cmp(&b, min_heap_peek(&ca->heap), ca)) {
- 			ca->heap.data[0] = b;
--			heap_sift(&ca->heap, 0, bucket_max_cmp);
-+			min_heap_sift_down(&ca->heap, 0, &bucket_max_cmp_callback, ca);
- 		}
- 	}
- 
--	for (i = ca->heap.used / 2 - 1; i >= 0; --i)
--		heap_sift(&ca->heap, i, bucket_min_cmp);
-+	min_heapify_all(&ca->heap, &bucket_min_cmp_callback, ca);
- 
- 	while (!fifo_full(&ca->free_inc)) {
--		if (!heap_pop(&ca->heap, b, bucket_min_cmp)) {
-+		if (!ca->heap.nr) {
- 			/*
- 			 * We don't want to be calling invalidate_buckets()
- 			 * multiple times when it can't do anything
-@@ -206,6 +234,8 @@ static void invalidate_buckets_lru(struc
- 			wake_up_gc(ca->set);
- 			return;
- 		}
-+		b = min_heap_peek(&ca->heap)[0];
-+		min_heap_pop(&ca->heap, &bucket_min_cmp_callback, ca);
- 
- 		bch_invalidate_one_bucket(ca, b);
- 	}
---- a/drivers/md/bcache/bcache.h~bcache-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/drivers/md/bcache/bcache.h
-@@ -458,7 +458,7 @@ struct cache {
- 	/* Allocation stuff: */
- 	struct bucket		*buckets;
- 
--	DECLARE_HEAP(struct bucket *, heap);
-+	DEFINE_MIN_HEAP(struct bucket *, cache_heap) heap;
- 
- 	/*
- 	 * If nonzero, we know we aren't going to find any buckets to invalidate
---- a/drivers/md/bcache/bset.c~bcache-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/drivers/md/bcache/bset.c
-@@ -54,9 +54,11 @@ void bch_dump_bucket(struct btree_keys *
- int __bch_count_data(struct btree_keys *b)
- {
- 	unsigned int ret = 0;
--	struct btree_iter_stack iter;
-+	struct btree_iter iter;
- 	struct bkey *k;
- 
-+	min_heap_init(&iter.heap, NULL, MAX_BSETS);
-+
- 	if (b->ops->is_extents)
- 		for_each_key(b, k, &iter)
- 			ret += KEY_SIZE(k);
-@@ -67,9 +69,11 @@ void __bch_check_keys(struct btree_keys
- {
- 	va_list args;
- 	struct bkey *k, *p = NULL;
--	struct btree_iter_stack iter;
-+	struct btree_iter iter;
- 	const char *err;
- 
-+	min_heap_init(&iter.heap, NULL, MAX_BSETS);
-+
- 	for_each_key(b, k, &iter) {
- 		if (b->ops->is_extents) {
- 			err = "Keys out of order";
-@@ -110,9 +114,9 @@ bug:
- 
- static void bch_btree_iter_next_check(struct btree_iter *iter)
- {
--	struct bkey *k = iter->data->k, *next = bkey_next(k);
-+	struct bkey *k = iter->heap.data->k, *next = bkey_next(k);
- 
--	if (next < iter->data->end &&
-+	if (next < iter->heap.data->end &&
- 	    bkey_cmp(k, iter->b->ops->is_extents ?
- 		     &START_KEY(next) : next) > 0) {
- 		bch_dump_bucket(iter->b);
-@@ -879,12 +883,14 @@ unsigned int bch_btree_insert_key(struct
- 	unsigned int status = BTREE_INSERT_STATUS_NO_INSERT;
- 	struct bset *i = bset_tree_last(b)->data;
- 	struct bkey *m, *prev = NULL;
--	struct btree_iter_stack iter;
-+	struct btree_iter iter;
- 	struct bkey preceding_key_on_stack = ZERO_KEY;
- 	struct bkey *preceding_key_p = &preceding_key_on_stack;
- 
- 	BUG_ON(b->ops->is_extents && !KEY_SIZE(k));
- 
-+	min_heap_init(&iter.heap, NULL, MAX_BSETS);
-+
- 	/*
- 	 * If k has preceding key, preceding_key_p will be set to address
- 	 *  of k's preceding key; otherwise preceding_key_p will be set
-@@ -895,9 +901,9 @@ unsigned int bch_btree_insert_key(struct
- 	else
- 		preceding_key(k, &preceding_key_p);
- 
--	m = bch_btree_iter_stack_init(b, &iter, preceding_key_p);
-+	m = bch_btree_iter_init(b, &iter, preceding_key_p);
- 
--	if (b->ops->insert_fixup(b, k, &iter.iter, replace_key))
-+	if (b->ops->insert_fixup(b, k, &iter, replace_key))
- 		return status;
- 
- 	status = BTREE_INSERT_STATUS_INSERT;
-@@ -1077,79 +1083,102 @@ struct bkey *__bch_bset_search(struct bt
- 
- /* Btree iterator */
- 
--typedef bool (btree_iter_cmp_fn)(struct btree_iter_set,
--				 struct btree_iter_set);
-+typedef bool (new_btree_iter_cmp_fn)(const void *, const void *, void *);
-+
-+static inline bool new_btree_iter_cmp(const void *l, const void *r, void __always_unused *args)
-+{
-+	const struct btree_iter_set *_l = l;
-+	const struct btree_iter_set *_r = r;
-+
-+	return bkey_cmp(_l->k, _r->k) <= 0;
-+}
- 
--static inline bool btree_iter_cmp(struct btree_iter_set l,
--				  struct btree_iter_set r)
-+static inline void new_btree_iter_swap(void *iter1, void *iter2, void __always_unused *args)
- {
--	return bkey_cmp(l.k, r.k) > 0;
-+	struct btree_iter_set *_iter1 = iter1;
-+	struct btree_iter_set *_iter2 = iter2;
-+
-+	swap(*_iter1, *_iter2);
- }
- 
- static inline bool btree_iter_end(struct btree_iter *iter)
- {
--	return !iter->used;
-+	return !iter->heap.nr;
- }
- 
- void bch_btree_iter_push(struct btree_iter *iter, struct bkey *k,
- 			 struct bkey *end)
- {
-+	const struct min_heap_callbacks callbacks = {
-+		.less = new_btree_iter_cmp,
-+		.swp = new_btree_iter_swap,
-+	};
-+
- 	if (k != end)
--		BUG_ON(!heap_add(iter,
--				 ((struct btree_iter_set) { k, end }),
--				 btree_iter_cmp));
-+		BUG_ON(!min_heap_push(&iter->heap,
-+				 &((struct btree_iter_set) { k, end }),
-+				 &callbacks,
-+				 NULL));
- }
- 
--static struct bkey *__bch_btree_iter_stack_init(struct btree_keys *b,
--						struct btree_iter_stack *iter,
--						struct bkey *search,
--						struct bset_tree *start)
-+static struct bkey *__bch_btree_iter_init(struct btree_keys *b,
-+					  struct btree_iter *iter,
-+					  struct bkey *search,
-+					  struct bset_tree *start)
- {
- 	struct bkey *ret = NULL;
- 
--	iter->iter.size = ARRAY_SIZE(iter->stack_data);
--	iter->iter.used = 0;
-+	iter->heap.size = ARRAY_SIZE(iter->heap.preallocated);
-+	iter->heap.nr = 0;
- 
- #ifdef CONFIG_BCACHE_DEBUG
--	iter->iter.b = b;
-+	iter->b = b;
- #endif
- 
- 	for (; start <= bset_tree_last(b); start++) {
- 		ret = bch_bset_search(b, start, search);
--		bch_btree_iter_push(&iter->iter, ret, bset_bkey_last(start->data));
-+		bch_btree_iter_push(iter, ret, bset_bkey_last(start->data));
- 	}
- 
- 	return ret;
- }
- 
--struct bkey *bch_btree_iter_stack_init(struct btree_keys *b,
--				 struct btree_iter_stack *iter,
-+struct bkey *bch_btree_iter_init(struct btree_keys *b,
-+				 struct btree_iter *iter,
- 				 struct bkey *search)
- {
--	return __bch_btree_iter_stack_init(b, iter, search, b->set);
-+	return __bch_btree_iter_init(b, iter, search, b->set);
- }
- 
- static inline struct bkey *__bch_btree_iter_next(struct btree_iter *iter,
--						 btree_iter_cmp_fn *cmp)
-+						 new_btree_iter_cmp_fn *cmp)
- {
- 	struct btree_iter_set b __maybe_unused;
- 	struct bkey *ret = NULL;
-+	const struct min_heap_callbacks callbacks = {
-+		.less = cmp,
-+		.swp = new_btree_iter_swap,
-+	};
- 
- 	if (!btree_iter_end(iter)) {
- 		bch_btree_iter_next_check(iter);
- 
--		ret = iter->data->k;
--		iter->data->k = bkey_next(iter->data->k);
-+		ret = iter->heap.data->k;
-+		iter->heap.data->k = bkey_next(iter->heap.data->k);
- 
--		if (iter->data->k > iter->data->end) {
-+		if (iter->heap.data->k > iter->heap.data->end) {
- 			WARN_ONCE(1, "bset was corrupt!\n");
--			iter->data->k = iter->data->end;
-+			iter->heap.data->k = iter->heap.data->end;
- 		}
- 
--		if (iter->data->k == iter->data->end)
--			heap_pop(iter, b, cmp);
-+		if (iter->heap.data->k == iter->heap.data->end) {
-+			if (iter->heap.nr) {
-+				b = min_heap_peek(&iter->heap)[0];
-+				min_heap_pop(&iter->heap, &callbacks, NULL);
-+			}
-+		}
- 		else
--			heap_sift(iter, 0, cmp);
-+			min_heap_sift_down(&iter->heap, 0, &callbacks, NULL);
- 	}
- 
- 	return ret;
-@@ -1157,7 +1186,7 @@ static inline struct bkey *__bch_btree_i
- 
- struct bkey *bch_btree_iter_next(struct btree_iter *iter)
- {
--	return __bch_btree_iter_next(iter, btree_iter_cmp);
-+	return __bch_btree_iter_next(iter, new_btree_iter_cmp);
- 
- }
- 
-@@ -1195,16 +1224,18 @@ static void btree_mergesort(struct btree
- 			    struct btree_iter *iter,
- 			    bool fixup, bool remove_stale)
- {
--	int i;
- 	struct bkey *k, *last = NULL;
- 	BKEY_PADDED(k) tmp;
- 	bool (*bad)(struct btree_keys *, const struct bkey *) = remove_stale
- 		? bch_ptr_bad
- 		: bch_ptr_invalid;
-+	const struct min_heap_callbacks callbacks = {
-+		.less = b->ops->sort_cmp,
-+		.swp = new_btree_iter_swap,
-+	};
- 
- 	/* Heapify the iterator, using our comparison function */
--	for (i = iter->used / 2 - 1; i >= 0; --i)
--		heap_sift(iter, i, b->ops->sort_cmp);
-+	min_heapify_all(&iter->heap, &callbacks, NULL);
- 
- 	while (!btree_iter_end(iter)) {
- 		if (b->ops->sort_fixup && fixup)
-@@ -1293,10 +1324,11 @@ void bch_btree_sort_partial(struct btree
- 			    struct bset_sort_state *state)
- {
- 	size_t order = b->page_order, keys = 0;
--	struct btree_iter_stack iter;
-+	struct btree_iter iter;
- 	int oldsize = bch_count_data(b);
- 
--	__bch_btree_iter_stack_init(b, &iter, NULL, &b->set[start]);
-+	min_heap_init(&iter.heap, NULL, MAX_BSETS);
-+	__bch_btree_iter_init(b, &iter, NULL, &b->set[start]);
- 
- 	if (start) {
- 		unsigned int i;
-@@ -1307,7 +1339,7 @@ void bch_btree_sort_partial(struct btree
- 		order = get_order(__set_bytes(b->set->data, keys));
- 	}
- 
--	__btree_sort(b, &iter.iter, start, order, false, state);
-+	__btree_sort(b, &iter, start, order, false, state);
- 
- 	EBUG_ON(oldsize >= 0 && bch_count_data(b) != oldsize);
- }
-@@ -1323,11 +1355,13 @@ void bch_btree_sort_into(struct btree_ke
- 			 struct bset_sort_state *state)
- {
- 	uint64_t start_time = local_clock();
--	struct btree_iter_stack iter;
-+	struct btree_iter iter;
-+
-+	min_heap_init(&iter.heap, NULL, MAX_BSETS);
- 
--	bch_btree_iter_stack_init(b, &iter, NULL);
-+	bch_btree_iter_init(b, &iter, NULL);
- 
--	btree_mergesort(b, new->set->data, &iter.iter, false, true);
-+	btree_mergesort(b, new->set->data, &iter, false, true);
- 
- 	bch_time_stats_update(&state->time, start_time);
- 
---- a/drivers/md/bcache/bset.h~bcache-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/drivers/md/bcache/bset.h
-@@ -187,8 +187,9 @@ struct bset_tree {
- };
- 
- struct btree_keys_ops {
--	bool		(*sort_cmp)(struct btree_iter_set l,
--				    struct btree_iter_set r);
-+	bool		(*sort_cmp)(const void *l,
-+				    const void *r,
-+					void *args);
- 	struct bkey	*(*sort_fixup)(struct btree_iter *iter,
- 				       struct bkey *tmp);
- 	bool		(*insert_fixup)(struct btree_keys *b,
-@@ -312,23 +313,17 @@ enum {
- 	BTREE_INSERT_STATUS_FRONT_MERGE,
- };
- 
-+struct btree_iter_set {
-+	struct bkey *k, *end;
-+};
-+
- /* Btree key iteration */
- 
- struct btree_iter {
--	size_t size, used;
- #ifdef CONFIG_BCACHE_DEBUG
- 	struct btree_keys *b;
- #endif
--	struct btree_iter_set {
--		struct bkey *k, *end;
--	} data[];
--};
--
--/* Fixed-size btree_iter that can be allocated on the stack */
--
--struct btree_iter_stack {
--	struct btree_iter iter;
--	struct btree_iter_set stack_data[MAX_BSETS];
-+	MIN_HEAP_PREALLOCATED(struct btree_iter_set, btree_iter_heap, MAX_BSETS) heap;
- };
- 
- typedef bool (*ptr_filter_fn)(struct btree_keys *b, const struct bkey *k);
-@@ -340,9 +335,9 @@ struct bkey *bch_btree_iter_next_filter(
- 
- void bch_btree_iter_push(struct btree_iter *iter, struct bkey *k,
- 			 struct bkey *end);
--struct bkey *bch_btree_iter_stack_init(struct btree_keys *b,
--				       struct btree_iter_stack *iter,
--				       struct bkey *search);
-+struct bkey *bch_btree_iter_init(struct btree_keys *b,
-+				 struct btree_iter *iter,
-+				 struct bkey *search);
- 
- struct bkey *__bch_bset_search(struct btree_keys *b, struct bset_tree *t,
- 			       const struct bkey *search);
-@@ -357,14 +352,13 @@ static inline struct bkey *bch_bset_sear
- 	return search ? __bch_bset_search(b, t, search) : t->data->start;
- }
- 
--#define for_each_key_filter(b, k, stack_iter, filter)                      \
--	for (bch_btree_iter_stack_init((b), (stack_iter), NULL);           \
--	     ((k) = bch_btree_iter_next_filter(&((stack_iter)->iter), (b), \
--					       filter));)
--
--#define for_each_key(b, k, stack_iter)                           \
--	for (bch_btree_iter_stack_init((b), (stack_iter), NULL); \
--	     ((k) = bch_btree_iter_next(&((stack_iter)->iter)));)
-+#define for_each_key_filter(b, k, iter, filter)				\
-+	for (bch_btree_iter_init((b), (iter), NULL);			\
-+	     ((k) = bch_btree_iter_next_filter((iter), (b), filter));)
-+
-+#define for_each_key(b, k, iter)					\
-+	for (bch_btree_iter_init((b), (iter), NULL);			\
-+	     ((k) = bch_btree_iter_next(iter));)
- 
- /* Sorting */
- 
---- a/drivers/md/bcache/btree.c~bcache-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/drivers/md/bcache/btree.c
-@@ -149,19 +149,19 @@ void bch_btree_node_read_done(struct btr
- {
- 	const char *err = "bad btree header";
- 	struct bset *i = btree_bset_first(b);
--	struct btree_iter *iter;
-+	struct btree_iter iter;
- 
- 	/*
- 	 * c->fill_iter can allocate an iterator with more memory space
- 	 * than static MAX_BSETS.
- 	 * See the comment arount cache_set->fill_iter.
- 	 */
--	iter = mempool_alloc(&b->c->fill_iter, GFP_NOIO);
--	iter->size = b->c->cache->sb.bucket_size / b->c->cache->sb.block_size;
--	iter->used = 0;
-+	iter.heap.data = mempool_alloc(&b->c->fill_iter, GFP_NOIO);
-+	iter.heap.size = b->c->cache->sb.bucket_size / b->c->cache->sb.block_size;
-+	iter.heap.nr = 0;
- 
- #ifdef CONFIG_BCACHE_DEBUG
--	iter->b = &b->keys;
-+	iter.b = &b->keys;
- #endif
- 
- 	if (!i->seq)
-@@ -199,7 +199,7 @@ void bch_btree_node_read_done(struct btr
- 		if (i != b->keys.set[0].data && !i->keys)
- 			goto err;
- 
--		bch_btree_iter_push(iter, i->start, bset_bkey_last(i));
-+		bch_btree_iter_push(&iter, i->start, bset_bkey_last(i));
- 
- 		b->written += set_blocks(i, block_bytes(b->c->cache));
- 	}
-@@ -211,7 +211,7 @@ void bch_btree_node_read_done(struct btr
- 		if (i->seq == b->keys.set[0].data->seq)
- 			goto err;
- 
--	bch_btree_sort_and_fix_extents(&b->keys, iter, &b->c->sort);
-+	bch_btree_sort_and_fix_extents(&b->keys, &iter, &b->c->sort);
- 
- 	i = b->keys.set[0].data;
- 	err = "short btree key";
-@@ -223,7 +223,7 @@ void bch_btree_node_read_done(struct btr
- 		bch_bset_init_next(&b->keys, write_block(b),
- 				   bset_magic(&b->c->cache->sb));
- out:
--	mempool_free(iter, &b->c->fill_iter);
-+	mempool_free(iter.heap.data, &b->c->fill_iter);
- 	return;
- err:
- 	set_btree_node_io_error(b);
-@@ -1309,9 +1309,11 @@ static bool btree_gc_mark_node(struct bt
- 	uint8_t stale = 0;
- 	unsigned int keys = 0, good_keys = 0;
- 	struct bkey *k;
--	struct btree_iter_stack iter;
-+	struct btree_iter iter;
- 	struct bset_tree *t;
- 
-+	min_heap_init(&iter.heap, NULL, MAX_BSETS);
-+
- 	gc->nodes++;
- 
- 	for_each_key_filter(&b->keys, k, &iter, bch_ptr_invalid) {
-@@ -1570,9 +1572,11 @@ static int btree_gc_rewrite_node(struct
- static unsigned int btree_gc_count_keys(struct btree *b)
- {
- 	struct bkey *k;
--	struct btree_iter_stack iter;
-+	struct btree_iter iter;
- 	unsigned int ret = 0;
- 
-+	min_heap_init(&iter.heap, NULL, MAX_BSETS);
-+
- 	for_each_key_filter(&b->keys, k, &iter, bch_ptr_bad)
- 		ret += bkey_u64s(k);
- 
-@@ -1611,18 +1615,18 @@ static int btree_gc_recurse(struct btree
- 	int ret = 0;
- 	bool should_rewrite;
- 	struct bkey *k;
--	struct btree_iter_stack iter;
-+	struct btree_iter iter;
- 	struct gc_merge_info r[GC_MERGE_NODES];
- 	struct gc_merge_info *i, *last = r + ARRAY_SIZE(r) - 1;
- 
--	bch_btree_iter_stack_init(&b->keys, &iter, &b->c->gc_done);
-+	min_heap_init(&iter.heap, NULL, MAX_BSETS);
-+	bch_btree_iter_init(&b->keys, &iter, &b->c->gc_done);
- 
- 	for (i = r; i < r + ARRAY_SIZE(r); i++)
- 		i->b = ERR_PTR(-EINTR);
- 
- 	while (1) {
--		k = bch_btree_iter_next_filter(&iter.iter, &b->keys,
--					       bch_ptr_bad);
-+		k = bch_btree_iter_next_filter(&iter, &b->keys, bch_ptr_bad);
- 		if (k) {
- 			r->b = bch_btree_node_get(b->c, op, k, b->level - 1,
- 						  true, b);
-@@ -1917,7 +1921,9 @@ static int bch_btree_check_recurse(struc
- {
- 	int ret = 0;
- 	struct bkey *k, *p = NULL;
--	struct btree_iter_stack iter;
-+	struct btree_iter iter;
-+
-+	min_heap_init(&iter.heap, NULL, MAX_BSETS);
- 
- 	for_each_key_filter(&b->keys, k, &iter, bch_ptr_invalid)
- 		bch_initial_mark_key(b->c, b->level, k);
-@@ -1925,10 +1931,10 @@ static int bch_btree_check_recurse(struc
- 	bch_initial_mark_key(b->c, b->level + 1, &b->key);
- 
- 	if (b->level) {
--		bch_btree_iter_stack_init(&b->keys, &iter, NULL);
-+		bch_btree_iter_init(&b->keys, &iter, NULL);
- 
- 		do {
--			k = bch_btree_iter_next_filter(&iter.iter, &b->keys,
-+			k = bch_btree_iter_next_filter(&iter, &b->keys,
- 						       bch_ptr_bad);
- 			if (k) {
- 				btree_node_prefetch(b, k);
-@@ -1956,7 +1962,7 @@ static int bch_btree_check_thread(void *
- 	struct btree_check_info *info = arg;
- 	struct btree_check_state *check_state = info->state;
- 	struct cache_set *c = check_state->c;
--	struct btree_iter_stack iter;
-+	struct btree_iter iter;
- 	struct bkey *k, *p;
- 	int cur_idx, prev_idx, skip_nr;
- 
-@@ -1964,9 +1970,11 @@ static int bch_btree_check_thread(void *
- 	cur_idx = prev_idx = 0;
- 	ret = 0;
- 
-+	min_heap_init(&iter.heap, NULL, MAX_BSETS);
-+
- 	/* root node keys are checked before thread created */
--	bch_btree_iter_stack_init(&c->root->keys, &iter, NULL);
--	k = bch_btree_iter_next_filter(&iter.iter, &c->root->keys, bch_ptr_bad);
-+	bch_btree_iter_init(&c->root->keys, &iter, NULL);
-+	k = bch_btree_iter_next_filter(&iter, &c->root->keys, bch_ptr_bad);
- 	BUG_ON(!k);
- 
- 	p = k;
-@@ -1984,7 +1992,7 @@ static int bch_btree_check_thread(void *
- 		skip_nr = cur_idx - prev_idx;
- 
- 		while (skip_nr) {
--			k = bch_btree_iter_next_filter(&iter.iter,
-+			k = bch_btree_iter_next_filter(&iter,
- 						       &c->root->keys,
- 						       bch_ptr_bad);
- 			if (k)
-@@ -2057,9 +2065,11 @@ int bch_btree_check(struct cache_set *c)
- 	int ret = 0;
- 	int i;
- 	struct bkey *k = NULL;
--	struct btree_iter_stack iter;
-+	struct btree_iter iter;
- 	struct btree_check_state check_state;
- 
-+	min_heap_init(&iter.heap, NULL, MAX_BSETS);
-+
- 	/* check and mark root node keys */
- 	for_each_key_filter(&c->root->keys, k, &iter, bch_ptr_invalid)
- 		bch_initial_mark_key(c, c->root->level, k);
-@@ -2553,11 +2563,12 @@ static int bch_btree_map_nodes_recurse(s
- 
- 	if (b->level) {
- 		struct bkey *k;
--		struct btree_iter_stack iter;
-+		struct btree_iter iter;
- 
--		bch_btree_iter_stack_init(&b->keys, &iter, from);
-+		min_heap_init(&iter.heap, NULL, MAX_BSETS);
-+		bch_btree_iter_init(&b->keys, &iter, from);
- 
--		while ((k = bch_btree_iter_next_filter(&iter.iter, &b->keys,
-+		while ((k = bch_btree_iter_next_filter(&iter, &b->keys,
- 						       bch_ptr_bad))) {
- 			ret = bcache_btree(map_nodes_recurse, k, b,
- 				    op, from, fn, flags);
-@@ -2586,12 +2597,12 @@ int bch_btree_map_keys_recurse(struct bt
- {
- 	int ret = MAP_CONTINUE;
- 	struct bkey *k;
--	struct btree_iter_stack iter;
-+	struct btree_iter iter;
- 
--	bch_btree_iter_stack_init(&b->keys, &iter, from);
-+	min_heap_init(&iter.heap, NULL, MAX_BSETS);
-+	bch_btree_iter_init(&b->keys, &iter, from);
- 
--	while ((k = bch_btree_iter_next_filter(&iter.iter, &b->keys,
--					       bch_ptr_bad))) {
-+	while ((k = bch_btree_iter_next_filter(&iter, &b->keys, bch_ptr_bad))) {
- 		ret = !b->level
- 			? fn(op, b, k)
- 			: bcache_btree(map_keys_recurse, k,
---- a/drivers/md/bcache/extents.c~bcache-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/drivers/md/bcache/extents.c
-@@ -33,15 +33,16 @@ static void sort_key_next(struct btree_i
- 	i->k = bkey_next(i->k);
- 
- 	if (i->k == i->end)
--		*i = iter->data[--iter->used];
-+		*i = iter->heap.data[--iter->heap.nr];
- }
- 
--static bool bch_key_sort_cmp(struct btree_iter_set l,
--			     struct btree_iter_set r)
-+static bool new_bch_key_sort_cmp(const void *l, const void *r, void *args)
- {
--	int64_t c = bkey_cmp(l.k, r.k);
-+	struct btree_iter_set *_l = (struct btree_iter_set *)l;
-+	struct btree_iter_set *_r = (struct btree_iter_set *)r;
-+	int64_t c = bkey_cmp(_l->k, _r->k);
- 
--	return c ? c > 0 : l.k < r.k;
-+	return !(c ? c > 0 : _l->k < _r->k);
- }
- 
- static bool __ptr_invalid(struct cache_set *c, const struct bkey *k)
-@@ -238,7 +239,7 @@ static bool bch_btree_ptr_insert_fixup(s
- }
- 
- const struct btree_keys_ops bch_btree_keys_ops = {
--	.sort_cmp	= bch_key_sort_cmp,
-+	.sort_cmp	= new_bch_key_sort_cmp,
- 	.insert_fixup	= bch_btree_ptr_insert_fixup,
- 	.key_invalid	= bch_btree_ptr_invalid,
- 	.key_bad	= bch_btree_ptr_bad,
-@@ -255,22 +256,36 @@ const struct btree_keys_ops bch_btree_ke
-  * Necessary for btree_sort_fixup() - if there are multiple keys that compare
-  * equal in different sets, we have to process them newest to oldest.
-  */
--static bool bch_extent_sort_cmp(struct btree_iter_set l,
--				struct btree_iter_set r)
-+
-+static bool new_bch_extent_sort_cmp(const void *l, const void *r, void __always_unused *args)
-+{
-+	struct btree_iter_set *_l = (struct btree_iter_set *)l;
-+	struct btree_iter_set *_r = (struct btree_iter_set *)r;
-+	int64_t c = bkey_cmp(&START_KEY(_l->k), &START_KEY(_r->k));
-+
-+	return !(c ? c > 0 : _l->k < _r->k);
-+}
-+
-+static inline void new_btree_iter_swap(void *iter1, void *iter2, void __always_unused *args)
- {
--	int64_t c = bkey_cmp(&START_KEY(l.k), &START_KEY(r.k));
-+	struct btree_iter_set *_iter1 = iter1;
-+	struct btree_iter_set *_iter2 = iter2;
- 
--	return c ? c > 0 : l.k < r.k;
-+	swap(*_iter1, *_iter2);
- }
- 
- static struct bkey *bch_extent_sort_fixup(struct btree_iter *iter,
- 					  struct bkey *tmp)
- {
--	while (iter->used > 1) {
--		struct btree_iter_set *top = iter->data, *i = top + 1;
-+	const struct min_heap_callbacks callbacks = {
-+		.less = new_bch_extent_sort_cmp,
-+		.swp = new_btree_iter_swap,
-+	};
-+	while (iter->heap.nr > 1) {
-+		struct btree_iter_set *top = iter->heap.data, *i = top + 1;
- 
--		if (iter->used > 2 &&
--		    bch_extent_sort_cmp(i[0], i[1]))
-+		if (iter->heap.nr > 2 &&
-+		    !new_bch_extent_sort_cmp(&i[0], &i[1], NULL))
- 			i++;
- 
- 		if (bkey_cmp(top->k, &START_KEY(i->k)) <= 0)
-@@ -278,7 +293,7 @@ static struct bkey *bch_extent_sort_fixu
- 
- 		if (!KEY_SIZE(i->k)) {
- 			sort_key_next(iter, i);
--			heap_sift(iter, i - top, bch_extent_sort_cmp);
-+			min_heap_sift_down(&iter->heap, i - top, &callbacks, NULL);
- 			continue;
- 		}
- 
-@@ -288,7 +303,7 @@ static struct bkey *bch_extent_sort_fixu
- 			else
- 				bch_cut_front(top->k, i->k);
- 
--			heap_sift(iter, i - top, bch_extent_sort_cmp);
-+			min_heap_sift_down(&iter->heap, i - top, &callbacks, NULL);
- 		} else {
- 			/* can't happen because of comparison func */
- 			BUG_ON(!bkey_cmp(&START_KEY(top->k), &START_KEY(i->k)));
-@@ -298,7 +313,7 @@ static struct bkey *bch_extent_sort_fixu
- 
- 				bch_cut_back(&START_KEY(i->k), tmp);
- 				bch_cut_front(i->k, top->k);
--				heap_sift(iter, 0, bch_extent_sort_cmp);
-+				min_heap_sift_down(&iter->heap, 0, &callbacks, NULL);
- 
- 				return tmp;
- 			} else {
-@@ -618,7 +633,7 @@ static bool bch_extent_merge(struct btre
- }
- 
- const struct btree_keys_ops bch_extent_keys_ops = {
--	.sort_cmp	= bch_extent_sort_cmp,
-+	.sort_cmp	= new_bch_extent_sort_cmp,
- 	.sort_fixup	= bch_extent_sort_fixup,
- 	.insert_fixup	= bch_extent_insert_fixup,
- 	.key_invalid	= bch_extent_invalid,
---- a/drivers/md/bcache/movinggc.c~bcache-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/drivers/md/bcache/movinggc.c
-@@ -182,16 +182,27 @@ err:		if (!IS_ERR_OR_NULL(w->private))
- 	closure_sync(&cl);
- }
- 
--static bool bucket_cmp(struct bucket *l, struct bucket *r)
-+static bool new_bucket_cmp(const void *l, const void *r, void __always_unused *args)
- {
--	return GC_SECTORS_USED(l) < GC_SECTORS_USED(r);
-+	struct bucket **_l = (struct bucket **)l;
-+	struct bucket **_r = (struct bucket **)r;
-+
-+	return GC_SECTORS_USED(*_l) >= GC_SECTORS_USED(*_r);
-+}
-+
-+static void new_bucket_swap(void *l, void *r, void __always_unused *args)
-+{
-+	struct bucket **_l = l;
-+	struct bucket **_r = r;
++	struct io_timer **_l = (struct io_timer **)l;
++	struct io_timer **_r = (struct io_timer **)r;
 +
 +	swap(*_l, *_r);
  }
  
- static unsigned int bucket_heap_top(struct cache *ca)
+ void bch2_io_timer_add(struct io_clock *clock, struct io_timer *timer)
  {
- 	struct bucket *b;
- 
--	return (b = heap_peek(&ca->heap)) ? GC_SECTORS_USED(b) : 0;
-+	return (b = min_heap_peek(&ca->heap)[0]) ? GC_SECTORS_USED(b) : 0;
- }
- 
- void bch_moving_gc(struct cache_set *c)
-@@ -199,6 +210,10 @@ void bch_moving_gc(struct cache_set *c)
- 	struct cache *ca = c->cache;
- 	struct bucket *b;
- 	unsigned long sectors_to_move, reserve_sectors;
+ 	size_t i;
 +	const struct min_heap_callbacks callbacks = {
-+		.less = new_bucket_cmp,
-+		.swp = new_bucket_swap,
++		.less = io_timer_cmp,
++		.swp = io_timer_swp,
 +	};
  
- 	if (!c->copy_gc_enabled)
+ 	spin_lock(&clock->timer_lock);
+ 
+@@ -26,11 +39,11 @@ void bch2_io_timer_add(struct io_clock *
  		return;
-@@ -209,7 +224,7 @@ void bch_moving_gc(struct cache_set *c)
- 	reserve_sectors = ca->sb.bucket_size *
- 			     fifo_used(&ca->free[RESERVE_MOVINGGC]);
+ 	}
  
--	ca->heap.used = 0;
-+	ca->heap.nr = 0;
+-	for (i = 0; i < clock->timers.used; i++)
++	for (i = 0; i < clock->timers.nr; i++)
+ 		if (clock->timers.data[i] == timer)
+ 			goto out;
  
- 	for_each_bucket(b, ca) {
- 		if (GC_MARK(b) == GC_MARK_METADATA ||
-@@ -218,25 +233,31 @@ void bch_moving_gc(struct cache_set *c)
- 		    atomic_read(&b->pin))
- 			continue;
+-	BUG_ON(!heap_add(&clock->timers, timer, io_timer_cmp, NULL));
++	BUG_ON(!min_heap_push(&clock->timers, &timer, &callbacks, NULL));
+ out:
+ 	spin_unlock(&clock->timer_lock);
+ }
+@@ -38,12 +51,16 @@ out:
+ void bch2_io_timer_del(struct io_clock *clock, struct io_timer *timer)
+ {
+ 	size_t i;
++	const struct min_heap_callbacks callbacks = {
++		.less = io_timer_cmp,
++		.swp = io_timer_swp,
++	};
  
--		if (!heap_full(&ca->heap)) {
-+		if (!min_heap_full(&ca->heap)) {
- 			sectors_to_move += GC_SECTORS_USED(b);
--			heap_add(&ca->heap, b, bucket_cmp);
--		} else if (bucket_cmp(b, heap_peek(&ca->heap))) {
-+			min_heap_push(&ca->heap, &b, &callbacks, NULL);
-+		} else if (!new_bucket_cmp(&b, min_heap_peek(&ca->heap), ca)) {
- 			sectors_to_move -= bucket_heap_top(ca);
- 			sectors_to_move += GC_SECTORS_USED(b);
+ 	spin_lock(&clock->timer_lock);
  
- 			ca->heap.data[0] = b;
--			heap_sift(&ca->heap, 0, bucket_cmp);
-+			min_heap_sift_down(&ca->heap, 0, &callbacks, NULL);
+-	for (i = 0; i < clock->timers.used; i++)
++	for (i = 0; i < clock->timers.nr; i++)
+ 		if (clock->timers.data[i] == timer) {
+-			heap_del(&clock->timers, i, io_timer_cmp, NULL);
++			min_heap_del(&clock->timers, i, &callbacks, NULL);
+ 			break;
  		}
- 	}
  
- 	while (sectors_to_move > reserve_sectors) {
--		heap_pop(&ca->heap, b, bucket_cmp);
-+		if (ca->heap.nr) {
-+			b = min_heap_peek(&ca->heap)[0];
-+			min_heap_pop(&ca->heap, &callbacks, NULL);
-+		}
- 		sectors_to_move -= GC_SECTORS_USED(b);
- 	}
+@@ -131,12 +148,18 @@ static struct io_timer *get_expired_time
+ 					  unsigned long now)
+ {
+ 	struct io_timer *ret = NULL;
++	const struct min_heap_callbacks callbacks = {
++		.less = io_timer_cmp,
++		.swp = io_timer_swp,
++	};
  
--	while (heap_pop(&ca->heap, b, bucket_cmp))
-+	while (ca->heap.nr) {
-+		b = min_heap_peek(&ca->heap)[0];
-+		min_heap_pop(&ca->heap, &callbacks, NULL);
- 		SET_GC_MOVE(b, 1);
+ 	spin_lock(&clock->timer_lock);
+ 
+-	if (clock->timers.used &&
+-	    time_after_eq(now, clock->timers.data[0]->expire))
+-		heap_pop(&clock->timers, ret, io_timer_cmp, NULL);
++	if (clock->timers.nr &&
++	    time_after_eq(now, clock->timers.data[0]->expire)) {
++		ret = *min_heap_peek(&clock->timers);
++		min_heap_pop(&clock->timers, &callbacks, NULL);
 +	}
  
- 	mutex_unlock(&c->bucket_lock);
+ 	spin_unlock(&clock->timer_lock);
  
---- a/drivers/md/bcache/super.c~bcache-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/drivers/md/bcache/super.c
-@@ -1914,8 +1914,7 @@ struct cache_set *bch_cache_set_alloc(st
- 	INIT_LIST_HEAD(&c->btree_cache_freed);
- 	INIT_LIST_HEAD(&c->data_buckets);
+@@ -161,7 +184,7 @@ void bch2_io_timers_to_text(struct print
+ 	spin_lock(&clock->timer_lock);
+ 	now = atomic64_read(&clock->now);
  
--	iter_size = sizeof(struct btree_iter) +
--		    ((meta_bucket_pages(sb) * PAGE_SECTORS) / sb->block_size) *
-+	iter_size = ((meta_bucket_pages(sb) * PAGE_SECTORS) / sb->block_size) *
- 			    sizeof(struct btree_iter_set);
+-	for (i = 0; i < clock->timers.used; i++)
++	for (i = 0; i < clock->timers.nr; i++)
+ 		prt_printf(out, "%ps:\t%li\n",
+ 		       clock->timers.data[i]->fn,
+ 		       clock->timers.data[i]->expire - now);
+--- a/fs/bcachefs/clock_types.h~bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap
++++ a/fs/bcachefs/clock_types.h
+@@ -23,7 +23,7 @@ struct io_timer {
+ /* Amount to buffer up on a percpu counter */
+ #define IO_CLOCK_PCPU_SECTORS	128
  
- 	c->devices = kcalloc(c->nr_uuids, sizeof(void *), GFP_KERNEL);
---- a/drivers/md/bcache/sysfs.c~bcache-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/drivers/md/bcache/sysfs.c
-@@ -660,7 +660,9 @@ static unsigned int bch_root_usage(struc
- 	unsigned int bytes = 0;
- 	struct bkey *k;
- 	struct btree *b;
--	struct btree_iter_stack iter;
-+	struct btree_iter iter;
+-typedef HEAP(struct io_timer *)	io_timer_heap;
++typedef DEFINE_MIN_HEAP(struct io_timer *, io_timer_heap)	io_timer_heap;
+ 
+ struct io_clock {
+ 	atomic64_t		now;
+--- a/fs/bcachefs/ec.c~bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap
++++ a/fs/bcachefs/ec.c
+@@ -910,8 +910,8 @@ static int __ec_stripe_mem_alloc(struct
+ 
+ 		mutex_lock(&c->ec_stripes_heap_lock);
+ 		if (n.size > h->size) {
+-			memcpy(n.data, h->data, h->used * sizeof(h->data[0]));
+-			n.used = h->used;
++			memcpy(n.data, h->data, h->nr * sizeof(h->data[0]));
++			n.nr = h->nr;
+ 			swap(*h, n);
+ 		}
+ 		mutex_unlock(&c->ec_stripes_heap_lock);
+@@ -1002,7 +1002,7 @@ static u64 stripe_idx_to_delete(struct b
+ 
+ 	lockdep_assert_held(&c->ec_stripes_heap_lock);
+ 
+-	if (h->used &&
++	if (h->nr &&
+ 	    h->data[0].blocks_nonempty == 0 &&
+ 	    !bch2_stripe_is_open(c, h->data[0].idx))
+ 		return h->data[0].idx;
+@@ -1010,14 +1010,6 @@ static u64 stripe_idx_to_delete(struct b
+ 	return 0;
+ }
+ 
+-static inline int ec_stripes_heap_cmp(ec_stripes_heap *h,
+-				      struct ec_stripe_heap_entry l,
+-				      struct ec_stripe_heap_entry r)
+-{
+-	return ((l.blocks_nonempty > r.blocks_nonempty) -
+-		(l.blocks_nonempty < r.blocks_nonempty));
+-}
+-
+ static inline void ec_stripes_heap_set_backpointer(ec_stripes_heap *h,
+ 						   size_t i)
+ {
+@@ -1026,39 +1018,71 @@ static inline void ec_stripes_heap_set_b
+ 	genradix_ptr(&c->stripes, h->data[i].idx)->heap_idx = i;
+ }
+ 
++static inline bool ec_stripes_heap_cmp(const void *l, const void *r, void __always_unused *args)
++{
++	struct ec_stripe_heap_entry *_l = (struct ec_stripe_heap_entry *)l;
++	struct ec_stripe_heap_entry *_r = (struct ec_stripe_heap_entry *)r;
 +
-+	min_heap_init(&iter.heap, NULL, MAX_BSETS);
++	return ((_l->blocks_nonempty > _r->blocks_nonempty) <
++		(_l->blocks_nonempty < _r->blocks_nonempty));
++}
++
++static inline void ec_stripes_heap_swap(void *l, void *r, void *h)
++{
++	struct ec_stripe_heap_entry *_l = (struct ec_stripe_heap_entry *)l;
++	struct ec_stripe_heap_entry *_r = (struct ec_stripe_heap_entry *)r;
++	ec_stripes_heap *_h = (ec_stripes_heap *)h;
++	size_t i = _l - _h->data;
++	size_t j = _r - _h->data;
++
++	swap(*_l, *_r);
++
++	ec_stripes_heap_set_backpointer(_h, i);
++	ec_stripes_heap_set_backpointer(_h, j);
++}
++
+ static void heap_verify_backpointer(struct bch_fs *c, size_t idx)
+ {
+ 	ec_stripes_heap *h = &c->ec_stripes_heap;
+ 	struct stripe *m = genradix_ptr(&c->stripes, idx);
  
- 	goto lock_root;
+-	BUG_ON(m->heap_idx >= h->used);
++	BUG_ON(m->heap_idx >= h->nr);
+ 	BUG_ON(h->data[m->heap_idx].idx != idx);
+ }
  
---- a/drivers/md/bcache/util.h~bcache-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/drivers/md/bcache/util.h
-@@ -9,6 +9,7 @@
+ void bch2_stripes_heap_del(struct bch_fs *c,
+ 			   struct stripe *m, size_t idx)
+ {
++	const struct min_heap_callbacks callbacks = {
++		.less = ec_stripes_heap_cmp,
++		.swp = ec_stripes_heap_swap,
++	};
++
+ 	mutex_lock(&c->ec_stripes_heap_lock);
+ 	heap_verify_backpointer(c, idx);
+ 
+-	heap_del(&c->ec_stripes_heap, m->heap_idx,
+-		 ec_stripes_heap_cmp,
+-		 ec_stripes_heap_set_backpointer);
++	min_heap_del(&c->ec_stripes_heap, m->heap_idx, &callbacks, &c->ec_stripes_heap);
+ 	mutex_unlock(&c->ec_stripes_heap_lock);
+ }
+ 
+ void bch2_stripes_heap_insert(struct bch_fs *c,
+ 			      struct stripe *m, size_t idx)
+ {
++	const struct min_heap_callbacks callbacks = {
++		.less = ec_stripes_heap_cmp,
++		.swp = ec_stripes_heap_swap,
++	};
++
+ 	mutex_lock(&c->ec_stripes_heap_lock);
+-	BUG_ON(heap_full(&c->ec_stripes_heap));
++	BUG_ON(min_heap_full(&c->ec_stripes_heap));
+ 
+-	heap_add(&c->ec_stripes_heap, ((struct ec_stripe_heap_entry) {
++	genradix_ptr(&c->stripes, idx)->heap_idx = c->ec_stripes_heap.nr;
++	min_heap_push(&c->ec_stripes_heap, &((struct ec_stripe_heap_entry) {
+ 			.idx = idx,
+ 			.blocks_nonempty = m->blocks_nonempty,
+ 		}),
+-		 ec_stripes_heap_cmp,
+-		 ec_stripes_heap_set_backpointer);
++		&callbacks,
++		&c->ec_stripes_heap);
+ 
+ 	heap_verify_backpointer(c, idx);
+ 	mutex_unlock(&c->ec_stripes_heap_lock);
+@@ -1067,6 +1091,10 @@ void bch2_stripes_heap_insert(struct bch
+ void bch2_stripes_heap_update(struct bch_fs *c,
+ 			      struct stripe *m, size_t idx)
+ {
++	const struct min_heap_callbacks callbacks = {
++		.less = ec_stripes_heap_cmp,
++		.swp = ec_stripes_heap_swap,
++	};
+ 	ec_stripes_heap *h = &c->ec_stripes_heap;
+ 	bool do_deletes;
+ 	size_t i;
+@@ -1077,10 +1105,8 @@ void bch2_stripes_heap_update(struct bch
+ 	h->data[m->heap_idx].blocks_nonempty = m->blocks_nonempty;
+ 
+ 	i = m->heap_idx;
+-	heap_sift_up(h,	  i, ec_stripes_heap_cmp,
+-		     ec_stripes_heap_set_backpointer);
+-	heap_sift_down(h, i, ec_stripes_heap_cmp,
+-		       ec_stripes_heap_set_backpointer);
++	min_heap_sift_up(h,	i, &callbacks, &c->ec_stripes_heap);
++	min_heap_sift_down(h, i, &callbacks, &c->ec_stripes_heap);
+ 
+ 	heap_verify_backpointer(c, idx);
+ 
+@@ -1873,7 +1899,7 @@ static s64 get_existing_stripe(struct bc
+ 		return -1;
+ 
+ 	mutex_lock(&c->ec_stripes_heap_lock);
+-	for (heap_idx = 0; heap_idx < h->used; heap_idx++) {
++	for (heap_idx = 0; heap_idx < h->nr; heap_idx++) {
+ 		/* No blocks worth reusing, stripe will just be deleted: */
+ 		if (!h->data[heap_idx].blocks_nonempty)
+ 			continue;
+@@ -2204,7 +2230,7 @@ void bch2_stripes_heap_to_text(struct pr
+ 	size_t i;
+ 
+ 	mutex_lock(&c->ec_stripes_heap_lock);
+-	for (i = 0; i < min_t(size_t, h->used, 50); i++) {
++	for (i = 0; i < min_t(size_t, h->nr, 50); i++) {
+ 		m = genradix_ptr(&c->stripes, h->data[i].idx);
+ 
+ 		prt_printf(out, "%zu %u/%u+%u", h->data[i].idx,
+--- a/fs/bcachefs/ec_types.h~bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap
++++ a/fs/bcachefs/ec_types.h
+@@ -36,6 +36,6 @@ struct ec_stripe_heap_entry {
+ 	unsigned		blocks_nonempty;
+ };
+ 
+-typedef HEAP(struct ec_stripe_heap_entry) ec_stripes_heap;
++typedef DEFINE_MIN_HEAP(struct ec_stripe_heap_entry, ec_stripes_heap) ec_stripes_heap;
+ 
+ #endif /* _BCACHEFS_EC_TYPES_H */
+--- a/fs/bcachefs/util.h~bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap
++++ a/fs/bcachefs/util.h
+@@ -8,6 +8,7 @@
+ #include <linux/errno.h>
+ #include <linux/freezer.h>
  #include <linux/kernel.h>
++#include <linux/min_heap.h>
  #include <linux/sched/clock.h>
  #include <linux/llist.h>
-+#include <linux/min_heap.h>
- #include <linux/ratelimit.h>
- #include <linux/vmalloc.h>
- #include <linux/workqueue.h>
-@@ -30,16 +31,10 @@ struct closure;
+ #include <linux/log2.h>
+@@ -54,17 +55,9 @@ static inline size_t buf_pages(void *p,
+ 			    PAGE_SIZE);
+ }
  
- #endif
- 
--#define DECLARE_HEAP(type, name)					\
--	struct {							\
--		size_t size, used;					\
--		type *data;						\
--	} name
+-#define HEAP(type)							\
+-struct {								\
+-	size_t size, used;						\
+-	type *data;							\
+-}
+-
+-#define DECLARE_HEAP(type, name) HEAP(type) name
 -
  #define init_heap(heap, _size, gfp)					\
  ({									\
- 	size_t _bytes;							\
 -	(heap)->used = 0;						\
 +	(heap)->nr = 0;						\
  	(heap)->size = (_size);						\
- 	_bytes = (heap)->size * sizeof(*(heap)->data);			\
- 	(heap)->data = kvmalloc(_bytes, (gfp) & GFP_KERNEL);		\
-@@ -52,64 +47,6 @@ do {									\
+ 	(heap)->data = kvmalloc((heap)->size * sizeof((heap)->data[0]),\
+ 				 (gfp));				\
+@@ -76,113 +69,6 @@ do {									\
  	(heap)->data = NULL;						\
  } while (0)
  
--#define heap_swap(h, i, j)	swap((h)->data[i], (h)->data[j])
--
--#define heap_sift(h, i, cmp)						\
+-#define heap_set_backpointer(h, i, _fn)					\
 -do {									\
--	size_t _r, _j = i;						\
+-	void (*fn)(typeof(h), size_t) = _fn;				\
+-	if (fn)								\
+-		fn(h, i);						\
+-} while (0)
+-
+-#define heap_swap(h, i, j, set_backpointer)				\
+-do {									\
+-	swap((h)->data[i], (h)->data[j]);				\
+-	heap_set_backpointer(h, i, set_backpointer);			\
+-	heap_set_backpointer(h, j, set_backpointer);			\
+-} while (0)
+-
+-#define heap_peek(h)							\
+-({									\
+-	EBUG_ON(!(h)->used);						\
+-	(h)->data[0];							\
+-})
+-
+-#define heap_full(h)	((h)->used == (h)->size)
+-
+-#define heap_sift_down(h, i, cmp, set_backpointer)			\
+-do {									\
+-	size_t _c, _j = i;						\
 -									\
--	for (; _j * 2 + 1 < (h)->used; _j = _r) {			\
--		_r = _j * 2 + 1;					\
--		if (_r + 1 < (h)->used &&				\
--		    cmp((h)->data[_r], (h)->data[_r + 1]))		\
--			_r++;						\
+-	for (; _j * 2 + 1 < (h)->used; _j = _c) {			\
+-		_c = _j * 2 + 1;					\
+-		if (_c + 1 < (h)->used &&				\
+-		    cmp(h, (h)->data[_c], (h)->data[_c + 1]) >= 0)	\
+-			_c++;						\
 -									\
--		if (cmp((h)->data[_r], (h)->data[_j]))			\
+-		if (cmp(h, (h)->data[_c], (h)->data[_j]) >= 0)		\
 -			break;						\
--		heap_swap(h, _r, _j);					\
+-		heap_swap(h, _c, _j, set_backpointer);			\
 -	}								\
 -} while (0)
 -
--#define heap_sift_down(h, i, cmp)					\
+-#define heap_sift_up(h, i, cmp, set_backpointer)			\
 -do {									\
 -	while (i) {							\
 -		size_t p = (i - 1) / 2;					\
--		if (cmp((h)->data[i], (h)->data[p]))			\
+-		if (cmp(h, (h)->data[i], (h)->data[p]) >= 0)		\
 -			break;						\
--		heap_swap(h, i, p);					\
+-		heap_swap(h, i, p, set_backpointer);			\
 -		i = p;							\
 -	}								\
 -} while (0)
 -
--#define heap_add(h, d, cmp)						\
+-#define __heap_add(h, d, cmp, set_backpointer)				\
+-({									\
+-	size_t _i = (h)->used++;					\
+-	(h)->data[_i] = d;						\
+-	heap_set_backpointer(h, _i, set_backpointer);			\
+-									\
+-	heap_sift_up(h, _i, cmp, set_backpointer);			\
+-	_i;								\
+-})
+-
+-#define heap_add(h, d, cmp, set_backpointer)				\
 -({									\
 -	bool _r = !heap_full(h);					\
--	if (_r) {							\
--		size_t _i = (h)->used++;				\
--		(h)->data[_i] = d;					\
--									\
--		heap_sift_down(h, _i, cmp);				\
--		heap_sift(h, _i, cmp);					\
--	}								\
+-	if (_r)								\
+-		__heap_add(h, d, cmp, set_backpointer);			\
 -	_r;								\
 -})
 -
--#define heap_pop(h, d, cmp)						\
+-#define heap_add_or_replace(h, new, cmp, set_backpointer)		\
+-do {									\
+-	if (!heap_add(h, new, cmp, set_backpointer) &&			\
+-	    cmp(h, new, heap_peek(h)) >= 0) {				\
+-		(h)->data[0] = new;					\
+-		heap_set_backpointer(h, 0, set_backpointer);		\
+-		heap_sift_down(h, 0, cmp, set_backpointer);		\
+-	}								\
+-} while (0)
+-
+-#define heap_del(h, i, cmp, set_backpointer)				\
+-do {									\
+-	size_t _i = (i);						\
+-									\
+-	BUG_ON(_i >= (h)->used);					\
+-	(h)->used--;							\
+-	if ((_i) < (h)->used) {						\
+-		heap_swap(h, _i, (h)->used, set_backpointer);		\
+-		heap_sift_up(h, _i, cmp, set_backpointer);		\
+-		heap_sift_down(h, _i, cmp, set_backpointer);		\
+-	}								\
+-} while (0)
+-
+-#define heap_pop(h, d, cmp, set_backpointer)				\
 -({									\
 -	bool _r = (h)->used;						\
 -	if (_r) {							\
 -		(d) = (h)->data[0];					\
--		(h)->used--;						\
--		heap_swap(h, 0, (h)->used);				\
--		heap_sift(h, 0, cmp);					\
+-		heap_del(h, 0, cmp, set_backpointer);			\
 -	}								\
 -	_r;								\
 -})
 -
--#define heap_peek(h)	((h)->used ? (h)->data[0] : NULL)
+-#define heap_resort(heap, cmp, set_backpointer)				\
+-do {									\
+-	ssize_t _i;							\
+-	for (_i = (ssize_t) (heap)->used / 2 -  1; _i >= 0; --_i)	\
+-		heap_sift_down(heap, _i, cmp, set_backpointer);		\
+-} while (0)
 -
--#define heap_full(h)	((h)->used == (h)->size)
--
- #define DECLARE_FIFO(type, name)					\
- 	struct {							\
- 		size_t front, back, size, mask;				\
---- a/drivers/md/bcache/writeback.c~bcache-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/drivers/md/bcache/writeback.c
-@@ -908,15 +908,16 @@ static int bch_dirty_init_thread(void *a
- 	struct dirty_init_thrd_info *info = arg;
- 	struct bch_dirty_init_state *state = info->state;
- 	struct cache_set *c = state->c;
--	struct btree_iter_stack iter;
-+	struct btree_iter iter;
- 	struct bkey *k, *p;
- 	int cur_idx, prev_idx, skip_nr;
+ #define ANYSINT_MAX(t)							\
+ 	((((t) 1 << (sizeof(t) * 8 - 2)) - (t) 1) * (t) 2 + (t) 1)
  
- 	k = p = NULL;
- 	prev_idx = 0;
- 
--	bch_btree_iter_stack_init(&c->root->keys, &iter, NULL);
--	k = bch_btree_iter_next_filter(&iter.iter, &c->root->keys, bch_ptr_bad);
-+	min_heap_init(&iter.heap, NULL, MAX_BSETS);
-+	bch_btree_iter_init(&c->root->keys, &iter, NULL);
-+	k = bch_btree_iter_next_filter(&iter, &c->root->keys, bch_ptr_bad);
- 	BUG_ON(!k);
- 
- 	p = k;
-@@ -930,7 +931,7 @@ static int bch_dirty_init_thread(void *a
- 		skip_nr = cur_idx - prev_idx;
- 
- 		while (skip_nr) {
--			k = bch_btree_iter_next_filter(&iter.iter,
-+			k = bch_btree_iter_next_filter(&iter,
- 						       &c->root->keys,
- 						       bch_ptr_bad);
- 			if (k)
-@@ -979,11 +980,13 @@ void bch_sectors_dirty_init(struct bcach
- 	int i;
- 	struct btree *b = NULL;
- 	struct bkey *k = NULL;
--	struct btree_iter_stack iter;
-+	struct btree_iter iter;
- 	struct sectors_dirty_init op;
- 	struct cache_set *c = d->c;
- 	struct bch_dirty_init_state state;
- 
-+	min_heap_init(&iter.heap, NULL, MAX_BSETS);
-+
- retry_lock:
- 	b = c->root;
- 	rw_lock(0, b, b->level);
 _
 
 Patches currently in -mm which might be from visitorckw@gmail.com are
