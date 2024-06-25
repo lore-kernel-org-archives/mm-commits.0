@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14F9C13C9A2
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:59:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99F1313D251
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:59:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291562; cv=none; b=lRQ831W777jrdR9W9A6WHxnSpuUFIMKmpT84en2TAp+SM9dPjN1/ijEte9ie/MiSeQ4jOs6PMOO2Wuv4zADKM+Z27uonsfUy1ybsDl15g9rkcAoe6uJ27Qlt17jMvoKN5Bsrg5SAIqRncn0UZ0kYvZwKf3lz3+NIBs5EGhSYO5o=
+	t=1719291563; cv=none; b=IscxjdIzG+of2PIqXZLbXxWk8CBnQDw/adjQ3s37VUOrRT0AgvwgOZ23Hz1dll/5MAv+v4509dirO6sYXKyR+45vgfa84rXaADVL+9sWKd9c8ZeBDK33KrhIo4AZ5T2bEVgV8imfgU4kwkaQcy57qlXPZh8QtppS44xebX6AycM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291562; c=relaxed/simple;
-	bh=Lw6bQn26ZV6X09VzKZVB4w6WGFaZTsw1tg6mHkrAuFk=;
-	h=Date:To:From:Subject:Message-Id; b=BXhkpMQGFkEHizFQ3/lDIVnB8wcJXN9CLKqX2v9VCDnwTmT9IQdtuaGIcUdc2S7xJwLNIjUrzH88YkNZPhW8n1Kdnm4zWkF6fgDHqnPNE1E1gJ/g4rXhEHWs5BE8VOJk2M6qJrGC50Z94Vi689ebxCAMUNR1QBTwITvS1dHhABw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OgTjvwne; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291563; c=relaxed/simple;
+	bh=hG/FkqHpdgjosTeyQLVVkhrSdpeOvWLtVoc8Mc2wzM4=;
+	h=Date:To:From:Subject:Message-Id; b=ojgUMkWZc688zkUVK5eSozanTXIm+GigHHlZFeynfUyyhEM/E9eioc7J+qEDBG235xbbo+K/mxsz10bGnhcOoiWMS8aDpq0gVZoptxSfuT0ya7DkD0vlH1OMe+v/xGnXM4Xi5r2to2otjdy0AiO8y/9FU/Lw4pIGze8LbD3GB4Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Phj/tw5c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OgTjvwne"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8D70C32782;
-	Tue, 25 Jun 2024 04:59:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Phj/tw5c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65595C32782;
+	Tue, 25 Jun 2024 04:59:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291561;
-	bh=Lw6bQn26ZV6X09VzKZVB4w6WGFaZTsw1tg6mHkrAuFk=;
+	s=korg; t=1719291563;
+	bh=hG/FkqHpdgjosTeyQLVVkhrSdpeOvWLtVoc8Mc2wzM4=;
 	h=Date:To:From:Subject:From;
-	b=OgTjvwne3vTyqTGZPPaDFC6Z1lEJdMfx+hOYp5K2pXz6ofStwBfhE0l3QdzmxbfLi
-	 9IxrQqKYMTeF8qsCvsLef1YV8+Yh6ANpQuh/GybcqmQdJKZBxrjHsVney/mymf72DI
-	 jCK6/roeUXM3u/CKwLzLoBqhtEq7XdiKWReiJwiY=
-Date: Mon, 24 Jun 2024 21:59:21 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ioworker0@gmail.com,hannes@cmpxchg.org,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=Phj/tw5cIQm8Lhfn2MnPdBRKiH1I11YJDDjyx8JBWfoP53nzEO49SuthqDow3RbzU
+	 qOCsyIboadAdn7t4BaEVFMm7J2yD9tuXfx9Vv+iX8RUVs6Q7Pj3Yex7N8IgEpFTCsF
+	 nGjwvPnNzqlu97kktFD+lV9NbNe4+hTyH13L66Hc=
+Date: Mon, 24 Jun 2024 21:59:22 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,peterx@redhat.com,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-refactor-folio_undo_large_rmappable.patch removed from -mm tree
-Message-Id: <20240625045921.D8D70C32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-remove-setclearhpage-macros.patch removed from -mm tree
+Message-Id: <20240625045923.65595C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,191 +35,92 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: refactor folio_undo_large_rmappable()
+     Subject: mm/hugetlb: remove {Set,Clear}Hpage macros
 has been removed from the -mm tree.  Its filename was
-     mm-refactor-folio_undo_large_rmappable.patch
+     mm-hugetlb-remove-setclearhpage-macros.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: refactor folio_undo_large_rmappable()
-Date: Tue, 21 May 2024 21:03:15 +0800
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: mm/hugetlb: remove {Set,Clear}Hpage macros
+Date: Mon, 20 May 2024 15:44:07 -0700
 
-Folios of order <= 1 are not in deferred list, the check of order is added
-into folio_undo_large_rmappable() from commit 8897277acfef ("mm: support
-order-1 folios in the page cache"), but there is a repeated check for
-small folio (order 0) during each call of the
-folio_undo_large_rmappable(), so only keep folio_order() check inside the
-function.
+All users have been converted to use the folio version of these macros, we
+can safely remove the page based interface.
 
-In addition, move all the checks into header file to save a function call
-for non-large-rmappable or empty deferred_list folio.
-
-Link: https://lkml.kernel.org/r/20240521130315.46072-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Link: https://lkml.kernel.org/r/20240520224407.110062-1-sidhartha.kumar@oracle.com
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   13 +------------
- mm/internal.h    |   17 ++++++++++++++++-
- mm/memcontrol.c  |    3 +--
- mm/page_alloc.c  |    3 +--
- mm/swap.c        |    8 ++------
- mm/vmscan.c      |    8 ++------
- 6 files changed, 23 insertions(+), 29 deletions(-)
+ include/linux/hugetlb.h |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
---- a/mm/huge_memory.c~mm-refactor-folio_undo_large_rmappable
-+++ a/mm/huge_memory.c
-@@ -3188,22 +3188,11 @@ out:
- 	return ret;
- }
+--- a/include/linux/hugetlb.h~mm-hugetlb-remove-setclearhpage-macros
++++ a/include/linux/hugetlb.h
+@@ -625,18 +625,14 @@ static __always_inline						\
+ void folio_set_hugetlb_##flname(struct folio *folio)		\
+ 	{	void *private = &folio->private;		\
+ 		set_bit(HPG_##flname, private);			\
+-	}							\
+-static inline void SetHPage##uname(struct page *page)		\
+-	{ set_bit(HPG_##flname, &(page->private)); }
++	}
  
--void folio_undo_large_rmappable(struct folio *folio)
-+void __folio_undo_large_rmappable(struct folio *folio)
- {
- 	struct deferred_split *ds_queue;
- 	unsigned long flags;
+ #define CLEARHPAGEFLAG(uname, flname)				\
+ static __always_inline						\
+ void folio_clear_hugetlb_##flname(struct folio *folio)		\
+ 	{	void *private = &folio->private;		\
+ 		clear_bit(HPG_##flname, private);		\
+-	}							\
+-static inline void ClearHPage##uname(struct page *page)		\
+-	{ clear_bit(HPG_##flname, &(page->private)); }
++	}
+ #else
+ #define TESTHPAGEFLAG(uname, flname)				\
+ static inline bool						\
+@@ -648,15 +644,11 @@ static inline int HPage##uname(struct pa
+ #define SETHPAGEFLAG(uname, flname)				\
+ static inline void						\
+ folio_set_hugetlb_##flname(struct folio *folio) 		\
+-	{ }							\
+-static inline void SetHPage##uname(struct page *page)		\
+ 	{ }
  
--	if (folio_order(folio) <= 1)
--		return;
--
--	/*
--	 * At this point, there is no one trying to add the folio to
--	 * deferred_list. If folio is not in deferred_list, it's safe
--	 * to check without acquiring the split_queue_lock.
--	 */
--	if (data_race(list_empty(&folio->_deferred_list)))
--		return;
--
- 	ds_queue = get_deferred_split_queue(folio);
- 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
- 	if (!list_empty(&folio->_deferred_list)) {
---- a/mm/internal.h~mm-refactor-folio_undo_large_rmappable
-+++ a/mm/internal.h
-@@ -604,7 +604,22 @@ static inline void folio_set_order(struc
+ #define CLEARHPAGEFLAG(uname, flname)				\
+ static inline void						\
+ folio_clear_hugetlb_##flname(struct folio *folio)		\
+-	{ }							\
+-static inline void ClearHPage##uname(struct page *page)		\
+ 	{ }
  #endif
- }
  
--void folio_undo_large_rmappable(struct folio *folio);
-+void __folio_undo_large_rmappable(struct folio *folio);
-+static inline void folio_undo_large_rmappable(struct folio *folio)
-+{
-+	if (folio_order(folio) <= 1 || !folio_test_large_rmappable(folio))
-+		return;
-+
-+	/*
-+	 * At this point, there is no one trying to add the folio to
-+	 * deferred_list. If folio is not in deferred_list, it's safe
-+	 * to check without acquiring the split_queue_lock.
-+	 */
-+	if (data_race(list_empty(&folio->_deferred_list)))
-+		return;
-+
-+	__folio_undo_large_rmappable(folio);
-+}
- 
- static inline struct folio *page_rmappable_folio(struct page *page)
- {
---- a/mm/memcontrol.c~mm-refactor-folio_undo_large_rmappable
-+++ a/mm/memcontrol.c
-@@ -7832,8 +7832,7 @@ void mem_cgroup_migrate(struct folio *ol
- 	 * In addition, the old folio is about to be freed after migration, so
- 	 * removing from the split queue a bit earlier seems reasonable.
- 	 */
--	if (folio_test_large(old) && folio_test_large_rmappable(old))
--		folio_undo_large_rmappable(old);
-+	folio_undo_large_rmappable(old);
- 	old->memcg_data = 0;
- }
- 
---- a/mm/page_alloc.c~mm-refactor-folio_undo_large_rmappable
-+++ a/mm/page_alloc.c
-@@ -2627,8 +2627,7 @@ void free_unref_folios(struct folio_batc
- 		unsigned long pfn = folio_pfn(folio);
- 		unsigned int order = folio_order(folio);
- 
--		if (order > 0 && folio_test_large_rmappable(folio))
--			folio_undo_large_rmappable(folio);
-+		folio_undo_large_rmappable(folio);
- 		if (!free_pages_prepare(&folio->page, order))
- 			continue;
- 		/*
---- a/mm/swap.c~mm-refactor-folio_undo_large_rmappable
-+++ a/mm/swap.c
-@@ -123,8 +123,7 @@ void __folio_put(struct folio *folio)
- 	}
- 
- 	page_cache_release(folio);
--	if (folio_test_large(folio) && folio_test_large_rmappable(folio))
--		folio_undo_large_rmappable(folio);
-+	folio_undo_large_rmappable(folio);
- 	mem_cgroup_uncharge(folio);
- 	free_unref_page(&folio->page, folio_order(folio));
- }
-@@ -1002,10 +1001,7 @@ void folios_put_refs(struct folio_batch
- 			free_huge_folio(folio);
- 			continue;
- 		}
--		if (folio_test_large(folio) &&
--		    folio_test_large_rmappable(folio))
--			folio_undo_large_rmappable(folio);
--
-+		folio_undo_large_rmappable(folio);
- 		__page_cache_release(folio, &lruvec, &flags);
- 
- 		if (j != i)
---- a/mm/vmscan.c~mm-refactor-folio_undo_large_rmappable
-+++ a/mm/vmscan.c
-@@ -1440,9 +1440,7 @@ free_it:
- 		 */
- 		nr_reclaimed += nr_pages;
- 
--		if (folio_test_large(folio) &&
--		    folio_test_large_rmappable(folio))
--			folio_undo_large_rmappable(folio);
-+		folio_undo_large_rmappable(folio);
- 		if (folio_batch_add(&free_folios, folio) == 0) {
- 			mem_cgroup_uncharge_folios(&free_folios);
- 			try_to_unmap_flush();
-@@ -1849,9 +1847,7 @@ static unsigned int move_folios_to_lru(s
- 		if (unlikely(folio_put_testzero(folio))) {
- 			__folio_clear_lru_flags(folio);
- 
--			if (folio_test_large(folio) &&
--			    folio_test_large_rmappable(folio))
--				folio_undo_large_rmappable(folio);
-+			folio_undo_large_rmappable(folio);
- 			if (folio_batch_add(&free_folios, folio) == 0) {
- 				spin_unlock_irq(&lruvec->lru_lock);
- 				mem_cgroup_uncharge_folios(&free_folios);
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
-fs-proc-task_mmu-use-folio-api-in-pte_is_pinned.patch
-mm-remove-page_maybe_dma_pinned.patch
-mm-remove-page_maybe_dma_pinned-fix.patch
-fb_defio-use-a-folio-in-fb_deferred_io_work.patch
-mm-remove-page_mkclean.patch
-mm-move-memory_failure_queue-into-copy_mc__highpage.patch
-mm-add-folio_mc_copy.patch
-mm-migrate-split-folio_migrate_mapping.patch
-mm-migrate-support-poisoned-recover-from-migrate-folio.patch
-fs-hugetlbfs-support-poison-recover-from-hugetlbfs_migrate_folio.patch
-mm-migrate-remove-folio_migrate_copy.patch
-mm-memory-convert-clear_huge_page-to-folio_zero_user.patch
-mm-memory-use-folio-in-struct-copy_subpage_arg.patch
-mm-memory-improve-copy_user_large_folio.patch
-mm-memory-rename-pages_per_huge_page-to-nr_pages.patch
+maple_tree-introduce-store_type-enum.patch
+maple_tree-introduce-mas_wr_prealloc_setup.patch
+maple_tree-move-up-mas_wr_store_setup-and-mas_wr_prealloc_setup.patch
+maple_tree-introduce-mas_wr_store_type.patch
+maple_tree-remove-mas_destroy-from-mas_nomem.patch
+maple_tree-use-mas_store_gfp-in-mas_erase.patch
+maple_tree-use-mas_store_gfp-in-mtree_store_range.patch
+maple_tree-print-store-type-in-mas_dump.patch
+maple_tree-use-store-type-in-mas_wr_store_entry.patch
+maple_tree-convert-mas_insert-to-preallocate-nodes.patch
+maple_tree-simplify-mas_commit_b_node.patch
+maple_tree-remove-mas_wr_modify.patch
+maple_tree-have-mas_store-allocate-nodes-if-needed.patch
+maple_tree-remove-node-allocations-from-various-write-helper-functions.patch
+maple_tree-remove-repeated-sanity-checks-from-mas_wr_append.patch
+maple_tree-remove-unneeded-mas_wr_walk-in-mas_store_prealloc.patch
+tools-testing-radix-tree-add-missing-module_description-definition.patch
 
