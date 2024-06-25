@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B12F33C0
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BFD633C0
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293190; cv=none; b=VCdwfkCzZIezqp+yKxj45sIuZMg1Blj1aTnv4Dax+xnphXvSJgRSOOhKPjFDHJDLxCV4jvKcgiDEJIpNeI9y/xUtxBdJUCWahOYC9CY6w/wVLDAN6asHQne0EfsP5jR+49T/pLpkvNfSdUcmYb6VBPiN/4BzVeF+z8nOqsRgudY=
+	t=1719293191; cv=none; b=p0FRm4XrrcLIFTduRBxrPMkhv9gzsSMwgu7TOBhkx0J4LaHkTTAueoSwDsm2B0q0KKCov9LxzJnc/ipWDrhLwTovdx9M9fS6TYaOVjJ8DFZtWo6FZsqiyvQiXHHYhwOMZm5x4Fp8NwaYy1cuRfkNzUcQZi/IviJVhTm12qKX0is=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719293190; c=relaxed/simple;
-	bh=wTbdvC2ki89Uv/T6gRmdwD48PryQzujCBWZkUgaSodE=;
-	h=Date:To:From:Subject:Message-Id; b=dCtiIt//2AidwKaQ0smg5HrRzeci7VfofqAaRXI5JW9uK9TFP7EKTw1k26HAQYdB1lZVEG4owfboc9avDTsfOuZ3JlC6eEOACnhmRzXX3nnCPW7bYlGyyV8eDZBx7DcE6QH476JOGLNgvrDJ4eT7Y2+FPQEglmH554TMOMXiC0s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1wASN6yV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719293191; c=relaxed/simple;
+	bh=T+Ib+wtKHoWbCsqAHcKjT8K3Z9PALt9s3T6LJ8hprkw=;
+	h=Date:To:From:Subject:Message-Id; b=pjtrLNjsBjhjZaoLnk3a2V1FMRsdjMme9TsmvRHBl84R7Dnu4fFZ++SVQKme1sEmHWsSpT0jBi/PEJXPHzBiDrvHt/zzk1zBUsPEoGmSEfH/6Z0AVqaQPDswoj+CcszrCpc8irgEMdes7xTaQY6KBGZYcf4fmjiCoxaxSE9GN9c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XCp3zgXx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1wASN6yV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E025C32782;
-	Tue, 25 Jun 2024 05:26:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XCp3zgXx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21934C32782;
+	Tue, 25 Jun 2024 05:26:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293190;
-	bh=wTbdvC2ki89Uv/T6gRmdwD48PryQzujCBWZkUgaSodE=;
+	s=korg; t=1719293191;
+	bh=T+Ib+wtKHoWbCsqAHcKjT8K3Z9PALt9s3T6LJ8hprkw=;
 	h=Date:To:From:Subject:From;
-	b=1wASN6yVSexjrw/p4RRDHyK/ODJn+ZMFQI7P+XA7e+FrppPPAVuRqUt1tgBULmpm0
-	 vi4Eqv0fVl55dSy0dhnhGycMzQVr8DIW3WiEIbg/tRnY1n3bqqD9k/N2XHLH/2Tu+5
-	 2dnvOdVbuOP2SvOpOWnnKHCwWDXfJkPs6OvwnexY=
-Date: Mon, 24 Jun 2024 22:26:29 -0700
-To: mm-commits@vger.kernel.org,jserv@ccns.ncku.edu.tw,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=XCp3zgXxrDGaVsA34k+Qw9F1ScpfJAf3gWnNlIP7yQAzLnf7Ek6CnMre7FXlxtdbf
+	 2xNVLEoWkILgwDvsgytpgBJi8hG5YXsQvPQ7n+CIhgWDIWGzNMZxUef/Qmnk23nIaO
+	 Wo2v1+uS55Qbz3hwx06oDGjAUKGXIe3MmWiXwTxk=
+Date: Mon, 24 Jun 2024 22:26:30 -0700
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,sj@kernel.org,shuah@kernel.org,ryan.roberts@arm.com,kernel@valentinobst.de,david@redhat.com,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-test_sort-add-a-testcase-to-ensure-code-coverage.patch removed from -mm tree
-Message-Id: <20240625052630.0E025C32782@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] selftests-mqueue-fix-5-warnings-about-signed-unsigned-mismatches.patch removed from -mm tree
+Message-Id: <20240625052631.21934C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/test_sort: add a testcase to ensure code coverage
+     Subject: selftests/mqueue: fix 5 warnings about signed/unsigned mismatches
 has been removed from the -mm tree.  Its filename was
-     lib-test_sort-add-a-testcase-to-ensure-code-coverage.patch
+     selftests-mqueue-fix-5-warnings-about-signed-unsigned-mismatches.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: lib/test_sort: add a testcase to ensure code coverage
-Date: Tue, 28 May 2024 04:30:11 +0800
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/mqueue: fix 5 warnings about signed/unsigned mismatches
+Date: Mon, 27 May 2024 13:08:35 -0700
 
-The addition of an if statement in lib/sort to handle the final unsorted 2
-or 3 elements is not covered by existing test cases, leading to incomplete
-test coverage.  To ensure comprehensive testing and maintain 100% code
-coverage, add a new testcase for scenarios where the if statement is
-triggered.
+When building with clang, via:
 
-Since the if statement is only triggered when the array length is odd and
-the first element is greater than the second element, a testcase is
-created using an array length of TEST_LEN - 1 and a suitable random seed
-to maintain full code coverage.
+    make LLVM=1 -C tools/testing/selftest
 
-Link: https://lkml.kernel.org/r/20240527203011.1644280-5-visitorckw@gmail.com
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+...clang warns about several cases of using a signed integer for the
+priority argument to mq_receive(3), which expects an unsigned int.
+
+Fix this by declaring the type as unsigned int in all cases.
+
+Link: https://lkml.kernel.org/r/20240527200835.143682-1-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Valentin Obst <kernel@valentinobst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_sort.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mqueue/mq_perf_tests.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/lib/test_sort.c~lib-test_sort-add-a-testcase-to-ensure-code-coverage
-+++ a/lib/test_sort.c
-@@ -29,7 +29,19 @@ static void test_sort(struct kunit *test
+--- a/tools/testing/selftests/mqueue/mq_perf_tests.c~selftests-mqueue-fix-5-warnings-about-signed-unsigned-mismatches
++++ a/tools/testing/selftests/mqueue/mq_perf_tests.c
+@@ -323,7 +323,8 @@ void *fake_cont_thread(void *arg)
+ void *cont_thread(void *arg)
+ {
+ 	char buff[MSG_SIZE];
+-	int i, priority;
++	int i;
++	unsigned int priority;
  
- 	sort(a, TEST_LEN, sizeof(*a), cmpint, NULL);
- 
--	for (i = 0; i < TEST_LEN-1; i++)
-+	for (i = 0; i < TEST_LEN - 1; i++)
-+		KUNIT_ASSERT_LE(test, a[i], a[i + 1]);
-+
-+	r = 48;
-+
-+	for (i = 0; i < TEST_LEN - 1; i++) {
-+		r = (r * 725861) % 6599;
-+		a[i] = r;
-+	}
-+
-+	sort(a, TEST_LEN - 1, sizeof(*a), cmpint, NULL);
-+
-+	for (i = 0; i < TEST_LEN - 2; i++)
- 		KUNIT_ASSERT_LE(test, a[i], a[i + 1]);
- }
- 
+ 	for (i = 0; i < num_cpus_to_pin; i++)
+ 		if (cpu_threads[i] == pthread_self())
+@@ -425,7 +426,8 @@ struct test test2[] = {
+ void *perf_test_thread(void *arg)
+ {
+ 	char buff[MSG_SIZE];
+-	int prio_out, prio_in;
++	int prio_out;
++	unsigned int prio_in;
+ 	int i;
+ 	clockid_t clock;
+ 	pthread_t *t;
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
+selftests-mm-remove-local-__nr_-definitions.patch
 
