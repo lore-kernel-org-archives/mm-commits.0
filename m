@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5AC717920C
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 18:29:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCF5D17837A
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 18:29:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719340178; cv=none; b=AzpE1BF+pxX6pT25wisjx8TFMhLBn50URrUJWBgkX0uuJuaEZFIaQBHNj5wnTQ2a+dp1W4YfAKf3O8/0YYFHvnCDrHiRJx/fUQ0I1L6UDlJvS44hNtYxf1CslEoYeYtbhhgsr+br27J4tyI4+QbPue3D5Myl1LXQCDSzcIopXYc=
+	t=1719340179; cv=none; b=t0FqUIPRqc3+GTklIdnkcroTCHfters+SCSp1IRnJEMVWZ62r2AlrOg4+Q6rINOfvLFkDPMd6QI50IdJsjj0aeASfz4jP15jKyPv6+eK7hNmQCx0Ww6w0EA8W0786w37QMbFCRz7le4AU688e1+ijffEd99+M9HKCvLyXmgv8Is=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719340178; c=relaxed/simple;
-	bh=8wIC3/pijOaKmKiCAo9+4bewdTfJJjG1SmI/egxt/ec=;
-	h=Date:To:From:Subject:Message-Id; b=CYg9PDg7y5ZLgBt2jJg1KZO6LL8dzcZRj8E1W6MWdQqE2rIHhjhh6piKWHp+PUAmc0/ZD0cL7ThwR+gBXye5jGcqrIL/KK7NIsZNbTQ2p1F6KM+G7lA1DWmrdZEzqk/tW9SqzIKqV8NZLMmv/Wfzra5q7XK5ePrVSwHsNqRmb0Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w489caNf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719340179; c=relaxed/simple;
+	bh=qvaJAiOm1vmP8Kd4T1/9yK8SpESbkm6c8pJwsMHsPp0=;
+	h=Date:To:From:Subject:Message-Id; b=GK0RUb0MXDOw+KnTL5fit2mEtqt+1stT1a+x3xj7Jyw0COpasNVk5PpySIKNexXeFM2O4MU0Vt2VKroZyr/PnWeQBfUGbk00vs5MApSfrt0lTerfrA0m7avsH/IE7QmoVrsXt/tHh6ZTXhL3UT/vfTl99SfFaJJpo7t98QxOgCQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B3SaRK53; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w489caNf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5535EC32781;
-	Tue, 25 Jun 2024 18:29:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B3SaRK53"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F1A2C32781;
+	Tue, 25 Jun 2024 18:29:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719340177;
-	bh=8wIC3/pijOaKmKiCAo9+4bewdTfJJjG1SmI/egxt/ec=;
+	s=korg; t=1719340179;
+	bh=qvaJAiOm1vmP8Kd4T1/9yK8SpESbkm6c8pJwsMHsPp0=;
 	h=Date:To:From:Subject:From;
-	b=w489caNftN+cq4I0t7KYXiozlJEyUWgKU1rI9138THIeDXYHxflhvklWOZgxaEddT
-	 eaDLjg4L+5EdnzS8v/W4Lq5f0iaLRlBBz0/DXMNnZW8txslwWJ+oD8+mjZ10c3wmri
-	 dA7z2eE+zB+azw30XZ/eGD+YWZi/DSaAjZWuWXhw=
-Date: Tue, 25 Jun 2024 11:29:36 -0700
+	b=B3SaRK53l7g/KHUjtPWzFFdi6PmGrhKGWeeeyRmTJItZCtj+kU6f4AenI7TkOkkev
+	 GqTbYS3TTcBg9ZmP4iqLN23g9PDUf0BlNaJ5l6M6arefrmtLJCbdYmVuhCwW+7Kb3t
+	 MEcoD8wcRi4IycGWVb5NX7iBK81eYJa/GtYjKc3w=
+Date: Tue, 25 Jun 2024 11:29:38 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,josef@toxicpanda.com,jack@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch added to mm-unstable branch
-Message-Id: <20240625182937.5535EC32781@smtp.kernel.org>
+Subject: + readahead-drop-pointless-index-from-force_page_cache_ra.patch added to mm-unstable branch
+Message-Id: <20240625182939.5F1A2C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: readahead: properly shorten readahead when falling back to do_page_cache_ra()
+     Subject: readahead: drop pointless index from force_page_cache_ra()
 has been added to the -mm mm-unstable branch.  Its filename is
-     readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch
+     readahead-drop-pointless-index-from-force_page_cache_ra.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/readahead-drop-pointless-index-from-force_page_cache_ra.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,47 +59,53 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: readahead: properly shorten readahead when falling back to do_page_cache_ra()
-Date: Tue, 25 Jun 2024 12:18:53 +0200
+Subject: readahead: drop pointless index from force_page_cache_ra()
+Date: Tue, 25 Jun 2024 12:18:54 +0200
 
-When we succeed in creating some folios in page_cache_ra_order() but then
-need to fallback to single page folios, we don't shorten the amount to
-read passed to do_page_cache_ra() by the amount we've already read.  This
-then results in reading more and also in placing another readahead mark in
-the middle of the readahead window which confuses readahead code.  Fix the
-problem by properly reducing number of pages to read.
+Current index to readahead is tracked in readahead_control and properly
+updated by page_cache_ra_unbounded() (read_pages() in fact).  So there's
+no need to track the index separately in force_page_cache_ra().
 
-Link: https://lkml.kernel.org/r/20240625101909.12234-3-jack@suse.cz
+Link: https://lkml.kernel.org/r/20240625101909.12234-4-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
 Reviewed-by: Josef Bacik <josef@toxicpanda.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/readahead.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/readahead.c~readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra
+--- a/mm/readahead.c~readahead-drop-pointless-index-from-force_page_cache_ra
 +++ a/mm/readahead.c
-@@ -491,7 +491,8 @@ void page_cache_ra_order(struct readahea
- 		struct file_ra_state *ra, unsigned int new_order)
- {
+@@ -313,7 +313,7 @@ void force_page_cache_ra(struct readahea
  	struct address_space *mapping = ractl->mapping;
--	pgoff_t index = readahead_index(ractl);
-+	pgoff_t start = readahead_index(ractl);
-+	pgoff_t index = start;
- 	pgoff_t limit = (i_size_read(mapping->host) - 1) >> PAGE_SHIFT;
- 	pgoff_t mark = index + ra->size - ra->async_size;
- 	unsigned int nofs;
-@@ -544,7 +545,7 @@ void page_cache_ra_order(struct readahea
- 	if (!err)
- 		return;
- fallback:
--	do_page_cache_ra(ractl, ra->size, ra->async_size);
-+	do_page_cache_ra(ractl, ra->size - (index - start), ra->async_size);
- }
+ 	struct file_ra_state *ra = ractl->ra;
+ 	struct backing_dev_info *bdi = inode_to_bdi(mapping->host);
+-	unsigned long max_pages, index;
++	unsigned long max_pages;
  
- /*
+ 	if (unlikely(!mapping->a_ops->read_folio && !mapping->a_ops->readahead))
+ 		return;
+@@ -322,7 +322,6 @@ void force_page_cache_ra(struct readahea
+ 	 * If the request exceeds the readahead window, allow the read to
+ 	 * be up to the optimal hardware IO size
+ 	 */
+-	index = readahead_index(ractl);
+ 	max_pages = max_t(unsigned long, bdi->io_pages, ra->ra_pages);
+ 	nr_to_read = min_t(unsigned long, nr_to_read, max_pages);
+ 	while (nr_to_read) {
+@@ -330,10 +329,8 @@ void force_page_cache_ra(struct readahea
+ 
+ 		if (this_chunk > nr_to_read)
+ 			this_chunk = nr_to_read;
+-		ractl->_index = index;
+ 		do_page_cache_ra(ractl, this_chunk, 0);
+ 
+-		index += this_chunk;
+ 		nr_to_read -= this_chunk;
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
