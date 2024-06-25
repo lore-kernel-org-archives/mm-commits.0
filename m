@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC4A521A0C
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:32:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5984621A0C
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:32:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719289946; cv=none; b=kE1NIizoLNJbQbDR2F/1NHSslwXUyq0VJs+0VvrrJ5UsCegEsyAzkV+7Klcq6kS+rdnOZuLKDma3VhvBfjvEq1WoNxHEa3OM3SJqjq7HJBL1tjIdB2zy4uLR9Vl1FV2nDNlRkjCWN6GORa6qwCY/Jf72jo+sjgJiJreszTnTMVc=
+	t=1719289947; cv=none; b=t3wN/skqoMAuYsi5LkAi9WS1qEqFYYLcWkzGeZp++InjQiru0HP1BmK0NX3xetuYxP0LORwuE/hhY6roXksbyz3HCjjgH6xI10BtV9jj5Z3eYJAFafSlFDTzp48qUB90xH2WdbPN8cZ861ATKhYeoNUr+DZvfTtcOf8dbwCGWPU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719289946; c=relaxed/simple;
-	bh=0XAa18biw2QzFvtbZZkXJxUoqE5audvwyKDfT7tg934=;
-	h=Date:To:From:Subject:Message-Id; b=hbXz0M5SzKAf67tzRw67H8/w2q2occVbYPrtJNGh+pj5WqZZ5l63Hr+w0jQYJmb1sfb9PW3Y2pfRoAbXJ60Et2chG9DGn3iPkk8dr65iw9jxrF6UYFEmO/dA36aVCLPZYR3gnmzvvl4eITnIVRLRnM6MaP/QTdQZFpatkxnV/Vg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fdKDSIVV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719289947; c=relaxed/simple;
+	bh=0P7xYmijJNHKWUexEz+pKDh/mHPTDgZ434plnqnFO90=;
+	h=Date:To:From:Subject:Message-Id; b=DeRCcem7tYWaXWN9M9duqYVNl25ZMloduVIZIFyeGW8m7Fx/H+Tc85h2dfTq8S93FLczLDZSlDEuu4AFp0bRNz9YM/g0kFXrKQv0oSbt5WEP53Wo5csB84ie3waGmzZ6OCiyZY8VIQVGbl3HJ0j30h+36Bdru/vKKKXgRkuRWag=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bAFqFjvy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fdKDSIVV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82AC9C32782;
-	Tue, 25 Jun 2024 04:32:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bAFqFjvy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BB39C32782;
+	Tue, 25 Jun 2024 04:32:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719289945;
-	bh=0XAa18biw2QzFvtbZZkXJxUoqE5audvwyKDfT7tg934=;
+	s=korg; t=1719289947;
+	bh=0P7xYmijJNHKWUexEz+pKDh/mHPTDgZ434plnqnFO90=;
 	h=Date:To:From:Subject:From;
-	b=fdKDSIVVGnVzhfzprlyu9UVSu88t2H+DwPXlwNPMt1I8hnZ4W/a3S1tQihmT1Ve0R
-	 1IbcY3NOcnGK/550T71Em2bwDuoSp3WqBK91z3tkrxw4HycPV2bhgmgG9VJuhZ8Ub+
-	 T6T4iTPi23sKQwz4LX2YstxuVec/ASZwbHUejH5c=
-Date: Mon, 24 Jun 2024 21:32:25 -0700
+	b=bAFqFjvyWd1QACoDh1jkK7hG8xvIBE4PEwMBmIZMtivsaT5pi6Be9GClwocclmAQ3
+	 fwi2dJ7TQ0IRTabWky2X3gCQ+O6aypygsUqpYlUe5R2xOVACKyBBR1kfCmEOZlrb1R
+	 d52aKEIiBg/nd8W/EagFABlG3F8T5ljq4xtiResY=
+Date: Mon, 24 Jun 2024 21:32:26 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,osalvador@suse.de,oliver.sang@intel.com,muchun.song@linux.dev,m.szyprowski@samsung.com,xiujianfeng@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix.patch removed from -mm tree
-Message-Id: <20240625043225.82AC9C32782@smtp.kernel.org>
+Subject: [folded-merged] mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix-fix.patch removed from -mm tree
+Message-Id: <20240625043227.2BB39C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,16 +35,16 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb_cgroup: register lockdep key for cftype
+     Subject: mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix.patch
+     mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix-fix.patch
 
 This patch was dropped because it was folded into mm-hugetlb_cgroup-prepare-cftypes-based-on-template.patch
 
 ------------------------------------------------------
 From: Xiu Jianfeng <xiujianfeng@huawei.com>
-Subject: mm/hugetlb_cgroup: register lockdep key for cftype
-Date: Tue, 18 Jun 2024 07:19:22 +0000
+Subject: mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix-fix
+Date: Wed, 19 Jun 2024 01:55:27 +0000
 
 When CONFIG_DEBUG_LOCK_ALLOC is enabled, the following commands can
 trigger a bug,
@@ -111,8 +111,7 @@ have been registered as a dynamic key. However the commit e18df2889ff9
 the cftypes from static allocated objects to dynamic allocated objects,
 so the cft->lockdep_key must be registered proactively.
 
-Link: https://lkml.kernel.org/r/20240618071922.2127289-1-xiujianfeng@huawei.com
-Link: https://lore.kernel.org/all/602186b3-5ce3-41b3-90a3-134792cc2a48@samsung.com/
+Link: https://lkml.kernel.org/r/20240619015527.2212698-1-xiujianfeng@huawei.com
 Fixes: e18df2889ff9 ("mm/hugetlb_cgroup: prepare cftypes based on template")
 Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
 Reported-by: kernel test robot <oliver.sang@intel.com>
@@ -125,26 +124,26 @@ Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/cgroup-defs.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix
-+++ a/mm/hugetlb_cgroup.c
-@@ -836,6 +836,8 @@ hugetlb_cgroup_cfttypes_init(struct hsta
- 			cft->file_offset = MEMFILE_OFFSET0(offset) +
- 					   MEMFILE_FIELD_SIZE(offset) * idx;
- 		}
-+
-+		lockdep_register_key(&cft->lockdep_key);
- 	}
- }
+--- a/include/linux/cgroup-defs.h~mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix-fix
++++ a/include/linux/cgroup-defs.h
+@@ -676,9 +676,7 @@ struct cftype {
+ 	__poll_t (*poll)(struct kernfs_open_file *of,
+ 			 struct poll_table_struct *pt);
  
+-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+ 	struct lock_class_key	lockdep_key;
+-#endif
+ };
+ 
+ /*
 _
 
 Patches currently in -mm which might be from xiujianfeng@huawei.com are
 
 mm-hugetlb_cgroup-identify-the-legacy-using-cgroup_subsys_on_dfl.patch
 mm-hugetlb_cgroup-prepare-cftypes-based-on-template.patch
-mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix-fix.patch
 mm-hugetlb_cgroup-switch-to-the-new-cftypes.patch
 
