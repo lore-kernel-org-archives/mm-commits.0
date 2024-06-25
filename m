@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A79CF144D16
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 155D9144D16
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293175; cv=none; b=rqsNULrpGFI8TVfn0diPd5Ii7LGo1zHpZi783MyM2yKBEyUKxCGzL2nM2Rt95Fjf7b22ZLxeDtEIb28N1I+rU4IsIbmLupAz05AdsJHtNSGRZO+6nEnNzfW374fY6okuiymdWYlbXNH2rVrhZbdFnb4Qm1Vlbv2xuL/k+Fpfp4Y=
+	t=1719293178; cv=none; b=HLCfzsHs1wfqq+ox/jdO9of7OvOR/UHZDcdHD/1GBo5tdkHrS+KjLZNUzyEoEV0pvQbiGDyqxjUXFs0a0wjAV8Wzod2GFu8krUi6JoSKX5b8xub07AEJWna1gUJfPKmVjSzQqSp9D8LuM+rXbDM0y3FGyZdgkPR7jG3ruFhKPyg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719293175; c=relaxed/simple;
-	bh=1jflDBss7DeNZwORvvhKZoz1hHFtPB4kYCOa1bvjqqU=;
-	h=Date:To:From:Subject:Message-Id; b=odMJzkzLKt2e6tr/sNDJm4T4KuVvtWQ/qZcaxZgI/XFi7YPNb/OYa+uIj71HAiB8R3NPmVw1/iizUMNjI8FNQ5vASddaFSpVfAdeiFQ0wgKqb8SFV7nEjy3QB1t/t3PgOC8DS5/Jkc9sR0qhVGUC6ix3LmFRBDPiFH9lR9YH+xQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t148tvnZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719293178; c=relaxed/simple;
+	bh=LJKhgencDauu0nXDPO7JpGY//sju0e72UcgCc2Aa+G8=;
+	h=Date:To:From:Subject:Message-Id; b=F1LbJaoYpdzoLXN4A164bRfu5r8Kn7jIOIrReSQddJoWvCieqM+TLoSSUqynNqBB5UkAht34eW3yFdvNtZJZdkh7jfRP4pZBRp3rVTCOODR5/gTK9icQU6D32N1kdnC5yDQJXgdyo8U2nYll1QDJK6/nvWTKCqcahXQKz0tlyRU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jHQQFwyC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t148tvnZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A76BC32782;
-	Tue, 25 Jun 2024 05:26:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jHQQFwyC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 924B4C32782;
+	Tue, 25 Jun 2024 05:26:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293175;
-	bh=1jflDBss7DeNZwORvvhKZoz1hHFtPB4kYCOa1bvjqqU=;
+	s=korg; t=1719293177;
+	bh=LJKhgencDauu0nXDPO7JpGY//sju0e72UcgCc2Aa+G8=;
 	h=Date:To:From:Subject:From;
-	b=t148tvnZ1oiMrnksPv040c+krmbo25iDDHir0TdU8ImPfyvhVFIlzXibynHePD3fr
-	 OMEIiVlAtXwq6rI3RkLPPZzJJd7NRAWNugWaVtZyunNgZ7xJQuqzQppE7rF9a3uXGQ
-	 g4hn/1sIdukptIak3OVHW8W4MY5QdaNDr/2NmOlM=
-Date: Mon, 24 Jun 2024 22:26:15 -0700
-To: mm-commits@vger.kernel.org,rdunlap@infradead.org,peterz@infradead.org,namhyung@kernel.org,msakai@redhat.com,mingo@redhat.com,mark.rutland@arm.com,kent.overstreet@linux.dev,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,irogers@google.com,colyli@suse.de,bfoster@redhat.com,bagasdotme@gmail.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=jHQQFwyC1lUjR1uB+kucOhcrmtzkgwWz1MAayNeZfVUVgneWNGnGL2bF33DbN6YqF
+	 Nr6yhWabwzqvu1Lz0lmm+vPlBkAKO3nK0f2FMYCAuud9J6q8eZjiSzN6kCA9eLv03w
+	 7LXmmYdwNUUvfKEYjw843WGMQbuVuN3XTzalOCj8=
+Date: Mon, 24 Jun 2024 22:26:17 -0700
+To: mm-commits@vger.kernel.org,quic_eberman@quicinc.com,quic_bjorande@quicinc.com,cmllamas@google.com,xndchn@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap.patch removed from -mm tree
-Message-Id: <20240625052615.7A76BC32782@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-decode_stacktracesh-wrap-nm-with-util_prefix-and-util_suffix.patch removed from -mm tree
+Message-Id: <20240625052617.924B4C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,483 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: bcachefs: remove heap-related macros and switch to generic min_heap
+     Subject: scripts/decode_stacktrace.sh: wrap nm with UTIL_PREFIX and UTIL_SUFFIX
 has been removed from the -mm tree.  Its filename was
-     bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap.patch
+     scripts-decode_stacktracesh-wrap-nm-with-util_prefix-and-util_suffix.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: bcachefs: remove heap-related macros and switch to generic min_heap
-Date: Fri, 24 May 2024 23:29:58 +0800
+From: Xiong Nandi <xndchn@gmail.com>
+Subject: scripts/decode_stacktrace.sh: wrap nm with UTIL_PREFIX and UTIL_SUFFIX
+Date: Fri, 24 May 2024 12:25:59 +0800
 
-Drop the heap-related macros from bcachefs and replacing them with the
-generic min_heap implementation from include/linux.  By doing so, code
-readability is improved by using functions instead of macros.  Moreover,
-the min_heap implementation in include/linux adopts a bottom-up variation
-compared to the textbook version currently used in bcachefs.  This
-bottom-up variation allows for approximately 50% reduction in the number
-of comparison operations during heap siftdown, without changing the number
-of swaps, thus making it more efficient.
+Patch series "scripts/decode_stacktrace.sh: better support to ARM32".
 
-[visitorckw@gmail.com: fix missing assignment of minimum element]
-  Link: https://lkml.kernel.org/r/20240602174828.1955320-1-visitorckw@gmail.com
-Link: https://lkml.kernel.org/ioyfizrzq7w7mjrqcadtzsfgpuntowtjdw5pgn4qhvsdp4mqqg@nrlek5vmisbu
-Link: https://lkml.kernel.org/r/20240524152958.919343-17-visitorckw@gmail.com
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Reviewed-by: Ian Rogers <irogers@google.com>
-Acked-by: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Brian Foster <bfoster@redhat.com>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: Coly Li <colyli@suse.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Matthew Sakai <msakai@redhat.com>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+
+This patch (of 2):
+
+Since System.map is generated by cross-compile nm tool, we should use it here
+too. Otherwise host nm may not recognize ARM Thumb-2 instruction address well.
+
+Link: https://lkml.kernel.org/r/20240524042600.14738-1-xndchn@gmail.com
+Link: https://lkml.kernel.org/r/20240524042600.14738-2-xndchn@gmail.com
+Signed-off-by: Xiong Nandi <xndchn@gmail.com>
+Reviewed-by: Elliot Berman <quic_eberman@quicinc.com>
+Cc: Bjorn Andersson <quic_bjorande@quicinc.com>
+Cc: Carlos Llamas <cmllamas@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bcachefs/clock.c       |   47 ++++++++++----
- fs/bcachefs/clock_types.h |    2 
- fs/bcachefs/ec.c          |   76 +++++++++++++++--------
- fs/bcachefs/ec_types.h    |    2 
- fs/bcachefs/util.h        |  118 ------------------------------------
- 5 files changed, 90 insertions(+), 155 deletions(-)
+ scripts/decode_stacktrace.sh |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/bcachefs/clock.c~bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/fs/bcachefs/clock.c
-@@ -6,16 +6,29 @@
- #include <linux/kthread.h>
- #include <linux/preempt.h>
+--- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-wrap-nm-with-util_prefix-and-util_suffix
++++ a/scripts/decode_stacktrace.sh
+@@ -30,6 +30,7 @@ fi
  
--static inline long io_timer_cmp(io_timer_heap *h,
--				struct io_timer *l,
--				struct io_timer *r)
-+static inline bool io_timer_cmp(const void *l, const void *r, void __always_unused *args)
- {
--	return l->expire - r->expire;
-+	struct io_timer **_l = (struct io_timer **)l;
-+	struct io_timer **_r = (struct io_timer **)r;
-+
-+	return (*_l)->expire < (*_r)->expire;
-+}
-+
-+static inline void io_timer_swp(void *l, void *r, void __always_unused *args)
-+{
-+	struct io_timer **_l = (struct io_timer **)l;
-+	struct io_timer **_r = (struct io_timer **)r;
-+
-+	swap(*_l, *_r);
- }
+ READELF=${UTIL_PREFIX}readelf${UTIL_SUFFIX}
+ ADDR2LINE=${UTIL_PREFIX}addr2line${UTIL_SUFFIX}
++NM=${UTIL_PREFIX}nm${UTIL_SUFFIX}
  
- void bch2_io_timer_add(struct io_clock *clock, struct io_timer *timer)
- {
- 	size_t i;
-+	const struct min_heap_callbacks callbacks = {
-+		.less = io_timer_cmp,
-+		.swp = io_timer_swp,
-+	};
- 
- 	spin_lock(&clock->timer_lock);
- 
-@@ -26,11 +39,11 @@ void bch2_io_timer_add(struct io_clock *
- 		return;
- 	}
- 
--	for (i = 0; i < clock->timers.used; i++)
-+	for (i = 0; i < clock->timers.nr; i++)
- 		if (clock->timers.data[i] == timer)
- 			goto out;
- 
--	BUG_ON(!heap_add(&clock->timers, timer, io_timer_cmp, NULL));
-+	BUG_ON(!min_heap_push(&clock->timers, &timer, &callbacks, NULL));
- out:
- 	spin_unlock(&clock->timer_lock);
- }
-@@ -38,12 +51,16 @@ out:
- void bch2_io_timer_del(struct io_clock *clock, struct io_timer *timer)
- {
- 	size_t i;
-+	const struct min_heap_callbacks callbacks = {
-+		.less = io_timer_cmp,
-+		.swp = io_timer_swp,
-+	};
- 
- 	spin_lock(&clock->timer_lock);
- 
--	for (i = 0; i < clock->timers.used; i++)
-+	for (i = 0; i < clock->timers.nr; i++)
- 		if (clock->timers.data[i] == timer) {
--			heap_del(&clock->timers, i, io_timer_cmp, NULL);
-+			min_heap_del(&clock->timers, i, &callbacks, NULL);
- 			break;
- 		}
- 
-@@ -131,12 +148,18 @@ static struct io_timer *get_expired_time
- 					  unsigned long now)
- {
- 	struct io_timer *ret = NULL;
-+	const struct min_heap_callbacks callbacks = {
-+		.less = io_timer_cmp,
-+		.swp = io_timer_swp,
-+	};
- 
- 	spin_lock(&clock->timer_lock);
- 
--	if (clock->timers.used &&
--	    time_after_eq(now, clock->timers.data[0]->expire))
--		heap_pop(&clock->timers, ret, io_timer_cmp, NULL);
-+	if (clock->timers.nr &&
-+	    time_after_eq(now, clock->timers.data[0]->expire)) {
-+		ret = *min_heap_peek(&clock->timers);
-+		min_heap_pop(&clock->timers, &callbacks, NULL);
-+	}
- 
- 	spin_unlock(&clock->timer_lock);
- 
-@@ -161,7 +184,7 @@ void bch2_io_timers_to_text(struct print
- 	spin_lock(&clock->timer_lock);
- 	now = atomic64_read(&clock->now);
- 
--	for (i = 0; i < clock->timers.used; i++)
-+	for (i = 0; i < clock->timers.nr; i++)
- 		prt_printf(out, "%ps:\t%li\n",
- 		       clock->timers.data[i]->fn,
- 		       clock->timers.data[i]->expire - now);
---- a/fs/bcachefs/clock_types.h~bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/fs/bcachefs/clock_types.h
-@@ -23,7 +23,7 @@ struct io_timer {
- /* Amount to buffer up on a percpu counter */
- #define IO_CLOCK_PCPU_SECTORS	128
- 
--typedef HEAP(struct io_timer *)	io_timer_heap;
-+typedef DEFINE_MIN_HEAP(struct io_timer *, io_timer_heap)	io_timer_heap;
- 
- struct io_clock {
- 	atomic64_t		now;
---- a/fs/bcachefs/ec.c~bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/fs/bcachefs/ec.c
-@@ -910,8 +910,8 @@ static int __ec_stripe_mem_alloc(struct
- 
- 		mutex_lock(&c->ec_stripes_heap_lock);
- 		if (n.size > h->size) {
--			memcpy(n.data, h->data, h->used * sizeof(h->data[0]));
--			n.used = h->used;
-+			memcpy(n.data, h->data, h->nr * sizeof(h->data[0]));
-+			n.nr = h->nr;
- 			swap(*h, n);
- 		}
- 		mutex_unlock(&c->ec_stripes_heap_lock);
-@@ -1002,7 +1002,7 @@ static u64 stripe_idx_to_delete(struct b
- 
- 	lockdep_assert_held(&c->ec_stripes_heap_lock);
- 
--	if (h->used &&
-+	if (h->nr &&
- 	    h->data[0].blocks_nonempty == 0 &&
- 	    !bch2_stripe_is_open(c, h->data[0].idx))
- 		return h->data[0].idx;
-@@ -1010,14 +1010,6 @@ static u64 stripe_idx_to_delete(struct b
- 	return 0;
- }
- 
--static inline int ec_stripes_heap_cmp(ec_stripes_heap *h,
--				      struct ec_stripe_heap_entry l,
--				      struct ec_stripe_heap_entry r)
--{
--	return ((l.blocks_nonempty > r.blocks_nonempty) -
--		(l.blocks_nonempty < r.blocks_nonempty));
--}
--
- static inline void ec_stripes_heap_set_backpointer(ec_stripes_heap *h,
- 						   size_t i)
- {
-@@ -1026,39 +1018,71 @@ static inline void ec_stripes_heap_set_b
- 	genradix_ptr(&c->stripes, h->data[i].idx)->heap_idx = i;
- }
- 
-+static inline bool ec_stripes_heap_cmp(const void *l, const void *r, void __always_unused *args)
-+{
-+	struct ec_stripe_heap_entry *_l = (struct ec_stripe_heap_entry *)l;
-+	struct ec_stripe_heap_entry *_r = (struct ec_stripe_heap_entry *)r;
-+
-+	return ((_l->blocks_nonempty > _r->blocks_nonempty) <
-+		(_l->blocks_nonempty < _r->blocks_nonempty));
-+}
-+
-+static inline void ec_stripes_heap_swap(void *l, void *r, void *h)
-+{
-+	struct ec_stripe_heap_entry *_l = (struct ec_stripe_heap_entry *)l;
-+	struct ec_stripe_heap_entry *_r = (struct ec_stripe_heap_entry *)r;
-+	ec_stripes_heap *_h = (ec_stripes_heap *)h;
-+	size_t i = _l - _h->data;
-+	size_t j = _r - _h->data;
-+
-+	swap(*_l, *_r);
-+
-+	ec_stripes_heap_set_backpointer(_h, i);
-+	ec_stripes_heap_set_backpointer(_h, j);
-+}
-+
- static void heap_verify_backpointer(struct bch_fs *c, size_t idx)
- {
- 	ec_stripes_heap *h = &c->ec_stripes_heap;
- 	struct stripe *m = genradix_ptr(&c->stripes, idx);
- 
--	BUG_ON(m->heap_idx >= h->used);
-+	BUG_ON(m->heap_idx >= h->nr);
- 	BUG_ON(h->data[m->heap_idx].idx != idx);
- }
- 
- void bch2_stripes_heap_del(struct bch_fs *c,
- 			   struct stripe *m, size_t idx)
- {
-+	const struct min_heap_callbacks callbacks = {
-+		.less = ec_stripes_heap_cmp,
-+		.swp = ec_stripes_heap_swap,
-+	};
-+
- 	mutex_lock(&c->ec_stripes_heap_lock);
- 	heap_verify_backpointer(c, idx);
- 
--	heap_del(&c->ec_stripes_heap, m->heap_idx,
--		 ec_stripes_heap_cmp,
--		 ec_stripes_heap_set_backpointer);
-+	min_heap_del(&c->ec_stripes_heap, m->heap_idx, &callbacks, &c->ec_stripes_heap);
- 	mutex_unlock(&c->ec_stripes_heap_lock);
- }
- 
- void bch2_stripes_heap_insert(struct bch_fs *c,
- 			      struct stripe *m, size_t idx)
- {
-+	const struct min_heap_callbacks callbacks = {
-+		.less = ec_stripes_heap_cmp,
-+		.swp = ec_stripes_heap_swap,
-+	};
-+
- 	mutex_lock(&c->ec_stripes_heap_lock);
--	BUG_ON(heap_full(&c->ec_stripes_heap));
-+	BUG_ON(min_heap_full(&c->ec_stripes_heap));
- 
--	heap_add(&c->ec_stripes_heap, ((struct ec_stripe_heap_entry) {
-+	genradix_ptr(&c->stripes, idx)->heap_idx = c->ec_stripes_heap.nr;
-+	min_heap_push(&c->ec_stripes_heap, &((struct ec_stripe_heap_entry) {
- 			.idx = idx,
- 			.blocks_nonempty = m->blocks_nonempty,
- 		}),
--		 ec_stripes_heap_cmp,
--		 ec_stripes_heap_set_backpointer);
-+		&callbacks,
-+		&c->ec_stripes_heap);
- 
- 	heap_verify_backpointer(c, idx);
- 	mutex_unlock(&c->ec_stripes_heap_lock);
-@@ -1067,6 +1091,10 @@ void bch2_stripes_heap_insert(struct bch
- void bch2_stripes_heap_update(struct bch_fs *c,
- 			      struct stripe *m, size_t idx)
- {
-+	const struct min_heap_callbacks callbacks = {
-+		.less = ec_stripes_heap_cmp,
-+		.swp = ec_stripes_heap_swap,
-+	};
- 	ec_stripes_heap *h = &c->ec_stripes_heap;
- 	bool do_deletes;
- 	size_t i;
-@@ -1077,10 +1105,8 @@ void bch2_stripes_heap_update(struct bch
- 	h->data[m->heap_idx].blocks_nonempty = m->blocks_nonempty;
- 
- 	i = m->heap_idx;
--	heap_sift_up(h,	  i, ec_stripes_heap_cmp,
--		     ec_stripes_heap_set_backpointer);
--	heap_sift_down(h, i, ec_stripes_heap_cmp,
--		       ec_stripes_heap_set_backpointer);
-+	min_heap_sift_up(h,	i, &callbacks, &c->ec_stripes_heap);
-+	min_heap_sift_down(h, i, &callbacks, &c->ec_stripes_heap);
- 
- 	heap_verify_backpointer(c, idx);
- 
-@@ -1873,7 +1899,7 @@ static s64 get_existing_stripe(struct bc
- 		return -1;
- 
- 	mutex_lock(&c->ec_stripes_heap_lock);
--	for (heap_idx = 0; heap_idx < h->used; heap_idx++) {
-+	for (heap_idx = 0; heap_idx < h->nr; heap_idx++) {
- 		/* No blocks worth reusing, stripe will just be deleted: */
- 		if (!h->data[heap_idx].blocks_nonempty)
- 			continue;
-@@ -2204,7 +2230,7 @@ void bch2_stripes_heap_to_text(struct pr
- 	size_t i;
- 
- 	mutex_lock(&c->ec_stripes_heap_lock);
--	for (i = 0; i < min_t(size_t, h->used, 50); i++) {
-+	for (i = 0; i < min_t(size_t, h->nr, 50); i++) {
- 		m = genradix_ptr(&c->stripes, h->data[i].idx);
- 
- 		prt_printf(out, "%zu %u/%u+%u", h->data[i].idx,
---- a/fs/bcachefs/ec_types.h~bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/fs/bcachefs/ec_types.h
-@@ -36,6 +36,6 @@ struct ec_stripe_heap_entry {
- 	unsigned		blocks_nonempty;
- };
- 
--typedef HEAP(struct ec_stripe_heap_entry) ec_stripes_heap;
-+typedef DEFINE_MIN_HEAP(struct ec_stripe_heap_entry, ec_stripes_heap) ec_stripes_heap;
- 
- #endif /* _BCACHEFS_EC_TYPES_H */
---- a/fs/bcachefs/util.h~bcachefs-remove-heap-related-macros-and-switch-to-generic-min_heap
-+++ a/fs/bcachefs/util.h
-@@ -8,6 +8,7 @@
- #include <linux/errno.h>
- #include <linux/freezer.h>
- #include <linux/kernel.h>
-+#include <linux/min_heap.h>
- #include <linux/sched/clock.h>
- #include <linux/llist.h>
- #include <linux/log2.h>
-@@ -54,17 +55,9 @@ static inline size_t buf_pages(void *p,
- 			    PAGE_SIZE);
- }
- 
--#define HEAP(type)							\
--struct {								\
--	size_t size, used;						\
--	type *data;							\
--}
--
--#define DECLARE_HEAP(type, name) HEAP(type) name
--
- #define init_heap(heap, _size, gfp)					\
- ({									\
--	(heap)->used = 0;						\
-+	(heap)->nr = 0;						\
- 	(heap)->size = (_size);						\
- 	(heap)->data = kvmalloc((heap)->size * sizeof((heap)->data[0]),\
- 				 (gfp));				\
-@@ -76,113 +69,6 @@ do {									\
- 	(heap)->data = NULL;						\
- } while (0)
- 
--#define heap_set_backpointer(h, i, _fn)					\
--do {									\
--	void (*fn)(typeof(h), size_t) = _fn;				\
--	if (fn)								\
--		fn(h, i);						\
--} while (0)
--
--#define heap_swap(h, i, j, set_backpointer)				\
--do {									\
--	swap((h)->data[i], (h)->data[j]);				\
--	heap_set_backpointer(h, i, set_backpointer);			\
--	heap_set_backpointer(h, j, set_backpointer);			\
--} while (0)
--
--#define heap_peek(h)							\
--({									\
--	EBUG_ON(!(h)->used);						\
--	(h)->data[0];							\
--})
--
--#define heap_full(h)	((h)->used == (h)->size)
--
--#define heap_sift_down(h, i, cmp, set_backpointer)			\
--do {									\
--	size_t _c, _j = i;						\
--									\
--	for (; _j * 2 + 1 < (h)->used; _j = _c) {			\
--		_c = _j * 2 + 1;					\
--		if (_c + 1 < (h)->used &&				\
--		    cmp(h, (h)->data[_c], (h)->data[_c + 1]) >= 0)	\
--			_c++;						\
--									\
--		if (cmp(h, (h)->data[_c], (h)->data[_j]) >= 0)		\
--			break;						\
--		heap_swap(h, _c, _j, set_backpointer);			\
--	}								\
--} while (0)
--
--#define heap_sift_up(h, i, cmp, set_backpointer)			\
--do {									\
--	while (i) {							\
--		size_t p = (i - 1) / 2;					\
--		if (cmp(h, (h)->data[i], (h)->data[p]) >= 0)		\
--			break;						\
--		heap_swap(h, i, p, set_backpointer);			\
--		i = p;							\
--	}								\
--} while (0)
--
--#define __heap_add(h, d, cmp, set_backpointer)				\
--({									\
--	size_t _i = (h)->used++;					\
--	(h)->data[_i] = d;						\
--	heap_set_backpointer(h, _i, set_backpointer);			\
--									\
--	heap_sift_up(h, _i, cmp, set_backpointer);			\
--	_i;								\
--})
--
--#define heap_add(h, d, cmp, set_backpointer)				\
--({									\
--	bool _r = !heap_full(h);					\
--	if (_r)								\
--		__heap_add(h, d, cmp, set_backpointer);			\
--	_r;								\
--})
--
--#define heap_add_or_replace(h, new, cmp, set_backpointer)		\
--do {									\
--	if (!heap_add(h, new, cmp, set_backpointer) &&			\
--	    cmp(h, new, heap_peek(h)) >= 0) {				\
--		(h)->data[0] = new;					\
--		heap_set_backpointer(h, 0, set_backpointer);		\
--		heap_sift_down(h, 0, cmp, set_backpointer);		\
--	}								\
--} while (0)
--
--#define heap_del(h, i, cmp, set_backpointer)				\
--do {									\
--	size_t _i = (i);						\
--									\
--	BUG_ON(_i >= (h)->used);					\
--	(h)->used--;							\
--	if ((_i) < (h)->used) {						\
--		heap_swap(h, _i, (h)->used, set_backpointer);		\
--		heap_sift_up(h, _i, cmp, set_backpointer);		\
--		heap_sift_down(h, _i, cmp, set_backpointer);		\
--	}								\
--} while (0)
--
--#define heap_pop(h, d, cmp, set_backpointer)				\
--({									\
--	bool _r = (h)->used;						\
--	if (_r) {							\
--		(d) = (h)->data[0];					\
--		heap_del(h, 0, cmp, set_backpointer);			\
--	}								\
--	_r;								\
--})
--
--#define heap_resort(heap, cmp, set_backpointer)				\
--do {									\
--	ssize_t _i;							\
--	for (_i = (ssize_t) (heap)->used / 2 -  1; _i >= 0; --_i)	\
--		heap_sift_down(heap, _i, cmp, set_backpointer);		\
--} while (0)
--
- #define ANYSINT_MAX(t)							\
- 	((((t) 1 << (sizeof(t) * 8 - 2)) - (t) 1) * (t) 2 + (t) 1)
- 
+ if [[ $1 == "-r" ]] ; then
+ 	vmlinux=""
+@@ -158,7 +159,7 @@ parse_symbol() {
+ 	if [[ $aarray_support == true && "${cache[$module,$name]+isset}" == "isset" ]]; then
+ 		local base_addr=${cache[$module,$name]}
+ 	else
+-		local base_addr=$(nm "$objfile" 2>/dev/null | awk '$3 == "'$name'" && ($2 == "t" || $2 == "T") {print $1; exit}')
++		local base_addr=$(${NM} "$objfile" 2>/dev/null | awk '$3 == "'$name'" && ($2 == "t" || $2 == "T") {print $1; exit}')
+ 		if [[ $base_addr == "" ]] ; then
+ 			# address not found
+ 			return
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from xndchn@gmail.com are
 
 
