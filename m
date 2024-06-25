@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5F2733C0
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD28933C0
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293200; cv=none; b=WYhcqVqKJgmieQRf8NVluEiVwxqyUPceV9/DILDRImCyfy+R8QzkP6tJMG0LdhFWI9jjrg09nrsxUoSK/njO7YM/c9MawsO/kM3xJTlEZHOqa/T6maVhT4YlQi/K/YeT/hntnmIoFm6fNIROFnPeM9s+64RjCASVKhhFnC+kF+I=
+	t=1719293201; cv=none; b=Uu4RaHHjHNJcOE7L4Nu35d3a3pGtP/zK689nCfJySan58xUxnQq5OEeecJ9qajzFsPNZE/I6gWHteyHrZmxMCd5eKrkAsd2HrHbUH1OQp1LZM1BrmJ9q65nuGiOnQQTAhmHLYiSxJTWpOx8cHsdCykAmWKwiXlZ8u2zOON5jRgg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719293200; c=relaxed/simple;
-	bh=7xSICDXHS545CKuebiFc01jAJpphOmMwTzx7yfCObLc=;
-	h=Date:To:From:Subject:Message-Id; b=HC5oJ/TZ0U2oYR775ndcK8f5/WI6uLYtzv747h476dGa8O8xU4r+0ymk/nagM8hMMiL85BxaPl3jHCB0DzAO6wwRVRh+iGaGxjga4BgGHydOoDuUNOoMMpk7+qMNc9FHbOyWNddkgi39inG4oFbfJGT/rcRo7F+rqr6qIESoiKw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dSJoF/GU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719293201; c=relaxed/simple;
+	bh=3YZuPvB7H5iBdEq1IXMSE6K3zFm3g1b3XjgL42bzHZk=;
+	h=Date:To:From:Subject:Message-Id; b=CWpBKx4SDTBloX+XCWUKFEWIduiXYnLnRZsxNW2dgA5gPhdNDls1j72o//nplGCY+bY34k3om/pGHlz0ayNOr47ONTjVA45dZ6COE1X/citbfIkreS68A0bXipaaFrS3CZeDVnhHzDvpLSEBV4eXTsvMnhN1xRKzNjtPyM9o6lg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lIAA2Ulm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dSJoF/GU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB82AC32789;
-	Tue, 25 Jun 2024 05:26:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lIAA2Ulm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2DAEC32782;
+	Tue, 25 Jun 2024 05:26:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293200;
-	bh=7xSICDXHS545CKuebiFc01jAJpphOmMwTzx7yfCObLc=;
+	s=korg; t=1719293201;
+	bh=3YZuPvB7H5iBdEq1IXMSE6K3zFm3g1b3XjgL42bzHZk=;
 	h=Date:To:From:Subject:From;
-	b=dSJoF/GU52HYzOz0l7hB/2KL7nOu96urvvgUlcjqaKb8Sj5kpa4L1k7PQBCoutZrc
-	 3dfN4MVAukzLC8G/gEG7fnrXGDXrOx13oIAi6e8SYYBsD6FJBFevxlE6jmKu2hR5kM
-	 pbC/HlKFD5EDIXS5dn5Op9JPNvIrIf7JpPrXZUVk=
-Date: Mon, 24 Jun 2024 22:26:40 -0700
-To: mm-commits@vger.kernel.org,gregkh@linuxfoundation.org,jani.nikula@intel.com,akpm@linux-foundation.org
+	b=lIAA2Ulm2ChdWQLHTSnu5xH5xcU5YlI1pOJh1+chKJXEmEt5W+Q3KGZMg43JAfYg6
+	 WqQSpdeKnORlTHhpih+JtbecUo7HFhhafN1o7gAZh9EKl2xwV3Vm9kCTtz3j6OO/LI
+	 ZulljyDlAlGqRVnNAy436JzRxy2ltdxKjRFT93mU=
+Date: Mon, 24 Jun 2024 22:26:41 -0700
+To: mm-commits@vger.kernel.org,keescook@chromium.org,quic_jjohnson@quicinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kernel-panic-add-verbose-logging-of-kernel-taints-in-backtraces.patch removed from -mm tree
-Message-Id: <20240625052640.AB82AC32789@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kunit-fortify-add-missing-module_description-macros.patch removed from -mm tree
+Message-Id: <20240625052641.B2DAEC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,157 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel/panic: add verbose logging of kernel taints in backtraces
+     Subject: kunit/fortify: add missing MODULE_DESCRIPTION() macros
 has been removed from the -mm tree.  Its filename was
-     kernel-panic-add-verbose-logging-of-kernel-taints-in-backtraces.patch
+     kunit-fortify-add-missing-module_description-macros.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jani Nikula <jani.nikula@intel.com>
-Subject: kernel/panic: add verbose logging of kernel taints in backtraces
-Date: Fri, 31 May 2024 12:04:57 +0300
+From: Jeff Johnson <quic_jjohnson@quicinc.com>
+Subject: kunit/fortify: add missing MODULE_DESCRIPTION() macros
+Date: Fri, 31 May 2024 15:45:22 -0700
 
-With nearly 20 taint flags and respective characters, it's getting a bit
-difficult to remember what each taint flag character means.  Add verbose
-logging of the set taints in the format:
+make allmodconfig && make W=1 C=1 reports:
+WARNING: modpost: missing MODULE_DESCRIPTION() in lib/memcpy_kunit.o
+WARNING: modpost: missing MODULE_DESCRIPTION() in lib/fortify_kunit.o
 
-Tainted: [P]=PROPRIETARY_MODULE, [W]=WARN
+Add the missing invocations of the MODULE_DESCRIPTION() macro.
 
-in dump_stack_print_info() when there are taints.
-
-Note that the "negative flag" G is not included.
-
-Link: https://lkml.kernel.org/r/7321e306166cb2ca2807ab8639e665baa2462e9c.1717146197.git.jani.nikula@intel.com
-Signed-off-by: Jani Nikula <jani.nikula@intel.com>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: https://lkml.kernel.org/r/20240531-md-lib-fortify_source-v1-1-2c37f7fbaafc@quicinc.com
+Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/panic.h |    8 ++++---
- kernel/panic.c        |   45 ++++++++++++++++++++++++++++++----------
- lib/dump_stack.c      |    3 ++
- 3 files changed, 42 insertions(+), 14 deletions(-)
+ lib/fortify_kunit.c |    1 +
+ lib/memcpy_kunit.c  |    1 +
+ 2 files changed, 2 insertions(+)
 
---- a/include/linux/panic.h~kernel-panic-add-verbose-logging-of-kernel-taints-in-backtraces
-+++ a/include/linux/panic.h
-@@ -77,9 +77,10 @@ static inline void set_arch_panic_timeou
- #define TAINT_FLAGS_MAX			((1UL << TAINT_FLAGS_COUNT) - 1)
+--- a/lib/fortify_kunit.c~kunit-fortify-add-missing-module_description-macros
++++ a/lib/fortify_kunit.c
+@@ -1096,4 +1096,5 @@ static struct kunit_suite fortify_test_s
  
- struct taint_flag {
--	char c_true;	/* character printed when tainted */
--	char c_false;	/* character printed when not tainted */
--	bool module;	/* also show as a per-module taint flag */
-+	char c_true;		/* character printed when tainted */
-+	char c_false;		/* character printed when not tainted */
-+	bool module;		/* also show as a per-module taint flag */
-+	const char *desc;	/* verbose description of the set taint flag */
- };
+ kunit_test_suite(fortify_test_suite);
  
- extern const struct taint_flag taint_flags[TAINT_FLAGS_COUNT];
-@@ -90,6 +91,7 @@ enum lockdep_ok {
- };
++MODULE_DESCRIPTION("Runtime test cases for CONFIG_FORTIFY_SOURCE");
+ MODULE_LICENSE("GPL");
+--- a/lib/memcpy_kunit.c~kunit-fortify-add-missing-module_description-macros
++++ a/lib/memcpy_kunit.c
+@@ -510,4 +510,5 @@ static struct kunit_suite memcpy_test_su
  
- extern const char *print_tainted(void);
-+extern const char *print_tainted_verbose(void);
- extern void add_taint(unsigned flag, enum lockdep_ok);
- extern int test_taint(unsigned flag);
- extern unsigned long get_taint(void);
---- a/kernel/panic.c~kernel-panic-add-verbose-logging-of-kernel-taints-in-backtraces
-+++ a/kernel/panic.c
-@@ -475,6 +475,7 @@ EXPORT_SYMBOL(panic);
- 	[ TAINT_##taint ] = {						\
- 		.c_true = _c_true, .c_false = _c_false,			\
- 		.module = _module,					\
-+		.desc = #taint,						\
- 	}
+ kunit_test_suite(memcpy_test_suite);
  
- /*
-@@ -505,8 +506,9 @@ const struct taint_flag taint_flags[TAIN
- 
- #undef TAINT_FLAG
- 
--static void print_tainted_seq(struct seq_buf *s)
-+static void print_tainted_seq(struct seq_buf *s, bool verbose)
- {
-+	const char *sep = "";
- 	int i;
- 
- 	if (!tainted_mask) {
-@@ -520,10 +522,32 @@ static void print_tainted_seq(struct seq
- 		bool is_set = test_bit(i, &tainted_mask);
- 		char c = is_set ? t->c_true : t->c_false;
- 
--		seq_buf_putc(s, c);
-+		if (verbose) {
-+			if (is_set) {
-+				seq_buf_printf(s, "%s[%c]=%s", sep, c, t->desc);
-+				sep = ", ";
-+			}
-+		} else {
-+			seq_buf_putc(s, c);
-+		}
- 	}
- }
- 
-+static const char *_print_tainted(bool verbose)
-+{
-+	/* FIXME: what should the size be? */
-+	static char buf[sizeof(taint_flags)];
-+	struct seq_buf s;
-+
-+	BUILD_BUG_ON(ARRAY_SIZE(taint_flags) != TAINT_FLAGS_COUNT);
-+
-+	seq_buf_init(&s, buf, sizeof(buf));
-+
-+	print_tainted_seq(&s, verbose);
-+
-+	return seq_buf_str(&s);
-+}
-+
- /**
-  * print_tainted - return a string to represent the kernel taint state.
-  *
-@@ -534,16 +558,15 @@ static void print_tainted_seq(struct seq
-  */
- const char *print_tainted(void)
- {
--	static char buf[TAINT_FLAGS_COUNT + sizeof("Tainted: ")];
--	struct seq_buf s;
--
--	BUILD_BUG_ON(ARRAY_SIZE(taint_flags) != TAINT_FLAGS_COUNT);
--
--	seq_buf_init(&s, buf, sizeof(buf));
--
--	print_tainted_seq(&s);
-+	return _print_tainted(false);
-+}
- 
--	return seq_buf_str(&s);
-+/**
-+ * print_tainted_verbose - A more verbose version of print_tainted()
-+ */
-+const char *print_tainted_verbose(void)
-+{
-+	return _print_tainted(true);
- }
- 
- int test_taint(unsigned flag)
---- a/lib/dump_stack.c~kernel-panic-add-verbose-logging-of-kernel-taints-in-backtraces
-+++ a/lib/dump_stack.c
-@@ -62,6 +62,9 @@ void dump_stack_print_info(const char *l
- 	       (int)strcspn(init_utsname()->version, " "),
- 	       init_utsname()->version, BUILD_ID_VAL);
- 
-+	if (get_taint())
-+		printk("%s%s\n", log_lvl, print_tainted_verbose());
-+
- 	if (dump_stack_arch_desc_str[0] != '\0')
- 		printk("%sHardware name: %s\n",
- 		       log_lvl, dump_stack_arch_desc_str);
++MODULE_DESCRIPTION("test cases for memcpy(), memmove(), and memset()");
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from jani.nikula@intel.com are
+Patches currently in -mm which might be from quic_jjohnson@quicinc.com are
 
+kfifo-add-missing-module_description-macros.patch
+resource-add-missing-module_description.patch
+selftests-fpu-add-missing-module_description-macro.patch
 
