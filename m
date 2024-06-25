@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A40FD143C56
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED0FF14430B
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291706; cv=none; b=nmAvo6wILWHwz36iZKCySxEnG8fcNuuugr0aE8EWOroSFar+gP+MzepMjnx+kvh0bFMatNVq9ddmUGuufz4n+1upiC/yGhVFzO9xCWAumx0bX1QIB2kJssO1Zmy7thA5sV7R0r7Xh1KUhXf8amNRgxnvRBbugqWsdZxZq6yWB1o=
+	t=1719291708; cv=none; b=hGjG3YfEf7pbGHhuiIE3WgMdVPGZ/MnG5JPEI2+ZtgHi5+mjhdqyHJUqCW7yqe20oPjMQVISwxjElC5QHHf2huuCRWZNAsDKdYrRUH3VtQyxIhgfa4NfIJBhhIAJ28XfHjp2NUcm5iTzpdCtC8wEZtihw/urZGPl0BkCPmrvRo8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291706; c=relaxed/simple;
-	bh=4YYNfGcMCLCLL9GS5trM33L3Khp1GDOPnqfmz6U1b+I=;
-	h=Date:To:From:Subject:Message-Id; b=TRqZqFMs2MtS6TMI30kZcNs4stHRxMBrGNU0yUH+YY3L+IbrgdVtie7E2GP2tD3zB4qlWoNbh9RRY+vkqfMy5E3Y6SLHaLe2u5a/Cd5ZAPS1k+E4gX4a4la5EFVOWvK1Z8PfYYgX9doa460LeTylPTc8JlX39fNaVWt08acDYGU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0T6x47Qz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291708; c=relaxed/simple;
+	bh=2+iruvqNClJ2UADEbtMvn96YNavOE2dTp5+cujXE4yk=;
+	h=Date:To:From:Subject:Message-Id; b=No3pA7m63s63SCTThXHmIPt/JJsUP1DutEogM0vsfawX8EcLh/A9nGK37HEGhO1+JJtsOjQHw0Tlm2zM7UqZyqzr+cwoxzs75Zxe8kR8aLeoxvidGhHER9QtdeqQuHf9EJLQF23+pFuX0bTk9mcLlt/XA+hVlofCYme13/QfEMA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HkXIyPl3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0T6x47Qz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 284C0C32782;
-	Tue, 25 Jun 2024 05:01:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HkXIyPl3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1210C32789;
+	Tue, 25 Jun 2024 05:01:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291706;
-	bh=4YYNfGcMCLCLL9GS5trM33L3Khp1GDOPnqfmz6U1b+I=;
+	s=korg; t=1719291707;
+	bh=2+iruvqNClJ2UADEbtMvn96YNavOE2dTp5+cujXE4yk=;
 	h=Date:To:From:Subject:From;
-	b=0T6x47QzEUJeFeh50wAAi+mp3kPy+jnhynLs4wU1g+4Oo1GMntR/t7/L1sAW9R0G7
-	 QEpJPIYjY5DrKS7M45Ivuu93crQcbGl5F+VWjH+kTtwNuCwVHaXoKGHfe3mC4CLnqm
-	 sZqEjFRRvxRj7pPUpJWhdGimTsFjjvGeZOxdkMfg=
-Date: Mon, 24 Jun 2024 22:01:45 -0700
+	b=HkXIyPl3+x7X59OmqmnyEH5RxV1j0sy0UNlpGuN0PJq2NJ/WDdfqUXW661T91Djkh
+	 27KfSc9gr3D6oWhQJEDxQm+758mpyxb3SVlBb1l+m1cdKmhE8XXGptfra++4qRO900
+	 Kdv6SPEaUyB7tgV8IzP8BsBdliAL6ZWpE3R6sdzU=
+Date: Mon, 24 Jun 2024 22:01:47 -0700
 To: mm-commits@vger.kernel.org,tony.luck@intel.com,nao.horiguchi@gmail.com,lkp@intel.com,david@redhat.com,bp@alien8.de,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-failure-remove-mf_msg_slab.patch removed from -mm tree
-Message-Id: <20240625050146.284C0C32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-failure-add-macro-get_page_max_retry_num.patch removed from -mm tree
+Message-Id: <20240625050147.C1210C32789@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory-failure: remove MF_MSG_SLAB
+     Subject: mm/memory-failure: add macro GET_PAGE_MAX_RETRY_NUM
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-remove-mf_msg_slab.patch
+     mm-memory-failure-add-macro-get_page_max_retry_num.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory-failure: remove MF_MSG_SLAB
-Date: Wed, 12 Jun 2024 15:18:24 +0800
+Subject: mm/memory-failure: add macro GET_PAGE_MAX_RETRY_NUM
+Date: Wed, 12 Jun 2024 15:18:25 +0800
 
-Since commit 46df8e73a4a3 ("mm: free up PG_slab"), MF_MSG_SLAB becomes
-unused.  Remove it.  No functional change intended.
+Add helper macro GET_PAGE_MAX_RETRY_NUM to replace magic number 3.  No
+functional change intended.
 
-Link: https://lkml.kernel.org/r/20240612071835.157004-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20240612071835.157004-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
 Cc: David Hildenbrand <david@redhat.com>
@@ -60,41 +60,44 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h      |    1 -
- include/ras/ras_event.h |    1 -
- mm/memory-failure.c     |    1 -
- 3 files changed, 3 deletions(-)
+ mm/memory-failure.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm.h~mm-memory-failure-remove-mf_msg_slab
-+++ a/include/linux/mm.h
-@@ -4062,7 +4062,6 @@ enum mf_result {
- enum mf_action_page_type {
- 	MF_MSG_KERNEL,
- 	MF_MSG_KERNEL_HIGH_ORDER,
--	MF_MSG_SLAB,
- 	MF_MSG_DIFFERENT_COMPOUND,
- 	MF_MSG_HUGE,
- 	MF_MSG_FREE_HUGE,
---- a/include/ras/ras_event.h~mm-memory-failure-remove-mf_msg_slab
-+++ a/include/ras/ras_event.h
-@@ -356,7 +356,6 @@ TRACE_EVENT(aer_event,
- #define MF_PAGE_TYPE		\
- 	EM ( MF_MSG_KERNEL, "reserved kernel page" )			\
- 	EM ( MF_MSG_KERNEL_HIGH_ORDER, "high-order kernel page" )	\
--	EM ( MF_MSG_SLAB, "kernel slab page" )				\
- 	EM ( MF_MSG_DIFFERENT_COMPOUND, "different compound page after locking" ) \
- 	EM ( MF_MSG_HUGE, "huge page" )					\
- 	EM ( MF_MSG_FREE_HUGE, "free huge page" )			\
---- a/mm/memory-failure.c~mm-memory-failure-remove-mf_msg_slab
+--- a/mm/memory-failure.c~mm-memory-failure-add-macro-get_page_max_retry_num
 +++ a/mm/memory-failure.c
-@@ -911,7 +911,6 @@ static const char *action_name[] = {
- static const char * const action_page_types[] = {
- 	[MF_MSG_KERNEL]			= "reserved kernel page",
- 	[MF_MSG_KERNEL_HIGH_ORDER]	= "high-order kernel page",
--	[MF_MSG_SLAB]			= "kernel slab page",
- 	[MF_MSG_DIFFERENT_COMPOUND]	= "different compound page after locking",
- 	[MF_MSG_HUGE]			= "huge page",
- 	[MF_MSG_FREE_HUGE]		= "free huge page",
+@@ -1417,6 +1417,8 @@ static int __get_hwpoison_page(struct pa
+ 	return 0;
+ }
+ 
++#define GET_PAGE_MAX_RETRY_NUM 3
++
+ static int get_any_page(struct page *p, unsigned long flags)
+ {
+ 	int ret = 0, pass = 0;
+@@ -1431,12 +1433,12 @@ try_again:
+ 		if (!ret) {
+ 			if (page_count(p)) {
+ 				/* We raced with an allocation, retry. */
+-				if (pass++ < 3)
++				if (pass++ < GET_PAGE_MAX_RETRY_NUM)
+ 					goto try_again;
+ 				ret = -EBUSY;
+ 			} else if (!PageHuge(p) && !is_free_buddy_page(p)) {
+ 				/* We raced with put_page, retry. */
+-				if (pass++ < 3)
++				if (pass++ < GET_PAGE_MAX_RETRY_NUM)
+ 					goto try_again;
+ 				ret = -EIO;
+ 			}
+@@ -1462,7 +1464,7 @@ try_again:
+ 		 * A page we cannot handle. Check whether we can turn
+ 		 * it into something we can handle.
+ 		 */
+-		if (pass++ < 3) {
++		if (pass++ < GET_PAGE_MAX_RETRY_NUM) {
+ 			put_page(p);
+ 			shake_page(p);
+ 			count_increased = false;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
