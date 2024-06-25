@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B443C17A932
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 19:08:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3695717A932
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 19:08:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719342492; cv=none; b=qvb1i/ymDORxoVpPu9TO6fdeY0owPjDAe0xi5+cxomgTl7dQiAy7s0cHmR0mjcK6kLM1ZyKS2oEupjiA8dbABT9zOAquOtI855ZeduhLy98EH/NcuumO/nf5IFDtVgdE45zvhtZXRSQES0rGh1fII64JAxU71e8sVAXBhuKUV4o=
+	t=1719342495; cv=none; b=CEkiZ6UOsu652LxSytFAAIUiFfsCqU7bV1HA2DtP8/8eObPIX4S+xeTLgXdQJahVWxLiR5HHllXyvnbKJOiDfmdXg8ybQ7NQ7/U1m36plvBlwteBiHvQejmCIlnzzj4lY7ULwUaq3sZ9iVSUqECf46m88H4f5ViX+VAy5VvoPww=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719342492; c=relaxed/simple;
-	bh=xGpCDuiZaze/SNMzldIy+QgzhCnTSHNqOPcMDiv0rYc=;
-	h=Date:To:From:Subject:Message-Id; b=dJKGj6UVUDzczhFJGQ0PTPkqbMuOif9WTp6LsnREVjz69oef7UD9Ghq0mKPc+tqTaBADeTi75XiyLxEaTnRwO9p3tJL1+jkJD6d8YzZzwQfzpxtwY25Ghu51ByC2GSIHFkHWSPo4+zY77fmVdCoap6jCcwxsWFNCn90qf3vs08o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lt/4+n4e; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719342495; c=relaxed/simple;
+	bh=NQaS2qDWHNh0k8wQJ8Cbj78fUUYA+wU25UwmlUz3sFE=;
+	h=Date:To:From:Subject:Message-Id; b=gsRfvFxWCA2UEHLI2rXBuvJxQJpzB8D/lVAJeK3ULSVVOSQTMWOnaRWXvWMdJtNJvzJuNR+Uszm/d9AM32AtgjvmYKKRbDAd7qwkBXwVqQ574fwRvsXPKqvUNcbPeb4ksEaxizDkX6MDhuSzmBhIdi5fnHXHmFEWZnIYIfAESRg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qmMgZoJA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lt/4+n4e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B361C32781;
-	Tue, 25 Jun 2024 19:08:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qmMgZoJA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 024F0C32781;
+	Tue, 25 Jun 2024 19:08:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719342492;
-	bh=xGpCDuiZaze/SNMzldIy+QgzhCnTSHNqOPcMDiv0rYc=;
+	s=korg; t=1719342495;
+	bh=NQaS2qDWHNh0k8wQJ8Cbj78fUUYA+wU25UwmlUz3sFE=;
 	h=Date:To:From:Subject:From;
-	b=Lt/4+n4egLTCek49mirCi40Wp4wxypJZNot1+oK80o488cpZw2MSP/OG8Drt9TQnc
-	 swHeqxuLY5XXzhpmQNoLQA9LzfvXVyAjlMRP1bLFHg8jdINaWJxhijl/WSM3qtpFE9
-	 4LEywtbQCD1hBfIqhG7RxyEsauCPBEcFJ72hKZ68=
-Date: Tue, 25 Jun 2024 12:08:11 -0700
+	b=qmMgZoJAcSe9fe8WLDv1T/6LqpToVZzMuM4uMnZsPMfyui4QhWc0VtkUVGbo5t8zA
+	 r6it6bgpEbAnDFaa1OufePEucdNxem+hIUOC55msj/448HosPRZGZML7IxNGtqxKqz
+	 IAbciioSoGqdmI6s9N/NJzSj+GG8DhvS7mhzPB5w=
+Date: Tue, 25 Jun 2024 12:08:14 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-implement-test-for-min-max_nr_regions.patch added to mm-unstable branch
-Message-Id: <20240625190812.6B361C32781@smtp.kernel.org>
+Subject: + _damon_sysfs-implement-commit-for-online-parameters-update.patch added to mm-unstable branch
+Message-Id: <20240625190815.024F0C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon: implement test for min/max_nr_regions
+     Subject: _damon_sysfs: implement commit() for online parameters update
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-damon-implement-test-for-min-max_nr_regions.patch
+     _damon_sysfs-implement-commit-for-online-parameters-update.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-implement-test-for-min-max_nr_regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/_damon_sysfs-implement-commit-for-online-parameters-update.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,123 +59,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon: implement test for min/max_nr_regions
-Date: Tue, 25 Jun 2024 11:05:36 -0700
+Subject: _damon_sysfs: implement commit() for online parameters update
+Date: Tue, 25 Jun 2024 11:05:37 -0700
 
-Implement a kselftest for DAMON's {min,max}_nr_regions' parameters.  The
-test ensures both the minimum and the maximum number of regions limit is
-respected even if the workload's real number of regions is less than the
-minimum or larger than the maximum limits.
+Users can update DAMON parameters while it is running, using 'commit'
+DAMON sysfs interface command.  For testing the feature in future tests,
+implement a function for doing that on the test-purpose DAMON sysfs
+interface wrapper Python module.
 
-Link: https://lkml.kernel.org/r/20240625180538.73134-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240625180538.73134-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile            |    2 
- tools/testing/selftests/damon/damon_nr_regions.py |   85 ++++++++++++
- 2 files changed, 86 insertions(+), 1 deletion(-)
+ tools/testing/selftests/damon/_damon_sysfs.py |   19 ++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
---- /dev/null
-+++ a/tools/testing/selftests/damon/damon_nr_regions.py
-@@ -0,0 +1,85 @@
-+#!/usr/bin/env python3
-+# SPDX-License-Identifier: GPL-2.0
-+
-+import subprocess
-+import time
-+
-+import _damon_sysfs
-+
-+def test_nr_regions(real_nr_regions, min_nr_regions, max_nr_regions):
-+    '''
-+    Create process of the given 'real_nr_regions' regions, monitor it using
-+    DAMON with given '{min,max}_nr_regions' monitoring parameter.
-+
-+    Exit with non-zero return code if the given {min,max}_nr_regions is not
-+    kept.
-+    '''
-+    sz_region = 10 * 1024 * 1024
-+    proc = subprocess.Popen(['./access_memory_even', '%d' % real_nr_regions,
-+                             '%d' % sz_region])
-+
-+    # stat every monitored regions
-+    kdamonds = _damon_sysfs.Kdamonds([_damon_sysfs.Kdamond(
-+            contexts=[_damon_sysfs.DamonCtx(
-+                monitoring_attrs=_damon_sysfs.DamonAttrs(
-+                    min_nr_regions=min_nr_regions,
-+                    max_nr_regions=max_nr_regions),
-+                ops='vaddr',
-+                targets=[_damon_sysfs.DamonTarget(pid=proc.pid)],
-+                schemes=[_damon_sysfs.Damos(action='stat',
-+                    )] # schemes
-+                )] # contexts
-+            )]) # kdamonds
-+
-+    err = kdamonds.start()
-+    if err is not None:
-+        proc.terminate()
-+        print('kdamond start failed: %s' % err)
-+        exit(1)
-+
-+    collected_nr_regions = []
-+    while proc.poll() is None:
-+        time.sleep(0.1)
-+        err = kdamonds.kdamonds[0].update_schemes_tried_regions()
-+        if err is not None:
-+            proc.terminate()
-+            print('tried regions update failed: %s' % err)
-+            exit(1)
-+
-+        scheme = kdamonds.kdamonds[0].contexts[0].schemes[0]
-+        if scheme.tried_regions is None:
-+            proc.terminate()
-+            print('tried regions is not collected')
-+            exit(1)
-+
-+        nr_tried_regions = len(scheme.tried_regions)
-+        if nr_tried_regions <= 0:
-+            proc.terminate()
-+            print('tried regions is not created')
-+            exit(1)
-+        collected_nr_regions.append(nr_tried_regions)
-+        if len(collected_nr_regions) > 10:
-+            break
-+    proc.terminate()
-+    kdamonds.stop()
-+
-+    test_name = 'nr_regions test with %d/%d/%d real/min/max nr_regions' % (
-+            real_nr_regions, min_nr_regions, max_nr_regions)
-+    if (collected_nr_regions[0] < min_nr_regions or
-+        collected_nr_regions[-1] > max_nr_regions):
-+        print('fail %s' % test_name)
-+        print('number of regions that collected are:')
-+        for nr in collected_nr_regions:
-+            print(nr)
-+        exit(1)
-+    print('pass %s ' % test_name)
-+
-+def main():
-+    # test min_nr_regions larger than real nr regions
-+    test_nr_regions(10, 20, 100)
-+
-+    # test max_nr_regions smaller than real nr regions
-+    test_nr_regions(15, 3, 10)
-+
-+if __name__ == '__main__':
-+    main()
---- a/tools/testing/selftests/damon/Makefile~selftests-damon-implement-test-for-min-max_nr_regions
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -13,7 +13,7 @@ TEST_PROGS = debugfs_attrs.sh debugfs_sc
- TEST_PROGS += sysfs.sh
- TEST_PROGS += sysfs_update_schemes_tried_regions_wss_estimation.py
- TEST_PROGS += damos_quota.py damos_quota_goal.py damos_apply_interval.py
--TEST_PROGS += damos_tried_regions.py
-+TEST_PROGS += damos_tried_regions.py damon_nr_regions.py
- TEST_PROGS += reclaim.sh lru_sort.sh
+--- a/tools/testing/selftests/damon/_damon_sysfs.py~_damon_sysfs-implement-commit-for-online-parameters-update
++++ a/tools/testing/selftests/damon/_damon_sysfs.py
+@@ -481,6 +481,25 @@ class Kdamond:
+                     goal.effective_bytes = int(content)
+         return None
  
- # regression tests (reproducers of previously found bugs)
++    def commit(self):
++        nr_contexts_file = os.path.join(self.sysfs_dir(),
++                'contexts', 'nr_contexts')
++        content, err = read_file(nr_contexts_file)
++        if err is not None:
++            return err
++        if int(content) != len(self.contexts):
++            err = write_file(nr_contexts_file, '%d' % len(self.contexts))
++            if err is not None:
++                return err
++
++        for context in self.contexts:
++            err = context.stage()
++            if err is not None:
++                return err
++        err = write_file(os.path.join(self.sysfs_dir(), 'state'), 'commit')
++        return err
++
++
+     def commit_schemes_quota_goals(self):
+         for context in self.contexts:
+             for scheme in context.schemes:
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
