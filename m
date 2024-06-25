@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC8805A11D
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:00:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E17B2142658
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:00:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291604; cv=none; b=lLV4plMCsZKWBI43wGVol/8q3fLhCBEMn0art8Yq6kFdgeKz60+w8xpNhbv1TLd7vjPksnh2At/HgrY66GDgtAKMltn1bG/uK7ggeu6dpQm2tTZPfIHMNs+EnXGFQwpZbRLVkELa/q9MmjyCDfYuXrpH9vbE9v9uJRm+MkBXuag=
+	t=1719291606; cv=none; b=kMOC1zLWm+NLo+b0GWfodCD1hCDysWwkH6dbjZbWrHLyMIVCO+SuB4iXBua/6FKqo8CSTkRnOZyzVdvWZ0ixy2ZQo8siqUjj2LfAnVgXy/DppZQ0PPUNZvcnmDHhTN9FxqibSpUzqIuVcWz7YOHLZEPtHJuaaeB8I5dAourqLWo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291604; c=relaxed/simple;
-	bh=76EWH/+rkLIpILps5G77toE5XSuULTusRcyRaw84Ayo=;
-	h=Date:To:From:Subject:Message-Id; b=ny4eaWMIRp+hbiII09FjecbUiuFJPRrn2cFnNaUO2QUa2eIUi3zpa4SexoNiv41prVDVR6GXNrplFyyXa6zfNt6Mb0WV2lFdeZiJPNQ7dKvv5VZOPHhUuQCadOPd2xjl1ZSGsJFK+y9u4sGgq7nhVnI1tjkd9gKjutqbTh2D/n4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m77GGhiV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291606; c=relaxed/simple;
+	bh=iKcZnP+s4g3wOT/QvGs01X3pEWc9tzYiUoADjhSx68s=;
+	h=Date:To:From:Subject:Message-Id; b=EDuHMys3GyLaQQ6oyMHf7y8mCem8jTGhiu3mt2pgXZ4y2WMtSGgSzhCzG3hGHjjF0F6Zwe3WXI+aD4vlebPHN+fbC916BHCZ3olbnvsCEHqCd/zZuHaZ1DpwrrZarExhAH64nAUEv3/uarkzaUY7sqpznz08UNWHF2GohQXgKr4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u8muLEWg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m77GGhiV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5131FC32782;
-	Tue, 25 Jun 2024 05:00:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u8muLEWg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6507DC32782;
+	Tue, 25 Jun 2024 05:00:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291604;
-	bh=76EWH/+rkLIpILps5G77toE5XSuULTusRcyRaw84Ayo=;
+	s=korg; t=1719291605;
+	bh=iKcZnP+s4g3wOT/QvGs01X3pEWc9tzYiUoADjhSx68s=;
 	h=Date:To:From:Subject:From;
-	b=m77GGhiVLMoCNXlbg87CIkodhBhPuVYmpng7z6GEjQiRynH1plfnS3L4Q5K1uPv3B
-	 /YV0/2q7j10Gh42HDxAaGBkR9qdTOKOpsvrqKOHYrnMvGbKwn/4Ge9o6VnR/6ucFg/
-	 iguXMXXHlT0Ol6ym4W4WFalrjz6DemRH2KsCixRU=
-Date: Mon, 24 Jun 2024 22:00:03 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,yosryahmed@google.com,akpm@linux-foundation.org
+	b=u8muLEWgkrQ3e3J1YvX9Gnaq5MXLGJLPkbeJOXF2nbaQ8/GJ9eiVzpM51ot0edBrJ
+	 PFQFRntoUjuUqAKGr/6IIQ/3946rpUx44KOS4Zf0no/hGBG3kyjLzjIOOoy7zhh0Fs
+	 GdQerdKjWHZa2WjIdydaWMWelkiFtmyCHdOxRLYs=
+Date: Mon, 24 Jun 2024 22:00:04 -0700
+To: mm-commits@vger.kernel.org,hughd@google.com,david@redhat.com,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-make-same_filled-functions-folio-friendly.patch removed from -mm tree
-Message-Id: <20240625050004.5131FC32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-abstract-updating-per-node-and-per-memcg-stats.patch removed from -mm tree
+Message-Id: <20240625050005.6507DC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,109 +35,171 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: zswap: make same_filled functions folio-friendly
+     Subject: mm: rmap: abstract updating per-node and per-memcg stats
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-make-same_filled-functions-folio-friendly.patch
+     mm-rmap-abstract-updating-per-node-and-per-memcg-stats.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zswap: make same_filled functions folio-friendly
-Date: Fri, 24 May 2024 03:38:18 +0000
+Subject: mm: rmap: abstract updating per-node and per-memcg stats
+Date: Mon, 6 May 2024 21:13:33 +0000
 
-A variable name 'page' is used in zswap_is_folio_same_filled() and
-zswap_fill_page() to point at the kmapped data in a folio. Use 'data'
-instead to avoid confusion and stop it from showing up when searching
-for 'page' references in mm/zswap.c.
+A lot of intricacies go into updating the stats when adding or removing
+mappings: which stat index to use and which function.  Abstract this away
+into a new static helper in rmap.c, __folio_mod_stat().
 
-While we are at it, move the kmap/kunmap calls into zswap_fill_page(),
-make it take in a folio, and rename it to zswap_fill_folio().
+This adds an unnecessary call to folio_test_anon() in
+__folio_add_anon_rmap() and __folio_add_file_rmap().  However, the folio
+struct should already be in the cache at this point, so it shouldn't cause
+any noticeable overhead.
 
-Link: https://lkml.kernel.org/r/20240524033819.1953587-4-yosryahmed@google.com
+No functional change intended.
+
+[hughd@google.com: fix /proc/meminfo]
+  Link: https://lkml.kernel.org/r/49914517-dfc7-e784-fde0-0e08fafbecc2@google.com
+Link: https://lkml.kernel.org/r/20240506211333.346605-1-yosryahmed@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   30 +++++++++++++-----------------
- 1 file changed, 13 insertions(+), 17 deletions(-)
+ mm/rmap.c |   56 ++++++++++++++++++++++++++--------------------------
+ 1 file changed, 29 insertions(+), 27 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-make-same_filled-functions-folio-friendly
-+++ a/mm/zswap.c
-@@ -1375,35 +1375,35 @@ resched:
- **********************************/
- static bool zswap_is_folio_same_filled(struct folio *folio, unsigned long *value)
- {
--	unsigned long *page;
-+	unsigned long *data;
- 	unsigned long val;
--	unsigned int pos, last_pos = PAGE_SIZE / sizeof(*page) - 1;
-+	unsigned int pos, last_pos = PAGE_SIZE / sizeof(*data) - 1;
- 	bool ret = false;
+--- a/mm/rmap.c~mm-rmap-abstract-updating-per-node-and-per-memcg-stats
++++ a/mm/rmap.c
+@@ -1269,6 +1269,28 @@ static void __page_check_anon_rmap(struc
+ 		       page);
+ }
  
--	page = kmap_local_folio(folio, 0);
--	val = page[0];
-+	data = kmap_local_folio(folio, 0);
-+	val = data[0];
++static void __folio_mod_stat(struct folio *folio, int nr, int nr_pmdmapped)
++{
++	int idx;
++
++	if (nr) {
++		idx = folio_test_anon(folio) ? NR_ANON_MAPPED : NR_FILE_MAPPED;
++		__lruvec_stat_mod_folio(folio, idx, nr);
++	}
++	if (nr_pmdmapped) {
++		if (folio_test_anon(folio)) {
++			idx = NR_ANON_THPS;
++			__lruvec_stat_mod_folio(folio, idx, nr_pmdmapped);
++		} else {
++			/* NR_*_PMDMAPPED are not maintained per-memcg */
++			idx = folio_test_swapbacked(folio) ?
++				NR_SHMEM_PMDMAPPED : NR_FILE_PMDMAPPED;
++			__mod_node_page_state(folio_pgdat(folio), idx,
++					      nr_pmdmapped);
++		}
++	}
++}
++
+ static __always_inline void __folio_add_anon_rmap(struct folio *folio,
+ 		struct page *page, int nr_pages, struct vm_area_struct *vma,
+ 		unsigned long address, rmap_t flags, enum rmap_level level)
+@@ -1276,10 +1298,6 @@ static __always_inline void __folio_add_
+ 	int i, nr, nr_pmdmapped = 0;
  
--	if (val != page[last_pos])
-+	if (val != data[last_pos])
- 		goto out;
+ 	nr = __folio_add_rmap(folio, page, nr_pages, level, &nr_pmdmapped);
+-	if (nr_pmdmapped)
+-		__lruvec_stat_mod_folio(folio, NR_ANON_THPS, nr_pmdmapped);
+-	if (nr)
+-		__lruvec_stat_mod_folio(folio, NR_ANON_MAPPED, nr);
  
- 	for (pos = 1; pos < last_pos; pos++) {
--		if (val != page[pos])
-+		if (val != data[pos])
- 			goto out;
+ 	if (unlikely(!folio_test_anon(folio))) {
+ 		VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
+@@ -1297,6 +1315,8 @@ static __always_inline void __folio_add_
+ 		__page_check_anon_rmap(folio, page, vma, address);
  	}
  
- 	*value = val;
- 	ret = true;
- out:
--	kunmap_local(page);
-+	kunmap_local(data);
- 	return ret;
- }
- 
--static void zswap_fill_page(void *ptr, unsigned long value)
-+static void zswap_fill_folio(struct folio *folio, unsigned long value)
++	__folio_mod_stat(folio, nr, nr_pmdmapped);
++
+ 	if (flags & RMAP_EXCLUSIVE) {
+ 		switch (level) {
+ 		case RMAP_LEVEL_PTE:
+@@ -1393,6 +1413,7 @@ void folio_add_new_anon_rmap(struct foli
+ 		unsigned long address)
  {
--	unsigned long *page;
-+	unsigned long *data = kmap_local_folio(folio, 0);
+ 	int nr = folio_nr_pages(folio);
++	int nr_pmdmapped = 0;
  
--	page = (unsigned long *)ptr;
--	memset_l(page, value, PAGE_SIZE / sizeof(unsigned long));
-+	memset_l(data, value, PAGE_SIZE / sizeof(unsigned long));
-+	kunmap_local(data);
+ 	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
+ 	VM_BUG_ON_VMA(address < vma->vm_start ||
+@@ -1425,27 +1446,22 @@ void folio_add_new_anon_rmap(struct foli
+ 		atomic_set(&folio->_large_mapcount, 0);
+ 		atomic_set(&folio->_nr_pages_mapped, ENTIRELY_MAPPED);
+ 		SetPageAnonExclusive(&folio->page);
+-		__lruvec_stat_mod_folio(folio, NR_ANON_THPS, nr);
++		nr_pmdmapped = nr;
+ 	}
+ 
+-	__lruvec_stat_mod_folio(folio, NR_ANON_MAPPED, nr);
++	__folio_mod_stat(folio, nr, nr_pmdmapped);
  }
  
- /*********************************
-@@ -1554,7 +1554,6 @@ bool zswap_load(struct folio *folio)
- 	bool swapcache = folio_test_swapcache(folio);
- 	struct xarray *tree = swap_zswap_tree(swp);
- 	struct zswap_entry *entry;
--	u8 *dst;
+ static __always_inline void __folio_add_file_rmap(struct folio *folio,
+ 		struct page *page, int nr_pages, struct vm_area_struct *vma,
+ 		enum rmap_level level)
+ {
+-	pg_data_t *pgdat = folio_pgdat(folio);
+ 	int nr, nr_pmdmapped = 0;
  
- 	VM_WARN_ON_ONCE(!folio_test_locked(folio));
+ 	VM_WARN_ON_FOLIO(folio_test_anon(folio), folio);
  
-@@ -1580,11 +1579,8 @@ bool zswap_load(struct folio *folio)
+ 	nr = __folio_add_rmap(folio, page, nr_pages, level, &nr_pmdmapped);
+-	if (nr_pmdmapped)
+-		__mod_node_page_state(pgdat, folio_test_swapbacked(folio) ?
+-			NR_SHMEM_PMDMAPPED : NR_FILE_PMDMAPPED, nr_pmdmapped);
+-	if (nr)
+-		__lruvec_stat_mod_folio(folio, NR_FILE_MAPPED, nr);
++	__folio_mod_stat(folio, nr, nr_pmdmapped);
  
- 	if (entry->length)
- 		zswap_decompress(entry, folio);
--	else {
--		dst = kmap_local_folio(folio, 0);
--		zswap_fill_page(dst, entry->value);
--		kunmap_local(dst);
+ 	/* See comments in folio_add_anon_rmap_*() */
+ 	if (!folio_test_large(folio))
+@@ -1494,10 +1510,8 @@ static __always_inline void __folio_remo
+ 		enum rmap_level level)
+ {
+ 	atomic_t *mapped = &folio->_nr_pages_mapped;
+-	pg_data_t *pgdat = folio_pgdat(folio);
+ 	int last, nr = 0, nr_pmdmapped = 0;
+ 	bool partially_mapped = false;
+-	enum node_stat_item idx;
+ 
+ 	__folio_rmap_sanity_checks(folio, page, nr_pages, level);
+ 
+@@ -1541,20 +1555,7 @@ static __always_inline void __folio_remo
+ 		break;
+ 	}
+ 
+-	if (nr_pmdmapped) {
+-		/* NR_{FILE/SHMEM}_PMDMAPPED are not maintained per-memcg */
+-		if (folio_test_anon(folio))
+-			__lruvec_stat_mod_folio(folio, NR_ANON_THPS, -nr_pmdmapped);
+-		else
+-			__mod_node_page_state(pgdat,
+-					folio_test_swapbacked(folio) ?
+-					NR_SHMEM_PMDMAPPED : NR_FILE_PMDMAPPED,
+-					-nr_pmdmapped);
 -	}
-+	else
-+		zswap_fill_folio(folio, entry->value);
+ 	if (nr) {
+-		idx = folio_test_anon(folio) ? NR_ANON_MAPPED : NR_FILE_MAPPED;
+-		__lruvec_stat_mod_folio(folio, idx, -nr);
+-
+ 		/*
+ 		 * Queue anon large folio for deferred split if at least one
+ 		 * page of the folio is unmapped and at least one page
+@@ -1566,6 +1567,7 @@ static __always_inline void __folio_remo
+ 		    list_empty(&folio->_deferred_list))
+ 			deferred_split_folio(folio);
+ 	}
++	__folio_mod_stat(folio, -nr, -nr_pmdmapped);
  
- 	count_vm_event(ZSWPIN);
- 	if (entry->objcg)
+ 	/*
+ 	 * It would be tidy to reset folio_test_anon mapping when fully
 _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
