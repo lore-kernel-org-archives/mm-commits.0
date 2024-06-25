@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA67414373B
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C2C81448EF
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291677; cv=none; b=R3gW/hOtefV2b8VF63CPIspMw/6RgztVbBHV7M5sZhS1Amw22QIdNTnuPrs98Nl+Fbh2Jk59dFjSQhsh3CidJVvEJKcMhw7cX0tzWnB1/Wx/xbdHURpjQYnWVozlAeohfhPSFMvyRoPLTQYrPENiazpqpwi+6RxLqWM4F41Zo/U=
+	t=1719291678; cv=none; b=RXOHNEHpmNwkFaH15wbLHHWSJ2MyU5eYRuGbearPKmVSYcTAOP41K4v0AW7N8hRbL4niSOXOwTbTWaEY3jJ2wF/xJQ2boqKde7Xlof7VZWCxd7RwoHIdYGJNp1MBBujRIjMqPL+iJJ4NlG4bAhA6cy03k1jD9VPYbg2Rdz3Up7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291677; c=relaxed/simple;
-	bh=NSaNJZDw2EQ8sjQgGVW5xXjb/ODJ+eoX7JL9X/ezv3o=;
-	h=Date:To:From:Subject:Message-Id; b=d+ZB17IzGoPkeZbJseLFcvhsA5lhvVwYOCugokwM1b2Dvhytt7JIR8I0y2J20BILTLkOekHB1VBASuRPJh1FZ1dqHhJi5dGRwweCiGTsPkVHsXIg6+KnWPLfQq1z7Uh7wIEmI9t7z4JNB/pBISmZ1EjKOX3C60mOvZnXqVm+fVg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vWbl7EDM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291678; c=relaxed/simple;
+	bh=Pp9yYXiEvNiGSsl3CPkNNmUbcnlLXOxGT/ZRGpGddmM=;
+	h=Date:To:From:Subject:Message-Id; b=XwY4I/TUjgAjtYW8Y/4TubsHxr3cO7bnpKJT+7F8G2TEKJDtUCOCdVTaf/INd+Ml2jp9OL3+3UVciArXI4VHlmPfQXlMlwlyqa+l3IuTji+CsUEO3vrvMjGeOCrcUHFm+O/ieYNHLMaRz92XVKl97vrW/hMSK2inJ1C543xs5Lo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ykemEuiU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vWbl7EDM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17785C32782;
-	Tue, 25 Jun 2024 05:01:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ykemEuiU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38833C32782;
+	Tue, 25 Jun 2024 05:01:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291677;
-	bh=NSaNJZDw2EQ8sjQgGVW5xXjb/ODJ+eoX7JL9X/ezv3o=;
+	s=korg; t=1719291678;
+	bh=Pp9yYXiEvNiGSsl3CPkNNmUbcnlLXOxGT/ZRGpGddmM=;
 	h=Date:To:From:Subject:From;
-	b=vWbl7EDMnHKPPGwSs3bevKMYmPpF9qOsqz5/f/8tWiq4QH+YYn/YGOYVmhkmQdq/L
-	 4/YNHddDJ3Jk62H2gn7JoM7tmSARsw1mVpTTwmUTWf3xHA1S4KY/pmGg5k/781ptFr
-	 Fg1QnLjY0LcjedvOG2wLqUClaUp4FhjC+3BsI+h8=
-Date: Mon, 24 Jun 2024 22:01:16 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,shuah@kernel.org,mcgrof@kernel.org,david@redhat.com,p.raghav@samsung.com,akpm@linux-foundation.org
+	b=ykemEuiUjZlW73nroa8YU4CvdCok6JBmcqU3s8FX7YD/SiXywEg8Miwj91LmwnB5c
+	 uyymhiiglaWmQHNzRrf4VyjJJahc+Hpxx96ubqZPwqhANY0V5M/lr61U75JfKgdCqk
+	 bPmYpKk2cMPvsVspWJRXiIuPajyHTwCS/7mJ42Yc=
+Date: Mon, 24 Jun 2024 22:01:17 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,willy@infradead.org,shakeel.butt@linux.dev,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-use-asm-volatile-to-not-optimize-mmap-read-variable.patch removed from -mm tree
-Message-Id: <20240625050117.17785C32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-do-not-start-end-writeback-for-pages-stored-in-zswap.patch removed from -mm tree
+Message-Id: <20240625050118.38833C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,66 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: use asm volatile to not optimize mmap read variable
+     Subject: mm: do not start/end writeback for pages stored in zswap
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-use-asm-volatile-to-not-optimize-mmap-read-variable.patch
+     mm-do-not-start-end-writeback-for-pages-stored-in-zswap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pankaj Raghav <p.raghav@samsung.com>
-Subject: selftests/mm: use asm volatile to not optimize mmap read variable
-Date: Thu, 6 Jun 2024 20:36:19 +0000
+From: Usama Arif <usamaarif642@gmail.com>
+Subject: mm: do not start/end writeback for pages stored in zswap
+Date: Mon, 10 Jun 2024 15:30:37 +0100
 
-create_pagecache_thp_and_fd() in split_huge_page_test.c used the variable
-dummy to perform mmap read.
+Most of the work done in folio_start_writeback is reversed in
+folio_end_writeback.  For e.g.  NR_WRITEBACK and NR_ZONE_WRITE_PENDING are
+incremented in start_writeback and decremented in end_writeback.  Calling
+end_writeback immediately after start_writeback (separated by
+folio_unlock) cancels the affect of most of the work done in start hence
+can be removed.
 
-However, this test was skipped even on XFS which has large folio support. 
-The issue was compiler (gcc 13.2.0) was optimizing out the dummy variable,
-therefore, not creating huge page in the page cache.
+There is some extra work done in folio_end_writeback, however it is
+incorrect/not applicable to zswap:
+- folio_end_writeback incorrectly increments NR_WRITTEN counter,
+  eventhough the pages aren't written to disk, hence this change
+  corrects this behaviour.
+- folio_end_writeback calls folio_rotate_reclaimable, but that only
+  makes sense for async writeback pages, while for zswap pages are
+  synchronously reclaimed.
 
-Use asm volatile() trick to force the compiler not to optimize out the
-loop where we read from the mmaped addr.  This is similar to what is being
-done in other tests (cow.c, etc)
-
-As the variable is now used in the asm statement, remove the unused
-attribute.
-
-Link: https://lkml.kernel.org/r/20240606203619.677276-1-kernel@pankajraghav.com
-Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20240612100109.1616626-1-usamaarif642@gmail.com
+Link: https://lkml.kernel.org/r/20240610143037.812955-1-usamaarif642@gmail.com
+Signed-off-by: Usama Arif <usamaarif642@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
+Suggested-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_io.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-use-asm-volatile-to-not-optimize-mmap-read-variable
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -300,7 +300,7 @@ int create_pagecache_thp_and_fd(const ch
- 		char **addr)
- {
- 	size_t i;
--	int __attribute__((unused)) dummy = 0;
-+	int dummy = 0;
- 
- 	srand(time(NULL));
- 
-@@ -341,6 +341,7 @@ int create_pagecache_thp_and_fd(const ch
- 
- 	for (size_t i = 0; i < fd_size; i++)
- 		dummy += *(*addr + i);
-+	asm volatile("" : "+r" (dummy));
- 
- 	if (!check_huge_file(*addr, fd_size / pmd_pagesize, pmd_pagesize)) {
- 		ksft_print_msg("No large pagecache folio generated, please provide a filesystem supporting large folio\n");
+--- a/mm/page_io.c~mm-do-not-start-end-writeback-for-pages-stored-in-zswap
++++ a/mm/page_io.c
+@@ -196,9 +196,7 @@ int swap_writepage(struct page *page, st
+ 		return ret;
+ 	}
+ 	if (zswap_store(folio)) {
+-		folio_start_writeback(folio);
+ 		folio_unlock(folio);
+-		folio_end_writeback(folio);
+ 		return 0;
+ 	}
+ 	if (!mem_cgroup_zswap_writeback_enabled(folio_memcg(folio))) {
 _
 
-Patches currently in -mm which might be from p.raghav@samsung.com are
+Patches currently in -mm which might be from usamaarif642@gmail.com are
 
+mm-store-zero-pages-to-be-swapped-out-in-a-bitmap.patch
+mm-store-zero-pages-to-be-swapped-out-in-a-bitmap-v6.patch
+mm-remove-code-to-handle-same-filled-pages.patch
 
