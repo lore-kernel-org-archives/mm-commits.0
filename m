@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6171135A7F
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:31:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC4A521A0C
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:32:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719289912; cv=none; b=JUW2raYL6Y4CAjnZkNfFsnRDk0Y60e6MIzEeeOhWyn1/UBTFpgA6Iibq8/Bp1F14hSyjgytWNq+Dsr4PlnPtm80Sp1lA4FrMfruoDjL4o7iGpT6sAx41sxRJ7dMOdu0DFFwLJ8ipU3UOenc1ZnLzzF/WuKxTo7hGewJmn0q9lTQ=
+	t=1719289946; cv=none; b=kE1NIizoLNJbQbDR2F/1NHSslwXUyq0VJs+0VvrrJ5UsCegEsyAzkV+7Klcq6kS+rdnOZuLKDma3VhvBfjvEq1WoNxHEa3OM3SJqjq7HJBL1tjIdB2zy4uLR9Vl1FV2nDNlRkjCWN6GORa6qwCY/Jf72jo+sjgJiJreszTnTMVc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719289912; c=relaxed/simple;
-	bh=sUOZ84raFeCKT0k7iUiLx3xwrsGKG9I5GnYgDq9HVXk=;
-	h=Date:To:From:Subject:Message-Id; b=UNnOlFd7UmtSVHgSfdMyFhV5ht/cej0yfEZgJKzYKRrIliioBO9AKVLeR2/6IVy1+sL2EqQldq7PpKWrLwYqtnuAWm/0DP+dHSm3V8wa8a9HMiQvYhTlJbhKrnuF3FShBf6i1Qx0RfVce0eLNWGE8LIulNDUUml7wyHPYeMEroE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DHAl1hcb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719289946; c=relaxed/simple;
+	bh=0XAa18biw2QzFvtbZZkXJxUoqE5audvwyKDfT7tg934=;
+	h=Date:To:From:Subject:Message-Id; b=hbXz0M5SzKAf67tzRw67H8/w2q2occVbYPrtJNGh+pj5WqZZ5l63Hr+w0jQYJmb1sfb9PW3Y2pfRoAbXJ60Et2chG9DGn3iPkk8dr65iw9jxrF6UYFEmO/dA36aVCLPZYR3gnmzvvl4eITnIVRLRnM6MaP/QTdQZFpatkxnV/Vg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fdKDSIVV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DHAl1hcb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61A7FC32782;
-	Tue, 25 Jun 2024 04:31:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fdKDSIVV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82AC9C32782;
+	Tue, 25 Jun 2024 04:32:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719289911;
-	bh=sUOZ84raFeCKT0k7iUiLx3xwrsGKG9I5GnYgDq9HVXk=;
+	s=korg; t=1719289945;
+	bh=0XAa18biw2QzFvtbZZkXJxUoqE5audvwyKDfT7tg934=;
 	h=Date:To:From:Subject:From;
-	b=DHAl1hcbureEfK5qRQECLrGudVeqAr4P2wLaQ+OaAs8A9RQqnlX1pFp5FNMWuHtk6
-	 pY0LrQk6TIZ1GRAgl4mxRtnCvmIM+3lMMT072TfbOswKmFIMNq27SH+GB/PsTzeoEv
-	 3sbZVnjhcqr46ZYYUB2xr0a80zFN6opgGWIo5zT0=
-Date: Mon, 24 Jun 2024 21:31:50 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,nphamcs@gmail.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,baohua@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
+	b=fdKDSIVVGnVzhfzprlyu9UVSu88t2H+DwPXlwNPMt1I8hnZ4W/a3S1tQihmT1Ve0R
+	 1IbcY3NOcnGK/550T71Em2bwDuoSp3WqBK91z3tkrxw4HycPV2bhgmgG9VJuhZ8Ub+
+	 T6T4iTPi23sKQwz4LX2YstxuVec/ASZwbHUejH5c=
+Date: Mon, 24 Jun 2024 21:32:25 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,osalvador@suse.de,oliver.sang@intel.com,muchun.song@linux.dev,m.szyprowski@samsung.com,xiujianfeng@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-zswap-add-zswap_never_enabled-fix.patch removed from -mm tree
-Message-Id: <20240625043151.61A7FC32782@smtp.kernel.org>
+Subject: [folded-merged] mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix.patch removed from -mm tree
+Message-Id: <20240625043225.82AC9C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,116 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-zswap-add-zswap_never_enabled-fix
+     Subject: mm/hugetlb_cgroup: register lockdep key for cftype
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-add-zswap_never_enabled-fix.patch
+     mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix.patch
 
-This patch was dropped because it was folded into mm-zswap-add-zswap_never_enabled.patch
+This patch was dropped because it was folded into mm-hugetlb_cgroup-prepare-cftypes-based-on-template.patch
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm-zswap-add-zswap_never_enabled-fix
-Date: Tue, 11 Jun 2024 23:37:52 +0000
+From: Xiu Jianfeng <xiujianfeng@huawei.com>
+Subject: mm/hugetlb_cgroup: register lockdep key for cftype
+Date: Tue, 18 Jun 2024 07:19:22 +0000
 
-Expose zswap_never_enabled() in the header for the swapin work to use
-it later.
+When CONFIG_DEBUG_LOCK_ALLOC is enabled, the following commands can
+trigger a bug,
 
-Link: https://lkml.kernel.org/r/Zmjf0Dr8s9xSW41X@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+mount -t cgroup2 none /sys/fs/cgroup
+cd /sys/fs/cgroup
+echo "+hugetlb" > cgroup.subtree_control
+
+The log is as below:
+
+BUG: key ffff8880046d88d8 has not been registered!
+------------[ cut here ]------------
+DEBUG_LOCKS_WARN_ON(1)
+WARNING: CPU: 3 PID: 226 at kernel/locking/lockdep.c:4945 lockdep_init_map_type+0x185/0x220
+Modules linked in:
+CPU: 3 PID: 226 Comm: bash Not tainted 6.10.0-rc4-next-20240617-g76db4c64526c #544
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
+RIP: 0010:lockdep_init_map_type+0x185/0x220
+Code: 00 85 c0 0f 84 6c ff ff ff 8b 3d 6a d1 85 01 85 ff 0f 85 5e ff ff ff 48 c7 c6 21 99 4a 82 48 c7 c7 60 29 49 82 e8 3b 2e f5
+RSP: 0018:ffffc9000083fc30 EFLAGS: 00000282
+RAX: 0000000000000000 RBX: ffffffff828dd820 RCX: 0000000000000027
+RDX: ffff88803cd9cac8 RSI: 0000000000000001 RDI: ffff88803cd9cac0
+RBP: ffff88800674fbb0 R08: ffffffff828ce248 R09: 00000000ffffefff
+R10: ffffffff8285e260 R11: ffffffff828b8eb8 R12: ffff8880046d88d8
+R13: 0000000000000000 R14: 0000000000000000 R15: ffff8880067281c0
+FS:  00007f68601ea740(0000) GS:ffff88803cd80000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00005614f3ebc740 CR3: 000000000773a000 CR4: 00000000000006f0
+Call Trace:
+ <TASK>
+ ? __warn+0x77/0xd0
+ ? lockdep_init_map_type+0x185/0x220
+ ? report_bug+0x189/0x1a0
+ ? handle_bug+0x3c/0x70
+ ? exc_invalid_op+0x18/0x70
+ ? asm_exc_invalid_op+0x1a/0x20
+ ? lockdep_init_map_type+0x185/0x220
+ __kernfs_create_file+0x79/0x100
+ cgroup_addrm_files+0x163/0x380
+ ? find_held_lock+0x2b/0x80
+ ? find_held_lock+0x2b/0x80
+ ? find_held_lock+0x2b/0x80
+ css_populate_dir+0x73/0x180
+ cgroup_apply_control_enable+0x12f/0x3a0
+ cgroup_subtree_control_write+0x30b/0x440
+ kernfs_fop_write_iter+0x13a/0x1f0
+ vfs_write+0x341/0x450
+ ksys_write+0x64/0xe0
+ do_syscall_64+0x4b/0x110
+ entry_SYSCALL_64_after_hwframe+0x76/0x7e
+RIP: 0033:0x7f68602d9833
+Code: 8b 15 61 26 0e 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb b7 0f 1f 00 64 8b 04 25 18 00 00 00 85 c0 75 14 b8 01 00 00 00 08
+RSP: 002b:00007fff9bbdf8e8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000009 RCX: 00007f68602d9833
+RDX: 0000000000000009 RSI: 00005614f3ebc740 RDI: 0000000000000001
+RBP: 00005614f3ebc740 R08: 000000000000000a R09: 0000000000000008
+R10: 00005614f3db6ba0 R11: 0000000000000246 R12: 0000000000000009
+R13: 00007f68603bd6a0 R14: 0000000000000009 R15: 00007f68603b8880
+
+For lockdep, there is a sanity check in lockdep_init_map_type(), the
+lock-class key must either have been allocated statically or must
+have been registered as a dynamic key. However the commit e18df2889ff9
+("mm/hugetlb_cgroup: prepare cftypes based on template") has changed
+the cftypes from static allocated objects to dynamic allocated objects,
+so the cft->lockdep_key must be registered proactively.
+
+Link: https://lkml.kernel.org/r/20240618071922.2127289-1-xiujianfeng@huawei.com
+Link: https://lore.kernel.org/all/602186b3-5ce3-41b3-90a3-134792cc2a48@samsung.com/
+Fixes: e18df2889ff9 ("mm/hugetlb_cgroup: prepare cftypes based on template")
+Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202406181046.8d8b2492-oliver.sang@intel.com
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Tested-by: SeongJae Park <sj@kernel.org>
+Closes: https://lore.kernel.org/20240618233608.400367-1-sj@kernel.org
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zswap.h |    6 ++++++
- mm/zswap.c            |    2 +-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ mm/hugetlb_cgroup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/zswap.h~mm-zswap-add-zswap_never_enabled-fix
-+++ a/include/linux/zswap.h
-@@ -36,6 +36,7 @@ void zswap_memcg_offline_cleanup(struct
- void zswap_lruvec_state_init(struct lruvec *lruvec);
- void zswap_folio_swapin(struct folio *folio);
- bool zswap_is_enabled(void);
-+bool zswap_never_enabled(void);
- #else
- 
- struct zswap_lruvec_state {};
-@@ -64,6 +65,11 @@ static inline bool zswap_is_enabled(void
- {
- 	return false;
- }
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix
++++ a/mm/hugetlb_cgroup.c
+@@ -836,6 +836,8 @@ hugetlb_cgroup_cfttypes_init(struct hsta
+ 			cft->file_offset = MEMFILE_OFFSET0(offset) +
+ 					   MEMFILE_FIELD_SIZE(offset) * idx;
+ 		}
 +
-+static inline bool zswap_never_enabled(void)
-+{
-+	return false;
-+}
- 
- #endif
- 
---- a/mm/zswap.c~mm-zswap-add-zswap_never_enabled-fix
-+++ a/mm/zswap.c
-@@ -137,7 +137,7 @@ bool zswap_is_enabled(void)
- 	return zswap_enabled;
++		lockdep_register_key(&cft->lockdep_key);
+ 	}
  }
  
--static bool zswap_never_enabled(void)
-+bool zswap_never_enabled(void)
- {
- 	return !static_branch_maybe(CONFIG_ZSWAP_DEFAULT_ON, &zswap_ever_enabled);
- }
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from xiujianfeng@huawei.com are
 
-mm-zswap-use-sg_set_folio-in-zswap_compress-decompress.patch
-mm-zswap-use-kmap_local_folio-in-zswap_load.patch
-mm-zswap-make-same_filled-functions-folio-friendly.patch
-mm-rmap-abstract-updating-per-node-and-per-memcg-stats.patch
-mm-swap-remove-synchronous-argument-to-swap_read_folio.patch
-mm-zswap-rename-is_zswap_enabled-to-zswap_is_enabled.patch
-mm-zswap-add-zswap_never_enabled.patch
-mm-zswap-handle-incorrect-attempts-to-load-large-folios.patch
+mm-hugetlb_cgroup-identify-the-legacy-using-cgroup_subsys_on_dfl.patch
+mm-hugetlb_cgroup-prepare-cftypes-based-on-template.patch
+mm-hugetlb_cgroup-prepare-cftypes-based-on-template-fix-fix.patch
+mm-hugetlb_cgroup-switch-to-the-new-cftypes.patch
 
