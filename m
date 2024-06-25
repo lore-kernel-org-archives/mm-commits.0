@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5C0F12E1D2
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CA01144D20
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291700; cv=none; b=HtKkNFmnbzJZlpcNd5/GZI0TExGnlhTotpTDpj30ysFu2Ar0tk/EQ8dPAVC3VGyNzwbQ7lR7NDLiGdZ3fuULLMinIlby33am4l+ceAMxQffMKwiogigxBxxRZaVy3aHzOYB1xU+dLTh/wtMxy0GhGrlsSQca4jdmRNqT0ySab2Q=
+	t=1719291703; cv=none; b=DaeTsPg3ot+LLrMyzfwCl3/lCvOVAuxkak/NTvH49fpRAftqKS0vAOM0jy74PPrwBUQ2LOwtAxk5a4g2nQt4HVTupLCmtsvYjEdvW56yCTVNNWHMqoz7x0Y/1mfJiRZy4DlRCbtEZvnhGWutONRvWccU5J9vIl4M5H80vQXfGsU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291700; c=relaxed/simple;
-	bh=Juzx+hcvbYSUpSlzzOmBqf1u0Bz7sS5II4ssEzcXRpM=;
-	h=Date:To:From:Subject:Message-Id; b=jyrev73o9hK8rUVTOyj3jR0KKPgg2y3w0iG0V9DxMRggiRHAx+33j9oqrwD1c/XChLvGhdY+VFQRIc1i/d9VMqBSmQQcNKytJA61AUG47vLWW/vvPUSJ1QJsM6u39YJAjVWc5inSxACSMol+lgRBGidhm7h8xR8WWmcOQWHxKYk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QY/UpOVv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291703; c=relaxed/simple;
+	bh=IKkZuGjJO6jeQjdrZZCNThYQkKuWdL+Ka30j/E56aFY=;
+	h=Date:To:From:Subject:Message-Id; b=HgI0LzcFLXP0Tj21EaFdPgtZvDPMc9j50VKuR0nZ2C73kDvlal7zweK4vhY9K162MOi3+p9JS8DJW2LWUIWYUE71R3Morx+JI0f9mO4ERF7MI8Prcn2fOt7UuEHG3/Aa0GBfjAoDHYGsmXsrSa6DJJ6CZpApEYTT9Y8MDN6lTOQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AILNS5D3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QY/UpOVv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A9C3C32782;
-	Tue, 25 Jun 2024 05:01:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AILNS5D3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 029D7C32782;
+	Tue, 25 Jun 2024 05:01:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291700;
-	bh=Juzx+hcvbYSUpSlzzOmBqf1u0Bz7sS5II4ssEzcXRpM=;
+	s=korg; t=1719291703;
+	bh=IKkZuGjJO6jeQjdrZZCNThYQkKuWdL+Ka30j/E56aFY=;
 	h=Date:To:From:Subject:From;
-	b=QY/UpOVvGd/f7PgY7p3QtAYkHmwvHRMTqFSGlrtLTJoBL8JWqb+0bwRI7F//aHnnp
-	 K/JzfSo0+PiL3gKEljtSqiaeaQtWlTpBFc0T9t3/b5+mBDGgI6+W8AWZ2uXjdSnG2/
-	 wrudBclSN0guY+q84OeJcV4Ri96cXM1v30oFJsxU=
-Date: Mon, 24 Jun 2024 22:01:40 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,osalvador@suse.de,oliver.sang@intel.com,muchun.song@linux.dev,m.szyprowski@samsung.com,xiujianfeng@huawei.com,akpm@linux-foundation.org
+	b=AILNS5D3Ea+bR1NZETiP6VAM3ujL/CLM6QTm3PgBnbajtB5fb0zbsrtveCX6ssFqS
+	 LZLo9lWMG7zcB0lkOtAY8Zsd2zUv+gDlhCXEqsWWIVwziHCHZWW4Q2xFXgObRP0tPS
+	 9bCzCA/tFm2b9Vxv5fAkMUru3bdPf7pO2sOkhRYY=
+Date: Mon, 24 Jun 2024 22:01:42 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,xiujianfeng@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb_cgroup-prepare-cftypes-based-on-template.patch removed from -mm tree
-Message-Id: <20240625050140.8A9C3C32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb_cgroup-switch-to-the-new-cftypes.patch removed from -mm tree
+Message-Id: <20240625050143.029D7C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,333 +35,245 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb_cgroup: prepare cftypes based on template
+     Subject: mm/hugetlb_cgroup: switch to the new cftypes
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb_cgroup-prepare-cftypes-based-on-template.patch
+     mm-hugetlb_cgroup-switch-to-the-new-cftypes.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Xiu Jianfeng <xiujianfeng@huawei.com>
-Subject: mm/hugetlb_cgroup: prepare cftypes based on template
-Date: Wed, 12 Jun 2024 09:24:08 +0000
+Subject: mm/hugetlb_cgroup: switch to the new cftypes
+Date: Wed, 12 Jun 2024 09:24:09 +0000
 
-Unlike other cgroup subsystems, the hugetlb cgroup does not provide a
-static array of cftype that explicitly displays the properties, handling
-functions, etc., of each file.  Instead, it dynamically creates the
-attribute of cftypes based on the hstate during the startup procedure. 
-This reduces the readability of the code.
+The previous patch has already reconstructed the cftype attributes based
+on the templates and saved them in dfl_cftypes and legacy_cftypes.  then
+remove the old procedure and switch to the new cftypes.
 
-To fix this issue, introduce two templates of cftypes, and rebuild the
-attributes according to the hstate to make it ready to be added to cgroup
-framework.
-
-Link: https://lkml.kernel.org/r/20240612092409.2027592-3-xiujianfeng@huawei.com
+Link: https://lkml.kernel.org/r/20240612092409.2027592-4-xiujianfeng@huawei.com
 Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: kernel test robot <oliver.sang@intel.com>
-From: Xiu Jianfeng <xiujianfeng@huawei.com>
-Subject: mm/hugetlb_cgroup: register lockdep key for cftype
-Date: Tue, 18 Jun 2024 07:19:22 +0000
-
-When CONFIG_DEBUG_LOCK_ALLOC is enabled, the following commands can
-trigger a bug,
-
-mount -t cgroup2 none /sys/fs/cgroup
-cd /sys/fs/cgroup
-echo "+hugetlb" > cgroup.subtree_control
-
-The log is as below:
-
-BUG: key ffff8880046d88d8 has not been registered!
-------------[ cut here ]------------
-DEBUG_LOCKS_WARN_ON(1)
-WARNING: CPU: 3 PID: 226 at kernel/locking/lockdep.c:4945 lockdep_init_map_type+0x185/0x220
-Modules linked in:
-CPU: 3 PID: 226 Comm: bash Not tainted 6.10.0-rc4-next-20240617-g76db4c64526c #544
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
-RIP: 0010:lockdep_init_map_type+0x185/0x220
-Code: 00 85 c0 0f 84 6c ff ff ff 8b 3d 6a d1 85 01 85 ff 0f 85 5e ff ff ff 48 c7 c6 21 99 4a 82 48 c7 c7 60 29 49 82 e8 3b 2e f5
-RSP: 0018:ffffc9000083fc30 EFLAGS: 00000282
-RAX: 0000000000000000 RBX: ffffffff828dd820 RCX: 0000000000000027
-RDX: ffff88803cd9cac8 RSI: 0000000000000001 RDI: ffff88803cd9cac0
-RBP: ffff88800674fbb0 R08: ffffffff828ce248 R09: 00000000ffffefff
-R10: ffffffff8285e260 R11: ffffffff828b8eb8 R12: ffff8880046d88d8
-R13: 0000000000000000 R14: 0000000000000000 R15: ffff8880067281c0
-FS:  00007f68601ea740(0000) GS:ffff88803cd80000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00005614f3ebc740 CR3: 000000000773a000 CR4: 00000000000006f0
-Call Trace:
- <TASK>
- ? __warn+0x77/0xd0
- ? lockdep_init_map_type+0x185/0x220
- ? report_bug+0x189/0x1a0
- ? handle_bug+0x3c/0x70
- ? exc_invalid_op+0x18/0x70
- ? asm_exc_invalid_op+0x1a/0x20
- ? lockdep_init_map_type+0x185/0x220
- __kernfs_create_file+0x79/0x100
- cgroup_addrm_files+0x163/0x380
- ? find_held_lock+0x2b/0x80
- ? find_held_lock+0x2b/0x80
- ? find_held_lock+0x2b/0x80
- css_populate_dir+0x73/0x180
- cgroup_apply_control_enable+0x12f/0x3a0
- cgroup_subtree_control_write+0x30b/0x440
- kernfs_fop_write_iter+0x13a/0x1f0
- vfs_write+0x341/0x450
- ksys_write+0x64/0xe0
- do_syscall_64+0x4b/0x110
- entry_SYSCALL_64_after_hwframe+0x76/0x7e
-RIP: 0033:0x7f68602d9833
-Code: 8b 15 61 26 0e 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb b7 0f 1f 00 64 8b 04 25 18 00 00 00 85 c0 75 14 b8 01 00 00 00 08
-RSP: 002b:00007fff9bbdf8e8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 0000000000000009 RCX: 00007f68602d9833
-RDX: 0000000000000009 RSI: 00005614f3ebc740 RDI: 0000000000000001
-RBP: 00005614f3ebc740 R08: 000000000000000a R09: 0000000000000008
-R10: 00005614f3db6ba0 R11: 0000000000000246 R12: 0000000000000009
-R13: 00007f68603bd6a0 R14: 0000000000000009 R15: 00007f68603b8880
-
-For lockdep, there is a sanity check in lockdep_init_map_type(), the
-lock-class key must either have been allocated statically or must
-have been registered as a dynamic key. However the commit e18df2889ff9
-("mm/hugetlb_cgroup: prepare cftypes based on template") has changed
-the cftypes from static allocated objects to dynamic allocated objects,
-so the cft->lockdep_key must be registered proactively.
-
-[xiujianfeng@huawei.com: fix BUG()]
-  Link: https://lkml.kernel.org/r/20240619015527.2212698-1-xiujianfeng@huawei.com
-Link: https://lkml.kernel.org/r/20240618071922.2127289-1-xiujianfeng@huawei.com
-Link: https://lore.kernel.org/all/602186b3-5ce3-41b3-90a3-134792cc2a48@samsung.com/
-Fixes: e18df2889ff9 ("mm/hugetlb_cgroup: prepare cftypes based on template")
-Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202406181046.8d8b2492-oliver.sang@intel.com
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Tested-by: SeongJae Park <sj@kernel.org>
-Closes: https://lore.kernel.org/20240618233608.400367-1-sj@kernel.org
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup-defs.h |    2 
- mm/hugetlb_cgroup.c         |  158 ++++++++++++++++++++++++++++++++++
- 2 files changed, 158 insertions(+), 2 deletions(-)
+ include/linux/hugetlb.h |    5 -
+ mm/hugetlb_cgroup.c     |  163 +++-----------------------------------
+ 2 files changed, 17 insertions(+), 151 deletions(-)
 
---- a/include/linux/cgroup-defs.h~mm-hugetlb_cgroup-prepare-cftypes-based-on-template
-+++ a/include/linux/cgroup-defs.h
-@@ -676,9 +676,7 @@ struct cftype {
- 	__poll_t (*poll)(struct kernfs_open_file *of,
- 			 struct poll_table_struct *pt);
- 
--#ifdef CONFIG_DEBUG_LOCK_ALLOC
- 	struct lock_class_key	lockdep_key;
+--- a/include/linux/hugetlb.h~mm-hugetlb_cgroup-switch-to-the-new-cftypes
++++ a/include/linux/hugetlb.h
+@@ -686,11 +686,6 @@ struct hstate {
+ 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int free_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
+-#ifdef CONFIG_CGROUP_HUGETLB
+-	/* cgroup control files */
+-	struct cftype cgroup_files_dfl[8];
+-	struct cftype cgroup_files_legacy[10];
 -#endif
+ 	char name[HSTATE_NAME_LEN];
  };
  
- /*
---- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-prepare-cftypes-based-on-template
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-switch-to-the-new-cftypes
 +++ a/mm/hugetlb_cgroup.c
-@@ -27,7 +27,17 @@
- #define MEMFILE_IDX(val)	(((val) >> 16) & 0xffff)
- #define MEMFILE_ATTR(val)	((val) & 0xffff)
- 
-+/* Use t->m[0] to encode the offset */
-+#define MEMFILE_OFFSET(t, m0)	(((offsetof(t, m0) << 16) | sizeof_field(t, m0)))
-+#define MEMFILE_OFFSET0(val)	(((val) >> 16) & 0xffff)
-+#define MEMFILE_FIELD_SIZE(val)	((val) & 0xffff)
-+
-+#define DFL_TMPL_SIZE		ARRAY_SIZE(hugetlb_dfl_tmpl)
-+#define LEGACY_TMPL_SIZE	ARRAY_SIZE(hugetlb_legacy_tmpl)
-+
- static struct hugetlb_cgroup *root_h_cgroup __read_mostly;
-+static struct cftype *dfl_files;
-+static struct cftype *legacy_files;
- 
- static inline struct page_counter *
- __hugetlb_cgroup_counter_from_cgroup(struct hugetlb_cgroup *h_cg, int idx,
-@@ -702,12 +712,144 @@ static int hugetlb_events_local_show(str
- 	return __hugetlb_events_show(seq, true);
+@@ -841,164 +841,26 @@ hugetlb_cgroup_cfttypes_init(struct hsta
+ 	}
  }
  
-+static struct cftype hugetlb_dfl_tmpl[] = {
-+	{
-+		.name = "max",
-+		.private = RES_LIMIT,
-+		.seq_show = hugetlb_cgroup_read_u64_max,
-+		.write = hugetlb_cgroup_write_dfl,
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+	},
-+	{
-+		.name = "rsvd.max",
-+		.private = RES_RSVD_LIMIT,
-+		.seq_show = hugetlb_cgroup_read_u64_max,
-+		.write = hugetlb_cgroup_write_dfl,
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+	},
-+	{
-+		.name = "current",
-+		.private = RES_USAGE,
-+		.seq_show = hugetlb_cgroup_read_u64_max,
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+	},
-+	{
-+		.name = "rsvd.current",
-+		.private = RES_RSVD_USAGE,
-+		.seq_show = hugetlb_cgroup_read_u64_max,
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+	},
-+	{
-+		.name = "events",
-+		.seq_show = hugetlb_events_show,
-+		.file_offset = MEMFILE_OFFSET(struct hugetlb_cgroup, events_file[0]),
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+	},
-+	{
-+		.name = "events.local",
-+		.seq_show = hugetlb_events_local_show,
-+		.file_offset = MEMFILE_OFFSET(struct hugetlb_cgroup, events_local_file[0]),
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+	},
-+	{
-+		.name = "numa_stat",
-+		.seq_show = hugetlb_cgroup_read_numa_stat,
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+	},
-+	/* don't need terminator here */
-+};
-+
-+static struct cftype hugetlb_legacy_tmpl[] = {
-+	{
-+		.name = "limit_in_bytes",
-+		.private = RES_LIMIT,
-+		.read_u64 = hugetlb_cgroup_read_u64,
-+		.write = hugetlb_cgroup_write_legacy,
-+	},
-+	{
-+		.name = "rsvd.limit_in_bytes",
-+		.private = RES_RSVD_LIMIT,
-+		.read_u64 = hugetlb_cgroup_read_u64,
-+		.write = hugetlb_cgroup_write_legacy,
-+	},
-+	{
-+		.name = "usage_in_bytes",
-+		.private = RES_USAGE,
-+		.read_u64 = hugetlb_cgroup_read_u64,
-+	},
-+	{
-+		.name = "rsvd.usage_in_bytes",
-+		.private = RES_RSVD_USAGE,
-+		.read_u64 = hugetlb_cgroup_read_u64,
-+	},
-+	{
-+		.name = "max_usage_in_bytes",
-+		.private = RES_MAX_USAGE,
-+		.write = hugetlb_cgroup_reset,
-+		.read_u64 = hugetlb_cgroup_read_u64,
-+	},
-+	{
-+		.name = "rsvd.max_usage_in_bytes",
-+		.private = RES_RSVD_MAX_USAGE,
-+		.write = hugetlb_cgroup_reset,
-+		.read_u64 = hugetlb_cgroup_read_u64,
-+	},
-+	{
-+		.name = "failcnt",
-+		.private = RES_FAILCNT,
-+		.write = hugetlb_cgroup_reset,
-+		.read_u64 = hugetlb_cgroup_read_u64,
-+	},
-+	{
-+		.name = "rsvd.failcnt",
-+		.private = RES_RSVD_FAILCNT,
-+		.write = hugetlb_cgroup_reset,
-+		.read_u64 = hugetlb_cgroup_read_u64,
-+	},
-+	{
-+		.name = "numa_stat",
-+		.seq_show = hugetlb_cgroup_read_numa_stat,
-+	},
-+	/* don't need terminator here */
-+};
-+
-+static void __init
-+hugetlb_cgroup_cfttypes_init(struct hstate *h, struct cftype *cft,
-+			     struct cftype *tmpl, int tmpl_size)
-+{
-+	char buf[32];
-+	int i, idx = hstate_index(h);
-+
-+	/* format the size */
-+	mem_fmt(buf, sizeof(buf), huge_page_size(h));
-+
-+	for (i = 0; i < tmpl_size; cft++, tmpl++, i++) {
-+		*cft = *tmpl;
-+		/* rebuild the name */
-+		snprintf(cft->name, MAX_CFTYPE_NAME, "%s.%s", buf, tmpl->name);
-+		/* rebuild the private */
-+		cft->private = MEMFILE_PRIVATE(idx, tmpl->private);
-+		/* rebuild the file_offset */
-+		if (tmpl->file_offset) {
-+			unsigned int offset = tmpl->file_offset;
-+
-+			cft->file_offset = MEMFILE_OFFSET0(offset) +
-+					   MEMFILE_FIELD_SIZE(offset) * idx;
-+		}
-+
-+		lockdep_register_key(&cft->lockdep_key);
-+	}
-+}
-+
- static void __init __hugetlb_cgroup_file_dfl_init(int idx)
+-static void __init __hugetlb_cgroup_file_dfl_init(int idx)
++static void __init __hugetlb_cgroup_file_dfl_init(struct hstate *h)
  {
- 	char buf[32];
- 	struct cftype *cft;
- 	struct hstate *h = &hstates[idx];
+-	char buf[32];
+-	struct cftype *cft;
+-	struct hstate *h = &hstates[idx];
++	int idx = hstate_index(h);
  
-+	hugetlb_cgroup_cfttypes_init(h, dfl_files + idx * DFL_TMPL_SIZE,
-+				     hugetlb_dfl_tmpl, DFL_TMPL_SIZE);
-+
- 	/* format the size */
- 	mem_fmt(buf, sizeof(buf), huge_page_size(h));
- 
-@@ -779,6 +921,9 @@ static void __init __hugetlb_cgroup_file
- 	struct cftype *cft;
- 	struct hstate *h = &hstates[idx];
- 
-+	hugetlb_cgroup_cfttypes_init(h, legacy_files + idx * LEGACY_TMPL_SIZE,
-+				     hugetlb_legacy_tmpl, LEGACY_TMPL_SIZE);
-+
- 	/* format the size */
- 	mem_fmt(buf, sizeof(buf), huge_page_size(h));
- 
-@@ -856,10 +1001,23 @@ static void __init __hugetlb_cgroup_file
- 	__hugetlb_cgroup_file_legacy_init(idx);
+ 	hugetlb_cgroup_cfttypes_init(h, dfl_files + idx * DFL_TMPL_SIZE,
+ 				     hugetlb_dfl_tmpl, DFL_TMPL_SIZE);
+-
+-	/* format the size */
+-	mem_fmt(buf, sizeof(buf), huge_page_size(h));
+-
+-	/* Add the limit file */
+-	cft = &h->cgroup_files_dfl[0];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.max", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, RES_LIMIT);
+-	cft->seq_show = hugetlb_cgroup_read_u64_max;
+-	cft->write = hugetlb_cgroup_write_dfl;
+-	cft->flags = CFTYPE_NOT_ON_ROOT;
+-
+-	/* Add the reservation limit file */
+-	cft = &h->cgroup_files_dfl[1];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.rsvd.max", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, RES_RSVD_LIMIT);
+-	cft->seq_show = hugetlb_cgroup_read_u64_max;
+-	cft->write = hugetlb_cgroup_write_dfl;
+-	cft->flags = CFTYPE_NOT_ON_ROOT;
+-
+-	/* Add the current usage file */
+-	cft = &h->cgroup_files_dfl[2];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.current", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, RES_USAGE);
+-	cft->seq_show = hugetlb_cgroup_read_u64_max;
+-	cft->flags = CFTYPE_NOT_ON_ROOT;
+-
+-	/* Add the current reservation usage file */
+-	cft = &h->cgroup_files_dfl[3];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.rsvd.current", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, RES_RSVD_USAGE);
+-	cft->seq_show = hugetlb_cgroup_read_u64_max;
+-	cft->flags = CFTYPE_NOT_ON_ROOT;
+-
+-	/* Add the events file */
+-	cft = &h->cgroup_files_dfl[4];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.events", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, 0);
+-	cft->seq_show = hugetlb_events_show;
+-	cft->file_offset = offsetof(struct hugetlb_cgroup, events_file[idx]);
+-	cft->flags = CFTYPE_NOT_ON_ROOT;
+-
+-	/* Add the events.local file */
+-	cft = &h->cgroup_files_dfl[5];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.events.local", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, 0);
+-	cft->seq_show = hugetlb_events_local_show;
+-	cft->file_offset = offsetof(struct hugetlb_cgroup,
+-				    events_local_file[idx]);
+-	cft->flags = CFTYPE_NOT_ON_ROOT;
+-
+-	/* Add the numa stat file */
+-	cft = &h->cgroup_files_dfl[6];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.numa_stat", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, 0);
+-	cft->seq_show = hugetlb_cgroup_read_numa_stat;
+-	cft->flags = CFTYPE_NOT_ON_ROOT;
+-
+-	/* NULL terminate the last cft */
+-	cft = &h->cgroup_files_dfl[7];
+-	memset(cft, 0, sizeof(*cft));
+-
+-	WARN_ON(cgroup_add_dfl_cftypes(&hugetlb_cgrp_subsys,
+-				       h->cgroup_files_dfl));
  }
  
-+static void __init __hugetlb_cgroup_file_pre_init(void)
+-static void __init __hugetlb_cgroup_file_legacy_init(int idx)
++static void __init __hugetlb_cgroup_file_legacy_init(struct hstate *h)
+ {
+-	char buf[32];
+-	struct cftype *cft;
+-	struct hstate *h = &hstates[idx];
++	int idx = hstate_index(h);
+ 
+ 	hugetlb_cgroup_cfttypes_init(h, legacy_files + idx * LEGACY_TMPL_SIZE,
+ 				     hugetlb_legacy_tmpl, LEGACY_TMPL_SIZE);
+-
+-	/* format the size */
+-	mem_fmt(buf, sizeof(buf), huge_page_size(h));
+-
+-	/* Add the limit file */
+-	cft = &h->cgroup_files_legacy[0];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.limit_in_bytes", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, RES_LIMIT);
+-	cft->read_u64 = hugetlb_cgroup_read_u64;
+-	cft->write = hugetlb_cgroup_write_legacy;
+-
+-	/* Add the reservation limit file */
+-	cft = &h->cgroup_files_legacy[1];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.rsvd.limit_in_bytes", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, RES_RSVD_LIMIT);
+-	cft->read_u64 = hugetlb_cgroup_read_u64;
+-	cft->write = hugetlb_cgroup_write_legacy;
+-
+-	/* Add the usage file */
+-	cft = &h->cgroup_files_legacy[2];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.usage_in_bytes", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, RES_USAGE);
+-	cft->read_u64 = hugetlb_cgroup_read_u64;
+-
+-	/* Add the reservation usage file */
+-	cft = &h->cgroup_files_legacy[3];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.rsvd.usage_in_bytes", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, RES_RSVD_USAGE);
+-	cft->read_u64 = hugetlb_cgroup_read_u64;
+-
+-	/* Add the MAX usage file */
+-	cft = &h->cgroup_files_legacy[4];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.max_usage_in_bytes", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, RES_MAX_USAGE);
+-	cft->write = hugetlb_cgroup_reset;
+-	cft->read_u64 = hugetlb_cgroup_read_u64;
+-
+-	/* Add the MAX reservation usage file */
+-	cft = &h->cgroup_files_legacy[5];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.rsvd.max_usage_in_bytes", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, RES_RSVD_MAX_USAGE);
+-	cft->write = hugetlb_cgroup_reset;
+-	cft->read_u64 = hugetlb_cgroup_read_u64;
+-
+-	/* Add the failcntfile */
+-	cft = &h->cgroup_files_legacy[6];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.failcnt", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, RES_FAILCNT);
+-	cft->write = hugetlb_cgroup_reset;
+-	cft->read_u64 = hugetlb_cgroup_read_u64;
+-
+-	/* Add the reservation failcntfile */
+-	cft = &h->cgroup_files_legacy[7];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.rsvd.failcnt", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, RES_RSVD_FAILCNT);
+-	cft->write = hugetlb_cgroup_reset;
+-	cft->read_u64 = hugetlb_cgroup_read_u64;
+-
+-	/* Add the numa stat file */
+-	cft = &h->cgroup_files_legacy[8];
+-	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.numa_stat", buf);
+-	cft->private = MEMFILE_PRIVATE(idx, 0);
+-	cft->seq_show = hugetlb_cgroup_read_numa_stat;
+-
+-	/* NULL terminate the last cft */
+-	cft = &h->cgroup_files_legacy[9];
+-	memset(cft, 0, sizeof(*cft));
+-
+-	WARN_ON(cgroup_add_legacy_cftypes(&hugetlb_cgrp_subsys,
+-					  h->cgroup_files_legacy));
+ }
+ 
+-static void __init __hugetlb_cgroup_file_init(int idx)
++static void __init __hugetlb_cgroup_file_init(struct hstate *h)
+ {
+-	__hugetlb_cgroup_file_dfl_init(idx);
+-	__hugetlb_cgroup_file_legacy_init(idx);
++	__hugetlb_cgroup_file_dfl_init(h);
++	__hugetlb_cgroup_file_legacy_init(h);
+ }
+ 
+ static void __init __hugetlb_cgroup_file_pre_init(void)
+@@ -1013,13 +875,22 @@ static void __init __hugetlb_cgroup_file
+ 	BUG_ON(!legacy_files);
+ }
+ 
++static void __init __hugetlb_cgroup_file_post_init(void)
 +{
-+	int cft_count;
-+
-+	cft_count = hugetlb_max_hstate * DFL_TMPL_SIZE + 1; /* add terminator */
-+	dfl_files = kcalloc(cft_count, sizeof(struct cftype), GFP_KERNEL);
-+	BUG_ON(!dfl_files);
-+	cft_count = hugetlb_max_hstate * LEGACY_TMPL_SIZE + 1; /* add terminator */
-+	legacy_files = kcalloc(cft_count, sizeof(struct cftype), GFP_KERNEL);
-+	BUG_ON(!legacy_files);
++	WARN_ON(cgroup_add_dfl_cftypes(&hugetlb_cgrp_subsys,
++				       dfl_files));
++	WARN_ON(cgroup_add_legacy_cftypes(&hugetlb_cgrp_subsys,
++					  legacy_files));
 +}
 +
  void __init hugetlb_cgroup_file_init(void)
  {
  	struct hstate *h;
  
-+	__hugetlb_cgroup_file_pre_init();
+ 	__hugetlb_cgroup_file_pre_init();
  	for_each_hstate(h)
- 		__hugetlb_cgroup_file_init(hstate_index(h));
+-		__hugetlb_cgroup_file_init(hstate_index(h));
++		__hugetlb_cgroup_file_init(h);
++	__hugetlb_cgroup_file_post_init();
  }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from xiujianfeng@huawei.com are
