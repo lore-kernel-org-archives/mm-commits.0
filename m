@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C10F3142E76
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FB7533C0
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293163; cv=none; b=tAKxsqGKf5ZyoHHH9VW+w34KQk+XCqZ58ZrY6x3iEeME3jVvjfyl2MpTOweCNZUNyqluEmaalbcwY/9UmEg4Xn1Gl/y/TfDSgB5KeG2IXdV+J+agR/FKwCNfDYcdLGMVyM4VY10FHeLisTqiVIlqRcxX3LNUK1cTvGxHjskuAiw=
+	t=1719293165; cv=none; b=LEaWJCxe3rftQJ94uPuU/5+/e3cAt56+Sdz9a/dqZe/KRO0aBOUSLEArlGF7XwxBhQSE4PZauWNBD5hAmrtVnTPEmGFgsoN93hC8QXjHoBAQlYjFcU+spbGYvz06Hao1FUYsg3iiiR0qpHj7Kh+QJMyFgSu2eK68qnPKFmiT40w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719293163; c=relaxed/simple;
-	bh=Oh7FvLyD05kgz9v3PcUDCzAX8EbVX/rD5w6QdMF1h0k=;
-	h=Date:To:From:Subject:Message-Id; b=OsG4NPKUhjPnQwcxhuz/OjXhHA7/kbT0yPqGRtq16jR0zVWMRyrbV7VlUNjAKZXI+qMW+JG1kKYr/luQt24FsXYza7T/FqvU+t+HW41+GNQNpH7mK9zgezXl2bW1nXFG+Tu2EmE/9MQaqRKEy8UrAMPO5LiIWHkJiikuDeQe4Qw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kn+aKSbb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719293165; c=relaxed/simple;
+	bh=1oBg7XPY2dbgpm7/ufHwHPdv38+4qdxszN5EbkjQoQQ=;
+	h=Date:To:From:Subject:Message-Id; b=EYPhop0gQGiSU+Oa381DkIN1SiUMyBe2oQLx8vvXJ+WCoUnC8Ph68Z3GSqjUWaackKhmRHsj2R1pWN8fDU9VvRnBMVreW4Abpy2LEHjkNBF0pNEvrEKOyUvKsaTsS4ymtjJfRsRrCzCALIwBbZ5Z+6wJhnKvWRc8f6oDuO80w34=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xGgF0/3L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kn+aKSbb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95EB0C32782;
-	Tue, 25 Jun 2024 05:26:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xGgF0/3L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C15D8C32782;
+	Tue, 25 Jun 2024 05:26:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293163;
-	bh=Oh7FvLyD05kgz9v3PcUDCzAX8EbVX/rD5w6QdMF1h0k=;
+	s=korg; t=1719293164;
+	bh=1oBg7XPY2dbgpm7/ufHwHPdv38+4qdxszN5EbkjQoQQ=;
 	h=Date:To:From:Subject:From;
-	b=Kn+aKSbbMloXzhb2Gsh3MDzE5EJ9xF4pAsspo+6A7AYT30kvBJMOI1v4/fS19ba2S
-	 lENFstmQt1qiIoJxHGThzdAWgCQod+OxzlvH0tKBHJ7p8XwIyMBZ6SEAy58J1WPD5q
-	 VTmMavOFpiCTFqUchH6utfKMvNKBP54TMs9x+Lrw=
-Date: Mon, 24 Jun 2024 22:26:03 -0700
+	b=xGgF0/3LKI4o8/2PoF7l9KYvV+KaSpFccMC2jKRcpOIimnzhmGYsGgfqz0wo+/7cJ
+	 EyxgEm0fjxvPlA7cpczqKD4SKWV8Dwq4ajqfaBi5paF6jEEIlZ/FhEVmbVeWimAqdV
+	 GZO4SCnZuNQCcbQPgwtBMGM2lriVa6iAFKXoedwM=
+Date: Mon, 24 Jun 2024 22:26:04 -0700
 To: mm-commits@vger.kernel.org,rdunlap@infradead.org,peterz@infradead.org,namhyung@kernel.org,msakai@redhat.com,mingo@redhat.com,mark.rutland@arm.com,kent.overstreet@linux.dev,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,irogers@google.com,colyli@suse.de,bfoster@redhat.com,bagasdotme@gmail.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-min_heap-add-min_heap_peek.patch removed from -mm tree
-Message-Id: <20240625052603.95EB0C32782@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-min_heap-add-min_heap_full.patch removed from -mm tree
+Message-Id: <20240625052604.C15D8C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib min_heap: add min_heap_peek()
+     Subject: lib min_heap: add min_heap_full()
 has been removed from the -mm tree.  Its filename was
-     lib-min_heap-add-min_heap_peek.patch
+     lib-min_heap-add-min_heap_full.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: lib min_heap: add min_heap_peek()
-Date: Fri, 24 May 2024 23:29:48 +0800
+Subject: lib min_heap: add min_heap_full()
+Date: Fri, 24 May 2024 23:29:49 +0800
 
-Add min_heap_peek() to retrieve a pointer to the smallest element.  The
-pointer is cast to the appropriate type of heap elements.
+Add min_heap_full() which returns a boolean value indicating whether the
+heap has reached its maximum capacity.
 
-Link: https://lkml.kernel.org/r/20240524152958.919343-7-visitorckw@gmail.com
+Link: https://lkml.kernel.org/r/20240524152958.919343-8-visitorckw@gmail.com
 Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
 Reviewed-by: Ian Rogers <irogers@google.com>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
@@ -74,21 +74,21 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  include/linux/min_heap.h |   10 ++++++++++
  1 file changed, 10 insertions(+)
 
---- a/include/linux/min_heap.h~lib-min_heap-add-min_heap_peek
+--- a/include/linux/min_heap.h~lib-min_heap-add-min_heap_full
 +++ a/include/linux/min_heap.h
-@@ -53,6 +53,16 @@ void __min_heap_init(min_heap_char *heap
- #define min_heap_init(_heap, _data, _size)	\
- 	__min_heap_init((min_heap_char *)_heap, _data, _size)
+@@ -63,6 +63,16 @@ void *__min_heap_peek(struct min_heap_ch
+ #define min_heap_peek(_heap)	\
+ 	(__minheap_cast(_heap) __min_heap_peek((min_heap_char *)_heap))
  
-+/* Get the minimum element from the heap. */
++/* Check if the heap is full. */
 +static __always_inline
-+void *__min_heap_peek(struct min_heap_char *heap)
++bool __min_heap_full(min_heap_char *heap)
 +{
-+	return heap->nr ? heap->data : NULL;
++	return heap->nr == heap->size;
 +}
 +
-+#define min_heap_peek(_heap)	\
-+	(__minheap_cast(_heap) __min_heap_peek((min_heap_char *)_heap))
++#define min_heap_full(_heap)	\
++	__min_heap_full((min_heap_char *)_heap)
 +
  /* Sift the element at pos down the heap. */
  static __always_inline
