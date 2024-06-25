@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 730AF33C0
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7430C33C0
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293211; cv=none; b=uTFsKnYQYh5JvUUFJtZhO1sfaRkvpHdEBPqdjD55xwA+A+5UlRj4iIGBzRClEufZ7Rew/fx0B29dDVjuFPepYZADrxoTjWHoWvf0wz8xbhby2UfgQSrQUjykdYFdghP3fpriwdNS71WuHRhmsXxamvDqzNX6ReHZlpIzu6TcqHw=
+	t=1719293212; cv=none; b=aXOqszKB5FpqjJMpv6r+CLh3PducDYgEZ/mHdGLoUFpR7Fni1dM683dpL3grx0ST0NwbwJEQkuDv5rKdrU/FQMOvaLWcqXsKLrPdPx8HfuJrYSJG30MgufWABKP59KZSAFer3koxavPsIb1OsqtoQPOog3CvkrzwsKwF6ni8MMs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719293211; c=relaxed/simple;
-	bh=QU6lcAf9b1xiyfw0mlCU/8S8077fp12pj9/ff4SzcgE=;
-	h=Date:To:From:Subject:Message-Id; b=fnxGWzgyA0h475JbhKn0yPir22FSJQHuI3qnOW3CIfwmbWXqlNp6qp1rk4WeFSeK53JzX8H3ZR+H8JstFcZq3AhR60r+O+JJPkXm3rfsgYqtCFpnMDtG5enXEG93xLPORc8KLAdXG+/VS4i/LXNhnUVDNFw4jOp/kLyNmys45zs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EwiHcppe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719293212; c=relaxed/simple;
+	bh=m4ZqD3b82UjXtFet5UxRiV0hBCCxrTbs2FZ0LxsGu8A=;
+	h=Date:To:From:Subject:Message-Id; b=AcoaHuww9ahriEbr6JBvoNk1/YSQAKrCoSmoeCA+65yogJN0f+Vg1Lv3590swigfchbw0JKnYv3ArN4NvFh9sRKntY82MKw1vrKU+fPMPiQEWDEc+7djC+AyCzvWwm7UUQpy/MWgcvnm8tzp/X8Efn2oM6oFg2mCUtA2XI+uY5U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JZ6R0p9/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EwiHcppe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48160C32782;
-	Tue, 25 Jun 2024 05:26:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JZ6R0p9/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A7BCC4AF09;
+	Tue, 25 Jun 2024 05:26:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293211;
-	bh=QU6lcAf9b1xiyfw0mlCU/8S8077fp12pj9/ff4SzcgE=;
+	s=korg; t=1719293212;
+	bh=m4ZqD3b82UjXtFet5UxRiV0hBCCxrTbs2FZ0LxsGu8A=;
 	h=Date:To:From:Subject:From;
-	b=EwiHcppe3rxW4Y3AwIWsed5HHuW346ZMMO8bfIqMvAPdITs5OYN6lgP3EnhkeuQ9L
-	 tnZ3Larupqb70RckA/CbOl0ody2PW5S1cFbYSiudG8pvnsPyUWDnGJnM41urUTZTI/
-	 KRuUuutma6+ULvc1qBLpSTjV+WDIrkWTStpDUQug=
-Date: Mon, 24 Jun 2024 22:26:50 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,fullspring2018@gmail.com,adobriyan@gmail.com,akpm@linux-foundation.org
+	b=JZ6R0p9/eKfOOXaWQGpsthdRDTtX67AKOIojaTJ+XUUJp7aM048oPN2pwWCFIOsVC
+	 zbnId42aRYByFWaDe8YMBkHQTwMmdSWTsCt3qPY+cWxw67MjdtUaLOzbkWtOHkdPuM
+	 5TU+fBHMRnQqYbRFOvBEW3uaOMeIS/cx9bR7vV08=
+Date: Mon, 24 Jun 2024 22:26:51 -0700
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,dyoung@redhat.com,bhe@redhat.com,haowenchao22@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] proc-test-kthread-field.patch removed from -mm tree
-Message-Id: <20240625052651.48160C32782@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] crash-remove-header-files-which-are-included-more-than-once.patch removed from -mm tree
+Message-Id: <20240625052652.4A7BCC4AF09@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,172 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: proc: test "Kthread:" field
+     Subject: crash: remove header files which are included more than once
 has been removed from the -mm tree.  Its filename was
-     proc-test-kthread-field.patch
+     crash-remove-header-files-which-are-included-more-than-once.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: test "Kthread:" field
-Date: Fri, 7 Jun 2024 18:14:29 +0300
+From: Wenchao Hao <haowenchao22@gmail.com>
+Subject: crash: remove header files which are included more than once
+Date: Thu, 6 Jun 2024 17:14:27 +0800
 
-/proc/${pid}/status got Kthread field recently.
+Following warning is reported, so remove these duplicated header
+including:
 
-Test that userspace program is not reported as kernel thread.
+./kernel/crash_reserve.c: linux/kexec.h is included more than once.
 
-Test that kernel thread is reported as kernel thread.
-Use kthreadd with pid 2 for this.
+This is just a clean code, no logic changed.
 
-Link: https://lkml.kernel.org/r/818c4c41-8668-4566-97a9-7254abf819ee@p183
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Chunguang Wu <fullspring2018@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20240606091427.3512314-1-haowenchao22@gmail.com
+Signed-off-by: Wenchao Hao <haowenchao22@gmail.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/proc/.gitignore               |    2 
- tools/testing/selftests/proc/Makefile                 |    2 
- tools/testing/selftests/proc/proc-2-is-kthread.c      |   53 ++++++++++
- tools/testing/selftests/proc/proc-self-isnt-kthread.c |   37 ++++++
- 4 files changed, 94 insertions(+)
+ kernel/crash_reserve.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/tools/testing/selftests/proc/.gitignore~proc-test-kthread-field
-+++ a/tools/testing/selftests/proc/.gitignore
-@@ -2,6 +2,7 @@
- /fd-001-lookup
- /fd-002-posix-eq
- /fd-003-kthread
-+/proc-2-is-kthread
- /proc-fsconfig-hidepid
- /proc-loadavg-001
- /proc-multiple-procfs
-@@ -9,6 +10,7 @@
- /proc-pid-vm
- /proc-self-map-files-001
- /proc-self-map-files-002
-+/proc-self-isnt-kthread
- /proc-self-syscall
- /proc-self-wchan
- /proc-subset-pid
---- a/tools/testing/selftests/proc/Makefile~proc-test-kthread-field
-+++ a/tools/testing/selftests/proc/Makefile
-@@ -7,11 +7,13 @@ TEST_GEN_PROGS :=
- TEST_GEN_PROGS += fd-001-lookup
- TEST_GEN_PROGS += fd-002-posix-eq
- TEST_GEN_PROGS += fd-003-kthread
-+TEST_GEN_PROGS += proc-2-is-kthread
- TEST_GEN_PROGS += proc-loadavg-001
- TEST_GEN_PROGS += proc-empty-vm
- TEST_GEN_PROGS += proc-pid-vm
- TEST_GEN_PROGS += proc-self-map-files-001
- TEST_GEN_PROGS += proc-self-map-files-002
-+TEST_GEN_PROGS += proc-self-isnt-kthread
- TEST_GEN_PROGS += proc-self-syscall
- TEST_GEN_PROGS += proc-self-wchan
- TEST_GEN_PROGS += proc-subset-pid
---- /dev/null
-+++ a/tools/testing/selftests/proc/proc-2-is-kthread.c
-@@ -0,0 +1,53 @@
-+/*
-+ * Copyright (c) 2024 Alexey Dobriyan <adobriyan@gmail.com>
-+ *
-+ * Permission to use, copy, modify, and distribute this software for any
-+ * purpose with or without fee is hereby granted, provided that the above
-+ * copyright notice and this permission notice appear in all copies.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-+ */
-+/* Test that kernel thread is reported as such. */
-+#undef NDEBUG
-+#include <assert.h>
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <string.h>
-+#include <unistd.h>
-+
-+int main(void)
-+{
-+	/*
-+	 * The following solutions don't really work:
-+	 *
-+	 * 1) jit kernel module which creates kernel thread:
-+	 * test becomes arch-specific,
-+	 * problems with mandatory module signing,
-+	 * problems with lockdown mode,
-+	 * doesn't work with CONFIG_MODULES=n at all,
-+	 * kthread creation API is formally unstable internal kernel API,
-+	 * need a mechanism to report test kernel thread's PID back,
-+	 *
-+	 * 2) ksoftirqd/0 and kswapd0 look like stable enough kernel threads,
-+	 * but their PIDs are unstable.
-+	 *
-+	 * Check against kthreadd which always seem to exist under pid 2.
-+	 */
-+	int fd = open("/proc/2/status", O_RDONLY);
-+	assert(fd >= 0);
-+
-+	char buf[4096];
-+	ssize_t rv = read(fd, buf, sizeof(buf));
-+	assert(0 <= rv && rv < sizeof(buf));
-+	buf[rv] = '\0';
-+
-+	assert(strstr(buf, "Kthread:\t1\n"));
-+
-+	return 0;
-+}
---- /dev/null
-+++ a/tools/testing/selftests/proc/proc-self-isnt-kthread.c
-@@ -0,0 +1,37 @@
-+/*
-+ * Copyright (c) 2024 Alexey Dobriyan <adobriyan@gmail.com>
-+ *
-+ * Permission to use, copy, modify, and distribute this software for any
-+ * purpose with or without fee is hereby granted, provided that the above
-+ * copyright notice and this permission notice appear in all copies.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-+ */
-+/* Test that userspace program is not kernel thread. */
-+#undef NDEBUG
-+#include <assert.h>
-+#include <fcntl.h>
-+#include <string.h>
-+#include <unistd.h>
-+
-+int main(void)
-+{
-+	int fd = open("/proc/self/status", O_RDONLY);
-+	assert(fd >= 0);
-+
-+	char buf[4096];
-+	ssize_t rv = read(fd, buf, sizeof(buf));
-+	assert(0 <= rv && rv < sizeof(buf));
-+	buf[rv] = '\0';
-+
-+	/* This test is very much not kernel thread. */
-+	assert(strstr(buf, "Kthread:\t0\n"));
-+
-+	return 0;
-+}
+--- a/kernel/crash_reserve.c~crash-remove-header-files-which-are-included-more-than-once
++++ a/kernel/crash_reserve.c
+@@ -13,7 +13,6 @@
+ #include <linux/memory.h>
+ #include <linux/cpuhotplug.h>
+ #include <linux/memblock.h>
+-#include <linux/kexec.h>
+ #include <linux/kmemleak.h>
+ 
+ #include <asm/page.h>
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from haowenchao22@gmail.com are
 
-build-id-require-program-headers-to-be-right-after-elf-header.patch
-compilerh-simplify-data_race-macro.patch
 
