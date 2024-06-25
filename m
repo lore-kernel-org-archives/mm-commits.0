@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB6E0143739
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:00:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81CF814389F
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:00:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291651; cv=none; b=H+z50x1dApTpyeYSLpXLp64qdbEI2N20hM8ON4RU/0oERQint8k6mqbSMF+q+JQxTZUVr5k6DzxC/0aer+VBEL6iHmbU9+wq0PxsJ+LU9k60R4FSH7IS2jyg29Lq+wXsWTLRbIi8qXW5gN/hHcOTpZ5lyvrhv+rz8ENOaL61NNQ=
+	t=1719291652; cv=none; b=mOPELaUm08JQl8VT5lZBikswibA+Qj/iKyUD3tUC6DjYqyFAFzCDjnzA77ESHd+LquhtGgvF2E9MBDQehqeXaIhuM43dfZjrPTuNt2MqzR5Y2PGT9FMMFr0QDcguYTNs38AqlUXA34RmkmGAuUf8wz/R/6+s3D5gVSzS+XfXuns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291651; c=relaxed/simple;
-	bh=Mdy0uZeqFN6fnDGn2vbK6QZPqaj0I8QHRoN9weGA0eg=;
-	h=Date:To:From:Subject:Message-Id; b=ou578QPSebc0NPunWZnA/hecGICb18kwvwcCxql59EEAiifWtn3CbQ2teffH1HnSP7bl0J+j3SxnyP3O7yKNKvtCA5U1C32Ldva8rJEenlLv7W+o8WXbyW3vEHzWNuIRJBU09lxsdcWyLKvcBJRlLTG6s7E3cEpXfDZZOCIOEcA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vzw3Jg57; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291652; c=relaxed/simple;
+	bh=1+U4dXTK8QfcxiwgsDdCEC0LiiuVnPQTCj1XPckJlk4=;
+	h=Date:To:From:Subject:Message-Id; b=WlyKDsusvp6NaOgIuQJpAvmFtJLaNa82eN0fzhOp/9TbdYwV+Q9wabus3PAMF5Spu7PMZ92WkmW/UNodmZyb9c/g2BaNLDx9atV2REWOcHTBT6uBNkYNAw64AnnE9K5vp8fPWGPIfU0Rc/XcZTvnzhWH+glo7JMFqNGlz/STLmI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NTEti46J; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vzw3Jg57"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C111CC32789;
-	Tue, 25 Jun 2024 05:00:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NTEti46J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58BB8C32789;
+	Tue, 25 Jun 2024 05:00:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291650;
-	bh=Mdy0uZeqFN6fnDGn2vbK6QZPqaj0I8QHRoN9weGA0eg=;
+	s=korg; t=1719291652;
+	bh=1+U4dXTK8QfcxiwgsDdCEC0LiiuVnPQTCj1XPckJlk4=;
 	h=Date:To:From:Subject:From;
-	b=Vzw3Jg57e9pV0yzRKXeClPbtzD2WpLzAWbAQpTZ+Bs+g1+Vk76PyURnVvuoxaI8dh
-	 BWLyK+09EhJis5kn+ULUMjFc5seL6zxVDOP8HmF8wuzWfCfCQgFulkKyMqkPsZzxi8
-	 nbcm+UG/S2Rm3cnC4TvPmK2C8x9ZBVZZeqPtjUuo=
-Date: Mon, 24 Jun 2024 22:00:50 -0700
+	b=NTEti46JsWBUrH4zNuEKLTNeLiKhvOfyKZYUqB06vjTcrWtetmfN9MZddrLvHI0c8
+	 j0p6mtq4OnsABDF5zHFEqUw676tnxVv9dCZQo2lBe6u4IYMn9qqVGgkrSQnUw8bscS
+	 bdsZxdPBI9omBD/rzDSm/EivIXEITruHpICj44kQ=
+Date: Mon, 24 Jun 2024 22:00:51 -0700
 To: mm-commits@vger.kernel.org,osalvador@suse.de,kirill.shutemov@linux.intel.com,ioworker0@gmail.com,corbet@lwn.net,adobriyan@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fs-proc-task_mmu-dont-indicate-pm_mmap_exclusive-without-pm_present.patch removed from -mm tree
-Message-Id: <20240625050050.C111CC32789@smtp.kernel.org>
+Subject: [merged mm-stable] fs-proc-task_mmu-properly-detect-pm_mmap_exclusive-per-page-of-pmd-mapped-thps.patch removed from -mm tree
+Message-Id: <20240625050052.58BB8C32789@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,97 +35,102 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fs/proc/task_mmu: don't indicate PM_MMAP_EXCLUSIVE without PM_PRESENT
+     Subject: fs/proc/task_mmu: properly detect PM_MMAP_EXCLUSIVE per page of PMD-mapped THPs
 has been removed from the -mm tree.  Its filename was
-     fs-proc-task_mmu-dont-indicate-pm_mmap_exclusive-without-pm_present.patch
+     fs-proc-task_mmu-properly-detect-pm_mmap_exclusive-per-page-of-pmd-mapped-thps.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: fs/proc/task_mmu: don't indicate PM_MMAP_EXCLUSIVE without PM_PRESENT
-Date: Fri, 7 Jun 2024 14:23:53 +0200
+Subject: fs/proc/task_mmu: properly detect PM_MMAP_EXCLUSIVE per page of PMD-mapped THPs
+Date: Fri, 7 Jun 2024 14:23:54 +0200
 
-Relying on the mapcount for non-present PTEs that reference pages doesn't
-make any sense: they are not accounted in the mapcount, so page_mapcount()
-== 1 won't return the result we actually want to know.
+We added PM_MMAP_EXCLUSIVE in 2015 via commit 77bb499bb60f ("pagemap: add
+mmap-exclusive bit for marking pages mapped only here"), when THPs could
+not be partially mapped and page_mapcount() returned something that was
+true for all pages of the THP.
 
-While we don't check the mapcount for migration entries already, we could
-end up checking it for swap, hwpoison, device exclusive, ...  entries,
-which we really shouldn't.
+In 2016, we added support for partially mapping THPs via commit
+53f9263baba6 ("mm: rework mapcount accounting to enable 4k mapping of
+THPs") but missed to determine PM_MMAP_EXCLUSIVE as well per page.
 
-There is one exception: device private entries, which we consider
-fake-present (e.g., incremented the mapcount).  But we won't care about
-that for now for PM_MMAP_EXCLUSIVE, because indicating PM_SWAP for them
-although they are fake-present already sounds suspiciously wrong.
+Checking page_mapcount() on the head page does not tell the whole story.
 
-Let's never indicate PM_MMAP_EXCLUSIVE without PM_PRESENT.
+We should check each individual page.  In a future without per-page
+mapcounts it will be different, but we'll change that to be consistent
+with PTE-mapped THPs once we deal with that.
 
-Link: https://lkml.kernel.org/r/20240607122357.115423-3-david@redhat.com
+Link: https://lkml.kernel.org/r/20240607122357.115423-4-david@redhat.com
+Fixes: 53f9263baba6 ("mm: rework mapcount accounting to enable 4k mapping of THPs")
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Lance Yang <ioworker0@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ fs/proc/task_mmu.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-dont-indicate-pm_mmap_exclusive-without-pm_present
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-properly-detect-pm_mmap_exclusive-per-page-of-pmd-mapped-thps
 +++ a/fs/proc/task_mmu.c
-@@ -1415,7 +1415,6 @@ static pagemap_entry_t pte_to_pagemap_en
- {
- 	u64 frame = 0, flags = 0;
- 	struct page *page = NULL;
--	bool migration = false;
- 
- 	if (pte_present(pte)) {
- 		if (pm->show_pfn)
-@@ -1447,7 +1446,6 @@ static pagemap_entry_t pte_to_pagemap_en
- 			    (offset << MAX_SWAPFILES_SHIFT);
- 		}
- 		flags |= PM_SWAP;
--		migration = is_migration_entry(entry);
- 		if (is_pfn_swap_entry(entry))
- 			page = pfn_swap_entry_to_page(entry);
- 		if (pte_marker_entry_uffd_wp(entry))
-@@ -1456,7 +1454,7 @@ static pagemap_entry_t pte_to_pagemap_en
- 
- 	if (page && !PageAnon(page))
- 		flags |= PM_FILE;
--	if (page && !migration && page_mapcount(page) == 1)
-+	if (page && (flags & PM_PRESENT) && page_mapcount(page) == 1)
- 		flags |= PM_MMAP_EXCLUSIVE;
- 	if (vma->vm_flags & VM_SOFTDIRTY)
- 		flags |= PM_SOFT_DIRTY;
-@@ -1473,7 +1471,6 @@ static int pagemap_pmd_range(pmd_t *pmdp
- 	pte_t *pte, *orig_pte;
- 	int err = 0;
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	bool migration = false;
+@@ -1474,6 +1474,7 @@ static int pagemap_pmd_range(pmd_t *pmdp
  
  	ptl = pmd_trans_huge_lock(pmdp, vma);
  	if (ptl) {
-@@ -1517,14 +1514,13 @@ static int pagemap_pmd_range(pmd_t *pmdp
- 			if (pmd_swp_uffd_wp(pmd))
++		unsigned int idx = (addr & ~PMD_MASK) >> PAGE_SHIFT;
+ 		u64 flags = 0, frame = 0;
+ 		pmd_t pmd = *pmdp;
+ 		struct page *page = NULL;
+@@ -1490,8 +1491,7 @@ static int pagemap_pmd_range(pmd_t *pmdp
+ 			if (pmd_uffd_wp(pmd))
  				flags |= PM_UFFD_WP;
- 			VM_BUG_ON(!is_pmd_migration_entry(pmd));
--			migration = is_migration_entry(entry);
- 			page = pfn_swap_entry_to_page(entry);
+ 			if (pm->show_pfn)
+-				frame = pmd_pfn(pmd) +
+-					((addr & ~PMD_MASK) >> PAGE_SHIFT);
++				frame = pmd_pfn(pmd) + idx;
  		}
- #endif
+ #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
+ 		else if (is_swap_pmd(pmd)) {
+@@ -1500,11 +1500,9 @@ static int pagemap_pmd_range(pmd_t *pmdp
+ 
+ 			if (pm->show_pfn) {
+ 				if (is_pfn_swap_entry(entry))
+-					offset = swp_offset_pfn(entry);
++					offset = swp_offset_pfn(entry) + idx;
+ 				else
+-					offset = swp_offset(entry);
+-				offset = offset +
+-					((addr & ~PMD_MASK) >> PAGE_SHIFT);
++					offset = swp_offset(entry) + idx;
+ 				frame = swp_type(entry) |
+ 					(offset << MAX_SWAPFILES_SHIFT);
+ 			}
+@@ -1520,12 +1518,16 @@ static int pagemap_pmd_range(pmd_t *pmdp
  
  		if (page && !PageAnon(page))
  			flags |= PM_FILE;
--		if (page && !migration && page_mapcount(page) == 1)
-+		if (page && (flags & PM_PRESENT) && page_mapcount(page) == 1)
- 			flags |= PM_MMAP_EXCLUSIVE;
+-		if (page && (flags & PM_PRESENT) && page_mapcount(page) == 1)
+-			flags |= PM_MMAP_EXCLUSIVE;
  
- 		for (; addr != end; addr += PAGE_SIZE) {
+-		for (; addr != end; addr += PAGE_SIZE) {
+-			pagemap_entry_t pme = make_pme(frame, flags);
++		for (; addr != end; addr += PAGE_SIZE, idx++) {
++			unsigned long cur_flags = flags;
++			pagemap_entry_t pme;
++
++			if (page && (flags & PM_PRESENT) &&
++			    page_mapcount(page + idx) == 1)
++				cur_flags |= PM_MMAP_EXCLUSIVE;
+ 
++			pme = make_pme(frame, cur_flags);
+ 			err = add_to_pagemap(&pme, pm);
+ 			if (err)
+ 				break;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
