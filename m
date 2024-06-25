@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4809A33C0
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F68333C0
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293180; cv=none; b=kGZqL0GPrs9RRzM3Ds9jLEH967ZPzAZv8YM9uKPTiOM+kHtzwCe4Rvq2gXVbs7zpUrne9QghaAtN/ZOJ0Z1Fr7zxgo+J5U8tEfQMZ7FSYDN/VbnFGU0Th7TLeLHFlRZvlWBxkBQNofw4LpVTbAelJbh0XvQsEYUm3wrN4BeH044=
+	t=1719293181; cv=none; b=m+k08HY/Hy42m7R8t/UugHE9Fmww7GgVjm3ErqHCKAspYq27oVTGdrl+JfWp7MH/hLXfECNg6jhFMlUGzK2nztYUjmiQ8St+8yxHJXiCv4rw7ka4/AN4go6m7KFrsbcA45z8flfGhNI73wuPOwg56/Hm9+1owBDe5dEXzieYyZU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719293180; c=relaxed/simple;
-	bh=hXFycVFgdtQg6D2/xQQk4+LZtyp7k70NXBrbUQEhdZA=;
-	h=Date:To:From:Subject:Message-Id; b=eCX7LjmW0DrNLVng6dg0bx0c1U+6U4/NBgtHM3XtXDR+N8jpdNlFDj5TqpTLQfJo1hAq0TmfT36lIUcDFn6jtONwcmMu1d/GVJ/EZVUUUO7Q/Kq+tmz23ZjaGVE8YUNfp2Fild/GEeUw1BSN0zBPxkGhgUjlkIdrnszSoxjfuNQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YM+rv03p; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719293181; c=relaxed/simple;
+	bh=yv2VKIqVnsILSUxOJVsRJu3agkaAxLMQLTp3bHjWiJg=;
+	h=Date:To:From:Subject:Message-Id; b=rWE4HOQcDtrsXjkgM8Kq3hAsBRmGd/TPb/b63ATaC0kTMw6rmiZ2UNMAiLu4USnZCq5/F37Cju7+qOboSK56Zeo6Iikjmbr6NQLtP9CqQiP8W6sfa+WAztZdsD4w+wOn3KfjW7gnrupMvepmoOwQwozBM1/uoeTRqWB7XTMrNHI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hKNQkC/W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YM+rv03p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D20FFC32782;
-	Tue, 25 Jun 2024 05:26:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hKNQkC/W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 136E1C32782;
+	Tue, 25 Jun 2024 05:26:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293179;
-	bh=hXFycVFgdtQg6D2/xQQk4+LZtyp7k70NXBrbUQEhdZA=;
+	s=korg; t=1719293181;
+	bh=yv2VKIqVnsILSUxOJVsRJu3agkaAxLMQLTp3bHjWiJg=;
 	h=Date:To:From:Subject:From;
-	b=YM+rv03pLkHaP5igg3nIGTXX2sz+WdYoZm2a2azlJa7kcTa23OYsOm1eyMIhMzES+
-	 cK4ZIqI9ha0DGHvJJVIiAlVcm1Ta1VJzU77hTPEmhLvWwf1xKxdEaG11lYlK00yEO9
-	 xgR8hHNAxxChJ0D//WcYHf6Fq2MeuIAARhddhYAU=
-Date: Mon, 24 Jun 2024 22:26:19 -0700
+	b=hKNQkC/Wwm2hxZWpnsm2tyAqPdqzuSOubjFx8uJ6DOTvSr13tYimm6qWpQgnKNEFy
+	 B8MINS9OJI4G2aaw/QrcUVy6i/qiX+DWNO3sQnl71exIk8R0lF2fzYuFY/mkOOU4x9
+	 FLZm5CMcBc1ldWEDzNR/XjXngMx2r3vhIh8UI7+U=
+Date: Mon, 24 Jun 2024 22:26:20 -0700
 To: mm-commits@vger.kernel.org,yury.norov@nvidia.com,viresh.kumar@linaro.org,vincent.guittot@linaro.org,ulf.hansson@linaro.org,tj@kernel.org,tglx@linutronix.de,rafael@kernel.org,peterz@infradead.org,paulmck@kernel.org,mathieu.desnoyers@efficios.com,linux@rasmusvillemoes.dk,keescook@chromium.org,juri.lelli@redhat.com,hannes@cmpxchg.org,frederic@kernel.org,dennis@kernel.org,daniel.lezcano@linaro.org,cl@linux.com,anna-maria@linutronix.de,amit.kachhap@gmail.com,yury.norov@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] maintainers-add-linux-nodemask_typesh-to-bitmap-api.patch removed from -mm tree
-Message-Id: <20240625052619.D20FFC32782@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] sched-avoid-using-ilog2-in-schedh.patch removed from -mm tree
+Message-Id: <20240625052621.136E1C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,36 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add linux/nodemask_types.h to BITMAP API
+     Subject: sched: avoid using ilog2() in sched.h
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-linux-nodemask_typesh-to-bitmap-api.patch
+     sched-avoid-using-ilog2-in-schedh.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: MAINTAINERS: add linux/nodemask_types.h to BITMAP API
-Date: Mon, 27 May 2024 17:56:43 -0700
+Subject: sched: avoid using ilog2() in sched.h
+Date: Mon, 27 May 2024 17:56:44 -0700
 
-Patch series "Cleanup cpumask.h inclusion in core headers".
+<linux/sched.h> indirectly via cpumask.h path includes the ilog2.h header
+to calculate ilog2(TASK_REPORT_MAX).  The following patches drops sched.h
+dependency on cpumask.h, and to have a successful build, the header has to
+be included explicitly.
 
-Many core headers include linux/cpumask.h for nothing, and some others
-include it just for types.  We already have nodemask_types.h, and this
-series adds cpumask_types.h to optimize core headers inclusion paths.
+sched.h is a frequently included header, and it's better to keep the
+dependency list as small as possible.  So, instead of including ilog2.h
+for a single BUILD_BUG_ON() check, the same check may be implemented by
+taking exponent of the other part of equation.
 
-Interestingly, it doesn't improve on build time for me, but the headers
-cleanup work should keep going.
-
-
-This patch (of 6):
-
-Commit bea32141764b ("nodemask: Split out include/linux/nodemask_types.h")
-added the nodemask_types.h but didn't cover it with corresponding record
-in the MAINTAINERS file.
-
-Link: https://lkml.kernel.org/r/20240528005648.182376-1-yury.norov@gmail.com
-Link: https://lkml.kernel.org/r/20240528005648.182376-2-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20240528005648.182376-3-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Cc: Amit Daniel Kachhap <amit.kachhap@gmail.com>
 Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>
@@ -78,7 +71,7 @@ Cc: Kees Cook <keescook@chromium.org>
 Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rafael J. Wysocki <rafael@kernel.org> # for thermal
+Cc: Rafael J. Wysocki <rafael@kernel.org>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -89,19 +82,20 @@ Cc: Yury Norov <yury.norov@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/sched.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-add-linux-nodemask_typesh-to-bitmap-api
-+++ a/MAINTAINERS
-@@ -3732,6 +3732,7 @@ F:	include/linux/bits.h
- F:	include/linux/cpumask.h
- F:	include/linux/find.h
- F:	include/linux/nodemask.h
-+F:	include/linux/nodemask_types.h
- F:	include/vdso/bits.h
- F:	lib/bitmap-str.c
- F:	lib/bitmap.c
+--- a/include/linux/sched.h~sched-avoid-using-ilog2-in-schedh
++++ a/include/linux/sched.h
+@@ -1604,7 +1604,7 @@ static inline char task_index_to_char(un
+ {
+ 	static const char state_char[] = "RSDTtXZPI";
+ 
+-	BUILD_BUG_ON(1 + ilog2(TASK_REPORT_MAX) != sizeof(state_char) - 1);
++	BUILD_BUG_ON(TASK_REPORT_MAX * 2 != 1 << (sizeof(state_char) - 1));
+ 
+ 	return state_char[state];
+ }
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
