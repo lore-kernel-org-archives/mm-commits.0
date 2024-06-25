@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0082713D244
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:59:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FAA613D244
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:59:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291598; cv=none; b=Mt6J5G32NCXnP7FGIWBMyg1TFhM+re1Q975HkmUffwR/eupUG400r83NIUviu22zsOsDcrIWBjOXQ50slZB2jU2+mXV+2YDiejzyW2SeRA+aHJlkfMOXTsSUilNsUwV/PrM4R8OyJqZhBUjPXsG1MynnSHPJrML+UbDuWGd3M5g=
+	t=1719291599; cv=none; b=I/SkR0wKqDH+Kg3ConE/mO+ypvhu1gb4U/Xtn1Bxr4XQzJGHR63CpJXtfO73Fjjhdx42kqTsrBp4SCyh1oU8Sj7CdxmDkGwMoecgyinAoNHsZaKFGSsc3AJJb2gyc4y0cot2uIEENbauzpAlcO7TVxtkSedVbNXOi7ZjUHyqkJc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291598; c=relaxed/simple;
-	bh=tOlMF8AlUFEfmEsTI8Ym2DcRsrEnNi19t3gAe47cRHY=;
-	h=Date:To:From:Subject:Message-Id; b=J9UiyMDlJVZAcHMsh/Gd9CV0SiyuKT1hLYtQqBBYyKksQkgsgockWkW1xtb3XStCbDwKV5PwT5EPTqm+kEsGqhch3q7jLR/6xPLROTt2JjdHkR+RpEfYjWdq5cheZew4wWZ/unpfhpHqB0ZeMf8fegqUL6+E/xKOSSlL6o/kt28=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xsq+ZafA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291599; c=relaxed/simple;
+	bh=7H7fy2pD6+f6euUCnZn/fZN+sSTbH6n4K4jNUbTbHw4=;
+	h=Date:To:From:Subject:Message-Id; b=YTmOMA9y7k3WO1f4XOxTlwibJLdzaDkTvkRJCmeqZ6r37DlHPYWAiOQbUqpaxXOghgquTN57FXsBytIHKWOYmDm7Krde0h6PLD3gRJzoAQlxIjhCav/O07XbF0AihPMoOYEvzAQABia4ihtpRj9/itOR+ra8Jt2XBF2s5UPKpbw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AH14oGti; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xsq+ZafA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1373C32782;
-	Tue, 25 Jun 2024 04:59:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AH14oGti"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9BE6C32782;
+	Tue, 25 Jun 2024 04:59:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291597;
-	bh=tOlMF8AlUFEfmEsTI8Ym2DcRsrEnNi19t3gAe47cRHY=;
+	s=korg; t=1719291599;
+	bh=7H7fy2pD6+f6euUCnZn/fZN+sSTbH6n4K4jNUbTbHw4=;
 	h=Date:To:From:Subject:From;
-	b=Xsq+ZafAsW1pLwHL/+jAtJkL/21lykM36MJsjfgZXtgKC2tyFqV4jCHPd2mNtUwrB
-	 +MZuhdCKiunSHPs9dWOE6JFHg4902lFf9S5XDMKJyw+DtufgYa4CGRYDWzlQHs2UFN
-	 OSQnSQ9Tsy2iqydbqKBKsTymeOixcrQDesExAdYs=
-Date: Mon, 24 Jun 2024 21:59:57 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vishal.moola@gmail.com,tony.luck@intel.com,nao.horiguchi@gmail.com,muchun.song@linux.dev,linmiaohe@huawei.com,jiaqiyan@google.com,jglisse@redhat.com,hughd@google.com,david@redhat.com,bcrl@kvack.org,apopple@nvidia.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=AH14oGtif67ink3Q3Zj31atX7Kbpk649Q6p+tl9RN1ZTOPMcIDvpJVrg9z968ve5e
+	 M3ffdVdbxtJdx0+mRV2Ve9+20bXLz2JoXUrgpLPGU87KVYG8MuDp0GSKm2jB1iKNoM
+	 97IUIn9PcmaCadL+kF32XPevn2pkKDh6rE2QYb8o=
+Date: Mon, 24 Jun 2024 21:59:58 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vishal.moola@gmail.com,tony.luck@intel.com,nao.horiguchi@gmail.com,muchun.song@linux.dev,linmiaohe@huawei.com,jiaqiyan@google.com,jglisse@redhat.com,jane.chu@oracle.com,hughd@google.com,david@redhat.com,bcrl@kvack.org,apopple@nvidia.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-migrate_device-use-a-newfolio-in-__migrate_device_pages.patch removed from -mm tree
-Message-Id: <20240625045957.C1373C32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-migrate_device-unify-migrate-folio-for-migrate_sync_no_copy.patch removed from -mm tree
+Message-Id: <20240625045958.E9BE6C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,93 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: migrate_device: use a newfolio in __migrate_device_pages()
+     Subject: mm: migrate_device: unify migrate folio for MIGRATE_SYNC_NO_COPY
 has been removed from the -mm tree.  Its filename was
-     mm-migrate_device-use-a-newfolio-in-__migrate_device_pages.patch
+     mm-migrate_device-unify-migrate-folio-for-migrate_sync_no_copy.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: migrate_device: use a newfolio in __migrate_device_pages()
-Date: Fri, 24 May 2024 13:28:40 +0800
+Subject: mm: migrate_device: unify migrate folio for MIGRATE_SYNC_NO_COPY
+Date: Fri, 24 May 2024 13:28:41 +0800
 
-Use a newfolio instead of newpage and convert to more folio api in
-__migrate_device_pages().
+The __migrate_device_pages() won't copy page so MIGRATE_SYNC_NO_COPY
+passed into migrate_folio()/migrate_folio_extra(), actually a easy way is
+just to call folio_migrate_mapping()/folio_migrate_flags(), converting it
+to unify and simplify the migrate device pages, which also remove the only
+call for MIGRATE_SYNC_NO_COPY.
 
-Link: https://lkml.kernel.org/r/20240524052843.182275-3-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240524052843.182275-4-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Jane Chu <jane.chu@oracle.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Benjamin LaHaise <bcrl@kvack.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jérôme Glisse <jglisse@redhat.com>
 Cc: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate_device.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ mm/migrate_device.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/mm/migrate_device.c~mm-migrate_device-use-a-newfolio-in-__migrate_device_pages
+--- a/mm/migrate_device.c~mm-migrate_device-unify-migrate-folio-for-migrate_sync_no_copy
 +++ a/mm/migrate_device.c
-@@ -692,7 +692,7 @@ static void __migrate_device_pages(unsig
- 		struct page *newpage = migrate_pfn_to_page(dst_pfns[i]);
+@@ -693,7 +693,7 @@ static void __migrate_device_pages(unsig
  		struct page *page = migrate_pfn_to_page(src_pfns[i]);
  		struct address_space *mapping;
--		struct folio *folio;
-+		struct folio *newfolio, *folio;
- 		int r;
+ 		struct folio *newfolio, *folio;
+-		int r;
++		int r, extra_cnt = 0;
  
  		if (!newpage) {
-@@ -727,11 +727,12 @@ static void __migrate_device_pages(unsig
+ 			src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
+@@ -754,14 +754,15 @@ static void __migrate_device_pages(unsig
  			continue;
  		}
  
-+		newfolio = page_folio(newpage);
- 		folio = page_folio(page);
- 		mapping = folio_mapping(folio);
- 
--		if (is_device_private_page(newpage) ||
--		    is_device_coherent_page(newpage)) {
-+		if (folio_is_device_private(newfolio) ||
-+		    folio_is_device_coherent(newfolio)) {
- 			if (mapping) {
- 				/*
- 				 * For now only support anonymous memory migrating to
-@@ -745,7 +746,7 @@ static void __migrate_device_pages(unsig
- 					continue;
- 				}
- 			}
--		} else if (is_zone_device_page(newpage)) {
-+		} else if (folio_is_zone_device(newfolio)) {
- 			/*
- 			 * Other types of ZONE_DEVICE page are not supported.
- 			 */
-@@ -754,11 +755,11 @@ static void __migrate_device_pages(unsig
- 		}
- 
++		BUG_ON(folio_test_writeback(folio));
++
  		if (migrate && migrate->fault_page == page)
--			r = migrate_folio_extra(mapping, page_folio(newpage),
--						folio, MIGRATE_SYNC_NO_COPY, 1);
-+			r = migrate_folio_extra(mapping, newfolio, folio,
-+						MIGRATE_SYNC_NO_COPY, 1);
- 		else
--			r = migrate_folio(mapping, page_folio(newpage),
--					folio, MIGRATE_SYNC_NO_COPY);
-+			r = migrate_folio(mapping, newfolio, folio,
-+					  MIGRATE_SYNC_NO_COPY);
+-			r = migrate_folio_extra(mapping, newfolio, folio,
+-						MIGRATE_SYNC_NO_COPY, 1);
+-		else
+-			r = migrate_folio(mapping, newfolio, folio,
+-					  MIGRATE_SYNC_NO_COPY);
++			extra_cnt = 1;
++		r = folio_migrate_mapping(mapping, newfolio, folio, extra_cnt);
  		if (r != MIGRATEPAGE_SUCCESS)
  			src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
++		else
++			folio_migrate_flags(newfolio, folio);
  	}
+ 
+ 	if (notified)
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
