@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63CA3143C6A
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:00:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C124A143890
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:00:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291637; cv=none; b=N4zX/PGOxNvMfVg2bfHALsk4F2QJgXLZy+iSHAMXmmYMrGOu8oRxrj3hbVQbj3Xi10GwItAO51YCw4AWHcUt//FwP8JQUha/rph3l/MaGuWm7V4zsc2cpLMwxto9YM0oWAhnUGEbp1dc2peVu8jQ/KLB5OIdBW1q9F2dOmkKhAw=
+	t=1719291638; cv=none; b=VAI8lAuVRkOwUVkpPKY7QLyRWbaZwd63bgGTaGt0wVt1ubHLlhdls39e8D/STs4zeUM4plg4orgbBx/gyqEApmR1TJ101TDqDrh18XEE/pFxswtIOIOaYCc+P8+Wy6PkwZ+ZDyueF7Z8NSm/l4ZuI9xO3K8Z92xZX+HzcVsDkdY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291637; c=relaxed/simple;
-	bh=aIScmXD/Xl2Ix/yOUSBzo6mcuvztjFBIkOyJUewTZKM=;
-	h=Date:To:From:Subject:Message-Id; b=XcIlOe2WDpfZT3xujeZfrr18+McMhQhA0VQySi+fULoUYhzLwnJwulTNARbOZmortzesF9SjLwseJOWnqUoVDbBg6Xbu4dFUF8Nqy5j3FBnWOdsysb2xkzQ5w9Ba5qVQkFICRoptI1bOBgu4tgjzMnrO80tBgKKUhS4VBEJLRFQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hwbtgk/w; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291638; c=relaxed/simple;
+	bh=iVrD9zUsz0wUJPs9WgER3OcJvbXgCsOqZ58e1BfM/nk=;
+	h=Date:To:From:Subject:Message-Id; b=TLYPLFWloQrZCnteCJxfIqqHBBxiN9jepDQfVQzYyYfscSdne9kcjdz0f/wnMYRTjl2ctk/nPoQ6+sBpNRuJZNPKkDR+VId2IoxvdWn8BsM+4jmGp+CuEa9ce+HhEi2NDAIMHB8Se98VXzCtZ3UB6Z6ZFh4knzbV0OaM72C3Yi8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=knGFsuM1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hwbtgk/w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AB36C32782;
-	Tue, 25 Jun 2024 05:00:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="knGFsuM1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94A1CC32789;
+	Tue, 25 Jun 2024 05:00:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291637;
-	bh=aIScmXD/Xl2Ix/yOUSBzo6mcuvztjFBIkOyJUewTZKM=;
+	s=korg; t=1719291638;
+	bh=iVrD9zUsz0wUJPs9WgER3OcJvbXgCsOqZ58e1BfM/nk=;
 	h=Date:To:From:Subject:From;
-	b=hwbtgk/wwPoFrZ3bo21BI8gl/X+mzXPjhCkbAkz1jQ5NokVu888mmnV5KvBQCTFEB
-	 QfGZZygJMfgzPcFvKlwCxdupZDeG86C07WcGvtMXAo9U56BArVOzxnfaILdOLtjK0T
-	 IGd4aQSTjd6PdTCJMqAHzCORLptaV9S+HIe46/94=
-Date: Mon, 24 Jun 2024 22:00:36 -0700
+	b=knGFsuM1AOKoIIB/SiNZqZNdG6pQFUNwX4Qgtmb5zsE6F0JjAlc9uP9hcQeNJdQRm
+	 xK2Qiv4+H+Pn9k6qVQ2PbWViRJZnaj7c1ZigW52nwSX5BDvuVsuM6TPbQk9VoldQ2s
+	 6MjwuYd4ZMOaYl4COsMvw+SkafYu3lwMdCE9VsxY=
+Date: Mon, 24 Jun 2024 22:00:38 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area.patch removed from -mm tree
-Message-Id: <20240625050037.3AB36C32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shmem-add-mthp-counters-for-anonymous-shmem.patch removed from -mm tree
+Message-Id: <20240625050038.94A1CC32789@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: shmem: add mTHP size alignment in shmem_get_unmapped_area
+     Subject: mm: shmem: add mTHP counters for anonymous shmem
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area.patch
+     mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: add mTHP size alignment in shmem_get_unmapped_area
-Date: Tue, 11 Jun 2024 18:11:09 +0800
+Subject: mm: shmem: add mTHP counters for anonymous shmem
+Date: Tue, 11 Jun 2024 18:11:10 +0800
 
-Although the top-level hugepage allocation can be turned off, anonymous
-shmem can still use mTHP by configuring the sysfs interface located at
-'/sys/kernel/mm/transparent_hugepage/hugepage-XXkb/shmem_enabled'. 
-Therefore, add alignment for mTHP size to provide a suitable alignment
-address in shmem_get_unmapped_area().
+Add mTHP counters for anonymous shmem.
 
-Link: https://lkml.kernel.org/r/0c549b57cf7db07503af692d8546ecfad0fcce52.1718090413.git.baolin.wang@linux.alibaba.com
+[baolin.wang@linux.alibaba.com: update Documentation/admin-guide/mm/transhuge.rst]
+  Link: https://lkml.kernel.org/r/d86e2e7f-4141-432b-b2ba-c6691f36ef0b@linux.alibaba.com
+Link: https://lkml.kernel.org/r/4fd9e467d49ae4a747e428bcd821c7d13125ae67.1718090413.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Tested-by: Lance Yang <ioworker0@gmail.com>
+Reviewed-by: Lance Yang <ioworker0@gmail.com>
 Cc: Barry Song <v-songbaohua@oppo.com>
 Cc: Daniel Gomez <da.gomez@samsung.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -69,97 +67,109 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   40 +++++++++++++++++++++++++++++++---------
- 1 file changed, 31 insertions(+), 9 deletions(-)
+ Documentation/admin-guide/mm/transhuge.rst |   13 +++++++++++++
+ include/linux/huge_mm.h                    |    3 +++
+ mm/huge_memory.c                           |    6 ++++++
+ mm/shmem.c                                 |   18 +++++++++++++++---
+ 4 files changed, 37 insertions(+), 3 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-shmem-add-mthp-counters-for-anonymous-shmem
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -501,6 +501,19 @@ swpout_fallback
+ 	Usually because failed to allocate some continuous swap space
+ 	for the huge page.
+ 
++file_alloc
++	is incremented every time a file huge page is successfully
++	allocated.
++
++file_fallback
++	is incremented if a file huge page is attempted to be allocated
++	but fails and instead falls back to using small pages.
++
++file_fallback_charge
++	is incremented if a file huge page cannot be charged and instead
++	falls back to using small pages even though the allocation was
++	successful.
++
+ As the system ages, allocating huge pages may be expensive as the
+ system uses memory compaction to copy data around memory to free a
+ huge page for use. There are some counters in ``/proc/vmstat`` to help
+--- a/include/linux/huge_mm.h~mm-shmem-add-mthp-counters-for-anonymous-shmem
++++ a/include/linux/huge_mm.h
+@@ -281,6 +281,9 @@ enum mthp_stat_item {
+ 	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
+ 	MTHP_STAT_SWPOUT,
+ 	MTHP_STAT_SWPOUT_FALLBACK,
++	MTHP_STAT_FILE_ALLOC,
++	MTHP_STAT_FILE_FALLBACK,
++	MTHP_STAT_FILE_FALLBACK_CHARGE,
+ 	__MTHP_STAT_COUNT
+ };
+ 
+--- a/mm/huge_memory.c~mm-shmem-add-mthp-counters-for-anonymous-shmem
++++ a/mm/huge_memory.c
+@@ -556,6 +556,9 @@ DEFINE_MTHP_STAT_ATTR(anon_fault_fallbac
+ DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
+ DEFINE_MTHP_STAT_ATTR(swpout, MTHP_STAT_SWPOUT);
+ DEFINE_MTHP_STAT_ATTR(swpout_fallback, MTHP_STAT_SWPOUT_FALLBACK);
++DEFINE_MTHP_STAT_ATTR(file_alloc, MTHP_STAT_FILE_ALLOC);
++DEFINE_MTHP_STAT_ATTR(file_fallback, MTHP_STAT_FILE_FALLBACK);
++DEFINE_MTHP_STAT_ATTR(file_fallback_charge, MTHP_STAT_FILE_FALLBACK_CHARGE);
+ 
+ static struct attribute *stats_attrs[] = {
+ 	&anon_fault_alloc_attr.attr,
+@@ -563,6 +566,9 @@ static struct attribute *stats_attrs[] =
+ 	&anon_fault_fallback_charge_attr.attr,
+ 	&swpout_attr.attr,
+ 	&swpout_fallback_attr.attr,
++	&file_alloc_attr.attr,
++	&file_fallback_attr.attr,
++	&file_fallback_charge_attr.attr,
+ 	NULL,
+ };
+ 
+--- a/mm/shmem.c~mm-shmem-add-mthp-counters-for-anonymous-shmem
 +++ a/mm/shmem.c
-@@ -2393,6 +2393,7 @@ unsigned long shmem_get_unmapped_area(st
- 	unsigned long inflated_len;
- 	unsigned long inflated_addr;
- 	unsigned long inflated_offset;
-+	unsigned long hpage_size;
+@@ -1772,6 +1772,9 @@ static struct folio *shmem_alloc_and_add
  
- 	if (len > TASK_SIZE)
- 		return -ENOMEM;
-@@ -2411,8 +2412,6 @@ unsigned long shmem_get_unmapped_area(st
- 
- 	if (shmem_huge == SHMEM_HUGE_DENY)
- 		return addr;
--	if (len < HPAGE_PMD_SIZE)
--		return addr;
- 	if (flags & MAP_FIXED)
- 		return addr;
- 	/*
-@@ -2424,8 +2423,11 @@ unsigned long shmem_get_unmapped_area(st
- 	if (uaddr == addr)
- 		return addr;
- 
-+	hpage_size = HPAGE_PMD_SIZE;
- 	if (shmem_huge != SHMEM_HUGE_FORCE) {
- 		struct super_block *sb;
-+		unsigned long __maybe_unused hpage_orders;
-+		int order = 0;
- 
- 		if (file) {
- 			VM_BUG_ON(file->f_op != &shmem_file_operations);
-@@ -2438,18 +2440,38 @@ unsigned long shmem_get_unmapped_area(st
- 			if (IS_ERR(shm_mnt))
- 				return addr;
- 			sb = shm_mnt->mnt_sb;
-+
-+			/*
-+			 * Find the highest mTHP order used for anonymous shmem to
-+			 * provide a suitable alignment address.
-+			 */
+ 			if (pages == HPAGE_PMD_NR)
+ 				count_vm_event(THP_FILE_FALLBACK);
 +#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+			hpage_orders = READ_ONCE(huge_shmem_orders_always);
-+			hpage_orders |= READ_ONCE(huge_shmem_orders_within_size);
-+			hpage_orders |= READ_ONCE(huge_shmem_orders_madvise);
-+			if (SHMEM_SB(sb)->huge != SHMEM_HUGE_NEVER)
-+				hpage_orders |= READ_ONCE(huge_shmem_orders_inherit);
-+
-+			if (hpage_orders > 0) {
-+				order = highest_order(hpage_orders);
-+				hpage_size = PAGE_SIZE << order;
++			count_mthp_stat(order, MTHP_STAT_FILE_FALLBACK);
++#endif
+ 			order = next_order(&suitable_orders, order);
+ 		}
+ 	} else {
+@@ -1791,9 +1794,15 @@ allocated:
+ 		if (xa_find(&mapping->i_pages, &index,
+ 				index + pages - 1, XA_PRESENT)) {
+ 			error = -EEXIST;
+-		} else if (pages == HPAGE_PMD_NR) {
+-			count_vm_event(THP_FILE_FALLBACK);
+-			count_vm_event(THP_FILE_FALLBACK_CHARGE);
++		} else if (pages > 1) {
++			if (pages == HPAGE_PMD_NR) {
++				count_vm_event(THP_FILE_FALLBACK);
++				count_vm_event(THP_FILE_FALLBACK_CHARGE);
 +			}
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++			count_mthp_stat(folio_order(folio), MTHP_STAT_FILE_FALLBACK);
++			count_mthp_stat(folio_order(folio), MTHP_STAT_FILE_FALLBACK_CHARGE);
 +#endif
  		}
--		if (SHMEM_SB(sb)->huge == SHMEM_HUGE_NEVER)
-+		if (SHMEM_SB(sb)->huge == SHMEM_HUGE_NEVER && !order)
- 			return addr;
+ 		goto unlock;
  	}
- 
--	offset = (pgoff << PAGE_SHIFT) & (HPAGE_PMD_SIZE-1);
--	if (offset && offset + len < 2 * HPAGE_PMD_SIZE)
-+	if (len < hpage_size)
-+		return addr;
-+
-+	offset = (pgoff << PAGE_SHIFT) & (hpage_size - 1);
-+	if (offset && offset + len < 2 * hpage_size)
- 		return addr;
--	if ((addr & (HPAGE_PMD_SIZE-1)) == offset)
-+	if ((addr & (hpage_size - 1)) == offset)
- 		return addr;
- 
--	inflated_len = len + HPAGE_PMD_SIZE - PAGE_SIZE;
-+	inflated_len = len + hpage_size - PAGE_SIZE;
- 	if (inflated_len > TASK_SIZE)
- 		return addr;
- 	if (inflated_len < len)
-@@ -2462,10 +2484,10 @@ unsigned long shmem_get_unmapped_area(st
- 	if (inflated_addr & ~PAGE_MASK)
- 		return addr;
- 
--	inflated_offset = inflated_addr & (HPAGE_PMD_SIZE-1);
-+	inflated_offset = inflated_addr & (hpage_size - 1);
- 	inflated_addr += offset - inflated_offset;
- 	if (inflated_offset > offset)
--		inflated_addr += HPAGE_PMD_SIZE;
-+		inflated_addr += hpage_size;
- 
- 	if (inflated_addr > TASK_SIZE - len)
- 		return addr;
+@@ -2167,6 +2176,9 @@ repeat:
+ 		if (!IS_ERR(folio)) {
+ 			if (folio_test_pmd_mappable(folio))
+ 				count_vm_event(THP_FILE_ALLOC);
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++			count_mthp_stat(folio_order(folio), MTHP_STAT_FILE_ALLOC);
++#endif
+ 			goto alloced;
+ 		}
+ 		if (PTR_ERR(folio) == -EEXIST)
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
