@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 325C713C914
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:19:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45E4A1849
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:19:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719289148; cv=none; b=ePy33r9HDPAqZU5ApWIGOL6MN4wYijGAOe+7oAWsLgiSQiuY2mRjPVgucqUyxoiUD1FCmkcM8zxrOvIDIUdPkmNhwgBi/IbDJufYwUFzfC2T0fQ+F2QlYG2W47EMnzuFeQE9c+aFUEhQqhtVKBCJ3UwqGRqk2tt+DId6Sxijv0c=
+	t=1719289199; cv=none; b=gj10YWQPYWXv0dfG6W65bxgfpgntG6LIKvIP2n0k+H1uYnSLQ/0hxtVXxACP5SwdHHX+8av90R/MsiAxhHrvx7fVzKi6o0b4SFQRmgxMuOcVSMEY9zT50/3nuGJ1LZd+ZYhExoV9rYncz5f/VOHS5dBXLcXbOriqDZDVZv0sBgo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719289148; c=relaxed/simple;
-	bh=2jlyFsGdNv1pnY4nSx/ZDDmts6Y0GHd3dlN3eJ9zg/U=;
-	h=Date:To:From:Subject:Message-Id; b=GvgnZ1kBmk2xzFXWRkB5qcYgFv4f63y4j5rojNyrp4eLuDTSl5fDhWwNmByYmgikzVMDqsWOu38JgQZEB5LiQ9wFtJ/phfBj+o77wU6RC8hhBT2eNyeMXLkSJULfZR4h/w/rlEOkSRH7XyaOcy50F6hG98GVVZGk9RYLaenSVKU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0egxmMum; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719289199; c=relaxed/simple;
+	bh=S27+YEXWG9Xu4RWgFPwoNSPKs3BzPvIXQAdLBJLcng0=;
+	h=Date:To:From:Subject:Message-Id; b=m5ic5bADCMQlmCxRgs5iLseQKn9tnIu0Nmw43JUifkYsOhNAmtxB1QRxmn4kKo70Kd8FmPHZJPLF5Sc6ORkGqPW161t/8V3I1+sbmcndmuPV7NHcrjj+uyUO/yHGMmH/oUIa6/tdnuBeybAXll59RXgCul8Jy7g5LZwO9UNpPaE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KILfK+s0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0egxmMum"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0A50C4AF0B;
-	Tue, 25 Jun 2024 04:19:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KILfK+s0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FC34C32782;
+	Tue, 25 Jun 2024 04:19:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719289147;
-	bh=2jlyFsGdNv1pnY4nSx/ZDDmts6Y0GHd3dlN3eJ9zg/U=;
+	s=korg; t=1719289199;
+	bh=S27+YEXWG9Xu4RWgFPwoNSPKs3BzPvIXQAdLBJLcng0=;
 	h=Date:To:From:Subject:From;
-	b=0egxmMumxehT8jlipeoazeP30OpjzON4iIE4DI+NZIDfYc13CuYYo6Gty46KR69S0
-	 YiinHgrNx8asNM6Ekyxx9d8M98ACULVzTDMDgYNF/2isFjlRMLHVHc+hf0hypFnViB
-	 CYY/s1rATaU7aTw2iTR+0og1B82E7W1Wqh8lDRKU=
-Date: Mon, 24 Jun 2024 21:19:07 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,david@redhat.com,hughd@google.com,akpm@linux-foundation.org
+	b=KILfK+s03zy1wbmZJOs7hgBO4/aPOU9VYloGR4V+cH6mjiltEtA4wvhEA6EuBdx4E
+	 E9KNuhqVrHdq9/AQIXxkkhOronvwsY8dN9GjhRbSqzBAjucbZ8cEf2llYuYmsJ0zlN
+	 uxRKk8Z/OAv25fljiSxd5aicsTd3gfaUquRFH4Ls=
+Date: Mon, 24 Jun 2024 21:19:58 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-rmap-abstract-updating-per-node-and-per-memcg-stats-fix.patch removed from -mm tree
-Message-Id: <20240625041907.B0A50C4AF0B@smtp.kernel.org>
+Subject: [folded-merged] mm-memory-extend-finish_fault-to-support-large-folio-fix.patch removed from -mm tree
+Message-Id: <20240625041959.0FC34C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: rmap: abstract updating per-node and per-memcg stats fix
+     Subject: mm-memory-extend-finish_fault-to-support-large-folio-fix
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-abstract-updating-per-node-and-per-memcg-stats-fix.patch
+     mm-memory-extend-finish_fault-to-support-large-folio-fix.patch
 
-This patch was dropped because it was folded into mm-rmap-abstract-updating-per-node-and-per-memcg-stats.patch
+This patch was dropped because it was folded into mm-memory-extend-finish_fault-to-support-large-folio.patch
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: rmap: abstract updating per-node and per-memcg stats fix
-Date: Tue, 11 Jun 2024 22:10:43 -0700 (PDT)
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm-memory-extend-finish_fault-to-support-large-folio-fix
+Date: Thu, 13 Jun 2024 21:03:36 +0800
 
-/proc/meminfo is showing ridiculously large numbers on some lines:
-__folio_remove_rmap()'s __folio_mod_stat() should be subtracting!
+avoid going beyond the PMD pagetable size
 
-Link: https://lkml.kernel.org/r/49914517-dfc7-e784-fde0-0e08fafbecc2@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/b0e6a8b1-a32c-459e-ae67-fde5d28773e6@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com> 
+Reported-by: syzbot+d6e5c328862b5ae6cbfe@syzkaller.appspotmail.com
+Fixes: 1c05047ad016 ("mm: memory: extend finish_fault() to support
+Cc: Barry Song <v-songbaohua@oppo.com>
+Cc: Daniel Gomez <da.gomez@samsung.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-abstract-updating-per-node-and-per-memcg-stats-fix
-+++ a/mm/rmap.c
-@@ -1567,7 +1567,7 @@ static __always_inline void __folio_remo
- 		    list_empty(&folio->_deferred_list))
- 			deferred_split_folio(folio);
- 	}
--	__folio_mod_stat(folio, nr, nr_pmdmapped);
-+	__folio_mod_stat(folio, -nr, -nr_pmdmapped);
+--- a/mm/memory.c~mm-memory-extend-finish_fault-to-support-large-folio-fix
++++ a/mm/memory.c
+@@ -4876,13 +4876,17 @@ vm_fault_t finish_fault(struct vm_fault
+ 		pgoff_t idx = folio_page_idx(folio, page);
+ 		/* The page offset of vmf->address within the VMA. */
+ 		pgoff_t vma_off = vmf->pgoff - vmf->vma->vm_pgoff;
++		/* The index of the entry in the pagetable for fault page. */
++		pgoff_t pte_off = pte_index(vmf->address);
  
- 	/*
- 	 * It would be tidy to reset folio_test_anon mapping when fully
+ 		/*
+ 		 * Fallback to per-page fault in case the folio size in page
+-		 * cache beyond the VMA limits.
++		 * cache beyond the VMA limits and PMD pagetable limits.
+ 		 */
+ 		if (unlikely(vma_off < idx ||
+-			     vma_off + (nr_pages - idx) > vma_pages(vma))) {
++			    vma_off + (nr_pages - idx) > vma_pages(vma) ||
++			    pte_off < idx ||
++			    pte_off + (nr_pages - idx)  > PTRS_PER_PTE - 1)) {
+ 			nr_pages = 1;
+ 		} else {
+ 			/* Now we can set mappings for the whole large folio. */
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-rmap-abstract-updating-per-node-and-per-memcg-stats.patch
+mm-memory-extend-finish_fault-to-support-large-folio.patch
+mm-memory-extend-finish_fault-to-support-large-folio-fix-fix.patch
+mm-shmem-add-thp-validation-for-pmd-mapped-thp-related-statistics.patch
+mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem.patch
+mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix.patch
+mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix-3.patch
+mm-shmem-add-mthp-support-for-anonymous-shmem.patch
+mm-shmem-add-mthp-size-alignment-in-shmem_get_unmapped_area.patch
+mm-shmem-add-mthp-counters-for-anonymous-shmem.patch
+mm-shmem-add-mthp-counters-for-anonymous-shmem-fix.patch
+mm-memcontrol-add-vm_bug_on_folio-to-catch-lru-folio-in-mem_cgroup_migrate.patch
 
