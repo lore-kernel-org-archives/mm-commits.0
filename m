@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5C8C1428FA
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:00:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F8FF1428FA
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:00:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291615; cv=none; b=bWMCrZ+j3BE30uemEk2endHuMZR8I4OMk+Gca5U0WNbJXLLKZBnhEqgG+Nn/T4Wi1dDGVVgcY9lO6EMXaSmoEJRB4fFSkS4krYOktl78EaRl9oYhwc3Z8/ed52nkZhms0eGCy4i8B9r+ubnnvPUj7+1cOAgYRXjOPP/mm6ChpWc=
+	t=1719291617; cv=none; b=sdGsUxc+Gn1fwZhqvIm6BY1tdVGLR05iOGNcgbrWBpV/GECdjZFs20fsYsCIIFOHO9v8iPW0oooJKGZQE6nL8NdKiA8w1vxuLIi5gGLSVGHOQzL7AudWVD8/CLsjsyiqag7Im99Bj7leJRBJ3VlKWmnLbsW0POlP/T0ctrKWa/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291615; c=relaxed/simple;
-	bh=cpKvXonVmKLRkWrBVdxOGvL/vRcK8Ukma4NxIGrgpwQ=;
-	h=Date:To:From:Subject:Message-Id; b=InLHZ612yTknZ1YAgAj1jbI+NxlrkrLT+bKMiliD24z4Vs+KOmM1+tfzviSYkTr9IX5PV4gntIkOWJ14TOmyL15TMw76GwndpO7Bm150whAJKv72jQD/i65tytw8mKc7056mqnvRfRBXU07jNb+/Lx7Tp4rgfTDss56VXsw1Xv4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mvWmv0ty; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291617; c=relaxed/simple;
+	bh=kpjsGhuQ2HNLDZUAJ1BVhZcMzeXdTrZRswIkL/yRdaE=;
+	h=Date:To:From:Subject:Message-Id; b=aQqx4ydoFfs+pBLowj2S/D+anWwm9ye6iT8xzIeRFnb5fJoPv172eij3UX3wx3K6F4LvnLyBr+kv+ou8Sy3/vCILDDcHfv5igI7r9+1zZMIsageAZIPbdOWNrujVV/sPKqs9j7SN6oRml4bXPsIrEazKd9KFt/9ZYbOtTlXuT/g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C4Qm3nej; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mvWmv0ty"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB2DEC32782;
-	Tue, 25 Jun 2024 05:00:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C4Qm3nej"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9083C32782;
+	Tue, 25 Jun 2024 05:00:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291615;
-	bh=cpKvXonVmKLRkWrBVdxOGvL/vRcK8Ukma4NxIGrgpwQ=;
+	s=korg; t=1719291616;
+	bh=kpjsGhuQ2HNLDZUAJ1BVhZcMzeXdTrZRswIkL/yRdaE=;
 	h=Date:To:From:Subject:From;
-	b=mvWmv0tySg1wB21izwwrlHM+aRQDY/AcY7PFRe0V5hOOXbXi08wqg/fmaPDuT97Uc
-	 trYSv9GxGf8jMttqs7ODzSppQehoo58u29gU5wH/sZtzZS4mmxz1XQBy8shhfAyyfT
-	 0/mLtMSfSr7mdLNs58J2hl10/glOyCZ00WoEUALk=
-Date: Mon, 24 Jun 2024 22:00:15 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
+	b=C4Qm3nejz2XCO9jzLR/iZqxC2pAhSbMk3j+ryHDFaOZ0uoFexsrG8mDNjJYO1dGuX
+	 qFjxinTxO8bkjqL8JIzeWKFhwx0N+ealTI4fPBNE+szxRSOh2r0iHBj4LqXrV7tosF
+	 Yod4hbf6x6EQ9XJIIOpCJ01t9lLE0dLK/7X5ydVY=
+Date: Mon, 24 Jun 2024 22:00:16 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,roman.gushchin@linux.dev,oliver.sang@intel.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,fengwei.yin@intel.com,feng.tang@intel.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-mm-memory_hotplug-use-a-folio-in-scan_movable_pages.patch removed from -mm tree
-Message-Id: <20240625050015.AB2DEC32782@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-rearrange-fields-of-mem_cgroup_per_node.patch removed from -mm tree
+Message-Id: <20240625050016.D9083C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,112 +35,121 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: mm/memory_hotplug: use a folio in scan_movable_pages()
+     Subject: memcg: rearrange fields of mem_cgroup_per_node
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-mm-memory_hotplug-use-a-folio-in-scan_movable_pages.patch
+     memcg-rearrange-fields-of-mem_cgroup_per_node.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugetlb: mm/memory_hotplug: use a folio in scan_movable_pages()
-Date: Thu, 30 May 2024 10:14:27 -0700
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: rearrange fields of mem_cgroup_per_node
+Date: Tue, 28 May 2024 09:40:50 -0700
 
-By using a folio in scan_movable_pages() we convert the last user of the
-page-based hugetlb information macro functions to the folio version. 
-After this conversion, we can safely remove the page-based definitions
-from include/linux/hugetlb.h.
+Kernel test robot reported [1] performance regression for will-it-scale
+test suite's page_fault2 test case for the commit 70a64b7919cb ("memcg:
+dynamically allocate lruvec_stats").  After inspection it seems like the
+commit has unintentionally introduced false cache sharing.
 
-Link: https://lkml.kernel.org/r/20240530171427.242018-1-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+After the commit the fields of mem_cgroup_per_node which get read on the
+performance critical path share the cacheline with the fields which get
+updated often on LRU page allocations or deallocations.  This has caused
+contention on that cacheline and the workloads which manipulates a lot of
+LRU pages are regressed as reported by the test report.
+
+The solution is to rearrange the fields of mem_cgroup_per_node such that
+the false sharing is eliminated.  Let's move all the read only pointers at
+the start of the struct, followed by memcg-v1 only fields and at the end
+fields which get updated often.
+
+Experiment setup: Ran fallocate1, fallocate2, page_fault1, page_fault2 and
+page_fault3 from the will-it-scale test suite inside a three level memcg
+with /tmp mounted as tmpfs on two different machines, one a single numa
+node and the other one, two node machine.
+
+ $ ./[testcase]_processes -t $NR_CPUS -s 50
+
+Results for single node, 52 CPU machine:
+
+Testcase        base        with-patch
+
+fallocate1      1031081     1431291  (38.80 %)
+fallocate2      1029993     1421421  (38.00 %)
+page_fault1     2269440     3405788  (50.07 %)
+page_fault2     2375799     3572868  (50.30 %)
+page_fault3     28641143    28673950 ( 0.11 %)
+
+Results for dual node, 80 CPU machine:
+
+Testcase        base        with-patch
+
+fallocate1      2976288     3641185  (22.33 %)
+fallocate2      2979366     3638181  (22.11 %)
+page_fault1     6221790     7748245  (24.53 %)
+page_fault2     6482854     7847698  (21.05 %)
+page_fault3     28804324    28991870 ( 0.65 %)
+
+Link: https://lkml.kernel.org/r/20240528164050.2625718-1-shakeel.butt@linux.dev
+Fixes: 70a64b7919cb ("memcg: dynamically allocate lruvec_stats")
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 +-----
- mm/memory_hotplug.c     |   11 +++++------
- 2 files changed, 6 insertions(+), 11 deletions(-)
+ include/linux/memcontrol.h |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-mm-memory_hotplug-use-a-folio-in-scan_movable_pages
-+++ a/include/linux/hugetlb.h
-@@ -616,9 +616,7 @@ static __always_inline						\
- bool folio_test_hugetlb_##flname(struct folio *folio)		\
- 	{	void *private = &folio->private;		\
- 		return test_bit(HPG_##flname, private);		\
--	}							\
--static inline int HPage##uname(struct page *page)		\
--	{ return test_bit(HPG_##flname, &(page->private)); }
-+	}
+--- a/include/linux/memcontrol.h~memcg-rearrange-fields-of-mem_cgroup_per_node
++++ a/include/linux/memcontrol.h
+@@ -96,23 +96,29 @@ struct mem_cgroup_reclaim_iter {
+  * per-node information in memory controller.
+  */
+ struct mem_cgroup_per_node {
+-	struct lruvec		lruvec;
++	/* Keep the read-only fields at the start */
++	struct mem_cgroup	*memcg;		/* Back pointer, we cannot */
++						/* use container_of	   */
  
- #define SETHPAGEFLAG(uname, flname)				\
- static __always_inline						\
-@@ -637,8 +635,6 @@ void folio_clear_hugetlb_##flname(struct
- #define TESTHPAGEFLAG(uname, flname)				\
- static inline bool						\
- folio_test_hugetlb_##flname(struct folio *folio)		\
--	{ return 0; }						\
--static inline int HPage##uname(struct page *page)		\
- 	{ return 0; }
+ 	struct lruvec_stats_percpu __percpu	*lruvec_stats_percpu;
+ 	struct lruvec_stats			*lruvec_stats;
+-
+-	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
+-
+-	struct mem_cgroup_reclaim_iter	iter;
+-
+ 	struct shrinker_info __rcu	*shrinker_info;
  
- #define SETHPAGEFLAG(uname, flname)				\
---- a/mm/memory_hotplug.c~mm-hugetlb-mm-memory_hotplug-use-a-folio-in-scan_movable_pages
-+++ a/mm/memory_hotplug.c
-@@ -1731,8 +1731,8 @@ static int scan_movable_pages(unsigned l
- 	unsigned long pfn;
++	/*
++	 * Memcg-v1 only stuff in middle as buffer between read mostly fields
++	 * and update often fields to avoid false sharing. Once v1 stuff is
++	 * moved in a separate struct, an explicit padding is needed.
++	 */
++
+ 	struct rb_node		tree_node;	/* RB tree node */
+ 	unsigned long		usage_in_excess;/* Set to the value by which */
+ 						/* the soft limit is exceeded*/
+ 	bool			on_tree;
+-	struct mem_cgroup	*memcg;		/* Back pointer, we cannot */
+-						/* use container_of	   */
++
++	/* Fields which get updated often at the end. */
++	struct lruvec		lruvec;
++	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
++	struct mem_cgroup_reclaim_iter	iter;
+ };
  
- 	for (pfn = start; pfn < end; pfn++) {
--		struct page *page, *head;
--		unsigned long skip;
-+		struct page *page;
-+		struct folio *folio;
- 
- 		if (!pfn_valid(pfn))
- 			continue;
-@@ -1753,7 +1753,7 @@ static int scan_movable_pages(unsigned l
- 
- 		if (!PageHuge(page))
- 			continue;
--		head = compound_head(page);
-+		folio = page_folio(page);
- 		/*
- 		 * This test is racy as we hold no reference or lock.  The
- 		 * hugetlb page could have been free'ed and head is no longer
-@@ -1761,10 +1761,9 @@ static int scan_movable_pages(unsigned l
- 		 * cases false positives and negatives are possible.  Calling
- 		 * code must deal with these scenarios.
- 		 */
--		if (HPageMigratable(head))
-+		if (folio_test_hugetlb_migratable(folio))
- 			goto found;
--		skip = compound_nr(head) - (pfn - page_to_pfn(head));
--		pfn += skip - 1;
-+		pfn |= folio_nr_pages(folio) - 1;
- 	}
- 	return -ENOENT;
- found:
+ struct mem_cgroup_threshold {
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-maple_tree-introduce-store_type-enum.patch
-maple_tree-introduce-mas_wr_prealloc_setup.patch
-maple_tree-move-up-mas_wr_store_setup-and-mas_wr_prealloc_setup.patch
-maple_tree-introduce-mas_wr_store_type.patch
-maple_tree-remove-mas_destroy-from-mas_nomem.patch
-maple_tree-use-mas_store_gfp-in-mas_erase.patch
-maple_tree-use-mas_store_gfp-in-mtree_store_range.patch
-maple_tree-print-store-type-in-mas_dump.patch
-maple_tree-use-store-type-in-mas_wr_store_entry.patch
-maple_tree-convert-mas_insert-to-preallocate-nodes.patch
-maple_tree-simplify-mas_commit_b_node.patch
-maple_tree-remove-mas_wr_modify.patch
-maple_tree-have-mas_store-allocate-nodes-if-needed.patch
-maple_tree-remove-node-allocations-from-various-write-helper-functions.patch
-maple_tree-remove-repeated-sanity-checks-from-mas_wr_append.patch
-maple_tree-remove-unneeded-mas_wr_walk-in-mas_store_prealloc.patch
-tools-testing-radix-tree-add-missing-module_description-definition.patch
 
