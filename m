@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B868B1448C9
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB2681448C9
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291669; cv=none; b=DzkHCC9zc++T4ApkTdAKBpi897OvahtihsU4dDZUfbiEJ9GPTREqCjtMrg9py/A7vTu7rA8tGdkMVB7HeK/MuYYxaPwFBXe0l8Ze/8cJIXiSB3otccqXyrdMjkQeOqUVp8G8y2OhSdsXRTOrC365MNKBPHlFwig5qoZuslVclYA=
+	t=1719291670; cv=none; b=X3bfj1IJAi7ZUGjfotouF6titMJghTDA8Yl1Zo1USEHDtrWHiM2+SLGIIkYDEEo7dhV6vcjaYPzO+GQi//06b8XsntHYEH4YMzpa0ug5kHNBIBnlIBwfsf+oqyl3LEirwdrqRPKDAWNR/vrYOzk2k5WNywywZf8NJUMlUSqVxW0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291669; c=relaxed/simple;
-	bh=79l5IQihqTvxStvMwHtASxzUQWDwFC9GJSFMt31Mv/I=;
-	h=Date:To:From:Subject:Message-Id; b=eFZAj7SsziGAvCtQ36aLDo6jvi4uyZYbNHhOlbI9XCtEe/5ay9Syh10gMMQSzYZVrtW1aHDgTzewxDIT+QsZIiEqwHIeUYyqlDCIDlPfZQ5H3NzydJL3B7z7YkdMsg5i5TdN6vGAjXb+pKEwsi+yzV8uoTs2X9HBihWr7GROKs8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MUaDjXJ3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291670; c=relaxed/simple;
+	bh=V4wZ4v0Fx0S294Cg5TetSxOpgBOuNeuEMoZit4ArzrY=;
+	h=Date:To:From:Subject:Message-Id; b=hoaZR/oJABkrqmPU/KK4p7Si/Urv6zYLDFAT4ladHqDmW49ChFhj4pYDENYaB+vA6hMlSNzWwS2a1XygqIHkgXvpX89cyi4WaroRlVVtO3RuYeRezLq282roGJ0n9h7Ju8WRJhF/LkwX+n+yqmdZALM9WbGhDTE28ZRujT3ONLw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lXTPHBYW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MUaDjXJ3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43D13C32782;
-	Tue, 25 Jun 2024 05:01:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lXTPHBYW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4819C32782;
+	Tue, 25 Jun 2024 05:01:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291669;
-	bh=79l5IQihqTvxStvMwHtASxzUQWDwFC9GJSFMt31Mv/I=;
+	s=korg; t=1719291670;
+	bh=V4wZ4v0Fx0S294Cg5TetSxOpgBOuNeuEMoZit4ArzrY=;
 	h=Date:To:From:Subject:From;
-	b=MUaDjXJ3ttWlq65jz+WV3d0QjaCszDywvI5L8D/OZw9HfTztb0jhRv8htUOlY0mUx
-	 3CbGUa5SENY50uqZrvjyII/kNbdjgFdmeVcZjC5nA2TgC//qo70hnSKo5An+Rpu86T
-	 dDK0pTtR5482d7o8PwLLaDR6i1Ph/SAvnbt5L+r0=
-Date: Mon, 24 Jun 2024 22:01:08 -0700
+	b=lXTPHBYWL3zHnNmlf5+TXLpewXvuV3CNYIgvPmW/gIp32c6T5ZeMRXBVJNwsUINOe
+	 zJsxoh4yEdp83CWlVn2DKHDCtrsNZbKChNxk8Hl2wdO2eFvx9JJ3YFygcnsKJJhz22
+	 Xxxubx9a9tTXM4L/32sKFBPgUcrLP9DVNCmxzMOQ=
+Date: Mon, 24 Jun 2024 22:01:10 -0700
 To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,shuah@kernel.org,peterx@redhat.com,Liam.Howlett@oracle.com,kent.overstreet@linux.dev,kees@kernel.org,jeffxu@chromium.org,david@redhat.com,dalias@libc.org,brauner@kernel.org,axelrasmussen@google.com,avagin@google.com,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-fix-vm_utilc-build-failures-add-snapshot-of-fsh.patch removed from -mm tree
-Message-Id: <20240625050109.43D13C32782@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-kvm-mdwe-fixes-to-avoid-requiring-make-headers.patch removed from -mm tree
+Message-Id: <20240625050110.A4819C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,41 +35,36 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix vm_util.c build failures: add snapshot of fs.h
+     Subject: selftests/mm: kvm, mdwe fixes to avoid requiring "make headers"
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-vm_utilc-build-failures-add-snapshot-of-fsh.patch
+     selftests-mm-kvm-mdwe-fixes-to-avoid-requiring-make-headers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/mm: fix vm_util.c build failures: add snapshot of fs.h
-Date: Mon, 17 Jun 2024 19:24:20 -0700
+Subject: selftests/mm: kvm, mdwe fixes to avoid requiring "make headers"
+Date: Mon, 17 Jun 2024 19:24:21 -0700
 
-On Ubuntu 23.04, on a clean git tree, the selftests/mm build fails due 10
-or 20 missing items, all of which are found in fs.h, which is created via
-"make headers".  However, as per [1], the idea is to stop requiring "make
-headers", and instead, take a snapshot of the files and check them in.
+On Ubuntu 23.04, the kvm and mdwe selftests/mm build fails due to
+missing a few items that are found in prctl.h. Here is an excerpt of the
+build failures:
 
-Here are a few of the build errors:
-
-vm_util.c:34:21: error: variable has incomplete type 'struct pm_scan_arg'
-        struct pm_scan_arg arg;
+ksm_tests.c:252:13: error: use of undeclared identifier 'PR_SET_MEMORY_MERGE'
 ...
-vm_util.c:45:28: error: use of undeclared identifier 'PAGE_IS_WPALLOWED'
-...
-vm_util.c:55:21: error: variable has incomplete type 'struct page_region'
-...
-vm_util.c:105:20: error: use of undeclared identifier 'PAGE_IS_SOFT_DIRTY'
+mdwe_test.c:26:18: error: use of undeclared identifier 'PR_SET_MDWE'
+mdwe_test.c:38:18: error: use of undeclared identifier 'PR_GET_MDWE'
 
-To fix this, add fs.h, taken from a snapshot of ./usr/include/linux/fs.h
-after running "make headers".
+Fix these errors by adding a new tools/include/uapi/linux/prctl.h . This
+file was created by running "make headers", and then copying a snapshot
+over from ./usr/include/linux/prctl.h, as per the approach we settled on
+in [1].
 
 [1] commit e076eaca5906 ("selftests: break the dependency upon local
 header files")
 
-Link: https://lkml.kernel.org/r/20240618022422.804305-5-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20240618022422.804305-6-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Andrei Vagin <avagin@google.com>
@@ -86,404 +81,343 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/uapi/linux/fs.h |  392 ++++++++++++++++++++++++++++++++
- 1 file changed, 392 insertions(+)
+ tools/include/uapi/linux/prctl.h |  331 +++++++++++++++++++++++++++++
+ 1 file changed, 331 insertions(+)
 
 --- /dev/null
-+++ a/tools/include/uapi/linux/fs.h
-@@ -0,0 +1,392 @@
++++ a/tools/include/uapi/linux/prctl.h
+@@ -0,0 +1,331 @@
 +/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-+#ifndef _LINUX_FS_H
-+#define _LINUX_FS_H
++#ifndef _LINUX_PRCTL_H
++#define _LINUX_PRCTL_H
 +
-+/*
-+ * This file has definitions for some important file table structures
-+ * and constants and structures used by various generic file system
-+ * ioctl's.  Please do not make any changes in this file before
-+ * sending patches for review to linux-fsdevel@vger.kernel.org and
-+ * linux-api@vger.kernel.org.
-+ */
-+
-+#include <linux/limits.h>
-+#include <linux/ioctl.h>
 +#include <linux/types.h>
-+#include <linux/fscrypt.h>
 +
-+/* Use of MS_* flags within the kernel is restricted to core mount(2) code. */
-+#include <linux/mount.h>
++/* Values to pass as first argument to prctl() */
++
++#define PR_SET_PDEATHSIG  1  /* Second arg is a signal */
++#define PR_GET_PDEATHSIG  2  /* Second arg is a ptr to return the signal */
++
++/* Get/set current->mm->dumpable */
++#define PR_GET_DUMPABLE   3
++#define PR_SET_DUMPABLE   4
++
++/* Get/set unaligned access control bits (if meaningful) */
++#define PR_GET_UNALIGN	  5
++#define PR_SET_UNALIGN	  6
++# define PR_UNALIGN_NOPRINT	1	/* silently fix up unaligned user accesses */
++# define PR_UNALIGN_SIGBUS	2	/* generate SIGBUS on unaligned user access */
++
++/* Get/set whether or not to drop capabilities on setuid() away from
++ * uid 0 (as per security/commoncap.c) */
++#define PR_GET_KEEPCAPS   7
++#define PR_SET_KEEPCAPS   8
++
++/* Get/set floating-point emulation control bits (if meaningful) */
++#define PR_GET_FPEMU  9
++#define PR_SET_FPEMU 10
++# define PR_FPEMU_NOPRINT	1	/* silently emulate fp operations accesses */
++# define PR_FPEMU_SIGFPE	2	/* don't emulate fp operations, send SIGFPE instead */
++
++/* Get/set floating-point exception mode (if meaningful) */
++#define PR_GET_FPEXC	11
++#define PR_SET_FPEXC	12
++# define PR_FP_EXC_SW_ENABLE	0x80	/* Use FPEXC for FP exception enables */
++# define PR_FP_EXC_DIV		0x010000	/* floating point divide by zero */
++# define PR_FP_EXC_OVF		0x020000	/* floating point overflow */
++# define PR_FP_EXC_UND		0x040000	/* floating point underflow */
++# define PR_FP_EXC_RES		0x080000	/* floating point inexact result */
++# define PR_FP_EXC_INV		0x100000	/* floating point invalid operation */
++# define PR_FP_EXC_DISABLED	0	/* FP exceptions disabled */
++# define PR_FP_EXC_NONRECOV	1	/* async non-recoverable exc. mode */
++# define PR_FP_EXC_ASYNC	2	/* async recoverable exception mode */
++# define PR_FP_EXC_PRECISE	3	/* precise exception mode */
++
++/* Get/set whether we use statistical process timing or accurate timestamp
++ * based process timing */
++#define PR_GET_TIMING   13
++#define PR_SET_TIMING   14
++# define PR_TIMING_STATISTICAL  0       /* Normal, traditional,
++                                                   statistical process timing */
++# define PR_TIMING_TIMESTAMP    1       /* Accurate timestamp based
++                                                   process timing */
++
++#define PR_SET_NAME    15		/* Set process name */
++#define PR_GET_NAME    16		/* Get process name */
++
++/* Get/set process endian */
++#define PR_GET_ENDIAN	19
++#define PR_SET_ENDIAN	20
++# define PR_ENDIAN_BIG		0
++# define PR_ENDIAN_LITTLE	1	/* True little endian mode */
++# define PR_ENDIAN_PPC_LITTLE	2	/* "PowerPC" pseudo little endian */
++
++/* Get/set process seccomp mode */
++#define PR_GET_SECCOMP	21
++#define PR_SET_SECCOMP	22
++
++/* Get/set the capability bounding set (as per security/commoncap.c) */
++#define PR_CAPBSET_READ 23
++#define PR_CAPBSET_DROP 24
++
++/* Get/set the process' ability to use the timestamp counter instruction */
++#define PR_GET_TSC 25
++#define PR_SET_TSC 26
++# define PR_TSC_ENABLE		1	/* allow the use of the timestamp counter */
++# define PR_TSC_SIGSEGV		2	/* throw a SIGSEGV instead of reading the TSC */
++
++/* Get/set securebits (as per security/commoncap.c) */
++#define PR_GET_SECUREBITS 27
++#define PR_SET_SECUREBITS 28
 +
 +/*
-+ * It's silly to have NR_OPEN bigger than NR_FILE, but you can change
-+ * the file limit at runtime and only root can increase the per-process
-+ * nr_file rlimit, so it's safe to set up a ridiculously high absolute
-+ * upper limit on files-per-process.
++ * Get/set the timerslack as used by poll/select/nanosleep
++ * A value of 0 means "use default"
++ */
++#define PR_SET_TIMERSLACK 29
++#define PR_GET_TIMERSLACK 30
++
++#define PR_TASK_PERF_EVENTS_DISABLE		31
++#define PR_TASK_PERF_EVENTS_ENABLE		32
++
++/*
++ * Set early/late kill mode for hwpoison memory corruption.
++ * This influences when the process gets killed on a memory corruption.
++ */
++#define PR_MCE_KILL	33
++# define PR_MCE_KILL_CLEAR   0
++# define PR_MCE_KILL_SET     1
++
++# define PR_MCE_KILL_LATE    0
++# define PR_MCE_KILL_EARLY   1
++# define PR_MCE_KILL_DEFAULT 2
++
++#define PR_MCE_KILL_GET 34
++
++/*
++ * Tune up process memory map specifics.
++ */
++#define PR_SET_MM		35
++# define PR_SET_MM_START_CODE		1
++# define PR_SET_MM_END_CODE		2
++# define PR_SET_MM_START_DATA		3
++# define PR_SET_MM_END_DATA		4
++# define PR_SET_MM_START_STACK		5
++# define PR_SET_MM_START_BRK		6
++# define PR_SET_MM_BRK			7
++# define PR_SET_MM_ARG_START		8
++# define PR_SET_MM_ARG_END		9
++# define PR_SET_MM_ENV_START		10
++# define PR_SET_MM_ENV_END		11
++# define PR_SET_MM_AUXV			12
++# define PR_SET_MM_EXE_FILE		13
++# define PR_SET_MM_MAP			14
++# define PR_SET_MM_MAP_SIZE		15
++
++/*
++ * This structure provides new memory descriptor
++ * map which mostly modifies /proc/pid/stat[m]
++ * output for a task. This mostly done in a
++ * sake of checkpoint/restore functionality.
++ */
++struct prctl_mm_map {
++	__u64	start_code;		/* code section bounds */
++	__u64	end_code;
++	__u64	start_data;		/* data section bounds */
++	__u64	end_data;
++	__u64	start_brk;		/* heap for brk() syscall */
++	__u64	brk;
++	__u64	start_stack;		/* stack starts at */
++	__u64	arg_start;		/* command line arguments bounds */
++	__u64	arg_end;
++	__u64	env_start;		/* environment variables bounds */
++	__u64	env_end;
++	__u64	*auxv;			/* auxiliary vector */
++	__u32	auxv_size;		/* vector size */
++	__u32	exe_fd;			/* /proc/$pid/exe link file */
++};
++
++/*
++ * Set specific pid that is allowed to ptrace the current task.
++ * A value of 0 mean "no process".
++ */
++#define PR_SET_PTRACER 0x59616d61
++# define PR_SET_PTRACER_ANY ((unsigned long)-1)
++
++#define PR_SET_CHILD_SUBREAPER	36
++#define PR_GET_CHILD_SUBREAPER	37
++
++/*
++ * If no_new_privs is set, then operations that grant new privileges (i.e.
++ * execve) will either fail or not grant them.  This affects suid/sgid,
++ * file capabilities, and LSMs.
 + *
-+ * Some programs (notably those using select()) may have to be
-+ * recompiled to take full advantage of the new limits..
-+ */
-+
-+/* Fixed constants first: */
-+#undef NR_OPEN
-+#define INR_OPEN_CUR 1024	/* Initial setting for nfile rlimits */
-+#define INR_OPEN_MAX 4096	/* Hard limit for nfile rlimits */
-+
-+#define BLOCK_SIZE_BITS 10
-+#define BLOCK_SIZE (1<<BLOCK_SIZE_BITS)
-+
-+#define SEEK_SET	0	/* seek relative to beginning of file */
-+#define SEEK_CUR	1	/* seek relative to current file position */
-+#define SEEK_END	2	/* seek relative to end of file */
-+#define SEEK_DATA	3	/* seek to the next data */
-+#define SEEK_HOLE	4	/* seek to the next hole */
-+#define SEEK_MAX	SEEK_HOLE
-+
-+#define RENAME_NOREPLACE	(1 << 0)	/* Don't overwrite target */
-+#define RENAME_EXCHANGE		(1 << 1)	/* Exchange source and dest */
-+#define RENAME_WHITEOUT		(1 << 2)	/* Whiteout source */
-+
-+struct file_clone_range {
-+	__s64 src_fd;
-+	__u64 src_offset;
-+	__u64 src_length;
-+	__u64 dest_offset;
-+};
-+
-+struct fstrim_range {
-+	__u64 start;
-+	__u64 len;
-+	__u64 minlen;
-+};
-+
-+/*
-+ * We include a length field because some filesystems (vfat) have an identifier
-+ * that we do want to expose as a UUID, but doesn't have the standard length.
++ * Operations that merely manipulate or drop existing privileges (setresuid,
++ * capset, etc.) will still work.  Drop those privileges if you want them gone.
 + *
-+ * We use a fixed size buffer beacuse this interface will, by fiat, never
-+ * support "UUIDs" longer than 16 bytes; we don't want to force all downstream
-+ * users to have to deal with that.
-+ */
-+struct fsuuid2 {
-+	__u8	len;
-+	__u8	uuid[16];
-+};
-+
-+struct fs_sysfs_path {
-+	__u8			len;
-+	__u8			name[128];
-+};
-+
-+/* extent-same (dedupe) ioctls; these MUST match the btrfs ioctl definitions */
-+#define FILE_DEDUPE_RANGE_SAME		0
-+#define FILE_DEDUPE_RANGE_DIFFERS	1
-+
-+/* from struct btrfs_ioctl_file_extent_same_info */
-+struct file_dedupe_range_info {
-+	__s64 dest_fd;		/* in - destination file */
-+	__u64 dest_offset;	/* in - start of extent in destination */
-+	__u64 bytes_deduped;	/* out - total # of bytes we were able
-+				 * to dedupe from this file. */
-+	/* status of this dedupe operation:
-+	 * < 0 for error
-+	 * == FILE_DEDUPE_RANGE_SAME if dedupe succeeds
-+	 * == FILE_DEDUPE_RANGE_DIFFERS if data differs
-+	 */
-+	__s32 status;		/* out - see above description */
-+	__u32 reserved;		/* must be zero */
-+};
-+
-+/* from struct btrfs_ioctl_file_extent_same_args */
-+struct file_dedupe_range {
-+	__u64 src_offset;	/* in - start of extent in source */
-+	__u64 src_length;	/* in - length of extent */
-+	__u16 dest_count;	/* in - total elements in info array */
-+	__u16 reserved1;	/* must be zero */
-+	__u32 reserved2;	/* must be zero */
-+	struct file_dedupe_range_info info[];
-+};
-+
-+/* And dynamically-tunable limits and defaults: */
-+struct files_stat_struct {
-+	unsigned long nr_files;		/* read only */
-+	unsigned long nr_free_files;	/* read only */
-+	unsigned long max_files;		/* tunable */
-+};
-+
-+struct inodes_stat_t {
-+	long nr_inodes;
-+	long nr_unused;
-+	long dummy[5];		/* padding for sysctl ABI compatibility */
-+};
-+
-+
-+#define NR_FILE  8192	/* this can well be larger on a larger system */
-+
-+/*
-+ * Structure for FS_IOC_FSGETXATTR[A] and FS_IOC_FSSETXATTR.
-+ */
-+struct fsxattr {
-+	__u32		fsx_xflags;	/* xflags field value (get/set) */
-+	__u32		fsx_extsize;	/* extsize field value (get/set)*/
-+	__u32		fsx_nextents;	/* nextents field value (get)	*/
-+	__u32		fsx_projid;	/* project identifier (get/set) */
-+	__u32		fsx_cowextsize;	/* CoW extsize field value (get/set)*/
-+	unsigned char	fsx_pad[8];
-+};
-+
-+/*
-+ * Flags for the fsx_xflags field
-+ */
-+#define FS_XFLAG_REALTIME	0x00000001	/* data in realtime volume */
-+#define FS_XFLAG_PREALLOC	0x00000002	/* preallocated file extents */
-+#define FS_XFLAG_IMMUTABLE	0x00000008	/* file cannot be modified */
-+#define FS_XFLAG_APPEND		0x00000010	/* all writes append */
-+#define FS_XFLAG_SYNC		0x00000020	/* all writes synchronous */
-+#define FS_XFLAG_NOATIME	0x00000040	/* do not update access time */
-+#define FS_XFLAG_NODUMP		0x00000080	/* do not include in backups */
-+#define FS_XFLAG_RTINHERIT	0x00000100	/* create with rt bit set */
-+#define FS_XFLAG_PROJINHERIT	0x00000200	/* create with parents projid */
-+#define FS_XFLAG_NOSYMLINKS	0x00000400	/* disallow symlink creation */
-+#define FS_XFLAG_EXTSIZE	0x00000800	/* extent size allocator hint */
-+#define FS_XFLAG_EXTSZINHERIT	0x00001000	/* inherit inode extent size */
-+#define FS_XFLAG_NODEFRAG	0x00002000	/* do not defragment */
-+#define FS_XFLAG_FILESTREAM	0x00004000	/* use filestream allocator */
-+#define FS_XFLAG_DAX		0x00008000	/* use DAX for IO */
-+#define FS_XFLAG_COWEXTSIZE	0x00010000	/* CoW extent size allocator hint */
-+#define FS_XFLAG_HASATTR	0x80000000	/* no DIFLAG for this	*/
-+
-+/* the read-only stuff doesn't really belong here, but any other place is
-+   probably as bad and I don't want to create yet another include file. */
-+
-+#define BLKROSET   _IO(0x12,93)	/* set device read-only (0 = read-write) */
-+#define BLKROGET   _IO(0x12,94)	/* get read-only status (0 = read_write) */
-+#define BLKRRPART  _IO(0x12,95)	/* re-read partition table */
-+#define BLKGETSIZE _IO(0x12,96)	/* return device size /512 (long *arg) */
-+#define BLKFLSBUF  _IO(0x12,97)	/* flush buffer cache */
-+#define BLKRASET   _IO(0x12,98)	/* set read ahead for block device */
-+#define BLKRAGET   _IO(0x12,99)	/* get current read ahead setting */
-+#define BLKFRASET  _IO(0x12,100)/* set filesystem (mm/filemap.c) read-ahead */
-+#define BLKFRAGET  _IO(0x12,101)/* get filesystem (mm/filemap.c) read-ahead */
-+#define BLKSECTSET _IO(0x12,102)/* set max sectors per request (ll_rw_blk.c) */
-+#define BLKSECTGET _IO(0x12,103)/* get max sectors per request (ll_rw_blk.c) */
-+#define BLKSSZGET  _IO(0x12,104)/* get block device sector size */
-+#if 0
-+#define BLKPG      _IO(0x12,105)/* See blkpg.h */
-+
-+/* Some people are morons.  Do not use sizeof! */
-+
-+#define BLKELVGET  _IOR(0x12,106,size_t)/* elevator get */
-+#define BLKELVSET  _IOW(0x12,107,size_t)/* elevator set */
-+/* This was here just to show that the number is taken -
-+   probably all these _IO(0x12,*) ioctls should be moved to blkpg.h. */
-+#endif
-+/* A jump here: 108-111 have been used for various private purposes. */
-+#define BLKBSZGET  _IOR(0x12,112,size_t)
-+#define BLKBSZSET  _IOW(0x12,113,size_t)
-+#define BLKGETSIZE64 _IOR(0x12,114,size_t)	/* return device size in bytes (u64 *arg) */
-+#define BLKTRACESETUP _IOWR(0x12,115,struct blk_user_trace_setup)
-+#define BLKTRACESTART _IO(0x12,116)
-+#define BLKTRACESTOP _IO(0x12,117)
-+#define BLKTRACETEARDOWN _IO(0x12,118)
-+#define BLKDISCARD _IO(0x12,119)
-+#define BLKIOMIN _IO(0x12,120)
-+#define BLKIOOPT _IO(0x12,121)
-+#define BLKALIGNOFF _IO(0x12,122)
-+#define BLKPBSZGET _IO(0x12,123)
-+#define BLKDISCARDZEROES _IO(0x12,124)
-+#define BLKSECDISCARD _IO(0x12,125)
-+#define BLKROTATIONAL _IO(0x12,126)
-+#define BLKZEROOUT _IO(0x12,127)
-+#define BLKGETDISKSEQ _IOR(0x12,128,__u64)
-+/*
-+ * A jump here: 130-136 are reserved for zoned block devices
-+ * (see uapi/linux/blkzoned.h)
-+ */
-+
-+#define BMAP_IOCTL 1		/* obsolete - kept for compatibility */
-+#define FIBMAP	   _IO(0x00,1)	/* bmap access */
-+#define FIGETBSZ   _IO(0x00,2)	/* get the block size used for bmap */
-+#define FIFREEZE	_IOWR('X', 119, int)	/* Freeze */
-+#define FITHAW		_IOWR('X', 120, int)	/* Thaw */
-+#define FITRIM		_IOWR('X', 121, struct fstrim_range)	/* Trim */
-+#define FICLONE		_IOW(0x94, 9, int)
-+#define FICLONERANGE	_IOW(0x94, 13, struct file_clone_range)
-+#define FIDEDUPERANGE	_IOWR(0x94, 54, struct file_dedupe_range)
-+
-+#define FSLABEL_MAX 256	/* Max chars for the interface; each fs may differ */
-+
-+#define	FS_IOC_GETFLAGS			_IOR('f', 1, long)
-+#define	FS_IOC_SETFLAGS			_IOW('f', 2, long)
-+#define	FS_IOC_GETVERSION		_IOR('v', 1, long)
-+#define	FS_IOC_SETVERSION		_IOW('v', 2, long)
-+#define FS_IOC_FIEMAP			_IOWR('f', 11, struct fiemap)
-+#define FS_IOC32_GETFLAGS		_IOR('f', 1, int)
-+#define FS_IOC32_SETFLAGS		_IOW('f', 2, int)
-+#define FS_IOC32_GETVERSION		_IOR('v', 1, int)
-+#define FS_IOC32_SETVERSION		_IOW('v', 2, int)
-+#define FS_IOC_FSGETXATTR		_IOR('X', 31, struct fsxattr)
-+#define FS_IOC_FSSETXATTR		_IOW('X', 32, struct fsxattr)
-+#define FS_IOC_GETFSLABEL		_IOR(0x94, 49, char[FSLABEL_MAX])
-+#define FS_IOC_SETFSLABEL		_IOW(0x94, 50, char[FSLABEL_MAX])
-+/* Returns the external filesystem UUID, the same one blkid returns */
-+#define FS_IOC_GETFSUUID		_IOR(0x15, 0, struct fsuuid2)
-+/*
-+ * Returns the path component under /sys/fs/ that refers to this filesystem;
-+ * also /sys/kernel/debug/ for filesystems with debugfs exports
-+ */
-+#define FS_IOC_GETFSSYSFSPATH		_IOR(0x15, 1, struct fs_sysfs_path)
-+
-+/*
-+ * Inode flags (FS_IOC_GETFLAGS / FS_IOC_SETFLAGS)
++ * Changing LSM security domain is considered a new privilege.  So, for example,
++ * asking selinux for a specific new context (e.g. with runcon) will result
++ * in execve returning -EPERM.
 + *
-+ * Note: for historical reasons, these flags were originally used and
-+ * defined for use by ext2/ext3, and then other file systems started
-+ * using these flags so they wouldn't need to write their own version
-+ * of chattr/lsattr (which was shipped as part of e2fsprogs).  You
-+ * should think twice before trying to use these flags in new
-+ * contexts, or trying to assign these flags, since they are used both
-+ * as the UAPI and the on-disk encoding for ext2/3/4.  Also, we are
-+ * almost out of 32-bit flags.  :-)
-+ *
-+ * We have recently hoisted FS_IOC_FSGETXATTR / FS_IOC_FSSETXATTR from
-+ * XFS to the generic FS level interface.  This uses a structure that
-+ * has padding and hence has more room to grow, so it may be more
-+ * appropriate for many new use cases.
-+ *
-+ * Please do not change these flags or interfaces before checking with
-+ * linux-fsdevel@vger.kernel.org and linux-api@vger.kernel.org.
++ * See Documentation/userspace-api/no_new_privs.rst for more details.
 + */
-+#define	FS_SECRM_FL			0x00000001 /* Secure deletion */
-+#define	FS_UNRM_FL			0x00000002 /* Undelete */
-+#define	FS_COMPR_FL			0x00000004 /* Compress file */
-+#define FS_SYNC_FL			0x00000008 /* Synchronous updates */
-+#define FS_IMMUTABLE_FL			0x00000010 /* Immutable file */
-+#define FS_APPEND_FL			0x00000020 /* writes to file may only append */
-+#define FS_NODUMP_FL			0x00000040 /* do not dump file */
-+#define FS_NOATIME_FL			0x00000080 /* do not update atime */
-+/* Reserved for compression usage... */
-+#define FS_DIRTY_FL			0x00000100
-+#define FS_COMPRBLK_FL			0x00000200 /* One or more compressed clusters */
-+#define FS_NOCOMP_FL			0x00000400 /* Don't compress */
-+/* End compression flags --- maybe not all used */
-+#define FS_ENCRYPT_FL			0x00000800 /* Encrypted file */
-+#define FS_BTREE_FL			0x00001000 /* btree format dir */
-+#define FS_INDEX_FL			0x00001000 /* hash-indexed directory */
-+#define FS_IMAGIC_FL			0x00002000 /* AFS directory */
-+#define FS_JOURNAL_DATA_FL		0x00004000 /* Reserved for ext3 */
-+#define FS_NOTAIL_FL			0x00008000 /* file tail should not be merged */
-+#define FS_DIRSYNC_FL			0x00010000 /* dirsync behaviour (directories only) */
-+#define FS_TOPDIR_FL			0x00020000 /* Top of directory hierarchies*/
-+#define FS_HUGE_FILE_FL			0x00040000 /* Reserved for ext4 */
-+#define FS_EXTENT_FL			0x00080000 /* Extents */
-+#define FS_VERITY_FL			0x00100000 /* Verity protected inode */
-+#define FS_EA_INODE_FL			0x00200000 /* Inode used for large EA */
-+#define FS_EOFBLOCKS_FL			0x00400000 /* Reserved for ext4 */
-+#define FS_NOCOW_FL			0x00800000 /* Do not cow file */
-+#define FS_DAX_FL			0x02000000 /* Inode is DAX */
-+#define FS_INLINE_DATA_FL		0x10000000 /* Reserved for ext4 */
-+#define FS_PROJINHERIT_FL		0x20000000 /* Create with parents projid */
-+#define FS_CASEFOLD_FL			0x40000000 /* Folder is case insensitive */
-+#define FS_RESERVED_FL			0x80000000 /* reserved for ext2 lib */
++#define PR_SET_NO_NEW_PRIVS	38
++#define PR_GET_NO_NEW_PRIVS	39
 +
-+#define FS_FL_USER_VISIBLE		0x0003DFFF /* User visible flags */
-+#define FS_FL_USER_MODIFIABLE		0x000380FF /* User modifiable flags */
++#define PR_GET_TID_ADDRESS	40
 +
-+
-+#define SYNC_FILE_RANGE_WAIT_BEFORE	1
-+#define SYNC_FILE_RANGE_WRITE		2
-+#define SYNC_FILE_RANGE_WAIT_AFTER	4
-+#define SYNC_FILE_RANGE_WRITE_AND_WAIT	(SYNC_FILE_RANGE_WRITE | \
-+					 SYNC_FILE_RANGE_WAIT_BEFORE | \
-+					 SYNC_FILE_RANGE_WAIT_AFTER)
++#define PR_SET_THP_DISABLE	41
++#define PR_GET_THP_DISABLE	42
 +
 +/*
-+ * Flags for preadv2/pwritev2:
++ * No longer implemented, but left here to ensure the numbers stay reserved:
 + */
++#define PR_MPX_ENABLE_MANAGEMENT  43
++#define PR_MPX_DISABLE_MANAGEMENT 44
 +
-+typedef int __bitwise __kernel_rwf_t;
++#define PR_SET_FP_MODE		45
++#define PR_GET_FP_MODE		46
++# define PR_FP_MODE_FR		(1 << 0)	/* 64b FP registers */
++# define PR_FP_MODE_FRE		(1 << 1)	/* 32b compatibility */
 +
-+/* high priority request, poll if possible */
-+#define RWF_HIPRI	((__kernel_rwf_t)0x00000001)
++/* Control the ambient capability set */
++#define PR_CAP_AMBIENT			47
++# define PR_CAP_AMBIENT_IS_SET		1
++# define PR_CAP_AMBIENT_RAISE		2
++# define PR_CAP_AMBIENT_LOWER		3
++# define PR_CAP_AMBIENT_CLEAR_ALL	4
 +
-+/* per-IO O_DSYNC */
-+#define RWF_DSYNC	((__kernel_rwf_t)0x00000002)
++/* arm64 Scalable Vector Extension controls */
++/* Flag values must be kept in sync with ptrace NT_ARM_SVE interface */
++#define PR_SVE_SET_VL			50	/* set task vector length */
++# define PR_SVE_SET_VL_ONEXEC		(1 << 18) /* defer effect until exec */
++#define PR_SVE_GET_VL			51	/* get task vector length */
++/* Bits common to PR_SVE_SET_VL and PR_SVE_GET_VL */
++# define PR_SVE_VL_LEN_MASK		0xffff
++# define PR_SVE_VL_INHERIT		(1 << 17) /* inherit across exec */
 +
-+/* per-IO O_SYNC */
-+#define RWF_SYNC	((__kernel_rwf_t)0x00000004)
++/* Per task speculation control */
++#define PR_GET_SPECULATION_CTRL		52
++#define PR_SET_SPECULATION_CTRL		53
++/* Speculation control variants */
++# define PR_SPEC_STORE_BYPASS		0
++# define PR_SPEC_INDIRECT_BRANCH	1
++# define PR_SPEC_L1D_FLUSH		2
++/* Return and control values for PR_SET/GET_SPECULATION_CTRL */
++# define PR_SPEC_NOT_AFFECTED		0
++# define PR_SPEC_PRCTL			(1UL << 0)
++# define PR_SPEC_ENABLE			(1UL << 1)
++# define PR_SPEC_DISABLE		(1UL << 2)
++# define PR_SPEC_FORCE_DISABLE		(1UL << 3)
++# define PR_SPEC_DISABLE_NOEXEC		(1UL << 4)
 +
-+/* per-IO, return -EAGAIN if operation would block */
-+#define RWF_NOWAIT	((__kernel_rwf_t)0x00000008)
++/* Reset arm64 pointer authentication keys */
++#define PR_PAC_RESET_KEYS		54
++# define PR_PAC_APIAKEY			(1UL << 0)
++# define PR_PAC_APIBKEY			(1UL << 1)
++# define PR_PAC_APDAKEY			(1UL << 2)
++# define PR_PAC_APDBKEY			(1UL << 3)
++# define PR_PAC_APGAKEY			(1UL << 4)
 +
-+/* per-IO O_APPEND */
-+#define RWF_APPEND	((__kernel_rwf_t)0x00000010)
++/* Tagged user address controls for arm64 */
++#define PR_SET_TAGGED_ADDR_CTRL		55
++#define PR_GET_TAGGED_ADDR_CTRL		56
++# define PR_TAGGED_ADDR_ENABLE		(1UL << 0)
++/* MTE tag check fault modes */
++# define PR_MTE_TCF_NONE		0UL
++# define PR_MTE_TCF_SYNC		(1UL << 1)
++# define PR_MTE_TCF_ASYNC		(1UL << 2)
++# define PR_MTE_TCF_MASK		(PR_MTE_TCF_SYNC | PR_MTE_TCF_ASYNC)
++/* MTE tag inclusion mask */
++# define PR_MTE_TAG_SHIFT		3
++# define PR_MTE_TAG_MASK		(0xffffUL << PR_MTE_TAG_SHIFT)
++/* Unused; kept only for source compatibility */
++# define PR_MTE_TCF_SHIFT		1
 +
-+/* per-IO negation of O_APPEND */
-+#define RWF_NOAPPEND	((__kernel_rwf_t)0x00000020)
++/* Control reclaim behavior when allocating memory */
++#define PR_SET_IO_FLUSHER		57
++#define PR_GET_IO_FLUSHER		58
 +
-+/* mask of flags supported by the kernel */
-+#define RWF_SUPPORTED	(RWF_HIPRI | RWF_DSYNC | RWF_SYNC | RWF_NOWAIT |\
-+			 RWF_APPEND | RWF_NOAPPEND)
++/* Dispatch syscalls to a userspace handler */
++#define PR_SET_SYSCALL_USER_DISPATCH	59
++# define PR_SYS_DISPATCH_OFF		0
++# define PR_SYS_DISPATCH_ON		1
++/* The control values for the user space selector when dispatch is enabled */
++# define SYSCALL_DISPATCH_FILTER_ALLOW	0
++# define SYSCALL_DISPATCH_FILTER_BLOCK	1
 +
-+/* Pagemap ioctl */
-+#define PAGEMAP_SCAN	_IOWR('f', 16, struct pm_scan_arg)
++/* Set/get enabled arm64 pointer authentication keys */
++#define PR_PAC_SET_ENABLED_KEYS		60
++#define PR_PAC_GET_ENABLED_KEYS		61
 +
-+/* Bitmasks provided in pm_scan_args masks and reported in page_region.categories. */
-+#define PAGE_IS_WPALLOWED	(1 << 0)
-+#define PAGE_IS_WRITTEN		(1 << 1)
-+#define PAGE_IS_FILE		(1 << 2)
-+#define PAGE_IS_PRESENT		(1 << 3)
-+#define PAGE_IS_SWAPPED		(1 << 4)
-+#define PAGE_IS_PFNZERO		(1 << 5)
-+#define PAGE_IS_HUGE		(1 << 6)
-+#define PAGE_IS_SOFT_DIRTY	(1 << 7)
++/* Request the scheduler to share a core */
++#define PR_SCHED_CORE			62
++# define PR_SCHED_CORE_GET		0
++# define PR_SCHED_CORE_CREATE		1 /* create unique core_sched cookie */
++# define PR_SCHED_CORE_SHARE_TO		2 /* push core_sched cookie to pid */
++# define PR_SCHED_CORE_SHARE_FROM	3 /* pull core_sched cookie to pid */
++# define PR_SCHED_CORE_MAX		4
++# define PR_SCHED_CORE_SCOPE_THREAD		0
++# define PR_SCHED_CORE_SCOPE_THREAD_GROUP	1
++# define PR_SCHED_CORE_SCOPE_PROCESS_GROUP	2
 +
-+/*
-+ * struct page_region - Page region with flags
-+ * @start:	Start of the region
-+ * @end:	End of the region (exclusive)
-+ * @categories:	PAGE_IS_* category bitmask for the region
-+ */
-+struct page_region {
-+	__u64 start;
-+	__u64 end;
-+	__u64 categories;
-+};
++/* arm64 Scalable Matrix Extension controls */
++/* Flag values must be in sync with SVE versions */
++#define PR_SME_SET_VL			63	/* set task vector length */
++# define PR_SME_SET_VL_ONEXEC		(1 << 18) /* defer effect until exec */
++#define PR_SME_GET_VL			64	/* get task vector length */
++/* Bits common to PR_SME_SET_VL and PR_SME_GET_VL */
++# define PR_SME_VL_LEN_MASK		0xffff
++# define PR_SME_VL_INHERIT		(1 << 17) /* inherit across exec */
 +
-+/* Flags for PAGEMAP_SCAN ioctl */
-+#define PM_SCAN_WP_MATCHING	(1 << 0)	/* Write protect the pages matched. */
-+#define PM_SCAN_CHECK_WPASYNC	(1 << 1)	/* Abort the scan when a non-WP-enabled page is found. */
++/* Memory deny write / execute */
++#define PR_SET_MDWE			65
++# define PR_MDWE_REFUSE_EXEC_GAIN	(1UL << 0)
++# define PR_MDWE_NO_INHERIT		(1UL << 1)
 +
-+/*
-+ * struct pm_scan_arg - Pagemap ioctl argument
-+ * @size:		Size of the structure
-+ * @flags:		Flags for the IOCTL
-+ * @start:		Starting address of the region
-+ * @end:		Ending address of the region
-+ * @walk_end		Address where the scan stopped (written by kernel).
-+ *			walk_end == end (address tags cleared) informs that the scan completed on entire range.
-+ * @vec:		Address of page_region struct array for output
-+ * @vec_len:		Length of the page_region struct array
-+ * @max_pages:		Optional limit for number of returned pages (0 = disabled)
-+ * @category_inverted:	PAGE_IS_* categories which values match if 0 instead of 1
-+ * @category_mask:	Skip pages for which any category doesn't match
-+ * @category_anyof_mask: Skip pages for which no category matches
-+ * @return_mask:	PAGE_IS_* categories that are to be reported in `page_region`s returned
-+ */
-+struct pm_scan_arg {
-+	__u64 size;
-+	__u64 flags;
-+	__u64 start;
-+	__u64 end;
-+	__u64 walk_end;
-+	__u64 vec;
-+	__u64 vec_len;
-+	__u64 max_pages;
-+	__u64 category_inverted;
-+	__u64 category_mask;
-+	__u64 category_anyof_mask;
-+	__u64 return_mask;
-+};
++#define PR_GET_MDWE			66
 +
-+#endif /* _LINUX_FS_H */
++#define PR_SET_VMA		0x53564d41
++# define PR_SET_VMA_ANON_NAME		0
++
++#define PR_GET_AUXV			0x41555856
++
++#define PR_SET_MEMORY_MERGE		67
++#define PR_GET_MEMORY_MERGE		68
++
++#define PR_RISCV_V_SET_CONTROL		69
++#define PR_RISCV_V_GET_CONTROL		70
++# define PR_RISCV_V_VSTATE_CTRL_DEFAULT		0
++# define PR_RISCV_V_VSTATE_CTRL_OFF		1
++# define PR_RISCV_V_VSTATE_CTRL_ON		2
++# define PR_RISCV_V_VSTATE_CTRL_INHERIT		(1 << 4)
++# define PR_RISCV_V_VSTATE_CTRL_CUR_MASK	0x3
++# define PR_RISCV_V_VSTATE_CTRL_NEXT_MASK	0xc
++# define PR_RISCV_V_VSTATE_CTRL_MASK		0x1f
++
++#define PR_RISCV_SET_ICACHE_FLUSH_CTX	71
++# define PR_RISCV_CTX_SW_FENCEI_ON	0
++# define PR_RISCV_CTX_SW_FENCEI_OFF	1
++# define PR_RISCV_SCOPE_PER_PROCESS	0
++# define PR_RISCV_SCOPE_PER_THREAD	1
++
++/* PowerPC Dynamic Execution Control Register (DEXCR) controls */
++#define PR_PPC_GET_DEXCR		72
++#define PR_PPC_SET_DEXCR		73
++/* DEXCR aspect to act on */
++# define PR_PPC_DEXCR_SBHE		0 /* Speculative branch hint enable */
++# define PR_PPC_DEXCR_IBRTPD		1 /* Indirect branch recurrent target prediction disable */
++# define PR_PPC_DEXCR_SRAPD		2 /* Subroutine return address prediction disable */
++# define PR_PPC_DEXCR_NPHIE		3 /* Non-privileged hash instruction enable */
++/* Action to apply / return */
++# define PR_PPC_DEXCR_CTRL_EDITABLE	 0x1 /* Aspect can be modified with PR_PPC_SET_DEXCR */
++# define PR_PPC_DEXCR_CTRL_SET		 0x2 /* Set the aspect for this process */
++# define PR_PPC_DEXCR_CTRL_CLEAR	 0x4 /* Clear the aspect for this process */
++# define PR_PPC_DEXCR_CTRL_SET_ONEXEC	 0x8 /* Set the aspect on exec */
++# define PR_PPC_DEXCR_CTRL_CLEAR_ONEXEC	0x10 /* Clear the aspect on exec */
++# define PR_PPC_DEXCR_CTRL_MASK		0x1f
++
++#endif /* _LINUX_PRCTL_H */
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
