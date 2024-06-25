@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64E6C1849
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:16:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 788AD1849
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:17:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719288986; cv=none; b=gGZQnVari/aGisBtBLZSRQxay8EFty+6/WiVgbq/TiClzsQl5wfpRRw8RAHL7noS6ye5IR4jcoDfxcmw/dQPWsBzTnFrB8/2bQdeG4j6vGn9MSPzJTJK9oIK3EoolmnUsQ/gwGdmFEWpzRQ5zhwaWneRlKaedP4gSSxFTvgUAMU=
+	t=1719289040; cv=none; b=EJ5/YoH+xLYCmT+Ac/h8jB21ZbjOr04tCZIrDqOeOIA1gKNWDbA7K7xxP9c8UAR4ZONAD8RpmmMkAKwRwmKzNei9nBJGBTGMjgW1YjJAGezYoypd+GRZItXbTWH+DBp28dReoIJH/kJ4Vf7UZWGYVyL4nBb2sdVZ3DFMrJ/U6Ck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719288986; c=relaxed/simple;
-	bh=jaU1dFMCHeLtPFeIkJ3O3z2Ivlachs5G8oeBqzdqHD8=;
-	h=Date:To:From:Subject:Message-Id; b=YzQz9frvD+aIx6XjnKXoxNcxjy7j1rpQhLMuSNEwS8BgzzpIksGxLXLXtsJjV7wv6dV5kjpqYKuT88nG7k2Lij9R4P9VnW/AynsVxY9utGlZkwj6uHGeMSd79d9lcQGBrFH6Ieol13UvWJ//M6SGq9XbDgzCfgSyKkvzqhK6Ms4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YnRDuGvr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719289040; c=relaxed/simple;
+	bh=wjKH1nY2K4xVJy0CSBTicZTCg6KOUO0AimGGMxd+PO0=;
+	h=Date:To:From:Subject:Message-Id; b=BmcOmldckdYOMUtXTi5vtQHkMXQTtBoA4GliHqb82P5syv/05bUhwUbCqMEBBVqeEdknuZKW3IYS6V0wZEw83DTEGJYQT9dFRbOX0VytgxbqEk2ehdQWx5zwjqFFA5iJbvfeVe7chMvQb0eR17KIjQPceLxFPgG9wcSXzsEJnqM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eakzvmM+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YnRDuGvr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4818C32782;
-	Tue, 25 Jun 2024 04:16:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eakzvmM+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46AD5C32782;
+	Tue, 25 Jun 2024 04:17:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719288985;
-	bh=jaU1dFMCHeLtPFeIkJ3O3z2Ivlachs5G8oeBqzdqHD8=;
+	s=korg; t=1719289040;
+	bh=wjKH1nY2K4xVJy0CSBTicZTCg6KOUO0AimGGMxd+PO0=;
 	h=Date:To:From:Subject:From;
-	b=YnRDuGvrQcuQtckfhMp4ZQCggpnK99sxFheiNlH7YQ8itINTOAoNe4l6haF5zX0au
-	 Wngk6+Y1tBPFxKu5XF/Eiznv+2PmiA/tuuwVcm6BizA61wr9uVDvGzncdBQKpKGAb7
-	 6Y82i6xalAHw5M812LRcCDsGdP3Ht9ZCyGqOld88=
-Date: Mon, 24 Jun 2024 21:16:25 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=eakzvmM+4WCnENyGZFf7cLwZ3KOQxZoAJMHB1GOx4m33ji1H2aC6sslpYjdJpet+U
+	 Fhf7/NqgltT8YsukGuA4p5C8rTiGBEBluLCt02o9xTAQxgNGQCHKol9ijSZpoWUkpt
+	 cmiWzuNk8GLBC/f6ZSIfchjlF34oVoa3jDLkOejQ=
+Date: Mon, 24 Jun 2024 21:17:19 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,rppt@kernel.org,peterz@infradead.org,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,luto@kernel.org,hpa@zytor.com,dave.hansen@linux.intel.com,bp@alien8.de,bhe@redhat.com,echanude@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3-fix.patch removed from -mm tree
-Message-Id: <20240625041625.C4818C32782@smtp.kernel.org>
+Subject: [folded-merged] mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads-v3.patch removed from -mm tree
+Message-Id: <20240625041720.46AD5C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3-fix
+     Subject: mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads-v3
 has been removed from the -mm tree.  Its filename was
-     writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3-fix.patch
+     mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads-v3.patch
 
-This patch was dropped because it was folded into writeback-factor-out-balance_wb_limits-to-remove-repeated-code.patch
+This patch was dropped because it was folded into mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3-fix
-Date: Tue Jun 11 02:50:38 PM PDT 2024
+From: Eric Chanudet <echanude@redhat.com>
+Subject: mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads-v3
+Date: Tue, 28 May 2024 14:54:58 -0400
 
-s/fileds/fields/ in comment
+ - deferred_page_init_max_threads returns unsigned and use max instead
+   of max_t.
+ - Make deferred_page_init_max_threads static since there are no more
+   override.
 
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20240528185455.643227-4-echanude@redhat.com
+Signed-off-by: Eric Chanudet <echanude@redhat.com>
+Tested-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/memblock.h |    2 --
+ mm/mm_init.c             |    5 ++---
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
---- a/mm/page-writeback.c~writeback-factor-out-balance_wb_limits-to-remove-repeated-code-v3-fix
-+++ a/mm/page-writeback.c
-@@ -1806,8 +1806,8 @@ static inline void wb_dirty_exceeded(str
+--- a/include/linux/memblock.h~mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads-v3
++++ a/include/linux/memblock.h
+@@ -335,8 +335,6 @@ void __next_mem_pfn_range_in_zone(u64 *i
+ 	for (; i != U64_MAX;					  \
+ 	     __next_mem_pfn_range_in_zone(&i, zone, p_start, p_end))
+ 
+-int __init deferred_page_init_max_threads(const struct cpumask *node_cpumask);
+-
+ #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
+ 
+ /**
+--- a/mm/mm_init.c~mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads-v3
++++ a/mm/mm_init.c
+@@ -2122,11 +2122,10 @@ deferred_init_memmap_chunk(unsigned long
+ 	}
  }
  
- /*
-- * The limits fileds dirty_exceeded and pos_ratio won't be updated if wb is
-- * in freerun state. Please don't use these invalid fileds in freerun case.
-+ * The limits fields dirty_exceeded and pos_ratio won't be updated if wb is
-+ * in freerun state. Please don't use these invalid fields in freerun case.
-  */
- static void balance_wb_limits(struct dirty_throttle_control *dtc,
- 			      bool strictlimit)
+-/* An arch may override for more concurrency. */
+-__weak int __init
++static unsigned int __init
+ deferred_page_init_max_threads(const struct cpumask *node_cpumask)
+ {
+-	return max_t(int, cpumask_weight(node_cpumask), 1);
++	return max(cpumask_weight(node_cpumask), 1U);
+ }
+ 
+ /* Initialise remaining memory on a node */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from echanude@redhat.com are
 
-writeback-factor-out-balance_wb_limits-to-remove-repeated-code.patch
-mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix-fix.patch
-mm-shmem-add-multi-size-thp-sysfs-interface-for-anonymous-shmem-fix-4.patch
-mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix.patch
-mm-use-folio_add_new_anon_rmap-if-folio_test_anonfolio==false-fix.patch
+mm-mm_init-use-nodes-number-of-cpus-in-deferred_page_init_max_threads.patch
 
