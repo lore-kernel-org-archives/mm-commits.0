@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D054F33C0
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D671F144D3B
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293195; cv=none; b=dWjIjCp8//WpX5+5YcFwpqgSUA6P1EE6oL/ysn23nZC8IYByN3CWjU23rM23e3EB711LnTJwc6+Tp4XwEXTReFVf04F7GdbX3xtAdDm9aWj2lqd1Syiey3VLy2YVA6wk3ym8mbjDYQ0dSy7EkHU64NGi47APo7lh37I1x3OdKlI=
+	t=1719293196; cv=none; b=TIhQPXnaRhrvbktpzruHRBBmYrLov5Garu5B5Yp4KjWv+TQT2q2K8ChSFoctqvGH8Ft7c+Gr13BAjJumwoyFND1t/L1svWJWTnLQ5EQnYVrPb8BXmjBLNaxcb4xWwpyXHJwNzUcHMUckc3gPP8cDAsbc2eX1aYxT8Buj2hVwMAo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719293195; c=relaxed/simple;
-	bh=thWOUerBAMkx+hm4eFAXQst0qq58viO1hNjmXN6Wn6o=;
-	h=Date:To:From:Subject:Message-Id; b=JRCQSLPhZMVZwOBRHLu1Jn68BhJlhPB5dxHcilhac0C/m7iw60rzgwfWkCCkMh3FqEts4/yOIJu70UtWtasp/kJsi+hTiCgYYCdGz9XaOA9LczwAzHF1yLSkrQwJgRNPFkJ1Vtoej0iuxG6AqVRxTUM3qZ46wyXsgdh/vZ8e4QM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ovp49fYv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719293196; c=relaxed/simple;
+	bh=IqPiEFFwoZl5fD79ji6vLCWfwlvrpv///JvhXuKNPZ8=;
+	h=Date:To:From:Subject:Message-Id; b=IfKVGtfs6d/js/R2s6zjYJ82WxxvuOg3IpvotFf4MwRNsGlP68a+or+GB+5FknxSRwZN4ASSZG5bTZie4y3pbFfm+lnGv+2BlHJCU23jcklRm4cV7CICZhhSALqudDxJN31qEothTnmJulnArOB2evsPM/+/MFwjqc5GugWcZUY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SBqR93eO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ovp49fYv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CE9AC32782;
-	Tue, 25 Jun 2024 05:26:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SBqR93eO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A38A8C32782;
+	Tue, 25 Jun 2024 05:26:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293195;
-	bh=thWOUerBAMkx+hm4eFAXQst0qq58viO1hNjmXN6Wn6o=;
+	s=korg; t=1719293196;
+	bh=IqPiEFFwoZl5fD79ji6vLCWfwlvrpv///JvhXuKNPZ8=;
 	h=Date:To:From:Subject:From;
-	b=ovp49fYvwo5SVRPlUjQzkx6WoMs7rNWmsqcvwm599SFRSI9F9VvbOxBIhtqhCbiQc
-	 5dFDO017qtyjlR0n2MrrjSgRZS4Lpru2VmNz3qGCffl0WBfuo9GAVgCMwCjHBdxeFI
-	 DkqK/PF6I5pedmqg5M4DVtmMa5Bf7GX7K6h0yPSo=
-Date: Mon, 24 Jun 2024 22:26:35 -0700
-To: mm-commits@vger.kernel.org,peterz@infradead.org,namhyung@kernel.org,mingo@redhat.com,mark.rutland@arm.com,kan.liang@linux.intel.com,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,irogers@google.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=SBqR93eOCBfXPNC59UuRjgrOinE6thuejguoIiqj3LHrLhfGTO0KQ/Ojynh5Xj6ik
+	 M2opvu5/IKNoXJT6S93QBwmhFlFG9896nci7510WavGnubQ7msTo4K+IbDA0vVruvJ
+	 dZQtTLxdh/eVw3H43+N1PmQTatfLDuvbrNcla6fA=
+Date: Mon, 24 Jun 2024 22:26:36 -0700
+To: mm-commits@vger.kernel.org,quic_jjohnson@quicinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] tools-lib-list_sort-remove-redundant-code-for-cond_resched-handling.patch removed from -mm tree
-Message-Id: <20240625052635.9CE9AC32782@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-ts-add-missing-module_description-macros.patch removed from -mm tree
+Message-Id: <20240625052636.A38A8C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,70 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/lib/list_sort: remove redundant code for cond_resched handling
+     Subject: lib/ts: add missing MODULE_DESCRIPTION() macros
 has been removed from the -mm tree.  Its filename was
-     tools-lib-list_sort-remove-redundant-code-for-cond_resched-handling.patch
+     lib-ts-add-missing-module_description-macros.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: tools/lib/list_sort: remove redundant code for cond_resched handling
-Date: Sun, 26 May 2024 07:02:06 +0800
+From: Jeff Johnson <quic_jjohnson@quicinc.com>
+Subject: lib/ts: add missing MODULE_DESCRIPTION() macros
+Date: Fri, 31 May 2024 08:14:56 -0700
 
-Since cond_resched() is not called in userspace, remove the redundant code
-in userspace's list_sort() implementation.  This change eliminates the
-unused 'count' variable and the associated logic for invoking cmp()
-periodically, which was intended to trigger cond_resched() in kernel
-space.
+make allmodconfig && make W=1 C=1 reports:
+WARNING: modpost: missing MODULE_DESCRIPTION() in lib/ts_kmp.o
+WARNING: modpost: missing MODULE_DESCRIPTION() in lib/ts_bm.o
+WARNING: modpost: missing MODULE_DESCRIPTION() in lib/ts_fsm.o
 
-The removed code includes:
-- Declaration and increment of the 'count' variable.
-- Conditional invocation of cmp() based on 'count'.
+Add the missing invocations of the MODULE_DESCRIPTION() macro.
 
-This cleanup simplifies merge_final(), avoids unnecessary overhead, and
-has no impact on the functionality of list_sort() in userspace.
-
-Link: https://lkml.kernel.org/r/20240525230206.1077536-1-visitorckw@gmail.com
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Kan Liang <kan.liang@linux.intel.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20240531-lib-ts-v1-1-03d7f3546c49@quicinc.com
+Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/lib/list_sort.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ lib/ts_bm.c  |    1 +
+ lib/ts_fsm.c |    1 +
+ lib/ts_kmp.c |    1 +
+ 3 files changed, 3 insertions(+)
 
---- a/tools/lib/list_sort.c~tools-lib-list_sort-remove-redundant-code-for-cond_resched-handling
-+++ a/tools/lib/list_sort.c
-@@ -52,7 +52,6 @@ static void merge_final(void *priv, list
- 			struct list_head *a, struct list_head *b)
- {
- 	struct list_head *tail = head;
--	u8 count = 0;
+--- a/lib/ts_bm.c~lib-ts-add-missing-module_description-macros
++++ a/lib/ts_bm.c
+@@ -216,6 +216,7 @@ static void __exit exit_bm(void)
+ 	textsearch_unregister(&bm_ops);
+ }
  
- 	for (;;) {
- 		/* if equal, take 'a' -- important for sort stability */
-@@ -78,15 +77,6 @@ static void merge_final(void *priv, list
- 	/* Finish linking remainder of list b on to tail */
- 	tail->next = b;
- 	do {
--		/*
--		 * If the merge is highly unbalanced (e.g. the input is
--		 * already sorted), this loop may run many iterations.
--		 * Continue callbacks to the client even though no
--		 * element comparison is needed, so the client's cmp()
--		 * routine can invoke cond_resched() periodically.
--		 */
--		if (unlikely(!++count))
--			cmp(priv, b, b);
- 		b->prev = tail;
- 		tail = b;
- 		b = b->next;
++MODULE_DESCRIPTION("Boyer-Moore text search implementation");
+ MODULE_LICENSE("GPL");
+ 
+ module_init(init_bm);
+--- a/lib/ts_fsm.c~lib-ts-add-missing-module_description-macros
++++ a/lib/ts_fsm.c
+@@ -331,6 +331,7 @@ static void __exit exit_fsm(void)
+ 	textsearch_unregister(&fsm_ops);
+ }
+ 
++MODULE_DESCRIPTION("naive finite state machine text search");
+ MODULE_LICENSE("GPL");
+ 
+ module_init(init_fsm);
+--- a/lib/ts_kmp.c~lib-ts-add-missing-module_description-macros
++++ a/lib/ts_kmp.c
+@@ -147,6 +147,7 @@ static void __exit exit_kmp(void)
+ 	textsearch_unregister(&kmp_ops);
+ }
+ 
++MODULE_DESCRIPTION("Knuth-Morris-Pratt text search implementation");
+ MODULE_LICENSE("GPL");
+ 
+ module_init(init_kmp);
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from quic_jjohnson@quicinc.com are
 
+kfifo-add-missing-module_description-macros.patch
+resource-add-missing-module_description.patch
+selftests-fpu-add-missing-module_description-macro.patch
 
