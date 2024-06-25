@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DA8B38F9A
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 03:52:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA51673448;
+	Tue, 25 Jun 2024 03:52:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719287561; cv=none; b=VKt0HvRdp4sayRsINzEb2o3XVBa/ACwM6umyHTrlFwUkuYymjXaYxxVK8HzgXIt72Fn7KUhRAQ4CKzPwY/2+6VUv7VSev2jfEGTsh363tVzaZ4n3NFutUdXVV4FN3pLYHUyfaG/gAMQaQU9KmXdtQM+liaLBeEbKN1Zfmj5gCJE=
+	t=1719287562; cv=none; b=uFQOkc0An7qct9r9ePCxM9++IFYQaxEguSpqleUp5jc6w7vIdxoSRoLQAFz/N17EBXiIPiIqRcUF/DrQ2mpoFWLFqeGIoNPh+5WpJGooR/9mkquRSMIhIMQ4JT0ldCe/yIqQOaWrHguM+U1okWOxyn/4ZKsqV6Y9J96hjAZYyLA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719287561; c=relaxed/simple;
-	bh=L/l453ScAZQ5nZef32ylAIhiGvq3D8o+QTZC2PAvXfA=;
-	h=Date:To:From:Subject:Message-Id; b=giw4xWjfzFMNFdy9af5UavcFASTfdacJjLFI9l4XVOI17sW8SKdd7p6UY205xQp/8YIX/zt2/uTMtIzA6m32w6ljaSWmYKyc+bj6cnfbQhRRgsGAxJCvRpVlvWVJhcQZ9mw9M/NKt1UjHKjGf0oA2/bQ9ATnGGjpw84cXuCEV0Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y9+CP7p3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719287562; c=relaxed/simple;
+	bh=NlaITtq1XinK2e0d3kZur4xidyZ5OIfxoIw0P7aj/+A=;
+	h=Date:To:From:Subject:Message-Id; b=mUo5Pp6FfeU7oTwZttTYf6eVajC4pIBPcyg9ypNnjTTpF08Niki2e3xqaMzo/laBRvDpKPYDw2wLk8KDuhG9nlIuxb0fYs4zVX3us4nJOoSz/BjgV7G1pZbermjb3m8QMoW8OyGF2MIIisO8Nqu9Q8F9rtwqkJqjP/6naH+RvSc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jh4J4EcY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y9+CP7p3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 431D6C32789;
-	Tue, 25 Jun 2024 03:52:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jh4J4EcY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5800EC32782;
+	Tue, 25 Jun 2024 03:52:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719287561;
-	bh=L/l453ScAZQ5nZef32ylAIhiGvq3D8o+QTZC2PAvXfA=;
+	s=korg; t=1719287562;
+	bh=NlaITtq1XinK2e0d3kZur4xidyZ5OIfxoIw0P7aj/+A=;
 	h=Date:To:From:Subject:From;
-	b=Y9+CP7p3U4mKVPqRNJvfrTTS8nnT2YAq9+pY8b+svJpZahKK7PHj8W7bw2ZlIyg6w
-	 l09r3Xfj0UigY7gHtndupoKrBqkaDeFsXL7P+rMAxGi9P7tG5/jU5HkNZ4c5ogjnoA
-	 j0SnreObVfIo8J9zcH7ksWpuIUwQA0Ti1DCSsj/0=
-Date: Mon, 24 Jun 2024 20:52:40 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,vbabka@suse.cz,osandov@osandov.com,gehao@kylinos.cn,david@redhat.com,stephen.s.brennan@oracle.com,akpm@linux-foundation.org
+	b=Jh4J4EcYllLwCdlFfdai2ERqYdH3Xc4cShBqiXTR+4PkzphyD/iJ+g/lXe5diR+/S
+	 OfQAoRu03pvWHM+scHLFF2irMyzSdzEJ3WTDyWqRKkyPJnNU1TmDIsG5gK/rZ01I98
+	 5aYxapZVl50S7RW/xjJXK0zEG3BBrnAwap7gwbkw=
+Date: Mon, 24 Jun 2024 20:52:41 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,david@redhat.com,shechenglong001@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-convert-page-type-macros-to-enum.patch removed from -mm tree
-Message-Id: <20240625035241.431D6C32789@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-fix-test_prctl_fork_exec-return-failure.patch removed from -mm tree
+Message-Id: <20240625035242.5800EC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,100 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: convert page type macros to enum
+     Subject: selftests/mm:fix test_prctl_fork_exec return failure
 has been removed from the -mm tree.  Its filename was
-     mm-convert-page-type-macros-to-enum.patch
+     selftests-mm-fix-test_prctl_fork_exec-return-failure.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Stephen Brennan <stephen.s.brennan@oracle.com>
-Subject: mm: convert page type macros to enum
-Date: Fri, 7 Jun 2024 13:29:53 -0700
+From: aigourensheng <shechenglong001@gmail.com>
+Subject: selftests/mm:fix test_prctl_fork_exec return failure
+Date: Mon, 17 Jun 2024 01:29:34 -0400
 
-Changing PG_slab from a page flag to a page type in commit 46df8e73a4a3
-("mm: free up PG_slab") in has the unintended consequence of removing the
-PG_slab constant from kernel debuginfo.  The commit does add the value to
-the vmcoreinfo note, which allows debuggers to find the value without
-hardcoding it.  However it's most flexible to continue representing the
-constant with an enum.  To that end, convert the page type fields into an
-enum.  Debuggers will now be able to detect that PG_slab's type has
-changed from enum pageflags to enum pagetype.
+After calling fork() in test_prctl_fork_exec(), the global variable
+ksm_full_scans_fd is initialized to 0 in the child process upon entering
+the main function of ./ksm_functional_tests.
 
-Link: https://lkml.kernel.org/r/20240607202954.1198180-1-stephen.s.brennan@oracle.com
-Fixes: 46df8e73a4a3 ("mm: free up PG_slab")
-Signed-off-by: Stephen Brennan <stephen.s.brennan@oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hao Ge <gehao@kylinos.cn>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Omar Sandoval <osandov@osandov.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+In the function call chain test_child_ksm() -> __mmap_and_merge_range ->
+ksm_merge-> ksm_get_full_scans, start_scans = ksm_get_full_scans() will
+return an error.  Therefore, the value of ksm_full_scans_fd needs to be
+initialized before calling test_child_ksm in the child process.
+
+Link: https://lkml.kernel.org/r/20240617052934.5834-1-shechenglong001@gmail.com
+Signed-off-by: aigourensheng <shechenglong001@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ tools/testing/selftests/mm/ksm_functional_tests.c |   38 ++++++------
+ 1 file changed, 22 insertions(+), 16 deletions(-)
 
---- a/include/linux/page-flags.h~mm-convert-page-type-macros-to-enum
-+++ a/include/linux/page-flags.h
-@@ -944,15 +944,18 @@ PAGEFLAG_FALSE(HasHWPoisoned, has_hwpois
-  * mistaken for a page type value.
-  */
+--- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-mm-fix-test_prctl_fork_exec-return-failure
++++ a/tools/testing/selftests/mm/ksm_functional_tests.c
+@@ -656,12 +656,33 @@ unmap:
+ 	munmap(map, size);
+ }
  
--#define PAGE_TYPE_BASE	0xf0000000
--/* Reserve		0x0000007f to catch underflows of _mapcount */
--#define PAGE_MAPCOUNT_RESERVE	-128
--#define PG_buddy	0x00000080
--#define PG_offline	0x00000100
--#define PG_table	0x00000200
--#define PG_guard	0x00000400
--#define PG_hugetlb	0x00000800
--#define PG_slab		0x00001000
-+enum pagetype {
-+	PG_buddy	= 0x00000080,
-+	PG_offline	= 0x00000100,
-+	PG_table	= 0x00000200,
-+	PG_guard	= 0x00000400,
-+	PG_hugetlb	= 0x00000800,
-+	PG_slab		= 0x00001000,
++static void init_global_file_handles(void)
++{
++	mem_fd = open("/proc/self/mem", O_RDWR);
++	if (mem_fd < 0)
++		ksft_exit_fail_msg("opening /proc/self/mem failed\n");
++	ksm_fd = open("/sys/kernel/mm/ksm/run", O_RDWR);
++	if (ksm_fd < 0)
++		ksft_exit_skip("open(\"/sys/kernel/mm/ksm/run\") failed\n");
++	ksm_full_scans_fd = open("/sys/kernel/mm/ksm/full_scans", O_RDONLY);
++	if (ksm_full_scans_fd < 0)
++		ksft_exit_skip("open(\"/sys/kernel/mm/ksm/full_scans\") failed\n");
++	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	if (pagemap_fd < 0)
++		ksft_exit_skip("open(\"/proc/self/pagemap\") failed\n");
++	proc_self_ksm_stat_fd = open("/proc/self/ksm_stat", O_RDONLY);
++	proc_self_ksm_merging_pages_fd = open("/proc/self/ksm_merging_pages",
++						O_RDONLY);
++	ksm_use_zero_pages_fd = open("/sys/kernel/mm/ksm/use_zero_pages", O_RDWR);
++}
 +
-+	PAGE_TYPE_BASE	= 0xf0000000,
-+	/* Reserve 0x0000007f to catch underflows of _mapcount */
-+	PAGE_MAPCOUNT_RESERVE	= -128,
-+};
+ int main(int argc, char **argv)
+ {
+ 	unsigned int tests = 8;
+ 	int err;
  
- #define PageType(page, flag)						\
- 	((page->page_type & (PAGE_TYPE_BASE | flag)) == PAGE_TYPE_BASE)
+ 	if (argc > 1 && !strcmp(argv[1], FORK_EXEC_CHILD_PRG_NAME)) {
++		init_global_file_handles();
+ 		exit(test_child_ksm());
+ 	}
+ 
+@@ -674,22 +695,7 @@ int main(int argc, char **argv)
+ 
+ 	pagesize = getpagesize();
+ 
+-	mem_fd = open("/proc/self/mem", O_RDWR);
+-	if (mem_fd < 0)
+-		ksft_exit_fail_msg("opening /proc/self/mem failed\n");
+-	ksm_fd = open("/sys/kernel/mm/ksm/run", O_RDWR);
+-	if (ksm_fd < 0)
+-		ksft_exit_skip("open(\"/sys/kernel/mm/ksm/run\") failed\n");
+-	ksm_full_scans_fd = open("/sys/kernel/mm/ksm/full_scans", O_RDONLY);
+-	if (ksm_full_scans_fd < 0)
+-		ksft_exit_skip("open(\"/sys/kernel/mm/ksm/full_scans\") failed\n");
+-	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
+-	if (pagemap_fd < 0)
+-		ksft_exit_skip("open(\"/proc/self/pagemap\") failed\n");
+-	proc_self_ksm_stat_fd = open("/proc/self/ksm_stat", O_RDONLY);
+-	proc_self_ksm_merging_pages_fd = open("/proc/self/ksm_merging_pages",
+-					      O_RDONLY);
+-	ksm_use_zero_pages_fd = open("/sys/kernel/mm/ksm/use_zero_pages", O_RDWR);
++	init_global_file_handles();
+ 
+ 	test_unmerge();
+ 	test_unmerge_zero_pages();
 _
 
-Patches currently in -mm which might be from stephen.s.brennan@oracle.com are
+Patches currently in -mm which might be from shechenglong001@gmail.com are
 
 
