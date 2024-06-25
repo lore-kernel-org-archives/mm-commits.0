@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5C3833C0
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D054F33C0
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293194; cv=none; b=bln1gSQfPkbwrG1jww3oYa9C1K0KxtIu798FdSEG/EfTVmY1Itp/cjqO3iQ0M53sF85/gW54x8/UxYPZKvbf+EcKNrMb2L1wnQt+JmqlZIWrNUmndohdv4DoLvNTLwLdmxnLOsP707CyPjS1jaamHWnV1kVxPZWoBqSOzUGJXeo=
+	t=1719293195; cv=none; b=dWjIjCp8//WpX5+5YcFwpqgSUA6P1EE6oL/ysn23nZC8IYByN3CWjU23rM23e3EB711LnTJwc6+Tp4XwEXTReFVf04F7GdbX3xtAdDm9aWj2lqd1Syiey3VLy2YVA6wk3ym8mbjDYQ0dSy7EkHU64NGi47APo7lh37I1x3OdKlI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719293194; c=relaxed/simple;
-	bh=djbOCiDU/6QSuBhfadpiODVsarBslr4MIQbMSYv6ENE=;
-	h=Date:To:From:Subject:Message-Id; b=Z/z8nD5mCUJa7Io4sdeEHNcMap36dwOfVjoO93H3WjlYkqVfQXhuYArNCFgQ/WjGYqL/YgSmTKtd8P5R4TDJ5KJGbVDTuOntnEx8dkLBF32hmT4Xr7Cm+4gUr+m5I9k5IheRbXs2OSy5eU11cg373FQkGlorZyV4wy5fa7T75g0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hyuXB+Vh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719293195; c=relaxed/simple;
+	bh=thWOUerBAMkx+hm4eFAXQst0qq58viO1hNjmXN6Wn6o=;
+	h=Date:To:From:Subject:Message-Id; b=JRCQSLPhZMVZwOBRHLu1Jn68BhJlhPB5dxHcilhac0C/m7iw60rzgwfWkCCkMh3FqEts4/yOIJu70UtWtasp/kJsi+hTiCgYYCdGz9XaOA9LczwAzHF1yLSkrQwJgRNPFkJ1Vtoej0iuxG6AqVRxTUM3qZ46wyXsgdh/vZ8e4QM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ovp49fYv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hyuXB+Vh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77395C32782;
-	Tue, 25 Jun 2024 05:26:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ovp49fYv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CE9AC32782;
+	Tue, 25 Jun 2024 05:26:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293194;
-	bh=djbOCiDU/6QSuBhfadpiODVsarBslr4MIQbMSYv6ENE=;
+	s=korg; t=1719293195;
+	bh=thWOUerBAMkx+hm4eFAXQst0qq58viO1hNjmXN6Wn6o=;
 	h=Date:To:From:Subject:From;
-	b=hyuXB+Vhe695Uq64wBf6VXunm5xbAEEdhh6cx2MOKJ2tP6CxG7njxY5vQxcV9kSbx
-	 c17KPfqostd9lkIMX2zX6T4IZ67UYhN9f5kRLH0XSx9NOpUQZUXFxpG2mwx9bG7OWj
-	 Bf1OkcimQER5LVio+me0HTBVbW4h3qSjp/deD6sw=
-Date: Mon, 24 Jun 2024 22:26:33 -0700
-To: mm-commits@vger.kernel.org,richard120310@gmail.com,akpm@linux-foundation.org
+	b=ovp49fYvwo5SVRPlUjQzkx6WoMs7rNWmsqcvwm599SFRSI9F9VvbOxBIhtqhCbiQc
+	 5dFDO017qtyjlR0n2MrrjSgRZS4Lpru2VmNz3qGCffl0WBfuo9GAVgCMwCjHBdxeFI
+	 DkqK/PF6I5pedmqg5M4DVtmMa5Bf7GX7K6h0yPSo=
+Date: Mon, 24 Jun 2024 22:26:35 -0700
+To: mm-commits@vger.kernel.org,peterz@infradead.org,namhyung@kernel.org,mingo@redhat.com,mark.rutland@arm.com,kan.liang@linux.intel.com,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,irogers@google.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-plistc-enforce-memory-ordering-in-plist_check_list.patch removed from -mm tree
-Message-Id: <20240625052634.77395C32782@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] tools-lib-list_sort-remove-redundant-code-for-cond_resched-handling.patch removed from -mm tree
+Message-Id: <20240625052635.9CE9AC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/plist.c: enforce memory ordering in plist_check_list
+     Subject: tools/lib/list_sort: remove redundant code for cond_resched handling
 has been removed from the -mm tree.  Its filename was
-     lib-plistc-enforce-memory-ordering-in-plist_check_list.patch
+     tools-lib-list_sort-remove-redundant-code-for-cond_resched-handling.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: I Hsin Cheng <richard120310@gmail.com>
-Subject: lib/plist.c: enforce memory ordering in plist_check_list
-Date: Sun, 26 May 2024 22:01:39 +0800
+From: Kuan-Wei Chiu <visitorckw@gmail.com>
+Subject: tools/lib/list_sort: remove redundant code for cond_resched handling
+Date: Sun, 26 May 2024 07:02:06 +0800
 
-There exists an iteration over a plist in plist_check_list(), and memory
-dependency exists between variables "prev", "next" and "prev->next".  As
-plist is used in the scheduling subsystem, we should guarantee the memory
-ordering between multiple processors.
+Since cond_resched() is not called in userspace, remove the redundant code
+in userspace's list_sort() implementation.  This change eliminates the
+unused 'count' variable and the associated logic for invoking cmp()
+periodically, which was intended to trigger cond_resched() in kernel
+space.
 
-Using macro "WRITE_ONCE()" can help us to ensure the memory ordering as
-it was stated in "Documentation/memory-barriers.txt".
+The removed code includes:
+- Declaration and increment of the 'count' variable.
+- Conditional invocation of cmp() based on 'count'.
 
-Link: https://lkml.kernel.org/r/20240526140139.17220-1-richard120310@gmail.com
-Signed-off-by: I Hsin Cheng <richard120310@gmail.com>
+This cleanup simplifies merge_final(), avoids unnecessary overhead, and
+has no impact on the functionality of list_sort() in userspace.
+
+Link: https://lkml.kernel.org/r/20240525230206.1077536-1-visitorckw@gmail.com
+Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Kan Liang <kan.liang@linux.intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/plist.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/lib/list_sort.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
---- a/lib/plist.c~lib-plistc-enforce-memory-ordering-in-plist_check_list
-+++ a/lib/plist.c
-@@ -47,8 +47,8 @@ static void plist_check_list(struct list
+--- a/tools/lib/list_sort.c~tools-lib-list_sort-remove-redundant-code-for-cond_resched-handling
++++ a/tools/lib/list_sort.c
+@@ -52,7 +52,6 @@ static void merge_final(void *priv, list
+ 			struct list_head *a, struct list_head *b)
+ {
+ 	struct list_head *tail = head;
+-	u8 count = 0;
  
- 	plist_check_prev_next(top, prev, next);
- 	while (next != top) {
--		prev = next;
--		next = prev->next;
-+		WRITE_ONCE(prev, next);
-+		WRITE_ONCE(next, prev->next);
- 		plist_check_prev_next(top, prev, next);
- 	}
- }
+ 	for (;;) {
+ 		/* if equal, take 'a' -- important for sort stability */
+@@ -78,15 +77,6 @@ static void merge_final(void *priv, list
+ 	/* Finish linking remainder of list b on to tail */
+ 	tail->next = b;
+ 	do {
+-		/*
+-		 * If the merge is highly unbalanced (e.g. the input is
+-		 * already sorted), this loop may run many iterations.
+-		 * Continue callbacks to the client even though no
+-		 * element comparison is needed, so the client's cmp()
+-		 * routine can invoke cond_resched() periodically.
+-		 */
+-		if (unlikely(!++count))
+-			cmp(priv, b, b);
+ 		b->prev = tail;
+ 		tail = b;
+ 		b = b->next;
 _
 
-Patches currently in -mm which might be from richard120310@gmail.com are
+Patches currently in -mm which might be from visitorckw@gmail.com are
 
 
