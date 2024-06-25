@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ACE8158A23
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 22:52:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C2F217F362
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 23:06:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719355940; cv=none; b=YMAXSkwo6nK0YLIcxRR/azVcDHw66KMC+3eLKjvHbGki6HKqBEfI52SJQDGSOZRbsm5bR9P++YBZhrkjNdHzZlaJr43xnZdgWrk1wrxlNSOf7bFCeXdRvhDC+LhJxznEvaxjeJQzO00ZF17rcCp9F74B2uvoSlvK/bDiQWW6hu8=
+	t=1719356779; cv=none; b=h2dkK9JsMmqEQY/DmnbEgM+N6qT4oq1eXMwcvoJH1whSd2KeKYIZVRWIboaGZRLbx8voeSc/W1IjU3h+sliQmOA9JJ4TMbtTkUpZULJTDn9l36TttUOfyk4K/UFKyOVV/gVkuIV3eqDpRHRxvitj4lKARx4Wf25lNDPzcfI42RI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719355940; c=relaxed/simple;
-	bh=54J+pSRIR9L53YOAMHfK280Y4iQBh7vgVwdjoVHa75w=;
-	h=Date:To:From:Subject:Message-Id; b=ObIk5OVrgANJg31/jJarOzUTWbr8cmOvtrozYzzW6IKsIN3WFXADUQwgSnQexY2y8rNxD5U8F/P/oXeyMTU1SkZ+05DP1heNvXFsTyaKaRTiD+mYw9O2Kj8g6SOPKofwP8tA0jomwX57E9Axv5/Y6z2oddGAja+Gw3h5kt8hCgQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UzeyqOrM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719356779; c=relaxed/simple;
+	bh=NO7u17flhMHE1eknJ70JkiFOMfU+kcdx/NTsFAwIOfY=;
+	h=Date:To:From:Subject:Message-Id; b=IzK08xegKUGO5zYFXdSHOEdgBPxOfKdahB9dRudBktTv1vdi5gGWnMw/aXBqyzU1N0FBurx6H6uunwTqXQKQUVNFMPR/aWyDITbZbgq/3scRJLw7FI4h3iR5Mn4gZFXWj58zHXjSf7mUofXD8hTdoeG1rnmscpmzqaL172RWD9E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gF/Qr6Jf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UzeyqOrM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8214C32781;
-	Tue, 25 Jun 2024 22:52:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gF/Qr6Jf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8835EC32781;
+	Tue, 25 Jun 2024 23:06:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719355939;
-	bh=54J+pSRIR9L53YOAMHfK280Y4iQBh7vgVwdjoVHa75w=;
+	s=korg; t=1719356778;
+	bh=NO7u17flhMHE1eknJ70JkiFOMfU+kcdx/NTsFAwIOfY=;
 	h=Date:To:From:Subject:From;
-	b=UzeyqOrMzJSHQ55lWi07Avx7s67rQYhCpzX3M5bF6HiPF+JL1BIX1ZiyC0N3f/Ygz
-	 bSUSgGV/pfiUymWKE6LS4HBGltzeFF6fhHpm/jYgYJl+IpNWfpSIJ19aoisFQwGqK7
-	 NnvzkPJMO3DDZBdPsswHIKxBeNFJjtvhI1e6Lmg0=
-Date: Tue, 25 Jun 2024 15:52:19 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,tglx@linutronix.de,hannes@cmpxchg.org,anna-maria@linutronix.de,shivamurthy.shastri@linutronix.de,akpm@linux-foundation.org
+	b=gF/Qr6Jf6O7Eah+I0dpqZi9yrmEg+UytEUPcpUT2sXfXi7B/ydowVfMMaekhP8IY8
+	 EmGl611NI7x+U83rqGZCG17on+2VVdt3ukRpqr9kmNSZDm+MdVEW4660CefKMvNm1V
+	 ytFQ+NG3tdB6kPsRJf4aE+eSJ4z5pp6cjLsF/y64=
+Date: Tue, 25 Jun 2024 16:06:17 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,shuah@kernel.org,shli@fb.com,rppt@linux.vnet.ibm.com,raquini@redhat.com,peterx@redhat.com,jack@suse.cz,brauner@kernel.org,aarcange@redhat.com,audra@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmstat-fix-wenum-enum-conversion-warning-in-vmstath.patch removed from -mm tree
-Message-Id: <20240625225219.C8214C32781@smtp.kernel.org>
+Subject: [to-be-updated] update-uffd-stress-to-handle-einval-for-unset-config-features.patch removed from -mm tree
+Message-Id: <20240625230618.8835EC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmstat: fix -Wenum-enum-conversion warning in vmstat.h
+     Subject: selftests/mm: update uffd-stress to handle EINVAL for unset config features
 has been removed from the -mm tree.  Its filename was
-     mm-vmstat-fix-wenum-enum-conversion-warning-in-vmstath.patch
+     update-uffd-stress-to-handle-einval-for-unset-config-features.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Shivamurthy Shastri <shivamurthy.shastri@linutronix.de>
-Subject: mm/vmstat: fix -Wenum-enum-conversion warning in vmstat.h
-Date: Fri, 21 Jun 2024 13:16:04 +0200
+From: Audra Mitchell <audra@redhat.com>
+Subject: selftests/mm: update uffd-stress to handle EINVAL for unset config features
+Date: Fri, 21 Jun 2024 14:12:23 -0400
 
-A W=1 build with -Wenum-enum-conversion enabled, results in the following
-build warning due to an arithmetic operation between different enumeration
-types 'enum node_stat_item' and 'enum lru_list':
+Now that we have updated userfaultfd_api to correctly return EIVAL when a
+feature is requested but not available, let's fix the uffd-stress test to
+only set the UFFD_FEATURE_WP_UNPOPULATED feature when the config is set. 
+In addition, still run the test if the CONFIG_PTE_MARKER_UFFD_WP is not
+set, just dont use the corresponding UFFD_FEATURE_WP_UNPOPULATED feature.
 
-  include/linux/vmstat.h:514:36: warning: arithmetic between different enumeration types ('enum node_stat_item' and 'enum lru_list') [-Wenum-enum-conversion]
-    514 |         return node_stat_name(NR_LRU_BASE + lru) + 3; // skip "nr_"
-        |                               ~~~~~~~~~~~ ^ ~~~
-
-Address this by casting lru to the proper type.
-
-Link: https://lkml.kernel.org/r/20240621111604.25330-1-shivamurthy.shastri@linutronix.de
-Signed-off-by: Shivamurthy Shastri <shivamurthy.shastri@linutronix.de>
-Reviewed-by: Anna-Maria Behnsen <anna-maria@linutronix.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20240621181224.3881179-2-audra@redhat.com
+Signed-off-by: Audra Mitchell <audra@redhat.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Rafael Aquini <raquini@redhat.com>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/uffd-stress.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/include/linux/vmstat.h~mm-vmstat-fix-wenum-enum-conversion-warning-in-vmstath
-+++ a/include/linux/vmstat.h
-@@ -495,7 +495,7 @@ static inline const char *node_stat_name
+--- a/tools/testing/selftests/mm/uffd-stress.c~update-uffd-stress-to-handle-einval-for-unset-config-features
++++ a/tools/testing/selftests/mm/uffd-stress.c
+@@ -36,6 +36,8 @@
+ #include <asm-generic/unistd.h>
+ #include "uffd-common.h"
  
- static inline const char *lru_list_name(enum lru_list lru)
++uint64_t features;
++
+ #define BOUNCE_RANDOM		(1<<0)
+ #define BOUNCE_RACINGFAULTS	(1<<1)
+ #define BOUNCE_VERIFY		(1<<2)
+@@ -245,10 +247,14 @@ static int userfaultfd_stress(void)
+ 	unsigned long nr;
+ 	struct uffd_args args[nr_cpus];
+ 	uint64_t mem_size = nr_pages * page_size;
++	int flags = 0;
+ 
+ 	memset(args, 0, sizeof(struct uffd_args) * nr_cpus);
+ 
+-	if (uffd_test_ctx_init(UFFD_FEATURE_WP_UNPOPULATED, NULL))
++	if (features & UFFD_FEATURE_WP_UNPOPULATED && test_type == TEST_ANON)
++		flags = UFFD_FEATURE_WP_UNPOPULATED;
++
++	if (uffd_test_ctx_init(flags, NULL))
+ 		err("context init failed");
+ 
+ 	if (posix_memalign(&area, page_size, page_size))
+@@ -383,8 +389,6 @@ static void set_test_type(const char *ty
+ 
+ static void parse_test_type_arg(const char *raw_type)
  {
--	return node_stat_name(NR_LRU_BASE + lru) + 3; // skip "nr_"
-+	return node_stat_name(NR_LRU_BASE + (enum node_stat_item)lru) + 3; // skip "nr_"
- }
+-	uint64_t features = UFFD_API_FEATURES;
+-
+ 	set_test_type(raw_type);
  
- static inline const char *writeback_stat_name(enum writeback_stat_item item)
+ 	if (!test_type)
+@@ -407,8 +411,8 @@ static void parse_test_type_arg(const ch
+ 	 * feature.
+ 	 */
+ 
+-	if (userfaultfd_open(&features))
+-		err("Userfaultfd open failed");
++	if (uffd_get_features(&features))
++		err("failed to get available features");
+ 
+ 	test_uffdio_wp = test_uffdio_wp &&
+ 		(features & UFFD_FEATURE_PAGEFAULT_FLAG_WP);
 _
 
-Patches currently in -mm which might be from shivamurthy.shastri@linutronix.de are
+Patches currently in -mm which might be from audra@redhat.com are
 
+turn-off-test_uffdio_wp-if-config_pte_marker_uffd_wp-is-not-configured.patch
+fix-userfaultfd_api-to-return-einval-as-expected.patch
 
