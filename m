@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F3881428E0
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:02:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A61131428E0
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:02:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291731; cv=none; b=geRncUcUzGkyNTiMxuFh56AExzJ5M3SInBCQr06lgKiYx/9m1bPgYCuCg96NxTjX9zJbAOBdd2943BuPAMa0VEV1X52Rx/S1LPOIJLJh3b3vW1PvNV6KIyQiPCpCU0klL91RY4re7E6e5qE7KlEjsAgUM+01HnxA/7t39FwXYJQ=
+	t=1719291733; cv=none; b=GJvNvaCBrZ0USnFtZmXckRPnqHyLdbnct909B6/5NhmUOmzfeXiWjoWBedSCCrJDBFWduBmLvMXROcnUnl/1VwZeEcP/odKjXNlibWLeKg2YfDTwebeurGFXT1C+b/bVEYRhcbpSDsFTIoI6A9Gfv5RHtH3pd9Jdu673ualjsW0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291731; c=relaxed/simple;
-	bh=LyiJAagFoxHq/EL+29fdg21W0CtqEhRYeUgoPHjrTmo=;
-	h=Date:To:From:Subject:Message-Id; b=pUVTVFEV8LL27N58tiP52m+xQG6phFghHKEGhpz1zHPOANfXSR6xS4o6hr0beNEP/bl/IZPsb4LiE1scMeTQine9d8AtEk5ZUcG6pgF4I8bv11SXBgzd1JzQwLydiPTUcgfxeUwbOb56dszAJTaiBUTKFUD1m7tj5XsERspoLFE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M0z/E8pg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291733; c=relaxed/simple;
+	bh=1C1kkdrW3raHpZ/Y4bHs9Gvlfn1napWy7G9guWac/wE=;
+	h=Date:To:From:Subject:Message-Id; b=Jg34I82TlXmCngF+QXOtR1BA3RYZrIBijVJrC0UTXlst/lOzbb2+D5ggKwcFPqFcyZFbqMmgqui+mc2bh+ZSJWS+kgSkiURnY5N1gg7Qvsrjb8m0vWFm3anJizQtHcuMB4hKsZ1Xpl5n/YMXYdw+NEbUPil4orWVIPZPIfn12+s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mBXyxrIX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M0z/E8pg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64C10C32782;
-	Tue, 25 Jun 2024 05:02:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mBXyxrIX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C90EC32782;
+	Tue, 25 Jun 2024 05:02:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291731;
-	bh=LyiJAagFoxHq/EL+29fdg21W0CtqEhRYeUgoPHjrTmo=;
+	s=korg; t=1719291733;
+	bh=1C1kkdrW3raHpZ/Y4bHs9Gvlfn1napWy7G9guWac/wE=;
 	h=Date:To:From:Subject:From;
-	b=M0z/E8pgclTMchE5kLwXNMde6sDOJTRdNiR4IQshYkvod9BITpLz1CP1zofKRbrxz
-	 tprInNNgjK1rj2+kpodgU0g2cuaqEyxaEi/N4T1PFbIRu/Wkw5Vfq5d2QYa9mSYFZm
-	 NDmmJ6FkPzBlRleNgqUmWbjpGSLOT/hxmD59ER7E=
-Date: Mon, 24 Jun 2024 22:02:10 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,rostedt@goodmis.org,rakie.kim@sk.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,hyeongtak.ji@sk.com,gregory.price@memverge.com,42.hyeyoo@gmail.com,honggyu.kim@sk.com,akpm@linux-foundation.org
+	b=mBXyxrIXwHLE0b1N1CAIFECvjTdRi6Tsp9EnKlB9oFTY1hRUARaJvEPS6tdPQg+yb
+	 UNuK3TrM61fo+hfYH97ILxadmEOnWEQjFoDvCbbo0Tk67NnuNwGCKm9vln29ydZOLP
+	 b4wGiJreGePtPPlqE6XhrMpNE7xnI4AHiGysfDpQ=
+Date: Mon, 24 Jun 2024 22:02:12 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-damon-document-damos_migrate_hotcold.patch removed from -mm tree
-Message-Id: <20240625050211.64C10C32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-add-vm_bug_on_folio-to-catch-lru-folio-in-mem_cgroup_migrate.patch removed from -mm tree
+Message-Id: <20240625050213.7C90EC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,88 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/damon: document damos_migrate_{hot,cold}
+     Subject: mm: memcontrol: add VM_BUG_ON_FOLIO() to catch lru folio in mem_cgroup_migrate()
 has been removed from the -mm tree.  Its filename was
-     docs-damon-document-damos_migrate_hotcold.patch
+     mm-memcontrol-add-vm_bug_on_folio-to-catch-lru-folio-in-mem_cgroup_migrate.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Honggyu Kim <honggyu.kim@sk.com>
-Subject: Docs/damon: document damos_migrate_{hot,cold}
-Date: Fri, 14 Jun 2024 12:00:09 +0900
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: memcontrol: add VM_BUG_ON_FOLIO() to catch lru folio in mem_cgroup_migrate()
+Date: Fri, 14 Jun 2024 09:07:42 +0800
 
-This patch adds damon description for "migrate_hot" and "migrate_cold"
-actions for both usage and design documents as long as a new
-"target_nid" knob to set the migration target node.
+mem_cgroup_migrate() will clear the memcg data of the old folio,
+therefore, the callers must make sure the old folio is no longer on the
+LRU list, otherwise the old folio can not get the correct lruvec object
+without the memcg data, which could lead to potential problems [1].
 
-[sj@kernel.org: trivial fixups for DAMOS_MIGRATE_{HOT,COLD} documentation]
-  Link: https://lkml.kernel.org/r/20240618213630.84846-2-sj@kernel.org
-Link: https://lkml.kernel.org/r/20240614030010.751-8-honggyu.kim@sk.com
-Signed-off-by: Honggyu Kim <honggyu.kim@sk.com>
-Signed-off-by: SeongJae Park <sj@kernel.org>Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Gregory Price <gregory.price@memverge.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Hyeongtak Ji <hyeongtak.ji@sk.com>
-Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Thus adding a VM_BUG_ON_FOLIO() to catch this issue.
+
+[1] https://lore.kernel.org/all/5ab860d8ee987955e917748f9d6da525d3b52690.1718326003.git.baolin.wang@linux.alibaba.com/
+
+Link: https://lkml.kernel.org/r/66d181c41b7ced35dbd39ffd3f5774a11aef266a.1718327124.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   10 +++++++---
- Documentation/mm/damon/design.rst            |    4 ++++
- 2 files changed, 11 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-damon-document-damos_migrate_hotcold
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -78,7 +78,7 @@ comma (",").
-     │ │ │ │ │ │ │ │ ...
-     │ │ │ │ │ │ ...
-     │ │ │ │ │ :ref:`schemes <sysfs_schemes>`/nr_schemes
--    │ │ │ │ │ │ :ref:`0 <sysfs_scheme>`/action,apply_interval_us
-+    │ │ │ │ │ │ :ref:`0 <sysfs_scheme>`/action,target_nid,apply_interval_us
-     │ │ │ │ │ │ │ :ref:`access_pattern <sysfs_access_pattern>`/
-     │ │ │ │ │ │ │ │ sz/min,max
-     │ │ │ │ │ │ │ │ nr_accesses/min,max
-@@ -289,14 +289,18 @@ schemes/<N>/
- ------------
+--- a/mm/memcontrol.c~mm-memcontrol-add-vm_bug_on_folio-to-catch-lru-folio-in-mem_cgroup_migrate
++++ a/mm/memcontrol.c
+@@ -7807,6 +7807,7 @@ void mem_cgroup_migrate(struct folio *ol
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(new), new);
+ 	VM_BUG_ON_FOLIO(folio_test_anon(old) != folio_test_anon(new), new);
+ 	VM_BUG_ON_FOLIO(folio_nr_pages(old) != folio_nr_pages(new), new);
++	VM_BUG_ON_FOLIO(folio_test_lru(old), old);
  
- In each scheme directory, five directories (``access_pattern``, ``quotas``,
--``watermarks``, ``filters``, ``stats``, and ``tried_regions``) and two files
--(``action`` and ``apply_interval``) exist.
-+``watermarks``, ``filters``, ``stats``, and ``tried_regions``) and three files
-+(``action``, ``target_nid`` and ``apply_interval``) exist.
- 
- The ``action`` file is for setting and getting the scheme's :ref:`action
- <damon_design_damos_action>`.  The keywords that can be written to and read
- from the file and their meaning are same to those of the list on
- :ref:`design doc <damon_design_damos_action>`.
- 
-+The ``target_nid`` file is for setting the migration target node, which is
-+only meaningful when the ``action`` is either ``migrate_hot`` or
-+``migrate_cold``.
-+
- The ``apply_interval_us`` file is for setting and getting the scheme's
- :ref:`apply_interval <damon_design_damos>` in microseconds.
- 
---- a/Documentation/mm/damon/design.rst~docs-damon-document-damos_migrate_hotcold
-+++ a/Documentation/mm/damon/design.rst
-@@ -325,6 +325,10 @@ that supports each action are as below.
-    Supported by ``paddr`` operations set.
-  - ``lru_deprio``: Deprioritize the region on its LRU lists.
-    Supported by ``paddr`` operations set.
-+ - ``migrate_hot``: Migrate the regions prioritizing warmer regions.
-+   Supported by ``paddr`` operations set.
-+ - ``migrate_cold``: Migrate the regions prioritizing colder regions.
-+   Supported by ``paddr`` operations set.
-  - ``stat``: Do nothing but count the statistics.
-    Supported by all operations sets.
- 
+ 	if (mem_cgroup_disabled())
+ 		return;
 _
 
-Patches currently in -mm which might be from honggyu.kim@sk.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
 
