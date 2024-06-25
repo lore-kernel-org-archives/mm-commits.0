@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67BBF4596E
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:58:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F42E4596E
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:58:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291531; cv=none; b=M76C8jImN35NQOOlNeN2HIxaioWdxPrWEBh6EDccGT7c0GJxKVih8MVupifoqiS14Q1hf9g9mBmbui3BTIn1lJdfO1bVO+zBOg+36Mu6Dbf/vFltIUcr2Advoqgd7kMgOO6nl9k4ePo5rRk9OgW2Quk2N4qUZgn9Men8z/xh9t8=
+	t=1719291532; cv=none; b=QfXDgovcbX10HxXOl4gNxhjOcxXGNMIgY1ZflUsajNUxcLlErQcBfEtv33yqb/j/RC6TddihNA+lVdNTqiPa96CC5h7/av0nAH0sfZAmZ8WTO9T/MwhGsUJzqhBtzDGw9BEflkAKfMHNW8B2vjEY+P3YC6+BJjFaj4yX0Tq7kWM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291531; c=relaxed/simple;
-	bh=bumh/ah7u8eYPea+OPds0fKsOj1mvgHt4Qgt83wEfs8=;
-	h=Date:To:From:Subject:Message-Id; b=ACZjPjSnSV4Snrahf7U+CW2vlS1uquKuPMVmKW3a6csXIUJ6JfVgjmlcj/4ovZqz1/sOAs6xaF9SdIfRY/3OCR2sSJGQvsOT4a8iCEjTFPMm7jmix5JqisQuUhDCE8Q2oi/XjQU6ed72kTlPVoNGP+0OvzJn4kjFjYUh9+qtRb0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VPDX5cY+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291532; c=relaxed/simple;
+	bh=FGMX3Lp6Ql4TRSMbJL0bRELDaXZMmpiJtHKT8IgYiRk=;
+	h=Date:To:From:Subject:Message-Id; b=pZ9sp/HQHmObclAwm3uJGKAm2l6HLroTrepmk1T+Pncq3blIYltHHUCCDj35WDewLbaFpFIIdmeXADYl5dGffspmKvHnzv5I1tAZ6woUXgsqx3eUQLdjlY1oZ4q6kI1Xt2c1qszNj5qFzHu+MJJoK+ufvI0lH85w606ZpX7kMYU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uMFqTDi1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VPDX5cY+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6657C32782;
-	Tue, 25 Jun 2024 04:58:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uMFqTDi1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7BBFC4AF07;
+	Tue, 25 Jun 2024 04:58:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291530;
-	bh=bumh/ah7u8eYPea+OPds0fKsOj1mvgHt4Qgt83wEfs8=;
+	s=korg; t=1719291531;
+	bh=FGMX3Lp6Ql4TRSMbJL0bRELDaXZMmpiJtHKT8IgYiRk=;
 	h=Date:To:From:Subject:From;
-	b=VPDX5cY+0ZnxWc4gUXoJMRUVAorc5A1oYuwLOHKgdoMGWBUFRBTIxgoQZh6qDpcMO
-	 HFr2NoqTeSzNuMovUTFAGFZD6Uwt/MwugEhVrRxHDCQu0uzTP2zVasKj1Ng4NRxKfy
-	 SLfjxiGgEduVY+X3ZaONHI55id9KOY1uGj+wIMOY=
-Date: Mon, 24 Jun 2024 21:58:50 -0700
+	b=uMFqTDi1d06yH87qMiphtPksy4OWtGI09TxSaAK/SyAutJTMn8RwxgbfawvjG0ojS
+	 gY6AYz2KMM4pcOKW1xXxwnPZ2zlBEqKxEfGPxieaabVYxOQa//BORd9MmKrTJiZhP8
+	 4T8bfiJHrvmfg2DsQd/qpe2Wx9haY9/Xecb98Cco=
+Date: Mon, 24 Jun 2024 21:58:51 -0700
 To: mm-commits@vger.kernel.org,hughd@google.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mempolicy-use-folio_alloc_mpol-in-alloc_migration_target_by_mpol.patch removed from -mm tree
-Message-Id: <20240625045850.C6657C32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shmem-use-folio_alloc_mpol-in-shmem_alloc_folio.patch removed from -mm tree
+Message-Id: <20240625045851.D7BBFC4AF07@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,103 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: mempolicy: use folio_alloc_mpol() in alloc_migration_target_by_mpol()
+     Subject: mm: shmem: use folio_alloc_mpol() in shmem_alloc_folio()
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-use-folio_alloc_mpol-in-alloc_migration_target_by_mpol.patch
+     mm-shmem-use-folio_alloc_mpol-in-shmem_alloc_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: mempolicy: use folio_alloc_mpol() in alloc_migration_target_by_mpol()
-Date: Wed, 15 May 2024 15:07:08 +0800
+Subject: mm: shmem: use folio_alloc_mpol() in shmem_alloc_folio()
+Date: Wed, 15 May 2024 15:07:09 +0800
 
-Convert to use folio_alloc_mpol() to make vma_alloc_folio_noprof() to use
-folio throughout.
+Let's change shmem_alloc_folio() to take a order and use
+folio_alloc_mpol() helper, then directly use it for normal or large folio
+to cleanup code.
 
-Link: https://lkml.kernel.org/r/20240515070709.78529-4-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240515070709.78529-5-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/shmem.c |   32 +++++++++-----------------------
+ 1 file changed, 9 insertions(+), 23 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-use-folio_alloc_mpol-in-alloc_migration_target_by_mpol
-+++ a/mm/mempolicy.c
-@@ -1211,7 +1211,6 @@ static struct folio *alloc_migration_tar
- 	struct migration_mpol *mmpol = (struct migration_mpol *)private;
- 	struct mempolicy *pol = mmpol->pol;
- 	pgoff_t ilx = mmpol->ilx;
--	struct page *page;
- 	unsigned int order;
- 	int nid = numa_node_id();
- 	gfp_t gfp;
-@@ -1235,8 +1234,7 @@ static struct folio *alloc_migration_tar
- 	else
- 		gfp = GFP_HIGHUSER_MOVABLE | __GFP_RETRY_MAYFAIL | __GFP_COMP;
- 
--	page = alloc_pages_mpol(gfp, order, pol, ilx, nid);
--	return page_rmappable_folio(page);
-+	return folio_alloc_mpol(gfp, order, pol, ilx, nid);
+--- a/mm/shmem.c~mm-shmem-use-folio_alloc_mpol-in-shmem_alloc_folio
++++ a/mm/shmem.c
+@@ -1603,32 +1603,18 @@ static gfp_t limit_gfp_mask(gfp_t huge_g
+ 	return result;
  }
- #else
+ 
+-static struct folio *shmem_alloc_hugefolio(gfp_t gfp,
++static struct folio *shmem_alloc_folio(gfp_t gfp, int order,
+ 		struct shmem_inode_info *info, pgoff_t index)
+ {
+ 	struct mempolicy *mpol;
+ 	pgoff_t ilx;
+-	struct page *page;
+-
+-	mpol = shmem_get_pgoff_policy(info, index, HPAGE_PMD_ORDER, &ilx);
+-	page = alloc_pages_mpol(gfp, HPAGE_PMD_ORDER, mpol, ilx, numa_node_id());
+-	mpol_cond_put(mpol);
+-
+-	return page_rmappable_folio(page);
+-}
+-
+-static struct folio *shmem_alloc_folio(gfp_t gfp,
+-		struct shmem_inode_info *info, pgoff_t index)
+-{
+-	struct mempolicy *mpol;
+-	pgoff_t ilx;
+-	struct page *page;
++	struct folio *folio;
+ 
+-	mpol = shmem_get_pgoff_policy(info, index, 0, &ilx);
+-	page = alloc_pages_mpol(gfp, 0, mpol, ilx, numa_node_id());
++	mpol = shmem_get_pgoff_policy(info, index, order, &ilx);
++	folio = folio_alloc_mpol(gfp, order, mpol, ilx, numa_node_id());
+ 	mpol_cond_put(mpol);
+ 
+-	return (struct folio *)page;
++	return folio;
+ }
+ 
+ static struct folio *shmem_alloc_and_add_folio(gfp_t gfp,
+@@ -1660,12 +1646,12 @@ static struct folio *shmem_alloc_and_add
+ 				index + HPAGE_PMD_NR - 1, XA_PRESENT))
+ 			return ERR_PTR(-E2BIG);
+ 
+-		folio = shmem_alloc_hugefolio(gfp, info, index);
++		folio = shmem_alloc_folio(gfp, HPAGE_PMD_ORDER, info, index);
+ 		if (!folio)
+ 			count_vm_event(THP_FILE_FALLBACK);
+ 	} else {
+ 		pages = 1;
+-		folio = shmem_alloc_folio(gfp, info, index);
++		folio = shmem_alloc_folio(gfp, 0, info, index);
+ 	}
+ 	if (!folio)
+ 		return ERR_PTR(-ENOMEM);
+@@ -1765,7 +1751,7 @@ static int shmem_replace_folio(struct fo
+ 	 */
+ 	gfp &= ~GFP_CONSTRAINT_MASK;
+ 	VM_BUG_ON_FOLIO(folio_test_large(old), old);
+-	new = shmem_alloc_folio(gfp, info, index);
++	new = shmem_alloc_folio(gfp, 0, info, index);
+ 	if (!new)
+ 		return -ENOMEM;
+ 
+@@ -2633,7 +2619,7 @@ int shmem_mfill_atomic_pte(pmd_t *dst_pm
+ 
+ 	if (!*foliop) {
+ 		ret = -ENOMEM;
+-		folio = shmem_alloc_folio(gfp, info, pgoff);
++		folio = shmem_alloc_folio(gfp, 0, info, pgoff);
+ 		if (!folio)
+ 			goto out_unacct_blocks;
  
 _
 
