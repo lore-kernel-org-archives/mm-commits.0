@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 269D413D51B
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:59:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E286613D251
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:59:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291568; cv=none; b=EZdd0Pob3UHNy0fE7dNrb91LC8vZ1hNs4con7NX4Xwksn/GZ7ZRpR31mdLvzJC2Z1sNnbFppy/ItGFq+vKu8uL6DNJeUir1RaARLkvVL9HMNO54uK4v52DVFPjECKuU3qcm/ldFgMu54QnEfsPmRwN6yJb3S/vshzpMBixxA09k=
+	t=1719291569; cv=none; b=PEw8v+zbWhU/Md61XEqCqN+l7sXR5hvq6SgGtI5la1U21JRqobTQi+aHMzPMPUOuP1Wt/J1RogJs24592BbH16e09fiuZS0LFybXsyJlayciMEh6Kl67b3nWYuTSQn1dHSuAPuJiNwILOx8X8hB5f2ZD/z7sGZgCD/2Trj3H9UM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291568; c=relaxed/simple;
-	bh=o8RH3WA3sOyvlzy7Mm/sWCmwiYf7ls16l4NCgpJfVCU=;
-	h=Date:To:From:Subject:Message-Id; b=Gv0lF5I9iFhp2hK18AvmgisuAYJQvIQQKlpgRIhFQwRkdcynMzJZaRc49Z/ITz3yurg4z3JSpZQEWYIt4IK/oSE3Nrqz8yMiml3fr9POgmiXn0MyzI848a+UeEuxxvyh6x3j99sJKPucaQNGcoHSmVj5Yztjn4oAS67lSdqmsz0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xdg3ysac; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291569; c=relaxed/simple;
+	bh=P/v0/o81LKHgL+1x48NxeQzGcSUZdvpdZP0Muvl26hw=;
+	h=Date:To:From:Subject:Message-Id; b=ry06OV06pkjl/xYMBo3qqL9QZDC8bhJJNlr170vbUUpX2owndhF1T3NIv/60hdsNEDiGWpDqgCiLipe6EdYNoP6+/7WpqFod6e3nUnc9IjnOknONtLi4P9mrn5yLJDQ73xSjDg4yRuUSHxwZkkJlhHCwaRacxEzIVMju/FpSsGU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tEvj1nnP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xdg3ysac"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2FEFC32782;
-	Tue, 25 Jun 2024 04:59:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tEvj1nnP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEDE9C32782;
+	Tue, 25 Jun 2024 04:59:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291567;
-	bh=o8RH3WA3sOyvlzy7Mm/sWCmwiYf7ls16l4NCgpJfVCU=;
+	s=korg; t=1719291568;
+	bh=P/v0/o81LKHgL+1x48NxeQzGcSUZdvpdZP0Muvl26hw=;
 	h=Date:To:From:Subject:From;
-	b=xdg3ysaclSCX4+vsAsi4W9HwG6xzX8BWVb4wChoeNaOhQd5uRf8f1qBnRiOg6n176
-	 MXVWQy1MtbSVgZBa7OAWO4cSBbJ3K4XhnjBeGziLA+bOJE9mhvRaaDyvdL+Sm7Qh3C
-	 Tau+zt7CiSqSIUorM5fPcZ5hF55mjQpydDGrsvtY=
-Date: Mon, 24 Jun 2024 21:59:27 -0700
-To: mm-commits@vger.kernel.org,vdonnefort@google.com,dan.j.williams@intel.com,david@redhat.com,akpm@linux-foundation.org
+	b=tEvj1nnPUBh4H8d6yxhjmVW9WvPA07NHRCq1VQ9BZMDNfuAMiGwssFKnjgnfmoZh6
+	 CfmhlNlUlqynG8hoS67XTgZTRFaZQh5AU+vXvk6C5XAwoS49MKgkuXDe899cKMYbYi
+	 yrrRHjzxCATPPjMGbo9q+En5A2d8TQ+M8LPWweGs=
+Date: Mon, 24 Jun 2024 21:59:28 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,kirill.shutemov@linux.intel.com,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rmap-sanity-check-that-zeropages-are-not-passed-to-rmap.patch removed from -mm tree
-Message-Id: <20240625045927.A2FEFC32782@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-va_high_addr_switch-reduce-test-noise.patch removed from -mm tree
+Message-Id: <20240625045928.AEDE9C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/rmap: sanity check that zeropages are not passed to RMAP
+     Subject: selftests/mm: va_high_addr_switch: reduce test noise
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-sanity-check-that-zeropages-are-not-passed-to-rmap.patch
+     selftests-mm-va_high_addr_switch-reduce-test-noise.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: sanity check that zeropages are not passed to RMAP
-Date: Wed, 22 May 2024 14:57:13 +0200
+From: Dev Jain <dev.jain@arm.com>
+Subject: selftests/mm: va_high_addr_switch: reduce test noise
+Date: Wed, 22 May 2024 12:34:34 +0530
 
-Using insert_page() we might have previously ended up passing the zeropage
-into rmap code.  Make sure that won't happen again.
+Patch series "Restructure va_high_addr_switch".
 
-Note that we won't check the huge zeropage for now, which might still end
-up in RMAP code.
+The va_high_addr_switch memory selftest tests out some corner cases
+related to allocation and page/hugepage faulting around the switch
+boundary.  Currently, the page size and hugepage size have been statically
+defined.  Post FEAT_LPA2, the Aarch64 Linux kernel adds support for 4k and
+16k translation granules on higher addresses; we restructure the test to
+support the same.  In addition, we avoid invocation of the binary twice,
+in the shell script, to reduce test noise.
 
-Link: https://lkml.kernel.org/r/20240522125713.775114-4-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vincent Donnefort <vdonnefort@google.com>
+
+This patch (of 2):
+
+When invoking the binary with "--run-hugetlb" flag, the testcases
+involving the base page are anyways going to be run.  Therefore, remove
+duplication by invoking the binary only once.
+
+Link: https://lkml.kernel.org/r/20240522070435.773918-1-dev.jain@arm.com
+Link: https://lkml.kernel.org/r/20240522070435.773918-2-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    3 +++
- 1 file changed, 3 insertions(+)
+ tools/testing/selftests/mm/va_high_addr_switch.sh |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-sanity-check-that-zeropages-are-not-passed-to-rmap
-+++ a/include/linux/rmap.h
-@@ -200,6 +200,9 @@ static inline void __folio_rmap_sanity_c
- 	/* hugetlb folios are handled separately. */
- 	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
+--- a/tools/testing/selftests/mm/va_high_addr_switch.sh~selftests-mm-va_high_addr_switch-reduce-test-noise
++++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
+@@ -57,8 +57,4 @@ check_test_requirements()
+ }
  
-+	/* When (un)mapping zeropages, we should never touch ref+mapcount. */
-+	VM_WARN_ON_FOLIO(is_zero_folio(folio), folio);
-+
- 	/*
- 	 * TODO: we get driver-allocated folios that have nothing to do with
- 	 * the rmap using vm_insert_page(); therefore, we cannot assume that
+ check_test_requirements
+-./va_high_addr_switch
+-
+-# In order to run hugetlb testcases, "--run-hugetlb" must be appended
+-# to the binary.
+ ./va_high_addr_switch --run-hugetlb
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-pass-meminit_context-to-__free_pages_core.patch
-mm-pass-meminit_context-to-__free_pages_core-fix.patch
-mm-pass-meminit_context-to-__free_pages_core-fix-2.patch
-mm-pass-meminit_context-to-__free_pages_core-fix-3.patch
-mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved.patch
-mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining.patch
-mm-read-page_type-using-read_once.patch
-mm-migrate-make-migrate_misplaced_folio-return-0-on-success.patch
-mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl.patch
 
