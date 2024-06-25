@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3846F145A14
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:27:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E5721459E6
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:27:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293222; cv=none; b=aweyCw0Xd0GtK5dxsgJaMY12jcNYgs8YU6MMBc+EAyhVKR8OCaxmqiHeOOQoeOOV+xhC9a2pWpHkVdp/yrinK926d3XDBkrPVvcUZhdvvXRsxLFm2N/MMDPIH3B3DITyZQQfG7HXHAKkUOHBQsuNV1KYPtF/WvzgAducSKmaWEU=
+	t=1719293223; cv=none; b=kRi4+HonP3DjPs7jlwo5oR8BgabGePLdxZSlhyDIcgzGkZcHTXW6/Pu+sPCu1pM2rfRMRxLVB0V2W5ZOwakivZo2H3WX4ynnoMivp7jkqS6Pbrw04yeKQSCOfztqCOxerpS1HQXtvX6tYmR4/oNFRC5Ny3N3f7h23hqblDBA2hc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719293222; c=relaxed/simple;
-	bh=QyZX7C4C6pkHeXSlXaFAOv9TZI/4kU9OaqRaMJGYbM8=;
-	h=Date:To:From:Subject:Message-Id; b=Jq1UycLMP446ANHN3kCZKOQnUJk5muhGLiyVdY4HGJnjK8kmW7u1WTyXPM9ZZDmeLRc4sWRfR/h+PHme1efJ/3ouRO0RNA+kzFgjrXIJfyENrsmhEmsTV9LNQdS5ABp2euDhPXynFGHYHFAv3rGH0jPemushKb3dafBx+KuL6u8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rqJMUhE5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719293223; c=relaxed/simple;
+	bh=MF64HGxixdzty4thaKKLddo7yAvowwrdcLNsqQ16d3c=;
+	h=Date:To:From:Subject:Message-Id; b=Kwt/HqBGAs8LcrGKxhWXD5FAqXY8VgQNeOwFMFNT9q8UmjZ7XHmndeJ1aBoHv7LawbEpYulRxIsiKglmYVVqPjoxwCicC1Nmn1QAMjc+vN4V0WColLkFQMbcuOohoBHtSYIjvzzin3H4zCgeSGDD9q4UWk7FDd8obZjMS/0gPxY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CXG+LjYU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rqJMUhE5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F03A8C32782;
-	Tue, 25 Jun 2024 05:27:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CXG+LjYU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E4AEC32789;
+	Tue, 25 Jun 2024 05:27:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293222;
-	bh=QyZX7C4C6pkHeXSlXaFAOv9TZI/4kU9OaqRaMJGYbM8=;
+	s=korg; t=1719293223;
+	bh=MF64HGxixdzty4thaKKLddo7yAvowwrdcLNsqQ16d3c=;
 	h=Date:To:From:Subject:From;
-	b=rqJMUhE5sti2HNY3WmnOO1JAquFBN0z8w6BT7AIWOnoS7XFd8gx8YJIf700goMCLq
-	 7ZHLAxMYmHRuCFxBpt/eRIkmSbUVVoCzEOr0nb9Y3RHikIyi9DPpmaQP4gFSmelz4l
-	 eHeAs3PFCd9JQhnzsy9rN9caLVR0HoeVn0SFsO7E=
-Date: Mon, 24 Jun 2024 22:27:01 -0700
-To: mm-commits@vger.kernel.org,jserv@ccns.ncku.edu.tw,richard120310@gmail.com,akpm@linux-foundation.org
+	b=CXG+LjYU/VXovAROMXIfkMg/a6yoW/NN8VOf+nquah4UcYQ2yeiKM1cmdkhcrKoG2
+	 zFsUjMMA1WBw+Z4k4R0J0buO+//ri9zkMEolmBfPtsZ5mjLyVyCujt00Sik9tsi9f3
+	 qJitIR0ip3P52ReFcrEtinDiCUEKYtMxZbGaEwew=
+Date: Mon, 24 Jun 2024 22:27:02 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,ghe@suse.com,gechangwei@live.cn,christophe.jaillet@wanadoo.fr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-plistc-avoid-worst-case-scenario-in-plist_add.patch removed from -mm tree
-Message-Id: <20240625052701.F03A8C32782@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-constify-struct-ocfs2_lock_res_ops.patch removed from -mm tree
+Message-Id: <20240625052703.0E4AEC32789@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,134 +35,162 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/plist.c: avoid worst case scenario in plist_add
+     Subject: ocfs2: constify struct ocfs2_lock_res_ops
 has been removed from the -mm tree.  Its filename was
-     lib-plistc-avoid-worst-case-scenario-in-plist_add.patch
+     ocfs2-constify-struct-ocfs2_lock_res_ops.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: I Hsin Cheng <richard120310@gmail.com>
-Subject: lib/plist.c: avoid worst case scenario in plist_add
-Date: Fri, 14 Jun 2024 23:46:03 +0800
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: ocfs2: constify struct ocfs2_lock_res_ops
+Date: Fri, 14 Jun 2024 18:25:07 +0200
 
-Worst case scenario of plist_add() happens when the priority of the
-inserted plist_node is going to be the largest after the insertion is
-done.  The cost is going to be more significant when the original plist is
-longer, because the iterator is going to traverse the whole plist to find
-the correct position to insert the new node.
+"struct ocfs2_lock_res_ops" are not modified in this driver.
 
-The situation can be avoided by using a reverse iterator at the same time,
-doing so the maximum possible number of iteration is going to shrink from
-N to N/2.
+Constifying this structure moves some data to a read-only section, so
+increase overall security.
 
-The proposed change of plist_add pasts the test in lib/plist.c to validate
-its correctness, also add the worst case scenario test for plist_add() in
-plist_test().
+In order to do it, "struct ocfs2_lock_res" also needs to be adjusted to
+this new const qualifier.
 
-The worst case test are tested with the size of test_data and test_node
-growing from 200 to 1000.  The result are showned in the following table,
-in which we can observed that the proposed change of plist_add performs
-better than the original version, and the difference between these two
-implementations are more significant with the size of N growing.
+On a x86_64, with allmodconfig:
+Before:
+======
+   text	   data	    bss	    dec	    hex	filename
+  83038	   2632	    400	  86070	  15036	fs/ocfs2/dlmglue.o
 
-The random case test [1], and best case test [2] are also provided, with
-result showing the proposed change performs slightly better in random case
-test while the original implementation performs slightly better in best
-case test, while the difference in both test are minor, we can see them as
-even in those two situations.
+After:
+=====
+   text	   data	    bss	    dec	    hex	filename
+  83806	   1992	    272	  86070	  15036	fs/ocfs2/dlmglue.o
 
- -----------------------------------------------------------
-| Test size      |   200 |   400 |    600 |    800 |   1000 |
- -----------------------------------------------------------
-| new_plist_add  | 140911| 548681| 1220512| 2048493| 3763755|
- -----------------------------------------------------------
-| old_plist_add  | 188198| 774222| 1643547| 3008929| 4947435|
- -----------------------------------------------------------
-
-Link: https://lkml.kernel.org/r/20240614154603.65203-1-richard120310@gmail.com
-Signed-off-by: I Hsin Cheng <richard120310@gmail.com>
-Signed-off-by: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Link: https://lkml.kernel.org/r/43d3e2ae3a97d3cbe93d6ba6ce48ae5ec04d7526.1718382288.git.christophe.jaillet@wanadoo.fr
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/plist.c |   38 +++++++++++++++++++++++++++++++++++++-
- 1 file changed, 37 insertions(+), 1 deletion(-)
+ fs/ocfs2/dlmglue.c |   28 ++++++++++++++--------------
+ fs/ocfs2/ocfs2.h   |    2 +-
+ 2 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/lib/plist.c~lib-plistc-avoid-worst-case-scenario-in-plist_add
-+++ a/lib/plist.c
-@@ -72,7 +72,7 @@ static void plist_check_head(struct plis
+--- a/fs/ocfs2/dlmglue.c~ocfs2-constify-struct-ocfs2_lock_res_ops
++++ a/fs/ocfs2/dlmglue.c
+@@ -221,12 +221,12 @@ struct ocfs2_lock_res_ops {
   */
- void plist_add(struct plist_node *node, struct plist_head *head)
+ #define LOCK_TYPE_USES_LVB		0x2
+ 
+-static struct ocfs2_lock_res_ops ocfs2_inode_rw_lops = {
++static const struct ocfs2_lock_res_ops ocfs2_inode_rw_lops = {
+ 	.get_osb	= ocfs2_get_inode_osb,
+ 	.flags		= 0,
+ };
+ 
+-static struct ocfs2_lock_res_ops ocfs2_inode_inode_lops = {
++static const struct ocfs2_lock_res_ops ocfs2_inode_inode_lops = {
+ 	.get_osb	= ocfs2_get_inode_osb,
+ 	.check_downconvert = ocfs2_check_meta_downconvert,
+ 	.set_lvb	= ocfs2_set_meta_lvb,
+@@ -234,50 +234,50 @@ static struct ocfs2_lock_res_ops ocfs2_i
+ 	.flags		= LOCK_TYPE_REQUIRES_REFRESH|LOCK_TYPE_USES_LVB,
+ };
+ 
+-static struct ocfs2_lock_res_ops ocfs2_super_lops = {
++static const struct ocfs2_lock_res_ops ocfs2_super_lops = {
+ 	.flags		= LOCK_TYPE_REQUIRES_REFRESH,
+ };
+ 
+-static struct ocfs2_lock_res_ops ocfs2_rename_lops = {
++static const struct ocfs2_lock_res_ops ocfs2_rename_lops = {
+ 	.flags		= 0,
+ };
+ 
+-static struct ocfs2_lock_res_ops ocfs2_nfs_sync_lops = {
++static const struct ocfs2_lock_res_ops ocfs2_nfs_sync_lops = {
+ 	.flags		= 0,
+ };
+ 
+-static struct ocfs2_lock_res_ops ocfs2_trim_fs_lops = {
++static const struct ocfs2_lock_res_ops ocfs2_trim_fs_lops = {
+ 	.flags		= LOCK_TYPE_REQUIRES_REFRESH|LOCK_TYPE_USES_LVB,
+ };
+ 
+-static struct ocfs2_lock_res_ops ocfs2_orphan_scan_lops = {
++static const struct ocfs2_lock_res_ops ocfs2_orphan_scan_lops = {
+ 	.flags		= LOCK_TYPE_REQUIRES_REFRESH|LOCK_TYPE_USES_LVB,
+ };
+ 
+-static struct ocfs2_lock_res_ops ocfs2_dentry_lops = {
++static const struct ocfs2_lock_res_ops ocfs2_dentry_lops = {
+ 	.get_osb	= ocfs2_get_dentry_osb,
+ 	.post_unlock	= ocfs2_dentry_post_unlock,
+ 	.downconvert_worker = ocfs2_dentry_convert_worker,
+ 	.flags		= 0,
+ };
+ 
+-static struct ocfs2_lock_res_ops ocfs2_inode_open_lops = {
++static const struct ocfs2_lock_res_ops ocfs2_inode_open_lops = {
+ 	.get_osb	= ocfs2_get_inode_osb,
+ 	.flags		= 0,
+ };
+ 
+-static struct ocfs2_lock_res_ops ocfs2_flock_lops = {
++static const struct ocfs2_lock_res_ops ocfs2_flock_lops = {
+ 	.get_osb	= ocfs2_get_file_osb,
+ 	.flags		= 0,
+ };
+ 
+-static struct ocfs2_lock_res_ops ocfs2_qinfo_lops = {
++static const struct ocfs2_lock_res_ops ocfs2_qinfo_lops = {
+ 	.set_lvb	= ocfs2_set_qinfo_lvb,
+ 	.get_osb	= ocfs2_get_qinfo_osb,
+ 	.flags		= LOCK_TYPE_REQUIRES_REFRESH | LOCK_TYPE_USES_LVB,
+ };
+ 
+-static struct ocfs2_lock_res_ops ocfs2_refcount_block_lops = {
++static const struct ocfs2_lock_res_ops ocfs2_refcount_block_lops = {
+ 	.check_downconvert = ocfs2_check_refcount_downconvert,
+ 	.downconvert_worker = ocfs2_refcount_convert_worker,
+ 	.flags		= 0,
+@@ -510,7 +510,7 @@ static inline void ocfs2_init_start_time
+ static void ocfs2_lock_res_init_common(struct ocfs2_super *osb,
+ 				       struct ocfs2_lock_res *res,
+ 				       enum ocfs2_lock_type type,
+-				       struct ocfs2_lock_res_ops *ops,
++				       const struct ocfs2_lock_res_ops *ops,
+ 				       void *priv)
  {
--	struct plist_node *first, *iter, *prev = NULL;
-+	struct plist_node *first, *iter, *prev = NULL, *last, *reverse_iter;
- 	struct list_head *node_next = &head->node_list;
+ 	res->l_type          = type;
+@@ -553,7 +553,7 @@ void ocfs2_inode_lock_res_init(struct oc
+ 			       unsigned int generation,
+ 			       struct inode *inode)
+ {
+-	struct ocfs2_lock_res_ops *ops;
++	const struct ocfs2_lock_res_ops *ops;
  
- 	plist_check_head(head);
-@@ -83,16 +83,26 @@ void plist_add(struct plist_node *node,
- 		goto ins_node;
+ 	switch(type) {
+ 		case OCFS2_LOCK_TYPE_RW:
+--- a/fs/ocfs2/ocfs2.h~ocfs2-constify-struct-ocfs2_lock_res_ops
++++ a/fs/ocfs2/ocfs2.h
+@@ -154,7 +154,7 @@ struct ocfs2_lock_stats {
  
- 	first = iter = plist_first(head);
-+	last = reverse_iter = list_entry(first->prio_list.prev, struct plist_node, prio_list);
+ struct ocfs2_lock_res {
+ 	void                    *l_priv;
+-	struct ocfs2_lock_res_ops *l_ops;
++	const struct ocfs2_lock_res_ops *l_ops;
  
- 	do {
- 		if (node->prio < iter->prio) {
- 			node_next = &iter->node_list;
- 			break;
-+		} else if (node->prio >= reverse_iter->prio) {
-+			prev = reverse_iter;
-+			iter = list_entry(reverse_iter->prio_list.next,
-+				struct plist_node, prio_list);
-+			if (likely(reverse_iter != last))
-+				node_next = &iter->node_list;
-+			break;
- 		}
  
- 		prev = iter;
- 		iter = list_entry(iter->prio_list.next,
- 				struct plist_node, prio_list);
-+		reverse_iter = list_entry(reverse_iter->prio_list.prev,
-+				struct plist_node, prio_list);
- 	} while (iter != first);
- 
- 	if (!prev || prev->prio != node->prio)
-@@ -255,6 +265,32 @@ static int  __init plist_test(void)
- 	}
- 
- 	printk(KERN_DEBUG "end plist test\n");
-+
-+	/* Worst case test for plist_add() */
-+	unsigned int test_data[241];
-+
-+	for (i = 0; i < ARRAY_SIZE(test_data); i++)
-+		test_data[i] = i;
-+
-+	ktime_t start, end, time_elapsed = 0;
-+
-+	plist_head_init(&test_head);
-+
-+	for (i = 0; i < ARRAY_SIZE(test_node); i++) {
-+		plist_node_init(test_node + i, 0);
-+		test_node[i].prio = test_data[i];
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(test_node); i++) {
-+		if (plist_node_empty(test_node + i)) {
-+			start = ktime_get();
-+			plist_add(test_node + i, &test_head);
-+			end = ktime_get();
-+			time_elapsed += (end - start);
-+		}
-+	}
-+
-+	pr_debug("plist_add worst case test time elapsed %lld\n", time_elapsed);
- 	return 0;
- }
- 
+ 	struct list_head         l_blocked_list;
 _
 
-Patches currently in -mm which might be from richard120310@gmail.com are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
 
