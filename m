@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9F6733C0
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:25:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDF81142E76
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:25:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293154; cv=none; b=TMHXjlnSpQFWRyk1ZP1+H+7YEc0B69cLPf9S+lvSjjIfEWil913r/IFSvHuceuwVU1MDNBBbzBvj9SrZoFjMJwVmnI+hUjLGrOX2X3wDJs4ea/VZqTYxH3IDc5CUG2cAkeqdsQihSLSC93G7spvH+vL4c9w+5C48DbsHv74bb1A=
+	t=1719293156; cv=none; b=CU0afNti3rm/yGqDVH68l+SlkPMl/mdTaaDxsJMmqHlcFDhipuMtNEBWdZz5jQOX+bPa6WLPe9kEqNIMaNyB0OrlloVwOfXFmAaXiY/nw861KbByf3fbCgZJY/aIX44wTqY9Ejnuon2GOLi1PHj9ySQi02kjbWohh9yZLW3xYuk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719293154; c=relaxed/simple;
-	bh=5eKmSW9Y4ZVK5eSX51f5cBgS6Dfg3n6KjtFM3UHXFPM=;
-	h=Date:To:From:Subject:Message-Id; b=db3gGEedySotpUHRHxGJBTwl8k3+I0ObH00cMZmwgI+KDuM1FlO9+pfpB+3ghtximYCs/s1nxWX23Cypw7YUZOKWoXBG2U6MausVe16ZXS3CmplPBpw4Pq7zK+s3wfG9B8epYrhFlo8rfICCaERsw4T2GuP8nOmLioqIIh/h5Gk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aaBR3r6b; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719293156; c=relaxed/simple;
+	bh=lkkruxwp0F0/Ytf+7UMeHhZd9fPdq2a6WoH2cgo3qUs=;
+	h=Date:To:From:Subject:Message-Id; b=tzsgoFwMmVo3gF26S+Fqr5dUMPiS2gpzl3yPxck0Wckg7Ix07sLDvXRcVUNdyAM2sem5NhGdHpAEsJ+P5Jp7JTdAei61WzU5ih8xid5MIyTsAsJQiSNdk3smjQQvEIPk3Y5Nm6szP9uhzoPquMSGyxGWjhbwvf/WH7P77n5nl+U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=of8AgS6e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aaBR3r6b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 604C3C32782;
-	Tue, 25 Jun 2024 05:25:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="of8AgS6e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 730D6C32782;
+	Tue, 25 Jun 2024 05:25:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293154;
-	bh=5eKmSW9Y4ZVK5eSX51f5cBgS6Dfg3n6KjtFM3UHXFPM=;
+	s=korg; t=1719293156;
+	bh=lkkruxwp0F0/Ytf+7UMeHhZd9fPdq2a6WoH2cgo3qUs=;
 	h=Date:To:From:Subject:From;
-	b=aaBR3r6b5Be6nF6zV505JLBCIt0Hoi6VE3wmErl+siiP6oJxwAzB5hCdpPycD9YCG
-	 quUz0Oq5NlSgr21XRVntkIpXICkwD3Gu2+33vDRoiX06pMEXiwUvinJ+nfhm9/GY2y
-	 xlI7rJxnqJp9rizmB2HFa7uexOABEErfQ478KxvM=
-Date: Mon, 24 Jun 2024 22:25:53 -0700
-To: mm-commits@vger.kernel.org,oleg@redhat.com,keescook@chromium.org,ubizjak@gmail.com,akpm@linux-foundation.org
+	b=of8AgS6efPDM71PgRfCO5yEe77nH2BWBQ6Ux9QUZ6KOCVMdtpCbttglK7dpoqWc3d
+	 P5YeDPjNEdORHfDfkqxfFFYa638PgJdANcrokhYpUJelKm9f0ywYi74JIPJXHyswZ1
+	 8BeHnYT7zRbp6s38pHgHiRG2647On1w3vh+GmCe4=
+Date: Mon, 24 Jun 2024 22:25:55 -0700
+To: mm-commits@vger.kernel.org,weihsinyeh168@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] fork-use-this_cpu_try_cmpxchg-in-try_release_thread_stack_to_cache.patch removed from -mm tree
-Message-Id: <20240625052554.604C3C32782@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] tools-fix-typo.patch removed from -mm tree
+Message-Id: <20240625052556.730D6C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fork: use this_cpu_try_cmpxchg() in try_release_thread_stack_to_cache()
+     Subject: include/linux/jhash.h: fix typos
 has been removed from the -mm tree.  Its filename was
-     fork-use-this_cpu_try_cmpxchg-in-try_release_thread_stack_to_cache.patch
+     tools-fix-typo.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: fork: use this_cpu_try_cmpxchg() in try_release_thread_stack_to_cache()
-Date: Thu, 23 May 2024 09:35:14 +0200
+From: Wei-Hsin Yeh <weihsinyeh168@gmail.com>
+Subject: include/linux/jhash.h: fix typos
+Date: Sun, 12 May 2024 13:42:11 +0800
 
-Use this_cpu_try_cmpxchg() instead of this_cpu_cmpxchg (*ptr, old, new) ==
-old in try_release_thread_stack_to_cache.  x86 CMPXCHG instruction returns
-success in ZF flag, so this change saves a compare after cmpxchg (and
-related move instruction in front of cmpxchg).
+Drop one '-' to adhere to coding style.
+Replace 'arbitray' with 'arbitrary'.
 
-No functional change intended.
-
-[ubizjak@gmail.com: simplify the for loop a bit]
-  Link: https://lkml.kernel.org/r/20240523214442.21102-1-ubizjak@gmail.com
-Link: https://lkml.kernel.org/r/20240523073530.8128-1-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
+Link: https://lkml.kernel.org/r/20240512054211.24726-1-weihsinyeh168@gmail.com
+Signed-off-by: Wei-Hsin Yeh <weihsinyeh168@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/jhash.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/kernel/fork.c~fork-use-this_cpu_try_cmpxchg-in-try_release_thread_stack_to_cache
-+++ a/kernel/fork.c
-@@ -205,9 +205,10 @@ static bool try_release_thread_stack_to_
- 	unsigned int i;
+--- a/include/linux/jhash.h~tools-fix-typo
++++ a/include/linux/jhash.h
+@@ -31,7 +31,7 @@
+ /* Mask the hash value, i.e (value & jhash_mask(n)) instead of (value % n) */
+ #define jhash_mask(n)   (jhash_size(n)-1)
  
- 	for (i = 0; i < NR_CACHED_STACKS; i++) {
--		if (this_cpu_cmpxchg(cached_stacks[i], NULL, vm) != NULL)
--			continue;
--		return true;
-+		struct vm_struct *tmp = NULL;
-+
-+		if (this_cpu_try_cmpxchg(cached_stacks[i], &tmp, vm))
-+			return true;
- 	}
- 	return false;
- }
+-/* __jhash_mix -- mix 3 32-bit values reversibly. */
++/* __jhash_mix - mix 3 32-bit values reversibly. */
+ #define __jhash_mix(a, b, c)			\
+ {						\
+ 	a -= c;  a ^= rol32(c, 4);  c += b;	\
+@@ -60,7 +60,7 @@
+ /* jhash - hash an arbitrary key
+  * @k: sequence of bytes as key
+  * @length: the length of the key
+- * @initval: the previous hash, or an arbitray value
++ * @initval: the previous hash, or an arbitrary value
+  *
+  * The generic version, hashes an arbitrary sequence of bytes.
+  * No alignment or length assumptions are made about the input key.
+@@ -110,7 +110,7 @@ static inline u32 jhash(const void *key,
+ /* jhash2 - hash an array of u32's
+  * @k: the key which must be an array of u32's
+  * @length: the number of u32's in the key
+- * @initval: the previous hash, or an arbitray value
++ * @initval: the previous hash, or an arbitrary value
+  *
+  * Returns the hash value of the key.
+  */
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from weihsinyeh168@gmail.com are
 
 
