@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA9A91487C6;
-	Tue, 25 Jun 2024 21:00:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC7B94AEF6
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 21:03:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719349223; cv=none; b=HNYxAfRMt2iKAGk1aH1XOPli7zHEgtPhrubGYRMj/cFWQgnK+RSjQqNtdEvvSTDANvtkUb7cG2UQ6Ubc6TOu7dd7jxtlvhWoff86/erHnobGW8AzPqehO8KCK/xhu0OsZ/RMINes7cziAWvmVm9lRqdi+Yq5+QzvVOY0udXSfFg=
+	t=1719349412; cv=none; b=DqximaO+0DCTwnrCbk4zXRnih9qG/669dNZtcL8wH6QF9IRT9MGDllHOGVUGH7c+rYSM5WW17jqVKBZgbK57uZk0L8V/RqbNPWhGaB6MpSuV7J6kO3Yd8W6PppMxSIhiHy5iK12ewVIpSAn3bXzhU2RULXNG7g3pZ/PZn8GQY1E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719349223; c=relaxed/simple;
-	bh=dtq0SB9BSpb7tviogr3IslDd4Ta1kwKTB14pwRtq6bs=;
-	h=Date:To:From:Subject:Message-Id; b=QZNN+OhgIAlT28vyE9wwWkzqM/fah3Y0ixKz2lFIzuXObwuYuuku9N5lfJdlNkh21vsqGt93qe2JxuRImDpVz7XlgbwZ2HwKd1nRm/V94sOJNuQC9vUYyHsOTx5r+VU1/dmEa+4XY7bik31GPgHIL0OFu9jLGb6ELkRe+dWEmrk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OLnCUxlF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719349412; c=relaxed/simple;
+	bh=oeBP8Rzxq9AuiZYt+AIq/+KeHnAZYalZQL/22p+iTHs=;
+	h=Date:To:From:Subject:Message-Id; b=enMhSkXdczeh5XQZLjacZfdze+wN458BqMkGawXfokKclWQe++rnEBNpNiEXf7217ACxz2utebZ+KNpS5Qz3kCIKcYUmMfFf6OCa5zdVtPMFy6LOJyJg1sd7LDwctenPwYvuvoGWHNWIGlPhKN5TYs4cjlRIt6O4DjMsdwPlkcY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bo2WISRq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OLnCUxlF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 688ABC32781;
-	Tue, 25 Jun 2024 21:00:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bo2WISRq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DB63C32781;
+	Tue, 25 Jun 2024 21:03:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719349222;
-	bh=dtq0SB9BSpb7tviogr3IslDd4Ta1kwKTB14pwRtq6bs=;
+	s=korg; t=1719349412;
+	bh=oeBP8Rzxq9AuiZYt+AIq/+KeHnAZYalZQL/22p+iTHs=;
 	h=Date:To:From:Subject:From;
-	b=OLnCUxlFG+ZvOA1l5Mlnjvtwgg4cZq3mZf/dfWxB84pdLJAKjOpYcpXbO3ReyBXI6
-	 DUufI3AxDiNJOJLvAojVdPg3LG73UQpMKJkNiS0i2F0utXU0GZq3wDObzcB64upZDD
-	 zafnHI3FNgzCFhbR4wK3izE6xoO8frZ4dB5cDxLE=
-Date: Tue, 25 Jun 2024 14:00:21 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vivek.kasireddy@intel.com,stable@vger.kernel.org,riel@surriel.com,peterx@redhat.com,paulmck@kernel.org,oliver.sang@intel.com,david@redhat.com,cl@linux.com,yang@os.amperecomputing.com,akpm@linux-foundation.org
+	b=bo2WISRqRVHQ1lSQH8keOSVTOT6RtccY271wPOfShDEJVfNUC2GKfEnDtKmn7irS6
+	 W/4I60j4RZh12rJOuBIyZitNFyvkPTnYQt743dh788PMJ+0iftS0y/Zz4T3ttmaZ0B
+	 NY8A38q/4u7M+RBDupFPW5zMfvroD4FEryzFOjTI=
+Date: Tue, 25 Jun 2024 14:03:32 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,willy@infradead.org,wangkefeng.wang@huawei.com,tj@kernel.org,shakeel.butt@linux.dev,shakeelb@google.com,roman.gushchin@linux.dev,rientjes@google.com,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,lizefan.x@bytedance.com,hughd@google.com,hannes@cmpxchg.org,findns94@gmail.com,david@redhat.com,corbet@lwn.net,chrisl@kernel.org,schatzberg.dan@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_ref-remove-folio_try_get_rcu.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240625210022.688ABC32781@smtp.kernel.org>
+Subject: [nacked] mm-add-defines-for-min-max-swappiness.patch removed from -mm tree
+Message-Id: <20240625210332.8DB63C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,265 +34,208 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: page_ref: remove folio_try_get_rcu()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-page_ref-remove-folio_try_get_rcu.patch
+The quilt patch titled
+     Subject: mm: add defines for min/max swappiness
+has been removed from the -mm tree.  Its filename was
+     mm-add-defines-for-min-max-swappiness.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_ref-remove-folio_try_get_rcu.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Yang Shi <yang@os.amperecomputing.com>
-Subject: mm: page_ref: remove folio_try_get_rcu()
-Date: Tue, 25 Jun 2024 13:53:50 -0700
+From: Dan Schatzberg <schatzberg.dan@gmail.com>
+Subject: mm: add defines for min/max swappiness
+Date: Wed, 3 Jan 2024 08:48:36 -0800
 
-The below bug was reported on a non-SMP kernel:
+Patch series "Add swappiness argument to memory.reclaim", v6.
 
-[  275.267158][ T4335] ------------[ cut here ]------------
-[  275.267949][ T4335] kernel BUG at include/linux/page_ref.h:275!
-[  275.268526][ T4335] invalid opcode: 0000 [#1] KASAN PTI
-[  275.269001][ T4335] CPU: 0 PID: 4335 Comm: trinity-c3 Not tainted 6.7.0-rc4-00061-gefa7df3e3bb5 #1
-[  275.269787][ T4335] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
-[  275.270679][ T4335] RIP: 0010:try_get_folio (include/linux/page_ref.h:275 (discriminator 3) mm/gup.c:79 (discriminator 3))
-[  275.272813][ T4335] RSP: 0018:ffffc90005dcf650 EFLAGS: 00010202
-[  275.273346][ T4335] RAX: 0000000000000246 RBX: ffffea00066e0000 RCX: 0000000000000000
-[  275.274032][ T4335] RDX: fffff94000cdc007 RSI: 0000000000000004 RDI: ffffea00066e0034
-[  275.274719][ T4335] RBP: ffffea00066e0000 R08: 0000000000000000 R09: fffff94000cdc006
-[  275.275404][ T4335] R10: ffffea00066e0037 R11: 0000000000000000 R12: 0000000000000136
-[  275.276106][ T4335] R13: ffffea00066e0034 R14: dffffc0000000000 R15: ffffea00066e0008
-[  275.276790][ T4335] FS:  00007fa2f9b61740(0000) GS:ffffffff89d0d000(0000) knlGS:0000000000000000
-[  275.277570][ T4335] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  275.278143][ T4335] CR2: 00007fa2f6c00000 CR3: 0000000134b04000 CR4: 00000000000406f0
-[  275.278833][ T4335] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[  275.279521][ T4335] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-[  275.280201][ T4335] Call Trace:
-[  275.280499][ T4335]  <TASK>
-[ 275.280751][ T4335] ? die (arch/x86/kernel/dumpstack.c:421 arch/x86/kernel/dumpstack.c:434 arch/x86/kernel/dumpstack.c:447)
-[ 275.281087][ T4335] ? do_trap (arch/x86/kernel/traps.c:112 arch/x86/kernel/traps.c:153)
-[ 275.281463][ T4335] ? try_get_folio (include/linux/page_ref.h:275 (discriminator 3) mm/gup.c:79 (discriminator 3))
-[ 275.281884][ T4335] ? try_get_folio (include/linux/page_ref.h:275 (discriminator 3) mm/gup.c:79 (discriminator 3))
-[ 275.282300][ T4335] ? do_error_trap (arch/x86/kernel/traps.c:174)
-[ 275.282711][ T4335] ? try_get_folio (include/linux/page_ref.h:275 (discriminator 3) mm/gup.c:79 (discriminator 3))
-[ 275.283129][ T4335] ? handle_invalid_op (arch/x86/kernel/traps.c:212)
-[ 275.283561][ T4335] ? try_get_folio (include/linux/page_ref.h:275 (discriminator 3) mm/gup.c:79 (discriminator 3))
-[ 275.283990][ T4335] ? exc_invalid_op (arch/x86/kernel/traps.c:264)
-[ 275.284415][ T4335] ? asm_exc_invalid_op (arch/x86/include/asm/idtentry.h:568)
-[ 275.284859][ T4335] ? try_get_folio (include/linux/page_ref.h:275 (discriminator 3) mm/gup.c:79 (discriminator 3))
-[ 275.285278][ T4335] try_grab_folio (mm/gup.c:148)
-[ 275.285684][ T4335] __get_user_pages (mm/gup.c:1297 (discriminator 1))
-[ 275.286111][ T4335] ? __pfx___get_user_pages (mm/gup.c:1188)
-[ 275.286579][ T4335] ? __pfx_validate_chain (kernel/locking/lockdep.c:3825)
-[ 275.287034][ T4335] ? mark_lock (kernel/locking/lockdep.c:4656 (discriminator 1))
-[ 275.287416][ T4335] __gup_longterm_locked (mm/gup.c:1509 mm/gup.c:2209)
-[ 275.288192][ T4335] ? __pfx___gup_longterm_locked (mm/gup.c:2204)
-[ 275.288697][ T4335] ? __pfx_lock_acquire (kernel/locking/lockdep.c:5722)
-[ 275.289135][ T4335] ? __pfx___might_resched (kernel/sched/core.c:10106)
-[ 275.289595][ T4335] pin_user_pages_remote (mm/gup.c:3350)
-[ 275.290041][ T4335] ? __pfx_pin_user_pages_remote (mm/gup.c:3350)
-[ 275.290545][ T4335] ? find_held_lock (kernel/locking/lockdep.c:5244 (discriminator 1))
-[ 275.290961][ T4335] ? mm_access (kernel/fork.c:1573)
-[ 275.291353][ T4335] process_vm_rw_single_vec+0x142/0x360
-[ 275.291900][ T4335] ? __pfx_process_vm_rw_single_vec+0x10/0x10
-[ 275.292471][ T4335] ? mm_access (kernel/fork.c:1573)
-[ 275.292859][ T4335] process_vm_rw_core+0x272/0x4e0
-[ 275.293384][ T4335] ? hlock_class (arch/x86/include/asm/bitops.h:227 arch/x86/include/asm/bitops.h:239 include/asm-generic/bitops/instrumented-non-atomic.h:142 kernel/locking/lockdep.c:228)
-[ 275.293780][ T4335] ? __pfx_process_vm_rw_core+0x10/0x10
-[ 275.294350][ T4335] process_vm_rw (mm/process_vm_access.c:284)
-[ 275.294748][ T4335] ? __pfx_process_vm_rw (mm/process_vm_access.c:259)
-[ 275.295197][ T4335] ? __task_pid_nr_ns (include/linux/rcupdate.h:306 (discriminator 1) include/linux/rcupdate.h:780 (discriminator 1) kernel/pid.c:504 (discriminator 1))
-[ 275.295634][ T4335] __x64_sys_process_vm_readv (mm/process_vm_access.c:291)
-[ 275.296139][ T4335] ? syscall_enter_from_user_mode (kernel/entry/common.c:94 kernel/entry/common.c:112)
-[ 275.296642][ T4335] do_syscall_64 (arch/x86/entry/common.c:51 (discriminator 1) arch/x86/entry/common.c:82 (discriminator 1))
-[ 275.297032][ T4335] ? __task_pid_nr_ns (include/linux/rcupdate.h:306 (discriminator 1) include/linux/rcupdate.h:780 (discriminator 1) kernel/pid.c:504 (discriminator 1))
-[ 275.297470][ T4335] ? lockdep_hardirqs_on_prepare (kernel/locking/lockdep.c:4300 kernel/locking/lockdep.c:4359)
-[ 275.297988][ T4335] ? do_syscall_64 (arch/x86/include/asm/cpufeature.h:171 arch/x86/entry/common.c:97)
-[ 275.298389][ T4335] ? lockdep_hardirqs_on_prepare (kernel/locking/lockdep.c:4300 kernel/locking/lockdep.c:4359)
-[ 275.298906][ T4335] ? do_syscall_64 (arch/x86/include/asm/cpufeature.h:171 arch/x86/entry/common.c:97)
-[ 275.299304][ T4335] ? do_syscall_64 (arch/x86/include/asm/cpufeature.h:171 arch/x86/entry/common.c:97)
-[ 275.299703][ T4335] ? do_syscall_64 (arch/x86/include/asm/cpufeature.h:171 arch/x86/entry/common.c:97)
-[ 275.300115][ T4335] entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:129)
+This patch proposes augmenting the memory.reclaim interface with a
+swappiness=<val> argument that overrides the swappiness value for that
+instance of proactive reclaim.
 
-This BUG is the VM_BUG_ON(!in_atomic() && !irqs_disabled()) assertion in
-folio_ref_try_add_rcu() for non-SMP kernel.
+Userspace proactive reclaimers use the memory.reclaim interface to trigger
+reclaim.  The memory.reclaim interface does not allow for any way to
+effect the balance of file vs anon during proactive reclaim.  The only
+approach is to adjust the vm.swappiness setting.  However, there are a few
+reasons we look to control the balance of file vs anon during proactive
+reclaim, separately from reactive reclaim:
 
-The process_vm_readv() calls GUP to pin the THP. An optimization for
-pinning THP instroduced by commit 57edfcfd3419 ("mm/gup: accelerate thp
-gup even for "pages != NULL"") calls try_grab_folio() to pin the THP,
-but try_grab_folio() is supposed to be called in atomic context for
-non-SMP kernel, for example, irq disabled or preemption disabled, due to
-the optimization introduced by commit e286781d5f2e ("mm: speculative
-page references").
+* Swapout should be limited to manage SSD write endurance.  In near-OOM
+  situations we are fine with lots of swap-out to avoid OOMs.  As these
+  are typically rare events, they have relatively little impact on write
+  endurance.  However, proactive reclaim runs continuously and so its
+  impact on SSD write endurance is more significant.  Therefore it is
+  desireable to control swap-out for proactive reclaim separately from
+  reactive reclaim
 
-The commit efa7df3e3bb5 ("mm: align larger anonymous mappings on THP
-boundaries") is not actually the root cause although it was bisected to.
-It just makes the problem exposed more likely.
+* Some userspace OOM killers like systemd-oomd[1] support OOM killing on
+  swap exhaustion.  This makes sense if the swap exhaustion is triggered
+  due to reactive reclaim but less so if it is triggered due to proactive
+  reclaim (e.g.  one could see OOMs when free memory is ample but anon is
+  just particularly cold).  Therefore, it's desireable to have proactive
+  reclaim reduce or stop swap-out before the threshold at which OOM
+  killing occurs.
 
-The follow up discussion suggested the optimization for non-SMP kernel
-may be out-dated and not worth it anymore [1].  So removing the
-optimization to silence the BUG.
+In the case of Meta's Senpai proactive reclaimer, we adjust vm.swappiness
+before writes to memory.reclaim[2].  This has been in production for
+nearly two years and has addressed our needs to control proactive vs
+reactive reclaim behavior but is still not ideal for a number of reasons:
 
-However calling try_grab_folio() in GUP slow path actually is
-unnecessary, so the following patch will clean this up.
+* vm.swappiness is a global setting, adjusting it can race/interfere
+  with other system administration that wishes to control vm.swappiness. 
+  In our case, we need to disable Senpai before adjusting vm.swappiness.
 
-[1] https://lore.kernel.org/linux-mm/821cf1d6-92b9-4ac4-bacc-d8f2364ac14f@paulmck-laptop/
+* vm.swappiness is stateful - so a crash or restart of Senpai can leave
+  a misconfigured setting.  This requires some additional management to
+  record the "desired" setting and ensure Senpai always adjusts to it.
 
-Link: https://lkml.kernel.org/r/20240625205350.1777481-1-yang@os.amperecomputing.com
-Fixes: 57edfcfd3419 ("mm/gup: accelerate thp gup even for "pages != NULL"")
-Signed-off-by: Yang Shi <yang@os.amperecomputing.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Tested-by: Oliver Sang <oliver.sang@intel.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
+With this patch, we avoid these downsides of adjusting vm.swappiness
+globally.
+
+Previously, this exact interface addition was proposed by Yosry[3].  In
+response, Roman proposed instead an interface to specify precise
+file/anon/slab reclaim amounts[4].  More recently Huan also proposed this
+as well[5] and others similarly questioned if this was the proper
+interface.
+
+Previous proposals sought to use this to allow proactive reclaimers to
+effectively perform a custom reclaim algorithm by issuing proactive
+reclaim with different settings to control file vs anon reclaim (e.g.  to
+only reclaim anon from some applications).  Responses argued that
+adjusting swappiness is a poor interface for custom reclaim.
+
+In contrast, I argue in favor of a swappiness setting not as a way to
+implement custom reclaim algorithms but rather to bias the balance of anon
+vs file due to differences of proactive vs reactive reclaim.  In this
+context, swappiness is the existing interface for controlling this balance
+and this patch simply allows for it to be configured differently for
+proactive vs reactive reclaim.
+
+Specifying explicit amounts of anon vs file pages to reclaim feels
+inappropriate for this prupose.  Proactive reclaimers are un-aware of the
+relative age of file vs anon for a cgroup which makes it difficult to
+manage proactive reclaim of different memory pools.  A proactive reclaimer
+would need some amount of anon reclaim attempts separate from the amount
+of file reclaim attempts which seems brittle given that it's difficult to
+observe the impact.
+
+[1]https://www.freedesktop.org/software/systemd/man/latest/systemd-oomd.service.html
+[2]https://github.com/facebookincubator/oomd/blob/main/src/oomd/plugins/Senpai.cpp#L585-L598
+[3]https://lore.kernel.org/linux-mm/CAJD7tkbDpyoODveCsnaqBBMZEkDvshXJmNdbk51yKSNgD7aGdg@mail.gmail.com/
+[4]https://lore.kernel.org/linux-mm/YoPHtHXzpK51F%2F1Z@carbon/
+[5]https://lore.kernel.org/lkml/20231108065818.19932-1-link@vivo.com/
+
+
+This patch (of 2):
+
+We use the constants 0 and 200 in a few places in the mm code when
+referring to the min and max swappiness.  This patch adds MIN_SWAPPINESS
+and MAX_SWAPPINESS #defines to improve clarity.  There are no functional
+changes.
+
+Link: https://lkml.kernel.org/r/20240103164841.2800183-1-schatzberg.dan@gmail.com
+Link: https://lkml.kernel.org/r/20240103164841.2800183-2-schatzberg.dan@gmail.com
+Signed-off-by: Dan Schatzberg <schatzberg.dan@gmail.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Chris Li <chrisl@kernel.org>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Cc: <stable@vger.kernel.org>	[6.6+]
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Yue Zhao <findns94@gmail.com>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_ref.h |   49 +------------------------------------
- mm/filemap.c             |   10 +++----
- mm/gup.c                 |    2 -
- 3 files changed, 8 insertions(+), 53 deletions(-)
+ include/linux/swap.h |    2 ++
+ mm/memcontrol-v1.c   |    2 +-
+ mm/vmscan.c          |   12 ++++++------
+ 3 files changed, 9 insertions(+), 7 deletions(-)
 
---- a/include/linux/page_ref.h~mm-page_ref-remove-folio_try_get_rcu
-+++ a/include/linux/page_ref.h
-@@ -258,54 +258,9 @@ static inline bool folio_try_get(struct
- 	return folio_ref_add_unless(folio, 1, 0);
- }
+--- a/include/linux/swap.h~mm-add-defines-for-min-max-swappiness
++++ a/include/linux/swap.h
+@@ -405,6 +405,8 @@ extern unsigned long try_to_free_pages(s
  
--static inline bool folio_ref_try_add_rcu(struct folio *folio, int count)
-+static inline bool folio_ref_try_add(struct folio *folio, int count)
+ #define MEMCG_RECLAIM_MAY_SWAP (1 << 1)
+ #define MEMCG_RECLAIM_PROACTIVE (1 << 2)
++#define MIN_SWAPPINESS 0
++#define MAX_SWAPPINESS 200
+ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
+ 						  unsigned long nr_pages,
+ 						  gfp_t gfp_mask,
+--- a/mm/vmscan.c~mm-add-defines-for-min-max-swappiness
++++ a/mm/vmscan.c
+@@ -192,7 +192,7 @@ struct scan_control {
+ #endif
+ 
+ /*
+- * From 0 .. 200.  Higher means more swappy.
++ * From 0 .. MAX_SWAPPINESS.  Higher means more swappy.
+  */
+ int vm_swappiness = 60;
+ 
+@@ -2427,7 +2427,7 @@ static void get_scan_count(struct lruvec
+ 	ap = swappiness * (total_cost + 1);
+ 	ap /= anon_cost + 1;
+ 
+-	fp = (200 - swappiness) * (total_cost + 1);
++	fp = (MAX_SWAPPINESS - swappiness) * (total_cost + 1);
+ 	fp /= file_cost + 1;
+ 
+ 	fraction[0] = ap;
+@@ -4447,7 +4447,7 @@ static int get_type_to_scan(struct lruve
  {
--#ifdef CONFIG_TINY_RCU
--	/*
--	 * The caller guarantees the folio will not be freed from interrupt
--	 * context, so (on !SMP) we only need preemption to be disabled
--	 * and TINY_RCU does that for us.
--	 */
--# ifdef CONFIG_PREEMPT_COUNT
--	VM_BUG_ON(!in_atomic() && !irqs_disabled());
--# endif
--	VM_BUG_ON_FOLIO(folio_ref_count(folio) == 0, folio);
--	folio_ref_add(folio, count);
--#else
--	if (unlikely(!folio_ref_add_unless(folio, count, 0))) {
--		/* Either the folio has been freed, or will be freed. */
--		return false;
--	}
--#endif
--	return true;
--}
--
--/**
-- * folio_try_get_rcu - Attempt to increase the refcount on a folio.
-- * @folio: The folio.
-- *
-- * This is a version of folio_try_get() optimised for non-SMP kernels.
-- * If you are still holding the rcu_read_lock() after looking up the
-- * page and know that the page cannot have its refcount decreased to
-- * zero in interrupt context, you can use this instead of folio_try_get().
-- *
-- * Example users include get_user_pages_fast() (as pages are not unmapped
-- * from interrupt context) and the page cache lookups (as pages are not
-- * truncated from interrupt context).  We also know that pages are not
-- * frozen in interrupt context for the purposes of splitting or migration.
-- *
-- * You can also use this function if you're holding a lock that prevents
-- * pages being frozen & removed; eg the i_pages lock for the page cache
-- * or the mmap_lock or page table lock for page tables.  In this case,
-- * it will always succeed, and you could have used a plain folio_get(),
-- * but it's sometimes more convenient to have a common function called
-- * from both locked and RCU-protected contexts.
-- *
-- * Return: True if the reference count was successfully incremented.
-- */
--static inline bool folio_try_get_rcu(struct folio *folio)
--{
--	return folio_ref_try_add_rcu(folio, 1);
-+	return folio_ref_add_unless(folio, count, 0);
- }
- 
- static inline int page_ref_freeze(struct page *page, int count)
---- a/mm/filemap.c~mm-page_ref-remove-folio_try_get_rcu
-+++ a/mm/filemap.c
-@@ -1847,7 +1847,7 @@ repeat:
- 	if (!folio || xa_is_value(folio))
- 		goto out;
- 
--	if (!folio_try_get_rcu(folio))
-+	if (!folio_try_get(folio))
- 		goto repeat;
- 
- 	if (unlikely(folio != xas_reload(&xas))) {
-@@ -2001,7 +2001,7 @@ retry:
- 	if (!folio || xa_is_value(folio))
- 		return folio;
- 
--	if (!folio_try_get_rcu(folio))
-+	if (!folio_try_get(folio))
- 		goto reset;
- 
- 	if (unlikely(folio != xas_reload(xas))) {
-@@ -2181,7 +2181,7 @@ unsigned filemap_get_folios_contig(struc
- 		if (xa_is_value(folio))
- 			goto update_start;
- 
--		if (!folio_try_get_rcu(folio))
-+		if (!folio_try_get(folio))
- 			goto retry;
- 
- 		if (unlikely(folio != xas_reload(&xas)))
-@@ -2313,7 +2313,7 @@ static void filemap_get_read_batch(struc
- 			break;
- 		if (xa_is_sibling(folio))
- 			break;
--		if (!folio_try_get_rcu(folio))
-+		if (!folio_try_get(folio))
- 			goto retry;
- 
- 		if (unlikely(folio != xas_reload(&xas)))
-@@ -3472,7 +3472,7 @@ static struct folio *next_uptodate_folio
- 			continue;
- 		if (folio_test_locked(folio))
- 			continue;
--		if (!folio_try_get_rcu(folio))
-+		if (!folio_try_get(folio))
- 			continue;
- 		/* Has the page moved or been split? */
- 		if (unlikely(folio != xas_reload(xas)))
---- a/mm/gup.c~mm-page_ref-remove-folio_try_get_rcu
-+++ a/mm/gup.c
-@@ -76,7 +76,7 @@ retry:
- 	folio = page_folio(page);
- 	if (WARN_ON_ONCE(folio_ref_count(folio) < 0))
- 		return NULL;
--	if (unlikely(!folio_ref_try_add_rcu(folio, refs)))
-+	if (unlikely(!folio_ref_try_add(folio, refs)))
- 		return NULL;
+ 	int type, tier;
+ 	struct ctrl_pos sp, pv;
+-	int gain[ANON_AND_FILE] = { swappiness, 200 - swappiness };
++	int gain[ANON_AND_FILE] = { swappiness, MAX_SWAPPINESS - swappiness };
  
  	/*
+ 	 * Compare the first tier of anon with that of file to determine which
+@@ -4494,7 +4494,7 @@ static int isolate_folios(struct lruvec
+ 		type = LRU_GEN_ANON;
+ 	else if (swappiness == 1)
+ 		type = LRU_GEN_FILE;
+-	else if (swappiness == 200)
++	else if (swappiness == MAX_SWAPPINESS)
+ 		type = LRU_GEN_ANON;
+ 	else if (!(sc->gfp_mask & __GFP_IO))
+ 		type = LRU_GEN_FILE;
+@@ -5428,9 +5428,9 @@ static int run_cmd(char cmd, int memcg_i
+ 
+ 	lruvec = get_lruvec(memcg, nid);
+ 
+-	if (swappiness < 0)
++	if (swappiness < MIN_SWAPPINESS)
+ 		swappiness = get_swappiness(lruvec, sc);
+-	else if (swappiness > 200)
++	else if (swappiness > MAX_SWAPPINESS)
+ 		goto done;
+ 
+ 	switch (cmd) {
+--- a/mm/memcontrol-v1.c~mm-add-defines-for-min-max-swappiness
++++ a/mm/memcontrol-v1.c
+@@ -2709,7 +2709,7 @@ static int mem_cgroup_swappiness_write(s
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+ 
+-	if (val > 200)
++	if (val > MAX_SWAPPINESS)
+ 		return -EINVAL;
+ 
+ 	if (!mem_cgroup_is_root(memcg))
 _
 
-Patches currently in -mm which might be from yang@os.amperecomputing.com are
+Patches currently in -mm which might be from schatzberg.dan@gmail.com are
 
-mm-page_ref-remove-folio_try_get_rcu.patch
+mm-add-swapiness=-arg-to-memoryreclaim.patch
 
