@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DA3E1428E0
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:00:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADE27143759
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:00:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291609; cv=none; b=CUQ2Mu2W5JpVOhIrgTFHjxfoYAomEqQrUpGOX7D1u7q+0HdG+3r7OWe7CUGqlYGwKEUz6lgB1n0AQRCzkma++e5SMAXkorC68Dx9BXusZmjResCVLkzgFlp0R2i++ch/SjizGllG/mAqYUBF6pPO/weoz4cVgd3mHlnsZdwzqpI=
+	t=1719291610; cv=none; b=OEqw138HOpZoi0F/a6sdiJfyIIPfv0bO8Qsii52zGymFLUtyX3KTe4Ay1yetCybHCuQOIY3NR96AJsoycE2RJR260M3cWve+DkGM6aFiFOw4tqqtgws5ON060VV4EMeMci7vCJz4yR/kSpO5By1327+GLRQbgWon6yCNUrXfPGo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291609; c=relaxed/simple;
-	bh=KLm6sm+IQcjGDJEPPGF9Psw5uoku42Qkj2MUQhELRgU=;
-	h=Date:To:From:Subject:Message-Id; b=h2c1HKTONBnxmN9VCWDr637Zk5j1UFIwmAm//MGQ/676TeYsVMfIwvvKZ83ektmehb6Vi8+upRVU8rgubhrYYkJLTvLN6DtMrMEj5BWzQ/Kw37SLvWPzyCutKxpoOCgn9273aXqY69ue+CPlEhRMsoTnLZMJI7WG1B2S6dd14Eo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GVRsY/6R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291610; c=relaxed/simple;
+	bh=fGjhoOmtfWYswduPaNH0QXKVXXBe4uGH3eecWigMqUY=;
+	h=Date:To:From:Subject:Message-Id; b=Yb4fPO50E8bqnQcwVRosT3TsUqkWJVKZ62n2MnyrKpPwp0tI0q2FeX25UjrkFwGyLybbamgRH5v/qEEuHEAjaNeBBAY1TwzKJ5DvQKzcv21DjAsxRjG3KdRHmYoU+FhONO+CpKyewx/I9n5HsTxkWF+miLdvWDC8rs/AoRnu+Js=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yZDHtCRb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GVRsY/6R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3584AC32782;
-	Tue, 25 Jun 2024 05:00:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yZDHtCRb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74E39C32782;
+	Tue, 25 Jun 2024 05:00:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291609;
-	bh=KLm6sm+IQcjGDJEPPGF9Psw5uoku42Qkj2MUQhELRgU=;
+	s=korg; t=1719291610;
+	bh=fGjhoOmtfWYswduPaNH0QXKVXXBe4uGH3eecWigMqUY=;
 	h=Date:To:From:Subject:From;
-	b=GVRsY/6RGdfRzrA2WTjO0gOxHjx6NWXxs/QW3drnjO6/Q0rnPlbfaLW1f9QpWAYqy
-	 8dFvKQ3XAkQQouqSlUczoRzguNdiaUvmgLuhF+4F7WoRTMDhf5oJyG7ttpA9c5Hkpw
-	 tlPv69LmYQNgeaNccVEQgcn/dUPiew4fWNNnlAAM=
-Date: Mon, 24 Jun 2024 22:00:08 -0700
+	b=yZDHtCRbCUBTTWDoytoozktvjrBamNV0+C/24Ffz0elseLwu8nEaA5G53sJuBr6BE
+	 pTgcKFLnqH1S6DiA4l/KWnolTLy5yNikSgDxRxvfHkI2XtoGTY8uOs1470gEoO3lry
+	 UqTejnXaXaaImhPT9NJvdEjc5gpXcsgHM7XSpGC8=
+Date: Mon, 24 Jun 2024 22:00:09 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yosryahmed@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,surenb@google.com,ryan.roberts@arm.com,rafael@kernel.org,pavel@ucw.cz,len.brown@intel.com,khalid.aziz@oracle.com,kasong@tencent.com,hughd@google.com,hch@infradead.org,hannes@cmpxchg.org,hanchuanhua@oppo.com,david@redhat.com,davem@davemloft.net,chrisl@kernel.org,baolin.wang@linux.alibaba.com,andreas@gaisler.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr.patch removed from -mm tree
-Message-Id: <20240625050009.3584AC32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-introduce-pte_move_swp_offset-helper-which-can-move-offset-bidirectionally.patch removed from -mm tree
+Message-Id: <20240625050010.74E39C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove the implementation of swap_free() and always use swap_free_nr()
+     Subject: mm: introduce pte_move_swp_offset() helper which can move offset bidirectionally
 has been removed from the -mm tree.  Its filename was
-     mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr.patch
+     mm-introduce-pte_move_swp_offset-helper-which-can-move-offset-bidirectionally.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: remove the implementation of swap_free() and always use swap_free_nr()
-Date: Wed, 29 May 2024 20:28:20 +1200
+Subject: mm: introduce pte_move_swp_offset() helper which can move offset bidirectionally
+Date: Wed, 29 May 2024 20:28:21 +1200
 
-To streamline maintenance efforts, we propose removing the implementation
-of swap_free().  Instead, we can simply invoke swap_free_nr() with nr set
-to 1.  swap_free_nr() is designed with a bitmap consisting of only one
-long, resulting in overhead that can be ignored for cases where nr equals
-1.
+There could arise a necessity to obtain the first pte_t from a swap pte_t
+located in the middle.  For instance, this may occur within the context of
+do_swap_page(), where a page fault can potentially occur in any PTE of a
+large folio.  To address this, the following patch introduces
+pte_move_swp_offset(), a function capable of bidirectional movement by a
+specified delta argument.  Consequently, pte_next_swp_offset() will
+directly invoke it with delta = 1.
 
-A prime candidate for leveraging swap_free_nr() lies within
-kernel/power/swap.c.  Implementing this change facilitates the adoption of
-batch processing for hibernation.
-
-Link: https://lkml.kernel.org/r/20240529082824.150954-3-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240529082824.150954-4-21cnbao@gmail.com
 Signed-off-by: Barry Song <v-songbaohua@oppo.com>
 Suggested-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Chris Li <chrisl@kernel.org>
 Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Chuanhua Han <hanchuanhua@oppo.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Gao Xiang <xiang@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kairui Song <kasong@tencent.com>
 Cc: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Len Brown <len.brown@intel.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Yosry Ahmed <yosryahmed@google.com>
 Cc: Yu Zhao <yuzhao@google.com>
@@ -85,94 +83,58 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   10 +++++-----
- kernel/power/swap.c  |    5 ++---
- mm/swapfile.c        |   17 ++++-------------
- 3 files changed, 11 insertions(+), 21 deletions(-)
+ mm/internal.h |   25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
 
---- a/include/linux/swap.h~mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr
-+++ a/include/linux/swap.h
-@@ -477,7 +477,6 @@ extern int add_swap_count_continuation(s
- extern void swap_shmem_alloc(swp_entry_t);
- extern int swap_duplicate(swp_entry_t);
- extern int swapcache_prepare(swp_entry_t);
--extern void swap_free(swp_entry_t);
- extern void swap_free_nr(swp_entry_t entry, int nr_pages);
- extern void swapcache_free_entries(swp_entry_t *entries, int n);
- extern void free_swap_and_cache_nr(swp_entry_t entry, int nr);
-@@ -556,10 +555,6 @@ static inline int swapcache_prepare(swp_
- 	return 0;
+--- a/mm/internal.h~mm-introduce-pte_move_swp_offset-helper-which-can-move-offset-bidirectionally
++++ a/mm/internal.h
+@@ -211,18 +211,21 @@ static inline int folio_pte_batch(struct
  }
  
--static inline void swap_free(swp_entry_t swp)
--{
--}
--
- static inline void swap_free_nr(swp_entry_t entry, int nr_pages)
+ /**
+- * pte_next_swp_offset - Increment the swap entry offset field of a swap pte.
++ * pte_move_swp_offset - Move the swap entry offset field of a swap pte
++ *	 forward or backward by delta
+  * @pte: The initial pte state; is_swap_pte(pte) must be true and
+  *	 non_swap_entry() must be false.
++ * @delta: The direction and the offset we are moving; forward if delta
++ *	 is positive; backward if delta is negative
+  *
+- * Increments the swap offset, while maintaining all other fields, including
++ * Moves the swap offset, while maintaining all other fields, including
+  * swap type, and any swp pte bits. The resulting pte is returned.
+  */
+-static inline pte_t pte_next_swp_offset(pte_t pte)
++static inline pte_t pte_move_swp_offset(pte_t pte, long delta)
  {
- }
-@@ -608,6 +603,11 @@ static inline void free_swap_and_cache(s
- 	free_swap_and_cache_nr(entry, 1);
+ 	swp_entry_t entry = pte_to_swp_entry(pte);
+ 	pte_t new = __swp_entry_to_pte(__swp_entry(swp_type(entry),
+-						   (swp_offset(entry) + 1)));
++						   (swp_offset(entry) + delta)));
+ 
+ 	if (pte_swp_soft_dirty(pte))
+ 		new = pte_swp_mksoft_dirty(new);
+@@ -234,6 +237,20 @@ static inline pte_t pte_next_swp_offset(
+ 	return new;
  }
  
-+static inline void swap_free(swp_entry_t entry)
++
++/**
++ * pte_next_swp_offset - Increment the swap entry offset field of a swap pte.
++ * @pte: The initial pte state; is_swap_pte(pte) must be true and
++ *	 non_swap_entry() must be false.
++ *
++ * Increments the swap offset, while maintaining all other fields, including
++ * swap type, and any swp pte bits. The resulting pte is returned.
++ */
++static inline pte_t pte_next_swp_offset(pte_t pte)
 +{
-+	swap_free_nr(entry, 1);
++	return pte_move_swp_offset(pte, 1);
 +}
 +
- #ifdef CONFIG_MEMCG
- static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
- {
---- a/kernel/power/swap.c~mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr
-+++ a/kernel/power/swap.c
-@@ -200,12 +200,11 @@ void free_all_swap_pages(int swap)
- 
- 	while ((node = swsusp_extents.rb_node)) {
- 		struct swsusp_extent *ext;
--		unsigned long offset;
- 
- 		ext = rb_entry(node, struct swsusp_extent, node);
- 		rb_erase(node, &swsusp_extents);
--		for (offset = ext->start; offset <= ext->end; offset++)
--			swap_free(swp_entry(swap, offset));
-+		swap_free_nr(swp_entry(swap, ext->start),
-+			     ext->end - ext->start + 1);
- 
- 		kfree(ext);
- 	}
---- a/mm/swapfile.c~mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr
-+++ a/mm/swapfile.c
-@@ -1343,19 +1343,6 @@ static void swap_entry_free(struct swap_
- 	swap_range_free(p, offset, 1);
- }
- 
--/*
-- * Caller has made sure that the swap device corresponding to entry
-- * is still around or has not been recycled.
-- */
--void swap_free(swp_entry_t entry)
--{
--	struct swap_info_struct *p;
--
--	p = _swap_info_get(entry);
--	if (p)
--		__swap_entry_free(p, entry);
--}
--
- static void cluster_swap_free_nr(struct swap_info_struct *sis,
- 		unsigned long offset, int nr_pages)
- {
-@@ -1385,6 +1372,10 @@ static void cluster_swap_free_nr(struct
- 	unlock_cluster_or_swap_info(sis, ci);
- }
- 
-+/*
-+ * Caller has made sure that the swap device corresponding to entry
-+ * is still around or has not been recycled.
-+ */
- void swap_free_nr(swp_entry_t entry, int nr_pages)
- {
- 	int nr;
+ /**
+  * swap_pte_batch - detect a PTE batch for a set of contiguous swap entries
+  * @start_ptep: Page table pointer for the first entry.
 _
 
 Patches currently in -mm which might be from v-songbaohua@oppo.com are
