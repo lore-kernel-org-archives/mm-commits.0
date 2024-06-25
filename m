@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD2414596E
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:58:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78CB24596E
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:58:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291534; cv=none; b=iO9uWFHQC0booWaJsNlNPTz7lEH0XzcwN2AUmcltAsnPhl3iL9rpDTAitrTr/bjkUzhi/HqsiTPFf2XgRLv55k3bCeiXGa9XPDvZTpqmPr/DA+CCFQ83JybQ04hSFMn4uef8EbHgkZSXYJp9b98x0nkNVocCAmC7sIaMNyyp1ec=
+	t=1719291535; cv=none; b=LUx87mhMAUxgI/1zOXHFSJ4korbRk5EQooQExUHG7z1cMPWc7eAJLbaahk9DXgDvKdScuLDc0yT/nxJ2VpJ4Y5d9+9jgocBCMQ1uuuWZvQYH/1WAj2KcCEwzb33yfYorcxodDWvZXFZchmc5LHtl2iDR5cnLfvcIr/h67Zllo5k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291534; c=relaxed/simple;
-	bh=bBVOEKzXPYf8qTVXBmufeOwJlX1oHDy6v2RnXGW/wP8=;
-	h=Date:To:From:Subject:Message-Id; b=Odpu2kPWow2DAyts8JCWVkfsgadk/eibZblvsVthAFF9lamhrTkiLIcZQQzIHHkWiJDHU2dwVBPc0SCN03Jg5TiRphTiP7y39/53+6yxwpTmQR8/izAPXZSuPpr2R1mcB9fghw6qrvqgc3MstjKRd/qmbNJoReOuGejFunX/D1s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GhNqzMLY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291535; c=relaxed/simple;
+	bh=lFKEhkyEzgugDdIENmV3m50DTeSct1Q7OJnokXvMiOU=;
+	h=Date:To:From:Subject:Message-Id; b=YjI/iFoRd7qUrWtlp6kBynXPj9jThyjqbQkPxKIXX9y9o7j6922931G7BmpJs5fBOs29BXEF4ZtJGDL+OIWfkE3Ogj8QVbUmSJWGyQSchm2AWZMTsQOe5wSE1dkUAVvuYqk/w6gft6/OYh9zWMaxC3vE0Ut1PLnqhxqrb82lI0g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gn9r2kXg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GhNqzMLY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28F2CC32782;
-	Tue, 25 Jun 2024 04:58:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gn9r2kXg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43C67C32782;
+	Tue, 25 Jun 2024 04:58:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291534;
-	bh=bBVOEKzXPYf8qTVXBmufeOwJlX1oHDy6v2RnXGW/wP8=;
+	s=korg; t=1719291535;
+	bh=lFKEhkyEzgugDdIENmV3m50DTeSct1Q7OJnokXvMiOU=;
 	h=Date:To:From:Subject:From;
-	b=GhNqzMLYCe+Fl6Rv4BuggwsV8japRUAYHSB7JCiYLz/Grkk1wyWO6avVCKGNE/c9e
-	 BBGOiffOW8QRH07CDKnFor+o5G5tN8RMa4xLEJkh5aXuGdkraz+3dn1a49ekKrfUa9
-	 tv5sH0YI9Kzai3gR8/LtxMQ1u6i8WbsXUujJ7L8k=
-Date: Mon, 24 Jun 2024 21:58:53 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,riel@surriel.com,mhocko@kernel.org,kernel-team@fb.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=gn9r2kXgSq/VCD/82cO+Um4rpdN7JHmhNBOb8x/HCELxATApLnUNmK/AMR09h9wI/
+	 WyErjfaslQ0XLpYZw/b/Mr3FbVTEbYGlYa/xtEUGquxAEHPGusTHQUbQ9lf5oPRsRY
+	 hkCJS6LhCCnSIaCcIwLTzUJidABl4+k1BKCR6VzI=
+Date: Mon, 24 Jun 2024 21:58:54 -0700
+To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,riel@surriel.com,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-restore-incremental-cgroup-iteration.patch removed from -mm tree
-Message-Id: <20240625045854.28F2CC32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-restore-incremental-cgroup-iteration-fix.patch removed from -mm tree
+Message-Id: <20240625045855.43C67C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,148 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmscan: restore incremental cgroup iteration
+     Subject: mm: vmscan: reset sc->priority on retry
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-restore-incremental-cgroup-iteration.patch
+     mm-vmscan-restore-incremental-cgroup-iteration-fix.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: restore incremental cgroup iteration
-Date: Tue, 14 May 2024 16:26:41 -0400
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: mm: vmscan: reset sc->priority on retry
+Date: Wed, 29 May 2024 08:49:11 -0700
 
-Currently, reclaim always walks the entire cgroup tree in order to ensure
-fairness between groups.  While overreclaim is limited in shrink_lruvec(),
-many of our systems have a sizable number of active groups, and an even
-bigger number of idle cgroups with cache left behind by previous jobs; the
-mere act of walking all these cgroups can impose significant latency on
-direct reclaimers.
+The commit 6be5e186fd65 ("mm: vmscan: restore incremental cgroup
+iteration") added a retry reclaim heuristic to iterate all the cgroups
+before returning an unsuccessful reclaim but missed to reset the
+sc->priority.  Let's fix it.
 
-In the past, we've used a save-and-restore iterator that enabled
-incremental tree walks over multiple reclaim invocations.  This ensured
-fairness, while keeping the work of individual reclaimers small.
-
-However, in edge cases with a lot of reclaim concurrency, individual
-reclaimers would sometimes not see enough of the cgroup tree to make
-forward progress and (prematurely) declare OOM.  Consequently we switched
-to comprehensive walks in 1ba6fc9af35b ("mm: vmscan: do not share cgroup
-iteration between reclaimers").
-
-To address the latency problem without bringing back the premature OOM
-issue, reinstate the shared iteration, but with a restart condition to do
-the full walk in the OOM case - similar to what we do for memory.low
-enforcement and active page protection.
-
-In the worst case, we do one more full tree walk before declaring
-OOM. But the vast majority of direct reclaim scans can then finish
-much quicker, while fairness across the tree is maintained:
-
-- Before this patch, we observed that direct reclaim always takes more
-  than 100us and most direct reclaim time is spent in reclaim cycles
-  lasting between 1ms and 1 second. Almost 40% of direct reclaim time
-  was spent on reclaim cycles exceeding 100ms.
-
-- With this patch, almost all page reclaim cycles last less than 10ms,
-  and a good amount of direct page reclaim finishes in under 100us. No
-  page reclaim cycles lasting over 100ms were observed anymore.
-
-The shared iterator state is maintaned inside the target cgroup, so
-fair and incremental walks are performed during both global reclaim
-and cgroup limit reclaim of complex subtrees.
-
-Link: https://lkml.kernel.org/r/20240514202641.2821494-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Reported-by: Rik van Riel <riel@surriel.com>
-Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Link: https://lkml.kernel.org/r/20240529154911.3008025-1-shakeel.butt@linux.dev
+Fixes: 6be5e186fd65 ("mm: vmscan: restore incremental cgroup iteration")
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reported-by: syzbot+17416257cb95200cba44@syzkaller.appspotmail.com
+Tested-by: syzbot+17416257cb95200cba44@syzkaller.appspotmail.com
 Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Facebook Kernel Team <kernel-team@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   42 ++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 40 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmscan.c~mm-vmscan-restore-incremental-cgroup-iteration
+--- a/mm/vmscan.c~mm-vmscan-restore-incremental-cgroup-iteration-fix
 +++ a/mm/vmscan.c
-@@ -128,6 +128,9 @@ struct scan_control {
- 	unsigned int memcg_low_reclaim:1;
- 	unsigned int memcg_low_skipped:1;
- 
-+	/* Shared cgroup tree walk failed, rescan the whole tree */
-+	unsigned int memcg_full_walk:1;
-+
- 	unsigned int hibernation_mode:1;
- 
- 	/* One of the zones is ready for compaction */
-@@ -5845,9 +5848,25 @@ static inline bool should_continue_recla
- static void shrink_node_memcgs(pg_data_t *pgdat, struct scan_control *sc)
- {
- 	struct mem_cgroup *target_memcg = sc->target_mem_cgroup;
-+	struct mem_cgroup_reclaim_cookie reclaim = {
-+		.pgdat = pgdat,
-+	};
-+	struct mem_cgroup_reclaim_cookie *partial = &reclaim;
- 	struct mem_cgroup *memcg;
- 
--	memcg = mem_cgroup_iter(target_memcg, NULL, NULL);
-+	/*
-+	 * In most cases, direct reclaimers can do partial walks
-+	 * through the cgroup tree, using an iterator state that
-+	 * persists across invocations. This strikes a balance between
-+	 * fairness and allocation latency.
-+	 *
-+	 * For kswapd, reliable forward progress is more important
-+	 * than a quick return to idle. Always do full walks.
-+	 */
-+	if (current_is_kswapd() || sc->memcg_full_walk)
-+		partial = NULL;
-+
-+	memcg = mem_cgroup_iter(target_memcg, NULL, partial);
- 	do {
- 		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
- 		unsigned long reclaimed;
-@@ -5897,7 +5916,12 @@ static void shrink_node_memcgs(pg_data_t
- 				   sc->nr_scanned - scanned,
- 				   sc->nr_reclaimed - reclaimed);
- 
--	} while ((memcg = mem_cgroup_iter(target_memcg, memcg, NULL)));
-+		/* If partial walks are allowed, bail once goal is reached */
-+		if (partial && sc->nr_reclaimed >= sc->nr_to_reclaim) {
-+			mem_cgroup_iter_break(target_memcg, memcg);
-+			break;
-+		}
-+	} while ((memcg = mem_cgroup_iter(target_memcg, memcg, partial)));
- }
- 
- static void shrink_node(pg_data_t *pgdat, struct scan_control *sc)
-@@ -6271,6 +6295,20 @@ retry:
- 		return 1;
- 
- 	/*
-+	 * In most cases, direct reclaimers can do partial walks
-+	 * through the cgroup tree to meet the reclaim goal while
-+	 * keeping latency low. Since the iterator state is shared
-+	 * among all direct reclaim invocations (to retain fairness
-+	 * among cgroups), though, high concurrency can result in
-+	 * individual threads not seeing enough cgroups to make
-+	 * meaningful forward progress. Avoid false OOMs in this case.
-+	 */
-+	if (!sc->memcg_full_walk) {
-+		sc->memcg_full_walk = 1;
-+		goto retry;
-+	}
-+
-+	/*
- 	 * We make inactive:active ratio decisions based on the node's
- 	 * composition of memory, but a restrictive reclaim_idx or a
- 	 * memory.low cgroup setting can exempt large amounts of
+@@ -6304,6 +6304,7 @@ retry:
+ 	 * meaningful forward progress. Avoid false OOMs in this case.
+ 	 */
+ 	if (!sc->memcg_full_walk) {
++		sc->priority = initial_priority;
+ 		sc->memcg_full_walk = 1;
+ 		goto retry;
+ 	}
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
 
