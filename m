@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7430C33C0
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96066145347
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293212; cv=none; b=aXOqszKB5FpqjJMpv6r+CLh3PducDYgEZ/mHdGLoUFpR7Fni1dM683dpL3grx0ST0NwbwJEQkuDv5rKdrU/FQMOvaLWcqXsKLrPdPx8HfuJrYSJG30MgufWABKP59KZSAFer3koxavPsIb1OsqtoQPOog3CvkrzwsKwF6ni8MMs=
+	t=1719293213; cv=none; b=qkNxM3/OufMCe7Gp7mKRsVjhh5tOMwvbhQUlcEZgy06isjzkSZxIMMsMgyVESLH9J6MCcEpi6u40n6eVKsmk/bpapw6JNnOfoHb7bux9lO5Kj/zuCD794Ns3JkA2Dy0s3Ii06AkM6yVE04L/38lw7IAhnmiW6zrCVwVzseg97Dg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719293212; c=relaxed/simple;
-	bh=m4ZqD3b82UjXtFet5UxRiV0hBCCxrTbs2FZ0LxsGu8A=;
-	h=Date:To:From:Subject:Message-Id; b=AcoaHuww9ahriEbr6JBvoNk1/YSQAKrCoSmoeCA+65yogJN0f+Vg1Lv3590swigfchbw0JKnYv3ArN4NvFh9sRKntY82MKw1vrKU+fPMPiQEWDEc+7djC+AyCzvWwm7UUQpy/MWgcvnm8tzp/X8Efn2oM6oFg2mCUtA2XI+uY5U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JZ6R0p9/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719293213; c=relaxed/simple;
+	bh=c6WJSoWaMkJv+9s147wc0dtqXLNg5d8t8f9hdW5UznE=;
+	h=Date:To:From:Subject:Message-Id; b=IbG4b8aR0W+cqYronyDm47aJ+UUyxSyY2liF2I8zfm1v4CeQq6BD8naq4QbLsT+4IpCf95aQnuRWm0EyClT5R+yLqIXD9y33yMmxISs2Z979pMRctgOHYf0V/H/L0pq+g8ldO0fDW5g78HX1f7UQARmm1+/L+UlcOaDIfgac/nQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0pjC54so; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JZ6R0p9/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A7BCC4AF09;
-	Tue, 25 Jun 2024 05:26:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0pjC54so"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6ADD0C32782;
+	Tue, 25 Jun 2024 05:26:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293212;
-	bh=m4ZqD3b82UjXtFet5UxRiV0hBCCxrTbs2FZ0LxsGu8A=;
+	s=korg; t=1719293213;
+	bh=c6WJSoWaMkJv+9s147wc0dtqXLNg5d8t8f9hdW5UznE=;
 	h=Date:To:From:Subject:From;
-	b=JZ6R0p9/eKfOOXaWQGpsthdRDTtX67AKOIojaTJ+XUUJp7aM048oPN2pwWCFIOsVC
-	 zbnId42aRYByFWaDe8YMBkHQTwMmdSWTsCt3qPY+cWxw67MjdtUaLOzbkWtOHkdPuM
-	 5TU+fBHMRnQqYbRFOvBEW3uaOMeIS/cx9bR7vV08=
-Date: Mon, 24 Jun 2024 22:26:51 -0700
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,dyoung@redhat.com,bhe@redhat.com,haowenchao22@gmail.com,akpm@linux-foundation.org
+	b=0pjC54solCXZsb0a6xs0CvrjY1sNIMGFvHC5NwGA8VtU7wNx8eSoXDK7yxjSK/2Pf
+	 Lcap8Jf3vNv1sX8ctrvn0BBZ1U9gQnKAVlJC8P8Zo9AffTH6AGXjTZyzZ6kSN/Va14
+	 grJA0NCUIA7P5Vb6ZuWOB0ksS+hT0Dbag+GvIero=
+Date: Mon, 24 Jun 2024 22:26:52 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,Parthiban.Veerasooran@microchip.com,joel@jms.id.au,jk@ozlabs.org,eajames@linux.ibm.com,christian.gromm@microchip.com,alistair@popple.id.au,adobriyan@gmail.com,christophe.jaillet@wanadoo.fr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] crash-remove-header-files-which-are-included-more-than-once.patch removed from -mm tree
-Message-Id: <20240625052652.4A7BCC4AF09@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fsi-occ-remove-usage-of-the-deprecated-ida_simple_xx-api.patch removed from -mm tree
+Message-Id: <20240625052653.6ADD0C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,100 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: crash: remove header files which are included more than once
+     Subject: fsi: occ: remove usage of the deprecated ida_simple_xx() API
 has been removed from the -mm tree.  Its filename was
-     crash-remove-header-files-which-are-included-more-than-once.patch
+     fsi-occ-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wenchao Hao <haowenchao22@gmail.com>
-Subject: crash: remove header files which are included more than once
-Date: Thu, 6 Jun 2024 17:14:27 +0800
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: fsi: occ: remove usage of the deprecated ida_simple_xx() API
+Date: Sat, 8 Jun 2024 16:34:18 +0200
 
-Following warning is reported, so remove these duplicated header
-including:
+Patch series "Remove usage of the deprecated ida_simple_xx() API".
 
-./kernel/crash_reserve.c: linux/kexec.h is included more than once.
+The series removes the *last* usages of the deprecated ida_simple_xx() API.
 
-This is just a clean code, no logic changed.
 
-Link: https://lkml.kernel.org/r/20240606091427.3512314-1-haowenchao22@gmail.com
-Signed-off-by: Wenchao Hao <haowenchao22@gmail.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+This patch (of 3):
+
+ida_alloc() and ida_free() should be preferred to the deprecated
+ida_simple_get() and ida_simple_remove().
+
+Note that the upper limit of ida_simple_get() is exclusive, but the one of
+ida_alloc_range() is inclusive.  So, this upper limit, INT_MAX, should
+have been changed to INT_MAX-1.
+
+But, it is likely that the INT_MAX 'idx' is valid that the max value passed
+to ida_simple_get() should have been 0.
+
+So, allow this INT_MAX 'idx' value now.
+
+Link: https://lkml.kernel.org/r/cover.1717855701.git.christophe.jaillet@wanadoo.fr
+Link: https://lkml.kernel.org/r/8e28b0c45fe8f28ca4475fe0027f8099c41259f0.1717855701.git.christophe.jaillet@wanadoo.fr
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Reviewed-by: Eddie James <eajames@linux.ibm.com>
+Cc: Alistar Popple <alistair@popple.id.au>
+Cc: Christian Gromm <christian.gromm@microchip.com>
+Cc: Jeremy Kerr <jk@ozlabs.org>
+Cc: Joel Stanley <joel@jms.id.au>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Parthiban Veerasooran <Parthiban.Veerasooran@microchip.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_reserve.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/fsi/fsi-occ.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
---- a/kernel/crash_reserve.c~crash-remove-header-files-which-are-included-more-than-once
-+++ a/kernel/crash_reserve.c
-@@ -13,7 +13,6 @@
- #include <linux/memory.h>
- #include <linux/cpuhotplug.h>
- #include <linux/memblock.h>
--#include <linux/kexec.h>
- #include <linux/kmemleak.h>
+--- a/drivers/fsi/fsi-occ.c~fsi-occ-remove-usage-of-the-deprecated-ida_simple_xx-api
++++ a/drivers/fsi/fsi-occ.c
+@@ -656,17 +656,16 @@ static int occ_probe(struct platform_dev
+ 		rc = of_property_read_u32(dev->of_node, "reg", &reg);
+ 		if (!rc) {
+ 			/* make sure we don't have a duplicate from dts */
+-			occ->idx = ida_simple_get(&occ_ida, reg, reg + 1,
+-						  GFP_KERNEL);
++			occ->idx = ida_alloc_range(&occ_ida, reg, reg,
++						   GFP_KERNEL);
+ 			if (occ->idx < 0)
+-				occ->idx = ida_simple_get(&occ_ida, 1, INT_MAX,
+-							  GFP_KERNEL);
++				occ->idx = ida_alloc_min(&occ_ida, 1,
++							 GFP_KERNEL);
+ 		} else {
+-			occ->idx = ida_simple_get(&occ_ida, 1, INT_MAX,
+-						  GFP_KERNEL);
++			occ->idx = ida_alloc_min(&occ_ida, 1, GFP_KERNEL);
+ 		}
+ 	} else {
+-		occ->idx = ida_simple_get(&occ_ida, 1, INT_MAX, GFP_KERNEL);
++		occ->idx = ida_alloc_min(&occ_ida, 1, GFP_KERNEL);
+ 	}
  
- #include <asm/page.h>
+ 	platform_set_drvdata(pdev, occ);
+@@ -680,7 +679,7 @@ static int occ_probe(struct platform_dev
+ 	rc = misc_register(&occ->mdev);
+ 	if (rc) {
+ 		dev_err(dev, "failed to register miscdevice: %d\n", rc);
+-		ida_simple_remove(&occ_ida, occ->idx);
++		ida_free(&occ_ida, occ->idx);
+ 		kvfree(occ->buffer);
+ 		return rc;
+ 	}
+@@ -719,7 +718,7 @@ static int occ_remove(struct platform_de
+ 	else
+ 		device_for_each_child(&pdev->dev, NULL, occ_unregister_of_child);
+ 
+-	ida_simple_remove(&occ_ida, occ->idx);
++	ida_free(&occ_ida, occ->idx);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from haowenchao22@gmail.com are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
 
