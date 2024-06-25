@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFEE8145338
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE4BB14431C
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:02:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291720; cv=none; b=HDWaTde831DPDUVuIhyCBoRkcXkIBynehn+7nJ5x4SXCIncY/23pTqzmV9ZkCoEhdvEHnhNCoU64pLKWzRaAXBnfLt1IwK9bnJM80bhwWGFUx3X4/qLwwxp4gfg82Dj8K+xEthBX+xMLt/cmeLm+DvLWO+E88R+TABxkHhxPEdA=
+	t=1719291722; cv=none; b=TzoRKKAFqaOBhJnr+8NSLSEXr8aZiJJxrZTjTxarzB7TSc89LIRenivkEiOiIKeTP2Ei19DwRvzJsaOnSdVPL6hRek6gO8EFHZ0Kl7dcJ8lTfR8Q6NEddpljhar8EsOsX/q1ink7OJeC76vZov+bkQJ2dQk/STOWGw9BWrjPVjk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291720; c=relaxed/simple;
-	bh=N1UX2ViLxu/Fq4PB8he3IA3fJa+n1jXrO7yiyVg11jY=;
-	h=Date:To:From:Subject:Message-Id; b=a/t1L12K4uXdV/ycXlbJVT6815kUlCFhiSK64yaN0xr6dSqt/pGnbBJSIhWCF3xYZz6a8U/sG/n2wIzUwC/Rv+PPZYprqPN1irnee8YPoC0YwZByLALxJwNFpYXUKVF2LgOumvYMo+5rKB2Mkzr9K5isKNEyDvA0V1ewE3aAvVo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zmB5eAUp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291722; c=relaxed/simple;
+	bh=Aa+d0zgHYw2he4tblzRsZ2Re2XV93c47LMlV8dP/Kmw=;
+	h=Date:To:From:Subject:Message-Id; b=al8c6/682/xRC4H2r3QjVAMjKZvyNjMNA/i+z/SrJ8qoKycD3/QXUtiS88TMzUkPFRqQR+scFsXWUTFBtwbW2SHJSQPr+6N3FZvv1Z8FlGJWDnILFH9EJAqlrsYRDkghogwPHAQQPDnnHIiGoXYDitGrnCHyzam3BDa1HMdNKlk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VP7dAPn5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zmB5eAUp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C06D5C32782;
-	Tue, 25 Jun 2024 05:01:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VP7dAPn5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52C1EC32782;
+	Tue, 25 Jun 2024 05:02:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291719;
-	bh=N1UX2ViLxu/Fq4PB8he3IA3fJa+n1jXrO7yiyVg11jY=;
+	s=korg; t=1719291722;
+	bh=Aa+d0zgHYw2he4tblzRsZ2Re2XV93c47LMlV8dP/Kmw=;
 	h=Date:To:From:Subject:From;
-	b=zmB5eAUp7hyTJOUCIHu6gQfgFm+4jhF1VisZ5H+P54VgJJSjwxKuJo5zCr0mgH3m3
-	 28lUR6LYLNqkrLhjmqJKu3wDegkDV4jADhMphGgJPCdLTMUHMnYg9CeMGJKLmls4yL
-	 Gir5OFk00TREpRYlFDA2uYS5186XVb2Y3G9Z00iU=
-Date: Mon, 24 Jun 2024 22:01:59 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,kirill.shutemov@linux.intel.com,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=VP7dAPn5f7zfRgtwqKhQ5+0R7Nw9VotPntuc8em/vse0z7MwsRU9QwuwROujBKpb/
+	 xvPGwFnG4cqNKlvvRCa4rLP6Jb1VEgTHyNuCv3V7mSBff9V6NUuh0AMp2yEmwdNalo
+	 wxyBMYFMHXRHnNJt0nu62ElNW+zcXiOQJTtmTV9k=
+Date: Mon, 24 Jun 2024 22:02:01 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,rostedt@goodmis.org,rakie.kim@sk.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,hyeongtak.ji@sk.com,gregory.price@memverge.com,42.hyeyoo@gmail.com,honggyu.kim@sk.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mm_initc-simplify-logic-of-deferred__pages.patch removed from -mm tree
-Message-Id: <20240625050159.C06D5C32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-make-alloc_demote_folio-externally-invokable-for-migration.patch removed from -mm tree
+Message-Id: <20240625050202.52C1EC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,145 +35,310 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mm_init.c: simplify logic of deferred_[init|free]_pages
+     Subject: mm: make alloc_demote_folio externally invokable for migration
 has been removed from the -mm tree.  Its filename was
-     mm-mm_initc-simplify-logic-of-deferred__pages.patch
+     mm-make-alloc_demote_folio-externally-invokable-for-migration.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/mm_init.c: simplify logic of deferred_[init|free]_pages
-Date: Wed, 12 Jun 2024 02:04:21 +0000
+From: Honggyu Kim <honggyu.kim@sk.com>
+Subject: mm: make alloc_demote_folio externally invokable for migration
+Date: Fri, 14 Jun 2024 12:00:03 +0900
 
-Function deferred_[init|free]_pages are only used in
-deferred_init_maxorder(), which makes sure the range to init/free is
-within MAX_ORDER_NR_PAGES size.
+Patch series "DAMON based tiered memory management for CXL memory", v6.
 
-With this knowledge, we can simplify these two functions. Since
+Introduction
+============
 
-  * only the first pfn could be IS_MAX_ORDER_ALIGNED()
+With the advent of CXL/PCIe attached DRAM, which will be called simply as
+CXL memory in this cover letter, some systems are becoming more
+heterogeneous having memory systems with different latency and bandwidth
+characteristics.  They are usually handled as different NUMA nodes in
+separate memory tiers and CXL memory is used as slow tiers because of its
+protocol overhead compared to local DRAM.
 
-Also since the range passed to deferred_[init|free]_pages is always from
-memblock.memory for those we have already allocated memmap to cover,
-pfn_valid() always return true.  Then we can remove related check.
+In this kind of systems, we need to be careful placing memory pages on
+proper NUMA nodes based on the memory access frequency.  Otherwise, some
+frequently accessed pages might reside on slow tiers and it makes
+performance degradation unexpectedly.  Moreover, the memory access
+patterns can be changed at runtime.
 
-[richard.weiyang@gmail.com: adjust function declaration indention per David]
-  Link: https://lkml.kernel.org/r/20240613114525.27528-1-richard.weiyang@gmail.com
-Link: https://lkml.kernel.org/r/20240612020421.31975-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
+To handle this problem, we need a way to monitor the memory access
+patterns and migrate pages based on their access temperature.  The
+DAMON(Data Access MONitor) framework and its DAMOS(DAMON-based Operation
+Schemes) can be useful features for monitoring and migrating pages.  DAMOS
+provides multiple actions based on DAMON monitoring results and it can be
+used for proactive reclaim, which means swapping cold pages out with
+DAMOS_PAGEOUT action, but it doesn't support migration actions such as
+demotion and promotion between tiered memory nodes.
+
+This series supports two new DAMOS actions; DAMOS_MIGRATE_HOT for
+promotion from slow tiers and DAMOS_MIGRATE_COLD for demotion from fast
+tiers.  This prevents hot pages from being stuck on slow tiers, which
+makes performance degradation and cold pages can be proactively demoted to
+slow tiers so that the system can increase the chance to allocate more hot
+pages to fast tiers.
+
+The DAMON provides various tuning knobs but we found that the proactive
+demotion for cold pages is especially useful when the system is running
+out of memory on its fast tier nodes.
+
+Our evaluation result shows that it reduces the performance slowdown
+compared to the default memory policy from 11% to 3~5% when the system
+runs under high memory pressure on its fast tier DRAM nodes.
+
+DAMON configuration
+===================
+
+The specific DAMON configuration doesn't have to be in the scope of this
+patch series, but some rough idea is better to be shared to explain the
+evaluation result.
+
+The DAMON provides many knobs for fine tuning but its configuration file
+is generated by HMSDK[3].  It includes gen_config.py script that generates
+a json file with the full config of DAMON knobs and it creates multiple
+kdamonds for each NUMA node when the DAMON is enabled so that it can run
+hot/cold based migration for tiered memory.
+
+Evaluation Workload
+===================
+
+The performance evaluation is done with redis[4], which is a widely used
+in-memory database and the memory access patterns are generated via
+YCSB[5].  We have measured two different workloads with zipfian and latest
+distributions but their configs are slightly modified to make memory usage
+higher and execution time longer for better evaluation.
+
+The idea of evaluation using these migrate_{hot,cold} actions covers
+system-wide memory management rather than partitioning hot/cold pages of a
+single workload.  The default memory allocation policy creates pages to
+the fast tier DRAM node first, then allocates newly created pages to the
+slow tier CXL node when the DRAM node has insufficient free space.  Once
+the page allocation is done then those pages never move between NUMA
+nodes.  It's not true when using numa balancing, but it is not the scope
+of this DAMON based tiered memory management support.
+
+If the working set of redis can be fit fully into the DRAM node, then the
+redis will access the fast DRAM only.  Since the performance of DRAM only
+is faster than partially accessing CXL memory in slow tiers, this
+environment is not useful to evaluate this patch series.
+
+To make pages of redis be distributed across fast DRAM node and slow CXL
+node to evaluate our migrate_{hot,cold} actions, we pre-allocate some cold
+memory externally using mmap and memset before launching redis-server.  We
+assumed that there are enough amount of cold memory in datacenters as
+TMO[6] and TPP[7] papers mentioned.
+
+The evaluation sequence is as follows.
+
+1. Turn on DAMON with DAMOS_MIGRATE_COLD action for DRAM node and
+   DAMOS_MIGRATE_HOT action for CXL node.  It demotes cold pages on DRAM
+   node and promotes hot pages on CXL node in a regular interval.
+2. Allocate a huge block of cold memory by calling mmap and memset at
+   the fast tier DRAM node, then make the process sleep to make the fast
+   tier has insufficient space for redis-server.
+3. Launch redis-server and load prebaked snapshot image, dump.rdb.  The
+   redis-server consumes 52GB of anon pages and 33GB of file pages, but
+   due to the cold memory allocated at 2, it fails allocating the entire
+   memory of redis-server on the fast tier DRAM node so it partially
+   allocates the remaining on the slow tier CXL node.  The ratio of
+   DRAM:CXL depends on the size of the pre-allocated cold memory.
+4. Run YCSB to make zipfian or latest distribution of memory accesses to
+   redis-server, then measure its execution time when it's completed.
+5. Repeat 4 over 50 times to measure the average execution time for each
+   run.
+6. Increase the cold memory size then repeat goes to 2.
+
+For each test at 4 took about a minute so repeating it 50 times almost
+took about 1 hour for each test with a specific cold memory from 440GB to
+500GB in 10GB increments for each evaluation.  So it took about more than
+10 hours for both zipfian and latest workloads to get the entire
+evaluation results.  Repeating the same test set multiple times doesn't
+show much difference so I think it might be enough to make the result
+reliable.
+
+Evaluation Results
+==================
+
+All the result values are normalized to DRAM-only execution time because
+the workload cannot be faster than DRAM-only unless the workload hits the
+peak bandwidth but our redis test doesn't go beyond the bandwidth limit.
+
+So the DRAM-only execution time is the ideal result without affected by
+the gap between DRAM and CXL performance difference.  The NUMA node
+environment is as follows.
+
+  node0 - local DRAM, 512GB with a CPU socket (fast tier)
+  node1 - disabled
+  node2 - CXL DRAM, 96GB, no CPU attached (slow tier)
+
+The following is the result of generating zipfian distribution to
+redis-server and the numbers are averaged by 50 times of execution.
+
+  1. YCSB zipfian distribution read only workload
+  memory pressure with cold memory on node0 with 512GB of local DRAM.
+  ====================+================================================+=========
+                      |       cold memory occupied by mmap and memset  |
+                      |   0G  440G  450G  460G  470G  480G  490G  500G |
+  ====================+================================================+=========
+  Execution time normalized to DRAM-only values                        | GEOMEAN
+  --------------------+------------------------------------------------+---------
+  DRAM-only           | 1.00     -     -     -     -     -     -     - | 1.00
+  CXL-only            | 1.19     -     -     -     -     -     -     - | 1.19
+  default             |    -  1.00  1.05  1.08  1.12  1.14  1.18  1.18 | 1.11
+  DAMON tiered        |    -  1.03  1.03  1.03  1.03  1.03  1.07 *1.05 | 1.04
+  DAMON lazy          |    -  1.04  1.03  1.04  1.05  1.06  1.06 *1.06 | 1.05
+  ====================+================================================+=========
+  CXL usage of redis-server in GB                                      | AVERAGE
+  --------------------+------------------------------------------------+---------
+  DRAM-only           |  0.0     -     -     -     -     -     -     - |  0.0
+  CXL-only            | 51.4     -     -     -     -     -     -     - | 51.4
+  default             |    -   0.6  10.6  20.5  30.5  40.5  47.6  50.4 | 28.7
+  DAMON tiered        |    -   0.6   0.5   0.4   0.7   0.8   7.1   5.6 |  2.2
+  DAMON lazy          |    -   0.5   3.0   4.5   5.4   6.4   9.4   9.1 |  5.5
+  ====================+================================================+=========
+
+Each test result is based on the execution environment as follows.
+
+  DRAM-only:           redis-server uses only local DRAM memory.
+  CXL-only:            redis-server uses only CXL memory.
+  default:             default memory policy(MPOL_DEFAULT).
+                       numa balancing disabled.
+  DAMON tiered:        DAMON enabled with DAMOS_MIGRATE_COLD for DRAM
+                       nodes and DAMOS_MIGRATE_HOT for CXL nodes.
+  DAMON lazy:          same as DAMON tiered, but turn on DAMON just
+                       before making memory access request via YCSB.
+
+The above result shows the "default" execution time goes up as the size of
+cold memory is increased from 440G to 500G because the more cold memory
+used, the more CXL memory is used for the target redis workload and this
+makes the execution time increase.
+
+However, "DAMON tiered" and other DAMON results show less slowdown because
+the DAMOS_MIGRATE_COLD action at DRAM node proactively demotes
+pre-allocated cold memory to CXL node and this free space at DRAM
+increases more chance to allocate hot or warm pages of redis-server to
+fast DRAM node.  Moreover, DAMOS_MIGRATE_HOT action at CXL node also
+promotes hot pages of redis-server to DRAM node actively.
+
+As a result, it makes more memory of redis-server stay in DRAM node
+compared to "default" memory policy and this makes the performance
+improvement.
+
+Please note that the result numbers of "DAMON tiered" and "DAMON lazy" at
+500G are marked with * stars, which means their test results are replaced
+with reproduced tests that didn't have OOM issue.
+
+That was needed because sometimes the test processes get OOM when DRAM has
+insufficient space.  The DAMOS_MIGRATE_HOT doesn't kick reclaim but just
+gives up migration when there is not enough space at DRAM side.  The
+problem happens when there is competition between normal allocation and
+migration and the migration is done before normal allocation, then the
+completely unrelated normal allocation can trigger reclaim, which incurs
+OOM.
+
+Because of this issue, I have also tested more cases with
+"demotion_enabled" flag enabled to make such reclaim doesn't trigger OOM,
+but just demote reclaimed pages.  The following test results show more
+tests with "kswapd" marked.
+
+  2. YCSB zipfian distribution read only workload (with demotion_enabled true)
+  memory pressure with cold memory on node0 with 512GB of local DRAM.
+  ====================+================================================+=========
+                      |       cold memory occupied by mmap and memset  |
+                      |   0G  440G  450G  460G  470G  480G  490G  500G |
+  ====================+================================================+=========
+  Execution time normalized to DRAM-only values                        | GEOMEAN
+  --------------------+------------------------------------------------+---------
+  DAMON tiered        |    -  1.03  1.03  1.03  1.03  1.03  1.07  1.05 | 1.04
+  DAMON lazy          |    -  1.04  1.03  1.04  1.05  1.06  1.06  1.06 | 1.05
+  DAMON tiered kswapd |    -  1.03  1.03  1.03  1.03  1.02  1.02  1.03 | 1.03
+  DAMON lazy kswapd   |    -  1.04  1.04  1.04  1.03  1.05  1.04  1.05 | 1.04
+  ====================+================================================+=========
+  CXL usage of redis-server in GB                                      | AVERAGE
+  --------------------+------------------------------------------------+---------
+  DAMON tiered        |    -   0.6   0.5   0.4   0.7   0.8   7.1   5.6 |  2.2
+  DAMON lazy          |    -   0.5   3.0   4.5   5.4   6.4   9.4   9.1 |  5.5
+  DAMON tiered kswapd |    -   0.0   0.0   0.4   0.5   0.1   0.8   1.0 |  0.4
+  DAMON lazy kswapd   |    -   4.2   4.6   5.3   1.7   6.8   8.1   5.8 |  5.2
+  ====================+================================================+=========
+
+Each test result is based on the exeuction environment as follows.
+
+  DAMON tiered:        same as before
+  DAMON lazy:          same as before
+  DAMON tiered kswapd: same as DAMON tiered, but turn on
+                       /sys/kernel/mm/numa/demotion_enabled to make
+                       kswapd or direct reclaim does demotion.
+  DAMON lazy kswapd:   same as DAMON lazy, but turn on
+                       /sys/kernel/mm/numa/demotion_enabled to make
+                       kswapd or direct reclaim does demotion.
+
+The "DAMON tiered kswapd" and "DAMON lazy kswapd" didn't trigger OOM at
+all unlike other tests because kswapd and direct reclaim from DRAM node
+can demote reclaimed pages to CXL node independently from DAMON actions
+and their results are slightly better than without having
+"demotion_enabled".
+
+In summary, the evaluation results show that DAMON memory management with
+DAMOS_MIGRATE_{HOT,COLD} actions reduces the performance slowdown compared
+to the "default" memory policy from 11% to 3~5% when the system runs with
+high memory pressure on its fast tier DRAM nodes.
+
+Having these DAMOS_MIGRATE_HOT and DAMOS_MIGRATE_COLD actions can make
+tiered memory systems run more efficiently under high memory pressures.
+
+
+This patch (of 7):
+
+The alloc_demote_folio can be used out of vmscan.c so it'd be better to
+remove static keyword from it.
+
+Link: https://lkml.kernel.org/r/20240614030010.751-1-honggyu.kim@sk.com
+Link: https://lkml.kernel.org/r/20240614030010.751-2-honggyu.kim@sk.com
+Signed-off-by: Honggyu Kim <honggyu.kim@sk.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Gregory Price <gregory.price@memverge.com>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Hyeongtak Ji <hyeongtak.ji@sk.com>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |   64 ++++++-------------------------------------------
- 1 file changed, 8 insertions(+), 56 deletions(-)
+ mm/internal.h |    1 +
+ mm/vmscan.c   |    3 +--
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/mm_init.c~mm-mm_initc-simplify-logic-of-deferred__pages
-+++ a/mm/mm_init.c
-@@ -1916,8 +1916,8 @@ unsigned long __init node_map_pfn_alignm
+--- a/mm/internal.h~mm-make-alloc_demote_folio-externally-invokable-for-migration
++++ a/mm/internal.h
+@@ -1093,6 +1093,7 @@ extern unsigned long  __must_check vm_mm
+         unsigned long, unsigned long);
+ 
+ extern void set_pageblock_order(void);
++struct folio *alloc_demote_folio(struct folio *src, unsigned long private);
+ unsigned long reclaim_pages(struct list_head *folio_list);
+ unsigned int reclaim_clean_pages_from_list(struct zone *zone,
+ 					    struct list_head *folio_list);
+--- a/mm/vmscan.c~mm-make-alloc_demote_folio-externally-invokable-for-migration
++++ a/mm/vmscan.c
+@@ -919,8 +919,7 @@ static void folio_check_dirty_writeback(
+ 		mapping->a_ops->is_dirty_writeback(folio, dirty, writeback);
  }
  
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
--static void __init deferred_free_range(unsigned long pfn,
--				       unsigned long nr_pages)
-+static void __init deferred_free_pages(unsigned long pfn,
-+		unsigned long nr_pages)
+-static struct folio *alloc_demote_folio(struct folio *src,
+-		unsigned long private)
++struct folio *alloc_demote_folio(struct folio *src, unsigned long private)
  {
- 	struct page *page;
- 	unsigned long i;
-@@ -1956,68 +1956,20 @@ static inline void __init pgdat_init_rep
- }
- 
- /*
-- * Returns true if page needs to be initialized or freed to buddy allocator.
-- *
-- * We check if a current MAX_PAGE_ORDER block is valid by only checking the
-- * validity of the head pfn.
-- */
--static inline bool __init deferred_pfn_valid(unsigned long pfn)
--{
--	if (IS_MAX_ORDER_ALIGNED(pfn) && !pfn_valid(pfn))
--		return false;
--	return true;
--}
--
--/*
-- * Free pages to buddy allocator. Try to free aligned pages in
-- * MAX_ORDER_NR_PAGES sizes.
-- */
--static void __init deferred_free_pages(unsigned long pfn,
--				       unsigned long end_pfn)
--{
--	unsigned long nr_free = 0;
--
--	for (; pfn < end_pfn; pfn++) {
--		if (!deferred_pfn_valid(pfn)) {
--			deferred_free_range(pfn - nr_free, nr_free);
--			nr_free = 0;
--		} else if (IS_MAX_ORDER_ALIGNED(pfn)) {
--			deferred_free_range(pfn - nr_free, nr_free);
--			nr_free = 1;
--		} else {
--			nr_free++;
--		}
--	}
--	/* Free the last block of pages to allocator */
--	deferred_free_range(pfn - nr_free, nr_free);
--}
--
--/*
-  * Initialize struct pages.  We minimize pfn page lookups and scheduler checks
-  * by performing it only once every MAX_ORDER_NR_PAGES.
-  * Return number of pages initialized.
-  */
--static unsigned long  __init deferred_init_pages(struct zone *zone,
--						 unsigned long pfn,
--						 unsigned long end_pfn)
-+static unsigned long __init deferred_init_pages(struct zone *zone,
-+		unsigned long pfn, unsigned long end_pfn)
- {
- 	int nid = zone_to_nid(zone);
--	unsigned long nr_pages = 0;
-+	unsigned long nr_pages = end_pfn - pfn;
- 	int zid = zone_idx(zone);
--	struct page *page = NULL;
-+	struct page *page = pfn_to_page(pfn);
- 
--	for (; pfn < end_pfn; pfn++) {
--		if (!deferred_pfn_valid(pfn)) {
--			page = NULL;
--			continue;
--		} else if (!page || IS_MAX_ORDER_ALIGNED(pfn)) {
--			page = pfn_to_page(pfn);
--		} else {
--			page++;
--		}
-+	for (; pfn < end_pfn; pfn++, page++)
- 		__init_single_page(page, pfn, zid, nid);
--		nr_pages++;
--	}
- 	return nr_pages;
- }
- 
-@@ -2096,7 +2048,7 @@ deferred_init_maxorder(u64 *i, struct zo
- 			break;
- 
- 		t = min(mo_pfn, epfn);
--		deferred_free_pages(spfn, t);
-+		deferred_free_pages(spfn, t - spfn);
- 
- 		if (mo_pfn <= epfn)
- 			break;
+ 	struct folio *dst;
+ 	nodemask_t *allowed_mask;
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from honggyu.kim@sk.com are
 
-mm-sparse-nr_pages-wont-be-0.patch
-mm-mm_initc-move-build-check-on-max_zonelists-out-of-ifdef.patch
-mm-page_alloc-fix-a-typo-in-comment-about-gfp-flag.patch
-mm-page_alloc-reword-the-comment-of-buddy_merge_likely.patch
 
