@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA02021A0C
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:30:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F9FA21A0C
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:31:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719289823; cv=none; b=Lr/vWefOeyaa6WhNRB1FOoM5gJxbtYnU30As92S8IUh4P6HwwAt++k1dflrESSnfqw5HMqjSOiB192EOIjubOVTtFHzDaWfbz5XgrbFRtgP3O1XG1DqqvUvDlQo3lfXsYJvOimqCsdtOkPThmNLGEbD8D/vkU2GX8FqKOodtChM=
+	t=1719289863; cv=none; b=MQvjbWmZq7vQE1TMsPXYsiXerNiSManY1lhH+Ycx4F1wmn8tAjoNVRAuFyVXXpPrH302u7fJBMBFopAe44wyLuakZ8qmrVkDsh2qOj6bihdXiJ9aZbhSTcR1qZplEWgnbnfWb6Oc7TpBYg9OsFS1Zu4tgoTdBkmiKqx3FlU1j8s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719289823; c=relaxed/simple;
-	bh=CMD/RxnJvKJcbI71OSqJHq35bUd6HWQ/5/LYpn/QCrQ=;
-	h=Date:To:From:Subject:Message-Id; b=BxzbiFDFTADMzYnN30SiyVV6MjF8PWGA8uSdldxkJihegpeDWaeD2czmk9uk3QrX5YA68Fg0GwfPTMKwp15bLuBXpqM6qd8mwDxPzXmpZfcuzBN0W8HQI6naXuGmvgzCvgU331BsPCBOBdooOnRZOViAXIog7NHnyrzdhqPUiIo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gP2gMJUP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719289863; c=relaxed/simple;
+	bh=KvlDxc9JPwlPtCZfcb60DoQih2JpQHjKk40YTlh4Lbc=;
+	h=Date:To:From:Subject:Message-Id; b=qfVQ+5fK0ll8Yo84nZ2vz+l+VM3S3WZj2+0yA6oNCElKF2maIygUBqSN6PlohsfiFC05TOKaRi4DzlSqV8kO761bepNu8CGlI/XF5C9gyhRGjN4434dtcOtBDRj+5kn2RpCZIM3Eha8n7/rCNfkQzr0uvki5/FBeLTeKNkNUXIo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DXUvQaLZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gP2gMJUP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BFB6C32782;
-	Tue, 25 Jun 2024 04:30:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DXUvQaLZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E64E8C32782;
+	Tue, 25 Jun 2024 04:31:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719289823;
-	bh=CMD/RxnJvKJcbI71OSqJHq35bUd6HWQ/5/LYpn/QCrQ=;
+	s=korg; t=1719289863;
+	bh=KvlDxc9JPwlPtCZfcb60DoQih2JpQHjKk40YTlh4Lbc=;
 	h=Date:To:From:Subject:From;
-	b=gP2gMJUPlXHXcDrOC1MhW1btzXG1oG6UNCMblds8AvSUO4wo3aDoDUFt17cK/b+u8
-	 XESuhqxeYYkz9DUKXGQquAeabs8Wj0mW4eXmkITLXEE9FeoqV67uMMCryUp4TW/lXC
-	 Bwd+foLtnwF0MvAzEyHXqGoMJGfGsCWnH6BT03cQ=
-Date: Mon, 24 Jun 2024 21:30:22 -0700
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,shuah@kernel.org,peterx@redhat.com,Liam.Howlett@oracle.com,kent.overstreet@linux.dev,kees@kernel.org,jeffxu@chromium.org,david@redhat.com,dalias@libc.org,brauner@kernel.org,axelrasmussen@google.com,avagin@google.com,jhubbard@nvidia.com,akpm@linux-foundation.org
+	b=DXUvQaLZAw5Av5hKhqMmz87C7vwcFJs9UcfudjVUdMNeOsdXUc27ylIWs43bHAHq8
+	 gyozmfjZqgs6LqJ6iTYO+yTwh3elfYV60TlXyF/y7TESM2zML+1krBu9pUwps2sL/B
+	 ylw2wpsak0fJ9CxqkiLTYx43h5I0USbyh2rMNL+M=
+Date: Mon, 24 Jun 2024 21:31:02 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,xiehuan09@gmail.com,willy@infradead.org,wangkefeng.wang@huawei.com,songmuchun@bytedance.com,sj@kernel.org,shy828301@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,maskray@google.com,libang.li@antgroup.com,fengwei.yin@intel.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix.patch removed from -mm tree
-Message-Id: <20240625043023.5BFB6C32782@smtp.kernel.org>
+Subject: [folded-merged] mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix.patch removed from -mm tree
+Message-Id: <20240625043102.E64E8C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix
+     Subject: mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix.patch
+     mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix.patch
 
-This patch was dropped because it was folded into selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items.patch
+This patch was dropped because it was folded into mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list.patch
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix
-Date: Tue, 18 Jun 2024 13:17:45 -0700
+From: Lance Yang <ioworker0@gmail.com>
+Subject: mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
+Date: Sat, 22 Jun 2024 18:00:57 +0800
 
-include the new mseal_helpers.h in Makefile dependencies
+minor changes suggested by David (https://lore.kernel.org/linux-mm/e7c0aff1-b690-4926-9a34-4e32c9f3faaa@redhat.com/)
+Lance
 
-
-Link: https://lkml.kernel.org/r/01685978-f6b1-4c24-8397-22cd3c24b91a@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Andrei Vagin <avagin@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Christian Brauner <brauner@kernel.org>
+Link: https://lkml.kernel.org/r/20240622100057.3352-1-ioworker0@gmail.com
+Signed-off-by: Lance Yang <ioworker0@gmail.com>
+Cc: Bang Li <libang.li@antgroup.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Fangrui Song <maskray@google.com>
+Cc: Jeff Xie <xiehuan09@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Peter Xu <peterx@redhat.com>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ mm/huge_memory.c |   10 ----------
+ mm/rmap.c        |    5 ++---
+ 2 files changed, 2 insertions(+), 13 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items-fix
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -2,6 +2,7 @@
- # Makefile for mm selftests
+--- a/mm/huge_memory.c~mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
++++ a/mm/huge_memory.c
+@@ -2693,21 +2693,11 @@ static bool __discard_anon_folio_pmd_loc
+ 					    unsigned long addr, pmd_t *pmdp,
+ 					    struct folio *folio)
+ {
+-	VM_WARN_ON_FOLIO(folio_test_swapbacked(folio), folio);
+-	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
+-
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	int ref_count, map_count;
+ 	pmd_t orig_pmd = *pmdp;
+ 	struct page *page;
  
- LOCAL_HDRS += $(selfdir)/mm/local_config.h $(top_srcdir)/mm/gup_test.h
-+LOCAL_HDRS += $(selfdir)/mm/mseal_helpers.h
+-	if (unlikely(!pmd_present(orig_pmd) || !pmd_trans_huge(orig_pmd)))
+-		return false;
+-
+-	page = pmd_page(orig_pmd);
+-	if (unlikely(page_folio(page) != folio))
+-		return false;
+-
+ 	if (folio_test_dirty(folio) || pmd_dirty(orig_pmd))
+ 		return false;
  
- include local_config.mk
+--- a/mm/rmap.c~mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list-fix
++++ a/mm/rmap.c
+@@ -1685,9 +1685,8 @@ static bool try_to_unmap_one(struct foli
  
+ 			if (flags & TTU_SPLIT_HUGE_PMD) {
+ 				/*
+-				 * We temporarily have to drop the PTL and start
+-				 * once again from that now-PTE-mapped page
+-				 * table.
++				 * We temporarily have to drop the PTL and
++				 * restart so we can process the PTE-mapped THP.
+ 				 */
+ 				split_huge_pmd_locked(vma, pvmw.address,
+ 						      pvmw.pmd, false, folio);
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from ioworker0@gmail.com are
 
-selftests-mm-mseal-self_elf-fix-missing-__nr_mseal.patch
-selftests-mm-mseal-self_elf-factor-out-test-macros-and-other-duplicated-items.patch
-selftests-mm-mseal-self_elf-rename-test_end_check-to-report_test_pass.patch
-selftests-mm-fix-vm_utilc-build-failures-add-snapshot-of-fsh.patch
-selftests-mm-kvm-mdwe-fixes-to-avoid-requiring-make-headers.patch
-selftests-mm-remove-local-__nr_-definitions.patch
-selftests-mqueue-fix-5-warnings-about-signed-unsigned-mismatches.patch
+mm-rmap-remove-duplicated-exit-code-in-pagewalk-loop.patch
+mm-rmap-integrate-pmd-mapped-folio-splitting-into-pagewalk-loop.patch
+mm-vmscan-avoid-split-lazyfree-thp-during-shrink_folio_list.patch
+mm-mlock-implement-folio_mlock_step-using-folio_pte_batch.patch
 
