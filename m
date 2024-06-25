@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5516C142E7A
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48DA713C691
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291691; cv=none; b=hi6RZadhvHprhZsUES1qpZUIhZET9cj+/mZxm/wyBMGoiICFwrjMYb1htdHdzJ1UPgDifu1UvmL87xkf8PEmlSJjiOdINNrmGnXCeGJZcFSxsAJhG47bfK9TkxRM1AJuHDHAIInWovogvzgPHxb4lvCwhc7D6am+zmLGb91ZnU4=
+	t=1719291692; cv=none; b=UcZfl5oaOJOWK4Hb6ssDNe80lVB+mxwvHI987Cr1y53ht3uag6uxku2FjN3c23pD3qG6SKV7rciCRTB940vUchXRhF6lKIAgwDquPpo9xByMkvfkPu+swSCGkfXgzQb47M36OmFo3BIhNpKu1xve7BCnqBiX1J71WdPjTdXEvYA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291691; c=relaxed/simple;
-	bh=hSrB9ZjDzldjCmv+j7q2ls3pusc3hLh6VK72KQIbBFA=;
-	h=Date:To:From:Subject:Message-Id; b=oKBuv5yxeFp5PwQwIUQeTLsxQVGFbm8THvGLchk2a7QF/gaOg9ygP/QhSyC/VaWYrTTGO/oLaflt1mB1zHyGAng/XYPqc8x71RIgpLBwrzwhoTvAoFacpqsh4F27aKX8ZpvODLDguJ0sr1dWxsELyy7Up0/cMofA9mTUYKj4HEI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vMmLy7W+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291692; c=relaxed/simple;
+	bh=8oF2Mb6IwwRMujE4/jAWSs1o/X2Oqu0/U4askggKynA=;
+	h=Date:To:From:Subject:Message-Id; b=odG1N+iv+xecqXEjYkh1DOzqvzhD8fGO0zkVmiH9Hpd/9H8XdIudJS3GapqzW0yI0Cq0Pi0GqX4tLf1gPdGFNUiV4RKpbS+/o0+v7hqFNOMKGL+mn27Y/jZ4//H9Rt6c+rh5R9T8H2wGajiC04H25aW42JUVqv5icUEsEAFrBFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tWl8bLsP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vMmLy7W+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB3F4C32782;
-	Tue, 25 Jun 2024 05:01:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tWl8bLsP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B298C32782;
+	Tue, 25 Jun 2024 05:01:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291691;
-	bh=hSrB9ZjDzldjCmv+j7q2ls3pusc3hLh6VK72KQIbBFA=;
+	s=korg; t=1719291692;
+	bh=8oF2Mb6IwwRMujE4/jAWSs1o/X2Oqu0/U4askggKynA=;
 	h=Date:To:From:Subject:From;
-	b=vMmLy7W+pNC0OLicCoEACr/NbEXC/6kRcVe4mcuPKm2Kx72AqInk8khbWUwsafMHa
-	 T1pskR+RR6ogTmPQOAt5qRZSnBBkIjNeBupwjVbJ07yq+9r9/Rcg07O7EscTo7Cu90
-	 aid9j8F7aEdOCxBzsWqq1mtAKs8QtvJbyzZBgzBo=
-Date: Mon, 24 Jun 2024 22:01:30 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,nphamcs@gmail.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,baohua@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
+	b=tWl8bLsPNUhrxv0uCi4UWbleUKrOKtiaJLHiII/IdGOKJSVz1xnZdYCzRuVUOJEjv
+	 BSGUDB5PmP9f7R7E4xMJULt5NhYZF33tW4cJWQozGE2HclHS/DGJ9STWKxOWPZhGmV
+	 bUtuRDLSoG0yXUFx2FFRZ6jCIVbCOIxYZ4qkgT6Q=
+Date: Mon, 24 Jun 2024 22:01:31 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,ryan.roberts@arm.com,libang.li@antgroup.com,fengwei.yin@intel.com,david@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-handle-incorrect-attempts-to-load-large-folios.patch removed from -mm tree
-Message-Id: <20240625050130.EB3F4C32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mlock-implement-folio_mlock_step-using-folio_pte_batch.patch removed from -mm tree
+Message-Id: <20240625050132.1B298C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,121 +35,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: zswap: handle incorrect attempts to load large folios
+     Subject: mm/mlock: implement folio_mlock_step() using folio_pte_batch()
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-handle-incorrect-attempts-to-load-large-folios.patch
+     mm-mlock-implement-folio_mlock_step-using-folio_pte_batch.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zswap: handle incorrect attempts to load large folios
-Date: Tue, 11 Jun 2024 02:45:16 +0000
+From: Lance Yang <ioworker0@gmail.com>
+Subject: mm/mlock: implement folio_mlock_step() using folio_pte_batch()
+Date: Tue, 11 Jun 2024 09:04:18 +0800
 
-Zswap does not support storing or loading large folios.  Until proper
-support is added, attempts to load large folios from zswap are a bug.
+Let's make folio_mlock_step() simply a wrapper around folio_pte_batch(),
+which will greatly reduce the cost of ptep_get() when scanning a range of
+contptes.
 
-For example, if a swapin fault observes that contiguous PTEs are pointing
-to contiguous swap entries and tries to swap them in as a large folio,
-swap_read_folio() will pass in a large folio to zswap_load(), but
-zswap_load() will only effectively load the first page in the folio.  If
-the first page is not in zswap, the folio will be read from disk, even
-though other pages may be in zswap.
-
-In both cases, this will lead to silent data corruption.  Proper support
-needs to be added before large folio swapins and zswap can work together.
-
-Looking at callers of swap_read_folio(), it seems like they are either
-allocated from __read_swap_cache_async() or do_swap_page() in the
-SWP_SYNCHRONOUS_IO path.  Both of which allocate order-0 folios, so
-everything is fine for now.
-
-However, there is ongoing work to add to support large folio swapins [1]. 
-To make sure new development does not break zswap (or get broken by
-zswap), add minimal handling of incorrect loads of large folios to zswap. 
-First, move the call folio_mark_uptodate() inside zswap_load().
-
-If a large folio load is attempted, and zswap was ever enabled on the
-system, return 'true' without calling folio_mark_uptodate().  This will
-prevent the folio from being read from disk, and will emit an IO error
-because the folio is not uptodate (e.g.  do_swap_fault() will return
-VM_FAULT_SIGBUS).  It may not be reliable recovery in all cases, but it is
-better than nothing.
-
-This was tested by hacking the allocation in __read_swap_cache_async() to
-use order 2 and __GFP_COMP.
-
-In the future, to handle this correctly, the swapin code should:
-
-(a) Fall back to order-0 swapins if zswap was ever used on the
-    machine, because compressed pages remain in zswap after it is
-    disabled.
-
-(b) Add proper support to swapin large folios from zswap (fully or
-    partially).
-
-Probably start with (a) then followup with (b).
-
-[1]https://lore.kernel.org/linux-mm/20240304081348.197341-6-21cnbao@gmail.com/
-
-Link: https://lkml.kernel.org/r/20240611024516.1375191-3-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Acked-by: Barry Song <baohua@kernel.org>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Link: https://lkml.kernel.org/r/20240611010418.70797-1-ioworker0@gmail.com
+Signed-off-by: Lance Yang <ioworker0@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Suggested-by: Barry Song <21cnbao@gmail.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Cc: Bang Li <libang.li@antgroup.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    1 -
- mm/zswap.c   |   12 ++++++++++++
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ mm/mlock.c |   19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
---- a/mm/page_io.c~mm-zswap-handle-incorrect-attempts-to-load-large-folios
-+++ a/mm/page_io.c
-@@ -515,7 +515,6 @@ void swap_read_folio(struct folio *folio
- 	delayacct_swapin_start();
+--- a/mm/mlock.c~mm-mlock-implement-folio_mlock_step-using-folio_pte_batch
++++ a/mm/mlock.c
+@@ -307,26 +307,15 @@ void munlock_folio(struct folio *folio)
+ static inline unsigned int folio_mlock_step(struct folio *folio,
+ 		pte_t *pte, unsigned long addr, unsigned long end)
+ {
+-	unsigned int count, i, nr = folio_nr_pages(folio);
+-	unsigned long pfn = folio_pfn(folio);
++	const fpb_t fpb_flags = FPB_IGNORE_DIRTY | FPB_IGNORE_SOFT_DIRTY;
++	unsigned int count = (end - addr) >> PAGE_SHIFT;
+ 	pte_t ptent = ptep_get(pte);
  
- 	if (zswap_load(folio)) {
--		folio_mark_uptodate(folio);
- 		folio_unlock(folio);
- 	} else if (data_race(sis->flags & SWP_FS_OPS)) {
- 		swap_read_folio_fs(folio, plug);
---- a/mm/zswap.c~mm-zswap-handle-incorrect-attempts-to-load-large-folios
-+++ a/mm/zswap.c
-@@ -1567,6 +1567,17 @@ bool zswap_load(struct folio *folio)
- 		return false;
+ 	if (!folio_test_large(folio))
+ 		return 1;
  
- 	/*
-+	 * Large folios should not be swapped in while zswap is being used, as
-+	 * they are not properly handled. Zswap does not properly load large
-+	 * folios, and a large folio may only be partially in zswap.
-+	 *
-+	 * Return true without marking the folio uptodate so that an IO error is
-+	 * emitted (e.g. do_swap_page() will sigbus).
-+	 */
-+	if (WARN_ON_ONCE(folio_test_large(folio)))
-+		return true;
-+
-+	/*
- 	 * When reading into the swapcache, invalidate our entry. The
- 	 * swapcache can be the authoritative owner of the page and
- 	 * its mappings, and the pressure that results from having two
-@@ -1600,6 +1611,7 @@ bool zswap_load(struct folio *folio)
- 		folio_mark_dirty(folio);
- 	}
- 
-+	folio_mark_uptodate(folio);
- 	return true;
+-	count = pfn + nr - pte_pfn(ptent);
+-	count = min_t(unsigned int, count, (end - addr) >> PAGE_SHIFT);
+-
+-	for (i = 0; i < count; i++, pte++) {
+-		pte_t entry = ptep_get(pte);
+-
+-		if (!pte_present(entry))
+-			break;
+-		if (pte_pfn(entry) - pfn >= nr)
+-			break;
+-	}
+-
+-	return i;
++	return folio_pte_batch(folio, addr, pte, ptent, count, fpb_flags, NULL,
++			       NULL, NULL);
  }
  
+ static inline bool allow_mlock_munlock(struct folio *folio,
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from ioworker0@gmail.com are
 
 
