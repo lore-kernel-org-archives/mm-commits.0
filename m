@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68CFD17995B
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 18:06:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F13317B516
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 18:29:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719338807; cv=none; b=I5yPgldpLIoc9WF7uToPIQeXykienpc0IHgiHSoMWU1imQx9d2mKql0j3zVn8VS58nHh6nhluTPWdDX7SH7vKtUj4WEGolIwWKxoZczk8r6cLeM2De0J9KqY/lUCZlnF68/4IFuSXxCIQ8Nuoqoaqm7RPZNJ5sQOkjJ8QX6qRrY=
+	t=1719340174; cv=none; b=l+d+RV1vMgCWGzrkR9Cnx4EMGxTTaeUF6AWJH0m7iRGcaL/PjLXuawqE5/7pytjSDsvcnB7IzahjJV0cH2RVxOWeQgjQqDmdsb59UZXM/7K+rWsxZgBPOFem72qApGg4N56RnUMeLfNgZvdgnQBAEC5RNqDMZzMOGB4Xp5eXYHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719338807; c=relaxed/simple;
-	bh=Fa0w+zIh4YROXRmlZTD2Rha/3h0l6dTl8pPkYn4FQRA=;
-	h=Date:To:From:Subject:Message-Id; b=QpcFdrVpjBd2GLlHthGstRAf8U1fyDBvJjQF3I5ycyzjJo92v395x2WKLI/SP7VS68kn7V95iEnmA7eQv6oFW6Byak1rFozOVgxxXYSUUDZt02BVZ3ujp8JGYOoTHuUScTy4jVjOxWipJKuUy7lij2hXvAyyfP1uWKjJAU6KOSM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kWwQeZPS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719340174; c=relaxed/simple;
+	bh=IcY/TQ7uNfnfr+JOhnyeWAR+Oyrq9YNTLloDYwL0Mvc=;
+	h=Date:To:From:Subject:Message-Id; b=NX+aH+87tdv2yu9PiIchIB9MPAapwylLbKvORKG5TcXsAPUQQTMobSeKwbeGZ/SfcUf4PsucMK0uHrXTW+LXwiUSKqPLKjXjQ51rJqoARa4JcWcWWia11abBs5vHHE8LYA85anK8zjVYfKzLKBXLR2TiMnifC2amuUlPLqQiqPc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z2CzeIZZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kWwQeZPS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7F46C32781;
-	Tue, 25 Jun 2024 18:06:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z2CzeIZZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4D5AC32781;
+	Tue, 25 Jun 2024 18:29:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719338807;
-	bh=Fa0w+zIh4YROXRmlZTD2Rha/3h0l6dTl8pPkYn4FQRA=;
+	s=korg; t=1719340173;
+	bh=IcY/TQ7uNfnfr+JOhnyeWAR+Oyrq9YNTLloDYwL0Mvc=;
 	h=Date:To:From:Subject:From;
-	b=kWwQeZPSRrgwMeY5NPR7m+53CbVWAXepNcTeEUZL6fpHz1doKsaEI967ghxnKUCpm
-	 yYchlp6NHKZqW9SrotEgoQra4Whupt3goq4fCb11WT7sjb/WpY7Wckpk7GLCIT7pMD
-	 UswlC0htF/CqrvhgbwqI+1ccfcbrBj6WNmAFmctU=
-Date: Tue, 25 Jun 2024 11:06:46 -0700
-To: mm-commits@vger.kernel.org,wei.liu@kernel.org,wangkefeng.wang@huawei.com,vigneshr@ti.com,ubizjak@gmail.com,tzimmermann@suse.de,tony.luck@intel.com,tglx@linutronix.de,senozhatsky@chromium.org,rostedt@goodmis.org,richard@nod.at,pmladek@suse.com,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mripard@kernel.org,mpe@ellerman.id.au,miquel.raynal@bootlin.com,maarten.lankhorst@linux.intel.com,kys@microsoft.com,kees@kernel.org,john.ogness@linutronix.de,jani.nikula@intel.com,haiyangz@microsoft.com,gregkh@linuxfoundation.org,gpiccoli@igalia.com,decui@microsoft.com,daniel@ffwll.ch,christophe.leroy@csgroup.eu,airlied@gmail.com,jfalempe@redhat.com,akpm@linux-foundation.org
+	b=Z2CzeIZZ1KTgA121L24r/2lwzcHclIic7lkfbNQilqak7D6Vy9COf4EuawZm4QfrM
+	 kTbYIZ4G6J3DvVMvWK2lGaZvG4x4SeyjFz1JpR90/KEO8Zm1ny/VHRrBYXpZ9LnqJK
+	 luGN9Bi5svV29NQvEnqP7J6HImtbCPqBsZnpFYLU=
+Date: Tue, 25 Jun 2024 11:29:33 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,josef@toxicpanda.com,jack@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + printk-add-a-short-description-string-to-kmsg_dump.patch added to mm-nonmm-unstable branch
-Message-Id: <20240625180646.E7F46C32781@smtp.kernel.org>
+Subject: + readahead-make-sure-sync-readahead-reads-needed-page.patch added to mm-unstable branch
+Message-Id: <20240625182933.A4D5AC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: printk: add a short description string to kmsg_dump()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     printk-add-a-short-description-string-to-kmsg_dump.patch
+     Subject: readahead: make sure sync readahead reads needed page
+has been added to the -mm mm-unstable branch.  Its filename is
+     readahead-make-sure-sync-readahead-reads-needed-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/printk-add-a-short-description-string-to-kmsg_dump.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/readahead-make-sure-sync-readahead-reads-needed-page.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,222 +58,133 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jocelyn Falempe <jfalempe@redhat.com>
-Subject: printk: add a short description string to kmsg_dump()
-Date: Tue, 25 Jun 2024 14:39:29 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: readahead: make sure sync readahead reads needed page
+Date: Tue, 25 Jun 2024 12:18:51 +0200
 
-kmsg_dump doesn't forward the panic reason string to the kmsg_dumper
-callback.
+Patch series "mm: Fix various readahead quirks".
 
-This patch adds a new parameter "const char *desc" to the kmsg_dumper
-dump() callback, and update all drivers that are using it.
+When we were internally testing performance of recent kernels, we have
+noticed quite variable performance of readahead arising from various
+quirks in readahead code.  So I went on a cleaning spree there.  This is a
+batch of patches resulting out of that.  A quick testing in my test VM
+with the following fio job file:
 
-To avoid updating all kmsg_dump() call, it adds a kmsg_dump_desc()
-function and a macro for backward compatibility.
+[global]
+direct=0
+ioengine=sync
+invalidate=1
+blocksize=4k
+size=10g
+readwrite=read
 
-I've written this for drm_panic, but it can be useful for other
-kmsg_dumper.  It allows to see the panic reason, like "sysrq triggered
-crash" or "VFS: Unable to mount root fs on xxxx" on the drm panic screen.
+[reader]
+numjobs=1
 
-Link: https://lkml.kernel.org/r/20240625123954.211184-1-jfalempe@redhat.com
-Signed-off-by: Jocelyn Falempe <jfalempe@redhat.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Dexuan Cui <decui@microsoft.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Guilherme G. Piccoli <gpiccoli@igalia.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Jani Nikula <jani.nikula@intel.com>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Miquel Raynal <miquel.raynal@bootlin.com>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Uros Bizjak <ubizjak@gmail.com>
-Cc: Vignesh Raghavendra <vigneshr@ti.com>
-Cc: Wei Liu <wei.liu@kernel.org>
+shows that this patch series improves the throughput from variable one in
+310-340 MB/s range to rather stable one at 350 MB/s.  As a side effect
+these cleanups also address the issue noticed by Bruz Zhang [1].
+
+[1] https://lore.kernel.org/all/20240618114941.5935-1-zhangpengpeng0808@gmail.com/
+
+
+This patch (of 10):
+
+page_cache_sync_ra() is called when a folio we want to read is not in the
+page cache.  It is expected that it creates the folio (and perhaps the
+following folios as well) and submits reads for them unless some error
+happens.  However if index == ra->start + ra->size, ondemand_readahead()
+will treat the call as another async readahead hit.  Thus ra->start will
+be advanced and we create pages and queue reads from ra->start + ra->size
+further.  Consequentially the page at 'index' is not created and
+filemap_get_pages() has to always go through filemap_create_folio() path.
+
+This behavior has particularly unfortunate consequences when we have two
+IO threads sequentially reading from a shared file (as is the case when
+NFS serves sequential reads).  In that case what can happen is:
+
+suppose ra->size == ra->async_size == 128, ra->start = 512
+
+T1					T2
+reads 128 pages at index 512
+  - hits async readahead mark
+    filemap_readahead()
+      ondemand_readahead()
+        if (index == expected ...)
+	  ra->start = 512 + 128 = 640
+          ra->size = 128
+	  ra->async_size = 128
+	page_cache_ra_order()
+	  blocks in ra_alloc_folio()
+					reads 128 pages at index 640
+					  - no page found
+					  page_cache_sync_readahead()
+					    ondemand_readahead()
+					      if (index == expected ...)
+						ra->start = 640 + 128 = 768
+						ra->size = 128
+						ra->async_size = 128
+					    page_cache_ra_order()
+					      submits reads from 768
+					  - still no page found at index 640
+					    filemap_create_folio()
+					  - goes on to index 641
+					  page_cache_sync_readahead()
+					    ondemand_readahead()
+					      - founds ra is confused,
+					        trims is to small size
+  	  finds pages were already inserted
+
+And as a result read performance suffers.
+
+Fix the problem by triggering async readahead case in ondemand_readahead()
+only if we are calling the function because we hit the readahead marker. 
+In any other case we need to read the folio at 'index' and thus we cannot
+really use the current ra state.
+
+Note that the above situation could be viewed as a special case of
+file->f_ra state corruption.  In fact two thread reading using the shared
+file can also seemingly corrupt file->f_ra in interesting ways due to
+concurrent access.  I never saw that in practice and the fix is going to
+be much more complex so for now at least fix this practical problem while
+we ponder about the theoretically correct solution.
+
+Link: https://lkml.kernel.org/r/20240625100859.15507-1-jack@suse.cz
+Link: https://lkml.kernel.org/r/20240625101909.12234-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Josef Bacik <josef@toxicpanda.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/nvram_64.c             |    3 ++-
- arch/powerpc/platforms/powernv/opal-kmsg.c |    3 ++-
- drivers/gpu/drm/drm_panic.c                |    3 ++-
- drivers/hv/hv_common.c                     |    3 ++-
- drivers/mtd/mtdoops.c                      |    3 ++-
- fs/pstore/platform.c                       |    3 ++-
- include/linux/kmsg_dump.h                  |   13 ++++++++++---
- kernel/panic.c                             |    2 +-
- kernel/printk/printk.c                     |    8 +++++---
- 9 files changed, 28 insertions(+), 13 deletions(-)
+ mm/readahead.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/powerpc/kernel/nvram_64.c~printk-add-a-short-description-string-to-kmsg_dump
-+++ a/arch/powerpc/kernel/nvram_64.c
-@@ -643,7 +643,8 @@ void __init nvram_init_oops_partition(in
-  * partition.  If that's too much, go back and capture uncompressed text.
-  */
- static void oops_to_nvram(struct kmsg_dumper *dumper,
--			  enum kmsg_dump_reason reason)
-+			  enum kmsg_dump_reason reason,
-+			  const char *desc)
- {
- 	struct oops_log_info *oops_hdr = (struct oops_log_info *)oops_buf;
- 	static unsigned int oops_count = 0;
---- a/arch/powerpc/platforms/powernv/opal-kmsg.c~printk-add-a-short-description-string-to-kmsg_dump
-+++ a/arch/powerpc/platforms/powernv/opal-kmsg.c
-@@ -20,7 +20,8 @@
-  * message, it just ensures that OPAL completely flushes the console buffer.
-  */
- static void kmsg_dump_opal_console_flush(struct kmsg_dumper *dumper,
--				     enum kmsg_dump_reason reason)
-+				     enum kmsg_dump_reason reason,
-+				     const char *desc)
- {
- 	/*
- 	 * Outside of a panic context the pollers will continue to run,
---- a/drivers/gpu/drm/drm_panic.c~printk-add-a-short-description-string-to-kmsg_dump
-+++ a/drivers/gpu/drm/drm_panic.c
-@@ -488,7 +488,8 @@ static struct drm_plane *to_drm_plane(st
- 	return container_of(kd, struct drm_plane, kmsg_panic);
- }
- 
--static void drm_panic(struct kmsg_dumper *dumper, enum kmsg_dump_reason reason)
-+static void drm_panic(struct kmsg_dumper *dumper, enum kmsg_dump_reason reason,
-+		      const char *desc)
- {
- 	struct drm_plane *plane = to_drm_plane(dumper);
- 
---- a/drivers/hv/hv_common.c~printk-add-a-short-description-string-to-kmsg_dump
-+++ a/drivers/hv/hv_common.c
-@@ -207,7 +207,8 @@ static int hv_die_panic_notify_crash(str
-  * buffer and call into Hyper-V to transfer the data.
-  */
- static void hv_kmsg_dump(struct kmsg_dumper *dumper,
--			 enum kmsg_dump_reason reason)
-+			 enum kmsg_dump_reason reason,
-+			 const char *desc)
- {
- 	struct kmsg_dump_iter iter;
- 	size_t bytes_written;
---- a/drivers/mtd/mtdoops.c~printk-add-a-short-description-string-to-kmsg_dump
-+++ a/drivers/mtd/mtdoops.c
-@@ -298,7 +298,8 @@ static void find_next_position(struct mt
- }
- 
- static void mtdoops_do_dump(struct kmsg_dumper *dumper,
--			    enum kmsg_dump_reason reason)
-+			    enum kmsg_dump_reason reason,
-+			    const char *desc)
- {
- 	struct mtdoops_context *cxt = container_of(dumper,
- 			struct mtdoops_context, dump);
---- a/fs/pstore/platform.c~printk-add-a-short-description-string-to-kmsg_dump
-+++ a/fs/pstore/platform.c
-@@ -275,7 +275,8 @@ void pstore_record_init(struct pstore_re
-  * end of the buffer.
-  */
- static void pstore_dump(struct kmsg_dumper *dumper,
--			enum kmsg_dump_reason reason)
-+			enum kmsg_dump_reason reason,
-+			const char *desc)
- {
- 	struct kmsg_dump_iter iter;
- 	unsigned long	total = 0;
---- a/include/linux/kmsg_dump.h~printk-add-a-short-description-string-to-kmsg_dump
-+++ a/include/linux/kmsg_dump.h
-@@ -49,13 +49,15 @@ struct kmsg_dump_iter {
-  */
- struct kmsg_dumper {
- 	struct list_head list;
--	void (*dump)(struct kmsg_dumper *dumper, enum kmsg_dump_reason reason);
-+	void (*dump)(struct kmsg_dumper *dumper,
-+		     enum kmsg_dump_reason reason,
-+		     const char *desc);
- 	enum kmsg_dump_reason max_reason;
- 	bool registered;
- };
- 
- #ifdef CONFIG_PRINTK
--void kmsg_dump(enum kmsg_dump_reason reason);
-+void kmsg_dump_desc(enum kmsg_dump_reason reason, const char *desc);
- 
- bool kmsg_dump_get_line(struct kmsg_dump_iter *iter, bool syslog,
- 			char *line, size_t size, size_t *len);
-@@ -71,7 +73,7 @@ int kmsg_dump_unregister(struct kmsg_dum
- 
- const char *kmsg_dump_reason_str(enum kmsg_dump_reason reason);
- #else
--static inline void kmsg_dump(enum kmsg_dump_reason reason)
-+static inline void kmsg_dump_desc(enum kmsg_dump_reason reason, const char *desc)
- {
- }
- 
-@@ -107,4 +109,9 @@ static inline const char *kmsg_dump_reas
- }
- #endif
- 
-+static inline void kmsg_dump(enum kmsg_dump_reason reason)
-+{
-+	kmsg_dump_desc(reason, NULL);
-+}
-+
- #endif /* _LINUX_KMSG_DUMP_H */
---- a/kernel/panic.c~printk-add-a-short-description-string-to-kmsg_dump
-+++ a/kernel/panic.c
-@@ -376,7 +376,7 @@ void panic(const char *fmt, ...)
- 
- 	panic_print_sys_info(false);
- 
--	kmsg_dump(KMSG_DUMP_PANIC);
-+	kmsg_dump_desc(KMSG_DUMP_PANIC, buf);
- 
- 	/*
- 	 * If you doubt kdump always works fine in any situation,
---- a/kernel/printk/printk.c~printk-add-a-short-description-string-to-kmsg_dump
-+++ a/kernel/printk/printk.c
-@@ -4126,14 +4126,16 @@ const char *kmsg_dump_reason_str(enum km
- EXPORT_SYMBOL_GPL(kmsg_dump_reason_str);
- 
- /**
-- * kmsg_dump - dump kernel log to kernel message dumpers.
-+ * kmsg_dump_desc - dump kernel log to kernel message dumpers.
-  * @reason: the reason (oops, panic etc) for dumping
-+ * @desc: a short string to describe what caused the panic or oops. Can be NULL
-+ * if no additional description is available.
-  *
-  * Call each of the registered dumper's dump() callback, which can
-  * retrieve the kmsg records with kmsg_dump_get_line() or
-  * kmsg_dump_get_buffer().
-  */
--void kmsg_dump(enum kmsg_dump_reason reason)
-+void kmsg_dump_desc(enum kmsg_dump_reason reason, const char *desc)
- {
- 	struct kmsg_dumper *dumper;
- 
-@@ -4153,7 +4155,7 @@ void kmsg_dump(enum kmsg_dump_reason rea
- 			continue;
- 
- 		/* invoke dumper which will iterate over records */
--		dumper->dump(dumper, reason);
-+		dumper->dump(dumper, reason, desc);
- 	}
- 	rcu_read_unlock();
- }
+--- a/mm/readahead.c~readahead-make-sure-sync-readahead-reads-needed-page
++++ a/mm/readahead.c
+@@ -580,7 +580,7 @@ static void ondemand_readahead(struct re
+ 	 */
+ 	expected = round_down(ra->start + ra->size - ra->async_size,
+ 			1UL << order);
+-	if (index == expected || index == (ra->start + ra->size)) {
++	if (folio && index == expected) {
+ 		ra->start += ra->size;
+ 		ra->size = get_next_ra_size(ra, max_pages);
+ 		ra->async_size = ra->size;
 _
 
-Patches currently in -mm which might be from jfalempe@redhat.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-printk-add-a-short-description-string-to-kmsg_dump.patch
+revert-mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch
+mm-avoid-overflows-in-dirty-throttling-logic.patch
+readahead-make-sure-sync-readahead-reads-needed-page.patch
+filemap-fix-page_cache_next_miss-when-no-hole-found.patch
+readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch
+readahead-drop-pointless-index-from-force_page_cache_ra.patch
+readahead-drop-index-argument-of-page_cache_async_readahead.patch
+readahead-drop-dead-code-in-page_cache_ra_order.patch
+readahead-drop-dead-code-in-ondemand_readahead.patch
+readahead-disentangle-async-and-sync-readahead.patch
+readahead-fold-try_context_readahead-into-its-single-caller.patch
+readahead-simplify-gotos-in-page_cache_sync_ra.patch
 
