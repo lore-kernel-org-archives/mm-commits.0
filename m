@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDF81142E76
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:25:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAE27142E76
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:25:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293156; cv=none; b=CU0afNti3rm/yGqDVH68l+SlkPMl/mdTaaDxsJMmqHlcFDhipuMtNEBWdZz5jQOX+bPa6WLPe9kEqNIMaNyB0OrlloVwOfXFmAaXiY/nw861KbByf3fbCgZJY/aIX44wTqY9Ejnuon2GOLi1PHj9ySQi02kjbWohh9yZLW3xYuk=
+	t=1719293158; cv=none; b=tl4LiOn5Al+8dFCkzwtuGK9pOY/byflYTsydgys5giynTdLVO6AnkkUkR/jus4oEhEOtrFUC3IXLt3N8dNzUW+giJ5DwXOYRI07g3LTmC74eB8aJrv6IROjwkYeq1NM1R15KLiYXpVamjxhJHJNpUnFN4hNLq4saIMzUSMPlugk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719293156; c=relaxed/simple;
-	bh=lkkruxwp0F0/Ytf+7UMeHhZd9fPdq2a6WoH2cgo3qUs=;
-	h=Date:To:From:Subject:Message-Id; b=tzsgoFwMmVo3gF26S+Fqr5dUMPiS2gpzl3yPxck0Wckg7Ix07sLDvXRcVUNdyAM2sem5NhGdHpAEsJ+P5Jp7JTdAei61WzU5ih8xid5MIyTsAsJQiSNdk3smjQQvEIPk3Y5Nm6szP9uhzoPquMSGyxGWjhbwvf/WH7P77n5nl+U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=of8AgS6e; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719293158; c=relaxed/simple;
+	bh=BG+Zxo/7oBAnNSsIj+u8xe7BuTGKjrkRE6kOlNl1L9Y=;
+	h=Date:To:From:Subject:Message-Id; b=cTFyy5NQwBEFZXyCYY6bw4Rl+GqGTvRp93UXXhc4TtJKORoZ2wjPXd/2HQdfxC6xH+9ad/DcUHNqSdTNd1genzE3V4lb+obtZcYEjC+QF52h9RRLwFKOEFX6Owbw41ltZ9R4vq4Dvk8NltdqRhw56lAvk6CbNqC57BFLJveN2fI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xhmDMrUM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="of8AgS6e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 730D6C32782;
-	Tue, 25 Jun 2024 05:25:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xhmDMrUM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD772C32789;
+	Tue, 25 Jun 2024 05:25:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293156;
-	bh=lkkruxwp0F0/Ytf+7UMeHhZd9fPdq2a6WoH2cgo3qUs=;
+	s=korg; t=1719293157;
+	bh=BG+Zxo/7oBAnNSsIj+u8xe7BuTGKjrkRE6kOlNl1L9Y=;
 	h=Date:To:From:Subject:From;
-	b=of8AgS6efPDM71PgRfCO5yEe77nH2BWBQ6Ux9QUZ6KOCVMdtpCbttglK7dpoqWc3d
-	 P5YeDPjNEdORHfDfkqxfFFYa638PgJdANcrokhYpUJelKm9f0ywYi74JIPJXHyswZ1
-	 8BeHnYT7zRbp6s38pHgHiRG2647On1w3vh+GmCe4=
-Date: Mon, 24 Jun 2024 22:25:55 -0700
-To: mm-commits@vger.kernel.org,weihsinyeh168@gmail.com,akpm@linux-foundation.org
+	b=xhmDMrUMsn3I+zIOyNpGUtyTz/shUMKsfUXg8CMmWrqGnArlCZDW7HPeFdJhdrVKM
+	 vVw5BA/uU/bMyKFb5OrTrqgfDT9snKzNnrMJW1zKeWPrmYmhj3Q0l2+TRH5t1Y5Yq3
+	 iEZZqO+it+prRGsAI4Bk0dggGJ9K43YFfIG5Qs54=
+Date: Mon, 24 Jun 2024 22:25:57 -0700
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,peterz@infradead.org,namhyung@kernel.org,msakai@redhat.com,mingo@redhat.com,mark.rutland@arm.com,kent.overstreet@linux.dev,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,irogers@google.com,colyli@suse.de,bfoster@redhat.com,bagasdotme@gmail.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] tools-fix-typo.patch removed from -mm tree
-Message-Id: <20240625052556.730D6C32782@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] perf-core-fix-several-typos.patch removed from -mm tree
+Message-Id: <20240625052557.AD772C32789@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,98 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: include/linux/jhash.h: fix typos
+     Subject: perf/core: fix several typos
 has been removed from the -mm tree.  Its filename was
-     tools-fix-typo.patch
+     perf-core-fix-several-typos.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei-Hsin Yeh <weihsinyeh168@gmail.com>
-Subject: include/linux/jhash.h: fix typos
-Date: Sun, 12 May 2024 13:42:11 +0800
+From: Kuan-Wei Chiu <visitorckw@gmail.com>
+Subject: perf/core: fix several typos
+Date: Fri, 24 May 2024 23:29:43 +0800
 
-Drop one '-' to adhere to coding style.
-Replace 'arbitray' with 'arbitrary'.
+Patch series "treewide: Refactor heap related implementation", v6.
 
-Link: https://lkml.kernel.org/r/20240512054211.24726-1-weihsinyeh168@gmail.com
-Signed-off-by: Wei-Hsin Yeh <weihsinyeh168@gmail.com>
+This patch series focuses on several adjustments related to heap
+implementation.  Firstly, a type-safe interface has been added to the
+min_heap, along with the introduction of several new functions to enhance
+its functionality.  Additionally, the heap implementation for bcache and
+bcachefs has been replaced with the generic min_heap implementation from
+include/linux.  Furthermore, several typos have been corrected.
+
+Previous discussion with Kent Overstreet:
+https://lkml.kernel.org/ioyfizrzq7w7mjrqcadtzsfgpuntowtjdw5pgn4qhvsdp4mqqg@nrlek5vmisbu
+
+
+This patch (of 16):
+
+Replace 'artifically' with 'artificially'.
+Replace 'irrespecive' with 'irrespective'.
+Replace 'futher' with 'further'.
+Replace 'sufficent' with 'sufficient'.
+
+Link: https://lkml.kernel.org/r/20240524152958.919343-1-visitorckw@gmail.com
+Link: https://lkml.kernel.org/r/20240524152958.919343-2-visitorckw@gmail.com
+Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Reviewed-by: Ian Rogers <irogers@google.com>
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Brian Foster <bfoster@redhat.com>
+Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Cc: Coly Li <colyli@suse.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Matthew Sakai <msakai@redhat.com>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/jhash.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/events/core.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/jhash.h~tools-fix-typo
-+++ a/include/linux/jhash.h
-@@ -31,7 +31,7 @@
- /* Mask the hash value, i.e (value & jhash_mask(n)) instead of (value % n) */
- #define jhash_mask(n)   (jhash_size(n)-1)
+--- a/kernel/events/core.c~perf-core-fix-several-typos
++++ a/kernel/events/core.c
+@@ -534,7 +534,7 @@ void perf_sample_event_took(u64 sample_l
+ 	__this_cpu_write(running_sample_length, running_len);
  
--/* __jhash_mix -- mix 3 32-bit values reversibly. */
-+/* __jhash_mix - mix 3 32-bit values reversibly. */
- #define __jhash_mix(a, b, c)			\
- {						\
- 	a -= c;  a ^= rol32(c, 4);  c += b;	\
-@@ -60,7 +60,7 @@
- /* jhash - hash an arbitrary key
-  * @k: sequence of bytes as key
-  * @length: the length of the key
-- * @initval: the previous hash, or an arbitray value
-+ * @initval: the previous hash, or an arbitrary value
+ 	/*
+-	 * Note: this will be biased artifically low until we have
++	 * Note: this will be biased artificially low until we have
+ 	 * seen NR_ACCUMULATED_SAMPLES. Doing it this way keeps us
+ 	 * from having to maintain a count.
+ 	 */
+@@ -596,10 +596,10 @@ static inline u64 perf_event_clock(struc
   *
-  * The generic version, hashes an arbitrary sequence of bytes.
-  * No alignment or length assumptions are made about the input key.
-@@ -110,7 +110,7 @@ static inline u32 jhash(const void *key,
- /* jhash2 - hash an array of u32's
-  * @k: the key which must be an array of u32's
-  * @length: the number of u32's in the key
-- * @initval: the previous hash, or an arbitray value
-+ * @initval: the previous hash, or an arbitrary value
+  * Event groups make things a little more complicated, but not terribly so. The
+  * rules for a group are that if the group leader is OFF the entire group is
+- * OFF, irrespecive of what the group member states are. This results in
++ * OFF, irrespective of what the group member states are. This results in
+  * __perf_effective_state().
   *
-  * Returns the hash value of the key.
-  */
+- * A futher ramification is that when a group leader flips between OFF and
++ * A further ramification is that when a group leader flips between OFF and
+  * !OFF, we need to update all group member times.
+  *
+  *
+@@ -891,7 +891,7 @@ static int perf_cgroup_ensure_storage(st
+ 	int cpu, heap_size, ret = 0;
+ 
+ 	/*
+-	 * Allow storage to have sufficent space for an iterator for each
++	 * Allow storage to have sufficient space for an iterator for each
+ 	 * possibly nested cgroup plus an iterator for events with no cgroup.
+ 	 */
+ 	for (heap_size = 1; css; css = css->parent)
 _
 
-Patches currently in -mm which might be from weihsinyeh168@gmail.com are
+Patches currently in -mm which might be from visitorckw@gmail.com are
 
 
