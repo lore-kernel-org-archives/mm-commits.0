@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F1811A08DF
-	for <mm-commits@vger.kernel.org>; Mon, 24 Jun 2024 23:26:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CC9A38F9A;
+	Tue, 25 Jun 2024 03:52:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719271607; cv=none; b=rjEycuOrKNL7oIb9WA1NaR9YWS4LVUFzNwUXZTUN+J25GWhzJ4Z7Kr6fNAUgAXf0JXT5tYO32ESdT5pE8c1yuZFMGnpAGjZ188lid6HT9uaanBAXnJ4KqsuL89h+k6Exp7l9PWQ3cdXqZT/MZkonIOgFV1lIkwFx2BvRdgIxmVk=
+	t=1719287554; cv=none; b=XNYp+bEZ11B/2EgFUmuhPXmfA+ARFa+E4A7H9bx4WQqMINvN2RELzhTuvS1dQhJC30NcmD0mbHWBaupkxDfjwSeGo6+2AtgBiEDwMQeUfsakKo7AFqVTWlUQkF24LNRGP2nLT0zNYbYxpiW952AdmlQUxJBhqriM63Gs6Z3U0FM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719271607; c=relaxed/simple;
-	bh=9jzMgs4hZnhtAGAwQLPCrUjE6Xk1D/745HFFGwu32nE=;
-	h=Date:To:From:Subject:Message-Id; b=TYDmAUxgusQo/so5cUd4qOtvyTHrvmkpdgLDpWzhxhRKwC5liWpTNxP8wRKDuWKaO7fAmNGIhd8lDMOmwuc86cBWcBM7APYVaEX15K8/8r7JW6+USjpaPcIXgb2e/jz4qtXBvdLgj7bMmSf3oPUNmCupqBktXHRNiMpgkFXMXwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q7KJ0U7s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719287554; c=relaxed/simple;
+	bh=gmJhCOaLtdMoS7UEKktYKxUbfT1vu8xacMjYPDRPukk=;
+	h=Date:To:From:Subject:Message-Id; b=u8dQX6XKZ7h2d1tLPYNGk3WRHMeK3++FGiDZTckaDXMVBh1lgjIHg9//SiLxILSUoL7jU1SwIv6nOrUP4GHellGpTZO9A7U9RkjZ2wDH9/RRTHD+nedPJIe8cqw0SKl0gFeQxwW5bAWGgIwS2dEqFiKIxwXq2LzckcG9qdT8rf4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TVzcXQ4m; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q7KJ0U7s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7E99C2BBFC;
-	Mon, 24 Jun 2024 23:26:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TVzcXQ4m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7511C32782;
+	Tue, 25 Jun 2024 03:52:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719271606;
-	bh=9jzMgs4hZnhtAGAwQLPCrUjE6Xk1D/745HFFGwu32nE=;
+	s=korg; t=1719287553;
+	bh=gmJhCOaLtdMoS7UEKktYKxUbfT1vu8xacMjYPDRPukk=;
 	h=Date:To:From:Subject:From;
-	b=q7KJ0U7sPNYCOzyACXhTCuUj1aSIg3b9wUxqqX+l4FVT6nC80/FGiXVgr6I30y+s7
-	 +CznbAquWbtF2P0jtAIWi9/R78pSpMYB7FaUAY+kR9krHMsrPoiSxErzDwXnzI7T9p
-	 6ieT9UhwZ12Jf3NmqY29rmKD3YXCIqSqGb33yBoU=
-Date: Mon, 24 Jun 2024 16:26:46 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanshuai@oppo.com,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,surenb@google.com,shy828301@gmail.com,ryan.roberts@arm.com,mhocko@suse.com,lkp@intel.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=TVzcXQ4mZBzc3yBtD6Hb/MBvfx48CXu/AAWboRkQGJBvqGqzIgz3HUsR2nyTerDXa
+	 hBsuqN1E41YA+LaFWUEorb3SVpQJVDW/lSR7yyUscDv52x/+PBbBD0PBzvQ5IxwOPs
+	 eqWVw8rWZvudugJneZmvdnV20GeksgZdmSSTiEgc=
+Date: Mon, 24 Jun 2024 20:52:33 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,tglx@linutronix.de,stable@vger.kernel.org,lstoakes@gmail.com,hch@infradead.org,hailong.liu@oppo.com,bhe@redhat.com,zhaoyang.huang@unisoc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix-3.patch added to mm-unstable branch
-Message-Id: <20240624232646.D7E99C2BBFC@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-incorrect-vbq-reference-in-purge_fragmented_block.patch removed from -mm tree
+Message-Id: <20240625035233.D7511C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,91 +34,215 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: enhence doc for extend rmap flags arguments for folio_add_new_anon_rmap
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix-3.patch
+The quilt patch titled
+     Subject: mm: fix incorrect vbq reference in purge_fragmented_block
+has been removed from the -mm tree.  Its filename was
+     mm-fix-incorrect-vbq-reference-in-purge_fragmented_block.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix-3.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: enhence doc for extend rmap flags arguments for folio_add_new_anon_rmap
-Date: Sat, 22 Jun 2024 14:51:38 +1200
+From: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Subject: mm: fix incorrect vbq reference in purge_fragmented_block
+Date: Fri, 7 Jun 2024 10:31:16 +0800
 
-Link: https://lkml.kernel.org/r/20240622030256.43775-1-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuai Yuan <yuanshuai@oppo.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+xa_for_each() in _vm_unmap_aliases() loops through all vbs.  However,
+since commit 062eacf57ad9 ("mm: vmalloc: remove a global vmap_blocks
+xarray") the vb from xarray may not be on the corresponding CPU
+vmap_block_queue.  Consequently, purge_fragmented_block() might use the
+wrong vbq->lock to protect the free list, leading to vbq->free breakage.
+
+Incorrect lock protection can exhaust all vmalloc space as follows:
+CPU0                                            CPU1
++--------------------------------------------+
+|    +--------------------+     +-----+      |
++--> |                    |---->|     |------+
+     | CPU1:vbq free_list |     | vb1 |
++--- |                    |<----|     |<-----+
+|    +--------------------+     +-----+      |
++--------------------------------------------+
+
+_vm_unmap_aliases()                             vb_alloc()
+                                                new_vmap_block()
+xa_for_each(&vbq->vmap_blocks, idx, vb)
+--> vb in CPU1:vbq->freelist
+
+purge_fragmented_block(vb)
+spin_lock(&vbq->lock)                           spin_lock(&vbq->lock)
+--> use CPU0:vbq->lock                          --> use CPU1:vbq->lock
+
+list_del_rcu(&vb->free_list)                    list_add_tail_rcu(&vb->free_list, &vbq->free)
+    __list_del(vb->prev, vb->next)
+        next->prev = prev
+    +--------------------+
+    |                    |
+    | CPU1:vbq free_list |
++---|                    |<--+
+|   +--------------------+   |
++----------------------------+
+                                                __list_add(new, head->prev, head)
++--------------------------------------------+
+|    +--------------------+     +-----+      |
++--> |                    |---->|     |------+
+     | CPU1:vbq free_list |     | vb2 |
++--- |                    |<----|     |<-----+
+|    +--------------------+     +-----+      |
++--------------------------------------------+
+
+        prev->next = next
++--------------------------------------------+
+|----------------------------+               |
+|    +--------------------+  |  +-----+      |
++--> |                    |--+  |     |------+
+     | CPU1:vbq free_list |     | vb2 |
++--- |                    |<----|     |<-----+
+|    +--------------------+     +-----+      |
++--------------------------------------------+
+Here’s a list breakdown. All vbs, which were to be added to
+‘prev’, cannot be used by list_for_each_entry_rcu(vb, &vbq->free,
+free_list) in vb_alloc(). Thus, vmalloc space is exhausted.
+
+This issue affects both erofs and f2fs, the stacktrace is as follows:
+erofs:
+[<ffffffd4ffb93ad4>] __switch_to+0x174
+[<ffffffd4ffb942f0>] __schedule+0x624
+[<ffffffd4ffb946f4>] schedule+0x7c
+[<ffffffd4ffb947cc>] schedule_preempt_disabled+0x24
+[<ffffffd4ffb962ec>] __mutex_lock+0x374
+[<ffffffd4ffb95998>] __mutex_lock_slowpath+0x14
+[<ffffffd4ffb95954>] mutex_lock+0x24
+[<ffffffd4fef2900c>] reclaim_and_purge_vmap_areas+0x44
+[<ffffffd4fef25908>] alloc_vmap_area+0x2e0
+[<ffffffd4fef24ea0>] vm_map_ram+0x1b0
+[<ffffffd4ff1b46f4>] z_erofs_lz4_decompress+0x278
+[<ffffffd4ff1b8ac4>] z_erofs_decompress_queue+0x650
+[<ffffffd4ff1b8328>] z_erofs_runqueue+0x7f4
+[<ffffffd4ff1b66a8>] z_erofs_read_folio+0x104
+[<ffffffd4feeb6fec>] filemap_read_folio+0x6c
+[<ffffffd4feeb68c4>] filemap_fault+0x300
+[<ffffffd4fef0ecac>] __do_fault+0xc8
+[<ffffffd4fef0c908>] handle_mm_fault+0xb38
+[<ffffffd4ffb9f008>] do_page_fault+0x288
+[<ffffffd4ffb9ed64>] do_translation_fault[jt]+0x40
+[<ffffffd4fec39c78>] do_mem_abort+0x58
+[<ffffffd4ffb8c3e4>] el0_ia+0x70
+[<ffffffd4ffb8c260>] el0t_64_sync_handler[jt]+0xb0
+[<ffffffd4fec11588>] ret_to_user[jt]+0x0
+
+f2fs:
+[<ffffffd4ffb93ad4>] __switch_to+0x174
+[<ffffffd4ffb942f0>] __schedule+0x624
+[<ffffffd4ffb946f4>] schedule+0x7c
+[<ffffffd4ffb947cc>] schedule_preempt_disabled+0x24
+[<ffffffd4ffb962ec>] __mutex_lock+0x374
+[<ffffffd4ffb95998>] __mutex_lock_slowpath+0x14
+[<ffffffd4ffb95954>] mutex_lock+0x24
+[<ffffffd4fef2900c>] reclaim_and_purge_vmap_areas+0x44
+[<ffffffd4fef25908>] alloc_vmap_area+0x2e0
+[<ffffffd4fef24ea0>] vm_map_ram+0x1b0
+[<ffffffd4ff1a3b60>] f2fs_prepare_decomp_mem+0x144
+[<ffffffd4ff1a6c24>] f2fs_alloc_dic+0x264
+[<ffffffd4ff175468>] f2fs_read_multi_pages+0x428
+[<ffffffd4ff17b46c>] f2fs_mpage_readpages+0x314
+[<ffffffd4ff1785c4>] f2fs_readahead+0x50
+[<ffffffd4feec3384>] read_pages+0x80
+[<ffffffd4feec32c0>] page_cache_ra_unbounded+0x1a0
+[<ffffffd4feec39e8>] page_cache_ra_order+0x274
+[<ffffffd4feeb6cec>] do_sync_mmap_readahead+0x11c
+[<ffffffd4feeb6764>] filemap_fault+0x1a0
+[<ffffffd4ff1423bc>] f2fs_filemap_fault+0x28
+[<ffffffd4fef0ecac>] __do_fault+0xc8
+[<ffffffd4fef0c908>] handle_mm_fault+0xb38
+[<ffffffd4ffb9f008>] do_page_fault+0x288
+[<ffffffd4ffb9ed64>] do_translation_fault[jt]+0x40
+[<ffffffd4fec39c78>] do_mem_abort+0x58
+[<ffffffd4ffb8c3e4>] el0_ia+0x70
+[<ffffffd4ffb8c260>] el0t_64_sync_handler[jt]+0xb0
+[<ffffffd4fec11588>] ret_to_user[jt]+0x0
+
+To fix this, introducee cpu within vmap_block to record which this vb
+belongs to.
+
+Link: https://lkml.kernel.org/r/20240614021352.1822225-1-zhaoyang.huang@unisoc.com
+Link: https://lkml.kernel.org/r/20240607023116.1720640-1-zhaoyang.huang@unisoc.com
+Fixes: fc1e0d980037 ("mm/vmalloc: prevent stale TLBs in fully utilized blocks")
+Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Suggested-by: Hailong.Liu <hailong.liu@oppo.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/vmalloc.c |   21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
---- a/mm/rmap.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix-3
-+++ a/mm/rmap.c
-@@ -1405,7 +1405,9 @@ void folio_add_anon_rmap_pmd(struct foli
-  *
-  * Like folio_add_anon_rmap_*() but must only be called on *new* folios.
-  * This means the inc-and-test can be bypassed.
-- * The folio does not have to be locked.
-+ * The folio doesn't necessarily need to be locked while it's exclusive
-+ * unless two threads map it concurrently. However, the folio must be
-+ * locked if it's shared.
-  *
-  * If the folio is pmd-mappable, it is accounted as a THP.
-  */
-@@ -1417,6 +1419,7 @@ void folio_add_new_anon_rmap(struct foli
- 	int nr_pmdmapped = 0;
+--- a/mm/vmalloc.c~mm-fix-incorrect-vbq-reference-in-purge_fragmented_block
++++ a/mm/vmalloc.c
+@@ -2498,6 +2498,7 @@ struct vmap_block {
+ 	struct list_head free_list;
+ 	struct rcu_head rcu_head;
+ 	struct list_head purge;
++	unsigned int cpu;
+ };
  
- 	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
-+	VM_WARN_ON_FOLIO(!exclusive && !folio_test_locked(folio), folio);
- 	VM_BUG_ON_VMA(address < vma->vm_start ||
- 			address + (nr << PAGE_SHIFT) > vma->vm_end, vma);
- 	__folio_set_swapbacked(folio);
+ /* Queue of free and dirty vmap blocks, for allocation and flushing purposes */
+@@ -2625,8 +2626,15 @@ static void *new_vmap_block(unsigned int
+ 		free_vmap_area(va);
+ 		return ERR_PTR(err);
+ 	}
+-
+-	vbq = raw_cpu_ptr(&vmap_block_queue);
++	/*
++	 * list_add_tail_rcu could happened in another core
++	 * rather than vb->cpu due to task migration, which
++	 * is safe as list_add_tail_rcu will ensure the list's
++	 * integrity together with list_for_each_rcu from read
++	 * side.
++	 */
++	vb->cpu = raw_smp_processor_id();
++	vbq = per_cpu_ptr(&vmap_block_queue, vb->cpu);
+ 	spin_lock(&vbq->lock);
+ 	list_add_tail_rcu(&vb->free_list, &vbq->free);
+ 	spin_unlock(&vbq->lock);
+@@ -2654,9 +2662,10 @@ static void free_vmap_block(struct vmap_
+ }
+ 
+ static bool purge_fragmented_block(struct vmap_block *vb,
+-		struct vmap_block_queue *vbq, struct list_head *purge_list,
+-		bool force_purge)
++		struct list_head *purge_list, bool force_purge)
+ {
++	struct vmap_block_queue *vbq = &per_cpu(vmap_block_queue, vb->cpu);
++
+ 	if (vb->free + vb->dirty != VMAP_BBMAP_BITS ||
+ 	    vb->dirty == VMAP_BBMAP_BITS)
+ 		return false;
+@@ -2704,7 +2713,7 @@ static void purge_fragmented_blocks(int
+ 			continue;
+ 
+ 		spin_lock(&vb->lock);
+-		purge_fragmented_block(vb, vbq, &purge, true);
++		purge_fragmented_block(vb, &purge, true);
+ 		spin_unlock(&vb->lock);
+ 	}
+ 	rcu_read_unlock();
+@@ -2841,7 +2850,7 @@ static void _vm_unmap_aliases(unsigned l
+ 			 * not purgeable, check whether there is dirty
+ 			 * space to be flushed.
+ 			 */
+-			if (!purge_fragmented_block(vb, vbq, &purge_list, false) &&
++			if (!purge_fragmented_block(vb, &purge_list, false) &&
+ 			    vb->dirty_max && vb->dirty != VMAP_BBMAP_BITS) {
+ 				unsigned long va_start = vb->va->va_start;
+ 				unsigned long s, e;
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from zhaoyang.huang@unisoc.com are
 
-mm-remove-the-implementation-of-swap_free-and-always-use-swap_free_nr.patch
-mm-introduce-pte_move_swp_offset-helper-which-can-move-offset-bidirectionally.patch
-mm-introduce-arch_do_swap_page_nr-which-allows-restore-metadata-for-nr-pages.patch
-mm-swap-reuse-exclusive-folio-directly-instead-of-wp-page-faults.patch
-mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect.patch
-mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page.patch
-mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap.patch
-mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix-2.patch
-mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix-3.patch
-mm-use-folio_add_new_anon_rmap-if-folio_test_anonfolio==false.patch
-mm-use-folio_add_new_anon_rmap-if-folio_test_anonfolio==false-fix-2.patch
-mm-remove-folio_test_anonfolio==false-path-in-__folio_add_anon_rmap.patch
-tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout.patch
+mm-optimization-on-page-allocation-when-cma-enabled.patch
 
