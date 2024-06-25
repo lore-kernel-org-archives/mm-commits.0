@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73E04142E7A
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:59:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5498142E76
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 04:59:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291594; cv=none; b=ekpsRKnbG3A0l+woa3gZMZshmZ3hB+9tmoSRCF/9KKA0Ph4a8M17ymYPQprvbNOrLmIl2La1CyBPnFFiEgesjmXDvwcbBZ5dDgOwwJGDWLVOAt/qbRn7GUQXGBuJNN2xrjZz9nOUzLeEoBEHNs1DSj+CQrDCLDWDXFfzA7eYyVE=
+	t=1719291595; cv=none; b=T5btpMvu1qWR99mI86oq9EI9N7NTzzh3xNPn1KrwoNbr3bUDPQgf0UD3VTJXkYjGfhozrMucJsnfzkcwAFGhxAR4157BXEcJIo2kuk3K+P4veFO+cyV885gL4BlNoDyafwdAb7iZq5iGckDQbjFFn6PjL4msrnbGFosFjNQ1LyM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291594; c=relaxed/simple;
-	bh=VqM/qcZEPaxVKjYkTv7kpe2Jo+ulY4d35006oG3/xnc=;
-	h=Date:To:From:Subject:Message-Id; b=edcHyZme0xNkamUwcxSMgeUthpASDfhU6NjmKotXU3pt5Z11d/Xv2hxdNmBnSwLkc3EBnfm4kzwqiDqzf5uRw7pS9NlyPOU/Jc43ePIG+a9+3vu8ujWS52XRqXPE/D13VLy06he8cbJ4XhayVwUPhQX9CzC73Mxp0lT/g4Re2qg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eRaBzTnI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291595; c=relaxed/simple;
+	bh=ZcjK8sIW7OolUQFTqrDt2Gwi+qMKiXbS34OhgAIsxRE=;
+	h=Date:To:From:Subject:Message-Id; b=MCsmVyTjwM04rjnbpPxUC2hSsOJpZIMYWfX3xibRiGSHMoQN1qRxw2r7hokgO4KXffVFKrg+SWkPlbgPKIwvleowAZBc4gy4L3lxY2D/ZS1F3F3wfPfjQQvy7FVdxn+uAsKXpeldVyFwqvsOiviPnIFNvHBYB4ZwIMVakYdGY6I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jn0dNI27; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eRaBzTnI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44BB4C32782;
-	Tue, 25 Jun 2024 04:59:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jn0dNI27"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B8C5C32782;
+	Tue, 25 Jun 2024 04:59:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291594;
-	bh=VqM/qcZEPaxVKjYkTv7kpe2Jo+ulY4d35006oG3/xnc=;
+	s=korg; t=1719291595;
+	bh=ZcjK8sIW7OolUQFTqrDt2Gwi+qMKiXbS34OhgAIsxRE=;
 	h=Date:To:From:Subject:From;
-	b=eRaBzTnIZAF7y/KC431ijU48eQnQ93YwWmfJ2Gnx+8dFNs8yjouilbmWIDq/S9o+B
-	 Ak3vbyJkoOCJ3OjiIleoQY9LC0e5vsgeBjWrX6ZErb4gg5hKlrd0OPiG1vVc0EK6O8
-	 y5SbWIevy9eAZK+rA11bqBxAUnjizks+gevMx19U=
-Date: Mon, 24 Jun 2024 21:59:53 -0700
-To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,ebiggers@google.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=jn0dNI27NRDvQHrlMI7a2+dOtLyif6PBQ+OrYzwTFE9oIJB1mHkYxLjEXqUo1yNkG
+	 Nz/mL7OFbwG/W4pcCKfgdWKmuGEI0em3I0gPTSxFwnUHYBFmXGHJdiZvhu9crQhgrU
+	 x6nZRJALP+WlNzhE38k7/h3tXdbjxzV2NPKerVes=
+Date: Mon, 24 Jun 2024 21:59:54 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,david@redhat.com,alexs@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-page_mapping.patch removed from -mm tree
-Message-Id: <20240625045954.44BB4C32782@smtp.kernel.org>
+Subject: [merged mm-stable] rmap-remove-define_page_vma_walk.patch removed from -mm tree
+Message-Id: <20240625045955.7B8C5C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,164 +35,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove page_mapping()
+     Subject: rmap: remove DEFINE_PAGE_VMA_WALK()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-page_mapping.patch
+     rmap-remove-define_page_vma_walk.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove page_mapping()
-Date: Fri, 24 May 2024 19:18:10 +0100
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: rmap: remove DEFINE_PAGE_VMA_WALK()
+Date: Fri, 24 May 2024 13:36:18 +0800
 
-All callers are now converted, delete this compatibility wrapper.  Also
-fix up some comments which referred to page_mapping.
+This are no users since commit 40d707f33db5 ("mm/ksm: use folio in
+write_protect_page"), so remove DEFINE_PAGE_VMA_WALK().
 
-Link: https://lkml.kernel.org/r/20240423225552.4113447-7-willy@infradead.org
-Link: https://lkml.kernel.org/r/20240524181813.698813-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20240524053618.208895-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Eric Biggers <ebiggers@google.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/cacheflush.h   |    2 +-
- arch/arm64/include/asm/cacheflush.h |    2 +-
- arch/mips/mm/cache.c                |    2 +-
- arch/sparc/mm/init_64.c             |    2 +-
- include/linux/buffer_head.h         |    2 +-
- include/linux/page-flags.h          |   23 ++++++++++++-----------
- include/linux/pagemap.h             |    1 -
- mm/folio-compat.c                   |    6 ------
- 8 files changed, 17 insertions(+), 23 deletions(-)
+ include/linux/rmap.h |   10 ----------
+ 1 file changed, 10 deletions(-)
 
---- a/arch/arm64/include/asm/cacheflush.h~mm-remove-page_mapping
-+++ a/arch/arm64/include/asm/cacheflush.h
-@@ -117,7 +117,7 @@ extern void copy_to_user_page(struct vm_
-  * flush_dcache_folio is used when the kernel has written to the page
-  * cache page at virtual address page->virtual.
-  *
-- * If this page isn't mapped (ie, page_mapping == NULL), or it might
-+ * If this page isn't mapped (ie, folio_mapping == NULL), or it might
-  * have userspace mappings, then we _must_ always clean + invalidate
-  * the dcache entries associated with the kernel mapping.
-  *
---- a/arch/arm/include/asm/cacheflush.h~mm-remove-page_mapping
-+++ a/arch/arm/include/asm/cacheflush.h
-@@ -283,7 +283,7 @@ void flush_cache_pages(struct vm_area_st
-  * flush_dcache_page is used when the kernel has written to the page
-  * cache page at virtual address page->virtual.
-  *
-- * If this page isn't mapped (ie, page_mapping == NULL), or it might
-+ * If this page isn't mapped (ie, folio_mapping == NULL), or it might
-  * have userspace mappings, then we _must_ always clean + invalidate
-  * the dcache entries associated with the kernel mapping.
-  *
---- a/arch/mips/mm/cache.c~mm-remove-page_mapping
-+++ a/arch/mips/mm/cache.c
-@@ -112,7 +112,7 @@ void __flush_dcache_pages(struct page *p
- 	}
+--- a/include/linux/rmap.h~rmap-remove-define_page_vma_walk
++++ a/include/linux/rmap.h
+@@ -684,16 +684,6 @@ struct page_vma_mapped_walk {
+ 	unsigned int flags;
+ };
  
- 	/*
--	 * We could delay the flush for the !page_mapping case too.  But that
-+	 * We could delay the flush for the !folio_mapping case too.  But that
- 	 * case is for exec env/arg pages and those are %99 certainly going to
- 	 * get faulted into the tlb (and thus flushed) anyways.
- 	 */
---- a/arch/sparc/mm/init_64.c~mm-remove-page_mapping
-+++ a/arch/sparc/mm/init_64.c
-@@ -490,7 +490,7 @@ void flush_dcache_folio(struct folio *fo
- 		}
- 		set_dcache_dirty(folio, this_cpu);
- 	} else {
--		/* We could delay the flush for the !page_mapping
-+		/* We could delay the flush for the !folio_mapping
- 		 * case too.  But that case is for exec env/arg
- 		 * pages and those are %99 certainly going to get
- 		 * faulted into the tlb (and thus flushed) anyways.
---- a/include/linux/buffer_head.h~mm-remove-page_mapping
-+++ a/include/linux/buffer_head.h
-@@ -53,7 +53,7 @@ typedef void (bh_end_io_t)(struct buffer
-  * filesystem and block layers.  Nowadays the basic I/O unit
-  * is the bio, and buffer_heads are used for extracting block
-  * mappings (via a get_block_t call), for tracking state within
-- * a page (via a page_mapping) and for wrapping bio submission
-+ * a folio (via a folio_mapping) and for wrapping bio submission
-  * for backward compatibility reasons (e.g. submit_bh).
-  */
- struct buffer_head {
---- a/include/linux/page-flags.h~mm-remove-page_mapping
-+++ a/include/linux/page-flags.h
-@@ -655,27 +655,28 @@ PAGEFLAG_FALSE(VmemmapSelfHosted, vmemma
- #endif
- 
- /*
-- * On an anonymous page mapped into a user virtual memory area,
-- * page->mapping points to its anon_vma, not to a struct address_space;
-+ * On an anonymous folio mapped into a user virtual memory area,
-+ * folio->mapping points to its anon_vma, not to a struct address_space;
-  * with the PAGE_MAPPING_ANON bit set to distinguish it.  See rmap.h.
-  *
-  * On an anonymous page in a VM_MERGEABLE area, if CONFIG_KSM is enabled,
-  * the PAGE_MAPPING_MOVABLE bit may be set along with the PAGE_MAPPING_ANON
-- * bit; and then page->mapping points, not to an anon_vma, but to a private
-+ * bit; and then folio->mapping points, not to an anon_vma, but to a private
-  * structure which KSM associates with that merged page.  See ksm.h.
-  *
-  * PAGE_MAPPING_KSM without PAGE_MAPPING_ANON is used for non-lru movable
-- * page and then page->mapping points to a struct movable_operations.
-+ * page and then folio->mapping points to a struct movable_operations.
-  *
-- * Please note that, confusingly, "page_mapping" refers to the inode
-- * address_space which maps the page from disk; whereas "page_mapped"
-- * refers to user virtual address space into which the page is mapped.
-+ * Please note that, confusingly, "folio_mapping" refers to the inode
-+ * address_space which maps the folio from disk; whereas "folio_mapped"
-+ * refers to user virtual address space into which the folio is mapped.
-  *
-  * For slab pages, since slab reuses the bits in struct page to store its
-- * internal states, the page->mapping does not exist as such, nor do these
-- * flags below.  So in order to avoid testing non-existent bits, please
-- * make sure that PageSlab(page) actually evaluates to false before calling
-- * the following functions (e.g., PageAnon).  See mm/slab.h.
-+ * internal states, the folio->mapping does not exist as such, nor do
-+ * these flags below.  So in order to avoid testing non-existent bits,
-+ * please make sure that folio_test_slab(folio) actually evaluates to
-+ * false before calling the following functions (e.g., folio_test_anon).
-+ * See mm/slab.h.
-  */
- #define PAGE_MAPPING_ANON	0x1
- #define PAGE_MAPPING_MOVABLE	0x2
---- a/include/linux/pagemap.h~mm-remove-page_mapping
-+++ a/include/linux/pagemap.h
-@@ -426,7 +426,6 @@ static inline void filemap_nr_thps_dec(s
- #endif
- }
- 
--struct address_space *page_mapping(struct page *);
- struct address_space *folio_mapping(struct folio *);
- struct address_space *swapcache_mapping(struct folio *);
- 
---- a/mm/folio-compat.c~mm-remove-page_mapping
-+++ a/mm/folio-compat.c
-@@ -10,12 +10,6 @@
- #include <linux/swap.h>
- #include "internal.h"
- 
--struct address_space *page_mapping(struct page *page)
--{
--	return folio_mapping(page_folio(page));
--}
--EXPORT_SYMBOL(page_mapping);
+-#define DEFINE_PAGE_VMA_WALK(name, _page, _vma, _address, _flags)	\
+-	struct page_vma_mapped_walk name = {				\
+-		.pfn = page_to_pfn(_page),				\
+-		.nr_pages = compound_nr(_page),				\
+-		.pgoff = page_to_pgoff(_page),				\
+-		.vma = _vma,						\
+-		.address = _address,					\
+-		.flags = _flags,					\
+-	}
 -
- void unlock_page(struct page *page)
- {
- 	return folio_unlock(page_folio(page));
+ #define DEFINE_FOLIO_VMA_WALK(name, _folio, _vma, _address, _flags)	\
+ 	struct page_vma_mapped_walk name = {				\
+ 		.pfn = folio_pfn(_folio),				\
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
+fs-proc-task_mmu-use-folio-api-in-pte_is_pinned.patch
+mm-remove-page_maybe_dma_pinned.patch
+mm-remove-page_maybe_dma_pinned-fix.patch
+fb_defio-use-a-folio-in-fb_deferred_io_work.patch
+mm-remove-page_mkclean.patch
+mm-move-memory_failure_queue-into-copy_mc__highpage.patch
+mm-add-folio_mc_copy.patch
+mm-migrate-split-folio_migrate_mapping.patch
+mm-migrate-support-poisoned-recover-from-migrate-folio.patch
+fs-hugetlbfs-support-poison-recover-from-hugetlbfs_migrate_folio.patch
+mm-migrate-remove-folio_migrate_copy.patch
+mm-memory-convert-clear_huge_page-to-folio_zero_user.patch
+mm-memory-use-folio-in-struct-copy_subpage_arg.patch
+mm-memory-improve-copy_user_large_folio.patch
+mm-memory-rename-pages_per_huge_page-to-nr_pages.patch
 
