@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3974A49635
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:00:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42BDF49635
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:00:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291619; cv=none; b=GPTOrLLwe1AngKNNZKCqRNXbKRKppXQBU9QyrrXoHC0Y5IMuwHl8nXaFTiuuyCjjQ1EVlFv6IlJF5VkBb0yCdldDhJhP6qZXA29eyk18utm9Us3Kg0HUW3LsBt2sSVlXnXvF6x6NqVStHl4cFibNetTFCvJVt00RC+RTBQerzNE=
+	t=1719291620; cv=none; b=YTjTDjOcvLqqkH8MELgBjlK78iOeMCBFtarXlpkDl0AErdHbyW2w4kmPykR4R6GH90LHBFXXWXIOf32qvXACLoIZoGN/1niEIT7bjMJg0gObLR1KyiCh+2wLow17Pe4K5y9M0zo2FXbb2wGirSLUZP3AVBMMHRC7uJBiLPibTb4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291619; c=relaxed/simple;
-	bh=8FaqUj4faQykARCL305tL0PJjrlO08jOKs2lDRHNsc8=;
-	h=Date:To:From:Subject:Message-Id; b=OWtA3n/qQH/tyhrbpAzykKt9qC9IsD8N27gim34RGDdvop9r44JQTA6iAVHnkSJvDIfGvFsWEaFmsp9tymSwidt5pQ/Nk5cBmTzRk3GkB0aBsPnuzO7K2Kuv2nYwLIh0b3NoXfNDsEWBLBdebrku9AQMIYZJ3efB4ip6njgc+Ls=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WTivYx/4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291620; c=relaxed/simple;
+	bh=Ruu4X8zcdk4LYi84+/DCtIYkEk8kY1eoiPIOp/ybGXU=;
+	h=Date:To:From:Subject:Message-Id; b=uWa3tQitZuejY/UUBUQldoNk1t60e/0MxPu8BSmSELxS0OQ6cJLpXCr9JF+PkxiaqTyKsJSXkw8mSt/Bo3QHksms0qHI+4jC8s4lfxdSIbWLSK3lm1bvZxiN9kGPrnbxBi2961XAbSDGTazfSzpjiPlX4WDChcvUOUFSn1sxuHs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Si8OCeM7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WTivYx/4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AF09C32782;
-	Tue, 25 Jun 2024 05:00:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Si8OCeM7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18B11C32782;
+	Tue, 25 Jun 2024 05:00:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291619;
-	bh=8FaqUj4faQykARCL305tL0PJjrlO08jOKs2lDRHNsc8=;
+	s=korg; t=1719291620;
+	bh=Ruu4X8zcdk4LYi84+/DCtIYkEk8kY1eoiPIOp/ybGXU=;
 	h=Date:To:From:Subject:From;
-	b=WTivYx/4y2ELR8iMZakgKnx93xm/bhcIf42BhESJN7l4R6vcCZRojpkjWpJcSAHHQ
-	 on3wt+7380a+ZIBhJ6/LnpENXCAfT/q5YvoNI0hje65i3jtXBozWJ8HN5FDWlYw7gb
-	 eSX06gS2pxqK0z8MVFdxEYPYh1XcZzv9n11iyiBg=
-Date: Mon, 24 Jun 2024 22:00:18 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,tj@kernel.org,lstoakes@gmail.com,hch@infradead.org,dennis@kernel.org,cl@linux.com,ubizjak@gmail.com,akpm@linux-foundation.org
+	b=Si8OCeM7tgnGa+2CsRB0Mw3xGvGEt030E29E8Qcehk+pB8pHAgj26kxgFAApijwp2
+	 n8Xopme2q9lqMxsVTCKNntH9xfgrkHxLCmpHExMliSMAyiedZ+QzOyiTk2r6duHySz
+	 JckbBmVrD66rLGYK7VchbztDV8udqQObJBOVqi5Q=
+Date: Mon, 24 Jun 2024 22:00:19 -0700
+To: mm-commits@vger.kernel.org,keescook@chromium.org,glider@google.com,elver@google.com,dvyukov@google.com,bjohannesmeyer@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmalloc-use-__this_cpu_try_cmpxchg-in-preload_this_cpu_lock.patch removed from -mm tree
-Message-Id: <20240625050019.0AF09C32782@smtp.kernel.org>
+Subject: [merged mm-stable] kmsan-introduce-test_unpoison_memory.patch removed from -mm tree
+Message-Id: <20240625050020.18B11C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,82 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: use __this_cpu_try_cmpxchg() in preload_this_cpu_lock()
+     Subject: kmsan: introduce test_unpoison_memory()
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-use-__this_cpu_try_cmpxchg-in-preload_this_cpu_lock.patch
+     kmsan-introduce-test_unpoison_memory.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: mm/vmalloc: use __this_cpu_try_cmpxchg() in preload_this_cpu_lock()
-Date: Tue, 28 May 2024 16:43:14 +0200
+From: Brian Johannesmeyer <bjohannesmeyer@gmail.com>
+Subject: kmsan: introduce test_unpoison_memory()
+Date: Tue, 28 May 2024 12:48:07 +0200
 
-Use __this_cpu_try_cmpxchg() instead of __this_cpu_cmpxchg (*ptr, old,
-new) == old in preload_this_cpu_lock().  x86 CMPXCHG instruction returns
-success in ZF flag, so this change saves a compare after cmpxchg.
+Add a regression test to ensure that kmsan_unpoison_memory() works the
+same as an unpoisoning operation added by the instrumentation.
 
-The generated code improves from:
+The test has two subtests: one that checks the instrumentation, and one
+that checks kmsan_unpoison_memory().  Each subtest initializes the first
+byte of a 4-byte buffer, then checks that the other 3 bytes are
+uninitialized.
 
-    4bb6:	48 85 f6             	test   %rsi,%rsi
-    4bb9:	0f 84 10 fa ff ff    	je     45cf <...>
-    4bbf:	4c 89 e8             	mov    %r13,%rax
-    4bc2:	65 48 0f b1 35 00 00 	cmpxchg %rsi,%gs:0x0(%rip)
-    4bc9:	00 00
-    4bcb:	48 85 c0             	test   %rax,%rax
-    4bce:	0f 84 fb f9 ff ff    	je     45cf <...>
-
-to:
-
-    4bb6:	48 85 f6             	test   %rsi,%rsi
-    4bb9:	0f 84 10 fa ff ff    	je     45cf <...>
-    4bbf:	4c 89 e8             	mov    %r13,%rax
-    4bc2:	65 48 0f b1 35 00 00 	cmpxchg %rsi,%gs:0x0(%rip)
-    4bc9:	00 00
-    4bcb:	0f 84 fe f9 ff ff    	je     45cf <...>
-
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/20240528144345.5980-2-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+[glider@google.com: change description, remove comment about failing test case]
+Link: https://lkml.kernel.org/r/20240528104807.738758-2-glider@google.com
+Signed-off-by: Brian Johannesmeyer <bjohannesmeyer@gmail.com>
+Link: https://lore.kernel.org/lkml/20240524232804.1984355-1-bjohannesmeyer@gmail.com/T/
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/kmsan/kmsan_test.c |   27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-use-__this_cpu_try_cmpxchg-in-preload_this_cpu_lock
-+++ a/mm/vmalloc.c
-@@ -1816,7 +1816,7 @@ static void free_vmap_area(struct vmap_a
- static inline void
- preload_this_cpu_lock(spinlock_t *lock, gfp_t gfp_mask, int node)
- {
--	struct vmap_area *va = NULL;
-+	struct vmap_area *va = NULL, *tmp;
- 
- 	/*
- 	 * Preload this CPU with one extra vmap_area object. It is used
-@@ -1832,7 +1832,8 @@ preload_this_cpu_lock(spinlock_t *lock,
- 
- 	spin_lock(lock);
- 
--	if (va && __this_cpu_cmpxchg(ne_fit_preload_node, NULL, va))
-+	tmp = NULL;
-+	if (va && !__this_cpu_try_cmpxchg(ne_fit_preload_node, &tmp, va))
- 		kmem_cache_free(vmap_area_cachep, va);
+--- a/mm/kmsan/kmsan_test.c~kmsan-introduce-test_unpoison_memory
++++ a/mm/kmsan/kmsan_test.c
+@@ -614,6 +614,32 @@ static void test_stackdepot_roundtrip(st
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
  }
+ 
++/*
++ * Test case: ensure that kmsan_unpoison_memory() and the instrumentation work
++ * the same.
++ */
++static void test_unpoison_memory(struct kunit *test)
++{
++	EXPECTATION_UNINIT_VALUE_FN(expect, "test_unpoison_memory");
++	volatile char a[4], b[4];
++
++	kunit_info(
++		test,
++		"unpoisoning via the instrumentation vs. kmsan_unpoison_memory() (2 UMR reports)\n");
++
++	/* Initialize a[0] and check a[1]--a[3]. */
++	a[0] = 0;
++	kmsan_check_memory((char *)&a[1], 3);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++
++	report_reset();
++
++	/* Initialize b[0] and check b[1]--b[3]. */
++	kmsan_unpoison_memory((char *)&b[0], 1);
++	kmsan_check_memory((char *)&b[1], 3);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
+ static struct kunit_case kmsan_test_cases[] = {
+ 	KUNIT_CASE(test_uninit_kmalloc),
+ 	KUNIT_CASE(test_init_kmalloc),
+@@ -637,6 +663,7 @@ static struct kunit_case kmsan_test_case
+ 	KUNIT_CASE(test_memset64),
+ 	KUNIT_CASE(test_long_origin_chain),
+ 	KUNIT_CASE(test_stackdepot_roundtrip),
++	KUNIT_CASE(test_unpoison_memory),
+ 	{},
+ };
  
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from bjohannesmeyer@gmail.com are
 
-fork-use-this_cpu_try_cmpxchg-in-try_release_thread_stack_to_cache.patch
-fork-use-this_cpu_try_cmpxchg-in-try_release_thread_stack_to_cache-fix.patch
 
