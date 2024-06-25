@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 558191448E5
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C3351448DF
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:01:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291674; cv=none; b=Rj3xkw4iBY083JAwzHWpOW3e6cB8iYb49T4RAYawlAuX2GvjXgg7yhH9Fk41rVyb0sIrItCIkSVJ1ZVPZvHMrtDMPLWyDIxBiiw045yfi6whTJtPZR0IXQXYI7eMTJIQUk5A/9S6G0d36Skf3ArCfaZW1NN15EIiLv2UkfQfAFE=
+	t=1719291675; cv=none; b=cInx00ZqozmCQLwBDme5ELISzmzwZTGBRYUZbAXCmG2ED0U+HZ4LWoAitArN0mOS/4oPnCmJxJRMkJLGw1blwNmvLwml4ZZWiwVqfGovahw2Vg2iuRgksDkKnZWlMBEFbuEHKG9WoIVB74PEUhKfS5L2acJV3JHmfK0N4ir0MEY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291674; c=relaxed/simple;
-	bh=kfRHSZai3dHKfusgCEVKrhViF4esDBbMEwGmKteAbr8=;
-	h=Date:To:From:Subject:Message-Id; b=LhI/xsbefsGQwnogNPMV3sWNds0miAta5cxe/N4BYCkgwd6KzWP1+rMA+g4pEkzYcOIbVAFx2cW4NmwsRCS8XVfBI+gOsr/6PRHEksV10YjfF4C94YkfDLvmG3ozW8rqHYnePOrzj3cHXS1rmXOIV66h5HNb5dqY5JKuac88Hes=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q/myrM1Y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291675; c=relaxed/simple;
+	bh=IVLnF52ze4UAwB7suN3oU8t/mIa29eq106POGwr2t+Y=;
+	h=Date:To:From:Subject:Message-Id; b=b+/dwSmFK+M9OZjWRMR6PWvWOkqta8EhsTllyTC2NIpwT/8Ai/h9qiMQnGRZrDr53TYDQDnSGua996bSutiCAQLxrT3Oj358HhEZm7P5Ucx0RYvpTeU9Y4vvudlsBFzr2/lHHTJUlfy2mBMtWbu0WfJhC4S5ZpqCE+w9fNPZ4Ww=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R5Ga5WeB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q/myrM1Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE4E0C32789;
-	Tue, 25 Jun 2024 05:01:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R5Ga5WeB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7339DC32789;
+	Tue, 25 Jun 2024 05:01:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291673;
-	bh=kfRHSZai3dHKfusgCEVKrhViF4esDBbMEwGmKteAbr8=;
+	s=korg; t=1719291675;
+	bh=IVLnF52ze4UAwB7suN3oU8t/mIa29eq106POGwr2t+Y=;
 	h=Date:To:From:Subject:From;
-	b=q/myrM1Yv7YLROXy6YtvfktlaRZhh4Id6vDezHtjIbgpeIwpSnyijdhqBg6amPCHT
-	 /HG7iHJPrI4HTWzIl/jKMphpD3H8z6j99fb6rbcXgb1Niipv0IHkVbnZiP3oCVINSB
-	 ynIHQK1VpK0ZhNiOey8YMw3Ftn+gEFGeZQu/Wsfs=
-Date: Mon, 24 Jun 2024 22:01:13 -0700
+	b=R5Ga5WeB7ocQZChlfwzSePPLzZtnJWYqxSNS91fAPwpror9pkhSUwSGUfXQHe6MsR
+	 htEJB7h20XPwQf6Vpf6ocvYVMMrpgYdMsyI1r8S7Zzg7EB9Wt7NvJiVSoX9D6YYka3
+	 IvhYH/A9WBYBCOM+NhFwCO/i71FlClqHviOtbSZg=
+Date: Mon, 24 Jun 2024 22:01:14 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,ryan.roberts@arm.com,minchan@kernel.org,kasong@tencent.com,david@redhat.com,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect.patch removed from -mm tree
-Message-Id: <20240625050113.CE4E0C32789@smtp.kernel.org>
+Subject: [merged mm-stable] mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page.patch removed from -mm tree
+Message-Id: <20240625050115.7339DC32789@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,41 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: introduce pmd|pte_needs_soft_dirty_wp helpers for softdirty write-protect
+     Subject: mm: set pte writable while pte_soft_dirty() is true in do_swap_page()
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect.patch
+     mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: introduce pmd|pte_needs_soft_dirty_wp helpers for softdirty write-protect
-Date: Sat, 8 Jun 2024 09:13:57 +1200
+Subject: mm: set pte writable while pte_soft_dirty() is true in do_swap_page()
+Date: Sat, 8 Jun 2024 09:13:58 +1200
 
-Patch series "mm: introduce pmd|pte_needs_soft_dirty_wp helpers and
-utilize them", v2.
+This patch leverages the new pte_needs_soft_dirty_wp() helper to optimize
+a scenario where softdirty is enabled, but the softdirty flag has already
+been set in do_swap_page().  In this situation, we can use pte_mkwrite
+instead of applying write-protection since we don't depend on write
+faults.
 
-
-This patchset introduces the pte_need_soft_dirty_wp and
-pmd_need_soft_dirty_wp helpers to determine if write protection is
-required for softdirty tracking.  These helpers enhance code readability
-and improve the overall appearance.
-
-They are then utilized in gup, mprotect, swap, and other related
-functions.
-
-
-This patch (of 2): 
-
-This patch introduces the pte_needs_soft_dirty_wp and
-pmd_needs_soft_dirty_wp helpers to determine if write protection is
-required for softdirty tracking.  This can enhance code readability and
-improve its overall appearance.  These new helpers are then utilized in
-gup, huge_memory, and mprotect.
-
-Link: https://lkml.kernel.org/r/20240607211358.4660-1-21cnbao@gmail.com
-Link: https://lkml.kernel.org/r/20240607211358.4660-2-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240607211358.4660-3-21cnbao@gmail.com
 Signed-off-by: Barry Song <v-songbaohua@oppo.com>
 Suggested-by: David Hildenbrand <david@redhat.com>
 Acked-by: David Hildenbrand <david@redhat.com>
@@ -82,73 +66,20 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c         |    4 ++--
- mm/huge_memory.c |    2 +-
- mm/internal.h    |   10 ++++++++++
- mm/mprotect.c    |    2 +-
- 4 files changed, 14 insertions(+), 4 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect
-+++ a/mm/gup.c
-@@ -771,7 +771,7 @@ static inline bool can_follow_write_pmd(
- 		return false;
- 
- 	/* ... and a write-fault isn't required for other reasons. */
--	if (vma_soft_dirty_enabled(vma) && !pmd_soft_dirty(pmd))
-+	if (pmd_needs_soft_dirty_wp(vma, pmd))
- 		return false;
- 	return !userfaultfd_huge_pmd_wp(vma, pmd);
- }
-@@ -892,7 +892,7 @@ static inline bool can_follow_write_pte(
- 		return false;
- 
- 	/* ... and a write-fault isn't required for other reasons. */
--	if (vma_soft_dirty_enabled(vma) && !pte_soft_dirty(pte))
-+	if (pte_needs_soft_dirty_wp(vma, pte))
- 		return false;
- 	return !userfaultfd_pte_wp(vma, pte);
- }
---- a/mm/huge_memory.c~mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect
-+++ a/mm/huge_memory.c
-@@ -1626,7 +1626,7 @@ static inline bool can_change_pmd_writab
- 		return false;
- 
- 	/* Do we need write faults for softdirty tracking? */
--	if (vma_soft_dirty_enabled(vma) && !pmd_soft_dirty(pmd))
-+	if (pmd_needs_soft_dirty_wp(vma, pmd))
- 		return false;
- 
- 	/* Do we need write faults for uffd-wp tracking? */
---- a/mm/internal.h~mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect
-+++ a/mm/internal.h
-@@ -1348,6 +1348,16 @@ static inline bool vma_soft_dirty_enable
- 	return !(vma->vm_flags & VM_SOFTDIRTY);
- }
- 
-+static inline bool pmd_needs_soft_dirty_wp(struct vm_area_struct *vma, pmd_t pmd)
-+{
-+	return vma_soft_dirty_enabled(vma) && !pmd_soft_dirty(pmd);
-+}
-+
-+static inline bool pte_needs_soft_dirty_wp(struct vm_area_struct *vma, pte_t pte)
-+{
-+	return vma_soft_dirty_enabled(vma) && !pte_soft_dirty(pte);
-+}
-+
- static inline void vma_iter_config(struct vma_iterator *vmi,
- 		unsigned long index, unsigned long last)
- {
---- a/mm/mprotect.c~mm-introduce-pmdpte_needs_soft_dirty_wp-helpers-for-softdirty-write-protect
-+++ a/mm/mprotect.c
-@@ -53,7 +53,7 @@ bool can_change_pte_writable(struct vm_a
- 		return false;
- 
- 	/* Do we need write faults for softdirty tracking? */
--	if (vma_soft_dirty_enabled(vma) && !pte_soft_dirty(pte))
-+	if (pte_needs_soft_dirty_wp(vma, pte))
- 		return false;
- 
- 	/* Do we need write faults for uffd-wp tracking? */
+--- a/mm/memory.c~mm-set-pte-writable-while-pte_soft_dirty-is-true-in-do_swap_page
++++ a/mm/memory.c
+@@ -4324,7 +4324,7 @@ check_folio:
+ 	if (!folio_test_ksm(folio) &&
+ 	    (exclusive || folio_ref_count(folio) == 1)) {
+ 		if ((vma->vm_flags & VM_WRITE) && !userfaultfd_pte_wp(vma, pte) &&
+-		    !vma_soft_dirty_enabled(vma)) {
++		    !pte_needs_soft_dirty_wp(vma, pte)) {
+ 			pte = pte_mkwrite(pte, vma);
+ 			if (vmf->flags & FAULT_FLAG_WRITE) {
+ 				pte = pte_mkdirty(pte);
 _
 
 Patches currently in -mm which might be from v-songbaohua@oppo.com are
