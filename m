@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E23933C0
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:25:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C63F433C0
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:25:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293152; cv=none; b=rfYWuyvbtIzWX7zKc8lSsP3u5cvFkpFz7Vetm9VyYPYgWd2z919Cj6IUF1qO8OsWGVRhpx+gioPr6ANv3B9aWgO7QbraSdNsxNIMGYaTo4qEd2RyItYrUlhvQcWZvCMICpGBTRTCYRleBD2UT0I34ioxun0q3MtosEoE+qxWZpw=
+	t=1719293153; cv=none; b=HQtp1WbA/MHGikBLRMnHrpmez7kCFpeG8LUtz4gwOZoQ+MC+K/n02XmdbQBKztxSt5wTpDilbBq41GVoB0uSQoH2+ib5fr8vobJ8yD9EgwnodgS2ISRFnupiUYzjYweH4tSeaGogh40CHCRnGrKuEVWqdHUEfpi44m6L88brjPc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719293152; c=relaxed/simple;
-	bh=4vWJbS+wt1YUOTWH+0BRH59f434UXLTJanV1wGKbgfQ=;
-	h=Date:To:From:Subject:Message-Id; b=uj8RxoowLsqJPh3rMq4Iz2Ltnl2+dHkvGjNoWkzLG+zXFTEkUBS/eL+pDXJHGKbahWE5lRFFkSJ/A50xb44Gfvc51Nd1WLRArfxJ9Kt4PIWJjWOvNYJsIRuADdeKKkOGUJey5+k9xYlWijDFK/bX1pggix9/KsxeDmkpt0p7LXQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zrg0L+DO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719293153; c=relaxed/simple;
+	bh=UqL1rqup8Ra0lh4w34Ce0jKX1rUI1Nf+D8YAe8/zbF0=;
+	h=Date:To:From:Subject:Message-Id; b=PFd2In41cd0C06UkVRp/smMwqLOubtAUSegLXUl+ZOfu+8IoSxcwtQk0UiqBr6hKjeNlORvpwjuoM/OxLaZoZVn4WeY0hl+F2N+tQwdJQVraVWaMtVwuJNGKvgDPvAok7fxDhm5xG4nkFi5f1OUzwVLsXsiu8nLL9zw++GAoeMM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=faN+cjEt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zrg0L+DO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB77EC4AF07;
-	Tue, 25 Jun 2024 05:25:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="faN+cjEt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C9D8C32782;
+	Tue, 25 Jun 2024 05:25:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293152;
-	bh=4vWJbS+wt1YUOTWH+0BRH59f434UXLTJanV1wGKbgfQ=;
+	s=korg; t=1719293153;
+	bh=UqL1rqup8Ra0lh4w34Ce0jKX1rUI1Nf+D8YAe8/zbF0=;
 	h=Date:To:From:Subject:From;
-	b=zrg0L+DOipHp6NkXK3kR1YRS4ymB9rjeAtaR+tPmkVO8Rv/4VFG01pAnqfAw6yq4+
-	 iJfAEEsQ9S9f6v4IJFKVQpZGVNAjHyX5BaiwzmFmZ5R/I0+LLXA5SLih7+Y4ivSQ/n
-	 zQFNMsMEsELxPXAf1wuikHprz50V1YfvbPahtY2w=
-Date: Mon, 24 Jun 2024 22:25:51 -0700
+	b=faN+cjEte5ye0X0oBUnOGZ+t5ildW8YQCuu0hGywlNnC74lsEl3YVkHkfYUVu8HzZ
+	 bZAVKl3wKCxnqXN6kt0iKBVTsJY0Gibcyj/ZoMMJFEpCdB3a83MYpDLINXIdAeNXHv
+	 V+1iY8uRRLU7bhxRluIPlNGMjgpjQHlpu7SpZc28=
+Date: Mon, 24 Jun 2024 22:25:52 -0700
 To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,llfamsec@gmail.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,mengferry@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-add-bounds-checking-to-ocfs2_xattr_find_entry.patch removed from -mm tree
-Message-Id: <20240625052551.EB77EC4AF07@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-strict-bound-check-before-memcmp-in-ocfs2_xattr_find_entry.patch removed from -mm tree
+Message-Id: <20240625052553.4C9D8C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,88 +35,71 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: add bounds checking to ocfs2_xattr_find_entry()
+     Subject: ocfs2: strict bound check before memcmp in ocfs2_xattr_find_entry()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-add-bounds-checking-to-ocfs2_xattr_find_entry.patch
+     ocfs2-strict-bound-check-before-memcmp-in-ocfs2_xattr_find_entry.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ferry Meng <mengferry@linux.alibaba.com>
-Subject: ocfs2: add bounds checking to ocfs2_xattr_find_entry()
-Date: Mon, 20 May 2024 10:40:23 +0800
+Subject: ocfs2: strict bound check before memcmp in ocfs2_xattr_find_entry()
+Date: Mon, 20 May 2024 10:40:24 +0800
 
-Add a paranoia check to make sure it doesn't stray beyond valid memory
-region containing ocfs2 xattr entries when scanning for a match.  It will
-prevent out-of-bound access in case of crafted images.
+xattr in ocfs2 maybe 'non-indexed', which saved with additional space
+requested.  It's better to check if the memory is out of bound before
+memcmp, although this possibility mainly comes from crafted poisonous
+images.
 
-Link: https://lkml.kernel.org/r/20240520024024.1976129-1-joseph.qi@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20240520024024.1976129-2-joseph.qi@linux.alibaba.com
 Signed-off-by: Ferry Meng <mengferry@linux.alibaba.com>
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Reported-by: lei lu <llfamsec@gmail.com>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Gang He <ghe@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Jun Piao <piaojun@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/xattr.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ fs/ocfs2/xattr.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-add-bounds-checking-to-ocfs2_xattr_find_entry
+--- a/fs/ocfs2/xattr.c~ocfs2-strict-bound-check-before-memcmp-in-ocfs2_xattr_find_entry
 +++ a/fs/ocfs2/xattr.c
-@@ -1062,7 +1062,7 @@ ssize_t ocfs2_listxattr(struct dentry *d
- 	return i_ret + b_ret;
- }
- 
--static int ocfs2_xattr_find_entry(int name_index,
-+static int ocfs2_xattr_find_entry(struct inode *inode, int name_index,
- 				  const char *name,
- 				  struct ocfs2_xattr_search *xs)
+@@ -1068,7 +1068,7 @@ static int ocfs2_xattr_find_entry(struct
  {
-@@ -1076,6 +1076,10 @@ static int ocfs2_xattr_find_entry(int na
- 	name_len = strlen(name);
- 	entry = xs->here;
- 	for (i = 0; i < le16_to_cpu(xs->header->xh_count); i++) {
-+		if ((void *)entry >= xs->end) {
-+			ocfs2_error(inode->i_sb, "corrupted xattr entries");
-+			return -EFSCORRUPTED;
-+		}
+ 	struct ocfs2_xattr_entry *entry;
+ 	size_t name_len;
+-	int i, cmp = 1;
++	int i, name_offset, cmp = 1;
+ 
+ 	if (name == NULL)
+ 		return -EINVAL;
+@@ -1083,10 +1083,15 @@ static int ocfs2_xattr_find_entry(struct
  		cmp = name_index - ocfs2_xattr_get_type(entry);
  		if (!cmp)
  			cmp = name_len - entry->xe_name_len;
-@@ -1166,7 +1170,7 @@ static int ocfs2_xattr_ibody_get(struct
- 	xs->base = (void *)xs->header;
- 	xs->here = xs->header->xh_entries;
- 
--	ret = ocfs2_xattr_find_entry(name_index, name, xs);
-+	ret = ocfs2_xattr_find_entry(inode, name_index, name, xs);
- 	if (ret)
- 		return ret;
- 	size = le64_to_cpu(xs->here->xe_value_size);
-@@ -2698,7 +2702,7 @@ static int ocfs2_xattr_ibody_find(struct
- 
- 	/* Find the named attribute. */
- 	if (oi->ip_dyn_features & OCFS2_INLINE_XATTR_FL) {
--		ret = ocfs2_xattr_find_entry(name_index, name, xs);
-+		ret = ocfs2_xattr_find_entry(inode, name_index, name, xs);
- 		if (ret && ret != -ENODATA)
- 			return ret;
- 		xs->not_found = ret;
-@@ -2833,7 +2837,7 @@ static int ocfs2_xattr_block_find(struct
- 		xs->end = (void *)(blk_bh->b_data) + blk_bh->b_size;
- 		xs->here = xs->header->xh_entries;
- 
--		ret = ocfs2_xattr_find_entry(name_index, name, xs);
-+		ret = ocfs2_xattr_find_entry(inode, name_index, name, xs);
- 	} else
- 		ret = ocfs2_xattr_index_block_find(inode, blk_bh,
- 						   name_index,
+-		if (!cmp)
+-			cmp = memcmp(name, (xs->base +
+-				     le16_to_cpu(entry->xe_name_offset)),
+-				     name_len);
++		if (!cmp) {
++			name_offset = le16_to_cpu(entry->xe_name_offset);
++			if ((xs->base + name_offset + name_len) > xs->end) {
++				ocfs2_error(inode->i_sb,
++					    "corrupted xattr entries");
++				return -EFSCORRUPTED;
++			}
++			cmp = memcmp(name, (xs->base + name_offset), name_len);
++		}
+ 		if (cmp == 0)
+ 			break;
+ 		entry += 1;
 _
 
 Patches currently in -mm which might be from mengferry@linux.alibaba.com are
