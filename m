@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF383145347
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBAE7145347
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:26:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719293203; cv=none; b=dZKY7nELee8c97MGoeiizZItXRBculF5qHxyuzidJgS5+o9JEYPRSwdJkFu4CzzN3hhvATCkZv5PI5aA/k9rRaGb92v/JCJ5luKMMoMlVbqZwetZ3j9mT1wQ7oGdfMP6PcXk7NK3rSECyap7/pfVlcdCsDTH/8SnyDSICkU8Kys=
+	t=1719293203; cv=none; b=bq77UmL7MYU530DZkzV+KarxD3rRFN6WAh2KpPUP73htAhmhCQi7RjpV/bgX6OEtUHlwf9e92ezei9oy9tJ/w+Fi2dRVQW9/3PQrIluauzmPhSL9GCIzEQFZ/XTbo7W+tFoWq1qSmILExTFf2TwzOOKgPyf6Hv7AxTvBEbXJDr8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1719293203; c=relaxed/simple;
-	bh=wYdBTe0Osi/4GVamFeKaBEe2BBHerIo2b3imzuPWUPA=;
-	h=Date:To:From:Subject:Message-Id; b=UZBlKxNcwE/2IAR61HaT3togKDpDxQyZ3h2LTJ+tTAHFfqaKBXmqsVnRwAVKoqv5NP9ElM7HgIoZQF2DDSzkzgRtKlbRV11NZEYKnLBI+yssJMjzuJqU07Nljp/UTYubfAlD+hnonNhUivf9Yavav3Bu2WCEKzghfa1xy7XjW6I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1saI9VZf; arc=none smtp.client-ip=10.30.226.201
+	bh=/gCnZDyvACPAJYUyzcCYJAqU84a2oiZgfkD75leooOQ=;
+	h=Date:To:From:Subject:Message-Id; b=t/IW4/lBeWuleL4pMDc4KDHAj9sWYwSwc2ID9JrhIz2jnvBDWzmpGfGlbY1ug51A04dBjitWV/HJ2Df01hGy43MKULvOr67yAAIHNwtuFNA/2Df4EVuf8U/NVCzGvGJ8mtcFhY66bXyuFcXBksZLHBuxNDy7d8P+GaNSoIUFKT8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vlSHLgeB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1saI9VZf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3D01C32782;
-	Tue, 25 Jun 2024 05:26:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vlSHLgeB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0225C32782;
+	Tue, 25 Jun 2024 05:26:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719293202;
-	bh=wYdBTe0Osi/4GVamFeKaBEe2BBHerIo2b3imzuPWUPA=;
+	s=korg; t=1719293203;
+	bh=/gCnZDyvACPAJYUyzcCYJAqU84a2oiZgfkD75leooOQ=;
 	h=Date:To:From:Subject:From;
-	b=1saI9VZf51cGx+/GvAVjyrFN0JDrvBTFA0Ytr/5NCTKGvTN6nILrnYcA56Fi21nGn
-	 +Mn4wz+f2fuJSFGrL3jk/s6aQmd4CN9aNgIuQVOPG/oJRwJ7d7bTU1A1vI+Tr6vp0M
-	 9e+1/lsQDo2t9076X0Ri0FGXIz7X4KHJLg2FbM2Q=
-Date: Mon, 24 Jun 2024 22:26:42 -0700
+	b=vlSHLgeB1bnBuuAmDyTKE9W+4OJa7qwrRUMDM6I5thmPxeZEzCQUcZzerpqETyx9/
+	 o3gXVkEnNtxp1HJrf+d8h7VPnJfMfQ7c+t5hdmL5Ku1j8bJa690TqJska84b1iIKJS
+	 PYg/uT3Xx+pwDASg7Q+YSj5jKcSHFOHs/mu8t5UU=
+Date: Mon, 24 Jun 2024 22:26:43 -0700
 To: mm-commits@vger.kernel.org,quic_jjohnson@quicinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kunit-add-missing-module_description-macros-for-lib-_testko.patch removed from -mm tree
-Message-Id: <20240625052642.B3D01C32782@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-asn1_encoder-add-missing-module_description-macro.patch removed from -mm tree
+Message-Id: <20240625052643.B0225C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,38 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: KUnit: add missing MODULE_DESCRIPTION() macros for lib/*_test.ko
+     Subject: lib/asn1_encoder: add missing MODULE_DESCRIPTION() macro
 has been removed from the -mm tree.  Its filename was
-     kunit-add-missing-module_description-macros-for-lib-_testko.patch
+     lib-asn1_encoder-add-missing-module_description-macro.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Jeff Johnson <quic_jjohnson@quicinc.com>
-Subject: KUnit: add missing MODULE_DESCRIPTION() macros for lib/*_test.ko
-Date: Sat, 1 Jun 2024 16:33:23 -0700
+Subject: lib/asn1_encoder: add missing MODULE_DESCRIPTION() macro
+Date: Sat, 1 Jun 2024 16:09:47 -0700
 
-make allmodconfig && make W=1 C=1 reports for lib/*_test.ko:
-WARNING: modpost: missing MODULE_DESCRIPTION() in lib/atomic64_test.o
-WARNING: modpost: missing MODULE_DESCRIPTION() in lib/hashtable_test.o
+make allmodconfig && make W=1 C=1 reports:
+WARNING: modpost: missing MODULE_DESCRIPTION() in lib/asn1_encoder.o
 
-Add the missing invocations of the MODULE_DESCRIPTION() macro.
+Add the missing invocation of the MODULE_DESCRIPTION() macro.
 
-Link: https://lkml.kernel.org/r/20240601-md-lib-test2-v1-1-be764b785f17@quicinc.com
+Link: https://lkml.kernel.org/r/20240601-md-lib-asn1_encoder-v1-1-8c634ed2d2e8@quicinc.com
 Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/atomic64_test.c  |    1 +
- lib/hashtable_test.c |    1 +
- 2 files changed, 2 insertions(+)
+ lib/asn1_encoder.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/atomic64_test.c~kunit-add-missing-module_description-macros-for-lib-_testko
-+++ a/lib/atomic64_test.c
-@@ -273,4 +273,5 @@ static __exit void test_atomics_exit(voi
- module_init(test_atomics_init);
- module_exit(test_atomics_exit);
+--- a/lib/asn1_encoder.c~lib-asn1_encoder-add-missing-module_description-macro
++++ a/lib/asn1_encoder.c
+@@ -449,4 +449,5 @@ asn1_encode_boolean(unsigned char *data,
+ }
+ EXPORT_SYMBOL_GPL(asn1_encode_boolean);
  
-+MODULE_DESCRIPTION("Testsuite for atomic64_t functions");
- MODULE_LICENSE("GPL");
---- a/lib/hashtable_test.c~kunit-add-missing-module_description-macros-for-lib-_testko
-+++ a/lib/hashtable_test.c
-@@ -314,4 +314,5 @@ static struct kunit_suite hashtable_test
- 
- kunit_test_suites(&hashtable_test_module);
- 
-+MODULE_DESCRIPTION("KUnit test for the Kernel Hashtable structures");
++MODULE_DESCRIPTION("Simple encoder primitives for ASN.1 BER/DER/CER");
  MODULE_LICENSE("GPL");
 _
 
