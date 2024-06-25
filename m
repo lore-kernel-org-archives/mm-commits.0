@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0CD513D289
-	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:00:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29107143C53
+	for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 05:00:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719291629; cv=none; b=pbNJk1p3BUsve6okh8qZqxJnCHS6706YSxStCHoFE1F32XEowQADnR8f4VTJkOS78HSitMi6HTZRRhV2NejCzMLSoRPKrudS9DwDneFrNrQJyfWEJAVP851fWqQBT/a9lEm7pSRk6ljTp8XEj3iMCCdQtXGxFU8ZvygVL2ffdKQ=
+	t=1719291630; cv=none; b=YJjjS+3lPl42SR+FNlT3PXzzg7G9obBrg0TuP19Klh3NQKfFBczFzv5lpS5UWhT7hkRAFJ+QDJPK1MBhC7nbylZ24of0ChjL7O3QTrJUisj6XL/dMMU/dKoHa9SHjNrtZaJTfQnSZ5+ZxoAiwyVqAJ7PpaLYeP2hhVTjGD+7cEY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719291629; c=relaxed/simple;
-	bh=2lgx5qo93aVQRXYkeczkOweH9KExaqAomzhrUy6ywp0=;
-	h=Date:To:From:Subject:Message-Id; b=EHggOrtR1tjOoHlLjXWi3CivfNvMd0tm9QCW6XqBjKr1ec5bT7or1hMpTZQsmZASW5ciRLVkCtHQ3fWPjfXCP6Llve2eKAEjaNuKOiDqtKxUkF6gzy1SE6yDzUtqcu+7YteGDpMG0QQHvi1kbCn/4PGeRDiJ1MO95wUWy8u9I9s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MyLUcHJi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719291630; c=relaxed/simple;
+	bh=igwi5ZnUnYZPwUwKW5SL6VhkPMBSogJ2qIkianJP2V8=;
+	h=Date:To:From:Subject:Message-Id; b=gd4oHbt1q2vccfsdQq4MAuqCUoKfKNDC+BhA9fZQMsQtJvONRas11Bt6B/qoQwl7qFFUaCi12Lx8o33+twpbBj0i2Zv4SnrUeXGLxFqmd39XAtDfXUzPwdszWM096ngGBaIrGLTu9ocUZnhazlyLi1Yvc9yK1/X9Ryu2nzxAZNg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lt2xf88s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MyLUcHJi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B70B2C32789;
-	Tue, 25 Jun 2024 05:00:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lt2xf88s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2A41C32782;
+	Tue, 25 Jun 2024 05:00:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719291628;
-	bh=2lgx5qo93aVQRXYkeczkOweH9KExaqAomzhrUy6ywp0=;
+	s=korg; t=1719291630;
+	bh=igwi5ZnUnYZPwUwKW5SL6VhkPMBSogJ2qIkianJP2V8=;
 	h=Date:To:From:Subject:From;
-	b=MyLUcHJiZdiWaD1Z8/e4wrknExayy31VNY6ln7C+MO7uQ+77irtikuU1cOkAXZcc8
-	 Odx5rwwbet4iG3A81r8KLtBF+BnT9MS4Xv7rMJ9Or+reamrQjYXM/EOQEnMKgqgYQb
-	 69TTql9Vco11CU6ZESiwBWhGPfAF7ljjduq2BI7k=
-Date: Mon, 24 Jun 2024 22:00:28 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,linmiaohe@huawei.com,willy@infradead.org,akpm@linux-foundation.org
+	b=lt2xf88skQ3/ICftM0sHu1GgDVNLZ6EMB2WIrlw4iICeMtZG5rHrWJFPd8F/Q9bM+
+	 KvZqQalJPu3cz/E0smFJQ5JVMVJYKF6I3wNCX/47Wuc03zCvLSYRp+xmy1sqb/hbNj
+	 W9Ul6jiBZYoa16ovfQqsqn7ZgZBq2jwVy1acCFsQ=
+Date: Mon, 24 Jun 2024 22:00:29 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-failure-stop-setting-the-folio-error-flag.patch removed from -mm tree
-Message-Id: <20240625050028.B70B2C32789@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-extend-finish_fault-to-support-large-folio.patch removed from -mm tree
+Message-Id: <20240625050029.F2A41C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,197 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory-failure: stop setting the folio error flag
+     Subject: mm: memory: extend finish_fault() to support large folio
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-stop-setting-the-folio-error-flag.patch
+     mm-memory-extend-finish_fault-to-support-large-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/memory-failure: stop setting the folio error flag
-Date: Fri, 31 May 2024 04:29:25 +0100
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: memory: extend finish_fault() to support large folio
+Date: Tue, 11 Jun 2024 18:11:05 +0800
 
-Nobody checks the error flag any more, so setting it accomplishes nothing.
-Remove the obsolete parts of this comment; it hasn't been true since
-errseq_t was used to track writeback errors in 2017.
+Patch series "add mTHP support for anonymous shmem", v5.
 
-Link: https://lkml.kernel.org/r/20240531032938.2712870-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Anonymous pages have already been supported for multi-size (mTHP)
+allocation through commit 19eaf44954df, that can allow THP to be
+configured through the sysfs interface located at
+'/sys/kernel/mm/transparent_hugepage/hugepage-XXkb/enabled'.
+
+However, the anonymous shmem will ignore the anonymous mTHP rule
+configured through the sysfs interface, and can only use the PMD-mapped
+THP, that is not reasonable.  Many implement anonymous page sharing
+through mmap(MAP_SHARED | MAP_ANONYMOUS), especially in database usage
+scenarios, therefore, users expect to apply an unified mTHP strategy for
+anonymous pages, also including the anonymous shared pages, in order to
+enjoy the benefits of mTHP.  For example, lower latency than PMD-mapped
+THP, smaller memory bloat than PMD-mapped THP, contiguous PTEs on ARM
+architecture to reduce TLB miss etc.
+
+As discussed in the bi-weekly MM meeting[1], the mTHP controls should
+control all of shmem, not only anonymous shmem, but support will be added
+iteratively.  Therefore, this patch set starts with support for anonymous
+shmem.
+
+The primary strategy is similar to supporting anonymous mTHP.  Introduce a
+new interface '/mm/transparent_hugepage/hugepage-XXkb/shmem_enabled',
+which can have almost the same values as the top-level
+'/sys/kernel/mm/transparent_hugepage/shmem_enabled', with adding a new
+additional "inherit" option and dropping the testing options 'force' and
+'deny'.  By default all sizes will be set to "never" except PMD size,
+which is set to "inherit".  This ensures backward compatibility with the
+anonymous shmem enabled of the top level, meanwhile also allows
+independent control of anonymous shmem enabled for each mTHP.
+
+Use the page fault latency tool to measure the performance of 1G anonymous shmem
+with 32 threads on my machine environment with: ARM64 Architecture, 32 cores,
+125G memory:
+base: mm-unstable
+user-time    sys_time    faults_per_sec_per_cpu     faults_per_sec
+0.04s        3.10s         83516.416                  2669684.890
+
+mm-unstable + patchset, anon shmem mTHP disabled
+user-time    sys_time    faults_per_sec_per_cpu     faults_per_sec
+0.02s        3.14s         82936.359                  2630746.027
+
+mm-unstable + patchset, anon shmem 64K mTHP enabled
+user-time    sys_time    faults_per_sec_per_cpu     faults_per_sec
+0.08s        0.31s         678630.231                 17082522.495
+
+From the data above, it is observed that the patchset has a minimal impact
+when mTHP is not enabled (some fluctuations observed during testing). 
+When enabling 64K mTHP, there is a significant improvement of the page
+fault latency.
+
+[1] https://lore.kernel.org/all/f1783ff0-65bd-4b2b-8952-52b6822a0835@redhat.com/
+
+
+This patch (of 6):
+
+Add large folio mapping establishment support for finish_fault() as a
+preparation, to support multi-size THP allocation of anonymous shmem pages
+in the following patches.
+
+Keep the same behavior (per-page fault) for non-anon shmem to avoid
+inflating the RSS unintentionally, and we can discuss what size of mapping
+to build when extending mTHP to control non-anon shmem in the future.
+
+[baolin.wang@linux.alibaba.com: avoid going beyond the PMD pagetable size]
+  Link: https://lkml.kernel.org/r/b0e6a8b1-a32c-459e-ae67-fde5d28773e6@linux.alibaba.com
+[baolin.wang@linux.alibaba.com: use 'PTRS_PER_PTE' instead of 'PTRS_PER_PTE - 1']
+  Link: https://lkml.kernel.org/r/e1f5767a-2c9b-4e37-afe6-1de26fe54e41@linux.alibaba.com
+Link: https://lkml.kernel.org/r/cover.1718090413.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/3a190892355989d42f59cf9f2f98b94694b0d24d.1718090413.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Daniel Gomez <da.gomez@samsung.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   29 -----------------------------
- 1 file changed, 29 deletions(-)
+ mm/memory.c |   61 +++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 51 insertions(+), 10 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-stop-setting-the-folio-error-flag
-+++ a/mm/memory-failure.c
-@@ -1112,7 +1112,6 @@ static int me_pagecache_dirty(struct pag
- 	struct folio *folio = page_folio(p);
- 	struct address_space *mapping = folio_mapping(folio);
+--- a/mm/memory.c~mm-memory-extend-finish_fault-to-support-large-folio
++++ a/mm/memory.c
+@@ -4825,9 +4825,12 @@ vm_fault_t finish_fault(struct vm_fault
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct page *page;
++	struct folio *folio;
+ 	vm_fault_t ret;
+ 	bool is_cow = (vmf->flags & FAULT_FLAG_WRITE) &&
+ 		      !(vma->vm_flags & VM_SHARED);
++	int type, nr_pages;
++	unsigned long addr = vmf->address;
  
--	SetPageError(p);
- 	/* TBD: print more information about the file. */
- 	if (mapping) {
- 		/*
-@@ -1120,34 +1119,6 @@ static int me_pagecache_dirty(struct pag
- 		 * who check the mapping.
- 		 * This way the application knows that something went
- 		 * wrong with its dirty file data.
--		 *
--		 * There's one open issue:
--		 *
--		 * The EIO will be only reported on the next IO
--		 * operation and then cleared through the IO map.
--		 * Normally Linux has two mechanisms to pass IO error
--		 * first through the AS_EIO flag in the address space
--		 * and then through the PageError flag in the page.
--		 * Since we drop pages on memory failure handling the
--		 * only mechanism open to use is through AS_AIO.
--		 *
--		 * This has the disadvantage that it gets cleared on
--		 * the first operation that returns an error, while
--		 * the PageError bit is more sticky and only cleared
--		 * when the page is reread or dropped.  If an
--		 * application assumes it will always get error on
--		 * fsync, but does other operations on the fd before
--		 * and the page is dropped between then the error
--		 * will not be properly reported.
--		 *
--		 * This can already happen even without hwpoisoned
--		 * pages: first on metadata IO errors (which only
--		 * report through AS_EIO) or when the page is dropped
--		 * at the wrong time.
--		 *
--		 * So right now we assume that the application DTRT on
--		 * the first EIO, but we're not worse than other parts
--		 * of the kernel.
- 		 */
- 		mapping_set_error(mapping, -EIO);
+ 	/* Did we COW the page? */
+ 	if (is_cow)
+@@ -4858,24 +4861,62 @@ vm_fault_t finish_fault(struct vm_fault
+ 			return VM_FAULT_OOM;
  	}
+ 
++	folio = page_folio(page);
++	nr_pages = folio_nr_pages(folio);
++
++	/*
++	 * Using per-page fault to maintain the uffd semantics, and same
++	 * approach also applies to non-anonymous-shmem faults to avoid
++	 * inflating the RSS of the process.
++	 */
++	if (!vma_is_anon_shmem(vma) || unlikely(userfaultfd_armed(vma))) {
++		nr_pages = 1;
++	} else if (nr_pages > 1) {
++		pgoff_t idx = folio_page_idx(folio, page);
++		/* The page offset of vmf->address within the VMA. */
++		pgoff_t vma_off = vmf->pgoff - vmf->vma->vm_pgoff;
++		/* The index of the entry in the pagetable for fault page. */
++		pgoff_t pte_off = pte_index(vmf->address);
++
++		/*
++		 * Fallback to per-page fault in case the folio size in page
++		 * cache beyond the VMA limits and PMD pagetable limits.
++		 */
++		if (unlikely(vma_off < idx ||
++			    vma_off + (nr_pages - idx) > vma_pages(vma) ||
++			    pte_off < idx ||
++			    pte_off + (nr_pages - idx)  > PTRS_PER_PTE)) {
++			nr_pages = 1;
++		} else {
++			/* Now we can set mappings for the whole large folio. */
++			addr = vmf->address - idx * PAGE_SIZE;
++			page = &folio->page;
++		}
++	}
++
+ 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+-				      vmf->address, &vmf->ptl);
++				       addr, &vmf->ptl);
+ 	if (!vmf->pte)
+ 		return VM_FAULT_NOPAGE;
+ 
+ 	/* Re-check under ptl */
+-	if (likely(!vmf_pte_changed(vmf))) {
+-		struct folio *folio = page_folio(page);
+-		int type = is_cow ? MM_ANONPAGES : mm_counter_file(folio);
+-
+-		set_pte_range(vmf, folio, page, 1, vmf->address);
+-		add_mm_counter(vma->vm_mm, type, 1);
+-		ret = 0;
+-	} else {
+-		update_mmu_tlb(vma, vmf->address, vmf->pte);
++	if (nr_pages == 1 && unlikely(vmf_pte_changed(vmf))) {
++		update_mmu_tlb(vma, addr, vmf->pte);
+ 		ret = VM_FAULT_NOPAGE;
++		goto unlock;
++	} else if (nr_pages > 1 && !pte_range_none(vmf->pte, nr_pages)) {
++		update_mmu_tlb_range(vma, addr, vmf->pte, nr_pages);
++		ret = VM_FAULT_NOPAGE;
++		goto unlock;
+ 	}
+ 
++	folio_ref_add(folio, nr_pages - 1);
++	set_pte_range(vmf, folio, page, nr_pages, addr);
++	type = is_cow ? MM_ANONPAGES : mm_counter_file(folio);
++	add_mm_counter(vma->vm_mm, type, nr_pages);
++	ret = 0;
++
++unlock:
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
 
