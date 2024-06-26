@@ -1,158 +1,285 @@
-Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7990E54D
-	for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 01:35:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1B231CA85
+	for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 02:19:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719365759; cv=none; b=Cit+c80gqKaMGDKwNvAEq0GRS03gOx72Z66KZPMMCI+yq+9ONMukPqfHPR4uElciG5CAU+OPpQ6KZh6FzxwliFUHivcwP/XQlCzdd2tx6peHX5J5pMWI5XoCmKKFLVD4hqbd6OTA4L08WIVK+4KzmppAFYiPcuzX6qufnbaDp6A=
+	t=1719368397; cv=none; b=RBtQAGethKgZIgTBB5IAXjPlZgZxOkwJAlxZVkzw45MDYP70ZPpqKz3euP45hMPQ3YieKPpVCCpNwLdKrTD5ymQj2WpkEX2YNxOu2GRwSmxO4vfxZvovzm1NDhnde6rKftyMEpOA08Hbx1LR0nPJJPqn+heEaI5oZ5zCr/4pMpM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719365759; c=relaxed/simple;
-	bh=4QDnpjQXXtuLwXJz+XaETK7fmKm9LwWa6q7IDWfZfe4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=SY7xy5NnBBc9ASH1PUSU/iO2OAAOPvo6TY5sJv8NW34Fg/zqLgv5lx/qy/Ilvy78HbJ8PWOnexy08eSC5iMniTYENySjeKtjH5+RiXUufeZXFFj7vlZopqdfQbLzF93NS62eCQHkbHIBRcmExp0I6Xq8flqPydHISL857Gyf19s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=C1bBkhdz; arc=none smtp.client-ip=209.85.208.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1719368397; c=relaxed/simple;
+	bh=TRVvnJpMgWKF3W781Mo9F4naB/9yZZ4q/8j5UPcNAnA=;
+	h=Date:To:From:Subject:Message-Id; b=hSaN9rvmONHC6gz5EtvcHL6ys/SDyacoQmAAe8QwyfDOMiSWhxg57yZWNXOfTNAC34kBKE4bT36jpS7J1H9/DMACTgAgA4O7r0id5K92ZD+neQx+ED+hv6LAMtc3hVibTsH/pHZXy3KeH+k6Oc3UHpNxAASI7v5zwhqp1bg/em0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l/vaK+Ve; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="C1bBkhdz"
-Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-57cc30eaf0aso3709320a12.2
-        for <mm-commits@vger.kernel.org>; Tue, 25 Jun 2024 18:35:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1719365756; x=1719970556; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=2pn5UY2YjmF/74MyvrfgCrPVH+7c1dPWHCBBJc/nGPw=;
-        b=C1bBkhdz+FPJvMAqom2Sy1Y7pX2hXNoVKn8gLkTgNPkymNcQZhh2T+ZSGRCt2TyLsp
-         JHT1IbjB3TDBvjG0xHMsyB/5KiiZ1H6LAMxYU5oNzG/OZmENQKCnlfTTJHYHsJpSOq/7
-         h3SoWWU34d69OGfEkVIbh9PylrricSwKb4Eig6aZE8jj1KgzRPs1tzUI+rhcq4wFF5Ia
-         DlThb46CQ/2Kwl/L2dz9nSqVvqjKdShoxGEnClE/VJbMUbRT42hQjFD61FqHuLY1lysd
-         XncFnwt6yHbTENgcRV83jTs4HCD3ou+zlcpt96/xFkCSIpbX+MifmX758+WjSmbwbpm+
-         YNxA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1719365756; x=1719970556;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=2pn5UY2YjmF/74MyvrfgCrPVH+7c1dPWHCBBJc/nGPw=;
-        b=TijcTWbo8ujY9ZO7QfaBLeg2Lkql2b1G+2PvAZ2AT4G3DLnzg5xWUVTSVpQSl/cYoG
-         nvI5XndpiMOROYzeyNc0S2L2Pdu77g0MYjeVVbX/V5/0O1ymkw5SfwqzNr1jbuiIMyg4
-         XueX7l5ufC7XZVRTI4PbWmNTxXvtF6+6xBpA3hAe/U0B0PwP25tUN+8jeu+906vl9KHV
-         G4lEqBXRXwTTVvmQ6bVUUMsSJx7Sra7m5bli0kTbOSIdsHywWWJ+dGuHxeqb6h2t2lG0
-         cHQM7UYvfwjxK1WKP/b6qqXlETbf3MsW7t6rsW6KRrKymnsl3SLZtpgSXVnUeuLj2K4T
-         pA8Q==
-X-Gm-Message-State: AOJu0YxKZLDv5QAg2UZty+2rjSsE3mmeSdD1xZ/GOfF5jirN8ocovr0Q
-	sfp4i1BmFdBYdrytjAz/DfwMVv0+c9YPV3C66DGpt5UjxXxUNdH8ELhqkhfoL0onV81eCnkIBl+
-	1HRonpH+UY1ufweJwct40FlBUW516ZwYtRGiAgThc
-X-Google-Smtp-Source: AGHT+IH0vFXKU6R2VzZFlzu9+4LU6IE102FgnREK1vqS8ZyMU/5G/gO3Z7cobxe+IM4tJNTEG2D5y4Ur8LBdxgtXvCg=
-X-Received: by 2002:a50:d55b:0:b0:57d:669:caf2 with SMTP id
- 4fb4d7f45d1cf-57d4bd9705amr7436790a12.25.1719365755818; Tue, 25 Jun 2024
- 18:35:55 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l/vaK+Ve"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 491A9C32781;
+	Wed, 26 Jun 2024 02:19:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1719368396;
+	bh=TRVvnJpMgWKF3W781Mo9F4naB/9yZZ4q/8j5UPcNAnA=;
+	h=Date:To:From:Subject:From;
+	b=l/vaK+VegZnfjIkmWYmaNyF8HRQlgLwk/LwoooqwwZw4V/lr40FjLBoLt/QatQVVb
+	 tPa20or5TohnhnrdHyRSihInsJ/cxodx4yi9PaAfJkBnLb8OyaNz3NP0tbDpIT1jl5
+	 hKcyFlu0jgetORr0O8gH1jPgmOcBSybIFcpe1xFU=
+Date: Tue, 25 Jun 2024 19:19:54 -0700
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,tglx@linutronix.de,shuah@kernel.org,seanjc@google.com,reinette.chatre@intel.com,peterz@infradead.org,pbonzini@redhat.com,paul.walmsley@sifive.com,palmer@dabbelt.com,pabeni@redhat.com,mingo@redhat.com,kuba@kernel.org,kevin.tian@intel.com,kees@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,jarkko@kernel.org,fenghua.yu@intel.com,edumazet@google.com,ebiederm@xmission.com,dvhart@infradead.org,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,aou@eecs.berkeley.edu,andrealmeid@igalia.com,edliaw@google.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + selftests-centralize-d_gnu_source=-to-cflags-in-libmk.patch added to mm-nonmm-unstable branch
+Message-Id: <20240626021956.491A9C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20240625215530.EC3B2C32781@smtp.kernel.org>
-In-Reply-To: <20240625215530.EC3B2C32781@smtp.kernel.org>
-From: Lance Yang <ioworker0@gmail.com>
-Date: Wed, 26 Jun 2024 09:35:44 +0800
-Message-ID: <CAK1f24kbhKvGwsJwopdXZd6wU+pA3M5wRE4PMvzB88O_3+U75A@mail.gmail.com>
-Subject: Re: + hack.patch added to mm-unstable branch
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jun 26, 2024 at 5:55=E2=80=AFAM Andrew Morton <akpm@linux-foundatio=
-n.org> wrote:
->
->
-> The patch titled
->      Subject: hack
-> has been added to the -mm mm-unstable branch.  Its filename is
->      hack.patch
->
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree=
-/patches/hack.patch
->
-> This patch will later appear in the mm-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
->
-> *** Remember to use Documentation/process/submit-checklist.rst when testi=
-ng your code ***
->
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
->
-> ------------------------------------------------------
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Subject: hack
-> Date: Tue Jun 25 02:51:36 PM PDT 2024
->
-> um, Lance?
 
-LGTM.
+The patch titled
+     Subject: selftests: centralize -D_GNU_SOURCE= to CFLAGS in lib.mk
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-centralize-d_gnu_source=-to-cflags-in-libmk.patch
 
-I think this patch has fixed the bug[1] introduced by me.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-centralize-d_gnu_source=-to-cflags-in-libmk.patch
 
-[1] https://lore.kernel.org/all/20240622100057.3352-1-ioworker0@gmail.com/T=
-/#u
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202406260514.SLhNM9kQ-lkp@int=
-el.com/
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Thanks again for stepping in to help!
-Lance
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
->
-> Cc: Lance Yang <ioworker0@gmail.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->
->  mm/huge_memory.c |    3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
->
-> --- a/mm/huge_memory.c~hack
-> +++ a/mm/huge_memory.c
-> @@ -2696,7 +2696,6 @@ static bool __discard_anon_folio_pmd_loc
->         struct mm_struct *mm =3D vma->vm_mm;
->         int ref_count, map_count;
->         pmd_t orig_pmd =3D *pmdp;
-> -       struct page *page;
->
->         if (folio_test_dirty(folio) || pmd_dirty(orig_pmd))
->                 return false;
-> @@ -2732,7 +2731,7 @@ static bool __discard_anon_folio_pmd_loc
->                 return false;
->         }
->
-> -       folio_remove_rmap_pmd(folio, page, vma);
-> +       folio_remove_rmap_pmd(folio, pmd_page(orig_pmd), vma);
->         zap_deposited_table(mm, pmdp);
->         add_mm_counter(mm, MM_ANONPAGES, -HPAGE_PMD_NR);
->         if (vma->vm_flags & VM_LOCKED)
-> _
->
-> Patches currently in -mm which might be from akpm@linux-foundation.org ar=
-e
->
-> hack.patch
-> mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type-f=
-ix.patch
-> mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix.patch
-> mm-use-folio_add_new_anon_rmap-if-folio_test_anonfolio=3D=3Dfalse-fix.pat=
-ch
-> tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout=
--fix.patch
->
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Edward Liaw <edliaw@google.com>
+Subject: selftests: centralize -D_GNU_SOURCE= to CFLAGS in lib.mk
+Date: Tue, 25 Jun 2024 22:34:45 +0000
+
+Centralize the _GNU_SOURCE definition to CFLAGS in lib.mk.  Remove
+redundant defines from Makefiles that import lib.mk.  Convert any usage of
+"#define _GNU_SOURCE 1" to "#define _GNU_SOURCE".
+
+This uses the form "-D_GNU_SOURCE=", which is equivalent to
+"#define _GNU_SOURCE".
+
+Otherwise using "-D_GNU_SOURCE" is equivalent to "-D_GNU_SOURCE=1" and
+"#define _GNU_SOURCE 1", which is less commonly seen in source code and
+would require many changes in selftests to avoid redefinition warnings.
+
+Link: https://lkml.kernel.org/r/20240625223454.1586259-2-edliaw@google.com
+Signed-off-by: Edward Liaw <edliaw@google.com>
+Suggested-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: André Almeida <andrealmeid@igalia.com>
+Cc: Darren Hart <dvhart@infradead.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Jarkko Sakkinen <jarkko@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Kevin Tian <kevin.tian@intel.com>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Reinette Chatre <reinette.chatre@intel.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/exec/Makefile             |    1 -
+ tools/testing/selftests/futex/functional/Makefile |    2 +-
+ tools/testing/selftests/intel_pstate/Makefile     |    2 +-
+ tools/testing/selftests/iommu/Makefile            |    2 --
+ tools/testing/selftests/kvm/Makefile              |    2 +-
+ tools/testing/selftests/lib.mk                    |    3 +++
+ tools/testing/selftests/mm/thuge-gen.c            |    2 +-
+ tools/testing/selftests/net/Makefile              |    2 +-
+ tools/testing/selftests/net/tcp_ao/Makefile       |    2 +-
+ tools/testing/selftests/proc/Makefile             |    1 -
+ tools/testing/selftests/resctrl/Makefile          |    2 +-
+ tools/testing/selftests/ring-buffer/Makefile      |    1 -
+ tools/testing/selftests/riscv/mm/Makefile         |    2 +-
+ tools/testing/selftests/sgx/Makefile              |    2 +-
+ tools/testing/selftests/tmpfs/Makefile            |    1 -
+ 15 files changed, 12 insertions(+), 15 deletions(-)
+
+--- a/tools/testing/selftests/exec/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/exec/Makefile
+@@ -1,7 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ CFLAGS = -Wall
+ CFLAGS += -Wno-nonnull
+-CFLAGS += -D_GNU_SOURCE
+ 
+ TEST_PROGS := binfmt_script.py
+ TEST_GEN_PROGS := execveat load_address_4096 load_address_2097152 load_address_16777216 non-regular
+--- a/tools/testing/selftests/futex/functional/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/futex/functional/Makefile
+@@ -1,6 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ INCLUDES := -I../include -I../../ $(KHDR_INCLUDES)
+-CFLAGS := $(CFLAGS) -g -O2 -Wall -D_GNU_SOURCE= -pthread $(INCLUDES) $(KHDR_INCLUDES)
++CFLAGS := $(CFLAGS) -g -O2 -Wall -pthread $(INCLUDES) $(KHDR_INCLUDES)
+ LDLIBS := -lpthread -lrt
+ 
+ LOCAL_HDRS := \
+--- a/tools/testing/selftests/intel_pstate/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/intel_pstate/Makefile
+@@ -1,5 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0
+-CFLAGS := $(CFLAGS) -Wall -D_GNU_SOURCE
++CFLAGS := $(CFLAGS) -Wall
+ LDLIBS += -lm
+ 
+ ARCH ?= $(shell uname -m 2>/dev/null || echo not)
+--- a/tools/testing/selftests/iommu/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/iommu/Makefile
+@@ -2,8 +2,6 @@
+ CFLAGS += -Wall -O2 -Wno-unused-function
+ CFLAGS += $(KHDR_INCLUDES)
+ 
+-CFLAGS += -D_GNU_SOURCE
+-
+ TEST_GEN_PROGS :=
+ TEST_GEN_PROGS += iommufd
+ TEST_GEN_PROGS += iommufd_fail_nth
+--- a/tools/testing/selftests/kvm/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/kvm/Makefile
+@@ -231,7 +231,7 @@ LINUX_TOOL_ARCH_INCLUDE = $(top_srcdir)/
+ endif
+ CFLAGS += -Wall -Wstrict-prototypes -Wuninitialized -O2 -g -std=gnu99 \
+ 	-Wno-gnu-variable-sized-type-not-at-end -MD -MP -DCONFIG_64BIT \
+-	-D_GNU_SOURCE -fno-builtin-memcmp -fno-builtin-memcpy \
++	-fno-builtin-memcmp -fno-builtin-memcpy \
+ 	-fno-builtin-memset -fno-builtin-strnlen \
+ 	-fno-stack-protector -fno-PIE -I$(LINUX_TOOL_INCLUDE) \
+ 	-I$(LINUX_TOOL_ARCH_INCLUDE) -I$(LINUX_HDR_PATH) -Iinclude \
+--- a/tools/testing/selftests/lib.mk~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/lib.mk
+@@ -188,6 +188,9 @@ endef
+ clean: $(if $(TEST_GEN_MODS_DIR),clean_mods_dir)
+ 	$(CLEAN)
+ 
++# Build with _GNU_SOURCE by default
++CFLAGS += -D_GNU_SOURCE=
++
+ # Enables to extend CFLAGS and LDFLAGS from command line, e.g.
+ # make USERCFLAGS=-Werror USERLDFLAGS=-static
+ CFLAGS += $(USERCFLAGS)
+--- a/tools/testing/selftests/mm/thuge-gen.c~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/mm/thuge-gen.c
+@@ -13,7 +13,7 @@
+    sudo ipcs | awk '$1 == "0x00000000" {print $2}' | xargs -n1 sudo ipcrm -m
+    (warning this will remove all if someone else uses them) */
+ 
+-#define _GNU_SOURCE 1
++#define _GNU_SOURCE
+ #include <sys/mman.h>
+ #include <linux/mman.h>
+ #include <stdlib.h>
+--- a/tools/testing/selftests/net/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/net/Makefile
+@@ -1,7 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Makefile for net selftests
+ 
+-CFLAGS =  -Wall -Wl,--no-as-needed -O2 -g
++CFLAGS +=  -Wall -Wl,--no-as-needed -O2 -g
+ CFLAGS += -I../../../../usr/include/ $(KHDR_INCLUDES)
+ # Additional include paths needed by kselftest.h
+ CFLAGS += -I../
+--- a/tools/testing/selftests/net/tcp_ao/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/net/tcp_ao/Makefile
+@@ -26,7 +26,7 @@ LIB	:= $(LIBDIR)/libaotst.a
+ LDLIBS	+= $(LIB) -pthread
+ LIBDEPS	:= lib/aolib.h Makefile
+ 
+-CFLAGS	:= -Wall -O2 -g -D_GNU_SOURCE -fno-strict-aliasing
++CFLAGS	+= -Wall -O2 -g -fno-strict-aliasing
+ CFLAGS	+= $(KHDR_INCLUDES)
+ CFLAGS	+= -iquote ./lib/ -I ../../../../include/
+ 
+--- a/tools/testing/selftests/proc/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/proc/Makefile
+@@ -1,6 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ CFLAGS += -Wall -O2 -Wno-unused-function
+-CFLAGS += -D_GNU_SOURCE
+ LDFLAGS += -pthread
+ 
+ TEST_GEN_PROGS :=
+--- a/tools/testing/selftests/resctrl/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/resctrl/Makefile
+@@ -1,6 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ 
+-CFLAGS = -g -Wall -O2 -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE
++CFLAGS = -g -Wall -O2 -D_FORTIFY_SOURCE=2
+ CFLAGS += $(KHDR_INCLUDES)
+ 
+ TEST_GEN_PROGS := resctrl_tests
+--- a/tools/testing/selftests/ring-buffer/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/ring-buffer/Makefile
+@@ -1,7 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ CFLAGS += -Wl,-no-as-needed -Wall
+ CFLAGS += $(KHDR_INCLUDES)
+-CFLAGS += -D_GNU_SOURCE
+ 
+ TEST_GEN_PROGS = map_test
+ 
+--- a/tools/testing/selftests/riscv/mm/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/riscv/mm/Makefile
+@@ -3,7 +3,7 @@
+ # Originally tools/testing/arm64/abi/Makefile
+ 
+ # Additional include paths needed by kselftest.h and local headers
+-CFLAGS += -D_GNU_SOURCE -std=gnu99 -I.
++CFLAGS += -std=gnu99 -I.
+ 
+ TEST_GEN_FILES := mmap_default mmap_bottomup
+ 
+--- a/tools/testing/selftests/sgx/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/sgx/Makefile
+@@ -12,7 +12,7 @@ OBJCOPY := $(CROSS_COMPILE)objcopy
+ endif
+ 
+ INCLUDES := -I$(top_srcdir)/tools/include
+-HOST_CFLAGS := -Wall -Werror -g $(INCLUDES) -fPIC
++HOST_CFLAGS := -Wall -Werror -g $(INCLUDES) -fPIC $(CFLAGS)
+ HOST_LDFLAGS := -z noexecstack -lcrypto
+ ENCL_CFLAGS += -Wall -Werror -static-pie -nostdlib -ffreestanding -fPIE \
+ 	       -fno-stack-protector -mrdrnd $(INCLUDES)
+--- a/tools/testing/selftests/tmpfs/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/tmpfs/Makefile
+@@ -1,6 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ CFLAGS += -Wall -O2
+-CFLAGS += -D_GNU_SOURCE
+ 
+ TEST_GEN_PROGS :=
+ TEST_GEN_PROGS += bug-link-o-tmpfile
+_
+
+Patches currently in -mm which might be from edliaw@google.com are
+
+selftests-centralize-d_gnu_source=-to-cflags-in-libmk.patch
+
