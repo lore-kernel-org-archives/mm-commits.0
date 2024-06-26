@@ -1,94 +1,258 @@
-Received: from mail-vk1-f180.google.com (mail-vk1-f180.google.com [209.85.221.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AE1D19005D
-	for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 17:36:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97853EEDD
+	for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 17:42:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719423400; cv=none; b=WdcOWOssuAN3L75sdqWx8uTOPqaWtYplbmcqSVnk9IvVPrKyjGdUYqcOxOxO8aLskEqYoDPCIpCySp1YvlTbwmJmJvXORjUoxZL0ktwT8BjdTn6PZuLwneQQnbdpjL6fCJcmz32E2m48OQhH5i60c5QGPTbJRYWBPUa4xCnKtr4=
+	t=1719423732; cv=none; b=i/B6AH58sDtPNLWZCS0mmKXf+94uSuN8FUGGFI0H44RJB36Ah41h6PfnNucsyEwGHIpBH9lTcLw1DABS9V10nT8/ExHr4z0+avNpedUR1V3lJ7bvCCKlaHWkB47VUS8xH27LNBpaGuTLMczD6wK92/75t4+/2M8FN4Y9HpMYaRc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719423400; c=relaxed/simple;
-	bh=wWzhqpHTVtLsVD4iQ+TR3LikY+F2UwyjT1MrHMsTOZA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fvhqKacWIE9ObxRkupFEPgkodYk+ohVOiKyPxjrthpDIXwLu59YRt8Cyv287gZYnBve5PDe4YZ3QGUDsWpJUuWN7uqmjti13vNNN3pvm24TkgxtT4WNZUj8NDUBfeaBKt1LOnCRyXWelCid+v8VMFGZ8DGeYHEy9bBuiQCcXMwc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmpxchg.org; spf=pass smtp.mailfrom=cmpxchg.org; dkim=pass (2048-bit key) header.d=cmpxchg-org.20230601.gappssmtp.com header.i=@cmpxchg-org.20230601.gappssmtp.com header.b=fiFb4KFD; arc=none smtp.client-ip=209.85.221.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmpxchg.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cmpxchg.org
+	s=arc-20240116; t=1719423732; c=relaxed/simple;
+	bh=CQdymFURxBSoRPB4zvqsAza2zMSvTF7DnXaROh+hUdI=;
+	h=Date:To:From:Subject:Message-Id; b=TuvU233WDGakUxPhNwstYKoOZuIWZXJ/Z7ijBoLFSmC7i6WS9iUbyU2K0FAE72Sr8gsy0CGnPjv/tpiS1w2ERk5mLXKMBY29Xhuy1JgtRCP30eiTXBzRR4M/P9HYJheJXK1qny89LZP9gq8YK5lx6BuAOIh/ZLLyLKL7ph0maRY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2izpuJC+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cmpxchg-org.20230601.gappssmtp.com header.i=@cmpxchg-org.20230601.gappssmtp.com header.b="fiFb4KFD"
-Received: by mail-vk1-f180.google.com with SMTP id 71dfb90a1353d-4ef33a09a3aso2016445e0c.2
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 10:36:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cmpxchg-org.20230601.gappssmtp.com; s=20230601; t=1719423397; x=1720028197; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=Mfevt0G32wciVUdnWUpueR27fCiqAh3u1Fs8waVishY=;
-        b=fiFb4KFDQLsaKN/Vb6h8VY+n2KBIN9+vOd8cZIp3sosUXOclFzyR+c4EMK1rgdcu2g
-         Z6oIFQ+son4RC6xUvPE6EAeLOrqJD4mFT+RXp5Hki3V1NqO/yCdJ5J9h9so68S7+VXZc
-         ybGG/nldLAdImBwP/9HHUB67misqsA0uDuIMekosOYu9nWXgRuL7kPV6Je1gBHi1UJS/
-         eqtr9roG4v5qgXyLzQviZ52xBh6YX8UU614kFyZhjs3eKMuT2fQZ3gQdjCzNHN3WPfaN
-         ZZcDQzjRbt9Saqvjlup/eREGfYGNxDfVgEURaP8+435feEf+qQbDxRAMpZR49yNgR57U
-         sneA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1719423397; x=1720028197;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Mfevt0G32wciVUdnWUpueR27fCiqAh3u1Fs8waVishY=;
-        b=oRDaJA8+MzgkeQ+TsCcjA7czdRp9Qtt2HyJiz6VwZcTq+ec+6FxiWO6an3R++gTuoh
-         0fp+L3bUpPeEAdi2ItYclThxuS5cxzivG/jh6/e/G3kuP0eH6UdgATGruEEbQCHDUsA1
-         801TylhrlQa5S2UiVL2HG1cylY8bmK6JYU4OOTkth9hXkq6SkO/dqWf44LxUFrmENXID
-         vq/1c0fNA+3nSRvxYJCyOxUPrvlt/pEJqBhQLwOzlE2oBpAdCXy5GXcQca2uhB0FrAJn
-         hjubptT1nzmol0W6QbN/qaMrXnc2lM7e2Qv32pHUql1RzVLMigNpSvOMdkcfzMA5oq7n
-         dYyg==
-X-Forwarded-Encrypted: i=1; AJvYcCWn5a5vA24av+GKihdRwBjVAwhrHfoklM6NC/Kljwv8nUqGMrFjGiWqwxcX4GWAUfbA4xGYxm2MZu/4LJFoX4BGL4ysv/815KIFWw==
-X-Gm-Message-State: AOJu0YzrNpXSfEgdKv+pgo1+syl0y+WWT46ohleE67ldRxxgRwk3pfzm
-	vP4uGYDvo0jRCkEQUTzqdYZo1XW+Q4NxKGl1nWkaFJoudPFBfzX6tCY5qloR3rU=
-X-Google-Smtp-Source: AGHT+IEb5UpWwuEQ/V9Yp5iARPlgKGws2rgx1647y65D3HPx88MNCt7jpZuFKfsQZBxSwl6xz6Wx6Q==
-X-Received: by 2002:a05:6122:2188:b0:4ef:64a8:c61b with SMTP id 71dfb90a1353d-4ef6a61f825mr9272522e0c.7.1719423396954;
-        Wed, 26 Jun 2024 10:36:36 -0700 (PDT)
-Received: from localhost ([2603:7000:c01:2716:da5e:d3ff:fee7:26e7])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6b51ef694fcsm56032936d6.131.2024.06.26.10.36.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 26 Jun 2024 10:36:36 -0700 (PDT)
-Date: Wed, 26 Jun 2024 13:36:30 -0400
-From: Johannes Weiner <hannes@cmpxchg.org>
-To: Michal Hocko <mhocko@suse.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
-	yosryahmed@google.com, willy@infradead.org,
-	wangkefeng.wang@huawei.com, tj@kernel.org, shakeel.butt@linux.dev,
-	shakeelb@google.com, roman.gushchin@linux.dev, rientjes@google.com,
-	nphamcs@gmail.com, muchun.song@linux.dev, lizefan.x@bytedance.com,
-	hughd@google.com, findns94@gmail.com, david@redhat.com,
-	corbet@lwn.net, chrisl@kernel.org, schatzberg.dan@gmail.com
-Subject: Re: [nacked] mm-add-swapiness=-arg-to-memoryreclaim.patch removed
- from -mm tree
-Message-ID: <20240626173630.GA142260@cmpxchg.org>
-References: <20240625210334.0BCA0C32781@smtp.kernel.org>
- <ZnuxTAcFbW0mI5uD@tiehlicka>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2izpuJC+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 085F9C116B1;
+	Wed, 26 Jun 2024 17:42:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1719423732;
+	bh=CQdymFURxBSoRPB4zvqsAza2zMSvTF7DnXaROh+hUdI=;
+	h=Date:To:From:Subject:From;
+	b=2izpuJC+VcHs9vIpl3+Mowzg7Mi5VqwAdRi9WpFq+VYlbxEyR378JzFlFL1sQ4g6o
+	 SE7Ch5m8L4CUk2GeXPcDatLntCpOxqlVpQLrhBYQjA9h0lKTweNzJMWHBsuhkM2T0H
+	 GaGAmWnDQR1EVZHBn5PyuycAPOkwVXoyuxtQgDNI=
+Date: Wed, 26 Jun 2024 10:42:11 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,willy@infradead.org,wangkefeng.wang@huawei.com,tj@kernel.org,shakeel.butt@linux.dev,shakeelb@google.com,roman.gushchin@linux.dev,rientjes@google.com,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,lizefan.x@bytedance.com,hughd@google.com,hannes@cmpxchg.org,findns94@gmail.com,david@redhat.com,corbet@lwn.net,chrisl@kernel.org,schatzberg.dan@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-add-defines-for-min-max-swappiness.patch added to mm-unstable branch
+Message-Id: <20240626174212.085F9C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZnuxTAcFbW0mI5uD@tiehlicka>
 
-On Wed, Jun 26, 2024 at 08:12:28AM +0200, Michal Hocko wrote:
-> On Tue 25-06-24 14:03:33, Andrew Morton wrote:
-> > 
-> > The quilt patch titled
-> >      Subject: mm: add swappiness= arg to memory.reclaim
-> > has been removed from the -mm tree.  Its filename was
-> >      mm-add-swapiness=-arg-to-memoryreclaim.patch
-> > 
-> > This patch was dropped because it was nacked
-> 
-> I do not see this being nacked in the original email thread.
 
-Yes, me neither.
+The patch titled
+     Subject: mm: add defines for min/max swappiness
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-defines-for-min-max-swappiness.patch
 
-And IIRC, the "disagreement" came down to one person's coding style
-opinion (one which didn't resonate with other reviewers).
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-defines-for-min-max-swappiness.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Dan Schatzberg <schatzberg.dan@gmail.com>
+Subject: mm: add defines for min/max swappiness
+Date: Wed, 3 Jan 2024 08:48:36 -0800
+
+Patch series "Add swappiness argument to memory.reclaim", v6.
+
+This patch proposes augmenting the memory.reclaim interface with a
+swappiness=<val> argument that overrides the swappiness value for that
+instance of proactive reclaim.
+
+Userspace proactive reclaimers use the memory.reclaim interface to trigger
+reclaim.  The memory.reclaim interface does not allow for any way to
+effect the balance of file vs anon during proactive reclaim.  The only
+approach is to adjust the vm.swappiness setting.  However, there are a few
+reasons we look to control the balance of file vs anon during proactive
+reclaim, separately from reactive reclaim:
+
+* Swapout should be limited to manage SSD write endurance.  In near-OOM
+  situations we are fine with lots of swap-out to avoid OOMs.  As these
+  are typically rare events, they have relatively little impact on write
+  endurance.  However, proactive reclaim runs continuously and so its
+  impact on SSD write endurance is more significant.  Therefore it is
+  desireable to control swap-out for proactive reclaim separately from
+  reactive reclaim
+
+* Some userspace OOM killers like systemd-oomd[1] support OOM killing on
+  swap exhaustion.  This makes sense if the swap exhaustion is triggered
+  due to reactive reclaim but less so if it is triggered due to proactive
+  reclaim (e.g.  one could see OOMs when free memory is ample but anon is
+  just particularly cold).  Therefore, it's desireable to have proactive
+  reclaim reduce or stop swap-out before the threshold at which OOM
+  killing occurs.
+
+In the case of Meta's Senpai proactive reclaimer, we adjust vm.swappiness
+before writes to memory.reclaim[2].  This has been in production for
+nearly two years and has addressed our needs to control proactive vs
+reactive reclaim behavior but is still not ideal for a number of reasons:
+
+* vm.swappiness is a global setting, adjusting it can race/interfere
+  with other system administration that wishes to control vm.swappiness. 
+  In our case, we need to disable Senpai before adjusting vm.swappiness.
+
+* vm.swappiness is stateful - so a crash or restart of Senpai can leave
+  a misconfigured setting.  This requires some additional management to
+  record the "desired" setting and ensure Senpai always adjusts to it.
+
+With this patch, we avoid these downsides of adjusting vm.swappiness
+globally.
+
+Previously, this exact interface addition was proposed by Yosry[3].  In
+response, Roman proposed instead an interface to specify precise
+file/anon/slab reclaim amounts[4].  More recently Huan also proposed this
+as well[5] and others similarly questioned if this was the proper
+interface.
+
+Previous proposals sought to use this to allow proactive reclaimers to
+effectively perform a custom reclaim algorithm by issuing proactive
+reclaim with different settings to control file vs anon reclaim (e.g.  to
+only reclaim anon from some applications).  Responses argued that
+adjusting swappiness is a poor interface for custom reclaim.
+
+In contrast, I argue in favor of a swappiness setting not as a way to
+implement custom reclaim algorithms but rather to bias the balance of anon
+vs file due to differences of proactive vs reactive reclaim.  In this
+context, swappiness is the existing interface for controlling this balance
+and this patch simply allows for it to be configured differently for
+proactive vs reactive reclaim.
+
+Specifying explicit amounts of anon vs file pages to reclaim feels
+inappropriate for this prupose.  Proactive reclaimers are un-aware of the
+relative age of file vs anon for a cgroup which makes it difficult to
+manage proactive reclaim of different memory pools.  A proactive reclaimer
+would need some amount of anon reclaim attempts separate from the amount
+of file reclaim attempts which seems brittle given that it's difficult to
+observe the impact.
+
+[1]https://www.freedesktop.org/software/systemd/man/latest/systemd-oomd.service.html
+[2]https://github.com/facebookincubator/oomd/blob/main/src/oomd/plugins/Senpai.cpp#L585-L598
+[3]https://lore.kernel.org/linux-mm/CAJD7tkbDpyoODveCsnaqBBMZEkDvshXJmNdbk51yKSNgD7aGdg@mail.gmail.com/
+[4]https://lore.kernel.org/linux-mm/YoPHtHXzpK51F%2F1Z@carbon/
+[5]https://lore.kernel.org/lkml/20231108065818.19932-1-link@vivo.com/
+
+
+This patch (of 2):
+
+We use the constants 0 and 200 in a few places in the mm code when
+referring to the min and max swappiness.  This patch adds MIN_SWAPPINESS
+and MAX_SWAPPINESS #defines to improve clarity.  There are no functional
+changes.
+
+Link: https://lkml.kernel.org/r/20240103164841.2800183-1-schatzberg.dan@gmail.com
+Link: https://lkml.kernel.org/r/20240103164841.2800183-2-schatzberg.dan@gmail.com
+Signed-off-by: Dan Schatzberg <schatzberg.dan@gmail.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Chris Li <chrisl@kernel.org>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Yue Zhao <findns94@gmail.com>
+Cc: Zefan Li <lizefan.x@bytedance.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/swap.h |    2 ++
+ mm/memcontrol-v1.c   |    2 +-
+ mm/vmscan.c          |   12 ++++++------
+ 3 files changed, 9 insertions(+), 7 deletions(-)
+
+--- a/include/linux/swap.h~mm-add-defines-for-min-max-swappiness
++++ a/include/linux/swap.h
+@@ -405,6 +405,8 @@ extern unsigned long try_to_free_pages(s
+ 
+ #define MEMCG_RECLAIM_MAY_SWAP (1 << 1)
+ #define MEMCG_RECLAIM_PROACTIVE (1 << 2)
++#define MIN_SWAPPINESS 0
++#define MAX_SWAPPINESS 200
+ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
+ 						  unsigned long nr_pages,
+ 						  gfp_t gfp_mask,
+--- a/mm/memcontrol-v1.c~mm-add-defines-for-min-max-swappiness
++++ a/mm/memcontrol-v1.c
+@@ -2709,7 +2709,7 @@ static int mem_cgroup_swappiness_write(s
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+ 
+-	if (val > 200)
++	if (val > MAX_SWAPPINESS)
+ 		return -EINVAL;
+ 
+ 	if (!mem_cgroup_is_root(memcg))
+--- a/mm/vmscan.c~mm-add-defines-for-min-max-swappiness
++++ a/mm/vmscan.c
+@@ -192,7 +192,7 @@ struct scan_control {
+ #endif
+ 
+ /*
+- * From 0 .. 200.  Higher means more swappy.
++ * From 0 .. MAX_SWAPPINESS.  Higher means more swappy.
+  */
+ int vm_swappiness = 60;
+ 
+@@ -2427,7 +2427,7 @@ static void get_scan_count(struct lruvec
+ 	ap = swappiness * (total_cost + 1);
+ 	ap /= anon_cost + 1;
+ 
+-	fp = (200 - swappiness) * (total_cost + 1);
++	fp = (MAX_SWAPPINESS - swappiness) * (total_cost + 1);
+ 	fp /= file_cost + 1;
+ 
+ 	fraction[0] = ap;
+@@ -4447,7 +4447,7 @@ static int get_type_to_scan(struct lruve
+ {
+ 	int type, tier;
+ 	struct ctrl_pos sp, pv;
+-	int gain[ANON_AND_FILE] = { swappiness, 200 - swappiness };
++	int gain[ANON_AND_FILE] = { swappiness, MAX_SWAPPINESS - swappiness };
+ 
+ 	/*
+ 	 * Compare the first tier of anon with that of file to determine which
+@@ -4494,7 +4494,7 @@ static int isolate_folios(struct lruvec
+ 		type = LRU_GEN_ANON;
+ 	else if (swappiness == 1)
+ 		type = LRU_GEN_FILE;
+-	else if (swappiness == 200)
++	else if (swappiness == MAX_SWAPPINESS)
+ 		type = LRU_GEN_ANON;
+ 	else if (!(sc->gfp_mask & __GFP_IO))
+ 		type = LRU_GEN_FILE;
+@@ -5428,9 +5428,9 @@ static int run_cmd(char cmd, int memcg_i
+ 
+ 	lruvec = get_lruvec(memcg, nid);
+ 
+-	if (swappiness < 0)
++	if (swappiness < MIN_SWAPPINESS)
+ 		swappiness = get_swappiness(lruvec, sc);
+-	else if (swappiness > 200)
++	else if (swappiness > MAX_SWAPPINESS)
+ 		goto done;
+ 
+ 	switch (cmd) {
+_
+
+Patches currently in -mm which might be from schatzberg.dan@gmail.com are
+
+mm-add-defines-for-min-max-swappiness.patch
+mm-add-swapiness=-arg-to-memoryreclaim.patch
+
