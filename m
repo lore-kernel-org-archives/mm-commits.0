@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2609614EC59
-	for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 19:02:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4894615216A
+	for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 19:09:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719428552; cv=none; b=CPRTYJSX1UZ534DMJa5xDL78N1inwXDC5rTO63Y48fJUxlQ925LxaEyzr8I6rTP4/LpF6LVD3FtmBpR74p4XCwgq5w2QojxZ8mei4Vw88fzz+sUUP8ZbbFF2bydukgip3+SE4yS45tecT0DK2zJj3tKam2yYtjorwUIDbtWRxfo=
+	t=1719428979; cv=none; b=NjKdhgdQvmpcC1WoFWor2tVGhe67jHUCp0MZBUv0oXnZFhvr99hpox43X/N27uoxRZrv4vsvI9qzvRl0kTSWek8DtwpmqvRul9RODuDgX81+8Pnqx6mmjVvx1l1PUXbWspfIHWFlf/kZA0uYTymPUsbH4O047eZDcElDPc2pvik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719428552; c=relaxed/simple;
-	bh=EtITmUs1sE4h8pAdNVU9Zm7XbUrlh6FrQrSdA2kfAvo=;
-	h=Date:To:From:Subject:Message-Id; b=alSu/0VKc6qw6q3QQmnu4tw1eqsNBrDrppU0v0dn7A5b5J7VCS4DiaFKUUlRZDmbJqCeYdgexgSEPa+7gAPtOt4nMZtVemUdd9wLynYfv52hZa9OkPbZqQlRBOgK+vU5cV7W+yBW/b84c0TB1ulHHSGwK80BEzUYI8w64gnx+cU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VN7SgIIt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719428979; c=relaxed/simple;
+	bh=ghppp2nRQdjqC0xUqQl5N25+mMa2iDnFlaDdLirHT1s=;
+	h=Date:To:From:Subject:Message-Id; b=A5l6+FR874CP++2PmyHHbO5EJVGyBXvkVeT1+kd3lYnX3DMHhaOt/oW0NKTBMSxeJERMIfhf9d5XpE4EScRrWGrkVLpVKzaDOMeHbBcNIgPiBTiX9W97gG0QxzypvA3eApJuwJbcLvkuJwz/SYxzXj6hgqPaHiL28aMBFjOusC8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WZ9IhNsF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VN7SgIIt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94073C116B1;
-	Wed, 26 Jun 2024 19:02:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WZ9IhNsF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F047BC116B1;
+	Wed, 26 Jun 2024 19:09:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719428551;
-	bh=EtITmUs1sE4h8pAdNVU9Zm7XbUrlh6FrQrSdA2kfAvo=;
+	s=korg; t=1719428979;
+	bh=ghppp2nRQdjqC0xUqQl5N25+mMa2iDnFlaDdLirHT1s=;
 	h=Date:To:From:Subject:From;
-	b=VN7SgIIt5HAN1JFIg/zOpr5Uq1jMlo/rgc88hCJUYExebb4Y1Qv6ndBrm3DUhnLwv
-	 n98Vn34S+8snNVaB/Jp03xVKpR+kbyhhoa+Tojcqhb69FB1rRr2azwtBpQ/jEtm7ax
-	 CS6kWMakyJYJBSGjNb1ZiH6y7A2XiL9/m3Qb8qXU=
-Date: Wed, 26 Jun 2024 12:02:31 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,shakeel.butt@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
+	b=WZ9IhNsFhXROBf9K7tA/0cXqP9zWAP8V46WW4JfGyFx9CJXYRzR0on3IDuZUEc/q2
+	 QeBpWvlLegbmR15m4yFM9qzDaA2o7E/AhkNOpRYXnWozU6BrRvvY4yr99as1+V09Tj
+	 qQiYNLmVebUuCu2LjNtdSN+XffLcAJ4yYWzXqXq0=
+Date: Wed, 26 Jun 2024 12:09:38 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option.patch added to mm-unstable branch
-Message-Id: <20240626190231.94073C116B1@smtp.kernel.org>
+Subject: + mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240626190938.F047BC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcg: put cgroup v1-specific code under a config option
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option.patch
+     Subject: mm/damon/core: increase regions merge aggressiveness while respecting min_nr_regions
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,185 +58,98 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: memcg: put cgroup v1-specific code under a config option
-Date: Mon, 24 Jun 2024 17:59:05 -0700
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: increase regions merge aggressiveness while respecting min_nr_regions
+Date: Wed, 26 Jun 2024 09:47:53 -0700
 
-Put legacy cgroup v1 memory controller code under a new CONFIG_MEMCG_V1
-config option.  The option is turned off by default.  Nobody except those
-who are still using cgroup v1 should turn it on.
+DAMON's merge mechanism has two thresholds, namely those for access
+frequency and size.  The access frequency threshold avoids merging two
+adjacent regions that having pretty different access frequency.
 
-If the option is not set, memory controller can still be mounted under
-cgroup v1, but none of memcg-specific control files are present.
+The size threshold is calculated as total size of regions divided by
+min_nr_regions.  Merging operation skip merging two adjacent regions if
+the resulting region's size can be larger than the threshold.  This is for
+meeting min_nr_regions.
 
-Please note, that not all cgroup v1's memory controller code is guarded
-yet (but most of it), it's a subject for some follow-up work.
+Commit 44fdaf596984 ("mm/damon/core: merge regions aggressively when
+max_nr_regions is unmet") of mm-unstable, however, ignores the
+min_nr_regions by increasing not only access frequency threshold but also
+the size threshold.
 
-Thanks to Michal Hocko for providing a better Kconfig option description.
+The commit also has one more problem.  User could set DAMON target regions
+with more than max_nr_regions discrete regions.  Because DAMON cannot
+merge non-adjacent regions, the number of regions will never be lower than
+max_nr_regions regardless of the increased thresholds.  As a result, the
+function can infinitely repeat the loop.
 
-Link: https://lkml.kernel.org/r/20240625005906.106920-14-roman.gushchin@linux.dev
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+Increase only access frequency threshold, up to only possible maximum
+value.
+
+Link: https://lkml.kernel.org/r/20240626164753.46270-1-sj@kernel.org
+Fixes: 44fdaf596984 ("mm/damon/core: merge regions aggressively when max_nr_regions is unmet") # mm-unstable
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 +++---
- init/Kconfig               |    9 +++++++++
- mm/Makefile                |    3 ++-
- mm/memcontrol-v1.h         |   21 ++++++++++++++++++++-
- mm/memcontrol.c            |   10 +++++++---
- 5 files changed, 41 insertions(+), 8 deletions(-)
+ mm/damon/core.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option
-+++ a/include/linux/memcontrol.h
-@@ -1851,7 +1851,7 @@ static inline bool mem_cgroup_zswap_writ
+--- a/mm/damon/core.c~mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix
++++ a/mm/damon/core.c
+@@ -1359,20 +1359,21 @@ static void damon_merge_regions_of(struc
+  * overhead under the dynamically changeable access pattern.  If a merge was
+  * unnecessarily made, later 'kdamond_split_regions()' will revert it.
+  *
+- * The total number of regions could be temporarily higher than the
+- * user-defined limit, max_nr_regions for some cases.  For an example, the user
+- * updates max_nr_regions to a number that lower than the current number of
+- * regions while DAMON is running.  Depending on the access pattern, it could
+- * take indefinitve time to reduce the number below the limit.  For such a
+- * case, repeat merging until the limit is met while increasing @threshold and
+- * @sz_limit.
++ * The total number of regions could be higher than the user-defined limit,
++ * max_nr_regions for some cases.  For example, the user can update
++ * max_nr_regions to a number that lower than the current number of regions
++ * while DAMON is running.  For such a case, repeat merging until the limit is
++ * met while increasing @threshold up to possible maximum level.
+  */
+ static void kdamond_merge_regions(struct damon_ctx *c, unsigned int threshold,
+ 				  unsigned long sz_limit)
+ {
+ 	struct damon_target *t;
+ 	unsigned int nr_regions;
++	unsigned int max_thres;
  
- /* Cgroup v1-related declarations */
- 
--#ifdef CONFIG_MEMCG
-+#ifdef CONFIG_MEMCG_V1
- unsigned long memcg1_soft_limit_reclaim(pg_data_t *pgdat, int order,
- 					gfp_t gfp_mask,
- 					unsigned long *total_scanned);
-@@ -1883,7 +1883,7 @@ static inline void mem_cgroup_unlock_pag
- 	rcu_read_unlock();
++	max_thres = c->attrs.aggr_interval /
++		(c->attrs.sample_interval ?  c->attrs.sample_interval : 1);
+ 	do {
+ 		nr_regions = 0;
+ 		damon_for_each_target(t, c) {
+@@ -1380,8 +1381,8 @@ static void kdamond_merge_regions(struct
+ 			nr_regions += damon_nr_regions(t);
+ 		}
+ 		threshold = max(1, threshold * 2);
+-		sz_limit = max(1, sz_limit * 2);
+-	} while (nr_regions > c->attrs.max_nr_regions);
++	} while (nr_regions > c->attrs.max_nr_regions &&
++			threshold <= max_thres);
  }
  
--#else /* CONFIG_MEMCG */
-+#else /* CONFIG_MEMCG_V1 */
- static inline
- unsigned long memcg1_soft_limit_reclaim(pg_data_t *pgdat, int order,
- 					gfp_t gfp_mask,
-@@ -1922,6 +1922,6 @@ static inline bool mem_cgroup_oom_synchr
- 	return false;
- }
- 
--#endif /* CONFIG_MEMCG */
-+#endif /* CONFIG_MEMCG_V1 */
- 
- #endif /* _LINUX_MEMCONTROL_H */
---- a/init/Kconfig~mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option
-+++ a/init/Kconfig
-@@ -969,6 +969,15 @@ config MEMCG
- 	help
- 	  Provides control over the memory footprint of tasks in a cgroup.
- 
-+config MEMCG_V1
-+	bool "Legacy memory controller"
-+	depends on MEMCG
-+	default n
-+	help
-+	  Legacy cgroup v1 memory controller.
-+
-+	  San N is unsure.
-+
- config MEMCG_KMEM
- 	bool
- 	depends on MEMCG
---- a/mm/Makefile~mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option
-+++ a/mm/Makefile
-@@ -96,7 +96,8 @@ obj-$(CONFIG_NUMA) += memory-tiers.o
- obj-$(CONFIG_DEVICE_MIGRATION) += migrate_device.o
- obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o khugepaged.o
- obj-$(CONFIG_PAGE_COUNTER) += page_counter.o
--obj-$(CONFIG_MEMCG) += memcontrol.o memcontrol-v1.o vmpressure.o
-+obj-$(CONFIG_MEMCG_V1) += memcontrol-v1.o
-+obj-$(CONFIG_MEMCG) += memcontrol.o vmpressure.o
- ifdef CONFIG_SWAP
- obj-$(CONFIG_MEMCG) += swap_cgroup.o
- endif
---- a/mm/memcontrol.c~mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option
-+++ a/mm/memcontrol.c
-@@ -4436,18 +4436,20 @@ struct cgroup_subsys memory_cgrp_subsys
- 	.css_free = mem_cgroup_css_free,
- 	.css_reset = mem_cgroup_css_reset,
- 	.css_rstat_flush = mem_cgroup_css_rstat_flush,
--	.can_attach = memcg1_can_attach,
- #if defined(CONFIG_LRU_GEN) || defined(CONFIG_MEMCG_KMEM)
- 	.attach = mem_cgroup_attach,
- #endif
--	.cancel_attach = memcg1_cancel_attach,
--	.post_attach = memcg1_move_task,
- #ifdef CONFIG_MEMCG_KMEM
- 	.fork = mem_cgroup_fork,
- 	.exit = mem_cgroup_exit,
- #endif
- 	.dfl_cftypes = memory_files,
-+#ifdef CONFIG_MEMCG_V1
-+	.can_attach = memcg1_can_attach,
-+	.cancel_attach = memcg1_cancel_attach,
-+	.post_attach = memcg1_move_task,
- 	.legacy_cftypes = mem_cgroup_legacy_files,
-+#endif
- 	.early_init = 0,
- };
- 
-@@ -5618,7 +5620,9 @@ static int __init mem_cgroup_swap_init(v
- 		return 0;
- 
- 	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, swap_files));
-+#ifdef CONFIG_MEMCG_V1
- 	WARN_ON(cgroup_add_legacy_cftypes(&memory_cgrp_subsys, memsw_files));
-+#endif
- #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
- 	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, zswap_files));
- #endif
---- a/mm/memcontrol-v1.h~mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option
-+++ a/mm/memcontrol-v1.h
-@@ -75,7 +75,7 @@ unsigned long memcg_page_state_local_out
- int memory_stat_show(struct seq_file *m, void *v);
- 
- /* Cgroup v1-specific declarations */
--
-+#ifdef CONFIG_MEMCG_V1
- void memcg1_remove_from_trees(struct mem_cgroup *memcg);
- 
- static inline void memcg1_soft_limit_reset(struct mem_cgroup *memcg)
-@@ -110,4 +110,23 @@ void memcg1_stat_format(struct mem_cgrou
- extern struct cftype memsw_files[];
- extern struct cftype mem_cgroup_legacy_files[];
- 
-+#else	/* CONFIG_MEMCG_V1 */
-+
-+static inline void memcg1_remove_from_trees(struct mem_cgroup *memcg) {}
-+static inline void memcg1_soft_limit_reset(struct mem_cgroup *memcg) {}
-+static inline bool memcg1_wait_acct_move(struct mem_cgroup *memcg) { return false; }
-+static inline void memcg1_css_offline(struct mem_cgroup *memcg) {}
-+
-+static inline bool memcg1_oom_prepare(struct mem_cgroup *memcg, bool *locked) { return true; }
-+static inline void memcg1_oom_finish(struct mem_cgroup *memcg, bool locked) {}
-+static inline void memcg1_oom_recover(struct mem_cgroup *memcg) {}
-+
-+static inline void memcg1_check_events(struct mem_cgroup *memcg, int nid) {}
-+
-+static inline void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s) {}
-+
-+extern struct cftype memsw_files[];
-+extern struct cftype mem_cgroup_legacy_files[];
-+#endif	/* CONFIG_MEMCG_V1 */
-+
- #endif	/* __MM_MEMCONTROL_V1_H */
+ /*
 _
 
-Patches currently in -mm which might be from roman.gushchin@linux.dev are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-memcg-introduce-memcontrol-v1c.patch
-mm-memcg-move-soft-limit-reclaim-code-to-memcontrol-v1c.patch
-mm-memcg-rename-soft-limit-reclaim-related-functions.patch
-mm-memcg-move-charge-migration-code-to-memcontrol-v1c.patch
-mm-memcg-rename-charge-move-related-functions.patch
-mm-memcg-move-legacy-memcg-event-code-into-memcontrol-v1c.patch
-mm-memcg-rename-memcg_check_events.patch
-mm-memcg-move-cgroup-v1-oom-handling-code-into-memcontrol-v1c.patch
-mm-memcg-rename-memcg_oom_recover.patch
-mm-memcg-move-cgroup-v1-interface-files-to-memcontrol-v1c.patch
-mm-memcg-make-memcg1_update_tree-static.patch
-mm-memcg-group-cgroup-v1-memcg-related-declarations.patch
-mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option.patch
-mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option-fix.patch
-maintainers-add-mm-memcontrol-v1c-h-to-the-list-of-maintained-files.patch
+mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet.patch
+mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix.patch
+docs-mm-damon-maintainer-profile-introduce-hackermail.patch
+docs-mm-damon-maintainer-profile-document-damon-community-meetups.patch
+selftests-damon-access_memory-use-user-defined-region-size.patch
+selftests-damon-_damon_sysfs-support-schemes_update_tried_regions.patch
+selftests-damon-implement-a-program-for-even-numbered-memory-regions-access.patch
+selftests-damon-implement-damos-tried-regions-test.patch
+selftests-damon-_damon_sysfs-implement-kdamonds-stop-function.patch
+selftests-damon-implement-test-for-min-max_nr_regions.patch
+_damon_sysfs-implement-commit-for-online-parameters-update.patch
+selftests-damon-damon_nr_regions-test-online-tuned-max_nr_regions.patch
 
