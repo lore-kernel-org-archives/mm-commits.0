@@ -1,294 +1,85 @@
-Received: from out-172.mta0.migadu.com (out-172.mta0.migadu.com [91.218.175.172])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 964D5D2F0
-	for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 18:00:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA393192B69
+	for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 19:01:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719424838; cv=none; b=cYtnjXvmuo5neF6kfwUvg9at88BQw2KkRNdwyOKUAFolmKNl8eflM1fq4HinCjIMyMFVF3vL0Vj0WeVeSSIxSIlqPQsa2K2BiwibvoU3DjfYImPMmj9CwSaTTJUkMJT/odudf+ywDfMzXrJUsN3lm3ELpG2PsPJz0KEOaESkcdo=
+	t=1719428473; cv=none; b=Ph+MsjESYCJHOsw46x1FOzf2i2oy41wRUUUO1xgaFmWAxaBQyTb7kEgSAUMP2nnQU5whehlf/e53v55kSBvG15MUz2Hk6Fh8R2vnEBN3nnx3l5wTTGHMEQHoQatwHevsmIW+201ZYzH5ZDl2c+NMP1GzMAjcxlq9oXwh0epvHWQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719424838; c=relaxed/simple;
-	bh=ICA2nPmYYT7hnvN2/C6++4eEJfEcwQfh5FbnVNYI0bE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=c1jWOhR4iwOObBM6eQFkvqqn0PsTKHLBNnNaKtLQDD70F+PiwPxKv+vWZSgXCnq2WY8HnW9VG/hlkItV9RCbnQKKdowM7fiSrqwai1BsHN+nXdye7PPwsEZIC7JWXYNrBu4tX0nLOZ4Pq/wkcVO3hqRrFWIzqLDB4TLcXaD3pCo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=s1pRdP9O; arc=none smtp.client-ip=91.218.175.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1719428473; c=relaxed/simple;
+	bh=j/vZXofOcRrZwRtvDO28y8+4Ss3648z4fw88wrNDldI=;
+	h=Date:To:From:Subject:Message-Id; b=eBIgU0VVTjN9oZNfE9GbT7pmTobrPY18xjW8CK5xyAGD9Zgq4gbtKPEZLPiWxZ/6VA1QPX0fXRiK94N5Tbg/eqjlc7hmI1mPgLdpbAgUx7zZNECaJ9Zsai15QZeUa33nSp2ykbLq/mMzgmVo1m0GM4IpaOqznnJqroBUZKBlQyo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e8mzU6gW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="s1pRdP9O"
-X-Envelope-To: akpm@linux-foundation.org
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1719424827;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=FObiZEzMT3BFvJxwy4X6FA9rQs+lUflQFClsK/mnrgU=;
-	b=s1pRdP9Osno2OjMcHJHG87MUoCLAQtHkKmXCwsuTREiH9pMM9x8/PeWEc/u/BZFQrEjqlX
-	zvAxqO2epu20dW9mZi7eAwkXWzEVuKkzewV51N0Y7pNAjKtN8VFS8UWS4B84qTZU3vKvWR
-	83V0EoOzw8g6TLWRE9V+OEChqkc2vjA=
-X-Envelope-To: mm-commits@vger.kernel.org
-X-Envelope-To: willy@infradead.org
-X-Envelope-To: shakeel.butt@linux.dev
-X-Envelope-To: muchun.song@linux.dev
-X-Envelope-To: mhocko@suse.com
-X-Envelope-To: hannes@cmpxchg.org
-Date: Wed, 26 Jun 2024 18:00:22 +0000
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Roman Gushchin <roman.gushchin@linux.dev>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, willy@infradead.org, shakeel.butt@linux.dev,
-	muchun.song@linux.dev, mhocko@suse.com, hannes@cmpxchg.org
-Subject: Re: +
- mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option.patch
- added to mm-unstable branch
-Message-ID: <ZnxXNtvqllc9CDoo@google.com>
-References: <20240625205047.342DBC32781@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e8mzU6gW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76861C116B1;
+	Wed, 26 Jun 2024 19:01:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1719428472;
+	bh=j/vZXofOcRrZwRtvDO28y8+4Ss3648z4fw88wrNDldI=;
+	h=Date:To:From:Subject:From;
+	b=e8mzU6gWgJ8nfvt4x3R1S56LqvL0FRchWXbzq5Ah70n4TkWb/em5n86pt8VXD1Y4D
+	 Yg5D6ZE324KKcJfshJsYv08KrbkhKLhy2MjATRLSZXp8/4P1sGRauCQp3ZjoscLfRL
+	 PLC3qOH9S3GABKjYo8J+spPneNj1HMKNGQj+cuu0=
+Date: Wed, 26 Jun 2024 12:01:11 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,shakeel.butt@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-memcg-introduce-memcontrol-v1c.patch added to mm-unstable branch
+Message-Id: <20240626190112.76861C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240625205047.342DBC32781@smtp.kernel.org>
-X-Migadu-Flow: FLOW_OUT
 
-On Tue, Jun 25, 2024 at 01:50:46PM -0700, Andrew Morton wrote:
-> 
-> The patch titled
->      Subject: mm: memcg: put cgroup v1-related members of task_struct under config option
-> has been added to the -mm mm-unstable branch.  Its filename is
->      mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option.patch
-> 
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option.patch
-> 
-> This patch will later appear in the mm-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Hi Andrew,
+The patch titled
+     Subject: mm: memcg: introduce memcontrol-v1.c
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memcg-introduce-memcontrol-v1c.patch
 
-can you please replace this patch with the one below?
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-introduce-memcontrol-v1c.patch
 
-The code is the same except from the better config option description provided
-by Michal, but the commit log _and_ subject are entirely different:
-the previous one was taken from another patch in v1 of this series by a mistake.
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-I also updated the cover letter for the series a bit - also attached to this
-letter.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The whole updated series is available here:
-https://github.com/rgushchin/linux/tree/memcontrol_v1.2-fixup
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-Thank you!
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
---------------------------------------------------------------------------------
-From a4ab44d7b70a893ebded61835006f57099bdc059 Mon Sep 17 00:00:00 2001
+------------------------------------------------------
 From: Roman Gushchin <roman.gushchin@linux.dev>
-Date: Wed, 8 May 2024 15:23:37 -0700
-Subject: [PATCH v2-fixup 13/14] mm: memcg: put cgroup v1-specific code under a
- config option
+Subject: mm: memcg: introduce memcontrol-v1.c
+Date: Mon, 24 Jun 2024 17:58:53 -0700
 
-Put legacy cgroup v1 memory controller code under a new
-CONFIG_MEMCG_V1 config option. The option is turned off by default.
-Nobody except those who are still using cgroup v1 should turn it on.
+Patch series "mm: memcg: separate legacy cgroup v1 code and put under
+config option", v2.
 
-If the option is not set, memory controller can still be mounted
-under cgroup v1, but none of memcg-specific control files are present.
-
-Please note, that not all cgroup v1's memory controller code is
-guarded yet (but most of it), it's a subject for some follow-up work.
-
-Thanks to Michal Hocko for providing a better Kconfig option
-description.
-
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
----
- include/linux/memcontrol.h |  6 +++---
- init/Kconfig               | 17 +++++++++++++++++
- mm/Makefile                |  3 ++-
- mm/memcontrol-v1.h         | 21 ++++++++++++++++++++-
- mm/memcontrol.c            | 10 +++++++---
- 5 files changed, 49 insertions(+), 8 deletions(-)
-
-diff --git a/include/linux/memcontrol.h b/include/linux/memcontrol.h
-index a70d64ed04f5..796cfa842346 100644
---- a/include/linux/memcontrol.h
-+++ b/include/linux/memcontrol.h
-@@ -1851,7 +1851,7 @@ static inline bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg)
- 
- /* Cgroup v1-related declarations */
- 
--#ifdef CONFIG_MEMCG
-+#ifdef CONFIG_MEMCG_V1
- unsigned long memcg1_soft_limit_reclaim(pg_data_t *pgdat, int order,
- 					gfp_t gfp_mask,
- 					unsigned long *total_scanned);
-@@ -1883,7 +1883,7 @@ static inline void mem_cgroup_unlock_pages(void)
- 	rcu_read_unlock();
- }
- 
--#else /* CONFIG_MEMCG */
-+#else /* CONFIG_MEMCG_V1 */
- static inline
- unsigned long memcg1_soft_limit_reclaim(pg_data_t *pgdat, int order,
- 					gfp_t gfp_mask,
-@@ -1922,6 +1922,6 @@ static inline bool mem_cgroup_oom_synchronize(bool wait)
- 	return false;
- }
- 
--#endif /* CONFIG_MEMCG */
-+#endif /* CONFIG_MEMCG_V1 */
- 
- #endif /* _LINUX_MEMCONTROL_H */
-diff --git a/init/Kconfig b/init/Kconfig
-index febdea2afc3b..aca0ae9be04f 100644
---- a/init/Kconfig
-+++ b/init/Kconfig
-@@ -969,6 +969,23 @@ config MEMCG
- 	help
- 	  Provides control over the memory footprint of tasks in a cgroup.
- 
-+config MEMCG_V1
-+	bool "Legacy cgroup v1 memory controller"
-+	depends on MEMCG
-+	default n
-+	help
-+	  Legacy cgroup v1 memory controller which has been deprecated by
-+	  cgroup v2 implementation. The v1 is there for legacy applications
-+	  which haven't migrated to the new cgroup v2 interface yet. If you
-+	  do not have any such application then you are completely fine leaving
-+	  this option disabled.
-+
-+	  Please note that feature set of the legacy memory controller is likely
-+	  going to shrink due to deprecation process. New deployments with v1
-+	  controller are highly discouraged.
-+
-+	  San N is unsure.
-+
- config MEMCG_KMEM
- 	bool
- 	depends on MEMCG
-diff --git a/mm/Makefile b/mm/Makefile
-index 124d4dea2035..d2915f8c9dc0 100644
---- a/mm/Makefile
-+++ b/mm/Makefile
-@@ -96,7 +96,8 @@ obj-$(CONFIG_NUMA) += memory-tiers.o
- obj-$(CONFIG_DEVICE_MIGRATION) += migrate_device.o
- obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o khugepaged.o
- obj-$(CONFIG_PAGE_COUNTER) += page_counter.o
--obj-$(CONFIG_MEMCG) += memcontrol.o memcontrol-v1.o vmpressure.o
-+obj-$(CONFIG_MEMCG_V1) += memcontrol-v1.o
-+obj-$(CONFIG_MEMCG) += memcontrol.o vmpressure.o
- ifdef CONFIG_SWAP
- obj-$(CONFIG_MEMCG) += swap_cgroup.o
- endif
-diff --git a/mm/memcontrol-v1.h b/mm/memcontrol-v1.h
-index 89d420793048..64b053d7f131 100644
---- a/mm/memcontrol-v1.h
-+++ b/mm/memcontrol-v1.h
-@@ -75,7 +75,7 @@ unsigned long memcg_page_state_local_output(struct mem_cgroup *memcg, int item);
- int memory_stat_show(struct seq_file *m, void *v);
- 
- /* Cgroup v1-specific declarations */
--
-+#ifdef CONFIG_MEMCG_V1
- void memcg1_remove_from_trees(struct mem_cgroup *memcg);
- 
- static inline void memcg1_soft_limit_reset(struct mem_cgroup *memcg)
-@@ -110,4 +110,23 @@ void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s);
- extern struct cftype memsw_files[];
- extern struct cftype mem_cgroup_legacy_files[];
- 
-+#else	/* CONFIG_MEMCG_V1 */
-+
-+static inline void memcg1_remove_from_trees(struct mem_cgroup *memcg) {}
-+static inline void memcg1_soft_limit_reset(struct mem_cgroup *memcg) {}
-+static inline bool memcg1_wait_acct_move(struct mem_cgroup *memcg) { return false; }
-+static inline void memcg1_css_offline(struct mem_cgroup *memcg) {}
-+
-+static inline bool memcg1_oom_prepare(struct mem_cgroup *memcg, bool *locked) { return true; }
-+static inline void memcg1_oom_finish(struct mem_cgroup *memcg, bool locked) {}
-+static inline void memcg1_oom_recover(struct mem_cgroup *memcg) {}
-+
-+static inline void memcg1_check_events(struct mem_cgroup *memcg, int nid) {}
-+
-+static inline void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s) {}
-+
-+extern struct cftype memsw_files[];
-+extern struct cftype mem_cgroup_legacy_files[];
-+#endif	/* CONFIG_MEMCG_V1 */
-+
- #endif	/* __MM_MEMCONTROL_V1_H */
-diff --git a/mm/memcontrol.c b/mm/memcontrol.c
-index c7341e811945..d2e1f8baeae8 100644
---- a/mm/memcontrol.c
-+++ b/mm/memcontrol.c
-@@ -4471,18 +4471,20 @@ struct cgroup_subsys memory_cgrp_subsys = {
- 	.css_free = mem_cgroup_css_free,
- 	.css_reset = mem_cgroup_css_reset,
- 	.css_rstat_flush = mem_cgroup_css_rstat_flush,
--	.can_attach = memcg1_can_attach,
- #if defined(CONFIG_LRU_GEN) || defined(CONFIG_MEMCG_KMEM)
- 	.attach = mem_cgroup_attach,
- #endif
--	.cancel_attach = memcg1_cancel_attach,
--	.post_attach = memcg1_move_task,
- #ifdef CONFIG_MEMCG_KMEM
- 	.fork = mem_cgroup_fork,
- 	.exit = mem_cgroup_exit,
- #endif
- 	.dfl_cftypes = memory_files,
-+#ifdef CONFIG_MEMCG_V1
-+	.can_attach = memcg1_can_attach,
-+	.cancel_attach = memcg1_cancel_attach,
-+	.post_attach = memcg1_move_task,
- 	.legacy_cftypes = mem_cgroup_legacy_files,
-+#endif
- 	.early_init = 0,
- };
- 
-@@ -5653,7 +5655,9 @@ static int __init mem_cgroup_swap_init(void)
- 		return 0;
- 
- 	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, swap_files));
-+#ifdef CONFIG_MEMCG_V1
- 	WARN_ON(cgroup_add_legacy_cftypes(&memory_cgrp_subsys, memsw_files));
-+#endif
- #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
- 	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, zswap_files));
- #endif
--- 
-2.45.2.741.gdbec12cfda-goog
-
-
-
---------------------------------------------------------------------------------
-From 2cfdba4681e34d4468d36febaa016a29da1d338f Mon Sep 17 00:00:00 2001
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Date: Wed, 26 Jun 2024 17:52:11 +0000
-Subject: [PATCH v2-fixup 00/14] mm: memcg: separate legacy cgroup v1 code and put under config option
-
-Cgroups v2 have been around for a while and many users have fully adopted them,
-so they never use cgroups v1 features and functionality. Yet they have to "pay"
-for the cgroup v1 support anyway:
+Cgroups v2 have been around for a while and many users have fully adopted
+them, so they never use cgroups v1 features and functionality.  Yet they
+have to "pay" for the cgroup v1 support anyway:
 1) the kernel binary contains an unused cgroup v1 code,
 2) some code paths have additional checks which are not needed,
 3) some common structures like task_struct and mem_cgroup contain unused
    cgroup v1-specific members.
 
-Cgroup v1's memory controller has a number of features that are not supported
-by cgroup v2 and their implementation is pretty much self contained.
-Most notably, these features are: soft limit reclaim, oom handling in userspace,
-complicated event notification system, charge migration. Cgroup v1-specific code
-in memcontrol.c is close to 4k lines in size and it's intervened with generic
-and cgroup v2-specific code. It's a burden on developers and maintainers.
+Cgroup v1's memory controller has a number of features that are not
+supported by cgroup v2 and their implementation is pretty much self
+contained.  Most notably, these features are: soft limit reclaim, oom
+handling in userspace, complicated event notification system, charge
+migration.  Cgroup v1-specific code in memcontrol.c is close to 4k lines
+in size and it's intervened with generic and cgroup v2-specific code. 
+It's a burden on developers and maintainers.
 
 This patchset aims to solve these problems by:
 1) moving cgroup v1-specific memcg code to the new mm/memcontrol-v1.c file,
@@ -300,67 +91,87 @@ This patchset aims to solve these problems by:
 If CONFIG_MEMCG_V1 is not set, cgroup v1 memory controller is still available
 for mounting, however no memory-specific control knobs are present.
 
-v2:
-  - minor compilation fix
-  - #else/#endif comments fix (Lance Yang)
-  - better config option description (Michal Hocko)
-
-v1:
-  - switched to CONFIG_MEMCG_V1 being off by default based on LSFMMBPF
-    discussion [1]
-  - switched to memcg1_ prefix (Johannes)
-  - many minor fixes
-  - dropped patches which put struct memcg members under CONFIG_MEMCG_V1
-    (will post as a separate patchset)
-
-rfc:
-  https://lwn.net/Articles/973082/
-
-[1]: https://lwn.net/Articles/974575/
+This patch (of 14):
 
 
-MAINTAINERS                |    2 +
-include/linux/memcontrol.h |  156 ++--
-init/Kconfig               |   17 +
-mm/Makefile                |    2 +
-mm/memcontrol-v1.c         | 2933 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-mm/memcontrol-v1.h         |  132 +++
-mm/memcontrol.c            | 4141 ++++++++++++++------------------------------------------------------------------------------
-mm/vmscan.c                |   10 +-
-8 files changed, 3788 insertions(+), 3605 deletions(-)
+This patch introduces the mm/memcontrol-v1.c source file which will be
+used for all legacy (cgroup v1) memory cgroup code.  It also introduces
+mm/memcontrol-v1.h to keep declarations shared between mm/memcontrol.c and
+mm/memcontrol-v1.c.
 
-Suggested-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+As of now, let's compile it if CONFIG_MEMCG is set, similar to
+mm/memcontrol.c.  Later on it can be switched to use a separate config
+option, so that the legacy code won't be compiled if not required.
+
+Link: https://lkml.kernel.org/r/20240625005906.106920-1-roman.gushchin@linux.dev
+Link: https://lkml.kernel.org/r/20240625005906.106920-2-roman.gushchin@linux.dev
 Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
+ mm/Makefile        |    3 ++-
+ mm/memcontrol-v1.c |    3 +++
+ mm/memcontrol-v1.h |    7 +++++++
+ 3 files changed, 12 insertions(+), 1 deletion(-)
 
-Roman Gushchin (14):
-  mm: memcg: introduce memcontrol-v1.c
-  mm: memcg: move soft limit reclaim code to memcontrol-v1.c
-  mm: memcg: rename soft limit reclaim-related functions
-  mm: memcg: move charge migration code to memcontrol-v1.c
-  mm: memcg: rename charge move-related functions
-  mm: memcg: move legacy memcg event code into memcontrol-v1.c
-  mm: memcg: rename memcg_check_events()
-  mm: memcg: move cgroup v1 oom handling code into memcontrol-v1.c
-  mm: memcg: rename memcg_oom_recover()
-  mm: memcg: move cgroup v1 interface files to memcontrol-v1.c
-  mm: memcg: make memcg1_update_tree() static
-  mm: memcg: group cgroup v1 memcg related declarations
-  mm: memcg: put cgroup v1-specific code under a config option
-  MAINTAINERS: add mm/memcontrol-v1.c/h to the list of maintained files
+--- a/mm/Makefile~mm-memcg-introduce-memcontrol-v1c
++++ a/mm/Makefile
+@@ -26,6 +26,7 @@ KCOV_INSTRUMENT_page_alloc.o := n
+ KCOV_INSTRUMENT_debug-pagealloc.o := n
+ KCOV_INSTRUMENT_kmemleak.o := n
+ KCOV_INSTRUMENT_memcontrol.o := n
++KCOV_INSTRUMENT_memcontrol-v1.o := n
+ KCOV_INSTRUMENT_mmzone.o := n
+ KCOV_INSTRUMENT_vmstat.o := n
+ KCOV_INSTRUMENT_failslab.o := n
+@@ -95,7 +96,7 @@ obj-$(CONFIG_NUMA) += memory-tiers.o
+ obj-$(CONFIG_DEVICE_MIGRATION) += migrate_device.o
+ obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o khugepaged.o
+ obj-$(CONFIG_PAGE_COUNTER) += page_counter.o
+-obj-$(CONFIG_MEMCG) += memcontrol.o vmpressure.o
++obj-$(CONFIG_MEMCG) += memcontrol.o memcontrol-v1.o vmpressure.o
+ ifdef CONFIG_SWAP
+ obj-$(CONFIG_MEMCG) += swap_cgroup.o
+ endif
+--- /dev/null
++++ a/mm/memcontrol-v1.c
+@@ -0,0 +1,3 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++#include "memcontrol-v1.h"
+--- /dev/null
++++ a/mm/memcontrol-v1.h
+@@ -0,0 +1,7 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++
++#ifndef __MM_MEMCONTROL_V1_H
++#define __MM_MEMCONTROL_V1_H
++
++
++#endif	/* __MM_MEMCONTROL_V1_H */
+_
 
- MAINTAINERS                |    2 +
- include/linux/memcontrol.h |  156 +-
- init/Kconfig               |   17 +
- mm/Makefile                |    2 +
- mm/memcontrol-v1.c         | 2933 +++++++++++++++++++++++++
- mm/memcontrol-v1.h         |  132 ++
- mm/memcontrol.c            | 4141 ++++++------------------------------
- mm/vmscan.c                |   10 +-
- 8 files changed, 3788 insertions(+), 3605 deletions(-)
- create mode 100644 mm/memcontrol-v1.c
- create mode 100644 mm/memcontrol-v1.h
+Patches currently in -mm which might be from roman.gushchin@linux.dev are
 
--- 
-2.45.2.741.gdbec12cfda-goog
+mm-memcg-introduce-memcontrol-v1c.patch
+mm-memcg-move-soft-limit-reclaim-code-to-memcontrol-v1c.patch
+mm-memcg-rename-soft-limit-reclaim-related-functions.patch
+mm-memcg-move-charge-migration-code-to-memcontrol-v1c.patch
+mm-memcg-rename-charge-move-related-functions.patch
+mm-memcg-move-legacy-memcg-event-code-into-memcontrol-v1c.patch
+mm-memcg-rename-memcg_check_events.patch
+mm-memcg-move-cgroup-v1-oom-handling-code-into-memcontrol-v1c.patch
+mm-memcg-rename-memcg_oom_recover.patch
+mm-memcg-move-cgroup-v1-interface-files-to-memcontrol-v1c.patch
+mm-memcg-make-memcg1_update_tree-static.patch
+mm-memcg-group-cgroup-v1-memcg-related-declarations.patch
+mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option.patch
+mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option-fix.patch
+maintainers-add-mm-memcontrol-v1c-h-to-the-list-of-maintained-files.patch
 
