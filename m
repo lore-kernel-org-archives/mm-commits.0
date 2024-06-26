@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB86714EC65
-	for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 19:11:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8059D149C57
+	for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 19:20:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719429090; cv=none; b=oJvlkF/Yy7cGjk98SzjR7LDGoTKXNof7t69BacD9JsIRZ7oewbtxNDQ7nw+wDhezV7pdGYQZzotn18tjpbgU6tvQIoMgdQPM/wnKWf+aFRq0iaX/qSgj0Ss2PKHGQAmjfPskrTVEGMPl07k4y+cg1j1BtRoHG9dnzSG3pY1cstg=
+	t=1719429629; cv=none; b=sHccDY3rW9KObtpPXKbLMHteit9mdFPROfGazFIi7dXfh6FiohWTxgkt9bz9qnalQt9FGIiUuhEQzSxBUtgh/e0+665+cD/tCQQfProq49caKjQKJHppaA8nSSXSah6FA/U4Mqq92MJYVdOvB8o8ggkxNL5WeiPaghcFL92R1HM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719429090; c=relaxed/simple;
-	bh=sPx/P2k1zTuW4vfOmW+RNJswuxAPavMd9GLQkuFKv+M=;
-	h=Date:To:From:Subject:Message-Id; b=qlc3OccT1U7jaowscnYxFDC0p0k6faZlf4XWk0ZMkbrpFwrq8aBwdtdcV1l6LSzAttgguJwDJ5tGKlNN3KgUw9ht59fO4MTpAxDtn8Xin8wUAWcnLnk2d/+zJi8+coNnuEs3likQFrBwo/geDeo8tHGqf6ml2ELYUjv3JFKsacM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B+4wwdFl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719429629; c=relaxed/simple;
+	bh=uiIlSBbTc0zsEAPOPIKcgd1ugf4GqU9bYyK/6O294vg=;
+	h=Date:To:From:Subject:Message-Id; b=Sa1bfnRoWv7OJor7XezGtYPpzm+Xmkmt+HWulmk3wFx4GOHu/ZQ+xY4xBzsRmw6L8wiIP52Hze/wbItt+iEG5BwNJEbxAdwFAY9L2T3Bcemdw99Pv4PvVzW2aL8aoyetVnP6lzT6qnzEhYwvUwKI/eWneLJZ+JdLcymmvwD9wmA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hAORKhZp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B+4wwdFl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 658CFC32782;
-	Wed, 26 Jun 2024 19:11:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hAORKhZp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D31F9C116B1;
+	Wed, 26 Jun 2024 19:20:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719429089;
-	bh=sPx/P2k1zTuW4vfOmW+RNJswuxAPavMd9GLQkuFKv+M=;
+	s=korg; t=1719429629;
+	bh=uiIlSBbTc0zsEAPOPIKcgd1ugf4GqU9bYyK/6O294vg=;
 	h=Date:To:From:Subject:From;
-	b=B+4wwdFl2yKNx90XQOPkwskecSjNcUDpiwtN4bgBczuqRrs7kge01r0jqFvZ3dLnD
-	 GI/TanvSH2bYN9rrFvcnAdQjSFgsaUPGXfqN9m5lg91c+6dIuC21funAVxrgKgTjPr
-	 DlhvsCphYQATRIJ7ga1tDB0307Sw4btRyPiM1OgE=
-Date: Wed, 26 Jun 2024 12:11:28 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,donettom@linux.ibm.com,baolin.wang@linux.alibaba.com,david@redhat.com,akpm@linux-foundation.org
+	b=hAORKhZpQTFKbHSU1N+Z5aMw4yNCAsPIzeNLVZq0G649WI/NjDEob5tDzIUazJm+C
+	 GzIWvWCoVi/AtF442WG0ptf1ZEqXcPrCkO71lPCiZ9e3wICF6lTcYqf+eLCoBuT0Hc
+	 BGJ1s0VfuNikJX2mESx2e3/TwTcL43oGSUsSrfjM=
+Date: Wed, 26 Jun 2024 12:20:27 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tandersen@netflix.com,mjguzik@gmail.com,mhocko@suse.com,ebiederm@xmission.com,brauner@kernel.org,axboe@kernel.dk,alexjlzheng@tencent.com,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix.patch added to mm-unstable branch
-Message-Id: <20240626191129.658CFC32782@smtp.kernel.org>
+Subject: + memcg-mm_update_next_owner-kill-the-retry-logic.patch added to mm-unstable branch
+Message-Id: <20240626192028.D31F9C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix
+     Subject: memcg: mm_update_next_owner: kill the "retry" logic
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix.patch
+     memcg-mm_update_next_owner-kill-the-retry-logic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-mm_update_next_owner-kill-the-retry-logic.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,62 +58,142 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix
-Date: Wed, 26 Jun 2024 18:14:44 +0200
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: memcg: mm_update_next_owner: kill the "retry" logic
+Date: Wed, 26 Jun 2024 17:29:24 +0200
 
-Donet reports an issue during NUMA migration we haven't seen previously:
+Add the new helper, try_to_set_owner(), which tries to update mm->owner
+once we see c->mm == mm.  This way mm_update_next_owner() doesn't need to
+restart the list_for_each_entry/for_each_process loops from the very
+beginning if it races with exit/exec, it can just continue.
 
-	[   71.422804] list_del corruption, c00c00000061b3c8->next is
-	LIST_POISON1 (5deadbeef0000100)
-	[   71.422839] ------------[ cut here ]------------
-	[   71.422843] kernel BUG at lib/list_debug.c:56!
-	[   71.422850] Oops: Exception in kernel mode, sig: 5 [#1]
+Unlike the current code, try_to_set_owner() re-checks tsk->mm == mm before
+it drops tasklist_lock, so it doesn't need get/put_task_struct().
 
-We forgot to convert one "return 0;" to return an error instead from
-migrate_misplaced_folio_prepare() in case the target node is nearly
-full.
-
-Link: https://lkml.kernel.org/r/8f85c31a-e603-4578-bf49-136dae0d4b69@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Donet Tom <donettom@linux.ibm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20240626152924.GA17933@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jinliang Zheng <alexjlzheng@tencent.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Tycho Andersen <tandersen@netflix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/exit.c |   57 ++++++++++++++++++++++--------------------------
+ 1 file changed, 27 insertions(+), 30 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix
-+++ a/mm/migrate.c
-@@ -2564,7 +2564,7 @@ int migrate_misplaced_folio_prepare(stru
- 		int z;
+--- a/kernel/exit.c~memcg-mm_update_next_owner-kill-the-retry-logic
++++ a/kernel/exit.c
+@@ -439,6 +439,23 @@ static void coredump_task_exit(struct ta
+ }
  
- 		if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING))
--			return 0;
-+			return -EAGAIN;
- 		for (z = pgdat->nr_zones - 1; z >= 0; z--) {
- 			if (managed_zone(pgdat->node_zones + z))
+ #ifdef CONFIG_MEMCG
++/* drops tasklist_lock if succeeds */
++static bool try_to_set_owner(struct task_struct *tsk, struct mm_struct *mm)
++{
++	bool ret = false;
++
++	task_lock(tsk);
++	if (likely(tsk->mm == mm)) {
++		/* tsk can't pass exit_mm/exec_mmap and exit */
++		read_unlock(&tasklist_lock);
++		WRITE_ONCE(mm->owner, tsk);
++		lru_gen_migrate_mm(mm);
++		ret = true;
++	}
++	task_unlock(tsk);
++	return ret;
++}
++
+ /*
+  * A task is exiting.   If it owned this mm, find a new owner for the mm.
+  */
+@@ -446,7 +463,6 @@ void mm_update_next_owner(struct mm_stru
+ {
+ 	struct task_struct *c, *g, *p = current;
+ 
+-retry:
+ 	/*
+ 	 * If the exiting or execing task is not the owner, it's
+ 	 * someone else's problem.
+@@ -468,16 +484,16 @@ retry:
+ 	 * Search in the children
+ 	 */
+ 	list_for_each_entry(c, &p->children, sibling) {
+-		if (c->mm == mm)
+-			goto assign_new_owner;
++		if (c->mm == mm && try_to_set_owner(c, mm))
++			goto ret;
+ 	}
+ 
+ 	/*
+ 	 * Search in the siblings
+ 	 */
+ 	list_for_each_entry(c, &p->real_parent->children, sibling) {
+-		if (c->mm == mm)
+-			goto assign_new_owner;
++		if (c->mm == mm && try_to_set_owner(c, mm))
++			goto ret;
+ 	}
+ 
+ 	/*
+@@ -489,9 +505,11 @@ retry:
+ 		if (g->flags & PF_KTHREAD)
+ 			continue;
+ 		for_each_thread(g, c) {
+-			if (c->mm == mm)
+-				goto assign_new_owner;
+-			if (c->mm)
++			struct mm_struct *c_mm = READ_ONCE(c->mm);
++			if (c_mm == mm) {
++				if (try_to_set_owner(c, mm))
++					goto ret;
++			} else if (c_mm)
  				break;
+ 		}
+ 	}
+@@ -502,30 +520,9 @@ retry:
+ 	 * ptrace or page migration (get_task_mm()).  Mark owner as NULL.
+ 	 */
+ 	WRITE_ONCE(mm->owner, NULL);
++ ret:
+ 	return;
+ 
+-assign_new_owner:
+-	BUG_ON(c == p);
+-	get_task_struct(c);
+-	/*
+-	 * The task_lock protects c->mm from changing.
+-	 * We always want mm->owner->mm == mm
+-	 */
+-	task_lock(c);
+-	/*
+-	 * Delay read_unlock() till we have the task_lock()
+-	 * to ensure that c does not slip away underneath us
+-	 */
+-	read_unlock(&tasklist_lock);
+-	if (c->mm != mm) {
+-		task_unlock(c);
+-		put_task_struct(c);
+-		goto retry;
+-	}
+-	WRITE_ONCE(mm->owner, c);
+-	lru_gen_migrate_mm(mm);
+-	task_unlock(c);
+-	put_task_struct(c);
+ }
+ #endif /* CONFIG_MEMCG */
+ 
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mm-update-_mapcount-and-page_type-documentation.patch
-mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type.patch
-mm-zsmalloc-use-a-proper-page-type.patch
-mm-page_alloc-clear-pagebuddy-using-__clearpagebuddy-for-bad-pages.patch
-mm-filemap-reinitialize-folio-_mapcount-directly.patch
-mm-mm_init-initialize-page-_mapcount-directly-in-__init_single_page.patch
-mm-pass-meminit_context-to-__free_pages_core.patch
-mm-pass-meminit_context-to-__free_pages_core-fix.patch
-mm-pass-meminit_context-to-__free_pages_core-fix-2.patch
-mm-pass-meminit_context-to-__free_pages_core-fix-3.patch
-mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved.patch
-mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining.patch
-mm-read-page_type-using-read_once.patch
-mm-migrate-make-migrate_misplaced_folio-return-0-on-success.patch
-mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl.patch
-mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix.patch
+memcg-mm_update_next_owner-kill-the-retry-logic.patch
+memcg-mm_update_next_owner-move-for_each_thread-into-try_to_set_owner.patch
+zap_pid_ns_processes-dont-send-sigkill-to-sub-threads.patch
+coredump-simplify-zap_process.patch
 
