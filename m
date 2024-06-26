@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E60461D53F
-	for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 02:28:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B20617BAF
+	for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 02:32:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719368912; cv=none; b=Iw4lC18ZXxh+GdZYJtuRrG9NbWiVNepAFGQ+VxSKjOntAv3NAOf7SxczQ1fbz75p1HJzSJtURSsEVw9abI5ux62VbGzIo905REn5czmLl0gAHith1RkVFgrilgUwnaOYbgWcOAt/SrWdFUaaU0FksbrlTv5dRUda5SZglbAXFWk=
+	t=1719369129; cv=none; b=Al7XdNsa6oRi0cvNtTtj4EDOmzPZeT+FXL603tQUl/S5S5WRUDQo1BIg2wYOkWKojL5tKnxboO8rdXukLumnwKYUxNQ6Eg4lMmuDjdRtst5HEsVqRwQurvrlKy05IVMu9oXInthNEKGhiIKdpga/hKIAFygW5qzHc6eKmT1idS8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719368912; c=relaxed/simple;
-	bh=pCErraZCAvXpGcjZbghR/izB3P+kyJcIm+HdLM91cuE=;
-	h=Date:To:From:Subject:Message-Id; b=XpBIFGwvudvCgNihWWgXbBPoX8Sng38bgWtXj7Cz6DZhnStfsjXpGIue8Hy1itRWL7iTdYrgGMW5wgZ9FYhHtvzgRAtDCUpi0ILuvDVaAc0fKNfB1xI0sTYkOu3eGthxaV+GK3vihHcgkVERnGCXTmyCe4G+7AvyCuD+KpfjbjM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fu+yBmAH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719369129; c=relaxed/simple;
+	bh=NUlpGrX7fJhTvKlm2ozugL1raDHz/VPCabxDjZwqAsM=;
+	h=Date:To:From:Subject:Message-Id; b=WDU/2zrjgznOzUkvzeZGaPJa0he/ZQJXNKWc4CIIR2jdqrUExEAuYpMfS/h2GlPpoT1882QnYk/ONnLkqcT04z3ENCGzzPFyEZGqlZNitUUqSp6jrlU0qPAb71vzmbdhm6bZHlNekH7wdjxxBNi6ylEZmoldEXZl6h4faHsNoYs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oEsCUxqW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fu+yBmAH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EABFC32781;
-	Wed, 26 Jun 2024 02:28:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oEsCUxqW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 773B1C32781;
+	Wed, 26 Jun 2024 02:32:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719368911;
-	bh=pCErraZCAvXpGcjZbghR/izB3P+kyJcIm+HdLM91cuE=;
+	s=korg; t=1719369128;
+	bh=NUlpGrX7fJhTvKlm2ozugL1raDHz/VPCabxDjZwqAsM=;
 	h=Date:To:From:Subject:From;
-	b=fu+yBmAHVFSjmnGofHqdPIm3e4iU5PfNnnXP4u/DZXYWOR5l5vqH+ZcGkp9sTqwOk
-	 mWG1IbErkBePut3qeCY6OLccH+DoxpVMCnqFGxmvdUEBa+rHlnjo4ITpEx60alb4ey
-	 Q1pfv6iVnVyP49maqUnhV400v8akTI0de1RdKbY4=
-Date: Tue, 25 Jun 2024 19:28:29 -0700
-To: mm-commits@vger.kernel.org,lkp@intel.com,ioworker0@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=oEsCUxqWaks+VdceoIFOxKB/2cLJ+dR4smuQK533Hm+jlHFlWTvUXotpnZ+4zcFXt
+	 uvdPf2KfBY5L8O+wjCfJ0Ohnsbm3RGAAkb97oEj5GCfgqB6QNXj2DKslTunjdpOxkA
+	 K9SVKbViK1vCelzm6q0hL0Q657kBLMUYQwLQAEkI=
+Date: Tue, 25 Jun 2024 19:32:07 -0700
+To: mm-commits@vger.kernel.org,quic_charante@quicinc.com,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memoryc-fix-used-uninitialized.patch added to mm-unstable branch
-Message-Id: <20240626022831.4EABFC32781@smtp.kernel.org>
+Subject: + mm-prevent-derefencing-null-ptr-in-pfn_section_valid.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240626023208.773B1C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory.c: fix used-uninitialized
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memoryc-fix-used-uninitialized.patch
+     Subject: mm: prevent derefencing NULL ptr in pfn_section_valid()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-prevent-derefencing-null-ptr-in-pfn_section_valid.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memoryc-fix-used-uninitialized.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-prevent-derefencing-null-ptr-in-pfn_section_valid.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,49 +58,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/huge_memory.c: fix used-uninitialized
-Date: Tue Jun 25 02:51:36 PM PDT 2024
+From: Waiman Long <longman@redhat.com>
+Subject: mm: prevent derefencing NULL ptr in pfn_section_valid()
+Date: Tue, 25 Jun 2024 20:16:39 -0400
 
-Fix used-uninitialized of `page'.
+Commit 5ec8e8ea8b77 ("mm/sparsemem: fix race in accessing
+memory_section->usage") changed pfn_section_valid() to add a READ_ONCE()
+call around "ms->usage" to fix a race with section_deactivate() where
+ms->usage can be cleared.  The READ_ONCE() call, by itself, is not enough
+to prevent NULL pointer dereference.  We need to check its value before
+dereferencing it.
 
-Fixes: dce7d10be4bb ("mm/madvise: optimize lazyfreeing with mTHP in madvise_free")
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202406260514.SLhNM9kQ-lkp@intel.com
-Cc: Lance Yang <ioworker0@gmail.com>
+Link: https://lkml.kernel.org/r/20240626001639.1350646-1-longman@redhat.com
+Fixes: 5ec8e8ea8b77 ("mm/sparsemem: fix race in accessing memory_section->usage")
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: Charan Teja Kalla <quic_charante@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/mmzone.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memoryc-fix-used-uninitialized
-+++ a/mm/huge_memory.c
-@@ -2696,7 +2696,6 @@ static bool __discard_anon_folio_pmd_loc
- 	struct mm_struct *mm = vma->vm_mm;
- 	int ref_count, map_count;
- 	pmd_t orig_pmd = *pmdp;
--	struct page *page;
+--- a/include/linux/mmzone.h~mm-prevent-derefencing-null-ptr-in-pfn_section_valid
++++ a/include/linux/mmzone.h
+@@ -1979,8 +1979,9 @@ static inline int subsection_map_index(u
+ static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
+ {
+ 	int idx = subsection_map_index(pfn);
++	struct mem_section_usage *usage = READ_ONCE(ms->usage);
  
- 	if (folio_test_dirty(folio) || pmd_dirty(orig_pmd))
- 		return false;
-@@ -2732,7 +2731,7 @@ static bool __discard_anon_folio_pmd_loc
- 		return false;
- 	}
- 
--	folio_remove_rmap_pmd(folio, page, vma);
-+	folio_remove_rmap_pmd(folio, pmd_page(orig_pmd), vma);
- 	zap_deposited_table(mm, pmdp);
- 	add_mm_counter(mm, MM_ANONPAGES, -HPAGE_PMD_NR);
- 	if (vma->vm_flags & VM_LOCKED)
+-	return test_bit(idx, READ_ONCE(ms->usage)->subsection_map);
++	return usage ? test_bit(idx, usage->subsection_map) : 0;
+ }
+ #else
+ static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from longman@redhat.com are
 
-mm-huge_memoryc-fix-used-uninitialized.patch
-mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type-fix.patch
-mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap-fix.patch
-mm-use-folio_add_new_anon_rmap-if-folio_test_anonfolio==false-fix.patch
-tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout-fix.patch
-mm-memory-failure-refactor-log-format-in-soft-offline-code-fix.patch
+mm-prevent-derefencing-null-ptr-in-pfn_section_valid.patch
 
