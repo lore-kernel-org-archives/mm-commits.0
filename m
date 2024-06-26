@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4894615216A
-	for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 19:09:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB86714EC65
+	for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 19:11:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719428979; cv=none; b=NjKdhgdQvmpcC1WoFWor2tVGhe67jHUCp0MZBUv0oXnZFhvr99hpox43X/N27uoxRZrv4vsvI9qzvRl0kTSWek8DtwpmqvRul9RODuDgX81+8Pnqx6mmjVvx1l1PUXbWspfIHWFlf/kZA0uYTymPUsbH4O047eZDcElDPc2pvik=
+	t=1719429090; cv=none; b=oJvlkF/Yy7cGjk98SzjR7LDGoTKXNof7t69BacD9JsIRZ7oewbtxNDQ7nw+wDhezV7pdGYQZzotn18tjpbgU6tvQIoMgdQPM/wnKWf+aFRq0iaX/qSgj0Ss2PKHGQAmjfPskrTVEGMPl07k4y+cg1j1BtRoHG9dnzSG3pY1cstg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719428979; c=relaxed/simple;
-	bh=ghppp2nRQdjqC0xUqQl5N25+mMa2iDnFlaDdLirHT1s=;
-	h=Date:To:From:Subject:Message-Id; b=A5l6+FR874CP++2PmyHHbO5EJVGyBXvkVeT1+kd3lYnX3DMHhaOt/oW0NKTBMSxeJERMIfhf9d5XpE4EScRrWGrkVLpVKzaDOMeHbBcNIgPiBTiX9W97gG0QxzypvA3eApJuwJbcLvkuJwz/SYxzXj6hgqPaHiL28aMBFjOusC8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WZ9IhNsF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719429090; c=relaxed/simple;
+	bh=sPx/P2k1zTuW4vfOmW+RNJswuxAPavMd9GLQkuFKv+M=;
+	h=Date:To:From:Subject:Message-Id; b=qlc3OccT1U7jaowscnYxFDC0p0k6faZlf4XWk0ZMkbrpFwrq8aBwdtdcV1l6LSzAttgguJwDJ5tGKlNN3KgUw9ht59fO4MTpAxDtn8Xin8wUAWcnLnk2d/+zJi8+coNnuEs3likQFrBwo/geDeo8tHGqf6ml2ELYUjv3JFKsacM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B+4wwdFl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WZ9IhNsF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F047BC116B1;
-	Wed, 26 Jun 2024 19:09:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B+4wwdFl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 658CFC32782;
+	Wed, 26 Jun 2024 19:11:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719428979;
-	bh=ghppp2nRQdjqC0xUqQl5N25+mMa2iDnFlaDdLirHT1s=;
+	s=korg; t=1719429089;
+	bh=sPx/P2k1zTuW4vfOmW+RNJswuxAPavMd9GLQkuFKv+M=;
 	h=Date:To:From:Subject:From;
-	b=WZ9IhNsFhXROBf9K7tA/0cXqP9zWAP8V46WW4JfGyFx9CJXYRzR0on3IDuZUEc/q2
-	 QeBpWvlLegbmR15m4yFM9qzDaA2o7E/AhkNOpRYXnWozU6BrRvvY4yr99as1+V09Tj
-	 qQiYNLmVebUuCu2LjNtdSN+XffLcAJ4yYWzXqXq0=
-Date: Wed, 26 Jun 2024 12:09:38 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=B+4wwdFl2yKNx90XQOPkwskecSjNcUDpiwtN4bgBczuqRrs7kge01r0jqFvZ3dLnD
+	 GI/TanvSH2bYN9rrFvcnAdQjSFgsaUPGXfqN9m5lg91c+6dIuC21funAVxrgKgTjPr
+	 DlhvsCphYQATRIJ7ga1tDB0307Sw4btRyPiM1OgE=
+Date: Wed, 26 Jun 2024 12:11:28 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,donettom@linux.ibm.com,baolin.wang@linux.alibaba.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240626190938.F047BC116B1@smtp.kernel.org>
+Subject: + mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix.patch added to mm-unstable branch
+Message-Id: <20240626191129.658CFC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: increase regions merge aggressiveness while respecting min_nr_regions
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix.patch
+     Subject: mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,98 +58,62 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: increase regions merge aggressiveness while respecting min_nr_regions
-Date: Wed, 26 Jun 2024 09:47:53 -0700
+From: David Hildenbrand <david@redhat.com>
+Subject: mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix
+Date: Wed, 26 Jun 2024 18:14:44 +0200
 
-DAMON's merge mechanism has two thresholds, namely those for access
-frequency and size.  The access frequency threshold avoids merging two
-adjacent regions that having pretty different access frequency.
+Donet reports an issue during NUMA migration we haven't seen previously:
 
-The size threshold is calculated as total size of regions divided by
-min_nr_regions.  Merging operation skip merging two adjacent regions if
-the resulting region's size can be larger than the threshold.  This is for
-meeting min_nr_regions.
+	[   71.422804] list_del corruption, c00c00000061b3c8->next is
+	LIST_POISON1 (5deadbeef0000100)
+	[   71.422839] ------------[ cut here ]------------
+	[   71.422843] kernel BUG at lib/list_debug.c:56!
+	[   71.422850] Oops: Exception in kernel mode, sig: 5 [#1]
 
-Commit 44fdaf596984 ("mm/damon/core: merge regions aggressively when
-max_nr_regions is unmet") of mm-unstable, however, ignores the
-min_nr_regions by increasing not only access frequency threshold but also
-the size threshold.
+We forgot to convert one "return 0;" to return an error instead from
+migrate_misplaced_folio_prepare() in case the target node is nearly
+full.
 
-The commit also has one more problem.  User could set DAMON target regions
-with more than max_nr_regions discrete regions.  Because DAMON cannot
-merge non-adjacent regions, the number of regions will never be lower than
-max_nr_regions regardless of the increased thresholds.  As a result, the
-function can infinitely repeat the loop.
-
-Increase only access frequency threshold, up to only possible maximum
-value.
-
-Link: https://lkml.kernel.org/r/20240626164753.46270-1-sj@kernel.org
-Fixes: 44fdaf596984 ("mm/damon/core: merge regions aggressively when max_nr_regions is unmet") # mm-unstable
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/8f85c31a-e603-4578-bf49-136dae0d4b69@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Donet Tom <donettom@linux.ibm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix
-+++ a/mm/damon/core.c
-@@ -1359,20 +1359,21 @@ static void damon_merge_regions_of(struc
-  * overhead under the dynamically changeable access pattern.  If a merge was
-  * unnecessarily made, later 'kdamond_split_regions()' will revert it.
-  *
-- * The total number of regions could be temporarily higher than the
-- * user-defined limit, max_nr_regions for some cases.  For an example, the user
-- * updates max_nr_regions to a number that lower than the current number of
-- * regions while DAMON is running.  Depending on the access pattern, it could
-- * take indefinitve time to reduce the number below the limit.  For such a
-- * case, repeat merging until the limit is met while increasing @threshold and
-- * @sz_limit.
-+ * The total number of regions could be higher than the user-defined limit,
-+ * max_nr_regions for some cases.  For example, the user can update
-+ * max_nr_regions to a number that lower than the current number of regions
-+ * while DAMON is running.  For such a case, repeat merging until the limit is
-+ * met while increasing @threshold up to possible maximum level.
-  */
- static void kdamond_merge_regions(struct damon_ctx *c, unsigned int threshold,
- 				  unsigned long sz_limit)
- {
- 	struct damon_target *t;
- 	unsigned int nr_regions;
-+	unsigned int max_thres;
+--- a/mm/migrate.c~mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix
++++ a/mm/migrate.c
+@@ -2564,7 +2564,7 @@ int migrate_misplaced_folio_prepare(stru
+ 		int z;
  
-+	max_thres = c->attrs.aggr_interval /
-+		(c->attrs.sample_interval ?  c->attrs.sample_interval : 1);
- 	do {
- 		nr_regions = 0;
- 		damon_for_each_target(t, c) {
-@@ -1380,8 +1381,8 @@ static void kdamond_merge_regions(struct
- 			nr_regions += damon_nr_regions(t);
- 		}
- 		threshold = max(1, threshold * 2);
--		sz_limit = max(1, sz_limit * 2);
--	} while (nr_regions > c->attrs.max_nr_regions);
-+	} while (nr_regions > c->attrs.max_nr_regions &&
-+			threshold <= max_thres);
- }
- 
- /*
+ 		if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING))
+-			return 0;
++			return -EAGAIN;
+ 		for (z = pgdat->nr_zones - 1; z >= 0; z--) {
+ 			if (managed_zone(pgdat->node_zones + z))
+ 				break;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet.patch
-mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix.patch
-docs-mm-damon-maintainer-profile-introduce-hackermail.patch
-docs-mm-damon-maintainer-profile-document-damon-community-meetups.patch
-selftests-damon-access_memory-use-user-defined-region-size.patch
-selftests-damon-_damon_sysfs-support-schemes_update_tried_regions.patch
-selftests-damon-implement-a-program-for-even-numbered-memory-regions-access.patch
-selftests-damon-implement-damos-tried-regions-test.patch
-selftests-damon-_damon_sysfs-implement-kdamonds-stop-function.patch
-selftests-damon-implement-test-for-min-max_nr_regions.patch
-_damon_sysfs-implement-commit-for-online-parameters-update.patch
-selftests-damon-damon_nr_regions-test-online-tuned-max_nr_regions.patch
+mm-update-_mapcount-and-page_type-documentation.patch
+mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type.patch
+mm-zsmalloc-use-a-proper-page-type.patch
+mm-page_alloc-clear-pagebuddy-using-__clearpagebuddy-for-bad-pages.patch
+mm-filemap-reinitialize-folio-_mapcount-directly.patch
+mm-mm_init-initialize-page-_mapcount-directly-in-__init_single_page.patch
+mm-pass-meminit_context-to-__free_pages_core.patch
+mm-pass-meminit_context-to-__free_pages_core-fix.patch
+mm-pass-meminit_context-to-__free_pages_core-fix-2.patch
+mm-pass-meminit_context-to-__free_pages_core-fix-3.patch
+mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved.patch
+mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining.patch
+mm-read-page_type-using-read_once.patch
+mm-migrate-make-migrate_misplaced_folio-return-0-on-success.patch
+mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl.patch
+mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix.patch
 
