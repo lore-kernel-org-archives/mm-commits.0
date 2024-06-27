@@ -1,71 +1,74 @@
-Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
+Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93B6117E9
-	for <mm-commits@vger.kernel.org>; Thu, 27 Jun 2024 06:56:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF1C044C76
+	for <mm-commits@vger.kernel.org>; Thu, 27 Jun 2024 06:59:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719471418; cv=none; b=jyWQycJF09SsfhtBMYXf7ppkEFsX0mv1Y/DZXB1GMZ/L0nAgf9mLRbiw6cevsNYLVIBelwJjMzo11f/GHYkcAhHq6K9yQ3g6vPhauh/vZa2FBUqdKNqtPMrUqHRPO/91w26jUfWXlTzuuaL+lSEcZ1CmAYf1ZRLA7NXtVIPPHM0=
+	t=1719471554; cv=none; b=jKwGNXbzlG96XGCUFX8GjiMVOIt9cWSUE1wsyZ8gqUk5IQD0/Zq7F+7e0zpwzAaA+ySPdfv4VK9UCgKtAqoBawTM2DpJrGPvIQ8Ncak0yMbSKb9aBUun2Qlfo0TTO3aCYLYO+i7ewvdisBWtnf7TpgdMmjDfJGT5Ta19tWG8aoA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719471418; c=relaxed/simple;
-	bh=EyE7UkadnoUeCVtbfwi3EbARgqAf6FHGqRnleGXgsi0=;
+	s=arc-20240116; t=1719471554; c=relaxed/simple;
+	bh=2+M9zgmo49P4+Iv6guSNDkSUDT0aEHaf+tcuD+YOtB4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jNdPNxmqQlxyH4+EMfrmky2Qr2HPjwrg099eOkKtq047XSgXU+6F8eFMHOZxU4pxMMKuF8Wz4FJo3uo3Qo+USuLNQUx/6N/kI0sFcC2WZ/EAF+Ado/F/lKQkVCYmg2pz2MKfK20NS/GoEctjnljd3gu0tIU+Q8NLOcldIxJqYbU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=TxtI4yZD; arc=none smtp.client-ip=209.85.218.44
+	 Content-Type:Content-Disposition:In-Reply-To; b=gB3wVDoeOLVFB+RViscFuC/Bg+qopRKl3rfrryWAw4a9puA2n3pbWIQb0y/J4lam0ASAKDXdMO+xfCtPaAfN+FjxP0rO08M8iezJKsLLkxRqY3gwlqbWgTJc2aG5a7x/hZx9KxWp5wD1Z2yeTHRwyVOiN+RQ4AVuKrovZ3ZPNFA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=EnoqBMp2; arc=none smtp.client-ip=209.85.208.44
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="TxtI4yZD"
-Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-a6fe118805dso544197366b.3
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 23:56:56 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="EnoqBMp2"
+Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-584ef6c07c2so405622a12.1
+        for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 23:59:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1719471415; x=1720076215; darn=vger.kernel.org;
+        d=suse.com; s=google; t=1719471551; x=1720076351; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=0HxwwdzAychYDIrvXXdci0MMT87S44nGKvUaRk/XFm4=;
-        b=TxtI4yZDFuYFgry5wy5Ia/Rv35/b4hiWy2BRYLXa/3gevPFwBBGlm5puHhZ9A4FIcw
-         FrHfaEz0cakCuhQEVSyTVkwUcStXOsqnCv7EJhkxKt2huUzTvv14TxANKD3owIUkq3vB
-         HNPfkqa2hHsqr0GxX48fdriInZzdOGe4j+AyQO22c96WdLcoVJMuwPat/PVci3ljicPc
-         JZpiRaEV7Q/1PnQjfXD2oEe2dxDd9JKpHbcawLW87kfkT8rOufiREB1H0D13NY0qBBW9
-         O2nq7N16lEUaruy8miqPCgNKiFlMj9p7CLZo8Bw7p6LF+jfkddLrr92DQDcGTmjtGE1q
-         MNCQ==
+        bh=olgT+EEl6yH2WjkmndnMpR/RQv4i7Hs0PI6jUb94NIE=;
+        b=EnoqBMp2Bx195WJABOCzOB1lcXfTkDbZDteIWE2TVXXz7WXH5pLacmSO+GMuxJkuvw
+         HKeN0t+SvzsyFo7hTF8YrpkoEPJ1T9KYXv2AsIY5VhTQN+/tIC5ChHy7BhQQHHZrsli7
+         u/jRJUbhmv2qhgzrJ/Y49xQGxOSPws+T4s9ZY82fyP/60VpgHdzeoDImvOX10vfNefIr
+         DBkrWwUEJMPY5howVY5w2EyFuJ38EIRcsDQmSLGYt+L9hl/1N2w0Xc2P5fH1A1LgX1wP
+         SvQmfdNrvUSTvvK9cJqiIvUSiP6TeGyEah9zl0Zv/fLbR8JT3WNHE7FmKArVSrj2V1ha
+         qrUA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1719471415; x=1720076215;
+        d=1e100.net; s=20230601; t=1719471551; x=1720076351;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=0HxwwdzAychYDIrvXXdci0MMT87S44nGKvUaRk/XFm4=;
-        b=nPVl8SSJSHsCadxXgeYX1oG1wyePaO4s/CyHYNAvtJOP+lBnC01Kn3J52opJ0jfSOH
-         gcDnRI9rRPpvqSaxBi8N9pzwzGG6/W7amPCluZ8qKI/zwxB3w9blyEJ2s5peaU529OqP
-         qZUeCbnBTkYBcnCcRFaEeIO1GorFnDQRjkjyPwOzCo6nXaDSjvBZ9cZUkhbYWZr9pXxR
-         q3bNWgX74QM1+wXIVLPqO3i+Fu7dth3dDEpEYxKFBjghAP8d0zoRtT67yYFgt735k4Z4
-         NO2i54xDyziknnMk0bAabtVn1Y3SlmMwPMgdgaXyQFX+0xmbMcnNxnhVTJGMe6Nvym3R
-         U+/A==
-X-Gm-Message-State: AOJu0YxGb9E/kYlyLlk6uquDpUrtJiw50DeOjxTG+hrLe+BaMfKFibna
-	PfgXjdKYXsR5LbGo/KaKPH+awf6yfvCJ/wmsfmnjZULWJ8Ft+C7tcLGae2rmSdc=
-X-Google-Smtp-Source: AGHT+IF+yCwqhjPD0tR4gNPfIMLPE2TVB4xWrqaeTKzY5rXVXHoe0yce6OThgNOjbVjjcuDkdBV9HA==
-X-Received: by 2002:a17:906:9c93:b0:a72:6375:5fa7 with SMTP id a640c23a62f3a-a7263756132mr695378566b.64.1719471414850;
-        Wed, 26 Jun 2024 23:56:54 -0700 (PDT)
+        bh=olgT+EEl6yH2WjkmndnMpR/RQv4i7Hs0PI6jUb94NIE=;
+        b=bGpeUIQAUZVX7T4GjPfCflMzycHUlqA7PrwHe7M8xWAghj/h/vtwBq4ril+g1bb9hs
+         IiCSWHICQP99QMbAvkvPBkABsY/jLq2ZTy4nPBppXZuGpsKRTEAs1oihoJQ+F2en32an
+         Ead9JdEbgsf4Zv8QnKl5qsxvA1y5oJHsqNN3E4ctyJ/8HamujMLpJzAufHpy+w0+dVQS
+         QAqMwZQr1bh0T9xl8JUzoTnRDoGwJrxIjEiIXDYMcSxMorQ1LmIEQ2xqLbmAGYi1mlN5
+         jvveNtArSxiJIJo3ndR2LmpV4LnRb1jB8H/hAyGNslEB0cjxBw0bg8Z9qitFXuJChCrw
+         tNAA==
+X-Forwarded-Encrypted: i=1; AJvYcCU076JdHswVgANOoVrmt9QCVd3C6BySkGBf9QpqmEIkR3vDCRGOokCnRIB9wnCxfQNBhP6Wy8kcwafjaypkwz/BFCnr8BeBooBzDA==
+X-Gm-Message-State: AOJu0Yz+DjpZ44WW3xbizRUEvyK8fEh+zZFppMofDKsW7C6OGaI5Vqll
+	Fb2KAwAmW6U1Jhzx9gXDRIIy+UpTNbSewP3/6eqZILJ4tl3PtjJs+N3TZ3MM6Fk=
+X-Google-Smtp-Source: AGHT+IH5tHd0NQMHgk33Cwbnum019QipXEqIv+YcbjDRaoj0Aa3z2Pj5kytKwktSP9mdS5s452M5zQ==
+X-Received: by 2002:a17:907:7e8b:b0:a6f:259d:9a5f with SMTP id a640c23a62f3a-a729b93b85bmr91792266b.35.1719471551144;
+        Wed, 26 Jun 2024 23:59:11 -0700 (PDT)
 Received: from localhost (nat2.prg.suse.com. [195.250.132.146])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a729d71f23asm30532266b.70.2024.06.26.23.56.54
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a729d71f76fsm30568466b.84.2024.06.26.23.59.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 26 Jun 2024 23:56:54 -0700 (PDT)
-Date: Thu, 27 Jun 2024 08:56:54 +0200
+        Wed, 26 Jun 2024 23:59:10 -0700 (PDT)
+Date: Thu, 27 Jun 2024 08:59:10 +0200
 From: Michal Hocko <mhocko@suse.com>
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, yosryahmed@google.com, willy@infradead.org,
+Cc: Dan Schatzberg <schatzberg.dan@gmail.com>, mm-commits@vger.kernel.org,
+	yosryahmed@google.com, willy@infradead.org,
 	wangkefeng.wang@huawei.com, tj@kernel.org, shakeel.butt@linux.dev,
 	shakeelb@google.com, roman.gushchin@linux.dev, rientjes@google.com,
 	nphamcs@gmail.com, muchun.song@linux.dev, lizefan.x@bytedance.com,
 	hughd@google.com, hannes@cmpxchg.org, findns94@gmail.com,
-	david@redhat.com, corbet@lwn.net, chrisl@kernel.org,
-	schatzberg.dan@gmail.com
+	david@redhat.com, corbet@lwn.net, chrisl@kernel.org
 Subject: Re: [nacked] mm-add-swapiness=-arg-to-memoryreclaim.patch removed
  from -mm tree
-Message-ID: <Zn0NNteypF9VfOxq@tiehlicka>
+Message-ID: <Zn0Nvv82FzVdeNTP@tiehlicka>
 References: <20240625210334.0BCA0C32781@smtp.kernel.org>
  <ZnuxTAcFbW0mI5uD@tiehlicka>
  <20240626101137.135997396b4e184643e045a4@linux-foundation.org>
+ <ZnxQZkREehawir0F@dschatzberg-fedora-PC0Y6AEN>
+ <20240626104325.9dff86f6a4adc94cb1a5b4a4@linux-foundation.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -74,36 +77,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240626101137.135997396b4e184643e045a4@linux-foundation.org>
+In-Reply-To: <20240626104325.9dff86f6a4adc94cb1a5b4a4@linux-foundation.org>
 
-On Wed 26-06-24 10:11:37, Andrew Morton wrote:
-> On Wed, 26 Jun 2024 08:12:28 +0200 Michal Hocko <mhocko@suse.com> wrote:
+On Wed 26-06-24 10:43:25, Andrew Morton wrote:
+> On Wed, 26 Jun 2024 13:31:18 -0400 Dan Schatzberg <schatzberg.dan@gmail.com> wrote:
 > 
-> > On Tue 25-06-24 14:03:33, Andrew Morton wrote:
-> > > 
-> > > The quilt patch titled
-> > >      Subject: mm: add swappiness= arg to memory.reclaim
-> > > has been removed from the -mm tree.  Its filename was
-> > >      mm-add-swapiness=-arg-to-memoryreclaim.patch
-> > > 
-> > > This patch was dropped because it was nacked
-> > 
-> > I do not see this being nacked in the original email thread.
+> >  After the patch was accepted in
+> > mm-unstable, I contacted you directly a month or two ago asking if
+> > there were any next steps or if it would be sent to Linus and you
+> > indicated that you would send it to Linus as-is. More recently,
+> > Shakeel asked about the status of this patch[1] and Yu Zhao said he'd
+> > take another look but that he didn't remember having any strong
+> > concerns.
 > 
-> Sorry, I thought I sent an email about this.
+> Ah, gotcha, thanks.  I must have failed to update my notes at the time.
 > 
-> Yu Zhou didn't like and the submitter (Dan) didn't participate in the
-> review discussion and the patchset wasn't going forward.
+> I restored the two patches and queued them for the next merge window.
 
-Yu said he doesn't remember his concerns anymore [1] and this has been
-acked by several people.
+Ups, missed this reply. Thanks!
 
-> Dan, please prepare a new revision, attempt to address review thus far
-> and let's fire it up again.
-
-Can we just take the patch as it was please?
-
-[1] https://lore.kernel.org/all/20240103164841.2800183-3-schatzberg.dan@gmail.com/T/#m0e4834bb45b975f518f297370edccafa8740a0ad
 -- 
 Michal Hocko
 SUSE Labs
