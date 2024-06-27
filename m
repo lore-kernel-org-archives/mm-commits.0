@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C1E145BE4
-	for <mm-commits@vger.kernel.org>; Thu, 27 Jun 2024 20:09:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A750C19AA56
+	for <mm-commits@vger.kernel.org>; Thu, 27 Jun 2024 20:09:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719518982; cv=none; b=qLLs1U20fTQOgH5pk8ZWZNaoUhKRFSZkNjuycGjzwDTjhL4pSXx72nRNxsdPycXBSyPYR4QogU9YohuCluL+RMgbH3JzCoUpmkqHC4+08/seLUbxP1P9uN1wzl9z8PcEq3oQ1uvJkWlUdUnAp0oj/6bbJsSh6QEFYePwJ+qlZOQ=
+	t=1719518982; cv=none; b=X+EmfEa9vKU7C6BFBP0cO2e3WmwQ2coVHB8FOyKq5DxvXgtGTKUL2kEOUgRVKvFWShv9UO4isQpidHH+9Ld5F7yLp0gzA1GJs+4Z2WEMac5Guja+QDNq9o30KfFLiuNPzJNmNMkQxzn5Xd9W5k++tigXv5TidIxS8oacPy7zlV4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1719518982; c=relaxed/simple;
-	bh=jWVe7kqcCEW3MG9A13y8IEBEm9sqPCQLaWrwtJBkx2M=;
-	h=Date:To:From:Subject:Message-Id; b=jhFdzp1fGhkZ/osbS/Y4rph40V4ZaMRZi5okhhNbc7Wjep4mx0jFYqDvbSdXg0j1cnv+boQakVL3PgbxSE14hS/Dg56sCvv4Q1f0NFVSv4SV2tZCT8vUOpXkzEmFgJoQ0+uH8yEQDv7IiA4NLm0d9LSR0/5221FojSVKNtxL2yw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C6yiEx3V; arc=none smtp.client-ip=10.30.226.201
+	bh=sizotHo5xNFztHuNNzsHaFxghnbt7RhqH6PPim6FePI=;
+	h=Date:To:From:Subject:Message-Id; b=lMuexUGQkc2qmhRjaZYxt0v5rQbUhjbZUfCI+n+kA+qlNZTluzNr7jMi7NLoMYmkXAAFulmcF1CkzfQglq9oKTaEHlmRB3vSZS7lSEXi9gprpt5VJ1EmT+3ddr5EapwEBp/3YVDOMSOtLyIMv3fWVW3CbZ7GbzRjaXc9ylKPYls=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UVjZNh7x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C6yiEx3V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6B5EC2BBFC;
-	Thu, 27 Jun 2024 20:09:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UVjZNh7x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C56EC2BD10;
+	Thu, 27 Jun 2024 20:09:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719518981;
-	bh=jWVe7kqcCEW3MG9A13y8IEBEm9sqPCQLaWrwtJBkx2M=;
+	s=korg; t=1719518982;
+	bh=sizotHo5xNFztHuNNzsHaFxghnbt7RhqH6PPim6FePI=;
 	h=Date:To:From:Subject:From;
-	b=C6yiEx3VuUPFMNirn+TR/lOxc+cjlB6+orZuVTuMCux3106l7UNcxEvcr0UBNkv/t
-	 VQ+dW9gQajs2HLecjRkxl84KyTatMO4N6PCDvH6vv9D4EC9rFOBYSljcb0UCcpyS4b
-	 9AAfgF/+Tk7aL78t8N+l1tnVCZyZmN9b+Yt3RJoU=
-Date: Thu, 27 Jun 2024 13:09:40 -0700
+	b=UVjZNh7x/OvQHMBv+bnrFDndTXkLNczZdWQT8FSkTjKtShEVLiKAAuxdTUSLEnQtO
+	 cYzFfc5/O8qoIvdu50CDNeUYjn51d9e970bYrH3nKg34D5FvKIVggMIpc+e4erks8U
+	 zPmiY7WcYnPwNDRnRUk4FSzLZfY0mn1C05yEtsaM=
+Date: Thu, 27 Jun 2024 13:09:41 -0700
 To: mm-commits@vger.kernel.org,lkp@intel.com,glider@google.com,elver@google.com,dvyukov@google.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-add-missing-__user-tags.patch added to mm-unstable branch
-Message-Id: <20240627200940.E6B5EC2BBFC@smtp.kernel.org>
+Subject: + kmsan-do-not-pass-null-pointers-as-0.patch added to mm-unstable branch
+Message-Id: <20240627200942.5C56EC2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmsan: add missing __user tags
+     Subject: kmsan: do not pass NULL pointers as 0
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-add-missing-__user-tags.patch
+     kmsan-do-not-pass-null-pointers-as-0.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-add-missing-__user-tags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-do-not-pass-null-pointers-as-0.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: kmsan: add missing __user tags
-Date: Thu, 27 Jun 2024 16:57:46 +0200
+Subject: kmsan: do not pass NULL pointers as 0
+Date: Thu, 27 Jun 2024 16:57:47 +0200
 
-sparse complains that __user pointers are being passed to functions that
-expect non-__user ones.  In all cases, these functions are in fact working
-with user pointers, only the tag is missing.  Add it.
+sparse complains about passing NULL pointers as 0.  Fix all instances.
 
-Link: https://lkml.kernel.org/r/20240627145754.27333-2-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240627145754.27333-3-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
 Reported-by: kernel test robot <lkp@intel.com>
 Closes: https://lore.kernel.org/oe-kbuild-all/202406272033.KejtfLkw-lkp@intel.com/
@@ -76,57 +74,65 @@ Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/core.c   |    4 ++--
- mm/kmsan/kmsan.h  |    6 +++---
- mm/kmsan/report.c |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ mm/kmsan/hooks.c           |   15 ++++++++-------
+ mm/kmsan/instrumentation.c |    4 ++--
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
---- a/mm/kmsan/core.c~kmsan-add-missing-__user-tags
-+++ a/mm/kmsan/core.c
-@@ -249,8 +249,8 @@ struct page *kmsan_vmalloc_to_page_or_nu
- 		return NULL;
- }
- 
--void kmsan_internal_check_memory(void *addr, size_t size, const void *user_addr,
--				 int reason)
-+void kmsan_internal_check_memory(void *addr, size_t size,
-+				 const void __user *user_addr, int reason)
+--- a/mm/kmsan/hooks.c~kmsan-do-not-pass-null-pointers-as-0
++++ a/mm/kmsan/hooks.c
+@@ -303,7 +303,8 @@ void kmsan_handle_urb(const struct urb *
+ 	if (is_out)
+ 		kmsan_internal_check_memory(urb->transfer_buffer,
+ 					    urb->transfer_buffer_length,
+-					    /*user_addr*/ 0, REASON_SUBMIT_URB);
++					    /*user_addr*/ NULL,
++					    REASON_SUBMIT_URB);
+ 	else
+ 		kmsan_internal_unpoison_memory(urb->transfer_buffer,
+ 					       urb->transfer_buffer_length,
+@@ -316,14 +317,14 @@ static void kmsan_handle_dma_page(const
  {
- 	depot_stack_handle_t cur_origin = 0, new_origin = 0;
- 	unsigned long addr64 = (unsigned long)addr;
---- a/mm/kmsan/kmsan.h~kmsan-add-missing-__user-tags
-+++ a/mm/kmsan/kmsan.h
-@@ -73,7 +73,7 @@ void kmsan_print_origin(depot_stack_hand
-  * @off_last corresponding to different @origin values.
-  */
- void kmsan_report(depot_stack_handle_t origin, void *address, int size,
--		  int off_first, int off_last, const void *user_addr,
-+		  int off_first, int off_last, const void __user *user_addr,
- 		  enum kmsan_bug_reason reason);
- 
- DECLARE_PER_CPU(struct kmsan_ctx, kmsan_percpu_ctx);
-@@ -163,8 +163,8 @@ depot_stack_handle_t kmsan_internal_chai
- void kmsan_internal_task_create(struct task_struct *task);
- 
- bool kmsan_metadata_is_contiguous(void *addr, size_t size);
--void kmsan_internal_check_memory(void *addr, size_t size, const void *user_addr,
--				 int reason);
-+void kmsan_internal_check_memory(void *addr, size_t size,
-+				 const void __user *user_addr, int reason);
- 
- struct page *kmsan_vmalloc_to_page_or_null(void *vaddr);
- void kmsan_setup_meta(struct page *page, struct page *shadow,
---- a/mm/kmsan/report.c~kmsan-add-missing-__user-tags
-+++ a/mm/kmsan/report.c
-@@ -148,7 +148,7 @@ void kmsan_print_origin(depot_stack_hand
- }
- 
- void kmsan_report(depot_stack_handle_t origin, void *address, int size,
--		  int off_first, int off_last, const void *user_addr,
-+		  int off_first, int off_last, const void __user *user_addr,
- 		  enum kmsan_bug_reason reason)
+ 	switch (dir) {
+ 	case DMA_BIDIRECTIONAL:
+-		kmsan_internal_check_memory((void *)addr, size, /*user_addr*/ 0,
+-					    REASON_ANY);
++		kmsan_internal_check_memory((void *)addr, size,
++					    /*user_addr*/ NULL, REASON_ANY);
+ 		kmsan_internal_unpoison_memory((void *)addr, size,
+ 					       /*checked*/ false);
+ 		break;
+ 	case DMA_TO_DEVICE:
+-		kmsan_internal_check_memory((void *)addr, size, /*user_addr*/ 0,
+-					    REASON_ANY);
++		kmsan_internal_check_memory((void *)addr, size,
++					    /*user_addr*/ NULL, REASON_ANY);
+ 		break;
+ 	case DMA_FROM_DEVICE:
+ 		kmsan_internal_unpoison_memory((void *)addr, size,
+@@ -418,8 +419,8 @@ void kmsan_check_memory(const void *addr
  {
- 	unsigned long stack_entries[KMSAN_STACK_DEPTH];
+ 	if (!kmsan_enabled)
+ 		return;
+-	return kmsan_internal_check_memory((void *)addr, size, /*user_addr*/ 0,
+-					   REASON_ANY);
++	return kmsan_internal_check_memory((void *)addr, size,
++					   /*user_addr*/ NULL, REASON_ANY);
+ }
+ EXPORT_SYMBOL(kmsan_check_memory);
+ 
+--- a/mm/kmsan/instrumentation.c~kmsan-do-not-pass-null-pointers-as-0
++++ a/mm/kmsan/instrumentation.c
+@@ -315,8 +315,8 @@ void __msan_warning(u32 origin)
+ 	if (!kmsan_enabled || kmsan_in_runtime())
+ 		return;
+ 	kmsan_enter_runtime();
+-	kmsan_report(origin, /*address*/ 0, /*size*/ 0,
+-		     /*off_first*/ 0, /*off_last*/ 0, /*user_addr*/ 0,
++	kmsan_report(origin, /*address*/ NULL, /*size*/ 0,
++		     /*off_first*/ 0, /*off_last*/ 0, /*user_addr*/ NULL,
+ 		     REASON_ANY);
+ 	kmsan_leave_runtime();
+ }
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
