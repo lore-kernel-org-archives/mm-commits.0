@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31DCD14D6EB
-	for <mm-commits@vger.kernel.org>; Thu, 27 Jun 2024 20:34:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9738B14D6EB
+	for <mm-commits@vger.kernel.org>; Thu, 27 Jun 2024 20:59:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719520475; cv=none; b=nR4XP3+uq1zAWqlbyx8GmaEI5o0NlWEkmjwLnp9ew/CuT1XpPcnVqwk46VTvfdGm3ZCrQC8+vtXEW3ruuX99/w+GQqq1BCpYRHfc2Vdd8vUHKQscnWeBy5FFEmCDTBrdVZXEOlc/sZ4lC3BstR5K8cNpmnBEJbo6/Wklr6nP014=
+	t=1719521999; cv=none; b=rK5YlHIxpexi+vs7pFarTQPYIOuW8ViukjvR8aTMhQ5DX7zvuWecwOHHqgEEOBMShBHeSPnmJ0Wkm/UevQwDHy21DiaKJQy5rBPFUCSskAUf2odTqBLq+3YFQkKBnYlbCYdeFJUCyLM6kOwYa9FNk51Yd9mLBcJsIdGBjnj2Gpk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719520475; c=relaxed/simple;
-	bh=Hzt2Nin0kriAKrT9dpV7ADWxXbcOH1twoH/cxBD1R7M=;
-	h=Date:To:From:Subject:Message-Id; b=rbG4gpLl0sKPtQ+iCh+W6H2NrNcie1UZGB1AFw3MJeF30uM/uhenX288i0X8oj6Pk27fu8CYyL5VZO72RVEQ2NHxaKVJ6scjUEXIiZdzPcNV+CiLt+CK4pzxMDGiNRvlv3zODsV5t2W7X5ySekGkk5w/myBMaP+xo5UCtQHgl9c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BQUWb2bS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719521999; c=relaxed/simple;
+	bh=19HYJ4l8tW6vDSdnwmfIyqdczW/hmgQGGq/85blid7E=;
+	h=Date:To:From:Subject:Message-Id; b=UyOArz3jhggoC3+44GpeITO923io01I+DVScRTQ6lm/6TjMOn8Hgcd4ZND2IJjKKG03lgRohwbjGM5LWq6PH8vHd89gPPpJQzTtlrjtkXXgnuMMSDDcwN7ShL+DH0F0+G17V8NL8aZQhr7gf0MxeEN/7dgXJ8GU5VL79zXavgCs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DCtW2OoH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BQUWb2bS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E853AC2BBFC;
-	Thu, 27 Jun 2024 20:34:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DCtW2OoH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C2AFC2BBFC;
+	Thu, 27 Jun 2024 20:59:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719520475;
-	bh=Hzt2Nin0kriAKrT9dpV7ADWxXbcOH1twoH/cxBD1R7M=;
+	s=korg; t=1719521999;
+	bh=19HYJ4l8tW6vDSdnwmfIyqdczW/hmgQGGq/85blid7E=;
 	h=Date:To:From:Subject:From;
-	b=BQUWb2bSZJgJ0w+irwNsdlBJI+7ydLSf8QevjLhNPc1851pHGhw+KrxOvYfCB3Jb5
-	 W9gQuXCVTU02EzzUqtzqRJganuCrWLtTLIrUJ/CqufV5Xr0Xf8dzsPk3S6w65BoTkD
-	 CZILC6sgxD7EQ5TOPzOPwf8uLfn4r4/05RYUWiOc=
-Date: Thu, 27 Jun 2024 13:34:34 -0700
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,chengming.zhou@linux.dev,akpm@linux-foundation.org
+	b=DCtW2OoHyzqJfF3oUf9/E0a3pVvhq1KTomhuwp1wQ9MYmP6DoPpeoq5iNWgO1RIRn
+	 zWakWws4jpIEr9evFqZI6aJkiefE/XWKh1keAbabnrqMvOwTa1rn4dOZZPJj0ckPRc
+	 fUhrHoPm5dJyvG93x/IQ9ia0y2rO52y6s0lR2YIA=
+Date: Thu, 27 Jun 2024 13:59:58 -0700
+To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,willy@infradead.org,peterx@redhat.com,muchun.song@linux.dev,fvdl@google.com,david@redhat.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zsmalloc-move-record_obj-into-obj_malloc.patch added to mm-unstable branch
-Message-Id: <20240627203434.E853AC2BBFC@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers.patch added to mm-unstable branch
+Message-Id: <20240627205959.0C2AFC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zsmalloc: move record_obj() into obj_malloc()
+     Subject: mm/hugetlb_vmemmap: fix race with speculative PFN walkers
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zsmalloc-move-record_obj-into-obj_malloc.patch
+     mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-move-record_obj-into-obj_malloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,104 +58,270 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chengming Zhou <chengming.zhou@linux.dev>
-Subject: mm/zsmalloc: move record_obj() into obj_malloc()
-Date: Thu, 27 Jun 2024 15:59:59 +0800
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm/hugetlb_vmemmap: fix race with speculative PFN walkers
+Date: Wed, 26 Jun 2024 22:43:34 -0600
 
-We always record_obj() to make handle points to object after obj_malloc(),
-so simplify the code by moving record_obj() into obj_malloc().  There
-should be no functional change.
+While investigating HVO for THPs [1], it turns out that speculative PFN
+walkers like compaction can race with vmemmap modifications, e.g.,
 
-Link: https://lkml.kernel.org/r/20240627075959.611783-2-chengming.zhou@linux.dev
-Signed-off-by: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+  CPU 1 (vmemmap modifier)         CPU 2 (speculative PFN walker)
+  -------------------------------  ------------------------------
+  Allocates an LRU folio page1
+                                   Sees page1
+  Frees page1
+
+  Allocates a hugeTLB folio page2
+  (page1 being a tail of page2)
+
+  Updates vmemmap mapping page1
+                                   get_page_unless_zero(page1)
+
+Even though page1->_refcount is zero after HVO, get_page_unless_zero()
+can still try to modify this read-only field, resulting in a crash.
+
+An independent report [2] confirmed this race.
+
+There are two discussed approaches to fix this race:
+1. Make RO vmemmap RW so that get_page_unless_zero() can fail without
+   triggering a PF.
+2. Use RCU to make sure get_page_unless_zero() either sees zero
+   page->_refcount through the old vmemmap or non-zero page->_refcount
+   through the new one.
+
+The second approach is preferred here because:
+1. It can prevent illegal modifications to struct page[] that has been
+   HVO'ed;
+2. It can be generalized, in a way similar to ZERO_PAGE(), to fix
+   similar races in other places, e.g., arch_remove_memory() on x86
+   [3], which frees vmemmap mapping offlined struct page[].
+
+While adding synchronize_rcu(), the goal is to be surgical, rather
+than optimized. Specifically, calls to synchronize_rcu() on the error
+handling paths can be coalesced, but it is not done for the sake of
+Simplicity: noticeably, this fix removes ~50% more lines than it adds.
+
+[1] https://lore.kernel.org/20240229183436.4110845-4-yuzhao@google.com/
+[2] https://lore.kernel.org/917FFC7F-0615-44DD-90EE-9F85F8EA9974@linux.dev/
+[3] https://lore.kernel.org/be130a96-a27e-4240-ad78-776802f57cad@redhat.com/
+
+Link: https://lkml.kernel.org/r/20240627044335.2698578-1-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Yang Shi <yang@os.amperecomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ include/linux/page_ref.h |    8 ++++-
+ mm/hugetlb.c             |   53 ++++---------------------------------
+ mm/hugetlb_vmemmap.c     |   16 +++++++++++
+ 3 files changed, 30 insertions(+), 47 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-move-record_obj-into-obj_malloc
-+++ a/mm/zsmalloc.c
-@@ -1306,7 +1306,6 @@ static unsigned long obj_malloc(struct z
- 	void *vaddr;
+--- a/include/linux/page_ref.h~mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers
++++ a/include/linux/page_ref.h
+@@ -230,7 +230,13 @@ static inline int folio_ref_dec_return(s
  
- 	class = pool->size_class[zspage->class];
--	handle |= OBJ_ALLOCATED_TAG;
- 	obj = get_freeobj(zspage);
- 
- 	offset = obj * class->size;
-@@ -1322,15 +1321,16 @@ static unsigned long obj_malloc(struct z
- 	set_freeobj(zspage, link->next >> OBJ_TAG_BITS);
- 	if (likely(!ZsHugePage(zspage)))
- 		/* record handle in the header of allocated chunk */
--		link->handle = handle;
-+		link->handle = handle | OBJ_ALLOCATED_TAG;
- 	else
- 		/* record handle to page->index */
--		zspage->first_page->index = handle;
-+		zspage->first_page->index = handle | OBJ_ALLOCATED_TAG;
- 
- 	kunmap_atomic(vaddr);
- 	mod_zspage_inuse(zspage, 1);
- 
- 	obj = location_to_obj(m_page, obj);
-+	record_obj(handle, obj);
- 
- 	return obj;
- }
-@@ -1348,7 +1348,7 @@ static unsigned long obj_malloc(struct z
-  */
- unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t gfp)
+ static inline bool page_ref_add_unless(struct page *page, int nr, int u)
  {
--	unsigned long handle, obj;
-+	unsigned long handle;
- 	struct size_class *class;
- 	int newfg;
- 	struct zspage *zspage;
-@@ -1371,10 +1371,9 @@ unsigned long zs_malloc(struct zs_pool *
- 	spin_lock(&class->lock);
- 	zspage = find_get_zspage(class);
- 	if (likely(zspage)) {
--		obj = obj_malloc(pool, zspage, handle);
-+		obj_malloc(pool, zspage, handle);
- 		/* Now move the zspage to another fullness group, if required */
- 		fix_fullness_group(class, zspage);
--		record_obj(handle, obj);
- 		class_stat_inc(class, ZS_OBJS_INUSE, 1);
+-	bool ret = atomic_add_unless(&page->_refcount, nr, u);
++	bool ret = false;
++
++	rcu_read_lock();
++	/* avoid writing to the vmemmap area being remapped */
++	if (!page_is_fake_head(page) && page_ref_count(page) != u)
++		ret = atomic_add_unless(&page->_refcount, nr, u);
++	rcu_read_unlock();
  
- 		goto out;
-@@ -1389,10 +1388,9 @@ unsigned long zs_malloc(struct zs_pool *
+ 	if (page_ref_tracepoint_active(page_ref_mod_unless))
+ 		__page_ref_mod_unless(page, nr, ret);
+--- a/mm/hugetlb.c~mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers
++++ a/mm/hugetlb.c
+@@ -1629,13 +1629,10 @@ static inline void destroy_compound_giga
+  * folio appears as just a compound page.  Otherwise, wait until after
+  * allocating vmemmap to clear the flag.
+  *
+- * A reference is held on the folio, except in the case of demote.
+- *
+  * Must be called with hugetlb lock held.
+  */
+-static void __remove_hugetlb_folio(struct hstate *h, struct folio *folio,
+-							bool adjust_surplus,
+-							bool demote)
++static void remove_hugetlb_folio(struct hstate *h, struct folio *folio,
++							bool adjust_surplus)
+ {
+ 	int nid = folio_nid(folio);
+ 
+@@ -1657,6 +1654,7 @@ static void __remove_hugetlb_folio(struc
+ 		h->surplus_huge_pages_node[nid]--;
  	}
  
- 	spin_lock(&class->lock);
--	obj = obj_malloc(pool, zspage, handle);
-+	obj_malloc(pool, zspage, handle);
- 	newfg = get_fullness_group(class, zspage);
- 	insert_zspage(class, zspage, newfg);
--	record_obj(handle, obj);
- 	atomic_long_add(class->pages_per_zspage, &pool->pages_allocated);
- 	class_stat_inc(class, ZS_OBJS_ALLOCATED, class->objs_per_zspage);
- 	class_stat_inc(class, ZS_OBJS_INUSE, 1);
-@@ -1591,7 +1589,6 @@ static void migrate_zspage(struct zs_poo
- 		free_obj = obj_malloc(pool, dst_zspage, handle);
- 		zs_object_copy(class, free_obj, used_obj);
- 		obj_idx++;
--		record_obj(handle, free_obj);
- 		obj_free(class->size, used_obj);
++	folio_clear_hugetlb_freed(folio);
+ 	/*
+ 	 * We can only clear the hugetlb flag after allocating vmemmap
+ 	 * pages.  Otherwise, someone (memory error handling) may try to write
+@@ -1665,33 +1663,13 @@ static void __remove_hugetlb_folio(struc
+ 	if (!folio_test_hugetlb_vmemmap_optimized(folio))
+ 		__folio_clear_hugetlb(folio);
  
- 		/* Stop if there is no more space */
+-	 /*
+-	  * In the case of demote we do not ref count the page as it will soon
+-	  * be turned into a page of smaller size.
+-	 */
+-	if (!demote)
+-		folio_ref_unfreeze(folio, 1);
+-
+ 	h->nr_huge_pages--;
+ 	h->nr_huge_pages_node[nid]--;
+ }
+ 
+-static void remove_hugetlb_folio(struct hstate *h, struct folio *folio,
+-							bool adjust_surplus)
+-{
+-	__remove_hugetlb_folio(h, folio, adjust_surplus, false);
+-}
+-
+-static void remove_hugetlb_folio_for_demote(struct hstate *h, struct folio *folio,
+-							bool adjust_surplus)
+-{
+-	__remove_hugetlb_folio(h, folio, adjust_surplus, true);
+-}
+-
+ static void add_hugetlb_folio(struct hstate *h, struct folio *folio,
+ 			     bool adjust_surplus)
+ {
+-	int zeroed;
+ 	int nid = folio_nid(folio);
+ 
+ 	VM_BUG_ON_FOLIO(!folio_test_hugetlb_vmemmap_optimized(folio), folio);
+@@ -1715,21 +1693,6 @@ static void add_hugetlb_folio(struct hst
+ 	 */
+ 	folio_set_hugetlb_vmemmap_optimized(folio);
+ 
+-	/*
+-	 * This folio is about to be managed by the hugetlb allocator and
+-	 * should have no users.  Drop our reference, and check for others
+-	 * just in case.
+-	 */
+-	zeroed = folio_put_testzero(folio);
+-	if (unlikely(!zeroed))
+-		/*
+-		 * It is VERY unlikely soneone else has taken a ref
+-		 * on the folio.  In this case, we simply return as
+-		 * free_huge_folio() will be called when this other ref
+-		 * is dropped.
+-		 */
+-		return;
+-
+ 	arch_clear_hugetlb_flags(folio);
+ 	enqueue_hugetlb_folio(h, folio);
+ }
+@@ -1783,6 +1746,8 @@ static void __update_and_free_hugetlb_fo
+ 		spin_unlock_irq(&hugetlb_lock);
+ 	}
+ 
++	folio_ref_unfreeze(folio, 1);
++
+ 	/*
+ 	 * Non-gigantic pages demoted from CMA allocated gigantic pages
+ 	 * need to be given back to CMA in free_gigantic_folio.
+@@ -3106,11 +3071,8 @@ retry:
+ 
+ free_new:
+ 	spin_unlock_irq(&hugetlb_lock);
+-	if (new_folio) {
+-		/* Folio has a zero ref count, but needs a ref to be freed */
+-		folio_ref_unfreeze(new_folio, 1);
++	if (new_folio)
+ 		update_and_free_hugetlb_folio(h, new_folio, false);
+-	}
+ 
+ 	return ret;
+ }
+@@ -3965,7 +3927,7 @@ static int demote_free_hugetlb_folio(str
+ 
+ 	target_hstate = size_to_hstate(PAGE_SIZE << h->demote_order);
+ 
+-	remove_hugetlb_folio_for_demote(h, folio, false);
++	remove_hugetlb_folio(h, folio, false);
+ 	spin_unlock_irq(&hugetlb_lock);
+ 
+ 	/*
+@@ -3979,7 +3941,6 @@ static int demote_free_hugetlb_folio(str
+ 		if (rc) {
+ 			/* Allocation of vmemmmap failed, we can not demote folio */
+ 			spin_lock_irq(&hugetlb_lock);
+-			folio_ref_unfreeze(folio, 1);
+ 			add_hugetlb_folio(h, folio, false);
+ 			return rc;
+ 		}
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers
++++ a/mm/hugetlb_vmemmap.c
+@@ -455,6 +455,8 @@ static int __hugetlb_vmemmap_restore_fol
+ 	unsigned long vmemmap_reuse;
+ 
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_hugetlb(folio), folio);
++	VM_WARN_ON_ONCE_FOLIO(folio_ref_count(folio), folio);
++
+ 	if (!folio_test_hugetlb_vmemmap_optimized(folio))
+ 		return 0;
+ 
+@@ -490,6 +492,9 @@ static int __hugetlb_vmemmap_restore_fol
+  */
+ int hugetlb_vmemmap_restore_folio(const struct hstate *h, struct folio *folio)
+ {
++	/* avoid writes from page_ref_add_unless() while unfolding vmemmap */
++	synchronize_rcu();
++
+ 	return __hugetlb_vmemmap_restore_folio(h, folio, 0);
+ }
+ 
+@@ -514,6 +519,9 @@ long hugetlb_vmemmap_restore_folios(cons
+ 	long restored = 0;
+ 	long ret = 0;
+ 
++	/* avoid writes from page_ref_add_unless() while unfolding vmemmap */
++	synchronize_rcu();
++
+ 	list_for_each_entry_safe(folio, t_folio, folio_list, lru) {
+ 		if (folio_test_hugetlb_vmemmap_optimized(folio)) {
+ 			ret = __hugetlb_vmemmap_restore_folio(h, folio,
+@@ -559,6 +567,8 @@ static int __hugetlb_vmemmap_optimize_fo
+ 	unsigned long vmemmap_reuse;
+ 
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_hugetlb(folio), folio);
++	VM_WARN_ON_ONCE_FOLIO(folio_ref_count(folio), folio);
++
+ 	if (!vmemmap_should_optimize_folio(h, folio))
+ 		return ret;
+ 
+@@ -610,6 +620,9 @@ void hugetlb_vmemmap_optimize_folio(cons
+ {
+ 	LIST_HEAD(vmemmap_pages);
+ 
++	/* avoid writes from page_ref_add_unless() while folding vmemmap */
++	synchronize_rcu();
++
+ 	__hugetlb_vmemmap_optimize_folio(h, folio, &vmemmap_pages, 0);
+ 	free_vmemmap_page_list(&vmemmap_pages);
+ }
+@@ -653,6 +666,9 @@ void hugetlb_vmemmap_optimize_folios(str
+ 
+ 	flush_tlb_all();
+ 
++	/* avoid writes from page_ref_add_unless() while folding vmemmap */
++	synchronize_rcu();
++
+ 	list_for_each_entry(folio, folio_list, lru) {
+ 		int ret;
+ 
 _
 
-Patches currently in -mm which might be from chengming.zhou@linux.dev are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-mm-zswap-use-only-one-pool-in-zswap.patch
-mm-zswap-use-only-one-pool-in-zswap-v2.patch
-mm-zswap-use-only-one-pool-in-zswap-v3.patch
-mm-ksm-refactor-out-try_to_merge_with_zero_page.patch
-mm-ksm-dont-waste-time-searching-stable-tree-for-fast-changing-page.patch
-mm-ksm-optimize-the-chain-chain_prune-interfaces.patch
-mm-zsmalloc-fix-class-per-fullness-zspage-counts.patch
-mm-zsmalloc-move-record_obj-into-obj_malloc.patch
+mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers.patch
 
