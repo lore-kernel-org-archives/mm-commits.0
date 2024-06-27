@@ -1,172 +1,109 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BBDF6FC6;
-	Thu, 27 Jun 2024 01:25:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93B6117E9
+	for <mm-commits@vger.kernel.org>; Thu, 27 Jun 2024 06:56:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719451516; cv=none; b=Vl00t3RrHrvEGj2ge5zx+L62ySjoJm+GBjQB6y1XyRqRMTaXSykR2cKKIu4HsdkbTFnv2ZGORMOEKtvQbEYg8VHhHVoEp/ub/LF7J1h+noQHhhwi+IDAfiaw69J1iLsvmiBgreS42UjFjWIP8Mg3WyBt8A5w34ALifBpjrPyezY=
+	t=1719471418; cv=none; b=jyWQycJF09SsfhtBMYXf7ppkEFsX0mv1Y/DZXB1GMZ/L0nAgf9mLRbiw6cevsNYLVIBelwJjMzo11f/GHYkcAhHq6K9yQ3g6vPhauh/vZa2FBUqdKNqtPMrUqHRPO/91w26jUfWXlTzuuaL+lSEcZ1CmAYf1ZRLA7NXtVIPPHM0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719451516; c=relaxed/simple;
-	bh=M05amnRKh2FoSN2sU3dl3ue0KtzfSoY6Fm2dCqoXugs=;
-	h=Date:To:From:Subject:Message-Id; b=SAK3N0CjbVnDFp90r3W8IzYe/UVO8y9Vo2XtnVNx3YnKD4HNDp4BW2wWRdSjrlTUxBYUeaM0KSpkldKljPJavjA/cnjHUiXSTJP2srhtbAZzXTd5L0ODa5/YMAoTlhD4g8EVwiXF6mBJF8XXoaXruCOXE5n9WIwjYUuqFIZ29gQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DkigjGE9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719471418; c=relaxed/simple;
+	bh=EyE7UkadnoUeCVtbfwi3EbARgqAf6FHGqRnleGXgsi0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=jNdPNxmqQlxyH4+EMfrmky2Qr2HPjwrg099eOkKtq047XSgXU+6F8eFMHOZxU4pxMMKuF8Wz4FJo3uo3Qo+USuLNQUx/6N/kI0sFcC2WZ/EAF+Ado/F/lKQkVCYmg2pz2MKfK20NS/GoEctjnljd3gu0tIU+Q8NLOcldIxJqYbU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=TxtI4yZD; arc=none smtp.client-ip=209.85.218.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DkigjGE9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 453A7C116B1;
-	Thu, 27 Jun 2024 01:25:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719451516;
-	bh=M05amnRKh2FoSN2sU3dl3ue0KtzfSoY6Fm2dCqoXugs=;
-	h=Date:To:From:Subject:From;
-	b=DkigjGE93WaFt6PVIM3kvOHPWqf2iJgAnzCYCD7fJLvmyMIAG5WLvTyNvRnpIbTZK
-	 jBGfb9rKVm2R8sI1wqygE9Q0wivy5iA0eWIsJr2S5pofflOpY9EPS5GT8y3ZUsW/qQ
-	 NuEsBKpaPolv0djsguQ3SykdPS3bmD3UhOAU7KcA=
-Date: Wed, 26 Jun 2024 18:25:15 -0700
-To: mm-commits@vger.kernel.org,zhenyzha@redhat.com,willy@infradead.org,william.kucharski@oracle.com,torvalds@linux-foundation.org,stable@vger.kernel.org,ryan.roberts@arm.com,hughd@google.com,djwong@kernel.org,ddutile@redhat.com,david@redhat.com,gshan@redhat.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-disable-pmd-sized-page-cache-if-needed.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240627012516.453A7C116B1@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="TxtI4yZD"
+Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-a6fe118805dso544197366b.3
+        for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 23:56:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1719471415; x=1720076215; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=0HxwwdzAychYDIrvXXdci0MMT87S44nGKvUaRk/XFm4=;
+        b=TxtI4yZDFuYFgry5wy5Ia/Rv35/b4hiWy2BRYLXa/3gevPFwBBGlm5puHhZ9A4FIcw
+         FrHfaEz0cakCuhQEVSyTVkwUcStXOsqnCv7EJhkxKt2huUzTvv14TxANKD3owIUkq3vB
+         HNPfkqa2hHsqr0GxX48fdriInZzdOGe4j+AyQO22c96WdLcoVJMuwPat/PVci3ljicPc
+         JZpiRaEV7Q/1PnQjfXD2oEe2dxDd9JKpHbcawLW87kfkT8rOufiREB1H0D13NY0qBBW9
+         O2nq7N16lEUaruy8miqPCgNKiFlMj9p7CLZo8Bw7p6LF+jfkddLrr92DQDcGTmjtGE1q
+         MNCQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1719471415; x=1720076215;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=0HxwwdzAychYDIrvXXdci0MMT87S44nGKvUaRk/XFm4=;
+        b=nPVl8SSJSHsCadxXgeYX1oG1wyePaO4s/CyHYNAvtJOP+lBnC01Kn3J52opJ0jfSOH
+         gcDnRI9rRPpvqSaxBi8N9pzwzGG6/W7amPCluZ8qKI/zwxB3w9blyEJ2s5peaU529OqP
+         qZUeCbnBTkYBcnCcRFaEeIO1GorFnDQRjkjyPwOzCo6nXaDSjvBZ9cZUkhbYWZr9pXxR
+         q3bNWgX74QM1+wXIVLPqO3i+Fu7dth3dDEpEYxKFBjghAP8d0zoRtT67yYFgt735k4Z4
+         NO2i54xDyziknnMk0bAabtVn1Y3SlmMwPMgdgaXyQFX+0xmbMcnNxnhVTJGMe6Nvym3R
+         U+/A==
+X-Gm-Message-State: AOJu0YxGb9E/kYlyLlk6uquDpUrtJiw50DeOjxTG+hrLe+BaMfKFibna
+	PfgXjdKYXsR5LbGo/KaKPH+awf6yfvCJ/wmsfmnjZULWJ8Ft+C7tcLGae2rmSdc=
+X-Google-Smtp-Source: AGHT+IF+yCwqhjPD0tR4gNPfIMLPE2TVB4xWrqaeTKzY5rXVXHoe0yce6OThgNOjbVjjcuDkdBV9HA==
+X-Received: by 2002:a17:906:9c93:b0:a72:6375:5fa7 with SMTP id a640c23a62f3a-a7263756132mr695378566b.64.1719471414850;
+        Wed, 26 Jun 2024 23:56:54 -0700 (PDT)
+Received: from localhost (nat2.prg.suse.com. [195.250.132.146])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a729d71f23asm30532266b.70.2024.06.26.23.56.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 26 Jun 2024 23:56:54 -0700 (PDT)
+Date: Thu, 27 Jun 2024 08:56:54 +0200
+From: Michal Hocko <mhocko@suse.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, yosryahmed@google.com, willy@infradead.org,
+	wangkefeng.wang@huawei.com, tj@kernel.org, shakeel.butt@linux.dev,
+	shakeelb@google.com, roman.gushchin@linux.dev, rientjes@google.com,
+	nphamcs@gmail.com, muchun.song@linux.dev, lizefan.x@bytedance.com,
+	hughd@google.com, hannes@cmpxchg.org, findns94@gmail.com,
+	david@redhat.com, corbet@lwn.net, chrisl@kernel.org,
+	schatzberg.dan@gmail.com
+Subject: Re: [nacked] mm-add-swapiness=-arg-to-memoryreclaim.patch removed
+ from -mm tree
+Message-ID: <Zn0NNteypF9VfOxq@tiehlicka>
+References: <20240625210334.0BCA0C32781@smtp.kernel.org>
+ <ZnuxTAcFbW0mI5uD@tiehlicka>
+ <20240626101137.135997396b4e184643e045a4@linux-foundation.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240626101137.135997396b4e184643e045a4@linux-foundation.org>
 
+On Wed 26-06-24 10:11:37, Andrew Morton wrote:
+> On Wed, 26 Jun 2024 08:12:28 +0200 Michal Hocko <mhocko@suse.com> wrote:
+> 
+> > On Tue 25-06-24 14:03:33, Andrew Morton wrote:
+> > > 
+> > > The quilt patch titled
+> > >      Subject: mm: add swappiness= arg to memory.reclaim
+> > > has been removed from the -mm tree.  Its filename was
+> > >      mm-add-swapiness=-arg-to-memoryreclaim.patch
+> > > 
+> > > This patch was dropped because it was nacked
+> > 
+> > I do not see this being nacked in the original email thread.
+> 
+> Sorry, I thought I sent an email about this.
+> 
+> Yu Zhou didn't like and the submitter (Dan) didn't participate in the
+> review discussion and the patchset wasn't going forward.
 
-The patch titled
-     Subject: mm/shmem: disable PMD-sized page cache if needed
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-shmem-disable-pmd-sized-page-cache-if-needed.patch
+Yu said he doesn't remember his concerns anymore [1] and this has been
+acked by several people.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-disable-pmd-sized-page-cache-if-needed.patch
+> Dan, please prepare a new revision, attempt to address review thus far
+> and let's fire it up again.
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Can we just take the patch as it was please?
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Gavin Shan <gshan@redhat.com>
-Subject: mm/shmem: disable PMD-sized page cache if needed
-Date: Thu, 27 Jun 2024 10:39:52 +1000
-
-For shmem files, it's possible that PMD-sized page cache can't be
-supported by xarray.  For example, 512MB page cache on ARM64 when the base
-page size is 64KB can't be supported by xarray.  It leads to errors as the
-following messages indicate when this sort of xarray entry is split.
-
-WARNING: CPU: 34 PID: 7578 at lib/xarray.c:1025 xas_split_alloc+0xf8/0x128
-Modules linked in: binfmt_misc nft_fib_inet nft_fib_ipv4 nft_fib_ipv6   \
-nft_fib nft_reject_inet nf_reject_ipv4 nf_reject_ipv6 nft_reject        \
-nft_ct nft_chain_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4  \
-ip_set rfkill nf_tables nfnetlink vfat fat virtio_balloon drm fuse xfs  \
-libcrc32c crct10dif_ce ghash_ce sha2_ce sha256_arm64 sha1_ce virtio_net \
-net_failover virtio_console virtio_blk failover dimlib virtio_mmio
-CPU: 34 PID: 7578 Comm: test Kdump: loaded Tainted: G W 6.10.0-rc5-gavin+ #9
-Hardware name: QEMU KVM Virtual Machine, BIOS edk2-20240524-1.el9 05/24/2024
-pstate: 83400005 (Nzcv daif +PAN -UAO +TCO +DIT -SSBS BTYPE=--)
-pc : xas_split_alloc+0xf8/0x128
-lr : split_huge_page_to_list_to_order+0x1c4/0x720
-sp : ffff8000882af5f0
-x29: ffff8000882af5f0 x28: ffff8000882af650 x27: ffff8000882af768
-x26: 0000000000000cc0 x25: 000000000000000d x24: ffff00010625b858
-x23: ffff8000882af650 x22: ffffffdfc0900000 x21: 0000000000000000
-x20: 0000000000000000 x19: ffffffdfc0900000 x18: 0000000000000000
-x17: 0000000000000000 x16: 0000018000000000 x15: 52f8004000000000
-x14: 0000e00000000000 x13: 0000000000002000 x12: 0000000000000020
-x11: 52f8000000000000 x10: 52f8e1c0ffff6000 x9 : ffffbeb9619a681c
-x8 : 0000000000000003 x7 : 0000000000000000 x6 : ffff00010b02ddb0
-x5 : ffffbeb96395e378 x4 : 0000000000000000 x3 : 0000000000000cc0
-x2 : 000000000000000d x1 : 000000000000000c x0 : 0000000000000000
-Call trace:
- xas_split_alloc+0xf8/0x128
- split_huge_page_to_list_to_order+0x1c4/0x720
- truncate_inode_partial_folio+0xdc/0x160
- shmem_undo_range+0x2bc/0x6a8
- shmem_fallocate+0x134/0x430
- vfs_fallocate+0x124/0x2e8
- ksys_fallocate+0x4c/0xa0
- __arm64_sys_fallocate+0x24/0x38
- invoke_syscall.constprop.0+0x7c/0xd8
- do_el0_svc+0xb4/0xd0
- el0_svc+0x44/0x1d8
- el0t_64_sync_handler+0x134/0x150
- el0t_64_sync+0x17c/0x180
-
-Fix it by disabling PMD-sized page cache when HPAGE_PMD_ORDER is larger
-than MAX_PAGECACHE_ORDER.  As Matthew Wilcox pointed, the page cache in a
-shmem file isn't represented by a multi-index entry and doesn't have this
-limitation when the xarry entry is split until commit 6b24ca4a1a8d ("mm:
-Use multi-index entries in the page cache").
-
-Link: https://lkml.kernel.org/r/20240627003953.1262512-5-gshan@redhat.com
-Fixes: 6b24ca4a1a8d ("mm: Use multi-index entries in the page cache")
-Signed-off-by: Gavin Shan <gshan@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Don Dutile <ddutile@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Zhenyu Zhang <zhenyzha@redhat.com>
-Cc: <stable@vger.kernel.org>	[5.17+]
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/shmem.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
-
---- a/mm/shmem.c~mm-shmem-disable-pmd-sized-page-cache-if-needed
-+++ a/mm/shmem.c
-@@ -541,8 +541,9 @@ static bool shmem_confirm_swap(struct ad
- 
- static int shmem_huge __read_mostly = SHMEM_HUGE_NEVER;
- 
--bool shmem_is_huge(struct inode *inode, pgoff_t index, bool shmem_huge_force,
--		   struct mm_struct *mm, unsigned long vm_flags)
-+static bool __shmem_is_huge(struct inode *inode, pgoff_t index,
-+			    bool shmem_huge_force, struct mm_struct *mm,
-+			    unsigned long vm_flags)
- {
- 	loff_t i_size;
- 
-@@ -573,6 +574,16 @@ bool shmem_is_huge(struct inode *inode,
- 	}
- }
- 
-+bool shmem_is_huge(struct inode *inode, pgoff_t index,
-+		   bool shmem_huge_force, struct mm_struct *mm,
-+		   unsigned long vm_flags)
-+{
-+	if (HPAGE_PMD_ORDER > MAX_PAGECACHE_ORDER)
-+		return false;
-+
-+	return __shmem_is_huge(inode, index, shmem_huge_force, mm, vm_flags);
-+}
-+
- #if defined(CONFIG_SYSFS)
- static int shmem_parse_huge(const char *str)
- {
-_
-
-Patches currently in -mm which might be from gshan@redhat.com are
-
-mm-filemap-make-max_pagecache_order-acceptable-to-xarray.patch
-mm-readahead-limit-page-cache-size-in-page_cache_ra_order.patch
-mm-filemap-skip-to-create-pmd-sized-page-cache-if-needed.patch
-mm-shmem-disable-pmd-sized-page-cache-if-needed.patch
-
+[1] https://lore.kernel.org/all/20240103164841.2800183-3-schatzberg.dan@gmail.com/T/#m0e4834bb45b975f518f297370edccafa8740a0ad
+-- 
+Michal Hocko
+SUSE Labs
