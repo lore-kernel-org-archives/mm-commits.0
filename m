@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75AD046544
-	for <mm-commits@vger.kernel.org>; Thu, 27 Jun 2024 19:30:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91AF122F1C
+	for <mm-commits@vger.kernel.org>; Thu, 27 Jun 2024 19:59:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719516646; cv=none; b=PiSTlBCNtRjUsvq63Cd5jmNJssnWWf1fcGVB3Q6sTe8T7xus0a/Mq0e7MCktbC3HsA8887OjGcPu9rAzejU5UuQZz5yNLH7nwqqv2AP/00yXXGwATZ4hMbDNs1nTzSFVRVlP2Pqimg9KgM6RF9XhGIMoXrID1oFD3w4J6/FDzOs=
+	t=1719518396; cv=none; b=JeD9EDdR/h52ToaGl59CYdhuUksloZOGKuHQMMgW4hvWhWvB/RU90Jh8ndwPOf7JFT3qtHLdJ/UvTKYvbGt38vk/fz6f4hgh0SOUqARkElDNdSZ37IVslGG1LV9y0d8s3r/Xnee1E7Hc1HazVm9i87tqfnpPKKDR/OcS2RYSBAU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719516646; c=relaxed/simple;
-	bh=xDtd+r6VkXOj+wGKnoOrqi/HBFXNUlQ6sTk30sw2W+M=;
-	h=Date:To:From:Subject:Message-Id; b=TD6MCvc31kPB89JBFt22VarAYLZbqdMf4rulMfXcx7qUZQ9d1qKNDwuwBMwH5700Yzhrv2rT0M0wdRkMsiug2L6qz0rx23j+cAY24TLFAhfC6AGcLhpKgIK1UCUj4/C4lzVQ1bTgIMi/mIkAlMR75f+F+UuLrYmbxlXPqfOm2oc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kp4IVKBy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719518396; c=relaxed/simple;
+	bh=HOZE21FRAsB46VsG8COouPmZOddgJf7kEIOPpamdV1s=;
+	h=Date:To:From:Subject:Message-Id; b=LahFZUD2Xz0Mgr7ov+lNcl4fGV0pK7hILh8npqYU4o2Fgt5o70UGG6fQ9b8s6jLD7nrAzvDhTfuXKcoN8cqzg99FmA/7gDteQelsSf3YFW/BBXBc3FHEOvrIcvd9Em/QJZAUNUcPWYRgTAnmO/EVQnXDfLJK+p8KjpoAVMTmWiU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ffdArVkX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kp4IVKBy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D360AC2BD10;
-	Thu, 27 Jun 2024 19:30:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ffdArVkX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1009EC2BBFC;
+	Thu, 27 Jun 2024 19:59:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719516646;
-	bh=xDtd+r6VkXOj+wGKnoOrqi/HBFXNUlQ6sTk30sw2W+M=;
+	s=korg; t=1719518396;
+	bh=HOZE21FRAsB46VsG8COouPmZOddgJf7kEIOPpamdV1s=;
 	h=Date:To:From:Subject:From;
-	b=Kp4IVKByWatadIMin4M55loGaHab8gHndZIspAKgZnniGq8QLrhulu6lSswe1OwR3
-	 pM1bxZ0O+TxbObwIAhI+YIFAOOtaxuQs6eyRCluBgXSW4TWwTgL2KBxqKMMwSoA7eZ
-	 gMUeiPp1ejJ/YxbQvnQwrGGhPUcVXZB3lSGn5KVM=
-Date: Thu, 27 Jun 2024 12:30:44 -0700
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,tglx@linutronix.de,skhan@linuxfoundation.org,seanjc@google.com,reinette.chatre@intel.com,peterz@infradead.org,pbonzini@redhat.com,paul.walmsley@sifive.com,palmer@dabbelt.com,pabeni@redhat.com,mingo@redhat.com,kuba@kernel.org,kevin.tian@intel.com,kees@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,jarkko@kernel.org,fenghua.yu@intel.com,edumazet@google.com,ebiederm@xmission.com,dvhart@infradead.org,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,aou@eecs.berkeley.edu,andrealmeid@igalia.com,edliaw@google.com,akpm@linux-foundation.org
+	b=ffdArVkXfNsnmnn+aKFcKoiVyh03Ik60wjW/WzxJxEnsh+Jwn0BqYanTRwpGyvIaB
+	 qpQIsLp9VrBd4r9mVtfVgJqWVVn340D13ANczGNpE8WqVn886cQdQTKtrLHHF/vqrW
+	 zHIOpGkg6Bhq2XKU3e89y2PoAkqqHh/N9roOWFq4=
+Date: Thu, 27 Jun 2024 12:59:55 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,surenb@google.com,rppt@kernel.org,Liam.Howlett@oracle.com,gregkh@linuxfoundation.org,brauner@kernel.org,adobriyan@gmail.com,andrii@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-centralize-d_gnu_source=-to-cflags-in-libmk.patch added to mm-nonmm-unstable branch
-Message-Id: <20240627193045.D360AC2BD10@smtp.kernel.org>
+Subject: + fs-procfs-extract-logic-for-getting-vma-name-constituents.patch added to mm-unstable branch
+Message-Id: <20240627195956.1009EC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: centralize -D_GNU_SOURCE= to CFLAGS in lib.mk
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-centralize-d_gnu_source=-to-cflags-in-libmk.patch
+     Subject: fs/procfs: extract logic for getting VMA name constituents
+has been added to the -mm mm-unstable branch.  Its filename is
+     fs-procfs-extract-logic-for-getting-vma-name-constituents.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-centralize-d_gnu_source=-to-cflags-in-libmk.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-procfs-extract-logic-for-getting-vma-name-constituents.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,228 +58,306 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Edward Liaw <edliaw@google.com>
-Subject: selftests: centralize -D_GNU_SOURCE= to CFLAGS in lib.mk
-Date: Tue, 25 Jun 2024 22:34:45 +0000
+From: Andrii Nakryiko <andrii@kernel.org>
+Subject: fs/procfs: extract logic for getting VMA name constituents
+Date: Thu, 27 Jun 2024 10:08:53 -0700
 
-Centralize the _GNU_SOURCE definition to CFLAGS in lib.mk.  Remove
-redundant defines from Makefiles that import lib.mk.  Convert any usage of
-"#define _GNU_SOURCE 1" to "#define _GNU_SOURCE".
+Patch series "ioctl()-based API to query VMAs from /proc/<pid>/maps", v6.
 
-This uses the form "-D_GNU_SOURCE=", which is equivalent to
-"#define _GNU_SOURCE".
+Implement binary ioctl()-based interface to /proc/<pid>/maps file to allow
+applications to query VMA information more efficiently than reading *all*
+VMAs nonselectively through text-based interface of /proc/<pid>/maps file.
 
-Otherwise using "-D_GNU_SOURCE" is equivalent to "-D_GNU_SOURCE=1" and
-"#define _GNU_SOURCE 1", which is less commonly seen in source code and
-would require many changes in selftests to avoid redefinition warnings.
+Patch #2 goes into a lot of details and background on some common patterns
+of using /proc/<pid>/maps in the area of performance profiling and
+subsequent symbolization of captured stack traces.  As mentioned in that
+patch, patterns of VMA querying can differ depending on specific use case,
+but can generally be grouped into two main categories: the need to query a
+small subset of VMAs covering a given batch of addresses, or
+reading/storing/caching all (typically, executable) VMAs upfront for later
+processing.
 
-Link: https://lkml.kernel.org/r/20240625223454.1586259-2-edliaw@google.com
-Signed-off-by: Edward Liaw <edliaw@google.com>
-Suggested-by: John Hubbard <jhubbard@nvidia.com>
-Acked-by: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: André Almeida <andrealmeid@igalia.com>
-Cc: Darren Hart <dvhart@infradead.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Kevin Tian <kevin.tian@intel.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Reinette Chatre <reinette.chatre@intel.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+The new PROCMAP_QUERY ioctl() API added in this patch set was motivated by
+the former pattern of usage.  Earlier revisions had a patch adding a tool
+that faithfully reproduces an efficient VMA matching pass of a symbolizer,
+collecting a subset of covering VMAs for a given set of addresses as
+efficiently as possible.  This tool served both as a testing ground, as
+well as a benchmarking tool.  It implements everything both for currently
+existing text-based /proc/<pid>/maps interface, as well as for newly-added
+PROCMAP_QUERY ioctl().  This revision dropped the tool from the patch set
+and, once the API lands upstream, this tool might be added separately on
+Github as an example.
+
+Based on discussion on earlier revisions of this patch set, it turned out
+that this ioctl() API is competitive with highly-optimized text-based
+pre-processing pattern that perf tool is using.  Based on perf discussion,
+this revision adds more flexibility in specifying a subset of VMAs that
+are of interest.  Now it's possible to specify desired permissions of VMAs
+(e.g., request only executable ones) and/or restrict to only a subset of
+VMAs that have file backing.  This further improves the efficiency when
+using this new API thanks to more selective (executable VMAs only)
+querying.
+
+In addition to a custom benchmarking tool, and experimental perf
+integration (available at [0]), Daniel Mueller has since also implemented
+an experimental integration into blazesym (see [1]), a library used for
+stack trace symbolization by our server fleet-wide profiler and another
+on-device profiler agent that runs on weaker ARM devices.  The latter
+ARM-based device profiler is especially sensitive to performance, and so
+we benchmarked and compared text-based /proc/<pid>/maps solution to the
+equivalent one using PROCMAP_QUERY ioctl().
+
+Results are very encouraging, giving us 5x improvement for end-to-end
+so-called "address normalization" pass, which is the part of the
+symbolization process that happens locally on ARM device, before being
+sent out for further heavier-weight processing on more powerful remote
+server.  Note that this is not an artificial microbenchmark.  It's a full
+end-to-end API call being measured with real-world data on real-world
+device.
+
+  TEXT-BASED
+  ==========
+  Benchmarking main/normalize_process_no_build_ids_uncached_maps
+  main/normalize_process_no_build_ids_uncached_maps
+	  time:   [49.777 µs 49.982 µs 50.250 µs]
+
+  IOCTL-BASED
+  ===========
+  Benchmarking main/normalize_process_no_build_ids_uncached_maps
+  main/normalize_process_no_build_ids_uncached_maps
+	  time:   [10.328 µs 10.391 µs 10.457 µs]
+	  change: [−79.453% −79.304% −79.166%] (p = 0.00 < 0.02)
+	  Performance has improved.
+
+You can see above that we see the drop from 50µs down to 10µs for
+exactly the same amount of work, with the same data and target process.
+
+With the aforementioned custom tool, we see about ~40x improvement (it
+might vary a bit, depending on a specific captured set of addresses).  And
+even for perf-based benchmark it's on par or slightly ahead when using
+permission-based filtering (fetching only executable VMAs).
+
+Earlier revisions attempted to use per-VMA locking, if kernel was compiled
+with CONFIG_PER_VMA_LOCK=y, but it turned out that anon_vma_name() is not
+yet compatible with per-VMA locking and assumes mmap_lock to be taken,
+which makes the use of per-VMA locking for this API premature.  It was
+agreed ([2]) to continue for now with just mmap_lock, but the code
+structure is such that it should be easy to add per-VMA locking support
+once all the pieces are ready.
+
+One thing that did not change was basing this new API as an ioctl()
+command on /proc/<pid>/maps file.  An ioctl-based API on top of pidfd was
+considered, but has its own downsides.  Implementing ioctl() directly on
+pidfd will cause access permission checks on every single ioctl(), which
+leads to performance concerns and potential spam of capable() audit
+messages.  It also prevents a nice pattern, possible with
+/proc/<pid>/maps, in which application opens /proc/self/maps FD (requiring
+no additional capabilities) and passed this FD to profiling agent for
+querying.  To achieve similar pattern, a new file would have to be created
+from pidf just for VMA querying, which is considered to be inferior to
+just querying /proc/<pid>/maps FD as proposed in current approach.  These
+aspects were discussed in the hallway track at recent LSF/MM/BPF 2024 and
+sticking to procfs ioctl() was the final agreement we arrived at.
+
+  [0] https://github.com/anakryiko/linux/commits/procfs-proc-maps-ioctl-v2/
+  [1] https://github.com/libbpf/blazesym/pull/675
+  [2] https://lore.kernel.org/bpf/7rm3izyq2vjp5evdjc7c6z4crdd3oerpiknumdnmmemwyiwx7t@hleldw7iozi3/
+
+
+This patch (of 6):
+
+Extract generic logic to fetch relevant pieces of data to describe VMA
+name.  This could be just some string (either special constant or
+user-provided), or a string with some formatted wrapping text (e.g.,
+"[anon_shmem:<something>]"), or, commonly, file path.  seq_file-based
+logic has different methods to handle all three cases, but they are
+currently mixed in with extracting underlying sources of data.
+
+This patch splits this into data fetching and data formatting, so that
+data fetching can be reused later on.
+
+There should be no functional changes.
+
+Link: https://lkml.kernel.org/r/20240627170900.1672542-1-andrii@kernel.org
+Link: https://lkml.kernel.org/r/20240627170900.1672542-2-andrii@kernel.org
+Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/exec/Makefile             |    1 -
- tools/testing/selftests/futex/functional/Makefile |    2 +-
- tools/testing/selftests/intel_pstate/Makefile     |    2 +-
- tools/testing/selftests/iommu/Makefile            |    2 --
- tools/testing/selftests/kvm/Makefile              |    2 +-
- tools/testing/selftests/lib.mk                    |    3 +++
- tools/testing/selftests/mm/thuge-gen.c            |    2 +-
- tools/testing/selftests/net/Makefile              |    2 +-
- tools/testing/selftests/net/tcp_ao/Makefile       |    2 +-
- tools/testing/selftests/proc/Makefile             |    1 -
- tools/testing/selftests/resctrl/Makefile          |    2 +-
- tools/testing/selftests/ring-buffer/Makefile      |    1 -
- tools/testing/selftests/riscv/mm/Makefile         |    2 +-
- tools/testing/selftests/sgx/Makefile              |    2 +-
- tools/testing/selftests/tmpfs/Makefile            |    1 -
- 15 files changed, 12 insertions(+), 15 deletions(-)
+ fs/proc/task_mmu.c |  125 ++++++++++++++++++++++++-------------------
+ 1 file changed, 71 insertions(+), 54 deletions(-)
 
---- a/tools/testing/selftests/exec/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
-+++ a/tools/testing/selftests/exec/Makefile
-@@ -1,7 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0
- CFLAGS = -Wall
- CFLAGS += -Wno-nonnull
--CFLAGS += -D_GNU_SOURCE
+--- a/fs/proc/task_mmu.c~fs-procfs-extract-logic-for-getting-vma-name-constituents
++++ a/fs/proc/task_mmu.c
+@@ -239,6 +239,67 @@ static int do_maps_open(struct inode *in
+ 				sizeof(struct proc_maps_private));
+ }
  
- TEST_PROGS := binfmt_script.py
- TEST_GEN_PROGS := execveat load_address_4096 load_address_2097152 load_address_16777216 non-regular
---- a/tools/testing/selftests/futex/functional/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
-+++ a/tools/testing/selftests/futex/functional/Makefile
-@@ -1,6 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0
- INCLUDES := -I../include -I../../ $(KHDR_INCLUDES)
--CFLAGS := $(CFLAGS) -g -O2 -Wall -D_GNU_SOURCE= -pthread $(INCLUDES) $(KHDR_INCLUDES)
-+CFLAGS := $(CFLAGS) -g -O2 -Wall -pthread $(INCLUDES) $(KHDR_INCLUDES)
- LDLIBS := -lpthread -lrt
- 
- LOCAL_HDRS := \
---- a/tools/testing/selftests/intel_pstate/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
-+++ a/tools/testing/selftests/intel_pstate/Makefile
-@@ -1,5 +1,5 @@
- # SPDX-License-Identifier: GPL-2.0
--CFLAGS := $(CFLAGS) -Wall -D_GNU_SOURCE
-+CFLAGS := $(CFLAGS) -Wall
- LDLIBS += -lm
- 
- ARCH ?= $(shell uname -m 2>/dev/null || echo not)
---- a/tools/testing/selftests/iommu/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
-+++ a/tools/testing/selftests/iommu/Makefile
-@@ -2,8 +2,6 @@
- CFLAGS += -Wall -O2 -Wno-unused-function
- CFLAGS += $(KHDR_INCLUDES)
- 
--CFLAGS += -D_GNU_SOURCE
--
- TEST_GEN_PROGS :=
- TEST_GEN_PROGS += iommufd
- TEST_GEN_PROGS += iommufd_fail_nth
---- a/tools/testing/selftests/kvm/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
-+++ a/tools/testing/selftests/kvm/Makefile
-@@ -231,7 +231,7 @@ LINUX_TOOL_ARCH_INCLUDE = $(top_srcdir)/
- endif
- CFLAGS += -Wall -Wstrict-prototypes -Wuninitialized -O2 -g -std=gnu99 \
- 	-Wno-gnu-variable-sized-type-not-at-end -MD -MP -DCONFIG_64BIT \
--	-D_GNU_SOURCE -fno-builtin-memcmp -fno-builtin-memcpy \
-+	-fno-builtin-memcmp -fno-builtin-memcpy \
- 	-fno-builtin-memset -fno-builtin-strnlen \
- 	-fno-stack-protector -fno-PIE -I$(LINUX_TOOL_INCLUDE) \
- 	-I$(LINUX_TOOL_ARCH_INCLUDE) -I$(LINUX_HDR_PATH) -Iinclude \
---- a/tools/testing/selftests/lib.mk~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
-+++ a/tools/testing/selftests/lib.mk
-@@ -188,6 +188,9 @@ endef
- clean: $(if $(TEST_GEN_MODS_DIR),clean_mods_dir)
- 	$(CLEAN)
- 
-+# Build with _GNU_SOURCE by default
-+CFLAGS += -D_GNU_SOURCE=
++static void get_vma_name(struct vm_area_struct *vma,
++			 const struct path **path,
++			 const char **name,
++			 const char **name_fmt)
++{
++	struct anon_vma_name *anon_name = vma->vm_mm ? anon_vma_name(vma) : NULL;
 +
- # Enables to extend CFLAGS and LDFLAGS from command line, e.g.
- # make USERCFLAGS=-Werror USERLDFLAGS=-static
- CFLAGS += $(USERCFLAGS)
---- a/tools/testing/selftests/mm/thuge-gen.c~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
-+++ a/tools/testing/selftests/mm/thuge-gen.c
-@@ -13,7 +13,7 @@
-    sudo ipcs | awk '$1 == "0x00000000" {print $2}' | xargs -n1 sudo ipcrm -m
-    (warning this will remove all if someone else uses them) */
++	*name = NULL;
++	*path = NULL;
++	*name_fmt = NULL;
++
++	/*
++	 * Print the dentry name for named mappings, and a
++	 * special [heap] marker for the heap:
++	 */
++	if (vma->vm_file) {
++		/*
++		 * If user named this anon shared memory via
++		 * prctl(PR_SET_VMA ..., use the provided name.
++		 */
++		if (anon_name) {
++			*name_fmt = "[anon_shmem:%s]";
++			*name = anon_name->name;
++		} else {
++			*path = file_user_path(vma->vm_file);
++		}
++		return;
++	}
++
++	if (vma->vm_ops && vma->vm_ops->name) {
++		*name = vma->vm_ops->name(vma);
++		if (*name)
++			return;
++	}
++
++	*name = arch_vma_name(vma);
++	if (*name)
++		return;
++
++	if (!vma->vm_mm) {
++		*name = "[vdso]";
++		return;
++	}
++
++	if (vma_is_initial_heap(vma)) {
++		*name = "[heap]";
++		return;
++	}
++
++	if (vma_is_initial_stack(vma)) {
++		*name = "[stack]";
++		return;
++	}
++
++	if (anon_name) {
++		*name_fmt = "[anon:%s]";
++		*name = anon_name->name;
++		return;
++	}
++}
++
+ static void show_vma_header_prefix(struct seq_file *m,
+ 				   unsigned long start, unsigned long end,
+ 				   vm_flags_t flags, unsigned long long pgoff,
+@@ -262,17 +323,15 @@ static void show_vma_header_prefix(struc
+ static void
+ show_map_vma(struct seq_file *m, struct vm_area_struct *vma)
+ {
+-	struct anon_vma_name *anon_name = NULL;
+-	struct mm_struct *mm = vma->vm_mm;
+-	struct file *file = vma->vm_file;
++	const struct path *path;
++	const char *name_fmt, *name;
+ 	vm_flags_t flags = vma->vm_flags;
+ 	unsigned long ino = 0;
+ 	unsigned long long pgoff = 0;
+ 	unsigned long start, end;
+ 	dev_t dev = 0;
+-	const char *name = NULL;
  
--#define _GNU_SOURCE 1
-+#define _GNU_SOURCE
- #include <sys/mman.h>
- #include <linux/mman.h>
- #include <stdlib.h>
---- a/tools/testing/selftests/net/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
-+++ a/tools/testing/selftests/net/Makefile
-@@ -1,7 +1,7 @@
- # SPDX-License-Identifier: GPL-2.0
- # Makefile for net selftests
+-	if (file) {
++	if (vma->vm_file) {
+ 		const struct inode *inode = file_user_inode(vma->vm_file);
  
--CFLAGS =  -Wall -Wl,--no-as-needed -O2 -g
-+CFLAGS +=  -Wall -Wl,--no-as-needed -O2 -g
- CFLAGS += -I../../../../usr/include/ $(KHDR_INCLUDES)
- # Additional include paths needed by kselftest.h
- CFLAGS += -I../
---- a/tools/testing/selftests/net/tcp_ao/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
-+++ a/tools/testing/selftests/net/tcp_ao/Makefile
-@@ -26,7 +26,7 @@ LIB	:= $(LIBDIR)/libaotst.a
- LDLIBS	+= $(LIB) -pthread
- LIBDEPS	:= lib/aolib.h Makefile
+ 		dev = inode->i_sb->s_dev;
+@@ -283,57 +342,15 @@ show_map_vma(struct seq_file *m, struct
+ 	start = vma->vm_start;
+ 	end = vma->vm_end;
+ 	show_vma_header_prefix(m, start, end, flags, pgoff, dev, ino);
+-	if (mm)
+-		anon_name = anon_vma_name(vma);
  
--CFLAGS	:= -Wall -O2 -g -D_GNU_SOURCE -fno-strict-aliasing
-+CFLAGS	+= -Wall -O2 -g -fno-strict-aliasing
- CFLAGS	+= $(KHDR_INCLUDES)
- CFLAGS	+= -iquote ./lib/ -I ../../../../include/
- 
---- a/tools/testing/selftests/proc/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
-+++ a/tools/testing/selftests/proc/Makefile
-@@ -1,6 +1,5 @@
- # SPDX-License-Identifier: GPL-2.0-only
- CFLAGS += -Wall -O2 -Wno-unused-function
--CFLAGS += -D_GNU_SOURCE
- LDFLAGS += -pthread
- 
- TEST_GEN_PROGS :=
---- a/tools/testing/selftests/resctrl/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
-+++ a/tools/testing/selftests/resctrl/Makefile
-@@ -1,6 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0
- 
--CFLAGS = -g -Wall -O2 -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE
-+CFLAGS = -g -Wall -O2 -D_FORTIFY_SOURCE=2
- CFLAGS += $(KHDR_INCLUDES)
- 
- TEST_GEN_PROGS := resctrl_tests
---- a/tools/testing/selftests/ring-buffer/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
-+++ a/tools/testing/selftests/ring-buffer/Makefile
-@@ -1,7 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0
- CFLAGS += -Wl,-no-as-needed -Wall
- CFLAGS += $(KHDR_INCLUDES)
--CFLAGS += -D_GNU_SOURCE
- 
- TEST_GEN_PROGS = map_test
- 
---- a/tools/testing/selftests/riscv/mm/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
-+++ a/tools/testing/selftests/riscv/mm/Makefile
-@@ -3,7 +3,7 @@
- # Originally tools/testing/arm64/abi/Makefile
- 
- # Additional include paths needed by kselftest.h and local headers
--CFLAGS += -D_GNU_SOURCE -std=gnu99 -I.
-+CFLAGS += -std=gnu99 -I.
- 
- TEST_GEN_FILES := mmap_default mmap_bottomup
- 
---- a/tools/testing/selftests/sgx/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
-+++ a/tools/testing/selftests/sgx/Makefile
-@@ -12,7 +12,7 @@ OBJCOPY := $(CROSS_COMPILE)objcopy
- endif
- 
- INCLUDES := -I$(top_srcdir)/tools/include
--HOST_CFLAGS := -Wall -Werror -g $(INCLUDES) -fPIC
-+HOST_CFLAGS := -Wall -Werror -g $(INCLUDES) -fPIC $(CFLAGS)
- HOST_LDFLAGS := -z noexecstack -lcrypto
- ENCL_CFLAGS += -Wall -Werror -static-pie -nostdlib -ffreestanding -fPIE \
- 	       -fno-stack-protector -mrdrnd $(INCLUDES)
---- a/tools/testing/selftests/tmpfs/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
-+++ a/tools/testing/selftests/tmpfs/Makefile
-@@ -1,6 +1,5 @@
- # SPDX-License-Identifier: GPL-2.0-only
- CFLAGS += -Wall -O2
--CFLAGS += -D_GNU_SOURCE
- 
- TEST_GEN_PROGS :=
- TEST_GEN_PROGS += bug-link-o-tmpfile
+-	/*
+-	 * Print the dentry name for named mappings, and a
+-	 * special [heap] marker for the heap:
+-	 */
+-	if (file) {
++	get_vma_name(vma, &path, &name, &name_fmt);
++	if (path) {
+ 		seq_pad(m, ' ');
+-		/*
+-		 * If user named this anon shared memory via
+-		 * prctl(PR_SET_VMA ..., use the provided name.
+-		 */
+-		if (anon_name)
+-			seq_printf(m, "[anon_shmem:%s]", anon_name->name);
+-		else
+-			seq_path(m, file_user_path(file), "\n");
+-		goto done;
+-	}
+-
+-	if (vma->vm_ops && vma->vm_ops->name) {
+-		name = vma->vm_ops->name(vma);
+-		if (name)
+-			goto done;
+-	}
+-
+-	name = arch_vma_name(vma);
+-	if (!name) {
+-		if (!mm) {
+-			name = "[vdso]";
+-			goto done;
+-		}
+-
+-		if (vma_is_initial_heap(vma)) {
+-			name = "[heap]";
+-			goto done;
+-		}
+-
+-		if (vma_is_initial_stack(vma)) {
+-			name = "[stack]";
+-			goto done;
+-		}
+-
+-		if (anon_name) {
+-			seq_pad(m, ' ');
+-			seq_printf(m, "[anon:%s]", anon_name->name);
+-		}
+-	}
+-
+-done:
+-	if (name) {
++		seq_path(m, path, "\n");
++	} else if (name_fmt) {
++		seq_pad(m, ' ');
++		seq_printf(m, name_fmt, name);
++	} else if (name) {
+ 		seq_pad(m, ' ');
+ 		seq_puts(m, name);
+ 	}
 _
 
-Patches currently in -mm which might be from edliaw@google.com are
+Patches currently in -mm which might be from andrii@kernel.org are
 
-selftests-centralize-d_gnu_source=-to-cflags-in-libmk.patch
+fs-procfs-extract-logic-for-getting-vma-name-constituents.patch
+fs-procfs-implement-efficient-vma-querying-api-for-proc-pid-maps.patch
+fs-procfs-add-build-id-fetching-to-procmap_query-api.patch
+docs-procfs-call-out-ioctl-based-procmap_query-command-existence.patch
+tools-sync-uapi-linux-fsh-header-into-tools-subdir.patch
+selftests-proc-add-procmap_query-ioctl-tests.patch
 
