@@ -1,110 +1,123 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62C7F8F47
-	for <mm-commits@vger.kernel.org>; Wed, 26 Jun 2024 20:54:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33D6317E9;
+	Thu, 27 Jun 2024 00:30:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719435288; cv=none; b=sCwPU7HLIBoPaBJ2v/kKUYqhsFvU6zSB0eONxgs1q9JIB13UNLOhnaSKgjYG9yhC9W4KvCddqLOy0KovO14rVsSEv+sctwQGyh5ft49baPPbwT5Xb0rns+6g40VFP94R5AxWV+b++ORde6CLU8v5J1FagpWy62fch/lm846gtYs=
+	t=1719448219; cv=none; b=hfzM9iWvZFJviz96OI8pHrl7Xmv6W1qhecO/BKkrM5EL59+bEA3Z7PALgBs3Tu3WT6yBTJz9YuRGcdlcKuobOigAbvy/ZwynN0TKK0ufKvu2uFlCOc0DsPxKkN5H0TB00aLH9wXGZnA+suaA4NnrtQSpSHiutfPducHNse9KnZ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719435288; c=relaxed/simple;
-	bh=tYlGk4aLoslGU6SfOQ69y5tuuDBjzzwXK+hELYP6RuA=;
-	h=Date:To:From:Subject:Message-Id; b=u+fklQuWzjy+xt3/s/ApJ4K/y9gPjTvfzoAJlhm4MfXG9/jGC1UEkV9rMQhKXPSad+deWNkDG+FuNeRiEh6Ulp08867DAg/rE7WiTVOCMebeM/GATPNk5Lb0Lk9vDUxah+7xl4BHOGjhkthmr3uXKJhHyL6hs5ZUM/2QWPziV3g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gq/MMBrE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719448219; c=relaxed/simple;
+	bh=WURpjn1+OWCzi1P9KHg5JWMK7K5TMo+NYUY9ou0Ois0=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=Ex3Te8qGHrdjDlGi0E9CBIXrpDhvVJXEZ8LeaePau3mmjC6X7M0tO2gfQR5V7dnkppUjGdMtCIdzA2Nn9liPgHIiQLBoN6lP4BCP16LL2IAudl0mJVb4+sf8wQdTtIg9dcCeJAsN82N3ezhGr0acYsQZxqeYBONdrY6GKj09UnQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l8qHyN8l; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gq/MMBrE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E27C2C116B1;
-	Wed, 26 Jun 2024 20:54:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l8qHyN8l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 790AEC116B1;
+	Thu, 27 Jun 2024 00:30:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719435288;
-	bh=tYlGk4aLoslGU6SfOQ69y5tuuDBjzzwXK+hELYP6RuA=;
-	h=Date:To:From:Subject:From;
-	b=gq/MMBrEfDCLyUPUWknx58nXnlJ7VnvsrZelk82R5a8KT+8EqB+lB8Hx9Ibpuzqz8
-	 LEzy+6tEJEDI6qLfCIWpr879Km/zc+B0e+O2zUeNpkDHNlSvpliAZrz11/e2Dnztlo
-	 d+fnpZhMGVVH6ofr0CMKqbPhW2Ih4zRHeaOCQSIY=
-Date: Wed, 26 Jun 2024 13:54:47 -0700
-To: mm-commits@vger.kernel.org,mhocko@suse.com,ebiederm@xmission.com,oleg@redhat.com,akpm@linux-foundation.org
+	s=korg; t=1719448218;
+	bh=WURpjn1+OWCzi1P9KHg5JWMK7K5TMo+NYUY9ou0Ois0=;
+	h=Date:From:To:Cc:Subject:From;
+	b=l8qHyN8l2ROlPxDQgCfaMBa5CuJJcc+LB33FCmJiGFOs+XeCsuxOR6ZoC0ebvY7Mj
+	 s0NJ4+OipqyhEMi9+pHBCApJ8HTwJMRGLzHObSFORfmW9J0rF6n/Fn3HrNOLbUyufi
+	 RJMfksqrc0s5HhtUrgQmU9dNtdlyzeupDUs5l50A=
+Date: Wed, 26 Jun 2024 17:30:17 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + get_task_mm-check-pf_kthread-lockless.patch added to mm-unstable branch
-Message-Id: <20240626205447.E27C2C116B1@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.10-rc6
+Message-Id: <20240626173017.d4d69c597466bdd42da64da3@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: get_task_mm: check PF_KTHREAD lockless
-has been added to the -mm mm-unstable branch.  Its filename is
-     get_task_mm-check-pf_kthread-lockless.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/get_task_mm-check-pf_kthread-lockless.patch
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit f2661062f16b2de5d7b6a5c42a9a5c96326b8454:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Linux 6.10-rc5 (2024-06-23 17:08:54 -0400)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-06-26-17-28
 
-------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: get_task_mm: check PF_KTHREAD lockless
-Date: Wed, 26 Jun 2024 21:10:17 +0200
+for you to fetch changes up to ab1ffc86cb5bec1c92387b9811d9036512f8f4eb:
 
-Nowadays PF_KTHREAD is sticky and it was never protected by ->alloc_lock. 
-Move the PF_KTHREAD check outside of task_lock() section to make this code
-more understandable.
+  mm/memory: don't require head page for do_set_pmd() (2024-06-24 20:52:11 -0700)
 
-Link: https://lkml.kernel.org/r/20240626191017.GA20031@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+----------------------------------------------------------------
+13 hotfixes, 7 are cc:stable.
 
- kernel/fork.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+All are MM related apart from a MAINTAINERS update.  There is no
+identifiable theme here - just singleton patches in various places.
 
---- a/kernel/fork.c~get_task_mm-check-pf_kthread-lockless
-+++ a/kernel/fork.c
-@@ -1536,14 +1536,13 @@ struct mm_struct *get_task_mm(struct tas
- {
- 	struct mm_struct *mm;
- 
-+	if (task->flags & PF_KTHREAD)
-+		return NULL;
-+
- 	task_lock(task);
- 	mm = task->mm;
--	if (mm) {
--		if (task->flags & PF_KTHREAD)
--			mm = NULL;
--		else
--			mmget(mm);
--	}
-+	if (mm)
-+		mmget(mm);
- 	task_unlock(task);
- 	return mm;
- }
-_
+----------------------------------------------------------------
+Andrew Bresticker (1):
+      mm/memory: don't require head page for do_set_pmd()
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Andrey Konovalov (1):
+      kasan: fix bad call to unpoison_slab_object
 
-memcg-mm_update_next_owner-kill-the-retry-logic.patch
-memcg-mm_update_next_owner-move-for_each_thread-into-try_to_set_owner.patch
-get_task_mm-check-pf_kthread-lockless.patch
-zap_pid_ns_processes-dont-send-sigkill-to-sub-threads.patch
-coredump-simplify-zap_process.patch
+Christoph Hellwig (1):
+      nfs: drop the incorrect assertion in nfs_swap_rw()
+
+Jan Kara (1):
+      ocfs2: fix DIO failure due to insufficient transaction credits
+
+Jarkko Sakkinen (1):
+      MAINTAINERS: TPM DEVICE DRIVER: update the W-tag
+
+Jeff Xu (1):
+      /proc/pid/smaps: add mseal info for vma
+
+Stephen Brennan (1):
+      mm: convert page type macros to enum
+
+Suren Baghdasaryan (2):
+      mm/slab: fix 'variable obj_exts set but not used' warning
+      mm: handle profiling for fake memory allocations during compaction
+
+Zhaoyang Huang (1):
+      mm: fix incorrect vbq reference in purge_fragmented_block
+
+Zi Yan (1):
+      mm/migrate: make migrate_pages_batch() stats consistent
+
+aigourensheng (1):
+      selftests/mm:fix test_prctl_fork_exec return failure
+
+yangge (1):
+      mm/page_alloc: Separate THP PCP into movable and non-movable categories
+
+ Documentation/filesystems/proc.rst                |  1 +
+ MAINTAINERS                                       |  2 +-
+ fs/nfs/direct.c                                   |  2 --
+ fs/ocfs2/aops.c                                   |  5 +++
+ fs/ocfs2/journal.c                                | 17 ++++++++++
+ fs/ocfs2/journal.h                                |  2 ++
+ fs/ocfs2/ocfs2_trace.h                            |  2 ++
+ fs/proc/task_mmu.c                                |  3 ++
+ include/linux/mm.h                                |  5 +++
+ include/linux/mmzone.h                            |  9 +++---
+ include/linux/page-flags.h                        | 21 +++++++------
+ mm/compaction.c                                   | 11 +++++--
+ mm/internal.h                                     |  5 ---
+ mm/kasan/common.c                                 |  2 +-
+ mm/memory.c                                       |  3 +-
+ mm/migrate.c                                      |  5 +++
+ mm/page_alloc.c                                   |  9 ++++--
+ mm/slub.c                                         |  7 +++--
+ mm/vmalloc.c                                      | 21 +++++++++----
+ tools/testing/selftests/mm/ksm_functional_tests.c | 38 +++++++++++++----------
+ 20 files changed, 117 insertions(+), 53 deletions(-)
 
