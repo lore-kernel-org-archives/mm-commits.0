@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EEE814D6EB
-	for <mm-commits@vger.kernel.org>; Thu, 27 Jun 2024 20:34:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31DCD14D6EB
+	for <mm-commits@vger.kernel.org>; Thu, 27 Jun 2024 20:34:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719520474; cv=none; b=WN5Y/adtOoCn4h1DwBwcHjsRJrQRrTbXzr16Xyn0FQvGRUZpZ8Fju3299i8cHLi7B87kU5swy4XQhaBQw+XJpcHBPrZafCbqLHE4b+ALiCk+wfdlLUlmp5jFsAqSmGUTalq3cDoyB6/cnkL30EZS9g73UGUHcZT9CK5/T1HQIFw=
+	t=1719520475; cv=none; b=nR4XP3+uq1zAWqlbyx8GmaEI5o0NlWEkmjwLnp9ew/CuT1XpPcnVqwk46VTvfdGm3ZCrQC8+vtXEW3ruuX99/w+GQqq1BCpYRHfc2Vdd8vUHKQscnWeBy5FFEmCDTBrdVZXEOlc/sZ4lC3BstR5K8cNpmnBEJbo6/Wklr6nP014=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719520474; c=relaxed/simple;
-	bh=pxZL5s0zjwlTziPpmzjVv657p7ghZYnxxT54tHBC2XM=;
-	h=Date:To:From:Subject:Message-Id; b=GvGuNkOddfWNZSkC61dr4seZKQxLm0Ds69XYrEiiiJ10HflS81kYfp4HDY5+8bW7hqFGIYmdzyRbbybjR4hNabnZHPei1lcp0B71xm1onuBztTzghT658ryHYmuJxT3Za/gcoAHMXP2hm6oeA6663Cmfl/afULbnn3Eqn8VHR64=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j/6J2cMg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719520475; c=relaxed/simple;
+	bh=Hzt2Nin0kriAKrT9dpV7ADWxXbcOH1twoH/cxBD1R7M=;
+	h=Date:To:From:Subject:Message-Id; b=rbG4gpLl0sKPtQ+iCh+W6H2NrNcie1UZGB1AFw3MJeF30uM/uhenX288i0X8oj6Pk27fu8CYyL5VZO72RVEQ2NHxaKVJ6scjUEXIiZdzPcNV+CiLt+CK4pzxMDGiNRvlv3zODsV5t2W7X5ySekGkk5w/myBMaP+xo5UCtQHgl9c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BQUWb2bS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j/6J2cMg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4EE8C2BBFC;
-	Thu, 27 Jun 2024 20:34:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BQUWb2bS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E853AC2BBFC;
+	Thu, 27 Jun 2024 20:34:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719520473;
-	bh=pxZL5s0zjwlTziPpmzjVv657p7ghZYnxxT54tHBC2XM=;
+	s=korg; t=1719520475;
+	bh=Hzt2Nin0kriAKrT9dpV7ADWxXbcOH1twoH/cxBD1R7M=;
 	h=Date:To:From:Subject:From;
-	b=j/6J2cMgvRWFMYJhVApLAANF5GWU7XQgGXTH9MSnyGPXjY9OLAYU4zZqa3iuVPTa8
-	 /zp9hMhcZPivJngALnIXevfpOIa5o9rvzh9JdOvTOCWMyzkAy9xX34WE/DCuy6ay0H
-	 g43uPGM42c+QbIXyoVYzGP3mI75VnABktLrTFXjo=
-Date: Thu, 27 Jun 2024 13:34:33 -0700
+	b=BQUWb2bSZJgJ0w+irwNsdlBJI+7ydLSf8QevjLhNPc1851pHGhw+KrxOvYfCB3Jb5
+	 W9gQuXCVTU02EzzUqtzqRJganuCrWLtTLIrUJ/CqufV5Xr0Xf8dzsPk3S6w65BoTkD
+	 CZILC6sgxD7EQ5TOPzOPwf8uLfn4r4/05RYUWiOc=
+Date: Thu, 27 Jun 2024 13:34:34 -0700
 To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,chengming.zhou@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zsmalloc-fix-class-per-fullness-zspage-counts.patch added to mm-unstable branch
-Message-Id: <20240627203433.B4EE8C2BBFC@smtp.kernel.org>
+Subject: + mm-zsmalloc-move-record_obj-into-obj_malloc.patch added to mm-unstable branch
+Message-Id: <20240627203434.E853AC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zsmalloc: fix class per-fullness zspage counts
+     Subject: mm/zsmalloc: move record_obj() into obj_malloc()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zsmalloc-fix-class-per-fullness-zspage-counts.patch
+     mm-zsmalloc-move-record_obj-into-obj_malloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-fix-class-per-fullness-zspage-counts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-move-record_obj-into-obj_malloc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,37 +59,93 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Chengming Zhou <chengming.zhou@linux.dev>
-Subject: mm/zsmalloc: fix class per-fullness zspage counts
-Date: Thu, 27 Jun 2024 15:59:58 +0800
+Subject: mm/zsmalloc: move record_obj() into obj_malloc()
+Date: Thu, 27 Jun 2024 15:59:59 +0800
 
-We always use insert_zspage() and remove_zspage() to update zspage's
-fullness location, which will account correctly.
+We always record_obj() to make handle points to object after obj_malloc(),
+so simplify the code by moving record_obj() into obj_malloc().  There
+should be no functional change.
 
-But this special async free path use "splice" instead of remove_zspage(),
-so the per-fullness zspage count for ZS_INUSE_RATIO_0 won't decrease.
-
-Fix it by decreasing when iterate over the zspage free list.
-
-Link: https://lkml.kernel.org/r/20240627075959.611783-1-chengming.zhou@linux.dev
+Link: https://lkml.kernel.org/r/20240627075959.611783-2-chengming.zhou@linux.dev
 Signed-off-by: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/zsmalloc.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-fix-class-per-fullness-zspage-counts
+--- a/mm/zsmalloc.c~mm-zsmalloc-move-record_obj-into-obj_malloc
 +++ a/mm/zsmalloc.c
-@@ -1883,6 +1883,7 @@ static void async_free_zspage(struct wor
+@@ -1306,7 +1306,6 @@ static unsigned long obj_malloc(struct z
+ 	void *vaddr;
  
- 		class = zspage_class(pool, zspage);
- 		spin_lock(&class->lock);
-+		class_stat_dec(class, ZS_INUSE_RATIO_0, 1);
- 		__free_zspage(pool, class, zspage);
- 		spin_unlock(&class->lock);
+ 	class = pool->size_class[zspage->class];
+-	handle |= OBJ_ALLOCATED_TAG;
+ 	obj = get_freeobj(zspage);
+ 
+ 	offset = obj * class->size;
+@@ -1322,15 +1321,16 @@ static unsigned long obj_malloc(struct z
+ 	set_freeobj(zspage, link->next >> OBJ_TAG_BITS);
+ 	if (likely(!ZsHugePage(zspage)))
+ 		/* record handle in the header of allocated chunk */
+-		link->handle = handle;
++		link->handle = handle | OBJ_ALLOCATED_TAG;
+ 	else
+ 		/* record handle to page->index */
+-		zspage->first_page->index = handle;
++		zspage->first_page->index = handle | OBJ_ALLOCATED_TAG;
+ 
+ 	kunmap_atomic(vaddr);
+ 	mod_zspage_inuse(zspage, 1);
+ 
+ 	obj = location_to_obj(m_page, obj);
++	record_obj(handle, obj);
+ 
+ 	return obj;
+ }
+@@ -1348,7 +1348,7 @@ static unsigned long obj_malloc(struct z
+  */
+ unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t gfp)
+ {
+-	unsigned long handle, obj;
++	unsigned long handle;
+ 	struct size_class *class;
+ 	int newfg;
+ 	struct zspage *zspage;
+@@ -1371,10 +1371,9 @@ unsigned long zs_malloc(struct zs_pool *
+ 	spin_lock(&class->lock);
+ 	zspage = find_get_zspage(class);
+ 	if (likely(zspage)) {
+-		obj = obj_malloc(pool, zspage, handle);
++		obj_malloc(pool, zspage, handle);
+ 		/* Now move the zspage to another fullness group, if required */
+ 		fix_fullness_group(class, zspage);
+-		record_obj(handle, obj);
+ 		class_stat_inc(class, ZS_OBJS_INUSE, 1);
+ 
+ 		goto out;
+@@ -1389,10 +1388,9 @@ unsigned long zs_malloc(struct zs_pool *
  	}
+ 
+ 	spin_lock(&class->lock);
+-	obj = obj_malloc(pool, zspage, handle);
++	obj_malloc(pool, zspage, handle);
+ 	newfg = get_fullness_group(class, zspage);
+ 	insert_zspage(class, zspage, newfg);
+-	record_obj(handle, obj);
+ 	atomic_long_add(class->pages_per_zspage, &pool->pages_allocated);
+ 	class_stat_inc(class, ZS_OBJS_ALLOCATED, class->objs_per_zspage);
+ 	class_stat_inc(class, ZS_OBJS_INUSE, 1);
+@@ -1591,7 +1589,6 @@ static void migrate_zspage(struct zs_poo
+ 		free_obj = obj_malloc(pool, dst_zspage, handle);
+ 		zs_object_copy(class, free_obj, used_obj);
+ 		obj_idx++;
+-		record_obj(handle, free_obj);
+ 		obj_free(class->size, used_obj);
+ 
+ 		/* Stop if there is no more space */
 _
 
 Patches currently in -mm which might be from chengming.zhou@linux.dev are
