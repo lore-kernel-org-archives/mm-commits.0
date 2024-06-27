@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A25B919ADA3;
-	Thu, 27 Jun 2024 20:25:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EEE814D6EB
+	for <mm-commits@vger.kernel.org>; Thu, 27 Jun 2024 20:34:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719519933; cv=none; b=Ey5SgcyoKtpjPEEUc2fywZt69aq4DjAOpicjdLwi88HBPn06lOx2FP3B+0WOjxufACreJJatjAbcA9aKkU9oSvVeC4NiB0duyU4aGmd74raicakQ6s2WbVLm6jikYkDQ4rLuYWtVT3wIWVAg9FjZCTxypAckk4I/z22xnK0DI2U=
+	t=1719520474; cv=none; b=WN5Y/adtOoCn4h1DwBwcHjsRJrQRrTbXzr16Xyn0FQvGRUZpZ8Fju3299i8cHLi7B87kU5swy4XQhaBQw+XJpcHBPrZafCbqLHE4b+ALiCk+wfdlLUlmp5jFsAqSmGUTalq3cDoyB6/cnkL30EZS9g73UGUHcZT9CK5/T1HQIFw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719519933; c=relaxed/simple;
-	bh=gXTB4+xVmNhk3p6/F6jIOp9Sl1Qoujv0om6XulpHhto=;
-	h=Date:To:From:Subject:Message-Id; b=V8MpjdUaY9iegZcMgmFLAwTJJjdpZDJe8V1XwF1d993JFhHYEZNj++Q6o6eDk2SvCxkKFU/kw5jLd4ozwmGofFZF3nMlSPye1pCkj/HjH42bJIQmmh8coEGF0V43ZuE2S8GbHVDYKAeCN98HcvS7G9kwlNCO6tyTxK3I9NGN44o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JABBni9e; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719520474; c=relaxed/simple;
+	bh=pxZL5s0zjwlTziPpmzjVv657p7ghZYnxxT54tHBC2XM=;
+	h=Date:To:From:Subject:Message-Id; b=GvGuNkOddfWNZSkC61dr4seZKQxLm0Ds69XYrEiiiJ10HflS81kYfp4HDY5+8bW7hqFGIYmdzyRbbybjR4hNabnZHPei1lcp0B71xm1onuBztTzghT658ryHYmuJxT3Za/gcoAHMXP2hm6oeA6663Cmfl/afULbnn3Eqn8VHR64=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j/6J2cMg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JABBni9e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D6F2C2BD10;
-	Thu, 27 Jun 2024 20:25:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j/6J2cMg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4EE8C2BBFC;
+	Thu, 27 Jun 2024 20:34:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719519933;
-	bh=gXTB4+xVmNhk3p6/F6jIOp9Sl1Qoujv0om6XulpHhto=;
+	s=korg; t=1719520473;
+	bh=pxZL5s0zjwlTziPpmzjVv657p7ghZYnxxT54tHBC2XM=;
 	h=Date:To:From:Subject:From;
-	b=JABBni9eQBVERIPbkHZFBemgZgU3yHM63Nu/1qizsh1AeBRUqBp+bb6il05P9EALr
-	 R7tO52BtgMA1TgUtBFl7NhRVloIsXdPotiiHwwAucZ1FVQ96sOrwRH7K10t9Ty0jBN
-	 Ros8/8nx63fknqpQf4tYksfTv61IDE+3WCziYMIM=
-Date: Thu, 27 Jun 2024 13:25:32 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,viro@zeniv.linux.org.uk,stable@vger.kernel.org,shakeel.butt@linux.dev,ryan.roberts@arm.com,kasong@tencent.com,hannes@cmpxchg.org,david@redhat.com,nphamcs@gmail.com,akpm@linux-foundation.org
+	b=j/6J2cMgvRWFMYJhVApLAANF5GWU7XQgGXTH9MSnyGPXjY9OLAYU4zZqa3iuVPTa8
+	 /zp9hMhcZPivJngALnIXevfpOIa5o9rvzh9JdOvTOCWMyzkAy9xX34WE/DCuy6ay0H
+	 g43uPGM42c+QbIXyoVYzGP3mI75VnABktLrTFXjo=
+Date: Thu, 27 Jun 2024 13:34:33 -0700
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,chengming.zhou@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + cachestat-do-not-flush-stats-in-recency-check.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240627202533.1D6F2C2BD10@smtp.kernel.org>
+Subject: + mm-zsmalloc-fix-class-per-fullness-zspage-counts.patch added to mm-unstable branch
+Message-Id: <20240627203433.B4EE8C2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: cachestat: do not flush stats in recency check
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     cachestat-do-not-flush-stats-in-recency-check.patch
+     Subject: mm/zsmalloc: fix class per-fullness zspage counts
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zsmalloc-fix-class-per-fullness-zspage-counts.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cachestat-do-not-flush-stats-in-recency-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-fix-class-per-fullness-zspage-counts.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,122 +58,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: cachestat: do not flush stats in recency check
-Date: Thu, 27 Jun 2024 13:17:37 -0700
+From: Chengming Zhou <chengming.zhou@linux.dev>
+Subject: mm/zsmalloc: fix class per-fullness zspage counts
+Date: Thu, 27 Jun 2024 15:59:58 +0800
 
-syzbot detects that cachestat() is flushing stats, which can sleep, in its
-RCU read section (see [1]).  This is done in the workingset_test_recent()
-step (which checks if the folio's eviction is recent).
+We always use insert_zspage() and remove_zspage() to update zspage's
+fullness location, which will account correctly.
 
-Move the stat flushing step to before the RCU read section of cachestat,
-and skip stat flushing during the recency check.
+But this special async free path use "splice" instead of remove_zspage(),
+so the per-fullness zspage count for ZS_INUSE_RATIO_0 won't decrease.
 
-[1]: https://lore.kernel.org/cgroups/000000000000f71227061bdf97e0@google.com/
+Fix it by decreasing when iterate over the zspage free list.
 
-Link: https://lkml.kernel.org/r/20240627201737.3506959-1-nphamcs@gmail.com
-Fixes: b00684722262 ("mm: workingset: move the stats flush into workingset_test_recent()")
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Reported-by: syzbot+b7f13b2d0cc156edf61a@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/cgroups/000000000000f71227061bdf97e0@google.com/
-Debugged-by: Johannes Weiner <hannes@cmpxchg.org>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: <stable@vger.kernel.org>	[6.8+]
+Link: https://lkml.kernel.org/r/20240627075959.611783-1-chengming.zhou@linux.dev
+Signed-off-by: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    3 ++-
- mm/filemap.c         |    5 ++++-
- mm/workingset.c      |   14 +++++++++++---
- 3 files changed, 17 insertions(+), 5 deletions(-)
+ mm/zsmalloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/swap.h~cachestat-do-not-flush-stats-in-recency-check
-+++ a/include/linux/swap.h
-@@ -354,7 +354,8 @@ static inline swp_entry_t page_swap_entr
- }
+--- a/mm/zsmalloc.c~mm-zsmalloc-fix-class-per-fullness-zspage-counts
++++ a/mm/zsmalloc.c
+@@ -1883,6 +1883,7 @@ static void async_free_zspage(struct wor
  
- /* linux/mm/workingset.c */
--bool workingset_test_recent(void *shadow, bool file, bool *workingset);
-+bool workingset_test_recent(void *shadow, bool file, bool *workingset,
-+				bool flush);
- void workingset_age_nonresident(struct lruvec *lruvec, unsigned long nr_pages);
- void *workingset_eviction(struct folio *folio, struct mem_cgroup *target_memcg);
- void workingset_refault(struct folio *folio, void *shadow);
---- a/mm/filemap.c~cachestat-do-not-flush-stats-in-recency-check
-+++ a/mm/filemap.c
-@@ -4248,6 +4248,9 @@ static void filemap_cachestat(struct add
- 	XA_STATE(xas, &mapping->i_pages, first_index);
- 	struct folio *folio;
- 
-+	/* Flush stats (and potentially sleep) outside the RCU read section. */
-+	mem_cgroup_flush_stats_ratelimited(NULL);
-+
- 	rcu_read_lock();
- 	xas_for_each(&xas, folio, last_index) {
- 		int order;
-@@ -4311,7 +4314,7 @@ static void filemap_cachestat(struct add
- 					goto resched;
- 			}
- #endif
--			if (workingset_test_recent(shadow, true, &workingset))
-+			if (workingset_test_recent(shadow, true, &workingset, false))
- 				cs->nr_recently_evicted += nr_pages;
- 
- 			goto resched;
---- a/mm/workingset.c~cachestat-do-not-flush-stats-in-recency-check
-+++ a/mm/workingset.c
-@@ -412,10 +412,12 @@ void *workingset_eviction(struct folio *
-  * @file: whether the corresponding folio is from the file lru.
-  * @workingset: where the workingset value unpacked from shadow should
-  * be stored.
-+ * @flush: whether to flush cgroup rstat.
-  *
-  * Return: true if the shadow is for a recently evicted folio; false otherwise.
-  */
--bool workingset_test_recent(void *shadow, bool file, bool *workingset)
-+bool workingset_test_recent(void *shadow, bool file, bool *workingset,
-+				bool flush)
- {
- 	struct mem_cgroup *eviction_memcg;
- 	struct lruvec *eviction_lruvec;
-@@ -467,10 +469,16 @@ bool workingset_test_recent(void *shadow
- 
- 	/*
- 	 * Flush stats (and potentially sleep) outside the RCU read section.
-+	 *
-+	 * Note that workingset_test_recent() itself might be called in RCU read
-+	 * section (for e.g, in cachestat) - these callers need to skip flushing
-+	 * stats (via the flush argument).
-+	 *
- 	 * XXX: With per-memcg flushing and thresholding, is ratelimiting
- 	 * still needed here?
- 	 */
--	mem_cgroup_flush_stats_ratelimited(eviction_memcg);
-+	if (flush)
-+		mem_cgroup_flush_stats_ratelimited(eviction_memcg);
- 
- 	eviction_lruvec = mem_cgroup_lruvec(eviction_memcg, pgdat);
- 	refault = atomic_long_read(&eviction_lruvec->nonresident_age);
-@@ -558,7 +566,7 @@ void workingset_refault(struct folio *fo
- 
- 	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + file, nr);
- 
--	if (!workingset_test_recent(shadow, file, &workingset))
-+	if (!workingset_test_recent(shadow, file, &workingset, true))
- 		return;
- 
- 	folio_set_active(folio);
+ 		class = zspage_class(pool, zspage);
+ 		spin_lock(&class->lock);
++		class_stat_dec(class, ZS_INUSE_RATIO_0, 1);
+ 		__free_zspage(pool, class, zspage);
+ 		spin_unlock(&class->lock);
+ 	}
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from chengming.zhou@linux.dev are
 
-cachestat-do-not-flush-stats-in-recency-check.patch
+mm-zswap-use-only-one-pool-in-zswap.patch
+mm-zswap-use-only-one-pool-in-zswap-v2.patch
+mm-zswap-use-only-one-pool-in-zswap-v3.patch
+mm-ksm-refactor-out-try_to_merge_with_zero_page.patch
+mm-ksm-dont-waste-time-searching-stable-tree-for-fast-changing-page.patch
+mm-ksm-optimize-the-chain-chain_prune-interfaces.patch
+mm-zsmalloc-fix-class-per-fullness-zspage-counts.patch
+mm-zsmalloc-move-record_obj-into-obj_malloc.patch
 
