@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 998112261D
-	for <mm-commits@vger.kernel.org>; Fri, 28 Jun 2024 21:43:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 465C57FBA1
+	for <mm-commits@vger.kernel.org>; Fri, 28 Jun 2024 21:43:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719611010; cv=none; b=TLVCr0rDPvDlGH3zdiSJ4UOeIEWU3WXGLBNsFq+TLSrrCMKCa2VwGxLB0/xzeLAMUt8ilQ/il88ahGlWnZNuyK7qq5HxqroMg9QQkmAacjT7sr+ZbXHb68in4/slw6dsMtiHtJPl2BfFUUWMw772+BfGsr2UFuDfq8UQyfvfEbY=
+	t=1719611013; cv=none; b=QUQ3I7pCY5JYU2Q0qsTD+yTc5ksniNnY5MEvkQtOAQM90ZXG4Irbd88bcVjp0YKTL+tI9OrIeDhIauiMZMuR6BqbOjs8ZQuk/MUBwnRh2agX7+PhDmyhCr7YF61R+z/nMBLpZ95U9De3RgzCIvUH+rHOYvbRLuniGF6PpjNchaQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719611010; c=relaxed/simple;
-	bh=Q5tHv5TkXcX+PDELa6sh0x+Yt6H4W0GFECii0eGY62o=;
-	h=Date:To:From:Subject:Message-Id; b=n5pfaKK0xANngdO2NxSJRHbqXZfaIWGzLuGoJ1igvew40Ss50J4jJEnzIKaPmF+hx9j9anlX4JFBGhAdvY2ih9smYwaBqwm56kRY8MaIRxP4ikG0oXeraJMvmpfY8A1wSWjWrs3/fAvLY+uxqZRgdr9wqPlxRXZsVkBPW0PucEs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FfIWphD/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719611013; c=relaxed/simple;
+	bh=dUq3dl5exXU7IRPAjxK82ZoVNV+5BwPb7ej4BzmoBn8=;
+	h=Date:To:From:Subject:Message-Id; b=qQD7LVe+0RIZ6MPOjwS0eq1YKvvFVeLlygtDL9mmnNYLYr/FwhWwigcD/SIZ9TEatSMpSqCkL+CH18nU80T3k6e9mQaGxwr3hW1oOUyU46fKo0eXyQW6uCEUg907mfxWJKgyEAAIEORifv6Ite3dtAFgPrg8ZbajiKheIheVNTw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S0pTnHH6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FfIWphD/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23350C116B1;
-	Fri, 28 Jun 2024 21:43:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S0pTnHH6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 614A9C2BD10;
+	Fri, 28 Jun 2024 21:43:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719611010;
-	bh=Q5tHv5TkXcX+PDELa6sh0x+Yt6H4W0GFECii0eGY62o=;
+	s=korg; t=1719611012;
+	bh=dUq3dl5exXU7IRPAjxK82ZoVNV+5BwPb7ej4BzmoBn8=;
 	h=Date:To:From:Subject:From;
-	b=FfIWphD/7WTw6JN5pksJOyFDUJDT+GNad2QFYl4Wd7B4DGZSzORUVvtHM5Woskr41
-	 r0jf7XIRSJxQfoaqPKu9/j+KU0muVxWnXOlMr5sgAlQeIcJAxMJ7WIa0VIHQp5AitQ
-	 x7dEiMj1gw7fK9rkJlxkEb4ZW96OeisOB2Q2Z/k0=
-Date: Fri, 28 Jun 2024 14:43:29 -0700
+	b=S0pTnHH6+K+aOJja1XJqGYQXu6Fq5M20hJ/WNTivoJdjUEK88PPu32N5pEkX7GhR0
+	 ogFEw6k3Kc79Xq2nTibhjEnh/ORowPQVDGiJG5HkXuVxVaOajPRhay1sS7zJFJybKh
+	 NQCTi1N8P7tPa+iBDvo9yOrNpDQaEl3Ypltg1cSk=
+Date: Fri, 28 Jun 2024 14:43:31 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,rientjes@google.com,rdunlap@infradead.org,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,linmiaohe@huawei.com,jane.chu@oracle.com,ioworker0@gmail.com,fvdl@google.com,corbet@lwn.net,jiaqiyan@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-userspace-controls-soft-offlining-pages-v7.patch added to mm-unstable branch
-Message-Id: <20240628214330.23350C116B1@smtp.kernel.org>
+Subject: + selftest-mm-test-enable_soft_offline-behaviors-v7.patch added to mm-unstable branch
+Message-Id: <20240628214332.614A9C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-memory-failure-userspace-controls-soft-offlining-pages-v7
+     Subject: selftest-mm-test-enable_soft_offline-behaviors-v7
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-userspace-controls-soft-offlining-pages-v7.patch
+     selftest-mm-test-enable_soft_offline-behaviors-v7.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-userspace-controls-soft-offlining-pages-v7.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-test-enable_soft_offline-behaviors-v7.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jiaqi Yan <jiaqiyan@google.com>
-Subject: mm-memory-failure-userspace-controls-soft-offlining-pages-v7
-Date: Fri, 28 Jun 2024 20:59:56 +0000
+Subject: selftest-mm-test-enable_soft_offline-behaviors-v7
+Date: Fri, 28 Jun 2024 20:59:57 +0000
 
-Link: https://lkml.kernel.org/r/20240628205958.2845610-3-jiaqiyan@google.com
+Link: https://lkml.kernel.org/r/20240628205958.2845610-4-jiaqiyan@google.com
 Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
 Acked-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Frank van der Linden <fvdl@google.com>
 Cc: Jane Chu <jane.chu@oracle.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -78,21 +78,35 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ tools/testing/selftests/mm/hugetlb-soft-offline.c |    2 +-
+ tools/testing/selftests/mm/run_vmtests.sh         |    2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-userspace-controls-soft-offlining-pages-v7
-+++ a/mm/memory-failure.c
-@@ -2808,8 +2808,7 @@ int soft_offline_page(unsigned long pfn,
- 	}
+--- a/tools/testing/selftests/mm/hugetlb-soft-offline.c~selftest-mm-test-enable_soft_offline-behaviors-v7
++++ a/tools/testing/selftests/mm/hugetlb-soft-offline.c
+@@ -172,7 +172,7 @@ static void test_soft_offline_common(int
+ 	hugepagesize_kb = file_stat.f_bsize / 1024;
+ 	ksft_print_msg("Hugepagesize is %ldkB\n", hugepagesize_kb);
  
- 	if (!sysctl_enable_soft_offline) {
--		pr_info_once("%#lx: disabled by /proc/sys/vm/enable_soft_offline\n",
--			pfn);
-+		pr_info_once("disabled by /proc/sys/vm/enable_soft_offline\n");
- 		put_ref_page(pfn, flags);
- 		return -EOPNOTSUPP;
+-	if (set_enable_soft_offline(enable_soft_offline)) {
++	if (set_enable_soft_offline(enable_soft_offline) != 0) {
+ 		close(fd);
+ 		ksft_exit_fail_msg("Failed to set enable_soft_offline\n");
  	}
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftest-mm-test-enable_soft_offline-behaviors-v7
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -333,9 +333,11 @@ CATEGORY="hugetlb" run_test ./charge_res
+ CATEGORY="hugetlb" run_test ./hugetlb_reparenting_test.sh -cgroup-v2
+ if $RUN_DESTRUCTIVE; then
+ nr_hugepages_tmp=$(cat /proc/sys/vm/nr_hugepages)
++enable_soft_offline=$(cat /proc/sys/vm/enable_soft_offline)
+ echo 8 > /proc/sys/vm/nr_hugepages
+ CATEGORY="hugetlb" run_test ./hugetlb-soft-offline
+ echo "$nr_hugepages_tmp" > /proc/sys/vm/nr_hugepages
++echo "$enable_soft_offline" > /proc/sys/vm/enable_soft_offline
+ CATEGORY="hugetlb" run_test ./hugetlb-read-hwpoison
+ fi
+ 
 _
 
 Patches currently in -mm which might be from jiaqiyan@google.com are
