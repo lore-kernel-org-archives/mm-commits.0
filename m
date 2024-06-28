@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 924A31CD5DB
-	for <mm-commits@vger.kernel.org>; Fri, 28 Jun 2024 18:10:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00BEA4B5CD;
+	Fri, 28 Jun 2024 18:11:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719598204; cv=none; b=uplsGhaOwf+TglDixBrU1j5ejANiQpaqX9QjyVMGRPaIahA0p4Eaqyo61ki7rA4fKXxB/sZzZtgDZgitW8fEKiKzQXrIS6rIauajFOqBUHLgAb9nsYW+FNQGrUGfKhwGhi3QB3D32FO/W1YBLF3wmRFrtOf5b7HafZ75jAy1I2M=
+	t=1719598262; cv=none; b=Joiqb2iB7aVTw6yYpmJcEGSKGSlgkuMHZ8GPUZ9fqZ+HPSvAzOPUqXAN7mcKGyXZgG2K06GcYagKXpMqFDHMWhGcUKsAwrCVGZT8L8dGTxGpSn+5k497Osxq0wKowr/liAUiQi7TC++2L+kfaLbkQGHUkEqvI+YJQmduir2aNHY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719598204; c=relaxed/simple;
-	bh=dKB8ZljEPQifWemmJ+Y4NA0vhow1HLrhImKegVG1F8U=;
-	h=Date:To:From:Subject:Message-Id; b=uXfpDPM+gzOWYaIwwBEfbFB5o6rGZfq67qgQKKXv6P6MHShLO+eEiSbJ79EbXwtkuO7irnaMahLf9gLM+p3ZXFflz2f/Mdsu5IAYj8x3VKiU519gE3eB/p+iKIIY4eVy1vZq8jNxEXJ3RB+VXpdZ+tsucKCIqg8GsWvzdFZXESM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MfAVkvMM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719598262; c=relaxed/simple;
+	bh=AnGDBPZueGU6jsk1sE8rTkWcwZ8SYFORW43srEW6Zgg=;
+	h=Date:To:From:Subject:Message-Id; b=pzFSW9HrGjYJuSW+vR76wzFjbew8dQRXDtgIV//PPusxhZKcKU8wXXe3XfWtDxo/pldq9CO1kSQQBb+gR1eVLCyxauMBGXwHZkWS9LtmNSLTIe1YD39DzVqQtdy66PGJkD5PljykGpYX6v0NVv2Dhrv0yUOFviXHLPN6YloiGAs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TKZFXSHK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MfAVkvMM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05BA0C2BD10;
-	Fri, 28 Jun 2024 18:10:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TKZFXSHK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81BE7C116B1;
+	Fri, 28 Jun 2024 18:11:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719598204;
-	bh=dKB8ZljEPQifWemmJ+Y4NA0vhow1HLrhImKegVG1F8U=;
+	s=korg; t=1719598261;
+	bh=AnGDBPZueGU6jsk1sE8rTkWcwZ8SYFORW43srEW6Zgg=;
 	h=Date:To:From:Subject:From;
-	b=MfAVkvMMNmtbhwk6nEnkmVVQ9PQajCVFd7d83tu0THBhoNigetp9Qq4mXQLwthFXJ
-	 ePjnyxxqcvX6j0DqVWYxUOUjYjFcOESrFQRB3i33dV+AEojzH47g+ag0IfQvHSonr5
-	 ohq+fbLUubLUKaWvAjSQ7GVVPbpJCyQzn2vS4TGs=
-Date: Fri, 28 Jun 2024 11:10:03 -0700
-To: mm-commits@vger.kernel.org,vincent.whitchurch@axis.com,tandersen@netflix.com,oleg@redhat.com,minchan@google.com,mhocko@suse.com,liumartin@google.com,brauner@kernel.org,bigeasy@linutronix.de,ardb@kernel.org,surenb@google.com,akpm@linux-foundation.org
+	b=TKZFXSHKYzlHZHxN9Yd0jffmW3fyK1Qs3cUS8HYlJuY8AAh7ETMKFbwvZXEWI8+/X
+	 TcuwTRgu3PQ/e69y2r2JdEqdwwr8G1lgbAgE/kbBoaHfF5U5/ogq9n4yQW/UcC5aq6
+	 i8Z/5jhqr4NqyDHZ2q3hKPJ8i0um+wfHRfa0Mk7U=
+Date: Fri, 28 Jun 2024 11:11:00 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + signal-on-exit-skip-waiting-for-an-ack-from-the-tracer-if-it-is-frozen.patch added to mm-nonmm-unstable branch
-Message-Id: <20240628181004.05BA0C2BD10@smtp.kernel.org>
+Subject: + nilfs2-fix-kernel-bug-on-rename-operation-of-broken-directory.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240628181101.81BE7C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: signal: on exit skip waiting for an ack from the tracer if it is frozen
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     signal-on-exit-skip-waiting-for-an-ack-from-the-tracer-if-it-is-frozen.patch
+     Subject: nilfs2: fix kernel bug on rename operation of broken directory
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     nilfs2-fix-kernel-bug-on-rename-operation-of-broken-directory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/signal-on-exit-skip-waiting-for-an-ack-from-the-tracer-if-it-is-frozen.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-kernel-bug-on-rename-operation-of-broken-directory.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,80 +58,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: signal: on exit skip waiting for an ack from the tracer if it is frozen
-Date: Fri, 28 Jun 2024 10:32:47 -0700
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix kernel bug on rename operation of broken directory
+Date: Sat, 29 Jun 2024 01:51:07 +0900
 
-When a process is being killed or exiting and it has a tracer, it will
-notify the tracer and wait for an ack from the tracer to proceed.  However
-if the tracer is frozen, this ack will not arrive until the tracer gets
-thawed.  This poses a problem especially during memory pressure because
-resources of the process are not released.
+Syzbot reported that in rename directory operation on broken directory on
+nilfs2, __block_write_begin_int() called to prepare block write may fail
+BUG_ON check for access exceeding the folio/page size.
 
-Things become even more interesting if OOM killer picks such tracee and
-adds it into oom_victims.  oom_victims counter will get incremented and
-stay that way until tracee exits.  In the meantime, if the system tries to
-go into suspend, it will call oom_killer_disable() after freezing all
-processes.  That call will fail due to positive oom_victims, but not until
-freeze_timeout_msecs passes.  For the whole duration of the
-freeze_timeout_msecs (20sec by default) the system will appear
-unresponsive.
+This is because nilfs_dotdot(), which gets parent directory reference
+entry ("..") of the directory to be moved or renamed, does not check
+consistency enough, and may return location exceeding folio/page size for
+broken directories.
 
-To fix this problem, skip the ack waiting step in the tracee when it's
-exiting and the tracer is frozen.  Per ptrace(2) manual, the tracer cannot
-assume that the ptrace-stopped tracee exists.  Therefore this change does
-not break any valid assumptions.
+Fix this issue by checking required directory entries ("." and "..") in
+the first chunk of the directory in nilfs_dotdot().
 
-Link: https://lkml.kernel.org/r/20240628173247.3507846-1-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Debugged-by: Martin Liu <liumartin@google.com>
-Debugged-by: Minchan Kim <minchan@google.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Tycho Andersen <tandersen@netflix.com>
-Cc: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Link: https://lkml.kernel.org/r/20240628165107.9006-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+d3abed1ad3d367fa2627@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=d3abed1ad3d367fa2627
+Fixes: 2ba466d74ed7 ("nilfs2: directory entry operations")
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ fs/nilfs2/dir.c |   32 ++++++++++++++++++++++++++++++--
+ 1 file changed, 30 insertions(+), 2 deletions(-)
 
---- a/kernel/signal.c~signal-on-exit-skip-waiting-for-an-ack-from-the-tracer-if-it-is-frozen
-+++ a/kernel/signal.c
-@@ -2321,6 +2321,19 @@ static int ptrace_stop(int exit_code, in
- 		do_notify_parent_cldstop(current, false, why);
+--- a/fs/nilfs2/dir.c~nilfs2-fix-kernel-bug-on-rename-operation-of-broken-directory
++++ a/fs/nilfs2/dir.c
+@@ -383,11 +383,39 @@ found:
  
- 	/*
-+	 * If tracer is frozen, it won't ack until it gets unfrozen and if the
-+	 * tracee is exiting this means its resources do not get freed until
-+	 * the tracer is thawed. Skip waiting for the tracer. Per ptrace(2)
-+	 * manual, the tracer cannot assume that the ptrace-stopped tracee
-+	 * exists, so exiting now should not be an issue.
-+	 */
-+	if (current->ptrace && (exit_code >> 8) == PTRACE_EVENT_EXIT &&
-+	    cgroup_task_frozen(current->parent)) {
-+		read_unlock(&tasklist_lock);
-+		goto skip_wait;
+ struct nilfs_dir_entry *nilfs_dotdot(struct inode *dir, struct folio **foliop)
+ {
+-	struct nilfs_dir_entry *de = nilfs_get_folio(dir, 0, foliop);
++	struct folio *folio;
++	struct nilfs_dir_entry *de, *next_de;
++	size_t limit;
++	char *msg;
+ 
++	de = nilfs_get_folio(dir, 0, &folio);
+ 	if (IS_ERR(de))
+ 		return NULL;
+-	return nilfs_next_entry(de);
++
++	limit = nilfs_last_byte(dir, 0);  /* is a multiple of chunk size */
++	if (unlikely(!limit || le64_to_cpu(de->inode) != dir->i_ino ||
++		     !nilfs_match(1, ".", de))) {
++		msg = "missing '.'";
++		goto fail;
 +	}
 +
++	next_de = nilfs_next_entry(de);
 +	/*
- 	 * The previous do_notify_parent_cldstop() invocation woke ptracer.
- 	 * One a PREEMPTION kernel this can result in preemption requirement
- 	 * which will be fulfilled after read_unlock() and the ptracer will be
-@@ -2356,6 +2369,7 @@ static int ptrace_stop(int exit_code, in
- 	schedule();
- 	cgroup_leave_frozen(true);
++	 * If "next_de" has not reached the end of the chunk, there is
++	 * at least one more record.  Check whether it matches "..".
++	 */
++	if (unlikely((char *)next_de == (char *)de + nilfs_chunk_size(dir) ||
++		     !nilfs_match(2, "..", next_de))) {
++		msg = "missing '..'";
++		goto fail;
++	}
++	*foliop = folio;
++	return next_de;
++
++fail:
++	nilfs_error(dir->i_sb, "directory #%lu %s", dir->i_ino, msg);
++	folio_release_kmap(folio, de);
++	return NULL;
+ }
  
-+skip_wait:
- 	/*
- 	 * We are back.  Now reacquire the siglock before touching
- 	 * last_siginfo, so that we are sure to have synchronized with
+ ino_t nilfs_inode_by_name(struct inode *dir, const struct qstr *qstr)
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-signal-on-exit-skip-waiting-for-an-ack-from-the-tracer-if-it-is-frozen.patch
+nilfs2-fix-kernel-bug-on-rename-operation-of-broken-directory.patch
 
