@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BBF479B8E
-	for <mm-commits@vger.kernel.org>; Fri, 28 Jun 2024 22:08:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9CBB80028
+	for <mm-commits@vger.kernel.org>; Fri, 28 Jun 2024 22:08:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719612484; cv=none; b=HuTQqN1/NeM2w6xYPb63pIrNMY4pPoE/MkvPmL2vnn3N3OmI2hV63Gkz5ZdHq5DUJ4Pr5l+6YFU2CuvnrJswQ8jbEu1YpTNsuSe6v3Na/LWju0hdmIg7x+mEiSrhfMSqvBn9c3fh5TIcQctgFKCB5yvmwXw7plDiXTb3ZqPoKiU=
+	t=1719612486; cv=none; b=qm1AOthKbBSBsS68mUIXfNXFnGt2u4gPlsEdef3ERG2qdE588yaYnCqqlhDlfpi/kEV8gLSS4SWx0/wPjJPr/yXq3J32OuzG8uJUcb5eAmHymzo6lNQnYIojNY58Wt3MPTRk9Aq2y9EGFFC23qY5LRYVIAN2rZhBizsXMudo/co=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719612484; c=relaxed/simple;
-	bh=tSwOvHRpXXv+b5vilZytDTTuSI+sh25aUXORYTM18iI=;
-	h=Date:To:From:Subject:Message-Id; b=I4AqgM6knXxMJssMbhJHFGw/08lbz6BoC0KfFtSKoDKmaBcMxXqKChvOMjHjrXnCtQk6SCJuNhiPf7ft1JUa+8bGhP9K+PkZPFhBonNxR2/XBjCr6eFEFgKrLleL2uzZKqv6bTxvrFU9Mzx0S+8PtB7H78FBkI5dWyniGfvwgzg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vyh38W1G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719612486; c=relaxed/simple;
+	bh=mavTUDf4kmD+B5MLQB0wFxB1hTb2sNbLlA4ZzKV0U/c=;
+	h=Date:To:From:Subject:Message-Id; b=K/wyxrZh22U/PVELS4ANbKwQmfVF078fX0iobd21+bHx7ot8LtKh/FC9FT7HcQAYonC8sVLPuXyGw7RCilEoBbEG9WzPbJ9jiU2mXtnmEQ15xCcwUID0eqw3lad++LlbITz7EQi0hIEfTJSE3+nmj5f5HbS2Y75FIaOWIqp5glE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W84n8Mwr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vyh38W1G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72442C2BBFC;
-	Fri, 28 Jun 2024 22:08:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W84n8Mwr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FFC1C116B1;
+	Fri, 28 Jun 2024 22:08:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719612483;
-	bh=tSwOvHRpXXv+b5vilZytDTTuSI+sh25aUXORYTM18iI=;
+	s=korg; t=1719612486;
+	bh=mavTUDf4kmD+B5MLQB0wFxB1hTb2sNbLlA4ZzKV0U/c=;
 	h=Date:To:From:Subject:From;
-	b=vyh38W1G0vx+GCRSLOiqBsR7breZNcWjkveBPL6sUrwh2lzfcBrCZ9b51f5j+TYg8
-	 JRlc4DYNrR27PuxnZ9LPKUMG2JO/y7YbUfD9l/xIdt8dXF2WK4BjFoZB4qaR5zydyJ
-	 xfD4OlNbHCAYi10cUUH478Kagt5BPgycQ7Pxn3bY=
-Date: Fri, 28 Jun 2024 15:08:02 -0700
+	b=W84n8Mwrgg5AA+Q4NCsvqxwImHxuth+cCGILKreeTvMlMcDVbSfX2FnT+WVngRS2I
+	 rBER13PDE5wZ8ijUGEF9qz6gQN9T308cYIL2NqgjfWNHjjqPhsLPHogGoPG5Nj7Woz
+	 qSioRRoksSNa1Gj/jrFCabSiyq8S1Icr0qgUHwUQ=
+Date: Fri, 28 Jun 2024 15:08:05 -0700
 To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-gather-memcg1-specific-fields-initialization-in-memcg1_memcg_init.patch added to mm-unstable branch
-Message-Id: <20240628220803.72442C2BBFC@smtp.kernel.org>
+Subject: + mm-memcg-guard-memcg1-specific-fields-accesses-in-mm-memcontrolc.patch added to mm-unstable branch
+Message-Id: <20240628220806.2FFC1C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcg: gather memcg1-specific fields initialization in memcg1_memcg_init()
+     Subject: mm: memcg: guard memcg1-specific fields accesses in mm/memcontrol.c
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-gather-memcg1-specific-fields-initialization-in-memcg1_memcg_init.patch
+     mm-memcg-guard-memcg1-specific-fields-accesses-in-mm-memcontrolc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-gather-memcg1-specific-fields-initialization-in-memcg1_memcg_init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-guard-memcg1-specific-fields-accesses-in-mm-memcontrolc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: memcg: gather memcg1-specific fields initialization in memcg1_memcg_init()
-Date: Fri, 28 Jun 2024 21:03:12 +0000
+Subject: mm: memcg: guard memcg1-specific fields accesses in mm/memcontrol.c
+Date: Fri, 28 Jun 2024 21:03:13 +0000
 
-Gather all memcg1-specific struct mem_cgroup's members initialization in a
-new memcg1_memcg_init() function, defined in mm/memcontrol-v1.c. 
-Obviously, if CONFIG_MEMCG_V1 is not set, there is no need to initialize
-these fields, so the function becomes trivial.
+There are only few memcg1-specific struct mem_cgroup's members accesses
+left in mm/memcontrol.c.  Let's guard them with the CONFIG_MEMCG_V1 config
+option.
 
-Link: https://lkml.kernel.org/r/20240628210317.272856-5-roman.gushchin@linux.dev
+Link: https://lkml.kernel.org/r/20240628210317.272856-6-roman.gushchin@linux.dev
 Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -76,64 +75,48 @@ Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.c |    9 +++++++++
- mm/memcontrol-v1.h |    2 ++
- mm/memcontrol.c    |    6 +-----
- 3 files changed, 12 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-gather-memcg1-specific-fields-initialization-in-memcg1_memcg_init
+--- a/mm/memcontrol.c~mm-memcg-guard-memcg1-specific-fields-accesses-in-mm-memcontrolc
 +++ a/mm/memcontrol.c
-@@ -3627,13 +3627,9 @@ static struct mem_cgroup *mem_cgroup_all
- 		goto fail;
+@@ -3675,20 +3675,23 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 	page_counter_set_high(&memcg->swap, PAGE_COUNTER_MAX);
+ 	if (parent) {
+ 		WRITE_ONCE(memcg->swappiness, mem_cgroup_swappiness(parent));
+-		WRITE_ONCE(memcg->oom_kill_disable, READ_ONCE(parent->oom_kill_disable));
  
- 	INIT_WORK(&memcg->high_work, high_work_func);
--	INIT_LIST_HEAD(&memcg->oom_notify);
--	mutex_init(&memcg->thresholds_lock);
--	spin_lock_init(&memcg->move_lock);
- 	vmpressure_init(&memcg->vmpressure);
--	INIT_LIST_HEAD(&memcg->event_list);
--	spin_lock_init(&memcg->event_list_lock);
- 	memcg->socket_pressure = jiffies;
-+	memcg1_memcg_init(memcg);
- #ifdef CONFIG_MEMCG_KMEM
- 	memcg->kmemcg_id = -1;
- 	INIT_LIST_HEAD(&memcg->objcg_list);
---- a/mm/memcontrol-v1.c~mm-memcg-gather-memcg1-specific-fields-initialization-in-memcg1_memcg_init
-+++ a/mm/memcontrol-v1.c
-@@ -1961,6 +1961,15 @@ out_kfree:
- 	return ret;
- }
+ 		page_counter_init(&memcg->memory, &parent->memory);
+ 		page_counter_init(&memcg->swap, &parent->swap);
++#ifdef CONFIG_MEMCG_V1
++		WRITE_ONCE(memcg->oom_kill_disable, READ_ONCE(parent->oom_kill_disable));
+ 		page_counter_init(&memcg->kmem, &parent->kmem);
+ 		page_counter_init(&memcg->tcpmem, &parent->tcpmem);
++#endif
+ 	} else {
+ 		init_memcg_stats();
+ 		init_memcg_events();
+ 		page_counter_init(&memcg->memory, NULL);
+ 		page_counter_init(&memcg->swap, NULL);
++#ifdef CONFIG_MEMCG_V1
+ 		page_counter_init(&memcg->kmem, NULL);
+ 		page_counter_init(&memcg->tcpmem, NULL);
+-
++#endif
+ 		root_mem_cgroup = memcg;
+ 		return &memcg->css;
+ 	}
+@@ -3823,8 +3826,10 @@ static void mem_cgroup_css_reset(struct
  
-+void memcg1_memcg_init(struct mem_cgroup *memcg)
-+{
-+	INIT_LIST_HEAD(&memcg->oom_notify);
-+	mutex_init(&memcg->thresholds_lock);
-+	spin_lock_init(&memcg->move_lock);
-+	INIT_LIST_HEAD(&memcg->event_list);
-+	spin_lock_init(&memcg->event_list_lock);
-+}
-+
- void memcg1_css_offline(struct mem_cgroup *memcg)
- {
- 	struct mem_cgroup_event *event, *tmp;
---- a/mm/memcontrol-v1.h~mm-memcg-gather-memcg1-specific-fields-initialization-in-memcg1_memcg_init
-+++ a/mm/memcontrol-v1.h
-@@ -76,6 +76,7 @@ int memory_stat_show(struct seq_file *m,
- 
- /* Cgroup v1-specific declarations */
- #ifdef CONFIG_MEMCG_V1
-+void memcg1_memcg_init(struct mem_cgroup *memcg);
- void memcg1_remove_from_trees(struct mem_cgroup *memcg);
- 
- static inline void memcg1_soft_limit_reset(struct mem_cgroup *memcg)
-@@ -124,6 +125,7 @@ extern struct cftype mem_cgroup_legacy_f
- 
- #else	/* CONFIG_MEMCG_V1 */
- 
-+static inline void memcg1_memcg_init(struct mem_cgroup *memcg) {}
- static inline void memcg1_remove_from_trees(struct mem_cgroup *memcg) {}
- static inline void memcg1_soft_limit_reset(struct mem_cgroup *memcg) {}
- static inline bool memcg1_wait_acct_move(struct mem_cgroup *memcg) { return false; }
+ 	page_counter_set_max(&memcg->memory, PAGE_COUNTER_MAX);
+ 	page_counter_set_max(&memcg->swap, PAGE_COUNTER_MAX);
++#ifdef CONFIG_MEMCG_V1
+ 	page_counter_set_max(&memcg->kmem, PAGE_COUNTER_MAX);
+ 	page_counter_set_max(&memcg->tcpmem, PAGE_COUNTER_MAX);
++#endif
+ 	page_counter_set_min(&memcg->memory, 0);
+ 	page_counter_set_low(&memcg->memory, 0);
+ 	page_counter_set_high(&memcg->memory, PAGE_COUNTER_MAX);
 _
 
 Patches currently in -mm which might be from roman.gushchin@linux.dev are
