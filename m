@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2868147779
-	for <mm-commits@vger.kernel.org>; Fri, 28 Jun 2024 18:30:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 196B0524B4
+	for <mm-commits@vger.kernel.org>; Fri, 28 Jun 2024 18:53:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719599422; cv=none; b=hUVT+7IfPG1Pi9raET/HYZlx3gYFH+p0Rk9gP+uU/V3VrDFNBmN70jYpa5BMH/EczH8XAXSNI2AEB4zQXQ54w6hV8odnxJQVIqIO9++7+x5KOtc+gCCQw+GfjJdQ3IExTPa+9D4WmUd0Oc3P1Z4tnuT4pwyae8UKa5wS8ZQng2Q=
+	t=1719600827; cv=none; b=n4hZG77buBI3cItc9GMqnqtPqyX71P8lSxAwBCah+6MO6aPGzmMXkG5P4lnYDQ0n8mu2ypKaaqoTbpj57z2NVR/jtuggQIH+sDDeN+lHq9FTmXoHNfBudoZrNBvm4v38Kp+1IfOg1kvgluPhAoHrv984XFIMvvOblnJ6nZjNJM8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719599422; c=relaxed/simple;
-	bh=OBBN2h8DvGqXh4LukDfVDoQZ+5b7pmXyhuVBWEAqF/Q=;
-	h=Date:To:From:Subject:Message-Id; b=KyTnQTFyMC8Q79ZmKMz+NUXIVAjuWCWvMMdsT9l92SpCNSDwQQ3ayYOW+cES58GdCwhBisNbhF4dU9d+lCyGQedS+MWcJNpyzfWGAZdM8oSJjExjPwTWN+yFwV+tHY96gTfe7TYYEqpuJFAY7WbTfWmcBvUxknf16gQ+tfXnksI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X+9cfN/Y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719600827; c=relaxed/simple;
+	bh=obuu8amshKC6rJHdsNbXi0FO2lKkrlkc9+vTDk8mAQo=;
+	h=Date:To:From:Subject:Message-Id; b=huD4r3O23SmK+cmghamNZ9rz3knjG4QNzZPx8FzWU38QOxUAEtvH8M7bwfb5Hb+QOFwGLAcKI3P8IdwwKsdw53cqRm1gOzGs6XjKitAcDaPoC5JYCPTOvaXKZG+JclIAcyydRajEcoCfW+gsFnspR2Lo8BkwhZP+aNCWuW22TZE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d3g+Cd+t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X+9cfN/Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9887EC116B1;
-	Fri, 28 Jun 2024 18:30:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d3g+Cd+t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ACA8C116B1;
+	Fri, 28 Jun 2024 18:53:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719599421;
-	bh=OBBN2h8DvGqXh4LukDfVDoQZ+5b7pmXyhuVBWEAqF/Q=;
+	s=korg; t=1719600826;
+	bh=obuu8amshKC6rJHdsNbXi0FO2lKkrlkc9+vTDk8mAQo=;
 	h=Date:To:From:Subject:From;
-	b=X+9cfN/YfkodGLid+8PcUF8s+G7MD3M0k5FLcPHb7pFeyP3DoAL8YLMXOBTfEWnqw
-	 lwsjf+E9d63v+yiDmPb2GzKvH7RSfCJks+WP0CG7Wkk8GI8bn9M7QdLPdvD3d+De9A
-	 qyIAtJFKzDDCgMw/KE7/v4iWVKqLQgXI7QiC8SnE=
-Date: Fri, 28 Jun 2024 11:30:21 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,shy828301@gmail.com,ryan.roberts@arm.com,mingzhe.yang@ly.com,libang.li@antgroup.com,david@redhat.com,baolin.wang@linux.alibaba.com,ioworker0@gmail.com,akpm@linux-foundation.org
+	b=d3g+Cd+tjbJbtZbQbsrMRuXEKZ7gt/gEPHPv05AP487SUJEaFrKzHc5JIOSfJaaXc
+	 va7T96/3GlHuCUOLc3OlQwivqqtrUQTnA6w7V0uJCJ8szjk3e6YpHlHIDaXMIFAnUA
+	 emdQTiiuung6ZSgcd0GwC5qaDY0VONDP/eL8WCPk=
+Date: Fri, 28 Jun 2024 11:53:46 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,libang.li@antgroup.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-docs-for-per-order-mthp-split-counters.patch added to mm-unstable branch
-Message-Id: <20240628183021.9887EC116B1@smtp.kernel.org>
+Subject: + support-thpeligible-semantics-for-mthp-with-anonymous-shmem.patch added to mm-unstable branch
+Message-Id: <20240628185346.8ACA8C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add docs for per-order mTHP split counters
+     Subject: smaps: support "THPeligible" semantics for mTHP with anonymous shmem
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-docs-for-per-order-mthp-split-counters.patch
+     support-thpeligible-semantics-for-mthp-with-anonymous-shmem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-docs-for-per-order-mthp-split-counters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/support-thpeligible-semantics-for-mthp-with-anonymous-shmem.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,57 +58,116 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lance Yang <ioworker0@gmail.com>
-Subject: mm: add docs for per-order mTHP split counters
-Date: Fri, 28 Jun 2024 21:07:50 +0800
+From: "Bang Li" <libang.li@antgroup.com>
+Subject: smaps: support "THPeligible" semantics for mTHP with anonymous shmem
+Date: Fri, 28 Jun 2024 18:49:26 +0800
 
-This commit introduces documentation for mTHP split counters in
-transhuge.rst.
+After the commit 7fb1b252afb5 ("mm: shmem: add mTHP support for
+anonymous shmem"), we can configure different policies through
+the multi-size THP sysfs interface for anonymous shmem. But
+currently "THPeligible" indicates only whether the mapping is
+eligible for allocating THP-pages as well as the THP is PMD
+mappable or not for anonymous shmem, we need to support semantics
+for mTHP with anonymous shmem similar to those for mTHP with
+anonymous memory.
 
-Link: https://lkml.kernel.org/r/20240628130750.73097-3-ioworker0@gmail.com
-Signed-off-by: Mingzhe Yang <mingzhe.yang@ly.com>
-Signed-off-by: Lance Yang <ioworker0@gmail.com>
-Cc: Bang Li <libang.li@antgroup.com>
+Link: https://lkml.kernel.org/r/20240628104926.34209-1-libang.li@antgroup.com
+Signed-off-by: Bang Li <libang.li@antgroup.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ fs/proc/task_mmu.c      |   10 +++++++---
+ include/linux/huge_mm.h |   11 +++++++++++
+ mm/shmem.c              |    9 +--------
+ 3 files changed, 19 insertions(+), 11 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-add-docs-for-per-order-mthp-split-counters
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -514,6 +514,22 @@ file_fallback_charge
- 	falls back to using small pages even though the allocation was
- 	successful.
+--- a/fs/proc/task_mmu.c~support-thpeligible-semantics-for-mthp-with-anonymous-shmem
++++ a/fs/proc/task_mmu.c
+@@ -1145,6 +1145,7 @@ static int show_smap(struct seq_file *m,
+ {
+ 	struct vm_area_struct *vma = v;
+ 	struct mem_size_stats mss = {};
++	bool thp_eligible;
  
-+split
-+	is incremented every time a huge page is successfully split into
-+	base pages. This can happen for a variety of reasons but a common
-+	reason is that a huge page is old and is being reclaimed.
-+	This action implies splitting any block mappings into PTEs.
+ 	smap_gather_stats(vma, &mss, 0);
+ 
+@@ -1157,9 +1158,12 @@ static int show_smap(struct seq_file *m,
+ 
+ 	__show_smap(m, &mss, false);
+ 
+-	seq_printf(m, "THPeligible:    %8u\n",
+-		   !!thp_vma_allowable_orders(vma, vma->vm_flags,
+-			   TVA_SMAPS | TVA_ENFORCE_SYSFS, THP_ORDERS_ALL));
++	thp_eligible = !!thp_vma_allowable_orders(vma, vma->vm_flags,
++						TVA_SMAPS | TVA_ENFORCE_SYSFS, THP_ORDERS_ALL);
++	if (vma_is_anon_shmem(vma))
++		thp_eligible = !!shmem_allowable_huge_orders(file_inode(vma->vm_file),
++							vma, vma->vm_pgoff, thp_eligible);
++	seq_printf(m, "THPeligible:    %8u\n", thp_eligible);
+ 
+ 	if (arch_pkeys_enabled())
+ 		seq_printf(m, "ProtectionKey:  %8u\n", vma_pkey(vma));
+--- a/include/linux/huge_mm.h~support-thpeligible-semantics-for-mthp-with-anonymous-shmem
++++ a/include/linux/huge_mm.h
+@@ -267,6 +267,10 @@ unsigned long thp_vma_allowable_orders(s
+ 	return __thp_vma_allowable_orders(vma, vm_flags, tva_flags, orders);
+ }
+ 
++unsigned long shmem_allowable_huge_orders(struct inode *inode,
++				struct vm_area_struct *vma, pgoff_t index,
++				bool global_huge);
 +
-+split_failed
-+	is incremented if kernel fails to split huge
-+	page. This can happen if the page was pinned by somebody.
+ struct thpsize {
+ 	struct kobject kobj;
+ 	struct list_head node;
+@@ -462,6 +466,13 @@ static inline unsigned long thp_vma_allo
+ {
+ 	return 0;
+ }
 +
-+split_deferred
-+	is incremented when a huge page is put onto split
-+	queue. This happens when a huge page is partially unmapped and
-+	splitting it would free up some memory. Pages on split queue are
-+	going to be split under memory pressure.
-+
- As the system ages, allocating huge pages may be expensive as the
- system uses memory compaction to copy data around memory to free a
- huge page for use. There are some counters in ``/proc/vmstat`` to help
++static inline unsigned long shmem_allowable_huge_orders(struct inode *inode,
++				struct vm_area_struct *vma, pgoff_t index,
++				bool global_huge)
++{
++	return 0;
++}
+ 
+ #define transparent_hugepage_flags 0UL
+ 
+--- a/mm/shmem.c~support-thpeligible-semantics-for-mthp-with-anonymous-shmem
++++ a/mm/shmem.c
+@@ -1622,7 +1622,7 @@ static gfp_t limit_gfp_mask(gfp_t huge_g
+ }
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-static unsigned long shmem_allowable_huge_orders(struct inode *inode,
++unsigned long shmem_allowable_huge_orders(struct inode *inode,
+ 				struct vm_area_struct *vma, pgoff_t index,
+ 				bool global_huge)
+ {
+@@ -1707,13 +1707,6 @@ static unsigned long shmem_suitable_orde
+ 	return orders;
+ }
+ #else
+-static unsigned long shmem_allowable_huge_orders(struct inode *inode,
+-				struct vm_area_struct *vma, pgoff_t index,
+-				bool global_huge)
+-{
+-	return 0;
+-}
+-
+ static unsigned long shmem_suitable_orders(struct inode *inode, struct vm_fault *vmf,
+ 					   struct address_space *mapping, pgoff_t index,
+ 					   unsigned long orders)
 _
 
-Patches currently in -mm which might be from ioworker0@gmail.com are
+Patches currently in -mm which might be from libang.li@antgroup.com are
 
-mm-add-per-order-mthp-split-counters.patch
-mm-add-docs-for-per-order-mthp-split-counters.patch
+support-thpeligible-semantics-for-mthp-with-anonymous-shmem.patch
 
