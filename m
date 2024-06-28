@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4A9773441
-	for <mm-commits@vger.kernel.org>; Fri, 28 Jun 2024 19:31:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A34078C8F
+	for <mm-commits@vger.kernel.org>; Fri, 28 Jun 2024 20:35:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719603073; cv=none; b=gWINIBdmuI0IZaizrYpwYRJYL6I36vFdbjebcPkWxTS7zhNvZcb/vOOCM4lD5eA6pZyGRw5cmcFOayVsabh6P6CYpgZ2g/DuhjoH1jiROxMooOnfNH1UcPULDZijiyK+7NvNvrpvJB5qwIMw8Y9JXg188KDDKziONwF7Euf8M0Q=
+	t=1719606915; cv=none; b=G+M07eri5UZwAg2T43h6/F1or8x2DSmFk6lk1/HYULtDasShHEA5lfwcbSwV4DVSNDKqRg5JPFseRJsKmFlI6yq71u3IUExhoy+g44s991pGN7AANgB3EEilMaYRoaWoLD/45Z8JYrnagkOUReHQjNO5Ry551q9c/YxgRLloyxM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719603073; c=relaxed/simple;
-	bh=ft8+SeODpza+VTeIZFGzBO+MgFFYnZVhUt9aa97Hy0o=;
-	h=Date:To:From:Subject:Message-Id; b=fU0CbkCX7DP50DN8HJRY+L6ztW5We5UgI18PKUn3eTSiHbfodsenlbp0GrZBGbVX3BpBJCK+5JYVD6nro8932lLsCSkJJh/mwysbcc+dSjQGRpJqBKWCLDq1NXi/cxcDD5JkW2oNzSTf123kgcSKBrfVn0eg/ll7gGggIsG9wTA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vvzdVoYY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719606915; c=relaxed/simple;
+	bh=r1+IMU/o6T0NUQIUHN6A+5DHw2qrcp5HoCptDHKH9Mc=;
+	h=Date:To:From:Subject:Message-Id; b=XYMhv1MDBgiQRoWr8BLS8ONHXlbgHFFJ7/rVZSwMX5xmYGQbKLhRCHNgPtOR/hUugkWm1keWtKBVaIfIXhaf44oUsZrDdWGYlBC7lriMkQWU8G6UCs085a7ooRUo2rnIEsKtACNZ/xA7Xcbru0MrkPDnADE+6Z6PTVoxhl7DDzw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QoFkmYVV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vvzdVoYY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F738C116B1;
-	Fri, 28 Jun 2024 19:31:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QoFkmYVV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1D34C116B1;
+	Fri, 28 Jun 2024 20:35:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719603073;
-	bh=ft8+SeODpza+VTeIZFGzBO+MgFFYnZVhUt9aa97Hy0o=;
+	s=korg; t=1719606914;
+	bh=r1+IMU/o6T0NUQIUHN6A+5DHw2qrcp5HoCptDHKH9Mc=;
 	h=Date:To:From:Subject:From;
-	b=vvzdVoYYYf2vFrAq4EjGFEEGBdVry9JXmpNuXbHZ6p4n2NUt4JZhfSQ8w5ku+DibS
-	 cLNZBnqeTePTbAyN5ibBBJUgYbbdwtMUlyPvz/fg5Lp2RvhPhicF+QV34sw12+wFyK
-	 kwlXZ3orl2VhkoyEVcyS/4ruV/U0pRh+KYbH8c8U=
-Date: Fri, 28 Jun 2024 12:31:12 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,xiujianfeng@huawei.com,akpm@linux-foundation.org
+	b=QoFkmYVV7YLmatgb8gtTeBAPTlPu+lPfi1+uK4ZrEzFGTof8aGe0u45N4sBqjYxcu
+	 IU/9koEKb65EhPMKCiudD1/RqMccQ85rTyaD/vJPIUl8AhzHJZrkmgGyM2NnBdFMS2
+	 kkunVvzon5/C6FU3sxVu4YPlyKHd5ddpI/jWO5B8=
+Date: Fri, 28 Jun 2024 13:35:14 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,tj@kernel.org,sj@kernel.org,ravis.opensrc@micron.com,rafael@kernel.org,mhocko@suse.com,lenb@kernel.org,Jonathan.Cameron@huawei.com,horenchuang@bytedance.com,gourry.memverge@gmail.com,dave.jiang@intel.com,dan.j.williams@intel.com,apopple@nvidia.com,aneesh.kumar@linux.ibm.com,horen.chuang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-adjust-the-warning-when-seq_buf-overflows.patch added to mm-unstable branch
-Message-Id: <20240628193113.4F738C116B1@smtp.kernel.org>
+Subject: + memory-tier-consolidate-the-initialization-of-memory-tiers.patch added to mm-unstable branch
+Message-Id: <20240628203514.D1D34C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcg: adjust the warning when seq_buf overflows
+     Subject: memory tier: consolidate the initialization of memory tiers
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-adjust-the-warning-when-seq_buf-overflows.patch
+     memory-tier-consolidate-the-initialization-of-memory-tiers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-adjust-the-warning-when-seq_buf-overflows.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-tier-consolidate-the-initialization-of-memory-tiers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,45 +58,194 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xiu Jianfeng <xiujianfeng@huawei.com>
-Subject: mm: memcg: adjust the warning when seq_buf overflows
-Date: Fri, 28 Jun 2024 07:23:33 +0000
+From: "Ho-Ren (Jack) Chuang" <horen.chuang@linux.dev>
+Subject: memory tier: consolidate the initialization of memory tiers
+Date: Fri, 28 Jun 2024 06:09:23 +0000
 
-Currently it uses WARN_ON_ONCE() if seq_buf overflows when user reads
-memory.stat, the only advantage of WARN_ON_ONCE is that the splat is so
-verbose that it gets noticed.  And also it panics the system if
-panic_on_warn is enabled.  It seems like the warning is just an over
-reaction and a simple pr_warn should just achieve the similar effect.
+If we simply move the set_node_memory_tier() from memory_tier_init() to
+late_initcall(), it will result in HMAT not registering the
+mt_adistance_algorithm callback function, because set_node_memory_tier()
+is not performed during the memory tiering initialization phase, leading
+to a lack of correct default_dram information.
 
-Link: https://lkml.kernel.org/r/20240628072333.2496527-1-xiujianfeng@huawei.com
-Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Therefore, we introduced a nodemask to pass the information of the default
+DRAM nodes.  The reason for not choosing to reuse default_dram_type->nodes
+is that it is not clean enough.  So in the end, we use a __initdata
+variable, which is a variable that is released once initialization is
+complete, including both CPU and memory nodes for HMAT to iterate through.
+
+Besides, since default_dram_type may be checked/used during the
+initialization process of HMAT and drivers, it is better to keep the
+allocation of default_dram_type in memory_tier_init().
+
+Link: https://lkml.kernel.org/r/20240628060925.303309-2-horen.chuang@linux.dev
+Signed-off-by: Ho-Ren (Jack) Chuang <horenchuang@bytedance.com>
+Suggested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Gregory Price <gourry.memverge@gmail.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
+Cc: Ravi Jonnalagadda <ravis.opensrc@micron.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/acpi/numa/hmat.c     |    5 --
+ include/linux/memory-tiers.h |    2 +
+ mm/memory-tiers.c            |   59 +++++++++++++--------------------
+ 3 files changed, 28 insertions(+), 38 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-adjust-the-warning-when-seq_buf-overflows
-+++ a/mm/memcontrol.c
-@@ -1484,7 +1484,8 @@ static void memory_stat_format(struct me
- 		memcg_stat_format(memcg, s);
- 	else
- 		memcg1_stat_format(memcg, s);
--	WARN_ON_ONCE(seq_buf_has_overflowed(s));
-+	if (seq_buf_has_overflowed(s))
-+		pr_warn("%s: Warning, stat buffer overflow, please report\n", __func__);
- }
+--- a/drivers/acpi/numa/hmat.c~memory-tier-consolidate-the-initialization-of-memory-tiers
++++ a/drivers/acpi/numa/hmat.c
+@@ -940,10 +940,7 @@ static int hmat_set_default_dram_perf(vo
+ 	struct memory_target *target;
+ 	struct access_coordinate *attrs;
  
- /**
+-	if (!default_dram_type)
+-		return -EIO;
+-
+-	for_each_node_mask(nid, default_dram_type->nodes) {
++	for_each_node_mask(nid, default_dram_nodes) {
+ 		pxm = node_to_pxm(nid);
+ 		target = find_mem_target(pxm);
+ 		if (!target)
+--- a/include/linux/memory-tiers.h~memory-tier-consolidate-the-initialization-of-memory-tiers
++++ a/include/linux/memory-tiers.h
+@@ -38,6 +38,7 @@ struct access_coordinate;
+ #ifdef CONFIG_NUMA
+ extern bool numa_demotion_enabled;
+ extern struct memory_dev_type *default_dram_type;
++extern nodemask_t default_dram_nodes __initdata;
+ struct memory_dev_type *alloc_memory_type(int adistance);
+ void put_memory_type(struct memory_dev_type *memtype);
+ void init_node_memory_type(int node, struct memory_dev_type *default_type);
+@@ -76,6 +77,7 @@ static inline bool node_is_toptier(int n
+ 
+ #define numa_demotion_enabled	false
+ #define default_dram_type	NULL
++#define default_dram_nodes NODE_MASK_NONE
+ /*
+  * CONFIG_NUMA implementation returns non NULL error.
+  */
+--- a/mm/memory-tiers.c~memory-tier-consolidate-the-initialization-of-memory-tiers
++++ a/mm/memory-tiers.c
+@@ -43,6 +43,7 @@ static LIST_HEAD(memory_tiers);
+ static LIST_HEAD(default_memory_types);
+ static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
+ struct memory_dev_type *default_dram_type;
++nodemask_t default_dram_nodes __initdata = NODE_MASK_NONE;
+ 
+ static const struct bus_type memory_tier_subsys = {
+ 	.name = "memory_tiering",
+@@ -671,28 +672,38 @@ EXPORT_SYMBOL_GPL(mt_put_memory_types);
+ 
+ /*
+  * This is invoked via `late_initcall()` to initialize memory tiers for
+- * CPU-less memory nodes after driver initialization, which is
+- * expected to provide `adistance` algorithms.
++ * memory nodes, both with and without CPUs. After the initialization of
++ * firmware and devices, adistance algorithms are expected to be provided.
+  */
+ static int __init memory_tier_late_init(void)
+ {
+ 	int nid;
++	struct memory_tier *memtier;
+ 
++	get_online_mems();
+ 	guard(mutex)(&memory_tier_lock);
++	/*
++	 * Look at all the existing and uninitialized N_MEMORY nodes and
++	 * add them to default memory tier or to a tier if we already have
++	 * memory types assigned.
++	 */
+ 	for_each_node_state(nid, N_MEMORY) {
+ 		/*
+-		 * Some device drivers may have initialized memory tiers
+-		 * between `memory_tier_init()` and `memory_tier_late_init()`,
+-		 * potentially bringing online memory nodes and
+-		 * configuring memory tiers. Exclude them here.
++		 * Some device drivers may have initialized
++		 * memory tiers, potentially bringing memory nodes
++		 * online and configuring memory tiers.
++		 * Exclude them here.
+ 		 */
+ 		if (node_memory_types[nid].memtype)
+ 			continue;
+ 
+-		set_node_memory_tier(nid);
++		memtier = set_node_memory_tier(nid);
++		if (IS_ERR(memtier))
++			/* Continue with memtiers we are able to setup. */
++			break;
+ 	}
+-
+ 	establish_demotion_targets();
++	put_online_mems();
+ 
+ 	return 0;
+ }
+@@ -875,8 +886,7 @@ static int __meminit memtier_hotplug_cal
+ 
+ static int __init memory_tier_init(void)
+ {
+-	int ret, node;
+-	struct memory_tier *memtier;
++	int ret;
+ 
+ 	ret = subsys_virtual_register(&memory_tier_subsys, NULL);
+ 	if (ret)
+@@ -887,7 +897,8 @@ static int __init memory_tier_init(void)
+ 				GFP_KERNEL);
+ 	WARN_ON(!node_demotion);
+ #endif
+-	mutex_lock(&memory_tier_lock);
++
++	guard(mutex)(&memory_tier_lock);
+ 	/*
+ 	 * For now we can have 4 faster memory tiers with smaller adistance
+ 	 * than default DRAM tier.
+@@ -897,29 +908,9 @@ static int __init memory_tier_init(void)
+ 	if (IS_ERR(default_dram_type))
+ 		panic("%s() failed to allocate default DRAM tier\n", __func__);
+ 
+-	/*
+-	 * Look at all the existing N_MEMORY nodes and add them to
+-	 * default memory tier or to a tier if we already have memory
+-	 * types assigned.
+-	 */
+-	for_each_node_state(node, N_MEMORY) {
+-		if (!node_state(node, N_CPU))
+-			/*
+-			 * Defer memory tier initialization on
+-			 * CPUless numa nodes. These will be initialized
+-			 * after firmware and devices are initialized.
+-			 */
+-			continue;
+-
+-		memtier = set_node_memory_tier(node);
+-		if (IS_ERR(memtier))
+-			/*
+-			 * Continue with memtiers we are able to setup
+-			 */
+-			break;
+-	}
+-	establish_demotion_targets();
+-	mutex_unlock(&memory_tier_lock);
++	/* Record nodes with memory and CPU to set default DRAM performance. */
++	nodes_and(default_dram_nodes, node_states[N_MEMORY],
++		  node_states[N_CPU]);
+ 
+ 	hotplug_memory_notifier(memtier_hotplug_callback, MEMTIER_HOTPLUG_PRI);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from xiujianfeng@huawei.com are
+Patches currently in -mm which might be from horen.chuang@linux.dev are
 
-mm-memcg-remove-redundant-seq_buf_has_overflowed.patch
-mm-memcg-adjust-the-warning-when-seq_buf-overflows.patch
+memory-tier-consolidate-the-initialization-of-memory-tiers.patch
 
