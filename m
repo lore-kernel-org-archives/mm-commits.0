@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FBC917C2;
-	Fri, 28 Jun 2024 00:06:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0A6C17C2;
+	Fri, 28 Jun 2024 00:06:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719533204; cv=none; b=nQ6iCKxtluAM5vdSEw3HBsyTwy32zW2iuA2PUZUTA/nSQpw5ur2BoOgSAqibU9H0CylTBL+m2iOHQv6sAq8aCwiuGPRJtDs5tS9hpJAD5fr9P7sUmabJB4u6qqV+ZlXiwazSfPmIWTxwWI4T3O6QSp077dGS3T4ziiYSN9fB2JE=
+	t=1719533205; cv=none; b=WuH1l2kvYZweR92rUKIIvPNZVQyhwLHqEX/4JqzNZx1GaLN+gTSlImdlTdu+0gNflB4XZqUnavYrkaWfPzyUELkmJOcgtr2mx1UvpsDVC6/mbs056hH3p3g8dgsVCeIDutvrlivKAHZpgR2nVutOIeiy/AeRe7umEOQzMLxq0xk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719533204; c=relaxed/simple;
-	bh=8lMxHlX7j0vwxWQansSFcrurtOB5MHEQRcTLeYRg7Zg=;
-	h=Date:To:From:Subject:Message-Id; b=Fma9Nv8uJ2z5k5ECkvmlNMq80WQe9lDw6MatXr32B3iSTagv5Iq4rNiiFN1u56xTP8TT4l0UfEJYDVhNTI8KST1Xb9wTVlUqOK0HZY9rYvJciN60s7BiYymKPkLepaJChVLpLENg0o33Ud+0cYabtemYlYWYmWssHuuyXLNn8Vc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L5MaLGSQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719533205; c=relaxed/simple;
+	bh=mZErdBB7eckzOrxEl5rnx9pjWagRU+3YTQxjsy4F7B0=;
+	h=Date:To:From:Subject:Message-Id; b=RE2e1aHr2jHu8Q/TXmkTCDyZgG1WfJb9Shg37Aof0/LsTrSiduqgkV9F4ndwaDretrsNHyEOuUDOPzXMIJfEIx8OlQFJGTN2DnQD8Y922E7IfxIoj/rbkpK/47IjQNcBGaYQ/64BhwgRC3ZiRyPBFi8xRETQidBNZLUPHtHSqSU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LTZ9Pq1X; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L5MaLGSQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DCF8C2BBFC;
-	Fri, 28 Jun 2024 00:06:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LTZ9Pq1X"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 848B2C32786;
+	Fri, 28 Jun 2024 00:06:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719533204;
-	bh=8lMxHlX7j0vwxWQansSFcrurtOB5MHEQRcTLeYRg7Zg=;
+	s=korg; t=1719533205;
+	bh=mZErdBB7eckzOrxEl5rnx9pjWagRU+3YTQxjsy4F7B0=;
 	h=Date:To:From:Subject:From;
-	b=L5MaLGSQEgVCOihxDpqpgmOlTagkoDVWuoCobjBPq+BHrtW5DPUJ9r7kczTtjA+MN
-	 IHgTKgte5UHGjbbs2UWB2kmKTPP09QvzBSOi8TWrXnGG/dnZcN7vJPHgMqsrI5gn6t
-	 FwQjJQyS4RY36XjDrp/yknl90cWoHLdjI2waOTeg=
-Date: Thu, 27 Jun 2024 17:06:43 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,stable@vger.kernel.org,jack@suse.cz,akpm@linux-foundation.org
+	b=LTZ9Pq1XuR3T752wvtyjYBSuoVP68BHyvC1Rb2JB5nyMXfHQQsuGzLz8fZxu12cD6
+	 EZlSnxAtjDyy7QDZKnBfScQ2csw9JiR9VaSFYCaCxW38cdbcmPU1H4u+Pu+BQFV1Ky
+	 5zC7ct5ssioeQx/xV9iunJyjLN6LrGbEvuRvgpjE=
+Date: Thu, 27 Jun 2024 17:06:45 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,jack@suse.cz,hdanton@sina.com,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-avoid-overflows-in-dirty-throttling-logic.patch removed from -mm tree
-Message-Id: <20240628000644.5DCF8C2BBFC@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-inode-number-range-checks.patch removed from -mm tree
+Message-Id: <20240628000645.848B2C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,124 +35,111 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: avoid overflows in dirty throttling logic
+     Subject: nilfs2: fix inode number range checks
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-overflows-in-dirty-throttling-logic.patch
+     nilfs2-fix-inode-number-range-checks.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: mm: avoid overflows in dirty throttling logic
-Date: Fri, 21 Jun 2024 16:42:38 +0200
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix inode number range checks
+Date: Sun, 23 Jun 2024 14:11:33 +0900
 
-The dirty throttling logic is interspersed with assumptions that dirty
-limits in PAGE_SIZE units fit into 32-bit (so that various multiplications
-fit into 64-bits).  If limits end up being larger, we will hit overflows,
-possible divisions by 0 etc.  Fix these problems by never allowing so
-large dirty limits as they have dubious practical value anyway.  For
-dirty_bytes / dirty_background_bytes interfaces we can just refuse to set
-so large limits.  For dirty_ratio / dirty_background_ratio it isn't so
-simple as the dirty limit is computed from the amount of available memory
-which can change due to memory hotplug etc.  So when converting dirty
-limits from ratios to numbers of pages, we just don't allow the result to
-exceed UINT_MAX.
+Patch series "nilfs2: fix potential issues related to reserved inodes".
 
-This is root-only triggerable problem which occurs when the operator
-sets dirty limits to >16 TB.
+This series fixes one use-after-free issue reported by syzbot, caused by
+nilfs2's internal inode being exposed in the namespace on a corrupted
+filesystem, and a couple of flaws that cause problems if the starting
+number of non-reserved inodes written in the on-disk super block is
+intentionally (or corruptly) changed from its default value.  
 
-Link: https://lkml.kernel.org/r/20240621144246.11148-2-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Zach O'Keefe <zokeefe@google.com>
-Reviewed-By: Zach O'Keefe <zokeefe@google.com>
+
+This patch (of 3):
+
+In the current implementation of nilfs2, "nilfs->ns_first_ino", which
+gives the first non-reserved inode number, is read from the superblock,
+but its lower limit is not checked.
+
+As a result, if a number that overlaps with the inode number range of
+reserved inodes such as the root directory or metadata files is set in the
+super block parameter, the inode number test macros (NILFS_MDT_INODE and
+NILFS_VALID_INODE) will not function properly.
+
+In addition, these test macros use left bit-shift calculations using with
+the inode number as the shift count via the BIT macro, but the result of a
+shift calculation that exceeds the bit width of an integer is undefined in
+the C specification, so if "ns_first_ino" is set to a large value other
+than the default value NILFS_USER_INO (=11), the macros may potentially
+malfunction depending on the environment.
+
+Fix these issues by checking the lower bound of "nilfs->ns_first_ino" and
+by preventing bit shifts equal to or greater than the NILFS_USER_INO
+constant in the inode number test macros.
+
+Also, change the type of "ns_first_ino" from signed integer to unsigned
+integer to avoid the need for type casting in comparisons such as the
+lower bound check introduced this time.
+
+Link: https://lkml.kernel.org/r/20240623051135.4180-1-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240623051135.4180-2-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   30 ++++++++++++++++++++++++++----
- 1 file changed, 26 insertions(+), 4 deletions(-)
+ fs/nilfs2/nilfs.h     |    5 +++--
+ fs/nilfs2/the_nilfs.c |    6 ++++++
+ fs/nilfs2/the_nilfs.h |    2 +-
+ 3 files changed, 10 insertions(+), 3 deletions(-)
 
---- a/mm/page-writeback.c~mm-avoid-overflows-in-dirty-throttling-logic
-+++ a/mm/page-writeback.c
-@@ -415,13 +415,20 @@ static void domain_dirty_limits(struct d
- 	else
- 		bg_thresh = (bg_ratio * available_memory) / PAGE_SIZE;
+--- a/fs/nilfs2/nilfs.h~nilfs2-fix-inode-number-range-checks
++++ a/fs/nilfs2/nilfs.h
+@@ -116,9 +116,10 @@ enum {
+ #define NILFS_FIRST_INO(sb) (((struct the_nilfs *)sb->s_fs_info)->ns_first_ino)
  
--	if (bg_thresh >= thresh)
--		bg_thresh = thresh / 2;
- 	tsk = current;
- 	if (rt_task(tsk)) {
- 		bg_thresh += bg_thresh / 4 + global_wb_domain.dirty_limit / 32;
- 		thresh += thresh / 4 + global_wb_domain.dirty_limit / 32;
- 	}
-+	/*
-+	 * Dirty throttling logic assumes the limits in page units fit into
-+	 * 32-bits. This gives 16TB dirty limits max which is hopefully enough.
-+	 */
-+	if (thresh > UINT_MAX)
-+		thresh = UINT_MAX;
-+	/* This makes sure bg_thresh is within 32-bits as well */
-+	if (bg_thresh >= thresh)
-+		bg_thresh = thresh / 2;
- 	dtc->thresh = thresh;
- 	dtc->bg_thresh = bg_thresh;
- 
-@@ -471,7 +478,11 @@ static unsigned long node_dirty_limit(st
- 	if (rt_task(tsk))
- 		dirty += dirty / 4;
- 
--	return dirty;
-+	/*
-+	 * Dirty throttling logic assumes the limits in page units fit into
-+	 * 32-bits. This gives 16TB dirty limits max which is hopefully enough.
-+	 */
-+	return min_t(unsigned long, dirty, UINT_MAX);
- }
+ #define NILFS_MDT_INODE(sb, ino) \
+-	((ino) < NILFS_FIRST_INO(sb) && (NILFS_MDT_INO_BITS & BIT(ino)))
++	((ino) < NILFS_USER_INO && (NILFS_MDT_INO_BITS & BIT(ino)))
+ #define NILFS_VALID_INODE(sb, ino) \
+-	((ino) >= NILFS_FIRST_INO(sb) || (NILFS_SYS_INO_BITS & BIT(ino)))
++	((ino) >= NILFS_FIRST_INO(sb) ||				\
++	 ((ino) < NILFS_USER_INO && (NILFS_SYS_INO_BITS & BIT(ino))))
  
  /**
-@@ -508,10 +519,17 @@ static int dirty_background_bytes_handle
- 		void *buffer, size_t *lenp, loff_t *ppos)
- {
- 	int ret;
-+	unsigned long old_bytes = dirty_background_bytes;
- 
- 	ret = proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
--	if (ret == 0 && write)
-+	if (ret == 0 && write) {
-+		if (DIV_ROUND_UP(dirty_background_bytes, PAGE_SIZE) >
-+								UINT_MAX) {
-+			dirty_background_bytes = old_bytes;
-+			return -ERANGE;
-+		}
- 		dirty_background_ratio = 0;
-+	}
- 	return ret;
- }
- 
-@@ -537,6 +555,10 @@ static int dirty_bytes_handler(struct ct
- 
- 	ret = proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
- 	if (ret == 0 && write && vm_dirty_bytes != old_bytes) {
-+		if (DIV_ROUND_UP(vm_dirty_bytes, PAGE_SIZE) > UINT_MAX) {
-+			vm_dirty_bytes = old_bytes;
-+			return -ERANGE;
-+		}
- 		writeback_set_ratelimit();
- 		vm_dirty_ratio = 0;
+  * struct nilfs_transaction_info: context information for synchronization
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-fix-inode-number-range-checks
++++ a/fs/nilfs2/the_nilfs.c
+@@ -452,6 +452,12 @@ static int nilfs_store_disk_layout(struc
  	}
+ 
+ 	nilfs->ns_first_ino = le32_to_cpu(sbp->s_first_ino);
++	if (nilfs->ns_first_ino < NILFS_USER_INO) {
++		nilfs_err(nilfs->ns_sb,
++			  "too small lower limit for non-reserved inode numbers: %u",
++			  nilfs->ns_first_ino);
++		return -EINVAL;
++	}
+ 
+ 	nilfs->ns_blocks_per_segment = le32_to_cpu(sbp->s_blocks_per_segment);
+ 	if (nilfs->ns_blocks_per_segment < NILFS_SEG_MIN_BLOCKS) {
+--- a/fs/nilfs2/the_nilfs.h~nilfs2-fix-inode-number-range-checks
++++ a/fs/nilfs2/the_nilfs.h
+@@ -182,7 +182,7 @@ struct the_nilfs {
+ 	unsigned long		ns_nrsvsegs;
+ 	unsigned long		ns_first_data_block;
+ 	int			ns_inode_size;
+-	int			ns_first_ino;
++	unsigned int		ns_first_ino;
+ 	u32			ns_crc_seed;
+ 
+ 	/* /sys/fs/<nilfs>/<device> */
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-readahead-make-sure-sync-readahead-reads-needed-page.patch
-filemap-fix-page_cache_next_miss-when-no-hole-found.patch
-readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch
-readahead-drop-pointless-index-from-force_page_cache_ra.patch
-readahead-drop-index-argument-of-page_cache_async_readahead.patch
-readahead-drop-dead-code-in-page_cache_ra_order.patch
-readahead-drop-dead-code-in-ondemand_readahead.patch
-readahead-disentangle-async-and-sync-readahead.patch
-readahead-fold-try_context_readahead-into-its-single-caller.patch
-readahead-simplify-gotos-in-page_cache_sync_ra.patch
 
