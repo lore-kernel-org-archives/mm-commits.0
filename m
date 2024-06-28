@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70843770E2
-	for <mm-commits@vger.kernel.org>; Fri, 28 Jun 2024 22:08:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE6F0770E2
+	for <mm-commits@vger.kernel.org>; Fri, 28 Jun 2024 22:08:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719612490; cv=none; b=EprJZ3gHzixizS4sQWhBNXrzSeWG+82nbnA0K1mGgSGOJu5cCljtuPwrwP1C7TBENIbmBy2xhYzpDZ4DYLhfha+LLgwly9/1p/LDsVCM6JZv78MtY0c3L+hq/SFIBMuPpvhqEYlEClL8NhL2vDWHnWzSUkrbSaJl3FZNkMNTwNM=
+	t=1719612492; cv=none; b=tCPi/IQeAFDnNXWULVjQafZHhw9/nChdEW4bA2AAPjiAs4fbLF73bIZrAlxfRrLYs2bgwQE6uzO6Oj8GPXLf8MTqfOEr4yNEsJmRsdrnE3V1Bzh5i6RzOSSGaCYiXSdJc6+t3oXt4L39lBTUkR0XgiJRSr8gJcptzhhLK6BulcI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719612490; c=relaxed/simple;
-	bh=ikIWV777YFZJzZlKhvCvbb8i8DDdmDq0BllqJpOIVRE=;
-	h=Date:To:From:Subject:Message-Id; b=Ha5w7j2Mq1GVaptpczzOk7f1V7gXFHzdm0yglz2tgNsOModAl6GN7A1i3dpwq5lPazc2OB1pBkMuEmQDYjjbfogrboBhZhXhOsrx0fxzi95fFa+rAa9nnMIsB54I5ERjI8ACf9OeP3GsaE21yVsyUlzOrGnqFvGCK/mX5LrPMpc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oz6eZzfs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719612492; c=relaxed/simple;
+	bh=oUZ1tzXSCmpLP6YOMRu9DbJnbSvYw9P52//OI4Pk2qI=;
+	h=Date:To:From:Subject:Message-Id; b=Fq7FnP10qqso9rkHIaC08DW95Y282QINodcgonr7L/39zdSP28Ws63F6OkmRiLR0ZuTtRHW83Sq4gRvLopEAy8zqgbCPlOF7/8R+qnCKKvX0MSuTTAB5qtkAxRtCKvanBmJpZmWB0b9pqYmWS6hez7ZLnAaigjK3D01WUQhfiNU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=htAQ75KK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oz6eZzfs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9B1AC116B1;
-	Fri, 28 Jun 2024 22:08:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="htAQ75KK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BABEBC2BBFC;
+	Fri, 28 Jun 2024 22:08:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719612489;
-	bh=ikIWV777YFZJzZlKhvCvbb8i8DDdmDq0BllqJpOIVRE=;
+	s=korg; t=1719612491;
+	bh=oUZ1tzXSCmpLP6YOMRu9DbJnbSvYw9P52//OI4Pk2qI=;
 	h=Date:To:From:Subject:From;
-	b=oz6eZzfs8RyZu2vpC+PIuFFMz/QtP3VUV1tdV2QtS297V1jIpoawhxdHjAKFNZ3Ue
-	 NkFUE5582BfZB+5IoGMaUZx6RVDN9lOu7+bKMiH/IxP5v7p+rGPAU5bRjeozE37czq
-	 MSzljYKzt/J8yvduFmihrPxH7Qhk6DWyOodExdYY=
-Date: Fri, 28 Jun 2024 15:08:09 -0700
+	b=htAQ75KKSrR2KgCWk9TclP6ps6i7aFfz7Xn2MeHVzRoVY9gf67d9DCafgOTfKyrKE
+	 rj+C595SZnKUBG3WXq/bCw8ccf7QteN/ryxHEp7oOpwbcDt8aDz7NX6TdOw+KIEDPI
+	 Uf+Vjav6UvLAKw/tom0UA1Y3KPE+HBZm8SRSHba0=
+Date: Fri, 28 Jun 2024 15:08:11 -0700
 To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-guard-memcg1-specific-members-of-struct-mem_cgroup_per_node.patch added to mm-unstable branch
-Message-Id: <20240628220809.D9B1AC116B1@smtp.kernel.org>
+Subject: + mm-memcg-put-struct-task_struct-memcg_in_oom-under-config_memcg_v1.patch added to mm-unstable branch
+Message-Id: <20240628220811.BABEBC2BBFC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcg: guard memcg1-specific members of struct mem_cgroup_per_node
+     Subject: mm: memcg: put struct task_struct::memcg_in_oom under CONFIG_MEMCG_V1
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-guard-memcg1-specific-members-of-struct-mem_cgroup_per_node.patch
+     mm-memcg-put-struct-task_struct-memcg_in_oom-under-config_memcg_v1.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-guard-memcg1-specific-members-of-struct-mem_cgroup_per_node.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-put-struct-task_struct-memcg_in_oom-under-config_memcg_v1.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: memcg: guard memcg1-specific members of struct mem_cgroup_per_node
-Date: Fri, 28 Jun 2024 21:03:15 +0000
+Subject: mm: memcg: put struct task_struct::memcg_in_oom under CONFIG_MEMCG_V1
+Date: Fri, 28 Jun 2024 21:03:16 +0000
 
-Put memcg1-specific members of struct mem_cgroup_per_node under the
-CONFIG_MEMCG_V1 config option.
+The memcg_in_oom field of the struct task_struct is not used by the cgroup
+v2's memory controller, so it can be happily compiled out if
+CONFIG_MEMCG_V1 is not set.
 
-Link: https://lkml.kernel.org/r/20240628210317.272856-8-roman.gushchin@linux.dev
+Link: https://lkml.kernel.org/r/20240628210317.272856-9-roman.gushchin@linux.dev
 Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -74,27 +75,24 @@ Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/sched.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-guard-memcg1-specific-members-of-struct-mem_cgroup_per_node
-+++ a/include/linux/memcontrol.h
-@@ -92,6 +92,7 @@ struct mem_cgroup_per_node {
- 	struct lruvec_stats			*lruvec_stats;
- 	struct shrinker_info __rcu	*shrinker_info;
+--- a/include/linux/sched.h~mm-memcg-put-struct-task_struct-memcg_in_oom-under-config_memcg_v1
++++ a/include/linux/sched.h
+@@ -1447,9 +1447,11 @@ struct task_struct {
+ 	unsigned int			kcov_softirq;
+ #endif
  
+-#ifdef CONFIG_MEMCG
 +#ifdef CONFIG_MEMCG_V1
- 	/*
- 	 * Memcg-v1 only stuff in middle as buffer between read mostly fields
- 	 * and update often fields to avoid false sharing. Once v1 stuff is
-@@ -102,6 +103,7 @@ struct mem_cgroup_per_node {
- 	unsigned long		usage_in_excess;/* Set to the value by which */
- 						/* the soft limit is exceeded*/
- 	bool			on_tree;
+ 	struct mem_cgroup		*memcg_in_oom;
 +#endif
  
- 	/* Fields which get updated often at the end. */
- 	struct lruvec		lruvec;
++#ifdef CONFIG_MEMCG
+ 	/* Number of pages to reclaim on returning to userland: */
+ 	unsigned int			memcg_nr_pages_over_high;
+ 
 _
 
 Patches currently in -mm which might be from roman.gushchin@linux.dev are
