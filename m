@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48C8F1E4A4
-	for <mm-commits@vger.kernel.org>; Fri, 28 Jun 2024 19:27:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4A9773441
+	for <mm-commits@vger.kernel.org>; Fri, 28 Jun 2024 19:31:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719602880; cv=none; b=IGOl24BTvlEvN/8G6D9Okx8/+K8eqQ/XS13sDI6uYN0oNB0GFvIXYBIM3KpS3PbRTQqkw+kvXD2VNHDjAPF7/E9EZD+NMkezRQVja+CDa3RMxrjdt3Ne+X23hevp/R89IDpGx0/kFsYqgFma21htoaXiLzcSrdXnPQEW8xxqtgs=
+	t=1719603073; cv=none; b=gWINIBdmuI0IZaizrYpwYRJYL6I36vFdbjebcPkWxTS7zhNvZcb/vOOCM4lD5eA6pZyGRw5cmcFOayVsabh6P6CYpgZ2g/DuhjoH1jiROxMooOnfNH1UcPULDZijiyK+7NvNvrpvJB5qwIMw8Y9JXg188KDDKziONwF7Euf8M0Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719602880; c=relaxed/simple;
-	bh=amKrIzDXYyuEa35l9ZA/b+de5E9+YYKfm3DY6GkKCwQ=;
-	h=Date:To:From:Subject:Message-Id; b=kzZb6tmA4EyCUHA8tVvUyVfhmOQLpy8KbZ3ZrM7BdPAYzwQC7CcakpIyBMbLMkt3EO3PYJ9waeN2nrHekzDzeDXiV7QjD3wttgzfKCURikncj89zkcfoSRzAmwKlcJA99kEi74/dpqwb8Q1ApategG89UFEjBZMbaTZOYNBfy7Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zMvEuCqp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719603073; c=relaxed/simple;
+	bh=ft8+SeODpza+VTeIZFGzBO+MgFFYnZVhUt9aa97Hy0o=;
+	h=Date:To:From:Subject:Message-Id; b=fU0CbkCX7DP50DN8HJRY+L6ztW5We5UgI18PKUn3eTSiHbfodsenlbp0GrZBGbVX3BpBJCK+5JYVD6nro8932lLsCSkJJh/mwysbcc+dSjQGRpJqBKWCLDq1NXi/cxcDD5JkW2oNzSTf123kgcSKBrfVn0eg/ll7gGggIsG9wTA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vvzdVoYY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zMvEuCqp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2F18C116B1;
-	Fri, 28 Jun 2024 19:27:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vvzdVoYY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F738C116B1;
+	Fri, 28 Jun 2024 19:31:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719602879;
-	bh=amKrIzDXYyuEa35l9ZA/b+de5E9+YYKfm3DY6GkKCwQ=;
+	s=korg; t=1719603073;
+	bh=ft8+SeODpza+VTeIZFGzBO+MgFFYnZVhUt9aa97Hy0o=;
 	h=Date:To:From:Subject:From;
-	b=zMvEuCqpIa3rjDmkG9IrK9hmjV1P3UNEKMZy/UZU4dGoTFJCJvqYAqtNnKS3DlOj7
-	 ihFo8/caxTv77La9HO27XaFCuUjHM26byvTTBjX/f2IGWHA5KGOTqN8CBi9t0/6w/g
-	 ZXyCd/9uQt3S2PQzyPrl+LX5dcnB4MrOgf1hM9R0=
-Date: Fri, 28 Jun 2024 12:27:59 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,rientjes@google.com,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,hannes@cmpxchg.org,dave.hansen@intel.com,ak@linux.intel.com,tvrtko.ursulin@igalia.com,akpm@linux-foundation.org
+	b=vvzdVoYYYf2vFrAq4EjGFEEGBdVry9JXmpNuXbHZ6p4n2NUt4JZhfSQ8w5ku+DibS
+	 cLNZBnqeTePTbAyN5ibBBJUgYbbdwtMUlyPvz/fg5Lp2RvhPhicF+QV34sw12+wFyK
+	 kwlXZ3orl2VhkoyEVcyS/4ruV/U0pRh+KYbH8c8U=
+Date: Fri, 28 Jun 2024 12:31:12 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,xiujianfeng@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-numa_balancing-teach-mpol_to_str-about-the-balancing-mode.patch removed from -mm tree
-Message-Id: <20240628192759.A2F18C116B1@smtp.kernel.org>
+Subject: + mm-memcg-adjust-the-warning-when-seq_buf-overflows.patch added to mm-unstable branch
+Message-Id: <20240628193113.4F738C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,75 +34,69 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/numa_balancing: teach mpol_to_str about the balancing mode
-has been removed from the -mm tree.  Its filename was
-     mm-numa_balancing-teach-mpol_to_str-about-the-balancing-mode.patch
+The patch titled
+     Subject: mm: memcg: adjust the warning when seq_buf overflows
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memcg-adjust-the-warning-when-seq_buf-overflows.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-adjust-the-warning-when-seq_buf-overflows.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tvrtko Ursulin <tvrtko.ursulin@igalia.com>
-Subject: mm/numa_balancing: teach mpol_to_str about the balancing mode
-Date: Tue, 25 Jun 2024 14:26:05 +0100
+From: Xiu Jianfeng <xiujianfeng@huawei.com>
+Subject: mm: memcg: adjust the warning when seq_buf overflows
+Date: Fri, 28 Jun 2024 07:23:33 +0000
 
-If a task has had MPOL_F_NUMA_BALANCING set it is useful to show that in
-procfs.  Teach the mpol_to_str() helper about its existence and while at
-it update the comment to account for "weighted interleave" when suggesting
-a recommended buffer size.
+Currently it uses WARN_ON_ONCE() if seq_buf overflows when user reads
+memory.stat, the only advantage of WARN_ON_ONCE is that the splat is so
+verbose that it gets noticed.  And also it panics the system if
+panic_on_warn is enabled.  It seems like the warning is just an over
+reaction and a simple pr_warn should just achieve the similar effect.
 
-Link: https://lkml.kernel.org/r/20240625132605.38428-1-tursulin@igalia.com
-Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@igalia.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
+Link: https://lkml.kernel.org/r/20240628072333.2496527-1-xiujianfeng@huawei.com
+Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/mempolicy.c~mm-numa_balancing-teach-mpol_to_str-about-the-balancing-mode
-+++ a/mm/mempolicy.c
-@@ -3297,8 +3297,9 @@ out:
-  * @pol:  pointer to mempolicy to be formatted
-  *
-  * Convert @pol into a string.  If @buffer is too short, truncate the string.
-- * Recommend a @maxlen of at least 32 for the longest mode, "interleave", the
-- * longest flag, "relative", and to display at least a few node ids.
-+ * Recommend a @maxlen of at least 42 for the longest mode, "weighted
-+ * interleave", the longest flag, "balancing", and to display at least a few
-+ * node ids.
-  */
- void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
- {
-@@ -3335,12 +3336,15 @@ void mpol_to_str(char *buffer, int maxle
- 		p += snprintf(p, buffer + maxlen - p, "=");
+--- a/mm/memcontrol.c~mm-memcg-adjust-the-warning-when-seq_buf-overflows
++++ a/mm/memcontrol.c
+@@ -1484,7 +1484,8 @@ static void memory_stat_format(struct me
+ 		memcg_stat_format(memcg, s);
+ 	else
+ 		memcg1_stat_format(memcg, s);
+-	WARN_ON_ONCE(seq_buf_has_overflowed(s));
++	if (seq_buf_has_overflowed(s))
++		pr_warn("%s: Warning, stat buffer overflow, please report\n", __func__);
+ }
  
- 		/*
--		 * Currently, the only defined flags are mutually exclusive
-+		 * The below two flags are mutually exclusive:
- 		 */
- 		if (flags & MPOL_F_STATIC_NODES)
- 			p += snprintf(p, buffer + maxlen - p, "static");
- 		else if (flags & MPOL_F_RELATIVE_NODES)
- 			p += snprintf(p, buffer + maxlen - p, "relative");
-+
-+		if (flags & MPOL_F_NUMA_BALANCING)
-+			p += snprintf(p, buffer + maxlen - p, "balancing");
- 	}
- 
- 	if (!nodes_empty(nodes))
+ /**
 _
 
-Patches currently in -mm which might be from tvrtko.ursulin@igalia.com are
+Patches currently in -mm which might be from xiujianfeng@huawei.com are
 
+mm-memcg-remove-redundant-seq_buf_has_overflowed.patch
+mm-memcg-adjust-the-warning-when-seq_buf-overflows.patch
 
