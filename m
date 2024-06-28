@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 196B0524B4
-	for <mm-commits@vger.kernel.org>; Fri, 28 Jun 2024 18:53:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48C8F1E4A4
+	for <mm-commits@vger.kernel.org>; Fri, 28 Jun 2024 19:27:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719600827; cv=none; b=n4hZG77buBI3cItc9GMqnqtPqyX71P8lSxAwBCah+6MO6aPGzmMXkG5P4lnYDQ0n8mu2ypKaaqoTbpj57z2NVR/jtuggQIH+sDDeN+lHq9FTmXoHNfBudoZrNBvm4v38Kp+1IfOg1kvgluPhAoHrv984XFIMvvOblnJ6nZjNJM8=
+	t=1719602880; cv=none; b=IGOl24BTvlEvN/8G6D9Okx8/+K8eqQ/XS13sDI6uYN0oNB0GFvIXYBIM3KpS3PbRTQqkw+kvXD2VNHDjAPF7/E9EZD+NMkezRQVja+CDa3RMxrjdt3Ne+X23hevp/R89IDpGx0/kFsYqgFma21htoaXiLzcSrdXnPQEW8xxqtgs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719600827; c=relaxed/simple;
-	bh=obuu8amshKC6rJHdsNbXi0FO2lKkrlkc9+vTDk8mAQo=;
-	h=Date:To:From:Subject:Message-Id; b=huD4r3O23SmK+cmghamNZ9rz3knjG4QNzZPx8FzWU38QOxUAEtvH8M7bwfb5Hb+QOFwGLAcKI3P8IdwwKsdw53cqRm1gOzGs6XjKitAcDaPoC5JYCPTOvaXKZG+JclIAcyydRajEcoCfW+gsFnspR2Lo8BkwhZP+aNCWuW22TZE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d3g+Cd+t; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719602880; c=relaxed/simple;
+	bh=amKrIzDXYyuEa35l9ZA/b+de5E9+YYKfm3DY6GkKCwQ=;
+	h=Date:To:From:Subject:Message-Id; b=kzZb6tmA4EyCUHA8tVvUyVfhmOQLpy8KbZ3ZrM7BdPAYzwQC7CcakpIyBMbLMkt3EO3PYJ9waeN2nrHekzDzeDXiV7QjD3wttgzfKCURikncj89zkcfoSRzAmwKlcJA99kEi74/dpqwb8Q1ApategG89UFEjBZMbaTZOYNBfy7Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zMvEuCqp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d3g+Cd+t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ACA8C116B1;
-	Fri, 28 Jun 2024 18:53:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zMvEuCqp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2F18C116B1;
+	Fri, 28 Jun 2024 19:27:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719600826;
-	bh=obuu8amshKC6rJHdsNbXi0FO2lKkrlkc9+vTDk8mAQo=;
+	s=korg; t=1719602879;
+	bh=amKrIzDXYyuEa35l9ZA/b+de5E9+YYKfm3DY6GkKCwQ=;
 	h=Date:To:From:Subject:From;
-	b=d3g+Cd+tjbJbtZbQbsrMRuXEKZ7gt/gEPHPv05AP487SUJEaFrKzHc5JIOSfJaaXc
-	 va7T96/3GlHuCUOLc3OlQwivqqtrUQTnA6w7V0uJCJ8szjk3e6YpHlHIDaXMIFAnUA
-	 emdQTiiuung6ZSgcd0GwC5qaDY0VONDP/eL8WCPk=
-Date: Fri, 28 Jun 2024 11:53:46 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,libang.li@antgroup.com,akpm@linux-foundation.org
+	b=zMvEuCqpIa3rjDmkG9IrK9hmjV1P3UNEKMZy/UZU4dGoTFJCJvqYAqtNnKS3DlOj7
+	 ihFo8/caxTv77La9HO27XaFCuUjHM26byvTTBjX/f2IGWHA5KGOTqN8CBi9t0/6w/g
+	 ZXyCd/9uQt3S2PQzyPrl+LX5dcnB4MrOgf1hM9R0=
+Date: Fri, 28 Jun 2024 12:27:59 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,rientjes@google.com,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,hannes@cmpxchg.org,dave.hansen@intel.com,ak@linux.intel.com,tvrtko.ursulin@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + support-thpeligible-semantics-for-mthp-with-anonymous-shmem.patch added to mm-unstable branch
-Message-Id: <20240628185346.8ACA8C116B1@smtp.kernel.org>
+Subject: [to-be-updated] mm-numa_balancing-teach-mpol_to_str-about-the-balancing-mode.patch removed from -mm tree
+Message-Id: <20240628192759.A2F18C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,140 +34,75 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: smaps: support "THPeligible" semantics for mTHP with anonymous shmem
-has been added to the -mm mm-unstable branch.  Its filename is
-     support-thpeligible-semantics-for-mthp-with-anonymous-shmem.patch
+The quilt patch titled
+     Subject: mm/numa_balancing: teach mpol_to_str about the balancing mode
+has been removed from the -mm tree.  Its filename was
+     mm-numa_balancing-teach-mpol_to_str-about-the-balancing-mode.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/support-thpeligible-semantics-for-mthp-with-anonymous-shmem.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: "Bang Li" <libang.li@antgroup.com>
-Subject: smaps: support "THPeligible" semantics for mTHP with anonymous shmem
-Date: Fri, 28 Jun 2024 18:49:26 +0800
+From: Tvrtko Ursulin <tvrtko.ursulin@igalia.com>
+Subject: mm/numa_balancing: teach mpol_to_str about the balancing mode
+Date: Tue, 25 Jun 2024 14:26:05 +0100
 
-After the commit 7fb1b252afb5 ("mm: shmem: add mTHP support for
-anonymous shmem"), we can configure different policies through
-the multi-size THP sysfs interface for anonymous shmem. But
-currently "THPeligible" indicates only whether the mapping is
-eligible for allocating THP-pages as well as the THP is PMD
-mappable or not for anonymous shmem, we need to support semantics
-for mTHP with anonymous shmem similar to those for mTHP with
-anonymous memory.
+If a task has had MPOL_F_NUMA_BALANCING set it is useful to show that in
+procfs.  Teach the mpol_to_str() helper about its existence and while at
+it update the comment to account for "weighted interleave" when suggesting
+a recommended buffer size.
 
-Link: https://lkml.kernel.org/r/20240628104926.34209-1-libang.li@antgroup.com
-Signed-off-by: Bang Li <libang.li@antgroup.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20240625132605.38428-1-tursulin@igalia.com
+Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@igalia.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c      |   10 +++++++---
- include/linux/huge_mm.h |   11 +++++++++++
- mm/shmem.c              |    9 +--------
- 3 files changed, 19 insertions(+), 11 deletions(-)
+ mm/mempolicy.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/fs/proc/task_mmu.c~support-thpeligible-semantics-for-mthp-with-anonymous-shmem
-+++ a/fs/proc/task_mmu.c
-@@ -1145,6 +1145,7 @@ static int show_smap(struct seq_file *m,
+--- a/mm/mempolicy.c~mm-numa_balancing-teach-mpol_to_str-about-the-balancing-mode
++++ a/mm/mempolicy.c
+@@ -3297,8 +3297,9 @@ out:
+  * @pol:  pointer to mempolicy to be formatted
+  *
+  * Convert @pol into a string.  If @buffer is too short, truncate the string.
+- * Recommend a @maxlen of at least 32 for the longest mode, "interleave", the
+- * longest flag, "relative", and to display at least a few node ids.
++ * Recommend a @maxlen of at least 42 for the longest mode, "weighted
++ * interleave", the longest flag, "balancing", and to display at least a few
++ * node ids.
+  */
+ void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
  {
- 	struct vm_area_struct *vma = v;
- 	struct mem_size_stats mss = {};
-+	bool thp_eligible;
+@@ -3335,12 +3336,15 @@ void mpol_to_str(char *buffer, int maxle
+ 		p += snprintf(p, buffer + maxlen - p, "=");
  
- 	smap_gather_stats(vma, &mss, 0);
- 
-@@ -1157,9 +1158,12 @@ static int show_smap(struct seq_file *m,
- 
- 	__show_smap(m, &mss, false);
- 
--	seq_printf(m, "THPeligible:    %8u\n",
--		   !!thp_vma_allowable_orders(vma, vma->vm_flags,
--			   TVA_SMAPS | TVA_ENFORCE_SYSFS, THP_ORDERS_ALL));
-+	thp_eligible = !!thp_vma_allowable_orders(vma, vma->vm_flags,
-+						TVA_SMAPS | TVA_ENFORCE_SYSFS, THP_ORDERS_ALL);
-+	if (vma_is_anon_shmem(vma))
-+		thp_eligible = !!shmem_allowable_huge_orders(file_inode(vma->vm_file),
-+							vma, vma->vm_pgoff, thp_eligible);
-+	seq_printf(m, "THPeligible:    %8u\n", thp_eligible);
- 
- 	if (arch_pkeys_enabled())
- 		seq_printf(m, "ProtectionKey:  %8u\n", vma_pkey(vma));
---- a/include/linux/huge_mm.h~support-thpeligible-semantics-for-mthp-with-anonymous-shmem
-+++ a/include/linux/huge_mm.h
-@@ -267,6 +267,10 @@ unsigned long thp_vma_allowable_orders(s
- 	return __thp_vma_allowable_orders(vma, vm_flags, tva_flags, orders);
- }
- 
-+unsigned long shmem_allowable_huge_orders(struct inode *inode,
-+				struct vm_area_struct *vma, pgoff_t index,
-+				bool global_huge);
+ 		/*
+-		 * Currently, the only defined flags are mutually exclusive
++		 * The below two flags are mutually exclusive:
+ 		 */
+ 		if (flags & MPOL_F_STATIC_NODES)
+ 			p += snprintf(p, buffer + maxlen - p, "static");
+ 		else if (flags & MPOL_F_RELATIVE_NODES)
+ 			p += snprintf(p, buffer + maxlen - p, "relative");
 +
- struct thpsize {
- 	struct kobject kobj;
- 	struct list_head node;
-@@ -462,6 +466,13 @@ static inline unsigned long thp_vma_allo
- {
- 	return 0;
- }
-+
-+static inline unsigned long shmem_allowable_huge_orders(struct inode *inode,
-+				struct vm_area_struct *vma, pgoff_t index,
-+				bool global_huge)
-+{
-+	return 0;
-+}
++		if (flags & MPOL_F_NUMA_BALANCING)
++			p += snprintf(p, buffer + maxlen - p, "balancing");
+ 	}
  
- #define transparent_hugepage_flags 0UL
- 
---- a/mm/shmem.c~support-thpeligible-semantics-for-mthp-with-anonymous-shmem
-+++ a/mm/shmem.c
-@@ -1622,7 +1622,7 @@ static gfp_t limit_gfp_mask(gfp_t huge_g
- }
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--static unsigned long shmem_allowable_huge_orders(struct inode *inode,
-+unsigned long shmem_allowable_huge_orders(struct inode *inode,
- 				struct vm_area_struct *vma, pgoff_t index,
- 				bool global_huge)
- {
-@@ -1707,13 +1707,6 @@ static unsigned long shmem_suitable_orde
- 	return orders;
- }
- #else
--static unsigned long shmem_allowable_huge_orders(struct inode *inode,
--				struct vm_area_struct *vma, pgoff_t index,
--				bool global_huge)
--{
--	return 0;
--}
--
- static unsigned long shmem_suitable_orders(struct inode *inode, struct vm_fault *vmf,
- 					   struct address_space *mapping, pgoff_t index,
- 					   unsigned long orders)
+ 	if (!nodes_empty(nodes))
 _
 
-Patches currently in -mm which might be from libang.li@antgroup.com are
+Patches currently in -mm which might be from tvrtko.ursulin@igalia.com are
 
-support-thpeligible-semantics-for-mthp-with-anonymous-shmem.patch
 
