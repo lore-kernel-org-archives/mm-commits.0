@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 083AA7494
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:30:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 393C26FC5
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:30:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628211; cv=none; b=hSllBgQVM5MbUoJcjMvnDNK8tndtQJjHUvmW/ffhaFfwfmEMnlHU25raIbCqs6CWGfuMmuj52LuFBB49VJWs2weW0yd69EmtTFhUdGtzRgafQOuz14DCX8dYMzPrAFy08Uo25jQtDocFxABLVbkRqOi03dJl2IhXyi0RlI4LYyA=
+	t=1719628211; cv=none; b=MnXxD7FbzIY63s7k7vXwzyRueSPn3nL5ebvFptZk3+UtwupaJWyBHNsli91bpWgSdo9LM7OVZTnU/aBqS9wPMhmrEqsrNf0sV/xXoRlAu6nV+ut4gh7CY7xSTwOh0aR+wcyTw9TNlejCxE5dXUuQQUeszI9c+ZpXmaJc7vfOoH0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1719628211; c=relaxed/simple;
-	bh=y03doohkdVJSMBdmNzwM8K/599Y3IitRYOxXm36z4zg=;
-	h=Date:To:From:Subject:Message-Id; b=JrYZdeN/k7WSn1xBJ95xNFHr6PbkBsFEe1NJS4cmTU+DQtQyMzvsJepH/bPDwdhAaHTPZfswF1RWSA2E0CfvWkGn9xBPb61YzXjTttwq/3c84XNCPPQdUjV2wP9YhsZBKvtxlYqORdMXfvHAwJAFoeZW6h0+PZW8KAHjGydTvV0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q5TX3YGc; arc=none smtp.client-ip=10.30.226.201
+	bh=s2ZxLn0V8nLD02lRVqpmK/cQVVvfLOmLkKA3brhUZdY=;
+	h=Date:To:From:Subject:Message-Id; b=AdyQ5B2xnwvH60qP+GhBcb96qZtP+4Cpw2QrISw8gW76qsSY2hEs7WA8LvzIeA5cujVMsFl7rPYBXqkMUfWH8d7u1jdBtefir+NM0rWHR6sKKeaOcYQYNmE67uW9nivyWduJIcAfk/1bjpXGfNI/JUQWcMsGfsswedxpEOUc+n8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UOY1/tZF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q5TX3YGc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 898EEC32786;
-	Sat, 29 Jun 2024 02:30:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UOY1/tZF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD5F6C116B1;
+	Sat, 29 Jun 2024 02:30:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628209;
-	bh=y03doohkdVJSMBdmNzwM8K/599Y3IitRYOxXm36z4zg=;
+	s=korg; t=1719628210;
+	bh=s2ZxLn0V8nLD02lRVqpmK/cQVVvfLOmLkKA3brhUZdY=;
 	h=Date:To:From:Subject:From;
-	b=q5TX3YGcKpvCjD2Qe/+aVI7Un06MZ44WQQVql4unEj+30TZR5XxoIUc11yEEjngFx
-	 nXJ0j2CcKXFq9uwmhjhzpQTKT5GtEjSyObn2DgsjzfP9qQ4Pr5GzXs63IYMtP9XbMy
-	 Om8LFX1sNRCuDm416Fs8MgwQFWhDw8gsOZsmIb1c=
-Date: Fri, 28 Jun 2024 19:30:09 -0700
-To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,sstabellini@kernel.org,rppt@kernel.org,osalvador@suse.de,oleksandr_tyshchenko@epam.com,mst@redhat.com,kys@microsoft.com,jgross@suse.com,jasowang@redhat.com,haiyangz@microsoft.com,glider@google.com,eperezma@redhat.com,elver@google.com,dvyukov@google.com,decui@microsoft.com,david@redhat.com,akpm@linux-foundation.org
+	b=UOY1/tZF33TZHQ7qYyED5Zlok7moW1RE7HmzPHRS18SLDR0av83qflkCLVhiSOT2l
+	 9GFO+LW2f2It+MF1oojz81cNShFNuafY5GLdrsblirhnQILQVZSdhZsZ+XJMV8Nk0P
+	 zPnTp6cyEdTar3YkQDcHZU9XKGDDrqLW77/qxhx8=
+Date: Fri, 28 Jun 2024 19:30:10 -0700
+To: mm-commits@vger.kernel.org,xiongwei.song@windriver.com,willy@infradead.org,urezki@gmail.com,shubhang@os.amperecomputing.com,guoren@kernel.org,corbet@lwn.net,cl@linux.com,Shubhang@os.amperecomputing.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining.patch removed from -mm tree
-Message-Id: <20240629023009.898EEC32786@smtp.kernel.org>
+Subject: [merged mm-stable] vmalloc-modify-the-alloc_vmap_area-error-message-for-better-diagnostics.patch removed from -mm tree
+Message-Id: <20240629023010.BD5F6C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,186 +35,111 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory_hotplug: skip adjust_managed_page_count() for PageOffline() pages when offlining
+     Subject: vmalloc: modify the alloc_vmap_area() error message for better diagnostics
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining.patch
+     vmalloc-modify-the-alloc_vmap_area-error-message-for-better-diagnostics.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: skip adjust_managed_page_count() for PageOffline() pages when offlining
-Date: Fri, 7 Jun 2024 11:09:38 +0200
+From: Shubhang Kaushik OS <Shubhang@os.amperecomputing.com>
+Subject: vmalloc: modify the alloc_vmap_area() error message for better diagnostics
+Date: Mon, 10 Jun 2024 17:22:58 +0000
 
-We currently have a hack for virtio-mem in place to handle memory
-offlining with PageOffline pages for which we already adjusted the managed
-page count.
+'vmap allocation for size %lu failed: use vmalloc=<size> to increase size'
+The above warning is seen in the kernel functionality for allocation of
+the restricted virtual memory range till exhaustion.
 
-Let's enlighten memory offlining code so we can get rid of that hack, and
-document the situation.
+This message is misleading because 'vmalloc=' is supported on arm32, x86
+platforms and is not a valid kernel parameter on a number of other
+platforms (in particular its not supported on arm64, alpha, loongarch,
+arc, csky, hexagon, microblaze, mips, nios2, openrisc, parisc, m64k,
+powerpc, riscv, sh, um, xtensa, s390, sparc).  With the update, the output
+gets modified to include the function parameters along with the start and
+end of the virtual memory range allowed.
 
-Link: https://lkml.kernel.org/r/20240607090939.89524-4-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dexuan Cui <decui@microsoft.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Eugenio Pérez <eperezma@redhat.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Wei Liu <wei.liu@kernel.org>
-Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+The warning message after fix on kernel version 6.10.0-rc1+:
+
+vmalloc_node_range for size 33619968 failed: Address range restricted between 0xffff800082640000 - 0xffff800084650000
+
+Backtrace with the misleading error message:
+
+	vmap allocation for size 33619968 failed: use vmalloc=<size> to increase size
+	insmod: vmalloc error: size 33554432, vm_struct allocation failed, mode:0xcc0(GFP_KERNEL), nodemask=(null),cpuset=/,mems_allowed=0
+	CPU: 46 PID: 1977 Comm: insmod Tainted: G            E      6.10.0-rc1+ #79
+	Hardware name: INGRASYS Yushan Server iSystem TEMP-S000141176+10/Yushan Motherboard, BIOS 2.10.20230517 (SCP: xxx) yyyy/mm/dd
+	Call trace:
+		dump_backtrace+0xa0/0x128
+		show_stack+0x20/0x38
+		dump_stack_lvl+0x78/0x90
+		dump_stack+0x18/0x28
+		warn_alloc+0x12c/0x1b8
+		__vmalloc_node_range_noprof+0x28c/0x7e0
+		custom_init+0xb4/0xfff8 [test_driver]
+		do_one_initcall+0x60/0x290
+		do_init_module+0x68/0x250
+		load_module+0x236c/0x2428
+		init_module_from_file+0x8c/0xd8
+		__arm64_sys_finit_module+0x1b4/0x388
+		invoke_syscall+0x78/0x108
+		el0_svc_common.constprop.0+0x48/0xf0
+		do_el0_svc+0x24/0x38
+		el0_svc+0x3c/0x130
+		el0t_64_sync_handler+0x100/0x130
+		el0t_64_sync+0x190/0x198
+
+[Shubhang@os.amperecomputing.com: v5]
+  Link: https://lkml.kernel.org/r/CH2PR01MB5894B0182EA0B28DF2EFB916F5C72@CH2PR01MB5894.prod.exchangelabs.com
+Link: https://lkml.kernel.org/r/MN2PR01MB59025CC02D1D29516527A693F5C62@MN2PR01MB5902.prod.exchangelabs.com
+Signed-off-by: Shubhang Kaushik <shubhang@os.amperecomputing.com>
+Reviewed-by: Christoph Lameter (Ampere) <cl@linux.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Xiongwei Song <xiongwei.song@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_mem.c    |   11 ++---------
- include/linux/memory_hotplug.h |    4 ++--
- include/linux/page-flags.h     |    8 ++++++--
- mm/memory_hotplug.c            |    6 +++---
- mm/page_alloc.c                |   12 ++++++++++--
- 5 files changed, 23 insertions(+), 18 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    9 ++++++---
+ mm/vmalloc.c                                    |    4 ++--
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
---- a/drivers/virtio/virtio_mem.c~mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining
-+++ a/drivers/virtio/virtio_mem.c
-@@ -1269,12 +1269,6 @@ static void virtio_mem_fake_offline_goin
- 	struct page *page;
- 	unsigned long i;
+--- a/Documentation/admin-guide/kernel-parameters.txt~vmalloc-modify-the-alloc_vmap_area-error-message-for-better-diagnostics
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -7239,9 +7239,12 @@
  
--	/*
--	 * Drop our reference to the pages so the memory can get offlined
--	 * and add the unplugged pages to the managed page counters (so
--	 * offlining code can correctly subtract them again).
--	 */
--	adjust_managed_page_count(pfn_to_page(pfn), nr_pages);
- 	/* Drop our reference to the pages so the memory can get offlined. */
- 	for (i = 0; i < nr_pages; i++) {
- 		page = pfn_to_page(pfn + i);
-@@ -1293,10 +1287,9 @@ static void virtio_mem_fake_offline_canc
- 	unsigned long i;
+ 	vmalloc=nn[KMG]	[KNL,BOOT,EARLY] Forces the vmalloc area to have an
+ 			exact size of <nn>. This can be used to increase
+-			the minimum size (128MB on x86). It can also be
+-			used to decrease the size and leave more room
+-			for directly mapped kernel RAM.
++			the minimum size (128MB on x86, arm32 platforms).
++			It can also be used to decrease the size and leave more room
++			for directly mapped kernel RAM. Note that this parameter does
++			not exist on many other platforms (including arm64, alpha,
++			loongarch, arc, csky, hexagon, microblaze, mips, nios2, openrisc,
++			parisc, m64k, powerpc, riscv, sh, um, xtensa, s390, sparc).
  
- 	/*
--	 * Get the reference we dropped when going offline and subtract the
--	 * unplugged pages from the managed page counters.
-+	 * Get the reference again that we dropped via page_ref_dec_and_test()
-+	 * when going offline.
- 	 */
--	adjust_managed_page_count(pfn_to_page(pfn), -nr_pages);
- 	for (i = 0; i < nr_pages; i++)
- 		page_ref_inc(pfn_to_page(pfn + i));
- }
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining
-+++ a/include/linux/memory_hotplug.h
-@@ -175,8 +175,8 @@ extern int mhp_init_memmap_on_memory(uns
- extern void mhp_deinit_memmap_on_memory(unsigned long pfn, unsigned long nr_pages);
- extern int online_pages(unsigned long pfn, unsigned long nr_pages,
- 			struct zone *zone, struct memory_group *group);
--extern void __offline_isolated_pages(unsigned long start_pfn,
--				     unsigned long end_pfn);
-+extern unsigned long __offline_isolated_pages(unsigned long start_pfn,
-+		unsigned long end_pfn);
- 
- typedef void (*online_page_callback_t)(struct page *page, unsigned int order);
- 
---- a/include/linux/page-flags.h~mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining
-+++ a/include/linux/page-flags.h
-@@ -1023,11 +1023,15 @@ PAGE_TYPE_OPS(Buddy, buddy, buddy)
-  * putting them back to the buddy, it can do so via the memory notifier by
-  * decrementing the reference count in MEM_GOING_OFFLINE and incrementing the
-  * reference count in MEM_CANCEL_OFFLINE. When offlining, the PageOffline()
-- * pages (now with a reference count of zero) are treated like free pages,
-- * allowing the containing memory block to get offlined. A driver that
-+ * pages (now with a reference count of zero) are treated like free (unmanaged)
-+ * pages, allowing the containing memory block to get offlined. A driver that
-  * relies on this feature is aware that re-onlining the memory block will
-  * require not giving them to the buddy via generic_online_page().
-  *
-+ * Memory offlining code will not adjust the managed page count for any
-+ * PageOffline() pages, treating them like they were never exposed to the
-+ * buddy using generic_online_page().
-+ *
-  * There are drivers that mark a page PageOffline() and expect there won't be
-  * any further access to page content. PFN walkers that read content of random
-  * pages should check PageOffline() and synchronize with such drivers using
---- a/mm/memory_hotplug.c~mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining
-+++ a/mm/memory_hotplug.c
-@@ -1942,7 +1942,7 @@ int __ref offline_pages(unsigned long st
- 			struct zone *zone, struct memory_group *group)
- {
- 	const unsigned long end_pfn = start_pfn + nr_pages;
--	unsigned long pfn, system_ram_pages = 0;
-+	unsigned long pfn, managed_pages, system_ram_pages = 0;
- 	const int node = zone_to_nid(zone);
- 	unsigned long flags;
- 	struct memory_notify arg;
-@@ -2063,7 +2063,7 @@ int __ref offline_pages(unsigned long st
- 	} while (ret);
- 
- 	/* Mark all sections offline and remove free pages from the buddy. */
--	__offline_isolated_pages(start_pfn, end_pfn);
-+	managed_pages = __offline_isolated_pages(start_pfn, end_pfn);
- 	pr_debug("Offlined Pages %ld\n", nr_pages);
- 
- 	/*
-@@ -2079,7 +2079,7 @@ int __ref offline_pages(unsigned long st
- 	zone_pcp_enable(zone);
- 
- 	/* removal success */
--	adjust_managed_page_count(pfn_to_page(start_pfn), -nr_pages);
-+	adjust_managed_page_count(pfn_to_page(start_pfn), -managed_pages);
- 	adjust_present_page_count(pfn_to_page(start_pfn), group, -nr_pages);
- 
- 	/* reinitialise watermarks and update pcp limits */
---- a/mm/page_alloc.c~mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining
-+++ a/mm/page_alloc.c
-@@ -6715,14 +6715,19 @@ void zone_pcp_reset(struct zone *zone)
- /*
-  * All pages in the range must be in a single zone, must not contain holes,
-  * must span full sections, and must be isolated before calling this function.
-+ *
-+ * Returns the number of managed (non-PageOffline()) pages in the range: the
-+ * number of pages for which memory offlining code must adjust managed page
-+ * counters using adjust_managed_page_count().
-  */
--void __offline_isolated_pages(unsigned long start_pfn, unsigned long end_pfn)
-+unsigned long __offline_isolated_pages(unsigned long start_pfn,
-+		unsigned long end_pfn)
- {
-+	unsigned long already_offline = 0, flags;
- 	unsigned long pfn = start_pfn;
- 	struct page *page;
- 	struct zone *zone;
- 	unsigned int order;
--	unsigned long flags;
- 
- 	offline_mem_sections(pfn, end_pfn);
- 	zone = page_zone(pfn_to_page(pfn));
-@@ -6744,6 +6749,7 @@ void __offline_isolated_pages(unsigned l
- 		if (PageOffline(page)) {
- 			BUG_ON(page_count(page));
- 			BUG_ON(PageBuddy(page));
-+			already_offline++;
- 			pfn++;
- 			continue;
- 		}
-@@ -6756,6 +6762,8 @@ void __offline_isolated_pages(unsigned l
- 		pfn += (1 << order);
+ 	vmcp_cma=nn[MG]	[KNL,S390,EARLY]
+ 			Sets the memory size reserved for contiguous memory
+--- a/mm/vmalloc.c~vmalloc-modify-the-alloc_vmap_area-error-message-for-better-diagnostics
++++ a/mm/vmalloc.c
+@@ -2056,8 +2056,8 @@ overflow:
  	}
- 	spin_unlock_irqrestore(&zone->lock, flags);
-+
-+	return end_pfn - start_pfn - already_offline;
- }
- #endif
  
+ 	if (!(gfp_mask & __GFP_NOWARN) && printk_ratelimit())
+-		pr_warn("vmap allocation for size %lu failed: use vmalloc=<size> to increase size\n",
+-			size);
++		pr_warn("vmalloc_node_range for size %lu failed: Address range restricted to %#lx - %#lx\n",
++				size, vstart, vend);
+ 
+ 	kmem_cache_free(vmap_area_cachep, va);
+ 	return ERR_PTR(-EBUSY);
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from Shubhang@os.amperecomputing.com are
 
 
