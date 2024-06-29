@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 876D615E81
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:31:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86C7D15E81
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:31:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628297; cv=none; b=dI0YOdURO2C4UskjDUKSc1uEfNM9AxKiSNljxn9xEoON4HHjpq0y4x+ZoyBVciWMUHmEW0teq2gqRZSSWODnrxgtwcV+KMMT6+LjWniKaKrXrBfz+ENlHAboTDWj4BErQwaqrnxwMw/cdtnvODn0nBQ7sXw3iS5iMdIN5qREHDA=
+	t=1719628298; cv=none; b=S0CI1mWR7lrs8WJUcEOtXolekgvgcc5hTZyqNJcQpuomw5XwOLByKuqAybAMKMaN7BDI84KWHA5jUNWJJv/1KN7q9iGE0IIsB+zmojS4pJ6aT9wgM/KgaWulwpo2gpmW+DIHJ9mYYhHReYheHFtg0zXB+RVJSvHyr0oPs4WKLYw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719628297; c=relaxed/simple;
-	bh=FfFmZQ+2MQVNLkQ05ZvYk7YCCPDDhFQfARyPfu8p7m4=;
-	h=Date:To:From:Subject:Message-Id; b=UgpOYY0l018SnTPP0PIdoqQ75dfk53HjFif80tm31CL4cyXWeTOia2YIXuqwveLYVrtMi1bwzTyGDw1eBQoeneY0ai2wVgMokboyKz8mE12CrSg71RQuPl6PKeBuDuWpJmkTpg8N609JrE2kmruKX8c9QxSFl5M/1WeDK88MxDY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rs0lPXfE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628298; c=relaxed/simple;
+	bh=zHDBBT5eXZQNDimpPHbnP04pUaRJgNbZBPKYjvqdHqI=;
+	h=Date:To:From:Subject:Message-Id; b=EOJamB6uhpHrccrMrCgeDmxQybitSMLlEwpH0SpDPiYm1OrH4OhshKPGRzP3/GECGJ+8wuy8YIVoJ6vpHpjova7E629sxRKyuCpuucG/yd2lOhA+H7ev+uFfM87kpgjJ3xtZ0CIDLb/3p+XF2h7Sq3gCLCr2HcEeB+4b2/JS4/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VwP6q1fx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rs0lPXfE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D627C116B1;
-	Sat, 29 Jun 2024 02:31:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VwP6q1fx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DBADC32781;
+	Sat, 29 Jun 2024 02:31:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628297;
-	bh=FfFmZQ+2MQVNLkQ05ZvYk7YCCPDDhFQfARyPfu8p7m4=;
+	s=korg; t=1719628298;
+	bh=zHDBBT5eXZQNDimpPHbnP04pUaRJgNbZBPKYjvqdHqI=;
 	h=Date:To:From:Subject:From;
-	b=rs0lPXfEL58QSMWdrvUfhWzLAojMvsuJ0qqrHvOpNgJdxp5cCLU+Bo9UuZTkG5QbR
-	 hNUXAUTBL1jvEKI6fYAxESKheY7NoYKuZ1hf/X0tefkRvNt6mkU2k//gNtEDSN/8KF
-	 sX+0D32QFke7eC5A1/vCwNcjFZIa0LG+SwgmKiZM=
-Date: Fri, 28 Jun 2024 19:31:36 -0700
+	b=VwP6q1fx9VnCOBnsLpDMPmahHX1GJW7YqqbfugrxV9XgpMhXsC+Q3T/5zoUUNwbZU
+	 FMuKhCgwYso3xkDgS5CibFiPR+2jV5gwMzYEp2jLuNQtrTTWM6ve+Jkl8PZhDeOVWf
+	 jqtAdy0ZPnBvo7FIKfOZAnrdLuVUZzKXkcvQ6tys=
+Date: Fri, 28 Jun 2024 19:31:37 -0700
 To: mm-commits@vger.kernel.org,zhangpengpeng0808@gmail.com,willy@infradead.org,josef@toxicpanda.com,jack@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] readahead-drop-pointless-index-from-force_page_cache_ra.patch removed from -mm tree
-Message-Id: <20240629023137.5D627C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] readahead-drop-index-argument-of-page_cache_async_readahead.patch removed from -mm tree
+Message-Id: <20240629023138.5DBADC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: readahead: drop pointless index from force_page_cache_ra()
+     Subject: readahead: drop index argument of page_cache_async_readahead()
 has been removed from the -mm tree.  Its filename was
-     readahead-drop-pointless-index-from-force_page_cache_ra.patch
+     readahead-drop-index-argument-of-page_cache_async_readahead.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: readahead: drop pointless index from force_page_cache_ra()
-Date: Tue, 25 Jun 2024 12:18:54 +0200
+Subject: readahead: drop index argument of page_cache_async_readahead()
+Date: Tue, 25 Jun 2024 12:18:55 +0200
 
-Current index to readahead is tracked in readahead_control and properly
-updated by page_cache_ra_unbounded() (read_pages() in fact).  So there's
-no need to track the index separately in force_page_cache_ra().
+The index argument of page_cache_async_readahead() is just folio->index so
+there's no point in passing is separately.  Drop it.
 
-Link: https://lkml.kernel.org/r/20240625101909.12234-4-jack@suse.cz
+Link: https://lkml.kernel.org/r/20240625101909.12234-5-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
 Reviewed-by: Josef Bacik <josef@toxicpanda.com>
 Tested-by: Zhang Peng <zhangpengpeng0808@gmail.com>
@@ -59,39 +58,58 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ fs/btrfs/relocation.c   |    3 +--
+ fs/btrfs/send.c         |    2 +-
+ include/linux/pagemap.h |    7 +++----
+ 3 files changed, 5 insertions(+), 7 deletions(-)
 
---- a/mm/readahead.c~readahead-drop-pointless-index-from-force_page_cache_ra
-+++ a/mm/readahead.c
-@@ -313,7 +313,7 @@ void force_page_cache_ra(struct readahea
- 	struct address_space *mapping = ractl->mapping;
- 	struct file_ra_state *ra = ractl->ra;
- 	struct backing_dev_info *bdi = inode_to_bdi(mapping->host);
--	unsigned long max_pages, index;
-+	unsigned long max_pages;
+--- a/fs/btrfs/relocation.c~readahead-drop-index-argument-of-page_cache_async_readahead
++++ a/fs/btrfs/relocation.c
+@@ -2975,8 +2975,7 @@ static int relocate_one_folio(struct ino
  
- 	if (unlikely(!mapping->a_ops->read_folio && !mapping->a_ops->readahead))
- 		return;
-@@ -322,7 +322,6 @@ void force_page_cache_ra(struct readahea
- 	 * If the request exceeds the readahead window, allow the read to
- 	 * be up to the optimal hardware IO size
- 	 */
--	index = readahead_index(ractl);
- 	max_pages = max_t(unsigned long, bdi->io_pages, ra->ra_pages);
- 	nr_to_read = min_t(unsigned long, nr_to_read, max_pages);
- 	while (nr_to_read) {
-@@ -330,10 +329,8 @@ void force_page_cache_ra(struct readahea
+ 	if (folio_test_readahead(folio))
+ 		page_cache_async_readahead(inode->i_mapping, ra, NULL,
+-					   folio, index,
+-					   last_index + 1 - index);
++					   folio, last_index + 1 - index);
  
- 		if (this_chunk > nr_to_read)
- 			this_chunk = nr_to_read;
--		ractl->_index = index;
- 		do_page_cache_ra(ractl, this_chunk, 0);
+ 	if (!folio_test_uptodate(folio)) {
+ 		btrfs_read_folio(NULL, folio);
+--- a/fs/btrfs/send.c~readahead-drop-index-argument-of-page_cache_async_readahead
++++ a/fs/btrfs/send.c
+@@ -5307,7 +5307,7 @@ static int put_file_data(struct send_ctx
  
--		index += this_chunk;
- 		nr_to_read -= this_chunk;
- 	}
+ 		if (folio_test_readahead(folio))
+ 			page_cache_async_readahead(mapping, &sctx->ra, NULL, folio,
+-						   index, last_index + 1 - index);
++						   last_index + 1 - index);
+ 
+ 		if (!folio_test_uptodate(folio)) {
+ 			btrfs_read_folio(NULL, folio);
+--- a/include/linux/pagemap.h~readahead-drop-index-argument-of-page_cache_async_readahead
++++ a/include/linux/pagemap.h
+@@ -1293,8 +1293,7 @@ void page_cache_sync_readahead(struct ad
+  * @mapping: address_space which holds the pagecache and I/O vectors
+  * @ra: file_ra_state which holds the readahead state
+  * @file: Used by the filesystem for authentication.
+- * @folio: The folio at @index which triggered the readahead call.
+- * @index: Index of first page to be read.
++ * @folio: The folio which triggered the readahead call.
+  * @req_count: Total number of pages being read by the caller.
+  *
+  * page_cache_async_readahead() should be called when a page is used which
+@@ -1305,9 +1304,9 @@ void page_cache_sync_readahead(struct ad
+ static inline
+ void page_cache_async_readahead(struct address_space *mapping,
+ 		struct file_ra_state *ra, struct file *file,
+-		struct folio *folio, pgoff_t index, unsigned long req_count)
++		struct folio *folio, unsigned long req_count)
+ {
+-	DEFINE_READAHEAD(ractl, file, ra, mapping, index);
++	DEFINE_READAHEAD(ractl, file, ra, mapping, folio->index);
+ 	page_cache_async_ra(&ractl, folio, req_count);
  }
+ 
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
