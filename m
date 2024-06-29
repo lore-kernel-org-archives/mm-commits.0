@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63262BE47
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:30:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEABABE47
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:30:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628258; cv=none; b=UOrnjehdmYcuNy0IfB6R0CVHCta851J5B0TZW34BwsaGaPCFq83jSMe/WejZNcOzZGM0EpvodGSvioNTqm8KfZnJbkN5Gg723PvT+8820xcf/FjThLNNFbTHP9EWhFm1UQsjxBoy6k34Vmn+ugGR43TUemyCjQ5j57ksf/Ho9FI=
+	t=1719628259; cv=none; b=KKNISt8iIH8ZsE+1MoAAI9EJl22UKh/15bUjNPOqzikmiWoW8LxdDUVaxC12qoRYEQ4rV+kyL/wz6fHoxj4dzC1SH1DnGkEIzKpspp52PWXEAaMYJ7TLvuuMsxMhh+DtzQBvmNL/oZNrDZjXGVV6QjT4K+P1Eh0xIgri88Ye5Gg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719628258; c=relaxed/simple;
-	bh=x84KfDbbGlKHo63uoEueavo+/ksGMfv6d2/b8mtkuF4=;
-	h=Date:To:From:Subject:Message-Id; b=E7LNYYOTS6i+QAdsUTJL/fFZRoUxgcRRgO8c19p+Zt9TEGn0Ax9l5RlTpyKwTJ/RsS4lG4lojgWRBFGHVl40FO7U7c2eTGWpdV8Ex3SOvBVfgNR6OQ/o0iMxufSqw03K4aMWpGmSpdM2JtbPKTXRLNeKTZ9Fc4Ao+F6Kb284k0Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zNqN5gaS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628259; c=relaxed/simple;
+	bh=wW/J7DRu0vZ74BycxTb+p9BJVVAK8qP+N4ayUSxLWtk=;
+	h=Date:To:From:Subject:Message-Id; b=RhPkwMliB48CZXcM5+EZ27GY8UaWv0YuiDWNvUZukRIDDtwvAc5C6AsAOQvVTLXpjc1NIBhZTrBhwiweIP8y5OHGYPTYvDFPkwPJbC7PSUWBXqMKCrBV9iYeig+OCe0ktMWj8+qNDK1KzVXKUK2hWKj0fIQAZIfnCwB799BDB7Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UaKHyIDT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zNqN5gaS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39A77C116B1;
-	Sat, 29 Jun 2024 02:30:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UaKHyIDT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3948C116B1;
+	Sat, 29 Jun 2024 02:30:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628258;
-	bh=x84KfDbbGlKHo63uoEueavo+/ksGMfv6d2/b8mtkuF4=;
+	s=korg; t=1719628259;
+	bh=wW/J7DRu0vZ74BycxTb+p9BJVVAK8qP+N4ayUSxLWtk=;
 	h=Date:To:From:Subject:From;
-	b=zNqN5gaSpFXl+kis1gPvvvb2dKPggkctJQkc/I0uqaeJy3wiS1uQDdk0ohp8NTy2F
-	 JowJcRcpGtkEk1xnIXlvYovn1iS+Sk+8c+fognC59QKUuHKUs+Io1u2Vj3hL3LqWoF
-	 EnfXoxU/Hf/r/80SVzyUxEgzEkM9yflO0rSsf+Wc=
-Date: Fri, 28 Jun 2024 19:30:57 -0700
+	b=UaKHyIDTU+BawGpg8zJ7Eq6xtKCcsY9LiKZ6SmBfYoz1V52kAG+aHxYufnW/1auJ+
+	 AD+8MPYmFFo4MgOZcwyZ7ouHO7wgc4xdgkHfq2WRovl0CpIIlyVsqBihtBbnnUG2YU
+	 C9cxt/6ni0CEsltAJR3ZNuJcEJoInZLAaudmWFxY=
+Date: Fri, 28 Jun 2024 19:30:59 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,kasan-dev@googlegroups.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-slub-disable-kmsan-when-checking-the-padding-bytes.patch removed from -mm tree
-Message-Id: <20240629023058.39A77C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kfence-disable-kmsan-when-checking-the-canary.patch removed from -mm tree
+Message-Id: <20240629023059.A3948C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,35 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: slub: disable KMSAN when checking the padding bytes
+     Subject: mm: kfence: disable KMSAN when checking the canary
 has been removed from the -mm tree.  Its filename was
-     mm-slub-disable-kmsan-when-checking-the-padding-bytes.patch
+     mm-kfence-disable-kmsan-when-checking-the-canary.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: mm: slub: disable KMSAN when checking the padding bytes
-Date: Fri, 21 Jun 2024 13:35:02 +0200
+Subject: mm: kfence: disable KMSAN when checking the canary
+Date: Fri, 21 Jun 2024 13:35:03 +0200
 
-Even though the KMSAN warnings generated by memchr_inv() are suppressed by
-metadata_access_enable(), its return value may still be poisoned.
+KMSAN warns about check_canary() accessing the canary.
 
-The reason is that the last iteration of memchr_inv() returns `*start !=
-value ?  start : NULL`, where *start is poisoned.  Because of this,
-somewhat counterintuitively, the shadow value computed by
-visitSelectInst() is equal to `(uintptr_t)start`.
+The reason is that, even though set_canary() is properly instrumented and
+sets shadow, slub explicitly poisons the canary's address range
+afterwards.
 
-One possibility to fix this, since the intention behind guarding
-memchr_inv() behind metadata_access_enable() is to touch poisoned metadata
-without triggering KMSAN, is to unpoison its return value.  However, this
-approach is too fragile.  So simply disable the KMSAN checks in the
-respective functions.
+Unpoisoning the canary is not the right thing to do: only check_canary()
+is supposed to ever touch it.  Instead, disable KMSAN checks around canary
+read accesses.
 
-Link: https://lkml.kernel.org/r/20240621113706.315500-19-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240621113706.315500-20-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
+Tested-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -85,41 +82,37 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ mm/kfence/core.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/mm/slub.c~mm-slub-disable-kmsan-when-checking-the-padding-bytes
-+++ a/mm/slub.c
-@@ -1176,9 +1176,16 @@ static void restore_bytes(struct kmem_ca
- 	memset(from, data, to - from);
+--- a/mm/kfence/core.c~mm-kfence-disable-kmsan-when-checking-the-canary
++++ a/mm/kfence/core.c
+@@ -305,8 +305,14 @@ metadata_update_state(struct kfence_meta
+ 	WRITE_ONCE(meta->state, next);
  }
  
--static int check_bytes_and_report(struct kmem_cache *s, struct slab *slab,
--			u8 *object, char *what,
--			u8 *start, unsigned int value, unsigned int bytes)
 +#ifdef CONFIG_KMSAN
-+#define pad_check_attributes noinline __no_kmsan_checks
++#define check_canary_attributes noinline __no_kmsan_checks
 +#else
-+#define pad_check_attributes
++#define check_canary_attributes inline
 +#endif
 +
-+static pad_check_attributes int
-+check_bytes_and_report(struct kmem_cache *s, struct slab *slab,
-+		       u8 *object, char *what,
-+		       u8 *start, unsigned int value, unsigned int bytes)
+ /* Check canary byte at @addr. */
+-static inline bool check_canary_byte(u8 *addr)
++static check_canary_attributes bool check_canary_byte(u8 *addr)
  {
- 	u8 *fault;
- 	u8 *end;
-@@ -1270,7 +1277,8 @@ static int check_pad_bytes(struct kmem_c
+ 	struct kfence_metadata *meta;
+ 	unsigned long flags;
+@@ -341,7 +347,8 @@ static inline void set_canary(const stru
+ 		*((u64 *)addr) = KFENCE_CANARY_PATTERN_U64;
  }
  
- /* Check the pad bytes at the end of a slab page */
--static void slab_pad_check(struct kmem_cache *s, struct slab *slab)
-+static pad_check_attributes void
-+slab_pad_check(struct kmem_cache *s, struct slab *slab)
+-static inline void check_canary(const struct kfence_metadata *meta)
++static check_canary_attributes void
++check_canary(const struct kfence_metadata *meta)
  {
- 	u8 *start;
- 	u8 *fault;
+ 	const unsigned long pageaddr = ALIGN_DOWN(meta->addr, PAGE_SIZE);
+ 	unsigned long addr = pageaddr;
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
