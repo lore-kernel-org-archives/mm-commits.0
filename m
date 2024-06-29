@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D98918026
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:31:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C4A71864C
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:31:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628305; cv=none; b=o6IdTxSDlriahq9pBi9SraiVlUEYqZqYATXKDomGNUZjpBGIW3xRiTEJY5/LdYH+MOJDVkjHdgqqPJ/Q9jSKH+uMl1+LUaAHAw3zr2m3cnKDNUsJvJCzxdoz8GnihgkkZF9j6OI5FtJOKdjh5BTSyKIlwcXw+Gvvm98mkrCZe0s=
+	t=1719628306; cv=none; b=nWr4pXmQkTu7HQVWa+BNyqUTzxb0yOjgmAvMfLj1Lg5cphilI2NGPgWuu8TgKiOHkw4uFCcdmIKdoSierYbyvAEnVVzZHIFXUQ5cNPCxBuAQcH4Lm+PGdqfDDX09fYkeGNrlHtASGCvaOpFqfLF8hbRhqp40bddbb0/9vBKVJmY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719628305; c=relaxed/simple;
-	bh=CRKSbcMXILfZ4YhLBTuZgzQ3F2glJpJr39IV9okHw+g=;
-	h=Date:To:From:Subject:Message-Id; b=taoiGiFfVlzmbbD8rMTR805I0knWLZbqgrwkIPQPItGPx6L4eqfNlhxOsNmcbv6wr1wA0m0aOV1/tb7LYf253iIQtHtZJH7CqoneJKp0ZlHk9Fw5xSB+R8qjXzBYOrrEdYOaxANwAjz6NXGwghK/pspVEIQBPuQB7lZcxXpYeQc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UmP8WCW6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628306; c=relaxed/simple;
+	bh=U+bP/NYA6dZMA77ImCrJ1qh/I8+4a+VrDMAwCx59O7c=;
+	h=Date:To:From:Subject:Message-Id; b=AyYXNKDucaX6JeqsfPkf0LbgbAu6XG2WJtYo23x9lOyFtzD5VyBFdIZosE2K08jzpz1663bTY45Ws+5E6b/yXn1iTMRxAI/FrMeF9DcfUO2P597Mqrzg/sSIAeHi+EIBZJafZrRqKzYp0zTAgpPF+xvpKCJmLPqHKTqGXES3UgQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ib0TpzdK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UmP8WCW6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 076B6C116B1;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ib0TpzdK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01365C32786;
 	Sat, 29 Jun 2024 02:31:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628305;
-	bh=CRKSbcMXILfZ4YhLBTuZgzQ3F2glJpJr39IV9okHw+g=;
+	s=korg; t=1719628306;
+	bh=U+bP/NYA6dZMA77ImCrJ1qh/I8+4a+VrDMAwCx59O7c=;
 	h=Date:To:From:Subject:From;
-	b=UmP8WCW6Nro7cLw2KCl42u/QAUe6KU6QPjYzVNkqqZV4jz0cN8HFyGXGW/330cCcp
-	 R5EMeQTevdlnCjiUJf7ohPrNG1Jnz4JLc4wWcu8PfGutOe+0Jby+kkBl087q0Ka1CH
-	 E0evLDgbgm2LuQ5X7q9YbSNEtdVvmuJmsVddy+nk=
-Date: Fri, 28 Jun 2024 19:31:44 -0700
+	b=ib0TpzdKkwqmVbzzcBiSwifS6q8QYHE+XXE2gMaK4/M2yMEvPYdWXm6sVF4UT6dcy
+	 73Y1XQ4t8kHOIFUe2kDBXZ7sqjox/E+sr8PBRzzpt3A9tR1C57Zi7x8xy07A2mGbv9
+	 PlKSzfQ1l0TKrHGRHvDJwS5Jqa8Hwc/fPyoAVxCs=
+Date: Fri, 28 Jun 2024 19:31:45 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-access_memory-use-user-defined-region-size.patch removed from -mm tree
-Message-Id: <20240629023145.076B6C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-_damon_sysfs-support-schemes_update_tried_regions.patch removed from -mm tree
+Message-Id: <20240629023146.01365C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon/access_memory: use user-defined region size
+     Subject: selftests/damon/_damon_sysfs: support schemes_update_tried_regions
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-access_memory-use-user-defined-region-size.patch
+     selftests-damon-_damon_sysfs-support-schemes_update_tried_regions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/access_memory: use user-defined region size
-Date: Tue, 25 Jun 2024 11:05:31 -0700
+Subject: selftests/damon/_damon_sysfs: support schemes_update_tried_regions
+Date: Tue, 25 Jun 2024 11:05:32 -0700
 
-Patch series "selftests/damon: test DAMOS tried regions and
-{min,max}_nr_regions".
+Implement schemes_update_tried_regions DAMON sysfs command on
+_damon_sysfs.py, to use on implementations of future tests for the
+feature.
 
-This patch series fix a minor issue in a program for DAMON selftest, and
-implement new functionality selftests for DAMOS tried regions and
-{min,max}_nr_regions.  The test for max_nr_regions also test the recovery
-from online tuning-caused limit violation, which was fixed by a previous
-patch [1] titled "mm/damon/core: merge regions aggressively when
-max_nr_regions is unmet".
-
-The first patch fixes a minor problem in the articial memory access
-pattern generator for tests.  Following 3 patches (2-4) implement schemes
-tried regions test.  Then a couple of patches (5-6) implementing static
-setup based {min,max}_nr_regions functionality test follows.  Final two
-patches (7-8) implement dynamic max_nr_regions update test.
-
-[1] https://lore.kernel.org/20240624210650.53960C2BBFC@smtp.kernel.org
-
-
-This patch (of 8):
-
-'access_memory' is an artificial memory access pattern generator for DAMON
-tests.  It creates and accesses memory regions that the user specified the
-number and size via the command line.  However, real access part of the
-program ignores the user-specified size of each region.  Instead, it uses
-a hard-coded value, 10 MiB.  Fix it to use user-defined size.
-
-Note that all existing 'access_memory' users are setting the region size
-as 10 MiB.  Hence no real problem has happened so far.
-
-Link: https://lkml.kernel.org/r/20240625180538.73134-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20240625180538.73134-2-sj@kernel.org
-Fixes: b5906f5f7359 ("selftests/damon: add a test for update_schemes_tried_regions sysfs command")
+Link: https://lkml.kernel.org/r/20240625180538.73134-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/access_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/damon/_damon_sysfs.py |   35 +++++++++++++++-
+ 1 file changed, 34 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/damon/access_memory.c~selftests-damon-access_memory-use-user-defined-region-size
-+++ a/tools/testing/selftests/damon/access_memory.c
-@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
- 		start_clock = clock();
- 		while ((clock() - start_clock) * 1000 / CLOCKS_PER_SEC <
- 				access_time_ms)
--			memset(regions[i], i, 1024 * 1024 * 10);
-+			memset(regions[i], i, sz_region);
- 	}
- 	return 0;
- }
+--- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-support-schemes_update_tried_regions
++++ a/tools/testing/selftests/damon/_damon_sysfs.py
+@@ -175,16 +175,24 @@ class DamosStats:
+         self.sz_applied = sz_applied
+         self.qt_exceeds = qt_exceeds
+ 
++class DamosTriedRegion:
++    def __init__(self, start, end, nr_accesses, age):
++        self.start = start
++        self.end = end
++        self.nr_accesses = nr_accesses
++        self.age = age
++
+ class Damos:
+     action = None
+     access_pattern = None
+     quota = None
+     apply_interval_us = None
+-    # todo: Support watermarks, stats, tried_regions
++    # todo: Support watermarks, stats
+     idx = None
+     context = None
+     tried_bytes = None
+     stats = None
++    tried_regions = None
+ 
+     def __init__(self, action='stat', access_pattern=DamosAccessPattern(),
+                  quota=DamosQuota(), apply_interval_us=0):
+@@ -398,6 +406,31 @@ class Kdamond:
+         err = write_file(os.path.join(self.sysfs_dir(), 'state'), 'on')
+         return err
+ 
++    def update_schemes_tried_regions(self):
++        err = write_file(os.path.join(self.sysfs_dir(), 'state'),
++                         'update_schemes_tried_regions')
++        if err is not None:
++            return err
++        for context in self.contexts:
++            for scheme in context.schemes:
++                tried_regions = []
++                tried_regions_dir = os.path.join(
++                        scheme.sysfs_dir(), 'tried_regions')
++                for filename in os.listdir(
++                        os.path.join(scheme.sysfs_dir(), 'tried_regions')):
++                    tried_region_dir = os.path.join(tried_regions_dir, filename)
++                    if not os.path.isdir(tried_region_dir):
++                        continue
++                    region_values = []
++                    for f in ['start', 'end', 'nr_accesses', 'age']:
++                        content, err = read_file(
++                                os.path.join(tried_region_dir, f))
++                        if err is not None:
++                            return err
++                        region_values.append(int(content))
++                    tried_regions.append(DamosTriedRegion(*region_values))
++                scheme.tried_regions = tried_regions
++
+     def update_schemes_tried_bytes(self):
+         err = write_file(os.path.join(self.sysfs_dir(), 'state'),
+                 'update_schemes_tried_bytes')
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
