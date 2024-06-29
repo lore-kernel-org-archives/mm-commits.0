@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9B837494
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:29:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41E287494
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:29:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628194; cv=none; b=ch85hJT6wd1wyOsR9UZYgAC192iewoq/x3ydKrazNb3iIQGswhpn0Q+hqH9xs4yvtUXA2cGJ+ZhPK5DhkvP6nGHlhSDvCrsaJKe1H1Ww7GFZiScAS2mNASD8pBsh35/Z19l86JwI/Whm5Ol2oZWI6h3mEsyogvZ2TcYgVeaEpyw=
+	t=1719628196; cv=none; b=QXNxlnrpP6mVsejsuv6vGVPt6ZbGqW6yOiLSbFBG/oES1LQvsV0p1jSufoUGCwm4kfT9s05xlbaY+6F6uGuQk6K8Ovo0aXCODCuujpJFj0ajMpcxz2EIP/H26IrJSham49T856efdsOae3Px0GyI7w+nsVJnbpnr/wfsE87UwQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719628194; c=relaxed/simple;
-	bh=gJRmssRt7jQcKuqRH/DSTONBT6wbFSIfgL53Jxu7h0o=;
-	h=Date:To:From:Subject:Message-Id; b=Ljm6Sn9HuHwpGksXDzWhaPU/mYy44osol00El/8Yj5NBU3UReq4Xcx0j1es6S8T32qsRGF45jZXJSEgb9oqDhEZz+tXyp4WdSA9bYU96vPbniLlvUFssTqshv541/Fw9X5e31eYDEyfM2MuaxhU0NyHH4OD0/aqy2Em741iznM4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xEhnCH3W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628196; c=relaxed/simple;
+	bh=DRcrPx4XVh34ifwh0DxaVpDxY8zUCjT5Aa4nXUGc96A=;
+	h=Date:To:From:Subject:Message-Id; b=lsMlKC/sZF3MOrzw0ntPFazPnIkz6OD47b4qvtfQB/hDwYuZIpNnX41eYqjTovoOx6GY+iZcK90OcS98WjP1QkW7pmQ2nr82DVPD0XjGlI43mcjSBnFX8Tj6eNtoXlWbFxm/s86r/GPnjowez8AR6Mny6XHHPTyaEjKTyoKpkXo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OJVFjcYt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xEhnCH3W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51FE5C32781;
-	Sat, 29 Jun 2024 02:29:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OJVFjcYt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E53BC32786;
+	Sat, 29 Jun 2024 02:29:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628194;
-	bh=gJRmssRt7jQcKuqRH/DSTONBT6wbFSIfgL53Jxu7h0o=;
+	s=korg; t=1719628196;
+	bh=DRcrPx4XVh34ifwh0DxaVpDxY8zUCjT5Aa4nXUGc96A=;
 	h=Date:To:From:Subject:From;
-	b=xEhnCH3WRdZEfLKLJm3stW5YGXiuUQGmYwWamr/HGYvjcBivqGDvdd9MSiWxOSjIk
-	 34nz2e+pMmINrOHhFHEKqaGqtBiwS/8QIg6K/6QhRXLxF9w3AKsVpo3pCsNNPhKYz1
-	 XGMzrp2rY6wOSIRJIPB82iN1sHw6nONHDv+R6Z/o=
-Date: Fri, 28 Jun 2024 19:29:53 -0700
+	b=OJVFjcYt1chXfuz2XZJSkVp4k2cA4cz1FvV3MY2kIDD8LAAwmFmc8n1eDKJHEs926
+	 ez+QgArYJY16P21hc3w3WToXBhJ9ATGpR0p08WjRbLV3VJ/bHl/LIMj6oFQtIpCK3o
+	 1bzvCwe9DO8eaVrLQJ1UbQOoox01dLp8TIViOjHo=
+Date: Fri, 28 Jun 2024 19:29:55 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,senozhatsky@chromium.org,rppt@kernel.org,minchan@kernel.org,42.hyeyoo@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type.patch removed from -mm tree
-Message-Id: <20240629022954.51FE5C32781@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zsmalloc-use-a-proper-page-type.patch removed from -mm tree
+Message-Id: <20240629022956.0E53BC32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,35 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: allow reuse of the lower 16 bit of the page type with an actual type
+     Subject: mm/zsmalloc: use a proper page type
 has been removed from the -mm tree.  Its filename was
-     mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type.patch
+     mm-zsmalloc-use-a-proper-page-type.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: allow reuse of the lower 16 bit of the page type with an actual type
-Date: Wed, 29 May 2024 13:19:00 +0200
+Subject: mm/zsmalloc: use a proper page type
+Date: Wed, 29 May 2024 13:19:01 +0200
 
-As long as the owner sets a page type first, we can allow reuse of the
-lower 16 bit: sufficient to store an offset into a 64 KiB page, which is
-the maximum base page size in *common* configurations (ignoring the 256
-KiB variant).  Restrict it to the head page.
+Let's clean it up: use a proper page type and store our data (offset into
+a page) in the lower 16 bit as documented.
 
-We'll use that for zsmalloc next, to set a proper type while still reusing
-that field to store information (offset into a base page) that cannot go
-elsewhere for now.
+We won't be able to support 256 KiB base pages, which is acceptable. 
+Teach Kconfig to handle that cleanly using a new CONFIG_HAVE_ZSMALLOC.
 
-Let's reserve the lower 16 bit for that purpose and for catching mapcount
-underflows, and let's reduce PAGE_TYPE_BASE to a single bit.
+Based on this, we should do a proper "struct zsdesc" conversion, as
+proposed in [1].
 
-Note that we will still have to overflow the mapcount quite a lot until we
-would actually indicate a valid page type.
+This removes the last _mapcount/page_type offender.
 
-Start handing out the type bits from highest to lowest, to make it clearer
-how many bits for types we have left.  Out of 15 bit we can use for types,
-we currently use 6.  If we run out of bits before we have better typing
-(e.g., memdesc), we can always investigate storing a value instead [1].
+[1] https://lore.kernel.org/all/20231130101242.2590384-1-42.hyeyoo@gmail.com/
 
-[1] https://lore.kernel.org/all/00ba1dff-7c05-46e8-b0d9-a78ac1cfc198@redhat.com/
-
-[akpm@linux-foundation.org: fix PG_hugetlb typo, per David]
-Link: https://lkml.kernel.org/r/20240529111904.2069608-3-david@redhat.com
+Link: https://lkml.kernel.org/r/20240529111904.2069608-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Tested-by: Sergey Senozhatsky <senozhatsky@chromium.org>	[zram/zsmalloc workloads]
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mike Rapoport (IBM) <rppt@kernel.org>
@@ -80,57 +71,155 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h   |    5 +++++
- include/linux/page-flags.h |   23 ++++++++++++++---------
- 2 files changed, 19 insertions(+), 9 deletions(-)
+ drivers/block/zram/Kconfig |    1 +
+ include/linux/page-flags.h |    3 +++
+ mm/Kconfig                 |   10 ++++++++--
+ mm/zsmalloc.c              |   29 +++++++++++++++++++++++++----
+ 4 files changed, 37 insertions(+), 6 deletions(-)
 
---- a/include/linux/mm_types.h~mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type
-+++ a/include/linux/mm_types.h
-@@ -157,6 +157,11 @@ struct page {
- 		 *
- 		 * See page-flags.h for a list of page types which are currently
- 		 * stored here.
-+		 *
-+		 * Owners of typed folios may reuse the lower 16 bit of the
-+		 * head page page_type field after setting the page type,
-+		 * but must reset these 16 bit to -1 before clearing the
-+		 * page type.
- 		 */
- 		unsigned int page_type;
- 
---- a/include/linux/page-flags.h~mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type
+--- a/drivers/block/zram/Kconfig~mm-zsmalloc-use-a-proper-page-type
++++ a/drivers/block/zram/Kconfig
+@@ -2,6 +2,7 @@
+ config ZRAM
+ 	tristate "Compressed RAM block device support"
+ 	depends on BLOCK && SYSFS && MMU
++	depends on HAVE_ZSMALLOC
+ 	depends on CRYPTO_LZO || CRYPTO_ZSTD || CRYPTO_LZ4 || CRYPTO_LZ4HC || CRYPTO_842
+ 	select ZSMALLOC
+ 	help
+--- a/include/linux/page-flags.h~mm-zsmalloc-use-a-proper-page-type
 +++ a/include/linux/page-flags.h
-@@ -941,16 +941,21 @@ PAGEFLAG_FALSE(HasHWPoisoned, has_hwpois
-  */
+@@ -947,6 +947,7 @@ enum pagetype {
+ 	PG_guard	= 0x08000000,
+ 	PG_hugetlb	= 0x04000000,
+ 	PG_slab		= 0x02000000,
++	PG_zsmalloc	= 0x01000000,
  
- enum pagetype {
--	PG_buddy	= 0x00000080,
--	PG_offline	= 0x00000100,
--	PG_table	= 0x00000200,
--	PG_guard	= 0x00000400,
--	PG_hugetlb	= 0x00000800,
--	PG_slab		= 0x00001000,
-+	PG_buddy	= 0x40000000,
-+	PG_offline	= 0x20000000,
-+	PG_table	= 0x10000000,
-+	PG_guard	= 0x08000000,
-+	PG_hugetlb	= 0x04000000,
-+	PG_slab		= 0x02000000,
+ 	PAGE_TYPE_BASE	= 0x80000000,
  
--	PAGE_TYPE_BASE	= 0xf0000000,
--	/* Reserve 0x0000007f to catch underflows of _mapcount */
--	PAGE_MAPCOUNT_RESERVE	= -128,
-+	PAGE_TYPE_BASE	= 0x80000000,
+@@ -1071,6 +1072,8 @@ FOLIO_TYPE_OPS(hugetlb, hugetlb)
+ FOLIO_TEST_FLAG_FALSE(hugetlb)
+ #endif
+ 
++PAGE_TYPE_OPS(Zsmalloc, zsmalloc, zsmalloc)
 +
-+	/*
-+	 * Reserve 0xffff0000 - 0xfffffffe to catch _mapcount underflows and
-+	 * allow owners that set a type to reuse the lower 16 bit for their own
-+	 * purposes.
-+	 */
-+	PAGE_MAPCOUNT_RESERVE	= ~0x0000ffff,
- };
+ /**
+  * PageHuge - Determine if the page belongs to hugetlbfs
+  * @page: The page to test.
+--- a/mm/Kconfig~mm-zsmalloc-use-a-proper-page-type
++++ a/mm/Kconfig
+@@ -128,7 +128,7 @@ config ZSWAP_COMPRESSOR_DEFAULT
+ choice
+ 	prompt "Default allocator"
+ 	depends on ZSWAP
+-	default ZSWAP_ZPOOL_DEFAULT_ZSMALLOC if MMU
++	default ZSWAP_ZPOOL_DEFAULT_ZSMALLOC if HAVE_ZSMALLOC
+ 	default ZSWAP_ZPOOL_DEFAULT_ZBUD
+ 	help
+ 	  Selects the default allocator for the compressed cache for
+@@ -154,6 +154,7 @@ config ZSWAP_ZPOOL_DEFAULT_Z3FOLD
  
- #define PageType(page, flag)						\
+ config ZSWAP_ZPOOL_DEFAULT_ZSMALLOC
+ 	bool "zsmalloc"
++	depends on HAVE_ZSMALLOC
+ 	select ZSMALLOC
+ 	help
+ 	  Use the zsmalloc allocator as the default allocator.
+@@ -186,10 +187,15 @@ config Z3FOLD
+ 	  page. It is a ZBUD derivative so the simplicity and determinism are
+ 	  still there.
+ 
++config HAVE_ZSMALLOC
++	def_bool y
++	depends on MMU
++	depends on PAGE_SIZE_LESS_THAN_256KB # we want <= 64 KiB
++
+ config ZSMALLOC
+ 	tristate
+ 	prompt "N:1 compression allocator (zsmalloc)" if ZSWAP
+-	depends on MMU
++	depends on HAVE_ZSMALLOC
+ 	help
+ 	  zsmalloc is a slab-based memory allocator designed to store
+ 	  pages of various compression levels efficiently. It achieves
+--- a/mm/zsmalloc.c~mm-zsmalloc-use-a-proper-page-type
++++ a/mm/zsmalloc.c
+@@ -20,7 +20,8 @@
+  *	page->index: links together all component pages of a zspage
+  *		For the huge page, this is always 0, so we use this field
+  *		to store handle.
+- *	page->page_type: first object offset in a subpage of zspage
++ *	page->page_type: PG_zsmalloc, lower 16 bit locate the first object
++ *		offset in a subpage of a zspage
+  *
+  * Usage of struct page flags:
+  *	PG_private: identifies the first component page
+@@ -450,14 +451,28 @@ static inline struct page *get_first_pag
+ 	return first_page;
+ }
+ 
++#define FIRST_OBJ_PAGE_TYPE_MASK	0xffff
++
++static inline void reset_first_obj_offset(struct page *page)
++{
++	VM_WARN_ON_ONCE(!PageZsmalloc(page));
++	page->page_type |= FIRST_OBJ_PAGE_TYPE_MASK;
++}
++
+ static inline unsigned int get_first_obj_offset(struct page *page)
+ {
+-	return page->page_type;
++	VM_WARN_ON_ONCE(!PageZsmalloc(page));
++	return page->page_type & FIRST_OBJ_PAGE_TYPE_MASK;
+ }
+ 
+ static inline void set_first_obj_offset(struct page *page, unsigned int offset)
+ {
+-	page->page_type = offset;
++	/* With 16 bit available, we can support offsets into 64 KiB pages. */
++	BUILD_BUG_ON(PAGE_SIZE > SZ_64K);
++	VM_WARN_ON_ONCE(!PageZsmalloc(page));
++	VM_WARN_ON_ONCE(offset & ~FIRST_OBJ_PAGE_TYPE_MASK);
++	page->page_type &= ~FIRST_OBJ_PAGE_TYPE_MASK;
++	page->page_type |= offset & FIRST_OBJ_PAGE_TYPE_MASK;
+ }
+ 
+ static inline unsigned int get_freeobj(struct zspage *zspage)
+@@ -791,8 +806,9 @@ static void reset_page(struct page *page
+ 	__ClearPageMovable(page);
+ 	ClearPagePrivate(page);
+ 	set_page_private(page, 0);
+-	page_mapcount_reset(page);
+ 	page->index = 0;
++	reset_first_obj_offset(page);
++	__ClearPageZsmalloc(page);
+ }
+ 
+ static int trylock_zspage(struct zspage *zspage)
+@@ -965,11 +981,13 @@ static struct zspage *alloc_zspage(struc
+ 		if (!page) {
+ 			while (--i >= 0) {
+ 				dec_zone_page_state(pages[i], NR_ZSPAGES);
++				__ClearPageZsmalloc(pages[i]);
+ 				__free_page(pages[i]);
+ 			}
+ 			cache_free_zspage(pool, zspage);
+ 			return NULL;
+ 		}
++		__SetPageZsmalloc(page);
+ 
+ 		inc_zone_page_state(page, NR_ZSPAGES);
+ 		pages[i] = page;
+@@ -1754,6 +1772,9 @@ static int zs_page_migrate(struct page *
+ 
+ 	VM_BUG_ON_PAGE(!PageIsolated(page), page);
+ 
++	/* We're committed, tell the world that this is a Zsmalloc page. */
++	__SetPageZsmalloc(newpage);
++
+ 	/* The page is locked, so this pointer must remain valid */
+ 	zspage = get_zspage(page);
+ 	pool = zspage->pool;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
