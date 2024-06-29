@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AD2F7494
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:29:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9B837494
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:29:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628193; cv=none; b=ckDDmjfkTCh0Jy5xesmwQPBIXoH/qPy5+sjFIi8i3Q0NyTxJTN27Pv1XCnKHmQqywKO4wVfpPkWjWd41WAgcO+DspMQ0NkfbLSn+Gkq7G1oWxMO6dtRlRpM2H/ePV0yTJXiFlZEwm4kabJpNMJRP7YwYJKRxO0Ck4yyfR7+Ikfs=
+	t=1719628194; cv=none; b=ch85hJT6wd1wyOsR9UZYgAC192iewoq/x3ydKrazNb3iIQGswhpn0Q+hqH9xs4yvtUXA2cGJ+ZhPK5DhkvP6nGHlhSDvCrsaJKe1H1Ww7GFZiScAS2mNASD8pBsh35/Z19l86JwI/Whm5Ol2oZWI6h3mEsyogvZ2TcYgVeaEpyw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719628193; c=relaxed/simple;
-	bh=u7BDK3bM+hVED4trVSlGqrZpNouhN6RDd3pxt3Xqig0=;
-	h=Date:To:From:Subject:Message-Id; b=baWZrWJrRgKKXFTddEiv7RoUMx9Q1+VCQMZWEr5GGcA2Dz6g4RR2Qrk71/PJeX9IIYod80vtXPeNNxKguw7411DWbA8sTVEFD1ymCXVC0f9GkT99GYO6f1T92az5NDUj5ftqfcc/J5EtfEqHbFdcbmdhuhVZ+yZUuaDnSNhsmSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NA45gAOz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628194; c=relaxed/simple;
+	bh=gJRmssRt7jQcKuqRH/DSTONBT6wbFSIfgL53Jxu7h0o=;
+	h=Date:To:From:Subject:Message-Id; b=Ljm6Sn9HuHwpGksXDzWhaPU/mYy44osol00El/8Yj5NBU3UReq4Xcx0j1es6S8T32qsRGF45jZXJSEgb9oqDhEZz+tXyp4WdSA9bYU96vPbniLlvUFssTqshv541/Fw9X5e31eYDEyfM2MuaxhU0NyHH4OD0/aqy2Em741iznM4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xEhnCH3W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NA45gAOz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36823C32789;
-	Sat, 29 Jun 2024 02:29:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xEhnCH3W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51FE5C32781;
+	Sat, 29 Jun 2024 02:29:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628193;
-	bh=u7BDK3bM+hVED4trVSlGqrZpNouhN6RDd3pxt3Xqig0=;
+	s=korg; t=1719628194;
+	bh=gJRmssRt7jQcKuqRH/DSTONBT6wbFSIfgL53Jxu7h0o=;
 	h=Date:To:From:Subject:From;
-	b=NA45gAOzlVB0GgYJRCLBYVPMYDZdLKZKbwZddwDZIRc2RhhPT7Q+0qeM2NtWMy8h3
-	 qFNH+lK2auDX+/P8eFKsFZEfvC9wJcAo2yh4ZS/AZ/FZH3wRoZ2L3FTN/sCXacwSRY
-	 9hyEssS8Ys4Yub1kwZo0qx4CnXkei9pLCpEANbC8=
-Date: Fri, 28 Jun 2024 19:29:52 -0700
+	b=xEhnCH3WRdZEfLKLJm3stW5YGXiuUQGmYwWamr/HGYvjcBivqGDvdd9MSiWxOSjIk
+	 34nz2e+pMmINrOHhFHEKqaGqtBiwS/8QIg6K/6QhRXLxF9w3AKsVpo3pCsNNPhKYz1
+	 XGMzrp2rY6wOSIRJIPB82iN1sHw6nONHDv+R6Z/o=
+Date: Fri, 28 Jun 2024 19:29:53 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,senozhatsky@chromium.org,rppt@kernel.org,minchan@kernel.org,42.hyeyoo@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-update-_mapcount-and-page_type-documentation.patch removed from -mm tree
-Message-Id: <20240629022953.36823C32789@smtp.kernel.org>
+Subject: [merged mm-stable] mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type.patch removed from -mm tree
+Message-Id: <20240629022954.51FE5C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: update _mapcount and page_type documentation
+     Subject: mm: allow reuse of the lower 16 bit of the page type with an actual type
 has been removed from the -mm tree.  Its filename was
-     mm-update-_mapcount-and-page_type-documentation.patch
+     mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: update _mapcount and page_type documentation
-Date: Wed, 29 May 2024 13:18:59 +0200
+Subject: mm: allow reuse of the lower 16 bit of the page type with an actual type
+Date: Wed, 29 May 2024 13:19:00 +0200
 
-Patch series "mm: page_type, zsmalloc and page_mapcount_reset()", v2.
+As long as the owner sets a page type first, we can allow reuse of the
+lower 16 bit: sufficient to store an offset into a 64 KiB page, which is
+the maximum base page size in *common* configurations (ignoring the 256
+KiB variant).  Restrict it to the head page.
 
-Wanting to remove the remaining abuser of _mapcount/page_type along with
-page_mapcount_reset(), I stumbled over zsmalloc, which is yet to be
-converted away from "struct page" [1].
+We'll use that for zsmalloc next, to set a proper type while still reusing
+that field to store information (offset into a base page) that cannot go
+elsewhere for now.
 
-Unfortunately, we cannot stop using the page_type field in zsmalloc code
-completely for its own purposes.  All other fields in "struct page" are
-used one way or the other.  Could we simply store a 2-byte offset value at
-the beginning of each page?  Likely, but that will require a bit more
-work; and once we have memdesc we might want to move the offset in there
-(struct zsalloc?) again.
+Let's reserve the lower 16 bit for that purpose and for catching mapcount
+underflows, and let's reduce PAGE_TYPE_BASE to a single bit.
 
-...  but we can limit the abuse to 16 bit, glue it to a page type that
-must be set, and document it.  page_has_type() will always successfully
-indicate such zsmalloc pages, and such zsmalloc pages only.
+Note that we will still have to overflow the mapcount quite a lot until we
+would actually indicate a valid page type.
 
-We lose zsmalloc support for PAGE_SIZE > 64KB, which should be tolerable. 
-We could use more bits from the page type, but 16 bit sounds like a good
-idea for now.
+Start handing out the type bits from highest to lowest, to make it clearer
+how many bits for types we have left.  Out of 15 bit we can use for types,
+we currently use 6.  If we run out of bits before we have better typing
+(e.g., memdesc), we can always investigate storing a value instead [1].
 
-So clarify the _mapcount/page_type documentation, use a proper page_type
-for zsmalloc, and remove page_mapcount_reset().
+[1] https://lore.kernel.org/all/00ba1dff-7c05-46e8-b0d9-a78ac1cfc198@redhat.com/
 
-[1] https://lore.kernel.org/all/20231130101242.2590384-1-42.hyeyoo@gmail.com/
-
-
-This patch (of 6):
-
-Let's make it clearer that _mapcount must no longer be used for own
-purposes, and how _mapcount and page_type behaves nowadays (also in the
-context of hugetlb folios, which are typed folios that will be mapped to
-user space).
-
-Move the documentation regarding "-1" over from page_mapcount_reset(),
-which we will remove next.  Move "page_type" before "mapcount", to make it
-clearer what typed folios are.
-
-Link: https://lkml.kernel.org/r/20240529111904.2069608-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20240529111904.2069608-2-david@redhat.com
+[akpm@linux-foundation.org: fix PG_hugetlb typo, per David]
+Link: https://lkml.kernel.org/r/20240529111904.2069608-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Tested-by: Sergey Senozhatsky <senozhatsky@chromium.org>	[zram/zsmalloc workloads]
 Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
@@ -96,72 +80,57 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |    5 -----
- include/linux/mm_types.h |   28 +++++++++++++++++-----------
- 2 files changed, 17 insertions(+), 16 deletions(-)
+ include/linux/mm_types.h   |    5 +++++
+ include/linux/page-flags.h |   23 ++++++++++++++---------
+ 2 files changed, 19 insertions(+), 9 deletions(-)
 
---- a/include/linux/mm.h~mm-update-_mapcount-and-page_type-documentation
-+++ a/include/linux/mm.h
-@@ -1210,11 +1210,6 @@ static inline int folio_entire_mapcount(
- 	return atomic_read(&folio->_entire_mapcount) + 1;
- }
- 
--/*
-- * The atomic page->_mapcount, starts from -1: so that transitions
-- * both from it and to it can be tracked, using atomic_inc_and_test
-- * and atomic_add_negative(-1).
-- */
- static inline void page_mapcount_reset(struct page *page)
- {
- 	atomic_set(&(page)->_mapcount, -1);
---- a/include/linux/mm_types.h~mm-update-_mapcount-and-page_type-documentation
+--- a/include/linux/mm_types.h~mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type
 +++ a/include/linux/mm_types.h
-@@ -46,9 +46,7 @@ struct mem_cgroup;
-  * which is guaranteed to be aligned.  If you use the same storage as
-  * page->mapping, you must restore it to NULL before freeing the page.
-  *
-- * If your page will not be mapped to userspace, you can also use the four
-- * bytes in the mapcount union, but you must call page_mapcount_reset()
-- * before freeing it.
-+ * The mapcount field must not be used for own purposes.
-  *
-  * If you want to use the refcount field, it must be used in such a way
-  * that other CPUs temporarily incrementing and then decrementing the
-@@ -152,18 +150,26 @@ struct page {
- 
- 	union {		/* This union is 4 bytes in size. */
- 		/*
--		 * If the page can be mapped to userspace, encodes the number
--		 * of times this page is referenced by a page table.
-+		 * For head pages of typed folios, the value stored here
-+		 * allows for determining what this page is used for. The
-+		 * tail pages of typed folios will not store a type
-+		 * (page_type == _mapcount == -1).
+@@ -157,6 +157,11 @@ struct page {
+ 		 *
+ 		 * See page-flags.h for a list of page types which are currently
+ 		 * stored here.
 +		 *
-+		 * See page-flags.h for a list of page types which are currently
-+		 * stored here.
++		 * Owners of typed folios may reuse the lower 16 bit of the
++		 * head page page_type field after setting the page type,
++		 * but must reset these 16 bit to -1 before clearing the
++		 * page type.
  		 */
--		atomic_t _mapcount;
-+		unsigned int page_type;
+ 		unsigned int page_type;
  
- 		/*
--		 * If the page is neither PageSlab nor mappable to userspace,
--		 * the value stored here may help determine what this page
--		 * is used for.  See page-flags.h for a list of page types
--		 * which are currently stored here.
-+		 * For pages that are part of non-typed folios for which mappings
-+		 * are tracked via the RMAP, encodes the number of times this page
-+		 * is directly referenced by a page table.
-+		 *
-+		 * Note that the mapcount is always initialized to -1, so that
-+		 * transitions both from it and to it can be tracked, using
-+		 * atomic_inc_and_test() and atomic_add_negative(-1).
- 		 */
--		unsigned int page_type;
-+		atomic_t _mapcount;
- 	};
+--- a/include/linux/page-flags.h~mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type
++++ a/include/linux/page-flags.h
+@@ -941,16 +941,21 @@ PAGEFLAG_FALSE(HasHWPoisoned, has_hwpois
+  */
  
- 	/* Usage count. *DO NOT USE DIRECTLY*. See page_ref.h */
+ enum pagetype {
+-	PG_buddy	= 0x00000080,
+-	PG_offline	= 0x00000100,
+-	PG_table	= 0x00000200,
+-	PG_guard	= 0x00000400,
+-	PG_hugetlb	= 0x00000800,
+-	PG_slab		= 0x00001000,
++	PG_buddy	= 0x40000000,
++	PG_offline	= 0x20000000,
++	PG_table	= 0x10000000,
++	PG_guard	= 0x08000000,
++	PG_hugetlb	= 0x04000000,
++	PG_slab		= 0x02000000,
+ 
+-	PAGE_TYPE_BASE	= 0xf0000000,
+-	/* Reserve 0x0000007f to catch underflows of _mapcount */
+-	PAGE_MAPCOUNT_RESERVE	= -128,
++	PAGE_TYPE_BASE	= 0x80000000,
++
++	/*
++	 * Reserve 0xffff0000 - 0xfffffffe to catch _mapcount underflows and
++	 * allow owners that set a type to reuse the lower 16 bit for their own
++	 * purposes.
++	 */
++	PAGE_MAPCOUNT_RESERVE	= ~0x0000ffff,
+ };
+ 
+ #define PageType(page, flag)						\
 _
 
 Patches currently in -mm which might be from david@redhat.com are
