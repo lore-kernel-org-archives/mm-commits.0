@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C98F5AD21
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:30:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAEAAB66F
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:30:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628201; cv=none; b=WhkZ0S/QewApi7nXSSbJA6XgW6BvsUc0Q7ZOpiX40xeUZzgIxke+IVNZ/2oyN2/2RvNodX73AqqSi4uSx9kfdssmn+QelxyR/59m+So13hANLofR4H2x/oEODMyngW5QLpfHJ+mAQYixzTHVotmMAKyaAFx5msLmZet0lRb+H3k=
+	t=1719628203; cv=none; b=dodO2dISvCHXJtDSyazDyRdM9RoHC20MVCT+a3iIXdm0Sd7JcY3vFj/3Tiyjr5c/gPZAIU48bByYYu7u5jXfZzM5SApEcD+LwMsEsrEi43L7m7uZuLZ+xm54wLLQWG+39ZbRvdYXmLagOml7lJuGVcybyfRar9jqglNfUwsP+Uk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719628201; c=relaxed/simple;
-	bh=b+9AS39kc/47h4k3NXDnBRv223FgB3sj9OVjlTJILgE=;
-	h=Date:To:From:Subject:Message-Id; b=LjG0+mkWMPXbt4KPdNIVFxm/BcYfWcf0jEfx4/dTULrE1anPlK/6WxRMvD/NQyWBk+a58I0JSM8/CAzWpq9pKfizkFozFvBjVK/qDOHPBiUeN9Y8oT3FasvBtB7A+31qxUmYD6jZSiQ66syPcSMizHwtrdZab4CYRD8JVRIBIcU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q+HZxgdx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628203; c=relaxed/simple;
+	bh=sn3gTpYfu/WxbgJMu/gbKgRXE6zC23ekGuoU9DD2wAU=;
+	h=Date:To:From:Subject:Message-Id; b=e3EoLU8hL/Z732KScu4kuvjIZr+Fdt2C1rzLHsqc0u4p2CeG1BzmhhmLfCKi06sv/O/+noDZqntXrAG1dKeRophBh6F0W6OMyE+6WZ8YK5jHGmPPa3PrWueJ9W4PpOpauiFfE7+h+2qxK9VfLKuWX5FnBuN+amjC7do5SoCCH/s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nb9q64hk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q+HZxgdx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D262C116B1;
-	Sat, 29 Jun 2024 02:30:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nb9q64hk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79AC5C116B1;
+	Sat, 29 Jun 2024 02:30:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628201;
-	bh=b+9AS39kc/47h4k3NXDnBRv223FgB3sj9OVjlTJILgE=;
+	s=korg; t=1719628203;
+	bh=sn3gTpYfu/WxbgJMu/gbKgRXE6zC23ekGuoU9DD2wAU=;
 	h=Date:To:From:Subject:From;
-	b=q+HZxgdxWflsDWFChfgviHcKHazLmRWBELRIFQdlmznVOVigHdFYfwGJ3DkNJ40mA
-	 aQ+0+sPPMyqf9VXYlMDcnVMHzDa5UO3B1lc8mvkEluNLsS/wfmnfE6ryAlak4pPI3a
-	 SrqlEM9B+S5rxvHTI6RUsIZFJLOlhaaiGYHgsNi8=
-Date: Fri, 28 Jun 2024 19:30:01 -0700
+	b=nb9q64hkX8Q5UiK4OtEuJHF1jUjhCNS0PHFSLnLjMyz3ti0NQva/OTiYQzLs3D3jZ
+	 r87hYywrg6BlwetauXE7EBSmrjNn8LW7HuUYya2iyY61vyxAw1EkPFgQeDxXRyDqTw
+	 UKAOgk7nEnO557idkhZL6SZHjy39sAYdb0mpY77M=
+Date: Fri, 28 Jun 2024 19:30:03 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,deller@gmx.de,david@redhat.com,daniel@ffwll.ch,corbet@lwn.net,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-page_maybe_dma_pinned.patch removed from -mm tree
-Message-Id: <20240629023001.9D262C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] fb_defio-use-a-folio-in-fb_deferred_io_work.patch removed from -mm tree
+Message-Id: <20240629023003.79AC5C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove page_maybe_dma_pinned()
+     Subject: fb_defio: use a folio in fb_deferred_io_work()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-page_maybe_dma_pinned.patch
+     fb_defio-use-a-folio-in-fb_deferred_io_work.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: remove page_maybe_dma_pinned()
-Date: Tue, 4 Jun 2024 19:48:20 +0800
+Subject: fb_defio: use a folio in fb_deferred_io_work()
+Date: Tue, 4 Jun 2024 19:48:21 +0800
 
-After the last user of page_maybe_dma_pinned() is converted to
-folio_maybe_dma_pinned(), remove page_maybe_dma_pinned() and update the
-document and comment.
+Replaces three calls to compound_head() with one, which removes last
+caller of page_mkclean().
 
-[wangkefeng.wang@huawei.com: fix pin_user_pages.rst underlining]
-  Link: https://lkml.kernel.org/r/61b256c7-4989-44ec-83db-f34a1bd4be2d@huawei.com
-Link: https://lkml.kernel.org/r/20240604114822.2089819-3-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240604114822.2089819-4-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
@@ -63,64 +60,27 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/pin_user_pages.rst |   12 ++++++------
- include/linux/mm.h                        |    9 ++-------
- 2 files changed, 8 insertions(+), 13 deletions(-)
+ drivers/video/fbdev/core/fb_defio.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/Documentation/core-api/pin_user_pages.rst~mm-remove-page_maybe_dma_pinned
-+++ a/Documentation/core-api/pin_user_pages.rst
-@@ -196,20 +196,20 @@ INCORRECT (uses FOLL_GET calls):
-     write to the data within the pages
-     put_page()
+--- a/drivers/video/fbdev/core/fb_defio.c~fb_defio-use-a-folio-in-fb_deferred_io_work
++++ a/drivers/video/fbdev/core/fb_defio.c
+@@ -244,10 +244,11 @@ static void fb_deferred_io_work(struct w
+ 	/* here we mkclean the pages, then do all deferred IO */
+ 	mutex_lock(&fbdefio->lock);
+ 	list_for_each_entry(pageref, &fbdefio->pagereflist, list) {
+-		struct page *cur = pageref->page;
+-		lock_page(cur);
+-		page_mkclean(cur);
+-		unlock_page(cur);
++		struct folio *folio = page_folio(pageref->page);
++
++		folio_lock(folio);
++		folio_mkclean(folio);
++		folio_unlock(folio);
+ 	}
  
--page_maybe_dma_pinned(): the whole point of pinning
--===================================================
-+folio_maybe_dma_pinned(): the whole point of pinning
-+====================================================
- 
--The whole point of marking pages as "DMA-pinned" or "gup-pinned" is to be able
--to query, "is this page DMA-pinned?" That allows code such as page_mkclean()
-+The whole point of marking folios as "DMA-pinned" or "gup-pinned" is to be able
-+to query, "is this folio DMA-pinned?" That allows code such as page_mkclean()
- (and file system writeback code in general) to make informed decisions about
--what to do when a page cannot be unmapped due to such pins.
-+what to do when a folio cannot be unmapped due to such pins.
- 
- What to do in those cases is the subject of a years-long series of discussions
- and debates (see the References at the end of this document). It's a TODO item
- here: fill in the details once that's worked out. Meanwhile, it's safe to say
- that having this available: ::
- 
--        static inline bool page_maybe_dma_pinned(struct page *page)
-+        static inline bool folio_maybe_dma_pinned(struct folio *folio)
- 
- ...is a prerequisite to solving the long-running gup+DMA problem.
- 
---- a/include/linux/mm.h~mm-remove-page_maybe_dma_pinned
-+++ a/include/linux/mm.h
-@@ -1918,8 +1918,8 @@ static inline struct folio *pfn_folio(un
-  *
-  * For more information, please see Documentation/core-api/pin_user_pages.rst.
-  *
-- * Return: True, if it is likely that the page has been "dma-pinned".
-- * False, if the page is definitely not dma-pinned.
-+ * Return: True, if it is likely that the folio has been "dma-pinned".
-+ * False, if the folio is definitely not dma-pinned.
-  */
- static inline bool folio_maybe_dma_pinned(struct folio *folio)
- {
-@@ -1938,11 +1938,6 @@ static inline bool folio_maybe_dma_pinne
- 		GUP_PIN_COUNTING_BIAS;
- }
- 
--static inline bool page_maybe_dma_pinned(struct page *page)
--{
--	return folio_maybe_dma_pinned(page_folio(page));
--}
--
- /*
-  * This should most likely only be called during fork() to see whether we
-  * should break the cow immediately for an anon page on the src mm.
+ 	/* driver's callback with pagereflist */
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
