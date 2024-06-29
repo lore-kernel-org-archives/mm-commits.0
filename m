@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 768D97494
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:29:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EDA67494
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:29:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628191; cv=none; b=n2/Sau4ywwF654rtU/E06dr3cTgMQfIIct3aqMQgiM8jadWq7IO8BgybHMs1DdWXX0+m6Sf6MdM3qG9dk4aux2CmccdVtKTHUUr7GayTsbrs19GLhQoBB/O1AW3N0+j/VdApHE7iMAsOeMWCXGi4mxYKvahUc2ffDJ9krkiUi3M=
+	t=1719628192; cv=none; b=E4z+36Uk6vKqcxrF837bIqGQvYTbNEVq6fhdVXc64XdEhywLff5KKEIH7KCRsigdedDcGSpyNkKqrhZSaHQh7KZjiAV1UxaRiqVT1+J01KDnaK5l8cBDU7Cluyp3MF9NM+3EmmefYgVtBhnGwH39KVQMuIcv8jVrQCAkIl0OA0A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719628191; c=relaxed/simple;
-	bh=eIXsOjlo8xwjOKdqaiRIicfAPP7/FkaBlYYr30NLU+M=;
-	h=Date:To:From:Subject:Message-Id; b=gE/y4ZRqS8YRMgWyihWYxqhfgy/A6FTNZpLHzC3DB8BUzjYPZps7SzwsbKZIuV0ZZ+zMlNmhB+aXJQL4ABimMwoOYZ6Ykl+eMpM0hOQg9EFjGwaHWy/b9rSE6FXhB4K5AETeNe4XLfEAMlfvuL/Hp32Dfk8tSjje78VljdEs6hw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lTH0UFad; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628192; c=relaxed/simple;
+	bh=zX+Z/lZK6BnIO2AWyg3eRpMrCkZFj1igjRX0Ia5UgyM=;
+	h=Date:To:From:Subject:Message-Id; b=MGhXhaGiGm5RY99OXhYuRebBBDjTWBTu+B/hMHFbvxsnkIzy5lbFrNqMGYpByDyc7ULqNZeUFA8lW4Ks5C8MBzEabefr0FKVXqpNaLHQX/FmFndqVQgDO8HHy6FWlv8vhbUqZBwJKHxeA0A95znx/hu0S/viTNdPC4UHNKjT0TU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ixhqSp3c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lTH0UFad"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D00C8C116B1;
-	Sat, 29 Jun 2024 02:29:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ixhqSp3c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08D7EC32786;
+	Sat, 29 Jun 2024 02:29:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628190;
-	bh=eIXsOjlo8xwjOKdqaiRIicfAPP7/FkaBlYYr30NLU+M=;
+	s=korg; t=1719628192;
+	bh=zX+Z/lZK6BnIO2AWyg3eRpMrCkZFj1igjRX0Ia5UgyM=;
 	h=Date:To:From:Subject:From;
-	b=lTH0UFadwNZzjdFB6OsNZa3fYh7Z5NMCyHal3xSzvOjOREqR2fUn6H5DsOfpgNs1i
-	 s4EAA8SzKjszbIuGnxwW0UCUVmgnYCxQbe+k9QDhrGP6UW0875u+iGw1lj1PdZ0W2j
-	 uZ0nHQzggSu6pYfOKKgcynKHi9H8ZrVQFrbfOw3o=
-Date: Fri, 28 Jun 2024 19:29:50 -0700
-To: mm-commits@vger.kernel.org,lkp@intel.com,ioworker0@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=ixhqSp3c3bTvJve7gOmb9a0Guf2Y+qXncZq1hBjayg7N3QVBNsoBKXODtAzYEDa3c
+	 +DbXRMFwBd+j5VQrEb84KX3SkicyeNeLVKW8hneEcSBo6s0bAUcz+K52IV/lmsJoL5
+	 E1iA8PEUOi0lHjG+Ycf0YQNnG4fnKCX25iEbQ4gY=
+Date: Fri, 28 Jun 2024 19:29:51 -0700
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,shuah@kernel.org,peterx@redhat.com,Liam.Howlett@oracle.com,kent.overstreet@linux.dev,kees@kernel.org,jeffxu@chromium.org,david@redhat.com,dalias@libc.org,brauner@kernel.org,axelrasmussen@google.com,avagin@google.com,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memoryc-fix-used-uninitialized.patch removed from -mm tree
-Message-Id: <20240629022950.D00C8C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-remove-local-__nr_-definitions.patch removed from -mm tree
+Message-Id: <20240629022952.08D7EC32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,310 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory.c: fix used-uninitialized
+     Subject: selftests/mm: remove local __NR_* definitions
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memoryc-fix-used-uninitialized.patch
+     selftests-mm-remove-local-__nr_-definitions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/huge_memory.c: fix used-uninitialized
-Date: Tue Jun 25 02:51:36 PM PDT 2024
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/mm: remove local __NR_* definitions
+Date: Mon, 17 Jun 2024 19:24:22 -0700
 
-Fix used-uninitialized of `page'.
+This continues the work on getting the selftests to build without
+requiring people to first run "make headers" [1].
 
-Fixes: dce7d10be4bb ("mm/madvise: optimize lazyfreeing with mTHP in madvise_free")
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202406260514.SLhNM9kQ-lkp@intel.com
-Cc: Lance Yang <ioworker0@gmail.com>
+Now that the system call numbers are in the correct, checked-in locations
+in the kernel tree (./tools/include/uapi/asm/unistd*.h), make sure that
+the mm selftests include that file (indirectly).
+
+Doing so provides guaranteed definitions at build time, so remove all of
+the checks for "ifdef __NR_xxx" in the mm selftests, because they will
+always be true (defined).
+
+[1] commit e076eaca5906 ("selftests: break the dependency upon local
+header files")
+
+Link: https://lkml.kernel.org/r/20240618022422.804305-7-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Andrei Vagin <avagin@google.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ tools/testing/selftests/mm/hugepage-mremap.c      |    2 -
+ tools/testing/selftests/mm/ksm_functional_tests.c |    8 ------
+ tools/testing/selftests/mm/memfd_secret.c         |   14 ----------
+ tools/testing/selftests/mm/mkdirty.c              |    8 ------
+ tools/testing/selftests/mm/mlock2.h               |    1 
+ tools/testing/selftests/mm/pagemap_ioctl.c        |    2 -
+ tools/testing/selftests/mm/protection_keys.c      |    2 -
+ tools/testing/selftests/mm/uffd-common.c          |    4 ---
+ tools/testing/selftests/mm/uffd-stress.c          |   16 ------------
+ tools/testing/selftests/mm/uffd-unit-tests.c      |   14 ----------
+ 10 files changed, 9 insertions(+), 62 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memoryc-fix-used-uninitialized
-+++ a/mm/huge_memory.c
-@@ -2696,7 +2696,6 @@ static bool __discard_anon_folio_pmd_loc
- 	struct mm_struct *mm = vma->vm_mm;
- 	int ref_count, map_count;
- 	pmd_t orig_pmd = *pmdp;
--	struct page *page;
+--- a/tools/testing/selftests/mm/hugepage-mremap.c~selftests-mm-remove-local-__nr_-definitions
++++ a/tools/testing/selftests/mm/hugepage-mremap.c
+@@ -15,7 +15,7 @@
+ #define _GNU_SOURCE
+ #include <stdlib.h>
+ #include <stdio.h>
+-#include <unistd.h>
++#include <asm-generic/unistd.h>
+ #include <sys/mman.h>
+ #include <errno.h>
+ #include <fcntl.h> /* Definition of O_* constants */
+--- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-mm-remove-local-__nr_-definitions
++++ a/tools/testing/selftests/mm/ksm_functional_tests.c
+@@ -11,7 +11,7 @@
+ #include <string.h>
+ #include <stdbool.h>
+ #include <stdint.h>
+-#include <unistd.h>
++#include <asm-generic/unistd.h>
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <sys/mman.h>
+@@ -369,7 +369,6 @@ unmap:
+ 	munmap(map, size);
+ }
  
- 	if (folio_test_dirty(folio) || pmd_dirty(orig_pmd))
- 		return false;
-@@ -2732,7 +2731,7 @@ static bool __discard_anon_folio_pmd_loc
- 		return false;
+-#ifdef __NR_userfaultfd
+ static void test_unmerge_uffd_wp(void)
+ {
+ 	struct uffdio_writeprotect uffd_writeprotect;
+@@ -430,7 +429,6 @@ close_uffd:
+ unmap:
+ 	munmap(map, size);
+ }
+-#endif
+ 
+ /* Verify that KSM can be enabled / queried with prctl. */
+ static void test_prctl(void)
+@@ -686,9 +684,7 @@ int main(int argc, char **argv)
+ 		exit(test_child_ksm());
  	}
  
--	folio_remove_rmap_pmd(folio, page, vma);
-+	folio_remove_rmap_pmd(folio, pmd_page(orig_pmd), vma);
- 	zap_deposited_table(mm, pmdp);
- 	add_mm_counter(mm, MM_ANONPAGES, -HPAGE_PMD_NR);
- 	if (vma->vm_flags & VM_LOCKED)
+-#ifdef __NR_userfaultfd
+ 	tests++;
+-#endif
+ 
+ 	ksft_print_header();
+ 	ksft_set_plan(tests);
+@@ -700,9 +696,7 @@ int main(int argc, char **argv)
+ 	test_unmerge();
+ 	test_unmerge_zero_pages();
+ 	test_unmerge_discarded();
+-#ifdef __NR_userfaultfd
+ 	test_unmerge_uffd_wp();
+-#endif
+ 
+ 	test_prot_none();
+ 
+--- a/tools/testing/selftests/mm/memfd_secret.c~selftests-mm-remove-local-__nr_-definitions
++++ a/tools/testing/selftests/mm/memfd_secret.c
+@@ -17,7 +17,7 @@
+ 
+ #include <stdlib.h>
+ #include <string.h>
+-#include <unistd.h>
++#include <asm-generic/unistd.h>
+ #include <errno.h>
+ #include <stdio.h>
+ #include <fcntl.h>
+@@ -28,8 +28,6 @@
+ #define pass(fmt, ...) ksft_test_result_pass(fmt, ##__VA_ARGS__)
+ #define skip(fmt, ...) ksft_test_result_skip(fmt, ##__VA_ARGS__)
+ 
+-#ifdef __NR_memfd_secret
+-
+ #define PATTERN	0x55
+ 
+ static const int prot = PROT_READ | PROT_WRITE;
+@@ -334,13 +332,3 @@ int main(int argc, char *argv[])
+ 
+ 	ksft_finished();
+ }
+-
+-#else /* __NR_memfd_secret */
+-
+-int main(int argc, char *argv[])
+-{
+-	printf("skip: skipping memfd_secret test (missing __NR_memfd_secret)\n");
+-	return KSFT_SKIP;
+-}
+-
+-#endif /* __NR_memfd_secret */
+--- a/tools/testing/selftests/mm/mkdirty.c~selftests-mm-remove-local-__nr_-definitions
++++ a/tools/testing/selftests/mm/mkdirty.c
+@@ -9,7 +9,7 @@
+  */
+ #include <fcntl.h>
+ #include <signal.h>
+-#include <unistd.h>
++#include <asm-generic/unistd.h>
+ #include <string.h>
+ #include <errno.h>
+ #include <stdlib.h>
+@@ -265,7 +265,6 @@ munmap:
+ 	munmap(mmap_mem, mmap_size);
+ }
+ 
+-#ifdef __NR_userfaultfd
+ static void test_uffdio_copy(void)
+ {
+ 	struct uffdio_register uffdio_register;
+@@ -322,7 +321,6 @@ munmap:
+ 	munmap(dst, pagesize);
+ 	free(src);
+ }
+-#endif /* __NR_userfaultfd */
+ 
+ int main(void)
+ {
+@@ -335,9 +333,7 @@ int main(void)
+ 			       thpsize / 1024);
+ 		tests += 3;
+ 	}
+-#ifdef __NR_userfaultfd
+ 	tests += 1;
+-#endif /* __NR_userfaultfd */
+ 
+ 	ksft_print_header();
+ 	ksft_set_plan(tests);
+@@ -367,9 +363,7 @@ int main(void)
+ 	if (thpsize)
+ 		test_pte_mapped_thp();
+ 	/* Placing a fresh page via userfaultfd may set the PTE dirty. */
+-#ifdef __NR_userfaultfd
+ 	test_uffdio_copy();
+-#endif /* __NR_userfaultfd */
+ 
+ 	err = ksft_get_fail_cnt();
+ 	if (err)
+--- a/tools/testing/selftests/mm/mlock2.h~selftests-mm-remove-local-__nr_-definitions
++++ a/tools/testing/selftests/mm/mlock2.h
+@@ -3,6 +3,7 @@
+ #include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <asm-generic/unistd.h>
+ 
+ static int mlock2_(void *start, size_t len, int flags)
+ {
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-remove-local-__nr_-definitions
++++ a/tools/testing/selftests/mm/pagemap_ioctl.c
+@@ -15,7 +15,7 @@
+ #include <sys/ioctl.h>
+ #include <sys/stat.h>
+ #include <math.h>
+-#include <asm/unistd.h>
++#include <asm-generic/unistd.h>
+ #include <pthread.h>
+ #include <sys/resource.h>
+ #include <assert.h>
+--- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-remove-local-__nr_-definitions
++++ a/tools/testing/selftests/mm/protection_keys.c
+@@ -42,7 +42,7 @@
+ #include <sys/wait.h>
+ #include <sys/stat.h>
+ #include <fcntl.h>
+-#include <unistd.h>
++#include <asm-generic/unistd.h>
+ #include <sys/ptrace.h>
+ #include <setjmp.h>
+ 
+--- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-remove-local-__nr_-definitions
++++ a/tools/testing/selftests/mm/uffd-common.c
+@@ -673,11 +673,7 @@ int uffd_open_dev(unsigned int flags)
+ 
+ int uffd_open_sys(unsigned int flags)
+ {
+-#ifdef __NR_userfaultfd
+ 	return syscall(__NR_userfaultfd, flags);
+-#else
+-	return -1;
+-#endif
+ }
+ 
+ int uffd_open(unsigned int flags)
+--- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-remove-local-__nr_-definitions
++++ a/tools/testing/selftests/mm/uffd-stress.c
+@@ -33,11 +33,9 @@
+  * pthread_mutex_lock will also verify the atomicity of the memory
+  * transfer (UFFDIO_COPY).
+  */
+-
++#include <asm-generic/unistd.h>
+ #include "uffd-common.h"
+ 
+-#ifdef __NR_userfaultfd
+-
+ #define BOUNCE_RANDOM		(1<<0)
+ #define BOUNCE_RACINGFAULTS	(1<<1)
+ #define BOUNCE_VERIFY		(1<<2)
+@@ -466,15 +464,3 @@ int main(int argc, char **argv)
+ 	       nr_pages, nr_pages_per_cpu);
+ 	return userfaultfd_stress();
+ }
+-
+-#else /* __NR_userfaultfd */
+-
+-#warning "missing __NR_userfaultfd definition"
+-
+-int main(void)
+-{
+-	printf("skip: Skipping userfaultfd test (missing __NR_userfaultfd)\n");
+-	return KSFT_SKIP;
+-}
+-
+-#endif /* __NR_userfaultfd */
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-remove-local-__nr_-definitions
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -5,12 +5,11 @@
+  *  Copyright (C) 2015-2023  Red Hat, Inc.
+  */
+ 
++#include <asm-generic/unistd.h>
+ #include "uffd-common.h"
+ 
+ #include "../../../../mm/gup_test.h"
+ 
+-#ifdef __NR_userfaultfd
+-
+ /* The unit test doesn't need a large or random size, make it 32MB for now */
+ #define  UFFD_TEST_MEM_SIZE               (32UL << 20)
+ 
+@@ -1554,14 +1553,3 @@ int main(int argc, char *argv[])
+ 	return ksft_get_fail_cnt() ? KSFT_FAIL : KSFT_PASS;
+ }
+ 
+-#else /* __NR_userfaultfd */
+-
+-#warning "missing __NR_userfaultfd definition"
+-
+-int main(void)
+-{
+-	printf("Skipping %s (missing __NR_userfaultfd)\n", __file__);
+-	return KSFT_SKIP;
+-}
+-
+-#endif /* __NR_userfaultfd */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-mm-store-zero-pages-to-be-swapped-out-in-a-bitmap-v7-fix.patch
-tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout-fix.patch
-mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix.patch
 
