@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3632418C36
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:37:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B12E18C36
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:37:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628629; cv=none; b=VVwDPQ0PCwvEGl75/CPGwDOr1TXutqHZoTMI9vuIzhspcNEgbOQzrNGT6h5D72Q9m28cdgX/tenf6t28jdMcMaM6JXi8zsDt/QjksIJl1xa58UwVOtOcjemzehQMO1YqczkZDLFALnG7VIxgqpR+zNT8gZZ4SlCOMQ0LmP8268A=
+	t=1719628630; cv=none; b=OOmuhED4SDznE+XlFtUsPcePgNwfJXSumX18Pgwbo/plEMirx7OuVc1M73QhQ5LyS1bYTlKjPy7NaDwjCt/spYWSXk1CKnbfQD6NSwnB5m1XYHVWRouh40XtqDoR17IB9sv7JOW8bpVVw8MfxwMxXmM5A3uKN5dUR8yF8b6w06I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719628629; c=relaxed/simple;
-	bh=DGeOtFXEg2DP30DH3uGwQ9uTr1B9aMRz4rVPvqGfY7E=;
-	h=Date:To:From:Subject:Message-Id; b=uT1O9nYowW4GpCHEaW5HZXxGKfnJ5Yd8+8PY+xZTnUAWkNwirTIVSzfv50tPXnwhLPnvxSGLLKxLu6oonIO1qJaEeNnterYn0ChQe1RgRD3sjx5d2qT4ID0ti045yGQ2aK/6WiTIF3uqmnOoP27yB94Y8xUO4YNFbUg58EuxO6I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gNhFTz79; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628630; c=relaxed/simple;
+	bh=8ie/znwYVRmWNUDDUAipkOTFaMWrXQz5hL4XCpQR1k4=;
+	h=Date:To:From:Subject:Message-Id; b=H8qMTGVB9PMCGa5hhhDHmQGl4dkLIKAkqLsB+7vwr+fmIlTq4Kk4hg450um4mINkwK+95IQDiyF3oZVN0YTZhECd8Hhqb1Rz4etzNtVKFLq9ebuPsCxuG1wHwP/L8S+xZbrId2SoiI1Xyo+FRgvdytR6Syui4NjdaEzPwga5pAY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r0E+Tu+j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gNhFTz79"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3E59C116B1;
-	Sat, 29 Jun 2024 02:37:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r0E+Tu+j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1493CC32781;
+	Sat, 29 Jun 2024 02:37:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628629;
-	bh=DGeOtFXEg2DP30DH3uGwQ9uTr1B9aMRz4rVPvqGfY7E=;
+	s=korg; t=1719628630;
+	bh=8ie/znwYVRmWNUDDUAipkOTFaMWrXQz5hL4XCpQR1k4=;
 	h=Date:To:From:Subject:From;
-	b=gNhFTz79VNRhm98qtOAUDpmB7J6K+qu3PJL2s269wRKwMnhYxvfyDBi+0HTmvmboe
-	 UGGmOxAG82bJ8dfx/hzl/A3kUTymmE85R+m+iJ+EtGB+n5FGbuJ+0+fo04Ebkw4yuF
-	 eAtesT8T8cyFj+Gi54ZHmKoZ6chWm0F4XgTztyuY=
-Date: Fri, 28 Jun 2024 19:37:08 -0700
+	b=r0E+Tu+jRFtsYrh1BNDPe7hAnnnIRc8xUqN57ac4ad1VFjkzU+S+b8OU3b2hMOsJS
+	 PhxHjyj+J+ybGIQ78UQsOUedglPH9HLU4uLfH1dA14ezLCfXspdsPyJOcBPSxnQn1G
+	 dLs5Y102iRaJ500kAvwrb3z+MsQyWEdmzfZ4eETo=
+Date: Fri, 28 Jun 2024 19:37:09 -0700
 To: mm-commits@vger.kernel.org,mpe@ellerman.id.au,kirill.shutemov@linux.intel.com,kbingham@kernel.org,jan.kiszka@siemens.com,kuan-ying.lee@canonical.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-gdb-change-va_bits_min-when-we-use-16k-page.patch removed from -mm tree
-Message-Id: <20240629023708.F3E59C116B1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-gdb-rename-pool_index-to-pool_index_plus_1.patch removed from -mm tree
+Message-Id: <20240629023710.1493CC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scripts/gdb: change VA_BITS_MIN when we use 16K page
+     Subject: scripts/gdb: rename pool_index to pool_index_plus_1
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-change-va_bits_min-when-we-use-16k-page.patch
+     scripts-gdb-rename-pool_index-to-pool_index_plus_1.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kuan-Ying Lee <kuan-ying.lee@canonical.com>
-Subject: scripts/gdb: change VA_BITS_MIN when we use 16K page
-Date: Wed, 19 Jun 2024 15:49:10 +0800
+Subject: scripts/gdb: rename pool_index to pool_index_plus_1
+Date: Wed, 19 Jun 2024 15:49:11 +0800
 
-Change VA_BITS_MIN when we use 16K page.
+We encounter the following issue after commit a6c1d9cb9a68 ("stackdepot:
+rename pool_index to pool_index_plus_1").
 
-Link: https://lkml.kernel.org/r/20240619074911.100434-6-kuan-ying.lee@canonical.com
-Fixes: 9684ec186f8f ("arm64: Enable LPA2 at boot if supported by the system")
+(gdb) lx-dump-page-owner --pfn 262144
+...
+Python Exception <class 'gdb.error'>: There is no member named pool_index.
+Error occurred in Python: There is no member named pool_index.
+
+We rename pool_index to pool_index_plus_1 to fix this issue.
+
+Link: https://lkml.kernel.org/r/20240619074911.100434-7-kuan-ying.lee@canonical.com
+Fixes: a6c1d9cb9a68 ("stackdepot: rename pool_index to pool_index_plus_1")
 Signed-off-by: Kuan-Ying Lee <kuan-ying.lee@canonical.com>
 Cc: Jan Kiszka <jan.kiszka@siemens.com>
 Cc: Kieran Bingham <kbingham@kernel.org>
@@ -59,23 +67,32 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/mm.py |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ scripts/gdb/linux/stackdepot.py |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/scripts/gdb/linux/mm.py~scripts-gdb-change-va_bits_min-when-we-use-16k-page
-+++ a/scripts/gdb/linux/mm.py
-@@ -47,7 +47,10 @@ class aarch64_page_ops():
+--- a/scripts/gdb/linux/stackdepot.py~scripts-gdb-rename-pool_index-to-pool_index_plus_1
++++ a/scripts/gdb/linux/stackdepot.py
+@@ -27,14 +27,18 @@ def stack_depot_fetch(handle):
+     offset = parts['offset'] << DEPOT_STACK_ALIGN
+     pools_num = gdb.parse_and_eval('pools_num')
  
-         self.VA_BITS = constants.LX_CONFIG_ARM64_VA_BITS
-         if self.VA_BITS > 48:
--            self.VA_BITS_MIN = 48
-+            if constants.LX_CONFIG_ARM64_16K_PAGES:
-+                self.VA_BITS_MIN = 47
-+            else:
-+                self.VA_BITS_MIN = 48
-             tcr_el1 = gdb.execute("info registers $TCR_EL1", to_string=True)
-             tcr_el1 = int(tcr_el1.split()[1], 16)
-             self.vabits_actual = 64 - ((tcr_el1 >> 16) & 63)
+-    if parts['pool_index'] > pools_num:
++    if handle == 0:
++        raise gdb.GdbError("handle is 0\n")
++
++    pool_index = parts['pool_index_plus_1'] - 1
++    if pool_index >= pools_num:
+         gdb.write("pool index %d out of bounds (%d) for stack id 0x%08x\n" % (parts['pool_index'], pools_num, handle))
+         return gdb.Value(0), 0
+ 
+     stack_pools = gdb.parse_and_eval('stack_pools')
+ 
+     try:
+-        pool = stack_pools[parts['pool_index']]
++        pool = stack_pools[pool_index]
+         stack = (pool + gdb.Value(offset).cast(utils.get_size_t_type())).cast(stack_record_type.get_type().pointer())
+         size = int(stack['size'].cast(utils.get_ulong_type()))
+         return stack['entries'], size
 _
 
 Patches currently in -mm which might be from kuan-ying.lee@canonical.com are
