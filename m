@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3ABD8493
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:24:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 768D97494
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:29:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719627871; cv=none; b=KslVr7Rd9aMBij5hUR1g+weslwdn35ryABCIXzxcxZ0K9P9+ywsKIlHOUEcW4yOXlvyiW4FMWpC0jzpBoOSbWUITcsNdKGovBIzNm4Gi2fjFja/BrWVXqwrvGH/6W8jIaWMYhH4GlMUWTbh9qguVkitcbzgud+LMu5WRqVRe6F8=
+	t=1719628191; cv=none; b=n2/Sau4ywwF654rtU/E06dr3cTgMQfIIct3aqMQgiM8jadWq7IO8BgybHMs1DdWXX0+m6Sf6MdM3qG9dk4aux2CmccdVtKTHUUr7GayTsbrs19GLhQoBB/O1AW3N0+j/VdApHE7iMAsOeMWCXGi4mxYKvahUc2ffDJ9krkiUi3M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719627871; c=relaxed/simple;
-	bh=e1ieZeQXNoOGI9qQ1WzpT0zN40q7IFy1sXxQswN7/Rg=;
-	h=Date:To:From:Subject:Message-Id; b=FhYGo4SFYml0Esobj1zwAvj9qMPh054WV4+zqg8rz66DoXltw6aM+kiXF9tx8dF6RYwkFwmd12ircL62xeGpi12jZFUnOjYTxvFXT2zKcvFGEqTLyPyJWxHoAVe5fYOsb0A2aKOGBAJW6Iqwg/1UUiHdlhtqqr18yVdHPn570Bc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TKLOOvSW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628191; c=relaxed/simple;
+	bh=eIXsOjlo8xwjOKdqaiRIicfAPP7/FkaBlYYr30NLU+M=;
+	h=Date:To:From:Subject:Message-Id; b=gE/y4ZRqS8YRMgWyihWYxqhfgy/A6FTNZpLHzC3DB8BUzjYPZps7SzwsbKZIuV0ZZ+zMlNmhB+aXJQL4ABimMwoOYZ6Ykl+eMpM0hOQg9EFjGwaHWy/b9rSE6FXhB4K5AETeNe4XLfEAMlfvuL/Hp32Dfk8tSjje78VljdEs6hw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lTH0UFad; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TKLOOvSW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68791C32781;
-	Sat, 29 Jun 2024 02:24:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lTH0UFad"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D00C8C116B1;
+	Sat, 29 Jun 2024 02:29:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719627870;
-	bh=e1ieZeQXNoOGI9qQ1WzpT0zN40q7IFy1sXxQswN7/Rg=;
+	s=korg; t=1719628190;
+	bh=eIXsOjlo8xwjOKdqaiRIicfAPP7/FkaBlYYr30NLU+M=;
 	h=Date:To:From:Subject:From;
-	b=TKLOOvSWGjNtyZzYQkBgJdrGsOOoIXcFccIJUNa9XqDcohsN6WwfcUH2LAl4sE2Ok
-	 2a7b/6JoRWI06mLHc5c88BJYFtFMOR8cdgKi5dX5tjacgnzDCfIIKhuRHzZ573m32h
-	 N9xowf5awD5CLhe1oDglOY6MA5zUJdIFDgBooDzQ=
-Date: Fri, 28 Jun 2024 19:24:29 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,donettom@linux.ibm.com,baolin.wang@linux.alibaba.com,david@redhat.com,akpm@linux-foundation.org
+	b=lTH0UFadwNZzjdFB6OsNZa3fYh7Z5NMCyHal3xSzvOjOREqR2fUn6H5DsOfpgNs1i
+	 s4EAA8SzKjszbIuGnxwW0UCUVmgnYCxQbe+k9QDhrGP6UW0875u+iGw1lj1PdZ0W2j
+	 uZ0nHQzggSu6pYfOKKgcynKHi9H8ZrVQFrbfOw3o=
+Date: Fri, 28 Jun 2024 19:29:50 -0700
+To: mm-commits@vger.kernel.org,lkp@intel.com,ioworker0@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix.patch removed from -mm tree
-Message-Id: <20240629022430.68791C32781@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memoryc-fix-used-uninitialized.patch removed from -mm tree
+Message-Id: <20240629022950.D00C8C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,66 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix
+     Subject: mm/huge_memory.c: fix used-uninitialized
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix.patch
+     mm-huge_memoryc-fix-used-uninitialized.patch
 
-This patch was dropped because it was folded into mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix
-Date: Wed, 26 Jun 2024 18:14:44 +0200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/huge_memory.c: fix used-uninitialized
+Date: Tue Jun 25 02:51:36 PM PDT 2024
 
-Donet reports an issue during NUMA migration we haven't seen previously:
+Fix used-uninitialized of `page'.
 
-	[   71.422804] list_del corruption, c00c00000061b3c8->next is
-	LIST_POISON1 (5deadbeef0000100)
-	[   71.422839] ------------[ cut here ]------------
-	[   71.422843] kernel BUG at lib/list_debug.c:56!
-	[   71.422850] Oops: Exception in kernel mode, sig: 5 [#1]
-
-We forgot to convert one "return 0;" to return an error instead from
-migrate_misplaced_folio_prepare() in case the target node is nearly
-full.
-
-Link: https://lkml.kernel.org/r/8f85c31a-e603-4578-bf49-136dae0d4b69@redhat.com
-Link: https://lkml.kernel.org/r/20240626191129.658CFC32782@smtp.kernel.org
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Tested-by: Donet Tom <donettom@linux.ibm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Fixes: dce7d10be4bb ("mm/madvise: optimize lazyfreeing with mTHP in madvise_free")
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202406260514.SLhNM9kQ-lkp@intel.com
+Cc: Lance Yang <ioworker0@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl-fix
-+++ a/mm/migrate.c
-@@ -2556,7 +2556,7 @@ int migrate_misplaced_folio_prepare(stru
- 		int z;
+--- a/mm/huge_memory.c~mm-huge_memoryc-fix-used-uninitialized
++++ a/mm/huge_memory.c
+@@ -2696,7 +2696,6 @@ static bool __discard_anon_folio_pmd_loc
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	int ref_count, map_count;
+ 	pmd_t orig_pmd = *pmdp;
+-	struct page *page;
  
- 		if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING))
--			return 0;
-+			return -EAGAIN;
- 		for (z = pgdat->nr_zones - 1; z >= 0; z--) {
- 			if (managed_zone(pgdat->node_zones + z))
- 				break;
+ 	if (folio_test_dirty(folio) || pmd_dirty(orig_pmd))
+ 		return false;
+@@ -2732,7 +2731,7 @@ static bool __discard_anon_folio_pmd_loc
+ 		return false;
+ 	}
+ 
+-	folio_remove_rmap_pmd(folio, page, vma);
++	folio_remove_rmap_pmd(folio, pmd_page(orig_pmd), vma);
+ 	zap_deposited_table(mm, pmdp);
+ 	add_mm_counter(mm, MM_ANONPAGES, -HPAGE_PMD_NR);
+ 	if (vma->vm_flags & VM_LOCKED)
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-update-_mapcount-and-page_type-documentation.patch
-mm-allow-reuse-of-the-lower-16-bit-of-the-page-type-with-an-actual-type.patch
-mm-zsmalloc-use-a-proper-page-type.patch
-mm-page_alloc-clear-pagebuddy-using-__clearpagebuddy-for-bad-pages.patch
-mm-filemap-reinitialize-folio-_mapcount-directly.patch
-mm-mm_init-initialize-page-_mapcount-directly-in-__init_single_page.patch
-mm-pass-meminit_context-to-__free_pages_core.patch
-mm-memory_hotplug-initialize-memmap-of-zone_device-with-pageoffline-instead-of-pagereserved.patch
-mm-memory_hotplug-skip-adjust_managed_page_count-for-pageoffline-pages-when-offlining.patch
-mm-read-page_type-using-read_once.patch
-mm-migrate-make-migrate_misplaced_folio-return-0-on-success.patch
-mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl.patch
+mm-store-zero-pages-to-be-swapped-out-in-a-bitmap-v7-fix.patch
+tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout-fix.patch
+mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix.patch
 
