@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EA80BA46
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:30:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84F27AD55
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:30:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628233; cv=none; b=AO7l/5Cwha1FpfkOKPffzkYdhViq7HTvoiTOZ44L5MXx7n62yQk+DES9tms07yELpogLbVNo8LzrIvx4mAgWuJ3uR4eg8WYsC2gJUHzMKCkA3P5cVb1rIyYZDk0xDeUg/Na+09q892xSNX85V5h/17lsZfPad7jAXqqBXKxZdbw=
+	t=1719628234; cv=none; b=DJ9AaNbTrj0AreEhjzY+IIZDYABYheTiyO7u4z6sBET+hUZAPnRkNkMVcw/WHCwIWVi36dsnJgXfL0V91LtxcTCfQkguOPQQhtHU11mZUWgB7o08bEGx91Km7QaMIMvE3HAQvcLKdGEW55BGD/x/xvD1QRIfB80oRnov0BIPBdQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719628233; c=relaxed/simple;
-	bh=ExObLqW+OMjPVIvDF6qQStB8Ae4TjcSsiJjYwOettmE=;
-	h=Date:To:From:Subject:Message-Id; b=BQut9DEL16sDNOdDGYjXVzQq/kLlqjIAmq9SKKU4573FRlJKSnF22SdrpmJGYzkW/sOw34UfjUpmSYOik1St7u/sdJ+WcLEAv3rZIOq6mQH3/8n/Nhvce7s9bYmm3xz+aIsMk/Q6b09mC3m7yTzmt3XGe0U8O8jAV1GiRmkJZJY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qqZRHVK3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628234; c=relaxed/simple;
+	bh=bpXnnbMOBRweIzyA86m8yFbCQoZQyOiCpdXeN8Vf/qk=;
+	h=Date:To:From:Subject:Message-Id; b=cng71xtU6mD/0BKE7Rh8sb/ul2kp9x6NLDLdMCAoYPtRFd8soo1bapw7D96eb0lgT2n2S+wCrGHf5GipUdvxKM+XNY/QnHuUIhmjdivvX/XqqCSdRuv+RBRI2iLKc5jPoT9B0RWGFs+YyHNRts3FZ0HWx+f3O0bydEWjERQu23E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SRv/oYKU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qqZRHVK3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C832C116B1;
-	Sat, 29 Jun 2024 02:30:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SRv/oYKU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58833C116B1;
+	Sat, 29 Jun 2024 02:30:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628233;
-	bh=ExObLqW+OMjPVIvDF6qQStB8Ae4TjcSsiJjYwOettmE=;
+	s=korg; t=1719628234;
+	bh=bpXnnbMOBRweIzyA86m8yFbCQoZQyOiCpdXeN8Vf/qk=;
 	h=Date:To:From:Subject:From;
-	b=qqZRHVK3czAg94dkm9Kw9o6yaQgX+S6s2gl6c1S78MMpo9tfE993BxY752Rs0wa8U
-	 X6XcuI+1Cjr4LWtW0++xaBY7CMqbNZzdtKC5Tgyy9nYOdqaWiVKAKYqGWXvRJkDVmH
-	 fS0lbwXBiEmy2/t1+qnMSYmvYDuRx3z4A7FMRotE=
-Date: Fri, 28 Jun 2024 19:30:32 -0700
-To: mm-commits@vger.kernel.org,rdunlap@infradead.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+	b=SRv/oYKUthedBKm7sYBQ3khVnjPiFMGBsQX5bagvRCZCJ5wlJsBrj6TnHzESG8h42
+	 llgJ0G+nXVpq8TzefLZswFQOQALaYgGXAVsV/TER8yPI9Jrr048UX9wx0Vd4xoR3sO
+	 97PXEj57T90S2oq13CxwsD61hJzJtJPWHuQYSXvg=
+Date: Fri, 28 Jun 2024 19:30:33 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,kasan-dev@googlegroups.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-mm-damon-maintainer-profile-document-damon-community-meetups.patch removed from -mm tree
-Message-Id: <20240629023033.1C832C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] ftrace-unpoison-ftrace_regs-in-ftrace_ops_list_func.patch removed from -mm tree
+Message-Id: <20240629023034.58833C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/mm/damon/maintainer-profile: document DAMON community meetups
+     Subject: ftrace: unpoison ftrace_regs in ftrace_ops_list_func()
 has been removed from the -mm tree.  Its filename was
-     docs-mm-damon-maintainer-profile-document-damon-community-meetups.patch
+     ftrace-unpoison-ftrace_regs-in-ftrace_ops_list_func.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/maintainer-profile: document DAMON community meetups
-Date: Fri, 21 Jun 2024 09:36:26 -0700
+From: Ilya Leoshkevich <iii@linux.ibm.com>
+Subject: ftrace: unpoison ftrace_regs in ftrace_ops_list_func()
+Date: Fri, 21 Jun 2024 13:34:45 +0200
 
-DAMON bi-weekly community meetup series has continued since 2022-08-15 for
-community members who prefer synchronous chat over asynchronous mails. 
-Recently I got some feedbacks about the series from a few people.  They
-told me the series is helpful for understanding of the project and
-particiapting to the development, but it could be further better in terms
-of the visibility.  Based on that, I started sending meeting reminder for
-every occurrence.  For people who don't subscribe the mailing list,
-however, adding an announcement on the official document could be helpful.
-Document the series on DAMON maintainer's profile for the purpose.
+Patch series "kmsan: Enable on s390", v7.
 
-Link: https://lkml.kernel.org/r/20240621163626.74815-3-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+
+Architectures use assembly code to initialize ftrace_regs and call
+ftrace_ops_list_func().  Therefore, from the KMSAN's point of view,
+ftrace_regs is poisoned on ftrace_ops_list_func entry().  This causes
+KMSAN warnings when running the ftrace testsuite.
+
+Fix by trusting the architecture-specific assembly code and always
+unpoisoning ftrace_regs in ftrace_ops_list_func.
+
+The issue was not encountered on x86_64 so far only by accident:
+assembly-allocated ftrace_regs was overlapping a stale partially
+unpoisoned stack frame.  Poisoning stack frames before returns [1] makes
+the issue appear on x86_64 as well.
+
+[1] https://github.com/iii-i/llvm-project/commits/msan-poison-allocas-before-returning-2024-06-12/
+
+Link: https://lkml.kernel.org/r/20240621113706.315500-1-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20240621113706.315500-2-iii@linux.ibm.com
+Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Acked-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: <kasan-dev@googlegroups.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/maintainer-profile.rst |   19 ++++++++++++++++
- 1 file changed, 19 insertions(+)
+ kernel/trace/ftrace.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-document-damon-community-meetups
-+++ a/Documentation/mm/damon/maintainer-profile.rst
-@@ -69,6 +69,24 @@ In other words, ``hkml`` [8]_ is a maili
- DAMON maintainer is committed to support.  Please feel free to try and report
- issues or feature requests for the tool to the maintainer.
- 
-+Community meetup
-+----------------
-+
-+DAMON community is maintaining two bi-weekly meetup series for community
-+members who prefer synchronous conversations over mails.
-+
-+The first one is for any discussion between every community member.  No
-+reservation is needed.
-+
-+The seconds one is for discussions on specific topics between restricted
-+members including the maintainer.  The maintainer shares the available time
-+slots, and attendees should reserve one of those at least 24 hours before the
-+time slot, by reaching out to the maintainer.
-+
-+Schedules and available reservation time slots are available at the Google doc
-+[9]_ .  DAMON maintainer will also provide periodic reminder to the mailing
-+list (damon@lists.linux.dev).
-+
- 
- .. [1] https://git.kernel.org/akpm/mm/h/mm-unstable
- .. [2] https://git.kernel.org/sj/h/damon/next
-@@ -78,3 +96,4 @@ issues or feature requests for the tool
- .. [6] https://github.com/awslabs/damon-tests/tree/master/corr
- .. [7] https://github.com/awslabs/damon-tests/tree/master/perf
- .. [8] https://github.com/damonitor/hackermail
-+.. [9] https://docs.google.com/document/d/1v43Kcj3ly4CYqmAkMaZzLiM2GEnWfgdGbZAH3mi2vpM/edit?usp=sharing
+--- a/kernel/trace/ftrace.c~ftrace-unpoison-ftrace_regs-in-ftrace_ops_list_func
++++ a/kernel/trace/ftrace.c
+@@ -7407,6 +7407,7 @@ out:
+ void arch_ftrace_ops_list_func(unsigned long ip, unsigned long parent_ip,
+ 			       struct ftrace_ops *op, struct ftrace_regs *fregs)
+ {
++	kmsan_unpoison_memory(fregs, sizeof(*fregs));
+ 	__ftrace_ops_list_func(ip, parent_ip, NULL, fregs);
+ }
+ #else
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from iii@linux.ibm.com are
 
-mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet.patch
-mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix.patch
-mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix-2.patch
 
