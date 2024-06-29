@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9852318C36
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:37:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A85B11CD23
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:37:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628634; cv=none; b=YkH5dvL/tRV/1lqqWJ310teg7tXs6hSV1n7JekHdVqHCJ14jBZHMsZ3Av6bDfDJOmJ8DnqcvAzWscJXVDx/8KZ3Q9a4ThqjMrB7GRTi4zdJsnG7aeV5rDYfOCZ5q5iDkGQpEp39eevvUD91YONwBG+RmHenFb6UAW50+W42CSag=
+	t=1719628635; cv=none; b=EQstcPRP5u0pRQFCAHSEOfvpIm0BkREPKHpjfHP8Iq6FLdOnPLVcLBDIG8x6afoQDXN6Sbnk1BZ3ypho24Matawh/YiTYXFoS9i7GWpuYx28Tlf3V0GMao9vrNQCPyV7a+TiePZUd4bB8tJ6ahksOLwiXSqM1QpcDUkmeiJVBTU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719628634; c=relaxed/simple;
-	bh=xlaS4jOr/Tevz4Lvu55y6JtFtS4jr9rscFhMDAQAleE=;
-	h=Date:To:From:Subject:Message-Id; b=UfEyZmn6XBKK5kEdVK97xD3uXUXZIO9mxYHLTWIiVMBV4eWyH7OxgjcjXbfpl0v4eSCWKeaurx0hnqwnuGfOrBlKIN8D9QxMcuYSJ8f2CWUoel28DBPRdrQ65TCRfxBCatTTSVJcOXP+dsANleiWgReRtvd4jvps4BfNS16bcxg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RsXnp5pj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628635; c=relaxed/simple;
+	bh=o01pyxfhNQOi9B9m2NlCog7b/SkqLYddiW7J1k3eH/c=;
+	h=Date:To:From:Subject:Message-Id; b=gbGjsKQSqOLDEFsFnQ+lgO43B1VXgcxEsXUaSejS8RXTa20swFu60KDnZlMko0fMRqAf/y22OhR5zvkq/TzzcvP2JSj9XOhcyi78Ruq+Zh9cVC5gCAy1DGoltcVngLfq3xuPaC8q5VlRBFAmwypIRd7LgvAK4YMnuW6rmLY9ujU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=skng1F76; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RsXnp5pj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CFCDC32789;
-	Sat, 29 Jun 2024 02:37:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="skng1F76"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BC14C116B1;
+	Sat, 29 Jun 2024 02:37:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628634;
-	bh=xlaS4jOr/Tevz4Lvu55y6JtFtS4jr9rscFhMDAQAleE=;
+	s=korg; t=1719628635;
+	bh=o01pyxfhNQOi9B9m2NlCog7b/SkqLYddiW7J1k3eH/c=;
 	h=Date:To:From:Subject:From;
-	b=RsXnp5pj8K2lxzhHS1GHaim9ECb/JhxZjtsHlRRiz+Qo7YM1eRU2gGmxzwmUrokp8
-	 jKn8kZE4quFdFVLShskcOlKs+wKMw0S+QoYYl/wZLI7ROcOhk4Mn2KjTAEJWq8aVYf
-	 4CNXhailmaPXHJvKoF3K6V8kL8kfE+kpb35wEKyY=
-Date: Fri, 28 Jun 2024 19:37:13 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,elver@google.com,adobriyan@gmail.com,akpm@linux-foundation.org
+	b=skng1F76SIqYzSJAJnq8ngd4qGcpSsQMht0w0p+kFAQD37tw/9U8XmpMOS/k9ZK5n
+	 g7VES1tfS2CwEw4kWUdP3R/hYdOT05/XU1gn812UPpH3utIvZnqNIQInIFYz3GvYau
+	 TKF2cojFA59ayQKEaUP96Rw9ZzUrTTqZ/sacs7y4=
+Date: Fri, 28 Jun 2024 19:37:15 -0700
+To: mm-commits@vger.kernel.org,samuel.holland@sifive.com,quic_jjohnson@quicinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] compilerh-simplify-data_race-macro.patch removed from -mm tree
-Message-Id: <20240629023714.6CFCDC32789@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] selftests-fpu-add-missing-module_description-macro.patch removed from -mm tree
+Message-Id: <20240629023715.7BC14C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: compiler.h: simplify data_race() macro
+     Subject: selftests/fpu: add missing MODULE_DESCRIPTION() macro
 has been removed from the -mm tree.  Its filename was
-     compilerh-simplify-data_race-macro.patch
+     selftests-fpu-add-missing-module_description-macro.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: compiler.h: simplify data_race() macro
-Date: Mon, 24 Jun 2024 18:39:49 +0300
+From: Jeff Johnson <quic_jjohnson@quicinc.com>
+Subject: selftests/fpu: add missing MODULE_DESCRIPTION() macro
+Date: Sat, 22 Jun 2024 07:55:05 -0700
 
--Wdeclaration-after-statement used since forever required statement
-expressions to inject __kcsan_disable_current(), __kcsan_enable_current()
-to mark data race. Now that it is gone, make macro expansion simpler.
+make allmodconfig && make W=1 C=1 now reports:
+WARNING: modpost: missing MODULE_DESCRIPTION() in lib/test_fpu.o
 
-__unqual_scalar_typeof() is wordy macro by itself.
-"expr" is expanded twice.
+Add the missing invocation of the MODULE_DESCRIPTION() macro.
 
-Link: https://lkml.kernel.org/r/fb62163f-ba21-4661-be5b-bb5124abc87d@p183
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20240622-md-i386-lib-test_fpu_glue-v1-1-a4e40b7b1264@quicinc.com
+Fixes: 9613736d852d ("selftests/fpu: move FP code to a separate translation unit")
+Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
+Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler.h |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ lib/test_fpu_glue.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/compiler.h~compilerh-simplify-data_race-macro
-+++ a/include/linux/compiler.h
-@@ -200,10 +200,8 @@ void ftrace_likely_update(struct ftrace_
-  */
- #define data_race(expr)							\
- ({									\
--	__unqual_scalar_typeof(({ expr; })) __v = ({			\
--		__kcsan_disable_current();				\
--		expr;							\
--	});								\
-+	__kcsan_disable_current();					\
-+	__auto_type __v = (expr);					\
- 	__kcsan_enable_current();					\
- 	__v;								\
- })
+--- a/lib/test_fpu_glue.c~selftests-fpu-add-missing-module_description-macro
++++ a/lib/test_fpu_glue.c
+@@ -59,4 +59,5 @@ static void __exit test_fpu_exit(void)
+ module_init(test_fpu_init);
+ module_exit(test_fpu_exit);
+ 
++MODULE_DESCRIPTION("Test cases for floating point operations");
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from quic_jjohnson@quicinc.com are
 
 
