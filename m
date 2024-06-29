@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 244F815E81
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:31:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 400F115E81
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:31:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628291; cv=none; b=M9VI2ZO28Cjte9ZDd4tNj2sEac6GXCwO3+lKiG7ju8Da2ymM0S2gaEWOIpOkivDiwl2le3UMH8Igb02n+7SJ5uEiCsxmBT87BB8RENMx7mUuj6St3y96ph9BzWhtUS7w0+XSMwfkQuwluyNZNvGUmSwxjZoJYFA/f3JIwFuwZOE=
+	t=1719628292; cv=none; b=FmPjWeoDDcFnnsvVePev+C9KkipsDEyc/jzbCuw0LStvNp7v0BAaa9QOTu+gOOeME/ZF3CsmZmS1M4NOTvnyLb4g01mSFvmk7UjFpzRvMOU2xvZPw5t2hLE2MwH4Z28rDZ9uUbhmhng2BETSh3MbiB1EXsxieZvBpuItsqP/2BI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719628291; c=relaxed/simple;
-	bh=lq0wt8ctwVunkI/Ee/DuUgieLiWGeGp4Y0A4jfkWUXQ=;
-	h=Date:To:From:Subject:Message-Id; b=jS58zY9Fav1C+pqlx2aYiz19qLUWj8jaDjepNh9zWzfXSEOFhGSMcF+I0tAisjMQ6O/TpIrgaj1+fpzao4ZgtftwP1OhEGh6YZFACDqF1eqt/u3sPSAl2Xpmdtow385sjy06OcJxrJOiSBZwgfzshi1r53UbtyOJEYHpC9BV12E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i+BUAdsX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628292; c=relaxed/simple;
+	bh=EC4UUIRCMdaKyidp+DE36yxfKOrpkfz90M+FuPXiOo8=;
+	h=Date:To:From:Subject:Message-Id; b=DJV0AvgzEQ8ZPhjjUeu8tIB2gIsgy3DZiCS5lnBZUgvzI8CYn+A1FyIknCPCF0o8Zp+Ga8wjjjgJxa+vtF5r6ZWfSG93NJIw0Gy3/4ZqiALf7jw3ACOoWjH8xgDR8GhfgRastckjDn4Gu4FRJSZkk5hRlkdFGBVt2eeaST5xLfg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Faq4hiRh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i+BUAdsX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF119C32789;
-	Sat, 29 Jun 2024 02:31:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Faq4hiRh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DE1FC116B1;
+	Sat, 29 Jun 2024 02:31:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628291;
-	bh=lq0wt8ctwVunkI/Ee/DuUgieLiWGeGp4Y0A4jfkWUXQ=;
+	s=korg; t=1719628292;
+	bh=EC4UUIRCMdaKyidp+DE36yxfKOrpkfz90M+FuPXiOo8=;
 	h=Date:To:From:Subject:From;
-	b=i+BUAdsXjWfM67KHGCW878zOmZOo5QL4RrkRhnXZ42OBrfpTdEDXtV/N66pI2sqr5
-	 CQsTzo8Iw0IvCOMumXv1lO5OMb3+aATNfx7Grj6SdFgavXNxkc04rDHOgrO5U9pRgm
-	 HYZnocOv08KZhBP92OS3QGQQRuRsrWbLAGZ+bAGM=
-Date: Fri, 28 Jun 2024 19:31:30 -0700
+	b=Faq4hiRhxt+yF+u1yLx7YlU08xbVTqdrB/tLBFj+xRXntVw4mOiOMBTwzBMg5HMIM
+	 UTawQBggjMXxTGJdIANxrp5lKt3wBx5hxvjbZ6VwwOSyX2F0FddwRVnshlwmg5U8pL
+	 +8niTYYb66YkDfrcnCBatTXOEDEF9SWqsSnwtJ4c=
+Date: Fri, 28 Jun 2024 19:31:31 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,donettom@linux.ibm.com,baolin.wang@linux.alibaba.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-migrate-make-migrate_misplaced_folio-return-0-on-success.patch removed from -mm tree
-Message-Id: <20240629023130.EF119C32789@smtp.kernel.org>
+Subject: [merged mm-stable] mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl.patch removed from -mm tree
+Message-Id: <20240629023132.0DE1FC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,91 +35,264 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/migrate: make migrate_misplaced_folio() return 0 on success
+     Subject: mm/migrate: move NUMA hinting fault folio isolation + checks under PTL
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-make-migrate_misplaced_folio-return-0-on-success.patch
+     mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/migrate: make migrate_misplaced_folio() return 0 on success
-Date: Thu, 20 Jun 2024 23:29:34 +0200
+Subject: mm/migrate: move NUMA hinting fault folio isolation + checks under PTL
+Date: Thu, 20 Jun 2024 23:29:35 +0200
 
-Patch series "mm/migrate: move NUMA hinting fault folio isolation + checks
-under PTL".
+Currently we always take a folio reference even if migration will not even
+be tried or isolation failed, requiring us to grab+drop an additional
+reference.
 
+Further, we end up calling folio_likely_mapped_shared() while the folio
+might have already been unmapped, because after we dropped the PTL, that
+can easily happen.  We want to stop touching mapcounts and friends from
+such context, and only call folio_likely_mapped_shared() while the folio
+is still mapped: mapcount information is pretty much stale and unreliable
+otherwise.
 
-Let's just return 0 on success, which is less confusing.
+So let's move checks into numamigrate_isolate_folio(), rename that
+function to migrate_misplaced_folio_prepare(), and call that function from
+callsites where we call migrate_misplaced_folio(), but still with the PTL
+held.
 
-...  especially because we got it wrong in the migrate.h stub where we
-have "return -EAGAIN; /* can't migrate now */" instead of "return 0;". 
-Likely this wrong return value doesn't currently matter, but it certainly
-adds confusion.
+We can now stop taking temporary folio references, and really only take a
+reference if folio isolation succeeded.  Doing the
+folio_likely_mapped_shared() + folio isolation under PT lock is now
+similar to how we handle MADV_PAGEOUT.
 
-We'll add migrate_misplaced_folio_prepare() next, where we want to use the
-same "return 0 on success" approach, so let's just clean this up.
+While at it, combine the folio_is_file_lru() checks.
 
-Link: https://lkml.kernel.org/r/20240620212935.656243-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20240620212935.656243-2-david@redhat.com
+[david@redhat.com: fix list_del() corruption]
+  Link: https://lkml.kernel.org/r/8f85c31a-e603-4578-bf49-136dae0d4b69@redhat.com
+  Link: https://lkml.kernel.org/r/20240626191129.658CFC32782@smtp.kernel.org
+Link: https://lkml.kernel.org/r/20240620212935.656243-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Donet Tom <donettom@linux.ibm.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Tested-by: Donet Tom <donettom@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    5 ++---
- mm/memory.c      |    2 +-
- mm/migrate.c     |    4 ++--
- 3 files changed, 5 insertions(+), 6 deletions(-)
+ include/linux/migrate.h |    7 +++
+ mm/huge_memory.c        |    8 ++-
+ mm/memory.c             |    9 ++--
+ mm/migrate.c            |   83 +++++++++++++++++---------------------
+ 4 files changed, 56 insertions(+), 51 deletions(-)
 
---- a/mm/huge_memory.c~mm-migrate-make-migrate_misplaced_folio-return-0-on-success
-+++ a/mm/huge_memory.c
-@@ -1653,7 +1653,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
- 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
- 	int nid = NUMA_NO_NODE;
- 	int target_nid, last_cpupid = (-1 & LAST_CPUPID_MASK);
--	bool migrated = false, writable = false;
-+	bool writable = false;
- 	int flags = 0;
+--- a/include/linux/migrate.h~mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl
++++ a/include/linux/migrate.h
+@@ -140,9 +140,16 @@ const struct movable_operations *page_mo
+ }
  
- 	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
-@@ -1697,8 +1697,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ #ifdef CONFIG_NUMA_BALANCING
++int migrate_misplaced_folio_prepare(struct folio *folio,
++		struct vm_area_struct *vma, int node);
+ int migrate_misplaced_folio(struct folio *folio, struct vm_area_struct *vma,
+ 			   int node);
+ #else
++static inline int migrate_misplaced_folio_prepare(struct folio *folio,
++		struct vm_area_struct *vma, int node)
++{
++	return -EAGAIN; /* can't migrate now */
++}
+ static inline int migrate_misplaced_folio(struct folio *folio,
+ 					 struct vm_area_struct *vma, int node)
+ {
+--- a/mm/huge_memory.c~mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl
++++ a/mm/huge_memory.c
+@@ -1689,11 +1689,13 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 	if (node_is_toptier(nid))
+ 		last_cpupid = folio_last_cpupid(folio);
+ 	target_nid = numa_migrate_prep(folio, vmf, haddr, nid, &flags);
+-	if (target_nid == NUMA_NO_NODE) {
+-		folio_put(folio);
++	if (target_nid == NUMA_NO_NODE)
++		goto out_map;
++	if (migrate_misplaced_folio_prepare(folio, vma, target_nid)) {
++		flags |= TNF_MIGRATE_FAIL;
+ 		goto out_map;
+ 	}
+-
++	/* The folio is isolated and isolation code holds a folio reference. */
  	spin_unlock(vmf->ptl);
  	writable = false;
  
--	migrated = migrate_misplaced_folio(folio, vma, target_nid);
--	if (migrated) {
-+	if (!migrate_misplaced_folio(folio, vma, target_nid)) {
- 		flags |= TNF_MIGRATED;
- 		nid = target_nid;
- 	} else {
---- a/mm/memory.c~mm-migrate-make-migrate_misplaced_folio-return-0-on-success
+--- a/mm/memory.c~mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl
 +++ a/mm/memory.c
-@@ -5357,7 +5357,7 @@ static vm_fault_t do_numa_page(struct vm
- 	ignore_writable = true;
+@@ -5210,8 +5210,6 @@ int numa_migrate_prep(struct folio *foli
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
  
- 	/* Migrate to the requested node */
--	if (migrate_misplaced_folio(folio, vma, target_nid)) {
-+	if (!migrate_misplaced_folio(folio, vma, target_nid)) {
- 		nid = target_nid;
- 		flags |= TNF_MIGRATED;
- 	} else {
---- a/mm/migrate.c~mm-migrate-make-migrate_misplaced_folio-return-0-on-success
+-	folio_get(folio);
+-
+ 	/* Record the current PID acceesing VMA */
+ 	vma_set_access_pid_bit(vma);
+ 
+@@ -5348,10 +5346,13 @@ static vm_fault_t do_numa_page(struct vm
+ 	else
+ 		last_cpupid = folio_last_cpupid(folio);
+ 	target_nid = numa_migrate_prep(folio, vmf, vmf->address, nid, &flags);
+-	if (target_nid == NUMA_NO_NODE) {
+-		folio_put(folio);
++	if (target_nid == NUMA_NO_NODE)
++		goto out_map;
++	if (migrate_misplaced_folio_prepare(folio, vma, target_nid)) {
++		flags |= TNF_MIGRATE_FAIL;
+ 		goto out_map;
+ 	}
++	/* The folio is isolated and isolation code holds a folio reference. */
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	writable = false;
+ 	ignore_writable = true;
+--- a/mm/migrate.c~mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl
 +++ a/mm/migrate.c
-@@ -2618,11 +2618,11 @@ int migrate_misplaced_folio(struct folio
+@@ -2519,16 +2519,44 @@ static struct folio *alloc_misplaced_dst
+ 	return __folio_alloc_node(gfp, order, nid);
+ }
+ 
+-static int numamigrate_isolate_folio(pg_data_t *pgdat, struct folio *folio)
++/*
++ * Prepare for calling migrate_misplaced_folio() by isolating the folio if
++ * permitted. Must be called with the PTL still held.
++ */
++int migrate_misplaced_folio_prepare(struct folio *folio,
++		struct vm_area_struct *vma, int node)
+ {
+ 	int nr_pages = folio_nr_pages(folio);
++	pg_data_t *pgdat = NODE_DATA(node);
++
++	if (folio_is_file_lru(folio)) {
++		/*
++		 * Do not migrate file folios that are mapped in multiple
++		 * processes with execute permissions as they are probably
++		 * shared libraries.
++		 *
++		 * See folio_likely_mapped_shared() on possible imprecision
++		 * when we cannot easily detect if a folio is shared.
++		 */
++		if ((vma->vm_flags & VM_EXEC) &&
++		    folio_likely_mapped_shared(folio))
++			return -EACCES;
++
++		/*
++		 * Do not migrate dirty folios as not all filesystems can move
++		 * dirty folios in MIGRATE_ASYNC mode which is a waste of
++		 * cycles.
++		 */
++		if (folio_test_dirty(folio))
++			return -EAGAIN;
++	}
+ 
+ 	/* Avoid migrating to a node that is nearly full */
+ 	if (!migrate_balanced_pgdat(pgdat, nr_pages)) {
+ 		int z;
+ 
+ 		if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING))
+-			return 0;
++			return -EAGAIN;
+ 		for (z = pgdat->nr_zones - 1; z >= 0; z--) {
+ 			if (managed_zone(pgdat->node_zones + z))
+ 				break;
+@@ -2539,65 +2567,37 @@ static int numamigrate_isolate_folio(pg_
+ 		 * further.
+ 		 */
+ 		if (z < 0)
+-			return 0;
++			return -EAGAIN;
+ 
+ 		wakeup_kswapd(pgdat->node_zones + z, 0,
+ 			      folio_order(folio), ZONE_MOVABLE);
+-		return 0;
++		return -EAGAIN;
+ 	}
+ 
+ 	if (!folio_isolate_lru(folio))
+-		return 0;
++		return -EAGAIN;
+ 
+ 	node_stat_mod_folio(folio, NR_ISOLATED_ANON + folio_is_file_lru(folio),
+ 			    nr_pages);
+-
+-	/*
+-	 * Isolating the folio has taken another reference, so the
+-	 * caller's reference can be safely dropped without the folio
+-	 * disappearing underneath us during migration.
+-	 */
+-	folio_put(folio);
+-	return 1;
++	return 0;
+ }
+ 
+ /*
+  * Attempt to migrate a misplaced folio to the specified destination
+- * node. Caller is expected to have an elevated reference count on
+- * the folio that will be dropped by this function before returning.
++ * node. Caller is expected to have isolated the folio by calling
++ * migrate_misplaced_folio_prepare(), which will result in an
++ * elevated reference count on the folio. This function will un-isolate the
++ * folio, dereferencing the folio before returning.
+  */
+ int migrate_misplaced_folio(struct folio *folio, struct vm_area_struct *vma,
+ 			    int node)
+ {
+ 	pg_data_t *pgdat = NODE_DATA(node);
+-	int isolated;
+ 	int nr_remaining;
+ 	unsigned int nr_succeeded;
+ 	LIST_HEAD(migratepages);
+ 	int nr_pages = folio_nr_pages(folio);
+ 
+-	/*
+-	 * Don't migrate file folios that are mapped in multiple processes
+-	 * with execute permissions as they are probably shared libraries.
+-	 *
+-	 * See folio_likely_mapped_shared() on possible imprecision when we
+-	 * cannot easily detect if a folio is shared.
+-	 */
+-	if (folio_likely_mapped_shared(folio) && folio_is_file_lru(folio) &&
+-	    (vma->vm_flags & VM_EXEC))
+-		goto out;
+-
+-	/*
+-	 * Also do not migrate dirty folios as not all filesystems can move
+-	 * dirty folios in MIGRATE_ASYNC mode which is a waste of cycles.
+-	 */
+-	if (folio_is_file_lru(folio) && folio_test_dirty(folio))
+-		goto out;
+-
+-	isolated = numamigrate_isolate_folio(pgdat, folio);
+-	if (!isolated)
+-		goto out;
+-
+ 	list_add(&folio->lru, &migratepages);
+ 	nr_remaining = migrate_pages(&migratepages, alloc_misplaced_dst_folio,
+ 				     NULL, node, MIGRATE_ASYNC,
+@@ -2609,7 +2609,6 @@ int migrate_misplaced_folio(struct folio
+ 					folio_is_file_lru(folio), -nr_pages);
+ 			folio_putback_lru(folio);
+ 		}
+-		isolated = 0;
+ 	}
+ 	if (nr_succeeded) {
+ 		count_vm_numa_events(NUMA_PAGE_MIGRATE, nr_succeeded);
+@@ -2618,11 +2617,7 @@ int migrate_misplaced_folio(struct folio
  					    nr_succeeded);
  	}
  	BUG_ON(!list_empty(&migratepages));
--	return isolated;
-+	return isolated ? 0 : -EAGAIN;
- 
- out:
- 	folio_put(folio);
--	return 0;
-+	return -EAGAIN;
+-	return isolated ? 0 : -EAGAIN;
+-
+-out:
+-	folio_put(folio);
+-	return -EAGAIN;
++	return nr_remaining ? -EAGAIN : 0;
  }
  #endif /* CONFIG_NUMA_BALANCING */
  #endif /* CONFIG_NUMA */
