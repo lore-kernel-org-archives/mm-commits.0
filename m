@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14E3518C36
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:37:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B97C18C36
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:37:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628625; cv=none; b=lwee6gVh/4qzHUyLM+uLAUYRSg3BFmQ1XdVlJgGcaNgkHRE+Ckt93RZ2Iri7dJ6XlckERN5uaYtPTdlbHZP2YshS5ocjKTZBjP5GyCmiVfZLuI1iOrInphXMMyFDRFLjH2m5wKzyqCxtYJBbBrwaZaZF5LvLk7jdPt3+ZufSsoA=
+	t=1719628626; cv=none; b=JybFmDOfa4jdm/eqbba+bJN5UhFeEBj7LbHb3eDEInNqEuC5c/H8UShSqSf0yS3TySg7G93tSrcucATp+a3LaZa0qVtqlW4XtQjEckituHcl+vQiPAccXv3cSIjLTI7CWLi2JAX7IwZJCKEpwaVQW1r0YMAATtGY5GWgh7jwjC4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719628625; c=relaxed/simple;
-	bh=ZQFCLRlr3qSvBm09bKionII/Bm1hD842KxRbivTsob8=;
-	h=Date:To:From:Subject:Message-Id; b=fRD1SQ5WM9ZpQ7ZzB4nxJ3JtukuLXP/28/Qcuizl9UXFgzQqH2kwfksXeZ22UuWuyq0Z4poQMPF0cxkDJU/bXVLPawuXObqPYwqcLHFuFZzmdytsun5mYoEu700EMbdkpkn9iPiEMPES3C3HUV9cm9c7B7gpL5hz+l0NzetB4F8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WvfburjF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628626; c=relaxed/simple;
+	bh=e0pp2qEQw7HvmLF3CkTtnzBOFqeQaMaT8UmxSmUK1cg=;
+	h=Date:To:From:Subject:Message-Id; b=fAp6TwAznaH7H7jY6T1JI/L2jtOL12B8/w0SU09bDsOcAGx+5FILoLv8KidDRyZa1rMhOMG7RSGf3yk9jrlt7XQyjIHARwIATTEckXH4i9rIlcDLDfICJ0C5v29JSVbswbmOPnTL1SllCqA5HKCxsmRcd4gPWxhzS5tbOHQxsLA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JTCVse3t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WvfburjF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 888E6C116B1;
-	Sat, 29 Jun 2024 02:37:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JTCVse3t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 999CDC116B1;
+	Sat, 29 Jun 2024 02:37:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628624;
-	bh=ZQFCLRlr3qSvBm09bKionII/Bm1hD842KxRbivTsob8=;
+	s=korg; t=1719628625;
+	bh=e0pp2qEQw7HvmLF3CkTtnzBOFqeQaMaT8UmxSmUK1cg=;
 	h=Date:To:From:Subject:From;
-	b=WvfburjFpf6e5ffNrqJZnSONELN0/HyGiSXAekX6WVlHSIvpp1T6cesZ3k80T6am0
-	 WZU9pLGLZeDRVXppDmvehyFg69UeMXRFtBk9xBcnRT7l/UU2Xz/J0WZ5JvWtVBnoxh
-	 yCclmBcI+QVaRqyh4cuSvtUXS2jgEw8G1Pcv77JM=
-Date: Fri, 28 Jun 2024 19:37:04 -0700
+	b=JTCVse3tPYNwlP1Kr/qdWrBoFORipRTJa1rTUqFOJqY3uHMiM/cMZuenH6tP8hID+
+	 GKCKxNzIPCJo9MYN9BRsXzAo6PMX2P+lA9i3ZdzMsZDgbJL32BMMzIWlZ+tOCNq1VC
+	 jyDsXY0ptnBCeGcWLI0ZITAYC7QMWoRn+9hwDKOo=
+Date: Fri, 28 Jun 2024 19:37:05 -0700
 To: mm-commits@vger.kernel.org,mpe@ellerman.id.au,kirill.shutemov@linux.intel.com,kbingham@kernel.org,jan.kiszka@siemens.com,kuan-ying.lee@canonical.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-gdb-redefine-max_order-sanely.patch removed from -mm tree
-Message-Id: <20240629023704.888E6C116B1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-gdb-rework-module-va-range.patch removed from -mm tree
+Message-Id: <20240629023705.999CDC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,35 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scripts/gdb: redefine MAX_ORDER sanely
+     Subject: scripts/gdb: rework module VA range
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-redefine-max_order-sanely.patch
+     scripts-gdb-rework-module-va-range.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kuan-Ying Lee <kuan-ying.lee@canonical.com>
-Subject: scripts/gdb: redefine MAX_ORDER sanely
-Date: Wed, 19 Jun 2024 15:49:06 +0800
+Subject: scripts/gdb: rework module VA range
+Date: Wed, 19 Jun 2024 15:49:07 +0800
 
-Patch series "Fix GDB command error".
+After we enlarge the module VA range, we also change the module VA
+range in gdb scripts.
 
-This patchset fixes some GDB command errors.
-
-1. Since memory layout of AARCH64 has been changed, we need to modify
-   the layout in GDB scripts as well.
-
-2. Fix pool_index naming of stackdepot.
-
-
-This patch (of 6):
-
-Change the definition of MAX_ORDER to be inclusive.
-
-Link: https://lkml.kernel.org/r/20240619074911.100434-1-kuan-ying.lee@canonical.com
-Link: https://lkml.kernel.org/r/20240619074911.100434-2-kuan-ying.lee@canonical.com
-Fixes: 23baf831a32c ("mm, treewide: redefine MAX_ORDER sanely")
+Link: https://lkml.kernel.org/r/20240619074911.100434-3-kuan-ying.lee@canonical.com
+Fixes: 3e35d303ab7d ("arm64: module: rework module VA range selection")
 Signed-off-by: Kuan-Ying Lee <kuan-ying.lee@canonical.com>
 Cc: Jan Kiszka <jan.kiszka@siemens.com>
 Cc: Kieran Bingham <kbingham@kernel.org>
@@ -72,23 +60,20 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/mm.py |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/gdb/linux/mm.py |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/gdb/linux/mm.py~scripts-gdb-redefine-max_order-sanely
+--- a/scripts/gdb/linux/mm.py~scripts-gdb-rework-module-va-range
 +++ a/scripts/gdb/linux/mm.py
-@@ -59,9 +59,9 @@ class aarch64_page_ops():
-         if str(constants.LX_CONFIG_ARCH_FORCE_MAX_ORDER).isdigit():
-             self.MAX_ORDER = constants.LX_CONFIG_ARCH_FORCE_MAX_ORDER
-         else:
--            self.MAX_ORDER = 11
-+            self.MAX_ORDER = 10
+@@ -33,7 +33,7 @@ class aarch64_page_ops():
+     def __init__(self):
+         self.SUBSECTION_SHIFT = 21
+         self.SEBSECTION_SIZE = 1 << self.SUBSECTION_SHIFT
+-        self.MODULES_VSIZE = 128 * 1024 * 1024
++        self.MODULES_VSIZE = 2 * 1024 * 1024 * 1024
  
--        self.MAX_ORDER_NR_PAGES = 1 << (self.MAX_ORDER - 1)
-+        self.MAX_ORDER_NR_PAGES = 1 << (self.MAX_ORDER)
-         self.PFN_SECTION_SHIFT = self.SECTION_SIZE_BITS - self.PAGE_SHIFT
-         self.NR_MEM_SECTIONS = 1 << self.SECTIONS_SHIFT
-         self.PAGES_PER_SECTION = 1 << self.PFN_SECTION_SHIFT
+         if constants.LX_CONFIG_ARM64_64K_PAGES:
+             self.SECTION_SIZE_BITS = 29
 _
 
 Patches currently in -mm which might be from kuan-ying.lee@canonical.com are
