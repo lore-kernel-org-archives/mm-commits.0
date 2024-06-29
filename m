@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 400F115E81
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:31:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7481415E81
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:31:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628292; cv=none; b=FmPjWeoDDcFnnsvVePev+C9KkipsDEyc/jzbCuw0LStvNp7v0BAaa9QOTu+gOOeME/ZF3CsmZmS1M4NOTvnyLb4g01mSFvmk7UjFpzRvMOU2xvZPw5t2hLE2MwH4Z28rDZ9uUbhmhng2BETSh3MbiB1EXsxieZvBpuItsqP/2BI=
+	t=1719628294; cv=none; b=SlY2L2w/glNRfj7VsZraUY5rkTGOIgQVR8d/2A6hYYq+Z1l1mdShcDVARbL4/uwy3fW0TIx92Ua+BWP1zvDkDhXCpbadQ3ePuTP9jQlisODtneIbXqSelpyOhEENytEOMiJpS4DUw9yrMJArDJNSfFfX6KCRFdXGTLmB/k4LJ6A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719628292; c=relaxed/simple;
-	bh=EC4UUIRCMdaKyidp+DE36yxfKOrpkfz90M+FuPXiOo8=;
-	h=Date:To:From:Subject:Message-Id; b=DJV0AvgzEQ8ZPhjjUeu8tIB2gIsgy3DZiCS5lnBZUgvzI8CYn+A1FyIknCPCF0o8Zp+Ga8wjjjgJxa+vtF5r6ZWfSG93NJIw0Gy3/4ZqiALf7jw3ACOoWjH8xgDR8GhfgRastckjDn4Gu4FRJSZkk5hRlkdFGBVt2eeaST5xLfg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Faq4hiRh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628294; c=relaxed/simple;
+	bh=sAr5dQ0lesbNRYPeub+CqzckWg0LUfiSRH/vqk5qO2w=;
+	h=Date:To:From:Subject:Message-Id; b=OqrUKVbL/oZxi6qdUqK+mkZ6C9JG6NCqZPbk5bu/p968j5572cQLEZeR3/mU9JortHfTytChrnBJRCdpYg8NqShGjsrdnWEZI55vjDdX2GSGvkbx5cj3q+SW70lyPFUc+tje5XksrBtsU2Vevm9LiRV9veg8mGW5zwAYFQcDUL4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GhngMYNi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Faq4hiRh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DE1FC116B1;
-	Sat, 29 Jun 2024 02:31:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GhngMYNi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CABBC116B1;
+	Sat, 29 Jun 2024 02:31:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628292;
-	bh=EC4UUIRCMdaKyidp+DE36yxfKOrpkfz90M+FuPXiOo8=;
+	s=korg; t=1719628294;
+	bh=sAr5dQ0lesbNRYPeub+CqzckWg0LUfiSRH/vqk5qO2w=;
 	h=Date:To:From:Subject:From;
-	b=Faq4hiRhxt+yF+u1yLx7YlU08xbVTqdrB/tLBFj+xRXntVw4mOiOMBTwzBMg5HMIM
-	 UTawQBggjMXxTGJdIANxrp5lKt3wBx5hxvjbZ6VwwOSyX2F0FddwRVnshlwmg5U8pL
-	 +8niTYYb66YkDfrcnCBatTXOEDEF9SWqsSnwtJ4c=
-Date: Fri, 28 Jun 2024 19:31:31 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,donettom@linux.ibm.com,baolin.wang@linux.alibaba.com,david@redhat.com,akpm@linux-foundation.org
+	b=GhngMYNiYPU+/rEKetiTdxLakDfmAEk14Eat7h/fJSjsLq3h1gcx3Urnr4fqs1jly
+	 NuFxtDITaAdtaCqvEg1UtvEAlI4xdwxWusOP3UOI6naAV0A+VGICe7p+g4L2zDqG2X
+	 TcNpUwV4K9wdMqzQ/g+4nOJsQAFp9HUVDv68nzEE=
+Date: Fri, 28 Jun 2024 19:31:33 -0700
+To: mm-commits@vger.kernel.org,zhangpengpeng0808@gmail.com,willy@infradead.org,josef@toxicpanda.com,jack@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl.patch removed from -mm tree
-Message-Id: <20240629023132.0DE1FC116B1@smtp.kernel.org>
+Subject: [merged mm-stable] readahead-make-sure-sync-readahead-reads-needed-page.patch removed from -mm tree
+Message-Id: <20240629023134.4CABBC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,269 +35,149 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/migrate: move NUMA hinting fault folio isolation + checks under PTL
+     Subject: readahead: make sure sync readahead reads needed page
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl.patch
+     readahead-make-sure-sync-readahead-reads-needed-page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/migrate: move NUMA hinting fault folio isolation + checks under PTL
-Date: Thu, 20 Jun 2024 23:29:35 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: readahead: make sure sync readahead reads needed page
+Date: Tue, 25 Jun 2024 12:18:51 +0200
 
-Currently we always take a folio reference even if migration will not even
-be tried or isolation failed, requiring us to grab+drop an additional
-reference.
+Patch series "mm: Fix various readahead quirks".
 
-Further, we end up calling folio_likely_mapped_shared() while the folio
-might have already been unmapped, because after we dropped the PTL, that
-can easily happen.  We want to stop touching mapcounts and friends from
-such context, and only call folio_likely_mapped_shared() while the folio
-is still mapped: mapcount information is pretty much stale and unreliable
-otherwise.
+When we were internally testing performance of recent kernels, we have
+noticed quite variable performance of readahead arising from various
+quirks in readahead code.  So I went on a cleaning spree there.  This is a
+batch of patches resulting out of that.  A quick testing in my test VM
+with the following fio job file:
 
-So let's move checks into numamigrate_isolate_folio(), rename that
-function to migrate_misplaced_folio_prepare(), and call that function from
-callsites where we call migrate_misplaced_folio(), but still with the PTL
-held.
+[global]
+direct=0
+ioengine=sync
+invalidate=1
+blocksize=4k
+size=10g
+readwrite=read
 
-We can now stop taking temporary folio references, and really only take a
-reference if folio isolation succeeded.  Doing the
-folio_likely_mapped_shared() + folio isolation under PT lock is now
-similar to how we handle MADV_PAGEOUT.
+[reader]
+numjobs=1
 
-While at it, combine the folio_is_file_lru() checks.
+shows that this patch series improves the throughput from variable one in
+310-340 MB/s range to rather stable one at 350 MB/s.  As a side effect
+these cleanups also address the issue noticed by Bruz Zhang [1].
 
-[david@redhat.com: fix list_del() corruption]
-  Link: https://lkml.kernel.org/r/8f85c31a-e603-4578-bf49-136dae0d4b69@redhat.com
-  Link: https://lkml.kernel.org/r/20240626191129.658CFC32782@smtp.kernel.org
-Link: https://lkml.kernel.org/r/20240620212935.656243-3-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Tested-by: Donet Tom <donettom@linux.ibm.com>
+[1] https://lore.kernel.org/all/20240618114941.5935-1-zhangpengpeng0808@gmail.com/
+
+Zhang Peng reported:
+
+: I test this batch of patch with fio, it indeed has a huge sppedup
+: in sequential read when block size is 4KiB. The result as follow,
+: for async read, iodepth is set to 128, and other settings
+: are self-evident.
+: 
+: casename                upstream   withFix speedup
+: ----------------        --------   -------- -------
+: randread-4k-sync        48991      47
+: seqread-4k-sync         1162758    14229
+: seqread-1024k-sync      1460208    1452522 
+: randread-4k-libaio      47467      4730
+: randread-4k-posixaio    49190      49512
+: seqread-4k-libaio       1085932    1234635
+: seqread-1024k-libaio    1423341    1402214 -1
+: seqread-4k-posixaio     1165084    1369613 1
+: seqread-1024k-posixaio  1435422    1408808 -1.8
+
+
+This patch (of 10):
+
+page_cache_sync_ra() is called when a folio we want to read is not in the
+page cache.  It is expected that it creates the folio (and perhaps the
+following folios as well) and submits reads for them unless some error
+happens.  However if index == ra->start + ra->size, ondemand_readahead()
+will treat the call as another async readahead hit.  Thus ra->start will
+be advanced and we create pages and queue reads from ra->start + ra->size
+further.  Consequentially the page at 'index' is not created and
+filemap_get_pages() has to always go through filemap_create_folio() path.
+
+This behavior has particularly unfortunate consequences when we have two
+IO threads sequentially reading from a shared file (as is the case when
+NFS serves sequential reads).  In that case what can happen is:
+
+suppose ra->size == ra->async_size == 128, ra->start = 512
+
+T1					T2
+reads 128 pages at index 512
+  - hits async readahead mark
+    filemap_readahead()
+      ondemand_readahead()
+        if (index == expected ...)
+	  ra->start = 512 + 128 = 640
+          ra->size = 128
+	  ra->async_size = 128
+	page_cache_ra_order()
+	  blocks in ra_alloc_folio()
+					reads 128 pages at index 640
+					  - no page found
+					  page_cache_sync_readahead()
+					    ondemand_readahead()
+					      if (index == expected ...)
+						ra->start = 640 + 128 = 768
+						ra->size = 128
+						ra->async_size = 128
+					    page_cache_ra_order()
+					      submits reads from 768
+					  - still no page found at index 640
+					    filemap_create_folio()
+					  - goes on to index 641
+					  page_cache_sync_readahead()
+					    ondemand_readahead()
+					      - founds ra is confused,
+					        trims is to small size
+  	  finds pages were already inserted
+
+And as a result read performance suffers.
+
+Fix the problem by triggering async readahead case in ondemand_readahead()
+only if we are calling the function because we hit the readahead marker. 
+In any other case we need to read the folio at 'index' and thus we cannot
+really use the current ra state.
+
+Note that the above situation could be viewed as a special case of
+file->f_ra state corruption.  In fact two thread reading using the shared
+file can also seemingly corrupt file->f_ra in interesting ways due to
+concurrent access.  I never saw that in practice and the fix is going to
+be much more complex so for now at least fix this practical problem while
+we ponder about the theoretically correct solution.
+
+Link: https://lkml.kernel.org/r/20240625100859.15507-1-jack@suse.cz
+Link: https://lkml.kernel.org/r/20240625101909.12234-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Josef Bacik <josef@toxicpanda.com>
+Tested-by: Zhang Peng <zhangpengpeng0808@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    7 +++
- mm/huge_memory.c        |    8 ++-
- mm/memory.c             |    9 ++--
- mm/migrate.c            |   83 +++++++++++++++++---------------------
- 4 files changed, 56 insertions(+), 51 deletions(-)
+ mm/readahead.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/migrate.h~mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl
-+++ a/include/linux/migrate.h
-@@ -140,9 +140,16 @@ const struct movable_operations *page_mo
- }
- 
- #ifdef CONFIG_NUMA_BALANCING
-+int migrate_misplaced_folio_prepare(struct folio *folio,
-+		struct vm_area_struct *vma, int node);
- int migrate_misplaced_folio(struct folio *folio, struct vm_area_struct *vma,
- 			   int node);
- #else
-+static inline int migrate_misplaced_folio_prepare(struct folio *folio,
-+		struct vm_area_struct *vma, int node)
-+{
-+	return -EAGAIN; /* can't migrate now */
-+}
- static inline int migrate_misplaced_folio(struct folio *folio,
- 					 struct vm_area_struct *vma, int node)
- {
---- a/mm/huge_memory.c~mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl
-+++ a/mm/huge_memory.c
-@@ -1689,11 +1689,13 @@ vm_fault_t do_huge_pmd_numa_page(struct
- 	if (node_is_toptier(nid))
- 		last_cpupid = folio_last_cpupid(folio);
- 	target_nid = numa_migrate_prep(folio, vmf, haddr, nid, &flags);
--	if (target_nid == NUMA_NO_NODE) {
--		folio_put(folio);
-+	if (target_nid == NUMA_NO_NODE)
-+		goto out_map;
-+	if (migrate_misplaced_folio_prepare(folio, vma, target_nid)) {
-+		flags |= TNF_MIGRATE_FAIL;
- 		goto out_map;
- 	}
--
-+	/* The folio is isolated and isolation code holds a folio reference. */
- 	spin_unlock(vmf->ptl);
- 	writable = false;
- 
---- a/mm/memory.c~mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl
-+++ a/mm/memory.c
-@@ -5210,8 +5210,6 @@ int numa_migrate_prep(struct folio *foli
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 
--	folio_get(folio);
--
- 	/* Record the current PID acceesing VMA */
- 	vma_set_access_pid_bit(vma);
- 
-@@ -5348,10 +5346,13 @@ static vm_fault_t do_numa_page(struct vm
- 	else
- 		last_cpupid = folio_last_cpupid(folio);
- 	target_nid = numa_migrate_prep(folio, vmf, vmf->address, nid, &flags);
--	if (target_nid == NUMA_NO_NODE) {
--		folio_put(folio);
-+	if (target_nid == NUMA_NO_NODE)
-+		goto out_map;
-+	if (migrate_misplaced_folio_prepare(folio, vma, target_nid)) {
-+		flags |= TNF_MIGRATE_FAIL;
- 		goto out_map;
- 	}
-+	/* The folio is isolated and isolation code holds a folio reference. */
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
- 	writable = false;
- 	ignore_writable = true;
---- a/mm/migrate.c~mm-migrate-move-numa-hinting-fault-folio-isolation-checks-under-ptl
-+++ a/mm/migrate.c
-@@ -2519,16 +2519,44 @@ static struct folio *alloc_misplaced_dst
- 	return __folio_alloc_node(gfp, order, nid);
- }
- 
--static int numamigrate_isolate_folio(pg_data_t *pgdat, struct folio *folio)
-+/*
-+ * Prepare for calling migrate_misplaced_folio() by isolating the folio if
-+ * permitted. Must be called with the PTL still held.
-+ */
-+int migrate_misplaced_folio_prepare(struct folio *folio,
-+		struct vm_area_struct *vma, int node)
- {
- 	int nr_pages = folio_nr_pages(folio);
-+	pg_data_t *pgdat = NODE_DATA(node);
-+
-+	if (folio_is_file_lru(folio)) {
-+		/*
-+		 * Do not migrate file folios that are mapped in multiple
-+		 * processes with execute permissions as they are probably
-+		 * shared libraries.
-+		 *
-+		 * See folio_likely_mapped_shared() on possible imprecision
-+		 * when we cannot easily detect if a folio is shared.
-+		 */
-+		if ((vma->vm_flags & VM_EXEC) &&
-+		    folio_likely_mapped_shared(folio))
-+			return -EACCES;
-+
-+		/*
-+		 * Do not migrate dirty folios as not all filesystems can move
-+		 * dirty folios in MIGRATE_ASYNC mode which is a waste of
-+		 * cycles.
-+		 */
-+		if (folio_test_dirty(folio))
-+			return -EAGAIN;
-+	}
- 
- 	/* Avoid migrating to a node that is nearly full */
- 	if (!migrate_balanced_pgdat(pgdat, nr_pages)) {
- 		int z;
- 
- 		if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING))
--			return 0;
-+			return -EAGAIN;
- 		for (z = pgdat->nr_zones - 1; z >= 0; z--) {
- 			if (managed_zone(pgdat->node_zones + z))
- 				break;
-@@ -2539,65 +2567,37 @@ static int numamigrate_isolate_folio(pg_
- 		 * further.
- 		 */
- 		if (z < 0)
--			return 0;
-+			return -EAGAIN;
- 
- 		wakeup_kswapd(pgdat->node_zones + z, 0,
- 			      folio_order(folio), ZONE_MOVABLE);
--		return 0;
-+		return -EAGAIN;
- 	}
- 
- 	if (!folio_isolate_lru(folio))
--		return 0;
-+		return -EAGAIN;
- 
- 	node_stat_mod_folio(folio, NR_ISOLATED_ANON + folio_is_file_lru(folio),
- 			    nr_pages);
--
--	/*
--	 * Isolating the folio has taken another reference, so the
--	 * caller's reference can be safely dropped without the folio
--	 * disappearing underneath us during migration.
--	 */
--	folio_put(folio);
--	return 1;
-+	return 0;
- }
- 
- /*
-  * Attempt to migrate a misplaced folio to the specified destination
-- * node. Caller is expected to have an elevated reference count on
-- * the folio that will be dropped by this function before returning.
-+ * node. Caller is expected to have isolated the folio by calling
-+ * migrate_misplaced_folio_prepare(), which will result in an
-+ * elevated reference count on the folio. This function will un-isolate the
-+ * folio, dereferencing the folio before returning.
-  */
- int migrate_misplaced_folio(struct folio *folio, struct vm_area_struct *vma,
- 			    int node)
- {
- 	pg_data_t *pgdat = NODE_DATA(node);
--	int isolated;
- 	int nr_remaining;
- 	unsigned int nr_succeeded;
- 	LIST_HEAD(migratepages);
- 	int nr_pages = folio_nr_pages(folio);
- 
--	/*
--	 * Don't migrate file folios that are mapped in multiple processes
--	 * with execute permissions as they are probably shared libraries.
--	 *
--	 * See folio_likely_mapped_shared() on possible imprecision when we
--	 * cannot easily detect if a folio is shared.
--	 */
--	if (folio_likely_mapped_shared(folio) && folio_is_file_lru(folio) &&
--	    (vma->vm_flags & VM_EXEC))
--		goto out;
--
--	/*
--	 * Also do not migrate dirty folios as not all filesystems can move
--	 * dirty folios in MIGRATE_ASYNC mode which is a waste of cycles.
--	 */
--	if (folio_is_file_lru(folio) && folio_test_dirty(folio))
--		goto out;
--
--	isolated = numamigrate_isolate_folio(pgdat, folio);
--	if (!isolated)
--		goto out;
--
- 	list_add(&folio->lru, &migratepages);
- 	nr_remaining = migrate_pages(&migratepages, alloc_misplaced_dst_folio,
- 				     NULL, node, MIGRATE_ASYNC,
-@@ -2609,7 +2609,6 @@ int migrate_misplaced_folio(struct folio
- 					folio_is_file_lru(folio), -nr_pages);
- 			folio_putback_lru(folio);
- 		}
--		isolated = 0;
- 	}
- 	if (nr_succeeded) {
- 		count_vm_numa_events(NUMA_PAGE_MIGRATE, nr_succeeded);
-@@ -2618,11 +2617,7 @@ int migrate_misplaced_folio(struct folio
- 					    nr_succeeded);
- 	}
- 	BUG_ON(!list_empty(&migratepages));
--	return isolated ? 0 : -EAGAIN;
--
--out:
--	folio_put(folio);
--	return -EAGAIN;
-+	return nr_remaining ? -EAGAIN : 0;
- }
- #endif /* CONFIG_NUMA_BALANCING */
- #endif /* CONFIG_NUMA */
+--- a/mm/readahead.c~readahead-make-sure-sync-readahead-reads-needed-page
++++ a/mm/readahead.c
+@@ -580,7 +580,7 @@ static void ondemand_readahead(struct re
+ 	 */
+ 	expected = round_down(ra->start + ra->size - ra->async_size,
+ 			1UL << order);
+-	if (index == expected || index == (ra->start + ra->size)) {
++	if (folio && index == expected) {
+ 		ra->start += ra->size;
+ 		ra->size = get_next_ra_size(ra, max_pages);
+ 		ra->async_size = ra->size;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 
