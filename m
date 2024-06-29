@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2219728E3
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:30:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F97228E3
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:30:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628222; cv=none; b=j9FXDhO8SK641Q9tSqs/NJ0p4pnO8M5RDZ2q1YquUAFkRW/roKspDO1sV91ET8nUMh3nOfCafFIKPgI6eHFjjzivxUVg8gcoUPGK/kdNWr6FzILRel9x1LTRmUp8Qo0IuwgKRzK4IDdJVeVRKsQ8qrWUUBo2JJOw6MRRqs4XE3M=
+	t=1719628223; cv=none; b=GwxNU2uFHYhJM1xRaDBlTxgE3Cqa2xS7EE8R0eWo9fnfijxIHGM91WYlSSiE/6H6SI1BIiHol8Cm6K7C+IkRwM4GSibHG5zx8d1WibsetgEAtK2r/5fAeTTEgu8FcKVttxbIMB8Vd5KLzwPMSHoXPckk5+iRj6U7rDgBIFxA3SM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719628222; c=relaxed/simple;
-	bh=Spw6HV2P0lOXqO7DaIkxriT1CBgrEkt2z2cLQiIoDNU=;
-	h=Date:To:From:Subject:Message-Id; b=eOkrsZLqzHTPHj3s2IWc0F4QVrtc1Lf9xd1OpuzE177REViSTbL0zqrDChhCGFYmv/3jZP3uNsJrTFswgw2qIiyO74s4O8YQ0num68n0/ClsKqdICRcdRcJRXCTJPwADliiGK5icN55MoWADjeCQWLN/apj/82kMN1hMZdBif6w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oupux2BK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628223; c=relaxed/simple;
+	bh=iNGrWIkE6yJwTFdStzqtKLyxbhaGG7TTVXENmVkiOAI=;
+	h=Date:To:From:Subject:Message-Id; b=lMcLiTCFbHCoMQOPYiZ0GDIVLxCYUXKTsj3Vpdue/D7N4fS2NNHAYJpTFT0Z+5/4eTAe7HjD8Uh8AaDOoXNRHdbBGNr2CKIdWo6Egv2h5yoh3PvpBpn4L2o2qMge6mjp0wtnoGA0f1FY989W+Z3vqoiK0ebHqz/eMOr3PIN2gQU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wWz5ar/S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oupux2BK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E168FC32781;
-	Sat, 29 Jun 2024 02:30:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wWz5ar/S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAC38C32786;
+	Sat, 29 Jun 2024 02:30:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628222;
-	bh=Spw6HV2P0lOXqO7DaIkxriT1CBgrEkt2z2cLQiIoDNU=;
+	s=korg; t=1719628223;
+	bh=iNGrWIkE6yJwTFdStzqtKLyxbhaGG7TTVXENmVkiOAI=;
 	h=Date:To:From:Subject:From;
-	b=oupux2BKeU5q8hvz6VrWuG9LIEWcW/INSJ/0Ek4cg6Hr6LFWjfJ0m+8KNh1hHuD4M
-	 zrAwQgfn49tApg8ov89iDd+WPenNk/epbX48McBmG2XJfLwCNWL82BZ35JlNZGGmBn
-	 +teBU1dY4+e/zCZiIq0SUqA5aF+lhaVe1mVpamAo=
-Date: Fri, 28 Jun 2024 19:30:21 -0700
+	b=wWz5ar/SnVCNBC7Jo5XeAedwrx1WAdFUu0DPVmHSDQAEQEzWDX9M5sMV5vLKnOpPb
+	 fBV+T29JCVgtDd9rxopPs2kDVeENyFzSlD74BvVQ0ztP7KeKtc/kdmp8eEvcWmfhHW
+	 ga0i8Ku2cMDOZW12QXIKzxLDOMcwFv8kDkSyNCqo=
+Date: Fri, 28 Jun 2024 19:30:22 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-sparse-nr_pages-wont-be-0.patch removed from -mm tree
-Message-Id: <20240629023021.E168FC32781@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mm_initc-move-build-check-on-max_zonelists-out-of-ifdef.patch removed from -mm tree
+Message-Id: <20240629023022.EAC38C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/sparse: nr_pages won't be 0
+     Subject: mm/mm_init.c: move build check on MAX_ZONELISTS out of ifdef
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-nr_pages-wont-be-0.patch
+     mm-mm_initc-move-build-check-on-max_zonelists-out-of-ifdef.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/sparse: nr_pages won't be 0
-Date: Wed, 19 Jun 2024 01:06:09 +0000
+Subject: mm/mm_init.c: move build check on MAX_ZONELISTS out of ifdef
+Date: Wed, 19 Jun 2024 01:06:10 +0000
 
-Function subsection_map_init() is only used in free_area_init() in the
-loop of for_each_mem_pfn_range().  And we are sure in each iteration of
-for_each_mem_pfn_range(), start_pfn < end_pfn.
+Current check on MAX_ZONELISTS is wrapped in CONFIG_DEBUG_MEMORY_INIT,
+which may not be triggered all the time.
 
-So nr_pages is not possible to be 0 and we can remove the check.
+Let's move it out to a more general place.
 
-Link: https://lkml.kernel.org/r/20240619010612.20740-1-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20240619010612.20740-2-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/mm_init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/sparse.c~mm-sparse-nr_pages-wont-be-0
-+++ a/mm/sparse.c
-@@ -195,9 +195,6 @@ void __init subsection_map_init(unsigned
- 	int end_sec_nr = pfn_to_section_nr(pfn + nr_pages - 1);
- 	unsigned long nr, start_sec_nr = pfn_to_section_nr(pfn);
+--- a/mm/mm_init.c~mm-mm_initc-move-build-check-on-max_zonelists-out-of-ifdef
++++ a/mm/mm_init.c
+@@ -54,7 +54,6 @@ void __init mminit_verify_zonelist(void)
+ 		struct zonelist *zonelist;
+ 		int i, listid, zoneid;
  
--	if (!nr_pages)
--		return;
--
- 	for (nr = start_sec_nr; nr <= end_sec_nr; nr++) {
- 		struct mem_section *ms;
- 		unsigned long pfns;
+-		BUILD_BUG_ON(MAX_ZONELISTS > 2);
+ 		for (i = 0; i < MAX_ZONELISTS * MAX_NR_ZONES; i++) {
+ 
+ 			/* Identify the zone and nodelist */
+@@ -2657,6 +2656,7 @@ static void __init mem_init_print_info(v
+ void __init mm_core_init(void)
+ {
+ 	/* Initializations relying on SMP setup */
++	BUILD_BUG_ON(MAX_ZONELISTS > 2);
+ 	build_all_zonelists(NULL);
+ 	page_alloc_init_cpuhp();
+ 
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
