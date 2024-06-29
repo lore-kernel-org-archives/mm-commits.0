@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 393C26FC5
-	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:30:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08C0AB66F
+	for <mm-commits@vger.kernel.org>; Sat, 29 Jun 2024 02:30:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719628211; cv=none; b=MnXxD7FbzIY63s7k7vXwzyRueSPn3nL5ebvFptZk3+UtwupaJWyBHNsli91bpWgSdo9LM7OVZTnU/aBqS9wPMhmrEqsrNf0sV/xXoRlAu6nV+ut4gh7CY7xSTwOh0aR+wcyTw9TNlejCxE5dXUuQQUeszI9c+ZpXmaJc7vfOoH0=
+	t=1719628213; cv=none; b=DEWe1wEfVkorczxLp4rIonbOhcNOHEW6FEv6UDCUpGjMOE/G6mkN0QnW1De9+wuIY6GGQtcb4te/F4JA8yqv45+rDBKXPPaLmk1Bf5YNmTN/xYiejG+i62sBzG+Tb67x+FawMKWr2lHvKc1U5KleHucwbL2NKF1EUwRKlv80Qf8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719628211; c=relaxed/simple;
-	bh=s2ZxLn0V8nLD02lRVqpmK/cQVVvfLOmLkKA3brhUZdY=;
-	h=Date:To:From:Subject:Message-Id; b=AdyQ5B2xnwvH60qP+GhBcb96qZtP+4Cpw2QrISw8gW76qsSY2hEs7WA8LvzIeA5cujVMsFl7rPYBXqkMUfWH8d7u1jdBtefir+NM0rWHR6sKKeaOcYQYNmE67uW9nivyWduJIcAfk/1bjpXGfNI/JUQWcMsGfsswedxpEOUc+n8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UOY1/tZF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719628213; c=relaxed/simple;
+	bh=VMDnt06O/vfuhAOw1TNu5jexEdUGPZu8Ix7Uf7cf3XE=;
+	h=Date:To:From:Subject:Message-Id; b=c4XXnDjclhq5fopPQ3WkqNb99Qpzavybg8+XAR+4vnKuWTTtAPIR57iwuqapixup2GwHV9MHff2szwXnTlcCxCrjj7g4mjEhZ8cNWErcCqKervdw048rgPH1pjpTvH2zL61MXETBvIHVBU3F8TBMY/8C3zOhqyuLbPI9xchKP0U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2qeZ4Y3K; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UOY1/tZF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD5F6C116B1;
-	Sat, 29 Jun 2024 02:30:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2qeZ4Y3K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC627C116B1;
+	Sat, 29 Jun 2024 02:30:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719628210;
-	bh=s2ZxLn0V8nLD02lRVqpmK/cQVVvfLOmLkKA3brhUZdY=;
+	s=korg; t=1719628212;
+	bh=VMDnt06O/vfuhAOw1TNu5jexEdUGPZu8Ix7Uf7cf3XE=;
 	h=Date:To:From:Subject:From;
-	b=UOY1/tZF33TZHQ7qYyED5Zlok7moW1RE7HmzPHRS18SLDR0av83qflkCLVhiSOT2l
-	 9GFO+LW2f2It+MF1oojz81cNShFNuafY5GLdrsblirhnQILQVZSdhZsZ+XJMV8Nk0P
-	 zPnTp6cyEdTar3YkQDcHZU9XKGDDrqLW77/qxhx8=
-Date: Fri, 28 Jun 2024 19:30:10 -0700
-To: mm-commits@vger.kernel.org,xiongwei.song@windriver.com,willy@infradead.org,urezki@gmail.com,shubhang@os.amperecomputing.com,guoren@kernel.org,corbet@lwn.net,cl@linux.com,Shubhang@os.amperecomputing.com,akpm@linux-foundation.org
+	b=2qeZ4Y3KSrKvjSPBovJsbEA8URzXMheWWBp1+XOLzgf+jhzA7x7IrBcxZ5BEt/0Db
+	 093fqglfC7Sq6MelIR2s+Afyic+eGQlvxAt40J3LqcdFGmA4SCZKDLReJIfaUccBPh
+	 FL2lYH6dHJl99tXfTfstgGaPmV8gXGw5m3rJZEz8=
+Date: Fri, 28 Jun 2024 19:30:12 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanshuai@oppo.com,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,surenb@google.com,shy828301@gmail.com,ryan.roberts@arm.com,mhocko@suse.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] vmalloc-modify-the-alloc_vmap_area-error-message-for-better-diagnostics.patch removed from -mm tree
-Message-Id: <20240629023010.BD5F6C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap.patch removed from -mm tree
+Message-Id: <20240629023012.CC627C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,111 +35,275 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: vmalloc: modify the alloc_vmap_area() error message for better diagnostics
+     Subject: mm: extend rmap flags arguments for folio_add_new_anon_rmap
 has been removed from the -mm tree.  Its filename was
-     vmalloc-modify-the-alloc_vmap_area-error-message-for-better-diagnostics.patch
+     mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shubhang Kaushik OS <Shubhang@os.amperecomputing.com>
-Subject: vmalloc: modify the alloc_vmap_area() error message for better diagnostics
-Date: Mon, 10 Jun 2024 17:22:58 +0000
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: extend rmap flags arguments for folio_add_new_anon_rmap
+Date: Tue, 18 Jun 2024 11:11:35 +1200
 
-'vmap allocation for size %lu failed: use vmalloc=<size> to increase size'
-The above warning is seen in the kernel functionality for allocation of
-the restricted virtual memory range till exhaustion.
+Patch series "mm: clarify folio_add_new_anon_rmap() and
+__folio_add_anon_rmap()", v2.
 
-This message is misleading because 'vmalloc=' is supported on arm32, x86
-platforms and is not a valid kernel parameter on a number of other
-platforms (in particular its not supported on arm64, alpha, loongarch,
-arc, csky, hexagon, microblaze, mips, nios2, openrisc, parisc, m64k,
-powerpc, riscv, sh, um, xtensa, s390, sparc).  With the update, the output
-gets modified to include the function parameters along with the start and
-end of the virtual memory range allowed.
+This patchset is preparatory work for mTHP swapin.
 
-The warning message after fix on kernel version 6.10.0-rc1+:
+folio_add_new_anon_rmap() assumes that new anon rmaps are always
+exclusive.  However, this assumption doesn’t hold true for cases like
+do_swap_page(), where a new anon might be added to the swapcache and is
+not necessarily exclusive.
 
-vmalloc_node_range for size 33619968 failed: Address range restricted between 0xffff800082640000 - 0xffff800084650000
+The patchset extends the rmap flags to allow folio_add_new_anon_rmap() to
+handle both exclusive and non-exclusive new anon folios.  The
+do_swap_page() function is updated to use this extended API with rmap
+flags.  Consequently, all new anon folios now consistently use
+folio_add_new_anon_rmap().  The special case for !folio_test_anon() in
+__folio_add_anon_rmap() can be safely removed.
 
-Backtrace with the misleading error message:
+In conclusion, new anon folios always use folio_add_new_anon_rmap(),
+regardless of exclusivity.  Old anon folios continue to use
+__folio_add_anon_rmap() via folio_add_anon_rmap_pmd() and
+folio_add_anon_rmap_ptes().
 
-	vmap allocation for size 33619968 failed: use vmalloc=<size> to increase size
-	insmod: vmalloc error: size 33554432, vm_struct allocation failed, mode:0xcc0(GFP_KERNEL), nodemask=(null),cpuset=/,mems_allowed=0
-	CPU: 46 PID: 1977 Comm: insmod Tainted: G            E      6.10.0-rc1+ #79
-	Hardware name: INGRASYS Yushan Server iSystem TEMP-S000141176+10/Yushan Motherboard, BIOS 2.10.20230517 (SCP: xxx) yyyy/mm/dd
-	Call trace:
-		dump_backtrace+0xa0/0x128
-		show_stack+0x20/0x38
-		dump_stack_lvl+0x78/0x90
-		dump_stack+0x18/0x28
-		warn_alloc+0x12c/0x1b8
-		__vmalloc_node_range_noprof+0x28c/0x7e0
-		custom_init+0xb4/0xfff8 [test_driver]
-		do_one_initcall+0x60/0x290
-		do_init_module+0x68/0x250
-		load_module+0x236c/0x2428
-		init_module_from_file+0x8c/0xd8
-		__arm64_sys_finit_module+0x1b4/0x388
-		invoke_syscall+0x78/0x108
-		el0_svc_common.constprop.0+0x48/0xf0
-		do_el0_svc+0x24/0x38
-		el0_svc+0x3c/0x130
-		el0t_64_sync_handler+0x100/0x130
-		el0t_64_sync+0x190/0x198
 
-[Shubhang@os.amperecomputing.com: v5]
-  Link: https://lkml.kernel.org/r/CH2PR01MB5894B0182EA0B28DF2EFB916F5C72@CH2PR01MB5894.prod.exchangelabs.com
-Link: https://lkml.kernel.org/r/MN2PR01MB59025CC02D1D29516527A693F5C62@MN2PR01MB5902.prod.exchangelabs.com
-Signed-off-by: Shubhang Kaushik <shubhang@os.amperecomputing.com>
-Reviewed-by: Christoph Lameter (Ampere) <cl@linux.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+This patch (of 3):
+
+In the case of a swap-in, a new anonymous folio is not necessarily
+exclusive.  This patch updates the rmap flags to allow a new anonymous
+folio to be treated as either exclusive or non-exclusive.  To maintain the
+existing behavior, we always use EXCLUSIVE as the default setting.
+
+[akpm@linux-foundation.org: cleanup and constifications per David and akpm]
+[v-songbaohua@oppo.com: fix missing doc for flags of folio_add_new_anon_rmap()]
+  Link: https://lkml.kernel.org/r/20240619210641.62542-1-21cnbao@gmail.com
+[v-songbaohua@oppo.com: enhance doc for extend rmap flags arguments for folio_add_new_anon_rmap]
+  Link: https://lkml.kernel.org/r/20240622030256.43775-1-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240617231137.80726-1-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240617231137.80726-2-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Tested-by: Shuai Yuan <yuanshuai@oppo.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Xiongwei Song <xiongwei.song@windriver.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    9 ++++++---
- mm/vmalloc.c                                    |    4 ++--
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ include/linux/rmap.h    |    2 +-
+ kernel/events/uprobes.c |    2 +-
+ mm/huge_memory.c        |    2 +-
+ mm/khugepaged.c         |    2 +-
+ mm/memory.c             |   10 +++++-----
+ mm/migrate_device.c     |    2 +-
+ mm/rmap.c               |   25 ++++++++++++++++---------
+ mm/swapfile.c           |    2 +-
+ mm/userfaultfd.c        |    2 +-
+ 9 files changed, 28 insertions(+), 21 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~vmalloc-modify-the-alloc_vmap_area-error-message-for-better-diagnostics
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -7239,9 +7239,12 @@
+--- a/include/linux/rmap.h~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
++++ a/include/linux/rmap.h
+@@ -244,7 +244,7 @@ void folio_add_anon_rmap_ptes(struct fol
+ void folio_add_anon_rmap_pmd(struct folio *, struct page *,
+ 		struct vm_area_struct *, unsigned long address, rmap_t flags);
+ void folio_add_new_anon_rmap(struct folio *, struct vm_area_struct *,
+-		unsigned long address);
++		unsigned long address, rmap_t flags);
+ void folio_add_file_rmap_ptes(struct folio *, struct page *, int nr_pages,
+ 		struct vm_area_struct *);
+ #define folio_add_file_rmap_pte(folio, page, vma) \
+--- a/kernel/events/uprobes.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
++++ a/kernel/events/uprobes.c
+@@ -181,7 +181,7 @@ static int __replace_page(struct vm_area
  
- 	vmalloc=nn[KMG]	[KNL,BOOT,EARLY] Forces the vmalloc area to have an
- 			exact size of <nn>. This can be used to increase
--			the minimum size (128MB on x86). It can also be
--			used to decrease the size and leave more room
--			for directly mapped kernel RAM.
-+			the minimum size (128MB on x86, arm32 platforms).
-+			It can also be used to decrease the size and leave more room
-+			for directly mapped kernel RAM. Note that this parameter does
-+			not exist on many other platforms (including arm64, alpha,
-+			loongarch, arc, csky, hexagon, microblaze, mips, nios2, openrisc,
-+			parisc, m64k, powerpc, riscv, sh, um, xtensa, s390, sparc).
+ 	if (new_page) {
+ 		folio_get(new_folio);
+-		folio_add_new_anon_rmap(new_folio, vma, addr);
++		folio_add_new_anon_rmap(new_folio, vma, addr, RMAP_EXCLUSIVE);
+ 		folio_add_lru_vma(new_folio, vma);
+ 	} else
+ 		/* no new page, just dec_mm_counter for old_page */
+--- a/mm/huge_memory.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
++++ a/mm/huge_memory.c
+@@ -974,7 +974,7 @@ static vm_fault_t __do_huge_pmd_anonymou
  
- 	vmcp_cma=nn[MG]	[KNL,S390,EARLY]
- 			Sets the memory size reserved for contiguous memory
---- a/mm/vmalloc.c~vmalloc-modify-the-alloc_vmap_area-error-message-for-better-diagnostics
-+++ a/mm/vmalloc.c
-@@ -2056,8 +2056,8 @@ overflow:
+ 		entry = mk_huge_pmd(page, vma->vm_page_prot);
+ 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+-		folio_add_new_anon_rmap(folio, vma, haddr);
++		folio_add_new_anon_rmap(folio, vma, haddr, RMAP_EXCLUSIVE);
+ 		folio_add_lru_vma(folio, vma);
+ 		pgtable_trans_huge_deposit(vma->vm_mm, vmf->pmd, pgtable);
+ 		set_pmd_at(vma->vm_mm, haddr, vmf->pmd, entry);
+--- a/mm/khugepaged.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
++++ a/mm/khugepaged.c
+@@ -1210,7 +1210,7 @@ static int collapse_huge_page(struct mm_
+ 
+ 	spin_lock(pmd_ptl);
+ 	BUG_ON(!pmd_none(*pmd));
+-	folio_add_new_anon_rmap(folio, vma, address);
++	folio_add_new_anon_rmap(folio, vma, address, RMAP_EXCLUSIVE);
+ 	folio_add_lru_vma(folio, vma);
+ 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
+ 	set_pmd_at(mm, address, pmd, _pmd);
+--- a/mm/memory.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
++++ a/mm/memory.c
+@@ -930,7 +930,7 @@ copy_present_page(struct vm_area_struct
+ 	*prealloc = NULL;
+ 	copy_user_highpage(&new_folio->page, page, addr, src_vma);
+ 	__folio_mark_uptodate(new_folio);
+-	folio_add_new_anon_rmap(new_folio, dst_vma, addr);
++	folio_add_new_anon_rmap(new_folio, dst_vma, addr, RMAP_EXCLUSIVE);
+ 	folio_add_lru_vma(new_folio, dst_vma);
+ 	rss[MM_ANONPAGES]++;
+ 
+@@ -3402,7 +3402,7 @@ static vm_fault_t wp_page_copy(struct vm
+ 		 * some TLBs while the old PTE remains in others.
+ 		 */
+ 		ptep_clear_flush(vma, vmf->address, vmf->pte);
+-		folio_add_new_anon_rmap(new_folio, vma, vmf->address);
++		folio_add_new_anon_rmap(new_folio, vma, vmf->address, RMAP_EXCLUSIVE);
+ 		folio_add_lru_vma(new_folio, vma);
+ 		BUG_ON(unshare && pte_write(entry));
+ 		set_pte_at(mm, vmf->address, vmf->pte, entry);
+@@ -4339,7 +4339,7 @@ check_folio:
+ 
+ 	/* ksm created a completely new copy */
+ 	if (unlikely(folio != swapcache && swapcache)) {
+-		folio_add_new_anon_rmap(folio, vma, address);
++		folio_add_new_anon_rmap(folio, vma, address, RMAP_EXCLUSIVE);
+ 		folio_add_lru_vma(folio, vma);
+ 	} else {
+ 		folio_add_anon_rmap_ptes(folio, page, nr_pages, vma, address,
+@@ -4594,7 +4594,7 @@ static vm_fault_t do_anonymous_page(stru
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	count_mthp_stat(folio_order(folio), MTHP_STAT_ANON_FAULT_ALLOC);
+ #endif
+-	folio_add_new_anon_rmap(folio, vma, addr);
++	folio_add_new_anon_rmap(folio, vma, addr, RMAP_EXCLUSIVE);
+ 	folio_add_lru_vma(folio, vma);
+ setpte:
+ 	if (vmf_orig_pte_uffd_wp(vmf))
+@@ -4792,7 +4792,7 @@ void set_pte_range(struct vm_fault *vmf,
+ 	/* copy-on-write page */
+ 	if (write && !(vma->vm_flags & VM_SHARED)) {
+ 		VM_BUG_ON_FOLIO(nr != 1, folio);
+-		folio_add_new_anon_rmap(folio, vma, addr);
++		folio_add_new_anon_rmap(folio, vma, addr, RMAP_EXCLUSIVE);
+ 		folio_add_lru_vma(folio, vma);
+ 	} else {
+ 		folio_add_file_rmap_ptes(folio, page, nr, vma);
+--- a/mm/migrate_device.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
++++ a/mm/migrate_device.c
+@@ -658,7 +658,7 @@ static void migrate_vma_insert_page(stru
+ 		goto unlock_abort;
+ 
+ 	inc_mm_counter(mm, MM_ANONPAGES);
+-	folio_add_new_anon_rmap(folio, vma, addr);
++	folio_add_new_anon_rmap(folio, vma, addr, RMAP_EXCLUSIVE);
+ 	if (!folio_is_zone_device(folio))
+ 		folio_add_lru_vma(folio, vma);
+ 	folio_get(folio);
+--- a/mm/rmap.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
++++ a/mm/rmap.c
+@@ -1401,30 +1401,35 @@ void folio_add_anon_rmap_pmd(struct foli
+  * @folio:	The folio to add the mapping to.
+  * @vma:	the vm area in which the mapping is added
+  * @address:	the user virtual address mapped
++ * @flags:	The rmap flags
+  *
+  * Like folio_add_anon_rmap_*() but must only be called on *new* folios.
+  * This means the inc-and-test can be bypassed.
+- * The folio does not have to be locked.
++ * The folio doesn't necessarily need to be locked while it's exclusive
++ * unless two threads map it concurrently. However, the folio must be
++ * locked if it's shared.
+  *
+- * If the folio is pmd-mappable, it is accounted as a THP.  As the folio
+- * is new, it's assumed to be mapped exclusively by a single process.
++ * If the folio is pmd-mappable, it is accounted as a THP.
+  */
+ void folio_add_new_anon_rmap(struct folio *folio, struct vm_area_struct *vma,
+-		unsigned long address)
++		unsigned long address, rmap_t flags)
+ {
+-	int nr = folio_nr_pages(folio);
++	const int nr = folio_nr_pages(folio);
++	const bool exclusive = flags & RMAP_EXCLUSIVE;
+ 	int nr_pmdmapped = 0;
+ 
+ 	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
++	VM_WARN_ON_FOLIO(!exclusive && !folio_test_locked(folio), folio);
+ 	VM_BUG_ON_VMA(address < vma->vm_start ||
+ 			address + (nr << PAGE_SHIFT) > vma->vm_end, vma);
+ 	__folio_set_swapbacked(folio);
+-	__folio_set_anon(folio, vma, address, true);
++	__folio_set_anon(folio, vma, address, exclusive);
+ 
+ 	if (likely(!folio_test_large(folio))) {
+ 		/* increment count (starts at -1) */
+ 		atomic_set(&folio->_mapcount, 0);
+-		SetPageAnonExclusive(&folio->page);
++		if (exclusive)
++			SetPageAnonExclusive(&folio->page);
+ 	} else if (!folio_test_pmd_mappable(folio)) {
+ 		int i;
+ 
+@@ -1433,7 +1438,8 @@ void folio_add_new_anon_rmap(struct foli
+ 
+ 			/* increment count (starts at -1) */
+ 			atomic_set(&page->_mapcount, 0);
+-			SetPageAnonExclusive(page);
++			if (exclusive)
++				SetPageAnonExclusive(page);
+ 		}
+ 
+ 		/* increment count (starts at -1) */
+@@ -1445,7 +1451,8 @@ void folio_add_new_anon_rmap(struct foli
+ 		/* increment count (starts at -1) */
+ 		atomic_set(&folio->_large_mapcount, 0);
+ 		atomic_set(&folio->_nr_pages_mapped, ENTIRELY_MAPPED);
+-		SetPageAnonExclusive(&folio->page);
++		if (exclusive)
++			SetPageAnonExclusive(&folio->page);
+ 		nr_pmdmapped = nr;
  	}
  
- 	if (!(gfp_mask & __GFP_NOWARN) && printk_ratelimit())
--		pr_warn("vmap allocation for size %lu failed: use vmalloc=<size> to increase size\n",
--			size);
-+		pr_warn("vmalloc_node_range for size %lu failed: Address range restricted to %#lx - %#lx\n",
-+				size, vstart, vend);
+--- a/mm/swapfile.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
++++ a/mm/swapfile.c
+@@ -1911,7 +1911,7 @@ static int unuse_pte(struct vm_area_stru
  
- 	kmem_cache_free(vmap_area_cachep, va);
- 	return ERR_PTR(-EBUSY);
+ 		folio_add_anon_rmap_pte(folio, page, vma, addr, rmap_flags);
+ 	} else { /* ksm created a completely new copy */
+-		folio_add_new_anon_rmap(folio, vma, addr);
++		folio_add_new_anon_rmap(folio, vma, addr, RMAP_EXCLUSIVE);
+ 		folio_add_lru_vma(folio, vma);
+ 	}
+ 	new_pte = pte_mkold(mk_pte(page, vma->vm_page_prot));
+--- a/mm/userfaultfd.c~mm-extend-rmap-flags-arguments-for-folio_add_new_anon_rmap
++++ a/mm/userfaultfd.c
+@@ -216,7 +216,7 @@ int mfill_atomic_install_pte(pmd_t *dst_
+ 			folio_add_lru(folio);
+ 		folio_add_file_rmap_pte(folio, page, dst_vma);
+ 	} else {
+-		folio_add_new_anon_rmap(folio, dst_vma, dst_addr);
++		folio_add_new_anon_rmap(folio, dst_vma, dst_addr, RMAP_EXCLUSIVE);
+ 		folio_add_lru_vma(folio, dst_vma);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from Shubhang@os.amperecomputing.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
+tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout.patch
 
