@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8FFD372
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 04:27:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 701B5372
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 04:27:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719894460; cv=none; b=euwkFPZInSiwXEAZjff3kMxwJsdZWK2jq0D6nbi3JvNqTSkjpoLoZt0ISWU4HTlKqzlLBCjkyX6cLsWp39p95e+jKWgiJmlBvA0nMIchzMdew3c7oV4H40h1w7E3vFZlGRA6BD4Zhpyn5RX3a8nmkeM+XFbi68orAtIsuMJ6pwE=
+	t=1719894462; cv=none; b=PDV/S7hohIhVhiWuP3YshlJLTmFpB8CJ2kDTIs9ISk546ZwJZaLMgvUkZBjjjDE58tcQxtFUwPRhrjbQYIttZ3D98nD9ugEvn+ei7bvSD0ZQP2zBrOPFTm/J3g5eLtKvoHHuBXac3kJ75XjxPF1MGWa62OLrcWBGixNJ3+t1kE4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719894460; c=relaxed/simple;
-	bh=P92cWe2Euynr3Buw7d7x6WzPKnpVpLXc2bGZHIJJWdQ=;
-	h=Date:To:From:Subject:Message-Id; b=tSzYGyUD7ZknkKw4LxpZ6TzbrgMUXYTH03HwGliRkxiSzM2At58Y/vun815ggLBPFaPmUOiomOZ5LaYSEY1A9viMjq2JWtd03t8sP3aLimQlpuhmYsx6wjn4DNbZWmjrH89k3BNlSz8CbysdYQ8gpkmuTJMEU5TvkSAJl3qqGvE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dp/78WJy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719894462; c=relaxed/simple;
+	bh=Ho5dZO0NMWthasj3vAaV15q34Ewn/NUcunh9T74JuSU=;
+	h=Date:To:From:Subject:Message-Id; b=lJBIsDT6BI4Wrctc5pEdgO+RnKGDpdE1U+kdIr+IIrs/LnlF4kpoKzDdlfXSKqhkdGAiMt3k/pYaFa52QvVSOiO+q6oILSsHrBMA6LiJooKVktWHWAClS0lM7R0utxsQFqa4TNxxkM1NNvFpTy30mDW3y0VepDeXoqd58R3ywaU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h2xdN9f1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dp/78WJy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02D8FC116B1;
-	Tue,  2 Jul 2024 04:27:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h2xdN9f1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAC9BC116B1;
+	Tue,  2 Jul 2024 04:27:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719894460;
-	bh=P92cWe2Euynr3Buw7d7x6WzPKnpVpLXc2bGZHIJJWdQ=;
+	s=korg; t=1719894462;
+	bh=Ho5dZO0NMWthasj3vAaV15q34Ewn/NUcunh9T74JuSU=;
 	h=Date:To:From:Subject:From;
-	b=Dp/78WJyyd5nmfHB9jMzJTN/ivo5F10AD89/a9tMWK3hWSZ/s3YRF0G3HtLzNezk8
-	 Mhc030Zro+qpellMRScGV5RsKX0XVhYLGcjbbnwre4HqwdbaX9TLNUxbU28xjxayUO
-	 4khH3vkw2Yn3GrTIBcJOV/fNE3F+1Up8kEzUJ4Y4=
-Date: Mon, 01 Jul 2024 21:27:39 -0700
+	b=h2xdN9f1vNPPfg9/Izg2/LZedln3js5SBilaq8iV1P9Q2Lsbll0yWIxycr8ECR87K
+	 VGoX+TnGF8VSKpXTw267CPdEEHJ9tZCIcXFYYshP3wxEufGSkioCiGXwbYBPb5cVJB
+	 2/K+WY+Pwokls6dybOKJyPO+l3He2Md3wGtDGRlc=
+Date: Mon, 01 Jul 2024 21:27:41 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,oleg@redhat.com,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-forkc-get-totalram_pages-from-memblock-to-calculate-max_threads.patch added to mm-unstable branch
-Message-Id: <20240702042740.02D8FC116B1@smtp.kernel.org>
+Subject: + kernel-forkc-put-set_max_threads-task_struct_whitelist-in-__init-section.patch added to mm-unstable branch
+Message-Id: <20240702042741.EAC9BC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kernel/fork.c: get totalram_pages from memblock to calculate max_threads
+     Subject: kernel/fork.c: put set_max_threads()/task_struct_whitelist() in __init section
 has been added to the -mm mm-unstable branch.  Its filename is
-     kernel-forkc-get-totalram_pages-from-memblock-to-calculate-max_threads.patch
+     kernel-forkc-put-set_max_threads-task_struct_whitelist-in-__init-section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-forkc-get-totalram_pages-from-memblock-to-calculate-max_threads.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-forkc-put-set_max_threads-task_struct_whitelist-in-__init-section.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,45 +59,45 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: kernel/fork.c: get totalram_pages from memblock to calculate max_threads
-Date: Mon, 1 Jul 2024 01:34:09 +0000
+Subject: kernel/fork.c: put set_max_threads()/task_struct_whitelist() in __init section
+Date: Mon, 1 Jul 2024 01:34:10 +0000
 
-Since we plan to move the accounting into __free_pages_core(),
-totalram_pages may not represent the total usable pages on system at this
-point when defer_init is enabled.
+The functions set_max_threads() and task_struct_whitelist() are only used
+by fork_init() during bootup.
 
-Instead we can get the total usable pages from memblock directly.
+Let's add __init tag to them.
 
-Link: https://lkml.kernel.org/r/20240701013410.17260-1-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20240701013410.17260-2-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Suggested-by: Oleg Nesterov <oleg@redhat.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/fork.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/fork.c~kernel-forkc-get-totalram_pages-from-memblock-to-calculate-max_threads
+--- a/kernel/fork.c~kernel-forkc-put-set_max_threads-task_struct_whitelist-in-__init-section
 +++ a/kernel/fork.c
-@@ -44,6 +44,7 @@
- #include <linux/fs.h>
- #include <linux/mm.h>
- #include <linux/mm_inline.h>
-+#include <linux/memblock.h>
- #include <linux/nsproxy.h>
- #include <linux/capability.h>
- #include <linux/cpu.h>
-@@ -999,7 +1000,7 @@ void __init __weak arch_task_cache_init(
- static void set_max_threads(unsigned int max_threads_suggested)
+@@ -997,7 +997,7 @@ void __init __weak arch_task_cache_init(
+ /*
+  * set_max_threads
+  */
+-static void set_max_threads(unsigned int max_threads_suggested)
++static void __init set_max_threads(unsigned int max_threads_suggested)
  {
  	u64 threads;
--	unsigned long nr_pages = totalram_pages();
-+	unsigned long nr_pages = PHYS_PFN(memblock_phys_mem_size() - memblock_reserved_size());
+ 	unsigned long nr_pages = PHYS_PFN(memblock_phys_mem_size() - memblock_reserved_size());
+@@ -1023,7 +1023,7 @@ static void set_max_threads(unsigned int
+ int arch_task_struct_size __read_mostly;
+ #endif
  
- 	/*
- 	 * The number of threads shall be limited such that the thread
+-static void task_struct_whitelist(unsigned long *offset, unsigned long *size)
++static void __init task_struct_whitelist(unsigned long *offset, unsigned long *size)
+ {
+ 	/* Fetch thread_struct whitelist for the architecture. */
+ 	arch_thread_struct_whitelist(offset, size);
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
