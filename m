@@ -1,97 +1,129 @@
-Received: from mail-4316.protonmail.ch (mail-4316.protonmail.ch [185.70.43.16])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BBC339FCF
-	for <mm-commits@vger.kernel.org>; Sun, 30 Jun 2024 18:53:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 770133C38
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 02:06:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719773614; cv=none; b=JRwKjhdTYuzUYhqv339GChidNap9lmtjzJIsOs5ZgAoG2nfqgxECgq7CY0eoIJyj4qVgMKxgFfnBG2wFoflK9V/rPdMZbA9UaiX8sbQbZQM+H1ph5M8ELNptL2eE88zSYB4qz+mpVPPlU7HV0T0lh/tmfCO94J3YRVk7f9gWKQM=
+	t=1719885999; cv=none; b=bPBZJ/zAp6C72WKObb9Ugl53kREhVY6DlZfIEAi8Qiupg1a+2AwE7FsurXBMoqQdZJAxf5/78iNqm8Rb/RV9G2pC0v16ByX9iRi7SRL9HIV0EtN4kPLazex7EsC0jLhnSjpYrxIuw9FIsA3pufruxxXcPL/9Sp1VsG1oHli4IRs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719773614; c=relaxed/simple;
-	bh=HzPoSzp0dX8wTHgSDt6bd+YUWyinQTgcojRWK3b0BYE=;
-	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=YshoRzUxBDwadciUstUkiuDGm+N+mIWWUwoCn4X8u0eIpY6o9BuIFrcJjWKcNiJh7J4wjKSwAOTSD89a7ds87CHi9PvMojtHX0BHfB32xPSLsgM0rTnAQHvGLMMUanpkP+r743YxjbZmOcxc+A+vBuXCgsqSsExkDjmLRmv+CNQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=mc3MWpxY; arc=none smtp.client-ip=185.70.43.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
+	s=arc-20240116; t=1719885999; c=relaxed/simple;
+	bh=/M3f2xCS+AZs/4b6cI5tgUMDbyKxGalA8zq22uKytAw=;
+	h=Date:To:From:Subject:Message-Id; b=RCnHTVkdX78OVRebvfWbWuxf+oJg7OwXpxdBDlSqAibeA4RsoOKncAOAoZ2A5z/PMQd9UDey/3dqc9VkMIOuO2HxOwiJB3v00SWPMBBxzzxbDeZJMg1G0/fkli3wZmj6OgephPWwy+zKxnUKiD4jQTQELcwxW1sXryJddiQrb0Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NgYfmc2z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="mc3MWpxY"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
-	s=protonmail3; t=1719773610; x=1720032810;
-	bh=HzPoSzp0dX8wTHgSDt6bd+YUWyinQTgcojRWK3b0BYE=;
-	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
-	 Message-ID:BIMI-Selector;
-	b=mc3MWpxYy1OXQFhzwOI3x4UEJTQvqqWjYhcHUBf0RXYqKr+Tfg6vIde32DDnNVwGY
-	 itG0tedqplQ0YR774kNxhC8BdhJvG6kEBqI4xjzVRK6Cyh4MgRgqfsU98rawCCE7HL
-	 2tNjme+6oB5cKX4jkzR1ppyTwGcgbOMdcbWn8tdcFRDzcneHd0Zetn3P8MXF6ZSCEm
-	 V8iL/9os8prs34P8MNZsPjcEbq9zDOlNGsk6fH9d9whq+hn5ytdgLmgPwEg26HefpK
-	 a+CCYcCLbY4q1L1Eupsug5r3kzqu5rVQ3uvCCFBCpmkElk40ZezqRT6YnFhpgSlUFb
-	 qBXl18BLpzJvw==
-Date: Sun, 30 Jun 2024 18:53:26 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-From: =?utf-8?Q?Barnab=C3=A1s_P=C5=91cze?= <pobrn@protonmail.com>
-Cc: mm-commits@vger.kernel.org, skhan@linuxfoundation.org, keescook@chromium.org, jorgelo@chromium.org, jeffxu@google.com, hughd@google.com, dverkamp@chromium.org, dmitry.torokhov@gmail.com, david@readahead.eu
-Subject: Re: [nacked] memfd-mfd_noexec_seal-should-not-imply-mfd_allow_sealing.patch removed from -mm tree
-Message-ID: <4uxF8XTlNc9OXtl00MySnr78ZXcxec_W9IbWt-4R8lG-LWsTC_Z571pCrqnz8TKrWiq16NJuTSiwW8JhVMzdMgvwbB2aXTtX3DP2SZyUDzk=@protonmail.com>
-In-Reply-To: <20240614165242.f9d89f9a5711cffc5e0b0f77@linux-foundation.org>
-References: <20240614182715.12694C2BD10@smtp.kernel.org> <qdcD-qU2Jfk6ImGOIaV4sWrbTZcHj44hNr454b2pd_SV8t4Bu1mnjsWXfYgW-c7tFW7bQowMRaKysMVcmWvGvUW3O20py_2H1jd7kNGT62Y=@protonmail.com> <20240614165242.f9d89f9a5711cffc5e0b0f77@linux-foundation.org>
-Feedback-ID: 20568564:user:proton
-X-Pm-Message-ID: 40376c395c48910c7fbd75c28014cb46e919039b
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NgYfmc2z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6EA6C116B1;
+	Tue,  2 Jul 2024 02:06:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1719885998;
+	bh=/M3f2xCS+AZs/4b6cI5tgUMDbyKxGalA8zq22uKytAw=;
+	h=Date:To:From:Subject:From;
+	b=NgYfmc2z/zjZHKH/Ug/Fc0oWsUnUDWmrnryAEVLxmhhAu8GVSiEvGGq4jYcxhdYXF
+	 GtCXv2LDsaxOhUxpKn9Czi7csSLKnuw4Jw/qD90QidMS65XSw6Fq1xvcMeu/rHR/jf
+	 +/MBWj2PfyM2CGZBy1I3zf+qZ/AgyN0a88zzUup4=
+Date: Mon, 01 Jul 2024 19:06:33 -0700
+To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + docs-mm-damon-design-fix-two-typos.patch added to mm-unstable branch
+Message-Id: <20240702020638.D6EA6C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-2024. j=C3=BAnius 15., szombat 1:52 keltez=C3=A9ssel, Andrew Morton <akpm@l=
-inux-foundation.org> =C3=ADrta:
-
-> On Fri, 14 Jun 2024 20:00:02 +0000 Barnab=C3=A1s P=C5=91cze pobrn@protonm=
-ail.com wrote:
->=20
-> > 2024. j=C3=BAnius 14., p=C3=A9ntek 20:27 keltez=C3=A9ssel, Andrew Morto=
-n akpm@linux-foundation.org =C3=ADrta:
-> >=20
-> > > The quilt patch titled
-> > > Subject: memfd: `MFD_NOEXEC_SEAL` should not imply `MFD_ALLOW_SEALING=
-`
-> > > has been removed from the -mm tree. Its filename was
-> > > memfd-mfd_noexec_seal-should-not-imply-mfd_allow_sealing.patch
-> > >=20
-> > > This patch was dropped because it was nacked
-> >=20
-> > Hi Andrew,
-> >=20
-> > do I gather it correctly that this is the final decision, and there is =
-not much
-> > willingness to try to remove this quirk of the `memfd_create()`? As far=
- as I can tell,
-> > the change was in linux-next for some time, did that uncover any proble=
-ms? (If so,
-> > I haven't been notified.)
-> >=20
-> > Anyways, I believe I have laid out my arguments already, so I won't rep=
-eat them here,
-> > and if this is final, then I will stop wasting everyone's time with fur=
-ther emails. :-)
->=20
->=20
-> We do appear to be stuck.
->=20
-> Please feel free to pursue this. Reissue the patch with an updated
-> changelog which addresses the various issues which have been raised
-> thus far and let's reexamine.
-
-Done: https://lore.kernel.org/linux-mm/20240630184912.37335-1-pobrn@protonm=
-ail.com/
-I believe the commit message now adequately captures my thinking regarding
-backwards compatibility; additionally I have carried out a smoke test by
-booting into an Arch Linux system with the patch.
 
 
-Regards,
-Barnab=C3=A1s P=C5=91cze
+The patch titled
+     Subject: Docs/mm/damon/design: fix two typos
+has been added to the -mm mm-unstable branch.  Its filename is
+     docs-mm-damon-design-fix-two-typos.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-fix-two-typos.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/mm/damon/design: fix two typos
+Date: Mon, 1 Jul 2024 12:26:58 -0700
+
+Patch series "Docs/damon: minor fixups and improvements".
+
+Fixup typos, clarify regions merging operation design with recent change,
+add access pattern snapshot example use case, and improve readability of
+the design document and subsystem documents index by
+reorganizing/wordsmithing and adding links to other sections and/or
+documents for easy browsing.
+
+
+This patch (of 9):
+
+Fix two typos.  The first one is just a simple typo: s/accurach/accuracy/
+
+The second one is made by the author being out of their mind.  'Region
+Based Sampling' section of the doc is mistakenly calling the access
+frequency counter of region as 'nr_regions'.  Fix it with the correct
+name, 'nr_accesses'.
+
+Link: https://lkml.kernel.org/r/20240701192706.51415-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240701192706.51415-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/mm/damon/design.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-fix-two-typos
++++ a/Documentation/mm/damon/design.rst
+@@ -25,7 +25,7 @@ DAMON subsystem is configured with three
+ - Operations Set: Implements fundamental operations for DAMON that depends on
+   the given monitoring target address-space and available set of
+   software/hardware primitives,
+-- Core: Implements core logics including monitoring overhead/accurach control
++- Core: Implements core logics including monitoring overhead/accuracy control
+   and access-aware system operations on top of the operations set layer, and
+ - Modules: Implements kernel modules for various purposes that provides
+   interfaces for the user space, on top of the core layer.
+@@ -192,7 +192,7 @@ one page in the region is required to be
+ interval``, DAMON randomly picks one page in each region, waits for one
+ ``sampling interval``, checks whether the page is accessed meanwhile, and
+ increases the access frequency counter of the region if so.  The counter is
+-called ``nr_regions`` of the region.  Therefore, the monitoring overhead is
++called ``nr_accesses`` of the region.  Therefore, the monitoring overhead is
+ controllable by setting the number of regions.  DAMON allows users to set the
+ minimum and the maximum number of regions for the trade-off.
+ 
+_
+
+Patches currently in -mm which might be from sj@kernel.org are
+
+mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet.patch
+mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix.patch
+mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix-2.patch
+docs-mm-damon-design-fix-two-typos.patch
+docs-mm-damon-design-clarify-regions-merging-operation.patch
+docs-admin-guide-mm-damon-start-add-access-pattern-snapshot-example.patch
+docs-mm-damon-design-add-links-from-overall-architecture-to-sections-of-details.patch
+docs-mm-damon-design-move-configurable-operations-set-section-into-operations-set-layer-section.patch
+docs-mm-damon-design-remove-programmable-modules-section-in-favor-of-modules-section.patch
+docs-mm-damon-design-add-links-to-sections-of-damon-sysfs-interface-usage-doc.patch
+docs-mm-damon-index-add-links-to-design.patch
+docs-mm-damon-index-add-links-to-admin-guide-doc.patch
+
