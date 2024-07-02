@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F05F03C38
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 02:06:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F32133C38
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 02:06:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719886001; cv=none; b=EKOcKMokOU+kMP77/Ji/84Rekn4ojOp2m8WGOG3uzip4cSa6SriV9PTMJPvEuuiM9x8SGOU1q1i3S8yfSwXjL5/0dPPs+xExG4DV6GjHlhhro3zw+V2FWjX1x++xN/hC29aBQ7pKgV1qJlpDOs8xWiENnCNOijY7SN459uPiab0=
+	t=1719886003; cv=none; b=pRIVGUBroD1v4KXEayZZH6p0dffCINWULGn0whypNjF0AI1U+6iKEjL5xUbt2pXF9BSzc10bOPR7mti3hllt6m0VRe3MHe8bEgQRYcQBB422xo1fddLnIhzFUhKIbxLXbvXdNYa1D74ix4hXxkeuJZ28hOXcXfl2rpA+rPCPfmg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719886001; c=relaxed/simple;
-	bh=isrOtO0ob+xrMRRueQzsG58zjzwebbj0q8PZDP/H4eg=;
-	h=Date:To:From:Subject:Message-Id; b=Ft+fbIYWQ9vR2J0SNX0McUlVQxN3HI/4/jGX4IgNqPk3eBQ5Et7tdtRJLOJzRn8fX5/O5+yigB+juPj1To/LTR99IUgmBs+AWLZOdzTIAEpspN/DfgjzDKg8M+0yRgOQPEbXobCcKX131M7DhYr0NVqquBjEOcMDYl4tgL9XdMo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M3g5vE7z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719886003; c=relaxed/simple;
+	bh=b9ovc05290V6mGBTcAB2WkM82yt7jkc3PtIw+4P4CXo=;
+	h=Date:To:From:Subject:Message-Id; b=bFIPC1HkU6zQp6UMXIioPsjE4VRK4qnprHmdYS4ckKdwu+uNM7Fdtvj1km3w3/tAfU5UbYKZGolMpSnr8nPcmRqDBe1eXCgsg21os7bYI/MBb12tElKMh8hNOkAPbYdFBxGHnMvOQqJOnalALtELYJUsLXCNBheH4Ael+TwyHxg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eLn+3LxL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M3g5vE7z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DEA8C116B1;
-	Tue,  2 Jul 2024 02:06:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eLn+3LxL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CD70C116B1;
+	Tue,  2 Jul 2024 02:06:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719886000;
-	bh=isrOtO0ob+xrMRRueQzsG58zjzwebbj0q8PZDP/H4eg=;
+	s=korg; t=1719886002;
+	bh=b9ovc05290V6mGBTcAB2WkM82yt7jkc3PtIw+4P4CXo=;
 	h=Date:To:From:Subject:From;
-	b=M3g5vE7zRjqysC3Pv3em2gr10NRgYwz9CPyPOPrYIHCL7qRNFjeTGivhN/TZcHoOb
-	 uPlZp466TywLD2JF4WP4qUGRNId8NgX+kPvJOW41wmzFFUZPN+JRNK7+cmg2CL8mRv
-	 +9Mhh+M2ED0n2PB7SnKY9SPQlOxZ6sjdeNTqJg+Y=
-Date: Mon, 01 Jul 2024 19:06:40 -0700
+	b=eLn+3LxLfdfa5SNn2AD5iHAOvxD+tO5OmNbcJAc/JuYFYOOYwSgSSi79iuYOG7/Rm
+	 ts6HIgedOFRmOn0NZ6m3f7E53UsoNRk8rAh3e6pYmjpY7/4Tbt9SH0KNYeNQmD0tFy
+	 nhNfwU3ISpF+fszCFABBvD230blbXncZkeENuUWs=
+Date: Mon, 01 Jul 2024 19:06:41 -0700
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-clarify-regions-merging-operation.patch added to mm-unstable branch
-Message-Id: <20240702020640.9DEA8C116B1@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-start-add-access-pattern-snapshot-example.patch added to mm-unstable branch
+Message-Id: <20240702020642.7CD70C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: clarify regions merging operation
+     Subject: Docs/admin-guide/mm/damon/start: add access pattern snapshot example
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-design-clarify-regions-merging-operation.patch
+     docs-admin-guide-mm-damon-start-add-access-pattern-snapshot-example.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-clarify-regions-merging-operation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-start-add-access-pattern-snapshot-example.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,48 +59,93 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: clarify regions merging operation
-Date: Mon, 1 Jul 2024 12:26:59 -0700
+Subject: Docs/admin-guide/mm/damon/start: add access pattern snapshot example
+Date: Mon, 1 Jul 2024 12:27:00 -0700
 
-DAMON design document is not explaining how min_nr_regions limit is kept,
-and what happens if the number of regions exceeds max_nr_regions.  Add
-more clarification for those.
+DAMON user-space tool (damo) provides access pattern snapshot feature,
+which is expected to be frequently used for real time access pattern
+analysis.  The snapshot output is also showing what DAMON provides on its
+own, including the 'age' information.
 
-Link: https://lkml.kernel.org/r/20240701192706.51415-3-sj@kernel.org
+In contrast, the recorded access patterns, which is shown as an example
+usage on the quick start section, shows what users can make from what
+DAMON provided.  It includes information that generated outside of DAMON
+and makes the 'age' concept bit unclear.  Hence snapshot output is easier
+at understanding the raw realtime output of DAMON.  Add the snapshot usage
+example on the quick start section.
+
+Link: https://lkml.kernel.org/r/20240701192706.51415-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ Documentation/admin-guide/mm/damon/start.rst |   46 +++++++++++++++--
+ 1 file changed, 42 insertions(+), 4 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-clarify-regions-merging-operation
-+++ a/Documentation/mm/damon/design.rst
-@@ -209,11 +209,18 @@ the data access pattern can be dynamical
- monitoring quality.  To keep the assumption as much as possible, DAMON
- adaptively merges and splits each region based on their access frequency.
+--- a/Documentation/admin-guide/mm/damon/start.rst~docs-admin-guide-mm-damon-start-add-access-pattern-snapshot-example
++++ a/Documentation/admin-guide/mm/damon/start.rst
+@@ -34,18 +34,56 @@ detail) of DAMON, you should ensure :doc
+ mounted.
  
--For each ``aggregation interval``, it compares the access frequencies of
--adjacent regions and merges those if the frequency difference is small.  Then,
--after it reports and clears the aggregated access frequency of each region, it
--splits each region into two or three regions if the total number of regions
--will not exceed the user-specified maximum number of regions after the split.
-+For each ``aggregation interval``, it compares the access frequencies
-+(``nr_accesses``) of adjacent regions.  If the difference is small, and if the
-+sum of the two regions' sizes is smaller than the size of total regions divided
-+by the ``minimum number of regions``, DAMON merges the two regions.  If the
-+resulting number of total regions is still higher than ``maximum number of
-+regions``, it repeats the merging with increasing access frequenceis difference
-+threshold until the upper-limit of the number of regions is met, or the
-+threshold becomes higher than possible maximum value (``aggregation interval``
-+divided by ``sampling interval``).   Then, after it reports and clears the
-+aggregated access frequency of each region, it splits each region into two or
-+three regions if the total number of regions will not exceed the user-specified
-+maximum number of regions after the split.
  
- In this way, DAMON provides its best-effort quality and minimal overhead while
- keeping the bounds users set for their trade-off.
++Snapshot Data Access Patterns
++=============================
++
++The commands below show the memory access pattern of a program at the moment of
++the execution. ::
++
++    $ git clone https://github.com/sjp38/masim; cd masim; make
++    $ sudo damo start "./masim ./configs/stairs.cfg --quiet"
++    $ sudo ./damo show
++    0   addr [85.541 TiB  , 85.541 TiB ) (57.707 MiB ) access 0 %   age 10.400 s
++    1   addr [85.541 TiB  , 85.542 TiB ) (413.285 MiB) access 0 %   age 11.400 s
++    2   addr [127.649 TiB , 127.649 TiB) (57.500 MiB ) access 0 %   age 1.600 s
++    3   addr [127.649 TiB , 127.649 TiB) (32.500 MiB ) access 0 %   age 500 ms
++    4   addr [127.649 TiB , 127.649 TiB) (9.535 MiB  ) access 100 % age 300 ms
++    5   addr [127.649 TiB , 127.649 TiB) (8.000 KiB  ) access 60 %  age 0 ns
++    6   addr [127.649 TiB , 127.649 TiB) (6.926 MiB  ) access 0 %   age 1 s
++    7   addr [127.998 TiB , 127.998 TiB) (120.000 KiB) access 0 %   age 11.100 s
++    8   addr [127.998 TiB , 127.998 TiB) (8.000 KiB  ) access 40 %  age 100 ms
++    9   addr [127.998 TiB , 127.998 TiB) (4.000 KiB  ) access 0 %   age 11 s
++    total size: 577.590 MiB
++    $ sudo ./damo stop
++
++The first command of the above example downloads and builds an artificial
++memory access generator program called ``masim``.  The second command asks DAMO
++to execute the artificial generator process start via the given command and
++make DAMON monitors the generator process.  The third command retrieves the
++current snapshot of the monitored access pattern of the process from DAMON and
++shows the pattern in a human readable format.
++
++Each line of the output shows which virtual address range (``addr [XX, XX)``)
++of the process is how frequently (``access XX %``) accessed for how long time
++(``age XX``).  For example, the fifth region of ~9 MiB size is being most
++frequently accessed for last 300 milliseconds.  Finally, the fourth command
++stops DAMON.
++
++Note that DAMON can monitor not only virtual address spaces but multiple types
++of address spaces including the physical address space.
++
++
+ Recording Data Access Patterns
+ ==============================
+ 
+ The commands below record the memory access patterns of a program and save the
+ monitoring results to a file. ::
+ 
+-    $ git clone https://github.com/sjp38/masim
+-    $ cd masim; make; ./masim ./configs/zigzag.cfg &
++    $ ./masim ./configs/zigzag.cfg &
+     $ sudo damo record -o damon.data $(pidof masim)
+ 
+-The first two lines of the commands download an artificial memory access
+-generator program and run it in the background.  The generator will repeatedly
++The line of the commands run the artificial memory access
++generator program again.  The generator will repeatedly
+ access two 100 MiB sized memory regions one by one.  You can substitute this
+ with your real workload.  The last line asks ``damo`` to record the access
+ pattern in the ``damon.data`` file.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
