@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD9073D978
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 16:52:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BE5A15218A
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 17:25:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719939159; cv=none; b=k2Iql7vTbrmNe4mNv0CxLZt/BCy0fc6YbveluSOG9DJgeR17UIIddLD2fIYoN+7ZKG9bIZvsKEJTkq5n0SKCMGmCSt8bzJVLhiF8UULq2Ds9IzRBcXo8P+z11stLy0nJT2ewu4dPUHM2S4qL51LQe9QaGGeyWquLL0XsJEXnpyA=
+	t=1719941158; cv=none; b=HwL+2m1V4Ht1wtsNkFuM+gJrFhuekdwpw215DtHiBELBhYqPRjtVsYgb3qqsUZlYu8+thCrI6jfY0BmV2IQBv/nsAQ04E4AMnsVMP+G4wOn6jU15PFZQVFQOH69LtL1YTOIdMdHDTQVIdudv2pF7xi3viNFNm3oeAzSA+qUway4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719939159; c=relaxed/simple;
-	bh=K0s6xucHWfcLHI/hqVxCcz9Xn2RDW+nIPAMywB+TxeE=;
-	h=Date:To:From:Subject:Message-Id; b=ro/tte7jHqIAvDr5FGJ+6MNi6X1rF72MN2Y/Ai5iwrhzo79Q/bmjX+MuchUXseITUTlAMrJWEiRsByYoNjGFal8NuiVCVwbAyTK5Zt4oFXb9Tj8YaAMHxll9EJlhInioWfjX/6LTr8pLUAP1I1Ja6FRqoUs5lg4ceoPueNx56NM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xjy7kfUs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719941158; c=relaxed/simple;
+	bh=nUmqUCLF2UTKg/DbDhH3i7o79Z+dY7zyPUfAzqaloaA=;
+	h=Date:To:From:Subject:Message-Id; b=OTtftBL8NcM/KdgNHiUZixlof87FftuzmZPh9WtGRwJoUp8vnAeHn7wtjKBpRb4Qii/bSHg/X6pR/jHifUH+gglMbjyaexrYN1Z0WDiFt5lwg7/AhV+lXdHVoJprre8vg4L1VUJcKrRrpLRPCjAjYXnrhR0Wc907l7sPnGiCtkM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FgWxI7hv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xjy7kfUs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 323F6C116B1;
-	Tue,  2 Jul 2024 16:52:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FgWxI7hv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2033C116B1;
+	Tue,  2 Jul 2024 17:25:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719939159;
-	bh=K0s6xucHWfcLHI/hqVxCcz9Xn2RDW+nIPAMywB+TxeE=;
+	s=korg; t=1719941157;
+	bh=nUmqUCLF2UTKg/DbDhH3i7o79Z+dY7zyPUfAzqaloaA=;
 	h=Date:To:From:Subject:From;
-	b=xjy7kfUsu3Jq3oV2tJfs8KCxhqlr6FTys7l8mkZmFMo1R5TovtDq5CXMnAy0q4JfE
-	 Ag+Dr0VsKtFEtFZcRu9BRwPGVA3dOb9mKNxgG2lxYd9DqVQL5mRPDOpcNvc/0ZWPdP
-	 I9rTLtFdrAZ4ZVzCUIaint1cqP1KqG4X3HEbYbko=
-Date: Tue, 02 Jul 2024 09:52:38 -0700
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,swarupkotikalapudi@gmail.com,shuah@kernel.org,luto@kernel.org,kees@kernel.org,amer.shanawany@gmail.com,make24@iscas.ac.cn,akpm@linux-foundation.org
+	b=FgWxI7hvLB35WUVw4UBDeafdv086ivPWpqy8ad/ZIGAA3qQzGO6UdemtwPQKdRPyo
+	 4Y3QEcH58BudjY5eNzdeokFZLdgtu1h5J7Iw6H2l0VOlmpe5NKWQ0lXRb7XxfudK1J
+	 D/IqeXxse8pWVkd5vVzmLCwnkv+Mke+OGYYD5EY0=
+Date: Tue, 02 Jul 2024 10:25:57 -0700
+To: mm-commits@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,jgg@nvidia.com,christophe.leroy@csgroup.eu,mpe@ellerman.id.au,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] selftests-capabilities-fix-possible-file-leak-in-copy_fromat_to.patch removed from -mm tree
-Message-Id: <20240702165239.323F6C116B1@smtp.kernel.org>
+Subject: + powerpc-64e-drop-e500-ifdefs-in-64-bit-code.patch added to mm-unstable branch
+Message-Id: <20240702172557.D2033C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,59 +34,153 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: selftests/capabilities: fix possible file leak in copy_fromat_to
-has been removed from the -mm tree.  Its filename was
-     selftests-capabilities-fix-possible-file-leak-in-copy_fromat_to.patch
+The patch titled
+     Subject: powerpc/64e: drop E500 ifdefs in 64-bit code
+has been added to the -mm mm-unstable branch.  Its filename is
+     powerpc-64e-drop-e500-ifdefs-in-64-bit-code.patch
 
-This patch was dropped because it was nacked
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-64e-drop-e500-ifdefs-in-64-bit-code.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ma Ke <make24@iscas.ac.cn>
-Subject: selftests/capabilities: fix possible file leak in copy_fromat_to
-Date: Sun, 30 Jun 2024 21:00:38 +0800
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: powerpc/64e: drop E500 ifdefs in 64-bit code
+Date: Tue, 2 Jul 2024 15:51:15 +0200
 
-open() returns -1 on error.  openat() and open() initialize 'from' and
-'to', and only 'from' validated with 'if' statement.  If the
-initialization of variable 'to' fails, we should better check the value of
-'to' and close 'from' to avoid possible file leak.  Improve the checking
-of 'from' additionally.
+All 64-bit Book3E have E500=y, so drop the unneeded ifdefs.
 
-Link: https://lkml.kernel.org/r/20240630130038.3671507-1-make24@iscas.ac.cn
-Fixes: 32ae976ed3b5 ("selftests/capabilities: Add tests for capability evolution")
-Signed-off-by: Ma Ke <make24@iscas.ac.cn>
-Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Amer Al Shanawany <amer.shanawany@gmail.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
+Link: https://lkml.kernel.org/r/7fb88809c88a1b774063eda602a9333079403f83.1719928057.git.christophe.leroy@csgroup.eu
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/capabilities/test_execve.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/powerpc/mm/nohash/tlb_64e.c |   12 ------------
+ 1 file changed, 12 deletions(-)
 
---- a/tools/testing/selftests/capabilities/test_execve.c~selftests-capabilities-fix-possible-file-leak-in-copy_fromat_to
-+++ a/tools/testing/selftests/capabilities/test_execve.c
-@@ -145,10 +145,14 @@ static void chdir_to_tmpfs(void)
- static void copy_fromat_to(int fromfd, const char *fromname, const char *toname)
+--- a/arch/powerpc/mm/nohash/tlb_64e.c~powerpc-64e-drop-e500-ifdefs-in-64-bit-code
++++ a/arch/powerpc/mm/nohash/tlb_64e.c
+@@ -85,7 +85,6 @@ static void __init setup_page_sizes(void
+ 	unsigned int eptcfg;
+ 	int psize;
+ 
+-#ifdef CONFIG_PPC_E500
+ 	unsigned int mmucfg = mfspr(SPRN_MMUCFG);
+ 	int fsl_mmu = mmu_has_feature(MMU_FTR_TYPE_FSL_E);
+ 
+@@ -151,7 +150,6 @@ static void __init setup_page_sizes(void
+ 
+ 		goto out;
+ 	}
+-#endif
+ out:
+ 	/* Cleanup array and print summary */
+ 	pr_info("MMU: Supported page sizes\n");
+@@ -180,13 +178,11 @@ static void __init setup_mmu_htw(void)
+ 	 */
+ 
+ 	switch (book3e_htw_mode) {
+-#ifdef CONFIG_PPC_E500
+ 	case PPC_HTW_E6500:
+ 		extlb_level_exc = EX_TLB_SIZE;
+ 		patch_exception(0x1c0, exc_data_tlb_miss_e6500_book3e);
+ 		patch_exception(0x1e0, exc_instruction_tlb_miss_e6500_book3e);
+ 		break;
+-#endif
+ 	}
+ 	pr_info("MMU: Book3E HW tablewalk %s\n",
+ 		book3e_htw_mode != PPC_HTW_NONE ? "enabled" : "not supported");
+@@ -217,7 +213,6 @@ static void early_init_this_mmu(void)
+ 	}
+ 	mtspr(SPRN_MAS4, mas4);
+ 
+-#ifdef CONFIG_PPC_E500
+ 	if (mmu_has_feature(MMU_FTR_TYPE_FSL_E)) {
+ 		unsigned int num_cams;
+ 		bool map = true;
+@@ -238,7 +233,6 @@ static void early_init_this_mmu(void)
+ 			linear_map_top = map_mem_in_cams(linear_map_top,
+ 							 num_cams, false, true);
+ 	}
+-#endif
+ 
+ 	/* A sync won't hurt us after mucking around with
+ 	 * the MMU configuration
+@@ -270,7 +264,6 @@ static void __init early_init_mmu_global
+ 	/* Look for HW tablewalk support */
+ 	setup_mmu_htw();
+ 
+-#ifdef CONFIG_PPC_E500
+ 	if (mmu_has_feature(MMU_FTR_TYPE_FSL_E)) {
+ 		if (book3e_htw_mode == PPC_HTW_NONE) {
+ 			extlb_level_exc = EX_TLB_SIZE;
+@@ -279,7 +272,6 @@ static void __init early_init_mmu_global
+ 				exc_instruction_tlb_miss_bolted_book3e);
+ 		}
+ 	}
+-#endif
+ 
+ 	/* Set the global containing the top of the linear mapping
+ 	 * for use by the TLB miss code
+@@ -291,7 +283,6 @@ static void __init early_init_mmu_global
+ 
+ static void __init early_mmu_set_memory_limit(void)
  {
- 	int from = openat(fromfd, fromname, O_RDONLY);
--	if (from == -1)
-+	if (from < 0)
- 		ksft_exit_fail_msg("open copy source - %s\n", strerror(errno));
+-#ifdef CONFIG_PPC_E500
+ 	if (mmu_has_feature(MMU_FTR_TYPE_FSL_E)) {
+ 		/*
+ 		 * Limit memory so we dont have linear faults.
+@@ -302,7 +293,6 @@ static void __init early_mmu_set_memory_
+ 		 */
+ 		memblock_enforce_memory_limit(linear_map_top);
+ 	}
+-#endif
  
- 	int to = open(toname, O_CREAT | O_WRONLY | O_EXCL, 0700);
-+	if (to < 0) {
-+		close(from);
-+		ksft_exit_fail_msg("open copy destination - %s\n", strerror(errno));
-+	}
+ 	memblock_set_current_limit(linear_map_top);
+ }
+@@ -340,7 +330,6 @@ void setup_initial_memory_limit(phys_add
+ 	 * We crop it to the size of the first MEMBLOCK to
+ 	 * avoid going over total available memory just in case...
+ 	 */
+-#ifdef CONFIG_PPC_E500
+ 	if (early_mmu_has_feature(MMU_FTR_TYPE_FSL_E)) {
+ 		unsigned long linear_sz;
+ 		unsigned int num_cams;
+@@ -353,7 +342,6 @@ void setup_initial_memory_limit(phys_add
  
- 	while (true) {
- 		char buf[4096];
+ 		ppc64_rma_size = min_t(u64, linear_sz, 0x40000000);
+ 	} else
+-#endif
+ 		ppc64_rma_size = min_t(u64, first_memblock_size, 0x40000000);
+ 
+ 	/* Finally limit subsequent allocations */
 _
 
-Patches currently in -mm which might be from make24@iscas.ac.cn are
+Patches currently in -mm which might be from mpe@ellerman.id.au are
 
+powerpc-64e-remove-unused-ibm-htw-code.patch
+powerpc-64e-split-out-nohash-book3e-64-bit-code.patch
+powerpc-64e-drop-e500-ifdefs-in-64-bit-code.patch
+powerpc-64e-drop-mmu_ftr_type_fsl_e-checks-in-64-bit-code.patch
+powerpc-64e-consolidate-tlb-miss-handler-patching.patch
+powerpc-64e-drop-unused-tlb-miss-handlers.patch
 
