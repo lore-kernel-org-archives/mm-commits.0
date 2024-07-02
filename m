@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A5983C38
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 02:06:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A2E83C38
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 02:06:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719886006; cv=none; b=RooKWZTGp4DeUq42w33Sa5n7p1hTNpHgXMCNyV0tQfYNzER5zJHfVmzK+rww8tPIgtqiJ9mQhibYLhUCNOUZzz7YyL9h2hbSm4geOWSVXHzQDyidL+Rn8Q6Zjq5+misdXzrgqlEZK45T34Yvk2QNdXnq+7JH4TvSTdFgxs3RGWs=
+	t=1719886008; cv=none; b=jvJgOuBWfV24VLq5OCEq5EeJn2NXeMygLXzgdL1SB39KyJaagMuBC8FLg3sk1rRgZpc4gN12dYyTeHVF5Cm+jjBBrQya2POt4PmMngbJdpenPkJxW2Ha6TZlAaGIyO90mN2+bMntTbUAV/pzcCjlCG1mZUHEwmNDV9AmHyUVoKg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719886006; c=relaxed/simple;
-	bh=WxjsufzQfflI7jHp2u4gh+gqCsjSNQ2HfUdb89w8VIs=;
-	h=Date:To:From:Subject:Message-Id; b=WQ6uRUsPmio6EyAkb4yfMUHTgO1V/xQuXA+eTj2CPW3AlWJ6y55EdqqsiwsjHn9QovxDEPC6b7x0lKuGpB9q8uIYNgKj7Ph8BbUcA0QAk6u8JQBdblTSL4DDdiEQYTQtK4NMXS0qu8+Xgc0ITDIHbJDHosOvuQ2pcfSWsdemkyQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=psw2HoZp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719886008; c=relaxed/simple;
+	bh=T5XaQ9XWu6kASh6izaLxGGQ4wm3OQd6UmN7v295GtZI=;
+	h=Date:To:From:Subject:Message-Id; b=mxBoaUQQai+UNz1jxt+N4GxZib3mO9vQKmOi4ipAOAFJqaY//AMjTR1k/TtqLl16PBqmbVXMw0/IWQyVWzDTnxIY9cV0ycFFwO+1h4vzXA6iP1ftyvMp8oi2DNN1GDE6ftSoKEYZ6sqc82nDSbpOxJORmDlIV5TrRpbIj5wT01A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QgMfLMwe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="psw2HoZp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36B16C116B1;
-	Tue,  2 Jul 2024 02:06:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QgMfLMwe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECC2BC116B1;
+	Tue,  2 Jul 2024 02:06:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719886006;
-	bh=WxjsufzQfflI7jHp2u4gh+gqCsjSNQ2HfUdb89w8VIs=;
+	s=korg; t=1719886008;
+	bh=T5XaQ9XWu6kASh6izaLxGGQ4wm3OQd6UmN7v295GtZI=;
 	h=Date:To:From:Subject:From;
-	b=psw2HoZprYTW3K63Y6FAq0zgeMn0Xyn06AH/NzFlPRZnD/ve1c4CMKyOZUkuGuDGQ
-	 NX/aX33cUVDq95+cCDtODppp0wMywYVvsffj0VBKf1yScuR5YvJOmYj//jSRnQZV5e
-	 Vr+DD4pWpuN5g4iX9lrMbT7hvf5zHUVWBVWg2ARE=
-Date: Mon, 01 Jul 2024 19:06:45 -0700
+	b=QgMfLMwe3YaV9JyTmNPVgsS6VmMgV1Wf85F5qg7Xap7x6BsZDstkqVG0teuD7muOU
+	 C+jZdzrkblLKFjbPUhnt98/C3RzBW2Inj8TtmY6xcqWvDkeYlB7FSPiSeJ2YXmF6RX
+	 8oVu05HWE+FKPanljQJSv4EhuoFyONz3a0V3ktvE=
+Date: Mon, 01 Jul 2024 19:06:47 -0700
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-move-configurable-operations-set-section-into-operations-set-layer-section.patch added to mm-unstable branch
-Message-Id: <20240702020646.36B16C116B1@smtp.kernel.org>
+Subject: + docs-mm-damon-design-remove-programmable-modules-section-in-favor-of-modules-section.patch added to mm-unstable branch
+Message-Id: <20240702020647.ECC2BC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: move 'Configurable Operations Set' section into 'Operations Set Layer' section
+     Subject: Docs/mm/damon/design: remove 'Programmable Modules' section in favor of 'Modules' section
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-design-move-configurable-operations-set-section-into-operations-set-layer-section.patch
+     docs-mm-damon-design-remove-programmable-modules-section-in-favor-of-modules-section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-move-configurable-operations-set-section-into-operations-set-layer-section.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-remove-programmable-modules-section-in-favor-of-modules-section.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,92 +59,47 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: move 'Configurable Operations Set' section into 'Operations Set Layer' section
-Date: Mon, 1 Jul 2024 12:27:02 -0700
+Subject: Docs/mm/damon/design: remove 'Programmable Modules' section in favor of 'Modules' section
+Date: Mon, 1 Jul 2024 12:27:03 -0700
 
-'Configurable Operations Set' section is for providing a description of
-the pluggability of the operations set layer.  Just after that,
-'Operations Set Layer' section, which is dedicated for the entire things
-of the layer, follows.  The layout is odd, and some descriptions are
-duplicated.  Move 'Configurable Operations Set' section into 'Operations
-Set Layer' and re-write some of the detailed descriptions.
+'Programmable Modules' section provides high level descriptions of the
+DAMON API-based kernel modules layer.  But 'Modules' section, which is at
+the end of the document, provides every detail about the layer including
+that of 'Programmable Modules' section.
 
-Link: https://lkml.kernel.org/r/20240701192706.51415-6-sj@kernel.org
+Since the brief summary of the layers at the beginning of the document has
+a link to the 'Modules' section, browsing to the section is not that
+difficult.  Remove 'Programmable Modules' section in favor of 'Modules'
+section and reducing duplicates.
+
+Link: https://lkml.kernel.org/r/20240701192706.51415-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |   47 +++++++++++++---------------
- 1 file changed, 22 insertions(+), 25 deletions(-)
+ Documentation/mm/damon/design.rst |   10 ----------
+ 1 file changed, 10 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-move-configurable-operations-set-section-into-operations-set-layer-section
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-remove-programmable-modules-section-in-favor-of-modules-section
 +++ a/Documentation/mm/damon/design.rst
-@@ -33,30 +33,6 @@ DAMON subsystem is configured with three
+@@ -33,16 +33,6 @@ DAMON subsystem is configured with three
    layer.
  
  
--.. _damon_design_configurable_operations_set:
+-Programmable Modules
+---------------------
 -
--Configurable Operations Set
-----------------------------
--
--For data access monitoring and additional low level work, DAMON needs a set of
--implementations for specific operations that are dependent on and optimized for
--the given target address space.  On the other hand, the accuracy and overhead
--tradeoff mechanism, which is the core logic of DAMON, is in the pure logic
--space.  DAMON separates the two parts in different layers, namely DAMON
--Operations Set and DAMON Core Logics Layers, respectively.  It further defines
--the interface between the layers to allow various operations sets to be
--configured with the core logic.
--
--Due to this design, users can extend DAMON for any address space by configuring
--the core logic to use the appropriate operations set.  If any appropriate set
--is unavailable, users can implement one on their own.
--
--For example, physical memory, virtual memory, swap space, those for specific
--processes, NUMA nodes, files, and backing memory devices would be supportable.
--Also, if some architectures or devices supporting special optimized access
--check primitives, those will be easily configurable.
+-Core layer of DAMON is implemented as a framework, and exposes its application
+-programming interface to all kernel space components such as subsystems and
+-modules.  For common use cases of DAMON, DAMON subsystem provides kernel
+-modules that built on top of the core layer using the API, which can be easily
+-used by the user space end users.
 -
 -
- Programmable Modules
- --------------------
+ .. _damon_operations_set:
  
-@@ -72,11 +48,32 @@ used by the user space end users.
  Operations Set Layer
- ====================
- 
--The monitoring operations are defined in two parts:
-+.. _damon_design_configurable_operations_set:
-+
-+For data access monitoring and additional low level work, DAMON needs a set of
-+implementations for specific operations that are dependent on and optimized for
-+the given target address space.  For example, below two operations for access
-+monitoring are address-space dependent.
- 
- 1. Identification of the monitoring target address range for the address space.
- 2. Access check of specific address range in the target space.
- 
-+DAMON consolidates these implementations in a layer called DAMON Operations
-+Set, and defines the interface between it and the upper layer.  The upper layer
-+is dedicated for DAMON's core logics including the mechanism for control of the
-+monitoring accruracy and the overhead.
-+
-+Hence, DAMON can easily be extended for any address space and/or available
-+hardware features by configuring the core logic to use the appropriate
-+operations set.  If there is no available operations set for a given purpose, a
-+new operations set can be implemented following the interface between the
-+layers.
-+
-+For example, physical memory, virtual memory, swap space, those for specific
-+processes, NUMA nodes, files, and backing memory devices would be supportable.
-+Also, if some architectures or devices support special optimized access check
-+features, those will be easily configurable.
-+
- DAMON currently provides below three operation sets.  Below two subsections
- describe how those work.
- 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
