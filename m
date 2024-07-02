@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 770133C38
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 02:06:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F05F03C38
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 02:06:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719885999; cv=none; b=bPBZJ/zAp6C72WKObb9Ugl53kREhVY6DlZfIEAi8Qiupg1a+2AwE7FsurXBMoqQdZJAxf5/78iNqm8Rb/RV9G2pC0v16ByX9iRi7SRL9HIV0EtN4kPLazex7EsC0jLhnSjpYrxIuw9FIsA3pufruxxXcPL/9Sp1VsG1oHli4IRs=
+	t=1719886001; cv=none; b=EKOcKMokOU+kMP77/Ji/84Rekn4ojOp2m8WGOG3uzip4cSa6SriV9PTMJPvEuuiM9x8SGOU1q1i3S8yfSwXjL5/0dPPs+xExG4DV6GjHlhhro3zw+V2FWjX1x++xN/hC29aBQ7pKgV1qJlpDOs8xWiENnCNOijY7SN459uPiab0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719885999; c=relaxed/simple;
-	bh=/M3f2xCS+AZs/4b6cI5tgUMDbyKxGalA8zq22uKytAw=;
-	h=Date:To:From:Subject:Message-Id; b=RCnHTVkdX78OVRebvfWbWuxf+oJg7OwXpxdBDlSqAibeA4RsoOKncAOAoZ2A5z/PMQd9UDey/3dqc9VkMIOuO2HxOwiJB3v00SWPMBBxzzxbDeZJMg1G0/fkli3wZmj6OgephPWwy+zKxnUKiD4jQTQELcwxW1sXryJddiQrb0Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NgYfmc2z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719886001; c=relaxed/simple;
+	bh=isrOtO0ob+xrMRRueQzsG58zjzwebbj0q8PZDP/H4eg=;
+	h=Date:To:From:Subject:Message-Id; b=Ft+fbIYWQ9vR2J0SNX0McUlVQxN3HI/4/jGX4IgNqPk3eBQ5Et7tdtRJLOJzRn8fX5/O5+yigB+juPj1To/LTR99IUgmBs+AWLZOdzTIAEpspN/DfgjzDKg8M+0yRgOQPEbXobCcKX131M7DhYr0NVqquBjEOcMDYl4tgL9XdMo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M3g5vE7z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NgYfmc2z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6EA6C116B1;
-	Tue,  2 Jul 2024 02:06:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M3g5vE7z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DEA8C116B1;
+	Tue,  2 Jul 2024 02:06:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719885998;
-	bh=/M3f2xCS+AZs/4b6cI5tgUMDbyKxGalA8zq22uKytAw=;
+	s=korg; t=1719886000;
+	bh=isrOtO0ob+xrMRRueQzsG58zjzwebbj0q8PZDP/H4eg=;
 	h=Date:To:From:Subject:From;
-	b=NgYfmc2z/zjZHKH/Ug/Fc0oWsUnUDWmrnryAEVLxmhhAu8GVSiEvGGq4jYcxhdYXF
-	 GtCXv2LDsaxOhUxpKn9Czi7csSLKnuw4Jw/qD90QidMS65XSw6Fq1xvcMeu/rHR/jf
-	 +/MBWj2PfyM2CGZBy1I3zf+qZ/AgyN0a88zzUup4=
-Date: Mon, 01 Jul 2024 19:06:33 -0700
+	b=M3g5vE7zRjqysC3Pv3em2gr10NRgYwz9CPyPOPrYIHCL7qRNFjeTGivhN/TZcHoOb
+	 uPlZp466TywLD2JF4WP4qUGRNId8NgX+kPvJOW41wmzFFUZPN+JRNK7+cmg2CL8mRv
+	 +9Mhh+M2ED0n2PB7SnKY9SPQlOxZ6sjdeNTqJg+Y=
+Date: Mon, 01 Jul 2024 19:06:40 -0700
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-fix-two-typos.patch added to mm-unstable branch
-Message-Id: <20240702020638.D6EA6C116B1@smtp.kernel.org>
+Subject: + docs-mm-damon-design-clarify-regions-merging-operation.patch added to mm-unstable branch
+Message-Id: <20240702020640.9DEA8C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: fix two typos
+     Subject: Docs/mm/damon/design: clarify regions merging operation
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-design-fix-two-typos.patch
+     docs-mm-damon-design-clarify-regions-merging-operation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-fix-two-typos.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-clarify-regions-merging-operation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,57 +59,48 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: fix two typos
-Date: Mon, 1 Jul 2024 12:26:58 -0700
+Subject: Docs/mm/damon/design: clarify regions merging operation
+Date: Mon, 1 Jul 2024 12:26:59 -0700
 
-Patch series "Docs/damon: minor fixups and improvements".
+DAMON design document is not explaining how min_nr_regions limit is kept,
+and what happens if the number of regions exceeds max_nr_regions.  Add
+more clarification for those.
 
-Fixup typos, clarify regions merging operation design with recent change,
-add access pattern snapshot example use case, and improve readability of
-the design document and subsystem documents index by
-reorganizing/wordsmithing and adding links to other sections and/or
-documents for easy browsing.
-
-
-This patch (of 9):
-
-Fix two typos.  The first one is just a simple typo: s/accurach/accuracy/
-
-The second one is made by the author being out of their mind.  'Region
-Based Sampling' section of the doc is mistakenly calling the access
-frequency counter of region as 'nr_regions'.  Fix it with the correct
-name, 'nr_accesses'.
-
-Link: https://lkml.kernel.org/r/20240701192706.51415-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20240701192706.51415-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240701192706.51415-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/mm/damon/design.rst |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-fix-two-typos
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-clarify-regions-merging-operation
 +++ a/Documentation/mm/damon/design.rst
-@@ -25,7 +25,7 @@ DAMON subsystem is configured with three
- - Operations Set: Implements fundamental operations for DAMON that depends on
-   the given monitoring target address-space and available set of
-   software/hardware primitives,
--- Core: Implements core logics including monitoring overhead/accurach control
-+- Core: Implements core logics including monitoring overhead/accuracy control
-   and access-aware system operations on top of the operations set layer, and
- - Modules: Implements kernel modules for various purposes that provides
-   interfaces for the user space, on top of the core layer.
-@@ -192,7 +192,7 @@ one page in the region is required to be
- interval``, DAMON randomly picks one page in each region, waits for one
- ``sampling interval``, checks whether the page is accessed meanwhile, and
- increases the access frequency counter of the region if so.  The counter is
--called ``nr_regions`` of the region.  Therefore, the monitoring overhead is
-+called ``nr_accesses`` of the region.  Therefore, the monitoring overhead is
- controllable by setting the number of regions.  DAMON allows users to set the
- minimum and the maximum number of regions for the trade-off.
+@@ -209,11 +209,18 @@ the data access pattern can be dynamical
+ monitoring quality.  To keep the assumption as much as possible, DAMON
+ adaptively merges and splits each region based on their access frequency.
  
+-For each ``aggregation interval``, it compares the access frequencies of
+-adjacent regions and merges those if the frequency difference is small.  Then,
+-after it reports and clears the aggregated access frequency of each region, it
+-splits each region into two or three regions if the total number of regions
+-will not exceed the user-specified maximum number of regions after the split.
++For each ``aggregation interval``, it compares the access frequencies
++(``nr_accesses``) of adjacent regions.  If the difference is small, and if the
++sum of the two regions' sizes is smaller than the size of total regions divided
++by the ``minimum number of regions``, DAMON merges the two regions.  If the
++resulting number of total regions is still higher than ``maximum number of
++regions``, it repeats the merging with increasing access frequenceis difference
++threshold until the upper-limit of the number of regions is met, or the
++threshold becomes higher than possible maximum value (``aggregation interval``
++divided by ``sampling interval``).   Then, after it reports and clears the
++aggregated access frequency of each region, it splits each region into two or
++three regions if the total number of regions will not exceed the user-specified
++maximum number of regions after the split.
+ 
+ In this way, DAMON provides its best-effort quality and minimal overhead while
+ keeping the bounds users set for their trade-off.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
