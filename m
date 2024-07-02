@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43CCE15218A
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 17:26:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA96D1BE224
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 17:26:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719941164; cv=none; b=XqWdwOuEq5su/7sgqfpANg5yOPUwjwEwLkPME0uH5M+mga+UM1SM6Z2Nc2jq7ndL5+gn6hOJ3sgP0s0Ob0uIWEExex4eqMiZEexUfKOmhNK274YqMCAznGWDn55ki7JyZORYrWn8robhtL3Lk2+o+nZFfbtt9W3W3sDZrfLGkXc=
+	t=1719941166; cv=none; b=eTCqkKU7fYoC/Hhaus35JeV7WHL3/HEVo51ucbQX9O+3LMHsvxd0ITe/8pdzNdf1YWezzS7uiiRpx11sXVy0MQxGNQAhyD/zRfJYsSmw7pQ+T7STlyPQ6nBQTFtwmjnCGA067OGp2lN7uTzGwrbbubIJxyJmzs/n7Qwbz2aH+kU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719941164; c=relaxed/simple;
-	bh=ISUXe3U8SY/ZczuIG4/ciOn3tkR+wqKysJh4Ngwh2Dk=;
-	h=Date:To:From:Subject:Message-Id; b=ESQpAV9KqGVm+7cUc2NK8CoC9VWvDSISs0ytBxQLTMTQrFaN5uVBnCt7TyCqd02+uToUxAzHML3yfs3dRW/dutyp1wWTPpLBk7XODSb71WCfurnGdW70sRKymBuDSEy8T4EJE/5HoLSEegjRkfP841FnFT49U24vqv9jy7DVAco=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VV7/GPyk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719941166; c=relaxed/simple;
+	bh=dcCzFehCFIF1SF8kRnas8j/A26T58TL+VET3fjsM98Q=;
+	h=Date:To:From:Subject:Message-Id; b=FUTIlYM61SYiAgDYtob3O7nDYufDPMt9OxixDrZFwvIe1cS54VRMgp8t5GR6BX/2PVe4HjkJknB1b1QY0SRHSNZNw9olfHW1Y3868YMSVST8bdWXctawjRkhCEeBUJ0TpYyKB9WXnsPLDM3gZlZN/1OuNHpc6U4mXZTLBIzwuQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KAqZ/b5h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VV7/GPyk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1379EC4AF0C;
-	Tue,  2 Jul 2024 17:26:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KAqZ/b5h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A47E3C4AF0A;
+	Tue,  2 Jul 2024 17:26:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719941164;
-	bh=ISUXe3U8SY/ZczuIG4/ciOn3tkR+wqKysJh4Ngwh2Dk=;
+	s=korg; t=1719941166;
+	bh=dcCzFehCFIF1SF8kRnas8j/A26T58TL+VET3fjsM98Q=;
 	h=Date:To:From:Subject:From;
-	b=VV7/GPykJdNu+vj64uPSefsq5KNvxMsEuV5N5qMU7QQuhN1X4bu2AbLk+Oa/7KXtn
-	 +fyNPXwd65WcOplcv3216znkDZKQqB88NQ/GfE3vVr8iTcY4qCHvusvy+4LVUCLTZm
-	 pFPa6dFxr9Tm7pyBJ9hk6X9nIGv2cv0CK3bEAKO8=
-Date: Tue, 02 Jul 2024 10:26:03 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,jgg@nvidia.com,christophe.leroy@csgroup.eu,mpe@ellerman.id.au,akpm@linux-foundation.org
+	b=KAqZ/b5hwYk98F938vZKJln276Y5y+jQavEKnuffjjAS4mfbKSw3QlD2K1xHs7n9o
+	 RkUwlSRzMphsyGY8oili0Lgyg35co6W72IT4a2ZW9aJtUn0d1xNmHRfdSIdWWvAsyq
+	 tfjLPX5vKP9wgKk6cMzo0UhsCkPKQN+7/V5K2GB8=
+Date: Tue, 02 Jul 2024 10:26:06 -0700
+To: mm-commits@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,jgg@nvidia.com,christophe.leroy@csgroup.eu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-64e-drop-unused-tlb-miss-handlers.patch added to mm-unstable branch
-Message-Id: <20240702172604.1379EC4AF0C@smtp.kernel.org>
+Subject: + mm-define-__pte_leaf_size-to-also-take-a-pmd-entry.patch added to mm-unstable branch
+Message-Id: <20240702172606.A47E3C4AF0A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: powerpc/64e: drop unused TLB miss handlers
+     Subject: mm: define __pte_leaf_size() to also take a PMD entry
 has been added to the -mm mm-unstable branch.  Its filename is
-     powerpc-64e-drop-unused-tlb-miss-handlers.patch
+     mm-define-__pte_leaf_size-to-also-take-a-pmd-entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-64e-drop-unused-tlb-miss-handlers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-define-__pte_leaf_size-to-also-take-a-pmd-entry.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,304 +58,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Michael Ellerman <mpe@ellerman.id.au>
-Subject: powerpc/64e: drop unused TLB miss handlers
-Date: Tue, 2 Jul 2024 15:51:18 +0200
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: mm: define __pte_leaf_size() to also take a PMD entry
+Date: Tue, 2 Jul 2024 15:51:19 +0200
 
-There are two possibilities for book3e_htw_mode, PPC_HTW_E6500 or
-PPC_HTW_NONE.
+On powerpc 8xx, when a page is 8M size, the information is in the PMD
+entry.  So allow architectures to provide __pte_leaf_size() instead of
+pte_leaf_size() and provide the PMD entry to that function.
 
-The TLB miss handlers are patched to use, respectively:
-  - exc_[data|indstruction]_tlb_miss_e6500_book3e
-  - exc_[data|indstruction]_tlb_miss_bolted_book3e
+When __pte_leaf_size() is not defined, define it as a pte_leaf_size() so
+that architectures not interested in the PMD arguments are not impacted.
 
-Which means the default handlers are never used.  Remove those, and use
-the bolted handlers (PPC_HTW_NONE) by default.
+Only define a default pte_leaf_size() when __pte_leaf_size() is not
+defined to make sure nobody adds new calls to pte_leaf_size() in the core.
 
-Link: https://lkml.kernel.org/r/9a670adc1771fb1871fba93ace5372f7eadc286f.1719928057.git.christophe.leroy@csgroup.eu
-Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Link: https://lkml.kernel.org/r/c7c008f0a314bf8029ad7288fdc908db1ec7e449.1719928057.git.christophe.leroy@csgroup.eu
 Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/exceptions-64e.S |    4 
- arch/powerpc/mm/nohash/tlb_64e.c     |    4 
- arch/powerpc/mm/nohash/tlb_low_64e.S |  226 -------------------------
- 3 files changed, 2 insertions(+), 232 deletions(-)
+ include/linux/pgtable.h |    3 +++
+ kernel/events/core.c    |    2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/arch/powerpc/kernel/exceptions-64e.S~powerpc-64e-drop-unused-tlb-miss-handlers
-+++ a/arch/powerpc/kernel/exceptions-64e.S
-@@ -485,8 +485,8 @@ interrupt_base_book3e:					/* fake trap
- 	EXCEPTION_STUB(0x160, decrementer)		/* 0x0900 */
- 	EXCEPTION_STUB(0x180, fixed_interval)		/* 0x0980 */
- 	EXCEPTION_STUB(0x1a0, watchdog)			/* 0x09f0 */
--	EXCEPTION_STUB(0x1c0, data_tlb_miss)
--	EXCEPTION_STUB(0x1e0, instruction_tlb_miss)
-+	EXCEPTION_STUB(0x1c0, data_tlb_miss_bolted)
-+	EXCEPTION_STUB(0x1e0, instruction_tlb_miss_bolted)
- 	EXCEPTION_STUB(0x200, altivec_unavailable)
- 	EXCEPTION_STUB(0x220, altivec_assist)
- 	EXCEPTION_STUB(0x260, perfmon)
---- a/arch/powerpc/mm/nohash/tlb_64e.c~powerpc-64e-drop-unused-tlb-miss-handlers
-+++ a/arch/powerpc/mm/nohash/tlb_64e.c
-@@ -244,10 +244,6 @@ static void __init early_init_mmu_global
- 		patch_exception(0x1c0, exc_data_tlb_miss_e6500_book3e);
- 		patch_exception(0x1e0, exc_instruction_tlb_miss_e6500_book3e);
- 		break;
--	case PPC_HTW_NONE:
--		patch_exception(0x1c0, exc_data_tlb_miss_bolted_book3e);
--		patch_exception(0x1e0, exc_instruction_tlb_miss_bolted_book3e);
--		break;
- 	}
+--- a/include/linux/pgtable.h~mm-define-__pte_leaf_size-to-also-take-a-pmd-entry
++++ a/include/linux/pgtable.h
+@@ -1907,9 +1907,12 @@ typedef unsigned int pgtbl_mod_mask;
+ #ifndef pmd_leaf_size
+ #define pmd_leaf_size(x) PMD_SIZE
+ #endif
++#ifndef __pte_leaf_size
+ #ifndef pte_leaf_size
+ #define pte_leaf_size(x) PAGE_SIZE
+ #endif
++#define __pte_leaf_size(x,y) pte_leaf_size(y)
++#endif
  
- 	pr_info("MMU: Book3E HW tablewalk %s\n",
---- a/arch/powerpc/mm/nohash/tlb_low_64e.S~powerpc-64e-drop-unused-tlb-miss-handlers
-+++ a/arch/powerpc/mm/nohash/tlb_low_64e.S
-@@ -511,232 +511,6 @@ itlb_miss_fault_e6500:
- 	tlb_epilog_bolted
- 	b	exc_instruction_storage_book3e
- 
--/**********************************************************************
-- *                                                                    *
-- * TLB miss handling for Book3E with TLB reservation and HES support  *
-- *                                                                    *
-- **********************************************************************/
--
--
--/* Data TLB miss */
--	START_EXCEPTION(data_tlb_miss)
--	TLB_MISS_PROLOG
--
--	/* Now we handle the fault proper. We only save DEAR in normal
--	 * fault case since that's the only interesting values here.
--	 * We could probably also optimize by not saving SRR0/1 in the
--	 * linear mapping case but I'll leave that for later
--	 */
--	mfspr	r14,SPRN_ESR
--	mfspr	r16,SPRN_DEAR		/* get faulting address */
--	srdi	r15,r16,44		/* get region */
--	xoris	r15,r15,0xc
--	cmpldi	cr0,r15,0		/* linear mapping ? */
--	beq	tlb_load_linear		/* yes -> go to linear map load */
--	cmpldi	cr1,r15,1		/* vmalloc mapping ? */
--
--	/* The page tables are mapped virtually linear. At this point, though,
--	 * we don't know whether we are trying to fault in a first level
--	 * virtual address or a virtual page table address. We can get that
--	 * from bit 0x1 of the region ID which we have set for a page table
--	 */
--	andis.	r10,r15,0x1
--	bne-	virt_page_table_tlb_miss
--
--	std	r14,EX_TLB_ESR(r12);	/* save ESR */
--	std	r16,EX_TLB_DEAR(r12);	/* save DEAR */
--
--	 /* We need _PAGE_PRESENT and  _PAGE_ACCESSED set */
--	li	r11,_PAGE_PRESENT
--	oris	r11,r11,_PAGE_ACCESSED@h
--
--	/* We do the user/kernel test for the PID here along with the RW test
--	 */
--	srdi.	r15,r16,60		/* Check for user region */
--
--	/* We pre-test some combination of permissions to avoid double
--	 * faults:
--	 *
--	 * We move the ESR:ST bit into the position of _PAGE_BAP_SW in the PTE
--	 * ESR_ST   is 0x00800000
--	 * _PAGE_BAP_SW is 0x00000010
--	 * So the shift is >> 19. This tests for supervisor writeability.
--	 * If the page happens to be supervisor writeable and not user
--	 * writeable, we will take a new fault later, but that should be
--	 * a rare enough case.
--	 *
--	 * We also move ESR_ST in _PAGE_DIRTY position
--	 * _PAGE_DIRTY is 0x00001000 so the shift is >> 11
--	 *
--	 * MAS1 is preset for all we need except for TID that needs to
--	 * be cleared for kernel translations
--	 */
--	rlwimi	r11,r14,32-19,27,27
--	rlwimi	r11,r14,32-16,19,19
--	beq	normal_tlb_miss_user
--	/* XXX replace the RMW cycles with immediate loads + writes */
--1:	mfspr	r10,SPRN_MAS1
--	rlwinm	r10,r10,0,16,1		/* Clear TID */
--	mtspr	SPRN_MAS1,r10
--	beq+	cr1,normal_tlb_miss
--
--	/* We got a crappy address, just fault with whatever DEAR and ESR
--	 * are here
--	 */
--	TLB_MISS_EPILOG_ERROR
--	b	exc_data_storage_book3e
--
--/* Instruction TLB miss */
--	START_EXCEPTION(instruction_tlb_miss)
--	TLB_MISS_PROLOG
--
--	/* If we take a recursive fault, the second level handler may need
--	 * to know whether we are handling a data or instruction fault in
--	 * order to get to the right store fault handler. We provide that
--	 * info by writing a crazy value in ESR in our exception frame
--	 */
--	li	r14,-1	/* store to exception frame is done later */
--
--	/* Now we handle the fault proper. We only save DEAR in the non
--	 * linear mapping case since we know the linear mapping case will
--	 * not re-enter. We could indeed optimize and also not save SRR0/1
--	 * in the linear mapping case but I'll leave that for later
--	 *
--	 * Faulting address is SRR0 which is already in r16
--	 */
--	srdi	r15,r16,44		/* get region */
--	xoris	r15,r15,0xc
--	cmpldi	cr0,r15,0		/* linear mapping ? */
--	beq	tlb_load_linear		/* yes -> go to linear map load */
--	cmpldi	cr1,r15,1		/* vmalloc mapping ? */
--
--	/* We do the user/kernel test for the PID here along with the RW test
--	 */
--	li	r11,_PAGE_PRESENT|_PAGE_BAP_UX	/* Base perm */
--	oris	r11,r11,_PAGE_ACCESSED@h
--
--	srdi.	r15,r16,60			/* Check for user region */
--	std	r14,EX_TLB_ESR(r12)		/* write crazy -1 to frame */
--	beq	normal_tlb_miss_user
--
--	li	r11,_PAGE_PRESENT|_PAGE_BAP_SX	/* Base perm */
--	oris	r11,r11,_PAGE_ACCESSED@h
--	/* XXX replace the RMW cycles with immediate loads + writes */
--	mfspr	r10,SPRN_MAS1
--	rlwinm	r10,r10,0,16,1			/* Clear TID */
--	mtspr	SPRN_MAS1,r10
--	beq+	cr1,normal_tlb_miss
--
--	/* We got a crappy address, just fault */
--	TLB_MISS_EPILOG_ERROR
--	b	exc_instruction_storage_book3e
--
--/*
-- * This is the guts of the first-level TLB miss handler for direct
-- * misses. We are entered with:
-- *
-- * r16 = faulting address
-- * r15 = region ID
-- * r14 = crap (free to use)
-- * r13 = PACA
-- * r12 = TLB exception frame in PACA
-- * r11 = PTE permission mask
-- * r10 = crap (free to use)
-- */
--normal_tlb_miss_user:
--#ifdef CONFIG_PPC_KUAP
--	mfspr	r14,SPRN_MAS1
--	rlwinm.	r14,r14,0,0x3fff0000
--	beq-	normal_tlb_miss_access_fault /* KUAP fault */
--#endif
--normal_tlb_miss:
--	/* So we first construct the page table address. We do that by
--	 * shifting the bottom of the address (not the region ID) by
--	 * PAGE_SHIFT-3, clearing the bottom 3 bits (get a PTE ptr) and
--	 * or'ing the fourth high bit.
--	 *
--	 * NOTE: For 64K pages, we do things slightly differently in
--	 * order to handle the weird page table format used by linux
--	 */
--	srdi	r15,r16,44
--	oris	r10,r15,0x1
--	rldicl	r14,r16,64-(PAGE_SHIFT-3),PAGE_SHIFT-3+4
--	sldi	r15,r10,44
--	clrrdi	r14,r14,19
--	or	r10,r15,r14
--
--	ld	r14,0(r10)
--
--finish_normal_tlb_miss:
--	/* Check if required permissions are met */
--	andc.	r15,r11,r14
--	bne-	normal_tlb_miss_access_fault
--
--	/* Now we build the MAS:
--	 *
--	 * MAS 0   :	Fully setup with defaults in MAS4 and TLBnCFG
--	 * MAS 1   :	Almost fully setup
--	 *               - PID already updated by caller if necessary
--	 *               - TSIZE need change if !base page size, not
--	 *                 yet implemented for now
--	 * MAS 2   :	Defaults not useful, need to be redone
--	 * MAS 3+7 :	Needs to be done
--	 *
--	 * TODO: mix up code below for better scheduling
--	 */
--	clrrdi	r10,r16,12		/* Clear low crap in EA */
--	rlwimi	r10,r14,32-19,27,31	/* Insert WIMGE */
--	mtspr	SPRN_MAS2,r10
--
--	/* Check page size, if not standard, update MAS1 */
--	rldicl	r10,r14,64-8,64-8
--	cmpldi	cr0,r10,BOOK3E_PAGESZ_4K
--	beq-	1f
--	mfspr	r11,SPRN_MAS1
--	rlwimi	r11,r14,31,21,24
--	rlwinm	r11,r11,0,21,19
--	mtspr	SPRN_MAS1,r11
--1:
--	/* Move RPN in position */
--	rldicr	r11,r14,64-(PTE_RPN_SHIFT-PAGE_SHIFT),63-PAGE_SHIFT
--	clrldi	r15,r11,12		/* Clear crap at the top */
--	rlwimi	r15,r14,32-8,22,25	/* Move in U bits */
--	rlwimi	r15,r14,32-2,26,31	/* Move in BAP bits */
--
--	/* Mask out SW and UW if !DIRTY (XXX optimize this !) */
--	andi.	r11,r14,_PAGE_DIRTY
--	bne	1f
--	li	r11,MAS3_SW|MAS3_UW
--	andc	r15,r15,r11
--1:
--	srdi	r16,r15,32
--	mtspr	SPRN_MAS3,r15
--	mtspr	SPRN_MAS7,r16
--
--	tlbwe
--
--normal_tlb_miss_done:
--	/* We don't bother with restoring DEAR or ESR since we know we are
--	 * level 0 and just going back to userland. They are only needed
--	 * if you are going to take an access fault
--	 */
--	TLB_MISS_EPILOG_SUCCESS
--	rfi
--
--normal_tlb_miss_access_fault:
--	/* We need to check if it was an instruction miss */
--	andi.	r10,r11,_PAGE_BAP_UX
--	bne	1f
--	ld	r14,EX_TLB_DEAR(r12)
--	ld	r15,EX_TLB_ESR(r12)
--	mtspr	SPRN_DEAR,r14
--	mtspr	SPRN_ESR,r15
--	TLB_MISS_EPILOG_ERROR
--	b	exc_data_storage_book3e
--1:	TLB_MISS_EPILOG_ERROR
--	b	exc_instruction_storage_book3e
--
--
  /*
-  * This is the guts of the second-level TLB miss handler for direct
-  * misses. We are entered with:
+  * We always define pmd_pfn for all archs as it's used in lots of generic
+--- a/kernel/events/core.c~mm-define-__pte_leaf_size-to-also-take-a-pmd-entry
++++ a/kernel/events/core.c
+@@ -7609,7 +7609,7 @@ again:
+ 
+ 	pte = ptep_get_lockless(ptep);
+ 	if (pte_present(pte))
+-		size = pte_leaf_size(pte);
++		size = __pte_leaf_size(pmd, pte);
+ 	pte_unmap(ptep);
+ #endif /* CONFIG_HAVE_GUP_FAST */
+ 
 _
 
-Patches currently in -mm which might be from mpe@ellerman.id.au are
+Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
 
-powerpc-64e-remove-unused-ibm-htw-code.patch
-powerpc-64e-split-out-nohash-book3e-64-bit-code.patch
-powerpc-64e-drop-e500-ifdefs-in-64-bit-code.patch
-powerpc-64e-drop-mmu_ftr_type_fsl_e-checks-in-64-bit-code.patch
-powerpc-64e-consolidate-tlb-miss-handler-patching.patch
-powerpc-64e-drop-unused-tlb-miss-handlers.patch
+mm-define-__pte_leaf_size-to-also-take-a-pmd-entry.patch
+mm-provide-mm_struct-and-address-to-huge_ptep_get.patch
+powerpc-mm-remove-_page_psize.patch
+powerpc-mm-fix-__find_linux_pte-on-32-bits-with-pmd-leaf-entries.patch
+powerpc-mm-allow-hugepages-without-hugepd.patch
+powerpc-8xx-fix-size-given-to-set_huge_pte_at.patch
+powerpc-8xx-rework-support-for-8m-pages-using-contiguous-pte-entries.patch
+powerpc-8xx-simplify-struct-mmu_psize_def.patch
+powerpc-e500-remove-enc-and-ind-fields-from-struct-mmu_psize_def.patch
+powerpc-e500-switch-to-64-bits-pgd-on-85xx-32-bits.patch
+powerpc-e500-encode-hugepage-size-in-pte-bits.patch
+powerpc-e500-dont-pre-check-write-access-on-data-tlb-error.patch
+powerpc-e500-free-r10-for-find_pte.patch
+powerpc-e500-use-contiguous-pmd-instead-of-hugepd.patch
+powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd.patch
+powerpc-mm-remove-hugepd-leftovers.patch
+mm-remove-config_arch_has_hugepd.patch
 
