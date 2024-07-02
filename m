@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66951B674
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 02:21:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26F87B674
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 02:23:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719886860; cv=none; b=tv+4Xjh9J8n4hd8mXieChOI4fF+4Jl1iZlOrecncCGOm8ExA5Ec5tHN4lkIU3wuBE18sryijgc3xQ2NwLI2W5cf+49Z/c2hKizoSTLgZSum3bVB5dQ1baGoQtDd0dNp8L2EC06gAg+JzzjeniK2S5JDJYiwCsegIzRBBXWZHvv4=
+	t=1719887016; cv=none; b=u736CBFNl9Roypy4qqHUUXsm/v83pMYi3yLDPww7eZpPDSojam3Cb1v7GVIH+TdAX6RVl/06nIAjQ19kT1zsV+u3AQVTQMxQuwiKZ89U+cFxx+SuEPIt9gMNmybyeyt85+Y2wfTBu5SGIftwfZwQ05YsIfe0u65azkYg3UvIQ/E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719886860; c=relaxed/simple;
-	bh=G3qp0aCWPvyPylxGSeOtZoSl+kbtBmOdAAZNL3PL66I=;
-	h=Date:To:From:Subject:Message-Id; b=mF0nyuAyet3bfDCm2B3uL7JfMjOydHYQxM/8d/CYgvByESG4fA2CxbAfsmT+cwOiiS/MaouhdSeg8PAHCtfHQRteAVCD4Tyi/pFC1CMY5JHlSHjsGOTOg+gU4jqdhJHenBKodekLZQ5gquloHhR+Nb5ow2FqdTRwOt5qgpDDUaE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z+5pNkhS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719887016; c=relaxed/simple;
+	bh=/sUceb08iNS4u38nLxcX1OdEv9NO84wvmXGKx883NxE=;
+	h=Date:To:From:Subject:Message-Id; b=rsqyEMpj2cnpIm+81dh9B43XRBqr2HyW6BNPPjqATsVR5M1pbCmf6BrDuRdTvaWSzyz9Ct7wbB2a56XZXPBLNpHlU3vdCPWjoljp+v+4hy4YZUQr6Ng9MOGTFufE7LJYZsOMUoQ+ACOAwia3coQJb0jN7ngYAcbVTQAl6QpRdwM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1Ka2gHwL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z+5pNkhS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC41CC116B1;
-	Tue,  2 Jul 2024 02:20:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1Ka2gHwL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C990C116B1;
+	Tue,  2 Jul 2024 02:23:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719886860;
-	bh=G3qp0aCWPvyPylxGSeOtZoSl+kbtBmOdAAZNL3PL66I=;
+	s=korg; t=1719887015;
+	bh=/sUceb08iNS4u38nLxcX1OdEv9NO84wvmXGKx883NxE=;
 	h=Date:To:From:Subject:From;
-	b=Z+5pNkhS/aGKtpEPdxpM2L5gqh/zyDrRYuke+7Snbah4eD4SnRfVTyqYmJC7dUhKx
-	 X7yls15/TWZrqvwxpdofGytHJDeS4EO7xbkDMrI4FWVK1e5/lMRrr7dsokd2I4Qg0U
-	 DJ/mXHwN0fTA9xTzOC5+EsPQqapHMh/1fmj0rstA=
-Date: Mon, 01 Jul 2024 19:20:59 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
+	b=1Ka2gHwLqMDLgPI7YJ1SC7XACUihgkQmCAcXDz1GfeQTCjtpKnK+xxt5ukIRyTXFj
+	 1kO/mhG+Mv1+8+9w1CfJt9KhUqwCqm/4XSv1j0TXteFwKShbgS/MdGzXMT5E3rOWBs
+	 k3mvrevpRI4dBkO4VRoeZw7HXIek1TLhCyGFbumk=
+Date: Mon, 01 Jul 2024 19:23:34 -0700
+To: mm-commits@vger.kernel.org,arnd@arndb.de,andrii@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-add-cache-line-padding-to-mem_cgroup_per_node.patch added to mm-unstable branch
-Message-Id: <20240702022059.EC41CC116B1@smtp.kernel.org>
+Subject: + fs-procfs-implement-efficient-vma-querying-api-for-proc-pid-maps-fix.patch added to mm-unstable branch
+Message-Id: <20240702022335.6C990C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcg: add cache line padding to mem_cgroup_per_node
+     Subject: fs/procfs: improve PROCMAP_QUERY's compat mode handling
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-add-cache-line-padding-to-mem_cgroup_per_node.patch
+     fs-procfs-implement-efficient-vma-querying-api-for-proc-pid-maps-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-add-cache-line-padding-to-mem_cgroup_per_node.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-procfs-implement-efficient-vma-querying-api-for-proc-pid-maps-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,77 +58,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: memcg: add cache line padding to mem_cgroup_per_node
-Date: Mon, 1 Jul 2024 18:59:32 +0000
+From: Andrii Nakryiko <andrii@kernel.org>
+Subject: fs/procfs: improve PROCMAP_QUERY's compat mode handling
+Date: Mon, 1 Jul 2024 10:48:05 -0700
 
-Memcg v1-specific fields serve a buffer function between read-mostly and
-update often parts of the mem_cgroup_per_node structure.  If
-CONFIG_MEMCG_V1 is not set and these fields are not present, an explicit
-cacheline padding is needed.
+Kernel provides compat_ptr_ioctl() wrapper to sanitize pointers for 32-bit
+processes on 64-bit host architectures.  Given procfs_procmap_ioctl()
+always expects pointer argument, this is exactly what we need.
 
-Link: https://lkml.kernel.org/r/20240701185932.704807-2-roman.gushchin@linux.dev
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+This has any effect only on 32-bit processes on s390 architecture.
+
+Link: https://lkml.kernel.org/r/20240701174805.1897344-2-andrii@kernel.org
+Fixes: 3757be498749 ("fs/procfs: implement efficient VMA querying API for /proc/<pid>/maps")
+Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/proc/task_mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-add-cache-line-padding-to-mem_cgroup_per_node
-+++ a/include/linux/memcontrol.h
-@@ -95,14 +95,16 @@ struct mem_cgroup_per_node {
- #ifdef CONFIG_MEMCG_V1
- 	/*
- 	 * Memcg-v1 only stuff in middle as buffer between read mostly fields
--	 * and update often fields to avoid false sharing. Once v1 stuff is
--	 * moved in a separate struct, an explicit padding is needed.
-+	 * and update often fields to avoid false sharing. If v1 stuff is
-+	 * not present, an explicit padding is needed.
- 	 */
+--- a/fs/proc/task_mmu.c~fs-procfs-implement-efficient-vma-querying-api-for-proc-pid-maps-fix
++++ a/fs/proc/task_mmu.c
+@@ -614,7 +614,7 @@ const struct file_operations proc_pid_ma
+ 	.llseek		= seq_lseek,
+ 	.release	= proc_map_release,
+ 	.unlocked_ioctl = procfs_procmap_ioctl,
+-	.compat_ioctl	= procfs_procmap_ioctl,
++	.compat_ioctl	= compat_ptr_ioctl,
+ };
  
- 	struct rb_node		tree_node;	/* RB tree node */
- 	unsigned long		usage_in_excess;/* Set to the value by which */
- 						/* the soft limit is exceeded*/
- 	bool			on_tree;
-+#else
-+	CACHELINE_PADDING(_pad1_);
- #endif
- 
- 	/* Fields which get updated often at the end. */
+ /*
 _
 
-Patches currently in -mm which might be from roman.gushchin@linux.dev are
+Patches currently in -mm which might be from andrii@kernel.org are
 
-mm-memcg-introduce-memcontrol-v1c.patch
-mm-memcg-move-soft-limit-reclaim-code-to-memcontrol-v1c.patch
-mm-memcg-rename-soft-limit-reclaim-related-functions.patch
-mm-memcg-move-charge-migration-code-to-memcontrol-v1c.patch
-mm-memcg-rename-charge-move-related-functions.patch
-mm-memcg-move-legacy-memcg-event-code-into-memcontrol-v1c.patch
-mm-memcg-rename-memcg_check_events.patch
-mm-memcg-move-cgroup-v1-oom-handling-code-into-memcontrol-v1c.patch
-mm-memcg-rename-memcg_oom_recover.patch
-mm-memcg-move-cgroup-v1-interface-files-to-memcontrol-v1c.patch
-mm-memcg-make-memcg1_update_tree-static.patch
-mm-memcg-group-cgroup-v1-memcg-related-declarations.patch
-mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option.patch
-mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option-fix.patch
-maintainers-add-mm-memcontrol-v1c-h-to-the-list-of-maintained-files.patch
-mm-memcg-move-memcg_account_kmem-to-memcontrol-v1c.patch
-mm-memcg-factor-out-legacy-socket-memory-accounting-code.patch
-mm-memcg-guard-cgroup-v1-specific-code-in-mem_cgroup_print_oom_meminfo.patch
-mm-memcg-gather-memcg1-specific-fields-initialization-in-memcg1_memcg_init.patch
-mm-memcg-guard-memcg1-specific-fields-accesses-in-mm-memcontrolc.patch
-mm-memcg-put-memcg1-specific-struct-mem_cgroups-members-under-config_memcg_v1.patch
-mm-memcg-guard-memcg1-specific-members-of-struct-mem_cgroup_per_node.patch
-mm-memcg-put-struct-task_struct-memcg_in_oom-under-config_memcg_v1.patch
-mm-memcg-put-struct-task_struct-in_user_fault-under-config_memcg_v1.patch
-mm-memcg-drop-obsolete-cache-line-padding-in-struct-mem_cgroup.patch
-mm-memcg-add-cache-line-padding-to-mem_cgroup_per_node.patch
+fs-procfs-extract-logic-for-getting-vma-name-constituents.patch
+fs-procfs-implement-efficient-vma-querying-api-for-proc-pid-maps.patch
+fs-procfs-implement-efficient-vma-querying-api-for-proc-pid-maps-fix.patch
+fs-procfs-add-build-id-fetching-to-procmap_query-api.patch
+fs-procfs-add-build-id-fetching-to-procmap_query-api-fix.patch
+docs-procfs-call-out-ioctl-based-procmap_query-command-existence.patch
+tools-sync-uapi-linux-fsh-header-into-tools-subdir.patch
+selftests-proc-add-procmap_query-ioctl-tests.patch
 
