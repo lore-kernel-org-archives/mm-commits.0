@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 036303C38
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 02:06:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96E0CC129;
+	Tue,  2 Jul 2024 02:14:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719886014; cv=none; b=LPqI7qQCBHZH01ldOLLA1sLJCR6x6q0E+B6eO2N0Wq9Eey1+ZPymnTHAiCndgnkjx5AGUJdaIJLAYLCIOAntpIcxmmGnbBLqyxuvF3hy09qLzgj68P1PnIIqiJMaQ5ecfflR7bVCPHIQWIYOSlPIjZtL3mv7I5qYbl93E5SP108=
+	t=1719886487; cv=none; b=k3Af2dIEUjgmyWZbwENbAs9JQSvs536Aqs2lwU00p4pk+t6oD0pyY34WcIByRB1d8fcrD6DGuw/DZX3BRke0kbg9CBA9NsFVMTC1w66NlQ2Uva6Qz2FSwwYz2wg935dZ6e7mTCu3FBrv3IZRTmYI2R2Lg+f+CbxOzGQuLYnorrg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719886014; c=relaxed/simple;
-	bh=y5wr6/9IxwlyDLaRmFqeQVgqfu5tw/FdZ/ZZFcAaqtg=;
-	h=Date:To:From:Subject:Message-Id; b=WWPSauImzfqJgd/WoPYmxGVNoeAj3XBZSRXnWzMqmQfgcjr3QixdlEdhB863pYeebvgU4ZPoqmC3zWEI8HYEXrOLqm7v4mg6Q9oy7vXRDXWokqYA+XXhdhULGiT8aarcBYSur71IUrTkP77+Tu/2YafT6OJvrH0EIG68enV9y7E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Emjhe1pX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719886487; c=relaxed/simple;
+	bh=C9tpno0LmuMacIyikAeiEgE/Oo4yuNefmi/Oub89KFA=;
+	h=Date:To:From:Subject:Message-Id; b=J4HErAKTsHicpkZS0md0lSElZyARCJVK3GwZh47lWq0Yp/IB7P/ZGyQ8gXbMkfD59fOWZMsqAE8RABiZTaOhlQ65lHtvVXovUN+Ly8Oz3D+pghKyoAqZJp3NC2sBpRnKgOffVd9BIsCy+vLE0ACTChlzgbX0XJLi15D1EoiqhZ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ojzzf8kI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Emjhe1pX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 930D1C116B1;
-	Tue,  2 Jul 2024 02:06:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ojzzf8kI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10316C116B1;
+	Tue,  2 Jul 2024 02:14:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719886013;
-	bh=y5wr6/9IxwlyDLaRmFqeQVgqfu5tw/FdZ/ZZFcAaqtg=;
+	s=korg; t=1719886487;
+	bh=C9tpno0LmuMacIyikAeiEgE/Oo4yuNefmi/Oub89KFA=;
 	h=Date:To:From:Subject:From;
-	b=Emjhe1pXYa8rSWMZBif5eZ2tTNRWc+znT2w5YBszpu3h65ero5Gt9bhdYXbeWvMju
-	 5TWfm7JSfBEcBUw4VCGtx/TaVaaEyw2O+fBnwQ3F+Q7n/p8YAqMai6g7XZYPjElnej
-	 3JqHiQBoOhpIBfNn29K0oH+bH9u55ey8Ej4gUltY=
-Date: Mon, 01 Jul 2024 19:06:53 -0700
-To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+	b=ojzzf8kIJm5zYhrD52DnlGwpp6ZYVWlw/TcmymeT9cR2DF37E/3YJyes5ak/2q8cF
+	 hTQYNSK+S1E/+VHlQOX4IowGcg1rx9kYmQJJ18puQsyzHjmJOpBs8DpwVMxduZjpMQ
+	 0c1JNoRKN0v28OaY8S20dXqAUHFfMEFqrVVedQ2c=
+Date: Mon, 01 Jul 2024 19:14:46 -0700
+To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,stable@vger.kernel.org,muchun.song@linux.dev,david@redhat.com,aris@redhat.com,aris@ruivo.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-index-add-links-to-admin-guide-doc.patch added to mm-unstable branch
-Message-Id: <20240702020653.930D1C116B1@smtp.kernel.org>
+Subject: + hugetlb-force-allocating-surplus-hugepages-on-mempolicy-allowed-nodes-v2.patch added to mm-unstable branch
+Message-Id: <20240702021447.10316C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/index: add links to admin-guide doc
+     Subject: hugetlb: force allocating surplus hugepages on mempolicy allowed nodes
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-index-add-links-to-admin-guide-doc.patch
+     hugetlb-force-allocating-surplus-hugepages-on-mempolicy-allowed-nodes-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-index-add-links-to-admin-guide-doc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-force-allocating-surplus-hugepages-on-mempolicy-allowed-nodes-v2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,69 +58,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/index: add links to admin-guide doc
-Date: Mon, 1 Jul 2024 12:27:06 -0700
+From: Aristeu Rozanski <aris@ruivo.org>
+Subject: hugetlb: force allocating surplus hugepages on mempolicy allowed nodes
+Date: Mon, 1 Jul 2024 17:23:43 -0400
 
-Readers of DAMON subsystem documents index would want to further learn how
-they can use DAMON from the user-space.  Add the link to the admin guide.
+v2: - attempt to make the description more clear
+    - prevent unitialized usage of folio in case current process isn't part of any
+      nodes with memory
 
-Link: https://lkml.kernel.org/r/20240701192706.51415-10-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: https://lkml.kernel.org/r/20240701212343.GG844599@cathedrallabs.org
+Signed-off-by: Aristeu Rozanski <aris@ruivo.org>
+Cc: Vishal Moola <vishal.moola@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Aristeu Rozanski <aris@redhat.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/index.rst |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ mm/hugetlb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/Documentation/mm/damon/index.rst~docs-mm-damon-index-add-links-to-admin-guide-doc
-+++ a/Documentation/mm/damon/index.rst
-@@ -16,16 +16,16 @@ monitoring :ref:`mechanisms <damon_desig
-    of the size of target workloads).
- 
- Using this framework, therefore, the kernel can operate system in an
--access-aware fashion.  Because the features are also exposed to the user space,
--users who have special information about their workloads can write personalized
--applications for better understanding and optimizations of their workloads and
--systems.
-+access-aware fashion.  Because the features are also exposed to the :doc:`user
-+space </admin-guide/mm/damon/index>`, users who have special information about
-+their workloads can write personalized applications for better understanding
-+and optimizations of their workloads and systems.
- 
- For easier development of such systems, DAMON provides a feature called
- :ref:`DAMOS <damon_design_damos>` (DAMon-based Operation Schemes) in addition
--to the monitoring.  Using the feature, DAMON users in both kernel and user
--spaces can do access-aware system operations with no code but simple
--configurations.
-+to the monitoring.  Using the feature, DAMON users in both kernel and :doc:`user
-+spaces </admin-guide/mm/damon/index>` can do access-aware system operations
-+with no code but simple configurations.
- 
- .. toctree::
-    :maxdepth: 2
-@@ -34,3 +34,6 @@ configurations.
-    design
-    api
-    maintainer-profile
-+
-+To utilize and control DAMON from the user-space, please refer to the
-+administration :doc:`guide </admin-guide/mm/damon/index>`.
+--- a/mm/hugetlb.c~hugetlb-force-allocating-surplus-hugepages-on-mempolicy-allowed-nodes-v2
++++ a/mm/hugetlb.c
+@@ -2631,6 +2631,7 @@ static int gather_surplus_pages(struct h
+ retry:
+ 	spin_unlock_irq(&hugetlb_lock);
+ 	for (i = 0; i < needed; i++) {
++		folio = NULL;
+ 		for_each_node_mask(node, cpuset_current_mems_allowed) {
+ 			if (!mbind_nodemask || node_isset(node, *mbind_nodemask)) {
+ 				folio = alloc_surplus_hugetlb_folio(h, htlb_alloc_mask(h),
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from aris@ruivo.org are
 
-mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet.patch
-mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix.patch
-mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix-2.patch
-docs-mm-damon-design-fix-two-typos.patch
-docs-mm-damon-design-clarify-regions-merging-operation.patch
-docs-admin-guide-mm-damon-start-add-access-pattern-snapshot-example.patch
-docs-mm-damon-design-add-links-from-overall-architecture-to-sections-of-details.patch
-docs-mm-damon-design-move-configurable-operations-set-section-into-operations-set-layer-section.patch
-docs-mm-damon-design-remove-programmable-modules-section-in-favor-of-modules-section.patch
-docs-mm-damon-design-add-links-to-sections-of-damon-sysfs-interface-usage-doc.patch
-docs-mm-damon-index-add-links-to-design.patch
-docs-mm-damon-index-add-links-to-admin-guide-doc.patch
+hugetlb-force-allocating-surplus-hugepages-on-mempolicy-allowed-nodes-v2.patch
 
