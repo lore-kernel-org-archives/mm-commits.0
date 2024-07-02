@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 029EF1BE226
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 17:26:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01BF115218A
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 17:26:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719941216; cv=none; b=PrOtQZeRfJtdki4vwLaB4sPTTbR2flAtLHEJYzF8jOwP3NaiNVouHEhiunF9DUBVKyjz5+fp9ybG1+Vx8kk9eaf6PXNBke9TtvZUY0B0ur34GlPLjX3x6pTcpAE77Te9Vd5c6zOnIy+TwbeUDVRKH285BMXOjyIAl7sZPQqtvJo=
+	t=1719941218; cv=none; b=SM7TscrxfQQLFwNW+7404p4f8zgGyIebgGqJ5oAm/zd03jFuZ66VbDuFIZhARBCMxXqKaCnNtG+OkZ/cwAJ9GiibAiF1a53Eg7ZaJ0fmuWTG2yXC9OqNEpcVO2gjFK451BS7gU5pXF8OY7XMgOVgWHeEHcWCUPxIqSb90NT5yaE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719941216; c=relaxed/simple;
-	bh=qW/ytnuaqHWgTTKxmT1tS5zrj7zs8zJ/gXMCjqtL0WY=;
-	h=Date:To:From:Subject:Message-Id; b=HOPTunhMImphUepvd7SZKOWD/uhd8W73dyse7n4LCT2V83HT89huvgrfyGcxBlm9gQ10Mcgd71RzTNxcVw62ZF6jHWpQgyDJKOUrDOi6R33gYSmUGB6c5e2I6enVtqtSnVUgtUQ/JYXKq7qyyG51fAqV+U1bwDRgfIQ0iPz/Fiw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uv/EwhB+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719941218; c=relaxed/simple;
+	bh=vWOCub7y46dCzcAm+XwNQGttmhA34AEDn2dg3Z877+s=;
+	h=Date:To:From:Subject:Message-Id; b=lI3fLf0hChfJA43D2A1fnAourgDO6qproFhnUom154qk5A6xFeBUx6+q3i8mPu3F73dUH2XeX0lH1nGcqQY5ffexqnMkP/wlFNhQAEKZuxlYWhCDHCeM/JHIqIxo5eFoT+QzAaeEdc5swUXvM2KN6mLAdoYzx6i3f6xhZg346xk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ujk2kyYO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uv/EwhB+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC884C116B1;
-	Tue,  2 Jul 2024 17:26:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ujk2kyYO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3524C116B1;
+	Tue,  2 Jul 2024 17:26:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719941215;
-	bh=qW/ytnuaqHWgTTKxmT1tS5zrj7zs8zJ/gXMCjqtL0WY=;
+	s=korg; t=1719941217;
+	bh=vWOCub7y46dCzcAm+XwNQGttmhA34AEDn2dg3Z877+s=;
 	h=Date:To:From:Subject:From;
-	b=uv/EwhB+QiZjRk6L59TSdrtwQuuuxz+u5xjjOjiqvj4xq0L1zbn6h+iVh7o+0vKQn
-	 xEjuLduzQFjPU4BeNyh+sm7hACFBVwgexM8nF5Jh4/XJJ6tC8HgVRVwmfHFzEC4gVt
-	 AqawWC0RA7uavmEK/xqND2sP5RIlARO91eQfIiHo=
-Date: Tue, 02 Jul 2024 10:26:55 -0700
+	b=Ujk2kyYO/Mg52ByebM74hQr+p3r8drhnRFrnS/f06iiRFj22N8wGYk9YnDPUK8cXz
+	 hohpw969pEbeahVyzANvgg0DHzb+bKaPxXkEvRUPWsyszSY7UXMe0zNBjt7nkbXdLq
+	 D0krdclLeIp97HJptO2il4euO9k5V9jZqASB+/04=
+Date: Tue, 02 Jul 2024 10:26:57 -0700
 To: mm-commits@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,jgg@nvidia.com,christophe.leroy@csgroup.eu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-e500-free-r10-for-find_pte.patch added to mm-unstable branch
-Message-Id: <20240702172655.CC884C116B1@smtp.kernel.org>
+Subject: + powerpc-e500-use-contiguous-pmd-instead-of-hugepd.patch added to mm-unstable branch
+Message-Id: <20240702172657.C3524C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: powerpc/e500: free r10 for FIND_PTE
+     Subject: powerpc/e500: use contiguous PMD instead of hugepd
 has been added to the -mm mm-unstable branch.  Its filename is
-     powerpc-e500-free-r10-for-find_pte.patch
+     powerpc-e500-use-contiguous-pmd-instead-of-hugepd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-e500-free-r10-for-find_pte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-e500-use-contiguous-pmd-instead-of-hugepd.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,30 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: powerpc/e500: free r10 for FIND_PTE
-Date: Tue, 2 Jul 2024 15:51:31 +0200
+Subject: powerpc/e500: use contiguous PMD instead of hugepd
+Date: Tue, 2 Jul 2024 15:51:32 +0200
 
-Move r13 load after the call to FIND_PTE, and use r13 instead of r10 for
-storing fault address.  This will allow using r10 freely in FIND_PTE in
-following patch to handle hugepage size.
+e500 supports many page sizes among which the following size are
+implemented in the kernel at the time being: 4M, 16M, 64M, 256M, 1G.
 
-Link: https://lkml.kernel.org/r/a3ee563ad5b13c891a15d3aae6c136c44ce8aa63.1719928057.git.christophe.leroy@csgroup.eu
+On e500, TLB miss for hugepages is exclusively handled by SW even on e6500
+which has HW assistance for 4k pages, so there are no constraints like on
+the 8xx.
+
+On e500/32, all are at PGD/PMD level and can be handled as cont-PMD.
+
+On e500/64, smaller ones are on PMD while bigger ones are on PUD.  Again,
+they can easily be handled as cont-PMD and cont-PUD instead of hugepd.
+
+On e500/32, use the pagesize bits in PTE to know if it is a PMD or a leaf
+entry.  This works because the pagesize bits are in the last 12 bits and
+page tables are 4k aligned.
+
+On e500/64, use highest bit which is always 1 on PxD (Because PxD contains
+virtual address of a kernel memory) and always 0 on PTEs because not all
+bits of RPN are used/possible.
+
+Link: https://lkml.kernel.org/r/dd085987816ed2a0c70adb7e34966cb833fc03e1.1719928057.git.christophe.leroy@csgroup.eu
 Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
@@ -76,137 +92,336 @@ Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/head_85xx.S |   30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+ arch/powerpc/include/asm/nohash/hugetlb-e500.h |   32 +----------
+ arch/powerpc/include/asm/nohash/pgalloc.h      |    2 
+ arch/powerpc/include/asm/nohash/pgtable.h      |   42 +++++++++++----
+ arch/powerpc/include/asm/nohash/pte-e500.h     |   33 +++++++++++
+ arch/powerpc/include/asm/page.h                |   15 -----
+ arch/powerpc/kernel/head_85xx.S                |   21 ++-----
+ arch/powerpc/mm/hugetlbpage.c                  |    2 
+ arch/powerpc/mm/nohash/tlb_low_64e.S           |    7 --
+ arch/powerpc/mm/pgtable.c                      |   31 +++++++++++
+ arch/powerpc/platforms/Kconfig.cputype         |    1 
+ 10 files changed, 107 insertions(+), 79 deletions(-)
 
---- a/arch/powerpc/kernel/head_85xx.S~powerpc-e500-free-r10-for-find_pte
-+++ a/arch/powerpc/kernel/head_85xx.S
-@@ -294,9 +294,10 @@ set_ivor:
- /* Macros to hide the PTE size differences
-  *
-  * FIND_PTE -- walks the page tables given EA & pgdir pointer
-- *   r10 -- EA of fault
-+ *   r10 -- free
-  *   r11 -- PGDIR pointer
-  *   r12 -- free
-+ *   r13 -- EA of fault
-  *   label 2: is the bailout case
-  *
-  * if we find the pte (fall through):
-@@ -307,7 +308,7 @@ set_ivor:
- #ifdef CONFIG_PTE_64BIT
- #ifdef CONFIG_HUGETLB_PAGE
- #define FIND_PTE	\
--	rlwinm	r12, r10, 14, 18, 28;	/* Compute pgdir/pmd offset */	\
-+	rlwinm	r12, r13, 14, 18, 28;	/* Compute pgdir/pmd offset */	\
- 	add	r12, r11, r12;						\
- 	lwz	r11, 4(r12);		/* Get pgd/pmd entry */		\
- 	rlwinm.	r12, r11, 0, 0, 20;	/* Extract pt base address */	\
-@@ -317,26 +318,26 @@ set_ivor:
- 	andi.	r10, r11, HUGEPD_SHIFT_MASK@l; /* extract size field */	\
- 	xor	r12, r10, r11;		/* drop size bits from pointer */ \
- 	b	1001f;							\
--1000:	rlwimi	r12, r10, 23, 20, 28;	/* Compute pte address */	\
-+1000:	rlwimi	r12, r13, 23, 20, 28;	/* Compute pte address */	\
- 	li	r10, 0;			/* clear r10 */			\
- 1001:	lwz	r11, 4(r12);		/* Get pte entry */
- #else
- #define FIND_PTE	\
--	rlwinm	r12, r10, 14, 18, 28;	/* Compute pgdir/pmd offset */	\
-+	rlwinm	r12, r13, 14, 18, 28;	/* Compute pgdir/pmd offset */	\
- 	add	r12, r11, r12;						\
- 	lwz	r11, 4(r12);		/* Get pgd/pmd entry */		\
- 	rlwinm.	r12, r11, 0, 0, 20;	/* Extract pt base address */	\
- 	beq	2f;			/* Bail if no table */		\
--	rlwimi	r12, r10, 23, 20, 28;	/* Compute pte address */	\
-+	rlwimi	r12, r13, 23, 20, 28;	/* Compute pte address */	\
- 	lwz	r11, 4(r12);		/* Get pte entry */
- #endif /* HUGEPAGE */
- #else /* !PTE_64BIT */
- #define FIND_PTE	\
--	rlwimi	r11, r10, 12, 20, 29;	/* Create L1 (pgdir/pmd) address */	\
-+	rlwimi	r11, r13, 12, 20, 29;	/* Create L1 (pgdir/pmd) address */	\
- 	lwz	r11, 0(r11);		/* Get L1 entry */			\
- 	rlwinm.	r12, r11, 0, 0, 19;	/* Extract L2 (pte) base address */	\
- 	beq	2f;			/* Bail if no table */			\
--	rlwimi	r12, r10, 22, 20, 29;	/* Compute PTE address */		\
-+	rlwimi	r12, r13, 22, 20, 29;	/* Compute PTE address */		\
- 	lwz	r11, 0(r12);		/* Get Linux PTE */
- #endif
+--- a/arch/powerpc/include/asm/nohash/hugetlb-e500.h~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
++++ a/arch/powerpc/include/asm/nohash/hugetlb-e500.h
+@@ -2,38 +2,12 @@
+ #ifndef _ASM_POWERPC_NOHASH_HUGETLB_E500_H
+ #define _ASM_POWERPC_NOHASH_HUGETLB_E500_H
  
-@@ -443,13 +444,13 @@ START_BTB_FLUSH_SECTION
- 	BTB_FLUSH(r10)
- 1:
- END_BTB_FLUSH_SECTION
--	mfspr	r10, SPRN_DEAR		/* Get faulting address */
-+	mfspr	r13, SPRN_DEAR		/* Get faulting address */
- 
- 	/* If we are faulting a kernel address, we have to use the
- 	 * kernel page tables.
- 	 */
- 	lis	r11, PAGE_OFFSET@h
--	cmplw	5, r10, r11
-+	cmplw	5, r13, r11
- 	blt	5, 3f
- 	lis	r11, swapper_pg_dir@h
- 	ori	r11, r11, swapper_pg_dir@l
-@@ -472,14 +473,14 @@ END_BTB_FLUSH_SECTION
- #endif
- 
- 4:
-+	FIND_PTE
-+
- #ifdef CONFIG_PTE_64BIT
- 	li	r13,_PAGE_PRESENT|_PAGE_BAP_SR
- 	oris	r13,r13,_PAGE_ACCESSED@h
- #else
- 	li	r13,_PAGE_PRESENT|_PAGE_READ|_PAGE_ACCESSED
- #endif
+-static inline pte_t *hugepd_page(hugepd_t hpd)
+-{
+-	if (WARN_ON(!hugepd_ok(hpd)))
+-		return NULL;
 -
--	FIND_PTE
- 	andc.	r13,r13,r11		/* Check permission */
+-	return (pte_t *)((hpd_val(hpd) & ~HUGEPD_SHIFT_MASK) | PD_HUGE);
+-}
+-
+-static inline unsigned int hugepd_shift(hugepd_t hpd)
+-{
+-	return hpd_val(hpd) & HUGEPD_SHIFT_MASK;
+-}
+-
+-static inline pte_t *hugepte_offset(hugepd_t hpd, unsigned long addr,
+-				    unsigned int pdshift)
+-{
+-	/*
+-	 * On FSL BookE, we have multiple higher-level table entries that
+-	 * point to the same hugepte.  Just use the first one since they're all
+-	 * identical.  So for that case, idx=0.
+-	 */
+-	return hugepd_page(hpd);
+-}
++#define __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
++void set_huge_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
++		     pte_t pte, unsigned long sz);
  
- #ifdef CONFIG_PTE_64BIT
-@@ -536,13 +537,13 @@ START_BTB_FLUSH_SECTION
- 1:
- END_BTB_FLUSH_SECTION
+ void flush_hugetlb_page(struct vm_area_struct *vma, unsigned long vmaddr);
  
--	mfspr	r10, SPRN_SRR0		/* Get faulting address */
-+	mfspr	r13, SPRN_SRR0		/* Get faulting address */
+-static inline void hugepd_populate(hugepd_t *hpdp, pte_t *new, unsigned int pshift)
+-{
+-	/* We use the old format for PPC_E500 */
+-	*hpdp = __hugepd(((unsigned long)new & ~PD_HUGE) | pshift);
+-}
+-
+ static inline int check_and_get_huge_psize(int shift)
+ {
+ 	if (shift & 1)	/* Not a power of 4 */
+--- a/arch/powerpc/include/asm/nohash/pgalloc.h~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
++++ a/arch/powerpc/include/asm/nohash/pgalloc.h
+@@ -44,8 +44,6 @@ static inline void pgtable_free(void *ta
+ 	}
+ }
  
- 	/* If we are faulting a kernel address, we have to use the
- 	 * kernel page tables.
+-#define get_hugepd_cache_index(x)	(x)
+-
+ static inline void pgtable_free_tlb(struct mmu_gather *tlb, void *table, int shift)
+ {
+ 	unsigned long pgf = (unsigned long)table;
+--- a/arch/powerpc/include/asm/nohash/pgtable.h~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
++++ a/arch/powerpc/include/asm/nohash/pgtable.h
+@@ -31,6 +31,13 @@ static inline pte_basic_t pte_update(str
+ 
+ extern int icache_44x_need_flush;
+ 
++#ifndef pte_huge_size
++static inline unsigned long pte_huge_size(pte_t pte)
++{
++	return PAGE_SIZE;
++}
++#endif
++
+ /*
+  * PTE updates. This function is called whenever an existing
+  * valid PTE is updated. This does -not- include set_pte_at()
+@@ -52,11 +59,34 @@ static inline pte_basic_t pte_update(str
+ {
+ 	pte_basic_t old = pte_val(*p);
+ 	pte_basic_t new = (old & ~(pte_basic_t)clr) | set;
++	unsigned long sz;
++	unsigned long pdsize;
++	int i;
+ 
+ 	if (new == old)
+ 		return old;
+ 
+-	*p = __pte(new);
++	if (huge)
++		sz = pte_huge_size(__pte(old));
++	else
++		sz = PAGE_SIZE;
++
++	if (sz < PMD_SIZE)
++		pdsize = PAGE_SIZE;
++	else if (sz < PUD_SIZE)
++		pdsize = PMD_SIZE;
++	else if (sz < P4D_SIZE)
++		pdsize = PUD_SIZE;
++	else if (sz < PGDIR_SIZE)
++		pdsize = P4D_SIZE;
++	else
++		pdsize = PGDIR_SIZE;
++
++	for (i = 0; i < sz / pdsize; i++, p++) {
++		*p = __pte(new);
++		if (new)
++			new += (unsigned long long)(pdsize / PAGE_SIZE) << PTE_RPN_SHIFT;
++	}
+ 
+ 	if (IS_ENABLED(CONFIG_44x) && !is_kernel_addr(addr) && (old & _PAGE_EXEC))
+ 		icache_44x_need_flush = 1;
+@@ -340,16 +370,6 @@ static inline void __set_pte_at(struct m
+ 
+ #define pgprot_writecombine pgprot_noncached_wc
+ 
+-#ifdef CONFIG_ARCH_HAS_HUGEPD
+-static inline int hugepd_ok(hugepd_t hpd)
+-{
+-	/* We clear the top bit to indicate hugepd */
+-	return (hpd_val(hpd) && (hpd_val(hpd) & PD_HUGE) == 0);
+-}
+-
+-#define is_hugepd(hpd)		(hugepd_ok(hpd))
+-#endif
+-
+ int map_kernel_page(unsigned long va, phys_addr_t pa, pgprot_t prot);
+ void unmap_kernel_page(unsigned long va);
+ 
+--- a/arch/powerpc/include/asm/nohash/pte-e500.h~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
++++ a/arch/powerpc/include/asm/nohash/pte-e500.h
+@@ -101,6 +101,39 @@ static inline unsigned long pte_huge_siz
+ }
+ #define pte_huge_size pte_huge_size
+ 
++static inline int pmd_leaf(pmd_t pmd)
++{
++	if (IS_ENABLED(CONFIG_PPC64))
++		return (long)pmd_val(pmd) > 0;
++	else
++		return pmd_val(pmd) & _PAGE_PSIZE_MSK;
++}
++#define pmd_leaf pmd_leaf
++
++static inline unsigned long pmd_leaf_size(pmd_t pmd)
++{
++	return pte_huge_size(__pte(pmd_val(pmd)));
++}
++#define pmd_leaf_size pmd_leaf_size
++
++#ifdef CONFIG_PPC64
++static inline int pud_leaf(pud_t pud)
++{
++	if (IS_ENABLED(CONFIG_PPC64))
++		return (long)pud_val(pud) > 0;
++	else
++		return pud_val(pud) & _PAGE_PSIZE_MSK;
++}
++#define pud_leaf pud_leaf
++
++static inline unsigned long pud_leaf_size(pud_t pud)
++{
++	return pte_huge_size(__pte(pud_val(pud)));
++}
++#define pud_leaf_size pud_leaf_size
++
++#endif
++
+ #endif /* __ASSEMBLY__ */
+ 
+ #endif /* __KERNEL__ */
+--- a/arch/powerpc/include/asm/page.h~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
++++ a/arch/powerpc/include/asm/page.h
+@@ -269,20 +269,7 @@ static inline const void *pfn_to_kaddr(u
+ #define is_kernel_addr(x)	((x) >= TASK_SIZE)
+ #endif
+ 
+-#ifndef CONFIG_PPC_BOOK3S_64
+-/*
+- * Use the top bit of the higher-level page table entries to indicate whether
+- * the entries we point to contain hugepages.  This works because we know that
+- * the page tables live in kernel space.  If we ever decide to support having
+- * page tables at arbitrary addresses, this breaks and will have to change.
+- */
+-#ifdef CONFIG_PPC64
+-#define PD_HUGE 0x8000000000000000UL
+-#else
+-#define PD_HUGE 0x80000000
+-#endif
+-
+-#else	/* CONFIG_PPC_BOOK3S_64 */
++#ifdef CONFIG_PPC_BOOK3S_64
+ /*
+  * Book3S 64 stores real addresses in the hugepd entries to
+  * avoid overlaps with _PAGE_PRESENT and _PAGE_PTE.
+--- a/arch/powerpc/kernel/head_85xx.S~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
++++ a/arch/powerpc/kernel/head_85xx.S
+@@ -311,16 +311,14 @@ set_ivor:
+ 	rlwinm	r12, r13, 14, 18, 28;	/* Compute pgdir/pmd offset */	\
+ 	add	r12, r11, r12;						\
+ 	lwz	r11, 4(r12);		/* Get pgd/pmd entry */		\
++	rlwinm.	r10, r11, 32 - _PAGE_PSIZE_SHIFT, 0x1e; /* get tsize*/	\
++	bne	1000f;			/* Huge page (leaf entry) */	\
+ 	rlwinm.	r12, r11, 0, 0, 20;	/* Extract pt base address */	\
+-	blt	1000f;			/* Normal non-huge page */	\
+ 	beq	2f;			/* Bail if no table */		\
+-	oris	r11, r11, PD_HUGE@h;	/* Put back address bit */	\
+-	andi.	r10, r11, HUGEPD_SHIFT_MASK@l; /* extract size field */	\
+-	xor	r12, r10, r11;		/* drop size bits from pointer */ \
+-	b	1001f;							\
+-1000:	rlwimi	r12, r13, 23, 20, 28;	/* Compute pte address */	\
++	rlwimi	r12, r13, 23, 20, 28;	/* Compute pte address */	\
+ 	li	r10, 0;			/* clear r10 */			\
+-1001:	lwz	r11, 4(r12);		/* Get pte entry */
++	lwz	r11, 4(r12);		/* Get pte entry */		\
++1000:
+ #else
+ #define FIND_PTE	\
+ 	rlwinm	r12, r13, 14, 18, 28;	/* Compute pgdir/pmd offset */	\
+@@ -735,17 +733,12 @@ finish_tlb_load:
+ 	lwz	r15, 0(r14)
+ 100:	stw	r15, 0(r17)
+ 
+-	/*
+-	 * Calc MAS1_TSIZE from r10 (which has pshift encoded)
+-	 * tlb_enc = (pshift - 10).
+-	 */
+-	subi	r15, r10, 10
+ 	mfspr	r16, SPRN_MAS1
+-	rlwimi	r16, r15, 7, 20, 24
++	rlwimi	r16, r10, MAS1_TSIZE_SHIFT, MAS1_TSIZE_MASK
+ 	mtspr	SPRN_MAS1, r16
+ 
+ 	/* copy the pshift for use later */
+-	mr	r14, r10
++	addi	r14, r10, _PAGE_PSIZE_SHIFT_OFFSET
+ 
+ 	/* fall through */
+ 
+--- a/arch/powerpc/mm/hugetlbpage.c~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -625,8 +625,6 @@ static int __init hugetlbpage_init(void)
+ 		 */
+ 		if (pdshift > shift) {
+ 			pgtable_cache_add(pdshift - shift);
+-		} else if (IS_ENABLED(CONFIG_PPC_E500)) {
+-			pgtable_cache_add(PTE_T_ORDER);
+ 		}
+ 
+ 		configured = true;
+--- a/arch/powerpc/mm/nohash/tlb_low_64e.S~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
++++ a/arch/powerpc/mm/nohash/tlb_low_64e.S
+@@ -450,11 +450,7 @@ END_FTR_SECTION_IFSET(CPU_FTR_SMT)
+ 
+ tlb_miss_huge_e6500:
+ 	beq	tlb_miss_fault_e6500
+-	li	r10,1
+-	andi.	r15,r14,HUGEPD_SHIFT_MASK@l /* r15 = psize */
+-	rldimi	r14,r10,63,0		/* Set PD_HUGE */
+-	xor	r14,r14,r15		/* Clear size bits */
+-	ldx	r14,0,r14
++	rlwinm	r15,r14,32-_PAGE_PSIZE_SHIFT,0x1e
+ 
+ 	/*
+ 	 * Now we build the MAS for a huge page.
+@@ -465,7 +461,6 @@ tlb_miss_huge_e6500:
+ 	 * MAS 2,3+7:	Needs to be redone similar to non-tablewalk handler
  	 */
- 	lis	r11, PAGE_OFFSET@h
--	cmplw	5, r10, r11
-+	cmplw	5, r13, r11
- 	blt	5, 3f
- 	lis	r11, swapper_pg_dir@h
- 	ori	r11, r11, swapper_pg_dir@l
-@@ -551,6 +552,7 @@ END_BTB_FLUSH_SECTION
- 	rlwinm	r12,r12,0,16,1
- 	mtspr	SPRN_MAS1,r12
  
-+	FIND_PTE
- 	/* Make up the required permissions for kernel code */
- #ifdef CONFIG_PTE_64BIT
- 	li	r13,_PAGE_PRESENT | _PAGE_BAP_SX
-@@ -571,6 +573,7 @@ END_BTB_FLUSH_SECTION
- 	beq	2f			/* KUAP fault */
+-	subi	r15,r15,10		/* Convert psize to tsize */
+ 	mfspr	r10,SPRN_MAS1
+ 	rlwinm	r10,r10,0,~MAS1_IND
+ 	rlwimi	r10,r15,MAS1_TSIZE_SHIFT,MAS1_TSIZE_MASK
+--- a/arch/powerpc/mm/pgtable.c~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
++++ a/arch/powerpc/mm/pgtable.c
+@@ -331,6 +331,37 @@ void set_huge_pte_at(struct mm_struct *m
+ 		__set_huge_pte_at(pmdp, ptep, pte_val(pte));
+ 	}
+ }
++#elif defined(CONFIG_PPC_E500)
++void set_huge_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
++		     pte_t pte, unsigned long sz)
++{
++	unsigned long pdsize;
++	int i;
++
++	pte = set_pte_filter(pte, addr);
++
++	/*
++	 * Make sure hardware valid bit is not set. We don't do
++	 * tlb flush for this update.
++	 */
++	VM_WARN_ON(pte_hw_valid(*ptep) && !pte_protnone(*ptep));
++
++	if (sz < PMD_SIZE)
++		pdsize = PAGE_SIZE;
++	else if (sz < PUD_SIZE)
++		pdsize = PMD_SIZE;
++	else if (sz < P4D_SIZE)
++		pdsize = PUD_SIZE;
++	else if (sz < PGDIR_SIZE)
++		pdsize = P4D_SIZE;
++	else
++		pdsize = PGDIR_SIZE;
++
++	for (i = 0; i < sz / pdsize; i++, ptep++, addr += pdsize) {
++		__set_pte_at(mm, addr, ptep, pte, 0);
++		pte = __pte(pte_val(pte) + ((unsigned long long)pdsize / PAGE_SIZE << PFN_PTE_SHIFT));
++	}
++}
  #endif
+ #endif /* CONFIG_HUGETLB_PAGE */
  
-+	FIND_PTE
- 	/* Make up the required permissions for user code */
- #ifdef CONFIG_PTE_64BIT
- 	li	r13,_PAGE_PRESENT | _PAGE_BAP_UX
-@@ -580,7 +583,6 @@ END_BTB_FLUSH_SECTION
- #endif
- 
- 4:
--	FIND_PTE
- 	andc.	r13,r13,r11		/* Check permission */
- 
- #ifdef CONFIG_PTE_64BIT
+--- a/arch/powerpc/platforms/Kconfig.cputype~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
++++ a/arch/powerpc/platforms/Kconfig.cputype
+@@ -291,7 +291,6 @@ config PPC_BOOK3S
+ config PPC_E500
+ 	select FSL_EMB_PERFMON
+ 	bool
+-	select ARCH_HAS_HUGEPD if HUGETLB_PAGE
+ 	select ARCH_SUPPORTS_HUGETLBFS if PHYS_64BIT || PPC64
+ 	select PPC_SMP_MUXED_IPI
+ 	select PPC_DOORBELL
 _
 
 Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
