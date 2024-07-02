@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8BE5B674
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 02:20:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66951B674
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 02:21:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719886858; cv=none; b=KK4fEfHDshUIbkCnN/tT2BAEg7XbAmerjZf6oKxLKKTVQWKAOFUIOmbHESrJvu4kdGe3AwOpcZZtL0xyxMjLm8qXUn37PrcFJuPfmzLkoag7i7G5P3CcqFWgrEE/d4G+M9U1psB/5sAcEzw0EuoYDz7R8nUHPj9bnZk4JDiLHTM=
+	t=1719886860; cv=none; b=tv+4Xjh9J8n4hd8mXieChOI4fF+4Jl1iZlOrecncCGOm8ExA5Ec5tHN4lkIU3wuBE18sryijgc3xQ2NwLI2W5cf+49Z/c2hKizoSTLgZSum3bVB5dQ1baGoQtDd0dNp8L2EC06gAg+JzzjeniK2S5JDJYiwCsegIzRBBXWZHvv4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719886858; c=relaxed/simple;
-	bh=Pkxuyp5X6JAmq2HJAiDS155NajPOMCL1fBN283UHX8c=;
-	h=Date:To:From:Subject:Message-Id; b=MD09i/hfHhJAhQXYdN0mEFpJjZ92qGSeGKCnkNoFAf45j8MTjxF5oLwbKfrzo4YXmD21rnk6D2lOFQ9WYuf436HkJBJwvBnXK7DaDI011Rrx2aiEjUf4PjzFyeZ1wYA5uxQ/V6Jm1ftoa/huMZgDcNLuv1EkvDaq+HG5edlz0f4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0o+fgnIQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719886860; c=relaxed/simple;
+	bh=G3qp0aCWPvyPylxGSeOtZoSl+kbtBmOdAAZNL3PL66I=;
+	h=Date:To:From:Subject:Message-Id; b=mF0nyuAyet3bfDCm2B3uL7JfMjOydHYQxM/8d/CYgvByESG4fA2CxbAfsmT+cwOiiS/MaouhdSeg8PAHCtfHQRteAVCD4Tyi/pFC1CMY5JHlSHjsGOTOg+gU4jqdhJHenBKodekLZQ5gquloHhR+Nb5ow2FqdTRwOt5qgpDDUaE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z+5pNkhS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0o+fgnIQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D8ACC116B1;
-	Tue,  2 Jul 2024 02:20:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z+5pNkhS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC41CC116B1;
+	Tue,  2 Jul 2024 02:20:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719886858;
-	bh=Pkxuyp5X6JAmq2HJAiDS155NajPOMCL1fBN283UHX8c=;
+	s=korg; t=1719886860;
+	bh=G3qp0aCWPvyPylxGSeOtZoSl+kbtBmOdAAZNL3PL66I=;
 	h=Date:To:From:Subject:From;
-	b=0o+fgnIQpJ/rOS01aNSzz3GdM6lzZ9D93egHSyX7cluA582zltpkqKgmliH1Clt+z
-	 PCJClGzOQiHqjRyNc54vtKoAn4N2edCrCVPvC4fwERqLKiZXzDykL0kyB7lcJ+QO/+
-	 OZnzf82btks/A5n92Oyvamd7ejDPOHx+K2vgcWp8=
-Date: Mon, 01 Jul 2024 19:20:57 -0700
+	b=Z+5pNkhS/aGKtpEPdxpM2L5gqh/zyDrRYuke+7Snbah4eD4SnRfVTyqYmJC7dUhKx
+	 X7yls15/TWZrqvwxpdofGytHJDeS4EO7xbkDMrI4FWVK1e5/lMRrr7dsokd2I4Qg0U
+	 DJ/mXHwN0fTA9xTzOC5+EsPQqapHMh/1fmj0rstA=
+Date: Mon, 01 Jul 2024 19:20:59 -0700
 To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-drop-obsolete-cache-line-padding-in-struct-mem_cgroup.patch added to mm-unstable branch
-Message-Id: <20240702022058.2D8ACC116B1@smtp.kernel.org>
+Subject: + mm-memcg-add-cache-line-padding-to-mem_cgroup_per_node.patch added to mm-unstable branch
+Message-Id: <20240702022059.EC41CC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcg: drop obsolete cache line padding in struct mem_cgroup
+     Subject: mm: memcg: add cache line padding to mem_cgroup_per_node
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-drop-obsolete-cache-line-padding-in-struct-mem_cgroup.patch
+     mm-memcg-add-cache-line-padding-to-mem_cgroup_per_node.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-drop-obsolete-cache-line-padding-in-struct-mem_cgroup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-add-cache-line-padding-to-mem_cgroup_per_node.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: memcg: drop obsolete cache line padding in struct mem_cgroup
-Date: Mon, 1 Jul 2024 18:59:31 +0000
+Subject: mm: memcg: add cache line padding to mem_cgroup_per_node
+Date: Mon, 1 Jul 2024 18:59:32 +0000
 
-After the grouping of the cgroup v1-related fields and the corresponding
-reorganization of the struct mem_cgroup, the existing cache line padding
-doesn't make much sense anymore.  Let's drop it for now and put back to
-new places, if necessary.
+Memcg v1-specific fields serve a buffer function between read-mostly and
+update often parts of the mem_cgroup_per_node structure.  If
+CONFIG_MEMCG_V1 is not set and these fields are not present, an explicit
+cacheline padding is needed.
 
-Link: https://lkml.kernel.org/r/20240701185932.704807-1-roman.gushchin@linux.dev
+Link: https://lkml.kernel.org/r/20240701185932.704807-2-roman.gushchin@linux.dev
 Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
 Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
@@ -77,29 +77,30 @@ Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/memcontrol.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-drop-obsolete-cache-line-padding-in-struct-mem_cgroup
+--- a/include/linux/memcontrol.h~mm-memcg-add-cache-line-padding-to-mem_cgroup_per_node
 +++ a/include/linux/memcontrol.h
-@@ -220,8 +220,6 @@ struct mem_cgroup {
- 	/* handle for "memory.swap.events" */
- 	struct cgroup_file swap_events_file;
- 
--	CACHELINE_PADDING(_pad1_);
--
- 	/* memory.stat */
- 	struct memcg_vmstats	*vmstats;
- 
-@@ -305,8 +303,6 @@ struct mem_cgroup {
- 	bool tcpmem_active;
- 	int tcpmem_pressure;
- 
--	CACHELINE_PADDING(_pad2_);
--
+@@ -95,14 +95,16 @@ struct mem_cgroup_per_node {
+ #ifdef CONFIG_MEMCG_V1
  	/*
- 	 * set > 0 if pages under this cgroup are moving to other cgroup.
+ 	 * Memcg-v1 only stuff in middle as buffer between read mostly fields
+-	 * and update often fields to avoid false sharing. Once v1 stuff is
+-	 * moved in a separate struct, an explicit padding is needed.
++	 * and update often fields to avoid false sharing. If v1 stuff is
++	 * not present, an explicit padding is needed.
  	 */
+ 
+ 	struct rb_node		tree_node;	/* RB tree node */
+ 	unsigned long		usage_in_excess;/* Set to the value by which */
+ 						/* the soft limit is exceeded*/
+ 	bool			on_tree;
++#else
++	CACHELINE_PADDING(_pad1_);
+ #endif
+ 
+ 	/* Fields which get updated often at the end. */
 _
 
 Patches currently in -mm which might be from roman.gushchin@linux.dev are
