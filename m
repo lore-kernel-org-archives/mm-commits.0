@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 486971758E
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 03:31:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 410031758E
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 03:39:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719891087; cv=none; b=h+fVnwJ5xeDzKS+rjbtDOwEEgtx0Kkic2YeGwbpFTqj8Y/8dFaSlPNVELOW7o6n9CyroQ9f3HEp7eDVGKsumQ6T5Y3AkKkxMj3lPQSRk/tVyZX+qujfpIYfp3oM5Jy5poohmV6/8Ybi9E1Kpe4nEh+Oxk2eDKQDQbUPJS73Sy58=
+	t=1719891565; cv=none; b=LHQSKwkfPaV2GRP2/l81yu0k5HZTBJC4wl6P3EraWlIusNEcsFVIaGSzFIUXZW0sIwxLtOun/AG0dazrZnUNHhvrSnQQ2nCHQEWN1HHASl+J+3xdXjQy40QDOj9KKHNSubfSHPYxaunFdmLXSiGUVpfdQvB386FqCvJT1wOx/Ho=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719891087; c=relaxed/simple;
-	bh=sNMo0XkczJs9LypSYIZE9vBSOzQ9rqvacwWyW/E/F7o=;
-	h=Date:To:From:Subject:Message-Id; b=Q+fcBY5uELM00NAuRmz0cC7MaSU7sYo6V+nzkgpSxz6WwmJ+2b8SZP1HHOSB7QupL+OHxVZG3R3an0cvUAVm32iInYL39J4uBlu1bqq+aNfSsHRXRGtpg0Bd8L3zYAHTsq0RejJw1BaYpp5C3uxDvEHqZWTVkqgGt3JLcjrIv5A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g9aK8v4+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719891565; c=relaxed/simple;
+	bh=f2J0mf2tjzCSr+ao6v+pjAYS/CPgNhwXgRDvqpseU2g=;
+	h=Date:To:From:Subject:Message-Id; b=lyaoHyJ1gu6iUuXjdzp7k+ztz6k3MfHYcdVKRAFuQ4D9IWI7BEPDEmf1WVjWKUk9jMu/6M25t6DtZXoKWaeUN8l0PfjiXfasMt7gv3SEWXmoKQ+Xl4QmLNcprhqLsRdYKGXGint+NpW2DLGPCXenOmuu4oMluzEQqBlUn7k06HE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nFUW5Vye; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g9aK8v4+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD8CEC116B1;
-	Tue,  2 Jul 2024 03:31:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nFUW5Vye"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B176EC116B1;
+	Tue,  2 Jul 2024 03:39:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719891086;
-	bh=sNMo0XkczJs9LypSYIZE9vBSOzQ9rqvacwWyW/E/F7o=;
+	s=korg; t=1719891564;
+	bh=f2J0mf2tjzCSr+ao6v+pjAYS/CPgNhwXgRDvqpseU2g=;
 	h=Date:To:From:Subject:From;
-	b=g9aK8v4+GZVU2P6M383qO3rSc5Aq9dqcl4V3xOclh2OM5q4WunyEKM4YtAKFlLJBZ
-	 p91x6Hj+zd3pb/+GJ2o9XVswIj7KcaI2iKfhUJ/C9iH3hpCs7H+WiHBVz+9exy1VDY
-	 /TYs+dlZ3O9EggH+fq5g0z5J+lyMv6mWTChf9QJ0=
-Date: Mon, 01 Jul 2024 20:31:26 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,libang.li@antgroup.com,akpm@linux-foundation.org
+	b=nFUW5VyeR5qXL8+2ZQpSLdP9V2HzU997KHYpFVfT0fWpYDLBtItOVyxbHXmz3Jzu8
+	 YHfjrWFs5Sgs+WOKrmdb8d38WV+pBvAROim9McnISRquWZ6Esi4nInRUpJ1V3S38Oi
+	 UY15STMCgV0OkDtVjKPi9bdv4Y3KTD5UOfW2i4f0=
+Date: Mon, 01 Jul 2024 20:39:24 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,tj@kernel.org,sj@kernel.org,ravis.opensrc@micron.com,rafael@kernel.org,mhocko@suse.com,lenb@kernel.org,Jonathan.Cameron@huawei.com,horenchuang@bytedance.com,gourry.memverge@gmail.com,dave.jiang@intel.com,dan.j.williams@intel.com,apopple@nvidia.com,aneesh.kumar@linux.ibm.com,horen.chuang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] support-thpeligible-semantics-for-mthp-with-anonymous-shmem.patch removed from -mm tree
-Message-Id: <20240702033126.CD8CEC116B1@smtp.kernel.org>
+Subject: [to-be-updated] memory-tier-consolidate-the-initialization-of-memory-tiers.patch removed from -mm tree
+Message-Id: <20240702033924.B176EC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,123 +35,200 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: smaps: support "THPeligible" semantics for mTHP with anonymous shmem
+     Subject: memory tier: consolidate the initialization of memory tiers
 has been removed from the -mm tree.  Its filename was
-     support-thpeligible-semantics-for-mthp-with-anonymous-shmem.patch
+     memory-tier-consolidate-the-initialization-of-memory-tiers.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: "Bang Li" <libang.li@antgroup.com>
-Subject: smaps: support "THPeligible" semantics for mTHP with anonymous shmem
-Date: Fri, 28 Jun 2024 18:49:26 +0800
+From: "Ho-Ren (Jack) Chuang" <horen.chuang@linux.dev>
+Subject: memory tier: consolidate the initialization of memory tiers
+Date: Fri, 28 Jun 2024 06:09:23 +0000
 
-After the commit 7fb1b252afb5 ("mm: shmem: add mTHP support for
-anonymous shmem"), we can configure different policies through
-the multi-size THP sysfs interface for anonymous shmem. But
-currently "THPeligible" indicates only whether the mapping is
-eligible for allocating THP-pages as well as the THP is PMD
-mappable or not for anonymous shmem, we need to support semantics
-for mTHP with anonymous shmem similar to those for mTHP with
-anonymous memory.
+If we simply move the set_node_memory_tier() from memory_tier_init() to
+late_initcall(), it will result in HMAT not registering the
+mt_adistance_algorithm callback function, because set_node_memory_tier()
+is not performed during the memory tiering initialization phase, leading
+to a lack of correct default_dram information.
 
-Link: https://lkml.kernel.org/r/20240628104926.34209-1-libang.li@antgroup.com
-Signed-off-by: Bang Li <libang.li@antgroup.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Therefore, we introduced a nodemask to pass the information of the default
+DRAM nodes.  The reason for not choosing to reuse default_dram_type->nodes
+is that it is not clean enough.  So in the end, we use a __initdata
+variable, which is a variable that is released once initialization is
+complete, including both CPU and memory nodes for HMAT to iterate through.
+
+Besides, since default_dram_type may be checked/used during the
+initialization process of HMAT and drivers, it is better to keep the
+allocation of default_dram_type in memory_tier_init().
+
+Link: https://lkml.kernel.org/r/20240628060925.303309-2-horen.chuang@linux.dev
+Signed-off-by: Ho-Ren (Jack) Chuang <horenchuang@bytedance.com>
+Suggested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Gregory Price <gourry.memverge@gmail.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
+Cc: Ravi Jonnalagadda <ravis.opensrc@micron.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c      |   10 +++++++---
- include/linux/huge_mm.h |   11 +++++++++++
- mm/shmem.c              |    9 +--------
- 3 files changed, 19 insertions(+), 11 deletions(-)
+ drivers/acpi/numa/hmat.c     |    5 --
+ include/linux/memory-tiers.h |    2 +
+ mm/memory-tiers.c            |   59 +++++++++++++--------------------
+ 3 files changed, 28 insertions(+), 38 deletions(-)
 
---- a/fs/proc/task_mmu.c~support-thpeligible-semantics-for-mthp-with-anonymous-shmem
-+++ a/fs/proc/task_mmu.c
-@@ -1145,6 +1145,7 @@ static int show_smap(struct seq_file *m,
+--- a/drivers/acpi/numa/hmat.c~memory-tier-consolidate-the-initialization-of-memory-tiers
++++ a/drivers/acpi/numa/hmat.c
+@@ -940,10 +940,7 @@ static int hmat_set_default_dram_perf(vo
+ 	struct memory_target *target;
+ 	struct access_coordinate *attrs;
+ 
+-	if (!default_dram_type)
+-		return -EIO;
+-
+-	for_each_node_mask(nid, default_dram_type->nodes) {
++	for_each_node_mask(nid, default_dram_nodes) {
+ 		pxm = node_to_pxm(nid);
+ 		target = find_mem_target(pxm);
+ 		if (!target)
+--- a/include/linux/memory-tiers.h~memory-tier-consolidate-the-initialization-of-memory-tiers
++++ a/include/linux/memory-tiers.h
+@@ -38,6 +38,7 @@ struct access_coordinate;
+ #ifdef CONFIG_NUMA
+ extern bool numa_demotion_enabled;
+ extern struct memory_dev_type *default_dram_type;
++extern nodemask_t default_dram_nodes __initdata;
+ struct memory_dev_type *alloc_memory_type(int adistance);
+ void put_memory_type(struct memory_dev_type *memtype);
+ void init_node_memory_type(int node, struct memory_dev_type *default_type);
+@@ -76,6 +77,7 @@ static inline bool node_is_toptier(int n
+ 
+ #define numa_demotion_enabled	false
+ #define default_dram_type	NULL
++#define default_dram_nodes NODE_MASK_NONE
+ /*
+  * CONFIG_NUMA implementation returns non NULL error.
+  */
+--- a/mm/memory-tiers.c~memory-tier-consolidate-the-initialization-of-memory-tiers
++++ a/mm/memory-tiers.c
+@@ -43,6 +43,7 @@ static LIST_HEAD(memory_tiers);
+ static LIST_HEAD(default_memory_types);
+ static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
+ struct memory_dev_type *default_dram_type;
++nodemask_t default_dram_nodes __initdata = NODE_MASK_NONE;
+ 
+ static const struct bus_type memory_tier_subsys = {
+ 	.name = "memory_tiering",
+@@ -671,28 +672,38 @@ EXPORT_SYMBOL_GPL(mt_put_memory_types);
+ 
+ /*
+  * This is invoked via `late_initcall()` to initialize memory tiers for
+- * CPU-less memory nodes after driver initialization, which is
+- * expected to provide `adistance` algorithms.
++ * memory nodes, both with and without CPUs. After the initialization of
++ * firmware and devices, adistance algorithms are expected to be provided.
+  */
+ static int __init memory_tier_late_init(void)
  {
- 	struct vm_area_struct *vma = v;
- 	struct mem_size_stats mss = {};
-+	bool thp_eligible;
+ 	int nid;
++	struct memory_tier *memtier;
  
- 	smap_gather_stats(vma, &mss, 0);
++	get_online_mems();
+ 	guard(mutex)(&memory_tier_lock);
++	/*
++	 * Look at all the existing and uninitialized N_MEMORY nodes and
++	 * add them to default memory tier or to a tier if we already have
++	 * memory types assigned.
++	 */
+ 	for_each_node_state(nid, N_MEMORY) {
+ 		/*
+-		 * Some device drivers may have initialized memory tiers
+-		 * between `memory_tier_init()` and `memory_tier_late_init()`,
+-		 * potentially bringing online memory nodes and
+-		 * configuring memory tiers. Exclude them here.
++		 * Some device drivers may have initialized
++		 * memory tiers, potentially bringing memory nodes
++		 * online and configuring memory tiers.
++		 * Exclude them here.
+ 		 */
+ 		if (node_memory_types[nid].memtype)
+ 			continue;
  
-@@ -1157,9 +1158,12 @@ static int show_smap(struct seq_file *m,
+-		set_node_memory_tier(nid);
++		memtier = set_node_memory_tier(nid);
++		if (IS_ERR(memtier))
++			/* Continue with memtiers we are able to setup. */
++			break;
+ 	}
+-
+ 	establish_demotion_targets();
++	put_online_mems();
  
- 	__show_smap(m, &mss, false);
- 
--	seq_printf(m, "THPeligible:    %8u\n",
--		   !!thp_vma_allowable_orders(vma, vma->vm_flags,
--			   TVA_SMAPS | TVA_ENFORCE_SYSFS, THP_ORDERS_ALL));
-+	thp_eligible = !!thp_vma_allowable_orders(vma, vma->vm_flags,
-+						TVA_SMAPS | TVA_ENFORCE_SYSFS, THP_ORDERS_ALL);
-+	if (vma_is_anon_shmem(vma))
-+		thp_eligible = !!shmem_allowable_huge_orders(file_inode(vma->vm_file),
-+							vma, vma->vm_pgoff, thp_eligible);
-+	seq_printf(m, "THPeligible:    %8u\n", thp_eligible);
- 
- 	if (arch_pkeys_enabled())
- 		seq_printf(m, "ProtectionKey:  %8u\n", vma_pkey(vma));
---- a/include/linux/huge_mm.h~support-thpeligible-semantics-for-mthp-with-anonymous-shmem
-+++ a/include/linux/huge_mm.h
-@@ -267,6 +267,10 @@ unsigned long thp_vma_allowable_orders(s
- 	return __thp_vma_allowable_orders(vma, vm_flags, tva_flags, orders);
- }
- 
-+unsigned long shmem_allowable_huge_orders(struct inode *inode,
-+				struct vm_area_struct *vma, pgoff_t index,
-+				bool global_huge);
-+
- struct thpsize {
- 	struct kobject kobj;
- 	struct list_head node;
-@@ -462,6 +466,13 @@ static inline unsigned long thp_vma_allo
- {
  	return 0;
  }
-+
-+static inline unsigned long shmem_allowable_huge_orders(struct inode *inode,
-+				struct vm_area_struct *vma, pgoff_t index,
-+				bool global_huge)
-+{
-+	return 0;
-+}
+@@ -875,8 +886,7 @@ static int __meminit memtier_hotplug_cal
  
- #define transparent_hugepage_flags 0UL
- 
---- a/mm/shmem.c~support-thpeligible-semantics-for-mthp-with-anonymous-shmem
-+++ a/mm/shmem.c
-@@ -1622,7 +1622,7 @@ static gfp_t limit_gfp_mask(gfp_t huge_g
- }
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--static unsigned long shmem_allowable_huge_orders(struct inode *inode,
-+unsigned long shmem_allowable_huge_orders(struct inode *inode,
- 				struct vm_area_struct *vma, pgoff_t index,
- 				bool global_huge)
+ static int __init memory_tier_init(void)
  {
-@@ -1707,13 +1707,6 @@ static unsigned long shmem_suitable_orde
- 	return orders;
- }
- #else
--static unsigned long shmem_allowable_huge_orders(struct inode *inode,
--				struct vm_area_struct *vma, pgoff_t index,
--				bool global_huge)
--{
--	return 0;
--}
+-	int ret, node;
+-	struct memory_tier *memtier;
++	int ret;
+ 
+ 	ret = subsys_virtual_register(&memory_tier_subsys, NULL);
+ 	if (ret)
+@@ -887,7 +897,8 @@ static int __init memory_tier_init(void)
+ 				GFP_KERNEL);
+ 	WARN_ON(!node_demotion);
+ #endif
+-	mutex_lock(&memory_tier_lock);
++
++	guard(mutex)(&memory_tier_lock);
+ 	/*
+ 	 * For now we can have 4 faster memory tiers with smaller adistance
+ 	 * than default DRAM tier.
+@@ -897,29 +908,9 @@ static int __init memory_tier_init(void)
+ 	if (IS_ERR(default_dram_type))
+ 		panic("%s() failed to allocate default DRAM tier\n", __func__);
+ 
+-	/*
+-	 * Look at all the existing N_MEMORY nodes and add them to
+-	 * default memory tier or to a tier if we already have memory
+-	 * types assigned.
+-	 */
+-	for_each_node_state(node, N_MEMORY) {
+-		if (!node_state(node, N_CPU))
+-			/*
+-			 * Defer memory tier initialization on
+-			 * CPUless numa nodes. These will be initialized
+-			 * after firmware and devices are initialized.
+-			 */
+-			continue;
 -
- static unsigned long shmem_suitable_orders(struct inode *inode, struct vm_fault *vmf,
- 					   struct address_space *mapping, pgoff_t index,
- 					   unsigned long orders)
+-		memtier = set_node_memory_tier(node);
+-		if (IS_ERR(memtier))
+-			/*
+-			 * Continue with memtiers we are able to setup
+-			 */
+-			break;
+-	}
+-	establish_demotion_targets();
+-	mutex_unlock(&memory_tier_lock);
++	/* Record nodes with memory and CPU to set default DRAM performance. */
++	nodes_and(default_dram_nodes, node_states[N_MEMORY],
++		  node_states[N_CPU]);
+ 
+ 	hotplug_memory_notifier(memtier_hotplug_callback, MEMTIER_HOTPLUG_PRI);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from libang.li@antgroup.com are
+Patches currently in -mm which might be from horen.chuang@linux.dev are
 
-mm-shmem-fix-input-and-output-inconsistencies.patch
 
