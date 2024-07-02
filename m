@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 701B5372
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 04:27:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DEC82E62B
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 05:12:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719894462; cv=none; b=PDV/S7hohIhVhiWuP3YshlJLTmFpB8CJ2kDTIs9ISk546ZwJZaLMgvUkZBjjjDE58tcQxtFUwPRhrjbQYIttZ3D98nD9ugEvn+ei7bvSD0ZQP2zBrOPFTm/J3g5eLtKvoHHuBXac3kJ75XjxPF1MGWa62OLrcWBGixNJ3+t1kE4=
+	t=1719897128; cv=none; b=LdxYyjRi+3dACTfOi381bIvzIIjbR1Cd8UYrb/0qlbGAvuOgHhOdJFxv5Crar+y40iCBcNc9VThq9UMNxFpsq36TdgWWWa8kYhA7kpRPVf73h29pVXNSJs9NAGJrDoXbG7lW5Pa2HoZXX/f5NxPh2lpiMBaTS82VO/uW+zmn3QA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719894462; c=relaxed/simple;
-	bh=Ho5dZO0NMWthasj3vAaV15q34Ewn/NUcunh9T74JuSU=;
-	h=Date:To:From:Subject:Message-Id; b=lJBIsDT6BI4Wrctc5pEdgO+RnKGDpdE1U+kdIr+IIrs/LnlF4kpoKzDdlfXSKqhkdGAiMt3k/pYaFa52QvVSOiO+q6oILSsHrBMA6LiJooKVktWHWAClS0lM7R0utxsQFqa4TNxxkM1NNvFpTy30mDW3y0VepDeXoqd58R3ywaU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h2xdN9f1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719897128; c=relaxed/simple;
+	bh=roVfQyhpNfeQyBsgMm8hiOphwIa/VvX1g+NbDYmazuU=;
+	h=Date:To:From:Subject:Message-Id; b=QA79Rd3ARQb0pMjEDDPkXZ2904QNONGXD4Q7pIFfWNZrn40lbOBP7ZyIuuiSd9g9SqX6xvXJNylsvGwZ+n53ZtCFfrZNZSc+15oiQNe4Lzsc0yhMpEoh3rg8CXxv7pLUcqemnW+3AOCUt7NWkyhW3z83fNake5YiQGZuO8t1SX8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NmRjK3Xv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h2xdN9f1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAC9BC116B1;
-	Tue,  2 Jul 2024 04:27:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NmRjK3Xv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA687C116B1;
+	Tue,  2 Jul 2024 05:12:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719894462;
-	bh=Ho5dZO0NMWthasj3vAaV15q34Ewn/NUcunh9T74JuSU=;
+	s=korg; t=1719897127;
+	bh=roVfQyhpNfeQyBsgMm8hiOphwIa/VvX1g+NbDYmazuU=;
 	h=Date:To:From:Subject:From;
-	b=h2xdN9f1vNPPfg9/Izg2/LZedln3js5SBilaq8iV1P9Q2Lsbll0yWIxycr8ECR87K
-	 VGoX+TnGF8VSKpXTw267CPdEEHJ9tZCIcXFYYshP3wxEufGSkioCiGXwbYBPb5cVJB
-	 2/K+WY+Pwokls6dybOKJyPO+l3He2Md3wGtDGRlc=
-Date: Mon, 01 Jul 2024 21:27:41 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,oleg@redhat.com,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=NmRjK3XvMA0JfNpJAlBAieKxYUM8OkGumEUXDRDo6LN5bOydS+0bso0dEX4Ai9QiJ
+	 66MGXLVitNXdOjd0B9tQCct6Sealgo/CAif2Nzr9WUSHm6MtDILT2dWbXhUPHRPB2T
+	 H1B9zo1N19VfdVSP7m/3RZKBl9nC5vOUFeS1DMGs=
+Date: Mon, 01 Jul 2024 22:12:07 -0700
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,swarupkotikalapudi@gmail.com,shuah@kernel.org,luto@kernel.org,kees@kernel.org,amer.shanawany@gmail.com,make24@iscas.ac.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-forkc-put-set_max_threads-task_struct_whitelist-in-__init-section.patch added to mm-unstable branch
-Message-Id: <20240702042741.EAC9BC116B1@smtp.kernel.org>
+Subject: + selftests-capabilities-fix-possible-file-leak-in-copy_fromat_to.patch added to mm-nonmm-unstable branch
+Message-Id: <20240702051207.CA687C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kernel/fork.c: put set_max_threads()/task_struct_whitelist() in __init section
-has been added to the -mm mm-unstable branch.  Its filename is
-     kernel-forkc-put-set_max_threads-task_struct_whitelist-in-__init-section.patch
+     Subject: selftests/capabilities: fix possible file leak in copy_fromat_to
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-capabilities-fix-possible-file-leak-in-copy_fromat_to.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-forkc-put-set_max_threads-task_struct_whitelist-in-__init-section.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-capabilities-fix-possible-file-leak-in-copy_fromat_to.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,50 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: kernel/fork.c: put set_max_threads()/task_struct_whitelist() in __init section
-Date: Mon, 1 Jul 2024 01:34:10 +0000
+From: Ma Ke <make24@iscas.ac.cn>
+Subject: selftests/capabilities: fix possible file leak in copy_fromat_to
+Date: Sun, 30 Jun 2024 21:00:38 +0800
 
-The functions set_max_threads() and task_struct_whitelist() are only used
-by fork_init() during bootup.
+open() returns -1 on error.  openat() and open() initialize 'from' and
+'to', and only 'from' validated with 'if' statement.  If the
+initialization of variable 'to' fails, we should better check the value of
+'to' and close 'from' to avoid possible file leak.  Improve the checking
+of 'from' additionally.
 
-Let's add __init tag to them.
-
-Link: https://lkml.kernel.org/r/20240701013410.17260-2-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Suggested-by: Oleg Nesterov <oleg@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20240630130038.3671507-1-make24@iscas.ac.cn
+Fixes: 32ae976ed3b5 ("selftests/capabilities: Add tests for capability evolution")
+Signed-off-by: Ma Ke <make24@iscas.ac.cn>
+Cc: Amer Al Shanawany <amer.shanawany@gmail.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/capabilities/test_execve.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/kernel/fork.c~kernel-forkc-put-set_max_threads-task_struct_whitelist-in-__init-section
-+++ a/kernel/fork.c
-@@ -997,7 +997,7 @@ void __init __weak arch_task_cache_init(
- /*
-  * set_max_threads
-  */
--static void set_max_threads(unsigned int max_threads_suggested)
-+static void __init set_max_threads(unsigned int max_threads_suggested)
+--- a/tools/testing/selftests/capabilities/test_execve.c~selftests-capabilities-fix-possible-file-leak-in-copy_fromat_to
++++ a/tools/testing/selftests/capabilities/test_execve.c
+@@ -145,10 +145,14 @@ static void chdir_to_tmpfs(void)
+ static void copy_fromat_to(int fromfd, const char *fromname, const char *toname)
  {
- 	u64 threads;
- 	unsigned long nr_pages = PHYS_PFN(memblock_phys_mem_size() - memblock_reserved_size());
-@@ -1023,7 +1023,7 @@ static void set_max_threads(unsigned int
- int arch_task_struct_size __read_mostly;
- #endif
+ 	int from = openat(fromfd, fromname, O_RDONLY);
+-	if (from == -1)
++	if (from < 0)
+ 		ksft_exit_fail_msg("open copy source - %s\n", strerror(errno));
  
--static void task_struct_whitelist(unsigned long *offset, unsigned long *size)
-+static void __init task_struct_whitelist(unsigned long *offset, unsigned long *size)
- {
- 	/* Fetch thread_struct whitelist for the architecture. */
- 	arch_thread_struct_whitelist(offset, size);
+ 	int to = open(toname, O_CREAT | O_WRONLY | O_EXCL, 0700);
++	if (to < 0) {
++		close(from);
++		ksft_exit_fail_msg("open copy destination - %s\n", strerror(errno));
++	}
+ 
+ 	while (true) {
+ 		char buf[4096];
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from make24@iscas.ac.cn are
 
-kernel-forkc-get-totalram_pages-from-memblock-to-calculate-max_threads.patch
-kernel-forkc-put-set_max_threads-task_struct_whitelist-in-__init-section.patch
+selftests-capabilities-fix-possible-file-leak-in-copy_fromat_to.patch
 
