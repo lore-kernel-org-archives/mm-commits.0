@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE8F315218A
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 17:26:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03AF21BE249
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 17:26:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719941209; cv=none; b=i6rQTZbw4S4P1XB+NOUxpEqZwea4mFEAXx8o3wnZA95o47MAY6yDQoAjQxSJnljra/GfMEWxmTHK2XrEZWif1t9GIrUA0xlYwRKX/rzJuYM9MqK629dsFaqEC7oO2ujj7xx5YYeqeV7IFjF7g27OJW7GRtw/6Xg8NXV89R/9hIE=
+	t=1719941212; cv=none; b=jM2E/kT1JHGjLahciWyd7zloIK5RA0WZyJLybMLUyyfa/ppGuAVk7OBKBUlXN2nnbpIk8ysG8/AOX1m9ncCL2kXtNSirIn7wlK+9iqf46MFo/mGfQVVpM79uHIbDE1U42Q4B6Cq+CzhAmvj/MCy+WqD3WyH3MKjMAw+5CA40R20=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719941209; c=relaxed/simple;
-	bh=r1bbIdmNPxFlDsLU+RvVBvGIHX4JF6U3iGYmlQcyGF4=;
-	h=Date:To:From:Subject:Message-Id; b=p3caR3JySS6ucdSKCo2uAqVQlGQZ8kY8/RjLZ0dNz6H9DM4N9rpD+Zr0ZyjAOgb9914SZbRA9v2LIRzOW0O7DOVuOXySs7utQ8S1JwpU0apam9vS2RmMyrlvyu7aA8X/ZIBPN7eEwh0XLjrn/zFl47zD4J60hqxtBFBe+a84YjM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=liu3jKhn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719941212; c=relaxed/simple;
+	bh=BErSxVvPpVp0EzRofOvYFh9sL0CqKAnvqy/fXg6TlMc=;
+	h=Date:To:From:Subject:Message-Id; b=uPobztZelrM4UjAUGjWHD2fcDcAAmCAGx/NQN2pD1uk2eZ+QwUD0/K1TniVc4CKoDQKeug/vTG1+V8HZE3AhkhCc1MkQWIMhBh3UpXwkxhKDMGvrQsPsWqITOeVpgLKeypoPOQnnjsdTTKUy8TL5HZIvbCzjrRV6kVHPjhfA+kc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DbrJGF1l; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="liu3jKhn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80990C4AF07;
-	Tue,  2 Jul 2024 17:26:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DbrJGF1l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3641C116B1;
+	Tue,  2 Jul 2024 17:26:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719941209;
-	bh=r1bbIdmNPxFlDsLU+RvVBvGIHX4JF6U3iGYmlQcyGF4=;
+	s=korg; t=1719941211;
+	bh=BErSxVvPpVp0EzRofOvYFh9sL0CqKAnvqy/fXg6TlMc=;
 	h=Date:To:From:Subject:From;
-	b=liu3jKhnioYeDHhZH0VIPjtMQiJb2MypuLlN/yMRGGXcc/mw6ih+uuhT1SqIt1juE
-	 7M2uFFCefrXb88LdIsciTD670U+Eqa1Po1KPeDQ/x0GkGNQrQWMVovfARZuYs9w4pS
-	 80Mhx1UDLds4lV+gY3IzoiVmC6CwoYu6gluWicFQ=
-Date: Tue, 02 Jul 2024 10:26:49 -0700
+	b=DbrJGF1l9ryHsHMONvAXkPLvMr0JqkQigCiJOwwFfW61+t9s4fgh8Mf6n1VCktPs0
+	 G6IrcBQPkx0Kri4MQWouhLWBiPu7AsNr84vmAJ53J6fWseORlbapYRPh7WXpvlMymm
+	 FLWHGEAfScy/8QosenxLF3LwuwXf9yhnqfFa4po0=
+Date: Tue, 02 Jul 2024 10:26:51 -0700
 To: mm-commits@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,jgg@nvidia.com,christophe.leroy@csgroup.eu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-e500-switch-to-64-bits-pgd-on-85xx-32-bits.patch added to mm-unstable branch
-Message-Id: <20240702172649.80990C4AF07@smtp.kernel.org>
+Subject: + powerpc-e500-encode-hugepage-size-in-pte-bits.patch added to mm-unstable branch
+Message-Id: <20240702172651.C3641C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: powerpc/e500: switch to 64 bits PGD on 85xx (32 bits)
+     Subject: powerpc/e500: encode hugepage size in PTE bits
 has been added to the -mm mm-unstable branch.  Its filename is
-     powerpc-e500-switch-to-64-bits-pgd-on-85xx-32-bits.patch
+     powerpc-e500-encode-hugepage-size-in-pte-bits.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-e500-switch-to-64-bits-pgd-on-85xx-32-bits.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-e500-encode-hugepage-size-in-pte-bits.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,37 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: powerpc/e500: switch to 64 bits PGD on 85xx (32 bits)
-Date: Tue, 2 Jul 2024 15:51:28 +0200
+Subject: powerpc/e500: encode hugepage size in PTE bits
+Date: Tue, 2 Jul 2024 15:51:29 +0200
 
-At the time being when CONFIG_PTE_64BIT is selected, PTE entries are 64
-bits but PGD entries are still 32 bits.
+Use PTE page size bits to encode hugepage size with the following format
+corresponding to the values expected in bits 52-55 in MAS1 register. 
+Those bits are called TSIZE:
+	0001 	4 Kbyte
+	0010 	16 Kbyte
+	0011 	64 Kbyte
+	0100 	256 Kbyte
+	0101 	1 Mbyte
+	0110 	4 Mbyte
+	0111 	16 Mbyte
+	1000 	64 Mbyte
+	1001 	256 Mbyte
+	1010 	1 Gbyte
+	1011 	4 Gbyte
+	1100 	16 Gbyte
+	1101	64 Gbyte
+	1110	256 Gbyte
+	1111	1 Tbyte
 
-In order to allow leaf PMD entries, switch the PGD to 64 bits entries.
+It corresponds to shift value minus 10 with lowest bit removed.
 
-Link: https://lkml.kernel.org/r/ca85397df02564e5edc3a3c27b55cf43af3e4ef3.1719928057.git.christophe.leroy@csgroup.eu
+It is not the value expected in the PTE in that field, but only e6500
+performs HW based TLB loading and the e6500 reference manual explicitely
+says that this field is ignored.
+
+Also add pte_huge_size() which will be used later.
+
+Link: https://lkml.kernel.org/r/6f7ce82fa8c381d55f65342d77060fc55802e612.1719928057.git.christophe.leroy@csgroup.eu
 Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
@@ -77,50 +99,84 @@ Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/pgtable-types.h |    4 ++++
- arch/powerpc/kernel/head_85xx.S          |   10 ++++++----
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ arch/powerpc/include/asm/nohash/hugetlb-e500.h |    9 ++++
+ arch/powerpc/include/asm/nohash/pte-e500.h     |   28 ++++++---------
+ 2 files changed, 22 insertions(+), 15 deletions(-)
 
---- a/arch/powerpc/include/asm/pgtable-types.h~powerpc-e500-switch-to-64-bits-pgd-on-85xx-32-bits
-+++ a/arch/powerpc/include/asm/pgtable-types.h
-@@ -49,7 +49,11 @@ static inline unsigned long pud_val(pud_
- #endif /* CONFIG_PPC64 */
+--- a/arch/powerpc/include/asm/nohash/hugetlb-e500.h~powerpc-e500-encode-hugepage-size-in-pte-bits
++++ a/arch/powerpc/include/asm/nohash/hugetlb-e500.h
+@@ -42,4 +42,13 @@ static inline int check_and_get_huge_psi
+ 	return shift_to_mmu_psize(shift);
+ }
  
- /* PGD level */
-+#if defined(CONFIG_PPC_E500) && defined(CONFIG_PTE_64BIT)
-+typedef struct { unsigned long long pgd; } pgd_t;
-+#else
- typedef struct { unsigned long pgd; } pgd_t;
-+#endif
- #define __pgd(x)	((pgd_t) { (x) })
- static inline unsigned long pgd_val(pgd_t x)
- {
---- a/arch/powerpc/kernel/head_85xx.S~powerpc-e500-switch-to-64-bits-pgd-on-85xx-32-bits
-+++ a/arch/powerpc/kernel/head_85xx.S
-@@ -307,8 +307,9 @@ set_ivor:
- #ifdef CONFIG_PTE_64BIT
- #ifdef CONFIG_HUGETLB_PAGE
- #define FIND_PTE	\
--	rlwinm	r12, r10, 13, 19, 29;	/* Compute pgdir/pmd offset */	\
--	lwzx	r11, r12, r11;		/* Get pgd/pmd entry */		\
-+	rlwinm	r12, r10, 14, 18, 28;	/* Compute pgdir/pmd offset */	\
-+	add	r12, r11, r12;						\
-+	lwz	r11, 4(r12);		/* Get pgd/pmd entry */		\
- 	rlwinm.	r12, r11, 0, 0, 20;	/* Extract pt base address */	\
- 	blt	1000f;			/* Normal non-huge page */	\
- 	beq	2f;			/* Bail if no table */		\
-@@ -321,8 +322,9 @@ set_ivor:
- 1001:	lwz	r11, 4(r12);		/* Get pte entry */
++static inline pte_t arch_make_huge_pte(pte_t entry, unsigned int shift, vm_flags_t flags)
++{
++	unsigned int tsize = shift - _PAGE_PSIZE_SHIFT_OFFSET;
++	pte_basic_t val = (tsize << _PAGE_PSIZE_SHIFT) & _PAGE_PSIZE_MSK;
++
++	return __pte((pte_val(entry) & ~(pte_basic_t)_PAGE_PSIZE_MSK) | val);
++}
++#define arch_make_huge_pte arch_make_huge_pte
++
+ #endif /* _ASM_POWERPC_NOHASH_HUGETLB_E500_H */
+--- a/arch/powerpc/include/asm/nohash/pte-e500.h~powerpc-e500-encode-hugepage-size-in-pte-bits
++++ a/arch/powerpc/include/asm/nohash/pte-e500.h
+@@ -19,20 +19,7 @@
+ #define _PAGE_BAP_SX	0x000040
+ #define _PAGE_BAP_UX	0x000080
+ #define _PAGE_PSIZE_MSK	0x000f00
+-#define _PAGE_PSIZE_4K	0x000200
+-#define _PAGE_PSIZE_8K	0x000300
+-#define _PAGE_PSIZE_16K	0x000400
+-#define _PAGE_PSIZE_32K	0x000500
+-#define _PAGE_PSIZE_64K	0x000600
+-#define _PAGE_PSIZE_128K	0x000700
+-#define _PAGE_PSIZE_256K	0x000800
+-#define _PAGE_PSIZE_512K	0x000900
+-#define _PAGE_PSIZE_1M	0x000a00
+-#define _PAGE_PSIZE_2M	0x000b00
+-#define _PAGE_PSIZE_4M	0x000c00
+-#define _PAGE_PSIZE_8M	0x000d00
+-#define _PAGE_PSIZE_16M	0x000e00
+-#define _PAGE_PSIZE_32M	0x000f00
++#define _PAGE_TSIZE_4K	0x000100
+ #define _PAGE_DIRTY	0x001000 /* C: page changed */
+ #define _PAGE_SW0	0x002000
+ #define _PAGE_U3	0x004000
+@@ -46,6 +33,9 @@
+ #define _PAGE_NO_CACHE	0x400000 /* I: cache inhibit */
+ #define _PAGE_WRITETHRU	0x800000 /* W: cache write-through */
+ 
++#define _PAGE_PSIZE_SHIFT		7
++#define _PAGE_PSIZE_SHIFT_OFFSET	10
++
+ /* "Higher level" linux bit combinations */
+ #define _PAGE_EXEC		(_PAGE_BAP_SX | _PAGE_BAP_UX) /* .. and was cache cleaned */
+ #define _PAGE_READ		(_PAGE_BAP_SR | _PAGE_BAP_UR) /* User read permission */
+@@ -87,7 +77,7 @@
+  * pages. We always set _PAGE_COHERENT when SMP is enabled or
+  * the processor might need it for DMA coherency.
+  */
+-#define _PAGE_BASE_NC	(_PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_PSIZE_4K)
++#define _PAGE_BASE_NC	(_PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_TSIZE_4K)
+ #if defined(CONFIG_SMP)
+ #define _PAGE_BASE	(_PAGE_BASE_NC | _PAGE_COHERENT)
  #else
- #define FIND_PTE	\
--	rlwinm	r12, r10, 13, 19, 29;	/* Compute pgdir/pmd offset */	\
--	lwzx	r11, r12, r11;		/* Get pgd/pmd entry */		\
-+	rlwinm	r12, r10, 14, 18, 28;	/* Compute pgdir/pmd offset */	\
-+	add	r12, r11, r12;						\
-+	lwz	r11, 4(r12);		/* Get pgd/pmd entry */		\
- 	rlwinm.	r12, r11, 0, 0, 20;	/* Extract pt base address */	\
- 	beq	2f;			/* Bail if no table */		\
- 	rlwimi	r12, r10, 23, 20, 28;	/* Compute pte address */	\
+@@ -103,6 +93,14 @@ static inline pte_t pte_mkexec(pte_t pte
+ }
+ #define pte_mkexec pte_mkexec
+ 
++static inline unsigned long pte_huge_size(pte_t pte)
++{
++	pte_basic_t val = pte_val(pte);
++
++	return 1UL << (((val & _PAGE_PSIZE_MSK) >> _PAGE_PSIZE_SHIFT) + _PAGE_PSIZE_SHIFT_OFFSET);
++}
++#define pte_huge_size pte_huge_size
++
+ #endif /* __ASSEMBLY__ */
+ 
+ #endif /* __KERNEL__ */
 _
 
 Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
