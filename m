@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6D7217DA39
-	for <mm-commits@vger.kernel.org>; Wed,  3 Jul 2024 19:56:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E3411836D0;
+	Wed,  3 Jul 2024 20:08:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720036563; cv=none; b=pHp677VzYwFy8PeKixrncRJORPiOOg6FURxrZPoS8cgXdLGZSeOIoX6nkUBGYmZAzpQ7KFfq2/uyHrgh0Qy61B6yENgOWBuCfaobxNM8OnESK5JKoFdGwcvqqRQC+fCZCqlj1Bzmb+nDOOXLig1JrZskU+F2t2KVrz7j4YvCb0U=
+	t=1720037334; cv=none; b=BXEOHaiP5dqe+B/lBj8PxrDovIZtUqjoX8sOn7dp8/ZOVfXTCuNQ3+VvBWecWvK/ajTGzeUS2uAcDIHl6kQm6uq/AHdNAQ8cAzew9Ymc4DljZgjMTU01e8HoJIR0jBC41nHXj47f2Bg+bvO2gEUR+O6HYQyfhLioEeLTmcpGgMI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720036563; c=relaxed/simple;
-	bh=zK9fYIKwyq0T7asMQhckZXRkhPYbl3/sOotdm4Zx8lQ=;
-	h=Date:To:From:Subject:Message-Id; b=ujH8xJURwUditQmwxFt63lIaDyIuGc+l1Z+oAqU6YM78qMyBhPMD1nM50GXpW/HZM8plqy8qa9JdVtRt4S2V2xxKXGWrijkNh5qZcNr9Tckrc7949MliKoCBGuOmZkYpVuoOEKH6atdMvKJvmGnRcsu241nUXMAN0tkleRfOjPs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1UBvKgTS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720037334; c=relaxed/simple;
+	bh=DVox1BhYmlVSGINFvKZZZongePGMtgf0FVx0De/8DsA=;
+	h=Date:To:From:Subject:Message-Id; b=sa2t+iJ/uhKwoaFOnoSnUCByJobw2gv1x4NOyluvf2ATfmm5SYs3SN57v8MFFCDLWbji1tHNGBqCB+629n9TToX6KIilQ3WBmRYnHVD26/YmnZkgO1BqH7XU14Qtdlz16haEOdjpNYYAvztpA7aJMYpR2tCfncYko0VmqAybtm8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aPnTg+dS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1UBvKgTS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B592C2BD10;
-	Wed,  3 Jul 2024 19:56:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aPnTg+dS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C015AC2BD10;
+	Wed,  3 Jul 2024 20:08:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720036563;
-	bh=zK9fYIKwyq0T7asMQhckZXRkhPYbl3/sOotdm4Zx8lQ=;
+	s=korg; t=1720037333;
+	bh=DVox1BhYmlVSGINFvKZZZongePGMtgf0FVx0De/8DsA=;
 	h=Date:To:From:Subject:From;
-	b=1UBvKgTS06vge7FluGMjyxWejmnePwxITwo8rh3KSac1vp4KnXE8WXxmYdMdZFIcU
-	 zSAvTyiubPpDyXstMZEqOeLZyY/V2CR/h5mVr682t9VM2CiHzvO9yG26W40QBMODo7
-	 rzeeAg9h8UcuUNfaVPHaf+hdDW3pXRNiMzYjxdqU=
-Date: Wed, 03 Jul 2024 12:56:02 -0700
-To: mm-commits@vger.kernel.org,thorsten.blum@toblux.com,kent.overstreet@linux.dev,jack@suse.cz,hch@lst.de,christian.koenig@amd.com,akpm@linux-foundation.org,surenb@google.com,akpm@linux-foundation.org
+	b=aPnTg+dSCrzxfRtuNW3ZwuhTWQnZrn+db6w2fLc6s+eOp8yyQUqPhooAkg19L75ep
+	 9xgytRvdm0BzTeu2Z7LfUrZpsgajrd5aeOYi/IgrhZHtwcfhzqpJ8U8s2E25RviSMy
+	 dVMPHHhbdX2YKW44mpQgChPeDYJfMHDUpT5USDUw=
+Date: Wed, 03 Jul 2024 13:08:53 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,david@redhat.com,baolin.wang@linux.alibaba.com,aneesh.kumar@linux.ibm.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros.patch added to mm-unstable branch
-Message-Id: <20240703195603.5B592C2BD10@smtp.kernel.org>
+Subject: + mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240703200853.C015AC2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add comments for allocation helpers explaining why they are macros
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros.patch
+     Subject: mm/gup: clear the LRU flag of a page before adding to LRU batch
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,189 +58,150 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: add comments for allocation helpers explaining why they are macros
-Date: Wed, 3 Jul 2024 10:42:25 -0700
+From: yangge <yangge1116@126.com>
+Subject: mm/gup: clear the LRU flag of a page before adding to LRU batch
+Date: Wed, 3 Jul 2024 20:02:33 +0800
 
-A number of allocation helper functions were converted into macros to
-account them at the call sites.  Add a comment for each converted
-allocation helper explaining why it has to be a macro and why we typecast
-the return value wherever required.  The patch also moves
-acpi_os_acquire_object() closer to other allocation helpers to group them
-together under the same comment.  The patch has no functional changes.
+If a large number of CMA memory are configured in system (for example, the
+CMA memory accounts for 50% of the system memory), starting a virtual
+virtual machine with device passthrough, it will call
+pin_user_pages_remote(..., FOLL_LONGTERM, ...) to pin memory.  Normally if
+a page is present and in CMA area, pin_user_pages_remote() will migrate
+the page from CMA area to non-CMA area because of FOLL_LONGTERM flag.  But
+the current code will cause the migration failure due to unexpected page
+refcounts, and will eventually cause the virtual machine to fail to start.
 
-Link: https://lkml.kernel.org/r/20240703174225.3891393-1-surenb@google.com
-Fixes: 2c321f3f70bc ("mm: change inlined allocation helpers to account at the call site")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Thorsten Blum <thorsten.blum@toblux.com>
+If a page is added in LRU batch, its refcount increases one, remove the
+page from LRU batch decreases one.  Page migration requires the page is
+not referenced by others except page mapping.  Before migrating a page, we
+should try to drain the page from LRU batch in case the page is in it,
+however, folio_test_lru() is not sufficient to tell whether the page is in
+LRU batch or not, if the page is in LRU batch, the migration will fail.
+
+To solve the problem above, we modify the logic of adding to LRU batch. 
+Before adding a page to LRU batch, we clear the LRU flag of the page so
+that we can check whether the page is in LRU batch with
+folio_test_lru(page).  Seems making the LRU flag of the page invisible a
+long time is no problem, because a new page is allocated from buddy and
+added to the lru batch, its LRU flag is also not visible for a long time.
+
+Link: https://lkml.kernel.org/r/1720008153-16035-1-git-send-email-yangge1116@126.com
+Fixes: 9a4e9f3b2d73 ("mm: update get_user_pages_longterm to migrate pages allocated from CMA region")
+Signed-off-by: yangge <yangge1116@126.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/iostat.h                   |    4 ++++
- include/acpi/platform/aclinuxex.h |    9 ++++++---
- include/linux/bpf.h               |    4 ++++
- include/linux/dma-fence-chain.h   |    4 ++++
- include/linux/hid_bpf.h           |    5 +++++
- include/linux/jbd2.h              |   10 ++++++++++
- include/linux/skbuff.h            |    8 ++++++++
- include/linux/skmsg.h             |    5 +++++
- 8 files changed, 46 insertions(+), 3 deletions(-)
+ mm/swap.c |   43 +++++++++++++++++++++++++++++++------------
+ 1 file changed, 31 insertions(+), 12 deletions(-)
 
---- a/fs/nfs/iostat.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/fs/nfs/iostat.h
-@@ -46,6 +46,10 @@ static inline void nfs_add_stats(const s
- 	nfs_add_server_stats(NFS_SERVER(inode), stat, addend);
- }
+--- a/mm/swap.c~mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch
++++ a/mm/swap.c
+@@ -212,10 +212,6 @@ static void folio_batch_move_lru(struct
+ 	for (i = 0; i < folio_batch_count(fbatch); i++) {
+ 		struct folio *folio = fbatch->folios[i];
  
-+/*
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag).
-+ */
- #define nfs_alloc_iostats()	alloc_percpu(struct nfs_iostats)
- 
- static inline void nfs_free_iostats(struct nfs_iostats __percpu *stats)
---- a/include/acpi/platform/aclinuxex.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/include/acpi/platform/aclinuxex.h
-@@ -46,6 +46,9 @@ acpi_status acpi_os_terminate(void);
-  * Interrupts are off during resume, just like they are for boot.
-  * However, boot has  (system_state != SYSTEM_RUNNING)
-  * to quiet __might_sleep() in kmalloc() and resume does not.
-+ *
-+ * These specialized allocators have to be macros for their allocations to be
-+ * accounted separately (to have separate alloc_tag).
-  */
- #define acpi_os_allocate(_size)	\
- 		kmalloc(_size, irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL)
-@@ -53,14 +56,14 @@ acpi_status acpi_os_terminate(void);
- #define acpi_os_allocate_zeroed(_size)	\
- 		kzalloc(_size, irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL)
- 
-+#define acpi_os_acquire_object(_cache)	\
-+		kmem_cache_zalloc(_cache, irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL)
-+
- static inline void acpi_os_free(void *memory)
- {
- 	kfree(memory);
- }
- 
--#define acpi_os_acquire_object(_cache)	\
--		kmem_cache_zalloc(_cache, irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL)
+-		/* block memcg migration while the folio moves between lru */
+-		if (move_fn != lru_add_fn && !folio_test_clear_lru(folio))
+-			continue;
 -
- static inline acpi_thread_id acpi_os_get_thread_id(void)
+ 		folio_lruvec_relock_irqsave(folio, &lruvec, &flags);
+ 		move_fn(lruvec, folio);
+ 
+@@ -256,11 +252,16 @@ static void lru_move_tail_fn(struct lruv
+ void folio_rotate_reclaimable(struct folio *folio)
  {
- 	return (acpi_thread_id) (unsigned long)current;
---- a/include/linux/bpf.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/include/linux/bpf.h
-@@ -2261,6 +2261,10 @@ void *bpf_map_kvcalloc(struct bpf_map *m
- void __percpu *bpf_map_alloc_percpu(const struct bpf_map *map, size_t size,
- 				    size_t align, gfp_t flags);
- #else
-+/*
-+ * These specialized allocators have to be macros for their allocations to be
-+ * accounted separately (to have separate alloc_tag).
-+ */
- #define bpf_map_kmalloc_node(_map, _size, _flags, _node)	\
- 		kmalloc_node(_size, _flags, _node)
- #define bpf_map_kzalloc(_map, _size, _flags)			\
---- a/include/linux/dma-fence-chain.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/include/linux/dma-fence-chain.h
-@@ -85,6 +85,10 @@ dma_fence_chain_contained(struct dma_fen
-  * dma_fence_chain_alloc
-  *
-  * Returns a new struct dma_fence_chain object or NULL on failure.
-+ *
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag). The typecast is
-+ * intentional to enforce typesafety.
+ 	if (!folio_test_locked(folio) && !folio_test_dirty(folio) &&
+-	    !folio_test_unevictable(folio) && folio_test_lru(folio)) {
++	    !folio_test_unevictable(folio)) {
+ 		struct folio_batch *fbatch;
+ 		unsigned long flags;
+ 
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
++		}
++
+ 		local_lock_irqsave(&lru_rotate.lock, flags);
+ 		fbatch = this_cpu_ptr(&lru_rotate.fbatch);
+ 		folio_batch_add_and_move(fbatch, folio, lru_move_tail_fn);
+@@ -353,11 +354,15 @@ static void folio_activate_drain(int cpu
+ 
+ void folio_activate(struct folio *folio)
+ {
+-	if (folio_test_lru(folio) && !folio_test_active(folio) &&
+-	    !folio_test_unevictable(folio)) {
++	if (!folio_test_active(folio) && !folio_test_unevictable(folio)) {
+ 		struct folio_batch *fbatch;
+ 
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
++		}
++
+ 		local_lock(&cpu_fbatches.lock);
+ 		fbatch = this_cpu_ptr(&cpu_fbatches.activate);
+ 		folio_batch_add_and_move(fbatch, folio, folio_activate_fn);
+@@ -701,6 +706,11 @@ void deactivate_file_folio(struct folio
+ 		return;
+ 
+ 	folio_get(folio);
++	if (!folio_test_clear_lru(folio)) {
++		folio_put(folio);
++		return;
++	}
++
+ 	local_lock(&cpu_fbatches.lock);
+ 	fbatch = this_cpu_ptr(&cpu_fbatches.lru_deactivate_file);
+ 	folio_batch_add_and_move(fbatch, folio, lru_deactivate_file_fn);
+@@ -717,11 +727,16 @@ void deactivate_file_folio(struct folio
   */
- #define dma_fence_chain_alloc()	\
- 		((struct dma_fence_chain *)kmalloc(sizeof(struct dma_fence_chain), GFP_KERNEL))
---- a/include/linux/hid_bpf.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/include/linux/hid_bpf.h
-@@ -152,6 +152,11 @@ static inline int hid_bpf_connect_device
- static inline void hid_bpf_disconnect_device(struct hid_device *hdev) {}
- static inline void hid_bpf_destroy_device(struct hid_device *hid) {}
- static inline void hid_bpf_device_init(struct hid_device *hid) {}
-+/*
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag). The typecast is
-+ * intentional to enforce typesafety.
-+ */
- #define call_hid_bpf_rdesc_fixup(_hdev, _rdesc, _size)	\
- 		((u8 *)kmemdup(_rdesc, *(_size), GFP_KERNEL))
+ void folio_deactivate(struct folio *folio)
+ {
+-	if (folio_test_lru(folio) && !folio_test_unevictable(folio) &&
+-	    (folio_test_active(folio) || lru_gen_enabled())) {
++	if (!folio_test_unevictable(folio) && (folio_test_active(folio) ||
++	    lru_gen_enabled())) {
+ 		struct folio_batch *fbatch;
  
---- a/include/linux/jbd2.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/include/linux/jbd2.h
-@@ -1588,6 +1588,11 @@ void jbd2_journal_put_journal_head(struc
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
++		}
++
+ 		local_lock(&cpu_fbatches.lock);
+ 		fbatch = this_cpu_ptr(&cpu_fbatches.lru_deactivate);
+ 		folio_batch_add_and_move(fbatch, folio, lru_deactivate_fn);
+@@ -738,12 +753,16 @@ void folio_deactivate(struct folio *foli
   */
- extern struct kmem_cache *jbd2_handle_cache;
+ void folio_mark_lazyfree(struct folio *folio)
+ {
+-	if (folio_test_lru(folio) && folio_test_anon(folio) &&
+-	    folio_test_swapbacked(folio) && !folio_test_swapcache(folio) &&
+-	    !folio_test_unevictable(folio)) {
++	if (folio_test_anon(folio) && folio_test_swapbacked(folio) &&
++	    !folio_test_swapcache(folio) && !folio_test_unevictable(folio)) {
+ 		struct folio_batch *fbatch;
  
-+/*
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag). The typecast is
-+ * intentional to enforce typesafety.
-+ */
- #define jbd2_alloc_handle(_gfp_flags)	\
- 		((handle_t *)kmem_cache_zalloc(jbd2_handle_cache, _gfp_flags))
- 
-@@ -1602,6 +1607,11 @@ static inline void jbd2_free_handle(hand
-  */
- extern struct kmem_cache *jbd2_inode_cache;
- 
-+/*
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag). The typecast is
-+ * intentional to enforce typesafety.
-+ */
- #define jbd2_alloc_inode(_gfp_flags)	\
- 		((struct jbd2_inode *)kmem_cache_alloc(jbd2_inode_cache, _gfp_flags))
- 
---- a/include/linux/skbuff.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/include/linux/skbuff.h
-@@ -3400,6 +3400,10 @@ static inline struct page *__dev_alloc_p
- }
- #define __dev_alloc_pages(...)	alloc_hooks(__dev_alloc_pages_noprof(__VA_ARGS__))
- 
-+/*
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag).
-+ */
- #define dev_alloc_pages(_order) __dev_alloc_pages(GFP_ATOMIC | __GFP_NOWARN, _order)
- 
- /**
-@@ -3416,6 +3420,10 @@ static inline struct page *__dev_alloc_p
- }
- #define __dev_alloc_page(...)	alloc_hooks(__dev_alloc_page_noprof(__VA_ARGS__))
- 
-+/*
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag).
-+ */
- #define dev_alloc_page()	dev_alloc_pages(0)
- 
- /**
---- a/include/linux/skmsg.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/include/linux/skmsg.h
-@@ -414,6 +414,11 @@ void sk_psock_stop_verdict(struct sock *
- int sk_psock_msg_verdict(struct sock *sk, struct sk_psock *psock,
- 			 struct sk_msg *msg);
- 
-+/*
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag). The typecast is
-+ * intentional to enforce typesafety.
-+ */
- #define sk_psock_init_link()	\
- 		((struct sk_psock_link *)kzalloc(sizeof(struct sk_psock_link),	\
- 						 GFP_ATOMIC | __GFP_NOWARN))
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
++		}
++
+ 		local_lock(&cpu_fbatches.lock);
+ 		fbatch = this_cpu_ptr(&cpu_fbatches.lru_lazyfree);
+ 		folio_batch_add_and_move(fbatch, folio, lru_lazyfree_fn);
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from yangge1116@126.com are
 
-mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros.patch
+mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch
 
