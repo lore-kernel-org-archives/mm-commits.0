@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFB6C184E
-	for <mm-commits@vger.kernel.org>; Wed,  3 Jul 2024 02:00:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B220946B5;
+	Wed,  3 Jul 2024 02:12:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719972002; cv=none; b=Ulv8J7JbXnM117ae6cMhNtafES1nxuJrISDXhY2Z9Go1mn+D3rbG3Y58IGzrAY/xZ5AX6kzuew2A928r0wLRoXzxPHVVHGvSle1cHf7dJYv5iFuApWDMvDjcueKbIorhqmSvGr9IKN5JeTsr2kVWZu7gUpP77fk/+ihA6mO0Rf4=
+	t=1719972764; cv=none; b=rYzNV5dOT0J/cYZO5I9leVTXnGLj9dQ4yLzbOv/y0sg2EDK9/GmB8qLrpQY0fj1bhVzEhl9u/QWcVNB+JLg+ukB94G1hxjcQTrCEQ2kjccZt8rJzhFgoiCKrYt8fmv6zEcwPkfVcY2w8mCBVaxUMEWnoaIeF6NHfXjgd+K7sJP0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719972002; c=relaxed/simple;
-	bh=oa46lgr8drNBeXhTKWzeiV5CCRVroMdJBYzvvNxZskc=;
-	h=Date:To:From:Subject:Message-Id; b=jURgg0+QO4dZ0jnZgTqMa411KhYd5ZxOv42pvYzQuHsUIH3rEIijIAv4PHwJOXx7VWBxpKPLa0ylpHKzJjzj3/gulGk0ZLzgWK2lvmW5Er887s3RZXO7gVCyzCjj/fHNkSsCBztZdDiaHJaIzT2qlq0QHo43n+QVfuq3+yxl4Q4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cikQCUuZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719972764; c=relaxed/simple;
+	bh=WMOGJM/eIvbSlzNXfRxZCrAPHE9Qou+Pouy5o1n7a5M=;
+	h=Date:To:From:Subject:Message-Id; b=N11r8CIsnDaVKYp2bM8dDOAUpeSZEhE3++AMaLPHeZ00D3EN3n9Ps0h7T9s7QquCo0cFTvnM0DLGL+8+22NUda4PYhA6QVQpkLBV0U9UMVFElU/zrL93SdBV8jrhA2BFqdmedrQpEfXB70F0tzRSNlfFzYE9aoTFIFxKaCI/6b0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fYq6RcCN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cikQCUuZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B89CC116B1;
-	Wed,  3 Jul 2024 02:00:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fYq6RcCN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 394BFC116B1;
+	Wed,  3 Jul 2024 02:12:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719972001;
-	bh=oa46lgr8drNBeXhTKWzeiV5CCRVroMdJBYzvvNxZskc=;
+	s=korg; t=1719972764;
+	bh=WMOGJM/eIvbSlzNXfRxZCrAPHE9Qou+Pouy5o1n7a5M=;
 	h=Date:To:From:Subject:From;
-	b=cikQCUuZGIz/IdxQQzYI6Dd3Gtvjh1LDzdnrPmyyGLeE5itHDDCJ/MZgvavrt+a7E
-	 AVYbW+OvJQYkSomk7Rn34/g6vAVZrpyQXei4t9MS3aWm3IO9YKo1/xhM5zWWCktuPt
-	 37QiCzrGb7RprhW+UpmROaUvLw/SHEGfBlwAuEA8=
-Date: Tue, 02 Jul 2024 19:00:00 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,muchun.song@linux.dev,catalin.marinas@arm.com,yang@os.amperecomputing.com,akpm@linux-foundation.org
+	b=fYq6RcCNfTEIneJMUHvHnUFOSobHgMUcuejTgfkF1pRW+aho2luCrFgQiSU4Ndr5A
+	 ahAl/o64XIVY4yplTkKvBZgxkH4KZymXJ93Y5l80BjzT6COqbb+tkvRZeakR+bTMKK
+	 ZBkHISuyq8v4GfQ9IAMCQIek1oUVXr5qqElZ6XQs=
+Date: Tue, 02 Jul 2024 19:12:43 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,shy828301@gmail.com,nphamcs@gmail.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,hughd@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] hugetlbfs-add-mte-support.patch removed from -mm tree
-Message-Id: <20240703020001.7B89CC116B1@smtp.kernel.org>
+Subject: + mm-fix-crashes-from-deferred-split-racing-folio-migration.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240703021244.394BFC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,55 +34,127 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: hugetlbfs: add MTE support
-has been removed from the -mm tree.  Its filename was
-     hugetlbfs-add-mte-support.patch
+The patch titled
+     Subject: mm: fix crashes from deferred split racing folio migration
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-fix-crashes-from-deferred-split-racing-folio-migration.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-crashes-from-deferred-split-racing-folio-migration.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yang Shi <yang@os.amperecomputing.com>
-Subject: hugetlbfs: add MTE support
-Date: Tue, 25 Jun 2024 16:37:17 -0700
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: fix crashes from deferred split racing folio migration
+Date: Tue, 2 Jul 2024 00:40:55 -0700 (PDT)
 
-MTE can be supported on ram based filesystem.  It is supported on tmpfs. 
-There is use case to use MTE on hugetlbfs as well, adding MTE support.
+Even on 6.10-rc6, I've been seeing elusive "Bad page state"s (often on
+flags when freeing, yet the flags shown are not bad: PG_locked had been
+set and cleared??), and VM_BUG_ON_PAGE(page_ref_count(page) == 0)s from
+deferred_split_scan()'s folio_put(), and a variety of other BUG and WARN
+symptoms implying double free by deferred split and large folio migration.
 
-Exercising this capability requires special arrangements.  This needs
-hardware support and custom-patched QEMU.  We did in-house testing on
-AmpereOne platform with patched QEMU 8.1.
+6.7 commit 9bcef5973e31 ("mm: memcg: fix split queue list crash when large
+folio migration") was right to fix the memcg-dependent locking broken in
+85ce2c517ade ("memcontrol: only transfer the memcg data for migration"),
+but missed a subtlety of deferred_split_scan(): it moves folios to its own
+local list to work on them without split_queue_lock, during which time
+folio->_deferred_list is not empty, but even the "right" lock does nothing
+to secure the folio and the list it is on.
 
-Custom-patched QEMU is not required for a minimum test.  But a special
-test program is definitely needed.  We used custom-patched QEMU to test
-VM backed by hugetlbfs with MTE enabled.
+Fortunately, deferred_split_scan() is careful to use folio_try_get(): so
+folio_migrate_mapping() can avoid the race by folio_undo_large_rmappable()
+while the old folio's reference count is temporarily frozen to 0 - adding
+such a freeze in the !mapping case too (originally, folio lock and
+unmapping and no swap cache left an anon folio unreachable, so no freezing
+was needed there: but the deferred split queue offers a way to reach it).
 
-Link: https://lkml.kernel.org/r/20240625233717.2769975-1-yang@os.amperecomputing.com
-Signed-off-by: Yang Shi <yang@os.amperecomputing.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/29c83d1a-11ca-b6c9-f92e-6ccb322af510@google.com
+Fixes: 9bcef5973e31 ("mm: memcg: fix split queue list crash when large folio migration")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |   11 -----------
+ mm/migrate.c    |   13 +++++++++++++
+ 2 files changed, 13 insertions(+), 11 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-add-mte-support
-+++ a/fs/hugetlbfs/inode.c
-@@ -110,7 +110,7 @@ static int hugetlbfs_file_mmap(struct fi
- 	 * way when do_mmap unwinds (may be important on powerpc
- 	 * and ia64).
- 	 */
--	vm_flags_set(vma, VM_HUGETLB | VM_DONTEXPAND);
-+	vm_flags_set(vma, VM_HUGETLB | VM_DONTEXPAND | VM_MTE_ALLOWED);
- 	vma->vm_ops = &hugetlb_vm_ops;
+--- a/mm/memcontrol.c~mm-fix-crashes-from-deferred-split-racing-folio-migration
++++ a/mm/memcontrol.c
+@@ -7823,17 +7823,6 @@ void mem_cgroup_migrate(struct folio *ol
  
- 	ret = seal_check_write(info->seals, vma);
+ 	/* Transfer the charge and the css ref */
+ 	commit_charge(new, memcg);
+-	/*
+-	 * If the old folio is a large folio and is in the split queue, it needs
+-	 * to be removed from the split queue now, in case getting an incorrect
+-	 * split queue in destroy_large_folio() after the memcg of the old folio
+-	 * is cleared.
+-	 *
+-	 * In addition, the old folio is about to be freed after migration, so
+-	 * removing from the split queue a bit earlier seems reasonable.
+-	 */
+-	if (folio_test_large(old) && folio_test_large_rmappable(old))
+-		folio_undo_large_rmappable(old);
+ 	old->memcg_data = 0;
+ }
+ 
+--- a/mm/migrate.c~mm-fix-crashes-from-deferred-split-racing-folio-migration
++++ a/mm/migrate.c
+@@ -415,6 +415,15 @@ int folio_migrate_mapping(struct address
+ 		if (folio_ref_count(folio) != expected_count)
+ 			return -EAGAIN;
+ 
++		/* Take off deferred split queue while frozen and memcg set */
++		if (folio_test_large(folio) &&
++		    folio_test_large_rmappable(folio)) {
++			if (!folio_ref_freeze(folio, expected_count))
++				return -EAGAIN;
++			folio_undo_large_rmappable(folio);
++			folio_ref_unfreeze(folio, expected_count);
++		}
++
+ 		/* No turning back from here */
+ 		newfolio->index = folio->index;
+ 		newfolio->mapping = folio->mapping;
+@@ -433,6 +442,10 @@ int folio_migrate_mapping(struct address
+ 		return -EAGAIN;
+ 	}
+ 
++	/* Take off deferred split queue while frozen and memcg set */
++	if (folio_test_large(folio) && folio_test_large_rmappable(folio))
++		folio_undo_large_rmappable(folio);
++
+ 	/*
+ 	 * Now we know that no one else is looking at the folio:
+ 	 * no turning back from here.
 _
 
-Patches currently in -mm which might be from yang@os.amperecomputing.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-page_ref-remove-folio_try_get_rcu.patch
-mm-gup-stop-abusing-try_grab_folio.patch
+mm-fix-crashes-from-deferred-split-racing-folio-migration.patch
 
