@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9785F28379
-	for <mm-commits@vger.kernel.org>; Wed,  3 Jul 2024 20:39:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4885183077
+	for <mm-commits@vger.kernel.org>; Wed,  3 Jul 2024 20:51:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720039168; cv=none; b=JXBhpwVAwnory2cg1aHmqBblNdlooRQkZUKuStjJXC5e8l9XasywzUrvZG1SI14Vakq1qypGUqEi7SsNbGvbWSGBRilFiJ8mSIrgAzM8Q2gWLmhbTGsLz11WXzOv4engpwok7IKOCQFuoWocH6SbtRXMcmgN8oT2CPFaCgBj4+w=
+	t=1720039902; cv=none; b=S/F7TEkYh1Ucgu0HsYymMaZga7wGNvMeiIE9hjKU5DonBUgn6i4cbD8AZ0ZS2nDNo394YVVCXx0qCv864kygOkmDP3Ce2mFKfUw7ooPzuz5MHd7yqfUcRGBzY56CiwS0DF79vcovZfbVm8k3xLlubi7CX3E2NglVgk1EMa3miyE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720039168; c=relaxed/simple;
-	bh=CpVKqJnP+XVVQQAPrUbx1sC4iBjzut7GuYC8uif3mOk=;
-	h=Date:To:From:Subject:Message-Id; b=AvdafY1DvRxx/2mrIm5jKAUbSLuxCUjzxOIPZwSnvL1ZH3DxgbjTOi+H5zRr7Cq6Jd2eyRfV7MYxVWWQnCfQW3qooa1htx0uQcXLttKnUre2BO49haaPeffy9UMNhcPwPLdLzQSRUhd5Dq4mXb3mDdO0mua7DRT8M2kadC0iLkM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p7Xcdyxy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720039902; c=relaxed/simple;
+	bh=2WNPwNLxfo6j5WRJte6s795QclInNT+ddods68adqfY=;
+	h=Date:To:From:Subject:Message-Id; b=gXnYVoMAbMtbChuGjIHmLq9zYCC9KO96iUnRynmk0kEWdc8LZyD+vZeN9mtKhgrH2g+tEGueJ9LY3d/2z/i4RSNfFMD+L0RiPxT8XksqSr5dd612eXJ7lVBZXdvMOHAjx5qpCh2JxJ2bvAcJ9h+Neoq8th6q7p61o4Ehs97I3js=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oV5nkvMB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p7Xcdyxy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16C4CC2BD10;
-	Wed,  3 Jul 2024 20:39:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oV5nkvMB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22307C2BD10;
+	Wed,  3 Jul 2024 20:51:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720039168;
-	bh=CpVKqJnP+XVVQQAPrUbx1sC4iBjzut7GuYC8uif3mOk=;
+	s=korg; t=1720039902;
+	bh=2WNPwNLxfo6j5WRJte6s795QclInNT+ddods68adqfY=;
 	h=Date:To:From:Subject:From;
-	b=p7XcdyxyN+qu809f62PL71c5pTmFNv2ZiHOPPBvpnt165YNGYB74B/gKLt68d2E/O
-	 UFbvU1Dp1FqUXBBfDdU6AwVQ2ryghkauqU0J4f057EWm5Zjfa0OOgvqqZxbQbUaFO/
-	 SmoIVmJYJnpK3quVcsyVc7vkmlJ81USZ4gMTuAOc=
-Date: Wed, 03 Jul 2024 13:39:27 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,sidhartha.kumar@oracle.com,lizefan.x@bytedance.com,linmiaohe@huawei.com,hannes@cmpxchg.org,corbet@lwn.net,baolin.wang@linux.alibaba.com,xiujianfeng@huawei.com,akpm@linux-foundation.org
+	b=oV5nkvMBpsFP7fw4pwulGInhwgaQJLpl7EAPm6YL8lOFFEF9tUcZM6vepFyo3zn5/
+	 xrqs6z5MbDnbY2URjHdtc7PcxuhsmsX9pQx00yT5L1jUXzRVB6tcau9EtBYy+z0LyZ
+	 iCXTQxBiP612RDPI4Q8SUJx/cnO/uSkUryy8XRZI=
+Date: Wed, 03 Jul 2024 13:51:41 -0700
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,jiaqiyan@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_cgroup-introduce-peak-and-rsvdpeak-to-v2.patch added to mm-unstable branch
-Message-Id: <20240703203928.16C4CC2BD10@smtp.kernel.org>
+Subject: + docs-mm-add-enable_soft_offline-sysctl-fix-fix.patch added to mm-unstable branch
+Message-Id: <20240703205142.22307C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb_cgroup: introduce peak and rsvd.peak to v2
+     Subject: docs-mm-add-enable_soft_offline-sysctl-fix-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb_cgroup-introduce-peak-and-rsvdpeak-to-v2.patch
+     docs-mm-add-enable_soft_offline-sysctl-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cgroup-introduce-peak-and-rsvdpeak-to-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-add-enable_soft_offline-sysctl-fix-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,102 +58,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xiu Jianfeng <xiujianfeng@huawei.com>
-Subject: mm/hugetlb_cgroup: introduce peak and rsvd.peak to v2
-Date: Tue, 2 Jul 2024 12:57:28 +0000
+From: Jiaqi Yan <jiaqiyan@google.com>
+Subject: docs-mm-add-enable_soft_offline-sysctl-fix-fix
+Date: Mon, 1 Jul 2024 23:37:55 -0700
 
-Introduce peak and rsvd.peak to v2 to show the historical maximum usage of
-resources, as in some scenarios it is necessary to configure the value of
-max/rsvd.max based on the peak usage of resources.
+there are more blank lines needed
 
-Since HugeTLB doesn't support page reclaim, enforcing the limit at page
-fault time implies that, the application will get SIGBUS signal if it
-tries to fault in HugeTLB pages beyond its limit.  Therefore the
-application needs to know exactly how many HugeTLB pages it uses before
-hand, and the sysadmin needs to make sure that there are enough available
-on the machine for all the users to avoid processes getting SIGBUS.
-
-When running some open-source software, it may not be possible to know the
-exact amount of hugetlb it consumes, so cannot correctly configure the max
-value.  If there is a peak metric, we can run the open-source software
-first and then configure the max based on the peak value.  In cgroup v1,
-the hugetlb controller provides the max_usage_in_bytes and
-rsvd.max_usage_in_bytes interface to display the historical maximum usage,
-so introduce peak and rsvd.peak to v2 to address this issue.
-
-Link: https://lkml.kernel.org/r/20240702125728.2743143-1-xiujianfeng@huawei.com
-Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+Link: https://lkml.kernel.org/r/CACw3F52_obAB742XeDRNun4BHBYtrxtbvp5NkUincXdaob0j1g@mail.gmail.com
+Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    8 ++++++++
- mm/hugetlb_cgroup.c                     |   19 +++++++++++++++++++
- 2 files changed, 27 insertions(+)
+ Documentation/admin-guide/sysctl/vm.rst |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-hugetlb_cgroup-introduce-peak-and-rsvdpeak-to-v2
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -2590,6 +2590,14 @@ HugeTLB Interface Files
-         hugetlb pages of <hugepagesize> in this cgroup.  Only active in
-         use hugetlb pages are included.  The per-node values are in bytes.
+--- a/Documentation/admin-guide/sysctl/vm.rst~docs-mm-add-enable_soft_offline-sysctl-fix-fix
++++ a/Documentation/admin-guide/sysctl/vm.rst
+@@ -299,8 +299,11 @@ the request to soft offline the pages.
  
-+  hugetlb.<hugepagesize>.peak
-+	Show historical maximum usage for "hugepagesize" hugetlb.  It exists
-+        for all the cgroup except root.
+ It is worth mentioning that after setting enable_soft_offline to 0, the
+ following requests to soft offline pages will not be performed:
 +
-+  hugetlb.<hugepagesize>.rsvd.peak
-+	Show historical maximum usage for "hugepagesize" hugetlb reservations.
-+        It exists for all the cgroup except root.
+ - Request to soft offline pages from RAS Correctable Errors Collector.
 +
- Misc
- ----
+ - On ARM, the request to soft offline pages from GHES driver.
++
+ - On PARISC, the request to soft offline pages from Page Deallocation Table.
  
---- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-introduce-peak-and-rsvdpeak-to-v2
-+++ a/mm/hugetlb_cgroup.c
-@@ -583,6 +583,13 @@ static int hugetlb_cgroup_read_u64_max(s
- 		else
- 			seq_printf(seq, "%llu\n", val * PAGE_SIZE);
- 		break;
-+	case RES_RSVD_MAX_USAGE:
-+		counter = &h_cg->rsvd_hugepage[idx];
-+		fallthrough;
-+	case RES_MAX_USAGE:
-+		val = (u64)counter->watermark;
-+		seq_printf(seq, "%llu\n", val * PAGE_SIZE);
-+		break;
- 	default:
- 		BUG();
- 	}
-@@ -739,6 +746,18 @@ static struct cftype hugetlb_dfl_tmpl[]
- 		.seq_show = hugetlb_cgroup_read_u64_max,
- 		.flags = CFTYPE_NOT_ON_ROOT,
- 	},
-+	{
-+		.name = "peak",
-+		.private = RES_MAX_USAGE,
-+		.seq_show = hugetlb_cgroup_read_u64_max,
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+	},
-+	{
-+		.name = "rsvd.peak",
-+		.private = RES_RSVD_MAX_USAGE,
-+		.seq_show = hugetlb_cgroup_read_u64_max,
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+	},
- 	{
- 		.name = "events",
- 		.seq_show = hugetlb_events_show,
+ extfrag_threshold
 _
 
-Patches currently in -mm which might be from xiujianfeng@huawei.com are
+Patches currently in -mm which might be from jiaqiyan@google.com are
 
-mm-memcg-remove-redundant-seq_buf_has_overflowed.patch
-mm-memcg-adjust-the-warning-when-seq_buf-overflows.patch
-mm-hugetlb_cgroup-introduce-peak-and-rsvdpeak-to-v2.patch
+mm-memory-failure-refactor-log-format-in-soft-offline-code.patch
+mm-memory-failure-userspace-controls-soft-offlining-pages.patch
+mm-memory-failure-userspace-controls-soft-offlining-pages-v7.patch
+selftest-mm-test-enable_soft_offline-behaviors.patch
+selftest-mm-test-enable_soft_offline-behaviors-v7.patch
+docs-mm-add-enable_soft_offline-sysctl.patch
+docs-mm-add-enable_soft_offline-sysctl-fix.patch
+docs-mm-add-enable_soft_offline-sysctl-fix-fix.patch
 
