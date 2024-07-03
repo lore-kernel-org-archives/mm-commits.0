@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43351184E
-	for <mm-commits@vger.kernel.org>; Wed,  3 Jul 2024 01:53:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A3EA1FAA
+	for <mm-commits@vger.kernel.org>; Wed,  3 Jul 2024 01:53:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719971597; cv=none; b=BdjcwTjoc92LAogs9Z7Z+B0lkYlSdY6r7PuMFVmfOenoMOp1QDwhDSaZQY34+ZNXlDSRUbpIWqguTyVIgozHZT3/P0HO+Opp3RMZJ7ouVnESyS94yHlsjysbPTptBFUNq9SFYn5IlCpGZRrm2QD7/2YuHuunhpWLoP4qQJ3sSzs=
+	t=1719971599; cv=none; b=Bwxi48NSpHRJsCOHbHx0UTamhG6/qxlkKRFekGWoUXg+Hc+00JcG8yd00nLPReqJ/CEP+kLbkT0YoGgh+L0593fri7VJWCqlom37NH582iAWlsC+O0Llc37e2cUiwKVx7tSzgpb5ieaEfOqgdu3qfEAebf2H7aezQv0GggqyeRo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719971597; c=relaxed/simple;
-	bh=S9gyZPtZmq8rrN1CoSMJ5L1IYGw7/tUN10mQGj+/fxE=;
-	h=Date:To:From:Subject:Message-Id; b=f6HXOymU5wWz5J27lwzRmQET+QQpZ4ojGhdiBISaB9h4yozP032UVuDmttSCDBfMM9pecOIa5Uq64eJqxJNbDQN7EMgz3nTLdlMhemNsYXJGzHuRd0EfIy9Lh3D5h/PvI08giu+5cyQOT9Q7dll+eNmPKypvbMAXe49IV6jcOMw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cFRddNIN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719971599; c=relaxed/simple;
+	bh=m0lD6/Y6awgEY256okg6K/UCAPGuIhEs2Pk9xGLBEDI=;
+	h=Date:To:From:Subject:Message-Id; b=QVsTq1OSB0J9D+YvgGRiDaSMK0MHhxE34uwZxwdk4NaaA9ePnA2kfRxBSTaBcHnIh0Sa5mLFk2WtJcisx+APxiLbTmzBTEDy7hTt9nE5gP/9Pj3AHfTwGOdSPRPv4zsHQiS9GZm+99OQQPTMyT7ha1dwIDM8jlEffqvGi0IIwLg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h+8EU2XP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cFRddNIN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAB20C116B1;
-	Wed,  3 Jul 2024 01:53:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h+8EU2XP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2A99C116B1;
+	Wed,  3 Jul 2024 01:53:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719971596;
-	bh=S9gyZPtZmq8rrN1CoSMJ5L1IYGw7/tUN10mQGj+/fxE=;
+	s=korg; t=1719971598;
+	bh=m0lD6/Y6awgEY256okg6K/UCAPGuIhEs2Pk9xGLBEDI=;
 	h=Date:To:From:Subject:From;
-	b=cFRddNINtcE7jxz1Vj8OT2kFtvy+L4wPJDmGzFCxFPWiDrcw7C4Ejh0ROLTNgPwVE
-	 QMDWyNFTbIf4aUN3nMpcOvTvUMLpEbEXKGi6iEHTsPVx6vjb2M1qJ4IQaEmAe5aSH8
-	 swupXldZoUO9R6nzkUW3no65Vvr7BGLaUO2Uhrfk=
-Date: Tue, 02 Jul 2024 18:53:16 -0700
+	b=h+8EU2XPM8n5s2FyWCDxLYVuX+E9xF+hv8EIRmGJ1TDtkAhciRqPyqaFHrLAeZgwL
+	 07dNQLtBDUSeKO9m+S5O7XOpFp0QppdLbsarhdeWachFYrZoJfyXN44cnq96rZcV1v
+	 FZX/s/A26dfVermE+RrDJxI3wSQfY4FV0hqq0afk=
+Date: Tue, 02 Jul 2024 18:53:18 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,nicolas@fjasle.eu,nathan@kernel.org,masahiroy@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + modpost-meminit-is-not-in-init-section-when-config_memory_hotplug-set.patch added to mm-unstable branch
-Message-Id: <20240703015316.BAB20C116B1@smtp.kernel.org>
+Subject: + mm-page_alloc-put-__free_pages_core-in-__meminit-section.patch added to mm-unstable branch
+Message-Id: <20240703015318.A2A99C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: modpost: .meminit.* is not in init section when CONFIG_MEMORY_HOTPLUG set
+     Subject: mm/page_alloc: put __free_pages_core() in __meminit section
 has been added to the -mm mm-unstable branch.  Its filename is
-     modpost-meminit-is-not-in-init-section-when-config_memory_hotplug-set.patch
+     mm-page_alloc-put-__free_pages_core-in-__meminit-section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/modpost-meminit-is-not-in-init-section-when-config_memory_hotplug-set.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-put-__free_pages_core-in-__meminit-section.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: modpost: .meminit.* is not in init section when CONFIG_MEMORY_HOTPLUG set
-Date: Tue, 2 Jul 2024 23:40:07 +0000
+Subject: mm/page_alloc: put __free_pages_core() in __meminit section
+Date: Tue, 2 Jul 2024 23:40:08 +0000
 
-.meminit.* is not put into init section when CONFIG_MEMORY_HOTPLUG is set,
-since we define MEM_KEEP()/MEM_DISCARD() according to
-CONFIG_MEMORY_HOTPLUG.
+Function __free_pages_core() is only used in bootmem init and hot-add
+memory init path. Let's put it in __meminit section.
 
-Link: https://lkml.kernel.org/r/20240702234008.19101-2-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20240702234008.19101-3-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Masahiro Yamada <masahiroy@kernel.org>
@@ -75,46 +74,20 @@ Cc: Nicolas Schier <nicolas@fjasle.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/mod/modpost.c~modpost-meminit-is-not-in-init-section-when-config_memory_hotplug-set
-+++ a/scripts/mod/modpost.c
-@@ -22,6 +22,7 @@
- #include <errno.h>
- #include "modpost.h"
- #include "../../include/linux/license.h"
-+#include "../../include/generated/autoconf.h"
+--- a/mm/page_alloc.c~mm-page_alloc-put-__free_pages_core-in-__meminit-section
++++ a/mm/page_alloc.c
+@@ -1219,7 +1219,7 @@ static void __free_pages_ok(struct page
+ 	__count_vm_events(PGFREE, 1 << order);
+ }
  
- static bool module_enabled;
- /* Are we using CONFIG_MODVERSIONS? */
-@@ -775,9 +776,14 @@ static void check_section(const char *mo
- 
- 
- 
-+#if defined(CONFIG_MEMORY_HOTPLUG)
-+#define ALL_INIT_DATA_SECTIONS \
-+	".init.setup", ".init.rodata", ".init.data"
-+#else
- #define ALL_INIT_DATA_SECTIONS \
- 	".init.setup", ".init.rodata", ".meminit.rodata", \
- 	".init.data", ".meminit.data"
-+#endif
- 
- #define ALL_PCI_INIT_SECTIONS	\
- 	".pci_fixup_early", ".pci_fixup_header", ".pci_fixup_final", \
-@@ -786,7 +792,11 @@ static void check_section(const char *mo
- 
- #define ALL_XXXINIT_SECTIONS ".meminit.*"
- 
-+#if defined(CONFIG_MEMORY_HOTPLUG)
-+#define ALL_INIT_SECTIONS INIT_SECTIONS
-+#else
- #define ALL_INIT_SECTIONS INIT_SECTIONS, ALL_XXXINIT_SECTIONS
-+#endif
- #define ALL_EXIT_SECTIONS ".exit.*"
- 
- #define DATA_SECTIONS ".data", ".data.rel"
+-void __free_pages_core(struct page *page, unsigned int order,
++void __meminit __free_pages_core(struct page *page, unsigned int order,
+ 		enum meminit_context context)
+ {
+ 	unsigned int nr_pages = 1 << order;
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
