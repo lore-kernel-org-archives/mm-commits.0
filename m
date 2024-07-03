@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F6971514DC
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jul 2024 17:27:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF4E51373
+	for <mm-commits@vger.kernel.org>; Wed,  3 Jul 2024 00:42:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719941234; cv=none; b=Ugs8MHDTMexYPwM9HP8i2hgSkShBQB3RvzCqw8mQO+vVF04b5qgQbwxb47QBdEpsRMtJf9k+0E6rU10m25YuPY8h5UCt5RwOm+d/SBccHuRsBQyl1tN3/dNA8+EoUxiNyXegrkKnE5PvQiEMr3tvMY+KmLPwNMcryW2gkrAzLAM=
+	t=1719967321; cv=none; b=aqH/ZYFTZfDebOE1pagRopTs48kV4HbvEFfnkWLxfTBr/34WN3L2WLSSlgqK4xPzrG4bFJtvjCeI9Crp8OY14P+Rsz2324CjbGzbE/mqDlfG4bzO2Tgg093MSLsl7+MwM8sszt5vFsl9jDYbgd6qDDxhrszYBCe2Yg0U+1F8WZY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719941234; c=relaxed/simple;
-	bh=fgVMtGW7klWlXft89+RTt3T96bk8Ksd9N78/Wpv7VnI=;
-	h=Date:To:From:Subject:Message-Id; b=JGtlY+4MLalPXHR9g46oTD32zvLRjivnqqtyl3SeLHiUuuYA0tzC4aVdsoMcvI6dqiDJci2KfR2dSKi4FZK33/Op95H7vUvaxYzsAGvEl9dXXEf4IKzhhazQL/yM6oWX0zto9co/cxt1isygCzO38iV5RIH0QjF1Nzuy7KON1gU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EEmMa9FI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719967321; c=relaxed/simple;
+	bh=G+5mWsmKeA/FHx5elBcefcmps6tJ0BtEVAzEcWATvmQ=;
+	h=Date:To:From:Subject:Message-Id; b=JTCKMrNwmbmXvVWkUXqVTbgqnHBjeYrD6rZiBD1RFGrei8Ct3rM0VFqQQcUQEKCITAMEBWsj9j6WqugAQdRTYcvlOJbi6QD1pRnd0cETeb0loQUjMNrXzWZEt2alHzcHrJrvbzbc9FGyPjp0GtcXg6S9d8Tgto0+5MwZqBJsXMM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V1w5/hZE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EEmMa9FI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53D91C116B1;
-	Tue,  2 Jul 2024 17:27:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V1w5/hZE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BDB3C116B1;
+	Wed,  3 Jul 2024 00:42:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719941234;
-	bh=fgVMtGW7klWlXft89+RTt3T96bk8Ksd9N78/Wpv7VnI=;
+	s=korg; t=1719967321;
+	bh=G+5mWsmKeA/FHx5elBcefcmps6tJ0BtEVAzEcWATvmQ=;
 	h=Date:To:From:Subject:From;
-	b=EEmMa9FInpoqJdgO9TqLZ+MEbTbofqtdSv3c5XvsNnTUlSdRXrS9CkO4U5x/ZjBwF
-	 UFZvWBv4+wTii8giISgmzhiurLZm/TdczaRzNX+Ox7Bpr/H7MZssy1dhCH4oo0XbI8
-	 /U1g/TfjIIRusMfsNCTBU2nhEm9FndIQ2JkX5v3M=
-Date: Tue, 02 Jul 2024 10:27:13 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,jgg@nvidia.com,christophe.leroy@csgroup.eu,akpm@linux-foundation.org
+	b=V1w5/hZERTI/yjbNcabr1fmWWkrSBhgdQVVVC3yaNzEJuPX4faUunvcIIObaItZaD
+	 XqYYru1EBTr6dz2OghTFoFAMhxz8tR0U9eleFmKKYw5rjZoE3xGlg0PbqnAvP95jRD
+	 toCmXqj+6gVzaI+f1Co1rA9nzFvI4JwlxYx9dGZw=
+Date: Tue, 02 Jul 2024 17:42:00 -0700
+To: mm-commits@vger.kernel.org,vivek.kasireddy@intel.com,lkp@intel.com,kraxel@redhat.com,jgg@nvidia.com,hch@lst.de,david@redhat.com,airlied@redhat.com,shy828301@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-config_arch_has_hugepd.patch added to mm-unstable branch
-Message-Id: <20240702172714.53D91C116B1@smtp.kernel.org>
+Subject: + mm-gup-stop-abusing-try_grab_folio-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240703004201.3BDB3C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove CONFIG_ARCH_HAS_HUGEPD
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-config_arch_has_hugepd.patch
+     Subject: mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-fix
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-gup-stop-abusing-try_grab_folio-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-config_arch_has_hugepd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-stop-abusing-try_grab_folio-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,442 +58,239 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: mm: remove CONFIG_ARCH_HAS_HUGEPD
-Date: Tue, 2 Jul 2024 15:51:35 +0200
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-fix
+Date: Fri, 28 Jun 2024 18:58:14 -0700
 
-powerpc was the only user of CONFIG_ARCH_HAS_HUGEPD and doesn't use it
-anymore, so remove all related code.
+fix implicit declaration of function try_grab_folio_fast
 
-Link: https://lkml.kernel.org/r/4b10c54c794780b955f3ad6c657d0199dd792146.1719928057.git.christophe.leroy@csgroup.eu
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Acked-by: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/CAHbLzkowMSso-4Nufc9hcMehQsK9PNz3OSu-+eniU-2Mm-xjhA@mail.gmail.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202406290729.21FzkVlI-lkp@intel.com/
+Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de> (v6)
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 -
- mm/Kconfig              |   10 -
- mm/gup.c                |  194 --------------------------------------
- mm/pagewalk.c           |   57 -----------
- 4 files changed, 9 insertions(+), 258 deletions(-)
+ mm/gup.c |  192 ++++++++++++++++++++++++++---------------------------
+ 1 file changed, 96 insertions(+), 96 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-remove-config_arch_has_hugepd
-+++ a/include/linux/hugetlb.h
-@@ -20,12 +20,6 @@ struct user_struct;
- struct mmu_gather;
- struct node;
- 
--#ifndef CONFIG_ARCH_HAS_HUGEPD
--typedef struct { unsigned long pd; } hugepd_t;
--#define is_hugepd(hugepd) (0)
--#define __hugepd(x) ((hugepd_t) { (x) })
--#endif
--
- void free_huge_folio(struct folio *folio);
- 
- #ifdef CONFIG_HUGETLB_PAGE
---- a/mm/gup.c~mm-remove-config_arch_has_hugepd
+--- a/mm/gup.c~mm-gup-stop-abusing-try_grab_folio-fix
 +++ a/mm/gup.c
-@@ -462,7 +462,7 @@ static inline void mm_set_has_pinned_fla
+@@ -427,6 +427,102 @@ static int record_subpages(struct page *
  
- #ifdef CONFIG_MMU
- 
--#if defined(CONFIG_ARCH_HAS_HUGEPD) || defined(CONFIG_HAVE_GUP_FAST)
-+#ifdef CONFIG_HAVE_GUP_FAST
- static int record_subpages(struct page *page, unsigned long sz,
- 			   unsigned long addr, unsigned long end,
- 			   struct page **pages)
-@@ -572,154 +572,7 @@ static struct folio *try_grab_folio_fast
- 
- 	return folio;
+ 	return nr;
  }
--#endif	/* CONFIG_ARCH_HAS_HUGEPD || CONFIG_HAVE_GUP_FAST */
--
--#ifdef CONFIG_ARCH_HAS_HUGEPD
--static unsigned long hugepte_addr_end(unsigned long addr, unsigned long end,
--				      unsigned long sz)
--{
--	unsigned long __boundary = (addr + sz) & ~(sz-1);
--	return (__boundary - 1 < end - 1) ? __boundary : end;
--}
--
--/*
-- * Returns 1 if succeeded, 0 if failed, -EMLINK if unshare needed.
++
++/**
++ * try_grab_folio_fast() - Attempt to get or pin a folio in fast path.
++ * @page:  pointer to page to be grabbed
++ * @refs:  the value to (effectively) add to the folio's refcount
++ * @flags: gup flags: these are the FOLL_* flag values.
++ *
++ * "grab" names in this file mean, "look at flags to decide whether to use
++ * FOLL_PIN or FOLL_GET behavior, when incrementing the folio's refcount.
++ *
++ * Either FOLL_PIN or FOLL_GET (or neither) must be set, but not both at the
++ * same time. (That's true throughout the get_user_pages*() and
++ * pin_user_pages*() APIs.) Cases:
++ *
++ *    FOLL_GET: folio's refcount will be incremented by @refs.
++ *
++ *    FOLL_PIN on large folios: folio's refcount will be incremented by
++ *    @refs, and its pincount will be incremented by @refs.
++ *
++ *    FOLL_PIN on single-page folios: folio's refcount will be incremented by
++ *    @refs * GUP_PIN_COUNTING_BIAS.
++ *
++ * Return: The folio containing @page (with refcount appropriately
++ * incremented) for success, or NULL upon failure. If neither FOLL_GET
++ * nor FOLL_PIN was set, that's considered failure, and furthermore,
++ * a likely bug in the caller, so a warning is also emitted.
++ *
++ * It uses add ref unless zero to elevate the folio refcount and must be called
++ * in fast path only.
++ */
++static struct folio *try_grab_folio_fast(struct page *page, int refs,
++					 unsigned int flags)
++{
++	struct folio *folio;
++
++	/* Raise warn if it is not called in fast GUP */
++	VM_WARN_ON_ONCE(!irqs_disabled());
++
++	if (WARN_ON_ONCE((flags & (FOLL_GET | FOLL_PIN)) == 0))
++		return NULL;
++
++	if (unlikely(!(flags & FOLL_PCI_P2PDMA) && is_pci_p2pdma_page(page)))
++		return NULL;
++
++	if (flags & FOLL_GET)
++		return try_get_folio(page, refs);
++
++	/* FOLL_PIN is set */
++
++	/*
++	 * Don't take a pin on the zero page - it's not going anywhere
++	 * and it is used in a *lot* of places.
++	 */
++	if (is_zero_page(page))
++		return page_folio(page);
++
++	folio = try_get_folio(page, refs);
++	if (!folio)
++		return NULL;
++
++	/*
++	 * Can't do FOLL_LONGTERM + FOLL_PIN gup fast path if not in a
++	 * right zone, so fail and let the caller fall back to the slow
++	 * path.
++	 */
++	if (unlikely((flags & FOLL_LONGTERM) &&
++		     !folio_is_longterm_pinnable(folio))) {
++		if (!put_devmap_managed_folio_refs(folio, refs))
++			folio_put_refs(folio, refs);
++		return NULL;
++	}
++
++	/*
++	 * When pinning a large folio, use an exact count to track it.
++	 *
++	 * However, be sure to *also* increment the normal folio
++	 * refcount field at least once, so that the folio really
++	 * is pinned.  That's why the refcount from the earlier
++	 * try_get_folio() is left intact.
++	 */
++	if (folio_test_large(folio))
++		atomic_add(refs, &folio->_pincount);
++	else
++		folio_ref_add(folio,
++				refs * (GUP_PIN_COUNTING_BIAS - 1));
++	/*
++	 * Adjust the pincount before re-checking the PTE for changes.
++	 * This is essentially a smp_mb() and is paired with a memory
++	 * barrier in folio_try_share_anon_rmap_*().
++	 */
++	smp_mb__after_atomic();
++
++	node_stat_mod_folio(folio, NR_FOLL_PIN_ACQUIRED, refs);
++
++	return folio;
++}
+ #endif	/* CONFIG_ARCH_HAS_HUGEPD || CONFIG_HAVE_GUP_FAST */
+ 
+ #ifdef CONFIG_ARCH_HAS_HUGEPD
+@@ -2715,102 +2811,6 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
+  * This code is based heavily on the PowerPC implementation by Nick Piggin.
+  */
+ #ifdef CONFIG_HAVE_GUP_FAST
+-/**
+- * try_grab_folio_fast() - Attempt to get or pin a folio in fast path.
+- * @page:  pointer to page to be grabbed
+- * @refs:  the value to (effectively) add to the folio's refcount
+- * @flags: gup flags: these are the FOLL_* flag values.
 - *
-- * NOTE: for the same entry, gup-fast and gup-slow can return different
-- * results (0 v.s. -EMLINK) depending on whether vma is available.  This is
-- * the expected behavior, where we simply want gup-fast to fallback to
-- * gup-slow to take the vma reference first.
+- * "grab" names in this file mean, "look at flags to decide whether to use
+- * FOLL_PIN or FOLL_GET behavior, when incrementing the folio's refcount.
+- *
+- * Either FOLL_PIN or FOLL_GET (or neither) must be set, but not both at the
+- * same time. (That's true throughout the get_user_pages*() and
+- * pin_user_pages*() APIs.) Cases:
+- *
+- *    FOLL_GET: folio's refcount will be incremented by @refs.
+- *
+- *    FOLL_PIN on large folios: folio's refcount will be incremented by
+- *    @refs, and its pincount will be incremented by @refs.
+- *
+- *    FOLL_PIN on single-page folios: folio's refcount will be incremented by
+- *    @refs * GUP_PIN_COUNTING_BIAS.
+- *
+- * Return: The folio containing @page (with refcount appropriately
+- * incremented) for success, or NULL upon failure. If neither FOLL_GET
+- * nor FOLL_PIN was set, that's considered failure, and furthermore,
+- * a likely bug in the caller, so a warning is also emitted.
+- *
+- * It uses add ref unless zero to elevate the folio refcount and must be called
+- * in fast path only.
 - */
--static int gup_hugepte(struct vm_area_struct *vma, pte_t *ptep, unsigned long sz,
--		       unsigned long addr, unsigned long end, unsigned int flags,
--		       struct page **pages, int *nr, bool fast)
+-static struct folio *try_grab_folio_fast(struct page *page, int refs,
+-					 unsigned int flags)
 -{
--	unsigned long pte_end;
--	struct page *page;
 -	struct folio *folio;
--	pte_t pte;
--	int refs;
 -
--	pte_end = (addr + sz) & ~(sz-1);
--	if (pte_end < end)
--		end = pte_end;
+-	/* Raise warn if it is not called in fast GUP */
+-	VM_WARN_ON_ONCE(!irqs_disabled());
 -
--	pte = huge_ptep_get(vma->vm_mm, addr, ptep);
+-	if (WARN_ON_ONCE((flags & (FOLL_GET | FOLL_PIN)) == 0))
+-		return NULL;
 -
--	if (!pte_access_permitted(pte, flags & FOLL_WRITE))
--		return 0;
+-	if (unlikely(!(flags & FOLL_PCI_P2PDMA) && is_pci_p2pdma_page(page)))
+-		return NULL;
 -
--	/* hugepages are never "special" */
--	VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
+-	if (flags & FOLL_GET)
+-		return try_get_folio(page, refs);
 -
--	page = pte_page(pte);
--	refs = record_subpages(page, sz, addr, end, pages + *nr);
+-	/* FOLL_PIN is set */
 -
--	if (fast) {
--		folio = try_grab_folio_fast(page, refs, flags);
--		if (!folio)
--			return 0;
--	} else {
--		folio = page_folio(page);
--		if (try_grab_folio(folio, refs, flags))
--			return 0;
+-	/*
+-	 * Don't take a pin on the zero page - it's not going anywhere
+-	 * and it is used in a *lot* of places.
+-	 */
+-	if (is_zero_page(page))
+-		return page_folio(page);
+-
+-	folio = try_get_folio(page, refs);
+-	if (!folio)
+-		return NULL;
+-
+-	/*
+-	 * Can't do FOLL_LONGTERM + FOLL_PIN gup fast path if not in a
+-	 * right zone, so fail and let the caller fall back to the slow
+-	 * path.
+-	 */
+-	if (unlikely((flags & FOLL_LONGTERM) &&
+-		     !folio_is_longterm_pinnable(folio))) {
+-		if (!put_devmap_managed_folio_refs(folio, refs))
+-			folio_put_refs(folio, refs);
+-		return NULL;
 -	}
 -
--	if (unlikely(pte_val(pte) != pte_val(ptep_get(ptep)))) {
--		gup_put_folio(folio, refs, flags);
--		return 0;
--	}
+-	/*
+-	 * When pinning a large folio, use an exact count to track it.
+-	 *
+-	 * However, be sure to *also* increment the normal folio
+-	 * refcount field at least once, so that the folio really
+-	 * is pinned.  That's why the refcount from the earlier
+-	 * try_get_folio() is left intact.
+-	 */
+-	if (folio_test_large(folio))
+-		atomic_add(refs, &folio->_pincount);
+-	else
+-		folio_ref_add(folio,
+-				refs * (GUP_PIN_COUNTING_BIAS - 1));
+-	/*
+-	 * Adjust the pincount before re-checking the PTE for changes.
+-	 * This is essentially a smp_mb() and is paired with a memory
+-	 * barrier in folio_try_share_anon_rmap_*().
+-	 */
+-	smp_mb__after_atomic();
 -
--	if (!pte_write(pte) && gup_must_unshare(vma, flags, &folio->page)) {
--		gup_put_folio(folio, refs, flags);
--		return -EMLINK;
--	}
+-	node_stat_mod_folio(folio, NR_FOLL_PIN_ACQUIRED, refs);
 -
--	*nr += refs;
--	folio_set_referenced(folio);
--	return 1;
+-	return folio;
 -}
 -
--/*
-- * NOTE: currently GUP for a hugepd is only possible on hugetlbfs file
-- * systems on Power, which does not have issue with folio writeback against
-- * GUP updates.  When hugepd will be extended to support non-hugetlbfs or
-- * even anonymous memory, we need to do extra check as what we do with most
-- * of the other folios. See writable_file_mapping_allowed() and
-- * gup_fast_folio_allowed() for more information.
-- */
--static int gup_hugepd(struct vm_area_struct *vma, hugepd_t hugepd,
--		      unsigned long addr, unsigned int pdshift,
--		      unsigned long end, unsigned int flags,
--		      struct page **pages, int *nr, bool fast)
--{
--	pte_t *ptep;
--	unsigned long sz = 1UL << hugepd_shift(hugepd);
--	unsigned long next;
--	int ret;
--
--	ptep = hugepte_offset(hugepd, addr, pdshift);
--	do {
--		next = hugepte_addr_end(addr, end, sz);
--		ret = gup_hugepte(vma, ptep, sz, addr, end, flags, pages, nr,
--				  fast);
--		if (ret != 1)
--			return ret;
--	} while (ptep++, addr = next, addr != end);
--
--	return 1;
--}
--
--static struct page *follow_hugepd(struct vm_area_struct *vma, hugepd_t hugepd,
--				  unsigned long addr, unsigned int pdshift,
--				  unsigned int flags,
--				  struct follow_page_context *ctx)
--{
--	struct page *page;
--	struct hstate *h;
--	spinlock_t *ptl;
--	int nr = 0, ret;
--	pte_t *ptep;
--
--	/* Only hugetlb supports hugepd */
--	if (WARN_ON_ONCE(!is_vm_hugetlb_page(vma)))
--		return ERR_PTR(-EFAULT);
--
--	h = hstate_vma(vma);
--	ptep = hugepte_offset(hugepd, addr, pdshift);
--	ptl = huge_pte_lock(h, vma->vm_mm, ptep);
--	ret = gup_hugepd(vma, hugepd, addr, pdshift, addr + PAGE_SIZE,
--			 flags, &page, &nr, false);
--	spin_unlock(ptl);
--
--	if (ret == 1) {
--		/* GUP succeeded */
--		WARN_ON_ONCE(nr != 1);
--		ctx->page_mask = (1U << huge_page_order(h)) - 1;
--		return page;
--	}
--
--	/* ret can be either 0 (translates to NULL) or negative */
--	return ERR_PTR(ret);
--}
--#else /* CONFIG_ARCH_HAS_HUGEPD */
--static inline int gup_hugepd(struct vm_area_struct *vma, hugepd_t hugepd,
--			     unsigned long addr, unsigned int pdshift,
--			     unsigned long end, unsigned int flags,
--			     struct page **pages, int *nr, bool fast)
--{
--	return 0;
--}
--
--static struct page *follow_hugepd(struct vm_area_struct *vma, hugepd_t hugepd,
--				  unsigned long addr, unsigned int pdshift,
--				  unsigned int flags,
--				  struct follow_page_context *ctx)
--{
--	return NULL;
--}
--#endif /* CONFIG_ARCH_HAS_HUGEPD */
--
-+#endif	/* CONFIG_HAVE_GUP_FAST */
- 
- static struct page *no_page_table(struct vm_area_struct *vma,
- 				  unsigned int flags, unsigned long address)
-@@ -1089,9 +942,6 @@ static struct page *follow_pmd_mask(stru
- 		return no_page_table(vma, flags, address);
- 	if (!pmd_present(pmdval))
- 		return no_page_table(vma, flags, address);
--	if (unlikely(is_hugepd(__hugepd(pmd_val(pmdval)))))
--		return follow_hugepd(vma, __hugepd(pmd_val(pmdval)),
--				     address, PMD_SHIFT, flags, ctx);
- 	if (pmd_devmap(pmdval)) {
- 		ptl = pmd_lock(mm, pmd);
- 		page = follow_devmap_pmd(vma, address, pmd, flags, &ctx->pgmap);
-@@ -1142,9 +992,6 @@ static struct page *follow_pud_mask(stru
- 	pud = READ_ONCE(*pudp);
- 	if (!pud_present(pud))
- 		return no_page_table(vma, flags, address);
--	if (unlikely(is_hugepd(__hugepd(pud_val(pud)))))
--		return follow_hugepd(vma, __hugepd(pud_val(pud)),
--				     address, PUD_SHIFT, flags, ctx);
- 	if (pud_leaf(pud)) {
- 		ptl = pud_lock(mm, pudp);
- 		page = follow_huge_pud(vma, address, pudp, flags, ctx);
-@@ -1170,10 +1017,6 @@ static struct page *follow_p4d_mask(stru
- 	p4d = READ_ONCE(*p4dp);
- 	BUILD_BUG_ON(p4d_leaf(p4d));
- 
--	if (unlikely(is_hugepd(__hugepd(p4d_val(p4d)))))
--		return follow_hugepd(vma, __hugepd(p4d_val(p4d)),
--				     address, P4D_SHIFT, flags, ctx);
--
- 	if (!p4d_present(p4d) || p4d_bad(p4d))
- 		return no_page_table(vma, flags, address);
- 
-@@ -1217,10 +1060,7 @@ static struct page *follow_page_mask(str
- 	ctx->page_mask = 0;
- 	pgd = pgd_offset(mm, address);
- 
--	if (unlikely(is_hugepd(__hugepd(pgd_val(*pgd)))))
--		page = follow_hugepd(vma, __hugepd(pgd_val(*pgd)),
--				     address, PGDIR_SHIFT, flags, ctx);
--	else if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
-+	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
- 		page = no_page_table(vma, flags, address);
- 	else
- 		page = follow_p4d_mask(vma, address, pgd, flags, ctx);
-@@ -3362,15 +3202,6 @@ static int gup_fast_pmd_range(pud_t *pud
- 				pages, nr))
- 				return 0;
- 
--		} else if (unlikely(is_hugepd(__hugepd(pmd_val(pmd))))) {
--			/*
--			 * architecture have different format for hugetlbfs
--			 * pmd format and THP pmd format
--			 */
--			if (gup_hugepd(NULL, __hugepd(pmd_val(pmd)), addr,
--				       PMD_SHIFT, next, flags, pages, nr,
--				       true) != 1)
--				return 0;
- 		} else if (!gup_fast_pte_range(pmd, pmdp, addr, next, flags,
- 					       pages, nr))
- 			return 0;
-@@ -3397,11 +3228,6 @@ static int gup_fast_pud_range(p4d_t *p4d
- 			if (!gup_fast_pud_leaf(pud, pudp, addr, next, flags,
- 					       pages, nr))
- 				return 0;
--		} else if (unlikely(is_hugepd(__hugepd(pud_val(pud))))) {
--			if (gup_hugepd(NULL, __hugepd(pud_val(pud)), addr,
--				       PUD_SHIFT, next, flags, pages, nr,
--				       true) != 1)
--				return 0;
- 		} else if (!gup_fast_pmd_range(pudp, pud, addr, next, flags,
- 					       pages, nr))
- 			return 0;
-@@ -3425,13 +3251,8 @@ static int gup_fast_p4d_range(pgd_t *pgd
- 		if (!p4d_present(p4d))
- 			return 0;
- 		BUILD_BUG_ON(p4d_leaf(p4d));
--		if (unlikely(is_hugepd(__hugepd(p4d_val(p4d))))) {
--			if (gup_hugepd(NULL, __hugepd(p4d_val(p4d)), addr,
--				       P4D_SHIFT, next, flags, pages, nr,
--				       true) != 1)
--				return 0;
--		} else if (!gup_fast_pud_range(p4dp, p4d, addr, next, flags,
--					       pages, nr))
-+		if (!gup_fast_pud_range(p4dp, p4d, addr, next, flags,
-+					pages, nr))
- 			return 0;
- 	} while (p4dp++, addr = next, addr != end);
- 
-@@ -3455,11 +3276,6 @@ static void gup_fast_pgd_range(unsigned
- 			if (!gup_fast_pgd_leaf(pgd, pgdp, addr, next, flags,
- 					       pages, nr))
- 				return;
--		} else if (unlikely(is_hugepd(__hugepd(pgd_val(pgd))))) {
--			if (gup_hugepd(NULL, __hugepd(pgd_val(pgd)), addr,
--				       PGDIR_SHIFT, next, flags, pages, nr,
--				       true) != 1)
--				return;
- 		} else if (!gup_fast_p4d_range(pgdp, pgd, addr, next, flags,
- 					       pages, nr))
- 			return;
---- a/mm/Kconfig~mm-remove-config_arch_has_hugepd
-+++ a/mm/Kconfig
-@@ -1126,16 +1126,6 @@ config DMAPOOL_TEST
- config ARCH_HAS_PTE_SPECIAL
- 	bool
- 
--#
--# Some architectures require a special hugepage directory format that is
--# required to support multiple hugepage sizes. For example a4fe3ce76
--# "powerpc/mm: Allow more flexible layouts for hugepage pagetables"
--# introduced it on powerpc.  This allows for a more flexible hugepage
--# pagetable layouts.
--#
--config ARCH_HAS_HUGEPD
--	bool
--
- config MAPPING_DIRTY_HELPERS
-         bool
- 
---- a/mm/pagewalk.c~mm-remove-config_arch_has_hugepd
-+++ a/mm/pagewalk.c
-@@ -73,45 +73,6 @@ static int walk_pte_range(pmd_t *pmd, un
- 	return err;
- }
- 
--#ifdef CONFIG_ARCH_HAS_HUGEPD
--static int walk_hugepd_range(hugepd_t *phpd, unsigned long addr,
--			     unsigned long end, struct mm_walk *walk, int pdshift)
--{
--	int err = 0;
--	const struct mm_walk_ops *ops = walk->ops;
--	int shift = hugepd_shift(*phpd);
--	int page_size = 1 << shift;
--
--	if (!ops->pte_entry)
--		return 0;
--
--	if (addr & (page_size - 1))
--		return 0;
--
--	for (;;) {
--		pte_t *pte;
--
--		spin_lock(&walk->mm->page_table_lock);
--		pte = hugepte_offset(*phpd, addr, pdshift);
--		err = ops->pte_entry(pte, addr, addr + page_size, walk);
--		spin_unlock(&walk->mm->page_table_lock);
--
--		if (err)
--			break;
--		if (addr >= end - page_size)
--			break;
--		addr += page_size;
--	}
--	return err;
--}
--#else
--static int walk_hugepd_range(hugepd_t *phpd, unsigned long addr,
--			     unsigned long end, struct mm_walk *walk, int pdshift)
--{
--	return 0;
--}
--#endif
--
- static int walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
- 			  struct mm_walk *walk)
- {
-@@ -159,10 +120,7 @@ again:
- 		if (walk->vma)
- 			split_huge_pmd(walk->vma, pmd, addr);
- 
--		if (is_hugepd(__hugepd(pmd_val(*pmd))))
--			err = walk_hugepd_range((hugepd_t *)pmd, addr, next, walk, PMD_SHIFT);
--		else
--			err = walk_pte_range(pmd, addr, next, walk);
-+		err = walk_pte_range(pmd, addr, next, walk);
- 		if (err)
- 			break;
- 
-@@ -215,10 +173,7 @@ static int walk_pud_range(p4d_t *p4d, un
- 		if (pud_none(*pud))
- 			goto again;
- 
--		if (is_hugepd(__hugepd(pud_val(*pud))))
--			err = walk_hugepd_range((hugepd_t *)pud, addr, next, walk, PUD_SHIFT);
--		else
--			err = walk_pmd_range(pud, addr, next, walk);
-+		err = walk_pmd_range(pud, addr, next, walk);
- 		if (err)
- 			break;
- 	} while (pud++, addr = next, addr != end);
-@@ -250,9 +205,7 @@ static int walk_p4d_range(pgd_t *pgd, un
- 			if (err)
- 				break;
- 		}
--		if (is_hugepd(__hugepd(p4d_val(*p4d))))
--			err = walk_hugepd_range((hugepd_t *)p4d, addr, next, walk, P4D_SHIFT);
--		else if (ops->pud_entry || ops->pmd_entry || ops->pte_entry)
-+		if (ops->pud_entry || ops->pmd_entry || ops->pte_entry)
- 			err = walk_pud_range(p4d, addr, next, walk);
- 		if (err)
- 			break;
-@@ -287,9 +240,7 @@ static int walk_pgd_range(unsigned long
- 			if (err)
- 				break;
- 		}
--		if (is_hugepd(__hugepd(pgd_val(*pgd))))
--			err = walk_hugepd_range((hugepd_t *)pgd, addr, next, walk, PGDIR_SHIFT);
--		else if (ops->p4d_entry || ops->pud_entry || ops->pmd_entry || ops->pte_entry)
-+		if (ops->p4d_entry || ops->pud_entry || ops->pmd_entry || ops->pte_entry)
- 			err = walk_p4d_range(pgd, addr, next, walk);
- 		if (err)
- 			break;
+ /*
+  * Used in the GUP-fast path to determine whether GUP is permitted to work on
+  * a specific folio.
 _
 
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
+Patches currently in -mm which might be from shy828301@gmail.com are
 
-mm-define-__pte_leaf_size-to-also-take-a-pmd-entry.patch
-mm-provide-mm_struct-and-address-to-huge_ptep_get.patch
-powerpc-mm-remove-_page_psize.patch
-powerpc-mm-fix-__find_linux_pte-on-32-bits-with-pmd-leaf-entries.patch
-powerpc-mm-allow-hugepages-without-hugepd.patch
-powerpc-8xx-fix-size-given-to-set_huge_pte_at.patch
-powerpc-8xx-rework-support-for-8m-pages-using-contiguous-pte-entries.patch
-powerpc-8xx-simplify-struct-mmu_psize_def.patch
-powerpc-e500-remove-enc-and-ind-fields-from-struct-mmu_psize_def.patch
-powerpc-e500-switch-to-64-bits-pgd-on-85xx-32-bits.patch
-powerpc-e500-encode-hugepage-size-in-pte-bits.patch
-powerpc-e500-dont-pre-check-write-access-on-data-tlb-error.patch
-powerpc-e500-free-r10-for-find_pte.patch
-powerpc-e500-use-contiguous-pmd-instead-of-hugepd.patch
-powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd.patch
-powerpc-mm-remove-hugepd-leftovers.patch
-mm-remove-config_arch_has_hugepd.patch
+mm-gup-stop-abusing-try_grab_folio-fix.patch
 
