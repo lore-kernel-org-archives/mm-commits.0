@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26372623
-	for <mm-commits@vger.kernel.org>; Wed,  3 Jul 2024 00:43:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 526F58F40
+	for <mm-commits@vger.kernel.org>; Wed,  3 Jul 2024 01:53:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719967421; cv=none; b=tu5LAxLBcX5/lEIKqelyF04lByYI2LOzxnQ7TIZb8zkZeYSw9nzG6zaM3059+xMtGuSVPeOlFBVw+gyD1Luofi9ogwHah1ycDPoIwQjY83vYo73GxLwve8qPJhMXQAvIzTiLmDx4Uu/Ou6eAMi+ofxTz+/uErjMNupilAb4pgZU=
+	t=1719971595; cv=none; b=h2V+70PQojOYX7GxWnLremFTH+brvW/ZeNjkfbTJwz5cCtgRF0XEq3Nb82QXHDwVtGlosbD4Ufi5/TOd35oCcy99Ati8qzg+VrFObwIaolFVxFnTBaJlw4q3wkmaDba7fOWHuPee6FtAtHf+ponfuDVZ1+zHsN5IJe2veBnXMfo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719967421; c=relaxed/simple;
-	bh=KNdcYLwMrVDSq37q76QvO2HXT6QIXVyI7IpAFhIZYSE=;
-	h=Date:To:From:Subject:Message-Id; b=k3m6E/BRLZcwjyD7qRLaIFvfvskbUfxK0VkWfMxh3lRrSbDNJ5Vf+ajA/TXLqmSJCUWS7mfK/GwDyky444mxgsj3Dz36txzyzMRVZ9nKK6qaP799z9JriD3hxEEymDLA1/7/2H0Wrp2HuAGekzDb7yk5QLW0r5W3Fa0EPq4FCrY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V2k+YBGY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719971595; c=relaxed/simple;
+	bh=bTURzG4zr1WKfLleteLiQA9iymac1SDOlXfQ+gnK7rE=;
+	h=Date:To:From:Subject:Message-Id; b=tfUzlyRokkpPkwO0GeF26wkl0gKsGSLqWudT3lW2chXj8umPPmf+mZTF87j9SFMMdSGJhEoBDDSCJITEHXRxZr7dzItDJ2wvuClt4DvcLu1z//QLAjBo4raEHj0JR+n+xHqpb1MHMPW6oLBwWJyfU6nMg9E0B9HNO8BmqUN0YLE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FtMPOauo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V2k+YBGY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A34BDC116B1;
-	Wed,  3 Jul 2024 00:43:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FtMPOauo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4146C116B1;
+	Wed,  3 Jul 2024 01:53:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1719967420;
-	bh=KNdcYLwMrVDSq37q76QvO2HXT6QIXVyI7IpAFhIZYSE=;
+	s=korg; t=1719971594;
+	bh=bTURzG4zr1WKfLleteLiQA9iymac1SDOlXfQ+gnK7rE=;
 	h=Date:To:From:Subject:From;
-	b=V2k+YBGY9ZbpZNA2zPlonxP1jEsF70b+jEXMQHIODk2lm929ScVx8R/AqmTSLze9P
-	 Kd3TpirV+PB7tJAHo3GB7b91u9vsCmWsGdCZV+f1cP5GOk4bZCG4q1OlIPp6IRyxtM
-	 1EKkw032Bf/Nke9hBmVacKpSGhDlM7sV5FREiWkw=
-Date: Tue, 02 Jul 2024 17:43:40 -0700
-To: mm-commits@vger.kernel.org,quic_jjohnson@quicinc.com,akpm@linux-foundation.org
+	b=FtMPOauoB3Ggg65b0T6LIBKL0Rj+vSZ8Z/VJ8fBEE76WreWYoHeLBH5ujxL33UTOp
+	 klaUx3PNq0++Hvn0x8bfC5Y885zJ2b3j6P+LHlbfvninA+GVw3DDJ4NGsyVfxCS374
+	 Zm6IQbvTDbqFscddzOZCgZom9pzTSGx1SAY22SfE=
+Date: Tue, 02 Jul 2024 18:53:14 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,nicolas@fjasle.eu,nathan@kernel.org,masahiroy@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + math-rational-add-missing-module_description-macro.patch added to mm-nonmm-unstable branch
-Message-Id: <20240703004340.A34BDC116B1@smtp.kernel.org>
+Subject: + mm-use-zonelist_zone-to-get-zone.patch added to mm-unstable branch
+Message-Id: <20240703015314.D4146C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: math: rational: add missing MODULE_DESCRIPTION() macro
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     math-rational-add-missing-module_description-macro.patch
+     Subject: mm: use zonelist_zone() to get zone
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-use-zonelist_zone-to-get-zone.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/math-rational-add-missing-module_description-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-zonelist_zone-to-get-zone.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,36 +58,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jeff Johnson <quic_jjohnson@quicinc.com>
-Subject: math: rational: add missing MODULE_DESCRIPTION() macro
-Date: Tue, 2 Jul 2024 15:47:59 -0700
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm: use zonelist_zone() to get zone
+Date: Tue, 2 Jul 2024 23:40:06 +0000
 
-With ARCH=sh, make allmodconfig && make W=1 C=1 reports: WARNING: modpost:
-missing MODULE_DESCRIPTION() in lib/math/rational.o
+Instead of accessing zoneref->zone directly, use zonelist_zone() like
+other places for consistency.
 
-Add the missing invocation of the MODULE_DESCRIPTION() macro.
+No functional change.
 
-Link: https://lkml.kernel.org/r/20240702-md-sh-lib-math-v1-1-93f4ac4fa8fd@quicinc.com
-Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
+Link: https://lkml.kernel.org/r/20240702234008.19101-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nicolas Schier <nicolas@fjasle.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/math/rational.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/mmzone.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/math/rational.c~math-rational-add-missing-module_description-macro
-+++ a/lib/math/rational.c
-@@ -108,4 +108,5 @@ void rational_best_approximation(
+--- a/include/linux/mmzone.h~mm-use-zonelist_zone-to-get-zone
++++ a/include/linux/mmzone.h
+@@ -1690,7 +1690,7 @@ static inline struct zoneref *first_zone
+ 			zone = zonelist_zone(z))
  
- EXPORT_SYMBOL(rational_best_approximation);
- 
-+MODULE_DESCRIPTION("Rational fraction support library");
- MODULE_LICENSE("GPL v2");
+ #define for_next_zone_zonelist_nodemask(zone, z, highidx, nodemask) \
+-	for (zone = z->zone;	\
++	for (zone = zonelist_zone(z);	\
+ 		zone;							\
+ 		z = next_zones_zonelist(++z, highidx, nodemask),	\
+ 			zone = zonelist_zone(z))
 _
 
-Patches currently in -mm which might be from quic_jjohnson@quicinc.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-fs-ufs-add-module_description.patch
-lib-zlib-add-missing-module_description-macro.patch
-math-rational-add-missing-module_description-macro.patch
+kernel-forkc-get-totalram_pages-from-memblock-to-calculate-max_threads.patch
+kernel-forkc-put-set_max_threads-task_struct_whitelist-in-__init-section.patch
+mm-page_alloc-remove-prefetchw-on-freeing-page-to-buddy-system.patch
+mm-use-zonelist_zone-to-get-zone.patch
+modpost-meminit-is-not-in-init-section-when-config_memory_hotplug-set.patch
+mm-page_alloc-put-__free_pages_core-in-__meminit-section.patch
 
