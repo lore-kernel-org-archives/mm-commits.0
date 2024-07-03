@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E3411836D0;
-	Wed,  3 Jul 2024 20:08:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B80434964E
+	for <mm-commits@vger.kernel.org>; Wed,  3 Jul 2024 20:32:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720037334; cv=none; b=BXEOHaiP5dqe+B/lBj8PxrDovIZtUqjoX8sOn7dp8/ZOVfXTCuNQ3+VvBWecWvK/ajTGzeUS2uAcDIHl6kQm6uq/AHdNAQ8cAzew9Ymc4DljZgjMTU01e8HoJIR0jBC41nHXj47f2Bg+bvO2gEUR+O6HYQyfhLioEeLTmcpGgMI=
+	t=1720038737; cv=none; b=qPV1IuElDN4APoVsTZfIjvr3KV0WozbRWsi5dowBJ5mK0hWDX76TGpGyTH9snJCVY7ASKyEivYO+hgaNm7e5BDn4STWMuDunwaxXdAjq+jTmguTj6wf/uaDS8+9dUdgpFBw3Eqv0FYwsFnG28XG3vhRia8XYb3EAX2qk+6Vc3PE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720037334; c=relaxed/simple;
-	bh=DVox1BhYmlVSGINFvKZZZongePGMtgf0FVx0De/8DsA=;
-	h=Date:To:From:Subject:Message-Id; b=sa2t+iJ/uhKwoaFOnoSnUCByJobw2gv1x4NOyluvf2ATfmm5SYs3SN57v8MFFCDLWbji1tHNGBqCB+629n9TToX6KIilQ3WBmRYnHVD26/YmnZkgO1BqH7XU14Qtdlz16haEOdjpNYYAvztpA7aJMYpR2tCfncYko0VmqAybtm8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aPnTg+dS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720038737; c=relaxed/simple;
+	bh=1Gy+Rkv6fHCnn90DlQRVsWHged07MHKU9hTO2Ymnvdc=;
+	h=Date:To:From:Subject:Message-Id; b=tyic18sirOnNiMQ/kD3a1lfQGFz3A1VeXrAuX+dF9nUDJ8w/rv3V7NmLVcPeRVsLLUP0E5P23xaHknQArl7ZVeVH/gmSXLRBaScnv5xnuS2Q1cKXqOqUhuaejzLPrQX2Np9Hz5u+HOdD17rGVaXMdskaW6GuYI0R2lvcEYQ0Q2E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TvT0v+eM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aPnTg+dS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C015AC2BD10;
-	Wed,  3 Jul 2024 20:08:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TvT0v+eM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24F3DC2BD10;
+	Wed,  3 Jul 2024 20:32:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720037333;
-	bh=DVox1BhYmlVSGINFvKZZZongePGMtgf0FVx0De/8DsA=;
+	s=korg; t=1720038737;
+	bh=1Gy+Rkv6fHCnn90DlQRVsWHged07MHKU9hTO2Ymnvdc=;
 	h=Date:To:From:Subject:From;
-	b=aPnTg+dSCrzxfRtuNW3ZwuhTWQnZrn+db6w2fLc6s+eOp8yyQUqPhooAkg19L75ep
-	 9xgytRvdm0BzTeu2Z7LfUrZpsgajrd5aeOYi/IgrhZHtwcfhzqpJ8U8s2E25RviSMy
-	 dVMPHHhbdX2YKW44mpQgChPeDYJfMHDUpT5USDUw=
-Date: Wed, 03 Jul 2024 13:08:53 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,david@redhat.com,baolin.wang@linux.alibaba.com,aneesh.kumar@linux.ibm.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
+	b=TvT0v+eMgb0FU0OSzu/shAbb+RHezTZa+4FPeCxKPpUOtiHxZpwnUGce9h4zah4FT
+	 mEKxVcM48qY06a1HBxN0X0TnFnIk9pw7P1JuZvgSUL6xHAa4hY3LxRBDWT+qnRCZsM
+	 Om2dh6gFAztRze+rIey4AUMV5L7RpExBJOb0CsJ0=
+Date: Wed, 03 Jul 2024 13:32:16 -0700
+To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,maarten.lankhorst@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240703200853.C015AC2BD10@smtp.kernel.org>
+Subject: + mm-page_counter-move-calculating-protection-values-to-page_counter.patch added to mm-unstable branch
+Message-Id: <20240703203217.24F3DC2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: clear the LRU flag of a page before adding to LRU batch
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch
+     Subject: mm/page_counter: move calculating protection values to page_counter
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_counter-move-calculating-protection-values-to-page_counter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_counter-move-calculating-protection-values-to-page_counter.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,150 +58,398 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: yangge <yangge1116@126.com>
-Subject: mm/gup: clear the LRU flag of a page before adding to LRU batch
-Date: Wed, 3 Jul 2024 20:02:33 +0800
+From: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Subject: mm/page_counter: move calculating protection values to page_counter
+Date: Wed, 3 Jul 2024 13:25:10 +0200
 
-If a large number of CMA memory are configured in system (for example, the
-CMA memory accounts for 50% of the system memory), starting a virtual
-virtual machine with device passthrough, it will call
-pin_user_pages_remote(..., FOLL_LONGTERM, ...) to pin memory.  Normally if
-a page is present and in CMA area, pin_user_pages_remote() will migrate
-the page from CMA area to non-CMA area because of FOLL_LONGTERM flag.  But
-the current code will cause the migration failure due to unexpected page
-refcounts, and will eventually cause the virtual machine to fail to start.
+It's a lot of math, and there is nothing memcontrol specific about it. 
+This makes it easier to use inside of the drm cgroup controller.
 
-If a page is added in LRU batch, its refcount increases one, remove the
-page from LRU batch decreases one.  Page migration requires the page is
-not referenced by others except page mapping.  Before migrating a page, we
-should try to drain the page from LRU batch in case the page is in it,
-however, folio_test_lru() is not sufficient to tell whether the page is in
-LRU batch or not, if the page is in LRU batch, the migration will fail.
-
-To solve the problem above, we modify the logic of adding to LRU batch. 
-Before adding a page to LRU batch, we clear the LRU flag of the page so
-that we can check whether the page is in LRU batch with
-folio_test_lru(page).  Seems making the LRU flag of the page invisible a
-long time is no problem, because a new page is allocated from buddy and
-added to the lru batch, its LRU flag is also not visible for a long time.
-
-Link: https://lkml.kernel.org/r/1720008153-16035-1-git-send-email-yangge1116@126.com
-Fixes: 9a4e9f3b2d73 ("mm: update get_user_pages_longterm to migrate pages allocated from CMA region")
-Signed-off-by: yangge <yangge1116@126.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240703112510.36424-1-maarten.lankhorst@linux.intel.com
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   43 +++++++++++++++++++++++++++++++------------
- 1 file changed, 31 insertions(+), 12 deletions(-)
+ include/linux/page_counter.h |    4 
+ mm/memcontrol.c              |  154 -----------------------------
+ mm/page_counter.c            |  173 +++++++++++++++++++++++++++++++++
+ 3 files changed, 180 insertions(+), 151 deletions(-)
 
---- a/mm/swap.c~mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch
-+++ a/mm/swap.c
-@@ -212,10 +212,6 @@ static void folio_batch_move_lru(struct
- 	for (i = 0; i < folio_batch_count(fbatch); i++) {
- 		struct folio *folio = fbatch->folios[i];
+--- a/include/linux/page_counter.h~mm-page_counter-move-calculating-protection-values-to-page_counter
++++ a/include/linux/page_counter.h
+@@ -81,4 +81,8 @@ static inline void page_counter_reset_wa
+ 	counter->watermark = page_counter_read(counter);
+ }
  
--		/* block memcg migration while the folio moves between lru */
--		if (move_fn != lru_add_fn && !folio_test_clear_lru(folio))
--			continue;
++void page_counter_calculate_protection(struct page_counter *root,
++				       struct page_counter *counter,
++				       bool recursive_protection);
++
+ #endif /* _LINUX_PAGE_COUNTER_H */
+--- a/mm/memcontrol.c~mm-page_counter-move-calculating-protection-values-to-page_counter
++++ a/mm/memcontrol.c
+@@ -4428,122 +4428,6 @@ struct cgroup_subsys memory_cgrp_subsys
+ 	.early_init = 0,
+ };
+ 
+-/*
+- * This function calculates an individual cgroup's effective
+- * protection which is derived from its own memory.min/low, its
+- * parent's and siblings' settings, as well as the actual memory
+- * distribution in the tree.
+- *
+- * The following rules apply to the effective protection values:
+- *
+- * 1. At the first level of reclaim, effective protection is equal to
+- *    the declared protection in memory.min and memory.low.
+- *
+- * 2. To enable safe delegation of the protection configuration, at
+- *    subsequent levels the effective protection is capped to the
+- *    parent's effective protection.
+- *
+- * 3. To make complex and dynamic subtrees easier to configure, the
+- *    user is allowed to overcommit the declared protection at a given
+- *    level. If that is the case, the parent's effective protection is
+- *    distributed to the children in proportion to how much protection
+- *    they have declared and how much of it they are utilizing.
+- *
+- *    This makes distribution proportional, but also work-conserving:
+- *    if one cgroup claims much more protection than it uses memory,
+- *    the unused remainder is available to its siblings.
+- *
+- * 4. Conversely, when the declared protection is undercommitted at a
+- *    given level, the distribution of the larger parental protection
+- *    budget is NOT proportional. A cgroup's protection from a sibling
+- *    is capped to its own memory.min/low setting.
+- *
+- * 5. However, to allow protecting recursive subtrees from each other
+- *    without having to declare each individual cgroup's fixed share
+- *    of the ancestor's claim to protection, any unutilized -
+- *    "floating" - protection from up the tree is distributed in
+- *    proportion to each cgroup's *usage*. This makes the protection
+- *    neutral wrt sibling cgroups and lets them compete freely over
+- *    the shared parental protection budget, but it protects the
+- *    subtree as a whole from neighboring subtrees.
+- *
+- * Note that 4. and 5. are not in conflict: 4. is about protecting
+- * against immediate siblings whereas 5. is about protecting against
+- * neighboring subtrees.
+- */
+-static unsigned long effective_protection(unsigned long usage,
+-					  unsigned long parent_usage,
+-					  unsigned long setting,
+-					  unsigned long parent_effective,
+-					  unsigned long siblings_protected)
+-{
+-	unsigned long protected;
+-	unsigned long ep;
 -
- 		folio_lruvec_relock_irqsave(folio, &lruvec, &flags);
- 		move_fn(lruvec, folio);
- 
-@@ -256,11 +252,16 @@ static void lru_move_tail_fn(struct lruv
- void folio_rotate_reclaimable(struct folio *folio)
+-	protected = min(usage, setting);
+-	/*
+-	 * If all cgroups at this level combined claim and use more
+-	 * protection than what the parent affords them, distribute
+-	 * shares in proportion to utilization.
+-	 *
+-	 * We are using actual utilization rather than the statically
+-	 * claimed protection in order to be work-conserving: claimed
+-	 * but unused protection is available to siblings that would
+-	 * otherwise get a smaller chunk than what they claimed.
+-	 */
+-	if (siblings_protected > parent_effective)
+-		return protected * parent_effective / siblings_protected;
+-
+-	/*
+-	 * Ok, utilized protection of all children is within what the
+-	 * parent affords them, so we know whatever this child claims
+-	 * and utilizes is effectively protected.
+-	 *
+-	 * If there is unprotected usage beyond this value, reclaim
+-	 * will apply pressure in proportion to that amount.
+-	 *
+-	 * If there is unutilized protection, the cgroup will be fully
+-	 * shielded from reclaim, but we do return a smaller value for
+-	 * protection than what the group could enjoy in theory. This
+-	 * is okay. With the overcommit distribution above, effective
+-	 * protection is always dependent on how memory is actually
+-	 * consumed among the siblings anyway.
+-	 */
+-	ep = protected;
+-
+-	/*
+-	 * If the children aren't claiming (all of) the protection
+-	 * afforded to them by the parent, distribute the remainder in
+-	 * proportion to the (unprotected) memory of each cgroup. That
+-	 * way, cgroups that aren't explicitly prioritized wrt each
+-	 * other compete freely over the allowance, but they are
+-	 * collectively protected from neighboring trees.
+-	 *
+-	 * We're using unprotected memory for the weight so that if
+-	 * some cgroups DO claim explicit protection, we don't protect
+-	 * the same bytes twice.
+-	 *
+-	 * Check both usage and parent_usage against the respective
+-	 * protected values. One should imply the other, but they
+-	 * aren't read atomically - make sure the division is sane.
+-	 */
+-	if (!(cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_RECURSIVE_PROT))
+-		return ep;
+-	if (parent_effective > siblings_protected &&
+-	    parent_usage > siblings_protected &&
+-	    usage > protected) {
+-		unsigned long unclaimed;
+-
+-		unclaimed = parent_effective - siblings_protected;
+-		unclaimed *= usage - protected;
+-		unclaimed /= parent_usage - siblings_protected;
+-
+-		ep += unclaimed;
+-	}
+-
+-	return ep;
+-}
+-
+ /**
+  * mem_cgroup_calculate_protection - check if memory consumption is in the normal range
+  * @root: the top ancestor of the sub-tree being checked
+@@ -4555,8 +4439,8 @@ static unsigned long effective_protectio
+ void mem_cgroup_calculate_protection(struct mem_cgroup *root,
+ 				     struct mem_cgroup *memcg)
  {
- 	if (!folio_test_locked(folio) && !folio_test_dirty(folio) &&
--	    !folio_test_unevictable(folio) && folio_test_lru(folio)) {
-+	    !folio_test_unevictable(folio)) {
- 		struct folio_batch *fbatch;
- 		unsigned long flags;
+-	unsigned long usage, parent_usage;
+-	struct mem_cgroup *parent;
++	bool recursive_protection =
++		cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_RECURSIVE_PROT;
  
- 		folio_get(folio);
-+		if (!folio_test_clear_lru(folio)) {
-+			folio_put(folio);
-+			return;
-+		}
-+
- 		local_lock_irqsave(&lru_rotate.lock, flags);
- 		fbatch = this_cpu_ptr(&lru_rotate.fbatch);
- 		folio_batch_add_and_move(fbatch, folio, lru_move_tail_fn);
-@@ -353,11 +354,15 @@ static void folio_activate_drain(int cpu
- 
- void folio_activate(struct folio *folio)
- {
--	if (folio_test_lru(folio) && !folio_test_active(folio) &&
--	    !folio_test_unevictable(folio)) {
-+	if (!folio_test_active(folio) && !folio_test_unevictable(folio)) {
- 		struct folio_batch *fbatch;
- 
- 		folio_get(folio);
-+		if (!folio_test_clear_lru(folio)) {
-+			folio_put(folio);
-+			return;
-+		}
-+
- 		local_lock(&cpu_fbatches.lock);
- 		fbatch = this_cpu_ptr(&cpu_fbatches.activate);
- 		folio_batch_add_and_move(fbatch, folio, folio_activate_fn);
-@@ -701,6 +706,11 @@ void deactivate_file_folio(struct folio
+ 	if (mem_cgroup_disabled())
  		return;
+@@ -4564,39 +4448,7 @@ void mem_cgroup_calculate_protection(str
+ 	if (!root)
+ 		root = root_mem_cgroup;
  
- 	folio_get(folio);
-+	if (!folio_test_clear_lru(folio)) {
-+		folio_put(folio);
+-	/*
+-	 * Effective values of the reclaim targets are ignored so they
+-	 * can be stale. Have a look at mem_cgroup_protection for more
+-	 * details.
+-	 * TODO: calculation should be more robust so that we do not need
+-	 * that special casing.
+-	 */
+-	if (memcg == root)
+-		return;
+-
+-	usage = page_counter_read(&memcg->memory);
+-	if (!usage)
+-		return;
+-
+-	parent = parent_mem_cgroup(memcg);
+-
+-	if (parent == root) {
+-		memcg->memory.emin = READ_ONCE(memcg->memory.min);
+-		memcg->memory.elow = READ_ONCE(memcg->memory.low);
+-		return;
+-	}
+-
+-	parent_usage = page_counter_read(&parent->memory);
+-
+-	WRITE_ONCE(memcg->memory.emin, effective_protection(usage, parent_usage,
+-			READ_ONCE(memcg->memory.min),
+-			READ_ONCE(parent->memory.emin),
+-			atomic_long_read(&parent->memory.children_min_usage)));
+-
+-	WRITE_ONCE(memcg->memory.elow, effective_protection(usage, parent_usage,
+-			READ_ONCE(memcg->memory.low),
+-			READ_ONCE(parent->memory.elow),
+-			atomic_long_read(&parent->memory.children_low_usage)));
++	page_counter_calculate_protection(&root->memory, &memcg->memory, recursive_protection);
+ }
+ 
+ static int charge_memcg(struct folio *folio, struct mem_cgroup *memcg,
+--- a/mm/page_counter.c~mm-page_counter-move-calculating-protection-values-to-page_counter
++++ a/mm/page_counter.c
+@@ -262,3 +262,176 @@ int page_counter_memparse(const char *bu
+ 
+ 	return 0;
+ }
++
++
++/*
++ * This function calculates an individual page counter's effective
++ * protection which is derived from its own memory.min/low, its
++ * parent's and siblings' settings, as well as the actual memory
++ * distribution in the tree.
++ *
++ * The following rules apply to the effective protection values:
++ *
++ * 1. At the first level of reclaim, effective protection is equal to
++ *    the declared protection in memory.min and memory.low.
++ *
++ * 2. To enable safe delegation of the protection configuration, at
++ *    subsequent levels the effective protection is capped to the
++ *    parent's effective protection.
++ *
++ * 3. To make complex and dynamic subtrees easier to configure, the
++ *    user is allowed to overcommit the declared protection at a given
++ *    level. If that is the case, the parent's effective protection is
++ *    distributed to the children in proportion to how much protection
++ *    they have declared and how much of it they are utilizing.
++ *
++ *    This makes distribution proportional, but also work-conserving:
++ *    if one counter claims much more protection than it uses memory,
++ *    the unused remainder is available to its siblings.
++ *
++ * 4. Conversely, when the declared protection is undercommitted at a
++ *    given level, the distribution of the larger parental protection
++ *    budget is NOT proportional. A counter's protection from a sibling
++ *    is capped to its own memory.min/low setting.
++ *
++ * 5. However, to allow protecting recursive subtrees from each other
++ *    without having to declare each individual counter's fixed share
++ *    of the ancestor's claim to protection, any unutilized -
++ *    "floating" - protection from up the tree is distributed in
++ *    proportion to each counter's *usage*. This makes the protection
++ *    neutral wrt sibling cgroups and lets them compete freely over
++ *    the shared parental protection budget, but it protects the
++ *    subtree as a whole from neighboring subtrees.
++ *
++ * Note that 4. and 5. are not in conflict: 4. is about protecting
++ * against immediate siblings whereas 5. is about protecting against
++ * neighboring subtrees.
++ */
++static unsigned long effective_protection(unsigned long usage,
++					  unsigned long parent_usage,
++					  unsigned long setting,
++					  unsigned long parent_effective,
++					  unsigned long siblings_protected,
++					  bool recursive_protection)
++{
++	unsigned long protected;
++	unsigned long ep;
++
++	protected = min(usage, setting);
++	/*
++	 * If all cgroups at this level combined claim and use more
++	 * protection than what the parent affords them, distribute
++	 * shares in proportion to utilization.
++	 *
++	 * We are using actual utilization rather than the statically
++	 * claimed protection in order to be work-conserving: claimed
++	 * but unused protection is available to siblings that would
++	 * otherwise get a smaller chunk than what they claimed.
++	 */
++	if (siblings_protected > parent_effective)
++		return protected * parent_effective / siblings_protected;
++
++	/*
++	 * Ok, utilized protection of all children is within what the
++	 * parent affords them, so we know whatever this child claims
++	 * and utilizes is effectively protected.
++	 *
++	 * If there is unprotected usage beyond this value, reclaim
++	 * will apply pressure in proportion to that amount.
++	 *
++	 * If there is unutilized protection, the cgroup will be fully
++	 * shielded from reclaim, but we do return a smaller value for
++	 * protection than what the group could enjoy in theory. This
++	 * is okay. With the overcommit distribution above, effective
++	 * protection is always dependent on how memory is actually
++	 * consumed among the siblings anyway.
++	 */
++	ep = protected;
++
++	/*
++	 * If the children aren't claiming (all of) the protection
++	 * afforded to them by the parent, distribute the remainder in
++	 * proportion to the (unprotected) memory of each cgroup. That
++	 * way, cgroups that aren't explicitly prioritized wrt each
++	 * other compete freely over the allowance, but they are
++	 * collectively protected from neighboring trees.
++	 *
++	 * We're using unprotected memory for the weight so that if
++	 * some cgroups DO claim explicit protection, we don't protect
++	 * the same bytes twice.
++	 *
++	 * Check both usage and parent_usage against the respective
++	 * protected values. One should imply the other, but they
++	 * aren't read atomically - make sure the division is sane.
++	 */
++	if (!recursive_protection)
++		return ep;
++
++	if (parent_effective > siblings_protected &&
++	    parent_usage > siblings_protected &&
++	    usage > protected) {
++		unsigned long unclaimed;
++
++		unclaimed = parent_effective - siblings_protected;
++		unclaimed *= usage - protected;
++		unclaimed /= parent_usage - siblings_protected;
++
++		ep += unclaimed;
++	}
++
++	return ep;
++}
++
++
++/**
++ * page_counter_calculate_protection - check if memory consumption is in the normal range
++ * @root: the top ancestor of the sub-tree being checked
++ * @memcg: the memory cgroup to check
++ * @recursive_protection: Whether to use memory_recursiveprot behavior.
++ *
++ * Calculates elow/emin thresholds for given page_counter.
++ *
++ * WARNING: This function is not stateless! It can only be used as part
++ *          of a top-down tree iteration, not for isolated queries.
++ */
++void page_counter_calculate_protection(struct page_counter *root,
++				       struct page_counter *counter,
++				       bool recursive_protection)
++{
++	unsigned long usage, parent_usage;
++	struct page_counter *parent = counter->parent;
++
++	/*
++	 * Effective values of the reclaim targets are ignored so they
++	 * can be stale. Have a look at mem_cgroup_protection for more
++	 * details.
++	 * TODO: calculation should be more robust so that we do not need
++	 * that special casing.
++	 */
++	if (root == counter)
++		return;
++
++	usage = page_counter_read(counter);
++	if (!usage)
++		return;
++
++	if (parent == root) {
++		counter->emin = READ_ONCE(counter->min);
++		counter->elow = READ_ONCE(counter->low);
 +		return;
 +	}
 +
- 	local_lock(&cpu_fbatches.lock);
- 	fbatch = this_cpu_ptr(&cpu_fbatches.lru_deactivate_file);
- 	folio_batch_add_and_move(fbatch, folio, lru_deactivate_file_fn);
-@@ -717,11 +727,16 @@ void deactivate_file_folio(struct folio
-  */
- void folio_deactivate(struct folio *folio)
- {
--	if (folio_test_lru(folio) && !folio_test_unevictable(folio) &&
--	    (folio_test_active(folio) || lru_gen_enabled())) {
-+	if (!folio_test_unevictable(folio) && (folio_test_active(folio) ||
-+	    lru_gen_enabled())) {
- 		struct folio_batch *fbatch;
- 
- 		folio_get(folio);
-+		if (!folio_test_clear_lru(folio)) {
-+			folio_put(folio);
-+			return;
-+		}
++	parent_usage = page_counter_read(parent);
 +
- 		local_lock(&cpu_fbatches.lock);
- 		fbatch = this_cpu_ptr(&cpu_fbatches.lru_deactivate);
- 		folio_batch_add_and_move(fbatch, folio, lru_deactivate_fn);
-@@ -738,12 +753,16 @@ void folio_deactivate(struct folio *foli
-  */
- void folio_mark_lazyfree(struct folio *folio)
- {
--	if (folio_test_lru(folio) && folio_test_anon(folio) &&
--	    folio_test_swapbacked(folio) && !folio_test_swapcache(folio) &&
--	    !folio_test_unevictable(folio)) {
-+	if (folio_test_anon(folio) && folio_test_swapbacked(folio) &&
-+	    !folio_test_swapcache(folio) && !folio_test_unevictable(folio)) {
- 		struct folio_batch *fbatch;
- 
- 		folio_get(folio);
-+		if (!folio_test_clear_lru(folio)) {
-+			folio_put(folio);
-+			return;
-+		}
++	WRITE_ONCE(counter->emin, effective_protection(usage, parent_usage,
++			READ_ONCE(counter->min),
++			READ_ONCE(parent->emin),
++			atomic_long_read(&parent->children_min_usage),
++			recursive_protection));
 +
- 		local_lock(&cpu_fbatches.lock);
- 		fbatch = this_cpu_ptr(&cpu_fbatches.lru_lazyfree);
- 		folio_batch_add_and_move(fbatch, folio, lru_lazyfree_fn);
++	WRITE_ONCE(counter->elow, effective_protection(usage, parent_usage,
++			READ_ONCE(counter->low),
++			READ_ONCE(parent->elow),
++			atomic_long_read(&parent->children_low_usage),
++			recursive_protection));
++}
 _
 
-Patches currently in -mm which might be from yangge1116@126.com are
+Patches currently in -mm which might be from maarten.lankhorst@linux.intel.com are
 
-mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch
+mm-page_counter-move-calculating-protection-values-to-page_counter.patch
 
