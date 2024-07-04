@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 638811755B
-	for <mm-commits@vger.kernel.org>; Thu,  4 Jul 2024 23:47:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AD44143C4B
+	for <mm-commits@vger.kernel.org>; Thu,  4 Jul 2024 23:47:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720136828; cv=none; b=Kut53nXsts22KKdkW0v4Aema/rfN9HhKC7ZxM9H2NhXOtmC0/a/lBBJ6be2p1m1g8ftMApYjnRM0hEiHuTRe4fYs5e7BH2AxsIU0w6HknCuL9+46s+FttKLfJj36gLj6wIuGN6+xtLxICEED1EdTt7aoFboPWTLS+lVeVKza2a8=
+	t=1720136857; cv=none; b=qy5aGjR9aCq5+CrcVfNB2PQ309ejoZSgVabYX3ImlS6o0kEY+nkcPYvaxiTmy/9Mk7kwjhWpd0trZhC9D8/LOJGoOQD3N25LyWveQchuClPsU1LcjExiGyPShWCWgU9B3QMLk+RdKQrhXwj+JI6uc2Wi8dfQ+eLyTBa+HWX47hc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720136828; c=relaxed/simple;
-	bh=u6VjxvB/ZQRvUUdwFmp34zQBv/7AUZyzH5A8D+V57zg=;
-	h=Date:To:From:Subject:Message-Id; b=VqkmFFJmbMjngMQTXovM10+Q8ou8PgpoiXezXVae2jIwLAkGdSagiFcsJ9M0DSCrubhlldqLSsGTA91nlEGXkEcWQeuY6o94FMSodfVynS1jOacA3W/MNyMGa1pTVv44XuK8T+YI+fnykMnbzymdqFGgXowqsqYWaothVM1VGM4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S0Imud7/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720136857; c=relaxed/simple;
+	bh=S4TCOKEHE51I4UJSYaSqd1HOTh+WuJ7KLBA4WtrcMKc=;
+	h=Date:To:From:Subject:Message-Id; b=qtj6Q4FmkwYKLcjGomz+YOLR3dr7cQbhZ9GxWwvpZiuvUT99K5Jmp4AOzZG3EHtSFgHqHeYREJ2fnISSwQ4z+C8K/dGZQRWJG3auszXb7GsIwklt8K47Z4ubGeV2qYoO3Ygn1ZRiKbfhxdPulOVQ/V7+ddeu0GRaHm5E6lWFgTs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GwlRgmOO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S0Imud7/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 244F4C3277B;
-	Thu,  4 Jul 2024 23:47:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GwlRgmOO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3582C3277B;
+	Thu,  4 Jul 2024 23:47:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720136828;
-	bh=u6VjxvB/ZQRvUUdwFmp34zQBv/7AUZyzH5A8D+V57zg=;
+	s=korg; t=1720136856;
+	bh=S4TCOKEHE51I4UJSYaSqd1HOTh+WuJ7KLBA4WtrcMKc=;
 	h=Date:To:From:Subject:From;
-	b=S0Imud7/6ABiVmcBWBAUnQKmkvbbqmrS0F2ihuDYddCIDu66rsHJ+wDn7JW2WKen+
-	 egaligalV/4S0QvgocfQbd6oP7xf4edABA4/aty3XzobxtW8jBnctfzxhE2IQ8qhKC
-	 X7rFYyipGo+av+kJY/qn6eLVrbqPMaN4yH9KNf6M=
-Date: Thu, 04 Jul 2024 16:47:07 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,rientjes@google.com,rdunlap@infradead.org,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,linmiaohe@huawei.com,jane.chu@oracle.com,ioworker0@gmail.com,fvdl@google.com,corbet@lwn.net,jiaqiyan@google.com,akpm@linux-foundation.org
+	b=GwlRgmOOBuDN9wPIl29TjO6WieWek4uggrjJaaUvKAgB2EtX+ecx13lB7/sN6nyQQ
+	 jYP3GS4ndmjJe6RuNCKDVkOLmz0PTD/mjtS3djqJD0pt0bobIaAmz5Zrf1QaB8S1Wk
+	 ma+A7eKbzAylHiffzZc+Uaz3uBxC4K5x5z3FOoEw=
+Date: Thu, 04 Jul 2024 16:47:36 -0700
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,jiaqiyan@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] selftest-mm-test-enable_soft_offline-behaviors-v7.patch removed from -mm tree
-Message-Id: <20240704234708.244F4C3277B@smtp.kernel.org>
+Subject: [folded-merged] docs-mm-add-enable_soft_offline-sysctl-fix.patch removed from -mm tree
+Message-Id: <20240704234736.D3582C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftest-mm-test-enable_soft_offline-behaviors-v7
+     Subject: docs-mm-add-enable_soft_offline-sysctl-fix
 has been removed from the -mm tree.  Its filename was
-     selftest-mm-test-enable_soft_offline-behaviors-v7.patch
+     docs-mm-add-enable_soft_offline-sysctl-fix.patch
 
-This patch was dropped because it was folded into selftest-mm-test-enable_soft_offline-behaviors.patch
+This patch was dropped because it was folded into docs-mm-add-enable_soft_offline-sysctl.patch
 
 ------------------------------------------------------
 From: Jiaqi Yan <jiaqiyan@google.com>
-Subject: selftest-mm-test-enable_soft_offline-behaviors-v7
-Date: Fri, 28 Jun 2024 20:59:57 +0000
+Subject: docs-mm-add-enable_soft_offline-sysctl-fix
+Date: Mon, 1 Jul 2024 21:15:05 -0700
 
-Link: https://lkml.kernel.org/r/20240628205958.2845610-4-jiaqiyan@google.com
+fix kerneldoc warnings
+
+Link: https://lkml.kernel.org/r/CACw3F52=GxTCDw-PqFh3-GDM-fo3GbhGdu0hedxYXOTT4TQSTg@mail.gmail.com
 Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb-soft-offline.c |    2 +-
- tools/testing/selftests/mm/run_vmtests.sh         |    2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/sysctl/vm.rst |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/tools/testing/selftests/mm/hugetlb-soft-offline.c~selftest-mm-test-enable_soft_offline-behaviors-v7
-+++ a/tools/testing/selftests/mm/hugetlb-soft-offline.c
-@@ -172,7 +172,7 @@ static void test_soft_offline_common(int
- 	hugepagesize_kb = file_stat.f_bsize / 1024;
- 	ksft_print_msg("Hugepagesize is %ldkB\n", hugepagesize_kb);
+--- a/Documentation/admin-guide/sysctl/vm.rst~docs-mm-add-enable_soft_offline-sysctl-fix
++++ a/Documentation/admin-guide/sysctl/vm.rst
+@@ -274,12 +274,15 @@ Correctable memory errors are very commo
+ solution for memory pages having (excessive) corrected memory errors.
  
--	if (set_enable_soft_offline(enable_soft_offline)) {
-+	if (set_enable_soft_offline(enable_soft_offline) != 0) {
- 		close(fd);
- 		ksft_exit_fail_msg("Failed to set enable_soft_offline\n");
- 	}
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftest-mm-test-enable_soft_offline-behaviors-v7
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -333,9 +333,11 @@ CATEGORY="hugetlb" run_test ./charge_res
- CATEGORY="hugetlb" run_test ./hugetlb_reparenting_test.sh -cgroup-v2
- if $RUN_DESTRUCTIVE; then
- nr_hugepages_tmp=$(cat /proc/sys/vm/nr_hugepages)
-+enable_soft_offline=$(cat /proc/sys/vm/enable_soft_offline)
- echo 8 > /proc/sys/vm/nr_hugepages
- CATEGORY="hugetlb" run_test ./hugetlb-soft-offline
- echo "$nr_hugepages_tmp" > /proc/sys/vm/nr_hugepages
-+echo "$enable_soft_offline" > /proc/sys/vm/enable_soft_offline
- CATEGORY="hugetlb" run_test ./hugetlb-read-hwpoison
- fi
- 
+ For different types of page, soft-offline has different behaviors / costs.
++
+ - For a raw error page, soft-offline migrates the in-use page's content to
+   a new raw page.
++
+ - For a page that is part of a transparent hugepage, soft-offline splits the
+   transparent hugepage into raw pages, then migrates only the raw error page.
+   As a result, user is transparently backed by 1 less hugepage, impacting
+   memory access performance.
++
+ - For a page that is part of a HugeTLB hugepage, soft-offline first migrates
+   the entire HugeTLB hugepage, during which a free hugepage will be consumed
+   as migration target.  Then the original hugepage is dissolved into raw
 _
 
 Patches currently in -mm which might be from jiaqiyan@google.com are
@@ -99,6 +83,5 @@ mm-memory-failure-refactor-log-format-in-soft-offline-code.patch
 mm-memory-failure-userspace-controls-soft-offlining-pages.patch
 selftest-mm-test-enable_soft_offline-behaviors.patch
 docs-mm-add-enable_soft_offline-sysctl.patch
-docs-mm-add-enable_soft_offline-sysctl-fix.patch
 docs-mm-add-enable_soft_offline-sysctl-fix-fix.patch
 
