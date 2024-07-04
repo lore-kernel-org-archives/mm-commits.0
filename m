@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 978B71755B
-	for <mm-commits@vger.kernel.org>; Thu,  4 Jul 2024 23:45:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EF605339E
+	for <mm-commits@vger.kernel.org>; Thu,  4 Jul 2024 23:46:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720136748; cv=none; b=smbmeg5aBI6tDlV00iaMP34zhFoL/Skiv4QxNLrFmN9KFXo7jQQDrF8Lf1Cj29GbecbdpEGgwMc3E2gSvW4B6Y2yNofYLPw4B7PG0zPo0aGb1gXCV/jdYhvD/PkEwRVug9iHPPOcaZLG83iILvScN9SRbTO9dLbD3xqUlp2ech4=
+	t=1720136793; cv=none; b=O/vY1Ki6CVKGieE8UEytc8pnosqiO/1fNp0RcZ0e0q5SzTUunKYrDEhoCMzWNHOl4JxXiZbYADTxpg7IV976sUV6V7beo8vQaiofXx7nkeGGS6lZTG7JkwrtFMmuPf7PANldIaBTiYu/ZXkPWxtOjjNkkGzYDycbLakWwHMZwmU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720136748; c=relaxed/simple;
-	bh=4wvnhuAXCU+DOLEEFCKUdzHjEDKyzpcL6+yy1Tok1tY=;
-	h=Date:To:From:Subject:Message-Id; b=ntQL8rUjBDUhyqM9TqrYfjasIyWVcB62xvYqvEmqxmcJ44vQi7cBUrfea31eFfA7bpqWKRvfRuCCSuduJXT3kqn6neWnKHTzq2MPRn6KJg3YanxfEouxHhpLVcKBQBj5/SVxyHFrYDafrU1UiTWMVdwPpUM34A9P+rl9VD74mHA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HrmhZcTx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720136793; c=relaxed/simple;
+	bh=AhfwktnOboRMCV3tmyZAIm9X5nGB7ZwdercJVtuDSvw=;
+	h=Date:To:From:Subject:Message-Id; b=isq8BHBY2iHUyQL1irmRKy6N1ZN8tvWPdxaVHoca+LbmxrvZgICIzQYlhEVOVDAdQ3bcCKuSdaumv8e3Zpmap/jnhXZcY8XBDiAm6iDkKPwbFKmVZI1igDJzllgAiibAao3hHTi/ixTUFMURvjP2kkh2e8DfTJ2Hd09GdKO1GP8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dJNrgOT6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HrmhZcTx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26E63C3277B;
-	Thu,  4 Jul 2024 23:45:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dJNrgOT6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18E7DC3277B;
+	Thu,  4 Jul 2024 23:46:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720136748;
-	bh=4wvnhuAXCU+DOLEEFCKUdzHjEDKyzpcL6+yy1Tok1tY=;
+	s=korg; t=1720136793;
+	bh=AhfwktnOboRMCV3tmyZAIm9X5nGB7ZwdercJVtuDSvw=;
 	h=Date:To:From:Subject:From;
-	b=HrmhZcTxw9BXRJHDi9Wn9Rwz2v1uV7EzkvPA1+/AcMYSGqFr2R+CbgIr1kDRaHSP1
-	 Nj1MzxbiwtIVBbJd1LTnDdYrGbw/BRynOfyrXHwQ9TwkHlzb4gXUTAPfEZy2xV8pJZ
-	 HYNfhBnaGCJWJpdxdlLWIerkR71Np4KcBVqtn7IA=
-Date: Thu, 04 Jul 2024 16:45:47 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,shakeel.butt@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
+	b=dJNrgOT6+eLzeuk60yOqegdMdo7sonKA4wDJ2sokM0H68uWyWFtWLQByLXygZnGON
+	 cO2lMS1eHG1ZsmQXQPBkQUklmGO9pOLq5os5ROTfhw9OfUlnUADQr8yMLyIYODjjUE
+	 bSTOIhIE6yl5Cra99y2mmzLWP2MOsDlirWc2FLW4=
+Date: Thu, 04 Jul 2024 16:46:32 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,rientjes@google.com,rdunlap@infradead.org,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,linmiaohe@huawei.com,jane.chu@oracle.com,ioworker0@gmail.com,fvdl@google.com,corbet@lwn.net,jiaqiyan@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option-fix.patch removed from -mm tree
-Message-Id: <20240704234548.26E63C3277B@smtp.kernel.org>
+Subject: [folded-merged] mm-memory-failure-userspace-controls-soft-offlining-pages-v7.patch removed from -mm tree
+Message-Id: <20240704234633.18E7DC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,83 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option-fix
+     Subject: mm-memory-failure-userspace-controls-soft-offlining-pages-v7
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option-fix.patch
+     mm-memory-failure-userspace-controls-soft-offlining-pages-v7.patch
 
-This patch was dropped because it was folded into mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option.patch
+This patch was dropped because it was folded into mm-memory-failure-userspace-controls-soft-offlining-pages.patch
 
 ------------------------------------------------------
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option-fix
-Date: Wed, 26 Jun 2024 18:00:22 +0000
+From: Jiaqi Yan <jiaqiyan@google.com>
+Subject: mm-memory-failure-userspace-controls-soft-offlining-pages-v7
+Date: Fri, 28 Jun 2024 20:59:56 +0000
 
-better config option description provided by Michal
-
-Link: https://lkml.kernel.org/r/ZnxXNtvqllc9CDoo@google.com
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20240628205958.2845610-3-jiaqiyan@google.com
+Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <ioworker0@gmail.com>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/init/Kconfig~mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option-fix
-+++ a/init/Kconfig
-@@ -970,11 +970,19 @@ config MEMCG
- 	  Provides control over the memory footprint of tasks in a cgroup.
+--- a/mm/memory-failure.c~mm-memory-failure-userspace-controls-soft-offlining-pages-v7
++++ a/mm/memory-failure.c
+@@ -2808,8 +2808,7 @@ int soft_offline_page(unsigned long pfn,
+ 	}
  
- config MEMCG_V1
--	bool "Legacy memory controller"
-+	bool "Legacy cgroup v1 memory controller"
- 	depends on MEMCG
- 	default n
- 	help
--	  Legacy cgroup v1 memory controller.
-+	  Legacy cgroup v1 memory controller which has been deprecated by
-+	  cgroup v2 implementation. The v1 is there for legacy applications
-+	  which haven't migrated to the new cgroup v2 interface yet. If you
-+	  do not have any such application then you are completely fine leaving
-+	  this option disabled.
-+
-+	  Please note that feature set of the legacy memory controller is likely
-+	  going to shrink due to deprecation process. New deployments with v1
-+	  controller are highly discouraged.
- 
- 	  San N is unsure.
- 
+ 	if (!sysctl_enable_soft_offline) {
+-		pr_info_once("%#lx: disabled by /proc/sys/vm/enable_soft_offline\n",
+-			pfn);
++		pr_info_once("disabled by /proc/sys/vm/enable_soft_offline\n");
+ 		put_ref_page(pfn, flags);
+ 		return -EOPNOTSUPP;
+ 	}
 _
 
-Patches currently in -mm which might be from roman.gushchin@linux.dev are
+Patches currently in -mm which might be from jiaqiyan@google.com are
 
-mm-memcg-introduce-memcontrol-v1c.patch
-mm-memcg-move-soft-limit-reclaim-code-to-memcontrol-v1c.patch
-mm-memcg-rename-soft-limit-reclaim-related-functions.patch
-mm-memcg-move-charge-migration-code-to-memcontrol-v1c.patch
-mm-memcg-rename-charge-move-related-functions.patch
-mm-memcg-move-legacy-memcg-event-code-into-memcontrol-v1c.patch
-mm-memcg-rename-memcg_check_events.patch
-mm-memcg-move-cgroup-v1-oom-handling-code-into-memcontrol-v1c.patch
-mm-memcg-rename-memcg_oom_recover.patch
-mm-memcg-move-cgroup-v1-interface-files-to-memcontrol-v1c.patch
-mm-memcg-make-memcg1_update_tree-static.patch
-mm-memcg-group-cgroup-v1-memcg-related-declarations.patch
-mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option.patch
-maintainers-add-mm-memcontrol-v1c-h-to-the-list-of-maintained-files.patch
-mm-memcg-move-memcg_account_kmem-to-memcontrol-v1c.patch
-mm-memcg-factor-out-legacy-socket-memory-accounting-code.patch
-mm-memcg-guard-cgroup-v1-specific-code-in-mem_cgroup_print_oom_meminfo.patch
-mm-memcg-gather-memcg1-specific-fields-initialization-in-memcg1_memcg_init.patch
-mm-memcg-guard-memcg1-specific-fields-accesses-in-mm-memcontrolc.patch
-mm-memcg-put-memcg1-specific-struct-mem_cgroups-members-under-config_memcg_v1.patch
-mm-memcg-guard-memcg1-specific-members-of-struct-mem_cgroup_per_node.patch
-mm-memcg-put-struct-task_struct-memcg_in_oom-under-config_memcg_v1.patch
-mm-memcg-put-struct-task_struct-in_user_fault-under-config_memcg_v1.patch
-mm-memcg-drop-obsolete-cache-line-padding-in-struct-mem_cgroup.patch
-mm-memcg-add-cache-line-padding-to-mem_cgroup_per_node.patch
+mm-memory-failure-refactor-log-format-in-soft-offline-code.patch
+mm-memory-failure-userspace-controls-soft-offlining-pages.patch
+selftest-mm-test-enable_soft_offline-behaviors.patch
+selftest-mm-test-enable_soft_offline-behaviors-v7.patch
+docs-mm-add-enable_soft_offline-sysctl.patch
+docs-mm-add-enable_soft_offline-sysctl-fix.patch
+docs-mm-add-enable_soft_offline-sysctl-fix-fix.patch
 
