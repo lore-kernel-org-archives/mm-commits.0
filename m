@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F909FBF6;
-	Thu,  4 Jul 2024 05:42:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C271FBF6
+	for <mm-commits@vger.kernel.org>; Thu,  4 Jul 2024 05:42:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720071731; cv=none; b=Y0d0knAhIhzgr7if7Ck7fJMPVEEbfeI/HTGX/9VCFK04OLHDXtacF5nyWy7Ibc9CNowGmedM4YS4bvBRpAdLHMfOXUz58c6XLiSs9ZvuV2uXXjGQoPqc753bOPKmsDlX7zdnLkq8e3KPrWSajaystfF1ELsGD0TCle4/EaPcg4o=
+	t=1720071732; cv=none; b=fMLX5vgjiwWTVDeHzv0y05nK3SywrE9G4abqmtfKDZooS0kPPKcumgJL6hTAc/N4JJHD5ZKgvTYEfxq8nAMRUNRJ3JEvHKnnTfn22qEwKEhtPMagNG0TWZovGEkuT9hhSAHxfbWhnQd6+6UYLDDnlZcvHFM+rn2bWGaz+90JXAU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720071731; c=relaxed/simple;
-	bh=yCVkiqBIvvD7x3aR3gPvzqz05WW34JMZ4aMO5kr8Lg8=;
-	h=Date:To:From:Subject:Message-Id; b=Z9IUBDMT4BvrlJykG6P80d3v04lGLOJQGNhQj7EhKTFpHUrE2+xJsS0X9hMo4kbXhdKVbmFSWsIIakkzKYBp5eA5+kW51oNLhZQ2fU1lRsVRUN5fE4wQM+VSk0hZupPGd32kq+yvgZgCcP36mbY/fG57lwhaJCo56Fpc7fh7Vwo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0gy+DB28; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720071732; c=relaxed/simple;
+	bh=ZEeoJc92/pjmX+KvtgdSGdbItQAsXrLZq4/zEBrMyJQ=;
+	h=Date:To:From:Subject:Message-Id; b=CKt3/K3jUZY5UgqJlSJ7IwROK8nHM8Z1+fgZA+Cq8CZjqHs+MGqZNm2N5MvVyxZFb8BKFXM0p5XTTnOUbfbAILb77DBiKKe0VZf3kx/lN51TuMeTc2XIkpi1WELuySnJb6A3h6ylr4M6R9JIUtfp8xattF5PTeF661s8bFiE6/c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=suez4djm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0gy+DB28"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31922C3277B;
-	Thu,  4 Jul 2024 05:42:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="suez4djm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60D16C3277B;
+	Thu,  4 Jul 2024 05:42:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720071731;
-	bh=yCVkiqBIvvD7x3aR3gPvzqz05WW34JMZ4aMO5kr8Lg8=;
+	s=korg; t=1720071732;
+	bh=ZEeoJc92/pjmX+KvtgdSGdbItQAsXrLZq4/zEBrMyJQ=;
 	h=Date:To:From:Subject:From;
-	b=0gy+DB28c5rWCo58cBB/dHG8Xr4wlFA6hzxV2oQ4tthuv8IIfKWxT4SYAiAv0lrEA
-	 vLP1iZB8YW4iHg4kmMv6cLgl+fckDRUw7vWzHk0+Laky2rCgPgFNLjhfXXafUxqMAK
-	 d81D827aLWIo2wgZCVcepGfzgrYc1GYaEJ1s5qIo=
-Date: Wed, 03 Jul 2024 22:42:10 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,viro@zeniv.linux.org.uk,stable@vger.kernel.org,shakeel.butt@linux.dev,ryan.roberts@arm.com,kasong@tencent.com,hannes@cmpxchg.org,david@redhat.com,nphamcs@gmail.com,akpm@linux-foundation.org
+	b=suez4djmoQghcCREESKXytpHleojoES+axMVMWGNU2WNkGlhawg53UO7I21oSEPVl
+	 k6DBkF8iYK+WDFW1rVUN9JZ38nX26wnEdqKyRE01mu1zeJNF70BBG4NxAxmFtyMoTT
+	 NOUagJtOrCmmEMT4WA1sCyF8I07i0/NB9PkxNC50=
+Date: Wed, 03 Jul 2024 22:42:11 -0700
+To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,willy@infradead.org,peterx@redhat.com,muchun.song@linux.dev,fvdl@google.com,david@redhat.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] cachestat-do-not-flush-stats-in-recency-check.patch removed from -mm tree
-Message-Id: <20240704054211.31922C3277B@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers.patch removed from -mm tree
+Message-Id: <20240704054212.60D16C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,130 +35,294 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: cachestat: do not flush stats in recency check
+     Subject: mm/hugetlb_vmemmap: fix race with speculative PFN walkers
 has been removed from the -mm tree.  Its filename was
-     cachestat-do-not-flush-stats-in-recency-check.patch
+     mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: cachestat: do not flush stats in recency check
-Date: Thu, 27 Jun 2024 13:17:37 -0700
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm/hugetlb_vmemmap: fix race with speculative PFN walkers
+Date: Thu, 27 Jun 2024 16:27:05 -0600
 
-syzbot detects that cachestat() is flushing stats, which can sleep, in its
-RCU read section (see [1]).  This is done in the workingset_test_recent()
-step (which checks if the folio's eviction is recent).
+While investigating HVO for THPs [1], it turns out that speculative PFN
+walkers like compaction can race with vmemmap modifications, e.g.,
 
-Move the stat flushing step to before the RCU read section of cachestat,
-and skip stat flushing during the recency check.
+  CPU 1 (vmemmap modifier)         CPU 2 (speculative PFN walker)
+  -------------------------------  ------------------------------
+  Allocates an LRU folio page1
+                                   Sees page1
+  Frees page1
 
-[1]: https://lore.kernel.org/cgroups/000000000000f71227061bdf97e0@google.com/
+  Allocates a hugeTLB folio page2
+  (page1 being a tail of page2)
 
-Link: https://lkml.kernel.org/r/20240627201737.3506959-1-nphamcs@gmail.com
-Fixes: b00684722262 ("mm: workingset: move the stats flush into workingset_test_recent()")
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Reported-by: syzbot+b7f13b2d0cc156edf61a@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/cgroups/000000000000f71227061bdf97e0@google.com/
-Debugged-by: Johannes Weiner <hannes@cmpxchg.org>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+  Updates vmemmap mapping page1
+                                   get_page_unless_zero(page1)
+
+Even though page1->_refcount is zero after HVO, get_page_unless_zero() can
+still try to modify this read-only field, resulting in a crash.
+
+An independent report [2] confirmed this race.
+
+There are two discussed approaches to fix this race:
+1. Make RO vmemmap RW so that get_page_unless_zero() can fail without
+   triggering a PF.
+2. Use RCU to make sure get_page_unless_zero() either sees zero
+   page->_refcount through the old vmemmap or non-zero page->_refcount
+   through the new one.
+
+The second approach is preferred here because:
+1. It can prevent illegal modifications to struct page[] that has been
+   HVO'ed;
+2. It can be generalized, in a way similar to ZERO_PAGE(), to fix
+   similar races in other places, e.g., arch_remove_memory() on x86
+   [3], which frees vmemmap mapping offlined struct page[].
+
+While adding synchronize_rcu(), the goal is to be surgical, rather than
+optimized.  Specifically, calls to synchronize_rcu() on the error handling
+paths can be coalesced, but it is not done for the sake of Simplicity:
+noticeably, this fix removes ~50% more lines than it adds.
+
+According to the hugetlb_optimize_vmemmap section in
+Documentation/admin-guide/sysctl/vm.rst, enabling HVO makes allocating or
+freeing hugeTLB pages "~2x slower than before".  Having synchronize_rcu()
+on top makes those operations even worse, and this also affects the user
+interface /proc/sys/vm/nr_overcommit_hugepages.
+
+This is *very* hard to trigger:
+
+1. Most hugeTLB use cases I know of are static, i.e., reserved at
+   boot time, because allocating at runtime is not reliable at all.
+
+2. On top of that, someone has to be very unlucky to get tripped
+   over above, because the race window is so small -- I wasn't able to
+   trigger it with a stress testing that does nothing but that (with
+   THPs though).
+
+[1] https://lore.kernel.org/20240229183436.4110845-4-yuzhao@google.com/
+[2] https://lore.kernel.org/917FFC7F-0615-44DD-90EE-9F85F8EA9974@linux.dev/
+[3] https://lore.kernel.org/be130a96-a27e-4240-ad78-776802f57cad@redhat.com/
+
+Link: https://lkml.kernel.org/r/20240627222705.2974207-1-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Kairui Song <kasong@tencent.com>
+Cc: Frank van der Linden <fvdl@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: <stable@vger.kernel.org>	[6.8+]
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Yang Shi <yang@os.amperecomputing.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    3 ++-
- mm/filemap.c         |    5 ++++-
- mm/workingset.c      |   14 +++++++++++---
- 3 files changed, 17 insertions(+), 5 deletions(-)
+ include/linux/page_ref.h |    8 ++++-
+ mm/hugetlb.c             |   53 ++++---------------------------------
+ mm/hugetlb_vmemmap.c     |   16 +++++++++++
+ 3 files changed, 30 insertions(+), 47 deletions(-)
 
---- a/include/linux/swap.h~cachestat-do-not-flush-stats-in-recency-check
-+++ a/include/linux/swap.h
-@@ -354,7 +354,8 @@ static inline swp_entry_t page_swap_entr
+--- a/include/linux/page_ref.h~mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers
++++ a/include/linux/page_ref.h
+@@ -230,7 +230,13 @@ static inline int folio_ref_dec_return(s
+ 
+ static inline bool page_ref_add_unless(struct page *page, int nr, int u)
+ {
+-	bool ret = atomic_add_unless(&page->_refcount, nr, u);
++	bool ret = false;
++
++	rcu_read_lock();
++	/* avoid writing to the vmemmap area being remapped */
++	if (!page_is_fake_head(page) && page_ref_count(page) != u)
++		ret = atomic_add_unless(&page->_refcount, nr, u);
++	rcu_read_unlock();
+ 
+ 	if (page_ref_tracepoint_active(page_ref_mod_unless))
+ 		__page_ref_mod_unless(page, nr, ret);
+--- a/mm/hugetlb.c~mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers
++++ a/mm/hugetlb.c
+@@ -1625,13 +1625,10 @@ static inline void destroy_compound_giga
+  * folio appears as just a compound page.  Otherwise, wait until after
+  * allocating vmemmap to clear the flag.
+  *
+- * A reference is held on the folio, except in the case of demote.
+- *
+  * Must be called with hugetlb lock held.
+  */
+-static void __remove_hugetlb_folio(struct hstate *h, struct folio *folio,
+-							bool adjust_surplus,
+-							bool demote)
++static void remove_hugetlb_folio(struct hstate *h, struct folio *folio,
++							bool adjust_surplus)
+ {
+ 	int nid = folio_nid(folio);
+ 
+@@ -1645,6 +1642,7 @@ static void __remove_hugetlb_folio(struc
+ 	list_del(&folio->lru);
+ 
+ 	if (folio_test_hugetlb_freed(folio)) {
++		folio_clear_hugetlb_freed(folio);
+ 		h->free_huge_pages--;
+ 		h->free_huge_pages_node[nid]--;
+ 	}
+@@ -1661,33 +1659,13 @@ static void __remove_hugetlb_folio(struc
+ 	if (!folio_test_hugetlb_vmemmap_optimized(folio))
+ 		__folio_clear_hugetlb(folio);
+ 
+-	 /*
+-	  * In the case of demote we do not ref count the page as it will soon
+-	  * be turned into a page of smaller size.
+-	 */
+-	if (!demote)
+-		folio_ref_unfreeze(folio, 1);
+-
+ 	h->nr_huge_pages--;
+ 	h->nr_huge_pages_node[nid]--;
  }
  
- /* linux/mm/workingset.c */
--bool workingset_test_recent(void *shadow, bool file, bool *workingset);
-+bool workingset_test_recent(void *shadow, bool file, bool *workingset,
-+				bool flush);
- void workingset_age_nonresident(struct lruvec *lruvec, unsigned long nr_pages);
- void *workingset_eviction(struct folio *folio, struct mem_cgroup *target_memcg);
- void workingset_refault(struct folio *folio, void *shadow);
---- a/mm/filemap.c~cachestat-do-not-flush-stats-in-recency-check
-+++ a/mm/filemap.c
-@@ -4248,6 +4248,9 @@ static void filemap_cachestat(struct add
- 	XA_STATE(xas, &mapping->i_pages, first_index);
- 	struct folio *folio;
- 
-+	/* Flush stats (and potentially sleep) outside the RCU read section. */
-+	mem_cgroup_flush_stats_ratelimited(NULL);
-+
- 	rcu_read_lock();
- 	xas_for_each(&xas, folio, last_index) {
- 		int order;
-@@ -4311,7 +4314,7 @@ static void filemap_cachestat(struct add
- 					goto resched;
- 			}
- #endif
--			if (workingset_test_recent(shadow, true, &workingset))
-+			if (workingset_test_recent(shadow, true, &workingset, false))
- 				cs->nr_recently_evicted += nr_pages;
- 
- 			goto resched;
---- a/mm/workingset.c~cachestat-do-not-flush-stats-in-recency-check
-+++ a/mm/workingset.c
-@@ -412,10 +412,12 @@ void *workingset_eviction(struct folio *
-  * @file: whether the corresponding folio is from the file lru.
-  * @workingset: where the workingset value unpacked from shadow should
-  * be stored.
-+ * @flush: whether to flush cgroup rstat.
-  *
-  * Return: true if the shadow is for a recently evicted folio; false otherwise.
-  */
--bool workingset_test_recent(void *shadow, bool file, bool *workingset)
-+bool workingset_test_recent(void *shadow, bool file, bool *workingset,
-+				bool flush)
+-static void remove_hugetlb_folio(struct hstate *h, struct folio *folio,
+-							bool adjust_surplus)
+-{
+-	__remove_hugetlb_folio(h, folio, adjust_surplus, false);
+-}
+-
+-static void remove_hugetlb_folio_for_demote(struct hstate *h, struct folio *folio,
+-							bool adjust_surplus)
+-{
+-	__remove_hugetlb_folio(h, folio, adjust_surplus, true);
+-}
+-
+ static void add_hugetlb_folio(struct hstate *h, struct folio *folio,
+ 			     bool adjust_surplus)
  {
- 	struct mem_cgroup *eviction_memcg;
- 	struct lruvec *eviction_lruvec;
-@@ -467,10 +469,16 @@ bool workingset_test_recent(void *shadow
+-	int zeroed;
+ 	int nid = folio_nid(folio);
+ 
+ 	VM_BUG_ON_FOLIO(!folio_test_hugetlb_vmemmap_optimized(folio), folio);
+@@ -1711,21 +1689,6 @@ static void add_hugetlb_folio(struct hst
+ 	 */
+ 	folio_set_hugetlb_vmemmap_optimized(folio);
+ 
+-	/*
+-	 * This folio is about to be managed by the hugetlb allocator and
+-	 * should have no users.  Drop our reference, and check for others
+-	 * just in case.
+-	 */
+-	zeroed = folio_put_testzero(folio);
+-	if (unlikely(!zeroed))
+-		/*
+-		 * It is VERY unlikely soneone else has taken a ref
+-		 * on the folio.  In this case, we simply return as
+-		 * free_huge_folio() will be called when this other ref
+-		 * is dropped.
+-		 */
+-		return;
+-
+ 	arch_clear_hugetlb_flags(folio);
+ 	enqueue_hugetlb_folio(h, folio);
+ }
+@@ -1779,6 +1742,8 @@ static void __update_and_free_hugetlb_fo
+ 		spin_unlock_irq(&hugetlb_lock);
+ 	}
+ 
++	folio_ref_unfreeze(folio, 1);
++
+ 	/*
+ 	 * Non-gigantic pages demoted from CMA allocated gigantic pages
+ 	 * need to be given back to CMA in free_gigantic_folio.
+@@ -3079,11 +3044,8 @@ retry:
+ 
+ free_new:
+ 	spin_unlock_irq(&hugetlb_lock);
+-	if (new_folio) {
+-		/* Folio has a zero ref count, but needs a ref to be freed */
+-		folio_ref_unfreeze(new_folio, 1);
++	if (new_folio)
+ 		update_and_free_hugetlb_folio(h, new_folio, false);
+-	}
+ 
+ 	return ret;
+ }
+@@ -3938,7 +3900,7 @@ static int demote_free_hugetlb_folio(str
+ 
+ 	target_hstate = size_to_hstate(PAGE_SIZE << h->demote_order);
+ 
+-	remove_hugetlb_folio_for_demote(h, folio, false);
++	remove_hugetlb_folio(h, folio, false);
+ 	spin_unlock_irq(&hugetlb_lock);
  
  	/*
- 	 * Flush stats (and potentially sleep) outside the RCU read section.
-+	 *
-+	 * Note that workingset_test_recent() itself might be called in RCU read
-+	 * section (for e.g, in cachestat) - these callers need to skip flushing
-+	 * stats (via the flush argument).
-+	 *
- 	 * XXX: With per-memcg flushing and thresholding, is ratelimiting
- 	 * still needed here?
- 	 */
--	mem_cgroup_flush_stats_ratelimited(eviction_memcg);
-+	if (flush)
-+		mem_cgroup_flush_stats_ratelimited(eviction_memcg);
+@@ -3952,7 +3914,6 @@ static int demote_free_hugetlb_folio(str
+ 		if (rc) {
+ 			/* Allocation of vmemmmap failed, we can not demote folio */
+ 			spin_lock_irq(&hugetlb_lock);
+-			folio_ref_unfreeze(folio, 1);
+ 			add_hugetlb_folio(h, folio, false);
+ 			return rc;
+ 		}
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers
++++ a/mm/hugetlb_vmemmap.c
+@@ -446,6 +446,8 @@ static int __hugetlb_vmemmap_restore_fol
+ 	unsigned long vmemmap_reuse;
  
- 	eviction_lruvec = mem_cgroup_lruvec(eviction_memcg, pgdat);
- 	refault = atomic_long_read(&eviction_lruvec->nonresident_age);
-@@ -558,7 +566,7 @@ void workingset_refault(struct folio *fo
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_hugetlb(folio), folio);
++	VM_WARN_ON_ONCE_FOLIO(folio_ref_count(folio), folio);
++
+ 	if (!folio_test_hugetlb_vmemmap_optimized(folio))
+ 		return 0;
  
- 	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + file, nr);
+@@ -481,6 +483,9 @@ static int __hugetlb_vmemmap_restore_fol
+  */
+ int hugetlb_vmemmap_restore_folio(const struct hstate *h, struct folio *folio)
+ {
++	/* avoid writes from page_ref_add_unless() while unfolding vmemmap */
++	synchronize_rcu();
++
+ 	return __hugetlb_vmemmap_restore_folio(h, folio, 0);
+ }
  
--	if (!workingset_test_recent(shadow, file, &workingset))
-+	if (!workingset_test_recent(shadow, file, &workingset, true))
- 		return;
+@@ -505,6 +510,9 @@ long hugetlb_vmemmap_restore_folios(cons
+ 	long restored = 0;
+ 	long ret = 0;
  
- 	folio_set_active(folio);
++	/* avoid writes from page_ref_add_unless() while unfolding vmemmap */
++	synchronize_rcu();
++
+ 	list_for_each_entry_safe(folio, t_folio, folio_list, lru) {
+ 		if (folio_test_hugetlb_vmemmap_optimized(folio)) {
+ 			ret = __hugetlb_vmemmap_restore_folio(h, folio,
+@@ -550,6 +558,8 @@ static int __hugetlb_vmemmap_optimize_fo
+ 	unsigned long vmemmap_reuse;
+ 
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_hugetlb(folio), folio);
++	VM_WARN_ON_ONCE_FOLIO(folio_ref_count(folio), folio);
++
+ 	if (!vmemmap_should_optimize_folio(h, folio))
+ 		return ret;
+ 
+@@ -601,6 +611,9 @@ void hugetlb_vmemmap_optimize_folio(cons
+ {
+ 	LIST_HEAD(vmemmap_pages);
+ 
++	/* avoid writes from page_ref_add_unless() while folding vmemmap */
++	synchronize_rcu();
++
+ 	__hugetlb_vmemmap_optimize_folio(h, folio, &vmemmap_pages, 0);
+ 	free_vmemmap_page_list(&vmemmap_pages);
+ }
+@@ -644,6 +657,9 @@ void hugetlb_vmemmap_optimize_folios(str
+ 
+ 	flush_tlb_all();
+ 
++	/* avoid writes from page_ref_add_unless() while folding vmemmap */
++	synchronize_rcu();
++
+ 	list_for_each_entry(folio, folio_list, lru) {
+ 		int ret;
+ 
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
 
