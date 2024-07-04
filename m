@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C271FBF6
-	for <mm-commits@vger.kernel.org>; Thu,  4 Jul 2024 05:42:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9C7DFBF6;
+	Thu,  4 Jul 2024 05:42:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720071732; cv=none; b=fMLX5vgjiwWTVDeHzv0y05nK3SywrE9G4abqmtfKDZooS0kPPKcumgJL6hTAc/N4JJHD5ZKgvTYEfxq8nAMRUNRJ3JEvHKnnTfn22qEwKEhtPMagNG0TWZovGEkuT9hhSAHxfbWhnQd6+6UYLDDnlZcvHFM+rn2bWGaz+90JXAU=
+	t=1720071734; cv=none; b=iEH7pTkmD4D6i4nolLNAxbISiod6FVaxFF61cpPVGoXMrhbzYq1KR4rYZeg5JWYpfJrI5yhRaO6TnoGHMTtJfFZeCvBkMTM59T5WW/g0VwkBlwRm21REcWACkBYmDBUWMr9QL25e3cWQZQ8PQ6dGe0YuqHqGb1SGg/FSIoljsnI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720071732; c=relaxed/simple;
-	bh=ZEeoJc92/pjmX+KvtgdSGdbItQAsXrLZq4/zEBrMyJQ=;
-	h=Date:To:From:Subject:Message-Id; b=CKt3/K3jUZY5UgqJlSJ7IwROK8nHM8Z1+fgZA+Cq8CZjqHs+MGqZNm2N5MvVyxZFb8BKFXM0p5XTTnOUbfbAILb77DBiKKe0VZf3kx/lN51TuMeTc2XIkpi1WELuySnJb6A3h6ylr4M6R9JIUtfp8xattF5PTeF661s8bFiE6/c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=suez4djm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720071734; c=relaxed/simple;
+	bh=7kjEx0DKcnNhUxxFPLN32w4htzHLUMZTSaHSSI1m6U8=;
+	h=Date:To:From:Subject:Message-Id; b=rJo9MGQIuWzL9WVkftSmbQA3Q8U6ZghPxc49N1EdeDruulJQir0kT9JL7I3R8UTpQMA63nsXP5RwXXP69vD2xoXSKVr/trw5XC+v/4xy2eAiOY3i47/ZIR2MiXg3GdwlmyP5z/hVT7cBpTI72Z7WkHASKlWSaeueWpPjntZj1aM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1bgJEYSQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="suez4djm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60D16C3277B;
-	Thu,  4 Jul 2024 05:42:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1bgJEYSQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F13AC3277B;
+	Thu,  4 Jul 2024 05:42:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720071732;
-	bh=ZEeoJc92/pjmX+KvtgdSGdbItQAsXrLZq4/zEBrMyJQ=;
+	s=korg; t=1720071734;
+	bh=7kjEx0DKcnNhUxxFPLN32w4htzHLUMZTSaHSSI1m6U8=;
 	h=Date:To:From:Subject:From;
-	b=suez4djmoQghcCREESKXytpHleojoES+axMVMWGNU2WNkGlhawg53UO7I21oSEPVl
-	 k6DBkF8iYK+WDFW1rVUN9JZ38nX26wnEdqKyRE01mu1zeJNF70BBG4NxAxmFtyMoTT
-	 NOUagJtOrCmmEMT4WA1sCyF8I07i0/NB9PkxNC50=
-Date: Wed, 03 Jul 2024 22:42:11 -0700
-To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,willy@infradead.org,peterx@redhat.com,muchun.song@linux.dev,fvdl@google.com,david@redhat.com,yuzhao@google.com,akpm@linux-foundation.org
+	b=1bgJEYSQPYVU1MSBmC6lHMReE0dixRar51LJwonRzpaUm3IYQ4AYGvbeHL2zjYh3x
+	 rbvJkUUW/2P1bXwU3otyfyGUUEm1IgMv0OrOl4VBhBKOGCD/xqr/NffJ/N/KMABqI4
+	 ItLZJUIRm2WLgRc/pTLMfBnYWncmZwWecSsv3IpQ=
+Date: Wed, 03 Jul 2024 22:42:14 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers.patch removed from -mm tree
-Message-Id: <20240704054212.60D16C3277B@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-kernel-bug-on-rename-operation-of-broken-directory.patch removed from -mm tree
+Message-Id: <20240704054214.8F13AC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,294 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb_vmemmap: fix race with speculative PFN walkers
+     Subject: nilfs2: fix kernel bug on rename operation of broken directory
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers.patch
+     nilfs2-fix-kernel-bug-on-rename-operation-of-broken-directory.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm/hugetlb_vmemmap: fix race with speculative PFN walkers
-Date: Thu, 27 Jun 2024 16:27:05 -0600
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix kernel bug on rename operation of broken directory
+Date: Sat, 29 Jun 2024 01:51:07 +0900
 
-While investigating HVO for THPs [1], it turns out that speculative PFN
-walkers like compaction can race with vmemmap modifications, e.g.,
+Syzbot reported that in rename directory operation on broken directory on
+nilfs2, __block_write_begin_int() called to prepare block write may fail
+BUG_ON check for access exceeding the folio/page size.
 
-  CPU 1 (vmemmap modifier)         CPU 2 (speculative PFN walker)
-  -------------------------------  ------------------------------
-  Allocates an LRU folio page1
-                                   Sees page1
-  Frees page1
+This is because nilfs_dotdot(), which gets parent directory reference
+entry ("..") of the directory to be moved or renamed, does not check
+consistency enough, and may return location exceeding folio/page size for
+broken directories.
 
-  Allocates a hugeTLB folio page2
-  (page1 being a tail of page2)
+Fix this issue by checking required directory entries ("." and "..") in
+the first chunk of the directory in nilfs_dotdot().
 
-  Updates vmemmap mapping page1
-                                   get_page_unless_zero(page1)
-
-Even though page1->_refcount is zero after HVO, get_page_unless_zero() can
-still try to modify this read-only field, resulting in a crash.
-
-An independent report [2] confirmed this race.
-
-There are two discussed approaches to fix this race:
-1. Make RO vmemmap RW so that get_page_unless_zero() can fail without
-   triggering a PF.
-2. Use RCU to make sure get_page_unless_zero() either sees zero
-   page->_refcount through the old vmemmap or non-zero page->_refcount
-   through the new one.
-
-The second approach is preferred here because:
-1. It can prevent illegal modifications to struct page[] that has been
-   HVO'ed;
-2. It can be generalized, in a way similar to ZERO_PAGE(), to fix
-   similar races in other places, e.g., arch_remove_memory() on x86
-   [3], which frees vmemmap mapping offlined struct page[].
-
-While adding synchronize_rcu(), the goal is to be surgical, rather than
-optimized.  Specifically, calls to synchronize_rcu() on the error handling
-paths can be coalesced, but it is not done for the sake of Simplicity:
-noticeably, this fix removes ~50% more lines than it adds.
-
-According to the hugetlb_optimize_vmemmap section in
-Documentation/admin-guide/sysctl/vm.rst, enabling HVO makes allocating or
-freeing hugeTLB pages "~2x slower than before".  Having synchronize_rcu()
-on top makes those operations even worse, and this also affects the user
-interface /proc/sys/vm/nr_overcommit_hugepages.
-
-This is *very* hard to trigger:
-
-1. Most hugeTLB use cases I know of are static, i.e., reserved at
-   boot time, because allocating at runtime is not reliable at all.
-
-2. On top of that, someone has to be very unlucky to get tripped
-   over above, because the race window is so small -- I wasn't able to
-   trigger it with a stress testing that does nothing but that (with
-   THPs though).
-
-[1] https://lore.kernel.org/20240229183436.4110845-4-yuzhao@google.com/
-[2] https://lore.kernel.org/917FFC7F-0615-44DD-90EE-9F85F8EA9974@linux.dev/
-[3] https://lore.kernel.org/be130a96-a27e-4240-ad78-776802f57cad@redhat.com/
-
-Link: https://lkml.kernel.org/r/20240627222705.2974207-1-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Yang Shi <yang@os.amperecomputing.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20240628165107.9006-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+d3abed1ad3d367fa2627@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=d3abed1ad3d367fa2627
+Fixes: 2ba466d74ed7 ("nilfs2: directory entry operations")
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_ref.h |    8 ++++-
- mm/hugetlb.c             |   53 ++++---------------------------------
- mm/hugetlb_vmemmap.c     |   16 +++++++++++
- 3 files changed, 30 insertions(+), 47 deletions(-)
+ fs/nilfs2/dir.c |   32 ++++++++++++++++++++++++++++++--
+ 1 file changed, 30 insertions(+), 2 deletions(-)
 
---- a/include/linux/page_ref.h~mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers
-+++ a/include/linux/page_ref.h
-@@ -230,7 +230,13 @@ static inline int folio_ref_dec_return(s
+--- a/fs/nilfs2/dir.c~nilfs2-fix-kernel-bug-on-rename-operation-of-broken-directory
++++ a/fs/nilfs2/dir.c
+@@ -383,11 +383,39 @@ found:
  
- static inline bool page_ref_add_unless(struct page *page, int nr, int u)
+ struct nilfs_dir_entry *nilfs_dotdot(struct inode *dir, struct folio **foliop)
  {
--	bool ret = atomic_add_unless(&page->_refcount, nr, u);
-+	bool ret = false;
+-	struct nilfs_dir_entry *de = nilfs_get_folio(dir, 0, foliop);
++	struct folio *folio;
++	struct nilfs_dir_entry *de, *next_de;
++	size_t limit;
++	char *msg;
+ 
++	de = nilfs_get_folio(dir, 0, &folio);
+ 	if (IS_ERR(de))
+ 		return NULL;
+-	return nilfs_next_entry(de);
 +
-+	rcu_read_lock();
-+	/* avoid writing to the vmemmap area being remapped */
-+	if (!page_is_fake_head(page) && page_ref_count(page) != u)
-+		ret = atomic_add_unless(&page->_refcount, nr, u);
-+	rcu_read_unlock();
- 
- 	if (page_ref_tracepoint_active(page_ref_mod_unless))
- 		__page_ref_mod_unless(page, nr, ret);
---- a/mm/hugetlb.c~mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers
-+++ a/mm/hugetlb.c
-@@ -1625,13 +1625,10 @@ static inline void destroy_compound_giga
-  * folio appears as just a compound page.  Otherwise, wait until after
-  * allocating vmemmap to clear the flag.
-  *
-- * A reference is held on the folio, except in the case of demote.
-- *
-  * Must be called with hugetlb lock held.
-  */
--static void __remove_hugetlb_folio(struct hstate *h, struct folio *folio,
--							bool adjust_surplus,
--							bool demote)
-+static void remove_hugetlb_folio(struct hstate *h, struct folio *folio,
-+							bool adjust_surplus)
- {
- 	int nid = folio_nid(folio);
- 
-@@ -1645,6 +1642,7 @@ static void __remove_hugetlb_folio(struc
- 	list_del(&folio->lru);
- 
- 	if (folio_test_hugetlb_freed(folio)) {
-+		folio_clear_hugetlb_freed(folio);
- 		h->free_huge_pages--;
- 		h->free_huge_pages_node[nid]--;
- 	}
-@@ -1661,33 +1659,13 @@ static void __remove_hugetlb_folio(struc
- 	if (!folio_test_hugetlb_vmemmap_optimized(folio))
- 		__folio_clear_hugetlb(folio);
- 
--	 /*
--	  * In the case of demote we do not ref count the page as it will soon
--	  * be turned into a page of smaller size.
--	 */
--	if (!demote)
--		folio_ref_unfreeze(folio, 1);
--
- 	h->nr_huge_pages--;
- 	h->nr_huge_pages_node[nid]--;
++	limit = nilfs_last_byte(dir, 0);  /* is a multiple of chunk size */
++	if (unlikely(!limit || le64_to_cpu(de->inode) != dir->i_ino ||
++		     !nilfs_match(1, ".", de))) {
++		msg = "missing '.'";
++		goto fail;
++	}
++
++	next_de = nilfs_next_entry(de);
++	/*
++	 * If "next_de" has not reached the end of the chunk, there is
++	 * at least one more record.  Check whether it matches "..".
++	 */
++	if (unlikely((char *)next_de == (char *)de + nilfs_chunk_size(dir) ||
++		     !nilfs_match(2, "..", next_de))) {
++		msg = "missing '..'";
++		goto fail;
++	}
++	*foliop = folio;
++	return next_de;
++
++fail:
++	nilfs_error(dir->i_sb, "directory #%lu %s", dir->i_ino, msg);
++	folio_release_kmap(folio, de);
++	return NULL;
  }
  
--static void remove_hugetlb_folio(struct hstate *h, struct folio *folio,
--							bool adjust_surplus)
--{
--	__remove_hugetlb_folio(h, folio, adjust_surplus, false);
--}
--
--static void remove_hugetlb_folio_for_demote(struct hstate *h, struct folio *folio,
--							bool adjust_surplus)
--{
--	__remove_hugetlb_folio(h, folio, adjust_surplus, true);
--}
--
- static void add_hugetlb_folio(struct hstate *h, struct folio *folio,
- 			     bool adjust_surplus)
- {
--	int zeroed;
- 	int nid = folio_nid(folio);
- 
- 	VM_BUG_ON_FOLIO(!folio_test_hugetlb_vmemmap_optimized(folio), folio);
-@@ -1711,21 +1689,6 @@ static void add_hugetlb_folio(struct hst
- 	 */
- 	folio_set_hugetlb_vmemmap_optimized(folio);
- 
--	/*
--	 * This folio is about to be managed by the hugetlb allocator and
--	 * should have no users.  Drop our reference, and check for others
--	 * just in case.
--	 */
--	zeroed = folio_put_testzero(folio);
--	if (unlikely(!zeroed))
--		/*
--		 * It is VERY unlikely soneone else has taken a ref
--		 * on the folio.  In this case, we simply return as
--		 * free_huge_folio() will be called when this other ref
--		 * is dropped.
--		 */
--		return;
--
- 	arch_clear_hugetlb_flags(folio);
- 	enqueue_hugetlb_folio(h, folio);
- }
-@@ -1779,6 +1742,8 @@ static void __update_and_free_hugetlb_fo
- 		spin_unlock_irq(&hugetlb_lock);
- 	}
- 
-+	folio_ref_unfreeze(folio, 1);
-+
- 	/*
- 	 * Non-gigantic pages demoted from CMA allocated gigantic pages
- 	 * need to be given back to CMA in free_gigantic_folio.
-@@ -3079,11 +3044,8 @@ retry:
- 
- free_new:
- 	spin_unlock_irq(&hugetlb_lock);
--	if (new_folio) {
--		/* Folio has a zero ref count, but needs a ref to be freed */
--		folio_ref_unfreeze(new_folio, 1);
-+	if (new_folio)
- 		update_and_free_hugetlb_folio(h, new_folio, false);
--	}
- 
- 	return ret;
- }
-@@ -3938,7 +3900,7 @@ static int demote_free_hugetlb_folio(str
- 
- 	target_hstate = size_to_hstate(PAGE_SIZE << h->demote_order);
- 
--	remove_hugetlb_folio_for_demote(h, folio, false);
-+	remove_hugetlb_folio(h, folio, false);
- 	spin_unlock_irq(&hugetlb_lock);
- 
- 	/*
-@@ -3952,7 +3914,6 @@ static int demote_free_hugetlb_folio(str
- 		if (rc) {
- 			/* Allocation of vmemmmap failed, we can not demote folio */
- 			spin_lock_irq(&hugetlb_lock);
--			folio_ref_unfreeze(folio, 1);
- 			add_hugetlb_folio(h, folio, false);
- 			return rc;
- 		}
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-fix-race-with-speculative-pfn-walkers
-+++ a/mm/hugetlb_vmemmap.c
-@@ -446,6 +446,8 @@ static int __hugetlb_vmemmap_restore_fol
- 	unsigned long vmemmap_reuse;
- 
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_hugetlb(folio), folio);
-+	VM_WARN_ON_ONCE_FOLIO(folio_ref_count(folio), folio);
-+
- 	if (!folio_test_hugetlb_vmemmap_optimized(folio))
- 		return 0;
- 
-@@ -481,6 +483,9 @@ static int __hugetlb_vmemmap_restore_fol
-  */
- int hugetlb_vmemmap_restore_folio(const struct hstate *h, struct folio *folio)
- {
-+	/* avoid writes from page_ref_add_unless() while unfolding vmemmap */
-+	synchronize_rcu();
-+
- 	return __hugetlb_vmemmap_restore_folio(h, folio, 0);
- }
- 
-@@ -505,6 +510,9 @@ long hugetlb_vmemmap_restore_folios(cons
- 	long restored = 0;
- 	long ret = 0;
- 
-+	/* avoid writes from page_ref_add_unless() while unfolding vmemmap */
-+	synchronize_rcu();
-+
- 	list_for_each_entry_safe(folio, t_folio, folio_list, lru) {
- 		if (folio_test_hugetlb_vmemmap_optimized(folio)) {
- 			ret = __hugetlb_vmemmap_restore_folio(h, folio,
-@@ -550,6 +558,8 @@ static int __hugetlb_vmemmap_optimize_fo
- 	unsigned long vmemmap_reuse;
- 
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_hugetlb(folio), folio);
-+	VM_WARN_ON_ONCE_FOLIO(folio_ref_count(folio), folio);
-+
- 	if (!vmemmap_should_optimize_folio(h, folio))
- 		return ret;
- 
-@@ -601,6 +611,9 @@ void hugetlb_vmemmap_optimize_folio(cons
- {
- 	LIST_HEAD(vmemmap_pages);
- 
-+	/* avoid writes from page_ref_add_unless() while folding vmemmap */
-+	synchronize_rcu();
-+
- 	__hugetlb_vmemmap_optimize_folio(h, folio, &vmemmap_pages, 0);
- 	free_vmemmap_page_list(&vmemmap_pages);
- }
-@@ -644,6 +657,9 @@ void hugetlb_vmemmap_optimize_folios(str
- 
- 	flush_tlb_all();
- 
-+	/* avoid writes from page_ref_add_unless() while folding vmemmap */
-+	synchronize_rcu();
-+
- 	list_for_each_entry(folio, folio_list, lru) {
- 		int ret;
- 
+ ino_t nilfs_inode_by_name(struct inode *dir, const struct qstr *qstr)
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
+nilfs2-avoid-undefined-behavior-in-nilfs_cnt32_ge-macro.patch
 
