@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88B3149659;
-	Thu,  4 Jul 2024 18:34:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB11173448;
+	Thu,  4 Jul 2024 18:44:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720118076; cv=none; b=gDzouz+S/x6/zsuJdomyxQlFOnRwGlLOtsWA1y2AHVmrSXmqv8vQ23GCxOMC5k1LdMNx741oTKz+TwHF62zcwPuauYbfHpdpsmxF4QGH4c+04qAifSc3eWpVFZ6xwt60RW+q8VLpknxMKjA1PCljuqZENZnx+QY9tin5xP6wCKc=
+	t=1720118645; cv=none; b=JCmwO5vmK9gpGILSyEIfjUsezP2IE8k7x8ZSdypkPXCgy7ot7iMRbv7OXpf8l29DlzkNedWc9RwKdukHYyPNG82/9jEfHKttlTWJ0V2PXXVx8639/6Kat1cmjV74jR0uOGXwnV+Pd5lCrDOUYn54gofKb1qFLqlvDWZaBz931uM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720118076; c=relaxed/simple;
-	bh=Ai1UL0srsQQ4neD3uMQP7DBIpKpkhXz4s1mDkEdpMP0=;
-	h=Date:To:From:Subject:Message-Id; b=uA+WGJwc57VB/HTxcUvDURmCRKSfww0HewtfWg9Kpph9mmtr/P2xsO5Z4kNXzNIapSyQm+e4r7/xNGe7G7QdmX0hrxxhYsUuHmRve3rBYn7OdZBi+7atelVeaRz1el2nZQWB/ma92gxV/cAZYtV/pQMf314nTkOE52OXy8R1i/g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dEJZnMR7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720118645; c=relaxed/simple;
+	bh=r49hmGx633SdpXbLnwpR2+M1sg4c4srNN+hBIO7Ucd4=;
+	h=Date:To:From:Subject:Message-Id; b=mCX7WDOmLeZaeX5N3CcZW30EGaB/zdVBdu0WVV+1m3oUR+55CU7SdSkgCrCm3RAlSJHihlTzrjT+C7JSY1LOQ3DFr7zXJ0byTcoBxAsY2U4AEouW32UldVLaNth1RSOuVEjunHdb85ZgVa3EztuiRkuzekPzYmfDeOkdP4WFA0w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C4gU441C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dEJZnMR7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 137D8C3277B;
-	Thu,  4 Jul 2024 18:34:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C4gU441C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4ED03C4AF0A;
+	Thu,  4 Jul 2024 18:44:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720118076;
-	bh=Ai1UL0srsQQ4neD3uMQP7DBIpKpkhXz4s1mDkEdpMP0=;
+	s=korg; t=1720118645;
+	bh=r49hmGx633SdpXbLnwpR2+M1sg4c4srNN+hBIO7Ucd4=;
 	h=Date:To:From:Subject:From;
-	b=dEJZnMR7w4Jhx+dk+G3sB1qU/ukJSz7SIpBENChj1TDAmqomjabOCV3lVgOAZSTNc
-	 mCxJuxqBozEelQRf7lhSFluGO4cWFhQHab3rhD0pCq+ObcmIGAZoaaGdEoiXnUVRSP
-	 SOeTAFYlRfGbQdd/8l0SDWTmlBgiyGs0sCe+x/IY=
-Date: Thu, 04 Jul 2024 11:34:35 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shy828301@gmail.com,ioworker0@gmail.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=C4gU441CRVHX6PxMC7r3BJ1jl7y35zBBByOmCQU+VrEdpkPuN5/gHVk0V7mA3mXcq
+	 J/disUcETMa95oAvAR7PUt7IhLNdimNGDVkXngBSs2p/HF18WZnz0ElsWg9XZ8ntOE
+	 3V7b8C7Vwsp0sVoRovMZc2hYddX0+rrDf0hnQYa8=
+Date: Thu, 04 Jul 2024 11:44:04 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,david@redhat.com,baolin.wang@linux.alibaba.com,aneesh.kumar@linux.ibm.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-khugepaged-activation-policy.patch added to mm-unstable branch
-Message-Id: <20240704183436.137D8C3277B@smtp.kernel.org>
+Subject: + mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240704184405.4ED03C4AF0A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix khugepaged activation policy
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-khugepaged-activation-policy.patch
+     Subject: mm/gup: clear the LRU flag of a page before adding to LRU batch
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-khugepaged-activation-policy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,174 +58,161 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: fix khugepaged activation policy
-Date: Thu, 4 Jul 2024 10:10:50 +0100
+From: yangge <yangge1116@126.com>
+Subject: mm/gup: clear the LRU flag of a page before adding to LRU batch
+Date: Wed, 3 Jul 2024 20:02:33 +0800
 
-Since the introduction of mTHP, the docuementation has stated that
-khugepaged would be enabled when any mTHP size is enabled, and disabled
-when all mTHP sizes are disabled.  There are 2 problems with this; 1. 
-this is not what was implemented by the code and 2.  this is not the
-desirable behavior.
+If a large number of CMA memory are configured in system (for example,
+the CMA memory accounts for 50% of the system memory), starting a
+virtual virtual machine with device passthrough, it will call
+pin_user_pages_remote(..., FOLL_LONGTERM, ...) to pin memory.  Normally
+if a page is present and in CMA area, pin_user_pages_remote() will
+migrate the page from CMA area to non-CMA area because of FOLL_LONGTERM
+flag.  But the current code will cause the migration failure due to
+unexpected page refcounts, and eventually cause the virtual machine
+fail to start.
 
-Desirable behavior is for khugepaged to be enabled when any PMD-sized THP
-is enabled, anon or file.  (Note that file THP is still controlled by the
-top-level control so we must always consider that, as well as the PMD-size
-mTHP control for anon).  khugepaged only supports collapsing to PMD-sized
-THP so there is no value in enabling it when PMD-sized THP is disabled. 
-So let's change the code and documentation to reflect this policy.
+If a page is added in LRU batch, its refcount increases one, remove the
+page from LRU batch decreases one.  Page migration requires the page is
+not referenced by others except page mapping.  Before migrating a page,
+we should try to drain the page from LRU batch in case the page is in
+it, however, folio_test_lru() is not sufficient to tell whether the
+page is in LRU batch or not, if the page is in LRU batch, the migration
+will fail.
 
-Further, per-size enabled control modification events were not previously
-forwarded to khugepaged to give it an opportunity to start or stop. 
-Consequently the following was resulting in khugepaged eroneously not
-being activated:
+To solve the problem above, we modify the logic of adding to LRU batch.
+Before adding a page to LRU batch, we clear the LRU flag of the page
+so that we can check whether the page is in LRU batch by
+folio_test_lru(page).  It's quite valuable, because likely we don't
+want to blindly drain the LRU batch simply because there is some
+unexpected reference on a page, as described above.
 
-  echo never > /sys/kernel/mm/transparent_hugepage/enabled
-  echo always > /sys/kernel/mm/transparent_hugepage/hugepages-2048kB/enabled
+This change makes the LRU flag of a page invisible for longer, which
+may impact some programs.  For example, as long as a page is on a LRU
+batch, we cannot isolate it, and we cannot check if it's an LRU page. 
+Further, a page can now only be on exactly one LRU batch.  This doesn't
+seem to matter much, because a new page is allocated from buddy and
+added to the lru batch, or be isolated, it's LRU flag may also be
+invisible for a long time.
 
-Link: https://lkml.kernel.org/r/20240704091051.2411934-1-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Fixes: 3485b88390b0 ("mm: thp: introduce multi-size THP sysfs interface")
-Closes: https://lore.kernel.org/linux-mm/7a0bbe69-1e3d-4263-b206-da007791a5c4@redhat.com/
+Link: https://lkml.kernel.org/r/1720075944-27201-1-git-send-email-yangge1116@126.com
+Link: https://lkml.kernel.org/r/1720008153-16035-1-git-send-email-yangge1116@126.com
+Fixes: 9a4e9f3b2d73 ("mm: update get_user_pages_longterm to migrate pages allocated from CMA region")
+Signed-off-by: yangge <yangge1116@126.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Barry Song <21cnbao@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |   11 +++++------
- include/linux/huge_mm.h                    |   15 ++++++++-------
- mm/huge_memory.c                           |    7 +++++++
- mm/khugepaged.c                            |   13 ++++++-------
- 4 files changed, 26 insertions(+), 20 deletions(-)
+ mm/swap.c |   43 +++++++++++++++++++++++++++++++------------
+ 1 file changed, 31 insertions(+), 12 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-fix-khugepaged-activation-policy
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -202,12 +202,11 @@ PMD-mappable transparent hugepage::
+--- a/mm/swap.c~mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch
++++ a/mm/swap.c
+@@ -212,10 +212,6 @@ static void folio_batch_move_lru(struct
+ 	for (i = 0; i < folio_batch_count(fbatch); i++) {
+ 		struct folio *folio = fbatch->folios[i];
  
- 	cat /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+-		/* block memcg migration while the folio moves between lru */
+-		if (move_fn != lru_add_fn && !folio_test_clear_lru(folio))
+-			continue;
+-
+ 		folio_lruvec_relock_irqsave(folio, &lruvec, &flags);
+ 		move_fn(lruvec, folio);
  
--khugepaged will be automatically started when one or more hugepage
--sizes are enabled (either by directly setting "always" or "madvise",
--or by setting "inherit" while the top-level enabled is set to "always"
--or "madvise"), and it'll be automatically shutdown when the last
--hugepage size is disabled (either by directly setting "never", or by
--setting "inherit" while the top-level enabled is set to "never").
-+khugepaged will be automatically started when PMD-sized THP is enabled
-+(either of the per-size anon control or the top-level control are set
-+to "always" or "madvise"), and it'll be automatically shutdown when
-+PMD-sized THP is disabled (when both the per-size anon control and the
-+top-level control are "never")
- 
- Khugepaged controls
- -------------------
---- a/include/linux/huge_mm.h~mm-fix-khugepaged-activation-policy
-+++ a/include/linux/huge_mm.h
-@@ -128,16 +128,17 @@ static inline bool hugepage_global_alway
- 			(1<<TRANSPARENT_HUGEPAGE_FLAG);
- }
- 
--static inline bool hugepage_flags_enabled(void)
-+static inline bool hugepage_pmd_enabled(void)
+@@ -256,11 +252,16 @@ static void lru_move_tail_fn(struct lruv
+ void folio_rotate_reclaimable(struct folio *folio)
  {
- 	/*
--	 * We cover both the anon and the file-backed case here; we must return
--	 * true if globally enabled, even when all anon sizes are set to never.
--	 * So we don't need to look at huge_anon_orders_inherit.
-+	 * We cover both the anon and the file-backed case here; file-backed
-+	 * hugepages, when configured in, are determined by the global control.
-+	 * Anon pmd-sized hugepages are determined by the pmd-size control.
- 	 */
--	return hugepage_global_enabled() ||
--	       READ_ONCE(huge_anon_orders_always) ||
--	       READ_ONCE(huge_anon_orders_madvise);
-+	return (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && hugepage_global_enabled()) ||
-+	       test_bit(PMD_ORDER, &huge_anon_orders_always) ||
-+	       test_bit(PMD_ORDER, &huge_anon_orders_madvise) ||
-+	       (test_bit(PMD_ORDER, &huge_anon_orders_inherit) && hugepage_global_enabled());
- }
+ 	if (!folio_test_locked(folio) && !folio_test_dirty(folio) &&
+-	    !folio_test_unevictable(folio) && folio_test_lru(folio)) {
++	    !folio_test_unevictable(folio)) {
+ 		struct folio_batch *fbatch;
+ 		unsigned long flags;
  
- static inline int highest_order(unsigned long orders)
---- a/mm/huge_memory.c~mm-fix-khugepaged-activation-policy
-+++ a/mm/huge_memory.c
-@@ -502,6 +502,13 @@ static ssize_t thpsize_enabled_store(str
- 	} else
- 		ret = -EINVAL;
- 
-+	if (ret > 0) {
-+		int err;
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
++		}
 +
-+		err = start_stop_khugepaged();
-+		if (err)
-+			ret = err;
-+	}
- 	return ret;
- }
+ 		local_lock_irqsave(&lru_rotate.lock, flags);
+ 		fbatch = this_cpu_ptr(&lru_rotate.fbatch);
+ 		folio_batch_add_and_move(fbatch, folio, lru_move_tail_fn);
+@@ -353,11 +354,15 @@ static void folio_activate_drain(int cpu
  
---- a/mm/khugepaged.c~mm-fix-khugepaged-activation-policy
-+++ a/mm/khugepaged.c
-@@ -449,7 +449,7 @@ void khugepaged_enter_vma(struct vm_area
- 			  unsigned long vm_flags)
+ void folio_activate(struct folio *folio)
  {
- 	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags) &&
--	    hugepage_flags_enabled()) {
-+	    hugepage_pmd_enabled()) {
- 		if (thp_vma_allowable_order(vma, vm_flags, TVA_ENFORCE_SYSFS,
- 					    PMD_ORDER))
- 			__khugepaged_enter(vma->vm_mm);
-@@ -2462,8 +2462,7 @@ breakouterloop_mmap_lock:
+-	if (folio_test_lru(folio) && !folio_test_active(folio) &&
+-	    !folio_test_unevictable(folio)) {
++	if (!folio_test_active(folio) && !folio_test_unevictable(folio)) {
+ 		struct folio_batch *fbatch;
  
- static int khugepaged_has_work(void)
- {
--	return !list_empty(&khugepaged_scan.mm_head) &&
--		hugepage_flags_enabled();
-+	return !list_empty(&khugepaged_scan.mm_head) && hugepage_pmd_enabled();
- }
- 
- static int khugepaged_wait_event(void)
-@@ -2536,7 +2535,7 @@ static void khugepaged_wait_work(void)
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
++		}
++
+ 		local_lock(&cpu_fbatches.lock);
+ 		fbatch = this_cpu_ptr(&cpu_fbatches.activate);
+ 		folio_batch_add_and_move(fbatch, folio, folio_activate_fn);
+@@ -701,6 +706,11 @@ void deactivate_file_folio(struct folio
  		return;
- 	}
  
--	if (hugepage_flags_enabled())
-+	if (hugepage_pmd_enabled())
- 		wait_event_freezable(khugepaged_wait, khugepaged_wait_event());
- }
- 
-@@ -2567,7 +2566,7 @@ static void set_recommended_min_free_kby
- 	int nr_zones = 0;
- 	unsigned long recommended_min;
- 
--	if (!hugepage_flags_enabled()) {
-+	if (!hugepage_pmd_enabled()) {
- 		calculate_min_free_kbytes();
- 		goto update_wmarks;
- 	}
-@@ -2617,7 +2616,7 @@ int start_stop_khugepaged(void)
- 	int err = 0;
- 
- 	mutex_lock(&khugepaged_mutex);
--	if (hugepage_flags_enabled()) {
-+	if (hugepage_pmd_enabled()) {
- 		if (!khugepaged_thread)
- 			khugepaged_thread = kthread_run(khugepaged, NULL,
- 							"khugepaged");
-@@ -2643,7 +2642,7 @@ fail:
- void khugepaged_min_free_kbytes_update(void)
+ 	folio_get(folio);
++	if (!folio_test_clear_lru(folio)) {
++		folio_put(folio);
++		return;
++	}
++
+ 	local_lock(&cpu_fbatches.lock);
+ 	fbatch = this_cpu_ptr(&cpu_fbatches.lru_deactivate_file);
+ 	folio_batch_add_and_move(fbatch, folio, lru_deactivate_file_fn);
+@@ -717,11 +727,16 @@ void deactivate_file_folio(struct folio
+  */
+ void folio_deactivate(struct folio *folio)
  {
- 	mutex_lock(&khugepaged_mutex);
--	if (hugepage_flags_enabled() && khugepaged_thread)
-+	if (hugepage_pmd_enabled() && khugepaged_thread)
- 		set_recommended_min_free_kbytes();
- 	mutex_unlock(&khugepaged_mutex);
- }
+-	if (folio_test_lru(folio) && !folio_test_unevictable(folio) &&
+-	    (folio_test_active(folio) || lru_gen_enabled())) {
++	if (!folio_test_unevictable(folio) && (folio_test_active(folio) ||
++	    lru_gen_enabled())) {
+ 		struct folio_batch *fbatch;
+ 
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
++		}
++
+ 		local_lock(&cpu_fbatches.lock);
+ 		fbatch = this_cpu_ptr(&cpu_fbatches.lru_deactivate);
+ 		folio_batch_add_and_move(fbatch, folio, lru_deactivate_fn);
+@@ -738,12 +753,16 @@ void folio_deactivate(struct folio *foli
+  */
+ void folio_mark_lazyfree(struct folio *folio)
+ {
+-	if (folio_test_lru(folio) && folio_test_anon(folio) &&
+-	    folio_test_swapbacked(folio) && !folio_test_swapcache(folio) &&
+-	    !folio_test_unevictable(folio)) {
++	if (folio_test_anon(folio) && folio_test_swapbacked(folio) &&
++	    !folio_test_swapcache(folio) && !folio_test_unevictable(folio)) {
+ 		struct folio_batch *fbatch;
+ 
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
++		}
++
+ 		local_lock(&cpu_fbatches.lock);
+ 		fbatch = this_cpu_ptr(&cpu_fbatches.lru_lazyfree);
+ 		folio_batch_add_and_move(fbatch, folio, lru_lazyfree_fn);
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from yangge1116@126.com are
 
-mm-fix-khugepaged-activation-policy.patch
+mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch
 
