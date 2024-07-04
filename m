@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F63A1822FB;
-	Wed,  3 Jul 2024 22:51:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46D2C2581
+	for <mm-commits@vger.kernel.org>; Thu,  4 Jul 2024 01:53:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720047087; cv=none; b=rb6hb+8FQIUC2xMrRQWKoUFKGNNC7ymmlujUyFDHUDKpM8WZ6cdblP0+xuco/N/AOuHIe+bCipqA4edYiDT0tZAuvg7V8lZOCgQO2V9mKS3TVkZaBJ6Z4fS14WsM+9ydyVSkOWEpFsyhAv2F7DjNODRP6238Y8sJrBDug1zg/B0=
+	t=1720058022; cv=none; b=j9kvwHshK8Go2EZ23Nbl6AoU+EmzI7Ur6vK0V2S9g8qXXX9/dXuZMAZoyzwMGdiBVHP7+lekMCOwO3TjEEGqQ+R7k8gpU/gaF/isVk6QGYQIlL3tS+tJhDrMaNBnL5CfjFiDJS1GoUjXhduSGDnXW0tVP1jE7PLoOSxn9m7B4KA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720047087; c=relaxed/simple;
-	bh=ezonhlygC2kdrQvOLHpEGC/S9uMXbcXG/5SVo8SsPrY=;
-	h=Date:To:From:Subject:Message-Id; b=FiH6T1jCNsOimsCo078a7YjCBwhc6+eh3RYrySh1faN3OJ0vLpNEjmslmUtaIzkhtqALVW8J9MCzvht+WWebzWrHUDU/5B6aVSNaiYzpJ0PIQLWEQ4Yu0nxCwC9Z5GMx5X4NoVv5QGTnieCu0XTKtBQI8zWOGT6NW9d4T48on54=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ANJqMzmq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720058022; c=relaxed/simple;
+	bh=Ebwc+ss2MzmJVcuMi9HMIqFRbAN6GWfFjGjoRjlbwMs=;
+	h=Date:To:From:Subject:Message-Id; b=aTjZzVYJ2KxsXwvYij3oTKmV73MgEUqfXcAJ5/o4kqZYgcUTLT/TSZvIZtPrhjg9S/8FRq2pEPEO7BVLMlgB0M2Jo/5rNAl1ZPEpbjy2FaB7/nwZyjepAfaqOrTsJM91AW9HZ0gP5XmSEq95/65A6W55HpZ9t05rwrOIlDXP1t8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CRlXfiyA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ANJqMzmq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFA48C4AF0D;
-	Wed,  3 Jul 2024 22:51:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CRlXfiyA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 010F8C2BD10;
+	Thu,  4 Jul 2024 01:53:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720047086;
-	bh=ezonhlygC2kdrQvOLHpEGC/S9uMXbcXG/5SVo8SsPrY=;
+	s=korg; t=1720058022;
+	bh=Ebwc+ss2MzmJVcuMi9HMIqFRbAN6GWfFjGjoRjlbwMs=;
 	h=Date:To:From:Subject:From;
-	b=ANJqMzmqj1Kq9W0P6chKuK5bBukrREiO5lTHUrXRHTUyzmGrBOBHX7io6mE9SPaRH
-	 bfN0y33dKyqGr6lIQ4GaxnYxPvEX7P7eO8hy99sQ5ZrQ30qLi4HV3OR+PRoi4bcv+5
-	 ZnHeRXpX9ZrNEElS941EOG4JQlG6WobfelXNJMK0=
-Date: Wed, 03 Jul 2024 15:51:26 -0700
-To: mm-commits@vger.kernel.org,vincent.guittot@linaro.org,stable@vger.kernel.org,peterz@infradead.org,mingo@redhat.com,lkp@intel.com,kent.overstreet@linux.dev,juri.lelli@redhat.com,surenb@google.com,akpm@linux-foundation.org
+	b=CRlXfiyAKCXChK983b4zsfw7F23ONgi6uvGEgVXyFXhttoZXkhbC7aDAj1zp/jfol
+	 7PoI+7HWj4hDmyj/E1idZW3wPeSXN6pbOm95BJEdR+DFDtSBjeTSMsqPIvvkWYXmQw
+	 /AC4SYgDeMdHXTQeK85kqGs6/th6UyyBWaJUFSuk=
+Date: Wed, 03 Jul 2024 18:53:41 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + schedh-always_inline-alloc_tag_saverestore-to-fix-modpost-warnings.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240703225126.AFA48C4AF0D@smtp.kernel.org>
+Subject: + mm-memcg-move-cgroup-v1-interface-files-to-memcontrol-v1c-fix.patch added to mm-unstable branch
+Message-Id: <20240704015342.010F8C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sched.h: always_inline alloc_tag_{save|restore} to fix modpost warnings
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     schedh-always_inline-alloc_tag_saverestore-to-fix-modpost-warnings.patch
+     Subject: mm-memcg-move-cgroup-v1-interface-files-to-memcontrol-v1c-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memcg-move-cgroup-v1-interface-files-to-memcontrol-v1c-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/schedh-always_inline-alloc_tag_saverestore-to-fix-modpost-warnings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-move-cgroup-v1-interface-files-to-memcontrol-v1c-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,55 +58,202 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: sched.h: always_inline alloc_tag_{save|restore} to fix modpost warnings
-Date: Wed, 3 Jul 2024 15:15:20 -0700
+From: Roman Gushchin <roman.gushchin@linux.dev>
+Subject: mm-memcg-move-cgroup-v1-interface-files-to-memcontrol-v1c-fix
+Date: Thu, 4 Jul 2024 00:27:12 +0000
 
-Mark alloc_tag_{save|restore} as always_inline to fix the following
-modpost warnings:
+I forgot to actually move two functions mem_cgroup_node_nr_lru_pages()
+and mem_cgroup_nr_lru_pages() into mm/memcontrol-v1.c, so that they remain
+in mm/memcontrol.c and their commented out duplicated versions in
+mm/memcontrol-v1.c.
 
-WARNING: modpost: vmlinux: section mismatch in reference: alloc_tag_save+0x1c (section: .text.unlikely) -> initcall_level_names (section: .init.data)
-WARNING: modpost: vmlinux: section mismatch in reference: alloc_tag_restore+0x3c (section: .text.unlikely) -> initcall_level_names (section: .init.data)
-
-Link: https://lkml.kernel.org/r/20240703221520.4108464-1-surenb@google.com
-Fixes: 22d407b164ff ("lib: add allocation tagging support for memory allocation profiling")
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202407032306.gi9nZsBi-lkp@intel.com/
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240704002712.2077812-1-roman.gushchin@linux.dev
+Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol-v1.c |   74 +++++++++++++++++++++----------------------
+ mm/memcontrol-v1.h |    5 --
+ mm/memcontrol.c    |   38 ----------------------
+ 3 files changed, 37 insertions(+), 80 deletions(-)
 
---- a/include/linux/sched.h~schedh-always_inline-alloc_tag_saverestore-to-fix-modpost-warnings
-+++ a/include/linux/sched.h
-@@ -2192,13 +2192,13 @@ static inline int sched_core_idle_cpu(in
- extern void sched_set_stop_task(int cpu, struct task_struct *stop);
- 
- #ifdef CONFIG_MEM_ALLOC_PROFILING
--static inline struct alloc_tag *alloc_tag_save(struct alloc_tag *tag)
-+static __always_inline struct alloc_tag *alloc_tag_save(struct alloc_tag *tag)
- {
- 	swap(current->alloc_tag, tag);
- 	return tag;
+--- a/mm/memcontrol.c~mm-memcg-move-cgroup-v1-interface-files-to-memcontrol-v1c-fix
++++ a/mm/memcontrol.c
+@@ -3188,44 +3188,6 @@ static void memcg_offline_kmem(struct me
  }
+ #endif /* CONFIG_MEMCG_KMEM */
  
--static inline void alloc_tag_restore(struct alloc_tag *tag, struct alloc_tag *old)
-+static __always_inline void alloc_tag_restore(struct alloc_tag *tag, struct alloc_tag *old)
+-unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
+-					   int nid, unsigned int lru_mask,
+-					   bool tree)
+-{
+-	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
+-	unsigned long nr = 0;
+-	enum lru_list lru;
+-
+-	VM_BUG_ON((unsigned)nid >= nr_node_ids);
+-
+-	for_each_lru(lru) {
+-		if (!(BIT(lru) & lru_mask))
+-			continue;
+-		if (tree)
+-			nr += lruvec_page_state(lruvec, NR_LRU_BASE + lru);
+-		else
+-			nr += lruvec_page_state_local(lruvec, NR_LRU_BASE + lru);
+-	}
+-	return nr;
+-}
+-
+-unsigned long mem_cgroup_nr_lru_pages(struct mem_cgroup *memcg,
+-				      unsigned int lru_mask, bool tree)
+-{
+-	unsigned long nr = 0;
+-	enum lru_list lru;
+-
+-	for_each_lru(lru) {
+-		if (!(BIT(lru) & lru_mask))
+-			continue;
+-		if (tree)
+-			nr += memcg_page_state(memcg, NR_LRU_BASE + lru);
+-		else
+-			nr += memcg_page_state_local(memcg, NR_LRU_BASE + lru);
+-	}
+-	return nr;
+-}
+-
+ #ifdef CONFIG_CGROUP_WRITEBACK
+ 
+ #include <trace/events/writeback.h>
+--- a/mm/memcontrol-v1.c~mm-memcg-move-cgroup-v1-interface-files-to-memcontrol-v1c-fix
++++ a/mm/memcontrol-v1.c
+@@ -2494,43 +2494,43 @@ static ssize_t mem_cgroup_reset(struct k
+ #define LRU_ALL_ANON (BIT(LRU_INACTIVE_ANON) | BIT(LRU_ACTIVE_ANON))
+ #define LRU_ALL	     ((1 << NR_LRU_LISTS) - 1)
+ 
+-/* static unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg, */
+-/* 				int nid, unsigned int lru_mask, bool tree) */
+-/* { */
+-/* 	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid)); */
+-/* 	unsigned long nr = 0; */
+-/* 	enum lru_list lru; */
+-
+-/* 	VM_BUG_ON((unsigned)nid >= nr_node_ids); */
+-
+-/* 	for_each_lru(lru) { */
+-/* 		if (!(BIT(lru) & lru_mask)) */
+-/* 			continue; */
+-/* 		if (tree) */
+-/* 			nr += lruvec_page_state(lruvec, NR_LRU_BASE + lru); */
+-/* 		else */
+-/* 			nr += lruvec_page_state_local(lruvec, NR_LRU_BASE + lru); */
+-/* 	} */
+-/* 	return nr; */
+-/* } */
+-
+-/* static unsigned long mem_cgroup_nr_lru_pages(struct mem_cgroup *memcg, */
+-/* 					     unsigned int lru_mask, */
+-/* 					     bool tree) */
+-/* { */
+-/* 	unsigned long nr = 0; */
+-/* 	enum lru_list lru; */
+-
+-/* 	for_each_lru(lru) { */
+-/* 		if (!(BIT(lru) & lru_mask)) */
+-/* 			continue; */
+-/* 		if (tree) */
+-/* 			nr += memcg_page_state(memcg, NR_LRU_BASE + lru); */
+-/* 		else */
+-/* 			nr += memcg_page_state_local(memcg, NR_LRU_BASE + lru); */
+-/* 	} */
+-/* 	return nr; */
+-/* } */
++static unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
++				int nid, unsigned int lru_mask, bool tree)
++{
++	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
++	unsigned long nr = 0;
++	enum lru_list lru;
++
++	VM_BUG_ON((unsigned)nid >= nr_node_ids);
++
++	for_each_lru(lru) {
++		if (!(BIT(lru) & lru_mask))
++			continue;
++		if (tree)
++			nr += lruvec_page_state(lruvec, NR_LRU_BASE + lru);
++		else
++			nr += lruvec_page_state_local(lruvec, NR_LRU_BASE + lru);
++	}
++	return nr;
++}
++
++static unsigned long mem_cgroup_nr_lru_pages(struct mem_cgroup *memcg,
++					     unsigned int lru_mask,
++					     bool tree)
++{
++	unsigned long nr = 0;
++	enum lru_list lru;
++
++	for_each_lru(lru) {
++		if (!(BIT(lru) & lru_mask))
++			continue;
++		if (tree)
++			nr += memcg_page_state(memcg, NR_LRU_BASE + lru);
++		else
++			nr += memcg_page_state_local(memcg, NR_LRU_BASE + lru);
++	}
++	return nr;
++}
+ 
+ static int memcg_numa_stat_show(struct seq_file *m, void *v)
  {
- #ifdef CONFIG_MEM_ALLOC_PROFILING_DEBUG
- 	WARN(current->alloc_tag != tag, "current->alloc_tag was changed:\n");
+--- a/mm/memcontrol-v1.h~mm-memcg-move-cgroup-v1-interface-files-to-memcontrol-v1c-fix
++++ a/mm/memcontrol-v1.h
+@@ -88,11 +88,6 @@ void memcg1_oom_finish(struct mem_cgroup
+ void memcg1_oom_recover(struct mem_cgroup *memcg);
+ 
+ void drain_all_stock(struct mem_cgroup *root_memcg);
+-unsigned long mem_cgroup_nr_lru_pages(struct mem_cgroup *memcg,
+-				      unsigned int lru_mask, bool tree);
+-unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
+-					   int nid, unsigned int lru_mask,
+-					   bool tree);
+ 
+ unsigned long memcg_events(struct mem_cgroup *memcg, int event);
+ unsigned long memcg_events_local(struct mem_cgroup *memcg, int event);
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from roman.gushchin@linux.dev are
 
-schedh-always_inline-alloc_tag_saverestore-to-fix-modpost-warnings.patch
-mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros.patch
+mm-memcg-introduce-memcontrol-v1c.patch
+mm-memcg-move-soft-limit-reclaim-code-to-memcontrol-v1c.patch
+mm-memcg-rename-soft-limit-reclaim-related-functions.patch
+mm-memcg-move-charge-migration-code-to-memcontrol-v1c.patch
+mm-memcg-rename-charge-move-related-functions.patch
+mm-memcg-move-legacy-memcg-event-code-into-memcontrol-v1c.patch
+mm-memcg-rename-memcg_check_events.patch
+mm-memcg-move-cgroup-v1-oom-handling-code-into-memcontrol-v1c.patch
+mm-memcg-rename-memcg_oom_recover.patch
+mm-memcg-move-cgroup-v1-interface-files-to-memcontrol-v1c.patch
+mm-memcg-move-cgroup-v1-interface-files-to-memcontrol-v1c-fix.patch
+mm-memcg-make-memcg1_update_tree-static.patch
+mm-memcg-group-cgroup-v1-memcg-related-declarations.patch
+mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option.patch
+mm-memcg-put-cgroup-v1-related-members-of-task_struct-under-config-option-fix.patch
+maintainers-add-mm-memcontrol-v1c-h-to-the-list-of-maintained-files.patch
+mm-memcg-move-memcg_account_kmem-to-memcontrol-v1c.patch
+mm-memcg-factor-out-legacy-socket-memory-accounting-code.patch
+mm-memcg-guard-cgroup-v1-specific-code-in-mem_cgroup_print_oom_meminfo.patch
+mm-memcg-gather-memcg1-specific-fields-initialization-in-memcg1_memcg_init.patch
+mm-memcg-guard-memcg1-specific-fields-accesses-in-mm-memcontrolc.patch
+mm-memcg-put-memcg1-specific-struct-mem_cgroups-members-under-config_memcg_v1.patch
+mm-memcg-guard-memcg1-specific-members-of-struct-mem_cgroup_per_node.patch
+mm-memcg-put-struct-task_struct-memcg_in_oom-under-config_memcg_v1.patch
+mm-memcg-put-struct-task_struct-in_user_fault-under-config_memcg_v1.patch
+mm-memcg-drop-obsolete-cache-line-padding-in-struct-mem_cgroup.patch
+mm-memcg-add-cache-line-padding-to-mem_cgroup_per_node.patch
 
