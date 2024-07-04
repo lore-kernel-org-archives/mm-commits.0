@@ -1,108 +1,85 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D2A61DA32D
-	for <mm-commits@vger.kernel.org>; Thu,  4 Jul 2024 03:37:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35DA5747F;
+	Thu,  4 Jul 2024 05:27:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720064233; cv=none; b=urwS5/9ZOufoxCkM+ySwJVoo9sM+hpUGQC5+CZG+1WPiILSSdVZtIRhqFuW8ghow897PQs6yD9k2TuLk1RNEXwTk4+i3N+FZ9eOMzq/fTSIJ1SJ9k4Sx+A61ogfd2scugbgh/TEhq8dC0zrcAReM0iusS2M97wAFCWb0L09BSd0=
+	t=1720070850; cv=none; b=eISi9iUDstb0dcqex1XrFTIXKGo31uz0h6ihfnqCJksy47lhf6nfLNniZNwy41/hHibdpKacFQPi+PtnX7FSCPFRRDhVZfwfl+gR9qmDAoVJz3TE2FQnd8j3YQ3BqDPo654ngv+eTXj7nHobaDa2KRv+82p+WHRx6ez3kYc8f18=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720064233; c=relaxed/simple;
-	bh=EQiQTPFANT9/Ne+rsPTYswbpVZQniVbxCKXpjjqmU9M=;
-	h=Date:To:From:Subject:Message-Id; b=hATXAkYPp92sr9HiwrWScv9uiwmUCmYEm8JR7zFLgrvryVQ9O8c7u37Phd0yx35LzqT3DACQ4UzrtE54Iz4STYgejbpiKv7T4/h4Ba7OB6fWE0rJYc6JEswF0IQiLK4iojny+d7DxHchgNHXwuqxs9swk6lVEUMTWeK+EyZjo6k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HuF3OjZO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720070850; c=relaxed/simple;
+	bh=r5+3Vb8FY/N72pkicyFI6kvK7pUtXXQwTF9Engm7t2M=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=cr6x6EKY/BDQvGubvLXHtzX6a6jAD2jiewZ+sY7//IAQ+0QC/kckC6qaqMwkV30SaFREUTTU4GxoL4R46RKPT71sq+t3NngwPu2wv55YWJF7JPbt7ThxVKYTrU6DFSApQpCjpLGAVOXjNX41STixcxAEf68fRQCkVXNmBkYhKNI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FeHwnrwS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HuF3OjZO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A50FEC3277B;
-	Thu,  4 Jul 2024 03:37:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FeHwnrwS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71191C3277B;
+	Thu,  4 Jul 2024 05:27:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720064232;
-	bh=EQiQTPFANT9/Ne+rsPTYswbpVZQniVbxCKXpjjqmU9M=;
-	h=Date:To:From:Subject:From;
-	b=HuF3OjZOM5s1jClWEMF9u8lqnpBEr/wlBR6l09SvneC5uiJ0CCgtGXPuWCNEq7ohi
-	 ESgJsR4DtkGF6OplQvNkR8PtaKtSaBAd1hLkNwCr9KMJ3ORFqUdX7uRLyg+RbTJO12
-	 I8oLNpJF2irPQtY9OnBNjQ+nS83unRQ9ZYd52hnE=
-Date: Wed, 03 Jul 2024 20:37:12 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	s=korg; t=1720070849;
+	bh=r5+3Vb8FY/N72pkicyFI6kvK7pUtXXQwTF9Engm7t2M=;
+	h=Date:From:To:Cc:Subject:From;
+	b=FeHwnrwSMr88LvAFd1FA1uOzOPaTayQZOVa5U5xciix/Qu75w66OsfvrijnDA1FE/
+	 DjtOG7ITsYwK/X6hAc+3lSSnwn1MKwerNr31ZO8f9B1/LhWS/eza5KlRq0IwNV122Y
+	 kxcdJbWmga2n6l0hy6yg3CoZ4uOPK95w6I6plD+0=
+Date: Wed, 3 Jul 2024 22:27:28 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] mm-page_alloc-remove-prefetchw-on-freeing-page-to-buddy-system-v2.patch removed from -mm tree
-Message-Id: <20240704033712.A50FEC3277B@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ mm-commits@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.10-rc7
+Message-Id: <20240703222728.d5ef62a48ebf19260832ee73@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The quilt patch titled
-     Subject: mm-page_alloc-remove-prefetchw-on-freeing-page-to-buddy-system-v2
-has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-remove-prefetchw-on-freeing-page-to-buddy-system-v2.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch was dropped because it was nacked
+The following changes since commit 22a40d14b572deb80c0648557f4bd502d7e83826:
 
-------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm-page_alloc-remove-prefetchw-on-freeing-page-to-buddy-system-v2
-Date: Thu, 4 Jul 2024 01:59:06 +0000
+  Linux 6.10-rc6 (2024-06-30 14:40:44 -0700)
 
-slightly adjust the loop based on David's comment
+are available in the Git repository at:
 
-Link: https://lkml.kernel.org/r/20240704015906.18437-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-07-03-22-23
 
- mm/page_alloc.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+for you to fetch changes up to 93aef9eda1cea9e84ab2453fcceb8addad0e46f1:
 
---- a/mm/page_alloc.c~mm-page_alloc-remove-prefetchw-on-freeing-page-to-buddy-system-v2
-+++ a/mm/page_alloc.c
-@@ -1224,7 +1224,7 @@ void __free_pages_core(struct page *page
- {
- 	unsigned int nr_pages = 1 << order;
- 	struct page *p = page;
--	unsigned int loop;
-+	unsigned int loop = 0;
- 
- 	/*
- 	 * When initializing the memmap, __init_single_page() sets the refcount
-@@ -1236,10 +1236,13 @@ void __free_pages_core(struct page *page
- 	 */
- 	if (IS_ENABLED(CONFIG_MEMORY_HOTPLUG) &&
- 	    unlikely(context == MEMINIT_HOTPLUG)) {
--		for (loop = 0; loop < nr_pages; loop++, p++) {
-+		for (;;) {
- 			VM_WARN_ON_ONCE(PageReserved(p));
- 			__ClearPageOffline(p);
- 			set_page_count(p, 0);
-+			if (++loop >= nr_pages)
-+				break;
-+			p++;
- 		}
- 
- 		/*
-@@ -1250,9 +1253,12 @@ void __free_pages_core(struct page *page
- 		debug_pagealloc_map_pages(page, nr_pages);
- 		adjust_managed_page_count(page, nr_pages);
- 	} else {
--		for (loop = 0; loop < nr_pages; loop++, p++) {
-+		for (;;) {
- 			__ClearPageReserved(p);
- 			set_page_count(p, 0);
-+			if (++loop >= nr_pages)
-+				break;
-+			p++;
- 		}
- 
- 		/* memblock adjusts totalram_pages() manually. */
-_
+  nilfs2: fix incorrect inode allocation from reserved inodes (2024-07-03 12:29:25 -0700)
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+----------------------------------------------------------------
+6 hotfies, all cc:stable.  Some fixes for longstanding nilfs2 issues and
+three unrelated MM fixes.
 
-kernel-forkc-get-totalram_pages-from-memblock-to-calculate-max_threads.patch
-kernel-forkc-put-set_max_threads-task_struct_whitelist-in-__init-section.patch
-mm-page_alloc-remove-prefetchw-on-freeing-page-to-buddy-system.patch
+----------------------------------------------------------------
+Jan Kara (2):
+      Revert "mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again"
+      mm: avoid overflows in dirty throttling logic
+
+Jinliang Zheng (1):
+      mm: optimize the redundant loop of mm_update_owner_next()
+
+Ryusuke Konishi (3):
+      nilfs2: fix inode number range checks
+      nilfs2: add missing check for inode numbers on directory entries
+      nilfs2: fix incorrect inode allocation from reserved inodes
+
+ fs/nilfs2/alloc.c     | 19 +++++++++++++++----
+ fs/nilfs2/alloc.h     |  4 ++--
+ fs/nilfs2/dat.c       |  2 +-
+ fs/nilfs2/dir.c       |  6 ++++++
+ fs/nilfs2/ifile.c     |  7 ++-----
+ fs/nilfs2/nilfs.h     | 10 ++++++++--
+ fs/nilfs2/the_nilfs.c |  6 ++++++
+ fs/nilfs2/the_nilfs.h |  2 +-
+ kernel/exit.c         |  2 ++
+ mm/page-writeback.c   | 32 +++++++++++++++++++++++++++-----
+ 10 files changed, 70 insertions(+), 20 deletions(-)
 
