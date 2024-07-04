@@ -1,85 +1,139 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35DA5747F;
-	Thu,  4 Jul 2024 05:27:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4057210EE
+	for <mm-commits@vger.kernel.org>; Thu,  4 Jul 2024 05:29:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720070850; cv=none; b=eISi9iUDstb0dcqex1XrFTIXKGo31uz0h6ihfnqCJksy47lhf6nfLNniZNwy41/hHibdpKacFQPi+PtnX7FSCPFRRDhVZfwfl+gR9qmDAoVJz3TE2FQnd8j3YQ3BqDPo654ngv+eTXj7nHobaDa2KRv+82p+WHRx6ez3kYc8f18=
+	t=1720070958; cv=none; b=QlC3fHGjWofhjAP60rPYMExVP+GIag5Hw13kj4P6LDxrdue1L5xCrEWTBu/XEQ7VXY4XV1IH5S5YtLVIzjKTrIzy7j6wxWxs0b89+6oMEL7FLZoDJEca78AHIRKrtJAswH3CN+PwOyK3Hp6Nu/+mIziQdxmRrTk16+iKbS40Htk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720070850; c=relaxed/simple;
-	bh=r5+3Vb8FY/N72pkicyFI6kvK7pUtXXQwTF9Engm7t2M=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=cr6x6EKY/BDQvGubvLXHtzX6a6jAD2jiewZ+sY7//IAQ+0QC/kckC6qaqMwkV30SaFREUTTU4GxoL4R46RKPT71sq+t3NngwPu2wv55YWJF7JPbt7ThxVKYTrU6DFSApQpCjpLGAVOXjNX41STixcxAEf68fRQCkVXNmBkYhKNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FeHwnrwS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720070958; c=relaxed/simple;
+	bh=He/DjBDaUoNfCAEXQlfcl3Cvaj7M4Kjp8Wi3POmtZPQ=;
+	h=Date:To:From:Subject:Message-Id; b=D37QttgdaSa/sznQ1f9xKra7e85ggyqbv7yVEBQnHItTlyOreOL34/bwQYy+OU0Mjgi2z3rz848DamjmUruTCueMQMOkdJ76YmE6uq8rokAe7xDzLh3ES7G/AER9zzIZaS8GIDCboF2eE4MCck77LiIRZMHGF/PFBq6WX50v2Lk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ee5cw4kE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FeHwnrwS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71191C3277B;
-	Thu,  4 Jul 2024 05:27:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ee5cw4kE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 626BEC3277B;
+	Thu,  4 Jul 2024 05:29:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720070849;
-	bh=r5+3Vb8FY/N72pkicyFI6kvK7pUtXXQwTF9Engm7t2M=;
-	h=Date:From:To:Cc:Subject:From;
-	b=FeHwnrwSMr88LvAFd1FA1uOzOPaTayQZOVa5U5xciix/Qu75w66OsfvrijnDA1FE/
-	 DjtOG7ITsYwK/X6hAc+3lSSnwn1MKwerNr31ZO8f9B1/LhWS/eza5KlRq0IwNV122Y
-	 kxcdJbWmga2n6l0hy6yg3CoZ4uOPK95w6I6plD+0=
-Date: Wed, 3 Jul 2024 22:27:28 -0700
+	s=korg; t=1720070957;
+	bh=He/DjBDaUoNfCAEXQlfcl3Cvaj7M4Kjp8Wi3POmtZPQ=;
+	h=Date:To:From:Subject:From;
+	b=Ee5cw4kEZdv7h7xiDr7Thf1WjZV0loB3zqDyJ366KUayoLEnNGQIQWpwc5EUDso/r
+	 2pmiXhCUVXeTlsVOrxsAEqz8BisIhCUkV/43/q1tCKqZ2qQUBBCOq/Ik8DY6pLS7eN
+	 zwif1oTfwXwr7P5e77mm69bi0YbIfyauOWO4hopU=
+Date: Wed, 03 Jul 2024 22:29:16 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
- mm-commits@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.10-rc7
-Message-Id: <20240703222728.d5ef62a48ebf19260832ee73@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: [folded-merged] mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix.patch removed from -mm tree
+Message-Id: <20240704052917.626BEC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please merge this batch of hotfixes, thanks.
+The quilt patch titled
+     Subject: mm/damon/core: increase regions merge aggressiveness while respecting min_nr_regions
+has been removed from the -mm tree.  Its filename was
+     mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix.patch
 
-The following changes since commit 22a40d14b572deb80c0648557f4bd502d7e83826:
+This patch was dropped because it was folded into mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet.patch
 
-  Linux 6.10-rc6 (2024-06-30 14:40:44 -0700)
+------------------------------------------------------
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: increase regions merge aggressiveness while respecting min_nr_regions
+Date: Wed, 26 Jun 2024 09:47:53 -0700
 
-are available in the Git repository at:
+DAMON's merge mechanism has two thresholds, namely those for access
+frequency and size.  The access frequency threshold avoids merging two
+adjacent regions that having pretty different access frequency.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-07-03-22-23
+The size threshold is calculated as total size of regions divided by
+min_nr_regions.  Merging operation skip merging two adjacent regions if
+the resulting region's size can be larger than the threshold.  This is for
+meeting min_nr_regions.
 
-for you to fetch changes up to 93aef9eda1cea9e84ab2453fcceb8addad0e46f1:
+Commit 44fdaf596984 ("mm/damon/core: merge regions aggressively when
+max_nr_regions is unmet") of mm-unstable, however, ignores the
+min_nr_regions by increasing not only access frequency threshold but also
+the size threshold.
 
-  nilfs2: fix incorrect inode allocation from reserved inodes (2024-07-03 12:29:25 -0700)
+The commit also has one more problem.  User could set DAMON target regions
+with more than max_nr_regions discrete regions.  Because DAMON cannot
+merge non-adjacent regions, the number of regions will never be lower than
+max_nr_regions regardless of the increased thresholds.  As a result, the
+function can infinitely repeat the loop.
 
-----------------------------------------------------------------
-6 hotfies, all cc:stable.  Some fixes for longstanding nilfs2 issues and
-three unrelated MM fixes.
+Increase only access frequency threshold, up to only possible maximum
+value.
 
-----------------------------------------------------------------
-Jan Kara (2):
-      Revert "mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again"
-      mm: avoid overflows in dirty throttling logic
+Link: https://lkml.kernel.org/r/20240626164753.46270-1-sj@kernel.org
+Fixes: 44fdaf596984 ("mm/damon/core: merge regions aggressively when max_nr_regions is unmet") # mm-unstable
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Jinliang Zheng (1):
-      mm: optimize the redundant loop of mm_update_owner_next()
+ mm/damon/core.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-Ryusuke Konishi (3):
-      nilfs2: fix inode number range checks
-      nilfs2: add missing check for inode numbers on directory entries
-      nilfs2: fix incorrect inode allocation from reserved inodes
+--- a/mm/damon/core.c~mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix
++++ a/mm/damon/core.c
+@@ -1359,20 +1359,21 @@ static void damon_merge_regions_of(struc
+  * overhead under the dynamically changeable access pattern.  If a merge was
+  * unnecessarily made, later 'kdamond_split_regions()' will revert it.
+  *
+- * The total number of regions could be temporarily higher than the
+- * user-defined limit, max_nr_regions for some cases.  For an example, the user
+- * updates max_nr_regions to a number that lower than the current number of
+- * regions while DAMON is running.  Depending on the access pattern, it could
+- * take indefinitve time to reduce the number below the limit.  For such a
+- * case, repeat merging until the limit is met while increasing @threshold and
+- * @sz_limit.
++ * The total number of regions could be higher than the user-defined limit,
++ * max_nr_regions for some cases.  For example, the user can update
++ * max_nr_regions to a number that lower than the current number of regions
++ * while DAMON is running.  For such a case, repeat merging until the limit is
++ * met while increasing @threshold up to possible maximum level.
+  */
+ static void kdamond_merge_regions(struct damon_ctx *c, unsigned int threshold,
+ 				  unsigned long sz_limit)
+ {
+ 	struct damon_target *t;
+ 	unsigned int nr_regions;
++	unsigned int max_thres;
+ 
++	max_thres = c->attrs.aggr_interval /
++		(c->attrs.sample_interval ?  c->attrs.sample_interval : 1);
+ 	do {
+ 		nr_regions = 0;
+ 		damon_for_each_target(t, c) {
+@@ -1380,8 +1381,8 @@ static void kdamond_merge_regions(struct
+ 			nr_regions += damon_nr_regions(t);
+ 		}
+ 		threshold = max(1, threshold * 2);
+-		sz_limit = max(1, sz_limit * 2);
+-	} while (nr_regions > c->attrs.max_nr_regions);
++	} while (nr_regions > c->attrs.max_nr_regions &&
++			threshold <= max_thres);
+ }
+ 
+ /*
+_
 
- fs/nilfs2/alloc.c     | 19 +++++++++++++++----
- fs/nilfs2/alloc.h     |  4 ++--
- fs/nilfs2/dat.c       |  2 +-
- fs/nilfs2/dir.c       |  6 ++++++
- fs/nilfs2/ifile.c     |  7 ++-----
- fs/nilfs2/nilfs.h     | 10 ++++++++--
- fs/nilfs2/the_nilfs.c |  6 ++++++
- fs/nilfs2/the_nilfs.h |  2 +-
- kernel/exit.c         |  2 ++
- mm/page-writeback.c   | 32 +++++++++++++++++++++++++++-----
- 10 files changed, 70 insertions(+), 20 deletions(-)
+Patches currently in -mm which might be from sj@kernel.org are
+
+mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet.patch
+mm-damon-core-merge-regions-aggressively-when-max_nr_regions-is-unmet-fix-2.patch
+mm-damon-paddr-initialize-nr_succeeded-in-__damon_pa_migrate_folio_list.patch
+docs-mm-damon-design-fix-two-typos.patch
+docs-mm-damon-design-clarify-regions-merging-operation.patch
+docs-admin-guide-mm-damon-start-add-access-pattern-snapshot-example.patch
+docs-mm-damon-design-add-links-from-overall-architecture-to-sections-of-details.patch
+docs-mm-damon-design-move-configurable-operations-set-section-into-operations-set-layer-section.patch
+docs-mm-damon-design-remove-programmable-modules-section-in-favor-of-modules-section.patch
+docs-mm-damon-design-add-links-to-sections-of-damon-sysfs-interface-usage-doc.patch
+docs-mm-damon-index-add-links-to-design.patch
+docs-mm-damon-index-add-links-to-admin-guide-doc.patch
 
