@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8561D51D
-	for <mm-commits@vger.kernel.org>; Fri,  5 Jul 2024 01:06:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1BA7D51D
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jul 2024 01:07:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720141619; cv=none; b=Np2wMvHn5FAdPoNRtl+tzUMahnGlpxi06WjoCw3tbBJk3OlxdV28kFoj3wbkow6pEs6XxZrxMSY0HKKl5M60P8vHiwCY/BtieEe5GHQWWCQ/IDrtQ64HpIFTflcD+gEIUK1XadK+uPXxtV8lA0C/TI2HnJ3nFBCHytHLvH0h1w0=
+	t=1720141620; cv=none; b=FkSaoadiMZPTI/ESF4/BU1vEnNCa/8kA+v16ZjTHPrjUTBp1MTJHi6ELUlSn+rwl2IffhdHkG6e8/PQfuVKvZezYVJYVHmYqeIPRyh9I4D+q+Kp0wEBmlgsJ2ZMnZptRLSWLAYucdzWGdG27HfW4MyITresIL8n0u4n9azO8Jd0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720141619; c=relaxed/simple;
-	bh=HU1T3SMN7BkQxM/+PAm3FZnORIrE7d34HYAGZu+W0Uk=;
-	h=Date:To:From:Subject:Message-Id; b=IUWd24hAvtziH392CIPQit2bqwC/CCfyrOzBkbF/wXJ7DX2ACSSf2Ntq2cNBri1fYZC3APqZqTVzglKAqYJT1JVG+btV38zrPhUh3fLehBCrGpCDvXm048r8XmSQXOBP8ghf388xiR9ZuNPmmt91BV2Dzdm2ptXPP0xQSan+g6g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p72qsfPc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720141620; c=relaxed/simple;
+	bh=erSm5TsKjHLG4MQ06AGMAm2EWqVe26ewvrphJGTTEd4=;
+	h=Date:To:From:Subject:Message-Id; b=Y0py4qlc4/TuOUSAAKXmn9SfdDoRABfNI/BE92P5mihE7pExF1oytcfGgK0Fgnc/0YlUpFbABSs0UE4IL5pynKykJJ7VXRaTF6JIJn6YFOpRA/ye/sTj2QjgGCsxRswrXpBkpFtCLTAf7YXMIQVMwuSmOYtUrTa5Y9B17htXjjE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JHkr54a6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p72qsfPc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BBEBC3277B;
-	Fri,  5 Jul 2024 01:06:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JHkr54a6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94BCAC3277B;
+	Fri,  5 Jul 2024 01:07:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720141619;
-	bh=HU1T3SMN7BkQxM/+PAm3FZnORIrE7d34HYAGZu+W0Uk=;
+	s=korg; t=1720141620;
+	bh=erSm5TsKjHLG4MQ06AGMAm2EWqVe26ewvrphJGTTEd4=;
 	h=Date:To:From:Subject:From;
-	b=p72qsfPcD83Tr1rFLXRwKhLkqqJ4ACak1LI/qN/oQjMpP8XW5fn/Ahltl7YiIng5g
-	 Tezor0zVL3QuINJL62KkpLYqmOP9e2qDZaus2fBSqU2/Y7HtLxhDB2dmkzanTFPuSf
-	 8G+6YmlWwWtnCPGI3Z2QxobtSGqSUn3KsZFp7QM4=
-Date: Thu, 04 Jul 2024 18:06:59 -0700
+	b=JHkr54a6XaiRlgBQMc+glYp2FI/ZrITSl0WU0j0QrMfJeX6ve+xRBebThh14vP9Kj
+	 Wj+LBt9JKacBWs9Uar6zW1BdcHrmxhe5T2jNEI+Jd5reRaku5EbG+d7eRo9LWrzCun
+	 SMnNmit7j0EpRucxCa1II4BBqDXtf+BFe1thg8cs=
+Date: Thu, 04 Jul 2024 18:07:00 -0700
 To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-move-memcg_account_kmem-to-memcontrol-v1c.patch removed from -mm tree
-Message-Id: <20240705010659.8BBEBC3277B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-factor-out-legacy-socket-memory-accounting-code.patch removed from -mm tree
+Message-Id: <20240705010700.94BCAC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,41 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcg: move memcg_account_kmem() to memcontrol-v1.c
+     Subject: mm: memcg: factor out legacy socket memory accounting code
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-move-memcg_account_kmem-to-memcontrol-v1c.patch
+     mm-memcg-factor-out-legacy-socket-memory-accounting-code.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: memcg: move memcg_account_kmem() to memcontrol-v1.c
-Date: Fri, 28 Jun 2024 21:03:09 +0000
+Subject: mm: memcg: factor out legacy socket memory accounting code
+Date: Fri, 28 Jun 2024 21:03:10 +0000
 
-Patch series "mm: memcg: put cgroup v1-specific memcg data under
-CONFIG_MEMCG_V1".
+Move out the legacy cgroup v1 socket memory accounting code into
+mm/memcontrol-v1.c.
 
-This patchset puts all cgroup v1's members of struct mem_cgroup, struct
-mem_cgroup_per_node and struct task_struct under the CONFIG_MEMCG_V1
-config option.  If cgroup v1 support is not required (and it's true for
-many cgroup users these days), it allows to save a bit of memory and
-compile out some code, some of which is on relatively hot paths.  It also
-structures the code a bit better by grouping cgroup v1-specific stuff in
-one place.
+This commit introduces three new functions: memcg1_tcpmem_active(),
+memcg1_charge_skmem() and memcg1_uncharge_skmem(), which contain all
+cgroup v1-specific code and become trivial if CONFIG_MEMCG_V1 isn't set.
 
+Note, that !!memcg->tcpmem_pressure check in
+mem_cgroup_under_socket_pressure() can't be easily moved into
+memcontrol-v1.h without including memcontrol-v1.h from memcontrol.h which
+isn't a good idea, so it's better to just #ifdef it.
 
-This patch (of 9):
-
-memcg_account_kmem() consists of a trivial statistics change via
-mod_memcg_state() call and a relatively large memcg1-specific part.
-
-Let's factor out the mod_memcg_state() call and move the rest into the
-mm/memcontrol-v1.c file.  Also rename memcg_account_kmem() into
-memcg1_account_kmem() for consistency.
-
-Link: https://lkml.kernel.org/r/20240628210317.272856-1-roman.gushchin@linux.dev
-Link: https://lkml.kernel.org/r/20240628210317.272856-2-roman.gushchin@linux.dev
+Link: https://lkml.kernel.org/r/20240628210317.272856-3-roman.gushchin@linux.dev
 Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -78,129 +68,132 @@ Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.c |   12 ++++++++++++
- mm/memcontrol-v1.h |    2 ++
- mm/memcontrol.c    |   31 ++++++++++---------------------
- 3 files changed, 24 insertions(+), 21 deletions(-)
+ include/linux/memcontrol.h |    2 ++
+ mm/memcontrol-v1.c         |   17 +++++++++++++++++
+ mm/memcontrol-v1.h         |   16 ++++++++++++++++
+ mm/memcontrol.c            |   22 +++++-----------------
+ 4 files changed, 40 insertions(+), 17 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-move-memcg_account_kmem-to-memcontrol-v1c
-+++ a/mm/memcontrol.c
-@@ -1721,7 +1721,6 @@ static DEFINE_MUTEX(percpu_charge_mutex)
- static struct obj_cgroup *drain_obj_stock(struct memcg_stock_pcp *stock);
- static bool obj_stock_flush_required(struct memcg_stock_pcp *stock,
- 				     struct mem_cgroup *root_memcg);
--static void memcg_account_kmem(struct mem_cgroup *memcg, int nr_pages);
- 
- #else
- static inline struct obj_cgroup *drain_obj_stock(struct memcg_stock_pcp *stock)
-@@ -1733,9 +1732,6 @@ static bool obj_stock_flush_required(str
+--- a/include/linux/memcontrol.h~mm-memcg-factor-out-legacy-socket-memory-accounting-code
++++ a/include/linux/memcontrol.h
+@@ -1650,8 +1650,10 @@ void mem_cgroup_sk_alloc(struct sock *sk
+ void mem_cgroup_sk_free(struct sock *sk);
+ static inline bool mem_cgroup_under_socket_pressure(struct mem_cgroup *memcg)
  {
- 	return false;
- }
--static void memcg_account_kmem(struct mem_cgroup *memcg, int nr_pages)
--{
--}
- #endif
++#ifdef CONFIG_MEMCG_V1
+ 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
+ 		return !!memcg->tcpmem_pressure;
++#endif /* CONFIG_MEMCG_V1 */
+ 	do {
+ 		if (time_before(jiffies, READ_ONCE(memcg->socket_pressure)))
+ 			return true;
+--- a/mm/memcontrol.c~mm-memcg-factor-out-legacy-socket-memory-accounting-code
++++ a/mm/memcontrol.c
+@@ -3753,7 +3753,7 @@ static void mem_cgroup_css_free(struct c
+ 	if (cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_nosocket)
+ 		static_branch_dec(&memcg_sockets_enabled_key);
  
- /**
-@@ -2645,18 +2641,6 @@ struct obj_cgroup *get_obj_cgroup_from_f
- 	return objcg;
- }
+-	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && memcg->tcpmem_active)
++	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && memcg1_tcpmem_active(memcg))
+ 		static_branch_dec(&memcg_sockets_enabled_key);
  
--static void memcg_account_kmem(struct mem_cgroup *memcg, int nr_pages)
--{
--	mod_memcg_state(memcg, MEMCG_KMEM, nr_pages);
--	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys)) {
--		if (nr_pages > 0)
--			page_counter_charge(&memcg->kmem, nr_pages);
--		else
--			page_counter_uncharge(&memcg->kmem, -nr_pages);
--	}
--}
--
--
- /*
-  * obj_cgroup_uncharge_pages: uncharge a number of kernel pages from a objcg
-  * @objcg: object cgroup to uncharge
-@@ -2669,7 +2653,8 @@ static void obj_cgroup_uncharge_pages(st
- 
- 	memcg = get_mem_cgroup_from_objcg(objcg);
- 
--	memcg_account_kmem(memcg, -nr_pages);
-+	mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
-+	memcg1_account_kmem(memcg, -nr_pages);
- 	refill_stock(memcg, nr_pages);
- 
- 	css_put(&memcg->css);
-@@ -2695,7 +2680,8 @@ static int obj_cgroup_charge_pages(struc
- 	if (ret)
+ #if defined(CONFIG_MEMCG_KMEM)
+@@ -4979,7 +4979,7 @@ void mem_cgroup_sk_alloc(struct sock *sk
+ 	memcg = mem_cgroup_from_task(current);
+ 	if (mem_cgroup_is_root(memcg))
  		goto out;
+-	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && !memcg->tcpmem_active)
++	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && !memcg1_tcpmem_active(memcg))
+ 		goto out;
+ 	if (css_tryget(&memcg->css))
+ 		sk->sk_memcg = memcg;
+@@ -5005,20 +5005,8 @@ void mem_cgroup_sk_free(struct sock *sk)
+ bool mem_cgroup_charge_skmem(struct mem_cgroup *memcg, unsigned int nr_pages,
+ 			     gfp_t gfp_mask)
+ {
+-	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys)) {
+-		struct page_counter *fail;
+-
+-		if (page_counter_try_charge(&memcg->tcpmem, nr_pages, &fail)) {
+-			memcg->tcpmem_pressure = 0;
+-			return true;
+-		}
+-		memcg->tcpmem_pressure = 1;
+-		if (gfp_mask & __GFP_NOFAIL) {
+-			page_counter_charge(&memcg->tcpmem, nr_pages);
+-			return true;
+-		}
+-		return false;
+-	}
++	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
++		return memcg1_charge_skmem(memcg, nr_pages, gfp_mask);
  
--	memcg_account_kmem(memcg, nr_pages);
-+	mod_memcg_state(memcg, MEMCG_KMEM, nr_pages);
-+	memcg1_account_kmem(memcg, nr_pages);
- out:
- 	css_put(&memcg->css);
- 
-@@ -2848,7 +2834,8 @@ static struct obj_cgroup *drain_obj_stoc
- 
- 			memcg = get_mem_cgroup_from_objcg(old);
- 
--			memcg_account_kmem(memcg, -nr_pages);
-+			mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
-+			memcg1_account_kmem(memcg, -nr_pages);
- 			__refill_stock(memcg, nr_pages);
- 
- 			css_put(&memcg->css);
-@@ -4771,8 +4758,10 @@ static void uncharge_batch(const struct
- 		page_counter_uncharge(&ug->memcg->memory, ug->nr_memory);
- 		if (do_memsw_account())
- 			page_counter_uncharge(&ug->memcg->memsw, ug->nr_memory);
--		if (ug->nr_kmem)
--			memcg_account_kmem(ug->memcg, -ug->nr_kmem);
-+		if (ug->nr_kmem) {
-+			mod_memcg_state(ug->memcg, MEMCG_KMEM, -ug->nr_kmem);
-+			memcg1_account_kmem(ug->memcg, -ug->nr_kmem);
-+		}
- 		memcg1_oom_recover(ug->memcg);
+ 	if (try_charge(memcg, gfp_mask, nr_pages) == 0) {
+ 		mod_memcg_state(memcg, MEMCG_SOCK, nr_pages);
+@@ -5036,7 +5024,7 @@ bool mem_cgroup_charge_skmem(struct mem_
+ void mem_cgroup_uncharge_skmem(struct mem_cgroup *memcg, unsigned int nr_pages)
+ {
+ 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys)) {
+-		page_counter_uncharge(&memcg->tcpmem, nr_pages);
++		memcg1_uncharge_skmem(memcg, nr_pages);
+ 		return;
  	}
  
---- a/mm/memcontrol-v1.c~mm-memcg-move-memcg_account_kmem-to-memcontrol-v1c
+--- a/mm/memcontrol-v1.c~mm-memcg-factor-out-legacy-socket-memory-accounting-code
 +++ a/mm/memcontrol-v1.c
-@@ -2913,6 +2913,18 @@ struct cftype memsw_files[] = {
- 	{ },	/* terminate */
- };
+@@ -2925,6 +2925,23 @@ void memcg1_account_kmem(struct mem_cgro
+ }
+ #endif /* CONFIG_MEMCG_KMEM */
  
-+#ifdef CONFIG_MEMCG_KMEM
-+void memcg1_account_kmem(struct mem_cgroup *memcg, int nr_pages)
++bool memcg1_charge_skmem(struct mem_cgroup *memcg, unsigned int nr_pages,
++			 gfp_t gfp_mask)
 +{
-+	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys)) {
-+		if (nr_pages > 0)
-+			page_counter_charge(&memcg->kmem, nr_pages);
-+		else
-+			page_counter_uncharge(&memcg->kmem, -nr_pages);
++	struct page_counter *fail;
++
++	if (page_counter_try_charge(&memcg->tcpmem, nr_pages, &fail)) {
++		memcg->tcpmem_pressure = 0;
++		return true;
 +	}
++	memcg->tcpmem_pressure = 1;
++	if (gfp_mask & __GFP_NOFAIL) {
++		page_counter_charge(&memcg->tcpmem, nr_pages);
++		return true;
++	}
++	return false;
 +}
-+#endif /* CONFIG_MEMCG_KMEM */
 +
  static int __init memcg1_init(void)
  {
  	int node;
---- a/mm/memcontrol-v1.h~mm-memcg-move-memcg_account_kmem-to-memcontrol-v1c
+--- a/mm/memcontrol-v1.h~mm-memcg-factor-out-legacy-socket-memory-accounting-code
 +++ a/mm/memcontrol-v1.h
-@@ -102,6 +102,7 @@ void memcg1_check_events(struct mem_cgro
- 
+@@ -103,6 +103,17 @@ void memcg1_check_events(struct mem_cgro
  void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s);
  
-+void memcg1_account_kmem(struct mem_cgroup *memcg, int nr_pages);
+ void memcg1_account_kmem(struct mem_cgroup *memcg, int nr_pages);
++static inline bool memcg1_tcpmem_active(struct mem_cgroup *memcg)
++{
++	return memcg->tcpmem_active;
++}
++bool memcg1_charge_skmem(struct mem_cgroup *memcg, unsigned int nr_pages,
++			 gfp_t gfp_mask);
++static inline void memcg1_uncharge_skmem(struct mem_cgroup *memcg, unsigned int nr_pages)
++{
++	page_counter_uncharge(&memcg->tcpmem, nr_pages);
++}
++
  extern struct cftype memsw_files[];
  extern struct cftype mem_cgroup_legacy_files[];
  
-@@ -120,6 +121,7 @@ static inline void memcg1_check_events(s
- 
+@@ -122,6 +133,11 @@ static inline void memcg1_check_events(s
  static inline void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s) {}
  
-+static inline void memcg1_account_kmem(struct mem_cgroup *memcg, int nr_pages) {}
+ static inline void memcg1_account_kmem(struct mem_cgroup *memcg, int nr_pages) {}
++static inline bool memcg1_tcpmem_active(struct mem_cgroup *memcg) { return false; }
++static inline bool memcg1_charge_skmem(struct mem_cgroup *memcg, unsigned int nr_pages,
++				       gfp_t gfp_mask) { return true; }
++static inline void memcg1_uncharge_skmem(struct mem_cgroup *memcg, unsigned int nr_pages) {}
++
  extern struct cftype memsw_files[];
  extern struct cftype mem_cgroup_legacy_files[];
  #endif	/* CONFIG_MEMCG_V1 */
