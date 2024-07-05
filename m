@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD308D2F0
-	for <mm-commits@vger.kernel.org>; Fri,  5 Jul 2024 01:07:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A46EC15B
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jul 2024 01:07:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720141631; cv=none; b=GLi1q49GgpCXjJeHaabMVGxuHhFGLNVpH50jRL/noa5LcyhSGpdlFDbRRgfcdJM0UwYdEpkyrA6Ae9hBppmPZw/BMn6L6VHwi/O/ZUTBI+4sp0HFhpo7MNA60sOtm7KQ5sXXcEiH49XTnQn/TdRQRm+lgBwmac2U4AamKPudOYg=
+	t=1720141633; cv=none; b=jvBfa+rCV6QQIEzXOHyfsVpua1smzbKeo0fJfBNW6qEP8NPFsshOepNHIf8umGwdqFO+Orssf5E4lvGjC1h3AhFp+jmOYenvHmYJr3/xQjysnmaPhKN56F3Ab1lQFwqUBJntZDrTWjfa6XRdZ62N9pltI4Shz00gs3UsmRDVOkQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720141631; c=relaxed/simple;
-	bh=qQBNEEzyvig9kjVi/mbtnFMB0uV8uarCA0P5yHrLQSk=;
-	h=Date:To:From:Subject:Message-Id; b=jCxogAvZdJWFD39zU6o/Lfh2JD70885pE7/H5IlRlEemUdrZkYFlkFoOAwBEDFXxQWB8Sz3l6nqUTpI/3KKqYUZgC/cqIWavlYH4PFwKK5P2Zf+Hsmn9useX19TebsPYpxBs51oKRQ1NB88DrQL0qiiGEOVz51zw3jZ0YExdF+w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w/hYTn8V; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720141633; c=relaxed/simple;
+	bh=e6md03KaHRhkVOcR7KS0OHyHPngrQd0TeD+M0qO0moo=;
+	h=Date:To:From:Subject:Message-Id; b=gpHRhNGiek+30OehCiC8ypWs/27SAThsWJ7l7owXC7QyT+Xw7VR1LTRhFzOuBwTjNyh1mleHLFIhzKJ2p+NksyiEBxk7E/+aeNxuvFawI7L+dy55HcsL/td9MQfV9M+bQhyd21muTYTEF2ruTIQDWKMKFQi6QAGSpMeu2vurkOg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tFEQD2uD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w/hYTn8V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FF56C3277B;
-	Fri,  5 Jul 2024 01:07:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tFEQD2uD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5502C3277B;
+	Fri,  5 Jul 2024 01:07:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720141631;
-	bh=qQBNEEzyvig9kjVi/mbtnFMB0uV8uarCA0P5yHrLQSk=;
+	s=korg; t=1720141632;
+	bh=e6md03KaHRhkVOcR7KS0OHyHPngrQd0TeD+M0qO0moo=;
 	h=Date:To:From:Subject:From;
-	b=w/hYTn8VJCsUwkneM0eGAWYMAocV9dQ8q/0G7OL8s9GSPJj6QBT308fdgwT4tuYPX
-	 0GuEfV2ub4s/DOskGG+RcT+n7aKnt/WiYs/8Ohu2eDCuh9VsSN1aGnHuqPYCCTqwdk
-	 dicdVQSaOhgnFno8RQBs6C+KRBRACLr2Tww8LB+s=
-Date: Thu, 04 Jul 2024 18:07:11 -0700
-To: mm-commits@vger.kernel.org,mhocko@suse.com,ebiederm@xmission.com,oleg@redhat.com,akpm@linux-foundation.org
+	b=tFEQD2uDtPbNBJDwn2gG5ku1TetLbmSXdwUU7pH2Ee4bPdHXJGcb53bAr26SVH3to
+	 XEUHdQR7GyypFg5tCJsDT1PbfRZbKCoMhqgfkQwTeQMzq4fzSpVwwinW/mEm7rVHTN
+	 p9Hujqs7uRWgFRv9e/1y7ZnmZqo4C5KhHOhlQKoE=
+Date: Thu, 04 Jul 2024 18:07:12 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,shuah@kernel.org,shli@fb.com,rppt@linux.vnet.ibm.com,raquini@redhat.com,peterx@redhat.com,jack@suse.cz,brauner@kernel.org,aarcange@redhat.com,audra@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] get_task_mm-check-pf_kthread-lockless.patch removed from -mm tree
-Message-Id: <20240705010711.9FF56C3277B@smtp.kernel.org>
+Subject: [merged mm-stable] update-uffd-stress-to-handle-einval-for-unset-config-features.patch removed from -mm tree
+Message-Id: <20240705010712.C5502C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: get_task_mm: check PF_KTHREAD lockless
+     Subject: mm: update uffd-stress to handle EINVAL for unset config features
 has been removed from the -mm tree.  Its filename was
-     get_task_mm-check-pf_kthread-lockless.patch
+     update-uffd-stress-to-handle-einval-for-unset-config-features.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: get_task_mm: check PF_KTHREAD lockless
-Date: Wed, 26 Jun 2024 21:10:17 +0200
+From: Audra Mitchell <audra@redhat.com>
+Subject: mm: update uffd-stress to handle EINVAL for unset config features
+Date: Wed, 26 Jun 2024 09:05:12 -0400
 
-Nowadays PF_KTHREAD is sticky and it was never protected by ->alloc_lock. 
-Move the PF_KTHREAD check outside of task_lock() section to make this code
-more understandable.
+Now that we have updated userfaultfd_api to correctly return EINVAL when a
+feature is requested but not available, let's fix the uffd-stress test to
+only set the UFFD_FEATURE_WP_UNPOPULATED feature when the config is set. 
+In addition, still run the test if the CONFIG_PTE_MARKER_UFFD_WP is not
+set, just dont use the corresponding UFFD_FEATURE_WP_UNPOPULATED feature.
 
-Link: https://lkml.kernel.org/r/20240626191017.GA20031@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Link: https://lkml.kernel.org/r/20240626130513.120193-2-audra@redhat.com
+Signed-off-by: Audra Mitchell <audra@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rafael Aquini <raquini@redhat.com>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ tools/testing/selftests/mm/uffd-stress.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/kernel/fork.c~get_task_mm-check-pf_kthread-lockless
-+++ a/kernel/fork.c
-@@ -1536,14 +1536,13 @@ struct mm_struct *get_task_mm(struct tas
- {
- 	struct mm_struct *mm;
+--- a/tools/testing/selftests/mm/uffd-stress.c~update-uffd-stress-to-handle-einval-for-unset-config-features
++++ a/tools/testing/selftests/mm/uffd-stress.c
+@@ -36,6 +36,8 @@
+ #include <asm-generic/unistd.h>
+ #include "uffd-common.h"
  
-+	if (task->flags & PF_KTHREAD)
-+		return NULL;
++uint64_t features;
 +
- 	task_lock(task);
- 	mm = task->mm;
--	if (mm) {
--		if (task->flags & PF_KTHREAD)
--			mm = NULL;
--		else
--			mmget(mm);
--	}
-+	if (mm)
-+		mmget(mm);
- 	task_unlock(task);
- 	return mm;
- }
+ #define BOUNCE_RANDOM		(1<<0)
+ #define BOUNCE_RACINGFAULTS	(1<<1)
+ #define BOUNCE_VERIFY		(1<<2)
+@@ -245,10 +247,14 @@ static int userfaultfd_stress(void)
+ 	unsigned long nr;
+ 	struct uffd_args args[nr_cpus];
+ 	uint64_t mem_size = nr_pages * page_size;
++	int flags = 0;
+ 
+ 	memset(args, 0, sizeof(struct uffd_args) * nr_cpus);
+ 
+-	if (uffd_test_ctx_init(UFFD_FEATURE_WP_UNPOPULATED, NULL))
++	if (features & UFFD_FEATURE_WP_UNPOPULATED && test_type == TEST_ANON)
++		flags = UFFD_FEATURE_WP_UNPOPULATED;
++
++	if (uffd_test_ctx_init(flags, NULL))
+ 		err("context init failed");
+ 
+ 	if (posix_memalign(&area, page_size, page_size))
+@@ -383,8 +389,6 @@ static void set_test_type(const char *ty
+ 
+ static void parse_test_type_arg(const char *raw_type)
+ {
+-	uint64_t features = UFFD_API_FEATURES;
+-
+ 	set_test_type(raw_type);
+ 
+ 	if (!test_type)
+@@ -407,8 +411,8 @@ static void parse_test_type_arg(const ch
+ 	 * feature.
+ 	 */
+ 
+-	if (userfaultfd_open(&features))
+-		err("Userfaultfd open failed");
++	if (uffd_get_features(&features))
++		err("failed to get available features");
+ 
+ 	test_uffdio_wp = test_uffdio_wp &&
+ 		(features & UFFD_FEATURE_PAGEFAULT_FLAG_WP);
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from audra@redhat.com are
 
-zap_pid_ns_processes-dont-send-sigkill-to-sub-threads.patch
-coredump-simplify-zap_process.patch
 
