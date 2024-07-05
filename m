@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EA01BE6C
-	for <mm-commits@vger.kernel.org>; Fri,  5 Jul 2024 01:07:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 808D6BE6C
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jul 2024 01:07:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720141625; cv=none; b=AKGpTUxG4pnN+ZXmNQ47y9kYt4XD8BP6yhbl4qbIfB8P+n+wjGbge9wlToUjC2ieSdRKlwQbZLgbouupAlAZceSVqP33aOXFaDN2Vw7GUUAZgjiRdlEiC4p2SN5CmM5GMRG3Exk6hK/qDTC7LJir4v7zAfol7IrZeQmPwko76Lc=
+	t=1720141626; cv=none; b=EBOxqRyieqyjZhC7wUEZCbVLhdLtTz3F0sOCywKDXW8BwniW3JA7lKNy6eTfmM64s6AL1gG0fI2lYvgII60c3l/baqmfFSCm9ulTAWIVK6DJzXsiOOb/O3ZYTDNR7BWrrXnCcTV0Zgk3nQ0ZJ0eWNddAkGH0HwPE44FKem78LUk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720141625; c=relaxed/simple;
-	bh=seGQNYYauX5Czk4PdXmkHBCC0H4P93tkdhLVa/w8v50=;
-	h=Date:To:From:Subject:Message-Id; b=hryNnLphNmbF2Dv8aU2tidUXtf5mJKyaknGTPuUXeGIAM/YXpyZeJYyeVAExU/wjQfI04BuduqWnCBgerrgVxF5yfQbmJwlcjfCsmgOMvwgYHjzSk3cbdroXGcfboANsfaIFI5770JGiPqHpMWrbBrr9VM1xiyt0+k8c9qrcZEo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LNS4P0Vl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720141626; c=relaxed/simple;
+	bh=0+3RyBmlDm5L0Qw2kZwuH8pcW6it8DJHnJJzKEa+/V0=;
+	h=Date:To:From:Subject:Message-Id; b=aVDFBABpQITyufsVLN0HTSGv5MqvYOKy1aXCFl6nKyE0v3Rh6ghu9XkJ5WRgcwJjwKLs1gMAyejz5UZsrvKvI0T2kNuMiAYw+rtrL7xnDcg35fcyeU1hfn7JrZwa5+E+Zr8KGvIcb10r9bDkEdAKYPYXcqRi3GZw6MCSpj/zCeE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZValsM+Z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LNS4P0Vl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42C5AC3277B;
-	Fri,  5 Jul 2024 01:07:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZValsM+Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A2C5C3277B;
+	Fri,  5 Jul 2024 01:07:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720141625;
-	bh=seGQNYYauX5Czk4PdXmkHBCC0H4P93tkdhLVa/w8v50=;
+	s=korg; t=1720141626;
+	bh=0+3RyBmlDm5L0Qw2kZwuH8pcW6it8DJHnJJzKEa+/V0=;
 	h=Date:To:From:Subject:From;
-	b=LNS4P0VlP+oAQyYvRvzSRO4Zi4vkNwlL2/lGwMCmh07AJ6jkSY+g57DGMdGi7AGc6
-	 849TOcGRrX1Xctp47g9iHr8oQdYQXjPEh3jc5/ayjsfFfH1VGWTBTMTHAcpcfFWT86
-	 Pqg5y2ZtoyucIJD9ZdBFkMqL1CwXZ4vAYRKkwX3A=
-Date: Thu, 04 Jul 2024 18:07:04 -0700
+	b=ZValsM+ZhIyLr3kwj20qDUnfQ/suCr0i0/Ziuy0VBEMqm5HE5gutdwKpg8kfSzvu1
+	 WK3qRFp2PiMZaCGW+hh12ULesxI32nUfGeTb2BKURAsPakEQFUHIABHCxvaWUwNgVq
+	 Gd75nVr0U/2BIqupr1861KCA0sBFg7qrAPKglV7c=
+Date: Thu, 04 Jul 2024 18:07:05 -0700
 To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-put-memcg1-specific-struct-mem_cgroups-members-under-config_memcg_v1.patch removed from -mm tree
-Message-Id: <20240705010705.42C5AC3277B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-guard-memcg1-specific-members-of-struct-mem_cgroup_per_node.patch removed from -mm tree
+Message-Id: <20240705010706.4A2C5C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcg: put memcg1-specific struct mem_cgroup's members under CONFIG_MEMCG_V1
+     Subject: mm: memcg: guard memcg1-specific members of struct mem_cgroup_per_node
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-put-memcg1-specific-struct-mem_cgroups-members-under-config_memcg_v1.patch
+     mm-memcg-guard-memcg1-specific-members-of-struct-mem_cgroup_per_node.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: memcg: put memcg1-specific struct mem_cgroup's members under CONFIG_MEMCG_V1
-Date: Fri, 28 Jun 2024 21:03:14 +0000
+Subject: mm: memcg: guard memcg1-specific members of struct mem_cgroup_per_node
+Date: Fri, 28 Jun 2024 21:03:15 +0000
 
-Put memcg1-specific members of struct mem_cgroup under the CONFIG_MEMCG_V1
-config option.  Also group them close to the end of struct mem_cgroup just
-before the dynamic per-node part.
+Put memcg1-specific members of struct mem_cgroup_per_node under the
+CONFIG_MEMCG_V1 config option.
 
-Link: https://lkml.kernel.org/r/20240628210317.272856-7-roman.gushchin@linux.dev
+Link: https://lkml.kernel.org/r/20240628210317.272856-8-roman.gushchin@linux.dev
 Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -60,170 +59,27 @@ Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |  103 ++++++++++++++++++-----------------
- 1 file changed, 53 insertions(+), 50 deletions(-)
+ include/linux/memcontrol.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/memcontrol.h~mm-memcg-put-memcg1-specific-struct-mem_cgroups-members-under-config_memcg_v1
+--- a/include/linux/memcontrol.h~mm-memcg-guard-memcg1-specific-members-of-struct-mem_cgroup_per_node
 +++ a/include/linux/memcontrol.h
-@@ -188,10 +188,6 @@ struct mem_cgroup {
- 		struct page_counter memsw;	/* v1 only */
- 	};
- 
--	/* Legacy consumer-oriented counters */
--	struct page_counter kmem;		/* v1 only */
--	struct page_counter tcpmem;		/* v1 only */
--
- 	/* Range enforcement for interrupt charges */
- 	struct work_struct high_work;
- 
-@@ -205,8 +201,6 @@ struct mem_cgroup {
- 	bool zswap_writeback;
- #endif
- 
--	unsigned long soft_limit;
--
- 	/* vmpressure notifications */
- 	struct vmpressure vmpressure;
- 
-@@ -215,13 +209,7 @@ struct mem_cgroup {
- 	 */
- 	bool oom_group;
- 
--	/* protected by memcg_oom_lock */
--	bool		oom_lock;
--	int		under_oom;
--
--	int	swappiness;
--	/* OOM-Killer disable */
--	int		oom_kill_disable;
-+	int swappiness;
- 
- 	/* memory.events and memory.events.local */
- 	struct cgroup_file events_file;
-@@ -230,27 +218,6 @@ struct mem_cgroup {
- 	/* handle for "memory.swap.events" */
- 	struct cgroup_file swap_events_file;
- 
--	/* protect arrays of thresholds */
--	struct mutex thresholds_lock;
--
--	/* thresholds for memory usage. RCU-protected */
--	struct mem_cgroup_thresholds thresholds;
--
--	/* thresholds for mem+swap usage. RCU-protected */
--	struct mem_cgroup_thresholds memsw_thresholds;
--
--	/* For oom notifier event fd */
--	struct list_head oom_notify;
--
--	/*
--	 * Should we move charges of a task when a task is moved into this
--	 * mem_cgroup ? And what type of charges should we move ?
--	 */
--	unsigned long move_charge_at_immigrate;
--	/* taken only while moving_account > 0 */
--	spinlock_t		move_lock;
--	unsigned long		move_lock_flags;
--
- 	CACHELINE_PADDING(_pad1_);
- 
- 	/* memory.stat */
-@@ -267,10 +234,6 @@ struct mem_cgroup {
- 	 */
- 	unsigned long		socket_pressure;
- 
--	/* Legacy tcp memory accounting */
--	bool			tcpmem_active;
--	int			tcpmem_pressure;
--
- #ifdef CONFIG_MEMCG_KMEM
- 	int kmemcg_id;
- 	/*
-@@ -284,14 +247,6 @@ struct mem_cgroup {
- 	struct list_head objcg_list;
- #endif
- 
--	CACHELINE_PADDING(_pad2_);
--
--	/*
--	 * set > 0 if pages under this cgroup are moving to other cgroup.
--	 */
--	atomic_t		moving_account;
--	struct task_struct	*move_lock_task;
--
- 	struct memcg_vmstats_percpu __percpu *vmstats_percpu;
- 
- #ifdef CONFIG_CGROUP_WRITEBACK
-@@ -300,10 +255,6 @@ struct mem_cgroup {
- 	struct memcg_cgwb_frn cgwb_frn[MEMCG_CGWB_FRN_CNT];
- #endif
- 
--	/* List of events which userspace want to receive */
--	struct list_head event_list;
--	spinlock_t event_list_lock;
--
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	struct deferred_split deferred_split_queue;
- #endif
-@@ -313,6 +264,58 @@ struct mem_cgroup {
- 	struct lru_gen_mm_list mm_list;
- #endif
+@@ -92,6 +92,7 @@ struct mem_cgroup_per_node {
+ 	struct lruvec_stats			*lruvec_stats;
+ 	struct shrinker_info __rcu	*shrinker_info;
  
 +#ifdef CONFIG_MEMCG_V1
-+	/* Legacy consumer-oriented counters */
-+	struct page_counter kmem;		/* v1 only */
-+	struct page_counter tcpmem;		/* v1 only */
-+
-+	unsigned long soft_limit;
-+
-+	/* protected by memcg_oom_lock */
-+	bool oom_lock;
-+	int under_oom;
-+
-+	/* OOM-Killer disable */
-+	int oom_kill_disable;
-+
-+	/* protect arrays of thresholds */
-+	struct mutex thresholds_lock;
-+
-+	/* thresholds for memory usage. RCU-protected */
-+	struct mem_cgroup_thresholds thresholds;
-+
-+	/* thresholds for mem+swap usage. RCU-protected */
-+	struct mem_cgroup_thresholds memsw_thresholds;
-+
-+	/* For oom notifier event fd */
-+	struct list_head oom_notify;
-+
-+	/*
-+	 * Should we move charges of a task when a task is moved into this
-+	 * mem_cgroup ? And what type of charges should we move ?
-+	 */
-+	unsigned long move_charge_at_immigrate;
-+	/* taken only while moving_account > 0 */
-+	spinlock_t move_lock;
-+	unsigned long move_lock_flags;
-+
-+	/* Legacy tcp memory accounting */
-+	bool tcpmem_active;
-+	int tcpmem_pressure;
-+
-+	CACHELINE_PADDING(_pad2_);
-+
-+	/*
-+	 * set > 0 if pages under this cgroup are moving to other cgroup.
-+	 */
-+	atomic_t moving_account;
-+	struct task_struct *move_lock_task;
-+
-+	/* List of events which userspace want to receive */
-+	struct list_head event_list;
-+	spinlock_t event_list_lock;
-+#endif /* CONFIG_MEMCG_V1 */
-+
- 	struct mem_cgroup_per_node *nodeinfo[];
- };
+ 	/*
+ 	 * Memcg-v1 only stuff in middle as buffer between read mostly fields
+ 	 * and update often fields to avoid false sharing. Once v1 stuff is
+@@ -102,6 +103,7 @@ struct mem_cgroup_per_node {
+ 	unsigned long		usage_in_excess;/* Set to the value by which */
+ 						/* the soft limit is exceeded*/
+ 	bool			on_tree;
++#endif
  
+ 	/* Fields which get updated often at the end. */
+ 	struct lruvec		lruvec;
 _
 
 Patches currently in -mm which might be from roman.gushchin@linux.dev are
