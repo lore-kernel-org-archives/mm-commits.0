@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8619143867
-	for <mm-commits@vger.kernel.org>; Thu,  4 Jul 2024 23:48:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6913618D
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jul 2024 01:06:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720136898; cv=none; b=eWOLKJfvRwrkKnSoujhqoSlECAKBWxnk3Evnb5zM01SD6H4l7cMUDteniAls0de7lDltwDR5cdh+SXD5soZg1ZymQIEi5pWms/F7ZHYhxETwgk/Gi0DeN7+/mOHLRGdxe3Qdd4+gHtT2t//aw/SbfZpXaxzN14tvthqa87yswKA=
+	t=1720141590; cv=none; b=CG22naK5QyxraoykdEb1/1Z7MSACtfgBwyVzPbUYOmL3A5U21O4EMqnonb3OfPPYw37JOy596ye3MZv8WMbeDtL9aZRA6qSOQg68UvsBsuw5zplvmEohJIYY8vrOoOm0+/Fq34iWQ2lSCz94S1r5dyY3mQv89JZmfj1lI8H445g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720136898; c=relaxed/simple;
-	bh=sHcd64YaZdYaaLuj219u1LOfunyMx9SYIhUOJqSzWmk=;
-	h=Date:To:From:Subject:Message-Id; b=M1J8Rku6KlFsw664SMObpduB88kNGXAcRj6LSd84wtEwHCaH1dZ/R+hZM6DZ5jvi6ExXc9mh0d84kJ26CISTmp2fgkBMUnkOgR/Foisy0bA/CNGBsaGdb4df2XBsuDy4wmaDeC8FbLwOoYs6pugfLXtcOIpLoyMnb77itlm8Kts=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S0ps/S5p; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720141590; c=relaxed/simple;
+	bh=CJLrAvMdbkAPmBeMXdtlDfYwRYLbp3nZal+HySl2Z0A=;
+	h=Date:To:From:Subject:Message-Id; b=Nkd9M6pRLdzr6uTmn1l5OXyNL8ivCcAWLvyY64L+zdYi1LfiF8fRIbjZs3m6XTMaLbLKC/Ok+WGWCcx63RD8GuS37qcvXQQk2zq/s7v/6j6cOuIiu94dFdP1sBTlXZp4ND2Z8NJo50fWSBr9Z2jQNRRSd8VEfRgX86odwGvdZxk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BX6QGowz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S0ps/S5p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45097C3277B;
-	Thu,  4 Jul 2024 23:48:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BX6QGowz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0C06C3277B;
+	Fri,  5 Jul 2024 01:06:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720136898;
-	bh=sHcd64YaZdYaaLuj219u1LOfunyMx9SYIhUOJqSzWmk=;
+	s=korg; t=1720141589;
+	bh=CJLrAvMdbkAPmBeMXdtlDfYwRYLbp3nZal+HySl2Z0A=;
 	h=Date:To:From:Subject:From;
-	b=S0ps/S5phvayZ+F1inzp0SmPpsAaj4cfFtxbwgZc17vW3kaIWdgyqQ7Vn4HQJUVV8
-	 InPnoJlIAveeJQQxjRksy+YnC+S2YiVucTpKQLS7q89eG5DSzz0S76xHIWGj2m1Pv7
-	 sddF/fB4UNkpurHfHKXEZTK95pHf8kBjWFtBy7x4=
-Date: Thu, 04 Jul 2024 16:48:17 -0700
-To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,vivek.kasireddy@intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=BX6QGowznsMB9bdYslj1o5h08TfvwwqMro6uOJ1lztf+E9bbwmXyXr4IqqOs7md67
+	 ksbBaQ8hgL/dlpq4R/Lv+xqwJu2Xtr24m+NzFhLdqoyjZgE1f7mAq4iaX1lI2BWWs3
+	 /rtl7KivOQMXbRq5ij8A0VZmvwWwInEERi4JMtJY=
+Date: Thu, 04 Jul 2024 18:06:29 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ioworker0@gmail.com,hannes@cmpxchg.org,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix.patch removed from -mm tree
-Message-Id: <20240704234818.45097C3277B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-refactor-folio_undo_large_rmappable.patch removed from -mm tree
+Message-Id: <20240705010629.B0C06C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,169 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix
+     Subject: mm: refactor folio_undo_large_rmappable()
 has been removed from the -mm tree.  Its filename was
-     mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix.patch
+     mm-refactor-folio_undo_large_rmappable.patch
 
-This patch was dropped because it was folded into mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix
-Date: Thu Jun 27 04:39:10 PM PDT 2024
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: refactor folio_undo_large_rmappable()
+Date: Tue, 21 May 2024 21:03:15 +0800
 
-apply fixups per "mm: gup: do not call try_grab_folio() in slow path".
+Folios of order <= 1 are not in deferred list, the check of order is added
+into folio_undo_large_rmappable() from commit 8897277acfef ("mm: support
+order-1 folios in the page cache"), but there is a repeated check for
+small folio (order 0) during each call of the
+folio_undo_large_rmappable(), so only keep folio_order() check inside the
+function.
 
-Cc: Yang Shi <yang@os.amperecomputing.com>
-Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
+In addition, move all the checks into header file to save a function call
+for non-large-rmappable or empty deferred_list folio.
+
+Link: https://lkml.kernel.org/r/20240521130315.46072-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/huge_memory.c |   13 +------------
+ mm/internal.h    |   17 ++++++++++++++++-
+ mm/page_alloc.c  |    3 +--
+ mm/swap.c        |    8 ++------
+ mm/vmscan.c      |    8 ++------
+ 5 files changed, 22 insertions(+), 27 deletions(-)
 
---- a/mm/gup.c~mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix
-+++ a/mm/gup.c
-@@ -3859,14 +3859,15 @@ long memfd_pin_folios(struct file *memfd
- 				    next_idx != folio_index(fbatch.folios[i]))
- 					continue;
+--- a/mm/huge_memory.c~mm-refactor-folio_undo_large_rmappable
++++ a/mm/huge_memory.c
+@@ -3258,22 +3258,11 @@ out:
+ 	return ret;
+ }
  
--				folio = try_grab_folio(&fbatch.folios[i]->page,
--						       1, FOLL_PIN);
--				if (!folio) {
-+				if (try_grab_folio(fbatch.folios[i],
-+						       1, FOLL_PIN)) {
- 					folio_batch_release(&fbatch);
- 					ret = -EINVAL;
- 					goto err;
- 				}
+-void folio_undo_large_rmappable(struct folio *folio)
++void __folio_undo_large_rmappable(struct folio *folio)
+ {
+ 	struct deferred_split *ds_queue;
+ 	unsigned long flags;
  
-+				folio = fbatch.folios[i];
+-	if (folio_order(folio) <= 1)
+-		return;
+-
+-	/*
+-	 * At this point, there is no one trying to add the folio to
+-	 * deferred_list. If folio is not in deferred_list, it's safe
+-	 * to check without acquiring the split_queue_lock.
+-	 */
+-	if (data_race(list_empty(&folio->_deferred_list)))
+-		return;
+-
+ 	ds_queue = get_deferred_split_queue(folio);
+ 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
+ 	if (!list_empty(&folio->_deferred_list)) {
+--- a/mm/internal.h~mm-refactor-folio_undo_large_rmappable
++++ a/mm/internal.h
+@@ -622,7 +622,22 @@ static inline void folio_set_order(struc
+ #endif
+ }
+ 
+-void folio_undo_large_rmappable(struct folio *folio);
++void __folio_undo_large_rmappable(struct folio *folio);
++static inline void folio_undo_large_rmappable(struct folio *folio)
++{
++	if (folio_order(folio) <= 1 || !folio_test_large_rmappable(folio))
++		return;
 +
- 				if (nr_folios == 0)
- 					*offset = offset_in_folio(folio, start);
++	/*
++	 * At this point, there is no one trying to add the folio to
++	 * deferred_list. If folio is not in deferred_list, it's safe
++	 * to check without acquiring the split_queue_lock.
++	 */
++	if (data_race(list_empty(&folio->_deferred_list)))
++		return;
++
++	__folio_undo_large_rmappable(folio);
++}
  
+ static inline struct folio *page_rmappable_folio(struct page *page)
+ {
+--- a/mm/page_alloc.c~mm-refactor-folio_undo_large_rmappable
++++ a/mm/page_alloc.c
+@@ -2661,8 +2661,7 @@ void free_unref_folios(struct folio_batc
+ 		unsigned long pfn = folio_pfn(folio);
+ 		unsigned int order = folio_order(folio);
+ 
+-		if (order > 0 && folio_test_large_rmappable(folio))
+-			folio_undo_large_rmappable(folio);
++		folio_undo_large_rmappable(folio);
+ 		if (!free_pages_prepare(&folio->page, order))
+ 			continue;
+ 		/*
+--- a/mm/swap.c~mm-refactor-folio_undo_large_rmappable
++++ a/mm/swap.c
+@@ -123,8 +123,7 @@ void __folio_put(struct folio *folio)
+ 	}
+ 
+ 	page_cache_release(folio);
+-	if (folio_test_large(folio) && folio_test_large_rmappable(folio))
+-		folio_undo_large_rmappable(folio);
++	folio_undo_large_rmappable(folio);
+ 	mem_cgroup_uncharge(folio);
+ 	free_unref_page(&folio->page, folio_order(folio));
+ }
+@@ -1002,10 +1001,7 @@ void folios_put_refs(struct folio_batch
+ 			free_huge_folio(folio);
+ 			continue;
+ 		}
+-		if (folio_test_large(folio) &&
+-		    folio_test_large_rmappable(folio))
+-			folio_undo_large_rmappable(folio);
+-
++		folio_undo_large_rmappable(folio);
+ 		__page_cache_release(folio, &lruvec, &flags);
+ 
+ 		if (j != i)
+--- a/mm/vmscan.c~mm-refactor-folio_undo_large_rmappable
++++ a/mm/vmscan.c
+@@ -1439,9 +1439,7 @@ free_it:
+ 		 */
+ 		nr_reclaimed += nr_pages;
+ 
+-		if (folio_test_large(folio) &&
+-		    folio_test_large_rmappable(folio))
+-			folio_undo_large_rmappable(folio);
++		folio_undo_large_rmappable(folio);
+ 		if (folio_batch_add(&free_folios, folio) == 0) {
+ 			mem_cgroup_uncharge_folios(&free_folios);
+ 			try_to_unmap_flush();
+@@ -1848,9 +1846,7 @@ static unsigned int move_folios_to_lru(s
+ 		if (unlikely(folio_put_testzero(folio))) {
+ 			__folio_clear_lru_flags(folio);
+ 
+-			if (folio_test_large(folio) &&
+-			    folio_test_large_rmappable(folio))
+-				folio_undo_large_rmappable(folio);
++			folio_undo_large_rmappable(folio);
+ 			if (folio_batch_add(&free_folios, folio) == 0) {
+ 				spin_unlock_irq(&lruvec->lru_lock);
+ 				mem_cgroup_uncharge_folios(&free_folios);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios.patch
-mm-store-zero-pages-to-be-swapped-out-in-a-bitmap-v7-fix.patch
-tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout-fix.patch
+mm-move-memory_failure_queue-into-copy_mc__highpage.patch
+mm-add-folio_mc_copy.patch
+mm-migrate-split-folio_migrate_mapping.patch
+mm-migrate-support-poisoned-recover-from-migrate-folio.patch
+fs-hugetlbfs-support-poisoned-recover-from-hugetlbfs_migrate_folio.patch
+mm-migrate-remove-folio_migrate_copy.patch
 
