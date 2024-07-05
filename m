@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B114CC15B
-	for <mm-commits@vger.kernel.org>; Fri,  5 Jul 2024 01:07:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1174EEA5
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jul 2024 01:07:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720141636; cv=none; b=L7TOWR2nGEwymvtVygxSJkeT3E7egwnzh85X/gmiyd/XF2enkfM3STUz2ilAFHxup6SxNOa2LPkoJSiRIecKPEMyP2R8TK/7y7cVIpa1PM2Tn4gA9/6QES00HAGF4Ywysl1UisT52nOCnRBRcEfjDbgO5gcRtg7aLh8JhYWMSrM=
+	t=1720141638; cv=none; b=L34YLV6RE0gTNyhkkSBFm/BFFSMOQ+o74NvHc5L1uVtLkiBN5rgRwp0BFJHUqvxeaN3T9VRKwM7W40/oZnglonvmNhxLFmIoFG+TniYLi4n7/WX6veQv+tGrY7WuG+n057jDHw0l7f0gL6X5/Q+jWkTqAfHSmJYDRbVV7IhXnT8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720141636; c=relaxed/simple;
-	bh=Uo6uiJFc06xuaB2iArLWI1ODpoNWedxnWp23OOcdQic=;
-	h=Date:To:From:Subject:Message-Id; b=hycTEE7QL06THh/hqnEichkFhA3FYFkg0UiEdyu4j4W2RFae8GOrblmyRmNlwiZr4RfJkblmBA9K+bk+oKza7kmHYlfhwpXgMFXAuCgT1O9JtvpDY3WuXd/uu0AUuD6+8Pud8gR4L9qghorjaANBS8yhXgQSF8ZTzCkjUKF437Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d2kq8ZwS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720141638; c=relaxed/simple;
+	bh=2HvuJoJqa33Zig0LZ9E5uEbwbvmpqvhPFXOd5rIR7kU=;
+	h=Date:To:From:Subject:Message-Id; b=XsyBSd7NjpBHaJwKsqzazW5jIigXI/3I0VxEzETJkGbXFArFvWp+lg/DkwxYLHmVumnf1NovT/24ji2oayGhovaRmcXintZCiR6TPsmbIlB8vNS2kHS7Hy5PmrgDAE3rlBqxZuRsZ8lleq5fdsMQ2/Wqactm9NEuEnla6RvWYag=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PS3z1IWT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d2kq8ZwS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84447C3277B;
-	Fri,  5 Jul 2024 01:07:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PS3z1IWT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B69EAC3277B;
+	Fri,  5 Jul 2024 01:07:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720141636;
-	bh=Uo6uiJFc06xuaB2iArLWI1ODpoNWedxnWp23OOcdQic=;
+	s=korg; t=1720141637;
+	bh=2HvuJoJqa33Zig0LZ9E5uEbwbvmpqvhPFXOd5rIR7kU=;
 	h=Date:To:From:Subject:From;
-	b=d2kq8ZwSyuq3J6tX8uW/qvgtm/uQxPlZohx0j2+W/um+Cp4lRu1gbm27eOl9mVarG
-	 RCEBptYLKsNuQx2GZ5zbzBKBJRGE+1nBBC/2vUT4KkNegf9vqQNOwBt4HreTgvDQor
-	 NEfKAbHiJRLVjavdj7efrj0mPN92awdUqnxlyy4k=
-Date: Thu, 04 Jul 2024 18:07:16 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,xiujianfeng@huawei.com,akpm@linux-foundation.org
+	b=PS3z1IWTpsdibi3ljDA7bXDwafOSIWOmKC1DFOQI7zDKjnxWXSxmWkL9Q6u2Pswt8
+	 EHRX7j0I8tv2EHc/VnIyXAyFKVUVlVNDEr3RBqNrb5RftVL+xEagu/wnz5wwcMWNLw
+	 Q3wmJs6dNp0MxfrOi30vULeCxbb3/tty2OMPra6g=
+Date: Thu, 04 Jul 2024 18:07:17 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,rientjes@google.com,rdunlap@infradead.org,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,linmiaohe@huawei.com,jane.chu@oracle.com,ioworker0@gmail.com,fvdl@google.com,corbet@lwn.net,jiaqiyan@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-adjust-the-warning-when-seq_buf-overflows.patch removed from -mm tree
-Message-Id: <20240705010716.84447C3277B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-failure-refactor-log-format-in-soft-offline-code.patch removed from -mm tree
+Message-Id: <20240705010717.B69EAC3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,159 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcg: adjust the warning when seq_buf overflows
+     Subject: mm/memory-failure: refactor log format in soft offline code
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-adjust-the-warning-when-seq_buf-overflows.patch
+     mm-memory-failure-refactor-log-format-in-soft-offline-code.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Xiu Jianfeng <xiujianfeng@huawei.com>
-Subject: mm: memcg: adjust the warning when seq_buf overflows
-Date: Fri, 28 Jun 2024 07:23:33 +0000
+From: Jiaqi Yan <jiaqiyan@google.com>
+Subject: mm/memory-failure: refactor log format in soft offline code
+Date: Wed, 26 Jun 2024 05:08:15 +0000
 
-Currently it uses WARN_ON_ONCE() if seq_buf overflows when user reads
-memory.stat, the only advantage of WARN_ON_ONCE is that the splat is so
-verbose that it gets noticed.  And also it panics the system if
-panic_on_warn is enabled.  It seems like the warning is just an over
-reaction and a simple pr_warn should just achieve the similar effect.
+Patch series "Userspace controls soft-offline pages", v6.
 
-Link: https://lkml.kernel.org/r/20240628072333.2496527-1-xiujianfeng@huawei.com
-Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Correctable memory errors are very common on servers with large amount of
+memory, and are corrected by ECC, but with two pain points to users:
+
+1. Correction usually happens on the fly and adds latency overhead
+2. Not-fully-proved theory states excessive correctable memory
+   errors can develop into uncorrectable memory error.
+
+Soft offline is kernel's additional solution for memory pages having
+(excessive) corrected memory errors.  Impacted page is migrated to healthy
+page if it is in use, then the original page is discarded for any future
+use.
+
+The actual policy on whether (and when) to soft offline should be
+maintained by userspace, especially in case of an 1G HugeTLB page. 
+Soft-offline dissolves the HugeTLB page, either in-use or free, into
+chunks of 4K pages, reducing HugeTLB pool capacity by 1 hugepage.  If
+userspace has not acknowledged such behavior, it may be surprised when
+later mmap hugepages MAP_FAILED due to lack of hugepages.  In case of a
+transparent hugepage, it will be split into 4K pages as well; userspace
+will stop enjoying the transparent performance.
+
+In addition, discarding the entire 1G HugeTLB page only because of
+corrected memory errors sounds very costly and kernel better not doing
+under the hood.  But today there are at least 2 such cases:
+
+1. GHES driver sees both GHES_SEV_CORRECTED and
+   CPER_SEC_ERROR_THRESHOLD_EXCEEDED after parsing CPER.
+2. RAS Correctable Errors Collector counts correctable errors per
+   PFN and when the counter for a PFN reaches threshold
+
+In both cases, userspace has no control of the soft offline performed by
+kernel's memory failure recovery.
+
+This patch series give userspace the control of softofflining any page:
+kernel only soft offlines raw page / transparent hugepage / HugeTLB
+hugepage if userspace has agreed to.  The interface to userspace is a new
+sysctl called enable_soft_offline under /proc/sys/vm.  By default
+enable_soft_line is 1 to preserve existing behavior in kernel.
+
+
+This patch (of 4):
+
+Logs from soft_offline_page and soft_offline_in_use_page have different
+formats than majority of the memory failure code:
+
+  "Memory failure: 0x${pfn}: ${lower_case_message}"
+
+Convert them to the following format:
+
+  "Soft offline: 0x${pfn}: ${lower_case_message}"
+
+No functional change in this commit.
+
+Link: https://lkml.kernel.org/r/20240626050818.2277273-1-jiaqiyan@google.com
+Link: https://lkml.kernel.org/r/20240626050818.2277273-2-jiaqiyan@google.com
+Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Lance Yang <ioworker0@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memory-failure.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-adjust-the-warning-when-seq_buf-overflows
-+++ a/mm/memcontrol.c
-@@ -1484,7 +1484,8 @@ static void memory_stat_format(struct me
- 		memcg_stat_format(memcg, s);
- 	else
- 		memcg1_stat_format(memcg, s);
--	WARN_ON_ONCE(seq_buf_has_overflowed(s));
-+	if (seq_buf_has_overflowed(s))
-+		pr_warn("%s: Warning, stat buffer overflow, please report\n", __func__);
+--- a/mm/memory-failure.c~mm-memory-failure-refactor-log-format-in-soft-offline-code
++++ a/mm/memory-failure.c
+@@ -2640,6 +2640,9 @@ unlock_mutex:
  }
+ EXPORT_SYMBOL(unpoison_memory);
  
- /**
++#undef pr_fmt
++#define pr_fmt(fmt) "Soft offline: " fmt
++
+ static bool mf_isolate_folio(struct folio *folio, struct list_head *pagelist)
+ {
+ 	bool isolated = false;
+@@ -2695,7 +2698,7 @@ static int soft_offline_in_use_page(stru
+ 
+ 	if (!huge && folio_test_large(folio)) {
+ 		if (try_to_split_thp_page(page, true)) {
+-			pr_info("soft offline: %#lx: thp split failed\n", pfn);
++			pr_info("%#lx: thp split failed\n", pfn);
+ 			return -EBUSY;
+ 		}
+ 		folio = page_folio(page);
+@@ -2707,7 +2710,7 @@ static int soft_offline_in_use_page(stru
+ 	if (PageHWPoison(page)) {
+ 		folio_unlock(folio);
+ 		folio_put(folio);
+-		pr_info("soft offline: %#lx page already poisoned\n", pfn);
++		pr_info("%#lx: page already poisoned\n", pfn);
+ 		return 0;
+ 	}
+ 
+@@ -2720,7 +2723,7 @@ static int soft_offline_in_use_page(stru
+ 	folio_unlock(folio);
+ 
+ 	if (ret) {
+-		pr_info("soft_offline: %#lx: invalidated\n", pfn);
++		pr_info("%#lx: invalidated\n", pfn);
+ 		page_handle_poison(page, false, true);
+ 		return 0;
+ 	}
+@@ -2737,13 +2740,13 @@ static int soft_offline_in_use_page(stru
+ 			if (!list_empty(&pagelist))
+ 				putback_movable_pages(&pagelist);
+ 
+-			pr_info("soft offline: %#lx: %s migration failed %ld, type %pGp\n",
++			pr_info("%#lx: %s migration failed %ld, type %pGp\n",
+ 				pfn, msg_page[huge], ret, &page->flags);
+ 			if (ret > 0)
+ 				ret = -EBUSY;
+ 		}
+ 	} else {
+-		pr_info("soft offline: %#lx: %s isolation failed, page count %d, type %pGp\n",
++		pr_info("%#lx: %s isolation failed, page count %d, type %pGp\n",
+ 			pfn, msg_page[huge], page_count(page), &page->flags);
+ 		ret = -EBUSY;
+ 	}
+@@ -2795,7 +2798,7 @@ int soft_offline_page(unsigned long pfn,
+ 	mutex_lock(&mf_mutex);
+ 
+ 	if (PageHWPoison(page)) {
+-		pr_info("%s: %#lx page already poisoned\n", __func__, pfn);
++		pr_info("%#lx: page already poisoned\n", pfn);
+ 		put_ref_page(pfn, flags);
+ 		mutex_unlock(&mf_mutex);
+ 		return 0;
 _
 
-Patches currently in -mm which might be from xiujianfeng@huawei.com are
+Patches currently in -mm which might be from jiaqiyan@google.com are
 
-mm-hugetlb_cgroup-introduce-peak-and-rsvdpeak-to-v2.patch
 
