@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65E17D51D
-	for <mm-commits@vger.kernel.org>; Fri,  5 Jul 2024 01:06:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BDC5DF4D
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jul 2024 01:06:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720141616; cv=none; b=Lzw0Evltzu+9FEGYDlBnitDULfLs3nS4rKNHwxMp3WxPtn32oy4UsKtjDy2CQ4TiYbmiyehbJzYM8fJkgOz+DsiuHdw/jNhLvQsOs3QspdluP0wU19PCrJIK2s/prFfus19Uc5ucddl5Of2xpSciwz7uzaff7+64ST/D1gQ4icI=
+	t=1720141618; cv=none; b=Mxh+1fUgMgJ6DvENKswZnq7f1vPPd7Q2NYh63iskKNzXDaDWMullMmmZjYfdJ5pKYEwNXyEXL9oJcfUPw/xL284Yp4nDkzcMjGqh2xZ+IRa4VR+H0VciBJtWPUMDr4ulkeqwoYqRzM6YaXkvxAcJrIDQlIVtpUA5kndUMgraD+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720141616; c=relaxed/simple;
-	bh=He1QT7iThxuSwunqKslYdr/+7+JsEV+OIpjl59Q2/5s=;
-	h=Date:To:From:Subject:Message-Id; b=ayu0nquafuhZL1Co32BUjKhfoQf+CD7A6lZ5YiUMQrACHkDX+A3egMuzm0SYyWVHQLjIJlOJEugWzR/Mg+1E6CoiPeVOROoywJFL6fqHAc236dlKXTZSuxS35BazrAMVXkMrlRpUWxpv+iyb4qO6nZ0jhjlhrSmdyeSIdh2Nb98=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RkT5WHcu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720141618; c=relaxed/simple;
+	bh=k4F6mrDewEOzaNusBxQIEY10pOZz5U+/1XHXcczGUYE=;
+	h=Date:To:From:Subject:Message-Id; b=KpZXduUKGqXzUJKL5jY0T+lRBFd8drUA2yO2lh28tnjvKys9k0lPledp1COsOU1RiER+kJkoXcClcV+LnuLoWwkpn4SwrIyKaSXHLxdoXdzVRRd8/30MpB9mFhkOwXWP5FJcJOPUyI5rMkhBVdWI6YhoWyq9MD1PP59hiuq4eQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PBFzB6/f; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RkT5WHcu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AE39C3277B;
-	Fri,  5 Jul 2024 01:06:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PBFzB6/f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2D66C3277B;
+	Fri,  5 Jul 2024 01:06:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720141616;
-	bh=He1QT7iThxuSwunqKslYdr/+7+JsEV+OIpjl59Q2/5s=;
+	s=korg; t=1720141618;
+	bh=k4F6mrDewEOzaNusBxQIEY10pOZz5U+/1XHXcczGUYE=;
 	h=Date:To:From:Subject:From;
-	b=RkT5WHcuCWX6hoVmnwpgoDIL1mnOg0HpNqfn+srBIYU1vgAqds0hqWlfV461N4fBQ
-	 Q+HSnKFxT4xDJ3ICOgcs+bF0i4Q/sqCeLQXXuQes4WN/mEVzGHAd2tdnESqotUOwvB
-	 ba9oqKZ4Y9RF4ereP6KdpMgsxTaSi+9voRtiMBsM=
-Date: Thu, 04 Jul 2024 18:06:55 -0700
+	b=PBFzB6/fmxMg0yDdtLhTSVmmBv94LI5e7v2cFHWD3g7s+XITZDPqNJEyibUWZQCjj
+	 wyG4tN015ivDJz7BwCabdwG4i5/ywevYmnp/asiYlxO1wvac0UTjdB/sTAx1Cxu0EO
+	 Xt4Ke4OSkgZX2eWXGcvGE5Y92Jke59VALU3IxmhU=
+Date: Thu, 04 Jul 2024 18:06:57 -0700
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,willy@infradead.org,wangkefeng.wang@huawei.com,tj@kernel.org,shakeel.butt@linux.dev,shakeelb@google.com,roman.gushchin@linux.dev,rientjes@google.com,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,lizefan.x@bytedance.com,hughd@google.com,hannes@cmpxchg.org,findns94@gmail.com,david@redhat.com,corbet@lwn.net,chrisl@kernel.org,schatzberg.dan@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-defines-for-min-max-swappiness.patch removed from -mm tree
-Message-Id: <20240705010656.3AE39C3277B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-swapiness=-arg-to-memoryreclaim.patch removed from -mm tree
+Message-Id: <20240705010657.F2D66C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add defines for min/max swappiness
+     Subject: mm: add swappiness= arg to memory.reclaim
 has been removed from the -mm tree.  Its filename was
-     mm-add-defines-for-min-max-swappiness.patch
+     mm-add-swapiness=-arg-to-memoryreclaim.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Dan Schatzberg <schatzberg.dan@gmail.com>
-Subject: mm: add defines for min/max swappiness
-Date: Wed, 3 Jan 2024 08:48:36 -0800
+Subject: mm: add swappiness= arg to memory.reclaim
+Date: Wed, 3 Jan 2024 08:48:37 -0800
 
-Patch series "Add swappiness argument to memory.reclaim", v6.
+Allow proactive reclaimers to submit an additional swappiness=<val>
+argument to memory.reclaim.  This overrides the global or per-memcg
+swappiness setting for that reclaim attempt.
 
-This patch proposes augmenting the memory.reclaim interface with a
-swappiness=<val> argument that overrides the swappiness value for that
-instance of proactive reclaim.
+For example:
+
+echo "2M swappiness=0" > /sys/fs/cgroup/memory.reclaim
+
+will perform reclaim on the rootcg with a swappiness setting of 0 (no
+swap) regardless of the vm.swappiness sysctl setting.
 
 Userspace proactive reclaimers use the memory.reclaim interface to trigger
 reclaim.  The memory.reclaim interface does not allow for any way to
@@ -92,148 +97,296 @@ reactive reclaim behavior but is still not ideal for a number of reasons:
 With this patch, we avoid these downsides of adjusting vm.swappiness
 globally.
 
-Previously, this exact interface addition was proposed by Yosry[3].  In
-response, Roman proposed instead an interface to specify precise
-file/anon/slab reclaim amounts[4].  More recently Huan also proposed this
-as well[5] and others similarly questioned if this was the proper
-interface.
-
-Previous proposals sought to use this to allow proactive reclaimers to
-effectively perform a custom reclaim algorithm by issuing proactive
-reclaim with different settings to control file vs anon reclaim (e.g.  to
-only reclaim anon from some applications).  Responses argued that
-adjusting swappiness is a poor interface for custom reclaim.
-
-In contrast, I argue in favor of a swappiness setting not as a way to
-implement custom reclaim algorithms but rather to bias the balance of anon
-vs file due to differences of proactive vs reactive reclaim.  In this
-context, swappiness is the existing interface for controlling this balance
-and this patch simply allows for it to be configured differently for
-proactive vs reactive reclaim.
-
-Specifying explicit amounts of anon vs file pages to reclaim feels
-inappropriate for this prupose.  Proactive reclaimers are un-aware of the
-relative age of file vs anon for a cgroup which makes it difficult to
-manage proactive reclaim of different memory pools.  A proactive reclaimer
-would need some amount of anon reclaim attempts separate from the amount
-of file reclaim attempts which seems brittle given that it's difficult to
-observe the impact.
-
 [1]https://www.freedesktop.org/software/systemd/man/latest/systemd-oomd.service.html
 [2]https://github.com/facebookincubator/oomd/blob/main/src/oomd/plugins/Senpai.cpp#L585-L598
-[3]https://lore.kernel.org/linux-mm/CAJD7tkbDpyoODveCsnaqBBMZEkDvshXJmNdbk51yKSNgD7aGdg@mail.gmail.com/
-[4]https://lore.kernel.org/linux-mm/YoPHtHXzpK51F%2F1Z@carbon/
-[5]https://lore.kernel.org/lkml/20231108065818.19932-1-link@vivo.com/
 
-
-This patch (of 2):
-
-We use the constants 0 and 200 in a few places in the mm code when
-referring to the min and max swappiness.  This patch adds MIN_SWAPPINESS
-and MAX_SWAPPINESS #defines to improve clarity.  There are no functional
-changes.
-
-Link: https://lkml.kernel.org/r/20240103164841.2800183-1-schatzberg.dan@gmail.com
-Link: https://lkml.kernel.org/r/20240103164841.2800183-2-schatzberg.dan@gmail.com
+Link: https://lkml.kernel.org/r/20240103164841.2800183-3-schatzberg.dan@gmail.com
 Signed-off-by: Dan Schatzberg <schatzberg.dan@gmail.com>
+Suggested-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: David Rientjes <rientjes@google.com>
 Acked-by: Chris Li <chrisl@kernel.org>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Yosry Ahmed <yosryahmed@google.com>
 Cc: Yue Zhao <findns94@gmail.com>
 Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 ++
- mm/memcontrol-v1.c   |    2 +-
- mm/vmscan.c          |   12 ++++++------
- 3 files changed, 9 insertions(+), 7 deletions(-)
+ Documentation/admin-guide/cgroup-v2.rst |   18 ++++---
+ include/linux/swap.h                    |    3 -
+ mm/memcontrol-v1.c                      |    4 -
+ mm/memcontrol.c                         |   53 ++++++++++++++++++----
+ mm/vmscan.c                             |   25 +++++++++-
+ 5 files changed, 81 insertions(+), 22 deletions(-)
 
---- a/include/linux/swap.h~mm-add-defines-for-min-max-swappiness
-+++ a/include/linux/swap.h
-@@ -404,6 +404,8 @@ extern unsigned long try_to_free_pages(s
+--- a/Documentation/admin-guide/cgroup-v2.rst~mm-add-swapiness=-arg-to-memoryreclaim
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1299,17 +1299,10 @@ PAGE_SIZE multiple when read back.
+ 	This is a simple interface to trigger memory reclaim in the
+ 	target cgroup.
  
- #define MEMCG_RECLAIM_MAY_SWAP (1 << 1)
- #define MEMCG_RECLAIM_PROACTIVE (1 << 2)
-+#define MIN_SWAPPINESS 0
-+#define MAX_SWAPPINESS 200
+-	This file accepts a single key, the number of bytes to reclaim.
+-	No nested keys are currently supported.
+-
+ 	Example::
+ 
+ 	  echo "1G" > memory.reclaim
+ 
+-	The interface can be later extended with nested keys to
+-	configure the reclaim behavior. For example, specify the
+-	type of memory to reclaim from (anon, file, ..).
+-
+ 	Please note that the kernel can over or under reclaim from
+ 	the target cgroup. If less bytes are reclaimed than the
+ 	specified amount, -EAGAIN is returned.
+@@ -1321,6 +1314,17 @@ PAGE_SIZE multiple when read back.
+ 	This means that the networking layer will not adapt based on
+ 	reclaim induced by memory.reclaim.
+ 
++The following nested keys are defined.
++
++	  ==========            ================================
++	  swappiness            Swappiness value to reclaim with
++	  ==========            ================================
++
++	Specifying a swappiness value instructs the kernel to perform
++	the reclaim with that swappiness value. Note that this has the
++	same semantics as vm.swappiness applied to memcg reclaim with
++	all the existing limitations and potential future extensions.
++
+   memory.peak
+ 	A read-only single value file which exists on non-root
+ 	cgroups.
+--- a/include/linux/swap.h~mm-add-swapiness=-arg-to-memoryreclaim
++++ a/include/linux/swap.h
+@@ -409,7 +409,8 @@ extern unsigned long try_to_free_pages(s
  extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
  						  unsigned long nr_pages,
  						  gfp_t gfp_mask,
---- a/mm/memcontrol-v1.c~mm-add-defines-for-min-max-swappiness
-+++ a/mm/memcontrol-v1.c
-@@ -2709,7 +2709,7 @@ static int mem_cgroup_swappiness_write(s
+-						  unsigned int reclaim_options);
++						  unsigned int reclaim_options,
++						  int *swappiness);
+ extern unsigned long mem_cgroup_shrink_node(struct mem_cgroup *mem,
+ 						gfp_t gfp_mask, bool noswap,
+ 						pg_data_t *pgdat,
+--- a/mm/memcontrol.c~mm-add-swapiness=-arg-to-memoryreclaim
++++ a/mm/memcontrol.c
+@@ -48,6 +48,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/fs.h>
+ #include <linux/seq_file.h>
++#include <linux/parser.h>
+ #include <linux/vmpressure.h>
+ #include <linux/memremap.h>
+ #include <linux/mm_inline.h>
+@@ -1921,7 +1922,8 @@ static unsigned long reclaim_high(struct
+ 		psi_memstall_enter(&pflags);
+ 		nr_reclaimed += try_to_free_mem_cgroup_pages(memcg, nr_pages,
+ 							gfp_mask,
+-							MEMCG_RECLAIM_MAY_SWAP);
++							MEMCG_RECLAIM_MAY_SWAP,
++							NULL);
+ 		psi_memstall_leave(&pflags);
+ 	} while ((memcg = parent_mem_cgroup(memcg)) &&
+ 		 !mem_cgroup_is_root(memcg));
+@@ -2227,7 +2229,7 @@ retry:
+ 
+ 	psi_memstall_enter(&pflags);
+ 	nr_reclaimed = try_to_free_mem_cgroup_pages(mem_over_limit, nr_pages,
+-						    gfp_mask, reclaim_options);
++						    gfp_mask, reclaim_options, NULL);
+ 	psi_memstall_leave(&pflags);
+ 
+ 	if (mem_cgroup_margin(mem_over_limit) >= nr_pages)
+@@ -4097,7 +4099,7 @@ static ssize_t memory_high_write(struct
+ 		}
+ 
+ 		reclaimed = try_to_free_mem_cgroup_pages(memcg, nr_pages - high,
+-					GFP_KERNEL, MEMCG_RECLAIM_MAY_SWAP);
++					GFP_KERNEL, MEMCG_RECLAIM_MAY_SWAP, NULL);
+ 
+ 		if (!reclaimed && !nr_retries--)
+ 			break;
+@@ -4146,7 +4148,7 @@ static ssize_t memory_max_write(struct k
+ 
+ 		if (nr_reclaims) {
+ 			if (!try_to_free_mem_cgroup_pages(memcg, nr_pages - max,
+-					GFP_KERNEL, MEMCG_RECLAIM_MAY_SWAP))
++					GFP_KERNEL, MEMCG_RECLAIM_MAY_SWAP, NULL))
+ 				nr_reclaims--;
+ 			continue;
+ 		}
+@@ -4276,19 +4278,50 @@ static ssize_t memory_oom_group_write(st
+ 	return nbytes;
+ }
+ 
++enum {
++	MEMORY_RECLAIM_SWAPPINESS = 0,
++	MEMORY_RECLAIM_NULL,
++};
++
++static const match_table_t tokens = {
++	{ MEMORY_RECLAIM_SWAPPINESS, "swappiness=%d"},
++	{ MEMORY_RECLAIM_NULL, NULL },
++};
++
+ static ssize_t memory_reclaim(struct kernfs_open_file *of, char *buf,
+ 			      size_t nbytes, loff_t off)
  {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
+ 	unsigned int nr_retries = MAX_RECLAIM_RETRIES;
+ 	unsigned long nr_to_reclaim, nr_reclaimed = 0;
++	int swappiness = -1;
+ 	unsigned int reclaim_options;
+-	int err;
++	char *old_buf, *start;
++	substring_t args[MAX_OPT_ARGS];
  
--	if (val > 200)
-+	if (val > MAX_SWAPPINESS)
- 		return -EINVAL;
+ 	buf = strstrip(buf);
+-	err = page_counter_memparse(buf, "", &nr_to_reclaim);
+-	if (err)
+-		return err;
++
++	old_buf = buf;
++	nr_to_reclaim = memparse(buf, &buf) / PAGE_SIZE;
++	if (buf == old_buf)
++		return -EINVAL;
++
++	buf = strstrip(buf);
++
++	while ((start = strsep(&buf, " ")) != NULL) {
++		if (!strlen(start))
++			continue;
++		switch (match_token(start, tokens, args)) {
++		case MEMORY_RECLAIM_SWAPPINESS:
++			if (match_int(&args[0], &swappiness))
++				return -EINVAL;
++			if (swappiness < MIN_SWAPPINESS || swappiness > MAX_SWAPPINESS)
++				return -EINVAL;
++			break;
++		default:
++			return -EINVAL;
++		}
++	}
  
- 	if (!mem_cgroup_is_root(memcg))
---- a/mm/vmscan.c~mm-add-defines-for-min-max-swappiness
+ 	reclaim_options	= MEMCG_RECLAIM_MAY_SWAP | MEMCG_RECLAIM_PROACTIVE;
+ 	while (nr_reclaimed < nr_to_reclaim) {
+@@ -4308,7 +4341,9 @@ static ssize_t memory_reclaim(struct ker
+ 			lru_add_drain_all();
+ 
+ 		reclaimed = try_to_free_mem_cgroup_pages(memcg,
+-					batch_size, GFP_KERNEL, reclaim_options);
++					batch_size, GFP_KERNEL,
++					reclaim_options,
++					swappiness == -1 ? NULL : &swappiness);
+ 
+ 		if (!reclaimed && !nr_retries--)
+ 			return -EAGAIN;
+--- a/mm/memcontrol-v1.c~mm-add-swapiness=-arg-to-memoryreclaim
++++ a/mm/memcontrol-v1.c
+@@ -2241,7 +2241,7 @@ static int mem_cgroup_resize_max(struct
+ 		}
+ 
+ 		if (!try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL,
+-					memsw ? 0 : MEMCG_RECLAIM_MAY_SWAP)) {
++				memsw ? 0 : MEMCG_RECLAIM_MAY_SWAP, NULL)) {
+ 			ret = -EBUSY;
+ 			break;
+ 		}
+@@ -2273,7 +2273,7 @@ static int mem_cgroup_force_empty(struct
+ 			return -EINTR;
+ 
+ 		if (!try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL,
+-						  MEMCG_RECLAIM_MAY_SWAP))
++						  MEMCG_RECLAIM_MAY_SWAP, NULL))
+ 			nr_retries--;
+ 	}
+ 
+--- a/mm/vmscan.c~mm-add-swapiness=-arg-to-memoryreclaim
 +++ a/mm/vmscan.c
-@@ -192,7 +192,7 @@ struct scan_control {
+@@ -92,6 +92,11 @@ struct scan_control {
+ 	unsigned long	anon_cost;
+ 	unsigned long	file_cost;
+ 
++#ifdef CONFIG_MEMCG
++	/* Swappiness value for proactive reclaim. Always use sc_swappiness()! */
++	int *proactive_swappiness;
++#endif
++
+ 	/* Can active folios be deactivated as part of reclaim? */
+ #define DEACTIVATE_ANON 1
+ #define DEACTIVATE_FILE 2
+@@ -236,6 +241,13 @@ static bool writeback_throttling_sane(st
+ #endif
+ 	return false;
+ }
++
++static int sc_swappiness(struct scan_control *sc, struct mem_cgroup *memcg)
++{
++	if (sc->proactive && sc->proactive_swappiness)
++		return *sc->proactive_swappiness;
++	return mem_cgroup_swappiness(memcg);
++}
+ #else
+ static bool cgroup_reclaim(struct scan_control *sc)
+ {
+@@ -251,6 +263,11 @@ static bool writeback_throttling_sane(st
+ {
+ 	return true;
+ }
++
++static int sc_swappiness(struct scan_control *sc, struct mem_cgroup *memcg)
++{
++	return READ_ONCE(vm_swappiness);
++}
  #endif
  
- /*
-- * From 0 .. 200.  Higher means more swappy.
-+ * From 0 .. MAX_SWAPPINESS.  Higher means more swappy.
-  */
- int vm_swappiness = 60;
+ static void set_task_reclaim_state(struct task_struct *task,
+@@ -2351,7 +2368,7 @@ static void get_scan_count(struct lruvec
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	unsigned long anon_cost, file_cost, total_cost;
+-	int swappiness = mem_cgroup_swappiness(memcg);
++	int swappiness = sc_swappiness(sc, memcg);
+ 	u64 fraction[ANON_AND_FILE];
+ 	u64 denominator = 0;	/* gcc */
+ 	enum scan_balance scan_balance;
+@@ -2632,7 +2649,7 @@ static int get_swappiness(struct lruvec
+ 	    mem_cgroup_get_nr_swap_pages(memcg) < MIN_LRU_BATCH)
+ 		return 0;
  
-@@ -2427,7 +2427,7 @@ static void get_scan_count(struct lruvec
- 	ap = swappiness * (total_cost + 1);
- 	ap /= anon_cost + 1;
+-	return mem_cgroup_swappiness(memcg);
++	return sc_swappiness(sc, memcg);
+ }
  
--	fp = (200 - swappiness) * (total_cost + 1);
-+	fp = (MAX_SWAPPINESS - swappiness) * (total_cost + 1);
- 	fp /= file_cost + 1;
- 
- 	fraction[0] = ap;
-@@ -4447,7 +4447,7 @@ static int get_type_to_scan(struct lruve
+ static int get_nr_gens(struct lruvec *lruvec, int type)
+@@ -6549,12 +6566,14 @@ unsigned long mem_cgroup_shrink_node(str
+ unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
+ 					   unsigned long nr_pages,
+ 					   gfp_t gfp_mask,
+-					   unsigned int reclaim_options)
++					   unsigned int reclaim_options,
++					   int *swappiness)
  {
- 	int type, tier;
- 	struct ctrl_pos sp, pv;
--	int gain[ANON_AND_FILE] = { swappiness, 200 - swappiness };
-+	int gain[ANON_AND_FILE] = { swappiness, MAX_SWAPPINESS - swappiness };
- 
- 	/*
- 	 * Compare the first tier of anon with that of file to determine which
-@@ -4494,7 +4494,7 @@ static int isolate_folios(struct lruvec
- 		type = LRU_GEN_ANON;
- 	else if (swappiness == 1)
- 		type = LRU_GEN_FILE;
--	else if (swappiness == 200)
-+	else if (swappiness == MAX_SWAPPINESS)
- 		type = LRU_GEN_ANON;
- 	else if (!(sc->gfp_mask & __GFP_IO))
- 		type = LRU_GEN_FILE;
-@@ -5428,9 +5428,9 @@ static int run_cmd(char cmd, int memcg_i
- 
- 	lruvec = get_lruvec(memcg, nid);
- 
--	if (swappiness < 0)
-+	if (swappiness < MIN_SWAPPINESS)
- 		swappiness = get_swappiness(lruvec, sc);
--	else if (swappiness > 200)
-+	else if (swappiness > MAX_SWAPPINESS)
- 		goto done;
- 
- 	switch (cmd) {
+ 	unsigned long nr_reclaimed;
+ 	unsigned int noreclaim_flag;
+ 	struct scan_control sc = {
+ 		.nr_to_reclaim = max(nr_pages, SWAP_CLUSTER_MAX),
++		.proactive_swappiness = swappiness,
+ 		.gfp_mask = (current_gfp_context(gfp_mask) & GFP_RECLAIM_MASK) |
+ 				(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK),
+ 		.reclaim_idx = MAX_NR_ZONES - 1,
 _
 
 Patches currently in -mm which might be from schatzberg.dan@gmail.com are
