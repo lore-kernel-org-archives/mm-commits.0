@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EF5B13F42A
-	for <mm-commits@vger.kernel.org>; Fri,  5 Jul 2024 21:24:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D69113CFAD
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jul 2024 22:56:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720214687; cv=none; b=kAvTIQZrXlYMTQrKl5Bx4Ck4nCy2/2SM7mNTEMHYvNIN53QulKmnCUnzenC+cpHthc1+6sUf6hOLhyrxQiNh9ZNwPkSrJEBU2lt3KMm82J4naVDgyJTvcz3mMyZgg4BYOuFheFb8BV2zTmqvzQgUg27/Y5UQcmhH4+o4HDb1kNU=
+	t=1720220162; cv=none; b=fm6UCuVD0hwJFHcsMSWoMx4tTAxpGg0mnRXgkkRbpsUavHD2UZIef8IIWQlb32bWGIk6H8axyK8cLxfcLl7VBqYFVmcwIOJaVZXuDrBChkQCUsTj14Tbxk/LolDmnPOIQLRn+NijQZLCV1uOrdavxtmjTu4ite/uUdgQTw6dvhs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720214687; c=relaxed/simple;
-	bh=lKokglWlunWWNhqV+ZuwvDrx9z/xbVxh95AhT44Fdos=;
-	h=Date:To:From:Subject:Message-Id; b=e/NC6wjxsv6CZDlTdyP2opIWMqeV57eMUIiGfofptpM8SDd5TsUs4Zd2lAHYgaEs0Bt9DBq5gW7xSmokNIDSC4oXhzIsL3O3Kjr3ERmqF4XNQvRDH8vy3xCB1hCEi2bQh7wC8kdOTO3UxhR7y6S7EP7vbyiVn7ef5V+WN+03LQY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pHBsTX87; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720220162; c=relaxed/simple;
+	bh=YYrqzvm2OxgnAYpIqLOBVOCuhcX6e/lG5RVqeo3vsYU=;
+	h=Date:To:From:Subject:Message-Id; b=h44f7pb5XTloJrvXRl62rAECMmgpr/2sguTiX87gpG/JhwVx8JSpYR7im6vT+wCJJmBo458syGabOQChRrjNol/mkrjDON3TkpgswHmIj2p/vpkBAoGmzTXWfnGqg1e65lVO3Y8/XMw4tHijBFBWJi34yVdx/+Fvm59/LoCdz2k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AHmN/chK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pHBsTX87"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53DDBC116B1;
-	Fri,  5 Jul 2024 21:24:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AHmN/chK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11011C116B1;
+	Fri,  5 Jul 2024 22:56:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720214687;
-	bh=lKokglWlunWWNhqV+ZuwvDrx9z/xbVxh95AhT44Fdos=;
+	s=korg; t=1720220162;
+	bh=YYrqzvm2OxgnAYpIqLOBVOCuhcX6e/lG5RVqeo3vsYU=;
 	h=Date:To:From:Subject:From;
-	b=pHBsTX874iq2mpUsp/SyC50SeL3VtRRqoxZhXM+HejIeCzUUaS4UG4IFVdgO/a8MU
-	 S/SUgJ7MOJakJhwIVqXW5x17gLri4Ucj++s09LppW/kmm8lPOw/+n9v61+kraoiUp5
-	 zDn8EEqvEtsOjpZVnlmQVYqCeBIoep91C4zwPM30=
-Date: Fri, 05 Jul 2024 14:24:46 -0700
+	b=AHmN/chKa89T3NQdPrsvq5BMf5BBFmIroYu+FHiUb8chLy8siLVd8weuMMl/lXyoE
+	 6vi4pC1IQVoP5KyP8csNkFx4ZutMMyW8RVcDROtNPssyXjSU1KBlmVs1njyRWiiJ2D
+	 MnOSrkPcPnDxxX3KYnFX71HNAbLbAPLbzaj/JWRg=
+Date: Fri, 05 Jul 2024 15:56:01 -0700
 To: mm-commits@vger.kernel.org,vivek.kasireddy@intel.com,sj@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix.patch added to mm-unstable branch
-Message-Id: <20240705212447.53DDBC116B1@smtp.kernel.org>
+Subject: + mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-fix.patch added to mm-unstable branch
+Message-Id: <20240705225602.11011C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix
+     Subject: mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix.patch
+     mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,39 +59,50 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix
-Date: Fri Jul  5 02:15:29 PM PDT 2024
+Subject: mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-fix
+Date: Fri Jul  5 03:12:47 PM PDT 2024
 
-improve the CONFIG_MMU=n situation, per SeongJae
+propagate try_grab_folio() retval, including the weird -EREMOTEIO
 
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/gup.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/gup.c~mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix
+--- a/mm/gup.c~mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-fix
 +++ a/mm/gup.c
-@@ -3859,9 +3859,9 @@ long memfd_pin_folios(struct file *memfd
- 				    next_idx != folio_index(fbatch.folios[i]))
+@@ -3848,6 +3848,8 @@ long memfd_pin_folios(struct file *memfd
+ 
+ 			next_idx = 0;
+ 			for (i = 0; i < nr_found; i++) {
++				int ret2;
++
+ 				/*
+ 				 * As there can be multiple entries for a
+ 				 * given folio in the batch returned by
+@@ -3860,10 +3862,10 @@ long memfd_pin_folios(struct file *memfd
  					continue;
  
--				folio = try_grab_folio_fast(&fbatch.folios[i]->page,
--						       1, FOLL_PIN);
--				if (!folio) {
-+				folio = page_folio(&fbatch.folios[i]->page);
-+
-+				if (try_grab_folio(folio, 1, FOLL_PIN)) {
+ 				folio = page_folio(&fbatch.folios[i]->page);
+-
+-				if (try_grab_folio(folio, 1, FOLL_PIN)) {
++				ret2 = try_grab_folio(folio, 1, FOLL_PIN);
++				if (ret2) {
  					folio_batch_release(&fbatch);
- 					ret = -EINVAL;
+-					ret = -EINVAL;
++					ret = ret2;
  					goto err;
+ 				}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix.patch
+mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-fix.patch
 mm-store-zero-pages-to-be-swapped-out-in-a-bitmap-v7-fix.patch
 tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout-fix.patch
 
