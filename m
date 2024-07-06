@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0509E13C80F
-	for <mm-commits@vger.kernel.org>; Sat,  6 Jul 2024 18:54:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EB0C139CFC
+	for <mm-commits@vger.kernel.org>; Sat,  6 Jul 2024 18:54:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720292045; cv=none; b=WPYaZmfKVvLM+4qQ8T1yzC56imjnNfRHh3IVN44ZnFcwwQxoLQx1BI4zFt0sEyHnD0H5DGWCVbbmrqZw4/WfkrQtmZMt6fYh2KXOppmc8fL60bioia0JokelPpkgZR4tkTP3mlI/g1C5OAObi2ZzbZyHxRl3CBe8juFs+MRa1ZE=
+	t=1720292046; cv=none; b=q30IMsFBuGM94FePepBGCA9lhCQew1alJSZGAoW0TYFT68M+k7q3DVvW0nbm5V0gEWHYJ6V4kpDZpjrKuS+L2fYuJQV+YTxGBtrctakZ2QardBEZk83a9kqO6xLml3FcFY3WLs8mb+BupbBk6ZksaRu9ubGd4HeNMLo1WBOZofQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720292045; c=relaxed/simple;
-	bh=qPi2M7Q6k2/V7TMj4+QmXw60JPGZ8zh3B5uXXmcCNQ8=;
-	h=Date:To:From:Subject:Message-Id; b=sSWHa08sm6S70tJeaaWmYWLxo50nx5qwrOtD4LrHuPh7knS5fUiSbIzknz1x27FmQcZkXb9J3W5vhKL73q3jtLto36u3lHDExTeufAKHj4+FEhZr63+XMgNt3OdLl1eeuny1ZtcdzJTM3+UC7sDfaMVxXmMD3/PrxhIyf7VO7Hs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BkMyrzcb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720292046; c=relaxed/simple;
+	bh=FiaIL/slSoFzOvrnm2bbOt9O6SVRTYXcDy56Ta+sWso=;
+	h=Date:To:From:Subject:Message-Id; b=VQcv5rwUGWrTwaSbAQf4lE2oGlcG/J5rxhuAM/UphIhmABPAYyRwXg/BfSO1+AYjGGkKDuz+efKG00HAAPZrtfUb+eMvPfM/MHq1/+kmXCWT2EDlbjDypZqANRIdSY/IncKNcx+xb98QN526bxeyfVnhi/15OAikW2rCQbg144s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1NGw3hks; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BkMyrzcb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF304C2BD10;
-	Sat,  6 Jul 2024 18:54:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1NGw3hks"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DED09C2BD10;
+	Sat,  6 Jul 2024 18:54:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720292044;
-	bh=qPi2M7Q6k2/V7TMj4+QmXw60JPGZ8zh3B5uXXmcCNQ8=;
+	s=korg; t=1720292046;
+	bh=FiaIL/slSoFzOvrnm2bbOt9O6SVRTYXcDy56Ta+sWso=;
 	h=Date:To:From:Subject:From;
-	b=BkMyrzcbU7mrlUx1ls0YIHm1DSw/bHKFZlVjOx80C9CTTxvs/ifwj11q0eCd/HkIn
-	 Ku/eC+UkChyZbb3zwhLYjqrvFubkBCmpIMertlFWhk5OYrBSZWSFnL5RgQ/rnBbT6L
-	 cQ5Smp8iFEaYu7J6Pi9xNbn8TBji8321yjx3BTy4=
-Date: Sat, 06 Jul 2024 11:54:04 -0700
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,libang.li@antgroup.com,akpm@linux-foundation.org
+	b=1NGw3hksqMFzlybXK/GY3ZzJVVsqcGxhLQ1Q3xRpKZfAuR2iCDC6jiSXrAHuoyBFR
+	 LQOspJfrn7/XnhUoYAzPu7Mjzon0iKKNljIEpXviHG2I6KhYB3uEF4fVZrx+8K8FUA
+	 QfwQaQ3B4suVkkXG0c9fvB4escROQpMGybHFPu84=
+Date: Sat, 06 Jul 2024 11:54:05 -0700
+To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shmem-fix-input-and-output-inconsistencies.patch removed from -mm tree
-Message-Id: <20240706185404.CF304C2BD10@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-design-fix-two-typos.patch removed from -mm tree
+Message-Id: <20240706185405.DED09C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/shmem: fix input and output inconsistencies
+     Subject: Docs/mm/damon/design: fix two typos
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-fix-input-and-output-inconsistencies.patch
+     docs-mm-damon-design-fix-two-typos.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Bang Li" <libang.li@antgroup.com>
-Subject: mm/shmem: fix input and output inconsistencies
-Date: Fri, 28 Jun 2024 11:23:27 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/mm/damon/design: fix two typos
+Date: Mon, 1 Jul 2024 12:26:58 -0700
 
-Commit 19eaf44954df ("mm: thp: support allocation of anonymous multi-size
-THP") added mTHP support for anonymous shmem.  We can configure different
-policies through the multi-size THP sysfs interface for anonymous shmem.
+Patch series "Docs/damon: minor fixups and improvements".
 
-But when we configure the "advise" policy of
-/sys/kernel/mm/transparent_hugepage/hugepages-xxxkB/shmem_enabled, we
-cannot write the "advise", but write the "madvise", which is unreasonable.
-We should keep the output and input values consistent, which is more
-convenient for users.
+Fixup typos, clarify regions merging operation design with recent change,
+add access pattern snapshot example use case, and improve readability of
+the design document and subsystem documents index by
+reorganizing/wordsmithing and adding links to other sections and/or
+documents for easy browsing.
 
-Link: https://lkml.kernel.org/r/20240628032327.16987-1-libang.li@antgroup.com
-Fixes: 61a57f1b1da9 ("mm: shmem: add multi-size THP sysfs interface for anonymous shmem")
-Signed-off-by: Bang Li <libang.li@antgroup.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Bang Li <libang.li@antgroup.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+
+This patch (of 9):
+
+Fix two typos.  The first one is just a simple typo: s/accurach/accuracy/
+
+The second one is made by the author being out of their mind.  'Region
+Based Sampling' section of the doc is mistakenly calling the access
+frequency counter of region as 'nr_regions'.  Fix it with the correct
+name, 'nr_accesses'.
+
+Link: https://lkml.kernel.org/r/20240701192706.51415-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240701192706.51415-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/mm/damon/design.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-fix-input-and-output-inconsistencies
-+++ a/mm/shmem.c
-@@ -4983,7 +4983,7 @@ static ssize_t thpsize_shmem_enabled_sto
- 		clear_bit(order, &huge_shmem_orders_madvise);
- 		set_bit(order, &huge_shmem_orders_within_size);
- 		spin_unlock(&huge_shmem_orders_lock);
--	} else if (sysfs_streq(buf, "madvise")) {
-+	} else if (sysfs_streq(buf, "advise")) {
- 		spin_lock(&huge_shmem_orders_lock);
- 		clear_bit(order, &huge_shmem_orders_always);
- 		clear_bit(order, &huge_shmem_orders_inherit);
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-fix-two-typos
++++ a/Documentation/mm/damon/design.rst
+@@ -25,7 +25,7 @@ DAMON subsystem is configured with three
+ - Operations Set: Implements fundamental operations for DAMON that depends on
+   the given monitoring target address-space and available set of
+   software/hardware primitives,
+-- Core: Implements core logics including monitoring overhead/accurach control
++- Core: Implements core logics including monitoring overhead/accuracy control
+   and access-aware system operations on top of the operations set layer, and
+ - Modules: Implements kernel modules for various purposes that provides
+   interfaces for the user space, on top of the core layer.
+@@ -192,7 +192,7 @@ one page in the region is required to be
+ interval``, DAMON randomly picks one page in each region, waits for one
+ ``sampling interval``, checks whether the page is accessed meanwhile, and
+ increases the access frequency counter of the region if so.  The counter is
+-called ``nr_regions`` of the region.  Therefore, the monitoring overhead is
++called ``nr_accesses`` of the region.  Therefore, the monitoring overhead is
+ controllable by setting the number of regions.  DAMON allows users to set the
+ minimum and the maximum number of regions for the trade-off.
+ 
 _
 
-Patches currently in -mm which might be from libang.li@antgroup.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-thp-support-thpeligible-semantics-for-mthp-with-anonymous-shmem.patch
 
