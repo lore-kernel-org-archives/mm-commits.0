@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E206139CFC
-	for <mm-commits@vger.kernel.org>; Sat,  6 Jul 2024 18:54:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10783139CFC
+	for <mm-commits@vger.kernel.org>; Sat,  6 Jul 2024 18:54:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720292049; cv=none; b=Z209IxoL7vzoL99e4qtcwTZkrV5kEvAHRH1OrxPg5u54p+4NaD0FloOr6s4p7SQ2sJPJNMVKJP5qvO+OViIL0dcoRa0bsmpwJ64U97kqNlXDMIpzTf96PmLg5yz7DyGXiUIKUEyFiqw+vnAtXgUnFY5jxPsYz41azYc0x5ku+3c=
+	t=1720292051; cv=none; b=k5MW54aZr9Bmys6rC6AvdhW4ur3xR+6yCZtzmov4FJse9AaNdBU/BfT6EUx1FHKJAoLMcPh0qBm+Br7/Nq+I10X7g+X2UQF4fGo98iGVv9cqWY8fDdBzzd+itWEeDu2Fxq/qbB1PALdoUrd7qRwAi/QzYkdMHOXKnObwN1OAxvg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720292049; c=relaxed/simple;
-	bh=Iqljm371jRNBrUHjmf/42dSsm8NZAI+6H9S0I1Idc1Q=;
-	h=Date:To:From:Subject:Message-Id; b=qq/6e6/g7y7zMNTb4VJlpDHGEC9klQql3nqJ/DBlTa5DlVtrr9KgOumTNujJMpH7t11PQx2D5zyCVXzy6m9tT0Yz9Doh1X6HzOWCGvF97SehI2RkVXQSOYYFvlsCJNgOGTqNe3ewrOFENspnZADxbY51QHsiXkBbNpAfU8X4fYg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gsnooml2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720292051; c=relaxed/simple;
+	bh=8yYQuyPebqjB5L1ruY6RgGtlRSPnzlnfvHMmZLaeKtE=;
+	h=Date:To:From:Subject:Message-Id; b=jsr5RgvoXdCzec/HiKRWN/7UQdoKzRhijM329b+iFO+zIN8eSp+fG1FX0JnHXODMqo4DWcu3IHd8Mo2UbcbxFMHqUblEpwsmTwdmZoxvDOnxIC1p7CUxgARykuNZ0d0Vg0jXkyc/OX1gUaEZwQpRkhg3YaANEgygKStAgQveF3E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FmBAX4r/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gsnooml2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7F62C4AF0A;
-	Sat,  6 Jul 2024 18:54:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FmBAX4r/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8A01C32781;
+	Sat,  6 Jul 2024 18:54:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720292048;
-	bh=Iqljm371jRNBrUHjmf/42dSsm8NZAI+6H9S0I1Idc1Q=;
+	s=korg; t=1720292050;
+	bh=8yYQuyPebqjB5L1ruY6RgGtlRSPnzlnfvHMmZLaeKtE=;
 	h=Date:To:From:Subject:From;
-	b=Gsnooml2MZTxeE5bZ+wA3EnOFHMZtC8IJau70HmAlpi7FaNhFKUK4PVrIEovT/Pcq
-	 Wj00AGYz7B6frGDCdciTvm2G6EwG0Z+wGhDB4AIJmlqtgK+kq/cteodLx3GW7XfNhu
-	 fuD8+DoPunt4xsqb19bRGS0spvA7wWh+XXJeI+TI=
-Date: Sat, 06 Jul 2024 11:54:08 -0700
+	b=FmBAX4r/+UTrMs1yz0RXh5eSXI9MJPlnA1UMKn12rghAvzHrx5QTtcDGu3oCWx6za
+	 bfHbPlaew5cWPEKPjhfm5a5WL4KgWSxOrbZjZ38Gd4tYA74VWAc+o2X8rWb61kKNF7
+	 xUxGBRJ7WEga3PCz5MceMa2LTX08if5oqM7ZN2jE=
+Date: Sat, 06 Jul 2024 11:54:10 -0700
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-mm-damon-design-add-links-from-overall-architecture-to-sections-of-details.patch removed from -mm tree
-Message-Id: <20240706185408.D7F62C4AF0A@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-design-remove-programmable-modules-section-in-favor-of-modules-section.patch removed from -mm tree
+Message-Id: <20240706185410.D8A01C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,76 +35,56 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/mm/damon/design: add links from overall architecture to sections of details
+     Subject: Docs/mm/damon/design: remove 'Programmable Modules' section in favor of 'Modules' section
 has been removed from the -mm tree.  Its filename was
-     docs-mm-damon-design-add-links-from-overall-architecture-to-sections-of-details.patch
+     docs-mm-damon-design-remove-programmable-modules-section-in-favor-of-modules-section.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: add links from overall architecture to sections of details
-Date: Mon, 1 Jul 2024 12:27:01 -0700
+Subject: Docs/mm/damon/design: remove 'Programmable Modules' section in favor of 'Modules' section
+Date: Mon, 1 Jul 2024 12:27:03 -0700
 
-DAMON design document briefly explains the overall layers architecture
-first, and then provides detailed explanations of each layer with
-dedicated sections.  Letting readers go directly to the detailed sections
-for specific layers could help easy browsing of the not-very-short
-document.  Add links from the overall summary to the sections of details.
+'Programmable Modules' section provides high level descriptions of the
+DAMON API-based kernel modules layer.  But 'Modules' section, which is at
+the end of the document, provides every detail about the layer including
+that of 'Programmable Modules' section.
 
-Link: https://lkml.kernel.org/r/20240701192706.51415-5-sj@kernel.org
+Since the brief summary of the layers at the beginning of the document has
+a link to the 'Modules' section, browsing to the section is not that
+difficult.  Remove 'Programmable Modules' section in favor of 'Modules'
+section and reducing duplicates.
+
+Link: https://lkml.kernel.org/r/20240701192706.51415-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ Documentation/mm/damon/design.rst |   10 ----------
+ 1 file changed, 10 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-add-links-from-overall-architecture-to-sections-of-details
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-remove-programmable-modules-section-in-favor-of-modules-section
 +++ a/Documentation/mm/damon/design.rst
-@@ -22,13 +22,15 @@ Overall Architecture
- 
- DAMON subsystem is configured with three layers including
- 
--- Operations Set: Implements fundamental operations for DAMON that depends on
--  the given monitoring target address-space and available set of
--  software/hardware primitives,
--- Core: Implements core logics including monitoring overhead/accuracy control
--  and access-aware system operations on top of the operations set layer, and
--- Modules: Implements kernel modules for various purposes that provides
--  interfaces for the user space, on top of the core layer.
-+- :ref:`Operations Set <damon_operations_set>`: Implements fundamental
-+  operations for DAMON that depends on the given monitoring target
-+  address-space and available set of software/hardware primitives,
-+- :ref:`Core <damon_core_logic>`: Implements core logics including monitoring
-+  overhead/accuracy control and access-aware system operations on top of the
-+  operations set layer, and
-+- :ref:`Modules <damon_modules>`: Implements kernel modules for various
-+  purposes that provides interfaces for the user space, on top of the core
-+  layer.
+@@ -33,16 +33,6 @@ DAMON subsystem is configured with three
+   layer.
  
  
- .. _damon_design_configurable_operations_set:
-@@ -140,6 +142,8 @@ conflict with the reclaim logic using ``
- as Idle page tracking does.
+-Programmable Modules
+---------------------
+-
+-Core layer of DAMON is implemented as a framework, and exposes its application
+-programming interface to all kernel space components such as subsystems and
+-modules.  For common use cases of DAMON, DAMON subsystem provides kernel
+-modules that built on top of the core layer using the API, which can be easily
+-used by the user space end users.
+-
+-
+ .. _damon_operations_set:
  
- 
-+.. _damon_core_logic:
-+
- Core Logics
- ===========
- 
-@@ -512,6 +516,8 @@ interface, namely ``include/linux/damon.
- :doc:`document </mm/damon/api>` for details of the interface.
- 
- 
-+.. _damon_modules:
-+
- Modules
- =======
- 
+ Operations Set Layer
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
