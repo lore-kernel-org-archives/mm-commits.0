@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC9F013C3F7
-	for <mm-commits@vger.kernel.org>; Sat,  6 Jul 2024 18:40:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40BE213C3F7;
+	Sat,  6 Jul 2024 18:40:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720291231; cv=none; b=R9tmaDq+9bUncpKANJwpdPwMc88YzDhuNSiTHuZfiPGz7r/iuMZCccPU1kMSadvDq0SfOTtnpLL7XBYYQUctl7D1/3MtzCKUyA6dnAprW/10XybgYPSvx9dpyWRc39bSrM/Kj2tVad674UP0gSvPDhsDEf6ePv9ALdej1+oTdb8=
+	t=1720291232; cv=none; b=sY5jD+CQWjj9XNWsISrkebpYZdQy/0p28Znw+z5mSEHkun22WIVEfKR10nBwYT9ya2lhWTIZ9yui5ubFOziAL8hkxamsW7Z2bi3Gkt2Yclft12tR4NnKkO9LN+6dubdaxJ0GXBA8+EEVlnE0ybhshyW9rwpDhet0lMKNSt8XTa8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720291231; c=relaxed/simple;
-	bh=mmoKniQLOt+FRdmKWRHwBQCX3QnYcA+wjcjDtszKrio=;
-	h=Date:To:From:Subject:Message-Id; b=fqIlOMAhqr+VhWZdg6+F+TG/iYrfUoCX76rZ1vbZV+oWXI4kqFNP27HjNB8HmRvChSbjF+6OTimZuKn30NGjw6KpNF6kMwmMoui/jkOJFo1hiXjMea7uGsEqTQgGr+00usBu5bM3o1nWjpStmPJA1kxrlk+KZLh15drYXx2K8gE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dydggx4F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720291232; c=relaxed/simple;
+	bh=sKt3vhMUd9BYUOdVkgyHSBTI5hZxLYsxopnn93nMvss=;
+	h=Date:To:From:Subject:Message-Id; b=sxJVXMuaf5A326Vok43HwbQK84Sly7dbeOkJCmd3SmGO7LGDUVyuTM3Gi9rOlRHMHy6fmLW897GhYj75mo3FKwjw8RsakSsV7wZFeX9YXNrp2zhslO43juiz3VMGEhxS4wppSwAM4Us0fhoFhtWVja/xHo66x4yQeDc0p20jpfk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C+rK6vIu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dydggx4F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DBC8C32781;
-	Sat,  6 Jul 2024 18:40:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C+rK6vIu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0692C4AF0D;
+	Sat,  6 Jul 2024 18:40:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720291230;
-	bh=mmoKniQLOt+FRdmKWRHwBQCX3QnYcA+wjcjDtszKrio=;
+	s=korg; t=1720291231;
+	bh=sKt3vhMUd9BYUOdVkgyHSBTI5hZxLYsxopnn93nMvss=;
 	h=Date:To:From:Subject:From;
-	b=dydggx4F2FOvbioVrYQQLrluh1kN0pWTeSQeuFSZ16ZDFfA4zb9sBVsEz0NMqHLMO
-	 UGyWSsQ3pWsJnuLhh5gcbgHpZl+iozqGw67OHZtX6qFLkGgSsPvV4RxJjzbFtG5cmK
-	 k96PyfzEyqsO42fj/Ciz6RwElnqiuu+Ua6fyUZYI=
-Date: Sat, 06 Jul 2024 11:40:29 -0700
-To: mm-commits@vger.kernel.org,u.kleine-koenig@pengutronix.de,nicolas@fjasle.eu,masahiroy@kernel.org,a.fatoum@pengutronix.de,pmenzel@molgen.mpg.de,akpm@linux-foundation.org
+	b=C+rK6vIun4ZTUwYuv0KN7WMg/7UoIvsxMgzvD1ue5LaJC+8vJWm6F+Er/OJuPdVaM
+	 xjqeyORyXqvrGMY1phT64ftaz3GMCquNDknn4vlxTfL4RTYOhrlw48qL15JjfubSeT
+	 H2NXIbT3iseH6723UK8xhjWAIGZ+2EnW7pnqgBkE=
+Date: Sat, 06 Jul 2024 11:40:31 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,shy828301@gmail.com,nphamcs@gmail.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,hughd@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] lib-build_oid_registry-avoid-non-destructive-substitution-for-perl-5132-compat.patch removed from -mm tree
-Message-Id: <20240706184030.7DBC8C32781@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-crashes-from-deferred-split-racing-folio-migration.patch removed from -mm tree
+Message-Id: <20240706184031.B0692C4AF0D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,110 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/build_OID_registry: avoid non-destructive substitution for Perl < 5.13.2 compat
+     Subject: mm: fix crashes from deferred split racing folio migration
 has been removed from the -mm tree.  Its filename was
-     lib-build_oid_registry-avoid-non-destructive-substitution-for-perl-5132-compat.patch
+     mm-fix-crashes-from-deferred-split-racing-folio-migration.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Paul Menzel <pmenzel@molgen.mpg.de>
-Subject: lib/build_OID_registry: avoid non-destructive substitution for Perl < 5.13.2 compat
-Date: Mon, 1 Jul 2024 17:58:01 +0200
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: fix crashes from deferred split racing folio migration
+Date: Tue, 2 Jul 2024 00:40:55 -0700 (PDT)
 
-On a system with Perl 5.12.1, commit 5ef6dc08cfde
-("lib/build_OID_registry: don't mention the full path of the script in
-output") causes the build to fail with the error below.
+Even on 6.10-rc6, I've been seeing elusive "Bad page state"s (often on
+flags when freeing, yet the flags shown are not bad: PG_locked had been
+set and cleared??), and VM_BUG_ON_PAGE(page_ref_count(page) == 0)s from
+deferred_split_scan()'s folio_put(), and a variety of other BUG and WARN
+symptoms implying double free by deferred split and large folio migration.
 
-     Bareword found where operator expected at ./lib/build_OID_registry line 41, near "s#^\Q$abs_srctree/\E##r"
-     syntax error at ./lib/build_OID_registry line 41, near "s#^\Q$abs_srctree/\E##r"
-     Execution of ./lib/build_OID_registry aborted due to compilation errors.
-     make[3]: *** [lib/Makefile:352: lib/oid_registry_data.c] Error 255
+6.7 commit 9bcef5973e31 ("mm: memcg: fix split queue list crash when large
+folio migration") was right to fix the memcg-dependent locking broken in
+85ce2c517ade ("memcontrol: only transfer the memcg data for migration"),
+but missed a subtlety of deferred_split_scan(): it moves folios to its own
+local list to work on them without split_queue_lock, during which time
+folio->_deferred_list is not empty, but even the "right" lock does nothing
+to secure the folio and the list it is on.
 
-Ahmad Fatoum analyzed that non-destructive substitution is only supported since
-Perl 5.13.2. Instead of dropping `r` and having the side effect of modifying
-`$0`, introduce a dedicated variable to support older Perl versions.
+Fortunately, deferred_split_scan() is careful to use folio_try_get(): so
+folio_migrate_mapping() can avoid the race by folio_undo_large_rmappable()
+while the old folio's reference count is temporarily frozen to 0 - adding
+such a freeze in the !mapping case too (originally, folio lock and
+unmapping and no swap cache left an anon folio unreachable, so no freezing
+was needed there: but the deferred split queue offers a way to reach it).
 
-Link: https://lkml.kernel.org/r/20240702223512.8329-2-pmenzel@molgen.mpg.de
-Link: https://lkml.kernel.org/r/20240701155802.75152-1-pmenzel@molgen.mpg.de
-Fixes: 5ef6dc08cfde ("lib/build_OID_registry: don't mention the full path of the script in output")
-Link: https://lore.kernel.org/all/259f7a87-2692-480e-9073-1c1c35b52f67@molgen.mpg.de/
-Signed-off-by: Paul Menzel <pmenzel@molgen.mpg.de>
-Suggested-by: Ahmad Fatoum <a.fatoum@pengutronix.de>
-Cc: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Cc: Nicolas Schier <nicolas@fjasle.eu>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Ahmad Fatoum <a.fatoum@pengutronix.de>
+Link: https://lkml.kernel.org/r/29c83d1a-11ca-b6c9-f92e-6ccb322af510@google.com
+Fixes: 9bcef5973e31 ("mm: memcg: fix split queue list crash when large folio migration")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/build_OID_registry |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   11 -----------
+ mm/migrate.c    |   13 +++++++++++++
+ 2 files changed, 13 insertions(+), 11 deletions(-)
 
---- a/lib/build_OID_registry~lib-build_oid_registry-avoid-non-destructive-substitution-for-perl-5132-compat
-+++ a/lib/build_OID_registry
-@@ -38,7 +38,9 @@ close IN_FILE || die;
- #
- open C_FILE, ">$ARGV[1]" or die;
- print C_FILE "/*\n";
--print C_FILE " * Automatically generated by ", $0 =~ s#^\Q$abs_srctree/\E##r, ".  Do not edit\n";
-+my $scriptname = $0;
-+$scriptname =~ s#^\Q$abs_srctree/\E##;
-+print C_FILE " * Automatically generated by ", $scriptname, ".  Do not edit\n";
- print C_FILE " */\n";
+--- a/mm/memcontrol.c~mm-fix-crashes-from-deferred-split-racing-folio-migration
++++ a/mm/memcontrol.c
+@@ -7823,17 +7823,6 @@ void mem_cgroup_migrate(struct folio *ol
  
- #
+ 	/* Transfer the charge and the css ref */
+ 	commit_charge(new, memcg);
+-	/*
+-	 * If the old folio is a large folio and is in the split queue, it needs
+-	 * to be removed from the split queue now, in case getting an incorrect
+-	 * split queue in destroy_large_folio() after the memcg of the old folio
+-	 * is cleared.
+-	 *
+-	 * In addition, the old folio is about to be freed after migration, so
+-	 * removing from the split queue a bit earlier seems reasonable.
+-	 */
+-	if (folio_test_large(old) && folio_test_large_rmappable(old))
+-		folio_undo_large_rmappable(old);
+ 	old->memcg_data = 0;
+ }
+ 
+--- a/mm/migrate.c~mm-fix-crashes-from-deferred-split-racing-folio-migration
++++ a/mm/migrate.c
+@@ -415,6 +415,15 @@ int folio_migrate_mapping(struct address
+ 		if (folio_ref_count(folio) != expected_count)
+ 			return -EAGAIN;
+ 
++		/* Take off deferred split queue while frozen and memcg set */
++		if (folio_test_large(folio) &&
++		    folio_test_large_rmappable(folio)) {
++			if (!folio_ref_freeze(folio, expected_count))
++				return -EAGAIN;
++			folio_undo_large_rmappable(folio);
++			folio_ref_unfreeze(folio, expected_count);
++		}
++
+ 		/* No turning back from here */
+ 		newfolio->index = folio->index;
+ 		newfolio->mapping = folio->mapping;
+@@ -433,6 +442,10 @@ int folio_migrate_mapping(struct address
+ 		return -EAGAIN;
+ 	}
+ 
++	/* Take off deferred split queue while frozen and memcg set */
++	if (folio_test_large(folio) && folio_test_large_rmappable(folio))
++		folio_undo_large_rmappable(folio);
++
+ 	/*
+ 	 * Now we know that no one else is looking at the folio:
+ 	 * no turning back from here.
 _
 
-Patches currently in -mm which might be from pmenzel@molgen.mpg.de are
+Patches currently in -mm which might be from hughd@google.com are
 
 
