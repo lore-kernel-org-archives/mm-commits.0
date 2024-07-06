@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 360A413D260
-	for <mm-commits@vger.kernel.org>; Sat,  6 Jul 2024 18:54:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CBF013C80F
+	for <mm-commits@vger.kernel.org>; Sat,  6 Jul 2024 18:54:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720292059; cv=none; b=t1ZfxG4jCwr3wqmS/wzZWc3NJW+/3IoyxWOM3+Gvv3GL6IQzm0Z7Pv0nhb4jRgE6zQcOgRTpFecl08lpMf3HGjajtn8nydMXLq7bjxXDtSpgaO8CtoHgBp9C+hnvLtBbbluV1LFPH2BEwb4ts6F7lfi53+KTEmfNliR7ysd5tbI=
+	t=1720292060; cv=none; b=VIPUBUBC5UIpueVFfnUdZr3+bztYE5W3puq6J3ukF2EsvpTMMf0O/cauwEqsuSK/PeSXPaA4AzNoEOpzenhCzovMiG5fBelSr6/HExSmc2sE1sL8UML6N19XUg9TS0juui8ISvd91NpQ5i4BQaoXPhgl2eZ3y/qI99h1cFk9X+g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720292059; c=relaxed/simple;
-	bh=hvFQhCeUL6MqBnFB1z4YTaNhTrK5apD0bwv1A05j4iw=;
-	h=Date:To:From:Subject:Message-Id; b=gjE7aGDv1P5/uWo9XuCOtd1rRAxYekawu+6h6VobHuAeLiE/8mRU+hF48yHbiPBHIAUkKbESfzs0HRi08NZnbzMrjKSDi3eJQ3jPIZoxcRoqhGOFlNelkqcr6u3IaDfpD8t8Jm4/OMg5ydJyHanCLlMLheSancQ2c/1BdPogZeM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ecyvlhPY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720292060; c=relaxed/simple;
+	bh=JySNHfLJyYx0Oj0GLj6zWj0K4WpXsHuNNwNoQBc153M=;
+	h=Date:To:From:Subject:Message-Id; b=fb3J76E8BeIZa3SAW6CYTW1E3WheJ3RbYXZyTezHqqZKexTVnpe4KhJkpN7fC0wkGT5OAxd9h4fhhSK10WMpiPz2KnpTKbaCJ4zLeYFODodVj9mv9lRe7+pg+s30Lzg+t9vJU2o513xUtPn9rzuQt0QeuZ5QBUabfhOzAPHa8Jk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PNaZ0Z0g; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ecyvlhPY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BDCAC2BD10;
-	Sat,  6 Jul 2024 18:54:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PNaZ0Z0g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12D7AC2BD10;
+	Sat,  6 Jul 2024 18:54:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720292059;
-	bh=hvFQhCeUL6MqBnFB1z4YTaNhTrK5apD0bwv1A05j4iw=;
+	s=korg; t=1720292060;
+	bh=JySNHfLJyYx0Oj0GLj6zWj0K4WpXsHuNNwNoQBc153M=;
 	h=Date:To:From:Subject:From;
-	b=ecyvlhPYVLMeiyvnza95dhTgcT97q0Bl9/0BIuQD4ihOy9iIPPP92DFYPaAEgBnO2
-	 NQTrx1dgeYuxx1JWmoJv/++MjGun8Eemi9DFLtOSwmtoP6SPGsz/S41YcDGRDUu2W+
-	 6ipZfo8BLlnUGDNaVRrTq200Lz6qmRnW7EAc9+5g=
-Date: Sat, 06 Jul 2024 11:54:18 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,oleg@redhat.com,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=PNaZ0Z0gN3kIkm7Pre3l7dquMxbs7uoNkM6D9STcx3v1hf8N/ntMF1UCANS9UwXGi
+	 ZaMTphNQeJDb/Yk5Depdxi8Y5VjnL7PwM7DOkhwa9dcBc98LAH2sSDMiIm5OnKpQPJ
+	 8g4XPhrsubi8TxpBpjicEMjGjhKbz177oh/DjFx4=
+Date: Sat, 06 Jul 2024 11:54:19 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kernel-forkc-put-set_max_threads-task_struct_whitelist-in-__init-section.patch removed from -mm tree
-Message-Id: <20240706185419.0BDCAC2BD10@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-remove-prefetchw-on-freeing-page-to-buddy-system.patch removed from -mm tree
+Message-Id: <20240706185420.12D7AC2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,87 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel/fork.c: put set_max_threads()/task_struct_whitelist() in __init section
+     Subject: mm/page_alloc: remove prefetchw() on freeing page to buddy system
 has been removed from the -mm tree.  Its filename was
-     kernel-forkc-put-set_max_threads-task_struct_whitelist-in-__init-section.patch
+     mm-page_alloc-remove-prefetchw-on-freeing-page-to-buddy-system.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: kernel/fork.c: put set_max_threads()/task_struct_whitelist() in __init section
-Date: Mon, 1 Jul 2024 01:34:10 +0000
+Subject: mm/page_alloc: remove prefetchw() on freeing page to buddy system
+Date: Tue, 2 Jul 2024 02:09:31 +0000
 
-The functions set_max_threads() and task_struct_whitelist() are only used
-by fork_init() during bootup.
+The prefetchw() is introduced from an ancient patch[1].
 
-Let's add __init tag to them.
+The change log says:
 
-Link: https://lkml.kernel.org/r/20240701013410.17260-2-richard.weiyang@gmail.com
+    The basic idea is to free higher order pages instead of going
+    through every single one.  Also, some unnecessary atomic operations
+    are done away with and replaced with non-atomic equivalents, and
+    prefetching is done where it helps the most.  For a more in-depth
+    discusion of this patch, please see the linux-ia64 archives (topic
+    is "free bootmem feedback patch").
+
+So there are several changes improve the bootmem freeing, in which the
+most basic idea is freeing higher order pages.  And as Matthew says,
+"Itanium CPUs of this era had no prefetchers."
+
+I did 10 round bootup tests before and after this change, the data doesn't
+prove prefetchw() help speeding up bootmem freeing.  The sum of the 10
+round bootmem freeing time after prefetchw() removal even 5.2% faster than
+before.
+
+[1]: https://lore.kernel.org/linux-ia64/40F46962.4090604@sgi.com/
+
+Link: https://lkml.kernel.org/r/20240702020931.7061-1-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Suggested-by: Oleg Nesterov <oleg@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Reviewed-by: Matthew Wilcox <willy@infradead.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
---- a/kernel/fork.c~kernel-forkc-put-set_max_threads-task_struct_whitelist-in-__init-section
-+++ a/kernel/fork.c
-@@ -997,7 +997,7 @@ void __init __weak arch_task_cache_init(
- /*
-  * set_max_threads
-  */
--static void set_max_threads(unsigned int max_threads_suggested)
-+static void __init set_max_threads(unsigned int max_threads_suggested)
- {
- 	u64 threads;
- 	unsigned long nr_pages = PHYS_PFN(memblock_phys_mem_size() - memblock_reserved_size());
-@@ -1023,7 +1023,7 @@ static void set_max_threads(unsigned int
- int arch_task_struct_size __read_mostly;
- #endif
+--- a/mm/page_alloc.c~mm-page_alloc-remove-prefetchw-on-freeing-page-to-buddy-system
++++ a/mm/page_alloc.c
+@@ -1236,16 +1236,11 @@ void __free_pages_core(struct page *page
+ 	 */
+ 	if (IS_ENABLED(CONFIG_MEMORY_HOTPLUG) &&
+ 	    unlikely(context == MEMINIT_HOTPLUG)) {
+-		prefetchw(p);
+-		for (loop = 0; loop < (nr_pages - 1); loop++, p++) {
+-			prefetchw(p + 1);
++		for (loop = 0; loop < nr_pages; loop++, p++) {
+ 			VM_WARN_ON_ONCE(PageReserved(p));
+ 			__ClearPageOffline(p);
+ 			set_page_count(p, 0);
+ 		}
+-		VM_WARN_ON_ONCE(PageReserved(p));
+-		__ClearPageOffline(p);
+-		set_page_count(p, 0);
  
--static void task_struct_whitelist(unsigned long *offset, unsigned long *size)
-+static void __init task_struct_whitelist(unsigned long *offset, unsigned long *size)
- {
- 	/* Fetch thread_struct whitelist for the architecture. */
- 	arch_thread_struct_whitelist(offset, size);
+ 		/*
+ 		 * Freeing the page with debug_pagealloc enabled will try to
+@@ -1255,14 +1250,10 @@ void __free_pages_core(struct page *page
+ 		debug_pagealloc_map_pages(page, nr_pages);
+ 		adjust_managed_page_count(page, nr_pages);
+ 	} else {
+-		prefetchw(p);
+-		for (loop = 0; loop < (nr_pages - 1); loop++, p++) {
+-			prefetchw(p + 1);
++		for (loop = 0; loop < nr_pages; loop++, p++) {
+ 			__ClearPageReserved(p);
+ 			set_page_count(p, 0);
+ 		}
+-		__ClearPageReserved(p);
+-		set_page_count(p, 0);
+ 
+ 		/* memblock adjusts totalram_pages() manually. */
+ 		atomic_long_add(nr_pages, &page_zone(page)->managed_pages);
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
