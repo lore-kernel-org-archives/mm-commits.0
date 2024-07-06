@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C55E513C80F
-	for <mm-commits@vger.kernel.org>; Sat,  6 Jul 2024 18:54:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAE1D13C80F
+	for <mm-commits@vger.kernel.org>; Sat,  6 Jul 2024 18:54:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720292041; cv=none; b=khIxOq2wS1nhgKlYPMBN8nabRTIzzuboBuMzwpv6uSixBRs37dGdCoVeibWN4sQsfoq6alJLm75Yg+lPxiAroC3OykZAJWkppxCK8W/SlrEzda8ku1ZsWsdZvHWdILkv6PLaM/g7P0z3TIYzS9I3s3wJINVh6aQsHjDPWa71RdI=
+	t=1720292044; cv=none; b=QxfZmcmJdSAA5S8I/pK9I5KiwMqAOTCHIIjASFFFH3kQEX8gpU3U4aE7JNqgIFP79kHRpOtI6jtZm8joHnoGiZ9Vrk5u/cjRWzph4cWmByAn+XkpE7W0s2VGH4+kSGXSkcDIjGNvUhJDf5CvXMKH1zPvzQnZ4f2kP09TFKS++Q0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720292041; c=relaxed/simple;
-	bh=oGgDN4wJi1Ss7DJcWsjacUrzu9KSs+7tNATITDGp3uU=;
-	h=Date:To:From:Subject:Message-Id; b=FgvLm84fqa2YxiNUA0lgDB8MU6X3voJDw/jd9rTClNqUw10XzPFxcFyPDq7KejXSB8TvZlcljpeLHWsw+sxcsSsUmwStnsBCR1uHl3TGQRXaGWs1ixdQXBQgaaEpPIc4SoSqaFz6T+LLJN1Xsy+pU4DaykspbE6A0HKhbnLQddY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zLqyyTaH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720292044; c=relaxed/simple;
+	bh=gKEjWW8EU5zoqrp77NF89SJThAc4dFJitVMx+kbzoi0=;
+	h=Date:To:From:Subject:Message-Id; b=QsMr7NPS4UWKo0sPSsPPtD4cSI5o8k5c8nDSOXUeXlo75GE9p8UbN5jNJiPLQRoTuarIag8CK1KBlE940fS5LixHUpNZK3V+7cw6lSdpxaFouxyuhXK2AeZ7OntmDtuFSDicV2h5+d7RmS6fEJnlsIwS23Y5JLjkb197kNKoXgM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YI/1AmaA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zLqyyTaH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99947C2BD10;
-	Sat,  6 Jul 2024 18:54:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YI/1AmaA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6120C2BD10;
+	Sat,  6 Jul 2024 18:54:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720292041;
-	bh=oGgDN4wJi1Ss7DJcWsjacUrzu9KSs+7tNATITDGp3uU=;
+	s=korg; t=1720292043;
+	bh=gKEjWW8EU5zoqrp77NF89SJThAc4dFJitVMx+kbzoi0=;
 	h=Date:To:From:Subject:From;
-	b=zLqyyTaH2lxijpnCV8JFuXEP9CA64IS1s0wOCLsNy5Ltd1BP4hZXCc3cecdqrifCO
-	 1fO+Z8f3Dw76RAhNFEF3fkF0s20TyGGWsl4if9lc3iBk1x0tEqYMFoYo/Kn7B0mHFy
-	 phUTVN8gEsU+mQQdrIPzwCj8faAhCL4gY6DvsyE8=
-Date: Sat, 06 Jul 2024 11:54:01 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,ryan.roberts@arm.com,kasong@tencent.com,kaleshsingh@google.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=YI/1AmaABQ82RSBTq/1oYCpaqzdT5pmGCK/JRRpew9Tpkb19OGEySBUdII/QeerBA
+	 /6kZJkW3urBGi1bO7WSBJpzc19OFbUrBJxI5weH6pm+7lu7cRmgOEjtqQauyXZ3Jwe
+	 Vby5DjPkoPJ/o6atYGYTAYTDiiJvAmcUGjXDRiEc=
+Date: Sat, 06 Jul 2024 11:54:03 -0700
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,tglx@linutronix.de,skhan@linuxfoundation.org,seanjc@google.com,reinette.chatre@intel.com,peterz@infradead.org,pbonzini@redhat.com,paul.walmsley@sifive.com,palmer@dabbelt.com,pabeni@redhat.com,mingo@redhat.com,kuba@kernel.org,kevin.tian@intel.com,kees@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,jarkko@kernel.org,fenghua.yu@intel.com,edumazet@google.com,ebiederm@xmission.com,dvhart@infradead.org,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,aou@eecs.berkeley.edu,andrealmeid@igalia.com,edliaw@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout.patch removed from -mm tree
-Message-Id: <20240706185401.99947C2BD10@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-centralize-d_gnu_source=-to-cflags-in-libmk.patch removed from -mm tree
+Message-Id: <20240706185403.B6120C2BD10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,323 +35,235 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/mm: introduce a tool to assess swap entry allocation for thp_swapout
+     Subject: selftests: centralize -D_GNU_SOURCE= to CFLAGS in lib.mk
 has been removed from the -mm tree.  Its filename was
-     tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout.patch
+     selftests-centralize-d_gnu_source=-to-cflags-in-libmk.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: tools/mm: introduce a tool to assess swap entry allocation for thp_swapout
-Date: Sat, 22 Jun 2024 19:12:31 +1200
+From: Edward Liaw <edliaw@google.com>
+Subject: selftests: centralize -D_GNU_SOURCE= to CFLAGS in lib.mk
+Date: Tue, 25 Jun 2024 22:34:45 +0000
 
-Both Ryan and Chris have been utilizing the small test program to aid in
-debugging and identifying issues with swap entry allocation.  While a real
-or intricate workload might be more suitable for assessing the correctness
-and effectiveness of the swap allocation policy, a small test program
-presents a simpler means of understanding the problem and initially
-verifying the improvements being made.
+Centralize the _GNU_SOURCE definition to CFLAGS in lib.mk.  Remove
+redundant defines from Makefiles that import lib.mk.  Convert any usage of
+"#define _GNU_SOURCE 1" to "#define _GNU_SOURCE".
 
-Let's endeavor to integrate it into tools/mm.  Although it presently only
-accommodates 64KB and 4KB, I'm optimistic that we can expand its
-capabilities to support multiple sizes and simulate more complex systems
-in the future as required.
+This uses the form "-D_GNU_SOURCE=", which is equivalent to
+"#define _GNU_SOURCE".
 
-Basically, we have
+Otherwise using "-D_GNU_SOURCE" is equivalent to "-D_GNU_SOURCE=1" and
+"#define _GNU_SOURCE 1", which is less commonly seen in source code and
+would require many changes in selftests to avoid redefinition warnings.
 
-1. Use MADV_PAGEPUT for rapid swap-out, putting the swap allocation
-   code under high exercise in a short time.
-
-2. Use MADV_DONTNEED to simulate the behavior of libc and Java heap in
-   freeing memory, as well as for munmap, app exits, or OOM killer
-   scenarios.  This ensures new mTHP is always generated, released or
-   swapped out, similar to the behavior on a PC or Android phone where
-   many applications are frequently started and terminated.
-
-3. Swap in with or without the "-a" option to observe how fragments
-   due to swap-in and the incoming swap-in of large folios will impact
-   swap-out fallback.
-
-Due to 2, we ensure a certain proportion of mTHP.  Similarly, because of
-3, we maintain a certain proportion of small folios, as we don't support
-large folios swap-in, meaning any swap-in will immediately result in small
-folios.  Therefore, with both 2 and 3, we automatically achieve a system
-containing both mTHP and small folios.  Additionally, 1 provides the
-ability to continuously swap them out.
-
-We can also use "-s" to add a dedicated small folios memory area.
-
-[akpm@linux-foundation.org: thp_swap_allocator_test.c needs mman.h, per Kairui Song]
-Link: https://lkml.kernel.org/r/20240622071231.576056-2-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Acked-by: Chris Li <chrisl@kernel.org>
-Tested-by: Chris Li <chrisl@kernel.org>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Tested-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
+Link: https://lkml.kernel.org/r/20240625223454.1586259-2-edliaw@google.com
+Signed-off-by: Edward Liaw <edliaw@google.com>
+Suggested-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: Shuah Khan <skhan@linuxfoundation.org>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: André Almeida <andrealmeid@igalia.com>
+Cc: Darren Hart <dvhart@infradead.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Jarkko Sakkinen <jarkko@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Kevin Tian <kevin.tian@intel.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Reinette Chatre <reinette.chatre@intel.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/Makefile                  |    2 
- tools/mm/thp_swap_allocator_test.c |  234 +++++++++++++++++++++++++++
- 2 files changed, 235 insertions(+), 1 deletion(-)
+ tools/testing/selftests/exec/Makefile             |    1 -
+ tools/testing/selftests/futex/functional/Makefile |    2 +-
+ tools/testing/selftests/intel_pstate/Makefile     |    2 +-
+ tools/testing/selftests/iommu/Makefile            |    2 --
+ tools/testing/selftests/kvm/Makefile              |    2 +-
+ tools/testing/selftests/lib.mk                    |    3 +++
+ tools/testing/selftests/mm/thuge-gen.c            |    2 +-
+ tools/testing/selftests/net/Makefile              |    2 +-
+ tools/testing/selftests/net/tcp_ao/Makefile       |    2 +-
+ tools/testing/selftests/proc/Makefile             |    1 -
+ tools/testing/selftests/resctrl/Makefile          |    2 +-
+ tools/testing/selftests/ring-buffer/Makefile      |    1 -
+ tools/testing/selftests/riscv/mm/Makefile         |    2 +-
+ tools/testing/selftests/sgx/Makefile              |    2 +-
+ tools/testing/selftests/tmpfs/Makefile            |    1 -
+ 15 files changed, 12 insertions(+), 15 deletions(-)
 
---- a/tools/mm/Makefile~tools-mm-introduce-a-tool-to-assess-swap-entry-allocation-for-thp_swapout
-+++ a/tools/mm/Makefile
-@@ -3,7 +3,7 @@
- #
- include ../scripts/Makefile.include
+--- a/tools/testing/selftests/exec/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/exec/Makefile
+@@ -1,7 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ CFLAGS = -Wall
+ CFLAGS += -Wno-nonnull
+-CFLAGS += -D_GNU_SOURCE
  
--BUILD_TARGETS=page-types slabinfo page_owner_sort
-+BUILD_TARGETS=page-types slabinfo page_owner_sort thp_swap_allocator_test
- INSTALL_TARGETS = $(BUILD_TARGETS) thpmaps
+ TEST_PROGS := binfmt_script.py
+ TEST_GEN_PROGS := execveat load_address_4096 load_address_2097152 load_address_16777216 non-regular
+--- a/tools/testing/selftests/futex/functional/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/futex/functional/Makefile
+@@ -1,6 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ INCLUDES := -I../include -I../../ $(KHDR_INCLUDES)
+-CFLAGS := $(CFLAGS) -g -O2 -Wall -D_GNU_SOURCE= -pthread $(INCLUDES) $(KHDR_INCLUDES)
++CFLAGS := $(CFLAGS) -g -O2 -Wall -pthread $(INCLUDES) $(KHDR_INCLUDES)
+ LDLIBS := -lpthread -lrt
  
- LIB_DIR = ../lib/api
---- /dev/null
-+++ a/tools/mm/thp_swap_allocator_test.c
-@@ -0,0 +1,234 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+/*
-+ * thp_swap_allocator_test
-+ *
-+ * The purpose of this test program is helping check if THP swpout
-+ * can correctly get swap slots to swap out as a whole instead of
-+ * being split. It randomly releases swap entries through madvise
-+ * DONTNEED and swapin/out on two memory areas: a memory area for
-+ * 64KB THP and the other area for small folios. The second memory
-+ * can be enabled by "-s".
-+ * Before running the program, we need to setup a zRAM or similar
-+ * swap device by:
-+ *  echo lzo > /sys/block/zram0/comp_algorithm
-+ *  echo 64M > /sys/block/zram0/disksize
-+ *  echo never > /sys/kernel/mm/transparent_hugepage/hugepages-2048kB/enabled
-+ *  echo always > /sys/kernel/mm/transparent_hugepage/hugepages-64kB/enabled
-+ *  mkswap /dev/zram0
-+ *  swapon /dev/zram0
-+ * The expected result should be 0% anon swpout fallback ratio w/ or
-+ * w/o "-s".
-+ *
-+ * Author(s): Barry Song <v-songbaohua@oppo.com>
-+ */
+ LOCAL_HDRS := \
+--- a/tools/testing/selftests/intel_pstate/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/intel_pstate/Makefile
+@@ -1,5 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0
+-CFLAGS := $(CFLAGS) -Wall -D_GNU_SOURCE
++CFLAGS := $(CFLAGS) -Wall
+ LDLIBS += -lm
+ 
+ ARCH ?= $(shell uname -m 2>/dev/null || echo not)
+--- a/tools/testing/selftests/iommu/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/iommu/Makefile
+@@ -2,8 +2,6 @@
+ CFLAGS += -Wall -O2 -Wno-unused-function
+ CFLAGS += $(KHDR_INCLUDES)
+ 
+-CFLAGS += -D_GNU_SOURCE
+-
+ TEST_GEN_PROGS :=
+ TEST_GEN_PROGS += iommufd
+ TEST_GEN_PROGS += iommufd_fail_nth
+--- a/tools/testing/selftests/kvm/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/kvm/Makefile
+@@ -231,7 +231,7 @@ LINUX_TOOL_ARCH_INCLUDE = $(top_srcdir)/
+ endif
+ CFLAGS += -Wall -Wstrict-prototypes -Wuninitialized -O2 -g -std=gnu99 \
+ 	-Wno-gnu-variable-sized-type-not-at-end -MD -MP -DCONFIG_64BIT \
+-	-D_GNU_SOURCE -fno-builtin-memcmp -fno-builtin-memcpy \
++	-fno-builtin-memcmp -fno-builtin-memcpy \
+ 	-fno-builtin-memset -fno-builtin-strnlen \
+ 	-fno-stack-protector -fno-PIE -I$(LINUX_TOOL_INCLUDE) \
+ 	-I$(LINUX_TOOL_ARCH_INCLUDE) -I$(LINUX_HDR_PATH) -Iinclude \
+--- a/tools/testing/selftests/lib.mk~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/lib.mk
+@@ -188,6 +188,9 @@ endef
+ clean: $(if $(TEST_GEN_MODS_DIR),clean_mods_dir)
+ 	$(CLEAN)
+ 
++# Build with _GNU_SOURCE by default
++CFLAGS += -D_GNU_SOURCE=
 +
+ # Enables to extend CFLAGS and LDFLAGS from command line, e.g.
+ # make USERCFLAGS=-Werror USERLDFLAGS=-static
+ CFLAGS += $(USERCFLAGS)
+--- a/tools/testing/selftests/mm/thuge-gen.c~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/mm/thuge-gen.c
+@@ -13,7 +13,7 @@
+    sudo ipcs | awk '$1 == "0x00000000" {print $2}' | xargs -n1 sudo ipcrm -m
+    (warning this will remove all if someone else uses them) */
+ 
+-#define _GNU_SOURCE 1
 +#define _GNU_SOURCE
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <string.h>
-+#include <linux/mman.h>
-+#include <sys/mman.h>
-+#include <errno.h>
-+#include <time.h>
-+
-+#define MEMSIZE_MTHP (60 * 1024 * 1024)
-+#define MEMSIZE_SMALLFOLIO (4 * 1024 * 1024)
-+#define ALIGNMENT_MTHP (64 * 1024)
-+#define ALIGNMENT_SMALLFOLIO (4 * 1024)
-+#define TOTAL_DONTNEED_MTHP (16 * 1024 * 1024)
-+#define TOTAL_DONTNEED_SMALLFOLIO (1 * 1024 * 1024)
-+#define MTHP_FOLIO_SIZE (64 * 1024)
-+
-+#define SWPOUT_PATH \
-+	"/sys/kernel/mm/transparent_hugepage/hugepages-64kB/stats/swpout"
-+#define SWPOUT_FALLBACK_PATH \
-+	"/sys/kernel/mm/transparent_hugepage/hugepages-64kB/stats/swpout_fallback"
-+
-+static void *aligned_alloc_mem(size_t size, size_t alignment)
-+{
-+	void *mem = NULL;
-+
-+	if (posix_memalign(&mem, alignment, size) != 0) {
-+		perror("posix_memalign");
-+		return NULL;
-+	}
-+	return mem;
-+}
-+
-+/*
-+ * This emulates the behavior of native libc and Java heap,
-+ * as well as process exit and munmap. It helps generate mTHP
-+ * and ensures that iterations can proceed with mTHP, as we
-+ * currently don't support large folios swap-in.
-+ */
-+static void random_madvise_dontneed(void *mem, size_t mem_size,
-+		size_t align_size, size_t total_dontneed_size)
-+{
-+	size_t num_pages = total_dontneed_size / align_size;
-+	size_t i;
-+	size_t offset;
-+	void *addr;
-+
-+	for (i = 0; i < num_pages; ++i) {
-+		offset = (rand() % (mem_size / align_size)) * align_size;
-+		addr = (char *)mem + offset;
-+		if (madvise(addr, align_size, MADV_DONTNEED) != 0)
-+			perror("madvise dontneed");
-+
-+		memset(addr, 0x11, align_size);
-+	}
-+}
-+
-+static void random_swapin(void *mem, size_t mem_size,
-+		size_t align_size, size_t total_swapin_size)
-+{
-+	size_t num_pages = total_swapin_size / align_size;
-+	size_t i;
-+	size_t offset;
-+	void *addr;
-+
-+	for (i = 0; i < num_pages; ++i) {
-+		offset = (rand() % (mem_size / align_size)) * align_size;
-+		addr = (char *)mem + offset;
-+		memset(addr, 0x11, align_size);
-+	}
-+}
-+
-+static unsigned long read_stat(const char *path)
-+{
-+	FILE *file;
-+	unsigned long value;
-+
-+	file = fopen(path, "r");
-+	if (!file) {
-+		perror("fopen");
-+		return 0;
-+	}
-+
-+	if (fscanf(file, "%lu", &value) != 1) {
-+		perror("fscanf");
-+		fclose(file);
-+		return 0;
-+	}
-+
-+	fclose(file);
-+	return value;
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	int use_small_folio = 0, aligned_swapin = 0;
-+	void *mem1 = NULL, *mem2 = NULL;
-+	int i;
-+
-+	for (i = 1; i < argc; ++i) {
-+		if (strcmp(argv[i], "-s") == 0)
-+			use_small_folio = 1;
-+		else if (strcmp(argv[i], "-a") == 0)
-+			aligned_swapin = 1;
-+	}
-+
-+	mem1 = aligned_alloc_mem(MEMSIZE_MTHP, ALIGNMENT_MTHP);
-+	if (mem1 == NULL) {
-+		fprintf(stderr, "Failed to allocate large folios memory\n");
-+		return EXIT_FAILURE;
-+	}
-+
-+	if (madvise(mem1, MEMSIZE_MTHP, MADV_HUGEPAGE) != 0) {
-+		perror("madvise hugepage for mem1");
-+		free(mem1);
-+		return EXIT_FAILURE;
-+	}
-+
-+	if (use_small_folio) {
-+		mem2 = aligned_alloc_mem(MEMSIZE_SMALLFOLIO, ALIGNMENT_MTHP);
-+		if (mem2 == NULL) {
-+			fprintf(stderr, "Failed to allocate small folios memory\n");
-+			free(mem1);
-+			return EXIT_FAILURE;
-+		}
-+
-+		if (madvise(mem2, MEMSIZE_SMALLFOLIO, MADV_NOHUGEPAGE) != 0) {
-+			perror("madvise nohugepage for mem2");
-+			free(mem1);
-+			free(mem2);
-+			return EXIT_FAILURE;
-+		}
-+	}
-+
-+	/* warm-up phase to occupy the swapfile */
-+	memset(mem1, 0x11, MEMSIZE_MTHP);
-+	madvise(mem1, MEMSIZE_MTHP, MADV_PAGEOUT);
-+	if (use_small_folio) {
-+		memset(mem2, 0x11, MEMSIZE_SMALLFOLIO);
-+		madvise(mem2, MEMSIZE_SMALLFOLIO, MADV_PAGEOUT);
-+	}
-+
-+	/* iterations with newly created mTHP, swap-in, and swap-out */
-+	for (i = 0; i < 100; ++i) {
-+		unsigned long initial_swpout;
-+		unsigned long initial_swpout_fallback;
-+		unsigned long final_swpout;
-+		unsigned long final_swpout_fallback;
-+		unsigned long swpout_inc;
-+		unsigned long swpout_fallback_inc;
-+		double fallback_percentage;
-+
-+		initial_swpout = read_stat(SWPOUT_PATH);
-+		initial_swpout_fallback = read_stat(SWPOUT_FALLBACK_PATH);
-+
-+		/*
-+		 * The following setup creates a 1:1 ratio of mTHP to small folios
-+		 * since large folio swap-in isn't supported yet. Once we support
-+		 * mTHP swap-in, we'll likely need to reduce MEMSIZE_MTHP and
-+		 * increase MEMSIZE_SMALLFOLIO to maintain the ratio.
-+		 */
-+		random_swapin(mem1, MEMSIZE_MTHP,
-+				aligned_swapin ? ALIGNMENT_MTHP : ALIGNMENT_SMALLFOLIO,
-+				TOTAL_DONTNEED_MTHP);
-+		random_madvise_dontneed(mem1, MEMSIZE_MTHP, ALIGNMENT_MTHP,
-+				TOTAL_DONTNEED_MTHP);
-+
-+		if (use_small_folio) {
-+			random_swapin(mem2, MEMSIZE_SMALLFOLIO,
-+					ALIGNMENT_SMALLFOLIO,
-+					TOTAL_DONTNEED_SMALLFOLIO);
-+		}
-+
-+		if (madvise(mem1, MEMSIZE_MTHP, MADV_PAGEOUT) != 0) {
-+			perror("madvise pageout for mem1");
-+			free(mem1);
-+			if (mem2 != NULL)
-+				free(mem2);
-+			return EXIT_FAILURE;
-+		}
-+
-+		if (use_small_folio) {
-+			if (madvise(mem2, MEMSIZE_SMALLFOLIO, MADV_PAGEOUT) != 0) {
-+				perror("madvise pageout for mem2");
-+				free(mem1);
-+				free(mem2);
-+				return EXIT_FAILURE;
-+			}
-+		}
-+
-+		final_swpout = read_stat(SWPOUT_PATH);
-+		final_swpout_fallback = read_stat(SWPOUT_FALLBACK_PATH);
-+
-+		swpout_inc = final_swpout - initial_swpout;
-+		swpout_fallback_inc = final_swpout_fallback - initial_swpout_fallback;
-+
-+		fallback_percentage = (double)swpout_fallback_inc /
-+			(swpout_fallback_inc + swpout_inc) * 100;
-+
-+		printf("Iteration %d: swpout inc: %lu, swpout fallback inc: %lu, Fallback percentage: %.2f%%\n",
-+				i + 1, swpout_inc, swpout_fallback_inc, fallback_percentage);
-+	}
-+
-+	free(mem1);
-+	if (mem2 != NULL)
-+		free(mem2);
-+
-+	return EXIT_SUCCESS;
-+}
+ #include <sys/mman.h>
+ #include <linux/mman.h>
+ #include <stdlib.h>
+--- a/tools/testing/selftests/net/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/net/Makefile
+@@ -1,7 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Makefile for net selftests
+ 
+-CFLAGS =  -Wall -Wl,--no-as-needed -O2 -g
++CFLAGS +=  -Wall -Wl,--no-as-needed -O2 -g
+ CFLAGS += -I../../../../usr/include/ $(KHDR_INCLUDES)
+ # Additional include paths needed by kselftest.h
+ CFLAGS += -I../
+--- a/tools/testing/selftests/net/tcp_ao/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/net/tcp_ao/Makefile
+@@ -26,7 +26,7 @@ LIB	:= $(LIBDIR)/libaotst.a
+ LDLIBS	+= $(LIB) -pthread
+ LIBDEPS	:= lib/aolib.h Makefile
+ 
+-CFLAGS	:= -Wall -O2 -g -D_GNU_SOURCE -fno-strict-aliasing
++CFLAGS	+= -Wall -O2 -g -fno-strict-aliasing
+ CFLAGS	+= $(KHDR_INCLUDES)
+ CFLAGS	+= -iquote ./lib/ -I ../../../../include/
+ 
+--- a/tools/testing/selftests/proc/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/proc/Makefile
+@@ -1,6 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ CFLAGS += -Wall -O2 -Wno-unused-function
+-CFLAGS += -D_GNU_SOURCE
+ LDFLAGS += -pthread
+ 
+ TEST_GEN_PROGS :=
+--- a/tools/testing/selftests/resctrl/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/resctrl/Makefile
+@@ -1,6 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ 
+-CFLAGS = -g -Wall -O2 -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE
++CFLAGS = -g -Wall -O2 -D_FORTIFY_SOURCE=2
+ CFLAGS += $(KHDR_INCLUDES)
+ 
+ TEST_GEN_PROGS := resctrl_tests
+--- a/tools/testing/selftests/ring-buffer/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/ring-buffer/Makefile
+@@ -1,7 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ CFLAGS += -Wl,-no-as-needed -Wall
+ CFLAGS += $(KHDR_INCLUDES)
+-CFLAGS += -D_GNU_SOURCE
+ 
+ TEST_GEN_PROGS = map_test
+ 
+--- a/tools/testing/selftests/riscv/mm/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/riscv/mm/Makefile
+@@ -3,7 +3,7 @@
+ # Originally tools/testing/arm64/abi/Makefile
+ 
+ # Additional include paths needed by kselftest.h and local headers
+-CFLAGS += -D_GNU_SOURCE -std=gnu99 -I.
++CFLAGS += -std=gnu99 -I.
+ 
+ TEST_GEN_FILES := mmap_default mmap_bottomup
+ 
+--- a/tools/testing/selftests/sgx/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/sgx/Makefile
+@@ -12,7 +12,7 @@ OBJCOPY := $(CROSS_COMPILE)objcopy
+ endif
+ 
+ INCLUDES := -I$(top_srcdir)/tools/include
+-HOST_CFLAGS := -Wall -Werror -g $(INCLUDES) -fPIC
++HOST_CFLAGS := -Wall -Werror -g $(INCLUDES) -fPIC $(CFLAGS)
+ HOST_LDFLAGS := -z noexecstack -lcrypto
+ ENCL_CFLAGS += -Wall -Werror -static-pie -nostdlib -ffreestanding -fPIE \
+ 	       -fno-stack-protector -mrdrnd $(INCLUDES)
+--- a/tools/testing/selftests/tmpfs/Makefile~selftests-centralize-d_gnu_source=-to-cflags-in-libmk
++++ a/tools/testing/selftests/tmpfs/Makefile
+@@ -1,6 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ CFLAGS += -Wall -O2
+-CFLAGS += -D_GNU_SOURCE
+ 
+ TEST_GEN_PROGS :=
+ TEST_GEN_PROGS += bug-link-o-tmpfile
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from edliaw@google.com are
 
 
