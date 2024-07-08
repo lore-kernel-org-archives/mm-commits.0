@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DA4214EC43;
-	Mon,  8 Jul 2024 21:49:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1EFD7345B
+	for <mm-commits@vger.kernel.org>; Mon,  8 Jul 2024 21:55:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720475399; cv=none; b=iaXz7VdCH/f5b/0TCb+K+efyh4O19+a5CQcu2VIxpWfIWaXAUb0a76Q3kZh5jhEvdYJK7fJfC1LCJ86ZLmnh5neSq6T8g7QDCO2KxycUyTWrcTPrypCozAJGjnPdbSHRsRUWcogasXnQYwzUeScvY1cQxK42r9Gj/SxrrWtchdA=
+	t=1720475751; cv=none; b=qDWGBayHP5CeA3bBqZoaVH2TboWhWrTfNbLcqarKLBIUAMyNuiywjd5usZP5kOc5WzROwX7YqgJdreq21X1T5TUM2DgAV4SBbEapcqcajTFhV+i6J+wtxJYrbBF4OQBUYeUhSRibOupdzKGhajr9EkHoOgjkZqAFdKNP5yYvQoc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720475399; c=relaxed/simple;
-	bh=ptl0zh3PleOOX4Swi/ucEUby+SXTa7g0RclwVuM4xlI=;
-	h=Date:To:From:Subject:Message-Id; b=FErIAHJrYw8x4lHBWJdngCvzWirBXe2U+aTEtXWO6kCfOVSnOJd4BMia44U5DxVC+lLEJwWOiO7yIkhhqoyByAxONNQSno9hV7oltIIg3amg/MYmQspYslPfrJkF0uHL48zXFzACWAKzS+XCJwpX5kbexH94r/vejjbdMnAedRI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MAmQpMAq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720475751; c=relaxed/simple;
+	bh=o6HR+EATDVQfZpuCvn2JpB46e+UvN+ck1HLv4jazLbg=;
+	h=Date:To:From:Subject:Message-Id; b=XxW+CWT0grupTD2YOnbNpssrBeMunmOHIUl0j9XUpRM2/wm7jk8Qhw1egPBkWSaE0C+3i1EKpqiltTzbQoVePz29KFtnD4IbplZlHCdmbPFFojp+YiHiLufiwFygnmkZSFxmQLBZJbWR8Ho6JrulQrac95oMGxqOOwKjU0i9B+8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jxixQ/85; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MAmQpMAq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F249AC116B1;
-	Mon,  8 Jul 2024 21:49:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jxixQ/85"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35A6CC116B1;
+	Mon,  8 Jul 2024 21:55:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720475399;
-	bh=ptl0zh3PleOOX4Swi/ucEUby+SXTa7g0RclwVuM4xlI=;
+	s=korg; t=1720475751;
+	bh=o6HR+EATDVQfZpuCvn2JpB46e+UvN+ck1HLv4jazLbg=;
 	h=Date:To:From:Subject:From;
-	b=MAmQpMAqCqfY/wk82OAC4iHm8LDUzxMI0f6zzhJ11hKDtzJXXkkEJ+ZTWs39Fdoff
-	 LltMhtW054iL4CbFtCkz5RWQq8hVHIwj+wGPM23Go/vmvvC+vbjD8+Q9c+bAo0kZm+
-	 pAxjeVA6rz7omP+6/8XvlG57S3zyGBLz3k9E1Yf4=
-Date: Mon, 08 Jul 2024 14:49:58 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,linmiaohe@huawei.com,akpm@linux-foundation.org
+	b=jxixQ/85bDdYglB50Wa5FTNBqYQH0mQ4rZb7+OPmCHYlkqA6msG7xEB0FUIZnLrDB
+	 9VO4bIhMxx4dD+GqisX3lF5I45U5gKvp1u0ts/gU4jL5WzA/yNEz+gejd4ny/ZXS1j
+	 sPWWzCf96RlV3ZpoYMGHtwo4HexF04gnvBnxtIt8=
+Date: Mon, 08 Jul 2024 14:55:50 -0700
+To: mm-commits@vger.kernel.org,u.kleine-koenig@baylibre.com,biju.das.jz@bp.renesas.com,npitre@baylibre.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-potential-race-in-__update_and_free_hugetlb_folio.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240708214958.F249AC116B1@smtp.kernel.org>
+Subject: + mul_u64_u64_div_u64-make-it-precise-always.patch added to mm-nonmm-unstable branch
+Message-Id: <20240708215551.35A6CC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: fix potential race in __update_and_free_hugetlb_folio()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-fix-potential-race-in-__update_and_free_hugetlb_folio.patch
+     Subject: mul_u64_u64_div_u64: make it precise always
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     mul_u64_u64_div_u64-make-it-precise-always.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-potential-race-in-__update_and_free_hugetlb_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mul_u64_u64_div_u64-make-it-precise-always.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,79 +58,175 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: fix potential race in __update_and_free_hugetlb_folio()
-Date: Mon, 8 Jul 2024 10:51:27 +0800
+From: Nicolas Pitre <npitre@baylibre.com>
+Subject: mul_u64_u64_div_u64: make it precise always
+Date: Sun, 7 Jul 2024 15:05:19 -0400
 
-There is a potential race between __update_and_free_hugetlb_folio() and
-try_memory_failure_hugetlb():
+Patch series "mul_u64_u64_div_u64: new implementation", v3.
 
- CPU1					CPU2
- __update_and_free_hugetlb_folio	try_memory_failure_hugetlb
-					 folio_test_hugetlb
-					  -- It's still hugetlb folio.
-  folio_clear_hugetlb_hwpoison
-  					  spin_lock_irq(&hugetlb_lock);
-					   __get_huge_page_for_hwpoison
-					    folio_set_hugetlb_hwpoison
-					  spin_unlock_irq(&hugetlb_lock);
-  spin_lock_irq(&hugetlb_lock);
-  __folio_clear_hugetlb(folio);
-   -- Hugetlb flag is cleared but too late.
-  spin_unlock_irq(&hugetlb_lock);
+This provides an implementation for mul_u64_u64_div_u64() that always
+produces exact results.
 
-When the above race occurs, raw error page info will be leaked.  Even
-worse, raw error pages won't have hwpoisoned flag set and hit
-pcplists/buddy.  Fix this issue by deferring
-folio_clear_hugetlb_hwpoison() until __folio_clear_hugetlb() is done.  So
-all raw error pages will have hwpoisoned flag set.
 
-Link: https://lkml.kernel.org/r/20240708025127.107713-1-linmiaohe@huawei.com
-Fixes: 32c877191e02 ("hugetlb: do not clear hugetlb dtor until allocating vmemmap")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: <stable@vger.kernel.org>
+This patch (of 2):
+
+Library facilities must always return exact results.  If the caller may be
+contented with approximations then it should do the approximation on its
+own.
+
+In this particular case the comment in the code says "the algorithm
+... below might lose some precision". Well, if you try it with e.g.:
+
+	a = 18446462598732840960
+	b = 18446462598732840960
+	c = 18446462598732840961
+
+then the produced answer is 0 whereas the exact answer should be
+18446462598732840959.  This is _some_ precision lost indeed!
+
+Let's reimplement this function so it always produces the exact result
+regardless of its inputs while preserving existing fast paths when
+possible.
+
+Link: https://lkml.kernel.org/r/20240707190648.1982714-1-nico@fluxnic.net
+Link: https://lkml.kernel.org/r/20240707190648.1982714-2-nico@fluxnic.net
+Signed-off-by: Nicolas Pitre <npitre@baylibre.com>
+Tested-by: Uwe Kleine-König <u.kleine-koenig@baylibre.com>
+Reviewed-by: Uwe Kleine-König <u.kleine-koenig@baylibre.com>
+Tested-by: Biju Das <biju.das.jz@bp.renesas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ lib/math/div64.c |  108 +++++++++++++++++++++++++++------------------
+ 1 file changed, 65 insertions(+), 43 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-potential-race-in-__update_and_free_hugetlb_folio
-+++ a/mm/hugetlb.c
-@@ -1726,13 +1726,6 @@ static void __update_and_free_hugetlb_fo
- 	}
+--- a/lib/math/div64.c~mul_u64_u64_div_u64-make-it-precise-always
++++ a/lib/math/div64.c
+@@ -186,55 +186,77 @@ EXPORT_SYMBOL(iter_div_u64_rem);
+ #ifndef mul_u64_u64_div_u64
+ u64 mul_u64_u64_div_u64(u64 a, u64 b, u64 c)
+ {
+-	u64 res = 0, div, rem;
+-	int shift;
++	if (ilog2(a) + ilog2(b) <= 62)
++		return div64_u64(a * b, c);
  
- 	/*
--	 * Move PageHWPoison flag from head page to the raw error pages,
--	 * which makes any healthy subpages reusable.
--	 */
--	if (unlikely(folio_test_hwpoison(folio)))
--		folio_clear_hugetlb_hwpoison(folio);
--
--	/*
- 	 * If vmemmap pages were allocated above, then we need to clear the
- 	 * hugetlb flag under the hugetlb lock.
- 	 */
-@@ -1742,6 +1735,13 @@ static void __update_and_free_hugetlb_fo
- 		spin_unlock_irq(&hugetlb_lock);
- 	}
- 
-+	/*
-+	 * Move PageHWPoison flag from head page to the raw error pages,
-+	 * which makes any healthy subpages reusable.
-+	 */
-+	if (unlikely(folio_test_hwpoison(folio)))
-+		folio_clear_hugetlb_hwpoison(folio);
+-	/* can a * b overflow ? */
+-	if (ilog2(a) + ilog2(b) > 62) {
+-		/*
+-		 * Note that the algorithm after the if block below might lose
+-		 * some precision and the result is more exact for b > a. So
+-		 * exchange a and b if a is bigger than b.
+-		 *
+-		 * For example with a = 43980465100800, b = 100000000, c = 1000000000
+-		 * the below calculation doesn't modify b at all because div == 0
+-		 * and then shift becomes 45 + 26 - 62 = 9 and so the result
+-		 * becomes 4398035251080. However with a and b swapped the exact
+-		 * result is calculated (i.e. 4398046510080).
+-		 */
+-		if (a > b)
+-			swap(a, b);
++#if defined(__SIZEOF_INT128__)
 +
- 	folio_ref_unfreeze(folio, 1);
++	/* native 64x64=128 bits multiplication */
++	u128 prod = (u128)a * b;
++	u64 n_lo = prod, n_hi = prod >> 64;
++
++#else
++
++	/* perform a 64x64=128 bits multiplication manually */
++	u32 a_lo = a, a_hi = a >> 32, b_lo = b, b_hi = b >> 32;
++	u64 x, y, z;
++
++	x = (u64)a_lo * b_lo;
++	y = (u64)a_lo * b_hi + (u32)(x >> 32);
++	z = (u64)a_hi * b_hi + (u32)(y >> 32);
++	y = (u64)a_hi * b_lo + (u32)y;
++	z += (u32)(y >> 32);
++	x = (y << 32) + (u32)x;
++
++	u64 n_lo = x, n_hi = z;
++
++#endif
++
++	int shift = __builtin_ctzll(c);
  
- 	/*
++	/* try reducing the fraction in case the dividend becomes <= 64 bits */
++	if ((n_hi >> shift) == 0) {
++		u64 n = (n_lo >> shift) | (n_hi << (64 - shift));
++
++		return div64_u64(n, c >> shift);
+ 		/*
+-		 * (b * a) / c is equal to
+-		 *
+-		 *      (b / c) * a +
+-		 *      (b % c) * a / c
+-		 *
+-		 * if nothing overflows. Can the 1st multiplication
+-		 * overflow? Yes, but we do not care: this can only
+-		 * happen if the end result can't fit in u64 anyway.
+-		 *
+-		 * So the code below does
+-		 *
+-		 *      res = (b / c) * a;
+-		 *      b = b % c;
++		 * The remainder value if needed would be:
++		 *   res = div64_u64_rem(n, c >> shift, &rem);
++		 *   rem = (rem << shift) + (n_lo - (n << shift));
+ 		 */
+-		div = div64_u64_rem(b, c, &rem);
+-		res = div * a;
+-		b = rem;
+-
+-		shift = ilog2(a) + ilog2(b) - 62;
+-		if (shift > 0) {
+-			/* drop precision */
+-			b >>= shift;
+-			c >>= shift;
+-			if (!c)
+-				return res;
+-		}
+ 	}
+ 
+-	return res + div64_u64(a * b, c);
++	if (n_hi >= c) {
++		/* overflow: result is unrepresentable in a u64 */
++		return -1;
++	}
++
++	/* Do the full 128 by 64 bits division */
++
++	shift = __builtin_clzll(c);
++	c <<= shift;
++
++	int p = 64 + shift;
++	u64 res = 0;
++	bool carry;
++
++	do {
++		carry = n_hi >> 63;
++		shift = carry ? 1 : __builtin_clzll(n_hi);
++		if (p < shift)
++			break;
++		p -= shift;
++		n_hi <<= shift;
++		n_hi |= n_lo >> (64 - shift);
++		n_lo <<= shift;
++		if (carry || (n_hi >= c)) {
++			n_hi -= c;
++			res |= 1ULL << p;
++		}
++	} while (n_hi);
++	/* The remainder value if needed would be n_hi << p */
++
++	return res;
+ }
+ EXPORT_SYMBOL(mul_u64_u64_div_u64);
+ #endif
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from npitre@baylibre.com are
 
-mm-hugetlb-fix-potential-race-in-__update_and_free_hugetlb_folio.patch
-mm-memory-failure-remove-obsolete-mf_msg_different_compound.patch
+mul_u64_u64_div_u64-make-it-precise-always.patch
+mul_u64_u64_div_u64-basic-sanity-test.patch
 
