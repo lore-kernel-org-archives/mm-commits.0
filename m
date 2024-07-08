@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED7C123D0
-	for <mm-commits@vger.kernel.org>; Sun,  7 Jul 2024 02:17:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66F85145B06
+	for <mm-commits@vger.kernel.org>; Mon,  8 Jul 2024 21:37:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720318633; cv=none; b=bXVkoEBxWHiuncPyMWmzY9vglDzGgKuNkdCgrXb8OwN395MUqqiM5rvTQj1vOIxExqfqqiv0DmNjFeByyniayEA4yyfu5lGtOdV3B88tcOMpVXY8i5pyhqaq+ZAVTnQ1BgfeoDmJiWjksdwR/wA6Hn9UneSDNinBE7tfclSwSBo=
+	t=1720474628; cv=none; b=qhys48jZPjkPCHFmIlOERoC/ez2M0POOsDyCq+RQITqUI3pUNAnXmDjfmZp3W7UatbmFtIqhMbCTjiw+QHsdDJ1vSFogN/zfSaYrpMpy65D9fWehqkOhKaAVeUJZGOO33v/KdPjG/kGSdV88wDHcdk+1PGtlqdHSLQ9Bc9y4Bac=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720318633; c=relaxed/simple;
-	bh=S6CYVJqnvrAGJnEP5YIOxLMnONB/oEOPZI/VEFqE8Vk=;
-	h=Date:To:From:Subject:Message-Id; b=fFwJmT/DW2lAGIlAy6cm7PTvqtFmPvED3+cyBdIgLHcp8Amq+RDGkJwZzO/3tcIGwpLBNrln1PbclgK7gP9DZ5v5KatcCxcWnaYNr7oqDjz7GQcRzjDxMVgNTNZgt6fPDT8V4KXI31bAJyCvhDRgUVfIHSmBM8AvlGdYBJoWNGQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZIpegw4d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720474628; c=relaxed/simple;
+	bh=HSn4KjrfI6qMmf6AyvSlPvTs9fkMT1Yi4o5cZQAk3tM=;
+	h=Date:To:From:Subject:Message-Id; b=PWugX5WzHjvK99K6/j4qx6EDNOR/wx7XXJOmIFsLiD+qWHHv43p3FuO2aqe2XFs6Y03DgZ40f/A3Vmv252e9TnnAw8PnyCDJd8Zj3U6E5t1opTyoFesX47/1WxNdF9s/0VC8Kwscyo/1ZWaWrJ8wxZHRHh2Rz0u859NbjOJNo4I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IU9dA81j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZIpegw4d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 550B7C2BD10;
-	Sun,  7 Jul 2024 02:17:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IU9dA81j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13EE1C116B1;
+	Mon,  8 Jul 2024 21:37:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720318632;
-	bh=S6CYVJqnvrAGJnEP5YIOxLMnONB/oEOPZI/VEFqE8Vk=;
+	s=korg; t=1720474628;
+	bh=HSn4KjrfI6qMmf6AyvSlPvTs9fkMT1Yi4o5cZQAk3tM=;
 	h=Date:To:From:Subject:From;
-	b=ZIpegw4d1nSg2rGvnb5UckvzFbGb/flP28IHdlRFl/VO/lf9H3ZNSh4PFrGa+RngT
-	 KGdi1Ny13NvjBVb4a3oAybaxHJ89LjJjnH2uAxV++jYmTjFnp5K/ONTDa38BuIjM+o
-	 stNdQLf6chePsQq6wkjXvwUHkHj71rAcKG5UXR8E=
-Date: Sat, 06 Jul 2024 19:17:11 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,shy828301@gmail.com,ryan.roberts@arm.com,mingzhe.yang@ly.com,libang.li@antgroup.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ioworker0@gmail.com,akpm@linux-foundation.org
+	b=IU9dA81jD/E+CEM7U/9UvZxfW2+9dVbNDYSde2mgmPFJejuvy0eeYbyXdmri99G4d
+	 ZPELxYil56yxZQFHNJyBm5zJzOxjdICVxztzx905TYNxohoctFqXTOb34dqOjsXNbW
+	 5C0OKmb/hM6/tqwHsUrpXB5gI4EIrY0tjKsIV97g=
+Date: Mon, 08 Jul 2024 14:37:07 -0700
+To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,christophe.jaillet@wanadoo.fr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-docs-for-per-order-mthp-split-counters-v3-fix.patch added to mm-unstable branch
-Message-Id: <20240707021712.550B7C2BD10@smtp.kernel.org>
+Subject: + nilfs2-constify-struct-kobj_type.patch added to mm-nonmm-unstable branch
+Message-Id: <20240708213708.13EE1C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-add-docs-for-per-order-mthp-split-counters-v3-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-docs-for-per-order-mthp-split-counters-v3-fix.patch
+     Subject: nilfs2: Constify struct kobj_type
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     nilfs2-constify-struct-kobj_type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-docs-for-per-order-mthp-split-counters-v3-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-constify-struct-kobj_type.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,59 +58,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lance Yang <ioworker0@gmail.com>
-Subject: mm-add-docs-for-per-order-mthp-split-counters-v3-fix
-Date: Sun, 7 Jul 2024 09:36:59 +0800
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: nilfs2: Constify struct kobj_type
+Date: Mon, 8 Jul 2024 23:32:42 +0900
 
-tweak Documentation/admin-guide/mm/transhuge.rst
+'struct kobj_type' is not modified in this driver. It is only used with
+kobject_init_and_add() which takes a "const struct kobj_type *" parameter.
 
-Link: https://lkml.kernel.org/r/20240707013659.1151-1-ioworker0@gmail.com
-Cc: Bang Li <libang.li@antgroup.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Mingzhe Yang <mingzhe.yang@ly.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Constifying this structure moves some data to a read-only section, so
+increase overall security.
+
+On a x86_64, with allmodconfig:
+Before:
+======
+   text	   data	    bss	    dec	    hex	filename
+  22403	   4184	     24	  26611	   67f3	fs/nilfs2/sysfs.o
+
+After:
+=====
+   text	   data	    bss	    dec	    hex	filename
+  22723	   3928	     24	  26675	   6833	fs/nilfs2/sysfs.o
+
+Link: https://lkml.kernel.org/r/20240708143242.3296-1-konishi.ryusuke@gmail.com
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/nilfs2/sysfs.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-add-docs-for-per-order-mthp-split-counters-v3-fix
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -514,17 +514,16 @@ split
- 	is incremented every time a huge page is successfully split into
- 	smaller orders. This can happen for a variety of reasons but a
- 	common reason is that a huge page is old and is being reclaimed.
--	This action implies splitting any block mappings into PTEs.
+--- a/fs/nilfs2/sysfs.c~nilfs2-constify-struct-kobj_type
++++ a/fs/nilfs2/sysfs.c
+@@ -56,7 +56,7 @@ static void nilfs_##name##_attr_release(
+ 						sg_##name##_kobj); \
+ 	complete(&subgroups->sg_##name##_kobj_unregister); \
+ } \
+-static struct kobj_type nilfs_##name##_ktype = { \
++static const struct kobj_type nilfs_##name##_ktype = { \
+ 	.default_groups	= nilfs_##name##_groups, \
+ 	.sysfs_ops	= &nilfs_##name##_attr_ops, \
+ 	.release	= nilfs_##name##_attr_release, \
+@@ -166,7 +166,7 @@ static const struct sysfs_ops nilfs_snap
+ 	.store	= nilfs_snapshot_attr_store,
+ };
  
- split_failed
- 	is incremented if kernel fails to split huge
- 	page. This can happen if the page was pinned by somebody.
+-static struct kobj_type nilfs_snapshot_ktype = {
++static const struct kobj_type nilfs_snapshot_ktype = {
+ 	.default_groups	= nilfs_snapshot_groups,
+ 	.sysfs_ops	= &nilfs_snapshot_attr_ops,
+ 	.release	= nilfs_snapshot_attr_release,
+@@ -967,7 +967,7 @@ static const struct sysfs_ops nilfs_dev_
+ 	.store	= nilfs_dev_attr_store,
+ };
  
- split_deferred
--	is incremented when a huge page is put onto split
--	queue. This happens when a huge page is partially unmapped and
--	splitting it would free up some memory. Pages on split queue are
--	going to be split under memory pressure.
-+        is incremented when a huge page is put onto split queue.
-+        This happens when a huge page is partially unmapped and splitting
-+        it would free up some memory. Pages on split queue are going to
-+        be split under memory pressure, if splitting is possible.
- 
- As the system ages, allocating huge pages may be expensive as the
- system uses memory compaction to copy data around memory to free a
+-static struct kobj_type nilfs_dev_ktype = {
++static const struct kobj_type nilfs_dev_ktype = {
+ 	.default_groups	= nilfs_dev_groups,
+ 	.sysfs_ops	= &nilfs_dev_attr_ops,
+ 	.release	= nilfs_dev_attr_release,
 _
 
-Patches currently in -mm which might be from ioworker0@gmail.com are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
-mm-add-per-order-mthp-split-counters.patch
-mm-add-per-order-mthp-split-counters-v3.patch
-mm-add-per-order-mthp-split-counters-fix.patch
-mm-add-docs-for-per-order-mthp-split-counters.patch
-mm-add-docs-for-per-order-mthp-split-counters-v3.patch
-mm-add-docs-for-per-order-mthp-split-counters-v3-fix.patch
+nilfs2-constify-struct-kobj_type.patch
 
