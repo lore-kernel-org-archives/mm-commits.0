@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3974B152786;
-	Mon,  8 Jul 2024 22:16:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9056F2D058
+	for <mm-commits@vger.kernel.org>; Mon,  8 Jul 2024 22:18:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720477004; cv=none; b=fmeTTf0BTvjS4fQbegqQPoaxLMCPWHlXO4tYn81trq6j9Kgj9tzqD0ayIrKyzL1HbCWTOg2EJdgo/kQLZSe/myWQt5vhVWh3OC9Vh+S8BoCw1YODjG3R+YPCyR7bqS6Q3GgUGnguiDfTWJiGqYtfLq4GtaCz0L2bsuDi07+xZg8=
+	t=1720477103; cv=none; b=Gv9ZtIhxb2zIEHTfMC1tjC7TcAk3Plz4eIxdGAa8/oMuq/iv6nEuuv0JHOCqIORPvbsxTwXMOsTW03YZ0sSzNJL9lwt2pAS2FNmAG9FLHK4k+BL42EUwQiSXvLloHTG49WTCh/it2HHDw+wu8M9ovD1rIeeNdyvs486sRu9rxNA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720477004; c=relaxed/simple;
-	bh=Hw7x3tk4lNvNspTn2B7PC09m4IG+BoSPEZOIHjpJq2E=;
-	h=Date:To:From:Subject:Message-Id; b=HARjL63lkIDCr5uXIcjY2or0+PqZdzZB4nh4CB5tNEWLyHr05KoCFJT751WRwVB5yyxorBqhA9cK7TMfN1Py9lZrRmAtjgr8ecSNTH7zwpElEsKOx/rhgOEd/pAzPu/ao7CoZNSyfYhF0RHNdUVPvxf0JYpDjTOpf/xsuMXr/HE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LrYjC8ST; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720477103; c=relaxed/simple;
+	bh=qFT9e5vHv0Aw0S+wooYf1Jjjl+55UEHcTjDC/anuJ04=;
+	h=Date:To:From:Subject:Message-Id; b=K5rStZ88Aofg01ZeguVSy+1eabsFYB5M19AeSSgncoIip/JYMn1LN6FcZopyF/Y3BNUhS6vb8fg4qlNTxes7mCa8syzORIvEOxH9mBcEq7rR3oZwxlHnWpY27VGnYcRBTAkckBeoahm7WvRMhs1qNx6tLoOuB22ZzfTsa4Xi4GQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p9ICFtNW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LrYjC8ST"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6344C4AF0E;
-	Mon,  8 Jul 2024 22:16:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p9ICFtNW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14ACFC116B1;
+	Mon,  8 Jul 2024 22:18:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720477003;
-	bh=Hw7x3tk4lNvNspTn2B7PC09m4IG+BoSPEZOIHjpJq2E=;
+	s=korg; t=1720477103;
+	bh=qFT9e5vHv0Aw0S+wooYf1Jjjl+55UEHcTjDC/anuJ04=;
 	h=Date:To:From:Subject:From;
-	b=LrYjC8STXwH1AJjCo2pRj8tQIiQ/asiTYbuuFJr9UAe7J3yNk6aQcNsenapG73Qd8
-	 prtDNJoD8ATY8kwLa7bunLgYegxsWJzGc+8dRkIUnTDrAu/OylH1nLgDPy8R5pGYi5
-	 Y2wR3iJbIC/DOHlDgGoVQuoOoQCxjDzCMAKAgTME=
-Date: Mon, 08 Jul 2024 15:16:42 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mgorman@techsingularity.net,hannes@cmpxchg.org,bharata@amd.com,yuzhao@google.com,akpm@linux-foundation.org
+	b=p9ICFtNW9lQF9RzmLw+mtbhwNb0Es+w3aL6rnDE1v21EdOeOWXpXL0+wQtwVMxzSV
+	 JOtk/Uw1YnMpCd49OZuu46xJlkC4njuoAzNxNiNVUYUA9RmFzWtQ8qmcGpUxWCCh0M
+	 8egvw2T0UF35Lt1LY/L6NzjN5g9gxPA7uZGb6ZKs=
+Date: Mon, 08 Jul 2024 15:18:22 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,shy828301@gmail.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-truncate-batch-clear-shadow-entries.patch added to mm-unstable branch
-Message-Id: <20240708221643.A6344C4AF0E@smtp.kernel.org>
+Subject: + mm-migrate-putback-split-folios-when-numa-hint-migration-fails.patch added to mm-unstable branch
+Message-Id: <20240708221823.14ACFC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/truncate: batch-clear shadow entries
+     Subject: mm/migrate: putback split folios when numa hint migration fails
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-truncate-batch-clear-shadow-entries.patch
+     mm-migrate-putback-split-folios-when-numa-hint-migration-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-truncate-batch-clear-shadow-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-putback-split-folios-when-numa-hint-migration-fails.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,165 +58,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm/truncate: batch-clear shadow entries
-Date: Mon, 8 Jul 2024 15:27:53 -0600
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/migrate: putback split folios when numa hint migration fails
+Date: Mon, 8 Jul 2024 17:55:37 -0400
 
-Make clear_shadow_entry() clear shadow entries in `struct folio_batch` so
-that it can reduce contention on i_lock and i_pages locks, e.g.,
+This issue is not from any report yet, but by code observation only.
 
-  watchdog: BUG: soft lockup - CPU#29 stuck for 11s! [fio:2701649]
-    clear_shadow_entry+0x3d/0x100
-    mapping_try_invalidate+0x117/0x1d0
-    invalidate_mapping_pages+0x10/0x20
-    invalidate_bdev+0x3c/0x50
-    blkdev_common_ioctl+0x5f7/0xa90
-    blkdev_ioctl+0x109/0x270
+This is yet another fix besides Hugh's patch [1] but on relevant code
+path, where eager split of folio can happen if the folio is already on
+deferred list during a folio migration.
 
-Link: https://lkml.kernel.org/r/20240708212753.3120511-1-yuzhao@google.com
-Reported-by: Bharata B Rao <bharata@amd.com>
-Closes: https://lore.kernel.org/d2841226-e27b-4d3d-a578-63587a3aa4f3@amd.com/
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>
+Here the issue is NUMA path (migrate_misplaced_folio()) may start to
+encounter such folio split now even with MR_NUMA_MISPLACED hint applied. 
+Then when migrate_pages() didn't migrate all the folios, it's possible the
+split small folios be put onto the list instead of the original folio. 
+Then putting back only the head page won't be enough.
+
+Fix it by putting back all the folios on the list.
+
+[1] https://lore.kernel.org/all/46c948b4-4dd8-6e03-4c7b-ce4e81cfa536@google.com/
+
+Link: https://lkml.kernel.org/r/20240708215537.2630610-1-peterx@redhat.com
+Fixes: 7262f208ca68 ("mm/migrate: split source folio if it is on deferred split list")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   67 +++++++++++++++++++++---------------------------
- 1 file changed, 30 insertions(+), 37 deletions(-)
+ mm/migrate.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
---- a/mm/truncate.c~mm-truncate-batch-clear-shadow-entries
-+++ a/mm/truncate.c
-@@ -39,12 +39,24 @@ static inline void __clear_shadow_entry(
- 	xas_store(&xas, NULL);
- }
- 
--static void clear_shadow_entry(struct address_space *mapping, pgoff_t index,
--			       void *entry)
-+static void clear_shadow_entry(struct address_space *mapping,
-+			       struct folio_batch *fbatch, pgoff_t *indices)
- {
-+	int i;
-+
-+	if (shmem_mapping(mapping) || dax_mapping(mapping))
-+		return;
-+
- 	spin_lock(&mapping->host->i_lock);
- 	xa_lock_irq(&mapping->i_pages);
--	__clear_shadow_entry(mapping, index, entry);
-+
-+	for (i = 0; i < folio_batch_count(fbatch); i++) {
-+		struct folio *folio = fbatch->folios[i];
-+
-+		if (xa_is_value(folio))
-+			__clear_shadow_entry(mapping, indices[i], folio);
-+	}
-+
- 	xa_unlock_irq(&mapping->i_pages);
- 	if (mapping_shrinkable(mapping))
- 		inode_add_lru(mapping->host);
-@@ -105,36 +117,6 @@ static void truncate_folio_batch_excepti
- 	fbatch->nr = j;
- }
- 
--/*
-- * Invalidate exceptional entry if easily possible. This handles exceptional
-- * entries for invalidate_inode_pages().
-- */
--static int invalidate_exceptional_entry(struct address_space *mapping,
--					pgoff_t index, void *entry)
--{
--	/* Handled by shmem itself, or for DAX we do nothing. */
--	if (shmem_mapping(mapping) || dax_mapping(mapping))
--		return 1;
--	clear_shadow_entry(mapping, index, entry);
--	return 1;
--}
--
--/*
-- * Invalidate exceptional entry if clean. This handles exceptional entries for
-- * invalidate_inode_pages2() so for DAX it evicts only clean entries.
-- */
--static int invalidate_exceptional_entry2(struct address_space *mapping,
--					 pgoff_t index, void *entry)
--{
--	/* Handled by shmem itself */
--	if (shmem_mapping(mapping))
--		return 1;
--	if (dax_mapping(mapping))
--		return dax_invalidate_mapping_entry_sync(mapping, index);
--	clear_shadow_entry(mapping, index, entry);
--	return 1;
--}
--
- /**
-  * folio_invalidate - Invalidate part or all of a folio.
-  * @folio: The folio which is affected.
-@@ -494,6 +476,7 @@ unsigned long mapping_try_invalidate(str
- 	unsigned long ret;
- 	unsigned long count = 0;
- 	int i;
-+	bool xa_has_values = false;
- 
- 	folio_batch_init(&fbatch);
- 	while (find_lock_entries(mapping, &index, end, &fbatch, indices)) {
-@@ -503,8 +486,8 @@ unsigned long mapping_try_invalidate(str
- 			/* We rely upon deletion not changing folio->index */
- 
- 			if (xa_is_value(folio)) {
--				count += invalidate_exceptional_entry(mapping,
--							     indices[i], folio);
-+				xa_has_values = true;
-+				count++;
- 				continue;
- 			}
- 
-@@ -522,6 +505,10 @@ unsigned long mapping_try_invalidate(str
- 			}
- 			count += ret;
- 		}
-+
-+		if (xa_has_values)
-+			clear_shadow_entry(mapping, &fbatch, indices);
-+
- 		folio_batch_remove_exceptionals(&fbatch);
- 		folio_batch_release(&fbatch);
- 		cond_resched();
-@@ -616,6 +603,7 @@ int invalidate_inode_pages2_range(struct
- 	int ret = 0;
- 	int ret2 = 0;
- 	int did_range_unmap = 0;
-+	bool xa_has_values = false;
- 
- 	if (mapping_empty(mapping))
- 		return 0;
-@@ -629,8 +617,9 @@ int invalidate_inode_pages2_range(struct
- 			/* We rely upon deletion not changing folio->index */
- 
- 			if (xa_is_value(folio)) {
--				if (!invalidate_exceptional_entry2(mapping,
--						indices[i], folio))
-+				xa_has_values = true;
-+				if (dax_mapping(mapping) &&
-+				    !dax_invalidate_mapping_entry_sync(mapping, indices[i]))
- 					ret = -EBUSY;
- 				continue;
- 			}
-@@ -666,6 +655,10 @@ int invalidate_inode_pages2_range(struct
- 				ret = ret2;
- 			folio_unlock(folio);
- 		}
-+
-+		if (xa_has_values)
-+			clear_shadow_entry(mapping, &fbatch, indices);
-+
- 		folio_batch_remove_exceptionals(&fbatch);
- 		folio_batch_release(&fbatch);
- 		cond_resched();
+--- a/mm/migrate.c~mm-migrate-putback-split-folios-when-numa-hint-migration-fails
++++ a/mm/migrate.c
+@@ -2627,14 +2627,8 @@ int migrate_misplaced_folio(struct folio
+ 	nr_remaining = migrate_pages(&migratepages, alloc_misplaced_dst_folio,
+ 				     NULL, node, MIGRATE_ASYNC,
+ 				     MR_NUMA_MISPLACED, &nr_succeeded);
+-	if (nr_remaining) {
+-		if (!list_empty(&migratepages)) {
+-			list_del(&folio->lru);
+-			node_stat_mod_folio(folio, NR_ISOLATED_ANON +
+-					folio_is_file_lru(folio), -nr_pages);
+-			folio_putback_lru(folio);
+-		}
+-	}
++	if (nr_remaining && !list_empty(&migratepages))
++		putback_movable_pages(&migratepages);
+ 	if (nr_succeeded) {
+ 		count_vm_numa_events(NUMA_PAGE_MIGRATE, nr_succeeded);
+ 		if (!node_is_toptier(folio_nid(folio)) && node_is_toptier(node))
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-truncate-batch-clear-shadow-entries.patch
+mm-migrate-putback-split-folios-when-numa-hint-migration-fails.patch
 
