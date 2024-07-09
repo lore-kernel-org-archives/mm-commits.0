@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E61414374C
-	for <mm-commits@vger.kernel.org>; Tue,  9 Jul 2024 21:48:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0343714374C
+	for <mm-commits@vger.kernel.org>; Tue,  9 Jul 2024 21:50:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720561689; cv=none; b=IShMWvYYpJL1VORB4MNbT2OUeaYe77XarIYpFJ6Uj0oIXGBkApQhStd+5QxQ73sU4+6FGy98Y84UArtzZeeltptCdx/7t5ygmNPiguaxOOhatmrRN1szOZmed3UdZ0EgwDwgBaFBEB2FnKnleadv6Ip4RfuCtj54pVEdQnE90/k=
+	t=1720561822; cv=none; b=kkatNk8vqEZNl9M/TEfWRkRyYNdNn0v8nZodvN4BOLIAfexb5ivdcnM9i3h4TSuydtFeorGMnlkS+RrJCx0er5OyJnWSrMw8zDS5kGpYhbHJ+ZF/g3ncQ8OvVJ/Z+DPo3wfKVhUdDHnjzReOFggfhfO/yHzFcQdW6tr5IChGDCA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720561689; c=relaxed/simple;
-	bh=ziJl/j45bZlups9tDtuDecVfHx3YvjqZcjMbfQHEenY=;
-	h=Date:To:From:Subject:Message-Id; b=cf4sCGiupgTxjDEmqayCrTe2jpb1vvVcs0JYZjR2ddWhJQY1tD9ztRuvmJCuduf5MJUOD9TkPOFFWrD+9m4AH0JqfNvPnp03MwjsrBaO0wQe1ccO9NehWUfhy1ATy4ZAKInC0bzRPweeFefjRSjMkur8ZCNd3l+1zSpDN/mmPOk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=po8JxV9f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720561822; c=relaxed/simple;
+	bh=QkTspA8DPBkfNhb0ymau7j3nrWDjuFhtqKvLbbCnnW8=;
+	h=Date:To:From:Subject:Message-Id; b=Xvy0HI6mSNLuJpYRnppCHncZeHHqZPBai3Vi1gFuRx8uUOHaOm9vm3ndMbdWlsQ6rG5hTgj+Tbf/tBc7/LwvEPjJAqNj0XJhYM/7PeYh5Kc30vpZ5Tdryv5hdaDbeKWMGEv0TQCSYUB30hCXVJSDZjbGFzoKcPrtvWgLj6kjA/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x1Sva5Fe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="po8JxV9f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCBE9C3277B;
-	Tue,  9 Jul 2024 21:48:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x1Sva5Fe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71401C3277B;
+	Tue,  9 Jul 2024 21:50:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720561688;
-	bh=ziJl/j45bZlups9tDtuDecVfHx3YvjqZcjMbfQHEenY=;
+	s=korg; t=1720561821;
+	bh=QkTspA8DPBkfNhb0ymau7j3nrWDjuFhtqKvLbbCnnW8=;
 	h=Date:To:From:Subject:From;
-	b=po8JxV9f9NbjUtkd3bnGBcqyU3yy++StvN3KaCoGtd6SdCjrJB9Vjc7FZo9osJIvL
-	 hF2582kwoLLobPaBHPhhIjYpy44Wdjud9riJprUpn/eRO9K9HtjL2+JznbC7XA0pPN
-	 TBSuB9te5fwX614yfZKiPGyarN5C3l0qcfTyaQ+U=
-Date: Tue, 09 Jul 2024 14:48:08 -0700
-To: mm-commits@vger.kernel.org,yonghong.song@linux.dev,song@kernel.org,sdf@fomichev.me,martin.lau@linux.dev,kpsingh@kernel.org,jolsa@kernel.org,john.fastabend@gmail.com,haoluo@google.com,eddyz87@gmail.com,daniel@iogearbox.net,ast@kernel.org,andrii@kernel.org,nichen@iscas.ac.cn,akpm@linux-foundation.org
+	b=x1Sva5Fe+0oYUVM/I+mpWIdR82tTLohSA75OkPpO8iufuSpkR2ISlICxl4A+Ua+nm
+	 gCGMS8Qk4K52IbZ/8GztK4hWR0+xKoVlQ8Sy/APl9UYi2mLHvm3erR1gApx1XkymZL
+	 TmDvklp8VQnrfWi5xLq9mLYK1MzqiUvjS3rl/Lco=
+Date: Tue, 09 Jul 2024 14:50:20 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + test_bpf-convert-comma-to-semicolon.patch added to mm-nonmm-unstable branch
-Message-Id: <20240709214808.BCBE9C3277B@smtp.kernel.org>
+Subject: [to-be-updated] mm-use-zonelist_zone-to-get-zone.patch removed from -mm tree
+Message-Id: <20240709215021.71401C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,79 +34,56 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: test_bpf: convert comma to semicolon
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     test_bpf-convert-comma-to-semicolon.patch
+The quilt patch titled
+     Subject: mm: use zonelist_zone() to get zone
+has been removed from the -mm tree.  Its filename was
+     mm-use-zonelist_zone-to-get-zone.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/test_bpf-convert-comma-to-semicolon.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Chen Ni <nichen@iscas.ac.cn>
-Subject: test_bpf: convert comma to semicolon
-Date: Tue, 9 Jul 2024 11:43:23 +0800
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm: use zonelist_zone() to get zone
+Date: Sat, 6 Jul 2024 01:50:44 +0000
 
-Replace commas between expression statements with semicolons.
+Instead of accessing zoneref->zone directly, use zonelist_zone() like
+other places for consistency.
 
-Link: https://lkml.kernel.org/r/20240709034323.586185-1-nichen@iscas.ac.cn
-Signed-off-by: Chen Ni <nichen@iscas.ac.cn>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: Hao Luo <haoluo@google.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: KP Singh <kpsingh@kernel.org>
-Cc: Martin KaFai Lau <martin.lau@linux.dev>
-Cc: Song Liu <song@kernel.org>
-Cc: Stanislav Fomichev <sdf@fomichev.me>
-Cc: Yonghong Song <yonghong.song@linux.dev>
+No functional change.
+
+Link: https://lkml.kernel.org/r/20240706015044.27789-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_bpf.c |    4 ++--
+ include/linux/mmzone.h |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/test_bpf.c~test_bpf-convert-comma-to-semicolon
-+++ a/lib/test_bpf.c
-@@ -1740,7 +1740,7 @@ static int __bpf_emit_cmpxchg32(struct b
- 	/* Result unsuccessful */
- 	insns[i++] = BPF_STX_MEM(BPF_W, R10, R1, -4);
- 	insns[i++] = BPF_ATOMIC_OP(BPF_W, BPF_CMPXCHG, R10, R2, -4);
--	insns[i++] = BPF_ZEXT_REG(R0), /* Zext always inserted by verifier */
-+	insns[i++] = BPF_ZEXT_REG(R0); /* Zext always inserted by verifier */
- 	insns[i++] = BPF_LDX_MEM(BPF_W, R3, R10, -4);
+--- a/include/linux/mmzone.h~mm-use-zonelist_zone-to-get-zone
++++ a/include/linux/mmzone.h
+@@ -1690,7 +1690,7 @@ static inline struct zoneref *first_zone
+ 			zone = zonelist_zone(z))
  
- 	insns[i++] = BPF_JMP32_REG(BPF_JEQ, R1, R3, 2);
-@@ -1754,7 +1754,7 @@ static int __bpf_emit_cmpxchg32(struct b
- 	/* Result successful */
- 	i += __bpf_ld_imm64(&insns[i], R0, dst);
- 	insns[i++] = BPF_ATOMIC_OP(BPF_W, BPF_CMPXCHG, R10, R2, -4);
--	insns[i++] = BPF_ZEXT_REG(R0), /* Zext always inserted by verifier */
-+	insns[i++] = BPF_ZEXT_REG(R0); /* Zext always inserted by verifier */
- 	insns[i++] = BPF_LDX_MEM(BPF_W, R3, R10, -4);
+ #define for_next_zone_zonelist_nodemask(zone, z, highidx, nodemask) \
+-	for (zone = z->zone;	\
++	for (zone = zonelist_zone(z);	\
+ 		zone;							\
+ 		z = next_zones_zonelist(++z, highidx, nodemask),	\
+ 			zone = zonelist_zone(z))
+@@ -1726,7 +1726,7 @@ static inline bool movable_only_nodes(no
+ 	nid = first_node(*nodes);
+ 	zonelist = &NODE_DATA(nid)->node_zonelists[ZONELIST_FALLBACK];
+ 	z = first_zones_zonelist(zonelist, ZONE_NORMAL,	nodes);
+-	return (!z->zone) ? true : false;
++	return (!zonelist_zone(z)) ? true : false;
+ }
  
- 	insns[i++] = BPF_JMP32_REG(BPF_JEQ, R2, R3, 2);
+ 
 _
 
-Patches currently in -mm which might be from nichen@iscas.ac.cn are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-test_bpf-convert-comma-to-semicolon.patch
+mm-page_alloc-put-__free_pages_core-in-__meminit-section.patch
 
